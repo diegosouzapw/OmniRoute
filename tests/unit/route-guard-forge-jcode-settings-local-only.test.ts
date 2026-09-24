@@ -42,7 +42,10 @@ test("sibling cli-tools spawn-capable settings routes stay LOCAL_ONLY", () => {
 
 test("non-spawning cli-tools routes are NOT over-gated by this entry", () => {
   // The new prefixes must not accidentally widen to the whole /api/cli-tools/ subtree,
-  // which remote dashboards legitimately use.
-  assert.equal(isLocalOnlyPath("/api/cli-tools/all-statuses"), false);
+  // which remote dashboards legitimately use. (/api/cli-tools/all-statuses used to be
+  // the negative control here, but it calls getCliRuntimeStatus() too and became
+  // LOCAL_ONLY under GHSA-35fw-cv32-2373 — see
+  // route-guard-cli-tools-settings-local-only.test.ts.)
   assert.equal(isLocalOnlyPath("/api/cli-tools/keys"), false);
+  assert.equal(isLocalOnlyPath("/api/cli-tools/config"), false);
 });

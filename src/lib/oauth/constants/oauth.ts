@@ -4,6 +4,7 @@ import {
   getAntigravityFetchAvailableModelsUrls,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
+  CODEBUDDY_CN_USER_AGENT,
   GITHUB_COPILOT_API_VERSION,
   GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
   GITHUB_COPILOT_CHAT_USER_AGENT,
@@ -19,7 +20,7 @@ import {
   GROK_BUILD_TOKEN_URL,
 } from "@omniroute/open-sse/config/grokBuild.ts";
 import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
-import { CURSOR_AGENT_CLI_VERSION } from "@omniroute/open-sse/utils/cursorAgentCliVersion.ts";
+import { CURSOR_AGENT_CLI_VERSION } from "@omniroute/open-sse/utils/cursorAgentCliVersionPin.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
 /**
@@ -106,14 +107,7 @@ export const QODER_CONFIG = {
 // CodeBuddy CN (Tencent — copilot.tencent.com) OAuth Configuration
 // (Custom Device-Auth Flow: POST stateUrl → open authUrl → GET pollUrl?state=).
 // No client_id/secret — the upstream CLI ships none.
-//
-// CODEBUDDY_CN_USER_AGENT is the single source of truth for the CLI/CodeBuddy version
-// string. It MUST stay identical across OAuth (this file), chat completions
-// (open-sse/config/providers/registry/codebuddy-cn/index.ts) and usage/quota
-// (open-sse/services/usage/codebuddy-cn.ts) — a mismatched version string across a
-// single account's auth vs. chat calls is exactly the kind of internally-inconsistent
-// client fingerprint Tencent's WAF flags as anomalous (#12702).
-export const CODEBUDDY_CN_USER_AGENT = "CLI/2.108.1 CodeBuddy/2.108.1";
+export { CODEBUDDY_CN_USER_AGENT };
 
 export const CODEBUDDY_CN_CONFIG = {
   baseUrl: "https://copilot.tencent.com",
@@ -176,6 +170,15 @@ export const OPENFERENCE_CONFIG = {
   loopbackPort: 56123,
   callbackPath: "/callback",
   callbackHost: "127.0.0.1",
+};
+
+// Muse Code (Meta) OAuth — RFC 8628 device grant + subscription key mint.
+// Public CLI client id (Muse Code CLI); PKCE is not used on this grant.
+export const MUSE_CODE_CONFIG = {
+  clientId: resolvePublicCred("muse_id", "MUSE_CODE_OAUTH_CLIENT_ID"),
+  deviceCodeUrl: "https://auth.meta.com/oidc/device/authorization/",
+  tokenUrl: "https://auth.meta.com/oidc/device/token/",
+  mintUrl: "https://api.meta.ai/muse-code/key",
 };
 
 // Kimi Coding OAuth Configuration (Device Code Flow)
@@ -381,7 +384,7 @@ export const KIRO_CONFIG = {
 // Cursor stores credentials in SQLite database: state.vscdb
 // Keys: cursorAuth/accessToken, cursorAuth/refreshToken, storage.serviceMachineId
 // Deep-control PKCE + refresh aligned with OpenCodex (lidge-jun/opencodex src/oauth/cursor.ts).
-// clientVersion pin lives in open-sse/utils/cursorAgentCliVersion.ts — single source of truth.
+// clientVersion pin lives in open-sse/utils/cursorAgentCliVersionPin.ts — single source of truth.
 export const CURSOR_CONFIG = {
   // API endpoints
   apiEndpoint: "https://api2.cursor.sh",
@@ -522,4 +525,5 @@ export const PROVIDERS = {
   OPENFERENCE: "openference",
   ZED: "zed",
   ZED_HOSTED: "zed-hosted",
+  MUSE_CODE: "muse-code",
 };

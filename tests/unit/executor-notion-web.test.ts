@@ -37,6 +37,27 @@ function installNotionTlsMock(
   return () => __setTlsFetchOverrideForTesting(null);
 }
 
+function hostilePrototypeFailure(label: string): unknown {
+  return new Proxy(
+    {},
+    {
+      getPrototypeOf() {
+        throw new Error(`access_token=${label}-prototype-secret at /srv/private/${label}.ts:1:2`);
+      },
+      get(_target, property) {
+        if (property === "toString") {
+          return () => {
+            throw new Error(
+              `access_token=${label}-coercion-secret at /srv/private/${label}-coercion.ts:1:2`
+            );
+          };
+        }
+        return undefined;
+      },
+    }
+  );
+}
+
 describe("NotionWebExecutor — registry consistency", () => {
   it("is present in WEB_COOKIE_PROVIDERS with the expected shape", () => {
     const entry = (WEB_COOKIE_PROVIDERS as Record<string, Record<string, unknown>>)["notion-web"];
@@ -424,6 +445,68 @@ describe("NotionWebExecutor — upstream translation (mocked TLS fetch)", () => 
       globalThis.fetch = previousFetch;
       if (previousHttpsProxy === undefined) delete process.env.HTTPS_PROXY;
       else process.env.HTTPS_PROXY = previousHttpsProxy;
+    }
+  });
+
+  it("sanitizes credentials, private paths, and stack frames from TLS transport errors", async () => {
+    const executor = new mod.NotionWebExecutor();
+    const restore = installNotionTlsMock(async () => {
+      throw new Error(
+        "TLS transport failed; access token: notion-tls-secret while reading " +
+          "/srv/private/notion/request.ts:42:7\n    at send (/srv/private/notion/request.ts:42:7)"
+      );
+    });
+    try {
+      const result = await executor.execute({
+        model: "notion-ai",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+
+      assert.equal(result.response.status, 502);
+      assert.equal(result.url, "https://app.notion.com/api/v3/runInferenceTranscript");
+      assert.equal(
+        (result.transformedBody as { spaceId?: string }).spaceId,
+        "space-1",
+        "the executor must preserve the upstream request body on transport failure"
+      );
+      const errBody = (await result.response.json()) as {
+        error: { message: string; type: string; code: string };
+      };
+      assert.match(errBody.error.message, /Notion fetch failed: TLS transport failed/);
+      assert.equal(errBody.error.type, "upstream_error");
+      assert.equal(errBody.error.code, "HTTP_502");
+      assert.ok(!errBody.error.message.includes("notion-tls-secret"));
+      assert.ok(!errBody.error.message.includes("/srv/private"));
+      assert.ok(!errBody.error.message.includes("at send"));
+    } finally {
+      restore();
+    }
+  });
+
+  it("fails closed when a TLS rejection has a hostile prototype", async () => {
+    const executor = new mod.NotionWebExecutor();
+    const restoreTls = installNotionTlsMock(async () => {
+      throw hostilePrototypeFailure("notion-tls-proxy");
+    });
+
+    try {
+      const result = await executor.execute({
+        model: "notion-ai",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+
+      assert.equal(result.response.status, 502);
+      const responseText = await result.response.text();
+      assert.match(responseText, /Notion fetch failed: unknown error/);
+      assert.doesNotMatch(responseText, /prototype-secret|coercion-secret|\/srv\/private/);
+    } finally {
+      restoreTls();
     }
   });
 

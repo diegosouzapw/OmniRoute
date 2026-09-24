@@ -992,6 +992,13 @@
   "featureFlagExposeCcDiscoveryAliasesDescription": "Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "featureFlagNoThinkingAliasEnabledDescription": "Master switch for the no-think/&lt;provider&gt;/&lt;model&gt; gateway aliases. On (default): /v1/models advertises a no-thinking variant for every eligible thinking-capable Claude model, and a no-think/ id sent on a request resolves back to the real model with reasoning suppressed. Off: no variants are advertised and a no-think/ id is treated like any other unknown model id. The per-model ModelSpec.noThinkingAlias opt-in/opt-out still applies while this is on.",
   "featureFlagChatVirtualLanesEnabledDescription": "Enable per-tenant adaptive virtual admission lanes for provider dispatch (#9654): one tenant's burst no longer 503s another. The OMNIROUTE_CHAT_VIRTUAL_LANES env var wins over this dashboard override; changes take effect at server restart.",
+  "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Dashboard provider pages: show the Free badge only on signals the provider honors — drops the display-name heuristic, non-boolean free fields and :free suffixes on registered providers without a documented free tier. Off keeps the historical badge rule.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. Off by default: selection order is exactly the plain rotation.",
+  "featureFlagProxyPoolEgressObservationDescription": "Show, under a proxy pool in the dashboard, how many observed egress IPs served its members over the last 24 h, how many connections used them and the most seen behind one IP. Read-only, computed from the proxy log, never used for routing. Off by default: the pool editor is unchanged and the observation route answers null.",
+  "featureFlagProxyHealthBlockedResetsStreakDescription": "In the proxy health sweep, let a probe the target refused (401/403/429: the proxy relayed, the destination refused this egress IP) reset the consecutive-failure streak of the proxy, like a served probe. Off by default: a refusal stays neutral and keeps the streak. A 5xx stays inconclusive either way, and a refusal never removes, disables or re-activates a proxy.",
+  "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Let the automatic cleanup sweep delete terminal (completed/failed/cancelled/expired) Batch API jobs older than OMNIROUTE_BATCH_RETENTION_DAYS, along with their per-line checkpoints, and clear the BLOB content of uploaded files past their own expires_at. Off by default: every existing install keeps this data exactly as before until an operator opts in. The operator-triggered DELETE /api/v1/batches/delete-completed route is unaffected either way -- it is a separate, unconditional public API contract.",
+  "featureFlagXaiOauthLiveModelDiscoveryDescription": "Fetch the live xAI model catalog for xai-oauth connections from https://api.x.ai/v1/models using the OAuth bearer token, instead of the frozen static seed. Off by default: xai-oauth keeps serving the static seed unchanged. On any resolution error, discovery falls back to the seed.",
+  "featureFlagDbHealthcheckStartupDeferredEnabledDescription": "Run the startup database integrity/health check after the server starts accepting requests instead of blocking startup until it completes. Off by default: startup blocks on the check exactly like before this change, so a corrupt database is still caught before the first request is served.",
   "sidebar": {
     "home": "Home",
     "dashboard": "Dashboard",
@@ -1286,6 +1293,9 @@
     "mainNavigation": "Main navigation",
     "unpinSection": "Unpin section",
     "pinSectionOpen": "Pin section open",
+    "pinItem": "Pin item",
+    "unpinItem": "Unpin item",
+    "pinnedSection": "Pinned",
     "reloadPage": "Reload Page",
     "dragReorderSection": "Drag to reorder section",
     "dragReorderItem": "Drag to reorder",
@@ -3281,6 +3291,10 @@
     "models": "Models",
     "autoBalance": "Auto-balance",
     "advancedSettings": "Advanced Settings",
+    "targetTimeout": "Target timeout (seconds)",
+    "comboTimeout": "Combo timeout (seconds)",
+    "inheritRequestTimeout": "inherit",
+    "inheritComboSafetyTimeout": "inherit (10 min)",
     "retryDelay": "Retry Delay (ms)",
     "concurrencyPerModel": "Concurrency / Model",
     "queueTimeout": "Queue Timeout (ms)",
@@ -3427,6 +3441,8 @@
       "failoverBeforeRetry": "When enabled, any upstream error triggers immediate failover to the next combo target, skipping all retries and fallback URLs.",
       "maxSetRetries": "Number of times to retry the full target set when every target fails. 0 = no set-level retry.",
       "setRetryDelayMs": "Delay between set-level retry attempts, giving transient issues time to resolve.",
+      "targetTimeoutMs": "Optional per-target timeout. Empty inherits the current request timeout; larger values are capped to that timeout.",
+      "comboTimeoutMs": "Optional whole-combo wall-clock budget across all failover targets. Empty keeps the 10-minute hang-stop; a positive value replaces it. Keep this longer than Target timeout so failover still has time.",
       "disableSessionStickiness": "Rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Overrides the global default. Leave on Inherit to preserve prompt-cache hits for multi-turn chats."
     },
     "templatesTitle": "Quick templates",
@@ -5002,6 +5018,8 @@
     "failedSetPassword": "Failed to set password. Try again.",
     "failedAddProvider": "Failed to add provider. Try again.",
     "connectionError": "Connection error. Please try again.",
+    "bootstrapTokenLabel": "Bootstrap token",
+    "bootstrapTokenHelp": "This connection isn't recognized as local (common behind Docker port-forwarding). Check the server/container log for a one-time bootstrap token and paste it above to continue.",
     "provider": "Provider",
     "apiKeyHelp": "An API key is a password for AI services. Get one from your provider's website (e.g., platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -5045,6 +5063,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "Providers",
     "Account Deactivated": "Account Deactivated",
     "allProviders": "All Providers",
@@ -5782,6 +5805,10 @@
     "grokWebCookieHint": "Grok Web Cookie Hint",
     "blockClaudeExtraUsageDescription": "When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
     "blockClaudeExtraUsageLabel": "Block extra Claude usage",
+    "claudeLowPriorityModeLabel": "Continue at lower priority after the 5-hour limit",
+    "claudeLowPriorityModeDescription": "When this account hits its 5-hour usage limit and Anthropic offers the lower-priority lane, OmniRoute accepts it and keeps sending requests with anthropic-usage-limit: slow until the window resets, instead of cooling the connection down. The weekly limit still applies and responses may wait for spare capacity.",
+    "claudeAutoLimitResetLabel": "Auto-reset the session limit (once a week)",
+    "claudeAutoLimitResetDescription": "When this account hits its 5-hour usage limit and a session-limit reset is available, OmniRoute claims it automatically and retries at full speed. Uses the account's once-a-week reset and still counts toward the weekly limit.",
     "disableCoolingDescription": "Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
     "disableCoolingLabel": "Disable cooldown for this connection",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -5959,7 +5986,9 @@
     "validationModelIdHint": "Model used to verify the API key. Leave blank to use the provider’s first available model.",
     "validationModelIdLabel": "Validation Model",
     "validationModelIdPlaceholder": "e.g. meta-llama/llama-3.1-8b-instruct",
-    "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
+    "vertexServiceAccountPlaceholder": "Paste an API key, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}), or OAuth access token",
     "webCookieProviders": "Web Cookie Providers",
     "weeklyShort": "Weekly Short",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo Base Url Hint",
@@ -6121,6 +6150,7 @@
       "agentrouter": "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
       "unorouter": "Create an API key at https://unorouter.ai, then paste it here as a Bearer token.",
       "agnes": "Get API key at agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Free tier paused (2026) — AI/ML API is now pay-as-you-go only (min $20 top-up); no recurring free credits.",
       "ai21": "$10 trial credits on signup (valid 3 months), no credit card required",
       "alibaba": "Connect Alibaba with an API key.",
@@ -6262,7 +6292,6 @@
       "stability-ai": "Connect Stability AI with an API key.",
       "stepfun": "Get API key at platform.stepfun.com",
       "sumopod": "SumoPod exposes an OpenAI-compatible chat completions endpoint at https://ai.sumopod.com/v1/chat/completions, plus a live /v1/models catalog. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
-      "suno": "Paste session cookie from suno.ai (Clerk auth)",
       "synthetic": "Connect Synthetic with an API key.",
       "tencent": "Get API key at console.cloud.tencent.com",
       "thebai": "Bearer API key for the TheB.AI OpenAI-compatible gateway.",
@@ -6836,8 +6865,8 @@
       "globalModeDesc": "All Provider traffic goes through this subscription's proxy pool.",
       "ruleModeDesc": "Only selected Providers' traffic goes through the proxy; the rest connect directly.",
       "localCoreEndpoint": "Local Core SOCKS5/HTTP Endpoint (Optional)",
-      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Only accepts 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS require a local sing-box/clash core).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "One per line. Only accepts 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS require a local sing-box/clash core).",
       "routeByProvider": "Route by Provider (multi-select)",
       "loadingProviders": "Loading Provider list…",
       "autoRefreshInterval": "Auto Refresh Interval (minutes)",
@@ -7192,6 +7221,12 @@
     "maxRetriesLabel": "Max Retries",
     "retryDelayLabel": "Retry Delay (ms)",
     "timeoutLabel": "Timeout (ms)",
+    "targetTimeout": "Target timeout (seconds)",
+    "comboTimeout": "Combo timeout (seconds)",
+    "inheritRequestTimeout": "Inherit request timeout",
+    "inheritComboSafetyTimeout": "Inherit 10-minute hang-stop",
+    "targetTimeoutHint": "Combo targets inherit the current request timeout by default. Set a lower value here only when you want faster fallback.",
+    "comboTimeoutHint": "Whole-combo wall-clock budget across failover targets. Empty keeps the 10-minute hang-stop. Keep this longer than Target timeout so failover still has time.",
     "healthCheck": "Health Check",
     "healthCheckDesc": "Pre-check provider availability",
     "trackMetrics": "Track Metrics",
@@ -7469,6 +7504,8 @@
     "clearSyncedPricing": "Clear Synced Pricing",
     "compressionTitle": "Prompt Compression",
     "compressionDesc": "Reduce token usage by compressing prompts before sending to providers",
+    "autoCombosTitle": "Auto Combos",
+    "autoCombosDesc": "Allow this key to use the built-in auto/* combos, which pick a model automatically from every configured provider",
     "compressionGuidanceFullGuideLink": "Full compression guide",
     "compressionGuidanceShow": "Details",
     "compressionGuidanceHide": "Hide details",
@@ -7760,6 +7797,7 @@
     "retentionMcpAudit": "MCP Audit (days)",
     "retentionA2aEvents": "A2A Events (days)",
     "retentionCallLogs": "Call Logs (days)",
+    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
     "retentionUsageHistory": "Usage History (days)",
     "retentionMemoryEntries": "Memory Entries (days)",
     "retentionXpAuditLog": "XP Audit Log (days)",
@@ -8375,7 +8413,12 @@
     "cliproxyapiHealth": "Health",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
-    "qdrantCollection": "Collection"
+    "qdrantCollection": "Collection",
+    "catalogScopeTitle": "Models API listing",
+    "catalogScopeDesc": "What GET /v1/models advertises for this key. Narrowing the list never changes what the key can call.",
+    "catalogScopeAll": "Both",
+    "catalogScopeCombos": "Combos only",
+    "catalogScopeModels": "Models only"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8585,7 +8628,11 @@
       },
       "compressToolResults": {
         "label": "Proactively truncate long tool results",
-        "description": "Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+        "description": "Truncates long tool results during Lite compression. The Maximum tool-result length field (or OMNIROUTE_LITE_MAX_TOOL_LENGTH when that field is unset) sets the cap. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
+      "maxToolLength": {
+        "label": "Maximum tool-result length",
+        "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
       }
     },
     "engineFields": {
@@ -9492,7 +9539,7 @@
     "redeemResetCredit": "Redeem reset",
     "manageResetCredits": "View credits",
     "viewResetCredits": "View reset credits",
-    "resetCreditsModalTitle": "Codex reset credits",
+    "resetCreditsModalTitle": "Reset credits",
     "resetCreditsModalExplainer": "Credits are ordered by expiration. Automatic redemption always uses the credit that expires first.",
     "resetCreditsLoadFailed": "Failed to load reset credits",
     "resetCreditsDetailsUnavailable": "Credit details are currently unavailable. Refresh and try again.",
@@ -9503,10 +9550,17 @@
     "resetCreditNoExpiry": "No expiration date",
     "redeemThisResetCredit": "Redeem",
     "confirmRedeemResetCreditTitle": "Redeem this reset credit?",
-    "confirmRedeemResetCredit": "Redeeming immediately resets the eligible Codex usage windows and permanently consumes this credit.",
+    "confirmRedeemResetCredit": "Redeeming immediately resets the eligible usage windows and permanently consumes this credit.",
     "confirmRedeemResetCreditButton": "Redeem credit",
     "resetCreditRedeemed": "Reset redeemed",
     "resetCreditRedeemFailed": "Failed to redeem reset credit",
+    "glmResetCreditsModalTitle": "GLM Coding Plan reset cards",
+    "glmResetCreditsModalExplainer": "Reset cards are ordered by expiration. Choose the 5-hour or weekly window you want to reset.",
+    "glmResetCreditFiveHourTitle": "5-hour window reset",
+    "glmResetCreditWeekTitle": "Weekly window reset",
+    "glmConfirmRedeemResetCredit": "Redeeming immediately resets the selected usage window and permanently consumes this card.",
+    "glmConfirmRedeemFiveHourResetCredit": "Redeeming immediately resets the 5-hour usage window and permanently consumes this card.",
+    "glmConfirmRedeemWeekResetCredit": "Redeeming immediately resets the weekly usage window and permanently consumes this card.",
     "suiteBuilderSaveFailed": "Failed to save suite",
     "clone": "Clone",
     "exportSuite": "Export",
@@ -10964,6 +11018,12 @@
     "strategyLatency": "Latency-optimized",
     "poolMembersLabel": "Pool members ({count})",
     "poolNoMembers": "No proxies in this pool yet.",
+    "poolEgressObservation": "{exits, plural, one {# exit} other {# exits}} used by {connections, plural, one {# connection} other {# connections}} · up to {max} on one exit · last {hours} h",
+    "poolEgressObservationEmpty": "No traffic observed in the last {hours} h",
+    "poolEgressObservationHint": "Counted from the proxy log over the window: distinct egress IPs observed for the members of this pool, and the OmniRoute connections that used them. \"On one exit\" means over the window, not at the same time. The per-IP 429 lockout only pauses connections of the same provider family.",
+    "poolMemberEgress": "{host}:{port} left through {egressIp} · last {hours} h",
+    "poolMemberEgressEmpty": "{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressHint": "Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Remove",
     "poolRemoveFailed": "Failed to remove the proxy from the pool",
     "poolAddLabel": "Add a proxy",
@@ -11351,6 +11411,8 @@
       "copy": "Copy",
       "autoscrollOn": "Autoscroll: on",
       "autoscrollOff": "Autoscroll: off",
+      "rawViewOn": "Raw view: on",
+      "rawViewOff": "Raw view: off",
       "collapseAllLevels": "Collapse all",
       "collapseOneLevel": "Collapse one level",
       "currentExpandLevel": "Current expand level",
@@ -11365,6 +11427,7 @@
         "clientResponse": "Client Response",
         "pipelineError": "Pipeline Error"
       },
+      "payloadSizeLimitOmitted": "Payload omitted — this section exceeded the call log size limit (CALL_LOG_PIPELINE_MAX_SIZE_KB) and was not stored, not a real upstream error.",
       "payloadMissing": "Detailed payload artifact is no longer available for this log entry.",
       "payloadCorrupt": "Detailed payload artifact could not be parsed.",
       "notAvailable": "N/A",
@@ -12163,6 +12226,29 @@
     "raw": "Raw"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI companion",
+      "intro": "Copy commands to run on the computer where your CLI is installed. This panel does not execute commands or copy credentials.",
+      "hostNotice": "Detection describes the OmniRoute server host, not this browser's computer. Configured does not mean inference was tested.",
+      "target": "CLI tool",
+      "context": "Existing context name (optional)",
+      "contextHint": "Leave blank to use your CLI's active context. Named contexts can point to a local or remote server; list them in your terminal first.",
+      "contextInvalid": "Use 1–64 letters, digits, dots, hyphens or underscores, starting with a letter or digit.",
+      "modelHint": "This CLI requires a model. Enter a real provider/model identifier before copying its launch preview.",
+      "modelInvalid": "Use a model identifier without spaces or shell characters, starting with a letter or digit.",
+      "runtime": "Runtime",
+      "runnable": "Runnable",
+      "notRunnable": "Not runnable",
+      "unknown": "Unknown",
+      "detectionError": "Server detection unavailable. Refresh detection to retry; terminal commands remain available.",
+      "contextsStep": "Check terminal contexts",
+      "configureStep": "Choose a model and configure",
+      "runStep": "Preview the launch",
+      "configureHint": "This interactive command writes the CLI configuration on the computer where you run it.",
+      "runHint": "Dry-run shows the launch plan without starting the CLI. It is not an inference test.",
+      "copyFailed": "Could not copy. Select and copy the command manually.",
+      "empty": "No executable CLI targets are available in this version. Use the tool guides below."
+    },
     "concept": {
       "code": {
         "title": "CLI Code",
@@ -12984,6 +13070,12 @@
       "STREAM_RECOVERY_MIDSTREAM_ENABLED": {
         "description": "Allow stream recovery to request the response again and stitch it after bytes have already reached the client."
       },
+      "STREAM_RECOVERY_TOOLCALL_ORDER_FIX": {
+        "description": "Make mid-stream continuation tool-call safe: never resume a cut stream after a tool call was sent (still in progress or already finished), and stop after one empty continuation instead of using the whole retry budget."
+      },
+      "STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED": {
+        "description": "Fail over once to a sibling connection when a stream closes before emitting any useful frame and the bounded same-connection retry is spent. With no usable sibling, the original early-EOF error is returned. Off: early-EOF stays terminal after the retry."
+      },
       "MODEL_CATALOG_INCLUDE_NAMES": {
         "description": "Include display-friendly name fields in /v1/models responses. Disable this for clients that accept model IDs only."
       },
@@ -13020,6 +13112,14 @@
       "SERVER_OWNED_TOOL_LOOP_ENABLED": {
         "label": "Server-Owned Tool Loop",
         "description": "Continue non-streaming server-owned tool calls until the model returns a client-usable response."
+      },
+      "RETRY_AFTER_PROVENANCE_ENABLED": {
+        "label": "Retry-After Provenance",
+        "description": "On aggregated 429/503 unavailable responses, omit Retry-After when no concrete future retry time is known instead of sending a synthetic 1s, add error.retry_after_provenance, and read prose retry hints on combo drain paths."
+      },
+      "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
+        "label": "Protected-Priority Infra Stops as 502",
+        "description": "Answer 502 instead of 503 when a quota-only-fallback priority target stops the combo for a cause that is provably not quota: an open provider circuit breaker or a predictive latency skip."
       }
     }
   },
@@ -13260,6 +13360,65 @@
     "viewFullHistory": "View full history on GitHub"
   },
   "reasoningRouting": {
+    "editor": {
+      "pageTitle": "API-key routing",
+      "pageDescription": "Choose a key, define when a rule applies, and decide how to route its requests. Routing does not grant additional model permissions.",
+      "backToKeys": "Back to API keys",
+      "entryHint": "Manage model and reasoning rules in a full-width editor. Access permissions stay here.",
+      "configure": "Configure routing",
+      "workspace": "Choose an API key",
+      "scopeHint": "Keep rules for individual keys separate, or manage rules across all scopes.",
+      "allScopes": "All keys & shared rules",
+      "keyScopeNotice": "Only this key's rules are shown. Shared rules may also apply at runtime; the saved-rule check includes them.",
+      "newRule": "New rule",
+      "editRule": "Edit rule",
+      "ruleList": "Routing rules",
+      "ruleCount": "{count, plural, =0 {No rules in this scope} one {# rule in this scope} other {# rules in this scope}}",
+      "loading": "Loading routing configuration…",
+      "missingKey": "This API key no longer exists. Choose another key.",
+      "retry": "Retry",
+      "when": "When does this rule apply?",
+      "then": "What should change?",
+      "editorHint": "Define the condition and action separately. Existing rules keep their current matching behavior.",
+      "sourceType": "Match requests for",
+      "sourceAll": "All requested models and combos",
+      "sourceCombo": "A requested combo",
+      "sourceModel": "A requested model",
+      "sourcePattern": "An exact ID or wildcard (advanced)",
+      "exactOrPattern": "Exact request ID or pattern",
+      "patternHint": "Use an exact model/alias/combo name, * for any characters, or ? for one character. Existing values are preserved.",
+      "matchStageHint": "Matching happens before a combo is expanded. To affect a combo request, select the combo itself — not a model inside it.",
+      "searchChoice": "Search: {label}",
+      "searchPlaceholder": "Filter by name or full ID…",
+      "noChoices": "No matches. Adjust your search or use an exact ID / wildcard.",
+      "catalogError": "The model catalog could not be loaded. Use an exact ID / wildcard instead.",
+      "customTarget": "Target model ID / alias",
+      "customTargetHint": "Selected IDs appear here. You can also enter a custom model ID or existing alias.",
+      "effort": {
+        "inherit": "Keep request effort",
+        "default": "Use as default",
+        "force": "Force effort"
+      },
+      "effortHint": {
+        "inherit": "Leave the request's reasoning effort unchanged.",
+        "default": "Use this effort only when the request has no reasoning signal.",
+        "force": "Request this effort even when the client specifies another value. Check the final upstream request to verify provider behavior."
+      },
+      "advanced": "Advanced: tags, priority & thinking budget",
+      "priorityHint": "Higher values win within the same scope. API-key rules take precedence over combo, model and global rules.",
+      "draftSummary": "Rule summary",
+      "draftNotice": "This summarizes the editor, not a runtime simulation. No request is sent.",
+      "unsaved": "Unsaved changes",
+      "discard": "Discard the unsaved changes to this rule?",
+      "checkTitle": "Check saved rules",
+      "savedOnly": "Check the currently saved rules for a sample request. This does not call an AI provider or verify the final upstream payload.",
+      "saveBeforeCheck": "Save or discard the draft before checking saved rules.",
+      "matched": "Matched rule: {name}",
+      "notMatched": "No saved rule matches",
+      "notMatchedHint": "Check the selected API key, exact request model or combo name, source effort and tags.",
+      "technicalDetails": "Technical details",
+      "simulationError": "Could not check the saved rules. Please try again."
+    },
     "title": "Reasoning routing policies",
     "apiKeyTitle": "Reasoning routing for this API key",
     "subtitle": "Reroute models and reasoning effort without requiring client support. Requests remain unchanged when no rule matches.",
@@ -13633,6 +13792,7 @@
   },
   "featureFlagCapabilityFilterEnabledDescription": "Reject requests before dispatch when the target model lacks required capabilities (vision, tools, structured output, context window). Protects direct single-provider requests that bypass the combo-layer compatibility filter.",
   "featureFlagDisableContextWindowChecksDescription": "Skip OmniRoute's local context-window and max-input-token check for direct single-model requests. Upstream providers still enforce their actual limits. Prompt compression and output-token caps remain active.",
+  "featureFlagSearchStatsHideDeletedConnectionsDescription": "Search stats and recent searches only count providers that still have a live connection (keyless providers such as duckduckgo-free always count). Off keeps every retained search row with a provider id.",
   "publicSystem": {
     "notFound": {
       "title": "Page not found",

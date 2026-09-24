@@ -1,6 +1,6 @@
 # Security Policy (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,28 +220,39 @@ Neid reegleid jõustavad tööriistad ja ülevaatajad:
 10. **`exec()` / `spawn()` käitusväärtused läbi `env` valiku** — ära kunagi stringi-interpoleeri väliseid teid või ebausaldusväärseid väärtusi shelli kaudu käivitatavatesse skriptidesse. Viide: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Eelista vaikimisi turvalisi teeke** — vaata [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Kasuta neid enne oma lahenduse kirjutamist.
 
-## Tarneahela skanneri leiud (Socket.dev / Snyk / sarnased)
+## Tarneahela skanneri tuvastused (Socket.dev / Snyk / sarnased)
 
-Avaldatud `omniroute` npm-artefakt sisaldab Next.js `output: "standalone"`
-paketti, mis tähendab, et kõik marsruudikäsitlejad — kaasa arvatud dokumenteeritud
-privilegeeritud funktsioonid (MITM, Zed import, Cloud Sync, sisseehitatud
-teenuste haldur) — jõuavad `.next/server/*.js` minifitseeritud pakkidesse.
-Heuristilised tarneahela skannerid võrdlevad nende pakkide sisu tihti
-pahavara signatuuridega, kasutades mustrisobitust.
+> **Ulatusmärkus:** hoidla juurkaustas olev `socket.yml` määrab üksnes Socket.dev registripoolse avaldamisjärgse skanni `projectIgnorePaths` sätted avaldatud npm-artefakti jaoks — see ei ole jõustatud CI/PR-i liitmise kontrollpunkt. Ükski `.github/workflows` töövoog, `package.json` skript ega `Makefile` sihtmärk ei käivita Socket.dev-i.
 
-Iga leiukategooria kohta säilitame leiupõhise hooldaja kinnituse:
+Avaldatud `omniroute` npm-artefakt sisaldab Next.js-i `output: "standalone"`
+järku, mis tähendab, et iga marsruudikäitleja — sealhulgas dokumenteeritud
+privilegeeritud funktsioonid (MITM, Zedi import, Cloud Sync, manustatud teenuste
+järelevaataja) — jõuab `.next/server/*.js` minimeeritud tükkidesse. Heuristilised
+tarneahela skannerid võrdlevad neid tükke sageli mustripõhiselt pahavara
+signatuuridega.
+
+Meie kasutatav skanneri konfiguratsioon asub hoidla juurkaustas failis
+[`socket.yml`](socket.yml) (Socket.dev GitHub Appi vorming v2 — vt
+<https://docs.socket.dev/docs/socket-yml>). See välistab sõnaselgelt
+mittetarnitavad kataloogid (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` jne), et skanner esitaks teateid ainult nende
+kooditeede kohta, mis tegelikult avaldatud versiooni kasutajateni jõuavad —
+skanni ennast käitab seda faili lugev Socket GitHub App, mitte selle hoidla
+töövoog.
+
+Iga tuvastuskategooria kohta hoiame haldaja kinnitust:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  leiupõhine kaardistus: lähtefail ↔ märgistatud pakk ↔ käitumine ↔ v3.8.6-s
-  rakendatud leevendus.
-- Lähtekoodisisesed `SECURITY-AUDITOR-NOTE:` plokid igas märgistatud funktsiooni
-  kohas viitavad tagasi samale dokumendile.
+  tuvastuspõhine vastavuskaart: lähtefail ↔ märgistatud tükk ↔ käitumine ↔
+  versioonis v3.8.6 rakendatud leevendus.
+- Lähtekoodis olevad `SECURITY-AUDITOR-NOTE:` plokid iga märgistatud funktsiooni
+  juures viitavad samale dokumendile.
 
-Kasutajatele, kelle pipeline ei võimalda hoiatust leevendada: ehitage projekt
+Kasutajad, kelle konveier ei võimalda hoiatust leevendada, saavad järgu luua
 käsuga `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. See asendab neli
-tundlikku moodulit jämestega, mis tagastavad käitusajal HTTP 503 vastuse
-koodiga `feature-disabled`, mistõttu privilegeeritud kooditeed on paketist
-füüsiliselt eemaldatud. Vaadake avaldamisretsepti dokumendist
+tundlikku moodulit stubidega, mis tagastavad käitusajal HTTP 503
+`feature-disabled`, mistõttu privilegeeritud kooditeed paketis füüsiliselt
+puuduvad. Avaldamisjuhiseid vt failist
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Viited

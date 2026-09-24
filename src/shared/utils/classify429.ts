@@ -35,6 +35,9 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /monthly.*limit/i,
   /monthly.*quota/i,
   /per.?month.*limit/i,
+  /(?:api\s+)?calls?\s*\/\s*month/i,
+  /requests?\s*\/\s*month/i,
+  /limited\s+to\s+[\d,]+.*(?:calls?|requests?).*per\s+month/i,
   /quota.*exceed/i,
   /exceed.*quota/i,
   /insufficient.*quota/i,
@@ -99,6 +102,46 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /organization TPD rate limit/i,
   /\bTPD rate limit\b/i,
   /insufficient balance/i,
+
+  // xAI Grok Build free-tier per-model rolling 24h cap. Live body:
+  // "You've used all the included free usage for model grok-4.6 for now.
+  //  Usage resets over a rolling 24-hour window — tokens (actual/limit): N/M."
+  /used all the included free usage/i,
+  /resets over a rolling 24-hour window/i,
+
+  // ── CJK quota-exhaustion patterns (#13194) ────────────────────────────
+  // Chinese (simplified) providers (z.ai/GLM, Kimi/Moonshot, Qwen/DashScope,
+  // MiniMax) return 429 bodies entirely in Chinese. Without these, the
+  // classifier misclassifies them as rate_limit (6–60s retry loop) instead
+  // of quota_exhausted (long cooldown + failover).
+
+  // GLM/z.ai: "已达到 5 小时的使用上限。您的限额将在 2026-09-10 19:01:19 重置。"
+  /使用上限/,
+  /限额将在/,
+  /已达?到.*上限/,
+
+  // Kimi/Moonshot: "您的账户额度已用尽，请充值后重试。"
+  /额度已用尽/,
+
+  // Qwen/DashScope: "当前账户的免费额度已用完，请前往控制台充值。"
+  /额度已用完/,
+
+  // MiniMax: "已达到今日调用上限，请明日再试。"
+  /今日调用上限/,
+  /调用上限/,
+
+  // Generic Chinese: "配额" (quota) + exhaustion indicators
+  /配额[已超]/,
+  /超出.*配额/,
+
+  // Japanese: "クォータに達しました" / "使用量の上限に達しました"
+  /クォータに達しました/,
+  /上限に達しました/,
+  /利用制限に達しました/,
+
+  // Korean: "할당량을 초과했습니다" / "사용 한도를 초과했습니다"
+  /할당량을 초과/,
+  /사용 한도를 초과/,
 ];
 
 /**

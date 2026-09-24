@@ -9,6 +9,7 @@ import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 import { buildPassthroughErrorResponse } from "./upstreamErrorPassthrough.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 export { redactSensitiveErrorText, sanitizeErrorMessage, sanitizeUpstreamDetails };
 
@@ -49,7 +50,9 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "admission_shutdown",
   "admission_unavailable",
   "all_accounts_inactive",
+  "all_targets_cooling_down",
   "all_targets_skipped",
+  "antigravity_pool_busy",
   "antigravity_pre_response_timeout",
   "api_error",
   "auth_error",
@@ -74,7 +77,6 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "chatgpt_subscription_unavailable",
   "chatgpt_web_codex_error",
   "chatgpt_web_codex_turn_failed",
-  "chipotle_error",
   "claude_web_protocol_error",
   "cli_not_found",
   "client_cancelled",
@@ -172,6 +174,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "lease_unsupported_route",
   "lease_unsupported_transport",
   "lmarena_error",
+  "lmarena_stream_error",
   "message_limit",
   "meta_ai_empty_response",
   "meta_ai_mode_switch_failed",
@@ -275,6 +278,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "token_required",
   "tool_calling_not_supported",
   "tools",
+  "turn_in_progress",
   "uc_auth_error",
   "uc_generation_failed",
   "uc_message_limit_exceeded",
@@ -674,6 +678,41 @@ function normalizeRetryAfterSeconds(retryAfter?: string | number | Date | null):
   return 1;
 }
 
+/**
+ * #13672 — opt-in RETRY_AFTER_PROVENANCE_ENABLED (default off). Fails closed to
+ * the legacy Retry-After contract when the flag store cannot be read.
+ */
+export function isRetryAfterProvenanceEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("RETRY_AFTER_PROVENANCE_ENABLED");
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Seconds until a concrete FUTURE retry time, or null when there is none: absent,
+ * non-positive or invalid values, numeric strings, and dates that already elapsed.
+ * Unlike normalizeRetryAfterSeconds it never invents a 1s wait; when it returns a
+ * number, that number equals normalizeRetryAfterSeconds for the same input.
+ */
+export function resolveRetryAfterHintSeconds(
+  retryAfter?: string | number | Date | null
+): number | null {
+  if (typeof retryAfter === "number") {
+    if (!Number.isFinite(retryAfter) || retryAfter <= 0) return null;
+    if (retryAfter < 1_000_000_000) return Math.max(Math.ceil(retryAfter), 1);
+  } else if (typeof retryAfter === "string") {
+    if (retryAfter.trim() === "" || !Number.isNaN(Number(retryAfter))) return null;
+  } else if (!(retryAfter instanceof Date)) {
+    return null;
+  }
+  const now = Date.now();
+  const retryTimeMs = new Date(retryAfter).getTime();
+  if (!Number.isFinite(retryTimeMs) || retryTimeMs <= now) return null;
+  return Math.max(Math.ceil((retryTimeMs - now) / 1000), 1);
+}
+
 const MAX_PUBLIC_CONTEXT_LABEL_LENGTH = 256;
 
 function projectPublicContextLabel(value: unknown): string | null {
@@ -731,6 +770,49 @@ export function parseAntigravityRetryTime(message: unknown): number | null {
   }
 
   return totalMs > 0 ? totalMs : null;
+}
+
+const MAX_PROSE_RETRY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Retry delay in ms from upstream error prose (Antigravity "reset after 2h7m23s",
+ * generic "retry after 30s"), capped at 24h; null when the text carries no hint.
+ */
+export function parseProseRetryDelayMs(text: unknown): number | null {
+  if (typeof text !== "string" || text === "") return null;
+  const antigravityMs = parseAntigravityRetryTime(text);
+  if (antigravityMs) return Math.min(antigravityMs, MAX_PROSE_RETRY_MS);
+  const m = /retry\s+after\s+(\d{1,9})\s*s/i.exec(text);
+  const ms = m ? Number.parseInt(m[1], 10) * 1000 : 0;
+  return ms > 0 ? Math.min(ms, MAX_PROSE_RETRY_MS) : null;
+}
+
+/**
+ * Combo drain paths: ISO retry time read from the prose of an upstream error body,
+ * JSON or plain text. Null when RETRY_AFTER_PROVENANCE_ENABLED is off (legacy:
+ * only structured retry fields are read) or when the text carries no hint.
+ */
+export function readProseRetryAfter(text: unknown): string | null {
+  if (!isRetryAfterProvenanceEnabled()) return null;
+  const ms = parseProseRetryDelayMs(text);
+  return ms ? new Date(Date.now() + ms).toISOString() : null;
+}
+
+/**
+ * Combo drain paths: the upstream error body could not be read for a retry hint.
+ * A non-JSON body (an HTML 502 page, plain text) is ordinary, so it logs at debug;
+ * a failed clone means the body was already consumed and logs at warn.
+ */
+export function logRetryHintUnreadable(
+  log: { warn: (...args: unknown[]) => void; debug?: (...args: unknown[]) => void },
+  tag: string,
+  model: string,
+  status: number | undefined,
+  reason: "unparseable body" | "clone failed"
+): void {
+  const message = `Retry hint unreadable for ${model} (${reason})`;
+  if (reason === "clone failed") log.warn(tag, message, { status });
+  else log.debug?.(tag, message, { status });
 }
 
 /**
@@ -925,15 +1007,23 @@ export function unavailableResponse(
   retryAfter?: string | number | Date | null,
   retryAfterHuman?: string
 ) {
-  const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
+  // #13672 (opt-in): only a concrete future retry time earns a Retry-After header, and the
+  // body says whether one existed. Off: legacy header, always present and clamped to >= 1s.
+  const provenance = isRetryAfterProvenanceEnabled();
+  const retryAfterSec = provenance
+    ? resolveRetryAfterHintSeconds(retryAfter)
+    : normalizeRetryAfterSeconds(retryAfter);
   const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
   const safeRetryAfterHuman = retryAfterHuman ? sanitizeErrorMessage(retryAfterHuman) : "";
   const msg = safeRetryAfterHuman ? `${safeMessage} (${safeRetryAfterHuman})` : safeMessage;
-  return new Response(JSON.stringify({ error: { message: msg } }), {
+  const error = provenance
+    ? { message: msg, retry_after_provenance: retryAfterSec === null ? "none" : "signal" }
+    : { message: msg };
+  return new Response(JSON.stringify({ error }), {
     status: statusCode,
     headers: {
       "Content-Type": "application/json",
-      "Retry-After": String(retryAfterSec),
+      ...(retryAfterSec === null ? {} : { "Retry-After": String(retryAfterSec) }),
     },
   });
 }
@@ -1047,7 +1137,8 @@ export function makeExecutorErrorResult(
   status: number,
   message: string,
   body: unknown,
-  url: string
+  url: string,
+  extraResponseHeaders?: Record<string, string>
 ) {
   return {
     response: new Response(
@@ -1058,7 +1149,10 @@ export function makeExecutorErrorResult(
           code: `HTTP_${status}`,
         },
       }),
-      { status, headers: { "Content-Type": "application/json" } }
+      {
+        status,
+        headers: { "Content-Type": "application/json", ...extraResponseHeaders },
+      }
     ),
     url,
     headers: {} as Record<string, string>,

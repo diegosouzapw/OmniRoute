@@ -1,0 +1,1340 @@
+{
+  "common": {
+    "error": "Xato: {message}",
+    "serverOffline": "OmniRoute serveri oflayn. Uni quyidagi buyruq bilan ishga tushiring: omniroute serve",
+    "authRequired": "Autentifikatsiya talab qilinadi. OMNIROUTE_API_KEY ni sozlang yoki quyidagi buyruqni bajaring: omniroute setup",
+    "rateLimited": "So‘rovlar tezligi chegarasidan oshib ketildi. {seconds}s dan keyin qayta urinib ko‘ring.",
+    "timeout": "So‘rov {ms}ms dan so‘ng vaqt tugashi sababli bekor qilindi.",
+    "success": "Tayyor.",
+    "yes": "ha",
+    "no": "yo‘q",
+    "confirm": "Ishonchingiz komilmi? (ha/yo‘q)",
+    "dryRun": "[dry-run] {action} bajarilgan bo‘lardi",
+    "cancelled": "Bekor qilindi.",
+    "jsonOpt": "JSON formatida chiqarish",
+    "yesOpt": "Tasdiqlash so‘rovini o‘tkazib yuborish"
+  },
+  "setup": {
+    "title": "OmniRoute sozlamalari",
+    "passwordPrompt": "Administrator paroli",
+    "providerPrompt": "Standart provayder (o‘tkazib yuborish uchun bo‘sh qoldiring)",
+    "done": "Sozlash yakunlandi",
+    "passwordSet": "Administrator paroli sozlandi",
+    "providerSet": "Provayder sozlandi: {name}",
+    "testingProvider": "Provayder ulanishi sinovdan o‘tkazilmoqda: {name}",
+    "testPassed": "Provayder sinovdan muvaffaqiyatli o‘tdi",
+    "testFailed": "Provayder sinovdan o‘tmadi: {error}",
+    "loginEnabled": "Kirish: yoqilgan (parol yangilandi)",
+    "loginDisabled": "Kirish: o‘chirilgan",
+    "providerInfo": "Provayder: {info}",
+    "opencode": "OpenCode uchun birga taqdim etilgan @omniroute/opencode-plugin ni o‘rnatish va sozlash"
+  },
+  "doctor": {
+    "title": "OmniRoute diagnostikasi",
+    "dbOk": "Ma’lumotlar bazasi: OK ({path})",
+    "dbMissing": "Ma’lumotlar bazasi ishga tushirilmagan — `omniroute setup` buyrug‘ini bajaring",
+    "portOk": "{port}-port: mavjud",
+    "portConflict": "{port}-port: boshqa jarayon tomonidan ishlatilmoqda",
+    "encryptionOk": "Shifrlash kaliti: sozlangan",
+    "encryptionMissing": "Shifrlash kaliti yo‘q — `omniroute setup` buyrug‘ini bajaring",
+    "allGood": "Barcha tekshiruvlardan muvaffaqiyatli o‘tildi.",
+    "warnings": "{count} ta ogohlantirish — yuqoriga qarang."
+  },
+  "providers": {
+    "title": "Provayderlar",
+    "noProviders": "Hech qanday provayder sozlanmagan. Quyidagi buyruqni bajaring: omniroute setup",
+    "testing": "{name} sinovdan o‘tkazilmoqda...",
+    "available": "{count} ta provayder mavjud",
+    "connected": "Ulangan",
+    "disconnected": "Ulanish uzilgan",
+    "validationFailed": "Tekshiruv muvaffaqiyatsiz tugadi: {error}",
+    "metrics": {
+      "description": "Provayder ishlash ko‘rsatkichlarini ko‘rsatish (kechikish, muvaffaqiyat darajasi, xarajat)",
+      "provider": "Provayder ID’si bo‘yicha filtrlash",
+      "connection_id": "Ulanish ID’si bo‘yicha filtrlash",
+      "period": "Vaqt oralig‘i: 1h|6h|24h|7d|30d (standart: 24h)",
+      "metric": "Muayyan metrika maydoniga e’tibor qaratish",
+      "sort": "Maydon bo‘yicha saralash (kamayish tartibida)",
+      "limit": "Maksimal qatorlar soni (standart: 50)",
+      "watch": "Har 5s da yangilash (jonli rejim)",
+      "compare": "Yonma-yon taqqoslash uchun vergul bilan ajratilgan provayder ID’lari"
+    },
+    "metric_single": {
+      "description": "Muayyan ulanish uchun bitta metrika qiymatini olish"
+    },
+    "rotate": {
+      "description": "Provayder ulanishi uchun yuqori oqim API kalitini almashtirish",
+      "newKeyOpt": "Yangi API kaliti qiymati (tavsiya etilmaydi: yaxshisi --from-env dan foydalaning)",
+      "fromEnvOpt": "Yangi kalitni VAR muhit o‘zgaruvchisidan o‘qish",
+      "oauthOpt": "Buning o‘rniga OAuth orqali qayta autentifikatsiya oqimini ishga tushirish",
+      "skipTestOpt": "Almashtirishdan keyingi ulanish sinovini o‘tkazib yuborish",
+      "dryRunOpt": "Yozmasdan, qanday o‘zgarishlar bo‘lishini chiqarish",
+      "confirmPrompt": "\"{name}\" ({id}) ulanishi uchun API kaliti almashtirilsinmi? [y/N]",
+      "dryRunResult": "[dry-run] \"{name}\" ({id}) uchun kalit almashtirilgan bo‘lardi. Hech qanday o‘zgartirish kiritilmadi.",
+      "oauthHint": "OAuth ulanishi — bajaring: omniroute oauth {provider}",
+      "envVarEmpty": "{var} muhit o‘zgaruvchisi o‘rnatilmagan yoki bo‘sh.",
+      "success": "\"{name}\" uchun kalit almashtirildi. Tekshirish uchun `providers test {id}` buyrug‘ini bajaring.",
+      "testPassed": "Almashtirishdan keyingi sinov muvaffaqiyatli o‘tdi.",
+      "testFailed": "Almashtirishdan keyingi sinov muvaffaqiyatsiz tugadi: {error}"
+    },
+    "status": {
+      "description": "Barcha provayder ulanishlari uchun kalit holatini ko‘rsatish (yoshi, amal qilish muddati, kutish davri)",
+      "providerOpt": "Provayder nomi bo‘yicha filtrlash",
+      "header": "ID         Provayder      Nomi                     Muddat Holati  Sinov holati  Kutish muddati",
+      "noData": "Provayder ulanishlari haqidagi ma’lumotlar mavjud emas.",
+      "requiresServer": "providers status buyrug‘i OmniRoute serveri ishlab turishini talab qiladi."
+    }
+  },
+  "keys": {
+    "title": "API kalitlari",
+    "addDescription": "Provayder uchun API kalitini qo‘shish yoki yangilash",
+    "listDescription": "Barcha sozlangan API kalitlarini ro‘yxatlash",
+    "removeDescription": "Provayder uchun API kalitini olib tashlash",
+    "regenerateDescription": "OmniRoute API kalitini qayta yaratish",
+    "revokeDescription": "OmniRoute API kalitini bekor qilish",
+    "revealDescription": "Niqoblanmagan API kaliti qiymatini ko‘rsatish",
+    "usageDescription": "API kalitidan yaqindagi foydalanish ma’lumotlarini ko‘rsatish",
+    "usageLimitOpt": "Yaqindagi so‘rovlar soni",
+    "rotateDescription": "Yangi kalit yaratish va eskisini yaroqsiz qilish",
+    "graceOpt": "Eski kalit bekor qilinishidan oldingi kechiktirish muddati (ms)",
+    "stdinOpt": "API kalitini argument o‘rniga stdin orqali o‘qish",
+    "added": "{provider} uchun kalit qo‘shildi.",
+    "removed": "Kalit olib tashlandi.",
+    "listed": "{count} ta kalit.",
+    "noKeys": "Hech qanday kalit sozlanmagan.",
+    "noUsage": "Foydalanish ma’lumotlari topilmadi.",
+    "confirmRemove": "{id} kaliti olib tashlansinmi?",
+    "confirmRegenerate": "{id} kaliti qayta yaratilsinmi?",
+    "confirmRevoke": "{id} kaliti bekor qilinsinmi?",
+    "confirmRotate": "{id} kaliti almashtirilsinmi? (eski kalit kechiktirish muddati tugagach bekor qilinadi)",
+    "regenerated": "Qayta yaratildi. Yangi kalit: {key}",
+    "revoked": "{id} kaliti bekor qilindi.",
+    "rotated": "{id} kaliti almashtirildi. Yangi kalit IDsi: {newId}",
+    "revealWarning": "⚠  Bu niqoblanmagan to‘liq kalitni ko‘rsatadi. Ekraningiz boshqalarga ko‘rinmasligiga ishonch hosil qiling.",
+    "providerRequired": "Provayder ko‘rsatilishi shart.",
+    "keyRequired": "API kaliti kiritilishi shart.",
+    "stdinEmpty": "stdin orqali API kaliti taqdim etilmadi.",
+    "unknownProvider": "Noma’lum provayder: {provider}",
+    "policy": {
+      "title": "Kalit siyosati",
+      "showDescription": "Kalit uchun so‘rovlar tezligi/xarajat siyosatini ko‘rsatish",
+      "setDescription": "Kalit uchun so‘rovlar tezligi/xarajat siyosatini belgilash",
+      "rateLimitOpt": "Bir daqiqadagi maksimal so‘rovlar soni",
+      "maxCostOpt": "Bir kunlik maksimal xarajat (USD)",
+      "allowedModelsOpt": "Ruxsat etilgan modellarning vergul bilan ajratilgan ro‘yxati",
+      "nothingToSet": "Siyosat maydonlari taqdim etilmadi. --rate-limit, --max-cost yoki --allowed-models parametridan foydalaning.",
+      "updated": "Siyosat yangilandi."
+    },
+    "expiration": {
+      "title": "Kalitning amal qilish muddati",
+      "listDescription": "Amal qilish muddati yaqin orada tugaydigan kalitlarni ro‘yxatlash",
+      "daysOpt": "Amal qilish muddati N kun ichida tugaydigan kalitlarni ko‘rsatish",
+      "none": "Amal qilish muddati {days} kun ichida tugaydigan kalitlar yo‘q.",
+      "listTitle": "Amal qilish muddati {days} kun ichida tugaydigan kalitlar:"
+    }
+  },
+  "authExport": {
+    "description": "SHIFRI YECHILGAN provayder hisob ma’lumotlarini eksport qilish (faqat mahalliy, oddiy matn ko‘rinishidagi chiqish)",
+    "idOpt": "Faqat shu id/nom/provayderga mos ulanishni eksport qilish",
+    "formatOpt": "Chiqish formati: json yoki env",
+    "outOpt": "Chiqishni stdout o‘rniga faylga yozish (0600 ruxsatlari bilan yoziladi)",
+    "forceOpt": "Bu amal oddiy matn ko‘rinishidagi maxfiy ma’lumotlarni chiqarishi yoki yozishini tushunganingizni tasdiqlash",
+    "warning": "⚠ Bu SHIFRI YECHILGAN API kalitlari va OAuth tokenlarini oddiy matn ko‘rinishida chiqaradi yoki yozadi. Ekraningiz, qobiq tarixi va har qanday chiqish fayli maxfiy saqlanishiga ishonch hosil qiling.",
+    "confirmHeading": "⚠ OGOHLANTIRISH: bu amal SHIFRI YECHILGAN provayder hisob ma’lumotlarini oddiy matn ko‘rinishida eksport qiladi",
+    "confirmBody": "Bu buyruq tanlangan ulanish(lar) uchun apiKey, accessToken, refreshToken va\nidToken qiymatlarini shifrdan chiqarib, ekranga chiqaradi yoki faylga yozadi. Chiqishni maxfiy ma’lumot sifatida saqlang.",
+    "confirmFooter": "Tasdiqlash uchun quyidagini ishga tushiring:\n  omniroute auth export --force",
+    "missingKey": "Hisob maʼlumotlarini eksport qilish uchun STORAGE_ENCRYPTION_KEY talab qilinadi.",
+    "notFound": "Ulanish topilmadi: {id}",
+    "invalidFormat": "Notoʻgʻri format: {format}. json yoki env dan foydalaning."
+  },
+  "stream": {
+    "description": "SSE tekshiruv rejimlari yordamida chat javobini oqimli uzatish",
+    "file": "Soʻrov matnini fayldan oʻqish",
+    "stdin": "Soʻrov matnini stdin dan oʻqish",
+    "model": "Model identifikatori (standart: auto)",
+    "system": "Tizim soʻrovi",
+    "combo": "Muayyan kombinatsiyani nomi boʻyicha majburan tanlash",
+    "max_tokens": "Javobdagi tokenlarning maksimal soni",
+    "responses_api": "/v1/chat/completions oʻrniga /v1/responses dan foydalanish",
+    "raw": "Qabul qilingan xom SSE satrlarini chiqarish",
+    "debug": "Har bir boʻlak uchun vaqt maʼlumotlarini stderr ga chiqarish",
+    "save": "Barcha SSE hodisalarini .jsonl fayliga saqlash",
+    "error": {
+      "empty_prompt": "Xato: soʻrov matni talab qilinadi (pozitsion argument, --file yoki --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Foydalanish tahlili, budjetlar, kvotalar va jurnallar",
+    "analytics": {
+      "description": "Umumlashtirilgan foydalanish tahlilini koʻrsatish",
+      "period": "Vaqt oraligʻi: 1d|7d|30d|90d|ytd|all (standart: 30d)",
+      "provider": "Provayder identifikatori boʻyicha filtrlash"
+    },
+    "budget": {
+      "description": "Xarajat budjetlarini boshqarish",
+      "set": {
+        "scope": "Budjet qamrovi (standart: global)",
+        "period": "Budjet davri: daily|weekly|monthly (standart: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Provayder kvotasidan foydalanishni koʻrsatish",
+      "provider": "Provayder identifikatori boʻyicha filtrlash",
+      "check": "Yangi soʻrov uchun kvota mavjudligini koʻrsatish"
+    },
+    "logs": {
+      "description": "Soʻrov chaqiruvlari jurnallarini koʻrsatish",
+      "limit": "Qaytariladigan jurnal yozuvlari soni (standart: 100)",
+      "search": "Jurnallarni filtrlash uchun qidiruv soʻrovi",
+      "since": "Shu vaqt belgisidan keyingi jurnallarni qaytarish",
+      "follow": "Yangi jurnal yozuvlarini uzluksiz kuzatib borish",
+      "api_key": "Jurnallarni API kaliti boʻyicha filtrlash"
+    },
+    "utilization": {
+      "description": "API kalitidan foydalanish koʻrsatkichlarini koʻrsatish",
+      "api_key": "API kaliti boʻyicha filtrlash"
+    },
+    "history": {
+      "description": "Soʻrovlar tarixini koʻrsatish",
+      "limit": "Tarix yozuvlari soni (standart: 100)"
+    },
+    "proxy_logs": {
+      "description": "Proksi darajasidagi soʻrov jurnallarini koʻrsatish",
+      "limit": "Proksi jurnali yozuvlari soni (standart: 100)"
+    }
+  },
+  "cost": {
+    "description": "Provayder, model, kombinatsiya yoki API kaliti boʻyicha taqsimlangan xarajatlar hisobotini koʻrsatish",
+    "period": "Vaqt oraligʻi: 1d|7d|30d|90d|ytd|all (standart: 30d)",
+    "since": "Boshlanish sanasi (ISO formati, masalan, 2026-01-01) — --period parametrini bekor qiladi",
+    "until": "Tugash sanasi (ISO formati)",
+    "group_by": "Natijalarni quyidagicha guruhlash: provider|model|api-key|combo|day (standart: provider)",
+    "api_key_filter": "Muayyan API kaliti bo‘yicha filtrlash",
+    "limit": "Ko‘rsatiladigan qatorlarning maksimal soni (standart: 100)"
+  },
+  "simulate": {
+    "description": "Sinov rejimidagi marshrutlash simulyatsiyasi — yuqori oqimga so‘rov yubormasdan qaysi provayderlar tanlanishini ko‘rsatadi",
+    "file": "To‘liq so‘rov tanasini JSON faylidan yuklash",
+    "model": "Model identifikatori (standart: auto)",
+    "combo": "Nomiga ko‘ra muayyan kombinatsiyani majburan tanlash",
+    "reasoning": "Mulohaza yuritish darajasi (low|medium|high)",
+    "thinking": "Kengaytirilgan fikrlash tokenlari limiti",
+    "explain": "Zaxira variantlar daraxti va narx oralig‘ini stderr oqimiga chiqarish",
+    "noCombo": "Mos kombinatsiya topilmadi. Uni quyidagi buyruq bilan sozlang: omniroute combo create"
+  },
+  "chat": {
+    "description": "OmniRoute’ga bir martalik chat so‘rovini yuborish",
+    "file": "So‘rov matnini fayldan o‘qish",
+    "stdin": "So‘rov matnini stdin oqimidan o‘qish",
+    "system": "Tizim so‘rovi",
+    "model": "Model identifikatori (standart: auto)",
+    "max_tokens": "Javobdagi tokenlarning maksimal soni",
+    "temperature": "Tanlash harorati (0–2)",
+    "top_p": "Top-p yadroli tanlash",
+    "reasoning_effort": "Mulohaza yuritish darajasi (low|medium|high)",
+    "thinking_budget": "Kengaytirilgan fikrlash tokenlari limiti",
+    "combo": "Nomiga ko‘ra muayyan kombinatsiyani majburan tanlash",
+    "responses_api": "/v1/chat/completions o‘rniga /v1/responses’dan foydalanish",
+    "stream": "Javobni bosqichma-bosqich oqim tarzida uzatish",
+    "no_history": "~/.omniroute/cli-history.jsonl fayliga saqlamaslik",
+    "error": {
+      "empty_prompt": "Xato: so‘rov matni kiritilishi shart (pozitsion argument, --file yoki --stdin)"
+    }
+  },
+  "serve": {
+    "description": "OmniRoute serverini ishga tushirish (standart amal)",
+    "starting": "OmniRoute serveri {port}-portda ishga tushirilmoqda...",
+    "ready": "http://localhost:{port} manzilida tayyor",
+    "stopping": "Server to‘xtatilmoqda (PID {pid})...",
+    "stopped": "Server to‘xtatildi.",
+    "notRunning": "Server ishlamayapti.",
+    "port": "Tinglash uchun port (standart: 20128)",
+    "no_open": "Brauzerni avtomatik ravishda ochmaslik",
+    "daemon": "Serverni fon demoni sifatida ishga tushirish",
+    "log": "Server jurnallarini bevosita ko‘rsatish",
+    "no_recovery": "Nosozlikdan keyin avtomatik qayta ishga tushirishni o‘chirish (nosozliklarni tuzatish rejimi)",
+    "max_restarts": "Taslim bo‘lishdan oldin 30 soniya ichidagi nosozlikdan keyingi qayta ishga tushirishlarning maksimal soni (standart: 2)",
+    "tray": "Tizim treyida ishga tushirish (faqat ish stoli versiyasida, ixtiyoriy)",
+    "no_tray": "Tizim treyi belgisini o‘chirish",
+    "ready_timeout": "Tayyorlik tekshiruvi uchun kutish vaqti, ms (shuningdek OMNIROUTE_READY_TIMEOUT_MS, standart qiymat 60000)",
+    "tls_cert": "HTTPS orqali xizmat ko‘rsatish uchun TLS sertifikati (PEM) yo‘li (shuningdek, OMNIROUTE_TLS_CERT)",
+    "tls_key": "HTTPS orqali xizmat ko‘rsatish uchun TLS maxfiy kaliti (PEM) yo‘li (shuningdek, OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Zaxira nusxasi",
+    "description": "OmniRoute ma’lumotlarining zaxira nusxasini yaratish",
+    "creating": "Zaxira nusxasi yaratilmoqda...",
+    "done": "Zaxira nusxasi {path} manziliga saqlandi",
+    "noFiles": "Zaxiralash uchun fayllar yo‘q (ma’lumotlar bazasi ishga tayyorlanmagan)",
+    "failed": "Zaxiralash amalga oshmadi: {error}",
+    "restoring": "{path} manzilidan tiklanmoqda...",
+    "restored": "Tiklash yakunlandi.",
+    "restoreDescription": "Zaxira nusxasidan tiklash",
+    "listTitle": "Mavjud zaxira nusxalari",
+    "noBackups": "Zaxira nusxalari topilmadi.",
+    "notFound": "Zaxira nusxasi topilmadi: {name}",
+    "confirmRestore": "Joriy ma’lumotlar {ts} sanasidagi zaxira nusxasi bilan almashtirilsinmi?",
+    "createDescription": "OmniRoute ma’lumotlarining zaxira nusxasini yaratish",
+    "nameOpt": "Zaxira nusxasi uchun maxsus nom",
+    "cloudOpt": "Zaxira nusxasini bulutli xotiraga yuklash",
+    "encryptOpt": "Zaxira nusxasini AES-256-GCM bilan shifrlash",
+    "keyFileOpt": "Shifrlash maxfiy iborasi saqlangan fayl yo‘li",
+    "excludeOpt": "Andozaga mos fayllarni istisno qilish (takrorlash mumkin)",
+    "retentionOpt": "Faqat oxirgi N ta zaxira nusxasini saqlash",
+    "passphrasePrompt": "Shifrlash maxfiy iborasi:",
+    "noPassphrase": "Shifrlangan zaxira nusxasi uchun maxfiy ibora talab qilinadi.",
+    "cloudFailed": "Ogohlantirish: bulutga yuklash amalga oshmadi. Mahalliy zaxira nusxasi saqlandi.",
+    "cloudUploaded": "Bulutdagi zaxira nusxasi yuklandi: {url}",
+    "auto": {
+      "title": "Zaxiralash jadvali",
+      "enableDescription": "Rejalashtirilgan avtomatik zaxiralashni yoqish",
+      "disableDescription": "Rejalashtirilgan avtomatik zaxiralashni o‘chirish",
+      "statusDescription": "Joriy zaxiralash jadvali holatini ko‘rsatish",
+      "cronOpt": "Jadval uchun Cron ifodasi (standart: har kuni soat 03:00 da)",
+      "enabled": "Avtomatik zaxiralash yoqildi (cron: {cron}).",
+      "hint": "Jadval omniroute serve ishga tushganda o‘qiladi.",
+      "disabled": "Avtomatik zaxiralash o‘chirildi.",
+      "notConfigured": "Zaxiralash jadvali sozlanmagan."
+    }
+  },
+  "health": {
+    "description": "Server ishlashi va komponentlar holatini tekshirish",
+    "noServer": "Server ishlamayapti. Quyidagi buyruq bilan ishga tushiring: omniroute serve",
+    "title": "Holat",
+    "status": "Holat: {status}",
+    "uptime": "Ishlash vaqti: {uptime}",
+    "requests": "Soʻrovlar (24 soat): {count}",
+    "cost": "Xarajat (24 soat): ${cost}"
+  },
+  "quota": {
+    "description": "Provayder kvotasidan foydalanishni koʻrsatish",
+    "noServer": "Server ishlamayapti. Quyidagi buyruq bilan ishga tushiring: omniroute serve",
+    "noData": "Kvota haqida maʼlumot mavjud emas."
+  },
+  "cache": {
+    "description": "Javoblar keshini boshqarish",
+    "noServer": "Server ishlamayapti. Quyidagi buyruq bilan ishga tushiring: omniroute serve",
+    "cleared": "Kesh tozalandi.",
+    "clearFailed": "Keshni tozalab boʻlmadi."
+  },
+  "redis": {
+    "description": "OmniRoute keshlashi va kvota kuzatuvi uchun bir bosishda mahalliy Redis konteynerini (Podman yoki Docker) ishga tushirish"
+  },
+  "test": {
+    "description": "Provayderga ulanishni sinash",
+    "noServer": "Server ishlamayapti. Quyidagi buyruq bilan ishga tushiring: omniroute serve",
+    "testing": "{provider} / {model} sinalmoqda...",
+    "passed": "Ulanish muvaffaqiyatli!",
+    "failed": "Ulanish amalga oshmadi: {error}",
+    "allProvidersOpt": "Barcha sozlangan provayderlarni sinash",
+    "latencyOpt": "Kechikish oʻlchovlarini koʻrsatish (oʻrtacha/min/maks ms)",
+    "repeatOpt": "Sinovni N marta takrorlash va natijalarni umumlashtirish",
+    "compareOpt": "Taqqoslanadigan, vergul bilan ajratilgan modellar (masalan, gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Natijalarni JSON fayliga saqlash",
+    "saved": "Natijalar {path} manziliga saqlandi",
+    "compareTitle": "Modellarni taqqoslash",
+    "compareMinTwo": "--compare uchun kamida ikkita model talab qilinadi (vergul bilan ajratilgan)",
+    "noProviders": "Hech qanday provayder sozlanmagan. Quyidagi buyruq bilan qoʻshing: omniroute keys add"
+  },
+  "update": {
+    "checking": "Yangilanishlar tekshirilmoqda...",
+    "upToDate": "Allaqachon eng soʻnggi versiya ({version}).",
+    "available": "Yangilanish mavjud: {current} → {latest}",
+    "installing": "{latest} oʻrnatilmoqda...",
+    "done": "{latest} versiyasiga yangilandi. Qoʻllash uchun serverni qayta ishga tushiring."
+  },
+  "mcp": {
+    "title": "MCP serveri",
+    "running": "MCP serveri ishlamoqda ({transport})",
+    "stopped": "MCP serveri toʻxtatildi.",
+    "restarted": "MCP serveri qayta ishga tushirildi.",
+    "stoppedHint": "Uni yoqish uchun `omniroute mcp enable` buyrugʻini ishga tushiring.",
+    "enabled": "MCP serveri yoqildi.",
+    "disabled": "MCP serveri oʻchirildi.",
+    "enable": {
+      "description": "MCP serverini yoqish",
+      "transport": "Foydalaniladigan transport: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP serverini oʻchirish"
+    },
+    "call": {
+      "description": "MCP vositasini bevosita chaqirish",
+      "args": "JSON argumentlar obyekti (ichki)",
+      "args_file": "JSON argumentlar fayliga yoʻl",
+      "stream": "Oqimli uzatish endpointidan foydalanish (/api/mcp/stream)",
+      "scope": "Talab qilinadigan qamrov (takrorlanuvchi, masalan, read:health)"
+    },
+    "scopes": {
+      "description": "Mavjud MCP doiralarini roʻyxatlash",
+      "tool": "Muayyan vosita talab qiladigan doiralarni koʻrsatish"
+    },
+    "tools": {
+      "description": "MCP vositalarini tekshirish",
+      "list": {
+        "description": "Barcha MCP vositalarini roʻyxatlash",
+        "scope": "Doira boʻyicha filtrlash"
+      },
+      "info": {
+        "description": "MCP vositasi metamaʼlumotlarini koʻrsatish"
+      },
+      "schema": {
+        "description": "MCP vositasi uchun kirish/chiqish JSON sxemasini koʻrsatish",
+        "io": "Sxema turi: input|output (standart: input)"
+      }
+    },
+    "audit": {
+      "description": "MCP audit jurnali (audit --source mcp uchun taxallus)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Agent kartasidagi mavjud A2A koʻnikmalarini roʻyxatlash"
+    },
+    "invoke": {
+      "description": "A2A koʻnikmasini ishga tushirish va vazifa ID sini qaytarish",
+      "input": "JSON kirish obyekti",
+      "input_file": "JSON kirish fayliga yoʻl",
+      "wait": "Natijani qaytarishdan oldin vazifa yakunlanishini kutish",
+      "timeout": "Yakunlanishni kutish vaqti, ms da (standart: 60000)"
+    },
+    "tasks": {
+      "description": "A2A vazifalarini boshqarish",
+      "list": {
+        "status": "Holat boʻyicha filtrlash",
+        "skill": "Koʻnikma ID si boʻyicha filtrlash"
+      },
+      "watch": {
+        "description": "Vazifa yakunlanguniga qadar uning holatini soʻrab turish"
+      },
+      "stream": {
+        "description": "SSE orqali vazifa bajarilishi hodisalarini oqimda uzatish"
+      },
+      "logs": {
+        "description": "Vazifa xabarlari va artefaktlarini koʻrsatish"
+      }
+    }
+  },
+  "policy": {
+    "description": "OmniRoute avtorizatsiya siyosatlarini boshqarish",
+    "list": {
+      "description": "Siyosatlarni roʻyxatlash",
+      "kind": "Tur boʻyicha filtrlash (allow|deny|rate-limit|cost-cap)",
+      "scope": "Doira boʻyicha filtrlash (global|api-key|provider)"
+    },
+    "get": {
+      "description": "ID boʻyicha siyosat tafsilotlarini olish"
+    },
+    "create": {
+      "description": "JSON fayldan siyosat yaratish",
+      "file": "Siyosat JSON fayliga yoʻl"
+    },
+    "update": {
+      "description": "JSON fayldan siyosatni yangilash",
+      "file": "Siyosat JSON fayliga yoʻl"
+    },
+    "delete": {
+      "description": "ID boʻyicha siyosatni oʻchirish",
+      "yes": "Tasdiqlash soʻrovini oʻtkazib yuborish"
+    },
+    "evaluate": {
+      "description": "Siyosatni sinov tariqasida baholash (chiqish kodi 0=ruxsat berilgan, 4=rad etilgan)",
+      "api_key": "Baholash uchun API kaliti",
+      "action": "Tekshiriladigan amal (masalan, chat, embed, admin)",
+      "resource": "Resurs yoʻli yoki identifikatori",
+      "context": "JSON obyekti sifatidagi qoʻshimcha kontekst"
+    },
+    "export": {
+      "description": "Barcha siyosatlarni JSON faylga eksport qilish"
+    },
+    "import": {
+      "description": "Siyosatlarni JSON fayldan import qilish",
+      "overwrite": "Bir xil ID ga ega mavjud siyosatlarni almashtirish"
+    }
+  },
+  "compression": {
+    "description": "OmniRoute siqish konveyerini sozlash va tekshirish",
+    "status": {
+      "description": "Joriy siqish holati va sozlamalarini ko‘rsatish"
+    },
+    "configure": {
+      "description": "Siqish sozlamalarini sozlash",
+      "engine": "Siqish mexanizmi (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Caveman agressivligi 0.0–1.0",
+      "rtk_budget": "RTK token budjeti",
+      "language_pack": "Faollashtiriladigan til paketi"
+    },
+    "engine": {
+      "description": "Faol siqish mexanizmini olish yoki o‘rnatish"
+    },
+    "combos": {
+      "description": "Siqish kombinatsiyalari statistikasini boshqarish"
+    },
+    "rules": {
+      "description": "Siqish qoidalarini boshqarish",
+      "add": {
+        "pattern": "Moslashtiriladigan namuna (regex yoki field:pattern)",
+        "action": "Amal: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Mavjud siqish til paketlarini ro‘yxatlash"
+    },
+    "preview": {
+      "description": "So‘rovga siqish ta’sirini oldindan ko‘rish",
+      "file": "So‘rov JSON fayliga yo‘l"
+    }
+  },
+  "tunnel": {
+    "title": "Tunnellar",
+    "listDescription": "Faol tunnellarni ro‘yxatlash",
+    "createDescription": "Tunnel yaratish",
+    "created": "Tunnel yaratildi: {url}",
+    "stopped": "Tunnel to‘xtatildi.",
+    "confirmStop": "{id} tunnelini to‘xtatilsinmi?",
+    "stopDescription": "Tunnelni to‘xtatish",
+    "statusDescription": "Tunnelning batafsil holatini ko‘rsatish",
+    "logsDescription": "Tunnel jurnallarini ko‘rsatish",
+    "infoDescription": "Tunnel konfiguratsiyasi tafsilotlarini ko‘rsatish",
+    "rotateDescription": "Yangi tunnel URL manzilini yaratish",
+    "tailOpt": "Ko‘rsatiladigan jurnal satrlari soni",
+    "typeRequired": "Tunnel turi kiritilishi shart.",
+    "noLogs": "Jurnallar mavjud emas.",
+    "notAvailable": "Tunnel ma’lumotlari mavjud emas.",
+    "noTunnels": "Faol tunnellar yo‘q.",
+    "infoTitle": "Tunnel ma’lumoti: {type}",
+    "rotated": "Tunnel URL manzili yangilandi: {url}",
+    "confirmRotate": "{type} tunneli yangilansinmi? (yangi URL yaratiladi)"
+  },
+  "stop": {
+    "description": "OmniRoute serverini to‘xtatish",
+    "stopping": "Server to‘xtatilmoqda (PID {pid})...",
+    "stopped": "Server to‘xtatildi.",
+    "notRunning": "Hech qanday server ishlamayapti.",
+    "portFallback": "PID fayli topilmadi, port asosida to‘xtatishga urinilmoqda..."
+  },
+  "restart": {
+    "description": "OmniRoute serverini qayta ishga tushirish",
+    "restarting": "OmniRoute serveri qayta ishga tushirilmoqda..."
+  },
+  "dashboard": {
+    "description": "OmniRoute boshqaruv panelini brauzerda ochish",
+    "opening": "Boshqaruv paneli {url} manzilida ochilmoqda",
+    "urlOnly": "Brauzerni ochmasdan boshqaruv paneli URL manzilini chiqarish",
+    "tui": "Interaktiv TUI boshqaruv panelini ochish (terminal interfeysi, 7 ta ichki oyna)"
+  },
+  "models": {
+    "description": "Mavjud modellarni roʻyxatlash (server talab qilinadi)",
+    "search": "Modellarni identifikator, nom, provayder yoki tavsif boʻyicha filtrlash",
+    "noServer": "Server ishlamayapti. Quyidagi buyruq bilan ishga tushiring: omniroute serve",
+    "noModels": "Hech qanday model topilmadi."
+  },
+  "audit": {
+    "description": "Muvofiqlik va MCP audit jurnallariga kirish",
+    "source": "Jurnal manbasi: all|compliance|mcp (standart: all)",
+    "since": "Shu vaqt tamgʻasidan keyingi yozuvlarni qaytarish (ISO 8601)",
+    "until": "Shu vaqt tamgʻasigacha boʻlgan yozuvlarni qaytarish (ISO 8601)",
+    "tail": {
+      "description": "Soʻnggi audit jurnali yozuvlarini koʻrsatish",
+      "follow": "Yangi yozuvlarni uzluksiz kuzatib borish (har 2 soniyada tekshirish)",
+      "limit": "Koʻrsatiladigan yozuvlarning maksimal soni (standart: 100)"
+    },
+    "search": {
+      "description": "Audit jurnali yozuvlarini kalit soʻz boʻyicha qidirish",
+      "limit": "Natijalarning maksimal soni (standart: 200)",
+      "actor": "Bajaruvchi ID boʻyicha filtrlash",
+      "action": "Amal nomi boʻyicha filtrlash"
+    },
+    "export": {
+      "description": "Audit jurnalini faylga eksport qilish",
+      "format": "Chiqish formati: jsonl|csv (standart: jsonl)"
+    },
+    "stats": {
+      "description": "Audit jurnali statistikasini koʻrsatish",
+      "period": "Vaqt oraligʻi: 1d|7d|30d (standart: 7d)"
+    },
+    "get": {
+      "description": "Bitta audit jurnali yozuvini ID boʻyicha olish"
+    }
+  },
+  "skills": {
+    "description": "OmniRoute koʻnikmalarini boshqarish (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Oʻrnatilgan koʻnikmalarni roʻyxatlash",
+      "type": "Tur boʻyicha filtrlash (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Faqat yoqilgan koʻnikmalarni koʻrsatish",
+      "disabled": "Faqat oʻchirilgan koʻnikmalarni koʻrsatish",
+      "api_key": "API kaliti boʻyicha filtrlash"
+    },
+    "get": {
+      "description": "Koʻnikma tafsilotlarini ID boʻyicha olish"
+    },
+    "install": {
+      "description": "Koʻnikmani fayl yoki URL orqali oʻrnatish",
+      "from_file": "Koʻnikmaning JSON taʼrif fayliga yoʻl",
+      "from_url": "Masofaviy koʻnikma taʼrifining URL manzili",
+      "type": "Koʻnikma turi (sandbox|custom|hybrid)",
+      "enable": "Oʻrnatilgandan keyin koʻnikmani yoqish"
+    },
+    "enable": {
+      "description": "Koʻnikmani ID boʻyicha yoqish"
+    },
+    "disable": {
+      "description": "Koʻnikmani ID boʻyicha oʻchirish",
+      "yes": "Tasdiqlash soʻrovini oʻtkazib yuborish"
+    },
+    "delete": {
+      "description": "ID bo‘yicha ko‘nikmani o‘chirish",
+      "yes": "Tasdiqlash so‘rovini o‘tkazib yuborish"
+    },
+    "execute": {
+      "description": "ID bo‘yicha ko‘nikmani bajarish",
+      "input": "JSON kirish obyekti",
+      "input_file": "JSON kirish fayliga yo‘l",
+      "timeout": "Bajarilish vaqti cheklovi, ms (standart: 30000)"
+    },
+    "executions": {
+      "description": "Ko‘nikmalar bajarilishi tarixini ko‘rsatish",
+      "skill": "Ko‘nikma IDsi bo‘yicha filtrlash",
+      "limit": "Maksimal natijalar soni (standart: 50)",
+      "status": "Holat bo‘yicha filtrlash (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "SSH orqali o‘rnatilgan ko‘nikmalarni boshqarish"
+    },
+    "marketplace": {
+      "description": "Marketpleysdagi ko‘nikmalarni ko‘rib chiqish va o‘rnatish"
+    },
+    "mp": {
+      "search": {
+        "description": "Marketpleys paketlarini qidirish",
+        "category": "Turkum bo‘yicha filtrlash",
+        "tag": "Teg bo‘yicha filtrlash",
+        "limit": "Maksimal natijalar soni (standart: 30)",
+        "sort": "Saralash mezoni: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Paket tafsilotlari va readme faylini ko‘rsatish"
+      },
+      "install": {
+        "description": "Marketpleys paketini o‘rnatish",
+        "version": "Paket versiyasi (standart: latest)",
+        "enable": "O‘rnatilgandan keyin yoqish",
+        "yes": "Tasdiqlash so‘rovini o‘tkazib yuborish"
+      },
+      "categories": {
+        "description": "Marketpleys turkumlarini ko‘rsatish"
+      },
+      "featured": {
+        "description": "Marketpleysdagi tavsiya etilgan paketlarni ko‘rsatish"
+      }
+    }
+  },
+  "memory": {
+    "description": "OmniRoute suhbat xotirasini boshqarish (FTS5 + vector)",
+    "search": {
+      "description": "Semantik so‘rov orqali xotira yozuvlarini qidirish",
+      "type": "Xotira turi bo‘yicha filtrlash (user|feedback|project|reference)",
+      "limit": "Maksimal natijalar soni (standart: 20)",
+      "api_key": "API kaliti bo‘yicha filtrlash",
+      "token_budget": "Natijalardagi jami tokenlar sonini cheklash"
+    },
+    "add": {
+      "description": "Yangi xotira yozuvini qo‘shish",
+      "content": "Xotira matni mazmuni",
+      "file": "Kontentni fayldan o‘qish",
+      "type": "Xotira turi (standart: user)",
+      "metadata": "JSON metama’lumotlar obyekti",
+      "api_key": "API kaliti bilan bog‘lash"
+    },
+    "clear": {
+      "description": "Filtrlarga mos xotira yozuvlarini o‘chirish",
+      "type": "Tur bo‘yicha filtrlash",
+      "older": "Ko‘rsatilgan muddatdan eski yozuvlarni o‘chirish (30d, 6m, 1y)",
+      "api_key": "API kaliti bo‘yicha filtrlash",
+      "yes": "Tasdiqlash so‘rovini o‘tkazib yuborish"
+    },
+    "list": {
+      "description": "Xotira yozuvlarini qidiruv reytingisiz ko‘rsatish",
+      "type": "Tur bo‘yicha filtrlash",
+      "limit": "Natijalarning maksimal soni (standart: 100)",
+      "api_key": "API kaliti bo‘yicha filtrlash"
+    },
+    "get": {
+      "description": "ID bo‘yicha bitta xotira yozuvini olish"
+    },
+    "delete": {
+      "description": "ID bo‘yicha xotira yozuvini o‘chirish",
+      "yes": "Tasdiqlash so‘rovini o‘tkazib yuborish"
+    },
+    "health": {
+      "description": "Xotira quyi tizimi holatini ko‘rsatish (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "OAuth provayder ulanishlarini boshqarish",
+    "providers": {
+      "description": "OAuth imkoniyatiga ega provayderlar va ularning avtorizatsiya jarayoni turlarini ko‘rsatish"
+    },
+    "start": {
+      "description": "Provayder uchun OAuth avtorizatsiya jarayonini boshlash",
+      "provider": "Provayder IDsi (gemini, copilot, cursor, …)",
+      "no_browser": "Faqat URLni chiqarish — brauzerni ochmaslik",
+      "import_system": "Hisob ma’lumotlarini mahalliy tizim konfiguratsiyasidan avtomatik import qilish",
+      "social": "Ijtimoiy kirish provayderi (google|github) — kiro uchun talab qilinadi",
+      "timeout": "Avtorizatsiyani kutish vaqti, ms (standart: 300000)"
+    },
+    "status": {
+      "description": "Faol OAuth ulanishlarini ko‘rsatish",
+      "provider": "Provayder IDsi bo‘yicha filtrlash"
+    },
+    "revoke": {
+      "description": "OAuth ulanishini bekor qilish",
+      "provider": "Bekor qilinadigan provayder IDsi",
+      "connection_id": "Muayyan ulanishni ID bo‘yicha bekor qilish",
+      "yes": "Tasdiqlash so‘rovini o‘tkazib yuborish"
+    }
+  },
+  "cloud": {
+    "description": "Bulutli AI agent vazifalarini boshqarish (codex, devin, jules)",
+    "agents": {
+      "description": "Mavjud bulutli agentlarni ko‘rsatish"
+    },
+    "agent": {
+      "description": "{agent} bulutli agenti vazifalarini boshqarish",
+      "auth": {
+        "description": "{agent} uchun OAuth orqali avtorizatsiya qilish"
+      }
+    },
+    "task": {
+      "description": "Bulutli agent vazifalarini boshqarish",
+      "create": {
+        "description": "Yangi agent vazifasini yaratish",
+        "title": "Vazifa sarlavhasi (standart: so‘rovning dastlabki 80 ta belgisi)",
+        "prompt": "Vazifa so‘rovi matni",
+        "prompt_file": "So‘rovni fayldan o‘qish",
+        "repo": "Vazifa uchun klonlanadigan repozitoriy URLi",
+        "branch": "Foydalaniladigan tarmoq nomi",
+        "metadata": "JSON metama’lumotlar obyekti"
+      },
+      "list": {
+        "description": "Agent vazifalarini ko‘rsatish",
+        "status": "Holat bo‘yicha filtrlash (running|completed|failed|cancelled)",
+        "limit": "Natijalarning maksimal soni (standart: 50)"
+      },
+      "get": {
+        "description": "ID bo‘yicha vazifa tafsilotlarini olish"
+      },
+      "status": {
+        "description": "Vazifa holatini chiqarish (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Ishlayotgan vazifani bekor qilish",
+        "yes": "Tasdiqlash so‘rovini o‘tkazib yuborish"
+      },
+      "approve": {
+        "description": "Bajarishni boshlash uchun agent rejasini tasdiqlash"
+      },
+      "message": {
+        "description": "Ishlayotgan vazifaga xabar yuborish"
+      }
+    },
+    "sources": {
+      "description": "Vazifa yaratgan manba fayllarini ro‘yxatlash"
+    }
+  },
+  "eval": {
+    "description": "Baholash to‘plamlari va ishga tushirishlarni boshqarish",
+    "suites": {
+      "description": "Baholash to‘plamlarini boshqarish",
+      "list": {
+        "description": "Baholash to‘plamlarini ro‘yxatlash"
+      },
+      "get": {
+        "description": "Baholash to‘plami tafsilotlarini ID bo‘yicha olish"
+      },
+      "create": {
+        "description": "JSON faylidan baholash to‘plamini yaratish",
+        "file": "To‘plam ta’rifi berilgan JSON fayliga yo‘l"
+      }
+    },
+    "run": {
+      "description": "To‘plam uchun baholashni ishga tushirish",
+      "model": "Baholanadigan model IDsi (standart: auto)",
+      "combo": "Muayyan kombinatsiyani nomi bo‘yicha majburan tanlash",
+      "concurrency": "Bir vaqtda bajariladigan namunalar soni (standart: 4)",
+      "tag": "Keyinroq filtrlash uchun ushbu ishga tushirishga teg qo‘yish",
+      "watch": "Ishga tushirish jarayonini yakunlanguniga qadar kuzatish"
+    },
+    "list": {
+      "description": "Baholash ishga tushirishlarini ro‘yxatlash",
+      "suite": "To‘plam IDsi bo‘yicha filtrlash",
+      "status": "Holat bo‘yicha filtrlash",
+      "since": "Ushbu vaqt belgisidan keyingi ishga tushirishlarni qaytarish",
+      "limit": "Natijalarning maksimal soni (standart: 50)"
+    },
+    "get": {
+      "description": "Baholash ishga tushirilishi tafsilotlarini ID bo‘yicha olish"
+    },
+    "results": {
+      "description": "Baholash ishga tushirilishi uchun namuna natijalarini ko‘rsatish",
+      "failed": "Faqat muvaffaqiyatsiz namunalarni ko‘rsatish"
+    },
+    "cancel": {
+      "description": "Ishlayotgan baholashni bekor qilish",
+      "yes": "Tasdiqlash so‘rovini o‘tkazib yuborish"
+    },
+    "scorecard": {
+      "description": "Yakunlangan baholash ishga tushirilishi uchun natijalar jadvalini ko‘rsatish"
+    }
+  },
+  "webhooks": {
+    "description": "OmniRoute vebhuklarini boshqarish",
+    "events": {
+      "description": "Barcha mavjud vebhuk hodisasi turlarini ro‘yxatlash"
+    },
+    "list": {
+      "description": "Sozlangan vebhuklarni ro‘yxatlash"
+    },
+    "get": {
+      "description": "Vebhuk tafsilotlarini ID bo‘yicha olish"
+    },
+    "add": {
+      "description": "Yangi vebhukni ro‘yxatdan o‘tkazish",
+      "url": "Manzil URL",
+      "events": "Vergul bilan ajratilgan hodisa turlari ro‘yxati",
+      "secret": "HMAC imzolash siri",
+      "header": "key=value formatidagi qo‘shimcha sarlavha (takrorlash mumkin)",
+      "no_enabled": "Vebhukni o‘chirilgan holatda yaratish"
+    },
+    "update": {
+      "description": "Mavjud vebhukni yangilash",
+      "enabled": "Yoqilganlik holatini belgilash (true|false)"
+    },
+    "remove": {
+      "description": "Vebhukni o‘chirish",
+      "yes": "Tasdiqlash so‘rovini o‘tkazib yuborish"
+    },
+    "test": {
+      "description": "Vebhukka sinov hodisasini yuborish",
+      "event": "Simulyatsiya qilinadigan hodisa turi (standart: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — avtomatik zaxira yo‘naltirishga ega aqlli AI routeri",
+    "version": "Versiyani ko‘rsatish va chiqish",
+    "output": "Chiqish formati (table, json, jsonl, csv)",
+    "quiet": "Muhim bo‘lmagan chiqishni yashirish",
+    "no_color": "Rangli chiqishni o‘chirish",
+    "timeout": "HTTP so‘rovi uchun kutish vaqti, millisekundlarda",
+    "api_key": "OmniRoute serveri uchun API kaliti",
+    "base_url": "OmniRoute serverining asosiy URL manzili",
+    "context": "Ushbu buyruq uchun ishlatiladigan server konteksti/profili",
+    "lang": "CLI interfeysi tilini belgilash (OMNIROUTE_LANG qiymatini bekor qiladi)"
+  },
+  "files": {
+    "description": "Fayllarni boshqarish (yuklash, ro‘yxatlash, olish, yuklab olish, o‘chirish)",
+    "list": {
+      "purpose": "Maqsad bo‘yicha filtrlash",
+      "limit": "Maksimal natijalar soni"
+    },
+    "get": {
+      "description": "Fayl metama’lumotlarini olish"
+    },
+    "upload": {
+      "description": "Fayl yuklash",
+      "purpose": "Fayl maqsadi (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Fayl tarkibini yuklab olish",
+      "out": "Yo‘lga saqlash (standart: stdout)"
+    },
+    "delete": {
+      "yes": "Tasdiqlashni o‘tkazib yuborish"
+    }
+  },
+  "batches": {
+    "description": "OpenAI bilan mos paketli vazifalarni boshqarish",
+    "list": {
+      "status": "Holat bo‘yicha filtrlash",
+      "limit": "Maksimal natijalar soni"
+    },
+    "create": {
+      "description": "Paketli vazifa yaratish",
+      "inputFile": "Kirish fayli IDsi",
+      "endpoint": "Maqsadli endpoint",
+      "window": "Yakunlash muddati",
+      "metadata": "key=value metama’lumotini qo‘shish"
+    },
+    "submit": {
+      "description": "JSONL faylini yuklash va paket yaratish",
+      "jsonl": "JSONL fayliga yo‘l",
+      "endpoint": "Maqsadli endpoint",
+      "wait": "Yakunlanishini kutish"
+    },
+    "cancel": {
+      "yes": "Tasdiqlashni o‘tkazib yuborish"
+    },
+    "wait": {
+      "timeout": "Kutish vaqti, ms"
+    },
+    "output": {
+      "out": "Natijani ko‘rsatilgan yo‘lga saqlash"
+    },
+    "errors": {
+      "out": "Xatolarni ko‘rsatilgan yo‘lga saqlash"
+    }
+  },
+  "translator": {
+    "description": "So‘rov tanalarini LLM formatlari o‘rtasida tarjima qilish",
+    "detect": {
+      "description": "Tana formatini aniqlash"
+    },
+    "translate": {
+      "description": "Tanani bir formatdan boshqasiga oʻgirish"
+    },
+    "send": {
+      "description": "Tarjima qilish va yuqori oqimga yuborish"
+    },
+    "stream": {
+      "description": "Soʻrov tanasini oqim tarzida tarjima qilish"
+    },
+    "from": "Manba formati (openai|anthropic|gemini|cohere)",
+    "to": "Maqsad formati (openai|anthropic|gemini|cohere)",
+    "file": "Soʻrov tanasi JSON fayliga yoʻl",
+    "out": "Natijani faylga saqlash",
+    "model": "Modelni qayta belgilash",
+    "history": {
+      "limit": "Maksimal natijalar soni"
+    }
+  },
+  "pricing": {
+    "description": "Modellar uchun narx maʼlumotlarini boshqarish",
+    "sync": {
+      "description": "Narxlarni yuqori oqim manbalaridan sinxronlash",
+      "provider": "Provayder boʻyicha filtrlash",
+      "force": "Majburiy qayta sinxronlash"
+    },
+    "list": {
+      "provider": "Provayder boʻyicha filtrlash",
+      "model": "Model boʻyicha filtrlash",
+      "limit": "Maksimal natijalar soni"
+    },
+    "defaults": {
+      "description": "Standart narxlarni boshqarish",
+      "input": "1 mln kirish tokeni narxi (USD)",
+      "output": "1 mln chiqish tokeni narxi (USD)",
+      "cacheRead": "1 mln token uchun keshdan oʻqish narxi (USD)",
+      "cacheWrite": "1 mln token uchun keshga yozish narxi (USD)"
+    },
+    "diff": {
+      "description": "Yuqori oqim narxlaridan farqni koʻrsatish",
+      "model": "Model boʻyicha filtrlash"
+    }
+  },
+  "radar": {
+    "description": "Mahalliy Radar katalog tasmalarini tekshirish va sinxronlash",
+    "status": "Mahalliy Radar sozlamalari va tasma keshi holatini koʻrsatish",
+    "sync": "Katalog, yoʻnaltirmalar, takliflar va Intel maʼlumotlarini mahalliy server orqali sinxronlash"
+  },
+  "resilience": {
+    "description": "Barqarorlik mexanizmlarini tekshirish va boshqarish",
+    "status": {
+      "provider": "Provayder boʻyicha filtrlash"
+    },
+    "breakers": {
+      "provider": "Provayder boʻyicha filtrlash"
+    },
+    "cooldowns": {
+      "provider": "Provayder boʻyicha filtrlash",
+      "connectionId": "Ulanish IDsi boʻyicha filtrlash"
+    },
+    "lockouts": {
+      "provider": "Provayder boʻyicha filtrlash",
+      "model": "Model boʻyicha filtrlash"
+    },
+    "reset": {
+      "description": "Uzilishdan himoya/kutish holatini tiklash",
+      "provider": "Tiklanadigan provayder",
+      "connectionId": "Tiklanadigan ulanish IDsi",
+      "model": "Blokirovkasi tiklanadigan model",
+      "allCooldowns": "Provayder uchun barcha kutish holatlarini tiklash",
+      "yes": "Tasdiqlashni oʻtkazib yuborish"
+    },
+    "profile": {
+      "description": "Barqarorlik profilini boshqarish",
+      "name": "Profil nomi"
+    },
+    "config": {
+      "description": "Barqarorlik konfiguratsiyasini boshqarish",
+      "threshold": "Nosozlik chegarasi",
+      "resetTimeout": "Qayta tiklash kutish vaqti, ms",
+      "baseCooldown": "Asosiy sovish vaqti, ms"
+    }
+  },
+  "nodes": {
+    "description": "Provayder tugunlarini (endpointlarni) boshqarish",
+    "list": {
+      "provider": "Provayder bo‘yicha filtrlash",
+      "enabled": "Faqat yoqilgan tugunlarni ko‘rsatish"
+    },
+    "add": {
+      "provider": "Provayder nomi",
+      "baseUrl": "Tugun uchun asosiy URL",
+      "name": "Tugun nomi",
+      "weight": "Yuklamani muvozanatlash vazni",
+      "region": "Hudud tegi",
+      "authHeader": "Maxsus autentifikatsiya sarlavhasi (key=value)"
+    },
+    "update": {
+      "baseUrl": "Yangi asosiy URL",
+      "name": "Yangi nom",
+      "weight": "Yangi vazn",
+      "region": "Yangi hudud",
+      "enabled": "Yoqish yoki o‘chirish (true|false)"
+    },
+    "remove": {
+      "yes": "Tasdiqlashni o‘tkazib yuborish"
+    },
+    "validate": {
+      "baseUrl": "Tekshiriladigan URL",
+      "provider": "Tekshirish uchun provayder"
+    },
+    "test": {
+      "description": "Tugunga sinov so‘rovini yuborish"
+    },
+    "metrics": {
+      "description": "Tugun metrikalarini ko‘rsatish",
+      "period": "Vaqt oralig‘i (masalan, 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Kontekstni qayta ishlash konveyerini (Caveman, RTK) sozlash",
+    "analytics": {
+      "period": "Vaqt oralig‘i (masalan, 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Caveman kontekst siquvchisini boshqarish",
+      "config": {
+        "description": "Caveman konfiguratsiyasini ko‘rsatish yoki yangilash",
+        "aggressiveness": "Agressivlik 0.0–1.0",
+        "maxShrinkPct": "Maksimal qisqartirish foizi",
+        "preserveTags": "Saqlab qolinadigan, vergul bilan ajratilgan teglar"
+      }
+    },
+    "rtk": {
+      "description": "RTK kontekst optimallashtiruvchisini boshqarish",
+      "config": {
+        "description": "RTK konfiguratsiyasini ko‘rsatish yoki yangilash",
+        "tokenBudget": "RTK uchun token budjeti",
+        "reservePct": "Zaxira foizi"
+      },
+      "filters": {
+        "description": "RTK filtrlarini boshqarish",
+        "pattern": "Filtr namunasi (regex)",
+        "priority": "Filtr ustuvorligi (standart: 100)",
+        "action": "Filtr amali: drop|shrink|replace",
+        "yes": "Tasdiqlashni oʻtkazib yuborish"
+      },
+      "test": {
+        "file": "Soʻrov JSON fayliga yoʻl"
+      }
+    },
+    "combos": {
+      "description": "Kontekstga mos kombo boshqaruvi"
+    }
+  },
+  "sessions": {
+    "description": "Faol seanslarni koʻrish va boshqarish",
+    "list": {
+      "user": "Foydalanuvchi boʻyicha filtrlash",
+      "kind": "Tur boʻyicha filtrlash (dashboard|api-key|mcp|a2a)",
+      "active": "Faqat faol seanslarni koʻrsatish",
+      "limit": "Maksimal natijalar soni (standart: 100)"
+    },
+    "expire": {
+      "yes": "Tasdiqlashni oʻtkazib yuborish"
+    },
+    "expireAll": {
+      "user": "Seanslari tugatiladigan foydalanuvchi",
+      "yes": "Tasdiqlashni oʻtkazib yuborish"
+    }
+  },
+  "tags": {
+    "description": "Resurs teglarini boshqarish",
+    "add": {
+      "color": "Teg rangi (hex yoki nom)",
+      "description": "Teg tavsifi"
+    },
+    "remove": {
+      "yes": "Tasdiqlashni oʻtkazib yuborish"
+    },
+    "assign": {
+      "tag": "Teg nomi",
+      "to": "Maqsadli resurs type:id koʻrinishida (masalan, provider:openai)"
+    },
+    "unassign": {
+      "tag": "Teg nomi",
+      "from": "Manba resurs type:id koʻrinishida"
+    }
+  },
+  "openapi": {
+    "description": "OmniRoute OpenAPI spetsifikatsiyasiga kirish va uni sinash",
+    "dump": {
+      "description": "OpenAPI spetsifikatsiyasini stdout yoki faylga chiqarish",
+      "format": "Chiqish formati: yaml|json (standart: yaml)",
+      "out": "Fayl yoʻliga saqlash"
+    },
+    "validate": {
+      "description": "OpenAPI spetsifikatsiyasini tekshirish"
+    },
+    "try": {
+      "description": "Spetsifikatsiya orqali API endpointini sinash",
+      "method": "HTTP usuli (standart: GET)",
+      "body": "Soʻrov tanasi JSON fayliga yoʻl",
+      "query": "Soʻrov parametri key=value koʻrinishida (takrorlash mumkin)",
+      "header": "Sarlavha key=value koʻrinishida (takrorlash mumkin)"
+    },
+    "endpoints": {
+      "description": "Barcha API endpointlarini roʻyxatlash",
+      "search": "Yoʻl yoki qisqacha tavsif boʻyicha filtrlash"
+    },
+    "paths": {
+      "description": "Barcha API yoʻllarini roʻyxatlash"
+    }
+  },
+  "combo": {
+    "title": "Kombolar",
+    "switched": "Faol kombo: {name}",
+    "created": "Kombo yaratildi: {name}",
+    "deleted": "Kombo oʻchirildi: {name}",
+    "noCombos": "Hech qanday kombo sozlanmagan.",
+    "confirmDelete": "{name} kombosi oʻchirilsinmi?",
+    "suggest": {
+      "description": "AI baholashi yordamida vazifa uchun eng yaxshi komboni tavsiya qilish",
+      "task": "Vazifa tavsifi",
+      "maxCost": "Har bir soʻrov uchun AQSH dollaridagi maksimal xarajat",
+      "maxLatencyMs": "Millisekundlardagi maksimal kechikish",
+      "weights": "JSON baholash vaznlari, masalan, {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Koʻrsatiladigan eng yaxshi nomzodlar soni (standart: 5)",
+      "explain": "Asoslantirishni stderr ga chiqarish",
+      "switch": "Eng yuqori baholangan kombinatsiyani faollashtirish"
+    }
+  },
+  "oneproxy": {
+    "description": "OneProxy yuqori oqim pulini boshqarish",
+    "stats": {
+      "provider": "Provayder boʻyicha filtrlash",
+      "period": "Vaqt oraligʻi (standart: 24h)"
+    },
+    "fetch": {
+      "description": "Puldan proksilarni olish",
+      "count": "Olinadigan proksilar soni (standart: 1)",
+      "type": "Proksi turi: http|socks5 (standart: http)"
+    },
+    "rotate": {
+      "description": "Proksini majburiy almashtirish",
+      "provider": "Almashtiriladigan provayder",
+      "connectionId": "Almashtiriladigan muayyan ulanish identifikatori"
+    },
+    "config": {
+      "description": "OneProxy konfiguratsiyasini koʻrsatish yoki yangilash",
+      "enabled": "Proksi pulini yoqish (true|false)",
+      "poolSize": "Pul hajmi",
+      "providerSource": "Proksi provayderi uchun URL",
+      "rotationPolicy": "Almashtirish siyosati: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Joriy proksi pulini koʻrsatkichlari bilan roʻyxatlash"
+    }
+  },
+  "open": {
+    "description": "Brauzerda muayyan OmniRoute boshqaruv paneli sahifasini ochish",
+    "url": "Faqat URL ni chiqarish, brauzerni ochmaslik"
+  },
+  "telemetry": {
+    "description": "Umumlashtirilgan telemetriya maʼlumotlariga kirish",
+    "summary": {
+      "description": "Umumlashtirilgan telemetriya xulosasini koʻrsatish",
+      "period": "Vaqt oraligʻi: 24h|7d|30d (standart: 24h)",
+      "compareTo": "Oldingi davr bilan taqqoslash"
+    },
+    "export": {
+      "description": "Telemetriya hodisalarini JSONL formatiga eksport qilish",
+      "out": "Chiqish fayli yoʻli (standart: telemetry.jsonl)",
+      "period": "Eksport uchun vaqt oraligʻi (standart: 7d)"
+    }
+  },
+  "sync": {
+    "description": "OmniRoute nusxalari oʻrtasida konfiguratsiyani sinxronlash",
+    "push": {
+      "description": "Konfiguratsiyani bulutga yoki masofaviy nusxaga yuborish",
+      "target": "Maqsad (cloud yoki context:name)",
+      "bundle": "Sinxronlanadigan toʻplam qismlari",
+      "dryRun": "Qoʻllamasdan oldindan koʻrish"
+    },
+    "pull": {
+      "description": "Konfiguratsiyani bulutdan yoki masofaviy nusxadan olish",
+      "source": "Manba (cloud yoki context:name)",
+      "merge": "Mavjud konfiguratsiya bilan birlashtirish",
+      "replace": "Mavjud konfiguratsiyani almashtirish",
+      "dryRun": "Qo‘llamasdan oldindan ko‘rish"
+    },
+    "diff": {
+      "source": "Manba konteksti",
+      "target": "Maqsad konteksti"
+    },
+    "bundle": {
+      "description": "Konfiguratsiyani bundle fayli sifatida eksport qilish",
+      "include": "Kiritiladigan qismlar (vergul bilan ajratilgan)"
+    },
+    "import": {
+      "description": "Bundle faylini import qilish",
+      "dryRun": "Qo‘llamasdan tekshirish"
+    },
+    "initialize": {
+      "fromCloud": "Bulutli zaxira nusxadan ishga tushirish"
+    },
+    "tokens": {
+      "description": "Sinxronlash tokenlarini boshqarish",
+      "create": {
+        "name": "Token nomi",
+        "scope": "Token doirasi",
+        "ttl": "Token TTL muddati (masalan, 30d)"
+      },
+      "revoke": {
+        "yes": "Tasdiqlashni o‘tkazib yuborish"
+      }
+    },
+    "resolve": {
+      "description": "Sinxronlash ziddiyatlarini interaktiv tarzda hal qilish"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Server kontekstlari/profillarini boshqarish (qo‘shish, foydalanish, ro‘yxatni ko‘rish, ko‘rsatish, olib tashlash, nomini o‘zgartirish, eksport qilish, import qilish)"
+    },
+    "lang": {
+      "description": "CLI interfeys tilini boshqarish",
+      "getDescription": "Hozirda faol bo‘lgan til kodini ko‘rsatish",
+      "setDescription": "Interfeys tilini o‘rnatish va konfiguratsiyaga saqlash",
+      "listDescription": "Barcha mavjud tillarni ro‘yxatlash",
+      "listTitle": "Mavjud tillar",
+      "current": "Til: {code} ({name})",
+      "saved": "Til {code} ({name}) etib o‘rnatildi.",
+      "noCode": "Til kodi talab qilinadi. Mavjud kodlarni ko‘rish uchun 'omniroute config lang list' buyrug‘ini bajaring.",
+      "unknown": "Noma’lum til kodi: {code}. Mavjud kodlarni ko‘rish uchun 'omniroute config lang list' buyrug‘ini bajaring.",
+      "alreadySet": "Til allaqachon {code} etib o‘rnatilgan.",
+      "envHint": "Maslahat: muhitda OMNIROUTE_LANG={code} qiymatini ham o‘rnatishingiz mumkin."
+    }
+  },
+  "completion": {
+    "description": "Shell uchun avtomatik to‘ldirish skriptlarini yaratish yoki o‘rnatish",
+    "zsh": "zsh uchun avtomatik to‘ldirish skriptini chiqarish",
+    "bash": "bash uchun avtomatik to‘ldirish skriptini chiqarish",
+    "fish": "fish uchun avtomatik to‘ldirish skriptini chiqarish",
+    "install": "Aniqlangan shell uchun avtomatik to‘ldirish skriptini global tarzda o‘rnatish",
+    "refresh": "Kombinatsiyalar/provayderlar/modellar keshini yangilash"
+  },
+  "logs": {
+    "description": "So‘rov jurnallarini real vaqtda uzatish yoki eksport qilish",
+    "follow": "Jurnallarni real vaqtda uzatish",
+    "filter": "Daraja bo‘yicha filtrlash (error,warn,info) — vergul bilan ajratilgan",
+    "lines": "Olinadigan qatorlar soni",
+    "timeout": "Ulanishning kutish vaqti, ms da",
+    "baseUrl": "OmniRoute API asosiy URL manzili",
+    "requestId": "So‘rov IDsi bo‘yicha filtrlash",
+    "apiKey": "API kaliti bo‘yicha filtrlash",
+    "combo": "Kombo nomi bo‘yicha filtrlash",
+    "status": "HTTP holat kodi bo‘yicha filtrlash",
+    "durationMin": "So‘rovning minimal davomiyligi, ms",
+    "durationMax": "So‘rovning maksimal davomiyligi, ms",
+    "export": "Loglarni faylga saqlash (json/jsonl/csv)",
+    "exported": "Loglar {path} manziliga saqlandi",
+    "stopped": "Loglar oqimi to‘xtatildi.",
+    "streamError": "Loglar oqimi xatosi: {message}"
+  },
+  "tray": {
+    "description": "Tizim treyi belgisini boshqarish",
+    "show": "Trey belgisini ko‘rsatish (agar server --tray bilan ishlayotgan bo‘lsa)",
+    "hide": "Trey belgisini yashirish",
+    "quit": "OmniRoute’dan trey orqali chiqish"
+  },
+  "autostart": {
+    "description": "OmniRoute’ning tizim yuklanishidagi avtomatik ishga tushishini boshqarish (Linux: systemd foydalanuvchi xizmati)",
+    "enable": "Tizim yuklanishida avtomatik ishga tushishni yoqish",
+    "disable": "Tizim yuklanishida avtomatik ishga tushishni o‘chirish",
+    "toggle": "Tizim yuklanishida avtomatik ishga tushishni almashtirish",
+    "status": "Avtomatik ishga tushish holatini ko‘rsatish"
+  },
+  "runtime": {
+    "description": "Mahalliy bajarilish muhiti bog‘liqliklarini boshqarish",
+    "check": "Bajarilish muhiti katalogidagi mahalliy bog‘liqliklar holatini tekshirish",
+    "repair": "Bajarilish muhiti katalogidagi mahalliy bog‘liqliklarni qayta o‘rnatish",
+    "repair_force": "Yaroqli bo‘lsa ham majburan qayta o‘rnatish",
+    "clean": "Bajarilish muhiti katalogini o‘chirish (diskdagi joyni bo‘shatadi)",
+    "clean_yes": "Tasdiqlashni o‘tkazib yuborish"
+  },
+  "repl": {
+    "description": "LLM bilan interaktiv ko‘p bosqichli REPL",
+    "model": "Foydalaniladigan model (standart: auto)",
+    "combo": "Foydalaniladigan kombo nomi",
+    "system": "Tizim prompti",
+    "resume": "Saqlangan sessiyani nomi bo‘yicha davom ettirish"
+  },
+  "plugin": {
+    "description": "CLI plaginlarini boshqarish (omniroute-cmd-*)",
+    "list": "O‘rnatilgan plaginlar ro‘yxatini ko‘rsatish",
+    "install": "npm yoki mahalliy yo‘ldan plagin o‘rnatish",
+    "remove": "O‘rnatilgan plaginni olib tashlash",
+    "info": "O‘rnatilgan plagin tafsilotlarini ko‘rsatish",
+    "search": "Mavjud plaginlarni npm reyestridan qidirish",
+    "update": "O‘rnatilgan plagin(lar)ni yangilash",
+    "scaffold": "Yangi plagin uchun boshlang‘ich shablon yaratish"
+  },
+  "launch": {
+    "description": "OmniRoute’ga yo‘naltirilgan Claude Code’ni ishga tushirish (mahalliy yoki masofaviy, --profile bilan)",
+    "token": "Claude mijozi yuborishi kerak bo‘lgan token (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute’ga {port} portida ulanib bo‘lmadi. Uni 'omniroute serve' bilan ishga tushiring.",
+    "notFound": "'claude' CLI PATH ichidan topilmadi."
+  },
+  "run": {
+    "description": "OmniRoute orqali qoʻllab-quvvatlanadigan CLI nishonini ishga tushirish"
+  },
+  "setupClaude": {
+    "description": "OmniRoute modellar katalogidan ~/.claude/profiles uchun Claude Code profillarini yaratish"
+  },
+  "connect": {
+    "description": "Masofaviy OmniRoute serveriga ulanish va masofaviy rejimga oʻtish"
+  },
+  "tokens": {
+    "description": "Muayyan doiradagi CLI kirish tokenlarini boshqarish (masofaviy rejim)"
+  },
+  "configure": {
+    "description": "Faol serverdan provayder va modelni tanlash hamda qoʻllab-quvvatlanadigan mahalliy CLI vositasini sozlash"
+  },
+  "launchCodex": {
+    "description": "OmniRoute manziliga yoʻnaltirilgan Codex CLI vositasini ishga tushirish (mahalliy yoki masofaviy VPS)"
+  },
+  "setupCodex": {
+    "description": "OmniRoute jonli modellar katalogidan ~/.codex profil fayllarini yaratish"
+  },
+  "packs": {
+    "description": "Ixtiyoriy bajarilish paketlarini boshqarish (ML / brauzerni avtomatlashtirish)",
+    "listDescription": "Ixtiyoriy paketlar va ularning oʻrnatilish holatini roʻyxatlash",
+    "installDescription": "Ixtiyoriy paketni DATA_DIR ichiga oʻrnatish",
+    "verifyDescription": "Oʻrnatilgan paketlarni birga taqdim etilgan nazorat summalari indeksi boʻyicha tekshirish",
+    "removeDescription": "Oʻrnatilgan ixtiyoriy paketni olib tashlash",
+    "sourceOpt": "Paket tarkibi va paket indeksini saqlovchi katalog",
+    "warnNoIndex": "optional-packs.index.json topilmadi — ushbu ishchi nusxada oʻrnatish/tekshirish imkoniyati mavjud emas (u ish stoli toʻplamlariga kiritilgan)",
+    "errUnknown": "nomaʼlum paket: {name}",
+    "errNoIndex": "paket indeksi topilmadi; paket tarkibi saqlanadigan katalogni --source <dir> orqali koʻrsating (u ish stoli toʻplamlarida ilova yonida joylashadi)",
+    "installed": "\"{name}\" paketi oʻrnatildi va {dir} manzilida tekshirildi",
+    "restartHint": "bajarilish muhiti paketni aniqlashi uchun OmniRoute serverini (yoki ish stoli ilovasini) qayta ishga tushiring",
+    "removed": "\"{name}\" paketi olib tashlandi",
+    "notInstalled": "\"{name}\" paketi oʻrnatilmagan",
+    "verifyOk": "barcha oʻrnatilgan paketlar tekshiruvdan oʻtdi",
+    "verifyFailed": "{count} ta paket tekshiruvdan oʻtmadi",
+    "noneInstalled": "hech qanday ixtiyoriy paket oʻrnatilmagan"
+  }
+}

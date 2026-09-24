@@ -593,6 +593,26 @@ function isSchemaAlreadyApplied(
         hasColumn(db, "provider_nodes", "daily_quota_reset_timezone") &&
         hasColumn(db, "provider_nodes", "daily_quota_reset_hour")
       );
+    case "179":
+      // proxy_logs.upstream_status may already exist if ensureProxyLogsColumns ran first;
+      // a bare ADD COLUMN would then throw. Renumbering the migration means renaming this case
+      // (keyed by version only: a stale "177" here would skip 177_provider_connection_synced_models_at).
+      return hasColumn(db, "proxy_logs", "upstream_status");
+    case "181":
+      // Same shape as 179: ensureProxyLogsColumns may have added proxy_name at boot, so the
+      // bare ADD COLUMN would throw. Keyed by version — a stale number here would answer for
+      // another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "proxy_name");
+    case "183":
+      // Same shape as 179/181: ensureProxyLogsColumns may have added
+      // rotation_account at boot. Keyed by version only — a stale number here
+      // would answer for another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "rotation_account");
+    case "184":
+      // Same shape as 179/181/183: ensureProxyLogsColumns may have added
+      // correlation_id at boot. Keyed by version only — a stale number here
+      // would answer for another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "correlation_id");
     default:
       return false;
   }

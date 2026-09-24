@@ -256,6 +256,7 @@
     "max_restarts": "Didžiausias paleidimų iš naujo po strigties skaičius per 30 s prieš nutraukiant bandymus (numatyta: 2)",
     "tray": "Paleisti sistemos dėkle (tik darbalaukio programoje, pasirenkama)",
     "no_tray": "Išjungti sistemos dėklo piktogramą",
+    "ready_timeout": "Parengties patikros skirtasis laikas ms (taip pat OMNIROUTE_READY_TIMEOUT_MS, numatytoji reikšmė 60000)",
     "tls_cert": "Kelias į TLS sertifikatą (PEM), skirtą HTTPS teikti (taip pat OMNIROUTE_TLS_CERT)",
     "tls_key": "Kelias į privatųjį TLS raktą (PEM), skirtą HTTPS teikti (taip pat OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP serveris veikia ({transport})",
     "stopped": "MCP serveris sustabdytas.",
     "restarted": "MCP serveris paleistas iš naujo.",
+    "stoppedHint": "Norėdami jį įjungti, paleiskite `omniroute mcp enable`.",
+    "enabled": "MCP serveris įjungtas.",
+    "disabled": "MCP serveris išjungtas.",
+    "enable": {
+      "description": "Įjungti MCP serverį",
+      "transport": "Naudotinas perdavimo būdas: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Išjungti MCP serverį"
+    },
     "call": {
       "description": "Tiesiogiai iškviesti MCP įrankį",
       "args": "JSON argumentų objektas (įterptasis)",

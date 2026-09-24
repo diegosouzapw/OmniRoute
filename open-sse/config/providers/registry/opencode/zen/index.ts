@@ -30,9 +30,15 @@ export const opencode_zenProvider: RegistryEntry = {
     ...OPENCODE_ZEN_GO_SHARED_MODELS,
     // models[0] (big-pickle) is the dashboard default; SHARED spread kept after it.
 
-    { id: "gpt-5.6-sol", name: "GPT 5.6 Sol" },
-    { id: "gpt-5.6-terra", name: "GPT 5.6 Terra" },
-    { id: "gpt-5.6-luna", name: "GPT 5.6 Luna" },
+    // ── GPT-5.6 ─────────────────────────────────────────────────
+    // Upstream serves this trio only on /responses — /chat/completions answers
+    // 503 "Endpoint is unavailable" (live-verified 2026-09-19 against
+    // opencode.ai/zen/v1 with the same key on both endpoints). #12196 made the
+    // same declaration for gpt-5.6-luna on opencode-go; the zen entries here
+    // never got it.
+    { id: "gpt-5.6-sol", name: "GPT 5.6 Sol", targetFormat: "openai-responses" },
+    { id: "gpt-5.6-terra", name: "GPT 5.6 Terra", targetFormat: "openai-responses" },
+    { id: "gpt-5.6-luna", name: "GPT 5.6 Luna", targetFormat: "openai-responses" },
     { id: "gpt-5.4", name: "GPT 5.4" },
     { id: "gpt-5.4-mini", name: "GPT 5.4 Mini" },
     { id: "gpt-5.4-nano", name: "GPT 5.4 Nano" },
@@ -80,6 +86,25 @@ export const opencode_zenProvider: RegistryEntry = {
     {
       id: "muse-spark-1.2-contributor-free",
       name: "Muse Spark 1.2 Contributor Free",
+      supportsReasoning: true,
+      targetFormat: "openai-responses",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+    },
+    // Muse Spark 1.3 is served only on the Responses API, same as 1.2 above.
+    // Its window matches the published OpenCode catalog instead of the
+    // 200000 provider default.
+    {
+      id: "muse-spark-1.3",
+      name: "Muse Spark 1.3",
+      supportsReasoning: true,
+      targetFormat: "openai-responses",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+    },
+    {
+      id: "muse-spark-1.3-contributor-free",
+      name: "Muse Spark 1.3 Contributor Free",
       supportsReasoning: true,
       targetFormat: "openai-responses",
       contextLength: 1048576,

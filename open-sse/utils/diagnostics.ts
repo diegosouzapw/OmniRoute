@@ -10,6 +10,8 @@
  */
 
 import { sanitizeErrorMessage } from "./error.ts";
+import { classifyFakeSuccessBody } from "../services/errorClassifier.ts";
+import { SYNTHETIC_RESPONSES_SEQUENCE_NUMBER } from "./responsesSequence.ts";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +24,10 @@ export type MalformedReason =
   | "parse_fail"
   | "empty_choices"
   | "empty_stream"
+  // #13461: a 2xx body whose assistant text is the provider's own error
+  // prose disguised as a successful completion (allowlisted providers only
+  // — see classifyFakeSuccessBody in open-sse/services/errorClassifier.ts).
+  | "content_is_upstream_error"
   | string;
 
 export interface ReportMalformed200Opts {
@@ -52,6 +58,7 @@ const REASON_MESSAGES: Record<string, string> = {
   parse_fail: "failed to parse upstream stream",
   empty_choices: "response had no usable choices/output",
   empty_stream: "upstream stream carried no content",
+  content_is_upstream_error: "upstream reported a failure disguised as a successful response",
 };
 
 function describeReason(reason?: MalformedReason): string {
@@ -140,6 +147,10 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
   );
   const event = {
     type: "response.failed",
+    // #14330: this frame is synthesized outside the real per-stream sequence
+    // counter, so it uses the shared synthetic seed instead of omitting the
+    // required field — a strict Responses decoder aborts without it.
+    sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
     response: {
       id: null,
       status: "failed",
@@ -172,8 +183,19 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
  * - Claude Messages shape (type:"message" + content[]) is checked directly,
  *   since a Claude client receives the body in that shape (no
  *   `choices`/`object:"response"`).
+ * - #13461: for the narrow provider allowlist in classifyFakeSuccessBody
+ *   (open-sse/services/errorClassifier.ts), a short Chat Completions
+ *   assistant message that is dominated by a known credits-exhausted /
+ *   account-deactivated phrase is treated as malformed too ("fake success")
+ *   even though it carries non-empty content — see that function's doc
+ *   comment for the false-positive guards. `provider` is optional and comes
+ *   from the single call site in chatCore.ts; every other caller/shape is
+ *   unaffected.
  */
-export function detectMalformedNonStream(resp: unknown): MalformedReason | null {
+export function detectMalformedNonStream(
+  resp: unknown,
+  provider?: string | null
+): MalformedReason | null {
   if (!resp || typeof resp !== "object") return "empty_choices";
 
   const body = resp as Record<string, unknown>;
@@ -255,7 +277,9 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     //  1) A block IS present but invalid (e.g. text:"", a lone "(empty response)"
     //     sentinel, or only null entries) — the model genuinely produced no
     //     usable output. That is a MALFORMED-200 empty_choices regardless of
-    //     stop_reason (parity with the OpenAI content:"" path).
+    //     stop_reason (parity with the OpenAI content:"" path) — UNLESS the
+    //     terminal stop_reason is one of the legitimate truncated-completion
+    //     exemptions below (#12968).
     //  2) `content: []` — no block at all. #9971: a truncated / non-terminal
     //     body (no stop_reason) must not become empty_choices. A terminal
     //     stop_reason with no output usually is empty_choices — except the
@@ -265,12 +289,20 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     //     return content:[] + stop_reason max_tokens. Treating that as
     //     empty_choices turns a valid 200 into MALFORMED-200 → 502 even
     //     though errorClassifier would have let it through.
-    if (content.length === 0) {
-      const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
-      if (stopReason.length === 0) return null;
-      if (stopReason === "max_tokens" || stopReason === "tool_use") return null;
-      return "empty_choices";
-    }
+    const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
+    // #12968: the #9971 exemption above only fired when `content` was a
+    // completely empty array. A tiny `max_tokens` probe against an
+    // Anthropic-compatible shim can instead return content:[{type:"text",
+    // text:""}] — one block, just with no visible text — which is the exact
+    // same legitimate truncated-completion shape, so the exemption must apply
+    // whenever there is no visible output, not only when content is [].
+    // "length" is the OpenAI-style spelling some Claude-compatible shims
+    // (ollama qwen3 with the reasoning budget exhausted) emit for the same
+    // truncated-completion case — sentinel content + stop_reason "length".
+    if (stopReason === "max_tokens" || stopReason === "tool_use" || stopReason === "length")
+      return null;
+    // content:[] with no stop_reason at all is non-terminal, not empty (#9971).
+    if (content.length === 0 && stopReason.length === 0) return null;
     return "empty_choices";
   }
 
@@ -314,7 +346,39 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
   });
 
   if (!anyHasOutput) return "empty_choices";
+
+  // #13461: only for the narrow provider allowlist — see classifyFakeSuccessBody's
+  // doc comment for the false-positive guards (short content + dominant signal).
+  if (provider && classifyFakeSuccessBody(extractChatCompletionText(choices), provider)) {
+    return "content_is_upstream_error";
+  }
+
   return null;
+}
+
+// Joins every non-empty text-bearing field across all choices of a Chat
+// Completions body into one string, for the #13461 fake-success check above.
+// Mirrors the shapes `anyHasOutput` already recognizes as "real" content
+// (plain string, Anthropic-style content-block array) — reasoning/tool_calls
+// are intentionally excluded, since a disguised upstream error always
+// surfaces as visible assistant text, never as a reasoning trace.
+function extractChatCompletionText(choices: unknown[]): string {
+  const parts: string[] = [];
+  for (const choice of choices) {
+    const c = choice as Record<string, unknown>;
+    const msg = c?.message as Record<string, unknown> | undefined;
+    if (typeof msg?.content === "string") {
+      parts.push(msg.content as string);
+    } else if (Array.isArray(msg?.content)) {
+      for (const block of msg.content as unknown[]) {
+        const b = block as Record<string, unknown> | null;
+        if (b && typeof b === "object" && b.type === "text" && typeof b.text === "string") {
+          parts.push(b.text as string);
+        }
+      }
+    }
+  }
+  return parts.join(" ");
 }
 
 export function describeMalformedNonStream(
@@ -323,7 +387,8 @@ export function describeMalformedNonStream(
 ): { message: string; code: string; type: string } {
   const body = resp && typeof resp === "object" ? (resp as Record<string, unknown>) : null;
   if (body?.object === "response" && body.status === "failed") {
-    const err = body.error && typeof body.error === "object" ? (body.error as Record<string, unknown>) : null;
+    const err =
+      body.error && typeof body.error === "object" ? (body.error as Record<string, unknown>) : null;
     const rawMessage =
       typeof err?.message === "string" && err.message.trim().length > 0 ? err.message.trim() : null;
     return {
@@ -332,6 +397,13 @@ export function describeMalformedNonStream(
         ? `upstream reported a failed response: ${rawMessage}`
         : "upstream reported a failed response without usable output",
       code: "upstream_response_failed",
+      type: "upstream_response_error",
+    };
+  }
+  if (reason === "content_is_upstream_error") {
+    return {
+      message: "upstream reported a failure disguised as a successful response",
+      code: "upstream_fake_success",
       type: "upstream_response_error",
     };
   }

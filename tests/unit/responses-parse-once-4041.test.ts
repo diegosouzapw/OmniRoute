@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-responses-parse-once-"));
 process.env.DATA_DIR = dataDir;
-after(() => fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
+after(async () => await cleanupTempDataDir(dataDir));
 
 // #4041: AI routes must parse each JSON body at most once and thread the parsed value
 // through model resolution and handleChat. /v1/responses now parses after raw-body admission;

@@ -1,6 +1,6 @@
 # Security Policy (Lietuvių)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,27 +220,37 @@ docker run -d \
 10. **`exec()` / `spawn()` vykdymo metu naudojamas reikšmes perduokite per `env` parinktį** — niekada neįterpkite išorinių kelių ar nepatikimų reikšmių kaip eilučių į scenarijus, perduodamus apvalkalui. Pavyzdys: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Pirmenybę teikite pagal numatytuosius nustatymus saugioms bibliotekoms** — žr. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Prieš kurdami savo sprendimą, pirmiausia rinkitės jas.
 
-## Tiekimo grandinės skaitytuvo aptiktos problemos (Socket.dev / Snyk / panašūs įrankiai)
+## Tiekimo grandinės skenerio aptiktos problemos (Socket.dev / Snyk / panašūs įrankiai)
+
+> **Aprėpties pastaba:** saugyklos šaknyje esantis `socket.yml` tik nustato `projectIgnorePaths`, skirtus Socket.dev registro pusėje atliekamam paskelbto npm artefakto skenavimui po paskelbimo — tai nėra privalomas CI/PR sujungimo kontrolės etapas. Jokia `.github/workflows` darbo eiga, joks `package.json` scenarijus ir jokia `Makefile` užduotis nepaleidžia Socket.dev.
 
 Paskelbtame `omniroute` npm artefakte yra Next.js `output: "standalone"`
-kompiliacijos rezultatas, todėl kiekvienas maršruto apdorojimo modulis, įskaitant dokumentuotas privilegijuotąsias
-funkcijas (MITM, „Zed“ importavimą, „Cloud Sync“, integruotą paslaugų prižiūrėtoją), patenka
-į `.next/server/*.js` minifikuotus fragmentus. Euristiniai tiekimo grandinės skaitytuvai
-dažnai šiuose fragmentuose ieško atitikmenų kenkėjiškos programinės įrangos signatūroms.
+kompiliuotė, todėl kiekvienas maršruto apdorojimo modulis — įskaitant dokumentuotas privilegijuotas
+funkcijas (MITM, Zed importavimą, Cloud Sync, integruotą paslaugų prižiūryklę) — patenka
+į `.next/server/*.js` minifikuotus fragmentus. Euristiniai tiekimo grandinės skeneriai
+dažnai pagal šablonus lygina šiuos fragmentus su kenkėjiškos programinės įrangos signatūromis.
 
-Kiekvienai aptiktų problemų kategorijai pateikiame atskirą prižiūrėtojų patvirtinimą:
+Mūsų naudojama skenerio konfigūracija yra saugyklos šaknyje esančiame faile [`socket.yml`](socket.yml)
+(Socket.dev GitHub App v2 formatas — žr.
+<https://docs.socket.dev/docs/socket-yml>). Ji aiškiai neįtraukia
+neplatinamų katalogų (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` ir kt.), kad skeneris praneštų tik apie kodo kelius, kurie
+iš tikrųjų pasiekia paskelbto paketo naudotojus — patį skenavimą vykdo Socket
+GitHub App, nuskaitydama šį failą, o ne šios saugyklos darbo eiga.
+
+Kiekvienai aptiktų problemų kategorijai palaikome atskirą prižiūrėtojų patvirtinimą:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  kiekvienos aptiktos problemos schema: šaltinio failas ↔ pažymėtas fragmentas ↔ elgsena ↔ v3.8.6 versijoje
-  pritaikyta rizikos mažinimo priemonė.
-- Šaltinio kode esantys `SECURITY-AUDITOR-NOTE:` blokai prie kiekvienos pažymėtos funkcijos nurodo
-  tą patį dokumentą.
+  atskirų aptiktų problemų žemėlapis: šaltinio failas ↔ pažymėtas fragmentas ↔ elgsena ↔ v3.8.6
+  pritaikytos rizikos mažinimo priemonės.
+- Šaltinio kode esantys `SECURITY-AUDITOR-NOTE:` blokai ties kiekviena pažymėta funkcija
+  nukreipia į tą patį dokumentą.
 
 Naudotojai, kurių konvejeris neleidžia sušvelninti įspėjimo, turėtų kompiliuoti naudodami
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Taip keturi jautrūs moduliai pakeičiami
-ruošiniais, kurie vykdymo metu grąžina HTTP 503 `feature-disabled`, todėl privilegijuotieji
-kodo vykdymo keliai fiziškai nepatenka į paketą.
-Publikavimo instrukcijas rasite [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Taip keturi
+jautrūs moduliai pakeičiami pakaitiniais moduliais, kurie vykdymo metu grąžina HTTP 503
+`feature-disabled`, todėl privilegijuoto kodo kelių fiziškai nebūna rinkinyje.
+Paskelbimo instrukcijas žr. [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Nuorodos
 

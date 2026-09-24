@@ -1,5 +1,10 @@
+import { z } from "zod";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
-import { classifyProviderError } from "@omniroute/open-sse/services/errorClassifier.ts";
+import {
+  classifyProviderError,
+  type ErrorTypeContract,
+  ERROR_TYPE_CONTRACT,
+} from "@omniroute/open-sse/services/errorClassifier.ts";
 import {
   sanitizeErrorMessage,
   sanitizeUpstreamDetails,
@@ -166,9 +171,14 @@ export function buildRequestSummary(
 
 // #10670: per-call error family at the single write point. Reuses the
 // production classifier (chatCore.ts:3974, auth.ts:2598) so the persisted
-// vocabulary is exactly PROVIDER_ERROR_TYPES. Successes (status < 400 with no
-// error text) short-circuit to null — the classifier never returns a family
-// for them anyway, this only skips the call.
+// vocabulary is ERROR_TYPE_CONTRACT (PROVIDER_ERROR_TYPES + "unknown").
+// - Successes (0 < status < 400) are null. The classifier never returns a
+//   family below 400, so this only skips the call.
+// - status 0 (no upstream response) is null without error text, otherwise a
+//   failure.
+// - A failure the classifier cannot place is persisted as the explicit
+//   "unknown" (#13281) instead of NULL, so a NULL error_type keeps meaning
+//   "legacy row / not a failure" and the analytics breakdown can tell them apart.
 // Normalization: strings pass through, Error objects yield .message, any other
 // object yields "" (no caller passes plain objects — verified: 35 callers use
 // strings and Error only). Deliberate deviation from design §4 ("objet →
@@ -177,8 +187,36 @@ export function classifyCallLogError(
   status: number,
   error: unknown,
   provider?: string | null
-): string | null {
+): ErrorTypeContract | null {
   const errorText = typeof error === "string" ? error : error instanceof Error ? error.message : "";
-  if (status < 400 && errorText.length === 0) return null;
-  return classifyProviderError(status, errorText, provider);
+  if (status === 0 ? errorText.length === 0 : status < 400) return null;
+  return classifyProviderError(status, errorText, provider) ?? "unknown";
+}
+
+// #13441: defense in depth at the `call_logs.error_type` write boundary. The
+// classifier is typed to the contract, but its runtime values come from
+// PROVIDER_ERROR_TYPES while the contract is a frozen snapshot — a family added
+// to one and not the other (or any future caller handing in its own string)
+// would otherwise persist free text. Built once, on first use, so an import
+// cycle through the classifier cannot observe the contract uninitialised.
+let storedErrorTypeSchema: z.ZodEnum<Record<ErrorTypeContract, ErrorTypeContract>> | null = null;
+
+function getStoredErrorTypeSchema() {
+  if (storedErrorTypeSchema === null) {
+    storedErrorTypeSchema = z.enum(
+      ERROR_TYPE_CONTRACT as readonly [ErrorTypeContract, ...ErrorTypeContract[]]
+    );
+  }
+  return storedErrorTypeSchema;
+}
+
+/**
+ * Value persisted in `call_logs.error_type`. `null`/`undefined` (not a failure)
+ * stay NULL; a contract value passes through; anything else is stored as
+ * `unknown` — never thrown, so a log line is never lost.
+ */
+export function toStoredErrorType(value: unknown): ErrorTypeContract | null {
+  if (value === null || value === undefined) return null;
+  const parsed = getStoredErrorTypeSchema().safeParse(value);
+  return parsed.success ? parsed.data : "unknown";
 }

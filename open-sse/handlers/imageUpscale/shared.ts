@@ -8,7 +8,8 @@
  */
 
 import { saveCallLog } from "@/lib/usageDb";
-import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { fetchUntrustedRemoteImage } from "@/shared/network/remoteImageFetch";
+import { stringifyImageErrorForLog } from "../imageErrorLog.ts";
 
 export const UPSCALE_CALL_LOG_PATH = "/v1/images/upscale";
 
@@ -71,7 +72,9 @@ export function extractUpscaleSourceImage(body: unknown): string | null {
   if (!body || typeof body !== "object") return null;
   const b = body as Record<string, unknown>;
   const providerOptions =
-    b.provider_options && typeof b.provider_options === "object" && !Array.isArray(b.provider_options)
+    b.provider_options &&
+    typeof b.provider_options === "object" &&
+    !Array.isArray(b.provider_options)
       ? (b.provider_options as Record<string, unknown>)
       : {};
 
@@ -161,7 +164,9 @@ export async function resolveUpscaleImageSource(source: string): Promise<Upscale
   }
 
   if (/^https?:\/\//i.test(trimmed)) {
-    const remote = await fetchRemoteImage(trimmed);
+    // `source` is caller input (14 body aliases, `provider_options.*`, message parts) — the
+    // public-only + DNS-pinned policy lives in `fetchUntrustedRemoteImage` (GHSA-34rg-3pqj-35g9).
+    const remote = await fetchUntrustedRemoteImage(trimmed);
     assertSourceBytes(remote.buffer);
     // fetchRemoteImage falls back to application/octet-stream; sniff whenever the
     // server did not send a usable image/* type so multipart uploads stay correct.
@@ -214,11 +219,7 @@ export function sniffImageMime(buffer: Buffer): string {
  */
 export function readImageDimensions(buffer: Buffer): { width: number; height: number } | null {
   try {
-    if (
-      buffer.length >= 24 &&
-      buffer[0] === 0x89 &&
-      buffer.toString("ascii", 1, 4) === "PNG"
-    ) {
+    if (buffer.length >= 24 && buffer[0] === 0x89 && buffer.toString("ascii", 1, 4) === "PNG") {
       // IHDR is always the first chunk: 8-byte signature + 4 length + 4 "IHDR".
       return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
     }
@@ -308,10 +309,7 @@ export function scaleDimensions(
   const source = readImageDimensions(buffer);
   if (!source || source.width <= 0 || source.height <= 0) return null;
   const safeFactor = Number.isFinite(factor) && factor > 0 ? factor : 2;
-  const scale = Math.min(
-    safeFactor,
-    maxEdge / Math.max(source.width, source.height)
-  );
+  const scale = Math.min(safeFactor, maxEdge / Math.max(source.width, source.height));
   return {
     width: Math.max(1, Math.round(source.width * Math.max(1, scale))),
     height: Math.max(1, Math.round(source.height * Math.max(1, scale))),
@@ -364,10 +362,7 @@ export function saveUpscaleErrorResult(opts: {
     model: `${opts.provider}/${opts.model}`,
     provider: opts.provider,
     duration: Date.now() - opts.startTime,
-    error:
-      typeof opts.error === "string"
-        ? opts.error.slice(0, 500)
-        : String(opts.error).slice(0, 500),
+    error: stringifyImageErrorForLog(opts.error).slice(0, 500),
     requestBody: opts.requestBody ?? null,
   }).catch(() => {});
 

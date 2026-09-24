@@ -1,12 +1,14 @@
 name: Feature Request
 description: Suggest a new feature or improvement for OmniRoute
-title: "[Feature] "
+title: "feat(): "
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for suggesting a feature! Please describe the problem you're trying to solve and how you'd like it to work.
+
+        The title is prefilled as `feat(): ` to match the [Conventional Commits](https://github.com/diegosouzapw/OmniRoute/blob/main/CONTRIBUTING.md#commit-messages) convention — pick a scope from the list documented there (e.g. `providers`, `resilience`, `dashboard`, `api`).
 
   - type: textarea
     id: problem

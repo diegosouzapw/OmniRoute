@@ -26,6 +26,7 @@ import { filterAlibabaFreeEligibleModels } from "@omniroute/open-sse/services/al
 import { shouldUseLiveAlibabaFreeModelDiscovery } from "@omniroute/open-sse/services/alibabaFreeTier.ts";
 import { isDashscopeTextModelId } from "@omniroute/open-sse/services/dashscopeTextModels.ts";
 import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
 const QWEN_CLOUD_TEXT_MODEL_IDS = new Set(QWEN_CLOUD_TEXT_MODELS.map((model) => model.id));
@@ -130,11 +131,9 @@ export type ProviderModelsConfigEntry = {
 export function assembleProviderModelsHeaders(
   config: ProviderModelsConfigEntry,
   token: string,
-  context?: ProviderModelsHeaderContext,
+  context?: ProviderModelsHeaderContext
 ): Record<string, string> {
-  const headers = config.buildHeaders
-    ? config.buildHeaders(token, context)
-    : { ...config.headers };
+  const headers = config.buildHeaders ? config.buildHeaders(token, context) : { ...config.headers };
   if (!config.buildHeaders && config.authHeader && !config.authQuery) {
     headers[config.authHeader] = (config.authPrefix || "") + token;
   }
@@ -396,6 +395,35 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
   parseResponse: parseKimiCodingModels,
 };
 
+// Also used, behind the XAI_OAUTH_LIVE_MODEL_DISCOVERY flag, to fetch a live
+// catalog for xai-oauth (see getXaiOauthLiveModelsConfig below). Whether x.ai
+// accepts an OAuth bearer at this endpoint is unverified — that is why
+// xai-oauth is not registered in PROVIDER_MODELS_CONFIG below and stays on
+// its frozen static seed (open-sse/config/providers/registry/xai/index.ts)
+// unless the flag is explicitly turned on.
+export const XAI_MODELS_CONFIG: ProviderModelsConfigEntry = {
+  url: "https://api.x.ai/v1/models",
+  method: "GET",
+  headers: { "Content-Type": "application/json" },
+  authHeader: "Authorization",
+  authPrefix: "Bearer ",
+  parseResponse: (data) => data.data || data.models || [],
+};
+
+/**
+ * Resolve the live-discovery config for xai-oauth when the
+ * XAI_OAUTH_LIVE_MODEL_DISCOVERY flag is on, or `undefined` when it is off
+ * (or its resolution throws) so the caller falls back to the frozen static
+ * seed — the flag defaults to "false" and fails closed on any error.
+ */
+export function getXaiOauthLiveModelsConfig(): ProviderModelsConfigEntry | undefined {
+  try {
+    return isFeatureFlagEnabled("XAI_OAUTH_LIVE_MODEL_DISCOVERY") ? XAI_MODELS_CONFIG : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Provider models endpoints configuration
 export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
   alibaba: ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
@@ -592,14 +620,12 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  xai: {
-    url: "https://api.x.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
+  xai: XAI_MODELS_CONFIG,
+  // xai-oauth intentionally NOT registered here: it stays on the frozen
+  // static seed unless XAI_OAUTH_LIVE_MODEL_DISCOVERY is on (see
+  // getXaiOauthLiveModelsConfig above) — keeping this map's keys in lockstep
+  // with HARDCODED_MODELS_CONFIG_IDS (tests/unit/discovery-class.test.ts)
+  // means the flag gate has to live at the lookup call site, not here.
   mistral: {
     url: "https://api.mistral.ai/v1/models",
     method: "GET",

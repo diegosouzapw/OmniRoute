@@ -28,7 +28,8 @@ export interface ChatMessage {
 export interface ChatRequest {
   model: string;
   messages: ChatMessage[];
-  system?: string;
+  /** Anthropic-shaped bodies carry the system prompt here, as a string or text blocks (#13425). */
+  system?: string | Array<{ type: string; text?: string; [key: string]: unknown }>;
   temperature?: number;
   max_tokens?: number;
   stream?: boolean;
@@ -87,9 +88,7 @@ const BUILTIN_PROVIDERS_SYSTEM_MUST_BE_FIRST = new Set(["xiaomi-mimo", "mimo", "
  * Parses OMNIROUTE_STRICT_SYSTEM_PROVIDERS into a normalized id list.
  * Exported for tests; not expected to be called directly by other modules.
  */
-export function parseStrictSystemProvidersEnv(
-  env: NodeJS.ProcessEnv = process.env,
-): string[] {
+export function parseStrictSystemProvidersEnv(env: NodeJS.ProcessEnv = process.env): string[] {
   const raw = env.OMNIROUTE_STRICT_SYSTEM_PROVIDERS ?? "";
   return raw
     .split(",")
@@ -110,7 +109,7 @@ function resolveProvidersSystemMustBeFirst(env: NodeJS.ProcessEnv = process.env)
  */
 export function systemMessageMustBeFirst(
   provider: string | null | undefined,
-  env: NodeJS.ProcessEnv = process.env,
+  env: NodeJS.ProcessEnv = process.env
 ): boolean {
   if (!provider) return false;
   const normalized = provider.toLowerCase().trim();
@@ -169,6 +168,16 @@ function injectSystemFirst(
   if (first && first.role === "system") {
     const merged: ChatMessage = { ...first, content: `${memoryText}\n${first.content}` };
     return { ...request, messages: [merged, ...messages.slice(1)] };
+  }
+  // #13425: Anthropic-shaped bodies carry the system prompt in the top-level
+  // `system` field, not in messages[0]. Unshifting a `{role:"system"}` at
+  // messages[0] triggers a 400 ("use the top-level 'system' parameter").
+  // Merge the memory text into the top-level field instead.
+  if (typeof request.system === "string") {
+    return { ...request, system: `${memoryText}\n${request.system}` };
+  }
+  if (Array.isArray(request.system)) {
+    return { ...request, system: [{ type: "text", text: memoryText }, ...request.system] };
   }
   const memorySystemMessage: ChatMessage = { role: "system", content: memoryText };
   return { ...request, messages: [memorySystemMessage, ...messages] };
@@ -279,6 +288,17 @@ export function injectMemory(
     !endsWithServerToolResult(messages[cacheSafeIndex - 1])
   ) {
     return injectSystemFirst(request, messages, memoryText, memories.length);
+  }
+
+  // #13425: Anthropic-shaped bodies carry the system prompt in the top-level
+  // `system` field, not in messages[0]. If supportsSystem is true and the
+  // request already has a top-level `system` field, merge memory there instead
+  // of prepending a `{role:"system"}` at messages[0] — Anthropic rejects that.
+  if (supportsSystem && (typeof request.system === "string" || Array.isArray(request.system))) {
+    if (typeof request.system === "string") {
+      return { ...request, system: `${memoryText}\n${request.system}` };
+    }
+    return { ...request, system: [{ type: "text", text: memoryText }, ...request.system] };
   }
 
   // Strategy 1 (system): prepend before existing system messages, preserving the

@@ -7,6 +7,7 @@ import {
 
 const GRANTED = 1786560540;
 const EXPIRES = 1789238940;
+const FIXTURE_NOW_MS = Date.UTC(2026, 8, 6);
 const TOKEN_ID = "test-token-id"; // 13 bytes
 
 function encodeVarint(value: number): Buffer {
@@ -59,6 +60,10 @@ function encodeLiveToken(id: string, granted: number, expires: number): Buffer {
   ]);
 }
 
+function decode(buffer: Buffer) {
+  return decodeGrokResetCreditsFrame(buffer, FIXTURE_NOW_MS);
+}
+
 function frameData(payload: Buffer): Buffer {
   const header = Buffer.alloc(5);
   header[0] = 0x00;
@@ -76,7 +81,7 @@ function frameTrailer(statusText = "grpc-status:0\r\n"): Buffer {
 
 test("empty DATA frame + grpc-status 0 is a real zero inventory", () => {
   const buffer = Buffer.concat([frameData(Buffer.alloc(0)), frameTrailer()]);
-  const decoded = decodeGrokResetCreditsFrame(buffer);
+  const decoded = decode(buffer);
   assert.equal(decoded.ok, true);
   if (!decoded.ok) return;
   assert.equal(decoded.snapshot.count, 0);
@@ -85,7 +90,7 @@ test("empty DATA frame + grpc-status 0 is a real zero inventory", () => {
 
 test("one unexpired field-10 token counts as 1", () => {
   const payload = encodeLengthDelimited(10, encodeToken(TOKEN_ID, GRANTED, EXPIRES));
-  const decoded = decodeGrokResetCreditsFrame(Buffer.concat([frameData(payload), frameTrailer()]));
+  const decoded = decode(Buffer.concat([frameData(payload), frameTrailer()]));
   assert.equal(decoded.ok, true);
   if (!decoded.ok) return;
   assert.equal(decoded.snapshot.count, 1);
@@ -98,9 +103,7 @@ test("one unexpired field-10 token counts as 1", () => {
 test("repeated field-10 is not collapsed by a Map walker", () => {
   const a = encodeLengthDelimited(10, encodeToken("test-token-aa", GRANTED, EXPIRES));
   const b = encodeLengthDelimited(10, encodeToken("test-token-bb", GRANTED, EXPIRES + 86400));
-  const decoded = decodeGrokResetCreditsFrame(
-    Buffer.concat([frameData(Buffer.concat([a, b])), frameTrailer()])
-  );
+  const decoded = decode(Buffer.concat([frameData(Buffer.concat([a, b])), frameTrailer()]));
   assert.equal(decoded.ok, true);
   if (!decoded.ok) return;
   assert.equal(decoded.snapshot.count, 2);
@@ -114,7 +117,7 @@ test("repeated field-10 is not collapsed by a Map walker", () => {
 test("expired tokens are dropped from the count", () => {
   const expired = encodeLengthDelimited(10, encodeToken("test-token-ex", GRANTED, 1_700_000_000));
   const live = encodeLengthDelimited(10, encodeToken(TOKEN_ID, GRANTED, EXPIRES));
-  const decoded = decodeGrokResetCreditsFrame(
+  const decoded = decode(
     Buffer.concat([frameData(Buffer.concat([expired, live])), frameTrailer()])
   );
   assert.equal(decoded.ok, true);
@@ -124,7 +127,7 @@ test("expired tokens are dropped from the count", () => {
 });
 
 test("nonzero grpc-status is not a zero inventory", () => {
-  const decoded = decodeGrokResetCreditsFrame(
+  const decoded = decode(
     Buffer.concat([frameData(Buffer.alloc(0)), frameTrailer("grpc-status:13\r\n")])
   );
   assert.equal(decoded.ok, false);
@@ -133,14 +136,14 @@ test("nonzero grpc-status is not a zero inventory", () => {
 });
 
 test("trailer-only buffer is not a zero inventory", () => {
-  const decoded = decodeGrokResetCreditsFrame(frameTrailer());
+  const decoded = decode(frameTrailer());
   assert.equal(decoded.ok, false);
   if (decoded.ok) return;
   assert.equal(decoded.reason, "no-data-frame");
 });
 
 test("empty buffer is not a zero inventory", () => {
-  const decoded = decodeGrokResetCreditsFrame(Buffer.alloc(0));
+  const decoded = decode(Buffer.alloc(0));
   assert.equal(decoded.ok, false);
   if (decoded.ok) return;
   assert.equal(decoded.reason, "empty-buffer");
@@ -148,7 +151,7 @@ test("empty buffer is not a zero inventory", () => {
 
 test("13-byte token id is a string, not a nested protobuf message", () => {
   const payload = encodeLengthDelimited(10, encodeToken(TOKEN_ID, GRANTED, EXPIRES));
-  const decoded = decodeGrokResetCreditsFrame(Buffer.concat([frameData(payload), frameTrailer()]));
+  const decoded = decode(Buffer.concat([frameData(payload), frameTrailer()]));
   assert.equal(decoded.ok, true);
   if (!decoded.ok) return;
   assert.equal(decoded.snapshot.count, 1);
@@ -161,7 +164,7 @@ test("live nested fields 10/20/30 are not malformed", () => {
   assert.equal(encodeTimestampSeconds(GRANTED).length, 6);
   assert.equal(encodeTimestampSeconds(EXPIRES).length, 6);
   const payload = encodeLengthDelimited(10, liveInner);
-  const decoded = decodeGrokResetCreditsFrame(Buffer.concat([frameData(payload), frameTrailer()]));
+  const decoded = decode(Buffer.concat([frameData(payload), frameTrailer()]));
   assert.equal(decoded.ok, true);
   if (!decoded.ok) return;
   assert.equal(decoded.snapshot.count, 1);
@@ -170,9 +173,12 @@ test("live nested fields 10/20/30 are not malformed", () => {
 });
 
 test("live nested field-30 expiry still drops expired cards", () => {
-  const expired = encodeLengthDelimited(10, encodeLiveToken("test-token-ex", GRANTED, 1_700_000_000));
+  const expired = encodeLengthDelimited(
+    10,
+    encodeLiveToken("test-token-ex", GRANTED, 1_700_000_000)
+  );
   const live = encodeLengthDelimited(10, encodeLiveToken(TOKEN_ID, GRANTED, EXPIRES));
-  const decoded = decodeGrokResetCreditsFrame(
+  const decoded = decode(
     Buffer.concat([frameData(Buffer.concat([expired, live])), frameTrailer()])
   );
   assert.equal(decoded.ok, true);

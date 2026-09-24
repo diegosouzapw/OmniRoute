@@ -32,6 +32,7 @@
  */
 
 import { recordEarlyKeepaliveBytes } from "./earlyKeepaliveByteBuffer.ts";
+import { SYNTHETIC_RESPONSES_SEQUENCE_NUMBER } from "./responsesSequence.ts";
 
 const ENCODER = new TextEncoder();
 const KEEPALIVE_FRAME = ENCODER.encode(": keepalive\n\n");
@@ -86,8 +87,58 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
     code: null,
     message: "Upstream stream failed before completion.",
     param: null,
+    // #14330: was hardcoded to 0, colliding with the real per-stream emitter's
+    // first event (also numbered 1 from its own `state.seq` base of 0) — this
+    // frame is synthesized outside that counter, so it uses the shared seed.
+    sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
   })}\n\n`
 );
+
+/**
+ * Reshapes an already-sanitized upstream error body into the Responses API
+ * convention (`{"type":"error",...}`) for the dynamic real-upstream-body branch
+ * of the slow path (#13431). The body reaching here is Chat-Completions-shaped
+ * (`{"error":{message,type,code}}`, the combo/handler failure convention) most of
+ * the time, but may also be a bare `{message}` or unparseable text — every shape
+ * must still produce a non-empty `message` so the client never sees an opaque
+ * frame (never crash the stream on a malformed body).
+ */
+function buildResponsesErrorDataLine(text: string): string {
+  const trimmed = text.trim();
+  let parsed: Record<string, unknown> | null = null;
+  if (trimmed) {
+    try {
+      const candidate = JSON.parse(trimmed);
+      if (candidate && typeof candidate === "object") parsed = candidate as Record<string, unknown>;
+    } catch {
+      parsed = null;
+    }
+  }
+  const errorObj =
+    parsed && typeof parsed.error === "object" && parsed.error !== null
+      ? (parsed.error as Record<string, unknown>)
+      : null;
+  const message =
+    (typeof errorObj?.message === "string" && errorObj.message) ||
+    (typeof parsed?.message === "string" && parsed.message) ||
+    trimmed ||
+    "Upstream stream failed before completion.";
+  const code = (typeof errorObj?.code === "string" && errorObj.code) || null;
+  const param = (typeof errorObj?.param === "string" && errorObj.param) || null;
+  const extras =
+    parsed && typeof parsed.diagnostics === "object" && parsed.diagnostics !== null
+      ? { diagnostics: parsed.diagnostics }
+      : {};
+  return JSON.stringify({
+    type: "error",
+    code,
+    message,
+    param,
+    // #14330: was hardcoded to 0 — see OPENAI_RESPONSES_ERROR_FRAME above.
+    sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+    ...extras,
+  });
+}
 
 export type EarlyStreamKeepaliveOptions = {
   /** Wait this long for the handler before committing to a keepalive stream. */
@@ -155,7 +206,12 @@ export async function withEarlyStreamKeepalive(
   options: EarlyStreamKeepaliveOptions = {}
 ): Promise<Response> {
   const thresholdMs = Math.max(0, options.thresholdMs ?? 2_000);
-  const intervalMs = Math.max(250, options.intervalMs ?? 2_500);
+  // Cadence must stay under the client idle timeout, per the option docs below.
+  // The old 2 500 ms default exceeded the ~2 s watchdog observed in practice, so
+  // a client that survived the first keepalive byte aborted on the gap before the
+  // next one. 1 500 ms keeps every inter-byte gap inside the same budget the
+  // threshold uses (see keepaliveThreshold.ts).
+  const intervalMs = Math.max(250, options.intervalMs ?? 1_500);
   const signal = options.signal ?? null;
   const keepaliveFrame = options.keepaliveFrame ?? KEEPALIVE_FRAME;
   const startupFrame = options.startupFrame ?? keepaliveFrame;
@@ -168,11 +224,29 @@ export async function withEarlyStreamKeepalive(
       : null;
   const extraHeaders = options.extraHeaders ?? {};
   const errorFrame = options.errorFrame ?? ERROR_FRAME;
-  // Single source of truth for whether THIS route's error framing uses a named SSE
-  // `event: error` line (Anthropic) or a plain `data:` line (OpenAI Chat Completions /
-  // Responses) — derived from errorFrame itself so the dynamic real-upstream-body case
-  // below stays consistent with the static default-message case without a second option.
-  const errorFrameUsesNamedEvent = new TextDecoder().decode(errorFrame).startsWith("event:");
+  // Single source of truth for THIS route's error-framing convention, derived from
+  // errorFrame itself so the dynamic real-upstream-body case below stays consistent
+  // with the static default-message case without a second option. Three shapes exist:
+  //   - "anthropic": named SSE `event: error` line (Anthropic /v1/messages).
+  //   - "responses": plain `data:` line, discriminated by a top-level `type` field
+  //     inside the JSON payload (OpenAI Responses API convention).
+  //   - "chat": plain `data:` line, discriminated by a top-level `error` key
+  //     (OpenAI Chat Completions convention) — the default/fallback.
+  const decodedErrorFrame = new TextDecoder().decode(errorFrame);
+  const errorFrameFormat: "anthropic" | "responses" | "chat" = decodedErrorFrame.startsWith(
+    "event:"
+  )
+    ? "anthropic"
+    : (() => {
+        const dataLine = decodedErrorFrame.match(/^data: (.+)\n\n$/);
+        if (!dataLine) return "chat";
+        try {
+          const parsed = JSON.parse(dataLine[1]);
+          return parsed && typeof parsed === "object" && "type" in parsed ? "responses" : "chat";
+        } catch {
+          return "chat";
+        }
+      })();
   const correlationId = options.correlationId;
   const frameDecoder = correlationId ? new TextDecoder() : null;
   // Records every direct-to-client write EXCEPT the forwarded real response
@@ -321,11 +395,14 @@ export async function withEarlyStreamKeepalive(
             // instead of forwarding raw JSON, which would be malformed SSE.
             const text = response.body ? await response.text().catch(() => "") : "";
             const dataLine =
-              text.trim() ||
-              JSON.stringify({ error: { message: "stream_error", type: "stream_error" } });
-            const framed = errorFrameUsesNamedEvent
-              ? `event: error\ndata: ${dataLine}\n\n`
-              : `data: ${dataLine}\n\n`;
+              errorFrameFormat === "responses"
+                ? buildResponsesErrorDataLine(text)
+                : text.trim() ||
+                  JSON.stringify({ error: { message: "stream_error", type: "stream_error" } });
+            const framed =
+              errorFrameFormat === "anthropic"
+                ? `event: error\ndata: ${dataLine}\n\n`
+                : `data: ${dataLine}\n\n`;
             const framedBytes = ENCODER.encode(framed);
             controller.enqueue(framedBytes);
             recordClientBytes(framedBytes);

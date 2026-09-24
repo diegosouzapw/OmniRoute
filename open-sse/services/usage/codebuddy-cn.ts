@@ -14,7 +14,7 @@
  * packs, "Bonus Pack N" for bonus packs (soonest-expiring first).
  */
 
-import { CODEBUDDY_CN_USER_AGENT } from "@/lib/oauth/constants/oauth";
+import { CODEBUDDY_CN_USER_AGENT } from "../../config/providerHeaderProfiles.ts";
 
 const USAGE_URL = "https://copilot.tencent.com/v2/billing/meter/get-user-resource";
 
@@ -83,7 +83,7 @@ function cycleEndMs(acc: TencentAccount): number {
 
 function deductionEndMs(acc: TencentAccount): number {
   const v = acc.DeductionEndTime;
-  if (typeof v === "number") return (v < 1e12 ? v * 1000 : v);
+  if (typeof v === "number") return v < 1e12 ? v * 1000 : v;
   if (typeof v === "string" && /^\d+$/.test(v)) {
     const n = Number(v);
     return n < 1e12 ? n * 1000 : n;

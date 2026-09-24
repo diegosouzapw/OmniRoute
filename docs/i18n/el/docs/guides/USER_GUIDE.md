@@ -1,21 +1,12 @@
-# USER_GUIDE (Ελληνικά)
+# User Guide (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-title: "Οδηγός Χρήστη"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
-# Οδηγός Χρήστη
-
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
-
-Πλήρης οδηγός για τη ρύθμιση παρόχων, τη δημιουργία συνδυασμών, την ενσωμάτωση εργαλείων CLI και την ανάπτυξη του OmniRoute.
+Πλήρης οδηγός για τη διαμόρφωση παρόχων, τη δημιουργία συνδυασμών, την ενσωμάτωση εργαλείων CLI και την ανάπτυξη του OmniRoute.
 
 ---
 
@@ -127,37 +118,37 @@ Combo: "openclaw-free"
 
 ---
 
-## 📖 Ρύθμιση Παρόχων
+## 📖 Ρύθμιση παρόχων
 
-### 🔐 Πάροχοι Συνδρομής
+Για να προσθέσετε μαζικά συνδέσεις κλειδιών API από ένα αρχείο CSV ή JSON, χρησιμοποιήστε **Πίνακας ελέγχου → Πάροχοι → Εισαγωγή από αρχείο**. Οι στήλες είναι ταξινομημένες βάσει θέσης (`provider,name,apiKey,baseUrl,priority`)· το `provider` πρέπει να υπάρχει ήδη ως διαχειριζόμενος πάροχος ή συμβατός κόμβος. Δείτε την ενότητα [Εισαγωγή παρόχων από αρχείο CSV ή JSON](../providers/CSV-IMPORT.md).
+
+### 🔐 Συνδρομητικοί πάροχοι
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
+Πίνακας ελέγχου → Πάροχοι → Σύνδεση Claude Code
+→ Σύνδεση μέσω OAuth → Αυτόματη ανανέωση διακριτικού
 → Παρακολούθηση ορίου 5 ωρών + εβδομαδιαίου ορίου
 
-Models:
+Μοντέλα:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**Χρήσιμη Συμβουλή:** Χρησιμοποιήστε το Opus για σύνθετες εργασίες, το Sonnet για ταχύτητα. Το OmniRoute παρακολουθεί το όριο ανά μοντέλο!
+**Επαγγελματική συμβουλή:** Χρησιμοποιήστε το Opus για σύνθετες εργασίες και το Sonnet για ταχύτητα. Το OmniRoute παρακολουθεί το όριο ανά μοντέλο!
 
-Οι διαδρομές συμβατές με Claude και Claude Code διατηρούν τη σκέψη `max` για τα μοντέλα
-Opus και Sonnet. Τα μοντέλα Haiku δεν δέχονται το επίπεδο προσπάθειας `max`, οπότε το
-OmniRoute υποβαθμίζει αυτό το αίτημα σε υψηλό προϋπολογισμό σκέψης πριν το αποστείλει.
+Οι διαδρομές που είναι συμβατές με Claude και Claude Code διατηρούν την προσπάθεια συλλογισμού `max` για τα μοντέλα Opus και Sonnet. Τα μοντέλα Haiku δεν αποδέχονται το επίπεδο προσπάθειας `max`, επομένως το OmniRoute υποβαθμίζει αυτό το αίτημα σε υψηλό προϋπολογισμό συλλογισμού πριν το στείλει στον ανάντη πάροχο.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ Επαναφορά ορίου ανά 5 ώρες + εβδομαδιαία επαναφορά
+Πίνακας ελέγχου → Πάροχοι → Σύνδεση Codex
+→ Σύνδεση μέσω OAuth (θύρα 1455)
+→ Επαναφορά ανά 5 ώρες + εβδομαδιαία επαναφορά
 
-Models:
+Μοντέλα:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -167,11 +158,11 @@ Models:
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
-→ OAuth via GitHub
-→ Μηνιαία επαναφορά (1η του μήνα)
+Πίνακας ελέγχου → Πάροχοι → Σύνδεση GitHub
+→ OAuth μέσω GitHub
+→ Μηνιαία επαναφορά (την 1η του μήνα)
 
-Models:
+Μοντέλα:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -179,57 +170,55 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Οικονομικοί Πάροχοι
+### 💰 Οικονομικοί πάροχοι
 
-#### GLM-4.7 (Ημερήσια επαναφορά, $0.6/1M)
+#### GLM-4.7 (Καθημερινή επαναφορά, $0.6/1M)
 
-1. Εγγραφή: [Zhipu AI](https://open.bigmodel.cn)
+1. Εγγραφείτε: [Zhipu AI](https://open.bigmodel.cn)
 2. Αποκτήστε κλειδί API από το Coding Plan
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+3. Πίνακας ελέγχου → Προσθήκη κλειδιού API: Πάροχος: `glm`, Κλειδί API: `your-key`
 
-**Χρήση:** `glm/glm-4.7` — **Χρήσιμη Συμβουλή:** Το Coding Plan προσφέρει 3× όριο με 1/7 του κόστους! Επαναφορά καθημερινά στις 10:00 π.μ.
+**Χρήση:** `glm/glm-4.7` — **Επαγγελματική συμβουλή:** Το Coding Plan προσφέρει 3× μεγαλύτερο όριο με το 1/7 του κόστους! Επαναφορά καθημερινά στις 10:00 π.μ.
 
-#### MiniMax M2.1 (Επαναφορά ανά 5ω, $0.20/1M)
+#### MiniMax M2.1 (Επαναφορά ανά 5 ώρες, $0.20/1M)
 
-1. Εγγραφή: [MiniMax](https://www.minimax.io)
-2. Αποκτήστε κλειδί API → Dashboard → Add API Key
+1. Εγγραφείτε: [MiniMax](https://www.minimax.io)
+2. Αποκτήστε κλειδί API → Πίνακας ελέγχου → Προσθήκη κλειδιού API
 
-**Χρήση:** `minimax/MiniMax-M2.1` — **Χρήσιμη Συμβουλή:** Η φθηνότερη επιλογή για μεγάλο πλαίσιο (1M tokens)!
+**Χρήση:** `minimax/MiniMax-M2.1` — **Επαγγελματική συμβουλή:** Η φθηνότερη επιλογή για μεγάλο περιβάλλον συμφραζομένων (1M διακριτικά)!
 
 #### Kimi K2 ($9/μήνα σταθερά)
 
-1. Συνδρομή: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Αποκτήστε κλειδί API → Dashboard → Add API Key
+1. Εγγραφείτε: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. Αποκτήστε κλειδί API → Πίνακας ελέγχου → Προσθήκη κλειδιού API
 
-**Χρήση:** `kimi/kimi-k2.5` — **Χρήσιμη Συμβουλή:** Σταθερά $9/μήνα για 10M tokens = αποτελεσματικό κόστος $0.90/1M!
+**Χρήση:** `kimi/kimi-k2.5` — **Επαγγελματική συμβουλή:** Σταθερά $9/μήνα για 10M διακριτικά = πραγματικό κόστος $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
-1. Εγγραφή: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Δημιουργήστε κλειδί Qianfan API → Dashboard → Add API Key: Provider: `qianfan`
+1. Εγγραφείτε: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Δημιουργήστε ένα κλειδί API Qianfan → Πίνακας ελέγχου → Προσθήκη κλειδιού API: Πάροχος: `qianfan`
 
-**Χρήση:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, ή άλλο αναγνωριστικό μοντέλου συμβατό με OpenAI από το Qianfan.
+**Χρήση:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` ή κάποιο άλλο αναγνωριστικό μοντέλου Qianfan συμβατό με OpenAI.
 
-### 🆓 ΔΩΡΕΑΝ Πάροχοι
+### 🆓 ΔΩΡΕΑΝ πάροχοι
 
-Οι δωρεάν πάροχοι χωρίς πιστοποίηση διαθέτουν έναν διακόπτη δίπλα στο **No authentication required** στη σελίδα του παρόχου τους.
-Απενεργοποιώντας τον απενεργοποιείτε τον πάροχο, τον αφαιρείτε από τις προβολές Providers configured/compact, και
-αφαιρείτε τα μοντέλα του από το `/v1/models`.
+Οι δωρεάν πάροχοι χωρίς έλεγχο ταυτότητας διαθέτουν έναν διακόπτη δίπλα στην επιλογή **Δεν απαιτείται έλεγχος ταυτότητας** στη σελίδα του παρόχου τους. Η απενεργοποίησή του απενεργοποιεί τον συγκεκριμένο πάροχο, τον αφαιρεί από τις διαμορφωμένες/συμπτυγμένες προβολές των Παρόχων και αφαιρεί τα μοντέλα του από το `/v1/models`.
 
 #### Qoder (9 ΔΩΡΕΑΝ μοντέλα)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Η πρόσβαση υπόκειται στα τρέχοντα όρια του παρόχου
+Πίνακας ελέγχου → Σύνδεση Qoder → Σύνδεση μέσω OAuth → Η πρόσβαση υπόκειται στα τρέχοντα όρια του παρόχου
 
-Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+Μοντέλα: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro (Claude ΔΩΡΕΑΝ)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID ή Google/GitHub → ~50 credits/μήνα
+Πίνακας ελέγχου → Σύνδεση Kiro → AWS Builder ID ή Google/GitHub → ~50 πιστώσεις/μήνα
 
-Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Μοντέλα: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---

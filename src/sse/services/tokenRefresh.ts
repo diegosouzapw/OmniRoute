@@ -2,7 +2,7 @@
 import * as log from "../utils/logger";
 import { updateProviderConnection } from "@/lib/db/providers";
 import { resolveProxyForConnection } from "@/lib/db/settings";
-import { resolveProxyForProvider } from "@/lib/db/proxies";
+import { resolveProxyForProvider, hasBlockingProxyAssignment } from "@/lib/db/proxies";
 import {
   TOKEN_EXPIRY_BUFFER_MS as BUFFER_MS,
   getRefreshLeadMs as _getRefreshLeadMs,
@@ -29,11 +29,48 @@ import {
 
 export const TOKEN_EXPIRY_BUFFER_MS = BUFFER_MS;
 
-async function resolveProxyForCredentials(provider: string, credentials?: any) {
+/**
+ * #13470: mirrors the #6246 fail-closed policy (`src/sse/handlers/chatHelpers.ts`
+ * ::safeResolveProxy / decideProxyResolutionFailure) for the background
+ * token-refresh path. Duplicated verbatim here — importing decideProxyResolutionFailure
+ * from chatHelpers.ts would create an import cycle (chatHelpers.ts already imports
+ * updateProviderCredentials from this module).
+ */
+function decideTokenRefreshProxyFailure(err: unknown): null {
+  if ((process.env.PROXY_FAIL_OPEN ?? "").trim().toLowerCase() === "true") {
+    log.warn(
+      "PROXY",
+      `Token-refresh proxy resolution failed — PROXY_FAIL_OPEN=true, falling back to DIRECT: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+    return null;
+  }
+  throw err instanceof Error ? err : new Error(String(err));
+}
+
+/**
+ * #13470: a connection whose assigned proxy pool has gone fully dead must not
+ * silently fall through to direct/env-proxy egress for its background refresh-token
+ * exchange — that is the same class of IP-provenance leak #6246 closed for the
+ * interactive chat/executor path (`safeResolveProxy`), on a more sensitive
+ * payload (the refresh token itself). Exported for direct testing.
+ */
+export async function resolveProxyForCredentials(provider: string, credentials?: any) {
   if (credentials?.connectionId) {
     const resolved = await resolveProxyForConnection(credentials.connectionId);
     if (resolved?.proxy) {
       return resolved.proxy;
+    }
+    if (hasBlockingProxyAssignment(credentials.connectionId, provider)) {
+      return decideTokenRefreshProxyFailure(
+        Object.assign(
+          new Error(
+            "PROXY_ASSIGNED_UNAVAILABLE: assigned proxy is inactive/unreachable; refusing to egress background token refresh on a direct connection"
+          ),
+          { code: "PROXY_ASSIGNED_UNAVAILABLE" }
+        )
+      );
     }
   }
 

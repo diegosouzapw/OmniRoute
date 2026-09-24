@@ -285,12 +285,15 @@ export function detectTestKind(modelStr: string, customModel: any, nodeApiType?:
     !isRerank &&
     (apiFormat === "embeddings" ||
       nodeType === "embeddings" ||
+      customModel?.modelType === "embedding" ||
       supportedEndpoints.includes("embeddings") ||
       lowerModel.includes("embedding") ||
       lowerModel.includes("bge-") ||
       lowerModel.includes("text-embed") ||
       lowerModel.includes("jina-clip") ||
-      lowerModel.includes("colbert"));
+      lowerModel.includes("colbert") ||
+      lowerModel.includes("harrier-") ||
+      lowerModel.includes("nomic-embed"));
   // A Responses node answers on /v1/responses only. Without this the model fell
   // through to the chat branch below, which posts a Chat Completions body to
   // /v1/chat/completions: the route can still answer 200 while carrying nothing a
@@ -306,7 +309,20 @@ export function detectTestKind(modelStr: string, customModel: any, nodeApiType?:
     (apiFormat === "responses" ||
       nodeType === "responses" ||
       supportedEndpoints.includes("responses"));
-  return { isRerank, isEmbedding, isAudioTranscription, isResponses };
+  // Non-chat generation endpoints (image, music, video) should NOT be dispatched
+  // as chat completions — they incur billable generation costs (#13376).
+  const isNonChatGeneration =
+    !isAudioTranscription &&
+    !isRerank &&
+    !isEmbedding &&
+    !isResponses &&
+    supportedEndpoints.length > 0 &&
+    !supportedEndpoints.includes("chat") &&
+    (supportedEndpoints.includes("images") ||
+      supportedEndpoints.includes("music") ||
+      supportedEndpoints.includes("videos"));
+
+  return { isRerank, isEmbedding, isAudioTranscription, isResponses, isNonChatGeneration };
 }
 
 /**
@@ -465,11 +481,24 @@ export async function runSingleModelTest(
     findCustomModelMetadata(providerId, fullModelStr),
     findProviderNodeApiType(providerId),
   ]);
-  const { isRerank, isEmbedding, isAudioTranscription, isResponses } = detectTestKind(
-    fullModelStr,
-    customModel,
-    nodeApiType
-  );
+  const { isRerank, isEmbedding, isAudioTranscription, isResponses, isNonChatGeneration } =
+    detectTestKind(fullModelStr, customModel, nodeApiType);
+
+  // #13376: Skip image/music/video generation models — dispatching them as
+  // chat completions incurs real billable generations the operator never asked for.
+  if (isNonChatGeneration) {
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: 0,
+      // 422, not the 409 the managed-lease return above uses: the request is valid, but this
+      // model's modality cannot be exercised by a chat test. The route passes httpStatus
+      // straight to NextResponse — omitting it made Next answer 200 for a skipped test.
+      httpStatus: 422,
+      error:
+        "Skipped: non-chat generation model (images/music/video) — use the corresponding generation endpoint instead",
+    };
+  }
 
   const testBody = isRerank
     ? {

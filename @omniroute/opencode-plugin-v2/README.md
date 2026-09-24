@@ -26,6 +26,34 @@ npm install @omniroute/opencode-plugin-v2
 }
 ```
 
+### Local `file://` install
+
+OpenCode resolves a local plugin **directory** by probing the subpaths
+`server.*` / `index.*` (then `tui`, `rpc`) at the package root — it never
+reads `package.json` `main`/`exports`. A folder exposing only `dist/` is
+therefore silently skipped (no `loading plugin`, no error).
+
+This package ships a root `server.js` re-exporting `./dist/index.js` for
+exactly that probe, so pointing OpenCode at a local checkout works:
+
+```json
+{
+  "plugins": [
+    {
+      "package": "file:///path/to/OmniRoute/@omniroute/opencode-plugin-v2",
+      "options": {
+        "providerId": "omniroute",
+        "baseURL": "http://localhost:20128"
+      }
+    }
+  ]
+}
+```
+
+Prerequisites when targeting a folder: run `npm run build` first (the root
+`server.js` re-exports `./dist/index.js`), and keep the folder's root
+`server.js` — `dist/` alone is not resolvable by the host.
+
 ## Credentials
 
 The plugin needs a gateway key to read the catalog, and looks for one in this
@@ -56,8 +84,14 @@ explicitly:
 }
 ```
 
+The token can also come from the `OMNIROUTE_MANAGEMENT_API_KEY` environment
+variable (the option wins when both are set). Resolution order:
+`managementReadToken` option, then `OMNIROUTE_MANAGEMENT_API_KEY`, then the
+`apiKey` fallback.
+
 Left unset, `managementReadToken` falls back to `apiKey` for backwards
-compatibility. When a gateway rejects that fallback, the catalog still
+compatibility, and the plugin warns once at startup that the fallback is
+active. When a gateway rejects that fallback, the catalog still
 publishes — but with raw model ids instead of display names, no canonical
 alias dedupe, no pricing and no combos. The plugin warns once per endpoint
 when this happens, naming the endpoint and the consequence, so the degraded
@@ -65,25 +99,25 @@ catalog is never a mystery.
 
 ## Options
 
-| Key                              | Default                                        | Notes                                                                                                                 |
-| -------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                  | Provider id and integration id; models publish under `<providerId>/…`                                                 |
-| `baseURL`                        | required                                       | OmniRoute gateway root (no `/v1` suffix needed)                                                                       |
-| `apiKey`                         | connected credential, then `OMNIROUTE_API_KEY` | Chat key for `/v1/*` — see [Credentials](#credentials)                                                                |
-| `managementReadToken`            | falls back to `apiKey`                         | Management key for `/api/*` (combos, providers, enrichment) — usually **not** the same key                            |
-| `displayName`                    | `"OmniRoute"`                                  | Provider display name                                                                                                 |
-| `timeoutMs`                      | `10000`                                        | Per-endpoint fetch timeout (auto-combos use 5s)                                                                       |
-| `modelCacheTtlMs`                | `300000`                                       | Catalog cache TTL; disk snapshot warms cold starts                                                                    |
-| `timeouts`                       | per-endpoint override                          | `{ models, combos, autoCombos, enrichment }` in ms; falls back to `timeoutMs`                                         |
-| `enrichment`                     | `true`                                         | Fetch names + pricing (`/api/pricing*`, `/api/free-tier/summary`)                                                     |
-| `providerTag`                    | `true`                                         | Prefix a display name with the upstream provider it routes to                                                         |
-| `geminiSanitization`             | `true`                                         | Strip `$schema`/`additionalProperties` from tool schemas sent to Gemini models (`$ref` tools are forwarded untouched) |
-| `usableOnly`                     | `false`                                        | Filter to healthy provisioned providers (`/api/providers`)                                                            |
-| `visibleModels` / `hiddenModels` | `[]`                                           | Exact-or-suffix allowlists, deny wins                                                                                 |
-| `apiFormat.allowAnthropic`       | `false`                                        | Route allowlisted ids to the Anthropic API block                                                                      |
-| `apiFormat.anthropicModels`      | `[]`                                           | Full model ids routed to Anthropic                                                                                    |
-| `apiFormat.anthropicPrefixes`    | v1 defaults                                    | Deprecated, warns once — prefer `anthropicModels`                                                                     |
-| `logLevel` / `startupDebug`      | `warn` / `false`                               | Logger verbosity                                                                                                      |
+| Key                              | Default                                                    | Notes                                                                                                                 |
+| -------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                              | Provider id and integration id; models publish under `<providerId>/…`                                                 |
+| `baseURL`                        | required                                                   | OmniRoute gateway root (no `/v1` suffix needed)                                                                       |
+| `apiKey`                         | connected credential, then `OMNIROUTE_API_KEY`             | Chat key for `/v1/*` — see [Credentials](#credentials)                                                                |
+| `managementReadToken`            | option, then `OMNIROUTE_MANAGEMENT_API_KEY`, then `apiKey` | Management key for `/api/*` (combos, providers, enrichment) — usually **not** the same key                            |
+| `displayName`                    | `"OmniRoute"`                                              | Provider display name                                                                                                 |
+| `timeoutMs`                      | `10000`                                                    | Per-endpoint fetch timeout (auto-combos use 5s)                                                                       |
+| `modelCacheTtlMs`                | `300000`                                                   | Catalog cache TTL; disk snapshot warms cold starts                                                                    |
+| `timeouts`                       | per-endpoint override                                      | `{ models, combos, autoCombos, enrichment }` in ms; falls back to `timeoutMs`                                         |
+| `enrichment`                     | `true`                                                     | Fetch names + pricing (`/api/pricing*`, `/api/free-tier/summary`)                                                     |
+| `providerTag`                    | `true`                                                     | Prefix a display name with the upstream provider it routes to                                                         |
+| `geminiSanitization`             | `true`                                                     | Strip `$schema`/`additionalProperties` from tool schemas sent to Gemini models (`$ref` tools are forwarded untouched) |
+| `usableOnly`                     | `false`                                                    | Filter to healthy provisioned providers (`/api/providers`)                                                            |
+| `visibleModels` / `hiddenModels` | `[]`                                                       | Exact-or-suffix allowlists, deny wins                                                                                 |
+| `apiFormat.allowAnthropic`       | `false`                                                    | Route allowlisted ids to the Anthropic API block                                                                      |
+| `apiFormat.anthropicModels`      | `[]`                                                       | Full model ids routed to Anthropic                                                                                    |
+| `apiFormat.anthropicPrefixes`    | v1 defaults                                                | Deprecated, warns once — prefer `anthropicModels`                                                                     |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                           | Logger verbosity                                                                                                      |
 
 ## Tool calling on Gemini models
 

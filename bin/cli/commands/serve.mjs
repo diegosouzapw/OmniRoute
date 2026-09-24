@@ -4,7 +4,13 @@ import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { platform, totalmem } from "node:os";
 import { t } from "../i18n.mjs";
-import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
+import {
+  writePidFile,
+  cleanupPidFile,
+  waitForServer,
+  findListeningPids,
+  resolveReadyTimeoutMs,
+} from "../utils/pid.mjs";
 import {
   ServerSupervisor,
   detectMitmCrash,
@@ -58,6 +64,11 @@ export function registerServe(program) {
     .option("--max-restarts <n>", t("serve.max_restarts"), parseInt, 2)
     .option("--tray", t("serve.tray") || "Start in the system tray (desktop only)")
     .option("--no-tray", t("serve.no_tray") || "Disable system tray icon")
+    .option(
+      "--ready-timeout <ms>",
+      t("serve.ready_timeout") ||
+        "Readiness probe timeout in ms (also OMNIROUTE_READY_TIMEOUT_MS, default 60000)"
+    )
     .option(
       "--tls-cert <path>",
       t("serve.tls_cert") ||
@@ -230,6 +241,16 @@ export async function runServe(opts = {}) {
     process.exit(1);
   }
 
+  // Refuse to start a second instance on a port something else already owns,
+  // BEFORE any pid file is written or any child is spawned. Otherwise the
+  // doomed child's EADDRINUSE arrives only after this process has rewritten
+  // the pid files of the healthy instance that actually owns the port.
+  const busyPids = await findListeningPids(dashboardPort);
+  if (busyPids.length > 0) {
+    reportPortInUse(dashboardPort, busyPids);
+    process.exit(1);
+  }
+
   console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
   // #5172/#5160/#5152: default the V8 heap to ~35% of physical RAM (clamped
@@ -276,7 +297,8 @@ export async function runServe(opts = {}) {
     return runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort);
   }
 
-  if (opts.noRecovery) {
+  // Commander stores `--no-recovery` as `recovery === false`, never as `noRecovery`.
+  if (opts.recovery === false || opts.noRecovery === true) {
     return runWithoutRecovery(
       serverJs,
       env,
@@ -299,8 +321,27 @@ export async function runServe(opts = {}) {
     opts.maxRestarts ?? 2,
     startedAt,
     useTray,
-    { trayReadyPort: opts.trayReadyPort, trayReadyToken: opts.trayReadyToken }
+    {
+      trayReadyPort: opts.trayReadyPort,
+      trayReadyToken: opts.trayReadyToken,
+      readyTimeoutMs: resolveReadyTimeoutMs({ timeoutMs: opts.readyTimeout }),
+    }
   );
+}
+
+/**
+ * Explain a port conflict in terms the operator can act on: who owns the port,
+ * and the two ways out. Exported for unit tests.
+ */
+export function reportPortInUse(port, pids = []) {
+  const owner = pids.length === 1 ? `PID ${pids[0]}` : `PIDs ${pids.join(", ")}`;
+  console.error(`\n\x1b[31m✖ Port ${port} is already in use by ${owner}.\x1b[0m`);
+  console.error(
+    `  Another OmniRoute is most likely already serving there, so open` +
+      ` ${urlScheme}://localhost:${port} before starting a second one.`
+  );
+  console.error(`  To replace it:    \x1b[36momniroute stop\x1b[0m, then start again`);
+  console.error(`  To run alongside: \x1b[36momniroute serve --port <other-port>\x1b[0m\n`);
 }
 
 function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
@@ -413,7 +454,7 @@ async function runWithSupervisor(
   maxRestarts,
   startedAt,
   useTray = false,
-  { trayReadyPort, trayReadyToken } = {}
+  { trayReadyPort, trayReadyToken, readyTimeoutMs = resolveReadyTimeoutMs() } = {}
 ) {
   if (showLog) process.env.OMNIROUTE_SHOW_LOG = "1";
   writePidFile("supervisor", process.pid);
@@ -452,7 +493,12 @@ async function runWithSupervisor(
   });
 
   if (!showLog) {
-    waitForServer(dashboardPort, 60000).then(async (up) => {
+    let lastProbeOutcome = null;
+    waitForServer(dashboardPort, readyTimeoutMs, {
+      onOutcome: (outcome) => {
+        lastProbeOutcome = outcome;
+      },
+    }).then(async (up) => {
       if (up) {
         if (useTray) {
           const trayReady = await maybeStartTray(dashboardPort, apiPort, supervisor);
@@ -476,7 +522,7 @@ async function runWithSupervisor(
         }
         onReady(dashboardPort, apiPort, noOpen, startedAt);
       } else {
-        reportReadinessTimeout(dashboardPort, supervisor);
+        reportReadinessTimeout(dashboardPort, supervisor, lastProbeOutcome);
       }
     });
   }
@@ -488,10 +534,30 @@ async function runWithSupervisor(
 // stuck (issue reports show the server sometimes actually comes up later, or is
 // reachable directly while the CLI still looks hung). Surface a clear diagnostic
 // plus whatever stdout/stderr the child buffered instead of going silent.
-export function reportReadinessTimeout(dashboardPort, supervisor) {
+export function reportReadinessTimeout(dashboardPort, supervisor, lastProbeOutcome = null) {
+  const readyTimeoutMs = resolveReadyTimeoutMs();
+  const seconds = Math.round(readyTimeoutMs / 1000);
   console.error(
-    `\n\x1b[33m⚠ Server did not respond within 60s.\x1b[0m It may still be starting, or may` +
+    `\n\x1b[33m⚠ Server did not respond within ${seconds}s.\x1b[0m It may still be starting, or may` +
       ` have failed silently.`
+  );
+  // The last probe classification separates a real boot failure (nothing ever
+  // bound the port, so the buffered output below is the reason) from a server
+  // that IS listening and merely did not answer the health route in time:
+  // very likely usable already, with only the readiness signal timed out.
+  if (lastProbeOutcome === "hanging" || lastProbeOutcome === "fast-reject") {
+    console.error(
+      `  Port ${dashboardPort} IS accepting connections, so the server is probably up and` +
+        ` still warming up. Check the dashboard before restarting it.`
+    );
+  } else if (lastProbeOutcome === "not-listening") {
+    console.error(
+      `  Nothing is listening on port ${dashboardPort}, so the server never bound it and the` +
+        ` output below is the reason.`
+    );
+  }
+  console.error(
+    `  Tip:  set OMNIROUTE_READY_TIMEOUT_MS=${readyTimeoutMs * 2} or --ready-timeout ${readyTimeoutMs * 2} for slower cold starts.`
   );
   console.error(`  Try:  curl -I http://localhost:${dashboardPort}/api/monitoring/health`);
   console.error(`  Or:   rerun with \x1b[36m--log\x1b[0m to see live server output.\n`);

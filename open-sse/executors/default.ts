@@ -11,10 +11,10 @@ import {
   joinClaudeCodeCompatibleUrl,
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
-import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
-  mergeClientAnthropicBeta,
+  applyClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
 } from "../config/anthropicHeaders.ts";
 import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
@@ -231,7 +231,7 @@ export class DefaultExecutor extends BaseExecutor {
     void urlIndex;
     if (this.provider?.startsWith?.("openai-compatible-")) {
       const psd = credentials?.providerSpecificData;
-      const baseUrl = psd?.baseUrl || "https://api.openai.com/v1";
+      const baseUrl = requireCompatibleBaseUrl(this.provider, psd); // #13452
       const normalized = baseUrl.replace(/\/$/, "");
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (customPath) return `${normalized}${customPath}`;
@@ -244,7 +244,7 @@ export class DefaultExecutor extends BaseExecutor {
     }
     if (this.provider?.startsWith?.("anthropic-compatible-")) {
       const psd = credentials?.providerSpecificData;
-      const baseUrl = psd?.baseUrl || "https://api.anthropic.com/v1";
+      const baseUrl = requireCompatibleBaseUrl(this.provider, psd); // #13452
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (isClaudeCodeCompatible(this.provider)) {
         return joinClaudeCodeCompatibleUrl(
@@ -579,6 +579,15 @@ export class DefaultExecutor extends BaseExecutor {
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
       case "clinepass": // dual-auth (OAuth or BYOK) — see applyClineAuthHeaders()
+        // buildClinepassHeaders() (called below via isClinepass=true) is the single
+        // source of truth for the OAuth-vs-BYOK decision, keyed off
+        // credentials.accessToken — do not re-decide it here off credentials.authType,
+        // which can diverge from the real credential shape (#11828 review).
+        if (credentials?.accessToken) {
+          console.debug("[Auth] Using OAuth token for Cline/Kilo Code request.");
+        } else {
+          console.debug("[Auth] Using direct API key for Cline/Kilo Code request.");
+        }
         applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
         break;
       case "cline":
@@ -678,18 +687,13 @@ export class DefaultExecutor extends BaseExecutor {
       // 400 "Tool reference not found". Allowlist-merge preserves it without
       // forwarding betas the backend rejects.
       const clientBeta = clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null;
-      const betaKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
-      if (betaKey && clientBeta) {
-        headers[betaKey] = mergeClientAnthropicBeta(
-          headers[betaKey],
-          clientBeta,
-          undefined,
-          // Gate the client-negotiated context-1m beta on the RESOLVED target model:
-          // combo/fallback can route a request negotiated for a [1m] sibling onto a
-          // model that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
-          model
-        );
-      }
+      // `model` gates the client-negotiated context-1m beta on the RESOLVED target:
+      // combo/fallback can route a request negotiated for a [1m] sibling onto a model
+      // that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
+      applyClientAnthropicBeta(headers, clientBeta, {
+        seedWhenAbsent: this.provider?.startsWith?.("anthropic-compatible-") === true,
+        model,
+      });
     }
 
     normalizeAnthropicHeaderVariants(headers);
@@ -1013,18 +1017,19 @@ export class DefaultExecutor extends BaseExecutor {
       this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
     }
 
-    // 9router#1480: native Moonshot providers 400 when a prior assistant turn
-    // lacks reasoning_content. OpencodeExecutor
-    // already injects a placeholder for OpenCode-routed thinking models; the
-    // direct connections hit neither injection path. Scope to Moonshot ids so
-    // gateway-served models that merely match the thinking-model name pattern
-    // (and may reject an extra field) are unaffected.
-    if (this.provider === "kimi" || this.provider === "moonshot") {
+    // 9router#1480: native Moonshot providers 400 when a prior assistant turn lacks
+    // reasoning_content. Scope to Moonshot ids, or a registry entry opting in via
+    // `requiresReasoningContentEcho` (e.g. `bai`'s DeepSeek resale, #13599).
+    const reasoningEcho =
+      this.provider === "kimi" ||
+      this.provider === "moonshot" ||
+      !!getRegistryEntry(this.provider)?.requiresReasoningContentEcho;
+    if (reasoningEcho) {
       const outboundModel =
         typeof (withDefaults as Record<string, unknown>)?.model === "string"
           ? ((withDefaults as Record<string, unknown>).model as string)
           : model;
-      if (shouldInjectReasoningContentPlaceholder(this.provider, outboundModel)) {
+      if (shouldInjectReasoningContentPlaceholder(reasoningEcho, this.provider, outboundModel)) {
         withDefaults = injectReasoningContentForThinkingModel(withDefaults);
       }
     }
@@ -1076,7 +1081,8 @@ export class DefaultExecutor extends BaseExecutor {
     const reasoningEnabled =
       thinking?.type === "enabled" ||
       (typeof effort === "string" && effort !== "none" && effort !== "off") ||
-      effort === true;
+      effort === true ||
+      modelEntry.alwaysReasons === true;
     if (!reasoningEnabled) return body;
 
     const MIN_TOKENS = 4096;

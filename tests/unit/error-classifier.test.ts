@@ -5,6 +5,9 @@ const {
   classifyProviderError,
   isResourceNotFoundResponse,
   isCloudflareFingerprintRejection,
+  isCloudflareChallengeInterstitial,
+  isAnthropicOAuthProvider,
+  isAnthropicRequestNotAllowed,
   PROVIDER_ERROR_TYPES,
 } = await import("../../open-sse/services/errorClassifier.ts");
 
@@ -400,4 +403,166 @@ test("classifyProviderError: 422 without the BYOP code stays unclassified (no mo
     null
   );
   assert.equal(classifyProviderError(422, "some other body", "antigravity"), null);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cloudflare managed-challenge interstitial (Codex /responses/input_tokens)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Trimmed but verbatim-shaped excerpt of the interstitial served by Cloudflare on
+// POST chatgpt.com/backend-api/codex/responses/input_tokens (response headers carry
+// `cf-mitigated: challenge`, `server: cloudflare`, `content-type: text/html`).
+const CF_MANAGED_CHALLENGE_BODY = [
+  '<!DOCTYPE html><html lang="en-US"><head><title>Just a moment...</title></head><body>',
+  '<div class="main-content"><noscript><div class="h2">',
+  '<span id="challenge-error-text">Enable JavaScript and cookies to continue</span>',
+  "</div></noscript></div>",
+  "<script>(function(){window._cf_chl_opt = {cFPWv: 'g',cRay: 'a38b1a06cd3ea3e3',",
+  "cType: 'managed',cZone: 'chatgpt.com',cUPMDTk:\"/backend-api/codex/responses/input_tokens\"};",
+  "var a = document.createElement('script');",
+  "a.src = '/cdn-cgi/challenge-platform/h/g/orchestrate/chl_page/v1?ray=a38b1a06cd3ea3e3';",
+  "})();</script></body></html>",
+].join("");
+
+test("classifyProviderError: Cloudflare managed challenge on codex => FINGERPRINT_REJECTION, not FORBIDDEN", () => {
+  // Regression guard: this body previously fell through the whole 403 ladder to
+  // FORBIDDEN, which chatCore persists as the terminal banned/isActive:false state.
+  // The account was healthy — its OAuth token refreshed successfully in the same
+  // second and normal /responses traffic succeeded seconds before and after.
+  const result = classifyProviderError(403, CF_MANAGED_CHALLENGE_BODY, "codex");
+  assert.equal(
+    result,
+    PROVIDER_ERROR_TYPES.FINGERPRINT_REJECTION,
+    "a Cloudflare managed challenge must never terminalize the connection"
+  );
+  assert.notEqual(result, PROVIDER_ERROR_TYPES.FORBIDDEN, "must not fall through to FORBIDDEN");
+});
+
+test("classifyProviderError: managed challenge nested in the gateway error.message => FINGERPRINT_REJECTION", () => {
+  // The executor commonly wraps the upstream body inside error.message, which is
+  // how the operator-visible "[403]: <html>" message is produced.
+  const body = JSON.stringify({
+    error: { message: `[codex/gpt-5.6-sol] [403]: ${CF_MANAGED_CHALLENGE_BODY}` },
+  });
+  assert.equal(
+    classifyProviderError(403, body, "codex"),
+    PROVIDER_ERROR_TYPES.FINGERPRINT_REJECTION
+  );
+});
+
+test("isCloudflareChallengeInterstitial: each distinctive marker is recognized", () => {
+  assert.equal(isCloudflareChallengeInterstitial(CF_MANAGED_CHALLENGE_BODY), true, "full body");
+  assert.equal(
+    isCloudflareChallengeInterstitial("window._cf_chl_opt = {cType: 'managed'}"),
+    true,
+    "_cf_chl_opt"
+  );
+  assert.equal(
+    isCloudflareChallengeInterstitial("/cdn-cgi/challenge-platform/h/g/orchestrate/chl_page/v1"),
+    true,
+    "challenge-platform path"
+  );
+  assert.equal(
+    isCloudflareChallengeInterstitial('<span id="challenge-error-text">'),
+    true,
+    "challenge-error-text span"
+  );
+  assert.equal(
+    isCloudflareChallengeInterstitial(String.raw`<span id=\"challenge-error-text\">`),
+    true,
+    "escaped-quote nested form"
+  );
+});
+
+test("isCloudflareChallengeInterstitial: prose mentioning a challenge is NOT a match (FP guard)", () => {
+  // The markers are full Cloudflare-internal strings, never the loose word
+  // "challenge" — provider bodies legitimately discuss challenges in prose.
+  assert.equal(
+    isCloudflareChallengeInterstitial("this request failed a security challenge, please retry"),
+    false,
+    "prose challenge"
+  );
+  assert.equal(
+    isCloudflareChallengeInterstitial(
+      '{"error":"challenge_required","detail":"solve a challenge"}'
+    ),
+    false,
+    "challenge_required code"
+  );
+  assert.equal(
+    isCloudflareChallengeInterstitial("challenge-platform"),
+    false,
+    "bare, no cdn-cgi path"
+  );
+  assert.equal(isCloudflareChallengeInterstitial(""), false, "empty body");
+});
+
+test("classifyProviderError: the terminal 403 paths are unchanged by the challenge branch", () => {
+  // Regression guard for the neighbouring carve-outs: a genuine permission 403
+  // still bans, and ChatGPT Web's Sentinel/Turnstile 403 (#8813) stays FORBIDDEN.
+  assert.equal(
+    classifyProviderError(403, { error: { message: "you do not have permission" } }, "codex"),
+    PROVIDER_ERROR_TYPES.FORBIDDEN
+  );
+  assert.equal(
+    classifyProviderError(403, JSON.stringify({ error: "SENTINEL_BLOCKED" }), "chatgpt-web"),
+    PROVIDER_ERROR_TYPES.FORBIDDEN
+  );
+  assert.equal(
+    classifyProviderError(403, "Turnstile required", "chatgpt-web"),
+    PROVIDER_ERROR_TYPES.FORBIDDEN
+  );
+});
+
+// ── Anthropic OAuth 403 "Request not allowed" is a per-request refusal, not a ban ──
+
+test("classifyProviderError: claude 403 'Request not allowed' (Anthropic body) => REQUEST_REJECTED, never FORBIDDEN", () => {
+  // Verbatim Anthropic shape. On the reporting install this landed once between
+  // hundreds of 200s on the same OAuth token and permanently banned the only
+  // Claude connection.
+  const body = JSON.stringify({
+    type: "error",
+    error: { type: "permission_error", message: "Request not allowed" },
+  });
+  const result = classifyProviderError(403, body, "claude");
+  assert.equal(result, PROVIDER_ERROR_TYPES.REQUEST_REJECTED);
+  assert.notEqual(result, PROVIDER_ERROR_TYPES.FORBIDDEN, "must not ban the connection");
+});
+
+test("classifyProviderError: claude 403 'Request not allowed' via gateway-wrapped message => REQUEST_REJECTED", () => {
+  // Shape as it reaches the classifier after the executor flattens the body.
+  const result = classifyProviderError(403, "[403]: Request not allowed", "claude");
+  assert.equal(result, PROVIDER_ERROR_TYPES.REQUEST_REJECTED);
+});
+
+test("classifyProviderError: 'Request not allowed' from a non-Anthropic OAuth provider keeps its 403 semantics", () => {
+  const body = JSON.stringify({ error: { message: "Request not allowed" } });
+  assert.equal(classifyProviderError(403, body, "codex"), PROVIDER_ERROR_TYPES.FORBIDDEN);
+  assert.equal(classifyProviderError(403, body, undefined), PROVIDER_ERROR_TYPES.FORBIDDEN);
+});
+
+test("classifyProviderError: other claude 403 bodies still classify as before", () => {
+  assert.equal(
+    classifyProviderError(403, { error: { message: "you do not have permission" } }, "claude"),
+    PROVIDER_ERROR_TYPES.FORBIDDEN
+  );
+  assert.equal(
+    classifyProviderError(
+      403,
+      JSON.stringify({ error: { message: "account_deactivated: this account has been disabled" } }),
+      "claude"
+    ),
+    PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED
+  );
+});
+
+test("isAnthropicRequestNotAllowed / isAnthropicOAuthProvider helpers", () => {
+  assert.equal(isAnthropicRequestNotAllowed("Request not allowed"), true);
+  assert.equal(isAnthropicRequestNotAllowed('{"message":"request NOT allowed"}'), true);
+  assert.equal(isAnthropicRequestNotAllowed("requests not allowed here"), false);
+  assert.equal(isAnthropicRequestNotAllowed(""), false);
+  assert.equal(isAnthropicOAuthProvider("claude"), true);
+  assert.equal(isAnthropicOAuthProvider("Claude"), true);
+  assert.equal(isAnthropicOAuthProvider("anthropic"), false);
+  assert.equal(isAnthropicOAuthProvider(null), false);
 });

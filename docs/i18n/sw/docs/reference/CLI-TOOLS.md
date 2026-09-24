@@ -1,29 +1,20 @@
-# CLI-TOOLS (Kiswahili)
+# CLI Tools — OmniRoute (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
-title: "Zana za CLI — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-18
----
+Ilisasishwa mwisho: 2026-08-23
 
-# Zana za CLI — OmniRoute
+OmniRoute inaunganishwa na aina tatu za zana za CLI zilizosambazwa katika kurasa tatu mahususi za dashibodi:
 
-Imesasishwa mwisho: 2026-08-18
+| Ukurasa        | Njia                    | Dhana                                                                                         | Idadi          |
+| -------------- | ----------------------- | --------------------------------------------------------------------------------------------- | -------------- |
+| **CLI Code's** | `/dashboard/cli-code`   | Zana za uandishi wa msimbo unazoelekeza kwa OmniRoute (Mteja → CLI → OmniRoute → Mtoa huduma) | 26             |
+| **CLI Agents** | `/dashboard/cli-agents` | Mawakala wanaojitegemea unaowaelekeza kwa OmniRoute (mtiririko sawa, wigo mpana zaidi)        | 10             |
+| **ACP Agents** | `/dashboard/acp-agents` | CLI ambazo OmniRoute huanzisha kama backend kupitia stdio/ACP (mtiririko wa kinyume)          | angalia sajili |
 
-OmniRoute inajumuisha aina tatu za zana za CLI zilizotawanyika kwenye kurasa tatu za dashibodi maalum:
-
-| Ukurasa        | Njia                    | Dhana                                                                                   | Hesabu          |
-| -------------- | ----------------------- | --------------------------------------------------------------------------------------- | --------------- |
-| **CLI Code's** | `/dashboard/cli-code`   | Zana za uandishi unazopointisha kwa OmniRoute (Mteja → CLI → OmniRoute → Mtoa huduma)   | 26              |
-| **CLI Agents** | `/dashboard/cli-agents` | Wakala huru unazopointisha kwa OmniRoute (mchakato sawa, upeo mpana)                    | 8               |
-| **ACP Agents** | `/dashboard/acp-agents` | CLIs ambazo OmniRoute inazizalisha kama backend kupitia stdio/ACP (mchakato wa kinyume) | angalia rejista |
-
-Njia za zamani zinaelekeza kupitia 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
+Njia za zamani huelekezwa kwingine kupitia 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
 ---
 
@@ -596,158 +587,160 @@ chini ya `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. OmniRoute CLI ya Ndani
+## 10. CLI ya Ndani ya OmniRoute
 
-Binary ya `omniroute` inatoa amri za mzunguko wa seva, usanidi, uchunguzi, na usimamizi wa watoa huduma. Kituo cha kuingia: `bin/omniroute.mjs`.
+Faili tekelezi ya `omniroute` hutoa amri za mzunguko wa maisha ya seva, usanidi, uchunguzi na usimamizi wa watoa huduma. Sehemu ya kuanzia: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Anza seva (bandia port 20128)
-omniroute setup                        # Mwandiko wa usanidi wa mwingiliano
-omniroute doctor                       # Angalia usanidi, DB, port, muda wa kukimbia
-omniroute providers list               # Mifumo ya watoa huduma iliyowekwa
-omniroute providers test-all           # Jaribu kila muunganisho hai
-omniroute reset-password               # Weka upya nenosiri la admin
-omniroute logs                         # Pitia kumbukumbu za maombi
-omniroute health                       # Afya ya kina (vikwazo, cache, kumbukumbu)
-omniroute --version                    # Chapisha toleo
+omniroute                              # Anzisha seva (port chaguomsingi 20128)
+omniroute setup                        # Msaidizi shirikishi wa usanidi
+omniroute doctor                       # Kagua usanidi, DB, port na mazingira ya utekelezaji
+omniroute providers list               # Miunganisho ya watoa huduma iliyosanidiwa
+omniroute providers test-all           # Jaribu kila muunganisho unaotumika
+omniroute reset-password               # Weka upya nenosiri la msimamizi
+omniroute logs                         # Tiririsha kumbukumbu za maombi
+omniroute health                       # Hali ya kina (vikatiza mzunguko, akiba, kumbukumbu)
+omniroute --version                    # Onyesha toleo
 omniroute --help                       # Onyesha amri zote
 ```
 
-### Usanidi & Uanzishaji
+### Usanidi na Uanzishaji
 
 ```bash
-omniroute setup                        # Mwandiko wa usanidi wa mwingiliano
-omniroute setup --non-interactive      # Hali ya CI/automatiska (inasoma mabadiliko ya mazingira + bendera)
-omniroute setup --password '<value>'   # Weka nenosiri la admin moja kwa moja
+omniroute setup                        # Msaidizi shirikishi wa usanidi
+omniroute setup --non-interactive      # Hali ya CI/otomatiki (husoma vigeu vya mazingira + bendera)
+omniroute setup --password '<value>'   # Weka nenosiri la msimamizi moja kwa moja
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Ongeza na jaribu mtoa huduma kwa wakati mmoja
+  --test-provider                      # Ongeza na ujaribu mtoa huduma kwa hatua moja
 ```
 
-Mabadiliko ya mazingira yanayotambuliwa kwa usanidi usio wa mwingiliano:
+Vigeu vya mazingira vinavyotambuliwa kwa usanidi usio shirikishi:
 
-| Var                 | Kusudi                                                                             |
-| ------------------- | ---------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Funguo ya API ya mtoa huduma (imefungwa na `--api-key` kupitia Commander `.env()`) |
-| `DATA_DIR`          | Badilisha saraka ya data ya OmniRoute                                              |
+| Kigeu               | Madhumuni                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Ufunguo wa API wa mtoa huduma (umeunganishwa na `--api-key` kupitia Commander `.env()`) |
+| `DATA_DIR`          | Batilisha saraka ya data ya OmniRoute                                                   |
 
-Mingine yote ya pembejeo zisizo za mwingiliano inapitishwa kama bendera, si mabadiliko ya mazingira:
+Ingizo nyingine zote zisizo shirikishi hupitishwa kama bendera, si vigeu vya mazingira:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(tazama chaguzi za `omniroute setup` hapo juu).
+(angalia chaguo za `omniroute setup` hapo juu).
 
 ### Uchunguzi
 
 ```bash
-omniroute doctor                       # Angalia usanidi, DB, port, muda wa kukimbia, kumbukumbu, uhai
-omniroute doctor --json                # JSON inayoweza kusomwa na mashine
-omniroute doctor --no-liveness         # Kosa uchunguzi wa afya ya HTTP
-omniroute doctor --host 0.0.0.0        # Badilisha mwenyeji wa uhai
-omniroute doctor --liveness-url <url>  # Badilisha URL ya mwisho wa afya
+omniroute doctor                       # Kagua usanidi, DB, port, mazingira ya utekelezaji, kumbukumbu na uhai
+omniroute doctor --json                # JSON inayosomeka na mashine
+omniroute doctor --no-liveness         # Ruka uchunguzi wa afya wa HTTP
+omniroute doctor --host 0.0.0.0        # Batilisha host ya uchunguzi wa uhai
+omniroute doctor --liveness-url <url>  # Batilisha URL kamili ya endpoint ya afya
 ```
 
-Daktari anafanya uchunguzi haya: `Usanidi`, `Hifadhi`, `Hifadhi/kuandika`,
-`Upatikanaji wa port`, `Muda wa Node`, `Binary asilia` (better-sqlite3),
-`Kumbukumbu`, na `Uhai wa seva`. Inatoka na nambari isiyo sifuri ikiwa uchunguzi wowote ni `fail`.
+Amri ya doctor hufanya ukaguzi huu: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory`, na `Server liveness`. Hutoka kwa msimbo usio sifuri ikiwa ukaguzi wowote una hali ya `fail`.
 
 ### Usimamizi wa Watoa Huduma
 
 ```bash
-omniroute providers available                       # Katalogi ya watoa huduma wa OmniRoute
-omniroute providers available --search openai       # Chuja katalogi kwa id/jina/alias/kikundi
-omniroute providers available --category api-key    # Chuja kwa kikundi (api-key, oauth, bure, ...)
-omniroute providers available --json                # JSON inayoweza kusomwa na mashine
+omniroute providers available                       # Katalogi ya watoa huduma ya OmniRoute
+omniroute providers available --search openai       # Chuja katalogi kwa id/jina/jina mbadala/kategoria
+omniroute providers available --category api-key    # Chuja kwa kategoria (api-key, oauth, free, ...)
+omniroute providers available --json                # JSON inayosomeka na mashine
 
-omniroute providers list                            # Mifumo ya watoa huduma iliyowekwa
+omniroute providers list                            # Miunganisho ya watoa huduma iliyosanidiwa
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Jaribu muunganisho mmoja uliowekwa
-omniroute providers test-all                        # Jaribu kila muunganisho hai
-omniroute providers validate                        # Uthibitisho wa muundo wa ndani pekee
+omniroute providers test <id|name>                  # Jaribu muunganisho mmoja uliosanidiwa
+omniroute providers test-all                        # Jaribu kila muunganisho unaotumika
+omniroute providers validate                        # Uthibitishaji wa muundo wa ndani pekee
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Mchakato wa OAuth uliopo
+omniroute providers auth <provider>                 # Mtiririko uliopo wa OAuth
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` ni API-ya kwanza na kwa hivyo inafanya kazi dhidi
-ya muktadha wa ndani au wa mbali. Pembejeo za akidi zinapaswa kutumia
-`--credential-stdin` au `--credential-env`; `--dry-run --json` inaripoti tu
-kuwepo/kichwa kilichofichwa. `providers available` inasoma katalogi ya OmniRoute;
-`providers list/test/test-all/validate` zinabaki na tabia yao ya ndani ya SQLite na
-hazihitaji seva kuwa inakimbia.
+`providers add/import/auth/edit/remove` hutanguliza API na kwa hiyo hufanya kazi dhidi ya
+muktadha amilifu wa ndani au wa mbali. Ingizo la kitambulisho linapaswa kutumia
+`--credential-stdin` au `--credential-env`; `--dry-run --json` huripoti tu
+uwepo/umbo lililofichwa. `providers available` husoma katalogi ya OmniRoute;
+`providers list/test/test-all/validate` hudumisha tabia yake ya ndani ya SQLite na
+haihitaji seva iwe inaendesha.
 
-### Urejeleaji & Weka Upya
+### Urejeshaji na Uwekaji Upya
 
 ```bash
-omniroute reset-password                # Weka upya nenosiri la admin (pia: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Onyesha onyo + jaribio la kuweka upya akidi iliyofichwa
-omniroute reset-encrypted-columns --force  # Kwa kweli futa akidi zilizofichwa katika SQLite
+omniroute reset-password                # Weka upya nenosiri la msimamizi (pia: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Onyesha onyo + utekelezaji wa majaribio kwa uwekaji upya wa vitambulisho vilivyosimbwa
+omniroute reset-encrypted-columns --force  # Kwa hakika, weka vitambulisho vilivyosimbwa kuwa null katika SQLite
 ```
 
-### Uhamasishaji wa Akidi (⚠ shughulikia kwa uangalifu)
+### Uhamishaji wa Vitambulisho (⚠ shughulikia kwa uangalifu)
 
 ```bash
-omniroute auth export                                 # Onyesha onyo + lango la uthibitisho — hakuna ufikiaji wa DB
-omniroute auth export --force                          # Hamasisha akidi ZOTE zilizofichwa za muunganisho kwa stdout kama JSON
-omniroute auth export --force --id <id>                 # Hamasisha tu muunganisho unaolingana
-omniroute auth export --force --format env               # Tolea mistari ya OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Andika kwenye faili (iliyoundwa na ruhusa 0600)
+omniroute auth export                                 # Onyesha onyo + hatua ya uthibitishaji — hakuna ufikiaji wa DB
+omniroute auth export --force                          # Hamisha vitambulisho VILIVYOSIMBULIWA vya miunganisho YOTE kwenda stdout kama JSON
+omniroute auth export --force --id <id>                 # Hamisha muunganisho unaolingana pekee
+omniroute auth export --force --format env               # Toa mistari ya OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Andika kwenye faili (iliyoundwa kwa ruhusa za 0600)
 ```
 
-`auth export` ni **ya ndani pekee** (kusoma moja kwa moja kutoka SQLite, hakuna njia ya HTTP) na kwa makusudi inachapisha/kuandika
-**maandishi** ya `apiKey`/`accessToken`/`refreshToken`/`idToken` — hiyo ndiyo sifa, si
-hitilafu. Hakuna kitu kinachosomwa kutoka kwenye hifadhidata, na hakuna kitu kinachofichuliwa, bila `--force`. Bango la onyo la stderr
-linaandika kila wakati kabla ya maandiko yoyote ya maandiko kutolewa. Inahitaji `STORAGE_ENCRYPTION_KEY`
-iwe imewekwa. Sehemu ambayo inashindwa kufichuliwa (funguo ya zamani, ciphertext iliyoharibika) inaripotiwa kama
-`<field>DecryptFailed: true` badala ya kuacha uhamasishaji mzima au kuvuja hitilafu ya msingi.
+`auth export` ni ya **ndani pekee** (usomaji wa moja kwa moja wa SQLite, hakuna route ya HTTP) na kwa makusudi huchapisha/huandika
+thamani za **maandishi wazi** za `apiKey`/`accessToken`/`refreshToken`/`idToken` — hiyo ni sifa, si
+hitilafu. Hakuna kinachosomwa kutoka kwenye hifadhidata, wala hakuna kinachosimbuliwa, bila `--force`. Bango la
+onyo huchapishwa kila wakati kwenye stderr kabla ya maandishi yoyote wazi kutolewa. Inahitaji `STORAGE_ENCRYPTION_KEY`
+iwe imewekwa. Sehemu ambayo imeshindwa kusimbuliwa (ufunguo wa zamani, maandishi yaliyosimbwa yaliyoharibika) huripotiwa kama
+`<field>DecryptFailed: true` badala ya kusitisha uhamishaji wote au kufichua hitilafu ya msingi.
 
-### Amri nyingine za chini
+### Amri Ndogo Nyingine
 
-Hizi zinadhani seva ya OmniRoute inakimbia, isipokuwa ilipobainishwa vinginevyo:
+Hizi hudhani kuwa seva ya OmniRoute inaendesha, isipokuwa pale ilipoelezwa vinginevyo:
 
 ```bash
-omniroute status                       # Hali ya kina ya kukimbia
-omniroute logs                         # Pitia kumbukumbu za maombi (--json, --search, --follow)
-omniroute config show                  # Onyesha usanidi wa sasa
+omniroute status                       # Hali kamili ya wakati wa utekelezaji
+omniroute logs                         # Tiririsha kumbukumbu za maombi (--json, --search, --follow)
+omniroute config list                  # Onyesha zana za CLI zilizosanidiwa
 
-omniroute provider list                # Orodha ya watoa huduma wanaopatikana (alias ya providers list)
-omniroute provider add                 # Register OmniRoute kama mtoa huduma kwenye chombo
-omniroute keys add | list | remove     # Simamia funguo za API
-omniroute models [provider]            # Orodha ya mifano (--json, --search)
+omniroute provider list                # Orodhesha watoa huduma wanaopatikana (jina mbadala la providers list)
+omniroute provider add                 # Sajili OmniRoute kama mtoa huduma kwenye zana
+omniroute keys add | list | remove     # Dhibiti funguo za API
+omniroute models [provider]            # Orodhesha modeli (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Picha ya usanidi + DB
-omniroute restore                      # Rejesha kutoka picha ya awali
+omniroute backup                       # Hifadhi nakala ya usanidi + DB
+omniroute restore                      # Rejesha kutoka kwenye nakala ya awali
 
-omniroute health                       # Afya ya kina (vikwazo, cache, kumbukumbu)
-omniroute quota                        # Matumizi ya quota ya mtoa huduma
-omniroute cache                        # Hali ya cache
-omniroute cache clear                  # Futa cache za semantiki + saini
+omniroute health                       # Hali ya kina (vikatiza, akiba, kumbukumbu)
+omniroute quota                        # Matumizi ya mgao wa mtoa huduma
+omniroute cache                        # Hali ya akiba
+omniroute cache clear                  # Futa akiba za kisemantiki + saini
 
-omniroute mcp status | restart         # Hali ya seva ya MCP / re-start
+omniroute mcp status | restart         # Hali ya seva ya MCP / iwashwe upya
 omniroute a2a status | card            # Hali ya seva ya A2A / kadi ya wakala
 
-omniroute tunnel list | create | stop  # Simamia tunnels (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Kagua / weka mabadiliko ya mazingira (ya muda)
+omniroute tunnel list | create | stop  # Dhibiti vichuguu (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Kagua / weka vigezo vya mazingira (kwa muda)
 
-omniroute test                         # Jaribio la muunganisho wa mtoa huduma
+omniroute test                         # Jaribio la msingi la muunganisho wa mtoa huduma
 omniroute update                       # Angalia masasisho
-omniroute completion                   # Tengeneza ukamilifu wa shell
+omniroute completion                   # Tengeneza ukamilishaji wa shell
 ```
 
-### Bendera za Kawaida
+### Vigezo vya kawaida
 
-| Bendera             | Maelezo                                                                    |
-| ------------------- | -------------------------------------------------------------------------- |
-| `--no-open`         | Usifungue kivinjari kiotomatiki wakati wa kuanza                           |
-| `--port <n>`        | Badilisha bandari ya API (bandia 20128)                                    |
-| `--mcp`             | Kimbia kama seva ya MCP kupitia stdio (kwa IDEs)                           |
-| `--non-interactive` | Hali ya CI (hakuna maulizo; inasoma kutoka env/bendera)                    |
-| `--json`            | Matokeo ya JSON yanayoweza kusomwa na mashine (daktari, watoa huduma, nk.) |
-| `--help`, `-h`      | Onyesha msaada maalum wa amri                                              |
-| `--version`, `-v`   | Chapisha toleo lililowekwa                                                 |
+| Kigezo              | Maelezo                                                         |
+| ------------------- | --------------------------------------------------------------- |
+| `--no-open`         | Usifungue kivinjari kiotomatiki wakati wa kuanza                |
+| `--port <n>`        | Batilisha porti ya API (chaguomsingi 20128)                     |
+| `--mcp`             | Endesha kama seva ya MCP kupitia stdio (kwa IDE)                |
+| `--non-interactive` | Hali ya CI (hakuna vidokezo; husoma kutoka env/vigezo)          |
+| `--json`            | Toleo la JSON linalosomeka na mashine (doctor, providers, n.k.) |
+| `--help`, `-h`      | Onyesha usaidizi mahususi wa amri                               |
+| `--version`, `-v`   | Chapisha toleo lililosakinishwa                                 |
+
+---
 
 ## Mipangilio ya API Inayopatikana
 

@@ -202,11 +202,7 @@ export function createSSEDataLineNormalizer(): SSEDataLineNormalizer {
         const normalizedLine = line.replace(CR_STRIP_RE, "");
         const trimmed = normalizedLine.trim();
 
-        if (
-          trimmed &&
-          SSE_FIELD_RE.test(trimmed) &&
-          hasSelfDescribingPendingDataPayload()
-        ) {
+        if (trimmed && SSE_FIELD_RE.test(trimmed) && hasSelfDescribingPendingDataPayload()) {
           flush(output);
         }
 
@@ -220,7 +216,9 @@ export function createSSEDataLineNormalizer(): SSEDataLineNormalizer {
   };
 }
 
-export function createSSEEventPrefixBuffer(options?: { forwardEvent?: boolean }): SSEEventPrefixBuffer {
+export function createSSEEventPrefixBuffer(options?: {
+  forwardEvent?: boolean;
+}): SSEEventPrefixBuffer {
   let lines: string[] = [];
   let emitted = false;
   // The `event:` line is only part of the SSE framing for protocols that define
@@ -277,12 +275,7 @@ function hasOpenAICompatibleStreamValue(parsed: Record<string, unknown>): boolea
     const delta = isRecord(choice.delta) ? choice.delta : null;
     if (!delta) return false;
     if (typeof delta.content === "string" && delta.content.length > 0) return true;
-    if (typeof delta.reasoning_content === "string" && delta.reasoning_content.length > 0) {
-      return true;
-    }
-    if (typeof delta.reasoning_text === "string" && delta.reasoning_text.length > 0) {
-      return true;
-    }
+    if (hasAnyReasoningSignal(delta)) return true;
     return Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0;
   });
 }

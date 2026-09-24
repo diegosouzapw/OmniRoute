@@ -41,7 +41,7 @@ test("PKCE callback-server providers now warn (not window.open) on a LAN-IP orig
   // that surfaces the loopback mismatch instead of falling through silently.
   // The follow-up swapped the flat warning string for the structured hint that feeds
   // the dedicated panel (buildPkceLoopbackMismatchHint) — the guard itself is unchanged.
-  const arm = modal.match(/else if \(isLocalhost\) \{[\s\S]{0,300}?\n {10}\}/);
+  const arm = modal.match(/else if \(isLocalhost(?: && [^)]+)?\) \{[\s\S]{0,300}?\n {10}\}/);
   assert.ok(arm, "expected an `else if (isLocalhost)` arm inside the callback-server branch");
   assert.match(
     arm![0],
@@ -54,6 +54,29 @@ test("PKCE callback-server providers now warn (not window.open) on a LAN-IP orig
     arm![0],
     /\breturn;/,
     "the arm must stop the flow, not merely annotate it before falling through"
+  );
+});
+
+test("loopback warning offers the existing manual callback flow", () => {
+  const panels = readFileSync(
+    resolve(here, "../../src/shared/components/OAuthModalPanels.tsx"),
+    "utf8"
+  );
+
+  assert.match(
+    modal,
+    /isLocalhost && !opts\?\.manualLoopback/,
+    "the warning guard must be bypassable only through an explicit manual-flow action"
+  );
+  assert.match(
+    modal,
+    /onManualInput=\{\(\) => void startOAuthFlow\(\{ manualLoopback: true \}\)\}/,
+    "the mismatch panel action must initialize the existing authorization-code flow"
+  );
+  assert.match(
+    panels,
+    /<Button onClick=\{onManualInput\} fullWidth>/,
+    "the mismatch panel must render a visible manual-entry action next to Cancel"
   );
 });
 

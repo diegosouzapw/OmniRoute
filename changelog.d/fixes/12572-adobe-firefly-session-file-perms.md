@@ -1,1 +1,0 @@
-- fix(open-sse): write Adobe Firefly session tokens and cookie jars with 0700/0600 permissions instead of the process umask (#12572)

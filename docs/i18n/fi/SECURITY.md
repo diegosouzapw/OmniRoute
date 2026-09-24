@@ -1,159 +1,184 @@
 # Security Policy (Suomi)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
-## Reporting Vulnerabilities
+## Haavoittuvuuksien ilmoittaminen
 
-If you discover a security vulnerability in OmniRoute, please report it responsibly:
+Jos löydät OmniRoutesta tietoturvahaavoittuvuuden, ilmoita siitä vastuullisesti:
 
-1. **DO NOT** open a public GitHub issue
-2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Include: description, reproduction steps, and potential impact
+1. **ÄLÄ** avaa julkista GitHub-ongelmaa
+2. Käytä [GitHub Security Advisories -toimintoa](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
+3. Sisällytä: kuvaus, toistamisohjeet ja mahdolliset vaikutukset
 
-## Response Timeline
+## Vastausaikataulu
 
-| Stage               | Target                      |
-| ------------------- | --------------------------- |
-| Acknowledgment      | 48 hours                    |
-| Triage & Assessment | 5 business days             |
-| Patch Release       | 14 business days (critical) |
+| Vaihe                   | Tavoite                    |
+| ----------------------- | -------------------------- |
+| Vastaanottokuittaus     | 48 tuntia                  |
+| Luokittelu ja arviointi | 5 arkipäivää               |
+| Korjausjulkaisu         | 14 arkipäivää (kriittinen) |
 
-## Supported Versions
+## Tuetut versiot
 
-| Version | Support Status |
-| ------- | -------------- |
-| 3.6.x   | ✅ Active      |
-| 3.5.x   | ✅ Security    |
-| < 3.5.0 | ❌ Unsupported |
+| Versio  | Tuen tila         |
+| ------- | ----------------- |
+| 3.8.x   | ✅ Aktiivinen     |
+| 3.7.x   | ✅ Tietoturvatuki |
+| < 3.7.0 | ❌ Ei tuettu      |
 
 ---
 
-## Security Architecture
+## Tietoturva-arkkitehtuuri
 
-OmniRoute implements a multi-layered security model:
+OmniRoute käyttää monikerroksista tietoturvamallia:
 
 ```
-Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+Pyyntö → CORS → Valtuutusputki (luokittele → käytännöt → toimeenpane)
+       → Suojaukset (PII-peittäjä, kehoteinjektio, konenäköväylä)
+       → Nopeusrajoitin → Katkaisija → Jäähdytysjakso → Mallin lukitus → Palveluntarjoaja
 ```
 
-### 🔐 Authentication & Authorization
+### 🔐 Todennus ja valtuutus
 
-| Feature              | Implementation                                             |
-| -------------------- | ---------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
-| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 32 granular scopes for MCP tool access control             |
+| Ominaisuus                         | Toteutus                                                                                                                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Hallintapaneelin kirjautuminen** | Salasanapohjainen todennus JWT-tunnisteilla (HttpOnly-evästeet)                                                                                                                |
+| **API-avaintodennus**              | HMAC-allekirjoitetut avaimet CRC-validoinnilla                                                                                                                                 |
+| **OAuth 2.0 + PKCE**               | Palveluntarjoajakohtainen selaimen tai laitteen OAuth käyttää PKCE:tä, kun sitä tuetaan; vain tuontiin tarkoitetut Devin-tunnistetiedot käsitellään erikseen.                  |
+| **Tunnisteen uusiminen**           | OAuth-tunnisteiden automaattinen uusiminen ennen vanhenemista                                                                                                                  |
+| **Suojatut evästeet**              | `AUTH_COOKIE_SECURE=true` HTTPS-ympäristöissä                                                                                                                                  |
+| **Valtuutusputki**                 | Reittien luokittelu (PUBLIC / CLIENT_API / MANAGEMENT) — katso `docs/architecture/AUTHZ_GUIDE.md`                                                                              |
+| **Reittisuojaustasot**             | Kolmitasoinen malli hallintareiteille (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — katso `docs/security/ROUTE_GUARD_TIERS.md`                                                |
+| **Hallintalaajuuden MCP**          | `/api/mcp/*`-etäkäyttö rajataan API-avaimiin, joilla on `manage`-laajuus; `/api/cli-tools/runtime/*` on edelleen rajattu tiukasti loopback-yhteyksiin. Katso ROUTE_GUARD_TIERS |
+| **MCP-laajuudet**                  | 32 hienojakoista laajuutta (read:health, write:combos, execute:completions jne.) — katso `docs/frameworks/MCP-SERVER.md`                                                       |
 
-### 🛡️ Encryption at Rest
+### 🛡️ Levossa olevan tiedon salaus
 
-All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
+Kaikki SQLiteen tallennetut arkaluonteiset tiedot salataan käyttäen **AES-256-GCM**-salausta ja scrypt-avaimenjohdosta:
 
-- API keys, access tokens, refresh tokens, and ID tokens
-- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
+- API-avaimet, käyttöoikeustunnisteet, uusimistunnisteet ja ID-tunnisteet
+- Versioitu muoto: `enc:v1:<iv>:<ciphertext>:<authTag>`
+- Läpivientitila (selväkielinen), kun muuttujaa `STORAGE_ENCRYPTION_KEY` ei ole asetettu
 
 ```bash
-# Generate encryption key:
+# Luo salausavain:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🧠 Prompt Injection Guard
+### 🛡️ Suojauskehys
 
-Middleware that detects and blocks prompt injection attacks in LLM requests:
+OmniRoute sisältää lennossa uudelleenladattavan **suojausrekisterin** (`src/lib/guardrails/`), jossa on kolme prioriteettijärjestykseen asetettua sisäänrakennettua suojausta:
 
-| Pattern Type        | Severity | Example                                        |
-| ------------------- | -------- | ---------------------------------------------- |
-| System Override     | High     | "ignore all previous instructions"             |
-| Role Hijack         | High     | "you are now DAN, you can do anything"         |
-| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
-| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
-| Instruction Leak    | Medium   | "show me your system prompt"                   |
+| Suojaus            | Prioriteetti | Tarkoitus                                                                                                        |
+| ------------------ | ------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `vision-bridge`    | 5            | Yhdistää konenäköä tukemattomat mallit kuvat huomioiviin kuvauksiin; SSRF-suojaus kuvien URL-osoitteille         |
+| `pii-masker`       | 10           | PII-tietojen peittäminen ennen kutsua ja sen jälkeen (sähköpostit, puhelinnumerot, CPF, CNPJ, luottokortit, SSN) |
+| `prompt-injection` | 20           | Havaitsee ohitus-, roolikaappaus-, jailbreak- ja vuotokuviot                                                     |
 
-Configure via dashboard (Settings → Security) or `.env`:
+Mukautetut suojaukset rekisteröidään komennolla `registerGuardrail(new MyGuardrail())`. Malli on häiriötilanteessa salliva (poikkeukset eivät koskaan estä liikennettä). Suojauksista voi kieltäytyä pyyntökohtaisesti `x-omniroute-disabled-guardrails`-otsakkeen avulla. → Katso [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
+
+### 🧠 Kehoteinjektiosuojaus
+
+Parhaan yrityksen heuristinen väliohjelmisto, joka havaitsee kehoteinjektiomalleja LLM-pyynnöissä.
+**Ei ole täydellinen kehoteinjektiopalomuuri** — voi tuottaa vääriä positiivisia tuloksia (harmittomat
+persoona- tai roolipelikehotteet) ja vääriä negatiivisia tuloksia (leetspeak, välilyönnit, muut kuin englanninkieliset mallit).
+
+| Mallityyppi              | Vakavuus  | Esimerkki                                        |
+| ------------------------ | --------- | ------------------------------------------------ |
+| Järjestelmän ohitus      | Korkea    | "ohita kaikki aiemmat ohjeet"                    |
+| Roolin kaappaus          | Keskitaso | "olet nyt DAN, voit tehdä mitä tahansa"          |
+| Erotininjektio           | Korkea    | Koodatut erottimet kontekstirajojen rikkomiseksi |
+| DAN/Jailbreak            | Keskitaso | Tunnetut jailbreak-kehotemallit                  |
+| Ohjeiden vuotaminen      | Korkea    | "näytä minulle järjestelmäkehotteesi"            |
+| Koodauksella kiertäminen | Keskitaso | base64/rot13/hex-purku + ohjeiden avainsanat     |
+
+Vain **korkean** vakavuuden havainnot estetään `block`-tilassa. Keskitason vakavuuden
+ryhmät kirjataan lokiin, mutta `sanitizeRequest` ei koskaan estä niitä.
+
+Määritä hallintapaneelin kautta (Asetukset → Tietoturva) tai `.env`-tiedostossa:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
+INPUT_SANITIZER_MODE=block    # warn | block (injektiokäytäntö; vanha "redact" ei poista injektiotekstiä)
+INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (oletus) | medium | low — tämän vakavuustason ja sitä vakavammat havainnot estetään block-tilassa
 ```
 
-### 🔒 PII Redaction
+### 🔒 PII-tietojen peittäminen
 
-Automatic detection and optional redaction of personally identifiable information:
+Henkilöön yhdistettävien tietojen automaattinen tunnistus ja valinnainen peittäminen:
 
-| PII Type      | Pattern               | Replacement        |
-| ------------- | --------------------- | ------------------ |
-| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
-| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
-| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
-| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
-| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
-| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
+| Henkilötietotyyppi | Malli                 | Korvaava arvo      |
+| ------------------ | --------------------- | ------------------ |
+| Sähköposti         | `user@domain.com`     | `[EMAIL_REDACTED]` |
+| CPF (Brasilia)     | `123.456.789-00`      | `[CPF_REDACTED]`   |
+| CNPJ (Brasilia)    | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
+| Luottokortti       | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
+| Puhelin            | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
+| SSN (Yhdysvallat)  | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
-PII_REDACTION_ENABLED=true
+PII_REDACTION_ENABLED=true   # pyydä henkilötietojen uudelleenkirjoitusta; riippumaton INPUT_SANITIZER_MODE-asetuksesta
+PII_RESPONSE_SANITIZATION=true  # valinnainen: peitä henkilötiedot asiakkaille palautettavista palveluntarjoajan vastauksista
 ```
 
-### 🌐 Network Security
+### 🌐 Verkkoturvallisuus
 
-| Feature                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
-| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
-| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
-| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
-| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
+| Ominaisuus            | Kuvaus                                                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **CORS**              | Eksplisiittinen sallittujen eri alkuperien luettelo (`CORS_ALLOWED_ORIGINS`; vanha `CORS_ORIGIN`)              |
+| **IP-suodatus**       | Sallittujen ja estettyjen IP-osoitealueiden luettelot hallintapaneelissa                                       |
+| **Nopeusrajoitus**    | Palveluntarjoajakohtaiset nopeusrajat automaattisella viiveellä                                                |
+| **Ruuhkapiikin esto** | Mutex + yhteyskohtainen lukitus estävät ketjuuntuvat 502-virheet                                               |
+| **TLS-sormenjälki**   | Selaimen kaltaisen TLS-sormenjäljen jäljittely bottien tunnistamisen vähentämiseksi                            |
+| **CLI-sormenjälki**   | Palveluntarjoajakohtainen otsakkeiden ja rungon järjestys alkuperäisten CLI-allekirjoitusten jäljittelemiseksi |
 
-### 🔌 Resilience & Availability
+### 🔌 Häiriönsietokyky ja saatavuus
 
-| Feature                 | Description                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
-| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
-| **Exponential Backoff** | Automatic retry with increasing delays                             |
-| **Health Dashboard**    | Real-time provider health monitoring                               |
+| Ominaisuus                  | Kuvaus                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Katkaisija**              | Kolmitilainen (Suljettu → Avoin → Puoliavoin), palveluntarjoajakohtainen ja SQLiteen tallennettu |
+| **Pyyntöjen idempotenssi**  | Viiden sekunnin duplikaattien poistamisen aikaikkuna päällekkäisille pyynnöille                  |
+| **Eksponentiaalinen viive** | Automaattinen uudelleenyritys kasvavilla viiveillä                                               |
+| **Kunnonvalvontapaneeli**   | Palveluntarjoajien kunnon reaaliaikainen valvonta                                                |
 
-### 📋 Compliance
+### 📋 Vaatimustenmukaisuus
 
-| Feature            | Description                                                 |
-| ------------------ | ----------------------------------------------------------- |
-| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
-| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
-| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
-| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
-| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
+| Ominaisuus                  | Kuvaus                                                                           |
+| --------------------------- | -------------------------------------------------------------------------------- |
+| **Lokien säilytys**         | Automaattinen puhdistus `CALL_LOG_RETENTION_DAYS`-ajan jälkeen                   |
+| **Lokittamatta jättäminen** | API-avainkohtainen `noLog`-asetus poistaa pyyntöjen lokituksen käytöstä          |
+| **Tarkastusloki**           | Hallinnollisia toimia seurataan `audit_log`-taulussa                             |
+| **MCP-tarkastus**           | SQLite-pohjainen tarkastuslokitus kaikille MCP-työkalukutsuille                  |
+| **Zod-validointi**          | Kaikki API-syötteet validoidaan Zod v4 -skeemoilla moduulin latauksen yhteydessä |
 
 ---
 
-## Required Environment Variables
+## Pakolliset ympäristömuuttujat
 
-All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
+Kaikki salaisuudet on asetettava ennen palvelimen käynnistämistä. Palvelin **keskeyttää käynnistyksen välittömästi**, jos niitä puuttuu tai ne ovat heikkoja.
 
 ```bash
-# REQUIRED — server will not start without these:
-JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
+# PAKOLLINEN — palvelin ei käynnisty ilman näitä:
+JWT_SECRET=$(openssl rand -base64 48)     # vähintään 32 merkkiä
+API_KEY_SECRET=$(openssl rand -hex 32)    # vähintään 16 merkkiä
 
-# RECOMMENDED — enables encryption at rest:
+# SUOSITELTU — mahdollistaa levossa olevien tietojen salauksen:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
+Palvelin hylkää aktiivisesti tunnetusti heikot arvot, kuten `changeme`, `secret` tai `password`.
 
 ---
 
-## Docker Security
+## Docker-tietoturva
 
-- Use non-root user in production
-- Mount secrets as read-only volumes
-- Never copy `.env` files into Docker images
-- Use `.dockerignore` to exclude sensitive files
-- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
+- Käytä tuotannossa muuta kuin root-käyttäjää
+- Liitä salaisuudet vain luku -tilassa olevina taltioina
+- Älä koskaan kopioi `.env`-tiedostoja Docker-levykuviin
+- Käytä `.dockerignore`-tiedostoa arkaluonteisten tiedostojen poissulkemiseen
+- Aseta `AUTH_COOKIE_SECURE=true`, kun käytössä on HTTPS
 
 ```bash
 docker run -d \
@@ -170,10 +195,66 @@ docker run -d \
 
 ---
 
-## Dependencies
+## Riippuvuudet
 
-- Run `npm audit` regularly
-- Keep dependencies updated
-- The project uses `husky` + `lint-staged` for pre-commit checks
-- CI pipeline runs ESLint security rules on every push
-- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- Suorita `npm audit` säännöllisesti (`npm run audit:deps` kattaa pääsovelluksen ja Electronin)
+- Pidä riippuvuudet ajan tasalla
+- Projekti käyttää `husky`- ja `lint-staged`-paketteja commitia edeltäviin tarkistuksiin (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI-putki suorittaa ESLintin tietoturvasäännöt jokaisen push-toiminnon yhteydessä (`no-eval`, `no-implied-eval`, `no-new-func` = virhe)
+- Palveluntarjoajien vakiot validoidaan moduulin lataamisen yhteydessä Zodilla (`src/shared/validation/schemas.ts`)
+- Käytössä ovat oletusarvoisesti turvalliset kirjastot: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (ei SQLi-riskiä parametrisoitujen kyselyjen ansiosta), `bcryptjs` (salasanojen hajautus)
+
+## Tiukat tietoturvasäännöt
+
+Työkalut ja katselmoijat valvovat näiden sääntöjen noudattamista:
+
+1. **Älä koskaan commitoi salaisuuksia** — `.env` on ohitettu gitissä; `.env.example` on mallipohja (ei literaaleja, vain kommentteja — katso PUBLIC_CREDS.md alta)
+2. **Älä koskaan käytä `eval()`-funktiota, `new Function()`-konstruktoria tai epäsuoraa eval-suoritusta** — ESLint valvoo tätä
+3. **Älä koskaan ohita Husky-koukkuja** (`--no-verify`, `--no-gpg-sign`) ilman operaattorin nimenomaista hyväksyntää
+4. **Älä koskaan kirjoita raakaa SQL:ää reitteihin** — käytä aina `src/lib/db/`-hakemistoa (parametrisoitu)
+5. **Validoi syötteet aina Zodilla** — `src/shared/validation/schemas.ts`
+6. **Puhdista ylävirran otsakkeet aina** — estolista tiedostossa `src/shared/constants/upstreamHeaders.ts`
+7. **Salaa tunnistetiedot levossa** — AES-256-GCM tiedoston `src/lib/db/encryption.ts` kautta
+8. **Julkiset ylävirran OAuth-tunnisteet `resolvePublicCred()`-funktion kautta** — älä koskaan upota `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com`-literaaleja lähdekoodiin. Katso [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Virhevastaukset `buildErrorBody()`- / `sanitizeErrorMessage()`-funktioiden kautta** — älä koskaan sisällytä raakaa `err.stack`- / `err.message`-arvoa HTTP- / SSE- / suoritin- / MCP-vastausten runkoihin. Katso [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **`exec()`- / `spawn()`-funktioiden suorituksenaikaiset arvot `env`-valinnan kautta** — älä koskaan lisää ulkoisia polkuja tai epäluotettuja arvoja merkkijonointerpoloinnilla komentotulkin kautta suoritettaviin komentosarjoihin. Viite: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Suosi oletusarvoisesti turvallisia kirjastoja** — katso [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Valitse ne ennen oman ratkaisun toteuttamista.
+
+## Toimitusketjuskannerin havainnot (Socket.dev / Snyk / vastaavat)
+
+> **Laajuutta koskeva huomautus:** tietovaraston juuressa oleva `socket.yml` määrittää vain Socket.dev-palvelun `projectIgnorePaths`-asetukset julkaistun npm-artefaktin rekisteripuolen julkaisun jälkeistä tarkistusta varten — sitä ei käytetä pakollisena CI-/PR-yhdistämisporttina. Mikään `.github/workflows`-työnkulku, `package.json`-skripti tai `Makefile`-kohde ei käynnistä Socket.dev-palvelua.
+
+Julkaistu `omniroute`-npm-artefakti sisältää Next.js:n `output: "standalone"` -koontiversion, mikä tarkoittaa, että jokainen reitinkäsittelijä — mukaan lukien dokumentoidut korotettuja käyttöoikeuksia edellyttävät ominaisuudet (MITM, Zed-tuonti, Cloud Sync, upotettu palveluvalvoja) — päätyy `.next/server/*.js`-tiedostojen minifioituihin osiin. Heuristiset toimitusketjuskannerit vertaavat näitä osia usein hahmontunnistuksella haittaohjelmien tunnisteisiin.
+
+Käyttämämme skannerimääritys sijaitsee tietovaraston juuressa tiedostossa [`socket.yml`](socket.yml) (Socket.dev GitHub App -muoto v2 — katso
+<https://docs.socket.dev/docs/socket-yml>). Se sulkee erikseen pois
+toimitukseen kuulumattomat hakemistot (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` jne.), jotta skanneri raportoi vain koodipoluista, jotka
+todella päätyvät julkaistuille käyttäjille — itse tarkistuksen suorittaa tämän tiedoston lukeva Socket
+GitHub App, ei tämän tietovaraston työnkulku.
+
+Ylläpidämme jokaisesta havaintoluokasta havaintokohtaista ylläpitäjän vahvistusta:
+
+- **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
+  havaintokohtainen kartoitus: lähdetiedosto ↔ merkitty osa ↔ toiminta ↔ versiossa v3.8.6
+  käytetty lievennys.
+- Lähdekoodin `SECURITY-AUDITOR-NOTE:`-lohkot kunkin merkityn funktion kohdalla
+  viittaavat samaan dokumenttiin.
+
+Käyttäjät, joiden käsittelyputkessa hälytystä ei voida lieventää, voivat koota sovelluksen komennolla
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Tämä korvaa neljä
+arkaluonteista moduulia tynkämoduuleilla, jotka palauttavat suorituksen aikana HTTP 503 -vastauksen `feature-disabled`, joten korotettuja käyttöoikeuksia edellyttävät koodipolut puuttuvat fyysisesti paketista.
+Julkaisuohje on tiedostossa [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+
+## Viitteet
+
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — valtuutusputki
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — suojakaidekehys
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — tarkastusloki ja säilytys
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **pakollinen** malli julkisille ylävirran tunnistetiedoille
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **pakollinen** malli virhevastauksille
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — ylläpitäjän vakuutus toimitusketjuskannerien havainnoista
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — katkaisija + jäähdytysjakso + lukitus
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS-sormenjälkien tunnistus (oikeudellinen/eettinen huomautus)
+- [`CLAUDE.md`](CLAUDE.md) — ehdottomat säännöt tekoälyagenteille
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — kuratoitu kokoelma oletusarvoisesti turvallisia kirjastoja

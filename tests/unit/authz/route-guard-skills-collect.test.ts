@@ -21,12 +21,16 @@ test("isLocalOnlyPath: /api/skills/collect/ prefix is local-only (Hard Rules #15
 });
 
 test("isLocalOnlyPath: the rest of /api/skills/ stays remote-reachable (no over-broadening)", () => {
-  // Only the spawn-capable collect/* subtree is loopback-locked. The rest of the
-  // skills surface (registry install, marketplace, skillssh) already gates on
+  // Only the spawn-capable subtrees are loopback-locked. The rest of the skills
+  // surface (registry list/delete, marketplace, skillssh) gates on
   // requireManagementAuth() and must remain reachable remotely.
+  // (/api/skills/install used to be the negative control here, but it can alias
+  // the sandboxed execute_command built-in and became LOCAL_ONLY under
+  // GHSA-jx89-f37j-pq89 — see tests/unit/route-guard-skills-execute-local-only.test.ts.)
   assert.equal(isLocalOnlyPath("/api/skills"), false);
-  assert.equal(isLocalOnlyPath("/api/skills/install"), false);
+  assert.equal(isLocalOnlyPath("/api/skills/marketplace"), false);
   assert.equal(isLocalOnlyPath("/api/skills/marketplace/install"), false);
+  assert.equal(isLocalOnlyPath("/api/skills/skillssh/install"), false);
 });
 
 test("isLocalOnlyBypassableByManageScope: /api/skills/collect/ is NOT bypassable (defence in depth)", () => {

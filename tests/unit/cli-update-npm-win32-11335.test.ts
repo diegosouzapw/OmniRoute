@@ -78,3 +78,19 @@ test("#11335 the shell is only enabled where argv is literal (Hard Rule #13)", (
     assert.equal(/\$\{|\+\s*\w|\.\.\./.test(argv), false, `argv must stay literal: ${argv}`);
   }
 });
+
+test("CLI updater preserves the supported peer-dependency install mode", () => {
+  const src = fs.readFileSync(
+    new URL("../../bin/cli/commands/update.mjs", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(
+    src,
+    /\[DRY RUN\] Would run: npm install -g omniroute@latest --include=optional --legacy-peer-deps/
+  );
+  assert.match(
+    src,
+    /execSync\("npm install -g omniroute@latest --include=optional --legacy-peer-deps"/
+  );
+});

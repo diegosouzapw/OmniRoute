@@ -1,6 +1,6 @@
-# 安全策略 (中文 (简体))
+# Security Policy (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -212,21 +212,38 @@ docker run -d \
 10. **`exec()` / `spawn()` 的运行时值通过 `env` 选项传递** — 严禁将外部路径或不可信值通过字符串插值传入 Shell 脚本。参考：`src/mitm/cert/install.ts::updateNssDatabases`。
 11. **优先使用安全默认的库** — 参见 [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)（Helmet.js、DOMPurify、ssrf-req-filter、safe-regex、Google Tink）。在自行实现之前先查找这些现有方案。
 
-## 供应链扫描器检测项（Socket.dev / Snyk / 类似工具）
+## 供应链扫描器发现项（Socket.dev / Snyk / 类似工具）
 
-已发布的 `omniroute` npm 制品包含 Next.js `output: "standalone"` 构建输出，这意味着所有路由处理器 — 包括已记录的特权功能（MITM、Zed 导入、Cloud Sync、嵌入式服务监管）— 都会出现在 `.next/server/*.js` 压缩块中。启发式供应链扫描器经常将这些压缩块的模式匹配为恶意软件签名。
+> **范围说明：** 仓库根目录中的 `socket.yml` 仅用于配置 Socket.dev 对已发布 npm 构件执行的注册表侧发布后扫描中的 `projectIgnorePaths`，它并不是强制执行的 CI/PR 合并门禁。`.github/workflows` 中没有任何工作流、`package.json` 中没有任何脚本，并且没有任何 `Makefile` 目标会调用 Socket.dev。
 
-对于每个检测类别，我们维护了一份逐项的维护者声明：
+已发布的 `omniroute` npm 构件包含 Next.js `output: "standalone"`
+构建，这意味着每个路由处理程序——包括已有文档说明的特权
+功能（MITM、Zed 导入、Cloud Sync、嵌入式服务监管器）——最终都会
+进入 `.next/server/*.js` 的压缩代码块中。启发式供应链扫描器
+经常会通过模式匹配将这些代码块与恶意软件签名进行比对。
+
+我们使用的扫描器配置位于仓库根目录的 [`socket.yml`](socket.yml)
+（Socket.dev GitHub App 格式 v2——参见
+<https://docs.socket.dev/docs/socket-yml>）。它明确排除了
+未随构件发布的目录（`tests/`、`_tasks/`、`_references/`、`_ideia/`、
+`_mono_repo/`、`docs/` 等），因此扫描器仅报告实际会触达已发布版本
+用户的代码路径——扫描本身由读取该文件的 Socket GitHub App 驱动，
+而不是由此仓库中的工作流驱动。
+
+对于每一类发现项，我们都维护了逐项的维护者确认说明：
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  逐项映射表：源文件 ↔ 被标记的代码块 ↔ 行为 ↔ v3.8.6 中已应用的缓解措施。
-- 在源码中被标记的函数处，均包含 `SECURITY-AUDITOR-NOTE:` 注释块，指向同一文档。
+  逐项映射：源文件 ↔ 被标记的代码块 ↔ 行为 ↔
+  v3.8.6 中应用的缓解措施。
+- 每个被标记函数处的源码内 `SECURITY-AUDITOR-NOTE:` 块都会
+  指向同一文档。
 
-对于无法放宽警报的管线，可使用以下方式构建：
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`。此方式将四个
-敏感模块替换为桩代码，运行时返回 HTTP 503 `feature-disabled`，
-从而使特权代码路径从构建产物中物理消失。
-参见 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) 了解发布方法。
+对于流水线无法放宽该警报的用户，请使用
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` 进行构建。这会将四个
+敏感模块替换为存根，这些存根在运行时返回 HTTP 503
+`feature-disabled`，从而使特权代码路径从构建产物中物理移除。
+有关发布流程，请参阅
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)。
 
 ## 参考资料
 

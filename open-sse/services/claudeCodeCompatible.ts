@@ -9,6 +9,7 @@ import {
 } from "../config/claudeCodeCompatibleIdentity.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
+import { normalizeClaudeToolInputSchema } from "../translator/helpers/schemaCoercion.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { resolveClaudeCodeCompatibleAnthropicBeta } from "./claudeCodeCompatibleBeta.ts";
 import { remapToolNamesInRequest } from "./claudeCodeToolRemapper.ts";
@@ -403,6 +404,7 @@ export { computeFingerprint } from "./claudeCodeFingerprint.ts";
 export { obfuscateSensitiveWords, setSensitiveWords } from "./claudeCodeObfuscation.ts";
 export {
   enforceThinkingTemperature,
+  finalizeClaudeBodyConstraints,
   disableThinkingIfToolChoiceForced,
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
@@ -756,10 +758,13 @@ function convertClaudeCodeCompatibleTool(tool: unknown) {
 
   const rawSchema = readRecord(toolData.parameters) ||
     readRecord(toolData.input_schema) || { type: "object", properties: {}, required: [] };
-  const inputSchema =
+  const withProperties =
     rawSchema.type === "object" && !readRecord(rawSchema.properties)
       ? { ...rawSchema, properties: {} }
       : rawSchema;
+  // Flatten a root-level anyOf/oneOf/allOf: Anthropic refuses it outright with
+  // "input_schema does not support oneOf, allOf, or anyOf at the top level" (#13552).
+  const inputSchema = normalizeClaudeToolInputSchema(withProperties);
 
   const converted: Record<string, unknown> = {
     name,

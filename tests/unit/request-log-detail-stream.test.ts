@@ -160,6 +160,54 @@ test("event stream hidden when debugEnabled is false", () => {
   );
 });
 
+// Regression: the raw/rendered toggle added alongside this PR's concatenated-JSON
+// recovery must default to the rendered (parsed JsonView tree) view, with the
+// raw byte-for-byte capture only shown on explicit opt-in -- not the reverse.
+test("Provider Event Stream defaults to the rendered JsonView tree, not the raw capture", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(RequestLoggerDetail, {
+      log: {
+        status: 200,
+        method: "POST",
+        path: "/v1/chat/completions",
+        timestamp: "2026-04-09T21:27:08.000Z",
+        duration: 2500,
+        provider: "gemini",
+        sourceFormat: "openai-chat",
+        model: "test-model",
+        tokens: { in: 1, out: 1 },
+      },
+      detail: {
+        pipelinePayloads: {
+          streamChunks: { provider: ['data: {"content": "hello"}\n\n'] },
+        },
+        responseBody: "{}",
+      },
+      loading: false,
+      debugEnabled: true,
+      onClose: () => {},
+      onCopy: async () => true,
+    })
+  );
+
+  // The raw-view toggle button is present, labeled from the real en.json copy...
+  assert.notEqual(
+    html.indexOf('aria-label="Raw view: off"'),
+    -1,
+    "raw-view toggle should render, defaulting to off"
+  );
+  // ...but with no localStorage available during SSR (and no prior opt-in), the
+  // panel itself must render the parsed JsonView tree, not a raw dump of the
+  // literal captured line -- JsonView renders the key/value as separate nodes,
+  // so the exact raw `data: {...}` line never appears as one contiguous
+  // substring unless the raw-view toggle is on.
+  assert.equal(
+    html.indexOf('data: {"content": "hello"}'),
+    -1,
+    "default view should be the rendered JsonView tree, not the raw captured line"
+  );
+});
+
 test("status discrepancy shows both OmniRoute and provider statuses", () => {
   const html = renderToStaticMarkup(
     React.createElement(RequestLoggerDetail, {

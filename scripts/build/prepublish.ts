@@ -344,6 +344,22 @@ if (existsSync(chatGptWebCodexMcpSrcFile)) {
 }
 
 // ── Step 8.6: Bundle call-log artifact worker ────────────────────────
+const healthWorkerDest = join(DIST_DIR, "src/lib/db/healthCheckWorker.js");
+mkdirSync(dirname(healthWorkerDest), { recursive: true });
+runBuildTool(
+  "esbuild",
+  "esbuild",
+  [
+    "src/lib/db/healthCheckWorker.ts",
+    "--bundle",
+    "--platform=node",
+    "--packages=external",
+    "--format=esm",
+    `--outfile=${healthWorkerDest}`,
+  ],
+  { cwd: ROOT, stdio: "inherit" }
+);
+
 const callLogWorkerSrc = join(ROOT, "src", "lib", "usage", "callLogArtifactWorker.ts");
 const callLogWorkerDest = join(DIST_DIR, "src", "lib", "usage", "callLogArtifactWorker.js");
 if (!existsSync(callLogWorkerSrc)) {

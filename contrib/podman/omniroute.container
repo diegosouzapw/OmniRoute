@@ -28,14 +28,23 @@ Environment=DASHBOARD_PORT=20128
 Environment=API_PORT=20129
 Environment=API_HOST=0.0.0.0
 Environment=REDIS_URL=redis://redis:6379
-Environment=JWT_SECRET=change-me-to-a-random-base64-string
-Environment=API_KEY_SECRET=change-me-to-a-random-base64-string
-Environment=INITIAL_PASSWORD=change-me-to-a-random-hex-string
 Environment=NODE_ENV=production
 Environment=REQUIRE_API_KEY=true
 
-# Load additional secrets (API keys, OAuth creds) from the project .env:
+# JWT_SECRET, API_KEY_SECRET and INITIAL_PASSWORD are deliberately NOT set here.
+# This unit used to ship copy-pasteable "replace-me" placeholder literals — an
+# operator who forgot to replace them ran production with a public, guessable
+# secret and dashboard password (#13679). Generate real values and load them from
+# your project .env before the FIRST start — see "Generate secrets before first
+# start" in contrib/podman/README.md — by uncommenting and pointing this at your
+# project .env:
 # EnvironmentFile=%h/code/docker/OmniRoute/.env
+#
+# If left unset: JWT_SECRET and API_KEY_SECRET are auto-generated and persisted
+# on first boot, and the dashboard requires setup from localhost before it
+# accepts any password (see managementPassword.ts / apiAuth.ts) — safer than a
+# known-literal default either way, but a real INITIAL_PASSWORD is still
+# recommended for non-interactive first boots.
 
 HealthCmd=node /app/healthcheck.mjs
 HealthInterval=30s

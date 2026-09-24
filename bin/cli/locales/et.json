@@ -30,7 +30,7 @@
     "opencode": "Installi ja seadista OpenCode'i jaoks kaasas olev @omniroute/opencode-plugin"
   },
   "doctor": {
-    "title": "OmniRoute Doctor",
+    "title": "OmniRoute'i diagnostika",
     "dbOk": "Andmebaas: korras ({path})",
     "dbMissing": "Andmebaas: pole lähtestatud — käivita `omniroute setup`",
     "portOk": "Port {port}: saadaval",
@@ -256,6 +256,7 @@
     "max_restarts": "Maksimaalne krahhijärgsete taaskäivituste arv 30 sekundi jooksul enne alla andmist (vaikimisi: 2)",
     "tray": "Käivita süsteemisalves (ainult töölaual, valikuline)",
     "no_tray": "Keela süsteemisalve ikoon",
+    "ready_timeout": "Valmisolekukontrolli ajalõpp millisekundites (ka OMNIROUTE_READY_TIMEOUT_MS, vaikimisi 60000)",
     "tls_cert": "TLS-sertifikaadi (PEM) tee HTTPS-i teenindamiseks (ka OMNIROUTE_TLS_CERT)",
     "tls_key": "TLS privaatvõtme (PEM) tee HTTPS-i teenindamiseks (ka OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP server töötab ({transport})",
     "stopped": "MCP server peatatud.",
     "restarted": "MCP server taaskäivitatud.",
+    "stoppedHint": "Selle sisselülitamiseks käivitage `omniroute mcp enable`.",
+    "enabled": "MCP-server on lubatud.",
+    "disabled": "MCP-server on keelatud.",
+    "enable": {
+      "description": "Luba MCP-server",
+      "transport": "Kasutatav transport: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Keela MCP-server"
+    },
     "call": {
       "description": "Käivita MCP tööriist otse",
       "args": "JSON argumentide objekt (otseselt sisestatud)",

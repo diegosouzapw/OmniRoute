@@ -1,132 +1,135 @@
 # Contributor Covenant Code of Conduct (Slovenčina)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇦🇿 [az](../az/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇬🇷 [el](../el/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇪🇪 [et](../et/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇪 [ga](../ga/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇷 [hr](../hr/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇱🇹 [lt](../lt/CODE_OF_CONDUCT.md) · 🇱🇻 [lv](../lv/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇲🇹 [mt](../mt/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇸🇮 [sl](../sl/CODE_OF_CONDUCT.md) · 🇷🇸 [sr](../sr/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md) · 🇹🇼 [zh-TW](../zh-TW/CODE_OF_CONDUCT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇪🇹 [am](../am/CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇦🇿 [az](../az/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇧🇦 [bs](../bs/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇬🇷 [el](../el/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇪🇪 [et](../et/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇪 [ga](../ga/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇳🇬 [ha](../ha/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇷 [hr](../hr/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇦🇲 [hy](../hy/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇳🇬 [ig](../ig/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇬🇪 [ka](../ka/CODE_OF_CONDUCT.md) · 🇰🇭 [km](../km/CODE_OF_CONDUCT.md) · 🇮🇳 [kn](../kn/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇱🇹 [lt](../lt/CODE_OF_CONDUCT.md) · 🇱🇻 [lv](../lv/CODE_OF_CONDUCT.md) · 🇮🇳 [ml](../ml/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇲🇹 [mt](../mt/CODE_OF_CONDUCT.md) · 🇲🇲 [my](../my/CODE_OF_CONDUCT.md) · 🇳🇵 [ne](../ne/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇮🇳 [or](../or/CODE_OF_CONDUCT.md) · 🇮🇳 [pa](../pa/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇱🇰 [si](../si/CODE_OF_CONDUCT.md) · 🇸🇮 [sl](../sl/CODE_OF_CONDUCT.md) · 🇷🇸 [sr](../sr/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇺🇿 [uz](../uz/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇳🇬 [yo](../yo/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md) · 🇹🇼 [zh-TW](../zh-TW/CODE_OF_CONDUCT.md)
 
 ---
 
-## Our Pledge
+## Náš záväzok
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+My ako členovia, prispievatelia a vedúci predstavitelia sa zaväzujeme zabezpečiť, aby účasť v našej
+komunite bola pre všetkých bez obťažovania, bez ohľadu na vek, telesné
+proporcie, viditeľné či neviditeľné zdravotné postihnutie, etnický pôvod, pohlavné znaky, rodovú
+identitu a jej vyjadrenie, úroveň skúseností, vzdelanie, sociálno-ekonomické postavenie,
+národnosť, osobný vzhľad, rasu, náboženstvo alebo sexuálnu identitu
+a orientáciu.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+Zaväzujeme sa konať a komunikovať spôsobom, ktorý prispieva k otvorenej, prívetivej,
+rozmanitej, inkluzívnej a zdravej komunite.
 
-## Our Standards
+## Naše štandardy
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+Medzi príklady správania, ktoré prispieva k pozitívnemu prostrediu v našej
+komunite, patria:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- Prejavovanie empatie a láskavosti voči ostatným
+- Rešpektovanie odlišných názorov, pohľadov a skúseností
+- Poskytovanie a ústretové prijímanie konštruktívnej spätnej väzby
+- Prevzatie zodpovednosti, ospravedlnenie sa tým, ktorých zasiahli naše chyby,
+  a poučenie sa zo skúsenosti
+- Zameranie sa nielen na to, čo je najlepšie pre nás ako jednotlivcov, ale aj pre
+  celú komunitu
 
-Examples of unacceptable behavior include:
+Medzi príklady neprijateľného správania patria:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- Používanie sexualizovaného jazyka alebo obrazového materiálu a sexuálna pozornosť či
+  návrhy akéhokoľvek druhu
+- Trolovanie, urážlivé alebo hanlivé komentáre a osobné či politické útoky
+- Verejné alebo súkromné obťažovanie
+- Zverejňovanie súkromných údajov iných osôb, napríklad fyzickej alebo e-mailovej
+  adresy, bez ich výslovného súhlasu
+- Iné konanie, ktoré by sa v profesionálnom prostredí mohlo odôvodnene považovať za
+  nevhodné
 
-## Enforcement Responsibilities
+## Zodpovednosť za presadzovanie
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+Vedúci predstavitelia komunity sú zodpovední za objasňovanie a presadzovanie našich štandardov
+prijateľného správania a prijmú primerané a spravodlivé nápravné opatrenia
+v reakcii na akékoľvek správanie, ktoré považujú za nevhodné, ohrozujúce, urážlivé
+alebo škodlivé.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+Vedúci predstavitelia komunity majú právo a povinnosť odstrániť, upraviť alebo odmietnuť
+komentáre, commity, kód, úpravy wiki, hlásenia problémov a ďalšie príspevky, ktoré
+nie sú v súlade s týmto Kódexom správania, a v primeraných prípadoch oznámia dôvody
+rozhodnutí týkajúcich sa moderovania.
 
-## Scope
+## Rozsah pôsobnosti
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+Tento Kódex správania sa uplatňuje vo všetkých komunitných priestoroch a tiež vtedy, keď
+jednotlivec oficiálne zastupuje komunitu na verejnosti.
+Medzi príklady zastupovania našej komunity patrí používanie oficiálnej e-mailovej adresy,
+uverejňovanie príspevkov prostredníctvom oficiálneho účtu na sociálnej sieti alebo vystupovanie ako vymenovaný
+zástupca na online či osobnom podujatí.
 
-## Enforcement
+## Presadzovanie
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-.
-All complaints will be reviewed and investigated promptly and fairly.
+Prípady hrubého, obťažujúceho alebo inak neprijateľného správania možno
+nahlásiť vedúcim predstaviteľom komunity zodpovedným za presadzovanie otvorením
+súkromného bezpečnostného upozornenia na adrese
+<https://github.com/diegosouzapw/OmniRoute/security/advisories/new>
+alebo odoslaním e-mailu správcovi na adresu diegosouza.pw@outlook.com.
+Informácie o incidentoch citlivých z hľadiska bezpečnosti nájdete v súbore [`SECURITY.md`](SECURITY.md).
+Všetky sťažnosti budú bezodkladne a spravodlivo preskúmané a prešetrené.
 
-All community leaders are obligated to respect the privacy and security of the
-reporter of any incident.
+Všetci vedúci predstavitelia komunity sú povinní rešpektovať súkromie a bezpečnosť
+osoby, ktorá nahlási akýkoľvek incident.
 
-## Enforcement Guidelines
+## Usmernenia pre presadzovanie
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+Vedúci predstavitelia komunity sa pri určovaní dôsledkov akéhokoľvek konania, ktoré považujú
+za porušenie tohto Kódexu správania, budú riadiť týmito usmerneniami o vplyve na komunitu:
 
-### 1. Correction
+### 1. Náprava
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**Vplyv na komunitu**: Používanie nevhodného jazyka alebo iné správanie považované
+za neprofesionálne alebo nevítané v komunite.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**Dôsledok**: Súkromné písomné upozornenie od vedúcich predstaviteľov komunity, ktoré
+objasní povahu porušenia a vysvetlí, prečo bolo dané
+správanie nevhodné. Môže sa vyžadovať verejné ospravedlnenie.
 
-### 2. Warning
+### 2. Upozornenie
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**Vplyv na komunitu**: Porušenie prostredníctvom jedného incidentu alebo série
+konaní.
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**Dôsledok**: Upozornenie s následkami v prípade pokračovania daného správania. Počas
+stanoveného obdobia nie je povolená žiadna interakcia so zúčastnenými osobami vrátane nevyžiadanej interakcie
+s osobami presadzujúcimi Kódex správania. To
+zahŕňa vyhýbanie sa interakciám v komunitných priestoroch, ako aj na externých kanáloch,
+napríklad na sociálnych sieťach. Porušenie týchto podmienok môže viesť k dočasnému alebo
+trvalému zákazu účasti.
 
-### 3. Temporary Ban
+### 3. Dočasný zákaz
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**Vplyv na komunitu**: Závažné porušenie štandardov komunity vrátane
+pretrvávajúceho nevhodného správania.
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**Dôsledok**: Dočasný zákaz akejkoľvek interakcie alebo verejnej
+komunikácie s komunitou na stanovené obdobie. Počas tohto obdobia nie je povolená žiadna verejná ani
+súkromná interakcia so zúčastnenými osobami vrátane nevyžiadanej interakcie
+s osobami presadzujúcimi Kódex správania.
+Porušenie týchto podmienok môže viesť k trvalému zákazu.
 
-### 4. Permanent Ban
+### 4. Trvalý zákaz
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**Vplyv na komunitu**: Preukázanie opakovaného porušovania komunitných
+štandardov vrátane pretrvávajúceho nevhodného správania, obťažovania
+jednotlivca alebo agresie či znevažovania skupín osôb.
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**Dôsledok**: Trvalý zákaz akejkoľvek verejnej interakcie v rámci
+komunity.
 
-## Attribution
+## Uvedenie zdroja
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage],
-version 2.0, available at
-https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
+Tento Kódex správania je upravený podľa dokumentu [Contributor Covenant][homepage],
+verzia 2.1, ktorý je dostupný na adrese
+https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
 
-Community Impact Guidelines were inspired by [Mozilla's code of conduct
+Usmernenia o vplyve na komunitu boli inšpirované dokumentom [Mozilla's code of conduct
 enforcement ladder](https://github.com/mozilla/diversity).
 
 [homepage]: https://www.contributor-covenant.org
 
-For answers to common questions about this code of conduct, see the FAQ at
-https://www.contributor-covenant.org/faq. Translations are available at
+Odpovede na časté otázky týkajúce sa tohto Kódexu správania nájdete v sekcii FAQ na adrese
+https://www.contributor-covenant.org/faq. Preklady sú dostupné na adrese
 https://www.contributor-covenant.org/translations.

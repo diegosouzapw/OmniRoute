@@ -1,64 +1,46 @@
 # Contributor Covenant Code of Conduct (Suomi)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇦🇿 [az](../az/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇬🇷 [el](../el/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇪🇪 [et](../et/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇪 [ga](../ga/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇷 [hr](../hr/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇱🇹 [lt](../lt/CODE_OF_CONDUCT.md) · 🇱🇻 [lv](../lv/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇲🇹 [mt](../mt/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇮 [sl](../sl/CODE_OF_CONDUCT.md) · 🇷🇸 [sr](../sr/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md) · 🇹🇼 [zh-TW](../zh-TW/CODE_OF_CONDUCT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇪🇹 [am](../am/CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇦🇿 [az](../az/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇧🇦 [bs](../bs/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇬🇷 [el](../el/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇪🇪 [et](../et/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇪 [ga](../ga/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇳🇬 [ha](../ha/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇷 [hr](../hr/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇦🇲 [hy](../hy/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇳🇬 [ig](../ig/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇬🇪 [ka](../ka/CODE_OF_CONDUCT.md) · 🇰🇭 [km](../km/CODE_OF_CONDUCT.md) · 🇮🇳 [kn](../kn/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇱🇹 [lt](../lt/CODE_OF_CONDUCT.md) · 🇱🇻 [lv](../lv/CODE_OF_CONDUCT.md) · 🇮🇳 [ml](../ml/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇲🇹 [mt](../mt/CODE_OF_CONDUCT.md) · 🇲🇲 [my](../my/CODE_OF_CONDUCT.md) · 🇳🇵 [ne](../ne/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇮🇳 [or](../or/CODE_OF_CONDUCT.md) · 🇮🇳 [pa](../pa/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇱🇰 [si](../si/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇮 [sl](../sl/CODE_OF_CONDUCT.md) · 🇷🇸 [sr](../sr/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇺🇿 [uz](../uz/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇳🇬 [yo](../yo/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md) · 🇹🇼 [zh-TW](../zh-TW/CODE_OF_CONDUCT.md)
 
 ---
 
-## Our Pledge
+## Lupauksemme
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+Me jäseninä, osallistujina ja johtajina lupaamme tehdä yhteisöömme osallistumisesta kaikille häirinnästä vapaan kokemuksen riippumatta iästä, kehon koosta, näkyvästä tai näkymättömästä vammasta, etnisestä taustasta, sukupuolisista ominaisuuksista, sukupuoli-identiteetistä ja sen ilmaisusta, kokemustasosta, koulutuksesta, sosioekonomisesta asemasta, kansallisuudesta, ulkonäöstä, rodusta, uskonnosta tai seksuaalisesta identiteetistä ja suuntautumisesta.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+Lupaamme toimia ja olla vuorovaikutuksessa tavalla, joka edistää avointa, vastaanottavaista, monimuotoista, osallistavaa ja tervettä yhteisöä.
 
-## Our Standards
+## Standardimme
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+Esimerkkejä toiminnasta, joka edistää myönteistä ilmapiiriä yhteisössämme:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- Empatian ja ystävällisyyden osoittaminen muita ihmisiä kohtaan
+- Erilaisten mielipiteiden, näkemysten ja kokemusten kunnioittaminen
+- Rakentavan palautteen antaminen ja sen vastaanottaminen hyvässä hengessä
+- Vastuun ottaminen virheistämme, anteeksipyytäminen niiltä, joihin virheemme ovat vaikuttaneet, sekä kokemuksesta oppiminen
+- Keskittyminen siihen, mikä on parasta paitsi meille yksilöinä myös koko yhteisölle
 
-Examples of unacceptable behavior include:
+Esimerkkejä sopimattomasta toiminnasta:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- Seksualisoidun kielen tai kuvaston käyttö sekä kaikenlainen seksuaalinen huomio tai lähentely
+- Trollaaminen, loukkaavat tai halventavat kommentit sekä henkilökohtaiset tai poliittiset hyökkäykset
+- Julkinen tai yksityinen häirintä
+- Muiden yksityisten tietojen, kuten katu- tai sähköpostiosoitteen, julkaiseminen ilman heidän nimenomaista lupaansa
+- Muu toiminta, jota voidaan perustellusti pitää sopimattomana ammatillisessa ympäristössä
 
-## Enforcement Responsibilities
+## Täytäntöönpanovastuut
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+Yhteisön johtajat ovat vastuussa hyväksyttävää käyttäytymistä koskevien standardiemme selventämisestä ja noudattamisen valvonnasta. He ryhtyvät asianmukaisiin ja oikeudenmukaisiin korjaaviin toimiin vastauksena kaikkeen käyttäytymiseen, jonka he katsovat olevan sopimatonta, uhkaavaa, loukkaavaa tai vahingollista.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+Yhteisön johtajilla on oikeus ja velvollisuus poistaa, muokata tai hylätä kommentteja, committeja, koodia, wiki-muokkauksia, issueita ja muita kontribuutioita, jotka eivät ole tämän käytännesäännöstön mukaisia. He myös kertovat moderointipäätösten perusteet silloin, kun se on asianmukaista.
 
-## Scope
+## Soveltamisala
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+Tätä käytännesääntöä sovelletaan kaikissa yhteisön tiloissa sekä tilanteissa, joissa
+henkilö edustaa yhteisöä virallisesti julkisissa tiloissa.
+Esimerkkejä yhteisömme edustamisesta ovat virallisen sähköpostiosoitteen käyttäminen,
+julkaiseminen virallisella sosiaalisen median tilillä tai toimiminen nimettynä
+edustajana verkko- tai lähitapahtumassa.
 
 ## Enforcement
 
@@ -70,51 +52,33 @@ All complaints will be reviewed and investigated promptly and fairly.
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-## Enforcement Guidelines
+## Täytäntöönpano-ohjeet
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+Yhteisön johtajat noudattavat näitä yhteisövaikutuksia koskevia ohjeita määrittäessään seurauksia toiminnalle, jonka he katsovat rikkovan näitä käytännesääntöjä:
 
-### 1. Correction
+### 1. Oikaisu
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**Vaikutus yhteisöön**: Sopimattoman kielen käyttäminen tai muu toiminta, jota pidetään yhteisössä epäammattimaisena tai epätoivottuna.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**Seuraus**: Yhteisön johtajien antama yksityinen kirjallinen varoitus, jossa selvennetään rikkomuksen luonnetta ja kerrotaan, miksi toiminta oli sopimatonta. Julkista anteeksipyyntöä voidaan vaatia.
 
-### 2. Warning
+### 2. Varoitus
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**Vaikutus yhteisöön**: Yksittäisen tapahtuman tai toistuvien tekojen muodostama rikkomus.
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**Seuraus**: Varoitus, johon liittyy seuraamuksia toiminnan jatkamisesta. Vuorovaikutus asianosaisten kanssa, mukaan lukien oma-aloitteinen yhteydenpito käytännesääntöjen noudattamista valvoviin henkilöihin, on kielletty määrätyn ajanjakson ajan. Tämä koskee vuorovaikutuksen välttämistä sekä yhteisön omissa tiloissa että ulkoisissa kanavissa, kuten sosiaalisessa mediassa. Näiden ehtojen rikkominen voi johtaa tilapäiseen tai pysyvään porttikieltoon.
 
-### 3. Temporary Ban
+### 3. Tilapäinen porttikielto
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**Vaikutus yhteisöön**: Yhteisön normien vakava rikkominen, mukaan lukien jatkuva sopimaton käytös.
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**Seuraus**: Tilapäinen kielto osallistua minkäänlaiseen vuorovaikutukseen tai julkiseen viestintään yhteisön kanssa määrätyn ajanjakson ajan. Tänä aikana julkinen tai yksityinen vuorovaikutus asianosaisten kanssa, mukaan lukien oma-aloitteinen yhteydenpito käytännesääntöjen noudattamista valvoviin henkilöihin, ei ole sallittua. Näiden ehtojen rikkominen voi johtaa pysyvään porttikieltoon.
 
-### 4. Permanent Ban
+### 4. Pysyvä porttikielto
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**Vaikutus yhteisöön**: Toistuva yhteisön normien rikkominen, mukaan lukien jatkuva sopimaton käytös, yksittäiseen henkilöön kohdistuva häirintä tai ihmisryhmiin kohdistuva aggressiivisuus tai halventaminen.
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**Seuraus**: Pysyvä kielto osallistua minkäänlaiseen julkiseen vuorovaikutukseen yhteisössä.
 
 ## Attribution
 

@@ -28,13 +28,64 @@
  *       both flags are set, auto-remove (destructive) wins: a proxy that is
  *       about to be deleted has no use for a soft-disable in between.
  *   E — a `blocked` probe (the TARGET refused this egress IP: 401/403/429) is
- *       neutral like `inconclusive`. The proxy relayed correctly, so it is not
- *       failing; but it is not serving that destination either, which `ok` hid.
- *       Kept out of the failure count on purpose: one target refusing an IP
- *       does not make the proxy dead, and the operator owns the removal policy.
+ *       neutral like `inconclusive` by default (#10654). The proxy relayed
+ *       correctly, so it is not failing; but it is not serving that destination
+ *       either, which `ok` hid. Kept out of the failure count on purpose: one
+ *       target refusing an IP does not make the proxy dead, and the operator
+ *       owns the removal policy.
+ *       Opt-in (`blockedResetsStreak`, the PROXY_HEALTH_BLOCKED_RESETS_STREAK
+ *       feature flag): a refusal additionally RESETS the consecutive-failure
+ *       streak, since the proxy demonstrably relayed. It still never counts,
+ *       never sets a status and never removes. This covers 401/403/429 only: a
+ *       relayed 5xx stays `inconclusive` (policy B) and keeps the streak.
  */
 
-export type ProxyProbeOutcome = "ok" | "fail" | "inconclusive" | "blocked";
+export type ProxyProbeOutcome = "ok" | "fail" | "hang" | "inconclusive" | "blocked";
+
+/**
+ * Sidecar cause for a refused relay. Carried ALONGSIDE the verdict, never
+ * inside it: `decideProxyHealthAction` never branches on a cause, so a cause
+ * can neither write a status nor filter traffic. The only proven 403 is one
+ * the caller proves via `signals.geoProven`; the sweep never proves (HEAD
+ * probe, no body), so sweep 403s always land on `unproven`.
+ */
+export type ProbeCause = "unclassified" | "target_refused" | "unproven";
+
+export interface RefusalCauseSignals {
+  /** The caller proved a geographic motive for this 403. Defaults to false. */
+  geoProven?: boolean;
+}
+
+/**
+ * PURE: classify the cause of a refused relay. 451 is a proven refusal by
+ * status alone; 403 needs an explicit proof; 401/429 claim no cause.
+ */
+export function classifyRefusalCause(status: number, signals: RefusalCauseSignals = {}): ProbeCause {
+  if (status === 451) return "target_refused";
+  if (status === 403) return signals.geoProven === true ? "target_refused" : "unproven";
+  return "unclassified";
+}
+
+export interface ProbeErrorSignals {
+  /** Our own deadline fired (controller aborted). */
+  aborted: boolean;
+  /** The proxy host resolved (a hang implies we got past DNS). */
+  resolved: boolean;
+  /** A TLS handshake completed. */
+  tlsNegotiated: boolean;
+}
+
+/**
+ * PURE: distinguish a stalled handshake from a frank failure. A hang means we
+ * reached the host but the handshake never completed before our own deadline;
+ * anything aborted without those conditions keeps today's `inconclusive`.
+ */
+export function classifyProbeError(signals: ProbeErrorSignals): "hang" | "fail" | "inconclusive" {
+  if (signals.aborted) {
+    return signals.resolved && !signals.tlsNegotiated ? "hang" : "inconclusive";
+  }
+  return "fail";
+}
 
 /** Statuses that mean the TARGET refused this egress IP rather than served it. */
 const TARGET_BLOCK_STATUSES: ReadonlySet<number> = new Set([401, 403, 429]);
@@ -67,6 +118,12 @@ export interface ProxyHealthDecisionInput {
   autoDisable?: boolean;
   /** Consecutive conclusive failures required before a downgrade/removal. */
   removeAfter: number;
+  /**
+   * PROXY_HEALTH_BLOCKED_RESETS_STREAK — operator opted into letting a `blocked`
+   * probe reset the streak (policy E). Optional/defaults to `false`: `blocked`
+   * stays neutral, exactly as before.
+   */
+  blockedResetsStreak?: boolean;
 }
 
 export interface ProxyHealthDecision {
@@ -81,14 +138,28 @@ export interface ProxyHealthDecision {
 }
 
 export function decideProxyHealthAction(input: ProxyHealthDecisionInput): ProxyHealthDecision {
-  const { outcome, priorFailures, autoRemove, autoDisable = false, removeAfter } = input;
+  const {
+    outcome,
+    priorFailures,
+    autoRemove,
+    autoDisable = false,
+    removeAfter,
+    blockedResetsStreak = false,
+  } = input;
   const threshold = Number.isFinite(removeAfter) && removeAfter > 0 ? removeAfter : 3;
   // Either opt-in flag hands status control from the operator to the sweep.
   const managesStatus = autoRemove || autoDisable;
 
-  // B/E: inconclusive and blocked probes are neutral — no count, no status.
-  if (outcome === "inconclusive" || outcome === "blocked") {
+  // B/E: inconclusive and (by default) blocked probes are neutral — no count, no status.
+  if (outcome === "inconclusive" || (outcome === "blocked" && !blockedResetsStreak)) {
     return { failures: priorFailures, clearFailures: false, setStatus: null, remove: false };
+  }
+
+  // E (opt-in): a refused relay still proves the proxy relayed, so the streak resets.
+  // Status and removal stay untouched: forgetting failures is not declaring the proxy
+  // healthy, and one target refusing an IP never removes or disables a proxy.
+  if (outcome === "blocked") {
+    return { failures: 0, clearFailures: true, setStatus: null, remove: false };
   }
 
   // Success: reset the streak. Only (re)assert "active" when the operator has
@@ -102,7 +173,9 @@ export function decideProxyHealthAction(input: ProxyHealthDecisionInput): ProxyH
     };
   }
 
-  // Conclusive failure.
+  // Conclusive failure. `hang` (a stalled handshake) falls through with `fail`:
+  // same count, same policy C (no status write by default). The verdicts stay
+  // distinct upstream so the sweep can observe hangs separately.
   const failures = priorFailures + 1;
 
   // C: default mode only counts/logs — never downgrades.

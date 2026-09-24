@@ -18,7 +18,7 @@ export const CANONICAL_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"
 
 export type CanonicalEffort = (typeof CANONICAL_EFFORT_VALUES)[number];
 
-/** Use provider-native GPT-5.6 effort levels without widening the global request vocabulary. */
+/** Use provider-native effort levels without widening the global request vocabulary. */
 export function extendCodexGpt56EffortValues(
   provider: string | null | undefined,
   model: string | null | undefined,
@@ -32,12 +32,19 @@ export function extendCodexGpt56EffortValues(
     .replace(/^(?:codex|cx|kiro|kr)\//, "");
   if (!normalizedModel) return values;
 
+  const isKiroProvider = normalizedProvider === "kiro" || normalizedProvider === "kr";
+  if (
+    isKiroProvider &&
+    /^claude-opus-5(?:-(?:none|low|medium|high|xhigh|max))?$/.test(normalizedModel)
+  ) {
+    return values.includes("max") ? values : [...values, "max"];
+  }
+
   const match = normalizedModel.match(
     /^gpt-5\.6-(sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
   );
   if (!match) return values;
 
-  const isKiroProvider = normalizedProvider === "kiro" || normalizedProvider === "kr";
   if (isKiroProvider) {
     return values.includes("max") ? values : [...values, "max"];
   }

@@ -105,11 +105,6 @@
       "configSource": "cheaperinference",
       "provider": "cheaperinference"
     },
-    "chipotle": {
-      "className": "ChipotleExecutor",
-      "configSource": "<custom-config>",
-      "provider": "chipotle"
-    },
     "cinf": {
       "className": "CheaperInferenceExecutor",
       "configSource": "cheaperinference",
@@ -300,16 +295,6 @@
       "configSource": "grok-cli",
       "provider": "grok-cli"
     },
-    "gembiz": {
-      "className": "GeminiBusinessExecutor",
-      "configSource": "<custom-config>",
-      "provider": "gemini-business"
-    },
-    "gemini-business": {
-      "className": "GeminiBusinessExecutor",
-      "configSource": "<custom-config>",
-      "provider": "gemini-business"
-    },
     "gemini-web": {
       "className": "GeminiWebExecutor",
       "configSource": "<custom-config>",
@@ -489,11 +474,6 @@
       "className": "OpencodeExecutor",
       "configSource": "opencode-zen",
       "provider": "opencode-zen"
-    },
-    "pepper": {
-      "className": "ChipotleExecutor",
-      "configSource": "<custom-config>",
-      "provider": "chipotle"
     },
     "perplexity-web": {
       "className": "PerplexityWebExecutor",
@@ -676,6 +656,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 135,
+  "keyCount": 131,
   "sharedInstances": []
 }

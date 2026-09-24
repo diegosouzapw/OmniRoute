@@ -68,7 +68,7 @@ test("Gemini Web executor treats the retired image-mode extension as ordinary ch
             waitDurations.push(duration);
           },
           waitForSelector: async () => ({ click: async () => {} }),
-          keyboard: { type: async () => {}, press: async () => {} },
+          keyboard: { type: async () => {}, insertText: async () => {}, press: async () => {} },
         }),
       }),
       close: async () => {},

@@ -1,62 +1,53 @@
-# CLI-TOOLS (Gaeilge)
+# CLI Tools — OmniRoute (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
-title: "Uirlisí CLI — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-23
----
+Nuashonrú is déanaí: 2026-08-23
 
-# Uirlisí CLI — OmniRoute
+Comhtháthaíonn OmniRoute le trí chatagóir d’uirlisí CLI atá scaipthe thar thrí leathanach tiomnaithe sa deais:
 
-Nuashonrú deireanach: 2026-08-23
+| Leathanach         | Bealach                 | Coincheap                                                                                   | Líon               |
+| ------------------ | ----------------------- | ------------------------------------------------------------------------------------------- | ------------------ |
+| **Cóid CLI**       | `/dashboard/cli-code`   | Uirlisí códaithe a dhíríonn tú ar OmniRoute (Cliant → CLI → OmniRoute → Soláthraí)          | 26                 |
+| **Gníomhairí CLI** | `/dashboard/cli-agents` | Gníomhairí uathrialacha a dhíríonn tú ar OmniRoute (an sreabhadh céanna, raon níos leithne) | 10                 |
+| **Gníomhairí ACP** | `/dashboard/acp-agents` | CLIanna a sheolann OmniRoute mar inneall cúil trí stdio/ACP (sreabhadh droim ar ais)        | féach an chlárlann |
 
-Intéiríonn OmniRoute le trí chatagóirí de uirlisí CLI a scaiptheadh ar thrí leathanaigh deasc speisialta:
-
-| Leathanach     | Bóthar                  | Coincheap                                                                                        | Líon           |
-| -------------- | ----------------------- | ------------------------------------------------------------------------------------------------ | -------------- |
-| **CLI Code's** | `/dashboard/cli-code`   | Uirlisí cláir a sheolann tú i dtreo OmniRoute (Cliant → CLI → OmniRoute → Soláthraí)             | 26             |
-| **CLI Agents** | `/dashboard/cli-agents` | gníomhairí uathrialacha a sheolann tú i dtreo OmniRoute (an sreabhadh céanna, raon níos leithne) | 10             |
-| **ACP Agents** | `/dashboard/acp-agents` | CLIs a ghineann OmniRoute mar backend trí stdio/ACP (sreabhadh droim ar ais)                     | féach clárlann |
-
-Atreoraíonn an tseanchéimseacht trí 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
+Atreoraítear seanbhealaí trí 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
 ---
 
-## Conas a Oibríonn sé
+## Conas a Oibríonn Sé
 
 ```
-Uirlisí CLI / Ailt (sreabhadh tomhaltais):
+Cóid CLI / Gníomhairí CLI (sreabhadh tomhaltais):
 Claude / Codex / OpenCode / Cline / KiloCode / Continue / Hermes Agent / Goose / ...
            │
-           ▼  (seolann gach ceann acu i dtreo OmniRoute)
+           ▼  (díríonn siad uile ar OmniRoute)
     http://YOUR_SERVER:20128/v1
            │
-           ▼  (rithíonn OmniRoute i dtreo an tsoláthraí ceart)
+           ▼  (treoraíonn OmniRoute chuig an soláthraí ceart)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 
-Gníomhairí ACP (sreabhadh cruthú droim ar ais):
-    Iarratas Cliant → OmniRoute → cruthaíonn CLI trí stdio/ACP → freagra
+Gníomhairí ACP (sreabhadh seolta droim ar ais):
+    Iarratas cliaint → OmniRoute → seolann sé CLI trí stdio/ACP → freagra
 ```
 
 **Buntáistí:**
 
-- Eochair API amháin le haghaidh gach uirlis
-- Rianú costais trasna gach CLI sa deasc
-- Athrú samhail gan gach uirlis a chumrú arís
-- Oibríonn go háitiúil agus ar fhreastalaithe iarghalta (VPS, Docker, Akamai, Cloudflare Tunnel)
+- Eochair API amháin chun gach uirlis a bhainistiú
+- Rianú costas ar fud gach CLI sa deais
+- Athrú samhlacha gan gach uirlis a athchumrú
+- Oibríonn sé go háitiúil agus ar fhreastalaithe cianda (VPS, Docker, Akamai, Cloudflare Tunnel)
 
 ---
 
-## Cumrú go huathoibríoch le `setup-*`
+## Uathchumrú le `setup-*`
 
-Ní gá duit cumrú gach uirlis a scríobh de láimh. Seolann OmniRoute ordú `setup-*`
-do gach CLI tacaíochta a léann an **bheo** catalóg samhlacha ó OmniRoute ag rith
-(áitiúil nó iarghalta) agus a scríobhann cumrú na huirlise féin ar do mheaisín:
+Ní gá duit cumraíocht gach uirlise a scríobh de láimh. Soláthraíonn OmniRoute ordú `setup-*`
+do gach CLI a dtacaítear leis, a léann catalóg **bheo** na samhlacha ó OmniRoute atá ag rith
+(go háitiúil nó go cianda) agus a scríobhann cumraíocht na huirlise féin ar do ríomhaire:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -66,85 +57,87 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Glacann gach ceann acu le `--remote <url> --api-key <key>` (cumraigh uirlis áitiúil in aghaidh
-OmniRoute iarghalta), `--dry-run` (réamhamharc gan scríobh), agus `--port`. Níl uirlisí
-gan aimsiú samhlacha uathoibríoch (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) ag cur
-`--model <id>` (agus `--yes` le haghaidh rith neamh-idirghníomhach). Is é `setup-5dive` an t-oideas
-amháin nach scríobhann faoi `$HOME`: cuireann sé feabhsócháin gníomhaire 5dive ar bun trí
-scríobh próifíl údaraithe ar úinéireacht iomlán ar an óstach feilt, mar sin athsheolann sé trí `sudo`
-agus níl modh iarghalta aige féin. Chun CLI a sheoladh leis an
-timpeallacht cheart injecte agus gan cumrú ar bith a scríobh, úsáid an
-seoladóir ginearálta `omniroute run <sprioc>` (claude, codex, aide, goose, opencode, qwen,
-gemini — tá na spriocanna agus an ailias ag teacht ó `bin/cli/cli-manifest.mjs`); tá na
-seoladóirí seanbhealaigh in aghaidh na huirlise `omniroute launch` (Claude Code) agus `omniroute launch-codex`
-(Codex) fós ar fáil. Is é Gemini CLI seoladh amháin: is é sprioc é le haghaidh `omniroute run`
-ach níl aige `setup-*`/`configure` oideas.
+Glacann gach ceann acu le `--remote <url> --api-key <key>` (chun uirlis áitiúil a chumrú le
+haghaidh OmniRoute chianda), `--dry-run` (réamhamharc gan scríobh), agus `--port`. Glacann uirlisí
+nach bhfuil uathfhionnachtain samhlacha acu (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) le
+`--model <id>` (agus `--yes` le haghaidh rite neamh-idirghníomhacha). Is é `setup-5dive` an t-aon
+oideas nach scríobhann faoi `$HOME`: cumraíonn sé cabhlach gníomhairí 5dive trí phróifíl fíordheimhnithe
+atá faoi úinéireacht root a scríobh ar óstach an chabhlaigh, mar sin athritear é trí `sudo`
+agus níl mód cianda dá chuid féin aige. Chun CLI a sheoladh agus an timpeallacht cheart
+insteallta ann gan aon chumraíocht a scríobh ar chor ar bith, úsáid an tosaitheoir cineálach
+`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
+gemini — tagann na spriocanna agus na hailiasanna ó `bin/cli/cli-manifest.mjs`); tá na seantosaitheoirí
+sonracha d’uirlisí `omniroute launch` (Claude Code) agus `omniroute launch-codex`
+(Codex) fós ar fáil. Ní féidir Gemini CLI a úsáid ach trína sheoladh: is sprioc `omniroute run`
+é ach níl aon oideas `setup-*`/`configure` aige.
 
-> **Tagairt iomlán:** an tábla máistir — a scríobhann gach ordú, gach bratach,
-> áitiúil i gcoinne iarghalta, agus cén uirlisí a theastaíonn `/v1` sufhógra — sa
+> **Tagairt iomlán:** tá an máistirthábla — an méid a scríobhann gach ordú, gach bratach,
+> áitiúil i gcomparáid le cianda, agus na huirlisí a dteastaíonn iarmhír `/v1` uathu — le fáil in
 > **[Comhtháthuithe CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Ag rith na rudaí seo laistigh de choimeádán
+### Iad seo a rith laistigh de choimeádán
 
-Nuair a rithíonn ordú `setup-*` laistigh de choimeádán OmniRoute, scríobhann sé isteach sa
-baile féin den choimeádán, nach léann aon CLI óstach agus imíonn leis an
-choimeádán. Braithfidh OmniRoute é sin agus dúnfaidh sé le `2` le treoranna ina ionad scríobh. Dhá
-bealach tacaíochta le leanúint ar aghaidh — suiteáil an CLI ar an óstach agus
-`omniroute connect` leis an gcoimeádán, nó ceangail ceangail na填充填充目录填充目录 agus socraigh
-`CLI_CONFIG_HOME` (próifíl `host` comhdhéanta). Glacann gach ordú `setup-*`, móide
+Scríobhann ordú `setup-*` a ritear laistigh de choimeádán OmniRoute isteach i
+mbaile an choimeádáin féin, áit nach léann aon CLI ar an óstach é agus a imíonn leis an
+gcoimeádán. Aimsíonn OmniRoute é sin agus scoireann sé le `2` agus treoracha á dtabhairt aige seachas
+scríobh. Tá dhá bhealach chun cinn a dtacaítear leo — suiteáil an CLI ar an óstach agus
+úsáid `omniroute connect` chun ceangal leis an gcoimeádán, nó ceangail na comhadlanna cumraíochta le bind-mount agus socraigh
+`CLI_CONFIG_HOME` (próifíl compose `host`). Glacann gach ordú `setup-*`, chomh maith le
 `omniroute configure` agus `omniroute config set`, le
-`--allow-container-write` nuair is é atá i gceist agat i ndáiríre ná CLIs an choimeádáin féin a chumrú; dhéanann
-`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` an rud céanna don
+`--allow-container-write` nuair is iad CLIanna an choimeádáin féin atá tú ag iarraidh
+a chumrú i ndáiríre; déanann `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` an rud céanna don
 fhreastalaí. Féach
-[Treoir Docker → Cumrú uirlisí CLI óstacha](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+[Treoir Docker → Uirlisí CLI an óstaigh a chumrú](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-For介入点填充 deasc填充 (`POST /api/cli-tools/apply`) cuireann sí an
-cosaint chéanna i bhfeidhm: i gcoimeádán, freagann scríobh a bhfuil a sprioc nach bhfuil ceangailte ón
-óstach le **`422`** le `containerEphemeralTarget: true`, an téacs earráide slán agus — d'fhonn na
-uirlisí le hiodra óstach (claude, codex, opencode, cline,
+Cuireann **críochphointe cur i bhfeidhm** na deaise (`POST /api/cli-tools/apply`) an
+chosaint chéanna i bhfeidhm: i gcoimeádán, freagraíonn scríobh nach bhfuil a sprioc ceangailte ón
+óstach le bind-mount le **`422`**, mar aon le `containerEphemeralTarget: true`, téacs sábháilte na hearráide
+agus — i gcás na n-uirlisí a bhfuil oideas óstaigh acu (claude, codex, opencode, cline,
 kilo, continue) — `hostSetupCommand` (m.sh. `omniroute setup-opencode`) le rith
-ar an óstach ina ionad; ní scríobhtar aon rud. Coinníonn `dryRun: true` ag obair sa cheangail
-填充填充 agus fillfidh sé an t-ábhar ginte + cosán sprioc gan an diosca a bhaint, mar sin
-is féidir leat réamhamharc a dhéanamh ón deasc agus iarratas a dhéanamh ar an óstach. Tá an iompar seo
-intentional agus cosanta ag athbheochan
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — ná "ceartaigh" 422
-trí an cosaint a bhaint.
-
-## Fírinne an Bhunabhair
-
-Tá an catalóg aonphointe in áit `src/shared/constants/cliTools.ts` mar `CLI_TOOLS: Record<string, CliCatalogEntry>`.
-
-Tá na réimsí seo a leanas ag gach iontráil (sainmhínithe in `src/shared/schemas/cliCatalog.ts`):
-
-| Réimse                                          | Cineál                                                       | Cur síos                                                                                |
-| ----------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `category`                                      | `"code" \| "agent"`                                          | Cén leathanach a mbíonn an t-uirlis air                                                 |
-| `vendor`                                        | `string`                                                     | Bunús an uirlis ("Anthropic", "OSS (P. Gauthier)")                                      |
-| `acpSpawnable`                                  | `boolean`                                                    | In-úsáide freisin mar Gníomhaire ACP (badge taispeáinte)                                |
-| `baseUrlSupport`                                | `"full" \| "partial" \| "none"`                              | Leibhéal tacaíochta an chrios seomra deiridh saincheaptha. `"none"` = MITM ar feitheamh |
-| `configType`                                    | `"env" \| "custom" \| "guide" \| "custom-builder" \| "mitm"` | Meicníocht cumraíochta                                                                  |
-| `id`, `name`, `color`, `description`, `docsUrl` | caighdeánach                                                 | Príomh-réimsí taispeána                                                                 |
-
-Ní thaispeántar iontráil le `baseUrlSupport: "none"` ar na leathanaigh stiúirchlstáin — cláraítear iad i liosta feitheamh MITM do phlean 11 (féach `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md`).
-
-### Treibheanna cumais (cláraithe × indéanta × cumraithe × in-seolta)
-
-Níl gach uirlis atá cláraithe indéanta, in-athrú ina cumraíocht ná in-seolta. Tá foinse dearbhaithe amháin ag gach treibh, agus coinníonn tástáil dóichigh iad ag teacht le chéile:
-
-| Treibh        | Ciall                                                                                 | Dearbhaithe i                                                       |
-| ------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **Cláraithe** | Taispeántar i gclár na stiúirchlstáin (ainm, vendor, doiciméad, cineál cumraíochta)   | `src/shared/constants/cliTools.ts` (`CLI_TOOLS`)                    |
-| **Indéanta**  | Brathadh débhdhair/cumraíochta, sláinte, cosáin cumraíochta                           | `src/shared/services/cliRuntime.ts` (`CLI_TOOLS` catalóg rithaimse) |
-| **Cumraithe** | Tacaíocht ag `omniroute configure <cli>` (próiseas socraithe ann)                     | `bin/cli/cli-manifest.mjs` (`configure: true`)                      |
-| **In-seolta** | Tacaíocht ag `omniroute run <target>` (insteamáil timpeallacht/argóintí sainmhínithe) | `bin/cli/cli-manifest.mjs` (`run: true`)                            |
-
-Is é `bin/cli/cli-manifest.mjs` an clárlann inmhistéir beacht do na dromchlaí CLI: cuireann `run`, `configure` agus na ginearálaí críoch-chothromaíochta shell a liostaí spriocanna, réiteach ainmneacha (mar shampla `kilocode`/`kilo-code`/`kilo_cli` → `kilo`) agus sreangú bratach `--model` ina n-oiniún as. dearbhaíonn an cosantóir dóichigh `tests/unit/cli/cli-manifest-drift.test.ts` go bhfanann an clárlann, an catalóg rithaimse, an chatalóg agus gach dromchla tomhaltais ar chéim — má chuirtear sprioc le dromchla amháin gan iad siúd eile, theipeann an tsraith seachas dul ar strae ina dhiaidh go ciúin.
+ar an óstach ina ionad; ní scríobhtar faic. Leanann `dryRun: true` de bheith ag obair i mód coimeádáin
+agus tugann sé an t-inneachar ginte + cosán na sprice ar ais gan teagmháil leis an diosca, ionas
+gur féidir leat réamhamharc a dhéanamh ón deais agus é a chur i bhfeidhm ar an óstach. Tá an t-iompar seo
+d’aon ghnó agus cosnaítear é ar aischéimniú le
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — ná déan iarracht riamh 422 a “dheisiú”
+tríd an gcosaint a bhaint.
 
 ---
 
-## 1. Catalóg an Chóid CLI (2005 uirlis)
+## Foinse na Fírinne
 
-Na huirlisí go léir atá le fáil i `/dashboard/cli-code`. Tá iad siúd a bhfuil `baseUrlSupport: none' acu ceangailte trí MITM nó treoir láimhe in ionad URL bonnlainne saincheaptha:
+Tá an chatalóg aontaithe suite in `src/shared/constants/cliTools.ts` mar `CLI_TOOLS: Record<string, CliCatalogEntry>`.
+
+Tá na réimsí seo a leanas i ngach iontráil (sainmhínithe in `src/shared/schemas/cliCatalog.ts`):
+
+| Réimse                                          | Cineál                                                       | Cur síos                                                                      |
+| ----------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `category`                                      | `"code" \| "agent"`                                          | An leathanach ar a bhfuil an uirlis le feiceáil                               |
+| `vendor`                                        | `string`                                                     | Bunús na huirlise ("Anthropic", "OSS (P. Gauthier)")                          |
+| `acpSpawnable`                                  | `boolean`                                                    | Is féidir í a úsáid mar Ghníomhaire ACP freisin (suaitheantas ar taispeáint)  |
+| `baseUrlSupport`                                | `"full" \| "partial" \| "none"`                              | Leibhéal tacaíochta do chríochphointe saincheaptha. `"none"` = riaráiste MITM |
+| `configType`                                    | `"env" \| "custom" \| "guide" \| "custom-builder" \| "mitm"` | Meicníocht chumraíochta                                                       |
+| `id`, `name`, `color`, `description`, `docsUrl` | caighdeánach                                                 | Croí-réimsí taispeána                                                         |
+
+Ní thaispeántar iontrálacha a bhfuil `baseUrlSupport: "none"` acu ar leathanaigh an deais — tá siad cláraithe i riaráiste MITM do phlean 11 (féach `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md`).
+
+### Sraitheanna cumais (catalógaithe × inbhraite × inchumraithe × intosaithe)
+
+Ní bhíonn gach uirlis chatalógaithe inbhraite, inchumraithe ná intosaithe. Tá foinse dearbhaithe amháin ag gach sraith, agus coinníonn tástáil diallais iad ailínithe:
+
+| Sraith           | Brí                                                                                | Dearbhaithe in                                                     |
+| ---------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Catalógaithe** | Le feiceáil i gcatalóg na deaise (ainm, díoltóir, doiciméid, cineál cumraíochta)   | `src/shared/constants/cliTools.ts` (`CLI_TOOLS`)                   |
+| **Inbhraite**    | Brath dénártha/cumraíochta, seiceálacha sláinte, cosáin chumraíochta               | `src/shared/services/cliRuntime.ts` (catalóg ama rite `CLI_TOOLS`) |
+| **Inchumraithe** | Tacaithe ag `omniroute configure <cli>` (tá oideas socraithe ann)                  | `bin/cli/cli-manifest.mjs` (`configure: true`)                     |
+| **Intosaithe**   | Tacaithe ag `omniroute run <target>` (instealladh timpeallachta/argóintí sainithe) | `bin/cli/cli-manifest.mjs` (`run: true`)                           |
+
+Is é `bin/cli/cli-manifest.mjs` an léiriúchán inrite canónach do dhromchlaí orduithe an CLI: díorthaíonn `run`, `configure` agus gineadóirí comhlánaithe blaoisce a liostaí sprice, a réiteach ailiasanna (mar shampla `kilocode`/`kilo-code`/`kilo_cli` → `kilo`) agus sreangú na brataí `--model` uaidh. Deimhníonn an garda diallais `tests/unit/cli/cli-manifest-drift.test.ts` go bhfanann an léiriúchán, an chatalóg ama rite, catalóg an chomhéadain úsáideora agus gach dromchla tomhaltóra sioncronaithe — má chuirtear sprioc le dromchla amháin gan í a chur leis na cinn eile, teipeann ar an tsraith tástálacha seachas ligean don diallas tarlú go ciúin.
+
+---
+
+## 1. Catalóg CLI Code (26 uirlis)
+
+Na huirlisí uile atá le feiceáil in `/dashboard/cli-code`. Déantar iad siúd a bhfuil `baseUrlSupport: none` acu a nascadh trí MITM nó trí threoir de láimh seachas trí URL bonn saincheaptha:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -175,60 +168,61 @@ Na huirlisí go léir atá le fáil i `/dashboard/cli-code`. Tá iad siúd a bhf
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Taispeánann na huirlisí a bhfuil `baseUrlSupport: "partial"` acu scála "⚠ Base URL parcial" sa chárta stiúrphainéil.
+Taispeánann uirlisí a bhfuil `baseUrlSupport: "partial"` acu suaitheantas "⚠ URL bonn páirteach" ar chárta an deais.
+---
 
-## 2. catalóg na nGníomhaire CLI (10 n-uirlis)
+## 2. Catalóg Gníomhairí CLI (10 n-uirlis)
 
-Gníomhaire neamhspleácha a thaispeántar i `/dashboard/cli-agents`:
+Gníomhairí uathrialacha atá le feiceáil in `/dashboard/cli-agents`:
 
-| id           | ainm             | díoltóir                 | baseUrlSupport | acpSpawnable |
-| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | lán            | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | lán            | true         |
-| goose        | Goose            | Block / Linux Foundation | lán            | true         |
-| interpreter  | Open Interpreter | OSS                      | lán            | true         |
-| warp         | Warp AI          | Warp Inc.                | páirteach      | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | lán            | false        |
-| omp          | Oh My Pi         | OSS                      | lán            | true         |
-| letta        | Letta CLI        | Letta                    | lán            | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | lán            | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | lán            | false        |
+| id           | ainm             | soláthraí                | tacaíochtBaseUrl | insceiteTríACP |
+| ------------ | ---------------- | ------------------------ | ---------------- | -------------- |
+| hermes-agent | Hermes Agent     | Nous Research            | iomlán           | false          |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | iomlán           | true           |
+| goose        | Goose            | Block / Linux Foundation | iomlán           | true           |
+| interpreter  | Open Interpreter | OSS                      | iomlán           | true           |
+| warp         | Warp AI          | Warp Inc.                | páirteach        | true           |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | iomlán           | false          |
+| omp          | Oh My Pi         | OSS                      | iomlán           | true           |
+| letta        | Letta CLI        | Letta                    | iomlán           | false          |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | iomlán           | false          |
+| 5dive        | 5dive            | OSS (5dive-ai)           | iomlán           | false          |
 
 ---
 
-## 3. Gníomhaire ACP (/dashboard/acp-agents)
+## 3. Gníomhairí ACP (/dashboard/acp-agents)
 
-Taispeánann an leathanach seo (athainmnithe ó `/dashboard/agents`) CLIs ar féidir le OmniRoute a **bheith ag sileadh** mar innill chomhphróiseála in aice le prótacal stdio/ACP. Tá an catalóg coinnithe ar leith i `src/lib/acp/registry.ts` agus **ní hé** an rud céanna le `CLI_TOOLS`.
-
----
-
-## 4. Liosta cúltaca MITM (gan taispeáint ar an deais)
-
-Ní thacaíonn na CLIs seo a leanas le bonn URL saincheaptha go nádúrtha agus níl siad **liostaithe** i leathanaigh Cód CLI nó Gníomhaire CLI. Is iad iad iarrthóirí le haghaidh idirghabhála MITM i phlean 11:
-
-| CLI                 | Fáth                                                                            |
-| ------------------- | ------------------------------------------------------------------------------- |
-| windsurf            | BUNAITHE ar chríocha CHOOSE de rogha samhlacha Claude + URL/token corparáideach |
-| amp                 | Eiceolaíocht dhún (Sourcegraph)                                                 |
-| amazon-q / kiro-cli | Fíordheimhnigh SSO AWS, gan bonn URL saincheaptha                               |
-| cowork              | Deasc Anthropic, gan críochphointe cumraithe                                    |
-
-Féach `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md` le haghaidh an chomhthreochta iomlán.
+Taispeánann an leathanach seo (athainmnithe ó `/dashboard/agents`) na CLIanna ar féidir le OmniRoute iad a **sheoladh** mar innill rite inneall-deiridh tríd an bprótacal stdio/ACP. Coinnítear an catalóg ar leithligh in `src/lib/acp/registry.ts` agus **ní hionann** í agus `CLI_TOOLS`.
 
 ---
 
-## 5. API Brath Batches
+## 4. Riaráiste MITM (ní thaispeántar sa deais é)
 
-Tá gach brath uirlis carnaithe trí shuíomh amháin:
+Ní thacaíonn na CLIanna seo a leanas le URL bonn saincheaptha ó dhúchas agus **ní liostaítear iad** ar leathanaigh CLI Code ná CLI Agents. Is iarrthóirí iad le haghaidh idircheapadh MITM i bplean 11:
 
-**`GET /acht/usaid_clii/uile-stadai`**
+| CLI                 | Cúis                                                                        |
+| ------------------- | --------------------------------------------------------------------------- |
+| windsurf            | BYOK teoranta do shamhlacha roghnaithe Claude + URL/comhartha corparáideach |
+| amp                 | Éiceachóras dúnta (Sourcegraph)                                             |
+| amazon-q / kiro-cli | Fíordheimhniú AWS SSO, gan URL saincheaptha                                 |
+| cowork              | Anthropic Desktop, gan críochphointe inchumraithe                           |
 
-- Údarú: `requireCliToolsAuth(request)` (cosúil le bealaí eile `/acht/usaid_clii/`)
-- Tuairisce: `Record<toolId, ToolBatchStatus>` (cineál: `src/sainroinnt/cineail/cliBatchStatus.ts`)
-- Straitéis: `Promise.all` thar gach uirlis, am 5s in aghaidh na huirlise
-- Taisce: LRU i gcuimhne innéacsaithe ag leabharmharc cumraíochta an chomhaid `mtime`. Díthaiscíonn an taisce nuair a athraíonn mtime. Athshuiteáil ar atosú an bhfreastalaí.
+Féach `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md` chun an chrostagairt iomlán a fháil.
 
-Cuma an tuairisce in aghaidh na huirlise:
+---
+
+## 5. API Braite Baisce
+
+Comhbhailítear brath na n-uirlisí uile trí chríochphointe aonair:
+
+**`GET /api/cli-tools/all-statuses`**
+
+- Fíordheimhniú: `requireCliToolsAuth(request)` (mar an gcéanna leis na bealaí `/api/cli-tools/` eile)
+- Filleann sé: `Record<toolId, ToolBatchStatus>` (cineál: `src/shared/types/cliBatchStatus.ts`)
+- Straitéis: `Promise.all` thar na huirlisí uile, teorainn ama 5 shoicind in aghaidh na huirlise
+- Taisce: LRU sa chuimhne arna innéacsú de réir `mtime` an chomhaid chumraíochta. Déantar an taisce a neamhbhailíochtú nuair a athraíonn `mtime`. Athshocraítear í nuair a atosaítear an freastalaí.
+
+Cruth an fhreagra in aghaidh na huirlise:
 
 ```ts
 interface ToolBatchStatus {
@@ -245,95 +239,99 @@ interface ToolBatchStatus {
     endpoint?: string | null;
     lastConfiguredAt?: string | null;
   };
-  error?: string; // glanta, gan lorgaí staacke
+  error?: string; // slánaithe, gan rianáin chruaiche
 }
 ```
 
-## 6. Lámhscríbhinní Socrúcháin do Uirlisí Nua
+---
 
-Tá bealaí API socrúcháin ar leith ag uirlisí nua le `configType: "custom"`:
+## 6. Láimhseálaithe Socruithe d'Uirlisí Nua
 
-| Bealach                                     | Uirlis                                                                   |
-| ------------------------------------------- | ------------------------------------------------------------------------ |
-| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)                                                  |
-| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)                                                  |
-| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, legacy)                                   |
-| `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, príomhúil + comhoibriú legacy `~/.deepseek`) |
-| `POST /api/cli-tools/smelt-settings`        | Smelt                                                                    |
-| `POST /api/cli-tools/pi-settings`           | Pi agent ríomhchláraithe                                                 |
-| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`)                    |
-| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + eochair `.env` ar leith)            |
+Tá bealaí tiomnaithe API socruithe ag uirlisí nua a bhfuil `configType: "custom"` acu:
 
-Úsáideann gach bealach `sanitizeErrorMessage()` le haghaidh freagraí earráide (Rial #12).
+| Bealach                                     | Uirlis                                                                       |
+| ------------------------------------------- | ---------------------------------------------------------------------------- |
+| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)                                                      |
+| `POST /api/cli-tools/jcode-settings`        | jcode (bratach --base-url)                                                   |
+| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, oidhreachta)                                  |
+| `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, príomhúil + sioncronú oidhreachta `~/.deepseek`) |
+| `POST /api/cli-tools/smelt-settings`        | Smelt                                                                        |
+| `POST /api/cli-tools/pi-settings`           | Gníomhaire códaithe Pi                                                       |
+| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`)                        |
+| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + eochair thiomnaithe `.env`)             |
+
+Úsáideann gach bealach `sanitizeErrorMessage()` le haghaidh freagraí earráide (Riail Dhocht #12).
 
 ---
 
-## 7. Imleabhar na leathanaigh painéil
+## 7. Ailtireacht Leathanaigh an Deais
 
-### CLI Code (`/dashboard/cli-code`)
+### Cóid CLI (`/dashboard/cli-code`)
 
 - `src/app/(dashboard)/dashboard/cli-code/page.tsx` — comhpháirt freastalaí
-- `src/app/(dashboard)/dashboard/cli-code/CliCodePageClient.tsx` — greille chliant
-- `src/app/(dashboard)/dashboard/cli-code/[id]/page.tsx` — leathanach mionsonraí uirlise
-- `src/app/(dashboard)/dashboard/cli-code/components/` — 12 charr uirlise speisialaithe + `ToolDetailClient.tsx`
+- `src/app/(dashboard)/dashboard/cli-code/CliCodePageClient.tsx` — greille cliaint
+- `src/app/(dashboard)/dashboard/cli-code/[id]/page.tsx` — leathanach sonraí uirlise
+- `src/app/(dashboard)/dashboard/cli-code/components/` — 12 chárta speisialaithe uirlise + `ToolDetailClient.tsx`
 
-### Ailtirí CLI (`/dashboard/cli-agents`)
+### Gníomhairí CLI (`/dashboard/cli-agents`)
 
 - `src/app/(dashboard)/dashboard/cli-agents/page.tsx` — comhpháirt freastalaí
-- `src/app/(dashboard)/dashboard/cli-agents/CliAgentsPageClient.tsx` — greille chliant
-- `src/app/(dashboard)/dashboard/cli-agents/[id]/page.tsx` — úsáideann arís `ToolDetailClient`
+- `src/app/(dashboard)/dashboard/cli-agents/CliAgentsPageClient.tsx` — greille cliaint
+- `src/app/(dashboard)/dashboard/cli-agents/[id]/page.tsx` — athúsáideann sé `ToolDetailClient`
 
-### Ailtirí ACP (`/dashboard/acp-agents`)
+### Gníomhairí ACP (`/dashboard/acp-agents`)
 
-- `src/app/(dashboard)/dashboard/acp-agents/page.tsx` — comhpháirt freastalaí (bhog ó `agents/`)
+- `src/app/(dashboard)/dashboard/acp-agents/page.tsx` — comhpháirt freastalaí (bogtha ó `agents/`)
 
 ### Comhpháirteanna Comhroinnte UI (`src/shared/components/cli/`)
 
-| Comhad                  | Cuspóir                                                      |
-| ----------------------- | ------------------------------------------------------------ |
-| `CliToolCard.tsx`       | Cárta stádas cliste (braite + cumraíocht + deireadh)         |
-| `CliConceptCard.tsx`    | Cárta míniúcháin coincheap leathanach                        |
-| `CliComparisonCard.tsx` | Cuideachta trí colún ar threochtaí CLI éagsúla               |
-| `BaseUrlSelect.tsx`     | Anuas roghnúcháin deireadh (Áitiúil/Sa scamall/Saincheaptha) |
-| `ApiKeySelect.tsx`      | Roghnóir eochair API                                         |
-| `ManualConfigModal.tsx` | Modhal mionsonraí cumraíochta in-inniúil                     |
+| Comhad                  | Cuspóir                                                   |
+| ----------------------- | --------------------------------------------------------- |
+| `CliToolCard.tsx`       | Cárta cliste stádais (brath + cumraíocht + críochphointe) |
+| `CliConceptCard.tsx`    | Cárta mínithe coincheapa do gach leathanach               |
+| `CliComparisonCard.tsx` | Comparáid trí cholún idir cineálacha CLI                  |
+| `BaseUrlSelect.tsx`     | Roghchlár anuas críochphointe (Áitiúil/Néal/Saincheaptha) |
+| `ApiKeySelect.tsx`      | Roghnóir eochrach API                                     |
+| `ManualConfigModal.tsx` | Módúil blúire cumraíochta is féidir a chóipeáil           |
 
-### Crostaigh Comhroinnte (`src/shared/hooks/cli/`)
+### Húca Comhroinnte (`src/shared/hooks/cli/`)
 
-| Comhad                    | Cuspóir                                                                        |
-| ------------------------- | ------------------------------------------------------------------------------ |
-| `useToolBatchStatuses.ts` | Faigheann `/api/cli-tools/all-statuses`, bainistíonn stádas lódála/athnuachana |
-
-## 8. i18n
-
-Ainmchláir nua curtha leis i bplean 14 F9:
-
-| Ainmchlar   | Cuspóir                                                                                        |
-| ----------- | ---------------------------------------------------------------------------------------------- |
-| `cliCommon` | Sreangáin choiteanna (lipéid chárta, téacsanna coincheap/comparáide, lipéid leathanach sonraí) |
-| `cliCode`   | Sreangáin leathanaigh CLI Code                                                                 |
-| `cliAgents` | Sreangáin leathanaigh CLI Agents                                                               |
-| `acpAgents` | Sreangáin leathanaigh ACP Agents                                                               |
-
-Tá aistriúcháin iomlána PT-BR agus EN ar fáil. Titeann 39 áit eile ar ais go huathoibríoch trí chumascú ar leibhéal ainmchlair i `src/i18n/request.ts`.
+| Comhad                    | Cuspóir                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------ |
+| `useToolBatchStatuses.ts` | Faigheann sé `/api/cli-tools/all-statuses`, bainistíonn sé staid an luchtaithe/athnuachana |
 
 ---
 
-## 9. Tús Tapaidh
+## 8. i18n
+
+Cuireadh spásanna ainmneacha nua leis i bplean 14 F9:
+
+| Spás ainmneacha | Cuspóir                                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------- |
+| `cliCommon`     | Teaghráin chomhroinnte (lipéid cártaí, téacsanna coincheapa/comparáide, lipéid leathanaigh sonraí) |
+| `cliCode`       | Teaghráin leathanach CLI Code                                                                      |
+| `cliAgents`     | Teaghráin leathanach CLI Agents                                                                    |
+| `acpAgents`     | Teaghráin leathanach ACP Agents                                                                    |
+
+Cuirtear aistriúcháin iomlána PT-BR agus EN ar fáil. Téann 39 logchaighdeán eile ar ais go EN go huathoibríoch trí chumasc ar leibhéal an spáis ainmneacha in `src/i18n/request.ts`.
+
+---
+
+## 9. Tús Tapa
 
 ### Céim 1 — Faigh Eochair API OmniRoute
 
 1. Oscail `/dashboard/api-manager` → **Cruthaigh Eochair API**
-2. Cuir ainm air (m.sh. `cli-cli-tools`) agus roghnaigh gach cead
-3. Cóipeáil an eochair — beidh uait í do gach CLI thíos
+2. Tabhair ainm di (m.sh. `cli-tools`) agus roghnaigh gach cead
+3. Cóipeáil an eochair — beidh sí de dhíth ort do gach CLI thíos
 
-> Is cosúil do d'eochair: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+> Is mar seo a bhíonn d'eochair: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
 
 ---
 
 ### Céim 2 — Suiteáil Uirlisí CLI
 
-Éilíonn gach uirlis atá bunaithe ar npm Node.js 22.22.2+ nó 24.x:
+Teastaíonn Node.js 22.22.2+ nó 24.x ó gach uirlis atá bunaithe ar npm:
 
 ```bash
 # Claude Code (Anthropic)
@@ -354,7 +352,7 @@ npm install -g kilocode
 # Qwen Code
 npm install -g @qwen-code/qwen-code
 
-# Google Gemini CLI (inshine le `omniroute run gemini` → /v1beta surface)
+# Google Gemini CLI (is féidir é a sheoladh trí `omniroute run gemini` → comhéadan /v1beta)
 npm install -g @google/gemini-cli
 
 # Aider
@@ -363,40 +361,40 @@ pip install aider-chat
 # Smelt
 cargo install smelt  # Bunaithe ar Rust
 
-# Pi coding agent
-# féach https://github.com/zechnerj/pi-coding-agent le haghaidh suiteála
+# Gníomhaire códúcháin Pi
+# féach https://github.com/zechnerj/pi-coding-agent le haghaidh treoracha suiteála
 
 # jcode
-# féach https://github.com/1jehuang/jcode le haghaidh suiteála
+# féach https://github.com/1jehuang/jcode le haghaidh treoracha suiteála
 ```
 
 ---
 
-### Céim 3 — Cumraigh Tríd an Deais
+### Céim 3 — Cumraigh tríd an Deais
 
-1. Téigh go `http://localhost:20128/dashboard/cli-code`
-2. Lorg d'uirlis sa ghreille
-3. Cliceáil an chun an leathanach sonraí an uirlis a oscailt
-4. Roghnaigh d'eochair API agus URL bonn
-5. Cliceáil **Cuir Cumraíocht i bhFeidhm** nó cóipeáil an blúr cumraíochta láimhe
+1. Téigh chuig `http://localhost:20128/dashboard/cli-code`
+2. Aimsigh d'uirlis sa ghreille
+3. Cliceáil an cárta chun leathanach sonraí na huirlise a oscailt
+4. Roghnaigh d'eochair API agus an bun-URL
+5. Cliceáil **Cuir an Chumraíocht i bhFeidhm** nó cóipeáil an blúire cumraíochta láimhe
 
 ---
 
-### Céim 4 — Socraigh Athróga Timpeallachta Comhshóisearacha
+### Céim 4 — Socraigh Athróga Timpeallachta Domhanda
 
 ```bash
-# Deireadh Uilíoch OmniRoute
+# Críochphointe Uilíoch OmniRoute
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128"
 export ANTHROPIC_AUTH_TOKEN="sk-your-omniroute-key"
-# Léann Gemini CLI GOOGLE_GEMINI_BASE_URL ag an BUNRUD (cuireann a SDK /v1beta/... leis féin)
+# Léann Gemini CLI GOOGLE_GEMINI_BASE_URL ag an bhFRÉAMH (cuireann a SDK /v1beta/... leis féin)
 export GOOGLE_GEMINI_BASE_URL="http://localhost:20128"
 export GEMINI_API_KEY="sk-your-omniroute-key"
 ```
 
-> Le haghaidh **freastalaí i gcéin**, cuir IP an fhreastalaí nó an fearann in ionad `localhost:20128`,
-> m.sh. `http://<do-ip-freastalaí>:20128`.
+> I gcás **cianfhreastalaí**, cuir IP nó fearann an fhreastalaí in ionad `localhost:20128`,
+> m.sh. `http://<your-server-ip>:20128`.
 
 ---
 
@@ -416,17 +414,15 @@ mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 EOF
 ```
 
-Bain úsáid as an bhunús geata comhtháite Anthropic le haghaidh Claude Code. Ná cuir `/v1` leis anseo.
+Úsáid fréamh aontaithe gheata Anthropic le haghaidh Claude Code. Ná cuir `/v1` leis anseo.
 
-**Tástáil:** `claude "abair haló"`
+**Tástáil:** `claude "say hello"`
 
 ---
 
 #### OpenAI Codex
 
-Léann Codex nua-aimseartha (v0.137+) `~/.codex/config.toml` amháin — tá an seanchomhad
-`config.yaml` san npm CLI seanaimseartha agus déantar neamhaird de go ciúnach. Fanann an
-eochair API san athróg timpeallachta `OMNIROUTE_API_KEY` (`env_key`), ní ann don chomhad:
+Ní léann Codex nua-aimseartha (v0.137+) ach `~/.codex/config.toml` — baineann an sean-`config.yaml` leis an CLI npm oidhreachta agus déantar neamhaird de gan foláireamh. Fanann an eochair API san athróg timpeallachta `OMNIROUTE_API_KEY` (`env_key`), agus ní chuirtear taobh istigh den chomhad í riamh:
 
 ```bash
 mkdir -p ~/.codex && cat > ~/.codex/config.toml << EOF
@@ -443,7 +439,7 @@ export OMNIROUTE_API_KEY="sk-your-omniroute-key"
 
 Tagairt iomlán (próifílí, `wire_api`, fuinneoga comhthéacs): [CODEX-CLI-CONFIGURATION.md](../guides/CODEX-CLI-CONFIGURATION.md).
 
-**Tástáil:** `codex "cad é 2+2?"`
+**Tástáil:** `codex "what is 2+2?"`
 
 ---
 
@@ -474,14 +470,14 @@ EOF
 
 **Tástáil:** `opencode`
 
-> Bain úsáid as `opencode run "do phrómpt" --model omniroute/claude-sonnet-4-5-thinking --variant high`
-> chun malairtí smaointeoireachta a sheoladh.
+> Úsáid `opencode run "your prompt" --model omniroute/claude-sonnet-4-5-thinking --variant high`
+> chun malairtí réasúnaíochta a sheoladh.
 
 ---
 
 #### Cline (CLI nó VS Code)
 
-**Modh CLI:**
+**Mód CLI:**
 
 ```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
@@ -493,16 +489,16 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 EOF
 ```
 
-**Modh VS Code:**
-Socruithe síneadh Cline → Soláthraí API: `OpenAI Compatible` → URL Bonn: `http://localhost:20128/v1`
+**Mód VS Code:**
+Socruithe eisínteachta Cline → Soláthraí API: `OpenAI Compatible` → Bun-URL: `http://localhost:20128/v1`
 
-Nó bain úsáid as deais OmniRoute → **Uirlisí CLI → Cline → Cuir Cumraíocht i bhFeidhm**.
+Nó úsáid deais OmniRoute → **Uirlisí CLI → Cline → Cuir an Chumraíocht i bhFeidhm**.
 
 ---
 
 #### KiloCode (CLI nó VS Code)
 
-**Modh CLI:**
+**Mód CLI:**
 
 ```bash
 kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
@@ -517,11 +513,11 @@ kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 }
 ```
 
-Nó bain úsáid as deais OmniRoute → **Uirlisí CLI → KiloCode → Cuir Cumraíocht i bhFeidhm**.
+Nó úsáid deais OmniRoute → **Uirlisí CLI → KiloCode → Cuir an Chumraíocht i bhFeidhm**.
 
 ---
 
-#### Continue (Síneadh VS Code)
+#### Continue (Eisínteacht VS Code)
 
 Cuir `~/.continue/config.yaml` in eagar:
 
@@ -535,20 +531,20 @@ models:
     default: true
 ```
 
-Atosaigh VS Code tar éis eagarthóireachta.
+Atosaigh VS Code tar éis na heagarthóireachta.
 
 ---
 
 #### VS Code Insiders (`chatLanguageModels.json`)
 
-Bain úsáid as seo nuair a bhíonn VS Code Insiders cumraithe le haghaidh múnlaí deireadh saincheaptha agus gur mhaith leat go n-oibreoidh OmniRoute gan réimse ceanntaca saincheaptha.
+Úsáid é seo nuair atá VS Code Insiders cumraithe do shamhlacha críochphointe saincheaptha agus nuair is mian leat go n-oibreodh OmniRoute gan réimse ceanntáisc saincheaptha.
 
 **Suíomh molta:**
 
 - Linux: `~/.config/Code - Insiders/User/chatLanguageModels.json`
 - Windows: `%APPDATA%/Code - Insiders/User/chatLanguageModels.json`
 
-**Sampla ag baint úsáide as an alias tokenizeáilte OmniRoute:**
+**Sampla ag úsáid ailias comharthaithe OmniRoute:**
 
 ```json
 [
@@ -572,206 +568,206 @@ Bain úsáid as seo nuair a bhíonn VS Code Insiders cumraithe le haghaidh múnl
 
 **Nótaí:**
 
-- Cuir `sk-your-omniroute-key` in ionad eochair API cruthaithe i OmniRoute.
-- Ba cheart an réimse `url` a bheith dírithe ar `/api/v1/vscode/{token}/chat/completions`.
-- Ba cheart an réimse `modelsUrl` a bheith dírithe ar `/api/v1/vscode/{token}/models`.
-- Is fearr an normal `/v1` + sream ceanntaca Bearer nuair a thacaíonn an cliant le ceanntacaí saincheaptha.
-- Is éifeachtúlacht comhoibriúcháin iad ionaid URL-inneáilte agus d'fhéadfadh go mbeidh siad le feiceáil i logaite an eagarthóra nó stair an seachthreorach.
+- Cuir eochair API a cruthaíodh in OmniRoute in ionad `sk-your-omniroute-key`.
+- Ba cheart don réimse `url` a bheith dírithe ar `/api/v1/vscode/{token}/chat/completions`.
+- Ba cheart don réimse `modelsUrl` a bheith dírithe ar `/api/v1/vscode/{token}/models`.
+- Tabhair tosaíocht don ghnáthshreabhadh `/v1` + ceanntásc Bearer nuair a thacaíonn an cliant le ceanntásca saincheaptha.
+- Is réiteach cúltaca comhoiriúnachta iad comharthaí atá leabaithe in URLanna agus d’fhéadfaidís a bheith le feiceáil i logaí an eagarthóra nó i stair an tseachfhreastalaí.
 
 ---
 
 #### Kiro CLI (Amazon)
 
 ```bash
-# Logáil isteach i d'eochair Kiro/AWS:
+# Logáil isteach i do chuntas AWS/Kiro:
 kiro-cli login
 
-# Úsáideann an CLI a dhóthain féin — ní gá OmniRoute mar chúlra don Kiro CLI féin.
-# Bain úsáid as kiro-cli in éineacht le OmniRoute le haghaidh uirlisí eile.
+# Úsáideann an CLI a fhíordheimhniú féin — ní theastaíonn OmniRoute mar inneall taca do Kiro CLI féin.
+# Úsáid kiro-cli in éineacht le OmniRoute le haghaidh uirlisí eile.
 kiro-cli status
 ```
 
-Le haghaidh an aip deisce **Kiro IDE**, bain úsáid as an deireadh MITM nochta ag OmniRoute
+Maidir le haip deisce **Kiro IDE**, úsáid an críochphointe MITM a nochtann OmniRoute
 faoi `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. Cliant Inmheánach OmniRoute
+## 10. CLI inmheánach OmniRoute
 
-Soláthraíonn an dénártha `omniroute` orduithe do shaolré an fhreastalaí, do shocrú, do dhiagnóisic, agus do bhainistíocht soláthraithe. Pointe iontrála: `bin/omniroute.mjs`.
+Soláthraíonn an dénártha `omniroute` orduithe do shaolré an fhreastalaí, don chumrú, do dhiagnóisic agus do bhainistiú soláthraithe. Pointe iontrála: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Tosaigh freastalaí (port réamhshocraithe 20128)
-omniroute setup                        # Draoi socraithe idirghníomhach
-omniroute doctor                       # Seiceáil cumraíocht, DB, poirt, am rite
-omniroute providers list               # Naisc soláthraithe cumraithe
+omniroute                              # Tosaigh an freastalaí (port réamhshocraithe 20128)
+omniroute setup                        # Treoraí idirghníomhach cumraithe
+omniroute doctor                       # Seiceáil an chumraíocht, an bunachar sonraí, na poirt agus an timpeallacht rite
+omniroute providers list               # Naisc chumraithe soláthraithe
 omniroute providers test-all           # Tástáil gach nasc gníomhach
-omniroute reset-password               # Athshocraigh pasfhocal riarthóra
-omniroute logs                         # Sruth logaí iarratais
-omniroute health                       # Sláinte mhionsonraithe (breakers, taisce, cuimhne)
-omniroute --version                    # Priontáil leagan
+omniroute reset-password               # Athshocraigh pasfhocal an riarthóra
+omniroute logs                         # Sruthaigh logaí iarratais
+omniroute health                       # Sláinte mhionsonraithe (scoradáin, taisce, cuimhne)
+omniroute --version                    # Priontáil an leagan
 omniroute --help                       # Taispeáin gach ordú
 ```
 
-### Socrú & Túsú
+### Cumrú & Túsú
 
 ```bash
-omniroute setup                        # Draoi socraithe idirghníomhach
-omniroute setup --non-interactive      # Mód CI/uathoibrithe (léann athróg env + bratacha)
-omniroute setup --password '<luach>'   # Socraigh pasfhocal riarthóra go díreach
+omniroute setup                        # Treoraí idirghníomhach cumraithe
+omniroute setup --non-interactive      # Mód CI/uathoibrithe (léann sé athróga timpeallachta + bratacha)
+omniroute setup --password '<value>'   # Socraigh pasfhocal an riarthóra go díreach
 omniroute setup --add-provider \
   --provider openai \
-  --api-key '<luach>' \
-  --test-provider                      # Cuir agus tástáil soláthraí in aon iarracht amháin
+  --api-key '<value>' \
+  --test-provider                      # Cuir soláthraí leis agus tástáil é in aon chéim amháin
 ```
 
-Athróga timpeallachta aitheanta do shocrú neamh-idirghníomhach:
+Athróga timpeallachta a aithnítear don chumrú neamh-idirghníomhach:
 
-| Var                 | Cuspóir                                                                  |
-| ------------------- | ------------------------------------------------------------------------ |
-| `OMNIROUTE_API_KEY` | Eochair API soláthraí (ceangailte le `--api-key` trí Commander `.env()`) |
-| `DATA_DIR`          | Sáraigh eolaire sonraí OmniRoute                                         |
+| Athróg              | Cuspóir                                                                      |
+| ------------------- | ---------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Eochair API an tsoláthraí (ceangailte le `--api-key` trí `.env()` Commander) |
+| `DATA_DIR`          | Sáraigh eolaire sonraí OmniRoute                                             |
 
-Seoltar gach ionchur neamh-idirghníomhach eile mar bhratacha, ní mar athróga timpeallachta:
+Cuirtear gach ionchur neamh-idirghníomhach eile ar aghaidh mar bhratacha, ní mar athróga timpeallachta:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(féach roghanna `omniroute setup` thuas).
+(féach ar na roghanna `omniroute setup` thuas).
 
 ### Diagnóisic
 
 ```bash
-omniroute doctor                       # Seiceáil cumraíocht, DB, poirt, am rite, cuimhne, beocht
-omniroute doctor --json                # JSON inléite ag meaisín
-omniroute doctor --no-liveness         # Scipeáil an taiscéalaí sláinte HTTP
-omniroute doctor --host 0.0.0.0        # Sáraigh óstach beochta
-omniroute doctor --liveness-url <url>  # Sáraigh URL iomlán críochphointe sláinte
+omniroute doctor                       # Seiceáil an chumraíocht, an bunachar sonraí, na poirt, an timpeallacht rite, an chuimhne agus an bheocht
+omniroute doctor --json                # JSON atá inléite ag meaisín
+omniroute doctor --no-liveness         # Scipeáil an tóireadóir sláinte HTTP
+omniroute doctor --host 0.0.0.0        # Sáraigh óstach na beoachta
+omniroute doctor --liveness-url <url>  # Sárú URL iomlán chríochphointe na sláinte
 ```
 
-Ritheann an dochtúir na seiceálacha seo: `Cumraíocht`, `Bunachar Sonraí`, `Stóráil/chriptiú`,
-`Infhaighteacht Poirt`, `Am rite Node`, `Dénártha dúchais` (better-sqlite3),
-`Cuimhne`, agus `Beocht fhreastalaí`. Scoireann sé le stádas neamh-nialasach má theipeann ar aon seiceáil.
+Ritheann an dochtúir na seiceálacha seo: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory`, agus `Server liveness`. Scoireann sé le cód neamh-nialasach más `fail` é aon seiceáil.
 
-### Bainistíocht Soláthraithe
+### Bainistiú Soláthraithe
 
 ```bash
 omniroute providers available                       # Catalóg soláthraithe OmniRoute
-omniroute providers available --search openai       # Scag catalóg de réir id/ainm/ailias/catagóir
+omniroute providers available --search openai       # Scag an chatalóg de réir aitheantais/ainm/ailias/catagóire
 omniroute providers available --category api-key    # Scag de réir catagóire (api-key, oauth, free, ...)
-omniroute providers available --json                # JSON inléite ag meaisín
+omniroute providers available --json                # JSON atá inléite ag meaisín
 
-omniroute providers list                            # Naisc soláthraithe cumraithe
+omniroute providers list                            # Naisc chumraithe soláthraithe
 omniroute providers list --json
 
-omniroute providers test <id|ainm>                  # Tástáil nasc cumraithe amháin
+omniroute providers test <id|name>                  # Tástáil nasc cumraithe amháin
 omniroute providers test-all                        # Tástáil gach nasc gníomhach
 omniroute providers validate                        # Bailíochtú struchtúrach áitiúil amháin
-omniroute providers add <soláthraí> --credential-env PROVIDER_KEY
+omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <soláthraí>                 # Sreabhadh OAuth atá ann cheana
-omniroute providers edit <id|ainm> --default-model <samhail>
-omniroute providers remove <id|ainm> --yes
+omniroute providers auth <provider>                 # Sreabhadh OAuth atá ann cheana
+omniroute providers edit <id|name> --default-model <model>
+omniroute providers remove <id|name> --yes
 ```
 
-Tá `providers add/import/auth/edit/remove` API-chéad agus mar sin oibríonn siad
-i gcoinne an chomhthéacs áitiúil nó cianda ghníomhach. Ba cheart ionchur dintiúr a úsáid
-`--credential-stdin` nó `--credential-env`; tuairiscíonn `--dry-run --json` ach
-láithreacht/cruth athscríofa. Léann `providers available` catalóg OmniRoute;
+Tá `providers add/import/auth/edit/remove` dírithe ar API ar dtús agus dá bhrí sin oibríonn siad i gcoinne
+an chomhthéacs ghníomhaigh áitiúil nó chianda. Ba cheart `--credential-stdin` nó
+`--credential-env` a úsáid le haghaidh ionchur dintiúr; ní thuairiscíonn `--dry-run --json` ach
+láithreacht/cruth folaithe. Léann `providers available` catalóg OmniRoute;
 coinníonn `providers list/test/test-all/validate` a n-iompar áitiúil SQLite agus
-ní theastaíonn an freastalaí a bheith ag rith.
+ní gá don fhreastalaí a bheith ag rith.
 
 ### Aisghabháil & Athshocrú
 
 ```bash
-omniroute reset-password                # Athshocraigh pasfhocal riarthóra (freisin: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Taispeáin rabhadh + dry-run d'athshocrú dintiúr criptithe
-omniroute reset-encrypted-columns --force  # Cuir dintiúir chriptithe ar neamhní i SQLite
+omniroute reset-password                # Athshocraigh pasfhocal an riarthóra (freisin: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Taispeáin rabhadh + rith thirim d'athshocrú dintiúr criptithe
+omniroute reset-encrypted-columns --force  # Cuir dintiúir chriptithe ar neamhní i SQLite i ndáiríre
 ```
 
-### Easpórtáil Dintiúr (⚠ láimhseáil go cúramach)
+### Easpórtáil Dintiúr (⚠ bí cúramach)
 
 ```bash
-omniroute auth export                                 # Taispeáin rabhadh + geata deimhnithe — gan rochtain DB
-omniroute auth export --force                          # Easpórtáil dintiúir DHICHRIPTITHE gach naisc chuig stdout mar JSON
-omniroute auth export --force --id <id>                 # Easpórtáil ach an nasc comhoiriúnach
-omniroute auth export --force --format env               # Astaigh línte OMNIROUTE_<SOLÁTHRAÍ>_<RÉIMSE>=<luach>
+omniroute auth export                                 # Taispeáin rabhadh + geata deimhnithe — gan rochtain ar an mbunachar sonraí
+omniroute auth export --force                          # Easpórtáil dintiúir DHÍCHRIPTITHE GACH naisc chuig stdout mar JSON
+omniroute auth export --force --id <id>                 # Easpórtáil an nasc comhoiriúnach amháin
+omniroute auth export --force --format env               # Aschuir línte OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Scríobh chuig comhad (cruthaithe le ceadanna 0600)
 ```
 
-Tá `auth export` **áitiúil amháin** (léamh díreach SQLite, gan ród HTTP) agus priontálann/scríobhann sé
-d'aon ghnó luachanna **gnáth-théacs** `apiKey`/`accessToken`/`refreshToken`/`idToken` — sin é an ghné, ní
-fabht é. Ní léitear aon rud ón mbunachar sonraí, agus ní dhíchriptítear aon rud, gan `--force`. Priontáiltear
-meirge rabhaidh ar stderr i gcónaí roimh aon ghnáth-théacs a astú. Éilíonn sé go mbeidh `STORAGE_ENCRYPTION_KEY`
-socraithe. Tuairiscítear réimse a theipeann air díchriptiú (seaneochair, criptitheacs truaillithe) mar
-`<réimse>DecryptFailed: true` in ionad an t-easpórtáil iomlán a chur ar ceal nó an earráid bhunúsach a sceitheadh.
+Tá `auth export` **áitiúil amháin** (léamh díreach SQLite, gan aon bhealach HTTP) agus priontálann/scríobhann sé
+luachanna **gnáth-théacs** `apiKey`/`accessToken`/`refreshToken`/`idToken` d'aon ghnó — sin an ghné, ní
+fabht. Ní léitear aon rud ón mbunachar sonraí, agus ní dhéantar aon rud a dhíchriptiú, gan `--force`. Priontáiltear
+meirge rabhaidh chuig stderr i gcónaí sula n-aschuirtear aon ghnáth-théacs. Éilíonn sé `STORAGE_ENCRYPTION_KEY` a
+bheith socraithe. Tuairiscítear réimse nach féidir a dhíchriptiú (eochair as dáta, sifrithéacs truaillithe) mar
+`<field>DecryptFailed: true` in ionad an easpórtáil iomlán a thobscor nó an earráid bhunúsach a sceitheadh.
 
 ### Fo-orduithe eile
 
-Glacann siad seo freastalaí OmniRoute atá ag rith, mura dtugtar a mhalairt faoi deara:
+Glacann siad seo leis go bhfuil freastalaí OmniRoute ag rith, mura luaitear a mhalairt:
 
 ```bash
-omniroute status                       # Stádas cuimsitheach am rite
-omniroute logs                         # Sruth logaí iarratais (--json, --search, --follow)
-omniroute config show                  # Taispeáin cumraíocht reatha
+omniroute status                       # Stádas cuimsitheach ag am rite
+omniroute logs                         # Sruthaigh logaí iarratais (--json, --search, --follow)
+omniroute config list                  # Taispeáin uirlisí CLI cumraithe
 
-omniroute provider list                # Liostaigh soláthraithe atá ar fáil (ailias de providers list)
+omniroute provider list                # Liostaigh na soláthraithe atá ar fáil (ailias de providers list)
 omniroute provider add                 # Cláraigh OmniRoute mar sholáthraí ar uirlis
 omniroute keys add | list | remove     # Bainistigh eochracha API
-omniroute models [soláthraí]            # Liostaigh samhlacha (--json, --search)
+omniroute models [provider]            # Liostaigh samhlacha (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Greamán cumraíochta + DB
-omniroute restore                      # Athchóirigh ó ghreamán roimhe seo
+omniroute backup                       # Cruthaigh seat den chumraíocht + DB
+omniroute restore                      # Athchóirigh ó sheat roimhe seo
 
-omniroute health                       # Sláinte mhionsonraithe (breakers, taisce, cuimhne)
-omniroute quota                        # Úsáid cuóta soláthraí
-omniroute cache                        # Stádas taisce
-omniroute cache clear                  # Glan taisce shéimeantach + síniú
+omniroute health                       # Sláinte mhionsonraithe (scoradáin, taisce, cuimhne)
+omniroute quota                        # Úsáid chuóta an tsoláthraí
+omniroute cache                        # Stádas na taisce
+omniroute cache clear                  # Glan taiscí séimeantacha + sínithe
 
-omniroute mcp status | restart         # Stádas freastalaí MCP / atosaigh
-omniroute a2a status | card            # Stádas freastalaí A2A / cárta gníomhaire
+omniroute mcp status | restart         # Stádas / atosú fhreastalaí MCP
+omniroute a2a status | card            # Stádas fhreastalaí A2A / cárta gníomhaire
 
 omniroute tunnel list | create | stop  # Bainistigh tolláin (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Iniúch / socraigh athróga env (sealadach)
+omniroute env show | get <k> | set <k> <v>  # Scrúdaigh / socraigh athróga timpeallachta (go sealadach)
 
-omniroute test                         # Tástáil deataigh nascachta soláthraí
+omniroute test                         # Tástáil thapa ar nascacht an tsoláthraí
 omniroute update                       # Seiceáil le haghaidh nuashonruithe
-omniroute completion                   # Gine críochnú sliogáin
+omniroute completion                   # Gin comhlánú blaoisce
 ```
 
 ### Bratacha coitianta
 
-| Bratach             | Cur Síos                                                 |
-| ------------------- | -------------------------------------------------------- |
-| `--no-open`         | Ná hoscail an brabhsálaí go huathoibríoch ar thosú       |
-| `--port <n>`        | Sáraigh an port API (réamhshocraithe 20128)              |
-| `--mcp`             | Rith mar fhreastalaí MCP thar stdio (d'IDEs)             |
-| `--non-interactive` | Mód CI (gan leideanna; léann ó env/bratacha)             |
-| `--json`            | Aschur JSON inléite ag meaisín (doctor, providers, etc.) |
-| `--help`, `-h`      | Taispeáin cabhair shonrach don ordú                      |
-| `--version`, `-v`   | Priontáil an leagan suiteáilte                           |
+| Bratach             | Cur síos                                                     |
+| ------------------- | ------------------------------------------------------------ |
+| `--no-open`         | Ná hoscail an brabhsálaí go huathoibríoch ar thosú           |
+| `--port <n>`        | Sáraigh an port API (20128 de réir réamhshocraithe)          |
+| `--mcp`             | Rith mar fhreastalaí MCP thar stdio (le haghaidh IDEanna)    |
+| `--non-interactive` | Mód CI (gan leideanna; léann sé ó env/bratacha)              |
+| `--json`            | Aschur JSON atá inléite ag meaisín (doctor, providers, srl.) |
+| `--help`, `-h`      | Taispeáin cabhair a bhaineann go sonrach leis an ordú        |
+| `--version`, `-v`   | Priontáil an leagan suiteáilte                               |
 
 ---
 
-##-pointí API ar fáil
+## Críochphointí API atá ar Fáil
 
-| Pointe intreach            | Cur síos                             | Úsáidte le haghaidh                  |
-| -------------------------- | ------------------------------------ | ------------------------------------ |
-| `/v1/chat/completions`     | Comhrá caighdeánach (gach soláthraí) | Gach uirlis nua-aimseartha           |
-| `/v1/responses`            | API Freagraí (formáid OpenAI)        | Codex, sreafaí oibre gníomhacha      |
-| `/v1/completions`          | Comhláidí téacs seanré               | Uirlisí níos sine ag úsáid `prompt:` |
-| `/v1/embeddings`           | Leabúcháin téacs                     | RAG, cuardach                        |
-| `/v1/images/generations`   | Giniúint íomhánna                    | GPT-Image, Flux, srl.                |
-| `/v1/audio/speech`         | Téacs-go-guth                        | ElevenLabs, OpenAI TTS               |
-| `/v1/audio/transcriptions` | Guth-go-téacs                        | Deepgram, AssemblyAI                 |
+| Críochphointe              | Cur Síos                             | Úsáid Le Haghaidh                       |
+| -------------------------- | ------------------------------------ | --------------------------------------- |
+| `/v1/chat/completions`     | Comhrá caighdeánach (gach soláthraí) | Gach uirlis nua-aimseartha              |
+| `/v1/responses`            | API Freagairtí (formáid OpenAI)      | Codex, sreafaí oibre gníomhairíocha     |
+| `/v1/completions`          | Comhlánuithe téacs oidhreachta       | Uirlisí níos sine a úsáideann `prompt:` |
+| `/v1/embeddings`           | Leabuithe téacs                      | RAG, cuardach                           |
+| `/v1/images/generations`   | Giniúint íomhánna                    | GPT-Image, Flux, etc.                   |
+| `/v1/audio/speech`         | Téacs-go-hurlabhra                   | ElevenLabs, OpenAI TTS                  |
+| `/v1/audio/transcriptions` | Urlabhra-go-téacs                    | Deepgram, AssemblyAI                    |
 
-Samplaí réidh le greamú le URL OmniRoute atá comharthaithe:
+Samplaí réidh le greamú le URL OmniRoute comharthaithe:
 
 ```txt
 Sampla comhartha: sk-a3ab3c080beaee3a-69f4a4-070d71af
 
-Bunús OpenAI caighdeánach: http://localhost:20128/v1
-Múnlaí VS Code: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/models
+Bunseoladh caighdeánach OpenAI: http://localhost:20128/v1
+Samhlacha VS Code: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/models
 Comhrá VS Code: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/chat/completions
-Freagraí VS Code: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/responses
+Freagairtí VS Code: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/responses
 Clibeanna Ollama: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/tags
 Comhrá Ollama: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/chat
 ```
@@ -780,12 +776,12 @@ Comhrá Ollama: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-
 
 ## Fabhtcheartú
 
-| Earráid                                            | Cúis                                | Réiteach                                              |
-| -------------------------------------------------- | ----------------------------------- | ----------------------------------------------------- |
-| `Diúltaíodh ceangal`                               | OmniRoute gan rith                  | `omniroute serve`                                     |
-| `401 Neamhúdaraithe`                               | Eochair API mícheart                | Seiceáil in `/dashboard/api-manager`                  |
-| `Níl aon teaglaim comhairthe`                      | Níl aon chomhleádh ródála gníomhach | Socraigh in `/dashboard/combos`                       |
-| Taispeánann an CLI "nach suiteáilte"               | Dénártha i PATH                     | Seiceáil `which <ordughlaoi>`                         |
-| Taispeánann an deais "gan bhrath" tar éis suiteála | Taisce as dáta                      | Cliceáil "⟳ Athnuaigh braite" san deais               |
-| Sean-nasc `/dashboard/cli-tools`                   | Leabharmharc roimh-v3.8.6           | Atreorú uathoibríoch go `/dashboard/cli-code` (308)   |
-| Sean-nasc `/dashboard/agents`                      | Leabharmharc roimh-v3.8.6           | Atreorú uathoibríoch go `/dashboard/acp-agents` (308) |
+| Earráid                                                        | Cúis                                 | Réiteach                                                          |
+| -------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------- |
+| `Connection refused`                                           | Níl OmniRoute ag rith                | `omniroute serve`                                                 |
+| `401 Unauthorized`                                             | Eochair API mhícheart                | Seiceáil in `/dashboard/api-manager`                              |
+| `No combo configured`                                          | Níl aon teaglaim ródaithe ghníomhach | Socraigh in `/dashboard/combos`                                   |
+| Taispeánann CLI "níl sé suiteáilte"                            | Níl an comhad dénártha in PATH       | Seiceáil `which <command>`                                        |
+| Taispeánann an deais "níor braitheadh é" tar éis é a shuiteáil | Taisce as dáta                       | Cliceáil "⟳ Athnuaigh an bhrath" sa deais                         |
+| Seannasc `/dashboard/cli-tools`                                | Leabharmharc roimh v3.8.6            | Atreoraítear go huathoibríoch chuig `/dashboard/cli-code` (308)   |
+| Seannasc `/dashboard/agents`                                   | Leabharmharc roimh v3.8.6            | Atreoraítear go huathoibríoch chuig `/dashboard/acp-agents` (308) |

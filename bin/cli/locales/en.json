@@ -256,6 +256,7 @@
     "max_restarts": "Max crash restarts within 30s before giving up (default: 2)",
     "tray": "Start in the system tray (desktop only, opt-in)",
     "no_tray": "Disable system tray icon",
+    "ready_timeout": "Readiness probe timeout in ms (also OMNIROUTE_READY_TIMEOUT_MS, default 60000)",
     "tls_cert": "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)",
     "tls_key": "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP server running ({transport})",
     "stopped": "MCP server stopped.",
     "restarted": "MCP server restarted.",
+    "stoppedHint": "Run `omniroute mcp enable` to turn it on.",
+    "enabled": "MCP server enabled.",
+    "disabled": "MCP server disabled.",
+    "enable": {
+      "description": "Enable the MCP server",
+      "transport": "Transport to use: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Disable the MCP server"
+    },
     "call": {
       "description": "Invoke an MCP tool directly",
       "args": "JSON arguments object (inline)",

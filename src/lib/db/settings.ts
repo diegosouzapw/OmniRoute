@@ -5,12 +5,21 @@
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
+import {
+  getProxyRefusalSeq,
+  hasProxyRefusals,
+  proxyEgressKey,
+  proxySetAsideSeq,
+} from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
+import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
 import { invalidateDbCache } from "./readCache";
 import { encrypt, decrypt } from "./encryption";
 import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./proxies";
+import { isEgressBucketedLockScope } from "@omniroute/open-sse/config/providerErrorRules.ts";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";
+import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import { type JsonRecord, toRecord } from "./settings/shared";
 import { resolveNoAuthSharedProviderProxy } from "./settings/noAuthProxyFallback";
 
@@ -21,11 +30,14 @@ type ProxyResolutionResult = {
   levelId: string | null;
   source?: string;
 };
-type ProxyResolutionCacheEntry = {
+// State observed when a resolution started; an entry is stored only if it still holds.
+type ProxyResolutionStamp = {
   generation: number;
   registryGeneration: number;
-  result: ProxyResolutionResult;
+  // Proxy refusal memory sequence (see isCachedPoolMemberSetAside).
+  refusalSeq: number;
 };
+type ProxyResolutionCacheEntry = ProxyResolutionStamp & { result: ProxyResolutionResult };
 
 const PROXY_RESOLUTION_CACHE_MAX_ENTRIES = 100;
 
@@ -43,17 +55,16 @@ export function bumpProxyConfigGeneration() {
 
 function cacheProxyResolution(
   connectionId: string,
-  generation: number,
-  registryGeneration: number,
+  stamp: ProxyResolutionStamp,
   result: ProxyResolutionResult
 ) {
-  if (generation !== proxyConfigGeneration) return;
-  if (registryGeneration !== getProxyRegistryGeneration()) return;
+  if (stamp.generation !== proxyConfigGeneration) return;
+  if (stamp.registryGeneration !== getProxyRegistryGeneration()) return;
   if (proxyResolutionCache.size >= PROXY_RESOLUTION_CACHE_MAX_ENTRIES) {
     const oldestKey = proxyResolutionCache.keys().next().value;
     if (oldestKey) proxyResolutionCache.delete(oldestKey);
   }
-  proxyResolutionCache.set(connectionId, { generation, registryGeneration, result });
+  proxyResolutionCache.set(connectionId, { ...stamp, result });
 }
 type ProxyMap = Record<string, ProxyValue>;
 
@@ -411,8 +422,8 @@ function migrateProxyEntry(value: unknown): JsonRecord | null {
       port:
         url.port ||
         (url.protocol === "socks5:" ? "1080" : url.protocol === "https:" ? "443" : "8080"),
-      username: url.username ? decodeURIComponent(url.username) : "",
-      password: url.password ? decodeURIComponent(url.password) : "",
+      username: url.username ? decodeUserinfo(url.username) : "",
+      password: url.password ? decodeUserinfo(url.password) : "",
     };
   } catch {
     const parts = value.split(":");
@@ -503,6 +514,55 @@ export async function deleteProxyForLevel(level: string, id: string | null) {
   return setProxyForLevel(level, id, null);
 }
 
+// With PROXY_SKIP_RECENTLY_FAILED on, a pool member set aside AFTER its resolution started is
+// not re-served from the cache: the cascade runs again so the pool can pick another member.
+// Once per set-aside event: the new entry records the sequence it started from, so a member
+// the pool hands back anyway (every member set aside) is then served from the cache instead
+// of costing a DB cascade on every request. Legacy single-proxy levels have no alternative
+// and stay cached, like a result without a proxy. The flag is read last, only on a real hit.
+function isCachedPoolMemberSetAside(entry: ProxyResolutionCacheEntry): boolean {
+  const { result } = entry;
+  if (!hasProxyRefusals() || result.source !== "registry" || result.proxy == null) return false;
+  const setAsideSeq = proxySetAsideSeq(proxyEgressKey(result.proxy));
+  if (setAsideSeq === null || setAsideSeq <= entry.refusalSeq) return false;
+  return isProxySkipRecentlyFailedEnabled();
+}
+
+// Providers that need a STABLE egress across requests, never rotated under them by this
+// cache-invalidation path (#13575): opencode's free-tier quota is bucketed by egress IP
+// (EGRESS_BUCKETED_LOCK_PROVIDERS — rotating would fragment one connection's quota across
+// several IPs), and grok-web's cf_clearance cookie is pinned to the IP/User-Agent/TLS
+// fingerprint that earned it (src/shared/providers/webSessionCredentials.ts "grok-web" —
+// rotating the egress would turn every subsequent request into a Cloudflare 403).
+function requiresStableEgress(provider: string | null): boolean {
+  if (!provider) return false;
+  return isEgressBucketedLockScope(provider) || provider.toLowerCase() === "grok-web";
+}
+
+// The chat-path cache (below) exists so a hot connection does not pay the full resolution
+// cascade on every request, but it must not FREEZE a rotating pool's choice: the registry
+// resolver (resolveProxyForScopeFromRegistry, called directly by every #6365 rotation test)
+// re-runs its strategy on every call and rotates correctly, while the cache here returned
+// the same first-resolved member forever (#13575). A cached member is stale whenever it came
+// from a live scope pool (source: "registry") and the connection is not in the two populations
+// above that need a pinned egress instead: the caller then falls through to the full cascade,
+// which re-invokes resolveProxyForScopeFromRegistry and applies the pool's own selection
+// strategy (round-robin advances, sticky holds until its window elapses, random reshuffles) —
+// no new strategy is introduced here.
+function isCachedPoolMemberDue(
+  entry: ProxyResolutionCacheEntry,
+  db: ReturnType<typeof getDbInstance>,
+  connectionId: string
+): boolean {
+  const { result } = entry;
+  if (result.source !== "registry" || result.proxy == null) return false;
+  const row = db
+    .prepare("SELECT provider FROM provider_connections WHERE id = ?")
+    .get(connectionId) as { provider?: string } | undefined;
+  const provider = typeof row?.provider === "string" ? row.provider : null;
+  return !requiresStableEgress(provider);
+}
+
 export async function resolveProxyForConnection(
   connectionId: string,
   apiKeyId?: string,
@@ -513,18 +573,22 @@ export async function resolveProxyForConnection(
     : apiKeyId
       ? `${connectionId}:${apiKeyId}`
       : connectionId;
-  const startGeneration = proxyConfigGeneration;
-  const startRegistryGeneration = getProxyRegistryGeneration();
+  const stamp: ProxyResolutionStamp = {
+    generation: proxyConfigGeneration,
+    registryGeneration: getProxyRegistryGeneration(),
+    refusalSeq: getProxyRefusalSeq(),
+  };
+  const db = getDbInstance();
   const cached = proxyResolutionCache.get(cacheKey);
   if (
     cached &&
-    cached.generation === startGeneration &&
-    cached.registryGeneration === startRegistryGeneration
+    cached.generation === stamp.generation &&
+    cached.registryGeneration === stamp.registryGeneration &&
+    !isCachedPoolMemberSetAside(cached) &&
+    !isCachedPoolMemberDue(cached, db, connectionId)
   ) {
     return cached.result;
   }
-
-  const db = getDbInstance();
 
   // Step 1: Check global proxyEnabled setting
   // Read only the proxyEnabled key for performance instead of loading all settings.
@@ -570,7 +634,7 @@ export async function resolveProxyForConnection(
   // fallback candidates from the proxy pool.
   if (connectionRecord && !connectionProxyEnabled) {
     const result: ProxyResolutionResult = { proxy: null, level: "direct", levelId: null };
-    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+    cacheProxyResolution(cacheKey, stamp, result);
     return result;
   }
 
@@ -631,7 +695,7 @@ export async function resolveProxyForConnection(
               levelId: apiKeyId,
               source: "api_key" as const,
             };
-            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+            cacheProxyResolution(cacheKey, stamp, result);
             return result;
           }
         }
@@ -644,7 +708,7 @@ export async function resolveProxyForConnection(
   // Step 3: Account-level registry
   const registryAccount = await resolveProxyForScopeFromRegistry("account", connectionId);
   if (registryAccount?.proxy) {
-    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryAccount);
+    cacheProxyResolution(cacheKey, stamp, registryAccount);
     return registryAccount;
   }
 
@@ -655,7 +719,7 @@ export async function resolveProxyForConnection(
       level: "key",
       levelId: connectionId,
     };
-    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+    cacheProxyResolution(cacheKey, stamp, result);
     return result;
   }
 
@@ -668,7 +732,7 @@ export async function resolveProxyForConnection(
         connectionProvider
       );
       if (registryProvider?.proxy) {
-        cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryProvider);
+        cacheProxyResolution(cacheKey, stamp, registryProvider);
         return registryProvider;
       }
     }
@@ -698,7 +762,7 @@ export async function resolveProxyForConnection(
 
           const registryCombo = await resolveProxyForScopeFromRegistry("combo", comboId);
           if (registryCombo?.proxy) {
-            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryCombo);
+            cacheProxyResolution(cacheKey, stamp, registryCombo);
             return registryCombo;
           }
 
@@ -708,7 +772,7 @@ export async function resolveProxyForConnection(
               level: "combo",
               levelId: comboId,
             };
-            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+            cacheProxyResolution(cacheKey, stamp, result);
             return result;
           }
         } catch {
@@ -724,7 +788,7 @@ export async function resolveProxyForConnection(
         level: "provider",
         levelId: connectionProvider,
       };
-      cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+      cacheProxyResolution(cacheKey, stamp, result);
       return result;
     }
   }
@@ -737,7 +801,7 @@ export async function resolveProxyForConnection(
   if (!connectionRecord) {
     const noAuthFallback = await resolveNoAuthSharedProviderProxy(config.providers, providerId);
     if (noAuthFallback) {
-      cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, noAuthFallback);
+      cacheProxyResolution(cacheKey, stamp, noAuthFallback);
       return noAuthFallback;
     }
   }
@@ -745,14 +809,14 @@ export async function resolveProxyForConnection(
   // Step 9: Global registry
   const registryGlobal = await resolveProxyForScopeFromRegistry("global");
   if (registryGlobal?.proxy) {
-    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryGlobal);
+    cacheProxyResolution(cacheKey, stamp, registryGlobal);
     return registryGlobal;
   }
 
   // Step 10: Legacy global
   if (config.global) {
     const result = { proxy: withFamilyDefault(config.global), level: "global", levelId: null };
-    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+    cacheProxyResolution(cacheKey, stamp, result);
     return result;
   }
 
@@ -768,12 +832,7 @@ export async function resolveProxyForConnection(
         fallback.proxy && typeof fallback.proxy === "object"
           ? { ...fallback, proxy: withFamilyDefault(fallback.proxy as ProxyValue) }
           : fallback;
-      cacheProxyResolution(
-        cacheKey,
-        startGeneration,
-        startRegistryGeneration,
-        normalizedFallback as ProxyResolutionResult
-      );
+      cacheProxyResolution(cacheKey, stamp, normalizedFallback as ProxyResolutionResult);
       return normalizedFallback;
     }
   } catch (err) {

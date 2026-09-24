@@ -276,10 +276,25 @@ export function invalidateModelCatalogCache(): void {
  * connection's by-ID cache entry is invalidated (the filter-keyed raw
  * cache must still be fully cleared since overlapping filter results
  * cannot be selectively invalidated).
+ *
+ * `skipModelCatalog` (#13389): the unified `/v1/models` builder
+ * (`src/app/api/v1/models/catalog.ts`) never reads routing/health-only
+ * connection fields — `backoffLevel`, `testStatus`, `rateLimitedUntil`,
+ * `lastError*`, `errorCode` — only structural fields such as
+ * `excludedModels` or enabled/disabled. A caller that only touched those
+ * routing fields (e.g. `resetConnectionBackoff`) should still bust the
+ * connections read cache but must NOT bump `modelCatalogCacheVersion`:
+ * doing so was busting the entire `/v1/models` response cache on every
+ * routine backoff auto-recovery during normal request routing, far more
+ * often than the cache's own 60s TTL / 30s stale-while-revalidate window
+ * intends, forcing frequent expensive cold rebuilds. Structural connection
+ * writes (create/update/delete) must keep the default (omit this flag) so
+ * the catalog still reflects them immediately.
  */
 export function invalidateDbCache(
   scope?: "settings" | "pricing" | "connections" | "combos" | "nodes" | "model-capabilities",
-  id?: string
+  id?: string,
+  opts?: { skipModelCatalog?: boolean }
 ): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
@@ -294,6 +309,7 @@ export function invalidateDbCache(
   }
   if (!scope || scope === "nodes") nodesCache.invalidate();
   if (!scope || scope === "combos") combosCacheVersion++;
+  if (opts?.skipModelCatalog) return;
   // Settings/connections/combos all feed the unified model catalog builder
   // (blockedProviders + hidePaidModels, provider connections + excludedModels,
   // combo definitions, respectively) — pricing does too, via isFreeModel().

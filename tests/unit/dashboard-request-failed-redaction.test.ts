@@ -17,7 +17,7 @@ const probePath = fileURLToPath(
 type ProbeResult = {
   delivered: RequestFailedPayload;
   replayMatches: boolean;
-  internalRawPreserved: boolean;
+  internalLogRedacted: boolean;
   writerDrained: boolean;
 };
 
@@ -89,7 +89,7 @@ test("persistAttemptLogs redacts request.failed delivery/replay but keeps its in
       "Error: Provider failed in <path> with api_key='[REDACTED]'"
     );
     assert.equal(result.replayMatches, true);
-    assert.equal(result.internalRawPreserved, true);
+    assert.equal(result.internalLogRedacted, true);
     assert.equal(result.writerDrained, true);
   } finally {
     // The probe exits only after draining/closing its writer and resetting its DB singleton.

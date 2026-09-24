@@ -24,10 +24,9 @@ import {
   type QuotaFetcher,
   type QuotaInfo,
 } from "./quotaPreflight.ts";
-import {
-  getAntigravityQuotaFamily,
-  getQuotaFetchScope,
-} from "./antigravityQuotaFamily.ts";
+import { getAntigravityQuotaFamily, getQuotaFetchScope } from "./antigravityQuotaFamily.ts";
+import { boundedMap } from "../../src/lib/quota/boundedMap.ts";
+import { toNumberOrNull } from "@/shared/utils/numeric";
 
 type UsageFetcher = (
   connection: Parameters<typeof getUsageForProvider>[0],
@@ -77,29 +76,19 @@ export function __resetGenericQuotaFetcherForTests(): void {
   pendingForceRefreshMiss.clear();
 }
 
-interface CacheEntry {
-  quota: QuotaInfo;
-  fetchedAt: number;
-}
-
-const cache = new Map<string, CacheEntry>();
+// One entry per (provider, connection); 4096 keeps even very large account pools
+// from ever evicting. An evicted entry only costs one extra upstream quota read.
+const cache = boundedMap<QuotaInfo>("quota-fetcher-cache", 4096, "ttl", CACHE_TTL_MS);
 
 function connectionKey(provider: string, connectionId: string): string {
   return `${provider.trim()}::${connectionId.trim()}`;
 }
 
-function quotaCacheScope(
-  provider: string,
-  requestedModel?: string | null
-): string {
+function quotaCacheScope(provider: string, requestedModel?: string | null): string {
   return getQuotaFetchScope(provider, requestedModel);
 }
 
-function cacheKey(
-  provider: string,
-  connectionId: string,
-  requestedModel?: string | null
-): string {
+function cacheKey(provider: string, connectionId: string, requestedModel?: string | null): string {
   return `${connectionKey(provider, connectionId)}::${quotaCacheScope(provider, requestedModel)}`;
 }
 
@@ -125,22 +114,14 @@ function markPendingForceRefreshMiss(key: string): void {
   if (isPendingForceRefresh(key)) pendingForceRefreshMiss.set(key, Date.now());
 }
 
-function cachedQuotaIfFresh(
-  key: string,
-  forceRefresh: boolean,
-  now: number
-): QuotaInfo | null {
+function cachedQuotaIfFresh(key: string, forceRefresh: boolean, now: number): QuotaInfo | null {
   if (forceRefresh) return null;
-  const cached = cache.get(key);
-  if (cached && now - cached.fetchedAt < CACHE_TTL_MS) return cached.quota;
+  const cached = cache.get(key, now);
+  if (cached !== undefined) return cached;
   return null;
 }
 
-function isForceRefreshMissCooling(
-  key: string,
-  forceRefresh: boolean,
-  now: number
-): boolean {
+function isForceRefreshMissCooling(key: string, forceRefresh: boolean, now: number): boolean {
   if (!forceRefresh) return false;
   const missedAt = pendingForceRefreshMiss.get(key);
   return missedAt !== undefined && now - missedAt < CACHE_TTL_MS;
@@ -150,18 +131,17 @@ function isForceRefreshMissCooling(
 function isConcurrentForceRefresh(key: string, refreshStamp: number | undefined): boolean {
   const currentStamp = pendingForceRefresh.get(key);
   if (currentStamp === refreshStamp) return false;
-  return (
-    currentStamp !== undefined &&
-    Date.now() - currentStamp <= PENDING_FORCE_REFRESH_TTL_MS
-  );
+  return currentStamp !== undefined && Date.now() - currentStamp <= PENDING_FORCE_REFRESH_TTL_MS;
 }
 
-// 5min — same as Codex. Expiry is lazy on read (`isPendingForceRefresh`);
-// this timer only reaps keys nobody fetches after the 5min TTL.
+// 5min — same TTL as the original reap (CACHE_TTL_MS * 5). Expiry lazy on read
+// (boundedMap ttl policy); this timer only keeps the sweep of
+// pendingForceRefresh (5-min TTL, no systematic lazy read) + an opportunistic purge
+// of stale cache entries along the way (get auto-purges).
 const _cacheCleanup = setInterval(() => {
   const now = Date.now();
-  for (const [key, entry] of cache) {
-    if (now - entry.fetchedAt > CACHE_TTL_MS * 5) cache.delete(key);
+  for (const key of cache.keys()) {
+    cache.get(key);
   }
   for (const key of pendingForceRefresh.keys()) {
     dropExpiredPendingForceRefresh(key, now);
@@ -169,15 +149,6 @@ const _cacheCleanup = setInterval(() => {
 }, 5 * 60_000);
 if (typeof _cacheCleanup === "object" && "unref" in _cacheCleanup) {
   (_cacheCleanup as { unref?: () => void }).unref?.();
-}
-
-function toNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = parseFloat(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return null;
 }
 
 /**
@@ -197,15 +168,15 @@ function percentUsedForQuota(entry: unknown): number | null {
   // otherwise one unreported model falsely exhausts the whole connection.
   if (q.fractionReported === false) return null;
 
-  const remainingPercentage = toNumber(q.remainingPercentage);
+  const remainingPercentage = toNumberOrNull(q.remainingPercentage);
   if (remainingPercentage !== null) {
     // remainingPercentage is 0-100 in the usage.ts contract.
     const used = (100 - Math.max(0, Math.min(100, remainingPercentage))) / 100;
     return used;
   }
 
-  const used = toNumber(q.used);
-  const total = toNumber(q.total);
+  const used = toNumberOrNull(q.used);
+  const total = toNumberOrNull(q.total);
   if (used !== null && total !== null && total > 0) {
     return Math.max(0, Math.min(1, used / total));
   }
@@ -239,6 +210,28 @@ type UsageToQuotaContext = {
   requestedModel?: string | null;
   provider?: string | null;
 };
+
+function aggregateGroupedQuotaValues(
+  windows: Record<string, { percentUsed: number; resetAt: string | null }>
+): { percentUsed: number; resetAt: string | null } {
+  const effectiveByBase = new Map<string, { percentUsed: number; resetAt: string | null }>();
+  for (const [key, entry] of Object.entries(windows)) {
+    const base = key.endsWith("_freetrial") ? key.slice(0, -10) : key;
+    const cur = effectiveByBase.get(base);
+    if (!cur || entry.percentUsed < cur.percentUsed) {
+      effectiveByBase.set(base, { percentUsed: entry.percentUsed, resetAt: entry.resetAt ?? null });
+    }
+  }
+  let percentUsed = 0;
+  let resetAt: string | null = null;
+  for (const eff of effectiveByBase.values()) {
+    if (eff.percentUsed > percentUsed) {
+      percentUsed = eff.percentUsed;
+      resetAt = eff.resetAt;
+    }
+  }
+  return { percentUsed, resetAt };
+}
 
 export function convertUsageToQuotaInfo(
   usage: unknown,
@@ -288,16 +281,7 @@ export function convertUsageToQuotaInfo(
   if (Object.keys(providerScopedWindows).length === 0) return null;
 
   const normalized = normalizeQuotaWindows(providerScopedWindows, context);
-  const scopedEntries = Object.values(providerScopedWindows);
-  const percentUsed = scopedEntries.reduce(
-    (worst, entry) => Math.max(worst, entry.percentUsed),
-    0
-  );
-  const resetAt =
-    scopedEntries.reduce<{ percentUsed: number; resetAt: string | null } | null>(
-      (worst, entry) => (!worst || entry.percentUsed > worst.percentUsed ? entry : worst),
-      null
-    )?.resetAt ?? null;
+  const { percentUsed, resetAt } = aggregateGroupedQuotaValues(providerScopedWindows);
 
   return {
     used: 0,
@@ -322,10 +306,7 @@ function isAntigravityProvider(provider: string | null | undefined): boolean {
   return provider === "antigravity" || provider === "agy";
 }
 
-function antigravityWeeklyWindowMatchesFamily(
-  key: string,
-  family: "gemini" | "claude"
-): boolean {
+function antigravityWeeklyWindowMatchesFamily(key: string, family: "gemini" | "claude"): boolean {
   if (!key.endsWith("_weekly")) return false;
   return family === "gemini" ? key === "gemini_weekly" : key === "claude_gpt_weekly";
 }
@@ -354,11 +335,11 @@ function normalizeQuotaWindows(
       : null;
 
   // Explicit time windows (canonical and legacy aliases).
-  const fiveHourWindow = windows["session (5h)"] || windows["session"];
+  const fiveHourWindow = windows["session (5h)"] || windows["session"] || windows.code_5h;
   if (fiveHourWindow && !normalized.window5h) {
     normalized.window5h = fiveHourWindow;
   }
-  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"];
+  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"] || windows.code_7d;
   if (sevenDayWindow && !normalized.window7d) {
     normalized.window7d = sevenDayWindow;
   }
@@ -456,7 +437,7 @@ export const fetchGenericQuota: QuotaFetcher = async (connectionId, connection) 
   const unscopedQuota = convertUsageToQuotaInfo(usage, { provider });
   registerQuotaWindows(provider, Object.keys(unscopedQuota?.windows || quota.windows || {}));
 
-  cache.set(key, { quota, fetchedAt: Date.now() });
+  cache.set(key, quota);
   return quota;
 };
 

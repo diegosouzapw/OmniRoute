@@ -42,7 +42,26 @@ async function resetStorage() {
 }
 
 function makeRequest(url: string, options?: RequestInit): NextRequest {
-  return new Request(url, options) as unknown as NextRequest;
+  // These tests exercise the handler in the fresh-install open mode (no password
+  // configured, requireLogin default). That mode is loopback-only, and loopback is
+  // decided from the real peer — never from the `http://localhost` URL
+  // (GHSA-7pq4-8pvv-rx7r) — so give the direct-call Request a loopback socket peer.
+  return Object.assign(new Request(url, options), { ip: "127.0.0.1" }) as unknown as NextRequest;
+}
+
+function postVault(vaultPath: string): Promise<Response> {
+  return route.POST(
+    makeRequest("http://localhost/api/settings/obsidian/webdav", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ vaultPath }),
+    })
+  );
+}
+
+async function errorMessageOf(res: Response): Promise<string | undefined> {
+  const body = (await res.json()) as Record<string, unknown>;
+  return (body.error as Record<string, unknown> | undefined)?.message as string | undefined;
 }
 
 test.beforeEach(async () => {
@@ -189,6 +208,71 @@ test("POST with a non-existent path → 400, body does NOT contain a stack trace
     !errorMsg || !errorMsg.includes("at /"),
     `Error message should not contain a stack trace, got: ${errorMsg}`
   );
+});
+
+// ── GHSA-7pq4-8pvv-rx7r — the vault root must never expose the data directory ──
+//
+// The WebDAV file service (scripts/dev/webdav-handler.mjs) serves the vault root
+// to anyone holding the Basic credentials, before Next.js and outside the authz
+// pipeline. Pointing it at DATA_DIR (or a parent of it) hands out server.env —
+// JWT_SECRET / STORAGE_ENCRYPTION_KEY / API_KEY_SECRET — and storage.sqlite.
+
+test("POST rejects a vaultPath that IS the data directory → 400 (GHSA-7pq4-8pvv-rx7r)", async () => {
+  const res = await postVault(TEST_DATA_DIR);
+  assert.equal(res.status, 400);
+  const msg = await errorMessageOf(res);
+  assert.ok(msg && /data directory/i.test(msg), `expected a data-directory refusal, got: ${msg}`);
+  assert.ok(!msg.includes("at /"), "error must not carry a stack trace");
+  assert.ok(!msg.includes(TEST_DATA_DIR), "error must not echo the data directory location");
+  assert.equal(obsidianDb.getWebdavEnabled(), false, "WebDAV must stay disabled");
+  assert.equal(obsidianDb.getObsidianVaultPath(), null, "vault path must not be stored");
+});
+
+test("POST rejects a vaultPath that CONTAINS the data directory (parent dir) → 400 (GHSA-7pq4-8pvv-rx7r)", async () => {
+  const res = await postVault(path.dirname(TEST_DATA_DIR));
+  assert.equal(res.status, 400);
+  const msg = await errorMessageOf(res);
+  assert.ok(msg && /data directory/i.test(msg), `expected a data-directory refusal, got: ${msg}`);
+  assert.equal(obsidianDb.getWebdavEnabled(), false);
+});
+
+test("POST rejects a vaultPath INSIDE the data directory → 400 (GHSA-7pq4-8pvv-rx7r)", async () => {
+  const inside = path.join(TEST_DATA_DIR, "db_backups");
+  fs.mkdirSync(inside, { recursive: true });
+  const res = await postVault(inside);
+  assert.equal(res.status, 400);
+  assert.equal(obsidianDb.getWebdavEnabled(), false);
+});
+
+test("POST rejects a symlink that resolves to the data directory → 400 (GHSA-7pq4-8pvv-rx7r)", async () => {
+  const linkParent = fs.mkdtempSync(path.join(os.tmpdir(), "omni-vault-link-"));
+  const link = path.join(linkParent, "vault");
+  try {
+    fs.symlinkSync(TEST_DATA_DIR, link, "dir");
+  } catch {
+    fs.rmSync(linkParent, { recursive: true, force: true });
+    return; // platform without symlink permission — nothing to assert
+  }
+  try {
+    const res = await postVault(link);
+    assert.equal(res.status, 400);
+    assert.equal(obsidianDb.getWebdavEnabled(), false);
+  } finally {
+    fs.rmSync(linkParent, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("POST with a directory unrelated to the data directory still succeeds (sibling in tmp)", async () => {
+  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-vault-ok-"));
+  try {
+    const res = await postVault(vaultDir);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as Record<string, unknown>;
+    assert.equal(body.vaultPath, path.resolve(vaultDir));
+    assert.equal(obsidianDb.getWebdavEnabled(), true);
+  } finally {
+    fs.rmSync(vaultDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
 });
 
 test("POST with invalid body (missing vaultPath) → 400", async () => {

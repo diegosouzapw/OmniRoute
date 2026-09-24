@@ -41,7 +41,11 @@ test("all cli-tools route handlers require the shared management auth guard", ()
     const authCount = (
       content.match(/const authError = await requireCliToolsAuth\(request\);/g) || []
     ).length;
-    const returnCount = (content.match(/if \(authError\) return authError;/g) || []).length;
+    const returnCount = (
+      content.match(
+        /if \(authError\) (?:return authError;|\{\s*authError\.headers\.set\("cache-control", "no-store"\);\s*return authError;\s*\})/g
+      ) || []
+    ).length;
 
     assert.ok(handlerCount > 0, `${relPath} should export at least one route handler`);
     assert.ok(

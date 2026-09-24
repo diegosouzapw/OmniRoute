@@ -10,6 +10,7 @@ import { getCliToken, CLI_TOKEN_HEADER } from "../utils/cliToken.mjs";
 import { printHeading } from "../io.mjs";
 import { t } from "../i18n.mjs";
 import { readDatabaseHealth, readEncryptedCredentialSamples } from "../sqlite.mjs";
+import { getCrashLogPath } from "../runtime/processSupervisor.mjs";
 
 const STATIC_SALT = "omniroute-field-encryption-v1";
 const KEY_LENGTH = 32;
@@ -380,6 +381,33 @@ function checkMemory() {
   });
 }
 
+// #13538: surfaces the supervisor's give-up crash record (persisted by
+// ServerSupervisor.persistCrashLog(), bin/cli/runtime/processSupervisor.mjs)
+// so a user whose `--tray` worker died silently (detached, stdio:"ignore")
+// has something concrete `doctor` can point at without needing `--log`.
+function checkCrashLog() {
+  const crashLogPath = getCrashLogPath();
+  if (!fs.existsSync(crashLogPath)) {
+    return ok("Crash log", "No supervisor crash record found", { crashLogPath });
+  }
+
+  try {
+    const stat = fs.statSync(crashLogPath);
+    const contents = fs.readFileSync(crashLogPath, "utf8");
+    const lastEntry = contents.split("\n").filter(Boolean).slice(-6).join("\n");
+    return warn(
+      "Crash log",
+      `Supervisor recorded a give-up crash at ${crashLogPath} (last modified ${stat.mtime.toISOString()})`,
+      { crashLogPath, modifiedAt: stat.mtime.toISOString(), tail: lastEntry }
+    );
+  } catch (error) {
+    return warn("Crash log", `Crash record exists at ${crashLogPath} but could not be read`, {
+      crashLogPath,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
@@ -579,6 +607,7 @@ export async function collectDoctorChecks(context = {}, options = {}) {
   checks.push(await checkNodeRuntime(rootDir));
   checks.push(await checkNativeBinary(rootDir));
   checks.push(checkMemory());
+  checks.push(checkCrashLog());
 
   if (!options.skipLiveness) {
     checks.push(await checkServerLiveness(options));

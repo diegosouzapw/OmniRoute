@@ -21,9 +21,8 @@ export async function scheduleQuotaShareConsumption(args: {
 }): Promise<void> {
   if (!args.apiKeyId || !args.connectionId) return;
   try {
-    const { scheduleRecordConsumption, buildConsumptionCost } = await import(
-      "@/lib/quota/spendRecorder"
-    );
+    const { scheduleRecordConsumption, buildConsumptionCost } =
+      await import("@/lib/quota/spendRecorder");
     scheduleRecordConsumption(
       {
         apiKeyId: args.apiKeyId,

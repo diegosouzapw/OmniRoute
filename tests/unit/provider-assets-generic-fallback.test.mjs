@@ -17,7 +17,6 @@ const LOCAL_SVG_IDS_WITHOUT_PROVENANCE = [
   "byteplus",
   "cartesia",
   "cheaperinference",
-  "chipotle",
   "clarifai",
   "command-code",
   "digitalocean",
@@ -178,9 +177,9 @@ const AUDITED_REFERENCE_FILES = [
   ...referenceRoots.flatMap((directory) => collectTextFiles(join(root, directory))),
 ];
 
-test("provider bundle retires exactly the 79 unresolved assets and keeps the generic icon", () => {
-  assert.equal(retiredAssetNames.length, 79);
-  assert.equal(new Set(retiredAssetNames).size, 79);
+test("provider bundle retires exactly the 78 unresolved assets and keeps the generic icon", () => {
+  assert.equal(retiredAssetNames.length, 78);
+  assert.equal(new Set(retiredAssetNames).size, 78);
 
   for (const assetName of retiredAssetNames) {
     assert.equal(

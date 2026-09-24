@@ -1,30 +1,21 @@
-# CODEBASE_DOCUMENTATION (Malti)
+# OmniRoute Codebase Documentation (Malti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇦 [bs](../../../bs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
-
-title: "Dokumentazzjoni tal-Bażi tal-Kodiċi OmniRoute"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# Dokumentazzjoni tal-Bażi tal-Kodiċi OmniRoute
 
 > **Verżjoni:** v3.8.51
 > **Aġġornat l-aħħar:** 2026-06-28
-> **Adience:** Inġiniera li jikkontribwixxu għal OmniRoute jew jibnu integrazzjonijiet fuqu.
+> **Udjenza:** Inġiniera li jikkontribwixxu għal OmniRoute jew li jibnu integrazzjonijiet fuqu.
 >
-> Għal skemi ta' arkitettura ta' livell għoli u r-raġuni wara kull sottosistema, aqra
-> [ARCHITECTURE.md](./ARCHITECTURE.md). Għal tagħtijiet fil-fond fuq sottosistemi individwali
-> (Kumpju Awtomatiku, server MCP, server A2A, Ħiliet, Memorja, Aġenti tal-Nuvla, Reżiljenza,
-> Kompressjoni, eċċ.) ara l-fajls dedikati tagħhom f'din il-folder `docs/`.
+> Għal dijagrammi arkitettoniċi ta’ livell għoli u r-raġunament wara kull sottosistema, aqra
+> [ARCHITECTURE.md](./ARCHITECTURE.md). Għal analiżi dettaljata ta’ sottosistemi individwali
+> (Auto Combo, server MCP, server A2A, Skills, Memory, Cloud Agents, Resilience,
+> Compression, eċċ.) ara l-fajls iddedikati għalihom f’dan id-direttorju `docs/`.
 
-Dan il-fajl jiddeskrivi **dak li hemm fil-repositoriesllum** biex inġinier ġdid
-jista' jinnaviga s-siġra, jifhem il-qaċċat tal-ħin reali, u jkun jaf fejn iżid il-kodiċi
-bla ma joħloq moduli ġodda.
+Dan il-fajl jiddeskrivi **dak li jeżisti fir-repożitorju llum** sabiex inġinier ġdid
+ikun jista’ jinnaviga s-siġra, jifhem is-saffi waqt l-eżekuzzjoni, u jkun jaf fejn għandu jżid il-kodiċi
+mingħajr ma joħloq moduli ġodda.
 
 ---
 
@@ -444,133 +435,136 @@ Maqsum f'sotto-direttoriji ffukati:
 
 ---
 
-## 4. `open-sse/` — Spazju tax-xogħol tal-magna ta' l-streaming
+## 4. `open-sse/` — Spazju tax-xogħol tal-magna tal-istreaming
 
-Workspace npm separat ippubblikat bħala `@omniroute/open-sse`. Jippossjedi l-ipproċessar tal-ħtiġijiet, l-esekuturi, it-tradutturi, is-servizzi, it-trasformatur, u s-servizz MCP.
+Spazju tax-xogħol npm separat ippubblikat bħala `@omniroute/open-sse`. Huwa responsabbli għall-ipproċessar
+tat-talbiet, l-eżekuturi, it-tradutturi, is-servizzi, it-transformer, u s-server MCP.
 
 ```
 open-sse/
 ├── index.ts                Esportazzjonijiet pubbliċi
-├── package.json           .Manifest tal-workspace
+├── package.json            Manifest tal-ispazju tax-xogħol
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 Reġistri tal-fornituri, profili tal-intestaturi, identità, …
-├── handlers/               Trattaturi tal-ħtiġijiet (chat, embeddings, audio, stampa, …)
-├── executors/              108 ese-kuturi HTTP speċifiċi għal fornituri
-├── translator/             Konverżjoni tal-format (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
-├── transformer/            Trasformatur ta' l-stream ta' l-API Responses ↔ Chat Completions
-├── services/               80+ moduli tas-servizz (kombinazzjonijiet, fallback, kwoti, identità, …)
-├── utils/                  Għajnuniet ta' l-streaming, klijent TLS, AWS SigV4, proxy fetch, …
-└── mcp-server/             Servizz MCP (3 trasporti, 33 skop, 110 għodda)
+├── config/                 Reġistri tal-fornituri, profili tal-headers, identità, …
+├── handlers/               Maniġġaturi tat-talbiet (chat, embeddings, awdjo, immaġni, …)
+├── executors/              108 eżekuturi HTTP speċifiċi għall-fornituri
+├── translator/             Konverżjoni tal-formati (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
+├── transformer/            Transformer tal-istream Responses API ↔ Chat Completions
+├── services/               80+ modulu tas-servizzi (kombinazzjonijiet, fallback, kwoti, identità, …)
+├── utils/                  Għodod awżiljarji għall-istreaming, klijent TLS, AWS SigV4, proxy fetch, …
+└── mcp-server/             Server MCP (3 mezzi ta’ trasport, 33 ambitu, 110 għodod)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| Handler                 | Għan                                                                                         |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
-| `chatCore.ts`           | Pipeline prinċipali ta' chat (cache, limit ta' rata, rotta kombinata, dispaċċ tal-ese-kutur) |
-| `responsesHandler.ts`   | Daħla tal-API Responses ta' OpenAI                                                           |
-| `embeddings.ts`         | Embeddings                                                                                   |
-| `imageGeneration.ts`    | Ġenerazzjoni ta' stampi                                                                      |
-| `audioSpeech.ts`        | Text-to-speech                                                                               |
-| `audioTranscription.ts` | Speech-to-text                                                                               |
-| `videoGeneration.ts`    | Ġenerazzjoni tal-vidjo                                                                       |
-| `musicGeneration.ts`    | Ġenerazzjoni tal-mużika                                                                      |
-| `rerank.ts`             | Reranking                                                                                    |
-| `moderations.ts`        | Moderation                                                                                   |
-| `search.ts`             | Tiftix fuq il-web                                                                            |
-| `sseParser.ts`          | Parsur tal-avvenimenti SSE                                                                   |
-| `usageExtractor.ts`     | Tneħħi l-konturi tat-tokens minn streams upstream                                            |
-| `responseSanitizer.ts`  | Neħħija tal-ħoss speċifiku għal fornitur                                                     |
-| `responseTranslator.ts` | Qafk bejn ir-risposta tal-fornitur u s-saff tat-tarduktor                                    |
+| Maniġġatur              | Għan                                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `chatCore.ts`           | Pipeline ewlieni taċ-chat (cache, limitu tar-rata, routing tal-kombinazzjonijiet, attivazzjoni tal-eżekutur) |
+| `responsesHandler.ts`   | Punt tad-dħul għall-OpenAI Responses API                                                                     |
+| `embeddings.ts`         | Embeddings                                                                                                   |
+| `imageGeneration.ts`    | Ġenerazzjoni tal-immaġnijiet                                                                                 |
+| `audioSpeech.ts`        | Test-għal-diskors                                                                                            |
+| `audioTranscription.ts` | Diskors-għal-test                                                                                            |
+| `videoGeneration.ts`    | Ġenerazzjoni tal-vidjows                                                                                     |
+| `musicGeneration.ts`    | Ġenerazzjoni tal-mużika                                                                                      |
+| `rerank.ts`             | Klassifikazzjoni mill-ġdid                                                                                   |
+| `moderations.ts`        | Moderazzjoni                                                                                                 |
+| `search.ts`             | Tiftix fuq il-web                                                                                            |
+| `sseParser.ts`          | Parser tal-avvenimenti SSE                                                                                   |
+| `usageExtractor.ts`     | Jiġbed l-għadd tat-tokens mill-istreams upstream                                                             |
+| `responseSanitizer.ts`  | Ineħħi l-istorbju speċifiku għall-fornitur                                                                   |
+| `responseTranslator.ts` | Konnessjoni bejn ir-rispons tal-fornitur u s-saff tat-traduzzjoni                                            |
 
 ### 4.2 `open-sse/executors/`
 
-108 ese-kutur ta' fornituri, kull wieħed jestendixxi `BaseExecutor` (`base.ts`):
+108 eżekuturi tal-fornituri, kull wieħed jestendi `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
-`pollinations`, `qoder`, `vertex`, `devin-desktop`, flimkien ma' `claudeIdentity.ts`
-(għajnuna komuni tal-identità) u `index.ts` (reġistru).
+`pollinations`, `qoder`, `vertex`, `devin-desktop`, flimkien ma’ `claudeIdentity.ts`
+(għodda awżiljarja tal-identità kondiviża) u `index.ts` (reġistru).
 
-> Nota: il-fornituri mhumiex elenkati hawnhekk jiġu servuti minn `default.ts` bl-ese-kutur ġeneriku kompatibbli mal-OpenAI. Il-katalogu sħiħ tal-fornituri (355 fornitur) jinsab f'`src/shared/constants/providers.ts`.
+> Nota: il-fornituri mhux elenkati hawn jiġu servuti minn `default.ts` bl-użu tal-eżekutur
+> ġeneriku kompatibbli ma’ OpenAI. Il-katalgu sħiħ tal-fornituri (355 fornitur) jinsab f’
+> `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-Traduzzjoni hub-and-spoke (OpenAI hija l-bażi).
+Traduzzjoni b’mudell hub-and-spoke (OpenAI huwa l-hub).
 
-- **9 tradutturi tal-ħtiġijiet** (`translator/request/`):
+- **9 tradutturi tat-talbiet** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
   `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
   `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
-- **9 tradutturi tar-risposti** (`translator/response/`):
+- **9 tradutturi tar-risponsi** (`translator/response/`):
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
-- **9 għajnuniet** (`translator/helpers/`):
+- **9 għodod awżiljarji** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
-  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, flimkien ma'
-  testijiet tal-għajnuniet.
-- **Għajnuniet tal-istampi** (`translator/image/sizeMapper.ts`).
-- Fil-livell ta' fuq: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
+  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, flimkien ma’
+  testijiet tal-għodod awżiljarji.
+- **Għodod awżiljarji għall-immaġnijiet** (`translator/image/sizeMapper.ts`).
+- Fl-ogħla livell: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
-- `responsesTransformer.ts` — Konvertitur tal-API Responses ↔ Chat
-  Completions bbażat fuq `TransformStream` (użat minn il-`responses/` route catch-all).
+- `responsesTransformer.ts` — Konvertitur ibbażat fuq `TransformStream` għal Responses API ↔ Chat
+  Completions (użat mir-rotta catch-all `responses/`).
 
 ### 4.5 `open-sse/services/`
 
-Enfasi (lista sħiħa taħt `open-sse/services/`):
+Punti ewlenin (il-lista sħiħa tinsab taħt `open-sse/services/`):
 
-| Serħan                 | Fajls                                                                                                                                                                                                                                             |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rotta kombinata        | `combo.ts` (19 strateġija), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                             |
-| Magna Auto Combo       | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
-| Reżiljenza             | `accountFallback.ts` (cooldown + lockout), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                              |
-| Kwoti                  | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
-| Keħil                  | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                     |
-| Intelliġenza tar-rotta | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
-| IMmaniġġjar tal-mudell | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
-| Kompresjoni            | `compression/` — Twaħħil sħiħ tal-magna tal-kompresjoni                                                                                                                                                                                           |
-| Token + sessioni       | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
-| Saff / manifest        | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
-| IP / xibka             | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
-| Lottijiet              | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| Użu                    | `usage.ts`                                                                                                                                                                                                                                        |
+| Aspett                 | Fajls                                                                                                                                                                                                                                                    |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rotot tal-combo        | `combo.ts` (19-il strateġija), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                 |
+| Magna Auto Combo       | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| Reżiljenza             | `accountFallback.ts` (perjodu ta’ stennija + imblukkar), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                           |
+| Kwoti                  | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| Caching                | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| Intelliġenza tar-rotot | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| Ġestjoni tal-mudelli   | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| Kompressjoni           | `compression/` — il-konfigurazzjoni sħiħa tal-magna tal-kompressjoni                                                                                                                                                                                     |
+| Token + sessjoni       | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| Livell / manifest      | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / network           | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| Lottijiet              | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Użu                    | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 għodda unika** konnessa f'`server.ts` (45 kanonika f'`schemas/tools.ts` +
-  memorja, ħiliet, ħiliet-GitHub, pool, gamifikazzjoni, plugin, Notion, Obsidian,
-  korpus lokali u moduli tal-kompresjoni — unjoni magħduda permezz ta' `countUniqueMcpTools`).
-- **3 trasporti**: stdio, HTTP Streamable, SSE.
-- **33 skop** infurzati fil-ħin reali — lista bażika f'`src/shared/constants/mcpScopes.ts`, is-set sħiħ huwa l-unjoni tal-iskopji dikjarati minn kull modulu tal-għodda.
-- Tabella tal-verifika: `mcp_tool_audit` (mimlija minn `audit.ts`).
+- **110 għodod uniċi** ikkonfigurati f’`server.ts` (45 kanoniċi f’`schemas/tools.ts` +
+  moduli tal-memorja, tal-ħiliet, tal-ħiliet ta’ GitHub, tal-pool, tal-gamifikazzjoni, tal-plugin, ta’ Notion, ta’ Obsidian,
+  tal-korpus lokali u tal-kompressjoni — l-unjoni magħduda minn `countUniqueMcpTools`).
+- **3 mezzi tat-trasport**: stdio, HTTP Streamable, SSE.
+- **33 ambitu** infurzati waqt l-eżekuzzjoni — il-lista bażi tinsab f’`src/shared/constants/mcpScopes.ts`, filwaqt li s-sett sħiħ huwa l-unjoni tal-ambiti ddikjarati minn kull modulu tal-għodod.
+- Tabella tal-awditjar: `mcp_tool_audit` (mimlija minn `audit.ts`).
 - Fajls: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
-  flimkien ma' testijiet taħt `__tests__/`.
-- Ara [MCP-SERVER.md](../frameworks/MCP-SERVER.md) għall-katalogu sħiħ tal-għodda.
+  flimkien mat-testijiet taħt `__tests__/`.
+- Ara [MCP-SERVER.md](../frameworks/MCP-SERVER.md) għall-katalgu sħiħ tal-għodod.
 
 ### 4.7 `open-sse/config/`
 
 Reġistri tal-fornituri (`providerRegistry.ts`, `providerModels.ts`,
-`providerHeaderProfiles.ts`), reġistri tal-mudelli skont il-format (`audioRegistry.ts`,
+`providerHeaderProfiles.ts`), reġistri tal-mudelli għal kull format (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-għajnuniet tal-identità (`codexIdentity.ts`, `codexInstructions.ts`,
+funzjonijiet ta’ għajnuna għall-identità (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-għajnuniet tal-kredenzjali (`credentialLoader.ts`, `codexClient.ts`), u adattaturi
-tal-għabra (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+funzjonijiet ta’ għajnuna għall-kredenzjali (`credentialLoader.ts`, `codexClient.ts`), u adapters
+tal-cloud (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 
 ### 4.8 `open-sse/utils/`
 
-Primitivi ta' l-streaming u għajnuniet tal-fornitur: `stream.ts`, `streamHandler.ts`,
+Primitivi tal-istrimjar u għodod awżiljarji tal-fornitur: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,
@@ -663,7 +657,7 @@ Kmandi komuni:
 
 ## 8. `scripts/`
 
-Organizzat f'6 subfolders skont l-iskop.
+Organizzati f’6 subfolders skont l-iskop.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
   `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,

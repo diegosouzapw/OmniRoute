@@ -77,6 +77,18 @@ test("whitelist: CIDR match", () => {
   assert.equal(checkIP("11.0.0.1").allowed, false);
 });
 
+test("whitelist: empty whitelist allows all IPs (admin can still reach dashboard)", () => {
+  configureIPFilter({ enabled: true, mode: "whitelist", whitelist: [] });
+  assert.equal(checkIP("1.2.3.4").allowed, true);
+  assert.equal(checkIP("5.6.7.8").allowed, true);
+});
+
+test("whitelist: non-empty whitelist blocks unlisted IPs", () => {
+  configureIPFilter({ enabled: true, mode: "whitelist", whitelist: ["1.2.3.4"] });
+  assert.equal(checkIP("1.2.3.4").allowed, true);
+  assert.equal(checkIP("5.6.7.8").allowed, false);
+});
+
 // ─── Whitelist Priority Mode ────────────────────────────────────────────────
 
 test("whitelist-priority: whitelist overrides blacklist", () => {
@@ -120,9 +132,14 @@ test("addToBlacklist/removeFromBlacklist: dynamic updates", () => {
 test("addToWhitelist/removeFromWhitelist: dynamic updates", () => {
   configureIPFilter({ enabled: true, mode: "whitelist" });
   addToWhitelist("1.1.1.1");
+  addToWhitelist("2.2.2.2");
   assert.equal(checkIP("1.1.1.1").allowed, true);
   removeFromWhitelist("1.1.1.1");
   assert.equal(checkIP("1.1.1.1").allowed, false);
+  // #13534: removing the last entry leaves an empty whitelist, which no longer
+  // enforces (so an admin who has not populated the list yet is not locked out).
+  removeFromWhitelist("2.2.2.2");
+  assert.equal(checkIP("1.1.1.1").allowed, true);
 });
 
 // ─── IPv6 Normalization ─────────────────────────────────────────────────────

@@ -4,8 +4,11 @@
  * ~775 MB in four days on one busy coding-agent workload).
  *
  * The identity nodes only make sense while the call_logs row their
- * last_correlation_id points at still exists, so both tables follow the
- * existing `retention.callLogs` window instead of getting a knob of their own.
+ * last_correlation_id points at still exists, so both tables follow their
+ * own `retention.conversationTurnNodes` window, not `retention.callLogs`
+ * directly — the default (30) matches callLogs' default so upgrading an
+ * existing install changes no behavior until an operator overrides one of
+ * the two knobs independently.
  *
  * These tests call the REAL cleanup functions against a real SQLite adapter
  * seeded with test rows, exactly like telemetry-auto-cleanup-6848.test.ts.
@@ -37,7 +40,7 @@ test.after(() => {
 });
 
 const DAY_MS = 86_400_000;
-const RETENTION_DAYS = getUserDatabaseSettings().retention.callLogs;
+const RETENTION_DAYS = getUserDatabaseSettings().retention.conversationTurnNodes;
 const OLD = new Date(Date.now() - (RETENTION_DAYS + 1) * DAY_MS).toISOString();
 const RECENT = new Date().toISOString();
 
@@ -186,5 +189,69 @@ test("#12453 cleanupAgenticConversations: missing node table is a safe no-op", a
     assert.strictEqual(count("agentic_conversations"), 1);
   } finally {
     db.exec("ALTER TABLE conversation_turn_nodes_unavailable RENAME TO conversation_turn_nodes");
+  }
+});
+
+test("#12453 conversationTurnNodes window is independent of callLogs", async () => {
+  const { updateDatabaseSettings } = await import("../../src/lib/db/databaseSettings.ts");
+  const originalRetention = getUserDatabaseSettings().retention;
+
+  try {
+    updateDatabaseSettings({
+      retention: { ...originalRetention, callLogs: 90, conversationTurnNodes: 1 },
+    });
+
+    const dayMs = 86_400_000;
+    const twoDaysAgo = new Date(Date.now() - 2 * dayMs).toISOString();
+    const recent = new Date().toISOString();
+    insertConversation("conv_ind", recent);
+    insertNode("old-ind", "conv_ind", twoDaysAgo);
+    insertNode("new-ind", "conv_ind", recent);
+
+    const result = await cleanupConversationTurnNodes();
+    assert.strictEqual(result.deleted, 1);
+    assert.deepStrictEqual(ids("conversation_turn_nodes"), ["new-ind"]);
+    assert.equal(getUserDatabaseSettings().retention.callLogs, 90);
+  } finally {
+    updateDatabaseSettings({ retention: originalRetention });
+  }
+});
+
+test("#12453 default conversationTurnNodes retention matches callLogs (no behavior change on upgrade)", async () => {
+  // Read the SHIPPED default directly (not a value this test sets itself) —
+  // this is what actually ships to every existing install on upgrade.
+  const { DEFAULT_DATABASE_SETTINGS } = await import("../../src/types/databaseSettings.ts");
+  assert.strictEqual(
+    DEFAULT_DATABASE_SETTINGS.retention.conversationTurnNodes,
+    DEFAULT_DATABASE_SETTINGS.retention.callLogs,
+    "default conversationTurnNodes must equal default callLogs so merging the split knob is a no-op for existing installs"
+  );
+
+  const { updateDatabaseSettings } = await import("../../src/lib/db/databaseSettings.ts");
+  const originalRetention = getUserDatabaseSettings().retention;
+
+  try {
+    // Reset both knobs to the shipped defaults (an operator may have overridden
+    // them in an earlier test in this file's shared DB).
+    updateDatabaseSettings({
+      retention: {
+        ...originalRetention,
+        callLogs: DEFAULT_DATABASE_SETTINGS.retention.callLogs,
+        conversationTurnNodes: DEFAULT_DATABASE_SETTINGS.retention.conversationTurnNodes,
+      },
+    });
+
+    // A node that would have survived under the old shared callLogs window
+    // (30 days) must still survive under the new dedicated default.
+    const twentyNineDaysAgo = new Date(Date.now() - 29 * DAY_MS).toISOString();
+    const recent = new Date().toISOString();
+    insertConversation("conv_default", recent);
+    insertNode("still-alive", "conv_default", twentyNineDaysAgo);
+
+    const result = await cleanupConversationTurnNodes();
+    assert.strictEqual(result.deleted, 0);
+    assert.deepStrictEqual(ids("conversation_turn_nodes"), ["still-alive"]);
+  } finally {
+    updateDatabaseSettings({ retention: originalRetention });
   }
 });

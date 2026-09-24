@@ -85,7 +85,8 @@ Different websites store authentication differently. Some require only cookies, 
 | Claude Web          | Full Cookie request header | `docs/providers/CLAUDE_WEB.md`  |
 | ChatGPT Web (Codex) | Full Cookie header         | `docs/providers/CHATGPT_WEB.md` |
 | Gemini Web          | _(verify)_                 |                                 |
-| Copilot Web         | _(verify)_                 |                                 |
+| Copilot Web         | _(verify)_                 | `docs/providers/COPILOT-M365.md` |
+| Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath | `docs/providers/COPILOT-M365.md` |
 | Grok Web            | _(verify)_                 |                                 |
 | ...                 | ...                        | ...                             |
 

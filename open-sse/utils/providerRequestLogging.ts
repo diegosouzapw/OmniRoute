@@ -93,11 +93,10 @@ async function capturePreparedRequest(
 
   try {
     await requestCapture.capture({ url, headers, body, bodyString });
-  } catch (error) {
-    log?.warn?.(
-      "REQUEST_LOG",
-      `Provider request logging hook failed: ${error instanceof Error ? error.message : String(error)}`
-    );
+  } catch {
+    // Capture hooks can fail while processing a provider payload. The thrown
+    // value may echo request content, so never copy it into application logs.
+    log?.warn?.("REQUEST_LOG", "Provider request logging hook failed");
   }
 }
 
@@ -127,9 +126,56 @@ export function captureCurrentProviderBody(
   return captureCurrentProviderRequest(url, headers, parseBody(bodyString), bodyString, log);
 }
 
+const DISPATCH_STATE_KEY = Symbol.for("omniroute.providerRequestCapture.dispatch");
+const dispatchContext = ((
+  globalThis as typeof globalThis & {
+    [DISPATCH_STATE_KEY]?: AsyncLocalStorage<{ settled: boolean }>;
+  }
+)[DISPATCH_STATE_KEY] ??= new AsyncLocalStorage<{ settled: boolean }>());
+
+type DispatchStartListener = () => void;
+
+const DISPATCH_LISTENERS_KEY = Symbol.for(
+  "omniroute.providerRequestCapture.dispatchStartListeners"
+);
+
+function getDispatchStartListeners(): Set<DispatchStartListener> {
+  const scopedGlobal = globalThis as typeof globalThis & {
+    [DISPATCH_LISTENERS_KEY]?: Set<DispatchStartListener>;
+  };
+  return (scopedGlobal[DISPATCH_LISTENERS_KEY] ??= new Set<DispatchStartListener>());
+}
+
+/**
+ * Run listeners at the entry of every provider dispatch, before fn starts. A
+ * listener resolves what it needs through its own closure (usually an ALS
+ * reader), so a dispatch for another request never touches this request's
+ * state. Listeners must stay synchronous and side-effect free beyond the
+ * request's own sink.
+ */
+export function onDispatchStart(listener: DispatchStartListener): void {
+  getDispatchStartListeners().add(listener);
+}
+
 export function runWithCapture<T>(requestCapture: Capture, fn: () => Promise<T>): Promise<T> {
   installFetchCapture();
-  return captureState.context.run(requestCapture, fn);
+  const dispatch = { settled: false };
+  return dispatchContext.run(dispatch, () => {
+    for (const listener of getDispatchStartListeners()) listener();
+    return captureState.context.run(requestCapture, fn).finally(() => {
+      dispatch.settled = true;
+    });
+  });
+}
+
+/**
+ * True while a provider request is being dispatched: inside runWithCapture and before its
+ * fn settles. A fetch the executor leaves running after it returns (a background
+ * bookkeeping call) keeps the async context but no longer counts as the dispatch.
+ */
+export function isProviderRequestCaptureActive(): boolean {
+  const dispatch = dispatchContext.getStore();
+  return dispatch !== undefined && !dispatch.settled;
 }
 
 function installFetchCapture() {

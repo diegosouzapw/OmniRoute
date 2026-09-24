@@ -1,67 +1,780 @@
 # OmniRoute Auto-Combo Engine (हिन्दी)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> **उपयोगकर्ताओं के लिए**: तुरंत शुरुआत करना चाहते हैं? सरल व्याख्याओं और उदाहरणों के लिए [Auto-Combo उपयोगकर्ता मार्गदर्शिका](../getting-started/AUTO-COMBO-GUIDE.md) देखें।
 
-## How It Works
+> अनुकूली स्कोरिंग + शून्य-कॉन्फ़िगरेशन स्वचालित रूटिंग वाली स्व-प्रबंधित मॉडल शृंखलाएँ
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+## शून्य-कॉन्फ़िगरेशन स्वचालित रूटिंग (`auto/` उपसर्ग)
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+> **नया:** कॉम्बो बनाने की आवश्यकता नहीं है। किसी भी क्लाइंट में सीधे `auto/` उपसर्ग का उपयोग करें।
 
-## Mode Packs
+### त्वरित उदाहरण
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+| मॉडल ID        | वेरिएंट  | व्यवहार                                                         |
+| -------------- | -------- | --------------------------------------------------------------- |
+| `auto`         | डिफ़ॉल्ट | सभी कनेक्टेड प्रदाता, LKGP रणनीति, संतुलित भार                  |
+| `auto/coding`  | कोडिंग   | गुणवत्ता-प्रथम भार, कोड जनरेशन के लिए उपयुक्त                   |
+| `auto/fast`    | तेज़     | कम-विलंबता वाला भारित चयन                                       |
+| `auto/cheap`   | सस्ता    | लागत-अनुकूलित रूटिंग (सबसे कम लागत पहले)                        |
+| `auto/offline` | ऑफ़लाइन  | सबसे अधिक कोटा उपलब्धता वाले प्रदाताओं को प्राथमिकता देता है    |
+| `auto/smart`   | स्मार्ट  | बेहतर मॉडल खोज के लिए गुणवत्ता-प्रथम + उच्च अन्वेषण दर (10%)    |
+| `auto/lkgp`    | lkgp     | स्पष्ट LKGP (डिफ़ॉल्ट `auto` के समान)                           |
+| `auto/chaos`   | कैओस     | प्रत्यास्थता परीक्षण के लिए दोष-इंजेक्शन भार (कैओस इंजीनियरिंग) |
 
-## Self-Healing
+### श्रेणी × टियर संयोजन (`auto/<category>:<tier>`)
 
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+OpenRouter-शैली के प्रत्यय **किस प्रकार का रूट** (श्रेणी) है, इसे **कैसे अनुकूलित करना है** (टियर) से अलग करते हैं, ताकि आप उन्हें स्वतंत्र रूप से संयोजित कर सकें (#4235 चरण B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-## Bandit Exploration
+- **श्रेणियाँ** (क्षमता के अनुसार उम्मीदवार पूल फ़िल्टर करें): `coding` · `reasoning` · `vision` · `chat` · `multimodal`। `vision`/`multimodal` विज़न-सक्षम मॉडल बनाए रखते हैं; `reasoning` रीजनिंग/थिंकिंग मॉडल बनाए रखता है।
+- **टियर** (स्कोरिंग भार / पूल फ़िल्टर चुनें): `fast` (शीघ्र डिलीवरी) · `cheap` (उपनाम `floor`, लागत-बचतकर्ता) · `reliable` (सर्किट-ब्रेकर स्वास्थ्य + विलंबता स्थिरता) · `free` / `pro` (`classifyTier` के माध्यम से मॉडल टियर के अनुसार पूल फ़िल्टर करें — मुफ़्त टियर बनाम प्रीमियम)।
 
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+| उदाहरण                 | इसका परिणाम                                           |
+| ---------------------- | ----------------------------------------------------- |
+| `auto/coding:fast`     | कोडिंग पूल, कम-विलंबता भार                            |
+| `auto/coding:cheap`    | कोडिंग पूल, लागत-अनुकूलित (उपनाम `auto/coding:floor`) |
+| `auto/reasoning:pro`   | केवल रीजनिंग/थिंकिंग मॉडल, प्रीमियम टियर              |
+| `auto/vision`          | विज़न-सक्षम मॉडल (कोई टियर नहीं → संतुलित भार)        |
+| `auto/multimodal:free` | मल्टीमोडल-सक्षम मॉडल, केवल मुफ़्त टियर                |
+
+कोई भी मान्य `auto/<category>[:<tier>]` माँग पर रिज़ॉल्व होता है; एक सावधानीपूर्वक चयनित उपसमूह `/v1/models` और डैशबोर्ड (`open-sse/services/autoCombo/builtinCatalog.ts` में `AUTO_SUFFIX_VARIANTS`) में प्रदर्शित किया जाता है। फ़िल्टरिंग **फेल-ओपन** है — यदि कोई बाधा किसी कनेक्टेड मॉडल से मेल नहीं खाती, तो पूरे पूल का उपयोग किया जाता है ताकि रूटिंग कभी बाधित न हो। मुख्य स्कोरर (`combo.ts`) अपरिवर्तित रहता है; श्रेणी/टियर फ़िल्टर `buildAutoCandidates` में लागू किया जाता है।
+
+> **लाइव मॉडल इंटेलिजेंस:** `ARENA_ELO_SYNC_ENABLED` फ़्लैग चालू होने पर स्वचालित रूटिंग की उपयुक्तता लाइव **Arena ELO** रैंकिंग + **models.dev** टियर डेटा द्वारा निर्धारित होती है (अन्यथा स्थिर उपयुक्तता मानचित्र का उपयोग किया जाता है)।
+
+**उपयोग कैसे करें:**
+
+```bash
+# कोई भी IDE या CLI टूल जो OpenAI प्रारूप का समर्थन करता है
+बेस URL: http://localhost:20128/v1
+API कुंजी:  <your-endpoint-key>
+
+# अपने कोड/कॉन्फ़िगरेशन में मॉडल को इस प्रकार सेट करें:
+model: "auto"                 # संतुलित डिफ़ॉल्ट
+model: "auto/coding"          # कोडिंग कार्यों के लिए सर्वोत्तम
+model: "auto/fast"            # सबसे तेज़ उपलब्ध
+model: "auto/cheap"           # प्रति टोकन सबसे सस्ता
+```
+
+**क्या होता है:**
+
+1. OmniRoute `src/sse/handlers/chat.ts` में `auto/` उपसर्ग का पता लगाता है
+2. डेटाबेस से सभी **सक्रिय प्रदाता कनेक्शन** क्वेरी करता है
+3. मान्य क्रेडेंशियल (API कुंजी या OAuth टोकन) वाले कनेक्शनों को फ़िल्टर करता है
+4. प्रत्येक कनेक्शन के लिए मॉडल निर्धारित करता है (`connection.defaultModel` या प्रदाता का पहला मॉडल)
+5. मेमोरी में एक **वर्चुअल कॉम्बो** बनाता है (DB में संग्रहीत नहीं)
+6. चयनित वेरिएंट की भार प्रोफ़ाइल + LKGP रणनीति का उपयोग करके रूट करता है
+
+**मुख्य विशेषताएँ:**
+
+- ✅ **हमेशा सक्रिय:** किसी टॉगल, कॉम्बो निर्माण या कॉन्फ़िगरेशन की आवश्यकता नहीं
+- ✅ **डायनेमिक:** वर्तमान कनेक्टेड प्रदाताओं को स्वचालित रूप से दर्शाता है
+- ✅ **सत्र स्थिरता:** LKGP सुनिश्चित करता है कि अंतिम सफल प्रदाता को प्राथमिकता मिले
+- ✅ **बहु-अकाउंट जागरूक:** प्रत्येक प्रदाता कनेक्शन एक अलग उम्मीदवार बनता है
+- ✅ **कोई DB लेखन नहीं:** वर्चुअल कॉम्बो केवल अनुरोध के लिए मौजूद रहता है, स्थायित्व का शून्य अतिरिक्त भार
+
+### प्रति-कुंजी उम्मीदवार नियंत्रण (#7819, स्तर 1+2)
+
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = `auto/` के बाद का प्रत्यय, या
+बेस चैनल के लिए शाब्दिक `auto`) एक **केवल-पढ़ने योग्य** एंडपॉइंट है, जो मौजूदा
+प्रत्यास्थता रीड्स का पुनः उपयोग करके लाइव पहुँच-योग्यता से सजाए गए किसी
+`auto/*` चैनल के वर्तमान उम्मीदवार पूल को सूचीबद्ध करता है (कभी भी कच्ची ब्रेकर `state` नहीं):
+
+- प्रदाता सर्किट ब्रेकर — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- कनेक्शन कूलडाउन — रिज़ॉल्व की गई `provider_connections` पंक्ति पर `rateLimitedUntil` / `testStatus`
+- मॉडल लॉकआउट — `isModelLocked(provider, connectionId, model)`
+
+प्रत्येक उम्मीदवार इस API कुंजी का `excluded` फ़्लैग भी रखता है। अपवर्जन
+प्रति-API-कुंजी (`auto_candidate_overrides` तालिका, माइग्रेशन `128`) संग्रहीत किए जाते हैं — OmniRoute
+एकल-टेनेंट है और इसमें कोई `users` तालिका नहीं है, इसलिए `apiKeyId` वास्तविक प्रति-कॉलर
+पहचान का सबसे निकटतम विकल्प है — और इन्हें शुद्ध, यूनिट-परीक्षित
+`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`) के माध्यम से
+`open-sse/services/autoCombo/virtualFactory.ts` में उम्मीदवार-पूल चोकपॉइंट पर लागू किया जाता है।
+फ़िल्टर **फेल-ओपन** है: अनसेट apiKeyId/channel या DB लुकअप विफलता, दोनों ही स्थितियों में
+पूल बिना फ़िल्टर के रहता है, इसलिए बिना किसी कॉन्फ़िगर किए गए ओवरराइड वाला ऑपरेटर
+इस सुविधा से पहले वाली रूटिंग को बाइट-टू-बाइट समान रूप में देखता है।
+
+**अनुवर्ती इश्यू के लिए स्थगित:** प्रति-कैंडिडेट वेट + स्पष्ट क्रम निर्धारण (लेवल 3
+— मौजूदा वेटेड/प्राथमिकता स्ट्रैटेजी पाथ में फ़ीड होता है) और प्रत्येक `auto/*` चैनल के लिए किसी विशिष्ट
+`combo.ts` स्ट्रैटेजी को पिन करना (लेवल 4)। सिंगल-टेनेंट मॉडल को देखते हुए, ओवरराइड्स को प्रति-API-की बनाए रखना चाहिए या ग्लोबल करना चाहिए—इस खुले
+प्रश्न के लिए #7819 योजना देखें।
+
+**पर्दे के पीछे:**
+
+```txt
+अनुरोध: { model: "auto/coding" }
+   ↓
+src/sse/handlers/chat.ts प्रीफ़िक्स का पता लगाता है
+   ↓
+createVirtualAutoCombo('coding') → सक्रिय कनेक्शनों से candidatePool
+   ↓
+handleComboChat (पर्सिस्टेड कॉम्बोज़ वाला ही इंजन)
+   ↓
+ऑटो-स्कोरिंग प्रत्येक अनुरोध के लिए सर्वोत्तम प्रोवाइडर/मॉडल चुनती है
+```
+
+**इम्प्लीमेंटेशन फ़ाइलें:**
+
+| फ़ाइल                                                     | उद्देश्य                                         |
+| --------------------------------------------------------- | ------------------------------------------------ |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | प्रीफ़िक्स पार्सर (`parseAutoPrefix`)            |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | वर्चुअल `AutoComboConfig` ऑब्जेक्ट बनाता है      |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | प्रोवाइडर रजिस्ट्री को मॉक करने के लिए टेस्ट हुक |
+| `src/sse/handlers/chat.ts`                                | इंटीग्रेशन: ऑटो प्रीफ़िक्स शॉर्ट-सर्किट          |
+| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` सिस्टम एंट्री            |
+
+## वास्तविक मॉडल Id से मेल खाने वाले कॉम्बो नाम
+
+जिस कॉम्बो का `name` किसी मूल मॉडल id के समान होता है (उदाहरण के लिए, `gpt-5.5`
+नाम वाला कॉम्बो), वह बग नहीं, बल्कि एक **जानबूझकर बनाया गया, समर्थित पैटर्न** है:
+यह प्रत्येक मॉडल id के लिए प्रोवाइडर फ़ॉलबैक का तंत्र है, जिसका दस्तावेज़ीकरण
+[#6940](https://github.com/diegosouzapw/OmniRoute/issues/6940) में किया गया है। चूँकि मूल मॉडल id के समाधान से पहले कॉम्बो
+समाधान की जाँच की जाती है
+(`src/sse/services/model.ts` में `getComboForModel()`), इसलिए मूल
+id `gpt-5.5` के लिए अनुरोध को सीधे किसी एक प्रोवाइडर को भेजने के बजाय कॉम्बो के लक्ष्यों (जैसे
+`acme-responses/gpt-5.5`, `backup-responses/gpt-5.5`) के माध्यम से रूट किया जाता है
+— यह [#3227/#3233](https://github.com/diegosouzapw/OmniRoute/issues/3227) के लिए बनाई गई
+कॉम्बो-से-पहले-पुनर्लेखन प्राथमिकता का पुनः उपयोग करता है और इसका रिग्रेशन परीक्षण
+`tests/unit/responses-combo-resolution-3227.test.ts` तथा
+`tests/unit/combo-name-codex-responses-rewrite.test.ts` द्वारा किया जाता है।
+
+किसी ऐसे नाम के साथ कॉम्बो बनाना या उसका नाम बदलना, जो किसी वास्तविक मॉडल id को
+छिपा देता हो, **कभी अस्वीकार नहीं किया जाता** — ऐसा करने से यह दस्तावेज़ीकृत कार्यप्रवाह टूट जाएगा। इसके बजाय
+(#8530), जब (नया) नाम किसी वास्तविक मॉडल id से टकराता है, तब `POST /api/combos` और `PUT /api/combos/[id]`
+प्रतिक्रिया में एक गैर-अवरोधक `warning` फ़ील्ड जोड़ते हैं:
+
+```json
+{
+  "warning": {
+    "code": "COMBO_NAME_SHADOWS_MODEL",
+    "modelId": "gpt-5.5",
+    "providerId": "openai"
+  }
+}
+```
+
+बूट के समय, `scanComboModelNameCollisionsAtBoot()`
+(`src/instrumentation-node.ts`) एक पंक्ति वाली `[STARTUP]` चेतावनी भी लॉग करता है,
+जिसमें मॉडल id को छिपाने वाले प्रत्येक मौजूदा कॉम्बो की सूची होती है, ताकि जिन ऑपरेटरों को यह स्थिति
+गलती से मिली है (#6940 के अनुसार जानबूझकर नहीं), उन्हें इसका संकेत मिल सके।
+पहचान सहायक `src/lib/combos/modelNameCollision.ts` में मौजूद है।
+
+## क्लाइंट से कस्टम कॉम्बो को कॉल करना
+
+स्थायी कॉम्बो (Settings → Combos) केवल तभी उपयोग किए जाते हैं, जब क्लाइंट `model` फ़ील्ड में कॉम्बो का **सटीक नाम** भेजता है — कॉम्बो नाम का कोई फ़ज़ी या आंशिक मिलान नहीं होता, और इसमें कोई `auto/` उपसर्ग शामिल नहीं होता। समाधान क्रम (`src/sse/services/model.ts` में `getComboForModel()`):
+
+1. कॉम्बो नाम का सटीक मिलान (`model: "my-combo"`),
+2. `combo/<name>` उपसर्ग (`model: "combo/my-combo"`),
+3. मॉडल→कॉम्बो ग्लोब मैपिंग (`/api/model-combo-mappings`)।
+
+```bash
+curl -X POST http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"my-combo","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+दो सामान्य समस्याएँ:
+
+- **`auto` आपके कॉम्बो का उपयोग नहीं करता।** `auto`/`auto/*` अपना स्वयं का शून्य-कॉन्फ़िगरेशन उम्मीदवार पूल बनाता है और स्थायी कॉम्बो का उपयोग केवल तभी करता है, जब किसी कॉम्बो का नाम वास्तव में `auto` हो (अनुशंसित नहीं)। किसी कॉम्बो के माध्यम से रूट करने के लिए उसका सटीक नाम भेजें — `auto` नहीं।
+- **`openrouter/auto` एक वास्तविक सशुल्क OpenRouter उत्पाद** ("Auto Best Available") **है**, OmniRoute उपनाम नहीं। यह OpenRouter रजिस्ट्री (`open-sse/config/providers/registry/openrouter/index.ts`) की एकल स्थिर मॉडल प्रविष्टि है और इसका बिल अलग से लिया जाता है। इसे `auto` पूल से बाहर रखने के लिए Settings → Routing → Hide paid models का उपयोग करें।
+
+मूल भ्रम, जिसका यह दस्तावेज़ीकरण करता है, उसके लिए [#7992](https://github.com/diegosouzapw/OmniRoute/issues/7992) और [#7111](https://github.com/diegosouzapw/OmniRoute/issues/7111) देखें।
+
+## यह कैसे काम करता है (स्थायी Auto-Combos)
+
+Auto-Combo Engine प्रत्येक अनुरोध के लिए सर्वोत्तम प्रदाता/मॉडल को एक **16-कारक स्कोरिंग फ़ंक्शन** (`open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS` में परिभाषित) का उपयोग करके गतिशील रूप से चुनता है। डिफ़ॉल्ट भारों का योग `1.0` होता है; कस्टम भारों को `normalizeScoringWeights()` द्वारा पुनः सामान्यीकृत किया जाता है। सोलह में से दो — `cacheAffinity` और `resetWindowAffinity` — का डिफ़ॉल्ट भार `0` है; `reliability` का `DEFAULT_WEIGHTS` में भार `0` है, लेकिन जेनेरिक पैक्स में `0.03` और `reliability-first` में `0.04` है, और `quality` का पैक्स में भार `0.02` (`quality-first` में `0.03`) है: फिर भी प्रत्येक उम्मीदवार के लिए इनकी गणना की जाती है, और `cacheAffinity` स्कोर के बाहर प्रॉम्प्ट-कैश डिडुप्लिकेशन को नियंत्रित करता है, इसलिए शून्य-डिफ़ॉल्ट कारक डिफ़ॉल्ट रूप से प्रभाव नहीं डालते, जबकि पैक्स डालते हैं।
+
+![Auto-Combo की 16-कारक स्कोरिंग](../diagrams/exported/auto-combo-scoring.svg)
+
+> स्रोत: [diagrams/auto-combo-scoring.mmd](../diagrams/auto-combo-scoring.mmd) (`npm run docs:render-diagrams` के माध्यम से पुनः जनरेट करें)। फ़ाइलनाम ऐतिहासिक है; स्रोत और रेंडर किया गया आरेख `DEFAULT_WEIGHTS` में घोषित सभी 16 कारक दिखाते हैं।
+
+| कारक                  | डिफ़ॉल्ट भार | विवरण                                                                                                                                                                                                                  |
+| :-------------------- | :----------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `quota`               | 0.1429       | शेष कोटा / दर-सीमा की उपलब्ध गुंजाइश [0..1]                                                                                                                                                                            |
+| `health`              | 0.1605       | सर्किट ब्रेकर से प्राप्त स्वास्थ्य स्कोर (CLOSED=1.0, HALF_OPEN=0.5, OPEN=0.0)                                                                                                                                         |
+| `costInv`             | 0.1429       | **मिश्रित** लागत का व्युत्क्रम (60% इनपुट + 40% आउटपुट टोकन मूल्य, सामान्यीकृत) — सस्ता = उच्चतर स्कोर                                                                                                                 |
+| `latencyInv`          | 0.1143       | पूल के सापेक्ष सामान्यीकृत p95 विलंबता का व्युत्क्रम — तेज़ = उच्चतर स्कोर                                                                                                                                             |
+| `taskFit`             | 0.0762       | कार्य-प्रकार की उपयुक्तता (कोडिंग, समीक्षा, योजना, विश्लेषण, डीबगिंग, दस्तावेज़ीकरण)                                                                                                                                   |
+| `stability`           | 0.0476       | विलंबता के मानक विचलन से प्राप्त प्रसरण-आधारित स्थिरता — जिस उम्मीदवार का प्रतिक्रिया समय अधिक बदलता है, उसे कम स्कोर मिलता है                                                                                         |
+| `tierPriority`        | 0.0476       | खाता-स्तर प्राथमिकता — Ultra=1.0, Pro=0.67, Standard=0.33, Free=0.0                                                                                                                                                    |
+| `tierAffinity`        | 0.0476       | उम्मीदवार के स्तर और मैनिफ़ेस्ट द्वारा अनुशंसित स्तर के बीच अनुरूपता                                                                                                                                                   |
+| `specificityMatch`    | 0.0476       | अनुरोध की विशिष्टता (मैनिफ़ेस्ट संकेत) और मॉडल स्तर के बीच मिलान                                                                                                                                                       |
+| `contextAffinity`     | 0.0476       | अनुरोध की कॉन्टेक्स्ट-विंडो आवश्यकता और मॉडल की कॉन्टेक्स्ट विंडो के बीच अनुरूपता                                                                                                                                      |
+| `sessionAvailability` | 0.0476       | इस सत्र के लिए उम्मीदवार कनेक्शन की OAuth सत्र उपलब्धता (`getOAuthSessionAvailability()`; गैर-OAuth कनेक्शनों का स्कोर 1.0 होता है)                                                                                    |
+| `connectionDensity`   | 0.0476       | समान प्रदाता के कनेक्शनों में लोड वितरित करता है (संकेंद्रण-विरोधी)                                                                                                                                                    |
+| `cacheAffinity`       | 0.00         | उस कनेक्शन की ओर Rendezvous-hash अनुरूपता, जिसके पास इस अनुरोध का प्रॉम्प्ट-कैश प्रीफ़िक्स पहले से होने की सर्वाधिक संभावना है (`open-sse/services/combo/promptCacheAffinity.ts`); डिफ़ॉल्ट रूप से अक्षम (#8008)       |
+| `resetWindowAffinity` | 0.00         | उन कनेक्शनों की ओर झुकाव जिनकी कोटा रीसेट विंडो अनुकूल है (डिफ़ॉल्ट रूप से अक्षम)                                                                                                                                      |
+| `quality`             | 0.03         | रूटिंग-इवेंट गुणवत्ता ट्रैकर से प्राप्त फ़ीडबैक-संचालित आउटपुट-गुणवत्ता संकेत; बिना प्रेक्षण वाले उम्मीदवारों को तटस्थ 0.5 मिलता है                                                                                    |
+| `reliability`         | 0.00         | दस-नमूना न्यूनतम सीमा के अधीन 24 घंटे के उपयोग इतिहास से प्राप्त प्रेक्षित सफलता अनुपात, `1 - failureRate` (अन्यथा रीयल-टाइम मेट्रिक्स); बिना प्रेक्षण वाले उम्मीदवारों का मान 1.0 माना जाता है। डिफ़ॉल्ट रूप से अक्षम |
+
+**योग:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0`, जैसा कि `DEFAULT_WEIGHTS` में घोषित है; उपयोगकर्ता द्वारा कॉन्फ़िगर किए गए भारों को स्कोरिंग से पहले `normalizeScoringWeights()` द्वारा पुनः सामान्यीकृत करके एक वितरण में बदला जाता है।
+
+## मोड पैक
+
+`open-sse/services/autoCombo/modePacks.ts` में 6 पूर्व-परिभाषित वेट प्रोफ़ाइल हैं। प्रत्येक पैक चयन को एक लक्ष्य की ओर झुकाने के लिए डिफ़ॉल्ट वेट को पूरी तरह बदल देता है। प्रत्येक पैक का योग पहले से ही `1.0` है (चार दशमलव स्थानों तक प्रिंट करने पर `0.9999`), इसलिए किसी पैक के सक्रिय होने पर `normalizeScoringWeights()` के पास सार्थक रूप से सुधारने के लिए कुछ नहीं होता — नीचे दिए गए मान, राउंडिंग की सीमा तक, वही हैं जिन्हें स्कोरर लागू करता है।
+
+| कारक                  | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
+| :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
+| `quota`               | 0.1133     | 0.1133     | 0.0752        | **0.3324**       | 0.1133            | 0.0376     |
+| `health`              | 0.2667     | 0.1810     | 0.1714        | 0.2667           | **0.3524**        | **0.4000** |
+| `costInv`             | 0.0276     | **0.3324** | 0.0276        | 0.0752           | 0.0181            | 0.0140     |
+| `latencyInv`          | **0.3048** | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0186     |
+| `taskFit`             | 0.0952     | 0.0952     | **0.3524**    | 0.0000           | 0.0952            | 0.1905     |
+| `stability`           | 0.0000     | 0.0476     | 0.1429        | 0.0952           | 0.1905            | 0.1714     |
+| `tierPriority`        | 0.0376     | 0.0376     | 0.0276        | 0.0376           | 0.0276            | 0.0040     |
+| `tierAffinity`        | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
+| `specificityMatch`    | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
+| `contextAffinity`     | 0.0095     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0186     |
+| `sessionAvailability` | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
+| `resetWindowAffinity` | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
+| `connectionDensity`   | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
+| `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
+| `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
+
+टिप्पणियाँ:
+
+- **पैक में `quality` और `reliability` शामिल होते हैं** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) और वे वेट मैप को पूर्णतः बदल देते हैं (`weights = pack`, मर्ज नहीं)। `DEFAULT_WEIGHTS` में `quality 0.03 / reliability 0` होता है; `balanced`/`default` चुनने पर ये डिफ़ॉल्ट बने रहते हैं, जबकि कोई पैक चुनने पर ऊपर दिए गए पैक के मान उपयोग होते हैं। एक कोल्ड पूल पर (अभी तक कोई अवलोकन नहीं, इसलिए `quality 0.5` और `reliability 1`) ये दोनों कारक किसी सामान्य पैक के अंतर्गत `+0.04` (`0.03 + 0.01`), `quality-first` के अंतर्गत `+0.045` और `reliability-first` के अंतर्गत `+0.05` जोड़ते हैं।
+- प्रत्येक पैक में `tierAffinity`, `specificityMatch` और `resetWindowAffinity` स्पष्ट रूप से `0` हैं।
+- एक नज़र में प्रत्येक पैक का प्रमुख फ़ोकस:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (कम लेटेंसी वाले, स्वस्थ कनेक्शन)
+  - **cost-saver** → costInv 0.3324 (सबसे सस्ते टोकन जीतते हैं)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, जो किसी भी पैक में सबसे अधिक है (कार्य के लिए सर्वोत्तम और सुसंगत मॉडल)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (गति/लागत की परवाह किए बिना अधिकतम अतिरिक्त क्षमता)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, जो किसी भी पैक में सबसे अधिक है (सबसे कम अप्रत्याशित परिणाम)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (फ़ॉल्ट-इंजेक्शन प्रोफ़ाइल)
+
+### प्रति-अनुरोध नियंत्रण (हेडर) — #6023 / #6024 / #6025 / #3470
+
+किसी `auto` कॉम्बो को, कॉम्बो के संग्रहीत कॉन्फ़िगरेशन में बदलाव किए बिना, तीन हेडर के माध्यम से **प्रति अनुरोध** नियंत्रित किया जा सकता है। ये केवल `auto` रणनीति पर और केवल उन्हें शामिल करने वाले अनुरोध के लिए लागू होते हैं; हेडर अनुपस्थित होने पर कॉम्बो के सहेजे गए `modePack`/`budgetCap`/`budgetFallback` का उपयोग किया जाता है।
+
+| हेडर                          | स्वीकार्य मान                                                                                                                                                                         | प्रभाव                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | कोई प्रीसेट उपनाम (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) या रॉ पैक नाम (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | इस अनुरोध के लिए स्कोरिंग भारों को ओवरराइड करता है। `balanced`/`default` डिफ़ॉल्ट भारों को लागू करते हैं (कोई पैक नहीं)। अज्ञात मानों को अनदेखा किया जाता है (कॉन्फ़िगरेशन संरक्षित रहता है)।                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `X-OmniRoute-Budget`          | एक धनात्मक संख्या (प्रति अनुरोध अधिकतम USD)                                                                                                                                           | लागत की कठोर अधिकतम सीमा: जिन उम्मीदवारों की अनुमानित लागत इससे अधिक होती है, उन्हें चयन से पहले फ़िल्टर कर दिया जाता है। जब **हर** उम्मीदवार इस सीमा से अधिक हो, तब क्या होगा, यह नीचे दिए गए `X-OmniRoute-Budget-Fallback` द्वारा नियंत्रित किया जाता है।                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (डिफ़ॉल्ट, उपनाम: `cheapest-viable`, `soft`) या `strict` (उपनाम: `block`, `hard`)                                                                                          | `cheapest`: वैश्विक रूप से सबसे सस्ते उम्मीदवार पर फ़ॉलबैक करता है, भले ही वह अब भी सीमा से अधिक हो (पुराना व्यवहार)। `strict`: चयन करने से इनकार करता है—चुपचाप अधिक खर्च करने के बजाय अनुरोध `HTTP 402` के साथ तुरंत विफल हो जाता है। अज्ञात मानों को अनदेखा किया जाता है।                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `X-OmniRoute-Effort`          | `auto` (अन्य मान आरक्षित हैं)                                                                                                                                                         | अनुकूली चिंतन बजट: जब अनुरोध में किसी भी स्वरूप का **कोई** रीजनिंग फ़ील्ड (`reasoning_effort`, `reasoning`, `thinking`) नहीं होता, तो गेटवे नियतात्मक अनुरोध-संरचना संकेतों (अंतिम उपयोगकर्ता संदेश की लंबाई, अंतिम उपयोगकर्ता संदेश तक का संदर्भ आकार, पिछले टूल परिणाम, टूल-लूप की गहराई) के आधार पर `auto` को `low`/`medium`/`high` में निर्धारित करता है। संकेत वर्तमान टर्न तक सीमित होते हैं—अंतिम उपयोगकर्ता संदेश के बाद की हर चीज़ अनदेखी कर दी जाती है—इसलिए टूल लूप में प्रत्येक अनुरोध का स्तर समान निर्धारित होता है (प्रति-टर्न स्टेटलेस पिन, कोई सत्र स्थिति नहीं, लूप के बीच कोई ऐसी वृद्धि नहीं जो अपस्ट्रीम प्रॉम्प्ट-कैश प्रीफ़िक्स को बाधित करे)। क्लाइंट द्वारा स्पष्ट रूप से दिया गया रीजनिंग फ़ील्ड हमेशा प्राथमिकता लेता है। यह उन अनुरोधों तक सीमित है जिनका अपस्ट्रीम डिस्पैच OpenAI Chat Completions स्वरूप (`targetFormat === FORMATS.OPENAI`) में निर्धारित होता है—`reasoning_effort` OpenAI-स्वरूप वाला फ़ील्ड है, इसलिए Claude- या Gemini-लक्षित अनुरोध पर इस हेडर का कोई प्रभाव नहीं पड़ता (देखें `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`)। |
+
+```bash
+# सबसे तेज़ प्रोफ़ाइल लागू करें, इस अनुरोध की सीमा $0.05 पर तय करें, और अधिक खर्च करने के बजाय इसे पूरी तरह अवरुद्ध करें
+curl -sS http://localhost:20128/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-OmniRoute-Mode: fast" \
+  -H "X-OmniRoute-Budget: 0.05" \
+  -H "X-OmniRoute-Budget-Fallback: strict" \
+  -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
+```
+
+रिज़ॉल्यूशन एक शुद्ध फ़ंक्शन (`open-sse/services/autoCombo/requestControls.ts`) है; इसके
+रिज़ॉल्व किए गए मान इंजन के मौजूदा `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` इनपुट को दिए जाते हैं। किसी कॉम्बो का संग्रहीत `config.budgetFallback` ("strict" |
+"cheapest") स्थायी नीति निर्धारित करता है; हेडर इसे किसी एक अनुरोध के लिए ओवरराइड करता है।
+
+## सभी रूटिंग रणनीतियाँ
+
+OmniRoute का कॉम्बो इंजन **19 रूटिंग रणनीतियों** का समर्थन करता है (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` में घोषित)। Auto Combo इंजन स्वयं `auto` रणनीति के अंतर्गत उपलब्ध है; अन्य रणनीतियाँ सहेजे गए कॉम्बो के लिए उपलब्ध हैं।
+
+| रणनीति              | विवरण                                                                                                                                                                                                                                           |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | स्पष्ट प्राथमिकता वाली प्रथम-लक्ष्य क्रमबद्ध सूची                                                                                                                                                                                               |
+| `weighted`          | प्रति-लक्ष्य भार के आधार पर भारित यादृच्छिक चयन                                                                                                                                                                                                 |
+| `round-robin`       | लक्ष्यों के बीच क्रम से चक्रित होना                                                                                                                                                                                                             |
+| `context-relay`     | लक्ष्यों के बीच कॉन्टेक्स्ट हस्तांतरित करना (लंबी बातचीत)                                                                                                                                                                                       |
+| `fill-first`        | अगले लक्ष्य पर जाने से पहले प्रत्येक लक्ष्य का कोटा भरना                                                                                                                                                                                        |
+| `p2c`               | 2-विकल्पों की शक्ति पर आधारित यादृच्छिक लोड बैलेंसिंग                                                                                                                                                                                           |
+| `random`            | समान प्रायिकता वाला यादृच्छिक चयन                                                                                                                                                                                                               |
+| `least-used`        | सबसे कम वर्तमान लोड वाला लक्ष्य चुनना                                                                                                                                                                                                           |
+| `cost-optimized`    | कैटलॉग मूल्य निर्धारण के आधार पर प्रति अनुरोध $ को न्यूनतम करना                                                                                                                                                                                 |
+| `reset-aware` ⭐    | कोटा रीसेट समय के आधार पर प्राथमिकता देना — छोटी रीसेट विंडो को उच्च रैंक देना                                                                                                                                                                  |
+| `reset-window`      | उन लक्ष्यों को प्राथमिकता देना जिनकी कोटा विंडो सबसे पहले रीसेट होगी                                                                                                                                                                            |
+| `headroom`          | सबसे अधिक शेष कोटा क्षमता वाला लक्ष्य चुनना                                                                                                                                                                                                     |
+| `strict-random`     | पुनरावृत्तियों का डीडुप्लिकेशन किए बिना यादृच्छिक चयन                                                                                                                                                                                           |
+| `auto`              | Auto Combo स्कोरिंग (16-कारक) का उपयोग करना — **अनुशंसित**                                                                                                                                                                                      |
+| `lkgp`              | अंतिम-ज्ञात-सफल पथ (अंतिम सफल प्रदाता पर पिन करता है, फिर नियमों पर फ़ॉलबैक करता है)                                                                                                                                                            |
+| `context-optimized` | वर्तमान कॉन्टेक्स्ट आकार के लिए सबसे उपयुक्त लक्ष्य चुनना                                                                                                                                                                                       |
+| `cache-optimized`   | प्रॉम्प्ट-कैश एफ़िनिटी के आधार पर लक्ष्यों को पुनः क्रमबद्ध करना — जिस कनेक्शन में इस अनुरोध का कैश किया हुआ प्रीफ़िक्स पहले से होने की सर्वाधिक संभावना है, उसे पहले आज़माया जाता है (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | समानांतर रूप से मॉडलों के एक पैनल को अनुरोध भेजना, फिर एक निर्णायक के माध्यम से एक उत्तर संश्लेषित करना (नीचे देखें)                                                                                                                            |
+| `pipeline`          | लक्ष्यों को क्रमिक रूप से चलाना, प्रत्येक चरण के आउटपुट को अगले चरण के इनपुट में देना; केवल अंतिम उत्तर लौटाया जाता है (#6396)                                                                                                                  |
+
+⭐ = v3.8.0 में नया · 🧬 = v3.8.36 में नया
+
+### `weighted` की कार्यप्रणाली
+
+`weighted` **प्रति अनुरोध आनुपातिक यादृच्छिक चयन** है
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), न कि संतुलक:
+
+- प्रत्येक अनुरोध `weight / totalWeight` प्रायिकता के साथ **एक** चरण चुनता है; शेष चरणों को
+  उस अनुरोध की फ़ॉलबैक शृंखला के रूप में भार के घटते क्रम में रखा जाता है।
+- जिस चरण का भार `0` है (या अनुपस्थित है), उसे तब तक **कभी नहीं चुना जाता**, जब तक किसी अन्य चरण का
+  भार > 0 हो — वह चुने गए चरण के विफल होने के बाद ही फ़ॉलबैक के रूप में काम कर सकता है। चयन केवल तभी समान
+  प्रायिकता वाला बनता है, जब **सभी** भार 0 हों।
+- जिन चरणों के सभी लक्ष्य अनुपलब्ध हैं — प्रदाता सर्किट ब्रेकर `OPEN`, कनेक्शन
+  कूलडाउन, मॉडल लॉकआउट — उन्हें चयन होने से पहले ही हटा दिया जाता है
+  (`open-sse/services/combo/targetResolution.ts`), इसलिए कोई एक स्वस्थ चरण अस्थायी रूप से
+  प्रत्येक अनुरोध में चुना जा सकता है।
+- `stickyWeightedLimit` (कॉम्बो कॉन्फ़िगरेशन, डिफ़ॉल्ट `1` = बंद) दोबारा चयन करने से पहले, चुने गए चरण को उतनी
+  लगातार सफलताओं तक पिन रखता है।
+
+सख्त रोटेशन के लिए `round-robin` का उपयोग करें; `weighted` में समान भार सांख्यिकीय — न कि
+सख्त — संतुलन प्रदान करते हैं।
+
+## फ़्यूज़न रणनीति
+
+`fusion` ऐसी एकमात्र रणनीति है जो किसी एक लक्ष्य को **नहीं** चुनती। यह प्रॉम्प्ट को
+**प्रत्येक पैनल मॉडल के पास समानांतर रूप से** भेजती है, फिर एक कॉन्फ़िगर करने योग्य **जज मॉडल**
+सभी पैनल प्रतिक्रियाओं से एक अंतिम उत्तर तैयार करता है। इसे अपस्ट्रीम `decolua/9router`
+(OpenRouter के Fusion डिज़ाइन) से पोर्ट किया गया है; कार्यान्वयन `open-sse/services/fusion.ts` में है।
+
+यह कैसे काम करता है:
+
+0. **टूल-युक्त बाइपास** — ऐसा अनुरोध जिसमें एक गैर-रिक्त `tools` ऐरे हो और
+   `tool_choice` स्पष्ट रूप से `"none"` न हो, वह पैनल को पूरी तरह छोड़ देता है: इसे
+   सीधे एक मॉडल (कॉन्फ़िगर किया गया जज, या `panel[0]`) पर रूट किया जाता है, जबकि
+   `tools`/`tool_choice` को बिना बदलाव के आगे भेजा जाता है। पैनल सदस्यों के पास टूल
+   एक्सेस नहीं होती और जज का संश्लेषण निर्देश टूल-कॉल उत्सर्जन को हतोत्साहित करता है,
+   इसलिए एजेंटिक/टूल-कॉलिंग क्लाइंट को संश्लेषित गद्य के बजाय वास्तविक टूल-कॉल निर्णय
+   मिलता है (#6771)।
+1. **फ़ैन-आउट** (केवल टूल-रहित अनुरोधों के लिए) — प्रॉम्प्ट को सभी पैनल
+   मॉडलों के पास एक साथ भेजा जाता है, टूल हटाकर और नॉन-स्ट्रीमिंग को बाध्य करके
+   (संश्लेषण के लिए जज को पूरा गद्य चाहिए)।
+2. **कोरम-ग्रेस संग्रह** — जैसे ही `minPanel` उत्तर आ जाते हैं, पीछे रह गए मॉडलों
+   के लिए एक छोटा ग्रेस टाइमर शुरू हो जाता है, फिर जो कुछ भी एकत्र हुआ है उसके साथ
+   फ़्यूज़न आगे बढ़ता है। इससे सबसे धीमे मॉडल के कारण वॉल टाइम पर पड़ने वाला दंड
+   सीमित रहता है और एक हार्ड टाइमआउट से बाधित होता है।
+3. **जज संश्लेषण** — पैनल उत्तरों को अनाम बनाया जाता है (`Source 1`, `Source 2`, … —
+   ताकि जज मॉडल ब्रांड के बजाय विषय-वस्तु को महत्व दे) और जज को सौंपा जाता है, जो
+   सहमति / विरोधाभासों / आंशिक कवरेज / विशिष्ट अंतर्दृष्टियों / अनदेखे पहलुओं का
+   विश्लेषण करता है, फिर **एक** प्रामाणिक उत्तर लिखता है। जज कॉल क्लाइंट के मूल
+   `stream` फ़्लैग + टूल को बनाए रखती है, इसलिए स्ट्रीमिंग और डाउनस्ट्रीम टूल उपयोग
+   फिर भी काम करते हैं।
+4. **सुचारु अवनयन** — 0 पैनल उत्तर → `503`; ठीक 1 उत्तरदाता → वही उत्तर
+   सीधे लौटाया जाता है (फ़्यूज़ करने के लिए कुछ नहीं); एकल-मॉडल पैनल सीधे उत्तर देता है।
+
+पैनल सदस्य एक `combo-ref` चरण (`{kind: "combo-ref", comboName: "..."}`) भी हो सकता है, जो
+किसी अन्य कॉम्बो को संदर्भित करता है — यह **एक ब्लैक-बॉक्स पैनल आवाज़** के रूप में रिज़ॉल्व
+होता है (संदर्भित कॉम्बो में पूर्ण रिकर्सिव डिस्पैच, न कि उस कॉम्बो के अपने लक्ष्यों का
+फ़ैन-आउट), और इसमें वही गहराई/चक्र सुरक्षा होती है जिसका उपयोग पहले से ही प्रत्येक अन्य
+combo-ref-उपयोग करने वाली रणनीति करती है (#6764)।
+
+### कॉन्फ़िगरेशन
+
+कॉम्बो के `config` ब्लॉब पर कॉन्फ़िगर किया जाता है (कोई स्कीमा माइग्रेशन नहीं — यह मौजूदा
+`combos` तालिका का पुनः उपयोग करता है):
+
+| फ़ील्ड                                   | प्रकार   | डिफ़ॉल्ट       | उद्देश्य                                                                            |
+| :--------------------------------------- | :------- | :------------- | :---------------------------------------------------------------------------------- |
+| `config.judgeModel`                      | `string` | पहला पैनल मॉडल | अंतिम उत्तर का संश्लेषण करने वाला मॉडल                                              |
+| `config.fusionTuning.minPanel`           | `number` | `2`            | ग्रेस टाइमर शुरू होने से पहले आवश्यक सफल उत्तर (`[2, panelSize]` की सीमा में सीमित) |
+| `config.fusionTuning.stragglerGraceMs`   | `number` | `8000`         | कोरम पूरा होने के बाद पीछे रह गए मॉडलों के लिए कितनी देर प्रतीक्षा करनी है          |
+| `config.fusionTuning.panelHardTimeoutMs` | `number` | `90000`        | पूर्ण सीमा, ताकि कोई एक अटका हुआ मॉडल अनुरोध को रोक न सके                           |
+
+डिफ़ॉल्ट मान `FUSION_DEFAULTS` (`open-sse/services/fusion.ts`) में मौजूद हैं।
+
+### उदाहरण
+
+```bash
+curl -X POST http://localhost:20128/api/combos \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "fusion-panel",
+    "strategy": "fusion",
+    "targets": [
+      { "model": "cc/claude-opus-4-7" },
+      { "model": "cx/gpt-5.5" },
+      { "model": "glm/glm-5.1" }
+    ],
+    "config": {
+      "judgeModel": "cc/claude-opus-4-7",
+      "fusionTuning": { "minPanel": 2, "stragglerGraceMs": 8000, "panelHardTimeoutMs": 90000 }
+    }
+  }'
+```
+
+फिर इसे किसी भी कॉम्बो की तरह कॉल करें: `{"model":"fusion-panel","messages":[...]}`।
+
+## वर्चुअल ऑटो-कॉम्बो फ़ैक्टरी
+
+Auto Combo इंजन को पहले से परिभाषित कॉम्बो की आवश्यकता नहीं होती। इसके बजाय, `open-sse/services/autoCombo/virtualFactory.ts` तत्काल उम्मीदवार बनाता है:
+
+1. `getProviderConnections({ isActive: true })` (सभी सक्षम कनेक्शन) प्राप्त करता है
+2. वैध क्रेडेंशियल वाले कनेक्शन फ़िल्टर करता है (API कुंजी या `hasUsableOAuthToken()` के माध्यम से गैर-समाप्त OAuth टोकन)
+3. मॉडल उपलब्धता + मूल्य निर्धारण के लिए `getProviderRegistry()` के साथ क्रॉस-रेफ़रेंस करता है
+4. प्रत्येक टपल `(provider, model, connection)` के लिए एक `VirtualAutoComboCandidate` बनाता है
+5. डिस्पैच लक्ष्य के रूप में `connection.defaultModel` (या रजिस्ट्री का पहला मॉडल) चुनता है
+6. 16-फ़ैक्टर वाले `scorePool()` और वेरिएंट के वेट पैक का उपयोग करके प्रत्येक उम्मीदवार को स्कोर करता है
+7. `handleComboChat()` के लिए परिणामी इन-मेमोरी `AutoComboConfig` लौटाता है — इसे कभी भी DB में स्थायी रूप से संग्रहीत नहीं किया जाता
+
+इसका अर्थ है कि **`auto/*` सक्षम वाला नया प्रोवाइडर जोड़ने पर उम्मीदवार पूल अपने-आप विस्तृत हो जाता है** — कॉम्बो को मैन्युअल रूप से संपादित करने की आवश्यकता नहीं होती। वर्चुअल कॉम्बो प्रत्येक अनुरोध के लिए दोबारा बनाया जाता है, इसलिए नए जोड़े गए या फिर से स्वस्थ हुए कनेक्शन तुरंत चुन लिए जाते हैं।
+
+## स्व-उपचार
+
+- **अस्थायी बहिष्करण**: स्कोर < 0.2 → 5 मिनट के लिए बहिष्कृत (प्रगतिशील बैकऑफ़, अधिकतम 30 मिनट)
+- **सर्किट ब्रेकर जागरूकता**: OPEN → स्वतः बहिष्कृत; HALF_OPEN → प्रोब अनुरोध
+- **घटना मोड**: >50% OPEN → अन्वेषण अक्षम करें, स्थिरता अधिकतम करें
+- **कूलडाउन रिकवरी**: बहिष्करण के बाद पहला अनुरोध कम टाइमआउट वाला एक "प्रोब" होता है
+
+## बैंडिट अन्वेषण
+
+5% अनुरोध (कॉन्फ़िगर करने योग्य) अन्वेषण के लिए यादृच्छिक प्रोवाइडरों तक रूट किए जाते हैं। घटना मोड में यह अक्षम रहता है।
 
 ## API
 
-```bash
-# Create auto-combo
-curl -X POST http://localhost:20128/api/combos/auto \
-  -H "Content-Type: application/json" \
-  -d '{"id":"my-auto","name":"Auto Coder","candidatePool":["anthropic","google","openai"],"modePack":"ship-fast"}'
+**कोई समर्पित `POST /api/combos/auto` एंडपॉइंट नहीं है** — Auto-Combo का उपयोग दो तरीकों से किया जाता है:
 
-# List auto-combos
-curl http://localhost:20128/api/combos/auto
+1. **शून्य-कॉन्फ़िगरेशन (अनुशंसित):** `model: "auto"` या `model: "auto/<variant>"` के साथ कोई भी चैट कम्प्लीशन अनुरोध भेजें। वर्चुअल फ़ैक्टरी प्रत्येक अनुरोध के लिए कॉम्बो बनाती है — किसी स्थायी संग्रहण या API कॉल की आवश्यकता नहीं होती।
+
+2. **`strategy: "auto"` वाला स्थायी कॉम्बो:** `POST /api/combos` के माध्यम से एक नियमित कॉम्बो बनाएँ और `strategy: "auto"` के साथ `config.auto.weights` / `config.auto.candidatePool` सेट करें। समान स्कोरिंग इंजन का उपयोग किया जाता है; कॉम्बो को `combos` में संग्रहीत किया जाता है और ID के माध्यम से दोबारा उपयोग किया जा सकता है।
+
+खोज के लिए, `GET /api/combos/auto` प्रत्येक वेरिएंट को उसके निर्धारित उम्मीदवार पूल के साथ-साथ `context_length` / `max_output_tokens` सहित सूचीबद्ध करता है — ये उम्मीदवार पूल की विंडो में अधिकतम मान होते हैं। क्लाइंट (जैसे opencode प्लगइन) को `0` के बजाय इन मानों को विज्ञापित करना चाहिए: शून्य कॉन्टेक्स्ट opencode के ऑटो-कम्पैक्शन को पूरी तरह अक्षम कर देता है, जिससे सेशन तब तक बढ़ते रहते हैं जब तक गेटवे का हिस्ट्री पर्ज कॉन्टेक्स्ट को नष्ट नहीं कर देता। MAX को विज्ञापित करना सुरक्षित है क्योंकि ऑटो-कॉम्बो कॉन्टेक्स्ट प्री-फ़िल्टर बड़े आकार वाले अनुरोधों को बड़ी विंडो वाले उम्मीदवारों तक रूट करता है।
+
+```bash
+# शून्य-कॉन्फ़िगरेशन उपयोग (कॉम्बो बनाए बिना)
+curl -X POST http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"auto/coding","messages":[{"role":"user","content":"Hello"}]}'
+
+# नियमित कॉम्बो एंडपॉइंट के माध्यम से स्थायी ऑटो कॉम्बो
+curl -X POST http://localhost:20128/api/combos \
+  -H "Content-Type: application/json" \
+  -d '{"id":"my-auto","name":"Auto Coder","strategy":"auto","config":{"auto":{"candidatePool":["anthropic","google","openai"],"weights":{"quota":0.15,"health":0.3,"costInv":0.05,"latencyInv":0.35,"taskFit":0.1,"stability":0,"tierPriority":0.05}}}}'
 ```
 
-## Task Fitness
+### ऑटो राउटर रणनीतियाँ
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+स्थायी `strategy: "auto"` कॉम्बो `config.routerStrategy` (या लेगेसी
+`config.auto.routerStrategy`) को निम्न में से किसी एक पर सेट कर सकते हैं:
 
-## Files
+- `rules` — डिफ़ॉल्ट भारित स्कोरिंग
+- `score` — सबसे अधिक कॉन्फ़िगर किया गया भारित स्कोर चुनता है। बिल्कुल समान स्कोर होने पर कॉन्फ़िगर किया गया
+  उम्मीदवार क्रम बनाए रखा जाता है; मौजूदा `explorationRate` पूरे रैंक किए गए पूल से नमूने चुनता है।
+- `cost` / `eco` — सबसे सस्ता स्वस्थ प्रोवाइडर
+- `latency` / `fast` — विश्वसनीयता पेनल्टी के साथ सबसे कम p95 लेटेंसी
+- `sla-aware` / `sla` — p95 लेटेंसी, त्रुटि-दर और वैकल्पिक
+  लागत SLO को पूरा करने वाले उम्मीदवारों को प्राथमिकता देता है
+- `lkgp` — अंतिम ज्ञात अच्छा प्रोवाइडर पहले
 
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+### राउटर रणनीतियों का विस्तृत विवरण
+
+ऑटो-कॉम्बो इंजन 6 प्लगेबल **RouterStrategy** कार्यान्वयन उपलब्ध कराता है, जिन्हें
+आप `config.routerStrategy` (या लेगेसी `config.auto.routerStrategy`) के माध्यम से बदल सकते हैं।
+प्रत्येक रणनीति किसी `RoutingContext`
+(कार्य प्रकार, टूल/विज़न संकेत, टोकन अनुमान, वैकल्पिक SLA नीति, वैकल्पिक
+अंतिम-ज्ञात-अच्छा प्रोवाइडर) के आधार पर उम्मीदवार पूल से एक प्रोवाइडर चुनती है।
+
+#### 1. `rules` (डिफ़ॉल्ट) — 16-फ़ैक्टर भारित स्कोरिंग
+
+मौजूदा स्कोरिंग इंजन को रैप करता है। `OPEN` सर्किट-ब्रेकर
+उम्मीदवारों को फ़िल्टर करता है, फिर वर्तमान कार्य प्रकार और `getTaskFitness()` के साथ `scorePool()`
+चलाकर सर्वोच्च स्कोर वाला प्रोवाइडर चुनता है।
+
+```ts
+class RulesStrategyImpl implements RouterStrategy {
+  readonly name = "rules";
+  readonly description = "16-factor weighted scoring (see DEFAULT_WEIGHTS)";
+
+  select(pool, context) {
+    const eligible = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const ranked = scorePool(
+      eligible.length > 0 ? eligible : pool,
+      context.taskType,
+      undefined,
+      getTaskFitness
+    );
+    return { provider: ranked[0].provider /* ... */ };
+  }
+}
+```
+
+**कब उपयोग करें**: डिफ़ॉल्ट। इसका उपयोग तब करें जब आप सभी संकेतों के बीच संतुलित समझौता चाहते हों।
+
+**उपनाम**: `rules` (कोई उपनाम नहीं)
+
+---
+
+#### 2. `cost` / `eco` — सबसे सस्ता स्वस्थ प्रोवाइडर
+
+उम्मीदवार पूल को `costPer1MTokens` (आरोही क्रम) के अनुसार क्रमबद्ध करता है और सबसे सस्ता विकल्प चुनता है।
+पहले `OPEN` उम्मीदवारों को फ़िल्टर करता है।
+
+```ts
+class CostStrategyImpl implements RouterStrategy {
+  readonly name = "cost";
+  readonly description = "Always selects cheapest available provider";
+
+  select(pool, context) {
+    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const sorted = [...healthy].sort((a, b) => a.costPer1MTokens - b.costPer1MTokens);
+    return { provider: sorted[0].provider /* ... */ };
+  }
+}
+```
+
+**कब उपयोग करें**: लागत-संवेदी वर्कलोड, बैच प्रोसेसिंग या बैकग्राउंड जॉब के लिए।
+
+**उपनाम**: `cost`, `eco`
+
+---
+
+#### 3. `latency` / `fast` — विश्वसनीयता पेनल्टी के साथ सबसे कम p95 लेटेंसी
+
+`p95LatencyMs + (errorRate * 1000)` के आधार पर क्रमबद्ध करता है। त्रुटि-दर दंड यह सुनिश्चित करता है कि
+अविश्वसनीय प्रदाताओं को नीचे स्थान दिया जाए, भले ही उनकी नाममात्र विलंबता कम हो।
+
+```ts
+class LatencyStrategyImpl implements RouterStrategy {
+  readonly name = "latency";
+  readonly description = "Prioritizes lowest p95 latency with reliability weighting";
+
+  select(pool, context) {
+    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const sorted = [...healthy].sort(
+      (a, b) => a.p95LatencyMs + a.errorRate * 1000 - (b.p95LatencyMs + b.errorRate * 1000)
+    );
+    return { provider: sorted[0].provider /* ... */ };
+  }
+}
+```
+
+**कब उपयोग करें**: विलंबता-संवेदी वर्कलोड, जैसे रीयल-टाइम चैट, स्वतः पूर्णता या
+इंटरैक्टिव कोडिंग सहायक।
+
+**उपनाम**: `latency`, `fast`
+
+---
+
+#### 4. `sla-aware` / `sla` — विलंबता/त्रुटि/लागत SLO अनुपालन
+
+प्रत्येक उम्मीदवार को इस आधार पर स्कोर देता है कि वह कॉन्फ़िगर की गई SLO नीति को कितनी अच्छी तरह पूरा करता है:
+
+| कारक            | भार | सूत्र                                                 |
+| --------------- | --- | ----------------------------------------------------- |
+| विलंबता स्कोर   | 35% | `threshold / max(value, ε)`                           |
+| त्रुटि स्कोर    | 35% | `threshold / max(value, ε)`                           |
+| स्वास्थ्य स्कोर | 15% | `1.0` (CLOSED) / `0.5` (HALF_OPEN) / `0.0` (OPEN)     |
+| लागत स्कोर      | 10% | `threshold / max(value, ε)` या व्युत्क्रम सामान्यीकृत |
+| स्थिरता स्कोर   | 5%  | विलंबता मानक विचलन का व्युत्क्रम सामान्यीकृत मान      |
+
+जब `hardConstraints: true` हो, तो उम्मीदवारों को मुख्य रूप से **उल्लंघन स्कोर**
+(वे किसी SLO से कितने अधिक हैं) के आधार पर और फिर समग्र स्कोर के आधार पर क्रमबद्ध किया जाता है। अन्यथा केवल
+समग्र स्कोर का उपयोग किया जाता है।
+
+```ts
+class SLAStrategyImpl implements RouterStrategy {
+  readonly name = "sla-aware";
+  readonly description =
+    "Selects the provider most likely to satisfy latency, error-rate, and cost SLOs";
+
+  select(pool, context) {
+    // ... नीति के आधार पर प्रत्येक उम्मीदवार को स्कोर देता है: { targetP95Ms, maxErrorRate, maxCostPer1MTokens, hardConstraints }
+  }
+}
+```
+
+**SLA फ़ील्ड** (कॉम्बो कॉन्फ़िगरेशन में सेट करें):
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "sla-aware",
+    "slaTargetP95Ms": 1500,
+    "slaMaxErrorRate": 0.05,
+    "slaMaxCostPer1MTokens": 5,
+    "slaHardConstraints": true
+  }
+}
+```
+
+**कब उपयोग करें**: सख्त विलंबता, त्रुटि-दर या लागत बजट वाले प्रोडक्शन वर्कलोड।
+
+**उपनाम**: `sla-aware`, `sla`
+
+---
+
+#### 5. `lkgp` — अंतिम ज्ञात अच्छे प्रदाता को पहले आज़माएँ
+
+पहले **अंतिम ज्ञात अच्छे प्रदाता** (यदि सेट हो) को आज़माता है, फिर
+`rules` रणनीति पर फ़ॉलबैक करता है। यह सत्र स्थायित्व के लिए उपयोगी है — बातचीत में
+अनुवर्ती अनुरोधों को वही प्रदाता संभालता है।
+
+```ts
+class LKGPStrategyImpl implements RouterStrategy {
+  readonly name = "lkgp";
+  readonly description = "Tries last known good provider first, then falls back to rules";
+
+  select(pool, context) {
+    if (context.lkgpEnabled === false) {
+      return getStrategy("rules").select(pool, context);
+    }
+
+    if (context.lastKnownGoodProvider) {
+      const candidates = pool.filter(
+        (c) => c.provider === context.lastKnownGoodProvider && c.circuitBreakerState !== "OPEN"
+      );
+      if (candidates.length > 0) {
+        return { provider: candidates[0].provider /* ... */ };
+      }
+    }
+
+    // rules रणनीति पर फ़ॉलबैक करें
+    return getStrategy("rules").select(pool, context);
+  }
+}
+```
+
+**कब उपयोग करें**: बहु-चरणीय बातचीत, जहाँ आप चाहते हैं कि अनुवर्ती अनुरोधों को
+वही प्रदाता संभाले (उदाहरण के लिए, कैशिंग, संदर्भ निरंतरता या मूल्य निर्धारण की संगति हेतु)।
+
+**उपनाम**: `lkgp` (कोई अन्य उपनाम नहीं)
+
+---
+
+### कस्टम राउटर रणनीतियाँ
+
+आप सार्वजनिक API के माध्यम से अपना स्वयं का `RouterStrategy` कार्यान्वयन पंजीकृत कर सकते हैं:
+
+```ts
+import {
+  registerStrategy,
+  type RouterStrategy,
+} from "@omniroute/open-sse/services/autoCombo/routerStrategy";
+
+class MyCustomStrategy implements RouterStrategy {
+  readonly name = "my-custom";
+  readonly description = "My custom routing strategy";
+
+  select(pool, context) {
+    // आपका रूटिंग लॉजिक यहाँ होगा
+    return {
+      provider: pool[0].provider,
+      model: pool[0].model,
+      strategy: this.name,
+      reason: "MyCustomStrategy: ...",
+      candidatesConsidered: pool.length,
+      finalScore: 1.0,
+    };
+  }
+}
+
+registerStrategy("my-custom", new MyCustomStrategy());
+```
+
+फिर इसका उपयोग करें:
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "my-custom"
+  }
+}
+```
+
+---
+
+### राउटर रणनीति चयन मार्गदर्शिका
+
+| उपयोग का मामला       | रणनीति      | कारण                                                 |
+| -------------------- | ----------- | ---------------------------------------------------- |
+| संतुलित वर्कलोड      | `rules`     | डिफ़ॉल्ट — सभी कारकों पर विचार करता है               |
+| लागत न्यूनतम करें    | `cost`      | हमेशा सबसे सस्ता विकल्प चुनता है                     |
+| विलंबता न्यूनतम करें | `latency`   | सबसे तेज़ विश्वसनीय प्रदाता चुनता है                 |
+| सख्त SLO             | `sla-aware` | p95/त्रुटि/लागत थ्रेशोल्ड के आधार पर फ़िल्टर करता है |
+| बहु-चरणीय चैट        | `lkgp`      | सत्र स्थायित्व                                       |
+
+SLA-सचेत फ़ील्ड:
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "sla-aware",
+    "slaTargetP95Ms": 1500,
+    "slaMaxErrorRate": 0.05,
+    "slaMaxCostPer1MTokens": 5,
+    "slaHardConstraints": true
+  }
+}
+```
+
+## कार्य उपयुक्तता
+
+6 कार्य प्रकारों (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`) में 30+ मॉडलों को स्कोर दिया गया है। वाइल्डकार्ड पैटर्न समर्थित हैं (उदा., `*-coder` → उच्च कोडिंग स्कोर)।
+
+## Auto वेरिएंट का सारांश
+
+साधारण `auto` (डिफ़ॉल्ट) तथा `autoPrefix.ts` में घोषित 6 `AutoVariant` मानों को मिलाकर, कुल **7 उपयोग किए जा सकने वाले मॉडल ID** हैं:
+
+`auto`, `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`
+
+(`AutoVariant` स्वयं 6 मानों को सूचीबद्ध करता है; 7वाँ विकल्प "कोई वेरिएंट नहीं" है — साधारण `auto` — जिसे `parseAutoPrefix()` द्वारा `variant: undefined` के रूप में संभाला जाता है।)
+
+## टियर Auto-Combo में कैसे समाहित होते हैं
+
+16-कारक स्कोरिंग फ़ंक्शन (`open-sse/services/autoCombo/scoring.ts`) टियर
+सदस्यता को दो संकेतों के रूप में मानता है: `tierPriority` (0.0476) और `tierAffinity` (0.0476)। संपूर्ण
+`DEFAULT_WEIGHTS` सेट के लिए ऊपर दी गई प्रामाणिक [स्कोरिंग कारक तालिका](#how-it-works-persisted-auto-combos) देखें — प्रत्येक पैक के ओवरराइड (ship-fast/cost-saver/quality-first/
+offline-friendly) "प्रति पैक वेट प्रोफ़ाइल" तालिका में सूचीबद्ध हैं।
+
+अकेला टियर, Tier 1 को पहले रखने के लिए **बाध्य** नहीं करता — यदि Tier 1 की विलंबता खराब है या
+लागत-बनाम-गुणवत्ता इष्टतम नहीं है, तो Tier 2 चुना जाता है। टियर क्रम को बाध्य करने के लिए, कॉम्बो
+रणनीति `priority` का उपयोग करें और प्रदाताओं को टियर के अनुसार व्यवस्थित करें।
+
+Tier 1 (सदस्यता) को दृढ़ता से प्राथमिकता देने के लिए, `tierPriority` का वेट बढ़ाएँ:
+
+```json
+{
+  "strategy": "auto",
+  "config": { "auto": { "weights": { "tierPriority": 0.3, "costInv": 0.05 } } }
+}
+```
+
+टियर की परिभाषाओं और प्रदाता वर्गीकरण के लिए `docs/marketing/TIERS.md` देखें।
+
+## परीक्षण और कवरेज
+
+### नियतात्मक रूटिंग-निर्णय मैट्रिक्स (`npm run test:combo:matrix`)
+
+`tests/integration/combo-matrix/*.test.ts` मॉक किए गए अपस्ट्रीम के साथ वास्तविक कॉम्बो पाइपलाइन के माध्यम से सभी 19
+सार्वजनिक रणनीतियों के रूटिंग **निर्णय** को शुरू से अंत तक प्रमाणित करता है।
+कवरेज में शामिल हैं:
+
+- सभी 19 `ROUTING_STRATEGY_VALUES` रणनीतियाँ (क्रमबद्ध, भारित, लागत, संदर्भ, फ़्यूज़न, …)।
+- `quota-share` (आंतरिक) शुरू से अंत तक: वास्तविक `selectQuotaShareTarget` सीम (`registerQuotaFetcher` / `setLKGP` /
+  `__setHeadroomSaturationFetcherForTests`) के माध्यम से DRR निष्पक्षता + संतृप्ति होने पर प्राथमिकता में कमी।
+- प्रत्येक लक्ष्य संख्या में `context-relay` सार्वभौमिक-हैंडऑफ़ कवरेज।
+
+यह सूट CI (`test:integration` जॉब) में `--test-concurrency=1` और
+`--test-force-exit` के साथ चलता है, ताकि यह नियतात्मक रहे और इसे लाइव क्रेडेंशियल की आवश्यकता न हो।
+
+### गेटेड लाइव स्मोक परीक्षण (CI में नहीं — वास्तविक प्रदाता)
+
+| कमांड                                  | यह क्या करता है                                                                             |
+| :------------------------------------- | :------------------------------------------------------------------------------------------ |
+| `npm run test:combo:live`              | `RUN_COMBO_LIVE=1` के साथ इन-प्रोसेस वास्तविक रूटिंग; लाइव OmniRoute DB का स्नैपशॉट लेता है |
+| `npm run test:combo:live:vps`          | लाइव OmniRoute सर्वर के विरुद्ध HTTP कॉल (`COMBO_LIVE_BASE_URL` सेट करें)                   |
+| `npm run test:combo:live:vps:failover` | वही, जानबूझकर बनाए गए फ़ेलओवर परिदृश्यों के साथ                                             |
+
+ये स्मोक परीक्षण वास्तविक वायर पथ (कॉम्बो → प्रदाता → पूर्णता) का परीक्षण करते हैं। इन्हें
+जानबूझकर CI से बाहर रखा गया है, क्योंकि इनके लिए लाइव क्रेडेंशियल और VPS पहुँच आवश्यक है।
+
+---
+
+## फ़ाइलें
+
+| फ़ाइल                                                     | उद्देश्य                                                                                                       |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16-कारक स्कोरिंग फ़ंक्शन, `DEFAULT_WEIGHTS`, पूल नॉर्म                                                         |
+| `open-sse/services/autoCombo/taskFitness.ts`              | मॉडल × कार्य उपयुक्तता लुकअप                                                                                   |
+| `open-sse/services/autoCombo/engine.ts`                   | चयन तर्क, बैंडिट, बजट सीमा                                                                                     |
+| `open-sse/services/autoCombo/selfHealing.ts`              | बहिष्करण, प्रोब, घटना मोड                                                                                      |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 भार प्रोफ़ाइल (तेज़-शिपिंग, लागत-बचतकर्ता, गुणवत्ता-प्रथम, ऑफ़लाइन-अनुकूल, विश्वसनीयता-प्रथम, अव्यवस्था-मोड) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` प्रीफ़िक्स पार्सर + 6 प्रकार                                                                           |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | लाइव कनेक्शन से इन-मेमोरी `AutoComboConfig` बनाता है                                                           |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | प्रदाता रजिस्ट्री की मॉकिंग के लिए परीक्षण हुक                                                                 |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (19 रणनीतियाँ)                                                                       |
+| `src/sse/handlers/chat.ts`                                | एकीकरण: ऑटो-प्रीफ़िक्स शॉर्ट-सर्किट                                                                            |

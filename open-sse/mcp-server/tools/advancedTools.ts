@@ -894,7 +894,7 @@ export async function handleDbHealthCheck(args: { autoRepair?: boolean }) {
 
   try {
     const { runManagedDbHealthCheck } = await import("../../../src/lib/db/core.ts");
-    const result = runManagedDbHealthCheck({ autoRepair });
+    const result = await runManagedDbHealthCheck({ autoRepair });
 
     await logToolCall(
       "omniroute_db_health_check",

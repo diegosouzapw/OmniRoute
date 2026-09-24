@@ -16,6 +16,7 @@ import {
 } from "../../services/modelFamilyFallback.ts";
 import { COOLDOWN_MS } from "../../config/errorConfig.ts";
 import { normalizeHeaders } from "../../utils/headers.ts";
+import { shouldSkipCredentialRefresh } from "./skipCredentialRefresh.ts";
 
 export interface ChatCoreExecutorResult {
   response: Response;
@@ -204,6 +205,18 @@ function leaseMismatch(model: string, connectionId: string): ProviderExecutionOu
   };
 }
 
+interface UpstreamErrorFields {
+  message?: string;
+  code?: string;
+  type?: string;
+}
+
+function readUpstreamErrorFields(body: unknown): UpstreamErrorFields {
+  const err = (body as { error?: Record<string, unknown> } | null)?.error;
+  const text = (value: unknown) => (typeof value === "string" && value ? value : undefined);
+  return { message: text(err?.message), code: text(err?.code), type: text(err?.type) };
+}
+
 async function toOutcome(
   attempt: ChatCoreExecutorResult,
   model: string,
@@ -224,14 +237,15 @@ async function toOutcome(
   }
   let message = attempt.response.statusText || "upstream error";
   let body: unknown = attempt.transformedBody;
+  let fields: UpstreamErrorFields = {};
   try {
     // clone() is the drain. sendProviderAttempt must not cancel() a streaming
     // non-2xx body before we get here (BYOP 422 / Codex 429 Retry-After).
     const text = await attempt.response.clone().text();
     try {
       body = JSON.parse(text);
-      const err = (body as { error?: { message?: unknown } } | null)?.error;
-      if (err && typeof err.message === "string" && err.message) message = err.message;
+      fields = readUpstreamErrorFields(body);
+      if (fields.message) message = fields.message;
     } catch {
       // Non-JSON upstream body (plain-text 429, HTML error page). parseUpstreamError
       // — the pre-pipeline path this replaced — surfaces the raw text as the message;
@@ -250,7 +264,13 @@ async function toOutcome(
     body,
     retryAfterMs: null,
   });
-  const result = createErrorResult(restatement.status, message, restatement.retryAfterMs);
+  const result = createErrorResult(
+    restatement.status,
+    message,
+    restatement.retryAfterMs,
+    fields.code,
+    fields.type
+  );
   return {
     kind: "error",
     result: {
@@ -419,7 +439,8 @@ export async function runProviderExecutionPipeline(
     if (
       !authRefreshed &&
       (status === 401 || status === 403) &&
-      typeof connection.refreshCredentials === "function"
+      typeof connection.refreshCredentials === "function" &&
+      !(await shouldSkipCredentialRefresh(target.provider, attempt.response))
     ) {
       const refreshed = await connection.refreshCredentials(connection.getCredentials());
       if (refreshed && (refreshed.accessToken || refreshed.copilotToken)) {

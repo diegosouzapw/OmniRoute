@@ -14,6 +14,812 @@
     "jsonOpt": "Výstup jako JSON",
     "yesOpt": "Přeskočit potvrzení"
   },
+  "setup": {
+    "title": "Nastavení OmniRoute",
+    "passwordPrompt": "Heslo správce",
+    "providerPrompt": "Výchozí poskytovatel (ponechte prázdné pro přeskočení)",
+    "done": "Nastavení dokončeno",
+    "passwordSet": "Heslo správce nakonfigurováno",
+    "providerSet": "Poskytovatel nakonfigurován: {name}",
+    "testingProvider": "Testování připojení k poskytovateli: {name}",
+    "testPassed": "Test poskytovatele proběhl úspěšně",
+    "testFailed": "Test poskytovatele selhal: {error}",
+    "loginEnabled": "Přihlášení: povoleno (heslo aktualizováno)",
+    "loginDisabled": "Přihlášení: zakázáno",
+    "providerInfo": "Poskytovatel: {info}",
+    "opencode": "Nainstalovat a nakonfigurovat přibalený modul @omniroute/opencode-plugin pro OpenCode"
+  },
+  "doctor": {
+    "title": "Diagnostika OmniRoute",
+    "dbOk": "Databáze: v pořádku ({path})",
+    "dbMissing": "Databáze: neinicializována — spusťte `omniroute setup`",
+    "portOk": "Port {port}: dostupný",
+    "portConflict": "Port {port}: používá jej jiný proces",
+    "encryptionOk": "Šifrovací klíč: nakonfigurován",
+    "encryptionMissing": "Chybí šifrovací klíč — spusťte `omniroute setup`",
+    "allGood": "Všechny kontroly proběhly úspěšně.",
+    "warnings": "Počet varování: {count} — viz výše."
+  },
+  "providers": {
+    "title": "Poskytovatelé",
+    "noProviders": "Nejsou nakonfigurováni žádní poskytovatelé. Spusťte: omniroute setup",
+    "testing": "Testování poskytovatele {name}...",
+    "available": "Počet dostupných poskytovatelů: {count}",
+    "connected": "Připojeno",
+    "disconnected": "Odpojeno",
+    "validationFailed": "Ověření selhalo: {error}",
+    "metrics": {
+      "description": "Zobrazit metriky výkonu poskytovatelů (latence, úspěšnost, náklady)",
+      "provider": "Filtrovat podle ID poskytovatele",
+      "connection_id": "Filtrovat podle ID připojení",
+      "period": "Časové období: 1h|6h|24h|7d|30d (výchozí: 24h)",
+      "metric": "Zaměřit se na konkrétní pole metriky",
+      "sort": "Seřadit podle pole (sestupně)",
+      "limit": "Maximální počet řádků (výchozí: 50)",
+      "watch": "Obnovovat každých 5 s (živý režim)",
+      "compare": "ID poskytovatelů oddělená čárkami pro vzájemné porovnání"
+    },
+    "metric_single": {
+      "description": "Získat jednu hodnotu metriky pro konkrétní připojení"
+    },
+    "rotate": {
+      "description": "Obměnit upstreamový klíč API pro připojení poskytovatele",
+      "newKeyOpt": "Nová hodnota klíče API (nedoporučuje se: použijte raději --from-env)",
+      "fromEnvOpt": "Načíst nový klíč z proměnné prostředí VAR",
+      "oauthOpt": "Místo toho spustit proces opětovného ověření OAuth",
+      "skipTestOpt": "Přeskočit test připojení po rotaci",
+      "dryRunOpt": "Vypsat, co by se změnilo, bez provedení zápisu",
+      "confirmPrompt": "Nahradit klíč API pro připojení „{name}“ ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Proběhla by rotace klíče pro „{name}“ ({id}). Nebyly provedeny žádné změny.",
+      "oauthHint": "Připojení OAuth — spusťte: omniroute oauth {provider}",
+      "envVarEmpty": "Proměnná prostředí {var} není nastavena nebo je prázdná.",
+      "success": "Klíč pro „{name}“ byl rotován. Pro ověření spusťte `providers test {id}`.",
+      "testPassed": "Test po rotaci proběhl úspěšně.",
+      "testFailed": "Test po rotaci selhal: {error}"
+    },
+    "status": {
+      "description": "Zobrazit stav klíčů pro všechna připojení poskytovatelů (stáří, vypršení platnosti, interval obnovení)",
+      "providerOpt": "Filtrovat podle názvu poskytovatele",
+      "header": "ID         Poskytovatel   Název                    Stav platnosti Stav testu  Obnovení možné od",
+      "noData": "Nejsou k dispozici žádná data o připojeních poskytovatelů.",
+      "requiresServer": "Příkaz providers status vyžaduje spuštěný server OmniRoute."
+    }
+  },
+  "keys": {
+    "title": "Klíče API",
+    "addDescription": "Přidat nebo aktualizovat klíč API pro poskytovatele",
+    "listDescription": "Vypsat všechny nakonfigurované klíče API",
+    "removeDescription": "Odebrat klíč API poskytovatele",
+    "regenerateDescription": "Vygenerovat nový klíč API OmniRoute",
+    "revokeDescription": "Zneplatnit klíč API OmniRoute",
+    "revealDescription": "Zobrazit nezamaskovanou hodnotu klíče API",
+    "usageDescription": "Zobrazit nedávné využití klíče API",
+    "usageLimitOpt": "Počet nedávných požadavků",
+    "rotateDescription": "Vygenerovat nový klíč a zneplatnit starý",
+    "graceOpt": "Doba odkladu (ms) před zneplatněním starého klíče",
+    "stdinOpt": "Načíst klíč API ze standardního vstupu místo z argumentu",
+    "added": "Klíč pro poskytovatele {provider} byl přidán.",
+    "removed": "Klíč byl odebrán.",
+    "listed": "Počet klíčů: {count}.",
+    "noKeys": "Nejsou nakonfigurovány žádné klíče.",
+    "noUsage": "Nebyla nalezena žádná data o využití.",
+    "confirmRemove": "Odebrat klíč {id}?",
+    "confirmRegenerate": "Vygenerovat znovu klíč {id}?",
+    "confirmRevoke": "Zneplatnit klíč {id}?",
+    "confirmRotate": "Rotovat klíč {id}? (starý klíč bude zneplatněn po uplynutí doby odkladu)",
+    "regenerated": "Nový klíč byl vygenerován. Nový klíč: {key}",
+    "revoked": "Klíč {id} byl zneplatněn.",
+    "rotated": "Klíč {id} byl obměněn. ID nového klíče: {newId}",
+    "revealWarning": "⚠  Zobrazí se celý nezamaskovaný klíč. Ujistěte se, že vaši obrazovku nikdo nevidí.",
+    "providerRequired": "Poskytovatel je povinný.",
+    "keyRequired": "Klíč API je povinný.",
+    "stdinEmpty": "Prostřednictvím stdin nebyl zadán žádný klíč API.",
+    "unknownProvider": "Neznámý poskytovatel: {provider}",
+    "policy": {
+      "title": "Zásady klíče",
+      "showDescription": "Zobrazit zásady limitů a nákladů pro klíč",
+      "setDescription": "Nastavit zásady limitů a nákladů pro klíč",
+      "rateLimitOpt": "Maximální počet požadavků za minutu",
+      "maxCostOpt": "Maximální náklady za den (USD)",
+      "allowedModelsOpt": "Čárkami oddělený seznam povolených modelů",
+      "nothingToSet": "Nebyla zadána žádná pole zásad. Použijte --rate-limit, --max-cost nebo --allowed-models.",
+      "updated": "Zásady byly aktualizovány."
+    },
+    "expiration": {
+      "title": "Vypršení platnosti klíče",
+      "listDescription": "Vypsat klíče, jejichž platnost brzy vyprší",
+      "daysOpt": "Zobrazit klíče, jejichž platnost vyprší během N dnů",
+      "none": "Během {days} dnů nevyprší platnost žádného klíče.",
+      "listTitle": "Klíče, jejichž platnost vyprší během {days} dnů:"
+    }
+  },
+  "authExport": {
+    "description": "Exportovat DEŠIFROVANÉ přihlašovací údaje poskytovatele (pouze lokálně, výstup v prostém textu)",
+    "idOpt": "Exportovat pouze připojení odpovídající tomuto ID, názvu nebo poskytovateli",
+    "formatOpt": "Formát výstupu: json nebo env",
+    "outOpt": "Zapsat výstup do souboru namísto stdout (s oprávněními 0600)",
+    "forceOpt": "Potvrďte, že rozumíte tomu, že tato operace vypíše nebo zapíše tajné údaje v prostém textu",
+    "warning": "⚠ Tato operace vypíše nebo zapíše DEŠIFROVANÉ klíče API a tokeny OAuth v prostém textu. Zajistěte, aby vaše obrazovka, historie shellu i případný výstupní soubor zůstaly soukromé.",
+    "confirmHeading": "⚠ VAROVÁNÍ: tato operace exportuje DEŠIFROVANÉ přihlašovací údaje poskytovatele v prostém textu",
+    "confirmBody": "Tento příkaz dešifruje a vypíše nebo zapíše apiKey, accessToken, refreshToken a\nidToken pro vybraná připojení. S výstupem zacházejte jako s tajným údajem.",
+    "confirmFooter": "Pro potvrzení spusťte:\n  omniroute auth export --force",
+    "missingKey": "Pro export přihlašovacích údajů je vyžadován STORAGE_ENCRYPTION_KEY.",
+    "notFound": "Připojení nebylo nalezeno: {id}",
+    "invalidFormat": "Neplatný formát: {format}. Použijte json nebo env."
+  },
+  "stream": {
+    "description": "Streamovat odpověď chatu s režimy kontroly SSE",
+    "file": "Načíst výzvu ze souboru",
+    "stdin": "Načíst výzvu ze stdin",
+    "model": "ID modelu (výchozí: auto)",
+    "system": "Systémová výzva",
+    "combo": "Vynutit konkrétní kombinaci podle názvu",
+    "max_tokens": "Maximální počet tokenů v odpovědi",
+    "responses_api": "Použít /v1/responses namísto /v1/chat/completions",
+    "raw": "Vypisovat nezpracované řádky SSE tak, jak byly přijaty",
+    "debug": "Vypisovat informace o době zpracování jednotlivých bloků do stderr",
+    "save": "Uložit všechny události SSE do souboru .jsonl",
+    "error": {
+      "empty_prompt": "Chyba: prompt je povinný (poziční argument, --file nebo --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Analytika využití, rozpočty, kvóty a protokoly",
+    "analytics": {
+      "description": "Zobrazit agregovanou analytiku využití",
+      "period": "Časový rozsah: 1d|7d|30d|90d|ytd|all (výchozí: 30d)",
+      "provider": "Filtrovat podle ID poskytovatele"
+    },
+    "budget": {
+      "description": "Spravovat rozpočty nákladů",
+      "set": {
+        "scope": "Rozsah rozpočtu (výchozí: globální)",
+        "period": "Období rozpočtu: daily|weekly|monthly (výchozí: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Zobrazit využití kvóty poskytovatele",
+      "provider": "Filtrovat podle ID poskytovatele",
+      "check": "Zobrazit, zda je kvóta dostupná pro nový požadavek"
+    },
+    "logs": {
+      "description": "Zobrazit protokoly volání požadavků",
+      "limit": "Počet položek protokolu k vrácení (výchozí: 100)",
+      "search": "Vyhledávací dotaz pro filtrování protokolů",
+      "since": "Vrátit protokoly od tohoto časového razítka",
+      "follow": "Průběžně sledovat nové položky protokolu",
+      "api_key": "Filtrovat protokoly podle klíče API"
+    },
+    "utilization": {
+      "description": "Zobrazit metriky využití klíče API",
+      "api_key": "Filtrovat podle klíče API"
+    },
+    "history": {
+      "description": "Zobrazit historii požadavků",
+      "limit": "Počet položek historie (výchozí: 100)"
+    },
+    "proxy_logs": {
+      "description": "Zobrazit protokoly požadavků na úrovni proxy",
+      "limit": "Počet položek protokolu proxy (výchozí: 100)"
+    }
+  },
+  "cost": {
+    "description": "Zobrazit přehled nákladů s rozpisem podle poskytovatele, modelu, kombinace nebo klíče API",
+    "period": "Časový rozsah: 1d|7d|30d|90d|ytd|all (výchozí: 30d)",
+    "since": "Počáteční datum (formát ISO, např. 2026-01-01) — přepíše --period",
+    "until": "Koncové datum (formát ISO)",
+    "group_by": "Seskupit výsledky podle: provider|model|api-key|combo|day (výchozí: provider)",
+    "api_key_filter": "Filtrovat podle konkrétního klíče API",
+    "limit": "Maximální počet zobrazených řádků (výchozí: 100)"
+  },
+  "simulate": {
+    "description": "Simulace směrování nanečisto — zobrazí, kteří poskytovatelé by byli vybráni, bez volání nadřazené služby",
+    "file": "Načíst celé tělo požadavku ze souboru JSON",
+    "model": "ID modelu (výchozí: auto)",
+    "combo": "Vynutit konkrétní kombinaci podle názvu",
+    "reasoning": "Úroveň intenzity uvažování (low|medium|high)",
+    "thinking": "Rozpočet tokenů pro rozšířené uvažování",
+    "explain": "Vypsat strom záložních možností a rozsah nákladů do stderr",
+    "noCombo": "Nebyla nalezena žádná odpovídající kombinace. Nakonfigurujte ji pomocí: omniroute combo create"
+  },
+  "chat": {
+    "description": "Odeslat jednorázovou chatovou výzvu do OmniRoute",
+    "file": "Načíst výzvu ze souboru",
+    "stdin": "Načíst výzvu ze standardního vstupu",
+    "system": "Systémová výzva",
+    "model": "ID modelu (výchozí: auto)",
+    "max_tokens": "Maximální počet tokenů v odpovědi",
+    "temperature": "Teplota vzorkování (0–2)",
+    "top_p": "Jádrové vzorkování top-p",
+    "reasoning_effort": "Úroveň intenzity uvažování (low|medium|high)",
+    "thinking_budget": "Rozpočet tokenů pro rozšířené uvažování",
+    "combo": "Vynutit konkrétní kombinaci podle názvu",
+    "responses_api": "Použít /v1/responses namísto /v1/chat/completions",
+    "stream": "Streamovat odpověď postupně",
+    "no_history": "Neukládat do ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Chyba: výzva je povinná (poziční argument, --file nebo --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Spustit server OmniRoute (výchozí akce)",
+    "starting": "Spouští se server OmniRoute na portu {port}...",
+    "ready": "Připraveno na adrese http://localhost:{port}",
+    "stopping": "Zastavuje se server (PID {pid})...",
+    "stopped": "Server byl zastaven.",
+    "notRunning": "Server není spuštěn.",
+    "port": "Port, na kterém se má naslouchat (výchozí: 20128)",
+    "no_open": "Neotevírat automaticky prohlížeč",
+    "daemon": "Spustit server jako démona na pozadí",
+    "log": "Zobrazovat protokoly serveru přímo ve výstupu",
+    "no_recovery": "Zakázat automatické restartování po pádu (režim ladění)",
+    "max_restarts": "Maximální počet restartů po pádu během 30 s před ukončením pokusů (výchozí: 2)",
+    "tray": "Spustit v systémové liště (pouze pro počítače, volitelné)",
+    "no_tray": "Zakázat ikonu v systémové liště",
+    "ready_timeout": "Časový limit kontroly připravenosti v ms (také OMNIROUTE_READY_TIMEOUT_MS, výchozí 60000)",
+    "tls_cert": "Cesta k certifikátu TLS (PEM) pro poskytování HTTPS (také OMNIROUTE_TLS_CERT)",
+    "tls_key": "Cesta k privátnímu klíči TLS (PEM) pro poskytování HTTPS (také OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Záloha",
+    "description": "Vytvořit zálohu dat OmniRoute",
+    "creating": "Vytváří se záloha...",
+    "done": "Záloha byla uložena do {path}",
+    "noFiles": "Nejsou k dispozici žádné soubory k zálohování (databáze nebyla inicializována)",
+    "failed": "Zálohování se nezdařilo: {error}",
+    "restoring": "Obnovuje se z {path}...",
+    "restored": "Obnovení bylo dokončeno.",
+    "restoreDescription": "Obnovit ze zálohy",
+    "listTitle": "Dostupné zálohy",
+    "noBackups": "Nebyly nalezeny žádné zálohy.",
+    "notFound": "Záloha nebyla nalezena: {name}",
+    "confirmRestore": "Přepsat aktuální data zálohou z {ts}?",
+    "createDescription": "Vytvořit zálohu dat OmniRoute",
+    "nameOpt": "Vlastní název zálohy",
+    "cloudOpt": "Nahrát zálohu do cloudového úložiště",
+    "encryptOpt": "Zašifrovat zálohu pomocí AES-256-GCM",
+    "keyFileOpt": "Cesta k souboru obsahujícímu šifrovací heslo",
+    "excludeOpt": "Vyloučit soubor odpovídající vzoru (lze opakovat)",
+    "retentionOpt": "Ponechat pouze posledních N záloh",
+    "passphrasePrompt": "Šifrovací heslo:",
+    "noPassphrase": "Pro šifrovanou zálohu je vyžadováno heslo.",
+    "cloudFailed": "Varování: nahrání do cloudu se nezdařilo. Místní záloha byla uložena.",
+    "cloudUploaded": "Cloudová záloha byla nahrána: {url}",
+    "auto": {
+      "title": "Plán zálohování",
+      "enableDescription": "Povolit plánované automatické zálohování",
+      "disableDescription": "Zakázat plánované automatické zálohování",
+      "statusDescription": "Zobrazit aktuální stav plánu zálohování",
+      "cronOpt": "Cron výraz pro plán (výchozí: denně ve 3:00)",
+      "enabled": "Automatické zálohování povoleno (cron: {cron}).",
+      "hint": "Plán načítá omniroute serve při spuštění.",
+      "disabled": "Automatické zálohování zakázáno.",
+      "notConfigured": "Není nakonfigurován žádný plán zálohování."
+    }
+  },
+  "health": {
+    "description": "Zkontrolovat stav serveru a komponent",
+    "noServer": "Server není spuštěn. Spusťte jej pomocí: omniroute serve",
+    "title": "Stav systému",
+    "status": "Stav: {status}",
+    "uptime": "Doba provozu: {uptime}",
+    "requests": "Počet požadavků (24 h): {count}",
+    "cost": "Náklady (24 h): ${cost}"
+  },
+  "quota": {
+    "description": "Zobrazit využití kvót poskytovatelů",
+    "noServer": "Server není spuštěn. Spusťte jej pomocí: omniroute serve",
+    "noData": "Nejsou k dispozici žádné informace o kvótách."
+  },
+  "cache": {
+    "description": "Spravovat mezipaměť odpovědí",
+    "noServer": "Server není spuštěn. Spusťte jej pomocí: omniroute serve",
+    "cleared": "Mezipaměť byla vymazána.",
+    "clearFailed": "Mezipaměť se nepodařilo vymazat."
+  },
+  "redis": {
+    "description": "Spustit místní Redis kontejner jedním kliknutím (Podman nebo Docker) pro mezipaměť a sledování kvót OmniRoute"
+  },
+  "test": {
+    "description": "Otestovat připojení k poskytovateli",
+    "noServer": "Server není spuštěn. Spusťte jej pomocí: omniroute serve",
+    "testing": "Testování {provider} / {model}...",
+    "passed": "Připojení bylo úspěšné!",
+    "failed": "Připojení se nezdařilo: {error}",
+    "allProvidersOpt": "Otestovat všechny nakonfigurované poskytovatele",
+    "latencyOpt": "Zobrazit měření latence (prům./min./max. ms)",
+    "repeatOpt": "Opakovat test Nkrát a agregovat výsledky",
+    "compareOpt": "Modely oddělené čárkami k porovnání (např. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Uložit výsledky do souboru JSON",
+    "saved": "Výsledky byly uloženy do {path}",
+    "compareTitle": "Porovnání modelů",
+    "compareMinTwo": "Pro --compare jsou vyžadovány alespoň dva modely (oddělené čárkami)",
+    "noProviders": "Nejsou nakonfigurováni žádní poskytovatelé. Přidejte jednoho pomocí: omniroute keys add"
+  },
+  "update": {
+    "checking": "Kontrola aktualizací...",
+    "upToDate": "Používáte nejnovější verzi ({version}).",
+    "available": "Je k dispozici aktualizace: {current} → {latest}",
+    "installing": "Instalace verze {latest}...",
+    "done": "Aktualizováno na verzi {latest}. Pro použití změn restartujte server."
+  },
+  "mcp": {
+    "title": "Server MCP",
+    "running": "Server MCP je spuštěn ({transport})",
+    "stopped": "Server MCP byl zastaven.",
+    "restarted": "Server MCP byl restartován.",
+    "stoppedHint": "Zapněte jej spuštěním `omniroute mcp enable`.",
+    "enabled": "Server MCP byl povolen.",
+    "disabled": "Server MCP byl zakázán.",
+    "enable": {
+      "description": "Povolit server MCP",
+      "transport": "Použitý transport: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Zakázat server MCP"
+    },
+    "call": {
+      "description": "Přímo vyvolat nástroj MCP",
+      "args": "Objekt argumentů JSON (vložený)",
+      "args_file": "Cesta k souboru s argumenty JSON",
+      "stream": "Použít streamovací koncový bod (/api/mcp/stream)",
+      "scope": "Požadovaný rozsah oprávnění (lze opakovat, např. read:health)"
+    },
+    "scopes": {
+      "description": "Vypsat dostupné rozsahy oprávnění MCP",
+      "tool": "Zobrazit rozsahy oprávnění vyžadované konkrétním nástrojem"
+    },
+    "tools": {
+      "description": "Prozkoumat nástroje MCP",
+      "list": {
+        "description": "Vypsat všechny nástroje MCP",
+        "scope": "Filtrovat podle rozsahu oprávnění"
+      },
+      "info": {
+        "description": "Zobrazit metadata nástroje MCP"
+      },
+      "schema": {
+        "description": "Zobrazit vstupní/výstupní schéma JSON nástroje MCP",
+        "io": "Druh schématu: input|output (výchozí: input)"
+      }
+    },
+    "audit": {
+      "description": "Protokol auditu MCP (alias pro audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Vypsat dostupné dovednosti A2A z karty agenta"
+    },
+    "invoke": {
+      "description": "Vyvolat dovednost A2A a vrátit ID úlohy",
+      "input": "Vstupní objekt JSON",
+      "input_file": "Cesta ke vstupnímu souboru JSON",
+      "wait": "Před návratem počkat na dokončení úlohy",
+      "timeout": "Časový limit čekání na dokončení v ms (výchozí: 60000)"
+    },
+    "tasks": {
+      "description": "Spravovat úlohy A2A",
+      "list": {
+        "status": "Filtrovat podle stavu",
+        "skill": "Filtrovat podle ID dovednosti"
+      },
+      "watch": {
+        "description": "Pravidelně kontrolovat stav úlohy až do dokončení"
+      },
+      "stream": {
+        "description": "Streamovat události provádění úlohy prostřednictvím SSE"
+      },
+      "logs": {
+        "description": "Zobrazit zprávy a artefakty úlohy"
+      }
+    }
+  },
+  "policy": {
+    "description": "Spravovat zásady autorizace OmniRoute",
+    "list": {
+      "description": "Vypsat zásady",
+      "kind": "Filtrovat podle druhu (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filtrovat podle rozsahu (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Získat podrobnosti zásady podle ID"
+    },
+    "create": {
+      "description": "Vytvořit zásadu ze souboru JSON",
+      "file": "Cesta k souboru JSON se zásadou"
+    },
+    "update": {
+      "description": "Aktualizovat zásadu ze souboru JSON",
+      "file": "Cesta k souboru JSON se zásadou"
+    },
+    "delete": {
+      "description": "Odstranit zásadu podle ID",
+      "yes": "Přeskočit výzvu k potvrzení"
+    },
+    "evaluate": {
+      "description": "Zkušební vyhodnocení zásady (návratový kód 0=povoleno, 4=zamítnuto)",
+      "api_key": "Klíč API k vyhodnocení",
+      "action": "Akce ke kontrole (např. chat, embed, admin)",
+      "resource": "Cesta k prostředku nebo identifikátor",
+      "context": "Další kontext jako objekt JSON"
+    },
+    "export": {
+      "description": "Exportovat všechny zásady do souboru JSON"
+    },
+    "import": {
+      "description": "Importovat zásady ze souboru JSON",
+      "overwrite": "Přepsat existující zásady se stejným ID"
+    }
+  },
+  "compression": {
+    "description": "Nakonfigurovat a zkontrolovat kompresní pipeline OmniRoute",
+    "status": {
+      "description": "Zobrazit aktuální stav a nastavení komprese"
+    },
+    "configure": {
+      "description": "Nakonfigurovat nastavení komprese",
+      "engine": "Kompresní modul (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Agresivita Caveman 0.0–1.0",
+      "rtk_budget": "Tokenový rozpočet RTK",
+      "language_pack": "Jazykový balíček k aktivaci"
+    },
+    "engine": {
+      "description": "Získat nebo nastavit aktivní kompresní modul"
+    },
+    "combos": {
+      "description": "Spravovat statistiky kombinací komprese"
+    },
+    "rules": {
+      "description": "Spravovat pravidla komprese",
+      "add": {
+        "pattern": "Vzor pro porovnání (regulární výraz nebo pole:vzor)",
+        "action": "Akce: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Vypsat dostupné jazykové balíčky pro kompresi"
+    },
+    "preview": {
+      "description": "Zobrazit náhled vlivu komprese na požadavek",
+      "file": "Cesta k souboru JSON s požadavkem"
+    }
+  },
+  "tunnel": {
+    "title": "Tunely",
+    "listDescription": "Vypsat aktivní tunely",
+    "createDescription": "Vytvořit tunel",
+    "created": "Tunel vytvořen: {url}",
+    "stopped": "Tunel zastaven.",
+    "confirmStop": "Zastavit tunel {id}?",
+    "stopDescription": "Zastavit tunel",
+    "statusDescription": "Zobrazit podrobný stav tunelu",
+    "logsDescription": "Zobrazit protokoly tunelu",
+    "infoDescription": "Zobrazit podrobnosti konfigurace tunelu",
+    "rotateDescription": "Vygenerovat novou adresu URL tunelu",
+    "tailOpt": "Počet řádků protokolu k zobrazení",
+    "typeRequired": "Typ tunelu je povinný.",
+    "noLogs": "Nejsou k dispozici žádné protokoly.",
+    "notAvailable": "Informace o tunelu nejsou k dispozici.",
+    "noTunnels": "Žádné aktivní tunely.",
+    "infoTitle": "Informace o tunelu: {type}",
+    "rotated": "Adresa URL tunelu změněna: {url}",
+    "confirmRotate": "Změnit adresu URL tunelu {type}? (bude vygenerována nová adresa URL)"
+  },
+  "stop": {
+    "description": "Zastavit server OmniRoute",
+    "stopping": "Zastavování serveru (PID {pid})...",
+    "stopped": "Server zastaven.",
+    "notRunning": "Není spuštěn žádný server.",
+    "portFallback": "Soubor PID nebyl nalezen, probíhá pokus o zastavení podle portu..."
+  },
+  "restart": {
+    "description": "Restartovat server OmniRoute",
+    "restarting": "Restartování serveru OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Otevřít řídicí panel OmniRoute v prohlížeči",
+    "opening": "Otevírání řídicího panelu na adrese {url}",
+    "urlOnly": "Vypsat adresu URL řídicího panelu bez otevření prohlížeče",
+    "tui": "Otevřít interaktivní řídicí panel TUI (terminálové rozhraní, 7 karet)"
+  },
+  "models": {
+    "description": "Vypsat dostupné modely (vyžaduje server)",
+    "search": "Filtrovat modely podle ID, názvu, poskytovatele nebo popisu",
+    "noServer": "Server není spuštěn. Spusťte ho pomocí: omniroute serve",
+    "noModels": "Nebyly nalezeny žádné modely."
+  },
+  "audit": {
+    "description": "Přístup k protokolům auditu shody a MCP",
+    "source": "Zdroj protokolu: all|compliance|mcp (výchozí: all)",
+    "since": "Vrátit záznamy od tohoto časového razítka (ISO 8601)",
+    "until": "Vrátit záznamy do tohoto časového razítka (ISO 8601)",
+    "tail": {
+      "description": "Zobrazit nedávné záznamy protokolu auditu",
+      "follow": "Průběžně sledovat nové záznamy (dotazování každé 2 s)",
+      "limit": "Maximální počet zobrazených záznamů (výchozí: 100)"
+    },
+    "search": {
+      "description": "Vyhledat záznamy protokolu auditu podle klíčového slova",
+      "limit": "Maximální počet výsledků (výchozí: 200)",
+      "actor": "Filtrovat podle ID aktéra",
+      "action": "Filtrovat podle názvu akce"
+    },
+    "export": {
+      "description": "Exportovat protokol auditu do souboru",
+      "format": "Výstupní formát: jsonl|csv (výchozí: jsonl)"
+    },
+    "stats": {
+      "description": "Zobrazit statistiky protokolu auditu",
+      "period": "Časové období: 1d|7d|30d (výchozí: 7d)"
+    },
+    "get": {
+      "description": "Získat jeden záznam protokolu auditu podle ID"
+    }
+  },
+  "skills": {
+    "description": "Spravovat dovednosti OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Vypsat nainstalované dovednosti",
+      "type": "Filtrovat podle typu (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Zobrazit pouze povolené dovednosti",
+      "disabled": "Zobrazit pouze zakázané dovednosti",
+      "api_key": "Filtrovat podle klíče API"
+    },
+    "get": {
+      "description": "Získat podrobnosti o dovednosti podle ID"
+    },
+    "install": {
+      "description": "Nainstalovat dovednost ze souboru nebo adresy URL",
+      "from_file": "Cesta k souboru s definicí dovednosti ve formátu JSON",
+      "from_url": "Adresa URL vzdálené definice dovednosti",
+      "type": "Typ dovednosti (sandbox|custom|hybrid)",
+      "enable": "Po instalaci dovednost povolit"
+    },
+    "enable": {
+      "description": "Povolit dovednost podle ID"
+    },
+    "disable": {
+      "description": "Zakázat dovednost podle ID",
+      "yes": "Přeskočit výzvu k potvrzení"
+    },
+    "delete": {
+      "description": "Odstranit dovednost podle ID",
+      "yes": "Přeskočit výzvu k potvrzení"
+    },
+    "execute": {
+      "description": "Spustit dovednost podle ID",
+      "input": "Vstupní objekt JSON",
+      "input_file": "Cesta ke vstupnímu souboru JSON",
+      "timeout": "Časový limit spuštění v ms (výchozí: 30000)"
+    },
+    "executions": {
+      "description": "Vypsat historii spuštění dovedností",
+      "skill": "Filtrovat podle ID dovednosti",
+      "limit": "Maximální počet výsledků (výchozí: 50)",
+      "status": "Filtrovat podle stavu (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Spravovat dovednosti nainstalované přes SSH"
+    },
+    "marketplace": {
+      "description": "Procházet a instalovat dovednosti z tržiště"
+    },
+    "mp": {
+      "search": {
+        "description": "Hledat balíčky na tržišti",
+        "category": "Filtrovat podle kategorie",
+        "tag": "Filtrovat podle štítku",
+        "limit": "Maximální počet výsledků (výchozí: 30)",
+        "sort": "Řadit podle: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Zobrazit podrobnosti o balíčku a soubor readme"
+      },
+      "install": {
+        "description": "Nainstalovat balíček z tržiště",
+        "version": "Verze balíčku (výchozí: latest)",
+        "enable": "Po instalaci povolit",
+        "yes": "Přeskočit výzvu k potvrzení"
+      },
+      "categories": {
+        "description": "Vypsat kategorie tržiště"
+      },
+      "featured": {
+        "description": "Zobrazit doporučené balíčky z tržiště"
+      }
+    }
+  },
+  "memory": {
+    "description": "Spravovat konverzační paměť OmniRoute (FTS5 + vector)",
+    "search": {
+      "description": "Vyhledávat záznamy v paměti pomocí sémantického dotazu",
+      "type": "Filtrovat podle typu paměti (user|feedback|project|reference)",
+      "limit": "Maximální počet výsledků (výchozí: 20)",
+      "api_key": "Filtrovat podle klíče API",
+      "token_budget": "Omezit celkový počet tokenů ve výsledcích"
+    },
+    "add": {
+      "description": "Přidat nový záznam do paměti",
+      "content": "Textový obsah paměti",
+      "file": "Načíst obsah ze souboru",
+      "type": "Typ paměti (výchozí: user)",
+      "metadata": "Objekt metadat JSON",
+      "api_key": "Přidružit ke klíči API"
+    },
+    "clear": {
+      "description": "Odstranit záznamy v paměti odpovídající filtrům",
+      "type": "Filtrovat podle typu",
+      "older": "Odstranit záznamy starší než zadaná doba (30d, 6m, 1y)",
+      "api_key": "Filtrovat podle klíče API",
+      "yes": "Přeskočit výzvu k potvrzení"
+    },
+    "list": {
+      "description": "Vypsat záznamy v paměti bez řazení podle relevance vyhledávání",
+      "type": "Filtrovat podle typu",
+      "limit": "Maximální počet výsledků (výchozí: 100)",
+      "api_key": "Filtrovat podle klíče API"
+    },
+    "get": {
+      "description": "Získat jeden záznam paměti podle ID"
+    },
+    "delete": {
+      "description": "Odstranit záznam paměti podle ID",
+      "yes": "Přeskočit výzvu k potvrzení"
+    },
+    "health": {
+      "description": "Zobrazit stav paměťového subsystému (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Spravovat připojení poskytovatelů OAuth",
+    "providers": {
+      "description": "Vypsat poskytovatele podporující OAuth a jejich typy toků"
+    },
+    "start": {
+      "description": "Spustit autorizační tok OAuth pro poskytovatele",
+      "provider": "ID poskytovatele (gemini, copilot, cursor, …)",
+      "no_browser": "Vypsat pouze URL — neotevírat prohlížeč",
+      "import_system": "Automaticky importovat přihlašovací údaje z místní systémové konfigurace",
+      "social": "Poskytovatel přihlášení přes sociální síť (google|github) — vyžadováno pro kiro",
+      "timeout": "Časový limit čekání na autorizaci v ms (výchozí: 300000)"
+    },
+    "status": {
+      "description": "Vypsat aktivní připojení OAuth",
+      "provider": "Filtrovat podle ID poskytovatele"
+    },
+    "revoke": {
+      "description": "Odvolat připojení OAuth",
+      "provider": "ID poskytovatele, kterého chcete odvolat",
+      "connection_id": "Odvolat konkrétní připojení podle ID",
+      "yes": "Přeskočit výzvu k potvrzení"
+    }
+  },
+  "cloud": {
+    "description": "Spravovat úlohy cloudových AI agentů (codex, devin, jules)",
+    "agents": {
+      "description": "Vypsat dostupné cloudové agenty"
+    },
+    "agent": {
+      "description": "Spravovat úlohy cloudového agenta {agent}",
+      "auth": {
+        "description": "Autorizovat agenta {agent} prostřednictvím OAuth"
+      }
+    },
+    "task": {
+      "description": "Spravovat úlohy cloudových agentů",
+      "create": {
+        "description": "Vytvořit novou úlohu agenta",
+        "title": "Název úlohy (výchozí je prvních 80 znaků zadání)",
+        "prompt": "Text zadání úlohy",
+        "prompt_file": "Načíst zadání ze souboru",
+        "repo": "URL repozitáře, který se má pro úlohu naklonovat",
+        "branch": "Název větve, která se má použít",
+        "metadata": "Objekt metadat JSON"
+      },
+      "list": {
+        "description": "Vypsat úlohy agenta",
+        "status": "Filtrovat podle stavu (running|completed|failed|cancelled)",
+        "limit": "Maximální počet výsledků (výchozí: 50)"
+      },
+      "get": {
+        "description": "Získat podrobnosti úlohy podle ID"
+      },
+      "status": {
+        "description": "Vypsat stav úlohy (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Zrušit spuštěnou úlohu",
+        "yes": "Přeskočit výzvu k potvrzení"
+      },
+      "approve": {
+        "description": "Schválit plán agenta a zahájit provádění"
+      },
+      "message": {
+        "description": "Odeslat zprávu spuštěné úloze"
+      }
+    },
+    "sources": {
+      "description": "Vypsat zdrojové soubory vytvořené úlohou"
+    }
+  },
+  "eval": {
+    "description": "Spravovat sady vyhodnocení a jejich spuštění",
+    "suites": {
+      "description": "Spravovat sady vyhodnocení",
+      "list": {
+        "description": "Vypsat sady vyhodnocení"
+      },
+      "get": {
+        "description": "Získat podrobnosti sady vyhodnocení podle ID"
+      },
+      "create": {
+        "description": "Vytvořit sadu vyhodnocení ze souboru JSON",
+        "file": "Cesta k souboru JSON s definicí sady"
+      }
+    },
+    "run": {
+      "description": "Spustit běh vyhodnocení pro sadu",
+      "model": "ID modelu k vyhodnocení (výchozí: auto)",
+      "combo": "Vynutit konkrétní kombinaci podle názvu",
+      "concurrency": "Počet souběžných vzorků (výchozí: 4)",
+      "tag": "Označit tento běh štítkem pro pozdější filtrování",
+      "watch": "Sledovat průběh běhu až do dokončení"
+    },
+    "list": {
+      "description": "Vypsat běhy vyhodnocení",
+      "suite": "Filtrovat podle ID sady",
+      "status": "Filtrovat podle stavu",
+      "since": "Vrátit běhy od tohoto časového razítka",
+      "limit": "Maximální počet výsledků (výchozí: 50)"
+    },
+    "get": {
+      "description": "Získat podrobnosti běhu vyhodnocení podle ID"
+    },
+    "results": {
+      "description": "Zobrazit výsledky vzorků běhu vyhodnocení",
+      "failed": "Zobrazit pouze neúspěšné vzorky"
+    },
+    "cancel": {
+      "description": "Zrušit probíhající vyhodnocení",
+      "yes": "Přeskočit výzvu k potvrzení"
+    },
+    "scorecard": {
+      "description": "Zobrazit přehled skóre dokončeného běhu vyhodnocení"
+    }
+  },
+  "webhooks": {
+    "description": "Spravovat webhooky OmniRoute",
+    "events": {
+      "description": "Vypsat všechny dostupné typy událostí webhooků"
+    },
+    "list": {
+      "description": "Vypsat nakonfigurované webhooky"
+    },
+    "get": {
+      "description": "Získat podrobnosti webhooku podle ID"
+    },
+    "add": {
+      "description": "Zaregistrovat nový webhook",
+      "url": "Cílová URL",
+      "events": "Seznam typů událostí oddělených čárkami",
+      "secret": "Tajný klíč pro podepisování HMAC",
+      "header": "Dodatečná hlavička ve formátu key=value (lze opakovat)",
+      "no_enabled": "Vytvořit webhook v zakázaném stavu"
+    },
+    "update": {
+      "description": "Aktualizovat existující webhook",
+      "enabled": "Nastavit stav povolení (true|false)"
+    },
+    "remove": {
+      "description": "Odstranit webhook",
+      "yes": "Přeskočit výzvu k potvrzení"
+    },
+    "test": {
+      "description": "Odeslat testovací událost webhooku",
+      "event": "Typ události k simulaci (výchozí: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Chytrý AI router s automatickým přepínáním",
     "version": "Vypsat verzi a skončit",
@@ -26,7 +832,509 @@
     "context": "Kontext/profil serveru pro tento příkaz",
     "lang": "Nastavit jazyk CLI (přepisuje OMNIROUTE_LANG)"
   },
-  "redis": {
-    "description": "Spustit místní Redis kontejner jedním kliknutím (Podman nebo Docker) pro mezipaměť a sledování kvót OmniRoute"
+  "files": {
+    "description": "Spravovat soubory (nahrát, vypsat, získat, stáhnout, odstranit)",
+    "list": {
+      "purpose": "Filtrovat podle účelu",
+      "limit": "Maximální počet výsledků"
+    },
+    "get": {
+      "description": "Získat metadata souboru"
+    },
+    "upload": {
+      "description": "Nahrát soubor",
+      "purpose": "Účel souboru (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Stáhnout obsah souboru",
+      "out": "Uložit do cesty (výchozí: stdout)"
+    },
+    "delete": {
+      "yes": "Přeskočit potvrzení"
+    }
+  },
+  "batches": {
+    "description": "Spravovat dávkové úlohy kompatibilní s OpenAI",
+    "list": {
+      "status": "Filtrovat podle stavu",
+      "limit": "Maximální počet výsledků"
+    },
+    "create": {
+      "description": "Vytvořit dávkovou úlohu",
+      "inputFile": "ID vstupního souboru",
+      "endpoint": "Cílový endpoint",
+      "window": "Časové okno pro dokončení",
+      "metadata": "Přidat metadata key=value"
+    },
+    "submit": {
+      "description": "Nahrát soubor JSONL a vytvořit dávku",
+      "jsonl": "Cesta k souboru JSONL",
+      "endpoint": "Cílový endpoint",
+      "wait": "Čekat na dokončení"
+    },
+    "cancel": {
+      "yes": "Přeskočit potvrzení"
+    },
+    "wait": {
+      "timeout": "Časový limit v ms"
+    },
+    "output": {
+      "out": "Uložit výstup do cesty"
+    },
+    "errors": {
+      "out": "Uložit chyby do cesty"
+    }
+  },
+  "translator": {
+    "description": "Překládat těla požadavků mezi formáty LLM",
+    "detect": {
+      "description": "Detekovat formát těla"
+    },
+    "translate": {
+      "description": "Převést tělo z jednoho formátu do jiného"
+    },
+    "send": {
+      "description": "Přeložit a odeslat nadřazené službě"
+    },
+    "stream": {
+      "description": "Překládat tělo požadavku průběžně"
+    },
+    "from": "Zdrojový formát (openai|anthropic|gemini|cohere)",
+    "to": "Cílový formát (openai|anthropic|gemini|cohere)",
+    "file": "Cesta k souboru JSON s tělem požadavku",
+    "out": "Uložit výstup do souboru",
+    "model": "Přepsat model",
+    "history": {
+      "limit": "Maximální počet výsledků"
+    }
+  },
+  "pricing": {
+    "description": "Spravovat cenové údaje modelů",
+    "sync": {
+      "description": "Synchronizovat ceny z nadřazených zdrojů",
+      "provider": "Filtrovat podle poskytovatele",
+      "force": "Vynutit opětovnou synchronizaci"
+    },
+    "list": {
+      "provider": "Filtrovat podle poskytovatele",
+      "model": "Filtrovat podle modelu",
+      "limit": "Maximální počet výsledků"
+    },
+    "defaults": {
+      "description": "Spravovat výchozí ceny",
+      "input": "Cena vstupu za 1 mil. tokenů (USD)",
+      "output": "Cena výstupu za 1 mil. tokenů (USD)",
+      "cacheRead": "Cena čtení z mezipaměti za 1 mil. tokenů (USD)",
+      "cacheWrite": "Cena zápisu do mezipaměti za 1 mil. tokenů (USD)"
+    },
+    "diff": {
+      "description": "Zobrazit odchylku od cen nadřazeného zdroje",
+      "model": "Filtrovat podle modelu"
+    }
+  },
+  "radar": {
+    "description": "Zkontrolovat a synchronizovat místní zdroje katalogu Radar",
+    "status": "Zobrazit místní nastavení Radar a stav mezipaměti zdrojů",
+    "sync": "Synchronizovat katalog, doporučení, nabídky a Intel prostřednictvím místního serveru"
+  },
+  "resilience": {
+    "description": "Kontrolovat a spravovat mechanismy odolnosti",
+    "status": {
+      "provider": "Filtrovat podle poskytovatele"
+    },
+    "breakers": {
+      "provider": "Filtrovat podle poskytovatele"
+    },
+    "cooldowns": {
+      "provider": "Filtrovat podle poskytovatele",
+      "connectionId": "Filtrovat podle ID připojení"
+    },
+    "lockouts": {
+      "provider": "Filtrovat podle poskytovatele",
+      "model": "Filtrovat podle modelu"
+    },
+    "reset": {
+      "description": "Resetovat stav jističe / čekací doby",
+      "provider": "Poskytovatel k resetování",
+      "connectionId": "ID připojení k resetování",
+      "model": "Model, u kterého se má resetovat blokace",
+      "allCooldowns": "Resetovat všechny čekací doby poskytovatele",
+      "yes": "Přeskočit potvrzení"
+    },
+    "profile": {
+      "description": "Spravovat profil odolnosti",
+      "name": "Název profilu"
+    },
+    "config": {
+      "description": "Spravovat konfiguraci odolnosti",
+      "threshold": "Prahová hodnota selhání",
+      "resetTimeout": "Časový limit resetování v ms",
+      "baseCooldown": "Základní čekací doba v ms"
+    }
+  },
+  "nodes": {
+    "description": "Spravovat uzly poskytovatelů (koncové body)",
+    "list": {
+      "provider": "Filtrovat podle poskytovatele",
+      "enabled": "Zobrazit pouze povolené uzly"
+    },
+    "add": {
+      "provider": "Název poskytovatele",
+      "baseUrl": "Základní URL uzlu",
+      "name": "Název uzlu",
+      "weight": "Váha vyvažování zátěže",
+      "region": "Značka regionu",
+      "authHeader": "Vlastní autorizační hlavička (key=value)"
+    },
+    "update": {
+      "baseUrl": "Nová základní URL",
+      "name": "Nový název",
+      "weight": "Nová váha",
+      "region": "Nový region",
+      "enabled": "Povolit nebo zakázat (true|false)"
+    },
+    "remove": {
+      "yes": "Přeskočit potvrzení"
+    },
+    "validate": {
+      "baseUrl": "URL k ověření",
+      "provider": "Poskytovatel, vůči kterému se má provést ověření"
+    },
+    "test": {
+      "description": "Odeslat testovací požadavek uzlu"
+    },
+    "metrics": {
+      "description": "Zobrazit metriky uzlu",
+      "period": "Časové období (např. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Konfigurovat pipeline pro zpracování kontextu (Caveman, RTK)",
+    "analytics": {
+      "period": "Časové období (např. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Spravovat kompresor kontextu Caveman",
+      "config": {
+        "description": "Zobrazit nebo aktualizovat konfiguraci Caveman",
+        "aggressiveness": "Agresivita 0.0–1.0",
+        "maxShrinkPct": "Maximální procento zmenšení",
+        "preserveTags": "Čárkami oddělené tagy, které se mají zachovat"
+      }
+    },
+    "rtk": {
+      "description": "Spravovat optimalizátor kontextu RTK",
+      "config": {
+        "description": "Zobrazit nebo aktualizovat konfiguraci RTK",
+        "tokenBudget": "Limit tokenů pro RTK",
+        "reservePct": "Procento rezervy"
+      },
+      "filters": {
+        "description": "Spravovat filtry RTK",
+        "pattern": "Vzor filtru (regulární výraz)",
+        "priority": "Priorita filtru (výchozí: 100)",
+        "action": "Akce filtru: drop|shrink|replace",
+        "yes": "Přeskočit potvrzení"
+      },
+      "test": {
+        "file": "Cesta k souboru JSON s požadavkem"
+      }
+    },
+    "combos": {
+      "description": "Správa kombinací s ohledem na kontext"
+    }
+  },
+  "sessions": {
+    "description": "Prohlížet a spravovat aktivní relace",
+    "list": {
+      "user": "Filtrovat podle uživatele",
+      "kind": "Filtrovat podle typu (dashboard|api-key|mcp|a2a)",
+      "active": "Zobrazit pouze aktivní relace",
+      "limit": "Maximální počet výsledků (výchozí: 100)"
+    },
+    "expire": {
+      "yes": "Přeskočit potvrzení"
+    },
+    "expireAll": {
+      "user": "Uživatel, jehož relace mají být ukončeny",
+      "yes": "Přeskočit potvrzení"
+    }
+  },
+  "tags": {
+    "description": "Spravovat tagy prostředků",
+    "add": {
+      "color": "Barva tagu (hexadecimální kód nebo název)",
+      "description": "Popis tagu"
+    },
+    "remove": {
+      "yes": "Přeskočit potvrzení"
+    },
+    "assign": {
+      "tag": "Název tagu",
+      "to": "Cílový prostředek ve formátu typ:id (např. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Název štítku",
+      "from": "Zdrojový prostředek ve formátu typ:id"
+    }
+  },
+  "openapi": {
+    "description": "Přístup ke specifikaci OmniRoute OpenAPI a její testování",
+    "dump": {
+      "description": "Vypsat specifikaci OpenAPI na standardní výstup nebo do souboru",
+      "format": "Výstupní formát: yaml|json (výchozí: yaml)",
+      "out": "Uložit do souboru v zadané cestě"
+    },
+    "validate": {
+      "description": "Ověřit specifikaci OpenAPI"
+    },
+    "try": {
+      "description": "Otestovat koncový bod API prostřednictvím specifikace",
+      "method": "Metoda HTTP (výchozí: GET)",
+      "body": "Cesta k souboru JSON s tělem požadavku",
+      "query": "Parametr dotazu ve formátu klíč=hodnota (lze opakovat)",
+      "header": "Hlavička ve formátu klíč=hodnota (lze opakovat)"
+    },
+    "endpoints": {
+      "description": "Vypsat všechny koncové body API",
+      "search": "Filtrovat podle cesty nebo souhrnu"
+    },
+    "paths": {
+      "description": "Vypsat všechny cesty API"
+    }
+  },
+  "combo": {
+    "title": "Kombinace",
+    "switched": "Aktivní kombinace: {name}",
+    "created": "Kombinace vytvořena: {name}",
+    "deleted": "Kombinace odstraněna: {name}",
+    "noCombos": "Nejsou nakonfigurovány žádné kombinace.",
+    "confirmDelete": "Odstranit kombinaci {name}?",
+    "suggest": {
+      "description": "Navrhnout pomocí hodnocení AI nejlepší kombinaci pro daný úkol",
+      "task": "Popis úkolu",
+      "maxCost": "Maximální cena za požadavek v USD",
+      "maxLatencyMs": "Maximální latence v milisekundách",
+      "weights": "Váhy hodnocení ve formátu JSON, např. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Počet nejlepších kandidátů k zobrazení (výchozí: 5)",
+      "explain": "Vypsat odůvodnění na standardní chybový výstup",
+      "switch": "Aktivovat nejlépe hodnocenou kombinaci"
+    }
+  },
+  "oneproxy": {
+    "description": "Spravovat fond upstream serverů OneProxy",
+    "stats": {
+      "provider": "Filtrovat podle poskytovatele",
+      "period": "Časové období (výchozí: 24h)"
+    },
+    "fetch": {
+      "description": "Načíst proxy servery z fondu",
+      "count": "Počet proxy serverů k načtení (výchozí: 1)",
+      "type": "Typ proxy: http|socks5 (výchozí: http)"
+    },
+    "rotate": {
+      "description": "Vynutit rotaci proxy",
+      "provider": "Poskytovatel, pro kterého se má provést rotace",
+      "connectionId": "ID konkrétního připojení, které se má rotovat"
+    },
+    "config": {
+      "description": "Zobrazit nebo aktualizovat konfiguraci OneProxy",
+      "enabled": "Povolit fond proxy serverů (true|false)",
+      "poolSize": "Velikost fondu",
+      "providerSource": "URL poskytovatele proxy",
+      "rotationPolicy": "Zásady rotace: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Vypsat aktuální fond proxy serverů včetně metrik"
+    }
+  },
+  "open": {
+    "description": "Otevřít konkrétní stránku řídicího panelu OmniRoute v prohlížeči",
+    "url": "Pouze vypsat URL, neotevírat prohlížeč"
+  },
+  "telemetry": {
+    "description": "Přístup k agregovaným telemetrickým datům",
+    "summary": {
+      "description": "Zobrazit souhrn agregované telemetrie",
+      "period": "Časové období: 24h|7d|30d (výchozí: 24h)",
+      "compareTo": "Porovnat s předchozím obdobím"
+    },
+    "export": {
+      "description": "Exportovat telemetrické události do JSONL",
+      "out": "Cesta k výstupnímu souboru (výchozí: telemetry.jsonl)",
+      "period": "Časové období pro export (výchozí: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Synchronizovat konfiguraci mezi instancemi OmniRoute",
+    "push": {
+      "description": "Odeslat konfiguraci do cloudu nebo vzdálené instance",
+      "target": "Cíl (cloud nebo context:name)",
+      "bundle": "Části balíčku k synchronizaci",
+      "dryRun": "Zobrazit náhled bez použití změn"
+    },
+    "pull": {
+      "description": "Načíst konfiguraci z cloudu nebo vzdálené instance",
+      "source": "Zdroj (cloud nebo context:name)",
+      "merge": "Sloučit se stávající konfigurací",
+      "replace": "Nahradit stávající konfiguraci",
+      "dryRun": "Zobrazit náhled bez použití změn"
+    },
+    "diff": {
+      "source": "Zdrojový kontext",
+      "target": "Cílový kontext"
+    },
+    "bundle": {
+      "description": "Exportovat konfiguraci jako soubor balíčku",
+      "include": "Části, které mají být zahrnuty (oddělené čárkami)"
+    },
+    "import": {
+      "description": "Importovat soubor balíčku",
+      "dryRun": "Ověřit bez použití změn"
+    },
+    "initialize": {
+      "fromCloud": "Inicializovat z cloudové zálohy"
+    },
+    "tokens": {
+      "description": "Spravovat synchronizační tokeny",
+      "create": {
+        "name": "Název tokenu",
+        "scope": "Rozsah tokenu",
+        "ttl": "TTL tokenu (např. 30d)"
+      },
+      "revoke": {
+        "yes": "Přeskočit potvrzení"
+      }
+    },
+    "resolve": {
+      "description": "Interaktivně vyřešit konflikty synchronizace"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Spravovat kontexty/profily serveru (přidat, použít, vypsat, zobrazit, odebrat, přejmenovat, exportovat, importovat)"
+    },
+    "lang": {
+      "description": "Spravovat jazyk zobrazení CLI",
+      "getDescription": "Zobrazit kód aktuálně aktivního jazyka",
+      "setDescription": "Nastavit jazyk zobrazení a uložit jej do konfigurace",
+      "listDescription": "Vypsat všechny dostupné jazyky",
+      "listTitle": "Dostupné jazyky",
+      "current": "Jazyk: {code} ({name})",
+      "saved": "Jazyk byl nastaven na {code} ({name}).",
+      "noCode": "Je vyžadován kód jazyka. Dostupné kódy zobrazíte spuštěním příkazu 'omniroute config lang list'.",
+      "unknown": "Neznámý kód jazyka: {code}. Dostupné kódy zobrazíte spuštěním příkazu 'omniroute config lang list'.",
+      "alreadySet": "Jazyk je již nastaven na {code}.",
+      "envHint": "Tip: v prostředí můžete také nastavit OMNIROUTE_LANG={code}."
+    }
+  },
+  "completion": {
+    "description": "Vygenerovat nebo nainstalovat skripty pro automatické doplňování v shellu",
+    "zsh": "Vypsat skript pro automatické doplňování v zsh",
+    "bash": "Vypsat skript pro automatické doplňování v bash",
+    "fish": "Vypsat skript pro automatické doplňování ve fish",
+    "install": "Nainstalovat skript pro automatické doplňování globálně pro detekovaný shell",
+    "refresh": "Aktualizovat mezipaměť kombinací, poskytovatelů a modelů"
+  },
+  "logs": {
+    "description": "Streamovat nebo exportovat protokoly požadavků",
+    "follow": "Streamovat protokoly v reálném čase",
+    "filter": "Filtrovat podle úrovně (error,warn,info) — oddělené čárkami",
+    "lines": "Počet řádků k načtení",
+    "timeout": "Časový limit připojení v ms",
+    "baseUrl": "Základní URL API OmniRoute",
+    "requestId": "Filtrovat podle ID požadavku",
+    "apiKey": "Filtrovat podle klíče API",
+    "combo": "Filtrovat podle názvu kombinace",
+    "status": "Filtrovat podle stavového kódu HTTP",
+    "durationMin": "Minimální doba trvání požadavku v ms",
+    "durationMax": "Maximální doba trvání požadavku v ms",
+    "export": "Uložit protokoly do souboru (json/jsonl/csv)",
+    "exported": "Protokoly byly uloženy do {path}",
+    "stopped": "Streamování protokolů bylo zastaveno.",
+    "streamError": "Chyba streamování protokolů: {message}"
+  },
+  "tray": {
+    "description": "Ovládat ikonu v systémové liště",
+    "show": "Zobrazit ikonu v systémové liště (pokud server běží s parametrem --tray)",
+    "hide": "Skrýt ikonu v systémové liště",
+    "quit": "Ukončit OmniRoute prostřednictvím systémové lišty"
+  },
+  "autostart": {
+    "description": "Spravovat automatické spouštění OmniRoute při startu systému (Linux: uživatelská služba systemd)",
+    "enable": "Povolit automatické spouštění při startu systému",
+    "disable": "Zakázat automatické spouštění při startu systému",
+    "toggle": "Přepnout automatické spouštění při startu systému",
+    "status": "Zobrazit stav automatického spouštění"
+  },
+  "runtime": {
+    "description": "Spravovat nativní závislosti běhového prostředí",
+    "check": "Zkontrolovat stav nativních závislostí v adresáři běhového prostředí",
+    "repair": "Přeinstalovat nativní závislosti v adresáři běhového prostředí",
+    "repair_force": "Vynutit přeinstalaci, i když jsou platné",
+    "clean": "Odstranit adresář běhového prostředí (uvolní místo na disku)",
+    "clean_yes": "Přeskočit potvrzení"
+  },
+  "repl": {
+    "description": "Interaktivní vícekolový REPL s LLM",
+    "model": "Model, který se má použít (výchozí: auto)",
+    "combo": "Název kombinace, která se má použít",
+    "system": "Systémová výzva",
+    "resume": "Pokračovat v uložené relaci podle názvu"
+  },
+  "plugin": {
+    "description": "Spravovat pluginy CLI (omniroute-cmd-*)",
+    "list": "Vypsat nainstalované pluginy",
+    "install": "Nainstalovat plugin z npm nebo místní cesty",
+    "remove": "Odstranit nainstalovaný plugin",
+    "info": "Zobrazit podrobnosti o nainstalovaném pluginu",
+    "search": "Vyhledat dostupné pluginy v registru npm",
+    "update": "Aktualizovat nainstalované pluginy",
+    "scaffold": "Vygenerovat základní strukturu nového pluginu"
+  },
+  "launch": {
+    "description": "Spustit Claude Code nasměrovaný na OmniRoute (místní nebo vzdálený, s --profile)",
+    "token": "Token, který má klient Claude odesílat (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute není dostupný na portu {port}. Spusťte jej pomocí 'omniroute serve'.",
+    "notFound": "CLI 'claude' nebylo v PATH nalezeno."
+  },
+  "run": {
+    "description": "Spustit podporovaný cílový nástroj CLI prostřednictvím OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Vygenerovat profily Claude Code v ~/.claude/profiles z katalogu modelů OmniRoute"
+  },
+  "connect": {
+    "description": "Připojit se ke vzdálenému serveru OmniRoute a přejít do vzdáleného režimu"
+  },
+  "tokens": {
+    "description": "Spravovat přístupové tokeny CLI s omezeným rozsahem (vzdálený režim)"
+  },
+  "configure": {
+    "description": "Vybrat poskytovatele a model z aktivního serveru a nakonfigurovat podporované místní CLI"
+  },
+  "launchCodex": {
+    "description": "Spustit Codex CLI nasměrované na OmniRoute (místní nebo vzdálené VPS)"
+  },
+  "setupCodex": {
+    "description": "Vygenerovat soubory profilů v ~/.codex z aktuálního katalogu modelů OmniRoute"
+  },
+  "packs": {
+    "description": "Spravovat volitelné balíčky běhového prostředí (ML / automatizace prohlížeče)",
+    "listDescription": "Vypsat volitelné balíčky a stav jejich instalace",
+    "installDescription": "Nainstalovat volitelný balíček do DATA_DIR",
+    "verifyDescription": "Ověřit nainstalované balíčky podle dodaného indexu kontrolních součtů",
+    "removeDescription": "Odstranit nainstalovaný volitelný balíček",
+    "sourceOpt": "Adresář obsahující data balíčků a index balíčků",
+    "warnNoIndex": "optional-packs.index.json nebyl nalezen — instalace a ověření nejsou v této pracovní kopii k dispozici (desktopové balíčky jej obsahují)",
+    "errUnknown": "neznámý balíček: {name}",
+    "errNoIndex": "index balíčků nebyl nalezen; předejte --source <dir> obsahující data balíčku (desktopové balíčky jej obsahují vedle aplikace)",
+    "installed": "balíček „{name}“ byl nainstalován a ověřen v {dir}",
+    "restartHint": "restartujte server OmniRoute (nebo desktopovou aplikaci), aby se balíček načetl za běhu",
+    "removed": "balíček „{name}“ byl odebrán",
+    "notInstalled": "balíček „{name}“ nebyl nainstalován",
+    "verifyOk": "všechny nainstalované balíčky byly ověřeny",
+    "verifyFailed": "ověření se nezdařilo u tohoto počtu balíčků: {count}",
+    "noneInstalled": "nejsou nainstalovány žádné volitelné balíčky"
   }
 }

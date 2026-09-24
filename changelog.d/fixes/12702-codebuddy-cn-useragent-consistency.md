@@ -1,1 +1,0 @@
-- fix(oauth): align codebuddy-cn OAuth User-Agent with the chat/usage CLI version to avoid WAF false positives (#12702)

@@ -53,7 +53,8 @@ function buildComboTestResult(
 async function testComboTarget(
   target: ResolvedComboTarget,
   baseInternalUrl: string,
-  internalApiKey: string | null
+  internalApiKey: string | null,
+  parentSignal: AbortSignal | null = null
 ) {
   const startTime = Date.now();
   try {
@@ -79,6 +80,9 @@ async function testComboTarget(
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), COMBO_TEST_TIMEOUT_MS);
+    const combinedSignal = parentSignal
+      ? AbortSignal.any([parentSignal, controller.signal])
+      : controller.signal;
 
     let res;
     try {
@@ -95,7 +99,7 @@ async function testComboTarget(
           "X-Request-Id": `combo-test-${randomUUID()}`,
         },
         body: JSON.stringify(testBody),
-        signal: controller.signal,
+        signal: combinedSignal,
       });
     } finally {
       clearTimeout(timeout);
@@ -140,12 +144,20 @@ async function testComboTarget(
     });
   } catch (error) {
     const latencyMs = Date.now() - startTime;
+    const err = error as Error;
+    let errorMessage: string;
+    if (err.name === "AbortError") {
+      // Parent abort wins over timer expiry: retrying is pointless once the client is gone.
+      errorMessage =
+        parentSignal?.aborted === true
+          ? sanitizeErrorMessage("Client disconnected")
+          : `Timeout (${COMBO_TEST_TIMEOUT_MS / 1000}s)`;
+    } else {
+      errorMessage = sanitizeErrorMessage(err.message);
+    }
     return buildComboTestResult(target, {
       status: "error",
-      error:
-        error.name === "AbortError"
-          ? `Timeout (${COMBO_TEST_TIMEOUT_MS / 1000}s)`
-          : sanitizeErrorMessage(error.message),
+      error: errorMessage,
       latencyMs,
     });
   }
@@ -199,6 +211,11 @@ export async function POST(request) {
     const results: ComboTestResult[] = [];
     const loopStarted = Date.now();
     for (const target of targets) {
+      // Client disconnects surface through request.signal (passed as
+      // parentSignal at the call site below). Stop instead of starting another doomed probe.
+      if (request.signal?.aborted) {
+        break;
+      }
       if (Date.now() - loopStarted >= COMBO_TEST_TOTAL_TIMEOUT_MS) {
         results.push(
           buildComboTestResult(target, {
@@ -209,7 +226,7 @@ export async function POST(request) {
         );
         continue;
       }
-      results.push(await testComboTarget(target, baseInternalUrl, internalApiKey));
+      results.push(await testComboTarget(target, baseInternalUrl, internalApiKey, request.signal));
     }
     const resolvedResult = results.find((result) => result.status === "ok") || null;
     const resolvedBy = resolvedResult?.model || null;

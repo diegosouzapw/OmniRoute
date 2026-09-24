@@ -8,6 +8,8 @@ import { ProxyStatusBadge } from "./ProxyStatusBadge";
 import { ProxyHealthCell } from "./ProxyHealthCell";
 import { ProxyBatchActions } from "./ProxyBatchActions";
 import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
+import { PoolEgressObservation } from "./PoolEgressObservation";
+import { PoolMemberEgressLines } from "./PoolMemberEgressLines";
 import {
   parseBulkImportText,
   type ParsedProxyEntry,
@@ -30,7 +32,7 @@ import {
   repairRelayResponseSchema,
 } from "./proxyRegistryData";
 
- export default function ProxyRegistryManager({
+export default function ProxyRegistryManager({
   onRedeployRelay,
   showVercelRelay = false,
   showDenoRelay = false,
@@ -581,7 +583,7 @@ import {
           password: entry.password || undefined,
           region: entry.region || null,
           notes: entry.notes || null,
-          status: entry.status as "active" | "inactive",
+          status: entry.status as "active" | "inactive" | undefined,
         })),
       };
 
@@ -1238,6 +1240,8 @@ import {
                 <label className="text-xs text-text-muted mb-1 block">
                   {t("poolMembersLabel", { count: poolMembers.length })}
                 </label>
+                <PoolEgressObservation query={poolQuery()} />
+                <PoolMemberEgressLines query={poolQuery()} />
                 {poolMembers.length === 0 ? (
                   <div className="text-sm text-text-muted px-3 py-2 rounded border border-border bg-bg-subtle">
                     {t("poolNoMembers")}
@@ -1413,13 +1417,13 @@ import {
                       <td className="py-1 px-2 font-mono text-text-muted">{entry.port}</td>
                       <td className="py-1 px-2 text-text-muted">{entry.username || "—"}</td>
                       <td className="py-1 px-2 text-text-muted">{entry.region || "—"}</td>
-                      <td className="py-1 px-2">
+                      <td className="py-1 px-2 text-text-muted">
                         <span
-                          className={
-                            entry.status === "active" ? "text-emerald-400" : "text-text-muted"
-                          }
+                          className={entry.status === "active" ? "text-emerald-400" : undefined}
                         >
-                          {entry.status === "active" ? t("statusActive") : t("statusInactive")}
+                          {entry.status === "active" && t("statusActive")}
+                          {entry.status === "inactive" && t("statusInactive")}
+                          {!entry.status && "—"}
                         </span>
                       </td>
                     </tr>

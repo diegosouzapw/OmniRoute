@@ -91,6 +91,11 @@ import {
   type ClassifiedCursorError,
 } from "./cursor/cursorErrors.ts";
 import { getActiveSyncedCatalog } from "../../src/lib/db/models/activeSyncedCatalog.ts";
+import {
+  createNarrationStreamScrubber,
+  finalizeKimiTurn,
+  type NarrationStreamScrubber,
+} from "../utils/kimiToolCallNarration.ts";
 // Composer helpers re-exported for external importers (tests).
 export {
   isComposerModel,
@@ -236,6 +241,15 @@ const CURSOR_STREAM_TIMEOUT_MS = (() => {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : 300000;
 })();
 
+// Grace window after a composer kv_after_text soft terminator when bytes
+// remain buffered: gives a trailing exec_mcp tool call time to complete its
+// frame without letting plain-chat latency regress to the full stream
+// timeout. 2s covers every exec_mcp-behind-kv ordering observed live.
+const KV_GRACE_MS = (() => {
+  const parsed = parseInt(process.env.CURSOR_KV_GRACE_MS || "2000", 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 2000;
+})();
+
 // Upper bound on a single Connect-RPC frame. The 4-byte length prefix can
 // declare up to 4 GiB; a corrupt or hostile upstream could send a huge length
 // that forces driveH2's rolling buffer to grow unbounded (OOM) while it waits
@@ -243,12 +257,6 @@ const CURSOR_STREAM_TIMEOUT_MS = (() => {
 // (largest observed: a ~13 KB KV blob), so 16 MiB is a generous ceiling that
 // turns the failure into a clean stream error instead of memory exhaustion.
 const CURSOR_MAX_FRAME_BYTES = 16 * 1024 * 1024;
-
-type CursorHttpResponse = {
-  status: number;
-  headers: Record<string, unknown>;
-  body: Buffer;
-};
 
 function tryParseJsonError(payload: Buffer): { message: string; status: number } | null {
   if (payload.length < 2 || payload[0] !== 0x7b) return null;
@@ -339,10 +347,16 @@ export type StreamCtx = {
   // True once we've emitted structured tool_calls from the inline Composer parser
   // (to avoid double-emitting if the block appears in multiple accumulated frames).
   composerInlineToolCallsEmitted: boolean;
+  // History-dialect narration scrubber (PR #12723 follow-up): incrementally
+  // holds back text that could start a flattenMessages dialect construct
+  // ("Assistant called tool …", "Tool result (…):", "User: <tool_result>…")
+  // so mimicry of the gateway's own serialization never streams to the client.
+  // A finalize-time scrub alone cannot retract already-emitted deltas.
+  narrationScrubber: NarrationStreamScrubber;
 };
 
 export function newStreamCtx(model: string, emit: (chunk: string) => void): StreamCtx {
-  return {
+  const ctx: StreamCtx = {
     responseId: `chatcmpl-cursor-${Date.now()}`,
     created: Math.floor(Date.now() / 1000),
     model,
@@ -362,7 +376,28 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     composerVisibleEmittedLength: 0,
     composerToolParserState: isComposerModel(model) ? createStreamingState() : null,
     composerInlineToolCallsEmitted: false,
+    // Assigned below (the scrubber's onToolCall callback closes over `ctx`).
+    narrationScrubber: undefined as unknown as NarrationStreamScrubber,
   };
+  ctx.narrationScrubber = createNarrationStreamScrubber((tc) => {
+    // A narrated call surfaced by the scrubber mid-stream is emitted as a
+    // structured tool_calls chunk right away; the finalize path
+    // (applyKimiToolCallRecovery) will not re-add it because ctx.toolCalls
+    // is non-empty by then.
+    const index = ctx.emittedToolCallIndex++;
+    ctx.toolCalls.push({ id: tc.id, name: tc.function.name, argumentsJson: tc.function.arguments });
+    emitChunk(ctx, {
+      tool_calls: [
+        {
+          index,
+          id: tc.id,
+          type: "function",
+          function: { name: tc.function.name, arguments: tc.function.arguments },
+        },
+      ],
+    });
+  });
+  return ctx;
 }
 
 function emitChunk(ctx: StreamCtx, delta: object, finishReason: string | null = null) {
@@ -563,6 +598,11 @@ export function processFrame(
   const dedupKey = event ? `${event.kind}:${event.execId}:${event.execMsgId}` : "";
   if (event && !ackedExecIds.has(dedupKey)) {
     ackedExecIds.add(dedupKey);
+    // An exec event that lands after a composer kv_after_text checkpoint (or a
+    // turn_ended with no text) was previously discarded by the scan loop as
+    // "already ended". Under load the exec_mcp can arrive in the same TCP
+    // segment as the KV checkpoint — the tool call must still be surfaced.
+    const reopensTurn = !!ctx.endReason;
     if (event.kind === "exec_request_context") {
       if (opts.h2Req) {
         try {
@@ -580,6 +620,12 @@ export function processFrame(
       // tool's id+name+empty args, then a chunk with the JSON-stringified
       // args. Parallel tool calls share one finish chunk (Phase 8 closes).
       const openAIToolCallId = emitStructuredToolCall(ctx, event.toolName, event.args ?? {});
+      if (reopensTurn) {
+        // The turn was already terminated (kv_after_text / turn_ended) before
+        // this frame was processed — re-open it so the scan loop keeps reading
+        // instead of resolving away the buffered tail.
+        ctx.endReason = "tool_calls";
+      }
       // Phase 6: remember the cursor exec ids so a follow-up role:"tool"
       // message can be replied with encodeExecMcpResult on the open h2 stream.
       ctx.pendingToolCalls.set(openAIToolCallId, {
@@ -640,9 +686,18 @@ export function processFrame(
         emitChunk(ctx, { role: "assistant", content: "" });
         ctx.emittedRoleChunk = true;
       }
-      ctx.totalText += d.text;
+      // History-dialect scrub (PR #12723 follow-up): hold back text that may
+      // start a flattenMessages dialect construct so mimicry of the gateway's
+      // own serialization ("Assistant called tool …", "Tool result (…):",
+      // "User: <tool_result>…") never streams to the client. Only the
+      // scrubber-cleared delta is emitted and accumulated into totalText —
+      // totalText must equal what the client actually received.
+      const safeDelta = ctx.narrationScrubber.feed(d.text);
       ctx.receivedText = true;
-      emitChunk(ctx, { content: d.text });
+      if (safeDelta) {
+        ctx.totalText += safeDelta;
+        emitChunk(ctx, { content: safeDelta });
+      }
     } else if (d.kind === "thinking" && d.text) {
       if (!ctx.emittedRoleChunk) {
         emitChunk(ctx, { role: "assistant", content: "" });
@@ -1118,6 +1173,11 @@ export class CursorExecutor extends BaseExecutor {
     return new Promise((resolve, reject) => {
       let scanning = false;
       let settled = false;
+      // Grace window after a soft kv_after_text terminator with buffered
+      // bytes still pending: if no further frame completes in this window,
+      // the turn ends anyway — bounded latency, no dependence on the full
+      // safety timeout.
+      let kvGraceTimer: NodeJS.Timeout | null = null;
       // Phase 8: safety timeout. If neither turn_ended, kv_after_text, nor
       // server-end fires within CURSOR_STREAM_TIMEOUT_MS, abort the stream
       // so a stuck upstream doesn't keep the response open indefinitely.
@@ -1160,6 +1220,7 @@ export class CursorExecutor extends BaseExecutor {
       // h2 alive (Phase 6 session reuse).
       const detachListeners = () => {
         clearTimeout(safetyTimer);
+        if (kvGraceTimer) clearTimeout(kvGraceTimer);
         h2.req.off("data", onData);
         h2.req.off("end", onEnd);
         h2.req.off("error", onErr);
@@ -1222,11 +1283,34 @@ export class CursorExecutor extends BaseExecutor {
             }
             pos += 5 + length;
             if (ctx.endReason) {
-              buf = buf.subarray(pos);
-              settled = true;
-              detachListeners();
-              resolve();
-              return;
+              // kv_after_text is a speculative terminator (Phase 8): under
+              // load the exec_mcp tool call shares the TCP segment with — or
+              // trails by a partial frame — the KV checkpoint. Settling here
+              // would splice it off as leftover and drop the tool call
+              // (#10215 follow-up: empty content, zero tool_calls). Only
+              // settle when the buffer ends at a clean frame boundary; bytes
+              // already in flight belong to this run and are processed by
+              // the next scan pass. A bounded grace window (not the full
+              // safety timeout) still ends the work if no further frame
+              // completes, so plain-chat latency can't regress.
+              const softKv = ctx.endReason === "kv_after_text";
+              const nextFrameStarted = pos < buf.length;
+              if (softKv && nextFrameStarted) {
+                if (!kvGraceTimer) {
+                  kvGraceTimer = setTimeout(() => {
+                    if (settled || !ctx.endReason) return;
+                    settled = true;
+                    detachListeners();
+                    resolve();
+                  }, KV_GRACE_MS);
+                }
+              } else {
+                buf = buf.subarray(pos);
+                settled = true;
+                detachListeners();
+                resolve();
+                return;
+              }
             }
           }
           // Splice off processed bytes so the buffer stays bounded.
@@ -1249,7 +1333,7 @@ export class CursorExecutor extends BaseExecutor {
     });
   }
 
-  async execute({ model, body, stream, credentials, signal, log, upstreamExtraHeaders }) {
+  async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders }) {
     const fallbackUrl = this.buildUrl();
     const executionCredentials = await this.resolveExecutionCredentials(credentials);
     if (executionCredentials instanceof Response) {
@@ -1613,6 +1697,8 @@ export class CursorExecutor extends BaseExecutor {
       }
     }
 
+    finalizeKimiTurn(ctx, (chunk) => emitChunk(ctx, chunk));
+
     // OpenAI finish_reason: "tool_calls" if the model invoked any declared
     // tool, else "stop". A turn with mixed text + tool_calls finishes with
     // "tool_calls" (the tool calls are the actionable signal for the client).
@@ -1682,6 +1768,8 @@ export class CursorExecutor extends BaseExecutor {
         }
       }
     }
+
+    finalizeKimiTurn(ctx);
 
     const usage = buildCursorUsage(ctx, body);
     const finishReason = ctx.toolCalls.length > 0 ? "tool_calls" : "stop";
