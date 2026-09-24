@@ -262,84 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Tunaungwa mkono na Marafiki wetu wa Chanzo Huria
+## 🤝 Inaungwa mkono na Marafiki wetu wa Chanzo Huria
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Akili ya Kiwango cha Juu · vigezo trilioni 2.8 · muktadha wa tokeni milioni 1"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Akili ya Mipaka Huria · Vigezo 2.8T · Muktadha wa Tokeni 1M"/>
   </a>
 </p>
 
-> **Ungependa kujiunga kama Rafiki wa Chanzo Huria?** Haya ndiyo makampuni yanayounga mkono chanzo huria na kusaidia OmniRoute kuendelea — na tunaeleza hadharani kila tokeni wanayotupatia inatumika wapi. Wasiliana nasi: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
-
-<table>
-  <tr>
-    <td align="center" width="150">
-      <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="public/providers/kimi-logomark-dark.svg">
-          <img src="public/providers/kimi-logomark-light.svg" width="64" alt="Kimi (Moonshot AI)"/>
-        </picture>
-      </a>
-      <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Rafiki Mwanzilishi wa Chanzo Huria"/>
-    </td>
-    <td>
-      Shukrani kwa <b>Kimi (Moonshot AI)</b>, Rafiki wetu mwanzilishi wa Chanzo Huria, kwa kuunga mkono mradi huu! Kimi ni maabara ya AI iliyoanzisha familia za miundo ya K2 na K3 zenye uzani huria — <b>Kimi K3</b> hutoa dirisha la muktadha la tokeni milioni 1, uwezo asilia wa kuona na uandishi wa msimbo wa kiwango cha juu kwa sehemu ndogo ya bei za miundo funge, na hufanya kazi moja kwa moja na Claude Code, Codex na kila zana ya uandishi wa msimbo inayohudumiwa na OmniRoute.
-      <br/><br/>
-      <b>Msaada wa Kimi unawezesha nini:</b> Salio la API la Kimi linawezesha mchakato wa matoleo wa OmniRoute unaothibitishwa na AI — hatua ya <i>uthibitishaji wa kuunganisha unaowezeshwa na Kimi K3</i> ambayo hukagua kila ombi la kuunganisha kabla halijatolewa — pamoja na uundaji wa vipengele wa kila siku. Usaidizi wa kiwango cha kwanza wa Kimi hutolewa kupitia njia zote mbili: <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> ya moja kwa moja (<code>kimi-k3</code>) na <a href="https://www.kimi.com/code?aff=omniroute">mpango wa uandishi wa msimbo wa Kimi Code</a> (OAuth na ufunguo wa API). OmniRoute pia ni mradi wa kwanza wa chanzo huria wa Brazil katika mpango wa usaidizi wa Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Pata ufunguo wa Kimi API wenye salio la ziada la 15% →</b></a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="150">
-      <a href="https://cheaperinference.com/?utm_source=omniroute">
-        <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
-      </a>
-      <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Rafiki wa Chanzo Huria"/>
-    </td>
-    <td>
-      Shukrani kwa <b>Cheaper Inference</b>, Rafiki wa Chanzo Huria wa OmniRoute, kwa kuunga mkono mradi huu! Cheaper Inference ni lango lililopangwa kwa gharama ambalo huuza tena miundo 42 ya kiwango cha juu — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok na MiniMax — kupitia endpoint moja inayooana na OpenAI, likielekeza kila ombi kwa mtoa huduma anayestahiki mwenye gharama ya chini zaidi bila kutoza zaidi ya bei iliyoorodheshwa na mtengenezaji wa muundo.
-      <br/><br/>
-      <b>Usaidizi wa kiwango cha kwanza katika OmniRoute:</b> Chat Completions, endpoint asilia ya <code>/v1/responses</code>, uwezo wa kuona, uitaji wa zana na miundo 3 ya picha (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, inayofikiwa kama <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Pata ufunguo wa API →</b></a>
-    </td>
-  </tr>
-</table>
-
-<sub>Viungo vilivyowekewa alama ya <code>aff=omniroute</code> ni viungo vya washirika. Vinafadhili mradi bila gharama yoyote ya ziada kwako.</sub>
-
-<br/>
-
-<details open>
-<summary><sub><b>🎟️ Ofa za Washirika</b> — kuponi za kujisajili bila malipo kutoka kwa watoa huduma ambao hawatudhamini (bofya ili kupanua)</sub></summary>
-
-<sub><i>Sehemu hii ni ya misimbo ya rufaa/kuponi pekee. Ushirikiano unaodhaminiwa unapatikana katika sehemu ya <b>🤝 Tunaungwa mkono na Marafiki wetu wa Chanzo Huria</b> hapo juu. OmniRoute haina udhamini wala ushirikiano na watoa huduma walioorodheshwa hapa — hizi ni kuponi za umma ambazo mtu yeyote anaweza kutumia.</i></sub>
-
-<table>
-  <tr>
-    <td align="center" width="120">
-      <a href="https://agentrouter.org/register?aff=70LM">
-        <img src="./public/providers/cli-generic.svg" width="32" alt="AgentRouter"/>
-      </a>
-      <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
-    </td>
-    <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — usajili wa ushirika · <b>salio la $100 bila malipo</b> unapojisajili (seva ya bila malipo, tarajia ucheleweshaji zaidi — inafaa zaidi kwa majaribio, si kwa uzalishaji). Usaidizi wa kiwango cha kwanza katika OmniRoute tangu <b>v3.8.50</b>: Chat Completions, umbizo la mawasiliano linalooana na Anthropic na njia inayooana na OpenAI. Miundo inayopatikana ni pamoja na <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> na mingine zaidi. <b><a href="https://agentrouter.org/register?aff=70LM">Jipatie $100 yako →</a></b></sub>
-      <br/><br/>
-      <sub>⚠️ <i>Kiungo cha ushirika — OmniRoute haina udhamini wala ushirikiano na mtoa huduma huyu.</i></sub>
-    </td>
-  </tr>
-</table>
-
-<sub>Unamfahamu mtoa huduma mwingine mwenye kuponi nzuri ya kujisajili bila malipo inayowanufaisha watumiaji wa OmniRoute? Fungua suala nasi tutaliongeza hapa.</sub>
-
-</details>
-
-<br/>
-
-<div align="center">
+> **Je, unataka kujiunga kama Rafiki wa Chanzo Huria?** Hizi ni kampuni zinazou
 
 ## 🎯 Combo — Kipengele Kikuu
 
@@ -1256,28 +1189,28 @@ Vipimo kanuni vya 2026-08-24: **video 1.029 za kipekee** · **mitazamo 11.132.92
 <br/>
 <div align="center">
 
-## 🛠️ Teknolojia Zinazotumika
+## 🛠️ Safu ya Teknolojia
 
 </div>
 
 <table>
   <tr><th align="left">Safu</th><th align="left">Teknolojia</th></tr>
-  <tr><td nowrap><b>Mazingira ya utekelezaji</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Lugha</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> katika <code>src/</code> na <code>open-sse/</code> (hakuna <code>any</code> katika msingi tangu v2.0)</td></tr>
+  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Lugha</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> kote <code>src/</code> na <code>open-sse/</code> (hakuna <code>any</code> katika msingi tangu v2.0)</td></tr>
   <tr><td nowrap><b>Mfumo</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Hifadhidata</b></td><td>better-sqlite3 (SQLite, uandishi wa kumbukumbu wa WAL) + LowDB (urithi wa JSON) — moduli 122 za kikoa, uhamishaji 178</td></tr>
-  <tr><td nowrap><b>Kumbukumbu</b></td><td>Utafutaji wa maandishi kamili wa SQLite FTS5 + upachikaji wa vekta uliokadiriwa kwa int8, ufifishaji wenye aina</td></tr>
-  <tr><td nowrap><b>Skima</b></td><td>Zod 4 — uthibitishaji wa ingizo/tokeo la zana za MCP + mikataba ya API</td></tr>
+  <tr><td nowrap><b>Hifadhidata</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — moduli 122 za kikoa, uhamiaji 182</td></tr>
+  <tr><td nowrap><b>Kumbukumbu</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>Schema</b></td><td>Zod 4 — Uthibitishaji wa I/O wa zana ya MCP + mikataba ya API</td></tr>
   <tr><td nowrap><b>Itifaki</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Utiririshaji</b></td><td>Server-Sent Events (SSE) + daraja la WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Mfinyazo</b></td><td>Mtiririko wa injini 12 — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Uthibitishaji &amp; usalama</b></td><td>OAuth 2.0 (PKCE) + JWT + Funguo za API + uthibitishaji wa MCP wenye mawanda · AES-256-GCM kwa data iliyohifadhiwa · DOMPurify</td></tr>
-  <tr><td nowrap><b>Ufichaji</b></td><td>wreq-js — uigaji wa alama za utambulisho za JA3 / JA4 TLS, proksi ya viwango 3</td></tr>
-  <tr><td nowrap><b>Ustahimilivu</b></td><td>Kikatiza mzunguko, ucheleweshaji unaoongezeka kwa kasi, uzuiaji wa maombi mengi ya wakati mmoja, mchanganyiko wa kujirekebisha kiotomatiki</td></tr>
-  <tr><td nowrap><b>Uwekaji kumbukumbu</b></td><td>pino — kumbukumbu za JSON zilizopangwa zenye muktadha wa ombi</td></tr>
-  <tr><td nowrap><b>Majaribio</b></td><td>Kiendesha majaribio cha Node.js + Vitest — <b>matangazo 39,000+ ya majaribio tuli</b> katika faili 5,100+ za majaribio zinazofuatiliwa (kitengo, ujumuishaji, E2E, usalama, mfumo-ikolojia)</td></tr>
-  <tr><td nowrap><b>Majukwaa</b></td><td>Kompyuta ya mezani (Electron) · Android (Termux) · PWA (kivinjari chochote)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — uchapishaji wa kiotomatiki kwenye npm + Docker Hub wakati wa toleo</td></tr>
+  <tr><td nowrap><b>Utiririshaji</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Minywele</b></td><td>Minyororo 12 ya injini — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Uthibitishaji &amp; usalama</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM imetulia · DOMPurify</td></tr>
+  <tr><td nowrap><b>Siri</b></td><td>wreq-js — Uigaji wa alama za vidole za JA3 / JA4 TLS, proksi ya viwango 3</td></tr>
+  <tr><td nowrap><b>Uimara</b></td><td>Kivunja mzunguko, kurudi nyuma kwa kasi, kuzuia umati wa watu, kujiponya kiotomatiki</td></tr>
+  <tr><td nowrap><b>Ukataji miti</b></td><td>pino — kumbukumbu za JSON zilizopangwa na muktadha wa ombi</td></tr>
+  <tr><td nowrap><b>Kupima</b></td><td>Node.js test runner + Vitest — <b>Matamko 39,000+ ya majaribio tuli</b> katika faili 5,100+ za majaribio zilizofuatiliwa (kitengo, ujumuishaji, E2E, usalama, mfumo ikolojia)</td></tr>
+  <tr><td nowrap><b>Majukwaa</b></td><td>Eneo-kazi (Electron) · Android (Termux) · PWA (kivinjari chochote)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — uchapishaji otomatiki wa npm + Docker Hub kwenye toleo</td></tr>
   <tr><td nowrap><b>Viungo</b></td><td><a href="https://omniroute.online">Tovuti</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

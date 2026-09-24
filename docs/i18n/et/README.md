@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Meie avatud lähtekoodi sõprade toel
+## 🤝 Meie avatud lähtekoodiga sõprade toetusel
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Avatud Piiride Intelligentsus · 2.8T parameetrit · 1M-tokeni kontekst"/>
   </a>
 </p>
 
-> **Soovid liituda avatud lähtekoodi sõbrana?** Need on ettevõtted, kes toetavad avatud lähtekoodi ja aitavad OmniRoute'i liikuma hoida — ja me avaldame avalikult, kuhu iga neilt saadud toke läheb. Võta ühendust: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Kas soovite liituda avatud lähtekoodiga sõbrana?** Need on ettevõtted, mis toetavad avatud lähtekoodi ja aitavad OmniRoute'il edasi liikuda – ja me ütleme avalikult, kuhu iga nende antud token läheb. Võtke ühendust: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,38 +284,38 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Asutav avatud lähtekoodiga sõber"/>
     </td>
     <td>
-      Tänud <b>Kimile (Moonshot AI)</b>, meie esimesele avatud lähtekoodi sõbrale, selle projekti toetamise eest! Kimi on AI-labor, mis on avatud kaaludega K2 ja K3 mudeliperede loojad — <b>Kimi K3</b> pakub 1M-tokenilist kontekstiakent, sisseehitatud nägemisvõimet ja tipptasemel koodikirjutamist murdosa hinnaga suletud mudelitest, ning töötab kohe kastist välja koos Claude Code'i, Codexi ja kõigi teiste koodivahenditega, mida OmniRoute teenindab.
+      Tänu <b>Kimile (Moonshot AI)</b>, meie asutavale avatud lähtekoodiga sõbrale, selle projekti toetamise eest! Kimi on AI labor avatud kaaluga K2 ja K3 mudeliperekondade taga — <b>Kimi K3</b> pakub 1M-tokeni kontekstiakent, natiivset nägemist ja piiritasemel kodeerimist murdosa suletud mudelite hindadest ning töötab koheselt Claude Code, Codexi ja iga kodeerimistööriistaga, mida OmniRoute pakub.
       <br/><br/>
-      <b>Mida Kimi toetus võimaldab:</b> Kimi API krediidid toidavad OmniRoute'i AI-valideeritud väljalaskeprotsessi — <i>Kimi K3 toega ühendamise valideerimist</i>, mis vaatab läbi iga pull request'i enne selle avaldamist — lisaks igapäevasele funktsioonide arendusele. Esmaklassiline Kimi tugi on olemas mõlemal teel: otsene <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) ja <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code koodiplaan</a> (OAuth ja API võti). OmniRoute on ka esimene brasiillik avatud lähtekoodi projekt Kimi toetusprogrammis. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Hangi Kimi API võti, millega saad 15% lisakrediiti →</b></a>
+      <b>Mida Kimi toetus võimaldab:</b> Kimi API krediidid toetavad OmniRoute'i AI-ga valideeritud väljalaskeprotsessi — <i>Kimi K3 poolt valideeritud ühendamise</i> etappi, mis vaatab läbi iga tõmbepäringu enne selle avaldamist — pluss igapäevast funktsioonide arendust. Esimese klassi Kimi tugi on saadaval mõlemal viisil: otse <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) ja <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code kodeerimisplaan</a> (OAuth ja API võti). OmniRoute on ka esimene Brasiilia avatud lähtekoodiga projekt Kimi tugiprogrammis. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Hankige Kimi API võti 15% lisakrediidiga →</b></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="150">
       <a href="https://cheaperinference.com/?utm_source=omniroute">
-        <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
+        <img src="./public/providers/cli-generic.svg" width="64" alt="Odavam järeldus"/>
       </a>
-      <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
+      <br/><b>Odavam järeldus</b><br/><sub>cheaperinference.com</sub><br/><br/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Avatud lähtekoodiga sõber"/>
     </td>
     <td>
-      Tänud <b>Cheaper Inference'ile</b>, OmniRoute'i avatud lähtekoodi sõbrale, selle projekti toetamise eest! Cheaper Inference on hinna järgi järjestatud vahendussüsteem, mis vahendab 42 tipptasemel mudelit — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok ja MiniMax — ühe OpenAI-ga ühilduva otspunkti tagant, suunates iga päringu odavaimale sobivale pakkujale, ilma et hind ületaks kunagi mudeli looja avaldatud hinnakirja.
+      Tänu <b>Cheaper Inference'ile</b>, OmniRoute'i avatud lähtekoodiga sõbrale, selle projekti toetamise eest! Cheaper Inference on kulupõhine lüüs, mis edasimüüb 42 piirimudelit — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok ja MiniMax — ühe OpenAI-ga ühilduva lõpp-punkti taga, suunates iga päringu odavaimale sobivale pakkujale, ilma et kunagi küsiks mudeli tootja nimekirjahinnast kõrgemat hinda.
       <br/><br/>
-      <b>Esmaklassiline tugi OmniRoute'is:</b> Chat Completions, natiivne <code>/v1/responses</code> otspunkt, nägemine, tööriistade kutsumine ja 3 pildimudelit (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, kättesaadavad kui <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Hangi API võti →</b></a>
+      <b>Esimese klassi tugi OmniRoute'is:</b> Vestluse lõpetamised, natiivne <code>/v1/responses</code> lõpp-punkt, nägemine, tööriistakõned ja 3 pildimudelit (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, kättesaadav kui <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Hankige API võti →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Lingid tähisega <code>aff=omniroute</code> on partnerlingid. Need rahastavad projekti, ilma et see sulle lisakulu tooks.</sub>
+<sub>Lingid, millel on märge <code>aff=omniroute</code>, on partnerlingid. Need rahastavad projekti teile lisakuludeta.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Partnerprogrammi soodustused</b> — pakkujate tasuta registreerimiskupongid, keda me ei sponsoreeri (klõpsa avamiseks)</sub></summary>
+<summary><sub><b>🎟️ Sidusettevõtete pakkumine</b> — tasuta registreerimiskupongid pakkujatelt, keda me ei sponsoreeri (laiendamiseks klõpsake)</sub></summary>
 
-<sub><i>See jaotis on mõeldud ainult soovitus-/kupongikoodidele. Sponsoreeritud partnerlused on toodud eespool jaotises <b>🤝 Meie avatud lähtekoodi sõprade toel</b>. OmniRoute'il ei ole sponsorlust ega partnerlust siin loetletud pakkujatega — need on avalikud kupongid, mida igaüks saab kasutada.</i></sub>
+<sub><i>See jaotis on ainult viite-/kupongikoodide jaoks. Sponsorluspartnerlused asuvad ülal jaotises <b>🤝 Meie avatud lähtekoodiga sõprade toetusel</b>. OmniRoute'il puudub sponsorlus või partnerlus siin loetletud pakkujatega – need on avalikud kupongid, mida igaüks saab kasutada.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partnerregistreerimine · <b>$100 tasuta krediiti</b> registreerumisel (tasuta server, arvesta suurema latentsusega — sobib parimini testimiseks, mitte tootmiseks). Esmaklassiline tugi OmniRoute'is alates versioonist <b>v3.8.50</b>: Chat Completions, Anthropicuga ühilduv edastusvorming ja OpenAI-ga ühilduv tee. Saadaval mudelite hulgas on <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> ja teised. <b><a href="https://agentrouter.org/register?aff=70LM">Hangi oma $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — sidusettevõtte registreerimine · <b>$100 tasuta krediiti</b> registreerimisel (tasuta server, oodata suuremat latentsust — parim testimiseks, mitte tootmiseks). Esimese klassi tugi OmniRoute'is alates <b>v3.8.50</b>: vestluse lõpetamised, Anthropic-ühilduv traadiformaat ja OpenAI-ühilduv tee. Saadaval olevad mudelid hõlmavad <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> ja palju muud. <b><a href="https://agentrouter.org/register?aff=70LM">Haara oma $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Partnerlink — OmniRoute'il ei ole sponsorlust ega partnerlust selle pakkujaga.</i></sub>
+      <sub>⚠️ <i>Sidusettevõtte link — OmniRoute'il puudub sponsorlus või partnerlus selle pakkujaga.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Tead veel pakkujat, kellel on helde tasuta registreerimiskupong, mis oleks OmniRoute'i kasutajatele kasulik? Ava probleem (issue) ja me lisame selle siia.</sub>
+<sub>Kas teate mõnda teist pakkujat, kellel on helde tasuta registreerimiskupong, mis toob kasu OmniRoute'i kasutajatele? Avage probleem ja me lisame selle siia.</sub>
 
 </details>
 
@@ -1219,28 +1219,28 @@ Kanoonilised näitajad 2026-08-24 seisuga: **1029 unikaalset videot** · **11 13
 <br/>
 <div align="center">
 
-## 🛠️ Tehnoloogiapinu
+## 🛠️ Tehnoloogiline virn
 
 </div>
 
 <table>
   <tr><th align="left">Kiht</th><th align="left">Tehnoloogia</th></tr>
-  <tr><td nowrap><b>Täituskeskkond</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Keel</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> kataloogides <code>src/</code> ja <code>open-sse/</code> (alates versioonist v2.0 pole tuumkoodis ühtegi <code>any</code>-tüüpi)</td></tr>
+  <tr><td nowrap><b>Käitusaeg</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Keel</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> üle <code>src/</code> ja <code>open-sse/</code> (tuumas puudub <code>any</code> alates v2.0-st)</td></tr>
   <tr><td nowrap><b>Raamistik</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Andmebaas</b></td><td>better-sqlite3 (SQLite, WAL-päevik) + LowDB (pärandvormingus JSON) — 122 domeenimoodulit, 178 migratsiooni</td></tr>
-  <tr><td nowrap><b>Mälu</b></td><td>SQLite FTS5 täistekstiotsing + int8-kvanditud vektormanused, tüübitud hääbumine</td></tr>
-  <tr><td nowrap><b>Skeemid</b></td><td>Zod 4 — MCP-tööriistade sisendi/väljundi valideerimine + API-lepingud</td></tr>
+  <tr><td nowrap><b>Andmebaas</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domeenimoodulit, 182 migratsiooni</td></tr>
+  <tr><td nowrap><b>Mälu</b></td><td>SQLite FTS5 täistekst + int8-kvantiseeritud vektor-manused, tüübitud lagunemine</td></tr>
+  <tr><td nowrap><b>Skeemid</b></td><td>Zod 4 — MCP tööriista sisend/väljund valideerimine + API lepingud</td></tr>
   <tr><td nowrap><b>Protokollid</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Voogedastus</b></td><td>Server-Sent Events (SSE) + WebSocketi sild (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Tihendamine</b></td><td>12 mootoriga konveier — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Autentimine ja turvalisus</b></td><td>OAuth 2.0 (PKCE) + JWT + API-võtmed + MCP piiratud ulatusega autentimine · AES-256-GCM jõudeolekus · DOMPurify</td></tr>
-  <tr><td nowrap><b>Varjatus</b></td><td>wreq-js — JA3 / JA4 TLS-sõrmejälje jäljendamine, 3-tasemeline puhverserver</td></tr>
-  <tr><td nowrap><b>Vastupidavus</b></td><td>Kaitselüliti, eksponentsiaalne tagasipõrge, päringuvalangu vältimine, automaatkombinatsioonide iseparanemine</td></tr>
-  <tr><td nowrap><b>Logimine</b></td><td>pino — struktureeritud JSON-logid koos päringukontekstiga</td></tr>
-  <tr><td nowrap><b>Testimine</b></td><td>Node.js-i testikäitaja + Vitest — <b>39 000+ staatilist testideklaratsiooni</b> enam kui 5100 jälgitavas testifailis (üksus-, integratsiooni-, E2E-, turbe- ja ökosüsteemitestid)</td></tr>
+  <tr><td nowrap><b>Voogedastus</b></td><td>Server-Sent Events (SSE) + WebSocket sild (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Pakkimine</b></td><td>12-mootoriline torujuhe — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autentimine ja turvalisus</b></td><td>OAuth 2.0 (PKCE) + JWT + API võtmed + MCP ulatuslik autentimine · AES-256-GCM puhkeolekus · DOMPurify</td></tr>
+  <tr><td nowrap><b>Varjamine</b></td><td>wreq-js — JA3 / JA4 TLS sõrmejälje jäljendamine, 3-tasemeline puhverserver</td></tr>
+  <tr><td nowrap><b>Vastupidavus</b></td><td>Kaitselüliti, eksponentsiaalne tagasipöördumine, anti-thundering-herd, automaatne kombineeritud iseparandamine</td></tr>
+  <tr><td nowrap><b>Logimine</b></td><td>pino — struktureeritud JSON logid päringu kontekstiga</td></tr>
+  <tr><td nowrap><b>Testimine</b></td><td>Node.js test runner + Vitest — <b>39 000+ staatilist testideklaratsiooni</b> üle 5100+ jälgitud testifaili (üksus-, integratsiooni-, E2E-, turvalisus-, ökosüsteemi)</td></tr>
   <tr><td nowrap><b>Platvormid</b></td><td>Töölaud (Electron) · Android (Termux) · PWA (mis tahes brauser)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automaatne avaldamine npm-is + Docker Hubis väljalaske korral</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automaatne npm avaldamine + Docker Hub väljalaske korral</td></tr>
   <tr><td nowrap><b>Lingid</b></td><td><a href="https://omniroute.online">Veebisait</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

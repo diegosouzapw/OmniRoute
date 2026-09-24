@@ -6,7 +6,7 @@
 //     updateProviderConnectionSchema  (edit connection)
 //
 // That `apiKey` field is reused as the raw `Cookie:` header value for cookie-
-// based web providers (Gemini Business, Copilot M365, ChatGPT Web (Codex), Claude Web,
+// based web providers (Copilot M365, ChatGPT Web (Codex), Claude Web,
 // …). Real multi-cookie session headers (many `__Secure-*` entries, large
 // session tokens) legitimately exceed 10,000 chars. The provider's own
 // `validate` schema (validateProviderApiKeySchema) has NO cap, so the cookie
@@ -30,8 +30,8 @@ const OVERSIZE_COOKIE = "x".repeat(100_001);
 
 test("createProviderSchema accepts a >10000-char cookie apiKey (#6715)", () => {
   const result = createProviderSchema.safeParse({
-    provider: "gemini-business",
-    name: "Gemini Business (cookie)",
+    provider: "claude-web",
+    name: "Claude Web (cookie)",
     apiKey: LARGE_COOKIE,
   });
   assert.equal(result.success, true, JSON.stringify(result.error?.issues));
@@ -39,7 +39,7 @@ test("createProviderSchema accepts a >10000-char cookie apiKey (#6715)", () => {
 
 test("bulkCreateProviderSchema accepts a >10000-char cookie apiKey (#6715)", () => {
   const result = bulkCreateProviderSchema.safeParse({
-    provider: "gemini-business",
+    provider: "claude-web",
     entries: [{ name: "cookie-1", apiKey: LARGE_COOKIE }],
   });
   assert.equal(result.success, true, JSON.stringify(result.error?.issues));
@@ -52,7 +52,7 @@ test("updateProviderConnectionSchema accepts a >10000-char cookie apiKey (#6715)
 
 test("createProviderSchema still rejects an oversize apiKey past the new ceiling (control)", () => {
   const result = createProviderSchema.safeParse({
-    provider: "gemini-business",
+    provider: "claude-web",
     name: "too big",
     apiKey: OVERSIZE_COOKIE,
   });

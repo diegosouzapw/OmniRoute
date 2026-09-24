@@ -9,43 +9,35 @@ Kompresja OmniRoute opiera się na kontraktach silników. Tryb może uruchamiać
 
 ## Tryby
 
-| Tryb         | Ścieżka silnika                          | Przeznaczone dane wejściowe                                 |
-| ------------ | ---------------------------------------- | ----------------------------------------------------------- |
-| `off`        | brak                                     | Dokładne zachowanie promptu                                 |
-| `lite`       | Lekkie funkcje pomocnicze Caveman        | Zawsze aktywne czyszczenie niskiego ryzyka                  |
-| `standard`   | Caveman                                  | Kondensacja promptów w języku naturalnym                    |
-| `aggressive` | Caveman + podsumowania historii/narzędzi | Długie sesje czatu                                          |
-| `ultra`      | Caveman + funkcje pomocnicze przycinania | Odzyskiwanie po osiągnięciu limitu kontekstu                |
-| `rtk`        | RTK                                      | Dane wyjściowe terminala, powłoki, kompilacji, testów i git |
-| `omniglyph`  | OmniGlyph                                | Kontekst jako obraz w natywnym protokole dostawcy           |
-| `stacked`    | Potok, domyślnie `rtk -> caveman`        | Mieszane logi narzędzi i proza, maksymalna oszczędność      |
+| Tryb         | Ścieżka silnika                                                                       | Zamierzone wejście                                      |
+| ------------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `off`        | brak                                                                                  | Dokładne zachowanie promptu                             |
+| `lite`       | Pomocnicy Caveman lite                                                                | Niskie ryzyko, zawsze włączone czyszczenie              |
+| `standard`   | Caveman                                                                               | Kondensacja promptu w języku naturalnym                 |
+| `aggressive` | Caveman + sumaryzatory historii/narzędzi                                              | Długie sesje czatu                                      |
+| `ultra`      | Caveman + pomocnicy do przycinania                                                    | Odzyskiwanie limitu kontekstu                           |
+| `rtk`        | RTK                                                                                   | Wyjście terminala, shella, kompilacji, testów i git     |
+| `omniglyph`  | OmniGlyph                                                                             | Kontekst jako obraz w natywnym połączeniu dostawcy      |
+| `stacked`    | Potok. Domyślne żądanie to `session-dedup -> lite`. `rtk -> caveman` jest opcjonalne. | Mieszane logi narzędzi i proza, maksymalne oszczędności |
 
 ### Profile kompresji OmniGlyph
 
-Silnik `omniglyph` (pakiet `omniglyph`, 1.4.0+) przyjmuje nazwany profil semantyczny, ustawiany
-globalnie za pomocą `omniglyph.profile` w ustawieniach kompresji lub dla poszczególnych kroków za pomocą
-konfiguracji kroku potoku stosowego:
+Silnik `omniglyph` (pakiet `omniglyph`, 1.4.0+) akceptuje nazwany profil semantyczny, ustawiany
+globalnie poprzez `omniglyph.profile` w ustawieniach kompresji lub dla każdego kroku poprzez
+konfigurację kroku potoku skumulowanego:
 
-| Profil        | Zakres                                                                                                                        |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Domyślny. Polityka użyta w opublikowanych pomiarach — przekształca system, dokumentację narzędzi i obszerną historię w obrazy |
-| `balanced`    | Zachowuje aktywny stan w postaci natywnej, chroni ostatnie 8 tur i zwija starszą, zamkniętą historię                          |
-| `coding-safe` | Zachowuje uprawnienia, schematy narzędzi i aktywne dane wyjściowe narzędzi w postaci natywnej oraz chroni ostatnie 12 tur     |
-| `passthrough` | Przekazuje bez przekształcania; silnik jest pomijany                                                                          |
+| Profil        | Granica                                                                                                          |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Domyślny. Polityka, którą mierzyły opublikowane raporty — system obrazów, dokumentacja narzędzi i gęsta historia |
+| `balanced`    | Utrzymuje stan na żywo jako natywny, chroni ostatnie 8 tur, zwija starszą zamkniętą historię                     |
+| `coding-safe` | Utrzymuje autorytet, schematy narzędzi i wyjście narzędzi na żywo jako natywne, chroni ostatnie 12 tur           |
+| `passthrough` | Przekierowuje bez transformacji; silnik jest pomijany                                                            |
 
-Profil stanowi **górną, a nie dolną granicę**: `mergeCompressionProfileOptions` w pakiecie
-nie pozwala ustawieniom wywołującego ponownie otworzyć kanału kompresji stratnej zamkniętego przez profil, dlatego ustawienie
-`preserveSystemPrompt: false` dla pojedynczego kroku nie może ponownie włączyć kompresji systemowej w profilu `coding-safe`.
+Profil jest **sufitem, nie podłogą**: `mergeCompressionProfileOptions` w pakiecie odmawia zezwolenia wywołującemu na ponowne otwarcie utraconej ścieżki, którą profil zamknął, więc `preserveSystemPrompt: false` dla każdego kroku nie może ponownie włączyć kompresji systemowej w trybie `coding-safe`.
 
-Pomiary w tej bazie kodu wykazały, że profile `coding-safe` i `balanced` podnoszą `minCompressChars` do
-maksymalnej wartości oraz zachowują system, schematy narzędzi i wyniki narzędzi w postaci natywnej, więc sesja, która nie
-zgromadziła jeszcze historii, kończy się ze statusem `below_min_chars`, a silnik niczego nie przekształca. Z tego
-powodu domyślnym profilem jest `aggressive`, a nie najbezpieczniejszy profil.
+Zmierzono w tej bazie kodu: `coding-safe` i `balanced` podnoszą `minCompressChars` do maksimum i utrzymują system, schematy narzędzi oraz wyniki narzędzi jako natywne, więc sesja, która jeszcze nie zgromadziła historii, zatrzymuje się na `below_min_chars`, a silnik niczego nie transformuje. Dlatego domyślnym profilem jest `aggressive`, a nie najbezpieczniejszy.
 
-Pakiet określa własny zakres modeli i profil na podstawie swojej konfiguracji środowiskowej.
-OmniRoute nigdy nie deleguje tej decyzji: adapter ogranicza bramkę modelu do najbardziej
-restrykcyjnego zakresu pakietu, dlatego ustawienia środowiska hosta mogą jedynie zawężać listę dozwolonych modeli, ale nigdy
-nie mogą rozszerzyć jej poza zakres potwierdzony pomiarami OmniRoute.
+Pakiet rozwiązuje swój własny zakres modelu i profil z konfiguracji środowiska. OmniRoute nigdy nie deleguje decyzji: adapter przypina bramkę modelu do najbardziej restrykcyjnego zakresu pakietu, więc ustawienia środowiska hosta mogą jedynie zawęzić listę dozwolonych, nigdy jej nie rozszerzyć poza zmierzone dane OmniRoute.
 
 ## Rejestr silników
 
@@ -387,7 +379,7 @@ zależne od pamięci podręcznej itp.).
 
 ## Walidacja
 
-Ukierunkowane testy kontrolne dla tego obszaru to:
+Skoncentrowane bramki dla tego obszaru to:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

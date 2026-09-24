@@ -221,7 +221,7 @@ export const OAUTH_PROVIDERS = {
     textIcon: "KC",
     // Kimi official-partnership aff link (2026-07) — the "Kimi Coding Plan"
     // tracking link. Was previously unset (no header link rendered at all).
-    website: "https://www.kimi.com/code?aff=omniroute",
+    website: "https://www.kimi.ai/code?aff=omniroute",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
     authHint:

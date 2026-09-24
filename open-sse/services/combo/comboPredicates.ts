@@ -16,15 +16,13 @@ import {
   isLocalExecutionError,
   isModelCapacityOverloadError,
 } from "@/shared/utils/circuitBreaker";
-import {
-  CONTEXT_OVERFLOW_PATTERNS,
-  MODEL_ACCESS_DENIED_PATTERNS,
-  cooldownUntilMs,
-} from "../accountFallback.ts";
+import { CONTEXT_OVERFLOW_PATTERNS, cooldownUntilMs } from "../accountFallback.ts";
 import { isResourceNotFoundResponse } from "../errorClassifier.ts";
 import { getTrustedLocalRateLimitResponse } from "../rateLimitManager/errors.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 import type { ComboErrorEntry } from "./comboErrorAggregation.ts";
+
+export { isModelScoped400 } from "../modelAccessDenied.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
 export const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
@@ -649,20 +647,5 @@ export function isParamValidation400(errorText: string | null | undefined): bool
     /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(text) ||
     /\bparameter is illegal\b/i.test(text) ||
     /\bis illegal.*range\b/i.test(text)
-  );
-}
-
-/**
- * #5249 / #2101: model-scoped 400s must NEVER stop the combo.
- */
-export function isModelScoped400(errorText: string | null | undefined): boolean {
-  const text = String(errorText || "");
-  if (!text) return false;
-  if (MODEL_ACCESS_DENIED_PATTERNS.some((p) => p.test(text))) return true;
-  return (
-    /\bmodel\b[\s\S]{0,80}?\b(?:not\s+supported|unsupported|unknown|unavailable)\b/i.test(text) ||
-    /\b(?:not\s+supported|unsupported|unknown)\b[\s\S]{0,80}?\bmodel\b/i.test(text) ||
-    /\bunsupported_api_for_model\b/i.test(text) ||
-    /\bdoes\s+not\s+support\s+(?:the\s+)?responses\s+api\b/i.test(text)
   );
 }

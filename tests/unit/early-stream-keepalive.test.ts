@@ -196,7 +196,13 @@ test("slow Responses handler uses comments plus sparse in_progress events", asyn
   const body = await readAll(result);
   const frames = body.split("\n\n").filter(Boolean);
   const earlyFrames = frames.slice(0, -1);
-  assert.equal(earlyFrames[0], 'data: {"type":"response.in_progress"}');
+  // #14330: the frame now carries a required `sequence_number` and `response`
+  // object so a strict Responses decoder does not abort on it.
+  assert.deepEqual(JSON.parse(earlyFrames[0].slice("data: ".length)), {
+    type: "response.in_progress",
+    sequence_number: 1,
+    response: { id: null, status: "in_progress" },
+  });
   assert.ok(
     earlyFrames.some((frame) => frame === ": keepalive"),
     "transport ticks must remain lightweight SSE comments"
@@ -206,6 +212,8 @@ test("slow Responses handler uses comments plus sparse in_progress events", asyn
   for (const frame of applicationFrames) {
     assert.deepEqual(JSON.parse(frame.slice("data: ".length)), {
       type: "response.in_progress",
+      sequence_number: 1,
+      response: { id: null, status: "in_progress" },
     });
     assert.doesNotMatch(frame, /output_item|reasoning|✨/);
   }
@@ -240,7 +248,7 @@ test("a correlationId records the startup frame and keepalive ticks, but not the
   const recorded = takeEarlyKeepaliveBytes(correlationId).join("");
   assert.match(
     recorded,
-    /data: {"type":"response\.in_progress"}/,
+    /data: {"type":"response\.in_progress","sequence_number":1,"response":/,
     "startup frame must be recorded"
   );
   assert.match(recorded, /: keepalive/, "transport heartbeat must be recorded");

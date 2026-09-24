@@ -88,9 +88,13 @@ Content-Type: application/json
 
 ## Eksklusiiviset hallitut istuntovuokrat
 
-Eksklusiivinen hallittu istuntovuokraus on valinnainen, asiakasohjelmasta riippumaton reitityssopimus: yksi aktiivinen omistaja hallitsee yhtä kelvollista OmniRoute-yhteyttä. Se ei vuokraa mallia, edellytä OAuth-todennusta, yksilöi tiettyä asiakasohjelmaa eikä edellytä tiettyä palveluntarjoajaa.
+Eksklusiivinen hallittu istuntovuokraus on valinnainen, asiakasneutraali reitityssopimus: yksi aktiivinen omistaja
+pitää hallussaan yhtä kelvollista OmniRoute-yhteyttä. Se ei vuokraa mallia, vaadi OAuthia, tunnista
+tiettyä asiakasta tai vaadi tiettyä palveluntarjoajaa.
 
-Todentamiseen käytettävällä API-avaimella on oltava käyttöoikeusalue `lease:exclusive` ja eksplisiittinen, ei-tyhjä `allowedConnections`-luettelo. Tietokantamutaatioiden rajapinta valvoo molempia kenttiä yhdessä avainta luotaessa ja osittaisia päivityksiä tehtäessä.
+Todentavan API-avaimen on oltava laajuudeltaan `lease:exclusive` ja sillä on oltava eksplisiittinen, ei-tyhjä
+`allowedConnections`-lista. Tietokannan mutaatioraja pakottaa molemmat kentät yhdessä avaimen
+luonnin ja osittaisten päivitysten yhteydessä.
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Onnistuneet hankinta-, uusimis- ja vapautusvastaukset sisältävät aikaleimat, `state`-arvon ja täsmällisen positiivisen `generation`-arvon, mutta eivät koskaan valittua yhteyttä tai tunnistetietoja. Uusimis- ja vapautuspyynnöissä sukupolvi annetaan JSON-rungossa:
+Onnistuneet hankinta-, uusimis- ja vapautusvastaukset paljastavat aikaleimat, `state` ja tarkan positiivisen
+`generation`, mutta eivät koskaan valittua yhteyttä tai tunnistetietoja. Uusiminen ja vapauttaminen antavat
+sukupolven JSON-rungossa:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +117,7 @@ Onnistuneet hankinta-, uusimis- ja vapautusvastaukset sisältävät aikaleimat, 
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Aktiivisen vuokran omistaja voi eksplisiittisesti pyytää yksityisyyden suojaavia näyttömetatietoja nykyisestä sidoksestaan:
+Aktiivinen vuokranantaja voi nimenomaisesti pyytää yksityisyyden kannalta turvallisia näyttömetatietoja nykyisestä sidoksestaan:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +137,38 @@ Aktiivisen vuokran omistaja voi eksplisiittisesti pyytää yksityisyyden suojaav
 }
 ```
 
-Tämä valinnainen tilatoiminto suojataan läpinäkymättömällä omistajatunnisteella, todennetulla hallitulla API-avaimella ja aktiivisen sukupolven täsmällisellä arvolla yhdessä tietokantatapahtumassa. `displayName` on vain määritetyn yhteyden nimi ilman alun tai lopun tyhjemerkkejä; sen arvo on `null`, jos turvallista määritettyä nimeä ei ole. OmniRoute ei koskaan korvaa sitä sähköpostiosoitteella tai luodulla käyttäjätilin tunnisteella. Palveluntarjoajan arvo on ei-arkaluonteinen näyttötunniste eikä koskaan luotu yhteensopivan palveluntarjoajan tunniste. Tunnistetiedot, tunnukset, evästeet, käsittelemättömät yhteys- tai API-avaintunnisteet, omistajien tiivisteet, suojaussalaisuudet ja sisäiset reititystiedot jätetään pois.
+Tämä valinnainen tilatoiminto on rajattu läpinäkymättömällä omistajalla, todennetulla hallitulla API-avaimella ja tarkalla
+aktiivisella sukupolvella yhdessä tietokantatransaktiossa. `displayName` on vain trimmattu määritetty
+yhteyden nimi; se on `null`, kun turvallista määritettyä nimeä ei ole olemassa. OmniRoute ei koskaan korvaa
+sähköpostia tai luotua tilin identiteettiä. Palveluntarjoajan arvo on ei-herkkä näyttötunniste eikä koskaan
+luotu yhteensopivan palveluntarjoajan tunniste. Tunnistetiedot, tunnukset, evästeet, raaka yhteys- tai API-
+avaintunnukset, omistajan hajautukset, rajausavaimet ja sisäiset reititystiedot on suljettu pois.
 
-Väärällä avaimella tai omistajalla tehdyt, vanhentuneen sukupolven sisältävät sekä puuttuvaan, vanhentuneeseen, vapautettuun tai mitätöityyn vuokraan kohdistuvat haut palauttavat kaikki saman `409 LEASE_FENCE_STALE` -virheen ilman yhteyden metatietoja. Kapasiteetin odotusvastauksen saaneella asiakasohjelmalla ei ole tarkastettavaa aktiivista sidosta. Kun reititys siirtää aktiivisen vuokran, sama sukupolvi säilyy voimassa ja tilakysely palauttaa atomisesti uuden sidoksen, ei koskaan vanhaa. Nykyisten asiakasohjelmien toiminta ei muutu, koska hankinta-, uusimis-, vapautus- ja odotusvastaukset säilyttävät aiemmat rakenteensa.
+Väärä avain, väärä omistaja, vanhentunut sukupolvi, puuttuvat, vanhentuneet, vapautetut ja mitätöidyt haut
+palauttavat kaikki saman `409 LEASE_FENCE_STALE` -virheen ilman yhteysmetatietoja. Asiakkaalla, joka sai
+kapasiteetin odotusvastauksen, ei ole aktiivista sidosta tarkasteltavaksi. Kun reititys siirtää aktiivisen vuokrasopimuksen,
+sama sukupolvi pysyy voimassa ja tila palauttaa atomisesti uuden sidoksen, ei koskaan vanhaa.
+Olemassa olevat asiakkaat pysyvät ennallaan, koska hankinta-, uusimis-, vapautus- ja odotusvastaukset säilyttävät
+aiemmat muotonsa.
 
-Tämä palvelinsopimus ei muuta vakioidun OpenAI Codexin `/status`-toimintoa. Vakio-Codex raportoi tällä hetkellä mallinsa palveluntarjoajan sekä sisäänrakennetun todennus- ja käyttäjätilan tilan, mutta ei esitä mielivaltaisia mukautetun palveluntarjoajan käyttäjätilin metatietoja. Myöhemmän asiakasintegraation on kutsuttava tätä toimintoa ja päätettävä, miten `connection.displayName` näytetään.
+Tämä palvelinsopimus ei muuta tavallista OpenAI Codex `/status` -tilaa. Tavallinen Codex raportoi tällä hetkellä
+mallipalveluntarjoajansa ja sisäänrakennetun todennus-/tilatilan, mutta ei renderöi mielivaltaisia mukautettuja
+palveluntarjoajan tilimetatietoja; myöhemmän asiakasintegraation on kutsuttava tämä toiminto ja päätettävä, miten
+`connection.displayName` näytetään.
 
-Jokainen hallittu päättelypyyntö sisältää tämän jälkeen molemmat ohjausotsakkeet:
+Jokainen hallittu päättelypyyntö toimittaa sitten molemmat ohjausotsikot:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Täsmällinen omistaja, sukupolvi, aktiivinen yhteys ja todennettu API-avain suojataan välittömästi ennen jokaista tuettua ylävirran yritystä. Omistajan ja sukupolven uudelleenkäyttö toisella avaimella epäonnistuu, vaikka kyseinen avain sallisi saman yhteyden. Käsittelemättömiä omistajatunnisteita ei tallenneta pysyvästi, kirjata lokiin, säilytetä pyynnön tilannevedoksessa eikä välitetä ylävirtaan.
+Tarkka omistaja, sukupolvi, aktiivinen yhteys ja todennettu API-avain rajataan välittömästi
+ennen jokaista tuettua ylävirran yritystä. Omistajan ja sukupolven toistaminen toisella avaimella epäonnistuu, vaikka
+kyseinen avain sallisi saman yhteyden. Raakaomistajia ei tallenneta, kirjauteta, säilytetä
+pyynnön tilannekuvassa tai välitetä ylävirtaan.
 
-Tilapäinen resurssikilpailu palauttaa HTTP-tilan `429`, `Retry-After`-otsakkeen sekä seuraavan sisällön:
+Tilapäinen kilpailu palauttaa HTTP `429` `Retry-After` -otsikolla ja:
 
 ```json
 {
@@ -157,33 +179,38 @@ Tilapäinen resurssikilpailu palauttaa HTTP-tilan `429`, `Retry-After`-otsakkeen
 }
 ```
 
-Tämä vastaus tarkoittaa vain, että tavallinen kelvollisten yhteyksien joukko ei ollut tyhjä ja kaikki vapaat ehdokkaat olivat ulkopuolisten aktiivisten vuokrien hallussa. Mallien tai palveluntarjoajien tuen puuttuminen, käytäntöristiriidat, jäähdytysjaksot, kiintiöt, toimintakunto ja muut tavalliset kelpoisuusvirheet säilyttävät nykyiset OmniRoute-vastauksensa.
+Tämä vastaus tarkoittaa vain sitä, että tavallinen kelvollinen joukko ei ollut tyhjä ja jokainen vapaa ehdokas oli
+ulkomaalaisen aktiivisen vuokrasopimuksen hallussa. Tukemattomat mallit/palveluntarjoajat, käytäntöjen ristiriidat, jäähtymisajat, kiintiöt,
+terveys ja muut tavalliset kelpoisuusvirheet säilyttävät olemassa olevat OmniRoute-vastauksensa.
 
 ### `x-omniroute-compression`
 
-Pyyntökohtainen pakkaussuunnitelman ohitus. Sillä on korkein prioriteetti — se ohittaa reititysyhdistelmän ohituksen, aktiivisen profiilin, automaattisen käynnistyksen ja paneelin oletusasetuksen. Arvot:
+Pakkaussuunnitelman ohitus pyyntökohtaisesti. Korkein etusija – ohittaa reititysyhdistelmän
+ohituksen, aktiivisen profiilin, automaattisen käynnistyksen ja paneelin oletuksen. Arvot:
 
-| Arvo          | Vaikutus                                                                                                                  |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Tätä pyyntöä ei pakata.                                                                                                   |
-| `default`     | Paneelista johdettu oletusprofiili (aktiivinen profiili ohitetaan).                                                       |
-| `engine:<id>` | Yksittäinen käytössä oleva moottori, esimerkiksi `engine:rtk`.                                                            |
-| `<combo>`     | Nimetty yhdistelmä, joka täsmäytetään ensin nimen perusteella kirjainkoosta riippumatta ja sitten tunnisteen perusteella. |
+| Arvo          | Vaikutus                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------ |
+| `off`         | Ei pakkausta tälle pyynnölle.                                                                                |
+| `default`     | Paneelista johdettu oletusprofiili (ohittaa aktiivisen profiilin). Häviölliset moottorit jätetään pois.      |
+| `safe`        | Vain duplikaattien poisto ja välilyöntien yhdistäminen.                                                      |
+| `allow-lossy` | Säilytä operaattorin suunnitelma tälle pyynnölle, mukaan lukien yhteenvedot ja tyylin uudelleenkirjoitukset. |
+| `engine:<id>` | Yksi moottori, kun se on käytössä, esim. `engine:rtk`. Pyyntökohtainen valinta kyseiselle moottorille.       |
+| `<combo>`     | Nimetty yhdistelmä, joka vastaa ensin nimen (kirjainkoosta riippumatta) ja sitten tunnuksen perusteella.     |
 
-Huomautukset:
+Huomautuksia:
 
-- Tuntemattomat arvot ohitetaan (pyyntöä ei koskaan hylätä); ratkaisu jatkuu normaalin operaattoriprioriteetin mukaisesti.
-- Jos useilla yhdistelmillä on sama nimi, anna yhdistelmän **id**, jotta täsmäys on deterministinen.
-- Yhdistelmää, jonka nimi on `off` tai `default`, ei voi valita nimen perusteella (nämä avainsanat tulkitaan ensin); viittaa tällaiseen yhdistelmään sen tunnisteella.
-- Pakkauksen pääkytkin toimii ehdottomana estona: kun pakkaus on poistettu käytöstä yleisesti, tämä otsake ei voi ottaa sitä käyttöön.
+- Tuntemattomat arvot ohitetaan (pyyntöä ei koskaan hylätä); ratkaisu siirtyy normaaliin operaattorin etusijajärjestykseen.
+- Jos useilla yhdistelmillä on sama nimi, anna yhdistelmän **tunnus** deterministisen vastaavuuden saavuttamiseksi.
+- Yhdistelmää, jonka nimi on `off` tai `default`, ei voi valita nimellä (nämä avainsanat tulkitaan ensin); viittaa tällaiseen yhdistelmään sen tunnuksella.
+- Pääpakkauskytkin on tiukka portti: kun pakkaus on poistettu käytöstä globaalisti, tämä otsikko ei voi ottaa sitä käyttöön.
 
-Käytetty suunnitelma palautetaan vastauksen otsakkeessa:
+Käytetty suunnitelma toistetaan vastauksen otsikossa:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-jossa `<source>` on jokin seuraavista: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` tai `off`.
+missä `<source>` on jokin seuraavista: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` tai `off`.
 
 ---
 

@@ -341,6 +341,19 @@ export async function createEmbeddingResponse(
         `[${provider}] All ${credentials.expiredCount || 1} connection(s) ${reason} — please reconnect in the dashboard`
       );
     }
+    // #13945: blockedByKeyPolicy is the third credential-diagnostic sentinel
+    // (alongside allRateLimited/allExpired above) — without this check a
+    // truthy sentinel would reach the embeddings executor below with no
+    // apiKey/accessToken. Defensive: this call site does not pass
+    // allowedConnections today, so the sentinel cannot fire yet, but it
+    // guards the same contract the moment that scope is wired in (mirrors
+    // #13832's blockedByKeyPolicy handling in the chat path).
+    if ("blockedByKeyPolicy" in credentials && credentials.blockedByKeyPolicy) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        formatMissingEmbeddingCredentialsError(provider)
+      );
+    }
   } else if (
     provider === "ollama-local" ||
     provider === "lmstudio" ||

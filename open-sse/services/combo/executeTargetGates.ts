@@ -15,6 +15,7 @@ import { isProviderInCooldown } from "../providerCooldownTracker.ts";
 import { checkCredentialGate, logCredentialSkip } from "../credentialGate.ts";
 import { errorResponse } from "../../utils/error.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
+import { connectionCircuitBreakerName } from "../connectionCircuitBreaker.ts";
 import { parseModel } from "../model.ts";
 import { canAffordRequest } from "../../../src/lib/quota/quotaScheduler.ts";
 import { getCachedProviderConnectionById } from "../../../src/lib/db/readCache.ts";
@@ -82,9 +83,16 @@ export async function evaluateExecuteTargetGates(opts: {
     if (i > 0) state.fallbackCount++;
   };
 
-  const cb = getCircuitBreaker(provider);
-  const cbStatus = cb.getStatus();
-  if (cbStatus.state === "OPEN") {
+  const providerBreaker = getCircuitBreaker(provider);
+  const scopedConnectionId = target.connectionId ?? undefined;
+  const connectionBreaker = scopedConnectionId
+    ? getCircuitBreaker(connectionCircuitBreakerName(provider, scopedConnectionId))
+    : null;
+  const providerOpen = providerBreaker.getStatus().state === "OPEN";
+  const connectionOpen = connectionBreaker?.getStatus().state === "OPEN";
+  if (providerOpen || connectionOpen) {
+    const cb = providerOpen ? providerBreaker : connectionBreaker!;
+    const cbStatus = cb.getStatus();
     state.skippedForCircuitOpen = true;
     if (
       cbStatus.retryAfterMs > 0 &&
@@ -93,7 +101,12 @@ export async function evaluateExecuteTargetGates(opts: {
     ) {
       state.earliestCircuitOpenRetryMs = cbStatus.retryAfterMs;
     }
-    deps.log.info("COMBO", `Skipping ${modelStr} — circuit breaker OPEN for ${provider}`);
+    deps.log.info(
+      "COMBO",
+      providerOpen
+        ? `Skipping ${modelStr} — circuit breaker OPEN for ${provider}`
+        : `Skipping ${modelStr} — circuit breaker OPEN for connection ${scopedConnectionId}`
+    );
     recordComboDecision(deps.traceInvocationId, {
       step: target.executionKey,
       target: modelStr,

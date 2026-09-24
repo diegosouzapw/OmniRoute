@@ -4,12 +4,12 @@
 
 ---
 
-> **Pirminis tiesos šaltinis:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Paskutinį kartą atnaujinta:** 2026-06-28 — v3.8.40
+> **Tiesos šaltinis:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Paskutinį kartą atnaujinta:** 2026-09-22 — aprėpties vardų sritys nurodo į MCP-SERVER.md
 
-OmniRoute turi maršrutus atpažįstančią autorizavimo seką, kuri kontroliuoja kiekvieną API užklausą. Klasifikavimas yra **deterministinis** ir **uždaras klaidos atveju** — viskas, ko nepavyksta klasifikuoti, priskiriama `MANAGEMENT` ir tam reikalinga sesija arba valdymo lygio prieigos raktas. Šiame puslapyje aprašomas modelis, skirtas maršrutus prižiūrintiems arba naujas galines prieigos vietas projektuojantiems inžinieriams.
+OmniRoute turi maršrutą atpažįstančią autorizacijos sistemą, kuri kontroliuoja kiekvieną API užklausą. Klasifikacija yra **deterministinė** ir **uždaroma gedimo atveju** — viskas, kas negali būti klasifikuota, tampa `MANAGEMENT` ir reikalauja sesijos arba valdymo lygio prieigos rakto. Šiame puslapyje paaiškinamas modelis inžinieriams, prižiūrintiems maršrutus arba kuriantiems naujus galinius taškus.
 
-![AuthZ seka (3 maršrutų klasės + strategijos vertinimas)](../diagrams/exported/authz-pipeline.svg)
+![Autorizacijos sistema (3 maršrutų klasės + politikos vertinimas)](../diagrams/exported/authz-pipeline.svg)
 
 > Šaltinis: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -199,26 +199,34 @@ Rinkinį pasirinkite pagal formą, o ne pagal patogumą. Vienas maršrutas įtra
 
 ## Aprėptys
 
-API raktai turi `scopes` masyvą (saugomą JSON formatu `api_keys.scopes`, žr. `src/lib/db/apiKeys.ts`).
+Trys vardų sritys. Kiekvienas tikrintojas skaito tik savo eilutes. Palyginimas,
+įskaitant tai, kodėl `manage` nepavyksta `scopeMatches` dėl `read:compression` ir kodėl `read` prieigos raktas negali `PATCH /api/keys/{id}`, yra
+[Trys aprėpties vardų sritys](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+API raktai turi `scopes` masyvą (saugomą kaip JSON `api_keys.scopes`, žr. `src/lib/db/apiKeys.ts`).
 
 ### Valdymo aprėptis
 
-- `manage` / `admin` — suteikia raktui prieigą prie valdymo API galinių taškų, kai jis siunčiamas kaip Bearer prieigos raktas.
+- `manage` / `admin` — `hasManageScope`. Nešėjo prieiga prie valdymo API maršrutų.
+- `mcp:connect`, `self:usage`, `self:account-quota` ir
+  `policy:bypass-provider-quota` yra adityvios tikslios atitikties aprėptys. Jos yra už `MANAGEMENT_API_KEY_SCOPES` ribų. `mcp:connect` atidaro tik
+  `/api/mcp/` negrįžtamojo ryšio išpjovą.
 
-### MCP aprėptys (`src/shared/constants/mcpScopes.ts`)
+### MCP įrankio aprėptys
 
-Kiekvienam MCP įrankiui per `MCP_TOOL_SCOPES` reikalingos konkrečios aprėptys. Visas sąrašas (`MCP_SCOPE_LIST`):
+Katalogas ir atitikimo taisyklės (identiška eilutė arba suteikta aprėptis, besibaigianti `*`):
+[MCP įrankio aprėptys](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` faile `src/shared/constants/mcpScopes.ts` yra originalus tipizuotas
+poaibis, o ne visas katalogas. Vykdymas vyksta
+`open-sse/mcp-server/scopeEnforcement.ts` po to, kai `resolveCallerScopeContext()`
+išsprendžia aprėptis iš MCP autentifikavimo informacijos, užklausos metaduomenų arba `OMNIROUTE_MCP_SCOPES`.
+Jis lieka išjungtas, nebent `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Prieigos rakto aprėptys
 
-Tikrinant aprėptis faile `open-sse/mcp-server/server.ts`, kiekvieno įrankio aprėpčių sąrašas perduodamas į
-`evaluateToolScopes()` po to, kai `resolveCallerScopeContext()` nustato aprėptis pagal MCP autentifikavimo informaciją,
-užklausos metaduomenis arba `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` ant `oma_live_…` žetonų, reitinguojamų pagal `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Šis reitingas taikomas tik prieigos rakto
+kredencialui. Žr. [Valdymo autentifikavimas](../guides/MANAGEMENT-AUTH.md).
 
 ## Privalomo autentifikavimo perjungiklis
 
@@ -266,7 +274,7 @@ Apdorojimo funkcijose naudokite `assertAuth(req, expectedClass)` — ši funkcij
 
 ## Taip pat žr.
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — kiekvieno galinio taško autentifikavimo žymuo
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — autentifikavimo įvykių audito žurnalas
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — išsami informacija apie MCP aprėpties užtikrinimą
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — autentifikavimo žymė kiekvienam galiniam taškui
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — audito žurnalas autentifikavimo įvykiams
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trys apimties vardų sritys ir MCP įrankių apimties katalogas
 - Šaltinis: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
