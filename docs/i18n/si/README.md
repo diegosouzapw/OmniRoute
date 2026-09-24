@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 අපගේ විවෘත මූලාශ්ර මිතුරන්ගේ සහාය ඇතිව
+## 🤝 අපගේ විවෘත මූලාශ්ර මිතුරන් විසින් සහය දක්වයි
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — විවෘත පෙරමුණු බුද්ධිය · පරාමිති 2.8T · ටෝකන 1M සන්දර්භය"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **විවෘත මූලාශ්ර මිතුරෙකු ලෙස එක් වීමට කැමතිද?** මේවා විවෘත මූලාශ්ර සඳහා සහාය දක්වමින් OmniRoute ඉදිරියට ගෙන යාමට උපකාර කරන සමාගම් වේ — තවද ඔවුන් අපට ලබා දෙන සෑම ටෝකනයක්ම යොදා ගන්නේ කුමක් සඳහාදැයි අපි ප්රසිද්ධියේ සඳහන් කරමු. සම්බන්ධ වන්න: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **විවෘත මූලාශ්ර මිතුරෙකු ලෙස සම්බන්ධ වීමට අවශ්යද?** මේවා විවෘත මූලාශ්රයට පිටුබලය දෙන සහ OmniRoute ඉදිරියට ගෙන යාමට උපකාර කරන සමාගම් වේ — ඔවුන් අපට ලබා දෙන සෑම ටෝකනයක්ම යන්නේ කොතැනටදැයි අපි ප්රසිද්ධියේ කියමු. සම්බන්ධ වන්න: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="ආරම්භක විවෘත මූලාශ්ර මිතුරා"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      මෙම ව්යාපෘතියට සහාය දැක්වීම වෙනුවෙන් අපගේ ආරම්භක විවෘත මූලාශ්ර මිතුරා වන <b>Kimi (Moonshot AI)</b> වෙත ස්තුතියි! Kimi යනු විවෘත බර සහිත K2 සහ K3 මාදිලි පවුල් පිටුපස සිටින AI පර්යේෂණාගාරයයි — <b>Kimi K3</b> විසින් ටෝකන 1Mක සන්දර්භ කවුළුවක්, ස්වදේශීය දෘශ්ය හැකියාව සහ සංවෘත මාදිලිවල මිලෙන් සුළු කොටසකට පෙරමුණු මට්ටමේ කේතකරණ හැකියාව ලබා දෙන අතර, Claude Code, Codex සහ OmniRoute සේවා සපයන සෑම කේතකරණ මෙවලමක් සමඟම අමතර සැකසුම් නොමැතිව ක්රියා කරයි.
+      මෙම ව්යාපෘතියට පිටුබලය දීම සඳහා අපගේ ආරම්භක විවෘත මූලාශ්ර මිතුරා වන <b>Kimi (Moonshot AI)</b> වෙත ස්තූතියි! Kimi යනු විවෘත-බර K2 සහ K3 මාදිලි පවුල් පිටුපස ඇති AI රසායනාගාරයයි — <b>Kimi K3</b> 1M-ටෝකන් සන්දර්භ කවුළුවක්, ස්වදේශීය දර්ශනයක් සහ දේශසීමා මට්ටමේ කේතීකරණයක් සංවෘත-මාදිලි මිල ගණන් වලින් කොටසකට ලබා දෙන අතර, Claude Code, Codex සහ OmniRoute සපයන සෑම කේතීකරණ මෙවලමක් සමඟම ක්රියා කරයි.
       <br/><br/>
-      <b>Kimiගේ සහායෙන් බලගැන්වෙන්නේ කුමක්ද:</b> Kimiගේ API ණය මඟින් OmniRouteහි AI-වලංගු කළ නිකුතු නළ මාර්ගය — සෑම pull request එකක්ම නිකුත් කිරීමට පෙර සමාලෝචනය කරන <i>Kimi K3 මඟින් බලගැන්වූ merge validation</i> අදියර — මෙන්ම දෛනික විශේෂාංග සංවර්ධනයද බලගැන්වේ. පළමු පන්තියේ Kimi සහාය මාර්ග දෙකෙන්ම ලබා දේ: සෘජු <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) සහ <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code කේතකරණ සැලැස්ම</a> (OAuth සහ API යතුර). එමෙන්ම OmniRoute යනු Kimiගේ සහාය වැඩසටහනට ඇතුළත් වූ පළමු බ්රසීලියානු විවෘත මූලාශ්ර ව්යාපෘතියයි. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15%ක අමතර ණය සමඟ Kimi API යතුරක් ලබා ගන්න →</b></a>
+      <b>Kimi ගේ සහයෝගය බලගන්වන දේ:</b> Kimi ගේ API ණය OmniRoute හි AI-සත්යාපිත නිකුත් කිරීමේ නල මාර්ගයට බලය සපයයි — නැව්ගත කිරීමට පෙර සෑම අදින්න ඉල්ලීමක්ම සමාලෝචනය කරන <i>Kimi K3 විසින් බලගන්වන ලද ඒකාබද්ධ සත්යාපන</i> අදියර — තවද දෛනික විශේෂාංග සංවර්ධනය. පළමු පන්තියේ Kimi සහයෝගය රේල් පීලි දෙකෙහිම නැව්ගත කරයි: සෘජු <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) සහ <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code කේතීකරණ සැලැස්ම</a> (OAuth සහ API යතුර). OmniRoute යනු Kimi ගේ සහයෝගය වැඩසටහනේ පළමු බ්රසීලියානු විවෘත මූලාශ්ර ව්යාපෘතිය ද වේ. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% අමතර ණය සමඟ Kimi API යතුරක් ලබා ගන්න →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="විවෘත මූලාශ්ර මිතුරා"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
     </td>
     <td>
-      මෙම ව්යාපෘතියට සහාය දැක්වීම වෙනුවෙන් OmniRoute විවෘත මූලාශ්ර මිතුරෙකු වන <b>Cheaper Inference</b> වෙත ස්තුතියි! Cheaper Inference යනු Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok සහ MiniMax ඇතුළු පෙරමුණු මාදිලි 42ක් නැවත අලෙවි කරන, පිරිවැය අනුව ශ්රේණිගත කළ ද්වාරයකි — ඒ සියල්ල එක් OpenAI-අනුකූල අන්ත ලක්ෂ්යයක් පිටුපස සපයමින්, මාදිලි නිර්මාතෘගේ ලැයිස්තුගත මිලට වඩා කිසිවිටෙක අය නොකර සෑම ඉල්ලීමක්ම සුදුසුකම් ලබන ලාභම සැපයුම්කරු වෙත යොමු කරයි.
+      මෙම ව්යාපෘතියට පිටුබලය දීම සඳහා OmniRoute විවෘත මූලාශ්ර මිතුරෙකු වන <b>Cheaper Inference</b> වෙත ස්තූතියි! Cheaper Inference යනු Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok සහ MiniMax වැනි දේශසීමා මාදිලි 42ක් නැවත විකුණන පිරිවැය-ශ්රේණිගත ද්වාරයකි — එක් OpenAI-අනුකූල අවසාන ලක්ෂ්යයක් පිටුපස, එක් එක් ඉල්ලීම ලාභම සුදුසු සැපයුම්කරු වෙත යොමු කරමින් මාදිලි නිෂ්පාදකයාගේ ලැයිස්තු මිලට වඩා කිසි විටෙකත් අය නොකරයි.
       <br/><br/>
-      <b>OmniRoute තුළ පළමු පන්තියේ සහාය:</b> Chat Completions, ස්වදේශීය <code>/v1/responses</code> අන්ත ලක්ෂ්යය, දෘශ්ය හැකියාව, මෙවලම් කැඳවීම සහ රූප මාදිලි 3ක් (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, <code>cheaperinference/&lt;model&gt;</code> ලෙස ප්රවේශ විය හැක). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API යතුරක් ලබා ගන්න →</b></a>
+      <b>OmniRoute හි පළමු පන්තියේ සහයෝගය:</b> Chat Completions, ස්වදේශීය <code>/v1/responses</code> අවසාන ලක්ෂ්යය, දර්ශනය, මෙවලම් ඇමතීම සහ රූප මාදිලි 3ක් (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, <code>cheaperinference/&lt;model&gt;</code> ලෙස ළඟා විය හැක). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API යතුරක් ලබා ගන්න →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> ලෙස සලකුණු කර ඇති සබැඳි හවුල්කාර සබැඳි වේ. ඔබට කිසිදු අමතර වියදමක් නොමැතිව ඒවා ව්යාපෘතියට අරමුදල් සපයයි.</sub>
+<sub><code>aff=omniroute</code> ලෙස ටැග් කර ඇති සබැඳි හවුල්කාර සබැඳි වේ. ඒවා ඔබට අමතර වියදමකින් තොරව ව්යාපෘතියට අරමුදල් සපයයි.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ අනුබද්ධ ප්රවර්ධන</b> — අපි අනුග්රහය නොදක්වන සැපයුම්කරුවන්ගෙන් නොමිලේ ලියාපදිංචි වීමේ කූපන (දිග හැරීමට ක්ලික් කරන්න)</sub></summary>
+<summary><sub><b>🎟️ අනුබද්ධ ප්රවර්ධනය</b> — අප අනුග්රහය නොදක්වන සැපයුම්කරුවන්ගෙන් නොමිලේ ලියාපදිංචි කූපන් පත් (පුළුල් කිරීමට ක්ලික් කරන්න)</sub></summary>
 
-<sub><i>මෙම කොටස යොමු/කූපන කේත සඳහා පමණි. අනුග්රහය ලැබූ හවුල්කාරිත්ව ඉහත <b>🤝 අපගේ විවෘත මූලාශ්ර මිතුරන්ගේ සහාය ඇතිව</b> යටතේ ඇත. මෙහි ලැයිස්තුගත කර ඇති සැපයුම්කරුවන් සමඟ OmniRoute හට කිසිදු අනුග්රහයක් හෝ හවුල්කාරිත්වයක් නොමැත — මේවා ඕනෑම අයෙකුට භාවිත කළ හැකි පොදු කූපන වේ.</i></sub>
+<sub><i>මෙම කොටස යොමු/කූපන් කේත සඳහා පමණි. අනුග්රාහක හවුල්කාරිත්වයන් ඉහත <b>🤝 අපගේ විවෘත මූලාශ්ර මිතුරන් විසින් සහය දක්වයි</b> හි ඇත. OmniRoute හට මෙහි ලැයිස්තුගත කර ඇති සැපයුම්කරුවන් සමඟ කිසිදු අනුග්රාහකත්වයක් හෝ හවුල්කාරිත්වයක් නොමැත — මේවා ඕනෑම කෙනෙකුට භාවිතා කළ හැකි පොදු කූපන් පත් වේ.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — අනුබද්ධ ලියාපදිංචිය · ලියාපදිංචි වූ විට <b>$100ක නොමිලේ ණය</b> (නොමිලේ සේවාදායකයකි, එබැවින් වැඩි ප්රමාදයක් බලාපොරොත්තු වන්න — නිෂ්පාදන භාවිතයට නොව පරීක්ෂණ සඳහා වඩාත් සුදුසුය). <b>v3.8.50</b> සිට OmniRoute තුළ පළමු පන්තියේ සහාය: Chat Completions, Anthropic-අනුකූල වයර් ආකෘතිය සහ OpenAI-අනුකූල මාර්ගය. ලබා ගත හැකි මාදිලි අතර <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> සහ තවත් ඒවා ඇතුළත් වේ. <b><a href="https://agentrouter.org/register?aff=70LM">ඔබගේ $100 ලබා ගන්න →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — අනුබද්ධ ලියාපදිංචිය · ලියාපදිංචියේදී <b>$100 නොමිලේ ණය</b> (නොමිලේ සේවාදායකය, ඉහළ ප්රමාදයක් අපේක්ෂා කරන්න — පරීක්ෂා කිරීම සඳහා හොඳම, නිෂ්පාදනය සඳහා නොවේ). <b>v3.8.50</b> සිට OmniRoute හි පළමු පන්තියේ සහයෝගය: Chat Completions, Anthropic-අනුකූල වයර් ආකෘතිය සහ OpenAI-අනුකූල මාර්ගය. පවතින මාදිලි අතර <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> සහ තවත් බොහෝ දේ ඇතුළත් වේ. <b><a href="https://agentrouter.org/register?aff=70LM">ඔබේ $100 ලබා ගන්න →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>අනුබද්ධ සබැඳියකි — මෙම සැපයුම්කරු සමඟ OmniRoute හට කිසිදු අනුග්රහයක් හෝ හවුල්කාරිත්වයක් නොමැත.</i></sub>
+      <sub>⚠️ <i>අනුබද්ධ සබැඳිය — OmniRoute හට මෙම සැපයුම්කරු සමඟ කිසිදු අනුග්රාහකත්වයක් හෝ හවුල්කාරිත්වයක් නොමැත.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>OmniRoute පරිශීලකයන්ට ප්රතිලාභ ලබා දෙන ත්යාගශීලී නොමිලේ ලියාපදිංචි වීමේ කූපනයක් ඇති තවත් සැපයුම්කරුවෙකු දන්නවාද? ගැටලුවක් විවෘත කරන්න, අපි එය මෙහි එක් කරන්නෙමු.</sub>
+<sub>OmniRoute භාවිතා කරන්නන්ට ප්රතිලාභ ලබා දෙන ත්යාගශීලී නොමිලේ ලියාපදිංචි කූපනයක් සහිත තවත් සැපයුම්කරුවෙකු දන්නවාද? ගැටලුවක් විවෘත කරන්න, අපි එය මෙහි එක් කරන්නෙමු.</sub>
 
 </details>
 
@@ -1256,28 +1256,28 @@ Dashboard රහිත, headless runtime එකක් සඳහා Docker `base`
 <br/>
 <div align="center">
 
-## 🛠️ තාක්ෂණික කට්ටලය
+## 🛠️ තාක්ෂණික තොගය
 
 </div>
 
 <table>
-  <tr><th align="left">ස්තරය</th><th align="left">තාක්ෂණය</th></tr>
-  <tr><td nowrap><b>ධාවන පරිසරය</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>භාෂාව</b></td><td>TypeScript 6.0 — <code>src/</code> සහ <code>open-sse/</code> පුරා <b>100% TypeScript</b> (v2.0 සිට මූලික කොටසෙහි <code>any</code> කිසිවක් නැත)</td></tr>
+  <tr><th align="left">ස්ථරය</th><th align="left">තාක්ෂණය</th></tr>
+  <tr><td nowrap><b>ධාවන කාලය</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>භාෂාව</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> හරහා <code>src/</code> සහ <code>open-sse/</code> (v2.0 සිට මූලික කේතයේ <code>any</code> නැත)</td></tr>
   <tr><td nowrap><b>රාමුව</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>දත්ත සමුදාය</b></td><td>better-sqlite3 (SQLite, WAL ජර්නලකරණය) + LowDB (පැරණි JSON) — වසම් මොඩියුල 122ක්, සංක්රමණ 178ක්</td></tr>
-  <tr><td nowrap><b>මතකය</b></td><td>SQLite FTS5 පූර්ණ-පෙළ + int8-ප්රමාණීකරණය කළ දෛශික කාවැද්දීම්, වර්ගීකෘත ක්ෂය වීම</td></tr>
-  <tr><td nowrap><b>යෝජනාක්රම</b></td><td>Zod 4 — MCP මෙවලම් I/O වලංගුකරණය + API ගිවිසුම්</td></tr>
+  <tr><td nowrap><b>දත්ත සමුදාය</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 වසම් මොඩියුල, 182 සංක්රමණ</td></tr>
+  <tr><td nowrap><b>මතකය</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>යෝජනා ක්රම</b></td><td>Zod 4 — MCP මෙවලම් I/O වලංගුකරණය + API කොන්ත්රාත්තු</td></tr>
   <tr><td nowrap><b>ප්රොටෝකෝල</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>ප්රවාහනය</b></td><td>Server-Sent Events (SSE) + WebSocket සම්බන්ධකය (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>සම්පීඩනය</b></td><td>එන්ජින් 12ක නළ මාර්ගය — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>සත්යාපනය සහ ආරක්ෂාව</b></td><td>OAuth 2.0 (PKCE) + JWT + API යතුරු + MCP විෂයපථගත සත්යාපනය · නිශ්චල අවස්ථාවේ AES-256-GCM · DOMPurify</td></tr>
-  <tr><td nowrap><b>රහසිගතභාවය</b></td><td>wreq-js — JA3 / JA4 TLS ඇඟිලි සලකුණු අනුකරණය, මට්ටම් 3ක ප්රොක්සිය</td></tr>
-  <tr><td nowrap><b>ප්රත්යස්ථතාව</b></td><td>පරිපථ බිඳිනය, ඝාතීය පසුබැසීම, එකවර ඉල්ලීම් ගලා ඒම වැළැක්වීම, ස්වයංක්රීය සංයෝජන ස්වයං-ප්රතිසාධනය</td></tr>
-  <tr><td nowrap><b>ලොග්කරණය</b></td><td>pino — ඉල්ලීම් සන්දර්භය සහිත ව්යුහගත JSON ලොග්</td></tr>
-  <tr><td nowrap><b>පරීක්ෂණ</b></td><td>Node.js පරීක්ෂණ ධාවකය + Vitest — නිරීක්ෂණය කෙරෙන පරීක්ෂණ ගොනු 5,100+ක් පුරා <b>ස්ථිතික පරීක්ෂණ ප්රකාශ 39,000+</b> (ඒකක, ඒකාබද්ධ, E2E, ආරක්ෂක, පරිසර පද්ධති)</td></tr>
-  <tr><td nowrap><b>වේදිකා</b></td><td>ඩෙස්ක්ටොප් (Electron) · Android (Termux) · PWA (ඕනෑම බ්රවුසරයක්)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — නිකුතුවේදී ස්වයංක්රීය npm ප්රකාශනය + Docker Hub</td></tr>
+  <tr><td nowrap><b>ප්රවාහය</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>සම්පීඩනය</b></td><td>12-එන්ජින් නල මාර්ගය — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>සත්යාපනය සහ ආරක්ෂාව</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM at rest · DOMPurify</td></tr>
+  <tr><td nowrap><b>රහසිගත බව</b></td><td>wreq-js — JA3 / JA4 TLS ඇඟිලි සලකුණු අනුකරණය, 3-මට්ටමේ ප්රොක්සි</td></tr>
+  <tr><td nowrap><b>ප්රත්යස්ථතාව</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
+  <tr><td nowrap><b>ලොග් කිරීම</b></td><td>pino — ඉල්ලීම් සන්දර්භය සහිත ව්යුහගත JSON ලොග්</td></tr>
+  <tr><td nowrap><b>පරීක්ෂා කිරීම</b></td><td>Node.js test runner + Vitest — <b>39,000+ ස්ථිතික පරීක්ෂණ ප්රකාශන</b> 5,100+ නිරීක්ෂණය කරන ලද පරීක්ෂණ ගොනු හරහා (ඒකක, ඒකාබද්ධ කිරීම, E2E, ආරක්ෂාව, පරිසර පද්ධතිය)</td></tr>
+  <tr><td nowrap><b>වේදිකා</b></td><td>Desktop (Electron) · Android (Termux) · PWA (ඕනෑම බ්රවුසරයක්)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ස්වයංක්රීය npm ප්රකාශනය + නිකුත් කිරීමේදී Docker Hub</td></tr>
   <tr><td nowrap><b>සබැඳි</b></td><td><a href="https://omniroute.online">වෙබ් අඩවිය</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

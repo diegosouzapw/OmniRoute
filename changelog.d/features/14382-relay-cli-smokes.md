@@ -1,0 +1,2 @@
+- test(cli): add isolated real-binary smoke contracts with local sentinel authentication, response receipts, and bounded process-group cleanup. (#14382)
+- test(cli): allow explicit inheritance of the harness's freshly sanitized environment so metadata controls reach real clients without exposing caller credentials or loader hooks. (#14382)

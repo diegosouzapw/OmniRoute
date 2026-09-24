@@ -5,12 +5,14 @@
  * Pure helper extracted from chatCore: normalizes a Headers instance or a plain header object into a
  * lowercased-tolerant Record<string,string>, and backfills the client User-Agent (both casings) when
  * one is supplied and not already present. Returns null when nothing was collected. Side-effect-free;
- * behaviour is byte-identical to the previous module-level function.
+ * OpenCode additionally retains explicit conversation identity before body translation.
  */
+import { preserveOpencodeSessionIdentity } from "../../utils/opencodeSessionIdentity.ts";
 
 export function buildExecutorClientHeaders(
   headers: Headers | Record<string, unknown> | null | undefined,
-  userAgent?: string | null
+  userAgent?: string | null,
+  request?: { provider?: string; body?: unknown }
 ) {
   const normalized: Record<string, string> = {};
   const isLeaseControlHeader = (key: string) => {
@@ -38,5 +40,6 @@ export function buildExecutorClientHeaders(
     normalized["User-Agent"] = normalizedUserAgent;
   }
 
+  preserveOpencodeSessionIdentity(normalized, request);
   return Object.keys(normalized).length > 0 ? normalized : null;
 }
