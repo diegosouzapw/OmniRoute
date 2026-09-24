@@ -85,6 +85,29 @@ describe("CLIProxyAPI account health", () => {
     assert.equal(JSON.stringify(result).includes("management-secret"), false);
   });
 
+  it("uses the loopback host for external management when no host is configured", async () => {
+    const oldKey = process.env.CLIPROXYAPI_MANAGEMENT_KEY;
+    const oldHost = process.env.CLIPROXYAPI_HOST;
+    process.env.CLIPROXYAPI_MANAGEMENT_KEY = "external-secret";
+    delete process.env.CLIPROXYAPI_HOST;
+    try {
+      const result = await getCliproxyAccountHealth({
+        embedded: false,
+        port: 8317,
+        fetchImpl: async (input) => {
+          assert.equal(String(input), "http://127.0.0.1:8317/v0/management/auth-files");
+          return Response.json({ files: [] });
+        },
+      });
+      assert.equal(result.state, "ready");
+    } finally {
+      if (oldKey === undefined) delete process.env.CLIPROXYAPI_MANAGEMENT_KEY;
+      else process.env.CLIPROXYAPI_MANAGEMENT_KEY = oldKey;
+      if (oldHost === undefined) delete process.env.CLIPROXYAPI_HOST;
+      else process.env.CLIPROXYAPI_HOST = oldHost;
+    }
+  });
+
   it("distinguishes missing, unauthorized, unsupported, invalid, and unreachable states", async () => {
     assert.equal(
       (await getCliproxyAccountHealth({ managementKey: null, embedded: false })).state,
