@@ -1,0 +1,1 @@
+- **fix(compression):** the cache TTL input on the compression settings tab offers 1 to 60 minutes, the range the settings route accepts, so its spinner no longer reaches values that fail to save ([#14766](https://github.com/diegosouzapw/OmniRoute/pull/14766)) — thanks @woodsonl
