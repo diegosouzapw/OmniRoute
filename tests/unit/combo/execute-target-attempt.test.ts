@@ -607,7 +607,9 @@ async function runUnprovenClaudeQuotaAttempt({
         },
       }
     );
-    Date.now = () => cachedAt + 5 * 60_000;
+    // setQuotaCache stamps fetchedAt with its own Date.now(), which can land a few ms
+    // after cachedAt; step past the 5 min TTL with margin (reset is still 10 min out).
+    Date.now = () => cachedAt + 5 * 60_000 + 1_000;
   }
 
   const target = modelTarget({
