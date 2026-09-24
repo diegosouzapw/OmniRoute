@@ -34,6 +34,12 @@ export const REMOVED_PROVIDERS: readonly RemovedProvider[] = [
     removalPr: 12440,
   },
   {
+    id: "gemini-business",
+    alias: "gembiz",
+    domains: ["business.gemini.google"],
+    removalPr: 14467,
+  },
+  {
     id: "suno",
     alias: "suno",
     domains: ["studio-api.suno.ai", "studio-api-prod.suno.com"],

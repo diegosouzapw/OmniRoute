@@ -366,7 +366,6 @@ const LOBE_PROVIDER_ALIASES = {
   friendliai: "Friendli",
   gemini: "Gemini",
   "gemini-web": "Gemini",
-  "gemini-business": "Gemini",
   github: "GithubCopilot",
   "github-copilot": "GithubCopilot",
   "ghe-copilot": "GithubCopilot",
