@@ -19,7 +19,7 @@ interface Props {
 }
 
 function isGlmResetProvider(provider: string): boolean {
-  return provider !== "codex";
+  return ["glm", "glm-cn", "glmt", "zai"].includes(provider);
 }
 
 export function getResetCreditWindowTitle(
@@ -27,6 +27,9 @@ export function getResetCreditWindowTitle(
   credit: CodexResetCreditView,
   tr: (key: string, fallback: string, values?: UsageTranslationValues) => string
 ): string {
+  if (provider === "claude") {
+    return credit.title || tr("claudeResetCreditDefaultTitle", "Claude limit reset");
+  }
   if (!isGlmResetProvider(provider)) {
     return credit.title || tr("resetCreditDefaultTitle", "Full reset");
   }
@@ -43,6 +46,12 @@ export function getResetCreditConfirmation(
   resetType: string | undefined,
   tr: (key: string, fallback: string, values?: UsageTranslationValues) => string
 ): string {
+  if (provider === "claude") {
+    return tr(
+      "confirmRedeemClaudeResetCredit",
+      "Redeeming immediately resets the eligible Claude usage limits and permanently consumes this credit."
+    );
+  }
   if (!isGlmResetProvider(provider)) {
     return tr(
       "confirmRedeemResetCredit",
@@ -251,7 +260,9 @@ export default function CodexResetCreditsModal({
       title={
         isGlmResetProvider(provider)
           ? tr("glmResetCreditsModalTitle", "GLM Coding Plan reset cards")
-          : tr("resetCreditsModalTitle", "Codex reset credits")
+          : provider === "claude"
+            ? tr("claudeResetCreditsModalTitle", "Claude reset credits")
+            : tr("resetCreditsModalTitle", "Codex reset credits")
       }
       size="lg"
       closeOnOverlay={!loading}
@@ -276,10 +287,15 @@ export default function CodexResetCreditsModal({
                   "glmResetCreditsModalExplainer",
                   "Reset cards are ordered by expiration. Choose the 5-hour or weekly window you want to reset."
                 )
-              : tr(
-                  "resetCreditsModalExplainer",
-                  "Credits are ordered by expiration. Automatic redemption always uses the credit that expires first."
-                )}
+              : provider === "claude"
+                ? tr(
+                    "claudeResetCreditsModalExplainer",
+                    "Available Claude reset credits and weekly session resets for this account."
+                  )
+                : tr(
+                    "resetCreditsModalExplainer",
+                    "Credits are ordered by expiration. Automatic redemption always uses the credit that expires first."
+                  )}
           </p>
           <ResetCreditList
             availableCount={availableCount}

@@ -346,6 +346,7 @@ export const RESET_CREDIT_PROVIDERS = [
   // grok-cli redeems through the same codex-reset-credit endpoint (tip of
   // release/v3.8.51); kept here so the generalized gate below covers it.
   "grok-cli",
+  "claude",
   "glm",
   "glm-cn",
   "glmt",
@@ -354,7 +355,9 @@ export const RESET_CREDIT_PROVIDERS = [
 
 /** The redemption API backing a provider's reset credits, if supported. */
 export function getResetCreditEndpoint(provider: string): string | null {
-  if (provider === "codex" || provider === "grok-cli") return "/api/usage/codex-reset-credit";
+  if (provider === "codex" || provider === "grok-cli" || provider === "claude") {
+    return "/api/usage/codex-reset-credit";
+  }
   if (["glm", "glm-cn", "glmt", "zai"].includes(provider)) {
     return "/api/usage/glm-reset-card";
   }

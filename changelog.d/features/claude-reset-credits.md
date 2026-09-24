@@ -1,0 +1,1 @@
+- **feat(usage):** display and claim Anthropic reset credits in the dashboard — parse banked usage grants (`cedar_ember`) and weekly 5-hour session resets (`juniper_tide`) from Claude OAuth usage, show available reset credits on Claude provider limit cards, and enable redemption via `/api/usage/codex-reset-credit`

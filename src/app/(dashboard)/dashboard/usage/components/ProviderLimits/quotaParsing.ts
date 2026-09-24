@@ -283,6 +283,11 @@ function parseClaude(data: any) {
     quotas.push(buildClaudeExtraUsageQuota(data.extraUsage));
   }
 
+  const bankedResetCredits = Number(data?.bankedResetCredits);
+  if (Number.isFinite(bankedResetCredits) && bankedResetCredits > 0) {
+    quotas.push(buildBankedResetCreditsQuota(bankedResetCredits));
+  }
+
   return quotas;
 }
 

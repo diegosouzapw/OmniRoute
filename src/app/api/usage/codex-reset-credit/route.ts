@@ -12,6 +12,11 @@ import {
   consumeGrokResetCredit,
   listGrokResetCredits,
 } from "@/lib/usage/grokResetCredits";
+import {
+  ClaudeResetCreditError,
+  consumeClaudeResetCredit,
+  listClaudeResetCredits,
+} from "@/lib/usage/claudeResetCredits";
 import { getProviderConnectionById } from "@/lib/db/providers";
 
 const ConnectionIdSchema = z.string().trim().min(1).max(256);
@@ -24,8 +29,12 @@ const CodexResetCreditBodySchema = z.object({
 
 function isResetCreditError(
   error: unknown
-): error is CodexResetCreditError | GrokResetCreditError {
-  return error instanceof CodexResetCreditError || error instanceof GrokResetCreditError;
+): error is CodexResetCreditError | GrokResetCreditError | ClaudeResetCreditError {
+  return (
+    error instanceof CodexResetCreditError ||
+    error instanceof GrokResetCreditError ||
+    error instanceof ClaudeResetCreditError
+  );
 }
 
 function buildErrorResponse(error: unknown) {
@@ -44,7 +53,7 @@ function unsupportedResetCreditProvider(provider: string | null) {
       ok: false,
       code: provider ? "unsupported_reset_credit_provider" : "connection_not_found",
       error: provider
-        ? "Reset credits are only available for Codex and Grok Build accounts."
+        ? "Reset credits are only available for Codex, Grok, and Claude accounts."
         : "Connection not found.",
     },
     { status: provider ? 400 : 404 }
@@ -79,6 +88,10 @@ export async function GET(request: Request) {
       const result = await listCodexResetCredits(parsed.data);
       return NextResponse.json({ ok: true, ...result });
     }
+    if (provider === "claude") {
+      const result = await listClaudeResetCredits(parsed.data);
+      return NextResponse.json({ ok: true, ...result });
+    }
     return unsupportedResetCreditProvider(provider);
   } catch (error) {
     return buildErrorResponse(error);
@@ -110,6 +123,14 @@ export async function POST(request: Request) {
     }
     if (provider === "codex") {
       const result = await consumeCodexResetCredit(
+        parsed.data.connectionId,
+        parsed.data.idempotencyKey,
+        parsed.data.creditId
+      );
+      return NextResponse.json({ ok: true, ...result });
+    }
+    if (provider === "claude") {
+      const result = await consumeClaudeResetCredit(
         parsed.data.connectionId,
         parsed.data.idempotencyKey,
         parsed.data.creditId
