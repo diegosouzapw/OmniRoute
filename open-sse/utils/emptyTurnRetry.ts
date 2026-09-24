@@ -3,7 +3,12 @@ import { FORMATS } from "../translator/formats.ts";
 import { STREAM_READINESS_MAX_TIMEOUT_MS } from "../config/constants.ts";
 import { hasValidUsage } from "./usageTracking.ts";
 import { hasUsefulStreamContent } from "./streamReadiness.ts";
-import { parseSSELine, hasValuableContent } from "./streamHelpers.ts";
+import {
+  parseSSEDataPayload,
+  parseSSELine,
+  hasValuableContent,
+  stripAnsiCodes,
+} from "./streamHelpers.ts";
 import { isEmptyTurnCore } from "./streamEmptyChoices.ts";
 import { sanitizeStreamingChunk } from "../handlers/responseSanitizer.ts";
 import { getAnyReasoningValue, getReadableReasoningValue } from "./reasoningFields.ts";
@@ -79,11 +84,34 @@ async function drainBoundedChunks(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   maxBytes: number,
   idleMs: number,
-  deadlineMs = 0
-): Promise<{ chunks: Uint8Array[]; total: number; over: boolean; idle: boolean }> {
+  deadlineMs = 0,
+  opts?: { targetFormat?: string; sourceFormat?: string }
+): Promise<{
+  chunks: Uint8Array[];
+  total: number;
+  over: boolean;
+  idle: boolean;
+  earlyPass: boolean;
+}> {
   const chunks: Uint8Array[] = [];
   let total = 0;
   let pending: Promise<ReadableStreamReadResult<Uint8Array>> | null = null;
+  // Persistent probe: ProbeAccum + consumed-char offset live
+  // here, not in a pure per-push function, so the translator state advances
+  // exactly like the end-of-turn replay. `consumed` counts chars of whole
+  // lines already fed (no re-split of consumed prefix).
+  let probe: ProbeAccum | null = null;
+  let consumed = 0;
+  const targetFormat = opts?.targetFormat ?? "";
+  const sourceFormat = opts?.sourceFormat ?? "";
+  // Probe cadence: probe every push while cheap; when the buffer is already
+  // large without content, check every 16th push (worst case bounded ~2x
+  // the end summary on content-free turns — measured 2.15x all-push at
+  // 156 KB). Content turns stop at the first fragment, so
+  // cadence only affects content-free turns (which never early-pass).
+  const FIRST_USEFUL_CHUNK_CADENCE = 16;
+  const FIRST_USEFUL_CHUNK_BULK_BYTES = 64_000;
+  let pushes = 0;
   for (;;) {
     // A single in-flight read spans idle expiries: an expired budget never
     // orphans the read that still owns the next chunk.
@@ -96,17 +124,50 @@ async function drainBoundedChunks(
       // stay "open"): biasing toward continuing is the safe direction.
       if (deadlineMs > 0 && Date.now() < deadlineMs && hasOpenReasoning(decodeSoFar(chunks, total)))
         continue;
-      return { chunks, total, over: false, idle: true };
+      return { chunks, total, over: false, idle: true, earlyPass: false };
     }
     const { done, value } = read;
     pending = null;
     if (done) break;
     if (!value) continue;
     total += value.byteLength;
-    if (total > maxBytes) return { chunks, total, over: true, idle: false };
+    if (total > maxBytes) return { chunks, total, over: true, idle: false, earlyPass: false };
     chunks.push(value);
+    pushes += 1;
+    try {
+      if (!probe) {
+        const state = createProbeState(sourceFormat);
+        if (!state) continue;
+        probe = { state, forwardedValuableChunk: false, finishReason: "", toolCallsPresent: false };
+      }
+      // Skip the probe on bulk content-free stretches (every push is
+      // checked while the buffer is small or right after the cadence tick).
+      // `done` is handled by the normal loop exit below, not here.
+      const bulk = total >= FIRST_USEFUL_CHUNK_BULK_BYTES;
+      if (bulk && pushes % FIRST_USEFUL_CHUNK_CADENCE !== 0) continue;
+      const text = decodeSoFar(chunks, total);
+      // Whole lines only: the trailing partial segment stays out of the
+      // probe until its newline arrives. Slice from `consumed`.
+      const end = text.endsWith("\n") ? text.length : text.lastIndexOf("\n") + 1;
+      if (end > consumed) {
+        const todo = text.slice(consumed, end).split("\n");
+        for (const line of todo) replayParseLineQuiet(line, targetFormat, sourceFormat, probe);
+        consumed = end;
+      }
+      if (isUsefulSummary(buildProbeSummary(probe))) {
+        // Stop WITHOUT awaiting cancel: the clone is dropped and its reader
+        // released in `finally`; awaiting cancel here can hang when the
+        // producer only serves pull() on demand (the pending pull never
+        // resolves). Same fire-and-forget motif as the idle branch below.
+        void reader.cancel().catch(() => undefined);
+        return { chunks, total, over: false, idle: false, earlyPass: true };
+      }
+    } catch {
+      // Doubt → keep draining: the predicate never produces a retry,
+      // and must never throw the bounded read into the `error` branch.
+    }
   }
-  return { chunks, total, over: false, idle: false };
+  return { chunks, total, over: false, idle: false, earlyPass: false };
 }
 
 /** Best-effort decode of chunks drained so far, for the open-reasoning check. */
@@ -162,6 +223,9 @@ export function hasOpenReasoning(text: string): boolean {
 
 export type BoundedReadOutcome =
   | { kind: "text"; text: string }
+  // Early useful fragment: the bounded read stopped at the first
+  // content/tool fragment and cancelled the clone; the original is piped.
+  | { kind: "early-pass" }
   // Over the byte cap, no body, or undecodable: not classifiable, pass it through.
   | { kind: "skipped" }
   // The body threw while being read (e.g. the upstream dropped the connection
@@ -188,7 +252,7 @@ export async function readBoundedResponseOutcome(
   response: Response,
   maxBytes: number,
   idleMs = 0,
-  opts?: { maxTotalMs?: number }
+  opts?: { maxTotalMs?: number; targetFormat?: string; sourceFormat?: string }
 ): Promise<BoundedReadOutcome> {
   const clone = response.clone();
   if (!clone.body) return { kind: "skipped" };
@@ -201,12 +265,19 @@ export async function readBoundedResponseOutcome(
   const maxTotalMs = opts?.maxTotalMs ?? STREAM_READINESS_MAX_TIMEOUT_MS;
   const deadlineMs = maxTotalMs > 0 ? Date.now() + maxTotalMs : 0;
   try {
-    const { chunks, total, over, idle } = await drainBoundedChunks(
+    const { chunks, total, over, idle, earlyPass } = await drainBoundedChunks(
       reader,
       maxBytes,
       idleMs,
-      deadlineMs
+      deadlineMs,
+      { targetFormat: opts?.targetFormat, sourceFormat: opts?.sourceFormat }
     );
+    if (earlyPass) {
+      // Checked FIRST, before idle/over: the clone was already
+      // cancel-requested at the stop point (fire-and-forget); releaseLock
+      // in `finally` below. No await here (see stop point).
+      return { kind: "early-pass" };
+    }
     if (idle) {
       // Never awaited: this branch exists because the stream stopped answering.
       void reader.cancel().catch(() => undefined);
@@ -283,6 +354,11 @@ export function judgeBufferedTurn(
 ): BufferedTurnVerdict {
   if (read.kind === "skipped") {
     return { kind: "pass", why: "not classified (over the buffer cap or unreadable)" };
+  }
+  // Early useful fragment: a pass without the idle marker (the turn
+  // never stalled — it was stopped because content was already there).
+  if (read.kind === "early-pass") {
+    return { kind: "pass", why: "turn already carries usable content" };
   }
   if (read.kind === "idle") {
     if (clientAborted) {
@@ -492,6 +568,69 @@ function buildProbeSummary(probe: ProbeAccum): EmptyTurnSummary {
       probe.toolCallsPresent ||
       (probe.state.toolCalls instanceof Map && probe.state.toolCalls.size > 0),
   };
+}
+
+/**
+ * Pure early-stop predicate: true when an incremental
+ * summary already carries usable content or a tool call. Reasoning-only
+ * never stops (judged by the idle branch + `isUselessEmptyTurn`).
+ * Pure read of the summary — never throws on a well-formed summary.
+ */
+export function isUsefulSummary(summary: EmptyTurnSummary | null): boolean {
+  if (!summary) return false;
+  return summary.contentText.length > 0 || summary.toolCallsPresent;
+}
+
+/**
+ * Quiet SSE line parse for the incremental probe: same shape as
+ * `parseSSELine` (`trimStart` + ANSI strip + `data:` guard, so
+ * terminal-redraw-prefixed frames resolve identically) but with
+ * `logWarning: false`, so truncated mid-chunk lines never spam the console
+ * on the hot per-push path.
+ */
+function parseSSELineQuiet(line: string): Record<string, unknown> | null {
+  if (!line) return null;
+  const trimmed = line.trimStart();
+  const clean = stripAnsiCodes(trimmed);
+  if (!clean.startsWith("data:")) return null;
+  return parseSSEDataPayload(clean.slice(5), { logWarning: false }) as Record<
+    string,
+    unknown
+  > | null;
+}
+
+/**
+ * Incremental twin of `replayParseLine` for the persistent probe: replays
+ * one already-whole line. Truncated lines never reach it (kept out of the
+ * probe until their newline arrives), so no WARN and no double translate.
+ */
+function replayParseLineQuiet(
+  line: string,
+  targetFormat: string,
+  sourceFormat: string,
+  probe: ProbeAccum
+): void {
+  const trimmed = line.trim();
+  if (!trimmed) return;
+  const parsedLine = parseSSELineQuiet(trimmed);
+  if (!parsedLine || (parsedLine as Record<string, unknown>).done) return;
+  const parsed = parsedLine as Record<string, unknown>;
+  accumulateRawChunk(parsed, probe);
+  let translated: unknown;
+  try {
+    translated = translateResponse(
+      targetFormat,
+      sourceFormat,
+      parsed as Record<string, unknown>,
+      probe.state
+    );
+  } catch {
+    return;
+  }
+  if (!Array.isArray(translated)) return;
+  for (const item of translated) {
+    classifyTranslatedItem(item, translated, sourceFormat, probe);
+  }
 }
 
 /**
