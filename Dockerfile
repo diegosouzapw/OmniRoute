@@ -106,7 +106,8 @@ RUN test -f package-lock.json \
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm ci --include=optional --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
   && (cd node_modules/better-sqlite3 \
-      && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild) \
+      && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild --force_build=1) \
+  && test -f node_modules/better-sqlite3/build/Release/better_sqlite3.node \
   && node -e "require('better-sqlite3')(':memory:').close()" \
   && node -e "const wreq=require('wreq-js'); if(typeof wreq.createTransport!=='function') process.exit(1)"
 
@@ -225,7 +226,7 @@ ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_MEMORY_MB}"
 
 # Data directory inside Docker — must match the volume mount in docker-compose.yml
 ENV DATA_DIR=/app/data
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data && chown node:node /app /app/data
 
 # #13679: default the PUBLISHED image to requiring an API key. A bare
 # `docker run -p 20128:20128 … diegosouzapw/omniroute` (README/QUICK-START
@@ -247,23 +248,24 @@ ENV REQUIRE_API_KEY=true
 # The old per-module overrides were therefore pure duplication and were removed
 # (build-output-isolation cleanup). See scripts/build/assembleStandalone.mjs
 # (EXTRA_MODULE_ENTRIES) for the single source of truth.
-COPY --from=builder /app/.build/next/standalone ./
+COPY --chown=node:node --from=builder /app/.build/next/standalone ./
 # better-sqlite3 is the one exception still copied explicitly: assembleStandalone
 # only syncs its native build/ dir; the JS wrapper (lib/, package.json) is left to
 # Next.js tracing. bootstrap-env requires SQLite BEFORE the standalone server
 # starts, so guarantee the complete package independent of trace behaviour.
-COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+COPY --chown=node:node --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+RUN test -f /app/node_modules/better-sqlite3/build/Release/better_sqlite3.node
 # migrations land at <standalone>/migrations via assembleStandalone; point the runtime at them.
 ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
 
 # Docker healthcheck script — not traced by Next.js standalone output, so copy
 # it explicitly. The HEALTHCHECK CMD references it as `node healthcheck.mjs`.
-COPY --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
+COPY --chown=node:node --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
 
-# Hand /app over to the baked-in `node` non-root user (UID/GID 1000) so the
-# runtime process never holds root privileges. The chown happens after all
-# COPYs so it covers files originally owned by root in the builder stage.
-RUN chown -R node:node /app
+# Every COPY above hands its files to the baked-in `node` non-root user
+# (UID/GID 1000) at copy time. Do NOT add a `RUN chown -R node:node /app`
+# afterwards: in the overlay filesystem changing ownership rewrites every file
+# into a new layer, which stored the ~2 GB standalone build twice (#13990).
 
 EXPOSE 20128
 
@@ -352,7 +354,7 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
 #      build, not the floating `@latest`.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm install -g --no-audit --no-fund \
-    @openai/codex@0.153.4 \
+    @openai/codex@0.155.0 \
     @anthropic-ai/claude-code@2.1.260 \
     droid@0.212.0 \
     openclaw@2026.9.1

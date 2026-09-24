@@ -10,7 +10,7 @@ const CODEX_QUOTA_ORDER: Record<string, number> = {
   gpt_5_3_codex_spark_weekly: 3,
   banked_reset_credits: 4,
 };
-const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "opencode-go"];
+const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "zai", "opencode-go"];
 const KIMI_CODING_PROVIDERS: readonly string[] = getProviderConnectionFamilyIds("kimi-coding");
 
 /**
@@ -163,7 +163,7 @@ function parseGithub(data: any) {
 }
 
 function parseGlmFamily(data: any) {
-  return quotaEntries(data).map(([name, quota]) =>
+  const quotas = quotaEntries(data).map(([name, quota]) =>
     normalizeQuotaEntry(name, quota, {
       displayName: quota?.displayName,
       details: Array.isArray(quota?.details) ? quota.details : undefined,
@@ -171,6 +171,14 @@ function parseGlmFamily(data: any) {
         Number(quota?.total || 0) === 100 && quota?.remainingPercentage !== undefined,
     })
   );
+
+  // GLM Coding Plan Reset Cards, surfaced by getGlmUsage alongside the windows.
+  const bankedResetCredits = Number(data?.bankedResetCredits);
+  if (Number.isFinite(bankedResetCredits) && bankedResetCredits > 0) {
+    quotas.push(buildBankedResetCreditsQuota(bankedResetCredits));
+  }
+
+  return quotas;
 }
 
 function buildCreditsQuota(
@@ -267,8 +275,8 @@ function parseClaude(data: any) {
   if (data?.message)
     return [{ name: "error", used: 0, total: 0, resetAt: null, message: data.message }];
 
-  const quotas = quotaEntries(data).map(([name, quota]) =>
-    normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
+  const quotas = quotaEntries({ quotas: { ...data.quotas, ...data.modelQuotas } }).map(
+    ([name, quota]) => normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
   );
 
   if (data?.extraUsage?.is_enabled) {
@@ -323,13 +331,26 @@ function parseAgentrouter(data: any) {
 // USD. Free-tier request windows keep the generic percentage treatment.
 function parseOpenrouterQuota(quotaKey: string, quota: any) {
   if (quotaKey !== "credits") return normalizeQuotaEntry(quotaKey, quota);
+  // OpenRouter backend (PRs #12256 + #12468) reports a positive-denominator
+  // PAYG payload (used, total, remaining, remainingPercentage) and a
+  // balance-only payload under legacy keys. The credits renderer in
+  // QuotaCardExpanded short-circuits when `isCredits: true` and only shows
+  // the remaining balance as USD - so a positive-denominator PAYG row
+  // must NOT take that branch. Positive denominators go through the regular
+  // normalizeQuotaEntry() path (which keeps currency as an extra); only a
+  // missing/non-positive denominator falls back to buildCreditsQuota() so
+  // the balance row stays renderable without inventing a 100% percentage.
+  const total = Number(quota?.total ?? 0);
+  if (Number.isFinite(total) && total > 0) {
+    return normalizeQuotaEntry(quotaKey, quota, {
+      currency: quota?.currency ?? "USD",
+    });
+  }
   const remaining = Math.max(0, Number(quota?.remaining ?? 0));
-  const currency = quota?.currency || "USD";
-  const remainingPercentage =
-    safePercentage(quota?.remainingPercentage) ?? (remaining > 0 ? 100 : 0);
+  const currency = quota?.currency ?? "USD";
+  const remainingPercentage = safePercentage(quota?.remainingPercentage) ?? 0;
   return buildCreditsQuota("credits", remaining, remainingPercentage, { currency });
 }
-
 function parseOpenrouter(data: any) {
   return quotaEntries(data).map(([quotaKey, quota]) => parseOpenrouterQuota(quotaKey, quota));
 }
@@ -467,7 +488,7 @@ function looksLikeMoonshotBalance(data: any): boolean {
 function parseProviderQuotas(providerId: string, data: any) {
   if (looksLikeMoonshotBalance(data)) return parseMoonshotBalance(data);
   if (providerId === "github") return parseGithub(data);
-  if (["glm", "glm-cn", "glmt", "opencode-go"].includes(providerId)) return parseGlmFamily(data);
+  if (GLM_FAMILY_PROVIDERS.includes(providerId)) return parseGlmFamily(data);
   if (providerId === "antigravity" || providerId === "agy") return parseAntigravity(data);
   if (providerId === "codex") return parseCodex(data);
   if (providerId === "claude") return parseClaude(data);

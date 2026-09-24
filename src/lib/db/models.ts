@@ -52,6 +52,9 @@ export {
   setModelAlias,
   deleteModelAlias,
   deleteModelAliasesForProvider,
+  getManagedModelAliasNames,
+  markManagedModelAlias,
+  unmarkManagedModelAlias,
 } from "./models/aliases";
 export { getMitmAlias, setMitmAliasAll } from "./models/mitmAlias";
 export type { SyncedAvailableModel } from "./models/synced";
@@ -62,6 +65,13 @@ export {
   type CustomModelVisionDatabase,
   type CustomModelVisionOverrideReadOptions,
 } from "./models/customVisionOverride";
+export {
+  getSyncedAvailableModelVision,
+  listSyncedAvailableModelVision,
+  type SyncedAvailableModelVisionMap,
+  type SyncedAvailableModelVisionDatabase,
+  type SyncedAvailableModelVisionReadOptions,
+} from "./models/syncedAvailableModelVision";
 
 // ──────────────── Custom Models ────────────────
 
@@ -129,7 +139,12 @@ export async function addCustomModel(
   // custom OpenAI-compatible video models. Persisted on the model row; the
   // /v1/videos/generations handler reads it back to pick the job/poll path.
   generationConfig?: { preset: string },
-  isFree?: boolean
+  isFree?: boolean,
+  extraMeta?: {
+    dimensions?: number;
+    supportedInputTypes?: string[];
+    modelType?: "chat" | "embedding" | "image" | "rerank";
+  }
 ) {
   const db = getDbInstance();
   const row = db
@@ -157,6 +172,13 @@ export async function addCustomModel(
     ...(typeof supportsVision === "boolean" ? { supportsVision } : {}),
     ...(typeof isFree === "boolean" ? { isFree } : {}),
     ...(generationConfig && generationConfig.preset ? { generationConfig } : {}),
+    ...(typeof extraMeta?.dimensions === "number" && extraMeta.dimensions > 0
+      ? { dimensions: extraMeta.dimensions }
+      : {}),
+    ...(Array.isArray(extraMeta?.supportedInputTypes)
+      ? { supportedInputTypes: extraMeta.supportedInputTypes }
+      : {}),
+    ...(typeof extraMeta?.modelType === "string" ? { modelType: extraMeta.modelType } : {}),
   };
   models.push(model);
   db.prepare(

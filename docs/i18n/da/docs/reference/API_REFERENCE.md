@@ -1,10 +1,10 @@
 # API Reference (Dansk)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Sprog:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 Central reference til OmniRoute-API'et. Den dækker den offentlige `/v1`-grænseflade og de mest anvendte administrationsendepunkter; den maskinlæsbare [`docs/openapi.yaml`](../openapi.yaml) og routetræet under `src/app/api/` er de udtømmende kilder.
 
@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Omkostningssemantik for cache-hit:** Ved et HIT i den semantiske cache (`X-OmniRoute-Cache-Hit: true`) foretages der intet upstream-kald, så `X-OmniRoute-Response-Cost` er `0.0000000000` (den **inkrementelle** omkostning ved at levere cache-hittet). Den oprindelige/forventede omkostning rapporteres separat i `X-OmniRoute-Cost-Saved`. Faktureringssystemer bør summere `X-OmniRoute-Response-Cost` (cache-hits koster intet); cacheanalyse kan aggregere `X-OmniRoute-Cost-Saved`.
 
-## Eksklusive administrerede sessionslejemål
+## Eksklusive administrerede sessions-leases
 
-Eksklusiv leasing af administrerede sessioner er en valgfri, klientneutral routingkontrakt: Én aktiv ejer
-besidder én kvalificeret OmniRoute-forbindelse. Den udlejer ikke en model, kræver ikke OAuth, identificerer
-ikke en bestemt klient og kræver ikke en bestemt udbyder.
+Eksklusiv leasing af administrerede sessioner er en valgfri, klientneutral routingkontrakt: Én aktiv ejer har én kvalificeret OmniRoute-forbindelse. Den leaser ikke en model, kræver ikke OAuth, identificerer ikke en bestemt klient og kræver ikke en bestemt udbyder.
 
-Den API-nøgle, der bruges til godkendelse, skal have rettigheden `lease:exclusive` og en eksplicit ikke-tom
-`allowedConnections`-liste. Databasens mutationsgrænse håndhæver begge felter samlet ved oprettelse af nøgler
-og delvise opdateringer.
+Den API-nøgle, der bruges til godkendelse, skal have rettigheden `lease:exclusive` og en eksplicit, ikke-tom `allowedConnections`-liste. Databasens mutationsgrænse håndhæver begge felter samlet ved oprettelse af nøgler og delvise opdateringer.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Vellykkede svar på hentning, fornyelse og frigivelse viser tidsstempler, `state` og den nøjagtige positive
-`generation`, men aldrig den valgte forbindelse eller legitimationsoplysninger. Ved fornyelse og frigivelse
-angives generationen i JSON-indholdet:
+Vellykkede svar på erhvervelse, fornyelse og frigivelse indeholder tidsstempler, `state` og den nøjagtige positive `generation`, men aldrig den valgte forbindelse eller legitimationsoplysninger. Ved fornyelse og frigivelse angives generationen i JSON-indholdet:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ angives generationen i JSON-indholdet:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-En aktiv lejemålsejer kan eksplicit anmode om privatlivssikre visningsmetadata for sin aktuelle tilknytning:
+En aktiv lease-ejer kan eksplicit anmode om visningsmetadata, der beskytter privatlivet, for sin aktuelle binding:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,23 +131,11 @@ En aktiv lejemålsejer kan eksplicit anmode om privatlivssikre visningsmetadata 
 }
 ```
 
-Denne valgfrie statushandling afgrænses af den uigennemsigtige ejer, den godkendte administrerede API-nøgle og den
-nøjagtige aktive generation i én databasetransaktion. `displayName` er kun det beskårne konfigurerede
-forbindelsesnavn; det er `null`, når der ikke findes et sikkert konfigureret navn. OmniRoute erstatter det aldrig med en
-e-mailadresse eller en genereret kontoidentitet. Udbyderværdien er en ikke-følsom visningsetiket og aldrig
-en genereret identifikator for en kompatibel udbyder. Legitimationsoplysninger, tokens, cookies, rå id'er for forbindelser eller
-API-nøgler, ejerhashes, afgrænsningshemmeligheder og interne routingdata er udeladt.
+Denne valgfrie statushandling afgrænses af den uigennemsigtige ejer, den godkendte administrerede API-nøgle og den nøjagtige aktive generation i én databasetransaktion. `displayName` er kun det beskårne, konfigurerede forbindelsesnavn; værdien er `null`, når der ikke findes et sikkert konfigureret navn. OmniRoute erstatter aldrig værdien med en e-mailadresse eller genereret kontoidentitet. Udbyderværdien er en ikke-følsom visningsetiket og aldrig en genereret identifikator for en kompatibel udbyder. Legitimationsoplysninger, tokens, cookies, rå forbindelses- eller API-nøgle-id'er, ejerhashes, afgrænsningshemmeligheder og interne routingdata er udeladt.
 
-Opslag med forkert nøgle, forkert ejer, forældet generation, manglende, udløbet, frigivet eller ugyldiggjort lejemål
-returnerer alle den samme `409 LEASE_FENCE_STALE`-fejl uden forbindelsesmetadata. En klient, der modtog svaret om kapacitetsventetid, har ingen aktiv tilknytning at inspicere. Når routing flytter et aktivt lejemål,
-forbliver den samme generation gyldig, og status returnerer atomisk den nye tilknytning, aldrig den gamle.
-Eksisterende klienter forbliver uændrede, fordi svar på hentning, fornyelse, frigivelse og ventetid bevarer
-deres tidligere strukturer.
+Opslag med forkert nøgle, forkert ejer, forældet generation samt manglende, udløbne, frigivne og ugyldiggjorte opslag returnerer alle den samme `409 LEASE_FENCE_STALE`-fejl uden forbindelsesmetadata. En klient, der har modtaget svaret om ventetid på kapacitet, har ingen aktiv binding at inspicere. Når routing flytter en aktiv lease, forbliver den samme generation gyldig, og status returnerer atomisk den nye binding, aldrig den gamle. Eksisterende klienter forbliver uændrede, fordi svar på erhvervelse, fornyelse, frigivelse og ventetid bevarer deres tidligere strukturer.
 
-Denne serverkontrakt ændrer ikke standardfunktionen `/status` i OpenAI Codex. Standard-Codex rapporterer i øjeblikket sin
-modeludbyder og indbyggede godkendelses-/kontostatus, men viser ikke vilkårlige brugerdefinerede
-kontometadata for udbydere. En senere klientintegration skal kalde denne handling og beslutte, hvordan
-`connection.displayName` skal vises.
+Denne serverkontrakt ændrer ikke standardimplementeringen af OpenAI Codex `/status`. Standard-Codex rapporterer i øjeblikket sin modeludbyder og indbyggede godkendelses-/kontostatus, men gengiver ikke vilkårlige kontometadata for brugerdefinerede udbydere; en senere klientintegration skal kalde denne handling og beslutte, hvordan `connection.displayName` skal vises.
 
 Hver administreret inferensanmodning angiver derefter begge kontrolheadere:
 
@@ -162,10 +144,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Den nøjagtige ejer, generation, aktive forbindelse og godkendte API-nøgle afgrænses umiddelbart
-før hvert understøttet upstream-forsøg. Genafspilning af ejer og generation med en anden nøgle mislykkes, selv
-når denne nøgle tillader den samme forbindelse. Rå ejerværdier gemmes, logføres eller opbevares ikke i
-anmodningssnapshotshottet og videresendes ikke upstream.
+Den nøjagtige ejer, generation, aktive forbindelse og godkendte API-nøgle afgrænses umiddelbart før hvert understøttet upstream-forsøg. Genafspilning af ejer og generation med en anden nøgle mislykkes, selv når denne nøgle tillader den samme forbindelse. Rå ejere gemmes ikke permanent, logges ikke, bevares ikke i anmodningssnapshotshottet og videresendes ikke upstream.
 
 Midlertidig kapacitetskonflikt returnerer HTTP `429` med `Retry-After` og:
 
@@ -178,28 +157,27 @@ Midlertidig kapacitetskonflikt returnerer HTTP `429` med `Retry-After` og:
 }
 ```
 
-Dette svar betyder kun, at det almindelige kvalificerede sæt ikke var tomt, og at alle ledige kandidater var
-besat af et fremmed aktivt lejemål. Ikke-understøttede modeller/udbydere, uoverensstemmelse med politikker, nedkøling, kvote,
-tilstand og andre almindelige kvalifikationsfejl bevarer deres eksisterende OmniRoute-svar.
+Dette svar betyder kun, at det almindelige sæt af kvalificerede forbindelser ikke var tomt, og at hver ledig kandidat var optaget af en fremmed aktiv lease. Ikke-understøttede modeller/udbydere, uoverensstemmelse med politik, nedkølingsperiode, kvote, tilstand og andre almindelige kvalificeringsfejl bevarer deres eksisterende OmniRoute-svar.
 
 ### `x-omniroute-compression`
 
-Tilsidesættelse af komprimeringsplanen pr. anmodning. Højeste prioritet — har forrang for tilsidesættelsen af routingkombinationen,
-den aktive profil, automatisk udløsning og panelets standardindstilling. Værdier:
+Tilsidesættelse af komprimeringsplanen pr. anmodning. Højeste prioritet — har forrang over tilsidesættelsen fra routingkombinationen, den aktive profil, automatisk udløsning og panelets standardindstilling. Værdier:
 
-| Værdi         | Effekt                                                                                                                |
-| ------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Ingen komprimering for denne anmodning.                                                                               |
-| `default`     | Panelets afledte standardprofil (ignorerer den aktive profil).                                                        |
-| `engine:<id>` | En enkelt motor, når den er aktiveret, f.eks. `engine:rtk`.                                                           |
-| `<combo>`     | En navngivet kombination, der først matches efter navn (uden forskel på store og små bogstaver) og derefter efter id. |
+| Værdi         | Effekt                                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Ingen komprimering for denne anmodning.                                                                                   |
+| `default`     | Standardprofilen afledt af panelet (ignorerer den aktive profil). Komprimeringsmotorer med tab forbliver slået fra.       |
+| `safe`        | Kun deduplikering og sammenfoldning af blanktegn.                                                                         |
+| `allow-lossy` | Behold operatørplanen for denne anmodning, inklusive opsummeringer og stilomskrivninger.                                  |
+| `engine:<id>` | En enkelt komprimeringsmotor, når den er aktiveret, f.eks. `engine:rtk`. Valgfri aktivering af denne motor pr. anmodning. |
+| `<combo>`     | En navngivet kombination, som først matches efter navn (uden forskel på store og små bogstaver) og derefter efter id.     |
 
 Bemærkninger:
 
-- Ukendte værdier ignoreres (anmodningen afvises aldrig); fortolkningen fortsætter med den normale prioritetsrækkefølge for operatorer.
+- Ukendte værdier ignoreres (anmodningen afvises aldrig); evalueringen fortsætter med den normale operatørprioritet.
 - Hvis flere kombinationer har samme navn, skal kombinationens **id** angives for at få et deterministisk match.
-- En kombination med navnet `off` eller `default` kan ikke vælges efter navn (disse nøgleord fortolkes først); henvis til en sådan kombination via dens id.
-- Hovedkontakten for komprimering er en ufravigelig spærring: Når komprimering er deaktiveret globalt, kan denne header ikke aktivere den.
+- En kombination med navnet `off` eller `default` kan ikke vælges efter navn (disse nøgleord fortolkes først); referér til en sådan kombination via dens id.
+- Hovedafbryderen for komprimering er en ufravigelig spærring: Når komprimering er deaktiveret globalt, kan denne header ikke aktivere den.
 
 Den anvendte plan returneres i responsheaderen:
 
@@ -207,7 +185,7 @@ Den anvendte plan returneres i responsheaderen:
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-hvor `<source>` er enten `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` eller `off`.
+hvor `<source>` er én af `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` eller `off`.
 
 ---
 
@@ -445,7 +423,7 @@ Brug dette endpoint, når en sidecar kører uden for processen og ikke kan impor
 
 ---
 
-## Kompatibilitetsendpoints
+## Kompatibilitetsendepunkter
 
 | Metode | Sti                                       | Format                                |
 | ------ | ----------------------------------------- | ------------------------------------- |
@@ -468,19 +446,19 @@ Brug dette endpoint, når en sidecar kører uden for processen og ikke kan impor
 | GET    | `/v1beta/models`                          | Gemini                                |
 | POST   | `/v1beta/models/{...path}`                | Gemini generateContent                |
 | POST   | `/v1/api/chat`                            | Ollama                                |
-| GET    | `/api/v1/vscode/{token}/`                 | Alias for OpenAI-katalog              |
-| GET    | `/api/v1/vscode/{token}/models`           | Alias for OpenAI-modeller             |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenbaseret OpenAI-alias             |
-| POST   | `/api/v1/vscode/{token}/responses`        | Tokenbaseret OpenAI Responses-alias   |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenbaseret Ollama-alias             |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenbaseret alias for Ollama-tags    |
+| GET    | `/api/v1/vscode/{token}/`                 | OpenAI-katalogalias                   |
+| GET    | `/api/v1/vscode/{token}/models`           | OpenAI-modelalias                     |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI-alias med token                |
+| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses-alias med token      |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama-alias med token                |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama-tagsalias med token            |
 
 Alle POST-ruter følger samme struktur: `Bearer your-api-key` + Zod-valideret JSON-indhold (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` osv.; se `src/shared/validation/schemas.ts`). 4xx returneres ved skemafejl.
 
-For klienter, der ikke kan tilføje `Authorization: Bearer ...`, accepterer OmniRoute også API-nøgler i URL'en via enten kompatibilitet med query-strenge (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) eller de dedikerede `/api/v1/vscode/{token}/...`-endpoints, der er dokumenteret nedenfor.
+For klienter, der ikke kan vedhæfte `Authorization: Bearer ...`, accepterer OmniRoute også API-nøgler i URL'en via enten kompatibilitet med forespørgselsstrenge (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) eller de dedikerede `/api/v1/vscode/{token}/...`-endepunkter, der er dokumenteret nedenfor.
 
 ```bash
-# Rerank
+# Rerank (udbyder i cloudregistret eller en OpenAI-kompatibel udbydernode som "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina-klassificering (legitimationsoplysninger til Foundation API)
@@ -505,6 +483,28 @@ POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Rerank-udbydernoder:** `POST /v1/rerank` dirigerer også til OpenAI-kompatible udbydernoder
+> (oMLX, vLLM, Infinity, TEI bag en gateway, …), der adresseres som `<node-prefix>/<model>`. Loopback-
+> noder (`localhost`, `127.0.0.1`, `172.16.0.0/12`) er altid kvalificerede. Noder på enhver anden
+> vært — en maskine på LAN'et eller en Tailscale-peer — er kun kvalificerede, når operatøren aktiverer
+> funktionsflaget `RERANK_REMOTE_PROVIDER_NODES`, **og** nodens basis-URL overholder udbyderens
+> politik for udgående URL'er (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> cloud-metadata-værter dirigeres der aldrig til. Hukommelsesmotorens rerank-trin kalder denne rute via
+> loopback, så den samme regel gælder for `rerankProviderModel` i hukommelsesindstillingerne.
+>
+> **Lokale serverstrukturer:** Noden kaldes på `<base>/v1/rerank` og, ved 404, på `<base>/rerank`
+> (Infinity, TEI). Det opstrøms indhold medtager både Cohere/OpenAI-stavemåden (`documents`,
+> `return_documents`) og TEI-stavemåden (`texts`, `return_text`), og svaret fra den opstrøms tjeneste
+> normaliseres til Cohere-konvolutten: TEI's rene `[{index, score, text}]`, `{results: [{index, score}]}`
+> fra simple gateways og Voyage-formatet `{data: [...]}` returneres alle til klienten som
+> `{results: [{index, relevance_score, document?}]}`, sorteret efter score og begrænset til `top_n`.
+
+> **Registrering af udbydernoder:** Modeller på en OpenAI-kompatibel udbydernode vises i `GET /v1/models`
+> under nodepræfikset. Rækker uden endpointmetadata (typisk for lokale `/v1/models`-lister)
+> arver nodens `apiType`, så modellerne for en `embeddings`-node er `type: "embedding"`, og modellerne
+> for en `rerank`-node er `type: "rerank"` i stedet for som standard at være chat; et eksplicit
+> `supportedEndpoints` på en synkroniseret eller manuelt tilføjet række har stadig forrang.
 
 ### Dedikerede udbyderruter
 
@@ -1616,19 +1616,19 @@ Endpoints kun for administratorer til driftsstyring.
 
 ## Administration af CLI-værktøjer
 
-Administrer CLI-værktøjer, der integreres med OmniRoute (antigravity, chipotle, commandCode,
+Administrer CLI-værktøjer, der integreres med OmniRoute (antigravity, commandCode,
 devin-cli osv.). Se [Udbyderreference](./PROVIDER_REFERENCE.md) for den fulde liste.
 
-| Metode | Sti                                     | Beskrivelse                                                                                                                                                                  |
-| ------ | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/cli-tools/all-statuses`           | Status for alle CLI-værktøjer (installeret, version, senest set)                                                                                                             |
-| GET    | `/api/cli-tools/status`                 | Detaljeret status for ét CLI-værktøj (`?tool=`-forespørgsel)                                                                                                                 |
-| POST   | `/api/cli-tools/apply`                  | Skriv et værktøjs genererede konfiguration (`dryRun` viser en forhåndsvisning; `422` + `containerEphemeralTarget` ved containerkørsel; `migration` angiver ældre Codex YAML) |
-| GET    | `/api/cli-tools/backups`                | Vis sikkerhedskopier af CLI-værktøjskonfigurationer                                                                                                                          |
-| POST   | `/api/cli-tools/backups`                | Opret en sikkerhedskopi af alle CLI-værktøjskonfigurationer                                                                                                                  |
-| POST   | `/api/cli-tools/backups`                | Gendan: Det samme endpoint med `{tool, backupId}` i body gendanner den pågældende sikkerhedskopi                                                                             |
-| GET    | `/api/cli-tools/antigravity-mitm`       | Status for Antigravity MITM-proxyen (CLI-værktøjet "antigravity-mitm")                                                                                                       |
-| POST   | `/api/cli-tools/antigravity-mitm/alias` | Konfigurer antigravity-mitm-aliasser                                                                                                                                         |
+| Metode | Sti                                     | Beskrivelse                                                                                                                                                                     |
+| ------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/cli-tools/all-statuses`           | Status for alle CLI-værktøjer (installeret, version, sidst set)                                                                                                                 |
+| GET    | `/api/cli-tools/status`                 | Detaljeret status for ét CLI-værktøj (`?tool=`-forespørgsel)                                                                                                                    |
+| POST   | `/api/cli-tools/apply`                  | Skriv et værktøjs genererede konfiguration (`dryRun` viser en forhåndsvisning; `422` + `containerEphemeralTarget` ved containerkørsel; `migration` angiver en ældre Codex YAML) |
+| GET    | `/api/cli-tools/backups`                | Vis sikkerhedskopier af CLI-værktøjskonfigurationer                                                                                                                             |
+| POST   | `/api/cli-tools/backups`                | Opret en sikkerhedskopi af alle CLI-værktøjskonfigurationer                                                                                                                     |
+| POST   | `/api/cli-tools/backups`                | Gendan: Det samme slutpunkt med `{tool, backupId}` i brødteksten gendanner den pågældende sikkerhedskopi                                                                        |
+| GET    | `/api/cli-tools/antigravity-mitm`       | Status for Antigravity MITM-proxyen (CLI-værktøjet "antigravity-mitm")                                                                                                          |
+| POST   | `/api/cli-tools/antigravity-mitm/alias` | Konfigurer antigravity-mitm-aliasser                                                                                                                                            |
 
 **Godkendelse:** Kræver en administrationssession.
 

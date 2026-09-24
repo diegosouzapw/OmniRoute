@@ -156,6 +156,62 @@ test("kimi-coding exposes the official boosterWallet Extra Usage contract", asyn
   assert.equal(serialized.includes("paymentMethodId"), false);
 });
 
+test("usages.limit_* used_ratio matches the membership website windows", async () => {
+  const usage = await getUsage({
+    user: { membership: { level: "LEVEL_ADVANCED" } },
+    usage: {
+      limit: "100",
+      used: "15",
+      remaining: "85",
+      resetTime: "2099-09-25T02:24:04.914062Z",
+    },
+    limits: [
+      {
+        window: { duration: 300, timeUnit: "TIME_UNIT_MINUTE" },
+        detail: {
+          limit: "100",
+          used: "19",
+          remaining: "81",
+          resetTime: "2099-09-19T14:24:04.914062Z",
+        },
+      },
+    ],
+    usages: {
+      limit_5h: { used_ratio: 0.187702, reset_time: "2099-09-19T14:24:04Z" },
+      limit_7d: { used_ratio: 0.147051, reset_time: "2099-09-25T02:24:04Z" },
+    },
+    booster_wallet: {
+      status: "STATUS_DISABLED",
+      allowTopup: true,
+      balance: { type: "BOOSTER" },
+      monthlyChargeLimit: { currency: "CNY", priceInCents: "10000" },
+      monthlyUsed: { currency: "CNY", priceInCents: "0" },
+    },
+  });
+
+  assert.equal(usage.plan, "Allegro");
+  assert.equal(usage.quotas?.code_7d?.remainingPercentage, 85.2949);
+  assert.equal(usage.quotas?.code_7d?.used, 14.7051);
+  assert.equal(usage.quotas?.code_7d?.resetAt, "2099-09-25T02:24:04.000Z");
+  assert.equal(usage.quotas?.code_5h?.remainingPercentage, 81.2298);
+  assert.equal(usage.quotas?.code_5h?.used, 18.7702);
+  assert.equal(usage.quotas?.code_5h?.resetAt, "2099-09-19T14:24:04.000Z");
+  assert.equal(usage.billing?.extraUsageStatus, "disabled");
+  assert.equal(usage.billing?.currency, "CNY");
+  assert.equal(usage.billing?.monthlyLimitMinorUnits, 10000);
+});
+
+test("used_ratio 0 is a real empty window, not a missing field", async () => {
+  const usage = await getUsage({
+    user: { membership: { level: "LEVEL_ADVANCED" } },
+    usages: {
+      limit_7d: { used_ratio: 0, reset_time: "2099-09-25T02:24:04Z" },
+    },
+  });
+  assert.equal(usage.quotas?.code_7d?.used, 0);
+  assert.equal(usage.quotas?.code_7d?.remainingPercentage, 100);
+});
+
 test("booster fixed-point values follow the official Kimi CLI cent conversion", async () => {
   for (const [amountLeft, expected] of [
     [0, 0],

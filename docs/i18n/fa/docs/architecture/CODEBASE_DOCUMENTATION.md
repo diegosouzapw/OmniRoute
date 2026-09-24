@@ -1,6 +1,6 @@
 # OmniRoute Codebase Documentation (فارسی)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇦 [bs](../../../bs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
 
@@ -436,7 +436,8 @@ server/
 
 ## 4. `open-sse/` — فضای کاری موتور استریم
 
-یک فضای کاری مستقل npm که با نام `@omniroute/open-sse` منتشر میشود. این فضا مسئول پردازش درخواستها، اجراگرها، مترجمها، سرویسها، تبدیلکننده و سرور MCP است.
+یک فضای کاری npm مستقل که با نام `@omniroute/open-sse` منتشر میشود. مالک پردازش
+درخواست، اجراکنندهها، مترجمها، سرویسها، تبدیلکننده و سرور MCP است.
 
 ```
 open-sse/
@@ -445,38 +446,38 @@ open-sse/
 ├── tsconfig.json
 ├── types.d.ts
 ├── config/                 رجیستریهای ارائهدهندگان، پروفایلهای هدر، هویت، …
-├── handlers/               هندلرهای درخواست (چت، امبدینگ، صوت، تصویر، …)
-├── executors/              108 اجراگر HTTP مختص ارائهدهندگان
+├── handlers/               کنترلکنندههای درخواست (چت، تعبیهها، صوت، تصویر، …)
+├── executors/              ۱۰۸ اجراکننده HTTP مختص ارائهدهندگان
 ├── translator/             تبدیل قالب (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            تبدیلکننده استریم Responses API ↔ Chat Completions
-├── services/               بیش از 80 ماژول سرویس (ترکیبها، جایگزینی، سهمیهها، هویت، …)
-├── utils/                  ابزارهای کمکی استریم، کلاینت TLS، AWS SigV4، واکشی پروکسی، …
-└── mcp-server/             سرور MCP (3 روش انتقال، 33 محدوده، 110 ابزار)
+├── services/               بیش از ۸۰ ماژول سرویس (ترکیبها، جایگزینی، سهمیهها، هویت، …)
+├── utils/                  ابزارهای کمکی استریم، کلاینت TLS، AWS SigV4، واکشی از طریق پروکسی، …
+└── mcp-server/             سرور MCP (۳ روش انتقال، ۳۳ حوزه، ۱۱۰ ابزار)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| هندلر                   | هدف                                                              |
-| ----------------------- | ---------------------------------------------------------------- |
-| `chatCore.ts`           | خط لوله اصلی چت (کش، محدودیت نرخ، مسیریابی ترکیبی، اعزام اجراگر) |
-| `responsesHandler.ts`   | نقطه ورود OpenAI Responses API                                   |
-| `embeddings.ts`         | امبدینگها                                                        |
-| `imageGeneration.ts`    | تولید تصویر                                                      |
-| `audioSpeech.ts`        | تبدیل متن به گفتار                                               |
-| `audioTranscription.ts` | تبدیل گفتار به متن                                               |
-| `videoGeneration.ts`    | تولید ویدئو                                                      |
-| `musicGeneration.ts`    | تولید موسیقی                                                     |
-| `rerank.ts`             | رتبهبندی مجدد                                                    |
-| `moderations.ts`        | تعدیل محتوا                                                      |
-| `search.ts`             | جستوجوی وب                                                       |
-| `sseParser.ts`          | تجزیهگر رویداد SSE                                               |
-| `usageExtractor.ts`     | استخراج تعداد توکنها از استریمهای بالادستی                       |
-| `responseSanitizer.ts`  | حذف نویز مختص ارائهدهنده                                         |
-| `responseTranslator.ts` | لایه اتصال میان پاسخ ارائهدهنده و لایه مترجم                     |
+| کنترلکننده              | هدف                                                                    |
+| ----------------------- | ---------------------------------------------------------------------- |
+| `chatCore.ts`           | خط لوله اصلی چت (کش، محدودیت نرخ، مسیریابی ترکیبی، ارسال به اجراکننده) |
+| `responsesHandler.ts`   | نقطه ورود OpenAI Responses API                                         |
+| `embeddings.ts`         | تعبیهها                                                                |
+| `imageGeneration.ts`    | تولید تصویر                                                            |
+| `audioSpeech.ts`        | تبدیل متن به گفتار                                                     |
+| `audioTranscription.ts` | تبدیل گفتار به متن                                                     |
+| `videoGeneration.ts`    | تولید ویدئو                                                            |
+| `musicGeneration.ts`    | تولید موسیقی                                                           |
+| `rerank.ts`             | رتبهبندی مجدد                                                          |
+| `moderations.ts`        | تعدیل محتوا                                                            |
+| `search.ts`             | جستوجوی وب                                                             |
+| `sseParser.ts`          | تجزیهکننده رویداد SSE                                                  |
+| `usageExtractor.ts`     | استخراج تعداد توکنها از استریمهای بالادستی                             |
+| `responseSanitizer.ts`  | حذف نویز مختص ارائهدهنده                                               |
+| `responseTranslator.ts` | لایه اتصال میان پاسخ ارائهدهنده و لایه مترجم                           |
 
 ### 4.2 `open-sse/executors/`
 
-108 اجراگر ارائهدهنده که هر یک `BaseExecutor` (`base.ts`) را گسترش میدهند:
+۱۰۸ اجراکننده ارائهدهنده که هرکدام `BaseExecutor` (`base.ts`) را گسترش میدهند:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
@@ -484,23 +485,23 @@ open-sse/
 `pollinations`, `qoder`, `vertex`, `devin-desktop`، بهعلاوه `claudeIdentity.ts`
 (ابزار کمکی مشترک هویت) و `index.ts` (رجیستری).
 
-> توجه: ارائهدهندگانی که در اینجا فهرست نشدهاند، توسط `default.ts` و با استفاده از اجراگر عمومی
-> سازگار با OpenAI سرویسدهی میشوند. کاتالوگ کامل ارائهدهندگان (355 ارائهدهنده) در
+> توجه: ارائهدهندگانی که در اینجا فهرست نشدهاند، توسط `default.ts` و با استفاده از اجراکننده عمومی
+> سازگار با OpenAI سرویسدهی میشوند. کاتالوگ کامل ارائهدهندگان (۳۵۵ ارائهدهنده) در
 > `src/shared/constants/providers.ts` قرار دارد.
 
 ### 4.3 `open-sse/translator/`
 
-ترجمه بهصورت هابومحور (OpenAI هاب است).
+ترجمه با معماری هابوپره (OpenAI هاب است).
 
-- **9 مترجم درخواست** (`translator/request/`):
+- **۹ مترجم درخواست** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
   `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
   `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
-- **9 مترجم پاسخ** (`translator/response/`):
+- **۹ مترجم پاسخ** (`translator/response/`):
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
-- **9 ابزار کمکی** (`translator/helpers/`):
+- **۹ ابزار کمکی** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`، بهعلاوه
   آزمونهای ابزارهای کمکی.
@@ -516,40 +517,40 @@ open-sse/
 
 موارد برجسته (فهرست کامل در `open-sse/services/`):
 
-| موضوع               | فایلها                                                                                                                                                                                                                                            |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| مسیریابی ترکیبی     | `combo.ts` (19 راهبرد)، `comboConfig.ts`، `comboMetrics.ts`، `comboManifestMetrics.ts`، `comboAgentMiddleware.ts`                                                                                                                                 |
-| موتور ترکیبی خودکار | `autoCombo/` — `engine.ts`، `scoring.ts`، `taskFitness.ts`، `virtualFactory.ts`، `modePacks.ts`، `autoPrefix.ts`، `persistence.ts`، `providerDiversity.ts`، `providerRegistryAccessor.ts`، `routerStrategy.ts`، `selfHealing.ts`، `index.ts`      |
-| تابآوری             | `accountFallback.ts` (دوره انتظار + قفلشدن)، `errorClassifier.ts`، `emergencyFallback.ts`، `rateLimitManager.ts`، `rateLimitSemaphore.ts`، `accountSemaphore.ts`، `accountSelector.ts`                                                            |
-| سهمیهها             | `quotaMonitor.ts`، `quotaPreflight.ts`، `bailianQuotaFetcher.ts`، `codexQuotaFetcher.ts`، `deepseekQuotaFetcher.ts`، `openrouterQuotaFetcher.ts`، `openrouterFreeWindow.ts`، `crofUsageFetcher.ts`، `antigravityCredits.ts`                       |
-| ذخیرهسازی موقت      | `reasoningCache.ts`، `searchCache.ts`، `signatureCache.ts`، `requestDedup.ts`                                                                                                                                                                     |
-| هوشمندی مسیریابی    | `intentClassifier.ts`، `taskAwareRouter.ts`، `backgroundTaskDetector.ts`، `volumeDetector.ts`، `wildcardRouter.ts`، `workflowFSM.ts`، `specificityDetector.ts`، `specificityRules.ts`، `specificityTypes.ts`                                      |
-| مدیریت مدل          | `modelCapabilities.ts`، `modelDeprecation.ts`، `modelFamilyFallback.ts`، `modelStrip.ts`، `model.ts`، `provider.ts`، `providerRequestDefaults.ts`، `providerCostData.ts`، `payloadRules.ts`                                                       |
-| فشردهسازی           | `compression/` — سیمکشی کامل موتور فشردهسازی                                                                                                                                                                                                      |
-| توکن + نشست         | `tokenRefresh.ts`، `sessionManager.ts`، `apiKeyRotator.ts`، `contextManager.ts`، `contextHandoff.ts`، `systemPrompt.ts`، `roleNormalizer.ts`، `responsesInputSanitizer.ts`، `toolSchemaSanitizer.ts`، `toolLimitDetector.ts`، `thinkingBudget.ts` |
-| سطح / مانیفست       | `tierResolver.ts`، `tierConfig.ts`، `tierDefaults.json`، `tierTypes.ts`، `manifestAdapter.ts`                                                                                                                                                     |
-| IP / شبکه           | `ipFilter.ts`، `webSearchFallback.ts`                                                                                                                                                                                                             |
-| دستهها              | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| میزان استفاده       | `usage.ts`                                                                                                                                                                                                                                        |
+| حوزه             | فایلها                                                                                                                                                                                                                                                   |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| مسیریابی Combo   | `combo.ts` (۱۹ راهبرد)، `comboConfig.ts`، `comboMetrics.ts`، `comboManifestMetrics.ts`، `comboAgentMiddleware.ts`                                                                                                                                        |
+| موتور Auto Combo | `autoCombo/` — `engine.ts`، `scoring.ts`، `taskFitness.ts`، `virtualFactory.ts`، `modePacks.ts`، `autoPrefix.ts`، `persistence.ts`، `providerDiversity.ts`، `providerRegistryAccessor.ts`، `routerStrategy.ts`، `selfHealing.ts`، `index.ts`             |
+| تابآوری          | `accountFallback.ts` (دوره انتظار + قفلشدن)، `errorClassifier.ts`، `requestRejectedStreak.ts`، `emergencyFallback.ts`، `rateLimitManager.ts`، `rateLimitSemaphore.ts`، `accountSemaphore.ts`، `accountSelector.ts`                                       |
+| سهمیهها          | `quotaMonitor.ts`، `quotaPreflight.ts`، `bailianQuotaFetcher.ts`، `codexQuotaFetcher.ts`، `deepseekQuotaFetcher.ts`، `openrouterQuotaFetcher.ts`، `openrouterFreeWindow.ts`، `llmgatewayQuotaFetcher.ts`، `crofUsageFetcher.ts`، `antigravityCredits.ts` |
+| ذخیرهسازی موقت   | `reasoningCache.ts`، `searchCache.ts`، `signatureCache.ts`، `requestDedup.ts`                                                                                                                                                                            |
+| هوشمندی مسیریابی | `intentClassifier.ts`، `taskAwareRouter.ts`، `backgroundTaskDetector.ts`، `volumeDetector.ts`، `wildcardRouter.ts`، `workflowFSM.ts`، `specificityDetector.ts`، `specificityRules.ts`، `specificityTypes.ts`                                             |
+| مدیریت مدل       | `modelCapabilities.ts`، `modelDeprecation.ts`، `modelFamilyFallback.ts`، `modelStrip.ts`، `model.ts`، `provider.ts`، `providerRequestDefaults.ts`، `providerCostData.ts`، `payloadRules.ts`                                                              |
+| فشردهسازی        | `compression/` — سیمکشی کامل موتور فشردهسازی                                                                                                                                                                                                             |
+| توکن + نشست      | `tokenRefresh.ts`، `sessionManager.ts`، `apiKeyRotator.ts`، `contextManager.ts`، `contextHandoff.ts`، `systemPrompt.ts`، `roleNormalizer.ts`، `responsesInputSanitizer.ts`، `toolSchemaSanitizer.ts`، `toolLimitDetector.ts`، `thinkingBudget.ts`        |
+| سطح / مانیفست    | `tierResolver.ts`، `tierConfig.ts`، `tierDefaults.json`، `tierTypes.ts`، `manifestAdapter.ts`                                                                                                                                                            |
+| IP / شبکه        | `ipFilter.ts`، `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| دستهها           | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| میزان استفاده    | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 ابزار منحصربهفرد** در `server.ts` سیمکشی شدهاند (45 ابزار استاندارد در `schemas/tools.ts` +
-  ماژولهای حافظه، مهارتها، مهارتهای GitHub، مخزن، بازیوارسازی، افزونه، Notion، Obsidian،
-  پیکره محلی و فشردهسازی — اجتماع آنها توسط `countUniqueMcpTools` شمارش میشود).
-- **3 روش انتقال**: stdio، HTTP Streamable، SSE.
-- **33 محدوده دسترسی** در زمان اجرا اعمال میشوند — فهرست پایه در `src/shared/constants/mcpScopes.ts` قرار دارد و مجموعه کامل، اجتماع محدودههای اعلامشده توسط هر ماژول ابزار است.
-- جدول حسابرسی: `mcp_tool_audit` (توسط `audit.ts` پر میشود).
+- **۱۱۰ ابزار منحصربهفرد** در `server.ts` متصل شدهاند (۴۵ ابزار متعارف در `schemas/tools.ts` +
+  ماژولهای حافظه، مهارتها، GitHub-skills، مخزن، بازیوارسازی، افزونه، Notion، Obsidian،
+  پیکره محلی و فشردهسازی — اجتماع آنها توسط `countUniqueMcpTools` شمارش شده است).
+- **۳ روش انتقال**: stdio، HTTP Streamable و SSE.
+- **۳۳ محدوده دسترسی** در زمان اجرا اعمال میشوند — فهرست پایه در `src/shared/constants/mcpScopes.ts` قرار دارد و مجموعه کامل، اجتماع محدودههای دسترسی تعریفشده توسط هر ماژول ابزار است.
+- جدول ممیزی: `mcp_tool_audit` (توسط `audit.ts` پر میشود).
 - فایلها: `server.ts`، `index.ts`، `httpTransport.ts`، `audit.ts`، `scopeEnforcement.ts`،
   `runtimeHeartbeat.ts`، `descriptionCompressor.ts`، `schemas/{tools, a2a, audit, index}.ts`،
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`،
   بهعلاوه آزمونهای موجود در `__tests__/`.
-- برای مشاهده فهرست کامل ابزارها، به [MCP-SERVER.md](../frameworks/MCP-SERVER.md) مراجعه کنید.
+- برای مشاهده فهرست کامل ابزارها به [MCP-SERVER.md](../frameworks/MCP-SERVER.md) مراجعه کنید.
 
 ### 4.7 `open-sse/config/`
 
 رجیستریهای ارائهدهندگان (`providerRegistry.ts`، `providerModels.ts`،
-`providerHeaderProfiles.ts`)، رجیستریهای مدل بهازای هر قالب (`audioRegistry.ts`،
+`providerHeaderProfiles.ts`)، رجیستریهای مدل بهتفکیک قالب (`audioRegistry.ts`،
 `embeddingRegistry.ts`، `imageRegistry.ts`، `moderationRegistry.ts`،
 `musicRegistry.ts`، `rerankRegistry.ts`، `searchRegistry.ts`، `videoRegistry.ts`)،
 ابزارهای کمکی هویت (`codexIdentity.ts`، `codexInstructions.ts`،
@@ -562,7 +563,7 @@ open-sse/
 
 ### 4.8 `open-sse/utils/`
 
-اجزای پایهٔ استریم و ابزارهای کمکی ارائهدهنده: `stream.ts`، `streamHandler.ts`،
+مؤلفههای پایهٔ استریم و ابزارهای کمکی ارائهدهنده: `stream.ts`، `streamHandler.ts`،
 `streamHelpers.ts`، `streamPayloadCollector.ts`، `streamReadiness.ts`،
 `sseHeartbeat.ts`، `proxyFetch.ts`، `proxyDispatcher.ts`، `tlsClient.ts`،
 `networkProxy.ts`، `awsSigV4.ts`، `cacheControlPolicy.ts`،

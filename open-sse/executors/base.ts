@@ -6,12 +6,14 @@ import {
   type AlternateFormat,
 } from "../config/providers/alternateFormats.ts";
 import {
-  CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
+  applyStainlessHeaders,
   getClaudeCliBillingVersion,
+  mergeCcHeaders,
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
 } from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
+import { createCopilotIdentityFallback } from "./copilotIdentityFallback.ts";
 import {
   findOffendingField,
   detectUnsupportedParam,
@@ -40,6 +42,7 @@ import {
   isFreeVariantModel,
 } from "../services/openrouterFreeWindow.ts";
 import { gateOutboundRequest } from "../services/wafRateLimit.ts";
+import { ClaudeUsageLimitGuard } from "./claudeUsageLimit.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -64,7 +67,7 @@ import {
   appendAnthropicBetaHeader,
   CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA,
   CONTEXT_1M_BETA_HEADER,
-  enforceThinkingTemperature,
+  finalizeClaudeBodyConstraints,
   modelHasNativeContext1m,
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
@@ -97,6 +100,7 @@ import {
   selectBetaFlags,
   stainlessArch,
   stainlessOS,
+  stripClaudeSystemPrefixBlocks,
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
 import { withForcedResponsesUpstream } from "./forceResponsesUpstream.ts";
@@ -129,6 +133,8 @@ import { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
 // Reasoning-effort sanitation extracted to a pure leaf; re-exported for external
 // importers (mimoThinking service + tests) that import it from "./base.ts".
 export { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
+import { mergeAbortSignals } from "./base/mergeAbortSignals.ts";
+export { mergeAbortSignals } from "./base/mergeAbortSignals.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -162,6 +168,7 @@ export type ProviderConfig = {
   headers?: Record<string, string>;
   requestDefaults?: ProviderRequestDefaults;
   timeoutMs?: number;
+  fetchStartTimeoutCapMs?: number;
   format?: string;
 };
 
@@ -226,29 +233,6 @@ export type CountTokensInput = {
   model: string;
   signal?: AbortSignal | null;
 };
-
-export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
-  const controller = new AbortController();
-
-  const abortFrom = (source: AbortSignal) => {
-    if (!controller.signal.aborted) {
-      controller.abort(source.reason);
-    }
-  };
-
-  if (primary.aborted) {
-    abortFrom(primary);
-    return controller.signal;
-  }
-  if (secondary.aborted) {
-    abortFrom(secondary);
-    return controller.signal;
-  }
-
-  primary.addEventListener("abort", () => abortFrom(primary), { once: true });
-  secondary.addEventListener("abort", () => abortFrom(secondary), { once: true });
-  return controller.signal;
-}
 
 import {
   hasActiveClaudeThinking,
@@ -316,7 +300,6 @@ export type ExecutorExecuteResult =
       transformedBody?: unknown;
       transport?: string;
     };
-
 export class BaseExecutor {
   provider: string;
   config: ProviderConfig;
@@ -728,6 +711,8 @@ export class BaseExecutor {
     let activeCredentials = credentials;
     // Track per-URL intra-retry attempts to avoid infinite loops
     const retryAttemptsByUrl: Record<number, number> = {};
+    // Claude OAuth usage wall (opt-in per connection): see ./claudeUsageLimit.ts.
+    const claudeUsageLimit = new ClaudeUsageLimitGuard(this.provider, log);
 
     // Probe-origin dispatches must not consume a refresh-token rotation —
     // routing state untouched; the reactive 401/403 path is probe-guarded
@@ -820,24 +805,17 @@ export class BaseExecutor {
       }
     }
 
-    // Set by the Context Editing 400-fallback below: once an upstream rejects the
-    // `context_management` param, suppress its re-injection on every later
-    // retry/fallback URL (each iteration rebuilds a fresh `transformedBody`).
+    // Context Editing 400-fallback below: suppresses `context_management` re-injection
+    // on later retry/fallback URLs once an upstream rejects it.
     let contextEditingDisabled = false;
-    // Tracks which request fields have already been stripped via the generic 400
-    // field-downgrade below, so each known field is stripped at most once across
-    // all fallback URLs (bounded retry loop).
+    // Fields already stripped by the generic 400 field-downgrade below (once each,
+    // across all fallback URLs — bounded retry loop).
     const strippedFields = new Set<string>();
-    // Set by the thinking_budget 400 clamp-and-retry below: the upstream's
-    // advertised max (parsed from the error) is applied to every later
-    // retry/fallback URL so they don't re-hit the same 400. The clamp itself
-    // fires at most once per URL (guarded inline) so a persistent 400 cannot
-    // loop. The learned cap is also recorded process-wide via
-    // recordLearnedThinkingCap so future requests skip the 400 entirely.
+    // thinking_budget 400 clamp-and-retry below: upstream's learned max applied to
+    // later retry URLs (bounded per URL); also recorded via recordLearnedThinkingCap.
     let thinkingBudgetClampedMax: number | null = null;
-    // Set by the reasoning_effort 4xx clamp-and-retry below — guards the same
-    // "fires at most once per URL" invariant as thinkingBudgetClampedMax above.
-    let reasoningEffortClamped = false;
+    let reasoningEffortClamped = false; // reasoning_effort 4xx clamp-and-retry below.
+    const applyCopilotIdentityFallback = createCopilotIdentityFallback(this.provider, log);
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const requestCredentials = withForcedResponsesUpstream(
@@ -915,6 +893,10 @@ export class BaseExecutor {
       const fetchStartTimeoutPolicy = resolveFetchStartTimeout({
         baseTimeoutMs: this.getTimeoutMs(),
         stream,
+        // Providers with non-incremental upstreams (whole generation buffered
+        // behind the gateway, e.g. opencode-go's Console Go GLM tier) can take
+        // minutes before first bytes; the registry overrides the 110s cap.
+        capMs: this.config?.fetchStartTimeoutCapMs,
       });
       const fetchStartTimeoutMs = fetchStartTimeoutPolicy.timeoutMs;
       if (fetchStartTimeoutPolicy.capped) {
@@ -1177,18 +1159,7 @@ export class BaseExecutor {
           // Strip any pre-existing billing/sentinel before re-prepending — keeps
           // retries idempotent and avoids stacking that breaks prompt-cache prefix
           // matching (see issue #1712).
-          for (let i = sysBlocks.length - 1; i >= 0; i--) {
-            const t = sysBlocks[i]?.text;
-            if (typeof t === "string" && t.startsWith("x-anthropic-billing-header:")) {
-              sysBlocks.splice(i, 1);
-            }
-          }
-          for (let i = sysBlocks.length - 1; i >= 0; i--) {
-            const t = sysBlocks[i]?.text;
-            if (typeof t === "string" && t.startsWith(SENTINEL)) {
-              sysBlocks.splice(i, 1);
-            }
-          }
+          stripClaudeSystemPrefixBlocks(sysBlocks, SENTINEL);
           sysBlocks.unshift({ type: "text", text: billingLine }, { type: "text", text: SENTINEL });
           tb.system = sysBlocks;
           normalizeCacheControlTtl(tb);
@@ -1270,29 +1241,14 @@ export class BaseExecutor {
               "X-Claude-Code-Session-Id": sessionId,
             };
 
-            // Drop case variants of the same header name before merging — undici
-            // would otherwise concatenate them (issue #1454).
-            const ccKeysLower = new Set(Object.keys(ccHeaders).map((k) => k.toLowerCase()));
-            for (const key of Object.keys(headers)) {
-              if (ccKeysLower.has(key.toLowerCase())) delete headers[key];
-            }
-            Object.assign(headers, ccHeaders);
+            mergeCcHeaders(headers, ccHeaders);
             if (usesCcWireImage(this.provider) && usesClaudeCodeProtocol) {
               delete headers["Authorization"];
               headers["x-api-key"] =
                 activeCredentials?.apiKey || activeCredentials?.accessToken || "";
             }
             delete headers["X-Stainless-Helper-Method"];
-
-            // OS/arch follow the host running the signed binary. Runtime version
-            // is pinned to the captured CLI wire image, not OmniRoute's Node.
-            headers["X-Stainless-Arch"] = stainlessArch();
-            headers["X-Stainless-Lang"] = "js";
-            headers["X-Stainless-OS"] = stainlessOS();
-            headers["X-Stainless-Runtime"] = "node";
-            headers["X-Stainless-Runtime-Version"] = CLAUDE_CLI_STAINLESS_RUNTIME_VERSION;
-            headers["X-Stainless-Retry-Count"] = "0";
-            delete headers["X-Stainless-Os"];
+            applyStainlessHeaders(headers, { arch: stainlessArch(), os: stainlessOS() });
           }
           // selectBetaFlags() above always includes redact-thinking for an
           // "opaque" client (no client-negotiated anthropic-beta) — correct
@@ -1368,7 +1324,7 @@ export class BaseExecutor {
         // routing mode (grouped/raw/combo) and the native passthrough share,
         // before fingerprinting and CCH signing serialize the body.
         if (this.provider === "claude" || usesClaudeCodeProtocol) {
-          enforceThinkingTemperature(transformedBody as Record<string, unknown>);
+          finalizeClaudeBodyConstraints(transformedBody as Record<string, unknown>);
         }
 
         // Delegated Context Editing (opt-in): attach the clear_tool_uses strategy so
@@ -1424,6 +1380,8 @@ export class BaseExecutor {
         // Enforce peer tracing after all configurable headers have been merged so
         // operator/provider metadata cannot accidentally erase the loop guard.
         applyPeerTraceHeader(finalHeaders, clientHeaders, url);
+        // Rides `anthropic-usage-limit: slow` once this account accepted the offer.
+        const claudeSentSlow = claudeUsageLimit.applyHeader(finalHeaders, activeCredentials);
         const serializedBody = prl.parseBody(bodyString);
         // #4307 — Preserve the non-enumerable tool-name cloak/remap reverse map
         // (`_toolNameMap`, set on the live `transformedBody` by
@@ -1460,12 +1418,9 @@ export class BaseExecutor {
           body: bodyString,
         };
 
-        // OpenRouter `:free`-variant local window (#6842): record every real
-        // dispatch attempt (failed attempts still consume a request slot per
-        // OpenRouter's own accounting) and self-correct the local counters
-        // from the upstream `X-RateLimit-*` headers on the response. Scoped
-        // to `:free` models only — no-op (and no extra work) for every other
-        // OpenRouter request or provider.
+        // OpenRouter `:free`-variant local window (#6842): record every dispatch
+        // attempt and self-correct local counters from `X-RateLimit-*` headers.
+        // Scoped to `:free` models only — no-op for every other request/provider.
         const openrouterFreeWindowAccountKey =
           this.provider === "openrouter" &&
           isFreeVariantModel(model) &&
@@ -1476,9 +1431,7 @@ export class BaseExecutor {
           recordFreeWindowAttempt(openrouterFreeWindowAccountKey);
         }
 
-        // WAF burst guard: agentrouter.org's content filter becomes more
-        // aggressive after rapid requests. Enforce a small inter-request gap
-        // to avoid tripping it. See open-sse/services/wafRateLimit.ts.
+        // WAF burst guard for agentrouter.org's content filter — see wafRateLimit.ts.
         if (this.provider === "agentrouter") {
           await gateOutboundRequest(`agentrouter:${url}`);
         }
@@ -1488,6 +1441,14 @@ export class BaseExecutor {
         if (openrouterFreeWindowAccountKey) {
           correctFromRateLimitHeaders(openrouterFreeWindowAccountKey, response.headers);
         }
+
+        ({ response, finalHeaders } = await applyCopilotIdentityFallback({
+          response,
+          url,
+          fetchOptions,
+          clientHeaders,
+          fetchWithStartTimeout,
+        }));
 
         // Context Editing 400-fallback for Claude-compatible relays.
         if (
@@ -1670,6 +1631,21 @@ export class BaseExecutor {
               }
             }
           }
+        }
+
+        // Claude OAuth usage wall: accept the slow-lane offer / claim the weekly
+        // session-limit reset and retry the SAME account instead of surfacing the 429
+        // (which would cool the connection down). Runs AFTER every 400-driven retry
+        // above so it classifies the FINAL response of this attempt.
+        const claudeRetry = await claudeUsageLimit.shouldRetry(response, url, {
+          credentials: activeCredentials,
+          signal,
+          budgetMs: fetchStartTimeoutMs,
+          sentSlow: claudeSentSlow,
+        });
+        if (claudeRetry) {
+          urlIndex--; // re-run this urlIndex (header injection sees the new lane state)
+          continue;
         }
 
         // Intra-URL retry: agentrouter.org WAF returns 400 content-blocked

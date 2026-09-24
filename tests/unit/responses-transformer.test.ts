@@ -72,9 +72,22 @@ test("createResponsesApiTransformStream converts plain chat deltas into Response
   );
   assert.ok(types.includes("response.created"));
   assert.ok(types.includes("response.in_progress"));
+
+  const inProgress = JSON.parse(
+    events.find((event) => event.event === "response.in_progress").data
+  ).response;
+  assert.ok(Array.isArray(inProgress.output), "response.in_progress must include an output array");
+  assert.deepEqual(inProgress.output, []);
+
   assert.ok(types.includes("response.output_item.added"));
+  const addedItem = JSON.parse(
+    events.find((event) => event.event === "response.output_item.added").data
+  ).item;
+  assert.equal(addedItem.status, "in_progress");
+
   assert.ok(types.includes("response.output_text.done"));
   assert.equal(completed.output[0].content[0].text, "Hello");
+  assert.equal(completed.output[0].status, "completed");
   assert.deepEqual(completed.usage, {
     input_tokens: 1,
     input_tokens_details: { cached_tokens: 0 },

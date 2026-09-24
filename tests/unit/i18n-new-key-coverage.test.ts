@@ -34,13 +34,22 @@ test("a new key translated everywhere passes", () => {
   assert.deepEqual(gaps, []);
 });
 
-test("a __MISSING__ placeholder satisfies the gate — it is the documented deferral", () => {
+/**
+ * 2026-09-16: eight feature PRs added 61 keys to en.json and stamped `__MISSING__:<en>` into
+ * all 65 locales instead of translating. This gate accepted the marker as "the key reached the
+ * locale", nothing blocked the PRs, and the real-translation ratio gate then went red on the
+ * release tip for everybody (pt-BR 3.2 % > 2.5 % + 0.5). A marker is an absent translation.
+ */
+test("a new key that only carries a __MISSING__ marker is flagged", () => {
   const gaps = findUntranslatedNewKeys({
     baseEn: en(),
     headEn: en({ fresh: "Fresh" }),
-    headLocales: { pt: { ui: { existing: "Existente", fresh: "__MISSING__:Fresh" } } },
+    headLocales: {
+      pt: { ui: { existing: "Existente", fresh: "__MISSING__:Fresh" } },
+      de: { ui: { existing: "Vorhanden", fresh: "Frisch" } },
+    },
   });
-  assert.deepEqual(gaps, []);
+  assert.deepEqual(gaps, [{ key: "ui.fresh", locale: "pt" }]);
 });
 
 test("an empty string does NOT satisfy the gate", () => {

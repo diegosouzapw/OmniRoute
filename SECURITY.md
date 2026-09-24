@@ -218,6 +218,8 @@ These rules are enforced by tooling and reviewers:
 
 ## Supply-chain scanner findings (Socket.dev / Snyk / similar)
 
+> **Scope note:** `socket.yml` at the repository root only shapes `projectIgnorePaths` for Socket.dev's registry-side post-publish scan of the published npm artifact — it is not an enforced CI/PR merge gate. No workflow in `.github/workflows`, no `package.json` script, and no `Makefile` target invokes Socket.dev.
+
 The published `omniroute` npm artifact bundles the Next.js `output: "standalone"`
 build, which means every route handler — including documented privileged
 features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends

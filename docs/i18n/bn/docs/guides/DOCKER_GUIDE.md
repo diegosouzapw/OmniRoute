@@ -1,0 +1,659 @@
+# 🐳 Docker Guide — OmniRoute (বাংলা)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+
+---
+
+> সম্পূর্ণ Docker ডিপ্লয়মেন্ট রেফারেন্স। দ্রুত শুরু করার জন্য [README-এর Docker বিভাগ](../README.md#-docker) দেখুন।
+
+## সূচিপত্র
+
+- [দ্রুত চালু করা](#quick-run)
+- [এনভায়রনমেন্ট ফাইলসহ](#with-environment-file)
+- [Docker Compose](#docker-compose)
+- [উপলভ্য প্রোফাইলসমূহ](#available-profiles)
+- [OmniRoute Docker-এ চলার সময় হোস্ট CLI টুল কনফিগার করা](#configuring-host-cli-tools-when-omniroute-runs-in-docker)
+- [Redis সাইডকার](#redis-sidecar)
+- [প্রোডাকশন Compose](#production-compose)
+- [Dockerfile-এর স্টেজসমূহ](#dockerfile-stages)
+- [গুরুত্বপূর্ণ এনভায়রনমেন্ট ভেরিয়েবলসমূহ](#critical-environment-variables)
+- [Caddy (HTTPS) সহ Docker Compose](#docker-compose-with-caddy-https-auto-tls)
+- [Cloudflare Quick Tunnel](#cloudflare-quick-tunnel)
+- [ইমেজ ট্যাগসমূহ](#image-tags)
+- [উপলভ্যতা: ডিফল্ট SQLite একক-রেপ্লিকা](#availability-default-sqlite-is-single-replica)
+- [গুরুত্বপূর্ণ নোটসমূহ](#important-notes)
+
+---
+
+## দ্রুত চালু করুন
+
+> **একটি কমান্ডেই স্ব-হোস্ট করতে চান?** দেখুন
+> [স্ব-হোস্ট নির্দেশিকা](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (প্রকাশিত ইমেজ +
+> Redis, শুধুমাত্র লুপব্যাক, কোনো প্রোফাইল নির্বাচন নেই)। নিচের দ্রুত চালুর পদ্ধতিটি
+> সেই ব্যবহারকারীদের জন্য একক-কনটেইনার পদ্ধতি, যাঁরা ইতিমধ্যেই অন্যত্র Redis চালান।
+
+```bash
+docker run -d \
+  --name omniroute \
+  --restart unless-stopped \
+  --stop-timeout 40 \
+  -p 20128:20128 \
+  -v omniroute-data:/app/data \
+  diegosouzapw/omniroute:latest
+```
+
+## এনভায়রনমেন্ট ফাইলসহ
+
+```bash
+# প্রথমে .env কপি ও সম্পাদনা করুন
+cp .env.example .env
+
+docker run -d \
+  --name omniroute \
+  --restart unless-stopped \
+  --stop-timeout 40 \
+  --env-file .env \
+  -p 20128:20128 \
+  -v omniroute-data:/app/data \
+  diegosouzapw/omniroute:latest
+```
+
+## Docker Compose
+
+```bash
+# বেস প্রোফাইল (কোনো CLI টুল নেই)
+docker compose --profile base up -d
+
+# CLI প্রোফাইল (Claude Code, Codex, OpenClaw বিল্ট-ইন)
+docker compose --profile cli up -d
+
+# হোস্ট প্রোফাইল (Linux-প্রথম; হোস্ট CLI বাইনারিগুলো শুধু-পঠনযোগ্য হিসেবে মাউন্ট করে)
+docker compose --profile host up -d
+
+# ওয়েব প্রোফাইল (ওয়েব-সেশন প্রোভাইডারগুলোর জন্য Chromium/Playwright)
+docker compose --profile web up -d
+
+# CLI + CLIProxyAPI সাইডকার একত্রে ব্যবহার করুন
+docker compose --profile cli --profile cliproxyapi up -d
+```
+
+## উপলভ্য প্রোফাইলসমূহ
+
+OmniRoute প্রধান ডিপ্লয়মেন্ট ধরনগুলোর জন্য Compose প্রোফাইল সরবরাহ করে। আপনার পরিবেশের সঙ্গে মেলে এমনটি বেছে নিন।
+
+| প্রোফাইল        | সার্ভিস          | কখন ব্যবহার করবেন                                                                                                                                         | কমান্ড                                       |
+| --------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (ডিফল্ট) | `omniroute-base` | হেডলেস সার্ভার / ন্যূনতম রানটাইম, কোনো প্রোভাইডার CLI অন্তর্ভুক্ত নেই                                                                                     | `docker compose --profile base up -d`        |
+| `cli`           | `omniroute-cli`  | `omniroute providers/setup/doctor` এবং অন্তর্ভুক্ত CLI-গুলোকে (Codex, Claude Code, Droid, OpenClaw) কল করে এমন এজেন্টিক ওয়ার্কফ্লো                       | `docker compose --profile cli up -d`         |
+| `host`          | `omniroute-host` | যেসব Linux হোস্ট `~/.local/bin`, `~/.codex`, `~/.claude` ইত্যাদি শুধুমাত্র-পঠনযোগ্য হিসেবে মাউন্ট করে হোস্ট CLI-গুলোতে `network_mode`-সদৃশ অ্যাক্সেস চায় | `docker compose --profile host up -d`        |
+| `cliproxyapi`   | `cliproxyapi`    | আপস্ট্রিম CLI প্রক্সিংয়ের জন্য `8317` পোর্টে [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) সাইডকার চালান                                   | `docker compose --profile cliproxyapi up -d` |
+| `web`           | `omniroute-web`  | যেসব ওয়েব-সেশন প্রোভাইডারের ব্রাউজার প্রয়োজন: `gemini-web`, `claude-web`, `claude-turnstile` (`runner-web` বিল্ড করে, Chromium অন্তর্ভুক্ত)             | `docker compose --profile web up -d`         |
+
+> একাধিক প্রোফাইল একত্রে ব্যবহার করা যায়: `docker compose --profile cli --profile cliproxyapi up -d`।
+
+## OmniRoute Docker-এ চলার সময় হোস্ট CLI টুল কনফিগার করা
+
+`omniroute setup-codex`, `setup-claude`, `config set <tool>` এবং ড্যাশবোর্ডের
+**কনফিগ সংরক্ষণ করুন** বোতাম—সবই `~/.codex/*.config.toml`-এর মতো ফাইল লেখে। এই পাথগুলোর
+অর্থ কেবল সেই মেশিনেই রয়েছে, যেখানে CLI প্রকৃতপক্ষে চলে। এগুলো কনটেইনারের ভেতরে
+চালালে ফাইলটি কনটেইনারের নিজস্ব home-এ (`/home/node` —
+ইমেজটি `USER node` হিসেবে চলে) লেখা হয়, যেখান থেকে কোনো হোস্ট CLI কখনো এটি পড়বে না এবং
+কনটেইনারটি পুনরায় তৈরি হওয়ার সঙ্গে সঙ্গেই এটি মুছে যাবে।
+
+OmniRoute এটি শনাক্ত করে এবং আপনার কাজে আসবে না এমন সফলতার বার্তা দেখানোর পরিবর্তে
+নির্দেশনাসহ ফাইল লেখা প্রত্যাখ্যান করে: CLI `2` কোড দিয়ে বন্ধ হয় এবং API `422`
+ও `containerEphemeralTarget: true` দিয়ে উত্তর দেয়।
+
+### প্রস্তাবিত: CLI হোস্টে এবং OmniRoute Docker-এ চালান
+
+কনটেইনারটি API পরিবেশন করে; CLI আপনার হোস্ট টুলগুলো কনফিগার করে।
+
+```bash
+docker compose --profile base up -d
+
+npm install -g omniroute
+omniroute connect http://localhost:20128   # CLI-কে কনটেইনারের দিকে নির্দেশ করুন
+omniroute setup-codex                      # আপনার হোস্টের প্রকৃত ~/.codex-এ লেখে
+```
+
+Codex, Claude Code, Cursor বা অনুরূপ টুল আপনার
+ল্যাপটপে চললে এটিই সঠিক পছন্দ—যা সাধারণত প্রচলিত সেটআপ।
+
+### বিকল্প: হোস্টের কনফিগ ডিরেক্টরিগুলো bind-mount করুন (`host` প্রোফাইল)
+
+আপনি যদি কনটেইনার থেকেই হোস্টের কনফিগ লিখতে চান, তাহলে
+ডিরেক্টরিগুলো mount করুন এবং `CLI_CONFIG_HOME`-কে mount root-এর দিকে নির্দেশ করুন। `host` প্রোফাইল
+ইতোমধ্যেই এটি করে:
+
+```yaml
+environment:
+  - CLI_CONFIG_HOME=/host-home
+  - CLI_ALLOW_CONFIG_WRITES=true
+volumes:
+  - ~/.codex:/host-home/.codex:rw
+  - ~/.claude:/host-home/.claude:rw
+```
+
+একটি bind mount-ই পাথটিকে নির্ভরযোগ্য করে তোলে: OmniRoute
+`/proc/self/mountinfo` পড়ে এবং mounted পাথে (এবং যেসব ডিরেক্টরির
+সন্তানগুলো mount করা, যা ওপরের `/host-home` বিন্যাসের সঙ্গে হুবহু মেলে) ফাইল লেখার অনুমতি দেয়, একই সঙ্গে
+unmounted পাথে লেখা প্রত্যাখ্যান করে।
+
+### বিকল্প ব্যবস্থা: কনটেইনারের নিজস্ব CLI-গুলো কনফিগার করুন (সীমিতভাবে ব্যবহার করুন)
+
+CLI-গুলো যখন সত্যিই কনটেইনারের ভেতরে থাকে (`cli` প্রোফাইল), তখন ফাইল
+লেখাটি ইচ্ছাকৃত। যেকোনো `setup-*` কমান্ডে `--allow-container-write` দিন অথবা
+সার্ভারের জন্য `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` সেট করুন। ফাইল লেখা
+এগিয়ে যাবে, তবে একটি সতর্কবার্তা দেখানো হবে যে এটি কনটেইনারের স্থায়িত্বকাল অতিক্রম করে টিকবে না।
+
+> **নিরাপত্তা সতর্কতা — `cli` প্রোফাইল + `docker.sock` mount।**
+> কনটেইনারের ভেতরের auto-updater যেন হোস্ট daemon থেকে stack পুনরায় তৈরি করতে পারে,
+> সে জন্য `cli` প্রোফাইল `/var/run/docker.sock` bind-mount করে
+> (`src/lib/system/autoUpdate.ts` ওই socket-এর উপস্থিতি পরীক্ষা করে এবং সেটি
+> অনুপস্থিত থাকলে Docker পাথ এড়িয়ে যায়)। ওই socket একটি **host-root trust
+> boundary**: এতে প্রবেশাধিকার থাকা যেকোনো কিছু root হিসেবে হোস্ট Docker daemon
+> নিয়ন্ত্রণ করে—এটি হোস্টের যেকোনো কনটেইনার তৈরি, পরিদর্শন, বন্ধ এবং অপসারণ করতে পারে।
+> এর প্রভাব:
+>
+> 1. **`cli` প্রোফাইলের port কখনোই নেটওয়ার্কে উন্মুক্ত করবেন না।** এটিকে
+>    `127.0.0.1`-এ প্রকাশ করুন (`ports: "127.0.0.1:${DASHBOARD_PORT:-20128}:..."`)
+>    — LAN থেকে প্রবেশযোগ্য একটি `cli` প্রোফাইল dashboard-স্তরের যেকোনো RCE-কে
+>    সম্পূর্ণ হোস্ট দখলে পরিণত করে।
+> 2. **`cli` প্রোফাইলে অতিরিক্ত কোনো হোস্ট ডিরেক্টরি bind করবেন না।**
+>    Docker socket-এর সঙ্গে যেকোনো অতিরিক্ত mount কনটেইনারকে আপনার filesystem এবং
+>    হোস্ট কনফিগে পূর্ণ read/write প্রবেশাধিকার দেয়। কোনো টুলের একটি project দেখার
+>    প্রয়োজন হলে, CLI binary দিয়ে সেটি স্থানীয়ভাবে চালান—`cli` কনটেইনারে
+>    mount করবেন না।
+>
+> কনটেইনারের ভেতরে auto-update প্রয়োজন না হলে, `cli` প্রোফাইল বন্ধ রাখুন
+> (`COMPOSE_PROFILES=core,redis` অথবা আরও সংক্ষিপ্ত কিছু)। অন্য প্রোফাইলগুলো
+> Docker socket mount করে না।
+>
+> MITM-সংক্রান্ত threat model-এর জন্য `docs/security/MITM-TPROXY-DECRYPT.md` দেখুন (git-এ রয়েছে; `/docs`-এ compile করা হয়নি),
+> এবং `codex`/`claude-code`/`droid`/`openclaw` binary provenance chain-এর জন্য
+> `docs/security/SUPPLY_CHAIN.md` দেখুন।
+
+## Redis সাইডকার
+
+OmniRoute ডিস্ট্রিবিউটেড রেট লিমিটার এবং শেয়ার্ড ক্যাশ সমর্থন করতে Redis-এর ওপর নির্ভর করে। `redis` সার্ভিসটি `docker-compose.yml`-এ **সবসময় সংজ্ঞায়িত থাকে** (এতে কোনো প্রোফাইল গেট নেই) এবং অন্য যেকোনো প্রোফাইলের পাশাপাশি চালু হয়।
+
+| বিবরণ                   | মান                                    |
+| ----------------------- | -------------------------------------- |
+| ইমেজ                    | `redis:7-alpine`                       |
+| কনটেইনারের নাম          | `omniroute-redis`                      |
+| অভ্যন্তরীণ পোর্ট        | `6379`                                 |
+| হোস্ট পোর্ট (ওভাররাইড)  | `REDIS_PORT` (ডিফল্ট `6379`)           |
+| হোস্ট বাইন্ড (ওভাররাইড) | `REDIS_BIND_HOST` (ডিফল্ট `127.0.0.1`) |
+| ভলিউম                   | `omniroute-redis-data` → `/data`       |
+| হেলথচেক                 | `redis-cli ping` (10s ব্যবধান)         |
+
+সংশ্লিষ্ট এনভায়রনমেন্ট ভেরিয়েবলসমূহ:
+
+- `REDIS_URL` — অ্যাপে ইনজেক্ট করা সংযোগ স্ট্রিং (ডিফল্টরূপে `redis://redis:6379`)।
+- `REDIS_PORT` — Redis কনটেইনারের হোস্ট-সাইড পোর্ট ম্যাপিং।
+- `REDIS_BIND_HOST` — যে হোস্ট ইন্টারফেসে পোর্টটি প্রকাশ করা হয়। ডিফল্ট `127.0.0.1`।
+
+> **ডিফল্টরূপে লুপব্যাক কেন:** সাইডকারটি `requirepass` ছাড়াই চলে এবং অ্যাপ
+> কনটেইনারগুলো compose নেটওয়ার্কের মাধ্যমে (`redis:6379`) এতে পৌঁছায় — প্রকাশিত পোর্টটি
+> কেবল হোস্ট-সাইড টুলিংয়ের জন্য (`redis-cli`, একটি স্থানীয় `npm run dev`)। `0.0.0.0`-এ
+> প্রকাশ করলে আপনার LAN-এর প্রতিটি হোস্টের কাছে প্রমাণীকরণবিহীন Redis উন্মুক্ত হয়ে যাবে। আপনি
+> `REDIS_BIND_HOST=0.0.0.0` সেট করলে, সার্ভিসের `command:`-এও `--requirepass` যোগ করুন।
+
+**Redis নিষ্ক্রিয় করা** সুপারিশ করা হয় না (রেট লিমিটার ইন-মেমরি ফলব্যাকে অবনমিত হবে)। একান্তই প্রয়োজন হলে, `docker-compose.yml` থেকে `redis:` সার্ভিস ব্লকটি সরিয়ে দিন/কমেন্ট করুন অথবা এটিকে শূন্যে স্কেল করুন:
+
+```bash
+docker compose up -d --scale redis=0
+```
+
+## প্রোডাকশন Compose
+
+ডেভের পাশাপাশি চলমান একটি বিচ্ছিন্ন প্রোডাকশন স্ন্যাপশটের জন্য `docker-compose.prod.yml` ব্যবহার করুন।
+
+| বিবরণ                   | মান                                                                                          |
+| ----------------------- | -------------------------------------------------------------------------------------------- |
+| ফাইল                    | `docker-compose.prod.yml`                                                                    |
+| ডিফল্ট ড্যাশবোর্ড পোর্ট | `PROD_DASHBOARD_PORT=20130` (অভ্যন্তরীণ `${DASHBOARD_PORT:-20128}`-এ ম্যাপ করা)              |
+| ডিফল্ট API পোর্ট        | `PROD_API_PORT=20131`                                                                        |
+| ইমেজ                    | `omniroute:prod` (`runner-cli` টার্গেট থেকে বিল্ড করা)                                       |
+| Redis কনটেইনার          | `omniroute-redis-prod` (`redis:8.6.2`, নিবেদিত `redis-prod-data` ভলিউম)                      |
+| ডেটা ভলিউম              | `omniroute-prod-data` (নামযুক্ত, পুনরায় বিল্ডের পরও সংরক্ষিত থাকে)                          |
+| হেলথচেক                 | `node healthcheck.mjs` + `redis-cli ping`, যেখানে `depends_on` Redis-এর হেলথের ওপর নির্ভরশীল |
+
+ব্যবহারের পদ্ধতি:
+
+```bash
+# প্রোডাকশন স্ট্যাক বিল্ড ও চালু করুন
+docker compose -f docker-compose.prod.yml up -d --build
+
+# লগ স্ট্রিম করুন
+docker compose -f docker-compose.prod.yml logs -f
+
+# বন্ধ করুন (ভলিউম রেখে দিন)
+docker compose -f docker-compose.prod.yml down
+```
+
+প্রোড স্ট্যাকটি ডেভ compose-এর সমান্তরালে চলে (কনটেইনারের নাম, পোর্ট এবং ভলিউম আলাদা), তাই প্রোডাকশন চালু রেখেই আপনি স্থানীয়ভাবে কাজ চালিয়ে যেতে পারবেন।
+
+## Dockerfile ধাপসমূহ
+
+রিপোজিটরিটিতে একটি মাল্টি-স্টেজ Dockerfile (`Dockerfile`) রয়েছে। চারটি ধাপ উন্মুক্ত করা হয়েছে; আপনার ব্যবহারের ক্ষেত্র অনুযায়ী সঠিক `target` বেছে নিন।
+
+| ধাপ           | বেস ইমেজ              | উদ্দেশ্য                                                                                                                                                                                                                                                                                        |
+| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | ডিপেন্ডেন্সি ইনস্টল করে (`npm ci --legacy-peer-deps`) এবং `npm run build` চালায় (ডিফল্টভাবে Turbopack — নিচের বিল্ড-সময়ের রিসোর্স দেখুন)                                                                                                                                                      |
+| `runner-base` | `node:26-trixie-slim` | Next.js-এর স্ট্যান্ডঅ্যালোন আউটপুটসহ প্রোডাকশন রানটাইম। **কোনো প্রোভাইডার CLI অন্তর্ভুক্ত নেই।**                                                                                                                                                                                                |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` এবং গ্লোবাল CLI যোগ করে: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`। **এজেন্টিক ওয়ার্কফ্লোর জন্য এটি বেছে নিন।**                                                                                                                   |
+| `runner-web`  | `runner-base`         | ওয়েব-সেশন প্রোভাইডারগুলোর জন্য Playwright + একটি Chromium ব্রাউজার (`--with-deps`) যোগ করে: `gemini-web`, `claude-web`, `claude-turnstile`। **এই প্রোভাইডারগুলো ব্যবহার করলে এটি বেছে নিন** — এটি ছাড়া সাধারণ ইমেজটি রিকোয়েস্টের সময় ব্যর্থ হয় (রিলিজ চ্যানেলের অধীনে `-web` নোটটি দেখুন)। |
+
+নির্দিষ্ট কোনো টার্গেট ম্যানুয়ালি বিল্ড করুন:
+
+```bash
+docker build --target runner-base -t omniroute:base .
+docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
+```
+
+### বিল্ড-সময়ের রিসোর্স
+
+তিনটি বিল্ড আর্গুমেন্ট `builder` ধাপের রিসোর্স-ব্যয় নিয়ন্ত্রণ করে। এগুলো কেবল বিল্ড-সময়ের জন্য —
+`OMNIROUTE_MEMORY_MB` (নিচে) একটি পৃথক রানটাইম নিয়ন্ত্রণ।
+
+| বিল্ড আর্গুমেন্ট            | ডিফল্ট | প্রভাব                                                                                      |
+| --------------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`    | `0` হলে এর পরিবর্তে webpack দিয়ে বিল্ড করে। সর্বোচ্চ মেমোরি ব্যবহার কম, তবে ধীর।           |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | চালু করা `next build`-এর জন্য V8 হিপের সর্বোচ্চ সীমা (`--max-old-space-size`)।              |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | `CIRCLE_NODE_TOTAL`-এ মান দেয়; পেজ-ডেটা সংগ্রহের জন্য Next `workers = N - 1` নির্ধারণ করে। |
+
+বড় কোনো বিল্ডারে `OMNIROUTE_BUILD_WORKERS`-এর মান বাড়াতে হবে এবং সীমিত
+রিসোর্সের বিল্ড **`✓ Compiled successfully`-এর পরে** বন্ধ হয়ে গেলে প্রথমে এটিকেই
+সন্দেহ করতে হবে। প্রতিটি পেজ-ডেটা ওয়ার্কার একটি স্বতন্ত্র প্রসেস, এবং মূল
+`next build`-ও নিজেই একটি প্রসেস; একটি সচল VPS-এ পুনরুৎপাদনে (ইস্যু #7518)
+প্রতিটি প্রসেসের সর্বোচ্চ RSS প্রায় 4.5 GB পরিমাপ করা হয়েছিল, যা
+`NODE_OPTIONS` হিপ ফ্ল্যাগের ওপর নির্ভরশীল নয় (Turbopack, V8 হিপের বাইরের
+নেটিভ/Rust মেমোরিতে কম্পাইল করে)। `2`-এর ডিফল্ট মানটি (→ 1টি ওয়ার্কার,
+মোট 2টি প্রসেস) প্রকাশনা পাইপলাইনে ব্যবহৃত 16 GB / 4 vCPU-র GitHub-হোস্টেড
+রানারের উপযোগী করে নির্ধারণ করা হয়েছে। `8`-এ (→ 7টি ওয়ার্কার) সেই রানারের
+মেমোরি শেষ হয়ে যায় এবং buildkit ধাপটি
+`ResourceExhausted: ... cannot allocate memory` ত্রুটিতে ব্যর্থ হয়;
+প্রতি-প্রসেস RSS অনুমান না করে সরাসরি পরিমাপ করার পর দেখা গেছে, `3`-ও
+(→ 2টি ওয়ার্কার) উপযুক্ত ছিল না। `tests/unit/docker-build-memory-budget.test.ts`
+পরিমাপ করা মান ব্যবহার করে হিসাব সম্পাদন করে এবং কোনো একটি নিয়ন্ত্রণের মান
+রানারের ধারণক্ষমতা ছাড়িয়ে গেলে ব্যর্থ হয়।
+
+Turbopack এমন নেটিভ Rust মেমোরিতে কম্পাইল করে যা V8 হিপের **বাইরে** থাকে, তাই
+`OMNIROUTE_BUILD_MEMORY_MB` এটিকে সীমাবদ্ধ করে না। মেমোরি সীমাযুক্ত কোনো হোস্টে
+বিল্ডটি তখন কোনো ত্রুটি বার্তা ছাড়াই OOM killer দ্বারা SIGKILL করা হয় — এটি
+`Creating an optimized production build`-এর মাঝখানে হঠাৎ থেমে যায়, ফলে
+মেমোরি ফুরিয়ে যাওয়ার পরিবর্তে এটিকে আটকে যাওয়া বলে মনে হয়। বিল্ড হোস্টের
+রিসোর্স সীমিত হলে বান্ডলার পরিবর্তন করুন:
+
+```bash
+docker build --target runner-base \
+  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  -t omniroute:base .
+```
+
+`webpackBuildWorker` সক্রিয় করা আছে, তাই `next build` একটি মূল প্রসেস **এবং**
+একটি ওয়ার্কার প্রসেস চালায় এবং প্রতিটি পৃথকভাবে `OMNIROUTE_BUILD_MEMORY_MB`
+মানটি মেনে চলে। কনটেইনারের সীমা এই মানের এক গুণ নয়, আনুমানিক দুই গুণের বেশি
+নির্ধারণ করুন।
+
+এই ট্রিতে পরিমাপ করা হয়েছে (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+
+| বান্ডলার  | কনটেইনারের সীমা | ফলাফল                             |
+| --------- | --------------- | --------------------------------- |
+| Turbopack | 8 GiB / 16 GiB  | উভয় ক্ষেত্রেই নীরবে OOM-killed   |
+| webpack   | 8 GiB           | বিল্ড ওয়ার্কার SIGKILLed হয়েছে  |
+| webpack   | 12 GiB          | সফল হয়েছে, সর্বোচ্চ 11.1 GiB ছিল |
+
+### রানটাইমের ডিফল্ট মান
+
+`runner-base` দ্বারা এক্সপোর্ট করা ডিফল্ট মান: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`।
+
+Docker-এ মেমোরির আচরণ:
+
+- ইমেজটি `OMNIROUTE_MEMORY_MB=1024` সেট করে এবং এটি থেকে `NODE_OPTIONS=--max-old-space-size=1024` নির্ধারণ করে।
+- প্রকৃত সার্ভার প্রক্রিয়াটি standalone launcher দ্বারা চালু হয়, যা `OMNIROUTE_MEMORY_MB` পড়ে এবং `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` যোগ করে।
+- Node বারবার দেওয়া `--max-old-space-size`-এর সর্বশেষ মানটি ব্যবহার করে, তাই `OMNIROUTE_MEMORY_MB` সেট করলেই কার্যকর Docker heap সীমা নিয়ন্ত্রিত হয়।
+- ইমেজটি সবসময় এটি সেট করে বলে launcher's নিজস্ব RAM-অনুযায়ী নির্ধারিত fallback Docker-এ কখনো প্রয়োগ হয় না। কাজের চাপ অনুযায়ী এটি স্পষ্টভাবে বাড়ান (নিচের টেবিল দেখুন)। coding-agent `/v1/responses`-এর জন্য `2048`-ও এখনও খুব কম।
+
+### coding agent-এর জন্য রানটাইম RAM
+
+1 GiB Docker default হলো dashboard/হালকা chat-এর ন্যূনতম সীমা, production-এর উপযুক্ত আকার নয়। দীর্ঘ `POST /v1/responses` body (শত শত message, কয়েক ডজন tool) compression-এর সময় একাধিক in-memory graph ধরে রাখে। একই সময়ে চলা দুটি ~3 MiB / ~750k-token request **12 GiB** old-space-এ V8 বন্ধ করে দিয়েছে (`FATAL ERROR: Reached heap limit`) এবং 16 GiB cgroup OOM-ও ঘটিয়েছে। [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) দেখুন।
+
+cgroup `--memory`-এর আকার **heap-এর চেয়ে বেশি রাখুন** — native buffer, SQLite এবং compression-এর intermediate data V8-এর বাইরে থাকে।
+
+| কাজের চাপ                             | `OMNIROUTE_MEMORY_MB`     | Container / cgroup            | নোট                                                                                                          |
+| ------------------------------------- | ------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Dashboard, একটি হালকা chat            | `1024` (ইমেজের default)   | ≥2 GiB                        |                                                                                                              |
+| একটি coding agent (Claude/Codex/Grok) | `8192`                    | ≥10 GiB                       | সাধারণ একক-session `/v1/responses`                                                                           |
+| একই সময়ে দুটি দীর্ঘ `/v1/responses`  | `10240`–`12288`           | ≥12–16 GiB                    | ~12 GiB heap-এ V8 বন্ধ হয়ে যাওয়া পরিমাপ করা হয়েছে                                                         |
+| একই সময়ে তিন বা ততোধিক দীর্ঘ context | একটি process-এ চালাবেন না | ধারাবাহিকভাবে চালান / আরও RAM | default heavyweight admission-এ একই সময়ে 1টি request চলতে পারে; RAM না বাড়িয়ে এটি বাড়ালে আবার abort ঘটবে |
+
+bare metal-এ `omniroute serve`, `OMNIROUTE_MEMORY_MB` **সেট করা না থাকলে**, RAM-এর ~35% অনুযায়ী মান নির্ধারণ করে (`[512, 4096]` সীমার মধ্যে)। Docker সবসময় `1024` সেট করে, তাই official image-এ এই calibration কখনো চলে না।
+
+```bash
+docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
+  -e OMNIROUTE_MEMORY_MB=8192 --memory=10g \
+  -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
+```
+
+## গুরুত্বপূর্ণ এনভায়রনমেন্ট ভেরিয়েবলসমূহ
+
+[ENVIRONMENT.md](../reference/ENVIRONMENT.md)-এ নথিভুক্ত ডিফল্টগুলোর পাশাপাশি, Docker-এর অধীনে চালানোর সময় নিম্নলিখিত ভেরিয়েবলগুলো সবচেয়ে গুরুত্বপূর্ণ:
+
+| ভেরিয়েবল                     | উদ্দেশ্য                                                                                                                                                                                                                                                 | ডিফল্ট                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket ব্রিজের জন্য শেয়ার করা সিক্রেট। **প্রোডাকশনে আবশ্যক** — একটি শক্তিশালী র্যান্ডম স্ট্রিং নির্ধারণ করুন।                                                                                                                                        | অনির্ধারিত (প্রদান করতে হবে) |
+| `REDIS_URL`                   | রেট লিমিটার / ক্যাশ ব্যাকএন্ডের জন্য সংযোগ স্ট্রিং                                                                                                                                                                                                       | `redis://redis:6379`         |
+| `REDIS_PORT`                  | অন্তর্ভুক্ত Redis কনটেইনারের হোস্ট-সাইড পোর্ট                                                                                                                                                                                                            | `6379`                       |
+| `REDIS_BIND_HOST`             | যে হোস্ট ইন্টারফেসে অন্তর্ভুক্ত Redis পোর্ট প্রকাশিত হয় (AUTH যোগ না করলে লুপব্যাক)                                                                                                                                                                     | `127.0.0.1`                  |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | স্বয়ংক্রিয়-আপডেট ওয়ার্কফ্লোর জন্য `/workspace/omniroute`-এ `cli` প্রোফাইলের মধ্যে মাউন্ট করা হোস্ট পাথ                                                                                                                                                | `.` (বর্তমান ডিরেক্টরি)      |
+| `OMNIROUTE_MEMORY_MB`         | Docker স্বতন্ত্র সার্ভারের জন্য রানটাইম Node হিপের সর্বোচ্চ সীমা; এটি উপরের ইমেজ ডিফল্টকে ওভাররাইড করে। কোডিং এজেন্ট: `8192`+ ([রানটাইম RAM](#runtime-ram-for-coding-agents) দেখুন)।                                                                     | `1024`                       |
+| `DASHBOARD_PORT` / `API_PORT` | ড্যাশবোর্ড (20128) এবং API (20129)-এর প্রকাশিত পোর্ট ওভাররাইড করে                                                                                                                                                                                        | `20128` / `20129`            |
+| `APP_BIND_HOST`               | যে হোস্ট ইন্টারফেসে docker-compose ড্যাশবোর্ড/API/লাইভ-WS পোর্ট প্রকাশ করে। `REQUIRE_API_KEY=false` (ডিফল্ট) হলে, `0.0.0.0` বেনামী `/v1` প্রক্সিকে LAN-এ উন্মুক্ত করে — কেবল `REQUIRE_API_KEY=true` অথবা সামনে একটি রিভার্স প্রক্সি থাকলেই পরিধি বাড়ান। | `127.0.0.1`                  |
+| `CLIPROXY_BIND_HOST`          | যে হোস্ট ইন্টারফেসে docker-compose `cliproxyapi` সাইডকার প্রকাশ করে — এর ডেটা ভলিউমে প্রোভাইডারের ক্রেডেনশিয়াল সংরক্ষিত থাকে।                                                                                                                           | `127.0.0.1`                  |
+| `OMNIROUTE_PLUGINS_DIR`       | রানটাইম প্লাগইন স্ক্যানার যে ডিরেক্টরি থেকে প্লাগইন পড়ে এবং যেখানে ইনস্টল করে। প্লাগইনগুলো bind-mounted হলে এটি নির্ধারণ করুন: ডিফল্টটি `HOME` অনুসরণ করে, যা কোনো ইমেজ এক্সপোর্ট নাও করতে পারে।                                                        | `~/.omniroute/plugins`       |
+| `OMNIROUTE_BASE_PATH`         | অ্যাপটি রিভার্স প্রক্সির পেছনে প্রকাশিত হলে ব্যবহৃত URL সাবপাথ (যেমন `/omniroute`)                                                                                                                                                                       | _(খালি = রুট)_               |
+| `NEXT_PUBLIC_BASE_URL`        | সাবপাথসহ সর্বজনীন ব্রাউজার অরিজিন (যেমন `https://host/omniroute`)                                                                                                                                                                                        | অনির্ধারিত                   |
+| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml`-এর জন্য হোস্ট-সাইড ড্যাশবোর্ড পোর্ট                                                                                                                                                                                            | `20130`                      |
+| `CLIPROXYAPI_PORT`            | `cliproxyapi` সাইডকারের জন্য হোস্ট-সাইড পোর্ট                                                                                                                                                                                                            | `8317`                       |
+
+## সাবপাথে রিভার্স প্রক্সি (Traefik / nginx)
+
+Next.js-এর `basePath` standalone bundle-এর মধ্যে কম্পাইল করা হয়। OmniRoute অ্যাপের রুটে একটি sentinel ফাইলে বিল্ডের সময় নির্ধারিত মানটি সংরক্ষণ করে (`npm run build` চলাকালে লেখা হয়; `scripts/docker/ensure-docker-base-path.mjs` দ্বারা পড়া হয়) এবং কনটেইনার চালু হলে সেটিকে `OMNIROUTE_BASE_PATH`-এর সঙ্গে তুলনা করে। মান দুটি ভিন্ন হলে এবং ইমেজটি ডোমেইন রুটের জন্য বিল্ড করা হয়ে থাকলে, `node dev/run-standalone.mjs` চালু হওয়ার আগে entrypoint standalone manifest-গুলো, এম্বেড করা `basePath`/`assetPrefix` literal-গুলো (Next 16 শুধু `assetPrefix` থেকেই SSR asset URL রেন্ডার করে—patcher সাবপাথটিকেও এতে প্রতিফলিত করে), বিল্ডে অন্তর্ভুক্ত `/_next/static` asset URL-গুলো (client-reference manifest, media import, আগে থেকে রেন্ডার করা error page) এবং client `process.env` shim পুনর্লিখন করে।
+
+### Compose build (প্রস্তাবিত)
+
+`.env`-এ উভয় variable সেট করুন, তারপর পুনরায় বিল্ড করুন, যাতে ইমেজ ও runtime-এর কনফিগারেশন মিলে যায়:
+
+```bash
+# .env
+OMNIROUTE_BASE_PATH=/omniroute
+NEXT_PUBLIC_BASE_URL=https://myhostname.example.com/omniroute
+```
+
+```bash
+docker compose --profile base up -d --build
+```
+
+`docker-compose.yml`, `OMNIROUTE_BASE_PATH`-কে Docker build-arg এবং runtime environment variable—উভয় হিসেবেই পাঠায়।
+
+### আগে থেকে বিল্ড করা root image + runtime subpath
+
+প্রকাশিত `diegosouzapw/omniroute:*` image-গুলো ডোমেইন root-এর জন্য বিল্ড করা। তারপরও আপনি runtime-এ `OMNIROUTE_BASE_PATH` সেট করতে পারেন; কনটেইনার startup-এর সময় bundle-টি একবার patch করে। এর সঙ্গে মিল থাকা public origin সেট করুন:
+
+```yaml
+services:
+  omniroute:
+    image: diegosouzapw/omniroute:latest
+    environment:
+      OMNIROUTE_BASE_PATH: /omniroute
+      NEXT_PUBLIC_BASE_URL: https://myhostname.example.com/omniroute
+```
+
+**সম্পূর্ণ** external path forward করার জন্য reverse proxy কনফিগার করুন (prefix বাদ দেবেন না)। Traefik-এর `StripPrefix` ছাড়াই `PathPrefix(`/omniroute`)`-কে কনটেইনারে route করা উচিত, যাতে Next.js `/omniroute/...` পায় এবং `/omniroute/_next/...` থেকে asset পরিবেশন করে।
+
+Docker healthcheck সক্রিয় `OMNIROUTE_BASE_PATH` prefix-সহ হালকা `/healthz` lifecycle endpoint-এ probe করে। ব্যবহারকারী/dashboard-এর diagnostics-এর জন্য `/api/monitoring/health` এখনও উপলভ্য; কনটেইনারের HEALTHCHECK-কে আবার সেখানে নির্দেশ করতে (উদাহরণস্বরূপ, কঠোর health enforcement-এর জন্য), `OMNIROUTE_HEALTHCHECK_PATH=/api/monitoring/health` সেট করুন। ওই path একটি **deep** check (DB + monitoring summary)—আপনি আবার এটি ব্যবহার করার সিদ্ধান্ত নিলে Docker-এর বিরতিপূর্ণ `HEALTHCHECK`-এর জন্য উপযুক্ত, কিন্তু Kubernetes `livenessProbe` interval-এর জন্য **নয়**।
+
+Orchestrator-গুলোর জন্য (Kubernetes, Nomad ইত্যাদি):
+
+| Probe           | অগ্রাধিকার দিন                                                    | এড়িয়ে চলুন                                                      |
+| --------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Liveness        | HTTP `GET /livez`, অথবা main port-এ TCP (`PORT`, default `20128`) | liveness হিসেবে `/api/monitoring/health`                          |
+| Readiness       | HTTP `GET /healthz`                                               | event loop ব্যস্ত থাকাকে dead হিসেবে বিবেচনা করে এমন কঠোর timeout |
+| Deep / blackbox | `/api/monitoring/health`                                          | —                                                                 |
+
+`/healthz` process lifecycle (`ok` / `starting` / `stopping`) রিপোর্ট করে। `/livez` কেবল process-alive নির্দেশ করে (handler চলতে পারলেই 200 দেয়; এটি readiness-এর জন্য অপেক্ষা করে না)। উভয়ই request handling-এর একই Node event loop-এ চলে, তাই CPU-bound catalog বা compression-এর কাজ এগুলোকে বিলম্বিত করতে পারে—ব্যস্ত ≠ dead। HTTP probe timeout হলে TCP liveness-কে অগ্রাধিকার দিন। সম্পূর্ণ probe নির্দেশিকা:
+[Monitoring guide — Kubernetes probe recommendations](../ops/MONITORING_GUIDE.md#kubernetes-probe-recommendations)।
+
+## Caddy সহ Docker Compose (HTTPS Auto-TLS)
+
+Caddy-এর স্বয়ংক্রিয় SSL প্রভিশনিং ব্যবহার করে OmniRoute-কে নিরাপদে উন্মুক্ত করা যায়। নিশ্চিত করুন যে আপনার ডোমেইনের DNS A রেকর্ডটি আপনার সার্ভারের IP-এর দিকে নির্দেশ করছে।
+
+```yaml
+services:
+  omniroute:
+    image: diegosouzapw/omniroute:latest
+    container_name: omniroute
+    restart: unless-stopped
+    volumes:
+      - omniroute-data:/app/data
+    environment:
+      - PORT=20128
+      # OAuth কলব্যাক, ড্যাশবোর্ড লিংক এবং তৈরি করা পাবলিক URL-এর জন্য ব্রাউজার-মুখী অরিজিন।
+      - NEXT_PUBLIC_BASE_URL=https://your-domain.com
+      # নির্ধারিত কাজ / স্বয়ংক্রিয় ফেচের জন্য অভ্যন্তরীণ সার্ভার-টু-সার্ভার URL।
+      - BASE_URL=http://omniroute:20128
+      - AUTH_COOKIE_SECURE=true
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    command: caddy reverse-proxy --from https://your-domain.com --to http://omniroute:20128
+
+volumes:
+  omniroute-data:
+```
+
+Caddy আপস্ট্রিম কনটেইনারের জন্য স্ট্যান্ডার্ড ফরওয়ার্ডিং হেডার সেট করে। OAuth কলব্যাক এবং তৈরি করা পাবলিক
+লিংকের ক্যানোনিক্যাল পাবলিক অরিজিন হিসেবে OmniRoute `NEXT_PUBLIC_BASE_URL` ব্যবহার করে;
+প্রমাণীকৃত ড্যাশবোর্ড রাইটগুলো একই-অরিজিন রিকোয়েস্টের পাশাপাশি সেশন-সংযুক্ত CSRF
+সুরক্ষা ব্যবহার করে। কেবল উন্নত ডিপ্লয়মেন্টের ক্ষেত্রে `OMNIROUTE_TRUST_PROXY` সক্রিয় করুন, যেখানে আপনি স্পষ্ট
+কনফিগারেশনের পরিবর্তে বিশ্বস্ত ফরওয়ার্ডেড হেডার থেকে OmniRoute-কে ইচ্ছাকৃতভাবে পাবলিক অরিজিন
+নির্ধারণ করতে দিতে চান।
+
+## Cloudflare Quick Tunnel
+
+Docker ডিপ্লয়মেন্টের জন্য ড্যাশবোর্ড সমর্থনে `Dashboard → Endpoints`-এ এক ক্লিকে চালু করার মতো একটি **Cloudflare Quick Tunnel** অন্তর্ভুক্ত রয়েছে। প্রথমবার সক্রিয় করলে কেবল প্রয়োজনের সময় `cloudflared` ডাউনলোড হয়, আপনার বর্তমান `/v1` এন্ডপয়েন্টে একটি অস্থায়ী টানেল চালু হয় এবং আপনার সাধারণ পাবলিক URL-এর ঠিক নিচে তৈরি করা `https://*.trycloudflare.com/v1` URL দেখানো হয়।
+
+সক্রিয় টানেলের অবস্থা পরিবর্তন না করেই `Settings → Appearance` থেকে এন্ডপয়েন্ট টানেল প্যানেলগুলো (Cloudflare, Tailscale, ngrok) দেখানো বা লুকানো যায়।
+
+### টানেল-সংক্রান্ত নোট
+
+- Quick Tunnel URL অস্থায়ী এবং প্রতিবার পুনরায় চালু করার পর পরিবর্তিত হয়।
+- OmniRoute বা কনটেইনার পুনরায় চালু হওয়ার পর Quick Tunnel স্বয়ংক্রিয়ভাবে পুনরুদ্ধার হয় না। প্রয়োজন হলে ড্যাশবোর্ড থেকে সেগুলো পুনরায় সক্রিয় করুন।
+- পরিচালিত ইনস্টলেশন বর্তমানে `x64` / `arm64`-এ Linux, macOS এবং Windows সমর্থন করে।
+- সীমাবদ্ধ কনটেইনার পরিবেশে কোলাহলপূর্ণ QUIC UDP বাফার সতর্কতা এড়াতে পরিচালিত Quick Tunnel ডিফল্টভাবে HTTP/2 ট্রান্সপোর্ট ব্যবহার করে। ভিন্ন ট্রান্সপোর্ট চাইলে `CLOUDFLARED_PROTOCOL=quic` বা `auto` সেট করুন।
+- Docker ইমেজে সিস্টেম CA রুট অন্তর্ভুক্ত থাকে এবং সেগুলো পরিচালিত `cloudflared`-এ পাঠানো হয়, যা কনটেইনারের ভেতরে টানেল বুটস্ট্র্যাপ হওয়ার সময় TLS ট্রাস্ট ব্যর্থতা এড়ায়।
+- OmniRoute যেন ডাউনলোড করার পরিবর্তে আগে থেকেই থাকা একটি বাইনারি ব্যবহার করে, তা চাইলে `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` সেট করুন।
+
+## ইমেজ ট্যাগসমূহ
+
+| ইমেজ                     | ট্যাগ    | আকার   | বিবরণ                                                   |
+| ------------------------ | -------- | ------ | ------------------------------------------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | সর্বোচ্চ **প্রকাশিত** স্থিতিশীল SemVer (git `main` নয়) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps-এর জন্য এই শ্রেণির ট্যাগ পিন করুন                |
+
+মাল্টি-প্ল্যাটফর্ম ম্যানিফেস্ট: নেটিভ `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi)। Docker স্বয়ংক্রিয়ভাবে উপযুক্ত আর্কিটেকচার নির্বাচন করে; ARM হোস্টে AMD64 ইমুলেশন বাধ্যতামূলক করতে হলে `--platform linux/amd64` দিন।
+
+### রিলিজ চ্যানেলসমূহ
+
+OmniRoute স্থিতিশীল রিলিজ, সক্রিয় রিলিজ-ব্রাঞ্চ পরীক্ষা এবং ডেভেলপমেন্ট বিল্ডের জন্য পৃথক Docker চ্যানেল প্রকাশ করে।
+
+| চ্যানেল                         | উৎস                                    | পরিবর্তনযোগ্যতা                     | প্রস্তাবিত ব্যবহার                                                                                                     |
+| ------------------------------- | -------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | স্বাক্ষরিত/সংস্করণযুক্ত রিলিজ          | অপরিবর্তনীয়                        | নির্দিষ্ট একটি রিলিজ পিন করা প্রোডাকশন ডিপ্লয়মেন্ট                                                                    |
+| `:latest` / `:latest-web`       | সর্বোচ্চ **প্রকাশিত** স্থিতিশীল SemVer | পরিবর্তনযোগ্য স্থিতিশীল পয়েন্টার   | একটি SemVer প্রকাশনা জবের **পরে** স্থিতিশীল রিলিজ অনুসরণ করে — `main` বা অপ্রকাশিত `release/v*` কমিট অনুসরণ করে **না** |
+| `:next` / `:next-web`           | বর্তমান ডিফল্ট `release/v*` ব্রাঞ্চ    | পরিবর্তনযোগ্য প্রি-রিলিজ পয়েন্টার  | সক্রিয় রিলিজ ব্রাঞ্চে যুক্ত হয়েছে কিন্তু এখনো স্থিতিশীল রিলিজে অন্তর্ভুক্ত হয়নি—এমন সংশোধন পরীক্ষা করা              |
+| `:main` / `:main-web`           | `main` ব্রাঞ্চ                         | পরিবর্তনযোগ্য ডেভেলপমেন্ট পয়েন্টার | শুধু ডেভেলপমেন্ট এবং ইন্টিগ্রেশন পরীক্ষা                                                                               |
+
+#### ওয়েব-সেশন প্রোভাইডার: `-web` ইমেজসমূহ
+
+উপরের প্রতিটি চ্যানেলের একটি করে `-web` ট্যাগও রয়েছে (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), যা `runner-web` স্টেজ থেকে তৈরি—একই ইমেজের সঙ্গে Playwright এবং একটি Chromium ব্রাউজার যোগ করা হয়েছে। সাধারণ ইমেজটি Chromium **ছাড়াই** সরবরাহ করা হয়; `gemini-web`, `claude-web` এবং `claude-turnstile`-এর এটি প্রয়োজন।
+
+ব্যর্থতাটি স্টার্টআপের সময় নয়, পরে ঘটে: এসব প্রোভাইডার তাদের মডেলগুলো তালিকাভুক্ত করে এবং ড্যাশবোর্ডে সংযুক্ত হিসেবে দেখা যায়, কিন্তু শুধু প্রথম অনুরোধটিই নিচের ত্রুটিসহ ব্যর্থ হয়
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+আপনি এসব প্রোভাইডার ব্যবহার করলে, বর্তমানে ব্যবহৃত চ্যানেলের `-web` ট্যাগটি পুল করুন—অন্য কিছু পরিবর্তন করতে হবে না। npm/CLI ইনস্টলে (Docker ইমেজ ছাড়া), সমতুল্য অনুপস্থিত উপাদানটি হলো ব্রাউজার বাইনারি: হোস্টে `npx playwright install chromium` চালান।
+
+#### প্রি-রিলিজ চ্যানেল ব্যবহার করা
+
+বর্তমান ডিফল্ট `release/v*` ব্রাঞ্চে প্রতিবার পুশের সময় `next` চ্যানেলটি পুনরায় তৈরি হয় এবং AMD64 ও ARM64—উভয়ের জন্য প্রকাশিত হয়। পুরোনো মেইনটেন্যান্স ব্রাঞ্চগুলো এটিকে ওভাররাইট করতে পারে না। পরবর্তী স্থিতিশীল ট্যাগ তৈরির আগে সক্রিয় রিলিজ ব্রাঞ্চে মার্জ হওয়া সংশোধনগুলোর জন্য এই চ্যানেলটি একটি পুলযোগ্য ইমেজ দেয়।
+
+```bash
+docker pull diegosouzapw/omniroute:next
+docker pull diegosouzapw/omniroute:next-web
+```
+
+Docker Compose-এর জন্য, নির্বাচিত প্রোফাইলে ব্যবহৃত ইমেজ ট্যাগ ওভাররাইড করুন, তারপর সার্ভিসটি পুল করে পুনরায় তৈরি করুন:
+
+```yaml
+services:
+  omniroute:
+    image: diegosouzapw/omniroute:next
+```
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+#### নিরাপত্তা এবং রোলব্যাক
+
+`next` একটি পরিবর্তনশীল প্রি-রিলিজ চ্যানেল। সক্রিয় রিলিজ ব্রাঞ্চে যেকোনো পুশের সঙ্গে এটি পরিবর্তিত হতে পারে এবং প্রোডাকশন ব্যবহারের জন্য **সমর্থিত নয়**। নির্দিষ্ট একটি বিল্ড মূল্যায়নের সময় ইমেজ ডাইজেস্ট পিন করুন:
+
+```bash
+docker pull diegosouzapw/omniroute:next
+docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
+```
+
+পরীক্ষার আগে OmniRoute ডেটা ভলিউম বা bind-mounted ডেটা ডিরেক্টরি ব্যাকআপ করুন। রোলব্যাক করতে আগে ব্যবহৃত স্থিতিশীল সংস্করণ বা ডাইজেস্ট পুনরুদ্ধার করুন এবং কনটেইনারটি পুনরায় তৈরি করুন:
+
+```bash
+docker pull diegosouzapw/omniroute:<stable-version>
+docker compose up -d
+```
+
+রিলিজ-ব্রাঞ্চের কোনো বিল্ড কখনোই `latest` সরাতে পারে না; শুধু উপযুক্ত একটি স্থিতিশীল semantic version স্থিতিশীল পয়েন্টারটিকে উন্নীত করতে পারে। `next` ইমেজগুলো রিলিজ ইমেজ পরিদর্শন এবং ব্লকিং CRITICAL-দুর্বলতা গেট বজায় রাখে।
+
+**`latest` git-এর সাম্প্রতিকতার নিশ্চয়তা নয়।** `main` বা সক্রিয় `release/v*` ব্রাঞ্চে মার্জ করা সংশোধনগুলো একটি স্থিতিশীল SemVer ইমেজ প্রকাশিত না হওয়া এবং প্রকাশনা জবটি `:latest`-কে উন্নীত না করা পর্যন্ত `:latest`-এ থাকে **না** (সেই SemVer-এর মতো একই ডাইজেস্ট)। GitHub-এ সংশোধনটি ইতিমধ্যে দেখা গেলেও `latest` অপরিবর্তিত মনে হলে, রিলিজ ব্রাঞ্চ পরীক্ষা করতে `:next` পুল করুন অথবা SemVer ট্যাগের জন্য অপেক্ষা করুন।
+
+| আপনার প্রয়োজন                                                                      | ব্যবহার করুন                           |
+| ----------------------------------------------------------------------------------- | -------------------------------------- |
+| পরিবর্তনমুক্ত GitOps / প্রোডাকশন                                                    | `:X.Y.Z` পিন করুন (অথবা ইমেজ ডাইজেস্ট) |
+| প্রকাশিত স্থিতিশীল রিলিজ অনুসরণ করা এবং প্রতিটি রিলিজে পুনরায় তৈরি করা মেনে নেওয়া | `:latest`                              |
+| অপ্রকাশিত `release/v*` কমিট পরীক্ষা করা                                             | `:next` (প্রোডাকশনের জন্য নয়)         |
+| `main` পরীক্ষা করা                                                                  | `:main` (প্রোডাকশনের জন্য নয়)         |
+
+## উপলভ্যতা: ডিফল্ট SQLite একক-রেপ্লিকা
+
+স্ট্যান্ডার্ড Docker / Kubernetes OmniRoute হলো **একটি Node প্রসেস + একটি SQLite রাইটার**। এই টপোলজিতে উচ্চ উপলভ্যতা **সমর্থিত নয়**।
+
+| সীমাবদ্ধতা                                 | পরিণতি                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| একক রাইটার                                 | একই SQLite ফাইলের বিপরীতে একাধিক রেপ্লিকা চালাবেন **না**। এতে DB ক্ষতিগ্রস্ত হয়।                                                                                                                                                                                                                                                |
+| পুনরায় তৈরি / রিস্টার্ট / HEALTHCHECK কিল | চলমান SSE, ড্যাশবোর্ড সেশন এবং ইন-মেমরি স্টেটের **সম্পূর্ণ বিভ্রাট**। সংযুক্ত প্রতিটি ক্লায়েন্টের সংযোগ বিচ্ছিন্ন হয়। এন্ডপয়েন্ট-শূন্য উইন্ডোতে নতুন অনুরোধগুলো OmniRoute JSON-এর পরিবর্তে রিভার্স-প্রক্সি **`502 Bad Gateway: Unknown error`** পায় — ক্লায়েন্ট এটিকে প্রোভাইডার ব্যর্থতা থেকে আলাদা করতে পারে না (#11015)। |
+| `/healthz`-এর মতো একই ইভেন্ট লুপ           | ব্যস্ত ক্যাটালগ বা কম্প্রেশন টিক প্রোব বিলম্বিত করতে পারে; তখন স্বল্প টাইমআউট **একমাত্র** রেপ্লিকাটি রিস্টার্ট করে।                                                                                                                                                                                                              |
+
+**প্রোব ম্যাট্রিক্স** ([Kubernetes প্রোবের সুপারিশ](../ops/MONITORING_GUIDE.md#kubernetes-probe-recommendations)-ও দেখুন):
+
+| প্রোব                       | লক্ষ্য                                                  | ব্যবহার করবেন না                                             |
+| --------------------------- | ------------------------------------------------------- | ------------------------------------------------------------ |
+| লাইভনেস                     | `PORT`-এ TCP (ডিফল্ট `20128`), অথবা সফট HTTP `/healthz` | `/api/monitoring/health`                                     |
+| রেডিনেস                     | HTTP `GET /healthz`                                     | এমন কঠোর টাইমআউট, যা ব্যস্ত ইভেন্ট লুপকে মৃত হিসেবে গণ্য করে |
+| গভীর পরীক্ষা / মানুষের জন্য | `/api/monitoring/health`                                | স্বয়ংক্রিয় kubelet লাইভনেস                                 |
+
+**আপগ্রেড:** প্রতিটি সেশন বিচ্ছিন্ন হবে বলে ধরে নিন। সম্ভব হলে ক্লায়েন্টগুলো ড্রেইন করুন; ডিফল্ট SQLite-এ কোনো রোলিং আপডেট নেই। Compose-এর `restart: unless-stopped` এবং Docker-এর `HEALTHCHECK` কনটেইনারটি Unhealthy হলে একমাত্র প্রসেসটিকেও প্রতিস্থাপন করবে — প্রভাবের পরিধি একই।
+
+একটি **একক রেপ্লিকা**-র জন্য Kubernetes স্নিপেট (Recreate আবশ্যক; একটি SQLite ফাইলের বিপরীতে `replicas` বাড়াবেন না):
+
+```yaml
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      terminationGracePeriodSeconds: 90
+      containers:
+        - name: omniroute
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sleep", "15"]
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 20128
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 20128
+            periodSeconds: 20
+```
+
+`preStop`-এর sleep SIGTERM-এর আগে kube-কে Service এন্ডপয়েন্ট সরিয়ে ফেলার সুযোগ দেয়, যাতে **নতুন** ট্রাফিক বন্ধ হতে থাকা প্রসেসে পৌঁছানো বন্ধ করে। চলমান `/v1/responses` SSE হেভিওয়েট অ্যাডমিশন লিজের মাধ্যমে `SHUTDOWN_TIMEOUT_MS` (ডিফল্ট 30s) পর্যন্ত ড্রেইন করা হয় (#11015)। এরপরও প্রসেসে পৌঁছানো নতুন অনুরোধ `503` + `Retry-After: 5` পায়। প্রতিস্থাপনটি Ready হওয়া পর্যন্ত Recreate-এর এন্ডপয়েন্ট-শূন্য ব্যবধানটি একটি সম্পূর্ণ বিভ্রাট হিসেবেই থাকে — এটি SQLite টপোলজির বৈশিষ্ট্য, প্রোবের ভুল কনফিগারেশন নয়।
+
+বহিঃস্থ Postgres / মাল্টি-রাইটার HA কোনো নথিভুক্ত স্ট্যান্ডার্ড পাথ **নয়**। আপনার HA প্রয়োজন হলে একটি একক রেপ্লিকা বজায় রাখুন, অথবা এমন একটি টপোলজি চালান যা প্রজেক্টটি আলাদাভাবে পরীক্ষা ও নথিভুক্ত করেছে। Postgres/MySQL-এর কাজ [#8075](https://github.com/diegosouzapw/OmniRoute/issues/8075)-এ রয়েছে। সেটি প্রকাশিত না হওয়া পর্যন্ত **বড়** `/v1/responses`-এর সক্ষমতা বাড়ানোর একমাত্র সমর্থিত উপায় হলো Nটি স্বাধীন প্রসেস (পরবর্তী বিভাগ), একটি ভলিউমে `replicas > 1` নয়।
+
+## স্কেল-আউট: Nটি স্বাধীন প্রসেস
+
+একটি Node প্রসেস হলো **একটি V8 heap**। পরস্পর ওভারল্যাপ করা দুটি ~3 MiB / ~750k-token coding-agent `POST /v1/responses` (RTK + Caveman) ~12 Gi-তে সেই heap-কে অ্যাবোর্ট করায় (`FATAL ERROR: Reached heap limit`) এবং একটি 16 Gi cgroup-কে OOM করাতে পারে। দেখুন [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)। এই পরিমাপটি একটি **মেমরি-বাজেট** সতর্কতা, একই সময়ে সর্বোচ্চ দুটি দীর্ঘ `/v1/responses`-এর কোনো প্রোডাক্ট-স্তরের কঠোর সীমা নয়। হেভিওয়েট চ্যাটের অ্যাডমিশন একটি স্বয়ংক্রিয়ভাবে নির্ধারিত ইনজেস্ট বাইট বাজেট (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, `src/shared/middleware/admissionBudget.ts`) দ্বারা নিয়ন্ত্রিত হয়, যা একই V8/cgroup সীমা থেকে নির্ধারিত—আগেই সাইজ করা কোনো প্রসেসে এটিকে বাড়িয়ে ওভাররাইড করলে (অথবা লিগ্যাসি `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` রিকোয়েস্ট-কাউন্ট সীমা সেট করলে) আবারও অ্যাবোর্ট হওয়ার ঝুঁকি ফিরে আসে। ছোট চ্যাট, `/healthz`, `/v1/models`, এবং MCP এই সীমার অন্তর্ভুক্ত **নয়**।
+
+### এক প্রসেস: দুটির বেশি দীর্ঘ `/v1/responses`
+
+একটি **সুস্থ** প্রসেস (heap `OMNIROUTE_CHAT_ADMISSION_HEAP_SHED_RATIO`-এর নিচে, ডিফল্ট `0.75`) একই সময়ে দুটির বেশি দীর্ঘ `POST /v1/responses` চালাতে **পারে**, যদি প্রসেসজুড়ে প্রযোজ্য ইনফ্লাইট-বাইট বাজেটে (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` / #10110) এখনও জায়গা থাকে। `OMNIROUTE_CHAT_LARGE_BODY_BYTES`-এর সমান বা বেশি আকারের body (ডিফল্ট 256 KiB) স্ট্রাকচার-হেভি রিকোয়েস্টের মতো একই হেভিওয়েট লিজ নেয় এবং একই [#10437](https://github.com/diegosouzapw/OmniRoute/pull/10437) `tryAcquireHealthyHeadroom` এস্কেপ (`OMNIROUTE_CHAT_ADMISSION_HEALTHY_HEADROOM`) ব্যবহার করে। একই সময়ে কয়েক দশক দীর্ঘ SSE ক্লায়েন্ট চালানো (অপারেটরদের প্রায়ই 40–50টি প্রয়োজন হয়) একটি **মেমরি-বাজেট**-সংক্রান্ত বিষয়—heap + primary/headroom slot + `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` যথাযথভাবে সাইজ করুন—এটি প্রোডাক্টের কঠোর “সর্বোচ্চ 2” সীমা নয়। চাপের মুখে থাকা heap তখনও পুনরায় চেষ্টা করা যায় এমন `503` দিয়ে লোড ঝরিয়ে দেয়, যাতে #7849 ফিরে না আসে।
+
+**একাধিক heap তৈরি করতে** (স্বাধীন V8 old-space) **বর্তমানে**:
+
+| যা করবেন                                                                                                                                             | যা করবেন না                                                                    |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **Nটি container/pod** চালান, প্রতিটির **নিজস্ব** `DATA_DIR` / volume সহ                                                                              | একটি SQLite ফাইলের বিপরীতে `replicas > 1` সেট করবেন না                         |
+| heap / inflight-byte budget অনুযায়ী heavy in-flight + healthy-headroom সাইজ করুন; 1–2 হলো রক্ষণশীল #7849 ডিফল্ট, প্রোডাক্টের কঠোর সর্বোচ্চ সীমা নয় | একটি প্রসেসকে 8× RAM ও সীমাহীন count cap দেবেন না                              |
+| ঐচ্ছিক: **শেয়ার করা quota counter**-এর জন্য `QUOTA_STORE_DRIVER=redis` + `QUOTA_STORE_REDIS_URL`                                                    | Redis-কে shared SQLite হিসেবে বিবেচনা করবেন না—এটি তা নয়                      |
+| প্রতিটি instance-এ provider secret অনুলিপি করুন (অথবা বিভক্ত dashboard মেনে নিন)                                                                     | instance-গুলোর মধ্যে একটি dashboard / একটি call-log পাওয়ার প্রত্যাশা করবেন না |
+| সামনে যেকোনো load balancer ব্যবহার করুন; API key বা session অনুযায়ী sticky routing-ই যথেষ্ট                                                         | vendor-নির্দিষ্ট size-aware middleware আবশ্যক বলে ধরে নেবেন না                 |
+
+হার্ডওয়্যার: প্রতি instance-এ একই সময়ে কতগুলো দীর্ঘ `/v1/responses` চলবে, তা একটি **মেমরি-বাজেট**-সংক্রান্ত বিষয় (heap + inflight-byte / #10110)। `N`টি স্বাধীন `DATA_DIR` তখনও heap-এর সংখ্যা গুণ করে: host RAM-কে `N × cgroup` ধারণ করতে হবে, “N=8-সহ একটি 16 Gi pod” নয়। একটি SQLite ফাইলে কখনোই `replicas > 1` ব্যবহার করবেন না।
+
+Compose-এর নমুনা (দুটি heap, দুটি volume—`deploy.replicas: 2` নয়):
+
+```yaml
+services:
+  omniroute-a:
+    image: diegosouzapw/omniroute:3.8.49
+    environment:
+      DATA_DIR: /app/data
+      OMNIROUTE_MEMORY_MB: "12288"
+      QUOTA_STORE_DRIVER: redis
+      QUOTA_STORE_REDIS_URL: redis://redis:6379
+    volumes: [omniroute-a-data:/app/data]
+    ports: ["20128:20128"]
+  omniroute-b:
+    image: diegosouzapw/omniroute:3.8.49
+    environment:
+      DATA_DIR: /app/data
+      OMNIROUTE_MEMORY_MB: "12288"
+      QUOTA_STORE_DRIVER: redis
+      QUOTA_STORE_REDIS_URL: redis://redis:6379
+    volumes: [omniroute-b-data:/app/data]
+    ports: ["20138:20128"]
+volumes:
+  omniroute-a-data:
+  omniroute-b-data:
+```
+
+ইন-প্রসেস ঘনত্ব (HTTP isolate-এর বাইরে compression) হলো [#11023](https://github.com/diegosouzapw/OmniRoute/issues/11023)। শেয়ার করা টেকসই state-এর ওপর একটি যৌক্তিক cluster হলো [#8075](https://github.com/diegosouzapw/OmniRoute/issues/8075)।
+
+## গুরুত্বপূর্ণ নোটসমূহ
+
+- **SQLite WAL মোড:** `docker stop`-কে সম্পন্ন হওয়ার সুযোগ দিতে হবে, যাতে OmniRoute সর্বশেষ পরিবর্তনগুলো `storage.sqlite`-এ চেকপয়েন্ট করতে পারে। সংযুক্ত Compose ফাইলগুলোতে ইতোমধ্যেই 40s স্টপ গ্রেস পিরিয়ড নির্ধারণ করা আছে। আপনি সরাসরি ইমেজটি চালালে `--stop-timeout 40` বজায় রাখুন।
+- **`DISABLE_SQLITE_AUTO_BACKUP`:** নিয়মিত/লেখার-পূর্ববর্তী ব্যাকআপ বাহ্যিকভাবে পরিচালিত হলে এটি `true`-তে সেট করুন। বিদ্যমান ডেটাবেসের মাইগ্রেশনের জন্য এখনও নিজস্ব টেকসই সুরক্ষা স্ন্যাপশট এবং গণ-মাইগ্রেশন সুরক্ষা প্রয়োজন।
+- **ডেটার স্থায়িত্ব:** কনটেইনার পুনরায় চালু হওয়ার পরও আপনার ডেটাবেস, কী এবং কনফিগারেশন সংরক্ষণ করতে সর্বদা `/app/data`-তে একটি ভলিউম মাউন্ট করুন।
+- **পোর্ট কনফিগারেশন:** ডিফল্ট `20128` পোর্ট পরিবর্তন করতে `PORT` এনভায়রনমেন্ট ভেরিয়েবল ওভাররাইড করুন।
+
+## আরও দেখুন
+
+- [VM ডিপ্লয়মেন্ট নির্দেশিকা](../ops/VM_DEPLOYMENT_GUIDE.md) — VM + nginx + Cloudflare সেটআপ
+- [Fly.io ডিপ্লয়মেন্ট নির্দেশিকা](../ops/FLY_IO_DEPLOYMENT_GUIDE.md) — Fly.io-তে ডিপ্লয় করুন
+- [এনভায়রনমেন্ট কনফিগারেশন](../reference/ENVIRONMENT.md) — সম্পূর্ণ `.env` রেফারেন্স

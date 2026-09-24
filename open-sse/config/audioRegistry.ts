@@ -8,6 +8,7 @@
  */
 
 import { getProviderAlias } from "@/shared/constants/providers";
+import { isLoopbackNodeHost } from "@/shared/network/loopbackNodeHost";
 
 interface AudioModel {
   id: string;
@@ -463,9 +464,14 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "bearer",
     format: "fishaudio",
     models: [
+      { id: "s2.1-pro-free", name: "Fish Speech S2.1 Pro Free" },
+      { id: "s2.1-pro", name: "Fish Speech S2.1 Pro" },
+      { id: "s2-pro", name: "Fish Speech S2 Pro" },
       { id: "s1", name: "Fish Speech S1" },
-      { id: "speech-1.6", name: "Fish Speech 1.6" },
-      { id: "speech-1.5", name: "Fish Speech 1.5" },
+      // Legacy ids kept for existing clients even though Fish no longer lists them
+      // in the current public model enum.
+      { id: "speech-1.6", name: "Fish Speech 1.6 (legacy)" },
+      { id: "speech-1.5", name: "Fish Speech 1.5 (legacy)" },
     ],
   },
 
@@ -628,19 +634,12 @@ export interface ProviderNodeRow {
   apiType?: string;
 }
 
-/** Hosts reachable only from the operator's machine/Docker network. */
-export function isLoopbackNodeHost(baseUrl: string): boolean {
-  try {
-    const hostname = new URL(baseUrl).hostname;
-    return (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
-    );
-  } catch {
-    return false;
-  }
-}
+/**
+ * Hosts reachable only from the operator's machine/Docker network.
+ * Re-exported from the shared module so the audio, rerank, and local-health-check paths
+ * agree on one definition (the shared version additionally rejects `user@host` URLs).
+ */
+export { isLoopbackNodeHost };
 
 /**
  * Build a dynamic AudioProvider from a provider_node DB entry.

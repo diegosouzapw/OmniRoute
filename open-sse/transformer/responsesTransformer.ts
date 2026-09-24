@@ -7,6 +7,8 @@ import {
 } from "../utils/reasoningPlaceholder.ts";
 import * as fs from "fs";
 import * as path from "path";
+import { resolveRequestToolIdentity } from "../translator/response/openai-responses/requestToolIdentity.ts";
+import { plaintextCollaborationFields } from "../translator/response/openai-responses/collaborationPlaintextMarker.ts";
 
 // #10223: threshold for detecting corrupted request_id fields. Normal
 // request IDs are <100 chars. DeepSeek's SSE encoder bug produces 200+
@@ -192,9 +194,18 @@ export function createResponsesLogger(model, logsDir = null) {
 export function createResponsesApiTransformStream(
   logger = null,
   keepaliveIntervalMs = 3000,
-  options: { customToolNames?: Iterable<string> } = {}
+  options: {
+    customToolNames?: Iterable<string>;
+    requestToolIdentityMap?: ReadonlyMap<string, unknown> | null;
+  } = {}
 ) {
   const customToolNames = new Set(options.customToolNames || []);
+  // #14154 — #7936-style {namespace, name} identity restoration was missing
+  // entirely on this emitter (unlike the streaming translator / non-streaming
+  // client translator). Carried through so function_call/custom_tool_call
+  // items round-trip their namespace, and so the collaboration plaintext
+  // marker below can be gated on the restored namespace.
+  const requestToolIdentityMap = options.requestToolIdentityMap ?? null;
   const state = {
     seq: 0,
     responseId: `resp_${Date.now()}`,
@@ -297,6 +308,7 @@ export function createResponsesApiTransformStream(
           id: state.reasoningId,
           type: "reasoning",
           summary: [],
+          status: "in_progress",
         },
       });
 
@@ -347,6 +359,7 @@ export function createResponsesApiTransformStream(
         id: state.reasoningId,
         type: "reasoning",
         summary: [{ type: "summary_text", text: state.reasoningBuf }],
+        status: "completed",
       };
 
       emit(controller, "response.output_item.done", {
@@ -388,6 +401,7 @@ export function createResponsesApiTransformStream(
         type: "message",
         content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
         role: "assistant",
+        status: "completed",
       };
 
       emit(controller, "response.output_item.done", {
@@ -438,7 +452,7 @@ export function createResponsesApiTransformStream(
         ...(customTool ? { input: "" } : { arguments: "" }),
         call_id: state.funcCallIds[idx],
         name: state.funcNames[idx] || "",
-        ...(customTool ? { status: "in_progress" } : {}),
+        status: "in_progress",
       },
     });
     return true;
@@ -519,8 +533,20 @@ export function createResponsesApiTransformStream(
           arguments: args,
           call_id: callId,
           name: toolName,
+          status: "completed",
         };
       }
+
+      // #14154 — restore the request-declared {namespace, name} identity (matching
+      // the streaming translator / non-streaming client translator, #7936) and, when
+      // the restored identity is a Codex collaboration call, stamp the
+      // encrypted_function_args:[] plaintext-delivery marker Codex requires.
+      const identity = resolveRequestToolIdentity(requestToolIdentityMap, toolName);
+      if (identity) {
+        funcItem.namespace = identity.namespace;
+        funcItem.name = identity.name;
+      }
+      Object.assign(funcItem, plaintextCollaborationFields(funcItem.namespace, funcItem.name));
 
       emit(controller, "response.output_item.done", {
         type: "response.output_item.done",
@@ -678,6 +704,9 @@ export function createResponsesApiTransformStream(
                 object: "response",
                 created_at: state.created,
                 status: "in_progress",
+                background: false,
+                error: null,
+                output: [],
               },
             });
           }
@@ -763,7 +792,13 @@ export function createResponsesApiTransformStream(
                   emit(controller, "response.output_item.added", {
                     type: "response.output_item.added",
                     output_index: msgIdx,
-                    item: { id: msgId, type: "message", content: [], role: "assistant" },
+                    item: {
+                      id: msgId,
+                      type: "message",
+                      content: [],
+                      role: "assistant",
+                      status: "in_progress",
+                    },
                   });
                 }
 

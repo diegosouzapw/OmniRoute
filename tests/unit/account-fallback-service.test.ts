@@ -1196,6 +1196,22 @@ test("isCreditsExhausted returns true for actual credits-exhausted signals", () 
   );
 });
 
+test("isCreditsExhausted matches FriendliAI credit-exhaustion 403 body (#13040)", () => {
+  // FriendliAI returns HTTP 403 with body {"detail":"You've exhausted all your
+  // credits..."} when free tier credits are depleted via Adaptive Rate Limits.
+  // Before #13040 this fell through every quota/credits check to the generic
+  // 403 -> AUTH_ERROR fallback; the signal below routes it to QUOTA_EXHAUSTED.
+  assert.equal(isCreditsExhausted("You've exhausted all your credits"), true);
+  assert.equal(
+    isCreditsExhausted('{"detail":"You\'ve exhausted all your credits"}'),
+    true
+  );
+  assert.equal(
+    isCreditsExhausted("exhausted all your credits"),
+    true
+  );
+});
+
 test("CREDITS_EXHAUSTED_SIGNALS no longer contains generic gRPC resource-exhausted patterns", () => {
   // These patterns were removed because they falsely matched Gemini RPM 429 errors
   assert.equal(CREDITS_EXHAUSTED_SIGNALS.includes("resource has been exhausted"), false);

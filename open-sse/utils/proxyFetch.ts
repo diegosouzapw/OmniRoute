@@ -15,6 +15,7 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
+import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
@@ -110,9 +111,8 @@ const TLS_PROVIDER_PROFILE: Record<string, { browser: string; os: string }> = {
   maxai: { browser: "firefox_150", os: "windows" },
 };
 
-function tlsProfileForProvider(
-  provider: string | null | undefined
-): { browserProfile?: string; os?: string } {
+type TlsProfileResult = { browserProfile?: string; os?: string };
+function tlsProfileForProvider(provider: string | null | undefined): TlsProfileResult {
   if (!provider) return {};
   const p = TLS_PROVIDER_PROFILE[provider.trim().toLowerCase()];
   return p ? { browserProfile: p.browser, os: p.os } : {};
@@ -189,7 +189,12 @@ type TlsFingerprintStore = {
  * the egress logger read the innermost applied proxy (the last writer wins, which
  * is the executor's per-account proxy).
  */
-export type AppliedProxySink = { proxy: unknown; upstreamStatus?: number };
+export type AppliedProxySink = {
+  proxy: unknown;
+  upstreamStatus?: number;
+  /** Masked serving-account id (N112) — set by the rotation executor at dispatch. */
+  rotationAccount?: string | null;
+};
 const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
 
 /**
@@ -201,6 +206,20 @@ const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
  */
 export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
   return appliedProxyContext.run(sink, fn);
+}
+
+/**
+ * Record the masked id of the rotation account serving this request on the
+ * current capture sink (no-op outside a capture — the sink stays null and the
+ * call-site forwards null). Only an already-masked id may be passed in.
+ */
+export function noteRotationAccount(masked: string): void {
+  try {
+    const sink = appliedProxyContext.getStore();
+    if (sink) sink.rotationAccount = masked;
+  } catch {
+    /* attribution is best-effort; never break the request path */
+  }
 }
 
 type FetchWithDispatcherOptions = RequestInit & { dispatcher?: unknown };
@@ -339,20 +358,6 @@ function isWreqProxySupported(proxyUrl: string): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Redact proxy URLs (and any bare `user:pass@host` credential tokens) from an
- * upstream transport-error message before it is surfaced. #10032 keeps the
- * underlying failure reason in the propagated error for diagnosability, but
- * the raw message can embed the full proxy URL — including userinfo
- * credentials — which must never bubble into response bodies (#9837, Hard
- * Rule #12).
- */
-function redactProxyDetailsInMessage(message: string): string {
-  return message
-    .replace(/\b(?:https?|socks[45][ah]?|socks):\/\/\S+/gi, "[redacted-proxy]")
-    .replace(/\b[^\s:@/]+:[^\s@/]*@\S+/g, "[redacted-proxy]");
 }
 
 function sanitizeTransportError(
@@ -629,7 +634,7 @@ export async function runWithProxyContext(
         );
         return runDirect();
       }
-    } else {
+    } else if (new URL(resolvedProxyUrl).protocol !== "socks5:") {
       // Fire the probe WITHOUT awaiting; dispatch optimistically below.
       unreachableProbe = isProxyReachable(resolvedProxyUrl);
     }
@@ -865,7 +870,7 @@ async function patchedFetchUnrecorded(
             dispatcher: attempt === 0 ? getDefaultDispatcher() : getRetryDispatcher(),
           },
           _undiciDirect,
-          directHeadersTimeoutMs
+          resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout, attempt, !!options.signal)
         );
       } catch (dispatcherError) {
         if (isDirectResponseStartTimeout(dispatcherError)) {
@@ -909,7 +914,10 @@ async function patchedFetchUnrecorded(
             continue;
           }
           if (hasNonReplayableBody) {
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[skipped: non-replayable request body]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              "skipped: non-replayable request body"
+            );
             console.warn(
               `[ProxyFetch] skipping native fetch fallback for non-replayable body: ${detail}`
             );
@@ -953,7 +961,10 @@ async function patchedFetchUnrecorded(
             return await _nativeFallback(input, options);
           } catch (nativeError) {
             // Surface both dispatcher and native causes immediately.
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[${describeFetchCause(nativeError)}]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              describeFetchCause(nativeError)
+            );
             console.warn(`[ProxyFetch] native fetch fallback ALSO failed: ${detail}`);
             if (nativeError instanceof Error) {
               (nativeError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;

@@ -1,0 +1,1 @@
+- **fix(codex):** Recover stale account cooldowns from fresh quota observations, add manual account cooldown release, and populate the Codex quota card from cached usage while removing its obsolete Spark tile ([#14175](https://github.com/diegosouzapw/OmniRoute/pull/14175)).

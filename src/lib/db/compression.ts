@@ -42,6 +42,7 @@ import {
   normalizePreserveSystemPromptMode,
 } from "@omniroute/open-sse/services/compression/preserveSystemPromptMode.ts";
 import { maybePrewarmUltraSlmOnConfig } from "@omniroute/open-sse/services/compression/ultra.ts";
+import { isUsableLiteMaxToolLength } from "@omniroute/open-sse/services/compression/lite.ts";
 import { applyDetailConfigUpdate, buildDetailConfigDefaults } from "./compressionDetailNormalizers";
 
 const NAMESPACE = "compression";
@@ -374,6 +375,10 @@ function boundedInt(value: unknown, fallback: number, min: number, max: number):
   return Math.min(max, Math.max(min, Math.floor(value)));
 }
 
+function usableLiteMaxToolLength(value: unknown): number | undefined {
+  return isUsableLiteMaxToolLength(value) ? Math.floor(value) : undefined;
+}
+
 function boundedNumber(value: unknown, fallback: number, min: number, max: number): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
   return Math.min(max, Math.max(min, value));
@@ -524,6 +529,41 @@ function sanitizeEnginesForWrite(value: unknown): Record<string, EngineToggle> {
     if (toggle) out[id] = toggle;
   }
   return out;
+}
+
+// Partial lite writes replace the whole JSON row. Keep a stored cap unless the
+// caller sends maxToolLength: null (clear) or a new in-range integer.
+function mergeLiteSettingsForWrite(
+  db: ReturnType<typeof getDbInstance>,
+  value: unknown
+): { compressToolResults: boolean; maxToolLength?: number } {
+  const incoming = toRecord(value);
+  const existingRow = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(NAMESPACE, "lite") as { value: string } | undefined;
+  const existing = toRecord(parseJsonSafe(existingRow?.value ?? null));
+  const existingCap = usableLiteMaxToolLength(existing.maxToolLength);
+  const compressToolResults =
+    typeof incoming.compressToolResults === "boolean"
+      ? incoming.compressToolResults
+      : existing.compressToolResults !== false;
+  if (!Object.prototype.hasOwnProperty.call(incoming, "maxToolLength")) {
+    return {
+      compressToolResults,
+      ...(existingCap !== undefined ? { maxToolLength: existingCap } : {}),
+    };
+  }
+  if (incoming.maxToolLength === null) {
+    return { compressToolResults };
+  }
+  const nextCap = usableLiteMaxToolLength(incoming.maxToolLength);
+  if (nextCap !== undefined) {
+    return { compressToolResults, maxToolLength: nextCap };
+  }
+  return {
+    compressToolResults,
+    ...(existingCap !== undefined ? { maxToolLength: existingCap } : {}),
+  };
 }
 
 // Read the stored `engines` JSON row, keeping only well-formed `{enabled, level?}` entries for
@@ -761,9 +801,15 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
         break;
-      case "lite":
-        config.lite = { compressToolResults: toRecord(parsed).compressToolResults !== false };
+      case "lite": {
+        const liteRecord = toRecord(parsed);
+        const storedCap = usableLiteMaxToolLength(liteRecord.maxToolLength);
+        config.lite = {
+          compressToolResults: liteRecord.compressToolResults !== false,
+          ...(storedCap !== undefined ? { maxToolLength: storedCap } : {}),
+        };
         break;
+      }
       case "headroom":
       case "headroomConfig":
         config.headroom = normalizeHeadroomConfig(parsed);
@@ -876,6 +922,10 @@ export async function updateCompressionSettings(
       // well-formed { enabled, level? } toggles for known engine ids.
       if (key === "engines") {
         insert.run(NAMESPACE, key, JSON.stringify(sanitizeEnginesForWrite(value)));
+        continue;
+      }
+      if (key === "lite") {
+        insert.run(NAMESPACE, key, JSON.stringify(mergeLiteSettingsForWrite(db, value)));
         continue;
       }
       insert.run(NAMESPACE, key, JSON.stringify(value));

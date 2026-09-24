@@ -7,8 +7,11 @@
  * inner target so #9057 holds.
  */
 
+import { isModelBlockedByPatterns } from "@/lib/db/apiKeys";
+
 export type ComboTargetKeyPolicyInfo = {
   allowedModels?: string[] | null;
+  blockedModels?: string[] | null;
   disableNonPublicModels?: boolean | null;
   modelAccessMode?: string | null;
 };
@@ -37,8 +40,12 @@ export async function comboTargetPassesKeyModelPolicy(opts: {
   if (!apiKey || !apiKeyInfo) return true;
 
   const hasModelRestrictions =
-    Boolean(apiKeyInfo.allowedModels?.length) || apiKeyInfo.disableNonPublicModels === true;
+    Boolean(apiKeyInfo.allowedModels?.length) ||
+    Boolean(apiKeyInfo.blockedModels?.length) ||
+    apiKeyInfo.disableNonPublicModels === true;
   if (!hasModelRestrictions) return true;
+
+  if (await isModelBlockedByPatterns(apiKeyInfo.blockedModels, targetModelStr)) return false;
 
   if (allowListCoversRequestedCombo(apiKeyInfo.allowedModels, requestedModelStr)) {
     return true;

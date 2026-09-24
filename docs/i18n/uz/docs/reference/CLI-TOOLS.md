@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (Oʻzbekcha)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -600,72 +600,72 @@ kiro-cli status
 
 ## 10. Ichki OmniRoute CLI
 
-`omniroute` bajariluvchi fayli serverning hayotiy sikli, sozlash, diagnostika va provayderlarni boshqarish uchun buyruqlarni taqdim etadi. Kirish nuqtasi: `bin/omniroute.mjs`.
+`omniroute` bajariluvchi fayli server hayotiy sikli, sozlash, diagnostika va provayderlarni boshqarish uchun buyruqlarni taqdim etadi. Kirish nuqtasi: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Serverni ishga tushirish (standart port 20128)
 omniroute setup                        # Interaktiv sozlash ustasi
-omniroute doctor                       # Konfiguratsiya, DB, portlar va bajarilish muhitini tekshirish
+omniroute doctor                       # Konfiguratsiya, MB, portlar va bajarilish muhitini tekshirish
 omniroute providers list               # Sozlangan provayder ulanishlari
-omniroute providers test-all           # Har bir faol ulanishni sinash
+omniroute providers test-all           # Barcha faol ulanishlarni sinash
 omniroute reset-password               # Administrator parolini tiklash
-omniroute logs                         # Soʻrov jurnallarini oqimda koʻrsatish
+omniroute logs                         # So‘rov jurnallarini oqimda ko‘rsatish
 omniroute health                       # Batafsil holat (uzgichlar, kesh, xotira)
 omniroute --version                    # Versiyani chiqarish
-omniroute --help                       # Barcha buyruqlarni koʻrsatish
+omniroute --help                       # Barcha buyruqlarni ko‘rsatish
 ```
 
 ### Sozlash va ishga tayyorlash
 
 ```bash
 omniroute setup                        # Interaktiv sozlash ustasi
-omniroute setup --non-interactive      # CI/avtomatlashtirish rejimi (muhit oʻzgaruvchilari va bayroqlarni oʻqiydi)
-omniroute setup --password '<value>'   # Administrator parolini bevosita oʻrnatish
+omniroute setup --non-interactive      # CI/avtomatlashtirish rejimi (muhit o‘zgaruvchilari va bayroqlarni o‘qiydi)
+omniroute setup --password '<value>'   # Administrator parolini bevosita o‘rnatish
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Provayderni bir urinishda qoʻshish va sinash
+  --test-provider                      # Provayderni bir urinishda qo‘shish va sinash
 ```
 
-Interaktiv boʻlmagan sozlash uchun tan olinadigan muhit oʻzgaruvchilari:
+Interaktiv bo‘lmagan sozlash uchun tan olinadigan muhit o‘zgaruvchilari:
 
-| Oʻzgaruvchi         | Maqsad                                                                        |
+| O‘zgaruvchi         | Maqsad                                                                        |
 | ------------------- | ----------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Provayder API kaliti (Commander `.env()` orqali `--api-key` bilan bogʻlangan) |
-| `DATA_DIR`          | OmniRoute maʼlumotlar katalogini qayta belgilash                              |
+| `OMNIROUTE_API_KEY` | Provayder API kaliti (Commander `.env()` orqali `--api-key` bilan bog‘langan) |
+| `DATA_DIR`          | OmniRoute ma’lumotlar katalogini almashtirish                                 |
 
-Boshqa barcha interaktiv boʻlmagan kirish maʼlumotlari muhit oʻzgaruvchilari sifatida emas, bayroqlar sifatida uzatiladi:
+Boshqa barcha interaktiv bo‘lmagan kirish qiymatlari muhit o‘zgaruvchilari sifatida emas, bayroqlar orqali uzatiladi:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (yuqoridagi `omniroute setup` parametrlariga qarang).
 
 ### Diagnostika
 
 ```bash
-omniroute doctor                       # Konfiguratsiya, DB, portlar, bajarilish muhiti, xotira va faollikni tekshirish
-omniroute doctor --json                # Mashina oʻqiy oladigan JSON
-omniroute doctor --no-liveness         # HTTP holat tekshiruvini oʻtkazib yuborish
-omniroute doctor --host 0.0.0.0        # Faollik xostini qayta belgilash
-omniroute doctor --liveness-url <url>  # Holat yakuniy nuqtasining toʻliq URL manzilini qayta belgilash
+omniroute doctor                       # Konfiguratsiya, MB, portlar, bajarilish muhiti, xotira va ishlayotganlikni tekshirish
+omniroute doctor --json                # Mashina o‘qiy oladigan JSON
+omniroute doctor --no-liveness         # HTTP holat tekshiruvini o‘tkazib yuborish
+omniroute doctor --host 0.0.0.0        # Ishlayotganlik xostini almashtirish
+omniroute doctor --liveness-url <url>  # Holat yakuniy nuqtasining to‘liq URL manzilini almashtirish
 ```
 
 Doctor quyidagi tekshiruvlarni bajaradi: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` va `Server liveness`. Agar biror tekshiruv `fail` boʻlsa, u noldan farqli kod bilan yakunlanadi.
+`Memory` va `Server liveness`. Agar biror tekshiruv `fail` bo‘lsa, u noldan farqli kod bilan yakunlanadi.
 
 ### Provayderlarni boshqarish
 
 ```bash
 omniroute providers available                       # OmniRoute provayderlar katalogi
-omniroute providers available --search openai       # Katalogni id/nom/taxallus/toifa boʻyicha filtrlash
-omniroute providers available --category api-key    # Toifa boʻyicha filtrlash (api-key, oauth, free, ...)
-omniroute providers available --json                # Mashina oʻqiy oladigan JSON
+omniroute providers available --search openai       # Katalogni id/nom/taxallus/toifa bo‘yicha filtrlash
+omniroute providers available --category api-key    # Toifa bo‘yicha filtrlash (api-key, oauth, free, ...)
+omniroute providers available --json                # Mashina o‘qiy oladigan JSON
 
 omniroute providers list                            # Sozlangan provayder ulanishlari
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Bitta sozlangan ulanishni sinash
-omniroute providers test-all                        # Har bir faol ulanishni sinash
-omniroute providers validate                        # Faqat mahalliy tuzilmaviy tekshirish
+omniroute providers test-all                        # Barcha faol ulanishlarni sinash
+omniroute providers validate                        # Faqat lokal tuzilmaviy tekshiruv
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Mavjud OAuth jarayoni
@@ -673,47 +673,46 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` birinchi navbatda API orqali ishlaydi va shu sababli
-faol mahalliy yoki masofaviy kontekst bilan ishlaydi. Hisob maʼlumotlarini kiritish uchun
+`providers add/import/auth/edit/remove` avvalo API orqali ishlaydi va shu sababli
+faol lokal yoki masofaviy kontekstga nisbatan ishlaydi. Hisob ma’lumotlarini kiritish uchun
 `--credential-stdin` yoki `--credential-env` ishlatilishi kerak; `--dry-run --json` faqat
-tahrirlangan mavjudlik/tuzilma haqida hisobot beradi. `providers available` OmniRoute katalogini oʻqiydi;
-`providers list/test/test-all/validate` esa mahalliy SQLite xatti-harakatini saqlab qoladi va
+yashirilgan mavjudlik/tuzilma haqidagi ma’lumotni beradi. `providers available` OmniRoute katalogini o‘qiydi;
+`providers list/test/test-all/validate` o‘zining lokal SQLite xatti-harakatini saqlab qoladi va
 server ishlab turishini talab qilmaydi.
 
-### Tiklash va asl holatga qaytarish
+### Tiklash va qayta o‘rnatish
 
 ```bash
 omniroute reset-password                # Administrator parolini tiklash (shuningdek: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Shifrlangan hisob maʼlumotlarini tiklash uchun ogohlantirish va sinov rejimini koʻrsatish
-omniroute reset-encrypted-columns --force  # SQLite ichidagi shifrlangan hisob maʼlumotlarini amalda null qilish
+omniroute reset-encrypted-columns       # Shifrlangan hisob ma’lumotlarini tiklash uchun ogohlantirish va sinov rejimini ko‘rsatish
+omniroute reset-encrypted-columns --force  # SQLite ichidagi shifrlangan hisob ma’lumotlarini amalda null qilish
 ```
 
-### Hisob maʼlumotlarini eksport qilish (⚠ ehtiyotkorlik bilan foydalaning)
+### Hisob ma’lumotlarini eksport qilish (⚠ ehtiyotkorlik bilan ishlating)
 
 ```bash
-omniroute auth export                                 # Ogohlantirish va tasdiqlash bosqichini koʻrsatish — DBga kirilmaydi
-omniroute auth export --force                          # BARCHA ulanishlarning SHIFRDAN OCHILGAN hisob maʼlumotlarini JSON sifatida stdoutga eksport qilish
+omniroute auth export                                 # Ogohlantirish va tasdiqlash bosqichini ko‘rsatish — MBga kirilmaydi
+omniroute auth export --force                          # BARCHA ulanishlarning SHIFRDAN YECHILGAN hisob ma’lumotlarini JSON sifatida stdout’ga eksport qilish
 omniroute auth export --force --id <id>                 # Faqat mos keluvchi ulanishni eksport qilish
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> qatorlarini chiqarish
 omniroute auth export --force --out creds.json           # Faylga yozish (0600 ruxsatlari bilan yaratiladi)
 ```
 
-`auth export` **faqat mahalliy** ishlaydi (SQLiteʼdan bevosita oʻqish, HTTP marshruti yoʻq) va ataylab
-**ochiq matn** koʻrinishidagi `apiKey`/`accessToken`/`refreshToken`/`idToken` qiymatlarini chiqaradi/yozadi — bu
-xato emas, balki funksiyaning oʻzidir. `--force` parametrisiz maʼlumotlar bazasidan hech narsa
-oʻqilmaydi va hech narsa shifrdan ochilmaydi. Har qanday ochiq matn chiqarilishidan oldin stderrʼda
-doimo ogohlantirish banneri koʻrsatiladi. `STORAGE_ENCRYPTION_KEY` oʻrnatilgan boʻlishi shart.
-Shifrdan ochib boʻlmaydigan maydon (eskirgan kalit, buzilgan shifrmatn) butun eksportni toʻxtatish yoki
-asosiy xatoni oshkor qilish oʻrniga `<field>DecryptFailed: true` sifatida xabar qilinadi.
+`auth export` **faqat lokal** ishlaydi (SQLite bevosita o‘qiladi, HTTP marshruti yo‘q) va ataylab
+**ochiq matn** ko‘rinishidagi `apiKey`/`accessToken`/`refreshToken`/`idToken` qiymatlarini chiqaradi/yozadi — bu
+xato emas, funksiyaning maqsadidir. `--force` bo‘lmasa, ma’lumotlar bazasidan hech narsa o‘qilmaydi va hech narsa shifrdan yechilmaydi. Har qanday ochiq matn chiqarilishidan oldin stderr’da
+ogohlantirish banneri doimo ko‘rsatiladi. `STORAGE_ENCRYPTION_KEY` o‘rnatilgan bo‘lishi
+talab qilinadi. Shifrdan yechish muvaffaqiyatsiz bo‘lgan maydon (eskirgan kalit, buzilgan shifrmatn) butun eksportni
+to‘xtatish yoki asosiy xatoni oshkor qilish o‘rniga `<field>DecryptFailed: true` sifatida bildiriladi.
 
 ### Boshqa quyi buyruqlar
 
-Alohida qayd etilmagan boʻlsa, bular ishlab turgan OmniRoute serverini talab qiladi:
+Alohida qayd etilmagan bo‘lsa, ular ishlab turgan OmniRoute serverini talab qiladi:
 
 ```bash
-omniroute status                       # Ishlash muhitining batafsil holati
-omniroute logs                         # Soʻrov jurnallarini oqimda koʻrsatish (--json, --search, --follow)
-omniroute config show                  # Joriy konfiguratsiyani koʻrsatish
+omniroute status                       # Ishlash holati haqida batafsil maʼlumot
+omniroute logs                         # Soʻrov jurnallarini uzatish (--json, --search, --follow)
+omniroute config list                  # Sozlangan CLI vositalarini koʻrsatish
 
 omniroute provider list                # Mavjud provayderlarni roʻyxatlash (providers list taxallusi)
 omniroute provider add                 # OmniRouteʼni vositada provayder sifatida roʻyxatdan oʻtkazish
@@ -724,18 +723,18 @@ omniroute combo list | switch | create | delete
 omniroute backup                       # Konfiguratsiya va DB oniy nusxasini yaratish
 omniroute restore                      # Oldingi oniy nusxadan tiklash
 
-omniroute health                       # Batafsil ishlash holati (uzgichlar, kesh, xotira)
+omniroute health                       # Batafsil holat (uzgichlar, kesh, xotira)
 omniroute quota                        # Provayder kvotasidan foydalanish
 omniroute cache                        # Kesh holati
-omniroute cache clear                  # Semantik va signatura keshlarini tozalash
+omniroute cache clear                  # Semantik va imzo keshlarini tozalash
 
 omniroute mcp status | restart         # MCP serveri holati / qayta ishga tushirish
 omniroute a2a status | card            # A2A serveri holati / agent kartasi
 
 omniroute tunnel list | create | stop  # Tunnellarni boshqarish (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Muhit oʻzgaruvchilarini tekshirish / oʻrnatish (vaqtinchalik)
+omniroute env show | get <k> | set <k> <v>  # Muhit oʻzgaruvchilarini tekshirish / sozlash (vaqtincha)
 
-omniroute test                         # Provayder ulanishini tezkor sinash
+omniroute test                         # Provayder ulanishining tezkor sinovi
 omniroute update                       # Yangilanishlarni tekshirish
 omniroute completion                   # Qobiq uchun avtomatik toʻldirishni yaratish
 ```
@@ -746,7 +745,7 @@ omniroute completion                   # Qobiq uchun avtomatik toʻldirishni yar
 | ------------------- | --------------------------------------------------------------------- |
 | `--no-open`         | Ishga tushganda brauzerni avtomatik ochmaslik                         |
 | `--port <n>`        | API portini almashtirish (standart 20128)                             |
-| `--mcp`             | stdio orqali MCP serveri sifatida ishlatish (IDEʼlar uchun)           |
+| `--mcp`             | stdio orqali MCP serveri sifatida ishlash (IDEʼlar uchun)             |
 | `--non-interactive` | CI rejimi (soʻrovlarsiz; env/bayroqlardan oʻqiydi)                    |
 | `--json`            | Mashina oʻqiy oladigan JSON chiqishi (doctor, providers va boshqalar) |
 | `--help`, `-h`      | Buyruqqa oid yordamni koʻrsatish                                      |

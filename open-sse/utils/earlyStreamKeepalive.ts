@@ -32,6 +32,7 @@
  */
 
 import { recordEarlyKeepaliveBytes } from "./earlyKeepaliveByteBuffer.ts";
+import { SYNTHETIC_RESPONSES_SEQUENCE_NUMBER } from "./responsesSequence.ts";
 
 const ENCODER = new TextEncoder();
 const KEEPALIVE_FRAME = ENCODER.encode(": keepalive\n\n");
@@ -86,6 +87,10 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
     code: null,
     message: "Upstream stream failed before completion.",
     param: null,
+    // #14330: was hardcoded to 0, colliding with the real per-stream emitter's
+    // first event (also numbered 1 from its own `state.seq` base of 0) — this
+    // frame is synthesized outside that counter, so it uses the shared seed.
+    sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
   })}\n\n`
 );
 
@@ -124,7 +129,15 @@ function buildResponsesErrorDataLine(text: string): string {
     parsed && typeof parsed.diagnostics === "object" && parsed.diagnostics !== null
       ? { diagnostics: parsed.diagnostics }
       : {};
-  return JSON.stringify({ type: "error", code, message, param, ...extras });
+  return JSON.stringify({
+    type: "error",
+    code,
+    message,
+    param,
+    // #14330: was hardcoded to 0 — see OPENAI_RESPONSES_ERROR_FRAME above.
+    sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+    ...extras,
+  });
 }
 
 export type EarlyStreamKeepaliveOptions = {
@@ -193,7 +206,12 @@ export async function withEarlyStreamKeepalive(
   options: EarlyStreamKeepaliveOptions = {}
 ): Promise<Response> {
   const thresholdMs = Math.max(0, options.thresholdMs ?? 2_000);
-  const intervalMs = Math.max(250, options.intervalMs ?? 2_500);
+  // Cadence must stay under the client idle timeout, per the option docs below.
+  // The old 2 500 ms default exceeded the ~2 s watchdog observed in practice, so
+  // a client that survived the first keepalive byte aborted on the gap before the
+  // next one. 1 500 ms keeps every inter-byte gap inside the same budget the
+  // threshold uses (see keepaliveThreshold.ts).
+  const intervalMs = Math.max(250, options.intervalMs ?? 1_500);
   const signal = options.signal ?? null;
   const keepaliveFrame = options.keepaliveFrame ?? KEEPALIVE_FRAME;
   const startupFrame = options.startupFrame ?? keepaliveFrame;

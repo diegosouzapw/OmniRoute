@@ -10,6 +10,48 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { applyClaudeEffortVariant } from "../../open-sse/handlers/chatCore/claudeEffortVariant.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
+import { resolveRequestedModel } from "../../open-sse/utils/cursorAgentProtobuf.ts";
+
+for (const provider of ["cursor", "cu", "cursor-api", "cua"]) {
+  for (const sourceFormat of [FORMATS.OPENAI, FORMATS.CLAUDE, FORMATS.OPENAI_RESPONSES]) {
+    test(`${provider}/${sourceFormat}: preserves native Cursor Claude model ids before executor resolution`, () => {
+      for (const model of [
+        "claude-fable-5-1-low",
+        "claude-fable-5-1-thinking-low",
+        "claude-opus-5-low",
+      ]) {
+        const body = { model, messages: [] };
+        const result = applyClaudeEffortVariant({
+          provider,
+          effectiveModel: model,
+          body,
+          sourceFormat,
+        });
+        assert.deepEqual(result, { effectiveModel: model, log: null });
+        assert.deepEqual(body, { model, messages: [] });
+        assert.deepEqual(
+          resolveRequestedModel(result.effectiveModel, { liveCatalogIds: new Set([model]) }),
+          { modelId: model, parameters: [] }
+        );
+      }
+    });
+  }
+}
+
+test("Cursor preserves explicit client effort while its encoder owns non-catalog suffix fallback", () => {
+  const body = { model: "claude-opus-5-low", reasoning_effort: "none", messages: [] };
+  const result = applyClaudeEffortVariant({
+    provider: "cursor",
+    effectiveModel: body.model,
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.deepEqual(body, { model: "claude-opus-5-low", reasoning_effort: "none", messages: [] });
+  assert.deepEqual(resolveRequestedModel(result.effectiveModel, { liveCatalogIds: new Set() }), {
+    modelId: "claude-opus-5",
+    parameters: [{ id: "effort", value: "low" }],
+  });
+});
 
 test("claude provider + effort suffix → strips to base, mutates body model + reasoning_effort, returns log", () => {
   const body: Record<string, unknown> = { model: "claude-sonnet-4-high", messages: [] };
@@ -172,4 +214,63 @@ test("no-think alias's explicit reasoning_effort:none is not overwritten by a st
   assert.equal(r.effectiveModel, "claude-sonnet-5");
   assert.equal(body.model, "claude-sonnet-5");
   assert.equal(body.reasoning_effort, "none");
+});
+
+// ── Devin CLI providers: model ids embed the tier and must stay literal ─────────
+// Regression for `dva/claude-opus-5-low` → stripped to `claude-opus-5` → executor
+// rejected "Model is not present in the current Devin catalog" (400). The Devin
+// catalog (devin/catalog.ts) has one id per tier; only the accidental
+// double-suffixed ids (`claude-opus-5-max-low`) survived the old behavior.
+
+test("devin-cli-agentic provider keeps a tier-embedded id literal (no strip, no body mutation)", () => {
+  const body: Record<string, unknown> = { model: "claude-opus-5-low", messages: [] };
+  const r = applyClaudeEffortVariant({
+    provider: "devin-cli-agentic",
+    effectiveModel: "claude-opus-5-low",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "claude-opus-5-low");
+  assert.equal(body.model, "claude-opus-5-low");
+  assert.equal(body.reasoning_effort, undefined);
+  assert.equal(r.log, null);
+});
+
+test("devin provider alias (dva) is covered too", () => {
+  const body: Record<string, unknown> = { model: "claude-opus-5-medium", messages: [] };
+  const r = applyClaudeEffortVariant({
+    provider: "dva",
+    effectiveModel: "claude-opus-5-medium",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "claude-opus-5-medium");
+  assert.equal(body.model, "claude-opus-5-medium");
+  assert.equal(r.log, null);
+});
+
+test("devin-cli (text bridge) and devin-desktop keep literal ids as well", () => {
+  for (const provider of ["devin-cli", "devin-desktop", "dv"]) {
+    const body: Record<string, unknown> = { model: "claude-sonnet-5-low", messages: [] };
+    const r = applyClaudeEffortVariant({
+      provider,
+      effectiveModel: "claude-sonnet-5-low",
+      body,
+      sourceFormat: FORMATS.OPENAI,
+    });
+    assert.equal(r.effectiveModel, "claude-sonnet-5-low", provider);
+    assert.equal(body.reasoning_effort, undefined, provider);
+  }
+});
+
+test("a claude-lane strip still happens for the same model name (control)", () => {
+  const body: Record<string, unknown> = { model: "claude-opus-5-low", messages: [] };
+  const r = applyClaudeEffortVariant({
+    provider: "claude",
+    effectiveModel: "claude-opus-5-low",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "claude-opus-5");
+  assert.equal(body.reasoning_effort, "low");
 });

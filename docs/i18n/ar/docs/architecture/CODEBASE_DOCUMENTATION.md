@@ -1,6 +1,6 @@
 # OmniRoute Codebase Documentation (العربية)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇦 [bs](../../../bs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
 
@@ -436,7 +436,7 @@ server/
 
 ## 4. `open-sse/` — مساحة عمل محرك البث
 
-مساحة عمل npm منفصلة منشورة باسم `@omniroute/open-sse`. تتولى معالجة
+مساحة عمل npm منفصلة، منشورة باسم `@omniroute/open-sse`. تتولى معالجة
 الطلبات، والمنفّذات، والمترجمات، والخدمات، والمحوّل، وخادم MCP.
 
 ```
@@ -457,100 +457,100 @@ open-sse/
 
 ### 4.1 `open-sse/handlers/`
 
-| المعالج                 | الغرض                                                                                          |
-| ----------------------- | ---------------------------------------------------------------------------------------------- |
-| `chatCore.ts`           | مسار معالجة الدردشة الرئيسي (التخزين المؤقت، وتحديد المعدّل، وتوجيه التركيبات، وإرسال المنفّذ) |
-| `responsesHandler.ts`   | نقطة دخول OpenAI Responses API                                                                 |
-| `embeddings.ts`         | التضمينات                                                                                      |
-| `imageGeneration.ts`    | توليد الصور                                                                                    |
-| `audioSpeech.ts`        | تحويل النص إلى كلام                                                                            |
-| `audioTranscription.ts` | تحويل الكلام إلى نص                                                                            |
-| `videoGeneration.ts`    | توليد الفيديو                                                                                  |
-| `musicGeneration.ts`    | توليد الموسيقى                                                                                 |
-| `rerank.ts`             | إعادة الترتيب                                                                                  |
-| `moderations.ts`        | الإشراف على المحتوى                                                                            |
-| `search.ts`             | البحث على الويب                                                                                |
-| `sseParser.ts`          | محلّل أحداث SSE                                                                                |
-| `usageExtractor.ts`     | استخراج أعداد الرموز من التدفقات الواردة                                                       |
-| `responseSanitizer.ts`  | إزالة البيانات غير الضرورية الخاصة بالمزوّد                                                    |
-| `responseTranslator.ts` | طبقة وصل بين استجابة المزوّد وطبقة الترجمة                                                     |
+| المعالج                 | الغرض                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| `chatCore.ts`           | مسار معالجة الدردشة الرئيسي (التخزين المؤقت، وتحديد المعدل، وتوجيه التركيبات، وتوزيع التنفيذ) |
+| `responsesHandler.ts`   | نقطة دخول OpenAI Responses API                                                                |
+| `embeddings.ts`         | التضمينات                                                                                     |
+| `imageGeneration.ts`    | توليد الصور                                                                                   |
+| `audioSpeech.ts`        | تحويل النص إلى كلام                                                                           |
+| `audioTranscription.ts` | تحويل الكلام إلى نص                                                                           |
+| `videoGeneration.ts`    | توليد الفيديو                                                                                 |
+| `musicGeneration.ts`    | توليد الموسيقى                                                                                |
+| `rerank.ts`             | إعادة الترتيب                                                                                 |
+| `moderations.ts`        | الإشراف على المحتوى                                                                           |
+| `search.ts`             | البحث على الويب                                                                               |
+| `sseParser.ts`          | محلل أحداث SSE                                                                                |
+| `usageExtractor.ts`     | استخراج أعداد الرموز من التدفقات الواردة                                                      |
+| `responseSanitizer.ts`  | إزالة الضوضاء الخاصة بالمزوّد                                                                 |
+| `responseTranslator.ts` | طبقة الربط بين استجابة المزوّد وطبقة الترجمة                                                  |
 
 ### 4.2 `open-sse/executors/`
 
-108 منفّذات للمزوّدين، يوسّع كل منها `BaseExecutor` (`base.ts`):
+108 منفّذات للمزوّدين، يمتد كل منها من `BaseExecutor` (`base.ts`):
 
-`antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
-`chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
-`muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
-`pollinations`, `qoder`, `vertex`, `devin-desktop`، بالإضافة إلى `claudeIdentity.ts`
+`antigravity`، `azure-openai`، `blackbox-web`، `cliproxyapi`،
+`chatgpt-web-codex`، `cloudflare-ai`، `codex`، `commandCode`، `cursor`، `default`، `devin-cli`،
+`muse-spark-web`، `nlpcloud`، `opencode`، `perplexity-web`، `petals`،
+`pollinations`، `qoder`، `vertex`، `devin-desktop`، بالإضافة إلى `claudeIdentity.ts`
 (أداة مساعدة مشتركة للهوية) و`index.ts` (السجل).
 
-> ملاحظة: تُخدَم المزوّدات غير المدرجة هنا بواسطة `default.ts` باستخدام المنفّذ العام
-> المتوافق مع OpenAI. يوجد دليل المزوّدين الكامل (355 مزوّدًا) في
+> ملاحظة: تُخدَّم المزوّدات غير المدرجة هنا بواسطة `default.ts` باستخدام المنفّذ العام
+> المتوافق مع OpenAI. يوجد كتالوج المزوّدين الكامل (355 مزوّدًا) في
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-ترجمة بنمط المحور والفروع (OpenAI هو المحور).
+ترجمة بنمط المحور والأفرع (OpenAI هو المحور).
 
 - **9 مترجمات للطلبات** (`translator/request/`):
-  `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
-  `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
-  `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
+  `antigravity-to-openai`، `claude-to-gemini`، `claude-to-openai`،
+  `gemini-to-openai`، `openai-responses`، `openai-to-claude`،
+  `openai-to-cursor`، `openai-to-gemini`، `openai-to-kiro`.
 - **9 مترجمات للاستجابات** (`translator/response/`):
-  `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
-  `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
+  `claude-to-openai`، `cursor-to-openai`، `gemini-to-claude`، `gemini-to-openai`،
+  `kiro-to-openai`، `openai-responses`، `openai-to-antigravity`،
   `openai-to-claude`.
 - **9 أدوات مساعدة** (`translator/helpers/`):
-  `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
-  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`، بالإضافة إلى
+  `claudeHelper`، `geminiHelper`، `geminiToolsSanitizer`، `maxTokensHelper`،
+  `openaiHelper`، `responsesApiHelper`، `schemaCoercion`، `toolCallHelper`، بالإضافة إلى
   اختبارات الأدوات المساعدة.
 - **أدوات مساعدة للصور** (`translator/image/sizeMapper.ts`).
-- المستوى الأعلى: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
+- المستوى الأعلى: `bootstrap.ts`، `formats.ts`، `registry.ts`، `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
-- `responsesTransformer.ts` — محوّل Responses API ↔ Chat
-  Completions يستند إلى `TransformStream` (يستخدمه المسار الشامل `responses/`).
+- `responsesTransformer.ts` — محوّل Responses API ↔ Chat Completions قائم على
+  `TransformStream` (يستخدمه المسار الشامل `responses/`).
 
 ### 4.5 `open-sse/services/`
 
-أبرز العناصر (القائمة الكاملة ضمن `open-sse/services/`):
+أبرز المكوّنات (القائمة الكاملة ضمن `open-sse/services/`):
 
-| المجال            | الملفات                                                                                                                                                                                                                                           |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| توجيه Combo       | `combo.ts` (19 استراتيجية)، `comboConfig.ts`، `comboMetrics.ts`، `comboManifestMetrics.ts`، `comboAgentMiddleware.ts`                                                                                                                             |
-| محرك Auto Combo   | `autoCombo/` — `engine.ts`، `scoring.ts`، `taskFitness.ts`، `virtualFactory.ts`، `modePacks.ts`، `autoPrefix.ts`، `persistence.ts`، `providerDiversity.ts`، `providerRegistryAccessor.ts`، `routerStrategy.ts`، `selfHealing.ts`، `index.ts`      |
-| المرونة           | `accountFallback.ts` (فترة تهدئة + تأمين)، `errorClassifier.ts`، `emergencyFallback.ts`، `rateLimitManager.ts`، `rateLimitSemaphore.ts`، `accountSemaphore.ts`، `accountSelector.ts`                                                              |
-| الحصص             | `quotaMonitor.ts`، `quotaPreflight.ts`، `bailianQuotaFetcher.ts`، `codexQuotaFetcher.ts`، `deepseekQuotaFetcher.ts`، `openrouterQuotaFetcher.ts`، `openrouterFreeWindow.ts`، `crofUsageFetcher.ts`، `antigravityCredits.ts`                       |
-| التخزين المؤقت    | `reasoningCache.ts`، `searchCache.ts`، `signatureCache.ts`، `requestDedup.ts`                                                                                                                                                                     |
-| ذكاء التوجيه      | `intentClassifier.ts`، `taskAwareRouter.ts`، `backgroundTaskDetector.ts`، `volumeDetector.ts`، `wildcardRouter.ts`، `workflowFSM.ts`، `specificityDetector.ts`، `specificityRules.ts`، `specificityTypes.ts`                                      |
-| معالجة النماذج    | `modelCapabilities.ts`، `modelDeprecation.ts`، `modelFamilyFallback.ts`، `modelStrip.ts`، `model.ts`، `provider.ts`، `providerRequestDefaults.ts`، `providerCostData.ts`، `payloadRules.ts`                                                       |
-| الضغط             | `compression/` — توصيلات محرك الضغط الكاملة                                                                                                                                                                                                       |
-| الرموز + الجلسات  | `tokenRefresh.ts`، `sessionManager.ts`، `apiKeyRotator.ts`، `contextManager.ts`، `contextHandoff.ts`، `systemPrompt.ts`، `roleNormalizer.ts`، `responsesInputSanitizer.ts`، `toolSchemaSanitizer.ts`، `toolLimitDetector.ts`، `thinkingBudget.ts` |
-| المستوى / البيان  | `tierResolver.ts`، `tierConfig.ts`، `tierDefaults.json`، `tierTypes.ts`، `manifestAdapter.ts`                                                                                                                                                     |
-| عنوان IP / الشبكة | `ipFilter.ts`، `webSearchFallback.ts`                                                                                                                                                                                                             |
-| الدفعات           | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| الاستخدام         | `usage.ts`                                                                                                                                                                                                                                        |
+| مجال الاهتمام           | الملفات                                                                                                                                                                                                                                                  |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| توجيه Combo             | `combo.ts` (19 استراتيجية)، `comboConfig.ts`، `comboMetrics.ts`، `comboManifestMetrics.ts`، `comboAgentMiddleware.ts`                                                                                                                                    |
+| محرك Auto Combo         | `autoCombo/` — `engine.ts`، `scoring.ts`، `taskFitness.ts`، `virtualFactory.ts`، `modePacks.ts`، `autoPrefix.ts`، `persistence.ts`، `providerDiversity.ts`، `providerRegistryAccessor.ts`، `routerStrategy.ts`، `selfHealing.ts`، `index.ts`             |
+| المرونة                 | `accountFallback.ts` (فترة تهدئة + حظر)، `errorClassifier.ts`، `requestRejectedStreak.ts`، `emergencyFallback.ts`، `rateLimitManager.ts`، `rateLimitSemaphore.ts`، `accountSemaphore.ts`، `accountSelector.ts`                                           |
+| الحصص                   | `quotaMonitor.ts`، `quotaPreflight.ts`، `bailianQuotaFetcher.ts`، `codexQuotaFetcher.ts`، `deepseekQuotaFetcher.ts`، `openrouterQuotaFetcher.ts`، `openrouterFreeWindow.ts`، `llmgatewayQuotaFetcher.ts`، `crofUsageFetcher.ts`، `antigravityCredits.ts` |
+| التخزين المؤقت          | `reasoningCache.ts`، `searchCache.ts`، `signatureCache.ts`، `requestDedup.ts`                                                                                                                                                                            |
+| ذكاء التوجيه            | `intentClassifier.ts`، `taskAwareRouter.ts`، `backgroundTaskDetector.ts`، `volumeDetector.ts`، `wildcardRouter.ts`، `workflowFSM.ts`، `specificityDetector.ts`، `specificityRules.ts`، `specificityTypes.ts`                                             |
+| معالجة النماذج          | `modelCapabilities.ts`، `modelDeprecation.ts`، `modelFamilyFallback.ts`، `modelStrip.ts`، `model.ts`، `provider.ts`، `providerRequestDefaults.ts`، `providerCostData.ts`، `payloadRules.ts`                                                              |
+| الضغط                   | `compression/` — الربط الكامل لمحرك الضغط                                                                                                                                                                                                                |
+| الرموز المميزة + الجلسة | `tokenRefresh.ts`، `sessionManager.ts`، `apiKeyRotator.ts`، `contextManager.ts`، `contextHandoff.ts`، `systemPrompt.ts`، `roleNormalizer.ts`، `responsesInputSanitizer.ts`، `toolSchemaSanitizer.ts`، `toolLimitDetector.ts`، `thinkingBudget.ts`        |
+| المستوى / البيان        | `tierResolver.ts`، `tierConfig.ts`، `tierDefaults.json`، `tierTypes.ts`، `manifestAdapter.ts`                                                                                                                                                            |
+| عنوان IP / الشبكة       | `ipFilter.ts`، `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| الدُفعات                | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| الاستخدام               | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 أدوات فريدة** موصّلة في `server.ts` (45 أداة أساسية في `schemas/tools.ts` +
-  وحدات الذاكرة والمهارات ومهارات GitHub والمجمّع والتلعيب والإضافات وNotion وObsidian
-  والمجموعة النصية المحلية والضغط — يُحتسب الاتحاد بواسطة `countUniqueMcpTools`).
-- **3 وسائل نقل**: stdio وHTTP Streamable وSSE.
-- **33 نطاقًا** تُفرَض في وقت التشغيل — القائمة الأساسية في `src/shared/constants/mcpScopes.ts`، والمجموعة الكاملة هي اتحاد النطاقات التي تصرّح بها كل وحدة أدوات.
+- **110 أدوات فريدة** موصولة في `server.ts` (45 أداة أساسية في `schemas/tools.ts` +
+  وحدات الذاكرة والمهارات ومهارات GitHub والمجموعة والتلعيب والإضافات وNotion وObsidian
+  والمجموعة المحلية والضغط — يُحتسب الاتحاد بواسطة `countUniqueMcpTools`).
+- **3 وسائل نقل**: stdio، وHTTP Streamable، وSSE.
+- **33 نطاقًا** تُفرض في وقت التشغيل — القائمة الأساسية موجودة في `src/shared/constants/mcpScopes.ts`، والمجموعة الكاملة هي اتحاد النطاقات التي تصرّح بها كل وحدة أدوات.
 - جدول التدقيق: `mcp_tool_audit` (تتم تعبئته بواسطة `audit.ts`).
 - الملفات: `server.ts`، `index.ts`، `httpTransport.ts`، `audit.ts`، `scopeEnforcement.ts`،
   `runtimeHeartbeat.ts`، `descriptionCompressor.ts`، `schemas/{tools, a2a, audit, index}.ts`،
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`،
   بالإضافة إلى الاختبارات ضمن `__tests__/`.
-- راجع [MCP-SERVER.md](../frameworks/MCP-SERVER.md) للاطلاع على كتالوج الأدوات الكامل.
+- راجع [MCP-SERVER.md](../frameworks/MCP-SERVER.md) للاطلاع على فهرس الأدوات الكامل.
 
 ### 4.7 `open-sse/config/`
 
 سجلات المزوّدين (`providerRegistry.ts`، `providerModels.ts`،
-`providerHeaderProfiles.ts`)، وسجلات النماذج لكل تنسيق (`audioRegistry.ts`،
+`providerHeaderProfiles.ts`)، وسجلات النماذج الخاصة بكل تنسيق (`audioRegistry.ts`،
 `embeddingRegistry.ts`، `imageRegistry.ts`، `moderationRegistry.ts`،
 `musicRegistry.ts`، `rerankRegistry.ts`، `searchRegistry.ts`، `videoRegistry.ts`)،
 ومساعدات الهوية (`codexIdentity.ts`، `codexInstructions.ts`،
@@ -563,7 +563,7 @@ open-sse/
 
 ### 4.8 `open-sse/utils/`
 
-الأساسيات الأولية للبث والأدوات المساعدة لموفّدي الخدمة: `stream.ts`، `streamHandler.ts`،
+أساسيات البث وأدوات موفّري الخدمة المساعدة: `stream.ts`، `streamHandler.ts`،
 `streamHelpers.ts`، `streamPayloadCollector.ts`، `streamReadiness.ts`،
 `sseHeartbeat.ts`، `proxyFetch.ts`، `proxyDispatcher.ts`، `tlsClient.ts`،
 `networkProxy.ts`، `awsSigV4.ts`، `cacheControlPolicy.ts`،

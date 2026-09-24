@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -268,78 +268,119 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 
 ---
 
-## 身份验证与作用域
+## 身份验证与作用域 (Scopes)
 
-MCP 工具通过 API 密钥作用域进行身份验证。作用域强制执行逻辑集中在
-`open-sse/mcp-server/scopeEnforcement.ts` 中。每个工具都需要特定的作用域：
+MCP 工具调用从调用方读取作用域字符串。该检查是三个独立命名空间之一。通过一个检查器的验证并不代表通过其他检查器的验证。规则见 [三个作用域命名空间](#three-scope-namespaces)。工具目录见 [MCP 工具作用域](#mcp-tool-scopes)。
 
-| 范围                  | 工具                                                                                                                                                                         |
-| :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                            |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                    |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                       |
-| `read:quota`          | `check_quota`                                                                                                                                                                |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                       |
-| `read:models`         | `list_models_catalog`                                                                                                                                                        |
-| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                |
-| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                        |
-| `write:budget`        | `set_budget_guard`                                                                                                                                                           |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                  |
-| `pricing:write`       | `sync_pricing`                                                                                                                                                               |
-| `read:cache`          | `cache_stats`                                                                                                                                                                |
-| `write:cache`         | `cache_flush`                                                                                                                                                                |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                   |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                            |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                        |
-| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                             |
-| `write:notion`        | `notion_append_blocks`                                                                                                                                                       |
-| `read:memory`         | `memory_search`                                                                                                                                                              |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                 |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                           |
-| `write:skills`        | `skills_enable`                                                                                                                                                              |
-| `execute:skills`      | `skills_execute`                                                                                                                                                             |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                             |
-| `read:tools`          | `omniroute_tool_search`                                                                                                                                                      |
-| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                    |
-| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                             |
-| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                               |
-| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                           |
-| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                              |
-| `read:obsidian`       | 13 个读取工具 — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | 9 个写入工具 — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
-| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                            |
+### 三个作用域命名空间
 
-支持通配符作用域：`read:*` 授予所有读取作用域，`*` 授予完全访问权限。
+API 密钥上的 `manage`、MCP 工具上的 `read:compression` 以及 `oma_live_…` 访问令牌上的 `read` 是三种不同的授权。向变更管理路由发送 `read` 访问令牌的调用方将收到 HTTP 403 `Access token scope 'read' is insufficient; 'write' required.`。该等级由 `scopeSatisfies` 判定。它不参考 MCP 表，MCP 匹配器也不参考它。
 
-### `mcp:connect` — 精细化路由权限 (#7895)
+| 命名空间       | 凭据                                                        | 检查器             | 通过后允许的操作               |
+| :------------- | :---------------------------------------------------------- | :----------------- | :----------------------------- |
+| API 密钥管理   | `api_keys.scopes`                                           | `hasManageScope`   | 该 Bearer 密钥的管理 REST      |
+| API 密钥附加项 | 同一数组，一个精确字符串                                    | 下文命名的辅助函数 | 仅限该项功能                   |
+| MCP 工具作用域 | 同一数组，否则为 MCP `_meta`，否则为 `OMNIROUTE_MCP_SCOPES` | `scopeMatches`     | 该工具（一旦启用强制执行）     |
+| 访问令牌       | `oma_live_…`                                                | `scopeSatisfies`   | 方法和路径要求该等级的管理路由 |
 
-从非环回地址访问 HTTP/SSE MCP 传输端点（`/api/mcp/*`）需要使用
-`/api/mcp/` 的 LOCAL_ONLY 例外规则（参见 `docs/security/ROUTE_GUARD_TIERS.md`）。此前，
-该例外规则仅接受具有完整 `manage`/`admin` 作用域的 API 密钥——对于仅需与 MCP
-通信的调用方而言，权限过于宽泛。`src/shared/constants/managementScopes.ts` 现在
-导出 `MCP_CONNECT_SCOPE = "mcp:connect"`：这是一个附加的精细化作用域（沿用
-`SELF_USAGE_SCOPE` 的先例），仅允许绕过
-`src/server/authz/policies/management.ts` 中针对 `/api/mcp/` 的限制——它不会授予
-对任何其他管理路由的访问权限，并且被特意排除在 `MANAGEMENT_API_KEY_SCOPES`
-之外。持有 `manage`/`admin` 的密钥仍可与以前一样通过该例外规则；对于仅远程调用
-MCP 的调用方，`mcp:connect` 是一种权限更低的替代方案，通过
-`hasMcpConnectOrManageScope()` 进行检查。
+每种凭据的铸造在 [管理身份验证](../guides/MANAGEMENT-AUTH.md) 中有详细说明。
 
-### 按密钥绑定 HTTP 作用域 (#7895)
+#### API 密钥作用域
 
-通过 HTTP/SSE 访问时，`open-sse/mcp-server/httpTransport.ts` 现在会通过
-`resolveMcpCallerAuthInfo()`（`open-sse/mcp-server/httpAuthContext.ts`）解析调用方
-真实的 `api_keys.scopes`，并将其传递给 MCP SDK 的
-`transport.handleRequest(req, { authInfo })`，因此传递至每次工具调用的
-`extra.authInfo.scopes` 会反映 Bearer 密钥自身的作用域。
-`scopeEnforcement.ts` 中的 `resolveCallerScopeContext()` 原本就会优先使用
-`authInfo`，而非 `_meta` 和 `OMNIROUTE_MCP_SCOPES` 环境变量回退值——此更改只是
-填充了这个优先级最高、但此前通过 HTTP 时未提供数据的来源。如果无法解析出 API
-密钥（没有请求头或密钥无效），`authInfo` 会保持为 `undefined`，解析过程将继续
-回退到现有的 `meta`/环境变量链，行为不变。这并不会改变
-`OMNIROUTE_MCP_ENFORCE_SCOPES` 的默认值——仍需显式启用强制执行；此更改只是确保
-启用后优先采用按密钥解析的路径。stdio 没有按调用方区分的身份信息（参见
-`mcpCallerIdentity.ts`），因此不受影响——它仍使用 `_meta`/环境变量回退链。
+一个 `api_keys.scopes` 数组服务于两项任务。它们使用不同的函数。
+
+**管理 REST。** `manage` 和 `admin` 是 `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) 的成员。`hasManageScope` 用于授权该密钥的管理路由。`admin` 在这些路由上具有管理能力。此处的 `admin` 单词并非访问令牌等级，也不会扩展为 MCP 工具作用域。
+
+**附加字符串。** 每一个都是精确的成员资格测试，且每一个都保持在 `MANAGEMENT_API_KEY_SCOPES` 之外。
+
+| 作用域                         | 通过后允许的操作                                                                                                                                        |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mcp:connect`                  | 仅限非回环 `/api/mcp/` LOCAL_ONLY 例外情况 (`hasMcpConnectOrManageScope`)。带有 `manage` 或 `admin` 的密钥仍能通过该例外检查。                          |
+| `self:usage`                   | 该密钥的 `GET /api/v1/me/status` (`src/app/api/v1/me/status/route.ts`)。`POST /api/keys` 在创建时添加此作用域 (`normalizeSelfServiceScopesForCreate`)。 |
+| `self:account-quota`           | 该状态负载中的上游账户配额 (`src/lib/usage/apiKeySelfService.ts`)。状态路由仍需要 `self:usage`。                                                        |
+| `policy:bypass-provider-quota` | 该密钥的推理调用跳过提供者配额策略 (`src/sse/handlers/chat.ts` 中的 `hasProviderQuotaBypassScope`)。                                                    |
+
+#### 匹配
+
+目录是 [MCP 工具作用域](#mcp-tool-scopes) 下的表格。不要将 `src/shared/constants/mcpScopes.ts` 中的 `MCP_SCOPE_LIST` 视为该目录：它是原始的类型化子集。后来的工具在其之外声明了更多作用域（`read:notion`、`read:skills`、`read:local-corpus` 以及表格中的其余部分）。
+
+`open-sse/mcp-server/scopeEnforcement.ts` 中的 `evaluateToolScopes` 在每个所需作用域都匹配某个已授予作用域时允许调用：
+
+- `*` 匹配每个所需作用域。
+- 以 `*` 结尾的已授予作用域匹配以星号前缀开头的所需作用域。`read:*` 匹配 `read:compression`。
+- 所有其他已授予作用域仅匹配完全相同的所需字符串。
+
+作用域为 `["manage"]` 的密钥在 `read:compression` 的 `scopeMatches` 检查中会失败。当仅授予 `admin`、`mcp:connect`、`read` 和 `write` 字符串时，同样的调用也会失败。除了结尾的 `*` 之外，MCP 工具作用域之间没有层级关系。
+
+除非 `OMNIROUTE_MCP_ENFORCE_SCOPES=true`（默认为 `false`），否则强制执行处于关闭状态。关闭时，`evaluateToolScopes` 允许调用并跳过目录。开启时，HTTP 使用 Bearer 密钥的 `api_keys.scopes` 作为 `authInfo`（参见 [按密钥 HTTP 作用域绑定](#per-key-http-scope-binding-7895)）。当没有密钥作用域解析时，授予集将回退到 MCP `_meta`，然后是 `OMNIROUTE_MCP_SCOPES`。
+
+#### 访问令牌作用域
+
+`oma_live_…` 令牌 (`src/lib/accessTokens/scopes.ts`) 携带 `read`、`write` 或 `admin`。`scopeSatisfies` 是一个等级：`admin` 涵盖 `write` 和 `read`，而 `write` 涵盖 `read`。未知作用域不涵盖任何内容。
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) 将该等级与 `inferRequiredScope` (`src/server/authz/accessScopes.ts`) 进行比较：
+
+- `GET`、`HEAD` 和 `OPTIONS` 需要 `read`。
+- 所有其他方法都需要 `write`。
+- `ADMIN_SCOPE_PREFIXES` 中的路径对所有方法都需要 `admin`。`/api/mcp` 在该列表中，因此 `write` 访问令牌仍然无法调用 MCP HTTP 接口。
+- `ADMIN_MUTATION_PREFIXES` 中的路径仅在变更 (mutations) 时需要 `admin`。
+
+`PATCH /api/keys/{id}` 是一个修改操作，并且不在那些管理员列表中，因此一个 `read` 令牌会收到 403 错误
+`Access token scope 'read' is insufficient; 'write' required.`
+一个 `write` 或 `admin` 访问令牌满足该路由的要求。仪表盘 JWT、loopback CLI 机器 ID 令牌以及具有 `manage` 或 `admin` 权限的 API 密钥会走其他分支，并且不受此等级的限制。
+
+一个通过了 `/api/mcp` 的 `scopeSatisfies` 检查的访问令牌仅通过了管理关卡。工具调用仍然会针对 API 密钥范围运行 `scopeMatches`。访问令牌等级不是 `scopeMatches` 的输入。
+
+### MCP 工具范围
+
+范围强制执行集中在 `open-sse/mcp-server/scopeEnforcement.ts` 中。
+每个工具都需要特定的范围：
+
+| 范围                 | 工具                                                                                                                                                                         |
+| :------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `读取:健康状况`      | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                            |
+| `读取:组合`          | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                    |
+| `写入:组合`          | `switch_combo`, `set_routing_strategy`                                                                                                                                       |
+| `读取:配额`          | `check_quota`                                                                                                                                                                |
+| `读取:用量`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                       |
+| `读取:模型`          | `list_models_catalog`                                                                                                                                                        |
+| `执行:补全`          | `route_request`, `test_combo`                                                                                                                                                |
+| `执行:搜索`          | `web_search`, `x_search`, `web_fetch`                                                                                                                                        |
+| `写入:预算`          | `set_budget_guard`                                                                                                                                                           |
+| `写入:弹性`          | `set_resilience_profile`, `db_health_check`                                                                                                                                  |
+| `定价:写入`          | `sync_pricing`                                                                                                                                                               |
+| `读取:缓存`          | `cache_stats`                                                                                                                                                                |
+| `写入:缓存`          | `cache_flush`                                                                                                                                                                |
+| `读取:压缩`          | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                   |
+| `写入:压缩`          | `compression_configure`, `set_compression_engine`                                                                                                                            |
+| `读取:代理`          | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                        |
+| `读取:Notion`        | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                             |
+| `写入:Notion`        | `notion_append_blocks`                                                                                                                                                       |
+| `读取:内存`          | `memory_search`                                                                                                                                                              |
+| `写入:内存`          | `memory_add`, `memory_clear`                                                                                                                                                 |
+| `读取:技能`          | `skills_list`, `skills_executions`                                                                                                                                           |
+| `写入:技能`          | `skills_enable`                                                                                                                                                              |
+| `执行:技能`          | `skills_execute`                                                                                                                                                             |
+| `读取:目录`          | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                             |
+| `读取:工具`          | `omniroute_tool_search`                                                                                                                                                      |
+| `读取:雷达`          | `omniroute_radar_catalog`                                                                                                                                                    |
+| `读取:游戏化`        | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                             |
+| `write:gamification` | `gamification_invite`, `gamification_transfer`                                                                                                                               |
+| `read:plugins`       | `plugin_list`, `plugin_executions`                                                                                                                                           |
+| `write:plugins`      | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                              |
+| `read:obsidian`      | 13 个读取工具 — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`     | 9 个写入工具 — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
+| `read:local-corpus`  | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                            |
+
+支持通配符范围：`read:*` 授予所有读取范围，`*` 授予完全访问权限。
+
+### `mcp:connect` — 窄路由能力 (#7895)
+
+从非环回地址访问 HTTP/SSE MCP 传输 (`/api/mcp/*`) 需要 `/api/mcp/` LOCAL_ONLY 豁免（参见 `docs/security/ROUTE_GUARD_TIERS.md`）。历史上，该豁免只接受完整的 `manage`/`admin` 范围 API 密钥——对于只需要与 MCP 通信的调用者来说，这太宽泛了。`src/shared/constants/managementScopes.ts` 现在导出了 `MCP_CONNECT_SCOPE = "mcp:connect"`：这是一个附加的、窄范围（与 `SELF_USAGE_SCOPE` 具有相同的先例），它**只**授权 `src/server/authz/policies/management.ts` 中的 `/api/mcp/` 绕过——它不授予任何其他管理路由访问权限，并且被有意地排除在 `MANAGEMENT_API_KEY_SCOPES` 之外。持有 `manage`/`admin` 的密钥仍然可以不变地通过豁免；`mcp:connect` 是远程仅 MCP 调用者的低权限替代方案，通过 `hasMcpConnectOrManageScope()` 进行检查。
+
+### 每密钥 HTTP 范围绑定 (#7895)
+
+通过 HTTP/SSE，`open-sse/mcp-server/httpTransport.ts` 现在通过 `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) 解析调用者的真实 `api_keys.scopes`，并将其传递给 MCP SDK 的 `transport.handleRequest(req, { authInfo })`，因此到达每个工具调用的 `extra.authInfo.scopes` 反映了 Bearer 密钥自身的范围。`scopeEnforcement.ts` 的 `resolveCallerScopeContext()` 已经优先考虑 `authInfo` 而非 `_meta` 和 `OMNIROUTE_MCP_SCOPES` 环境变量回退——这只是填充了第一个、最高优先级的来源，该来源以前在 HTTP 上未被提供。当没有 API 密钥解析（无头，无效密钥）时，`authInfo` 保持 `undefined`，并且解析会回退到现有的 `meta`/env 链，保持不变。这并**不**改变 `OMNIROUTE_MCP_ENFORCE_SCOPES` 的默认值——强制执行仍然必须明确启用；此更改只使得一旦启用，每密钥路径将优先。stdio 没有每调用者身份（参见 `mcpCallerIdentity.ts`），因此不受影响——它仍然依赖于 `_meta`/env 回退链。
 
 ---
 
@@ -401,7 +442,7 @@ MCP_TOOL_ALLOW="omniroute_route_request,omniroute_check_quota" omniroute --mcp
 
 ## 运行时心跳
 
-stdio 传输每 5 秒将存活状态持久化到 `${DATA_DIR}/runtime/mcp-heartbeat.json`。仪表板 (`/api/mcp/status`) 会读取此文件并结合 PID 存活状态来确定 `online`。HTTP 传输则通过进程内的 `getMcpHttpStatus()` 报告状态（不写入文件）。
+stdio 传输每 5 秒将活跃度持久化到 `${DATA_DIR}/runtime/mcp-heartbeat.json`。仪表板 (`/api/mcp/status`) 读取此文件以及 PID 活跃度以推断 `online` 状态。HTTP 传输则从进程内的 `getMcpHttpStatus()` 报告状态（不写入文件）。
 
 心跳快照包含：
 

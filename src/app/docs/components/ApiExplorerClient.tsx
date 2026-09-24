@@ -92,7 +92,9 @@ export function ApiExplorerClient() {
   const t = useTranslations("docs");
   const te = useTranslations("endpoint");
   const [selected, setSelected] = useState<OpenApiEndpoint | null>(null);
-  const [baseUrl, setBaseUrl] = useState("http://localhost:20128");
+  const [baseUrl, setBaseUrl] = useState(
+    typeof window !== "undefined" ? window.location.origin : "http://localhost:20128"
+  );
   const [apiKey, setApiKey] = useState("");
   const [requestBody, setRequestBody] = useState("");
   const [response, setResponse] = useState<string | null>(null);

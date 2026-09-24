@@ -19,6 +19,7 @@ import type {
   ProxyRotationStrategy,
 } from "./proxies/types";
 import {
+  isScopeIdMissing,
   mapProxyRow,
   mapAssignmentRow,
   normalizeScope,
@@ -205,7 +206,8 @@ function upsertAssignmentRow(
 ) {
   const normalizedScope = normalizeScope(assignment.scope);
   const normalizedScopeId = normalizeAssignmentScopeId(normalizedScope, assignment.scopeId);
-  if (normalizedScope !== "global" && !normalizedScopeId) {
+  // Contract: normalizedScope is already normalized — the raw-scope guard applies to it directly.
+  if (isScopeIdMissing(normalizedScope, normalizedScopeId)) {
     throw new Error("scopeId is required for non-global proxy assignments");
   }
 
@@ -529,6 +531,10 @@ export async function assignProxyToScope(
 ): Promise<ProxyAssignmentRecord | null> {
   const normalizedScope = normalizeScope(scope);
   const normalizedScopeId = normalizeAssignmentScopeId(normalizedScope, scopeId);
+  // Contract: scope already normalized above — the raw-scope guard applies to it directly.
+  if (isScopeIdMissing(normalizedScope, normalizedScopeId)) {
+    throw new Error("scopeId is required for non-global proxy assignments");
+  }
   const db = getDbInstance();
 
   if (!proxyId) {
@@ -578,7 +584,8 @@ export async function addProxyToScopePool(
 ): Promise<ProxyAssignmentRecord | null> {
   const normalizedScope = normalizeScope(scope);
   const normalizedScopeId = normalizeAssignmentScopeId(normalizedScope, scopeId);
-  if (normalizedScope !== "global" && !normalizedScopeId) {
+  // Contract: normalizedScope is already normalized — the raw-scope guard applies to it directly.
+  if (isScopeIdMissing(normalizedScope, normalizedScopeId)) {
     throw new Error("scopeId is required for non-global proxy assignments");
   }
 

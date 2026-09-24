@@ -1,10 +1,10 @@
 # API Reference (中文 (繁體))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **語言：** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md)
 
 OmniRoute API 的核心參考文件。涵蓋公開的 `/v1` 介面及最常用的管理端點；機器可讀的 [`docs/openapi.yaml`](../openapi.yaml) 與 `src/app/api/` 下的路由樹則是完整的參考來源。
 
@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **快取命中的成本語意：**語意快取命中時（`X-OmniRoute-Cache-Hit: true`），不會進行上游呼叫，因此 `X-OmniRoute-Response-Cost` 為 `0.0000000000`（提供該命中結果的**增量**成本）。原始成本／若未命中原本會產生的成本會另外記錄於 `X-OmniRoute-Cost-Saved`。帳務處理端應加總 `X-OmniRoute-Response-Cost`（快取命中不產生成本）；快取分析則可彙總 `X-OmniRoute-Cost-Saved`。
 
-## 獨佔受管理工作階段租約
+## 獨佔式託管會話租賃
 
-獨佔受管理工作階段租用是一種選擇加入、與用戶端無關的路由合約：一個作用中的擁有者持有一個符合資格的 OmniRoute 連線。它不會租用模型、不要求 OAuth、不識別特定用戶端，也不要求特定提供者。
+獨佔式託管會話租賃是一種選擇加入、客戶端中立的路由合約：一個活躍的所有者持有一個符合條件的 OmniRoute 連線。它不租賃模型、不要求 OAuth、不識別特定客戶端，也不要求特定提供者。
 
-用於驗證的 API 金鑰必須具有 `lease:exclusive` 權限範圍，以及明確且非空的 `allowedConnections` 清單。資料庫異動邊界會在建立金鑰和部分更新時，同時強制執行這兩個欄位的要求。
+用於身份驗證的 API 金鑰必須具有 `lease:exclusive` 範圍和一個明確的非空 `allowedConnections` 列表。資料庫變更邊界在金鑰建立和部分更新時會同時強制執行這兩個欄位。
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-成功的取得、續約和釋放回應會公開時間戳記、`state` 和確切的正整數 `generation`，但絕不會公開所選連線或憑證。續約和釋放會在 JSON 主體中提供 generation：
+成功的取得、續約和釋放回應會公開時間戳記、`state` 和確切的正 `generation`，但絕不會公開所選的連線或憑證。續約和釋放會在 JSON 主體中提供 `generation`：
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-作用中的租約擁有者可以明確要求其目前繫結的隱私安全顯示中繼資料：
+活躍的租賃所有者可以明確請求其當前綁定的隱私安全顯示元資料：
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-這項選擇加入的狀態動作，會在單一資料庫交易中受到不透明的擁有者、已驗證的受管理 API 金鑰，以及確切作用中 generation 的防護。`displayName` 僅為經修整的已設定連線名稱；若不存在安全的已設定名稱，則為 `null`。OmniRoute 絕不會以電子郵件或產生的帳戶身分取代它。提供者值是非敏感的顯示標籤，絕不會是產生的相容提供者識別碼。憑證、權杖、Cookie、原始連線或 API 金鑰 ID、擁有者雜湊、防護機密及內部路由資料均不包含在內。
+此選擇加入的狀態操作由不透明的所有者、經過身份驗證的託管 API 金鑰以及資料庫交易中確切的活躍世代進行圍欄。`displayName` 僅是修剪過的配置連線名稱；當沒有安全的配置名稱時，它為 `null`。OmniRoute 絕不會替換電子郵件或生成的帳戶身份。提供者值是一個非敏感的顯示標籤，絕不是生成的相容提供者識別碼。憑證、令牌、cookie、原始連線或 API 金鑰 ID、所有者雜湊、圍欄密鑰和內部路由資料均被排除。
 
-使用錯誤金鑰、錯誤擁有者、過時 generation，或查詢不存在、已過期、已釋放及已失效的租約，都會傳回相同的 `409 LEASE_FENCE_STALE` 錯誤，且不含連線中繼資料。收到容量等待回應的用戶端沒有可供檢查的作用中繫結。當路由轉換作用中的租約時，相同的 generation 仍然有效，而狀態會以不可分割方式傳回新繫結，絕不傳回舊繫結。現有用戶端維持不變，因為取得、續約、釋放及等待回應會保留先前的格式。
+錯誤金鑰、錯誤所有者、過時世代、遺失、過期、已釋放和已失效的查詢都會返回相同的 `409 LEASE_FENCE_STALE` 錯誤，且不帶連線元資料。收到容量等待回應的客戶端沒有可檢查的活躍綁定。當路由轉換活躍租賃時，相同的世代仍然有效，並且狀態會原子性地返回新的綁定，而不是舊的。現有客戶端保持不變，因為取得、續約、釋放和等待回應保留了其先前的形狀。
 
-此伺服器合約不會變更原版 OpenAI Codex `/status`。原版 Codex 目前會回報其模型提供者以及內建的驗證／帳戶狀態，但不會呈現任意自訂提供者的帳戶中繼資料；未來的用戶端整合必須呼叫此動作，並決定如何顯示 `connection.displayName`。
+此伺服器合約不會改變標準 OpenAI Codex `/status`。標準 Codex 目前報告其模型提供者和內建的身份驗證/帳戶狀態，但不會呈現任意自訂提供者帳戶元資料；後續的客戶端整合必須呼叫此操作並決定如何顯示 `connection.displayName`。
 
-之後，每個受管理的推論請求都會提供這兩個控制標頭：
+每個託管推斷請求隨後都會提供兩個控制標頭：
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-在每次受支援的上游嘗試之前，系統會立即防護確切的擁有者、generation、作用中連線及已驗證的 API 金鑰。即使另一個金鑰允許相同連線，使用該金鑰重播擁有者和 generation 仍會失敗。原始擁有者資訊不會被持久儲存、記錄、保留於請求快照中，或轉送至上游。
+確切的所有者、世代、活躍連線和經過身份驗證的 API 金鑰在每次支援的上游嘗試之前都會立即進行圍欄。即使另一個金鑰允許相同的連線，使用該金鑰重播所有者和世代也會失敗。原始所有者不會被持久化、記錄、保留在請求快照中或轉發到上游。
 
-暫時性競用會傳回 HTTP `429`、`Retry-After`，以及：
+暫時性爭用會返回帶有 `Retry-After` 的 HTTP `429` 和：
 
 ```json
 {
@@ -157,27 +157,29 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-此回應僅表示一般的符合資格集合不是空的，而且每個可用候選項目都由其他擁有者的作用中租約持有。不受支援的模型／提供者、原則不符、冷卻期、配額、健康狀態，以及其他一般資格判定失敗，會保留其現有的 OmniRoute 回應。
+此回應僅表示普通的合格集合非空，並且每個空閒候選者都被外部活躍租賃持有。不支援的模型/提供者、策略不匹配、冷卻、配額、健康狀況以及其他普通的資格失敗會保留其現有的 OmniRoute 回應。
 
 ### `x-omniroute-compression`
 
-逐一請求覆寫壓縮計畫。優先順序最高——高於路由組合覆寫、作用中設定檔、自動觸發條件，以及面板的「預設」設定。值：
+每個請求的壓縮計畫覆寫。最高優先級 — 優於路由組合覆寫、活躍設定檔、自動觸發和面板預設值。值：
 
-| 值            | 效果                                                   |
-| ------------- | ------------------------------------------------------ |
-| `off`         | 此請求不進行壓縮。                                     |
-| `default`     | 面板衍生的「預設」設定檔（忽略作用中設定檔）。         |
-| `engine:<id>` | 啟用時使用單一引擎，例如 `engine:rtk`。                |
-| `<combo>`     | 具名組合，先依名稱比對（不區分大小寫），再依 ID 比對。 |
+| 值            | 效果                                                                |
+| ------------- | ------------------------------------------------------------------- |
+| `off`         | 此請求不進行壓縮。                                                  |
+| `default`     | 面板派生的預設設定檔（忽略活躍設定檔）。有損引擎保持關閉。          |
+| `safe`        | 僅進行重複資料刪除和空白字元摺疊。                                  |
+| `allow-lossy` | 保留此請求的操作員計畫，包括摘要和樣式重寫。                        |
+| `engine:<id>` | 啟用時的單一引擎，例如 `engine:rtk`。針對該引擎的每個請求選擇加入。 |
+| `<combo>`     | 具名組合，首先按名稱（不區分大小寫）匹配，然後按 ID 匹配。          |
 
-注意：
+備註：
 
-- 未知值會被忽略（絕不會拒絕請求）；解析會回退至正常的運算子優先順序。
-- 如果多個組合共用同一名稱，請傳遞組合的 **id** 以確保比對結果可預測。
-- 名稱為 `off` 或 `default` 的組合無法依名稱選取（系統會先解譯這些關鍵字）；請透過其 ID 參照此類組合。
-- 壓縮總開關是硬性閘門：全域停用壓縮時，此標頭無法啟用壓縮。
+- 未知值會被忽略（請求絕不會被拒絕）；解析會依循正常的運算子優先順序。
+- 如果多個組合共用一個名稱，請傳遞組合的 **ID** 以進行確定性匹配。
+- 名稱為 `off` 或 `default` 的組合不能按名稱選擇（這些關鍵字會優先解釋）；請透過其 ID 引用此類組合。
+- 主壓縮開關是一個硬性門檻：當全域禁用壓縮時，此標頭無法啟用它。
 
-套用的計畫會在回應標頭中回傳：
+應用計畫會在回應標頭中回傳：
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
@@ -284,7 +286,7 @@ Content-Type: application/json
 
 {
   "model": "openai/gpt-image-2",
-  "prompt": "A beautiful sunset over mountains",
+  "prompt": "山巒上方的美麗夕陽",
   "size": "1024x1024"
 }
 ```
@@ -414,8 +416,8 @@ GET /api/v1/provider-plugin-manifest
 | POST | `/v1/images/edits`                        | OpenAI Images（編輯／局部重繪）  |
 | POST | `/v1/videos/generations`                  | OpenAI 風格的影片生成            |
 | POST | `/v1/music/generations`                   | OpenAI 風格的音樂生成            |
-| POST | `/v1/audio/transcriptions`                | OpenAI Audio（語音轉文字）       |
-| POST | `/v1/audio/speech`                        | OpenAI TTS（傳回音訊主體）       |
+| POST | `/v1/audio/transcriptions`                | OpenAI Audio（STT）              |
+| POST | `/v1/audio/speech`                        | OpenAI TTS（傳回音訊本文）       |
 | POST | `/v1/rerank`                              | Cohere/Voyage 風格的重新排序     |
 | POST | `/v1/classify`                            | Jina 分類（`api.jina.ai`）       |
 | POST | `/v1/segment`                             | Jina 分段器（`segment.jina.ai`） |
@@ -432,15 +434,15 @@ GET /api/v1/provider-plugin-manifest
 | POST | `/api/v1/vscode/{token}/api/chat`         | Ollama 權杖化別名                |
 | GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama 標籤權杖化別名            |
 
-所有 POST 路由都遵循相同格式：`Bearer your-api-key` + 經 Zod 驗證的 JSON 主體（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema` 等；請參閱 `src/shared/validation/schemas.ts`）。結構描述驗證失敗時會傳回 4xx。
+所有 POST 路由皆遵循相同格式：`Bearer your-api-key` + 經 Zod 驗證的 JSON 本文（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema` 等，請參閱 `src/shared/validation/schemas.ts`）。結構描述驗證失敗時會傳回 4xx。
 
-對於無法附加 `Authorization: Bearer ...` 的用戶端，OmniRoute 也接受透過 URL 傳入的 API 金鑰；可使用查詢字串相容方式（`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`），或使用下方記載的專用 `/api/v1/vscode/{token}/...` 端點。
+對於無法附加 `Authorization: Bearer ...` 的用戶端，OmniRoute 也接受透過 URL 傳遞 API 金鑰，可使用查詢字串相容方式（`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`），或使用下方記載的專用 `/api/v1/vscode/{token}/...` 端點。
 
 ```bash
-# 重新排序
+# 重新排序（雲端登錄提供者，或指定為「<prefix>/<model>」的 OpenAI 相容提供者節點）
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina 分類（Foundation API 憑證）
+# Jina 分類（Foundation API 認證資訊）
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Jina 分段器
@@ -452,16 +454,38 @@ POST /v1/search      { "query": "...", "provider": "jina-search" }
 # 內容審核
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — 傳回 audio/mpeg（或所要求的格式）主體
+# TTS — 傳回 audio/mpeg（或指定格式）本文
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# 影像編輯（multipart）
+# 圖片編輯（multipart）
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # 影片／音樂生成（帶有提供者前綴的模型 ID）
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **重新排序提供者節點：**`POST /v1/rerank` 也會路由至 OpenAI 相容的提供者節點
+> （oMLX、vLLM、位於閘道後方的 Infinity、TEI，……），其位址格式為 `<node-prefix>/<model>`。迴送
+> 節點（`localhost`、`127.0.0.1`、`172.16.0.0/12`）一律符合資格。位於其他任何
+> 主機上的節點（無論是區域網路中的主機或 Tailscale 對等節點）僅在操作員啟用
+> `RERANK_REMOTE_PROVIDER_NODES` 功能旗標，**且**節點的基底 URL 通過提供者
+> 出站 URL 原則（`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`）時才符合資格；
+> 系統絕不會路由至雲端中繼資料主機。記憶體引擎的重新排序步驟會透過
+> 迴送介面呼叫此路由，因此相同規則也適用於記憶體設定中的 `rerankProviderModel`。
+>
+> **本機伺服器格式：**節點會先在 `<base>/v1/rerank` 被呼叫，若收到 404，則改為 `<base>/rerank`
+> （Infinity、TEI）。上游本文同時包含 Cohere/OpenAI 拼法（`documents`、
+> `return_documents`）與 TEI 拼法（`texts`、`return_text`），而上游回應會
+> 正規化為 Cohere 封套：TEI 的純 `[{index, score, text}]`、精簡閘道傳回的
+> `{results: [{index, score}]}`，以及 Voyage 風格的 `{data: [...]}`，都會以
+> `{results: [{index, relevance_score, document?}]}` 的格式傳回用戶端，依分數排序，並以 `top_n` 限制數量。
+
+> **提供者節點探索：**OpenAI 相容提供者節點上的模型會以該節點前綴出現在 `GET /v1/models`
+> 中。未包含任何端點中繼資料的資料列（常見於本機 `/v1/models` 清單）
+> 會繼承節點的 `apiType`，因此 `embeddings` 節點的模型會是 `type: "embedding"`，
+> 而 `rerank` 節點的模型會是 `type: "rerank"`，而非預設為聊天模型；已同步或手動新增的資料列上若有明確的
+> `supportedEndpoints`，仍會優先採用。
 
 ### 專用提供者路由
 
@@ -1101,7 +1125,7 @@ Content-Type: application/json
 }
 ```
 
-> **結構描述注意事項**（`setBudgetSchema`）：`apiKeyId` 為必填；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 之中至少一項必須大於零。選填欄位：`warningThreshold`（0–1）、`resetInterval`（`daily` | `weekly` | `monthly`）、`resetTime`（`HH:MM`）。舊版 `{keyId, limit, period}` 結構會傳回 `400 Bad Request`。
+> **Schema notes** (`setBudgetSchema`): `apiKeyId` 為必填；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少一個必須大於零。選填欄位：`warningThreshold` (0–1)、`resetInterval` (`daily` | `weekly` | `monthly`)、`resetTime` (`HH:MM`)。舊版 `{keyId, limit, period}` 格式會回傳 `400 Bad Request`。
 
 ## Token 限制
 
@@ -1558,19 +1582,19 @@ GET /.well-known/agent.json
 
 ## CLI 工具管理
 
-管理與 OmniRoute 整合的 CLI 工具（antigravity、chipotle、commandCode、
+管理與 OmniRoute 整合的 CLI 工具（antigravity、commandCode、
 devin-cli 等）。如需完整清單，請參閱[提供者參考](./PROVIDER_REFERENCE.md)。
 
-| 方法 | 路徑                                    | 說明                                                                                                                                |
-| ---- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| GET  | `/api/cli-tools/all-statuses`           | 所有 CLI 工具的狀態（是否已安裝、版本、最後出現時間）                                                                               |
-| GET  | `/api/cli-tools/status`                 | 單一 CLI 工具的詳細狀態（`?tool=` 查詢）                                                                                            |
-| POST | `/api/cli-tools/apply`                  | 寫入工具產生的設定（`dryRun` 可供預覽；在容器化環境中會傳回 `422` + `containerEphemeralTarget`；`migration` 會註明舊版 Codex YAML） |
-| GET  | `/api/cli-tools/backups`                | 列出 CLI 工具設定的備份                                                                                                             |
-| POST | `/api/cli-tools/backups`                | 建立所有 CLI 工具設定的備份                                                                                                         |
-| POST | `/api/cli-tools/backups`                | 還原：使用相同端點，並在請求主體中提供 `{tool, backupId}`，即可還原該備份                                                           |
-| GET  | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM Proxy 狀態（「antigravity-mitm」CLI 工具）                                                                         |
-| POST | `/api/cli-tools/antigravity-mitm/alias` | 設定 antigravity-mitm 別名                                                                                                          |
+| 方法 | 路徑                                    | 說明                                                                                                                        |
+| ---- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| GET  | `/api/cli-tools/all-statuses`           | 所有 CLI 工具的狀態（已安裝、版本、最後出現時間）                                                                           |
+| GET  | `/api/cli-tools/status`                 | 單一 CLI 工具的詳細狀態（使用 `?tool=` 查詢）                                                                               |
+| POST | `/api/cli-tools/apply`                  | 寫入工具產生的設定（`dryRun` 可供預覽；容器化時傳回 `422` + `containerEphemeralTarget`；`migration` 會註明舊版 Codex YAML） |
+| GET  | `/api/cli-tools/backups`                | 列出 CLI 工具設定備份                                                                                                       |
+| POST | `/api/cli-tools/backups`                | 建立所有 CLI 工具設定的備份                                                                                                 |
+| POST | `/api/cli-tools/backups`                | 還原：在請求主體中包含 `{tool, backupId}`，透過同一端點還原該備份                                                           |
+| GET  | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM 代理伺服器狀態（「antigravity-mitm」CLI 工具）                                                             |
+| POST | `/api/cli-tools/antigravity-mitm/alias` | 設定 antigravity-mitm 別名                                                                                                  |
 
 **驗證：** 需要管理工作階段。
 

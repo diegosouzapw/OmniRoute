@@ -29,7 +29,7 @@ test("priority: always dispatches the first healthy target", async () => {
     name: "m-priority",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
   h.installRecordingFetch();
 
@@ -47,7 +47,7 @@ test("priority: falls back to the next target when the first fails", async () =>
     name: "m-priority-fail",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
   // First upstream call (openai) fails → must fall over to claude.
   h.installRecordingFetch((call) => (call.index === 0 ? h.failure(503) : undefined));
@@ -64,7 +64,7 @@ test("fill-first: keeps using the first target until it fails, then moves on", a
     name: "m-fill-first",
     strategy: "fill-first",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
   h.installRecordingFetch();
 
@@ -84,7 +84,7 @@ test("round-robin: cycles through targets in batches (sticky limit = 3 default)"
     name: "m-rr",
     strategy: "round-robin",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6", "gemini/gemini-2.5-flash"],
   });
   h.installRecordingFetch();
 
@@ -106,7 +106,7 @@ test("least-used: prefers the target with the fewest recent uses", async () => {
     name: "m-least-used",
     strategy: "least-used",
     config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
   h.installRecordingFetch();
 
@@ -129,7 +129,7 @@ test("random: over many calls reaches every target", async () => {
     name: "m-random",
     strategy: "random",
     config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6", "gemini/gemini-2.5-flash"],
   });
   h.installRecordingFetch();
 
@@ -151,7 +151,7 @@ test("strict-random: uses every target once before repeating (deck, no early rep
     name: "m-strict-random",
     strategy: "strict-random",
     config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6", "gemini/gemini-2.5-flash"],
   });
   h.installRecordingFetch();
 
@@ -171,7 +171,7 @@ test("p2c: spreads load across targets over many calls (no single-target pin)", 
     name: "m-p2c",
     strategy: "p2c",
     config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6", "gemini/gemini-2.5-flash"],
   });
   h.installRecordingFetch();
 

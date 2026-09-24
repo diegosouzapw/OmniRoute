@@ -1,10 +1,10 @@
 # API Reference (Slovenčina)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Jazyky:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 Základná referenčná dokumentácia pre API OmniRoute. Zahŕňa verejné rozhranie `/v1` a najčastejšie používané koncové body na správu; úplnými zdrojmi sú strojovo čitateľný súbor [`docs/openapi.yaml`](../openapi.yaml) a strom trás v adresári `src/app/api/`.
 
@@ -88,13 +88,13 @@ Content-Type: application/json
 
 ## Exkluzívne spravované prenájmy relácií
 
-Exkluzívny prenájom spravovanej relácie je voliteľná zmluva smerovania nezávislá od klienta: jeden aktívny vlastník
+Exkluzívne spravované prenájmy relácií sú voliteľnou, klient-neutrálnou smerovacou zmluvou: jeden aktívny vlastník
 drží jedno oprávnené pripojenie OmniRoute. Neprenajíma model, nevyžaduje OAuth, neidentifikuje
 konkrétneho klienta ani nevyžaduje konkrétneho poskytovateľa.
 
-Overovací API kľúč musí mať rozsah `lease:exclusive` a explicitný neprázdny
-zoznam `allowedConnections`. Hranica databázovej mutácie vynucuje obe polia spoločne pri
-vytváraní kľúča aj pri čiastočných aktualizáciách.
+Autentifikačný API kľúč musí mať rozsah `lease:exclusive` a explicitný neprázdny
+zoznam `allowedConnections`. Hranica mutácie databázy vynucuje obe polia spoločne pri vytváraní kľúča
+a čiastočných aktualizáciách.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Úspešné odpovede na získanie, obnovenie a uvoľnenie uvádzajú časové pečiatky, `state` a presnú kladnú
-hodnotu `generation`, nikdy však nie vybrané pripojenie ani prihlasovacie údaje. Pri obnovení a uvoľnení sa
-generácia uvádza v tele JSON:
+Úspešné odpovede na získanie, obnovenie a uvoľnenie zobrazujú časové pečiatky, `state` a presnú kladnú
+`generation`, ale nikdy vybrané pripojenie alebo poverenia. Obnovenie a uvoľnenie dodávajú
+generáciu v tele JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ generácia uvádza v tele JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Vlastník aktívneho prenájmu môže explicitne požiadať o zobrazované metadáta svojho aktuálneho naviazania, ktoré neohrozujú súkromie:
+Aktívny vlastník prenájmu môže explicitne požiadať o metadáta zobrazenia chrániace súkromie pre svoje aktuálne viazanie:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +137,38 @@ Vlastník aktívneho prenájmu môže explicitne požiadať o zobrazované metad
 }
 ```
 
-Táto voliteľná stavová akcia je v rámci jednej databázovej transakcie chránená nepriehľadným vlastníkom, overeným spravovaným API kľúčom a presnou
-aktívnou generáciou. `displayName` je iba orezaný nakonfigurovaný
-názov pripojenia; keď neexistuje bezpečný nakonfigurovaný názov, má hodnotu `null`. OmniRoute ho nikdy nenahrádza
-e-mailom ani vygenerovanou identitou účtu. Hodnota poskytovateľa je necitlivý zobrazovaný štítok a nikdy
-nejde o vygenerovaný identifikátor kompatibilného poskytovateľa. Prihlasovacie údaje, tokeny, súbory cookie, nespracované identifikátory pripojení alebo API
-kľúčov, haše vlastníkov, tajné hodnoty ohraničenia a interné údaje smerovania sú vylúčené.
+Táto voliteľná akcia stavu je ohraničená nepriehľadným vlastníkom, autentifikovaným spravovaným API kľúčom a presnou
+aktívnou generáciou v jednej databázovej transakcii. `displayName` je iba orezaný nakonfigurovaný
+názov pripojenia; je `null`, ak neexistuje bezpečný nakonfigurovaný názov. OmniRoute nikdy nenahrádza
+e-mail ani vygenerovanú identitu účtu. Hodnota poskytovateľa je nesenzitívny zobrazovací štítok a nikdy
+vygenerovaný kompatibilný identifikátor poskytovateľa. Poverenia, tokeny, súbory cookie, surové ID pripojenia alebo API kľúča,
+hashy vlastníkov, tajomstvá ohradenia a interné smerovacie údaje sú vylúčené.
 
-Vyhľadávania s nesprávnym kľúčom, nesprávnym vlastníkom, zastaranou generáciou, chýbajúce, exspirované, uvoľnené aj zneplatnené vyhľadávania
-vracajú rovnakú chybu `409 LEASE_FENCE_STALE` bez metadát pripojenia. Klient, ktorý dostal odpoveď o čakaní na kapacitu, nemá žiadne aktívne naviazanie, ktoré by mohol skontrolovať. Keď smerovanie zmení pripojenie aktívneho prenájmu,
-rovnaká generácia zostáva platná a stav atomicky vráti nové naviazanie, nikdy nie staré.
+Nesprávny kľúč, nesprávny vlastník, zastaraná generácia, chýbajúce, expirované, uvoľnené a neplatné vyhľadávania
+všetky vracajú rovnakú chybu `409 LEASE_FENCE_STALE` bez metadát pripojenia. Klient, ktorý prijal
+odpoveď na čakanie na kapacitu, nemá žiadne aktívne viazanie na kontrolu. Keď smerovanie prechádza aktívny prenájom,
+rovnaká generácia zostáva platná a stav atomicky vráti nové viazanie, nikdy nie staré.
 Existujúci klienti zostávajú nezmenení, pretože odpovede na získanie, obnovenie, uvoľnenie a čakanie si zachovávajú
-svoje predchádzajúce štruktúry.
+svoje predchádzajúce tvary.
 
-Táto serverová zmluva nemení štandardné `/status` služby OpenAI Codex. Štandardný Codex v súčasnosti uvádza svojho
-poskytovateľa modelu a vstavaný stav overenia/účtu, ale nezobrazuje ľubovoľné vlastné
-metadáta účtu poskytovateľa; budúca integrácia klienta musí zavolať túto akciu a rozhodnúť, ako
+Táto serverová zmluva nemení štandardný OpenAI Codex `/status`. Štandardný Codex v súčasnosti hlási svojho
+poskytovateľa modelu a vstavaný stav autentifikácie/účtu, ale nezobrazuje ľubovoľné vlastné
+metadáta účtu poskytovateľa; neskoršia integrácia klienta musí zavolať túto akciu a rozhodnúť sa, ako
 zobraziť `connection.displayName`.
 
-Každá spravovaná inferenčná požiadavka potom uvádza obe riadiace hlavičky:
+Každá spravovaná požiadavka na inferenciu potom dodáva obe riadiace hlavičky:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Presný vlastník, generácia, aktívne pripojenie a overený API kľúč sú ohraničené bezprostredne
-pred každým podporovaným pokusom o prístup k upstreamu. Opätovné použitie vlastníka a generácie s iným kľúčom zlyhá, aj
-keď tento kľúč povoľuje rovnaké pripojenie. Nespracované hodnoty vlastníkov sa neuchovávajú, nezaznamenávajú do protokolov, neponechávajú v
-snímke požiadavky ani neposielajú upstreamu.
+Presný vlastník, generácia, aktívne pripojenie a autentifikovaný API kľúč sú ohradené
+bezprostredne pred každým podporovaným pokusom o upstream. Opakované prehrávanie vlastníka a generácie s iným kľúčom zlyhá,
+aj keď tento kľúč povoľuje rovnaké pripojenie. Surové vlastníctvo sa neuchováva, neloguje, neuchováva v snímke požiadavky
+ani neposiela upstream.
 
-Dočasný konflikt vracia HTTP `429` s hlavičkou `Retry-After` a:
+Dočasná kolízia vráti HTTP `429` s `Retry-After` a:
 
 ```json
 {
@@ -178,36 +179,38 @@ Dočasný konflikt vracia HTTP `429` s hlavičkou `Retry-After` a:
 }
 ```
 
-Táto odpoveď znamená iba to, že bežná množina oprávnených pripojení nebola prázdna a každý voľný kandidát bol
-držaný cudzím aktívnym prenájmom. Nepodporované modely/poskytovatelia, nesúlad so zásadami, doba čakania, kvóta,
-stav a ďalšie bežné zlyhania oprávnenosti si zachovávajú svoje existujúce odpovede OmniRoute.
+Táto odpoveď znamená iba to, že bežná oprávnená sada nebola prázdna a každý voľný kandidát bol
+držaný cudzím aktívnym prenájmom. Nepodporované modely/poskytovatelia, nesúlad politiky, cooldown, kvóta,
+zdravie a iné bežné zlyhania oprávnenosti si zachovávajú svoje existujúce odpovede OmniRoute.
 
 ### `x-omniroute-compression`
 
-Prepísanie plánu kompresie pre jednotlivú požiadavku. Má najvyššiu prioritu — prevažuje nad prepísaním kombinácie smerovania,
-aktívnym profilom, automatickým spúšťačom aj predvoleným nastavením panela. Hodnoty:
+Prepísanie plánu kompresie pre každú požiadavku. Najvyššia priorita – prekonáva prepísanie smerovacej kombinácie,
+aktívny profil, automatické spustenie a predvolené nastavenie panela. Hodnoty:
 
-| Hodnota       | Účinok                                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Bez kompresie pre túto požiadavku.                                                                                  |
-| `default`     | Predvolený profil odvodený z panela (ignoruje aktívny profil).                                                      |
-| `engine:<id>` | Jeden mechanizmus, ak je povolený, napr. `engine:rtk`.                                                              |
-| `<combo>`     | Pomenovaná kombinácia, najprv porovnaná podľa názvu (bez rozlišovania veľkosti písmen), potom podľa identifikátora. |
+| Hodnota       | Účinok                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| `off`         | Žiadna kompresia pre túto požiadavku.                                                                |
+| `default`     | Predvolený profil odvodený z panela (ignoruje aktívny profil). Stratové enginy sú vypnuté.           |
+| `safe`        | Iba deduplikácia a skladanie medzier.                                                                |
+| `allow-lossy` | Zachovať plán operátora pre túto požiadavku, vrátane súhrnov a prepisov štýlov.                      |
+| `engine:<id>` | Jeden engine, ak je povolený, napr. `engine:rtk`. Voliteľné pre každú požiadavku pre tento engine.   |
+| `<combo>`     | Pomenovaná kombinácia, najprv zhodná podľa názvu (nerozlišuje veľké a malé písmená), potom podľa ID. |
 
 Poznámky:
 
-- Neznáme hodnoty sa ignorujú (požiadavka sa nikdy neodmietne); vyhodnocovanie pokračuje podľa bežného poradia priorít operátora.
-- Ak má viacero kombinácií rovnaký názov, na deterministické priradenie zadajte **id** kombinácie.
-- Kombináciu s názvom `off` alebo `default` nemožno vybrať podľa názvu (tieto kľúčové slová sa interpretujú ako prvé); na takúto kombináciu odkazujte pomocou jej identifikátora.
-- Hlavný prepínač kompresie je neprekročiteľná podmienka: keď je kompresia globálne zakázaná, táto hlavička ju nemôže povoliť.
+- Neznáme hodnoty sú ignorované (požiadavka nikdy nie je zamietnutá); rozlíšenie prechádza na normálnu prioritu operátora.
+- Ak viaceré kombinácie zdieľajú názov, pre deterministickú zhodu odovzdajte **ID** kombinácie.
+- Kombinácia, ktorej názov je `off` alebo `default`, nemôže byť vybraná podľa názvu (tieto kľúčové slová sú interpretované ako prvé); odkazujte na takúto kombináciu podľa jej ID.
+- Hlavný prepínač kompresie je tvrdá brána: keď je kompresia globálne zakázaná, táto hlavička ju nemôže povoliť.
 
-Použitý plán sa odošle späť v hlavičke odpovede:
+Použitý plán je zopakovaný v hlavičke odpovede:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-kde `<source>` je jedna z hodnôt `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` alebo `off`.
+kde `<source>` je jedna z `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` alebo `off`.
 
 ---
 
@@ -443,40 +446,40 @@ Tento koncový bod použite, keď sidecar beží mimo procesu a nemôže priamo 
 
 ## Koncové body kompatibility
 
-| Metóda | Cesta                                     | Formát                                |
-| ------ | ----------------------------------------- | ------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                |
-| POST   | `/v1/messages`                            | Anthropic                             |
-| POST   | `/v1/responses`                           | OpenAI Responses                      |
-| POST   | `/v1/embeddings`                          | OpenAI                                |
-| POST   | `/v1/images/generations`                  | OpenAI Images                         |
-| POST   | `/v1/images/edits`                        | OpenAI Images (úprava/inpainting)     |
-| POST   | `/v1/videos/generations`                  | Generovanie videa v štýle OpenAI      |
-| POST   | `/v1/music/generations`                   | Generovanie hudby v štýle OpenAI      |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                    |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (vracia zvukové telo)      |
-| POST   | `/v1/rerank`                              | Preusporiadanie v štýle Cohere/Voyage |
-| POST   | `/v1/classify`                            | Klasifikácia Jina (`api.jina.ai`)     |
-| POST   | `/v1/segment`                             | Segmentátor Jina (`segment.jina.ai`)  |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                    |
-| GET    | `/v1/models`                              | OpenAI                                |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                             |
-| GET    | `/v1beta/models`                          | Gemini                                |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                |
-| POST   | `/v1/api/chat`                            | Ollama                                |
-| GET    | `/api/v1/vscode/{token}/`                 | Alias katalógu OpenAI                 |
-| GET    | `/api/v1/vscode/{token}/models`           | Alias modelov OpenAI                  |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenizovaný alias OpenAI             |
-| POST   | `/api/v1/vscode/{token}/responses`        | Tokenizovaný alias OpenAI Responses   |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenizovaný alias Ollama             |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenizovaný alias značiek Ollama     |
+| Metóda | Cesta                                     | Formát                               |
+| ------ | ----------------------------------------- | ------------------------------------ |
+| POST   | `/v1/chat/completions`                    | OpenAI                               |
+| POST   | `/v1/messages`                            | Anthropic                            |
+| POST   | `/v1/responses`                           | OpenAI Responses                     |
+| POST   | `/v1/embeddings`                          | OpenAI                               |
+| POST   | `/v1/images/generations`                  | OpenAI Images                        |
+| POST   | `/v1/images/edits`                        | OpenAI Images (úprava/inpainting)    |
+| POST   | `/v1/videos/generations`                  | Generovanie videa v štýle OpenAI     |
+| POST   | `/v1/music/generations`                   | Generovanie hudby v štýle OpenAI     |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                   |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (vracia telo so zvukom)   |
+| POST   | `/v1/rerank`                              | Preraďovanie v štýle Cohere/Voyage   |
+| POST   | `/v1/classify`                            | Klasifikácia Jina (`api.jina.ai`)    |
+| POST   | `/v1/segment`                             | Segmentátor Jina (`segment.jina.ai`) |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                   |
+| GET    | `/v1/models`                              | OpenAI                               |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                            |
+| GET    | `/v1beta/models`                          | Gemini                               |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent               |
+| POST   | `/v1/api/chat`                            | Ollama                               |
+| GET    | `/api/v1/vscode/{token}/`                 | Alias katalógu OpenAI                |
+| GET    | `/api/v1/vscode/{token}/models`           | Alias modelov OpenAI                 |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenizovaný alias OpenAI            |
+| POST   | `/api/v1/vscode/{token}/responses`        | Tokenizovaný alias OpenAI Responses  |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenizovaný alias Ollama            |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenizovaný alias značiek Ollama    |
 
-Všetky trasy POST majú rovnakú štruktúru: `Bearer your-api-key` + telo JSON overené pomocou Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` atď.; pozrite si `src/shared/validation/schemas.ts`). Pri zlyhaní overenia schémy sa vráti stav 4xx.
+Všetky trasy POST majú rovnakú štruktúru: `Bearer your-api-key` + telo JSON validované pomocou Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` atď.; pozrite si `src/shared/validation/schemas.ts`). Pri zlyhaní validácie schémy sa vráti 4xx.
 
-Klientom, ktoré nemôžu pripojiť `Authorization: Bearer ...`, OmniRoute umožňuje odovzdať kľúče API aj v adrese URL, a to buď prostredníctvom kompatibilných parametrov reťazca dopytu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), alebo pomocou vyhradených koncových bodov `/api/v1/vscode/{token}/...` zdokumentovaných nižšie.
+Pre klientov, ktorí nemôžu pripojiť `Authorization: Bearer ...`, OmniRoute prijíma kľúče API aj v adrese URL, a to buď prostredníctvom kompatibilných parametrov reťazca dopytu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), alebo prostredníctvom vyhradených koncových bodov `/api/v1/vscode/{token}/...` zdokumentovaných nižšie.
 
 ```bash
-# Preusporiadanie
+# Preraďovanie (poskytovateľ z cloudového registra alebo uzol poskytovateľa kompatibilný s OpenAI ako "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Klasifikácia Jina (prihlasovacie údaje Foundation API)
@@ -485,7 +488,7 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # Segmentátor Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Vyhľadávanie Jina (s.jina.ai; aliasy poskytovateľov: jina-search, jina-ai, jina)
+# Vyhľadávanie Jina (s.jina.ai; aliasy poskytovateľa: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderovanie
@@ -497,10 +500,36 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # Úprava obrázka (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Generovanie videa/hudby (ID modelu s predponou poskytovateľa)
+# Generovanie videa/hudby (identifikátor modelu s predponou poskytovateľa)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Uzly poskytovateľov pre preraďovanie:** `POST /v1/rerank` smeruje požiadavky aj na uzly poskytovateľov
+> kompatibilné s OpenAI (oMLX, vLLM, Infinity, TEI za bránou, …), ktoré sú adresované ako
+> `<node-prefix>/<model>`. Uzly spätnej slučky (`localhost`, `127.0.0.1`, `172.16.0.0/12`) sú
+> vždy oprávnené. Uzly na akomkoľvek inom hostiteľovi — zariadení v sieti LAN alebo partnerskom
+> uzle Tailscale — sú oprávnené iba vtedy, keď prevádzkovateľ povolí príznak funkcie
+> `RERANK_REMOTE_PROVIDER_NODES` **a** základná adresa URL uzla spĺňa pravidlá poskytovateľa pre
+> odchádzajúce adresy URL (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> požiadavky sa nikdy nesmerujú na hostiteľov cloudových metadát. Krok preraďovania pamäťového
+> mechanizmu volá túto trasu cez spätnú slučku, takže rovnaké pravidlo sa vzťahuje na
+> `rerankProviderModel` v nastaveniach pamäte.
+>
+> **Formáty lokálneho servera:** uzol sa volá na `<base>/v1/rerank` a pri odpovedi 404 na
+> `<base>/rerank` (Infinity, TEI). Telo odosielané nadradenému serveru obsahuje pomenovania
+> Cohere/OpenAI (`documents`, `return_documents`) aj pomenovania TEI (`texts`, `return_text`)
+> a odpoveď nadradeného servera sa normalizuje do obálky Cohere: samostatné pole TEI
+> `[{index, score, text}]`, `{results: [{index, score}]}` z jednoduchých brán a formát Voyage
+> `{data: [...]}` sa klientovi vrátia ako `{results: [{index, relevance_score, document?}]}`,
+> zoradené podľa skóre a obmedzené hodnotou `top_n`.
+
+> **Zisťovanie uzlov poskytovateľov:** modely v uzle poskytovateľa kompatibilnom s OpenAI sa zobrazia
+> v `GET /v1/models` pod predponou uzla. Riadky, ktoré neobsahujú žiadne metadáta koncového bodu
+> (typické pre lokálne zoznamy `/v1/models`), zdedia `apiType` daného uzla, takže modely uzla
+> `embeddings` majú `type: "embedding"` a modely uzla `rerank` majú `type: "rerank"` namiesto
+> predvoleného typu chatu; explicitné `supportedEndpoints` v synchronizovanom alebo manuálne
+> pridanom riadku má naďalej prednosť.
 
 ### Vyhradené trasy poskytovateľov
 
@@ -510,7 +539,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Ak predpona poskytovateľa chýba, pridá sa automaticky. Pri nezhodujúcich sa modeloch sa vráti stav `400`.
+Prefix poskytovateľa sa automaticky pridá, ak chýba. Nekompatibilné modely vrátia `400`.
 
 ---
 
@@ -1611,21 +1640,21 @@ Koncové body určené iba správcom na prevádzkovú správu.
 
 ## Správa nástrojov CLI
 
-Spravujte nástroje CLI, ktoré sa integrujú so službou OmniRoute (antigravity, chipotle, commandCode,
+Spravujte nástroje CLI, ktoré sa integrujú s OmniRoute (antigravity, commandCode,
 devin-cli atď.). Úplný zoznam nájdete v [referenčnej príručke poskytovateľov](./PROVIDER_REFERENCE.md).
 
-| Metóda | Cesta                                   | Popis                                                                                                                                                                         |
-| ------ | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/cli-tools/all-statuses`           | Stav všetkých nástrojov CLI (nainštalovanie, verzia, posledné použitie)                                                                                                       |
-| GET    | `/api/cli-tools/status`                 | Podrobnosti o stave jedného nástroja CLI (parameter dopytu `?tool=`)                                                                                                          |
-| POST   | `/api/cli-tools/apply`                  | Zapísanie vygenerovanej konfigurácie nástroja (`dryRun` zobrazí náhľad; `422` + `containerEphemeralTarget` pri použití kontajnera; `migration` upozorní na starší Codex YAML) |
-| GET    | `/api/cli-tools/backups`                | Zoznam záloh konfigurácií nástrojov CLI                                                                                                                                       |
-| POST   | `/api/cli-tools/backups`                | Vytvorenie zálohy konfigurácií všetkých nástrojov CLI                                                                                                                         |
-| POST   | `/api/cli-tools/backups`                | Obnovenie: rovnaký koncový bod s `{tool, backupId}` v tele obnoví danú zálohu                                                                                                 |
-| GET    | `/api/cli-tools/antigravity-mitm`       | Stav proxy MITM nástroja Antigravity (nástroj CLI „antigravity-mitm“)                                                                                                         |
-| POST   | `/api/cli-tools/antigravity-mitm/alias` | Konfigurácia aliasov nástroja antigravity-mitm                                                                                                                                |
+| Metóda | Cesta                                   | Popis                                                                                                                                                                      |
+| ------ | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/cli-tools/all-statuses`           | Stav všetkých nástrojov CLI (nainštalované, verzia, naposledy zaznamenané)                                                                                                 |
+| GET    | `/api/cli-tools/status`                 | Podrobnosti o stave jedného nástroja CLI (parameter dopytu `?tool=`)                                                                                                       |
+| POST   | `/api/cli-tools/apply`                  | Zapíše vygenerovanú konfiguráciu nástroja (`dryRun` zobrazí náhľad; `422` + `containerEphemeralTarget` pri použití kontajnera; `migration` upozorní na starší YAML Codexu) |
+| GET    | `/api/cli-tools/backups`                | Zoznam záloh konfigurácií nástrojov CLI                                                                                                                                    |
+| POST   | `/api/cli-tools/backups`                | Vytvorí zálohu konfigurácií všetkých nástrojov CLI                                                                                                                         |
+| POST   | `/api/cli-tools/backups`                | Obnovenie: rovnaký koncový bod s `{tool, backupId}` v tele požiadavky obnoví danú zálohu                                                                                   |
+| GET    | `/api/cli-tools/antigravity-mitm`       | Stav proxy MITM nástroja Antigravity (nástroj CLI „antigravity-mitm“)                                                                                                      |
+| POST   | `/api/cli-tools/antigravity-mitm/alias` | Nakonfiguruje aliasy antigravity-mitm                                                                                                                                      |
 
-**Autorizácia:** Vyžaduje reláciu správy.
+**Autentifikácia:** Vyžaduje reláciu správy.
 
 ---
 

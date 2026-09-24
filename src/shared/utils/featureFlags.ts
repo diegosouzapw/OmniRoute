@@ -190,6 +190,23 @@ export function isProxySkipRecentlyFailedEnabled(): boolean {
 }
 
 /**
+ * Rotation attribution (skipped-account log lines, per-account rotation state,
+ * masked serving-account id and request correlation on proxy log entries).
+ * Opt-in; an unreadable flag store keeps it hidden (fail-safe off).
+ */
+export function isRotationAttributionEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("ROTATION_ATTRIBUTION");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve ROTATION_ATTRIBUTION, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+/**
  * Pool egress observation panel (#13581): read-only dashboard line under a proxy pool.
  * Opt-in; an unreadable flag store keeps it hidden.
  */
@@ -300,6 +317,43 @@ export function isOpencodeRateLimited429EarlyStopEnabled(): boolean {
   } catch (error) {
     console.error(
       "[featureFlags] Failed to resolve OPENCODE_RATE_LIMITED_429_EARLY_STOP, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+/**
+ * Antigravity account lease (re-land of #10011). Opt-in: when off, Antigravity
+ * account selection and the dispatch path behave exactly as before — no
+ * reservation is taken and no POOL_BUSY response can be produced.
+ * Fail closed: an unreadable flag store keeps the pre-flag behavior (disabled).
+ */
+export function isAntigravityAccountLeaseEnabled(
+  reader: (key: string) => boolean = isFeatureFlagEnabled
+): boolean {
+  try {
+    return reader("ANTIGRAVITY_ACCOUNT_LEASE_ENABLED");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve ANTIGRAVITY_ACCOUNT_LEASE_ENABLED, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+/**
+ * OpenCode 429 park-and-resume. Opt-in: when off, every 429 rotates to the
+ * next account exactly as before.
+ * Fail closed: an unreadable flag store keeps the pre-flag behavior (disabled).
+ */
+export function isOpencodeParkAndResumeEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("OPENCODE_PARK_AND_RESUME");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve OPENCODE_PARK_AND_RESUME, defaulting to disabled:",
       error instanceof Error ? error.message : error
     );
     return false;

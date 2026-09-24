@@ -1,0 +1,1 @@
+- fix(ci): raise the Docker `:next`/`:latest` publish heap budget to 12288 MB so the webpack production build no longer OOMs (#14325)

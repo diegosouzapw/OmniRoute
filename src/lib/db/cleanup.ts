@@ -4,10 +4,18 @@
  * @module lib/db/cleanup
  */
 
-import { getDbInstance } from "./core";
-import { getUserDatabaseSettings } from "./databaseSettings";
 import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
 import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
+
+import { getDbInstance } from "./core";
+import { getUserDatabaseSettings } from "./databaseSettings";
+import {
+  describeReclaim,
+  reclaimFreedPages,
+  type ReclaimFreedPagesOptions,
+  type ReclaimFreedPagesResult,
+  type ReclaimStopReason,
+} from "./reclaimFreedPages";
 import {
   collectCallLogArtifactsBefore,
   deleteAllFromTable,
@@ -161,6 +169,39 @@ export async function cleanupCompressionAnalytics(): Promise<CleanupResult> {
     );
   } catch (err: unknown) {
     console.error("[Cleanup] Error cleaning compression_analytics:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Clean up old compression_engine_breakdown based on retention settings (#14268).
+ * Uses retention.compressionAnalytics (same retention window as compression_analytics).
+ */
+export async function cleanupCompressionEngineBreakdown(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.compressionAnalytics;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    if (!tableExists("compression_engine_breakdown")) return result;
+
+    const stmt = db.prepare("DELETE FROM compression_engine_breakdown WHERE timestamp < ?");
+    const runResult = stmt.run(cutoffISO);
+    result.deleted = runResult.changes;
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} compression_engine_breakdown older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning compression_engine_breakdown:", err);
     result.errors++;
   }
 
@@ -542,10 +583,10 @@ export async function cleanupExpiredFiles(): Promise<CleanupResult> {
  * separate compliance cleanup path and does not override this window.
  * Deleting an old node only affects reconnect anchors: a conversation resumed
  * after the window mints a new id, which is already the documented
- * anchor-miss behavior of resolveConversationId. `last_seen_at` has no index
- * (migration 156), so each DELETE is a table scan. Bounded batches yield
- * between writes so an existing large table cannot park the event loop for
- * the whole cleanup pass.
+ * anchor-miss behavior of resolveConversationId. `last_seen_at` is indexed
+ * (migration 186, #13973 — migration 156 originally missed it). Bounded
+ * batches yield between writes so an existing large table cannot park the
+ * event loop for the whole cleanup pass.
  */
 export async function cleanupConversationTurnNodes(): Promise<CleanupResult> {
   const retention = getRetentionSettings();
@@ -646,6 +687,7 @@ export async function runAutoCleanup(): Promise<{
     callLogs: await cleanupCallLogs(),
     usageHistory: await cleanupUsageHistory(),
     compressionAnalytics: await cleanupCompressionAnalytics(),
+    compressionEngineBreakdown: await cleanupCompressionEngineBreakdown(),
     mcpAudit: await cleanupMcpAudit(),
     configAudit: await cleanupConfigAudit(),
     a2aEvents: await cleanupA2aEvents(),
@@ -781,6 +823,7 @@ export interface ResetUsageHistoryResult extends CleanupResult {
   deletedProxyLogs: number;
   deletedRelayLogs: number;
   deletedCompressionAnalytics: number;
+  deletedCompressionEngineBreakdown: number;
   deletedCompressionRunTelemetry: number;
   deletedRoutingDecisions: number;
   deletedQuotaConsumption: number;
@@ -844,6 +887,12 @@ const RESET_TARGETS: Array<
     resultKey: "deletedCompressionAnalytics",
   },
   {
+    table: "compression_engine_breakdown",
+    column: "timestamp",
+    cutoff: "iso",
+    resultKey: "deletedCompressionEngineBreakdown",
+  },
+  {
     table: "compression_run_telemetry",
     column: "timestamp",
     cutoff: "epochMs",
@@ -896,6 +945,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
     deletedProxyLogs: 0,
     deletedRelayLogs: 0,
     deletedCompressionAnalytics: 0,
+    deletedCompressionEngineBreakdown: 0,
     deletedCompressionRunTelemetry: 0,
     deletedRoutingDecisions: 0,
     deletedQuotaConsumption: 0,
@@ -980,131 +1030,54 @@ export async function cleanupProxyLogs(): Promise<CleanupResult> {
   return result;
 }
 
+// Post-cleanup space reclamation lives in its own module (#12821, kept out of
+// this file to stay under the file-size cap) — re-exported for callers/tests.
+export {
+  reclaimFreedPages,
+  type ReclaimFreedPagesOptions,
+  type ReclaimFreedPagesResult,
+  type ReclaimStopReason,
+};
+
 // ──────────────── Background Cleanup Scheduler ────────────────
 
 const CLEANUP_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 let _cleanupSchedulerTimer: ReturnType<typeof setInterval> | null = null;
 
-const VACUUM_MIN_DELETED_ROWS_DEFAULT = 1000;
-
-export function getVacuumMinDeletedRows(): number {
-  const raw = process.env.OMNIROUTE_VACUUM_MIN_DELETED_ROWS;
-  if (typeof raw === "string" && raw.trim().length > 0) {
-    const parsed = Number(raw);
-    // 0 is valid and means "always VACUUM after a cleanup that freed any rows".
-    if (Number.isFinite(parsed) && parsed >= 0) return Math.floor(parsed);
-  }
-  return VACUUM_MIN_DELETED_ROWS_DEFAULT;
-}
-
 /**
- * VACUUM rewrites the entire database file (a multi-GB DB produces a
- * multi-GB WAL and a matching page-cache/I/O burst on the host). Running it
- * after a cleanup that only freed a handful of rows buys no space and pays
- * the full rewrite cost, so tiny cleanups skip it; the scheduled VACUUM
- * (#4437) and large cleanups still reclaim space.
+ * One scheduled pass: retention cleanup (`runAutoCleanup` already covers
+ * proxy_logs), then incremental space reclamation. Exported so tests can drive
+ * the exact code path the timers run.
  */
-export function shouldVacuumAfterCleanup(
-  totalDeleted: number,
-  minRows: number = getVacuumMinDeletedRows()
-): boolean {
-  return totalDeleted > 0 && totalDeleted >= minRows;
-}
-
-const DEFAULT_VACUUM_MIN_RECLAIMABLE_BYTES = 100 * 1024 * 1024; // 100 MB
-
-export function getVacuumMinReclaimableBytes(): number {
-  const raw = process.env.OMNIROUTE_VACUUM_MIN_RECLAIMABLE_MB;
-  if (!raw) return DEFAULT_VACUUM_MIN_RECLAIMABLE_BYTES;
-  const parsed = Number.parseInt(raw, 10);
-  return Number.isInteger(parsed) && parsed >= 0
-    ? parsed * 1024 * 1024
-    : DEFAULT_VACUUM_MIN_RECLAIMABLE_BYTES;
-}
-
-/**
- * `db.exec("VACUUM")` is synchronous and blocks the entire process -- on a
- * multi-GB database that can freeze all HTTP traffic for 15-20 minutes, even
- * when the cleanup that triggered it only freed a handful of rows. Reclaimable
- * space (SQLite's own free-page count, not row count) is what actually
- * determines whether that multi-minute freeze is worth it: a few oversized
- * batch_item_checkpoints rows can free more than thousands of tiny audit-log
- * rows. Observed live: a routine cleanup that freed 2-6 rows re-triggered a
- * full VACUUM on every restart regardless.
- */
-export function getReclaimableBytes(db: ReturnType<typeof getDbInstance>): number {
-  const freelist = db.pragma("freelist_count", { simple: true }) as number;
-  const pageSize = db.pragma("page_size", { simple: true }) as number;
-  return freelist * pageSize;
-}
-
-/**
- * Runs the post-cleanup VACUUM when EITHER the row-count threshold
- * (OMNIROUTE_VACUUM_MIN_DELETED_ROWS, default 1000 -- see shouldVacuumAfterCleanup)
- * OR the reclaimable-bytes threshold (OMNIROUTE_VACUUM_MIN_RECLAIMABLE_MB, default
- * 100 MB -- see getReclaimableBytes) is met. The two signals are additive on
- * purpose: row count alone misses the case where a handful of oversized blob
- * rows (e.g. batch_item_checkpoints) free far more space than thousands of tiny
- * audit-log rows would, while reclaimable bytes alone would never fire for a
- * cleanup that deletes many small rows without freeing much space yet still
- * crosses the operator's row-count comfort threshold. `getReclaimable` is
- * optional and defaults to skipping the bytes check entirely, so existing
- * callers/tests that only care about the row-count gate keep their exact
- * behavior unchanged. Returns true when VACUUM ran.
- */
-export async function vacuumAfterCleanup(
-  totalDeleted: number,
-  exec: (sql: string) => void,
-  log: (message: string) => void = (m) => console.log(m),
-  logError: (message: string, error: unknown) => void = (m, e) => console.error(m, e),
-  getReclaimable?: () => number
-): Promise<boolean> {
-  if (totalDeleted <= 0) return false;
-  const minRows = getVacuumMinDeletedRows();
-  const rowThresholdMet = shouldVacuumAfterCleanup(totalDeleted, minRows);
-
-  let reclaimable = 0;
-  let reclaimableThresholdMet = false;
-  const minBytes = getVacuumMinReclaimableBytes();
-  if (typeof getReclaimable === "function") {
-    try {
-      reclaimable = getReclaimable();
-      reclaimableThresholdMet = reclaimable >= minBytes;
-    } catch (err) {
-      logError("[Cleanup] Failed to read reclaimable space:", err);
-    }
+export async function runScheduledCleanupPass(phase: "startup" | "periodic"): Promise<void> {
+  const label = phase === "startup" ? "Startup" : "Periodic";
+  const result = await runAutoCleanup();
+  if (result.totalDeleted > 0) {
+    console.log(`[Cleanup] ${label} cleanup freed ${result.totalDeleted} rows.`);
   }
 
-  if (!rowThresholdMet && !reclaimableThresholdMet) {
-    log(
-      `[Cleanup] Freed ${totalDeleted} rows; skipping VACUUM (below ${minRows}-row threshold` +
-        (typeof getReclaimable === "function"
-          ? ` and below ${(minBytes / (1024 * 1024)).toFixed(0)} MB reclaimable, only ${(reclaimable / (1024 * 1024)).toFixed(1)} MB)`
-          : ")")
-    );
-    return false;
-  }
-  log(
-    `[Cleanup] Running VACUUM (${totalDeleted} rows freed` +
-      (typeof getReclaimable === "function"
-        ? `, ${(reclaimable / (1024 * 1024)).toFixed(1)} MB reclaimable)...`
-        : ")...")
-  );
+  // Always run: it also drains pages left over from a previous capped pass or
+  // from deletes made outside this scheduler. Costs a few PRAGMA reads when idle.
   try {
-    exec("VACUUM");
-    log("[Cleanup] VACUUM completed after cleanup.");
-    return true;
-  } catch (vacErr) {
-    logError("[Cleanup] VACUUM after cleanup failed:", vacErr);
-    return false;
+    const reclaim = await reclaimFreedPages();
+    if (reclaim.stopReason === "error") {
+      console.error(
+        `[Cleanup] Space reclamation after ${phase} cleanup stopped early ` +
+          `(${describeReclaim(reclaim)}): ${reclaim.error}`
+      );
+    } else if (reclaim.mode !== "skipped") {
+      console.log(
+        `[Cleanup] Space reclamation after ${phase} cleanup: ${describeReclaim(reclaim)}.`
+      );
+    }
+  } catch (reclaimErr) {
+    console.error(`[Cleanup] Space reclamation after ${phase} cleanup failed:`, reclaimErr);
   }
 }
 /**
- * Start the background cleanup scheduler. Runs cleanup on startup
- * and then every 6 hours. VACUUMs after deletes only when the cleanup freed
- * enough rows (OMNIROUTE_VACUUM_MIN_DELETED_ROWS, default 1000) OR freed
- * enough reclaimable space (OMNIROUTE_VACUUM_MIN_RECLAIMABLE_MB, default
- * 100 MB) to justify a full-database rewrite -- see vacuumAfterCleanup().
+ * Start the background cleanup scheduler. Runs cleanup on startup and then
+ * every 6 hours, then reclaims freed pages incrementally (never a blocking
+ * full VACUUM — see the reclamation section above and #12821).
  *
  * Without the cleanup itself, tables grow unboundedly (compression_analytics
  * 600K+ rows, usage_history 250K+ rows) causing 1.4GB+ SQLite files and
@@ -1116,19 +1089,7 @@ export function startCleanupScheduler(): void {
   // Run cleanup 30s after startup (let the server initialize first).
   setTimeout(async () => {
     try {
-      const result = await runAutoCleanup();
-      const proxyResult = await cleanupProxyLogs();
-      const totalDeleted = result.totalDeleted + proxyResult.deleted;
-      if (totalDeleted > 0) {
-        console.log(`[Cleanup] Startup cleanup freed ${totalDeleted} rows.`);
-        await vacuumAfterCleanup(
-          totalDeleted,
-          (sql) => getDbInstance().exec(sql),
-          undefined,
-          undefined,
-          () => getReclaimableBytes(getDbInstance())
-        );
-      }
+      await runScheduledCleanupPass("startup");
     } catch (err) {
       console.error("[Cleanup] Startup cleanup failed:", err);
     }
@@ -1137,19 +1098,7 @@ export function startCleanupScheduler(): void {
   // Schedule periodic cleanup every 6 hours.
   _cleanupSchedulerTimer = setInterval(async () => {
     try {
-      const result = await runAutoCleanup();
-      const proxyResult = await cleanupProxyLogs();
-      const totalDeleted = result.totalDeleted + proxyResult.deleted;
-      if (totalDeleted > 0) {
-        console.log(`[Cleanup] Periodic cleanup freed ${totalDeleted} rows.`);
-        await vacuumAfterCleanup(
-          totalDeleted,
-          (sql) => getDbInstance().exec(sql),
-          undefined,
-          undefined,
-          () => getReclaimableBytes(getDbInstance())
-        );
-      }
+      await runScheduledCleanupPass("periodic");
     } catch (err) {
       console.error("[Cleanup] Periodic cleanup failed:", err);
     }

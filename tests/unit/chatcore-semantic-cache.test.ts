@@ -203,6 +203,24 @@ function seedHit(args: ReturnType<typeof makeHitArgs>["args"], response: unknown
   return signature;
 }
 
+test("transcript-observed requests bypass existing semantic-cache hits", async () => {
+  clearCache();
+  const { args, persistCalls, convertedCalls } = makeHitArgs({
+    semanticCacheEnabled: true,
+    body: {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "sensitive cached query" }],
+      temperature: 0,
+    },
+    videoTranscriptSensitive: true,
+  });
+  seedHit(args, { choices: [{ message: { content: "PRIVATE_VIDEO_CACHE_SENTINEL" } }] });
+  const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+  assert.equal(result, null);
+  assert.equal(persistCalls.length, 0);
+  assert.equal(convertedCalls.length, 0);
+});
+
 test("checkSemanticCache returns a non-streaming JSON HIT with cache headers + logging side effects", async () => {
   clearCache();
   const cached = {

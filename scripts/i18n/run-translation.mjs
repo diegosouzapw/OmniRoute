@@ -462,7 +462,7 @@ function splitOversizedSection(section, maxChars) {
   const chunks = [];
   let current = [];
   let size = 0;
-  for (const lines of blocks) {
+  for (const lines of blocks.flatMap((b) => splitOversizedRun(b, maxChars))) {
     const length = lines.join("\n").length + 1;
     if (size > 0 && size + length > maxChars) {
       chunks.push(current.join("\n"));
@@ -474,6 +474,63 @@ function splitOversizedSection(section, maxChars) {
   }
   if (current.length) chunks.push(current.join("\n"));
   return chunks;
+}
+
+// A markdown table or a long bullet list has no blank line inside it, so the
+// paragraph splitter kept PROVIDER_REFERENCE.md's 244-row table (40 KB) and
+// FREE_TIERS.md's 71-item list (16 KB) as one block each, and the request for
+// a verbose script outlived the upstream socket ("fetch failed" for Greek and
+// Amharic on every attempt). An oversized block made only of table rows or
+// list items (plus their indented continuation lines) is cut before an item
+// line; the table header rows travel with the first group only.
+const ITEM_LINE = /^\s*(\||[-*+]\s|\d+[.)]\s)/;
+const CONTINUATION_LINE = /^\s+\S/;
+function splitOversizedRun(lines, maxChars) {
+  if (lines.join("\n").length <= maxChars) return [lines];
+  const content = lines.filter((l) => l.trim() !== "");
+  if (!content.every((l) => ITEM_LINE.test(l) || CONTINUATION_LINE.test(l))) return [lines];
+  if (!ITEM_LINE.test(content[0])) return [lines];
+  const groups = [];
+  let group = [];
+  let size = 0;
+  for (const line of lines) {
+    if (group.length && ITEM_LINE.test(line) && size + line.length + 1 > maxChars) {
+      groups.push(group);
+      group = [];
+      size = 0;
+    }
+    group.push(line);
+    size += line.length + 1;
+  }
+  if (group.length) groups.push(group);
+  return groups;
+}
+
+// Chunks are rejoined with a blank line (they were cut on headings and
+// paragraphs) — except at a seam between two table rows or two list items,
+// where a blank line would break one table (or one tight list) into two.
+// True when the text ends with a table row or a list item (its indented
+// continuation lines included), i.e. a following item line belongs to the
+// same run.
+function endsInsideItemRun(text) {
+  const lines = text.trimEnd().split("\n");
+  let i = lines.length - 1;
+  while (i > 0 && CONTINUATION_LINE.test(lines[i])) i--;
+  return ITEM_LINE.test(lines[i] ?? "");
+}
+
+export function joinTranslatedChunks(parts) {
+  let out = "";
+  for (let i = 0; i < parts.length; i++) {
+    if (i === 0) {
+      out = parts[i];
+      continue;
+    }
+    const nextFirst = parts[i].trimStart().split("\n")[0] ?? "";
+    const seam = endsInsideItemRun(out) && ITEM_LINE.test(nextFirst) ? "\n" : "\n\n";
+    out = out.trimEnd() + seam + parts[i].trimStart();
+  }
+  return out;
 }
 
 // ----- Section cache --------------------------------------------------------
@@ -691,7 +748,7 @@ async function translateBody(body, localeEntry, backend) {
   // reliably converts characters but not vocabulary habits, so zh-TW output
   // otherwise keeps mainland renderings (默認 for 預設, 緩存 for 快取) and
   // wrong-homophone conversions (上遊 for 上游, 儀錶板 for 儀表板).
-  return normalizeLocaleText(translated.join("\n\n"), localeEntry.code);
+  return normalizeLocaleText(joinTranslatedChunks(translated), localeEntry.code);
 }
 
 // Simple promise-based semaphore (avoid runtime deps).

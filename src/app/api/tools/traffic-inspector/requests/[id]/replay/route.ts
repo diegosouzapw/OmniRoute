@@ -15,7 +15,14 @@ interface Params {
   params: Promise<{ id: string }>;
 }
 
-const OMNIROUTE_BASE = process.env.OMNIROUTE_BASE_URL ?? "http://127.0.0.1:20128";
+function getOmnirouteBaseUrl(): string {
+  const port = process.env.API_PORT || process.env.PORT || 20128;
+  return (
+    process.env.OMNIROUTE_BASE_URL ||
+    process.env.BASE_URL ||
+    `http://127.0.0.1:${port}`
+  ).replace(/\/+$/, "");
+}
 
 export async function POST(_request: Request, { params }: Params): Promise<Response> {
   const { id } = await params;
@@ -27,7 +34,7 @@ export async function POST(_request: Request, { params }: Params): Promise<Respo
     });
   }
 
-  const url = `${OMNIROUTE_BASE}${entry.path}`;
+  const url = `${getOmnirouteBaseUrl()}${entry.path}`;
 
   const replayHeaders: Record<string, string> = {
     "content-type": "application/json",

@@ -111,3 +111,113 @@ test("standalone MITM resolves legacy JSON aliases from the agent-specific names
 
   assert.deepEqual(override, { model: "kiro/claude-sonnet-5" });
 });
+
+test("standalone MITM resolves catch-all mapping from SQLite when model is unmapped", () => {
+  const rows = {
+    antigravity: JSON.stringify({
+      "*": "antigravity/gemini-3.6-flash-medium",
+    }),
+  };
+  const db = {
+    prepare(sql) {
+      assert.equal(sql, "SELECT value FROM key_value WHERE namespace = 'mitmAlias' AND key = ?");
+      return {
+        get(key) {
+          return rows[key] ? { value: rows[key] } : undefined;
+        },
+      };
+    },
+  };
+
+  const override = routing.resolveMappedOverride("gemini-3.6-flash-medium", "antigravity", {
+    fs: { existsSync: () => false },
+    dbFile: "/unused/db.json",
+    getSqliteDb: () => db,
+    aliasConfigShim,
+  });
+
+  assert.deepEqual(override, {
+    model: "antigravity/gemini-3.6-flash-medium",
+  });
+});
+
+test("standalone MITM exact source match wins over catch-all mapping", () => {
+  const rows = {
+    antigravity: JSON.stringify({
+      "gemini-3.1-flash-lite": "antigravity/keep",
+      "*": "antigravity/other",
+    }),
+  };
+  const db = {
+    prepare(sql) {
+      assert.equal(sql, "SELECT value FROM key_value WHERE namespace = 'mitmAlias' AND key = ?");
+      return {
+        get(key) {
+          return rows[key] ? { value: rows[key] } : undefined;
+        },
+      };
+    },
+  };
+
+  const override = routing.resolveMappedOverride("gemini-3.1-flash-lite", "antigravity", {
+    fs: { existsSync: () => false },
+    dbFile: "/unused/db.json",
+    getSqliteDb: () => db,
+    aliasConfigShim,
+  });
+
+  assert.deepEqual(override, {
+    model: "antigravity/keep",
+  });
+});
+
+test("standalone MITM resolves catch-all mapping from legacy JSON fallback", () => {
+  const legacyDb = {
+    mitmAlias: {
+      antigravity: {
+        "*": "antigravity/gemini-3.6-flash-medium",
+      },
+    },
+  };
+
+  const override = routing.resolveMappedOverride("unmapped-model", "antigravity", {
+    fs: {
+      existsSync: () => true,
+      readFileSync: () => JSON.stringify(legacyDb),
+    },
+    dbFile: "/legacy/db.json",
+    getSqliteDb: () => null,
+    aliasConfigShim,
+  });
+
+  assert.deepEqual(override, {
+    model: "antigravity/gemini-3.6-flash-medium",
+  });
+});
+
+test("standalone MITM returns null when model is unmapped and no catch-all exists", () => {
+  const rows = {
+    antigravity: JSON.stringify({
+      "gemini-3.1-flash-lite": "antigravity/keep",
+    }),
+  };
+  const db = {
+    prepare(sql) {
+      assert.equal(sql, "SELECT value FROM key_value WHERE namespace = 'mitmAlias' AND key = ?");
+      return {
+        get(key) {
+          return rows[key] ? { value: rows[key] } : undefined;
+        },
+      };
+    },
+  };
+
+  const override = routing.resolveMappedOverride("unmapped-model", "antigravity", {
+    fs: { existsSync: () => false },
+    dbFile: "/unused/db.json",
+    getSqliteDb: () => db,
+    aliasConfigShim,
+  });
+
+  assert.equal(override, null);
+});

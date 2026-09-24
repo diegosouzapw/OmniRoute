@@ -1,6 +1,6 @@
 /**
  * Tests for noAuth provider validation:
- * - Bug 1: `chipotle` missing from providerAllowsOptionalApiKey
+ * - Bug 1: a noAuth provider missing from providerAllowsOptionalApiKey
  * - `kimi` API key provider stays on the dedicated Moonshot executor
  */
 import test from "node:test";
@@ -14,7 +14,7 @@ import {
 import { hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
 
 // Bug 1: all noAuth providers should allow optional API key
-for (const provider of ["chipotle", "opencode", "duckduckgo-web", "veoaifree-web"]) {
+for (const provider of ["cloudflare-playground", "opencode", "duckduckgo-web", "veoaifree-web"]) {
   test(`${provider} allows optional API key (noAuth provider)`, () => {
     assert.equal(providerAllowsOptionalApiKey(provider), true);
   });

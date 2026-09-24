@@ -1,0 +1,382 @@
+# Cloud Agents (Bahasa Indonesia)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [te](../../../te/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/CLOUD_AGENT.md)
+
+---
+
+> **Sumber kebenaran:** `src/lib/cloudAgent/` dan `src/app/api/v1/agents/tasks/`
+> **Terakhir diperbarui:** 2026-06-28 — v3.8.40 (penyegaran frontmatter; 4 agen termasuk cursor-cloud)
+
+OmniRoute mengorkestrasi agen pemrograman pihak ketiga yang di-hosting di cloud (Codex Cloud, Cursor,
+Devin, Jules) sebagai tugas yang berjalan lama. Setiap agen dibungkus di balik antarmuka yang seragam sehingga
+klien dapat mengirimkan prompt + URL repositori dan menerima hasil tanpa harus berurusan dengan
+API khusus penyedia.
+
+Tugas Cloud Agent **bukan** penyelesaian percakapan biasa. Tugas ini merupakan
+unit kerja persisten dengan beberapa langkah yang dapat memerlukan waktu beberapa menit hingga beberapa jam,
+dapat menghasilkan Pull Request sebagai artefaknya, serta mendukung pesan tindak lanjut dan
+(pada beberapa penyedia) gerbang persetujuan rencana.
+
+![Siklus hidup tugas Cloud Agent](../diagrams/exported/cloud-agent-flow.svg)
+
+> Sumber: [diagrams/cloud-agent-flow.mmd](../diagrams/cloud-agent-flow.mmd)
+
+## Agen yang Didukung
+
+| ID Penyedia    | Kelas              | Sumber                                | URL Dasar Upstream                      | Persetujuan Rencana |
+| -------------- | ------------------ | ------------------------------------- | --------------------------------------- | ------------------- |
+| `jules`        | `JulesAgent`       | `src/lib/cloudAgent/agents/jules.ts`  | `https://jules.googleapis.com/v1alpha`  | Ya                  |
+| `devin`        | `DevinAgent`       | `src/lib/cloudAgent/agents/devin.ts`  | `https://api.devin.ai/v1`               | Ya                  |
+| `codex-cloud`  | `CodexCloudAgent`  | `src/lib/cloudAgent/agents/codex.ts`  | `https://api.openai.com/v1/codex/cloud` | Tidak (otomatis)    |
+| `cursor-cloud` | `CursorCloudAgent` | `src/lib/cloudAgent/agents/cursor.ts` | `https://api.cursor.com/v0`             | Tidak (otomatis)    |
+
+Registri: `src/lib/cloudAgent/registry.ts` — mengekspor `getAgent(providerId)`,
+`getAvailableAgents()`, dan `isCloudAgentProvider(providerId)`. Registri ini merupakan
+`Record<string, CloudAgentBase>` dalam memori biasa yang diisi saat modul dimuat.
+
+## Arsitektur
+
+```
+Klien (Dasbor / CLI / API)
+  → POST /api/v1/agents/tasks (memerlukan autentikasi pengelolaan)
+    → validasi CreateCloudAgentTaskSchema (Zod)
+    → registry.getAgent(providerId)
+    → getCloudAgentCredentials(providerId)
+      └─ mengambil dari getProviderConnections({ provider, isActive: true })
+         (apiKey terlebih dahulu, lalu beralih ke accessToken)
+    → agent.createTask({ prompt, source, options }, credentials)
+      └─ HTTP POST ke API penyedia upstream
+      └─ mengembalikan CloudAgentTask dengan id internal + externalId
+    → insertCloudAgentTask(...) ke dalam cloud_agent_tasks (SQLite)
+
+Polling (sinkronisasi malas saat dibaca):
+  GET /api/v1/agents/tasks/[id]
+    → getCloudAgentTaskById(id)
+    → agent.getStatus(externalId, credentials)  // memperbarui status + aktivitas
+    → updateCloudAgentTask(...) dengan status, hasil, dan completed_at baru
+    → mengembalikan tugas yang telah diserialisasi
+
+Interaksi:
+  POST /api/v1/agents/tasks/[id]  isi: { action: "approve" | "message" | "cancel" }
+    → agent.approvePlan(externalId, credentials)        untuk "approve"
+    → agent.sendMessage(externalId, message, credentials) untuk "message"
+    → status berubah menjadi "cancelled"                untuk "cancel" (hanya lokal)
+```
+
+Sinkronisasi bersifat **malas**: status diperbarui dari upstream pada setiap `GET /tasks/[id]`.
+Tidak ada poller latar belakang. Dasbor yang memerlukan status terkini sebaiknya melakukan polling terhadap endpoint GET
+pada interval yang wajar.
+
+## Antarmuka `CloudAgentBase`
+
+Sumber: `src/lib/cloudAgent/baseAgent.ts`
+
+```typescript
+export interface AgentCredentials {
+  apiKey: string;
+  baseUrl?: string;
+}
+
+export interface CreateTaskParams {
+  prompt: string;
+  source: CloudAgentSource;
+  options: {
+    autoCreatePr?: boolean;
+    planApprovalRequired?: boolean;
+    environment?: Record<string, string>;
+  };
+}
+
+export interface GetStatusResult {
+  status: CloudAgentStatus;
+  externalId?: string;
+  result?: CloudAgentResult;
+  activities: CloudAgentActivity[];
+  error?: string;
+}
+
+export abstract class CloudAgentBase {
+  abstract readonly providerId: string;
+  abstract readonly baseUrl: string;
+
+  abstract createTask(p: CreateTaskParams, c: AgentCredentials): Promise<CloudAgentTask>;
+  abstract getStatus(externalId: string, c: AgentCredentials): Promise<GetStatusResult>;
+  abstract approvePlan(externalId: string, c: AgentCredentials): Promise<void>;
+  abstract sendMessage(
+    externalId: string,
+    message: string,
+    c: AgentCredentials
+  ): Promise<CloudAgentActivity>;
+  abstract listSources(
+    c: AgentCredentials
+  ): Promise<{ name: string; url: string; branch?: string }[]>;
+
+  protected mapStatus(raw: string): CloudAgentStatus; // string upstream heuristik → enum
+  protected generateTaskId(): string; // `task_<ts>_<rand>`
+  protected generateActivityId(): string; // `act_<ts>_<rand>`
+}
+```
+
+`CodexCloudAgent.approvePlan` sengaja melemparkan pengecualian — Codex Cloud menyusun rencana secara otomatis dan tidak memiliki gerbang persetujuan. `CodexCloudAgent.listSources` mengembalikan `[]`.
+
+`CursorCloudAgent` menjalankan Background / Cloud Agents milik Cursor melalui REST API resminya (`api.cursor.com/v0`) dengan **kunci API pengguna atau akun layanan** — alternatif pihak pertama yang lebih aman daripada menggunakan kembali sesi OAuth Cursor IDE (penyedia `cursor`, yang disertai peringatan risiko pemblokiran). Ini merupakan adaptor REST biasa (tanpa dependensi native `@cursor/sdk`). `approvePlan` melemparkan pengecualian (agen Cursor berjalan secara otonom); `listSources` mencantumkan repositori yang dapat diakses oleh kunci tersebut. Cursor mengembalikan enum status dalam HURUF BESAR (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), yang dipetakan secara eksplisit ke `CloudAgentStatus` bersama. `baseUrl` dapat ditimpa untuk setiap kredensial sehingga versi/jalur API dapat diperbaiki tanpa perubahan kode.
+
+## Tipe Domain
+
+Sumber: `src/lib/cloudAgent/types.ts`
+
+```typescript
+export const CLOUD_AGENT_STATUS = {
+  QUEUED: "queued",
+  RUNNING: "running",
+  AWAITING_APPROVAL: "awaiting_approval",
+  COMPLETED: "completed",
+  FAILED: "failed",
+  CANCELLED: "cancelled",
+} as const;
+
+export interface CloudAgentSource {
+  repoName: string;
+  repoUrl: string; // harus berupa URL yang valid
+  branch?: string;
+}
+
+export interface CloudAgentResult {
+  prUrl?: string;
+  prNumber?: number;
+  commitMessage?: string;
+  diffUrl?: string;
+  summary?: string;
+  duration?: number; // detik, bilangan bulat positif
+  cost?: number; // bilangan desimal positif
+}
+
+export interface CloudAgentActivity {
+  id: string;
+  type: "plan" | "command" | "code_change" | "message" | "error" | "completion";
+  content: string;
+  timestamp: string; // ISO 8601
+  metadata?: Record<string, unknown>;
+}
+
+export interface CloudAgentTask {
+  id: string; // id internal `task_...`
+  providerId: "jules" | "devin" | "codex-cloud" | "cursor-cloud";
+  externalId?: string; // id penyedia upstream
+  status: CloudAgentStatus;
+  prompt: string; // 1..10000 karakter
+  source: CloudAgentSource;
+  options: {
+    autoCreatePr?: boolean;
+    planApprovalRequired?: boolean;
+    environment?: Record<string, string>;
+  };
+  result?: CloudAgentResult;
+  activities: CloudAgentActivity[];
+  error?: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+}
+```
+
+Skema validasi (`CreateCloudAgentTaskSchema`, `UpdateCloudAgentTaskSchema`) diekspor bersama tipe-tipe tersebut dan digunakan oleh handler rute.
+
+## Database
+
+Sumber: `src/lib/cloudAgent/db.ts` — tabel dibuat secara lazy melalui
+`createCloudAgentTaskTable()` (juga dipanggil dari `src/lib/cloudAgent/index.ts` saat
+impor modul).
+
+```sql
+CREATE TABLE IF NOT EXISTS cloud_agent_tasks (
+  id           TEXT PRIMARY KEY,
+  provider_id  TEXT NOT NULL,
+  external_id  TEXT,
+  status       TEXT NOT NULL DEFAULT 'queued',
+  prompt       TEXT NOT NULL,
+  source       TEXT NOT NULL,             -- JSON
+  options      TEXT DEFAULT '{}',         -- JSON
+  result       TEXT,                       -- JSON
+  activities   TEXT DEFAULT '[]',          -- JSON
+  error        TEXT,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  completed_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_provider ON cloud_agent_tasks(provider_id);
+CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_status   ON cloud_agent_tasks(status);
+CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_created  ON cloud_agent_tasks(created_at DESC);
+```
+
+`updateCloudAgentTask` menerapkan **daftar putih kolom** untuk mencegah injeksi SQL:
+`status`, `prompt`, `source`, `options`, `result`, `activities`, `error`,
+`completed_at`. Kunci lain apa pun dalam pembaruan parsial akan dihapus secara diam-diam.
+
+## REST API — Siklus Hidup Tugas
+
+**Autentikasi:** Semua endpoint `/api/v1/agents/tasks*` memerlukan **autentikasi manajemen**
+(`requireCloudAgentManagementAuth` membungkus `requireManagementAuth` dari
+`src/lib/api/requireManagementAuth`). Ini diberlakukan setelah commit `588a0333`
+(_"fix(auth): wajibkan autentikasi manajemen untuk API agen dan cooldown"_).
+
+| Metode  | Jalur                         | Tujuan                                                                   |
+| ------- | ----------------------------- | ------------------------------------------------------------------------ |
+| OPTIONS | `/api/v1/agents/tasks`        | Preflight CORS                                                           |
+| GET     | `/api/v1/agents/tasks`        | Menampilkan daftar tugas (filter: `provider`, `status`, `limit≤500`)     |
+| POST    | `/api/v1/agents/tasks`        | Membuat tugas (mengirim ke upstream + menyimpan)                         |
+| DELETE  | `/api/v1/agents/tasks?id=...` | Menghapus tugas berdasarkan ID kueri (**tidak** membatalkan di upstream) |
+| OPTIONS | `/api/v1/agents/tasks/[id]`   | Preflight CORS                                                           |
+| GET     | `/api/v1/agents/tasks/[id]`   | Membaca tugas + menyinkronkan status secara lazy dari upstream           |
+| POST    | `/api/v1/agents/tasks/[id]`   | Tindakan: `approve` / `message` / `cancel`                               |
+| DELETE  | `/api/v1/agents/tasks/[id]`   | Menghapus tugas berdasarkan ID jalur                                     |
+
+### Membuat tugas
+
+```bash
+curl -X POST http://localhost:20128/api/v1/agents/tasks \
+  -H "Cookie: auth_token=..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "providerId": "devin",
+    "prompt": "Fix the bug in src/foo.ts where the parser returns null",
+    "source": {
+      "repoName": "user/repo",
+      "repoUrl": "https://github.com/user/repo",
+      "branch": "main"
+    },
+    "options": {
+      "autoCreatePr": true,
+      "planApprovalRequired": false
+    }
+  }'
+```
+
+Respons `201`:
+
+```json
+{
+  "data": {
+    "id": "task_1731512345678_abc123def",
+    "providerId": "devin",
+    "externalId": "session_xyz",
+    "status": "queued",
+    "prompt": "...",
+    "source": { "repoName": "user/repo", "repoUrl": "...", "branch": "main" },
+    "options": { "autoCreatePr": true },
+    "createdAt": "2026-05-13T12:34:56.789Z"
+  }
+}
+```
+
+### Menyetujui rencana
+
+```bash
+curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
+  -H "Cookie: auth_token=..." \
+  -H "Content-Type: application/json" \
+  -d '{"action":"approve"}'
+```
+
+### Mengirim pesan tindak lanjut
+
+```bash
+curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
+  -d '{"action":"message","message":"Also add a unit test for the parser"}'
+```
+
+### Membatalkan (hanya status lokal)
+
+```bash
+curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
+  -d '{"action":"cancel"}'
+```
+
+`cancel` mengubah `status` menjadi `"cancelled"` di database lokal, tetapi **tidak** memanggil
+penyedia upstream — tidak ada RPC pembatalan di `CloudAgentBase`. Untuk menghentikan penagihan
+upstream, hentikan tugas melalui konsol milik penyedia.
+
+## REST API — Integrasi Cloud Provider
+
+Endpoint tambahan di bawah `src/app/api/cloud/` ini digunakan oleh klien jarak jauh
+(CLI, aplikasi Electron, atau worker sinkronisasi) untuk membaca metadata koneksi provider
+dan me-resolve alias model. Endpoint ini diautentikasi dengan **API key biasa**
+(melalui `validateApiKey`), bukan autentikasi manajemen yang digunakan oleh endpoint tugas.
+
+| Metode | Path                            | Tujuan                                                                                |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Memvalidasi API key, mengembalikan metadata koneksi tersamarkan + alias model         |
+| PUT    | `/api/cloud/credentials/update` | Memperbarui `accessToken` / `refreshToken` / `expiresAt`                              |
+| POST   | `/api/cloud/model/resolve`      | Me-resolve alias model menjadi `{ provider, model }`                                  |
+| GET    | `/api/cloud/models/alias`       | Menampilkan semua alias model                                                         |
+| PUT    | `/api/cloud/models/alias`       | Menetapkan alias model (dan melakukan sinkronisasi otomatis ke Cloud jika diaktifkan) |
+
+`/api/cloud/auth` tidak pernah mengembalikan `apiKey` / `accessToken` / `refreshToken` mentah. Endpoint ini
+mengembalikan `hasApiKey`, `hasAccessToken`, `hasRefreshToken`, dan pratinjau tersamarkan
+(`maskedApiKey`: 4 karakter pertama + `****` + 4 karakter terakhir).
+
+## Resolusi Kredensial
+
+`getCloudAgentCredentials(providerId)` di `src/lib/cloudAgent/api.ts`:
+
+1. Memuat koneksi provider aktif melalui `getProviderConnections({ provider: providerId, isActive: true })`.
+2. Untuk setiap koneksi, mengutamakan `apiKey` (setelah spasi kosong dihapus). Jika tidak tersedia, menggunakan `accessToken`.
+3. Mengembalikan token pertama yang tidak kosong, dibungkus sebagai `{ apiKey: token }`.
+4. Mengembalikan `null` jika tidak ditemukan token yang dapat digunakan — API merespons dengan `400` dan
+   `"Tidak ada kredensial aktif yang dikonfigurasi untuk provider cloud agent: <id>"`.
+
+Artinya, Cloud Agents menggunakan kembali tabel Provider Connection yang sama dengan provider
+LLM biasa. Untuk mengaktifkan Jules, buat koneksi aktif dengan `provider: "jules"`
+dan `apiKey` yang telah diisi.
+
+## Dasbor
+
+Sumber: `src/app/(dashboard)/dashboard/cloud-agents/page.tsx`
+
+Halaman React `"use client"` yang:
+
+- Menampilkan daftar tugas (dipolling melalui `GET /api/v1/agents/tasks`).
+- Mengirimkan tugas baru melalui formulir yang dipetakan ke `CreateCloudAgentTaskSchema`.
+- Menampilkan badge status (`queued`, `running`, `awaiting_approval`, `completed`,
+  `failed`, `cancelled`) dan merender linimasa `activities[]`.
+- Menampilkan `result.prUrl` / `commitMessage` / `summary` ketika `status === "completed"`.
+
+## Integrasi dengan A2A
+
+Cloud Agents dapat diekspos sebagai skill A2A dengan mendaftarkan skill A2A yang mendelegasikan
+handler `tasks/send` miliknya ke `getAgent(...).createTask(...)` dan menerjemahkan event status
+tugas A2A ke protokol JSON-RPC 2.0. Lihat [A2A-SERVER.md](./A2A-SERVER.md).
+
+## Menambahkan Cloud Agent Baru
+
+1. Buat `src/lib/cloudAgent/agents/<name>.ts` yang memperluas `CloudAgentBase`.
+2. Implementasikan `createTask`, `getStatus`, `approvePlan` (atau lemparkan error jika tidak berlaku),
+   `sendMessage`, `listSources`. Gunakan `this.mapStatus(...)` untuk normalisasi status.
+3. Daftarkan di `src/lib/cloudAgent/registry.ts` menggunakan `providerId` yang stabil.
+4. Perluas literal union `providerId` di `src/lib/cloudAgent/types.ts`
+   (`CloudAgentTask.providerId` dan `CreateCloudAgentTaskSchema`).
+5. Tambahkan provider ke `src/shared/constants/providers.ts` jika memerlukan record
+   koneksi. Provider berbasis OAuth juga memerlukan `src/lib/oauth/providers/`.
+6. Tambahkan pengujian di bawah `tests/unit/cloud-agent-*.test.ts`.
+7. Perbarui dokumentasi ini dan konstanta `CLOUD_AGENTS` pada dasbor.
+
+## Konfigurasi
+
+| Variabel Lingkungan | Tujuan                                                                  |
+| ------------------- | ----------------------------------------------------------------------- |
+| `DATA_DIR`          | Lokasi basis data SQLite yang menyimpan `cloud_agent_tasks`             |
+| `JWT_SECRET`        | Diperlukan untuk autentikasi pengelolaan pada endpoint tugas            |
+| `API_KEY_SECRET`    | Diperlukan untuk mengenkripsi kredensial koneksi penyedia saat disimpan |
+
+Saat ini tidak ada variabel lingkungan khusus Cloud-Agent — setiap rahasia disimpan dalam
+tabel `provider_connections`.
+
+## Lihat Juga
+
+- [A2A-SERVER.md](./A2A-SERVER.md)
+- [API_REFERENCE.md](../reference/API_REFERENCE.md)
+- [SKILLS.md](./SKILLS.md)
+- [MEMORY.md](./MEMORY.md)
+- Sumber: `src/lib/cloudAgent/`
+- Rute: `src/app/api/v1/agents/tasks/`, `src/app/api/cloud/`
+- Dasbor: `src/app/(dashboard)/dashboard/cloud-agents/page.tsx`

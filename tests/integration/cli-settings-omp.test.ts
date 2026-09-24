@@ -29,6 +29,8 @@ const { GET, POST, DELETE } = await import("../../src/app/api/cli-tools/omp-sett
 
 let tmpHome: string;
 let origHome: string | undefined;
+let origUserProfile: string | undefined;
+let origLocalAppData: string | undefined;
 
 function getOmpDir() {
   return path.join(tmpHome, ".omp", "agent");
@@ -73,11 +75,19 @@ test.beforeEach(async () => {
   await resetStorage();
   tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "omp-settings-home-"));
   origHome = process.env.HOME;
+  origUserProfile = process.env.USERPROFILE;
+  origLocalAppData = process.env.LOCALAPPDATA;
   process.env.HOME = tmpHome;
+  process.env.USERPROFILE = tmpHome;
+  process.env.LOCALAPPDATA = path.join(tmpHome, "AppData", "Local");
 });
 
 test.afterEach(() => {
   process.env.HOME = origHome;
+  if (origUserProfile !== undefined) process.env.USERPROFILE = origUserProfile;
+  else delete process.env.USERPROFILE;
+  if (origLocalAppData !== undefined) process.env.LOCALAPPDATA = origLocalAppData;
+  else delete process.env.LOCALAPPDATA;
   fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
@@ -92,11 +102,17 @@ test("omp-settings GET: returns 401 when auth required and no token", async () =
 // ── Test 2: GET → 200 with installed:false when omp is not present ──────────
 
 test("omp-settings GET: returns 200 installed:false when omp CLI and DB are both absent", async () => {
-  const res = await GET(req());
-  assert.equal(res.status, 200, `Expected 200, got ${res.status}`);
-  const body = await res.json();
-  assert.equal(body.installed, false);
-  assert.equal(body.config, null);
+  const origPath = process.env.PATH;
+  try {
+    process.env.PATH = "";
+    const res = await GET(req());
+    assert.equal(res.status, 200, `Expected 200, got ${res.status}`);
+    const body = await res.json();
+    assert.equal(body.installed, false);
+    assert.equal(body.config, null);
+  } finally {
+    process.env.PATH = origPath;
+  }
 });
 
 // ── Test 3: GET → detects "installed" via the DB file even without the binary on PATH ──
@@ -145,10 +161,13 @@ test("omp-settings POST: writes models.yml and persists credentials for a seeded
   assert.ok(fs.existsSync(modelsYmlPath), "models.yml must be written");
   const content = fs.readFileSync(modelsYmlPath, "utf-8");
   assert.ok(content.includes("http://localhost:20128/v1"), "models.yml must contain the base URL");
+  assert.ok(content.includes("openai-models-list"), "models.yml must use openai-models-list discovery");
+  assert.ok(content.includes("injectV1: false"), "models.yml must specify injectV1: false");
 
   const getRes = await GET(req());
   const getBody = await getRes.json();
   assert.equal(getBody.hasOmniRoute, true);
+  assert.equal(getBody.config.providers.omniroute.discovery, "openai-models-list");
 });
 
 // ── Test 6: DELETE → removes OmniRoute provider entry ────────────────────────
