@@ -431,6 +431,7 @@
     "glob": "^13.0.6",
     "httpyac": "^6.16.7",
     "husky": "^9.1.7",
+    "istanbul-lib-instrument": "6.0.3",
     "jscpd": "^4.3.0",
     "jsdom": "^30.0.1",
     "junit-to-ctrf": "^0.0.14",
