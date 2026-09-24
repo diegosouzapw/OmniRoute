@@ -81,6 +81,7 @@ import {
   resolveResponsesStallWindowMs,
 } from "./opencodeResponsesStall.ts";
 import { discardResponseBody } from "./opencodeResponseBody.ts";
+import { headersWaitDispatch, headersWaitState } from "./opencodeHeadersWait.ts";
 import {
   isRetriableUpstreamFailure,
   releaseResponseBody,
@@ -532,6 +533,12 @@ export class OpencodeExecutor extends BaseExecutor {
       // Opt-in Responses first-byte stall guard (#13484); a no-op when the window is 0.
       const stallWindowMs = resolveResponsesStallWindowMs(input.stream, this._requestFormat);
       const guardStall = <T>(r: T) => guardResponsesStall(r, stallWindowMs, input.signal);
+      const headersWait = headersWaitState(
+        input,
+        this._requestFormat,
+        this.getTimeoutMs(),
+        this.config?.fetchStartTimeoutCapMs
+      );
       // Fast path: no multi-account proxy wiring configured → original behavior,
       // plus exactly ONE bounded retry when the upstream answers a 400 empty
       // rejection (same predicate and logging as the rotation loop). Everything
@@ -622,8 +629,7 @@ export class OpencodeExecutor extends BaseExecutor {
       // (received refusal or refused TCP probe) are skipped. Off = plain rotation.
       const skipRecentlyFailed = isProxySkipRecentlyFailedEnabled();
       let directTried = false;
-      // Stalls before the first Responses byte: one rotation, then fail fast.
-      const stallCounter = { attempts: 0 };
+      const stallCounter = { attempts: 0 }; // first-byte stalls: one rotation, then fail fast
       // A response an opt-in branch rotated away from. It stays lastResult (and
       // intact) until a newer attempt replaces it, then its body is cancelled.
       let abandonedResponse: Response | null = null;
@@ -746,13 +752,44 @@ export class OpencodeExecutor extends BaseExecutor {
         account = paced.account;
         let result: HttpExecuteResult;
         try {
-          // super.execute() dispatches the HTTP path (never the web/scraping arm).
-          result = (await guardStall(
-            await runWithProxyContext(account.proxy, () =>
-              super.execute({ ...input, skipUpstreamRetry: true })
-            )
-          )) as HttpExecuteResult;
+          const { outcome, waitMs } = await headersWaitDispatch(
+            // opt-in bound on the guarded dispatch (stall guard inside the race)
+            headersWait,
+            account,
+            accounts,
+            isProxiedCandidate,
+            (attemptSignal) =>
+              (async () =>
+                guardStall(
+                  await runWithProxyContext(account.proxy, () =>
+                    super.execute({
+                      ...input,
+                      skipUpstreamRetry: true,
+                      signal: attemptSignal ?? input.signal,
+                    })
+                  )
+                ) as Promise<HttpExecuteResult>)(),
+            input.signal
+          );
+          if (outcome.kind !== "ok") {
+            if (outcome.kind === "aborted")
+              egressPacing.throwPacedError(egressRelease, outcome.reason);
+            egressPacing.settleStalledDispatch(egressRelease, account, {
+              tried: geoTriedProxyKeys,
+              stalled: headersWait.spent,
+              cooldown: markCooldown,
+              markDirect: () => (directTried = true),
+            }); // same settle as the stall arm
+            log?.warn?.(
+              "OPENCODE",
+              `${cid}no response headers within ${waitMs}ms on account ${masked}, rotating to next…`
+            );
+            continue;
+          }
+          result = outcome.result;
         } catch (err) {
+          if (headersWait.policy.windowMs > 0 && input.signal?.aborted)
+            egressPacing.throwPacedError(egressRelease, err); // client abort never rotates, slot released
           const reason = err instanceof Error ? err.message : String(err);
           // Stall guard: headers arrived, so the egress works — never a shared-egress
           // outage; proxied and proxy-less accounts rotate alike. A client abort never rotates.

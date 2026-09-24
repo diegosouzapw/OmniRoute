@@ -16,6 +16,7 @@ import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   applyClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
+  maybeAppendSkillsBeta,
 } from "../config/anthropicHeaders.ts";
 import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
@@ -473,7 +474,9 @@ export class DefaultExecutor extends BaseExecutor {
     credentials,
     stream = true,
     clientHeaders?: Record<string, string> | null,
-    model?: string | null
+    model?: string | null,
+    _health?: unknown,
+    body?: unknown
   ) {
     const { headers, effectiveKey } = this.buildHeadersPreamble(credentials, stream);
 
@@ -690,11 +693,15 @@ export class DefaultExecutor extends BaseExecutor {
       // `model` gates the client-negotiated context-1m beta on the RESOLVED target:
       // combo/fallback can route a request negotiated for a [1m] sibling onto a model
       // that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
+      // `body` gates skills-2025-10-02 on presence of code_execution tool (#14200).
       applyClientAnthropicBeta(headers, clientBeta, {
         seedWhenAbsent: this.provider?.startsWith?.("anthropic-compatible-") === true,
         model,
+        body,
       });
     }
+
+    maybeAppendSkillsBeta(headers, this.provider, body, this.usesClaudeCodeProtocol(credentials));
 
     normalizeAnthropicHeaderVariants(headers);
 

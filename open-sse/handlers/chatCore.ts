@@ -100,6 +100,7 @@ import {
   isClaudeCodeSemanticPassthroughRequest,
 } from "./chatCore/passthroughHelpers.ts";
 import { recoverAnthropicThinkingSignature } from "./chatCore/thinkingSignatureRecovery.ts";
+import { maybeFallbackAfterReadiness } from "./chatCore/streamReadinessFallback.ts";
 import { runProviderExecutionPipeline } from "./chatCore/providerExecutionPipeline.ts";
 import { runNonStreamingProviderLeg } from "./chatCore/nonStreamingProviderLeg.ts";
 import type { NonStreamingProviderLegResult } from "@/lib/skills/toolLoopTypes.ts";
@@ -5792,13 +5793,36 @@ export async function handleChatCore({
     );
   }
 
-  const streamReadiness = await ensureStreamReadiness(providerResponse, {
+  let streamReadiness = await ensureStreamReadiness(providerResponse, {
     timeoutMs: streamReadinessPolicy.timeoutMs,
     maxTimeoutMs: streamReadinessPolicy.maxTimeoutMs,
     provider,
     model,
     log,
   });
+  // A stall is an upstream issue, not an account fault — the executor loop
+  // already ended at headers, so this bounded retry is the only recovery left.
+  const fallback = await maybeFallbackAfterReadiness({
+    streamReadiness,
+    clientAborted: streamController.signal.aborted,
+    failedConnectionId: getCurrentConnectionId(),
+    failedBody: providerResponse,
+    currentModel,
+    streamReadinessPolicy,
+    provider,
+    model,
+    log,
+    reqLogger,
+    providerUrl,
+    providerHeaders,
+    finalBody,
+    translatedBody,
+    executeProviderRequest,
+    providerRequestCapture,
+  });
+  streamReadiness = fallback.readiness;
+  providerResponse = fallback.providerResponse;
+  finalBody = fallback.finalBody;
   if (streamReadiness.ok === false) {
     const { response: failureResponse, reason } = streamReadiness;
     const { classificationReason, upstreamDiagnostic } = streamReadiness;
@@ -5992,6 +6016,7 @@ export async function handleChatCore({
     responseBody: streamResponseBody,
     providerPayload,
     clientPayload,
+    reasoningMeta: streamReasoningMeta,
     error: streamError,
     errorCode: streamErrorCode,
     ttft,
@@ -6144,6 +6169,7 @@ export async function handleChatCore({
       claudeCacheMeta: claudePromptCacheLogMeta,
       claudeCacheUsageMeta: cacheUsageLogMeta,
       cacheSource: "upstream",
+      reasoningMeta: streamReasoningMeta ?? null,
     });
 
     recordStreamingCost({
