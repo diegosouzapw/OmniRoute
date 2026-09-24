@@ -445,35 +445,35 @@ Bruk dette endepunktet når en sidecar kjører utenfor prosessen og ikke kan imp
 
 ## Kompatibilitetsendepunkter
 
-| Metode | Bane                                      | Format                               |
-| ------ | ----------------------------------------- | ------------------------------------ |
-| POST   | `/v1/chat/completions`                    | OpenAI                               |
-| POST   | `/v1/messages`                            | Anthropic                            |
-| POST   | `/v1/responses`                           | OpenAI-svar                          |
-| POST   | `/v1/embeddings`                          | OpenAI                               |
-| POST   | `/v1/images/generations`                  | OpenAI-bilder                        |
-| POST   | `/v1/images/edits`                        | OpenAI-bilder (rediger/inpaint)      |
-| POST   | `/v1/videos/generations`                  | OpenAI-stil videogenerering          |
-| POST   | `/v1/music/generations`                   | OpenAI-stil musikkgenerering         |
-| POST   | `/v1/audio/transcriptions`                | OpenAI-lyd (STT)                     |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (returnerer lydkropp)     |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-stil rerank            |
-| POST   | `/v1/classify`                            | Jina klassifiser (`api.jina.ai`)     |
-| POST   | `/v1/segment`                             | Jina segmenterer (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI-modereringer                  |
-| GET    | `/v1/models`                              | OpenAI                               |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                            |
-| GET    | `/v1beta/models`                          | Gemini                               |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent               |
-| POST   | `/v1/api/chat`                            | Ollama                               |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI katalogalias                  |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI modellalias                   |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenisert alias              |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI-svar tokenisert alias         |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenisert alias              |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenisert alias         |
+| Metode | Bane                                      | Format                             |
+| ------ | ----------------------------------------- | ---------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                             |
+| POST   | `/v1/messages`                            | Anthropic                          |
+| POST   | `/v1/responses`                           | OpenAI Responses                   |
+| POST   | `/v1/embeddings`                          | OpenAI                             |
+| POST   | `/v1/images/generations`                  | OpenAI Images                      |
+| POST   | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)       |
+| POST   | `/v1/videos/generations`                  | OpenAI-style video generation      |
+| POST   | `/v1/music/generations`                   | OpenAI-style music generation      |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (returns audio body)    |
+| POST   | `/v1/rerank`                              | Cohere/Voyage-style rerank         |
+| POST   | `/v1/classify`                            | Jina classify (`api.jina.ai`)      |
+| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`) |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                 |
+| GET    | `/v1/models`                              | OpenAI                             |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                          |
+| GET    | `/v1beta/models`                          | Gemini                             |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent             |
+| POST   | `/v1/api/chat`                            | Ollama                             |
+| GET    | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias               |
+| GET    | `/api/v1/vscode/{token}/models`           | OpenAI models alias                |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias             |
+| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenized alias   |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias             |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias        |
 
-Alle POST-ruter følger samme form: `Bearer your-api-key` + Zod-validert JSON-kropp (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, osv., se `src/shared/validation/schemas.ts`). 4xx returneres ved skjemafeil.
+Alle POST-ruter følger samme form: `Bearer your-api-key` + Zod-validert JSON-kropp (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, etc., se `src/shared/validation/schemas.ts`). 4xx returneres ved skjemafeil.
 
 For klienter som ikke kan legge ved `Authorization: Bearer ...`, aksepterer OmniRoute også API-nøkler i URL-en via enten spørrestrengkompatibilitet (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) eller de dedikerte `/api/v1/vscode/{token}/...` endepunktene dokumentert nedenfor.
 
@@ -481,13 +481,13 @@ For klienter som ikke kan legge ved `Authorization: Bearer ...`, aksepterer Omni
 # Rerank (skyregisterleverandør, eller en OpenAI-kompatibel leverandørnode som "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina klassifiser (Foundation API-legitimasjon)
+# Jina classify (Foundation API-legitimasjon)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenterer
+# Jina segmenter
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina søk (s.jina.ai; leverandøralias: jina-search, jina-ai, jina)
+# Jina search (s.jina.ai; leverandøralias: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Modereringer
@@ -501,18 +501,14 @@ POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # Video / musikkgenerering (leverandør-prefiksert modell-ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Rerank-leverandørnoder:** `POST /v1/rerank` ruter også til OpenAI-kompatible leverandørnoder (oMLX, vLLM, Infinity, TEI bak en gateway, …) adressert som `<node-prefix>/<model>`. Loopback-noder (`localhost`, `127.0.0.1`, `172.16.0.0/12`) er alltid kvalifiserte. Noder på en hvilken som helst annen vert — en LAN-boks eller Tailscale-peer — er kvalifiserte kun når operatøren aktiverer `RERANK_REMOTE_PROVIDER_NODES` funksjonsflagget **og** nodens base-URL passerer leverandørens utgående URL-policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); sky-metadata-verter rutes aldri til. Minne-motorens rerank-trinn kaller denne ruten over loopback, så den samme regelen styrer `rerankProviderModel` i minneinnstillingene.
+> **Rerank-leverandørnoder:** `POST /v1/rerank` ruter også til OpenAI-kompatible leverandørnoder (oMLX, vLLM, Infinity, TEI bak en gateway, …) adressert som `<node-prefix>/<model>`. Loopback-noder (`localhost`, `127.0.0.1`, `172.16.0.0/12`) er alltid kvalifiserte. Noder på en hvilken som helst annen vert – en LAN-boks eller Tailscale-peer – er kvalifiserte kun når operatøren aktiverer `RERANK_REMOTE_PROVIDER_NODES` funksjonsflagget **og** nodens base-URL passerer leverandørens utgående URL-policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); sky-metadata-verter rutes aldri til. Minne-motorens rerank-trinn kaller denne ruten over loopback, så den samme regelen styrer `rerankProviderModel` i minneinnstillingene.
 >
 > **Lokale serverformer:** noden kalles på `<base>/v1/rerank` og, ved 404, på `<base>/rerank` (Infinity, TEI). Oppstrøms-kroppen inneholder både Cohere/OpenAI-stavemåten (`documents`, `return_documents`) og TEI-stavemåten (`texts`, `return_text`), og oppstrøms-svaret normaliseres til Cohere-konvolutten: TEIs bare `[{index, score, text}]`, `{results: [{index, score}]}` fra tynne gateways, og Voyage-stil `{data: [...]}` kommer alle tilbake til klienten som `{results: [{index, relevance_score, document?}]}`, sortert etter poengsum og begrenset til `top_n`.
 
-> **Oppdagelse av leverandørnoder:** Modeller på en OpenAI-kompatibel leverandørnode vises i `GET /v1/models`
-> under nodeprefikset. Rader som ikke inneholder endepunktmetadata (typisk for lokale `/v1/models`-oppføringer)
-> arver nodens `apiType`, slik at modellene til en `embeddings`-node er `type: "embedding"` og en
-> `rerank`-nodes modeller er `type: "rerank"` i stedet for å standardisere til chat; en eksplisitt
-> `supportedEndpoints` på en synkronisert eller manuelt lagt til rad har fortsatt forrang.
+> **Leverandørnode-oppdagelse:** modeller på en OpenAI-kompatibel leverandørnode vises i `GET /v1/models` under nodeprefikset. Rader som ikke inneholder endepunktmetadata (typisk for lokale `/v1/models`-oppføringer) arver nodens `apiType`, slik at en `embeddings`-nodes modeller er `type: "embedding"` og en `rerank`-nodes modeller er `type: "rerank"` i stedet for å standardisere til chat; en eksplisitt `supportedEndpoints` på en synkronisert eller manuelt lagt til rad har fortsatt forrang.
 
 ### Dedikerte leverandørruter
 
@@ -522,7 +518,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Leverandørprefikset legges automatisk til hvis det mangler. Modeller som ikke stemmer overens returnerer `400`.
+Leverandørprefikset legges automatisk til hvis det mangler. Uoverensstemmende modeller returnerer `400`.
 
 ---
 

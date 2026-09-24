@@ -45,6 +45,7 @@ export type ResourceSignals = {
     fullAvg10: number | null;
     fullAvg60: number | null;
     fullAvg300: number | null;
+    psiSource?: "cgroup" | "host" | null;
   } | null;
 };
 
@@ -103,6 +104,17 @@ export const DEFAULT_RESOURCE_PRESSURE_THRESHOLDS: ResourcePressureThresholds = 
 
 type RawLevel = { severity: PressureSeverity; reason: PressureReason };
 type OomCounters = { oom: number | null; oomKill: number | null };
+type ThrottleCounters = { high: number | null; max: number | null };
+
+// Reads the operator opt-out for host-wide PSI pressure. Declared locally so
+// the throttle proof stays coherent when the operator ignores PSI everywhere:
+// with the opt-out set, the PSI safety net is disabled and only a memory.events
+// delta counts as proof. Kept separate from the third-party patch revisiting
+// the same variable so this branch merges without depending on it.
+function psiPressureDisabled(): boolean {
+  const raw = process.env.OMNIROUTE_PRESSURE_PSI_DISABLED?.trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
 
 function requireFiniteRange(name: string, value: number, minimum: number, maximum: number): void {
   if (!Number.isFinite(value) || value < minimum || value > maximum) {
@@ -186,6 +198,55 @@ function psiLevel(
   return null;
 }
 
+export type ThrottleProof = true | false | null;
+
+function hasCounterIncreaseGeneric(previous: ThrottleCounters, current: ThrottleCounters): boolean {
+  return (
+    (previous.high != null && current.high != null && current.high > previous.high) ||
+    (previous.max != null && current.max != null && current.max > previous.max)
+  );
+}
+
+function throttleCountersReset(previous: ThrottleCounters, current: ThrottleCounters): boolean {
+  return (
+    (previous.high != null && current.high != null && current.high < previous.high) ||
+    (previous.max != null && current.max != null && current.max < previous.max)
+  );
+}
+
+// True only on kernel evidence of real throttling: a memory.events high/max
+// increase across the sample window, or cgroup memory PSI above zero. Host PSI
+// alone never counts while cgroup events are readable (noisy neighbors), and
+// the operator PSI opt-out disables the PSI safety net entirely. Null means
+// proof is unavailable (no events and no PSI): the caller keeps the raw ratio.
+export function hasKernelThrottleProof(
+  signals: ResourceSignals,
+  previousEvents: ThrottleCounters | null = null
+): ThrottleProof {
+  const events = signals.cgroup.events;
+  const psi = signals.psi;
+  const psiAboveZero =
+    (psi?.someAvg10 != null && psi.someAvg10 > 0) || (psi?.fullAvg10 != null && psi.fullAvg10 > 0);
+  const cgroupPsi = psi?.psiSource === "cgroup";
+  if (events == null) {
+    if (psi == null) return null;
+    if (psiPressureDisabled()) return null;
+    return psiAboveZero ? true : false;
+  }
+  const current: ThrottleCounters = { high: events.high, max: events.max };
+  if (previousEvents) {
+    if (throttleCountersReset(previousEvents, current)) return false;
+    if (hasCounterIncreaseGeneric(previousEvents, current)) return true;
+    if (psi == null || psiPressureDisabled()) return false;
+    if (cgroupPsi && psiAboveZero) return true;
+    return false;
+  }
+  if (psi == null) return events.high == null && events.max == null ? null : false;
+  if (psiPressureDisabled()) return false;
+  if (psiAboveZero && (cgroupPsi || events == null)) return true;
+  return false;
+}
+
 export function classifyAdaptiveResourcePressure(
   signals: ResourceSignals,
   thresholds: ResourcePressureThresholds
@@ -207,12 +268,68 @@ export function classifyAdaptiveResourcePressure(
     best,
     ratioLevel(cgroupWorkingSetBytes, signals.cgroup.maxBytes, thresholds, "cgroup_ratio")
   );
-  best = maxLevel(
-    best,
-    ratioLevel(signals.cgroup.currentBytes, signals.cgroup.highBytes, thresholds, "cgroup_high")
-  );
+  best = maxLevel(best, cgroupHighLevel(signals, thresholds));
   best = maxLevel(best, psiLevel(signals.psi?.someAvg10 ?? null, thresholds, "psi_some"));
   return maxLevel(best, psiLevel(signals.psi?.fullAvg10 ?? null, thresholds, "psi_full"));
+}
+
+export function classifyAdaptiveResourcePressureWithHistory(
+  signals: ResourceSignals,
+  thresholds: ResourcePressureThresholds,
+  previousEvents: ThrottleCounters | null = null
+): RawLevel {
+  let best: RawLevel = { severity: "normal", reason: "none" };
+  best = maxLevel(
+    best,
+    ratioLevel(signals.v8.heapUsedBytes, signals.v8.heapLimitBytes, thresholds, "v8_heap_ratio")
+  );
+  const cgroupWorkingSetBytes = workingSetBytes(signals.cgroup);
+  best = maxLevel(
+    best,
+    ratioLevel(cgroupWorkingSetBytes, signals.cgroup.maxBytes, thresholds, "cgroup_ratio")
+  );
+  const highRatio = ratioLevel(
+    signals.cgroup.currentBytes,
+    signals.cgroup.highBytes,
+    thresholds,
+    "cgroup_high"
+  );
+  // A raw total above the high mark only becomes critical on kernel proof of
+  // real throttling; without proof it stays an informative high that never
+  // returns 503. Hosts without memory.events keep the raw ratio (fallback).
+  // NOTE: events == null with PSI present still consults the proof: PSI > 0
+  // proves (recovery net), PSI == 0 caps at high. Only events == null AND
+  // PSI == null keeps the raw critical (no signal at all: fail open toward
+  // the old behavior).
+  if (highRatio?.severity === "critical") {
+    const proof = hasKernelThrottleProof(signals, previousEvents);
+    best = maxLevel(
+      best,
+      proof === false ? { severity: "high", reason: "cgroup_high" } : highRatio
+    );
+  } else {
+    best = maxLevel(best, highRatio);
+  }
+  best = maxLevel(best, psiLevel(signals.psi?.someAvg10 ?? null, thresholds, "psi_some"));
+  return maxLevel(best, psiLevel(signals.psi?.fullAvg10 ?? null, thresholds, "psi_full"));
+}
+
+function cgroupHighLevel(
+  signals: ResourceSignals,
+  thresholds: ResourcePressureThresholds
+): RawLevel | null {
+  const highRatio = ratioLevel(
+    signals.cgroup.currentBytes,
+    signals.cgroup.highBytes,
+    thresholds,
+    "cgroup_high"
+  );
+  if (highRatio?.severity === "critical") {
+    // No event history on the stateless path: without proof the raw total
+    // above high stays an informative high, never critical.
+    return { severity: "high", reason: "cgroup_high" };
+  }
+  return highRatio;
 }
 
 function workingSetBytes(cgroup: ResourceSignals["cgroup"]): number | null {
@@ -289,6 +406,7 @@ export function createResourcePressureTracker(
   let state = initialState();
   let pending: RawLevel | null = null;
   let previousOom: OomCounters | null = null;
+  let previousEvents: ThrottleCounters | null = null;
 
   return {
     observe(signals) {
@@ -304,9 +422,21 @@ export function createResourcePressureTracker(
         previousOom = null;
       }
 
+      const currentEvents: ThrottleCounters | null = events
+        ? { high: events.high, max: events.max }
+        : null;
+      if (previousEvents && currentEvents && throttleCountersReset(previousEvents, currentEvents)) {
+        previousEvents = currentEvents;
+      }
+
       const raw = oomEvent
         ? ({ severity: "critical", reason: "oom_event" } as const)
-        : classifyAdaptiveResourcePressure(signals, thresholds);
+        : classifyAdaptiveResourcePressureWithHistory(signals, thresholds, previousEvents);
+      if (currentEvents) {
+        previousEvents = currentEvents;
+      } else {
+        previousEvents = null;
+      }
       let { severity, reason, elevatedStreak, recoveryStreak } = state;
 
       if (oomEvent) {

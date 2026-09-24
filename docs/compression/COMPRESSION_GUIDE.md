@@ -476,10 +476,30 @@ error strings, URLs and identifiers verbatim.
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) resolves
 the selection against the catalog (unknown ids and locale-mismatched styles are
 dropped, never an error), concatenates the selected instructions in catalog order,
-appends the boundaries clause **once**, and front-loads the result into the system
-prompt behind a single idempotency marker (`[OmniRoute Output Styles]`) — re-applying
-is a no-op. When the detected request language has a translation, the localized
-instruction is injected instead of English.
+appends the boundaries clause **once**, and starts the block with a single idempotency
+marker (`[OmniRoute Output Styles]`), so re-applying is a no-op. When the resolved
+language (see Language selection below) has a translation, the localized instruction is
+injected instead of English.
+
+On a body with `messages`, a content bypass (`shouldBypassCavemanOutputMode()` in
+`open-sse/services/compression/outputMode.ts`) checks the last three messages and skips
+the styles for the whole turn when they match its security, irreversible-action,
+clarification, or order-sensitive keywords. The bypass runs whatever the dashboard's
+**Auto-Clarity Bypass** toggle (`cavemanOutputMode.autoClarity`) is set to.
+
+When the bypass lets the turn through, `placeSystemInstruction()` (same file), which
+never creates a new `messages[0]`, places the block in the first of these it finds:
+
+1. A leading system message with string content: the block is appended after its text.
+2. The top-level `system` field: the block is appended after the text of a string, or
+   added as a new text block to a content-block array.
+3. The first later system message with string content: the block is appended after its
+   text.
+4. None of the above: the block goes into a new system message at the end of `messages`.
+
+On a body without `messages`, the block is appended to a string `instructions` field,
+or becomes `instructions` when the body carries `input` (a string or an array). A body
+with neither `instructions` nor `input` is skipped as `no_messages`.
 
 #### How to enable
 

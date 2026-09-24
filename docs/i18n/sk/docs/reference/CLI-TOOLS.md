@@ -45,9 +45,7 @@ Agenti ACP (opačný tok spúšťania):
 
 ## Automatická konfigurácia pomocou `setup-*`
 
-Konfiguráciu každého nástroja nemusíte zapisovať ručne. OmniRoute obsahuje príkaz
-`setup-*` pre každý podporovaný nástroj CLI, ktorý načíta **aktuálny** katalóg modelov zo spusteného
-OmniRoute (lokálneho alebo vzdialeného) a zapíše vlastnú konfiguráciu nástroja vo vašom počítači:
+Nemusíte písať konfiguráciu každého nástroja ručne. OmniRoute dodáva príkaz `setup-*` pre každý podporovaný CLI, ktorý číta **živý** katalóg modelov z bežiaceho OmniRoute (lokálneho alebo vzdialeného) a zapíše vlastnú konfiguráciu nástroja na váš počítač:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,49 +55,15 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Každý z nich prijíma `--remote <url> --api-key <key>` (konfigurácia lokálneho nástroja pre
-vzdialený OmniRoute), `--dry-run` (náhľad bez zápisu) a `--port`. Nástroje
-bez automatického zisťovania modelov (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) prijímajú
-`--model <id>` (a `--yes` pri neinteraktívnom spustení). `setup-5dive` je jediný
-postup, ktorý nezapisuje do `$HOME`: konfiguruje skupinu agentov 5dive
-zapísaním autentifikačného profilu vlastneného používateľom root na hostiteľovi skupiny, preto sa opätovne spustí cez `sudo`
-a nemá vlastný vzdialený režim. Ak chcete spustiť CLI so
-správne vloženými premennými prostredia a úplne bez zápisu konfigurácie, použite všeobecný spúšťač
-`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — ciele a aliasy pochádzajú zo súboru `bin/cli/cli-manifest.mjs`); staršie
-spúšťače jednotlivých nástrojov `omniroute launch` (Claude Code) a `omniroute launch-codex`
-(Codex) zostávajú dostupné. Gemini CLI je možné iba spúšťať: je cieľom príkazu `omniroute run`,
-ale nemá žiadny postup `setup-*`/`configure`.
+Každý akceptuje `--remote <url> --api-key <key>` (konfiguruje lokálny nástroj voči vzdialenému OmniRoute), `--dry-run` (náhľad bez zápisu) a `--port`. Nástroje bez automatického objavovania modelov (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) prijímajú `--model <id>` (a `--yes` pre neinteraktívne spustenia). `setup-5dive` je jediný recept, ktorý nezapisuje pod `$HOME`: konfiguruje flotilu agentov 5dive zápisom autentifikačného profilu vlastneného rootom na hostiteľovi flotily, takže sa znovu spustí cez `sudo` a nemá vlastný vzdialený režim. Na spustenie CLI so správne vloženým prostredím a bez akéhokoľvek zapísania konfigurácie použite generický spúšťač `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — ciele a aliasy pochádzajú z `bin/cli/cli-manifest.mjs`); staršie spúšťače pre jednotlivé nástroje `omniroute launch` (Claude Code) a `omniroute launch-codex` (Codex) zostávajú k dispozícii. Gemini CLI je len na spustenie: je to cieľ `omniroute run`, ale nemá recept `setup-*`/`configure`.
 
-> **Úplná referencia:** hlavná tabuľka — čo jednotlivé príkazy zapisujú, všetky príznaky,
-> lokálny a vzdialený režim a ktoré nástroje vyžadujú príponu `/v1` — sa nachádza v dokumente
-> **[Integrácie CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Úplná referencia:** hlavná tabuľka — čo každý príkaz zapisuje, každý príznak, lokálne vs vzdialené a ktoré nástroje vyžadujú príponu `/v1` — sa nachádza v **[Integrácie CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Spúšťanie týchto príkazov v kontajneri
+### Spúšťanie týchto príkazov vo vnútri kontajnera
 
-Príkaz `setup-*` vykonaný v kontajneri OmniRoute zapisuje do
-domovského adresára samotného kontajnera, ktorý žiadny nástroj CLI hostiteľa nečíta a ktorý po zániku
-kontajnera zmizne. OmniRoute to zistí a namiesto zápisu skončí s kódom `2`
-a zobrazí pokyny. Existujú dva podporované spôsoby ďalšieho postupu — nainštalovať CLI na hostiteľovi a
-pomocou `omniroute connect` ho pripojiť ku kontajneru alebo pripojiť konfiguračné adresáre pomocou bind mountu a nastaviť
-`CLI_CONFIG_HOME` (profil compose `host`). Každý príkaz `setup-*`, ako aj
-`omniroute configure` a `omniroute config set`, prijíma
-`--allow-container-write`, ak skutočne chcete konfigurovať nástroje CLI samotného kontajnera;
-`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` zabezpečuje to isté pre
-server. Pozrite si
-[Sprievodca Dockerom → Konfigurácia nástrojov CLI hostiteľa](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Príkaz `setup-*` vykonaný vo vnútri kontajnera OmniRoute zapisuje do vlastného domovského adresára kontajnera, ktorý žiadny hostiteľský CLI nečíta a ktorý zmizne s kontajnerom. OmniRoute to detekuje a ukončí sa s kódom `2` s inštrukciami namiesto zápisu. Dva podporované spôsoby, ako postupovať — nainštalujte CLI na hostiteľa a pripojte sa k kontajneru pomocou `omniroute connect`, alebo pripojte konfiguračné adresáre pomocou bind-mount a nastavte `CLI_CONFIG_HOME` (profil `host` z compose). Každý príkaz `setup-*`, plus `omniroute configure` a `omniroute config set`, akceptuje `--allow-container-write`, ak ste skutočne mysleli konfiguráciu vlastných CLI kontajnera; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` robí to isté pre server. Pozrite si [Sprievodca Dockerom → Konfigurácia hostiteľských nástrojov CLI](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**Koncový bod na použitie konfigurácie** v ovládacom paneli (`POST /api/cli-tools/apply`) uplatňuje
-rovnakú ochranu: v kontajneri zápis, ktorého cieľ nie je pripojený z
-hostiteľa pomocou bind mountu, odpovie stavom **`422`** s `containerEphemeralTarget: true`, bezpečným textom
-chyby a — pre nástroje s postupom pre hostiteľa (claude, codex, opencode, cline,
-kilo, continue) — hodnotou `hostSetupCommand` (napr. `omniroute setup-opencode`), ktorú treba
-namiesto toho spustiť na hostiteľovi; nič sa nezapíše. `dryRun: true` naďalej funguje v režime
-kontajnera a vráti vygenerovaný obsah + cieľovú cestu bez zásahu do disku, takže
-si môžete zobraziť náhľad v ovládacom paneli a konfiguráciu použiť na hostiteľovi. Toto správanie je
-zámerné a chránené pred regresiami testom
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — chybu 422 nikdy „neopravujte“
-odstránením tejto ochrany.
+Dashboardový **apply endpoint** (`POST /api/cli-tools/apply`) vynucuje rovnakú ochranu: v kontajneri, zápis, ktorého cieľ nie je pripojený z hostiteľa pomocou bind-mount, odpovie **`422`** s `containerEphemeralTarget: true`, bezpečným chybovým textom a — pre nástroje s hostiteľským receptom (claude, codex, opencode, cline, kilo, continue) — príkazom `hostSetupCommand` (napr. `omniroute setup-opencode`) na spustenie na hostiteľovi namiesto toho; nič sa nezapíše. `dryRun: true` naďalej funguje v režime kontajnera a vráti redigovaný náhľad + cieľovú cestu bez dotyku disku. Obsah náhľadu nie je konfigurácia obsahujúca poverenia na kopírovanie alebo import. Aplikujte s pôvodným nástrojom/základnou URL/API kľúčom/vstupmi modelu na hostiteľovi, alebo použite uvedený príkaz na nastavenie na strane hostiteľa. Pozrite si [Bezpečnosť konfigurácie CLI](../security/CLI-CONFIGURATION.md) pre hlavičku náhľadu a zmluvu požiadavky. Toto správanie je úmyselné a chránené proti regresii testom `tests/unit/api/cli-tools/apply-container-guard.test.ts` — nikdy "neopravujte" 422 odstránením ochrany.
 
 ---
 
@@ -142,11 +106,11 @@ jedného rozhrania bez pridania do ostatných spôsobí zlyhanie testovacej sady
 
 ---
 
-## 1. Katalóg kódu CLI (26 nástrojov)
+## 1. Katalóg nástrojov CLI kódu (26 nástrojov)
 
-Všetky nástroje, ktoré sa zobrazujú v `/dashboard/cli-code`. Nástroje s `baseUrlSupport: none` sú namiesto vlastnej základnej URL prepojené cez MITM alebo manuálny návod:
+Všetky nástroje, ktoré sa objavujú v `/dashboard/cli-code`. Tie s `baseUrlSupport: none` sú pripojené cez MITM alebo manuálneho sprievodcu namiesto vlastnej základnej URL:
 
-| id           | názov                   | dodávateľ           | baseUrlSupport | configType     | acpSpawnable |
+| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
 | claude       | Claude Code             | Anthropic           | full           | env            | true         |
 | codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
@@ -173,9 +137,9 @@ Všetky nástroje, ktoré sa zobrazujú v `/dashboard/cli-code`. Nástroje s `ba
 | antigravity  | Antigravity             | Google              | none           | mitm           | false        |
 | hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Vlastné CLI             | —                   | full           | custom-builder | false        |
+| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Nástroje s `baseUrlSupport: "partial"` zobrazujú na karte ovládacieho panela odznak „⚠ Čiastočná základná URL“.
+Nástroje s `baseUrlSupport: "partial"` zobrazujú odznak "⚠ Čiastočná základná URL" na karte palubnej dosky.
 ---
 
 ## 2. Katalóg CLI agentov (10 nástrojov)

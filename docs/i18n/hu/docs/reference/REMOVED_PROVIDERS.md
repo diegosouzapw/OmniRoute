@@ -41,12 +41,13 @@ kerülhetnek vissza, és ezt az engedélyt hivatkozni kell a bejegyzésben.
    a szolgáltatói nyilvántartás forrásaiban. Az új azonosítókat ugyanabban a PR-ben add hozzá ehhez a teszthez,
    amelyben ide új sort veszel fel.
 
-## Nyilvántartás
+## Regiszter
 
-| Eltávolítás dátuma | Szolgáltatói azonosító | Alias  | Domainek                                | Kérelmező                                       | Eltávolítási PR                                                | Megjegyzések                                                                                                                          |
-| ------------------ | ---------------------- | ------ | --------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-12         | `puter`                | `pu`   | `puter.com`                             | A Puter tulajdonosa (Nariman Jelveh)            | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | API-kulcsos szolgáltató. A `152_remove_puter_provider.sql` migráció törli a tárolt konfigurációt.                                     |
-| 2026-09-02         | `theoldllm`            | `tllm` | `theoldllm.com`, `theoldllm.vercel.app` | A szolgáltatás üzemeltetője (támogatási e-mail) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Kulcs nélküli szolgáltató. Az írásos kérelem 2026-08-30-án érkezett. A dedikált hibajegyek és beszélgetés törölve, a PR-ek átnevezve. |
+| Eltávolítva ekkor | Szolgáltató azonosító | Alias | Domainek | Kérte | Eltávolítási PR | Megjegyzések  
+| 2026-08-12 | `puter` | `pu` | `puter.com` | A Puter tulajdonosa (Nariman Jelveh) | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | API-kulcs szolgáltató. A `152_remove_puter_provider.sql` migráció törli a tárolt konfigurációt. |
+| 2026-09-02 | `theoldllm` | `tllm` | `theoldllm.com`, `theoldllm.vercel.app` | A szolgáltatás üzemeltetője (támogatási e-mail) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Kulcs nélküli szolgáltató. Írásbeli kérés érkezett 2026-08-30-án. A dedikált hibajegyek és megbeszélések törölve, a PR-ek átnevezve. |
+| 2026-09-21 | `gemini-business` | `gembiz` | `business.gemini.google` | Projekt tulajdonos döntése (hibajegy [#14217](https://github.com/diegosouzapw/OmniRoute/issues/14217)) | [#14467](https://github.com/diegosouzapw/OmniRoute/pull/14467) | Süti-alapú webes szolgáltató. A Google megszüntette a `BardFrontendService/StreamGenerate` végpontot, amelyet a végrehajtó célzott; a helyettesítő (`biz-discoveryengine.googleapis.com` `widgetStreamAssist`, Bearer JWT, amely a `__Secure-C_SES`/`csesidx`-ből indul) nem építhető fel vagy érvényesíthető élő Gemini Enterprise/Workspace fiók nélkül, amellyel a projekt nem rendelkezik. Inkább megszüntették, mintsem ellenőrizetlenül újraírták. |
+| 2026-09-21 | `suno` | `suno` | `studio-api.suno.ai`, `studio-api-prod.suno.com` | Projekt tulajdonos döntése (`#14224`) | [#14468](https://github.com/diegosouzapw/OmniRoute/pull/14468) | Süti-alapú hitelesítésű szolgáltató, nem üzemeltetői leállítás. A `studio-api.suno.ai` felfüggesztésre került (503); az élő hoszt egy Clerk JWT cserét, valamint egy fizetős hCaptcha-megoldó függőséget igényel, amelyet az OmniRoute úgy döntött, hogy nem ad hozzá egyetlen zenei szolgáltatóhoz sem. A `kie/suno-v4.0` és a `kie/suno-v3.5` (kie.ai-hosted) nem érintettek és továbbra is támogatottak. |
 
 ## Bejegyzés hozzáadása
 

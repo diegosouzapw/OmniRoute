@@ -401,7 +401,7 @@ Użyj tego punktu końcowego, gdy sidecar działa poza procesem i nie może bezp
 
 ---
 
-## Punkty końcowe zgodności
+## Punkty Końcowe Kompatybilności
 
 | Metoda | Ścieżka                                   | Format                               |
 | ------ | ----------------------------------------- | ------------------------------------ |
@@ -414,7 +414,7 @@ Użyj tego punktu końcowego, gdy sidecar działa poza procesem i nie może bezp
 | POST   | `/v1/videos/generations`                  | Generowanie wideo w stylu OpenAI     |
 | POST   | `/v1/music/generations`                   | Generowanie muzyki w stylu OpenAI    |
 | POST   | `/v1/audio/transcriptions`                | Audio OpenAI (STT)                   |
-| POST   | `/v1/audio/speech`                        | TTS OpenAI (zwraca treść audio)      |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (zwraca ciało audio)      |
 | POST   | `/v1/rerank`                              | Rerank w stylu Cohere/Voyage         |
 | POST   | `/v1/classify`                            | Klasyfikacja Jina (`api.jina.ai`)    |
 | POST   | `/v1/segment`                             | Segmentator Jina (`segment.jina.ai`) |
@@ -431,12 +431,12 @@ Użyj tego punktu końcowego, gdy sidecar działa poza procesem i nie może bezp
 | POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenizowany alias Ollama            |
 | GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenizowany alias tagów Ollama      |
 
-Wszystkie trasy POST mają ten sam kształt: `Bearer your-api-key` + ciało JSON walidowane przez Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` itd., zobacz `src/shared/validation/schemas.ts`). Błąd 4xx jest zwracany w przypadku niepowodzenia schematu.
+Wszystkie trasy POST mają ten sam kształt: `Bearer your-api-key` + ciało JSON walidowane przez Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` itd., patrz `src/shared/validation/schemas.ts`). W przypadku błędu schematu zwracany jest kod 4xx.
 
-Dla klientów, którzy nie mogą dołączyć `Authorization: Bearer ...`, OmniRoute akceptuje również klucze API w adresie URL poprzez kompatybilność z ciągiem zapytań (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) lub dedykowane punkty końcowe `/api/v1/vscode/{token}/...` udokumentowane poniżej.
+Dla klientów, którzy nie mogą dołączyć `Authorization: Bearer ...`, OmniRoute akceptuje również klucze API w adresie URL za pośrednictwem zgodności z ciągiem zapytania (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) lub dedykowanych punktów końcowych `/api/v1/vscode/{token}/...` udokumentowanych poniżej.
 
 ```bash
-# Rerank (dostawca z rejestru chmurowego lub węzeł dostawcy zgodny z OpenAI jako "<prefix>/<model>")
+# Rerank (dostawca rejestru chmurowego lub węzeł dostawcy zgodny z OpenAI jako "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Klasyfikacja Jina (poświadczenia API Foundation)
@@ -451,7 +451,7 @@ POST /v1/search      { "query": "...", "provider": "jina-search" }
 # Moderacje
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — zwraca treść audio/mpeg (lub w żądanym formacie)
+# TTS — zwraca ciało audio/mpeg (lub w żądanym formacie)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Edycja obrazu (multipart)
@@ -459,14 +459,14 @@ POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # Generowanie wideo / muzyki (ID modelu z prefiksem dostawcy)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Węzły dostawców rerank:** `POST /v1/rerank` kieruje również do węzłów dostawców zgodnych z OpenAI (oMLX, vLLM, Infinity, TEI za bramą, …) adresowanych jako `<node-prefix>/<model>`. Węzły loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) są zawsze kwalifikowalne. Węzły na dowolnym innym hoście — urządzeniu LAN lub peerze Tailscale — są kwalifikowalne tylko wtedy, gdy operator włączy flagę funkcji `RERANK_REMOTE_PROVIDER_NODES` **i** podstawowy adres URL węzła przejdzie politykę wychodzących adresów URL dostawcy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); hosty metadanych chmurowych nigdy nie są kierowane. Krok rerank silnika pamięci wywołuje tę trasę przez loopback, więc ta sama zasada rządzi `rerankProviderModel` w ustawieniach pamięci.
+> **Węzły dostawców rerank:** `POST /v1/rerank` kieruje również do węzłów dostawców zgodnych z OpenAI (oMLX, vLLM, Infinity, TEI za bramą, …) adresowanych jako `<node-prefix>/<model>`. Węzły loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) są zawsze kwalifikowane. Węzły na dowolnym innym hoście — urządzeniu LAN lub peerze Tailscale — są kwalifikowane tylko wtedy, gdy operator włączy flagę funkcji `RERANK_REMOTE_PROVIDER_NODES` **i** podstawowy adres URL węzła przejdzie politykę wychodzących adresów URL dostawcy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); hosty metadanych chmurowych nigdy nie są kierowane. Krok rerank silnika pamięci wywołuje tę trasę przez loopback, więc ta sama zasada rządzi `rerankProviderModel` w ustawieniach pamięci.
 >
-> **Kształty serwerów lokalnych:** węzeł jest wywoływany pod adresem `<base>/v1/rerank`, a w przypadku błędu 404, pod adresem `<base>/rerank` (Infinity, TEI). Treść nadrzędna zawiera zarówno pisownię Cohere/OpenAI (`documents`, `return_documents`), jak i pisownię TEI (`texts`, `return_text`), a odpowiedź nadrzędna jest normalizowana do koperty Cohere: gołe `[{index, score, text}]` z TEI, `{results: [{index, score}]}` z cienkich bramek oraz `{data: [...]}` w stylu Voyage, wszystko wraca do klienta jako `{results: [{index, relevance_score, document?}]}`, posortowane według wyniku i ograniczone do `top_n`.
+> **Kształty serwerów lokalnych:** węzeł jest wywoływany pod adresem `<base>/v1/rerank`, a w przypadku 404, pod adresem `<base>/rerank` (Infinity, TEI). Ciało żądania nadrzędnego zawiera zarówno pisownię Cohere/OpenAI (`documents`, `return_documents`), jak i pisownię TEI (`texts`, `return_text`), a odpowiedź nadrzędna jest normalizowana do koperty Cohere: gołe `[{index, score, text}]` z TEI, `{results: [{index, score}]}` z cienkich bramek oraz `{data: [...]}` w stylu Voyage, wszystko wraca do klienta jako `{results: [{index, relevance_score, document?}]}`, posortowane według wyniku i ograniczone do `top_n`.
 
-**Odkrywanie węzłów dostawców:** modele na węźle dostawcy kompatybilnym z OpenAI pojawiają się w `GET /v1/models` pod prefiksem węzła. Wiersze, które nie zawierają metadanych punktu końcowego (typowe dla lokalnych list `/v1/models`), dziedziczą `apiType` węzła, więc modele węzła `embeddings` mają `type: "embedding"`, a modele węzła `rerank` mają `type: "rerank"`, zamiast domyślnie ustawiać się na czat; jawne `supportedEndpoints` w zsynchronizowanym lub ręcznie dodanym wierszu nadal ma pierwszeństwo.
+> **Odkrywanie węzłów dostawców:** modele na węźle dostawcy zgodnym z OpenAI pojawiają się w `GET /v1/models` pod prefiksem węzła. Wiersze, które nie zawierają metadanych punktu końcowego (typowe dla lokalnych list `/v1/models`), dziedziczą `apiType` węzła, więc modele węzła `embeddings` mają `type: "embedding"`, a modele węzła `rerank` mają `type: "rerank"`, zamiast domyślnie być czatem; jawne `supportedEndpoints` w zsynchronizowanym lub ręcznie dodanym wierszu nadal ma pierwszeństwo.
 
 ### Dedykowane Trasy Dostawców
 

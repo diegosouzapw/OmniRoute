@@ -419,86 +419,70 @@ Ezt a végpontot akkor használja, ha egy sidecar folyamaton kívül fut, és ne
 
 ## Kompatibilitási végpontok
 
-| Metódus | Elérési út                                | Formátum                              |
-| ------- | ----------------------------------------- | ------------------------------------- |
-| POST    | `/v1/chat/completions`                    | OpenAI                                |
-| POST    | `/v1/messages`                            | Anthropic                             |
-| POST    | `/v1/responses`                           | OpenAI Responses                      |
-| POST    | `/v1/embeddings`                          | OpenAI                                |
-| POST    | `/v1/images/generations`                  | OpenAI Images                         |
-| POST    | `/v1/images/edits`                        | OpenAI Images (szerkesztés/inpaint)   |
-| POST    | `/v1/videos/generations`                  | OpenAI-stílusú videógenerálás         |
-| POST    | `/v1/music/generations`                   | OpenAI-stílusú zenegenerálás          |
-| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                    |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (hangtörzset ad vissza)    |
-| POST    | `/v1/rerank`                              | Cohere/Voyage-stílusú újrarangsorolás |
-| POST    | `/v1/classify`                            | Jina-osztályozás (`api.jina.ai`)      |
-| POST    | `/v1/segment`                             | Jina-szegmentáló (`segment.jina.ai`)  |
-| POST    | `/v1/moderations`                         | OpenAI Moderations                    |
-| GET     | `/v1/models`                              | OpenAI                                |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                             |
-| GET     | `/v1beta/models`                          | Gemini                                |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                |
-| POST    | `/v1/api/chat`                            | Ollama                                |
-| GET     | `/api/v1/vscode/{token}/`                 | OpenAI-katalógus aliasa               |
-| GET     | `/api/v1/vscode/{token}/models`           | OpenAI-modellek aliasa                |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenizált aliasa              |
-| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenizált aliasa    |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenizált aliasa              |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama-címkék tokenizált aliasa       |
+| Metódus | Útvonal                                   | Formátum                             |
+| ------- | ----------------------------------------- | ------------------------------------ |
+| POST    | `/v1/chat/completions`                    | OpenAI                               |
+| POST    | `/v1/messages`                            | Anthropic                            |
+| POST    | `/v1/responses`                           | OpenAI válaszok                      |
+| POST    | `/v1/embeddings`                          | OpenAI                               |
+| POST    | `/v1/images/generations`                  | OpenAI képek                         |
+| POST    | `/v1/images/edits`                        | OpenAI képek (szerkesztés/kitöltés)  |
+| POST    | `/v1/videos/generations`                  | OpenAI-stílusú videógenerálás        |
+| POST    | `/v1/music/generations`                   | OpenAI-stílusú zene generálás        |
+| POST    | `/v1/audio/transcriptions`                | OpenAI hang (STT)                    |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (hanganyagot ad vissza)   |
+| POST    | `/v1/rerank`                              | Cohere/Voyage-stílusú újrarendezés   |
+| POST    | `/v1/classify`                            | Jina osztályozás (`api.jina.ai`)     |
+| POST    | `/v1/segment`                             | Jina szegmentáló (`segment.jina.ai`) |
+| POST    | `/v1/moderations`                         | OpenAI moderációk                    |
+| GET     | `/v1/models`                              | OpenAI                               |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                            |
+| GET     | `/v1beta/models`                          | Gemini                               |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent               |
+| POST    | `/v1/api/chat`                            | Ollama                               |
+| GET     | `/api/v1/vscode/{token}/`                 | OpenAI katalógus alias               |
+| GET     | `/api/v1/vscode/{token}/models`           | OpenAI modellek alias                |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenizált alias              |
+| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI válaszok tokenizált alias     |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenizált alias              |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama címkék tokenizált alias       |
 
-Minden POST-útvonal ugyanazt a struktúrát követi: `Bearer your-api-key` + Zod által ellenőrzött JSON-törzs (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` stb.; lásd: `src/shared/validation/schemas.ts`). A sémaellenőrzés sikertelensége esetén 4xx válasz érkezik.
+Minden POST útvonal azonos formátumot követ: `Bearer your-api-key` + Zod-validált JSON törzs (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, stb., lásd `src/shared/validation/schemas.ts`). Sémahiba esetén 4xx-es válasz kerül visszaadásra.
 
-Azon kliensek számára, amelyek nem tudják csatolni az `Authorization: Bearer ...` fejlécet, az OmniRoute az URL-ben is elfogad API-kulcsokat, akár lekérdezésikarakterlánc-kompatibilitással (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), akár az alább dokumentált, dedikált `/api/v1/vscode/{token}/...` végpontokon keresztül.
+Azoknak az ügyfeleknek, amelyek nem tudnak `Authorization: Bearer ...` fejlécet csatolni, az OmniRoute az API kulcsokat az URL-ben is elfogadja, akár lekérdezési sztring kompatibilitás (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) révén, akár az alább dokumentált dedikált `/api/v1/vscode/{token}/...` végpontokon keresztül.
 
 ```bash
-# Újrarangsorolás (felhőalapú nyilvántartási szolgáltató vagy OpenAI-kompatibilis szolgáltatói csomópont „<prefix>/<model>” formában)
+# Újrarendezés (felhőalapú regisztrációs szolgáltató, vagy OpenAI-kompatibilis szolgáltatói csomópont "<előtag>/<modell>" formában)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina-osztályozás (Foundation API-hitelesítő adatok)
+# Jina osztályozás (Foundation API hitelesítő adatok)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina-szegmentáló
+# Jina szegmentáló
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina-keresés (s.jina.ai; szolgáltatói aliasok: jina-search, jina-ai, jina)
+# Jina keresés (s.jina.ai; szolgáltatói aliasok: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderálás
+# Moderációk
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (vagy a kért formátumú) törzset ad vissza
-POST /v1/audio/speech { "model": "openai/tts-1", "input": "Helló", "voice": "alloy" }
+# TTS — audio/mpeg (vagy kért formátumú) törzset ad vissza
+POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Képszerkesztés (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Videó-/zenegenerálás (szolgáltatói előtaggal ellátott modellazonosító)
+# Videó / zene generálás (szolgáltató-előtaggal ellátott modell azonosító)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Újrarangsorolási szolgáltatói csomópontok:** A `POST /v1/rerank` OpenAI-kompatibilis szolgáltatói csomópontokhoz
-> (oMLX, vLLM, Infinity, átjáró mögötti TEI stb.) is irányít, amelyek címzése `<node-prefix>/<model>` formában történik. A visszacsatolási
-> csomópontok (`localhost`, `127.0.0.1`, `172.16.0.0/12`) mindig használhatók. Bármely más
-> állomáson található csomópont — legyen az egy LAN-gép vagy Tailscale-partner — csak akkor használható, ha az üzemeltető engedélyezi a
-> `RERANK_REMOTE_PROVIDER_NODES` funkciójelzőt, **és** a csomópont alap-URL-je megfelel a szolgáltató
-> kimenő URL-ekre vonatkozó szabályzatának (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> a felhőmetaadat-állomásokhoz soha nem történik továbbítás. A memóriamotor újrarangsorolási lépése visszacsatoláson keresztül hívja
-> ezt az útvonalat, ezért ugyanez a szabály vonatkozik a Memória beállításaiban szereplő `rerankProviderModel` értékére is.
+> **Újrarendezési szolgáltatói csomópontok:** A `POST /v1/rerank` útvonal OpenAI-kompatibilis szolgáltatói csomópontokhoz is irányít (oMLX, vLLM, Infinity, TEI egy átjáró mögött, …), amelyek `<csomópont-előtag>/<modell>` formában vannak címezve. A loopback csomópontok (`localhost`, `127.0.0.1`, `172.16.0.0/12`) mindig jogosultak. Bármely más gazdagépen — egy LAN-dobozon vagy Tailscale-társgépen — lévő csomópontok csak akkor jogosultak, ha az operátor engedélyezi a `RERANK_REMOTE_PROVIDER_NODES` funkciójelzőt **és** a csomópont alap URL-je megfelel a szolgáltató kimenő URL-szabályzatának (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); a felhő-metaadat gazdagépekhez soha nem történik útválasztás. A memóriakezelő újrarendezési lépése ezen az útvonalon keresztül hívja meg a loopbacket, így ugyanez a szabály vonatkozik a `rerankProviderModel`-re a Memória beállításokban.
 >
-> **Helyi szerverstruktúrák:** A csomópont hívása a `<base>/v1/rerank` címen történik, 404 esetén pedig a `<base>/rerank`
-> címen (Infinity, TEI). A továbbított törzs tartalmazza mind a Cohere/OpenAI-féle elnevezéseket (`documents`,
-> `return_documents`), mind a TEI-féle elnevezéseket (`texts`, `return_text`), a továbbított válasz pedig
-> a Cohere-borítékra lesz normalizálva: a TEI csupasz `[{index, score, text}]` formátuma, a vékony átjáróktól érkező
-> `{results: [{index, score}]}`, valamint a Voyage-stílusú `{data: [...]}` is
-> `{results: [{index, relevance_score, document?}]}` formában kerül vissza a klienshez, pontszám szerint rendezve és a `top_n` értékére korlátozva.
+> **Helyi szerver formák:** A csomópontot a `<base>/v1/rerank` címen hívják meg, és 404 esetén a `<base>/rerank` címen (Infinity, TEI). A felsőbb rétegbeli törzs tartalmazza a Cohere/OpenAI írásmódot (`documents`, `return_documents`) és a TEI írásmódot (`texts`, `return_text`) is, és a felsőbb rétegbeli válasz a Cohere borítékhoz van normalizálva: A TEI csupasz `[{index, score, text}]` formátuma, a vékony átjárókból származó `{results: [{index, score}]}` és a Voyage-stílusú `{data: [...]}` mind `{results: [{index, relevance_score, document?}]}` formában térnek vissza az ügyfélhez, pontszám szerint rendezve és `top_n`-nél korlátozva.
 
-> **Szolgáltatói csomópontok felderítése:** Az OpenAI-kompatibilis szolgáltatói csomópontokon található modellek a `GET /v1/models`
-> válaszában a csomópont előtagja alatt jelennek meg. A végpont-metaadatokat nem tartalmazó sorok (ami a helyi `/v1/models` listákra jellemző)
-> öröklik a csomópont `apiType` értékét, így egy `embeddings` csomópont modelljei `type: "embedding"`, egy
-> `rerank` csomópont modelljei pedig `type: "rerank"` típusúak lesznek az alapértelmezett csevegéstípus helyett; a szinkronizált vagy manuálisan hozzáadott sorokon megadott explicit
-> `supportedEndpoints` továbbra is elsőbbséget élvez.
+> **Szolgáltatói csomópont felfedezés:** Az OpenAI-kompatibilis szolgáltatói csomóponton lévő modellek a `GET /v1/models` alatt jelennek meg a csomópont előtaggal. Azok a sorok, amelyek nem tartalmaznak végpont metaadatokat (jellemző a helyi `/v1/models` listázásokra), öröklik a csomópont `apiType`-ját, így egy beágyazási csomópont modelljei `type: "embedding"` típusúak, és egy újrarendezési csomópont modelljei `type: "rerank"` típusúak lesznek a chat alapértelmezett helyett; egy szinkronizált vagy manuálisan hozzáadott soron lévő explicit `supportedEndpoints` továbbra is elsőbbséget élvez.
 
 ### Dedikált szolgáltatói útvonalak
 
@@ -508,7 +492,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-A szolgáltatói előtag automatikusan hozzáadódik, ha hiányzik. A nem megfelelő modellek `400` állapotkódot adnak vissza.
+A szolgáltató előtagja automatikusan hozzáadódik, ha hiányzik. Az illesztetlen modellek `400`-as hibakódot adnak vissza.
 
 ---
 

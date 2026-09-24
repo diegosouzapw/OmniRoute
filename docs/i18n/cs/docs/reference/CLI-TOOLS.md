@@ -43,58 +43,64 @@ ACP Agenti (obrácený tok spuštění):
 
 ---
 
-## Automatická konfigurace s `setup-*`
+## Automatická konfigurace pomocí `setup-*`
 
-Nemusíte psát konfiguraci každého nástroje ručně. OmniRoute dodává příkaz `setup-*`
-pro každý podporovaný CLI, který čte **živý** katalog modelů z běžícího
-OmniRoute (lokálního nebo vzdáleného) a zapisuje vlastní konfiguraci nástroje na vašem stroji:
+Nemusíte ručně psát konfiguraci pro každý nástroj. OmniRoute dodává příkaz `setup-*`
+pro každé podporované CLI, který čte **živý** katalog modelů z běžícího
+OmniRoute (lokálního nebo vzdáleného) a zapisuje vlastní konfiguraci nástroje do vašeho počítače:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Každý přijímá `--remote <url> --api-key <key>` (konfigurovat lokální nástroj proti
+Každý z nich přijímá `--remote <url> --api-key <key>` (konfigurace lokálního nástroje proti
 vzdálenému OmniRoute), `--dry-run` (náhled bez zápisu) a `--port`. Nástroje
-bez automatického objevování modelu (Cline, Kilo, Roo, Goose, Aider, Qwen) berou
-`--model <id>` (a `--yes` pro neinteraktivní běhy). Pro spuštění CLI s
-odpovídajícím prostředím a bez jakéhokoli zápisu konfigurace použijte generický
-`omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
-gemini — cíle a aliasy pocházejí z `bin/cli/cli-manifest.mjs`); zastaralé
-per-tool launchery `omniroute launch` (Claude Code) a `omniroute launch-codex`
-(Codex) zůstávají k dispozici. Gemini CLI je pouze pro spuštění: je to cíl
-`omniroute run`, ale nemá žádný `setup-*`/`configure` recept.
+bez automatického zjišťování modelů (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) přijímají
+`--model <id>` (a `--yes` pro neinteraktivní spuštění). `setup-5dive` je jediný
+recept, který nezapisuje pod `$HOME`: konfiguruje flotilu agentů 5dive
+zápisem profilu ověřování vlastněného rootem na hostiteli flotily, takže se znovu spustí přes `sudo`
+a nemá vlastní vzdálený režim. Pro spuštění CLI s
+vloženým správným prostředím a bez jakékoli zapsané konfigurace použijte generický
+spouštěč `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
+gemini – cíle a aliasy pocházejí z `bin/cli/cli-manifest.mjs`); starší
+spouštěče pro jednotlivé nástroje `omniroute launch` (Claude Code) a `omniroute launch-codex`
+(Codex) zůstávají k dispozici. Gemini CLI je pouze pro spouštění: je to cíl `omniroute run`,
+ale nemá recept `setup-*`/`configure`.
 
-> **Úplná reference:** hlavní tabulka — co každý příkaz zapisuje, každý příznak,
-> lokální vs vzdálený, a které nástroje chtějí příponu `/v1` — se nachází v
-> **[CLI Integrace](../guides/CLI-INTEGRATIONS.md)**.
+> **Úplná reference:** hlavní tabulka – co každý příkaz zapisuje, každý příznak,
+> lokální vs. vzdálené a které nástroje vyžadují příponu `/v1` – se nachází v
+> **[Integrace CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Spuštění těchto příkazů uvnitř kontejneru
+### Spouštění uvnitř kontejneru
 
-Příkaz `setup-*` provedený uvnitř kontejneru OmniRoute zapisuje do
-vlastního domova kontejneru, který žádný hostitelský CLI nečte a který zmizí s
-kontejnerem. OmniRoute to detekuje a ukončuje s kódem `2` s instrukcemi místo
-zápisu. Dva podporované způsoby vpřed — nainstalovat CLI na hostiteli a
-`omniroute connect` do kontejneru, nebo bind-mount adresáře konfigurace a nastavit
-`CLI_CONFIG_HOME` (profil compose `host`). Každý příkaz `setup-*`, plus
+Příkaz `setup-*` spuštěný uvnitř kontejneru OmniRoute zapisuje do
+vlastního domovského adresáře kontejneru, který žádné hostitelské CLI nečte a který zmizí s
+kontejnerem. OmniRoute to detekuje a ukončí se s kódem `2` s instrukcemi, namísto
+zápisu. Dva podporované způsoby, jak pokračovat – nainstalujte CLI na hostitele a
+`omniroute connect` do kontejneru, nebo připojte konfigurační adresáře a nastavte
+`CLI_CONFIG_HOME` (profil `host` v compose). Každý příkaz `setup-*`, plus
 `omniroute configure` a `omniroute config set`, přijímá
-`--allow-container-write`, když je skutečně zamýšleno konfigurovat vlastní CLIs
-kontejneru; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` dělá to samé pro
-server. Viz
-[Docker Průvodce → Konfigurace hostitelských CLI nástrojů](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+`--allow-container-write`, pokud jste skutečně chtěli konfigurovat vlastní CLI kontejneru;
+`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` dělá totéž pro server. Viz
+[Průvodce Dockerem → Konfigurace hostitelských nástrojů CLI](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**apply endpoint** dashboardu (`POST /api/cli-tools/apply`) vynucuje
-stejnou ochranu: v kontejneru, zápis, jehož cíl není bind-mounted z hostitele,
-odpovídá **`422`** s `containerEphemeralTarget: true`, bezpečným chybovým
-textem a — pro nástroje s hostitelským receptem (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` (např. `omniroute setup-opencode`), který
-se má spustit na hostiteli místo; nic není zapsáno. `dryRun: true` stále funguje
-v režimu kontejneru a vrací vygenerovaný obsah + cílovou cestu bez dotyku disku,
-takže si můžete prohlédnout z dashboardu a aplikovat na hostiteli. Toto chování je
-úmyslné a chráněné regresí pomocí
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nikdy "neopravujte" 422
+Endpoint **apply** na dashboardu (`POST /api/cli-tools/apply`) vynucuje
+stejnou ochranu: v kontejneru, zápis, jehož cíl není připojen z
+hostitele, odpoví **`422`** s `containerEphemeralTarget: true`, bezpečným chybovým
+textem a – pro nástroje s hostitelským receptem (claude, codex, opencode, cline,
+kilo, continue) – `hostSetupCommand` (např. `omniroute setup-opencode`), který se má spustit
+místo toho na hostiteli; nic se nezapisuje. `dryRun: true` stále funguje v režimu kontejneru
+a vrací redigovaný náhled + cílovou cestu bez dotyku disku. Obsah náhledu
+není konfigurační soubor obsahující pověření, který by se dal kopírovat nebo importovat. Aplikujte
+s původním nástrojem/základní URL/API klíčem/vstupy modelu na hostiteli, nebo použijte
+uvedený příkaz pro nastavení na straně hostitele. Viz [zabezpečení konfigurace CLI](../security/CLI-CONFIGURATION.md)
+pro hlavičku náhledu a kontrakt požadavku. Toto chování je
+záměrné a chráněné proti regresi testem
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` – nikdy „neopravujte“ 422
 odstraněním ochrany.
 
 ---
@@ -136,9 +142,9 @@ a zapojení příznaku `--model` z něj. Ochrana proti odchylkám
 katalog, UI katalog a každý spotřebitelský povrch zůstávají synchronizovány — cíl přidaný do
 jednoho povrchu bez ostatních způsobí selhání testu místo tichého odchýlení.
 
-## 1. Katalog CLI Code (26 nástrojů)
+## 1. Katalog CLI kódů (26 nástrojů)
 
-Všechny nástroje, které se zobrazují v `/dashboard/cli-code`. Nástroje s `baseUrlSupport: none` jsou namísto vlastní základní adresy URL propojeny prostřednictvím MITM nebo ručního návodu:
+Všechny nástroje, které se objevují v `/dashboard/cli-code`. Ty s `baseUrlSupport: none` jsou zapojeny přes MITM nebo manuální průvodce namísto vlastní základní URL:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -169,7 +175,7 @@ Všechny nástroje, které se zobrazují v `/dashboard/cli-code`. Nástroje s `b
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Nástroje s `baseUrlSupport: "partial"` zobrazují na kartě řídicího panelu odznak „⚠ Částečná podpora základní adresy URL“.
+Nástroje s `baseUrlSupport: "partial"` zobrazují na kartě panelu odznak "⚠ Base URL parcial".
 ---
 
 ## 2. Katalog CLI agentů (8 nástrojů)

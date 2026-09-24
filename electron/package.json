@@ -58,8 +58,6 @@
     "files": [
       "main.js",
       "preload.js",
-      "loginManager.js",
-      "lib/loginHeaderCapture.js",
       "processTree.js",
       "sqlite-inspection.js",
       "remoteServerPromptPreload.js",
@@ -67,7 +65,6 @@
       "lib/resolveServerEntry.js",
       "lib/resolveNodeHelper.js",
       "lib/windowLifecycle.js",
-      "lib/loginHeaderCapture.js",
       "lib/resolveRemoteServerUrl.js",
       "lib/remoteServerPreferences.js",
       "lib/serverReadiness.js",

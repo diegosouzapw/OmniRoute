@@ -416,88 +416,88 @@ Gebruik dit endpoint wanneer een sidecar buiten het proces wordt uitgevoerd en `
 
 ## Compatibiliteitseindpunten
 
-| Methode | Pad                                       | Formaat                            |
-| ------- | ----------------------------------------- | ---------------------------------- |
-| POST    | `/v1/chat/completions`                    | OpenAI                             |
-| POST    | `/v1/messages`                            | Anthropic                          |
-| POST    | `/v1/responses`                           | OpenAI Responses                   |
-| POST    | `/v1/embeddings`                          | OpenAI                             |
-| POST    | `/v1/images/generations`                  | OpenAI Images                      |
-| POST    | `/v1/images/edits`                        | OpenAI Images (bewerken/inpainten) |
-| POST    | `/v1/videos/generations`                  | Videogeneratie in OpenAI-stijl     |
-| POST    | `/v1/music/generations`                   | Muziekgeneratie in OpenAI-stijl    |
-| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (retourneert audiobody) |
-| POST    | `/v1/rerank`                              | Reranking in Cohere/Voyage-stijl   |
-| POST    | `/v1/classify`                            | Jina-classificatie (`api.jina.ai`) |
-| POST    | `/v1/segment`                             | Jina-segmenter (`segment.jina.ai`) |
-| POST    | `/v1/moderations`                         | OpenAI Moderations                 |
-| GET     | `/v1/models`                              | OpenAI                             |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                          |
-| GET     | `/v1beta/models`                          | Gemini                             |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent             |
-| POST    | `/v1/api/chat`                            | Ollama                             |
-| GET     | `/api/v1/vscode/{token}/`                 | OpenAI-catalogusalias              |
-| GET     | `/api/v1/vscode/{token}/models`           | OpenAI-modellenalias               |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI-alias met token             |
-| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Responses-alias met token   |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama-alias met token             |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama-tagsalias met token         |
+| Methode | Pad                                       | Formaat                                |
+| ------- | ----------------------------------------- | -------------------------------------- |
+| POST    | `/v1/chat/completions`                    | OpenAI                                 |
+| POST    | `/v1/messages`                            | Anthropic                              |
+| POST    | `/v1/responses`                           | OpenAI Antwoorden                      |
+| POST    | `/v1/embeddings`                          | OpenAI                                 |
+| POST    | `/v1/images/generations`                  | OpenAI Afbeeldingen                    |
+| POST    | `/v1/images/edits`                        | OpenAI Afbeeldingen (bewerken/inpaint) |
+| POST    | `/v1/videos/generations`                  | Video generatie in OpenAI-stijl        |
+| POST    | `/v1/music/generations`                   | Muziek generatie in OpenAI-stijl       |
+| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (retourneert audiobody)     |
+| POST    | `/v1/rerank`                              | Rerank in Cohere/Voyage-stijl          |
+| POST    | `/v1/classify`                            | Jina classificeren (`api.jina.ai`)     |
+| POST    | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)     |
+| POST    | `/v1/moderations`                         | OpenAI Moderaties                      |
+| GET     | `/v1/models`                              | OpenAI                                 |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                              |
+| GET     | `/v1beta/models`                          | Gemini                                 |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                 |
+| POST    | `/v1/api/chat`                            | Ollama                                 |
+| GET     | `/api/v1/vscode/{token}/`                 | OpenAI catalogus alias                 |
+| GET     | `/api/v1/vscode/{token}/models`           | OpenAI modellen alias                  |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI getokeniseerde alias            |
+| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Antwoorden getokeniseerde alias |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama getokeniseerde alias            |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama tags getokeniseerde alias       |
 
-Alle POST-routes hebben dezelfde vorm: `Bearer your-api-key` + een door Zod gevalideerde JSON-body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, enz.; zie `src/shared/validation/schemas.ts`). Bij een schemafout wordt een 4xx-status geretourneerd.
+Alle POST-routes volgen dezelfde vorm: `Bearer your-api-key` + Zod-gevalideerde JSON-body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, enz., zie `src/shared/validation/schemas.ts`). Een 4xx-fout wordt geretourneerd bij schemavalidatiefouten.
 
-Voor clients die geen `Authorization: Bearer ...` kunnen toevoegen, accepteert OmniRoute ook API-sleutels in de URL via compatibiliteit met querystrings (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) of via de speciale `/api/v1/vscode/{token}/...`-eindpunten die hieronder worden beschreven.
+Voor clients die geen `Authorization: Bearer ...` kunnen meesturen, accepteert OmniRoute ook API-sleutels in de URL via query-string compatibiliteit (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) of de hieronder gedocumenteerde speciale `/api/v1/vscode/{token}/...` eindpunten.
 
 ```bash
-# Reranking (provider uit het cloudregister of een OpenAI-compatibele providernode als "<prefix>/<model>")
+# Rerank (cloud registry provider, of een OpenAI-compatibele provider node als "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina-classificatie (referenties voor Foundation API)
+# Jina classificeren (Foundation API-referenties)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina-segmenter
+# Jina segmenter
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina-zoekfunctie (s.jina.ai; provideraliasen: jina-search, jina-ai, jina)
+# Jina zoeken (s.jina.ai; provider aliassen: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderatie
+# Moderaties
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — retourneert een audio/mpeg-body (of de aangevraagde indeling)
+# TTS — retourneert audio/mpeg (of aangevraagd formaat) body
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Afbeelding bewerken (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Video-/muziekgeneratie (model-ID met providerprefix)
+# Video- / muziekgeneratie (model-ID met provider-voorvoegsel)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Providernodes voor reranking:** `POST /v1/rerank` routeert ook naar OpenAI-compatibele providernodes
-> (oMLX, vLLM, Infinity, TEI achter een gateway, …) die worden geadresseerd als `<node-prefix>/<model>`. Loopbacknodes
-> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) komen altijd in aanmerking. Nodes op elke andere
-> host — een machine op het LAN of een Tailscale-peer — komen alleen in aanmerking wanneer de beheerder de
-> featureflag `RERANK_REMOTE_PROVIDER_NODES` inschakelt **en** de basis-URL van de node voldoet aan het beleid voor
-> uitgaande provider-URL's (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> er wordt nooit naar cloudmetadatahosts gerouteerd. De rerankingstap van de geheugenengine roept deze route via
-> loopback aan, dus dezelfde regel is van toepassing op `rerankProviderModel` in de geheugeninstellingen.
+> **Rerank provider nodes:** `POST /v1/rerank` routeert ook naar OpenAI-compatibele provider nodes
+> (oMLX, vLLM, Infinity, TEI achter een gateway, …) die worden aangesproken als `<node-prefix>/<model>`. Loopback
+> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) komen altijd in aanmerking. Nodes op elke andere
+> host — een LAN-box of Tailscale-peer — komen alleen in aanmerking wanneer de operator de
+> `RERANK_REMOTE_PROVIDER_NODES` feature flag inschakelt **en** de basis-URL van de node voldoet aan het provider
+> outbound URL-beleid (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> cloud-metadata hosts worden nooit gerouteerd. De rerank-stap van de geheugen-engine roept deze route aan via
+> loopback, dus dezelfde regel is van toepassing op `rerankProviderModel` in de geheugeninstellingen.
 >
-> **Vormen van lokale servers:** de node wordt aangeroepen via `<base>/v1/rerank` en, bij een 404, via `<base>/rerank`
-> (Infinity, TEI). De upstreambody bevat zowel de Cohere/OpenAI-spelling (`documents`,
-> `return_documents`) als de TEI-spelling (`texts`, `return_text`), en de upstreamrespons wordt
+> **Lokale servervormen:** de node wordt aangeroepen op `<base>/v1/rerank` en, bij een 404, op `<base>/rerank`
+> (Infinity, TEI). De upstream body bevat zowel de Cohere/OpenAI-spelling (`documents`,
+> `return_documents`) als de TEI-spelling (`texts`, `return_text`), en de upstream respons wordt
 > genormaliseerd naar de Cohere-envelop: TEI's kale `[{index, score, text}]`, `{results: [{index, score}]}`
-> van eenvoudige gateways en Voyage-stijl `{data: [...]}` worden allemaal aan de client geretourneerd als
-> `{results: [{index, relevance_score, document?}]}`, gesorteerd op score en beperkt tot `top_n`.
+> van dunne gateways, en Voyage-stijl `{data: [...]}` komen allemaal terug naar de client als
+> `{results: [{index, relevance_score, document?}]}`, gesorteerd op score en begrensd op `top_n`.
 
-> **Detectie van providernodes:** modellen op een OpenAI-compatibele providernode verschijnen in `GET /v1/models`
-> onder de nodeprefix. Rijen zonder eindpuntmetadata (zoals gebruikelijk bij lokale `/v1/models`-lijsten)
-> nemen de `apiType` van de node over, zodat de modellen van een `embeddings`-node `type: "embedding"` hebben en die van een
-> `rerank`-node `type: "rerank"` in plaats van standaard op chat terug te vallen; een expliciete
-> `supportedEndpoints` in een gesynchroniseerde of handmatig toegevoegde rij heeft nog steeds voorrang.
+> **Provider-node ontdekking:** modellen op een OpenAI-compatibele provider node verschijnen in `GET /v1/models`
+> onder het node-voorvoegsel. Rijen die geen eindpuntmetadata bevatten (typisch voor lokale `/v1/models` lijsten)
+> erven de `apiType` van de node, dus de modellen van een `embeddings` node zijn `type: "embedding"` en de
+> modellen van een `rerank` node zijn `type: "rerank"` in plaats van standaard chat; een expliciete
+> `supportedEndpoints` op een gesynchroniseerde of handmatig toegevoegde rij heeft nog steeds voorrang.
 
-### Speciale providerroutes
+### Specifieke Provider Routes
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -505,7 +505,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Het providerprefix wordt automatisch toegevoegd als dit ontbreekt. Niet-overeenkomende modellen retourneren `400`.
+Het providervoorvoegsel wordt automatisch toegevoegd indien afwezig. Niet-overeenkomende modellen retourneren `400`.
 
 ---
 
