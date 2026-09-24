@@ -37,7 +37,7 @@ Cookie: auth_token=<JWT signed with JWT_SECRET>
 
 A cookie is a session only when the JWT verifies **and** carries `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Every
-consumer of the cookie (route guard, authz pipeline refresh, WebSocket handshake, live
+consumer of the cookie (dashboard route guard (`isDashboardSessionAuthenticated()`), authz pipeline refresh, WebSocket handshake, live
 server, `/api/settings/require-login`, `/api/auth/status`) goes through that helper.
 Other JWTs signed with `JWT_SECRET` exist — the Cursor CLI passthrough mints
 `iss "omniroute" / aud "cursor-cli"` tokens for key holders — and are never sessions

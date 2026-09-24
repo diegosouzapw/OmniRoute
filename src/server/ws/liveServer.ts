@@ -20,7 +20,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { randomUUID } from "crypto";
-import { verifyDashboardSessionToken } from "@/shared/utils/dashboardSessionToken";
+import { verifyDashboardSessionToken, DASHBOARD_SESSION_COOKIE } from "@/shared/utils/dashboardSessionToken";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -189,7 +189,7 @@ export function getCookieValueFromHeader(
 async function isDashboardCookieAuthenticated(
   request: import("http").IncomingMessage
 ): Promise<boolean> {
-  const token = getCookieValueFromHeader(request.headers, "auth_token");
+  const token = getCookieValueFromHeader(request.headers, DASHBOARD_SESSION_COOKIE);
   if (!token || !process.env.JWT_SECRET) return false;
   return (await verifyDashboardSessionToken(token)) !== null;
 }

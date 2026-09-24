@@ -681,3 +681,59 @@ test("runAuthzPipeline clears stale dashboard JWTs without error-stack noise", a
     console.warn = originalWarn;
   }
 });
+
+test("runAuthzPipeline throttles the stale-dashboard-cookie warning to once per process, not once per request (#13684 LEDGER-12)", async () => {
+  // Auth itself must succeed on every request so refreshDashboardSessionIfNeeded runs
+  // (it only fires for a MANAGEMENT dashboard route the auth gate already allowed) —
+  // requireLogin=false makes /dashboard anonymously allowed (it is not always-protected),
+  // independent of the foreign cookie below. getSettings() force-sets requireLogin back
+  // to true on first read whenever INITIAL_PASSWORD is set and setup isn't complete yet
+  // (the headless-deploy auto-onboarding branch), so INITIAL_PASSWORD must be unset for
+  // this explicit override to stick.
+  const originalInitialPassword = process.env.INITIAL_PASSWORD;
+  delete process.env.INITIAL_PASSWORD;
+  await settingsDb.updateSettings({ requireLogin: false });
+
+  // A foreign token: signed with the SAME secret the dashboard uses (so it is not
+  // an "invalid signature" case), but missing the `authenticated: true` claim — the
+  // shape of the Cursor CLI passthrough token from #13298. `verifyDashboardSessionToken`
+  // treats this as "not a session" (returns null) on every call, which is exactly the
+  // steady-state condition (e.g. a background dashboard tab with a foreign cookie)
+  // that must not flood the log once per request.
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+  const foreignToken = await new SignJWT({ iss: "omniroute", aud: "cursor-cli" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1h")
+    .sign(secret);
+
+  const warnCalls: unknown[][] = [];
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    warnCalls.push(args);
+  };
+
+  try {
+    for (let i = 0; i < 3; i++) {
+      const response = await pipeline.runAuthzPipeline(
+        request("http://localhost/dashboard", {
+          headers: { cookie: `auth_token=${foreignToken}` },
+        }),
+        { enforce: true }
+      );
+      assert.equal(response.status, 200);
+    }
+
+    const staleCookieWarnings = warnCalls.filter((args) =>
+      String(args[0]).includes("Dropped stale dashboard session cookie")
+    );
+    assert.equal(
+      staleCookieWarnings.length,
+      1,
+      `expected the stale-cookie warning to fire once across 3 requests, got ${staleCookieWarnings.length}`
+    );
+  } finally {
+    console.warn = originalWarn;
+    if (originalInitialPassword === undefined) delete process.env.INITIAL_PASSWORD;
+    else process.env.INITIAL_PASSWORD = originalInitialPassword;
+  }
+});
