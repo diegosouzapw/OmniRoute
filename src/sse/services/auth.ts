@@ -3010,17 +3010,29 @@ export async function markAccountUnavailable(
       );
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
+    // 402 keeps its dedicated per-model billing branch below (reason "credits").
+    const isModelLevelQuotaOrRateLimit =
+      !fallbackResult.permanent &&
+      status !== 402 &&
+      (fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED ||
+        Boolean(fallbackResult.creditsExhausted) ||
+        fallbackResult.reason === RateLimitReason.RATE_LIMIT_EXCEEDED);
     if (
       hasPerModelFailureScope(provider, model, connectionPassthroughModels, status) &&
       provider &&
       provider !== "codex" &&
       model &&
-      (status === 404 || isNvidiaModelGone || status === 429 || status >= 500)
+      (status === 404 ||
+        isNvidiaModelGone ||
+        status === 429 ||
+        status >= 500 ||
+        isModelLevelQuotaOrRateLimit)
     ) {
       const reason =
         status === 404 || isNvidiaModelGone
           ? "not_found"
-          : status === 429 && fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED
+          : fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED ||
+              fallbackResult.creditsExhausted
             ? "quota_exhausted"
             : status === 429
               ? "rate_limited"
