@@ -139,8 +139,9 @@ for d in $JANITOR_RUNNER_DIRS; do
   done < <(find -P "$d/_work" -xdev -mindepth 2 -maxdepth 2 -type d -mmin "+$(( WORK_CHECKOUT_MAX_AGE_HOURS * 60 ))" -print0 2>/dev/null || true)
 done
 
-# 4a) disk
-USAGE=$(df --output=pcent "$JANITOR_DF_PATH" 2>/dev/null | tail -1 | tr -dc '0-9')
+# 4a) disk — df -P is POSIX (GNU + BSD/macOS); --output=pcent is GNU-only and
+# aborts the script with exit 64 under set -o pipefail on macOS/BSD df.
+USAGE=$(df -P "$JANITOR_DF_PATH" 2>/dev/null | awk '$5 ~ /%/ { gsub(/%/, "", $5); print $5; exit }')
 if [ "${USAGE:-0}" -ge "$DISK_ALERT_PCT" ]; then
   say "⚠ ROOT DISK ${USAGE}% >= ${DISK_ALERT_PCT}% — clean before the next heavy run"; STATUS=1
 else

@@ -541,7 +541,7 @@ test("provider asset provenance gate binds auditedCommit to the physical provide
   }
 });
 
-test("repository provider asset manifest covers the audited 141-file snapshot", (t) => {
+test("repository provider asset manifest covers the audited 142-file snapshot", (t) => {
   const manifestPath = join(REPO_ROOT, "config/quality/provider-assets-provenance.jsonl");
   const { auditedCommit } = JSON.parse(readFileSync(manifestPath, "utf8").split("\n")[0]);
   if (!gitHasCommit(auditedCommit) && isShallowRepository()) {
@@ -556,7 +556,7 @@ test("repository provider asset manifest covers the audited 141-file snapshot", 
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   assert.match(
     result.stdout,
-    /141\/141 registered; proven=72 probable=69 unresolved=0; duplicate-groups=1/
+    /142\/142 registered; proven=72 probable=69 unresolved=1; duplicate-groups=1/
   );
 });
 

@@ -211,6 +211,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "hy_user", "hy_token"],
   },
+  "notrack-web": {
+    kind: "cookie",
+    credentialName: "full Cookie header (uid + si_usr_id + si_ses_id)",
+    placeholder: "uid=...; si_usr_id=...; si_ses_id=... (full Cookie header from notrack.ai)",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "uid", "si_usr_id", "si_ses_id", "nt_session"],
+  },
   "poe-web": {
     kind: "cookie",
     credentialName: "p-b",

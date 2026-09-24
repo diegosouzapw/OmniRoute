@@ -371,6 +371,8 @@ const ENDPOINT_ALLOWLIST = new Set([
   // paths on the UPSTREAM service (Claude.ai web, Blackbox), not OmniRoute routes.
   "/api/organizations/{orgId}/chat_conversations/{convId}/completion", // claude-web upstream
   "/api/chat", // Blackbox Web upstream (validated-token target)
+  "/api/dispatch", // notrack-web upstream (chat dispatch endpoint on notrack.ai)
+  "/api/chats", // notrack-web upstream (chat history listing on notrack.ai)
 ]);
 
 /** Doc files to skip (auto-generated, vendored, or third-party). */

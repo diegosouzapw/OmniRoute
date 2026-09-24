@@ -4333,6 +4333,29 @@
       "stream": "https://app.notion.com/api/v3/runInferenceTranscript"
     }
   },
+  "notrack-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://notrack.ai/api/dispatch",
+      "stream": "https://notrack.ai/api/dispatch"
+    }
+  },
   "nous-research": {
     "format": "openai",
     "headers": {

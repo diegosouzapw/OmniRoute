@@ -477,6 +477,23 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste the full Cookie header from hyperagent.com (DevTools → Network → any request → Request Headers → Cookie). Session cookies power chat + billing usage.",
   },
+  "notrack-web": {
+    id: "notrack-web",
+    serviceKinds: ["llm"],
+    alias: "ntw",
+    name: "NoTrack Web (Free)",
+    icon: "auto_awesome",
+    color: "#0EA5E9",
+    textIcon: "NT",
+    website: "https://notrack.ai",
+    hasFree: true,
+    freeNote:
+      "Free consumer chat session on notrack.ai — Direct chat with the notrack C assistant. No subscription required; rate limits apply.",
+    authHint:
+      "Log in to notrack.ai, then paste the full Cookie header (DevTools → Network → any /api request → Request Headers → Cookie). It must contain uid, si_usr_id, and si_ses_id.",
+    riskNoticeVariant: "webCookie",
+    toolCalling: "emulated",
+  },
   "conol-web": {
     id: "conol-web",
     serviceKinds: ["llm"],

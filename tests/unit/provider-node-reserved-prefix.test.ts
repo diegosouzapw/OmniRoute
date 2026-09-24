@@ -191,7 +191,17 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // member (412 -> 413).
   // Lyceum (pay-per-use OpenAI-compatible gateway, 2026-09-20) registers id "lyceum"
   // with an identical alias — a single REGISTRY member (413 -> 414).
-  assert.equal(RESERVED_PREFIX_COUNT, 414);
+  // notrack-web (#12534): registry entry registers its id "notrack-web" + alias "ntw"
+  // (414 → 416). Do not fold this into a generic catalog bump — the dedicated
+  // notrack-web prefix test below is the regression lock for this provider.
+  assert.equal(RESERVED_PREFIX_COUNT, 416);
+});
+
+test("notrack-web registry id and alias stay reserved", () => {
+  assert.equal(RESERVED_PROVIDER_PREFIXES.has("notrack-web"), true);
+  assert.equal(RESERVED_PROVIDER_PREFIXES.has("ntw"), true);
+  assert.equal(isReservedProviderPrefix("notrack-web"), true);
+  assert.equal(isReservedProviderPrefix("ntw"), true);
 });
 
 test("isReservedProviderPrefix rejects non-string input", () => {

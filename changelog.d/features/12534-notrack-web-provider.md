@@ -1,0 +1,1 @@
+- **feat(providers):** add NoTrack (`notrack.ai`) as a free cookie-auth web provider — catalog id `notrack-web` (alias `ntw`), `/api/dispatch` SSE, session cookies `uid`/`si_usr_id`/`si_ses_id`. ([#12534](https://github.com/diegosouzapw/OmniRoute/pull/12534))
