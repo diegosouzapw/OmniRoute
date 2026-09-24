@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Întârziere între încercările de reîncercare la nivel de set, dând timp pentru rezolvare problemelor tranzitorii.",
       "targetTimeoutMs": "Timp de expirare opțional pentru fiecare țintă. Dacă este necompletat, moștenește timpul de expirare al solicitării curente; valorile mai mari sunt limitate la acel timp de expirare.",
       "comboTimeoutMs": "Buget opțional de timp total pentru întreaga combinație, pentru toate țintele de failover. Dacă este necompletat, se păstrează oprirea de siguranță după 10 minute; o valoare pozitivă o înlocuiește. Păstrați această valoare mai mare decât timpul de expirare pentru țintă, astfel încât failover-ul să aibă în continuare suficient timp.",
-      "disableSessionStickiness": "Rotiți la o conexiune diferită la fiecare solicitare în loc de a fixa o întreagă conversație la o singură conexiune prin hash-ul primului mesaj. Suprascrie valoarea implicită globală. Lăsați pe Inherit pentru a păstra hiturile de prompt-cache pentru chaturile cu mai multe runde."
+      "disableSessionStickiness": "Rotiți la o conexiune diferită la fiecare solicitare în loc de a fixa o întreagă conversație la o singură conexiune prin hash-ul primului mesaj. Suprascrie valoarea implicită globală. Lăsați pe Inherit pentru a păstra hiturile de prompt-cache pentru chaturile cu mai multe runde.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Șabloane rapide",
     "templatesDescription": "Aplicați un profil inițial, apoi ajustați modelele și configurația.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Acesta va captura furnizorii/modelurile conectate în prezent care se potrivesc cu acest șablon într-o combinație editabilă.",
     "duplicateAutoComboFailedPrefix": "Duplicarea combinației automate a eșuat:",
     "duplicateAutoComboUnknownError": "Eroare necunoscută",
-    "duplicateAutoComboTitle": "Creați o combinație statică din {name}"
+    "duplicateAutoComboTitle": "Creați o combinație statică din {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Costuri",

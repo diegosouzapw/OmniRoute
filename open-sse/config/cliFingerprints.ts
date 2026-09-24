@@ -265,12 +265,21 @@ export function orderHeaders(
  * Internal request-body markers that are NOT `_omniroute*`-prefixed and must be
  * removed key-by-key. Everything else is caught by INTERNAL_BODY_FIELD_PREFIX.
  */
-const INTERNAL_BODY_FIELDS: readonly string[] = [
+/**
+ * Markers consumed by the EXECUTOR, not by routing: `codex.ts` and `xai.ts` read
+ * them to decide native passthrough and delete them right after. They must survive
+ * the shared pre-executor boundary (#14252) — stripping them there silently turns a
+ * Responses-native request into a translated one, which then loses client fields to
+ * the #2608 allowlist. They are still removed at serialization by applyFingerprint().
+ */
+export const EXECUTOR_CONSUMED_BODY_FIELDS: readonly string[] = [
   "_claudeCodeRequiresLowercaseToolNames",
   "_nativeCodexPassthrough",
   "_nativeXaiResponsesPassthrough",
   "_nativeOpenAICompatibleResponsesPassthrough",
 ];
+
+const INTERNAL_BODY_FIELDS: readonly string[] = [...EXECUTOR_CONSUMED_BODY_FIELDS];
 
 /**
  * Every omniroute-owned internal marker uses this prefix, so the strip is
@@ -290,12 +299,17 @@ const INTERNAL_BODY_FIELD_PREFIX = "_omniroute";
  * Remove omniroute-internal markers from a request body before it is serialized
  * for an upstream. Mutates and returns the same object.
  */
-export function stripInternalBodyFields(body: unknown): unknown {
+export function stripInternalBodyFields(
+  body: unknown,
+  options: { keepExecutorMarkers?: boolean } = {}
+): unknown {
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
 
   const record = body as Record<string, unknown>;
-  for (const field of INTERNAL_BODY_FIELDS) {
-    delete record[field];
+  if (!options.keepExecutorMarkers) {
+    for (const field of INTERNAL_BODY_FIELDS) {
+      delete record[field];
+    }
   }
   for (const key of Object.keys(record)) {
     if (key.startsWith(INTERNAL_BODY_FIELD_PREFIX)) {

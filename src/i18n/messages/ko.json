@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "설정 수준 재시도 사이의 지연을 통해 일시적인 문제를 해결할 시간을 제공합니다.",
       "targetTimeoutMs": "대상별 시간 제한(선택 사항)입니다. 비워 두면 현재 요청 시간 제한을 상속하며, 더 큰 값은 해당 시간 제한으로 제한됩니다.",
       "comboTimeoutMs": "모든 장애 조치 대상에 걸쳐 적용되는 전체 콤보의 경과 시간 예산(선택 사항)입니다. 비워 두면 10분 중단 방지 제한이 유지되며, 양수 값을 입력하면 이 제한을 대체합니다. 장애 조치를 수행할 시간을 확보할 수 있도록 대상 시간 제한보다 길게 설정하세요.",
-      "disableSessionStickiness": "첫 번째 메시지 해시로 전체 대화를 하나의 연결에 고정하는 대신, 요청마다 다른 연결로 순환합니다. 글로벌 기본값을 재정의합니다. 다회차 대화에서 프롬프트 캐시 적중을 유지하려면 상속(Inherit)으로 두세요."
+      "disableSessionStickiness": "첫 번째 메시지 해시로 전체 대화를 하나의 연결에 고정하는 대신, 요청마다 다른 연결로 순환합니다. 글로벌 기본값을 재정의합니다. 다회차 대화에서 프롬프트 캐시 적중을 유지하려면 상속(Inherit)으로 두세요.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "빠른 시작 템플릿",
     "templatesDescription": "시작 프로필을 적용한 다음 모델과 설정을 조정하세요.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "이 템플릿과 일치하는 현재 연결된 제공자/모델을 편집 가능한 콤보로 스냅샷합니다.",
     "duplicateAutoComboFailedPrefix": "자동 콤보 복제 실패:",
     "duplicateAutoComboUnknownError": "알 수 없는 오류",
-    "duplicateAutoComboTitle": "{name}에서 정적 콤보 만들기"
+    "duplicateAutoComboTitle": "{name}에서 정적 콤보 만들기",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "비용",

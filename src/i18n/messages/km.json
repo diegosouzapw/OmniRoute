@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "ការពន្យារពេលរវាងការព្យាយាមឡើងវិញនៅកម្រិតសំណុំ ដើម្បីទុកពេលឱ្យបញ្ហាបណ្ដោះអាសន្នត្រូវបានដោះស្រាយ។",
       "targetTimeoutMs": "ពេលវេលាអតិបរមាជាជម្រើសសម្រាប់គោលដៅនីមួយៗ។ ប្រសិនបើទទេ វានឹងទទួលតាមពេលវេលាអតិបរមារបស់សំណើបច្ចុប្បន្ន។ តម្លៃដែលធំជាងនេះនឹងត្រូវបានកំណត់ត្រឹមពេលវេលាអតិបរមានោះ។",
       "comboTimeoutMs": "ថវិកាពេលវេលាជាក់ស្តែងជាជម្រើសសម្រាប់បន្សំទាំងមូល ឆ្លងកាត់គោលដៅបម្រុងទាំងអស់។ ប្រសិនបើទទេ វានឹងរក្សាការបញ្ឈប់ការជាប់គាំងរយៈពេល 10 នាទី។ តម្លៃវិជ្ជមាននឹងជំនួសវា។ កំណត់តម្លៃនេះឱ្យវែងជាងពេលវេលាអតិបរមាសម្រាប់គោលដៅ ដើម្បីឱ្យការប្តូរទៅគោលដៅបម្រុងនៅតែមានពេលគ្រប់គ្រាន់។",
-      "disableSessionStickiness": "ប្ដូរទៅការតភ្ជាប់ផ្សេងរាល់ពេលមានសំណើ ជំនួសឱ្យការចងការសន្ទនាទាំងមូលទៅនឹងការតភ្ជាប់តែមួយដោយប្រើ hash នៃសារដំបូង។ វានឹងកំណត់ជំនួសលំនាំដើមសកល។ ទុកជា Inherit ដើម្បីរក្សាការចូលប្រើ prompt-cache សម្រាប់ការជជែកច្រើនវគ្គ។"
+      "disableSessionStickiness": "ប្ដូរទៅការតភ្ជាប់ផ្សេងរាល់ពេលមានសំណើ ជំនួសឱ្យការចងការសន្ទនាទាំងមូលទៅនឹងការតភ្ជាប់តែមួយដោយប្រើ hash នៃសារដំបូង។ វានឹងកំណត់ជំនួសលំនាំដើមសកល។ ទុកជា Inherit ដើម្បីរក្សាការចូលប្រើ prompt-cache សម្រាប់ការជជែកច្រើនវគ្គ។",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "ពុម្ពរហ័ស",
     "templatesDescription": "អនុវត្តទម្រង់ចាប់ផ្ដើម បន្ទាប់មកកែសម្រួលម៉ូដែល និងការកំណត់រចនាសម្ព័ន្ធ។",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "វានឹងថតស្ថានភាពបច្ចុប្បន្ននៃអ្នកផ្តល់សេវា/ម៉ូដែលដែលបានតភ្ជាប់ និងត្រូវគ្នានឹងគំរូនេះ ទៅជាបន្សំដែលអាចកែសម្រួលបាន។",
     "duplicateAutoComboFailedPrefix": "មិនអាចចម្លងបន្សំស្វ័យប្រវត្តិបានទេ៖",
     "duplicateAutoComboUnknownError": "កំហុសដែលមិនស្គាល់",
-    "duplicateAutoComboTitle": "បង្កើតបន្សំថេរពី {name}"
+    "duplicateAutoComboTitle": "បង្កើតបន្សំថេរពី {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "ការចំណាយ",

@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Pagkaantala sa pagitan ng mga set-level na muling pagsubok, na nagbibigay ng mga lumilipas na isyu ng oras upang malutas.",
       "targetTimeoutMs": "Opsyonal na timeout para sa bawat target. Kapag walang laman, minamana nito ang kasalukuyang timeout ng request; nililimitahan sa timeout na iyon ang mas malalaking value.",
       "comboTimeoutMs": "Opsyonal na kabuuang wall-clock budget ng combo para sa lahat ng failover target. Kapag walang laman, pinananatili ang 10 minutong hang-stop; pinapalitan ito ng positibong value. Panatilihin itong mas mahaba kaysa sa timeout ng target upang may oras pa rin ang failover.",
-      "disableSessionStickiness": "Mag-rotate sa ibang koneksyon sa bawat request sa halip na i-pin ang buong pag-uusap sa isang koneksyon sa pamamagitan ng first-message hash. Ino-override ang global default. Iwanan sa Inherit upang mapanatili ang mga prompt-cache hit para sa mga multi-turn chat."
+      "disableSessionStickiness": "Mag-rotate sa ibang koneksyon sa bawat request sa halip na i-pin ang buong pag-uusap sa isang koneksyon sa pamamagitan ng first-message hash. Ino-override ang global default. Iwanan sa Inherit upang mapanatili ang mga prompt-cache hit para sa mga multi-turn chat.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Mga mabilisang template",
     "templatesDescription": "Maglapat ng panimulang profile, pagkatapos ay i-adjust ang mga modelo at config.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Ito ay kukuha ng snapshot ng kasalukuyang nakakonektang mga provider/model na tugma sa template na ito sa isang editable na combo.",
     "duplicateAutoComboFailedPrefix": "Nabigo ang pag-duplicate ng auto-combo:",
     "duplicateAutoComboUnknownError": "Hindi alam na error",
-    "duplicateAutoComboTitle": "Gumawa ng static combo mula sa {name}"
+    "duplicateAutoComboTitle": "Gumawa ng static combo mula sa {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Mga gastos",

@@ -508,9 +508,16 @@
       "tests/unit/bare-403-neutral.test.ts",
       "tests/unit/chat-noauth-model-cooldown.test.ts",
       "tests/unit/combo-ref-capabilities-14232.test.ts",
+      "tests/unit/combo-status-decision-table.test.ts",
+      "tests/unit/connection-circuit-breaker.test.ts",
       "tests/unit/intelligent-routing-weight-edit.test.ts",
+      "tests/unit/muse-code-oauth.test.ts",
       "tests/unit/noauth-model-lockout-retryable.test.ts",
-      "tests/unit/noauth-refresh-guard.test.ts"
+      "tests/unit/noauth-refresh-guard.test.ts",
+      "tests/unit/model-not-found-must-not-poison-credential.test.ts",
+      "tests/unit/codex-reasoning-replay-rejection.test.ts",
+      "tests/unit/opencode-free-tier-combo-scoped-failure-14313.test.ts",
+      "tests/unit/client-abort-propagates-upstream.test.ts"
     ],
     "nodeArgs": [
       "--import",

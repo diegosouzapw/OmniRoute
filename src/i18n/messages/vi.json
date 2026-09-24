@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Độ trễ giữa các lần thử lại ở cấp tập hợp, giúp các sự cố tạm thời có thời gian tự khắc phục.",
       "targetTimeoutMs": "Thời gian chờ tùy chọn cho mỗi đích. Nếu để trống, giá trị này sẽ kế thừa thời gian chờ hiện tại của yêu cầu; các giá trị lớn hơn sẽ bị giới hạn ở mức thời gian chờ đó.",
       "comboTimeoutMs": "Khoảng thời gian thực thi tối đa tùy chọn cho toàn bộ tổ hợp trên tất cả các đích chuyển đổi dự phòng. Nếu để trống, giới hạn chống treo 10 phút sẽ được giữ nguyên; một giá trị dương sẽ thay thế giới hạn này. Hãy đặt giá trị này dài hơn Thời gian chờ của đích để quá trình chuyển đổi dự phòng vẫn có đủ thời gian.",
-      "disableSessionStickiness": "Chuyển sang một kết nối khác cho mỗi yêu cầu thay vì ghim toàn bộ cuộc hội thoại vào một kết nối dựa trên giá trị băm của tin nhắn đầu tiên. Ghi đè cài đặt mặc định toàn cục. Hãy để ở chế độ Kế thừa để duy trì các lượt trúng cache prompt cho các cuộc trò chuyện nhiều lượt."
+      "disableSessionStickiness": "Chuyển sang một kết nối khác cho mỗi yêu cầu thay vì ghim toàn bộ cuộc hội thoại vào một kết nối dựa trên giá trị băm của tin nhắn đầu tiên. Ghi đè cài đặt mặc định toàn cục. Hãy để ở chế độ Kế thừa để duy trì các lượt trúng cache prompt cho các cuộc trò chuyện nhiều lượt.",
+      "connectionAwareExpansion": "Khi bật, combo này mở rộng mỗi bước nhà cung cấp thành mục tiêu theo tài khoản trước khi xoay vòng. Kế thừa dùng mặc định toàn cục (tắt). Tắt thì giữ xoay vòng theo nhà cung cấp.",
+      "stickyLimit": "Kích thước lô sticky round-robin: số request thành công liên tiếp gửi tới một mục tiêu trước khi xoay. Để trống để kế thừa Sticky Limit toàn cục; 1 tắt gom lô (xoay từng request)."
     },
     "templatesTitle": "Mẫu nhanh",
     "templatesDescription": "Áp dụng một cấu hình ban đầu, sau đó điều chỉnh các mô hình và cấu hình.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Điều này sẽ chụp lại các nhà cung cấp/mô hình đang kết nối hiện tại phù hợp với mẫu này vào một tổ hợp có thể chỉnh sửa.",
     "duplicateAutoComboFailedPrefix": "Không thể sao chép tổ hợp tự động:",
     "duplicateAutoComboUnknownError": "Lỗi không xác định",
-    "duplicateAutoComboTitle": "Tạo tổ hợp tĩnh từ {name}"
+    "duplicateAutoComboTitle": "Tạo tổ hợp tĩnh từ {name}",
+    "stickyLimitEffective": "Hiệu lực {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "mặc định combo",
+    "stickyLimitSourceGlobal": "mặc định toàn cục",
+    "connectionAwareExpansion": "Mở rộng theo tài khoản",
+    "triStateInherit": "kế thừa",
+    "connectionAwareExpansionOn": "Bật",
+    "connectionAwareExpansionOff": "Tắt",
+    "promptCacheAffinityHint": "Định tuyến theo cache prompt được ưu tiên hơn round-robin/weighted giữa các tài khoản đã ghim. Tắt trong Settings → Combo defaults nếu cần xoay vòng nghiêm ngặt."
   },
   "costs": {
     "title": "Chi phí",

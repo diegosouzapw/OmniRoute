@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "设置级别重试尝试之间的延迟，为暂时性问题提供解决时间。",
       "targetTimeoutMs": "可选的单目标超时时间。留空则继承当前请求超时时间；更大的值将受限于该超时时间。",
       "comboTimeoutMs": "可选的整个组合墙钟时间预算，适用于所有故障转移目标。留空则保留 10 分钟的防卡死限制；正值将替换该限制。请将其设置为比目标超时时间更长，以便为故障转移留出时间。",
-      "disableSessionStickiness": "每次请求时轮换到不同的连接，而不是通过首条消息的哈希值将整个对话固定在同一个连接上。覆盖全局默认设置。保持为“继承”以保留多轮对话的 prompt-cache 命中。"
+      "disableSessionStickiness": "每次请求时轮换到不同的连接，而不是通过首条消息的哈希值将整个对话固定在同一个连接上。覆盖全局默认设置。保持为“继承”以保留多轮对话的 prompt-cache 命中。",
+      "connectionAwareExpansion": "开启后，本组合会在轮转前把每个供应商步骤展开成按账号的目标。继承使用全局默认（关）。关闭则保持按供应商轮转。",
+      "stickyLimit": "轮询粘滞批大小：连续成功请求发给同一目标后再切到下一个。留空继承全局粘滞限制；填 1 即每次请求都轮转。"
     },
     "templatesTitle": "快捷模板",
     "templatesDescription": "先套用一个初始模板，再按需调整模型和配置。",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "这将把与此模板匹配的当前连接提供者/模型快照到可编辑的组合中。",
     "duplicateAutoComboFailedPrefix": "复制自动组合失败：",
     "duplicateAutoComboUnknownError": "未知错误",
-    "duplicateAutoComboTitle": "从{name}创建静态组合"
+    "duplicateAutoComboTitle": "从{name}创建静态组合",
+    "stickyLimitEffective": "生效 {value}（{source}）",
+    "stickyLimitSourceCombo": "本组合",
+    "stickyLimitSourceComboDefaults": "组合默认",
+    "stickyLimitSourceGlobal": "全局默认",
+    "connectionAwareExpansion": "按账号展开",
+    "triStateInherit": "继承",
+    "connectionAwareExpansionOn": "开",
+    "connectionAwareExpansionOff": "关",
+    "promptCacheAffinityHint": "提示缓存亲和会优先于轮询/加权在已钉账号之间的轮转。若需要严格轮转，请到设置 → 组合默认关闭该选项。"
   },
   "costs": {
     "title": "成本",

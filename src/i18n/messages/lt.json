@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Delsa tarp rinkinio lygmens pakartotinių bandymų, suteikianti laiko laikiniems sutrikimams išsispręsti.",
       "targetTimeoutMs": "Pasirenkamas kiekvieno tikslinio taško skirtasis laikas. Jei laukas tuščias, paveldimas dabartinės užklausos skirtasis laikas; didesnės reikšmės apribojamos iki šio laiko.",
       "comboTimeoutMs": "Pasirenkamas bendras viso derinio vykdymo laiko limitas, taikomas visiems perjungimo tiksliniams taškams. Jei laukas tuščias, paliekamas 10 minučių apsaugos nuo užstrigimo limitas; teigiama reikšmė jį pakeičia. Nustatykite ilgesnį laiką nei tikslinio taško skirtasis laikas, kad liktų laiko perjungimui.",
-      "disableSessionStickiness": "Kiekvienai užklausai parinkite kitą ryšį, užuot visą pokalbį susieję su vienu ryšiu pagal pirmojo pranešimo maišos vertę. Šis nustatymas pakeičia bendrą numatytąją reikšmę. Palikite „Paveldėti“, kad kelių etapų pokalbiuose būtų išsaugoti prompt-cache podėlio atitikmenys."
+      "disableSessionStickiness": "Kiekvienai užklausai parinkite kitą ryšį, užuot visą pokalbį susieję su vienu ryšiu pagal pirmojo pranešimo maišos vertę. Šis nustatymas pakeičia bendrą numatytąją reikšmę. Palikite „Paveldėti“, kad kelių etapų pokalbiuose būtų išsaugoti prompt-cache podėlio atitikmenys.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Spartieji šablonai",
     "templatesDescription": "Pritaikykite pradinį profilį, tada pakoreguokite modelius ir konfigūraciją.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Taip šiuo metu prijungtų, šį šabloną atitinkančių teikėjų ir modelių momentinė kopija bus įrašyta į redaguojamą kombo.",
     "duplicateAutoComboFailedPrefix": "Nepavyko dubliuoti automatinio kombo:",
     "duplicateAutoComboUnknownError": "Nežinoma klaida",
-    "duplicateAutoComboTitle": "Sukurti statinį kombo iš {name}"
+    "duplicateAutoComboTitle": "Sukurti statinį kombo iš {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Išlaidos",

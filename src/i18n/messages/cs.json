@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Prodleva mezi pokusy o opakování na úrovni nastavení, což dává přechodným problémům čas na vyřešení.",
       "targetTimeoutMs": "Volitelný časový limit pro jednotlivé cíle. Je-li pole prázdné, převezme se aktuální časový limit požadavku; vyšší hodnoty budou omezeny na tento limit.",
       "comboTimeoutMs": "Volitelný celkový časový limit kombinace pro všechny záložní cíle. Je-li pole prázdné, zůstane zachována 10minutová pojistka proti zamrznutí; kladná hodnota ji nahradí. Nastavte jej na delší dobu než časový limit cíle, aby zbyl čas na přepnutí na záložní cíl.",
-      "disableSessionStickiness": "Střídat připojení při každém požadavku namísto připnutí celé konverzace k jednomu připojení podle hashe první zprávy. Přepisuje globální výchozí nastavení. Ponechte nastaveno na Zdědit pro zachování zásahů do mezipaměti výzev (prompt-cache) u vícekrokových chatů."
+      "disableSessionStickiness": "Střídat připojení při každém požadavku namísto připnutí celé konverzace k jednomu připojení podle hashe první zprávy. Přepisuje globální výchozí nastavení. Ponechte nastaveno na Zdědit pro zachování zásahů do mezipaměti výzev (prompt-cache) u vícekrokových chatů.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Rychlé šablony",
     "templatesDescription": "Použijte počáteční profil a poté upravte modely a nastavení.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Tím se zachytí aktuálně připojení poskytovatelé/modely, které odpovídají této šabloně, do upravitelné kombinace.",
     "duplicateAutoComboFailedPrefix": "Duplikace automatické kombinace selhala:",
     "duplicateAutoComboUnknownError": "Neznámá chyba",
-    "duplicateAutoComboTitle": "Vytvořte statickou kombinaci z {name}"
+    "duplicateAutoComboTitle": "Vytvořte statickou kombinaci z {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Náklady",
