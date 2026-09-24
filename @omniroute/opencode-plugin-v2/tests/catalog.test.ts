@@ -567,9 +567,9 @@ describe("catalog capability presets", () => {
     assert.ok(draft.models.has("omniroute/cc/good"));
   });
 
-  it("defaults without flags publish the full catalog", async () => {
+  it("toolsOnly: false opts out and publishes the full catalog", async () => {
     const draft = fakeDraft();
-    const res = await publishCatalog(draft, baseOpts, {
+    const res = await publishCatalog(draft, { ...baseOpts, toolsOnly: false }, {
       fetcher: async () => [
         { id: "paid", capabilities: { tool_calling: true }, input_modalities: ["text", "image"] },
         { id: "plain" },

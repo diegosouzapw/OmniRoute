@@ -32,7 +32,7 @@ describe("warm snapshot is read under the credential actually in use", () => {
       await writeDiskSnapshot(
         "warmid",
         {
-          models: [{ id: "m-snap" }],
+          models: [{ id: "m-snap", capabilities: { tool_calling: true } }],
           combos: [],
           autoCombos: [],
           providers: [],

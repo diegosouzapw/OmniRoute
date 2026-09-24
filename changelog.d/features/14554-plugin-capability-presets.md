@@ -1,1 +1,1 @@
-- **feat(plugin):** filter the published catalog by capability — `freeOnly`, `toolsOnly`, `visionOnly`, all opt-in (default `false`, so existing installs keep the full catalog) ([#14554](https://github.com/diegosouzapw/OmniRoute/pull/14554)) — thanks @maxmad64bis
+- **feat(plugin):** filter the published catalog by capability — `freeOnly`, `toolsOnly` (on by default, so the picker stays usable; set `toolsOnly: false` for the full catalog), `visionOnly` ([#14554](https://github.com/diegosouzapw/OmniRoute/pull/14554)) — thanks @maxmad64bis

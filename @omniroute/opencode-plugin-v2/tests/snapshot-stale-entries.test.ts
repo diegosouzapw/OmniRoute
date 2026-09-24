@@ -133,7 +133,7 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
           { id: "stale-a", api: {} },
           { id: "stale-b", api: { npm: "" } },
           { id: "stale-c", api: { id: "openai-compatible", npm: "@ai-sdk/openai-compatible" } },
-          { id: "good-1", context_length: 128000 },
+          { id: "good-1", context_length: 128000, capabilities: { tool_calling: true } },
         ],
         combos: [],
         autoCombos: [],
@@ -198,7 +198,7 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
         ok: true,
         status: 200,
         statusText: "OK",
-        json: async () => ({ data: [{ id: "fresh-1" }] }),
+        json: async () => ({ data: [{ id: "fresh-1", capabilities: { tool_calling: true } }] }),
       };
     }) as typeof fetch;
     try {

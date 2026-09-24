@@ -36,7 +36,9 @@ function stubFetch(
       ok: true,
       status: 200,
       statusText: "OK",
-      json: async () => ({ data: modelIds.map((id) => ({ id })) }),
+      json: async () => ({
+        data: modelIds.map((id) => ({ id, capabilities: { tool_calling: true } })),
+      }),
     };
   }) as typeof fetch;
 }

@@ -9,16 +9,20 @@ import {
 } from "../src/options.js";
 
 describe("parsePluginOptions", () => {
-  it("applies defaults for providerId, timeoutMs, usableOnly, enrichment, presets", () => {
+  it("applies the real default path via parsePluginOptions: toolsOnly on, freeOnly/visionOnly off", () => {
     const opts = parsePluginOptions({ baseURL: "https://gw.example.com" });
     assert.equal(opts.providerId, "omniroute");
     assert.equal(opts.timeoutMs, 10000);
     assert.equal(opts.usableOnly, false);
     assert.equal(opts.enrichment, true);
     assert.equal(opts.freeOnly, false);
-    assert.equal(opts.toolsOnly, false);
+    assert.equal(opts.toolsOnly, true);
     assert.equal(opts.visionOnly, false);
     assert.equal(opts.modelCacheTtlMs, undefined);
+  });
+  it("toolsOnly: false is an explicit full-catalog opt-out", () => {
+    const opts = parsePluginOptions({ baseURL: "https://gw.example.com", toolsOnly: false });
+    assert.equal(opts.toolsOnly, false);
   });
   it("accepts a positive modelCacheTtlMs (in-memory TTL cache, default 300s)", () => {
     const opts = parsePluginOptions({ baseURL: "https://gw.example.com", modelCacheTtlMs: 60000 });
