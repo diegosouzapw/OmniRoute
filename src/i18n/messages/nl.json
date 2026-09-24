@@ -14111,7 +14111,12 @@
     "hour": "uur",
     "day": "dag",
     "unknownModel": "onbekend",
-    "pending": "in behandeling"
+    "pending": "in behandeling",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Compressie",

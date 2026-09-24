@@ -14111,7 +14111,12 @@
     "hour": "ሰዓት",
     "day": "ቀን",
     "unknownModel": "ያልታወቀ",
-    "pending": "በመጠባበቅ ላይ"
+    "pending": "በመጠባበቅ ላይ",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "ማመቅ",

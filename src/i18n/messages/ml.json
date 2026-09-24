@@ -14111,7 +14111,12 @@
     "hour": "മണിക്കൂർ",
     "day": "ദിവസം",
     "unknownModel": "അജ്ഞാതം",
-    "pending": "കാത്തിരിക്കുന്നു"
+    "pending": "കാത്തിരിക്കുന്നു",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "കംപ്രഷൻ",

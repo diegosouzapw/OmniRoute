@@ -14111,7 +14111,12 @@
     "hour": "שעה",
     "day": "יום",
     "unknownModel": "לא ידוע",
-    "pending": "ממתין"
+    "pending": "ממתין",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "דחיסה",

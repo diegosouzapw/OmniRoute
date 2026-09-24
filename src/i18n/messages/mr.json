@@ -14111,7 +14111,12 @@
     "hour": "तास",
     "day": "दिवस",
     "unknownModel": "अज्ञात",
-    "pending": "प्रलंबित"
+    "pending": "प्रलंबित",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "संकुचन",

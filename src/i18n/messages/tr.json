@@ -14111,7 +14111,12 @@
     "hour": "saat",
     "day": "gün",
     "unknownModel": "bilinmiyor",
-    "pending": "beklemede"
+    "pending": "beklemede",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Sıkıştırma",

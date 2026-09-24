@@ -14111,7 +14111,12 @@
     "hour": "Stunde",
     "day": "Tag",
     "unknownModel": "unbekannt",
-    "pending": "ausstehend"
+    "pending": "ausstehend",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Kompression",

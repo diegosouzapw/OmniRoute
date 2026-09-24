@@ -14111,7 +14111,12 @@
     "hour": "Wákàtí",
     "day": "Ọjọ́",
     "unknownModel": "Àìmọ̀",
-    "pending": "Ń dúró de ìmúṣẹ"
+    "pending": "Ń dúró de ìmúṣẹ",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Ìfúnpọ̀",

@@ -14111,7 +14111,12 @@
     "hour": "ساعة",
     "day": "يوم",
     "unknownModel": "غير معروف",
-    "pending": "معلق"
+    "pending": "معلق",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "ضغط",

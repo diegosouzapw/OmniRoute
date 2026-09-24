@@ -14111,7 +14111,12 @@
     "hour": "giờ",
     "day": "ngày",
     "unknownModel": "không xác định",
-    "pending": "đang chờ"
+    "pending": "đang chờ",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Nén",

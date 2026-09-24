@@ -14111,7 +14111,12 @@
     "hour": "နာရီ",
     "day": "ရက်",
     "unknownModel": "မသိရ",
-    "pending": "ဆိုင်းငံ့ထားသည်"
+    "pending": "ဆိုင်းငံ့ထားသည်",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "ချုံ့ခြင်း",

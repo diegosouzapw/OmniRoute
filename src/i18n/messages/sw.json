@@ -14111,7 +14111,12 @@
     "hour": "saa",
     "day": "siku",
     "unknownModel": "sijulikana",
-    "pending": "inasubiriwa"
+    "pending": "inasubiriwa",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Kufinya",

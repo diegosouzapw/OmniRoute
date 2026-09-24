@@ -14111,7 +14111,12 @@
     "hour": "કલાક",
     "day": "દિવસ",
     "unknownModel": "અજ્ઞાત",
-    "pending": "લંબિત"
+    "pending": "લંબિત",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "સંકોચન",

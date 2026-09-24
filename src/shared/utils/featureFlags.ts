@@ -360,6 +360,23 @@ export function isOpencodeParkAndResumeEnabled(): boolean {
   }
 }
 
+/**
+ * Stream readiness stall retry. Opt-in: when off, a stalled first body fails
+ * the request without a retry. Fail closed: an unreadable flag store keeps
+ * the pre-flag behavior (disabled).
+ */
+export function isStreamReadinessStallRetryEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("STREAM_READINESS_STALL_RETRY");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve STREAM_READINESS_STALL_RETRY, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
 export function isServerOwnedToolLoopEnabled(
   reader: (key: string) => boolean = isFeatureFlagEnabled
 ): boolean {

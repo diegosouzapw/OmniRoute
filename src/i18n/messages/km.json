@@ -14111,7 +14111,12 @@
     "hour": "ម៉ោង",
     "day": "ថ្ងៃ",
     "unknownModel": "មិនស្គាល់",
-    "pending": "កំពុងរង់ចាំ"
+    "pending": "កំពុងរង់ចាំ",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "ការបង្ហាប់",
