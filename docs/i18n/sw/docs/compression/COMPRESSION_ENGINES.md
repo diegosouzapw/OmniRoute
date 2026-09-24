@@ -1,51 +1,41 @@
 # Compression Engines (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_ENGINES.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_ENGINES.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_ENGINES.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_ENGINES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_ENGINES.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_ENGINES.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_ENGINES.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_ENGINES.md)
 
 ---
 
 Ukandamizaji wa OmniRoute umejengwa kuzunguka mikataba ya injini. Modi inaweza kuendesha injini moja moja kwa moja
 (`caveman` au `rtk`) au bomba lililopangwa kwa njia bainifu linalotekeleza injini nyingi kwa mpangilio.
 
-## Modi
+## Njia
 
-| Modi         | Njia ya injini                          | Ingizo lililokusudiwa                                          |
-| ------------ | --------------------------------------- | -------------------------------------------------------------- |
-| `off`        | hakuna                                  | Kuhifadhi prompt kama ilivyo kabisa                            |
-| `lite`       | Visaidizi vyepesi vya Caveman           | Usafishaji wa hatari ndogo unaowashwa daima                    |
-| `standard`   | Caveman                                 | Ufupishaji wa prompt ya lugha asilia                           |
-| `aggressive` | Caveman + vifupishaji vya historia/zana | Vipindi virefu vya gumzo                                       |
-| `ultra`      | Caveman + visaidizi vya upogoaji        | Urejeshaji baada ya kufikia kikomo cha muktadha                |
-| `rtk`        | RTK                                     | Towe la terminali, shell, build, test na git                   |
-| `omniglyph`  | OmniGlyph                               | Muktadha-kama-picha kwenye njia asilia ya mtoa huduma          |
-| `stacked`    | Bomba, chaguomsingi `rtk -> caveman`    | Kumbukumbu mchanganyiko za zana na nathari, akiba ya juu zaidi |
+| Njia         | Njia ya injini                                                                         | Ingizo lililokusudiwa                                    |
+| ------------ | -------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `off`        | hakuna                                                                                 | Uhifadhi kamili wa kidokezo                              |
+| `lite`       | Visadia vya Caveman lite                                                               | Usafishaji usio na hatari, unaoendelea kila wakati       |
+| `standard`   | Caveman                                                                                | Ufupishaji wa kidokezo cha lugha asilia                  |
+| `aggressive` | Caveman + vifupishaji vya historia/zana                                                | Vikao virefu vya gumzo                                   |
+| `ultra`      | Caveman + visadia vya kupunguza                                                        | Urejeshaji wa kikomo cha muktadha                        |
+| `rtk`        | RTK                                                                                    | Pato la terminal, shell, build, test, na git             |
+| `omniglyph`  | OmniGlyph                                                                              | Muktadha kama picha kwenye waya asilia wa mtoa huduma    |
+| `stacked`    | Bomba. Chaguo-msingi la ombi ni `session-dedup -> lite`. `rtk -> caveman` ni ya hiari. | Logi za zana mchanganyiko na nathari, akiba ya juu zaidi |
 
-### Wasifu wa ukandamizaji wa OmniGlyph
+### Wasifu wa mgandamizo wa OmniGlyph
 
-Injini ya `omniglyph` (kifurushi `omniglyph`, 1.4.0+) inakubali wasifu wa kisemantiki wenye jina, unaowekwa
-kwa jumla kupitia `omniglyph.profile` katika mipangilio ya ukandamizaji au kwa kila hatua kupitia usanidi wa
-hatua wa bomba lililopangwa:
+Injini ya `omniglyph` (kifurushi `omniglyph`, 1.4.0+) inakubali wasifu wa kisemantiki uliotajwa, uliowekwa kimataifa kupitia `omniglyph.profile` katika mipangilio ya mgandamizo au kwa kila hatua kupitia usanidi wa hatua wa bomba lililopangwa:
 
-| Wasifu        | Mpaka                                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `aggressive`  | Chaguomsingi. Sera iliyopimwa na risiti zilizochapishwa — huunda picha za mfumo, nyaraka za zana na historia nzito |
-| `balanced`    | Huweka hali hai katika muundo asilia, hulinda zamu 8 za mwisho, hukusanya historia ya zamani iliyofungwa           |
-| `coding-safe` | Huweka mamlaka, skima za zana na towe hai la zana katika muundo asilia, hulinda zamu 12 za mwisho                  |
-| `passthrough` | Hupitisha bila kubadilisha; injini inarukwa                                                                        |
+| Wasifu        | Mpaka                                                                                                          |
+| ------------- | -------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Chaguo-msingi. Sera ambayo risiti zilizochapishwa zilipima — mfumo wa picha, nyaraka za zana na historia mnene |
+| `balanced`    | Huacha hali hai ikiwa asilia, hulinda zamu 8 za mwisho, huangusha historia ya zamani iliyofungwa               |
+| `coding-safe` | Huacha mamlaka, skimu za zana na pato la zana hai zikiwa asilia, hulinda zamu 12 za mwisho                     |
+| `passthrough` | Hupitisha bila kubadilisha; injini inarukwa                                                                    |
 
-Wasifu ni **kikomo cha juu, si cha chini**: `mergeCompressionProfileOptions` katika kifurushi
-hukataa kuruhusu ubatilishaji wa mpigaji kufungua tena njia yenye upotevu ambayo wasifu ulifunga, kwa hivyo
-`preserveSystemPrompt: false` ya hatua mahususi haiwezi kuwezesha tena ukandamizaji wa mfumo chini ya `coding-safe`.
+Wasifu ni **dari, si sakafu**: `mergeCompressionProfileOptions` katika kifurushi inakataa kumruhusu mpigaji simu kubatilisha kufungua tena njia yenye hasara ambayo wasifu uliifunga, kwa hivyo `preserveSystemPrompt: false` kwa kila hatua haiwezi kuwezesha tena mgandamizo wa mfumo chini ya `coding-safe`.
 
-Kama ilivyopimwa kwenye hifadhidata hii ya msimbo: `coding-safe` na `balanced` huongeza `minCompressChars` hadi
-kiwango chake cha juu na kuweka mfumo, skima za zana na matokeo ya zana katika muundo asilia, kwa hivyo kipindi ambacho bado
-hakijakusanya historia husimama kwenye `below_min_chars` na injini haibadilishi chochote. Hiyo
-ndiyo sababu chaguomsingi ni `aggressive` badala ya wasifu salama zaidi.
+Imepimwa kwenye msingi huu wa msimbo: `coding-safe` na `balanced` huongeza `minCompressChars` hadi kiwango chake cha juu na huweka mfumo, skimu za zana na matokeo ya zana yakiwa asilia, kwa hivyo kikao ambacho bado hakijakusanya historia huishia kwenye `below_min_chars` na injini haibadilishi chochote. Ndiyo maana chaguo-msingi ni `aggressive` badala ya wasifu salama zaidi.
 
-Kifurushi huamua mawanda yake yenyewe ya modeli na wasifu kutoka kwenye usanidi wake wa mazingira.
-OmniRoute haikabidhi kamwe uamuzi huo: adapta hubanisha lango la modeli kwenye mawanda yenye
-vizuizi vikali zaidi ya kifurushi, kwa hivyo mipangilio ya mazingira ya seva inaweza tu kupunguza orodha ya yanayoruhusiwa, lakini haiwezi
-kuipanua kupita risiti zilizopimwa za OmniRoute.
+Kifurushi hutatua upeo wake wa modeli na wasifu kutoka kwa usanidi wake wa mazingira. OmniRoute haikabidhi uamuzi kamwe: adapta huweka lango la modeli kwenye upeo mkali zaidi wa kifurushi, kwa hivyo mipangilio ya mazingira ya mwenyeji inaweza tu kupunguza orodha ya kuruhusiwa, kamwe haipanui zaidi ya risiti zilizopimwa za OmniRoute.
 
 ## Sajili ya Injini
 
@@ -387,7 +377,7 @@ vinavyoathiriwa na akiba, n.k.).
 
 ## Uthibitishaji
 
-Vizuizi mahususi vya eneo hili ni:
+Milango inayolengwa kwa eneo hili ni:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

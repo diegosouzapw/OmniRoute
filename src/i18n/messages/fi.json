@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Salasanan asettaminen epäonnistui. Yritä uudelleen.",
     "failedAddProvider": "Palveluntarjoajan lisääminen epäonnistui. Yritä uudelleen.",
     "connectionError": "Yhteysvirhe. Yritä uudelleen.",
+    "bootstrapTokenLabel": "Alustustunnus",
+    "bootstrapTokenHelp": "Tätä yhteyttä ei tunnisteta paikalliseksi (yleistä Dockerin porttiohjauksen yhteydessä). Tarkista kertakäyttöinen alustustunnus palvelimen tai säilön lokista ja jatka liittämällä se yllä olevaan kenttään.",
     "provider": "Palveluntarjoaja",
     "apiKeyHelp": "API-avain on tekoälypalvelujen salasana. Hanki sellainen palveluntarjoajasi verkkosivustolta (esim. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Yhdistä Stability AI API-avaimella.",
       "stepfun": "Hanki API-avain osoitteesta platform.stepfun.com",
       "sumopod": "SumoPod tarjoaa OpenAI-yhteensopivan chat completions -päätepisteen osoitteessa https://ai.sumopod.com/v1/chat/completions sekä reaaliaikaisen /v1/models-luettelon. OmniRoute käyttää OpenAI-protokollaa ja listaa mallit läpiviennin kautta.",
-      "suno": "Liitä istuntoeväste osoitteesta suno.ai (Clerk-todennus)",
       "synthetic": "Yhdistä Synthetic API-avaimella.",
       "tencent": "Hanki API-avain osoitteesta console.cloud.tencent.com",
       "thebai": "Bearer API -avain OpenAI-yhteensopivalle TheB.AI-yhdyskäytävälle.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# ulosmeno-IP} other {# ulosmeno-IP-osoitetta}} käytössä {connections, plural, one {# yhteydellä} other {# yhteydellä}} · enintään {max} yhdellä ulosmeno-IP:llä · viimeiset {hours} h",
     "poolEgressObservationEmpty": "Liikennettä ei havaittu viimeisten {hours} tunnin aikana",
     "poolEgressObservationHint": "Laskettu välityspalvelimen lokista tarkastelujakson ajalta: tämän poolin jäsenillä havaitut yksilölliset ulosmeno-IP-osoitteet sekä niitä käyttäneet OmniRoute-yhteydet. ”Yhdellä ulosmeno-IP:llä” tarkoittaa koko tarkastelujaksoa, ei samanaikaista käyttöä. IP-kohtainen 429-lukitus keskeyttää vain saman palveluntarjoajaperheen yhteydet.",
+    "poolMemberEgress": "{host}:{port} poistui osoitteen {egressIp} kautta · viimeiset {hours} h",
+    "poolMemberEgressEmpty": "{host}:{port}: liikennettä ei havaittu viimeisten {hours} tunnin aikana",
+    "poolMemberEgressHint": "Viimeisin tämän poolin jäsenen kautta havaittu ulostulo-IP valitulla aikavälillä välityspalvelimen lokin perusteella. Jos jäsenellä ei ole ollut liikennettä aikavälillä, näytetään Ei liikennettä -rivi.",
     "poolRemove": "Poista",
     "poolRemoveFailed": "Proxyn poistaminen poolista epäonnistui",
     "poolAddLabel": "Lisää proxy",
@@ -12222,6 +12226,29 @@
     "raw": "Raaka"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI-avustaja",
+      "intro": "Kopioi komennot ja suorita ne tietokoneella, johon CLI on asennettu. Tämä paneeli ei suorita komentoja eikä kopioi tunnistetietoja.",
+      "hostNotice": "Tunnistus koskee OmniRoute-palvelimen isäntäkonetta, ei tämän selaimen tietokonetta. Määritetty tila ei tarkoita, että inferenssiä olisi testattu.",
+      "target": "CLI-työkalu",
+      "context": "Olemassa olevan kontekstin nimi (valinnainen)",
+      "contextHint": "Jätä tyhjäksi, jos haluat käyttää CLI:n aktiivista kontekstia. Nimetyt kontekstit voivat osoittaa paikalliseen tai etäpalvelimeen; luettele ne ensin päätteessä.",
+      "contextInvalid": "Käytä 1–64 kirjainta, numeroa, pistettä, yhdysmerkkiä tai alaviivaa. Aloita kirjaimella tai numerolla.",
+      "modelHint": "Tämä CLI edellyttää mallia. Anna olemassa oleva palveluntarjoaja/malli-tunniste ennen käynnistyksen esikatselun kopiointia.",
+      "modelInvalid": "Käytä mallitunnistetta, jossa ei ole välilyöntejä tai komentotulkin erikoismerkkejä ja joka alkaa kirjaimella tai numerolla.",
+      "runtime": "Suoritus",
+      "runnable": "Suoritettavissa",
+      "notRunnable": "Ei suoritettavissa",
+      "unknown": "Tuntematon",
+      "detectionError": "Palvelimen tunnistus ei ole käytettävissä. Yritä uudelleen päivittämällä tunnistus; päätekomennot ovat edelleen käytettävissä.",
+      "contextsStep": "Tarkista kontekstit päätteessä",
+      "configureStep": "Valitse malli ja määritä",
+      "runStep": "Esikatsele käynnistys",
+      "configureHint": "Tämä vuorovaikutteinen komento kirjoittaa CLI:n asetukset tietokoneelle, jolla suoritat sen.",
+      "runHint": "Kuivaharjoittelu näyttää käynnistyssuunnitelman käynnistämättä CLI:tä. Se ei ole inferenssitesti.",
+      "copyFailed": "Kopiointi epäonnistui. Valitse ja kopioi komento käsin.",
+      "empty": "Tässä versiossa ei ole suoritettavia CLI-kohteita. Käytä alla olevia työkaluoppaita."
+    },
     "concept": {
       "code": {
         "title": "CLI-koodi",

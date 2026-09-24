@@ -1,59 +1,53 @@
 # Management Authentication (اردو)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute میں **اسناد کے چار خاندان** ہیں جو انتظامی روٹس کو مجاز بنا سکتے ہیں۔
-یہ ایک دوسرے کے متبادل نہیں ہیں۔ استدلالی API کلیدیں (`sk-…`) سرور کا
-انتظام **نہیں** کرتیں، جب تک انہیں واضح طور پر `manage` یا `admin` اسکوپ نہ دیا گیا ہو۔
+OmniRoute کے پاس **چار کریڈینشل فیملیز** ہیں جو انتظامی روٹس کو اجازت دے سکتی ہیں۔
+یہ آپس میں بدلے نہیں جا سکتے۔ انفرنس API کیز (`sk-…`) سرور کا انتظام **نہیں** کرتیں جب تک کہ انہیں واضح طور پر `manage` یا `admin` اسکوپ نہ دیا گیا ہو۔
 
-بنیادی نفاذ: `src/lib/api/requireManagementAuth.ts`۔
+کینونیکل امپلیمینٹیشن: `src/lib/api/requireManagementAuth.ts`۔
 
-| سند                    | عام شکل                         | کہاں بنائی جاتی ہے                                  | مطلوبہ استعمال            | انتظامی صلاحیت                                                                                 |
-| ---------------------- | ------------------------------- | --------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------- |
-| Dashboard JWT سیشن     | `auth_token` کوکی               | Dashboard لاگ اِن                                   | براؤزر UI                 | Dashboard کا مکمل انتظام، جو CSRF، مقامیت، اور ہمیشہ محفوظ رہنے والے روٹ کے اصولوں سے مشروط ہے |
-| CLI machine-id ٹوکن    | داخلی / مقامی                   | CLI بوٹسٹریپ (اسی مشین پر `omniroute`)              | مقامی CLI                 | صرف مقامی انتظام                                                                               |
-| اسکوپ شدہ Access Token | `oma_live_…`                    | **Settings → Access Tokens** یا `omniroute connect` | ریموٹ CLI اور انتظامی API | روٹ کے مطلوبہ `read`، `write`، یا `admin` اسکوپ کو پورا کرنا ضروری ہے                          |
-| استدلالی API کلید      | `sk-…` (اور دیگر API-key سابقے) | **API Manager / API Keys**                          | `/v1/*` استدلال           | **کوئی نہیں**، جب تک کلید کے میٹا ڈیٹا میں `manage` یا `admin` شامل نہ ہو                      |
+| کریڈینشل             | عام شکل                          | کہاں بنایا گیا                                   | مطلوبہ استعمال            | انتظامی صلاحیت                                                               |
+| :------------------- | :------------------------------- | :----------------------------------------------- | :------------------------ | :--------------------------------------------------------------------------- |
+| ڈیش بورڈ JWT سیشن    | `auth_token` کوکی                | ڈیش بورڈ لاگ ان                                  | براؤزر UI                 | مکمل ڈیش بورڈ کا انتظام، CSRF، لوکیلٹی، اور ہمیشہ محفوظ روٹ کے قواعد کے تابع |
+| CLI مشین-آئی ڈی ٹوکن | اندرونی / مقامی                  | CLI بوٹ سٹریپ (اسی مشین پر `omniroute`)          | مقامی CLI                 | صرف مقامی انتظام                                                             |
+| اسکوپڈ ایکسیس ٹوکن   | `oma_live_…`                     | **سیٹنگز → ایکسیس ٹوکنز** یا `omniroute connect` | ریموٹ CLI اور انتظامی API | روٹ کے مطلوبہ `read`، `write`، یا `admin` اسکوپ کو پورا کرنا ضروری ہے        |
+| انفرنس API کی        | `sk-…` (اور دیگر API-کی پریفکسز) | **API مینیجر / API کیز**                         | `/v1/*` انفرنس            | **کوئی نہیں** جب تک کہ کی میٹا ڈیٹا میں `manage` یا `admin` شامل نہ ہو       |
 
-`oma_` اسناد انتظامی/CLI اسناد ہیں۔ یہ استدلالی API کلیدیں **نہیں** ہیں۔
+`oma_` کریڈینشلز انتظامی/CLI کریڈینشلز ہیں۔ یہ انفرنس API کیز **نہیں** ہیں۔
 
-اگر سرور کے لیے لاگ اِن/API-key توثیق غیر فعال ہو تو بعض انتظامی روٹس
-غیر توثیق شدہ کالز قبول کر سکتے ہیں۔ صرف مقامی اور ہمیشہ محفوظ رہنے والے روٹس پر
-ان کے اپنے اصول بدستور لاگو ہوتے ہیں۔ لہٰذا ان اسناد میں سے کسی ایک کو پیش کرنا ہر صورت میں
-لازمی نہیں، اور مطلوبہ اسکوپ اور روٹ کی مقامیت کے بغیر کسی سند کا حامل ہونا بھی ہر صورت میں
-کافی نہیں ہے۔
+اگر سرور کے لیے لاگ ان/API-کی کی تصدیق غیر فعال ہے، تو کچھ انتظامی روٹس غیر تصدیق شدہ کالز کو قبول کر سکتے ہیں۔ صرف مقامی اور ہمیشہ محفوظ روٹس اب بھی اپنے قواعد لاگو کرتے ہیں۔ لہذا، ان کریڈینشلز میں سے کسی ایک کو پیش کرنا عالمی طور پر لازمی نہیں ہے، اور مطلوبہ اسکوپ اور روٹ لوکیلٹی کے بغیر کسی ایک کا ہونا عالمی طور پر کافی نہیں ہے۔
 
-متعلقہ: [ریموٹ موڈ](./REMOTE-MODE.md) (ریموٹ CLI کے لیے `oma_live_…` کیسے جاری کیا جاتا ہے)۔
+متعلقہ: [ریموٹ موڈ](./REMOTE-MODE.md) (کس طرح `oma_live_…` ریموٹ CLI کے لیے بنایا جاتا ہے)۔
 
 ---
 
 ## اسکوپ میٹرکس
 
-اسکوپس کے یہ دونوں ذخیرہ ہائے الفاظ **مختلف** ہیں۔ انہیں باہم نہ ملائیں۔
+API-کی مینجمنٹ اسکوپس اور ایکسیس ٹوکن اسکوپس مختلف اصطلاحات ہیں۔ MCP ٹول اسکوپس ایک تیسری اصطلاح ہیں، جنہیں نیچے دی گئی جدولوں میں سے کسی بھی فنکشن کے بجائے `scopeMatches` کے ساتھ چیک کیا جاتا ہے۔ ساتھ ساتھ: [تین اسکوپ نیم اسپیسز](../frameworks/MCP-SERVER.md#three-scope-namespaces)۔
 
-### Access Token اسکوپس (`oma_live_…`)
+### ایکسیس ٹوکن اسکوپس (`oma_live_…`)
 
-| اسکوپ   | عام کارروائیاں                                                    |
-| ------- | ----------------------------------------------------------------- |
-| `read`  | فہرست/حالت کی GET درخواستیں جنہیں دیکھنے کی ٹوکن کو اجازت ہے      |
-| `write` | admin سے نچلی سطح کی تبدیلیاں (تخلیق/اپ ڈیٹ/حذف)                  |
-| `admin` | مکمل ریموٹ CLI / connect ٹوکن (پاس ورڈ بوٹسٹریپ میں یہ ڈیفالٹ ہے) |
+| اسکوپ   | عام آپریشنز                                                   |
+| ------- | ------------------------------------------------------------- |
+| `read`  | فہرست/اسٹیٹس GETs جو ٹوکن کو دیکھنے کی اجازت ہے۔              |
+| `write` | ایڈمن سے نیچے کی تبدیلیاں (بنانا/اپ ڈیٹ کرنا/حذف کرنا)        |
+| `admin` | مکمل ریموٹ CLI / کنیکٹ ٹوکن (پاس ورڈ بوٹ اسٹریپ ڈیفالٹس یہاں) |
 
-`read` رکھنے والا ٹوکن کسی `write` روٹ کو کال نہیں کر سکتا۔ رَن ٹائم پیغام کی شکل:
+ایک ٹوکن جس میں `read` ہو وہ `write` روٹ کو کال نہیں کر سکتا۔ رن ٹائم میسج کی شکل:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### API-key انتظامی اسکوپس
+### API-کی مینجمنٹ اسکوپس
 
-| اسکوپ       | مطلب                                                                |
-| ----------- | ------------------------------------------------------------------- |
-| (کوئی نہیں) | صرف استدلال۔ انتظامی روٹس 403 لوٹاتے ہیں۔                           |
-| `manage`    | انتظامی API (`requireManagementAuth` کی API-key شاخ والا ہی گیٹ)    |
-| `admin`     | `hasManageScope` کو بھی پورا کرتا ہے (انتظام کے قابل سمجھا جاتا ہے) |
+| اسکوپ    | مطلب                                                                    |
+| -------- | ----------------------------------------------------------------------- |
+| (none)   | صرف اندازہ۔ مینجمنٹ روٹس 403 واپس کرتے ہیں۔                             |
+| `manage` | مینجمنٹ API (وہی گیٹ جو `requireManagementAuth` API-کی برانچ کا ہے)     |
+| `admin`  | یہ `hasManageScope` کو بھی پورا کرتا ہے (مینجمنٹ کے قابل سمجھا جاتا ہے) |
 
-API Keys / API Manager UI میں کلید کے لیے `manage` فعال کریں۔ خودکاری کے لیے کسی
-چیٹ کلائنٹ کی کلید دوبارہ استعمال نہ کریں، جب تک آپ نے دانستہ طور پر اسے یہ اسکوپ نہ دیا ہو۔
+API Keys / API Manager UI میں کی پر `manage` کو فعال کریں۔ آٹومیشن کے لیے چیٹ کلائنٹ کی کو دوبارہ استعمال نہ کریں جب تک کہ آپ نے جان بوجھ کر وہ اسکوپ نہ دی ہو۔
 
 ---
 
@@ -129,29 +123,28 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## موجودہ رن ٹائم کی خرابیاں (راز ظاہر نہ کریں)
+## موجودہ رن ٹائم کی خرابیاں (رازوں کو ظاہر نہ کریں)
 
-| صورتِ حال                              | عمومی اسٹیٹس | پیغام (حساس معلومات سے پاک)                                          |
-| -------------------------------------- | ------------ | -------------------------------------------------------------------- |
-| کوئی سند نہیں                          | 401          | `Authentication required`                                            |
-| غلط/میعاد ختم شدہ `oma_live_…`         | 401          | `Invalid or expired access token`                                    |
-| `manage`/`admin` کے بغیر درست API کلید | 403          | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| انتظامی روٹ پر غلط عام API کلید        | 403          | `Invalid management token`                                           |
-| رسائی ٹوکن کا اسکوپ بہت کم ہے          | 403          | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| صورتحال                                | عام حیثیت | پیغام (صاف شدہ)                                                               |
+| :------------------------------------- | :-------- | :---------------------------------------------------------------------------- |
+| کوئی سند نہیں                          | 401       | `تصدیق درکار ہے`                                                              |
+| غلط/میعاد ختم شدہ `oma_live_…`         | 401       | `غلط یا میعاد ختم شدہ رسائی ٹوکن`                                             |
+| `manage`/`admin` کے بغیر درست API کلید | 403       | `API کلید میں 'manage' اسکوپ کی کمی ہے۔ اسے API Keys ڈیش بورڈ میں فعال کریں۔` |
+| انتظامی راستے پر غلط عام API کلید      | 403       | `غلط انتظامی ٹوکن`                                                            |
+| رسائی ٹوکن کا اسکوپ بہت کم ہے          | 403       | `رسائی ٹوکن کا اسکوپ '<have>' ناکافی ہے؛ '<need>' درکار ہے۔`                  |
 
-"Invalid management token" کا مطلب ہے کہ بیئرر کو انتظامی
-سند کے طور پر **قبول نہیں** کیا گیا۔ اس سے یہ معلوم **نہیں** ہوتا کہ آپ کو کس قسم کی سند بنانی چاہیے۔ اوپر دی گئی جدول استعمال کریں:
-استدلالی کلیدوں کو `manage` اسکوپ درکار ہے؛ ریموٹ CLI کو `oma_live_…` درکار ہے؛ جبکہ ڈیش بورڈ
-سیشن کوکی استعمال کرتا ہے۔
+"غلط انتظامی ٹوکن" کا مطلب ہے کہ بیئرر کو انتظامی سند کے طور پر **قبول نہیں** کیا گیا۔
+یہ آپ کو یہ نہیں بتاتا کہ کون سی فیملی بنانی ہے۔ اوپر دی گئی جدول استعمال کریں:
+انفرنس کیز کو `manage` اسکوپ کی ضرورت ہوتی ہے؛ ریموٹ CLI کو `oma_live_…` کی ضرورت ہوتی ہے؛ ڈیش بورڈ سیشن کوکی استعمال کرتا ہے۔
 
 ---
 
-## کم از کم اختیارات والا تجویز کردہ انتخاب
+## کم سے کم استحقاق کا تجویز کردہ انتخاب
 
-| کالر                                            | استعمال                                              |
-| ----------------------------------------------- | ---------------------------------------------------- |
-| براؤزر                                          | ڈیش بورڈ سیشن                                        |
-| سرور ہوسٹ پر CLI                                | مشین ٹوکن                                            |
-| ریموٹ سرور سے رابطہ کرنے والے لیپ ٹاپ پر CLI    | `omniroute connect` سے حاصل کردہ `oma_live_…`        |
-| CI / اسکرپٹس (صرف انتظام کے لیے)                | کام کرنے والے سب سے محدود اسکوپ کے ساتھ `oma_live_…` |
-| وہ CI جسے `/v1` اور `/api` دونوں کو کال کرنا ہو | `manage` والی API کلید **یا** دو اسناد               |
+| کالر                                               | استعمال                                               |
+| -------------------------------------------------- | ----------------------------------------------------- |
+| براؤزر                                             | ڈیش بورڈ سیشن                                         |
+| سرور ہوسٹ پر CLI                                   | مشین ٹوکن                                             |
+| ریموٹ سرور سے بات کرنے والے لیپ ٹاپ پر CLI         | `oma_live_…` سے `omniroute connect`                   |
+| CI / اسکرپٹس (صرف انتظام)                          | `oma_live_…` سب سے چھوٹے اسکوپ کے ساتھ جو کام کرتا ہے |
+| CI جسے `/v1` اور `/api` دونوں کو کال کرنا ضروری ہے | `manage` کے ساتھ API کلید **یا** دو اسناد             |

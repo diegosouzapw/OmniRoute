@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Nem sikerült beállítani a jelszót. Próbáld újra.",
     "failedAddProvider": "Nem sikerült hozzáadni a szolgáltatót. Próbáld újra.",
     "connectionError": "Csatlakozási hiba. Kérjük, próbálja újra.",
+    "bootstrapTokenLabel": "Rendszerindítási token",
+    "bootstrapTokenHelp": "Ez a kapcsolat nem helyi kapcsolatként lett felismerve (ez gyakori Docker-porttovábbítás esetén). Keresse meg a kiszolgáló/konténer naplójában az egyszer használatos rendszerindítási tokent, és a folytatáshoz illessze be fent.",
     "provider": "Szolgáltató",
     "apiKeyHelp": "Az API-kulcs az AI-szolgáltatások jelszava. Szerezzen be egyet szolgáltatója webhelyéről (pl. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Csatlakoztassa a Stability AI-t egy API-kulccsal.",
       "stepfun": "Szerezzen API-kulcsot a platform.stepfun.com oldalon",
       "sumopod": "A SumoPod egy OpenAI-kompatibilis chat completions végpontot tesz elérhetővé a https://ai.sumopod.com/v1/chat/completions címen, valamint egy élő /v1/models katalógust. Az OmniRoute az OpenAI protokollt használja, és passthrough módon listázza a modelleket.",
-      "suno": "Illessze be a session cookie-t a suno.ai oldalról (Clerk auth)",
       "synthetic": "Csatlakoztassa a Syntheticket egy API-kulccsal.",
       "tencent": "Szerezzen API-kulcsot a console.cloud.tencent.com oldalon",
       "thebai": "Bearer API-kulcs a TheB.AI OpenAI-kompatibilis átjáróhoz.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# kilépési pontot} other {# kilépési pontot}} használt {connections, plural, one {# kapcsolat} other {# kapcsolat}} · egy kilépési ponton legfeljebb {max} · az elmúlt {hours} órában",
     "poolEgressObservationEmpty": "Nem észlelhető forgalom az elmúlt {hours} órában",
     "poolEgressObservationHint": "A proxynapló alapján, az időablakban számítva: a készlet tagjainál megfigyelt különböző kimenő IP-címek, valamint az ezeket használó OmniRoute-kapcsolatok. Az „egy kilépési ponton” az időablak egészére vonatkozik, nem egyidejű használatra. Az IP-címenkénti 429-es zárolás csak az azonos szolgáltatócsalád kapcsolatait szünetelteti.",
+    "poolMemberEgress": "{host}:{port} kimenő forgalma a(z) {egressIp} címen keresztül haladt · elmúlt {hours} óra",
+    "poolMemberEgressEmpty": "{host}:{port}: az elmúlt {hours} órában nem volt észlelhető forgalom",
+    "poolMemberEgressHint": "Az időablakban a készlet ezen tagján keresztül legutóbb észlelt kimenő IP-cím, a proxy naplójából kiolvasva. Ha egy tagnál nem volt forgalom az időablakban, a forgalom hiányát jelző sor jelenik meg.",
     "poolRemove": "Eltávolítás",
     "poolRemoveFailed": "Nem sikerült eltávolítani a proxyt a készletből",
     "poolAddLabel": "Proxy hozzáadása",
@@ -12222,6 +12226,29 @@
     "raw": "Nyers"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI-segéd",
+      "intro": "Másolja a parancsokat, és futtassa őket azon a számítógépen, amelyre a CLI telepítve van. Ez a panel nem hajt végre parancsokat és nem másol hitelesítő adatokat.",
+      "hostNotice": "Az észlelés az OmniRoute-kiszolgáló gazdagépét írja le, nem az ezt a böngészőt futtató számítógépet. A konfigurált állapot nem jelenti azt, hogy az inferenciát tesztelték.",
+      "target": "CLI-eszköz",
+      "context": "Meglévő kontextus neve (opcionális)",
+      "contextHint": "Hagyja üresen a CLI aktív kontextusának használatához. Az elnevezett kontextusok helyi vagy távoli kiszolgálóra mutathatnak; először listázza őket a terminálban.",
+      "contextInvalid": "Használjon 1–64 betűt, számjegyet, pontot, kötőjelet vagy aláhúzást, betűvel vagy számjeggyel kezdve.",
+      "modelHint": "Ehhez a CLI-hez modell szükséges. Az indítási előnézet másolása előtt adjon meg egy létező szolgáltató/modell-azonosítót.",
+      "modelInvalid": "Használjon szóközök és parancsértelmező-karakterek nélküli modellazonosítót, betűvel vagy számjeggyel kezdve.",
+      "runtime": "Futtatás",
+      "runnable": "Futtatható",
+      "notRunnable": "Nem futtatható",
+      "unknown": "Ismeretlen",
+      "detectionError": "A kiszolgáló észlelése nem érhető el. Frissítse az észlelést az újrapróbálkozáshoz; a terminálparancsok továbbra is elérhetők.",
+      "contextsStep": "Kontextusok ellenőrzése a terminálban",
+      "configureStep": "Modell kiválasztása és konfigurálás",
+      "runStep": "Indítás előnézete",
+      "configureHint": "Ez az interaktív parancs azon a számítógépen írja ki a CLI konfigurációját, amelyen futtatja.",
+      "runHint": "A próbafuttatás a CLI elindítása nélkül mutatja meg az indítási tervet. Ez nem inferenciateszt.",
+      "copyFailed": "Nem sikerült másolni. Jelölje ki és másolja a parancsot kézzel.",
+      "empty": "Ebben a verzióban nincsenek futtatható CLI-célok. Használja az alábbi eszközútmutatókat."
+    },
     "concept": {
       "code": {
         "title": "CLI kód",

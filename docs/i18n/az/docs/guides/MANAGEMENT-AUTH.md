@@ -1,59 +1,55 @@
 # Management Authentication (Azərbaycan dili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
 OmniRoute idarəetmə marşrutlarını avtorizasiya edə bilən **dörd etimadnamə ailəsinə** malikdir.
-Onlar bir-birini əvəz etmir. İnferensiya API açarları (`sk-…`) açıq şəkildə
-`manage` və ya `admin` əhatə dairəsi verilmədiyi halda serveri **idarə etmir**.
+Onlar bir-birini əvəz etmir. İnferensiya API açarları (`sk-…`) açıq şəkildə `manage` və ya `admin` əhatə dairəsi ilə təmin edilmədiyi halda serveri **idarə etmir**.
 
-Kanonik implementasiya: `src/lib/api/requireManagementAuth.ts`.
+Kanonik reallaşdırma: `src/lib/api/requireManagementAuth.ts`.
 
-| Etimadnamə                    | Tipik format                            | Harada yaradılır                                            | Nəzərdə tutulan istifadə     | İdarəetmə imkanı                                                                                 |
-| ----------------------------- | --------------------------------------- | ----------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------ |
-| İdarə panelinin JWT sessiyası | `auth_token` kukisi                     | İdarə panelinə giriş                                        | Brauzer interfeysi           | CSRF, lokallıq və həmişə qorunan marşrut qaydaları nəzərə alınmaqla tam idarə paneli idarəetməsi |
-| CLI maşın ID-si tokeni        | daxili / lokal                          | CLI ilkin quraşdırması (eyni maşında `omniroute`)           | Lokal CLI                    | Yalnız lokal idarəetmə                                                                           |
-| Əhatə dairəli Giriş Tokeni    | `oma_live_…`                            | **Parametrlər → Giriş Tokenləri** və ya `omniroute connect` | Uzaq CLI və idarəetmə API-si | Marşrutun tələb etdiyi `read`, `write` və ya `admin` əhatə dairəsini təmin etməlidir             |
-| İnferensiya API açarı         | `sk-…` (və digər API açarı prefiksləri) | **API Meneceri / API Açarları**                             | `/v1/*` inferensiyası        | Açarın metadatasına `manage` və ya `admin` daxil deyilsə, **heç biri**                           |
+| Etimadnamə                     | Tipik forma                             | Harada yaradılır                                            | Nəzərdə tutulan istifadə     | İdarəetmə imkanı                                                                        |
+| ------------------------------ | --------------------------------------- | ----------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------- |
+| İdarəetmə paneli JWT sessiyası | `auth_token` kukisi                     | İdarəetmə panelinə giriş                                    | Brauzer UI-si                | CSRF, lokallıq və həmişə qorunan marşrut qaydalarına tabe olmaqla tam panel idarəetməsi |
+| CLI machine-id tokeni          | daxili / lokal                          | CLI ilkin quraşdırması (eyni maşında `omniroute`)           | Lokal CLI                    | Yalnız lokal idarəetmə                                                                  |
+| Əhatə dairəli Giriş Tokeni     | `oma_live_…`                            | **Parametrlər → Giriş Tokenləri** və ya `omniroute connect` | Uzaq CLI və idarəetmə API-si | Marşrutun tələb etdiyi `read`, `write` və ya `admin` əhatə dairəsinə uyğun olmalıdır    |
+| İnferensiya API açarı          | `sk-…` (və digər API açarı prefiksləri) | **API Meneceri / API Açarları**                             | `/v1/*` inferensiyası        | Açar metadatasına `manage` və ya `admin` daxil deyilsə, **heç bir imkan yoxdur**        |
 
 `oma_` etimadnamələri idarəetmə/CLI etimadnamələridir. Onlar inferensiya API açarları **deyil**.
 
-Server üçün giriş/API açarı autentifikasiyası deaktiv edilibsə, bəzi idarəetmə marşrutları
-autentifikasiya olunmamış çağırışları qəbul edə bilər. Yalnız lokal və həmişə qorunan marşrutlar
-yenə də öz qaydalarını tətbiq edir. Buna görə də bu etimadnamələrdən birini təqdim etmək bütün
-hallarda məcburi deyil və tələb olunan əhatə dairəsi və marşrut lokallığı olmadan ona sahib olmaq
-da bütün hallarda kifayət etmir.
+Server üçün giriş/API açarı autentifikasiyası deaktiv edilibsə, bəzi idarəetmə marşrutları autentifikasiya edilməmiş çağırışları qəbul edə bilər. Yalnız lokal və həmişə qorunan marşrutlar yenə də öz qaydalarını tətbiq edir. Buna görə də bu etimadnamələrdən birinin təqdim edilməsi bütün hallarda məcburi deyil və tələb olunan əhatə dairəsi və marşrut lokallığı olmadan onlardan birinə sahib olmaq da bütün hallarda kifayət etmir.
 
-Əlaqəli: [Uzaq Rejim](./REMOTE-MODE.md) (uzaq CLI üçün `oma_live_…` tokeninin necə yaradıldığı).
+Əlaqəli: [Uzaq Rejim](./REMOTE-MODE.md) (`oma_live_…` etimadnaməsinin uzaq CLI üçün necə yaradıldığı).
 
 ---
 
 ## Əhatə dairəsi matrisləri
 
-Bu iki əhatə dairəsi lüğəti **fərqlidir**. Onları qarışdırmayın.
+API açarlarının idarəetmə əhatə dairələri və giriş tokenlərinin əhatə dairələri fərqli terminologiyalardır.
+MCP alət əhatə dairələri üçüncü terminologiyadır və aşağıdakı cədvəllərdəki funksiyalardan hər hansı biri ilə deyil, `scopeMatches` ilə yoxlanılır. Yan-yana müqayisə:
+[Üç əhatə dairəsi ad məkanı](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Giriş Tokeninin əhatə dairələri (`oma_live_…`)
+### Giriş tokeni əhatə dairələri (`oma_live_…`)
 
-| Əhatə dairəsi | Tipik əməliyyatlar                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------ |
-| `read`        | Tokenin görməsinə icazə verilən siyahı/status GET sorğuları                                            |
-| `write`       | Admin səviyyəsindən aşağı dəyişikliklər (yaratma/yeniləmə/silmə)                                       |
-| `admin`       | Tam uzaq CLI / qoşulma tokeni (parol vasitəsilə ilkin quraşdırmada standart olaraq bu istifadə edilir) |
+| Əhatə dairəsi | Tipik əməliyyatlar                                                            |
+| ------------- | ----------------------------------------------------------------------------- |
+| `read`        | Tokenin görməsinə icazə verilən siyahılama/status GET sorğuları               |
+| `write`       | Admin səviyyəsindən aşağı dəyişikliklər (yaratma/yeniləmə/silmə)              |
+| `admin`       | Tam uzaqdan CLI / qoşulma tokeni (parolun ilkin qurulması burada standartdır) |
 
-`read` əhatə dairəsinə malik token `write` marşrutunu çağıra bilməz. İcra zamanı mesajın formatı:
+`read` əhatə dairəsinə malik token `write` marşrutunu çağıra bilməz. İcra vaxtı mesajının formatı:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### API açarının idarəetmə əhatə dairələri
+### API açarlarının idarəetmə əhatə dairələri
 
-| Əhatə dairəsi | Mənası                                                                               |
-| ------------- | ------------------------------------------------------------------------------------ |
-| (yoxdur)      | Yalnız inferensiya. İdarəetmə marşrutları 403 qaytarır.                              |
-| `manage`      | İdarəetmə API-si (`requireManagementAuth` API açarı qolu ilə eyni yoxlama mexanizmi) |
-| `admin`       | Həmçinin `hasManageScope` tələbini ödəyir (idarəetmə qabiliyyətli hesab edilir)      |
+| Əhatə dairəsi | Mənası                                                                       |
+| ------------- | ---------------------------------------------------------------------------- |
+| (yoxdur)      | Yalnız inferensiya. İdarəetmə marşrutları 403 qaytarır.                      |
+| `manage`      | İdarəetmə API-si (`requireManagementAuth` API açarı budağı ilə eyni yoxlama) |
+| `admin`       | Həmçinin `hasManageScope` şərtini ödəyir (idarəetmə qabiliyyətli sayılır)    |
 
-API Açarları / API Meneceri interfeysində açar üçün `manage` əhatə dairəsini aktivləşdirin.
-Bu əhatə dairəsini məqsədli şəkildə verməmisinizsə, avtomatlaşdırma üçün çat klientinin açarını təkrar istifadə etməyin.
+API Keys / API Manager interfeysində açar üçün `manage` əhatə dairəsini aktivləşdirin. Bu əhatə dairəsini bilərəkdən verməmisinizsə, avtomatlaşdırma üçün söhbət müştərisi açarından təkrar istifadə etməyin.
 
 ---
 
@@ -127,26 +123,29 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Cari icra mühiti xətaları (məxfi məlumatları təkrarlamayın)
+## Cari icra zamanı xətaları (məxfi məlumatları təkrarlamayın)
 
-| Vəziyyət                                      | Tipik status | Mesaj (məxfi məlumatlardan təmizlənmiş)                              |
-| --------------------------------------------- | ------------ | -------------------------------------------------------------------- |
-| Giriş məlumatı yoxdur                         | 401          | `Authentication required`                                            |
-| Etibarsız/müddəti bitmiş `oma_live_…`         | 401          | `Invalid or expired access token`                                    |
-| `manage`/`admin` olmadan etibarlı API açarı   | 403          | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| İdarəetmə marşrutunda etibarsız adi API açarı | 403          | `Invalid management token`                                           |
-| Access Token əhatəsi kifayət qədər deyil      | 403          | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Vəziyyət                                      | Tipik status | Mesaj (məxfi məlumatlardan təmizlənmiş)                                                       |
+| --------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------- |
+| Giriş məlumatı yoxdur                         | 401          | `Autentifikasiya tələb olunur`                                                                |
+| Etibarsız/müddəti bitmiş `oma_live_…`         | 401          | `Etibarsız və ya müddəti bitmiş giriş tokeni`                                                 |
+| `manage`/`admin` olmadan etibarlı API açarı   | 403          | `API açarında 'manage' əhatə dairəsi yoxdur. Onu API Keys idarəetmə panelində aktivləşdirin.` |
+| İdarəetmə marşrutunda etibarsız adi API açarı | 403          | `Etibarsız idarəetmə tokeni`                                                                  |
+| Access Token əhatə dairəsi çox aşağıdır       | 403          | `Giriş tokeninin əhatə dairəsi '<have>' kifayət deyil; '<need>' tələb olunur.`                |
 
-"Invalid management token" daşıyıcının idarəetmə giriş məlumatı kimi **qəbul edilmədiyini** bildirir. Bu, hansı növ giriş məlumatı yaratmalı olduğunuzu **bildirmir**. Yuxarıdakı cədvəldən istifadə edin: inferensiya açarlarına `manage` əhatəsi lazımdır; uzaq CLI üçün `oma_live_…` tələb olunur; idarə paneli isə sessiya kukisindən istifadə edir.
+"Etibarsız idarəetmə tokeni" o deməkdir ki, bearer idarəetmə giriş məlumatı kimi
+**qəbul edilməyib**. Bu, hansı ailədən token yaratmalı olduğunuzu **bildirmir**. Yuxarıdakı cədvəldən istifadə edin:
+inferensiya açarlarına `manage` əhatə dairəsi lazımdır; uzaq CLI üçün `oma_live_…` tələb olunur; idarəetmə paneli
+sessiya kukisindən istifadə edir.
 
 ---
 
-## Tövsiyə olunan ən az imtiyazlı seçim
+## Tövsiyə olunan ən az səlahiyyətli seçim
 
-| Çağıran tərəf                              | İstifadə ediləcək vasitə                                |
+| Çağıran tərəf                              | İstifadə edin                                           |
 | ------------------------------------------ | ------------------------------------------------------- |
 | Brauzer                                    | İdarə paneli sessiyası                                  |
 | Server hostundakı CLI                      | Maşın tokeni                                            |
 | Uzaq serverlə əlaqə quran noutbukdakı CLI  | `omniroute connect` vasitəsilə əldə edilən `oma_live_…` |
-| CI / skriptlər (yalnız idarəetmə)          | İşləyən ən kiçik əhatəyə malik `oma_live_…`             |
-| Həm `/v1`, həm də `/api` çağırmalı olan CI | `manage` əhatəli API açarı **və ya** iki giriş məlumatı |
+| CI / skriptlər (yalnız idarəetmə)          | İşləyən ən kiçik əhatə dairəsinə malik `oma_live_…`     |
+| Həm `/v1`, həm də `/api` çağırmalı olan CI | `manage` ilə API açarı **və ya** iki giriş məlumatı     |

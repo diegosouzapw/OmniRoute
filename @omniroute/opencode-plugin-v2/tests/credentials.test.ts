@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import type { PluginContext } from "@opencode-ai/plugin/v2/promise";
+type PluginContext = { options?: unknown; provider?: unknown; model?: unknown; integration?: unknown; aisdk?: unknown };
 import type { Logger } from "../src/shared/index.js";
 import { resolveApiKey, warnIfMissing } from "../src/credentials.js";
 

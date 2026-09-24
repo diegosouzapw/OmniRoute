@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Gagal menyetel kata sandi. Coba lagi.",
     "failedAddProvider": "Gagal menambahkan penyedia. Coba lagi.",
     "connectionError": "Kesalahan koneksi. Silakan coba lagi.",
+    "bootstrapTokenLabel": "Token bootstrap",
+    "bootstrapTokenHelp": "Koneksi ini tidak dikenali sebagai koneksi lokal (umum terjadi di balik penerusan port Docker). Periksa log server/container untuk mendapatkan token bootstrap sekali pakai, lalu tempelkan di atas untuk melanjutkan.",
     "provider": "Penyedia",
     "apiKeyHelp": "Kunci API adalah kata sandi untuk layanan AI. Dapatkan satu dari situs web penyedia Anda (mis., platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Hubungkan Stability AI dengan kunci API.",
       "stepfun": "Dapatkan kunci API di platform.stepfun.com",
       "sumopod": "SumoPod mengekspos endpoint chat completions yang kompatibel dengan OpenAI di https://ai.sumopod.com/v1/chat/completions, ditambah katalog /v1/models langsung. OmniRoute menggunakan protokol OpenAI dan mencantumkan model melalui passthrough.",
-      "suno": "Tempel cookie sesi dari suno.ai (autentikasi Clerk)",
       "synthetic": "Hubungkan Synthetic dengan kunci API.",
       "tencent": "Dapatkan kunci API di console.cloud.tencent.com",
       "thebai": "Kunci API Bearer untuk gateway yang kompatibel dengan OpenAI TheB.AI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# jalur keluar} other {# jalur keluar}} digunakan oleh {connections, plural, one {# koneksi} other {# koneksi}} · hingga {max} pada satu jalur keluar · {hours} jam terakhir",
     "poolEgressObservationEmpty": "Tidak ada lalu lintas yang teramati dalam {hours} jam terakhir",
     "poolEgressObservationHint": "Dihitung dari log proksi selama rentang waktu tersebut: IP keluar unik yang teramati untuk anggota kumpulan ini, serta koneksi OmniRoute yang menggunakannya. \"Pada satu jalur keluar\" berarti selama rentang waktu tersebut, bukan pada saat yang sama. Penguncian 429 per IP hanya menjeda koneksi dari keluarga penyedia yang sama.",
+    "poolMemberEgress": "{host}:{port} keluar melalui {egressIp} · {hours} jam terakhir",
+    "poolMemberEgressEmpty": "{host}:{port}: tidak ada lalu lintas yang teramati dalam {hours} jam terakhir",
+    "poolMemberEgressHint": "IP egress terakhir yang teramati melalui anggota pool ini selama rentang waktu tersebut, dibaca dari log proxy. Anggota tanpa lalu lintas dalam rentang waktu tersebut menampilkan baris tanpa lalu lintas.",
     "poolRemove": "Hapus",
     "poolRemoveFailed": "Gagal menghapus proksi dari pool",
     "poolAddLabel": "Tambahkan proksi",
@@ -12222,6 +12226,29 @@
     "raw": "Mentah"
   },
   "cliCommon": {
+    "companion": {
+      "title": "Pendamping CLI",
+      "intro": "Salin perintah untuk dijalankan di komputer tempat CLI Anda terpasang. Panel ini tidak menjalankan perintah atau menyalin kredensial.",
+      "hostNotice": "Deteksi menjelaskan host server OmniRoute, bukan komputer browser ini. Sudah dikonfigurasi bukan berarti inferensi telah diuji.",
+      "target": "Alat CLI",
+      "context": "Nama konteks yang ada (opsional)",
+      "contextHint": "Kosongkan untuk memakai konteks aktif CLI. Konteks bernama dapat mengarah ke server lokal atau jarak jauh; lihat daftarnya di terminal terlebih dahulu.",
+      "contextInvalid": "Gunakan 1–64 huruf, angka, titik, tanda hubung, atau garis bawah, diawali huruf atau angka.",
+      "modelHint": "CLI ini memerlukan model. Masukkan pengenal penyedia/model yang valid sebelum menyalin pratinjau peluncurannya.",
+      "modelInvalid": "Gunakan pengenal model tanpa spasi atau karakter shell, diawali huruf atau angka.",
+      "runtime": "Lingkungan eksekusi",
+      "runnable": "Dapat dijalankan",
+      "notRunnable": "Tidak dapat dijalankan",
+      "unknown": "Tidak diketahui",
+      "detectionError": "Deteksi server tidak tersedia. Segarkan deteksi untuk mencoba lagi; perintah terminal tetap tersedia.",
+      "contextsStep": "Periksa konteks terminal",
+      "configureStep": "Pilih model dan konfigurasikan",
+      "runStep": "Pratinjau peluncuran",
+      "configureHint": "Perintah interaktif ini menulis konfigurasi CLI di komputer tempat Anda menjalankannya.",
+      "runHint": "Simulasi menampilkan rencana peluncuran tanpa memulai CLI. Ini bukan pengujian inferensi.",
+      "copyFailed": "Tidak dapat menyalin. Pilih dan salin perintah secara manual.",
+      "empty": "Tidak ada target CLI yang dapat dijalankan dalam versi ini. Gunakan panduan alat di bawah."
+    },
     "concept": {
       "code": {
         "title": "Kode CLI",

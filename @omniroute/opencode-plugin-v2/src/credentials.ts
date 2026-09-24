@@ -1,5 +1,16 @@
-import type { PluginContext } from "@opencode-ai/plugin/v2/promise";
 import type { Logger } from "./shared/index.js";
+
+/** Minimal stable context surface this module reads (provider transforms stay untyped here). */
+export interface StableCredentialContext {
+  integration: {
+    connection?: {
+      active?: (integrationID: string) => Promise<unknown>;
+      resolve?: (connection: unknown) => Promise<unknown>;
+    };
+  };
+}
+
+type StableContext = StableCredentialContext;
 
 /** Where a resolved key came from, so the failure message can name the fix. */
 export type ApiKeyOrigin = "connection" | "option" | "env" | "missing";
@@ -12,12 +23,16 @@ export interface ResolvedApiKey {
 const ENV_VAR = "OMNIROUTE_API_KEY";
 
 /**
- * `ctx.integration.connection` is newer than the `key`/`env` methods this
- * plugin registers, so a host that predates it exposes `integration` without
- * it. Probing the shape keeps the plugin loadable on both.
+ * `ctx.integration.connection` carries the stored credential. Probing the
+ * shape keeps the plugin loadable on a host that exposes `integration`
+ * without it.
  */
-function connectionApi(ctx: PluginContext): PluginContext["integration"]["connection"] | undefined {
-  const connection = (ctx.integration as Partial<PluginContext["integration"]>).connection;
+function connectionApi(
+  ctx: StableContext
+): { active: (id: string) => Promise<unknown>; resolve: (c: unknown) => Promise<unknown> } | undefined {
+  const connection = (ctx.integration as unknown as Record<string, unknown>).connection as
+    | { active?: unknown; resolve?: unknown }
+    | undefined;
   if (
     connection === undefined ||
     typeof connection.active !== "function" ||
@@ -25,7 +40,10 @@ function connectionApi(ctx: PluginContext): PluginContext["integration"]["connec
   ) {
     return undefined;
   }
-  return connection;
+  return connection as {
+    active: (id: string) => Promise<unknown>;
+    resolve: (c: unknown) => Promise<unknown>;
+  };
 }
 
 /**
@@ -36,30 +54,33 @@ function connectionApi(ctx: PluginContext): PluginContext["integration"]["connec
  * feed inference and the catalog fetches would still need a key pasted into
  * the config file.
  *
- * Returns `undefined` (never throws) when there is no connection, when the
- * host is too old to expose one, or when the stored credential is an OAuth
- * grant — this plugin authenticates the gateway with a bearer key, and an
- * access token from an unrelated grant is not one.
+ * Returns `undefined` (never throws) when there is no connection or when the
+ * stored credential is an OAuth grant — this plugin authenticates the gateway
+ * with a bearer key, and an access token from an unrelated grant is not one.
  */
 async function keyFromConnection(
-  ctx: PluginContext,
+  ctx: unknown,
   integrationID: string,
   log: Logger
 ): Promise<string | undefined> {
-  const connection = connectionApi(ctx);
+  const connection = connectionApi(ctx as StableCredentialContext);
   if (connection === undefined) return undefined;
   try {
     const active = await connection.active(integrationID);
     if (active === undefined) return undefined;
-    const credential = await connection.resolve(active);
+    const credential = (await connection.resolve(active)) as
+      | { type?: unknown; key?: unknown }
+      | undefined;
     if (credential === undefined) return undefined;
     if (credential.type !== "key") {
       log.warn(
-        `[omniroute-v2] ignoring the stored ${credential.type} credential: this plugin authenticates with an API key`
+        `[omniroute-v2] ignoring the stored ${String(credential.type)} credential: this plugin authenticates with an API key`
       );
       return undefined;
     }
-    return credential.key.length > 0 ? credential.key : undefined;
+    return typeof credential.key === "string" && credential.key.length > 0
+      ? credential.key
+      : undefined;
   } catch (err) {
     log.warn(
       `[omniroute-v2] could not read the stored credential: ${err instanceof Error ? err.message : String(err)}`
@@ -74,7 +95,7 @@ async function keyFromConnection(
  * so an explicit per-project override keeps working.
  */
 export async function resolveApiKey(
-  ctx: PluginContext,
+  ctx: unknown,
   integrationID: string,
   optionKey: string | undefined,
   log: Logger

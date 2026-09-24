@@ -42,6 +42,7 @@ import {
 import { refreshCodebuddyCnToken } from "./tokenRefresh/providers/codebuddyCn.ts";
 import { refreshClineToken } from "./tokenRefresh/providers/cline.ts";
 import { refreshKimiCodingToken } from "./tokenRefresh/providers/kimiCoding.ts";
+import { refreshMuseCodeToken } from "./tokenRefresh/providers/museCode.ts";
 import { refreshGitLabDuoToken } from "./tokenRefresh/providers/gitlabDuo.ts";
 import { refreshClaudeOAuthToken } from "./tokenRefresh/providers/claudeOAuth.ts";
 import { refreshGoogleToken } from "./tokenRefresh/providers/google.ts";
@@ -63,6 +64,7 @@ export {
   refreshCodebuddyCnToken,
   refreshClineToken,
   refreshKimiCodingToken,
+  refreshMuseCodeToken,
   refreshGitLabDuoToken,
   refreshClaudeOAuthToken,
   refreshGoogleToken,
@@ -436,6 +438,14 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
         proxyConfig
       );
 
+    case "muse-code":
+      return await refreshMuseCodeToken(
+        credentials.refreshToken,
+        credentials.providerSpecificData,
+        log,
+        proxyConfig
+      );
+
     case "gitlab-duo":
       return await refreshGitLabDuoToken(
         credentials.refreshToken,
@@ -470,6 +480,7 @@ export function supportsTokenRefresh(provider) {
     "amazon-q",
     "cline",
     "kimi-coding",
+    "muse-code",
     // Devin auth is not refreshable here: devin-desktop accepts an imported API
     // key (#8228), while devin-cli is local-CLI owned via `devin auth login`
     // (#8407). Neither connection carries a refresh token, so listing either

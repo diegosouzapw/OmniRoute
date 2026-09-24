@@ -5018,6 +5018,8 @@
     "failedSetPassword": "设置密码失败。再试一次。",
     "failedAddProvider": "添加提供者失败。再试一次。",
     "connectionError": "连接错误。请再试一次。",
+    "bootstrapTokenLabel": "引导令牌",
+    "bootstrapTokenHelp": "此连接未被识别为本地连接（使用 Docker 端口转发时很常见）。请在服务器/容器日志中查找一次性引导令牌，并将其粘贴到上方以继续。",
     "provider": "提供者",
     "apiKeyHelp": "API密钥是AI服务的密码。从提供者的网站（例如 platform.openai.com、console.anthropic.com）获取一个。",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "使用 API 密钥连接 Stability AI。",
       "stepfun": "在 platform.stepfun.com 获取 API 密钥",
       "sumopod": "SumoPod 在 https://ai.sumopod.com/v1/chat/completions 提供了兼容 OpenAI 的 chat completions 端点，以及实时的 /v1/models 目录。OmniRoute 使用 OpenAI 协议并通过直通方式列出模型。",
-      "suno": "粘贴来自 suno.ai 的 session cookie（Clerk 认证）",
       "synthetic": "使用 API 密钥连接 Synthetic。",
       "tencent": "在 console.cloud.tencent.com 获取 API 密钥",
       "thebai": "用于 TheB.AI 兼容 OpenAI 网关的 Bearer API 密钥。",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# 个出口} other {# 个出口}}，由 {connections, plural, one {# 个连接} other {# 个连接}}使用 · 单个出口最多 {max} 个连接 · 过去 {hours} 小时",
     "poolEgressObservationEmpty": "过去 {hours} 小时内未观察到流量",
     "poolEgressObservationHint": "根据此时间窗口内的代理日志统计：观察到此池成员使用的不同出口 IP，以及使用这些 IP 的 OmniRoute 连接。“单个出口”是指整个时间窗口内，而不是同一时刻。每个 IP 的 429 锁定仅会暂停同一提供者系列的连接。",
+    "poolMemberEgress": "{host}:{port} 通过 {egressIp} 离开 · 过去 {hours} 小时",
+    "poolMemberEgressEmpty": "{host}:{port}：过去 {hours} 小时内未观察到流量",
+    "poolMemberEgressHint": "在此时间窗口内通过该池成员观察到的最近出口 IP，读取自代理日志。时间窗口内无流量的成员将显示无流量提示。",
     "poolRemove": "移除",
     "poolRemoveFailed": "从池中移除代理失败",
     "poolAddLabel": "添加代理",
@@ -12222,6 +12226,29 @@
     "raw": "原始"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI 助手",
+      "intro": "复制命令，在安装了 CLI 的计算机上运行。此面板不会执行命令，也不会复制凭据。",
+      "hostNotice": "检测结果描述的是 OmniRoute 服务器主机，而非运行此浏览器的计算机。已配置并不代表已测试推理。",
+      "target": "CLI 工具",
+      "context": "现有上下文名称（可选）",
+      "contextHint": "留空以使用 CLI 当前启用的上下文。命名上下文可以指向本地或远程服务器；请先在终端中列出它们。",
+      "contextInvalid": "使用 1–64 个字母、数字、点、连字符或下划线，并以字母或数字开头。",
+      "modelHint": "此 CLI 需要指定模型。复制启动预览之前，请输入真实的提供者/模型标识符。",
+      "modelInvalid": "模型标识符须以字母或数字开头，且不含空格或 shell 特殊字符。",
+      "runtime": "运行环境",
+      "runnable": "可运行",
+      "notRunnable": "不可运行",
+      "unknown": "未知",
+      "detectionError": "无法检测服务器。请刷新检测以重试；终端命令仍可使用。",
+      "contextsStep": "检查终端上下文",
+      "configureStep": "选择模型并配置",
+      "runStep": "预览启动",
+      "configureHint": "此交互式命令会在执行该命令的计算机上写入 CLI 配置。",
+      "runHint": "模拟运行仅显示启动计划，不会启动 CLI。这不是推理测试。",
+      "copyFailed": "无法复制。请选中命令并手动复制。",
+      "empty": "此版本没有可执行的 CLI 目标。请使用下方的工具指南。"
+    },
     "concept": {
       "code": {
         "title": "CLI 代码的",

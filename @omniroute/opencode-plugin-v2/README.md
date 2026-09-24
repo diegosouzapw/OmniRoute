@@ -26,6 +26,34 @@ npm install @omniroute/opencode-plugin-v2
 }
 ```
 
+### Local `file://` install
+
+OpenCode resolves a local plugin **directory** by probing the subpaths
+`server.*` / `index.*` (then `tui`, `rpc`) at the package root — it never
+reads `package.json` `main`/`exports`. A folder exposing only `dist/` is
+therefore silently skipped (no `loading plugin`, no error).
+
+This package ships a root `server.js` re-exporting `./dist/index.js` for
+exactly that probe, so pointing OpenCode at a local checkout works:
+
+```json
+{
+  "plugins": [
+    {
+      "package": "file:///path/to/OmniRoute/@omniroute/opencode-plugin-v2",
+      "options": {
+        "providerId": "omniroute",
+        "baseURL": "http://localhost:20128"
+      }
+    }
+  ]
+}
+```
+
+Prerequisites when targeting a folder: run `npm run build` first (the root
+`server.js` re-exports `./dist/index.js`), and keep the folder's root
+`server.js` — `dist/` alone is not resolvable by the host.
+
 ## Credentials
 
 The plugin needs a gateway key to read the catalog, and looks for one in this

@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Das Passwort konnte nicht festgelegt werden. Versuchen Sie es erneut.",
     "failedAddProvider": "Anbieter konnte nicht hinzugefügt werden. Versuchen Sie es erneut.",
     "connectionError": "Verbindungsfehler. Bitte versuchen Sie es erneut.",
+    "bootstrapTokenLabel": "Bootstrap-Token",
+    "bootstrapTokenHelp": "Diese Verbindung wird nicht als lokal erkannt (häufig bei Docker-Portweiterleitungen). Suchen Sie im Server-/Containerprotokoll nach einem einmalig verwendbaren Bootstrap-Token und fügen Sie ihn oben ein, um fortzufahren.",
     "provider": "Anbieter",
     "apiKeyHelp": "Ein API-Schlüssel ist ein Passwort für KI-Dienste. Holen Sie sich eines von der Website Ihres Anbieters (z. B. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Verbinden Sie Stability AI mit einem API-Schlüssel.",
       "stepfun": "Holen Sie sich den API-Schlüssel unter platform.stepfun.com",
       "sumopod": "SumoPod stellt einen OpenAI-kompatiblen Chat-Vervollständigungsendpunkt unter https://ai.sumopod.com/v1/chat/completions sowie einen Live-Katalog unter /v1/models bereit. OmniRoute verwendet das OpenAI-Protokoll und listet Modelle per Passthrough auf.",
-      "suno": "Sitzungs-Cookie von suno.ai einfügen (Clerk-Authentifizierung)",
       "synthetic": "Verbinden Sie Synthetic mit einem API-Schlüssel.",
       "tencent": "Holen Sie sich den API-Schlüssel unter console.cloud.tencent.com",
       "thebai": "Bearer-API-Schlüssel für das OpenAI-kompatible Gateway von TheB.AI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# Ausgang} other {# Ausgänge}} verwendet von {connections, plural, one {# Verbindung} other {# Verbindungen}} · bis zu {max} an einem Ausgang · letzte {hours} Std.",
     "poolEgressObservationEmpty": "In den letzten {hours} Std. wurde kein Datenverkehr beobachtet",
     "poolEgressObservationHint": "Ermittelt aus dem Proxy-Protokoll innerhalb des Zeitfensters: unterschiedliche ausgehende IP-Adressen, die für die Mitglieder dieses Pools beobachtet wurden, sowie die OmniRoute-Verbindungen, die sie verwendet haben. „An einem Ausgang“ bezieht sich auf das Zeitfenster, nicht auf eine gleichzeitige Nutzung. Die 429-Sperre pro IP pausiert nur Verbindungen derselben Anbieterfamilie.",
+    "poolMemberEgress": "{host}:{port} ging über {egressIp} aus · letzte {hours} Std.",
+    "poolMemberEgressEmpty": "{host}:{port}: in den letzten {hours} Std. kein Datenverkehr beobachtet",
+    "poolMemberEgressHint": "Die letzte über dieses Pool-Mitglied im Zeitraum beobachtete Egress-IP, aus dem Proxy-Protokoll ausgelesen. Für ein Mitglied ohne Datenverkehr im Zeitraum wird die Zeile „Kein Datenverkehr“ angezeigt.",
     "poolRemove": "Entfernen",
     "poolRemoveFailed": "Fehler beim Entfernen des Proxys aus dem Pool",
     "poolAddLabel": "Proxy hinzufügen",
@@ -12222,6 +12226,29 @@
     "raw": "Roh"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI-Assistent",
+      "intro": "Kopieren Sie die Befehle, um sie auf dem Computer auszuführen, auf dem Ihre CLI installiert ist. Dieses Panel führt keine Befehle aus und kopiert keine Zugangsdaten.",
+      "hostNotice": "Die Erkennung bezieht sich auf den OmniRoute-Serverhost, nicht auf den Computer dieses Browsers. Eine vorhandene Konfiguration bedeutet nicht, dass die Inferenz getestet wurde.",
+      "target": "CLI-Werkzeug",
+      "context": "Name eines vorhandenen Kontexts (optional)",
+      "contextHint": "Leer lassen, um den aktiven Kontext Ihrer CLI zu verwenden. Benannte Kontexte können auf lokale oder entfernte Server verweisen; listen Sie sie zuerst im Terminal auf.",
+      "contextInvalid": "Verwenden Sie 1–64 Buchstaben, Ziffern, Punkte, Bindestriche oder Unterstriche, beginnend mit einem Buchstaben oder einer Ziffer.",
+      "modelHint": "Diese CLI benötigt ein Modell. Geben Sie eine gültige Anbieter/Modell-Kennung ein, bevor Sie die Startvorschau kopieren.",
+      "modelInvalid": "Verwenden Sie eine Modellkennung ohne Leerzeichen oder Shell-Zeichen, beginnend mit einem Buchstaben oder einer Ziffer.",
+      "runtime": "Ausführung",
+      "runnable": "Ausführbar",
+      "notRunnable": "Nicht ausführbar",
+      "unknown": "Unbekannt",
+      "detectionError": "Servererkennung nicht verfügbar. Aktualisieren Sie die Erkennung, um es erneut zu versuchen; Terminalbefehle bleiben verfügbar.",
+      "contextsStep": "Kontexte im Terminal prüfen",
+      "configureStep": "Modell auswählen und konfigurieren",
+      "runStep": "Startvorschau anzeigen",
+      "configureHint": "Dieser interaktive Befehl schreibt die CLI-Konfiguration auf den Computer, auf dem Sie ihn ausführen.",
+      "runHint": "Der Probelauf zeigt den Startplan, ohne die CLI zu starten. Dies ist kein Inferenztest.",
+      "copyFailed": "Kopieren fehlgeschlagen. Markieren und kopieren Sie den Befehl manuell.",
+      "empty": "In dieser Version sind keine ausführbaren CLI-Ziele verfügbar. Verwenden Sie die Werkzeuganleitungen unten."
+    },
     "concept": {
       "code": {
         "title": "CLI-Code",

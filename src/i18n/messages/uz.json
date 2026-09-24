@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Parolni o‘rnatib bo‘lmadi. Qayta urinib ko‘ring.",
     "failedAddProvider": "Provayderni qo‘shib bo‘lmadi. Qayta urinib ko‘ring.",
     "connectionError": "Ulanishda xatolik yuz berdi. Qayta urinib ko‘ring.",
+    "bootstrapTokenLabel": "Boshlang‘ich sozlash tokeni",
+    "bootstrapTokenHelp": "Bu ulanish mahalliy ulanish sifatida tanilmadi (Docker port yo‘naltirishi ortida bu odatiy hol). Davom etish uchun server/konteyner jurnalidan bir martalik boshlang‘ich sozlash tokenini topib, uni yuqoridagi maydonga kiriting.",
     "provider": "Provayder",
     "apiKeyHelp": "API kaliti — AI xizmatlari uchun parol. Uni provayderingiz veb-saytidan oling (masalan, platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Stability AI’ni API kaliti bilan ulang.",
       "stepfun": "API kalitini platform.stepfun.com saytidan oling",
       "sumopod": "SumoPod https://ai.sumopod.com/v1/chat/completions manzilida OpenAI bilan mos chat yakunlash endpointini hamda amaldagi /v1/models katalogini taqdim etadi. OmniRoute OpenAI protokolidan foydalanadi va modellarni to‘g‘ridan-to‘g‘ri uzatish orqali ro‘yxatlaydi.",
-      "suno": "suno.ai saytidan sessiya cookie’sini joylashtiring (Clerk autentifikatsiyasi)",
       "synthetic": "Synthetic’ni API kaliti bilan ulang.",
       "tencent": "API kalitini console.cloud.tencent.com saytidan oling",
       "thebai": "TheB.AI’ning OpenAI bilan mos shlyuzi uchun Bearer API kaliti.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# ta chiqishdan} other {# ta chiqishdan}} {connections, plural, one {# ta ulanish} other {# ta ulanish}} foydalangan · bitta chiqishda ko‘pi bilan {max} ta · oxirgi {hours} soat",
     "poolEgressObservationEmpty": "Oxirgi {hours} soat ichida trafik kuzatilmadi",
     "poolEgressObservationHint": "Proksi jurnalidan ushbu vaqt oralig‘i bo‘yicha hisoblangan: bu pul a’zolari uchun kuzatilgan noyob chiquvchi IP manzillar va ulardan foydalangan OmniRoute ulanishlari. «Bitta chiqishda» ayni bir vaqtda emas, balki ushbu vaqt oralig‘ini anglatadi. Har bir IP uchun 429 blokirovkasi faqat bir xil provayder oilasiga mansub ulanishlarni vaqtincha to‘xtatadi.",
+    "poolMemberEgress": "{host}:{port} {egressIp} orqali chiqdi · so‘nggi {hours} soat",
+    "poolMemberEgressEmpty": "{host}:{port}: so‘nggi {hours} soat ichida trafik kuzatilmadi",
+    "poolMemberEgressHint": "Belgilangan vaqt oralig‘ida ushbu pul a’zosi orqali kuzatilgan oxirgi chiquvchi IP manzil, proksi jurnalidan o‘qilgan. Bu vaqt oralig‘ida trafik bo‘lmagan a’zo uchun trafik yo‘qligi haqidagi qator ko‘rsatiladi.",
     "poolRemove": "Olib tashlash",
     "poolRemoveFailed": "Proksini puldan olib tashlab bo‘lmadi",
     "poolAddLabel": "Proksi qo‘shish",
@@ -12222,6 +12226,29 @@
     "raw": "Xom"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI yordamchisi",
+      "intro": "Buyruqlarni CLI oʻrnatilgan kompyuterda ishga tushirish uchun nusxalang. Bu panel buyruqlarni bajarmaydi va kirish maʼlumotlarini nusxalamaydi.",
+      "hostNotice": "Aniqlash ushbu brauzer kompyuterini emas, OmniRoute serveri joylashgan kompyuterni tavsiflaydi. Sozlangan boʻlish model javobini olish sinovdan oʻtganini anglatmaydi.",
+      "target": "CLI vositasi",
+      "context": "Mavjud kontekst nomi (ixtiyoriy)",
+      "contextHint": "CLI faol kontekstidan foydalanish uchun boʻsh qoldiring. Nomlangan kontekstlar mahalliy yoki masofaviy serverga yoʻnaltirishi mumkin; avval terminalda ularning roʻyxatini koʻring.",
+      "contextInvalid": "Harf yoki raqamdan boshlanuvchi 1–64 ta harf, raqam, nuqta, chiziqcha yoki pastki chiziqdan foydalaning.",
+      "modelHint": "Bu CLI model talab qiladi. Ishga tushirish koʻrinishini nusxalashdan oldin haqiqiy provayder/model identifikatorini kiriting.",
+      "modelInvalid": "Harf yoki raqamdan boshlanuvchi, boʻshliq yoki qobiq belgilarisiz model identifikatoridan foydalaning.",
+      "runtime": "Bajarish muhiti",
+      "runnable": "Ishga tushirish mumkin",
+      "notRunnable": "Ishga tushirib boʻlmaydi",
+      "unknown": "Nomaʼlum",
+      "detectionError": "Serverni aniqlash mavjud emas. Qayta urinish uchun aniqlashni yangilang; terminal buyruqlari mavjud boʻlib qoladi.",
+      "contextsStep": "Terminal kontekstlarini tekshiring",
+      "configureStep": "Model tanlang va sozlang",
+      "runStep": "Ishga tushirishni oldindan koʻrish",
+      "configureHint": "Bu interaktiv buyruq CLI sozlamasini siz uni ishlatgan kompyuterga yozadi.",
+      "runHint": "Sinov rejimi CLI ni boshlamasdan ishga tushirish rejasini koʻrsatadi. Bu model javobini olish sinovi emas.",
+      "copyFailed": "Nusxalab boʻlmadi. Buyruqni tanlab, qoʻlda nusxalang.",
+      "empty": "Bu versiyada ishga tushiriladigan CLI vositalari yoʻq. Quyidagi vosita qoʻllanmalaridan foydalaning."
+    },
     "concept": {
       "code": {
         "title": "CLI kodi",

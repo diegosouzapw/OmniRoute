@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Đặt mật khẩu thất bại. Hãy thử lại.",
     "failedAddProvider": "Thêm nhà cung cấp thất bại. Hãy thử lại.",
     "connectionError": "Lỗi kết nối. Vui lòng thử lại.",
+    "bootstrapTokenLabel": "Mã thông báo khởi tạo",
+    "bootstrapTokenHelp": "Kết nối này không được nhận diện là kết nối cục bộ (thường xảy ra khi chuyển tiếp cổng Docker). Hãy kiểm tra nhật ký máy chủ/vùng chứa để tìm mã thông báo khởi tạo dùng một lần rồi dán mã đó vào ô phía trên để tiếp tục.",
     "provider": "Nhà cung cấp",
     "apiKeyHelp": "Khóa API là mật khẩu cho các dịch vụ AI. Hãy lấy một khóa từ trang web của nhà cung cấp của bạn (ví dụ: platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Kết nối Stability AI bằng khóa API.",
       "stepfun": "Lấy khóa API tại platform.stepfun.com",
       "sumopod": "SumoPod cung cấp endpoint chat completions tương thích OpenAI tại https://ai.sumopod.com/v1/chat/completions cùng danh mục /v1/models trực tiếp. OmniRoute dùng giao thức OpenAI và liệt kê mô hình qua passthrough.",
-      "suno": "Dán cookie phiên từ suno.ai (xác thực Clerk)",
       "synthetic": "Kết nối Synthetic bằng khóa API.",
       "tencent": "Lấy khóa API tại console.cloud.tencent.com",
       "thebai": "Khóa API Bearer cho cổng TheB.AI tương thích OpenAI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# lối ra} other {# lối ra}} được dùng bởi {connections, plural, one {# kết nối} other {# kết nối}} · tối đa {max} trên một lối ra · {hours} giờ qua",
     "poolEgressObservationEmpty": "Không ghi nhận lưu lượng trong {hours} giờ qua",
     "poolEgressObservationHint": "Tính từ nhật ký proxy trong khoảng thời gian này: số IP đầu ra riêng biệt quan sát được ở các thành viên của nhóm proxy này và số kết nối OmniRoute đã sử dụng các IP đó. \"Trên một lối ra\" nghĩa là trong toàn bộ khoảng thời gian, không phải tại cùng một thời điểm. Cơ chế khóa do lỗi 429 theo IP chỉ tạm dừng các kết nối thuộc cùng một nhóm nhà cung cấp.",
+    "poolMemberEgress": "{host}:{port} đã đi qua {egressIp} · {hours} giờ qua",
+    "poolMemberEgressEmpty": "{host}:{port}: không ghi nhận lưu lượng trong {hours} giờ qua",
+    "poolMemberEgressHint": "IP đầu ra quan sát được lần cuối qua thành viên nhóm này trong khoảng thời gian, đọc từ nhật ký proxy. Thành viên không có lưu lượng hiển thị dòng không có lưu lượng.",
     "poolRemove": "Gỡ bỏ",
     "poolRemoveFailed": "Không thể gỡ proxy khỏi nhóm",
     "poolAddLabel": "Thêm proxy",
@@ -12222,6 +12226,29 @@
     "raw": "Dữ liệu thô"
   },
   "cliCommon": {
+    "companion": {
+      "title": "Trợ lý CLI",
+      "intro": "Sao chép lệnh để chạy trên máy tính đã cài CLI của bạn. Bảng này không thực thi lệnh hay sao chép thông tin xác thực.",
+      "hostNotice": "Kết quả phát hiện mô tả máy chủ OmniRoute, không phải máy tính đang mở trình duyệt này. Đã cấu hình không có nghĩa là đã kiểm thử suy luận.",
+      "target": "Công cụ CLI",
+      "context": "Tên ngữ cảnh hiện có (tùy chọn)",
+      "contextHint": "Để trống để dùng ngữ cảnh đang hoạt động của CLI. Ngữ cảnh có tên có thể trỏ đến máy chủ cục bộ hoặc từ xa; hãy liệt kê chúng trong terminal trước.",
+      "contextInvalid": "Dùng 1–64 chữ cái, chữ số, dấu chấm, gạch nối hoặc gạch dưới, bắt đầu bằng chữ cái hoặc chữ số.",
+      "modelHint": "CLI này cần một mô hình. Nhập mã nhà-cung-cấp/mô-hình có thật trước khi sao chép bản xem trước khởi chạy.",
+      "modelInvalid": "Dùng mã mô hình bắt đầu bằng chữ cái hoặc chữ số, không có khoảng trắng hay ký tự shell.",
+      "runtime": "Môi trường thực thi",
+      "runnable": "Có thể chạy",
+      "notRunnable": "Không thể chạy",
+      "unknown": "Không xác định",
+      "detectionError": "Không thể phát hiện máy chủ. Làm mới để thử lại; các lệnh terminal vẫn khả dụng.",
+      "contextsStep": "Kiểm tra ngữ cảnh terminal",
+      "configureStep": "Chọn mô hình và cấu hình",
+      "runStep": "Xem trước khởi chạy",
+      "configureHint": "Lệnh tương tác này ghi cấu hình CLI trên máy tính nơi bạn chạy lệnh.",
+      "runHint": "Chạy mô phỏng hiển thị kế hoạch khởi chạy mà không khởi động CLI. Đây không phải là kiểm thử suy luận.",
+      "copyFailed": "Không thể sao chép. Hãy chọn và sao chép lệnh thủ công.",
+      "empty": "Phiên bản này không có công cụ CLI nào có thể thực thi. Hãy dùng hướng dẫn công cụ bên dưới."
+    },
     "concept": {
       "code": {
         "title": "Công cụ viết mã CLI",

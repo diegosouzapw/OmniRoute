@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Gagal menetapkan kata laluan. Cuba lagi.",
     "failedAddProvider": "Gagal menambah pembekal. Cuba lagi.",
     "connectionError": "Ralat sambungan. Sila cuba lagi.",
+    "bootstrapTokenLabel": "Token bootstrap",
+    "bootstrapTokenHelp": "Sambungan ini tidak dikenali sebagai sambungan setempat (lazim berlaku di sebalik pemajuan port Docker). Semak log pelayan/bekas untuk mendapatkan token bootstrap sekali guna dan tampalkannya di atas untuk meneruskan.",
     "provider": "Pembekal",
     "apiKeyHelp": "Kunci API ialah kata laluan untuk perkhidmatan AI. Dapatkan satu daripada tapak web pembekal anda (cth., platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Sambungkan Stability AI dengan kunci API.",
       "stepfun": "Dapatkan kunci API di platform.stepfun.com",
       "sumopod": "SumoPod mendedahkan titik akhir pelengkapan sembang serasi OpenAI di https://ai.sumopod.com/v1/chat/completions, serta katalog /v1/models langsung. OmniRoute menggunakan protokol OpenAI dan menyenaraikan model melalui passthrough.",
-      "suno": "Tampal kuki sesi daripada suno.ai (pengesahan Clerk)",
       "synthetic": "Sambungkan Synthetic dengan kunci API.",
       "tencent": "Dapatkan kunci API di console.cloud.tencent.com",
       "thebai": "Kunci API Bearer untuk gateway serasi OpenAI TheB.AI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# laluan keluar} other {# laluan keluar}} digunakan oleh {connections, plural, one {# sambungan} other {# sambungan}} · sehingga {max} pada satu laluan keluar · {hours} j terakhir",
     "poolEgressObservationEmpty": "Tiada trafik dikesan dalam tempoh {hours} j terakhir",
     "poolEgressObservationHint": "Dikira daripada log proksi sepanjang tempoh tersebut: IP egress berbeza yang dikesan untuk ahli kumpulan ini dan sambungan OmniRoute yang menggunakannya. \"Pada satu laluan keluar\" bermaksud sepanjang tempoh tersebut, bukan pada masa yang sama. Sekatan 429 bagi setiap IP hanya menjeda sambungan daripada keluarga penyedia yang sama.",
+    "poolMemberEgress": "{host}:{port} keluar melalui {egressIp} · {hours} j terakhir",
+    "poolMemberEgressEmpty": "{host}:{port}: tiada trafik dikesan dalam {hours} j terakhir",
+    "poolMemberEgressHint": "IP egress terakhir yang dikesan melalui ahli kumpulan ini dalam tempoh tersebut, dibaca daripada log proksi. Ahli tanpa trafik dalam tempoh tersebut memaparkan baris tiada trafik.",
     "poolRemove": "Alih keluar",
     "poolRemoveFailed": "Gagal mengalih keluar proksi daripada kolam",
     "poolAddLabel": "Tambah proksi",
@@ -12222,6 +12226,29 @@
     "raw": "Mentah"
   },
   "cliCommon": {
+    "companion": {
+      "title": "Pembantu CLI",
+      "intro": "Salin arahan untuk dijalankan pada komputer tempat CLI anda dipasang. Panel ini tidak menjalankan arahan atau menyalin maklumat kelayakan.",
+      "hostNotice": "Pengesanan menerangkan hos pelayan OmniRoute, bukan komputer pelayar ini. Telah dikonfigurasi tidak bermakna inferens telah diuji.",
+      "target": "Alat CLI",
+      "context": "Nama konteks sedia ada (pilihan)",
+      "contextHint": "Biarkan kosong untuk menggunakan konteks aktif CLI. Konteks bernama boleh merujuk kepada pelayan setempat atau jauh; senaraikannya dalam terminal terlebih dahulu.",
+      "contextInvalid": "Gunakan 1–64 huruf, digit, titik, sempang atau garis bawah, bermula dengan huruf atau digit.",
+      "modelHint": "CLI ini memerlukan model. Masukkan pengecam penyedia/model yang sebenar sebelum menyalin pratonton pelancarannya.",
+      "modelInvalid": "Gunakan pengecam model tanpa ruang atau aksara shell, bermula dengan huruf atau digit.",
+      "runtime": "Persekitaran pelaksanaan",
+      "runnable": "Boleh dijalankan",
+      "notRunnable": "Tidak boleh dijalankan",
+      "unknown": "Tidak diketahui",
+      "detectionError": "Pengesanan pelayan tidak tersedia. Muat semula pengesanan untuk mencuba lagi; arahan terminal masih tersedia.",
+      "contextsStep": "Semak konteks terminal",
+      "configureStep": "Pilih model dan konfigurasikan",
+      "runStep": "Pratonton pelancaran",
+      "configureHint": "Arahan interaktif ini menulis konfigurasi CLI pada komputer tempat anda menjalankannya.",
+      "runHint": "Simulasi menunjukkan rancangan pelancaran tanpa memulakan CLI. Ini bukan ujian inferens.",
+      "copyFailed": "Tidak dapat menyalin. Pilih dan salin arahan secara manual.",
+      "empty": "Tiada sasaran CLI yang boleh dijalankan dalam versi ini. Gunakan panduan alat di bawah."
+    },
     "concept": {
       "code": {
         "title": "Kod CLI",

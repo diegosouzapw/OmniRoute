@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Imeshindikana kuweka nenosiri. Jaribu tena.",
     "failedAddProvider": "Imeshindikana kuongeza mtoa huduma. Jaribu tena.",
     "connectionError": "Hitilafu ya muunganisho. Tafadhali jaribu tena.",
+    "bootstrapTokenLabel": "Tokeni ya kuanzisha",
+    "bootstrapTokenHelp": "Muunganisho huu hautambuliki kama wa ndani (jambo linalotokea mara nyingi nyuma ya usambazaji wa mlango wa Docker). Angalia kumbukumbu ya seva/kontena ili kupata tokeni ya kuanzisha ya matumizi ya mara moja, kisha uibandike hapo juu ili kuendelea.",
     "provider": "Mtoa Huduma",
     "apiKeyHelp": "Kitufe cha API ni nenosiri la huduma za AI. Pata moja kutoka kwa tovuti ya mtoa huduma wako (k.m., platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Unganisha Stability AI kwa kutumia ufunguo wa API.",
       "stepfun": "Pata ufunguo wa API kwenye platform.stepfun.com",
       "sumopod": "SumoPod hutoa endpoint ya ukamilishaji wa gumzo inayooana na OpenAI katika https://ai.sumopod.com/v1/chat/completions, pamoja na orodha ya moja kwa moja ya /v1/models. OmniRoute hutumia itifaki ya OpenAI na huorodhesha miundo kupitia passthrough.",
-      "suno": "Bandika kuki ya kipindi kutoka suno.ai (Clerk auth)",
       "synthetic": "Unganisha Synthetic kwa kutumia ufunguo wa API.",
       "tencent": "Pata ufunguo wa API kwenye console.cloud.tencent.com",
       "thebai": "Ufunguo wa API wa Bearer kwa ajili ya lango la TheB.AI linalooana na OpenAI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {njia # ya kutoka} other {njia # za kutoka}} zilitumiwa na {connections, plural, one {muunganisho #} other {miunganisho #}} · hadi {max} kwenye njia moja ya kutoka · saa {hours} zilizopita",
     "poolEgressObservationEmpty": "Hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
     "poolEgressObservationHint": "Imehesabiwa kutoka kwenye kumbukumbu ya proksi katika kipindi hiki: IP tofauti za kutoka zilizoonekana kwa wanachama wa kundi hili, na miunganisho ya OmniRoute iliyozitumia. \"Kwenye njia moja ya kutoka\" humaanisha katika kipindi hicho, si kwa wakati mmoja. Uzuiaji wa 429 kwa kila IP husitisha tu miunganisho ya familia moja ya watoa huduma.",
+    "poolMemberEgress": "{host}:{port} ilitoka kupitia {egressIp} · saa {hours} zilizopita",
+    "poolMemberEgressEmpty": "{host}:{port}: hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
+    "poolMemberEgressHint": "IP ya mwisho ya kutoka iliyoonekana kupitia mshiriki huyu wa kundi katika kipindi hiki, ikisomwa kutoka kwenye logi ya proksi. Mshiriki asiye na trafiki katika kipindi hicho huonyesha mstari wa kutokuwepo kwa trafiki.",
     "poolRemove": "Ondoa",
     "poolRemoveFailed": "Imeshindwa kuondoa proksi kwenye dimbwi",
     "poolAddLabel": "Ongeza proksi",
@@ -12222,6 +12226,29 @@
     "raw": "Ghafi"
   },
   "cliCommon": {
+    "companion": {
+      "title": "Msaidizi wa CLI",
+      "intro": "Nakili amri ili kuziendesha kwenye kompyuta yenye CLI yako. Paneli hii haiendeshi amri wala kunakili taarifa za uthibitishaji.",
+      "hostNotice": "Ugunduzi unaelezea kompyuta inayohifadhi seva ya OmniRoute, si kompyuta ya kivinjari hiki. Kusanidiwa hakumaanishi kuwa uzalishaji wa majibu ya modeli umejaribiwa.",
+      "target": "Zana ya CLI",
+      "context": "Jina la muktadha uliopo (hiari)",
+      "contextHint": "Acha wazi kutumia muktadha unaotumika wa CLI. Miktadha yenye majina inaweza kuelekeza kwenye seva ya ndani au ya mbali; iorodheshe kwenye terminal kwanza.",
+      "contextInvalid": "Tumia herufi, tarakimu, nukta, vistari au mistari ya chini 1–64, ukianza na herufi au tarakimu.",
+      "modelHint": "CLI hii inahitaji modeli. Weka kitambulisho halisi cha mtoa-huduma/modeli kabla ya kunakili hakikisho la uzinduzi.",
+      "modelInvalid": "Tumia kitambulisho cha modeli kisicho na nafasi au alama za shell, kinachoanza na herufi au tarakimu.",
+      "runtime": "Mazingira ya utekelezaji",
+      "runnable": "Inaweza kuendeshwa",
+      "notRunnable": "Haiwezi kuendeshwa",
+      "unknown": "Haijulikani",
+      "detectionError": "Ugunduzi wa seva haupatikani. Onyesha upya ugunduzi ili kujaribu tena; amri za terminal bado zinapatikana.",
+      "contextsStep": "Kagua miktadha ya terminal",
+      "configureStep": "Chagua modeli na usanidi",
+      "runStep": "Hakiki uzinduzi",
+      "configureHint": "Amri hii shirikishi huandika usanidi wa CLI kwenye kompyuta unayoiendeshea.",
+      "runHint": "Uigaji huonyesha mpango wa uzinduzi bila kuanzisha CLI. Huu si mtihani wa uzalishaji wa majibu ya modeli.",
+      "copyFailed": "Imeshindwa kunakili. Chagua na unakili amri mwenyewe.",
+      "empty": "Hakuna zana za CLI zinazoweza kuendeshwa katika toleo hili. Tumia miongozo ya zana iliyo hapa chini."
+    },
     "concept": {
       "code": {
         "title": "Msimbo wa CLI",

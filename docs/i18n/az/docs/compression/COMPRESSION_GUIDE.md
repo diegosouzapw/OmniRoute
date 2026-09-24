@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Azərbaycan dili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -188,59 +188,76 @@ Stacked ilə:           10K-2.5K token göndərilir     (uyğun RTK+Caveman məz
 
 - **Caveman** — rejim seçimi, dil paketləri, önizləmə və qlobal standart parametrlər
 - **RTK** — əmr filtri önizləməsi, RTK təhlükəsizlik parametrləri və filtr kataloqu
-- **Sıxılma kombinasiyaları** — marşrutlaşdırma kombinasiyalarına təyin edilən adlandırılmış mühərrik konveyerləri
-- **Avtomatik işə salma həddi** — token sayı həddi aşdıqda sıxılmanı avtomatik aktivləşdirir
+- **Compression Combos** — marşrutlaşdırma kombinasiyalarına təyin edilən adlandırılmış mühərrik konveyerləri
+- **Auto-Trigger Threshold** — token sayı həddi keçdikdə sıxmanı avtomatik aktivləşdirir
 
-### Kombinasiya üzrə əvəzləmə
+### Kombinasiya üzrə ləğvetmə
 
-`Dashboard → Context & Cache → Compression Combos` bölməsində marşrutlaşdırma kombinasiyasına sıxılma kombinasiyası təyin edin:
+`Dashboard → Context & Cache → Compression Combos` bölməsində marşrutlaşdırma kombinasiyasına sıxma kombinasiyası təyin edin:
 
 ```txt
-Kombinasiya: "free-tier-fallback"
-  Sıxılma kombinasiyası: "coding-agent-stack"
-  Konveyer: RTK -> Caveman
-  Hədəflər:
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Bu, ödənişli abunəliklərdə yüngül rejimi saxlayarkən pulsuz/proqramlaşdırma provayderlərində ardıcıl sıxılmadan istifadə etməyə imkan verir.
+Bu, ödənişli abunəliklərdə yüngül rejimi qoruyub saxlamaqla yanaşı, pulsuz/proqramlaşdırma provayderlərində ardıcıl sıxmadan istifadə etməyə imkan verir.
 
-Bu "Kombinasiya üzrə əvəzləmə" təyinatı **marşrutlaşdırma kombinasiyasının sıxılma rejimi** əvəzləməsindən (Standart/Söndürülüb/Yüngül/Adi/Aqressiv/Ultra) fərqli idarəetmə elementidir — həmin əvəzləmə adlandırılmış sıxılma kombinasiyası konveyerini seçmir; o, sadəcə `resolveCompressionPlan` tərəfindən nəzərə alınan `compressionMode` sahəsini təyin edir. Bu parametr kombinasiya kartında (`Dashboard → Combos`) və ya #6760-dan etibarən yuxarıda sənədləşdirilmiş konveyer təyinatı xanasının düz yanında, `Dashboard → Context & Cache → Compression Combos` bölməsindəki "Marşrutlaşdırmaya təyin et" siyahısında hər marşrutlaşdırma kombinasiyası üçün təyin edilə bilər. Hər iki interfeysdəki dəyişikliklər eyni `PUT /api/combos/{id}` son nöqtəsi vasitəsilə yadda saxlanılır.
+Bu "Kombinasiya üzrə ləğvetmə" təyinatı **marşrutlaşdırma kombinasiyasının sıxma rejimi**
+ləğvetməsindən (Default/Off/Lite/Standard/Aggressive/Ultra) fərqli idarəetmə vasitəsidir — həmin ləğvetmə adlandırılmış
+sıxma kombinasiyası konveyerini seçmir; o, sadəcə `resolveCompressionPlan` tərəfindən yoxlanılan
+`compressionMode` sahəsini təyin edir. Bu parametr ya kombinasiya kartında (`Dashboard → Combos`), ya da
+#6760-dan etibarən `Dashboard → Context & Cache → Compression Combos` bölməsindəki "Assign to routing"
+siyahısında, yuxarıda sənədləşdirilən konveyer təyinatı qeyd xanasının yanında hər marşrutlaşdırma kombinasiyası üzrə
+təyin edilə bilər. Hər iki interfeysdəki dəyişikliklər eyni `PUT /api/combos/{id}` son nöqtəsi vasitəsilə yadda saxlanılır.
 
-### Sorğu üzrə əvəzləmə
+### Sorğu üzrə ləğvetmə
 
-Tək bir sorğu üçün sıxılma planını əvəzləmək məqsədilə `x-omniroute-compression` sorğu başlığını göndərin. O, ən yüksək prioritetə malikdir — marşrutlaşdırma kombinasiyası əvəzləməsindən, aktiv profildən, avtomatik işə salmadan və paneldəki Standart parametrdən üstündür. Naməlum dəyərlər nəzərə alınmır (sorğu heç vaxt rədd edilmir) və qlobal əsas keçid yenə də hər şeyi idarə edir: sıxılma qlobal olaraq söndürüldükdə, başlıq onu aktivləşdirə bilməz. Dəyərlər:
+Tək bir sorğu üçün sıxma planını ləğv etmək məqsədilə `x-omniroute-compression` sorğu başlığını
+göndərin. O, ən yüksək prioritetə malikdir — marşrutlaşdırma kombinasiyasının ləğvetməsindən, aktiv profildən,
+avtomatik aktivləşdirmədən və paneldəki Default parametrindən üstündür. Naməlum dəyərlər nəzərə alınmır (sorğu heç vaxt rədd edilmir) və
+qlobal əsas keçid yenə də hər şeyi idarə edir: sıxma qlobal səviyyədə söndürüldükdə başlıq onu
+aktivləşdirə bilməz. Dəyərlər:
 
-| Dəyər         | Təsir                                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------------------------ |
-| `off`         | Bu sorğu üçün sıxılma yoxdur.                                                                                |
-| `default`     | Paneldən əldə edilən Standart profil (aktiv profili nəzərə almır).                                           |
-| `engine:<id>` | Aktiv olduqda tək bir mühərrik, məsələn, `engine:rtk`.                                                       |
-| `<combo>`     | Əvvəlcə ada görə (registr nəzərə alınmadan), sonra isə id-yə görə uyğunlaşdırılan adlandırılmış kombinasiya. |
+| Dəyər         | Təsir                                                                                                                |
+| ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Bu sorğu üçün sıxma tətbiq edilmir.                                                                                  |
+| `default`     | Paneldən əldə edilən Default profili (aktiv profili nəzərə almır). İtkili mühərriklər söndürülmüş qalır.             |
+| `safe`        | Başlığın göndərilməməsi ilə eynidir: yalnız dublikatların silinməsi və boşluqların yığcamlaşdırılması.               |
+| `allow-lossy` | Xülasələr, uyğunluq filtrləri və üslub yenidən yazmaları daxil olmaqla bu sorğunun operator planını saxlayır.        |
+| `engine:<id>` | Aktiv olduqda tək bir mühərrik, məsələn, `engine:rtk`. Bu, həmin mühərrik üçün sorğu üzrə qoşulmadır.                |
+| `<combo>`     | Əvvəlcə ada görə (böyük-kiçik hərfə həssas olmadan), sonra isə id-yə görə uyğunlaşdırılan adlandırılmış kombinasiya. |
 
-Tətbiq edilmiş plan `X-OmniRoute-Compression: <mode>; source=<source>` cavab başlığında geri qaytarılır; burada `<source>` `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` və ya `off` dəyərlərindən biridir.
+`allow-lossy`, `engine:<id>` və ya adlandırılmış kombinasiya olmadıqda itkili mühərriklər tətbiq edilmir.
+Sıxma aktiv olduqda sorğuya yenə də sessiya dublikatlarının silinməsi və boşluqların yığcamlaşdırılması tətbiq edilir.
+
+Tətbiq edilmiş plan `X-OmniRoute-Compression: <mode>; source=<source>` cavab başlığında
+geri qaytarılır; burada `<source>` `request-header`, `routing-override`, `active-profile`,
+`auto-trigger`, `default` və ya `off` dəyərlərindən biridir.
 
 ### API
 
 ```bash
-# Sıxılma parametrlərini əldə edin
+# Sıxma parametrlərini əldə edin
 curl http://localhost:20128/api/settings/compression
 
-# Sıxılma parametrlərini yeniləyin
+# Sıxma parametrlərini yeniləyin
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Xüsusi RTK/ardıcıl faydalı yükünü önizləyin
+# Konkret RTK/stacked faydalı yükünü önizləyin
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# RTK filtr paketlərini siyahıya alın
+# RTK filtr paketlərinin siyahısını əldə edin
 curl http://localhost:20128/api/context/rtk/filters
 
-# RTK-nı əlavə əmr metadatası ilə birbaşa sınaqdan keçirin
+# RTK-ni əlavə əmr metadatası ilə birbaşa sınaqdan keçirin
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -284,15 +301,15 @@ Hər sıxılmış sorğu server jurnallarında statistikanı ehtiva edir:
 
 ---
 
-## Mərhələlər üzrə Yol Xəritəsi
+## Mərhələlər üzrə yol xəritəsi
 
-| Mərhələ    | Rejimlər                                                                                                                                                               | Status       |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| Mərhələ 1  | Off, Lite                                                                                                                                                              | ✅ Buraxılıb |
-| Mərhələ 2  | Standard, Aggressive, Ultra                                                                                                                                            | ✅ Buraxılıb |
-| Mərhələ 3  | RTK, Stacked, Compression Combos                                                                                                                                       | ✅ Buraxılıb |
-| Mərhələ 4  | Output Styles, SLM-tier Ultra, qiymətləndirmə infrastrukturu                                                                                                           | ✅ Buraxılıb |
-| Mərhələ 4C | Adaptiv kontekst büdcəsi ("dial") — hesablama mühərriki + API (`PUT /api/settings/compression` üzərində `contextBudget`) + idarə panelinin rejim/siyasət idarəetmələri | ✅ Buraxılıb |
+| Mərhələ    | Rejimlər                                                                                                                                                                            | Status       |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Mərhələ 1  | Söndürülmüş, Yüngül                                                                                                                                                                 | ✅ Buraxılıb |
+| Mərhələ 2  | Standart, Aqressiv, Ultra                                                                                                                                                           | ✅ Buraxılıb |
+| Mərhələ 3  | RTK, Yığılmış, Sıxılma kombinasiyaları                                                                                                                                              | ✅ Buraxılıb |
+| Mərhələ 4  | Çıxış üslubları, SLM səviyyəli Ultra, qiymətləndirmə infrastrukturu                                                                                                                 | ✅ Buraxılıb |
+| Mərhələ 4C | Adaptiv kontekst büdcəsi ("tənzimləyici") — hesablama mühərriki + API (`PUT /api/settings/compression` daxilində `contextBudget`) + idarəetmə panelində rejim/siyasət idarəetmələri | ✅ Buraxılıb |
 
 ---
 
@@ -306,21 +323,21 @@ RTK rejimi terminal, yığma, test, git və alət çıxışlarının filtrasiyas
 
 ## Təkmil Sıxılma Sistemləri
 
-7 standart rejimdən əlavə, OmniRoute kontekstə əsasən avtomatik işləyən bir neçə təkmil sıxılma sistemini ehtiva edir.
+7 standart rejimdən əlavə, OmniRoute kontekstdən asılı olaraq avtomatik işləyən bir neçə təkmil sıxılma sistemini ehtiva edir.
 
 ### Keşdən Xəbərdar Sıxılma
 
-Bəzi provayderlər (məsələn, prompt keşləməsi ilə Anthropic) **prompt keşləməsini** dəstəkləyir ki, bu da xərcləri və gecikməni azaltmaq üçün promptun hissələrini keşləməyə imkan verir. Keşləmə aktiv olduqda, aqressiv sıxılma keşlənmiş tokenləri dəyişdirib keşi etibarsız etdiyi üçün performansa əslində **zərər verə bilər**.
+Bəzi provayderlər (məsələn, sorğu keşləməsini dəstəkləyən Anthropic) **sorğu keşləməsini** dəstəkləyir; bu, xərcləri və gecikməni azaltmaq üçün sorğunun müəyyən hissələrini keşləməyə imkan verir. Keşləmə aktiv olduqda, aqressiv sıxılma keşlənmiş tokenləri dəyişdirdiyi və keşi etibarsız etdiyi üçün performansa əslində **zərər verə** bilər.
 
-`cachingAware.ts` modulu bunu **keşləmə kontekstini aşkarlamaqla** və **sıxılma strategiyasını** müvafiq şəkildə tənzimləməklə həll edir.
+`cachingAware.ts` modulu bunu **keşləmə kontekstini aşkarlamaqla** və **sıxılma strategiyasını uyğun şəkildə tənzimləməklə** həll edir.
 
 #### Necə işləyir
 
-1. **Keşləmə kontekstini aşkarlayın** — Sorğu gövdəsini `cache_control` markerləri üçün skan edir
-2. **Keşləmə provayderlərini müəyyənləşdirin** — Hədəf provayderin keşləməni dəstəkləyib-dəstəkləmədiyini yoxlayır
-3. **Strategiyanı tənzimləyin** — Keşləmə provayderləri üçün `aggressive`/`ultra` rejimini `standard` rejiminə endirir
-4. **Sistem promptunu ötürün** — Sistem promptları adətən keşlənir, ona görə də onları sıxmayın
-5. **Deterministik çevrilmələrdən istifadə edin** — Yalnız ardıcıl çıxış yaradan çevrilmələrdən istifadə edin
+1. **Keşləmə kontekstini aşkarlayır** — Sorğu gövdəsini `cache_control` markerləri üçün yoxlayır
+2. **Keşləməni dəstəkləyən provayderləri müəyyən edir** — Hədəf provayderin keşləməni dəstəkləyib-dəstəkləmədiyini yoxlayır
+3. **Strategiyanı tənzimləyir** — Keşləməni dəstəkləyən provayderlər üçün `aggressive`/`ultra` rejimlərini `standard` rejiminə endirir
+4. **Sistem sorğusunu ötürür** — Sistem sorğuları adətən keşlənir, buna görə də onları sıxmır
+5. **Deterministik çevrilmələrdən istifadə edir** — Yalnız ardıcıl nəticə yaradan çevrilmələrdən istifadə edir
 
 #### Kod nümunəsi
 
@@ -343,21 +360,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Nə vaxt istifadə etməli
+#### Nə zaman istifadə edilməlidir
 
 Keşdən xəbərdar sıxılma **həmişə aktivdir** — heç bir konfiqurasiya tələb olunmur. O, yalnız aşağıdakı hallarda işə düşür:
 
 - Sorğuda `cache_control` markerləri olduqda
-- Hədəf provayder prompt keşləməsini dəstəklədikdə (Anthropic, OpenAI və s.)
+- Hədəf provayder sorğu keşləməsini dəstəklədikdə (Anthropic, OpenAI və s.)
 
 ### Proqressiv Köhnəlmə
 
-Uzun söhbətlər çoxlu mesaj növbəsi toplayır, lakin köhnə növbələrin aktuallığı azalır. `progressiveAging.ts` modulu **mesajları növbə məsafəsinə görə sadələşdirir**:
+Uzun söhbətlər çoxlu mesaj növbəsi toplayır, lakin köhnə növbələr tədricən daha az aktual olur. `progressiveAging.ts` modulu **mesajları növbə məsafəsinə əsasən sadələşdirir**:
 
 - **Son növbələr (0-3)**: Olduğu kimi saxlanılır (tam təfərrüat)
-- **Orta növbələr (4-8)**: Lite sıxılma (boşluqların və formatlamanın təmizlənməsi)
-- **Köhnə növbələr (9+)**: Caveman sıxılması (doldurucu mətnin silinməsi, xülasələşdirmə)
-- **Çox köhnə növbələr (20+)**: Ciddi şəkildə xülasələşdirilir və ya silinir
+- **Orta növbələr (4-8)**: Yüngül sıxılma (boşluqların və formatlamanın təmizlənməsi)
+- **Köhnə növbələr (9+)**: Caveman sıxılması (doldurucu ifadələrin çıxarılması, xülasələşdirmə)
+- **Çox köhnə növbələr (20+)**: Güclü şəkildə xülasələşdirilir və ya silinir
 
 #### Kod nümunəsi
 
@@ -373,41 +390,41 @@ const messages = [
 
 const { messages: aged, saved } = applyAging(messages, {
   verbatim: 3, // İlk 3 növbə: olduğu kimi
-  light: 8, // 4-8-ci növbələr: lite sıxılma
+  light: 8, // 4-8-ci növbələr: yüngül sıxılma
   moderate: 20, // 9-20-ci növbələr: caveman sıxılması
-  // 21-ci və sonrakı növbələr: ciddi xülasələşdirmə
+  // 21-ci və sonrakı növbələr: güclü xülasələşdirmə
 });
 
-// saved = qənaət edilmiş tokenlərin sayı
+// saved = qənaət edilən tokenlərin sayı
 ```
 
-#### Nə vaxt istifadə etməli
+#### Nə zaman istifadə edilməlidir
 
-Proqressiv köhnəlmə `aggressive` və `ultra` rejimləri üçün **həmişə aktivdir**. Bu, xüsusilə aşağıdakılar üçün effektivdir:
+Proqressiv köhnəlmə `aggressive` və `ultra` rejimləri üçün **həmişə aktivdir**. O, xüsusilə aşağıdakılar üçün effektivdir:
 
-- Uzunmüddətli kodlaşdırma sessiyaları
+- Uzunmüddətli proqramlaşdırma sessiyaları
 - Bir neçə gün davam edən söhbətlər
-- Çoxsaylı alət çağırışları olan agent əsaslı iş axınları
+- Çoxlu alət çağırışı olan agent əsaslı iş axınları
 
-### Mağara Adamı Çıxış Rejimi
+### Caveman Çıxış Rejimi
 
-`outputMode.ts` modulu modelin özünün sıxılmış, qısa çıxış ("mağara adamı" üslubu) yaratmasını təmin etmək üçün **sistem promptu təlimatları** əlavə edir.
+`outputMode.ts` modulu modelin özünün sıxılmış, yığcam çıxış (“caveman” üslubu) yaratmasını təmin etmək üçün **sistem sorğusu təlimatları** əlavə edir.
 
 #### Necə işləyir
 
-Girişi sıxmaq əvəzinə, bu rejim aşağıdakı kimi bir sistem promptu əlavə edir:
+Bu rejim girişi sıxmaq əvəzinə aşağıdakı kimi bir sistem sorğusu əlavə edir:
 
 > "Minimum sözlə cavab ver. Nəzakət ifadələrini ötür. Qısa cümlələrdən istifadə et."
 
 Bu, xüsusilə aşağıdakılar üçün yaxşı işləyir:
 
-- Kod generasiyası (daha qısa çıxış = daha az token)
+- Kod yaratma (daha yığcam çıxış = daha az token)
 - Sürətli sual-cavab (ətraflı izahlara ehtiyac yoxdur)
-- Paket emalı (ötürmə qabiliyyətini maksimuma çatdırmaq üçün)
+- Paket emalı (ötürmə qabiliyyətini maksimuma çatdırır)
 
 #### Nə zaman istifadə edilməlidir
 
-Mağara adamı çıxış rejimi **seçimə bağlıdır** — onu kombinə edilmiş konfiqurasiya vasitəsilə təyin edin:
+Caveman çıxış rejimi **seçim əsasında aktivləşdirilir** — onu birləşdirilmiş konfiqurasiya vasitəsilə təyin edin:
 
 ```json
 {
@@ -422,25 +439,35 @@ Mağara adamı çıxış rejimi **seçimə bağlıdır** — onu kombinə edilmi
 
 ### Çıxış Üslubları (kataloq)
 
-Yuxarıdakı mağara adamı çıxış rejimi **köhnə tək üslublu yoldur**. Phase 4 onu kompozisiya edilə bilən çıxış üslubları kataloquna ümumiləşdirdi: `open-sse/services/compression/outputStyles/catalog.ts` faylındakı `OUTPUT_STYLE_CATALOG`. Hər üslub modelin özünün daha qənaətli çıxış yaratmasını təmin edən sistem promptu təlimatıdır; üslublar birlikdə aktivləşdirilə və kataloq sırasına uyğun əlavə edilə bilər.
+Yuxarıdakı Caveman çıxış rejimi **köhnə tək üslublu yanaşmadır**. Phase 4 bunu birləşdirilə bilən çıxış üslubları kataloquna ümumiləşdirdi: `open-sse/services/compression/outputStyles/catalog.ts` faylındakı `OUTPUT_STYLE_CATALOG`. Hər üslub modelin özünün daha ucuz çıxış yaratmasını təmin edən sistem sorğusu təlimatıdır; üslublar birlikdə aktivləşdirilə bilər və kataloq sırası ilə əlavə olunur.
 
-| Üslub                             | `id`          | Nə edir                                                                                                                                                                                                                                    | Təlimat dilləri                                                                      |
-| --------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| Qısa nəsr                         | `terse-prose` | Artıq sözləri/artiklləri/qeyri-müəyyən ifadələri çıxarır; texniki məzmunu dəqiq saxlayır. Köhnə mağara adamı çıxış rejimi ilə eyni mətndir (yenidən yazılmayıb, istinad edilib).                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Daha az kod                       | `less-code`   | YAGNI pillələnməsi: ən kiçik işlək dəyişiklik, tələb olunmayan abstraksiyalar yoxdur.                                                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| At quyruğu (tənbəl baş proqramçı) | `ponytail`    | "Ən yaxşı kod heç vaxt yazılmayan koddur": təkrar istifadə > yenidən yazma, əsas səbəb > simptom, ən qısa işlək fərq.                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Məndə ADHD var (əvvəlcə əməl)     | `i-have-adhd` | Əvvəlcə əməl (nəsrdən əvvəl əmr/yol/fraqment), nömrələnmiş və məhdud addımlar, BİR konkret növbəti addım, giriş/xülasə/yekun ifadələri yoxdur. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) əsasında uyğunlaşdırılıb. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Qısa CJK (文言)                   | `terse-cjk`   | Klassik Çin dilində son dərəcə qısa üslub.                                                                                                                                                                                                 | zh (lokalla məhdudlaşdırılıb: yalnız müəyyən edilmiş dil `zh` olduqda təklif edilir) |
+| Üslub                              | `id`          | Nə edir                                                                                                                                                                                                                                 | Təlimat dilləri                                                                      |
+| ---------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Yığcam mətn                        | `terse-prose` | Artıq sözləri/artiklləri/qeyri-müəyyən ifadələri çıxarır; texniki məzmunu dəqiq saxlayır. Köhnə Caveman çıxış rejimi ilə eyni mətndir (istinad edilir, yenidən yazılmır).                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
+| Daha az kod                        | `less-code`   | YAGNI pilləkəni: işləyən ən kiçik dəyişiklik, tələb olunmamış abstraksiyalar yoxdur.                                                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
+| At quyruğu (tənbəl baş tərtibatçı) | `ponytail`    | "Ən yaxşı kod heç vaxt yazılmamış koddur": təkrar istifadə > yenidən yazma, əsas səbəb > simptom, işləyən ən qısa diff.                                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
+| Məndə ADHD var (əvvəlcə əməl)      | `i-have-adhd` | Əvvəlcə əməl (mətndən əvvəl əmr/yol/fraqment), nömrələnmiş məhdud addımlar, BİR konkret növbəti addım, giriş/xülasə/yekun ifadələri yoxdur. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) əsasında uyğunlaşdırılıb (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
+| Yığcam CJK (文言)                  | `terse-cjk`   | Klassik Çin dilində son dərəcə yığcam üslub.                                                                                                                                                                                            | zh (lokalla məhdudlaşdırılıb: yalnız müəyyən edilmiş dil `zh` olduqda təklif edilir) |
 
-Hər üslub üç intensivlik səviyyəsi ilə təqdim olunur — `lite`, `full`, `ultra` — və hər səviyyə kod bloklarını, fayl yollarını, əmrləri, xəta sətirlərini, URL-ləri və identifikatorları olduğu kimi saxlayan ortaq məhdudiyyətlər bəndi ilə bitir.
+Hər üslub üç intensivlik səviyyəsi ilə təqdim olunur — `lite`, `full`, `ultra` — və hər səviyyə
+kod bloklarını, fayl yollarını, əmrləri, xəta sətirlərini, URL-ləri və identifikatorları olduğu kimi
+saxlayan ortaq sərhədlər bəndi ilə bitir.
 
-#### Əlavə etmə necə işləyir
+#### Daxiletmə necə işləyir
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) seçimi kataloqla uyğunlaşdırır (naməlum id-lər və lokalla uyğun gəlməyən üslublar çıxarılır, lakin heç vaxt xəta yaranmır), seçilmiş təlimatları kataloq sırasına uyğun birləşdirir, məhdudiyyətlər bəndini **bir dəfə** əlavə edir və nəticəni vahid idempotentlik markerindən (`[OmniRoute Output Styles]`) sonra sistem promptunun əvvəlinə yerləşdirir — təkrar tətbiq heç bir əməliyyat icra etmir. Aşkarlanmış sorğu dili üçün tərcümə mövcud olduqda, ingiliscə təlimat əvəzinə lokallaşdırılmış təlimat əlavə edilir.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) seçimi
+kataloq üzrə müəyyən edir (naməlum id-lər və lokala uyğun olmayan üslublar
+çıxarılır, heç vaxt xəta yaranmır), seçilmiş təlimatları kataloq sırası ilə birləşdirir,
+sərhədlər bəndini **bir dəfə** əlavə edir və nəticəni vahid idempotentlik markerindən
+(`[OmniRoute Output Styles]`) sonra sistem sorğusunun əvvəlinə yerləşdirir — təkrar
+tətbiq heç bir əməliyyat icra etmir. Aşkarlanmış sorğu dili üçün tərcümə mövcud olduqda,
+ingiliscə təlimat əvəzinə lokallaşdırılmış təlimat daxil edilir.
 
-#### Necə aktivləşdirilməlidir
+#### Necə aktivləşdirmək olar
 
-İdarəetmə panelində: **Kontekst → Parametrlər → Sıxılma** — hər üslub üçün aktiv/deaktiv keçidi və səviyyə seçicisi olan bir sətir. Proqram vasitəsilə sıxılma konfiqurasiyası seçimi aşağıdakı kimi saxlayır:
+İdarəetmə panelində: **Kontekst → Parametrlər → Sıxışdırma** — hər üslub üçün
+aktiv/deaktiv keçidi və səviyyə seçicisi olan bir sətir. Proqram vasitəsilə sıxışdırma konfiqurasiyası
+seçimi belə saxlayır:
 
 ```json
 {
@@ -451,48 +478,59 @@ Hər üslub üç intensivlik səviyyəsi ilə təqdim olunur — `lite`, `full`,
 }
 ```
 
-Geriyə uyğunluq: köhnə `outputMode: "caveman"` kombinə edilmiş parametri hələ də işləyir və bütün köhnə dillərdə əvvəlki əlavə ilə bayt səviyyəsində eyni olan `terse-prose` üslubuna uyğunlaşdırılır.
+Geriyə uyğunluq: köhnə `outputMode: "caveman"` kombinasiya parametri hələ də işləyir və
+`terse-prose` ilə uyğunlaşdırılır; bütün köhnə dillərdə əvvəlki daxiletmə ilə bayt səviyyəsində eynidir.
 
-Dil seçimi: `languageConfig.enabled` aktiv olduqda, `autoDetect` ən son istifadəçi mesajının dilini seçir (giriş mühərrikləri ilə eyni aşkarlayıcı); `autoDetect` parametrinin deaktiv edilməsi `defaultLanguage` dilini sabitləyir. Deaktiv olduqda → İngilis dili.
+Dil seçimi: `languageConfig.enabled` aktiv olduqda, `autoDetect` ən son istifadəçi mesajının
+dilini seçir (daxiletmə mühərrikləri ilə eyni detektor);
+`autoDetect` söndürüldükdə `defaultLanguage` sabitlənir. Söndürülüb → İngilis dili.
 
-Üslub × dil matrisi `tests/unit/compression/output-styles-i18n-matrix.test.ts` ilə sabitlənir: yeni üslub ən azı pt-BR tərcüməsi (və ya açıq şəkildə izlənilən istisna) olmadan buraxıla bilməz və mövcud üslub hər hansı lokalı səssizcə itirə bilməz. Üslub əlavə etmək üçün [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) sənədinə baxın.
+Üslub × dil matrisi
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` tərəfindən sabitlənir: yeni üslub
+ən azı pt-BR tərcüməsi (və ya açıq şəkildə izlənilən istisna) olmadan təqdim edilə bilməz və
+mövcud üslub lokala dəstəyi səssizcə itirə bilməz. Üslub əlavə etmək üçün
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) sənədinə baxın.
 
-### Alət Nəticələrinin Sıxılması
+### Alət nəticələrinin sıxışdırılması
 
-`toolResultCompressor.ts` modulu alət nəticələri (funksiya çağırışları, agent çıxışları, axtarış nəticələri və s.) üçün **5 ixtisaslaşmış sıxılma strategiyası** təqdim edir:
+`toolResultCompressor.ts` modulu alət nəticələri (funksiya çağırışları, agent çıxışları,
+axtarış nəticələri və s.) üçün **5 ixtisaslaşdırılmış sıxışdırma strategiyası** təqdim edir:
 
-1. **Axtarış nəticələrinin sıxılması** — Təkrarlanan nəticələri silir, ən yaxşı N nəticəni saxlayır
-2. **Fayl oxunuşunun sıxılması** — Böyük faylları qısaldır, başlıqları/importları qoruyur
-3. **Kod icrasının sıxılması** — Yalnız vacib stdout/stderr çıxışlarını saxlayır
-4. **Verilənlər bazası sorğusunun sıxılması** — Sətirləri məhdudlaşdırır, həddindən artıq ətraflı metadatanı silir
-5. **API cavabının sıxılması** — Null sahələri çıxarır, massivləri yığcamlaşdırır
+1. **Axtarış nəticələrinin sıxışdırılması** — Təkrarlanan nəticələri silir, ən yaxşı N nəticəni saxlayır
+2. **Fayl oxunuşunun sıxışdırılması** — Böyük faylları qısaldır, başlıqları/importları qoruyur
+3. **Kod icrasının sıxışdırılması** — Yalnız vacib stdout/stderr çıxışını saxlayır
+4. **Verilənlər bazası sorğusunun sıxışdırılması** — Sətirləri məhdudlaşdırır, təfərrüatlı metadatanı silir
+5. **API cavabının sıxışdırılması** — Null sahələri çıxarır, massivləri yığcamlaşdırır
 
-#### Nə zaman istifadə edilməlidir
+#### Nə vaxt istifadə etməli
 
-Alət çağırışları mövcud olduqda alət nəticələrinin sıxılması **həmişə aktivdir**. Konfiqurasiyaya ehtiyac yoxdur.
+Alət çağırışları mövcud olduqda alət nəticələrinin sıxışdırılması **həmişə aktivdir**.
+Konfiqurasiya tələb olunmur.
 
-### Ardıcıllıqlı Konveyer
+### Ardıcıl konveyer
 
-Ardıcıl rejim **bir neçə mühərriki ardıcıllıqla** işə salır — adətən əvvəlcə RTK (alət çıxışında 60-90% qənaət), sonra isə Caveman (qalan mətndə əlavə 30% qənaət). Bu, **ümumilikdə 78-95% qənaət** təmin edir.
+Ardıcıl rejim **bir neçə mühərriki növbə ilə** işə salır — adətən əvvəlcə RTK
+(alət çıxışında 60-90% qənaət), sonra Caveman (qalan mətndə əlavə 30% qənaət).
+Bu, **ümumilikdə 78-95% qənaət** təmin edir.
 
 #### Necə işləyir
 
 ```
-Giriş (1000 token)
-  → RTK (əmrlərdən xəbərdar filtr) → 200 token
+Daxiletmə (1000 token)
+  → RTK (əmrləri nəzərə alan filtr) → 200 token
     → Caveman (artıq sözlərin çıxarılması) → 140 token
   → Çıxış (140 token, 86% qənaət)
 ```
 
-#### Nə zaman istifadə edilməlidir
+#### Nə vaxt istifadə etməli
 
-Ardıcıl rejimdən aşağıdakılar üçün istifadə edin:
+Ardıcıl rejimi aşağıdakılar üçün istifadə edin:
 
 - Alətlərdən intensiv istifadə edilən iş axınları (agent əsaslı kodlaşdırma, araşdırma)
-- Xərclərə həssas paket emalı
+- Xərclərə həssas toplu emal
 - Maksimum token qənaətinə ehtiyacınız olduqda
 
-Kombinə edilmiş konfiqurasiya vasitəsilə sazlayın:
+Kombinasiya vasitəsilə konfiqurasiya edin:
 
 ```json
 {

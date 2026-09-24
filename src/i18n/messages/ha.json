@@ -5018,6 +5018,8 @@
     "failedSetPassword": "An kasa saita kalmar sirri. Sake gwadawa.",
     "failedAddProvider": "An kasa ƙara mai samar da sabis. Sake gwadawa.",
     "connectionError": "Kuskuren haɗi. Da fatan za a sake gwadawa.",
+    "bootstrapTokenLabel": "Tokun na bootstrap",
+    "bootstrapTokenHelp": "Ba a gane wannan haɗin a matsayin na gida ba (wannan ya zama ruwan dare yayin amfani da Docker port-forwarding). Duba rajistar uwar garken/kwantena don samun tokun na bootstrap na amfani sau ɗaya, sannan liƙa shi a sama don ci gaba.",
     "provider": "Mai samar da sabis",
     "apiKeyHelp": "Maɓallin API kalmar sirri ce ta ayyukan AI. Sami ɗaya daga gidan yanar gizon mai samar da sabis ɗinka (misali, platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Haɗa Stability AI ta amfani da maɓallin API.",
       "stepfun": "Sami maɓallin API a platform.stepfun.com",
       "sumopod": "SumoPod yana samar da wurin ƙarshen kammala tattaunawa mai dacewa da OpenAI a https://ai.sumopod.com/v1/chat/completions, tare da kundin /v1/models mai aiki kai tsaye. OmniRoute yana amfani da ƙa'idar OpenAI kuma yana jera samfura ta hanyar passthrough.",
-      "suno": "Manna session cookie daga suno.ai (Clerk auth)",
       "synthetic": "Haɗa Synthetic ta amfani da maɓallin API.",
       "tencent": "Sami maɓallin API a console.cloud.tencent.com",
       "thebai": "Maɓallin API na Bearer don ƙofar TheB.AI mai dacewa da OpenAI.",
@@ -11020,6 +11021,9 @@
     "poolEgressObservation": "An yi amfani da {exits, plural, one {hanyar fita #} other {hanyoyin fita #}} ta hanyar {connections, plural, one {haɗi #} other {haɗe-haɗe #}} · har zuwa {max} a kan hanyar fita guda · sa'o'i {hours} da suka gabata",
     "poolEgressObservationEmpty": "Ba a ga zirga-zirga ba cikin sa'o'i {hours} da suka gabata",
     "poolEgressObservationHint": "An ƙidaya daga rajistar proxy a tsawon wannan lokacin: adiresoshin IP na fita daban-daban da aka gani ga mambobin wannan rukuni, da kuma haɗe-haɗen OmniRoute da suka yi amfani da su. \"A kan hanyar fita guda\" yana nufin a tsawon wannan lokacin, ba a lokaci guda ba. Kullewar 429 ta kowane IP tana dakatar da haɗe-haɗen iyalin mai samarwa iri ɗaya ne kawai.",
+    "poolMemberEgress": "{host}:{port} ya fita ta {egressIp} · awanni {hours} da suka gabata",
+    "poolMemberEgressEmpty": "{host}:{port}: ba a ga zirga-zirga ba a cikin awanni {hours} da suka gabata",
+    "poolMemberEgressHint": "Adireshin IP na fita na ƙarshe da aka gani ta wannan mamban pool a cikin lokacin dubawa, wanda aka karanta daga rajistar proxy. Mamban da ba shi da zirga-zirga a cikin wannan lokacin zai nuna layin babu-zirga-zirga.",
     "poolRemove": "Cire",
     "poolRemoveFailed": "An kasa cire proxy daga pool",
     "poolAddLabel": "Ƙara proxy",
@@ -11423,6 +11427,7 @@
         "clientResponse": "Amsar Abokin Ciniki",
         "pipelineError": "Kuskuren Bututun Aiki"
       },
+      "payloadSizeLimitOmitted": "An bar abin da aka aika — wannan sashe ya wuce iyakar girman rajistar kira (CALL_LOG_PIPELINE_MAX_SIZE_KB) kuma ba a adana shi ba; wannan ba ainihin kuskuren mai bayarwa ba ne.",
       "payloadMissing": "Cikakken artefaktin payload ya daina samuwa ga wannan shigarwar rajista.",
       "payloadCorrupt": "Ba a iya tantance cikakken artefaktin payload ba.",
       "notAvailable": "Bai Shafa ba",
@@ -11476,8 +11481,7 @@
       "correlationIdValue": "ID na Alaƙa: {id}",
       "detailedPayloadInfo": "Da farko, kunna yin cikakken log idan kana son ganin payload na matakai huɗu na abokin ciniki/mai bayarwa don sabbin buƙatu.",
       "copyAll": "Kwafi duka",
-      "copiedAll": "An kwafi duka",
-      "payloadSizeLimitOmitted": "An bar abin da aka aika — wannan sashe ya wuce iyakar girman rajistar kira (CALL_LOG_PIPELINE_MAX_SIZE_KB) kuma ba a adana shi ba; wannan ba ainihin kuskuren mai bayarwa ba ne."
+      "copiedAll": "An kwafi duka"
     }
   },
   "proxyLogger": {
@@ -12222,6 +12226,29 @@
     "raw": "Ɗanye"
   },
   "cliCommon": {
+    "companion": {
+      "title": "Mataimakin CLI",
+      "intro": "Kwafi umarnin da za ka gudanar a kwamfutar da aka shigar da CLI ɗinka. Wannan fanni ba ya gudanar da umarni ko kwafin bayanan shiga.",
+      "hostNotice": "Ganowa tana bayyana kwamfutar sabar OmniRoute, ba kwamfutar wannan burauza ba. An saita ba yana nufin an gwada amsar samfurin ba.",
+      "target": "Kayan aikin CLI",
+      "context": "Sunan mahallin da yake akwai (na zaɓi)",
+      "contextHint": "Bar shi babu komai don amfani da mahallin CLI mai aiki. Mahallai masu suna na iya nuni zuwa sabar gida ko ta nesa; fara jera su a tashar umarni.",
+      "contextInvalid": "Yi amfani da haruffa, lambobi, dige, jan layi ko layin ƙasa guda 1–64, a fara da harafi ko lamba.",
+      "modelHint": "Wannan CLI yana buƙatar samfurin. Shigar da ainihin mai-bayarwa/samfuri kafin kwafin duban farawa.",
+      "modelInvalid": "Yi amfani da shaidar samfurin da ta fara da harafi ko lamba, ba tare da sarari ko alamomin harsashin umarni ba.",
+      "runtime": "Muhallin aiki",
+      "runnable": "Za a iya gudanarwa",
+      "notRunnable": "Ba za a iya gudanarwa ba",
+      "unknown": "Ba a sani ba",
+      "detectionError": "Ba a samun ganowar sabar. Sabunta ganowa don sake gwadawa; umarnin tashar suna nan.",
+      "contextsStep": "Duba mahallan tashar umarni",
+      "configureStep": "Zaɓi samfurin kuma saita",
+      "runStep": "Duba shirin farawa",
+      "configureHint": "Wannan umarnin tattaunawa yana rubuta saitin CLI a kwamfutar da ka gudanar da shi.",
+      "runHint": "Gudun gwaji yana nuna shirin farawa ba tare da fara CLI ba. Ba gwajin amsar samfurin ba ne.",
+      "copyFailed": "An kasa kwafi. Zaɓi umarnin ka kwafe shi da hannu.",
+      "empty": "Babu kayan CLI da za a iya gudanarwa a wannan sigar. Yi amfani da jagororin kayan aikin da ke ƙasa."
+    },
     "concept": {
       "code": {
         "title": "Lambar CLI",
