@@ -307,6 +307,7 @@ export function classifyAdaptiveResourcePressureWithHistory(
   } else {
     best = maxLevel(best, highRatio);
   }
+  if (psiPressureDisabled()) return best;
   best = maxLevel(best, psiLevel(signals.psi?.someAvg10 ?? null, thresholds, "psi_some"));
   return maxLevel(best, psiLevel(signals.psi?.fullAvg10 ?? null, thresholds, "psi_full"));
 }
