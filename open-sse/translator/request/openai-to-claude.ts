@@ -641,13 +641,6 @@ function getContentBlocksFromMessage(
           if (part.type === "redacted_thinking" && part.data === "") {
             continue; // drop — same: empty data from non-Anthropic provider
           }
-          if (part.type === "thinking" && part.signature === DEFAULT_THINKING_CLAUDE_SIGNATURE) {
-            blocks.push({
-              type: "redacted_thinking",
-              data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
-            });
-            continue;
-          }
           blocks.push({
             ...part,
             signature: part.signature || DEFAULT_THINKING_CLAUDE_SIGNATURE,

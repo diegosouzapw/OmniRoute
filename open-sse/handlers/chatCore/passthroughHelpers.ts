@@ -2,7 +2,6 @@ import { FORMATS } from "../../translator/formats.ts";
 import { isVerifiedNativeCodexRequest } from "../../config/codexIdentity.ts";
 import { isClaudeCodeCompatibleProvider } from "../../services/claudeCodeCompatible.ts";
 import { isResponsesEndpointPath } from "../../utils/responsesEndpoint.ts";
-import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
 
 export { isResponsesEndpointPath };
@@ -120,54 +119,9 @@ export function shouldUseNativeOpenAICompatibleResponsesPassthrough({
  */
 export function redactPassthroughThinkingSignatures(
   messages: unknown,
-  defaultSignature: string = DEFAULT_THINKING_CLAUDE_SIGNATURE
+  _signature: string
 ): unknown {
-  if (!Array.isArray(messages)) return messages;
-
-  const latestAssistantIndex = (() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i]?.role === "assistant") return i;
-    }
-    return -1;
-  })();
-
-  let changed = false;
-  const sanitized = messages.map((msg, idx) => {
-    if (
-      !msg ||
-      typeof msg !== "object" ||
-      msg.role !== "assistant" ||
-      !Array.isArray(msg.content)
-    ) {
-      return msg;
-    }
-
-    const isLatestAssistant = idx === latestAssistantIndex;
-    let msgChanged = false;
-    const content = msg.content.map((block: Record<string, unknown>) => {
-      if (block && typeof block === "object" && block.type === "thinking") {
-        const sig = typeof block.signature === "string" ? block.signature.trim() : "";
-        const isSynthetic =
-          sig === "" ||
-          sig === defaultSignature ||
-          sig === "fake_signature" ||
-          sig.startsWith("fake_");
-        if (isSynthetic && (!isLatestAssistant || sig === "")) {
-          msgChanged = true;
-          changed = true;
-          return {
-            type: "redacted_thinking",
-            data: defaultSignature,
-          };
-        }
-      }
-      return block;
-    });
-
-    return msgChanged ? { ...msg, content } : msg;
-  });
-
-  return changed ? sanitized : messages;
+  return messages;
 }
 
 type MessageLike = {
@@ -227,20 +181,13 @@ export function isAnthropicThinkingSignatureError({
  * retain their thinking history, cache shape, and current-model semantics.
  * Returns the original body reference when no safe recovery change is possible.
  */
-export function stripHistoricalThinkingForSignatureRecovery<T>(
-  body: T,
-  errorMessage?: string | null
-): T {
+export function stripHistoricalThinkingForSignatureRecovery<T>(body: T): T {
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
 
   const record = body as Record<string, unknown>;
   if (!Array.isArray(record.messages)) return body;
 
   const messages = record.messages as MessageLike[];
-  const targetedMatch =
-    typeof errorMessage === "string" ? /messages\.(\d+)\.content\.(\d+)/i.exec(errorMessage) : null;
-  const targetedMsgIndex = targetedMatch ? parseInt(targetedMatch[1], 10) : null;
-
   const protectedAssistantIndexes = new Set<number>();
   let cursor = messages.length - 1;
 
@@ -269,13 +216,6 @@ export function stripHistoricalThinkingForSignatureRecovery<T>(
     cursor -= 1;
   }
 
-  // If Anthropic explicitly rejected a thinking signature at a specific message index
-  // (e.g. "messages.3.content.0: Invalid signature in thinking block"), that index CANNOT
-  // remain protected: keeping its signature guarantees the recovery retry fails identically.
-  if (targetedMsgIndex !== null) {
-    protectedAssistantIndexes.delete(targetedMsgIndex);
-  }
-
   let changed = false;
   const recoveredMessages = messages.map((message, index) => {
     if (
@@ -287,30 +227,9 @@ export function stripHistoricalThinkingForSignatureRecovery<T>(
       return message;
     }
 
-    const isLatestTurn = index === messages.length - 1;
-    if (isLatestTurn && targetedMsgIndex !== index) {
-      return message;
-    }
-
-    const hasToolUse = hasBlock(message, "tool_use");
-    const content = message.content.flatMap((block) => {
-      if (!isThinkingBlock(block)) return [block];
-      changed = true;
-      // If this assistant message contains tool_use, Anthropic requires a precursor
-      // thinking or redacted_thinking block when thinking is active on the request.
-      // Converting to redacted_thinking satisfies that schema requirement without signature validation.
-      if (hasToolUse) {
-        return [
-          {
-            type: "redacted_thinking",
-            data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
-          },
-        ];
-      }
-      // If no tool_use is present, the historical thinking block can be omitted cleanly.
-      return [];
-    });
-
+    const content = message.content.filter((block) => !isThinkingBlock(block));
+    if (content.length === message.content.length) return message;
+    changed = true;
     return { ...message, content };
   });
 
@@ -349,7 +268,7 @@ export async function executeWithAnthropicThinkingSignatureRecovery<T>(args: {
     return { result: first, retried: false, recoveryBody: null };
   }
 
-  const recoveryBody = stripHistoricalThinkingForSignatureRecovery(args.body, failure.message);
+  const recoveryBody = stripHistoricalThinkingForSignatureRecovery(args.body);
   if (recoveryBody === args.body) {
     return { result: first, retried: false, recoveryBody: null };
   }

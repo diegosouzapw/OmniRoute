@@ -1,1 +1,0 @@
-- fix(claude): recover from upstream 400 "Invalid signature in thinking block" when switching models mid-conversation by unprotecting targeted assistant turns and converting their thinking blocks to schema-compliant `redacted_thinking`, and proactively redacting synthetic/default thinking signatures in passthrough messages
