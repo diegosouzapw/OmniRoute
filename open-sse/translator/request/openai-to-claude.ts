@@ -678,7 +678,7 @@ function getContentBlocksFromMessage(
             type: "tool_use",
             id: sanitizeToolId(tc.id),
             name: toolName,
-            input: tryParseJSON(tc.function.arguments),
+            input: parseToolInput(tc.function.arguments),
           });
         }
       }
@@ -766,9 +766,10 @@ function extractTextContent(content) {
   return "";
 }
 
-// Try parse JSON (passthrough fallback: return the raw input string on parse error).
-function tryParseJSON(str: unknown): unknown {
-  return safeParseJSON(str, str);
+function parseToolInput(args: unknown): Record<string, unknown> {
+  const parsed = safeParseJSON(args, null);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+  return parsed as Record<string, unknown>;
 }
 
 function stripCacheControl(value: unknown): unknown {
