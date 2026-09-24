@@ -1,0 +1,1 @@
+- **docs:** Correct the SQLite migration count in README, AGENTS.md and llm.txt (182 → 183); the count drifted when the merge wave landed migration #183 and the strict docs-accuracy gate began failing every PR.
