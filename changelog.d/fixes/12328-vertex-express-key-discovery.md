@@ -1,0 +1,1 @@
+- fix(providers): stop sending Vertex Express API keys to generativelanguage.googleapis.com during model discovery (#12328)

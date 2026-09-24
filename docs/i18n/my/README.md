@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 ကျွန်ုပ်တို့၏ Open Source မိတ်ဆွေများ၏ ပံ့ပိုးမှု
+## 🤝 ကျွန်ုပ်တို့၏ Open Source သူငယ်ချင်းများမှ ပံ့ပိုးထားပါသည်။
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — ပွင့်လင်းနယ်ပယ် ဉာဏ်ရည်တု · ပါရာမီတာ 2.8T · တိုကင် 1M context"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **Open Source မိတ်ဆွေအဖြစ် ပူးပေါင်းလိုပါသလား။** ဤကုမ္ပဏီများသည် open source ကို ထောက်ပံ့ကာ OmniRoute ဆက်လက်တိုးတက်နိုင်ရန် ကူညီပေးနေကြပြီး၊ ၎င်းတို့ပေးအပ်သည့် တိုကင်တိုင်းကို မည်သည့်နေရာတွင် အသုံးပြုထားကြောင်း ကျွန်ုပ်တို့က အများသိအောင် ပွင့်လင်းစွာ ဖော်ပြပါသည်။ ဆက်သွယ်ရန်: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Open Source သူငယ်ချင်းအဖြစ် ပါဝင်လိုပါသလား။** ၎င်းတို့သည် open source ကို ထောက်ခံပြီး OmniRoute ကို ဆက်လက်လည်ပတ်နိုင်ရန် ကူညီပေးသည့် ကုမ္ပဏီများဖြစ်သည် — ၎င်းတို့ပေးသော တိုကင်တိုင်း မည်သည့်နေရာသို့ ရောက်ရှိသည်ကို ကျွန်ုပ်တို့ လူသိရှင်ကြား ပြောပြပါသည်။ ဆက်သွယ်ရန်- [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="တည်ထောင်သူ Open Source မိတ်ဆွေ"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      ဤပရောဂျက်ကို ပံ့ပိုးပေးသည့် ကျွန်ုပ်တို့၏ တည်ထောင်သူ Open Source မိတ်ဆွေ <b>Kimi (Moonshot AI)</b> ကို ကျေးဇူးတင်ပါသည်။ Kimi သည် open-weight K2 နှင့် K3 မော်ဒယ်မိသားစုများကို ဖန်တီးထားသည့် AI သုတေသနခန်းဖြစ်ပြီး၊ <b>Kimi K3</b> သည် တိုကင် 1M context window၊ native vision နှင့် frontier-level coding တို့ကို closed-model များ၏ ဈေးနှုန်းထက် များစွာသက်သာစွာ ပံ့ပိုးပေးပါသည်။ ထို့အပြင် Claude Code၊ Codex နှင့် OmniRoute က ဝန်ဆောင်မှုပေးသည့် coding tool အားလုံးတွင် ထပ်ဆောင်းပြင်ဆင်မှုမလိုဘဲ အသင့်အသုံးပြုနိုင်ပါသည်။
+      ဤပရောဂျက်ကို ပံ့ပိုးပေးသည့် ကျွန်ုပ်တို့၏ တည်ထောင်သူ Open Source သူငယ်ချင်း <b>Kimi (Moonshot AI)</b> အား ကျေးဇူးတင်ပါသည်။ Kimi သည် open-weight K2 နှင့် K3 မော်ဒယ်မိသားစုများနောက်ကွယ်မှ AI ဓာတ်ခွဲခန်းဖြစ်သည် — <b>Kimi K3</b> သည် 1M-token context window၊ native vision နှင့် frontier-level coding တို့ကို closed-model ဈေးနှုန်း၏ အစိတ်အပိုင်းတစ်ခုဖြင့် ပေးစွမ်းပြီး Claude Code၊ Codex နှင့် OmniRoute မှ ပံ့ပိုးပေးသည့် coding tool တိုင်းနှင့် အဆင်ပြေစွာ အလုပ်လုပ်ပါသည်။
       <br/><br/>
-      <b>Kimi ၏ ပံ့ပိုးမှုက အားဖြည့်ပေးထားသည့် အရာများ:</b> Kimi ၏ API credit များသည် OmniRoute ၏ AI ဖြင့် အတည်ပြုထားသော release pipeline ကို အားဖြည့်ပေးသည်။ ယင်းတွင် pull request တိုင်းကို ဖြန့်ချိခြင်းမပြုမီ သုံးသပ်ပေးသည့် <i>Kimi K3 ဖြင့် အားဖြည့်ထားသော merge validation</i> အဆင့်နှင့် နေ့စဉ် feature development လုပ်ငန်းများ ပါဝင်သည်။ ပထမတန်းစား Kimi ပံ့ပိုးမှုကို လမ်းကြောင်းနှစ်ခုလုံးတွင် ထည့်သွင်းပေးထားသည်။ ၎င်းတို့မှာ တိုက်ရိုက် <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) နှင့် <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code coding plan</a> (OAuth နှင့် API key) တို့ဖြစ်သည်။ OmniRoute သည် Kimi ၏ ပံ့ပိုးမှုအစီအစဉ်တွင် ပထမဆုံး ဘရာဇီး open-source ပရောဂျက်လည်း ဖြစ်ပါသည်။ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>အပို credit 15% ပါဝင်သည့် Kimi API key ရယူရန် →</b></a>
+      <b>Kimi ၏ ပံ့ပိုးမှုက ဘာတွေလုပ်ဆောင်ပေးသလဲ-</b> Kimi ၏ API credits များသည် OmniRoute ၏ AI-validated release pipeline ကို အားဖြည့်ပေးသည် — pull request တိုင်းကို မထုတ်ပြန်မီ ပြန်လည်သုံးသပ်သည့် <i>merge validation powered by Kimi K3</i> အဆင့် — အပြင် နေ့စဉ် feature development ကိုပါ ပံ့ပိုးပေးပါသည်။ First-class Kimi support သည် လမ်းကြောင်းနှစ်ခုလုံးတွင် ပါဝင်သည်- တိုက်ရိုက် <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) နှင့် <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code coding plan</a> (OAuth နှင့် API key)။ OmniRoute သည် Kimi ၏ ပံ့ပိုးမှုအစီအစဉ်တွင် ပထမဆုံး ဘရာဇီးလ် open-source ပရောဂျက်လည်းဖြစ်သည်။ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% အပို credits ဖြင့် Kimi API key ရယူပါ →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source မိတ်ဆွေ"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
     </td>
     <td>
-      ဤပရောဂျက်ကို ပံ့ပိုးပေးသည့် OmniRoute Open Source မိတ်ဆွေ <b>Cheaper Inference</b> ကို ကျေးဇူးတင်ပါသည်။ Cheaper Inference သည် Claude၊ GPT-5.x၊ Gemini၊ Kimi K3၊ GLM၊ DeepSeek၊ Grok နှင့် MiniMax အပါအဝင် frontier မော်ဒယ် 42 ခုကို OpenAI နှင့် ကိုက်ညီသော endpoint တစ်ခုတည်းမှတစ်ဆင့် ပြန်လည်ရောင်းချပေးသည့် ကုန်ကျစရိတ်အလိုက် အဆင့်သတ်မှတ်ထားသော gateway ဖြစ်သည်။ request တစ်ခုစီကို အသုံးပြုခွင့်ရှိသည့် provider များအနက် ဈေးအသက်သာဆုံးထံ လမ်းကြောင်းပေးပြီး မော်ဒယ်ထုတ်လုပ်သူ၏ စာရင်းဈေးနှုန်းထက် မည်သည့်အခါမျှ ပိုမိုကောက်ခံခြင်းမရှိပါ။
+      ဤပရောဂျက်ကို ပံ့ပိုးပေးသည့် OmniRoute Open Source သူငယ်ချင်း <b>Cheaper Inference</b> အား ကျေးဇူးတင်ပါသည်။ Cheaper Inference သည် Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok နှင့် MiniMax အပါအဝင် frontier မော်ဒယ် ၄၂ ခုကို OpenAI-compatible endpoint တစ်ခုနောက်ကွယ်မှ ပြန်လည်ရောင်းချသည့် ကုန်ကျစရိတ်အလိုက် အဆင့်သတ်မှတ်ထားသော gateway တစ်ခုဖြစ်ပြီး မော်ဒယ်ထုတ်လုပ်သူ၏ စာရင်းဈေးနှုန်းထက် ပိုမိုမကောက်ခံဘဲ တောင်းဆိုမှုတိုင်းကို ဈေးအသက်သာဆုံး အရည်အချင်းပြည့်မီသော ပံ့ပိုးသူထံသို့ လမ်းကြောင်းပြောင်းပေးပါသည်။
       <br/><br/>
-      <b>OmniRoute ရှိ ပထမတန်းစား ပံ့ပိုးမှု:</b> Chat Completions၊ native <code>/v1/responses</code> endpoint၊ vision၊ tool calling နှင့် ရုပ်ပုံမော်ဒယ် 3 ခု (<code>grok-imagine</code>၊ <code>nano-banana-pro</code>၊ <code>nano-banana-2</code>၊ <code>cheaperinference/&lt;model&gt;</code> အဖြစ် အသုံးပြုနိုင်သည်)။ <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API key ရယူရန် →</b></a>
+      <b>OmniRoute တွင် First-class support-</b> Chat Completions၊ native <code>/v1/responses</code> endpoint၊ vision၊ tool calling နှင့် image မော်ဒယ် ၃ ခု (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, <code>cheaperinference/&lt;model&gt;</code> အဖြစ် ရရှိနိုင်သည်)။ <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API key ရယူပါ →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> ဟု tag တပ်ထားသည့် link များသည် မိတ်ဖက် link များဖြစ်သည်။ ယင်းတို့သည် သင့်အတွက် အပိုကုန်ကျစရိတ်မရှိဘဲ ပရောဂျက်ကို ငွေကြေးပံ့ပိုးပေးပါသည်။</sub>
+<sub><code>aff=omniroute</code> ဟု တပ်ဆင်ထားသော လင့်ခ်များသည် ပါတနာလင့်ခ်များဖြစ်သည်။ ၎င်းတို့သည် သင့်အတွက် အပိုကုန်ကျစရိတ်မရှိဘဲ ပရောဂျက်ကို ရန်ပုံငွေထောက်ပံ့ပေးပါသည်။</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ မိတ်ဖက် ပရိုမိုးရှင်း</b> — ကျွန်ုပ်တို့က စပွန်ဆာမပေးထားသည့် provider များထံမှ အခမဲ့ signup coupon များ (ချဲ့ကြည့်ရန် နှိပ်ပါ)</sub></summary>
+<summary><sub><b>🎟️ Affiliates Promo</b> — ကျွန်ုပ်တို့ မပံ့ပိုးသော ပံ့ပိုးသူများထံမှ အခမဲ့ စာရင်းသွင်းကူပွန်များ (ချဲ့ရန် နှိပ်ပါ)</sub></summary>
 
-<sub><i>ဤကဏ္ဍသည် referral/coupon code များအတွက်သာ ဖြစ်သည်။ စပွန်ဆာ မိတ်ဖက်ပူးပေါင်းမှုများကို အထက်ရှိ <b>🤝 ကျွန်ုပ်တို့၏ Open Source မိတ်ဆွေများ၏ ပံ့ပိုးမှု</b> ကဏ္ဍတွင် ဖော်ပြထားသည်။ OmniRoute သည် ဤနေရာတွင် ဖော်ပြထားသည့် provider များနှင့် စပွန်ဆာ သို့မဟုတ် မိတ်ဖက်ဆက်ဆံရေး မရှိပါ။ ယင်းတို့သည် မည်သူမဆို အသုံးပြုနိုင်သည့် အများသုံး coupon များဖြစ်သည်။</i></sub>
+<sub><i>ဤအပိုင်းသည် referral/coupon codes များအတွက်သာဖြစ်သည်။ ပံ့ပိုးထားသော ပူးပေါင်းဆောင်ရွက်မှုများသည် အထက်ပါ <b>🤝 Supported by our Open Source Friends</b> တွင် ရှိပါသည်။ OmniRoute သည် ဤနေရာတွင် ဖော်ပြထားသော ပံ့ပိုးသူများနှင့် ပံ့ပိုးမှု သို့မဟုတ် ပူးပေါင်းဆောင်ရွက်မှု မရှိပါ — ၎င်းတို့သည် မည်သူမဆို အသုံးပြုနိုင်သော အများပြည်သူသုံး ကူပွန်များဖြစ်သည်။</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — မိတ်ဖက် signup · signup ပြုလုပ်ပါက <b>အခမဲ့ credit $100</b> ရရှိမည် (အခမဲ့ server ဖြစ်သောကြောင့် latency ပိုမြင့်နိုင်သည် — production အတွက်မဟုတ်ဘဲ စမ်းသပ်ရန် အသင့်တော်ဆုံးဖြစ်သည်)။ <b>v3.8.50</b> မှစတင်၍ OmniRoute တွင် ပထမတန်းစား ပံ့ပိုးမှု ပါဝင်လာသည်။ Chat Completions၊ Anthropic နှင့် ကိုက်ညီသော wire format နှင့် OpenAI နှင့် ကိုက်ညီသော path တို့ကို ပံ့ပိုးထားသည်။ ရရှိနိုင်သည့် မော်ဒယ်များတွင် <code>claude-opus-4-8</code>၊ <code>claude-opus-5</code>၊ <code>gpt-5.6-sol</code> နှင့် အခြားမော်ဒယ်များ ပါဝင်သည်။ <b><a href="https://agentrouter.org/register?aff=70LM">သင်၏ $100 ကို ရယူရန် →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — affiliate စာရင်းသွင်းခြင်း · စာရင်းသွင်းခြင်းတွင် <b>$100 အခမဲ့ credits</b> (အခမဲ့ server၊ latency ပိုများနိုင်သည် — စမ်းသပ်ရန် အကောင်းဆုံး၊ ထုတ်လုပ်မှုအတွက် မဟုတ်ပါ)။ OmniRoute တွင် <b>v3.8.50</b> မှစ၍ First-class support- Chat Completions၊ Anthropic-compatible wire format နှင့် OpenAI-compatible path။ ရရှိနိုင်သော မော်ဒယ်များတွင် <code>claude-opus-4-8</code>၊ <code>claude-opus-5</code>၊ <code>gpt-5.6-sol</code> နှင့် အခြားအရာများ ပါဝင်သည်။ <b><a href="https://agentrouter.org/register?aff=70LM">သင့် $100 ကို ရယူပါ →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>မိတ်ဖက် link — OmniRoute သည် ဤ provider နှင့် စပွန်ဆာ သို့မဟုတ် မိတ်ဖက်ဆက်ဆံရေး မရှိပါ။</i></sub>
+      <sub>⚠️ <i>Affiliate link — OmniRoute သည် ဤပံ့ပိုးသူနှင့် ပံ့ပိုးမှု သို့မဟုတ် ပူးပေါင်းဆောင်ရွက်မှု မရှိပါ။</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>OmniRoute အသုံးပြုသူများအတွက် အကျိုးရှိစေမည့် ရက်ရောသော အခမဲ့ signup coupon ပေးသည့် အခြား provider ကို သိပါသလား။ issue တစ်ခုဖွင့်ပေးပါ၊ ကျွန်ုပ်တို့က ဤနေရာတွင် ထည့်သွင်းပေးပါမည်။</sub>
+<sub>OmniRoute အသုံးပြုသူများအတွက် အကျိုးရှိစေမည့် ရက်ရောသော အခမဲ့ စာရင်းသွင်းကူပွန်ပါရှိသော အခြားပံ့ပိုးသူကို သိပါသလား။ issue တစ်ခုဖွင့်ပါ၊ ကျွန်ုပ်တို့ ဤနေရာတွင် ထည့်သွင်းပေးပါမည်။</sub>
 
 </details>
 
@@ -1258,29 +1258,29 @@ port တစ်ခုတည်းရှိ process တစ်ခုတည်းက
 <br/>
 <div align="center">
 
-## 🛠️ နည်းပညာအစုအဝေး
+## 🛠️ နည်းပညာ Stack
 
 </div>
 
 <table>
   <tr><th align="left">အလွှာ</th><th align="left">နည်းပညာ</th></tr>
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ဘာသာစကား</b></td><td>TypeScript 6.0 — <code>src/</code> နှင့် <code>open-sse/</code> တစ်လျှောက်လုံး <b>100% TypeScript</b> (v2.0 မှစ၍ ပင်မပိုင်းတွင် <code>any</code> လုံးဝမရှိ)</td></tr>
+  <tr><td nowrap><b>ဘာသာစကား</b></td><td>TypeScript 6.0 — <code>src/</code> နှင့် <code>open-sse/</code> တို့တွင် <b>100% TypeScript</b> (v2.0 မှစ၍ core တွင် <code>any</code> မရှိပါ)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ဒေတာဘေ့စ်</b></td><td>better-sqlite3 (SQLite၊ WAL မှတ်တမ်းတင်ခြင်း) + LowDB (JSON အမွေဆက်ခံစနစ်) — ဒိုမိန်းမော်ဂျူး 122 ခု၊ migration 178 ခု</td></tr>
-  <tr><td nowrap><b>မှတ်ဉာဏ်</b></td><td>SQLite FTS5 စာသားအပြည့်အစုံရှာဖွေမှု + int8-quantized vector embeddings၊ အမျိုးအစားသတ်မှတ်ထားသော decay</td></tr>
-  <tr><td nowrap><b>Schema များ</b></td><td>Zod 4 — MCP tool I/O အတည်ပြုခြင်း + API စာချုပ်များ</td></tr>
-  <tr><td nowrap><b>Protocol များ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>ဒေတာဘေ့စ်</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domain modules, 182 migrations</td></tr>
+  <tr><td nowrap><b>မှတ်ဉာဏ်</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>Schema များ</b></td><td>Zod 4 — MCP tool I/O validation + API contracts</td></tr>
+  <tr><td nowrap><b>Protocols များ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>ချုံ့ခြင်း</b></td><td>အင်ဂျင် 12 ခုပါ pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>အထောက်အထားစိစစ်ခြင်း &amp; လုံခြုံရေး</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP နယ်ပယ်ကန့်သတ်ထားသော အထောက်အထားစိစစ်ခြင်း · သိမ်းဆည်းထားစဉ် AES-256-GCM ကုဒ်ဝှက်ခြင်း · DOMPurify</td></tr>
-  <tr><td nowrap><b>ကိုယ်ပျောက်စနစ်</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint အယောင်ဆောင်ခြင်း၊ အဆင့် 3 ဆင့် proxy</td></tr>
-  <tr><td nowrap><b>ခံနိုင်ရည်</b></td><td>Circuit breaker၊ exponential backoff၊ anti-thundering-herd၊ အလိုအလျောက်ပေါင်းစပ်၍ ကိုယ်တိုင်ပြုပြင်ခြင်း</td></tr>
-  <tr><td nowrap><b>မှတ်တမ်းတင်ခြင်း</b></td><td>pino — request context ပါဝင်သော ဖွဲ့စည်းတည်ဆောက်ထားသည့် JSON မှတ်တမ်းများ</td></tr>
-  <tr><td nowrap><b>စမ်းသပ်ခြင်း</b></td><td>Node.js test runner + Vitest — ခြေရာခံထားသော စမ်းသပ်ဖိုင် 5,100+ တစ်လျှောက် <b>static test ကြေညာချက် 39,000+</b> (unit၊ integration၊ E2E၊ လုံခြုံရေး၊ ecosystem)</td></tr>
+  <tr><td nowrap><b>ချုံ့ခြင်း</b></td><td>12-engine pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Auth &amp; လုံခြုံရေး</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM at rest · DOMPurify</td></tr>
+  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-level proxy</td></tr>
+  <tr><td nowrap><b>ခံနိုင်ရည်ရှိခြင်း</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
+  <tr><td nowrap><b>မှတ်တမ်းတင်ခြင်း</b></td><td>pino — request context ပါသော structured JSON logs</td></tr>
+  <tr><td nowrap><b>စမ်းသပ်ခြင်း</b></td><td>Node.js test runner + Vitest — 5,100+ tracked test files (unit, integration, E2E, security, ecosystem) တို့တွင် <b>39,000+ static test declarations</b></td></tr>
   <tr><td nowrap><b>ပလက်ဖောင်းများ</b></td><td>Desktop (Electron) · Android (Termux) · PWA (မည်သည့် browser မဆို)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — release လုပ်သည့်အခါ npm သို့ အလိုအလျောက် publish လုပ်ခြင်း + Docker Hub</td></tr>
-  <tr><td nowrap><b>လင့်ခ်များ</b></td><td><a href="https://omniroute.online">ဝဘ်ဆိုက်</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — auto npm publish + Docker Hub on release</td></tr>
+  <tr><td nowrap><b>လင့်ခ်များ</b></td><td><a href="https://omniroute.online">ဝဘ်ဆိုဒ်</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

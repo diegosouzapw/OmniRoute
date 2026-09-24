@@ -86,11 +86,15 @@ Content-Type: application/json
 
 > **Sémantique du coût en cas d’accès au cache :** lors d’un accès au cache sémantique (`X-OmniRoute-Cache-Hit: true`), aucun appel en amont n’est effectué ; `X-OmniRoute-Response-Cost` vaut donc `0.0000000000` (le coût **incrémental** du traitement de cet accès). Le coût initial ou celui qui aurait été engagé est indiqué séparément dans `X-OmniRoute-Cost-Saved`. Les systèmes de facturation doivent additionner les valeurs de `X-OmniRoute-Response-Cost` (les accès au cache ne coûtent rien) ; les outils d’analyse du cache peuvent agréger les valeurs de `X-OmniRoute-Cost-Saved`.
 
-## Baux exclusifs de sessions gérées
+## Baux de session gérés exclusifs
 
-La location exclusive de sessions gérées est un contrat de routage facultatif et indépendant du client : un propriétaire actif détient une connexion OmniRoute éligible. Elle ne réserve pas un modèle, n’exige pas OAuth, n’identifie pas un client particulier et n’impose pas de fournisseur particulier.
+Le bail de session géré exclusif est un contrat de routage opt-in, neutre au client : un propriétaire
+actif détient une connexion OmniRoute éligible. Il ne loue pas de modèle, ne nécessite pas OAuth,
+n'identifie pas de client particulier, ni ne requiert de fournisseur particulier.
 
-La clé API utilisée pour l’authentification doit disposer de la portée `lease:exclusive` et d’une liste `allowedConnections` explicite et non vide. La limite transactionnelle des mutations de la base de données impose conjointement ces deux champs lors de la création d’une clé et des mises à jour partielles.
+La clé API d'authentification doit avoir la portée `lease:exclusive` et une liste
+`allowedConnections` explicite et non vide. La limite de mutation de la base de données applique
+ces deux champs ensemble lors de la création de la clé et des mises à jour partielles.
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +105,10 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Les réponses réussies d’acquisition, de renouvellement et de libération exposent les horodatages, `state` et la valeur positive exacte de `generation`, mais jamais la connexion sélectionnée ni les identifiants d’authentification. Pour le renouvellement et la libération, la génération est fournie dans le corps JSON :
+Les réponses d'acquisition, de renouvellement et de libération réussies exposent les horodatages,
+l'`état` et la `génération` positive exacte, mais jamais la connexion sélectionnée ou les
+informations d'identification. Le renouvellement et la libération fournissent la génération dans le
+corps JSON :
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +118,8 @@ Les réponses réussies d’acquisition, de renouvellement et de libération exp
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Le propriétaire d’un bail actif peut demander explicitement des métadonnées d’affichage respectueuses de la confidentialité pour son association actuelle :
+Un propriétaire de bail actif peut explicitement demander des métadonnées d'affichage respectueuses
+de la vie privée pour sa liaison actuelle :
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +139,42 @@ Le propriétaire d’un bail actif peut demander explicitement des métadonnées
 }
 ```
 
-Cette action d’état facultative est protégée par le propriétaire opaque, la clé API gérée authentifiée et la génération active exacte, au sein d’une même transaction de base de données. `displayName` correspond uniquement au nom configuré de la connexion, après suppression des espaces superflus ; sa valeur est `null` lorsqu’aucun nom configuré sûr n’existe. OmniRoute ne lui substitue jamais une adresse e-mail ni une identité de compte générée. La valeur du fournisseur est une étiquette d’affichage non sensible et jamais un identifiant généré de fournisseur compatible. Les identifiants d’authentification, jetons, cookies, identifiants bruts de connexion ou de clé API, empreintes de propriétaires, secrets de cloisonnement et données de routage internes sont exclus.
+Cette action de statut opt-in est protégée par le propriétaire opaque, la clé API gérée
+authentifiée et la génération active exacte dans une seule transaction de base de données.
+`displayName` est uniquement le nom de connexion configuré tronqué ; il est `null` lorsqu'aucun nom
+configuré sûr n'existe. OmniRoute ne substitue jamais un e-mail ou une identité de compte générée.
+La valeur du fournisseur est une étiquette d'affichage non sensible et jamais un identifiant de
+fournisseur compatible généré. Les informations d'identification, les jetons, les cookies, les
+identifiants de connexion bruts ou de clé API, les hachages de propriétaire, les secrets de
+protection et les données de routage internes sont exclus.
 
-Les recherches avec une clé incorrecte, un propriétaire incorrect, une génération obsolète, un bail manquant, expiré, libéré ou invalidé renvoient toutes la même erreur `409 LEASE_FENCE_STALE`, sans métadonnées de connexion. Un client ayant reçu la réponse d’attente de capacité ne dispose d’aucune association active à inspecter. Lorsque le routage fait basculer un bail actif, la même génération reste valide et l’état renvoie atomiquement la nouvelle association, jamais l’ancienne. Les clients existants restent inchangés, car les réponses d’acquisition, de renouvellement, de libération et d’attente conservent leurs structures précédentes.
+Les recherches avec une clé incorrecte, un propriétaire incorrect, une génération obsolète,
+manquantes, expirées, libérées et invalidées renvoient toutes la même erreur
+`409 LEASE_FENCE_STALE` sans métadonnées de connexion. Un client qui a reçu la réponse d'attente de
+capacité n'a aucune liaison active à inspecter. Lorsque le routage fait transiter un bail actif, la
+même génération reste valide et le statut renvoie atomiquement la nouvelle liaison, jamais l'ancienne.
+Les clients existants restent inchangés car les réponses d'acquisition, de renouvellement, de
+libération et d'attente conservent leurs formes précédentes.
 
-Ce contrat serveur ne modifie pas `/status` dans la version standard d’OpenAI Codex. À l’heure actuelle, la version standard de Codex indique son fournisseur de modèle et l’état intégré de l’authentification et du compte, mais n’affiche pas les métadonnées de compte arbitraires des fournisseurs personnalisés ; une future intégration côté client devra appeler cette action et déterminer comment afficher `connection.displayName`.
+Ce contrat de serveur ne modifie pas le `/status` standard d'OpenAI Codex. Le Codex standard
+rapporte actuellement son fournisseur de modèle et son état d'authentification/compte intégré, mais
+ne rend pas de métadonnées de compte de fournisseur personnalisées arbitraires ; une intégration
+client ultérieure doit appeler cette action et décider comment afficher `connection.displayName`.
 
-Chaque requête d’inférence gérée fournit ensuite les deux en-têtes de contrôle :
+Chaque demande d'inférence gérée fournit alors les deux en-têtes de contrôle :
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Le propriétaire exact, la génération, la connexion active et la clé API authentifiée sont cloisonnés immédiatement avant chaque tentative en amont prise en charge. La réutilisation du propriétaire et de la génération avec une autre clé échoue, même lorsque cette clé autorise la même connexion. Les propriétaires bruts ne sont ni conservés, ni journalisés, ni retenus dans l’instantané de la requête, ni transmis en amont.
+Le propriétaire exact, la génération, la connexion active et la clé API authentifiée sont protégés
+immédiatement avant chaque tentative en amont prise en charge. Rejouer le propriétaire et la
+génération avec une autre clé échoue même lorsque cette clé autorise la même connexion. Les
+propriétaires bruts ne sont pas persistés, journalisés, conservés dans l'instantané de la demande
+ou transmis en amont.
 
-Une contention temporaire renvoie le code HTTP `429` avec `Retry-After` et :
+Une contention temporaire renvoie HTTP `429` avec `Retry-After` et :
 
 ```json
 {
@@ -157,33 +185,40 @@ Une contention temporaire renvoie le code HTTP `429` avec `Retry-After` et :
 }
 ```
 
-Cette réponse signifie uniquement que l’ensemble éligible ordinaire n’était pas vide et que chaque candidat libre était détenu par un bail actif tiers. Les modèles ou fournisseurs non pris en charge, les incompatibilités de politique, les périodes de récupération, les quotas, l’état de santé et les autres échecs ordinaires d’éligibilité conservent leurs réponses OmniRoute existantes.
+Cette réponse signifie seulement que l'ensemble éligible ordinaire n'était pas vide et que chaque
+candidat libre était détenu par un bail actif étranger. Les modèles/fournisseurs non pris en
+charge, les non-concordances de politique, les délais de grâce, les quotas, la santé et d'autres
+défaillances d'éligibilité ordinaires conservent leurs réponses OmniRoute existantes.
 
 ### `x-omniroute-compression`
 
-Remplacement, pour chaque requête, du plan de compression. Priorité la plus élevée — prévaut sur le remplacement de la combinaison de routage, le profil actif, le déclenchement automatique et la valeur par défaut du panneau. Valeurs :
+Remplacement par requête du plan de compression. Priorité la plus élevée — l'emporte sur le
+remplacement de la combinaison de routage, le profil actif, le déclenchement automatique et le
+panneau par défaut. Valeurs :
 
-| Valeur        | Effet                                                                                                     |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| `off`         | Aucune compression pour cette requête.                                                                    |
-| `default`     | Le profil par défaut dérivé du panneau (ignore le profil actif).                                          |
-| `engine:<id>` | Un moteur unique lorsqu’il est activé, par ex. `engine:rtk`.                                              |
-| `<combo>`     | Une combinaison nommée, recherchée d’abord par nom (sans tenir compte de la casse), puis par identifiant. |
+| Valeur        | Effet                                                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------------------- |
+| `off`         | Aucune compression pour cette requête.                                                                   |
+| `default`     | Le profil par défaut dérivé du panneau (ignore le profil actif). Les moteurs avec perte sont désactivés. |
+| `safe`        | Déduplication et repli d'espaces blancs uniquement.                                                      |
+| `allow-lossy` | Conserve le plan de l'opérateur pour cette requête, y compris les résumés et les réécritures de style.   |
+| `engine:<id>` | Un seul moteur lorsqu'il est activé, par exemple `engine:rtk`. Opt-in par requête pour ce moteur.        |
+| `<combo>`     | Une combinaison nommée, correspondant par nom (insensible à la casse) d'abord, puis par id.              |
 
 Remarques :
 
-- Les valeurs inconnues sont ignorées (la requête n’est jamais rejetée) ; la résolution passe alors à l’ordre de priorité normal des opérateurs.
-- Si plusieurs combinaisons partagent le même nom, transmettez l’**id** de la combinaison pour obtenir une correspondance déterministe.
-- Une combinaison dont le nom est `off` ou `default` ne peut pas être sélectionnée par son nom (ces mots-clés sont interprétés en premier) ; référencez une telle combinaison par son identifiant.
-- Le commutateur principal de compression constitue un verrou absolu : lorsque la compression est désactivée globalement, cet en-tête ne peut pas l’activer.
+- Les valeurs inconnues sont ignorées (la requête n'est jamais rejetée) ; la résolution se poursuit selon la précédence normale de l'opérateur.
+- Si plusieurs combinaisons partagent un nom, passez l'**id** de la combinaison pour une correspondance déterministe.
+- Une combinaison dont le nom est `off` ou `default` ne peut pas être sélectionnée par nom (ces mots-clés sont interprétés en premier) ; référencez une telle combinaison par son id.
+- L'interrupteur de compression principal est une porte dure : lorsque la compression est désactivée globalement, cet en-tête ne peut pas l'activer.
 
-Le plan appliqué est renvoyé dans l’en-tête de réponse :
+Le plan appliqué est renvoyé dans l'en-tête de réponse :
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-où `<source>` est l’une des valeurs suivantes : `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ou `off`.
+où `<source>` est l'un des suivants : `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, ou `off`.
 
 ---
 

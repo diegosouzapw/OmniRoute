@@ -268,11 +268,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — בינה פורצת דרך בקוד פתוח · 2.8 טריליון פרמטרים · הקשר של מיליון טוקנים"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **רוצים להצטרף כחברי קוד פתוח?** אלו החברות שתומכות בקוד פתוח ועוזרות ל-OmniRoute להמשיך להתקדם — ואנחנו מצהירים בפומבי לאן הולך כל טוקן שהן מעניקות לנו. צרו קשר: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **רוצה להצטרף כחבר קוד פתוח?** אלו החברות שתומכות בקוד פתוח ועוזרות לשמור על OmniRoute בתנועה – ואנחנו מפרסמים בגלוי לאן הולך כל אסימון שהן נותנות לנו. צור קשר: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="חבר מייסד של הקוד הפתוח"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      תודה ל-<b>Kimi (Moonshot AI)</b>, חברת הקוד הפתוח המייסדת שלנו, על התמיכה בפרויקט הזה! Kimi היא מעבדת הבינה המלאכותית שמאחורי משפחות המודלים K2 ו-K3 במשקלים פתוחים — <b>Kimi K3</b> מציע חלון הקשר של מיליון טוקנים, יכולות ראייה מובנות וכתיבת קוד ברמה פורצת דרך, בשבריר ממחירם של מודלים סגורים, ופועל היישר מהקופסה עם Claude Code, עם Codex ועם כל כלי פיתוח ש-OmniRoute משרת.
+      תודה ל-<b>Kimi (Moonshot AI)</b>, חברת הקוד הפתוח המייסדת שלנו, על תמיכתה בפרויקט זה! Kimi היא מעבדת הבינה המלאכותית שמאחורי משפחות המודלים K2 ו-K3 בעלי המשקל הפתוח – <b>Kimi K3</b> מספקת חלון הקשר של מיליון אסימונים, ראייה מובנית וקידוד ברמה מתקדמת בשבריר ממחירי המודלים הסגורים, ועובדת מחוץ לקופסה עם Claude Code, Codex וכל כלי קידוד ש-OmniRoute משרתת.
       <br/><br/>
-      <b>מה מתאפשר בזכות התמיכה של Kimi:</b> קרדיטי ה-API של Kimi מניעים את תהליך ההפצה של OmniRoute המאומת באמצעות בינה מלאכותית — שלב <i>אימות המיזוג המופעל באמצעות Kimi K3</i>, שבוחן כל בקשת משיכה לפני הפצתה — וכן את פיתוח התכונות השוטף. תמיכה מלאה ב-Kimi זמינה בשני המסלולים: דרך <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">ה-API של Kimi</a> ישירות (<code>kimi-k3</code>) ודרך <a href="https://www.kimi.com/code?aff=omniroute">תוכנית הפיתוח Kimi Code</a> (OAuth ומפתח API). OmniRoute הוא גם פרויקט הקוד הפתוח הברזילאי הראשון בתוכנית התמיכה של Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>קבלו מפתח API של Kimi עם 15% קרדיטים נוספים ←</b></a>
+      <b>מה תמיכת Kimi מאפשרת:</b> זיכויי ה-API של Kimi מפעילים את צינור השחרור המאושר על ידי AI של OmniRoute – שלב ה-<i>אימות מיזוג המופעל על ידי Kimi K3</i> הסוקר כל בקשת משיכה לפני שהיא נשלחת – בתוספת פיתוח תכונות יומיומי. תמיכה מהשורה הראשונה של Kimi נשלחת בשני מסלולים: ה-<a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> הישיר (<code>kimi-k3</code>) ו-<a href="https://www.kimi.ai/code?aff=omniroute">תוכנית הקידוד Kimi Code</a> (OAuth ומפתח API). OmniRoute הוא גם פרויקט הקוד הפתוח הברזילאי הראשון בתוכנית התמיכה של Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>קבל מפתח Kimi API עם 15% זיכויים נוספים ←</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="חבר קוד פתוח"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
     </td>
     <td>
-      תודה ל-<b>Cheaper Inference</b>, חברת קוד פתוח של OmniRoute, על התמיכה בפרויקט הזה! Cheaper Inference הוא שער המדורג לפי עלות ומשווק מחדש 42 מודלים פורצי דרך — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok ו-MiniMax — מאחורי נקודת קצה אחת התואמת ל-OpenAI, תוך ניתוב כל בקשה לספק המתאים הזול ביותר ומבלי לגבות אי פעם יותר מהמחירון של יצרן המודל.
+      תודה ל-<b>Cheaper Inference</b>, חבר קוד פתוח של OmniRoute, על תמיכתו בפרויקט זה! Cheaper Inference הוא שער מדורג על פי עלות המוכר מחדש 42 מודלים מתקדמים – Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok ו-MiniMax – מאחורי נקודת קצה אחת תואמת OpenAI, המנתב כל בקשה לספק הזול ביותר הזכאי מבלי לגבות אי פעם מעל מחיר המחירון של יצרן המודל.
       <br/><br/>
-      <b>תמיכה מלאה ב-OmniRoute:</b> השלמות צ'אט, נקודת הקצה המובנית <code>/v1/responses</code>, ראייה, קריאה לכלים ו-3 מודלי תמונה (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, הנגישים בתור <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>קבלו מפתח API ←</b></a>
+      <b>תמיכה מהשורה הראשונה ב-OmniRoute:</b> השלמות צ'אט, נקודת הקצה המובנית <code>/v1/responses</code>, ראייה, קריאת כלים ו-3 מודלי תמונה (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, נגישים כ-<code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>קבל מפתח API ←</b></a>
     </td>
   </tr>
 </table>
 
-<sub>קישורים המתויגים ב-<code>aff=omniroute</code> הם קישורי שותפים. הם מממנים את הפרויקט ללא עלות נוספת עבורכם.</sub>
+<sub>קישורים מתויגים <code>aff=omniroute</code> הם קישורי שותפים. הם מממנים את הפרויקט ללא עלות נוספת עבורך.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ מבצעי שותפים</b> — קופוני הרשמה בחינם מספקים שאינם נותנים לנו חסות (לחצו להרחבה)</sub></summary>
+<summary><sub><b>🎟️ מבצע שותפים</b> — קופוני הרשמה חינם מספקים שאנחנו לא נותני חסות שלהם (לחץ להרחבה)</sub></summary>
 
-<sub><i>סעיף זה מיועד לקודי הפניה או קופון בלבד. שותפויות ממומנות מופיעות בסעיף <b>🤝 נתמך על ידי חברי הקוד הפתוח שלנו</b> שלמעלה. ל-OmniRoute אין חסות או שותפות עם הספקים המפורטים כאן — אלה קופונים ציבוריים שכל אחד יכול להשתמש בהם.</i></sub>
+<sub><i>סעיף זה מיועד לקודי הפניה/קופונים בלבד. שותפויות ממומנות נמצאות ב-<b>🤝 נתמך על ידי חברי הקוד הפתוח שלנו</b> למעלה. ל-OmniRoute אין חסות או שותפות עם הספקים המפורטים כאן – אלו קופונים ציבוריים שכל אחד יכול להשתמש בהם.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — הרשמת שותפים · <b>קרדיטים בחינם בשווי $100</b> בעת ההרשמה (שרת חינמי, צפו לזמן השהיה גבוה יותר — מתאים בעיקר לבדיקות, לא לסביבת ייצור). תמיכה מלאה ב-OmniRoute מאז <b>v3.8.50</b>: השלמות צ'אט, פורמט התקשורת התואם ל-Anthropic והנתיב התואם ל-OpenAI. המודלים הזמינים כוללים את <code>claude-opus-4-8</code>,‏ <code>claude-opus-5</code>,‏ <code>gpt-5.6-sol</code> ועוד. <b><a href="https://agentrouter.org/register?aff=70LM">קבלו את ה-$100 שלכם ←</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — הרשמת שותפים · <b>$100 זיכויים חינם</b> בהרשמה (שרת חינם, צפה לחביון גבוה יותר – הטוב ביותר לבדיקות, לא לייצור). תמיכה מהשורה הראשונה ב-OmniRoute מאז <b>v3.8.50</b>: השלמות צ'אט, פורמט ה-wire התואם Anthropic והנתיב התואם OpenAI. מודלים זמינים כוללים <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> ועוד. <b><a href="https://agentrouter.org/register?aff=70LM">קח את ה-$100 שלך ←</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>קישור שותפים — ל-OmniRoute אין חסות או שותפות עם ספק זה.</i></sub>
+      <sub>⚠️ <i>קישור שותפים – ל-OmniRoute אין חסות או שותפות עם ספק זה.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>מכירים ספק נוסף עם קופון הרשמה חינמי ונדיב שמועיל למשתמשי OmniRoute? פתחו דיווח ונוסיף אותו כאן.</sub>
+<sub>מכיר ספק אחר עם קופון הרשמה חינם נדיב המועיל למשתמשי OmniRoute? פתח גיליון ונוסיף אותו כאן.</sub>
 
 </details>
 
@@ -1256,28 +1256,28 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # גם CI=1 מדלג ע�
 <br/>
 <div align="center">
 
-## 🛠️ מחסנית טכנולוגית
+## 🛠️ ערימת טכנולוגיות
 
 </div>
 
 <table>
   <tr><th align="left">שכבה</th><th align="left">טכנולוגיה</th></tr>
   <tr><td nowrap><b>סביבת ריצה</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>שפה</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> בכל <code>src/</code> ו-<code>open-sse/</code> (אפס מופעים של <code>any</code> בליבה מאז v2.0)</td></tr>
-  <tr><td nowrap><b>מסגרת עבודה</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>מסד נתונים</b></td><td>better-sqlite3 (SQLite, רישום יומן WAL) + LowDB (מורשת JSON) — 122 מודולי תחום, 178 מיגרציות</td></tr>
-  <tr><td nowrap><b>זיכרון</b></td><td>חיפוש טקסט מלא באמצעות SQLite FTS5 + הטמעות וקטוריות מכומתות ל-int8, דעיכה מטיפוסית</td></tr>
+  <tr><td nowrap><b>שפה</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> ב-<code>src/</code> וב-<code>open-sse/</code> (אפס <code>any</code> בליבה מאז v2.0)</td></tr>
+  <tr><td nowrap><b>פריימוורק</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>מסד נתונים</b></td><td>better-sqlite3 (SQLite, יומן WAL) + LowDB (JSON מדור קודם) — 122 מודולי דומיין, 182 מיגרציות</td></tr>
+  <tr><td nowrap><b>זיכרון</b></td><td>SQLite FTS5 טקסט מלא + הטמעות וקטוריות מכומתות int8, דעיכה מטיפוסים</td></tr>
   <tr><td nowrap><b>סכמות</b></td><td>Zod 4 — אימות קלט/פלט של כלי MCP + חוזי API</td></tr>
   <tr><td nowrap><b>פרוטוקולים</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>הזרמה</b></td><td>Server-Sent Events (SSE) + גשר WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>דחיסה</b></td><td>צינור עיבוד בן 12 מנועים — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>אימות ואבטחה</b></td><td>OAuth 2.0 (PKCE) + JWT + מפתחות API + אימות MCP מבוסס היקף · AES-256-GCM במנוחה · DOMPurify</td></tr>
-  <tr><td nowrap><b>הסוואה</b></td><td>wreq-js — התחזות לטביעות אצבע TLS מסוג JA3 / JA4, פרוקסי תלת-רמתי</td></tr>
-  <tr><td nowrap><b>עמידות</b></td><td>מפסק זרם, השהיה מעריכית, מניעת עדר רועם, ריפוי עצמי אוטומטי משולב</td></tr>
-  <tr><td nowrap><b>רישום לוגים</b></td><td>pino — לוגים מובנים בפורמט JSON עם הקשר הבקשה</td></tr>
-  <tr><td nowrap><b>בדיקות</b></td><td>מריץ הבדיקות של Node.js + Vitest — <b>39,000+ הצהרות בדיקה סטטיות</b> על פני 5,100+ קובצי בדיקה במעקב (יחידה, אינטגרציה, E2E, אבטחה, מערכת אקולוגית)</td></tr>
-  <tr><td nowrap><b>פלטפורמות</b></td><td>מחשב שולחני (Electron) · Android (Termux) · PWA (כל דפדפן)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — פרסום אוטומטי ל-npm ול-Docker Hub בעת הפצה</td></tr>
+  <tr><td nowrap><b>הזרמה</b></td><td>אירועים שנשלחו מהשרת (SSE) + גשר WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>דחיסה</b></td><td>צינור 12 מנועים — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>אימות ואבטחה</b></td><td>OAuth 2.0 (PKCE) + JWT + מפתחות API + אימות מוגבל MCP · AES-256-GCM במנוחה · DOMPurify</td></tr>
+  <tr><td nowrap><b>התגנבות</b></td><td>wreq-js — התחזות טביעת אצבע JA3 / JA4 TLS, פרוקסי 3 רמות</td></tr>
+  <tr><td nowrap><b>חוסן</b></td><td>מפסק זרם, נסיגה אקספוננציאלית, מניעת "עדר רועם", ריפוי עצמי אוטומטי משולב</td></tr>
+  <tr><td nowrap><b>רישום יומן</b></td><td>pino — יומני JSON מובנים עם הקשר בקשה</td></tr>
+  <tr><td nowrap><b>בדיקות</b></td><td>Node.js test runner + Vitest — <b>39,000+ הצהרות בדיקה סטטיות</b> על פני 5,100+ קבצי בדיקה במעקב (יחידה, אינטגרציה, E2E, אבטחה, אקוסיסטם)</td></tr>
+  <tr><td nowrap><b>פלטפורמות</b></td><td>מחשב שולחני (Electron) · אנדרואיד (Termux) · PWA (כל דפדפן)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — פרסום npm אוטומטי + Docker Hub בשחרור גרסה</td></tr>
   <tr><td nowrap><b>קישורים</b></td><td><a href="https://omniroute.online">אתר אינטרנט</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

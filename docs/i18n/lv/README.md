@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Mūs atbalsta mūsu atvērtā pirmkoda draugi
+## 🤝 Atbalsta mūsu atvērtā koda draugi
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — atvērtā progresīvā inteliģence · 2,8 triljoni parametru · 1 miljona tokenu konteksts"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Atvērtā robežas inteliģence · 2.8T parametri · 1M žetonu konteksts"/>
   </a>
 </p>
 
-> **Vēlaties pievienoties kā atvērtā pirmkoda draugs?** Šie ir uzņēmumi, kas atbalsta atvērto pirmkodu un palīdz turpināt OmniRoute attīstību, bet mēs publiski norādām, kam tiek izmantots katrs viņu piešķirtais tokens. Sazinieties ar mums: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Vēlaties pievienoties kā atvērtā koda draugs?** Šie ir uzņēmumi, kas atbalsta atvērto kodu un palīdz OmniRoute darboties — un mēs publiski paziņojam, kur nonāk katrs viņu mums iedotais žetons. Sazinieties: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Atvērtā pirmkoda draugs dibinātājs"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Dibinātājs atvērtā koda draugs"/>
     </td>
     <td>
-      Paldies <b>Kimi (Moonshot AI)</b>, mūsu pirmajam atvērtā pirmkoda draugam, par šī projekta atbalstīšanu! Kimi ir mākslīgā intelekta laboratorija, kas izstrādā atvērto svaru K2 un K3 modeļu saimes — <b>Kimi K3</b> piedāvā 1 miljona tokenu konteksta logu, integrētu vizuālo uztveri un augstākā līmeņa programmēšanas spējas par nelielu daļu no slēgto modeļu cenas, kā arī uzreiz darbojas ar Claude Code, Codex un ikvienu programmēšanas rīku, ko apkalpo OmniRoute.
+      Pateicoties <b>Kimi (Moonshot AI)</b>, mūsu dibinātājam atvērtā koda draugam, par šī projekta atbalstu! Kimi ir AI laboratorija, kas izstrādājusi atvērtā svara K2 un K3 modeļu saimes — <b>Kimi K3</b> nodrošina 1M žetonu konteksta logu, vietējo redzi un robežlīmeņa kodēšanu par daļu no slēgto modeļu cenām, un darbojas uzreiz ar Claude Code, Codex un katru kodēšanas rīku, ko OmniRoute apkalpo.
       <br/><br/>
-      <b>Ko nodrošina Kimi atbalsts:</b> Kimi API kredīti nodrošina OmniRoute mākslīgā intelekta validēto laidienu konveijeru — <i>Kimi K3 nodrošināto sapludināšanas validācijas</i> posmu, kas pārbauda katru izmaiņu pieprasījumu pirms tā izlaišanas, — kā arī ikdienas funkcionalitātes izstrādi. Pilnvērtīgs Kimi atbalsts tiek nodrošināts abos veidos: izmantojot tiešo <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) un <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code programmēšanas plānu</a> (OAuth un API atslēga). OmniRoute ir arī pirmais Brazīlijas atvērtā pirmkoda projekts Kimi atbalsta programmā. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Iegūstiet Kimi API atslēgu ar 15% papildu kredītiem →</b></a>
+      <b>Ko Kimi atbalsts nodrošina:</b> Kimi API kredīti nodrošina OmniRoute AI validēto izlaišanas cauruļvadu — posmu <i>sapludināšanas validācija, ko nodrošina Kimi K3</i>, kas pārskata katru pieprasījumu pirms tā izlaišanas — kā arī ikdienas funkciju izstrādi. Pirmklasīgs Kimi atbalsts tiek piegādāts abos veidos: tiešais <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) un <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code kodēšanas plāns</a> (OAuth un API atslēga). OmniRoute ir arī pirmais Brazīlijas atvērtā koda projekts Kimi atbalsta programmā. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Iegūstiet Kimi API atslēgu ar 15% papildu kredītiem →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Atvērtā pirmkoda draugs"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Atvērtā koda draugs"/>
     </td>
     <td>
-      Paldies <b>Cheaper Inference</b>, OmniRoute atvērtā pirmkoda draugam, par šī projekta atbalstīšanu! Cheaper Inference ir pēc izmaksām ranžēta vārteja, kas tālākpārdod 42 progresīvus modeļus — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok un MiniMax — aiz viena ar OpenAI saderīga galapunkta, katru pieprasījumu novirzot lētākajam atbilstošajam pakalpojumu sniedzējam un nekad neiekasējot vairāk par modeļa izstrādātāja norādīto cenu.
+      Pateicoties <b>Cheaper Inference</b>, OmniRoute atvērtā koda draugam, par šī projekta atbalstu! Cheaper Inference ir izmaksu ziņā rangēts vārteja, kas pārdod 42 robežmodeļus — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok un MiniMax — aiz viena OpenAI-saderīga galapunkta, novirzot katru pieprasījumu uz lētāko piemēroto pakalpojumu sniedzēju, nekad neiekasējot vairāk par modeļa ražotāja saraksta cenu.
       <br/><br/>
-      <b>Pilnvērtīgs atbalsts OmniRoute:</b> Chat Completions, vietējais <code>/v1/responses</code> galapunkts, vizuālā uztvere, rīku izsaukšana un 3 attēlu modeļi (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, kas pieejami kā <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Iegūstiet API atslēgu →</b></a>
+      <b>Pirmklasīgs atbalsts OmniRoute:</b> Tērzēšanas pabeigšana (Chat Completions), vietējais <code>/v1/responses</code> galapunkts, redze, rīku izsaukšana un 3 attēlu modeļi (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, sasniedzami kā <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Iegūstiet API atslēgu →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Saites ar atzīmi <code>aff=omniroute</code> ir partneru saites. Tās finansē projektu bez papildu izmaksām jums.</sub>
+<sub>Saites, kas marķētas ar <code>aff=omniroute</code>, ir partneru saites. Tās finansē projektu bez papildu izmaksām jums.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Partneru akcijas</b> — pakalpojumu sniedzēju, kuri mūs nesponsorē, bezmaksas reģistrācijas kuponi (noklikšķiniet, lai izvērstu)</sub></summary>
+<summary><sub><b>🎟️ Filiāļu akcija</b> — bezmaksas reģistrācijas kuponi no pakalpojumu sniedzējiem, kurus mēs nesponsorējam (noklikšķiniet, lai izvērstu)</sub></summary>
 
-<sub><i>Šī sadaļa ir paredzēta tikai ieteikumu/kuponu kodiem. Sponsorētās partnerības ir norādītas iepriekš sadaļā <b>🤝 Mūs atbalsta mūsu atvērtā pirmkoda draugi</b>. OmniRoute nav sponsorēšanas vai partnerības attiecību ar šeit norādītajiem pakalpojumu sniedzējiem — tie ir publiski kuponi, kurus var izmantot ikviens.</i></sub>
+<sub><i>Šī sadaļa ir paredzēta tikai novirzīšanas/kuponu kodiem. Sponsorētas partnerības ir atrodamas sadaļā <b>🤝 Atbalsta mūsu atvērtā koda draugi</b> augstāk. OmniRoute nav sponsorēšanas vai partnerības ar šeit uzskaitītajiem pakalpojumu sniedzējiem — tie ir publiski kuponi, ko var izmantot ikviens.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partneru reģistrācija · <b>$100 bezmaksas kredītos</b> pēc reģistrācijas (bezmaksas serveris, tāpēc sagaidāms lielāks latentums — vislabāk piemērots testēšanai, nevis produkcijas videi). Pilnvērtīgs atbalsts OmniRoute kopš <b>v3.8.50</b>: Chat Completions, ar Anthropic saderīgais datu apmaiņas formāts un ar OpenAI saderīgais ceļš. Pieejamie modeļi ietver <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> un citus. <b><a href="https://agentrouter.org/register?aff=70LM">Saņemiet savus $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — filiāles reģistrācija · <b>$100 bezmaksas kredīti</b> reģistrējoties (bezmaksas serveris, sagaidāma lielāka latentums — vislabāk testēšanai, nevis ražošanai). Pirmklasīgs atbalsts OmniRoute kopš <b>v3.8.50</b>: Tērzēšanas pabeigšana (Chat Completions), Anthropic-saderīgs vadu formāts un OpenAI-saderīgs ceļš. Pieejamie modeļi ietver <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> un citus. <b><a href="https://agentrouter.org/register?aff=70LM">Paņemiet savus $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Partneru saite — OmniRoute nav sponsorēšanas vai partnerības attiecību ar šo pakalpojumu sniedzēju.</i></sub>
+      <sub>⚠️ <i>Filiāles saite — OmniRoute nav sponsorēšanas vai partnerības ar šo pakalpojumu sniedzēju.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Zināt vēl kādu pakalpojumu sniedzēju ar dāsnu bezmaksas reģistrācijas kuponu, kas būtu noderīgs OmniRoute lietotājiem? Atveriet problēmas pieteikumu, un mēs to pievienosim šeit.</sub>
+<sub>Zināt citu pakalpojumu sniedzēju ar dāsnu bezmaksas reģistrācijas kuponu, kas nāk par labu OmniRoute lietotājiem? Atveriet problēmu, un mēs to pievienosim šeit.</sub>
 
 </details>
 
@@ -1256,29 +1256,29 @@ Kanoniskie rādītāji 2026-08-24: **1.029 unikāli videoklipi** · **11.132.922
 <br/>
 <div align="center">
 
-## 🛠️ Tehnoloģiju steks
+## 🛠️ Tehnoloģiju kopums
 
 </div>
 
 <table>
   <tr><th align="left">Slānis</th><th align="left">Tehnoloģija</th></tr>
-  <tr><td nowrap><b>Izpildvide</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Valoda</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> visā <code>src/</code> un <code>open-sse/</code> (pamatkodā nav neviena <code>any</code> kopš v2.0)</td></tr>
+  <tr><td nowrap><b>Izpildlaiks</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Valoda</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> visā <code>src/</code> un <code>open-sse/</code> (nulles <code>any</code> kodolā kopš v2.0)</td></tr>
   <tr><td nowrap><b>Ietvars</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Datubāze</b></td><td>better-sqlite3 (SQLite, WAL žurnalēšana) + LowDB (mantotais JSON formāts) — 122 domēna moduļi, 178 migrācijas</td></tr>
-  <tr><td nowrap><b>Atmiņa</b></td><td>SQLite FTS5 pilnteksta meklēšana + int8 kvantizēti vektoru iegulšanas attēlojumi, tipizēta pakāpeniska vājināšanās</td></tr>
-  <tr><td nowrap><b>Shēmas</b></td><td>Zod 4 — MCP rīku ievades/izvades validācija + API līgumi</td></tr>
+  <tr><td nowrap><b>Datu bāze</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domēna moduļi, 182 migrācijas</td></tr>
+  <tr><td nowrap><b>Atmiņa</b></td><td>SQLite FTS5 pilna teksta + int8-kvantēti vektoru iegulumi, tipizēta sabrukšana</td></tr>
+  <tr><td nowrap><b>Shēmas</b></td><td>Zod 4 — MCP rīku I/O validācija + API līgumi</td></tr>
   <tr><td nowrap><b>Protokoli</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Straumēšana</b></td><td>Server-Sent Events (SSE) + WebSocket tilts (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Saspiešana</b></td><td>12 dzinēju konveijers — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Autentifikācija un drošība</b></td><td>OAuth 2.0 (PKCE) + JWT + API atslēgas + MCP tvēruma autentifikācija · AES-256-GCM datu glabāšanai · DOMPurify</td></tr>
-  <tr><td nowrap><b>Maskēšanās</b></td><td>wreq-js — JA3 / JA4 TLS pirkstu nospiedumu imitācija, 3 līmeņu starpniekserveris</td></tr>
-  <tr><td nowrap><b>Noturība</b></td><td>Ķēdes pārtraucējs, eksponenciāla atkāpšanās, vienlaicīgu pieprasījumu lavīnas novēršana, automātiska kombināciju pašatjaunošanās</td></tr>
-  <tr><td nowrap><b>Žurnalēšana</b></td><td>pino — strukturēti JSON žurnāli ar pieprasījuma kontekstu</td></tr>
-  <tr><td nowrap><b>Testēšana</b></td><td>Node.js testu izpildītājs + Vitest — <b>39 000+ statisku testu deklarāciju</b> vairāk nekā 5100 izsekotos testu failos (vienībtesti, integrācijas testi, E2E, drošības un ekosistēmas testi)</td></tr>
-  <tr><td nowrap><b>Platformas</b></td><td>Darbvirsma (Electron) · Android (Termux) · PWA (jebkura pārlūkprogramma)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automātiska publicēšana npm un Docker Hub laidiena laikā</td></tr>
-  <tr><td nowrap><b>Saites</b></td><td><a href="https://omniroute.online">Tīmekļvietne</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>Straume</b></td><td>Server-Sent Events (SSE) + WebSocket tilts (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Kompresija</b></td><td>12 dzinēju cauruļvads — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autentifikācija un drošība</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP ierobežota autentifikācija · AES-256-GCM miera stāvoklī · DOMPurify</td></tr>
+  <tr><td nowrap><b>Slepenība</b></td><td>wreq-js — JA3 / JA4 TLS pirkstu nospiedumu uzdošanās, 3 līmeņu starpniekserveris</td></tr>
+  <tr><td nowrap><b>Noturība</b></td><td>Ķēdes pārtraucējs, eksponenciāla atpalicība, pretdārdoņa efekts, automātiska kombinētā pašatjaunošanās</td></tr>
+  <tr><td nowrap><b>Žurnālēšana</b></td><td>pino — strukturēti JSON žurnāli ar pieprasījuma kontekstu</td></tr>
+  <tr><td nowrap><b>Testēšana</b></td><td>Node.js testu izpildītājs + Vitest — <b>39 000+ statisku testu deklarāciju</b> vairāk nekā 5100+ izsekotos testu failos (vienības, integrācijas, E2E, drošības, ekosistēmas)</td></tr>
+  <tr><td nowrap><b>Platformas</b></td><td>Dators (Electron) · Android (Termux) · PWA (jebkurš pārlūks)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automātiska npm publicēšana + Docker Hub izlaišanas brīdī</td></tr>
+  <tr><td nowrap><b>Saites</b></td><td><a href="https://omniroute.online">Tīmekļa vietne</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

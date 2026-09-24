@@ -54,9 +54,10 @@ runs:
           # --no-audit: `audit:deps` is its own gate; the inline audit only adds latency.
           if npm ci --no-audit --no-fund; then
             exit 0
+          else
+            exit_code=$?
           fi
 
-          exit_code=$?
           if [ "$attempt" -eq "$max_attempts" ]; then
             exit "$exit_code"
           fi
