@@ -690,10 +690,12 @@ test("chatCore integration: assigned compression combo applies language packs an
 
     assert.ok(result.success, "Request should succeed");
     assert.ok(capturedBody, "Fetch should receive the request body");
-    const firstMessage = capturedBody.messages?.[0];
-    assert.equal(firstMessage?.role, "system");
-    assert.match(firstMessage?.content ?? "", /OmniRoute Output Styles/);
-    assert.match(firstMessage?.content ?? "", /Responda conciso/);
+    // #13383: injection must preserve the initial user turn for Anthropic compatibility.
+    assert.equal(capturedBody.messages?.[0]?.role, "user");
+    const styleMessage = capturedBody.messages?.at(-1);
+    assert.equal(styleMessage?.role, "system");
+    assert.match(styleMessage?.content ?? "", /OmniRoute Output Styles/);
+    assert.match(styleMessage?.content ?? "", /Responda conciso/);
 
     for (
       let attempt = 0;
@@ -787,10 +789,11 @@ test("chatCore integration: default stacked compression combo applies for unassi
 
     assert.ok(result.success, "Request should succeed");
     assert.ok(capturedBody, "Fetch should receive the request body");
-    const firstMessage = capturedBody.messages?.[0];
-    assert.equal(firstMessage?.role, "system");
-    assert.match(firstMessage?.content ?? "", /OmniRoute Output Styles/);
-    assert.match(firstMessage?.content ?? "", /Responda conciso/);
+    assert.equal(capturedBody.messages?.[0]?.role, "user");
+    const styleMessage = capturedBody.messages?.at(-1);
+    assert.equal(styleMessage?.role, "system");
+    assert.match(styleMessage?.content ?? "", /OmniRoute Output Styles/);
+    assert.match(styleMessage?.content ?? "", /Responda conciso/);
 
     let summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
     for (
@@ -1109,8 +1112,9 @@ test("chatCore integration: caveman output mode injected when both compression a
     });
 
     assert.ok(result.success, "Request should succeed");
-    assert.equal(capturedBody.messages[0].role, "system");
-    assert.match(capturedBody.messages[0].content ?? "", /Output Styles/);
+    assert.equal(capturedBody.messages[0].role, "user");
+    assert.equal(capturedBody.messages.at(-1).role, "system");
+    assert.match(capturedBody.messages.at(-1).content ?? "", /Output Styles/);
   } finally {
     globalThis.fetch = originalFetch;
   }

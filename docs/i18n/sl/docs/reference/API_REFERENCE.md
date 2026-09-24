@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Semantika stroškov zadetka predpomnilnika:** pri zadetku semantičnega predpomnilnika `HIT` (`X-OmniRoute-Cache-Hit: true`) se nadrejeni klic ne izvede, zato je `X-OmniRoute-Response-Cost` enak `0.0000000000` (**inkrementalni** strošek posredovanja zadetka). Izvirni oziroma predvideni strošek je naveden ločeno v `X-OmniRoute-Cost-Saved`. Odjemalci obračunavanja morajo seštevati `X-OmniRoute-Response-Cost` (zadetki ne stanejo nič); analitika predpomnilnika lahko združuje `X-OmniRoute-Cost-Saved`.
 
-## Ekskluzivni upravljani zakupi sej
+## Ekskluzivne najemnine upravljanih sej
 
-Ekskluzivni upravljani zakup sej je izbirna pogodba o usmerjanju, neodvisna od odjemalca: en aktiven lastnik
-ima v zakupu eno ustrezno povezavo OmniRoute. Ne daje v zakup modela, ne zahteva OAuth, ne identificira
-določenega odjemalca in ne zahteva določenega ponudnika.
+Ekskluzivno najemanje upravljanih sej je izbirna, odjemalcu nevtralna pogodba o usmerjanju: en aktiven lastnik ima eno ustrezno povezavo OmniRoute. Ne najema modela, ne zahteva OAuth, ne identificira določenega odjemalca in ne zahteva določenega ponudnika.
 
-API-ključ za preverjanje pristnosti mora imeti obseg `lease:exclusive` in izrecen neprazen seznam
-`allowedConnections`. Meja mutacij zbirke podatkov uveljavlja obe polji skupaj pri ustvarjanju ključa
-in delnih posodobitvah.
+Avtentikacijski API ključ mora imeti obseg `lease:exclusive` in eksplicitno neprazno listo `allowedConnections`. Meja mutacije baze podatkov uveljavlja obe polji skupaj pri ustvarjanju ključa in delnih posodobitvah.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Uspešni odgovori za pridobitev, podaljšanje in sprostitev razkrijejo časovne žige, `state` in natančno pozitivno
-vrednost `generation`, vendar nikoli izbrane povezave ali poverilnic. Pri podaljšanju in sprostitvi se
-vrednost generation navede v telesu JSON:
+Uspešni odzivi za pridobitev, podaljšanje in sprostitev razkrivajo časovne žige, `state` in natančno pozitivno `generation`, nikoli pa izbrane povezave ali poverilnic. Podaljšanje in sprostitev zagotavljata generacijo v JSON telesu:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ vrednost generation navede v telesu JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Lastnik aktivnega zakupa lahko izrecno zahteva prikazne metapodatke svoje trenutne vezave, ki ne ogrožajo zasebnosti:
+Aktiven lastnik najema lahko eksplicitno zahteva metapodatke za prikaz, varne za zasebnost, za svojo trenutno vezavo:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Lastnik aktivnega zakupa lahko izrecno zahteva prikazne metapodatke svoje trenut
 }
 ```
 
-To izbirno dejanje za stanje je v eni transakciji zbirke podatkov zavarovano z neprozornim lastnikom, overjenim upravljanim API-ključem in natančno
-aktivno vrednostjo generation. `displayName` je samo obrezano konfigurirano
-ime povezave; če varno konfigurirano ime ne obstaja, je njegova vrednost `null`. OmniRoute ga nikoli ne nadomesti z
-e-poštnim naslovom ali ustvarjeno identiteto računa. Vrednost ponudnika je neobčutljiva prikazna oznaka in nikoli
-ustvarjen identifikator združljivega ponudnika. Poverilnice, žetoni, piškotki, neobdelani identifikatorji povezav ali
-API-ključev, zgoščene vrednosti lastnikov, skrivnosti za zavarovanje in notranji podatki o usmerjanju so izključeni.
+To izbirno dejanje statusa je zaščiteno z nepreglednim lastnikom, avtenticiranim upravljanim API ključem in natančno aktivno generacijo v eni transakciji baze podatkov. `displayName` je le obrezano konfigurirano ime povezave; je `null`, če varno konfigurirano ime ne obstaja. OmniRoute nikoli ne nadomesti e-pošte ali generirane identitete računa. Vrednost ponudnika je neobčutljiva oznaka za prikaz in nikoli generiran združljiv identifikator ponudnika. Poverilnice, žetoni, piškotki, neobdelani ID-ji povezav ali API ključev, zgoščene vrednosti lastnikov, varnostne skrivnosti in notranji podatki o usmerjanju so izključeni.
 
-Poizvedbe z napačnim ključem, napačnim lastnikom, zastarelo vrednostjo generation ter poizvedbe za manjkajoče, potekle, sproščene ali razveljavljene zakupe
-vrnejo isto napako `409 LEASE_FENCE_STALE` brez metapodatkov povezave. Odjemalec, ki je prejel odgovor o čakanju na zmogljivost, nima aktivne vezave, ki bi jo lahko pregledal. Ko usmerjanje spremeni vezavo aktivnega zakupa,
-ista vrednost generation ostane veljavna, stanje pa atomsko vrne novo vezavo in nikoli stare.
-Obstoječi odjemalci ostanejo nespremenjeni, ker odgovori za pridobitev, podaljšanje, sprostitev in čakanje ohranijo
-svoje prejšnje oblike.
+Napačen ključ, napačen lastnik, zastarela generacija, manjkajoče, potekle, sproščene in neveljavne poizvedbe vrnejo isto napako `409 LEASE_FENCE_STALE` brez metapodatkov o povezavi. Odjemalec, ki je prejel odziv čakanja na zmogljivost, nima aktivne vezave za pregled. Ko usmerjanje preklopi aktivni najem, ista generacija ostane veljavna in status atomsko vrne novo vezavo, nikoli stare. Obstoječi odjemalci ostanejo nespremenjeni, ker odzivi za pridobitev, podaljšanje, sprostitev in čakanje ohranijo svoje prejšnje oblike.
 
-Ta strežniška pogodba ne spremeni standardnega `/status` v OpenAI Codex. Standardni Codex trenutno poroča o svojem
-ponudniku modela in vgrajenem stanju preverjanja pristnosti/računa, vendar ne upodablja poljubnih metapodatkov računa
-ponudnika po meri; poznejša integracija odjemalca mora poklicati to dejanje in se odločiti, kako
-prikazati `connection.displayName`.
+Ta strežniška pogodba ne spreminja standardnega OpenAI Codex `/status`. Standardni Codex trenutno poroča o svojem ponudniku modela in vgrajenem stanju avtentikacije/računa, vendar ne prikazuje poljubnih metapodatkov računa ponudnika po meri; kasnejša integracija odjemalca mora poklicati to dejanje in se odločiti, kako prikazati `connection.displayName`.
 
-Vsaka upravljana zahteva za sklepanje nato navede obe nadzorni glavi:
+Vsaka zahteva za upravljano sklepanje nato zagotavlja oba nadzorna glava:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Natančen lastnik, vrednost generation, aktivna povezava in overjeni API-ključ so zavarovani neposredno
-pred vsakim podprtim poskusom pri nadrejeni storitvi. Ponovna uporaba lastnika in vrednosti generation z drugim ključem ne uspe, tudi
-če ta ključ dovoljuje isto povezavo. Neobdelani podatki o lastnikih se ne shranjujejo, beležijo, ohranjajo v
-posnetku zahteve ali posredujejo nadrejeni storitvi.
+Natančen lastnik, generacija, aktivna povezava in avtenticiran API ključ so zaščiteni takoj pred vsakim podprtim poskusom navzgor. Ponovno predvajanje lastnika in generacije z drugim ključem ne uspe, tudi če ta ključ dovoljuje isto povezavo. Neobdelani lastniki se ne shranjujejo, ne beležijo, ne hranijo v posnetku zahteve in se ne posredujejo navzgor.
 
-Začasna prezasedenost vrne HTTP `429` z `Retry-After` in:
+Začasna konkurenca vrne HTTP `429` z `Retry-After` in:
 
 ```json
 {
@@ -178,36 +157,35 @@ Začasna prezasedenost vrne HTTP `429` z `Retry-After` in:
 }
 ```
 
-Ta odgovor pomeni samo, da običajna množica ustreznih povezav ni bila prazna in da je vsak prosti kandidat
-pripadal tujemu aktivnemu zakupu. Nepodprti modeli/ponudniki, neujemanje pravilnikov, obdobje ohlajanja, kvota,
-stanje ustreznosti in druge običajne napake pri preverjanju ustreznosti ohranijo obstoječe odgovore OmniRoute.
+Ta odziv pomeni le, da običajni upravičeni nabor ni bil prazen in da je vsakega prostega kandidata zadržal tuji aktivni najem. Nepodprti modeli/ponudniki, neujemanje pravilnikov, ohladitev, kvota, zdravje in druge običajne napake pri upravičenosti ohranijo svoje obstoječe odzive OmniRoute.
 
 ### `x-omniroute-compression`
 
-Preglasitev načrta stiskanja za posamezno zahtevo. Ima najvišjo prednost — preglasi preglasitev usmerjevalne kombinacije,
-aktivni profil, samodejni sprožilec in privzeto nastavitev na plošči. Vrednosti:
+Prepis načrta stiskanja na zahtevo. Najvišja prednost — preglasi prepis usmerjevalne kombinacije, aktivni profil, samodejni sprožilec in privzeto ploščo. Vrednosti:
 
-| Vrednost      | Učinek                                                                                                               |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Brez stiskanja za to zahtevo.                                                                                        |
-| `default`     | Profil Default, izpeljan iz plošče (prezre aktivni profil).                                                          |
-| `engine:<id>` | En sam omogočen mehanizem, npr. `engine:rtk`.                                                                        |
-| `<combo>`     | Poimenovana kombinacija, ki se najprej ujema po imenu (brez razlikovanja med velikimi in malimi črkami), nato po id. |
+| Vrednost      | Učinek                                                                                          |
+| ------------- | ----------------------------------------------------------------------------------------------- |
+| `off`         | Brez stiskanja za to zahtevo.                                                                   |
+| `default`     | Privzeti profil, izpeljan iz plošče (ignorira aktivni profil). Izgubni motorji so izklopljeni.  |
+| `safe`        | Samo deduplikacija in zlaganje presledkov.                                                      |
+| `allow-lossy` | Ohrani operaterski načrt za to zahtevo, vključno s povzetki in prepisi sloga.                   |
+| `engine:<id>` | En sam motor, ko je omogočen, npr. `engine:rtk`. Izbirna možnost na zahtevo za ta motor.        |
+| `<combo>`     | Imenovana kombinacija, najprej se ujema po imenu (neobčutljivo na velikost črk), nato po ID-ju. |
 
 Opombe:
 
-- Neznane vrednosti so prezrte (zahteva ni nikoli zavrnjena); razreševanje se nadaljuje po običajnem prednostnem vrstnem redu operatorjev.
-- Če ima več kombinacij isto ime, za deterministično ujemanje navedite **id** kombinacije.
-- Kombinacije z imenom `off` ali `default` ni mogoče izbrati po imenu (ti ključni besedi se razložita najprej); tako kombinacijo navedite z njenim id.
-- Glavno stikalo za stiskanje je stroga omejitev: ko je stiskanje globalno onemogočeno, ga ta glava ne more omogočiti.
+- Neznane vrednosti so ignorirane (zahteva ni nikoli zavrnjena); razrešitev se nadaljuje z običajno operatersko prednostjo.
+- Če si več kombinacij deli ime, posredujte **ID** kombinacije za deterministično ujemanje.
+- Kombinacije, katerih ime je `off` ali `default`, ni mogoče izbrati po imenu (te ključne besede se interpretirajo najprej); takšno kombinacijo navedite po njenem ID-ju.
+- Glavno stikalo za stiskanje je trda zapora: ko je stiskanje globalno onemogočeno, ta glava ne more omogočiti.
 
-Uporabljeni načrt se ponovi v glavi odgovora:
+Uporabljeni načrt se ponovi v glavi odziva:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-kjer je `<source>` ena od vrednosti `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ali `off`.
+kjer je `<source>` eden od `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ali `off`.
 
 ---
 

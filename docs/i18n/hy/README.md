@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Մեր բաց կոդով ընկերների աջակցությամբ
+## 🤝 Աջակցվում է մեր բաց կոդով ընկերների կողմից
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Բաց սահմանների բանականություն · 2.8T պարամետր · 1M-թոքենանոց համատեքստ"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **Ցանկանո՞ւմ եք միանալ որպես բաց կոդով ընկեր։** Սրանք այն ընկերություններն են, որոնք աջակցում են բաց կոդին և օգնում OmniRoute-ին շարունակել զարգանալ, իսկ մենք հրապարակայնորեն հայտնում ենք, թե ուր է ուղղվում նրանց տրամադրած յուրաքանչյուր թոքենը։ Կապվեք մեզ հետ՝ [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Ցանկանու՞մ եք միանալ որպես բաց կոդով ընկեր:** Սրանք այն ընկերություններն են, որոնք աջակցում են բաց կոդին և օգնում են OmniRoute-ին շարունակել աշխատել, և մենք հրապարակայնորեն նշում ենք, թե ուր է գնում նրանց տված յուրաքանչյուր թոքենը: Կապ հաստատեք՝ [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,38 +284,38 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Բաց կոդով հիմնադիր ընկեր"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Հիմնադիր բաց կոդով ընկեր"/>
     </td>
     <td>
-      Շնորհակալություն <b>Kimi-ին (Moonshot AI)</b>՝ բաց կոդով մեր հիմնադիր ընկերոջը, այս նախագծին աջակցելու համար։ Kimi-ն բաց կշիռներով K2 և K3 մոդելների ընտանիքները ստեղծած արհեստական բանականության լաբորատորիան է։ <b>Kimi K3</b>-ն առաջարկում է 1M-թոքենանոց համատեքստային պատուհան, ներկառուցված տեսողական ընկալում և առաջատար մակարդակի ծրագրավորում՝ փակ մոդելների գնի չնչին մասով, և առանց լրացուցիչ կարգաբերման աշխատում է Claude Code-ի, Codex-ի և OmniRoute-ի սպասարկած յուրաքանչյուր ծրագրավորման գործիքի հետ։
+      Շնորհակալություն <b>Kimi (Moonshot AI)</b>-ին՝ մեր հիմնադիր բաց կոդով ընկերոջը, այս նախագծին աջակցելու համար: Kimi-ն AI լաբորատորիան է, որը ստեղծել է բաց քաշով K2 և K3 մոդելների ընտանիքները. <b>Kimi K3</b>-ն ապահովում է 1M-թոքեն համատեքստային պատուհան, բնիկ տեսողություն և առաջնակարգ կոդավորում փակ մոդելների գների մի մասով, և աշխատում է Claude Code-ի, Codex-ի և OmniRoute-ի կողմից սպասարկվող յուրաքանչյուր կոդավորման գործիքի հետ:
       <br/><br/>
-      <b>Ինչ է հնարավոր դարձնում Kimi-ի աջակցությունը.</b> Kimi-ի API վարկերը ապահովում են OmniRoute-ի՝ արհեստական բանականությամբ վավերացվող թողարկումների հոսքաշարի աշխատանքը՝ <i>Kimi K3-ով աշխատող միաձուլման վավերացման</i> փուլը, որը ստուգում է յուրաքանչյուր pull request նախքան դրա թողարկումը, ինչպես նաև ամենօրյա գործառույթների մշակումը։ Kimi-ի լիարժեք աջակցությունը տրամադրվում է երկու ուղով՝ անմիջական <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a>-ով (<code>kimi-k3</code>) և <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code ծրագրավորման պլանով</a> (OAuth և API բանալի)։ OmniRoute-ը նաև Kimi-ի աջակցության ծրագրում ընդգրկված առաջին բրազիլական բաց կոդով նախագիծն է։ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Ստացեք Kimi API բանալի՝ 15% լրացուցիչ վարկերով →</b></a>
+      <b>Ինչ է ապահովում Kimi-ի աջակցությունը.</b> Kimi-ի API վարկերը սնուցում են OmniRoute-ի AI-ով վավերացված թողարկման խողովակաշարը՝ <i>Kimi K3-ով սնուցվող միաձուլման վավերացման</i> փուլը, որը վերանայում է յուրաքանչյուր քաշման հարցում մինչև դրա առաքումը, գումարած ամենօրյա ֆունկցիոնալության մշակումը: Առաջին կարգի Kimi աջակցությունն ապահովվում է երկու ուղղություններով՝ ուղղակի <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) և <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code կոդավորման պլան</a> (OAuth և API բանալի): OmniRoute-ն նաև առաջին բրազիլական բաց կոդով նախագիծն է Kimi-ի աջակցության ծրագրում: <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Ստացեք Kimi API բանալի 15% լրացուցիչ վարկերով →</b></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="150">
       <a href="https://cheaperinference.com/?utm_source=omniroute">
-        <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
+        <img src="./public/providers/cli-generic.svg" width="64" alt="Ավելի էժան ինֆերենցիա"/>
       </a>
-      <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
+      <br/><b>Ավելի էժան ինֆերենցիա</b><br/><sub>cheaperinference.com</sub><br/><br/>
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Բաց կոդով ընկեր"/>
     </td>
     <td>
-      Շնորհակալություն <b>Cheaper Inference-ին</b>՝ OmniRoute-ի բաց կոդով ընկերոջը, այս նախագծին աջակցելու համար։ Cheaper Inference-ը գնով դասակարգված դարպաս է, որը մեկ OpenAI-ի հետ համատեղելի վերջնակետի միջոցով վերավաճառում է 42 առաջատար մոդել՝ Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok և MiniMax՝ յուրաքանչյուր հարցում ուղղորդելով համապատասխան ամենաէժան մատակարարին և երբեք չգերազանցելով մոդելն ստեղծողի ցուցակային գինը։
+      Շնորհակալություն <b>Cheaper Inference</b>-ին՝ OmniRoute-ի բաց կոդով ընկերոջը, այս նախագծին աջակցելու համար: Cheaper Inference-ը ծախսերով դասակարգված դարպաս է, որը վերավաճառում է 42 առաջնակարգ մոդելներ՝ Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok և MiniMax՝ մեկ OpenAI-ի հետ համատեղելի վերջնակետի հետևում, յուրաքանչյուր հարցում ուղղելով ամենաէժան համապատասխան մատակարարին՝ երբեք չգանձելով մոդել ստեղծողի ցուցակային գնից բարձր:
       <br/><br/>
-      <b>Լիարժեք աջակցություն OmniRoute-ում.</b> Chat Completions, ներկառուցված <code>/v1/responses</code> վերջնակետ, տեսողական ընկալում, գործիքների կանչեր և պատկերների 3 մոդել (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, որոնք հասանելի են որպես <code>cheaperinference/&lt;model&gt;</code>)։ <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Ստացեք API բանալի →</b></a>
+      <b>Առաջին կարգի աջակցություն OmniRoute-ում.</b> Զրույցի ավարտներ, բնիկ <code>/v1/responses</code> վերջնակետ, տեսողություն, գործիքների կանչում և 3 պատկերային մոդել (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, հասանելի որպես <code>cheaperinference/&lt;model&gt;</code>): <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Ստացեք API բանալի →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> պիտակով հղումները գործընկերային հղումներ են։ Դրանք ֆինանսավորում են նախագիծը՝ առանց ձեզ համար հավելյալ ծախսի։</sub>
+<sub><code>aff=omniroute</code> պիտակով հղումները գործընկերային հղումներ են: Դրանք ֆինանսավորում են նախագիծը առանց ձեզ համար լրացուցիչ ծախսերի:</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Գործընկերային առաջարկներ</b> — անվճար գրանցման կտրոններ այն մատակարարներից, որոնց մենք չենք հովանավորում (սեղմեք՝ բացելու համար)</sub></summary>
+<summary><sub><b>🎟️ Աֆիլիատների պրոմո</b> — անվճար գրանցման կտրոններ մատակարարներից, որոնց մենք չենք հովանավորում (սեղմեք՝ ընդլայնելու համար)</sub></summary>
 
-<sub><i>Այս բաժինը նախատեսված է միայն ուղղորդման/կտրոնային կոդերի համար։ Հովանավորվող գործընկերությունները ներկայացված են վերևի <b>🤝 Մեր բաց կոդով ընկերների աջակցությամբ</b> բաժնում։ OmniRoute-ը հովանավորչական կամ գործընկերային հարաբերություններ չունի այստեղ նշված մատակարարների հետ. սրանք հանրային կտրոններ են, որոնցից կարող է օգտվել յուրաքանչյուրը։</i></sub>
+<sub><i>Այս բաժինը միայն ուղղորդման/կտրոնների կոդերի համար է: Հովանավորվող գործընկերությունները գտնվում են վերևում՝ <b>🤝 Աջակցվում է մեր բաց կոդով ընկերների կողմից</b> բաժնում: OmniRoute-ը չունի հովանավորություն կամ գործընկերություն այստեղ նշված մատակարարների հետ. սրանք հանրային կտրոններ են, որոնք յուրաքանչյուրը կարող է օգտագործել:</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — գործընկերային գրանցում · գրանցվելիս՝ <b>$100 անվճար վարկ</b> (անվճար սերվեր, սպասեք ավելի մեծ ուշացման. լավագույնն է փորձարկման, ոչ թե արտադրական միջավայրի համար)։ Լիարժեք աջակցություն OmniRoute-ում՝ սկսած <b>v3.8.50</b>-ից. Chat Completions, Anthropic-ի հետ համատեղելի հաղորդակցման ձևաչափ և OpenAI-ի հետ համատեղելի ուղի։ Հասանելի մոդելների թվում են <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> և այլ մոդելներ։ <b><a href="https://agentrouter.org/register?aff=70LM">Ստացեք ձեր $100-ը →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — աֆիլիատի գրանցում · <b>$100 անվճար վարկեր</b> գրանցվելիս (անվճար սերվեր, ակնկալեք ավելի բարձր ուշացում՝ լավագույնը թեստավորման համար, ոչ արտադրության): Առաջին կարգի աջակցություն OmniRoute-ում <b>v3.8.50</b>-ից սկսած. Զրույցի ավարտներ, Anthropic-ի հետ համատեղելի մետաղալարային ձևաչափ և OpenAI-ի հետ համատեղելի ուղի: Հասանելի մոդելները ներառում են <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> և այլն: <b><a href="https://agentrouter.org/register?aff=70LM">Ստացեք ձեր $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Գործընկերային հղում. OmniRoute-ը հովանավորչական կամ գործընկերային հարաբերություններ չունի այս մատակարարի հետ։</i></sub>
+      <sub>⚠️ <i>Աֆիլիատի հղում — OmniRoute-ը չունի հովանավորություն կամ գործընկերություն այս մատակարարի հետ:</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Գիտե՞ք մեկ այլ մատակարար, որն առաջարկում է գրանցման առատաձեռն անվճար կտրոն՝ ի շահ OmniRoute-ի օգտատերերի։ Բացեք issue, և մենք այն կավելացնենք այստեղ։</sub>
+<sub>Գիտե՞ք մեկ այլ մատակարարի, որն ունի առատաձեռն անվճար գրանցման կտրոն, որը օգուտ է բերում OmniRoute-ի օգտատերերին: Բացեք խնդիր, և մենք այն կավելացնենք այստեղ:</sub>
 
 </details>
 
@@ -1256,29 +1256,29 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1-ը նույնպե
 <br/>
 <div align="center">
 
-## 🛠️ Տեխնոլոգիական կույտ
+## 🛠️ Տեխնոլոգիական փաթեթ
 
 </div>
 
 <table>
   <tr><th align="left">Շերտ</th><th align="left">Տեխնոլոգիա</th></tr>
-  <tr><td nowrap><b>Գործարկման միջավայր</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Լեզու</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> across <code>src/</code> and <code>open-sse/</code> (առանց <code>any</code>-ի հիմնական կոդում v2.0-ից ի վեր)</td></tr>
-  <tr><td nowrap><b>Շրջանակ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Տվյալների բազա</b></td><td>better-sqlite3 (SQLite, WAL մատյանագրում) + LowDB (JSON ժառանգություն) — 122 տիրույթի մոդուլ, 178 միգրացիա</td></tr>
-  <tr><td nowrap><b>Հիշողություն</b></td><td>SQLite FTS5 ամբողջական տեքստ + int8-քվանտացված վեկտորային ներդրումներ, տիպավորված քայքայում</td></tr>
-  <tr><td nowrap><b>Սխեմաներ</b></td><td>Zod 4 — MCP գործիքի մուտք/ելքի վավերացում + API պայմանագրեր</td></tr>
+  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Լեզու</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> <code>src/</code> և <code>open-sse/</code> թղթապանակներում (զրոյական <code>any</code> միջուկում սկսած v2.0-ից)</td></tr>
+  <tr><td nowrap><b>Ֆրեյմվորկ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Տվյալների բազա</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 դոմեյն մոդուլներ, 182 միգրացիաներ</td></tr>
+  <tr><td nowrap><b>Հիշողություն</b></td><td>SQLite FTS5 լիատեքստ որոնում + int8-quantized վեկտորային էմբեդինգներ, typed decay</td></tr>
+  <tr><td nowrap><b>Սխեմաներ</b></td><td>Zod 4 — MCP գործիքի I/O վալիդացիա + API պայմանագրեր</td></tr>
   <tr><td nowrap><b>Արձանագրություններ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Հոսքային հաղորդում</b></td><td>Սերվերի կողմից ուղարկվող իրադարձություններ (SSE) + WebSocket կամուրջ (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Սեղմում</b></td><td>12 շարժիչով խողովակաշար — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Նույնականացում և անվտանգություն</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP սահմանափակված նույնականացում · AES-256-GCM պահեստավորված վիճակում · DOMPurify</td></tr>
-  <tr><td nowrap><b>Թաքնվածություն</b></td><td>wreq-js — JA3 / JA4 TLS մատնահետքի նմանակում, 3 մակարդակի պրոքսի</td></tr>
-  <tr><td nowrap><b>Դիմացկունություն</b></td><td>Շղթայի անջատիչ, էքսպոնենցիալ հետաձգում, հակա-որոտացող հոտ, ավտո-կոմբո ինքնավերականգնում</td></tr>
-  <tr><td nowrap><b>Մուտքագրում</b></td><td>pino — կառուցվածքային JSON մուտքեր հարցման համատեքստով</td></tr>
-  <tr><td nowrap><b>Թեստավորում</b></td><td>Node.js test runner + Vitest — <b>39,000+ ստատիկ թեստային հայտարարություններ</b> 5,100+ հետևվող թեստային ֆայլերում (միավորային, ինտեգրացիոն, E2E, անվտանգության, էկոհամակարգի)</td></tr>
-  <tr><td nowrap><b>Պլատֆորմներ</b></td><td>Սեղանադիր (Electron) · Android (Termux) · PWA (ցանկացած բրաուզեր)</td></tr>
+  <tr><td nowrap><b>Սթրիմինգ</b></td><td>Server-Sent Events (SSE) + WebSocket կամուրջ (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Սեղմում</b></td><td>12-շարժիչով փայփլայն — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Նույնականացում և անվտանգություն</b></td><td>OAuth 2.0 (PKCE) + JWT + API բանալիներ + MCP scoped auth · AES-256-GCM պահպանման ժամանակ · DOMPurify</td></tr>
+  <tr><td nowrap><b>Քողարկում</b></td><td>wreq-js — JA3 / JA4 TLS մատնահետքի կեղծում (impersonation), 3-մակարդակի պրոքսի</td></tr>
+  <tr><td nowrap><b>Դիմացկունություն</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo ինքնավերականգնում</td></tr>
+  <tr><td nowrap><b>Լոգավորում</b></td><td>pino — կառուցվածքային JSON լոգեր հարցման կոնտեքստով</td></tr>
+  <tr><td nowrap><b>Թեստավորում</b></td><td>Node.js test runner + Vitest — <b>39,000+ ստատիկ թեստային հայտարարություններ</b> 5,100+ հետևվող թեստային ֆայլերում (unit, integration, E2E, security, ecosystem)</td></tr>
+  <tr><td nowrap><b>Հարթակներ</b></td><td>Desktop (Electron) · Android (Termux) · PWA (ցանկացած բրաուզեր)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ավտոմատ npm հրապարակում + Docker Hub թողարկման ժամանակ</td></tr>
-  <tr><td nowrap><b>Հղումներ</b></td><td><a href="https://omniroute.online">Կայք</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>Հղումներ</b></td><td><a href="https://omniroute.online">Վեբկայք</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">
@@ -1594,13 +1594,13 @@ gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
 
 <div align="center">
 
-## 🌍 StarMapper
+## 🌍 Աստղային Քարտեզագիր
 
 <a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
     <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
+    <img alt="Աստղային Քարտեզագիր" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
   </picture>
 </a>
 </div>

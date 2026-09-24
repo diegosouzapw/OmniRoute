@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 За підтримки наших друзів відкритого коду
+## 🤝 За підтримки наших друзів з відкритим кодом
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — передовий відкритий інтелект · 2,8 трлн параметрів · контекст на 1 млн токенів"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **Хочете приєднатися як друг відкритого коду?** Це компанії, які підтримують відкритий код і допомагають розвивати OmniRoute, а ми публічно звітуємо, куди спрямовується кожен наданий ними токен. Зв’яжіться з нами: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Хочете приєднатися як друг відкритого коду?** Це компанії, які підтримують відкритий код і допомагають OmniRoute розвиватися — і ми публічно повідомляємо, куди йде кожен токен, який вони нам надають. Зв'яжіться з нами: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Друг-засновник відкритого коду"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Засновник-друг відкритого коду"/>
     </td>
     <td>
-      Дякуємо <b>Kimi (Moonshot AI)</b>, нашому другу-засновнику відкритого коду, за підтримку цього проєкту! Kimi — це лабораторія ШІ, що стоїть за сімействами моделей K2 і K3 з відкритими вагами. <b>Kimi K3</b> пропонує контекстне вікно на 1 млн токенів, вбудоване комп’ютерне бачення та програмування передового рівня за частку вартості закритих моделей, а також працює одразу після встановлення з Claude Code, Codex і всіма інструментами програмування, які обслуговує OmniRoute.
+      Дякуємо <b>Kimi (Moonshot AI)</b>, нашому засновнику-другу відкритого коду, за підтримку цього проекту! Kimi — це лабораторія ШІ, що стоїть за відкритими моделями K2 та K3 — <b>Kimi K3</b> забезпечує контекстне вікно на 1 мільйон токенів, нативне бачення та кодування на передовому рівні за частку ціни закритих моделей, і працює "з коробки" з Claude Code, Codex та всіма інструментами кодування, які підтримує OmniRoute.
       <br/><br/>
-      <b>Що забезпечує підтримка Kimi:</b> кредити API Kimi забезпечують роботу конвеєра випусків OmniRoute із перевіркою за допомогою ШІ — етапу <i>перевірки злиття на базі Kimi K3</i>, який аналізує кожен запит на злиття перед випуском, — а також щоденну розробку функцій. Повноцінна підтримка Kimi доступна через обидва канали: безпосередньо через <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) і через <a href="https://www.kimi.com/code?aff=omniroute">тарифний план Kimi Code для програмування</a> (OAuth та ключ API). OmniRoute також є першим бразильським проєктом із відкритим кодом у програмі підтримки Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Отримайте ключ Kimi API із 15% додаткових кредитів →</b></a>
+      <b>Що підтримує Kimi:</b> Кредити API Kimi забезпечують конвеєр випуску OmniRoute, перевірений ШІ — етап <i>перевірки злиття за допомогою Kimi K3</i>, який перевіряє кожен запит на злиття перед його відправкою — а також щоденну розробку функцій. Першокласна підтримка Kimi доступна на обох шляхах: прямий <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) та <a href="https://www.kimi.ai/code?aff=omniroute">план кодування Kimi Code</a> (OAuth та ключ API). OmniRoute також є першим бразильським проектом з відкритим кодом у програмі підтримки Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Отримайте ключ API Kimi з 15% додаткових кредитів →</b></a>
     </td>
   </tr>
   <tr>
@@ -301,21 +301,21 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Друг відкритого коду"/>
     </td>
     <td>
-      Дякуємо <b>Cheaper Inference</b>, другу відкритого коду OmniRoute, за підтримку цього проєкту! Cheaper Inference — це шлюз із ранжуванням за вартістю, який перепродає доступ до 42 передових моделей — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok і MiniMax — через єдину кінцеву точку, сумісну з OpenAI, спрямовуючи кожен запит до найдешевшого відповідного постачальника й ніколи не стягуючи більше за офіційну ціну розробника моделі.
+      Дякуємо <b>Cheaper Inference</b>, другу відкритого коду OmniRoute, за підтримку цього проекту! Cheaper Inference — це шлюз з рейтингом вартості, який перепродає 42 передові моделі — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok та MiniMax — за однією сумісною з OpenAI кінцевою точкою, маршрутизуючи кожен запит до найдешевшого відповідного провайдера, ніколи не стягуючи плату вище прейскурантної ціни виробника моделі.
       <br/><br/>
-      <b>Повноцінна підтримка в OmniRoute:</b> Chat Completions, нативна кінцева точка <code>/v1/responses</code>, комп’ютерне бачення, виклик інструментів і 3 моделі генерації зображень (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, доступні як <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Отримайте ключ API →</b></a>
+      <b>Першокласна підтримка в OmniRoute:</b> Chat Completions, нативна кінцева точка <code>/v1/responses</code>, бачення, виклик інструментів та 3 моделі зображень (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, доступні як <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Отримайте ключ API →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Посилання з позначкою <code>aff=omniroute</code> є партнерськими. Вони фінансують проєкт без додаткових витрат для вас.</sub>
+<sub>Посилання, позначені <code>aff=omniroute</code>, є партнерськими. Вони фінансують проект без додаткових витрат для вас.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Партнерські акції</b> — безкоштовні купони за реєстрацію від постачальників, яких ми не спонсоруємо (натисніть, щоб розгорнути)</sub></summary>
+<summary><sub><b>🎟️ Партнерська акція</b> — безкоштовні купони на реєстрацію від провайдерів, яких ми не спонсоруємо (натисніть, щоб розгорнути)</sub></summary>
 
-<sub><i>Цей розділ призначений лише для реферальних кодів і купонів. Спонсорські партнерства наведено вище в розділі <b>🤝 За підтримки наших друзів відкритого коду</b>. OmniRoute не має спонсорських або партнерських відносин із переліченими тут постачальниками — це загальнодоступні купони, якими може скористатися будь-хто.</i></sub>
+<sub><i>Цей розділ призначений лише для реферальних/купонних кодів. Спонсорські партнерства знаходяться вище в розділі <b>🤝 За підтримки наших друзів з відкритим кодом</b>. OmniRoute не має спонсорства чи партнерства з провайдерами, переліченими тут — це публічні купони, які може використовувати кожен.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — партнерська реєстрація · <b>$100 безкоштовних кредитів</b> після реєстрації (безкоштовний сервер, тож очікуйте вищої затримки — найкраще підходить для тестування, а не для робочого середовища). Повноцінна підтримка в OmniRoute починаючи з <b>v3.8.50</b>: Chat Completions, формат передавання даних, сумісний з Anthropic, і шлях, сумісний з OpenAI. Серед доступних моделей — <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> та інші. <b><a href="https://agentrouter.org/register?aff=70LM">Отримайте свої $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — партнерська реєстрація · <b>$100 безкоштовних кредитів</b> при реєстрації (безкоштовний сервер, очікуйте вищу затримку — найкраще для тестування, не для виробництва). Першокласна підтримка в OmniRoute з <b>v3.8.50</b>: Chat Completions, сумісний з Anthropic формат дроту та сумісний з OpenAI шлях. Доступні моделі включають <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> та інші. <b><a href="https://agentrouter.org/register?aff=70LM">Отримайте свої $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Партнерське посилання — OmniRoute не має спонсорських або партнерських відносин із цим постачальником.</i></sub>
+      <sub>⚠️ <i>Партнерське посилання — OmniRoute не має спонсорства чи партнерства з цим провайдером.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Знаєте іншого постачальника зі щедрим безкоштовним купоном за реєстрацію, який стане в пригоді користувачам OmniRoute? Створіть запит, і ми додамо його сюди.</sub>
+<sub>Знаєте іншого провайдера з щедрим безкоштовним купоном на реєстрацію, який приносить користь користувачам OmniRoute? Відкрийте issue, і ми додамо його сюди.</sub>
 
 </details>
 
@@ -1263,21 +1263,21 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 також про
 <table>
   <tr><th align="left">Рівень</th><th align="left">Технологія</th></tr>
   <tr><td nowrap><b>Середовище виконання</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Мова</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> у <code>src/</code> та <code>open-sse/</code> (відсутній <code>any</code> у ядрі починаючи з v2.0)</td></tr>
+  <tr><td nowrap><b>Мова</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> у <code>src/</code> та <code>open-sse/</code> (нуль <code>any</code> в ядрі з v2.0)</td></tr>
   <tr><td nowrap><b>Фреймворк</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>База даних</b></td><td>better-sqlite3 (SQLite, журналювання WAL) + LowDB (застарілий формат JSON) — 122 доменні модулі, 178 міграцій</td></tr>
-  <tr><td nowrap><b>Пам’ять</b></td><td>Повнотекстовий пошук SQLite FTS5 + векторні представлення з квантуванням int8, типізоване згасання</td></tr>
-  <tr><td nowrap><b>Схеми</b></td><td>Zod 4 — перевірка вводу/виводу інструментів MCP + контракти API</td></tr>
+  <tr><td nowrap><b>База даних</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 доменних модулі, 182 міграції</td></tr>
+  <tr><td nowrap><b>Пам'ять</b></td><td>SQLite FTS5 повнотекстовий пошук + int8-квантовані векторні вбудовування, типізований розпад</td></tr>
+  <tr><td nowrap><b>Схеми</b></td><td>Zod 4 — валідація вводу/виводу інструменту MCP + контракти API</td></tr>
   <tr><td nowrap><b>Протоколи</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Потокове передавання</b></td><td>Server-Sent Events (SSE) + міст WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Стиснення</b></td><td>Конвеєр із 12 рушіїв — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Автентифікація та безпека</b></td><td>OAuth 2.0 (PKCE) + JWT + ключі API + автентифікація MCP з областями доступу · AES-256-GCM для даних у стані спокою · DOMPurify</td></tr>
-  <tr><td nowrap><b>Прихованість</b></td><td>wreq-js — імітація TLS-відбитків JA3 / JA4, трирівневе проксіювання</td></tr>
-  <tr><td nowrap><b>Відмовостійкість</b></td><td>Автоматичний вимикач, експоненційна затримка повторних спроб, захист від «стадного ефекту», самовідновлення auto-combo</td></tr>
-  <tr><td nowrap><b>Журналювання</b></td><td>pino — структуровані журнали JSON із контекстом запиту</td></tr>
-  <tr><td nowrap><b>Тестування</b></td><td>Засіб запуску тестів Node.js + Vitest — <b>понад 39 000 статичних оголошень тестів</b> у понад 5 100 відстежуваних файлах тестів (модульні, інтеграційні, E2E, безпеки, екосистеми)</td></tr>
-  <tr><td nowrap><b>Платформи</b></td><td>Настільні системи (Electron) · Android (Termux) · PWA (будь-який браузер)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — автоматична публікація в npm і Docker Hub під час випуску</td></tr>
+  <tr><td nowrap><b>Потокова передача</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Стиснення</b></td><td>12-рушійний конвеєр — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Автентифікація та безпека</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM у стані спокою · DOMPurify</td></tr>
+  <tr><td nowrap><b>Невидимість</b></td><td>wreq-js — імітація відбитків JA3 / JA4 TLS, 3-рівневий проксі</td></tr>
+  <tr><td nowrap><b>Стійкість</b></td><td>Автоматичний вимикач, експоненційна затримка, захист від "громового стада", самовідновлення авто-комбо</td></tr>
+  <tr><td nowrap><b>Логування</b></td><td>pino — структуровані JSON-логи з контекстом запиту</td></tr>
+  <tr><td nowrap><b>Тестування</b></td><td>Node.js test runner + Vitest — <b>39 000+ статичних оголошень тестів</b> у 5 100+ відстежуваних тестових файлах (модульні, інтеграційні, E2E, безпека, екосистема)</td></tr>
+  <tr><td nowrap><b>Платформи</b></td><td>Десктоп (Electron) · Android (Termux) · PWA (будь-який браузер)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — автоматична публікація npm + Docker Hub при релізі</td></tr>
   <tr><td nowrap><b>Посилання</b></td><td><a href="https://omniroute.online">Вебсайт</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

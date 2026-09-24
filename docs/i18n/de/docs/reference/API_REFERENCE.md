@@ -86,14 +86,14 @@ Content-Type: application/json
 
 > **Kostenberechnung bei Cache-Treffern:** Bei einem TREFFER im semantischen Cache (`X-OmniRoute-Cache-Hit: true`) erfolgt kein Upstream-Aufruf, daher beträgt `X-OmniRoute-Response-Cost` `0.0000000000` (die **inkrementellen** Kosten für die Bereitstellung des Treffers). Die ursprünglichen beziehungsweise andernfalls angefallenen Kosten werden separat in `X-OmniRoute-Cost-Saved` ausgewiesen. Abrechnungssysteme sollten `X-OmniRoute-Response-Cost` summieren (Treffer verursachen keine Kosten); für Cache-Analysen kann `X-OmniRoute-Cost-Saved` aggregiert werden.
 
-## Exklusive verwaltete Sitzungslizenzen
+## Exklusive verwaltete Sitzungs-Leases
 
-Die exklusive Vergabe verwalteter Sitzungslizenzen ist ein optionaler, clientneutraler Routing-Vertrag: Ein aktiver Besitzer
-hält eine geeignete OmniRoute-Verbindung. Dabei wird weder ein Modell reserviert noch OAuth vorausgesetzt, ein
+Das exklusive Leasing verwalteter Sitzungen ist ein optionaler, clientneutraler Routing-Vertrag: Ein aktiver Besitzer
+hält eine geeignete OmniRoute-Verbindung. Es wird weder ein Modell geleast noch OAuth vorausgesetzt, ein
 bestimmter Client identifiziert oder ein bestimmter Anbieter verlangt.
 
-Der zur Authentifizierung verwendete API-Schlüssel muss den Geltungsbereich `lease:exclusive` und eine explizite, nicht leere
-Liste `allowedConnections` besitzen. Die Mutationsgrenze der Datenbank erzwingt beide Felder gemeinsam bei der
+Der zur Authentifizierung verwendete API-Schlüssel muss über den Scope `lease:exclusive` und eine explizite, nicht leere
+`allowedConnections`-Liste verfügen. Die Datenbankmutationsgrenze erzwingt beide Felder gemeinsam bei der
 Schlüsselerstellung und bei partiellen Aktualisierungen.
 
 ```http
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Erfolgreiche Antworten auf Erwerb, Verlängerung und Freigabe enthalten Zeitstempel, `state` und die exakte positive
-`generation`, jedoch niemals die ausgewählte Verbindung oder Anmeldedaten. Bei Verlängerung und Freigabe wird die
-Generation im JSON-Text angegeben:
+Erfolgreiche Antworten auf Erwerb, Verlängerung und Freigabe legen Zeitstempel, `state` und die exakte positive
+`generation` offen, jedoch niemals die ausgewählte Verbindung oder Anmeldedaten. Bei Verlängerung und Freigabe wird die
+Generation im JSON-Textkörper angegeben:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ Generation im JSON-Text angegeben:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Der Besitzer einer aktiven Lizenz kann explizit datenschutzfreundliche Anzeigemetadaten für seine aktuelle Bindung anfordern:
+Ein aktiver Lease-Besitzer kann explizit datenschutzkonforme Anzeigemetadaten für seine aktuelle Bindung anfordern:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,25 +137,26 @@ Der Besitzer einer aktiven Lizenz kann explizit datenschutzfreundliche Anzeigeme
 }
 ```
 
-Diese optionale Statusaktion wird innerhalb einer einzigen Datenbanktransaktion durch den nicht transparenten Besitzer, den authentifizierten verwalteten API-Schlüssel und die exakte
+Diese optionale Statusaktion wird innerhalb einer einzelnen Datenbanktransaktion durch den undurchsichtigen Besitzer, den authentifizierten verwalteten API-Schlüssel und die exakte
 aktive Generation abgesichert. `displayName` ist ausschließlich der bereinigte konfigurierte
-Verbindungsname; wenn kein sicherer konfigurierter Name vorhanden ist, lautet der Wert `null`. OmniRoute ersetzt ihn niemals durch eine
-E-Mail-Adresse oder eine generierte Kontoidentität. Der Anbieterwert ist eine nicht vertrauliche Anzeigebezeichnung und niemals
-eine generierte Kennung eines kompatiblen Anbieters. Anmeldedaten, Tokens, Cookies, unverarbeitete Verbindungs- oder
-API-Schlüssel-IDs, Besitzer-Hashes, Fencing-Geheimnisse und interne Routing-Daten werden ausgeschlossen.
+Verbindungsname; er ist `null`, wenn kein sicherer konfigurierter Name vorhanden ist. OmniRoute ersetzt ihn niemals durch eine
+E-Mail-Adresse oder eine generierte Kontoidentität. Der Anbieterwert ist eine nicht sensible Anzeigebezeichnung und niemals
+eine generierte Kennung eines kompatiblen Anbieters. Anmeldedaten, Token, Cookies, unformatierte Verbindungs- oder API-
+Schlüssel-IDs, Besitzer-Hashes, Fencing-Geheimnisse und interne Routing-Daten sind ausgeschlossen.
 
-Abfragen mit falschem Schlüssel, falschem Besitzer, veralteter Generation sowie Abfragen fehlender, abgelaufener, freigegebener oder ungültig gemachter Lizenzen
-geben alle denselben Fehler `409 LEASE_FENCE_STALE` ohne Verbindungsmetadaten zurück. Ein Client, der die Antwort zum Warten auf Kapazität erhalten hat, besitzt keine aktive Bindung, die geprüft werden könnte. Wenn das Routing eine aktive Lizenz auf eine andere Verbindung umstellt,
+Abfragen mit falschem Schlüssel, falschem Besitzer, veralteter Generation sowie fehlende, abgelaufene, freigegebene und ungültig gemachte Abfragen
+geben alle denselben Fehler `409 LEASE_FENCE_STALE` ohne Verbindungsmetadaten
+zurück. Ein Client, der die Antwort für das Warten auf Kapazität erhalten hat, verfügt über keine aktive Bindung, die geprüft werden könnte. Wenn das Routing eine aktive Lease überführt,
 bleibt dieselbe Generation gültig, und der Status gibt atomar die neue Bindung zurück, niemals die alte.
-Bestehende Clients bleiben unverändert, da die Antworten für Erwerb, Verlängerung, Freigabe und Wartezustände
+Bestehende Clients bleiben unverändert, da Antworten auf Erwerb, Verlängerung, Freigabe und Warten
 ihre bisherigen Strukturen beibehalten.
 
-Dieser Serververtrag ändert den standardmäßigen OpenAI-Codex-Endpunkt `/status` nicht. Standard-Codex meldet derzeit seinen
+Dieser Serververtrag ändert `/status` von standardmäßigem OpenAI Codex nicht. Standardmäßiges Codex meldet derzeit seinen
 Modellanbieter und den integrierten Authentifizierungs-/Kontostatus, stellt jedoch keine beliebigen benutzerdefinierten
-Anbieter-Kontometadaten dar; eine spätere Clientintegration muss diese Aktion aufrufen und entscheiden, wie
+Anbieterkontometadaten dar; eine spätere Clientintegration muss diese Aktion aufrufen und entscheiden, wie
 `connection.displayName` angezeigt werden soll.
 
-Jede verwaltete Inferenzanfrage übermittelt anschließend beide Steuerungsheader:
+Jede verwaltete Inferenzanfrage übermittelt anschließend beide Kontrollheader:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
@@ -164,10 +165,10 @@ X-OmniRoute-Lease-Generation: 1
 
 Der exakte Besitzer, die Generation, die aktive Verbindung und der authentifizierte API-Schlüssel werden unmittelbar
 vor jedem unterstützten Upstream-Versuch abgesichert. Die Wiederverwendung von Besitzer und Generation mit einem anderen Schlüssel schlägt selbst dann fehl,
-wenn dieser Schlüssel dieselbe Verbindung zulässt. Unverarbeitete Besitzerwerte werden weder persistiert noch protokolliert, im
-Anfrage-Snapshot beibehalten oder an den Upstream weitergeleitet.
+wenn dieser Schlüssel dieselbe Verbindung zulässt. Unformatierte Besitzer werden weder persistiert, protokolliert, im
+Anfrage-Snapshot aufbewahrt noch an den Upstream weitergeleitet.
 
-Vorübergehende Ressourcenkonkurrenz gibt HTTP `429` mit `Retry-After` und Folgendem zurück:
+Vorübergehende Ressourcenkonflikte geben HTTP `429` mit `Retry-After` und Folgendem zurück:
 
 ```json
 {
@@ -178,28 +179,30 @@ Vorübergehende Ressourcenkonkurrenz gibt HTTP `429` mit `Retry-After` und Folge
 }
 ```
 
-Diese Antwort bedeutet lediglich, dass die reguläre Menge geeigneter Verbindungen nicht leer war und jeder freie Kandidat
-durch eine fremde aktive Lizenz belegt war. Nicht unterstützte Modelle/Anbieter, Richtlinienabweichungen, Abklingzeiten, Kontingente,
+Diese Antwort bedeutet lediglich, dass die reguläre geeignete Menge nicht leer war und jeder freie Kandidat
+von einer fremden aktiven Lease gehalten wurde. Nicht unterstützte Modelle/Anbieter, Richtlinienabweichungen, Abklingzeiten, Kontingente,
 Integritätszustände und andere reguläre Eignungsfehler behalten ihre bestehenden OmniRoute-Antworten bei.
 
 ### `x-omniroute-compression`
 
-Anfragebezogene Überschreibung des Komprimierungsplans. Höchste Priorität — hat Vorrang vor der
-Routing-Kombinationsüberschreibung, dem aktiven Profil, der automatischen Auslösung und der Standardeinstellung des Panels. Werte:
+Anfragebezogene Überschreibung des Komprimierungsplans. Höchste Priorität — setzt sich gegenüber der Routing-Kombinations-
+überschreibung, dem aktiven Profil, der automatischen Auslösung und dem Standardwert des Panels durch. Werte:
 
-| Wert          | Wirkung                                                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Keine Komprimierung für diese Anfrage.                                                                                                      |
-| `default`     | Das vom Panel abgeleitete Standardprofil (ignoriert das aktive Profil).                                                                     |
-| `engine:<id>` | Eine einzelne Engine, sofern aktiviert, z. B. `engine:rtk`.                                                                                 |
-| `<combo>`     | Eine benannte Kombination, die zuerst anhand des Namens (ohne Beachtung der Groß-/Kleinschreibung) und dann anhand der ID abgeglichen wird. |
+| Wert          | Wirkung                                                                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Keine Komprimierung für diese Anfrage.                                                                                     |
+| `default`     | Das vom Panel abgeleitete Standardprofil (ignoriert das aktive Profil). Verlustbehaftete Engines bleiben aus.              |
+| `safe`        | Nur Deduplizierung und Zusammenführung von Leerraum.                                                                       |
+| `allow-lossy` | Den Operatorplan für diese Anfrage beibehalten, einschließlich Zusammenfassungen und stilistischer Änderungen.             |
+| `engine:<id>` | Eine einzelne Engine, sofern aktiviert, z. B. `engine:rtk`. Anfragebezogene Aktivierung für diese Engine.                  |
+| `<combo>`     | Eine benannte Kombination, die zuerst nach Name (ohne Beachtung der Groß-/Kleinschreibung), dann nach ID abgeglichen wird. |
 
 Hinweise:
 
 - Unbekannte Werte werden ignoriert (die Anfrage wird niemals abgelehnt); die Auflösung greift auf die normale Operatorrangfolge zurück.
-- Wenn mehrere Kombinationen denselben Namen verwenden, geben Sie für eine deterministische Übereinstimmung die **id** der Kombination an.
+- Wenn mehrere Kombinationen denselben Namen verwenden, übergeben Sie für einen deterministischen Abgleich die **id** der Kombination.
 - Eine Kombination mit dem Namen `off` oder `default` kann nicht anhand ihres Namens ausgewählt werden (diese Schlüsselwörter werden zuerst interpretiert); referenzieren Sie eine solche Kombination anhand ihrer ID.
-- Der Hauptschalter für die Komprimierung ist eine feste Sperre: Wenn die Komprimierung global deaktiviert ist, kann sie durch diesen Header nicht aktiviert werden.
+- Der Hauptschalter für die Komprimierung ist eine harte Sperre: Wenn die Komprimierung global deaktiviert ist, kann dieser Header sie nicht aktivieren.
 
 Der angewendete Plan wird im Antwortheader zurückgegeben:
 
@@ -207,7 +210,7 @@ Der angewendete Plan wird im Antwortheader zurückgegeben:
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-Dabei ist `<source>` einer der Werte `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` oder `off`.
+wobei `<source>` einer der Werte `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` oder `off` ist.
 
 ---
 

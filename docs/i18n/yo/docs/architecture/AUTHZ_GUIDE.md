@@ -5,11 +5,11 @@
 ---
 
 > **Orísun òtítọ́:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Ìmúdójúìwọ̀n tó kẹ́yìn:** 2026-06-28 — v3.8.40
+> **Ìgbà tó kẹ́yìn tí wọ́n ṣe àtúnṣe:** 2026-09-22 — àwọn orúkọ ààyè ìpele tọ́ka sí MCP-SERVER.md
 
-OmniRoute ní ìlànà ìfúnni-láṣẹ tó mọ ipa-ọ̀nà, èyí tó ń ṣàkóso gbogbo ìbéèrè API. Ìsọ̀rí jẹ́ **onípinnu** àti **fail-closed** — ohunkóhun tí a kò bá lè sọ̀rí rẹ̀ yóò parí sí `MANAGEMENT`, yóò sì béèrè fún session tàbí token ìpele ìṣàkóso. Ojú-ìwé yìí ṣàlàyé àwòṣe náà fún àwọn onímọ̀-ẹ̀rọ tó ń tọ́jú àwọn ipa-ọ̀nà tàbí tó ń ṣe àwòrán àwọn endpoint tuntun.
+OmniRoute ní ọ̀nà ìfọwọ́sí tó mọ ọ̀nà tó máa ń ṣàkóso gbogbo ìbéèrè API. Ìsọ̀rí jẹ́ **tí a lè pinnu** àti **tí kò lè kùnà** — ohunkóhun tí kò bá lè ṣe ìsọ̀rí yóò di `MANAGEMENT` yóò sì béèrè ìgbà kan tàbí àmì ìpele ìṣàkóso. Ojúewé yìí ṣàlàyé àwòrán fún àwọn onímọ̀-ẹ̀rọ tó ń tọ́jú àwọn ọ̀nà tàbí tó ń ṣe àwọn ibi ìparí tuntun.
 
-![Ìlànà AuthZ (àwọn ẹ̀ka ipa-ọ̀nà 3 + ìgbéyẹ̀wò ìlànà)](../diagrams/exported/authz-pipeline.svg)
+![Ọ̀nà AuthZ (àwọn ìpele ọ̀nà 3 + ìṣàyẹ̀wò ètò)](../diagrams/exported/authz-pipeline.svg)
 
 > Orísun: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -199,28 +199,31 @@ export async function POST(request: Request) {
 
 Yan set náà gẹ́gẹ́ bí ìrísí, kì í ṣe nítorí ìrọ̀rùn. Route kan ṣoṣo lọ sínú `PUBLIC_API_ROUTES_EXACT` (tàbí `PUBLIC_READONLY_CORS_API_ROUTES` fún GET-nìkan); subtree gidi nìkan ló yẹ kó lọ sínú `PUBLIC_API_ROUTE_PREFIXES`, ó sì **gbọdọ̀ parí pẹ̀lú `/`**. Fífi route kan ṣoṣo sínú àtòjọ prefix tún máa ń sọ gbogbo path tó wà lẹ́gbẹ̀ẹ́ tí wọ́n ní àwọn àmì ìbẹ̀rẹ̀ kan náà di gbangba — pẹ̀lú àwọn dynamic-segment sibling tí a bá fi kún un lọ́jọ́ iwájú (GHSA-74g9-q8f6-793h). Ṣàfikún àwọn unit test ní `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` àti `tests/unit/authz/classify.test.ts`.
 
-## Àwọn Ìwọ̀n Ààyè
+## Àwọn Àyè
 
-Àwọn kọ́kọ́rọ́ API ní àkójọpọ̀ `scopes` kan (tí a tọ́jú gẹ́gẹ́ bí JSON nínú `api_keys.scopes`, wo `src/lib/db/apiKeys.ts`).
+Àwọn àyè orúkọ mẹ́ta. Olùṣàyẹ̀wò kọ̀ọ̀kan ka àwọn okùn tirẹ̀ nìkan. Ìfiwéra, pẹ̀lú ìdí tí `manage` fi kùnà `scopeMatches` fún `read:compression` àti ìdí tí àmì ìwọlé `read` kò fi lè `PATCH /api/keys/{id}`, wà ní [Àwọn àyè orúkọ mẹ́ta](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Ìwọ̀n ààyè ìṣàkóso
+Àwọn kọ́kọ́rọ́ API gbé àtòpọ̀ `scopes` (tí a tọ́jú sí bi JSON nínú `api_keys.scopes`, wo `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — ń fún kọ́kọ́rọ́ náà ní àṣẹ sí àwọn endpoint API ìṣàkóso nígbà tí a bá fi ránṣẹ́ gẹ́gẹ́ bí Bearer.
+### Àyè ìṣàkóso
 
-### Àwọn ìwọ̀n ààyè MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Ìwọlé tí ó gbé àmì sí àwọn ọ̀nà API ìṣàkóso.
+- `mcp:connect`, `self:usage`, `self:account-quota`, àti
+  `policy:bypass-provider-quota` jẹ́ àwọn àyè ìbámu-gangan tí a lè fi kún. Wọ́n wà ní ìta `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` ṣí
+  `/api/mcp/` ìpín-ìwọlé tí kìí ṣe loopback nìkan.
 
-Ohun èlò MCP kọ̀ọ̀kan nílò àwọn ìwọ̀n ààyè pàtó nípasẹ̀ `MCP_TOOL_SCOPES`. Àkójọ kíkún (`MCP_SCOPE_LIST`):
+### Àwọn àyè irinṣẹ́ MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Ìtòlẹ́sẹẹsẹ àti àwọn òfin ìbámu (okùn kan náà, tàbí àyè tí a fún tí ó parí pẹ̀lú `*`):
+[Àwọn àyè irinṣẹ́ MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` nínú `src/shared/constants/mcpScopes.ts` jẹ́ ìpín-ẹ̀ka tí a tẹ́ tẹ́lẹ̀, kìí ṣe gbogbo ìtòlẹ́sẹẹsẹ náà. Ìmúṣẹ́ ń ṣiṣẹ́ nínú
+`open-sse/mcp-server/scopeEnforcement.ts` lẹ́hìn tí `resolveCallerScopeContext()`
+bá ti yanjú àwọn àyè láti ìwífún ìfọwọ́sí MCP, metadata ìbéèrè, tàbí `OMNIROUTE_MCP_SCOPES`. Kò ní ṣiṣẹ́ àyàfi tí `OMNIROUTE_MCP_ENFORCE_SCOPES=true` bá wà.
 
-Ìmúlò ìwọ̀n ààyè nínú `open-sse/mcp-server/server.ts` ń fi àkójọ ìwọ̀n ààyè ohun èlò kọ̀ọ̀kan ránṣẹ́ sí
-`evaluateToolScopes()` lẹ́yìn tí `resolveCallerScopeContext()` bá ti yanjú àwọn ìwọ̀n ààyè láti inú àlàyé ìfàṣẹsí MCP,
-metadata ìbéèrè, tàbí `OMNIROUTE_MCP_SCOPES`.
+### Àwọn àyè àmì ìwọlé
+
+`read` / `write` / `admin` lórí àwọn àmì `oma_live_…`, tí a tò lẹ́sẹẹsẹ nípasẹ̀ `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ìpele yìí kan ìwé-ẹ̀rí àmì ìwọlé nìkan. Wo [Ìfọwọ́sí Ìṣàkóso](../guides/MANAGEMENT-AUTH.md).
 
 ## Bọ́tìnì Ìbéèrè Ìfàṣẹsí
 
@@ -268,7 +271,7 @@ Lo `assertAuth(req, expectedClass)` nínú àwọn handler — ó máa ń ju `Au
 
 ## Wo Pẹ̀lú
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — àmì auth fún endpoint kọ̀ọ̀kan
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — àkọsílẹ̀ àyẹ̀wò fún àwọn ìṣẹ̀lẹ̀ auth
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — àwọn kúlẹ̀kúlẹ̀ nípa fífi scope MCP múlẹ̀
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — àmì ìfọwọ́sí fún ojúami kọ̀ọ̀kan
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — àkọsílẹ̀ àyẹ̀wò fún àwọn ìṣẹ̀lẹ̀ ìfọwọ́sí
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — àwọn ààyè orúkọ ìpele mẹ́ta àti àtòjọ àwọn irinṣẹ́ MCP
 - Orísun: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

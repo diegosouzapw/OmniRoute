@@ -88,13 +88,9 @@ Content-Type: application/json
 
 ## Özel Yönetilen Oturum Kiralamaları
 
-Özel yönetilen oturum kiralama, isteğe bağlı ve istemciden bağımsız bir yönlendirme sözleşmesidir: etkin tek bir sahip,
-uygun bir OmniRoute bağlantısını elinde tutar. Bir modeli kiralamaz, OAuth gerektirmez, belirli bir
-istemciyi tanımlamaz veya belirli bir sağlayıcıyı zorunlu kılmaz.
+Özel yönetilen oturum kiralaması, isteğe bağlı, istemci-nötr bir yönlendirme sözleşmesidir: bir aktif sahip, bir uygun OmniRoute bağlantısına sahiptir. Bir model kiralamaz, OAuth gerektirmez, belirli bir istemciyi tanımlamaz veya belirli bir sağlayıcı gerektirmez.
 
-Kimlik doğrulaması yapan API anahtarı `lease:exclusive` kapsamına ve açıkça belirtilmiş, boş olmayan bir
-`allowedConnections` listesine sahip olmalıdır. Veritabanı mutasyon sınırı, anahtar oluşturma ve
-kısmi güncellemeler sırasında her iki alanı birlikte zorunlu kılar.
+Kimlik doğrulayan API anahtarı `lease:exclusive` kapsamına ve açık, boş olmayan bir `allowedConnections` listesine sahip olmalıdır. Veritabanı mutasyon sınırı, anahtar oluşturma ve kısmi güncellemelerde her iki alanı birlikte uygular.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Başarılı edinme, yenileme ve serbest bırakma yanıtları zaman damgalarını, `state` değerini ve tam pozitif
-`generation` değerini sunar; ancak seçilen bağlantıyı veya kimlik bilgilerini hiçbir zaman sunmaz. Yenileme ve serbest bırakma işlemleri,
-generation değerini JSON gövdesinde sağlar:
+Başarılı edinme, yenileme ve serbest bırakma yanıtları zaman damgalarını, `state`'i ve tam pozitif `generation`'ı gösterir, ancak seçilen bağlantıyı veya kimlik bilgilerini asla göstermez. Yenileme ve serbest bırakma, JSON gövdesinde generation'ı sağlar:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generation değerini JSON gövdesinde sağlar:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Etkin bir kiralama sahibi, mevcut bağlaması için gizliliği koruyan görüntüleme meta verilerini açıkça isteyebilir:
+Aktif bir kiralama sahibi, mevcut bağlaması için gizlilik açısından güvenli görüntü meta verilerini açıkça talep edebilir:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Etkin bir kiralama sahibi, mevcut bağlaması için gizliliği koruyan görünt�
 }
 ```
 
-Bu isteğe bağlı durum eylemi; opak sahip, kimliği doğrulanmış yönetilen API anahtarı ve tam
-etkin generation ile tek bir veritabanı işlemi içinde korunur. `displayName`, yalnızca kırpılmış yapılandırılmış
-bağlantı adıdır; güvenli bir yapılandırılmış ad olmadığında `null` olur. OmniRoute hiçbir zaman bunun yerine
-bir e-posta adresi veya oluşturulmuş hesap kimliği kullanmaz. Sağlayıcı değeri, hassas olmayan bir görüntüleme etiketidir ve hiçbir zaman
-oluşturulmuş uyumlu sağlayıcı tanımlayıcısı değildir. Kimlik bilgileri, token'lar, çerezler, ham bağlantı veya API
-anahtarı kimlikleri, sahip hash'leri, koruma sırları ve dahili yönlendirme verileri hariç tutulur.
+Bu isteğe bağlı durum eylemi, tek bir veritabanı işleminde opak sahip, kimliği doğrulanmış yönetilen API anahtarı ve tam aktif generation tarafından korunur. `displayName` yalnızca kırpılmış yapılandırılmış bağlantı adıdır; güvenli yapılandırılmış bir ad yoksa `null` olur. OmniRoute asla bir e-posta veya oluşturulmuş hesap kimliği yerine geçmez. Sağlayıcı değeri hassas olmayan bir görüntü etiketidir ve asla oluşturulmuş uyumlu sağlayıcı tanımlayıcısı değildir. Kimlik bilgileri, belirteçler, çerezler, ham bağlantı veya API anahtarı kimlikleri, sahip karmaları, sınırlama sırları ve dahili yönlendirme verileri hariç tutulur.
 
-Yanlış anahtar, yanlış sahip, eski generation, eksik, süresi dolmuş, serbest bırakılmış ve geçersiz kılınmış aramaların tümü,
-bağlantı meta verileri olmadan aynı `409 LEASE_FENCE_STALE` hatasını döndürür. Kapasite bekleme yanıtı alan bir istemcinin inceleyebileceği etkin bir bağlaması yoktur. Yönlendirme etkin bir kiralamayı başka bir bağlantıya geçirdiğinde,
-aynı generation geçerli kalır ve durum işlemi eski bağlamayı hiçbir zaman döndürmeden yeni bağlamayı atomik olarak döndürür.
-Edinme, yenileme, serbest bırakma ve bekleme yanıtları önceki biçimlerini koruduğundan mevcut istemciler
-değişmeden kalır.
+Yanlış anahtar, yanlış sahip, eski generation, eksik, süresi dolmuş, serbest bırakılmış ve geçersiz kılınmış aramaların tümü, bağlantı meta verileri olmadan aynı `409 LEASE_FENCE_STALE` hatasını döndürür. Kapasite bekleme yanıtını alan bir istemcinin denetleyeceği aktif bir bağlaması yoktur. Yönlendirme aktif bir kiralamayı geçiş yaptığında, aynı generation geçerli kalır ve durum atomik olarak yeni bağlamayı döndürür, asla eskisini döndürmez. Mevcut istemciler değişmeden kalır çünkü edinme, yenileme, serbest bırakma ve bekleme yanıtları önceki şekillerini korur.
 
-Bu sunucu sözleşmesi, standart OpenAI Codex `/status` davranışını değiştirmez. Standart Codex şu anda kendi
-model sağlayıcısını ve yerleşik kimlik doğrulama/hesap durumunu bildirir ancak isteğe bağlı özel
-sağlayıcı hesap meta verilerini göstermez; gelecekteki bir istemci entegrasyonu bu eylemi çağırmalı ve
-`connection.displayName` değerinin nasıl gösterileceğine karar vermelidir.
+Bu sunucu sözleşmesi, standart OpenAI Codex `/status`'u değiştirmez. Standart Codex şu anda model sağlayıcısını ve yerleşik kimlik doğrulama/hesap durumunu rapor eder ancak rastgele özel sağlayıcı hesap meta verilerini işlemez; daha sonraki bir istemci entegrasyonu bu eylemi çağırmalı ve `connection.displayName`'i nasıl görüntüleyeceğine karar vermelidir.
 
-Bundan sonra yönetilen her çıkarım isteği iki kontrol başlığını da sağlar:
+Her yönetilen çıkarım isteği daha sonra her iki kontrol başlığını da sağlar:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Tam sahip, generation, etkin bağlantı ve kimliği doğrulanmış API anahtarı, desteklenen her
-yukarı akış denemesinden hemen önce doğrulanır. Sahip ve generation değerlerinin başka bir anahtarla yeniden kullanılması, bu
-anahtar aynı bağlantıya izin verse bile başarısız olur. Ham sahip değerleri kalıcı olarak saklanmaz, günlüğe kaydedilmez, istek
-anlık görüntüsünde tutulmaz veya yukarı akışa iletilmez.
+Tam sahip, generation, aktif bağlantı ve kimliği doğrulanmış API anahtarı, desteklenen her yukarı akış denemesinden hemen önce korunur. Sahibi ve generation'ı başka bir anahtarla tekrar oynatmak, o anahtar aynı bağlantıya izin verse bile başarısız olur. Ham sahipler kalıcı hale getirilmez, günlüğe kaydedilmez, istek anlık görüntüsünde tutulmaz veya yukarı akışa iletilmez.
 
-Geçici çekişme, `Retry-After` ile birlikte HTTP `429` ve aşağıdaki yanıtı döndürür:
+Geçici çekişme, `Retry-After` ile HTTP `429` döndürür ve:
 
 ```json
 {
@@ -178,36 +157,35 @@ Geçici çekişme, `Retry-After` ile birlikte HTTP `429` ve aşağıdaki yanıt�
 }
 ```
 
-Bu yanıt yalnızca normal uygun kümenin boş olmadığı ve tüm boş adayların
-başka bir etkin kiralama tarafından tutulduğu anlamına gelir. Desteklenmeyen modeller/sağlayıcılar, politika uyumsuzluğu, bekleme süresi, kota,
-sağlık ve diğer normal uygunluk hataları mevcut OmniRoute yanıtlarını korur.
+Bu yanıt yalnızca, sıradan uygun kümenin boş olmadığını ve her boş adayın yabancı bir aktif kiralama tarafından tutulduğunu ifade eder. Desteklenmeyen modeller/sağlayıcılar, ilke uyuşmazlığı, bekleme süresi, kota, sağlık ve diğer sıradan uygunluk hataları mevcut OmniRoute yanıtlarını korur.
 
 ### `x-omniroute-compression`
 
-Sıkıştırma planının istek başına geçersiz kılınması. En yüksek önceliğe sahiptir — yönlendirme kombinasyonu
-geçersiz kılmasını, etkin profili, otomatik tetiklemeyi ve panel Varsayılanını geçersiz kılar. Değerler:
+Sıkıştırma planının istek başına geçersiz kılınması. En yüksek öncelik — yönlendirme-birleşimi geçersiz kılmasını, aktif profili, otomatik tetikleyiciyi ve panel Varsayılanını yener. Değerler:
 
-| Değer         | Etki                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------ |
-| `off`         | Bu istek için sıkıştırma uygulanmaz.                                                                         |
-| `default`     | Panelden türetilen Varsayılan profil (etkin profili yok sayar).                                              |
-| `engine:<id>` | Etkinleştirildiğinde tek bir motor, ör. `engine:rtk`.                                                        |
-| `<combo>`     | Önce ada göre (büyük/küçük harf duyarsız), ardından kimliğe göre eşleştirilen adlandırılmış bir kombinasyon. |
+| Değer         | Etki                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| `off`         | Bu istek için sıkıştırma yok.                                                                           |
+| `default`     | Panelden türetilmiş Varsayılan profil (aktif profili yok sayar). Kayıplı motorlar kapalı bırakılır.     |
+| `safe`        | Yalnızca tekilleştirme ve boşluk katlama.                                                               |
+| `allow-lossy` | Özetler ve stil yeniden yazmaları dahil olmak üzere bu istek için operatör planını koruyun.             |
+| `engine:<id>` | Etkinleştirildiğinde tek bir motor, örn. `engine:rtk`. Bu motor için istek başına katılım.              |
+| `<combo>`     | Adlandırılmış bir birleşim, önce ada göre (büyük/küçük harf duyarsız), sonra kimliğe göre eşleştirilir. |
 
 Notlar:
 
-- Bilinmeyen değerler yok sayılır (istek hiçbir zaman reddedilmez); çözümleme normal operatör önceliğine geri döner.
-- Birden fazla kombinasyon aynı adı paylaşıyorsa belirlenimci bir eşleşme için kombinasyonun **id** değerini iletin.
-- Adı `off` veya `default` olan bir kombinasyon adıyla seçilemez (önce bu anahtar sözcükler yorumlanır); böyle bir kombinasyona kimliğiyle başvurun.
-- Ana sıkıştırma anahtarı kesin bir geçittir: sıkıştırma genel olarak devre dışı bırakıldığında bu başlık sıkıştırmayı etkinleştiremez.
+- Bilinmeyen değerler yok sayılır (istek asla reddedilmez); çözümleme normal operatör önceliğine düşer.
+- Birden fazla birleşim aynı adı paylaşıyorsa, belirleyici bir eşleşme için birleşim **kimliğini** geçirin.
+- Adı `off` veya `default` olan bir birleşim adıyla seçilemez (bu anahtar kelimeler önce yorumlanır); böyle bir birleşimi kimliğiyle referans alın.
+- Ana sıkıştırma anahtarı sert bir geçittir: sıkıştırma global olarak devre dışı bırakıldığında, bu başlık onu etkinleştiremez.
 
-Uygulanan plan, yanıt başlığında geri bildirilir:
+Uygulanan plan yanıt başlığında geri yankılanır:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-Burada `<source>`; `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` veya `off` değerlerinden biridir.
+burada `<source>`, `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` veya `off` değerlerinden biridir.
 
 ---
 
