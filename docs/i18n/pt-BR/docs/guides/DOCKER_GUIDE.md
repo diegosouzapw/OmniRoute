@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Português (Brasil))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -26,6 +26,12 @@
 ---
 
 ## Execução rápida
+
+> **Hospedar por conta própria com um único comando?** Consulte o
+> [Guia de hospedagem própria](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (imagem publicada +
+> Redis, somente loopback, sem escolha de perfil). A execução rápida abaixo é a
+> opção de contêiner único para usuários que já executam o Redis em outro local.
 
 ```bash
 docker run -d \
@@ -56,31 +62,35 @@ docker run -d \
 ## Docker Compose
 
 ```bash
-# Perfil base (sem ferramentas CLI)
+# Perfil base (sem ferramentas de CLI)
 docker compose --profile base up -d
 
-# Perfil CLI (Claude Code, Codex e OpenClaw integrados)
+# Perfil de CLI (Claude Code, Codex e OpenClaw integrados)
 docker compose --profile cli up -d
 
-# Perfil do host (prioriza Linux; monta os binários CLI do host como somente leitura)
+# Perfil de host (prioriza Linux; monta os binários de CLI do host como somente leitura)
 docker compose --profile host up -d
 
-# Combine CLI + sidecar CLIProxyAPI
+# Perfil web (Chromium/Playwright para provedores de sessão web)
+docker compose --profile web up -d
+
+# Combina CLI + contêiner auxiliar CLIProxyAPI
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Perfis disponíveis
 
-O OmniRoute inclui quatro perfis do Compose. Escolha aquele que corresponde ao seu ambiente.
+O OmniRoute fornece perfis do Compose para os principais tipos de implantação. Escolha aquele que corresponde ao seu ambiente.
 
-| Perfil          | Serviço          | Quando usar                                                                                                                                           | Comando                                      |
-| --------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (padrão) | `omniroute-base` | Servidor sem interface gráfica / ambiente de execução mínimo, sem CLIs de provedores incluídas                                                        | `docker compose --profile base up -d`        |
-| `cli`           | `omniroute-cli`  | Fluxos de trabalho agênticos que chamam `omniroute providers/setup/doctor` e CLIs incluídas (Codex, Claude Code, Droid, OpenClaw)                     | `docker compose --profile cli up -d`         |
-| `host`          | `omniroute-host` | Hosts Linux que desejam acesso semelhante a `network_mode` às CLIs do host montando `~/.local/bin`, `~/.codex`, `~/.claude` etc. como somente leitura | `docker compose --profile host up -d`        |
-| `cliproxyapi`   | `cliproxyapi`    | Execute o sidecar [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) na porta `8317` para o proxy upstream de CLIs                           | `docker compose --profile cliproxyapi up -d` |
+| Perfil          | Serviço          | Quando usar                                                                                                                                               | Comando                                      |
+| --------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (padrão) | `omniroute-base` | Servidor sem interface gráfica / ambiente de execução mínimo, sem CLIs de provedores incluídas                                                            | `docker compose --profile base up -d`        |
+| `cli`           | `omniroute-cli`  | Fluxos de trabalho com agentes que chamam `omniroute providers/setup/doctor` e CLIs incluídas (Codex, Claude Code, Droid, OpenClaw)                       | `docker compose --profile cli up -d`         |
+| `host`          | `omniroute-host` | Hosts Linux que precisam de acesso semelhante a `network_mode` às CLIs do host montando `~/.local/bin`, `~/.codex`, `~/.claude` etc. como somente leitura | `docker compose --profile host up -d`        |
+| `cliproxyapi`   | `cliproxyapi`    | Executa o sidecar [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) na porta `8317` para fazer proxy de CLIs upstream                           | `docker compose --profile cliproxyapi up -d` |
+| `web`           | `omniroute-web`  | Provedores de sessão web que precisam de um navegador: `gemini-web`, `claude-web`, `claude-turnstile` (compila `runner-web`, com Chromium incluído)       | `docker compose --profile web up -d`         |
 
-> Vários perfis podem ser combinados: `docker compose --profile cli --profile cliproxyapi up -d`.
+> É possível combinar vários perfis: `docker compose --profile cli --profile cliproxyapi up -d`.
 
 ## Configurando ferramentas de CLI do host quando o OmniRoute é executado no Docker
 
@@ -227,51 +237,53 @@ A stack de produção é executada em paralelo com o compose de desenvolvimento 
 
 ## Estágios do Dockerfile
 
-O repositório inclui um Dockerfile multiestágio (`Dockerfile`). Três estágios são disponibilizados; escolha o `target` adequado para seu caso de uso.
+O repositório inclui um Dockerfile multiestágio (`Dockerfile`). Quatro estágios são disponibilizados; escolha o `target` correto para seu caso de uso.
 
-| Estágio       | Imagem base           | Finalidade                                                                                                                                                                              |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Instala as dependências (`npm ci --legacy-peer-deps`) e executa `npm run build` (Turbopack por padrão — consulte Recursos de build abaixo)                                              |
-| `runner-base` | `node:26-trixie-slim` | Ambiente de execução de produção com a saída standalone do Next.js. **Nenhuma CLI de provedor incluída.**                                                                               |
-| `runner-cli`  | `runner-base`         | Adiciona `git`, `docker.io`, `docker-compose` e as CLIs globais: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Escolha este para fluxos de trabalho agênticos.** |
+| Estágio       | Imagem base           | Finalidade                                                                                                                                                                                                                                                                                                          |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Instala as dependências (`npm ci --legacy-peer-deps`) e executa `npm run build` (Turbopack por padrão — consulte Recursos de build abaixo)                                                                                                                                                                          |
+| `runner-base` | `node:26-trixie-slim` | Ambiente de execução de produção com a saída standalone do Next.js. **Nenhuma CLI de provedor incluída.**                                                                                                                                                                                                           |
+| `runner-cli`  | `runner-base`         | Adiciona `git`, `docker.io`, `docker-compose` e as CLIs globais: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Escolha este estágio para fluxos de trabalho com agentes.**                                                                                                                   |
+| `runner-web`  | `runner-base`         | Adiciona o Playwright e um navegador Chromium (`--with-deps`) para provedores de sessão web: `gemini-web`, `claude-web`, `claude-turnstile`. **Escolha este estágio ao usar esses provedores** — a imagem simples falha durante a solicitação sem ele (consulte a observação sobre `-web` em Canais de lançamento). |
 
-Faça o build de um target específico manualmente:
+Compile manualmente um `target` específico:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Recursos de build
 
-Três argumentos de build controlam o custo do estágio `builder`. Eles se aplicam somente ao build —
-`OMNIROUTE_MEMORY_MB` (abaixo) é um controle separado para o ambiente de execução.
+Três argumentos de build controlam o custo do estágio `builder`. Eles são usados apenas durante o build —
+`OMNIROUTE_MEMORY_MB` (abaixo) é uma configuração separada de runtime.
 
-| Argumento de build          | Padrão | Efeito                                                                                            |
-| --------------------------- | ------ | ------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | `0` faz o build com webpack. Menor pico de memória, porém mais lento.                             |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | Limite de heap do V8 (`--max-old-space-size`) para o `next build` iniciado.                       |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Alimenta `CIRCLE_NODE_TOTAL`; o Next deriva `workers = N - 1` para a coleta de dados das páginas. |
+| Argumento de build          | Padrão | Efeito                                                                                        |
+| --------------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`    | `0` compila usando webpack. Menor pico de memória, porém mais lento.                          |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | Limite de heap do V8 (`--max-old-space-size`) para o `next build` iniciado.                   |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Alimenta `CIRCLE_NODE_TOTAL`; o Next deriva `workers = N - 1` para coletar dados das páginas. |
 
-`OMNIROUTE_BUILD_WORKERS` é o valor que deve ser aumentado em um builder de grande porte e o que deve
-ser investigado quando um build com recursos limitados falha **depois de** `✓ Compiled successfully`. Cada
-worker de dados de páginas é um processo próprio, assim como o próprio processo pai `next build`;
-uma reprodução em uma VPS ativa (issue #7518) mediu o pico de RSS de cada processo em
-~4,5 GB, independentemente da flag de heap `NODE_OPTIONS` (o Turbopack compila usando
+`OMNIROUTE_BUILD_WORKERS` é a configuração que deve ser aumentada em um builder de grande porte e a primeira
+a ser investigada quando um build com recursos limitados falha **depois de** `✓ Compiled successfully`. Cada
+worker de dados de páginas é um processo separado, assim como o próprio processo pai `next build`;
+uma reprodução em um VPS real (issue #7518) mediu o pico de RSS de cada processo em
+~4,5 GB, independentemente da opção de heap `NODE_OPTIONS` (o Turbopack compila usando
 memória nativa/Rust fora do heap do V8). O padrão de `2` (→ 1 worker, 2
 processos no total) foi dimensionado para os runners hospedados pelo GitHub com 16 GB / 4 vCPUs que o
-pipeline de publicação utiliza. Com `8` (→ 7 workers), esse runner ficou sem memória, e o
-buildkit falhou na etapa com `ResourceExhausted: ... cannot allocate memory`;
+pipeline de publicação utiliza. Com `8` (→ 7 workers), esse runner ficou sem memória e
+o buildkit interrompeu a etapa com `ResourceExhausted: ... cannot allocate memory`;
 `3` (→ 2 workers) ainda não coube depois que o RSS por processo foi medido
 diretamente, em vez de inferido. `tests/unit/docker-build-memory-budget.test.ts`
-faz os cálculos usando o valor medido e falha se qualquer um dos controles
-exceder a capacidade do runner.
+faz os cálculos com base no valor medido e falha se qualquer uma das configurações
+ultrapassar a capacidade do runner.
 
 O Turbopack compila usando memória nativa do Rust que fica **fora** do heap do V8, portanto
 `OMNIROUTE_BUILD_MEMORY_MB` não a limita. Em um host com limite de memória, o
-build é então encerrado com SIGKILL pelo OOM killer sem qualquer texto de erro — ele simplesmente
-para no meio de `Creating an optimized production build`, o que parece ser um travamento, e não
-falta de memória. Se o host de build tiver recursos limitados, troque o bundler:
+build recebe SIGKILL do OOM killer sem nenhuma mensagem de erro — ele simplesmente
+para no meio de `Creating an optimized production build`, o que parece um travamento em vez
+de falta de memória. Se o host de build tiver recursos limitados, troque o bundler:
 
 ```bash
 docker build --target runner-base \
@@ -280,42 +292,42 @@ docker build --target runner-base \
 ```
 
 `webpackBuildWorker` está habilitado, portanto `next build` executa um processo pai **e** um processo
-worker, e cada um respeita `OMNIROUTE_BUILD_MEMORY_MB` separadamente. Dimensione o limite do contêiner
-para aproximadamente mais que o dobro desse valor, não apenas uma vez.
+worker, e cada um respeita `OMNIROUTE_BUILD_MEMORY_MB` separadamente. Dimensione o limite
+do contêiner para aproximadamente mais que o dobro desse valor, não apenas uma vez.
 
 Medições nesta árvore (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Limite do contêiner | Resultado                             |
-| --------- | ------------------- | ------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB      | Encerrado por OOM em ambos, sem aviso |
-| webpack   | 8 GiB               | Worker de build encerrado com SIGKILL |
-| webpack   | 12 GiB              | Bem-sucedido, com pico de 11,1 GiB    |
+| Bundler   | Limite do contêiner | Resultado                                 |
+| --------- | ------------------- | ----------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB      | Encerrado pelo OOM em ambos, sem mensagem |
+| webpack   | 8 GiB               | Worker de build recebeu SIGKILL           |
+| webpack   | 12 GiB              | Bem-sucedido, com pico de 11,1 GiB        |
 
-### Padrões do ambiente de execução
+### Padrões de runtime
 
 Valores padrão exportados por `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Comportamento da memória no Docker:
 
-- A imagem define `OMNIROUTE_MEMORY_MB=1024` e deriva `NODE_OPTIONS=--max-old-space-size=1024` desse valor.
-- O processo real do servidor é iniciado pelo launcher standalone, que lê `OMNIROUTE_MEMORY_MB` e acrescenta `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- O Node usa o último valor repetido de `--max-old-space-size`; portanto, definir `OMNIROUTE_MEMORY_MB` controla o limite efetivo do heap no Docker.
-- Como a imagem sempre o define, o fallback do próprio launcher, calibrado com base na RAM, nunca é aplicado no Docker. Aumente-o explicitamente para a carga de trabalho (tabela abaixo). `2048` ainda é insuficiente para `/v1/responses` de agentes de programação.
+- A imagem define `OMNIROUTE_MEMORY_MB=1024` e deriva `NODE_OPTIONS=--max-old-space-size=1024` a partir dela.
+- O processo real do servidor é iniciado pelo inicializador standalone, que lê `OMNIROUTE_MEMORY_MB` e acrescenta `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- O Node usa o último valor repetido de `--max-old-space-size`, portanto, definir `OMNIROUTE_MEMORY_MB` controla o limite efetivo de heap no Docker.
+- Como a imagem sempre define essa variável, o fallback do próprio inicializador, calibrado com base na RAM, nunca é aplicado no Docker. Aumente-a explicitamente de acordo com a carga de trabalho (tabela abaixo). `2048` ainda é insuficiente para `/v1/responses` de agentes de programação.
 
-### RAM em tempo de execução para agentes de programação
+### RAM de execução para agentes de programação
 
-O padrão de 1 GiB no Docker é o mínimo para o dashboard ou chats leves, não uma configuração de produção. Corpos longos de `POST /v1/responses` (centenas de mensagens, dezenas de ferramentas) mantêm vários grafos na memória durante a compactação. Duas solicitações simultâneas de ~3 MiB / ~750 mil tokens fizeram o V8 abortar com um old-space de **12 GiB** (`FATAL ERROR: Reached heap limit`) e também atingiram o OOM de um cgroup de 16 GiB. Consulte [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+O padrão de 1 GiB do Docker é um mínimo para o dashboard e chats leves, não uma configuração para produção. Corpos longos de `POST /v1/responses` (centenas de mensagens, dezenas de ferramentas) mantêm vários grafos na memória durante a compactação. Duas solicitações sobrepostas de aproximadamente 3 MiB / 750 mil tokens fizeram o V8 abortar com um old-space de **12 GiB** (`FATAL ERROR: Reached heap limit`) e também atingiram o OOM de um cgroup de 16 GiB. Consulte [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
 Dimensione o **`--memory` do cgroup acima do heap** — buffers nativos, SQLite e dados intermediários de compactação ficam fora do V8.
 
-| Carga de trabalho                            | `OMNIROUTE_MEMORY_MB`        | Contêiner / cgroup    | Observações                                                                                             |
-| -------------------------------------------- | ---------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------- |
-| Painel, um chat leve                         | `1024` (padrão da imagem)    | ≥2 GiB                |                                                                                                         |
-| Um agente de programação (Claude/Codex/Grok) | `8192`                       | ≥10 GiB               | Sessão única típica de `/v1/responses`                                                                  |
-| Duas `/v1/responses` longas simultâneas      | `10240`–`12288`              | ≥12–16 GiB            | Encerramento do V8 observado com heap de ~12 GiB                                                        |
-| Três ou mais contextos longos simultâneos    | não use em um único processo | serializar / mais RAM | A admissão padrão para cargas pesadas é de 1 em andamento; aumentá-la sem RAM reintroduz o encerramento |
+| Carga de trabalho                            | `OMNIROUTE_MEMORY_MB`        | Contêiner / cgroup    | Observações                                                                                       |
+| -------------------------------------------- | ---------------------------- | --------------------- | ------------------------------------------------------------------------------------------------- |
+| Dashboard, um chat leve                      | `1024` (padrão da imagem)    | ≥2 GiB                |                                                                                                   |
+| Um agente de programação (Claude/Codex/Grok) | `8192`                       | ≥10 GiB               | Uma única sessão típica de `/v1/responses`                                                        |
+| Duas `/v1/responses` longas simultâneas      | `10240`–`12288`              | ≥12–16 GiB            | Abortamento do V8 medido com heap de aproximadamente 12 GiB                                       |
+| Três ou mais contextos longos simultâneos    | não use em um único processo | serializar / mais RAM | O limite padrão de admissões pesadas é 1 em execução; aumentá-lo sem RAM reintroduz o abortamento |
 
-Quando `OMNIROUTE_MEMORY_MB` **não está definida**, o `omniroute serve` em bare metal calibra aproximadamente 35% da RAM (limitado a `[512, 4096]`). O Docker sempre define `1024`, portanto essa calibração nunca é executada na imagem oficial.
+Em bare metal, `omniroute serve` calibra aproximadamente 35% da RAM (limitado ao intervalo `[512, 4096]`) quando `OMNIROUTE_MEMORY_MB` **não está definida**. O Docker sempre define `1024`, portanto essa calibração nunca é executada na imagem oficial.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -325,24 +337,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Variáveis de Ambiente Críticas
 
-Além dos valores padrão documentados em [ENVIRONMENT.md](../reference/ENVIRONMENT.md), as seguintes variáveis são as mais importantes ao executar no Docker:
+Além dos padrões documentados em [ENVIRONMENT.md](../reference/ENVIRONMENT.md), as seguintes variáveis são as mais importantes ao executar com Docker:
 
-| Variável                      | Finalidade                                                                                                                                                                                                                                                    | Padrão                            |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Segredo compartilhado para a ponte WebSocket. **Obrigatório em produção** — defina-o como uma string aleatória forte.                                                                                                                                         | não definido (deve ser fornecido) |
-| `REDIS_URL`                   | String de conexão para o backend do limitador de taxa/cache                                                                                                                                                                                                   | `redis://redis:6379`              |
-| `REDIS_PORT`                  | Porta no host para o contêiner Redis incluído                                                                                                                                                                                                                 | `6379`                            |
-| `REDIS_BIND_HOST`             | Interface do host na qual a porta do Redis incluído é publicada (loopback, a menos que você adicione AUTH)                                                                                                                                                    | `127.0.0.1`                       |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Caminho no host montado no perfil `cli` em `/workspace/omniroute` para fluxos de trabalho de atualização automática                                                                                                                                           | `.` (diretório atual)             |
-| `OMNIROUTE_MEMORY_MB`         | Limite de heap do Node em tempo de execução para o servidor Docker autônomo; substitui o padrão da imagem mencionado acima. Agentes de programação: `8192`+ (consulte [RAM em tempo de execução](#runtime-ram-for-coding-agents)).                            | `1024`                            |
-| `DASHBOARD_PORT` / `API_PORT` | Sobrescreve as portas expostas do painel (20128) e da API (20129)                                                                                                                                                                                             | `20128` / `20129`                 |
-| `APP_BIND_HOST`               | Interface do host na qual o docker-compose publica as portas do painel/API/WS ao vivo. Com `REQUIRE_API_KEY=false` (o padrão), `0.0.0.0` expõe o proxy `/v1` anônimo à LAN — amplie o acesso somente com `REQUIRE_API_KEY=true` ou um proxy reverso à frente. | `127.0.0.1`                       |
-| `CLIPROXY_BIND_HOST`          | Interface do host na qual o docker-compose publica o sidecar `cliproxyapi` — seu volume de dados armazena as credenciais dos provedores.                                                                                                                      | `127.0.0.1`                       |
-| `OMNIROUTE_PLUGINS_DIR`       | Diretório que o scanner de plugins em tempo de execução lê e no qual instala. Defina-o quando os plugins forem montados via bind mount: o padrão segue `HOME`, que uma imagem não precisa exportar.                                                           | `~/.omniroute/plugins`            |
-| `OMNIROUTE_BASE_PATH`         | Subcaminho da URL quando o aplicativo é publicado atrás de um proxy reverso (por exemplo, `/omniroute`)                                                                                                                                                       | _(vazio = raiz)_                  |
-| `NEXT_PUBLIC_BASE_URL`        | Origem pública do navegador incluindo o subcaminho (por exemplo, `https://host/omniroute`)                                                                                                                                                                    | não definido                      |
-| `PROD_DASHBOARD_PORT`         | Porta do painel no host para `docker-compose.prod.yml`                                                                                                                                                                                                        | `20130`                           |
-| `CLIPROXYAPI_PORT`            | Porta no host para o sidecar `cliproxyapi`                                                                                                                                                                                                                    | `8317`                            |
+| Variável                      | Finalidade                                                                                                                                                                                                                                                                   | Padrão                            |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Segredo compartilhado para a ponte WebSocket. **Obrigatório em produção** — defina uma string aleatória forte.                                                                                                                                                               | não definido (deve ser fornecido) |
+| `REDIS_URL`                   | String de conexão para o backend de limitação de taxa/cache                                                                                                                                                                                                                  | `redis://redis:6379`              |
+| `REDIS_PORT`                  | Porta do host para o contêiner Redis incluído                                                                                                                                                                                                                                | `6379`                            |
+| `REDIS_BIND_HOST`             | Interface do host na qual a porta do Redis incluído é publicada (loopback, a menos que você adicione AUTH)                                                                                                                                                                   | `127.0.0.1`                       |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Caminho do host montado no perfil `cli` em `/workspace/omniroute` para fluxos de trabalho de atualização automática                                                                                                                                                          | `.` (diretório atual)             |
+| `OMNIROUTE_MEMORY_MB`         | Limite de heap do Node em tempo de execução para o servidor autônomo do Docker; substitui o padrão da imagem indicado acima. Agentes de programação: `8192`+ (consulte [RAM em tempo de execução](#runtime-ram-for-coding-agents)).                                          | `1024`                            |
+| `DASHBOARD_PORT` / `API_PORT` | Substitui as portas expostas do painel (20128) e da API (20129)                                                                                                                                                                                                              | `20128` / `20129`                 |
+| `APP_BIND_HOST`               | Interface do host na qual o docker-compose publica as portas do painel, da API e do WS em tempo real. Com `REQUIRE_API_KEY=false` (o padrão), `0.0.0.0` expõe o proxy `/v1` anônimo à LAN — amplie o acesso somente com `REQUIRE_API_KEY=true` ou um proxy reverso à frente. | `127.0.0.1`                       |
+| `CLIPROXY_BIND_HOST`          | Interface do host na qual o docker-compose publica o sidecar `cliproxyapi` — seu volume de dados armazena as credenciais dos provedores.                                                                                                                                     | `127.0.0.1`                       |
+| `OMNIROUTE_PLUGINS_DIR`       | Diretório que o scanner de plugins do runtime lê e no qual instala. Defina-o quando os plugins forem montados por bind mount: o padrão segue `HOME`, que uma imagem não necessariamente exporta.                                                                             | `~/.omniroute/plugins`            |
+| `OMNIROUTE_BASE_PATH`         | Subcaminho da URL quando o aplicativo é publicado por trás de um proxy reverso (por exemplo, `/omniroute`)                                                                                                                                                                   | _(vazio = raiz)_                  |
+| `NEXT_PUBLIC_BASE_URL`        | Origem pública do navegador incluindo o subcaminho (por exemplo, `https://host/omniroute`)                                                                                                                                                                                   | não definido                      |
+| `PROD_DASHBOARD_PORT`         | Porta do painel no host para `docker-compose.prod.yml`                                                                                                                                                                                                                       | `20130`                           |
+| `CLIPROXYAPI_PORT`            | Porta do host para o sidecar `cliproxyapi`                                                                                                                                                                                                                                   | `8317`                            |
 
 ## Proxy reverso em um subcaminho (Traefik / nginx)
 
@@ -482,31 +494,44 @@ Os painéis de túneis de endpoint (Cloudflare, Tailscale, ngrok) podem ser exib
 | Imagem                   | Tag      | Tamanho | Descrição                                                |
 | ------------------------ | -------- | ------- | -------------------------------------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB  | Maior SemVer estável **publicada** (não o `main` do git) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB  | Fixe esta categoria de tag para GitOps                   |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB  | Fixe essa classe de tag para GitOps                      |
 
-Manifesto multiplataforma: `linux/amd64` + `linux/arm64` nativo (Apple Silicon, AWS Graviton, Raspberry Pi). O Docker seleciona automaticamente a arquitetura correspondente; passe `--platform linux/amd64` caso precise forçar a emulação de AMD64 em hosts ARM.
+Manifesto multiplataforma: `linux/amd64` + `linux/arm64` nativos (Apple Silicon, AWS Graviton, Raspberry Pi). O Docker seleciona automaticamente a arquitetura correspondente; use `--platform linux/amd64` caso precise forçar a emulação de AMD64 em hosts ARM.
 
 ### Canais de lançamento
 
-O OmniRoute publica canais Docker separados para versões estáveis, testes da ramificação de lançamento ativa e compilações de desenvolvimento.
+O OmniRoute publica canais Docker separados para versões estáveis, testes da branch de lançamento ativa e builds de desenvolvimento.
 
-| Canal                           | Origem                                | Mutabilidade                        | Uso recomendado                                                                                                                      |
-| ------------------------------- | ------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `:<version>` / `:<version>-web` | Versão assinada/versionada            | Imutável                            | Implantações em produção que fixam uma versão exata                                                                                  |
-| `:latest` / `:latest-web`       | Maior SemVer estável **publicada**    | Ponteiro estável mutável            | Acompanha versões estáveis **após** uma tarefa de publicação SemVer — **não** acompanha `main` nem commits `release/v*` não lançados |
-| `:next` / `:next-web`           | Ramificação `release/v*` padrão atual | Ponteiro de pré-lançamento mutável  | Teste de correções que chegaram à ramificação de lançamento ativa, mas que ainda não estão em uma versão estável                     |
-| `:main` / `:main-web`           | Ramificação `main`                    | Ponteiro de desenvolvimento mutável | Apenas desenvolvimento e testes de integração                                                                                        |
+| Canal                           | Origem                             | Mutabilidade                        | Uso recomendado                                                                                                                     |
+| ------------------------------- | ---------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Versão assinada/versionada         | Imutável                            | Implantações em produção que fixam uma versão exata                                                                                 |
+| `:latest` / `:latest-web`       | Maior SemVer estável **publicada** | Ponteiro estável mutável            | Acompanha versões estáveis **após** um job de publicação SemVer — **não** acompanha `main` nem commits não lançados de `release/v*` |
+| `:next` / `:next-web`           | Branch `release/v*` padrão atual   | Ponteiro de pré-lançamento mutável  | Testes de correções que chegaram à branch de lançamento ativa, mas que ainda não estão em uma versão estável                        |
+| `:main` / `:main-web`           | Branch `main`                      | Ponteiro de desenvolvimento mutável | Apenas para testes de desenvolvimento e integração                                                                                  |
+
+#### Provedores de sessão web: as imagens `-web`
+
+Cada canal acima também está disponível como uma tag `-web` (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), criada a partir do estágio `runner-web` — a mesma imagem, acrescida do Playwright e de um navegador Chromium. A imagem comum é fornecida **sem** o Chromium; `gemini-web`, `claude-web` e `claude-turnstile` precisam dele.
+
+A falha é adiada, não ocorre na inicialização: esses provedores listam seus modelos e aparecem como conectados no painel, e somente a primeira solicitação falha com
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Se você usa esses provedores, baixe a tag `-web` do canal que já está usando — nada mais muda. Em uma instalação via npm/CLI (sem imagem Docker), o componente equivalente ausente é o binário do navegador: execute `npx playwright install chromium` no host.
 
 #### Como usar o canal de pré-lançamento
 
-O canal `next` é recompilado a cada push para a ramificação `release/v*` padrão atual e é publicado para AMD64 e ARM64. Ramificações de manutenção mais antigas não podem sobrescrevê-lo. O canal fornece uma imagem que pode ser baixada com pull contendo correções que foram integradas à ramificação de lançamento ativa antes da criação da próxima tag estável.
+O canal `next` é recriado a cada push para a branch `release/v*` padrão atual e é publicado tanto para AMD64 quanto para ARM64. Branches de manutenção mais antigas não podem sobrescrevê-lo. O canal fornece uma imagem que pode ser baixada contendo correções que foram mescladas à branch de lançamento ativa antes da criação da próxima tag estável.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-No Docker Compose, substitua a tag da imagem usada pelo perfil selecionado e, em seguida, baixe e recrie o serviço:
+Para o Docker Compose, substitua a tag da imagem usada pelo perfil selecionado e, em seguida, baixe e recrie o serviço:
 
 ```yaml
 services:
@@ -521,30 +546,30 @@ docker compose up -d
 
 #### Segurança e reversão
 
-`next` é um canal de pré-lançamento flutuante. Ele pode mudar a cada push para a ramificação de lançamento ativa e **não é compatível com uso em produção**. Fixe o digest da imagem ao avaliar uma compilação específica:
+`next` é um canal de pré-lançamento flutuante. Ele pode mudar a cada push para a branch de lançamento ativa e **não tem suporte para uso em produção**. Fixe o digest da imagem ao avaliar um build específico:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Antes de testar, faça backup do volume de dados do OmniRoute ou do diretório de dados montado por bind. Para reverter, restaure a versão estável ou o digest usado anteriormente e recrie o contêiner:
+Antes de testar, faça backup do volume de dados do OmniRoute ou do diretório de dados montado via bind. Para reverter, restaure a versão estável ou o digest usado anteriormente e recrie o contêiner:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Uma compilação de uma branch de release nunca pode mover `latest`; somente uma versão semântica estável elegível pode promover o ponteiro estável. As imagens `next` mantêm a inspeção da imagem de release e o bloqueio em caso de vulnerabilidades CRITICAL.
+Um build da branch de lançamento nunca pode mover `latest`; apenas uma versão semântica estável elegível pode promover o ponteiro estável. As imagens `next` mantêm a inspeção da imagem de lançamento e o bloqueio por vulnerabilidades CRITICAL.
 
-**`latest` não é uma garantia de atualidade em relação ao git.** Correções mescladas em `main` ou na branch `release/v*` ativa **não** estão em `:latest` até que uma imagem SemVer estável seja publicada e o job de publicação promova `:latest` (com o mesmo digest dessa SemVer). Se `latest` parecer congelada enquanto o GitHub já mostra a correção, baixe `:next` para testar a branch de release ou aguarde a tag SemVer.
+**`latest` não garante que o conteúdo esteja atualizado em relação ao git.** Correções mescladas em `main` ou na branch `release/v*` ativa **não** estarão em `:latest` até que uma imagem SemVer estável seja publicada e o job de publicação promova `:latest` (com o mesmo digest dessa SemVer). Se `latest` parecer congelada enquanto o GitHub já mostra a correção, baixe `:next` para testar a branch de lançamento ou aguarde a tag SemVer.
 
-| O que você deseja                                                             | Use                                   |
-| ----------------------------------------------------------------------------- | ------------------------------------- |
-| GitOps / produção que não pode sofrer alterações inesperadas                  | Fixe `:X.Y.Z` (ou o digest da imagem) |
-| Acompanhar versões estáveis publicadas e aceitar uma recriação a cada release | `:latest`                             |
-| Testar commits não lançados de `release/v*`                                   | `:next` (não usar em produção)        |
-| Testar `main`                                                                 | `:main` (não usar em produção)        |
+| O que você quer                                                              | Use                                   |
+| ---------------------------------------------------------------------------- | ------------------------------------- |
+| GitOps / produção que não pode sofrer alterações                             | Fixe `:X.Y.Z` (ou o digest da imagem) |
+| Acompanhar versões estáveis publicadas e aceitar uma recriação a cada versão | `:latest`                             |
+| Testar commits não lançados de `release/v*`                                  | `:next` (não para produção)           |
+| Testar `main`                                                                | `:main` (não para produção)           |
 
 ## Disponibilidade: o SQLite padrão tem uma única réplica
 

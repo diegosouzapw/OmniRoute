@@ -12,6 +12,7 @@
  */
 
 import crypto from "crypto";
+import { outputContractOf } from "@/lib/semanticCache";
 import {
   type SemanticCacheConfig,
   type SemanticCacheType,
@@ -132,7 +133,13 @@ export function generateDirectHash(
     provider?: string | null;
     cacheByModel?: boolean;
     cacheByProvider?: boolean;
-  }
+  },
+  // #14484 F1: behavior-changing generation constraints (tools/tool_choice/response_format)
+  // MUST participate in the Layer-1 hash — otherwise a response cached for a request with
+  // tools/a forced output contract gets replayed to a later request with identical messages
+  // but a different (or absent) contract, e.g. a tool_calls response served to a plain-chat
+  // request. Mirrors the #12307 fix already applied to the legacy signature path.
+  outputContract?: unknown
 ): string {
   const payload = JSON.stringify({
     model: scoping?.cacheByModel !== false ? model : "*",
@@ -141,6 +148,7 @@ export function generateDirectHash(
     messages: normalizeMessagesForHash(conversation),
     temperature,
     top_p: topP,
+    outputContract: outputContract ?? undefined,
   });
 
   const digest = crypto.createHash("sha256").update(payload).digest("hex");
@@ -249,13 +257,20 @@ export class SemanticCacheManager {
     const topP = typeof params.body.top_p === "number" ? params.body.top_p : 1;
 
     // ── Layer 1: Direct Hash Lookup ──
-    const directHash = generateDirectHash(params.model, conv, temp, topP, {
-      apiKeyId: params.apiKeyId,
-      cacheKey,
-      provider: params.provider,
-      cacheByModel: this.config.cacheByModel,
-      cacheByProvider: this.config.cacheByProvider,
-    });
+    const directHash = generateDirectHash(
+      params.model,
+      conv,
+      temp,
+      topP,
+      {
+        apiKeyId: params.apiKeyId,
+        cacheKey,
+        provider: params.provider,
+        cacheByModel: this.config.cacheByModel,
+        cacheByProvider: this.config.cacheByProvider,
+      },
+      outputContractOf(params.body)
+    );
 
     if (cacheTypeHeader !== "semantic") {
       try {
@@ -346,26 +361,36 @@ export class SemanticCacheManager {
     const temp = typeof params.body.temperature === "number" ? params.body.temperature : 0;
     const topP = typeof params.body.top_p === "number" ? params.body.top_p : 1;
 
-    const directHash = generateDirectHash(params.model, conv, temp, topP, {
-      apiKeyId: params.apiKeyId,
-      cacheKey,
-      provider: params.provider,
-      cacheByModel: this.config.cacheByModel,
-      cacheByProvider: this.config.cacheByProvider,
-    });
+    const directHash = generateDirectHash(
+      params.model,
+      conv,
+      temp,
+      topP,
+      {
+        apiKeyId: params.apiKeyId,
+        cacheKey,
+        provider: params.provider,
+        cacheByModel: this.config.cacheByModel,
+        cacheByProvider: this.config.cacheByProvider,
+      },
+      outputContractOf(params.body)
+    );
 
     const promptText = normalizeConversationForEmbedding(conv, {
       excludeSystemPrompt: this.config.excludeSystemPrompt,
       historyDepth: this.config.conversationHistoryDepth,
     });
 
-    // Custom TTL from header or config
+    // Custom TTL from header or config. #14484 F1: x-omniroute-cache-ttl is caller-supplied
+    // and was previously unbounded, letting a client pin a poisoned entry far past the
+    // configured cache lifetime; cap it at this.config.ttlMs.
     const ttlHeader = getHeader(params.headers, "x-omniroute-cache-ttl");
     let effectiveTtl = this.config.ttlMs;
     if (ttlHeader) {
       const parsed = Number(ttlHeader);
       if (Number.isFinite(parsed) && parsed > 0) {
-        effectiveTtl = parsed > 100000 ? parsed : parsed * 1000;
+        const normalized = parsed > 100000 ? parsed : parsed * 1000;
+        effectiveTtl = Math.min(normalized, this.config.ttlMs);
       }
     } else if (params.ttlMs && params.ttlMs > 0) {
       effectiveTtl = params.ttlMs;

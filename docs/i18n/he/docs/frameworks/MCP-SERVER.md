@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (עברית)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -288,12 +288,100 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 
 ---
 
-## אימות וטווחי הרשאות
+## אימות והיקפים
 
-כלי MCP מאומתים באמצעות טווחי הרשאות של מפתחות API. אכיפת טווחי ההרשאות מרוכזת ב־
-`open-sse/mcp-server/scopeEnforcement.ts`. כל כלי דורש טווחי הרשאות מסוימים:
+כלי MCP קורא מחרוזות היקף מהמתקשר. בדיקה זו היא אחד משלושה מרחבי שמות בלתי תלויים. מעבר מצ'קר אחד אינו מעבר מהאחרים.
+הכללים הם [שלושה מרחבי שמות של היקפים](#three-scope-namespaces).
+קטלוג הכלים הוא [היקפי כלי MCP](#mcp-tool-scopes).
 
-| תחום                  | כלים                                                                                                                                                                        |
+### שלושה מרחבי שמות של היקפים
+
+`manage` על מפתח API, `read:compression` על כלי MCP, ו-`read` על אסימון גישה `oma_live_…` הם שלושה אישורים שונים. מתקשרים השולחים אסימון גישה `read` לנתיב ניהול משנה מקבלים HTTP 403 `Access token scope 'read' is insufficient; 'write' required.`
+דרגה זו היא `scopeSatisfies`. היא אינה מתייעצת עם טבלת MCP, והמתאם של MCP אינו מתייעץ איתה.
+
+| מרחב שמות       | אישור                                                    | בודק             | מעבר מאפשר                               |
+| :-------------- | :------------------------------------------------------- | :--------------- | :--------------------------------------- |
+| ניהול מפתח API  | `api_keys.scopes`                                        | `hasManageScope` | REST ניהול עבור מפתח Bearer זה           |
+| מפתח API תוספתי | אותו מערך, מחרוזת מדויקת אחת                             | העוזר הנקוב מטה  | רק יכולת זו                              |
+| היקפי כלי MCP   | אותו מערך, אחרת MCP `_meta`, אחרת `OMNIROUTE_MCP_SCOPES` | `scopeMatches`   | כלי זה, ברגע שהאכיפה מופעלת              |
+| אסימון גישה     | `oma_live_…`                                             | `scopeSatisfies` | נתיב הניהול ששיטתו ונתיבו דורשים דרגה זו |
+
+הטבעת כל אישור מכוסה ב-
+[אימות ניהול](../guides/MANAGEMENT-AUTH.md).
+
+#### היקפי מפתח API
+
+מערך `api_keys.scopes` אחד מזין שתי עבודות. הן משתמשות בפונקציות שונות.
+
+**REST ניהול.** `manage` ו-`admin` הם החברים ב-
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+`hasManageScope` הוא מה שמאשר נתיבי ניהול עבור מפתח זה. `admin` מסוגל לניהול
+בנתיבים אלה. המילה `admin` כאן אינה דרגת אסימון הגישה והיא אינה מתרחבת
+להיקפי כלי MCP.
+
+**מחרוזות תוספתיות.** כל אחת מהן היא בדיקת חברות מדויקת, וכל אחת נשארת
+מחוץ ל-`MANAGEMENT_API_KEY_SCOPES`.
+
+| היקף                           | מעבר מאפשר                                                                                                                                                 |
+| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | החיתוך הלא-לופבק `/api/mcp/` LOCAL_ONLY בלבד (`hasMcpConnectOrManageScope`). מפתח עם `manage` או `admin` עדיין עובר את החיתוך הזה.                         |
+| `self:usage`                   | `GET /api/v1/me/status` עבור מפתח זה (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` מוסיף היקף זה ביצירה (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | מכסות חשבון במעלה הזרם בתוך מטען הסטטוס הזה (`src/lib/usage/apiKeySelfService.ts`). נתיב הסטטוס עדיין דורש `self:usage`.                                   |
+| `policy:bypass-provider-quota` | קריאות ההיסק של מפתח זה מדלגות על מדיניות מכסת הספק (`hasProviderQuotaBypassScope` ב-`src/sse/handlers/chat.ts`).                                          |
+
+#### התאמה
+
+הקטלוג הוא הטבלה תחת [היקפי כלי MCP](#mcp-tool-scopes). אין להתייחס ל-`MCP_SCOPE_LIST` ב-`src/shared/constants/mcpScopes.ts` כאל קטלוג זה:
+הוא תת-הקבוצה המקלידה המקורית. כלים מאוחרים יותר מצהירים על היקפים נוספים לידו
+(`read:notion`, `read:skills`, `read:local-corpus`, ושאר הטבלה).
+
+`evaluateToolScopes` ב-`open-sse/mcp-server/scopeEnforcement.ts` מאפשר קריאה
+כאשר כל היקף נדרש תואם להיקף מוענק כלשהו:
+
+- `*` תואם לכל היקף נדרש.
+- היקף מוענק שמסתיים ב-`*` תואם להיקף נדרש שמתחיל
+  עם הקידומת שלפני הכוכבית. `read:*` תואם ל-`read:compression`.
+- כל היקף מוענק אחר תואם רק למחרוזת הנדרשת הזהה.
+
+מפתח שהיקפיו הם `["manage"]` נכשל ב-`scopeMatches` עבור `read:compression`.
+אותה קריאה נכשלת עבור `admin`, `mcp:connect`, `read`, ו-`write` כאשר אלו
+הן המחרוזות המוענקות היחידות. אין היררכיה בין היקפי כלי MCP
+מעבר לכוכבית הסופית `*`.
+
+האכיפה כבויה אלא אם `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (ברירת מחדל
+`false`). כשהיא כבויה, `evaluateToolScopes` מאפשר את הקריאה ומדלג על
+הקטלוג. כשהיא מופעלת, HTTP משתמש ב-`api_keys.scopes` של מפתח ה-Bearer כ-
+`authInfo` (ראה [קישור היקף HTTP לכל מפתח](#per-key-http-scope-binding-7895)).
+כאשר אין היקפי מפתח נפתרים, הקבוצה המוענקת עוברת ל-MCP `_meta`, ואז
+ל-`OMNIROUTE_MCP_SCOPES`.
+
+#### היקפי אסימון גישה
+
+אסימוני `oma_live_…` (`src/lib/accessTokens/scopes.ts`) נושאים `read`, `write`,
+או `admin`. `scopeSatisfies` היא דרגה: `admin` מכסה `write` ו-`read`, ו-
+`write` מכסה `read`. היקפים לא ידועים אינם מכסים דבר.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) משווה
+דרגה זו עם `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD`, ו-`OPTIONS` דורשים `read`.
+- כל שיטה אחרת דורשת `write`.
+- נתיבים ב-`ADMIN_SCOPE_PREFIXES` דורשים `admin` עבור כל שיטה. `/api/mcp`
+  נמצא ברשימה זו, כך שאסימון גישה `write` עדיין אינו יכול לקרוא לממשק ה-HTTP של MCP.
+- נתיבים ב-`ADMIN_MUTATION_PREFIXES` דורשים `admin` רק עבור שינויים.
+
+`PATCH /api/keys/{id}` הוא שינוי (mutation) ואינו נמצא ברשימות הניהול הללו, ולכן אסימון `read` מקבל 403
+`Access token scope 'read' is insufficient; 'write' required.`
+אסימון גישה מסוג `write` או `admin` מספק גישה לנתיב זה. JWT של לוח מחוונים, אסימון machine-id של loopback CLI, ומפתח API עם `manage` או `admin` נוקטים בנתיבים אחרים ואינם מצטמצמים על ידי דרגה זו.
+
+אסימון גישה שעובר את `scopeSatisfies` עבור `/api/mcp` פינה רק את שער הניהול. קריאות כלים עדיין מריצות את `scopeMatches` מול היקפי מפתח API. דרגת אסימון הגישה אינה קלט ל-`scopeMatches`.
+
+### היקפי כלי MCP
+
+אכיפת היקף מרוכזת ב-`open-sse/mcp-server/scopeEnforcement.ts`.
+כל כלי דורש היקפים ספציפיים:
+
+| היקף                  | כלים                                                                                                                                                                        |
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                           |
 | `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                   |
@@ -329,40 +417,15 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 | `write:obsidian`      | 9 כלי כתיבה — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                           |
 
-יש תמיכה בתחומי הרשאה עם תווים כלליים: `read:*` מעניק את כל תחומי ההרשאה לקריאה, ו-`*` מעניק גישה מלאה.
+סקופים כלליים (Wildcard scopes) נתמכים: `read:*` מעניק את כל סקופי הקריאה, `*` מעניק גישה מלאה.
 
-### `mcp:connect` — יכולת מצומצמת לנתיב (#7895)
+### `mcp:connect` — יכולת ניתוב צרה (#7895)
 
-גישה לתעבורת HTTP/SSE של MCP (`/api/mcp/*`) מכתובת שאינה loopback דורשת את החרגת
-LOCAL_ONLY של `/api/mcp/` (ראו `docs/security/ROUTE_GUARD_TIERS.md`). בעבר, החרגה זו
-קיבלה רק מפתח API בעל תחום הרשאה מלא מסוג `manage`/`admin` — הרשאה רחבה מדי עבור
-לקוח שרק צריך לתקשר עם MCP. הקובץ `src/shared/constants/managementScopes.ts` מייצא כעת
-את `MCP_CONNECT_SCOPE = "mcp:connect"`: תחום הרשאה נוסף ומצומצם (בהתאם לתקדים של
-`SELF_USAGE_SCOPE`) שמאשר אך ורק את המעקף של `/api/mcp/` בתוך
-`src/server/authz/policies/management.ts` — הוא אינו מעניק גישה לשום נתיב ניהול אחר,
-ובכוונה אינו נכלל ב-`MANAGEMENT_API_KEY_SCOPES`. מפתח שמחזיק ב-`manage`/`admin`
-עדיין עובר את ההחרגה ללא שינוי; `mcp:connect` הוא חלופה בעלת הרשאות מצומצמות יותר עבור
-לקוחות מרוחקים המשתמשים ב-MCP בלבד, הנבדקת באמצעות `hasMcpConnectOrManageScope()`.
+הגעה לטרנספורט ה-HTTP/SSE MCP (`/api/mcp/*`) מחוץ ל-loopback דורשת את החרגת LOCAL_ONLY של `/api/mcp/` (ראו `docs/security/ROUTE_GUARD_TIERS.md`). היסטורית, החרגה זו קיבלה רק מפתח API עם סקופ `manage`/`admin` מלא — רחב מדי עבור קורא שצריך רק לתקשר עם MCP. `src/shared/constants/managementScopes.ts` מייצא כעת את `MCP_CONNECT_SCOPE = "mcp:connect"`: סקופ צר ומוסף (באותו תקדים כמו `SELF_USAGE_SCOPE`) שמאשר רק את עקיפת `/api/mcp/` ב-`src/server/authz/policies/management.ts` — הוא אינו מעניק גישה אחרת לניתוב ניהול ונשמר בכוונה מחוץ ל-`MANAGEMENT_API_KEY_SCOPES`. מפתח שמחזיק ב-`manage`/`admin` עדיין עובר את ההחרגה ללא שינוי; `mcp:connect` הוא חלופה עם הרשאות נמוכות יותר עבור קוראים מרוחקים המשתמשים ב-MCP בלבד, נבדק באמצעות `hasMcpConnectOrManageScope()`.
 
-### שיוך תחומי הרשאה לכל מפתח דרך HTTP (#7895)
+### קישור סקופ HTTP לכל מפתח (#7895)
 
-דרך HTTP/SSE, הקובץ `open-sse/mcp-server/httpTransport.ts` מאתר כעת את
-`api_keys.scopes` האמיתיים של הלקוח באמצעות `resolveMcpCallerAuthInfo()`
-(`open-sse/mcp-server/httpAuthContext.ts`) ומעביר אותם אל
-`transport.handleRequest(req, { authInfo })` של MCP SDK, כך ש-`extra.authInfo.scopes`
-שמגיע לכל קריאת כלי משקף את תחומי ההרשאה של מפתח ה-Bearer עצמו.
-הפונקציה `resolveCallerScopeContext()` שב-`scopeEnforcement.ts` כבר נתנה עדיפות
-ל-`authInfo` על פני `_meta` ועל פני ברירת המחדל ממשתנה הסביבה
-`OMNIROUTE_MCP_SCOPES` — שינוי זה רק מאכלס את המקור הראשון ובעל העדיפות הגבוהה ביותר,
-שקודם לכן לא קיבל נתונים דרך HTTP. כאשר לא נמצא מפתח API תקף (אין כותרת, או שהמפתח
-אינו תקף), `authInfo` נשאר `undefined`, והרזולוציה ממשיכה לשרשרת `meta`/משתנה הסביבה
-הקיימת ללא שינוי. שינוי זה אינו הופך את ברירת המחדל של
-`OMNIROUTE_MCP_ENFORCE_SCOPES` — עדיין יש להפעיל את האכיפה במפורש; השינוי רק מבטיח
-שהנתיב לכל מפתח יקבל עדיפות לאחר שהאכיפה מופעלת. ל-stdio אין זהות נפרדת לכל לקוח
-(ראו `mcpCallerIdentity.ts`), ולכן הוא אינו מושפע — הוא ממשיך להשתמש בשרשרת ברירות
-המחדל של `_meta`/משתנה הסביבה.
-
----
+מעל HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` מפענח כעת את ה-`api_keys.scopes` האמיתיים של הקורא באמצעות `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) ומעביר אותם ל-`transport.handleRequest(req, { authInfo })` של MCP SDK, כך ש-`extra.authInfo.scopes` המגיעים לכל קריאת כלי משקפים את הסקופים של מפתח ה-Bearer עצמו. הפונקציה `resolveCallerScopeContext()` ב-`scopeEnforcement.ts` כבר נתנה עדיפות ל-`authInfo` על פני ה-`_meta` וה-`OMNIROUTE_MCP_SCOPES` כגיבוי סביבתי — זה רק מאכלס את המקור הראשון, בעל העדיפות הגבוהה ביותר, שלא הוזן בעבר דרך HTTP. כאשר מפתח API אינו מפוענח (אין כותרת, מפתח לא חוקי), `authInfo` נשאר `undefined` והפענוח עובר לשרשרת ה-`meta`/env הקיימת ללא שינוי. זה לא משנה את ברירת המחדל של `OMNIROUTE_MCP_ENFORCE_SCOPES` — האכיפה עדיין צריכה להיות מופעלת במפורש; שינוי זה רק גורם לנתיב לכל מפתח לקבל עדיפות ברגע שהוא מופעל. ל-stdio אין זהות לכל קורא (ראו `mcpCallerIdentity.ts`) והוא אינו מושפע — הוא נשאר על שרשרת הגיבוי של `_meta`/env.
 
 ## משתני סביבה
 

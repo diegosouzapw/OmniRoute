@@ -1311,7 +1311,7 @@ test("DefaultExecutor.refreshCredentials swallows refresh errors and logs them",
 
   try {
     const result = await executor.refreshCredentials(
-      { refreshToken: "refresh-me" },
+      { refreshToken: "refresh-me-unrotated" },
       { error: (tag, message) => messages.push({ tag, message }) }
     );
     assert.equal(result, null);

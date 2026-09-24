@@ -1,51 +1,51 @@
 # Compression Engines (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_ENGINES.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_ENGINES.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_ENGINES.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_ENGINES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_ENGINES.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_ENGINES.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_ENGINES.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_ENGINES.md)
 
 ---
 
 Tá comhbhrú OmniRoute bunaithe ar chonarthaí innill. Is féidir le mód inneall amháin a rith go díreach
 (`caveman` nó `rtk`) nó píblíne chruachta chinntitheach a ritheann innill iolracha in ord.
 
-## Móid
+## Módanna
 
-| Mód          | Conair innill                                     | Ionchur beartaithe                                       |
-| ------------ | ------------------------------------------------- | -------------------------------------------------------- |
-| `off`        | gan inneall                                       | Caomhnú beacht an leid                                   |
-| `lite`       | Cúntóirí lite Caveman                             | Glanadh ísealriosca atá ar siúl i gcónaí                 |
-| `standard`   | Caveman                                           | Comhdhlúthú leidí teanga nádúrtha                        |
-| `aggressive` | Caveman + achoimreoirí staire/uirlisí             | Seisiúin fhada chomhrá                                   |
-| `ultra`      | Caveman + cúntóirí bearrtha                       | Téarnamh ó theorainn chomhthéacs                         |
-| `rtk`        | RTK                                               | Aschur teirminéil, blaoisce, tógála, tástála agus git    |
-| `omniglyph`  | OmniGlyph                                         | Comhthéacs mar íomhá ar shreang dhúchasach an tsoláthraí |
-| `stacked`    | Píblíne, `rtk -> caveman` de réir réamhshocraithe | Logaí measctha uirlisí agus prós, an coigilteas is mó    |
+| Mód          | Conair an innill                                                                             | Ionchur beartaithe                                     |
+| ------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `off`        | ar bith                                                                                      | Caomhnú beacht an phrasa                               |
+| `lite`       | Cúntóirí éadroma Caveman                                                                     | Glanadh i gcónaí le riosca íseal                       |
+| `standard`   | Caveman                                                                                      | Comhdhlúthú pras teanga nádúrtha                       |
+| `aggressive` | Caveman + achoimritheoirí staire/uirlisí                                                     | Seisiúin chomhrá fada                                  |
+| `ultra`      | Caveman + cúntóirí bearrtha                                                                  | Aisghabháil teorainn comhthéacs                        |
+| `rtk`        | RTK                                                                                          | Aschur teirminéil, sliogáin, tógála, tástála, agus git |
+| `omniglyph`  | OmniGlyph                                                                                    | Comhthéacs mar íomhá ar shreang an tsoláthraí dúchais  |
+| `stacked`    | Píblíne. Is é `session-dedup -> lite` an réamhshocrú iarratais. Is rogha é `rtk -> caveman`. | Logaí uirlisí measctha agus prós, an coigilt is mó     |
 
-### Próifílí comhbhrúite OmniGlyph
+### Próifílí comhbhrú OmniGlyph
 
-Glacann an t-inneall `omniglyph` (pacáiste `omniglyph`, 1.4.0+) le próifíl shéimeantach ainmnithe, a shocraítear
-go domhanda trí `omniglyph.profile` sna socruithe comhbhrúite nó do gach céim trí chumraíocht céime na
-píblíne cruachta:
+Glacann an t-inneall `omniglyph` (pacáiste `omniglyph`, 1.4.0+) le próifíl sheiminteach ainmnithe, atá socraithe
+go domhanda trí `omniglyph.profile` sna socruithe comhbhrú nó in aghaidh an chéim tríd an
+cumraíocht chéim den phíblíne chruachta:
 
-| Próifíl       | Teorainn                                                                                                                                     |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Réamhshocrú. An polasaí a tomhaiseadh sna hadmhálacha foilsithe — déanann sé íomhánna den chóras, de dhoiciméid uirlisí agus de stair dhlúth |
-| `balanced`    | Coinníonn sé staid bheo dúchasach, cosnaíonn sé na 8 seal dheireanacha, agus crapann sé seanstair dhúnta                                     |
-| `coding-safe` | Coinníonn sé údarás, scéimeanna uirlisí agus aschur beo uirlisí dúchasach, agus cosnaíonn sé na 12 sheal dheireanacha                        |
-| `passthrough` | Déanann sé ródú gan claochlú; scipeáiltear an t-inneall                                                                                      |
+| Próifíl       | Teorainn                                                                                                             |
+| ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Réamhshocrú. An polasaí a tomhaiseadh na hadmhálacha foilsithe — córas íomhánna, doiciméid uirlisí agus stair dhlúth |
+| `balanced`    | Coinníonn sé staid bheo dúchasach, cosnaíonn sé na 8 seal deireanacha, titeann sé stair níos sine dúnta              |
+| `coding-safe` | Coinníonn sé údarás, scéimeanna uirlisí agus aschur uirlisí beo dúchasach, cosnaíonn sé na 12 seal deireanacha       |
+| `passthrough` | Bealaí gan claochlú; scipeáiltear an t-inneall                                                                       |
 
-Is **uasteorainn, ní íosteorainn** í an phróifíl: diúltaíonn `mergeCompressionProfileOptions` sa phacáiste
-ligean do shárú ón nglaoiteoir lána caillteach a dhún an phróifíl a athoscailt, mar sin ní féidir le
-`preserveSystemPrompt: false` in aghaidh na céime comhbhrú an chórais a athchumasú faoi `coding-safe`.
+Is **uasteorainn, ní urlár**, an phróifíl: diúltaíonn `mergeCompressionProfileOptions` sa phacáiste
+ligean do ghlaoiteoir lána caillteanach a dhún an phróifíl a athoscailt, mar sin ní féidir le
+`preserveSystemPrompt: false` in aghaidh an chéim comhbhrú córais a athchumasú faoi `coding-safe`.
 
-De réir tomhais ar an mbunachar cód seo: ardaíonn `coding-safe` agus `balanced` `minCompressChars` go dtí a
-uasmhéid agus coinníonn siad an córas, scéimeanna uirlisí agus torthaí uirlisí dúchasach, mar sin stopann seisiún
-nach bhfuil stair carntha aige fós ag `below_min_chars` agus ní chlaochlaíonn an t-inneall aon rud. Sin é an fáth
-gurb é `aggressive` an réamhshocrú seachas an phróifíl is sábháilte.
+Tomhaiste ar an gcódchóras seo: ardaíonn `coding-safe` agus `balanced` `minCompressChars` go dtí a
+uasmhéid agus coinníonn siad córas, scéimeanna uirlisí agus torthaí uirlisí dúchasach, mar sin seisiún nach bhfuil
+stair carntha aige fós stopann sé ag `below_min_chars` agus ní chlaochlaíonn an t-inneall aon rud. Sin
+an fáth go bhfuil an réamhshocrú `aggressive` seachas an phróifíl is sábháilte.
 
-Réitíonn an pacáiste a raon samhla agus a phróifíl féin óna chumraíocht timpeallachta.
-Ní tharmligeann OmniRoute an cinneadh choíche: socraíonn an cuibheoir geata na samhla ag an raon is sriantaí
-sa phacáiste, ionas nach féidir le socruithe timpeallachta an óstaigh ach an liosta ceadaithe a chúngú, agus nach
-féidir leo riamh é a leathnú thar admhálacha tomhaiste OmniRoute.
+Réitíonn an pacáiste a scóip mhúnla féin agus a phróifíl óna chumraíocht timpeallachta.
+Ní tharmligeann OmniRoute an cinneadh riamh: cuireann an t-oiriúnóir an geata múnla chuig an scóip is sriantaí den phacáiste,
+mar sin ní féidir le socruithe timpeallachta óstach ach an liosta ceadaithe a chúngú, ní féidir leo é a leathnú
+riamh thar admhálacha tomhaiste OmniRoute.
 
 ## Clárlann na nInneall
 
@@ -400,7 +400,7 @@ atá íogair don taisce, etc.).
 
 ## Bailíochtú
 
-Seo iad na geataí spriocdhírithe don réimse seo:
+Is iad na geataí dírithe don réimse seo:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

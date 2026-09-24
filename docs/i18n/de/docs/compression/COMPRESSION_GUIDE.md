@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Deutsch)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -186,53 +186,44 @@ Mit Stacked:        10K-2.5K Tokens gesendet     (geeignete RTK+Caveman-Spanne v
 
 Navigieren Sie zu `Dashboard → Context & Cache`:
 
-- **Caveman** — Modusauswahl, Sprachpakete, Vorschau und globale Standardeinstellungen
-- **RTK** — Befehlsfiltervorschau, RTK-Sicherheitseinstellungen und Filterkatalog
+- **Caveman** — Modusauswahl, Sprachpakete, Vorschau und globale Standardwerte
+- **RTK** — Vorschau des Befehlsfilters, RTK-Sicherheitseinstellungen und Filterkatalog
 - **Compression Combos** — benannte Engine-Pipelines, die Routing-Kombinationen zugewiesen sind
 - **Auto-Trigger Threshold** — aktiviert automatisch die Komprimierung, wenn die Token-Anzahl den Schwellenwert überschreitet
 
-### Außerkraftsetzung pro Kombination
+### Überschreibung pro Kombination
 
 Weisen Sie unter `Dashboard → Context & Cache → Compression Combos` einer Routing-Kombination eine Komprimierungskombination zu:
 
 ```txt
-Kombination: "free-tier-fallback"
-  Komprimierungskombination: "coding-agent-stack"
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
   Pipeline: RTK -> Caveman
-  Ziele:
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Dadurch können Sie gestapelte Komprimierung für kostenlose/Coding-Anbieter verwenden, während für kostenpflichtige
-Abonnements der Lite-Modus beibehalten wird.
+Dadurch können Sie bei kostenlosen/Coding-Anbietern gestapelte Komprimierung verwenden, während für kostenpflichtige Abonnements der Lite-Modus beibehalten wird.
 
-Diese Zuweisung zur „Außerkraftsetzung pro Kombination“ ist eine andere Steuerung als die Außerkraftsetzung des
-**Komprimierungsmodus der Routing-Kombination** (Default/Off/Lite/Standard/Aggressive/Ultra) — diese Außerkraftsetzung wählt keine benannte
-Pipeline einer Komprimierungskombination aus, sondern legt lediglich das von
-`resolveCompressionPlan` berücksichtigte Feld `compressionMode` fest. Sie kann entweder auf der Kombinationskarte (`Dashboard → Combos`) oder, seit
-#6760, pro Routing-Kombination in der Liste „Assign to routing“ unter
-`Dashboard → Context & Cache → Compression Combos` festgelegt werden, direkt neben dem oben dokumentierten Kontrollkästchen für die Pipeline-Zuweisung.
-Beide Oberflächen speichern die Einstellung über denselben Endpunkt `PUT /api/combos/{id}`.
+Diese Zuweisung zur „Überschreibung pro Kombination“ ist ein anderes Steuerelement als die Überschreibung des **Komprimierungsmodus der Routing-Kombination** (Default/Off/Lite/Standard/Aggressive/Ultra) — diese Überschreibung wählt keine benannte Pipeline einer Komprimierungskombination aus; sie legt lediglich das Feld `compressionMode` fest, das von `resolveCompressionPlan` ausgewertet wird. Sie kann entweder auf der Kombinationskarte (`Dashboard → Combos`) oder seit #6760 für jede Routing-Kombination in der Liste „Assign to routing“ unter `Dashboard → Context & Cache → Compression Combos` direkt neben dem oben dokumentierten Kontrollkästchen für die Pipeline-Zuweisung festgelegt werden. Beide Oberflächen speichern die Einstellung über denselben Endpunkt `PUT /api/combos/{id}`.
 
-### Außerkraftsetzung pro Anfrage
+### Überschreibung pro Anfrage
 
-Senden Sie den Anfrage-Header `x-omniroute-compression`, um den Komprimierungsplan für eine einzelne
-Anfrage außer Kraft zu setzen. Er hat die höchste Priorität — er überschreibt die Außerkraftsetzung der Routing-Kombination, das aktive Profil,
-die automatische Auslösung und die Standardeinstellung des Panels. Unbekannte Werte werden ignoriert (die Anfrage wird nie abgelehnt), und
-der globale Hauptschalter gilt weiterhin für alles: Wenn die Komprimierung global deaktiviert ist, kann sie durch den Header nicht
-aktiviert werden. Werte:
+Senden Sie den Anfrage-Header `x-omniroute-compression`, um den Komprimierungsplan für eine einzelne Anfrage zu überschreiben. Er hat die höchste Priorität — er setzt die Überschreibung der Routing-Kombination, das aktive Profil, den automatischen Auslöser und den Standardwert des Panels außer Kraft. Unbekannte Werte werden ignoriert (die Anfrage wird niemals abgelehnt), und der globale Hauptschalter bleibt weiterhin maßgeblich: Wenn die Komprimierung global deaktiviert ist, kann sie durch den Header nicht aktiviert werden. Werte:
 
-| Wert          | Auswirkung                                                                                                                                          |
+| Wert          | Wirkung                                                                                                                                             |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `off`         | Keine Komprimierung für diese Anfrage.                                                                                                              |
-| `default`     | Das vom Panel abgeleitete Standardprofil (ignoriert das aktive Profil).                                                                             |
-| `engine:<id>` | Eine einzelne Engine, sofern aktiviert, z. B. `engine:rtk`.                                                                                         |
+| `default`     | Das vom Panel abgeleitete Standardprofil (ignoriert das aktive Profil). Verlustbehaftete Engines bleiben deaktiviert.                               |
+| `safe`        | Entspricht dem Weglassen des Headers: nur Deduplizierung und Zusammenfassung von Leerraum.                                                          |
+| `allow-lossy` | Behält den Operatorplan dieser Anfrage einschließlich Zusammenfassungen, Relevanzfiltern und Stilumschreibungen bei.                                |
+| `engine:<id>` | Eine einzelne Engine, sofern aktiviert, z. B. `engine:rtk`. Dies ist die anfragebezogene Aktivierung für diese Engine.                              |
 | `<combo>`     | Eine benannte Kombination, die zuerst anhand des Namens (ohne Beachtung der Groß-/Kleinschreibung) und anschließend anhand der ID abgeglichen wird. |
 
-Der angewendete Plan wird im Antwort-Header `X-OmniRoute-Compression: <mode>; source=<source>`
-zurückgegeben, wobei `<source>` einer der Werte `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default` oder `off` ist.
+Ohne `allow-lossy`, `engine:<id>` oder eine benannte Kombination werden verlustbehaftete Engines nicht angewendet. Wenn die Komprimierung aktiviert ist, erhält die Anfrage weiterhin Sitzungs-Deduplizierung und die Zusammenfassung von Leerraum.
+
+Der angewendete Plan wird im Antwort-Header `X-OmniRoute-Compression: <mode>; source=<source>` zurückgegeben, wobei `<source>` einen der Werte `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` oder `off` hat.
 
 ### API
 
@@ -300,13 +291,13 @@ Jede komprimierte Anfrage enthält Statistiken in den Serverprotokollen:
 
 ## Phasen-Roadmap
 
-| Phase    | Modi                                                                                                                                                           | Status            |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Phase 1  | Off, Lite                                                                                                                                                      | ✅ Veröffentlicht |
-| Phase 2  | Standard, Aggressive, Ultra                                                                                                                                    | ✅ Veröffentlicht |
-| Phase 3  | RTK, Stacked, Komprimierungskombinationen                                                                                                                      | ✅ Veröffentlicht |
-| Phase 4  | Ausgabestile, SLM-Tier Ultra, Evaluierungsumgebung                                                                                                             | ✅ Veröffentlicht |
-| Phase 4C | Adaptives Kontextbudget („Regler“) — Berechnungs-Engine + API (`contextBudget` bei `PUT /api/settings/compression`) + Modus-/Richtliniensteuerung im Dashboard | ✅ Veröffentlicht |
+| Phase    | Modi                                                                                                                                                      | Status          |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| Phase 1  | Aus, Leicht                                                                                                                                               | ✅ Ausgeliefert |
+| Phase 2  | Standard, Aggressiv, Ultra                                                                                                                                | ✅ Ausgeliefert |
+| Phase 3  | RTK, Gestapelt, Komprimierungskombinationen                                                                                                               | ✅ Ausgeliefert |
+| Phase 4  | Ausgabestile, Ultra auf SLM-Niveau, Evaluierungs-Harness                                                                                                  | ✅ Ausgeliefert |
+| Phase 4C | Adaptives Kontextbudget („Regler“) — Rechen-Engine + API (`contextBudget` bei `PUT /api/settings/compression`) + Modus-/Richtliniensteuerung im Dashboard | ✅ Ausgeliefert |
 
 ---
 
@@ -320,24 +311,24 @@ Der RTK-Modus ist von **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)
 
 ## Erweiterte Komprimierungssysteme
 
-Über die 7 Standardmodi hinaus umfasst OmniRoute mehrere erweiterte Komprimierungssysteme,
-die abhängig vom Kontext automatisch arbeiten.
+Zusätzlich zu den 7 Standardmodi umfasst OmniRoute mehrere erweiterte
+Komprimierungssysteme, die abhängig vom Kontext automatisch arbeiten.
 
 ### Cache-bewusste Komprimierung
 
 Einige Anbieter (wie Anthropic mit Prompt-Caching) unterstützen **Prompt-Caching**,
 wodurch sie Teile des Prompts zwischenspeichern können, um Kosten und Latenz zu reduzieren. Wenn
-Caching aktiviert ist, kann aggressive Komprimierung die Leistung tatsächlich **beeinträchtigen**,
+Caching aktiviert ist, kann aggressive Komprimierung die Leistung sogar **beeinträchtigen**,
 da sie die zwischengespeicherten Tokens verändert und dadurch den Cache ungültig macht.
 
-Das Modul `cachingAware.ts` löst dieses Problem, indem es **Caching-Kontext erkennt** und
-**die Komprimierungsstrategie entsprechend anpasst**.
+Das Modul `cachingAware.ts` löst dieses Problem, indem es den **Caching-Kontext erkennt** und
+die **Komprimierungsstrategie entsprechend anpasst**.
 
 #### Funktionsweise
 
-1. **Caching-Kontext erkennen** — Durchsucht den Anfragekörper nach `cache_control`-Markierungen
+1. **Caching-Kontext erkennen** — Durchsucht den Request-Body nach `cache_control`-Markierungen
 2. **Caching-Anbieter identifizieren** — Prüft, ob der Zielanbieter Caching unterstützt
-3. **Strategie anpassen** — Stuft `aggressive`/`ultra` für Caching-Anbieter auf `standard` herab
+3. **Strategie anpassen** — Stuft `aggressive`/`ultra` bei Caching-Anbietern auf `standard` herab
 4. **System-Prompt überspringen** — System-Prompts werden üblicherweise zwischengespeichert und daher nicht komprimiert
 5. **Deterministische Transformationen verwenden** — Verwendet nur Transformationen, die eine konsistente Ausgabe erzeugen
 
@@ -367,18 +358,18 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 Die Cache-bewusste Komprimierung ist **immer aktiviert** — es ist keine Konfiguration erforderlich. Sie wird nur aktiv,
 wenn:
 
-- Die Anfrage `cache_control`-Markierungen enthält
+- Der Request `cache_control`-Markierungen enthält
 - Der Zielanbieter Prompt-Caching unterstützt (Anthropic, OpenAI usw.)
 
 ### Progressive Alterung
 
-Lange Unterhaltungen umfassen mit der Zeit viele Nachrichtenrunden, ältere Runden werden jedoch
-weniger relevant. Das Modul `progressiveAging.ts` **reduziert den Detailgrad von Nachrichten abhängig von ihrem Rundenabstand**:
+Lange Unterhaltungen sammeln viele Nachrichtenwechsel an, ältere Wechsel werden jedoch zunehmend
+weniger relevant. Das Modul `progressiveAging.ts` **reduziert Nachrichten abhängig von ihrem Abstand zum aktuellen Wechsel**:
 
-- **Aktuelle Runden (0-3)**: Werden unverändert beibehalten (alle Details)
-- **Mittlere Runden (4-8)**: Lite-Komprimierung (Bereinigung von Leerraum und Formatierung)
-- **Alte Runden (9+)**: Caveman-Komprimierung (Entfernung von Fülltext, Zusammenfassung)
-- **Sehr alte Runden (20+)**: Werden stark zusammengefasst oder verworfen
+- **Aktuelle Wechsel (0–3)**: Werden unverändert beibehalten (vollständige Details)
+- **Mittlere Wechsel (4–8)**: Leichte Komprimierung (Bereinigung von Leerzeichen und Formatierung)
+- **Alte Wechsel (9+)**: Caveman-Komprimierung (Entfernung von Füllwörtern, Zusammenfassung)
+- **Sehr alte Wechsel (20+)**: Werden stark zusammengefasst oder verworfen
 
 #### Codebeispiel
 
@@ -389,14 +380,14 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 weitere Runden ...
+  // ... 50 weitere Wechsel ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Erste 3 Runden: unverändert
-  light: 8, // Runden 4–8: Lite-Komprimierung
-  moderate: 20, // Runden 9–20: Caveman-Komprimierung
-  // Runden ab 21: starke Zusammenfassung
+  verbatim: 3, // Erste 3 Wechsel: unverändert
+  light: 8, // Wechsel 4–8: leichte Komprimierung
+  moderate: 20, // Wechsel 9–20: Caveman-Komprimierung
+  // Wechsel ab 21: starke Zusammenfassung
 });
 
 // saved = Anzahl der eingesparten Tokens
@@ -404,31 +395,33 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### Verwendung
 
-Progressive Alterung ist für die Modi `aggressive` und `ultra` **immer aktiviert**. Sie ist besonders effektiv für:
+Die progressive Alterung ist in den Modi `aggressive` und `ultra` **immer aktiviert**. Sie ist
+besonders effektiv für:
 
-- Lang laufende Programmiersitzungen
+- Lang andauernde Coding-Sitzungen
 - Mehrtägige Unterhaltungen
 - Agentische Workflows mit vielen Tool-Aufrufen
 
-### Höhlenmensch-Ausgabemodus
+### Caveman-Ausgabemodus
 
-Das Modul `outputMode.ts` fügt **Anweisungen in den System-Prompt** ein, damit das Modell selbst komprimierte, knappe Ausgaben erzeugt (ein „Höhlenmensch“-Stil).
+Das Modul `outputMode.ts` fügt **System-Prompt-Anweisungen** ein, damit das
+Modell selbst eine komprimierte, knappe Ausgabe (im „Caveman“-Stil) erzeugt.
 
 #### Funktionsweise
 
 Anstatt die Eingabe zu komprimieren, fügt dieser Modus einen System-Prompt wie den folgenden hinzu:
 
-> „Antworte mit möglichst wenigen Wörtern. Verzichte auf Höflichkeitsfloskeln. Verwende kurze Sätze.“
+> „Antworte mit möglichst wenigen Worten. Verzichte auf Höflichkeitsfloskeln. Verwende kurze Sätze.“
 
 Dies funktioniert besonders gut für:
 
-- Codegenerierung (knappere Ausgabe = weniger Token)
+- Codegenerierung (knappere Ausgabe = weniger Tokens)
 - Kurze Fragen und Antworten (keine ausführlichen Erklärungen erforderlich)
 - Stapelverarbeitung (maximaler Durchsatz)
 
 #### Verwendung
 
-Der Höhlenmensch-Ausgabemodus ist **optional** — aktiviere ihn über die Kombinationskonfiguration:
+Der Caveman-Ausgabemodus ist **optional** — aktiviere ihn über die Combo-Konfiguration:
 
 ```json
 {
@@ -443,25 +436,39 @@ Der Höhlenmensch-Ausgabemodus ist **optional** — aktiviere ihn über die Komb
 
 ### Ausgabestile (Katalog)
 
-Der oben beschriebene Höhlenmensch-Ausgabemodus ist der **veraltete Einzelstil-Pfad**. Phase 4 hat ihn zu einem Katalog kombinierbarer Ausgabestile verallgemeinert: `OUTPUT_STYLE_CATALOG` in `open-sse/services/compression/outputStyles/catalog.ts`. Jeder Stil ist eine System-Prompt-Anweisung, die das Modell selbst kostengünstigere Ausgaben erzeugen lässt. Stile können gemeinsam aktiviert werden und werden in der Reihenfolge des Katalogs eingefügt.
+Der oben beschriebene Caveman-Ausgabemodus ist der **veraltete Pfad mit nur einem Stil**. Phase 4 hat ihn
+zu einem Katalog kombinierbarer Ausgabestile erweitert: `OUTPUT_STYLE_CATALOG` in
+`open-sse/services/compression/outputStyles/catalog.ts`. Jeder Stil ist eine System-Prompt-
+Anweisung, die das Modell selbst dazu bringt, kostengünstigere Ausgaben zu erzeugen; Stile können gemeinsam aktiviert
+werden und werden in der Reihenfolge des Katalogs eingefügt.
 
-| Stil                                     | `id`          | Funktionsweise                                                                                                                                                                                                                                            | Anweisungssprachen                                                                   |
-| ---------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Knappe Prosa                             | `terse-prose` | Entfernt Füllwörter, Artikel und Relativierungen; behält den technischen Inhalt exakt bei. Derselbe Text wie beim veralteten Höhlenmensch-Ausgabemodus (referenziert, nicht erneut ausgeschrieben).                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Weniger Code                             | `less-code`   | YAGNI-Leiter: kleinste funktionierende Änderung, keine unaufgeforderten Abstraktionen.                                                                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Pferdeschwanz (fauler Senior-Entwickler) | `ponytail`    | „Der beste Code ist der Code, der nie geschrieben wurde“: Wiederverwenden > neu schreiben, Ursache > Symptom, kürzester funktionierender Diff.                                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Ich habe ADHS (handlungsorientiert)      | `i-have-adhd` | Handlung zuerst (Befehl/Pfad/Ausschnitt vor Prosa), nummerierte und begrenzte Schritte, EIN konkreter nächster Schritt, keine Einleitung/Zusammenfassung/Schlussformeln. Adaptiert von [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Knappes CJK (文言)                       | `terse-cjk`   | Ultraknapper Stil in klassischem Chinesisch.                                                                                                                                                                                                              | zh (gebietsschemaabhängig: wird nur angeboten, wenn die ermittelte Sprache `zh` ist) |
+| Stil                                     | `id`          | Funktion                                                                                                                                                                                                                                         | Anweisungssprachen                                                                   |
+| ---------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Knapp formuliert                         | `terse-prose` | Füllwörter/Artikel/Relativierungen weglassen; technische Substanz exakt beibehalten. Derselbe Text wie im alten Caveman-Ausgabemodus (referenziert, nicht erneut eingegeben).                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
+| Weniger Code                             | `less-code`   | YAGNI-Leiter: kleinste funktionierende Änderung, keine nicht angeforderten Abstraktionen.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
+| Pferdeschwanz (fauler Senior-Entwickler) | `ponytail`    | „Der beste Code ist der Code, der nie geschrieben wurde“: Wiederverwenden > Neuschreiben, Ursache > Symptom, kürzester funktionierender Diff.                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
+| Ich habe ADHS (Aktion zuerst)            | `i-have-adhd` | Aktion zuerst (Befehl/Pfad/Snippet vor Prosa), nummerierte begrenzte Schritte, EIN konkreter nächster Schritt, keine Einleitung/Zusammenfassung/Schlussformeln. Adaptiert von [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
+| Knappes CJK (文言)                       | `terse-cjk`   | Ultraknapper klassisch-chinesischer Stil.                                                                                                                                                                                                        | zh (gebietsschemagebunden: wird nur angeboten, wenn die ermittelte Sprache `zh` ist) |
 
-Jeder Stil bietet drei Intensitätsstufen — `lite`, `full`, `ultra` — und jede Stufe endet mit der gemeinsamen Einschränkungsklausel, die Codeblöcke, Dateipfade, Befehle, Fehlermeldungen, URLs und Bezeichner unverändert beibehält.
+Jeder Stil wird mit drei Intensitätsstufen ausgeliefert — `lite`, `full`, `ultra` — und jede Stufe
+endet mit der gemeinsamen Begrenzungsklausel, die Codeblöcke, Dateipfade, Befehle,
+Fehlermeldungen, URLs und Bezeichner unverändert beibehält.
 
-#### Funktionsweise der Einfügung
+#### Funktionsweise der Injektion
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) gleicht die Auswahl mit dem Katalog ab (unbekannte IDs und nicht zum Gebietsschema passende Stile werden verworfen, ohne einen Fehler auszulösen), verkettet die ausgewählten Anweisungen in der Reihenfolge des Katalogs, hängt die Einschränkungsklausel **einmal** an und stellt das Ergebnis im System-Prompt hinter einer einzelnen Idempotenzmarkierung (`[OmniRoute Output Styles]`) voran — eine erneute Anwendung hat keine Wirkung. Wenn für die erkannte Sprache der Anfrage eine Übersetzung vorhanden ist, wird anstelle der englischen Anweisung die lokalisierte Anweisung eingefügt.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) gleicht
+die Auswahl mit dem Katalog ab (unbekannte IDs und nicht zum Gebietsschema passende Stile werden
+verworfen und verursachen nie einen Fehler), verkettet die ausgewählten Anweisungen in Katalogreihenfolge,
+hängt die Begrenzungsklausel **einmal** an und stellt das Ergebnis im System-Prompt
+hinter einer einzelnen Idempotenzmarkierung (`[OmniRoute Output Styles]`) voran — eine erneute Anwendung
+bewirkt nichts. Wenn für die erkannte Anfragesprache eine Übersetzung vorhanden ist, wird anstelle
+der englischen Anweisung die lokalisierte Anweisung injiziert.
 
 #### Aktivierung
 
-Im Dashboard: **Kontext → Einstellungen → Komprimierung** — eine Zeile pro Stil mit einem Ein-/Aus-Schalter und einer Stufenauswahl. Bei der programmatischen Verwendung speichert die Komprimierungskonfiguration die Auswahl wie folgt:
+Im Dashboard: **Kontext → Einstellungen → Komprimierung** — eine Zeile pro Stil mit einem
+Ein-/Aus-Schalter und einer Stufenauswahl. Programmgesteuert speichert die Komprimierungskonfiguration
+die Auswahl wie folgt:
 
 ```json
 {
@@ -472,48 +479,59 @@ Im Dashboard: **Kontext → Einstellungen → Komprimierung** — eine Zeile pro
 }
 ```
 
-Abwärtskompatibilität: Die veraltete Kombinationseinstellung `outputMode: "caveman"` funktioniert weiterhin und wird auf `terse-prose` abgebildet; die Einfügung ist in jeder bisherigen Sprache Byte für Byte mit der alten Einfügung identisch.
+Abwärtskompatibilität: Die alte Kombinationseinstellung `outputMode: "caveman"` funktioniert weiterhin und wird
+`terse-prose` zugeordnet; in jeder Legacy-Sprache ist die Injektion bytegenau mit der alten identisch.
 
-Sprachauswahl: Wenn `languageConfig.enabled` aktiviert ist, wählt `autoDetect` die Sprache der neuesten Benutzernachricht aus (derselbe Detektor wie bei den Eingabe-Engines). Wird `autoDetect` deaktiviert, bleibt `defaultLanguage` fest eingestellt. Deaktiviert → Englisch.
+Sprachauswahl: Wenn `languageConfig.enabled` aktiviert ist, wählt `autoDetect` die
+Sprache der neuesten Benutzernachricht aus (derselbe Detektor wie bei den Eingabe-Engines);
+durch Deaktivieren von `autoDetect` wird `defaultLanguage` festgelegt. Aus → Englisch.
 
-Die Stil-×-Sprachen-Matrix wird durch `tests/unit/compression/output-styles-i18n-matrix.test.ts` festgeschrieben: Ein neuer Stil kann nicht ohne mindestens eine pt-BR-Übersetzung (oder eine ausdrücklich dokumentierte Ausnahme) veröffentlicht werden, und ein vorhandener Stil kann nicht unbemerkt ein Gebietsschema verlieren. Informationen zum Hinzufügen eines Stils findest du unter [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Die Stil-×-Sprachen-Matrix wird durch
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` festgeschrieben: Ein neuer Stil kann nicht
+ohne mindestens eine pt-BR-Übersetzung (oder eine ausdrücklich nachverfolgte Ausnahme) ausgeliefert werden, und ein
+vorhandener Stil kann nicht unbemerkt ein Gebietsschema verlieren. Informationen zum Hinzufügen eines Stils finden Sie unter
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Komprimierung von Tool-Ergebnissen
 
-Das Modul `toolResultCompressor.ts` bietet **5 spezialisierte Komprimierungsstrategien** für Tool-Ergebnisse (Funktionsaufrufe, Agentenausgaben, Suchergebnisse usw.):
+Das Modul `toolResultCompressor.ts` bietet **5 spezialisierte Komprimierungsstrategien**
+für Tool-Ergebnisse (Funktionsaufrufe, Agentenausgaben, Suchergebnisse usw.):
 
-1. **Komprimierung von Suchergebnissen** — Entfernt redundante Ergebnisse und behält die besten N bei
-2. **Komprimierung gelesener Dateien** — Kürzt große Dateien und erhält Header/Importe
-3. **Komprimierung von Codeausführungen** — Behält nur wesentliche stdout-/stderr-Ausgaben bei
-4. **Komprimierung von Datenbankabfragen** — Begrenzt Zeilen und entfernt ausführliche Metadaten
-5. **Komprimierung von API-Antworten** — Entfernt Null-Felder und verdichtet Arrays
+1. **Komprimierung von Suchergebnissen** — Entfernt redundante Ergebnisse, behält die besten N
+2. **Komprimierung gelesener Dateien** — Kürzt große Dateien, behält Header/Importe bei
+3. **Komprimierung der Codeausführung** — Behält nur wesentliche stdout/stderr-Ausgaben bei
+4. **Komprimierung von Datenbankabfragen** — Begrenzt Zeilen, entfernt ausführliche Metadaten
+5. **Komprimierung von API-Antworten** — Entfernt Null-Felder, verdichtet Arrays
 
-#### Verwendung
+#### Verwendungszeitpunkt
 
-Die Komprimierung von Tool-Ergebnissen ist **immer aktiviert**, wenn Tool-Aufrufe vorhanden sind. Keine Konfiguration erforderlich.
+Die Komprimierung von Tool-Ergebnissen ist **immer aktiviert**, wenn Tool-Aufrufe vorhanden sind. Es ist keine
+Konfiguration erforderlich.
 
 ### Gestapelte Pipeline
 
-Der gestapelte Modus führt **mehrere Engines nacheinander** aus — üblicherweise zuerst RTK (60–90 % Einsparung bei Tool-Ausgaben), danach Caveman (weitere 30 % Einsparung beim verbleibenden Text). Dadurch werden **insgesamt 78–95 % Einsparung** erreicht.
+Der gestapelte Modus führt **mehrere Engines nacheinander** aus — üblicherweise zuerst RTK
+(60–90 % Einsparung bei Tool-Ausgaben), danach Caveman (weitere 30 % Einsparung beim
+verbleibenden Text). Dadurch werden **insgesamt 78–95 % Einsparung** erreicht.
 
 #### Funktionsweise
 
 ```
 Eingabe (1000 Token)
-  → RTK (befehlsorientierter Filter) → 200 Token
-    → Caveman (Entfernung von Fülltext) → 140 Token
+  → RTK (befehlsbewusster Filter) → 200 Token
+    → Caveman (Entfernung von Füllwörtern) → 140 Token
   → Ausgabe (140 Token, 86 % Einsparung)
 ```
 
-#### Verwendung
+#### Verwendungszeitpunkt
 
-Verwende den gestapelten Modus für:
+Verwenden Sie den gestapelten Modus für:
 
-- Workflows mit intensiver Tool-Nutzung (agentisches Programmieren, Recherche)
+- Tool-intensive Workflows (agentenbasierte Programmierung, Recherche)
 - Kostensensible Stapelverarbeitung
-- Situationen, in denen du maximale Token-Einsparungen benötigst
+- Wenn Sie maximale Token-Einsparungen benötigen
 
-Konfiguration über die Kombinationskonfiguration:
+Konfiguration über eine Kombination:
 
 ```json
 {

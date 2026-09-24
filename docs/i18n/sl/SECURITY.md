@@ -1,6 +1,6 @@
 # Security Policy (Slovenščina)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -222,33 +222,35 @@ Ta pravila uveljavljajo orodja in pregledovalci:
 
 ## Ugotovitve pregledovalnika dobavne verige (Socket.dev / Snyk / podobni)
 
-Objavljeni npm-artefakt `omniroute` vključuje gradnjo Next.js z nastavitvijo `output: "standalone"`,
-kar pomeni, da je vsak obdelovalnik poti — vključno z dokumentiranimi privilegiranimi
-funkcionalnostmi (MITM, uvoz Zed, Cloud Sync, vdelani nadzornik storitev) — na koncu
-vključen v minimizirane segmente `.next/server/*.js`. Hevristični pregledovalniki dobavne verige
-te segmente pogosto primerjajo z vzorci podpisov zlonamerne programske opreme.
+> **Opomba o obsegu:** `socket.yml` v korenu repozitorija določa samo `projectIgnorePaths` za pregled objavljenega artefakta npm, ki ga Socket.dev izvede na strani registra po objavi — ne predstavlja obvezne kontrolne točke za združevanje CI/PR. Noben delovni tok v `.github/workflows`, noben skript v `package.json` in noben cilj v `Makefile` ne prikliče Socket.dev.
+
+Objavljeni artefakt npm `omniroute` vključuje gradnjo Next.js z nastavitvijo `output: "standalone"`,
+kar pomeni, da vsak obravnavalnik poti — vključno z dokumentiranimi privilegiranimi
+funkcionalnostmi (MITM, uvoz Zed, Cloud Sync, vgrajeni nadzornik storitev) — konča
+v pomanjšanih delih `.next/server/*.js`. Hevristični pregledovalniki dobavne verige
+te dele pogosto primerjajo z vzorci podpisov zlonamerne programske opreme.
 
 Konfiguracija pregledovalnika, ki jo uporabljamo, je v datoteki [`socket.yml`](socket.yml) v
 korenu repozitorija (oblika v2 za aplikacijo Socket.dev GitHub App — glejte
 <https://docs.socket.dev/docs/socket-yml>). Izrecno izključuje
 imenike, ki niso vključeni v distribucijo (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` itd.), tako da pregledovalnik poroča samo o poteh kode, ki
-dejansko dosežejo uporabnike objavljenega paketa — samo pregledovanje izvaja aplikacija Socket
-GitHub App, ki prebere to datoteko, in ne delovni tok v tem repozitoriju.
+`_mono_repo/`, `docs/` itd.), zato pregledovalnik poroča samo o poteh kode, ki
+dejansko dosežejo uporabnike objavljenega paketa — sam pregled sproži aplikacija
+Socket GitHub App, ki prebere to datoteko, in ne delovni tok v tem repozitoriju.
 
 Za vsako kategorijo ugotovitev vzdržujemo potrdilo vzdrževalca za posamezno ugotovitev:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  zemljevid posameznih ugotovitev: izvorna datoteka ↔ označeni segment ↔ vedenje ↔ ublažitveni ukrep,
-  uporabljen v različici v3.8.6.
+  preslikava po ugotovitvah: izvorna datoteka ↔ označeni del ↔ vedenje ↔ omilitev,
+  uporabljena v v3.8.6.
 - Bloki `SECURITY-AUDITOR-NOTE:` v izvorni kodi pri vsaki označeni funkciji
   kažejo nazaj na isti dokument.
 
-Uporabniki, katerih cevovod ne omogoča omilitve opozorila, naj gradnjo izvedejo z
+Uporabniki, katerih cevovod ne omogoča omilitve opozorila, naj izvedejo gradnjo z
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. To štiri
-občutljive module nadomesti z nadomestnimi implementacijami, ki med izvajanjem vrnejo HTTP 503 `feature-disabled`,
-zato privilegirane poti kode fizično niso prisotne v paketu.
-Za navodila za objavo glejte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+občutljive module nadomesti z nadomestnimi izvedbami, ki med izvajanjem vrnejo HTTP 503
+`feature-disabled`, zato privilegirane poti kode fizično niso prisotne v paketu.
+Za postopek objave glejte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Viri
 

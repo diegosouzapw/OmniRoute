@@ -118,3 +118,32 @@ test("#12659: diagnostics body groups persisted-cooldown skips WITHOUT leaking a
   assert.ok(!/\bat\s+\/[\w./-]+:\d+:\d+/.test(serialized), "no stack-trace frame in the body");
   assert.ok(!serialized.includes("0217fa47"), "no connection/account id leaked into the body");
 });
+
+test("#14068: a live-catalog miss is grouped apart from generic availability", async () => {
+  const { modelAvailabilitySkipReason } = await import("../../../open-sse/services/combo/types.ts");
+  assert.equal(modelAvailabilitySkipReason(true), null);
+  assert.equal(modelAvailabilitySkipReason(false), "availability");
+  assert.equal(modelAvailabilitySkipReason("model_not_in_catalog"), "model_not_in_catalog");
+  assert.ok((COMBO_SKIP_REASONS as readonly string[]).includes("model_not_in_catalog"));
+
+  startComboTrace("combo-skip-catalog", { strategy: "priority", comboName: "my-combo" });
+  recordComboDecision("combo-skip-catalog", {
+    step: "step-1",
+    target: "openai/not-a-real-model",
+    decision: "skipped_before_dispatch",
+    reason: "model_not_in_catalog",
+  });
+  recordComboDecision("combo-skip-catalog", {
+    step: "step-2",
+    target: "anthropic/claude-y",
+    decision: "skipped_before_dispatch",
+    reason: "availability",
+  });
+  const groups = summarizeSkippedTargets(getComboTrace("combo-skip-catalog"));
+  assert.deepEqual(groups.find((g) => g.reason === "model_not_in_catalog")?.targets, [
+    "openai/not-a-real-model",
+  ]);
+  assert.deepEqual(groups.find((g) => g.reason === "availability")?.targets, [
+    "anthropic/claude-y",
+  ]);
+});

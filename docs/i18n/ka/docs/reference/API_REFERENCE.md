@@ -1,10 +1,10 @@
 # API Reference (ქართული)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 OmniRoute API-ის ძირითადი ცნობარი. იგი მოიცავს საჯარო `/v1` ინტერფეისსა და მართვის ყველაზე ხშირად გამოყენებულ საბოლოო წერტილებს; ამომწურავი წყაროებია მანქანურად წაკითხვადი [`docs/openapi.yaml`](../openapi.yaml) და მარშრუტების ხე `src/app/api/`-ის ქვეშ.
 
@@ -88,9 +88,9 @@ Content-Type: application/json
 
 ## ექსკლუზიური მართული სესიის იჯარები
 
-ექსკლუზიური მართული სესიის იჯარით გაცემა არის არჩევითი, კლიენტისგან დამოუკიდებელი მარშრუტიზაციის კონტრაქტი: ერთი აქტიური მფლობელი ფლობს ერთ შესაბამის OmniRoute კავშირს. ის არ გასცემს მოდელს იჯარით, არ მოითხოვს OAuth-ს, არ ახდენს კონკრეტული კლიენტის იდენტიფიცირებას და არ მოითხოვს კონკრეტულ პროვაიდერს.
+ექსკლუზიური მართული სესიის იჯარა არის არჩევითი, კლიენტ-ნეიტრალური მარშრუტიზაციის კონტრაქტი: ერთი აქტიური მფლობელი ფლობს ერთ შესაბამის OmniRoute კავშირს. ის არ იჯარებს მოდელს, არ მოითხოვს OAuth-ს, არ განსაზღვრავს კონკრეტულ კლიენტს და არ მოითხოვს კონკრეტულ პროვაიდერს.
 
-ავთენტიფიკაციისთვის გამოყენებულ API გასაღებს უნდა ჰქონდეს `lease:exclusive` არე და ცალსახად მითითებული, არაცარიელი `allowedConnections` სია. მონაცემთა ბაზის მუტაციის საზღვარი გასაღების შექმნისა და ნაწილობრივი განახლებებისას ორივე ველს ერთობლივად ამოწმებს.
+ავთენტიფიკაციის API გასაღებს უნდა ჰქონდეს `lease:exclusive` სკოპი და აშკარა არაცარიელი `allowedConnections` სია. მონაცემთა ბაზის მუტაციის საზღვარი აიძულებს ორივე ველს გასაღების შექმნისა და ნაწილობრივი განახლებების დროს.
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-წარმატებული მოპოვების, განახლებისა და გათავისუფლების პასუხები შეიცავს დროის ნიშნულებს, `state`-სა და ზუსტ დადებით `generation`-ს, თუმცა არასოდეს შეიცავს არჩეულ კავშირს ან ავტორიზაციის მონაცემებს. განახლებისა და გათავისუფლებისას generation JSON-ის სხეულში გადაიცემა:
+წარმატებული მოპოვების, განახლებისა და გამოშვების პასუხები აჩვენებს დროის ნიშნულებს, `state`-ს და ზუსტ დადებით `generation`-ს, მაგრამ არასოდეს არჩეულ კავშირს ან სერთიფიკატებს. განახლება და გამოშვება JSON სხეულში აწვდის generation-ს:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-აქტიური იჯარის მფლობელს შეუძლია თავისი მიმდინარე მიბმისთვის პირდაპირ მოითხოვოს კონფიდენციალურობის მხრივ უსაფრთხო საჩვენებელი მეტამონაცემები:
+აქტიურ იჯარის მფლობელს შეუძლია აშკარად მოითხოვოს კონფიდენციალურობის უსაფრთხო ჩვენების მეტამონაცემები მისი მიმდინარე ბაინდინგისთვის:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-ეს არჩევითი სტატუსის მოქმედება ერთ მონაცემთა ბაზის ტრანზაქციაში შემოსაზღვრულია გაუმჭვირვალე მფლობელით, ავთენტიფიცირებული მართული API გასაღებითა და ზუსტი აქტიური generation-ით. `displayName` არის მხოლოდ კონფიგურირებული კავშირის ჩამოჭრილი სახელი; თუ უსაფრთხო კონფიგურირებული სახელი არ არსებობს, მისი მნიშვნელობაა `null`. OmniRoute მას არასოდეს ანაცვლებს ელფოსტის მისამართით ან გენერირებული ანგარიშის იდენტობით. პროვაიდერის მნიშვნელობა არის არასენსიტიური საჩვენებელი ჭდე და არასოდეს წარმოადგენს გენერირებული თავსებადი პროვაიდერის იდენტიფიკატორს. ავტორიზაციის მონაცემები, ტოკენები, cookie-ები, კავშირის ან API გასაღების დაუმუშავებელი id-ები, მფლობელის ჰეშები, შემოსაზღვრის საიდუმლოებები და მარშრუტიზაციის შიდა მონაცემები გამორიცხულია.
+ეს არჩევითი სტატუსის მოქმედება შემოფარგლულია გაუმჭვირვალე მფლობელის, ავთენტიფიცირებული მართული API გასაღების და ზუსტი აქტიური generation-ის მიერ ერთ მონაცემთა ბაზის ტრანზაქციაში. `displayName` არის მხოლოდ მორთული კონფიგურირებული კავშირის სახელი; ის არის `null`, როდესაც არ არსებობს უსაფრთხო კონფიგურირებული სახელი. OmniRoute არასოდეს ცვლის ელფოსტას ან გენერირებულ ანგარიშის იდენტობას. პროვაიდერის მნიშვნელობა არის არამგრძნობიარე ჩვენების ეტიკეტი და არასოდეს გენერირებული თავსებადი პროვაიდერის იდენტიფიკატორი. სერთიფიკატები, ტოკენები, ქუქიები, ნედლი კავშირის ან API გასაღების ID-ები, მფლობელის ჰეშები, შემოფარგვლის საიდუმლოებები და შიდა მარშრუტიზაციის მონაცემები გამორიცხულია.
 
-არასწორი გასაღებით, არასწორი მფლობელით, მოძველებული generation-ით შესრულებული, არარსებული, ვადაგასული, გათავისუფლებული და გაუქმებული ძიებები ყველა აბრუნებს ერთსა და იმავე `409 LEASE_FENCE_STALE` შეცდომას, კავშირის მეტამონაცემების გარეშე. კლიენტს, რომელმაც სიმძლავრის მოლოდინის პასუხი მიიღო, შესამოწმებელი აქტიური მიბმა არ აქვს. როდესაც მარშრუტიზაცია აქტიურ იჯარას სხვა მდგომარეობაში გადაიყვანს, იგივე generation ძალაში რჩება და სტატუსი ატომურად აბრუნებს ახალ მიბმას — არასოდეს ძველს. არსებული კლიენტები უცვლელი რჩება, რადგან მოპოვების, განახლების, გათავისუფლებისა და მოლოდინის პასუხები ინარჩუნებს თავის წინა ფორმებს.
+არასწორი გასაღების, არასწორი მფლობელის, მოძველებული generation-ის, დაკარგული, ვადაგასული, გამოშვებული და გაუქმებული ძიებები ყველა აბრუნებს ერთსა და იმავე `409 LEASE_FENCE_STALE` შეცდომას კავშირის მეტამონაცემების გარეშე. კლიენტს, რომელმაც მიიღო სიმძლავრის მოლოდინის პასუხი, არ აქვს აქტიური ბაინდინგი შესამოწმებლად. როდესაც მარშრუტიზაცია გადასცემს აქტიურ იჯარას, იგივე generation რჩება ძალაში და სტატუსი ატომურად აბრუნებს ახალ ბაინდინგს, არასოდეს ძველს. არსებული კლიენტები უცვლელი რჩებიან, რადგან მოპოვების, განახლების, გამოშვების და მოლოდინის პასუხები ინარჩუნებენ თავიანთ წინა ფორმებს.
 
-ეს სერვერული კონტრაქტი არ ცვლის სტანდარტულ OpenAI Codex `/status`-ს. სტანდარტული Codex ამჟამად აჩვენებს მოდელის პროვაიდერსა და ჩაშენებულ ავთენტიფიკაციის/ანგარიშის მდგომარეობას, თუმცა არ ასახავს მორგებული პროვაიდერის ანგარიშის ნებისმიერ მეტამონაცემს; სამომავლო კლიენტის ინტეგრაციამ უნდა გამოიძახოს ეს მოქმედება და გადაწყვიტოს, როგორ აჩვენოს `connection.displayName`.
+ეს სერვერის კონტრაქტი არ ცვლის სტანდარტულ OpenAI Codex `/status`-ს. სტანდარტული Codex ამჟამად აცხადებს თავის მოდელის პროვაიდერს და ჩაშენებულ ავთენტიფიკაციის/ანგარიშის მდგომარეობას, მაგრამ არ აჩვენებს თვითნებურ მორგებულ პროვაიდერის ანგარიშის მეტამონაცემებს; მოგვიანებით კლიენტის ინტეგრაციამ უნდა გამოიძახოს ეს მოქმედება და გადაწყვიტოს, როგორ აჩვენოს `connection.displayName`.
 
-ამის შემდეგ, ყოველი მართული ინფერენსის მოთხოვნა ორივე საკონტროლო სათაურს გადასცემს:
+ყოველი მართული ინფერენციის მოთხოვნა შემდეგ აწვდის ორივე საკონტროლო სათაურს:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-ზუსტი მფლობელი, generation, აქტიური კავშირი და ავთენტიფიცირებული API გასაღები თითოეული მხარდაჭერილი ზედა დონის სერვისზე მიმართვის მცდელობის უშუალოდ წინ შემოისაზღვრება. მფლობელისა და generation-ის სხვა გასაღებით ხელახლა გამოყენება წარუმატებელია მაშინაც კი, როდესაც ეს გასაღები იმავე კავშირს უშვებს. დაუმუშავებელი მფლობელები არ ინახება მუდმივად, არ აღირიცხება ჟურნალში, არ რჩება მოთხოვნის მომენტალურ ასლში და არ გადაიგზავნება ზედა დონის სერვისზე.
+ზუსტი მფლობელი, generation, აქტიური კავშირი და ავთენტიფიცირებული API გასაღები შემოფარგლულია დაუყოვნებლივ ყოველი მხარდაჭერილი ზედა დინების მცდელობის წინ. მფლობელისა და generation-ის სხვა გასაღებით გამეორება ვერ ხერხდება მაშინაც კი, როდესაც ეს გასაღები იძლევა იგივე კავშირს. ნედლი მფლობელები არ ინახება, არ აღირიცხება, არ ინახება მოთხოვნის სნეპშოტში და არ გადაეცემა ზედა დინებას.
 
-დროებითი კონკურენცია აბრუნებს HTTP `429`-ს `Retry-After`-ით და შემდეგი შიგთავსით:
+დროებითი კონფლიქტი აბრუნებს HTTP `429`-ს `Retry-After`-ით და:
 
 ```json
 {
@@ -157,33 +157,35 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-ეს პასუხი მხოლოდ იმას ნიშნავს, რომ ჩვეულებრივი შესაბამისი სიმრავლე არ იყო ცარიელი და ყოველი თავისუფალი კანდიდატი უცხო აქტიურ იჯარას ეკავა. მხარდაუჭერელი მოდელები/პროვაიდერები, პოლიტიკის შეუსაბამობა, დაყოვნების პერიოდი, კვოტა, სიჯანსაღე და შესაბამისობის სხვა ჩვეულებრივი წარუმატებლობები ინარჩუნებს თავის არსებულ OmniRoute პასუხებს.
+ეს პასუხი მხოლოდ იმას ნიშნავს, რომ ჩვეულებრივი შესაბამისი ნაკრები არ იყო ცარიელი და ყოველი თავისუფალი კანდიდატი დაკავებული იყო უცხო აქტიური იჯარით. მხარდაუჭერელი მოდელები/პროვაიდერები, პოლიტიკის შეუსაბამობა, გაგრილება, კვოტა, ჯანმრთელობა და სხვა ჩვეულებრივი შესაბამისობის შეცდომები ინარჩუნებენ თავიანთ არსებულ OmniRoute პასუხებს.
 
 ### `x-omniroute-compression`
 
-შეკუმშვის გეგმის თითოეული მოთხოვნის დონეზე ჩანაცვლება. უმაღლესი პრიორიტეტი — გადაწონის მარშრუტიზაციის კომბინაციის ჩანაცვლებას, აქტიურ პროფილს, ავტომატურ ტრიგერსა და პანელის ნაგულისხმევ მნიშვნელობას. მნიშვნელობები:
+შეკუმშვის გეგმის მოთხოვნის მიხედვით გადაწერა. უმაღლესი პრიორიტეტი — სჯობს მარშრუტიზაციის კომბინაციის გადაწერას, აქტიურ პროფილს, ავტო-გამშვებს და პანელის ნაგულისხმევს. მნიშვნელობები:
 
-| მნიშვნელობა   | ეფექტი                                                                                              |
-| ------------- | --------------------------------------------------------------------------------------------------- |
-| `off`         | ამ მოთხოვნისთვის შეკუმშვა არ გამოიყენება.                                                           |
-| `default`     | პანელიდან მიღებული ნაგულისხმევი პროფილი (აქტიურ პროფილს უგულებელყოფს).                              |
-| `engine:<id>` | ერთი ძრავა, როდესაც ის ჩართულია, მაგ. `engine:rtk`.                                                 |
-| `<combo>`     | სახელდებული კომბინაცია; დამთხვევა ჯერ სახელით (რეგისტრის გაუთვალისწინებლად), შემდეგ კი id-ით ხდება. |
+| მნიშვნელობა   | ეფექტი                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| `off`         | ამ მოთხოვნისთვის შეკუმშვა არ არის.                                                                      |
+| `default`     | პანელიდან მიღებული ნაგულისხმევი პროფილი (უგულებელყოფს აქტიურ პროფილს). დანაკარგიანი ძრავები გამორთულია. |
+| `safe`        | მხოლოდ დედუპლიკაცია და ცარიელი სივრცის დაკეცვა.                                                         |
+| `allow-lossy` | შეინარჩუნეთ ოპერატორის გეგმა ამ მოთხოვნისთვის, მათ შორის შეჯამებები და სტილის გადაწერები.               |
+| `engine:<id>` | ერთი ძრავა ჩართვისას, მაგ. `engine:rtk`. მოთხოვნის მიხედვით ჩართვა ამ ძრავისთვის.                       |
+| `<combo>`     | დასახელებული კომბინაცია, ჯერ სახელის მიხედვით (რეგისტრის მიმართ არამგრძნობიარე), შემდეგ ID-ის მიხედვით. |
 
 შენიშვნები:
 
-- უცნობი მნიშვნელობები იგნორირდება (მოთხოვნა არასოდეს უარყოფილა); განსაზღვრა გადადის ოპერატორების ჩვეულებრივ პრიორიტეტზე.
-- თუ რამდენიმე კომბინაციას ერთი და იგივე სახელი აქვს, დეტერმინისტული დამთხვევისთვის გადაეცით კომბინაციის **id**.
-- კომბინაცია, რომლის სახელიც არის `off` ან `default`, სახელით ვერ შეირჩევა (ეს საკვანძო სიტყვები პირველად განიმარტება); ასეთ კომბინაციას მისი id-ით მიმართეთ.
-- შეკუმშვის მთავარი გადამრთველი მკაცრი ბარიერია: როდესაც შეკუმშვა გლობალურად გამორთულია, ეს სათაური მას ვერ ჩართავს.
+- უცნობი მნიშვნელობები იგნორირებულია (მოთხოვნა არასოდეს უარყოფილია); რეზოლუცია გადადის ნორმალურ ოპერატორის პრიორიტეტზე.
+- თუ მრავალ კომბინაციას აქვს ერთი და იგივე სახელი, გადაეცით კომბინაციის **id** დეტერმინისტული შესატყვისისთვის.
+- კომბინაცია, რომლის სახელია `off` ან `default`, არ შეიძლება შეირჩეს სახელით (ეს საკვანძო სიტყვები ჯერ ინტერპრეტირებულია); ასეთ კომბინაციას მიმართეთ მისი id-ით.
+- შეკუმშვის მთავარი გადამრთველი არის მყარი კარიბჭე: როდესაც შეკუმშვა გლობალურად გამორთულია, ეს სათაური ვერ ჩართავს მას.
 
-გამოყენებული გეგმა პასუხის სათაურში აისახება:
+გამოყენებული გეგმა უკან ბრუნდება პასუხის სათაურში:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-სადაც `<source>` არის ერთ-ერთი შემდეგიდან: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ან `off`.
+სადაც `<source>` არის `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ან `off`.
 
 ---
 
@@ -406,57 +408,57 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## თავსებადობის endpoint-ები
+## თავსებადობის საბოლოო წერტილები
 
-| მეთოდი | გზა                                       | ფორმატი                                |
-| ------ | ----------------------------------------- | -------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                 |
-| POST   | `/v1/messages`                            | Anthropic                              |
-| POST   | `/v1/responses`                           | OpenAI Responses                       |
-| POST   | `/v1/embeddings`                          | OpenAI                                 |
-| POST   | `/v1/images/generations`                  | OpenAI Images                          |
-| POST   | `/v1/images/edits`                        | OpenAI Images (რედაქტირება/inpaint)    |
-| POST   | `/v1/videos/generations`                  | OpenAI-ის სტილის ვიდეოს გენერაცია      |
-| POST   | `/v1/music/generations`                   | OpenAI-ის სტილის მუსიკის გენერაცია     |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (აბრუნებს აუდიოს სხეულს)    |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-ის სტილის rerank         |
-| POST   | `/v1/classify`                            | Jina classify (`api.jina.ai`)          |
-| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)     |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                     |
-| GET    | `/v1/models`                              | OpenAI                                 |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                              |
-| GET    | `/v1beta/models`                          | Gemini                                 |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                 |
-| POST   | `/v1/api/chat`                            | Ollama                                 |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI კატალოგის alias                 |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI მოდელების alias                 |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI-ის ტოკენიზებული alias           |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses-ის ტოკენიზებული alias |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama-ს ტოკენიზებული alias            |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tags-ის ტოკენიზებული alias      |
+| მეთოდი | გზა                                       | ფორმატი                                     |
+| ------ | ----------------------------------------- | ------------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                      |
+| POST   | `/v1/messages`                            | Anthropic                                   |
+| POST   | `/v1/responses`                           | OpenAI Responses                            |
+| POST   | `/v1/embeddings`                          | OpenAI                                      |
+| POST   | `/v1/images/generations`                  | OpenAI Images                               |
+| POST   | `/v1/images/edits`                        | OpenAI Images (რედაქტირება/inpaint)         |
+| POST   | `/v1/videos/generations`                  | OpenAI-ის სტილის ვიდეოს გენერაცია           |
+| POST   | `/v1/music/generations`                   | OpenAI-ის სტილის მუსიკის გენერაცია          |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                          |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (აბრუნებს აუდიოს სხეულს)         |
+| POST   | `/v1/rerank`                              | Cohere/Voyage-ის სტილის რერანჟირება         |
+| POST   | `/v1/classify`                            | Jina-ს კლასიფიკაცია (`api.jina.ai`)         |
+| POST   | `/v1/segment`                             | Jina-ს სეგმენტატორი (`segment.jina.ai`)     |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                          |
+| GET    | `/v1/models`                              | OpenAI                                      |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                                   |
+| GET    | `/v1beta/models`                          | Gemini                                      |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                      |
+| POST   | `/v1/api/chat`                            | Ollama                                      |
+| GET    | `/api/v1/vscode/{token}/`                 | OpenAI კატალოგის ფსევდონიმი                 |
+| GET    | `/api/v1/vscode/{token}/models`           | OpenAI მოდელების ფსევდონიმი                 |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI-ის ტოკენიზებული ფსევდონიმი           |
+| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses-ის ტოკენიზებული ფსევდონიმი |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama-ს ტოკენიზებული ფსევდონიმი            |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tags-ის ტოკენიზებული ფსევდონიმი      |
 
 ყველა POST მარშრუტი ერთსა და იმავე სტრუქტურას იყენებს: `Bearer your-api-key` + Zod-ით ვალიდირებული JSON სხეული (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` და ა.შ.; იხილეთ `src/shared/validation/schemas.ts`). სქემის ვალიდაციის წარუმატებლობისას ბრუნდება 4xx.
 
-კლიენტებისთვის, რომლებსაც არ შეუძლიათ `Authorization: Bearer ...`-ის დამატება, OmniRoute ასევე იღებს API გასაღებებს URL-ში — ან query-string თავსებადობის მეშვეობით (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), ან ქვემოთ დოკუმენტირებული სპეციალური `/api/v1/vscode/{token}/...` endpoint-ების საშუალებით.
+კლიენტებისთვის, რომლებსაც `Authorization: Bearer ...`-ის მიმაგრება არ შეუძლიათ, OmniRoute ასევე იღებს API გასაღებებს URL-ში — ან მოთხოვნის სტრიქონთან თავსებადობის საშუალებით (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), ან ქვემოთ დოკუმენტირებული სპეციალური `/api/v1/vscode/{token}/...` საბოლოო წერტილების საშუალებით.
 
 ```bash
-# Rerank
+# რერანჟირება (ღრუბლოვანი რეესტრის პროვაიდერი ან OpenAI-სთან თავსებადი პროვაიდერის კვანძი ფორმატით "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (Foundation API-ის ავტორიზაციის მონაცემები)
+# Jina-ს კლასიფიკაცია (Foundation API-ის ავტორიზაციის მონაცემები)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Jina-ს სეგმენტატორი
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; პროვაიდერის alias-ები: jina-search, jina-ai, jina)
+# Jina-ს ძიება (s.jina.ai; პროვაიდერის ფსევდონიმები: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderations
+# მოდერაცია
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — აბრუნებს audio/mpeg (ან მოთხოვნილ ფორმატს) სხეულს
+# TTS — აბრუნებს audio/mpeg (ან მოთხოვნილი ფორმატის) სხეულს
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # სურათის რედაქტირება (multipart)
@@ -467,6 +469,28 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
+> **რერანჟირების პროვაიდერის კვანძები:** `POST /v1/rerank` მოთხოვნებს ასევე მიმართავს OpenAI-სთან თავსებადი პროვაიდერის კვანძებისკენ
+> (oMLX, vLLM, Infinity, TEI გეითვეის უკან, …), რომლებიც მისამართდება ფორმატით `<node-prefix>/<model>`. უკუმარყუჟის
+> კვანძები (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ყოველთვის დაშვებულია. ნებისმიერ სხვა
+> ჰოსტზე განთავსებული კვანძები — LAN კომპიუტერი ან Tailscale-ის პირი — დაშვებულია მხოლოდ მაშინ, როდესაც ოპერატორი ჩართავს
+> `RERANK_REMOTE_PROVIDER_NODES` ფუნქციის ალამს **და** კვანძის საბაზო URL აკმაყოფილებს პროვაიდერის
+> გამავალი URL-ების პოლიტიკას (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> ღრუბლოვანი მეტამონაცემების ჰოსტებზე მოთხოვნები არასოდეს გადაიმისამართება. მეხსიერების ძრავის რერანჟირების ეტაპი ამ მარშრუტს
+> უკუმარყუჟის საშუალებით იძახებს, ამიტომ იგივე წესი მართავს `rerankProviderModel`-ს Memory-ის პარამეტრებში.
+>
+> **ლოკალური სერვერის სტრუქტურები:** კვანძი გამოიძახება მისამართზე `<base>/v1/rerank`, ხოლო 404-ის შემთხვევაში — მისამართზე `<base>/rerank`
+> (Infinity, TEI). ზემდგომი მოთხოვნის სხეული შეიცავს როგორც Cohere/OpenAI-ის ველების სახელებს (`documents`,
+> `return_documents`), ისე TEI-ის ველების სახელებს (`texts`, `return_text`), ხოლო ზემდგომი პასუხი
+> ნორმალიზდება Cohere-ის გარსში: TEI-ის შიშველი `[{index, score, text}]`, მსუბუქი გეითვეებიდან მიღებული
+> `{results: [{index, score}]}` და Voyage-ის სტილის `{data: [...]}` — ყველა მათგანი კლიენტს უბრუნდება ფორმატით
+> `{results: [{index, relevance_score, document?}]}`, ქულის მიხედვით დალაგებული და `top_n`-ით შეზღუდული.
+
+> **პროვაიდერის კვანძების აღმოჩენა:** OpenAI-სთან თავსებადი პროვაიდერის კვანძზე არსებული მოდელები `GET /v1/models`-ში
+> კვანძის პრეფიქსით ჩნდება. სტრიქონები, რომლებიც საბოლოო წერტილის მეტამონაცემებს არ შეიცავს (რაც ტიპურია ლოკალური `/v1/models` ჩამონათვალებისთვის),
+> მემკვიდრეობით იღებს კვანძის `apiType`-ს, ამიტომ `embeddings` კვანძის მოდელებს ენიჭებათ `type: "embedding"`, ხოლო
+> `rerank` კვანძის მოდელებს — `type: "rerank"`, ნაცვლად იმისა, რომ ნაგულისხმევად ჩატად განისაზღვროს; სინქრონიზებულ ან ხელით დამატებულ სტრიქონში აშკარად მითითებულ
+> `supportedEndpoints`-ს კვლავ ენიჭება უპირატესობა.
+
 ### პროვაიდერის სპეციალური მარშრუტები
 
 ```bash
@@ -475,7 +499,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-პროვაიდერის პრეფიქსი ავტომატურად ემატება, თუ მითითებული არ არის. შეუსაბამო მოდელები აბრუნებენ `400`-ს.
+პროვაიდერის პრეფიქსი ავტომატურად ემატება, თუ ის მითითებული არ არის. შეუსაბამო მოდელების შემთხვევაში ბრუნდება `400`.
 
 ---
 

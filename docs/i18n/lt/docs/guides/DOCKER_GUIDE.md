@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Lietuvių)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -25,7 +25,13 @@
 
 ---
 
-## Greitas paleidimas
+## Greitasis paleidimas
+
+> **Savarankiškas talpinimas viena komanda?** Žr.
+> [savarankiško talpinimo vadovą](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (publikuotas atvaizdas +
+> Redis, pasiekiamas tik per loopback sąsają, be profilio pasirinkimo). Toliau pateiktas greitasis paleidimas yra
+> vieno konteinerio būdas naudotojams, kurie Redis jau naudoja kitur.
 
 ```bash
 docker run -d \
@@ -59,11 +65,14 @@ docker run -d \
 # Bazinis profilis (be CLI įrankių)
 docker compose --profile base up -d
 
-# CLI profilis (integruoti Claude Code, Codex ir OpenClaw)
+# CLI profilis (integruoti Claude Code, Codex, OpenClaw)
 docker compose --profile cli up -d
 
-# Pagrindinio kompiuterio profilis (pirmiausia skirtas Linux; pagrindinio kompiuterio CLI vykdomieji failai prijungiami tik skaitymo režimu)
+# Pagrindinio kompiuterio profilis (pirmiausia skirtas Linux; pagrindinio kompiuterio CLI vykdomieji failai prijungiami tik skaityti)
 docker compose --profile host up -d
+
+# Žiniatinklio profilis (Chromium/Playwright žiniatinklio seansų teikėjams)
+docker compose --profile web up -d
 
 # CLI ir CLIProxyAPI pagalbinio konteinerio derinys
 docker compose --profile cli --profile cliproxyapi up -d
@@ -71,14 +80,15 @@ docker compose --profile cli --profile cliproxyapi up -d
 
 ## Galimi profiliai
 
-„OmniRoute“ pateikiamas su keturiais „Compose“ profiliais. Pasirinkite jūsų aplinką atitinkantį profilį.
+„OmniRoute“ pateikiamas su „Compose“ profiliais, skirtais pagrindiniams diegimo variantams. Pasirinkite jūsų aplinką atitinkantį profilį.
 
-| Profilis             | Paslauga         | Kada naudoti                                                                                                                                                                                        | Komanda                                      |
-| -------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (numatytasis) | `omniroute-base` | Serveris be grafinės sąsajos / minimali vykdymo aplinka, be įtrauktų teikėjų CLI                                                                                                                    | `docker compose --profile base up -d`        |
-| `cli`                | `omniroute-cli`  | Agentinės darbo eigos, kurios kviečia `omniroute providers/setup/doctor`, ir įtraukti CLI (Codex, Claude Code, Droid, OpenClaw)                                                                     | `docker compose --profile cli up -d`         |
-| `host`               | `omniroute-host` | Linux pagrindiniai kompiuteriai, kuriems reikia į `network_mode` panašios prieigos prie pagrindinio kompiuterio CLI, prijungiant `~/.local/bin`, `~/.codex`, `~/.claude` ir kt. tik skaitymo režimu | `docker compose --profile host up -d`        |
-| `cliproxyapi`        | `cliproxyapi`    | Paleiskite [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) pagalbinį konteinerį per `8317` prievadą, skirtą išoriniam CLI tarpiniam serveriui                                           | `docker compose --profile cliproxyapi up -d` |
+| Profilis             | Paslauga         | Kada naudoti                                                                                                                                                                                          | Komanda                                      |
+| -------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (numatytasis) | `omniroute-base` | Serveris be grafinės sąsajos / minimali vykdymo aplinka, be įtrauktų paslaugų teikėjų CLI                                                                                                             | `docker compose --profile base up -d`        |
+| `cli`                | `omniroute-cli`  | Agentinės darbo eigos, kurios iškviečia `omniroute providers/setup/doctor` ir įtrauktas CLI („Codex“, „Claude Code“, „Droid“, „OpenClaw“)                                                             | `docker compose --profile cli up -d`         |
+| `host`               | `omniroute-host` | „Linux“ pagrindiniai kompiuteriai, kuriems reikia į `network_mode` panašios prieigos prie pagrindinio kompiuterio CLI, prijungiant `~/.local/bin`, `~/.codex`, `~/.claude` ir kt. tik skaitymo režimu | `docker compose --profile host up -d`        |
+| `cliproxyapi`        | `cliproxyapi`    | Paleiskite [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) pagalbinį konteinerį per prievadą `8317`, skirtą išorinių CLI užklausoms perduoti                                              | `docker compose --profile cliproxyapi up -d` |
+| `web`                | `omniroute-web`  | Žiniatinklio seansų paslaugų teikėjai, kuriems reikia naršyklės: `gemini-web`, `claude-web`, `claude-turnstile` (sukuriamas `runner-web`, įtrauktas „Chromium“)                                       | `docker compose --profile web up -d`         |
 
 > Galima derinti kelis profilius: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -228,51 +238,53 @@ Produkcinis rinkinys veikia lygiagrečiai su kūrimo „Compose“ aplinka (naud
 
 ## Dockerfile etapai
 
-Saugykloje pateikiamas kelių etapų Dockerfile (`Dockerfile`). Galimi trys etapai; pasirinkite jūsų naudojimo atvejui tinkamą `target`.
+Saugykloje pateikiamas kelių etapų Dockerfile (`Dockerfile`). Galimi keturi etapai; pasirinkite jūsų naudojimo atvejui tinkamą `target`.
 
-| Etapas        | Bazinis atvaizdis     | Paskirtis                                                                                                                                                                                     |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Įdiegia priklausomybes (`npm ci --legacy-peer-deps`) ir paleidžia `npm run build` (pagal numatytuosius nustatymus naudojamas Turbopack — žr. toliau pateiktą skiltį „Kompiliavimo ištekliai“) |
-| `runner-base` | `node:26-trixie-slim` | Produkcinė vykdymo aplinka su autonomine Next.js išvestimi. **Teikėjų CLI neįtrauktos.**                                                                                                      |
-| `runner-cli`  | `runner-base`         | Prideda `git`, `docker.io`, `docker-compose` ir visuotines CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Rinkitės šį etapą agentinėms darbo eigoms.**             |
+| Etapas        | Bazinis atvaizdas     | Paskirtis                                                                                                                                                                                                                                                                                                  |
+| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Įdiegia priklausomybes (`npm ci --legacy-peer-deps`) ir paleidžia `npm run build` (pagal numatytuosius nustatymus naudojamas Turbopack — žr. toliau pateiktą skiltį „Kompiliavimo ištekliai“)                                                                                                              |
+| `runner-base` | `node:26-trixie-slim` | Produkcinė vykdymo aplinka su autonomine Next.js išvestimi. **Teikėjų CLI neįtrauktos.**                                                                                                                                                                                                                   |
+| `runner-cli`  | `runner-base`         | Prideda `git`, `docker.io`, `docker-compose` ir visuotines CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Rinkitės šį etapą agentinėms darbo eigoms.**                                                                                                                          |
+| `runner-web`  | `runner-base`         | Prideda Playwright ir Chromium naršyklę (`--with-deps`), skirtą žiniatinklio seansų teikėjams: `gemini-web`, `claude-web`, `claude-turnstile`. **Rinkitės šį etapą, kai naudojate šiuos teikėjus** — be jo įprastas atvaizdas užklausos metu neveiks (žr. pastabą apie `-web` skiltyje „Leidimų kanalai“). |
 
-Konkretaus etapo kūrimas rankiniu būdu:
+Norėdami rankiniu būdu sukurti konkretų tikslą:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Kompiliavimo ištekliai
 
-Trys kūrimo argumentai valdo `builder` etapo išteklių sąnaudas. Jie taikomi tik kompiliavimo metu —
+Trys kompiliavimo argumentai valdo `builder` etapo išteklių sąnaudas. Jie taikomi tik kompiliuojant —
 `OMNIROUTE_MEMORY_MB` (toliau) yra atskiras vykdymo aplinkos parametras.
 
-| Kūrimo argumentas           | Numatytoji reikšmė | Poveikis                                                                                      |
-| --------------------------- | ------------------ | --------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`                | `0` vietoje jo kompiliuoja su webpack. Mažesnis didžiausias atminties naudojimas, bet lėčiau. |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`             | V8 kaupo riba (`--max-old-space-size`) paleistam `next build`.                                |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`                | Nustato `CIRCLE_NODE_TOTAL`; Next apskaičiuoja `workers = N - 1` puslapių duomenims rinkti.   |
+| Kompiliavimo argumentas     | Numatytoji reikšmė | Poveikis                                                                                               |
+| --------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`                | Nustačius `0`, kompiliuojama naudojant webpack. Mažesnis didžiausias atminties naudojimas, bet lėčiau. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`             | V8 krūvos riba (`--max-old-space-size`) paleistam `next build` procesui.                               |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`                | Perduodama į `CIRCLE_NODE_TOTAL`; Next nustato `workers = N - 1` puslapių duomenims rinkti.            |
 
-`OMNIROUTE_BUILD_WORKERS` yra parametras, kurį reikia didinti galingoje kūrimo aplinkoje ir
-įtarti, kai ribotų išteklių aplinkoje kūrimas nutrūksta **po** `✓ Compiled successfully`. Kiekvienas
-puslapių duomenų apdorojimo procesas yra atskiras, kaip ir pats pirminis `next build` procesas;
-atliekant bandymą veikiančiame VPS serveryje (problema #7518), nustatyta, kad kiekvieno proceso
-didžiausias RSS siekė ~4,5 GB, nepriklausomai nuo `NODE_OPTIONS` kaupo parametro (Turbopack
-kompiliuoja naudodamas natyviąją / Rust atmintį už V8 kaupo ribų). Numatytoji reikšmė `2`
-(→ 1 darbinis procesas, iš viso 2 procesai) pritaikyta 16 GB / 4 vCPU GitHub teikiamoms
-vykdymo aplinkoms, kurias naudoja publikavimo procesas. Nustačius `8` (→ 7 darbiniai procesai),
-toje vykdymo aplinkoje pritrūko atminties, o buildkit nutraukė etapą su
-`ResourceExhausted: ... cannot allocate memory`; nustačius `3` (→ 2 darbiniai procesai),
-atminties taip pat nepakako, kai vieno proceso RSS buvo išmatuotas tiesiogiai, o ne nustatytas
-netiesiogiai. `tests/unit/docker-build-memory-budget.test.ts` atlieka skaičiavimus pagal
-išmatuotą reikšmę ir nepavyksta, jei kuris nors parametras viršija vykdymo aplinkos galimybes.
+`OMNIROUTE_BUILD_WORKERS` yra parametras, kurį reikia didinti galingame kompiliavimo serveryje ir
+kurį reikėtų įtarti, kai ribotų išteklių aplinkoje kompiliavimas nutrūksta **po** `✓ Compiled successfully`. Kiekvienas
+puslapių duomenų darbinis procesas yra atskiras procesas, kaip ir pats pagrindinis `next build`;
+atkuriant problemą veikiančiame VPS (problema #7518), nustatyta, kad kiekvieno proceso didžiausias RSS siekė
+~4.5 GB, nepriklausomai nuo `NODE_OPTIONS` krūvos parametro (Turbopack kompiliuoja
+naudodamas savąją / Rust atmintį už V8 krūvos ribų). Numatytoji reikšmė `2` (→ 1 darbinis procesas, iš viso 2
+procesai) pritaikyta 16 GB / 4 vCPU GitHub prieglobos vykdyklėms, kurias
+naudoja publikavimo konvejeris. Nustačius `8` (→ 7 darbiniai procesai), toje vykdyklėje pritrūko atminties ir
+buildkit nutraukė veiksmą su klaida `ResourceExhausted: ... cannot allocate memory`;
+`3` (→ 2 darbiniai procesai) vis tiek netilpo, kai vieno proceso RSS buvo išmatuotas
+tiesiogiai, o ne apskaičiuotas. `tests/unit/docker-build-memory-budget.test.ts`
+atlieka skaičiavimus pagal išmatuotą reikšmę ir nepavyksta, jei kuris nors parametras
+viršija vykdyklės galimybes.
 
-Turbopack kompiliuoja naudodamas natyviąją Rust atmintį, esančią **už** V8 kaupo ribų, todėl
-`OMNIROUTE_BUILD_MEMORY_MB` jos neriboja. Kompiuteryje su atminties apribojimu OOM žudiklis
-tada nutraukia kūrimą signalu SIGKILL, nepateikdamas jokio klaidos teksto — procesas tiesiog
-sustoja vykdant `Creating an optimized production build`, todėl tai labiau panašu į pakibimą
-nei į atminties trūkumą. Jei kūrimo kompiuterio ištekliai riboti, pakeiskite paketų kūrimo įrankį:
+Turbopack kompiliuoja naudodamas savąją Rust atmintį, esančią **už** V8 krūvos ribų, todėl
+`OMNIROUTE_BUILD_MEMORY_MB` jos neriboja. Pagrindiniame kompiuteryje su atminties apribojimu
+OOM nutraukimo mechanizmas siunčia kompiliavimo procesui SIGKILL be jokio klaidos teksto — jis tiesiog
+sustoja vykdant `Creating an optimized production build`, todėl tai labiau primena užstrigimą,
+o ne atminties trūkumą. Jei kompiliavimo pagrindinio kompiuterio ištekliai riboti, pakeiskite pakavimo priemonę:
 
 ```bash
 docker build --target runner-base \
@@ -280,43 +292,43 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` yra įjungtas, todėl `next build` vykdo pirminį **ir** darbinį
-procesą, o kiekvienas jų atskirai laikosi `OMNIROUTE_BUILD_MEMORY_MB`. Nustatykite konteinerio
+`webpackBuildWorker` yra įjungtas, todėl `next build` paleidžia pagrindinį **ir** darbinį
+procesą, o kiekvienas jų atskirai paiso `OMNIROUTE_BUILD_MEMORY_MB`. Nustatykite konteinerio
 ribą maždaug dvigubai didesnę už šią reikšmę, o ne lygią jai.
 
 Išmatuota šiame medyje (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Paketų kūrimo įrankis | Konteinerio riba | Rezultatas                                  |
-| --------------------- | ---------------- | ------------------------------------------- |
-| Turbopack             | 8 GiB / 16 GiB   | Abiem atvejais tyliai nutraukta dėl OOM     |
-| webpack               | 8 GiB            | Darbinis kūrimo procesas nutrauktas SIGKILL |
-| webpack               | 12 GiB           | Pavyko, didžiausias naudojimas — 11,1 GiB   |
+| Pakavimo priemonė | Konteinerio riba | Rezultatas                                        |
+| ----------------- | ---------------- | ------------------------------------------------- |
+| Turbopack         | 8 GiB / 16 GiB   | Abiem atvejais tyliai nutraukta dėl OOM           |
+| webpack           | 8 GiB            | Darbinis kompiliavimo procesas nutrauktas SIGKILL |
+| webpack           | 12 GiB           | Pavyko, didžiausias naudojimas siekė 11.1 GiB     |
 
-### Numatytosios vykdymo aplinkos reikšmės
+### Vykdymo aplinkos numatytosios reikšmės
 
 `runner-base` eksportuojamos numatytosios reikšmės: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
-Atminties naudojimas Docker aplinkoje:
+Atminties veikimas Docker aplinkoje:
 
-- Atvaizdis nustato `OMNIROUTE_MEMORY_MB=1024` ir pagal jį išveda `NODE_OPTIONS=--max-old-space-size=1024`.
+- Atvaizdas nustato `OMNIROUTE_MEMORY_MB=1024` ir pagal jį išveda `NODE_OPTIONS=--max-old-space-size=1024`.
 - Faktinį serverio procesą paleidžia autonominė paleidyklė, kuri nuskaito `OMNIROUTE_MEMORY_MB` ir prideda `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node naudoja paskutinę pakartotinę `--max-old-space-size` reikšmę, todėl `OMNIROUTE_MEMORY_MB` valdo faktinį Docker kaupo apribojimą.
-- Kadangi atvaizdis visada ją nustato, Docker aplinkoje niekada netaikoma pačios paleidyklės atsarginė reikšmė, apskaičiuojama pagal RAM. Aiškiai padidinkite ją pagal darbo krūvį (žr. lentelę toliau). `2048` vis dar per maža programavimo agentų `/v1/responses` užklausoms.
+- Node naudoja paskutinę pasikartojančią `--max-old-space-size` reikšmę, todėl `OMNIROUTE_MEMORY_MB` nustato faktinį Docker kaupo limitą.
+- Kadangi atvaizdas visada jį nustato, paleidyklės atsarginė reikšmė, apskaičiuojama pagal RAM kiekį, Docker aplinkoje niekada netaikoma. Aiškiai padidinkite ją pagal darbo krūvį (žr. lentelę toliau). `2048` vis tiek yra per mažai programavimo agento `/v1/responses` užklausoms.
 
 ### Vykdymo aplinkos RAM programavimo agentams
 
-Numatytoji 1 GiB Docker reikšmė yra minimalus kiekis valdymo skydeliui ir nesudėtingiems pokalbiams, o ne produkcinės aplinkos dydis. Ilgi `POST /v1/responses` turiniai (šimtai pranešimų, dešimtys įrankių) glaudinimo metu atmintyje išlaiko kelis grafus. Dvi persidengiančios ~3 MiB / ~750 tūkst. žetonų užklausos nutraukė V8 esant **12 GiB** senosios kartos sričiai (`FATAL ERROR: Reached heap limit`) ir taip pat pasiekė 16 GiB cgroup OOM ribą. Žr. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Numatytasis 1 GiB Docker limitas yra minimalus dydis valdymo skydeliui ir nesudėtingiems pokalbiams, o ne gamybinei aplinkai. Apdorojant ilgas `POST /v1/responses` užklausas (šimtai pranešimų, dešimtys įrankių), glaudinimo metu atmintyje laikomos kelios duomenų struktūros. Dvi persidengiančios ~3 MiB / ~750k žetonų užklausos nutraukė V8 veikimą esant **12 GiB** senosios kartos kaupui (`FATAL ERROR: Reached heap limit`) ir taip pat pasiekė 16 GiB cgroup OOM limitą. Žr. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Nustatykite **cgroup `--memory` didesnę už kaupą** — natyvieji buferiai, SQLite ir tarpiniai glaudinimo duomenys yra už V8 ribų.
+Nustatykite **cgroup `--memory` didesnį už kaupą** — savieji buferiai, SQLite ir tarpiniai glaudinimo duomenys laikomi už V8 ribų.
 
-| Darbo krūvis                                    | `OMNIROUTE_MEMORY_MB`                | Konteineris / cgroup               | Pastabos                                                                                                                                         |
-| ----------------------------------------------- | ------------------------------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Valdymo skydelis, vienas lengvas pokalbis       | `1024` (numatytoji atvaizdo reikšmė) | ≥2 GiB                             |                                                                                                                                                  |
-| Vienas programavimo agentas (Claude/Codex/Grok) | `8192`                               | ≥10 GiB                            | Įprasta viena `/v1/responses` sesija                                                                                                             |
-| Dvi lygiagrečios ilgos `/v1/responses`          | `10240`–`12288`                      | ≥12–16 GiB                         | Išmatuotas V8 nutraukimas esant ~12 GiB kaupui                                                                                                   |
-| Trys ar daugiau lygiagrečių ilgų kontekstų      | nenaudokite viename procese          | vykdykite nuosekliai / daugiau RAM | Pagal numatytuosius nustatymus leidžiama 1 vykdoma didelės apkrovos užklausa; padidinus šį skaičių be papildomos RAM, nutraukimas vėl pasikartos |
+| Darbo krūvis                                     | `OMNIROUTE_MEMORY_MB`                | Konteineris / cgroup                        | Pastabos                                                                                                                                    |
+| ------------------------------------------------ | ------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Valdymo skydelis, vienas nesudėtingas pokalbis   | `1024` (numatytoji atvaizdo reikšmė) | ≥2 GiB                                      |                                                                                                                                             |
+| Vienas programavimo agentas (Claude/Codex/Grok)  | `8192`                               | ≥10 GiB                                     | Įprasta vieno seanso `/v1/responses` užklausa                                                                                               |
+| Dvi lygiagrečios ilgos `/v1/responses` užklausos | `10240`–`12288`                      | ≥12–16 GiB                                  | Išmatuotas V8 veikimo nutraukimas esant ~12 GiB kaupui                                                                                      |
+| Trys ar daugiau lygiagrečių ilgų kontekstų       | nenaudokite viename procese          | vykdykite nuosekliai / skirkite daugiau RAM | Pagal numatytuosius nustatymus vienu metu apdorojama 1 didelė užklausa; padidinus šį skaičių be papildomos RAM, veikimas vėl bus nutrauktas |
 
-Kai `OMNIROUTE_MEMORY_MB` **nenustatytas**, `omniroute serve` fizinėje sistemoje sukalibruoja ~35 % RAM (apribojant iki intervalo `[512, 4096]`). Docker visada nustato `1024`, todėl oficialiame atvaizde šis kalibravimas niekada nevykdomas.
+`omniroute serve` fizinėje sistemoje nustato ~35% RAM (apribojant intervalu `[512, 4096]`), kai `OMNIROUTE_MEMORY_MB` yra **nenustatytas**. Docker visada nustato `1024`, todėl oficialiame atvaizde šis kalibravimas niekada nevykdomas.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -328,22 +340,22 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 Be numatytųjų reikšmių, aprašytų faile [ENVIRONMENT.md](../reference/ENVIRONMENT.md), vykdant su Docker svarbiausi yra šie kintamieji:
 
-| Kintamasis                    | Paskirtis                                                                                                                                                                                                                                                                                                                                                 | Numatytoji reikšmė            |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Bendroji WebSocket tilto paslaptis. **Būtina gamybinėje aplinkoje** — nustatykite stiprią atsitiktinę eilutę.                                                                                                                                                                                                                                             | nenustatyta (būtina pateikti) |
-| `REDIS_URL`                   | Ryšio eilutė, skirta užklausų dažnio ribotuvo / podėlio posistemei                                                                                                                                                                                                                                                                                        | `redis://redis:6379`          |
-| `REDIS_PORT`                  | Pagrindinio kompiuterio prievadas, skirtas pridedamam Redis konteineriui                                                                                                                                                                                                                                                                                  | `6379`                        |
-| `REDIS_BIND_HOST`             | Pagrindinio kompiuterio sąsaja, kurioje skelbiamas pridedamo Redis prievadas (grįžtamojo ryšio sąsaja, nebent pridėsite AUTH)                                                                                                                                                                                                                             | `127.0.0.1`                   |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Pagrindinio kompiuterio kelias, prijungiamas prie `cli` profilio kaip `/workspace/omniroute` savarankiško atnaujinimo darbo eigoms                                                                                                                                                                                                                        | `.` (dabartinis katalogas)    |
-| `OMNIROUTE_MEMORY_MB`         | Vykdymo metu taikoma Node kaupo atminties riba atskiram Docker serveriui; pakeičia pirmiau nurodytą numatytąją atvaizdo reikšmę. Programavimo agentams: `8192`+ (žr. [vykdymo aplinkos RAM](#runtime-ram-for-coding-agents)).                                                                                                                             | `1024`                        |
-| `DASHBOARD_PORT` / `API_PORT` | Pakeičia atvertus valdymo skydelio (20128) ir API (20129) prievadus                                                                                                                                                                                                                                                                                       | `20128` / `20129`             |
-| `APP_BIND_HOST`               | Pagrindinio kompiuterio sąsaja, kurioje docker-compose skelbia valdymo skydelio / API / tiesioginio WS ryšio prievadus. Kai `REQUIRE_API_KEY=false` (numatytoji reikšmė), `0.0.0.0` atveria anoniminį `/v1` tarpinį serverį vietiniam tinklui — išplėskite prieigą tik naudodami `REQUIRE_API_KEY=true` arba priešais esantį atvirkštinį tarpinį serverį. | `127.0.0.1`                   |
-| `CLIPROXY_BIND_HOST`          | Pagrindinio kompiuterio sąsaja, kurioje docker-compose skelbia `cliproxyapi` pagalbinį konteinerį — jo duomenų tome saugomi teikėjo prisijungimo duomenys.                                                                                                                                                                                                | `127.0.0.1`                   |
-| `OMNIROUTE_PLUGINS_DIR`       | Katalogas, kurį skaito vykdymo aplinkos įskiepių skaitytuvas ir į kurį diegia įskiepius. Nustatykite jį, kai įskiepiai prijungiami susiejant katalogą: numatytoji reikšmė priklauso nuo `HOME`, kurio atvaizdas nebūtinai eksportuoja.                                                                                                                    | `~/.omniroute/plugins`        |
-| `OMNIROUTE_BASE_PATH`         | URL kelio dalis, kai programa skelbiama už atvirkštinio tarpinio serverio (pvz., `/omniroute`)                                                                                                                                                                                                                                                            | _(tuščia = šakninis kelias)_  |
-| `NEXT_PUBLIC_BASE_URL`        | Viešoji naršyklės kilmė, įskaitant kelio dalį (pvz., `https://host/omniroute`)                                                                                                                                                                                                                                                                            | nenustatyta                   |
-| `PROD_DASHBOARD_PORT`         | Pagrindinio kompiuterio valdymo skydelio prievadas, skirtas `docker-compose.prod.yml`                                                                                                                                                                                                                                                                     | `20130`                       |
-| `CLIPROXYAPI_PORT`            | Pagrindinio kompiuterio prievadas, skirtas `cliproxyapi` pagalbiniam konteineriui                                                                                                                                                                                                                                                                         | `8317`                        |
+| Kintamasis                    | Paskirtis                                                                                                                                                                                                                                                                                                                                                    | Numatytoji reikšmė                   |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket tilto bendrasis slaptasis raktas. **Būtinas produkcinėje aplinkoje** — nustatykite kaip sudėtingą atsitiktinę eilutę.                                                                                                                                                                                                                              | nenustatyta (būtina pateikti)        |
+| `REDIS_URL`                   | Ryšio eilutė, skirta užklausų dažnio ribotuvo / podėlio posistemei                                                                                                                                                                                                                                                                                           | `redis://redis:6379`                 |
+| `REDIS_PORT`                  | Pagrindinio kompiuterio prievadas, skirtas kartu pateikiamam Redis konteineriui                                                                                                                                                                                                                                                                              | `6379`                               |
+| `REDIS_BIND_HOST`             | Pagrindinio kompiuterio sąsaja, kurioje publikuojamas kartu pateikiamo Redis prievadas (grįžtamojo ryšio sąsaja, nebent pridėtumėte AUTH)                                                                                                                                                                                                                    | `127.0.0.1`                          |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Pagrindinio kompiuterio kelias, prijungiamas prie `cli` profilio kaip `/workspace/omniroute` ir naudojamas savaiminio atnaujinimo darbo eigoms                                                                                                                                                                                                               | `.` (dabartinis katalogas)           |
+| `OMNIROUTE_MEMORY_MB`         | Vykdymo metu taikoma Node kaupo atminties riba atskiram Docker serveriui; pakeičia anksčiau nurodytą numatytąją atvaizdo reikšmę. Programavimo agentams: `8192`+ (žr. [vykdymo aplinkos RAM](#runtime-ram-for-coding-agents)).                                                                                                                               | `1024`                               |
+| `DASHBOARD_PORT` / `API_PORT` | Pakeičia atvertus valdymo skydelio (20128) ir API (20129) prievadus                                                                                                                                                                                                                                                                                          | `20128` / `20129`                    |
+| `APP_BIND_HOST`               | Pagrindinio kompiuterio sąsaja, kurioje docker-compose publikuoja valdymo skydelio / API / tiesioginio WS ryšio prievadus. Kai `REQUIRE_API_KEY=false` (numatytoji reikšmė), `0.0.0.0` atveria anoniminį `/v1` tarpinį serverį vietiniam tinklui — išplėskite prieigą tik nustatę `REQUIRE_API_KEY=true` arba naudodami išorinį atvirkštinį tarpinį serverį. | `127.0.0.1`                          |
+| `CLIPROXY_BIND_HOST`          | Pagrindinio kompiuterio sąsaja, kurioje docker-compose publikuoja pagalbinį `cliproxyapi` konteinerį — jo duomenų tome saugomi paslaugų teikėjų prisijungimo duomenys.                                                                                                                                                                                       | `127.0.0.1`                          |
+| `OMNIROUTE_PLUGINS_DIR`       | Katalogas, kurį nuskaito vykdymo aplinkos papildinių skaitytuvas ir kuriame diegiami papildiniai. Nustatykite jį, kai papildiniai prijungiami kaip bind tipo tomai: numatytoji reikšmė priklauso nuo `HOME`, kurio atvaizdas nebūtinai eksportuoja.                                                                                                          | `~/.omniroute/plugins`               |
+| `OMNIROUTE_BASE_PATH`         | URL antrinis kelias, kai programa publikuojama už atvirkštinio tarpinio serverio (pvz., `/omniroute`)                                                                                                                                                                                                                                                        | _(tuščia reikšmė = šakninis kelias)_ |
+| `NEXT_PUBLIC_BASE_URL`        | Viešoji naršyklės kilmės vieta, įskaitant antrinį kelią (pvz., `https://host/omniroute`)                                                                                                                                                                                                                                                                     | nenustatyta                          |
+| `PROD_DASHBOARD_PORT`         | Pagrindinio kompiuterio valdymo skydelio prievadas, skirtas `docker-compose.prod.yml`                                                                                                                                                                                                                                                                        | `20130`                              |
+| `CLIPROXYAPI_PORT`            | Pagrindinio kompiuterio prievadas, skirtas pagalbiniam `cliproxyapi` konteineriui                                                                                                                                                                                                                                                                            | `8317`                               |
 
 ## Atvirkštinis tarpinis serveris poaplankyje (Traefik / nginx)
 
@@ -478,27 +490,40 @@ Galinių taškų tunelių skydelius (Cloudflare, Tailscale, ngrok) galima rodyti
 
 ## Atvaizdų žymos
 
-| Atvaizdas                | Žyma     | Dydis  | Aprašas                                                  |
+| Atvaizdas                | Žyma     | Dydis  | Aprašymas                                                |
 | ------------------------ | -------- | ------ | -------------------------------------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Aukščiausia **paskelbta** stabili SemVer (ne git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps atveju fiksuokite šios klasės žymą                |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps naudokite fiksuotą šios klasės žymą               |
 
-Kelių platformų manifestas: vietiniai `linux/amd64` ir `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker automatiškai parenka atitinkamą architektūrą; jei ARM pagrindiniuose kompiuteriuose reikia priverstinai naudoti AMD64 emuliaciją, nurodykite `--platform linux/amd64`.
+Kelių platformų manifestas: savieji `linux/amd64` + `linux/arm64` atvaizdai („Apple Silicon“, „AWS Graviton“, „Raspberry Pi“). Docker automatiškai parenka tinkamą architektūrą; jei ARM pagrindiniuose kompiuteriuose reikia priverstinai naudoti AMD64 emuliaciją, nurodykite `--platform linux/amd64`.
 
 ### Leidimų kanalai
 
 OmniRoute skelbia atskirus Docker kanalus stabiliems leidimams, aktyvios leidimo šakos testavimui ir kūrimo versijoms.
 
-| Kanalas                         | Šaltinis                                 | Kintamumas                          | Rekomenduojamas naudojimas                                                                                                         |
-| ------------------------------- | ---------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Pasirašytas / versijuotas leidimas       | Nekintamas                          | Produkciniai diegimai, kuriuose fiksuojamas konkretus leidimas                                                                     |
-| `:latest` / `:latest-web`       | Aukščiausia **paskelbta** stabili SemVer | Kintama stabilios versijos rodyklė  | Seka stabilius leidimus **po** SemVer paskelbimo užduoties — **neseka** `main` ar neišleistų `release/v*` įsipareigojimų pakeitimų |
-| `:next` / `:next-web`           | Dabartinė numatytoji `release/v*` šaka   | Kintama išankstinio leidimo rodyklė | Pataisų, kurios pateko į aktyvią leidimo šaką, bet dar nėra stabiliame leidime, testavimas                                         |
-| `:main` / `:main-web`           | `main` šaka                              | Kintama kūrimo versijos rodyklė     | Tik kūrimui ir integraciniam testavimui                                                                                            |
+| Kanalas                         | Šaltinis                                 | Kintamumas                          | Rekomenduojamas naudojimas                                                                                              |
+| ------------------------------- | ---------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Pasirašytas / versijuotas leidimas       | Nekintamas                          | Produkciniai diegimai, kuriuose fiksuojamas konkretus leidimas                                                          |
+| `:latest` / `:latest-web`       | Aukščiausia **paskelbta** stabili SemVer | Kintama stabilios versijos rodyklė  | Seka stabilius leidimus **po** SemVer paskelbimo užduoties — **neseka** `main` ar dar neišleistų `release/v*` pakeitimų |
+| `:next` / `:next-web`           | Dabartinė numatytoji `release/v*` šaka   | Kintama išankstinio leidimo rodyklė | Pataisų, kurios jau įtrauktos į aktyvią leidimo šaką, bet dar nepateko į stabilų leidimą, testavimas                    |
+| `:main` / `:main-web`           | `main` šaka                              | Kintama kūrimo versijos rodyklė     | Tik kūrimo ir integravimo testavimui                                                                                    |
+
+#### Žiniatinklio seansų teikėjai: `-web` atvaizdai
+
+Kiekvienas anksčiau nurodytas kanalas taip pat turi `-web` žymą (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), sukurtą iš `runner-web` etapo — tai tas pats atvaizdas, papildytas Playwright ir Chromium naršykle. Įprastas atvaizdas pateikiamas **be** Chromium; jos reikia `gemini-web`, `claude-web` ir `claude-turnstile`.
+
+Klaida įvyksta ne paleidimo metu, o vėliau: šie teikėjai pateikia savo modelių sąrašus ir valdymo skydelyje rodomi kaip prisijungę, tačiau pirmoji užklausa nepavyksta ir pateikia:
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Jei naudojate šiuos teikėjus, atsisiųskite jau naudojamo kanalo `-web` žymą — daugiau niekas nesikeičia. Diegiant per npm / CLI (be Docker atvaizdo), trūkstamas komponentas yra naršyklės dvejetainis failas: pagrindiniame kompiuteryje paleiskite `npx playwright install chromium`.
 
 #### Išankstinio leidimo kanalo naudojimas
 
-`next` kanalas iš naujo sukuriamas po kiekvieno pakeitimų išsiuntimo į dabartinę numatytąją `release/v*` šaką ir skelbiamas tiek AMD64, tiek ARM64 architektūroms. Senesnės priežiūros šakos negali jo perrašyti. Šiame kanale pateikiamas atsisiunčiamas atvaizdas su pataisomis, kurios buvo sujungtos į aktyvią leidimo šaką prieš sukuriant kitą stabilią žymą.
+`next` kanalas iš naujo sukuriamas po kiekvieno pakeitimų išsiuntimo į dabartinę numatytąją `release/v*` šaką ir skelbiamas tiek AMD64, tiek ARM64 architektūroms. Senesnės priežiūros šakos negali jo perrašyti. Šis kanalas suteikia atsisiunčiamą atvaizdą pataisoms, kurios prieš sukuriant kitą stabilią žymą buvo sujungtos su aktyvia leidimo šaka.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
@@ -518,32 +543,32 @@ docker compose pull
 docker compose up -d
 ```
 
-#### Saugumas ir grąžinimas į ankstesnę versiją
+#### Saugumas ir ankstesnės versijos atkūrimas
 
-`next` yra slankusis išankstinio leidimo kanalas. Jis gali pasikeisti po bet kokio pakeitimų išsiuntimo į aktyvią leidimo šaką ir **nėra palaikomas produkciniam naudojimui**. Vertindami konkretų darinį, užfiksuokite atvaizdo maišos reikšmę:
+`next` yra kintamas išankstinio leidimo kanalas. Jis gali pasikeisti po bet kokio pakeitimų išsiuntimo į aktyvią leidimo šaką ir **nėra palaikomas produkciniam naudojimui**. Vertindami konkrečią versiją, užfiksuokite atvaizdo maišą:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Prieš testuodami sukurkite „OmniRoute“ duomenų tomo arba prijungto duomenų katalogo atsarginę kopiją. Norėdami grįžti prie ankstesnės versijos, atkurkite anksčiau naudotą stabilią versiją arba maišos identifikatorių ir iš naujo sukurkite konteinerį:
+Prieš testuodami sukurkite atsarginę OmniRoute duomenų tomo arba susieto duomenų katalogo kopiją. Norėdami grįžti prie ankstesnės versijos, atkurkite anksčiau naudotą stabilią versiją arba maišą ir iš naujo sukurkite konteinerį:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Leidimo šakos komponavimo versija niekada negali pakeisti `latest`; stabilią rodyklę gali atnaujinti tik tinkama stabili semantinė versija. `next` atvaizdams ir toliau taikoma leidimo atvaizdo patikra bei blokavimo taisyklė, neleidžianti naudoti atvaizdų su KRITINĖMIS pažeidžiamumo spragomis.
+Leidimo šakos versija niekada negali pakeisti `latest`; stabilios versijos rodyklę gali atnaujinti tik tinkama stabili semantinė versija. `next` atvaizdams taikoma leidimo atvaizdo patikra ir blokuojanti KRITINIŲ pažeidžiamumų patikra.
 
-**`latest` nėra „git“ aktualumo garantija.** Į `main` arba aktyvią `release/v*` šaką sulieti pataisymai **neįtraukiami** į `:latest`, kol nepaskelbiamas stabilios SemVer versijos atvaizdas ir publikavimo užduotis neatnaujina `:latest` (tas pats maišos identifikatorius kaip ir tos SemVer versijos). Jei atrodo, kad `latest` neatnaujinamas, nors „GitHub“ pataisą jau rodo, atsisiųskite `:next`, kad išbandytumėte leidimo šaką, arba palaukite SemVer žymos.
+**`latest` negarantuoja git naujausios būsenos.** Į `main` arba aktyvią `release/v*` šaką sujungtos pataisos **nepatenka** į `:latest`, kol nepaskelbiamas stabilus SemVer atvaizdas ir paskelbimo užduotis neatnaujina `:latest` (tas pats maišas kaip ir tos SemVer versijos). Jei atrodo, kad `latest` neatnaujinamas, nors GitHub jau rodo pataisą, atsisiųskite `:next`, kad išbandytumėte leidimo šaką, arba palaukite SemVer žymos.
 
-| Ko norite                                                                                         | Ką naudoti                                  |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| GitOps / produkcinė aplinka, kuri negali neplanuotai pasikeisti                                   | Susiekite su `:X.Y.Z` (arba atvaizdo maiša) |
-| Naudoti paskelbtas stabilias versijas ir sutikti iš naujo sukurti konteinerį po kiekvieno leidimo | `:latest`                                   |
-| Testuoti dar neišleistus `release/v*` pakeitimus                                                  | `:next` (ne produkcijai)                    |
-| Testuoti `main`                                                                                   | `:main` (ne produkcijai)                    |
+| Ko norite                                                                                       | Ką naudoti                                |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| GitOps / produkcinės aplinkos, kuri neturi savaime keistis                                      | Fiksuokite `:X.Y.Z` (arba atvaizdo maišą) |
+| Sekti paskelbtus stabilius leidimus ir po kiekvieno leidimo sutikti iš naujo sukurti konteinerį | `:latest`                                 |
+| Testuoti dar neišleistus `release/v*` pakeitimus                                                | `:next` (ne produkcinei aplinkai)         |
+| Testuoti `main`                                                                                 | `:main` (ne produkcinei aplinkai)         |
 
 ## Pasiekiamumas: numatytoji SQLite konfigūracija turi vieną repliką
 

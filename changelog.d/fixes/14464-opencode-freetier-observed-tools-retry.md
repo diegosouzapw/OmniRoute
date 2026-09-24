@@ -1,0 +1,1 @@
+- **fix(opencode):** free-tier requests refused on a small tool subset are retried once with previously accepted tool names appended ([#14464](https://github.com/diegosouzapw/OmniRoute/pull/14464)) — thanks @maxmad64bis

@@ -13,8 +13,20 @@ import { ANTIGRAVITY_PUBLIC_MODELS } from "../../open-sse/config/antigravityMode
 
 const serial = { concurrency: false };
 
-test("#12724 — shared base has exactly 10 models", serial, () => {
-  assert.equal(ANTIGRAVITY_SHARED_MODELS.length, 10);
+// The base grows with upstream launches (#13318 added the Gemini 3.8 Flash tiers), so
+// the invariant is "non-empty, unique ids, carries the tiers the deltas below remove" —
+// never a hard-coded size.
+const BASE_SIZE = ANTIGRAVITY_SHARED_MODELS.length;
+
+test("#12724 — shared base is non-empty with unique ids", serial, () => {
+  assert.ok(BASE_SIZE >= 10);
+  assert.equal(new Set(ANTIGRAVITY_SHARED_MODELS.map((m) => m.id)).size, BASE_SIZE);
+  for (const id of ["gemini-3.7-flash-high", "gemini-3.7-flash-medium"]) {
+    assert.ok(
+      ANTIGRAVITY_SHARED_MODELS.some((m) => m.id === id),
+      id
+    );
+  }
 });
 
 test("#12724 — agy catalog equals shared base (empty deltas)", serial, () => {
@@ -33,7 +45,7 @@ test("#12724 — buildSurfaceCatalog remove delta works", serial, () => {
   const subset = buildSurfaceCatalog(ANTIGRAVITY_SHARED_MODELS, {
     remove: ["gemini-3.7-flash-high"],
   });
-  assert.equal(subset.length, 9);
+  assert.equal(subset.length, BASE_SIZE - 1);
   assert.ok(!subset.some((m) => m.id === "gemini-3.7-flash-high"));
 });
 
@@ -41,7 +53,7 @@ test("#12724 — buildSurfaceCatalog add delta works", serial, () => {
   const extended = buildSurfaceCatalog(ANTIGRAVITY_SHARED_MODELS, {
     add: [{ id: "custom-model-v1", name: "Custom Model" }],
   });
-  assert.equal(extended.length, 11);
+  assert.equal(extended.length, BASE_SIZE + 1);
   assert.ok(extended.some((m) => m.id === "custom-model-v1"));
 });
 
@@ -50,7 +62,7 @@ test("#12724 — buildSurfaceCatalog with both add and remove", serial, () => {
     add: [{ id: "custom-model-v1", name: "Custom Model" }],
     remove: ["gemini-3.7-flash-high", "gemini-3.7-flash-medium"],
   });
-  assert.equal(mixed.length, 9); // 10 - 2 + 1
+  assert.equal(mixed.length, BASE_SIZE - 2 + 1);
   assert.ok(!mixed.some((m) => m.id === "gemini-3.7-flash-high"));
   assert.ok(mixed.some((m) => m.id === "custom-model-v1"));
 });

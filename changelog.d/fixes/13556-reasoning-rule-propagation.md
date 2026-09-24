@@ -1,1 +1,0 @@
-- **fix(routing):** Preserve forced reasoning effort across native requests, account defaults and combo fallbacks while keeping internal routing directives out of upstream payloads. ([#13556](https://github.com/diegosouzapw/OmniRoute/pull/13556)) — thanks @JxnLexn

@@ -1,1 +1,0 @@
-- fix(build): externalize @modelcontextprotocol/sdk in standalone server webpack config to prevent TDZ ReferenceError on MCP initialize (#13859)

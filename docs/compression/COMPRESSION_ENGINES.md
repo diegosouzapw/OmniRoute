@@ -11,16 +11,16 @@ OmniRoute compression is built around engine contracts. A mode can run one engin
 
 ## Modes
 
-| Mode         | Engine path                        | Intended input                               |
-| ------------ | ---------------------------------- | -------------------------------------------- |
-| `off`        | none                               | Exact prompt preservation                    |
-| `lite`       | Caveman lite helpers               | Low-risk always-on cleanup                   |
-| `standard`   | Caveman                            | Natural-language prompt condensation         |
-| `aggressive` | Caveman + history/tool summarizers | Long chat sessions                           |
-| `ultra`      | Caveman + pruning helpers          | Context-limit recovery                       |
-| `rtk`        | RTK                                | Terminal, shell, build, test, and git output |
-| `omniglyph`  | OmniGlyph                          | Context-as-image on the native provider wire |
-| `stacked`    | Pipeline, default `rtk -> caveman` | Mixed tool logs and prose, max savings       |
+| Mode         | Engine path                                                                           | Intended input                               |
+| ------------ | ------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `off`        | none                                                                                  | Exact prompt preservation                    |
+| `lite`       | Caveman lite helpers                                                                  | Low-risk always-on cleanup                   |
+| `standard`   | Caveman                                                                               | Natural-language prompt condensation         |
+| `aggressive` | Caveman + history/tool summarizers                                                    | Long chat sessions                           |
+| `ultra`      | Caveman + pruning helpers                                                             | Context-limit recovery                       |
+| `rtk`        | RTK                                                                                   | Terminal, shell, build, test, and git output |
+| `omniglyph`  | OmniGlyph                                                                             | Context-as-image on the native provider wire |
+| `stacked`    | Pipeline. The request default is `session-dedup -> lite`. `rtk -> caveman` is opt-in. | Mixed tool logs and prose, max savings       |
 
 ### OmniGlyph compression profiles
 

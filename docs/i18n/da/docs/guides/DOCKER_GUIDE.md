@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Dansk)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -71,20 +71,24 @@ docker compose --profile cli up -d
 # Værtsprofil (primært til Linux; monterer værtens CLI-binære filer skrivebeskyttet)
 docker compose --profile host up -d
 
+# Webprofil (Chromium/Playwright til websessionsudbydere)
+docker compose --profile web up -d
+
 # Kombiner CLI + CLIProxyAPI-sidecar
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Tilgængelige profiler
 
-OmniRoute leveres med fire Compose-profiler. Vælg den, der passer til dit miljø.
+OmniRoute leveres med Compose-profiler til de primære implementeringsformer. Vælg den, der passer til dit miljø.
 
-| Profil            | Tjeneste         | Hvornår den skal bruges                                                                                                                                | Kommando                                     |
-| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| `base` (standard) | `omniroute-base` | Headless-server/minimal kørsel uden medfølgende CLI'er fra udbydere                                                                                    | `docker compose --profile base up -d`        |
-| `cli`             | `omniroute-cli`  | Agentbaserede workflows, der kalder `omniroute providers/setup/doctor`, samt medfølgende CLI'er (Codex, Claude Code, Droid, OpenClaw)                  | `docker compose --profile cli up -d`         |
-| `host`            | `omniroute-host` | Linux-værter, der ønsker `network_mode`-lignende adgang til værtens CLI'er ved at montere `~/.local/bin`, `~/.codex`, `~/.claude` osv. skrivebeskyttet | `docker compose --profile host up -d`        |
-| `cliproxyapi`     | `cliproxyapi`    | Kør [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)-sidecaren på port `8317` til proxying af upstream-CLI'er                               | `docker compose --profile cliproxyapi up -d` |
+| Profil            | Tjeneste         | Hvornår den skal bruges                                                                                                                              | Kommando                                     |
+| ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (standard) | `omniroute-base` | Server uden grafisk brugerflade/minimal kørsel, ingen udbyder-CLI'er inkluderet                                                                      | `docker compose --profile base up -d`        |
+| `cli`             | `omniroute-cli`  | Agentbaserede arbejdsgange, der kalder `omniroute providers/setup/doctor` og inkluderede CLI'er (Codex, Claude Code, Droid, OpenClaw)                | `docker compose --profile cli up -d`         |
+| `host`            | `omniroute-host` | Linux-værter, der ønsker `network_mode`-lignende adgang til værts-CLI'er ved at montere `~/.local/bin`, `~/.codex`, `~/.claude` osv. skrivebeskyttet | `docker compose --profile host up -d`        |
+| `cliproxyapi`     | `cliproxyapi`    | Kør [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) som sidecar på port `8317` til proxying af opstrøms-CLI'er                           | `docker compose --profile cliproxyapi up -d` |
+| `web`             | `omniroute-web`  | Websessionsudbydere, der kræver en browser: `gemini-web`, `claude-web`, `claude-turnstile` (bygger `runner-web`, Chromium inkluderet)                | `docker compose --profile web up -d`         |
 
 > Flere profiler kan kombineres: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -233,51 +237,53 @@ Produktionsstacken kører parallelt med Compose-udviklingsmiljøet (med forskell
 
 ## Dockerfile-faser
 
-Repositoryet leveres med en flertrins-Dockerfile (`Dockerfile`). Tre faser er tilgængelige; vælg det rette `target` til dit anvendelsestilfælde.
+Repositoryet leveres med en flerfaset Dockerfile (`Dockerfile`). Fire faser er eksponeret; vælg det rette `target` til dit anvendelsestilfælde.
 
-| Fase          | Basis-image           | Formål                                                                                                                                                                          |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Installerer afhængigheder (`npm ci --legacy-peer-deps`) og kører `npm run build` (Turbopack som standard — se Ressourcer ved build nedenfor)                                    |
-| `runner-base` | `node:26-trixie-slim` | Produktionsmiljø med Next.js' selvstændige output. **Ingen udbyder-CLI'er inkluderet.**                                                                                         |
-| `runner-cli`  | `runner-base`         | Tilføjer `git`, `docker.io`, `docker-compose` og globale CLI'er: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Vælg denne til agentbaserede workflows.** |
+| Fase          | Basisimage            | Formål                                                                                                                                                                                                                                                                                                |
+| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Installerer afhængigheder (`npm ci --legacy-peer-deps`) og kører `npm run build` (Turbopack som standard — se Ressourcer ved build nedenfor)                                                                                                                                                          |
+| `runner-base` | `node:26-trixie-slim` | Produktionskørsel med det selvstændige output fra Next.js. **Ingen CLI'er fra udbydere medfølger.**                                                                                                                                                                                                   |
+| `runner-cli`  | `runner-base`         | Tilføjer `git`, `docker.io`, `docker-compose` og globale CLI'er: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Vælg denne til agentbaserede arbejdsgange.**                                                                                                                    |
+| `runner-web`  | `runner-base`         | Tilføjer Playwright + en Chromium-browser (`--with-deps`) til websessionsudbydere: `gemini-web`, `claude-web`, `claude-turnstile`. **Vælg denne, når du bruger disse udbydere** — det almindelige image fejler på anmodningstidspunktet uden den (se bemærkningen om `-web` under Udgivelseskanaler). |
 
-Byg et specifikt target manuelt:
+Byg et bestemt target manuelt:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Ressourcer ved build
 
-Tre build-argumenter styrer, hvor mange ressourcer `builder`-fasen bruger. De gælder kun under build —
-`OMNIROUTE_MEMORY_MB` (nedenfor) er en separat indstilling for runtime.
+Tre build-argumenter styrer ressourceforbruget i `builder`-fasen. De gælder kun ved build —
+`OMNIROUTE_MEMORY_MB` (nedenfor) er en separat indstilling til kørselstidspunktet.
 
-| Build-argument              | Standard | Effekt                                                                                  |
-| --------------------------- | -------- | --------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` bygger med webpack i stedet. Lavere maksimal hukommelse, men langsommere.           |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | V8-heapgrænse (`--max-old-space-size`) for den startede `next build`.                   |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Angiver `CIRCLE_NODE_TOTAL`; Next udleder `workers = N - 1` til indsamling af sidedata. |
+| Build-argument              | Standard | Effekt                                                                                   |
+| --------------------------- | -------- | ---------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` bygger med webpack i stedet. Lavere spidsbelastning af hukommelsen, men langsommere. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | V8's heapgrænse (`--max-old-space-size`) for den startede `next build`.                  |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Føder `CIRCLE_NODE_TOTAL`; Next udleder `workers = N - 1` til indsamling af sidedata.    |
 
-`OMNIROUTE_BUILD_WORKERS` er den, der skal øges på en kraftig build-maskine, og den,
-der bør mistænkes, når et ressourcebegrænset build fejler **efter** `✓ Compiled successfully`. Hver
-worker til sidedata er sin egen proces, og det samme gælder den overordnede `next build`;
-en live-reproduktion på en VPS (problem #7518) målte hver proces' maksimale RSS til
-~4.5 GB uafhængigt af heap-flaget `NODE_OPTIONS` (Turbopack kompilerer i
-native/Rust-hukommelse uden for V8-heapen). Standardværdien `2` (→ 1 worker, 2
-processer i alt) er dimensioneret til de GitHub-hostede runners med 16 GB / 4 vCPU, som
-udgivelsespipelinen bruger. Ved `8` (→ 7 workers) løb denne runner tør for hukommelse, og
+`OMNIROUTE_BUILD_WORKERS` er den, der skal øges på en stor build-maskine, og den,
+der bør mistænkes, når et build med begrænsede ressourcer dør **efter** `✓ Compiled successfully`. Hver
+sidedata-worker er sin egen proces, og det samme gælder den overordnede `next build`;
+en live-gengivelse på en VPS (issue #7518) målte hver proces' maksimale RSS til
+~4,5 GB uafhængigt af heap-flaget `NODE_OPTIONS` (Turbopack kompilerer i
+nativ/Rust-hukommelse uden for V8-heapen). Standardværdien `2` (→ 1 worker, i alt 2
+processer) er dimensioneret til de GitHub-hostede runners med 16 GB/4 vCPU, som
+udgivelsespipelinen bruger. Ved `8` (→ 7 workers) løb den pågældende runner tør for hukommelse, og
 buildkit lod trinnet fejle med `ResourceExhausted: ... cannot allocate memory`;
 `3` (→ 2 workers) passede stadig ikke, da RSS pr. proces blev målt
-direkte i stedet for estimeret. `tests/unit/docker-build-memory-budget.test.ts`
+direkte i stedet for udledt. `tests/unit/docker-build-memory-budget.test.ts`
 foretager beregningen ud fra det målte tal og fejler, hvis en af indstillingerne
 vokser ud over runnerens kapacitet.
 
-Turbopack kompilerer i native Rust-hukommelse, der ligger **uden for** V8-heapen, så
+Turbopack kompilerer i nativ Rust-hukommelse, som ligger **uden for** V8-heapen, så
 `OMNIROUTE_BUILD_MEMORY_MB` begrænser den ikke. På en vært med en hukommelsesgrænse bliver
-buildet derfor SIGKILL'et af OOM-killeren helt uden fejltekst — det stopper ganske enkelt
-midt i `Creating an optimized production build`, hvilket ligner, at processen hænger,
-snarere end at hukommelsen er opbrugt. Hvis build-værten har begrænsede ressourcer, skal du skifte bundler:
+buildet derfor SIGKILL'et af OOM-processen uden nogen fejltekst overhovedet — det
+stopper ganske enkelt midt i `Creating an optimized production build`, hvilket ligner et hængende build snarere
+end mangel på hukommelse. Hvis build-værten har begrænsede ressourcer, skal du skifte bundler:
 
 ```bash
 docker build --target runner-base \
@@ -287,17 +293,17 @@ docker build --target runner-base \
 
 `webpackBuildWorker` er aktiveret, så `next build` kører en overordnet proces **og** en worker-proces,
 og hver af dem overholder `OMNIROUTE_BUILD_MEMORY_MB` separat. Sæt containerens
-grænse til mere end omtrent det dobbelte af denne værdi, ikke blot selve værdien.
+grænse til mere end omtrent det dobbelte af denne værdi, ikke kun én gang værdien.
 
 Målt på dette træ (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Containergrænse | Resultat                              |
-| --------- | --------------- | ------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB  | OOM-dræbt ved begge, uden fejlmelding |
-| webpack   | 8 GiB           | build-worker blev SIGKILL'et          |
-| webpack   | 12 GiB          | gennemført, toppede ved 11.1 GiB      |
+| Bundler   | Containergrænse | Resultat                         |
+| --------- | --------------- | -------------------------------- |
+| Turbopack | 8 GiB / 16 GiB  | OOM-dræbt ved begge, uden besked |
+| webpack   | 8 GiB           | build-worker SIGKILL'et          |
+| webpack   | 12 GiB          | lykkedes, toppede ved 11,1 GiB   |
 
-### Standardindstillinger for runtime
+### Standardværdier ved kørsel
 
 Standardværdier eksporteret af `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
@@ -305,23 +311,23 @@ Hukommelsesadfærd i Docker:
 
 - Imaget angiver `OMNIROUTE_MEMORY_MB=1024` og udleder `NODE_OPTIONS=--max-old-space-size=1024` derfra.
 - Den faktiske serverproces startes af den selvstændige launcher, som læser `OMNIROUTE_MEMORY_MB` og tilføjer `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node bruger den sidste gentagne værdi for `--max-old-space-size`, så indstilling af `OMNIROUTE_MEMORY_MB` styrer den effektive Docker-heapgrænse.
-- Da imaget altid angiver den, anvendes launcherens egen RAM-kalibrerede fallback aldrig under Docker. Hæv den eksplicit til workloaden (se tabellen nedenfor). `2048` er stadig for lidt til coding-agent-`/v1/responses`.
+- Node bruger den sidste gentagne `--max-old-space-size`-værdi, så indstilling af `OMNIROUTE_MEMORY_MB` styrer den effektive Docker-heapgrænse.
+- Da imaget altid angiver den, anvendes launcherens eget RAM-kalibrerede fallback aldrig under Docker. Forøg den eksplicit til arbejdsbelastningen (se tabellen nedenfor). `2048` er stadig for lidt til coding-agent-`/v1/responses`.
 
-### Runtime-RAM til coding-agenter
+### Runtime-RAM til coding agents
 
-Docker-standardværdien på 1 GiB er et minimum til dashboard/let chat, ikke en produktionsstørrelse. Lange `POST /v1/responses`-request-bodies (hundredvis af beskeder, snesevis af værktøjer) fastholder flere grafer i hukommelsen under komprimering. To overlappende requests på ~3 MiB / ~750k tokens har afbrudt V8 ved **12 GiB** old-space (`FATAL ERROR: Reached heap limit`) og har også ramt en cgroup-OOM ved 16 GiB. Se [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Docker-standarden på 1 GiB er et minimum til dashboard og let chat, ikke en størrelse til produktion. Lange `POST /v1/responses`-payloads (hundredvis af meddelelser, snesevis af værktøjer) bevarer flere grafer i hukommelsen under komprimering. To overlappende forespørgsler på ca. 3 MiB / ca. 750.000 tokens har fået V8 til at afbryde ved **12 GiB** old-space (`FATAL ERROR: Reached heap limit`) og har også ramt en 16 GiB cgroup-OOM. Se [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Sæt **cgroup-`--memory` højere end heapen** — native buffere, SQLite og komprimeringsmellemresultater ligger uden for V8.
+Dimensionér **cgroup-`--memory` højere end heapen** — native buffere, SQLite og mellemliggende komprimeringsdata ligger uden for V8.
 
-| Arbejdsbelastning                  | `OMNIROUTE_MEMORY_MB`  | Container / cgroup    | Bemærkninger                                                                                                          |
-| ---------------------------------- | ---------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Dashboard, én let chat             | `1024` (standardimage) | ≥2 GiB                |                                                                                                                       |
-| Én kodeagent (Claude/Codex/Grok)   | `8192`                 | ≥10 GiB               | Typisk `/v1/responses` med én session                                                                                 |
-| To samtidige lange `/v1/responses` | `10240`–`12288`        | ≥12–16 GiB            | Målt V8-afbrydelse ved en heap på ~12 GiB                                                                             |
-| Tre+ samtidige lange kontekster    | undgå i én proces      | serialiser / mere RAM | Standardgrænsen for ressourcekrævende anmodninger er 1 igangværende; hæves den uden mere RAM, opstår afbrydelsen igen |
+| Arbejdsbelastning                          | `OMNIROUTE_MEMORY_MB`    | Container / cgroup    | Bemærkninger                                                                                                   |
+| ------------------------------------------ | ------------------------ | --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Dashboard, én let chat                     | `1024` (image-standard)  | ≥2 GiB                |                                                                                                                |
+| Én coding agent (Claude/Codex/Grok)        | `8192`                   | ≥10 GiB               | Typisk `/v1/responses` med én session                                                                          |
+| To samtidige lange `/v1/responses`         | `10240`–`12288`          | ≥12–16 GiB            | Målt V8-afbrydelse ved ca. 12 GiB heap                                                                         |
+| Tre eller flere samtidige lange kontekster | gør det ikke i én proces | serialiser / mere RAM | Standardgrænsen for tunge igangværende forespørgsler er 1; at hæve den uden mere RAM medfører afbrydelsen igen |
 
-`omniroute serve` på bare metal kalibrerer til ~35 % af RAM (begrænset til `[512, 4096]`), når `OMNIROUTE_MEMORY_MB` **ikke er angivet**. Docker angiver altid `1024`, så denne kalibrering køres aldrig i det officielle image.
+`omniroute serve` på bare metal kalibrerer til ca. 35 % af RAM (begrænset til `[512, 4096]`), når `OMNIROUTE_MEMORY_MB` **ikke er angivet**. Docker angiver altid `1024`, så denne kalibrering køres aldrig i det officielle image.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -331,24 +337,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Kritiske miljøvariabler
 
-Ud over standardværdierne, der er dokumenteret i [ENVIRONMENT.md](../reference/ENVIRONMENT.md), er følgende variabler vigtigst ved kørsel under Docker:
+Ud over standardværdierne, der er dokumenteret i [ENVIRONMENT.md](../reference/ENVIRONMENT.md), er følgende variabler de vigtigste ved kørsel under Docker:
 
-| Variabel                      | Formål                                                                                                                                                                                                                                                            | Standardværdi               |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Delt hemmelighed til WebSocket-broen. **Påkrævet i produktion** — angiv en stærk, tilfældig streng.                                                                                                                                                               | ikke angivet (skal angives) |
-| `REDIS_URL`                   | Forbindelsesstreng til backend for hastighedsbegrænsning/cache                                                                                                                                                                                                    | `redis://redis:6379`        |
-| `REDIS_PORT`                  | Port på værtssiden til den medfølgende Redis-container                                                                                                                                                                                                            | `6379`                      |
-| `REDIS_BIND_HOST`             | Værtsgrænseflade, som den medfølgende Redis-port publiceres på (loopback, medmindre du tilføjer AUTH)                                                                                                                                                             | `127.0.0.1`                 |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Værtssti, der monteres i `cli`-profilen på `/workspace/omniroute` til arbejdsgange for selvopdatering                                                                                                                                                             | `.` (aktuel mappe)          |
-| `OMNIROUTE_MEMORY_MB`         | Øvre grænse for Node-heap ved kørsel af den selvstændige Docker-server; tilsidesætter standardværdien for imaget ovenfor. Kodningsagenter: `8192`+ (se [RAM ved kørsel](#runtime-ram-for-coding-agents)).                                                         | `1024`                      |
-| `DASHBOARD_PORT` / `API_PORT` | Tilsidesæt eksponerede porte for dashboard (20128) og API (20129)                                                                                                                                                                                                 | `20128` / `20129`           |
-| `APP_BIND_HOST`               | Værtsgrænseflade, som docker-compose publicerer dashboard-/API-/live-WS-portene på. Med `REQUIRE_API_KEY=false` (standarden) eksponerer `0.0.0.0` den anonyme `/v1`-proxy på LAN'et — udvid kun adgangen med `REQUIRE_API_KEY=true` eller en reverse proxy foran. | `127.0.0.1`                 |
-| `CLIPROXY_BIND_HOST`          | Værtsgrænseflade, som docker-compose publicerer `cliproxyapi`-sidecar-containeren på — dens datadiskenhed indeholder udbyderlegitimationsoplysninger.                                                                                                             | `127.0.0.1`                 |
-| `OMNIROUTE_PLUGINS_DIR`       | Mappe, som plugin-scanneren ved kørsel læser fra og installerer i. Angiv den, når plugins bind-monteres: Standarden følger `HOME`, som et image ikke nødvendigvis eksporterer.                                                                                    | `~/.omniroute/plugins`      |
-| `OMNIROUTE_BASE_PATH`         | URL-understi, når appen publiceres bag en reverse proxy (f.eks. `/omniroute`)                                                                                                                                                                                     | _(tom = rod)_               |
-| `NEXT_PUBLIC_BASE_URL`        | Offentlig browseroprindelse inklusive understien (f.eks. `https://host/omniroute`)                                                                                                                                                                                | ikke angivet                |
-| `PROD_DASHBOARD_PORT`         | Dashboardport på værtssiden til `docker-compose.prod.yml`                                                                                                                                                                                                         | `20130`                     |
-| `CLIPROXYAPI_PORT`            | Port på værtssiden til `cliproxyapi`-sidecar-containeren                                                                                                                                                                                                          | `8317`                      |
+| Variabel                      | Formål                                                                                                                                                                                                                                                             | Standardværdi               |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Delt hemmelighed til WebSocket-broen. **Påkrævet i produktion** — angiv en stærk, tilfældig streng.                                                                                                                                                                | ikke angivet (skal angives) |
+| `REDIS_URL`                   | Forbindelsesstreng til backend for hastighedsbegrænsning/cache                                                                                                                                                                                                     | `redis://redis:6379`        |
+| `REDIS_PORT`                  | Port på værten til den medfølgende Redis-container                                                                                                                                                                                                                 | `6379`                      |
+| `REDIS_BIND_HOST`             | Værtsgrænseflade, som den medfølgende Redis-port publiceres på (loopback, medmindre du tilføjer AUTH)                                                                                                                                                              | `127.0.0.1`                 |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Værtssti, der monteres i `cli`-profilen på `/workspace/omniroute` til arbejdsgange for selvopdatering                                                                                                                                                              | `.` (aktuel mappe)          |
+| `OMNIROUTE_MEMORY_MB`         | Øvre grænse for Node-heap under kørsel for den selvstændige Docker-server; tilsidesætter standardværdien for imaget ovenfor. Kodningsagenter: `8192`+ (se [RAM under kørsel](#runtime-ram-for-coding-agents)).                                                     | `1024`                      |
+| `DASHBOARD_PORT` / `API_PORT` | Tilsidesætter eksponerede porte for dashboardet (20128) og API'en (20129)                                                                                                                                                                                          | `20128` / `20129`           |
+| `APP_BIND_HOST`               | Værtsgrænseflade, som docker-compose publicerer dashboard-/API-/live-WS-portene på. Med `REQUIRE_API_KEY=false` (standarden) eksponerer `0.0.0.0` den anonyme `/v1`-proxy til LAN'et — udvid kun adgangen med `REQUIRE_API_KEY=true` eller en reverse proxy foran. | `127.0.0.1`                 |
+| `CLIPROXY_BIND_HOST`          | Værtsgrænseflade, som docker-compose publicerer `cliproxyapi`-sidecar-containeren på — dens datavolumen indeholder udbyderlegitimationsoplysninger.                                                                                                                | `127.0.0.1`                 |
+| `OMNIROUTE_PLUGINS_DIR`       | Mappe, som plugin-scanneren under kørsel læser fra og installerer i. Angiv den, når plugins monteres med bind mount: Standarden følger `HOME`, som et image ikke nødvendigvis eksporterer.                                                                         | `~/.omniroute/plugins`      |
+| `OMNIROUTE_BASE_PATH`         | URL-understi, når appen publiceres bag en reverse proxy (f.eks. `/omniroute`)                                                                                                                                                                                      | _(tom = rod)_               |
+| `NEXT_PUBLIC_BASE_URL`        | Offentlig browser-origin inklusive understien (f.eks. `https://host/omniroute`)                                                                                                                                                                                    | ikke angivet                |
+| `PROD_DASHBOARD_PORT`         | Dashboardport på værten til `docker-compose.prod.yml`                                                                                                                                                                                                              | `20130`                     |
+| `CLIPROXYAPI_PORT`            | Port på værten til `cliproxyapi`-sidecar-containeren                                                                                                                                                                                                               | `8317`                      |
 
 ## Reverse proxy på en understi (Traefik / nginx)
 
@@ -485,29 +491,42 @@ Endpointets tunnelpaneler (Cloudflare, Tailscale, ngrok) kan vises eller skjules
 | `diegosouzapw/omniroute` | `latest` | ~250MB    | Højeste **udgivne** stabile SemVer (ikke git `main`) |
 | `diegosouzapw/omniroute` | `3.8.0`  | ~250MB    | Fastlås denne type tag til GitOps                    |
 
-Manifest til flere platforme: integreret `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker vælger automatisk den matchende arkitektur; angiv `--platform linux/amd64`, hvis du har brug for at gennemtvinge AMD64-emulering på ARM-værter.
+Manifest til flere platforme: oprindelig `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker vælger automatisk den matchende arkitektur; angiv `--platform linux/amd64`, hvis du vil gennemtvinge AMD64-emulering på ARM-værter.
 
 ### Udgivelseskanaler
 
 OmniRoute udgiver separate Docker-kanaler til stabile udgivelser, test af den aktive udgivelsesgren og udviklingsbuilds.
 
-| Kanal                           | Kilde                              | Ændringsmulighed                | Anbefalet brug                                                                                                               |
-| ------------------------------- | ---------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Signeret/versioneret udgivelse     | Uforanderlig                    | Produktionsimplementeringer, der fastlåser en præcis udgivelse                                                               |
-| `:latest` / `:latest-web`       | Højeste **udgivne** stabile SemVer | Foranderlig stabil reference    | Følger stabile udgivelser **efter** et SemVer-udgivelsesjob — følger **ikke** `main` eller ikke-udgivne `release/v*`-commits |
-| `:next` / `:next-web`           | Aktuel standardgren `release/v*`   | Foranderlig prereference        | Test af rettelser, der er landet på den aktive udgivelsesgren, men endnu ikke indgår i en stabil udgivelse                   |
-| `:main` / `:main-web`           | Grenen `main`                      | Foranderlig udviklingsreference | Kun udviklings- og integrationstest                                                                                          |
+| Kanal                           | Kilde                              | Foranderlighed                | Anbefalet brug                                                                                                                   |
+| ------------------------------- | ---------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Signeret/versioneret udgivelse     | Uforanderlig                  | Produktionsinstallationer, der er fastlåst til en specifik udgivelse                                                             |
+| `:latest` / `:latest-web`       | Højeste **udgivne** stabile SemVer | Foranderlig stabil markør     | Følger stabile udgivelser **efter** et SemVer-udgivelsesjob — følger **ikke** `main` eller ikke-udgivne commits fra `release/v*` |
+| `:next` / `:next-web`           | Aktuel standardgren `release/v*`   | Foranderlig prerelease-markør | Test af rettelser, der er landet på den aktive udgivelsesgren, men endnu ikke er inkluderet i en stabil udgivelse                |
+| `:main` / `:main-web`           | Grenen `main`                      | Foranderlig udviklingsmarkør  | Kun til udviklings- og integrationstest                                                                                          |
+
+#### Udbydere af websessioner: `-web`-images
+
+Hver kanal ovenfor findes også som et `-web`-tag (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), der er bygget fra stadiet `runner-web` — det samme image plus Playwright og en Chromium-browser. Det almindelige image leveres **uden** Chromium; `gemini-web`, `claude-web` og `claude-turnstile` kræver den.
+
+Fejlen er udskudt og opstår ikke ved opstart: Disse udbydere viser deres modeller og fremstår som forbundne i kontrolpanelet, og først den første anmodning mislykkes med
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Hvis du bruger disse udbydere, skal du hente `-web`-tagget for den kanal, du allerede bruger — intet andet ændres. Ved en npm/CLI-installation (uden Docker-image) er den tilsvarende manglende del browserens binære fil: Kør `npx playwright install chromium` på værten.
 
 #### Brug af prerelease-kanalen
 
-Kanalen `next` genbygges ved hvert push til den aktuelle `release/v*`-standardgren og udgives til både AMD64 og ARM64. Ældre vedligeholdelsesgrene kan ikke overskrive den. Kanalen leverer et image, der kan hentes, med rettelser, som er blevet flettet ind i den aktive udgivelsesgren, før det næste stabile tag oprettes.
+Kanalen `next` genbygges ved hvert push til den aktuelle standardgren `release/v*` og udgives til både AMD64 og ARM64. Ældre vedligeholdelsesgrene kan ikke overskrive den. Kanalen leverer et image, der kan hentes, med rettelser, som er blevet flettet ind i den aktive udgivelsesgren, før det næste stabile tag oprettes.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-For Docker Compose skal du tilsidesætte det image-tag, der bruges af den valgte profil, og derefter hente og genoprette tjenesten:
+For Docker Compose skal du tilsidesætte det image-tag, der bruges af den valgte profil, og derefter hente imaget og genoprette tjenesten:
 
 ```yaml
 services:
@@ -529,23 +548,23 @@ docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Før test skal du sikkerhedskopiere OmniRoutes datavolumen eller bind-monterede datamappe. For at rulle tilbage skal du gendanne den tidligere anvendte stabile version eller digest og genoprette containeren:
+Før test skal du sikkerhedskopiere OmniRoutes datadiskenhed eller den bind-monterede datamappe. For at rulle tilbage skal du gendanne den tidligere anvendte stabile version eller digest og genoprette containeren:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Et build fra en release-branch kan aldrig flytte `latest`; kun en kvalificeret stabil semantisk version kan opdatere den stabile reference. `next`-images bevarer inspektionen af release-imaget og den blokerende kontrol for CRITICAL-sårbarheder.
+Et build fra en udgivelsesgren kan aldrig flytte `latest`; kun en kvalificeret stabil semantisk version kan opdatere den stabile markør. `next`-images bevarer kontrollen af udgivelsesimaget og den blokerende kontrol for KRITISKE sårbarheder.
 
-**`latest` er ikke en aktualitetsgaranti for git.** Mergede rettelser på `main` eller på den aktive `release/v*`-branch er **ikke** i `:latest`, før et stabilt SemVer-image er udgivet, og udgivelsesjobbet opdaterer `:latest` (samme digest som den pågældende SemVer). Hvis `latest` ser ud til at være fastlåst, mens GitHub allerede viser rettelsen, skal du hente `:next` for at teste release-branchen eller vente på SemVer-tagget.
+**`latest` er ikke en garanti for, at git-versionen er aktuel.** Sammenflettede rettelser på `main` eller den aktive `release/v*`-gren er **ikke** inkluderet i `:latest`, før et stabilt SemVer-image udgives, og udgivelsesjobbet opdaterer `:latest` (samme digest som den pågældende SemVer). Hvis `latest` ser ud til at være fastfrosset, mens GitHub allerede viser rettelsen, skal du hente `:next` for at teste udgivelsesgrenen eller vente på SemVer-tagget.
 
-| Du ønsker                                                                       | Brug                                        |
-| ------------------------------------------------------------------------------- | ------------------------------------------- |
-| GitOps/produktion, der ikke må ændre sig utilsigtet                             | Fastlås til `:X.Y.Z` (eller image-digesten) |
-| Følg udgivne stabile versioner, og acceptér en genoprettelse ved hver udgivelse | `:latest`                                   |
-| Test ikke-udgivne commits på `release/v*`                                       | `:next` (ikke til produktion)               |
-| Test `main`                                                                     | `:main` (ikke til produktion)               |
+| Du ønsker                                                                        | Brug                                    |
+| -------------------------------------------------------------------------------- | --------------------------------------- |
+| GitOps/produktion, der ikke må ændre sig                                         | Fastlås `:X.Y.Z` (eller image-digesten) |
+| Følge udgivne stabile versioner og acceptere en genoprettelse ved hver udgivelse | `:latest`                               |
+| Teste ikke-udgivne commits fra `release/v*`                                      | `:next` (ikke til produktion)           |
+| Teste `main`                                                                     | `:main` (ikke til produktion)           |
 
 ## Tilgængelighed: SQLite-standarden har én replika
 

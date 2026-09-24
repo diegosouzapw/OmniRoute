@@ -16,7 +16,24 @@ import { getProviderCategory, getRegistryEntry } from "../config/providerRegistr
 const LEGIT_EMPTY_CLAUDE_STOP = new Set(["max_tokens", "tool_use"]);
 const LEGIT_EMPTY_OPENAI_FINISH = new Set(["length", "tool_calls", "content_filter"]);
 
-export function isEmptyContentResponse(responseBody: unknown): boolean {
+// #14160: first-party APIs where an empty completion carrying a NORMAL terminal
+// stop reason ("stop" / "end_turn") is a real answer — some prompts legitimately
+// produce no text — not a disguised upstream failure. The fake-success guard
+// exists for free-tier/scraping providers (pollinations, perplexity-web — #13461)
+// whose failure mode is an empty 200 shell; flagging a first-party empty stop
+// turned valid answers into synthetic 502s that fed model lockout and drained
+// the reporter's whole connection pool. Providers outside this set keep the
+// guard unchanged, including on empty stop completions.
+const TRUSTED_EMPTY_STOP_PROVIDERS = new Set(["antigravity"]);
+const NORMAL_STOP_OPENAI_FINISH = new Set(["stop"]);
+const NORMAL_STOP_CLAUDE_STOP = new Set(["end_turn"]);
+
+export function isEmptyContentResponse(
+  responseBody: unknown,
+  opts?: { provider?: string | null }
+): boolean {
+  const trustedEmptyStop =
+    typeof opts?.provider === "string" && TRUSTED_EMPTY_STOP_PROVIDERS.has(opts.provider);
   if (!responseBody || typeof responseBody !== "object") return false;
 
   const body = responseBody as Record<string, unknown>;
@@ -47,6 +64,10 @@ export function isEmptyContentResponse(responseBody: unknown): boolean {
     const finishReason =
       typeof firstChoice.finish_reason === "string" ? firstChoice.finish_reason : "";
     if (LEGIT_EMPTY_OPENAI_FINISH.has(finishReason)) return false;
+    // #14160: on a trusted first-party API, an empty completion that stopped
+    // normally is a valid answer — pass it through as a 200 instead of
+    // rewriting it into a synthetic 502.
+    if (trustedEmptyStop && NORMAL_STOP_OPENAI_FINISH.has(finishReason)) return false;
 
     return !hasContent && !hasReasoning && !hasToolCalls;
   }
@@ -57,6 +78,8 @@ export function isEmptyContentResponse(responseBody: unknown): boolean {
     // to emit a tool_use block) is a legitimate terminal state, not a silent
     // failure. Only flag empty content when no such terminal stop_reason is present.
     const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
+    // #14160: same exemption for the Claude wire shape on trusted first-party APIs.
+    if (trustedEmptyStop && NORMAL_STOP_CLAUDE_STOP.has(stopReason)) return false;
     return !LEGIT_EMPTY_CLAUDE_STOP.has(stopReason);
   }
 

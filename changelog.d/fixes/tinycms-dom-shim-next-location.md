@@ -1,1 +1,0 @@
-- fix(providers): give the TinyCMS wasm-bindgen Node DOM stub a dedicated `window` with a Location-shaped object (never `window = global` without `location`), so Next.js SSR `getLocationOrigin` cannot crash every route after TinyCMS is used once

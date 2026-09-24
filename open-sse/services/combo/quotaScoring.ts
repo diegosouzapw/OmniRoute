@@ -447,3 +447,35 @@ export function calculateResetWindowAffinity(quota: unknown, config: ResetWindow
   if (msUntilReset <= 0) return 1;
   return clamp01(1 - msUntilReset / getResetWindowHorizonMs(config.windows));
 }
+
+/** Auto scoring combines reset urgency without letting a short session hide weekly expiry. */
+export function calculateAutoResetWindowAffinity(
+  quota: unknown,
+  config?: ResetWindowConfig,
+  now: number = Date.now()
+): number {
+  if (!isRecord(quota)) return 0.5;
+  if (quota.limitReached === true) return 0;
+  const windows = config?.windows ?? ["weekly", "session"];
+  let total = 0;
+  let weightSum = 0;
+  for (const name of windows) {
+    const window = resolveQuotaWindowByName(quota, name);
+    const resetMs = parseResetTimeMs(window?.resetAt);
+    if (!Number.isFinite(resetMs)) continue;
+    const weight = name === "session" ? 0.35 : 0.65;
+    const horizon = getResetWindowHorizonMs([name]);
+    total += weight * clamp01(1 - Math.max(0, resetMs - now) / horizon);
+    weightSum += weight;
+  }
+  if (weightSum > 0) return total / weightSum;
+  // Preserve generic/model-keyed provider windows and unknown-quota neutrality.
+  const resetMs = getResetWindowTimestampMs(quota, windows);
+  return Number.isFinite(resetMs)
+    ? clamp01(1 - Math.max(0, resetMs - now) / getResetWindowHorizonMs(windows))
+    : 0.5;
+}
+
+export function resolveAutoResetWindowConfig(config: Record<string, unknown> | null | undefined) {
+  return resolveResetWindowConfig({ resetWindowIncludeSession: true, ...config });
+}

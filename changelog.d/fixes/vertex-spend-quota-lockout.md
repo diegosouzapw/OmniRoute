@@ -1,0 +1,1 @@
+- **fix(quota):** keep informational Vertex spend and unknown or unlimited quota windows from falsely exhausting provider connections. Preserve unknown-window metadata across snapshot reloads and safely ignore legacy Vertex spend lockouts, while continuing to enforce reported quota exhaustion and upstream 429 cooldowns.
