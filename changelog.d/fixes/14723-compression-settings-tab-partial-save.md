@@ -1,0 +1,1 @@
+- **fix(compression):** the compression settings tab saves only the fields you change, so settings changed on another page or tab (such as Auto-Clarity on the caveman page) keep their values, and a failed save rolls the field back ([#14723](https://github.com/diegosouzapw/OmniRoute/pull/14723)) — thanks @woodsonl
