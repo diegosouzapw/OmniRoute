@@ -1,0 +1,1 @@
+- **fix(combo):** a combo member that is missing from the live catalog is skipped as `model_not_in_catalog` instead of the generic `availability` bucket, and that reason is grouped in the `ALL_TARGETS_SKIPPED` diagnostics ([#14069](https://github.com/diegosouzapw/OmniRoute/pull/14069)) — thanks @RaviTharuma

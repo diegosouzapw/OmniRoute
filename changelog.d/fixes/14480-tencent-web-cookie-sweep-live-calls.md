@@ -1,0 +1,1 @@
+- fix(tests): make executor-web-cookie-sweep hermetic for tencent-aistudio-web, stop real upstream calls (#14480)

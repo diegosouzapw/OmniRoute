@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **缓存命中成本语义：**发生语义缓存命中时（`X-OmniRoute-Cache-Hit: true`），不会进行上游调用，因此 `X-OmniRoute-Response-Cost` 为 `0.0000000000`（提供该命中结果的**增量**成本）。原始成本或本应产生的成本会在 `X-OmniRoute-Cost-Saved` 中单独报告。计费使用方应对 `X-OmniRoute-Response-Cost` 求和（缓存命中不产生成本）；缓存分析则可聚合 `X-OmniRoute-Cost-Saved`。
 
-## 独占托管会话租约
+## 独占式托管会话租约
 
-独占托管会话租约是一种可选择启用、与客户端无关的路由契约：一个活动所有者持有一个符合条件的 OmniRoute 连接。它不租用模型、不要求 OAuth、不标识特定客户端，也不要求特定提供者。
+独占式托管会话租约是一种选择性加入、客户端中立的路由契约：一个活跃的所有者持有一个符合条件的 OmniRoute 连接。它不租用模型、不要求 OAuth、不识别特定客户端，也不要求特定提供者。
 
-用于身份验证的 API 密钥必须具有 `lease:exclusive` 作用域，并包含一个明确的非空 `allowedConnections` 列表。在创建密钥和进行部分更新时，数据库变更边界会同时强制要求这两个字段。
+用于身份验证的 API 密钥必须具有 `lease:exclusive` 范围和一个明确的非空 `allowedConnections` 列表。数据库变动边界在密钥创建和部分更新时强制同时检查这两个字段。
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-成功的获取、续租和释放响应会公开时间戳、`state` 以及精确的正整数 `generation`，但绝不会公开所选连接或凭据。续租和释放操作通过 JSON 正文提供 generation：
+成功的获取、续订和释放响应会公开时间戳、`state` 和精确的正 `generation`，但绝不会公开所选的连接或凭据。续订和释放会在 JSON 正文中提供 generation：
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-活动租约的所有者可以明确请求其当前绑定的隐私安全显示元数据：
+活跃的租约所有者可以明确请求其当前绑定的隐私安全显示元数据：
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-此可选择启用的状态操作会在单个数据库事务中受到不透明所有者、已验证身份的托管 API 密钥和精确活动 generation 的共同隔离保护。`displayName` 仅为经过修剪的已配置连接名称；如果不存在安全的已配置名称，则为 `null`。OmniRoute 绝不会用电子邮件地址或生成的账户身份替代它。provider 值是非敏感的显示标签，绝不会是生成的兼容提供者标识符。凭据、令牌、Cookie、原始连接或 API 密钥 ID、所有者哈希、隔离密钥以及内部路由数据均被排除。
+此选择性加入的状态操作由不透明的所有者、经过身份验证的托管 API 密钥以及数据库事务中的精确活跃 generation 进行隔离。`displayName` 仅是修剪后的配置连接名称；当不存在安全的配置名称时，它为 `null`。OmniRoute 绝不会替换电子邮件或生成的账户身份。提供者值是一个非敏感的显示标签，绝不是生成的兼容提供者标识符。凭据、令牌、cookie、原始连接或 API 密钥 ID、所有者哈希、隔离密钥和内部路由数据均被排除在外。
 
-使用错误密钥、错误所有者、过期 generation，以及查询缺失、已过期、已释放或已失效的租约时，均返回相同的 `409 LEASE_FENCE_STALE` 错误，且不包含连接元数据。收到容量等待响应的客户端没有可供检查的活动绑定。当路由切换活动租约时，同一 generation 仍然有效，并且状态操作会以原子方式返回新绑定，而绝不会返回旧绑定。现有客户端保持不变，因为获取、续租、释放和等待响应仍保留之前的结构。
+错误的密钥、错误的所有者、过时的 generation、缺失、过期、已释放和已失效的查找都会返回相同的 `409 LEASE_FENCE_STALE` 错误，且不带连接元数据。收到容量等待响应的客户端没有可检查的活跃绑定。当路由转换活跃租约时，相同的 generation 仍然有效，并且状态会原子性地返回新的绑定，而不是旧的绑定。现有客户端保持不变，因为获取、续订、释放和等待响应保留了其先前的形式。
 
-此服务器契约不会更改原版 OpenAI Codex 的 `/status`。原版 Codex 当前会报告其模型提供者以及内置的身份验证/账户状态，但不会呈现任意自定义提供者账户元数据；后续的客户端集成必须调用此操作，并决定如何显示 `connection.displayName`。
+此服务器契约不会改变标准 OpenAI Codex `/status`。标准 Codex 目前报告其模型提供者和内置的身份验证/账户状态，但不会渲染任意自定义提供者账户元数据；后续的客户端集成必须调用此操作并决定如何显示 `connection.displayName`。
 
-之后，每个托管推理请求都需要提供以下两个控制标头：
+每个托管推理请求随后都会提供这两个控制头：
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-在每次受支持的上游尝试之前，都会立即对精确的所有者、generation、活动连接和已验证身份的 API 密钥进行隔离校验。即使另一个密钥允许使用同一连接，使用该密钥重放所有者和 generation 也会失败。原始所有者值不会被持久化、记录到日志、保留在请求快照中或转发到上游。
+精确的所有者、generation、活跃连接和经过身份验证的 API 密钥会在每次支持的上游尝试之前立即进行隔离。即使另一个密钥允许相同的连接，使用该密钥重放所有者和 generation 也会失败。原始所有者不会被持久化、记录、保留在请求快照中或转发到上游。
 
-临时争用会返回带有 `Retry-After` 的 HTTP `429`，以及：
+临时争用会返回带有 `Retry-After` 的 HTTP `429` 响应，并附带：
 
 ```json
 {
@@ -157,33 +157,35 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-此响应仅表示常规符合条件的集合非空，并且每个空闲候选连接均由其他所有者的活动租约持有。不受支持的模型/提供者、策略不匹配、冷却期、配额、健康状态以及其他常规资格检查失败，仍会保留其现有的 OmniRoute 响应。
+此响应仅表示普通的符合条件集合非空，并且每个空闲候选者都被外部活跃租约占用。不支持的模型/提供者、策略不匹配、冷却、配额、健康状况以及其他普通的资格失败会保留其现有的 OmniRoute 响应。
 
 ### `x-omniroute-compression`
 
-针对单个请求覆盖压缩计划。具有最高优先级——高于路由组合覆盖、活动配置文件、自动触发和面板默认值。取值如下：
+每个请求的压缩计划覆盖。优先级最高——优于路由组合覆盖、活跃配置文件、自动触发和面板默认设置。值如下：
 
-| 值            | 效果                                                     |
-| ------------- | -------------------------------------------------------- |
-| `off`         | 此请求不使用压缩。                                       |
-| `default`     | 使用由面板派生的默认配置文件（忽略活动配置文件）。       |
-| `engine:<id>` | 启用时使用单个引擎，例如 `engine:rtk`。                  |
-| `<combo>`     | 命名组合，先按名称匹配（不区分大小写），然后按 id 匹配。 |
+| 值            | 效果                                                              |
+| ------------- | ----------------------------------------------------------------- |
+| `off`         | 此请求不进行压缩。                                                |
+| `default`     | 面板派生的默认配置文件（忽略活跃配置文件）。有损引擎保持关闭。    |
+| `safe`        | 仅进行去重和空白折叠。                                            |
+| `allow-lossy` | 保留此请求的操作员计划，包括摘要和样式重写。                      |
+| `engine:<id>` | 启用时为单个引擎，例如 `engine:rtk`。此引擎的每个请求选择性加入。 |
+| `<combo>`     | 命名组合，首先按名称（不区分大小写）匹配，然后按 ID 匹配。        |
 
 注意：
 
-- 未知值会被忽略（请求绝不会因此被拒绝）；解析过程会回退到正常的运算符优先级。
-- 如果多个组合使用相同名称，请传入组合的 **id** 以获得确定性匹配。
-- 名称为 `off` 或 `default` 的组合无法按名称选择（会优先解释这些关键字）；请通过其 id 引用此类组合。
-- 压缩总开关是硬性门控：全局禁用压缩后，此标头无法启用压缩。
+- 未知值将被忽略（请求永远不会被拒绝）；解析将回退到正常的运算符优先级。
+- 如果多个组合共享一个名称，请传递组合的 **ID** 以进行确定性匹配。
+- 名称为 `off` 或 `default` 的组合不能通过名称选择（这些关键字会首先被解释）；请通过其 ID 引用此类组合。
+- 主压缩开关是一个硬性门槛：当全局禁用压缩时，此标头无法启用它。
 
-应用的计划会通过响应标头回显：
+应用的计划会在响应头中回显：
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-其中 `<source>` 为 `request-header`、`routing-override`、`active-profile`、`auto-trigger`、`default` 或 `off` 之一。
+其中 `<source>` 是 `request-header`、`routing-override`、`active-profile`、`auto-trigger`、`default` 或 `off` 之一。
 
 ---
 
@@ -1121,7 +1123,7 @@ Content-Type: application/json
 }
 ```
 
-> **架构说明**（`setBudgetSchema`）：`apiKeyId` 为必填项；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少有一个必须大于零。可选字段：`warningThreshold`（0–1）、`resetInterval`（`daily` | `weekly` | `monthly`）、`resetTime`（`HH:MM`）。旧版 `{keyId, limit, period}` 格式会返回 `400 Bad Request`。
+> **Schema 说明** (`setBudgetSchema`): `apiKeyId` 是必需的；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少有一个必须大于零。可选字段：`warningThreshold` (0–1)、`resetInterval` (`daily` | `weekly` | `monthly`)、`resetTime` (`HH:MM`)。旧版 `{keyId, limit, period}` 格式将返回 `400 Bad Request`。
 
 ## Token 限制
 

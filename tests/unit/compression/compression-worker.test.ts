@@ -79,22 +79,41 @@ describe("compression worker eligibility", () => {
     }
   });
 
-  it("rejects functions, symbols, classes, special objects, cycles, and non-finite numbers", () => {
-    for (const value of [
-      () => undefined,
-      Symbol("x"),
-      new Date(),
-      new Map(),
-      new Set(),
-      /x/,
-      NaN,
-      Infinity,
-    ]) {
+  it("rejects functions, symbols, cycles, and non-finite numbers", () => {
+    for (const value of [() => undefined, Symbol("x"), NaN, Infinity]) {
       assert.equal(isStrictlySerializable(value), false);
     }
     const cyclic: Record<string, unknown> = {};
     cyclic.self = cyclic;
     assert.equal(isStrictlySerializable(cyclic), false);
+  });
+
+  it("#13154: accepts structured-clone-native Date/Map/Set/RegExp values", () => {
+    for (const value of [new Date(), new Map(), new Set(), /x/]) {
+      assert.equal(isStrictlySerializable(value), true);
+    }
+  });
+
+  it("#13154: accepts `undefined` values instead of rejecting the whole tree", () => {
+    assert.equal(isStrictlySerializable(undefined), true);
+    assert.equal(isStrictlySerializable({ provider: undefined, model: "gpt-test" }), true);
+  });
+
+  it("#13154: accepts strategySelector.ts's exact 9-key workerOptions shape with `provider` unset", () => {
+    // Mirrors runCompressionAsync's workerOptions object: all 9 keys always present,
+    // `provider` commonly unresolved (undefined) at call time.
+    const workerOptions = {
+      model: "gpt-test",
+      supportsVision: undefined,
+      providerTransport: undefined,
+      provider: undefined,
+      imageTransportFidelity: undefined,
+      sourceFormat: undefined,
+      targetFormat: undefined,
+      compressionStage: undefined,
+      config,
+    };
+    assert.equal(isCompressionWorkerEligible(body, "stacked", workerOptions), true);
   });
 
   it("#13154: does not misread a shared (non-cyclic) sub-object referenced by two sibling branches as a cycle", () => {

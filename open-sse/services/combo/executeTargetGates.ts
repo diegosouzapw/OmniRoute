@@ -15,6 +15,7 @@ import { isProviderInCooldown } from "../providerCooldownTracker.ts";
 import { checkCredentialGate, logCredentialSkip } from "../credentialGate.ts";
 import { errorResponse } from "../../utils/error.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
+import { connectionCircuitBreakerName } from "../connectionCircuitBreaker.ts";
 import { parseModel } from "../model.ts";
 import { canAffordRequest } from "../../../src/lib/quota/quotaScheduler.ts";
 import { getCachedProviderConnectionById } from "../../../src/lib/db/readCache.ts";
@@ -28,7 +29,7 @@ import { resolveQuotaExhaustionCutoffForTarget } from "./quotaExhaustionCutoff.t
 import { protectedPriorityStopStatus } from "./protectedPriorityStopStatus.ts";
 import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 import type { AttemptLoopDeps, AttemptLoopState, GateDecision } from "./attemptLoopTypes.ts";
-import type { ResolvedComboTarget } from "./types.ts";
+import { modelAvailabilitySkipReason, type ResolvedComboTarget } from "./types.ts";
 
 /**
  * Cached vs fresh connection read for the persisted-cooldown gate.
@@ -82,9 +83,16 @@ export async function evaluateExecuteTargetGates(opts: {
     if (i > 0) state.fallbackCount++;
   };
 
-  const cb = getCircuitBreaker(provider);
-  const cbStatus = cb.getStatus();
-  if (cbStatus.state === "OPEN") {
+  const providerBreaker = getCircuitBreaker(provider);
+  const scopedConnectionId = target.connectionId ?? undefined;
+  const connectionBreaker = scopedConnectionId
+    ? getCircuitBreaker(connectionCircuitBreakerName(provider, scopedConnectionId))
+    : null;
+  const providerOpen = providerBreaker.getStatus().state === "OPEN";
+  const connectionOpen = connectionBreaker?.getStatus().state === "OPEN";
+  if (providerOpen || connectionOpen) {
+    const cb = providerOpen ? providerBreaker : connectionBreaker!;
+    const cbStatus = cb.getStatus();
     state.skippedForCircuitOpen = true;
     if (
       cbStatus.retryAfterMs > 0 &&
@@ -93,7 +101,12 @@ export async function evaluateExecuteTargetGates(opts: {
     ) {
       state.earliestCircuitOpenRetryMs = cbStatus.retryAfterMs;
     }
-    deps.log.info("COMBO", `Skipping ${modelStr} — circuit breaker OPEN for ${provider}`);
+    deps.log.info(
+      "COMBO",
+      providerOpen
+        ? `Skipping ${modelStr} — circuit breaker OPEN for ${provider}`
+        : `Skipping ${modelStr} — circuit breaker OPEN for connection ${scopedConnectionId}`
+    );
     recordComboDecision(deps.traceInvocationId, {
       step: target.executionKey,
       target: modelStr,
@@ -289,10 +302,13 @@ export async function evaluateExecuteTargetGates(opts: {
 
   if (deps.isModelAvailable) {
     const available = await deps.isModelAvailable(modelStr, targetForAttempt);
-    if (!available) {
+    const skipReason = modelAvailabilitySkipReason(available);
+    if (skipReason) {
       deps.log.debug?.(
         "COMBO",
-        `Skipping ${modelStr} — no credentials available or model excluded`
+        skipReason === "model_not_in_catalog"
+          ? `Skipping ${modelStr} — model is not in the live catalog`
+          : `Skipping ${modelStr} — no credentials available or model excluded`
       );
       deps.clearStaleLKGP(
         deps.combo.name,
@@ -307,7 +323,7 @@ export async function evaluateExecuteTargetGates(opts: {
         step: target.executionKey,
         target: modelStr,
         decision: "skipped_before_dispatch",
-        reason: "availability",
+        reason: skipReason,
       });
       bumpFallback();
       return {

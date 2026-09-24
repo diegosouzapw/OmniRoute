@@ -9,43 +9,43 @@ Pemampatan OmniRoute dibina berasaskan kontrak enjin. Sesuatu mod boleh menjalan
 
 ## Mod
 
-| Mod          | Laluan enjin                         | Input yang disasarkan                             |
-| ------------ | ------------------------------------ | ------------------------------------------------- |
-| `off`        | tiada                                | Pengekalan tepat gesaan                           |
-| `lite`       | Pembantu Caveman lite                | Pembersihan sentiasa aktif yang berisiko rendah   |
-| `standard`   | Caveman                              | Pemadatan gesaan bahasa semula jadi               |
-| `aggressive` | Caveman + peringkas sejarah/alat     | Sesi sembang yang panjang                         |
-| `ultra`      | Caveman + pembantu pemangkasan       | Pemulihan had konteks                             |
-| `rtk`        | RTK                                  | Output terminal, shell, binaan, ujian dan git     |
-| `omniglyph`  | OmniGlyph                            | Konteks sebagai imej pada saluran asli penyedia   |
-| `stacked`    | Saluran paip, lalai `rtk -> caveman` | Log alat dan prosa bercampur, penjimatan maksimum |
+| Mod          | Laluan enjin                                                                          | Input yang dimaksudkan                           |
+| ------------ | ------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `off`        | none                                                                                  | Pengekalan gesaan yang tepat                     |
+| `lite`       | Caveman lite helpers                                                                  | Pembersihan berisiko rendah yang sentiasa aktif  |
+| `standard`   | Caveman                                                                               | Pemeluwapan gesaan bahasa semula jadi            |
+| `aggressive` | Caveman + history/tool summarizers                                                    | Sesi sembang yang panjang                        |
+| `ultra`      | Caveman + pruning helpers                                                             | Pemulihan had konteks                            |
+| `rtk`        | RTK                                                                                   | Output Terminal, shell, bina, uji, dan git       |
+| `omniglyph`  | OmniGlyph                                                                             | Konteks-sebagai-imej pada wayar pembekal asli    |
+| `stacked`    | Pipeline. The request default is `session-dedup -> lite`. `rtk -> caveman` is opt-in. | Log alat campuran dan prosa, penjimatan maksimum |
 
 ### Profil pemampatan OmniGlyph
 
 Enjin `omniglyph` (pakej `omniglyph`, 1.4.0+) menerima profil semantik bernama, yang ditetapkan
-secara global melalui `omniglyph.profile` dalam tetapan pemampatan atau bagi setiap langkah melalui
-konfigurasi langkah saluran paip bertindan:
+secara global melalui `omniglyph.profile` dalam `compression settings` atau setiap langkah melalui
+`stacked pipeline's step config`:
 
-| Profil        | Batasan                                                                                                                 |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Lalai. Dasar yang diukur oleh bukti terbitan — mengimejkan sistem, dokumentasi alat dan sejarah padat                   |
-| `balanced`    | Mengekalkan keadaan aktif dalam bentuk asal, melindungi 8 giliran terakhir, memadatkan sejarah tertutup yang lebih lama |
-| `coding-safe` | Mengekalkan autoriti, skema alat dan output alat aktif dalam bentuk asal, melindungi 12 giliran terakhir                |
-| `passthrough` | Menghalakan tanpa mengubah; enjin dilangkau                                                                             |
+| Profil        | Sempadan                                                                                           |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Lalai. Polisi yang diukur oleh resit yang diterbitkan — images system, tool docs dan dense history |
+| `balanced`    | Mengekalkan live state native, melindungi the last 8 turns, meruntuhkan older closed history       |
+| `coding-safe` | Mengekalkan authority, tool schemas dan live tool output native, melindungi the last 12 turns      |
+| `passthrough` | Menghala tanpa mengubah; the engine is skipped                                                     |
 
-Profil ialah **had maksimum, bukan had minimum**: `mergeCompressionProfileOptions` dalam pakej
-tersebut tidak membenarkan penggantian oleh pemanggil membuka semula laluan berkehilangan yang telah ditutup oleh profil, maka
-`preserveSystemPrompt: false` bagi setiap langkah tidak boleh mendayakan semula pemampatan sistem di bawah `coding-safe`.
+Profil adalah **siling, bukan lantai**: `mergeCompressionProfileOptions` dalam pakej
+enggan membenarkan pemanggil menimpa membuka semula `lossy lane` yang ditutup oleh profil, jadi
+`preserveSystemPrompt: false` setiap langkah tidak boleh mengaktifkan semula `system compression` di bawah `coding-safe`.
 
-Berdasarkan pengukuran pada pangkalan kod ini: `coding-safe` dan `balanced` menaikkan `minCompressChars` kepada
-nilai maksimumnya serta mengekalkan sistem, skema alat dan hasil alat dalam bentuk asal, maka sesi yang belum
-mengumpulkan sejarah akan terhenti pada `below_min_chars` dan enjin tidak mengubah apa-apa. Itulah
-sebabnya nilai lalai ialah `aggressive`, bukannya profil yang paling selamat.
+Diukur pada pangkalan kod ini: `coding-safe` dan `balanced` menaikkan `minCompressChars` ke
+maksimumnya dan mengekalkan system, tool schemas dan tool results native, jadi sesi yang belum
+mengumpul sejarah berhenti pada `below_min_chars` dan enjin tidak mengubah apa-apa. Itulah
+sebabnya lalai adalah `aggressive` dan bukannya `safest profile`.
 
-Pakej tersebut menentukan skop model dan profilnya sendiri daripada konfigurasi persekitarannya.
-OmniRoute tidak pernah menyerahkan keputusan itu: penyesuai menetapkan pagar model kepada skop
-pakej yang paling ketat, maka tetapan persekitaran hos hanya boleh mengecilkan senarai izin dan tidak sekali-kali
-meluaskannya melebihi bukti terukur OmniRoute.
+Pakej menyelesaikan `model scope` dan `profile` sendiri daripada `environment configuration`nya.
+OmniRoute tidak pernah mewakilkan keputusan: `adapter pins` `model gate` kepada `package's`
+`most restrictive scope`, jadi `host environment settings` hanya boleh mengecilkan `allowlist`,
+tidak pernah meluaskannya melebihi `OmniRoute's measured receipts`.
 
 ## Pendaftar Enjin
 
@@ -388,7 +388,7 @@ cache dan sebagainya).
 
 ## Pengesahan
 
-Gerbang tertumpu untuk bahagian ini ialah:
+Gerbang tumpuan untuk kawasan ini adalah:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

@@ -189,12 +189,14 @@ health, and other ordinary eligibility failures retain their existing OmniRoute 
 Per-request override of the compression plan. Highest precedence — beats the routing-combo
 override, the active profile, auto-trigger, and the panel Default. Values:
 
-| Value         | Effect                                                               |
-| ------------- | -------------------------------------------------------------------- |
-| `off`         | No compression for this request.                                     |
-| `default`     | The panel-derived Default profile (ignores the active profile).      |
-| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`.                     |
-| `<combo>`     | A named combo, matched by name (case-insensitive) first, then by id. |
+| Value         | Effect                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| `off`         | No compression for this request.                                                            |
+| `default`     | The panel-derived Default profile (ignores the active profile). Lossy engines are left off. |
+| `safe`        | Dedup and whitespace folding only.                                                          |
+| `allow-lossy` | Keep the operator plan for this request, including summaries and style rewrites.            |
+| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`. Per-request opt-in for that engine.        |
+| `<combo>`     | A named combo, matched by name (case-insensitive) first, then by id.                        |
 
 Notes:
 
@@ -503,7 +505,7 @@ POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # Video / music generation (provider-prefixed model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
 > **Rerank provider nodes:** `POST /v1/rerank` also routes to OpenAI-compatible provider nodes
