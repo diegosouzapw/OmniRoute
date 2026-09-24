@@ -573,17 +573,14 @@ function createOpenAIStreamFromBedrock(stream, model) {
                 sse(openAIChunk(model, { reasoning_content: delta.reasoningContent.text }))
               );
             }
-            // Bedrock does not guarantee string deltas for toolUse.input: it may
-            // arrive as a parsed object or a re-sent snapshot. Dropping
-            // non-string fragments here left tool calls with empty arguments
-            // downstream (issue #14668). Buffer through
-            // appendToolCallArgumentDelta so every shape is normalized and only
-            // the incremental delta is forwarded.
+            // toolUse.input may arrive as an object or a re-sent snapshot, not
+            // just a string fragment. Buffer it so every shape normalizes and
+            // only the new slice is forwarded (#14668).
             if (delta.toolUse && delta.toolUse.input !== undefined && delta.toolUse.input !== null) {
               const index = blockToolIndexes.get(event.contentBlockDelta.contentBlockIndex) ?? 0;
               const existing = toolArgBuffers.get(index) || "";
               const next = appendToolCallArgumentDelta(existing, delta.toolUse.input);
-              const fragment = next.slice(existing.length);
+              const fragment = next.startsWith(existing) ? next.slice(existing.length) : next;
               toolArgBuffers.set(index, next);
               if (fragment) {
                 controller.enqueue(
