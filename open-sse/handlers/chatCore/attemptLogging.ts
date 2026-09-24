@@ -240,6 +240,7 @@ export function extractResponsesId(sourceFormat: unknown, clientResponse: unknow
 export type PersistAttemptLogsArgs = {
   status: number;
   tokens?: unknown;
+  usageEstimated?: boolean | null;
   responseBody?: unknown;
   error?: string | null;
   providerRequest?: unknown;
@@ -559,6 +560,9 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     connectionId: finalConnectionId || undefined,
     duration: Date.now() - startTime,
     tokens: tokens || {},
+    // Estimated-token flag, computed here where tokens still carry the marker
+    // (it does not survive spreads or JSON round-trips to the sink).
+    usageEstimated: args.usageEstimated ?? (isEstimatedUsage(tokens) ? true : null),
     // Encrypted-reasoning observation: stream-side flag plus duration, and
     // the two request bodies so the sink can read effort values
     // (requested from the client body, upstream from the post-strip body).
