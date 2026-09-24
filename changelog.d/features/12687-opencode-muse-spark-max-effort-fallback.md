@@ -1,0 +1,1 @@
+- **feat(opencode):** send Muse Spark `max` reasoning effort verbatim first (instead of pre-emptively clamping to `xhigh`), retrying once with `xhigh` only when upstream rejects it with the specific unsupported-effort 400 — covers both the fast path and the account-rotation loop ([#12687](https://github.com/diegosouzapw/OmniRoute/pull/12687)) — thanks @Chewji9875

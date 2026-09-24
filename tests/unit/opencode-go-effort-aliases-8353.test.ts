@@ -24,7 +24,7 @@ const { parseEffortLevel, OpencodeExecutor } =
     };
   };
 
-const { REGISTRY } = (await import("../../open-sse/config/providerRegistry.ts")) as {
+const { REGISTRY } = (await import("../../open-sse/config/providerRegistry.ts")) as unknown as {
   REGISTRY: Record<
     string,
     {
@@ -33,7 +33,7 @@ const { REGISTRY } = (await import("../../open-sse/config/providerRegistry.ts"))
         name?: string;
         targetFormat?: string;
         supportsReasoning?: boolean;
-        supportedThinkingEfforts?: string[];
+        supportedThinkingEfforts?: readonly string[] | string[];
       }>;
     }
   >;
@@ -215,12 +215,18 @@ const TRANSFORM_SAMPLES = [
   { alias: "qwen3.7-max-high", wireModel: "qwen3.7-max-high", effort: null },
   {
     alias: "muse-spark-1.2-contributor-xhigh",
-    wireModel: "muse-spark-1.2-contributor-xhigh",
+    wireModel: "muse-spark-1.2-contributor",
     effort: null,
+    reasoningEffort: "xhigh",
   },
 ] as const;
 
-for (const { alias, wireModel, effort, note } of TRANSFORM_SAMPLES) {
+for (const sample of TRANSFORM_SAMPLES) {
+  const { alias, wireModel, effort } = sample;
+  const reasoningEffort =
+    "reasoningEffort" in sample
+      ? (sample as { readonly reasoningEffort: string }).reasoningEffort
+      : null;
   test(`#8353/#10788 transformRequest: ${alias} → model=${wireModel}`, () => {
     const executor = new OpencodeExecutor("opencode-go");
     const body = { model: alias, messages: [{ role: "user", content: "hi" }] };
@@ -228,14 +234,20 @@ for (const { alias, wireModel, effort, note } of TRANSFORM_SAMPLES) {
     const out = executor.transformRequest(alias, body, true, CREDENTIALS);
 
     assert.equal(out.model, wireModel);
-    if (effort === null) {
+    if (reasoningEffort !== null) {
+      assert.deepEqual(out.reasoning, { effort: reasoningEffort });
+    } else if (effort === null) {
       assert.equal(
         out.reasoning_effort,
         undefined,
         "non-DeepSeek families must not receive a flat reasoning_effort field"
       );
     } else {
-      assert.equal(out.reasoning_effort, effort, note);
+      assert.equal(
+        out.reasoning_effort,
+        effort,
+        "note" in sample ? (sample as { readonly note: string }).note : undefined
+      );
     }
   });
 }
