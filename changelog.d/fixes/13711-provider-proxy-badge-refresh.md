@@ -1,1 +1,0 @@
-- **fix(dashboard):** Saving or clearing a proxy on a provider page now refreshes the per-connection proxy badges immediately instead of leaving them stale until a manual reload ([#13711](https://github.com/diegosouzapw/OmniRoute/pull/13711))

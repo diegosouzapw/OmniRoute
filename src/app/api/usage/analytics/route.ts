@@ -885,10 +885,15 @@ export async function GET(request: Request) {
       }
     }
 
+    const modelNames = Array.from(allModels);
     const dailyByModel = Object.keys(dailyByModelMap)
       .sort()
-      .map((date) => ({ date, ...dailyByModelMap[date] }));
-    const modelNames = Array.from(allModels);
+      .map((date) => ({
+        date,
+        ...Object.fromEntries(
+          modelNames.map((model) => [model, dailyByModelMap[date][model] || 0])
+        ),
+      }));
 
     const analytics = {
       summary,

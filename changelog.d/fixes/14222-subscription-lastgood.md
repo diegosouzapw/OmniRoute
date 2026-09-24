@@ -1,0 +1,1 @@
+- **fix(subscription):** serve last known good nodes instead of emptying the pool on fetch or parse failure ([#14222](https://github.com/diegosouzapw/OmniRoute/pull/14222)) — thanks @maxmad64bis

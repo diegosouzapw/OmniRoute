@@ -1,15 +1,15 @@
 # Authorization Guide (Română)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **Sursa adevărului:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Ultima actualizare:** 2026-06-28 — v3.8.40
+> **Sursă de adevăr:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Ultima actualizare:** 2026-09-22 — spațiile de nume ale scopurilor indică spre MCP-SERVER.md
 
-OmniRoute are un flux de autorizare care ține cont de rute și controlează fiecare solicitare API. Clasificarea este **deterministă** și **se închide în mod securizat în caz de eroare** — orice element care nu poate fi clasificat ajunge în categoria `MANAGEMENT` și necesită o sesiune sau un token cu privilegii de administrare. Această pagină explică modelul pentru inginerii care întrețin rutele sau proiectează endpointuri noi.
+OmniRoute are un pipeline de autorizare conștient de rute, care filtrează fiecare cerere API. Clasificarea este **determinată** și **fail-closed** — orice nu poate fi clasificat ajunge ca `MANAGEMENT` și necesită o sesiune sau un token de nivel management. Această pagină explică modelul pentru inginerii care întrețin rute sau proiectează noi endpoint-uri.
 
-![Fluxul AuthZ (3 clase de rute + evaluarea politicilor)](../diagrams/exported/authz-pipeline.svg)
+![Pipeline AuthZ (3 clase de rute + evaluare politici)](../diagrams/exported/authz-pipeline.svg)
 
 > Sursă: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -198,28 +198,38 @@ export async function POST(request: Request) {
 
 Alegeți setul în funcție de formă, nu de comoditate. O rută individuală trebuie adăugată în `PUBLIC_API_ROUTES_EXACT` (sau în `PUBLIC_READONLY_CORS_API_ROUTES` dacă acceptă doar GET); numai un subarbore autentic trebuie adăugat în `PUBLIC_API_ROUTE_PREFIXES`, iar acesta **trebuie să se termine cu `/`**. Adăugarea unei rute individuale în lista de prefixe face publică și fiecare cale adiacentă care are aceleași caractere inițiale — inclusiv rutele înrudite cu segmente dinamice adăugate ulterior (GHSA-74g9-q8f6-793h). Actualizați testele unitare din `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` și `tests/unit/authz/classify.test.ts`.
 
-## Domenii de acces
+## Domenii de aplicare (Scopes)
 
-Cheile API conțin un array `scopes` (stocat ca JSON în `api_keys.scopes`, consultați `src/lib/db/apiKeys.ts`).
+Trei spații de nume. Fiecare verificator citește doar propriile șiruri de caractere. Comparația alăturată,
+inclusiv de ce `manage` eșuează `scopeMatches` pentru `read:compression` și de ce un
+token de acces `read` nu poate `PATCH /api/keys/{id}`, se găsește la
+[Trei spații de nume pentru domenii de aplicare](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Domeniul de acces pentru administrare
+Cheile API conțin un array `scopes` (stocat ca JSON în `api_keys.scopes`, vezi `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — acordă cheii acces la endpointurile API-ului de administrare atunci când este trimisă ca Bearer.
+### Domeniul de aplicare pentru management
 
-### Domenii de acces MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Acces de tip Bearer la rutele API de management.
+- `mcp:connect`, `self:usage`, `self:account-quota` și
+  `policy:bypass-provider-quota` sunt domenii de aplicare aditive cu potrivire exactă. Ele se află
+  în afara `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` deschide doar
+  secțiunea non-loopback `/api/mcp/`.
 
-Fiecare instrument MCP necesită anumite domenii de acces prin `MCP_TOOL_SCOPES`. Lista completă (`MCP_SCOPE_LIST`):
+### Domenii de aplicare pentru instrumentele MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Catalog și reguli de potrivire (șir identic, sau un domeniu de aplicare acordat care se termină cu `*`):
+[Domenii de aplicare pentru instrumentele MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` în `src/shared/constants/mcpScopes.ts` este subsetul tipizat original,
+nu acel catalog complet. Aplicarea se realizează în
+`open-sse/mcp-server/scopeEnforcement.ts` după ce `resolveCallerScopeContext()`
+rezolvă domeniile de aplicare din informațiile de autentificare MCP, metadatele cererii sau `OMNIROUTE_MCP_SCOPES`.
+Rămâne dezactivată, cu excepția cazului în care `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Aplicarea domeniilor de acces în `open-sse/mcp-server/server.ts` transmite lista de domenii de acces a fiecărui instrument către
-`evaluateToolScopes()`, după ce `resolveCallerScopeContext()` determină domeniile de acces din informațiile de autentificare MCP,
-metadatele cererii sau `OMNIROUTE_MCP_SCOPES`.
+### Domenii de aplicare pentru token-uri de acces
+
+`read` / `write` / `admin` pe token-uri `oma_live_…`, clasificate prin `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Acest rang se aplică doar credențialului token-ului de acces.
+Vezi [Autentificarea Managementului](../guides/MANAGEMENT-AUTH.md).
 
 ## Comutatorul pentru autentificare obligatorie
 
@@ -265,9 +275,9 @@ x-omniroute-auth-scopes:    listă separată prin virgule
 
 Utilizați `assertAuth(req, expectedClass)` în interiorul handlerelor — aceasta generează `AuthzAssertionError` cu codul `AUTHZ_NOT_INITIALIZED` dacă middleware-ul a fost ocolit (util pentru detectarea regresiilor de configurare în teste).
 
-## Consultați și
+## Vezi și
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marcajul de autentificare pentru fiecare endpoint
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — jurnalul de audit pentru evenimentele de autentificare
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — detalii despre aplicarea scope-urilor MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marcator de autentificare per punct final
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — jurnal de audit pentru evenimente de autentificare
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trei spații de nume de scop și catalogul de scopuri de instrumente MCP
 - Sursă: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

@@ -1,6 +1,6 @@
 # Compression Engines (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_ENGINES.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_ENGINES.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_ENGINES.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_ENGINES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_ENGINES.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_ENGINES.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_ENGINES.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_ENGINES.md)
 
 ---
 
@@ -9,43 +9,43 @@ OmniRoute saspiešanas pamatā ir dziņu līgumi. Režīms var tieši darbināt 
 
 ## Režīmi
 
-| Režīms       | Dziņa ceļš                                   | Paredzētā ievade                                    |
-| ------------ | -------------------------------------------- | --------------------------------------------------- |
-| `off`        | nav                                          | Precīza uzvednes saglabāšana                        |
-| `lite`       | Caveman vieglie palīgrīki                    | Zema riska, vienmēr aktīva tīrīšana                 |
-| `standard`   | Caveman                                      | Dabiskās valodas uzvedņu saīsināšana                |
-| `aggressive` | Caveman + vēstures/rīku apkopotāji           | Ilgas tērzēšanas sesijas                            |
-| `ultra`      | Caveman + apgriešanas palīgrīki              | Atkopšana pēc konteksta ierobežojuma sasniegšanas   |
-| `rtk`        | RTK                                          | Termināļa, čaulas, būvēšanas, testu un git izvade   |
-| `omniglyph`  | OmniGlyph                                    | Konteksts kā attēls pakalpojumu sniedzēja protokolā |
-| `stacked`    | Konveijers, pēc noklusējuma `rtk -> caveman` | Jaukti rīku žurnāli un proza, maksimāls ietaupījums |
+| Režīms       | Dzinēja ceļš                                                                                          | Paredzētā ievade                                       |
+| ------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `off`        | nav                                                                                                   | Precīza uzvednes saglabāšana                           |
+| `lite`       | Caveman lite palīgi                                                                                   | Zema riska pastāvīga tīrīšana                          |
+| `standard`   | Caveman                                                                                               | Dabiskās valodas uzvednes kondensācija                 |
+| `aggressive` | Caveman + vēstures/rīku apkopotāji                                                                    | Garās tērzēšanas sesijas                               |
+| `ultra`      | Caveman + apgriešanas palīgi                                                                          | Konteksta ierobežojuma atjaunošana                     |
+| `rtk`        | RTK                                                                                                   | Termināļa, čaulas, būvēšanas, testēšanas un git izvade |
+| `omniglyph`  | OmniGlyph                                                                                             | Konteksts kā attēls vietējā nodrošinātāja vadā         |
+| `stacked`    | Cauruļvads. Pieprasījuma noklusējums ir `session-dedup -> lite`. `rtk -> caveman` ir izvēles iespēja. | Jaukti rīku žurnāli un proza, maksimāli ietaupījumi    |
 
-### OmniGlyph saspiešanas profili
+### OmniGlyph kompresijas profili
 
-`omniglyph` dzinis (pakotne `omniglyph`, 1.4.0+) pieņem nosauktu semantisko profilu, kas tiek iestatīts
-globāli, izmantojot `omniglyph.profile` saspiešanas iestatījumos, vai katram solim atsevišķi, izmantojot
-saliktā konveijera soļa konfigurāciju:
+`omniglyph` dzinējs (pakotne `omniglyph`, 1.4.0+) pieņem nosauktu semantisko profilu, kas iestatīts
+globāli, izmantojot `omniglyph.profile` kompresijas iestatījumos, vai katram solim, izmantojot
+sakrautā cauruļvada soļa konfigurāciju:
 
-| Profils       | Robeža                                                                                                                        |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Noklusējums. Publicētajos mērījumos izmantotā politika — sistēma, rīku dokumentācija un blīva vēsture tiek pārveidota attēlos |
-| `balanced`    | Saglabā aktīvo stāvokli sākotnējā formā, aizsargā pēdējos 8 dialoga gājienus un sakļauj senāku pabeigto vēsturi               |
-| `coding-safe` | Saglabā pilnvarojumu, rīku shēmas un aktīvo rīku izvadi sākotnējā formā, aizsargā pēdējos 12 dialoga gājienus                 |
-| `passthrough` | Maršrutē bez pārveidošanas; dzinis tiek izlaists                                                                              |
+| Profils       | Robeža                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Noklusējums. Politika, ko mēra publicētie kvītis — attēlu sistēma, rīku dokumentācija un blīva vēsture |
+| `balanced`    | Saglabā tiešo stāvokli vietējā formātā, aizsargā pēdējos 8 gājienus, sabrūk vecāku slēgto vēsturi      |
+| `coding-safe` | Saglabā autoritāti, rīku shēmas un tiešo rīku izvadi vietējā formātā, aizsargā pēdējos 12 gājienus     |
+| `passthrough` | Maršrutē bez transformācijas; dzinējs tiek izlaists                                                    |
 
-Profils ir **augšējā, nevis apakšējā robeža**: pakotnes `mergeCompressionProfileOptions`
-neļauj izsaucēja pārrakstījumam no jauna atvērt zudumradošu kanālu, kuru profils ir aizvēris, tāpēc
-vienam solim norādīts `preserveSystemPrompt: false` nevar atkārtoti iespējot sistēmas saspiešanu profilā `coding-safe`.
+Profils ir **griesti, nevis grīda**: `mergeCompressionProfileOptions` pakotnē
+neļauj izsaucējam atcelt zaudējošu joslu, ko profils ir aizvēris, tāpēc katra soļa
+`preserveSystemPrompt: false` nevar atkārtoti iespējot sistēmas kompresiju zem `coding-safe`.
 
-Šajā kodu bāzē veiktie mērījumi rāda: `coding-safe` un `balanced` palielina `minCompressChars` līdz tā
-maksimālajai vērtībai un saglabā sistēmu, rīku shēmas un rīku rezultātus sākotnējā formā, tāpēc sesija, kurā
-vēl nav uzkrāta vēsture, apstājas pie `below_min_chars`, un dzinis neko nepārveido. Tāpēc noklusējuma profils
-ir `aggressive`, nevis visdrošākais profils.
+Mērīts šajā koda bāzē: `coding-safe` un `balanced` paaugstina `minCompressChars` līdz tā
+maksimumam un saglabā sistēmu, rīku shēmas un rīku rezultātus vietējā formātā, tāpēc sesija, kas vēl nav
+uzkrājusi vēsturi, apstājas pie `below_min_chars`, un dzinējs neko netransformē. Tāpēc
+noklusējums ir `aggressive`, nevis drošākais profils.
 
-Pakotne nosaka sava modeļa tvērumu un profilu no savas vides konfigurācijas.
-OmniRoute nekad nedeleģē šo lēmumu: adapteris fiksē modeļa ierobežojumu atbilstoši pakotnes
-visstingrākajam tvērumam, tāpēc resursdatora vides iestatījumi var tikai sašaurināt atļauto sarakstu, bet
-nekad to nepaplašināt ārpus OmniRoute mērījumos apstiprinātā tvēruma.
+Pakotne atrisina savu modeļa tvērumu un profilu no savas vides konfigurācijas.
+OmniRoute nekad nedeleģē lēmumu: adapteris piesaista modeļa vārtus pakotnes
+visierobežojošākajam tvērumam, tāpēc resursdatora vides iestatījumi var tikai sašaurināt atļauto sarakstu, nekad
+to nepaplašinot aiz OmniRoute mērītajām kvītīm.
 
 ## Dzinēju reģistrs
 
@@ -375,7 +375,7 @@ prefiksi u.c.).
 
 ## Validācija
 
-Šīs jomas mērķētās pārbaudes ir:
+Šīs jomas galvenie pārbaudes punkti ir:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

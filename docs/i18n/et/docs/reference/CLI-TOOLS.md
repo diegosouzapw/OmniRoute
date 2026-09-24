@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -111,7 +111,7 @@ liidesele lisatud sihtmärk põhjustab vaikse lahknemise asemel testikomplekti n
 
 ## 1. CLI Code'i kataloog (26 tööriista)
 
-Kõik tööriistad, mis kuvatakse lehel `/dashboard/cli-code`. Tööriistad, millel on `baseUrlSupport: none`, ühendatakse kohandatud baas-URL-i asemel MITM-i või käsitsi seadistamise juhendi kaudu:
+Kõik tööriistad, mis kuvatakse lehel `/dashboard/cli-code`. Tööriistad, millel on `baseUrlSupport: none`, on kohandatud baas-URL-i asemel ühendatud MITM-i või käsitsi seadistamise juhendi kaudu:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -142,7 +142,7 @@ Kõik tööriistad, mis kuvatakse lehel `/dashboard/cli-code`. Tööriistad, mil
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Kohandatud CLI          | —                   | full           | custom-builder | false        |
 
-Tööriistade puhul, millel on `baseUrlSupport: "partial"`, kuvatakse juhtpaneeli kaardil märk „⚠ Osaline baas-URL“.
+Tööriistade puhul, millel on `baseUrlSupport: "partial"`, kuvatakse töölaua kaardil märk „⚠ Osaline baas-URL“.
 ---
 
 ## 2. CLI-agentide kataloog (10 tööriista)
@@ -598,24 +598,24 @@ omniroute setup --add-provider \
   --test-provider                      # Lisa ja testi pakkujat ühe toiminguga
 ```
 
-Mitteinteraktiivse seadistamise tuvastatud keskkonnamuutujad:
+Mitteinteraktiivse seadistamise jaoks tuvastatavad keskkonnamuutujad:
 
-| Muutuja             | Otstarve                                                               |
-| ------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Pakkuja API-võti (seotud lipuga `--api-key` Commanderi `.env()` kaudu) |
-| `DATA_DIR`          | Alista OmniRoute'i andmekataloog                                       |
+| Muutuja             | Otstarve                                                                   |
+| ------------------- | -------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Pakkuja API-võti (seotud suvandiga `--api-key` Commander'i `.env()` kaudu) |
+| `DATA_DIR`          | OmniRoute'i andmekataloogi alistamine                                      |
 
 Kõik muud mitteinteraktiivsed sisendid edastatakse lippudena, mitte keskkonnamuutujatena:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(vt ülal käsu `omniroute setup` suvandeid).
+(vt ülaltoodud `omniroute setup` suvandeid).
 
 ### Diagnostika
 
 ```bash
-omniroute doctor                       # Kontrolli konfiguratsiooni, andmebaasi, porte, käituskeskkonda, mälu ja töötavust
+omniroute doctor                       # Kontrolli konfiguratsiooni, andmebaasi, porte, käituskeskkonda, mälu ja elusolekut
 omniroute doctor --json                # Masinloetav JSON
 omniroute doctor --no-liveness         # Jäta HTTP-seisundikontroll vahele
-omniroute doctor --host 0.0.0.0        # Alista töötavuskontrolli host
+omniroute doctor --host 0.0.0.0        # Alista elusolekukontrolli host
 omniroute doctor --liveness-url <url>  # Alista seisundi lõpp-punkti täielik URL
 ```
 
@@ -636,7 +636,7 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # Testi üht seadistatud ühendust
 omniroute providers test-all                        # Testi kõiki aktiivseid ühendusi
-omniroute providers validate                        # Ainult kohalik struktuurikontroll
+omniroute providers validate                        # Ainult kohalik struktuuriline valideerimine
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Olemasolev OAuth-voog
@@ -644,58 +644,58 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` kasutavad eelistatult API-t ja töötavad seetõttu
-aktiivses kohalikus või kaugkontekstis. Mandaadi sisestamiseks tuleks kasutada
-`--credential-stdin` või `--credential-env`; `--dry-run --json` kuvab ainult
-redigeeritud olemasolu-/struktuuriteabe. `providers available` loeb OmniRoute'i kataloogi;
-`providers list/test/test-all/validate` säilitavad oma kohaliku SQLite'i käitumise ega
-nõua serveri töötamist.
+`providers add/import/auth/edit/remove` kasutavad eelkõige API-t ja töötavad seetõttu
+aktiivse kohaliku või kaugkontekstiga. Autentimisandmete sisestamiseks tuleks kasutada
+`--credential-stdin` või `--credential-env`; `--dry-run --json` esitab ainult
+redigeeritud olemasolu-/kujuteabe. `providers available` loeb OmniRoute'i kataloogi;
+`providers list/test/test-all/validate` säilitavad oma kohaliku SQLite'i-põhise käitumise ega
+nõua töötavat serverit.
 
 ### Taastamine ja lähtestamine
 
 ```bash
 omniroute reset-password                # Lähtesta administraatori parool (ka: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Kuva hoiatus ja krüpteeritud mandaatide lähtestamise proovikäivitus
-omniroute reset-encrypted-columns --force  # Määra krüpteeritud mandaadid SQLite'is tegelikult väärtusele null
+omniroute reset-encrypted-columns       # Kuva hoiatus ja krüpteeritud autentimisandmete lähtestamise proovikäivitus
+omniroute reset-encrypted-columns --force  # Määra krüpteeritud autentimisandmed SQLite'is tegelikult väärtuseks null
 ```
 
-### Mandaatide eksportimine (⚠ käsitse ettevaatlikult)
+### Autentimisandmete eksport (⚠ käsitse ettevaatlikult)
 
 ```bash
-omniroute auth export                                 # Kuva hoiatus ja kinnitusetapp — andmebaasile ei pöörduta
-omniroute auth export --force                          # Ekspordi KÕIGI ühenduste DEKRÜPTEERITUD mandaadid JSON-ina standardväljundisse
+omniroute auth export                                 # Kuva hoiatus ja kinnituse nõue — andmebaasile ei pääseta juurde
+omniroute auth export --force                          # Ekspordi KÕIGI ühenduste DEKRÜPTEERITUD autentimisandmed JSON-ina standardväljundisse
 omniroute auth export --force --id <id>                 # Ekspordi ainult sobiv ühendus
-omniroute auth export --force --format env               # Väljasta read OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --format env               # Väljasta read kujul OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Kirjuta faili (luuakse õigustega 0600)
 ```
 
-`auth export` on **ainult kohalik** (SQLite'i otselugemine, HTTP-marsruuti ei kasutata) ning väljastab/kirjutab tahtlikult
-`apiKey`/`accessToken`/`refreshToken`/`idToken` väärtused **lihttekstina** — see on funktsioon, mitte
+`auth export` töötab **ainult kohalikult** (SQLite'i otselugemine, HTTP-marsruuti pole) ning prindib/kirjutab sihilikult
+**lihttekstina** `apiKey`/`accessToken`/`refreshToken`/`idToken` väärtused — see on funktsioon, mitte
 viga. Ilma liputa `--force` ei loeta andmebaasist midagi ega dekrüpteerita midagi. Enne lihtteksti
-väljastamist kuvatakse alati stderr-is hoiatusbänner. `STORAGE_ENCRYPTION_KEY` peab olema
-määratud. Väli, mille dekrüpteerimine ebaõnnestub (aegunud võti, rikutud šifrtekst), esitatakse kujul
-`<field>DecryptFailed: true`, selle asemel et katkestada kogu eksport või avaldada aluseks olev viga.
+väljastamist prinditakse alati standardveavoogu hoiatav bänner. `STORAGE_ENCRYPTION_KEY` peab olema
+määratud. Väli, mille dekrüpteerimine ebaõnnestub (aegunud võti, rikutud šiffertekst), esitatakse kujul
+`<field>DecryptFailed: true`, selle asemel et kogu eksport katkestada või aluseks olev viga avaldada.
 
 ### Muud alamkäsud
 
 Need eeldavad töötavat OmniRoute'i serverit, kui pole märgitud teisiti:
 
 ```bash
-omniroute status                       # Põhjalik käitusaja olek
+omniroute status                       # Põhjalik käitusoleku ülevaade
 omniroute logs                         # Päringulogide voogedastus (--json, --search, --follow)
-omniroute config show                  # Praeguse konfiguratsiooni kuvamine
+omniroute config list                  # Seadistatud CLI-tööriistade kuvamine
 
-omniroute provider list                # Saadaolevate teenusepakkujate loend (käsu providers list alias)
-omniroute provider add                 # OmniRoute'i registreerimine tööriistas teenusepakkujana
+omniroute provider list                # Saadaolevate pakkujate loend (käsu providers list alias)
+omniroute provider add                 # OmniRoute'i registreerimine tööriistas pakkujana
 omniroute keys add | list | remove     # API-võtmete haldamine
 omniroute models [provider]            # Mudelite loend (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Konfiguratsiooni ja andmebaasi hetktõmmis
+omniroute backup                       # Seadistuse ja andmebaasi hetktõmmis
 omniroute restore                      # Taastamine varasemast hetktõmmisest
 
 omniroute health                       # Üksikasjalik seisund (kaitselülitid, vahemälu, mälu)
-omniroute quota                        # Teenusepakkuja kvoodi kasutus
+omniroute quota                        # Pakkuja kvoodi kasutus
 omniroute cache                        # Vahemälu olek
 omniroute cache clear                  # Semantilise ja signatuurivahemälu tühjendamine
 
@@ -705,22 +705,22 @@ omniroute a2a status | card            # A2A-serveri olek / agendikaart
 omniroute tunnel list | create | stop  # Tunnelite haldamine (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # Keskkonnamuutujate vaatamine / määramine (ajutine)
 
-omniroute test                         # Teenusepakkuja ühenduvuse kiirtest
-omniroute update                       # Värskenduste kontrollimine
-omniroute completion                   # Käsurea automaatse täiendamise genereerimine
+omniroute test                         # Pakkuja ühenduvuse kiirtest
+omniroute update                       # Uuenduste kontrollimine
+omniroute completion                   # Kestautomaatteksti genereerimine
 ```
 
 ### Levinud lipud
 
-| Lipp                | Kirjeldus                                                   |
-| ------------------- | ----------------------------------------------------------- |
-| `--no-open`         | Brauserit ei avata käivitamisel automaatselt                |
-| `--port <n>`        | API-pordi alistamine (vaikimisi 20128)                      |
-| `--mcp`             | Käitamine MCP-serverina stdio kaudu (IDE-de jaoks)          |
-| `--non-interactive` | CI-režiim (viipadeta; loeb väärtused keskkonnast/lippudelt) |
-| `--json`            | Masinloetav JSON-väljund (doctor, providers jne)            |
-| `--help`, `-h`      | Käsupõhise abi kuvamine                                     |
-| `--version`, `-v`   | Installitud versiooni väljastamine                          |
+| Lipp                | Kirjeldus                                          |
+| ------------------- | -------------------------------------------------- |
+| `--no-open`         | Brauserit ei avata käivitamisel automaatselt       |
+| `--port <n>`        | API-pordi muutmine (vaikimisi 20128)               |
+| `--mcp`             | Käitamine MCP-serverina stdio kaudu (IDE-de jaoks) |
+| `--non-interactive` | CI-režiim (viipadeta; loeb keskkonnast/lippudest)  |
+| `--json`            | Masinloetav JSON-väljund (doctor, providers jne)   |
+| `--help`, `-h`      | Käsupõhise abi kuvamine                            |
+| `--version`, `-v`   | Installitud versiooni kuvamine                     |
 
 ---
 

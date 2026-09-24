@@ -1,0 +1,1 @@
+- **fix(sse):** the opencode rotation head now reuses the last healthy member and skips recently refused members while the opt-in skip flag is on; with the flag off the order is exactly the plain rotation ([#14202](https://github.com/diegosouzapw/OmniRoute/pull/14202)) — thanks @maxmad64bis

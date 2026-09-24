@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Yorùbá)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -180,60 +180,50 @@ Pẹ̀lú Stacked:              token 10K-2.5K ni a fi ránṣẹ́     (ààlà
 
 ---
 
-## Ìṣètò
+## Ìtòsílẹ̀
 
-### Pánẹ́ẹ̀lì Ìṣàkóso
+### Dasibọọdu
 
-Lọ sí `Dashboard → Context & Cache`:
+Lọ sí `Dasibọọdu → Àyíká & Kaṣe`:
 
-- **Caveman** — yíyan ipò, àwọn àkójọpọ̀ èdè, àwòtẹ́lẹ̀, àti àwọn àiyípadà àgbáyé
-- **RTK** — àwòtẹ́lẹ̀ àsẹ-àlẹ̀mọ́, àwọn ètò ààbò RTK, àti àkójọ àwọn àlẹ̀mọ́
-- **Compression Combos** — àwọn ìlànà ẹ̀rọ tí a fún ní orúkọ, tí a sì yàn fún àwọn àkópọ̀ ìdarí
-- **Auto-Trigger Threshold** — bẹ̀rẹ̀ ìfúnpọ̀ láìfọwọ́ṣe nígbà tí iye token bá kọjá ààlà
+- **Kééfù-ènìyàn** — yiyan ipò, àwọn àkójọ èdè, àyẹ̀wò, àti àwọn àṣàyàn gbogboogbo
+- **RTK** — àyẹ̀wò àṣàyàn àṣẹ, àwọn ètò ààbò RTK, àti àkójọ àṣàyàn
+- **Àwọn Àkópọ̀ Ìfúnpọ̀** — àwọn ọ̀nà-iṣẹ́ ẹ̀rọ tí a dárúkọ tí a yàn sí àwọn àkópọ̀ ìlọ
+- **Àpapọ̀-ìgbésẹ̀ Ìgbésẹ̀-ara-ẹni** — fúnpọ̀ lára-ẹni nígbà tí iye àmì-ìdámọ̀ bá kọjá àpapọ̀
 
-### Ìkọ̀sílẹ̀ Fún Àkópọ̀ Kọ̀ọ̀kan
+### Ìfagilé fún Àkópọ̀ Kọ̀ọ̀kan
 
-Nínú `Dashboard → Context & Cache → Compression Combos`, yan àkópọ̀ ìfúnpọ̀ kan fún àkópọ̀ ìdarí
-kan:
+Nínú `Dasibọọdu → Àyíká & Kaṣe → Àwọn Àkópọ̀ Ìfúnpọ̀`, yan àkópọ̀ ìfúnpọ̀ kan sí àkópọ̀ ìlọ kan:
 
 ```txt
-Combo: "free-tier-fallback"
-  Compression Combo: "coding-agent-stack"
-  Pipeline: RTK -> Caveman
-  Targets:
+Àkópọ̀: "free-tier-fallback"
+  Àkópọ̀ Ìfúnpọ̀: "coding-agent-stack"
+  Ọ̀nà-iṣẹ́: RTK -> Kééfù-ènìyàn
+  Àwọn Àfojúsùn:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Èyí jẹ́ kí o lè lo ìfúnpọ̀ alákòóso-lẹ́sẹẹsẹ lórí àwọn olùpèsè ọ̀fẹ́/tíkọ́ọ̀dù, nígbà tí o ṣì ń lo
-ipò lite lórí àwọn ìforúkọsílẹ̀ tí a sanwó fún.
+Èyí jẹ́ kí o lo ìfúnpọ̀ tí a kójọpọ̀ lórí àwọn olùpèsè ọfẹ/kóòdù nígbà tí o bá ń pa ipò fẹ́ẹ́rẹ́ mọ́ lórí àwọn ìforúkọsílẹ̀ tí a sanwó.
 
-Ìyàn “Per-Combo Override” yìí jẹ́ ìṣàkóso tí ó yàtọ̀ sí ìkọ̀sílẹ̀ **ipò ìfúnpọ̀ àkópọ̀ ìdarí**
-(Default/Off/Lite/Standard/Aggressive/Ultra) — ìkọ̀sílẹ̀ yẹn kò yan ìlànà àkópọ̀-ìfúnpọ̀ tí a fún
-ní orúkọ; ó kàn ṣètò ààyè `compressionMode` tí `resolveCompressionPlan` ń tọ́ka sí. A lè ṣètò rẹ̀
-lórí káàdì àkópọ̀ (`Dashboard → Combos`) tàbí, láti #6760, fún àkópọ̀ ìdarí kọ̀ọ̀kan nínú àtòjọ
-“Assign to routing” ní `Dashboard → Context & Cache → Compression Combos`, lẹ́gbẹ̀ẹ́ àpótí àyẹ̀wò
-ìyàn ìlànà tí a ṣàkọsílẹ̀ rẹ̀ lókè. Àwọn ojú-ìṣàkóso méjèèjì ń tọ́jú ìyípadà nípasẹ̀ endpoint
-`PUT /api/combos/{id}` kan náà.
+Ìyàn "Ìfagilé fún Àkópọ̀ Kọ̀ọ̀kan" yìí jẹ́ ìṣàkóso yàtọ̀ sí ìfagilé **ipò ìfúnpọ̀ àkópọ̀-ìlọ** (Àṣàyàn/Pàá/Fẹ́ẹ́rẹ́/Ìwọ̀n/Ìgbónára/Gbígbónára Jù) — ìfagilé yẹn kò yan ọ̀nà-iṣẹ́ àkópọ̀-ìfúnpọ̀ tí a dárúkọ; ó kàn ṣeto ààyè `compressionMode` tí `resolveCompressionPlan` ń wò. Ó lè ṣeto rẹ̀ lórí káàdì àkópọ̀ (`Dasibọọdu → Àwọn Àkópọ̀`) tàbí, láti #6760, fún àkópọ̀ ìlọ kọ̀ọ̀kan nínú àkójọ "Yan sí ìlọ" lórí `Dasibọọdu → Àyíká & Kaṣe → Àwọn Àkópọ̀ Ìfúnpọ̀`, lẹ́gbẹ̀ẹ́ àyẹ̀wò ìyàn-ọ̀nà-iṣẹ́ tí a ti ṣàlàyé lókè. Àwọn ojú-ìwé méjèèjì wà títí láyé nípasẹ̀ òpin-ọ̀nà `PUT /api/combos/{id}` kan náà.
 
-### Ìkọ̀sílẹ̀ fún ìbéèrè kọ̀ọ̀kan
+### Ìfagilé fún ìbéèrè kọ̀ọ̀kan
 
-Fi header ìbéèrè `x-omniroute-compression` ránṣẹ́ láti kọjá ètò ìfúnpọ̀ fún ìbéèrè kan ṣoṣo.
-Ó ní ipò àkọ́kọ́ tó ga jù — ó borí ìkọ̀sílẹ̀ àkópọ̀ ìdarí, prófáìlì tó ń ṣiṣẹ́, ìpilẹ̀ṣẹ̀
-aládàáṣiṣẹ́, àti Default ti pánẹ́ẹ̀lì. A máa foju kọ àwọn iye tí a kò mọ̀ (a kì í kọ ìbéèrè náà
-sílẹ̀ láéláé), àti pé yíyí àgbáyé àkọ́kọ́ ṣì ń ṣàkóso gbogbo nǹkan: nígbà tí ìfúnpọ̀ bá wà ní pípà
-ní gbogbo àgbáyé, header náà kò lè tan-an. Àwọn iye:
+Fi àkọlé ìbéèrè `x-omniroute-compression` ránṣẹ́ láti fagilé ètò ìfúnpọ̀ fún ìbéèrè kan ṣoṣo. Ó ní àṣẹ tí ó ga jù lọ — ó borí ìfagilé àkópọ̀-ìlọ, àwọn àṣàyàn tí ó wà lọ́wọ́, ìgbésẹ̀-ara-ẹni, àti Àṣàyàn pátákì. Àwọn ìwúlò tí a kò mọ̀ ni a kò kà sí (a kò kọ ìbéèrè náà rárá) àti pé yíyí gbogboogbo tí ó ga jù lọ ṣì ń ṣakoso ohun gbogbo: nígbà tí ìfúnpọ̀ bá wà ní pípàá ní gbogboogbo, àkọlé náà kò lè tan án. Àwọn ìwúlò:
 
-| Iye           | Ipa                                                                                                 |
-| ------------- | --------------------------------------------------------------------------------------------------- |
-| `off`         | Kò sí ìfúnpọ̀ fún ìbéèrè yìí.                                                                        |
-| `default`     | Prófáìlì Default tí pánẹ́ẹ̀lì dá sílẹ̀ (kò ka prófáìlì tó ń ṣiṣẹ́ sí).                                  |
-| `engine:<id>` | Ẹ̀rọ kan ṣoṣo nígbà tí a bá ti mú un ṣiṣẹ́, àpẹẹrẹ `engine:rtk`.                                      |
-| `<combo>`     | Àkópọ̀ tí a fún ní orúkọ, tí a kọ́kọ́ bá mu nípasẹ̀ orúkọ (láìka lẹ́tà ńlá/kékeré), lẹ́yìn náà nípasẹ̀ id. |
+| Ìwúlò | Ìwúlò |
+| ------------- | Ìwúlò |
+| `off` | Kò sí ìfúnpọ̀ fún ìbéèrè yìí. |
+| `default` | Àṣàyàn tí a yọ jáde láti pátákì (kò kà àwọn àṣàyàn tí ó wà lọ́wọ́ sí). Àwọn ẹ̀rọ tí ó lè sọ nù ni a fi sílẹ̀ ní pípàá. |
+| `safe` | Bákan náà bí kíkọ àkọlé náà sílẹ̀: ìyọkúrò àwọn àdàkọ àti ìfúnpọ̀ àyè funfun nìkan. |
+| `allow-lossy` | Pa ètò olùṣe ìbéèrè yìí mọ́, pẹ̀lú àwọn àkópọ̀, àwọn àṣàyàn ìbámu, àti àwọn àtúnṣe ìṣàtúnkọ. |
+| `engine:<id>` | Ẹ̀rọ kan ṣoṣo nígbà tí a bá mú un ṣiṣẹ́, fún àpẹẹrẹ `engine:rtk`. Èyí ni ìyàn-lọ́wọ́ fún ẹ̀rọ yẹn fún ìbéèrè kọ̀ọ̀kan. |
+| `<combo>` | Àkópọ̀ tí a dárúkọ, tí a bámu nípasẹ̀ orúkọ (kò kà ìyàtọ̀ àwọn lẹ́tà sí) ní àkọ́kọ́, lẹ́yìn náà nípasẹ̀ àmì-ìdámọ̀. |
 
-A máa fi ètò tí a lò padà hàn nínú header ìdáhùn `X-OmniRoute-Compression: <mode>; source=<source>`,
-níbi tí `<source>` ti jẹ́ ọ̀kan lára `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default`, tàbí `off`.
+Láìsí `allow-lossy`, `engine:<id>`, tàbí àkópọ̀ tí a dárúkọ, a kò lo àwọn ẹ̀rọ tí ó lè sọ nù. Ìbéèrè náà ṣì ń gba ìyọkúrò àdàkọ ìgbà-ìṣe àti ìfúnpọ̀ àyè funfun nígbà tí ìfúnpọ̀ bá wà ní títan.
+
+Ètò tí a lò ni a tún fi ránṣẹ́ padà nínú àkọlé ìdáhùn `X-OmniRoute-Compression: <mode>; source=<source>`, níbi tí `<source>` jẹ́ ọ̀kan nínú `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, tàbí `off`.
 
 ### API
 
@@ -241,20 +231,20 @@ níbi tí `<source>` ti jẹ́ ọ̀kan lára `request-header`, `routing-overrid
 # Gba àwọn ètò ìfúnpọ̀
 curl http://localhost:20128/api/settings/compression
 
-# Ṣe ìmúdójúìwọ̀n àwọn ètò ìfúnpọ̀
+# Ṣe àtúnṣe àwọn ètò ìfúnpọ̀
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Ṣe àwòtẹ́lẹ̀ payload RTK/stacked kan pàtó
+# Ṣe àyẹ̀wò àkójọ RTK/stacked kan pàtó
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# Ṣàtòjọ àwọn àkójọpọ̀ àlẹ̀mọ́ RTK
+# Ṣe àkójọ àwọn àkójọ àṣàyàn RTK
 curl http://localhost:20128/api/context/rtk/filters
 
-# Dán RTK wò ní tààrà pẹ̀lú metadata àsẹ àṣàyàn
+# Ṣe àyẹ̀wò RTK tààrà pẹ̀lú àwọn metadata àṣẹ tí ó lè wà
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -299,15 +289,15 @@ Gbogbo ìbéèrè tí a bá fún pọ̀ ní àwọn àlàyé ìṣirò nínú à
 
 ---
 
-## Ètò Ọ̀nà Àwọn Ìpele
+## Ìlànà Ìgbésẹ̀
 
-| Ìpele    | Àwọn Ipò                                                                                                                                           | Ipò        |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| Ìpele 1  | Pípa, Lite                                                                                                                                         | ✅ Ti jáde |
-| Ìpele 2  | Standard, Aggressive, Ultra                                                                                                                        | ✅ Ti jáde |
-| Ìpele 3  | RTK, Stacked, Àwọn Àkópọ̀ Ìfúnpọ̀                                                                                                                    | ✅ Ti jáde |
-| Ìpele 4  | Àwọn Ọ̀nà Àfihàn Àbájáde, Ultra ìpele-SLM, ètò ìdánwò                                                                                               | ✅ Ti jáde |
-| Ìpele 4C | Ìṣúná àyíká-ọ̀rọ̀ aláṣàmúlòṣe ("dial") — ẹ́ńjìnnì ìṣirò + API (`contextBudget` lórí `PUT /api/settings/compression`) + àwọn ìṣàkóso ipò/ìlànà ojú-iṣẹ́ | ✅ Ti jáde |
+| Ìgbésẹ̀    | Àwọn Ipo                                                                                                                                        | Ipò        |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Ìgbésẹ̀ 1  | Off, Lite                                                                                                                                       | ✅ Ti jáde |
+| Ìgbésẹ̀ 2  | Standard, Aggressive, Ultra                                                                                                                     | ✅ Ti jáde |
+| Ìgbésẹ̀ 3  | RTK, Stacked, Compression Combos                                                                                                                | ✅ Ti jáde |
+| Ìgbésẹ̀ 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                     | ✅ Ti jáde |
+| Ìgbésẹ̀ 4C | context-budget aṣebámu ("dial") — compute engine + API (`contextBudget` lórí `PUT /api/settings/compression`) + àwọn ìṣàkóso ipo/òfin dashboard | ✅ Ti jáde |
 
 ---
 
@@ -319,30 +309,30 @@ Ipò RTK gba ìmísí láti ọ̀dọ̀ **[RTK - Rust Token Killer](https://gith
 
 ---
 
-## Àwọn Ètò Ìfúnpọ̀ Ìpele-Gíga
+## Àwọn Ètò Ìfúnpọ̀ Tí Ó Ti Gbajúmọ̀
 
-Ní àfikún sí àwọn ipò boṣewa 7 náà, OmniRoute ní ọ̀pọ̀ ètò ìfúnpọ̀
-ìpele-gíga tí ń ṣiṣẹ́ láìfọwọ́yí gẹ́gẹ́ bí àyíká-ọ̀rọ̀ ṣe rí.
+Yàtọ̀ sí àwọn ipò ìfúnpọ̀ ìpele 7, OmniRoute ní àwọn ètò ìfúnpọ̀ tí ó ti gbajúmọ̀ púpọ̀
+tí ó ń ṣiṣẹ́ lára-ẹni nípa lílo àyíká.
 
-### Ìfúnpọ̀ Tó Mọ Ibi-Ìpamọ́
+### Ìfúnpọ̀ Tí Ó Mọ Cache
 
-Àwọn olùpèsè kan (bí Anthropic pẹ̀lú fífi prompt pamọ́) ṣe àtìlẹ́yìn fún **fífi prompt pamọ́**,
-èyí tó jẹ́ kí wọ́n fi àwọn apá kan ti prompt pamọ́ láti dín iye owó àti àkókò ìdádúró kù. Nígbà tí
-fífi pamọ́ bá ṣiṣẹ́, ìfúnpọ̀ tó lágbára lè **ba** ìṣiṣẹ́ jẹ́ ní ti gidi
-nítorí pé ó yí àwọn àmì tí a fi pamọ́ padà, tó sì sọ ibi-ìpamọ́ náà di aláìwúlò.
+Àwọn olùpèsè kan (bíi Anthropic pẹ̀lú ìpamọ́ra àwọn ìbéèrè) ń ṣe àtìlẹ́yìn **ìpamọ́ra àwọn ìbéèrè**,
+èyí tí ó jẹ́ kí wọ́n pamọ́ra àwọn apá kan nínú ìbéèrè láti dín owó àti ìdádúró kù. Nígbà tí
+ìpamọ́ra bá wà ní àwọn, ìfúnpọ̀ líle lè **ṣe ìpalára** ìṣiṣẹ́ nítorí pé ó ń yí àwọn àmì-ọ̀rọ̀ tí a pamọ́ra padà,
+tí ó sì ń sọ ìpamọ́ra di aláìwúlò.
 
-Módù `cachingAware.ts` ń yanjú èyí nípa **wíwádìí àyíká-ọ̀rọ̀ fífi pamọ́** àti
-**ṣíṣe àtúnṣe sí ìlànà ìfúnpọ̀** gẹ́gẹ́ bí ó ṣe yẹ.
+Àkọsílẹ̀ `cachingAware.ts` yanjú èyí nípa **mímọ àyíká ìpamọ́ra** àti
+**ṣíṣe àtúnṣe ètò ìfúnpọ̀** ní ìbámu pẹ̀lú rẹ̀.
 
 #### Bí ó ṣe ń ṣiṣẹ́
 
-1. **Ṣàwárí àyíká-ọ̀rọ̀ fífi pamọ́** — Ṣàyẹ̀wò ara ìbéèrè fún àwọn àmì `cache_control`
-2. **Dá àwọn olùpèsè fífi pamọ́ mọ̀** — Ṣàyẹ̀wò bóyá olùpèsè àfojúsùn ṣe àtìlẹ́yìn fún fífi pamọ́
-3. **Ṣàtúnṣe ìlànà** — Sọ `aggressive`/`ultra` kalẹ̀ sí `standard` fún àwọn olùpèsè fífi pamọ́
-4. **Fò kọjá prompt ètò** — A sábà máa ń fi àwọn prompt ètò pamọ́, nítorí náà má ṣe fún wọn pọ̀
-5. **Lo àwọn ìyípadà tó ń fúnni ní àbájáde kan náà** — Lo àwọn ìyípadà tí ń ṣe àbájáde tó dúró ṣinṣin nìkan
+1. **Mọ àyíká ìpamọ́ra** — Ṣàyẹ̀wò ara ìbéèrè fún àwọn àmì `cache_control`
+2. **Ṣe ìdámọ̀ àwọn olùpèsè ìpamọ́ra** — Ṣàyẹ̀wò bóyá olùpèsè tí a fojú sí ń ṣe àtìlẹ́yìn ìpamọ́ra
+3. **Ṣe àtúnṣe ètò** — Dín `aggressive`/`ultra` kù sí `standard` fún àwọn olùpèsè ìpamọ́ra
+4. **Fò ìbéèrè ètò kọjá** — Àwọn ìbéèrè ètò sábà máa ń jẹ́ pamọ́ra, nítorí náà má ṣe fún wọn pọ̀
+5. **Lo àwọn ìyípadà tí ó dájú** — Kìkì lo àwọn ìyípadà tí ó ń mú èsì tí ó bámu jáde
 
-#### Àpẹẹrẹ kóòdù
+#### Àpẹẹrẹ koodu
 
 ```ts
 import {
@@ -353,7 +343,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Àmì ibi-ìpamọ́
+  cache_control: { type: "ephemeral" }, // ← Àmì ìpamọ́ra
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -363,25 +353,25 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Ìgbà tí ó yẹ kí o lò ó
+#### Nígbà wo ni a ó lò ó
 
-Ìfúnpọ̀ tó mọ ibi-ìpamọ́ **máa ń ṣiṣẹ́ ní gbogbo ìgbà** — kò nílò àtòpọ̀ kankan. Ó máa ń bẹ̀rẹ̀ iṣẹ́ nìkan
+Ìfúnpọ̀ tí ó mọ cache **ń ṣiṣẹ́ nígbà gbogbo** — kò sí ìtòlẹ́sẹẹsẹ tí a nílò. Ó kìkì ń bẹ̀rẹ̀
 nígbà tí:
 
 - Ìbéèrè náà ní àwọn àmì `cache_control`
-- Olùpèsè àfojúsùn ṣe àtìlẹ́yìn fún fífi prompt pamọ́ (Anthropic, OpenAI, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ.)
+- Olùpèsè tí a fojú sí ń ṣe àtìlẹ́yìn ìpamọ́ra ìbéèrè (Anthropic, OpenAI, bbl)
 
-### Ìdínkù Díẹ̀díẹ̀ Gẹ́gẹ́ Bí Ọjọ́ Ṣe Ń Lọ
+### Ìgbàgbó Àgbékalẹ̀
 
-Àwọn ìjíròrò gígùn máa ń kó ọ̀pọ̀ ìyípadà ọ̀rọ̀ jọ, ṣùgbọ́n àwọn ìyípadà ọ̀rọ̀ àtijọ́ máa ń dín
-ní ìbámu. Módù `progressiveAging.ts` **máa ń dín kúlẹ̀kúlẹ̀ àwọn ìfiránṣẹ́ kù gẹ́gẹ́ bí jíjìnnà ìyípadà ọ̀rọ̀ ṣe rí**:
+Àwọn ìjíròrò gígùn ń kó ọ̀pọ̀lọpọ̀ ìyípadà ìránṣẹ́ jọ, ṣùgbọ́n àwọn ìyípadà àtijọ́ kò wúlò mọ́.
+Àkọsílẹ̀ `progressiveAging.ts` **ń dín àwọn ìránṣẹ́ kù nípa ìjìnnà ìyípadà**:
 
-- **Àwọn ìyípadà ọ̀rọ̀ tuntun (0-3)**: A tọ́jú wọn bí wọ́n ṣe rí (ẹ̀kúnrẹ́rẹ́ àlàyé)
-- **Àwọn ìyípadà ọ̀rọ̀ àárín (4-8)**: Ìfúnpọ̀ Lite (ààyè láàárín ọ̀rọ̀, ìsọdimímọ́ àgbékalẹ̀)
-- **Àwọn ìyípadà ọ̀rọ̀ àtijọ́ (9+)**: Ìfúnpọ̀ Caveman (yíyọ ọ̀rọ̀ àfikún kúrò, ṣíṣe àkótán)
-- **Àwọn ìyípadà ọ̀rọ̀ tó ti pẹ́ gan-an (20+)**: A ṣe àkótán wọn gidigidi tàbí a yọ wọ́n kúrò
+- **Àwọn ìyípadà tuntun (0-3)**: A pa wọ́n mọ́ gẹ́gẹ́ bí wọ́n ṣe wà (ìwọ̀nba ẹ̀kúnrẹ́rẹ́)
+- **Àwọn ìyípadà àárín (4-8)**: Ìfúnpọ̀ fẹ́ẹ́rẹ́ (ààyè òfo, ìtúnṣe àtòlẹ́sẹẹsẹ)
+- **Àwọn ìyípadà àtijọ́ (9+)**: Ìfúnpọ̀ Caveman (yíyọ àwọn ohun tí kò wúlò kúrò, àkópọ̀)
+- **Àwọn ìyípadà àtijọ́ púpọ̀ (20+)**: Àkópọ̀ líle tàbí yíyọ kúrò
 
-#### Àpẹẹrẹ kóòdù
+#### Àpẹẹrẹ koodu
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
@@ -390,48 +380,48 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... Àwọn ìyípadà ọ̀rọ̀ 50 míì ...
+  // ... 50 more turns ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Àwọn ìyípadà ọ̀rọ̀ 3 àkọ́kọ́: bí wọ́n ṣe rí
-  light: 8, // Àwọn ìyípadà ọ̀rọ̀ 4-8: ìfúnpọ̀ lite
-  moderate: 20, // Àwọn ìyípadà ọ̀rọ̀ 9-20: ìfúnpọ̀ caveman
-  // Àwọn ìyípadà ọ̀rọ̀ 21+: àkótán tó lágbára
+  verbatim: 3, // Àwọn ìyípadà 3 àkọ́kọ́: gẹ́gẹ́ bí wọ́n ṣe wà
+  light: 8, // Àwọn ìyípadà 4-8: ìfúnpọ̀ fẹ́ẹ́rẹ́
+  moderate: 20, // Àwọn ìyípadà 9-20: ìfúnpọ̀ caveman
+  // Àwọn ìyípadà 21+: àkópọ̀ líle
 });
 
-// saved = iye àwọn àmì tí a fi pamọ́
+// saved = iye àwọn àmì-ọ̀rọ̀ tí a ti pamọ́
 ```
 
-#### Ìgbà tí ó yẹ kí o lò ó
+#### Nígbà wo ni a ó lò ó
 
-Ìdárúgbó onítẹ̀síwájú máa ń ṣiṣẹ́ **ní gbogbo ìgbà** fún àwọn ipò `aggressive` àti `ultra`. Ó
-wúlò gan-an fún:
+Ìgbàgbó àgbékalẹ̀ **ń ṣiṣẹ́ nígbà gbogbo** fún àwọn ipò `aggressive` àti `ultra`. Ó
+wúlò púpọ̀ fún:
 
-- Àwọn àkókò kíkọ kóòdù tí ó gùn
-- Àwọn ìjíròrò tí ó gba ọ̀pọ̀ ọjọ́
-- Àwọn ìṣàn-iṣẹ́ aṣojú pẹ̀lú ọ̀pọ̀ ìpè irinṣẹ́
+- Àwọn ìgbà ìkọ̀wé koodu gígùn
+- Àwọn ìjíròrò ọjọ́ púpọ̀
+- Àwọn ìṣiṣẹ́ àwọn aṣojú pẹ̀lú ọ̀pọ̀lọpọ̀ ìpè irinṣẹ́
 
 ### Ipò Ìjáde Caveman
 
-Módù `outputMode.ts` máa ń fi **àwọn ìtọ́nisọ́nà ìbéèrè ètò** sínú rẹ̀ láti mú kí
-móòdẹ́lì fúnra rẹ̀ ṣe àgbéjáde tí a ti fún pọ̀, tí ó sì ṣókí (àṣà "caveman").
+Àkọsílẹ̀ `outputMode.ts` ń fi **àwọn ìtọ́nisọ́nà ìbéèrè ètò** sínú láti jẹ́ kí
+àwòrán fúnra rẹ̀ mú ìjáde tí a fún pọ̀, tí ó kúrú (ìwọ̀nba "caveman") jáde.
 
 #### Bí ó ṣe ń ṣiṣẹ́
 
-Dípò fífún ìwọlé pọ̀, ipò yìí máa ń ṣàfikún ìbéèrè ètò bíi:
+Dípò kí a fún ìjáde pọ̀, ipò yìí ń fi ìbéèrè ètò kan kún bíi:
 
-> "Dáhùn pẹ̀lú ọ̀rọ̀ díẹ̀ jù lọ. Má ṣe lo ọ̀rọ̀ ìkíni. Lo àwọn gbólóhùn kúkúrú."
+> "Dáhùn ní àwọn ọ̀rọ̀ díẹ̀. Fò àwọn ìkíni kọjá. Lo àwọn gbólóhùn kúkúrú."
 
-Èyí wúlò gan-an fún:
+Èyí ń ṣiṣẹ́ dáadáa fún:
 
-- Ṣíṣẹ̀dá kóòdù (àgbéjáde tí ó ṣókí sí i = àwọn token díẹ̀ sí i)
-- Ìbéèrè àti ìdáhùn kíákíá (kò nílò àwọn àlàyé gígùn)
-- Ṣíṣe ìpele-ẹgbẹ́ (mú ìwọ̀n iṣẹ́ tí a lè parí pọ̀ sí i)
+- Ìṣẹ̀dá koodu (ìjáde tí ó kúrú = àwọn àmì-ọ̀rọ̀ díẹ̀)
+- Q&A yára (kò sí àìní fún àwọn àlàyé tí ó gbòòrò)
+- Ìṣiṣẹ́ ìṣùpọ̀ (mú ìṣiṣẹ́ pọ̀ si)
 
-#### Ìgbà tí o yẹ kí a lò ó
+#### Nígbà wo ni a ó lò ó
 
-Ipò ìjáde Caveman jẹ́ **èyí tí a yàn láti ṣiṣẹ́** — ṣètò rẹ̀ nípasẹ̀ àtòpọ̀ ìṣètò:
+Ipò ìjáde Caveman jẹ́ **ìyànfẹ́** — ṣeto rẹ̀ nípasẹ̀ ìtòlẹ́sẹẹsẹ àpapọ̀:
 
 ```json
 {
@@ -444,41 +434,31 @@ Ipò ìjáde Caveman jẹ́ **èyí tí a yàn láti ṣiṣẹ́** — ṣètò
 }
 ```
 
-### Àwọn Àṣà Ìjáde (àkójọ)
+### Àwọn Ìṣàpẹẹrẹ Ìjáde (àtòjọ)
 
-Ipò ìjáde Caveman lókè ni **ọ̀nà àṣà ẹyọ kan àtijọ́**. Ìpele 4 sọ ọ́ di
-àkójọ àwọn àṣà ìjáde tí a lè ṣàkójọpọ̀: `OUTPUT_STYLE_CATALOG` nínú
-`open-sse/services/compression/outputStyles/catalog.ts`. Àṣà kọ̀ọ̀kan jẹ́ ìtọ́nisọ́nà ìbéèrè-ètò
-tí ó mú kí móòdẹ́lì fúnra rẹ̀ ṣe àgbéjáde tí iye owó rẹ̀ dín kù; a lè mú àwọn àṣà ṣiṣẹ́
-papọ̀, a ó sì fi wọ́n sínú rẹ̀ ní ìtòlẹ́sẹẹsẹ àkójọ.
+Ipò ìjáde Caveman lókè jẹ́ **ọ̀nà ìṣàpẹẹrẹ kan ṣoṣo àtijọ́**. Ìpele 4 ṣe àkópọ̀ rẹ̀
+sínú àtòjọ àwọn ìṣàpẹẹrẹ ìjáde tí ó lè jẹ́ àpapọ̀: `OUTPUT_STYLE_CATALOG` nínú
+`open-sse/services/compression/outputStyles/catalog.ts`. Ìṣàpẹẹrẹ kọ̀ọ̀kan jẹ́ ìtọ́nisọ́nà ìbéèrè ètò
+tí ó ń mú kí àwòrán fúnra rẹ̀ mú ìjáde tí ó rọrùn jáde; àwọn ìṣàpẹẹrẹ lè jẹ́ àwọn pọ̀
+àti pé a fi wọ́n sínú ní àtòlẹ́sẹẹsẹ àtòjọ.
 
-| Àṣà                             | `id`          | Ohun tí ó ń ṣe                                                                                                                                                                                                                   | Àwọn èdè ìtọ́nisọ́nà                                                             |
-| ------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Ọ̀rọ̀ ṣókí                        | `terse-prose` | Yọ àwọn ọ̀rọ̀ àfikún/atọ́ka/àìdánilójú kúrò; jẹ́ kí kókó ìmọ̀-ẹ̀rọ péye. Ọ̀rọ̀ kan náà ni pẹ̀lú ipò ìjáde caveman àtijọ́ (a tọ́ka sí i, a kò tún tẹ̀ ẹ́).                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
-| Kóòdù díẹ̀                       | `less-code`   | Àkàbà YAGNI: ìyípadà kékeré jù lọ tí ó ṣiṣẹ́, láìsí àwọn àfọwọ́yẹ tí a kò béèrè fún.                                                                                                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
-| Ponytail (olùgbéejáde àgbà ọ̀lẹ) | `ponytail`    | "Kóòdù tó dára jù ni kóòdù tí a kò kọ rí": tún lò > tún kọ, ìdí pàtàkì > àmì ìṣòro, ìyàtọ̀ tó kúkúrú jù lọ tí ó ṣiṣẹ́.                                                                                                             | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
-| Mo ní ADHD (ìgbésẹ̀-kọ́kọ́)        | `i-have-adhd` | Ìgbésẹ̀ kọ́kọ́ (àṣẹ/ọ̀nà/àjákù ṣáájú ọ̀rọ̀), àwọn ìgbésẹ̀ onínọ́ńbà tí ó ní ààlà, ìgbésẹ̀ pàtó KAN tí ó kàn, kò sí ọ̀rọ̀ ìṣáájú/àkójọpọ̀/ọ̀rọ̀ ìparí. A ṣàtúnṣe rẹ̀ láti inú [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
-| CJK ṣókí (文言)                 | `terse-cjk`   | Àṣà Ṣáínà-ìgbàanì tí ó ṣókí gan-an.                                                                                                                                                                                              | zh (a fi locale ṣe ààlà rẹ̀: a ń pèsè rẹ̀ nìkan nígbà tí èdè tí a yanjú jẹ́ `zh`) |
+| Ara                        | `id`          | Ohun tí ó ń ṣe                                                                                                                                                                                                         | Àwọn èdè ìtọ́ni                                                          |
+| -------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Terse prose                | `terse-prose` | Mú àwọn ọ̀rọ̀ àfikún/àpilẹ̀kọ/ìfura kúrò; pa kókó ìmọ̀-ẹ̀rọ mọ́ gẹ́lẹ́. Ọ̀rọ̀ kan náà gẹ́gẹ́ bíi caveman output mode ti tẹ́lẹ̀ (tí a tọ́ka sí, tí a kò tún tẹ̀).                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Less code                  | `less-code`   | Àtẹ̀gùn YAGNI: ìyípadà tó kéré jù tó ń ṣiṣẹ́, kò sí àwọn ìfòyemọ̀ tí a kò béèrè fún.                                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Ponytail (lazy senior dev) | `ponytail`    | "Kóòdù tó dára jùlọ ni èyí tí a kò kọ rárá": tún lò > tún kọ, gbòǹgbò ìṣòro > àmì ìṣòro, ìyàtọ̀ (diff) tó kéré jù tó ń ṣiṣẹ́.                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| I have ADHD (action-first) | `i-have-adhd` | Ìgbésẹ̀ àkọ́kọ́ (àṣẹ/ipá-ọ̀nà/snippet ṣáájú ọ̀rọ̀), ìgbésẹ̀ oní-nọ́mbà tí ó ní ààlà, ìgbésẹ̀ gidi KAN tó kàn, kò sí ọ̀rọ̀ àkọ́sọ/àtúnyẹ̀wò/ìparí. A mú u wá láti [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Terse CJK (文言)           | `terse-cjk`   | Ara Classical-Chinese tó kéré jùlọ.                                                                                                                                                                                    | zh (locale-gated: a máa ń fúnni nígbà tí èdè tí a yàn bá jẹ́ `zh` nìkan) |
 
-Àṣà kọ̀ọ̀kan ní ìpele agbára mẹ́ta — `lite`, `full`, `ultra` — gbogbo ìpele
-sì parí pẹ̀lú gbólóhùn ààlà tí gbogbo wọn ń pín, èyí tí ó jẹ́ kí àwọn àkọsílẹ̀ kóòdù, àwọn ọ̀nà fáìlì, àwọn àṣẹ,
-àwọn ọ̀rọ̀ aṣìṣe, àwọn URL àti àwọn atọ́ka dúró gẹ́gẹ́ bí wọ́n ṣe wà.
+Gbogbo ara (style) ló ní ìpele agbára mẹ́ta — `lite`, `full`, `ultra` — bẹ́ẹ̀ ni gbogbo ìpele ló ń parí pẹ̀lú gbólóhùn ààlà tí a pín, èyí tí ó ń pa àwọn code blocks, file paths, commands, error strings, URLs àti identifiers mọ́ gẹ́lẹ́ bí wọ́n ṣe rí.
 
-#### Bí fífi sínú rẹ̀ ṣe ń ṣiṣẹ́
+#### Bí ìfisínú (injection) ṣe ń ṣiṣẹ́
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) máa ń yanjú
-àṣàyàn náà sí àkójọ (a máa yọ àwọn id tí a kò mọ̀ àti àwọn àṣà tí locale wọn kò bá mu kúrò,
-kò sì jẹ́ aṣìṣe láé), ó máa ń so àwọn ìtọ́nisọ́nà tí a yàn pọ̀ ní ìtòlẹ́sẹẹsẹ àkójọ,
-ó máa ń ṣàfikún gbólóhùn ààlà náà **lẹ́ẹ̀kan ṣoṣo**, ó sì máa ń fi èsì náà sí iwájú
-ìbéèrè ètò lẹ́yìn àmì idempotency kan ṣoṣo (`[OmniRoute Output Styles]`) — fífi í sílò
-lẹ́ẹ̀kan sí i kò ní ṣe ohunkóhun. Nígbà tí èdè ìbéèrè tí a ṣàwárí bá ní ìtumọ̀,
-ìtọ́nisọ́nà tí a ti sọ di èdè agbègbè ni a ó fi sínú rẹ̀ dípò Gẹ̀ẹ́sì.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ń yanjú àṣàyàn náà lòdì sí catalog (àwọn id tí a kò mọ̀ àti àwọn ara tí kò bá locale mu ni a ń jù nù, kì í ṣe àsìṣe), ó ń so àwọn ìtọ́ni tí a yàn pọ̀ ní tòtò catalog, ó ń fi gbólóhùn ààlà kún un ní **ẹ̀kan ṣoṣo**, ó sì ń gbé àbájáde rẹ̀ sí iwájú nínú system prompt lẹ́yìn àmì idempotency kan ṣoṣo (`[OmniRoute Output Styles]`) — títún lò jẹ́ no-op. Nígbà tí èdè ìbéèrè tí a rí bá ní ìtumọ̀, ìtọ́ni tí a túmọ̀ ni a ń fi sínú rẹ̀ dípò èdè Gẹ̀ẹ́sì.
 
-#### Bí a ṣe lè mú un ṣiṣẹ́
+#### Bí a ṣe ń jẹ́ kí ó ṣiṣẹ́
 
-Nínú pátákó ìṣàkóso: **Àyíká → Àwọn Ètò → Fífún Pọ̀** — ìlà kan fún àṣà kọ̀ọ̀kan pẹ̀lú
-bọ́tìnì títàn/pípa àti aṣàyàn ìpele. Nípasẹ̀ ètò, ìṣètò fífún pọ̀ máa ń tọ́jú
-àṣàyàn náà gẹ́gẹ́ bí:
+Nínú dashboard: **Context → Settings → Compression** — ìlà kan fún ara kọ̀ọ̀kan pẹ̀lú bọ́tìnì on/off àti olùyàn ìpele. Nípa ti ètò (programmatically), ìṣètò compression ń tọ́jú àṣàyàn náà gẹ́gẹ́ bíi:
 
 ```json
 {
@@ -489,59 +469,48 @@ bọ́tìnì títàn/pípa àti aṣàyàn ìpele. Nípasẹ̀ ètò, ìṣètò
 }
 ```
 
-Ìbámu sẹ́yìn: ìṣètò àtòpọ̀ àtijọ́ `outputMode: "caveman"` ṣì ń ṣiṣẹ́, ó sì máa ń darí sí
-`terse-prose`, tí báìtì rẹ̀ bá ti ìfísínú àtijọ́ mu pátápátá nínú gbogbo èdè àtijọ́.
+Back-compat: ìṣètò àpòpọ̀ `outputMode: "caveman"` ti tẹ́lẹ̀ ṣì ń ṣiṣẹ́, ó sì ń tọ́ka sí `terse-prose`, ó jẹ́ byte-identical sí ìfisínú àtijọ́ nínú gbogbo èdè àtijọ́.
 
-Àṣàyàn èdè: nígbà tí `languageConfig.enabled` bá wà ní títàn, `autoDetect` máa ń yan
-èdè ìfiránṣẹ́ olùlò tuntun jù lọ (olùṣàwárí kan náà bí ti àwọn ẹ̀rọ ìwọlé);
-pípa `autoDetect` máa ń so `defaultLanguage` mọ́lẹ̀. Pípà → Gẹ̀ẹ́sì.
+Àṣàyàn èdè: pẹ̀lú `languageConfig.enabled` lórí, `autoDetect` ń mú èdè ìránṣẹ́ oníṣe tó kẹ́yìn (olùwárí kan náà pẹ̀lú àwọn input engines); títẹ `autoDetect` pa ń dín `defaultLanguage` mọ́lẹ̀. Off → Gẹ̀ẹ́sì.
 
-A ti so mátríìkì àṣà × èdè mọ́lẹ̀ nípasẹ̀
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: àṣà tuntun kò lè jáde
-láìní ó kéré tán ìtumọ̀ pt-BR (tàbí ìyọkúrò tí a tọ́pinpin ní kedere), àṣà
-tí ó sì ti wà kò lè pàdánù locale láìkéde. Láti ṣàfikún àṣà kan, wo
-[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Matrix ti style × èdè ni a dín mọ́lẹ̀ nípasẹ̀ `tests/unit/compression/output-styles-i18n-matrix.test.ts`: ara tuntun kò lè jáde láìní ó kéré tán ìtumọ̀ pt-BR (tàbí ìyàtọ̀ tí a tẹ̀lé ní pàtó), bẹ́ẹ̀ ni ara tó ti wà tẹ́lẹ̀ kò lè sọnù nínú locale kan láìjẹ́ pé a mọ̀. Láti fi ara kún un, wo [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Fífún Èsì Irinṣẹ́ Pọ̀
+### Tool Result Compression
 
-Módù `toolResultCompressor.ts` pèsè **àwọn ọgbọ́n fífún pọ̀ amọ̀ja 5**
-fún àwọn èsì irinṣẹ́ (àwọn ìpè iṣẹ́, àwọn àgbéjáde aṣojú, àwọn èsì ìṣàwárí, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ):
+Module `toolResultCompressor.ts` ń pèsè **ìlànà compression 5 pàtàkì** fún àwọn àbájáde irinṣẹ́ (function calls, agent outputs, search results, abbl.):
 
-1. **Fífún èsì ìṣàwárí pọ̀** — Yọ àwọn èsì àsọtúnsọ kúrò, pa top-N mọ́
-2. **Fífún kíkà fáìlì pọ̀** — Gé àwọn fáìlì ńlá kúrú, pa àwọn àkọlé/àwọn ìgbéwọlé mọ́
-3. **Fífún ìmúṣẹ kóòdù pọ̀** — Pa stdout/stderr tó ṣe pàtàkì nìkan mọ́
-4. **Fífún ìbéèrè ibi ìpamọ́ dátà pọ̀** — Fi ààlà sí àwọn ìlà, yọ metadata alálàyé kúrò
-5. **Fífún èsì API pọ̀** — Yọ àwọn field null kúrò, fún àwọn array pọ̀
+1. **Search result compression** — Ó ń mú àwọn àbájáde tí ó pọ̀ jù kúrò, ó ń pa top-N mọ́
+2. **File read compression** — Ó ń gé àwọn fáìlì títóbi kúrò, ó ń pa headers/imports mọ́
+3. **Code execution compression** — Ó ń pa stdout/stderr tó ṣe kókó nìkan mọ́
+4. **Database query compression** — Ó ń dín àwọn ìlà kù, ó ń mú metadata tó pọ̀ jù kúrò
+5. **API response compression** — Ó ń yọ àwọn null fields kúrò, ó ń dín àwọn arrays kù
 
-#### Ìgbà tí o yẹ kí a lò ó
+#### Ìgbà tí a ó lò ó
 
-Fífún èsì irinṣẹ́ pọ̀ máa ń ṣiṣẹ́ **ní gbogbo ìgbà** tí àwọn ìpè irinṣẹ́ bá wà. Kò nílò
-ìṣètò kankan.
+Tool result compression máa ń **wà ní titan nígbà gbogbo** nígbà tí tool calls bá wà. Kò sí ìṣètò kankan tí a nílò.
 
-### Ìṣànṣẹ́ Tí A Tó Sórí Ara Wọn
+### Stacked Pipeline
 
-Ipò tí a tó sórí ara wọn máa ń ṣiṣẹ́ **ọ̀pọ̀ ẹ̀rọ ní tẹ̀léńtẹ̀lé** — RTK kọ́kọ́ ní ọ̀pọ̀ ìgbà
-(ìfipamọ́ 60-90% lórí àgbéjáde irinṣẹ́), lẹ́yìn náà Caveman (ìfipamọ́ àfikún 30% lórí
-ọ̀rọ̀ tó kù). Èyí ń ṣàṣeyọrí **ìfipamọ́ àpapọ̀ 78-95%**.
+Stacked mode ń ṣiṣẹ́ **ọ̀pọ̀lọpọ̀ engines ní tòtò** — nígbà púpọ̀ RTK ni àkọ́kọ́ (60-90% ìfipamọ́ lórí tool output), lẹ́yìn náà Caveman (30% ìfipamọ́ àfikún lórí ọ̀rọ̀ tó kù). Èyí ń mú **78-95% ìfipamọ́ lápapọ̀** wá.
 
 #### Bí ó ṣe ń ṣiṣẹ́
 
 ```
-Ìwọlé (1000 token)
-  → RTK (àsẹ́ tí ó mọ àṣẹ) → 200 token
-    → Caveman (yíyọ ọ̀rọ̀ àfikún) → 140 token
-  → Àgbéjáde (140 token, ìfipamọ́ 86%)
+Input (1000 tokens)
+  → RTK (command-aware filter) → 200 tokens
+    → Caveman (filler removal) → 140 tokens
+  → Output (140 tokens, 86% savings)
 ```
 
-#### Ìgbà tí o yẹ kí a lò ó
+#### Ìgbà tí a ó lò ó
 
-Lo ipò tí a tó sórí ara wọn fún:
+Lo stacked mode fún:
 
-- Àwọn ìṣàn-iṣẹ́ tí irinṣẹ́ pọ̀ nínú wọn (kíkọ kóòdù aṣojú, ìwádìí)
-- Ṣíṣe ìpele-ẹgbẹ́ tí iye owó ṣe pàtàkì sí
-- Nígbà tí o nílò ìfipamọ́ token tó pọ̀ jù lọ
+- Àwọn iṣẹ́ tó lo irinṣẹ́ púpọ̀ (agentic coding, ìwádìí)
+- Ìṣiṣẹ́ batch tí ó nílò ìṣọ́ra lórí owó
+- Nígbà tí o bá nílò ìfipamọ́ token tó pọ̀ jùlọ
 
-Ṣètò rẹ̀ nípasẹ̀ àtòpọ̀:
+Ṣètò rẹ̀ nípasẹ̀ combo:
 
 ```json
 {

@@ -1,58 +1,57 @@
 # Management Authentication (עברית)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-ל-OmniRoute יש **ארבע משפחות של פרטי אימות** שיכולות לאשר גישה לנתיבי ניהול.
-לא ניתן להשתמש בהן זו במקום זו. מפתחות API להסקה (`sk-…`) **אינם** מנהלים את
-השרת, אלא אם הוענקה להם במפורש הרשאת `manage` או `admin`.
+ל-OmniRoute יש **ארבע משפחות אישורים** שיכולות לאשר נתיבי ניהול.
+הן אינן ניתנות להחלפה. מפתחות API של הסקה (`sk-…`) **אינם** מנהלים את השרת אלא אם כן הוענק להם במפורש סקופ `manage` או `admin`.
 
-מימוש קנוני: `src/lib/api/requireManagementAuth.ts`.
+יישום קנוני: `src/lib/api/requireManagementAuth.ts`.
 
-| פרט אימות                  | תבנית אופיינית                        | היכן נוצר                                        | שימוש מיועד            | יכולת ניהול                                                          |
-| -------------------------- | ------------------------------------- | ------------------------------------------------ | ---------------------- | -------------------------------------------------------------------- |
-| סשן JWT של לוח הבקרה       | קובץ Cookie בשם `auth_token`          | התחברות ללוח הבקרה                               | ממשק משתמש בדפדפן      | ניהול מלא מלוח הבקרה, בכפוף לכללי CSRF, למיקום ולנתיבים המוגנים תמיד |
-| אסימון machine-id של ה-CLI | פנימי / מקומי                         | אתחול ה-CLI (`omniroute` באותה מכונה)            | CLI מקומי              | ניהול מקומי בלבד                                                     |
-| אסימון גישה בעל הרשאות     | `oma_live_…`                          | **הגדרות ← אסימוני גישה** או `omniroute connect` | CLI מרוחק ו-API לניהול | חייב לעמוד בהרשאת `read`,‏ `write` או `admin` הנדרשת על ידי הנתיב    |
-| מפתח API להסקה             | `sk-…` (ותחיליות אחרות של מפתחות API) | **מנהל API / מפתחות API**                        | הסקה דרך `/v1/*`       | **ללא יכולת** אלא אם המטא-נתונים של המפתח כוללים `manage` או `admin` |
+| אישור                    | צורה אופיינית                   | נוצר היכן                                        | שימוש מיועד            | יכולת ניהול                                                              |
+| :----------------------- | :------------------------------ | :----------------------------------------------- | :--------------------- | :----------------------------------------------------------------------- |
+| סשן JWT של לוח המחוונים  | `auth_token` cookie             | כניסה ללוח המחוונים                              | ממשק משתמש בדפדפן      | ניהול מלא של לוח המחוונים, בכפוף לכללי CSRF, מקומיות ונתיבים מוגנים תמיד |
+| אסימון מזהה מכונה של CLI | internal / local                | אתחול CLI (`omniroute` באותה מכונה)              | CLI מקומי              | ניהול מקומי בלבד                                                         |
+| אסימון גישה מוגבל סקופ   | `oma_live_…`                    | **הגדרות ← אסימוני גישה** או `omniroute connect` | CLI מרוחק ו-API לניהול | חייב לעמוד בסקופ הנדרש של הנתיב: `read`, `write` או `admin`              |
+| מפתח API של הסקה         | `sk-…` (וקידומות API-key אחרות) | **מנהל API / מפתחות API**                        | הסקה של `/v1/*`        | **אף אחד** אלא אם כן מטא-נתוני המפתח כוללים `manage` או `admin`          |
 
-פרטי אימות מסוג `oma_` מיועדים לניהול/CLI. הם **אינם** מפתחות API להסקה.
+אישורי `oma_` הם אישורי ניהול/CLI. הם **אינם** מפתחות API של הסקה.
 
-אם אימות באמצעות התחברות/מפתח API מושבת בשרת, ייתכן שחלק מנתיבי הניהול
-יקבלו קריאות ללא אימות. נתיבים מקומיים בלבד ונתיבים המוגנים תמיד עדיין כפופים
-לכללים משלהם. לכן, הצגת אחד מפרטי האימות האלה אינה חובה בכל מצב,
-והחזקת אחד מהם אינה מספיקה בכל מצב ללא ההרשאה ומיקום הנתיב הנדרשים.
+אם אימות כניסה/מפתח API מושבת עבור השרת, ייתכן שחלק מנתיבי הניהול יקבלו קריאות לא מאומתות. נתיבים מקומיים בלבד ונתיבים מוגנים תמיד עדיין מיישמים את הכללים שלהם. הצגת אחד מהאישורים הללו אינה, אם כן, חובה גורפת, והחזקה באחד אינה מספקת באופן גורף ללא הסקופ הנדרש ומקומיות הנתיב.
 
-מידע קשור: [מצב מרוחק](./REMOTE-MODE.md) (כיצד נוצר `oma_live_…` עבור CLI מרוחק).
+קשור: [מצב מרוחק](./REMOTE-MODE.md) (כיצד `oma_live_…` נוצר עבור CLI מרוחק).
 
 ---
 
-## מטריצות הרשאות
+## מטריצות היקפים
 
-שני אוצרות המילים האלה להרשאות הם **שונים**. אין לערבב ביניהם.
+היקפי ניהול מפתחות API והיקפי אסימוני גישה הם אוצרות מילים שונים.
+היקפי כלי MCP הם אוצר מילים שלישי, הנבדקים באמצעות `scopeMatches` ולא באמצעות
+אחת מהפונקציות בטבלאות שלהלן. זה לצד זה:
+[שלושה מרחבי שמות של היקפים](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### הרשאות של אסימון גישה (`oma_live_…`)
+### היקפי אסימוני גישה (`oma_live_…`)
 
-| הרשאה   | פעולות אופייניות                                                         |
-| ------- | ------------------------------------------------------------------------ |
-| `read`  | בקשות GET להצגת רשימות/סטטוס שהאסימון מורשה לראות                        |
-| `write` | שינויים (יצירה/עדכון/מחיקה) מתחת לרמת מנהל מערכת                         |
-| `admin` | CLI מרוחק מלא / אסימון חיבור (אתחול באמצעות סיסמה משתמש בכך כברירת מחדל) |
+| היקף    | פעולות אופייניות                                              |
+| ------- | ------------------------------------------------------------- |
+| `read`  | בקשות GET של רשימה/סטטוס שהאסימון רשאי לראות                  |
+| `write` | שינויים (יצירה/עדכון/מחיקה) מתחת לרמת מנהל מערכת              |
+| `admin` | CLI מרוחק מלא / אסימון חיבור (ברירות מחדל של אתחול סיסמה כאן) |
 
-אסימון עם `read` אינו יכול לקרוא לנתיב `write`. מבנה ההודעה בזמן ריצה:
+אסימון עם `read` אינו יכול לקרוא נתיב `write`. מבנה הודעת זמן ריצה:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### הרשאות ניהול של מפתחות API
+### היקפי ניהול מפתחות API
 
-| הרשאה    | משמעות                                                                        |
-| -------- | ----------------------------------------------------------------------------- |
-| (ללא)    | הסקה בלבד. נתיבי ניהול מחזירים 403.                                           |
-| `manage` | API לניהול (אותו מנגנון אימות כמו בענף מפתח ה-API של `requireManagementAuth`) |
-| `admin`  | עומדת גם בדרישות `hasManageScope` (מטופלת כבעלת יכולת ניהול)                  |
+| היקף     | משמעות                                                           |
+| -------- | ---------------------------------------------------------------- |
+| (ללא)    | הסקה בלבד. נתיבי ניהול מחזירים 403.                              |
+| `manage` | API ניהול (אותו שער כמו ענף מפתח API של `requireManagementAuth`) |
+| `admin`  | גם עונה על `hasManageScope` (מטופל כיכולת ניהול)                 |
 
-הפעילו `manage` עבור המפתח בממשק המשתמש של מפתחות API / מנהל API. אל תשתמשו מחדש
-במפתח של לקוח צ'אט לצורכי אוטומציה, אלא אם הענקתם לו הרשאה זו במכוון.
+אפשר את `manage` על המפתח בממשק המשתמש של API Keys / API Manager. אין לעשות שימוש חוזר
+במפתח לקוח צ'אט לאוטומציה אלא אם כן הענקת במכוון את ההיקף הזה.
 
 ---
 
@@ -128,24 +127,24 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ## שגיאות זמן ריצה נוכחיות (אין להציג סודות)
 
-| מצב                                | סטטוס אופייני | הודעה (לאחר הסרת מידע רגיש)                                                |
-| ---------------------------------- | ------------- | -------------------------------------------------------------------------- |
-| אין פרטי גישה                      | 401           | `נדרש אימות`                                                               |
-| `oma_live_…` לא תקין/פג תוקף       | 401           | `אסימון גישה לא תקין או שפג תוקפו`                                         |
-| מפתח API תקין ללא `manage`/`admin` | 403           | `למפתח ה-API חסרה הרשאת 'manage'. הפעילו אותה בלוח הבקרה של מפתחות ה-API.` |
-| מפתח API רגיל ולא תקין בנתיב ניהול | 403           | `אסימון ניהול לא תקין`                                                     |
-| הרשאת אסימון הגישה נמוכה מדי       | 403           | `הרשאת אסימון הגישה '<have>' אינה מספיקה; נדרשת '<need>'.`                 |
+| מצב                                | סטטוס אופייני | הודעה (מטוהרת)                                                       |
+| :--------------------------------- | :------------ | :------------------------------------------------------------------- |
+| אין אישור                          | 401           | `Authentication required`                                            |
+| `oma_live_…` לא חוקי/פג תוקף       | 401           | `Invalid or expired access token`                                    |
+| מפתח API חוקי ללא `manage`/`admin` | 403           | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| מפתח API רגיל לא חוקי בנתיב ניהול  | 403           | `Invalid management token`                                           |
+| היקף אסימון הגישה נמוך מדי         | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"אסימון ניהול לא תקין" פירושו שהאסימון הנושא **לא** התקבל כפרטי גישה לניהול. הודעה זו **אינה** מציינת איזה סוג יש להנפיק. השתמשו בטבלה שלעיל: מפתחות הסקה זקוקים להרשאת `manage`; CLI מרוחק זקוק ל-`oma_live_…`; לוח הבקרה משתמש בקובץ ה-Cookie של ההפעלה.
+"אסימון ניהול לא חוקי" פירושו שהנושא **לא** התקבל כאישור ניהול. זה **לא** אומר לך איזו משפחה ליצור. השתמש בטבלה לעיל: מפתחות הסקה דורשים היקף `manage`; CLI מרוחק דורש `oma_live_…`; לוח המחוונים משתמש בעוגיית הסשן.
 
 ---
 
-## הבחירה המומלצת לפי עקרון ההרשאה המזערית
+## בחירת הרשאה מינימלית מומלצת
 
-| גורם קורא                                | שימוש                                         |
-| ---------------------------------------- | --------------------------------------------- |
-| דפדפן                                    | הפעלת לוח הבקרה                               |
-| CLI במארח השרת                           | אסימון מכונה                                  |
-| CLI במחשב נייד שמתקשר עם שרת מרוחק       | `oma_live_…` מ-`omniroute connect`            |
-| CI / סקריפטים (לניהול בלבד)              | `oma_live_…` עם ההרשאה המצומצמת ביותר שמספיקה |
-| CI שחייב לפנות גם אל `/v1` וגם אל `/api` | מפתח API עם `manage` **או** שני פרטי גישה     |
+| קורא                                   | שימוש                                     |
+| :------------------------------------- | :---------------------------------------- |
+| דפדפן                                  | סשן לוח מחוונים                           |
+| CLI במארח השרת                         | אסימון מכונה                              |
+| CLI במחשב נייד המתקשר עם שרת מרוחק     | `oma_live_…` מתוך `omniroute connect`     |
+| CI / סקריפטים (ניהול בלבד)             | `oma_live_…` עם ההיקף המצומצם ביותר שעובד |
+| CI שחייב לקרוא גם ל-`/v1` וגם ל-`/api` | מפתח API עם `manage` **או** שני אישורים   |
