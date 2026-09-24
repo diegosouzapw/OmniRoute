@@ -73,6 +73,20 @@ test("findListeningPids reports the PID holding the port (posix lsof)", async ()
   assert.deepEqual(pids, [4242, 4243]);
 });
 
+test("findListeningPids treats an empty lsof result as a free port", async () => {
+  const noMatch = Object.assign(new Error("lsof exited with no matches"), {
+    code: 1,
+    stdout: "",
+  });
+  const pids = await findListeningPids(20128, {
+    platform: "darwin",
+    execFileAsync: async () => {
+      throw noMatch;
+    },
+  });
+  assert.deepEqual(pids, [], "lsof exit 1 with empty output means nothing is listening");
+});
+
 test("findListeningPids returns null when discovery is unavailable (#14518)", async () => {
   const pids = await findListeningPids(20128, {
     platform: "win32",
