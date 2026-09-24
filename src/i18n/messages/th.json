@@ -11386,6 +11386,7 @@
       "compressed": "การบีบอัด",
       "tps": "TPS",
       "duration": "ระยะเวลา",
+      "addedWait": "เวลารอเพิ่ม",
       "time": "เวลา",
       "conversation": "การสนทนา",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "เริ่มที่",
       "endedAt": "สิ้นสุดที่",
       "duration": "ระยะเวลา",
+      "addedWait": "เวลารอเพิ่ม",
       "model": "โมเดล",
       "provider": "ผู้ให้บริการ",
       "account": "บัญชี",

@@ -11386,6 +11386,7 @@
       "compressed": "መጭመቅ",
       "tps": "TPS",
       "duration": "ቆይታ",
+      "addedWait": "ተጨማሪ መቆየት",
       "time": "ጊዜ",
       "conversation": "ውይይት",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "የተጀመረበት ጊዜ",
       "endedAt": "ያበቃበት ጊዜ",
       "duration": "የቆይታ ጊዜ",
+      "addedWait": "ተጨማሪ መቆየት",
       "model": "ሞዴል",
       "provider": "አቅራቢ",
       "account": "መለያ",

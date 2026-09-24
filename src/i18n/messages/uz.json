@@ -11386,6 +11386,7 @@
       "compressed": "Siqish",
       "tps": "TPS",
       "duration": "Davomiylik",
+      "addedWait": "Qo'shilgan kutish",
       "time": "Vaqt",
       "conversation": "Suhbat",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Boshlangan vaqt",
       "endedAt": "Tugagan vaqt",
       "duration": "Davomiylik",
+      "addedWait": "Qo'shilgan kutish",
       "model": "Model",
       "provider": "Provayder",
       "account": "Hisob",

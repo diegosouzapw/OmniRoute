@@ -11388,7 +11388,8 @@
       "duration": "Thời lượng",
       "time": "Thời gian",
       "conversation": "Cuộc trò chuyện",
-      "ttft": "TTFT"
+      "ttft": "TTFT",
+      "addedWait": "Thời gian chờ thêm"
     },
     "loadingLogs": "Đang tải nhật ký...",
     "noLogs": "Chưa có nhật ký nào. Hãy thực hiện một số cuộc gọi API để xem chúng ở đây.",
@@ -11460,6 +11461,7 @@
       "startedAt": "Bắt đầu lúc",
       "endedAt": "Kết thúc lúc",
       "duration": "Thời lượng",
+      "addedWait": "Thời gian chờ thêm",
       "model": "Mô hình",
       "provider": "Nhà cung cấp",
       "account": "Tài khoản",

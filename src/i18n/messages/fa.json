@@ -11386,6 +11386,7 @@
       "compressed": "فشرده سازی",
       "tps": "TPS",
       "duration": "مدتزمان",
+      "addedWait": "انتظار افزوده",
       "time": "زمان",
       "conversation": "گفتوگو",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "شروع شده در",
       "endedAt": "پایان یافت در",
       "duration": "مدت زمان",
+      "addedWait": "انتظار افزوده",
       "model": "مدل",
       "provider": "ارائه‌دهنده",
       "account": "حساب",

@@ -11386,6 +11386,7 @@
       "compressed": "דחיסה",
       "tps": "TPS",
       "duration": "משך זמן",
+      "addedWait": "המתנה נוספת",
       "time": "זמן",
       "conversation": "שיחה",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "החל מ",
       "endedAt": "נמשך עד",
       "duration": "משך",
+      "addedWait": "המתנה נוספת",
       "model": "מודל",
       "provider": "ספק",
       "account": "חשבון",

@@ -11386,6 +11386,7 @@
       "compressed": "Компресія",
       "tps": "TPS",
       "duration": "Тривалість",
+      "addedWait": "Додаткове очікування",
       "time": "Час",
       "conversation": "Розмова",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Початок",
       "endedAt": "Закінчено о",
       "duration": "Тривалість",
+      "addedWait": "Додаткове очікування",
       "model": "Модель",
       "provider": "Постачальник",
       "account": "Обліковий запис",

@@ -11386,6 +11386,7 @@
       "compressed": "Glaudinimas",
       "tps": "TPS",
       "duration": "Trukmė",
+      "addedWait": "Pridėtas laukimas",
       "time": "Laikas",
       "conversation": "Pokalbis",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Pradėta",
       "endedAt": "Baigta",
       "duration": "Trukmė",
+      "addedWait": "Pridėtas laukimas",
       "model": "Modelis",
       "provider": "Teikėjas",
       "account": "Paskyra",

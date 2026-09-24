@@ -11386,6 +11386,7 @@
       "compressed": "ការបង្ហាប់",
       "tps": "TPS",
       "duration": "រយៈពេល",
+      "addedWait": "ការរង់ចាំបន្ថែម",
       "time": "ពេលវេលា",
       "conversation": "ការសន្ទនា",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "បានចាប់ផ្តើមនៅ",
       "endedAt": "បានបញ្ចប់នៅ",
       "duration": "រយៈពេល",
+      "addedWait": "ការរង់ចាំបន្ថែម",
       "model": "ម៉ូដែល",
       "provider": "អ្នកផ្តល់សេវា",
       "account": "គណនី",

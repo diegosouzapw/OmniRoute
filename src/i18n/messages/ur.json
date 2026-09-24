@@ -11386,6 +11386,7 @@
       "compressed": "کمپریشن",
       "tps": "TPS",
       "duration": "دورانیہ",
+      "addedWait": "اضافی انتظار",
       "time": "وقت",
       "conversation": "گفتگو",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "شروع کیا گیا",
       "endedAt": "ختم ہوا پر",
       "duration": "مدت",
+      "addedWait": "اضافی انتظار",
       "model": "ماڈل",
       "provider": "فراہم کنندہ",
       "account": "اکاؤنٹ",

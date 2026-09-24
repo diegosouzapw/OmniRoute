@@ -11386,6 +11386,7 @@
       "compressed": "Tihendus",
       "tps": "TPS",
       "duration": "Kestus",
+      "addedWait": "Lisatud ooteaeg",
       "time": "Aeg",
       "conversation": "Vestlus",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Algusaeg",
       "endedAt": "Lõpuaeg",
       "duration": "Kestus",
+      "addedWait": "Lisatud ooteaeg",
       "model": "Mudel",
       "provider": "Teenusepakkuja",
       "account": "Konto",

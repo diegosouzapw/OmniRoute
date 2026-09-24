@@ -11386,6 +11386,7 @@
       "compressed": "Compresie",
       "tps": "TPS",
       "duration": "Durată",
+      "addedWait": "Așteptare adăugată",
       "time": "Timp",
       "conversation": "Conversație",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Început La",
       "endedAt": "Finalizat La",
       "duration": "Durată",
+      "addedWait": "Așteptare adăugată",
       "model": "Model",
       "provider": "Furnizor",
       "account": "Cont",

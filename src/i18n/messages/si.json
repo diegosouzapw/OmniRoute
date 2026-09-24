@@ -11386,6 +11386,7 @@
       "compressed": "සම්පීඩනය",
       "tps": "TPS",
       "duration": "කාලසීමාව",
+      "addedWait": "එකතු කළ රැඳීම",
       "time": "වේලාව",
       "conversation": "සංවාදය",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "ආරම්භ කළ වේලාව",
       "endedAt": "අවසන් කළ වේලාව",
       "duration": "කාලසීමාව",
+      "addedWait": "එකතු කළ රැඳීම",
       "model": "මාදිලිය",
       "provider": "සපයන්නා",
       "account": "ගිණුම",

@@ -50,6 +50,51 @@ function toStringOrEmpty(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+/** Nearest-rank percentile over an ascending array. Local helper kept
+ * next to its only use so the cache-health module owes this feature nothing. */
+function addedWaitPercentile(sortedAsc: number[], p: number): number {
+  if (sortedAsc.length === 0) return 0;
+  const idx = Math.min(sortedAsc.length - 1, Math.floor(sortedAsc.length * p));
+  return sortedAsc[idx];
+}
+
+export interface AddedWaitPercentiles {
+  p50: number;
+  p90: number;
+  n: number;
+}
+
+/**
+ * p50/p90 of the per-request added wait over a trailing window.
+ * Additive column: rows with NULL added_wait_ms never waited and are excluded.
+ */
+export function getAddedWaitPercentiles(sinceIso: string): AddedWaitPercentiles {
+  const db = getDbInstance();
+  let rows: Array<{ added_wait_ms: unknown }>;
+  try {
+    rows = db
+      .prepare(
+        `SELECT added_wait_ms FROM call_logs
+         WHERE added_wait_ms IS NOT NULL AND timestamp >= ?
+         ORDER BY added_wait_ms ASC`
+      )
+      .all(sinceIso) as Array<{ added_wait_ms: unknown }>;
+  } catch {
+    // Legacy database without the added-wait columns (migration/heal not yet run).
+    return { p50: 0, p90: 0, n: 0 };
+  }
+  const values = rows
+    .map((r) => (typeof r.added_wait_ms === "number" ? r.added_wait_ms : Number.NaN))
+    .filter((v) => Number.isFinite(v) && v > 0)
+    .sort((a, b) => a - b);
+  if (values.length === 0) return { p50: 0, p90: 0, n: 0 };
+  return {
+    p50: addedWaitPercentile(values, 0.5),
+    p90: addedWaitPercentile(values, 0.9),
+    n: values.length,
+  };
+}
+
 function buildUsageSourceSql(aggregationEnabled: boolean) {
   if (!aggregationEnabled) {
     return `

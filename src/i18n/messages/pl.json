@@ -11386,6 +11386,7 @@
       "compressed": "Kompresja",
       "tps": "TPS",
       "duration": "Czas trwania",
+      "addedWait": "Dodane oczekiwanie",
       "time": "Czas",
       "conversation": "Konwersacja",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Rozpoczęto o",
       "endedAt": "Zakończono o",
       "duration": "Czas trwania",
+      "addedWait": "Dodane oczekiwanie",
       "model": "Model",
       "provider": "Dostawca",
       "account": "Konto",

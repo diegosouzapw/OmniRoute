@@ -11386,6 +11386,7 @@
       "compressed": "Sıkıştırma",
       "tps": "TPS",
       "duration": "Süre",
+      "addedWait": "Eklenen Bekleme",
       "time": "Zaman",
       "conversation": "Konuşma",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Başlangıç Tarihi",
       "endedAt": "Bittiği Zaman",
       "duration": "Süre",
+      "addedWait": "Eklenen Bekleme",
       "model": "Model",
       "provider": "Sağlayıcı",
       "account": "Hesap",

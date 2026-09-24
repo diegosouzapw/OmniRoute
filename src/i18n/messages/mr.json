@@ -11386,6 +11386,7 @@
       "compressed": "संक्षेप",
       "tps": "TPS",
       "duration": "कालावधी",
+      "addedWait": "अतिरिक्त प्रतीक्षा",
       "time": "वेळ",
       "conversation": "संभाषण",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "सुरू झालेले आहे",
       "endedAt": "समाप्त झालेले आहे",
       "duration": "कालावधी",
+      "addedWait": "अतिरिक्त प्रतीक्षा",
       "model": "मॉडेल",
       "provider": "प्रदायक",
       "account": "खाते",

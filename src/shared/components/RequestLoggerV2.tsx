@@ -135,6 +135,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         { key: "tokens", label: t("columns.tokens") },
         { key: "tps", label: t("columns.tps") },
         { key: "duration", label: t("columns.duration") },
+        { key: "addedWait", label: t("columns.addedWait") },
         { key: "time", label: t("columns.time") },
         { key: "conversation", label: t("columns.conversation") },
       ],
@@ -1283,6 +1284,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         {getSortIndicator("duration")}
                       </th>
                     )}
+                    {visibleColumns.addedWait && (
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>
+                        {t("columns.addedWait")}
+                      </th>
+                    )}
                     {visibleColumns.time && (
                       <th
                         className={`${LOG_TABLE_HEADER_CELL_RIGHT_CLASS} cursor-pointer select-none`}
@@ -1636,6 +1642,13 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         {visibleColumns.duration && (
                           <td className="px-3 py-2 text-right text-text-muted font-mono">
                             {formatDuration(log.duration)}
+                          </td>
+                        )}
+                        {visibleColumns.addedWait && (
+                          <td className="px-3 py-2 text-right text-text-muted font-mono">
+                            {typeof log.addedWaitMs === "number" && log.addedWaitMs > 0
+                              ? `${formatDuration(log.addedWaitMs)}${log.addedWaitCause ? ` (${log.addedWaitCause})` : ""}`
+                              : "—"}
                           </td>
                         )}
                         {visibleColumns.time && (

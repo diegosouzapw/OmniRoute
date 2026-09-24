@@ -11386,6 +11386,7 @@
       "compressed": "Comhbhrú",
       "tps": "TPS",
       "duration": "Fad",
+      "addedWait": "Feitheamh breise",
       "time": "Am",
       "conversation": "Comhrá",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Tosaithe ag",
       "endedAt": "Críochnaithe ag",
       "duration": "Fad ama",
+      "addedWait": "Feitheamh breise",
       "model": "Samhail",
       "provider": "Soláthraí",
       "account": "Cuntas",

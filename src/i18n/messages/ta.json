@@ -11386,6 +11386,7 @@
       "compressed": "சுருக்கம்",
       "tps": "TPS",
       "duration": "கால அளவு",
+      "addedWait": "கூடுதல் காத்திருப்பு",
       "time": "நேரம்",
       "conversation": "உரையாடல்",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "ஆரம்பிக்கப்பட்டது",
       "endedAt": "முடிந்தது அன்று",
       "duration": "கால அளவு",
+      "addedWait": "கூடுதல் காத்திருப்பு",
       "model": "மாதிரி",
       "provider": "வழங்குநர்",
       "account": "கணக்கு",

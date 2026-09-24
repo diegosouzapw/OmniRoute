@@ -11386,6 +11386,7 @@
       "compressed": "સંકોચન",
       "tps": "TPS",
       "duration": "અવધિ",
+      "addedWait": "ઉમેરેલ પ્રતીક્ષા",
       "time": "સમય",
       "conversation": "વાતચીત",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "શરૂઆતમાં",
       "endedAt": "સમાપ્ત થયું છે",
       "duration": "ગાળવણી",
+      "addedWait": "ઉમેરેલ પ્રતીક્ષા",
       "model": "મોડલ",
       "provider": "પ્રદાતા",
       "account": "ખાતું",

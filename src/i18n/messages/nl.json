@@ -11386,6 +11386,7 @@
       "compressed": "Compressie",
       "tps": "TPS",
       "duration": "Duur",
+      "addedWait": "Extra wachttijd",
       "time": "Tijd",
       "conversation": "Gesprek",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Begon Op",
       "endedAt": "Eindigde Op",
       "duration": "Duur",
+      "addedWait": "Extra wachttijd",
       "model": "Model",
       "provider": "Aanbieder",
       "account": "Account",

@@ -11386,6 +11386,7 @@
       "compressed": "Συμπίεση",
       "tps": "TPS",
       "duration": "Διάρκεια",
+      "addedWait": "Επιπλέον αναμονή",
       "time": "Ώρα",
       "conversation": "Συνομιλία",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Ξεκίνησε στις",
       "endedAt": "Τελείωσε στις",
       "duration": "Διάρκεια",
+      "addedWait": "Επιπλέον αναμονή",
       "model": "Μοντέλο",
       "provider": "Πάροχος",
       "account": "Λογαριασμός",

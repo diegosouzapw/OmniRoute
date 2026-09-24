@@ -11386,6 +11386,7 @@
       "compressed": "Kompresia",
       "tps": "TPS",
       "duration": "Trvanie",
+      "addedWait": "Pridané čakanie",
       "time": "Čas",
       "conversation": "Konverzácia",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Začalo sa o",
       "endedAt": "Ukončené O",
       "duration": "Trvanie",
+      "addedWait": "Pridané čakanie",
       "model": "Model",
       "provider": "Poskytovateľ",
       "account": "Účet",

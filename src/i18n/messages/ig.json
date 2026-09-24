@@ -11386,6 +11386,7 @@
       "compressed": "Mkpakọ",
       "tps": "TPS",
       "duration": "Ogologo oge",
+      "addedWait": "Nchere Mgbakwunye",
       "time": "Oge",
       "conversation": "Mkparịta ụka",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Oge Ọ Malitere",
       "endedAt": "Oge Ọ Kwụsịrị",
       "duration": "Ogologo Oge",
+      "addedWait": "Nchere Mgbakwunye",
       "model": "Ụdị",
       "provider": "Onye Na-enye Ọrụ",
       "account": "Akaụntụ",

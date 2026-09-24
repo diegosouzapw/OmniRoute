@@ -11386,6 +11386,7 @@
       "compressed": "सङ्कुचन",
       "tps": "TPS",
       "duration": "अवधि",
+      "addedWait": "थप प्रतीक्षा",
       "time": "समय",
       "conversation": "वार्तालाप",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "सुरु भएको समय",
       "endedAt": "समाप्त भएको समय",
       "duration": "अवधि",
+      "addedWait": "थप प्रतीक्षा",
       "model": "मोडेल",
       "provider": "प्रदायक",
       "account": "खाता",

@@ -11386,6 +11386,7 @@
       "compressed": "Stiskanje",
       "tps": "TPS",
       "duration": "Trajanje",
+      "addedWait": "Dodano čakanje",
       "time": "Čas",
       "conversation": "Pogovor",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Začetek",
       "endedAt": "Konec",
       "duration": "Trajanje",
+      "addedWait": "Dodano čakanje",
       "model": "Model",
       "provider": "Ponudnik",
       "account": "Račun",

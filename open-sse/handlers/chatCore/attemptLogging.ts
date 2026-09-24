@@ -23,6 +23,7 @@ import { sanitizeErrorMessage } from "../../utils/error.ts";
 import { isEstimatedUsage } from "../../utils/usageTracking.ts";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./logTruncation.ts";
 import { attachLogMeta } from "./cacheUsageMeta.ts";
+import { readAddedWait } from "../../utils/proxyFetch.ts";
 
 const OMITTED_VIDEO_TRANSCRIPT_REQUEST = { _omniroute_omitted: "video-transcript" };
 
@@ -547,6 +548,10 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
   // #13481: each combo attempt needs its own row. Attempts share pendingRequestId, so
   // keying the log on it made the successful member's insert hit the UNIQUE constraint
   // and vanish from the dashboard; traceId is per attempt and pairs with request.started.
+  // Late read of the per-request added wait published on the ALS
+  // capture sink by the executor. Fail-soft: null outside a capture or when
+  // nothing was published — the row stores NULL (no wait), never throws.
+  const addedWait = readAddedWait();
   saveCallLog({
     id: traceId,
     pendingRequestId: ctx.pendingRequestId,
@@ -604,6 +609,8 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     sessionTag: sessionTag || null,
     responseId: extractResponsesId(sourceFormat, clientResponse),
     videoContentRemoved: videoContentRemoved || false,
+    addedWaitMs: addedWait?.ms ?? null,
+    addedWaitCause: addedWait?.cause ?? null,
   }).catch(() => {});
 
   // Emit the terminal request-lifecycle event to the live dashboard bus. `request.started`

@@ -11386,6 +11386,7 @@
       "compressed": "压缩",
       "tps": "TPS",
       "duration": "时长",
+      "addedWait": "额外等待",
       "time": "时间",
       "conversation": "对话",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "开始于",
       "endedAt": "结束于",
       "duration": "持续时间",
+      "addedWait": "额外等待",
       "model": "模型",
       "provider": "提供者",
       "account": "账户",

@@ -11386,6 +11386,7 @@
       "compressed": "Kompresyon",
       "tps": "TPS",
       "duration": "Tagal",
+      "addedWait": "Dagdag Hintay",
       "time": "Oras",
       "conversation": "Pag-uusap",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Nagsimula Sa",
       "endedAt": "Nagtapos Sa",
       "duration": "Tagal",
+      "addedWait": "Dagdag Hintay",
       "model": "Modelo",
       "provider": "Tagapagbigay",
       "account": "Konto",

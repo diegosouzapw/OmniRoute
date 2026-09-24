@@ -11386,6 +11386,7 @@
       "compressed": "Puristus",
       "tps": "TPS",
       "duration": "Kesto",
+      "addedWait": "Lisätty odotus",
       "time": "Aika",
       "conversation": "Keskustelu",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Aloitettu kohdassa",
       "endedAt": "Päättynyt Klo",
       "duration": "Kesto",
+      "addedWait": "Lisätty odotus",
       "model": "Malli",
       "provider": "Toimittaja",
       "account": "Tili",

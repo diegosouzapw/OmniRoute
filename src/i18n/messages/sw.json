@@ -11386,6 +11386,7 @@
       "compressed": "Mfinyazo",
       "tps": "TPS",
       "duration": "Muda",
+      "addedWait": "Subira Ziada",
       "time": "Wakati",
       "conversation": "Mazungumzo",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Ilianza Saa",
       "endedAt": "Iliisha Saa",
       "duration": "Muda",
+      "addedWait": "Subira Ziada",
       "model": "Mfano",
       "provider": "Mtoa huduma",
       "account": "Akaunti",

@@ -11386,6 +11386,7 @@
       "compressed": "Matsawa",
       "tps": "TPS",
       "duration": "Tsawon lokaci",
+      "addedWait": "Ƙarin Jira",
       "time": "Lokaci",
       "conversation": "Tattaunawa",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Lokacin Farawa",
       "endedAt": "Lokacin Ƙarewa",
       "duration": "Tsawon Lokaci",
+      "addedWait": "Ƙarin Jira",
       "model": "Samfuri",
       "provider": "Mai Ba da Sabis",
       "account": "Asusu",

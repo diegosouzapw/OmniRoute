@@ -11386,6 +11386,7 @@
       "compressed": "Kompression",
       "tps": "TPS",
       "duration": "Varaktighet",
+      "addedWait": "Tillagd väntetid",
       "time": "Tid",
       "conversation": "Konversation",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Startade Vid",
       "endedAt": "Avslutad Vid",
       "duration": "Varaktighet",
+      "addedWait": "Tillagd väntetid",
       "model": "Modell",
       "provider": "Leverantör",
       "account": "Konto",

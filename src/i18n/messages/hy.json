@@ -11386,6 +11386,7 @@
       "compressed": "Սեղմում",
       "tps": "TPS",
       "duration": "Տևողություն",
+      "addedWait": "Ավելացված սպասում",
       "time": "Ժամանակ",
       "conversation": "Զրույց",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Սկսվել է",
       "endedAt": "Ավարտվել է",
       "duration": "Տևողություն",
+      "addedWait": "Ավելացված սպասում",
       "model": "Մոդել",
       "provider": "Մատակարար",
       "account": "Հաշիվ",

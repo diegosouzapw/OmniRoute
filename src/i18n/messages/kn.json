@@ -11386,6 +11386,7 @@
       "compressed": "ಸಂಕುಚನ",
       "tps": "TPS",
       "duration": "ಅವಧಿ",
+      "addedWait": "ಹೆಚ್ಚುವರಿ ನಿರೀಕ್ಷೆ",
       "time": "ಸಮಯ",
       "conversation": "ಸಂಭಾಷಣೆ",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "ಪ್ರಾರಂಭವಾದ ಸಮಯ",
       "endedAt": "ಅಂತ್ಯಗೊಂಡ ಸಮಯ",
       "duration": "ಅವಧಿ",
+      "addedWait": "ಹೆಚ್ಚುವರಿ ನಿರೀಕ್ಷೆ",
       "model": "ಮಾದರಿ",
       "provider": "ಪೂರೈಕೆದಾರ",
       "account": "ಖಾತೆ",

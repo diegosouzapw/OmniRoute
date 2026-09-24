@@ -11386,6 +11386,7 @@
       "compressed": "ਕੰਪਰੈਸ਼ਨ",
       "tps": "TPS",
       "duration": "ਮਿਆਦ",
+      "addedWait": "ਵਾਧੂ ਉਡੀਕ",
       "time": "ਸਮਾਂ",
       "conversation": "ਗੱਲਬਾਤ",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "ਸ਼ੁਰੂ ਹੋਣ ਦਾ ਸਮਾਂ",
       "endedAt": "ਸਮਾਪਤ ਹੋਣ ਦਾ ਸਮਾਂ",
       "duration": "ਮਿਆਦ",
+      "addedWait": "ਵਾਧੂ ਉਡੀਕ",
       "model": "ਮਾਡਲ",
       "provider": "ਪ੍ਰਦਾਤਾ",
       "account": "ਖਾਤਾ",

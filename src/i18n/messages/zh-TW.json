@@ -11386,6 +11386,7 @@
       "compressed": "壓縮",
       "tps": "TPS",
       "duration": "時長",
+      "addedWait": "額外等待",
       "time": "時間",
       "conversation": "對話",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "開始於",
       "endedAt": "結束於",
       "duration": "持續時間",
+      "addedWait": "額外等待",
       "model": "模型",
       "provider": "提供者",
       "account": "帳戶",

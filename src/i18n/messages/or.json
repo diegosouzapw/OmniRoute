@@ -11386,6 +11386,7 @@
       "compressed": "ସଙ୍କୋଚନ",
       "tps": "TPS",
       "duration": "ଅବଧି",
+      "addedWait": "ଅତିରିକ୍ତ ଅପେକ୍ଷା",
       "time": "ସମୟ",
       "conversation": "ବାର୍ତ୍ତାଳାପ",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "ଆରମ୍ଭ ସମୟ",
       "endedAt": "ସମାପ୍ତି ସମୟ",
       "duration": "ଅବଧି",
+      "addedWait": "ଅତିରିକ୍ତ ଅପେକ୍ଷା",
       "model": "ମଡେଲ୍",
       "provider": "ପ୍ରଦାତା",
       "account": "ଆକାଉଣ୍ଟ",

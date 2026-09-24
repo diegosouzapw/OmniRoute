@@ -11386,6 +11386,7 @@
       "compressed": "შეკუმშვა",
       "tps": "TPS",
       "duration": "ხანგრძლივობა",
+      "addedWait": "დამატებული ლოდინი",
       "time": "დრო",
       "conversation": "საუბარი",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "დაწყების დრო",
       "endedAt": "დასრულების დრო",
       "duration": "ხანგრძლივობა",
+      "addedWait": "დამატებული ლოდინი",
       "model": "მოდელი",
       "provider": "პროვაიდერი",
       "account": "ანგარიში",

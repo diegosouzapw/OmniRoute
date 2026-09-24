@@ -11386,6 +11386,7 @@
       "compressed": "కుదింపు",
       "tps": "TPS",
       "duration": "వ్యవధి",
+      "addedWait": "అదనపు నిరీక్షణ",
       "time": "సమయం",
       "conversation": "సంభాషణ",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "ప్రారంభించబడింది",
       "endedAt": "ముగిసింది వద్ద",
       "duration": "కాలవ్యవధి",
+      "addedWait": "అదనపు నిరీక్షణ",
       "model": "మోడల్",
       "provider": "ప్రదాత",
       "account": "ఖాతా",

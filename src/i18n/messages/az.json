@@ -11386,6 +11386,7 @@
       "compressed": "Sıxılma",
       "tps": "TPS",
       "duration": "Müddət",
+      "addedWait": "Əlavə Gözləmə",
       "time": "Vaxt",
       "conversation": "Söhbət",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "Başlanğıc Tarixi",
       "endedAt": "Bitdi Saatı",
       "duration": "Müddət",
+      "addedWait": "Əlavə Gözləmə",
       "model": "Model",
       "provider": "Təchizatçı",
       "account": "Hesab",

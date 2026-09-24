@@ -11386,6 +11386,7 @@
       "compressed": "圧縮",
       "tps": "TPS",
       "duration": "所要時間",
+      "addedWait": "追加待機",
       "time": "時刻",
       "conversation": "会話",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "開始時刻",
       "endedAt": "終了時刻",
       "duration": "期間",
+      "addedWait": "追加待機",
       "model": "モデル",
       "provider": "プロバイダー",
       "account": "アカウント",

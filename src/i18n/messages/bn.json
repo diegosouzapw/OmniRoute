@@ -11386,6 +11386,7 @@
       "compressed": "কম্প্রেশন",
       "tps": "TPS",
       "duration": "সময়কাল",
+      "addedWait": "অতিরিক্ত অপেক্ষা",
       "time": "সময়",
       "conversation": "কথোপকথন",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "শুরু হয়েছে",
       "endedAt": "শেষ হয়েছে",
       "duration": "স্থায়িত্ব",
+      "addedWait": "অতিরিক্ত অপেক্ষা",
       "model": "মডেল",
       "provider": "প্রদানকারী",
       "account": "অ্যাকাউন্ট",

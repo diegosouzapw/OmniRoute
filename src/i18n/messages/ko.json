@@ -11386,6 +11386,7 @@
       "compressed": "압축",
       "tps": "TPS",
       "duration": "소요 시간",
+      "addedWait": "추가 대기",
       "time": "시간",
       "conversation": "대화",
       "ttft": "TTFT"
@@ -11460,6 +11461,7 @@
       "startedAt": "시작됨",
       "endedAt": "종료됨",
       "duration": "지속 시간",
+      "addedWait": "추가 대기",
       "model": "모델",
       "provider": "제공자",
       "account": "계정",
