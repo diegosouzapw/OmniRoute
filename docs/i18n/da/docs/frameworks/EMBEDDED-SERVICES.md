@@ -1,16 +1,16 @@
 # Embedded Services (Dansk)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/EMBEDDED-SERVICES.md) · 🇪🇹 [am](../../../am/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇿 [az](../../../az/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇪 [de](../../../de/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇷 [el](../../../el/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇸 [es](../../../es/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇪 [et](../../../et/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇱 [he](../../../he/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇩 [id](../../../id/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇹 [it](../../../it/docs/frameworks/EMBEDDED-SERVICES.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇭 [km](../../../km/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇲 [my](../../../my/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇴 [no](../../../no/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [or](../../../or/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇰 [si](../../../si/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [te](../../../te/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇭 [th](../../../th/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/EMBEDDED-SERVICES.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/EMBEDDED-SERVICES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/EMBEDDED-SERVICES.md) · 🇪🇹 [am](../../../am/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇿 [az](../../../az/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇪 [de](../../../de/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇷 [el](../../../el/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇸 [es](../../../es/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇪 [et](../../../et/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇱 [he](../../../he/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇩 [id](../../../id/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇹 [it](../../../it/docs/frameworks/EMBEDDED-SERVICES.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇭 [km](../../../km/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇲 [my](../../../my/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇴 [no](../../../no/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [or](../../../or/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇰 [si](../../../si/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [te](../../../te/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇭 [th](../../../th/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/EMBEDDED-SERVICES.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/EMBEDDED-SERVICES.md)
 
 ---
 
 > **Version:** v3.8.44
-> **Senest opdateret:** 2026-07-03
-> **Målgruppe:** Udviklere, der tilføjer, vedligeholder eller fejlsøger indlejrede tjenester (9Router, CLIProxyAPI, Mux, Bifrost).
+> **Senest opdateret:** 2026-09-09
+> **Målgruppe:** Ingeniører, der tilføjer, vedligeholder eller fejlsøger indlejrede tjenester (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
 
-Indlejrede tjenester er lokalt installerede sidecar-værktøjer til processer, som OmniRoute installerer, overvåger og
+Indlejrede tjenester er lokalt installerede sidecar-procesværktøjer, som OmniRoute installerer, overvåger og
 eksponerer som fuldgyldige routingmål. I modsætning til eksterne udbydere (som tilgås via internettet
-med API-nøgler) kører indlejrede tjenester på samme maskine som OmniRoute og kommunikerer via loopback.
+ved hjælp af API-nøgler) kører indlejrede tjenester på samme maskine som OmniRoute og kommunikerer via loopback.
 
 ---
 
@@ -31,33 +31,34 @@ med API-nøgler) kører indlejrede tjenester på samme maskine som OmniRoute og 
 
 ### Hvorfor indlejrede tjenester?
 
-Fem tjenester er indlejret:
+Seks tjenester er indlejret:
 
-| Tjeneste        | npm-pakke                           | Standardport | Formål                                                                                                                                                                                            |
-| --------------- | ----------------------------------- | :----------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                           |    20130     | AI-router, som OmniRoute kan bruge som underudbyder. Modeller eksponeres som `9router/{sub}/{model}`                                                                                              |
-| **CLIProxyAPI** | Binær GitHub-udgivelse (`cliproxy`) |     8317     | Lokal proxyadapter til Anthropic CLI-godkendelsesflows. Leverer fallback-routing, når OAuth-tokens udløber                                                                                        |
-| **Mux**         | `mux` (headless `mux server`)       |     8322     | Lokal daemon til agentorkestrering (coder/mux). Kun livscyklushåndteret — ikke et routingmål (ingen LLM-proxying).                                                                                |
-| **Bifrost**     | `@maximhq/bifrost`                  |     8080     | Go-baseret AI-gateway-relæbackend. Når den kører, vælges den automatisk af relæruten (`/v1/relay/`)                                                                                               |
-| **Dario**       | `@askalf/dario`                     |     3456     | Claude-abonnementsproxy — alternativ/failover til CLIProxyAPI for Claude-Code-formet trafik; den injicerede nøgle bliver til `DARIO_ADMIN_TOKEN`, som beskytter dens `/admin/*`-OAuth-kontrolplan |
+| Tjeneste        | npm-pakke                           | Standardport | Formål                                                                                                                                                                                                  |
+| --------------- | ----------------------------------- | :----------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                           |    20130     | AI-router, som OmniRoute kan bruge som underudbyder. Modeller eksponeres som `9router/{sub}/{model}`                                                                                                    |
+| **CLIProxyAPI** | Binær GitHub-udgivelse (`cliproxy`) |     8317     | Lokal proxyadapter til Anthropic CLI-godkendelsesflows. Leverer reserverouting, når OAuth-tokens udløber                                                                                                |
+| **Mux**         | `mux` (headless `mux server`)       |     8322     | Lokal daemon til agentorkestrering (coder/mux). Kun livscyklusstyret — ikke et routingmål (ingen LLM-proxying).                                                                                         |
+| **Bifrost**     | `@maximhq/bifrost`                  |     8080     | Go-baseret AI-gateway-relaybackend. Når den kører, vælges den automatisk af relayruten (`/v1/relay/`)                                                                                                   |
+| **Dario**       | `@askalf/dario`                     |     3456     | Claude-abonnementsproxy — alternativ/failover til CLIProxyAPI for trafik udformet som Claude Code; den injicerede nøgle bliver til `DARIO_ADMIN_TOKEN`, som beskytter dens `/admin/*`-OAuth-kontrolplan |
+| **open-wa**     | `@open-wa/wa-automate`              |     8323     | WhatsApp Web-automatisering (headless Chromium via Puppeteer). Kun livscyklusstyret — ikke et routingmål.                                                                                               |
 
-Alle fem følger den samme overvågningsmodel:
+Alle seks følger den samme overvågningsmodel:
 
 - OmniRoute installerer dem under `DATA_DIR/services/{name}/` (isoleret fra OmniRoutes egen `package.json`)
-- OmniRoute starter og overvåger dem som underprocesser
-- OmniRoute injicerer en midlertidig API-nøgle i underprocessens miljø og roterer den uden nedetid (hvor det er relevant)
-- Alle administrationsruter (`/api/services/*`) er **LOCAL_ONLY** — kun tilgængelige via loopback (ufravigelig regel nr. 17)
+- OmniRoute starter og overvåger dem som underordnede processer
+- OmniRoute injicerer en midlertidig API-nøgle i den underordnede proces' miljø og roterer den uden nedetid (hvor det er relevant)
+- Alle administrationsruter (`/api/services/*`) er **LOCAL_ONLY** — kun tilgængelige fra loopback (ufravigelig regel nr. 17)
 
 ### Vigtige beslutninger (fra designplanen)
 
 | Beslutning                                            | Værdi                                                                                    |
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | Dashboardadgang til 9Routers native brugergrænseflade | Reverse proxy på `/dashboard/providers/services/9router/embed/*`                         |
-| Installationsmekanisme                                | `npm install {package}` via `execFile` (ingen shellinterpolation)                        |
+| Installationsmekanisme                                | `npm install {package}` via `execFile` (ingen shell-interpolation)                       |
 | Anvendelsestilstand                                   | Udbyder registreret som `9router/{sub}/{model}` i routingmotoren                         |
 | Administration af API-nøgler                          | OmniRoute genererer, krypterer ved lagring (AES-256-GCM) og injicerer via miljøvariabler |
-| Dashboardplacering                                    | `/dashboard/providers/services` (tre faner)                                              |
-| Automatisk start                                      | Kan slås til og fra pr. tjeneste, som standard FRA                                       |
+| Placering i dashboardet                               | `/dashboard/providers/services` (tre faner)                                              |
+| Automatisk start                                      | Til/fra-indstilling pr. tjeneste, deaktiveret som standard                               |
 
 ---
 
@@ -67,10 +68,11 @@ Alle fem følger den samme overvågningsmodel:
 ┌────────────────────────────────────────────────────────────────────┐
 │  Lag 1 — Brugergrænseflade                                        │
 │  /dashboard/providers/services  (faner: CLIProxyAPI | 9Router | Mux)│
-│  Live-logfiler (SSE), Start/Stop/Genstart/Opdater, Indstillinger, Installation│
+│  Livestreamede logfiler (SSE), Start/Stop/Genstart/Opdater,        │
+│  Indstillinger, Installer                                          │
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               Skal + fanerouting via ?tab=         │
+│    ├── page.tsx               Skal + fanerouting via ?tab=          │
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
@@ -89,54 +91,56 @@ Alle fem følger den samme overvågningsmodel:
 │  /dashboard/providers/services/9router/embed/[...path]             │
 │    (omvendt HTTP- + WebSocket-proxy → 9Router-upstream)            │
 │                                                                    │
-│  Adgangskontrol: LOCAL_ONLY_API_PREFIXES inkluderer "/api/services/" og│
+│  Adgangskontrol: LOCAL_ONLY_API_PREFIXES inkluderer                │
+│        "/api/services/" og                                        │
 │        "/dashboard/providers/services/*/embed/"                    │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ kald i samme proces
+                       │ kald i processen
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  Lag 3 — ServiceSupervisor (src/lib/services/)                     │
 │                                                                    │
 │  ServiceSupervisor.ts   Generisk supervisor (child_process.spawn)  │
-│    ├── install:    execFile('npm', ['install', pkg, '--prefix'])    │
-│    ├── start:      spawn(node, [entrypoint], {env, cwd})           │
-│    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
-│    ├── port:       20130 for 9Router (konfigurerbar)               │
-│    ├── logs:       stdio-ringbuffer på 5 MB → SSE-hændelser        │
-│    ├── health:     HTTP GET /health hvert 2.–5. sek., doven genoprettelse│
-│    └── lifecycle:  SIGTERM 15 sek. → SIGKILL                       │
+│    ├── installer:   execFile('npm', ['install', pkg, '--prefix'])  │
+│    ├── starter:     spawn(node, [entrypoint], {env, cwd})          │
+│    ├── API-nøgle:   crypto.randomBytes(32) → env NINEROUTER_API_KEY│
+│    ├── port:        20130 for 9Router (kan konfigureres)           │
+│    ├── logfiler:    stdio-ringbuffer på 5 MB → SSE-hændelser       │
+│    ├── helbred:     HTTP GET /health hvert 2.–5. sek., træg genopretning│
+│    └── livscyklus:  SIGTERM 15 sek. → SIGKILL                      │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
 │  bootstrap.ts       Initialiserer alle SERVICES[] ved processtart  │
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
-│  modelSync.ts       Periodisk GET /v1/models → tabellen service_models│
+│  modelSync.ts       Periodisk GET /v1/models → service_models-tabel│
 │  ringBuffer.ts      Cirkulær logbuffer (5 MB pr. tjeneste)         │
-│  healthCheck.ts     Periodisk HTTP-sundhedskontrol                 │
-│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
+│  healthCheck.ts     Regelmæssig HTTP-helbredskontrol               │
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (installationsadaptere)                        │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ OpenAI-kompatibel HTTP (loopback)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  Lag 4 — Udbyder / Routing                                        │
+│  Lag 4 — Udbyder/routing                                           │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
 │    Slår port og API-nøgle op igen for hver anmodning (ingen cache).│
-│    Fjerner præfikset "9router/" fra model-id'et før proxying.      │
-│    Returnerer 503 service_not_running, hvis supervisoren ikke er i "running".│
+│    Fjerner præfikset "9router/" fra model-id'et før proxying.       │
+│    Returnerer 503 service_not_running, hvis supervisoren ikke er   │
+│    i tilstanden "running".                                         │
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
 │    Post for "9router": isEmbeddedService: true                     │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
-│    Modeller gemmes som "9router/{sub}/{model}" (med præfiks).      │
-│    Synkroniseres hvert 5. minut af modelSync.ts.                   │
+│    Modeller gemmes som "9router/{sub}/{model}" (med præfiks).       │
+│    Synkroniseres hvert 5. minut af modelSync.ts.                    │
 │                                                                    │
-│  Mux er KUN livscyklusadministreret (lag 1-3) — det er en daemon til│
-│  agentorkestrering, ikke en LLM-proxy, så den har ingen executor-/ │
-│  udbyderpost i lag 4 og er aldrig et routingmål.                   │
+│  Mux administreres KUN med hensyn til livscyklus (lag 1-3) — det   │
+│  er en daemon til agentorkestrering, ikke en LLM-proxy, så den har │
+│  ingen executor-/udbyderpost i lag 4 og er aldrig et routingmål.   │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-### Centrale kildefiler
+### Vigtige kildefiler
 
 | Fil                                         | Rolle                                                       |
 | ------------------------------------------- | ----------------------------------------------------------- |
@@ -150,9 +154,10 @@ Alle fem følger den samme overvågningsmodel:
 | `src/lib/services/installers/ninerouter.ts` | npm-installation/-opdatering/-afinstallation af 9Router     |
 | `src/lib/services/installers/cliproxy.ts`   | npm-installation/-opdatering/-afinstallation af CLIProxyAPI |
 | `src/lib/services/installers/mux.ts`        | npm-installation/-opdatering/-afinstallation af Mux         |
+| `src/lib/services/installers/openwa.ts`     | npm-installation/-opdatering/-afinstallation af open-wa     |
 | `src/app/api/services/9router/_lib.ts`      | Hjælpefunktionen `getOrInitSupervisor()`                    |
-| `src/app/api/services/[name]/logs/route.ts` | Delt slutpunkt til SSE-logfiler                             |
-| `open-sse/executors/ninerouter.ts`          | Provider-eksekveringskomponent (lag 4)                      |
+| `src/app/api/services/[name]/logs/route.ts` | Fælles SSE-slutpunkt til logfiler                           |
+| `open-sse/executors/ninerouter.ts`          | Leverandøreksekveringskomponent (lag 4)                     |
 
 ---
 
@@ -208,25 +213,25 @@ race conditions, når f.eks. automatisk start og en UI-knap udløses samtidigt.
 
 ## 4. API-reference
 
-Alle ruter under `/api/services/` er **LOCAL_ONLY** (kun loopback, ufravigelig regel nr. 17).
-Anmodninger, der ikke kommer fra loopback, modtager `403 LOCAL_ONLY` uanset auth-token.
+Alle ruter under `/api/services/` er **LOCAL_ONLY** (kun loopback, fast regel #17).
+Anmodninger, der ikke kommer fra loopback, modtager `403 LOCAL_ONLY` uanset godkendelsestoken.
 
-### 4.1 9Router-slutpunkter (11 ruter)
+### 4.1 9Router-endpoints (11 ruter)
 
 #### `POST /api/services/9router/install`
 
 Installer 9Router fra npm. Opretter `DATA_DIR/services/9router/` med sin egen
 `package.json` og `node_modules/`. Er ikke i konflikt med OmniRoutes egne afhængigheder.
 
-**Anmodningstekst** (alle valgfrie):
+**Anmodningstekst** (alle felter er valgfrie):
 
 ```json
 { "version": "latest" }
 ```
 
-| Felt      | Type     | Standard   | Beskrivelse                                        |
-| --------- | -------- | ---------- | -------------------------------------------------- |
-| `version` | `string` | `"latest"` | npm-versionstag eller semver, der skal installeres |
+| Felt      | Type     | Standardværdi | Beskrivelse                                        |
+| --------- | -------- | ------------- | -------------------------------------------------- |
+| `version` | `string` | `"latest"`    | npm-versionstag eller semver, der skal installeres |
 
 **Svar:**
 
@@ -234,18 +239,18 @@ Installer 9Router fra npm. Opretter `DATA_DIR/services/9router/` med sin egen
 | ------ | ---------------------------------------------------------------------------- |
 | `200`  | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                       |
 | `400`  | Ugyldig anmodningstekst (Zod-valideringsfejl)                                |
-| `409`  | Installation er allerede i gang (låsen er taget)                             |
+| `409`  | Installation er allerede i gang (lås fastholdt)                              |
 | `500`  | npm-installation mislykkedes — se `message` for en forståelig fejlmeddelelse |
 
-**Bemærkninger:** Bruger `execFile('npm', [...])` — ingen shell, ingen interpolation (ufravigelig regel nr. 13).
+**Bemærkninger:** Bruger `execFile('npm', [...])` — ingen shell, ingen interpolation (fast regel #13).
 EACCES-fejl vises som forståelige meddelelser.
 
 ---
 
 #### `POST /api/services/9router/start`
 
-Start 9Router. Registrerer en supervisor, hvis der ikke allerede er registreret en, og kalder
-derefter `supervisor.start()`. Idempotent, når tjenesten allerede kører.
+Start 9Router. Registrerer en supervisor, hvis en sådan ikke allerede er registreret, og kalder derefter
+`supervisor.start()`. Idempotent, når tjenesten allerede kører.
 
 **Anmodningstekst:** ingen
 
@@ -275,23 +280,23 @@ derefter `supervisor.start()`. Idempotent, når tjenesten allerede kører.
 
 #### `POST /api/services/9router/stop`
 
-Stop 9Router kontrolleret. Sender SIGTERM, venter 15 s og sender derefter SIGKILL,
-hvis processen stadig kører. Idempotent, når tjenesten allerede er stoppet.
+Stop 9Router kontrolleret. Sender SIGTERM, venter 15 sek., og sender derefter SIGKILL, hvis processen stadig kører.
+Idempotent, når tjenesten allerede er stoppet.
 
 **Anmodningstekst:** ingen
 
 **Svar:**
 
-| Status | Beskrivelse                           |
-| ------ | ------------------------------------- |
-| `200`  | `ServiceStatus` (tilstand: "stopped") |
-| `503`  | Stop mislykkedes uventet              |
+| Status | Beskrivelse                        |
+| ------ | ---------------------------------- |
+| `200`  | `ServiceStatus` (state: "stopped") |
+| `503`  | Stop mislykkedes uventet           |
 
 ---
 
 #### `POST /api/services/9router/restart`
 
-Svarer til `stop()` efterfulgt af `start()` under operationslåsen.
+Svarer til `stop()` efterfulgt af `start()` under handlingslåsen.
 
 **Anmodningstekst:** ingen
 
@@ -302,10 +307,10 @@ Svarer til `stop()` efterfulgt af `start()` under operationslåsen.
 #### `POST /api/services/9router/update`
 
 Opdaterer 9Router til en nyere npm-version. Hvis tjenesten kører, stoppes den
-først, npm-installationen køres (hvorved den nyere version installeres på samme sted),
-og derefter genstartes tjenesten.
+først, npm-installationen køres (den nyere version installeres på stedet), og derefter
+genstartes tjenesten.
 
-**Anmodningstekst** (alle valgfrie):
+**Anmodningstekst** (alle felter er valgfrie):
 
 ```json
 { "version": "latest" }
@@ -343,14 +348,14 @@ Den gemmes krypteret (AES-256-GCM) i tabellen `version_manager`.
 
 #### `GET /api/services/9router/status`
 
-Returnerer kombineret live- og DB-status, inklusive versionsmetadata og forhåndsvisning af API-nøglen.
+Returnerer kombineret live- og DB-status, herunder versionsmetadata og en forhåndsvisning af API-nøglen.
 
 **Svar:**
 
-| Status | Beskrivelse               |
-| ------ | ------------------------- |
-| `200`  | Se skemaet nedenfor       |
-| `500`  | Læsning af status fejlede |
+| Status | Beskrivelse                   |
+| ------ | ----------------------------- |
+| `200`  | Se skemaet nedenfor           |
+| `500`  | Læsning af status mislykkedes |
 
 **Svarskema:**
 
@@ -376,8 +381,8 @@ Returnerer kombineret live- og DB-status, inklusive versionsmetadata og forhånd
 
 #### `POST /api/services/9router/auto-start`
 
-Slår flaget for automatisk start til eller fra. Når `enabled: true`, starter tjenesten automatisk,
-næste gang OmniRoute starter op (hvis tjenesten er installeret).
+Slå automatisk start til eller fra. Når `enabled: true`, starter tjenesten automatisk,
+næste gang OmniRoute starter (hvis tjenesten er installeret).
 
 **Anmodningstekst:**
 
@@ -396,14 +401,14 @@ næste gang OmniRoute starter op (hvis tjenesten er installeret).
 
 #### `GET /api/services/9router/logs`
 
-SSE-stream med live-logfiler fra 9Routers ringbuffer til stdout/stderr.
+SSE-stream med live-logfiler fra 9Routers ringbuffer for stdout/stderr.
 
 **Forespørgselsparametre:**
 
-| Parameter | Type      | Standardværdi | Beskrivelse                                                                                  |
-| --------- | --------- | ------------- | -------------------------------------------------------------------------------------------- |
-| `tail`    | `integer` | 200           | Antal historiske linjer, der sendes først (maks. 1000)                                       |
-| `filter`  | `string`  | ingen         | Filter for understrenge uden forskel på store og små bogstaver (ingen regex — ReDoS-sikkert) |
+| Parameter | Type      | Standardværdi | Beskrivelse                                                                                |
+| --------- | --------- | ------------- | ------------------------------------------------------------------------------------------ |
+| `tail`    | `integer` | 200           | Antal historiske linjer, der først skal sendes (maks. 1000)                                |
+| `filter`  | `string`  | ingen         | Filter for delstrenge uden forskel på store og små bogstaver (ingen regex — ReDoS-sikkert) |
 
 **SSE-hændelser:**
 
@@ -411,7 +416,7 @@ SSE-stream med live-logfiler fra 9Routers ringbuffer til stdout/stderr.
 | ----------- | ----------- | ------------------------------- |
 | `snapshot`  | `LogLine[]` | Indledende historisk afslutning |
 | `log`       | `LogLine`   | Live-loglinje                   |
-| `heartbeat` | `{}`        | Keep-alive hvert 15. sekund     |
+| `heartbeat` | `{}`        | Keep-alive hvert 15. sek.       |
 
 **LogLine-skema:**
 
@@ -425,30 +430,30 @@ SSE-stream med live-logfiler fra 9Routers ringbuffer til stdout/stderr.
 
 **Svar:**
 
-| Status | Beskrivelse                                              |
-| ------ | -------------------------------------------------------- |
-| `200`  | `text/event-stream`                                      |
-| `400`  | Parameteren `filter` er for lang (> 200 tegn)            |
-| `404`  | Tjenesten blev ikke fundet (supervisor ikke registreret) |
+| Status | Beskrivelse                                                   |
+| ------ | ------------------------------------------------------------- |
+| `200`  | `text/event-stream`                                           |
+| `400`  | Parameteren `filter` er for lang (> 200 tegn)                 |
+| `404`  | Tjenesten blev ikke fundet (supervisoren er ikke registreret) |
 
 ---
 
 ### 4.2 CLIProxyAPI-slutpunkter (10 ruter)
 
-CLIProxyAPI har samme slutpunktsstruktur som 9Router bortset fra `rotate-key` samt
+CLIProxyAPI har samme slutpunktsstruktur som 9Router, bortset fra `rotate-key`, plus
 `accounts`, `provider-expose` og `auto-restart-adopted`. Den modtager nu en
 dedikeret API-nøgle til dataplanet, som injiceres ved opstart (`needsApiKey: true` i
 `bootstrap.ts`, bruges til modelsynkronisering); `status` indeholder færre felter.
 
-| Metode | Sti                                 | Beskrivelse                              |
-| ------ | ----------------------------------- | ---------------------------------------- |
-| `POST` | `/api/services/cliproxy/install`    | Installer CLIProxyAPI fra npm            |
-| `POST` | `/api/services/cliproxy/start`      | Start CLIProxyAPI                        |
-| `POST` | `/api/services/cliproxy/stop`       | Stop CLIProxyAPI                         |
-| `POST` | `/api/services/cliproxy/restart`    | Genstart CLIProxyAPI                     |
-| `POST` | `/api/services/cliproxy/update`     | Opdater til en nyere version             |
-| `GET`  | `/api/services/cliproxy/status`     | Live- og DB-status (uden `apiKeyMasked`) |
-| `POST` | `/api/services/cliproxy/auto-start` | Slå automatisk start til eller fra       |
+| Metode | Sti                                 | Beskrivelse                             |
+| ------ | ----------------------------------- | --------------------------------------- |
+| `POST` | `/api/services/cliproxy/install`    | Installer CLIProxyAPI fra npm           |
+| `POST` | `/api/services/cliproxy/start`      | Start CLIProxyAPI                       |
+| `POST` | `/api/services/cliproxy/stop`       | Stop CLIProxyAPI                        |
+| `POST` | `/api/services/cliproxy/restart`    | Genstart CLIProxyAPI                    |
+| `POST` | `/api/services/cliproxy/update`     | Opdater til en nyere version            |
+| `GET`  | `/api/services/cliproxy/status`     | Live- + DB-status (uden `apiKeyMasked`) |
+| `POST` | `/api/services/cliproxy/auto-start` | Slå automatisk start til eller fra      |
 
 Det fælles slutpunkt `GET /api/services/{name}/logs` (se §4.1) fungerer for alle
 fire tjenester ved hjælp af det dynamiske segment `[name]`.
@@ -458,10 +463,11 @@ fire tjenester ved hjælp af det dynamiske segment `[name]`.
 ### 4.3 Mux-slutpunkter (8 ruter)
 
 Mux har samme slutpunktsstruktur som CLIProxyAPI — ingen `rotate-key`-rute i API-
-grænsefladen (bearer-tokenet genereres på samme måde som 9Routers via
+overfladen (bearer-tokenet genereres på samme måde som 9Routers via
 `getOrCreateApiKey("mux")` og injiceres via miljøvariablen `MUX_SERVER_AUTH_TOKEN`, men
-der findes endnu ikke noget dedikeret slutpunkt til rotation). Mux er kun livscyklusadministreret:
-I modsætning til 9Router har den ingen Layer 4-eksekveringskomponent og registreres aldrig som routingudbyder.
+der findes endnu ikke et dedikeret slutpunkt til rotation). Mux administreres kun gennem
+sin livscyklus: I modsætning til 9Router har den ingen Layer 4-eksekutor og registreres
+aldrig som routingudbyder.
 
 | Metode | Sti                            | Beskrivelse                         |
 | ------ | ------------------------------ | ----------------------------------- |
@@ -470,45 +476,80 @@ I modsætning til 9Router har den ingen Layer 4-eksekveringskomponent og registr
 | `POST` | `/api/services/mux/stop`       | Stop Mux                            |
 | `POST` | `/api/services/mux/restart`    | Genstart Mux                        |
 | `POST` | `/api/services/mux/update`     | Opdater til en nyere npm-version    |
-| `GET`  | `/api/services/mux/status`     | Live- og DB-status                  |
+| `GET`  | `/api/services/mux/status`     | Live- + DB-status                   |
 | `POST` | `/api/services/mux/auto-start` | Slå automatisk start til eller fra  |
 
 ---
 
 ### 4.4 Bifrost-slutpunkter (8 ruter)
 
-Bifrost er en Go-baseret relay-backend til AI-gateways (`@maximhq/bifrost`). Den bruger samme
-slutpunktsstruktur som CLIProxyAPI (ingen `rotate-key` — Bifrost administrerer sine egne udbydernøgler
-i `config.json` under sin `-app-dir`).
+Bifrost er en Go-baseret relay-backend til AI-gateways (`@maximhq/bifrost`). Den bruger
+samme slutpunktsstruktur som CLIProxyAPI (ingen `rotate-key` — Bifrost administrerer
+sine egne udbydernøgler i `config.json` under sin `-app-dir`).
 
-| Metode | Sti                                | Beskrivelse                                              |
-| ------ | ---------------------------------- | -------------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | Installer Bifrost fra npm (`@maximhq/bifrost`)           |
-| `POST` | `/api/services/bifrost/start`      | Start Bifrost på port 8080 (standard)                    |
-| `POST` | `/api/services/bifrost/stop`       | Stop Bifrost                                             |
-| `POST` | `/api/services/bifrost/restart`    | Genstart Bifrost                                         |
-| `POST` | `/api/services/bifrost/update`     | Opdater til en nyere version                             |
-| `GET`  | `/api/services/bifrost/status`     | Live- + DB-status                                        |
-| `POST` | `/api/services/bifrost/auto-start` | Slå automatisk start til eller fra                       |
-| `GET`  | `/api/services/bifrost/logs`       | SSE-loghale (via den delte dynamiske `[name]/logs`-rute) |
+| Metode | Sti                                | Beskrivelse                                               |
+| ------ | ---------------------------------- | --------------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | Installer Bifrost fra npm (`@maximhq/bifrost`)            |
+| `POST` | `/api/services/bifrost/start`      | Start Bifrost på port 8080 (standard)                     |
+| `POST` | `/api/services/bifrost/stop`       | Stop Bifrost                                              |
+| `POST` | `/api/services/bifrost/restart`    | Genstart Bifrost                                          |
+| `POST` | `/api/services/bifrost/update`     | Opdater til en nyere version                              |
+| `GET`  | `/api/services/bifrost/status`     | Live- + DB-status                                         |
+| `POST` | `/api/services/bifrost/auto-start` | Slå automatisk start til eller fra                        |
+| `GET`  | `/api/services/bifrost/logs`       | SSE-loghale (via den fælles dynamiske rute `[name]/logs`) |
 
-**Routingkonfiguration:** Når `BIFROST_BASE_URL` ikke er angivet, og den overvågede Bifrost-
-instans kører, bruger `getBifrostRoutingConfig()` (i `routingBackend.ts`) automatisk
-`http://127.0.0.1:{port}` som relæets basis-URL. En eksplicit `BIFROST_BASE_URL`-miljøvariabel
-har altid forrang.
+**Routingforbindelse:** Når `BIFROST_BASE_URL` ikke er angivet, og den overvågede
+Bifrost-instans kører, bruger `getBifrostRoutingConfig()` (i `routingBackend.ts`)
+automatisk `http://127.0.0.1:{port}` som relay-basis-URL. En eksplicit
+miljøvariabel `BIFROST_BASE_URL` har altid forrang.
 
 ---
 
 ### 4.5 Dario-slutpunkter (12 ruter)
 
-Samme livscyklusstruktur som de øvrige tjenester (`install`, `start`, `stop`, `restart`,
-`update`, `status`, `auto-start`, `auto-restart-adopted`) samt et tokenbeskyttet OAuth-
+Samme livscyklusstruktur som de andre tjenester (`install`, `start`, `stop`, `restart`,
+`update`, `status`, `auto-start`, `auto-restart-adopted`) plus et tokenbeskyttet OAuth-
 kontrolplan under `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
 `admin/login-start`, `admin/login-complete` (alle beskyttet af `DARIO_ADMIN_TOKEN`).
 
-### 4.6 Omvendt proxy (indlejring af 9Router-dashboard)
+### 4.6 open-wa-slutpunkter (7 ruter)
 
-Dashboardet indlejrer 9Routers webgrænseflade i en iframe via en intern omvendt
+open-wa (`@open-wa/wa-automate`) styrer en headless Chromium-instans (via
+Puppeteer) for at automatisere WhatsApp Web. Den bruger samme slutpunktsstruktur som
+Mux (ingen `rotate-key`-rute endnu). Den administreres kun gennem sin livscyklus —
+den er ikke et routingmål og har ingen Layer 4-eksekutor-/udbyderpost.
+
+| Metode | Sti                               | Beskrivelse                                                    |
+| ------ | --------------------------------- | -------------------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | Installer open-wa fra npm (`@open-wa/wa-automate`)             |
+| `POST` | `/api/services/openwa/start`      | Start open-wa på port 8323 (standard)                          |
+| `POST` | `/api/services/openwa/stop`       | Stop open-wa                                                   |
+| `POST` | `/api/services/openwa/restart`    | Genstart open-wa                                               |
+| `POST` | `/api/services/openwa/update`     | Opdater til en nyere version                                   |
+| `GET`  | `/api/services/openwa/status`     | Live- og DB-status                                             |
+| `POST` | `/api/services/openwa/auto-start` | Slå automatisk start til eller fra                             |
+| `GET`  | `/api/services/openwa/logs`       | SSE-logafslutning (via den delte dynamiske `[name]/logs`-rute) |
+
+**API-nøgle:** injiceres som `WA_KEY` — open-wa's generiske miljøvariabeltilsidesættelse
+med præfikset `WA_*` knytter den til CLI-indstillingen `--key`/`-k`
+(`dist/cli/setup.js::envArgs()`, verificeret mod den installerede pakkeversion
+4.76.0). Præfikset `ow_` tilføjes, når den genereres af `generateServiceApiKey()`. open-wa
+læser nøglen fra en `key`/`api_key`-HTTP-header (ikke `Authorization:
+Bearer`); `/api-docs*` er udtrykkeligt undtaget fra kontrollen
+(`setupAuthenticationLayer` i `dist/cli/server.js`), så tilstandskontrollen
+kræver ingen godkendelsesheader.
+
+**Parring:** open-wa er uofficiel og ikke tilknyttet WhatsApp — det
+tilsluttede nummer risikerer at blive udelukket som følge af WhatsApps egen registrering af automatisering.
+Ved første start udskrives QR-koden til parring til stdout og vises via
+det eksisterende logpanel/den eksisterende SSE-stream — der findes endnu ikke et dedikeret slutpunkt
+til QR-billeder i denne integration.
+
+---
+
+### 4.7 Omvendt proxy (indlejring af 9Router-dashboard)
+
+Dashboardet indlejrer 9Router-webbrugerfladen i en iframe via en intern omvendt
 proxy på:
 
 ```
@@ -519,16 +560,16 @@ Denne proxy:
 
 - Videresender anmodningen til `http://127.0.0.1:{port}/{path}` (kun loopback)
 - Fjerner indgående `cookie`- og `authorization`-headere (ingen lækage af OmniRoute-sessionen)
-- Indsætter `Authorization: Bearer {apiKey}` til 9Router-godkendelse
+- Injicerer `Authorization: Bearer {apiKey}` til 9Router-godkendelse
 - Fjerner `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` fra svaret
-- Omskriver HTML-svar for at indsætte `<base href>` og normalisere absolutte stier (`/foo` → `/dashboard/.../embed/foo`)
+- Omskriver HTML-svar for at injicere `<base href>` og normalisere absolutte stier (`/foo` → `/dashboard/.../embed/foo`)
 
-WebSocket-opgraderinger for det indlejrede dashboard håndteres af en ledsagende server på en
+WebSocket-opgraderinger til det indlejrede dashboard håndteres af en ledsagende server på en
 dedikeret port (se `src/lib/services/embedWsProxy.ts`).
 
 **Sikkerhed:** Embed-proxyruterne er klassificeret under `LOCAL_ONLY_API_PREFIXES`
 og kan kun tilgås fra loopback. En angriber, der får fat i en JWT via en
-Cloudflare-/Ngrok-tunnel, kan ikke bruge proxyen til at få adgang til indlejrede tjenester.
+Cloudflare-/Ngrok-tunnel, kan ikke oprette en proxyforbindelse til indlejrede tjenester.
 
 ---
 

@@ -1,6 +1,6 @@
 # Resilience Guide (Hrvatski)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -69,94 +69,138 @@ Zaštita od regresije: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 ## 2. Razdoblje mirovanja veze
 
-**Opseg:** jedna veza/račun/ključ pružatelja.
+**Opseg:** jedna veza/račun/ključ pružatelja usluge.
 
-**Svrha:** preskočiti jedan neispravan ključ dok ostale veze za istog pružatelja nastavljaju posluživati zahtjeve.
+**Svrha:** preskočiti jedan neispravan ključ dok ostale veze istog pružatelja nastavljaju posluživati zahtjeve.
 
 **Implementacija:**
 
-- Označavanje nedostupnim: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Označavanje kao nedostupno: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Odabir: `getProviderCredentials*` u istoj datoteci
 - Izračun razdoblja mirovanja: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Postavke: `src/lib/resilience/settings.ts`
 
 **Polja po vezi:**
 
-- `rateLimitedUntil` — vremenska oznaka do koje traje razdoblje mirovanja
+- `rateLimitedUntil` — vremenska oznaka do isteka razdoblja mirovanja
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — brojač eksponencijalne odgode
+- `backoffLevel` — brojač eksponencijalnog odgađanja
 
 **Zadana razdoblja mirovanja:**
 
-- Osnovno za OAuth: 5s
-- Osnovno za API ključ: 3s
-- API ključ, 429: prednost imaju uzvodno zaglavlje `Retry-After`, zaglavlja za poništavanje ili tekst s vremenom poništavanja koji je moguće raščlaniti
-- Odgoda: `baseCooldownMs * 2 ** failureIndex`
+- OAuth osnova: 5s
+- Osnova za API ključ: 3s
+- 429 za API ključ: prednost imaju uzvodna zaglavlja `Retry-After`/zaglavlja za poništavanje/tekst poništavanja koji se može raščlaniti
+- Odgađanje: `baseCooldownMs * 2 ** failureIndex`
 
-**Zaštita od stampeda zahtjeva:** sprječava da istodobni neuspjesi prekomjerno produlje razdoblje mirovanja ili dvaput povećaju `backoffLevel`.
+**Zaštita od stampeda zahtjeva:** sprječava da istodobni kvarovi prekomjerno produlje razdoblje mirovanja ili dvaput povećaju `backoffLevel`.
 
 **Završna stanja (NISU razdoblja mirovanja):**
 
-- `banned` — postavlja se otkrivanjem zabranjene ključne riječi / zabrane računa (pogledajte [BAN_DETECTION](../security/BAN_DETECTION.md)) te nakon tri uzastopna uzvodna odbijanja pojedinačnog zahtjeva (`request_rejected`, npr. Anthropic OAuth 403 "Zahtjev nije dopušten" — `open-sse/services/requestRejectedStreak.ts`); jedno odbijanje samo stavlja vezu u stanje mirovanja
-- `expired` (prelazi u završno stanje nakon ograničenog broja ponovnih pokušaja — `EXPIRED_RETRY_MAX = 3` s eksponencijalnom odgodom — kako bi se prolazne OAuth pogreške mogle same otkloniti prije trajnog deaktiviranja računa)
+- `banned` — postavlja se otkrivanjem zabranjene ključne riječi / zabrane računa (pogledajte [BAN_DETECTION](../security/BAN_DETECTION.md)) te nakon tri uzastopna uzvodna odbijanja pojedinačnih zahtjeva (`request_rejected`, npr. Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); jedno odbijanje samo stavlja vezu u razdoblje mirovanja
+- `expired` (prelazi u završno stanje nakon ograničenog broja ponovnih pokušaja — `EXPIRED_RETRY_MAX = 3` uz eksponencijalno odgađanje — kako bi se prolazne OAuth pogreške mogle same ispraviti prije trajnog deaktiviranja računa)
 - `credits_exhausted`
 
-Ta stanja traju sve dok se vjerodajnice ne promijene ili ih operater ne poništi. Nemojte prebrisati završna stanja prolaznim stanjem mirovanja.
+Ta stanja traju dok se vjerodajnice ne promijene ili ih operater ne poništi. Nemojte prebrisati završna stanja prolaznim stanjem mirovanja.
 
-**Lijeni oporavak:** kada `rateLimitedUntil` prođe, veza ponovno postaje prikladna za odabir. Nakon uspješne uporabe `clearAccountError()` briše sva polja pogrešaka.
+**Lijeni oporavak:** kada `rateLimitedUntil` prođe, veza ponovno postaje dostupna za odabir. Nakon uspješne uporabe `clearAccountError()` briše sva polja pogrešaka.
+
+### Zid potrošnje za Claude OAuth: traka nižeg prioriteta + poništavanje ograničenja sesije
+
+**Opseg:** jedna veza pretplate na Claude (OAuth). Obje su značajke **uključive zasebno po
+vezi** (Uređivanje veze → odjeljak Claude → `lowPriorityMode` / `autoLimitReset` u
+`providerSpecificData`, obje su zadano isključene) i odgovaraju naredbama `/low-priority` i
+`/limit-reset` alata Claude Code (mrežni ugovor zabilježen iz verzije Claude Code 2.1.263).
+
+**Implementacija:**
+
+- Automat stanja + klasifikacija odgovora: `open-sse/services/claudeLowPriority.ts`
+- Klijent za status/aktiviranje poništavanja: `open-sse/services/claudeLimitReset.ts`
+- Priključak izvršitelja (umetanje zaglavlja + ponovni pokušaj na istom računu): `open-sse/executors/base.ts::execute()`
+- Pohrana uključivanja: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Okidač:** zid potrošnje od 5 sati — odgovor `429` čija zaglavlja sadrže
+`anthropic-ratelimit-unified-status: rejected` i, kada račun ispunjava uvjete,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Ništa se ne šalje prije tog prvog odgovora
+429 uzrokovanog zidom; skupni 429 bez objedinjenih zaglavlja prolazi uobičajenim putem razdoblja mirovanja.
+
+**Traka nižeg prioriteta** (`lowPriorityMode`):
+
+- Nakon odgovora 429 uzrokovanog zidom izvršitelj prihvaća ponudu i odmah ponovno pokušava s **istim**
+  računom uz `anthropic-usage-limit: slow`; traka ostaje aktivna do najavljenog
+  `anthropic-ratelimit-unified-reset` (+60s dodatnog vremena), a svaki zahtjev u tom razdoblju sadrži
+  zaglavlje. Presretnuti 429 nikada ne dolazi do `handleChatCore`, pa se veza
+  **ne** stavlja u razdoblje mirovanja niti se zamjenjuje drugom.
+- `anthropic-ratelimit-unified-slow-status` u kasnijim odgovorima: `active` / `not_needed`
+  zadržavaju traku; `slot_busy` (429) ili `529` čekaju prema poslužiteljevu
+  `anthropic-ratelimit-unified-slow-retry-after` (zadano 20s, ograničeno na 5–600s, ±30% nasumičnog odstupanja)
+  i ponovno pokušavaju, uz ograničenje određeno s `anthropic-ratelimit-unified-slow-max-wait` (zadano 20 min, ograničeno
+  na 1 min–6 h) — nakon toga traka završava, a 10-minutno razdoblje hlađenja blokira ponovno prihvaćanje. Vrijeme
+  čekanja dodatno je ograničeno preostalim vremenom vlastitog vremenskog ograničenja zahtjeva za početak uzvodne obrade
+  (`resolveFetchStartTimeout`, zadano 10 min) umanjenim za 5 s: bez tog ograničenja
+  zadano maksimalno čekanje od 20 minuta nadživjelo bi zahtjev, a mirovanje bi bilo prekinuto
+  usred čekanja, prikazujući `TimeoutError` umjesto urednog završetka `max_wait` + razdoblja hlađenja.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, početak novog prozora od 5h ili
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (što završava traku kao
+  `extra_usage` pri bilo kojem statusu jer plaćeno prekoračenje sada pokriva zid) završavaju traku; odgovor
+  zatim prolazi uobičajenim putem razdoblja mirovanja. `budget_exhausted` pamti se do
+  najavljenog poništavanja proračuna (≤ 8 dana).
+- Provjera zida izvodi se nakon izvršiteljevih vlastitih ponovnih pokušaja unutar istog pokušaja potaknutih odgovorom 400 (uređivanje
+  konteksta, ograničavanje razmišljanja/napora, automatsko učenje parametara), pa se 429 uzrokovan zidom koji se pojavi tek pri
+  jednom od tih ponovnih pokušaja ipak presreće umjesto da dospije na put razdoblja mirovanja.
+- Stanje se čuva u memoriji po vezi (ponovno pokretanje zahtijeva jedan dodatni 429 uzrokovan zidom za ponovno prihvaćanje).
+
+**Poništavanje ograničenja sesije** (`autoLimitReset`, pokušava se prije trake kada su obje značajke uključene):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → blok `juniper_tide`;
+  kada je `arm: "reset"` i `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` s
+  `{ "program": "juniper_tide" }` (UUID organizacije iz
+  `providerSpecificData.organizationUUID`, uz pričuvno početno dohvaćanje).
+- `result: reset|not_limited` → zahtjev se ponovno pokušava punom brzinom (bez sporog zaglavlja).
+  `already_used` / `not_offered` pamte `next_available_at` (zadano jedan tjedan); svaki
+  neuspjeh aktivira odgađanje od 15 minuta. Poništavanje je moguće jednom tjedno i i dalje se uračunava u
+  tjedno ograničenje.
+
+Zaštite od regresija: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Afinitet sesije (#7274)
 
 **Opseg:** jedna klijentska sesija (zaglavlje `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) vezana uz jednu vezu, za **bilo kojeg** pružatelja.
 
-**Svrha:** zadržati agenta s više koraka (Claude Code, aider, prilagođeni agenti) na istom računu kroz više zahtjeva, čime se smanjuju gubitak konteksta između računa i ponovljene pogreške 429 pri hladnom pokretanju kod pružatelja sa stanjem sesije po računu.
+**Svrha:** zadržati agenta koji radi kroz više interakcija (Claude Code, aider, prilagođeni agenti) na istom računu kroz više zahtjeva, čime se smanjuje gubitak konteksta zbog prebacivanja između računa i ponavljanje pogrešaka 429 pri hladnom pokretanju kod pružatelja usluga sa stanjem sesije po računu.
 
 **Implementacija:**
 
 - Određivanje TTL-a: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Odabir/stvaranje vezivanja: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Izdvajanje zaglavlja (generički, bilo koji pružatelj): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Odabir/izrada vezivanja: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Izdvajanje zaglavlja (generičko, za bilo kojeg pružatelja usluga): `src/sse/services/auth.ts::extractSessionAffinityKey()`
 - Tablica trajno pohranjenih vezivanja: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Postavka: `sessionAffinityTtlMs` (globalni TTL u ms, `0` onemogućuje) — `src/lib/db/settings.ts`. Preimenovano iz postavke `codexSessionAffinityTtlMs`, namijenjene samo Codexu, migracijom `124_generic_session_affinity_ttl.sql`, koja svaki prethodno konfigurirani Codex TTL prenosi kao novu zadanu vrijednost.
+- Postavka: `sessionAffinityTtlMs` (globalni TTL u ms, `0` ga onemogućuje) — `src/lib/db/settings.ts`. Preimenovano iz postavke `codexSessionAffinityTtlMs`, namijenjene samo Codexu, migracijom `124_generic_session_affinity_ttl.sql`, koja prenosi svaki prethodno konfigurirani TTL za Codex kao novu zadanu vrijednost.
 
-Prije #7274, `resolveSessionAffinityTtlMs()` odmah je vraćao `0` za svakog pružatelja osim `codex`, pa postavka TTL-a (i zaglavlja sesije) nigdje drugdje nisu imala učinka iako su mehanizam vezivanja i izdvajanje zaglavlja već bili neovisni o pružatelju. Ispravkom je uklonjen taj rani povratak; TTL se sada jednako primjenjuje na svakog pružatelja nakon što se globalno postavi na vrijednost veću od `0`.
+Prije #7274, `resolveSessionAffinityTtlMs()` odmah je vraćao `0` za svakog pružatelja usluga osim `codex`, pa postavka TTL-a (i zaglavlja sesije) nije imala učinka nigdje drugdje, iako su mehanizam vezivanja i izdvajanje zaglavlja već bili neovisni o pružatelju usluga. Ispravkom je uklonjen taj rani izlaz; TTL se sada jednako primjenjuje na svakog pružatelja usluga čim se globalno postavi na vrijednost veću od `0`.
 
-Tri zaglavlja afiniteta sesije nikad se ne prosljeđuju uzvodno — izvršitelji izgrađuju vlastita uzvodna zaglavlja od početka umjesto prosljeđivanja klijentskih zaglavlja, pa ona ostaju samo interni korelacijski identifikatori.
+Tri zaglavlja afiniteta sesije nikada se ne prosljeđuju uzvodno — izvršitelji izrađuju vlastita uzvodna zaglavlja ispočetka umjesto prosljeđivanja klijentskih zaglavlja, pa ona ostaju samo interni korelacijski identifikatori.
 
-### Ekskluzivni najmovi veze za upravljanu sesiju
+### Ekskluzivni najmovi upravljanih veza sesije
 
-**Opseg:** jedan aktivni upravljani HTTP klijent/sesija posjeduje jednu prikladnu OmniRoute vezu.
+**Opseg:** jedan aktivni upravljani HTTP klijent/sesija posjeduje jednu prihvatljivu OmniRoute vezu.
 
-**Svrha:** omogućiti trajno ekskluzivno vlasništvo nad vezom klijentima kojima je potrebna stroga granica usmjeravanja
-između zahtjeva. To se razlikuje od afiniteta sesije, koji predstavlja blagu preferenciju kontinuiteta:
-ekskluzivni najam trajno pohranjuje stanje životnog ciklusa u SQLiteu, provodi globalnu jedinstvenost aktivnog vlasnika i
-aktivne veze te odbija zastarjelu generaciju prije prosljeđivanja pružatelju.
+**Svrha:** pružiti trajno ekskluzivno vlasništvo nad vezom klijentima kojima je potrebna stroga granica usmjeravanja kroz više zahtjeva. To se razlikuje od afiniteta sesije, koji predstavlja blagu preferenciju kontinuiteta: ekskluzivni najam trajno pohranjuje stanje životnog ciklusa u SQLiteu, provodi globalnu jedinstvenost aktivnog vlasnika i aktivne veze te odbija zastarjelu generaciju prije slanja pružatelju usluga.
 
-Značajka se uključuje zasebno za svaki API ključ. Upravljani ključ mora imati opseg `lease:exclusive` i
-izričit popis `allowedConnections` koji nije prazan. Svaki HTTP klijent može upotrebljavati krajnju točku životnog ciklusa; nisu
-potrebni naziv klijenta, korisnički agent, pružatelj, OAuth metoda ni model. Najam posjeduje vezu,
-a ne model, pa promjena modela zadržava vezivanje sve dok veza ostaje uobičajeno
-prikladna. Uobičajena pravila za model, kvotu, stanje, razdoblje mirovanja i popis dopuštenih veza ostaju mjerodavna te mogu
-istu generaciju prebaciti na drugu slobodnu prikladnu vezu.
+Značajka se zasebno uključuje za svaki API ključ. Upravljani ključ mora imati opseg `lease:exclusive` i eksplicitan popis `allowedConnections` koji nije prazan. Bilo koji HTTP klijent može upotrebljavati krajnju točku životnog ciklusa; nisu potrebni naziv klijenta, korisnički agent, pružatelj usluga, OAuth metoda ni model. Najam posjeduje vezu, a ne model, pa se pri promjeni modela zadržava vezivanje sve dok veza ostaje prihvatljiva prema uobičajenim pravilima. Uobičajena pravila za model, kvotu, stanje, razdoblje čekanja i popis dopuštenih veza ostaju mjerodavna te mogu premjestiti istu generaciju na drugu slobodnu prihvatljivu vezu.
 
-Životni ciklus odvija se putem `POST /api/v1/session-leases` s JSON radnjama `acquire`, `renew` i `release`.
-Upravljani zahtjevi za izvođenje zaključivanja šalju neprozirnu vrijednost `X-OmniRoute-Lease-Owner` i točnu
-vrijednost `X-OmniRoute-Lease-Generation`. Identifikator vlasnika počinje s `vlo_`, nakon čega slijede 43 base64url znaka; pohranjuje se samo
-njegov SHA-256 sažetak. Svaka završna provjera prije prosljeđivanja također veže ID autentificiranog API ključa i
-ID aktivne veze. Zaglavlja za upravljanje najmom uklanjaju se iz zapisnika, sačuvanih snimki zahtjeva i
-zaglavlja uzvodnih izvršitelja.
+Životnim ciklusom upravlja se putem `POST /api/v1/session-leases` s JSON radnjama `acquire`, `renew` i `release`. Upravljani zahtjevi za izvođenje predikcije šalju neprozirnu vrijednost `X-OmniRoute-Lease-Owner` i točnu vrijednost `X-OmniRoute-Lease-Generation`. Identifikator vlasnika sastoji se od prefiksa `vlo_` iza kojeg slijede 43 znaka u formatu base64url; pohranjuje se samo njegov SHA-256 sažetak. Svaka završna provjera prije slanja također veže ID autentificiranog API ključa i ID aktivne veze. Zaglavlja za upravljanje najmom uklanjaju se iz zapisnika, pohranjenih snimki zahtjeva i zaglavlja uzvodnih izvršitelja.
 
-Ako uobičajeno usmjeravanje ima prikladne upravljane kandidate, ali je svaki slobodni kandidat zauzet
-stranim aktivnim najmom, OmniRoute vraća HTTP `429`, kôd nedostupnog kapaciteta najma,
-stanje čekanja kapaciteta i ograničeni `Retry-After` izveden iz najranijeg relevantnog isteka.
-Uobičajeni izostanak prikladnih kandidata nije sukob najmova i zadržava postojeću semantiku pogreške usmjeravanja.
+Ako uobičajeno usmjeravanje pronađe prihvatljive upravljane kandidate, ali je svaki slobodni kandidat zauzet stranim aktivnim najmom, OmniRoute vraća HTTP `429`, kôd nedostupnog kapaciteta najma, stanje čekanja na kapacitet i ograničenu vrijednost `Retry-After` izvedenu iz najranijeg relevantnog isteka. Uobičajeni slučaj bez prihvatljivih kandidata ne predstavlja sukob najmova i zadržava postojeću semantiku pogrešaka usmjeravanja.
 
 Povezani mehanizmi ostaju odvojeni:
 
-- Zauzeće OAuth sesije procesno je lokalna blaga raspodjela za OAuth račune.
-- Semafori računa dodjeljuju dopuštenja za istodobne zahtjeve i završavaju kada se zahtjev dovrši.
-- Ekskluzivni najmovi veze za upravljanu sesiju trajno su vlasništvo životnog ciklusa s provjerom generacije.
+- Zauzetost OAuth sesije predstavlja lokalnu, blagu raspodjelu OAuth računa unutar procesa.
+- Semafori računa dodjeljuju dopuštenja za istodobno izvršavanje zahtjeva i završavaju kada se zahtjev dovrši.
+- Ekskluzivni najmovi upravljanih sesija predstavljaju trajno vlasništvo tijekom životnog ciklusa uz provjeru generacije.
 
 ---
 
@@ -288,46 +332,72 @@ brzine po modelu. Ograničeno je postavkom `comboCooldownWait` (`enabled`, `maxW
 
 ## 5. Kontrola prihvata u red zahtjeva (v3.8.49 · problem #6593)
 
-**Opseg**: lokalni red za ograničavanje brzine po pružatelju i vezi (`open-sse/services/rateLimitManager.ts`,
-temeljen na paketu Bottleneck), jedan sloj ispod triju prethodno opisanih mehanizama.
+**Opseg**: lokalni red ograničenja brzine po pružatelju+vezi (`open-sse/services/rateLimitManager.ts`,
+podržan paketom Bottleneck), jednu razinu ispod prethodno navedena tri mehanizma.
 
-**`maxWaitMs` je stari trajno pohranjeni naziv za istek izvršavanja.**
-`resilienceSettings.requestQueue.maxWaitMs` prosljeđuje se paketu Bottleneck kao
-`expiration` zadatka, čiji se mjerač vremena pokreće tek nakon slanja. Stoga ograničava
-izvršavanje kojim upravlja ograničivač, a ne vrijeme provedeno u lokalnom redu. Istek
-se izlaže kao pouzdani lokalni `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-prethodni naziv koda za istek vremena reda prihvaća se samo radi pouzdane interne
-kompatibilnosti unatrag. Zadana je vrijednost 15000ms; nadjačajte je putem
-`RATE_LIMIT_MAX_WAIT_MS` (varijabla okruženja) ili nadzorne ploče (**Postavke → Otpornost**,
-gornja granica korisničkog sučelja 1–30000ms). Vrijeme provedeno u redu nema rok; upotrijebite
-`maxQueueDepth` u nastavku kako biste ograničili broj pozivatelja na čekanju.
+**`maxWaitMs` ograničava čekanje u redu; `executionMaxWaitMs` ograničava izvršavanje.**
+Ta su dva ograničenja namjerno odvojena i nijedno ne utječe na drugo.
 
-**`maxQueueDepth` — opcionalno ograničenje prihvata (novo).** `resilienceSettings.requestQueue.maxQueueDepth`
-ograničava koliko zahtjeva istodobno može čekati u redu (još nisu poslani) za jednu
-kombinaciju pružatelja i veze. Kada red već sadrži `maxQueueDepth`
+`resilienceSettings.requestQueue.maxWaitMs` predstavlja **vremenski budžet čekanja u redu**:
+obuhvaća čekanje na slobodno mjesto kod pružatelja, a zatim boravak u stanju QUEUED, dok se njegov
+mjerač vremena poništava čim zadatak napusti stanje QUEUED i započne izvršavanje
+(`rateLimitManager.ts`, `wrappedFn`). Zahtjev koji prekorači taj budžet nikada ne dolazi
+do uzvodnog servisa. Zadana vrijednost iznosi 30000ms, pruža je `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+u `src/lib/resilience/settings.ts`, a učvršćena je testom
+`tests/unit/ratelimit-admission-control-6593.test.ts`, pa će promjena te vrijednosti
+uzrokovati pad testa umjesto da ovaj odlomak neprimjetno zastari.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` vrijednost je koju Bottleneck
+prima kao `expiration` zadatka, čiji se mjerač vremena pokreće tek nakon otpreme. Služi
+kao krajnja zaštita za izvršitelje bez vlastitog vremenskog ograničenja uzvodnog servisa,
+a povećava se na vlastito vremensko ograničenje izvršitelja za početak dohvaćanja kada je
+ono dulje, tako da ne može prekinuti ispravan odgovor koji je u tijeku. Zadana vrijednost
+iznosi 600000ms (10 min).
+
+Prosljeđivanje budžeta reda u `expiration` ranije je prekidalo neinkrementalne
+pristupnike usred obrade — oni opravdano mogu raditi nekoliko minuta prije slanja prvih
+bajtova — i zato se istek prikazuje kao `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), dok budžet reda nosi kôd isteka čekanja
+u redu. Bilo koju vrijednost možete nadjačati putem `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (varijable okruženja) ili na nadzornoj ploči
+(**Postavke → Otpornost**). Obje se vrijednosti pri normalizaciji ograničavaju na 1ms–24h.
+
+**Redoslijed prvenstva za obje vrijednosti:** varijabla okruženja određuje samo _zadanu vrijednost_.
+Vrijednost spremljena u `resilienceSettings.requestQueue` (putem nadzorne ploče / API zakrpe,
+pohranjena u `key_value`) ima prednost pred njom, a `rateLimitOverrides.maxWaitMs` /
+`.executionMaxWaitMs` za pojedinačnu vezu ima prednost pred spremljenom vrijednošću. Stoga
+postavljanje varijable okruženja u implementaciji koja već ima spremljenu vrijednost
+ne mijenja ništa — umjesto toga uklonite ili ažurirajte spremljenu postavku.
+
+Boravak u redu ograničen je vrijednošću `maxWaitMs`; `maxQueueDepth` u nastavku ograničava
+koliko pozivatelja istodobno smije biti u redu.
+
+**`maxQueueDepth` — neobavezno ograničenje prihvata (novo).** `resilienceSettings.requestQueue.maxQueueDepth`
+ograničava koliko zahtjeva istodobno smije čekati u redu (još nisu otpremljeni) za jednu
+kombinaciju pružatelja+veze. Kada red već sadrži `maxQueueDepth`
 zahtjeva, novi se zahtjev odmah odbija tipiziranom pogreškom
-`code: "RATE_LIMIT_QUEUE_FULL"` **prije** nego što uopće dosegne `limiter.schedule()`
-— stoga je odbijanje jeftino i događa se prije bilo kakvog daljnjeg
+`code: "RATE_LIMIT_QUEUE_FULL"` **prije** nego što uopće stigne do `limiter.schedule()`
+— stoga je odbijanje jeftino i događa se prije bilo kakvog naknadnog
 sažimanja upita / prevođenja za taj zahtjev. Zadana vrijednost `0` =
-onemogućeno, čime se zadržava postojeće ponašanje neograničenog reda; raspon je ograničen na 0–100000.
-Nadjačajte putem `RATE_LIMIT_MAX_QUEUE_DEPTH` (varijabla okruženja) ili
-`resilienceSettings.requestQueue.maxQueueDepth` (zakrpa putem nadzorne ploče/API-ja).
+onemogućeno, čime se zadržava postojeće ponašanje neograničenog reda; dopušteni je raspon 0–100000.
+Vrijednost možete nadjačati putem `RATE_LIMIT_MAX_QUEUE_DEPTH` (varijable okruženja) ili
+`resilienceSettings.requestQueue.maxQueueDepth` (nadzorna ploča/API zakrpa).
 
 Sama provjera prihvata čista je funkcija
-(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) pa
-se može jedinično testirati bez stvarnog ograničivača Bottleneck.
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) pa se
+može jedinično testirati bez stvarnog ograničivača Bottleneck.
 
 > RFC kojim je otvoren #6593 također je predložio zastavicu `bypassCompressionOnRateLimit`.
-> Proces u `open-sse/services/compression/` ovog repozitorija provodi
-> sažimanje upita/konteksta na odlaznom LLM zahtjevu (`chatCore.ts`,
+> Proces u `open-sse/services/compression/` ovog repozitorija obavlja
+> sažimanje upita/konteksta u odlaznom LLM zahtjevu (`chatCore.ts`,
 > oko bloka `resolveCompressionSettings`/`selectCompressionStrategy`),
-> a ne sažimanje HTTP odgovora na generiranim tijelima odgovora 429 — ne postoji
-> odgovarajući put koda za doslovnu zastavicu zaobilaženja. Taj se korak sažimanja upita
-> trenutačno također izvodi _prije_ `withRateLimit()` u procesnom toku zahtjeva, pa je
+> a ne sažimanje HTTP odgovora za generirana tijela odgovora 429 — ne postoji
+> odgovarajući put kôda za doslovnu zastavicu zaobilaženja. Taj se korak sažimanja upita
+> trenutačno također izvodi _prije_ `withRateLimit()` u cjevovodu zahtjeva, pa je
 > promjena redoslijeda radi njegova preskakanja pri odbijanju zbog punog reda zasebna i veća
 > promjena od opsega ovog problema; ovdje namjerno **nije** implementirana
-> i ostavljena je kao naknadni zadatak ako ušteda procesorskih resursa opravdava
-> rizik promjene redoslijeda.
+> i ostavljena je za naknadnu obradu ako je ušteda procesorskih resursa vrijedna
+> rizika promjene redoslijeda.
 
 ---
 

@@ -1,15 +1,15 @@
 # Embedded Services (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/EMBEDDED-SERVICES.md) · 🇪🇹 [am](../../../am/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇿 [az](../../../az/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇰 [da](../../../da/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇪 [de](../../../de/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇷 [el](../../../el/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇸 [es](../../../es/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇱 [he](../../../he/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇩 [id](../../../id/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇹 [it](../../../it/docs/frameworks/EMBEDDED-SERVICES.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇭 [km](../../../km/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇲 [my](../../../my/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇴 [no](../../../no/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [or](../../../or/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇰 [si](../../../si/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [te](../../../te/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇭 [th](../../../th/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/EMBEDDED-SERVICES.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/EMBEDDED-SERVICES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/EMBEDDED-SERVICES.md) · 🇪🇹 [am](../../../am/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇿 [az](../../../az/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇰 [da](../../../da/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇪 [de](../../../de/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇷 [el](../../../el/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇸 [es](../../../es/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇱 [he](../../../he/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇩 [id](../../../id/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇹 [it](../../../it/docs/frameworks/EMBEDDED-SERVICES.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇭 [km](../../../km/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇲 [my](../../../my/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇴 [no](../../../no/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [or](../../../or/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇰 [si](../../../si/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [te](../../../te/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇭 [th](../../../th/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/EMBEDDED-SERVICES.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/EMBEDDED-SERVICES.md)
 
 ---
 
 > **Versioon:** v3.8.44
-> **Viimati uuendatud:** 2026-07-03
-> **Sihtrühm:** Insenerid, kes lisavad, hooldavad või siluvad manustatud teenuseid (9Router, CLIProxyAPI, Mux, Bifrost).
+> **Viimati uuendatud:** 2026-09-09
+> **Sihtrühm:** Insenerid, kes lisavad, hooldavad või siluvad manustatud teenuseid (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
 
-Manustatud teenused on kohalikult installitud protsessi kõrvalkomponendid, mida OmniRoute installib, jälgib ja
-pakub esmaklassiliste marsruutimissihtmärkidena. Erinevalt välistest teenusepakkujatest (millega luuakse interneti kaudu
+Manustatud teenused on kohalikult installitud protsessi kaastööriistad, mille OmniRoute installib, mida see jälgib ja
+mida see pakub esmaklassiliste marsruutimissihtmärkidena. Erinevalt välistest teenusepakkujatest (millega luuakse interneti kaudu
 ühendus API-võtmete abil) töötavad manustatud teenused OmniRoute'iga samas masinas ja suhtlevad loopback-liidese kaudu.
 
 ---
@@ -29,35 +29,36 @@ pakub esmaklassiliste marsruutimissihtmärkidena. Erinevalt välistest teenusepa
 
 ## 1. Ülevaade
 
-### Miks kasutada manustatud teenuseid?
+### Miks manustatud teenused?
 
-Manustatud on viis teenust:
+Manustatud on kuus teenust:
 
-| Teenus          | npm-pakett                                  | Vaikeport | Otstarve                                                                                                                                                                                                                       |
-| --------------- | ------------------------------------------- | :-------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **9Router**     | `9router`                                   |   20130   | Tehisintellekti marsruuter, mida OmniRoute saab kasutada alamteenusepakkujana. Mudelid on kättesaadavad kujul `9router/{sub}/{model}`                                                                                          |
-| **CLIProxyAPI** | GitHubi väljalaskebinaar (`cliproxy`)       |   8317    | Kohalik puhverserveri adapter Anthropic CLI autentimisvoogude jaoks. Pakub varumarsruutimist OAuthi tunnuslubade aegumisel                                                                                                     |
-| **Mux**         | `mux` (ilma kasutajaliideseta `mux server`) |   8322    | Kohalik agentide orkestreerimise deemon (coder/mux). Ainult elutsüklihaldusega — ei ole marsruutimissihtmärk (LLM-i puhverserverdus puudub).                                                                                   |
-| **Bifrost**     | `@maximhq/bifrost`                          |   8080    | Go-põhine tehisintellekti lüüsi relee taustsüsteem. Töötamise ajal valib releemarsruut (`/v1/relay/`) selle automaatselt                                                                                                       |
-| **Dario**       | `@askalf/dario`                             |   3456    | Claude'i tellimuse puhverserver — CLIProxyAPI alternatiiv/tõrkesiirdevariant Claude Code'i kujulise liikluse jaoks; sisestatud võtmest saab `DARIO_ADMIN_TOKEN`, mis piirab selle `/admin/*` OAuthi juhtimistasandi kasutamist |
+| Teenus          | npm-pakett                                  | Vaikimisi port | Otstarve                                                                                                                                                                                                     |
+| --------------- | ------------------------------------------- | :------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **9Router**     | `9router`                                   |     20130      | AI-ruuter, mida OmniRoute saab kasutada alampakkujana. Mudelid avaldatakse kujul `9router/{sub}/{model}`                                                                                                     |
+| **CLIProxyAPI** | GitHubi väljalaskebinaar (`cliproxy`)       |      8317      | Kohalik proksiadapter Anthropic CLI autentimisvoogude jaoks. Pakub varumarsruutimist OAuthi lubade aegumisel                                                                                                 |
+| **Mux**         | `mux` (ilma kasutajaliideseta `mux server`) |      8322      | Kohalik agentide orkestreerimise deemon (coder/mux). Ainult elutsükli halduseks — pole marsruutimise sihtmärk (LLM-i proksimist ei toimu).                                                                   |
+| **Bifrost**     | `@maximhq/bifrost`                          |      8080      | Go-põhine AI-lüüsi releetaustsüsteem. Töötamise ajal valitakse see releemarsruudi (`/v1/relay/`) jaoks automaatselt                                                                                          |
+| **Dario**       | `@askalf/dario`                             |      3456      | Claude'i tellimuse proksi — alternatiiv/varulahendus CLIProxyAPI-le Claude Code'i kujulise liikluse jaoks; sisestatud võtmest saab `DARIO_ADMIN_TOKEN`, mis kaitseb selle `/admin/*` OAuthi juhtimistasandit |
+| **open-wa**     | `@open-wa/wa-automate`                      |      8323      | WhatsApp Webi automatiseerimine (ilma kasutajaliideseta Chromium Puppeteeri kaudu). Ainult elutsükli halduseks — pole marsruutimise sihtmärk.                                                                |
 
-Kõik viis järgivad sama järelevalvemudelit:
+Kõik kuus järgivad sama järelevalvemudelit:
 
-- OmniRoute installib need kataloogi `DATA_DIR/services/{name}/` (OmniRoute'i enda failist `package.json` isoleeritult)
+- OmniRoute installib need kausta `DATA_DIR/services/{name}/` (OmniRoute'i enda `package.json`-ist eraldatult)
 - OmniRoute käivitab ja jälgib neid alamprotsessidena
-- OmniRoute sisestab ajutise API-võtme alamprotsessi keskkonda ja vahetab seda ilma katkestuseta (kui kohaldatav)
-- Kõik haldusmarsruudid (`/api/services/*`) on **LOCAL_ONLY** — juurdepääsetavad ainult loopback-liidese kaudu (range reegel nr 17)
+- OmniRoute sisestab alamprotsessi keskkonda ajutise API-võtme ja vahetab seda ilma katkestuseta (kui see on kohaldatav)
+- Kõik haldusmarsruudid (`/api/services/*`) on **LOCAL_ONLY** — juurdepääsetavad ainult loopback-liideselt (range reegel nr 17)
 
 ### Põhiotsused (disainiplaanist)
 
-| Otsus                                                  | Väärtus                                                                                          |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| Juurdepääs 9Routeri omakasutajaliidesele juhtpaneelilt | Pöördpuhverserver aadressil `/dashboard/providers/services/9router/embed/*`                      |
-| Installimismehhanism                                   | `npm install {package}` käsu `execFile` kaudu (ilma kestainterpoleerimiseta)                     |
-| Kasutusrežiim                                          | Teenusepakkuja on marsruutimismootoris registreeritud kujul `9router/{sub}/{model}`              |
-| API-võtmete haldus                                     | OmniRoute genereerib ja krüpteerib need talletamisel (AES-256-GCM) ning sisestab keskkonna kaudu |
-| Asukoht juhtpaneelil                                   | `/dashboard/providers/services` (kolm vahekaarti)                                                |
-| Automaatne käivitamine                                 | Lüliti teenusepõhiselt, vaikimisi VÄLJAS                                                         |
+| Otsus                                          | Väärtus                                                                                                     |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Juurdepääs 9Routeri native UI-le juhtpaneelilt | Pöördproksi aadressil `/dashboard/providers/services/9router/embed/*`                                       |
+| Installimismehhanism                           | `npm install {package}` `execFile`-i kaudu (ilma shelli interpolatsioonita)                                 |
+| Kasutusrežiim                                  | Pakkuja registreeritakse marsruutimismootoris kujul `9router/{sub}/{model}`                                 |
+| API-võtme haldus                               | OmniRoute genereerib võtme, krüpteerib selle salvestamisel (AES-256-GCM) ja sisestab keskkonnamuutuja kaudu |
+| Asukoht juhtpaneelil                           | `/dashboard/providers/services` (kolm vahekaarti)                                                           |
+| Automaatne käivitamine                         | Lüliti iga teenuse jaoks, vaikimisi VÄLJAS                                                                  |
 
 ---
 
@@ -67,7 +68,7 @@ Kõik viis järgivad sama järelevalvemudelit:
 ┌────────────────────────────────────────────────────────────────────┐
 │  Kiht 1 — kasutajaliides                                           │
 │  /dashboard/providers/services  (vahekaardid: CLIProxyAPI | 9Router | Mux)│
-│  Reaalajas logid (SSE), käivitamine/peatamine/taaskäivitamine/uuendamine, sätted, installimine│
+│  Reaalaja logid (SSE), käivitamine/peatamine/taaskäivitamine/uuendamine, sätted, installimine│
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
 │    ├── page.tsx               Kest + vahekaartide marsruutimine ?tab= järgi│
@@ -87,9 +88,9 @@ Kõik viis järgivad sama järelevalvemudelit:
 │  /api/services/mux/{install|start|stop|restart|update|             │
 │                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
-│    (HTTP-pöördproksi + WebSocketi proksi → 9Routeri ülesvool)      │
+│    (HTTP-pöördproksi + WebSocketi proksi → 9Routeri ülesvool)       │
 │                                                                    │
-│  Kontroll: LOCAL_ONLY_API_PREFIXES sisaldab "/api/services/" ja    │
+│  Tõke: LOCAL_ONLY_API_PREFIXES sisaldab "/api/services/" ja        │
 │        "/dashboard/providers/services/*/embed/"                    │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ protsessisisesed kutsed
@@ -97,30 +98,30 @@ Kõik viis järgivad sama järelevalvemudelit:
 │  Kiht 3 — ServiceSupervisor (src/lib/services/)                    │
 │                                                                    │
 │  ServiceSupervisor.ts   Üldine järelevaataja (child_process.spawn) │
-│    ├── install:    execFile('npm', ['install', pkg, '--prefix'])    │
-│    ├── start:      spawn(node, [entrypoint], {env, cwd})           │
-│    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
-│    ├── port:       20130 9Routeri jaoks (konfigureeritav)          │
-│    ├── logs:       stdio ringpuhver 5 MB → SSE-sündmused           │
-│    ├── health:     HTTP GET /health iga 2–5 s järel, laisk taastamine│
-│    └── lifecycle:  SIGTERM 15 s → SIGKILL                          │
+│    ├── installimine: execFile('npm', ['install', pkg, '--prefix'])  │
+│    ├── käivitamine:  spawn(node, [entrypoint], {env, cwd})         │
+│    ├── api_key:      crypto.randomBytes(32) → env NINEROUTER_API_KEY│
+│    ├── port:         20130 teenuse 9Router jaoks (seadistatav)      │
+│    ├── logid:        stdio 5 MB ringpuhver → SSE-sündmused          │
+│    ├── tervisekontroll: HTTP GET /health iga 2–5 s järel, laisk taastamine│
+│    └── elutsükkel:   SIGTERM 15 s → SIGKILL                        │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
-│  bootstrap.ts       Algkäivitab protsessi käivitumisel kõik SERVICES[]│
+│  bootstrap.ts       Algkäivitab protsessi käivitamisel kõik SERVICES[]│
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
 │  modelSync.ts       Perioodiline GET /v1/models → service_models tabel│
-│  ringBuffer.ts      Ringlogipuhver (5 MB teenuse kohta)            │
-│  healthCheck.ts     HTTP-tervisekontrolli perioodiline päring      │
-│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
-│                      (installeri adapterid)                        │
+│  ringBuffer.ts      Ringlogipuhver (5 MB teenuse kohta)             │
+│  healthCheck.ts     Perioodiline HTTP-tervisekontroll               │
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
+│                      (installeri adapterid)                         │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ OpenAI-ga ühilduv HTTP (loopback)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  Kiht 4 — pakkuja / marsruutimine                                  │
+│  Kiht 4 — teenusepakkuja / marsruutimine                           │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    Otsib iga päringu puhul pordi ja API-võtme uuesti (vahemäluta). │
-│    Eemaldab enne proksimist mudeli ID-st prefiksi "9router/".      │
+│    Hangib pordi ja API-võtme iga päringu jaoks uuesti (vahemäluta).│
+│    Eemaldab enne vahendamist mudeli ID-st prefiksi "9router/".      │
 │    Tagastab 503 service_not_running, kui järelevaataja pole olekus "running".│
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
@@ -128,32 +129,32 @@ Kõik viis järgivad sama järelevalvemudelit:
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
 │    Mudelid salvestatakse kujul "9router/{sub}/{model}" (prefiksiga).│
-│    modelSync.ts sünkroonib neid iga 5 min järel.                   │
+│    modelSync.ts sünkroonib neid iga 5 minuti järel.                 │
 │                                                                    │
-│  Muxi hallatakse AINULT elutsükli tasandil (kihid 1–3) — see on    │
-│  agentide orkestreerimise deemon, mitte LLM-proksi, seega puudub   │
-│  sellel 4. kihi täituri/pakkuja kirje ning see pole kunagi         │
-│  marsruutimise sihtmärk.                                           │
+│  Muxi puhul hallatakse AINULT elutsüklit (kihid 1–3) — see on agendi│
+│  orkestreerimise deemon, mitte LLM-proksi, seega pole sellel 4. kihi│
+│  täituri/teenusepakkuja kirjet ning see pole kunagi marsruutimise sihtmärk.│
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Peamised lähtefailid
 
-| Fail                                        | Roll                                                           |
-| ------------------------------------------- | -------------------------------------------------------------- |
-| `src/lib/services/ServiceSupervisor.ts`     | Põhiklass: elutsükkel, lukk, tervisekontroll, ringpuhver       |
-| `src/lib/services/bootstrap.ts`             | Protsessitaseme registreerimine ja automaatne käivitamine      |
-| `src/lib/services/registry.ts`              | Üksikeksemplari kaart `tool → supervisor`                      |
-| `src/lib/services/apiKey.ts`                | Võtme genereerimine, AES-256-GCM-krüptimine salvestamisel      |
-| `src/lib/services/modelSync.ts`             | Perioodiline mudelite sünkroonimine (5 min) + nõudmisel        |
-| `src/lib/services/ringBuffer.ts`            | 5 MB ringlogipuhver SSE-tellimusega                            |
-| `src/lib/services/healthCheck.ts`           | HTTP-tervisekontroll (seadistatav intervall)                   |
-| `src/lib/services/installers/ninerouter.ts` | 9Routeri installimine/värskendamine/desinstallimine npm-iga    |
-| `src/lib/services/installers/cliproxy.ts`   | CLIProxyAPI installimine/värskendamine/desinstallimine npm-iga |
-| `src/lib/services/installers/mux.ts`        | Muxi installimine/värskendamine/desinstallimine npm-iga        |
-| `src/app/api/services/9router/_lib.ts`      | Abifunktsioon `getOrInitSupervisor()`                          |
-| `src/app/api/services/[name]/logs/route.ts` | Jagatud SSE-logide otspunkt                                    |
-| `open-sse/executors/ninerouter.ts`          | Pakkuja täitur (4. kiht)                                       |
+| Fail                                        | Roll                                                               |
+| ------------------------------------------- | ------------------------------------------------------------------ |
+| `src/lib/services/ServiceSupervisor.ts`     | Põhiklass: elutsükkel, lukk, seisundikontroll, ringpuhver          |
+| `src/lib/services/bootstrap.ts`             | Protsessitaseme registreerimine ja automaatne käivitamine          |
+| `src/lib/services/registry.ts`              | Üksikeksemplari kaart `tool → supervisor`                          |
+| `src/lib/services/apiKey.ts`                | Võtme genereerimine, AES-256-GCM-krüptimine salvestamisel          |
+| `src/lib/services/modelSync.ts`             | Perioodiline mudelite sünkroonimine (5 min) + nõudmisel            |
+| `src/lib/services/ringBuffer.ts`            | 5 MB ringlogipuhver SSE-tellimisega                                |
+| `src/lib/services/healthCheck.ts`           | HTTP-seisundikontroll (seadistatav intervall)                      |
+| `src/lib/services/installers/ninerouter.ts` | 9Routeri installimine/värskendamine/desinstallimine npm-i kaudu    |
+| `src/lib/services/installers/cliproxy.ts`   | CLIProxyAPI installimine/värskendamine/desinstallimine npm-i kaudu |
+| `src/lib/services/installers/mux.ts`        | Muxi installimine/värskendamine/desinstallimine npm-i kaudu        |
+| `src/lib/services/installers/openwa.ts`     | open-wa installimine/värskendamine/desinstallimine npm-i kaudu     |
+| `src/app/api/services/9router/_lib.ts`      | Abifunktsioon `getOrInitSupervisor()`                              |
+| `src/app/api/services/[name]/logs/route.ts` | Jagatud SSE-logide lõpp-punkt                                      |
+| `open-sse/executors/ninerouter.ts`          | Pakkuja täitur (4. kiht)                                           |
 
 ---
 
@@ -208,20 +209,19 @@ aktiveeruvad samal ajal.
 
 ---
 
-## 4. API viitedokumentatsioon
+## 4. API viide
 
-Kõik marsruudid prefiksiga `/api/services/` on **LOCAL_ONLY** (ainult tagasisideahel,
-range reegel #17). Väljastpoolt tagasisideahelat saabuvad päringud saavad vastuseks
-`403 LOCAL_ONLY` sõltumata autentimistõendist.
+Kõik marsruudid prefiksi `/api/services/` all on **LOCAL_ONLY** (ainult loopback, range reegel #17).
+Mitte-loopback-päringud saavad vastuseks `403 LOCAL_ONLY` olenemata autentimistõendist.
 
 ### 4.1 9Routeri lõpp-punktid (11 marsruuti)
 
 #### `POST /api/services/9router/install`
 
-Installib 9Routeri npm-ist. Loob kataloogi `DATA_DIR/services/9router/` koos eraldi
+Paigaldab 9Routeri npm-ist. Loob kataloogi `DATA_DIR/services/9router/` koos eraldi
 `package.json`-i ja `node_modules/`-iga. Ei lähe vastuollu OmniRoute'i enda sõltuvustega.
 
-**Päringu keha** (kõik väljad valikulised):
+**Päringu keha** (kõik väljad on valikulised):
 
 ```json
 { "version": "latest" }
@@ -229,26 +229,26 @@ Installib 9Routeri npm-ist. Loob kataloogi `DATA_DIR/services/9router/` koos era
 
 | Väli      | Tüüp     | Vaikeväärtus | Kirjeldus                                  |
 | --------- | -------- | ------------ | ------------------------------------------ |
-| `version` | `string` | `"latest"`   | installitav npm-i versioonisilt või semver |
+| `version` | `string` | `"latest"`   | Paigaldatav npm-i versioonisilt või semver |
 
 **Vastused:**
 
-| Olek  | Kirjeldus                                                 |
-| ----- | --------------------------------------------------------- |
-| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }`    |
-| `400` | Vigane päringu keha (Zodi valideerimistõrge)              |
-| `409` | Installimine juba käib (lukk on hõivatud)                 |
-| `500` | npm install nurjus — kasutajasõbralikku viga vt `message` |
+| Olek  | Kirjeldus                                                                    |
+| ----- | ---------------------------------------------------------------------------- |
+| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                       |
+| `400` | Vigane päringu keha (Zodi valideerimine nurjus)                              |
+| `409` | Paigaldamine on juba pooleli (lukk on hõivatud)                              |
+| `500` | npm-i paigaldamine nurjus — kasutajasõbralikku veateadet vt väljal `message` |
 
-**Märkused:** Kasutab käsku `execFile('npm', [...])` — ilma kestata ja interpoleerimiseta
-(range reegel #13). EACCES-i vead esitatakse kasutajasõbralike teadetena.
+**Märkused:** Kasutab käsku `execFile('npm', [...])` — kest puudub ja interpoleerimist ei toimu (range reegel #13).
+EACCES-i vead esitatakse kasutajasõbralike teadetena.
 
 ---
 
 #### `POST /api/services/9router/start`
 
-Käivitab 9Routeri. Registreerib järelevaataja, kui see pole juba registreeritud,
-ja kutsub seejärel välja `supervisor.start()`. Juba töötamise korral idempotentne.
+Käivitab 9Routeri. Registreerib järelevaataja, kui see pole veel registreeritud, ja kutsub seejärel välja
+`supervisor.start()`. Juba töötava teenuse korral idempotentne.
 
 **Päringu keha:** puudub
 
@@ -257,10 +257,10 @@ ja kutsub seejärel välja `supervisor.start()`. Juba töötamise korral idempot
 | Olek  | Kirjeldus                                            |
 | ----- | ---------------------------------------------------- |
 | `200` | Objekt `ServiceStatus` (vt allolevat skeemi)         |
-| `409` | 9Router pole installitud (`status: "not_installed"`) |
-| `503` | Käivitamine nurjus (protsessiviga — vt `lastError`)  |
+| `409` | 9Router pole paigaldatud (`status: "not_installed"`) |
+| `503` | Käivitamine nurjus (protsessi viga — vt `lastError`) |
 
-**`ServiceStatus`-e skeem:**
+**ServiceStatus skeem:**
 
 ```json
 {
@@ -278,37 +278,37 @@ ja kutsub seejärel välja `supervisor.start()`. Juba töötamise korral idempot
 
 #### `POST /api/services/9router/stop`
 
-Peatab 9Routeri sujuvalt. Saadab SIGTERM-i, ootab 15 s ja saadab seejärel SIGKILL-i,
-kui protsess on endiselt aktiivne. Juba peatatud oleku korral idempotentne.
+Peatab 9Routeri kontrollitult. Saadab SIGTERM-i, ootab 15 s ja saadab seejärel SIGKILL-i, kui protsess on endiselt töös.
+Juba peatatud teenuse korral idempotentne.
 
 **Päringu keha:** puudub
 
 **Vastused:**
 
-| Olek  | Kirjeldus                           |
-| ----- | ----------------------------------- |
-| `200` | `ServiceStatus` (olek: `"stopped"`) |
-| `503` | Peatamine nurjus ootamatult         |
+| Olek  | Kirjeldus                            |
+| ----- | ------------------------------------ |
+| `200` | `ServiceStatus` (`state: "stopped"`) |
+| `503` | Peatamine nurjus ootamatult          |
 
 ---
 
 #### `POST /api/services/9router/restart`
 
-Samaväärne toimingutega `stop()` ja seejärel `start()` toiminguluku all.
+Samaväärne `stop()` ja seejärel `start()` väljakutsumisega operatsiooniluku all.
 
 **Päringu keha:** puudub
 
-**Vastused:** samad mis `start`-i puhul (tagastab lõpliku `ServiceStatus`-e).
+**Vastused:** samad mis `start` puhul (tagastab lõpliku `ServiceStatus`-e).
 
 ---
 
 #### `POST /api/services/9router/update`
 
-Värskendab 9Routeri uuemale npm-i versioonile. Kui teenus töötab, peatatakse see
-esmalt, käivitatakse npm install (uuem versioon installitakse olemasolevasse
-asukohta) ning seejärel käivitatakse teenus uuesti.
+Uuendab 9Routeri uuemale npm-i versioonile. Kui teenus töötab, peatatakse see
+esmalt, käivitatakse npm-i paigaldamine (uuem versioon paigaldatakse samasse asukohta) ja seejärel
+käivitatakse teenus uuesti.
 
-**Päringu keha** (kõik väljad valikulised):
+**Päringu keha** (kõik väljad on valikulised):
 
 ```json
 { "version": "latest" }
@@ -319,15 +319,15 @@ asukohta) ning seejärel käivitatakse teenus uuesti.
 | Olek  | Kirjeldus                                                       |
 | ----- | --------------------------------------------------------------- |
 | `200` | `{ ok: true, previousVersion: "...", installedVersion: "..." }` |
-| `400` | Vigane päringu keha                                             |
-| `500` | npm-i värskendamine nurjus                                      |
+| `400` | Vigane keha                                                     |
+| `500` | npm-i uuendamine nurjus                                         |
 
 ---
 
 #### `POST /api/services/9router/rotate-key`
 
-Genereerib 9Routeri jaoks uue API-võtme, krüpteerib selle talletamisel ja taaskäivitab teenuse
-(kui see töötab), et teenus saaks uue võtme oma keskkonnast kätte. Vana võti
+Loob 9Routerile uue API võtme, krüpteerib selle talletamisel ja taaskäivitab teenuse
+(kui see töötab), et teenus saaks uue võtme oma keskkonnast laadida. Vana võti
 muudetakse kohe kehtetuks.
 
 **Päringu keha:** puudub
@@ -337,23 +337,23 @@ muudetakse kohe kehtetuks.
 | Olek  | Kirjeldus                                  |
 | ----- | ------------------------------------------ |
 | `200` | `{ keyRotated: true, restarted: boolean }` |
-| `500` | Võtme vahetamine ebaõnnestus               |
+| `500` | Võtme vahetamine nurjus                    |
 
-**Turvalisus:** uut võtit ei tagastata kunagi vastuses (autentimisteave ei leki).
-See talletatakse krüpteeritult (AES-256-GCM) tabelis `version_manager`.
+**Turvalisus:** Uut võtit ei tagastata kunagi vastuses (mandaatide leket ei teki).
+See salvestatakse krüpteeritult (AES-256-GCM) tabelisse `version_manager`.
 
 ---
 
 #### `GET /api/services/9router/status`
 
-Tagastab kombineeritud reaalajas + andmebaasi oleku, sealhulgas versiooni metaandmed ja API-võtme eelvaate.
+Tagastab kombineeritud reaalaja- ja andmebaasioleku, sealhulgas versiooni metaandmed ning API võtme eelvaate.
 
 **Vastused:**
 
-| Olek  | Kirjeldus                  |
-| ----- | -------------------------- |
-| `200` | Vaadake allolevat skeemi   |
-| `500` | Oleku lugemine ebaõnnestus |
+| Olek  | Kirjeldus             |
+| ----- | --------------------- |
+| `200` | Vt allolevat skeemi   |
+| `500` | Oleku lugemine nurjus |
 
 **Vastuse skeem:**
 
@@ -379,8 +379,8 @@ Tagastab kombineeritud reaalajas + andmebaasi oleku, sealhulgas versiooni metaan
 
 #### `POST /api/services/9router/auto-start`
 
-Lülitab automaatkäivituse lipu sisse või välja. Kui `enabled: true`, käivitub teenus automaatselt
-järgmisel OmniRoute'i käivitamisel (kui teenus on installitud).
+Lülitab automaatse käivitamise lipu sisse või välja. Kui `enabled: true`, käivitub teenus automaatselt
+OmniRoute'i järgmisel käivitamisel (kui teenus on paigaldatud).
 
 **Päringu keha:**
 
@@ -399,24 +399,24 @@ järgmisel OmniRoute'i käivitamisel (kui teenus on installitud).
 
 #### `GET /api/services/9router/logs`
 
-9Routeri stdout/stderr-ringpuhvrist pärinevate reaalajaliste logide SSE-voog.
+9Routeri stdout/stderr-i ringpuhvrist pärinevate reaalajaliste logide SSE-voog.
 
 **Päringuparameetrid:**
 
-| Parameeter | Tüüp      | Vaikeväärtus | Kirjeldus                                                                   |
-| ---------- | --------- | ------------ | --------------------------------------------------------------------------- |
-| `tail`     | `integer` | 200          | Esmalt saadetavate ajalooliste ridade arv (max 1000)                        |
-| `filter`   | `string`  | puudub       | Tõstutundetu alamstringi filter (ilma regex'ita — ReDoS-i suhtes turvaline) |
+| Parameeter | Tüüp      | Vaikeväärtus | Kirjeldus                                                            |
+| ---------- | --------- | ------------ | -------------------------------------------------------------------- |
+| `tail`     | `integer` | 200          | Esmalt saadetavate ajalooliste ridade arv (maksimaalselt 1000)       |
+| `filter`   | `string`  | puudub       | Tõstutundetu alamstringi filter (regulaaravaldisteta — ReDoS-kindel) |
 
-**SSE-sündmused:**
+**SSE sündmused:**
 
-| Sündmus     | Andmed      | Kirjeldus                                |
-| ----------- | ----------- | ---------------------------------------- |
-| `snapshot`  | `LogLine[]` | Esialgne ajalooline lõpuosa              |
-| `log`       | `LogLine`   | Reaalajas logirida                       |
-| `heartbeat` | `{}`        | Ühenduse hoidmise signaal iga 15 s järel |
+| Sündmus     | Andmed      | Kirjeldus                   |
+| ----------- | ----------- | --------------------------- |
+| `snapshot`  | `LogLine[]` | Esialgne ajalooline lõpuosa |
+| `log`       | `LogLine`   | Reaalajaline logirida       |
+| `heartbeat` | `{}`        | Elushoidmine iga 15 s järel |
 
-**LogLine'i skeem:**
+**LogLine skeem:**
 
 ```json
 {
@@ -436,69 +436,69 @@ järgmisel OmniRoute'i käivitamisel (kui teenus on installitud).
 
 ---
 
-### 4.2 CLIProxyAPI otspunktid (10 marsruuti)
+### 4.2 CLIProxyAPI lõpp-punktid (10 marsruuti)
 
-CLIProxyAPI otspunktide struktuur on sama mis 9Routeril, välja arvatud `rotate-key`, ning lisatud on
+CLIProxyAPI lõpp-punktide struktuur on sama mis 9Routeril, välja arvatud `rotate-key`, ning sellele lisanduvad
 `accounts`, `provider-expose` ja `auto-restart-adopted`. Nüüd saab see
-käivitamisel sisestatud spetsiaalse andmekihi API-võtme (`needsApiKey: true` failis
-`bootstrap.ts`, kasutatakse mudelite sünkroonimiseks); `status` sisaldab vähem välju.
+käivitamisel sisestatud spetsiaalse andmetasandi API-võtme (`needsApiKey: true`
+failis `bootstrap.ts`, kasutatakse mudelite sünkroonimiseks); `status` sisaldab vähem välju.
 
-| Meetod | Tee                                 | Kirjeldus                                             |
-| ------ | ----------------------------------- | ----------------------------------------------------- |
-| `POST` | `/api/services/cliproxy/install`    | Installib CLIProxyAPI npm-ist                         |
-| `POST` | `/api/services/cliproxy/start`      | Käivitab CLIProxyAPI                                  |
-| `POST` | `/api/services/cliproxy/stop`       | Peatab CLIProxyAPI                                    |
-| `POST` | `/api/services/cliproxy/restart`    | Taaskäivitab CLIProxyAPI                              |
-| `POST` | `/api/services/cliproxy/update`     | Uuendab uuemale versioonile                           |
-| `GET`  | `/api/services/cliproxy/status`     | Reaalajas + andmebaasi olek (ilma `apiKeyMasked`-ita) |
-| `POST` | `/api/services/cliproxy/auto-start` | Lülitab automaatkäivituse sisse või välja             |
+| Meetod | Tee                                 | Kirjeldus                                                 |
+| ------ | ----------------------------------- | --------------------------------------------------------- |
+| `POST` | `/api/services/cliproxy/install`    | Paigalda CLIProxyAPI npm-ist                              |
+| `POST` | `/api/services/cliproxy/start`      | Käivita CLIProxyAPI                                       |
+| `POST` | `/api/services/cliproxy/stop`       | Peata CLIProxyAPI                                         |
+| `POST` | `/api/services/cliproxy/restart`    | Taaskäivita CLIProxyAPI                                   |
+| `POST` | `/api/services/cliproxy/update`     | Uuenda uuemale versioonile                                |
+| `GET`  | `/api/services/cliproxy/status`     | Reaalajas + andmebaasi olek (ilma `apiKeyMasked` väljata) |
+| `POST` | `/api/services/cliproxy/auto-start` | Lülita automaatne käivitamine sisse või välja             |
 
-Ühine otspunkt `GET /api/services/{name}/logs` (vt §4.1) töötab kõigi
-nelja teenusega, kasutades dünaamilist segmenti `[name]`.
-
----
-
-### 4.3 Muxi otspunktid (8 marsruuti)
-
-Muxi otspunktide struktuur on sama mis CLIProxyAPI-l — API-pinnal puudub marsruut
-`rotate-key` (omanikutõend genereeritakse samal viisil nagu 9Routeril funktsiooni
-`getOrCreateApiKey("mux")` kaudu ja sisestatakse keskkonnamuutuja `MUX_SERVER_AUTH_TOKEN` abil, kuid
-selle jaoks pole veel spetsiaalset võtme vahetamise otspunkti). Muxi puhul hallatakse ainult elutsüklit:
-erinevalt 9Routerist pole sellel 4. kihi täiturit ja seda ei registreerita kunagi marsruutimisteenuse pakkujana.
-
-| Meetod | Tee                            | Kirjeldus                                 |
-| ------ | ------------------------------ | ----------------------------------------- |
-| `POST` | `/api/services/mux/install`    | Installib Muxi npm-ist (`npm i mux`)      |
-| `POST` | `/api/services/mux/start`      | Käivitab Muxi (`mux server`)              |
-| `POST` | `/api/services/mux/stop`       | Peatab Muxi                               |
-| `POST` | `/api/services/mux/restart`    | Taaskäivitab Muxi                         |
-| `POST` | `/api/services/mux/update`     | Uuendab uuemale npm-i versioonile         |
-| `GET`  | `/api/services/mux/status`     | Reaalajas + andmebaasi olek               |
-| `POST` | `/api/services/mux/auto-start` | Lülitab automaatkäivituse sisse või välja |
+Jagatud lõpp-punkt `GET /api/services/{name}/logs` (vt §4.1) töötab kõigi
+nelja teenuse puhul, kasutades dünaamilist segmenti `[name]`.
 
 ---
 
-### 4.4 Bifrosti otspunktid (8 marsruuti)
+### 4.3 Muxi lõpp-punktid (8 marsruuti)
 
-Bifrost on Go-põhine AI-lüüsi vahendustaustateenus (`@maximhq/bifrost`). See kasutab sama
-otspunktide struktuuri nagu CLIProxyAPI (ilma `rotate-key`-ta — Bifrost haldab oma teenusepakkujate
-võtmeid failis `config.json` oma `-app-dir` all).
+Muxi lõpp-punktide struktuur on sama mis CLIProxyAPI-l — API-liideses puudub
+marsruut `rotate-key` (kandjatõend luuakse samamoodi nagu 9Routeri oma funktsiooniga
+`getOrCreateApiKey("mux")` ja sisestatakse keskkonnamuutuja `MUX_SERVER_AUTH_TOKEN` kaudu, kuid
+spetsiaalset võtme roteerimise lõpp-punkti veel pole). Muxil hallatakse ainult elutsüklit:
+erinevalt 9Routerist pole sellel 4. kihi täiturit ja seda ei registreerita kunagi marsruutimispakkujana.
 
-| Meetod | Tee                                | Kirjeldus                                                            |
-| ------ | ---------------------------------- | -------------------------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | Bifrosti installimine npm-ist (`@maximhq/bifrost`)                   |
-| `POST` | `/api/services/bifrost/start`      | Bifrosti käivitamine pordil 8080 (vaikimisi)                         |
-| `POST` | `/api/services/bifrost/stop`       | Bifrosti peatamine                                                   |
-| `POST` | `/api/services/bifrost/restart`    | Bifrosti taaskäivitamine                                             |
-| `POST` | `/api/services/bifrost/update`     | Uuemale versioonile värskendamine                                    |
-| `GET`  | `/api/services/bifrost/status`     | Reaalajas olek + andmebaasi olek                                     |
-| `POST` | `/api/services/bifrost/auto-start` | Automaatse käivitamise sisse- või väljalülitamine                    |
-| `GET`  | `/api/services/bifrost/logs`       | SSE logi lõpposa (jagatud dünaamilise marsruudi `[name]/logs` kaudu) |
+| Meetod | Tee                            | Kirjeldus                                     |
+| ------ | ------------------------------ | --------------------------------------------- |
+| `POST` | `/api/services/mux/install`    | Paigalda Mux npm-ist (`npm i mux`)            |
+| `POST` | `/api/services/mux/start`      | Käivita Mux (`mux server`)                    |
+| `POST` | `/api/services/mux/stop`       | Peata Mux                                     |
+| `POST` | `/api/services/mux/restart`    | Taaskäivita Mux                               |
+| `POST` | `/api/services/mux/update`     | Uuenda uuemale npm-versioonile                |
+| `GET`  | `/api/services/mux/status`     | Reaalajas + andmebaasi olek                   |
+| `POST` | `/api/services/mux/auto-start` | Lülita automaatne käivitamine sisse või välja |
 
-**Marsruutimise ühendamine:** Kui `BIFROST_BASE_URL` pole määratud ja hallatav Bifrosti
-eksemplar töötab, kasutab `getBifrostRoutingConfig()` (failis `routingBackend.ts`) relee
-baas-URL-ina automaatselt aadressi `http://127.0.0.1:{port}`. Sõnaselgelt määratud
-keskkonnamuutuja `BIFROST_BASE_URL` on alati ülimuslik.
+---
+
+### 4.4 Bifrosti lõpp-punktid (8 marsruuti)
+
+Bifrost on Go-põhine tehisintellekti lüüsirelee taustsüsteem (`@maximhq/bifrost`). See kasutab
+sama lõpp-punktide struktuuri nagu CLIProxyAPI (ilma `rotate-key` marsruudita — Bifrost haldab oma
+pakkujavõtmeid failis `config.json` oma `-app-dir` all).
+
+| Meetod | Tee                                | Kirjeldus                                                        |
+| ------ | ---------------------------------- | ---------------------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | Paigalda Bifrost npm-ist (`@maximhq/bifrost`)                    |
+| `POST` | `/api/services/bifrost/start`      | Käivita Bifrost pordil 8080 (vaikimisi)                          |
+| `POST` | `/api/services/bifrost/stop`       | Peata Bifrost                                                    |
+| `POST` | `/api/services/bifrost/restart`    | Taaskäivita Bifrost                                              |
+| `POST` | `/api/services/bifrost/update`     | Uuenda uuemale versioonile                                       |
+| `GET`  | `/api/services/bifrost/status`     | Reaalajas + andmebaasi olek                                      |
+| `POST` | `/api/services/bifrost/auto-start` | Lülita automaatne käivitamine sisse või välja                    |
+| `GET`  | `/api/services/bifrost/logs`       | SSE-logisaba (jagatud dünaamilise marsruudi `[name]/logs` kaudu) |
+
+**Marsruutimise ühendamine:** Kui `BIFROST_BASE_URL` pole määratud ja järelevalve all olev Bifrosti
+eksemplar töötab, kasutab `getBifrostRoutingConfig()` (failis `routingBackend.ts`) automaatselt
+relee baas-URL-ina aadressi `http://127.0.0.1:{port}`. Selgelt määratud keskkonnamuutuja `BIFROST_BASE_URL`
+on alati ülimuslik.
 
 ---
 
@@ -506,12 +506,47 @@ keskkonnamuutuja `BIFROST_BASE_URL` on alati ülimuslik.
 
 Sama elutsükli struktuur nagu teistel teenustel (`install`, `start`, `stop`, `restart`,
 `update`, `status`, `auto-start`, `auto-restart-adopted`) ning lisaks loaga kaitstud OAuthi
-juhtimistasand asukohas `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
-`admin/login-start`, `admin/login-complete` (kõik on kaitstud muutujaga `DARIO_ADMIN_TOKEN`).
+juhtimistasand prefiksi `admin/` all: `admin/accounts`, `admin/import-from-omniroute`,
+`admin/login-start`, `admin/login-complete` (kõik kaitstud muutujaga `DARIO_ADMIN_TOKEN`).
 
-### 4.6 Pöördproksi (9Routeri juhtpaneeli manustamine)
+### 4.6 open-wa lõpp-punktid (7 marsruuti)
 
-Juhtpaneel manustab 9Routeri veebiliidese iframe'i sisse sisemise pöördproksi kaudu
+open-wa (`@open-wa/wa-automate`) juhib WhatsApp Webi automatiseerimiseks ilma graafilise liideseta
+Chromiumi eksemplari (Puppeteeri kaudu). See kasutab sama lõpp-punktide struktuuri nagu Mux (marsruuti
+`rotate-key` veel pole). Selle puhul hallatakse ainult elutsüklit — see pole marsruutimise sihtmärk
+ning sellel puudub 4. kihi täituri/pakkuja kirje.
+
+| Meetod | Tee                               | Kirjeldus                                                          |
+| ------ | --------------------------------- | ------------------------------------------------------------------ |
+| `POST` | `/api/services/openwa/install`    | Paigalda open-wa npm-ist (`@open-wa/wa-automate`)                  |
+| `POST` | `/api/services/openwa/start`      | Käivita open-wa pordil 8323 (vaikimisi)                            |
+| `POST` | `/api/services/openwa/stop`       | Peata open-wa                                                      |
+| `POST` | `/api/services/openwa/restart`    | Taaskäivita open-wa                                                |
+| `POST` | `/api/services/openwa/update`     | Värskenda uuemale versioonile                                      |
+| `GET`  | `/api/services/openwa/status`     | Reaalaja- ja andmebaasiolek                                        |
+| `POST` | `/api/services/openwa/auto-start` | Lülita automaatkäivitus sisse või välja                            |
+| `GET`  | `/api/services/openwa/logs`       | SSE-logi lõpuosa (ühise dünaamilise marsruudi `[name]/logs` kaudu) |
+
+**API võti:** sisestatakse muutujana `WA_KEY` — open-wa üldine keskkonnamuutujate
+ülekirjutus prefiksiga `WA_*` vastendab selle CLI suvandile `--key`/`-k`
+(`dist/cli/setup.js::envArgs()`, kontrollitud installitud paketi 4.76.0 põhjal).
+Funktsiooni `generateServiceApiKey()` genereeritud võtmele lisatakse prefiks `ow_`.
+open-wa loeb võtme HTTP-päisest `key`/`api_key` (mitte `Authorization:
+Bearer`); `/api-docs*` on kontrollist sõnaselgelt vabastatud
+(`setupAuthenticationLayer` failis `dist/cli/server.js`), seega ei vaja
+seisundikontroll autentimispäist.
+
+**Sidumine:** open-wa on mitteametlik ega ole WhatsAppiga seotud — ühendatud
+numbril on WhatsAppi enda automatiseerimise tuvastuse tõttu blokeerimisoht.
+Esimesel käivitamisel prinditakse sidumise QR-kood standardväljundisse ning
+kuvatakse olemasoleva logipaneeli/SSE-voo kaudu — selles integratsioonis pole
+veel eraldi QR-pildi lõpp-punkti.
+
+---
+
+### 4.7 Pöördproksi (9Routeri juhtpaneeli manustamine)
+
+Juhtpaneel manustab 9Routeri veebiliidese iframe'i sisemise pöördproksi kaudu
 aadressil:
 
 ```
@@ -520,18 +555,18 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 
 See proksi:
 
-- Edastab päringu aadressile `http://127.0.0.1:{port}/{path}` (ainult tagasisidestusliides)
+- Edastab päringu aadressile `http://127.0.0.1:{port}/{path}` (ainult loopback)
 - Eemaldab sissetulevad päised `cookie` ja `authorization` (OmniRoute'i seanss ei leki)
 - Lisab 9Routeri autentimiseks päise `Authorization: Bearer {apiKey}`
-- Eemaldab vastusest päised `set-cookie`, `content-security-policy`, `x-frame-options` ja `cross-origin-*`
-- Kirjutab HTML-vastused ümber, lisades `<base href>` ja normaliseerides absoluutsed teed (`/foo` → `/dashboard/.../embed/foo`)
+- Eemaldab vastusest päised `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*`
+- Kirjutab HTML-vastused ümber, et lisada `<base href>` ja normaliseerida absoluutsed teed (`/foo` → `/dashboard/.../embed/foo`)
 
-Manustatud juhtpaneeli WebSocketi täiendustaotlusi töötleb eraldi pordil töötav
+Manustatud juhtpaneeli WebSocketi protokollivahetusi käitleb eraldi pordil töötav
 kaasserver (vt `src/lib/services/embedWsProxy.ts`).
 
-**Turvalisus:** Manustamisproksi marsruudid on liigitatud loendi `LOCAL_ONLY_API_PREFIXES`
-alla ja neile pääseb ligi ainult tagasisidestusliidesest. Ründaja, kes saab JWT
-Cloudflare'i/Ngroki tunneli kaudu, ei saa manustatud teenustesse päringuid vahendada.
+**Turvalisus:** manustusproksi marsruudid on liigitatud jaotisse `LOCAL_ONLY_API_PREFIXES`
+ning neile pääseb juurde ainult loopback'i kaudu. Ründaja, kes hangib JWT
+Cloudflare'i/Ngroki tunneli kaudu, ei saa manustatud teenustesse proksida.
 
 ---
 

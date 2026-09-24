@@ -1,6 +1,6 @@
 # Resilience Guide (Magyar)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -70,12 +70,12 @@ Regresszióvédelmi teszt: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Hatókör:** egyetlen szolgáltatói kapcsolat/fiók/kulcs.
 
-**Cél:** egy hibás kulcs kihagyása, miközben ugyanazon szolgáltató többi kapcsolata továbbra is kiszolgálja a kéréseket.
+**Cél:** egy hibás kulcs kihagyása úgy, hogy ugyanazon szolgáltató többi kapcsolata továbbra is kiszolgálja a kéréseket.
 
 **Megvalósítás:**
 
-- Elérhetetlenként való megjelölés: `src/sse/services/auth.ts::markAccountUnavailable()`
-- Kiválasztás: `getProviderCredentials*` ugyanabban a fájlban
+- Elérhetetlenként megjelölés: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Kiválasztás: `getProviderCredentials*` ugyanebben a fájlban
 - Várakozási idő kiszámítása: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Beállítások: `src/lib/resilience/settings.ts`
 
@@ -90,72 +90,116 @@ Regresszióvédelmi teszt: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 - OAuth-alapérték: 5 s
 - API-kulcs-alapérték: 3 s
-- API-kulcs 429: előnyben részesíti a felsőbb szintű szolgáltató `Retry-After`/visszaállítási fejléceit vagy az értelmezhető visszaállítási szöveget
+- API-kulcsos 429: előnyben részesíti a felsőbb szintű szolgáltatás `Retry-After`/visszaállítási fejléceit vagy az értelmezhető visszaállítási szöveget
 - Visszalépés: `baseCooldownMs * 2 ** failureIndex`
 
-**Túlterhelési roham elleni védelem:** megakadályozza, hogy az egyidejű hibák túlzottan meghosszabbítsák a várakozási időt, vagy kétszer növeljék a `backoffLevel` értékét.
+**Kéréshullám elleni védelem:** megakadályozza, hogy az egyidejű hibák túlzottan meghosszabbítsák a várakozási időt, vagy kétszer növeljék a `backoffLevel` értékét.
 
 **Végállapotok (NEM várakozási idők):**
 
-- `banned` — tiltott kulcsszó/fióktiltás észlelésekor kerül beállításra (lásd: [BAN_DETECTION](../security/BAN_DETECTION.md)), valamint három egymást követő, kérésenkénti felsőbb szintű elutasítás után (`request_rejected`, például Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); egyetlen elutasítás csak várakozási állapotba helyezi a kapcsolatot
-- `expired` (korlátozott számú újrapróbálkozás után válik végállapottá — `EXPIRED_RETRY_MAX = 3` exponenciális visszalépéssel —, így az átmeneti OAuth-hibák maguktól helyreállhatnak, mielőtt a fiók véglegesen deaktiválódna)
+- `banned` — tiltott kulcsszó / fióktiltás észlelése állítja be (lásd: [BAN_DETECTION](../security/BAN_DETECTION.md)), illetve három egymást követő, kérésenkénti felsőbb szintű elutasítás (`request_rejected`, például Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); egyetlen elutasítás csak várakozási állapotba helyezi a kapcsolatot
+- `expired` (korlátozott számú újrapróbálkozás után végállapotba kerül — `EXPIRED_RETRY_MAX = 3`, exponenciális visszalépéssel —, így az átmeneti OAuth-hibák maguktól helyreállhatnak, mielőtt a fiók véglegesen deaktiválódna)
 - `credits_exhausted`
 
-Ezek mindaddig megmaradnak, amíg a hitelesítő adatok meg nem változnak, vagy egy üzemeltető vissza nem állítja őket. A végállapotokat nem szabad átmeneti várakozási állapottal felülírni.
+Ezek mindaddig fennmaradnak, amíg a hitelesítő adatok meg nem változnak, vagy egy üzemeltető vissza nem állítja őket. A végállapotokat ne írja felül átmeneti várakozási állapottal.
 
-**Lusta helyreállítás:** amikor a `rateLimitedUntil` időpontja elmúlt, a kapcsolat ismét kiválaszthatóvá válik. Sikeres használatkor a `clearAccountError()` törli az összes hibamezőt.
+**Lusta helyreállítás:** amikor a `rateLimitedUntil` időpont elmúlt, a kapcsolat ismét kiválaszthatóvá válik. Sikeres használat esetén a `clearAccountError()` törli az összes hibamezőt.
+
+### Claude OAuth használati korlát: alacsonyabb prioritású sáv + munkamenetkorlát visszaállítása
+
+**Hatókör:** egy Claude-előfizetéshez tartozó (OAuth-)kapcsolat. Mindkét funkciót **kapcsolatonként külön kell
+engedélyezni** (Kapcsolat szerkesztése → Claude szakasz → `lowPriorityMode` / `autoLimitReset` a
+`providerSpecificData` mezőben; alapértelmezés szerint mindkettő ki van kapcsolva), és a Claude Code `/low-priority`, illetve
+`/limit-reset` parancsait tükrözik (a vezetékes protokoll szerződése a Claude Code 2.1.263 verziójából származik).
+
+**Megvalósítás:**
+
+- Állapotgép + válaszbesorolás: `open-sse/services/claudeLowPriority.ts`
+- Visszaállítási állapot/igénylés kliense: `open-sse/services/claudeLimitReset.ts`
+- Végrehajtói horog (fejléc beszúrása + újrapróbálkozás ugyanazzal a fiókkal): `open-sse/executors/base.ts::execute()`
+- Engedélyezési beállítások megőrzése: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Aktiválási feltétel:** az 5 órás használati korlát — egy `429`, amelynek fejlécei tartalmazzák az
+`anthropic-ratelimit-unified-status: rejected` értéket, valamint, ha a fiók jogosult,
+az `anthropic-ratelimit-unified-slow-offer: treatment` értéket. Az első, korlátot jelző
+429 előtt semmit nem küld a rendszer; az egyesített fejlécek nélküli sorozatos 429-es válaszok a normál várakozási útvonalon haladnak tovább.
+
+**Alacsonyabb prioritású sáv** (`lowPriorityMode`):
+
+- A korlátot jelző 429 esetén a végrehajtó elfogadja az ajánlatot, és azonnal újrapróbálkozik **ugyanazzal**
+  a fiókkal, az `anthropic-usage-limit: slow` fejléccel; a sáv a bejelentett
+  `anthropic-ratelimit-unified-reset` időpontig (+60 s türelmi idő) aktív marad, és az adott időablakban minden kérés
+  tartalmazza a fejlécet. Az elfogott 429 soha nem jut el a `handleChatCore` függvényhez, ezért a kapcsolat
+  **nem** kerül várakozási állapotba, és a rendszer nem vált másik kapcsolatra.
+- Az `anthropic-ratelimit-unified-slow-status` értéke későbbi válaszokban: az `active` / `not_needed`
+  fenntartja a sávot; a `slot_busy` (429) vagy egy `529` esetén a rendszer kivárja a kiszolgáló
+  `anthropic-ratelimit-unified-slow-retry-after` értékét (alapértelmezés szerint 20 s, 5–600 s közé korlátozva, ±30%-os véletlenszerű eltéréssel),
+  majd újrapróbálkozik az `anthropic-ratelimit-unified-slow-max-wait` által meghatározott korlátig (alapértelmezés szerint 20 perc, 1 perc és
+  6 óra közé korlátozva) — ezt túllépve a sáv véget ér, és egy 10 perces lehűlési időszak blokkolja az újbóli elfogadást. A
+  várakozást ezenfelül a kérés saját, felsőbb szintű szolgáltatás indítására vonatkozó időtúllépéséből
+  (`resolveFetchStartTimeout`, alapértelmezés szerint 10 perc) fennmaradó idő mínusz 5 s korlátozza: e korlát nélkül az
+  alapértelmezett 20 perces maximális várakozás túlélné a kérést, és az alvás a várakozás közben
+  megszakadna, így a szabályos `max_wait` befejezés + lehűlés helyett `TimeoutError` jelenne meg.
+- A `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, egy 5 órás időablak újraindulása, illetve az
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (amely bármely állapot esetén
+  `extra_usage` eredménnyel lezárja, mivel a fizetett túlfogyasztás ekkor már lefedi a korlátot) megszünteti a sávot; a
+  válasz ezután a normál várakozási útvonalra kerül. A rendszer a `budget_exhausted` állapotot a
+  bejelentett költségkeret-visszaállításig (≤ 8 nap) megjegyzi.
+- A korlát ellenőrzése a végrehajtó saját, 400-as válaszok által kiváltott, próbálkozáson belüli újrapróbálkozásai után fut le (kontextus
+  szerkesztése, gondolkodási/erőfeszítési korlátok, paraméterek automatikus tanulása), így az a korlátot jelző 429 is elfogásra kerül ahelyett,
+  hogy a várakozási útvonalra jutna, amely csak ezen újrapróbálkozások egyikén jelenik meg.
+- Az állapot kapcsolatonként a memóriában található (újraindítás után az újbóli elfogadáshoz egy további, korlátot jelző 429 szükséges).
+
+**Munkamenetkorlát visszaállítása** (`autoLimitReset`, ha mindkettő be van kapcsolva, a rendszer ezt próbálja meg a sáv előtt):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  blokk; ha `arm: "reset"` és `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` a következővel:
+  `{ "program": "juniper_tide" }` (a szervezet UUID-je a
+  `providerSpecificData.organizationUUID` mezőből, rendszerindítási tartalékkal).
+- `result: reset|not_limited` → a rendszer teljes sebességgel újrapróbálja a kérést (lassítási fejléc nélkül).
+  Az `already_used` / `not_offered` megjegyzi a `next_available_at` értékét (alapértelmezés szerint egy hét); bármilyen
+  hiba 15 perces visszalépést eredményez. A visszaállítás hetente egyszer hajtható végre, és továbbra is beleszámít a
+  heti korlátba.
+
+Regresszióvédelmek: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Munkamenet-affinitás (#7274)
 
-**Hatókör:** egy ügyfél-munkamenet (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` fejléc), amely egy kapcsolathoz van rögzítve, **bármely** szolgáltató esetén.
+**Hatókör:** egyetlen ügyfél-munkamenet (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` fejléc), amely egyetlen kapcsolathoz van rögzítve, **bármely** szolgáltató esetén.
 
-**Cél:** egy többfordulós ügynök (Claude Code, aider, egyéni ügynökök) ugyanazon a fiókon tartása a kérések között, csökkentve a fiókok közötti kontextusvesztést és az ismétlődő hidegindítási 429-es hibákat azoknál a szolgáltatóknál, amelyek fiókonkénti munkamenet-állapotot használnak.
+**Cél:** egy több fordulón át működő ügynököt (Claude Code, aider, egyedi ügynökök) ugyanahhoz a fiókhoz rendelni a kérések között, csökkentve a fiókok közötti kontextusvesztést és az ismétlődő, hidegindításból eredő 429-es hibákat azoknál a szolgáltatóknál, amelyek fiókonkénti munkamenet-állapotot használnak.
 
 **Megvalósítás:**
 
 - TTL feloldása: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
 - Rögzítés kiválasztása/létrehozása: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Fejléc kinyerése (általános, bármely szolgáltató): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Tartós rögzítési tábla: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Beállítás: `sessionAffinityTtlMs` (globális TTL ezredmásodpercben, a `0` letiltja) — `src/lib/db/settings.ts`. A kizárólag Codexhez tartozó `codexSessionAffinityTtlMs` névről a `124_generic_session_affinity_ttl.sql` migráció nevezte át, amely minden korábban konfigurált Codex TTL-t átvisz új alapértelmezett értékként.
+- Fejléc kinyerése (általános, bármely szolgáltatóhoz): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Tartósan tárolt rögzítési tábla: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Beállítás: `sessionAffinityTtlMs` (globális TTL ezredmásodpercben, a `0` letiltja) — `src/lib/db/settings.ts`. A korábban kizárólag a Codexhez tartozó `codexSessionAffinityTtlMs` beállításról a `124_generic_session_affinity_ttl.sql` migráció nevezte át, amely minden korábban konfigurált Codex TTL-t átvisz új alapértelmezett értékként.
 
-A #7274 előtt a `resolveSessionAffinityTtlMs()` minden, nem `codex` szolgáltató esetén azonnal `0` értékkel tért vissza, ezért a TTL-beállításnak (és a munkamenet-fejléceknek) máshol nem volt hatása, noha a rögzítési mechanizmus és a fejléckinyerés már szolgáltatófüggetlen volt. A javítás eltávolította ezt a korai visszatérést; a TTL mostantól egységesen alkalmazandó minden szolgáltatóra, ha globális értékét `0` fölé állítják.
+A #7274 előtt a `resolveSessionAffinityTtlMs()` minden, a `codex` szolgáltatótól eltérő szolgáltató esetén azonnal `0` értékkel tért vissza, ezért a TTL-beállításnak (és a munkamenet-fejléceknek) sehol máshol nem volt hatásuk, annak ellenére, hogy a rögzítési mechanizmus és a fejlécek kinyerése már szolgáltatófüggetlen volt. A javítás eltávolította ezt a korai visszatérést; a TTL mostantól egységesen érvényes minden szolgáltatóra, amint globálisan `0` fölötti értékre állítják.
 
-A három munkamenet-affinitási fejlécet a rendszer soha nem továbbítja a felsőbb szintű szolgáltatónak — a végrehajtók saját felsőbb szintű fejléceiket az alapoktól építik fel, ahelyett, hogy továbbítanák az ügyfél fejléceit, így ez kizárólag belső korrelációs azonosító marad.
+A három munkamenet-affinitási fejléc soha nem kerül továbbításra a felsőbb szintű szolgáltatóhoz — a végrehajtók saját felsőbb szintű fejléceiket az alapoktól építik fel, ahelyett, hogy továbbítanák az ügyfél fejléceit, így ez kizárólag belső korrelációs azonosító marad.
 
 ### Kizárólagos felügyelt munkamenet-kapcsolati bérletek
 
-**Hatókör:** egy aktív felügyelt HTTP-ügyfél/munkamenet egyetlen alkalmas OmniRoute-kapcsolatot birtokol.
+**Hatókör:** egy aktív felügyelt HTTP-ügyfél/-munkamenet egy alkalmas OmniRoute-kapcsolat kizárólagos tulajdonosa.
 
-**Cél:** tartós, kizárólagos kapcsolattulajdont biztosítani azoknak az ügyfeleknek, amelyeknek szigorú útválasztási
-korlátra van szükségük a kérések között. Ez eltér a munkamenet-affinitástól, amely egy enyhe folytonossági preferencia:
-a kizárólagos bérlet életciklus-állapotot őriz az SQLite-ban, kikényszeríti az aktív tulajdonos és az
-aktív kapcsolat globális egyediségét, valamint a szolgáltatói továbbítás előtt elutasítja az elavult generációt.
+**Cél:** tartós, kizárólagos kapcsolattulajdonlás biztosítása azon ügyfelek számára, amelyeknek a kérések között szigorú útválasztási elhatárolásra van szükségük. Ez eltér a munkamenet-affinitástól, amely csak laza folytonossági preferencia: egy kizárólagos bérlet életciklus-állapotot őriz meg az SQLite-ban, globálisan kikényszeríti az aktív tulajdonosok és az aktív kapcsolatok egyediségét, valamint a szolgáltatónak történő továbbítás előtt elutasítja az elavult generációt.
 
-A funkció API-kulcsonként külön engedélyezhető. Egy felügyelt kulcsnak rendelkeznie kell a `lease:exclusive` hatókörrel és egy
-explicit, nem üres `allowedConnections` listával. Bármely HTTP-ügyfél használhatja az életciklus-végpontot; nincs szükség
-ügyfélnévre, felhasználói ügynökre, szolgáltatóra, OAuth-módszerre vagy modellre. A bérlet egy kapcsolatot birtokol,
-nem pedig egy modellt, ezért a modellváltás megtartja a kötést, amíg a kapcsolat a szokásos feltételek szerint
-alkalmas marad. A normál modell-, kvóta-, állapot-, várakozásiidő- és engedélyezésilista-szabályok továbbra is mérvadók, és
-ugyanazt a generációt egy másik szabad, alkalmas kapcsolatra válthatják át.
+A funkció API-kulcsonként külön engedélyezhető. Egy felügyelt kulcsnak rendelkeznie kell a `lease:exclusive` hatókörrel és egy explicit, nem üres `allowedConnections` listával. Bármely HTTP-ügyfél használhatja az életciklus-végpontot; nincs szükség ügyfélnévre, user-agentre, szolgáltatóra, OAuth-módszerre vagy modellre. A bérlet egy kapcsolatot birtokol, nem egy modellt, ezért a modellváltás megtartja a hozzárendelést, amíg a kapcsolat a szokásos feltételek szerint alkalmas marad. A normál modell-, kvóta-, állapot-, várakozásiidő- és engedélyezésilista-szabályok továbbra is mérvadók, és ugyanazt a generációt egy másik szabad, alkalmas kapcsolatra állíthatják át.
 
-Az életciklus a `POST /api/v1/session-leases` végponton keresztül kezelhető az `acquire`, `renew` és `release` JSON-műveletekkel.
-A felügyelt következtetési kérések az átlátszatlan `X-OmniRoute-Lease-Owner` értéket és a pontos
-`X-OmniRoute-Lease-Generation` értéket adják meg. A tulajdonos azonosítója `vlo_` előtagból és azt követő 43 base64url-karakterből áll; csak
-az SHA-256 kivonata kerül tárolásra. Minden végső továbbítási korlát azonosítja a hitelesített API-kulcs azonosítóját és
-az aktív kapcsolat azonosítóját is. A bérletvezérlő fejlécek eltávolításra kerülnek a naplókból, a megőrzött kérési pillanatképekből és
-a felsőbb szintű végrehajtók fejléceiből.
+Az életciklus a `POST /api/v1/session-leases` végponton érhető el, az `acquire`, `renew` és `release` JSON-műveletekkel. A felügyelt következtetési kérések az átlátszatlan `X-OmniRoute-Lease-Owner` értéket és a pontos `X-OmniRoute-Lease-Generation` értéket adják meg. A tulajdonos azonosítója a `vlo_` előtagból és azt követő 43 base64url karakterből áll; csak az SHA-256 hash kerül tárolásra. Minden végső továbbítási korlát azonosítja a hitelesített API-kulcs azonosítóját és az aktív kapcsolat azonosítóját is. A bérletvezérlő fejlécek eltávolításra kerülnek a naplókból, a megőrzött kérési pillanatképekből és a felsőbb szintű végrehajtóknak küldött fejlécekből.
 
-Ha a szokásos útválasztás rendelkezik alkalmas felügyelt jelöltekkel, de minden szabad jelöltet egy
-idegen aktív bérlet foglal el, az OmniRoute HTTP `429` választ, bérleti kapacitás hiányát jelző kódot,
-kapacitásra várakozó állapotot, valamint a legkorábbi releváns lejáratból származtatott, korlátozott `Retry-After` értéket ad vissza.
-Az alkalmassági halmaz szokásos üressége nem bérleti ütközés, és megtartja a meglévő útválasztási hibaszemantikát.
+Ha a szokásos útválasztás rendelkezik alkalmas felügyelt jelöltekkel, de minden szabad jelöltet egy idegen aktív bérlet foglal el, az OmniRoute HTTP `429` választ, `lease-capacity-unavailable` kódot és kapacitásra várakozó állapotot ad vissza, valamint a legkorábbi releváns lejáratból származtatott, korlátozott `Retry-After` értéket küld. Az alkalmas kapcsolatok szokásos hiánya nem minősül bérletütközésnek, és megtartja a meglévő útválasztási hibaszemantikát.
 
 A kapcsolódó mechanizmusok továbbra is elkülönülnek:
 
-- Az OAuth-munkamenetek foglaltsága folyamaton belüli, enyhe elosztást biztosít az OAuth-fiókok számára.
+- Az OAuth-munkamenetek foglaltsága folyamaton belüli, laza elosztást biztosít az OAuth-fiókok számára.
 - A fiókszemaforok kérés-egyidejűségi engedélyeket adnak, amelyek a kérés befejezésekor megszűnnek.
-- A kizárólagos felügyelt munkamenet-bérletek tartós életciklus-tulajdont biztosítanak generációs korláttal.
+- A kizárólagos felügyelt munkamenet-bérletek tartós életciklus-tulajdonlást biztosítanak generációs korláttal.
 
 ---
 
@@ -287,48 +331,87 @@ nem található okok esetén.
 
 ---
 
-## 5. A kérési sor beléptetés-szabályozása (v3.8.49 · #6593-as probléma)
+## 5. Kérelemsorba-felvételi szabályozás (v3.8.49 · #6593. számú probléma)
 
 **Hatókör**: a helyi, szolgáltatónkénti+kapcsolatonkénti sebességkorlátozási sor (`open-sse/services/rateLimitManager.ts`,
 amelyet a Bottleneck támogat), egy réteggel a fenti három mechanizmus alatt.
 
-**A `maxWaitMs` a végrehajtási lejárat korábbi, megőrzött neve.**
-A `resilienceSettings.requestQueue.maxWaitMs` a Bottleneck számára egy feladat
-`expiration` értékeként kerül átadásra, amelynek időzítője csak a továbbítás után indul el. Ezért ez
-a korlátozó által kezelt végrehajtást korlátozza, nem pedig a helyi sorban töltött időt. A lejárat
-megbízható helyi `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` hibaként jelenik meg (HTTP 504);
-a soridőtúllépés korábbi kódneve csak a megbízható belső
-visszamenőleges kompatibilitás érdekében elfogadott. Az alapértelmezett érték 15000ms; felülírható a
-`RATE_LIMIT_MAX_WAIT_MS` (környezeti változó) használatával vagy az irányítópulton (**Beállítások → Hibatűrés**,
-1–30000ms értékű felhasználóifelület-korlát). A sorban tartózkodásnak nincs időbeli határideje; a sorban álló
-kérők számának korlátozásához használja az alábbi `maxQueueDepth` beállítást.
+**A `maxWaitMs` a sorban várakozást, az `executionMaxWaitMs` pedig a végrehajtást korlátozza.**
+A kettő szándékosan különálló, és egyik sem befolyásolja a másikat.
 
-**`maxQueueDepth` — opcionálisan bekapcsolható beléptetési korlát (új).** A `resilienceSettings.requestQueue.maxQueueDepth`
-korlátozza, hogy egy szolgáltató+kapcsolat esetén egyszerre hány kérés várakozhat a sorban
-(még nem továbbított állapotban). Ha a sor már `maxQueueDepth` számú kérést tartalmaz,
-az új kérés azonnal elutasításra kerül egy típusos
-`code: "RATE_LIMIT_QUEUE_FULL"` hibával, **mielőtt** valaha is elérné a `limiter.schedule()`
-hívást — így az elutasítás kis költségű, és az adott kéréshez kapcsolódó bármely későbbi
-prompttömörítési / fordítási munka előtt megtörténik. Az alapértelmezett `0` =
-letiltva, ami megőrzi a meglévő, korlátlan sor működését; a megengedett tartomány 0–100000.
-Felülírható a `RATE_LIMIT_MAX_QUEUE_DEPTH` (környezeti változó) vagy a
-`resilienceSettings.requestQueue.maxQueueDepth` használatával (irányítópult/API-módosítás).
+A `resilienceSettings.requestQueue.maxWaitMs` a **sorban várakozás időkerete**:
+magában foglalja a várakozást egy szolgáltatói helyre, majd a QUEUED állapotban
+töltött időt, időzítője pedig abban a pillanatban törlődik, amikor a feladat
+elhagyja a QUEUED állapotot, és megkezdi a végrehajtást
+(`rateLimitManager.ts`, `wrappedFn`). Az ezt túllépő kérelem soha nem jut el
+a felsőbb szintű szolgáltatóhoz. Az alapértelmezés 30000ms, amelyet a
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` biztosít az
+`src/lib/resilience/settings.ts` fájlban, és amelyet a
+`tests/unit/ratelimit-admission-control-6593.test.ts` teszt rögzít, így a
+módosítása sikertelenné teszi ezt a tesztet, ahelyett, hogy ez a bekezdés
+észrevétlenül elavulttá válna.
 
-Maga a beléptetési ellenőrzés egy tiszta függvény
+A `resilienceSettings.requestQueue.executionMaxWaitMs` értékét kapja meg a
+Bottleneck a feladat `expiration` értékeként, amelynek időzítője csak a
+továbbítás után indul el. Ez biztonsági korlátként szolgál azokhoz a
+végrehajtókhoz, amelyek nem rendelkeznek saját felsőbb szintű időtúllépéssel,
+és a végrehajtó saját, lekérésindítástól számított időtúllépési értékére nő,
+ha az hosszabb, így nem szakíthat meg egy megfelelően működő, folyamatban lévő
+választ. Az alapértelmezés 600000ms (10 perc).
+
+Korábban a sor időkeretének átadása az `expiration` számára ölte meg futás
+közben a nem inkrementális átjárókat — ezek szabályosan több percig is
+futhatnak az első bájtok megérkezése előtt —, és ezért jelenik meg a lejárat
+`code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) formájában, míg a sor
+időkeretének túllépése a soridőtúllépési kódot hordozza. Bármelyik felülírható
+a `RATE_LIMIT_MAX_WAIT_MS` / `RATE_LIMIT_EXECUTION_MAX_WAIT_MS`
+(környezeti változó) vagy az irányítópult
+(**Beállítások → Hibatűrés**) használatával. Normalizáláskor mindkettő az
+1ms–24h tartományra van korlátozva.
+
+**Precedencia mindkettő esetén:** a környezeti változó csak az
+_alapértelmezett_ értéket adja meg. A `resilienceSettings.requestQueue`
+alatt tartósan tárolt érték (irányítópult/API-javítás, a `key_value` alatt
+tárolva) elsőbbséget élvez vele szemben, a kapcsolatonkénti
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` pedig ezeknél is
+magasabb prioritású. Ezért a környezeti változó beállítása egy olyan
+telepítésen, amely már rendelkezik tartósan tárolt értékkel, semmit sem
+változtat — ehelyett törölje vagy frissítse a tárolt beállítást.
+
+A sorban tartózkodás időtartamát a `maxWaitMs` korlátozza; az alábbi
+`maxQueueDepth` azt korlátozza, hogy egyszerre hány hívó várakozhat a sorban.
+
+**`maxQueueDepth` — opcionálisan bekapcsolható felvételi korlát (új).** A `resilienceSettings.requestQueue.maxQueueDepth`
+azt korlátozza, hogy egyszerre hány kérelem várakozhat a sorban (még
+továbbítás előtt) egy szolgáltató+kapcsolat esetén. Ha a sor már
+`maxQueueDepth` számú kérelmet tartalmaz, az új kérelmet a rendszer gyorsan
+elutasítja egy típusos `code: "RATE_LIMIT_QUEUE_FULL"` hibával, **mielőtt**
+az valaha elérné a `limiter.schedule()` hívást — így az elutasítás kis
+erőforrásigényű, és az adott kérelemhez tartozó bármilyen későbbi
+prompttömörítési/fordítási munka előtt megtörténik. Az alapértelmezett `0` =
+letiltva, ami megőrzi a korábbi, korlátlan sorviselkedést; az érték a
+0–100000 tartományra korlátozott. Felülírható a
+`RATE_LIMIT_MAX_QUEUE_DEPTH` (környezeti változó) vagy a
+`resilienceSettings.requestQueue.maxQueueDepth` (irányítópult/API-javítás)
+használatával.
+
+Maga a felvételi ellenőrzés egy tiszta függvény
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), így
 valódi Bottleneck-korlátozó nélkül is egységtesztelhető.
 
-> A #6593-at megnyitó RFC egy `bypassCompressionOnRateLimit`
-> jelzőt is javasolt. Ennek a tárolónak az `open-sse/services/compression/` adatfolyama
-> a kimenő LLM-kérés prompt-/kontextustömörítését végzi (`chatCore.ts`,
-> a `resolveCompressionSettings`/`selectCompressionStrategy` blokk körül),
-> nem pedig a létrehozott 429-es válaszok HTTP-választömörítését — nincs
-> megfelelő kódútvonal egy szó szerinti megkerülési jelzőhöz. Ez a prompttömörítési lépés
-> jelenleg szintén a `withRateLimit()` _előtt_ fut a kérési adatfolyamban, ezért
-> az átrendezés, amely kihagyná ezt egy megtelt sor miatti elutasítás esetén, különálló és nagyobb
-> változtatás, mint ami e probléma hatókörébe tartozik; itt szándékosan **nem** lett megvalósítva,
-> és későbbi feladatként marad meg arra az esetre, ha a CPU-megtakarítás megérné az
-> átrendezés kockázatát.
+> A #6593. számú problémát megnyitó RFC egy `bypassCompressionOnRateLimit`
+> jelzőt is javasolt. Ennek a tárolónak az
+> `open-sse/services/compression/` folyamata a kimenő LLM-kérelem
+> prompt-/kontextustömörítését végzi (`chatCore.ts`, a
+> `resolveCompressionSettings`/`selectCompressionStrategy` blokk körül),
+> nem pedig a létrehozott 429-es választörzsek HTTP-választömörítését — nincs
+> olyan megfelelő kódútvonal, amelyhez egy szó szerinti megkerülési jelző
+> tartozhatna. Ez a prompttömörítési lépés jelenleg szintén a
+> `withRateLimit()` _előtt_ fut a kérelemfeldolgozási folyamatban, ezért az
+> átrendezés, amely kihagyná ezt a sor megtelése miatti elutasításkor, különálló
+> és nagyobb változtatás, mint e probléma hatóköre; ezt szándékosan **nem**
+> valósítottuk meg itt, és későbbi feladatként marad meg arra az esetre, ha a
+> CPU-megtakarítás megéri az átrendezés kockázatát.
 
 ---
 

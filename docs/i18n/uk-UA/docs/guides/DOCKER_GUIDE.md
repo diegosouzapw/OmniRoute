@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Українська)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -26,6 +26,12 @@
 ---
 
 ## Швидкий запуск
+
+> **Самостійне розгортання однією командою?** Перегляньте
+> [посібник із самостійного розгортання](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (опублікований образ +
+> Redis, доступ лише через loopback, без вибору профілю). Наведений нижче швидкий запуск —
+> це варіант з одним контейнером для користувачів, у яких Redis уже працює в іншому місці.
 
 ```bash
 docker run -d \
@@ -56,29 +62,33 @@ docker run -d \
 ## Docker Compose
 
 ```bash
-# Базовий профіль (без CLI-інструментів)
+# Базовий профіль (без інструментів CLI)
 docker compose --profile base up -d
 
 # Профіль CLI (вбудовані Claude Code, Codex, OpenClaw)
 docker compose --profile cli up -d
 
-# Профіль хоста (насамперед для Linux; монтує CLI-бінарні файли хоста лише для читання)
+# Профіль хоста (передусім для Linux; монтує CLI-бінарні файли хоста лише для читання)
 docker compose --profile host up -d
 
-# Поєднання CLI та допоміжного контейнера CLIProxyAPI
+# Вебпрофіль (Chromium/Playwright для провайдерів вебсеансів)
+docker compose --profile web up -d
+
+# Поєднання CLI + допоміжний контейнер CLIProxyAPI
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Доступні профілі
 
-OmniRoute постачається з чотирма профілями Compose. Виберіть той, який відповідає вашому середовищу.
+OmniRoute постачається з профілями Compose для основних варіантів розгортання. Виберіть той, який відповідає вашому середовищу.
 
-| Профіль          | Служба           | Коли використовувати                                                                                                                                      | Команда                                      |
-| ---------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (типовий) | `omniroute-base` | Безголовий сервер / мінімальне середовище виконання без включених CLI постачальників                                                                      | `docker compose --profile base up -d`        |
-| `cli`            | `omniroute-cli`  | Агентні робочі процеси, які викликають `omniroute providers/setup/doctor`, і вбудовані CLI (Codex, Claude Code, Droid, OpenClaw)                          | `docker compose --profile cli up -d`         |
-| `host`           | `omniroute-host` | Хости Linux, яким потрібен подібний до `network_mode` доступ до CLI хоста шляхом монтування `~/.local/bin`, `~/.codex`, `~/.claude` тощо лише для читання | `docker compose --profile host up -d`        |
-| `cliproxyapi`    | `cliproxyapi`    | Запуск допоміжного контейнера [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) на порту `8317` для проксіювання до зовнішніх CLI               | `docker compose --profile cliproxyapi up -d` |
+| Профіль                   | Сервіс           | Коли використовувати                                                                                                                                                 | Команда                                      |
+| ------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (за замовчуванням) | `omniroute-base` | Сервер без графічного інтерфейсу / мінімальне середовище виконання, без вбудованих CLI постачальників                                                                | `docker compose --profile base up -d`        |
+| `cli`                     | `omniroute-cli`  | Агентні робочі процеси, які викликають `omniroute providers/setup/doctor` і вбудовані CLI (Codex, Claude Code, Droid, OpenClaw)                                      | `docker compose --profile cli up -d`         |
+| `host`                    | `omniroute-host` | Хости Linux, яким потрібен доступ до CLI хоста, подібний до `network_mode`, шляхом монтування `~/.local/bin`, `~/.codex`, `~/.claude` тощо в режимі лише для читання | `docker compose --profile host up -d`        |
+| `cliproxyapi`             | `cliproxyapi`    | Запуск допоміжного контейнера [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) на порту `8317` для проксіювання до зовнішніх CLI                          | `docker compose --profile cliproxyapi up -d` |
+| `web`                     | `omniroute-web`  | Постачальники вебсеансів, яким потрібен браузер: `gemini-web`, `claude-web`, `claude-turnstile` (збирає `runner-web`, Chromium включено)                             | `docker compose --profile web up -d`         |
 
 > Можна поєднувати кілька профілів: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -228,51 +238,52 @@ docker compose -f docker-compose.prod.yml down
 
 ## Етапи Dockerfile
 
-Репозиторій містить багатоетапний Dockerfile (`Dockerfile`). Доступні три етапи; виберіть відповідний `target` для свого сценарію використання.
+Репозиторій містить багатоетапний Dockerfile (`Dockerfile`). Доступні чотири етапи; виберіть відповідний `target` для свого сценарію використання.
 
-| Етап          | Базовий образ         | Призначення                                                                                                                                                           |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Установлює залежності (`npm ci --legacy-peer-deps`) і запускає `npm run build` (типово з Turbopack — див. нижче розділ про ресурси під час збірки)                    |
-| `runner-base` | `node:26-trixie-slim` | Середовище виконання для робочого розгортання з автономним результатом Next.js. **CLI постачальників не включено.**                                                   |
-| `runner-cli`  | `runner-base`         | Додає `git`, `docker.io`, `docker-compose` і глобальні CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Виберіть це для агентних процесів.** |
+| Етап          | Базовий образ         | Призначення                                                                                                                                                                                                                                                                                                             |
+| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Встановлює залежності (`npm ci --legacy-peer-deps`) і запускає `npm run build` (типово використовується Turbopack — див. розділ «Ресурси під час збирання» нижче)                                                                                                                                                       |
+| `runner-base` | `node:26-trixie-slim` | Середовище виконання для робочого оточення з автономним виводом Next.js. **CLI постачальників не включено.**                                                                                                                                                                                                            |
+| `runner-cli`  | `runner-base`         | Додає `git`, `docker.io`, `docker-compose` і глобальні CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Виберіть цей варіант для агентних робочих процесів.**                                                                                                                                  |
+| `runner-web`  | `runner-base`         | Додає Playwright і браузер Chromium (`--with-deps`) для постачальників вебсеансів: `gemini-web`, `claude-web`, `claude-turnstile`. **Виберіть цей варіант, якщо використовуєте цих постачальників** — звичайний образ спричиняє помилку під час запиту без нього (див. примітку про `-web` у розділі «Канали випуску»). |
 
-Зберіть певний цільовий етап вручну:
+Щоб вручну зібрати певний цільовий етап:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Ресурси під час збірки
+### Ресурси під час збирання
 
-Три аргументи збірки визначають ресурсоємність етапу `builder`. Вони діють лише під час збірки —
+Три аргументи збирання визначають ресурсомісткість етапу `builder`. Вони використовуються лише під час збирання —
 `OMNIROUTE_MEMORY_MB` (нижче) є окремим параметром середовища виконання.
 
-| Аргумент збірки             | Типово | Вплив                                                                                                        |
-| --------------------------- | ------ | ------------------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | Значення `0` натомість виконує збірку за допомогою webpack. Нижче пікове споживання пам’яті, але повільніше. |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | Межа купи V8 (`--max-old-space-size`) для запущеного `next build`.                                           |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Передає значення до `CIRCLE_NODE_TOTAL`; Next визначає `workers = N - 1` для збирання даних сторінок.        |
+| Аргумент збирання           | Типове значення | Вплив                                                                                                |
+| --------------------------- | --------------- | ---------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`             | Значення `0` виконує збирання за допомогою webpack. Нижче пікове споживання пам’яті, але повільніше. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`          | Обмеження купи V8 (`--max-old-space-size`) для запущеного процесу `next build`.                      |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`             | Передає значення в `CIRCLE_NODE_TOTAL`; Next визначає `workers = N - 1` для збирання даних сторінок. |
 
-`OMNIROUTE_BUILD_WORKERS` — це параметр, який слід збільшувати на потужному сервері збірки та
-перевіряти першим, коли збірка в обмеженому середовищі завершується аварійно **після** `✓ Compiled successfully`. Кожен
-робочий процес обробки даних сторінок є окремим процесом, як і сам батьківський процес `next build`;
-відтворення на реальному VPS (проблема #7518) показало, що піковий RSS кожного процесу становить
-~4,5 ГБ незалежно від прапорця купи `NODE_OPTIONS` (Turbopack компілює з використанням
-нативної пам’яті/Rust поза купою V8). Типове значення `2` (→ 1 робочий процес, загалом 2
-процеси) розраховано на розміщені на GitHub виконавці з 16 ГБ / 4 vCPU, які
-використовує конвеєр публікації. За значення `8` (→ 7 робочих процесів) такому виконавцю не вистачило пам’яті, і
+`OMNIROUTE_BUILD_WORKERS` — це параметр, який слід збільшувати на потужному сервері збирання та перевіряти першим, коли збирання в обмеженому середовищі завершується аварійно **після** `✓ Compiled successfully`. Кожен
+воркер даних сторінок є окремим процесом, так само як і батьківський процес `next build`;
+відтворення на реальному VPS (проблема #7518) показало, що піковий RSS кожного процесу
+становить ~4,5 ГБ незалежно від прапорця купи `NODE_OPTIONS` (Turbopack компілює,
+використовуючи нативну пам’ять/Rust поза купою V8). Типове значення `2` (→ 1 воркер, загалом 2
+процеси) розраховане на розміщені в GitHub виконавці з 16 ГБ / 4 vCPU, які використовує
+конвеєр публікації. За значення `8` (→ 7 воркерів) пам’ять такого виконавця вичерпалася, і
 buildkit завершив етап помилкою `ResourceExhausted: ... cannot allocate memory`;
-значення `3` (→ 2 робочі процеси) усе ще не вкладалося в доступний обсяг після прямого вимірювання RSS кожного процесу
-замість оцінювання. `tests/unit/docker-build-memory-budget.test.ts`
-виконує розрахунки на основі виміряного значення та завершується помилкою, якщо будь-який із параметрів
+значення `3` (→ 2 воркери) також не вкладалося в доступний обсяг після того, як RSS кожного процесу виміряли
+безпосередньо, а не оцінили опосередковано. `tests/unit/docker-build-memory-budget.test.ts`
+виконує розрахунки на основі виміряного значення й завершується помилкою, якщо будь-який із параметрів
 перевищує можливості виконавця.
 
-Turbopack компілює з використанням нативної пам’яті Rust, яка перебуває **поза** купою V8, тому
+Turbopack компілює, використовуючи нативну пам’ять Rust, яка розміщується **поза** купою V8, тому
 `OMNIROUTE_BUILD_MEMORY_MB` її не обмежує. На хості з обмеженням пам’яті
-OOM killer завершує збірку сигналом SIGKILL взагалі без тексту помилки — вона просто
-зупиняється посеред `Creating an optimized production build`, що виглядає радше як зависання,
-ніж як вичерпання пам’яті. Якщо хост збірки має обмежені ресурси, змініть пакувальник:
+OOM killer припиняє збирання сигналом SIGKILL узагалі без тексту помилки — воно просто
+зупиняється посеред `Creating an optimized production build`, що виглядає як зависання,
+а не як вичерпання пам’яті. Якщо ресурси хоста збирання обмежені, змініть пакувальник:
 
 ```bash
 docker build --target runner-base \
@@ -280,43 +291,43 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` увімкнено, тому `next build` запускає батьківський **і** робочий
-процеси, кожен з яких окремо враховує `OMNIROUTE_BUILD_MEMORY_MB`. Установлюйте межу контейнера
-приблизно вдвічі вищою за це значення, а не рівною йому.
+`webpackBuildWorker` увімкнено, тому `next build` запускає батьківський процес **і** процес-воркер,
+кожен із яких окремо дотримується значення `OMNIROUTE_BUILD_MEMORY_MB`. Установіть обмеження пам’яті
+контейнера на рівні, що приблизно вдвічі перевищує це значення, а не дорівнює йому.
 
-Виміряно на цьому дереві (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Виміряно на цьому дереві вихідного коду (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Пакувальник | Межа контейнера | Результат                                        |
-| ----------- | --------------- | ------------------------------------------------ |
-| Turbopack   | 8 ГіБ / 16 ГіБ  | OOM-завершення в обох випадках, без повідомлення |
-| webpack     | 8 ГіБ           | Робочий процес збірки завершено сигналом SIGKILL |
-| webpack     | 12 ГіБ          | Успішно, пікове споживання — 11,1 ГіБ            |
+| Пакувальник | Обмеження контейнера | Результат                                        |
+| ----------- | -------------------- | ------------------------------------------------ |
+| Turbopack   | 8 ГіБ / 16 ГіБ       | OOM-завершення в обох випадках, без повідомлення |
+| webpack     | 8 ГіБ                | воркер збирання завершено сигналом SIGKILL       |
+| webpack     | 12 ГіБ               | успішно, пікове споживання — 11,1 ГіБ            |
 
-### Типові значення середовища виконання
+### Типові параметри середовища виконання
 
 Типові значення, експортовані `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Поведінка пам’яті в Docker:
 
-- Образ установлює `OMNIROUTE_MEMORY_MB=1024` і на його основі визначає `NODE_OPTIONS=--max-old-space-size=1024`.
-- Фактичний серверний процес запускається автономним засобом запуску, який читає `OMNIROUTE_MEMORY_MB` і додає `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node використовує останнє повторене значення `--max-old-space-size`, тому встановлення `OMNIROUTE_MEMORY_MB` керує фактичною межею купи Docker.
-- Оскільки образ завжди встановлює його, власний резервний механізм засобу запуску, відкалібрований за обсягом оперативної пам’яті, у Docker ніколи не застосовується. Явно збільште це значення відповідно до навантаження (таблиця нижче). `2048` усе ще замало для `/v1/responses` агентів програмування.
+- Образ задає `OMNIROUTE_MEMORY_MB=1024` і на його основі формує `NODE_OPTIONS=--max-old-space-size=1024`.
+- Фактичний серверний процес запускається автономним засобом запуску, який зчитує `OMNIROUTE_MEMORY_MB` і додає `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node використовує останнє повторене значення `--max-old-space-size`, тому налаштування `OMNIROUTE_MEMORY_MB` визначає фактичний ліміт купи в Docker.
+- Оскільки образ завжди задає цю змінну, власний резервний механізм засобу запуску, який калібрується за обсягом RAM, у Docker ніколи не застосовується. Явно збільшуйте значення відповідно до робочого навантаження (див. таблицю нижче). `2048` усе ще замало для запитів агента програмування до `/v1/responses`.
 
-### Оперативна пам’ять середовища виконання для агентів програмування
+### Оперативна пам’ять під час виконання для агентів програмування
 
-Типове значення Docker у 1 ГіБ — це мінімум для панелі керування/легкого чату, а не обсяг для робочого розгортання. Довгі тіла запитів `POST /v1/responses` (сотні повідомлень, десятки інструментів) утримують у пам’яті кілька графів під час стиснення. Два паралельні запити розміром ~3 МіБ / ~750 тис. токенів спричиняли аварійне завершення V8 за **12 ГіБ** old-space (`FATAL ERROR: Reached heap limit`), а також досягали межі OOM cgroup у 16 ГіБ. Див. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Стандартне для Docker значення 1 GiB — це мінімум для панелі керування або легкого чату, а не конфігурація для промислового використання. Довгі тіла запитів `POST /v1/responses` (сотні повідомлень, десятки інструментів) під час стиснення утримують у пам’яті кілька графів. Два паралельні запити розміром приблизно 3 MiB / 750 тис. токенів призводили до аварійного завершення V8 за розміру старого простору **12 GiB** (`FATAL ERROR: Reached heap limit`), а також до OOM у cgroup із лімітом 16 GiB. Див. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Установлюйте **значення cgroup `--memory` вище за розмір купи** — нативні буфери, SQLite і проміжні дані стиснення розміщуються поза V8.
+Установлюйте для **cgroup `--memory` значення, більше за розмір купи** — нативні буфери, SQLite і проміжні дані стиснення розміщуються поза V8.
 
-| Робоче навантаження                          | `OMNIROUTE_MEMORY_MB`                     | Контейнер / cgroup                | Примітки                                                                                                                                                   |
-| -------------------------------------------- | ----------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Панель керування, один легкий чат            | `1024` (значення образу за замовчуванням) | ≥2 GiB                            |                                                                                                                                                            |
-| Один агент програмування (Claude/Codex/Grok) | `8192`                                    | ≥10 GiB                           | Типовий односеансовий `/v1/responses`                                                                                                                      |
-| Два одночасні тривалі `/v1/responses`        | `10240`–`12288`                           | ≥12–16 GiB                        | Зафіксовано аварійне завершення V8 при обсязі купи ~12 GiB                                                                                                 |
-| Три або більше одночасних довгих контекстів  | не використовуйте в одному процесі        | послідовне виконання / більше RAM | За замовчуванням допускається 1 ресурсомісткий запит у процесі виконання; збільшення цього значення без додаткової RAM знову спричиняє аварійне завершення |
+| Робоче навантаження                          | `OMNIROUTE_MEMORY_MB`          | Контейнер / cgroup                | Примітки                                                                                                                                    |
+| -------------------------------------------- | ------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Панель керування, один легкий чат            | `1024` (стандарт образу)       | ≥2 GiB                            |                                                                                                                                             |
+| Один агент програмування (Claude/Codex/Grok) | `8192`                         | ≥10 GiB                           | Типовий односесійний запит `/v1/responses`                                                                                                  |
+| Два паралельні довгі запити `/v1/responses`  | `10240`–`12288`                | ≥12–16 GiB                        | Зафіксовано аварійне завершення V8 за розміру купи близько 12 GiB                                                                           |
+| Три або більше паралельних довгих контекстів | не запускайте в одному процесі | послідовне виконання / більше RAM | Стандартно допускається 1 активний ресурсомісткий запит; збільшення цього ліміту без додаткової RAM знову призведе до аварійного завершення |
 
-`omniroute serve` безпосередньо на фізичному сервері налаштовує обсяг пам’яті на рівні ~35% RAM (в межах `[512, 4096]`), якщо `OMNIROUTE_MEMORY_MB` **не задано**. Docker завжди задає `1024`, тому в офіційному образі це автоматичне налаштування ніколи не виконується.
+`omniroute serve` на фізичному сервері калібрує значення приблизно до 35% RAM (у межах `[512, 4096]`), коли `OMNIROUTE_MEMORY_MB` **не задано**. Docker завжди задає `1024`, тому в офіційному образі це калібрування ніколи не виконується.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -324,26 +335,26 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
   -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
 ```
 
-## Критичні змінні середовища
+## Критично важливі змінні середовища
 
-Окрім стандартних значень, задокументованих у [ENVIRONMENT.md](../reference/ENVIRONMENT.md), під час роботи в Docker найважливішими є такі змінні:
+Окрім значень за замовчуванням, описаних у [ENVIRONMENT.md](../reference/ENVIRONMENT.md), під час запуску в Docker найважливішими є такі змінні:
 
-| Змінна                        | Призначення                                                                                                                                                                                                                                                                                           | Значення за замовчуванням    |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Спільний секрет для моста WebSocket. **Обов’язковий у робочому середовищі** — задайте надійний випадковий рядок.                                                                                                                                                                                      | не задано (потрібно вказати) |
-| `REDIS_URL`                   | Рядок підключення до бекенду обмежувача частоти запитів / кешу                                                                                                                                                                                                                                        | `redis://redis:6379`         |
-| `REDIS_PORT`                  | Порт хоста для вбудованого контейнера Redis                                                                                                                                                                                                                                                           | `6379`                       |
-| `REDIS_BIND_HOST`             | Інтерфейс хоста, на якому публікується порт вбудованого Redis (loopback, якщо ви не додали AUTH)                                                                                                                                                                                                      | `127.0.0.1`                  |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Шлях на хості, змонтований у профіль `cli` за адресою `/workspace/omniroute` для робочих процесів самооновлення                                                                                                                                                                                       | `.` (поточний каталог)       |
-| `OMNIROUTE_MEMORY_MB`         | Граничний розмір купи Node під час виконання для автономного сервера Docker; перевизначає наведене вище стандартне значення образу. Для агентів програмування: `8192`+ (див. [оперативна пам’ять під час виконання](#runtime-ram-for-coding-agents)).                                                 | `1024`                       |
-| `DASHBOARD_PORT` / `API_PORT` | Перевизначення опублікованих портів для панелі керування (20128) та API (20129)                                                                                                                                                                                                                       | `20128` / `20129`            |
-| `APP_BIND_HOST`               | Інтерфейс хоста, на якому docker-compose публікує порти панелі керування/API/live-WS. За `REQUIRE_API_KEY=false` (стандартне значення) `0.0.0.0` відкриває анонімний проксі `/v1` для локальної мережі — розширюйте доступ лише з `REQUIRE_API_KEY=true` або за наявності зворотного проксі попереду. | `127.0.0.1`                  |
-| `CLIPROXY_BIND_HOST`          | Інтерфейс хоста, на якому docker-compose публікує допоміжний контейнер `cliproxyapi` — його том даних містить облікові дані постачальників.                                                                                                                                                           | `127.0.0.1`                  |
-| `OMNIROUTE_PLUGINS_DIR`       | Каталог, який сканер плагінів середовища виконання зчитує та використовує для встановлення. Задайте його, коли плагіни монтуються через bind mount: стандартне значення залежить від `HOME`, яку образ може не експортувати.                                                                          | `~/.omniroute/plugins`       |
-| `OMNIROUTE_BASE_PATH`         | Підшлях URL, коли застосунок публікується за зворотним проксі (наприклад, `/omniroute`)                                                                                                                                                                                                               | _(порожнє = корінь)_         |
-| `NEXT_PUBLIC_BASE_URL`        | Публічне джерело браузера, включно з підшляхом (наприклад, `https://host/omniroute`)                                                                                                                                                                                                                  | не задано                    |
-| `PROD_DASHBOARD_PORT`         | Порт панелі керування на боці хоста для `docker-compose.prod.yml`                                                                                                                                                                                                                                     | `20130`                      |
-| `CLIPROXYAPI_PORT`            | Порт на боці хоста для допоміжного контейнера `cliproxyapi`                                                                                                                                                                                                                                           | `8317`                       |
+| Змінна                        | Призначення                                                                                                                                                                                                                                                                                               | Значення за замовчуванням    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Спільний секрет для мосту WebSocket. **Обов’язковий у робочому середовищі** — задайте надійний випадковий рядок.                                                                                                                                                                                          | не задано (потрібно вказати) |
+| `REDIS_URL`                   | Рядок підключення до бекенду обмежувача частоти запитів / кешу                                                                                                                                                                                                                                            | `redis://redis:6379`         |
+| `REDIS_PORT`                  | Порт хоста для вбудованого контейнера Redis                                                                                                                                                                                                                                                               | `6379`                       |
+| `REDIS_BIND_HOST`             | Інтерфейс хоста, на якому публікується порт вбудованого Redis (loopback, якщо ви не додали AUTH)                                                                                                                                                                                                          | `127.0.0.1`                  |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Шлях на хості, змонтований у профіль `cli` за адресою `/workspace/omniroute` для процесів самооновлення                                                                                                                                                                                                   | `.` (поточний каталог)       |
+| `OMNIROUTE_MEMORY_MB`         | Максимальний розмір купи Node під час виконання для автономного сервера Docker; перевизначає наведене вище значення за замовчуванням для образу. Для агентів програмування: `8192`+ (див. [оперативна пам’ять середовища виконання](#runtime-ram-for-coding-agents)).                                     | `1024`                       |
+| `DASHBOARD_PORT` / `API_PORT` | Перевизначають опубліковані порти для панелі керування (20128) та API (20129)                                                                                                                                                                                                                             | `20128` / `20129`            |
+| `APP_BIND_HOST`               | Інтерфейс хоста, на якому docker-compose публікує порти панелі керування, API та live-WS. Якщо `REQUIRE_API_KEY=false` (значення за замовчуванням), `0.0.0.0` відкриває анонімний проксі `/v1` для локальної мережі — розширюйте доступ лише з `REQUIRE_API_KEY=true` або за наявності зворотного проксі. | `127.0.0.1`                  |
+| `CLIPROXY_BIND_HOST`          | Інтерфейс хоста, на якому docker-compose публікує допоміжний контейнер `cliproxyapi`; його том даних містить облікові дані провайдера.                                                                                                                                                                    | `127.0.0.1`                  |
+| `OMNIROUTE_PLUGINS_DIR`       | Каталог, який сканер плагінів середовища виконання читає та використовує для встановлення. Задайте його, якщо плагіни змонтовано через bind mount: шлях за замовчуванням залежить від `HOME`, який не обов’язково експортується образом.                                                                  | `~/.omniroute/plugins`       |
+| `OMNIROUTE_BASE_PATH`         | Підшлях URL, якщо застосунок опубліковано за зворотним проксі (наприклад, `/omniroute`)                                                                                                                                                                                                                   | _(порожньо = корінь)_        |
+| `NEXT_PUBLIC_BASE_URL`        | Публічний origin для браузера, включно з підшляхом (наприклад, `https://host/omniroute`)                                                                                                                                                                                                                  | не задано                    |
+| `PROD_DASHBOARD_PORT`         | Порт панелі керування на хості для `docker-compose.prod.yml`                                                                                                                                                                                                                                              | `20130`                      |
+| `CLIPROXYAPI_PORT`            | Порт на хості для допоміжного контейнера `cliproxyapi`                                                                                                                                                                                                                                                    | `8317`                       |
 
 ## Зворотний проксі на підшляху (Traefik / nginx)
 
@@ -481,34 +492,47 @@ Caddy встановлює стандартні заголовки пересп�
 
 ## Теги образів
 
-| Образ                    | Тег      | Розмір | Опис                                                      |
-| ------------------------ | -------- | ------ | --------------------------------------------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | Найвища **опублікована** стабільна SemVer (не git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Закріпіть цей клас тегів для GitOps                       |
+| Образ                    | Тег      | Розмір | Опис                                                             |
+| ------------------------ | -------- | ------ | ---------------------------------------------------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | Найвища **опублікована** стабільна версія SemVer (не git `main`) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Закріплюйте цей клас тегів для GitOps                            |
 
-Мультиплатформний маніфест: нативні `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker автоматично вибирає відповідну архітектуру; передайте `--platform linux/amd64`, якщо потрібно примусово використовувати емуляцію AMD64 на хостах ARM.
+Багатоплатформний маніфест: нативні `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker автоматично вибирає відповідну архітектуру; передайте `--platform linux/amd64`, якщо потрібно примусово використовувати емуляцію AMD64 на хостах ARM.
 
 ### Канали випусків
 
 OmniRoute публікує окремі канали Docker для стабільних випусків, тестування активної гілки випуску та збірок для розробки.
 
-| Канал                           | Джерело                                   | Змінюваність                              | Рекомендоване використання                                                                                                        |
-| ------------------------------- | ----------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Підписаний/версійований випуск            | Незмінний                                 | Робочі розгортання, у яких закріплено точний випуск                                                                               |
-| `:latest` / `:latest-web`       | Найвища **опублікована** стабільна SemVer | Змінюваний стабільний указівник           | Відстежує стабільні випуски **після** завдання публікації SemVer — **не** відстежує `main` або неопубліковані коміти `release/v*` |
-| `:next` / `:next-web`           | Поточна стандартна гілка `release/v*`     | Змінюваний указівник попереднього випуску | Тестування виправлень, які вже потрапили до активної гілки випуску, але ще не ввійшли до стабільного випуску                      |
-| `:main` / `:main-web`           | Гілка `main`                              | Змінюваний указівник розробки             | Лише для розробки та інтеграційного тестування                                                                                    |
+| Канал                           | Джерело                                   | Змінюваність                                | Рекомендоване використання                                                                                                            |
+| ------------------------------- | ----------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Підписаний/версійований випуск            | Незмінний                                   | Виробничі розгортання, закріплені на точному випуску                                                                                  |
+| `:latest` / `:latest-web`       | Найвища **опублікована** стабільна SemVer | Змінюваний вказівник на стабільну версію    | Слідує за стабільними випусками **після** завдання публікації SemVer — **не** відстежує `main` або неопубліковані коміти `release/v*` |
+| `:next` / `:next-web`           | Поточна стандартна гілка `release/v*`     | Змінюваний вказівник на попередній випуск   | Тестування виправлень, які вже потрапили до активної гілки випуску, але ще не ввійшли до стабільного випуску                          |
+| `:main` / `:main-web`           | Гілка `main`                              | Змінюваний вказівник на версію для розробки | Лише для розробки та інтеграційного тестування                                                                                        |
+
+#### Постачальники вебсеансів: образи `-web`
+
+Кожен із наведених вище каналів також має тег `-web` (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), зібраний зі стадії `runner-web` — це той самий образ із доданими Playwright і браузером Chromium. Звичайний образ постачається **без** Chromium; він потрібен для `gemini-web`, `claude-web` і `claude-turnstile`.
+
+Помилка виникає не під час запуску, а пізніше: ці постачальники показують свої моделі та відображаються на панелі керування як підключені, але перший запит завершується помилкою
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Якщо ви використовуєте цих постачальників, завантажте тег `-web` того каналу, який уже використовуєте — більше нічого не змінюється. Для встановлення через npm/CLI (без образу Docker) еквівалентним відсутнім компонентом є бінарний файл браузера: виконайте `npx playwright install chromium` на хості.
 
 #### Використання каналу попередніх випусків
 
-Канал `next` перебудовується після кожного push до поточної стандартної гілки `release/v*` і публікується як для AMD64, так і для ARM64. Старіші гілки супроводу не можуть його перезаписати. Канал надає доступний для завантаження образ із виправленнями, які були об’єднані з активною гілкою випуску до створення наступного стабільного тегу.
+Канал `next` перебудовується після кожного надсилання змін до поточної стандартної гілки `release/v*` і публікується для AMD64 та ARM64. Старіші гілки супроводу не можуть його перезаписати. Канал надає доступний для завантаження образ із виправленнями, які було об’єднано з активною гілкою випуску до створення наступного стабільного тегу.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Для Docker Compose перевизначте тег образу, який використовується вибраним профілем, а потім завантажте образ і повторно створіть сервіс:
+Для Docker Compose перевизначте тег образу, який використовує вибраний профіль, а потім завантажте образ і повторно створіть сервіс:
 
 ```yaml
 services:
@@ -523,30 +547,30 @@ docker compose up -d
 
 #### Безпека та відкат
 
-`next` — це плаваючий канал попередніх випусків. Він може змінюватися після будь-якого push до активної гілки випуску та **не підтримується для використання у виробничому середовищі**. Під час оцінювання конкретної збірки закріпіть дайджест образу:
+`next` — це рухомий канал попередніх випусків. Він може змінюватися після будь-якого надсилання змін до активної гілки випуску та **не підтримується для використання у виробничому середовищі**. Під час оцінювання конкретної збірки закріпіть дайджест образу:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Перед тестуванням створіть резервну копію тому даних OmniRoute або каталогу даних, підключеного через bind mount. Щоб виконати відкат, відновіть раніше використовувану стабільну версію або дайджест і повторно створіть контейнер:
+Перед тестуванням створіть резервну копію тому даних OmniRoute або каталогу даних, підключеного через bind mount. Для відкату відновіть раніше використану стабільну версію чи дайджест і повторно створіть контейнер:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Збірка з гілки релізу ніколи не може перемістити `latest`; стабільний вказівник може оновити лише відповідна стабільна семантична версія. Образи `next` зберігають перевірку образу релізу та блокувальний шлюз для вразливостей рівня CRITICAL.
+Збірка гілки випуску ніколи не може перемістити `latest`; просунути вказівник на стабільну версію може лише відповідна стабільна семантична версія. Образи `next` зберігають перевірку образу випуску та блокувальний шлюз для вразливостей рівня CRITICAL.
 
-**`latest` не гарантує актуальності щодо git.** Об’єднані виправлення в `main` або в активній гілці `release/v*` **не** потрапляють до `:latest`, доки не буде опубліковано образ зі стабільною версією SemVer і завдання публікації не оновить `:latest` (той самий дайджест, що й у цієї версії SemVer). Якщо здається, що `latest` не оновлюється, хоча на GitHub уже відображається виправлення, завантажте `:next`, щоб протестувати гілку релізу, або дочекайтеся тегу SemVer.
+**`latest` не гарантує актуальність щодо git.** Об’єднані виправлення в `main` або в активній гілці `release/v*` **не** потрапляють до `:latest`, доки не буде опубліковано стабільний образ SemVer і завдання публікації не просуне `:latest` (із тим самим дайджестом, що й ця SemVer). Якщо `latest` здається незмінним, хоча на GitHub уже відображається виправлення, завантажте `:next`, щоб протестувати гілку випуску, або дочекайтеся тегу SemVer.
 
-| Ваша мета                                                                                            | Що використовувати                       |
-| ---------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| GitOps / продакшен, у якому не повинно бути дрейфу                                                   | Закріпіть `:X.Y.Z` (або дайджест образу) |
-| Стежити за опублікованими стабільними версіями та повторно створювати контейнер після кожного релізу | `:latest`                                |
-| Тестувати неопубліковані коміти `release/v*`                                                         | `:next` (не для продакшену)              |
-| Тестувати `main`                                                                                     | `:main` (не для продакшену)              |
+| Що вам потрібно                                                                                   | Що використовувати                       |
+| ------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| GitOps / виробниче середовище, яке не повинно самовільно змінюватися                              | Закріпіть `:X.Y.Z` (або дайджест образу) |
+| Слідувати за опублікованими стабільними версіями та приймати повторне створення з кожним випуском | `:latest`                                |
+| Тестувати неопубліковані коміти `release/v*`                                                      | `:next` (не для виробничого середовища)  |
+| Тестувати `main`                                                                                  | `:main` (не для виробничого середовища)  |
 
 ## Доступність: типовий SQLite підтримує лише одну репліку
 

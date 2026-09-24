@@ -1,1 +1,0 @@
-- **fix(providers):** lazily load `chatgpt-web-codex` admin helpers in `PUT /api/providers/[id]`, mirroring #12355's exact pattern for the sibling `POST` route — a source-inspection test pins the import-graph invariant, since Turbopack's client-bundle boundary can't be exercised from the test harness directly ([#13071](https://github.com/diegosouzapw/OmniRoute/pull/13071)).

@@ -1,58 +1,52 @@
 # Management Authentication (ਪੰਜਾਬੀ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute ਕੋਲ **ਕ੍ਰੈਡੈਂਸ਼ਲਾਂ ਦੇ ਚਾਰ ਪਰਿਵਾਰ** ਹਨ ਜੋ ਪ੍ਰਬੰਧਨ ਰੂਟਾਂ ਨੂੰ ਅਧਿਕਾਰਤ ਕਰ ਸਕਦੇ ਹਨ।
-ਇਹ ਆਪਸ ਵਿੱਚ ਬਦਲਣਯੋਗ ਨਹੀਂ ਹਨ। ਇਨਫ਼ਰੈਂਸ API ਕੁੰਜੀਆਂ (`sk-…`) ਸਰਵਰ ਦਾ
-ਪ੍ਰਬੰਧਨ **ਨਹੀਂ** ਕਰਦੀਆਂ, ਜਦੋਂ ਤੱਕ ਉਨ੍ਹਾਂ ਨੂੰ ਸਪਸ਼ਟ ਤੌਰ 'ਤੇ `manage` ਜਾਂ `admin` ਸਕੋਪ ਨਾ ਦਿੱਤਾ ਗਿਆ ਹੋਵੇ।
+OmniRoute ਵਿੱਚ **ਚਾਰ ਪ੍ਰਮਾਣ ਪੱਤਰ ਪਰਿਵਾਰ** ਹਨ ਜੋ ਪ੍ਰਬੰਧਨ ਰੂਟਾਂ ਨੂੰ ਅਧਿਕਾਰਤ ਕਰ ਸਕਦੇ ਹਨ।
+ਇਹ ਆਪਸ ਵਿੱਚ ਬਦਲਣਯੋਗ ਨਹੀਂ ਹਨ। ਅਨੁਮਾਨ API ਕੁੰਜੀਆਂ (`sk-…`) ਸਰਵਰ ਦਾ ਪ੍ਰਬੰਧਨ **ਨਹੀਂ** ਕਰਦੀਆਂ ਜਦੋਂ ਤੱਕ ਉਹਨਾਂ ਨੂੰ ਸਪੱਸ਼ਟ ਤੌਰ 'ਤੇ `manage` ਜਾਂ `admin` ਸਕੋਪ ਨਹੀਂ ਦਿੱਤਾ ਗਿਆ ਸੀ।
 
-ਪ੍ਰਮਾਣਿਕ ਇੰਪਲੀਮੈਂਟੇਸ਼ਨ: `src/lib/api/requireManagementAuth.ts`।
+ਕੈਨੋਨੀਕਲ ਲਾਗੂਕਰਨ: `src/lib/api/requireManagementAuth.ts`।
 
-| ਕ੍ਰੈਡੈਂਸ਼ਲ             | ਆਮ ਰੂਪ                              | ਕਿੱਥੇ ਬਣਾਇਆ ਜਾਂਦਾ ਹੈ                                 | ਉਦੇਸ਼ਿਤ ਵਰਤੋਂ             | ਪ੍ਰਬੰਧਨ ਸਮਰੱਥਾ                                                                |
-| ---------------------- | ----------------------------------- | ---------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------- |
-| Dashboard JWT ਸੈਸ਼ਨ    | `auth_token` ਕੁਕੀ                   | Dashboard ਲੌਗਇਨ                                      | ਬ੍ਰਾਊਜ਼ਰ UI               | ਪੂਰਾ dashboard ਪ੍ਰਬੰਧਨ, CSRF, ਸਥਾਨਕਤਾ ਅਤੇ ਹਮੇਸ਼ਾ-ਸੁਰੱਖਿਅਤ-ਰੂਟ ਨਿਯਮਾਂ ਦੇ ਅਧੀਨ  |
-| CLI machine-id ਟੋਕਨ    | ਅੰਦਰੂਨੀ / ਸਥਾਨਕ                     | CLI ਬੂਟਸਟਰੈਪ (ਉਸੇ ਮਸ਼ੀਨ ਉੱਤੇ `omniroute`)            | ਸਥਾਨਕ CLI                 | ਕੇਵਲ ਸਥਾਨਕ ਪ੍ਰਬੰਧਨ                                                            |
-| ਸਕੋਪ ਵਾਲਾ Access Token | `oma_live_…`                        | **Settings → Access Tokens** ਜਾਂ `omniroute connect` | ਰਿਮੋਟ CLI ਅਤੇ ਪ੍ਰਬੰਧਨ API | ਰੂਟ ਦੇ ਲੋੜੀਂਦੇ `read`, `write`, ਜਾਂ `admin` ਸਕੋਪ ਨੂੰ ਪੂਰਾ ਕਰਨਾ ਲਾਜ਼ਮੀ ਹੈ      |
-| ਇਨਫ਼ਰੈਂਸ API ਕੁੰਜੀ     | `sk-…` (ਅਤੇ ਹੋਰ API-ਕੁੰਜੀ ਪ੍ਰੀਫਿਕਸ) | **API Manager / API Keys**                           | `/v1/*` ਇਨਫ਼ਰੈਂਸ          | **ਕੋਈ ਨਹੀਂ**, ਜਦੋਂ ਤੱਕ ਕੁੰਜੀ ਮੈਟਾਡੇਟਾ ਵਿੱਚ `manage` ਜਾਂ `admin` ਸ਼ਾਮਲ ਨਾ ਹੋਵੇ |
+| ਪ੍ਰਮਾਣ ਪੱਤਰ         | ਆਮ ਰੂਪ                              | ਕਿੱਥੇ ਬਣਾਇਆ ਗਿਆ                                   | ਇਰਾਦਾ ਵਰਤੋਂ               | ਪ੍ਰਬੰਧਨ ਸਮਰੱਥਾ                                                                  |
+| ------------------- | ----------------------------------- | ------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------- |
+| ਡੈਸ਼ਬੋਰਡ JWT ਸੈਸ਼ਨ  | `auth_token` ਕੂਕੀ                   | ਡੈਸ਼ਬੋਰਡ ਲੌਗਇਨ                                    | ਬ੍ਰਾਊਜ਼ਰ UI               | ਪੂਰਾ ਡੈਸ਼ਬੋਰਡ ਪ੍ਰਬੰਧਨ, CSRF, ਸਥਾਨਕਤਾ, ਅਤੇ ਹਮੇਸ਼ਾ-ਸੁਰੱਖਿਅਤ-ਰੂਟ ਨਿਯਮਾਂ ਦੇ ਅਧੀਨ    |
+| CLI ਮਸ਼ੀਨ-ਆਈਡੀ ਟੋਕਨ | ਅੰਦਰੂਨੀ / ਸਥਾਨਕ                     | CLI ਬੂਟਸਟਰੈਪ (`omniroute` ਉਸੇ ਮਸ਼ੀਨ 'ਤੇ)          | ਸਥਾਨਕ CLI                 | ਸਿਰਫ਼ ਸਥਾਨਕ ਪ੍ਰਬੰਧਨ                                                             |
+| ਸਕੋਪਡ ਐਕਸੈਸ ਟੋਕਨ    | `oma_live_…`                        | **ਸੈਟਿੰਗਾਂ → ਐਕਸੈਸ ਟੋਕਨ** ਜਾਂ `omniroute connect` | ਰਿਮੋਟ CLI ਅਤੇ ਪ੍ਰਬੰਧਨ API | ਰੂਟ ਦੇ ਲੋੜੀਂਦੇ `read`, `write`, ਜਾਂ `admin` ਸਕੋਪ ਨੂੰ ਪੂਰਾ ਕਰਨਾ ਚਾਹੀਦਾ ਹੈ        |
+| ਅਨੁਮਾਨ API ਕੁੰਜੀ    | `sk-…` (ਅਤੇ ਹੋਰ API-ਕੁੰਜੀ ਪ੍ਰੀਫਿਕਸ) | **API ਮੈਨੇਜਰ / API ਕੁੰਜੀਆਂ**                      | `/v1/*` ਅਨੁਮਾਨ            | **ਕੋਈ ਨਹੀਂ** ਜਦੋਂ ਤੱਕ ਕੁੰਜੀ ਮੈਟਾਡੇਟਾ ਵਿੱਚ `manage` ਜਾਂ `admin` ਸ਼ਾਮਲ ਨਹੀਂ ਹੁੰਦਾ |
 
-`oma_` ਕ੍ਰੈਡੈਂਸ਼ਲ ਪ੍ਰਬੰਧਨ/CLI ਕ੍ਰੈਡੈਂਸ਼ਲ ਹਨ। ਇਹ ਇਨਫ਼ਰੈਂਸ API ਕੁੰਜੀਆਂ **ਨਹੀਂ** ਹਨ।
+`oma_` ਪ੍ਰਮਾਣ ਪੱਤਰ ਪ੍ਰਬੰਧਨ/CLI ਪ੍ਰਮਾਣ ਪੱਤਰ ਹਨ। ਇਹ ਅਨੁਮਾਨ API ਕੁੰਜੀਆਂ **ਨਹੀਂ** ਹਨ।
 
-ਜੇ ਸਰਵਰ ਲਈ ਲੌਗਇਨ/API-ਕੁੰਜੀ ਪ੍ਰਮਾਣੀਕਰਨ ਅਯੋਗ ਕੀਤਾ ਹੋਇਆ ਹੈ, ਤਾਂ ਕੁਝ ਪ੍ਰਬੰਧਨ ਰੂਟ
-ਬਿਨਾਂ ਪ੍ਰਮਾਣੀਕਰਨ ਵਾਲੀਆਂ ਕਾਲਾਂ ਸਵੀਕਾਰ ਕਰ ਸਕਦੇ ਹਨ। ਕੇਵਲ-ਸਥਾਨਕ ਅਤੇ ਹਮੇਸ਼ਾ-ਸੁਰੱਖਿਅਤ ਰੂਟ ਫਿਰ ਵੀ
-ਆਪਣੇ ਨਿਯਮ ਲਾਗੂ ਕਰਦੇ ਹਨ। ਇਸ ਲਈ ਇਨ੍ਹਾਂ ਵਿੱਚੋਂ ਕੋਈ ਇੱਕ ਕ੍ਰੈਡੈਂਸ਼ਲ ਪੇਸ਼ ਕਰਨਾ ਹਰ ਸਥਿਤੀ ਵਿੱਚ
-ਲਾਜ਼ਮੀ ਨਹੀਂ ਹੈ, ਅਤੇ ਲੋੜੀਂਦੇ ਸਕੋਪ ਅਤੇ ਰੂਟ ਦੀ ਸਥਾਨਕਤਾ ਤੋਂ ਬਿਨਾਂ ਕਿਸੇ ਕ੍ਰੈਡੈਂਸ਼ਲ ਦਾ ਹੋਣਾ ਹਰ ਸਥਿਤੀ ਵਿੱਚ ਕਾਫ਼ੀ ਵੀ ਨਹੀਂ ਹੈ।
+ਜੇਕਰ ਸਰਵਰ ਲਈ ਲੌਗਇਨ/API-ਕੁੰਜੀ ਪ੍ਰਮਾਣਿਕਤਾ ਅਯੋਗ ਹੈ, ਤਾਂ ਕੁਝ ਪ੍ਰਬੰਧਨ ਰੂਟ ਅਪ੍ਰਮਾਣਿਤ ਕਾਲਾਂ ਨੂੰ ਸਵੀਕਾਰ ਕਰ ਸਕਦੇ ਹਨ। ਸਥਾਨਕ-ਸਿਰਫ਼ ਅਤੇ ਹਮੇਸ਼ਾ-ਸੁਰੱਖਿਅਤ ਰੂਟ ਅਜੇ ਵੀ ਆਪਣੇ ਨਿਯਮ ਲਾਗੂ ਕਰਦੇ ਹਨ। ਇਸ ਲਈ ਇਹਨਾਂ ਵਿੱਚੋਂ ਇੱਕ ਪ੍ਰਮਾਣ ਪੱਤਰ ਪੇਸ਼ ਕਰਨਾ ਵਿਆਪਕ ਤੌਰ 'ਤੇ ਲਾਜ਼ਮੀ ਨਹੀਂ ਹੈ, ਅਤੇ ਇੱਕ ਕੋਲ ਹੋਣਾ ਲੋੜੀਂਦੇ ਸਕੋਪ ਅਤੇ ਰੂਟ ਸਥਾਨਕਤਾ ਤੋਂ ਬਿਨਾਂ ਵਿਆਪਕ ਤੌਰ 'ਤੇ ਕਾਫ਼ੀ ਨਹੀਂ ਹੈ।
 
-ਸੰਬੰਧਿਤ: [ਰਿਮੋਟ ਮੋਡ](./REMOTE-MODE.md) (ਰਿਮੋਟ CLI ਲਈ `oma_live_…` ਕਿਵੇਂ ਜਾਰੀ ਕੀਤਾ ਜਾਂਦਾ ਹੈ)।
+ਸੰਬੰਧਿਤ: [ਰਿਮੋਟ ਮੋਡ](./REMOTE-MODE.md) (ਕਿਵੇਂ `oma_live_…` ਇੱਕ ਰਿਮੋਟ CLI ਲਈ ਬਣਾਇਆ ਜਾਂਦਾ ਹੈ)।
 
 ---
 
 ## ਸਕੋਪ ਮੈਟ੍ਰਿਕਸ
 
-ਇਹ ਦੋਵੇਂ ਸਕੋਪ ਸ਼ਬਦਾਵਲੀਆਂ **ਵੱਖਰੀਆਂ** ਹਨ। ਇਨ੍ਹਾਂ ਨੂੰ ਆਪਸ ਵਿੱਚ ਨਾ ਮਿਲਾਓ।
+API-ਕੀ ਪ੍ਰਬੰਧਨ ਸਕੋਪ ਅਤੇ ਐਕਸੈਸ-ਟੋਕਨ ਸਕੋਪ ਵੱਖਰੀਆਂ ਸ਼ਬਦਾਵਲੀਆਂ ਹਨ। MCP ਟੂਲ ਸਕੋਪ ਇੱਕ ਤੀਜੀ ਸ਼ਬਦਾਵਲੀ ਹੈ, ਜਿਸਦੀ ਜਾਂਚ ਹੇਠਾਂ ਦਿੱਤੀਆਂ ਸਾਰਣੀਆਂ ਵਿੱਚ ਕਿਸੇ ਵੀ ਫੰਕਸ਼ਨ ਦੀ ਬਜਾਏ `scopeMatches` ਨਾਲ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਨਾਲ-ਨਾਲ: [ਤਿੰਨ ਸਕੋਪ ਨਾਮਸਥਾਨ](../frameworks/MCP-SERVER.md#three-scope-namespaces)।
 
-### Access Token ਸਕੋਪ (`oma_live_…`)
+### ਐਕਸੈਸ ਟੋਕਨ ਸਕੋਪ (`oma_live_…`)
 
-| ਸਕੋਪ    | ਆਮ ਕਾਰਵਾਈਆਂ                                                               |
-| ------- | ------------------------------------------------------------------------- |
-| `read`  | ਉਹ ਸੂਚੀ/ਸਥਿਤੀ GET ਬੇਨਤੀਆਂ ਜਿਨ੍ਹਾਂ ਨੂੰ ਵੇਖਣ ਦੀ ਟੋਕਨ ਨੂੰ ਆਗਿਆ ਹੈ            |
-| `write` | admin ਤੋਂ ਹੇਠਾਂ ਦੀਆਂ ਤਬਦੀਲੀ ਕਾਰਵਾਈਆਂ (ਬਣਾਉਣਾ/ਅੱਪਡੇਟ ਕਰਨਾ/ਮਿਟਾਉਣਾ)         |
-| `admin` | ਪੂਰਾ ਰਿਮੋਟ CLI / connect ਟੋਕਨ (ਪਾਸਵਰਡ ਬੂਟਸਟਰੈਪ ਮੂਲ ਰੂਪ ਵਿੱਚ ਇਹੀ ਵਰਤਦਾ ਹੈ) |
+| ਸਕੋਪ    | ਆਮ ਕਾਰਵਾਈਆਂ                                                |
+| ------- | ---------------------------------------------------------- |
+| `read`  | ਸੂਚੀ/ਸਥਿਤੀ GETs ਜੋ ਟੋਕਨ ਨੂੰ ਦੇਖਣ ਦੀ ਇਜਾਜ਼ਤ ਹੈ              |
+| `write` | ਐਡਮਿਨ ਤੋਂ ਹੇਠਾਂ ਪਰਿਵਰਤਨ (ਬਣਾਓ/ਅੱਪਡੇਟ ਕਰੋ/ਮਿਟਾਓ)            |
+| `admin` | ਪੂਰਾ ਰਿਮੋਟ CLI / ਕਨੈਕਟ ਟੋਕਨ (ਪਾਸਵਰਡ ਬੂਟਸਟ੍ਰੈਪ ਡਿਫੌਲਟ ਇੱਥੇ) |
 
-`read` ਵਾਲਾ ਟੋਕਨ ਕਿਸੇ `write` ਰੂਟ ਨੂੰ ਕਾਲ ਨਹੀਂ ਕਰ ਸਕਦਾ। ਰਨਟਾਈਮ ਸੁਨੇਹੇ ਦਾ ਰੂਪ:
-`Access token scope '<have>' is insufficient; '<need>' required.`
+ਇੱਕ `read` ਵਾਲਾ ਟੋਕਨ `write` ਰੂਟ ਨੂੰ ਕਾਲ ਨਹੀਂ ਕਰ ਸਕਦਾ। ਰਨਟਾਈਮ ਸੁਨੇਹੇ ਦਾ ਆਕਾਰ: `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### API-ਕੁੰਜੀ ਪ੍ਰਬੰਧਨ ਸਕੋਪ
+### API-ਕੀ ਪ੍ਰਬੰਧਨ ਸਕੋਪ
 
-| ਸਕੋਪ       | ਅਰਥ                                                                  |
-| ---------- | -------------------------------------------------------------------- |
-| (ਕੋਈ ਨਹੀਂ) | ਕੇਵਲ ਇਨਫ਼ਰੈਂਸ। ਪ੍ਰਬੰਧਨ ਰੂਟ 403 ਵਾਪਸ ਕਰਦੇ ਹਨ।                         |
-| `manage`   | ਪ੍ਰਬੰਧਨ API (`requireManagementAuth` ਦੀ API-ਕੁੰਜੀ ਸ਼ਾਖਾ ਵਾਲਾ ਹੀ ਗੇਟ) |
-| `admin`    | `hasManageScope` ਨੂੰ ਵੀ ਪੂਰਾ ਕਰਦਾ ਹੈ (ਪ੍ਰਬੰਧਨ-ਸਮਰੱਥ ਮੰਨਿਆ ਜਾਂਦਾ ਹੈ)  |
+| ਸਕੋਪ     | ਮਤਲਬ                                                                   |
+| -------- | ---------------------------------------------------------------------- |
+| (none)   | ਸਿਰਫ਼ ਅਨੁਮਾਨ। ਪ੍ਰਬੰਧਨ ਰੂਟ 403 ਵਾਪਸ ਕਰਦੇ ਹਨ।                            |
+| `manage` | ਪ੍ਰਬੰਧਨ API (`requireManagementAuth` API-ਕੀ ਬ੍ਰਾਂਚ ਦੇ ਸਮਾਨ ਗੇਟ)        |
+| `admin`  | `hasManageScope` ਨੂੰ ਵੀ ਸੰਤੁਸ਼ਟ ਕਰਦਾ ਹੈ (ਪ੍ਰਬੰਧਨ-ਸਮਰੱਥ ਮੰਨਿਆ ਜਾਂਦਾ ਹੈ) |
 
-API Keys / API Manager UI ਵਿੱਚ ਕੁੰਜੀ ਲਈ `manage` ਯੋਗ ਕਰੋ। ਆਟੋਮੇਸ਼ਨ ਲਈ ਕਿਸੇ
-ਚੈਟ ਕਲਾਇੰਟ ਕੁੰਜੀ ਨੂੰ ਦੁਬਾਰਾ ਨਾ ਵਰਤੋ, ਜਦੋਂ ਤੱਕ ਤੁਸੀਂ ਜਾਣ-ਬੁੱਝ ਕੇ ਉਹ ਸਕੋਪ ਨਾ ਦਿੱਤਾ ਹੋਵੇ।
+API ਕੁੰਜੀਆਂ / API ਮੈਨੇਜਰ UI ਵਿੱਚ ਕੁੰਜੀ 'ਤੇ `manage` ਨੂੰ ਸਮਰੱਥ ਕਰੋ। ਆਟੋਮੇਸ਼ਨ ਲਈ ਚੈਟ ਕਲਾਇੰਟ ਕੁੰਜੀ ਦੀ ਮੁੜ ਵਰਤੋਂ ਨਾ ਕਰੋ ਜਦੋਂ ਤੱਕ ਤੁਸੀਂ ਜਾਣਬੁੱਝ ਕੇ ਉਸ ਸਕੋਪ ਨੂੰ ਪ੍ਰਦਾਨ ਨਹੀਂ ਕੀਤਾ।
 
 ---
 
@@ -128,29 +122,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## ਮੌਜੂਦਾ ਰਨਟਾਈਮ ਗਲਤੀਆਂ (ਸੀਕ੍ਰੇਟ ਦੁਬਾਰਾ ਨਾ ਦਿਖਾਓ)
+## ਮੌਜੂਦਾ ਰਨਟਾਈਮ ਗਲਤੀਆਂ (ਰਾਜ਼ਾਂ ਨੂੰ ਗੂੰਜ ਨਾ ਕਰੋ)
 
-| ਸਥਿਤੀ                                    | ਆਮ ਸਟੇਟਸ | ਸੁਨੇਹਾ (ਸੰਵੇਦਨਸ਼ੀਲ ਜਾਣਕਾਰੀ ਹਟਾਈ ਹੋਈ)                                 |
-| ---------------------------------------- | -------- | -------------------------------------------------------------------- |
-| ਕੋਈ ਕ੍ਰਿਡੈਂਸ਼ਲ ਨਹੀਂ                      | 401      | `Authentication required`                                            |
-| ਅਵੈਧ/ਮਿਆਦ ਪੁੱਗਿਆ `oma_live_…`            | 401      | `Invalid or expired access token`                                    |
-| `manage`/`admin` ਤੋਂ ਬਿਨਾਂ ਵੈਧ API ਕੁੰਜੀ | 403      | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| ਮੈਨੇਜਮੈਂਟ ਰੂਟ ਉੱਤੇ ਅਵੈਧ ਆਮ API ਕੁੰਜੀ     | 403      | `Invalid management token`                                           |
-| ਐਕਸੈੱਸ ਟੋਕਨ ਦਾ ਸਕੋਪ ਬਹੁਤ ਘੱਟ ਹੈ          | 403      | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| ਸਥਿਤੀ                                | ਆਮ ਸਥਿਤੀ | ਸੁਨੇਹਾ (ਸੈਨੀਟਾਈਜ਼ਡ)                                                  |
+| :----------------------------------- | :------- | :------------------------------------------------------------------- |
+| ਕੋਈ ਪ੍ਰਮਾਣ ਪੱਤਰ ਨਹੀਂ                 | 401      | `Authentication required`                                            |
+| ਅਵੈਧ/ਮਿਆਦ ਪੁੱਗ ਗਈ `oma_live_…`       | 401      | `Invalid or expired access token`                                    |
+| ਬਿਨਾਂ ਵੈਧ API ਕੁੰਜੀ `manage`/`admin` | 403      | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| ਪ੍ਰਬੰਧਨ ਰੂਟ 'ਤੇ ਅਵੈਧ ਸਧਾਰਨ API ਕੁੰਜੀ | 403      | `Invalid management token`                                           |
+| ਐਕਸੈਸ ਟੋਕਨ ਦਾ ਸਕੋਪ ਬਹੁਤ ਘੱਟ ਹੈ       | 403      | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token" ਦਾ ਮਤਲਬ ਹੈ ਕਿ ਬੇਅਰਰ ਨੂੰ ਮੈਨੇਜਮੈਂਟ
-ਕ੍ਰਿਡੈਂਸ਼ਲ ਵਜੋਂ **ਸਵੀਕਾਰ ਨਹੀਂ** ਕੀਤਾ ਗਿਆ। ਇਹ ਤੁਹਾਨੂੰ ਇਹ **ਨਹੀਂ** ਦੱਸਦਾ ਕਿ ਕਿਸ ਕਿਸਮ ਦਾ ਕ੍ਰਿਡੈਂਸ਼ਲ ਬਣਾਉਣਾ ਹੈ। ਉੱਪਰਲੀ ਸਾਰਣੀ ਵਰਤੋ:
-ਇਨਫਰੈਂਸ ਕੁੰਜੀਆਂ ਲਈ `manage` ਸਕੋਪ ਲੋੜੀਂਦਾ ਹੈ; ਰਿਮੋਟ CLI ਲਈ `oma_live_…` ਲੋੜੀਂਦਾ ਹੈ; ਡੈਸ਼ਬੋਰਡ
-ਸੈਸ਼ਨ ਕੁਕੀ ਵਰਤਦਾ ਹੈ।
+"Invalid management token" ਦਾ ਮਤਲਬ ਹੈ ਕਿ ਬੇਅਰਰ ਨੂੰ ਪ੍ਰਬੰਧਨ ਪ੍ਰਮਾਣ ਪੱਤਰ ਵਜੋਂ **ਸਵੀਕਾਰ ਨਹੀਂ** ਕੀਤਾ ਗਿਆ ਸੀ। ਇਹ ਤੁਹਾਨੂੰ ਇਹ ਨਹੀਂ ਦੱਸਦਾ ਕਿ ਕਿਹੜੇ ਪਰਿਵਾਰ ਨੂੰ ਮਿੰਟ ਕਰਨਾ ਹੈ। ਉੱਪਰ ਦਿੱਤੀ ਸਾਰਣੀ ਦੀ ਵਰਤੋਂ ਕਰੋ: ਅਨੁਮਾਨ ਕੁੰਜੀਆਂ ਨੂੰ `manage` ਸਕੋਪ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ; ਰਿਮੋਟ CLI ਨੂੰ `oma_live_…` ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ; ਡੈਸ਼ਬੋਰਡ ਸੈਸ਼ਨ ਕੂਕੀ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ।
 
 ---
 
-## ਸਿਫ਼ਾਰਸ਼ੀ ਘੱਟੋ-ਘੱਟ ਅਧਿਕਾਰ ਵਾਲੀ ਚੋਣ
+## ਸਿਫ਼ਾਰਸ਼ੀ ਘੱਟ-ਵਿਸ਼ੇਸ਼ ਅਧਿਕਾਰ ਚੋਣ
 
-| ਕਾਲਰ                                                        | ਵਰਤੋਂ                                          |
-| ----------------------------------------------------------- | ---------------------------------------------- |
-| ਬ੍ਰਾਊਜ਼ਰ                                                    | ਡੈਸ਼ਬੋਰਡ ਸੈਸ਼ਨ                                 |
-| ਸਰਵਰ ਹੋਸਟ ਉੱਤੇ CLI                                          | ਮਸ਼ੀਨ ਟੋਕਨ                                     |
-| ਰਿਮੋਟ ਸਰਵਰ ਨਾਲ ਸੰਚਾਰ ਕਰਨ ਵਾਲੇ ਲੈਪਟਾਪ ਉੱਤੇ CLI               | `omniroute connect` ਤੋਂ `oma_live_…`           |
-| CI / ਸਕ੍ਰਿਪਟਾਂ (ਸਿਰਫ਼ ਮੈਨੇਜਮੈਂਟ)                            | ਕੰਮ ਕਰਨ ਵਾਲੇ ਸਭ ਤੋਂ ਛੋਟੇ ਸਕੋਪ ਨਾਲ `oma_live_…` |
-| ਉਹ CI ਜਿਸ ਨੂੰ `/v1` ਅਤੇ `/api` ਦੋਵਾਂ ਨੂੰ ਕਾਲ ਕਰਨਾ ਲਾਜ਼ਮੀ ਹੈ | `manage` ਵਾਲੀ API ਕੁੰਜੀ **ਜਾਂ** ਦੋ ਕ੍ਰਿਡੈਂਸ਼ਲ  |
+| ਕਾਲਰ                                                    | ਵਰਤੋਂ                                            |
+| :------------------------------------------------------ | :----------------------------------------------- |
+| ਬ੍ਰਾਊਜ਼ਰ                                                | ਡੈਸ਼ਬੋਰਡ ਸੈਸ਼ਨ                                   |
+| ਸਰਵਰ ਹੋਸਟ 'ਤੇ CLI                                       | ਮਸ਼ੀਨ ਟੋਕਨ                                       |
+| ਰਿਮੋਟ ਸਰਵਰ ਨਾਲ ਗੱਲਬਾਤ ਕਰ ਰਹੇ ਲੈਪਟਾਪ 'ਤੇ CLI             | `omniroute connect` ਤੋਂ `oma_live_…`             |
+| CI / ਸਕ੍ਰਿਪਟਾਂ (ਸਿਰਫ਼ ਪ੍ਰਬੰਧਨ)                          | ਸਭ ਤੋਂ ਛੋਟੇ ਸਕੋਪ ਨਾਲ `oma_live_…` ਜੋ ਕੰਮ ਕਰਦਾ ਹੈ |
+| CI ਜਿਸਨੂੰ `/v1` ਅਤੇ `/api` ਦੋਵਾਂ ਨੂੰ ਕਾਲ ਕਰਨਾ ਚਾਹੀਦਾ ਹੈ | `manage` ਨਾਲ API ਕੁੰਜੀ **ਜਾਂ** ਦੋ ਪ੍ਰਮਾਣ ਪੱਤਰ    |

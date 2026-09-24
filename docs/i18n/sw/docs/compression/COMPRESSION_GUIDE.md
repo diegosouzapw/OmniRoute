@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -184,63 +184,67 @@ Kwa Stacked:         tokeni 10K-2.5K zimetumwa     (kiwango cha RTK+Caveman kina
 
 ### Dashibodi
 
-Nenda kwenye `Dashibodi → Muktadha na Akiba`:
+Nenda kwenye `Dashibodi → Muktadha & Akiba`:
 
-- **Caveman** — uteuzi wa hali, vifurushi vya lugha, onyesho la kukagua na mipangilio chaguo-msingi ya jumla
-- **RTK** — onyesho la kukagua kichujio cha amri, mipangilio ya usalama ya RTK na katalogi ya vichujio
-- **Mchanganyiko wa Mfinyazo** — mifuatano ya injini iliyopewa majina na kuhusishwa na mchanganyiko wa uelekezaji
-- **Kizingiti cha Kuanzisha Kiotomatiki** — anzisha mfinyazo kiotomatiki wakati idadi ya tokeni inapozidi kizingiti
+- **Caveman** — uteuzi wa hali, pakiti za lugha, onyesho la kukagua, na chaguomsingi za kimataifa
+- **RTK** — onyesho la kukagua kichujio cha amri, mipangilio ya usalama ya RTK, na orodha ya vichujio
+- **Mchanganyiko wa Mgandamizo** — mabomba ya injini yaliyopewa jina yaliyokabidhiwa kwa mchanganyiko wa uelekezaji
+- **Kizingiti cha Kuanzisha Kiotomatiki** — anza mgandamizo kiotomatiki wakati idadi ya tokeni inazidi kizingiti
 
-### Ubatilishaji kwa Kila Mchanganyiko
+### Kubatilisha kwa Kila Mchanganyiko
 
-Katika `Dashibodi → Muktadha na Akiba → Michanganyiko ya Mfinyazo`, husisha mchanganyiko wa mfinyazo na mchanganyiko wa uelekezaji:
+Katika `Dashibodi → Muktadha & Akiba → Mchanganyiko wa Mgandamizo`, kabidhi mchanganyiko wa mgandamizo kwa mchanganyiko wa uelekezaji:
 
 ```txt
 Mchanganyiko: "free-tier-fallback"
-  Mchanganyiko wa Mfinyazo: "coding-agent-stack"
-  Mfuatano: RTK -> Caveman
-  Malengo:
+  Mchanganyiko wa Mgandamizo: "coding-agent-stack"
+  Bomba: RTK -> Caveman
+  Walengwa:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Hii hukuruhusu kutumia mfinyazo uliopangwa kwa mfululizo kwa watoa huduma wa bila malipo/uwekaji msimbo huku ukiendelea kutumia hali nyepesi kwa usajili unaolipiwa.
+Hii inakuwezesha kutumia mgandamizo uliopangwa kwenye watoa huduma wa bure/wa kuandika msimbo huku ukiweka hali nyepesi kwenye usajili unaolipwa.
 
-Husisho hili la "Ubatilishaji kwa Kila Mchanganyiko" ni kidhibiti tofauti na ubatilishaji wa **hali ya mfinyazo ya mchanganyiko wa uelekezaji** (Default/Off/Lite/Standard/Aggressive/Ultra) — ubatilishaji huo hauchagui mfuatano wa mchanganyiko wa mfinyazo uliopewa jina; huweka tu uga wa `compressionMode` unaotumiwa na `resolveCompressionPlan`. Unaweza kuwekwa ama kwenye kadi ya mchanganyiko (`Dashibodi → Michanganyiko`) au, tangu #6760, kwa kila mchanganyiko wa uelekezaji katika orodha ya "Husisha na uelekezaji" kwenye `Dashibodi → Muktadha na Akiba → Michanganyiko ya Mfinyazo`, karibu kabisa na kisanduku cha kuteua cha kuhusisha mfuatano kilichoelezwa hapo juu. Sehemu zote mbili huhifadhi kupitia endpoint ileile ya `PUT /api/combos/{id}`.
+Mgawo huu wa "Kubatilisha kwa Kila Mchanganyiko" ni udhibiti tofauti na ule wa **hali ya mgandamizo wa mchanganyiko wa uelekezaji** (Chaguomsingi/Zima/Nyepesi/Kawaida/Kali/Ultra) — ubatilishaji huo hauchagui bomba la mchanganyiko wa mgandamizo lililopewa jina; huweka tu sehemu ya `compressionMode` inayoshughulikiwa na `resolveCompressionPlan`. Inaweza kuwekwa kwenye kadi ya mchanganyiko (`Dashibodi → Mchanganyiko`) au, tangu #6760, kwa kila mchanganyiko wa uelekezaji katika orodha ya "Kabidhi kwa uelekezaji" kwenye `Dashibodi → Muktadha & Akiba → Mchanganyiko wa Mgandamizo`, karibu na kisanduku cha kuteua cha kukabidhi bomba kilichoelezwa hapo juu. Nyuso zote mbili huendelea kupitia sehemu moja ya mwisho ya `PUT /api/combos/{id}`.
 
-### Ubatilishaji kwa kila ombi
+### Kubatilisha kwa kila ombi
 
-Tuma header ya ombi ya `x-omniroute-compression` ili kubatilisha mpango wa mfinyazo kwa ombi moja. Ina kipaumbele cha juu zaidi — hushinda ubatilishaji wa mchanganyiko wa uelekezaji, wasifu unaotumika, uanzishaji wa kiotomatiki na thamani ya Default ya paneli. Thamani zisizotambulika hupuuzwa (ombi halikataliwi kamwe), na swichi kuu ya jumla bado hudhibiti kila kitu: mfinyazo unapozimwa kwa kiwango cha jumla, header haiwezi kuuwasha. Thamani:
+Tuma kichwa cha ombi cha `x-omniroute-compression` ili kubatilisha mpango wa mgandamizo kwa ombi moja. Ina kipaumbele cha juu zaidi — inashinda ubatilishaji wa mchanganyiko wa uelekezaji, wasifu amilifu, kuanzisha kiotomatiki, na Chaguomsingi ya paneli. Thamani zisizojulikana hupuuzwa (ombi halikataliwi kamwe) na swichi kuu ya kimataifa bado inadhibiti kila kitu: wakati mgandamizo umezimwa kimataifa, kichwa hakiwezi kuwasha. Thamani:
 
-| Thamani       | Athari                                                                                                         |
-| ------------- | -------------------------------------------------------------------------------------------------------------- |
-| `off`         | Hakuna mfinyazo kwa ombi hili.                                                                                 |
-| `default`     | Wasifu wa Default unaotokana na paneli (hupuuza wasifu unaotumika).                                            |
-| `engine:<id>` | Injini moja ikiwa imewashwa, k.m. `engine:rtk`.                                                                |
-| `<combo>`     | Mchanganyiko uliopewa jina, unaolinganishwa kwanza kwa jina (bila kujali herufi kubwa au ndogo), kisha kwa id. |
+| Thamani       | Athari                                                                                                               |
+| ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Hakuna mgandamizo kwa ombi hili.                                                                                     |
+| `default`     | Wasifu Chaguomsingi unaotokana na paneli (hupuuza wasifu amilifu). Injini zenye hasara huachwa zimezimwa.            |
+| `safe`        | Sawa na kuacha kichwa: dedup na kukunja nafasi nyeupe tu.                                                            |
+| `allow-lossy` | Weka mpango wa opereta wa ombi hili, ikiwa ni pamoja na muhtasari, vichujio vya umuhimu, na uandishi upya wa mtindo. |
+| `engine:<id>` | Injini moja ikiwashwa, k.m. `engine:rtk`. Huu ni uchaguzi wa kila ombi kwa injini hiyo.                              |
+| `<combo>`     | Mchanganyiko uliotajwa, unaolingana kwa jina (bila kujali herufi kubwa/ndogo) kwanza, kisha kwa kitambulisho.        |
 
-Mpango uliotumika hurudishwa katika header ya jibu ya `X-OmniRoute-Compression: <mode>; source=<source>`, ambapo `<source>` ni mojawapo ya `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, au `off`.
+Bila `allow-lossy`, `engine:<id>`, au mchanganyiko uliotajwa, injini zenye hasara hazitumiki. Ombi bado hupata dedup ya kikao na kukunja nafasi nyeupe wakati mgandamizo umewashwa.
+
+Mpango uliotumika unarudishwa katika kichwa cha jibu cha `X-OmniRoute-Compression: <mode>; source=<source>`, ambapo `<source>` ni mojawapo ya `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, au `off`.
 
 ### API
 
 ```bash
-# Pata mipangilio ya mfinyazo
+# Pata mipangilio ya mgandamizo
 curl http://localhost:20128/api/settings/compression
 
-# Sasisha mipangilio ya mfinyazo
+# Sasisha mipangilio ya mgandamizo
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Kagua payload mahususi ya RTK/iliyopangwa kwa mfululizo
+# Onyesha onyesho la kukagua la RTK/stacked payload
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# Orodhesha vifurushi vya vichujio vya RTK
+# Orodhesha pakiti za vichujio vya RTK
 curl http://localhost:20128/api/context/rtk/filters
 
-# Jaribu RTK moja kwa moja kwa metadata ya hiari ya amri
+# Jaribu RTK moja kwa moja na metadata ya amri ya hiari
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -285,15 +289,15 @@ Kila ombi lililogandamizwa hujumuisha takwimu katika kumbukumbu za seva:
 
 ---
 
-## Ramani ya Maendeleo ya Awamu
+## Ramani ya Awamu
 
-| Awamu       | Modi                                                                                                                                                                            | Hali         |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| Awamu ya 1  | Imezimwa, Nyepesi                                                                                                                                                               | ✅ Imetolewa |
-| Awamu ya 2  | Kawaida, Kali, Kiwango cha Juu                                                                                                                                                  | ✅ Imetolewa |
-| Awamu ya 3  | RTK, Zilizopangwa kwa Tabaka, Michanganyiko ya Mgandamizo                                                                                                                       | ✅ Imetolewa |
-| Awamu ya 4  | Mitindo ya Matokeo, Kiwango cha Juu cha daraja la SLM, mfumo wa tathmini                                                                                                        | ✅ Imetolewa |
-| Awamu ya 4C | Bajeti ya muktadha inayojirekebisha ("kidhibiti") — injini ya ukokotoaji + API (`contextBudget` kwenye `PUT /api/settings/compression`) + vidhibiti vya modi/sera vya dashibodi | ✅ Imetolewa |
+| Awamu    | Njia                                                                                                                                                         | Hali         |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
+| Phase 1  | Off, Lite                                                                                                                                                    | ✅ Imetolewa |
+| Phase 2  | Standard, Aggressive, Ultra                                                                                                                                  | ✅ Imetolewa |
+| Phase 3  | RTK, Stacked, Compression Combos                                                                                                                             | ✅ Imetolewa |
+| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                                  | ✅ Imetolewa |
+| Phase 4C | Bajeti ya muktadha inayobadilika ("piga") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) + vidhibiti vya hali/sera ya dashibodi | ✅ Imetolewa |
 
 ---
 
@@ -305,28 +309,23 @@ Modi ya RTK imechochewa na **[RTK - Rust Token Killer](https://github.com/rtk-ai
 
 ---
 
-## Mifumo ya Kina ya Mgandamizo
+## Mifumo ya Juu ya Mgandamizo
 
-Zaidi ya modi 7 za kawaida, OmniRoute inajumuisha mifumo kadhaa ya kina ya mgandamizo
-inayofanya kazi kiotomatiki kulingana na muktadha.
+Zaidi ya njia 7 za kawaida, OmniRoute inajumuisha mifumo kadhaa ya hali ya juu ya mgandamizo inayofanya kazi kiotomatiki kulingana na muktadha.
 
-### Mgandamizo Unaozingatia Akiba
+### Mgandamizo Unaotambua Akiba
 
-Baadhi ya watoa huduma (kama Anthropic yenye uhifadhi wa muda wa maagizo) wanaunga mkono **uhifadhi wa muda wa maagizo**,
-unaowawezesha kuhifadhi kwa muda sehemu za agizo ili kupunguza gharama na ucheleweshaji. Wakati
-uhifadhi wa muda umewezeshwa, mgandamizo mkali unaweza kwa kweli **kudhoofisha** utendaji
-kwa sababu hubadilisha tokeni zilizohifadhiwa kwa muda, na hivyo kubatilisha akiba.
+Watoa huduma wengine (kama Anthropic na uhifadhi wa haraka) wanaunga mkono **uhifadhi wa haraka (prompt caching)**, ambao unawaruhusu kuhifadhi sehemu za haraka ili kupunguza gharama na kuchelewa. Wakati uhifadhi umewashwa, mgandamizo mkali unaweza **kuharibu** utendaji kwa sababu unabadilisha tokeni zilizohifadhiwa, na hivyo kubatilisha akiba.
 
-Moduli ya `cachingAware.ts` hutatua hili kwa **kutambua muktadha wa uhifadhi wa muda** na
-**kurekebisha mkakati wa mgandamizo** ipasavyo.
+Moduli ya `cachingAware.ts` inasuluhisha hili kwa **kutambua muktadha wa uhifadhi** na **kurekebisha mkakati wa mgandamizo** ipasavyo.
 
-#### Jinsi inavyofanya kazi
+#### Jinsi Inavyofanya Kazi
 
-1. **Tambua muktadha wa uhifadhi wa muda** — Huchanganua mwili wa ombi kutafuta viashirio vya `cache_control`
-2. **Tambua watoa huduma wa uhifadhi wa muda** — Hukagua ikiwa mtoa huduma lengwa anaunga mkono uhifadhi wa muda
-3. **Rekebisha mkakati** — Hushusha `aggressive`/`ultra` hadi `standard` kwa watoa huduma wa uhifadhi wa muda
-4. **Ruka agizo la mfumo** — Kwa kawaida maagizo ya mfumo huhifadhiwa kwa muda, kwa hiyo usiyagandamize
-5. **Tumia mabadiliko yenye matokeo thabiti** — Tumia tu mabadiliko yanayotoa matokeo yanayolingana
+1.  **Tambua muktadha wa uhifadhi** — Inachanganua mwili wa ombi kwa alama za `cache_control`
+2.  **Tambua watoa huduma wa uhifadhi** — Inachunguza kama mtoa huduma lengwa anaunga mkono uhifadhi
+3.  **Rekebisha mkakati** — Inashusha daraja `aggressive`/`ultra` hadi `standard` kwa watoa huduma wa uhifadhi
+4.  **Ruka haraka ya mfumo** — Haraka za mfumo kwa kawaida huhifadhiwa, kwa hivyo usizigandamize
+5.  **Tumia mabadiliko ya uhakika** — Tumia tu mabadiliko yanayotoa matokeo thabiti
 
 #### Mfano wa msimbo
 
@@ -339,7 +338,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Kiashirio cha akiba
+  cache_control: { type: "ephemeral" }, // ← Cache marker
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -349,23 +348,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Wakati wa kutumia
+#### Lini kutumia
 
-Mgandamizo unaozingatia akiba **umewashwa kila wakati** — hakuna usanidi unaohitajika. Huanza kufanya kazi tu
-wakati:
+Mgandamizo unaotambua akiba **huwaka kila wakati** — hakuna usanidi unaohitajika. Huwaka tu wakati:
 
-- Ombi lina viashirio vya `cache_control`
-- Mtoa huduma lengwa anaunga mkono uhifadhi wa muda wa maagizo (Anthropic, OpenAI, n.k.)
+- Ombi lina alama za `cache_control`
+- Mtoa huduma lengwa anaunga mkono uhifadhi wa haraka (Anthropic, OpenAI, n.k.)
 
-### Uchakavu Endelevu
+### Kuzeeka kwa Maendeleo
 
-Mazungumzo marefu hukusanya zamu nyingi za ujumbe, lakini zamu za zamani hupungua
-umuhimu. Moduli ya `progressiveAging.ts` **hupunguza maelezo ya ujumbe kulingana na umbali wa zamu**:
+Mazungumzo marefu hujilimbikiza zamu nyingi za ujumbe, lakini zamu za zamani huwa hazina umuhimu sana. Moduli ya `progressiveAging.ts` **inashusha ubora wa ujumbe kulingana na umbali wa zamu**:
 
-- **Zamu za hivi karibuni (0-3)**: Huhifadhiwa kama zilivyo (maelezo kamili)
-- **Zamu za kati (4-8)**: Mgandamizo nyepesi (kusafisha nafasi nyeupe na uumbizaji)
-- **Zamu za zamani (9+)**: Mgandamizo wa Caveman (kuondoa maneno ya kujazia, kufanya muhtasari)
-- **Zamu za zamani sana (20+)**: Hufupishwa sana au huondolewa
+- **Zamu za hivi karibuni (0-3)**: Zimehifadhiwa kama zilivyo (maelezo kamili)
+- **Zamu za kati (4-8)**: Mgandamizo mwepesi (nafasi nyeupe, usafishaji wa umbizo)
+- **Zamu za zamani (9+)**: Mgandamizo wa Caveman (kuondoa vijazaji, muhtasari)
+- **Zamu za zamani sana (20+)**: Zimefupishwa sana au zimeachwa
 
 #### Mfano wa msimbo
 
@@ -376,46 +373,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... zamu 50 zaidi ...
+  // ... 50 more turns ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Zamu 3 za kwanza: kama zilivyo
-  light: 8, // Zamu za 4-8: mgandamizo nyepesi
-  moderate: 20, // Zamu za 9-20: mgandamizo wa caveman
-  // Zamu za 21+: ufupishaji mkubwa
+  verbatim: 3, // First 3 turns: verbatim
+  light: 8, // Turns 4-8: lite compression
+  moderate: 20, // Turns 9-20: caveman compression
+  // Turns 21+: heavy summarization
 });
 
-// saved = idadi ya tokeni zilizookolewa
+// saved = number of tokens saved
 ```
 
-#### Wakati wa kutumia
+#### Lini kutumia
 
-Uchakavu unaoendelea **umewashwa kila wakati** kwa modi za `aggressive` na `ultra`. Una ufanisi hasa kwa:
+Kuzeeka kwa maendeleo **huwaka kila wakati** kwa njia za `aggressive` na `ultra`. Ni bora sana kwa:
 
 - Vipindi virefu vya uandishi wa msimbo
-- Mazungumzo yanayodumu siku nyingi
-- Mitiririko ya kazi ya mawakala yenye miito mingi ya zana
+- Mazungumzo ya siku nyingi
+- Mifumo ya kazi ya wakala yenye simu nyingi za zana
 
-### Modi ya Matokeo ya Mtu wa Pangoni
+### Njia ya Pato ya Caveman
 
-Moduli ya `outputMode.ts` huingiza **maagizo ya kidokezo cha mfumo** ili kufanya modeli yenyewe itoe matokeo yaliyobanwa na mafupi (mtindo wa "mtu wa pangoni").
+Moduli ya `outputMode.ts` inaingiza **maelekezo ya haraka ya mfumo** ili kufanya modeli yenyewe itoe pato lililogandamizwa, fupi ("mtindo wa caveman").
 
-#### Jinsi inavyofanya kazi
+#### Jinsi Inavyofanya Kazi
 
-Badala ya kubana ingizo, modi hii huongeza kidokezo cha mfumo kama:
+Badala ya kugandamiza ingizo, njia hii inaongeza haraka ya mfumo kama vile:
 
-> "Jibu kwa maneno machache iwezekanavyo. Ruka maneno ya adabu. Tumia sentensi fupi."
+> "Jibu kwa maneno machache. Ruka salamu. Tumia sentensi fupi."
 
-Hii hufanya kazi vizuri hasa kwa:
+Hii inafanya kazi vizuri sana kwa:
 
-- Uzalishaji wa msimbo (matokeo mafupi zaidi = tokeni chache zaidi)
-- Maswali na majibu ya haraka (hakuna haja ya maelezo marefu)
-- Uchakataji wa makundi (ongeza kiwango cha uchakataji)
+- Uzalishaji wa msimbo (pato fupi = tokeni chache)
+- Maswali na Majibu ya Haraka (hakuna haja ya maelezo marefu)
+- Usindikaji wa Kundi (ongeza ufanisi)
 
-#### Wakati wa kuitumia
+#### Lini kutumia
 
-Modi ya matokeo ya mtu wa pangoni ni ya **kuwashwa kwa hiari** — iweke kupitia usanidi wa combo:
+Njia ya pato ya Caveman ni **hiari** — iweke kupitia usanidi wa combo:
 
 ```json
 {
@@ -428,27 +425,37 @@ Modi ya matokeo ya mtu wa pangoni ni ya **kuwashwa kwa hiari** — iweke kupitia
 }
 ```
 
-### Mitindo ya Matokeo (katalogi)
+### Mitindo ya Pato (katalogi)
 
-Modi ya matokeo ya mtu wa pangoni hapo juu ndiyo **njia ya zamani ya mtindo mmoja**. Awamu ya 4 iliipanua kuwa katalogi ya mitindo ya matokeo inayoweza kuunganishwa: `OUTPUT_STYLE_CATALOG` katika `open-sse/services/compression/outputStyles/catalog.ts`. Kila mtindo ni agizo la kidokezo cha mfumo linalofanya modeli yenyewe itoe matokeo yenye gharama ndogo zaidi; mitindo inaweza kuwashwa pamoja na huingizwa kwa mpangilio wa katalogi.
+Njia ya pato ya Caveman hapo juu ni **njia ya zamani ya mtindo mmoja**. Awamu ya 4 iliiboresha kuwa katalogi ya mitindo ya pato inayoweza kuunganishwa: `OUTPUT_STYLE_CATALOG` katika `open-sse/services/compression/outputStyles/catalog.ts`. Kila mtindo ni maelekezo ya haraka ya mfumo ambayo hufanya modeli yenyewe itoe pato la bei nafuu; mitindo inaweza kuwashwa pamoja na kuingizwa kwa mpangilio wa katalogi.
 
-| Mtindo                        | `id`          | Inachofanya                                                                                                                                                                                                                                                | Lugha za maagizo                                                                  |
-| ----------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Nathari fupi                  | `terse-prose` | Ondoa maneno ya kujaza/vibainishi/maneno ya kusitasita; hifadhi usahihi wa maudhui ya kiufundi. Maandishi sawa na ya modi ya zamani ya matokeo ya mtu wa pangoni (yanarejelewa, hayajaandikwa upya).                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Msimbo mchache                | `less-code`   | Ngazi ya YAGNI: badiliko dogo zaidi linalofanya kazi, bila miundo dhahania ambayo haijaombwa.                                                                                                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Ponytail (msanidi mkuu mvivu) | `ponytail`    | "Msimbo bora ni msimbo ambao haujawahi kuandikwa": tumia tena > andika upya, chanzo kikuu > dalili, tofauti fupi zaidi inayofanya kazi.                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Nina ADHD (kitendo kwanza)    | `i-have-adhd` | Kitendo kwanza (amri/njia/kipande kabla ya nathari), hatua zenye nambari na mipaka, hatua MOJA mahususi inayofuata, bila utangulizi/muhtasari/maneno ya kuhitimisha. Imetoholewa kutoka [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| CJK fupi (文言)               | `terse-cjk`   | Mtindo mfupi kupita kiasi wa Kichina cha Kale.                                                                                                                                                                                                             | zh (imewekewa kikomo cha lokali: hutolewa tu wakati lugha iliyobainishwa ni `zh`) |
+| Mtindo                              | `id`          | Inachofanya                                                                                                                                                                                                                                         | Lugha za maelekezo                                                         |
+| :---------------------------------- | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------- |
+| Terse prose                         | `terse-prose` | Ondoa maneno yasiyo na maana/viambishi/maneno ya kujikinga; weka kiini cha kiufundi sawa. Maandishi sawa na hali ya zamani ya pato la caveman (iliyorejelewa, haijaandikwa upya).                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Less code                           | `less-code`   | Ngazi ya YAGNI: mabadiliko madogo zaidi yanayofanya kazi, hakuna dhana zisizoombwa.                                                                                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Ponytail (msanidi mwandamizi mvivu) | `ponytail`    | "Msimbo bora ni msimbo ambao haujaandikwa kamwe": tumia tena > andika upya, chanzo cha tatizo > dalili, tofauti fupi zaidi inayofanya kazi.                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| I have ADHD (action-first)          | `i-have-adhd` | Kitendo kwanza (amri/njia/kipande kabla ya maandishi), hatua zilizopangwa zenye namba, hatua MOJA thabiti inayofuata, hakuna utangulizi/muhtasari/hitimisho. Imechukuliwa kutoka [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Terse CJK (文言)                    | `terse-cjk`   | Mtindo wa Kichina cha Kale mfupi sana.                                                                                                                                                                                                              | zh (imefungwa kwa lugha: inatolewa tu wakati lugha iliyochaguliwa ni `zh`) |
 
-Kila mtindo huja na viwango vitatu vya mkazo — `lite`, `full`, `ultra` — na kila kiwango huishia na kifungu cha pamoja cha mipaka, ambacho huhifadhi vizuizi vya msimbo, njia za faili, amri, tungo za hitilafu, URL na vitambulishi bila kubadilishwa.
+Kila mtindo huja na viwango vitatu vya ukali — `lite`, `full`, `ultra` — na kila kiwango
+kinaishia na kifungu cha mipaka kinachoshirikiwa, ambacho huweka vizuizi vya msimbo, njia za faili, amri,
+nyuzi za makosa, URL na vitambulisho kama vilivyo.
 
-#### Jinsi uingizaji unavyofanya kazi
+#### Jinsi sindano inavyofanya kazi
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) hulinganisha uteuzi na katalogi (`id` zisizojulikana na mitindo isiyolingana na lokali huondolewa, bila kusababisha hitilafu), huunganisha maagizo yaliyochaguliwa kwa mpangilio wa katalogi, huongeza kifungu cha mipaka **mara moja**, na huweka matokeo mwanzoni mwa kidokezo cha mfumo baada ya kialama kimoja cha kutorudiwa (`[OmniRoute Output Styles]`) — kuyatumia tena hakufanyi chochote. Wakati lugha iliyotambuliwa ya ombi ina tafsiri, agizo lililotafsiriwa huingizwa badala ya Kiingereza.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) hutatua
+uteuzi dhidi ya katalogi (vitambulisho visivyojulikana na mitindo isiyolingana na lugha
+huondolewa, kamwe si kosa), huunganisha maelekezo yaliyochaguliwa kwa mpangilio wa katalogi,
+huongeza kifungu cha mipaka **mara moja**, na huweka matokeo mbele kwenye kidokezo cha mfumo
+nyuma ya alama moja ya idempotency (`[OmniRoute Output Styles]`) — kutumia tena
+hakuna athari. Wakati lugha ya ombi iliyogunduliwa ina tafsiri,
+maelekezo yaliyojanibishwa yanaingizwa badala ya Kiingereza.
 
 #### Jinsi ya kuwezesha
 
-Kwenye dashibodi: **Muktadha → Mipangilio → Ubanaji** — safu mlalo moja kwa kila mtindo iliyo na kitufe cha kuwasha/kuzima na kiteuzi cha kiwango. Kwa njia ya programu, usanidi wa ubanaji huhifadhi uteuzi kama:
+Kwenye dashibodi: **Context → Settings → Compression** — safu moja kwa kila mtindo na
+kibadilishaji cha kuwasha/kuzima na kiteuzi cha kiwango. Kwa programu, usanidi wa mgandamizo
+huhifadhi uteuzi kama:
 
 ```json
 {
@@ -459,48 +466,59 @@ Kwenye dashibodi: **Muktadha → Mipangilio → Ubanaji** — safu mlalo moja kw
 }
 ```
 
-Uoanifu wa nyuma: mpangilio wa zamani wa combo `outputMode: "caveman"` bado hufanya kazi na huunganishwa na `terse-prose`, ukiwa sawa baiti kwa baiti na uingizaji wa zamani katika kila lugha ya zamani.
+Utangamano wa nyuma: mpangilio wa zamani wa `outputMode: "caveman"` bado unafanya kazi na unalingana na
+`terse-prose`, sawa kabisa na sindano ya zamani katika kila lugha ya zamani.
 
-Uteuzi wa lugha: `languageConfig.enabled` ikiwa imewashwa, `autoDetect` huchagua lugha ya ujumbe wa hivi karibuni wa mtumiaji (kitambuzi sawa na cha injini za ingizo); kuzima `autoDetect` huweka `defaultLanguage` kuwa isiyobadilika. Ikiwa imezimwa → Kiingereza.
+Uteuzi wa lugha: na `languageConfig.enabled` ikiwa imewashwa, `autoDetect` huchagua
+lugha ya ujumbe wa hivi karibuni wa mtumiaji (kigunduzi sawa na injini za kuingiza);
+kuzima `autoDetect` huweka `defaultLanguage`. Zima → Kiingereza.
 
-Matriki ya mtindo × lugha imefungwa na `tests/unit/compression/output-styles-i18n-matrix.test.ts`: mtindo mpya hauwezi kutolewa bila angalau tafsiri ya pt-BR (au hali ya kipekee iliyofuatiliwa kwa uwazi), na mtindo uliopo hauwezi kupoteza lokali kimyakimya. Ili kuongeza mtindo, angalia [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Matrix ya mtindo × lugha imewekwa na
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: mtindo mpya hauwezi kusafirishwa
+bila angalau tafsiri ya pt-BR (au ubaguzi uliofuatiliwa wazi), na
+mtindo uliopo hauwezi kupoteza lugha kimya kimya. Ili kuongeza mtindo, angalia
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Ubanaji wa Matokeo ya Zana
+### Mgandamizo wa Matokeo ya Zana
 
-Moduli ya `toolResultCompressor.ts` hutoa **mikakati 5 maalumu ya ubanaji** kwa matokeo ya zana (miito ya vitendakazi, matokeo ya mawakala, matokeo ya utafutaji, n.k.):
+Moduli ya `toolResultCompressor.ts` hutoa **mikakati 5 maalum ya mgandamizo**
+kwa matokeo ya zana (simu za kazi, matokeo ya wakala, matokeo ya utafutaji, n.k.):
 
-1. **Ubanaji wa matokeo ya utafutaji** — Huondoa matokeo yaliyojirudia, huhifadhi matokeo bora N
-2. **Ubanaji wa usomaji wa faili** — Hupunguza faili kubwa, huhifadhi vichwa/uagizaji
-3. **Ubanaji wa utekelezaji wa msimbo** — Huhifadhi stdout/stderr muhimu pekee
-4. **Ubanaji wa hoja ya hifadhidata** — Huweka kikomo cha safu mlalo, huondoa metadata yenye maelezo mengi
-5. **Ubanaji wa jibu la API** — Huondoa sehemu zenye null, hufupisha safu
+1. **Mgandamizo wa matokeo ya utafutaji** — Huondoa matokeo yasiyo ya lazima, huweka N-bora
+2. **Mgandamizo wa usomaji wa faili** — Hupunguza faili kubwa, huhifadhi vichwa/uagizaji
+3. **Mgandamizo wa utekelezaji wa msimbo** — Huweka tu stdout/stderr muhimu
+4. **Mgandamizo wa swala la hifadhidata** — Huweka kikomo safu, huondoa metadata yenye maneno mengi
+5. **Mgandamizo wa majibu ya API** — Huondoa sehemu zisizo na thamani, huunganisha safu
 
-#### Wakati wa kuitumia
+#### Lini kutumia
 
-Ubanaji wa matokeo ya zana **umewashwa kila wakati** miito ya zana inapokuwepo. Hakuna usanidi unaohitajika.
+Mgandamizo wa matokeo ya zana **huwashwa kila wakati** wakati simu za zana zipo. Hakuna
+usanidi unaohitajika.
 
-### Bomba Lililorundikwa
+### Bomba Lililopangwa
 
-Modi iliyorundikwa huendesha **injini nyingi kwa mfuatano** — kwa kawaida RTK kwanza (uokoaji wa 60-90% kwenye matokeo ya zana), kisha Caveman (uokoaji wa ziada wa 30% kwenye maandishi yaliyobaki). Hii hufanikisha **uokoaji wa jumla wa 78-95%**.
+Hali iliyopangwa huendesha **injini nyingi kwa mfuatano** — kwa kawaida RTK kwanza
+(akiba ya 60-90% kwenye matokeo ya zana), kisha Caveman (akiba ya ziada ya 30% kwenye
+maandishi yaliyobaki). Hii inafikia **akiba ya jumla ya 78-95%**.
 
 #### Jinsi inavyofanya kazi
 
 ```
 Ingizo (tokeni 1000)
-  → RTK (kichujio kinachotambua amri) → tokeni 200
-    → Caveman (uondoaji wa maneno ya kujaza) → tokeni 140
-  → Matokeo (tokeni 140, uokoaji wa 86%)
+  → RTK (kichujio kinachojua amri) → tokeni 200
+    → Caveman (uondoaji wa maneno yasiyo na maana) → tokeni 140
+  → Pato (tokeni 140, akiba ya 86%)
 ```
 
-#### Wakati wa kuitumia
+#### Lini kutumia
 
-Tumia modi iliyorundikwa kwa:
+Tumia hali iliyopangwa kwa:
 
-- Mitiririko ya kazi inayotumia zana nyingi (uandishi wa msimbo wa mawakala, utafiti)
-- Uchakataji wa makundi unaozingatia gharama
-- Unapohitaji uokoaji wa juu zaidi wa tokeni
+- Mtiririko wa kazi unaotumia zana nyingi (usimbaji wa wakala, utafiti)
+- Usindikaji wa bechi unaozingatia gharama
+- Unapohitaji akiba kubwa ya tokeni
 
-Sanidi kupitia combo:
+Sanidi kupitia mchanganyiko:
 
 ```json
 {

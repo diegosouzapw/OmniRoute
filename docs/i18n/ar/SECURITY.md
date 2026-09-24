@@ -1,6 +1,6 @@
 # Security Policy (العربية)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,36 +220,38 @@ docker run -d \
 10. **مرّر قيم وقت التشغيل الخاصة بـ `exec()` / `spawn()` عبر الخيار `env`** — لا تُقحم مطلقًا المسارات الخارجية أو القيم غير الموثوقة نصيًا في البرامج النصية الممررة إلى الصدفة. المرجع: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **فضّل المكتبات الآمنة افتراضيًا** — راجع [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js، DOMPurify، ssrf-req-filter، safe-regex، Google Tink). استخدمها قبل إنشاء حلولك الخاصة.
 
-## نتائج فحص سلسلة التوريد (Socket.dev / Snyk / أدوات مماثلة)
+## نتائج فاحص سلسلة التوريد (Socket.dev / Snyk / ما شابه)
+
+> **ملاحظة حول النطاق:** لا يفعل `socket.yml` الموجود في جذر المستودع سوى تحديد `projectIgnorePaths` لفحص Socket.dev اللاحق للنشر من جهة السجل لحزمة npm المنشورة — وهو ليس بوابة دمج مفروضة ضمن CI/PR. لا يوجد أي سير عمل في `.github/workflows`، ولا أي برنامج نصي في `package.json`، ولا أي هدف في `Makefile` يستدعي Socket.dev.
 
 تتضمن حزمة npm المنشورة `omniroute` إصدار Next.js ذي الإعداد `output: "standalone"`،
-ما يعني أن كل معالج للمسارات — بما في ذلك الميزات المميّزة الموثّقة
-(MITM، واستيراد Zed، وCloud Sync، والمشرف المضمّن على الخدمات) — ينتهي به المطاف
-ضمن أجزاء مصغّرة في `.next/server/*.js`. وغالبًا ما تطابق أدوات فحص سلسلة التوريد
-الاستدلالية أنماط تلك الأجزاء مع توقيعات البرمجيات الضارة.
+ما يعني أن كل معالج مسار — بما في ذلك الميزات المميزة الموثقة
+(MITM، واستيراد Zed، وCloud Sync، ومشرف الخدمة المضمّن) — ينتهي به المطاف
+ضمن مقاطع `.next/server/*.js` المصغّرة. وكثيرًا ما تطابق فاحصات سلسلة التوريد
+الاستدلالية تلك المقاطع مع توقيعات البرمجيات الخبيثة اعتمادًا على الأنماط.
 
-يوجد إعداد أداة الفحص الذي نستخدمه في [`socket.yml`](socket.yml) ضمن جذر
-المستودع (بتنسيق Socket.dev GitHub App الإصدار v2 — راجع
-<https://docs.socket.dev/docs/socket-yml>). وهو يستبعد صراحةً
-المجلدات غير المضمّنة في الحزمة المنشورة (`tests/`، و`_tasks/`، و`_references/`، و`_ideia/`،
-و`_mono_repo/`، و`docs/`، وغيرها)، بحيث لا تُبلغ أداة الفحص إلا عن مسارات الشيفرة التي
-تصل فعليًا إلى مستخدمي الحزمة المنشورة — وتُجرى عملية الفحص نفسها بواسطة تطبيق Socket
+يوجد إعداد الفاحص الذي نستخدمه في [`socket.yml`](socket.yml) في
+جذر المستودع (تنسيق Socket.dev GitHub App بالإصدار v2 — راجع
+<https://docs.socket.dev/docs/socket-yml>). ويستبعد صراحةً
+الأدلة غير المشمولة في الحزمة المنشورة (`tests/`، و`_tasks/`، و`_references/`، و`_ideia/`،
+و`_mono_repo/`، و`docs/`، وما إلى ذلك)، بحيث لا يُبلغ الفاحص إلا عن مسارات التعليمات البرمجية التي
+تصل فعليًا إلى مستخدمي الحزمة المنشورة — ويُشغَّل الفحص نفسه بواسطة تطبيق Socket
 على GitHub الذي يقرأ هذا الملف، وليس بواسطة سير عمل في هذا المستودع.
 
-نحتفظ، لكل فئة من النتائج، بإقرار من المشرفين خاص بكل نتيجة:
+نحتفظ لكل فئة من النتائج بإقرار من المشرف خاص بكل نتيجة:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  خريطة لكل نتيجة: ملف المصدر ↔ الجزء الذي جرى الإبلاغ عنه ↔ السلوك ↔ إجراء التخفيف
+  خريطة لكل نتيجة: ملف المصدر ↔ المقطع المُبلّغ عنه ↔ السلوك ↔ إجراء التخفيف
   المطبّق في v3.8.6.
-- كتل `SECURITY-AUDITOR-NOTE:` داخل الشيفرة عند كل دالة جرى الإبلاغ عنها،
-  والتي تشير إلى المستند نفسه.
+- تشير كتل `SECURITY-AUDITOR-NOTE:` داخل المصدر عند كل دالة مُبلّغ عنها
+  إلى المستند نفسه.
 
-بالنسبة إلى المستخدمين الذين لا تسمح مسارات المعالجة لديهم بتخفيف التنبيه: ابنوا المشروع باستخدام
+بالنسبة إلى المستخدمين الذين لا يمكن لمسار عملهم تخفيف التنبيه: ابنوا باستخدام
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. يستبدل ذلك الوحدات الحساسة الأربع
-بوحدات بديلة تُرجع استجابة HTTP 503 بالقيمة `feature-disabled` أثناء
-التشغيل، وبذلك تغيب مسارات الشيفرة المميّزة فعليًا عن الحزمة.
+ببدائل صورية تُرجع HTTP 503 و`feature-disabled` في
+وقت التشغيل، بحيث تغيب مسارات التعليمات البرمجية ذات الامتيازات فعليًا عن الحزمة.
 راجع [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-للاطلاع على خطوات النشر.
+لمعرفة وصفة النشر.
 
 ## المراجع
 

@@ -27,6 +27,9 @@ export interface SyncedAvailableModel {
   // #4264: image-input capability captured at sync time (e.g. OpenRouter
   // `architecture.input_modalities`/`modality`) so the catalog can surface vision.
   supportsVision?: boolean;
+  dimensions?: number;
+  supportedInputTypes?: string[];
+  modelType?: "chat" | "embedding" | "image" | "rerank";
 }
 
 export type SyncedAvailableModelInput = Omit<SyncedAvailableModel, "source"> & {
@@ -99,6 +102,19 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
     ...(typeof record.supportsVideo === "boolean" ? { supportsVideo: record.supportsVideo } : {}),
     ...(record.isFree === true ? { isFree: true } : {}),
     ...(record.supportsVision === true ? { supportsVision: true } : {}),
+    ...(typeof record.dimensions === "number" && record.dimensions > 0
+      ? { dimensions: record.dimensions }
+      : {}),
+    ...(Array.isArray(record.supportedInputTypes)
+      ? {
+          supportedInputTypes: record.supportedInputTypes.filter(
+            (t): t is string => typeof t === "string" && t.length > 0
+          ),
+        }
+      : {}),
+    ...(typeof record.modelType === "string"
+      ? { modelType: record.modelType as "chat" | "embedding" | "image" | "rerank" }
+      : {}),
   };
 }
 

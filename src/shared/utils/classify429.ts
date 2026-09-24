@@ -103,6 +103,12 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /\bTPD rate limit\b/i,
   /insufficient balance/i,
 
+  // xAI Grok Build free-tier per-model rolling 24h cap. Live body:
+  // "You've used all the included free usage for model grok-4.6 for now.
+  //  Usage resets over a rolling 24-hour window — tokens (actual/limit): N/M."
+  /used all the included free usage/i,
+  /resets over a rolling 24-hour window/i,
+
   // ── CJK quota-exhaustion patterns (#13194) ────────────────────────────
   // Chinese (simplified) providers (z.ai/GLM, Kimi/Moonshot, Qwen/DashScope,
   // MiniMax) return 429 bodies entirely in Chinese. Without these, the

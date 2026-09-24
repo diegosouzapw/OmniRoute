@@ -432,8 +432,9 @@ export const updateComboSchema = z
     // so the one endpoint a client can flip it through stripped the field and
     // a visibility-only update was rejected as empty. #12836
     isHidden: z.boolean().optional(),
-    allowedProviders: z.array(z.string().trim().min(1).max(200)).max(100).optional(),
-    allowedModelFamilies: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
+    allowedProviders: z.array(z.string().trim().min(1).max(200)).max(100).optional().nullable(),
+    allowedModelFamilies: z.array(z.string().trim().min(1).max(100)).max(100).optional().nullable(),
+    overrideAllowedProviders: z.boolean().optional(),
     // Nullable like `description` and `context_length` above: an absent field means
     // "leave unchanged" because updateCombo merges over the stored record, so clearing
     // one needs an explicit null for updateCombo's null-means-delete pass (#12158).

@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (हिन्दी)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -25,7 +25,13 @@
 
 ---
 
-## शीघ्र संचालन
+## त्वरित संचालन
+
+> **एक ही कमांड से स्वयं होस्ट करना चाहते हैं?** देखें
+> [स्वयं-होस्ट मार्गदर्शिका](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (प्रकाशित इमेज +
+> Redis, केवल लूपबैक, कोई प्रोफ़ाइल चयन नहीं)। नीचे दिया गया त्वरित संचालन उन
+> उपयोगकर्ताओं के लिए एकल-कंटेनर तरीका है, जो Redis को पहले से कहीं और चला रहे हैं।
 
 ```bash
 docker run -d \
@@ -59,11 +65,14 @@ docker run -d \
 # बेस प्रोफ़ाइल (कोई CLI टूल नहीं)
 docker compose --profile base up -d
 
-# CLI प्रोफ़ाइल (Claude Code, Codex, OpenClaw अंतर्निहित हैं)
+# CLI प्रोफ़ाइल (Claude Code, Codex, OpenClaw अंतर्निहित)
 docker compose --profile cli up -d
 
-# होस्ट प्रोफ़ाइल (मुख्यतः Linux के लिए; होस्ट CLI बाइनरी को केवल-पढ़ने योग्य रूप में माउंट करता है)
+# होस्ट प्रोफ़ाइल (Linux-प्रथम; होस्ट CLI बाइनरीज़ को केवल-पढ़ने के लिए माउंट करता है)
 docker compose --profile host up -d
+
+# वेब प्रोफ़ाइल (वेब-सेशन प्रदाताओं के लिए Chromium/Playwright)
+docker compose --profile web up -d
 
 # CLI + CLIProxyAPI साइडकार को संयोजित करें
 docker compose --profile cli --profile cliproxyapi up -d
@@ -71,14 +80,15 @@ docker compose --profile cli --profile cliproxyapi up -d
 
 ## उपलब्ध प्रोफ़ाइल
 
-OmniRoute चार Compose प्रोफ़ाइल के साथ आता है। वह प्रोफ़ाइल चुनें जो आपके परिवेश के अनुकूल हो।
+OmniRoute मुख्य डिप्लॉयमेंट प्रकारों के लिए Compose प्रोफ़ाइल प्रदान करता है। अपने परिवेश से मेल खाने वाली प्रोफ़ाइल चुनें।
 
-| प्रोफ़ाइल         | सेवा             | कब उपयोग करें                                                                                                                                          | कमांड                                        |
-| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| `base` (डिफ़ॉल्ट) | `omniroute-base` | हेडलेस सर्वर / न्यूनतम रनटाइम, कोई प्रदाता CLI बंडल नहीं                                                                                               | `docker compose --profile base up -d`        |
-| `cli`             | `omniroute-cli`  | एजेंटिक वर्कफ़्लो जो `omniroute providers/setup/doctor` और बंडल किए गए CLI (Codex, Claude Code, Droid, OpenClaw) को कॉल करते हैं                       | `docker compose --profile cli up -d`         |
-| `host`            | `omniroute-host` | वे Linux होस्ट जो `~/.local/bin`, `~/.codex`, `~/.claude` आदि को केवल-पढ़ने योग्य रूप में माउंट करके होस्ट CLI तक `network_mode` जैसा एक्सेस चाहते हैं | `docker compose --profile host up -d`        |
-| `cliproxyapi`     | `cliproxyapi`    | अपस्ट्रीम CLI प्रॉक्सी के लिए पोर्ट `8317` पर [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) साइडकार चलाएँ                                | `docker compose --profile cliproxyapi up -d` |
+| प्रोफ़ाइल         | सेवा             | कब उपयोग करें                                                                                                                                                 | कमांड                                        |
+| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (डिफ़ॉल्ट) | `omniroute-base` | हेडलेस सर्वर / न्यूनतम रनटाइम, कोई प्रोवाइडर CLI बंडल नहीं                                                                                                    | `docker compose --profile base up -d`        |
+| `cli`             | `omniroute-cli`  | एजेंट-आधारित वर्कफ़्लो जो `omniroute providers/setup/doctor` और बंडल किए गए CLI (Codex, Claude Code, Droid, OpenClaw) का उपयोग करते हैं                       | `docker compose --profile cli up -d`         |
+| `host`            | `omniroute-host` | वे Linux होस्ट जिन्हें `~/.local/bin`, `~/.codex`, `~/.claude` आदि को केवल-पढ़ने योग्य रूप में माउंट करके होस्ट CLI तक `network_mode` जैसी पहुँच चाहिए        | `docker compose --profile host up -d`        |
+| `cliproxyapi`     | `cliproxyapi`    | अपस्ट्रीम CLI प्रॉक्सी के लिए पोर्ट `8317` पर [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) साइडकार चलाएँ                                       | `docker compose --profile cliproxyapi up -d` |
+| `web`             | `omniroute-web`  | वे वेब-सेशन प्रोवाइडर जिन्हें ब्राउज़र की आवश्यकता होती है: `gemini-web`, `claude-web`, `claude-turnstile` (`runner-web` को बिल्ड करता है, Chromium शामिल है) | `docker compose --profile web up -d`         |
 
 > एकाधिक प्रोफ़ाइल को संयोजित किया जा सकता है: `docker compose --profile cli --profile cliproxyapi up -d`।
 
@@ -227,51 +237,52 @@ docker compose -f docker-compose.prod.yml down
 
 ## Dockerfile चरण
 
-रिपॉज़िटरी एक multi-stage Dockerfile (`Dockerfile`) प्रदान करती है। तीन चरण उपलब्ध हैं; अपने उपयोग के अनुसार सही `target` चुनें।
+रिपॉज़िटरी एक बहु-चरणीय Dockerfile (`Dockerfile`) प्रदान करती है। चार चरण उपलब्ध हैं; अपने उपयोग के अनुरूप सही `target` चुनें।
 
-| चरण           | बेस इमेज              | उद्देश्य                                                                                                                                                                      |
-| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | निर्भरताएँ इंस्टॉल करता है (`npm ci --legacy-peer-deps`) और `npm run build` चलाता है (डिफ़ॉल्ट रूप से Turbopack — नीचे बिल्ड-समय संसाधन देखें)                                |
-| `runner-base` | `node:26-trixie-slim` | Next.js के standalone आउटपुट के साथ प्रोडक्शन रनटाइम। **कोई provider CLI शामिल नहीं है।**                                                                                     |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` और global CLI जोड़ता है: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`। **एजेंट-आधारित वर्कफ़्लो के लिए इसे चुनें।** |
+| चरण           | आधार इमेज             | उद्देश्य                                                                                                                                                                                                                                                                               |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | निर्भरताएँ इंस्टॉल करता है (`npm ci --legacy-peer-deps`) और `npm run build` चलाता है (डिफ़ॉल्ट रूप से Turbopack — नीचे बिल्ड-समय संसाधन देखें)                                                                                                                                         |
+| `runner-base` | `node:26-trixie-slim` | Next.js के standalone आउटपुट के साथ प्रोडक्शन रनटाइम। **कोई प्रदाता CLI बंडल नहीं किया गया है।**                                                                                                                                                                                       |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` और ग्लोबल CLI जोड़ता है: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`। **एजेंट-आधारित वर्कफ़्लो के लिए इसे चुनें।**                                                                                                          |
+| `runner-web`  | `runner-base`         | वेब-सेशन प्रदाताओं के लिए Playwright + Chromium ब्राउज़र (`--with-deps`) जोड़ता है: `gemini-web`, `claude-web`, `claude-turnstile`। **इन प्रदाताओं का उपयोग करते समय इसे चुनें** — इसके बिना सामान्य इमेज अनुरोध के समय विफल हो जाती है (रिलीज़ चैनल के अंतर्गत `-web` टिप्पणी देखें)। |
 
 किसी विशिष्ट target को मैन्युअल रूप से बिल्ड करें:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### बिल्ड-समय संसाधन
 
-तीन build arg नियंत्रित करते हैं कि `builder` चरण कितने संसाधन इस्तेमाल करता है। ये केवल बिल्ड-समय के लिए हैं —
+तीन build args नियंत्रित करते हैं कि `builder` चरण कितने संसाधन उपयोग करता है। ये केवल बिल्ड-समय के लिए हैं —
 `OMNIROUTE_MEMORY_MB` (नीचे) एक अलग रनटाइम नियंत्रण है।
 
-| Build arg                   | डिफ़ॉल्ट | प्रभाव                                                                                                |
-| --------------------------- | -------- | ----------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` इसके बजाय webpack के साथ बिल्ड करता है। अधिकतम मेमोरी कम, गति धीमी।                               |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | शुरू किए गए `next build` के लिए V8 heap सीमा (`--max-old-space-size`)।                                |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`      | `CIRCLE_NODE_TOTAL` को मान देता है; Next page-data संग्रह के लिए `workers = N - 1` निर्धारित करता है। |
+| Build arg                   | डिफ़ॉल्ट | प्रभाव                                                                                               |
+| --------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` इसके बजाय webpack के साथ बिल्ड करता है। कम अधिकतम मेमोरी, लेकिन धीमा।                            |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | शुरू किए गए `next build` के लिए V8 heap सीमा (`--max-old-space-size`)।                               |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | `CIRCLE_NODE_TOTAL` को मान देता है; Next पेज-डेटा संग्रह के लिए `workers = N - 1` निर्धारित करता है। |
 
-बड़े builder पर `OMNIROUTE_BUILD_WORKERS` को बढ़ाना चाहिए और सीमित संसाधनों वाला बिल्ड
-**`✓ Compiled successfully` के बाद** विफल होने पर सबसे पहले इसी पर संदेह करना चाहिए। प्रत्येक
-page-data worker अपनी अलग प्रक्रिया है और मूल `next build` भी एक अलग प्रक्रिया है;
-एक वास्तविक VPS पुनरुत्पादन (issue #7518) में प्रत्येक प्रक्रिया का अधिकतम RSS
-~4.5 GB मापा गया, जो `NODE_OPTIONS` heap flag से स्वतंत्र था (Turbopack, V8 heap के
-बाहर native/Rust मेमोरी में संकलित करता है)। `2` का डिफ़ॉल्ट (→ 1 worker, कुल 2
-प्रक्रियाएँ) उन 16 GB / 4 vCPU GitHub-hosted runners के लिए निर्धारित है जिनका
-publish pipeline उपयोग करती है। `8` पर (→ 7 workers) उस runner की मेमोरी समाप्त हो गई और
+बड़े builder पर `OMNIROUTE_BUILD_WORKERS` का मान बढ़ाना चाहिए और सीमित संसाधनों वाला बिल्ड **`✓ Compiled successfully` के बाद** बंद हो जाए, तो सबसे पहले इसी पर संदेह करना चाहिए। प्रत्येक
+पेज-डेटा worker अपनी अलग प्रक्रिया है, और मूल `next build` भी अलग प्रक्रिया है;
+एक सक्रिय VPS पुनरुत्पादन (issue #7518) में प्रत्येक प्रक्रिया का अधिकतम RSS
+लगभग 4.5 GB मापा गया, जो `NODE_OPTIONS` heap flag से स्वतंत्र था (Turbopack,
+V8 heap के बाहर native/Rust मेमोरी में कंपाइल करता है)। `2` का डिफ़ॉल्ट मान (→ 1 worker, कुल 2
+प्रक्रियाएँ) उन 16 GB / 4 vCPU GitHub-hosted runners के लिए निर्धारित किया गया है जिनका
+उपयोग publish pipeline करती है। `8` पर (→ 7 workers) उस runner की मेमोरी समाप्त हो गई और
 buildkit ने `ResourceExhausted: ... cannot allocate memory` के साथ चरण को विफल कर दिया;
-प्रति-प्रक्रिया RSS का अनुमान लगाने के बजाय उसे सीधे मापने पर `3` (→ 2 workers) भी
-फिट नहीं हुआ। `tests/unit/docker-build-memory-budget.test.ts`
-मापे गए आँकड़े के आधार पर गणना करता है और किसी भी नियंत्रण के runner की क्षमता से
-अधिक होने पर विफल हो जाता है।
+प्रति-प्रक्रिया RSS को अनुमान लगाने के बजाय सीधे मापने पर `3` (→ 2 workers) भी पर्याप्त नहीं था।
+`tests/unit/docker-build-memory-budget.test.ts`
+मापे गए आँकड़े के आधार पर गणना करता है और किसी भी नियंत्रण के
+runner की क्षमता से अधिक होने पर विफल हो जाता है।
 
-Turbopack ऐसी native Rust मेमोरी में संकलित करता है जो V8 heap के **बाहर** होती है, इसलिए
-`OMNIROUTE_BUILD_MEMORY_MB` उसे सीमित नहीं करता। मेमोरी सीमा वाले host पर
-OOM killer द्वारा बिल्ड को बिना किसी error text के SIGKILL कर दिया जाता है — यह बस
-`Creating an optimized production build` के बीच में रुक जाता है, जो out-of-memory
-समस्या के बजाय hang जैसा दिखाई देता है। यदि build host के संसाधन सीमित हैं, तो bundler बदलें:
+Turbopack ऐसी native Rust मेमोरी में कंपाइल करता है जो V8 heap के **बाहर** रहती है, इसलिए
+`OMNIROUTE_BUILD_MEMORY_MB` इसे सीमित नहीं करता। मेमोरी सीमा वाले होस्ट पर
+बिल्ड को OOM killer बिना किसी त्रुटि संदेश के SIGKILL कर देता है — यह बस
+`Creating an optimized production build` के बीच में रुक जाता है, जो
+मेमोरी समाप्त होने के बजाय अटकने जैसा प्रतीत होता है। यदि बिल्ड होस्ट के संसाधन सीमित हैं, तो bundler बदलें:
 
 ```bash
 docker build --target runner-base \
@@ -279,17 +290,17 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` सक्षम है, इसलिए `next build` एक मूल प्रक्रिया **और** एक worker
-प्रक्रिया चलाता है तथा दोनों अलग-अलग `OMNIROUTE_BUILD_MEMORY_MB` का पालन करते हैं। container
-सीमा को उस मान के लगभग दोगुने से अधिक रखें, न कि केवल एक गुना।
+`webpackBuildWorker` सक्षम है, इसलिए `next build` एक मूल **और** एक worker
+प्रक्रिया चलाता है और प्रत्येक अलग-अलग `OMNIROUTE_BUILD_MEMORY_MB` का पालन करती है। कंटेनर
+की सीमा इस मान के लगभग दोगुने से अधिक रखें, केवल एक गुना नहीं।
 
 इस tree पर मापा गया (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Container सीमा | परिणाम                                |
-| --------- | -------------- | ------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | दोनों पर बिना संदेश के OOM-killed हुआ |
-| webpack   | 8 GiB          | build worker SIGKILLed हुआ            |
-| webpack   | 12 GiB         | सफल रहा, अधिकतम उपयोग 11.1 GiB रहा    |
+| Bundler   | कंटेनर सीमा    | परिणाम                            |
+| --------- | -------------- | --------------------------------- |
+| Turbopack | 8 GiB / 16 GiB | दोनों पर बिना संदेश के OOM-killed |
+| webpack   | 8 GiB          | build worker को SIGKILL किया गया  |
+| webpack   | 12 GiB         | सफल, अधिकतम उपयोग 11.1 GiB रहा    |
 
 ### रनटाइम डिफ़ॉल्ट
 
@@ -298,24 +309,24 @@ docker build --target runner-base \
 Docker में मेमोरी का व्यवहार:
 
 - इमेज `OMNIROUTE_MEMORY_MB=1024` सेट करती है और उससे `NODE_OPTIONS=--max-old-space-size=1024` प्राप्त करती है।
-- वास्तविक server प्रक्रिया standalone launcher द्वारा शुरू की जाती है, जो `OMNIROUTE_MEMORY_MB` पढ़ता है और `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` जोड़ता है।
-- Node अंतिम बार दोहराए गए `--max-old-space-size` मान का उपयोग करता है, इसलिए `OMNIROUTE_MEMORY_MB` सेट करने से प्रभावी Docker heap सीमा नियंत्रित होती है।
-- चूँकि इमेज इसे हमेशा सेट करती है, इसलिए launcher का अपना RAM के अनुसार कैलिब्रेट किया गया fallback Docker के अंतर्गत कभी लागू नहीं होता। workload के लिए इसे स्पष्ट रूप से बढ़ाएँ (नीचे दी गई तालिका)। coding-agent `/v1/responses` के लिए `2048` भी बहुत कम है।
+- वास्तविक सर्वर प्रोसेस को standalone launcher द्वारा शुरू किया जाता है, जो `OMNIROUTE_MEMORY_MB` पढ़ता है और `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` जोड़ता है।
+- Node दोहराए गए `--max-old-space-size` के अंतिम मान का उपयोग करता है, इसलिए `OMNIROUTE_MEMORY_MB` सेट करना प्रभावी Docker heap सीमा को नियंत्रित करता है।
+- चूँकि इमेज इसे हमेशा सेट करती है, इसलिए launcher का अपना RAM-अनुसार समायोजित fallback Docker के अंतर्गत कभी लागू नहीं होता। workload के लिए इसे स्पष्ट रूप से बढ़ाएँ (नीचे दी गई तालिका देखें)। coding-agent `/v1/responses` के लिए `2048` अभी भी बहुत कम है।
 
-### कोडिंग एजेंट के लिए रनटाइम RAM
+### coding agents के लिए runtime RAM
 
-1 GiB का Docker डिफ़ॉल्ट dashboard/हल्की chat के लिए न्यूनतम स्तर है, प्रोडक्शन आकार नहीं। लंबे `POST /v1/responses` body (सैकड़ों messages, दर्जनों tools) compression के दौरान कई in-memory graph बनाए रखते हैं। एक साथ चल रहे दो ~3 MiB / ~750k-token requests ने **12 GiB** old-space पर V8 को निरस्त कर दिया है (`FATAL ERROR: Reached heap limit`) और 16 GiB cgroup OOM सीमा भी पार की है। [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) देखें।
+1 GiB Docker डिफ़ॉल्ट dashboard/हल्की chat के लिए न्यूनतम सीमा है, production आकार नहीं। लंबे `POST /v1/responses` bodies (सैकड़ों messages, दर्जनों tools) compression के दौरान एकाधिक in-memory graphs बनाए रखते हैं। एक साथ चलने वाले ~3 MiB / ~750k-token के दो requests ने **12 GiB** old-space पर V8 को abort किया है (`FATAL ERROR: Reached heap limit`) और 16 GiB cgroup OOM भी उत्पन्न किया है। [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) देखें।
 
-**cgroup `--memory` को heap से अधिक रखें** — native buffers, SQLite और compression के मध्यवर्ती डेटा V8 के बाहर रहते हैं।
+**cgroup `--memory` का आकार heap से अधिक रखें** — native buffers, SQLite और compression intermediates V8 के बाहर रहते हैं।
 
-| कार्यभार                            | `OMNIROUTE_MEMORY_MB`  | कंटेनर / cgroup          | टिप्पणियाँ                                                                                                             |
-| ----------------------------------- | ---------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| डैशबोर्ड, एक हल्की चैट              | `1024` (इमेज डिफ़ॉल्ट) | ≥2 GiB                   |                                                                                                                        |
-| एक कोडिंग एजेंट (Claude/Codex/Grok) | `8192`                 | ≥10 GiB                  | सामान्य एकल-सत्र `/v1/responses`                                                                                       |
-| दो समवर्ती लंबे `/v1/responses`     | `10240`–`12288`        | ≥12–16 GiB               | लगभग 12 GiB हीप पर V8 का रुकना मापा गया                                                                                |
-| तीन+ समवर्ती लंबे कॉन्टेक्स्ट       | एक प्रोसेस पर न चलाएँ  | क्रमबद्ध करें / अधिक RAM | डिफ़ॉल्ट रूप से हेवीवेट एडमिशन में 1 अनुरोध प्रगति पर रहता है; RAM बढ़ाए बिना इसे बढ़ाने पर रुकने की समस्या फिर आती है |
+| Workload                             | `OMNIROUTE_MEMORY_MB`  | Container / cgroup             | टिप्पणियाँ                                                                                                                   |
+| ------------------------------------ | ---------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard, एक हल्की chat             | `1024` (इमेज डिफ़ॉल्ट) | ≥2 GiB                         |                                                                                                                              |
+| एक coding agent (Claude/Codex/Grok)  | `8192`                 | ≥10 GiB                        | सामान्य single-session `/v1/responses`                                                                                       |
+| दो concurrent लंबे `/v1/responses`   | `10240`–`12288`        | ≥12–16 GiB                     | ~12 GiB heap पर मापा गया V8 abort                                                                                            |
+| तीन या अधिक concurrent लंबे contexts | एक process पर न चलाएँ  | क्रमिक रूप से चलाएँ / अधिक RAM | डिफ़ॉल्ट heavyweight admission में 1 in-flight अनुरोध अनुमत है; पर्याप्त RAM के बिना इसे बढ़ाने पर abort फिर से होने लगता है |
 
-बेयर मेटल पर `omniroute serve`, `OMNIROUTE_MEMORY_MB` के **सेट न होने** पर RAM के ~35% पर कैलिब्रेट करता है (जिसे `[512, 4096]` के बीच सीमित किया जाता है)। Docker हमेशा `1024` सेट करता है, इसलिए आधिकारिक इमेज में वह कैलिब्रेशन कभी नहीं चलता।
+bare metal पर `omniroute serve`, `OMNIROUTE_MEMORY_MB` के **unset** होने पर RAM के ~35% के अनुसार समायोजित होता है (`[512, 4096]` की सीमा में)। Docker हमेशा `1024` सेट करता है, इसलिए आधिकारिक इमेज में यह समायोजन कभी नहीं होता।
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -325,24 +336,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## महत्वपूर्ण एनवायरनमेंट वेरिएबल
 
-[ENVIRONMENT.md](../reference/ENVIRONMENT.md) में दस्तावेज़ीकृत डिफ़ॉल्ट के अतिरिक्त, Docker के अंतर्गत चलाते समय निम्नलिखित वेरिएबल सबसे महत्वपूर्ण हैं:
+[ENVIRONMENT.md](../reference/ENVIRONMENT.md) में प्रलेखित डिफ़ॉल्ट के अतिरिक्त, Docker के अंतर्गत चलाते समय निम्नलिखित वेरिएबल सबसे महत्वपूर्ण हैं:
 
-| वेरिएबल                       | उद्देश्य                                                                                                                                                                                                                                                                             | डिफ़ॉल्ट                      |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket ब्रिज के लिए साझा सीक्रेट। **प्रोडक्शन में आवश्यक** — इसे एक मज़बूत रैंडम स्ट्रिंग पर सेट करें।                                                                                                                                                                            | सेट नहीं (प्रदान करना आवश्यक) |
-| `REDIS_URL`                   | रेट लिमिटर / कैश बैकएंड के लिए कनेक्शन स्ट्रिंग                                                                                                                                                                                                                                      | `redis://redis:6379`          |
-| `REDIS_PORT`                  | बंडल किए गए Redis कंटेनर के लिए होस्ट-साइड पोर्ट                                                                                                                                                                                                                                     | `6379`                        |
-| `REDIS_BIND_HOST`             | वह होस्ट इंटरफ़ेस जिस पर बंडल किया गया Redis पोर्ट प्रकाशित होता है (जब तक आप AUTH नहीं जोड़ते, लूपबैक)                                                                                                                                                                              | `127.0.0.1`                   |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | स्व-अपडेट वर्कफ़्लो के लिए `cli` प्रोफ़ाइल में `/workspace/omniroute` पर माउंट किया गया होस्ट पाथ                                                                                                                                                                                    | `.` (वर्तमान डायरेक्टरी)      |
-| `OMNIROUTE_MEMORY_MB`         | Docker स्टैंडअलोन सर्वर के लिए रनटाइम Node हीप की अधिकतम सीमा; ऊपर दिए गए इमेज डिफ़ॉल्ट को ओवरराइड करती है। कोडिंग एजेंट: `8192`+ ([रनटाइम RAM](#runtime-ram-for-coding-agents) देखें)।                                                                                              | `1024`                        |
-| `DASHBOARD_PORT` / `API_PORT` | डैशबोर्ड (20128) और API (20129) के लिए एक्सपोज़ किए गए पोर्ट को ओवरराइड करता है                                                                                                                                                                                                      | `20128` / `20129`             |
-| `APP_BIND_HOST`               | वह होस्ट इंटरफ़ेस जिस पर docker-compose डैशबोर्ड/API/live-WS पोर्ट प्रकाशित करता है। `REQUIRE_API_KEY=false` (डिफ़ॉल्ट) होने पर, `0.0.0.0` अनाम `/v1` प्रॉक्सी को LAN पर एक्सपोज़ करता है — इसे केवल `REQUIRE_API_KEY=true` के साथ या सामने रिवर्स प्रॉक्सी होने पर ही विस्तृत करें। | `127.0.0.1`                   |
-| `CLIPROXY_BIND_HOST`          | वह होस्ट इंटरफ़ेस जिस पर docker-compose `cliproxyapi` साइडकार प्रकाशित करता है — इसका डेटा वॉल्यूम प्रोवाइडर क्रेडेंशियल संग्रहीत करता है।                                                                                                                                           | `127.0.0.1`                   |
-| `OMNIROUTE_PLUGINS_DIR`       | वह डायरेक्टरी जिसे रनटाइम प्लगइन स्कैनर पढ़ता है और जिसमें इंस्टॉल करता है। जब प्लगइन bind-mount किए गए हों, तो इसे सेट करें: डिफ़ॉल्ट `HOME` का अनुसरण करता है, जिसे किसी इमेज द्वारा एक्सपोर्ट करना आवश्यक नहीं है।                                                                | `~/.omniroute/plugins`        |
-| `OMNIROUTE_BASE_PATH`         | जब ऐप को रिवर्स प्रॉक्सी के पीछे प्रकाशित किया जाता है, तब URL सबपाथ (उदा. `/omniroute`)                                                                                                                                                                                             | _(रिक्त = रूट)_               |
-| `NEXT_PUBLIC_BASE_URL`        | सबपाथ सहित सार्वजनिक ब्राउज़र ओरिजिन (उदा. `https://host/omniroute`)                                                                                                                                                                                                                 | सेट नहीं                      |
-| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml` के लिए होस्ट-साइड डैशबोर्ड पोर्ट                                                                                                                                                                                                                           | `20130`                       |
-| `CLIPROXYAPI_PORT`            | `cliproxyapi` साइडकार के लिए होस्ट-साइड पोर्ट                                                                                                                                                                                                                                        | `8317`                        |
+| वेरिएबल                       | उद्देश्य                                                                                                                                                                                                                                                                          | डिफ़ॉल्ट                         |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket ब्रिज के लिए साझा सीक्रेट। **प्रोडक्शन में आवश्यक** — इसे एक सशक्त रैंडम स्ट्रिंग पर सेट करें।                                                                                                                                                                          | सेट नहीं (प्रदान करना आवश्यक है) |
+| `REDIS_URL`                   | रेट लिमिटर / कैश बैकएंड के लिए कनेक्शन स्ट्रिंग                                                                                                                                                                                                                                   | `redis://redis:6379`             |
+| `REDIS_PORT`                  | बंडल किए गए Redis कंटेनर के लिए होस्ट-साइड पोर्ट                                                                                                                                                                                                                                  | `6379`                           |
+| `REDIS_BIND_HOST`             | वह होस्ट इंटरफ़ेस जिस पर बंडल किया गया Redis पोर्ट प्रकाशित होता है (जब तक आप AUTH नहीं जोड़ते, लूपबैक)                                                                                                                                                                           | `127.0.0.1`                      |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | स्व-अपडेट वर्कफ़्लो के लिए `/workspace/omniroute` पर `cli` प्रोफ़ाइल में माउंट किया गया होस्ट पथ                                                                                                                                                                                  | `.` (वर्तमान डायरेक्टरी)         |
+| `OMNIROUTE_MEMORY_MB`         | Docker स्टैंडअलोन सर्वर के लिए रनटाइम Node हीप की अधिकतम सीमा; ऊपर दिए गए इमेज डिफ़ॉल्ट को ओवरराइड करती है। कोडिंग एजेंट: `8192`+ ([रनटाइम RAM](#runtime-ram-for-coding-agents) देखें)।                                                                                           | `1024`                           |
+| `DASHBOARD_PORT` / `API_PORT` | डैशबोर्ड (20128) और API (20129) के लिए एक्सपोज़ किए गए पोर्ट को ओवरराइड करता है                                                                                                                                                                                                   | `20128` / `20129`                |
+| `APP_BIND_HOST`               | वह होस्ट इंटरफ़ेस जिस पर docker-compose डैशबोर्ड/API/live-WS पोर्ट प्रकाशित करता है। `REQUIRE_API_KEY=false` (डिफ़ॉल्ट) के साथ, `0.0.0.0` अनाम `/v1` प्रॉक्सी को LAN पर एक्सपोज़ करता है — इसे केवल `REQUIRE_API_KEY=true` के साथ या आगे रिवर्स प्रॉक्सी होने पर ही विस्तृत करें। | `127.0.0.1`                      |
+| `CLIPROXY_BIND_HOST`          | वह होस्ट इंटरफ़ेस जिस पर docker-compose `cliproxyapi` साइडकार को प्रकाशित करता है — इसका डेटा वॉल्यूम प्रोवाइडर क्रेडेंशियल संग्रहीत करता है।                                                                                                                                     | `127.0.0.1`                      |
+| `OMNIROUTE_PLUGINS_DIR`       | वह डायरेक्टरी जिसे रनटाइम प्लगइन स्कैनर पढ़ता है और जिसमें इंस्टॉल करता है। प्लगइन के बाइंड-माउंट होने पर इसे सेट करें: डिफ़ॉल्ट `HOME` का अनुसरण करता है, जिसे किसी इमेज द्वारा एक्सपोर्ट किया जाना आवश्यक नहीं है।                                                              | `~/.omniroute/plugins`           |
+| `OMNIROUTE_BASE_PATH`         | ऐप को रिवर्स प्रॉक्सी के पीछे प्रकाशित किए जाने पर URL उपपथ (उदा. `/omniroute`)                                                                                                                                                                                                   | _(खाली = रूट)_                   |
+| `NEXT_PUBLIC_BASE_URL`        | उपपथ सहित सार्वजनिक ब्राउज़र ओरिजिन (उदा. `https://host/omniroute`)                                                                                                                                                                                                               | सेट नहीं                         |
+| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml` के लिए होस्ट-साइड डैशबोर्ड पोर्ट                                                                                                                                                                                                                        | `20130`                          |
+| `CLIPROXYAPI_PORT`            | `cliproxyapi` साइडकार के लिए होस्ट-साइड पोर्ट                                                                                                                                                                                                                                     | `8317`                           |
 
 ## सबपाथ पर रिवर्स प्रॉक्सी (Traefik / nginx)
 
@@ -471,31 +482,44 @@ Docker डिप्लॉयमेंट के लिए डैशबोर्�
 | इमेज                     | टैग      | आकार   | विवरण                                              |
 | ------------------------ | -------- | ------ | -------------------------------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | उच्चतम **प्रकाशित** स्थिर SemVer (git `main` नहीं) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps के लिए इस श्रेणी के टैग को पिन करें         |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps के लिए इस प्रकार के टैग को पिन करें         |
 
-मल्टी-प्लेटफ़ॉर्म मैनिफ़ेस्ट: `linux/amd64` + `linux/arm64` नेटिव (Apple Silicon, AWS Graviton, Raspberry Pi)। Docker स्वचालित रूप से मेल खाने वाला आर्किटेक्चर चुनता है; यदि आपको ARM होस्ट पर AMD64 एम्यूलेशन को बाध्य करना हो, तो `--platform linux/amd64` पास करें।
+मल्टी-प्लेटफ़ॉर्म मैनिफ़ेस्ट: नेटिव `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi)। Docker स्वचालित रूप से मेल खाने वाले आर्किटेक्चर का चयन करता है; यदि आपको ARM होस्ट पर AMD64 एमुलेशन को बाध्य करना हो, तो `--platform linux/amd64` पास करें।
 
 ### रिलीज़ चैनल
 
 OmniRoute स्थिर रिलीज़, सक्रिय रिलीज़-ब्रांच परीक्षण और डेवलपमेंट बिल्ड के लिए अलग-अलग Docker चैनल प्रकाशित करता है।
 
-| चैनल                            | स्रोत                                | परिवर्तनशीलता                  | अनुशंसित उपयोग                                                                                                              |
-| ------------------------------- | ------------------------------------ | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | हस्ताक्षरित/संस्करणयुक्त रिलीज़      | अपरिवर्तनीय                    | ऐसे प्रोडक्शन डिप्लॉयमेंट जो किसी सटीक रिलीज़ को पिन करते हैं                                                               |
-| `:latest` / `:latest-web`       | उच्चतम **प्रकाशित** स्थिर SemVer     | परिवर्तनशील स्थिर पॉइंटर       | SemVer प्रकाशन जॉब के **बाद** स्थिर रिलीज़ का अनुसरण करता है — `main` या अप्रकाशित `release/v*` कमिट को ट्रैक **नहीं** करता |
-| `:next` / `:next-web`           | वर्तमान डिफ़ॉल्ट `release/v*` ब्रांच | परिवर्तनशील प्री-रिलीज़ पॉइंटर | उन सुधारों का परीक्षण जो सक्रिय रिलीज़ ब्रांच में आ चुके हैं, लेकिन अभी तक स्थिर रिलीज़ में शामिल नहीं हैं                  |
-| `:main` / `:main-web`           | `main` ब्रांच                        | परिवर्तनशील डेवलपमेंट पॉइंटर   | केवल डेवलपमेंट और इंटीग्रेशन परीक्षण                                                                                        |
+| चैनल                            | स्रोत                                | परिवर्तनशीलता                  | अनुशंसित उपयोग                                                                                                               |
+| ------------------------------- | ------------------------------------ | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | हस्ताक्षरित/संस्करणित रिलीज़         | अपरिवर्तनीय                    | ऐसे प्रोडक्शन डिप्लॉयमेंट जो किसी सटीक रिलीज़ को पिन करते हैं                                                                |
+| `:latest` / `:latest-web`       | उच्चतम **प्रकाशित** स्थिर SemVer     | परिवर्तनशील स्थिर पॉइंटर       | SemVer प्रकाशन जॉब के **बाद** स्थिर रिलीज़ का अनुसरण करता है — `main` या अप्रकाशित `release/v*` कमिट का अनुसरण **नहीं** करता |
+| `:next` / `:next-web`           | वर्तमान डिफ़ॉल्ट `release/v*` ब्रांच | परिवर्तनशील प्री-रिलीज़ पॉइंटर | उन सुधारों का परीक्षण जो सक्रिय रिलीज़ ब्रांच पर आ चुके हैं, लेकिन अभी स्थिर रिलीज़ में शामिल नहीं हैं                       |
+| `:main` / `:main-web`           | `main` ब्रांच                        | परिवर्तनशील डेवलपमेंट पॉइंटर   | केवल डेवलपमेंट और इंटीग्रेशन परीक्षण के लिए                                                                                  |
 
-#### प्री-रिलीज़ चैनल का उपयोग करना
+#### वेब-सेशन प्रोवाइडर: `-web` इमेज
 
-`next` चैनल को वर्तमान डिफ़ॉल्ट `release/v*` ब्रांच पर प्रत्येक पुश के साथ फिर से बनाया जाता है और AMD64 तथा ARM64, दोनों के लिए प्रकाशित किया जाता है। पुरानी मेंटेनेंस ब्रांच इसे ओवरराइट नहीं कर सकतीं। यह चैनल उन सुधारों के लिए पुल की जा सकने वाली इमेज प्रदान करता है जिन्हें अगला स्थिर टैग बनाए जाने से पहले सक्रिय रिलीज़ ब्रांच में मर्ज किया जा चुका है।
+ऊपर दिया गया प्रत्येक चैनल `-web` टैग (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`) के रूप में भी उपलब्ध है, जिसे `runner-web` स्टेज से बनाया जाता है — वही इमेज, साथ में Playwright और Chromium ब्राउज़र। सामान्य इमेज Chromium के **बिना** आती है; `gemini-web`, `claude-web` और `claude-turnstile` को इसकी आवश्यकता होती है।
+
+विफलता स्टार्टअप के समय नहीं, बल्कि बाद में होती है: ये प्रोवाइडर अपने मॉडल सूचीबद्ध करते हैं और डैशबोर्ड में कनेक्टेड दिखाई देते हैं, और केवल पहला अनुरोध इस त्रुटि के साथ विफल होता है
+
+```
+[500]: बाहरी मॉड्यूल playwright लोड करने में विफल: त्रुटि: मॉड्यूल नहीं मिला
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+यदि आप इन प्रोवाइडर का उपयोग करते हैं, तो उसी चैनल का `-web` टैग पुल करें जिस पर आप पहले से हैं — अन्य कुछ नहीं बदलता। npm/CLI इंस्टॉल (Docker इमेज के बिना) में इसके समकक्ष अनुपस्थित घटक ब्राउज़र बाइनरी है: होस्ट पर `npx playwright install chromium` चलाएँ।
+
+#### प्री-रिलीज़ चैनल का उपयोग
+
+`next` चैनल वर्तमान डिफ़ॉल्ट `release/v*` ब्रांच पर प्रत्येक पुश के साथ फिर से बनाया जाता है और AMD64 तथा ARM64, दोनों के लिए प्रकाशित किया जाता है। पुरानी मेंटेनेंस ब्रांच इसे ओवरराइट नहीं कर सकतीं। यह चैनल उन सुधारों के लिए पुल की जा सकने वाली इमेज प्रदान करता है, जिन्हें अगला स्थिर टैग बनाए जाने से पहले सक्रिय रिलीज़ ब्रांच में मर्ज किया जा चुका है।
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Docker Compose के लिए, चयनित प्रोफ़ाइल द्वारा उपयोग किए जाने वाले इमेज टैग को ओवरराइड करें, फिर सर्विस को पुल करके दोबारा बनाएँ:
+Docker Compose के लिए, चयनित प्रोफ़ाइल द्वारा उपयोग किए गए इमेज टैग को ओवरराइड करें, फिर सर्विस को पुल करके दोबारा बनाएँ:
 
 ```yaml
 services:
@@ -510,30 +534,30 @@ docker compose up -d
 
 #### सुरक्षा और रोलबैक
 
-`next` एक फ़्लोटिंग प्री-रिलीज़ चैनल है। यह सक्रिय रिलीज़ ब्रांच पर किसी भी पुश के साथ बदल सकता है और **प्रोडक्शन उपयोग के लिए समर्थित नहीं है**। किसी विशिष्ट बिल्ड का मूल्यांकन करते समय इमेज डाइजेस्ट को पिन करें:
+`next` एक फ़्लोटिंग प्री-रिलीज़ चैनल है। यह सक्रिय रिलीज़ ब्रांच पर किसी भी पुश के साथ बदल सकता है और प्रोडक्शन उपयोग के लिए **समर्थित नहीं है**। किसी विशिष्ट बिल्ड का मूल्यांकन करते समय इमेज डाइजेस्ट को पिन करें:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-परीक्षण से पहले, OmniRoute डेटा वॉल्यूम या bind-mounted डेटा डायरेक्टरी का बैकअप लें। वापस रोल करने के लिए, पहले उपयोग किए गए स्थिर वर्ज़न या digest को पुनर्स्थापित करें और कंटेनर को दोबारा बनाएँ:
+परीक्षण से पहले OmniRoute डेटा वॉल्यूम या बाइंड-माउंट की गई डेटा डायरेक्टरी का बैकअप लें। रोलबैक करने के लिए, पहले उपयोग किए गए स्थिर संस्करण या डाइजेस्ट को पुनर्स्थापित करें और कंटेनर को दोबारा बनाएँ:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-release-branch बिल्ड कभी भी `latest` को स्थानांतरित नहीं कर सकता; केवल एक योग्य स्थिर semantic version ही स्थिर पॉइंटर को आगे बढ़ा सकता है। `next` इमेज में रिलीज़ इमेज निरीक्षण और CRITICAL कमज़ोरियों को अवरुद्ध करने वाला गेट बरकरार रहता है।
+रिलीज़-ब्रांच बिल्ड कभी भी `latest` को आगे नहीं बढ़ा सकता; केवल योग्य स्थिर सिमैंटिक संस्करण ही स्थिर पॉइंटर को प्रमोट कर सकता है। `next` इमेज में रिलीज़ इमेज निरीक्षण और अवरोधक CRITICAL-असुरक्षा गेट बरकरार रहते हैं।
 
-**`latest`, git के लिए नवीनता की गारंटी नहीं है।** `main` या सक्रिय `release/v*` ब्रांच पर मर्ज किए गए सुधार `:latest` में तब तक **नहीं** होते, जब तक कि एक स्थिर SemVer इमेज प्रकाशित न हो जाए और publish जॉब `:latest` को आगे न बढ़ा दे (उस SemVer के समान digest)। यदि `latest` स्थिर दिखाई देता है जबकि GitHub पर सुधार पहले से दिख रहा है, तो रिलीज़ ब्रांच का परीक्षण करने के लिए `:next` पुल करें या SemVer टैग की प्रतीक्षा करें।
+**`latest`, git के लिए नवीनतम होने की गारंटी नहीं है।** `main` या सक्रिय `release/v*` ब्रांच पर मर्ज किए गए सुधार `:latest` में तब तक **नहीं** आते, जब तक स्थिर SemVer इमेज प्रकाशित नहीं की जाती और प्रकाशन जॉब `:latest` को प्रमोट नहीं करता (उस SemVer के समान डाइजेस्ट)। यदि GitHub पर सुधार पहले से दिखाई देने के बावजूद `latest` रुका हुआ लगता है, तो रिलीज़ ब्रांच का परीक्षण करने के लिए `:next` पुल करें या SemVer टैग की प्रतीक्षा करें।
 
-| आपकी आवश्यकता                                                                        | इसका उपयोग करें                       |
-| ------------------------------------------------------------------------------------ | ------------------------------------- |
-| ऐसा GitOps / प्रोडक्शन जिसमें बदलाव नहीं होना चाहिए                                  | `:X.Y.Z` (या इमेज digest) को पिन करें |
-| प्रकाशित स्थिर रिलीज़ का अनुसरण करना और प्रत्येक रिलीज़ पर पुनर्निर्माण स्वीकार करना | `:latest`                             |
-| अप्रकाशित `release/v*` कमिट का परीक्षण करना                                          | `:next` (प्रोडक्शन के लिए नहीं)       |
-| `main` का परीक्षण करना                                                               | `:main` (प्रोडक्शन के लिए नहीं)       |
+| आपकी आवश्यकता                                                                        | उपयोग करें                           |
+| ------------------------------------------------------------------------------------ | ------------------------------------ |
+| ऐसा GitOps / प्रोडक्शन जिसमें बदलाव नहीं होना चाहिए                                  | `:X.Y.Z` (या इमेज डाइजेस्ट) पिन करें |
+| प्रकाशित स्थिर रिलीज़ का अनुसरण करना और प्रत्येक रिलीज़ पर पुनर्निर्माण स्वीकार करना | `:latest`                            |
+| अप्रकाशित `release/v*` कमिट का परीक्षण करना                                          | `:next` (प्रोडक्शन के लिए नहीं)      |
+| `main` का परीक्षण करना                                                               | `:main` (प्रोडक्शन के लिए नहीं)      |
 
 ## उपलब्धता: डिफ़ॉल्ट SQLite एकल-रेप्लिका है
 

@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Suomi)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -26,6 +26,12 @@
 ---
 
 ## Pikakäynnistys
+
+> **Itse ylläpidetty yhdellä komennolla?** Katso
+> [itseylläpito-opas](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (julkaistu levykuva +
+> Redis, vain loopback-yhteydet, ei profiilin valintaa). Alla oleva pikakäynnistys on
+> yhden säilön vaihtoehto käyttäjille, joilla Redis on jo käytössä muualla.
 
 ```bash
 docker run -d \
@@ -59,26 +65,30 @@ docker run -d \
 # Perusprofiili (ei CLI-työkaluja)
 docker compose --profile base up -d
 
-# CLI-profiili (sisäänrakennetut Claude Code, Codex ja OpenClaw)
+# CLI-profiili (Claude Code, Codex ja OpenClaw sisäänrakennettuina)
 docker compose --profile cli up -d
 
-# Isäntäprofiili (ensisijaisesti Linuxille; liittää isäntäjärjestelmän CLI-binäärit vain luku -tilassa)
+# Isäntäprofiili (ensisijaisesti Linuxille; liittää isännän CLI-binäärit vain luku -tilassa)
 docker compose --profile host up -d
 
-# Yhdistä CLI ja CLIProxyAPI-sivukontti
+# Verkkoprofiili (Chromium/Playwright verkkoistuntopalveluntarjoajia varten)
+docker compose --profile web up -d
+
+# Yhdistä CLI ja CLIProxyAPI-sivuvaunupalvelu
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
-## Käytettävissä olevat profiilit
+## Saatavilla olevat profiilit
 
-OmniRoute sisältää neljä Compose-profiilia. Valitse ympäristöösi sopiva profiili.
+OmniRoute sisältää Compose-profiilit yleisimpiä käyttöönottomalleja varten. Valitse ympäristöösi sopiva profiili.
 
-| Profiili        | Palvelu          | Käyttötilanne                                                                                                                                                                              | Komento                                      |
-| --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| `base` (oletus) | `omniroute-base` | Käyttöliittymätön palvelin / minimaalinen suoritusympäristö, joka ei sisällä palveluntarjoajien CLI-työkaluja                                                                              | `docker compose --profile base up -d`        |
-| `cli`           | `omniroute-cli`  | Agenttipohjaiset työnkulut, jotka kutsuvat `omniroute providers/setup/doctor` -komentoja ja mukana toimitettuja CLI-työkaluja (Codex, Claude Code, Droid, OpenClaw)                        | `docker compose --profile cli up -d`         |
-| `host`          | `omniroute-host` | Linux-isännät, jotka haluavat `network_mode`-tyyppisen pääsyn isäntäjärjestelmän CLI-työkaluihin liittämällä `~/.local/bin`-, `~/.codex`-, `~/.claude`- jne. hakemistot vain luku -tilassa | `docker compose --profile host up -d`        |
-| `cliproxyapi`   | `cliproxyapi`    | Suorita [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)-sivukontti portissa `8317` ylävirran CLI-välitystä varten                                                              | `docker compose --profile cliproxyapi up -d` |
+| Profiili        | Palvelu          | Milloin käytetään                                                                                                                                                                         | Komento                                      |
+| --------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (oletus) | `omniroute-base` | Käyttöliittymätön palvelin / minimaalinen ajoympäristö ilman mukana toimitettuja palveluntarjoajien komentorivityökaluja                                                                  | `docker compose --profile base up -d`        |
+| `cli`           | `omniroute-cli`  | Agenttipohjaiset työnkulut, jotka kutsuvat komentoja `omniroute providers/setup/doctor` ja mukana toimitettuja komentorivityökaluja (Codex, Claude Code, Droid, OpenClaw)                 | `docker compose --profile cli up -d`         |
+| `host`          | `omniroute-host` | Linux-isännät, jotka tarvitsevat `network_mode`-tyyppisen pääsyn isännän komentorivityökaluihin liittämällä `~/.local/bin`-, `~/.codex`-, `~/.claude`- jne. hakemistot vain luku -tilassa | `docker compose --profile host up -d`        |
+| `cliproxyapi`   | `cliproxyapi`    | Suorita [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)-sivupalvelu portissa `8317` ylävirran komentoriviliikenteen välittämistä varten                                       | `docker compose --profile cliproxyapi up -d` |
+| `web`           | `omniroute-web`  | Selaimen vaativat verkkoistuntopalveluntarjoajat: `gemini-web`, `claude-web`, `claude-turnstile` (koostaa `runner-web`-ympäristön, Chromium mukana)                                       | `docker compose --profile web up -d`         |
 
 > Useita profiileja voidaan yhdistää: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -227,51 +237,55 @@ Tuotantopino toimii rinnakkain kehitysympäristön Compose-pinon kanssa (eri kon
 
 ## Dockerfile-vaiheet
 
-Tietovarasto sisältää monivaiheisen Dockerfilen (`Dockerfile`). Käytettävissä on kolme vaihetta; valitse käyttötapaukseesi sopiva `target`.
+Tietovaraston mukana toimitetaan monivaiheinen Dockerfile (`Dockerfile`). Käytettävissä on neljä vaihetta; valitse käyttötapaukseesi sopiva `target`.
 
-| Vaihe         | Peruslevykuva         | Tarkoitus                                                                                                                                                                                             |
-| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Asentaa riippuvuudet (`npm ci --legacy-peer-deps`) ja suorittaa komennon `npm run build` (oletuksena Turbopack — katso jäljempänä kohta Käännösaikaiset resurssit)                                    |
-| `runner-base` | `node:26-trixie-slim` | Tuotantoajoympäristö, joka sisältää itsenäisen Next.js-tulosteen. **Palveluntarjoajien CLI-työkaluja ei sisällytetä.**                                                                                |
-| `runner-cli`  | `runner-base`         | Lisää työkalut `git`, `docker.io`, `docker-compose` sekä globaalit CLI-työkalut: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Valitse tämä agenttipohjaisiin työnkulkuihin.** |
+| Vaihe         | Peruslevykuva         | Tarkoitus                                                                                                                                                                                                                                                                                                                  |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Asentaa riippuvuudet (`npm ci --legacy-peer-deps`) ja suorittaa komennon `npm run build` (oletuksena Turbopack — katso alta Koontiaikaiset resurssit)                                                                                                                                                                      |
+| `runner-base` | `node:26-trixie-slim` | Tuotantoajoympäristö, joka sisältää itsenäisen Next.js-tulosteen. **Palveluntarjoajien CLI-työkaluja ei sisällytetä.**                                                                                                                                                                                                     |
+| `runner-cli`  | `runner-base`         | Lisää paketit `git`, `docker.io`, `docker-compose` sekä globaalit CLI-työkalut: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Valitse tämä agenttipohjaisiin työnkulkuihin.**                                                                                                                       |
+| `runner-web`  | `runner-base`         | Lisää Playwrightin ja Chromium-selaimen (`--with-deps`) verkkoistuntopalveluntarjoajia varten: `gemini-web`, `claude-web`, `claude-turnstile`. **Valitse tämä käyttäessäsi kyseisiä palveluntarjoajia** — tavallinen levykuva epäonnistuu pyyntöä käsiteltäessä ilman sitä (katso Julkaisukanavat-osion `-web`-huomautus). |
 
-Käännä tietty kohde manuaalisesti:
+Koosta tietty kohde manuaalisesti:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Käännösaikaiset resurssit
+### Koontiaikaiset resurssit
 
-Kolme käännösargumenttia hallitsee `builder`-vaiheen resurssikustannuksia. Ne vaikuttavat vain käännösaikana —
-`OMNIROUTE_MEMORY_MB` (jäljempänä) on erillinen ajonaikainen säädin.
+Kolme koontiargumenttia hallitsee `builder`-vaiheen resurssien kulutusta. Ne vaikuttavat vain koontiaikana —
+`OMNIROUTE_MEMORY_MB` (alla) on erillinen ajonaikainen asetus.
 
-| Käännösargumentti           | Oletus | Vaikutus                                                                                                      |
-| --------------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | Arvolla `0` käännös tehdään sen sijaan webpackilla. Pienempi muistin huippukäyttö, mutta hitaampi.            |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | V8-keon yläraja (`--max-old-space-size`) käynnistetylle `next build` -prosessille.                            |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Välitetään muuttujalle `CIRCLE_NODE_TOTAL`; Next johtaa siitä sivutietojen keruuseen arvon `workers = N - 1`. |
+| Koontiargumentti            | Oletus | Vaikutus                                                                                                        |
+| --------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`    | Arvo `0` koostaa webpackilla. Pienempi muistin huippukulutus, mutta hitaampi.                                   |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | V8-keon yläraja (`--max-old-space-size`) käynnistetylle `next build` -prosessille.                              |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Välitetään muuttujalle `CIRCLE_NODE_TOTAL`; Next johtaa siitä sivutietojen keräämiseen arvon `workers = N - 1`. |
 
-`OMNIROUTE_BUILD_WORKERS` on arvo, jota kannattaa kasvattaa tehokkaassa käännösympäristössä ja
-epäillä, kun rajoitetuilla resursseilla tehtävä käännös keskeytyy **sen jälkeen**, kun `✓ Compiled successfully` on näytetty. Jokainen
+`OMNIROUTE_BUILD_WORKERS` on asetus, jota kannattaa kasvattaa tehokkaassa koontiympäristössä ja
+epäillä, kun rajallisilla resursseilla suoritettava koonti keskeytyy **vaiheen** `✓ Compiled successfully` **jälkeen**. Jokainen
 sivutietojen käsittelijä on oma prosessinsa, samoin kuin ylätason `next build`;
-VPS-ympäristössä tehty toisto (ongelma #7518) mittasi kunkin prosessin RSS-muistin huippukäytöksi
-~4,5 GB riippumatta `NODE_OPTIONS`-kekolipusta (Turbopack kääntää
-V8-keon ulkopuolisessa natiivissa/Rust-muistissa). Oletusarvo `2` (→ 1 käsittelijä, yhteensä 2
-prosessia) on mitoitettu julkaisuprosessin käyttämiä GitHubin ylläpitämiä
-16 GB:n / 4 virtuaalisuorittimen suorittimia varten. Arvolla `8` (→ 7 käsittelijää) kyseisen suorittimen muisti loppui, ja
-buildkit keskeytti vaiheen virheeseen `ResourceExhausted: ... cannot allocate memory`;
-arvo `3` (→ 2 käsittelijää) ei edelleenkään mahtunut muistiin, kun prosessikohtainen RSS mitattiin
-suoraan arvioinnin sijaan. `tests/unit/docker-build-memory-budget.test.ts`
-tekee laskelman mitatun arvon perusteella ja epäonnistuu, jos jompikumpi säädin
-ylittää suorittimen kapasiteetin.
+VPS-ympäristössä tehdyssä toistossa (ongelma #7518) kunkin prosessin RSS-muistin
+huippukulutukseksi mitattiin noin 4,5 Gt riippumatta `NODE_OPTIONS`-kekolipusta
+(Turbopack kääntää V8-keon ulkopuolisessa natiivissa/Rust-muistissa). Oletusarvo
+`2` (→ 1 käsittelijä, yhteensä 2 prosessia) on mitoitettu julkaisuprosessin
+käyttämille GitHubin ylläpitämille ympäristöille, joissa on 16 Gt muistia ja
+4 vCPU:ta. Arvolla `8` (→ 7 käsittelijää) ympäristön muisti loppui ja buildkit
+keskeytti vaiheen virheellä `ResourceExhausted: ... cannot allocate memory`;
+myöskään arvo `3` (→ 2 käsittelijää) ei mahtunut muistiin, kun prosessikohtainen
+RSS mitattiin suoraan arvioinnin sijaan. `tests/unit/docker-build-memory-budget.test.ts`
+suorittaa laskutoimitukset mitatun arvon perusteella ja epäonnistuu, jos jompikumpi
+asetus ylittää ympäristön kapasiteetin.
 
-Turbopack kääntää V8-keon **ulkopuolella** olevassa natiivissa Rust-muistissa, joten
-`OMNIROUTE_BUILD_MEMORY_MB` ei rajoita sitä. Muistirajoitetulla isäntäkoneella
-OOM-killer keskeyttää tällöin käännöksen SIGKILL-signaalilla ilman minkäänlaista virhetekstiä — se vain
-pysähtyy kesken `Creating an optimized production build` -vaiheen, mikä näyttää muistin
-loppumisen sijaan jumittumiselta. Jos käännösisännän resurssit ovat rajalliset, vaihda niputtajaa:
+Turbopack kääntää natiivissa Rust-muistissa, joka sijaitsee **V8-keon ulkopuolella**, joten
+`OMNIROUTE_BUILD_MEMORY_MB` ei rajoita sitä. Muistirajoitetulla isäntäkoneella OOM-tappaja
+keskeyttää tällöin koonnin SIGKILL-signaalilla ilman mitään virhetekstiä — koonti vain
+pysähtyy kesken vaiheen `Creating an optimized production build`, mikä vaikuttaa
+jumittumiselta muistin loppumisen sijaan. Jos koonti-isännän resurssit ovat rajalliset,
+vaihda paketoijaa:
 
 ```bash
 docker build --target runner-base \
@@ -279,43 +293,44 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` on käytössä, joten `next build` suorittaa sekä ylätason **että** käsittelijäprosessin,
-ja kumpikin noudattaa arvoa `OMNIROUTE_BUILD_MEMORY_MB` erikseen. Aseta säilön
-muistiraja suunnilleen yli kaksinkertaiseksi tähän arvoon nähden, älä vain sen suuruiseksi.
+`webpackBuildWorker` on käytössä, joten `next build` suorittaa ylätason prosessin **ja**
+käsittelijäprosessin, ja kumpikin noudattaa `OMNIROUTE_BUILD_MEMORY_MB`-arvoa erikseen.
+Mitoita säilön raja hieman yli kaksinkertaiseksi kyseiseen arvoon nähden, älä vain sen
+suuruiseksi.
 
-Mitattu tässä lähdepuussa (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Tässä lähdekoodipuussa mitatut tulokset (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Niputtaja | Säilön muistiraja | Tulos                                                |
-| --------- | ----------------- | ---------------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB    | OOM-keskeytys molemmilla ilman ilmoitusta            |
-| webpack   | 8 GiB             | käännöskäsittelijä keskeytettiin SIGKILL-signaalilla |
-| webpack   | 12 GiB            | onnistui, huippukäyttö 11,1 GiB                      |
+| Paketoija | Säilön muistiraja | Tulos                                               |
+| --------- | ----------------- | --------------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB    | OOM-tappaja keskeytti molemmilla, hiljaisesti       |
+| webpack   | 8 GiB             | koontikäsittelijä keskeytettiin SIGKILL-signaalilla |
+| webpack   | 12 GiB            | onnistui, huippukulutus 11,1 GiB                    |
 
 ### Ajonaikaiset oletusarvot
 
-`runner-base` vie seuraavat oletusarvot ympäristöön: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+`runner-base`-vaiheen viemät oletusarvot: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Muistin toiminta Dockerissa:
 
 - Levykuva asettaa arvon `OMNIROUTE_MEMORY_MB=1024` ja johtaa siitä arvon `NODE_OPTIONS=--max-old-space-size=1024`.
-- Itsenäinen käynnistysohjelma käynnistää varsinaisen palvelinprosessin, lukee arvon `OMNIROUTE_MEMORY_MB` ja lisää asetuksen `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node käyttää viimeistä toistettua `--max-old-space-size`-arvoa, joten `OMNIROUTE_MEMORY_MB` hallitsee Dockerissa käytettävää todellista kekorajaa.
-- Koska levykuva asettaa sen aina, käynnistysohjelman oma käytettävissä olevan RAM-muistin mukaan säädetty varavaihtoehto ei koskaan tule käyttöön Dockerissa. Kasvata arvoa työkuorman mukaan nimenomaisesti (katso alla oleva taulukko). `2048` on edelleen liian pieni ohjelmointiagenttien `/v1/responses`-pyynnöille.
+- Varsinaisen palvelinprosessin käynnistää erillinen käynnistysohjelma, joka lukee muuttujan `OMNIROUTE_MEMORY_MB` ja lisää valitsimen `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node käyttää viimeistä toistettua `--max-old-space-size`-arvoa, joten `OMNIROUTE_MEMORY_MB` määrittää Dockerin todellisen keon rajan.
+- Koska levykuva asettaa sen aina, käynnistysohjelman oma RAM-muistin mukaan kalibroitu varavaihtoehto ei koskaan tule käyttöön Dockerissa. Kasvata arvoa erikseen työkuormaa varten (katso alla oleva taulukko). `2048` on edelleen liian pieni koodausagenttien `/v1/responses`-pyynnöille.
 
-### Ajonaikainen RAM-muisti ohjelmointiagenteille
+### Koodausagenttien ajonaikainen RAM-muisti
 
-Dockerin 1 GiB:n oletusarvo on hallintapaneelin ja kevyen keskustelukäytön vähimmäistaso, ei tuotantokäyttöön sopiva koko. Pitkät `POST /v1/responses` -pyyntörungot (satoja viestejä, kymmeniä työkaluja) säilyttävät pakkauksen aikana useita muistissa olevia graafeja. Kaksi päällekkäistä ~3 MiB:n / ~750 000 tokenin pyyntöä ovat keskeyttäneet V8:n **12 GiB:n** old-space-tilassa (`FATAL ERROR: Reached heap limit`) ja myös saavuttaneet 16 GiB:n cgroup-OOM-rajan. Katso [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Dockerin 1 GiB:n oletusarvo on vähimmäistaso hallintapaneelille ja kevyelle keskustelulle, ei tuotantokäyttöön sopiva mitoitus. Pitkät `POST /v1/responses` -pyyntörungot (satoja viestejä, kymmeniä työkaluja) säilyttävät pakkauksen aikana muistissa useita graafeja. Kaksi päällekkäistä noin 3 MiB:n / noin 750 000 tokenin pyyntöä ovat keskeyttäneet V8:n **12 GiB:n** old-space-tilassa (`FATAL ERROR: Reached heap limit`) ja aiheuttaneet myös 16 GiB:n cgroup-OOM-tilanteen. Katso [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Mitoita **cgroup-`--memory` kekoa suuremmaksi** — natiivipuskurit, SQLite ja pakkauksen välitulokset sijaitsevat V8:n ulkopuolella.
+Mitoita **cgroupin `--memory` keon kokoa suuremmaksi** — natiivipuskurit, SQLite ja pakkauksen välitulokset sijaitsevat V8:n ulkopuolella.
 
-| Työkuorma                                          | `OMNIROUTE_MEMORY_MB`           | Säilö / cgroup               | Huomautukset                                                                                                                |
-| -------------------------------------------------- | ------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Hallintapaneeli, yksi kevyt keskustelu             | `1024` (levykuvan oletus)       | ≥2 GiB                       |                                                                                                                             |
-| Yksi koodausagentti (Claude/Codex/Grok)            | `8192`                          | ≥10 GiB                      | Tyypillinen yhden istunnon `/v1/responses`                                                                                  |
-| Kaksi samanaikaista pitkää `/v1/responses`-pyyntöä | `10240`–`12288`                 | ≥12–16 GiB                   | Mitattu V8:n keskeytys noin 12 GiB:n keolla                                                                                 |
-| Vähintään kolme samanaikaista pitkää kontekstia    | älä suorita yhdessä prosessissa | sarjoita / lisää RAM-muistia | Raskaiden pyyntöjen oletusraja on 1 käsiteltävä pyyntö; rajan nostaminen ilman lisämuistia aiheuttaa keskeytyksen uudelleen |
+| Työkuorma                                          | `OMNIROUTE_MEMORY_MB`           | Säilö / cgroup               | Huomautukset                                                                                                                      |
+| -------------------------------------------------- | ------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Hallintapaneeli, yksi kevyt keskustelu             | `1024` (levykuvan oletus)       | ≥2 GiB                       |                                                                                                                                   |
+| Yksi koodausagentti (Claude/Codex/Grok)            | `8192`                          | ≥10 GiB                      | Tyypillinen yhden istunnon `/v1/responses`                                                                                        |
+| Kaksi samanaikaista pitkää `/v1/responses`-pyyntöä | `10240`–`12288`                 | ≥12–16 GiB                   | V8:n mitattu keskeytys noin 12 GiB:n keolla                                                                                       |
+| Vähintään kolme samanaikaista pitkää kontekstia    | älä suorita yhdessä prosessissa | sarjoita / lisää RAM-muistia | Raskaiden pyyntöjen oletusraja on yksi käsiteltävä pyyntö; rajan kasvattaminen ilman lisämuistia aiheuttaa keskeytyksen uudelleen |
 
-Paljaalla raudalla `omniroute serve` kalibroi noin 35 % RAM-muistista (rajattuna välille `[512, 4096]`), kun `OMNIROUTE_MEMORY_MB` **ei ole asetettu**. Docker asettaa arvoksi aina `1024`, joten tätä kalibrointia ei koskaan suoriteta virallisessa levykuvassa.
+`omniroute serve` kalibroi paljaalla raudalla käyttöön noin 35 % RAM-muistista (rajattuna välille `[512, 4096]`), kun `OMNIROUTE_MEMORY_MB` on **asettamatta**. Docker asettaa aina arvon `1024`, joten tätä kalibrointia ei koskaan suoriteta virallisessa levykuvassa.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -327,22 +342,22 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 Tiedostossa [ENVIRONMENT.md](../reference/ENVIRONMENT.md) dokumentoitujen oletusarvojen lisäksi seuraavat muuttujat ovat tärkeimpiä Docker-ympäristössä:
 
-| Muuttuja                      | Tarkoitus                                                                                                                                                                                                                                                                                                                    | Oletusarvo                 |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket-sillan jaettu salaisuus. **Pakollinen tuotantoympäristössä** — aseta arvoksi vahva satunnainen merkkijono.                                                                                                                                                                                                         | ei asetettu (on annettava) |
-| `REDIS_URL`                   | Nopeusrajoittimen ja välimuistin taustajärjestelmän yhteysmerkkijono                                                                                                                                                                                                                                                         | `redis://redis:6379`       |
-| `REDIS_PORT`                  | Mukana toimitetun Redis-kontin isäntäpuolen portti                                                                                                                                                                                                                                                                           | `6379`                     |
-| `REDIS_BIND_HOST`             | Isäntäverkkoliitäntä, jossa mukana toimitetun Redisin portti julkaistaan (loopback-liitäntä, ellet lisää AUTH-todennusta)                                                                                                                                                                                                    | `127.0.0.1`                |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Isäntäpolku, joka liitetään `cli`-profiilissa polkuun `/workspace/omniroute` automaattisia päivitystyönkulkuja varten                                                                                                                                                                                                        | `.` (nykyinen hakemisto)   |
-| `OMNIROUTE_MEMORY_MB`         | Dockerin erillispalvelimen Node-keon enimmäiskoko suorituksen aikana; ohittaa yllä olevan näköistiedoston oletusarvon. Koodausagentit: `8192`+ (katso [suorituksenaikainen RAM](#runtime-ram-for-coding-agents)).                                                                                                            | `1024`                     |
-| `DASHBOARD_PORT` / `API_PORT` | Ohita hallintapaneelin (20128) ja API:n (20129) julkaistut portit                                                                                                                                                                                                                                                            | `20128` / `20129`          |
-| `APP_BIND_HOST`               | Isäntäverkkoliitäntä, jossa docker-compose julkaisee hallintapaneelin, API:n ja reaaliaikaisen WebSocketin portit. Kun `REQUIRE_API_KEY=false` (oletusarvo), `0.0.0.0` altistaa anonyymin `/v1`-välityspalvelimen lähiverkolle — laajenna käyttöä vain, kun `REQUIRE_API_KEY=true` tai edessä on käänteinen välityspalvelin. | `127.0.0.1`                |
-| `CLIPROXY_BIND_HOST`          | Isäntäverkkoliitäntä, jossa docker-compose julkaisee `cliproxyapi`-sivukontin — sen datataltiolle tallennetaan palveluntarjoajien tunnistetiedot.                                                                                                                                                                            | `127.0.0.1`                |
-| `OMNIROUTE_PLUGINS_DIR`       | Hakemisto, josta suorituksenaikainen liitännäisten tarkistin lukee liitännäisiä ja johon se asentaa ne. Aseta tämä, kun liitännäiset liitetään sidontaliitoksella: oletusarvo seuraa `HOME`-muuttujaa, jota näköistiedoston ei tarvitse viedä.                                                                               | `~/.omniroute/plugins`     |
-| `OMNIROUTE_BASE_PATH`         | URL-alipolku, kun sovellus julkaistaan käänteisen välityspalvelimen takana (esim. `/omniroute`)                                                                                                                                                                                                                              | _(tyhjä = juuri)_          |
-| `NEXT_PUBLIC_BASE_URL`        | Julkinen selainlähtöosoite alipolku mukaan lukien (esim. `https://host/omniroute`)                                                                                                                                                                                                                                           | ei asetettu                |
-| `PROD_DASHBOARD_PORT`         | Hallintapaneelin isäntäpuolen portti tiedostolle `docker-compose.prod.yml`                                                                                                                                                                                                                                                   | `20130`                    |
-| `CLIPROXYAPI_PORT`            | `cliproxyapi`-sivukontin isäntäpuolen portti                                                                                                                                                                                                                                                                                 | `8317`                     |
+| Muuttuja                      | Tarkoitus                                                                                                                                                                                                                                                                                                                      | Oletusarvo                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket-sillan jaettu salaisuus. **Pakollinen tuotannossa** — aseta arvoksi vahva satunnainen merkkijono.                                                                                                                                                                                                                    | ei asetettu (on annettava) |
+| `REDIS_URL`                   | Nopeusrajoittimen ja välimuistin taustajärjestelmän yhteysmerkkijono                                                                                                                                                                                                                                                           | `redis://redis:6379`       |
+| `REDIS_PORT`                  | Isäntäpuolen portti mukana toimitetulle Redis-säilölle                                                                                                                                                                                                                                                                         | `6379`                     |
+| `REDIS_BIND_HOST`             | Isännän verkkoliitäntä, jossa mukana toimitetun Redis-säilön portti julkaistaan (loopback, ellet lisää AUTH-todennusta)                                                                                                                                                                                                        | `127.0.0.1`                |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Isäntäpolku, joka liitetään `cli`-profiilissa polkuun `/workspace/omniroute` automaattisia päivitystyönkulkuja varten                                                                                                                                                                                                          | `.` (nykyinen hakemisto)   |
+| `OMNIROUTE_MEMORY_MB`         | Dockerin itsenäisen palvelimen Node-keon enimmäiskoko suorituksen aikana; ohittaa yllä olevan levykuvan oletusarvon. Koodausagentit: `8192`+ (katso [suorituksenaikainen RAM](#runtime-ram-for-coding-agents)).                                                                                                                | `1024`                     |
+| `DASHBOARD_PORT` / `API_PORT` | Ohita hallintapaneelin (20128) ja API:n (20129) julkaistut portit                                                                                                                                                                                                                                                              | `20128` / `20129`          |
+| `APP_BIND_HOST`               | Isännän verkkoliitäntä, jossa docker-compose julkaisee hallintapaneelin, API:n ja reaaliaikaisen WebSocketin portit. Kun `REQUIRE_API_KEY=false` (oletus), `0.0.0.0` altistaa anonyymin `/v1`-välityspalvelimen lähiverkolle — laajenna saatavuutta vain, jos `REQUIRE_API_KEY=true` tai edessä on käänteinen välityspalvelin. | `127.0.0.1`                |
+| `CLIPROXY_BIND_HOST`          | Isännän verkkoliitäntä, jossa docker-compose julkaisee `cliproxyapi`-sivuvaunun — sen tietotaltio sisältää palveluntarjoajan tunnistetiedot.                                                                                                                                                                                   | `127.0.0.1`                |
+| `OMNIROUTE_PLUGINS_DIR`       | Hakemisto, jota suorituksenaikainen liitännäisskanneri lukee ja johon se asentaa liitännäiset. Aseta tämä, kun liitännäiset on liitetty bind mount -liitoksella: oletusarvo määräytyy `HOME`-muuttujan mukaan, jota levykuvan ei tarvitse viedä ympäristöön.                                                                   | `~/.omniroute/plugins`     |
+| `OMNIROUTE_BASE_PATH`         | URL-alipolku, kun sovellus julkaistaan käänteisen välityspalvelimen takana (esim. `/omniroute`)                                                                                                                                                                                                                                | _(tyhjä = juuri)_          |
+| `NEXT_PUBLIC_BASE_URL`        | Julkinen selainlähtöosoite alipolkuineen (esim. `https://host/omniroute`)                                                                                                                                                                                                                                                      | ei asetettu                |
+| `PROD_DASHBOARD_PORT`         | Isäntäpuolen hallintapaneeliportti tiedostolle `docker-compose.prod.yml`                                                                                                                                                                                                                                                       | `20130`                    |
+| `CLIPROXYAPI_PORT`            | Isäntäpuolen portti `cliproxyapi`-sivuvaunulle                                                                                                                                                                                                                                                                                 | `8317`                     |
 
 ## Käänteinen välityspalvelin alipolussa (Traefik / nginx)
 
@@ -477,36 +492,49 @@ Päätepisteiden tunnelipaneelit (Cloudflare, Tailscale, ngrok) voidaan näyttä
 - Docker-kuvat sisältävät järjestelmän CA-juurivarmenteet ja välittävät ne hallitulle `cloudflared`-prosessille, mikä estää TLS-luottamusvirheet tunnelin käynnistyessä säilön sisällä.
 - Aseta `CLOUDFLARED_BIN=/absolute/path/to/cloudflared`, jos haluat OmniRouten käyttävän olemassa olevaa binääritiedostoa uuden lataamisen sijaan.
 
-## Kuvaversiotunnisteet
+## Levykuvatunnisteet
 
-| Kuva                     | Tunniste | Koko   | Kuvaus                                                  |
-| ------------------------ | -------- | ------ | ------------------------------------------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | Uusin **julkaistu** vakaa SemVer-versio (ei git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Kiinnitä tämän luokan tunniste GitOps-käyttöä varten    |
+| Levykuva                 | Tunniste | Koko   | Kuvaus                                                    |
+| ------------------------ | -------- | ------ | --------------------------------------------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | Korkein **julkaistu** vakaa SemVer-versio (ei git `main`) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Kiinnitä tämän tyyppinen tunniste GitOps-käyttöä varten   |
 
-Usean alustan manifesti: natiivit `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker valitsee vastaavan arkkitehtuurin automaattisesti; välitä `--platform linux/amd64`, jos AMD64-emulointi on pakotettava ARM-isäntäkoneissa.
+Monialustainen manifesti: natiivit `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker valitsee vastaavan arkkitehtuurin automaattisesti; anna `--platform linux/amd64`, jos AMD64-emulointi on pakotettava ARM-isännillä.
 
 ### Julkaisukanavat
 
-OmniRoute julkaisee erilliset Docker-kanavat vakaille julkaisuille, aktiivisen julkaisuhaaran testaukselle ja kehityskoontiversioille.
+OmniRoute julkaisee erilliset Docker-kanavat vakaille julkaisuille, aktiivisen julkaisuhaaran testaukseen ja kehitysversioille.
 
-| Kanava                          | Lähde                                      | Muuttuvuus                  | Suositeltu käyttötarkoitus                                                                                                      |
+| Kanava                          | Lähde                                      | Muuttuvuus                  | Suositeltu käyttö                                                                                                               |
 | ------------------------------- | ------------------------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Allekirjoitettu/versioitu julkaisu         | Muuttumaton                 | Tuotantokäyttöönotot, jotka on kiinnitetty tarkkaan julkaisuun                                                                  |
-| `:latest` / `:latest-web`       | Uusin **julkaistu** vakaa SemVer           | Muuttuva vakaa osoitin      | Seuraa vakaita julkaisuja **SemVer-julkaisutyön jälkeen** — ei seuraa `main`-haaraa tai julkaisemattomia `release/v*`-muutoksia |
-| `:next` / `:next-web`           | Nykyinen oletusarvoinen `release/v*`-haara | Muuttuva esijulkaisuosoitin | Aktiiviseen julkaisuhaaraan lisättyjen mutta vielä vakaaseen julkaisuun sisältymättömien korjausten testaus                     |
-| `:main` / `:main-web`           | `main`-haara                               | Muuttuva kehitysosoitin     | Vain kehitys- ja integraatiotestaus                                                                                             |
+| `:<version>` / `:<version>-web` | Allekirjoitettu/versioitu julkaisu         | Muuttumaton                 | Tuotantokäyttöönotot, joissa kiinnitetään tarkka julkaisu                                                                       |
+| `:latest` / `:latest-web`       | Korkein **julkaistu** vakaa SemVer         | Muuttuva vakaa osoitin      | Seuraa vakaita julkaisuja **SemVer-julkaisutyön jälkeen** — ei seuraa `main`-haaraa tai julkaisemattomia `release/v*`-muutoksia |
+| `:next` / `:next-web`           | Nykyinen oletusarvoinen `release/v*`-haara | Muuttuva esijulkaisuosoitin | Aktiiviseen julkaisuhaaraan lisättyjen mutta vielä vakaasta julkaisusta puuttuvien korjausten testaaminen                       |
+| `:main` / `:main-web`           | `main`-haara                               | Muuttuva kehitysosoitin     | Vain kehitys- ja integraatiotestaukseen                                                                                         |
+
+#### Verkkoistunnon tarjoajat: `-web`-levykuvat
+
+Jokaisesta yllä olevasta kanavasta on myös `-web`-tunniste (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), joka rakennetaan `runner-web`-vaiheesta — sama levykuva, johon on lisätty Playwright ja Chromium-selain. Tavallinen levykuva toimitetaan **ilman** Chromiumia; `gemini-web`, `claude-web` ja `claude-turnstile` tarvitsevat sitä.
+
+Virhe ilmenee viiveellä, ei käynnistyksen aikana: nämä tarjoajat näyttävät mallinsa ja näkyvät hallintapaneelissa yhdistettyinä, ja vasta ensimmäinen pyyntö epäonnistuu seuraavalla virheellä:
+
+```
+[500]: Ulkoisen playwright-moduulin lataaminen epäonnistui: Virhe: Moduulia ei löydy
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Jos käytät näitä tarjoajia, vedä jo käyttämäsi kanavan `-web`-tunniste — mikään muu ei muutu. npm/CLI-asennuksessa (ei Docker-levykuvaa) vastaava puuttuva osa on selaimen binääritiedosto: suorita isännällä `npx playwright install chromium`.
 
 #### Esijulkaisukanavan käyttäminen
 
-`next`-kanava kootaan uudelleen jokaisella työnnöllä nykyiseen oletusarvoiseen `release/v*`-haaraan, ja se julkaistaan sekä AMD64- että ARM64-arkkitehtuurille. Vanhemmat ylläpitohaarat eivät voi korvata sitä. Kanava tarjoaa ladattavan kuvan korjauksille, jotka on yhdistetty aktiiviseen julkaisuhaaraan ennen seuraavan vakaan tunnisteen luomista.
+`next`-kanava rakennetaan uudelleen jokaisella työnnöllä nykyiseen oletusarvoiseen `release/v*`-haaraan, ja se julkaistaan sekä AMD64- että ARM64-arkkitehtuurille. Vanhemmat ylläpitohaarat eivät voi korvata sitä. Kanava tarjoaa vedettävän levykuvan korjauksille, jotka on yhdistetty aktiiviseen julkaisuhaaraan ennen seuraavan vakaan tunnisteen luomista.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Docker Composessa voit ohittaa valitun profiilin käyttämän kuvatunnisteen ja sen jälkeen ladata kuvan sekä luoda palvelun uudelleen:
+Korvaa Docker Composessa valitun profiilin käyttämä levykuvatunniste ja vedä sekä luo palvelu sitten uudelleen:
 
 ```yaml
 services:
@@ -521,30 +549,30 @@ docker compose up -d
 
 #### Turvallisuus ja palautus
 
-`next` on muuttuva esijulkaisukanava. Se voi muuttua jokaisen aktiiviseen julkaisuhaaraan tehdyn työnnön yhteydessä, eikä sitä **tueta tuotantokäytössä**. Kiinnitä kuvan tiiviste arvioidessasi tiettyä koontiversiota:
+`next` on vaihtuva esijulkaisukanava. Se voi muuttua jokaisella aktiiviseen julkaisuhaaraan tehdyllä työnnöllä, eikä sitä **tueta tuotantokäytössä**. Kiinnitä levykuvan tiiviste arvioidessasi tiettyä koontiversiota:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Varmuuskopioi OmniRouten datataltio tai bind-liitetty datahakemisto ennen testausta. Palauta aiemmin käytetty vakaa versio tai digest-arvo ja luo kontti uudelleen seuraavasti:
+Varmuuskopioi OmniRouten tietotaltio tai bind-liitetty tietohakemisto ennen testaamista. Palauta aiemmin käytetty vakaa versio tai tiiviste ja luo säilö uudelleen, jos haluat palata aiempaan versioon:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Julkaisuhaaran koontiversio ei koskaan voi siirtää `latest`-osoitinta; vain kelvollinen vakaa semanttinen versio voi päivittää vakaan osoittimen. `next`-levykuvissa säilyvät julkaisuvedoskuvan tarkastus ja estävä CRITICAL-haavoittuvuusportti.
+Julkaisuhaaran koontiversio ei voi koskaan siirtää `latest`-osoitinta; vain ehdot täyttävä vakaa semanttinen versio voi päivittää vakaan osoittimen. `next`-levykuvissa säilyvät julkaisuun kuuluvat levykuvan tarkastus ja estävä CRITICAL-haavoittuvuustarkistus.
 
-**`latest` ei takaa git-ajantasaisuutta.** `main`-haaraan tai aktiiviseen `release/v*`-haaraan yhdistetyt korjaukset **eivät** sisälly `:latest`-versioon, ennen kuin vakaa SemVer-levykuva on julkaistu ja julkaisutyö päivittää `:latest`-osoittimen (sama digest-arvo kuin kyseisellä SemVer-versiolla). Jos `latest` vaikuttaa pysähtyneeltä, vaikka korjaus näkyy jo GitHubissa, testaa julkaisuhaaraa noutamalla `:next` tai odota SemVer-tunnistetta.
+**`latest` ei takaa git-sisällön ajantasaisuutta.** `main`-haaraan tai aktiiviseen `release/v*`-haaraan yhdistetyt korjaukset **eivät** sisälly `:latest`-levykuvaan, ennen kuin vakaa SemVer-levykuva julkaistaan ja julkaisutyö päivittää `:latest`-osoittimen (sama tiiviste kuin kyseisellä SemVer-versiolla). Jos `latest` vaikuttaa jumiutuneelta, vaikka korjaus näkyy jo GitHubissa, vedä `:next` julkaisuhaaran testaamista varten tai odota SemVer-tunnistetta.
 
-| Tavoite                                                                                       | Käytä                                    |
-| --------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| GitOps / tuotanto, jossa muutoksia ei saa tapahtua itsestään                                  | Kiinnitä `:X.Y.Z` (tai levykuvan digest) |
-| Seuraa julkaistuja vakaita versioita ja hyväksyy uudelleenluonnin jokaisella julkaisukerralla | `:latest`                                |
-| Testaa julkaisemattomia `release/v*`-committeja                                               | `:next` (ei tuotantoon)                  |
-| Testaa `main`-haaraa                                                                          | `:main` (ei tuotantoon)                  |
+| Tavoite                                                                                              | Käytä                                      |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| GitOps/tuotanto, joka ei saa muuttua                                                                 | Kiinnitä `:X.Y.Z` (tai levykuvan tiiviste) |
+| Julkaistujen vakaiden versioiden seuraaminen ja uudelleenluonnin hyväksyminen jokaisella julkaisulla | `:latest`                                  |
+| Julkaisemattomien `release/v*`-muutosten testaaminen                                                 | `:next` (ei tuotantoon)                    |
+| `main`-haaran testaaminen                                                                            | `:main` (ei tuotantoon)                    |
 
 ## Saatavuus: oletusarvoinen SQLite tukee vain yhtä replikaa
 

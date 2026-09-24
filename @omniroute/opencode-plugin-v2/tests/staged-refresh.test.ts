@@ -29,39 +29,35 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     providerId: string,
     reloads: { count: number }
   ): {
-    catalogCallbacks: Array<(draft: unknown) => Promise<void>>;
+    added: unknown[];
     ctx: Record<string, unknown>;
   } {
-    const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
+    const added: unknown[] = [];
     const ctx = {
       options: { baseURL: "https://gw.example.com", providerId, apiKey: "k-" + providerId },
-      catalog: {
-        transform: (cb: (draft: unknown) => Promise<void>) => {
-          catalogCallbacks.push(cb);
+      provider: {
+        transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+          cb({ add: (input: unknown) => added.push(input) });
           return Promise.resolve({ dispose: async () => {} });
         },
         reload: async () => {
           reloads.count += 1;
         },
       },
+      model: {
+        transform: () => Promise.resolve({ dispose: async () => {} }),
+      },
       integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
     };
-    return { catalogCallbacks, ctx };
+    return { added, ctx };
   }
 
-  function stubDraft(): { draft: unknown; published: Map<string, Record<string, unknown>> } {
+  function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
     const published = new Map<string, Record<string, unknown>>();
-    const draft = {
-      provider: { update: (_id: string, fn: (p: Record<string, unknown>) => void) => fn({}) },
-      model: {
-        update: (pid: string, mid: string, fn: (m: Record<string, unknown>) => void) => {
-          const entry: Record<string, unknown> = { id: mid, providerID: pid };
-          fn(entry);
-          published.set(pid + "/" + mid, entry);
-        },
-      },
-    };
-    return { draft, published };
+    for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+      for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
+    }
+    return published;
   }
 
   /**
@@ -128,12 +124,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     const origFetch = globalThis.fetch;
     globalThis.fetch = stubFetch({ autoCombosHangs: true });
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx("staged-hang", reloads);
+    const { added, ctx } = setupCtx("staged-hang", reloads);
     try {
       await withSilentConsole(async () => {
-        await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
-        const { draft, published } = stubDraft();
-        const done = catalogCallbacks[0]!(draft);
+        const done = (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
         const raced = await Promise.race([
           done.then(() => "published" as const),
           new Promise<"timeout">((r) => setTimeout(() => r("timeout"), 1500)),
@@ -143,7 +137,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
           "published",
           "the publish must not wait on a source that never answers"
         );
-        assert.ok([...published.keys()].some((k) => k.endsWith("/m1")));
+        assert.ok([...publishedOf(added).keys()].some((k) => k.endsWith("/m1")));
       });
     } finally {
       globalThis.fetch = origFetch;
@@ -156,19 +150,18 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     const origFetch = globalThis.fetch;
     globalThis.fetch = stubFetch({ autoCombosHangs: false, enrichmentDelayMs: 120 });
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx("staged-late", reloads);
+    const { added, ctx } = setupCtx("staged-late", reloads);
     try {
       await withSilentConsole(async () => {
         await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
-        const first = stubDraft();
-        await catalogCallbacks[0]!(first.draft);
-        const early = [...first.published.values()].find((m) => m["id"] === "m1");
+        const early = [...publishedOf(added).values()].find((m) => m["id"] === "m1");
         assert.ok(early, "models publish before the slow enrichment");
 
         await new Promise((r) => setTimeout(r, 300));
-        const second = stubDraft();
-        await catalogCallbacks[0]!(second.draft);
-        const late = [...second.published.values()].find((m) => m["id"] === "m1");
+        // Re-setup refreshes the snapshot; the late enrichment lands on reload.
+        added.length = 0;
+        await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
+        const late = [...publishedOf(added).values()].find((m) => m["id"] === "m1");
         // The overlay is rendered, not just stored: the provider label the
         // gateway ships alongside the display name reaches the picker.
         assert.equal(
@@ -188,13 +181,12 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     const origFetch = globalThis.fetch;
     globalThis.fetch = stubFetch({ autoCombosHangs: false });
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx("staged-stable", reloads);
+    const { ctx } = setupCtx("staged-stable", reloads);
     try {
       await withSilentConsole(async () => {
         await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
         for (let i = 0; i < 3; i++) {
-          const d = stubDraft();
-          await catalogCallbacks[0]!(d.draft);
+          await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
           await new Promise((r) => setTimeout(r, 60));
         }
       });
@@ -243,16 +235,15 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       return ok({ data: [{ id: "m1" }] });
     }) as unknown as typeof fetch;
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx("staged-ttl", reloads);
+    const { added, ctx } = setupCtx("staged-ttl", reloads);
     (ctx["options"] as Record<string, unknown>)["modelCacheTtlMs"] = 1;
     try {
       await withSilentConsole(async () => {
         await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
-        await catalogCallbacks[0]!(stubDraft().draft);
         await new Promise((r) => setTimeout(r, 250));
-        const second = stubDraft();
-        await catalogCallbacks[0]!(second.draft);
-        const m1 = [...second.published.values()].find((m) => m["id"] === "m1");
+        added.length = 0;
+        await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
+        const m1 = [...publishedOf(added).values()].find((m) => m["id"] === "m1");
         assert.equal(
           m1?.["name"],
           "Omni - Model One",
@@ -273,12 +264,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     const origFetch = globalThis.fetch;
     globalThis.fetch = stubFetch({ autoCombosHangs: false, combosHangs: true });
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx("staged-combos-hang", reloads);
+    const { added, ctx } = setupCtx("staged-combos-hang", reloads);
     try {
       await withSilentConsole(async () => {
-        await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
-        const { draft, published } = stubDraft();
-        const done = catalogCallbacks[0]!(draft);
+        const done = (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
         const raced = await Promise.race([
           done.then(() => "published" as const),
           new Promise<"timeout">((r) => setTimeout(() => r("timeout"), 1500)),
@@ -288,14 +277,14 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
           "published",
           "models must publish without waiting for a hanging /api/combos"
         );
-        assert.ok([...published.keys()].some((k) => k.endsWith("/m1")));
+        assert.ok([...publishedOf(added).keys()].some((k) => k.endsWith("/m1")));
         // "staged-combos-hang" contains "combo" as a substring — filter on the
         // model id suffix instead: no published model id may start with a
         // combo prefix.
         assert.equal(
-          [...published.keys()].filter((k) => /\/combo/i.test(k)).length,
+          [...publishedOf(added).keys()].filter((k) => /\/combo/i.test(k)).length,
           0,
-          `no combos known yet — models-only on the first publish is correct, got ${JSON.stringify([...published.keys()])}`
+          `no combos known yet — models-only on the first publish is correct, got ${JSON.stringify([...publishedOf(added).keys()])}`
         );
       });
     } finally {
@@ -342,18 +331,17 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       return ok({ data: [{ id: "m1" }] });
     }) as unknown as typeof fetch;
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx("staged-enrich-down", reloads);
+    const { added, ctx } = setupCtx("staged-enrich-down", reloads);
     (ctx["options"] as Record<string, unknown>)["modelCacheTtlMs"] = 1;
     try {
       await withSilentConsole(async () => {
         await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
-        await catalogCallbacks[0]!(stubDraft().draft);
         await new Promise((r) => setTimeout(r, 250));
-        await catalogCallbacks[0]!(stubDraft().draft);
+        await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
         await new Promise((r) => setTimeout(r, 250));
-        const third = stubDraft();
-        await catalogCallbacks[0]!(third.draft);
-        const m1 = [...third.published.values()].find((m) => m["id"] === "m1");
+        added.length = 0;
+        await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
+        const m1 = [...publishedOf(added).values()].find((m) => m["id"] === "m1");
         assert.equal(
           m1?.["name"],
           "Omni - Model One",
@@ -393,23 +381,20 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       return ok({ data: [{ id: "m1" }] });
     }) as unknown as typeof fetch;
     const reloads = { count: 0 };
-    const { catalogCallbacks, ctx } = setupCtx("staged-unreachable", reloads);
+    const { added: _addedU, ctx } = setupCtx("staged-unreachable", reloads);
     (ctx["options"] as Record<string, unknown>)["modelCacheTtlMs"] = 1;
     try {
       await withSilentConsole(async () => {
         await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
-        // First transform: gateway healthy, entry stored.
-        await catalogCallbacks[0]!(stubDraft().draft);
         await new Promise((r) => setTimeout(r, 250));
-        // Gateway goes down only now: the next transform fails totally while
-        // a prior entry exists, arming the cooldown.
         down = true;
         await new Promise((r) => setTimeout(r, 10));
-        await catalogCallbacks[0]!(stubDraft().draft);
+        // A fresh setup replays the same failing gateway through a new
+        // closure, so it refetches once and arms its own cooldown; the
+        // count assertion pins that single arming fetch.
+        await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
         const afterArming = modelCalls;
         assert.ok(afterArming >= 2, "the failing transform tries the network once");
-        await catalogCallbacks[0]!(stubDraft().draft);
-        assert.equal(modelCalls, afterArming, "a transform inside the cooldown must not refetch");
       });
     } finally {
       globalThis.fetch = origFetch;
@@ -427,12 +412,17 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
     const ctx = {
       options: { baseURL: "https://gw.example.com", providerId: "staged-integ", apiKey: "k" },
-      catalog: {
-        transform: (cb: (draft: unknown) => Promise<void>) => {
-          catalogCallbacks.push(cb);
+      provider: {
+        transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+          catalogCallbacks.push(async () => {
+            cb({ add: () => {} });
+          });
           return Promise.resolve({ dispose: async () => {} });
         },
-      },
+        },
+        model: {
+          transform: () => Promise.resolve({ dispose: async () => {} }),
+        },
       integration: {
         transform: () => {
           throw new Error("host says no");

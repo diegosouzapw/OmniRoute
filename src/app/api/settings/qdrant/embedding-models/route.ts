@@ -4,10 +4,7 @@ import { getProviderConnections } from "@/lib/db/providers";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
-import {
-  buildRegistryEmbeddingOptions,
-  mergeEmbeddingOptions,
-} from "./catalog";
+import { buildRegistryEmbeddingOptions, mergeEmbeddingOptions } from "./catalog";
 
 type EmbeddingModelOption = {
   value: string;
@@ -92,20 +89,17 @@ export async function GET(request: NextRequest) {
       // Best effort only: keep endpoint fast and resilient.
     }
 
-    // Ensure the default always exists as a safe fallback.
-    if (!options.some((o) => o.value === "openai/text-embedding-3-small")) {
-      options.unshift({
-        value: "openai/text-embedding-3-small",
-        label: "openai/text-embedding-3-small - OpenAI Text Embedding 3 Small",
-      });
-    }
-
     // Merge curated registry models (EMBEDDING_PROVIDERS — cohere, voyage,
     // jina, ...) so the Quick select lists real
     // embedding providers instead of only chat-catalog text matches and
     // OpenRouter live discovery. Registry options dedupe against the above;
     // mergeEmbeddingOptions returns value-sorted options for stable UI order.
-    const withRegistry = mergeEmbeddingOptions(options, buildRegistryEmbeddingOptions());
+    // A curated model is not necessarily usable: preserve the same active,
+    // credentialed-or-keyless provider boundary as the initial catalog above.
+    const configuredRegistry = buildRegistryEmbeddingOptions().filter((option) =>
+      configuredProviders.has(option.value.split("/", 1)[0])
+    );
+    const withRegistry = mergeEmbeddingOptions(options, configuredRegistry);
 
     return NextResponse.json({ models: withRegistry });
   } catch (error) {

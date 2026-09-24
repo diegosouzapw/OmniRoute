@@ -1,59 +1,60 @@
 # Management Authentication (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
 OmniRoute ir **četras akreditācijas datu saimes**, kas var autorizēt pārvaldības maršrutus.
-Tās nav savstarpēji aizvietojamas. Secinājumu API atslēgas (`sk-…`) **nevar** pārvaldīt
-serveri, ja vien tām nav tieši piešķirts tvērums `manage` vai `admin`.
+Tās nav savstarpēji aizstājamas. Secinājumu API atslēgas (`sk-…`) **nepārvalda**
+serveri, ja vien tām nav skaidri piešķirta `manage` vai `admin` darbības joma.
 
-Kanoniskā implementācija: `src/lib/api/requireManagementAuth.ts`.
+Kanonska implementācija: `src/lib/api/requireManagementAuth.ts`.
 
-| Akreditācijas dati             | Tipiskā forma                         | Kur izveidoti                                              | Paredzētais lietojums               | Pārvaldības iespējas                                                                                     |
-| ------------------------------ | ------------------------------------- | ---------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Informācijas paneļa JWT sesija | `auth_token` sīkdatne                 | Pieteikšanās informācijas panelī                           | Pārlūkprogrammas lietotāja saskarne | Pilna pārvaldība informācijas panelī, ievērojot CSRF, lokāluma un vienmēr aizsargāto maršrutu noteikumus |
-| CLI ierīces ID tokens          | iekšējs / lokāls                      | CLI sākotnējā iestatīšana (`omniroute` tajā pašā ierīcē)   | Lokālais CLI                        | Tikai lokāla pārvaldība                                                                                  |
-| Tvēruma piekļuves tokens       | `oma_live_…`                          | **Iestatījumi → Piekļuves tokeni** vai `omniroute connect` | Attālais CLI un pārvaldības API     | Jāatbilst maršrutam nepieciešamajam `read`, `write` vai `admin` tvērumam                                 |
-| Secinājumu API atslēga         | `sk-…` (un citi API atslēgu prefiksi) | **API pārvaldnieks / API atslēgas**                        | `/v1/*` secinājumi                  | **Nav**, ja vien atslēgas metadatos nav ietverts `manage` vai `admin`                                    |
+| Akreditācijas dati                 | Tipiska forma                         | Izveidots kur                                        | Paredzētais lietojums               | Pārvaldības iespējas                                                                           |
+| ---------------------------------- | ------------------------------------- | ---------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Paneļa JWT sesija                  | `auth_token` sīkfails                 | Paneļa pieteikšanās                                  | Pārlūkprogrammas lietotāja saskarne | Pilna paneļa pārvaldība, ievērojot CSRF, lokalitātes un vienmēr aizsargāto maršrutu noteikumus |
+| CLI mašīnas-ID marķieris           | iekšējs / lokāls                      | CLI sāknēšana (`omniroute` tajā pašā mašīnā)         | Lokāls CLI                          | Tikai lokāla pārvaldība                                                                        |
+| Darbības jomas piekļuves marķieris | `oma_live_…`                          | **Settings → Access Tokens** vai `omniroute connect` | Attālais CLI un pārvaldības API     | Jāatbilst maršruta nepieciešamajai `read`, `write` vai `admin` darbības jomai                  |
+| Secinājumu API atslēga             | `sk-…` (un citi API atslēgu prefiksi) | **API Manager / API Keys**                           | `/v1/*` secinājumi                  | **Nav**, ja vien atslēgas metadatos nav iekļauts `manage` vai `admin`                          |
 
-`oma_` akreditācijas dati ir pārvaldības/CLI akreditācijas dati. Tie **nav** secinājumu API atslēgas.
+`oma_` akreditācijas dati ir pārvaldības/CLI akreditācijas dati. Tās **nav** secinājumu API atslēgas.
 
-Ja serverī ir atspējota pieteikšanās/API atslēgu autentifikācija, daži pārvaldības maršruti var
-pieņemt neautentificētus izsaukumus. Tikai lokāliem un vienmēr aizsargātiem maršrutiem joprojām ir
-spēkā savi noteikumi. Tādēļ kādu no šiem akreditācijas datiem norādīt nav obligāti
-visos gadījumos, un to esamība nav pietiekama visos gadījumos bez nepieciešamā
-tvēruma un maršruta lokāluma.
+Ja serverim ir atspējota pieteikšanās/API atslēgas autentifikācija, daži pārvaldības maršruti var
+pieņemt neautentificētus zvanus. Tikai lokāli un vienmēr aizsargāti maršruti joprojām piemēro
+savus noteikumus. Tādēļ viena no šīm akreditācijas datu uzrādīšana nav universāli
+obligāta, un tās esamība nav universāli pietiekama bez nepieciešamās
+darbības jomas un maršruta lokalitātes.
 
-Saistītā informācija: [Attālais režīms](./REMOTE-MODE.md) (kā `oma_live_…` tiek izveidots attālajam CLI).
+Saistīts: [Attālais režīms](./REMOTE-MODE.md) (kā `oma_live_…` tiek izveidots attālam CLI).
 
 ---
 
-## Tvērumu matricas
+## Darbības jomu matricas
 
-Šīs divas tvērumu vārdnīcas ir **atšķirīgas**. Nejauciet tās.
+API atslēgu pārvaldības darbības jomas un piekļuves pilnvaru darbības jomas ir atšķirīgas vārdnīcas.
+MCP rīka darbības jomas ir trešā vārdnīca, kas tiek pārbaudīta ar `scopeMatches`, nevis ar kādu no tālāk esošajās tabulās minētajām funkcijām. Salīdzinājumam:
+[Trīs darbības jomu nosaukumvietas](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Piekļuves tokena tvērumi (`oma_live_…`)
+### Piekļuves pilnvaru darbības jomas (`oma_live_…`)
 
-| Tvērums | Tipiskās darbības                                                                                              |
-| ------- | -------------------------------------------------------------------------------------------------------------- |
-| `read`  | Saraksta/statusa GET pieprasījumi, kurus tokenam ir atļauts skatīt                                             |
-| `write` | Izmaiņu veikšana (izveide/atjaunināšana/dzēšana), kam nav nepieciešamas administratora tiesības                |
-| `admin` | Pilna attālā CLI / savienojuma pilnvarošana (paroles sākotnējā iestatīšana pēc noklusējuma izmanto šo tvērumu) |
+| Darbības joma | Tipiskās darbības                                                            |
+| ------------- | ---------------------------------------------------------------------------- |
+| `read`        | Saraksta/statusa GET pieprasījumi, ko pilnvara drīkst redzēt                 |
+| `write`       | Mutācijas (izveidot/atjaunināt/dzēst) zem administratora līmeņa              |
+| `admin`       | Pilna attālā CLI / savienojuma pilnvara (šeit noklusējuma paroles sāknēšana) |
 
-Tokens ar `read` nevar izsaukt `write` maršrutu. Izpildlaika ziņojuma forma:
-`Piekļuves tokena tvērums '<have>' nav pietiekams; nepieciešams '<need>'.`
+Pilnvara ar `read` nevar izsaukt `write` maršrutu. Izpildlaika ziņojuma forma:
+`Piekļuves pilnvaras darbības joma '<have>' nav pietiekama; nepieciešama '<need>'`
 
-### API atslēgu pārvaldības tvērumi
+### API atslēgu pārvaldības darbības jomas
 
-| Tvērums  | Nozīme                                                                          |
-| -------- | ------------------------------------------------------------------------------- |
-| (nav)    | Tikai secinājumiem. Pārvaldības maršruti atgriež 403.                           |
-| `manage` | Pārvaldības API (tā pati pārbaude kā `requireManagementAuth` API atslēgas zarā) |
-| `admin`  | Atbilst arī `hasManageScope` (tiek uzskatīts par piemērotu pārvaldībai)         |
+| Darbības joma | Nozīme                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| (nav)         | Tikai secinājums. Pārvaldības maršruti atgriež 403.                                         |
+| `manage`      | Pārvaldības API (tāda pati piekļuves kontrole kā `requireManagementAuth` API atslēgas zarā) |
+| `admin`       | Apstiprina arī `hasManageScope` (uzskatīts par pārvaldības spējīgu)                         |
 
-Iespējojiet atslēgai `manage` API atslēgu / API pārvaldnieka lietotāja saskarnē. Neizmantojiet
-tērzēšanas klienta atslēgu automatizācijai, ja vien neesat apzināti piešķīris tai šo tvērumu.
+Iespējojiet `manage` atslēgai API atslēgu / API pārvaldnieka lietotāja saskarnē. Neizmantojiet tērzēšanas klienta atslēgu automatizācijai, ja vien jūs apzināti neesat piešķīris šo darbības jomu.
 
 ---
 
@@ -129,29 +130,29 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Pašreizējās izpildlaika kļūdas (neatspoguļojiet noslēpumus)
+## Pašreizējās izpildlaika kļūdas (neizvadīt slepenos datus)
 
-| Situācija                                         | Tipiskais statuss | Ziņojums (sanitizēts)                                                                |
-| ------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------ |
-| Nav akreditācijas datu                            | 401               | `Nepieciešama autentifikācija`                                                       |
-| Nederīga/novecojusi `oma_live_…`                  | 401               | `Nederīga piekļuves pilnvara vai beidzies tās derīguma termiņš`                      |
-| Derīga API atslēga bez `manage`/`admin`           | 403               | `API atslēgai nav tvēruma 'manage'. Iespējojiet to API atslēgu informācijas panelī.` |
-| Nederīga parastā API atslēga pārvaldības maršrutā | 403               | `Nederīga pārvaldības pilnvara`                                                      |
-| Piekļuves pilnvaras tvērums ir nepietiekams       | 403               | `Piekļuves pilnvaras tvērums '<have>' nav pietiekams; nepieciešams '<need>'.`        |
+| Situācija                                         | Tipiskais statuss | Ziņojums (sanitizēts)                                                |
+| :------------------------------------------------ | :---------------- | :------------------------------------------------------------------- |
+| Nav akreditācijas datu                            | 401               | `Authentication required`                                            |
+| Nederīgs/beidzies `oma_live_…`                    | 401               | `Invalid or expired access token`                                    |
+| Derīga API atslēga bez `manage`/`admin`           | 403               | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Nederīga parasta API atslēga pārvaldības maršrutā | 403               | `Invalid management token`                                           |
+| Piekļuves pilnvaras tvērums ir pārāk zems         | 403               | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-„Nederīga pārvaldības pilnvara” nozīmē, ka uzrādītāja pilnvara **netika** pieņemta kā pārvaldības
-akreditācijas dati. Tas **nenorāda**, kuras saimes pilnvara jāizveido. Izmantojiet iepriekš minēto tabulu:
-inferencēšanas atslēgām nepieciešams `manage` tvērums; attālinātajai CLI nepieciešama `oma_live_…`; informācijas
-panelis izmanto sesijas sīkfailu.
+"Invalid management token" nozīmē, ka nesējs **netika** pieņemts kā pārvaldības
+akreditācijas dati. Tas **nenorāda**, kuru saimi izveidot. Izmantojiet iepriekš redzamo tabulu:
+secinājumu atslēgām ir nepieciešams `manage` tvērums; attālajai CLI ir nepieciešams `oma_live_…`; informācijas panelis
+izmanto sesijas sīkfailu.
 
 ---
 
 ## Ieteicamā mazāko privilēģiju izvēle
 
-| Izsaucējs                                      | Izmantojamais līdzeklis                                 |
-| ---------------------------------------------- | ------------------------------------------------------- |
-| Pārlūkprogramma                                | Informācijas paneļa sesija                              |
-| CLI servera resursdatorā                       | Iekārtas pilnvara                                       |
-| CLI klēpjdatorā, kas sazinās ar attālu serveri | `oma_live_…` no `omniroute connect`                     |
-| CI / skripti (tikai pārvaldībai)               | `oma_live_…` ar mazāko nepieciešamo tvērumu             |
+| Izsaucējs                                      | Lietojums                                               |
+| :--------------------------------------------- | :------------------------------------------------------ |
+| Pārlūkprogramma                                | Paneļa sesija                                           |
+| CLI servera resursdatorā                       | Mašīnas marķieris                                       |
+| CLI klēpjdatorā, kas sazinās ar attālo serveri | `oma_live_…` no `omniroute connect`                     |
+| CI / skripti (tikai pārvaldībai)               | `oma_live_…` ar mazāko darbības jomu, kas darbojas      |
 | CI, kam jāizsauc gan `/v1`, gan `/api`         | API atslēga ar `manage` **vai** divi akreditācijas dati |

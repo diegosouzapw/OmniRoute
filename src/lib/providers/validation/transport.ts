@@ -178,12 +178,43 @@ export function toWebCookieValidationErrorResult(provider: string, error: unknow
   return toValidationErrorResult(error);
 }
 
+/**
+ * proxyFetch.ts computes a detailed transport diagnosis (DNS/socket error
+ * code, syscall, address) whenever a direct fetch fails on both the pooled
+ * undici dispatcher and the native-fetch fallback, and attaches it to the
+ * thrown error as `.proxyFetchDetail`. safeOutboundFetch's
+ * normalizeFetchFailure() then wraps that error in a SafeOutboundFetchError
+ * whose `.message` is copied from the generic "fetch failed" string and
+ * whose `.cause` is the original error carrying `.proxyFetchDetail`. Without
+ * this, the computed diagnosis never reaches the caller (#14309).
+ */
+function extractProxyFetchDetail(error: unknown): string | undefined {
+  if (!(error instanceof Error)) return undefined;
+  const cause = (error as Error & { cause?: unknown }).cause;
+  if (!(cause instanceof Error)) return undefined;
+  const detail = (cause as Error & { proxyFetchDetail?: unknown }).proxyFetchDetail;
+  return typeof detail === "string" && detail.length > 0 ? detail : undefined;
+}
+
+const GENERIC_TRANSPORT_FAILURE_PATTERN = /^fetch failed$/i;
+
 export function toValidationErrorResult(error: unknown) {
   let rawMessage: unknown = error || "Validation failed";
   try {
     if (error instanceof Error) rawMessage = error.message;
   } catch {
     rawMessage = "Validation failed";
+  }
+  try {
+    if (
+      typeof rawMessage === "string" &&
+      GENERIC_TRANSPORT_FAILURE_PATTERN.test(rawMessage.trim())
+    ) {
+      const detail = extractProxyFetchDetail(error);
+      if (detail) rawMessage = `Network error: ${detail}`;
+    }
+  } catch {
+    // Diagnostic enrichment is advisory; never let it break error reporting.
   }
   const message = sanitizeErrorMessage(rawMessage);
   let statusCode: number | null = null;

@@ -51,6 +51,7 @@ import { getAdobeFireflyUsage } from "./usage/adobeFirefly.ts";
 import { getOpenrouterUsage } from "./usage/openrouter.ts";
 import { getOpenAiCompatibleUsage } from "./usage/openaiCompatible.ts";
 import { getLlmgatewayUsage } from "./usage/llmgateway.ts";
+import { getLyceumUsage } from "./usage/lyceum.ts";
 import { getOllamaCloudUsage } from "./opencodeOllamaUsage.ts";
 import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
 import { getPromptQlUsage } from "./usage/promptql.ts";
@@ -64,7 +65,10 @@ export { parseQoderUserStatusUsage } from "./usage/qoder.ts";
 import { getOpencodeUsage } from "./usage/opencode.ts";
 import { getDeepseekUsage } from "./usage/deepseek.ts";
 import { getMoonshotOpenPlatformUsage } from "./moonshotQuotaFetcher.ts";
-import { isMoonshotOpenPlatformConnection } from "./usage/moonshotOpenPlatform.ts";
+import {
+  isKimiCodingConnection,
+  isMoonshotOpenPlatformConnection,
+} from "./usage/moonshotOpenPlatform.ts";
 import { getDevinCliUsage } from "./usage/devinCli.ts";
 import { getBailianCodingPlanUsage } from "./usage/bailian.ts";
 import { getVertexUsage } from "./usage/vertex.ts";
@@ -114,6 +118,10 @@ export async function getUsageForProvider(
   options: { forceRefresh?: boolean } = {}
 ) {
   const { id, provider, accessToken, apiKey, providerSpecificData, projectId, email } = connection;
+
+  if (isKimiCodingConnection(connection)) {
+    return await getKimiUsage(accessToken, apiKey, providerSpecificData);
+  }
 
   if (isMoonshotOpenPlatformConnection(connection)) {
     return await getMoonshotOpenPlatformUsage(connection);
@@ -192,6 +200,8 @@ export async function getUsageForProvider(
       return await getOpenrouterUsage(id || "", apiKey || "", providerSpecificData);
     case "llmgateway":
       return await getLlmgatewayUsage(id || "", apiKey || "");
+    case "lyceum":
+      return await getLyceumUsage(id || "", apiKey || "");
     case "opencode":
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");

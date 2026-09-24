@@ -1,6 +1,6 @@
 # Resilience Guide (Français)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -67,80 +67,140 @@ le délai exponentiel `minRetryCooldownMs → maxRetryCooldownMs`. Surcharges :
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`.
 Protection contre les régressions : `tests/unit/provider-cooldown-window-gate.test.ts`.
 
-## 2. Période de récupération de connexion
+## 2. Période de refroidissement des connexions
 
-**Portée :** connexion/compte/clé d’un seul fournisseur.
+**Portée :** une seule connexion/un seul compte/une seule clé de fournisseur.
 
-**Objectif :** ignorer une clé défaillante tout en permettant aux autres connexions du même fournisseur de continuer à traiter les requêtes.
+**Objectif :** ignorer une clé défaillante tandis que les autres connexions du même fournisseur continuent de traiter les requêtes.
 
 **Implémentation :**
 
 - Marquage comme indisponible : `src/sse/services/auth.ts::markAccountUnavailable()`
 - Sélection : `getProviderCredentials*` dans le même fichier
-- Calcul de la période de récupération : `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Calcul du refroidissement : `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Paramètres : `src/lib/resilience/settings.ts`
 
 **Champs par connexion :**
 
-- `rateLimitedUntil` — horodatage jusqu’à l’expiration de la période de récupération
+- `rateLimitedUntil` — horodatage jusqu’à l’expiration du refroidissement
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — compteur de temporisation exponentielle
 
-**Périodes de récupération par défaut :**
+**Refroidissements par défaut :**
 
 - Base OAuth : 5 s
-- Base pour les clés API : 3 s
-- Erreur 429 pour une clé API : privilégie les en-têtes `Retry-After`/de réinitialisation en amont ou un texte de réinitialisation analysable
+- Base pour clé API : 3 s
+- 429 pour clé API : privilégie les en-têtes `Retry-After`/de réinitialisation en amont/le texte de réinitialisation analysable
 - Temporisation : `baseCooldownMs * 2 ** failureIndex`
 
-**Protection contre les effets de troupeau :** empêche les échecs simultanés de prolonger excessivement la période de récupération ou d’incrémenter deux fois `backoffLevel`.
+**Protection contre les afflux simultanés :** empêche des échecs simultanés de prolonger excessivement le refroidissement ou de doubler l’incrémentation de `backoffLevel`.
 
-**États terminaux (PAS des périodes de récupération) :**
+**États terminaux (PAS des refroidissements) :**
 
-- `banned` — défini par la détection de mots-clés de bannissement / de bannissement de compte (voir [BAN_DETECTION](../security/BAN_DETECTION.md)), ainsi que par trois refus consécutifs en amont par requête (`request_rejected`, par ex. l’erreur OAuth Anthropic 403 « Request not allowed » — `open-sse/services/requestRejectedStreak.ts`) ; un seul refus place uniquement la connexion en période de récupération
-- `expired` (passe à l’état terminal après un nombre limité de nouvelles tentatives — `EXPIRED_RETRY_MAX = 3` avec temporisation exponentielle — afin que les erreurs OAuth transitoires puissent se résoudre automatiquement avant la désactivation définitive du compte)
+- `banned` — défini par la détection de mots-clés d’interdiction/de bannissement de compte (voir [BAN_DETECTION](../security/BAN_DETECTION.md)), ainsi que par trois refus consécutifs en amont par requête (`request_rejected`, par exemple Anthropic OAuth 403 « Request not allowed » — `open-sse/services/requestRejectedStreak.ts`) ; un refus unique ne fait que mettre la connexion en refroidissement
+- `expired` (passe à l’état terminal après un nombre limité de nouvelles tentatives — `EXPIRED_RETRY_MAX = 3` avec temporisation exponentielle — afin que les erreurs OAuth transitoires puissent se résoudre d’elles-mêmes avant la désactivation définitive du compte)
 - `credits_exhausted`
 
-Ces états persistent jusqu’à ce que les identifiants changent ou qu’un opérateur les réinitialise. Ne remplacez pas les états terminaux par un état de récupération transitoire.
+Ces états persistent jusqu’à ce que les identifiants changent ou qu’un opérateur les réinitialise. Ne remplacez pas les états terminaux par un état de refroidissement transitoire.
 
-**Récupération différée :** lorsque `rateLimitedUntil` est dépassé, la connexion redevient éligible. Après une utilisation réussie, `clearAccountError()` efface tous les champs d’erreur.
+**Récupération différée :** lorsque `rateLimitedUntil` est dépassé, la connexion redevient admissible. Après une utilisation réussie, `clearAccountError()` efface tous les champs d’erreur.
+
+### Plafond d’utilisation Claude OAuth : voie de priorité inférieure + réinitialisation de la limite de session
+
+**Portée :** une connexion d’abonnement Claude (OAuth). Les deux fonctionnalités sont **activables par
+connexion** (Modifier la connexion → section Claude → `lowPriorityMode` / `autoLimitReset` dans
+`providerSpecificData`, toutes deux désactivées par défaut) et reproduisent les commandes `/low-priority` et
+`/limit-reset` de Claude Code (contrat filaire capturé depuis Claude Code 2.1.263).
+
+**Implémentation :**
+
+- Machine à états + classification des réponses : `open-sse/services/claudeLowPriority.ts`
+- Client de statut/réclamation de réinitialisation : `open-sse/services/claudeLimitReset.ts`
+- Point d’extension de l’exécuteur (injection d’en-tête + nouvelle tentative sur le même compte) : `open-sse/executors/base.ts::execute()`
+- Persistance de l’activation : `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Déclencheur :** le plafond d’utilisation de 5 heures — une réponse `429` dont les en-têtes contiennent
+`anthropic-ratelimit-unified-status: rejected` et, lorsque le compte est admissible,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Rien n’est envoyé avant cette première réponse
+429 liée au plafond ; une rafale de réponses 429 sans en-têtes unifiés suit le chemin de refroidissement normal.
+
+**Voie de priorité inférieure** (`lowPriorityMode`) :
+
+- Lors de la réponse 429 liée au plafond, l’exécuteur accepte l’offre et réessaie immédiatement avec le **même**
+  compte en utilisant `anthropic-usage-limit: slow` ; la voie reste active jusqu’à la valeur annoncée par
+  `anthropic-ratelimit-unified-reset` (+60 s de marge), et chaque requête durant cette période contient
+  l’en-tête. La réponse 429 interceptée n’atteint jamais `handleChatCore` ; la connexion n’est donc
+  **pas** mise en refroidissement ni remplacée par rotation.
+- `anthropic-ratelimit-unified-slow-status` dans les réponses ultérieures : `active` / `not_needed`
+  maintiennent la voie ; `slot_busy` (429) ou une réponse `529` attend la durée indiquée par
+  `anthropic-ratelimit-unified-slow-retry-after` du serveur (20 s par défaut, limitée à 5–600 s, avec une variation aléatoire de ±30 %)
+  puis réessaie, dans la limite de `anthropic-ratelimit-unified-slow-max-wait` (20 min par défaut, limitée
+  à 1 min–6 h) — au-delà, la voie prend fin et une période de repos de 10 minutes bloque toute nouvelle acceptation. L’attente
+  est également plafonnée par le temps restant avant l’expiration du délai propre à la requête pour démarrer en amont
+  (`resolveFetchStartTimeout`, 10 min par défaut), moins une marge de 5 s : sans ce plafond, le
+  délai d’attente maximal par défaut de 20 minutes dépasserait la durée de vie de la requête et la veille serait interrompue
+  en cours d’attente, exposant une `TimeoutError` au lieu de la fin normale `max_wait` suivie de la période de repos.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, le renouvellement d’une fenêtre de 5 h, ou
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (qui y met fin avec
+  `extra_usage` quel que soit le statut, puisque le dépassement payant couvre désormais le plafond) mettent fin à la voie ; la
+  réponse suit alors le chemin de refroidissement normal. `budget_exhausted` est mémorisé jusqu’à
+  la réinitialisation annoncée du budget (≤ 8 jours).
+- La vérification du plafond s’exécute après les nouvelles tentatives internes de l’exécuteur déclenchées par une réponse 400 (modification
+  du contexte, plafonnement de la réflexion/de l’effort, apprentissage automatique des paramètres), afin qu’une réponse 429 liée au plafond n’apparaissant que lors
+  de l’une de ces nouvelles tentatives soit tout de même interceptée au lieu d’atteindre le chemin de refroidissement.
+- L’état est conservé en mémoire par connexion (un redémarrage entraîne une réponse 429 supplémentaire liée au plafond avant la nouvelle acceptation).
+
+**Réinitialisation de la limite de session** (`autoLimitReset`, tentée avant la voie lorsque les deux sont activées) :
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → bloc `juniper_tide` ;
+  lorsque `arm: "reset"` et `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` avec
+  `{ "program": "juniper_tide" }` (UUID de l’organisation provenant de
+  `providerSpecificData.organizationUUID`, solution de secours lors de l’amorçage).
+- `result: reset|not_limited` → la requête est retentée à pleine vitesse (sans en-tête de ralentissement).
+  `already_used` / `not_offered` mémorisent `next_available_at` (une semaine par défaut) ; tout
+  échec applique une temporisation de 15 minutes. La réinitialisation n’est possible qu’une fois par semaine et reste comptabilisée dans la
+  limite hebdomadaire.
+
+Protections contre les régressions : `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Affinité de session (#7274)
 
 **Portée :** une session cliente (en-tête `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) épinglée à une connexion, pour **n’importe quel** fournisseur.
 
-**Objectif :** maintenir un agent multitour (Claude Code, aider, agents personnalisés) sur le même compte d’une requête à l’autre, afin de réduire la perte de contexte entre comptes et les erreurs 429 répétées de démarrage à froid chez les fournisseurs dont l’état de session est propre à chaque compte.
+**Objectif :** maintenir un agent multi-tour (Claude Code, aider, agents personnalisés) sur le même compte d’une requête à l’autre, afin de réduire la perte de contexte entre comptes et les erreurs 429 répétées lors des démarrages à froid chez les fournisseurs dont l’état de session est propre à chaque compte.
 
 **Implémentation :**
 
-- Résolution de la durée de vie : `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Résolution du TTL : `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
 - Sélection/création de l’épinglage : `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
 - Extraction de l’en-tête (générique, tout fournisseur) : `src/sse/services/auth.ts::extractSessionAffinityKey()`
 - Table d’épinglage persistante : `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Paramètre : `sessionAffinityTtlMs` (durée de vie globale en ms, `0` désactive la fonctionnalité) — `src/lib/db/settings.ts`. Renommé depuis le paramètre propre à Codex `codexSessionAffinityTtlMs` par la migration `124_generic_session_affinity_ttl.sql`, qui reprend toute durée de vie Codex précédemment configurée comme nouvelle valeur par défaut.
+- Paramètre : `sessionAffinityTtlMs` (TTL global en ms, `0` le désactive) — `src/lib/db/settings.ts`. Renommé depuis `codexSessionAffinityTtlMs`, auparavant spécifique à Codex, par la migration `124_generic_session_affinity_ttl.sql`, qui reprend tout TTL Codex précédemment configuré comme nouvelle valeur par défaut.
 
-Avant #7274, `resolveSessionAffinityTtlMs()` renvoyait immédiatement `0` pour tous les fournisseurs sauf `codex`. Le paramètre de durée de vie (et les en-têtes de session) n’avait donc aucun effet ailleurs, même si le mécanisme d’épinglage et l’extraction des en-têtes étaient déjà indépendants du fournisseur. Le correctif a supprimé ce retour anticipé ; la durée de vie s’applique désormais uniformément à tous les fournisseurs dès qu’elle est définie globalement à une valeur supérieure à `0`.
+Avant #7274, `resolveSessionAffinityTtlMs()` renvoyait immédiatement `0` pour tous les fournisseurs sauf `codex`. Le paramètre TTL (ainsi que les en-têtes de session) n’avait donc aucun effet ailleurs, même si le mécanisme d’épinglage et l’extraction des en-têtes étaient déjà indépendants du fournisseur. Le correctif a supprimé ce retour anticipé ; le TTL s’applique désormais uniformément à tous les fournisseurs dès lors que sa valeur globale est supérieure à `0`.
 
-Les trois en-têtes d’affinité de session ne sont jamais transmis en amont — les exécuteurs construisent leurs propres en-têtes en amont de zéro au lieu de transmettre les en-têtes du client, de sorte qu’ils restent uniquement des identifiants de corrélation internes.
+Les trois en-têtes d’affinité de session ne sont jamais transmis en amont — les exécuteurs construisent leurs propres en-têtes en amont à partir de zéro au lieu de transmettre ceux du client ; ils restent donc uniquement des identifiants de corrélation internes.
 
-### Baux exclusifs de connexion pour les sessions gérées
+### Baux exclusifs de connexion de session gérée
 
-**Portée :** un client/une session HTTP géré actif possède une connexion OmniRoute éligible.
+**Portée :** un client/une session HTTP géré(e) actif/active possède une connexion OmniRoute éligible.
 
-**Objectif :** fournir aux clients qui ont besoin d’une barrière de routage stricte entre les requêtes une propriété exclusive et durable de la connexion. Cela diffère de l’affinité de session, qui constitue une préférence souple de continuité : un bail exclusif conserve son état de cycle de vie dans SQLite, impose l’unicité globale du propriétaire actif et de la connexion active, et rejette une génération obsolète avant l’envoi au fournisseur.
+**Objectif :** fournir une propriété exclusive et durable de la connexion aux clients nécessitant une barrière de routage stricte entre les requêtes. Cela diffère de l’affinité de session, qui constitue une préférence souple de continuité : un bail exclusif conserve l’état du cycle de vie dans SQLite, impose l’unicité globale du propriétaire actif et de la connexion active, et rejette une génération obsolète avant l’envoi au fournisseur.
 
-Cette fonctionnalité est activée explicitement pour chaque clé API. Une clé gérée doit disposer de la portée `lease:exclusive` et d’une liste `allowedConnections` explicite et non vide. Tout client HTTP peut utiliser le point de terminaison de cycle de vie ; aucun nom de client, agent utilisateur, fournisseur, méthode OAuth ou modèle n’est requis. Le bail porte sur une connexion, et non sur un modèle ; un changement de modèle conserve donc la liaison tant que la connexion reste normalement éligible. Les règles habituelles relatives au modèle, au quota, à l’intégrité, à la période de récupération et à la liste d’autorisation restent prioritaires et peuvent faire basculer la même génération vers une autre connexion libre et éligible.
+Cette fonctionnalité est activée séparément pour chaque clé API. Une clé gérée doit disposer de la portée `lease:exclusive` et d’une liste `allowedConnections` explicite et non vide. Tout client HTTP peut utiliser le point de terminaison du cycle de vie ; aucun nom de client, agent utilisateur, fournisseur, méthode OAuth ou modèle n’est requis. Le bail porte sur une connexion, et non sur un modèle ; un changement de modèle conserve donc la liaison tant que la connexion reste normalement éligible. Les règles habituelles relatives au modèle, au quota, à l’état de santé, au délai de récupération et à la liste d’autorisation restent prépondérantes et peuvent faire basculer la même génération vers une autre connexion libre et éligible.
 
-Le cycle de vie utilise `POST /api/v1/session-leases` avec les actions JSON `acquire`, `renew` et `release`. Les requêtes d’inférence gérées présentent la valeur opaque `X-OmniRoute-Lease-Owner` et la valeur exacte `X-OmniRoute-Lease-Generation`. Le propriétaire utilise le préfixe `vlo_` suivi de 43 caractères base64url ; seul son hachage SHA-256 est stocké. Chaque barrière finale d’envoi associe également l’ID de la clé API authentifiée et l’ID de la connexion active. Les en-têtes de contrôle du bail sont supprimés des journaux, des instantanés de requête conservés et des en-têtes des exécuteurs en amont.
+Le cycle de vie utilise `POST /api/v1/session-leases` avec les actions JSON `acquire`, `renew` et `release`. Les requêtes d’inférence gérées présentent la valeur opaque `X-OmniRoute-Lease-Owner` et la valeur exacte `X-OmniRoute-Lease-Generation`. Le propriétaire utilise le préfixe `vlo_` suivi de 43 caractères base64url ; seul son hachage SHA-256 est stocké. Chaque barrière d’envoi finale lie également l’ID de la clé API authentifiée et l’ID de la connexion active. Les en-têtes de contrôle du bail sont supprimés des journaux, des instantanés de requêtes conservés et des en-têtes des exécuteurs en amont.
 
-Si le routage ordinaire dispose de candidats gérés éligibles, mais que tous les candidats libres sont occupés par un bail actif tiers, OmniRoute renvoie une réponse HTTP `429`, un code indiquant l’indisponibilité de la capacité de bail, un état d’attente de capacité et un en-tête `Retry-After` borné, calculé à partir de la première expiration pertinente. Une absence ordinaire d’éligibilité ne constitue pas un conflit de bail et conserve la sémantique existante des erreurs de routage.
+Si le routage ordinaire dispose de candidats gérés éligibles, mais que chaque candidat libre est occupé par un bail actif étranger, OmniRoute renvoie le code HTTP `429`, le code indiquant une capacité de bail indisponible, un état d’attente de capacité et un en-tête `Retry-After` borné, calculé à partir de l’expiration pertinente la plus proche. Une absence ordinaire d’éligibilité ne constitue pas un conflit de bail et conserve la sémantique existante des erreurs de routage.
 
-Les mécanismes connexes restent distincts :
+Les mécanismes associés restent distincts :
 
-- L’occupation de session OAuth est une distribution souple propre au processus pour les comptes OAuth.
-- Les sémaphores de compte accordent des autorisations de concurrence des requêtes et prennent fin lorsqu’une requête se termine.
-- Les baux exclusifs de connexion pour les sessions gérées constituent une propriété durable du cycle de vie avec une barrière de génération.
+- L’occupation des sessions OAuth est une distribution souple, locale au processus, pour les comptes OAuth.
+- Les sémaphores de compte accordent des autorisations de requêtes concurrentes et prennent fin lorsqu’une requête se termine.
+- Les baux exclusifs de connexion de session gérée assurent une propriété durable liée au cycle de vie, avec une barrière de génération.
 
 ---
 
@@ -276,48 +336,73 @@ de débit propre au modèle. Ce comportement est encadré par `comboCooldownWait
 
 ---
 
-## 5. Contrôle d'admission de la file d'attente des requêtes (v3.8.49 · ticket #6593)
+## 5. Contrôle d’admission de la file d’attente des requêtes (v3.8.49 · issue #6593)
 
-**Portée** : la file d'attente locale de limitation de débit par fournisseur+connexion (`open-sse/services/rateLimitManager.ts`,
-basée sur Bottleneck), située une couche en dessous des trois mécanismes ci-dessus.
+**Portée** : la file d’attente locale de limitation du débit par fournisseur+connexion (`open-sse/services/rateLimitManager.ts`,
+reposant sur Bottleneck), située un niveau sous les trois mécanismes ci-dessus.
 
-**`maxWaitMs` est un ancien nom persistant désignant l'expiration de l'exécution.**
-`resilienceSettings.requestQueue.maxWaitMs` est transmis à Bottleneck comme valeur
-`expiration` d'une tâche, dont le minuteur ne démarre qu'après le routage. Il limite donc
-l'exécution gérée par le limiteur, et non le temps passé dans la file d'attente locale. L'expiration est
-exposée comme une erreur locale fiable `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) ;
-l'ancien nom de code lié au délai d'attente dans la file n'est accepté que pour assurer une
-rétrocompatibilité interne fiable. La valeur par défaut est 15000ms ; remplacez-la via
-`RATE_LIMIT_MAX_WAIT_MS` (variable d'environnement) ou le tableau de bord (**Paramètres → Résilience**,
-plafond de l'interface : 1–30000ms). Le temps passé dans la file d'attente n'a aucune échéance ; utilisez
-`maxQueueDepth` ci-dessous pour limiter le nombre d'appelants en attente.
+**`maxWaitMs` limite l’attente dans la file ; `executionMaxWaitMs` limite l’exécution.**
+Ces deux limites sont volontairement distinctes, et aucune n’alimente l’autre.
 
-**`maxQueueDepth` — limite d'admission facultative (nouveauté).** `resilienceSettings.requestQueue.maxQueueDepth`
-limite le nombre de requêtes pouvant rester en attente (sans avoir encore été acheminées) simultanément pour une même
+`resilienceSettings.requestQueue.maxWaitMs` est le **budget d’attente dans la file** : il
+couvre l’attente d’un créneau chez le fournisseur, puis le temps passé à l’état QUEUED, et son minuteur est
+annulé dès que la tâche quitte l’état QUEUED et commence son exécution
+(`rateLimitManager.ts`, `wrappedFn`). Une requête qui le dépasse n’atteint jamais
+le service en amont. La valeur par défaut est 30000ms, fournie par `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+dans `src/lib/resilience/settings.ts` et verrouillée par
+`tests/unit/ratelimit-admission-control-6593.test.ts`, de sorte que toute modification
+fait échouer ce test au lieu de laisser silencieusement ce paragraphe devenir obsolète.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` est la valeur que Bottleneck
+reçoit comme `expiration` de la tâche, dont le minuteur ne démarre qu’après l’envoi. Elle sert
+de filet de sécurité pour les exécuteurs ne disposant pas de leur propre délai d’expiration en amont, et elle est
+augmentée jusqu’au délai d’expiration au démarrage de la récupération propre à l’exécuteur lorsque celui-ci est plus long, afin qu’elle
+ne puisse pas interrompre une réponse saine en cours. Valeur par défaut : 600000ms (10 min).
+
+L’utilisation du budget de file comme `expiration` provoquait auparavant l’arrêt en cours d’exécution des passerelles
+non incrémentales — celles-ci s’exécutent légitimement pendant plusieurs minutes avant l’arrivée des premiers octets —
+et c’est pourquoi une expiration est exposée sous la forme `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), tandis que le budget de file porte le
+code d’expiration de la file. Remplacez l’une ou l’autre valeur via `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) ou le tableau de bord
+(**Paramètres → Résilience**). Lors de leur normalisation, les deux valeurs sont limitées à 1ms–24h.
+
+**Priorité, pour les deux :** la variable d’environnement fournit uniquement la valeur _par défaut_. Une valeur
+persistée dans `resilienceSettings.requestQueue` (tableau de bord / correctif d’API, stockée
+dans `key_value`) prévaut sur celle-ci, et une valeur par connexion
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` prévaut à son tour. Définir
+la variable d’environnement sur un déploiement qui possède déjà une valeur persistée
+ne change donc rien — effacez ou mettez plutôt à jour le paramètre persistant.
+
+Le temps de résidence dans la file est limité par `maxWaitMs` ; la valeur `maxQueueDepth` ci-dessous limite le
+nombre d’appelants pouvant être placés simultanément dans la file.
+
+**`maxQueueDepth` — plafond d’admission facultatif (nouveau).** `resilienceSettings.requestQueue.maxQueueDepth`
+limite le nombre de requêtes pouvant rester dans la file (sans avoir encore été envoyées) simultanément pour une
 paire fournisseur+connexion. Lorsque la file contient déjà `maxQueueDepth`
-requêtes, toute nouvelle requête est immédiatement rejetée avec une erreur typée
-`code: "RATE_LIMIT_QUEUE_FULL"` **avant** même d'atteindre `limiter.schedule()`
-— le rejet est ainsi peu coûteux et intervient avant tout travail en aval de
-compression / traduction du prompt pour cette requête. Valeur par défaut `0` =
-désactivé, ce qui préserve le comportement existant d'une file d'attente sans limite ; plage autorisée : 0–100000.
-Remplacez cette valeur via `RATE_LIMIT_MAX_QUEUE_DEPTH` (variable d'environnement) ou
-`resilienceSettings.requestQueue.maxQueueDepth` (correctif via le tableau de bord/l'API).
+requêtes, une nouvelle requête est immédiatement rejetée avec une erreur typée
+`code: "RATE_LIMIT_QUEUE_FULL"` **avant** même d’atteindre `limiter.schedule()`
+— le rejet est donc peu coûteux et intervient avant tout travail ultérieur
+de compression / traduction du prompt pour cette requête. Valeur par défaut : `0` =
+désactivé, ce qui préserve le comportement existant de file non bornée ; plage limitée à 0–100000.
+Remplacez cette valeur via `RATE_LIMIT_MAX_QUEUE_DEPTH` (env) ou
+`resilienceSettings.requestQueue.maxQueueDepth` (correctif via le tableau de bord/l’API).
 
-Le contrôle d'admission lui-même est une fonction pure
+La vérification d’admission elle-même est une fonction pure
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), ce qui permet
 de la tester unitairement sans véritable limiteur Bottleneck.
 
-> La RFC à l'origine du ticket #6593 proposait également un indicateur `bypassCompressionOnRateLimit`.
+> La RFC à l’origine de #6593 proposait également un indicateur `bypassCompressionOnRateLimit`.
 > Dans ce dépôt, le pipeline `open-sse/services/compression/` effectue la
 > compression du prompt/contexte sur la requête LLM sortante (`chatCore.ts`,
 > autour du bloc `resolveCompressionSettings`/`selectCompressionStrategy`),
-> et non la compression de la réponse HTTP sur les corps 429 générés — il n'existe aucun
+> et non la compression de la réponse HTTP sur les corps 429 synthétisés — il n’existe aucun
 > chemin de code correspondant à un indicateur de contournement littéral. Cette étape de compression du prompt
-> s'exécute aussi actuellement _avant_ `withRateLimit()` dans le pipeline de requêtes ; la
-> réorganiser afin de l'ignorer lors d'un rejet pour cause de file pleine constitue une modification distincte et plus
-> importante que la portée de ce ticket ; elle n'a intentionnellement **pas** été implémentée
-> ici et reste à traiter ultérieurement si le gain de ressources CPU justifie le
-> risque lié à cette réorganisation.
+> s’exécute aussi actuellement _avant_ `withRateLimit()` dans le pipeline de requêtes ; par conséquent,
+> la réorganisation nécessaire pour l’ignorer lors d’un rejet dû à une file pleine constitue une modification distincte et plus
+> importante que le périmètre de cette issue. Elle n’a volontairement **pas** été implémentée
+> ici et reste un suivi potentiel si le gain en ressources CPU justifie le
+> risque lié à la réorganisation.
 
 ---
 
