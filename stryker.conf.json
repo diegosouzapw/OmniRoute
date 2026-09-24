@@ -494,6 +494,7 @@
       "tests/unit/12307-semantic-cache-output-contract.test.ts",
       "tests/unit/antigravity-account-lease-flag.test.ts",
       "tests/unit/circuit-breaker-half-open-probe-lease-13836.test.ts",
+      "tests/unit/codex-quota-header-leak-14116.test.ts",
       "tests/unit/grok-cli-free-usage-429.test.ts",
       "tests/unit/opencode-free-tier-refusal-no-model-lockout.test.ts",
       "tests/unit/prompt194-astra-vision-compat.test.ts",
