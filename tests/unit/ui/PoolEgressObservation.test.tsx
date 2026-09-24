@@ -79,6 +79,48 @@ describe("PoolEgressObservation", () => {
     expect(element.textContent).toBe('poolEgressObservationEmpty:{"hours":24}');
   });
 
+  it("shows the per-exit failures and the unattributed remainder", async () => {
+    const { element } = await renderWith(() =>
+      jsonResponse({
+        connections: 4,
+        distinctExits: 2,
+        maxConnectionsOnOneExit: 3,
+        windowHours: 24,
+        failures: {
+          byExit: [
+            {
+              exit: "203.0.113.1",
+              failures: 3,
+              byFamily: [
+                { family: "server_error", count: 2 },
+                { family: "unknown", count: 1 },
+              ],
+            },
+          ],
+          byFamily: [
+            { family: "server_error", count: 2 },
+            { family: "unknown", count: 1 },
+          ],
+          unattributed: 2,
+        },
+      })
+    );
+    expect(element.textContent).toContain("203.0.113.1");
+    expect(element.textContent).toContain("server_error: 2");
+  });
+
+  it("keeps the summary line when the route has no failures key", async () => {
+    const { element } = await renderWith(() =>
+      jsonResponse({
+        connections: 12,
+        distinctExits: 5,
+        maxConnectionsOnOneExit: 4,
+        windowHours: 24,
+      })
+    );
+    expect(element.textContent).toContain("poolEgressObservation");
+  });
+
   it("renders nothing when the route answers null", async () => {
     const { element } = await renderWith(() => jsonResponse(null));
     expect(element.textContent).toBe("");
