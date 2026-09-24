@@ -11,9 +11,9 @@
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Η δωρεάν πύλη AI
+# 🚀 OmniRoute — Η Δωρεάν Πύλη AI
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Μην σταματάτε ποτέ να προγραμματίζετε. Κάθε εργαλείο AI → 359 πάροχοι — 150+ δωρεάν — μέσω ενός endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity σε ΔΩΡΕΑΝ Claude / GPT / Gemini με αυτόματη εναλλακτική δρομολόγηση. Η συνδυαστική συμπίεση RTK + Caveman εξοικονομεί 15–95% των token (~89% κατά μέσο όρο) — χωρίς να φτάνετε ποτέ στα όρια. 359 πάροχοι AI · 150+ δωρεάν πακέτα · ~1,62 δισ. δωρεάν token/μήνα · 19 στρατηγικές δρομολόγησης · $0 για να ξεκινήσετε."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Μην σταματάς ποτέ να κωδικοποιείς. Κάθε εργαλείο AI → 358 πάροχοι — 150+ δωρεάν — μέσω ενός τελικού σημείου. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity σε ΔΩΡΕΑΝ Claude / GPT / Gemini με αυτόματη εφεδρεία. Η συμπίεση RTK + Caveman εξοικονομεί 15–95% tokens (~89% κατά μέσο όρο) — ποτέ μην φτάσετε στα όρια. 358 πάροχοι AI · 150+ δωρεάν βαθμίδες · ~1.62 δισ. δωρεάν tokens/μήνα · 19 στρατηγικές δρομολόγησης · $0 για να ξεκινήσετε."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 Λειτουργεί από τη στιγμή που το εγκαθιστάτε — χωρίς κλειδιά, χωρίς ρυθμίσεις
+## 🆓 Λειτουργεί αμέσως μόλις το εγκαταστήσετε — χωρίς κλειδιά, χωρίς ρύθμιση
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Λειτουργεί από τη στιγμή που το εγκαθιστάτε — χωρίς ρυθμίσεις. Τρία βήματα: 1. Εγκατάσταση — npm i -g omniroute, ο διακομιστής εκκινείται στο localhost:20128. 2. Κατευθύνετε το εργαλείο σας στο http://localhost:20128/v1 — οποιοδήποτε εργαλείο συμβατό με το OpenAI (Claude Code, Cursor, Cline). 3. Απαντά — καλέστε το μοντέλο auto για άμεση απάντηση, χωρίς κλειδί API, χωρίς εγγραφή και χωρίς διαμόρφωση. Ο πάροχος χωρίς κλειδί OpenCode Free είναι ήδη συνδεδεμένος στον συνδυασμό auto, ώστε μια νέα εγκατάσταση να ανταποκρίνεται αμέσως."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Λειτουργεί αμέσως μόλις το εγκαταστήσετε — μηδενική ρύθμιση. Τρία βήματα: 1. Εγκατάσταση — npm i -g omniroute, ο διακομιστής εκκινεί στο localhost:20128. 2. Στρέψτε το εργαλείο σας στο http://localhost:20128/v1 — οποιοδήποτε εργαλείο συμβατό με το OpenAI (Claude Code, Cursor, Cline). 3. Απαντά — καλέστε το μοντέλο auto για άμεση απάντηση, χωρίς κλειδί API, χωρίς εγγραφή, χωρίς ρύθμιση. Ο πάροχος χωρίς κλειδί OpenCode Free είναι προ-συνδεδεμένος στην αυτόματη σύνθεση, οπότε μια νέα εγκατάσταση ανταποκρίνεται αμέσως."/>
 
 ```bash
-# Νέα εγκατάσταση, χωρίς διαπιστευτήρια — το `auto` λειτουργεί ήδη:
+# Νέα εγκατάσταση, μηδενικά διαπιστευτήρια — το `auto` ήδη λειτουργεί:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Προτιμάτε ένα συγκεκριμένο δωρεάν backend; Καλέστε απευθείας το `oc/…` (OpenCode Free). Στη συνέχεια, περάστε στο `auto` και αφήστε το OmniRoute να επιλέξει.</sub>
+<sub>Προτιμάτε ένα συγκεκριμένο δωρεάν backend; Καλέστε το `oc/…` (OpenCode Free) απευθείας. Στη συνέχεια, αναβαθμίστε σε `auto` και αφήστε το OmniRoute να επιλέξει.</sub>
 
-<sub>📦 Έτοιμα για αντιγραφή και επικόλληση σενάρια γρήγορης εκκίνησης για **Python, Node.js, PHP και cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Σενάρια γρήγορης εκκίνησης με αντιγραφή-επικόλληση για **Python, Node.js, PHP, και cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Η Υπόσχεση — Ένα endpoint και 359 πάροχοι. Η αυτόματη εναλλακτική δρομολόγηση συνεχίζει να λειτουργεί όσο υπάρχει διαθέσιμος άλλος υγιής προορισμός. Έξι πυλώνες: ανθεκτική εναλλακτική δρομολόγηση μεταξύ 359 παρόχων · έως και 95% εξοικονόμηση token σε κατάλληλους φόρτους εργασίας · εκκίνηση με $0 χάρη σε περισσότερα από 150 δωρεάν επίπεδα και 54 επαναλαμβανόμενους/χωρίς κλειδί δωρεάν για πάντα παρόχους · 36 ενσωματώσεις CLI/agent μέσω μίας διαμόρφωσης · συμβατότητα με OpenAI, Claude, Gemini και Responses API στο /v1 · έλεγχοι παραγωγής, όπως circuit breakers, απόκρυψη TLS, MCP με 110 εργαλεία, A2A, μνήμη, προστατευτικά όρια, αξιολογήσεις και περισσότερες από 39.000 δηλώσεις στατικών δοκιμών σε περισσότερα από 5.100 παρακολουθούμενα αρχεία δοκιμών."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Η Υπόσχεση — Ένα τελικό σημείο και 358 πάροχοι. Η αυτόματη εφεδρεία διατηρεί τη δρομολόγηση όσο υπάρχει διαθέσιμος ένας άλλος υγιής στόχος. Έξι πυλώνες: ανθεκτική εφεδρεία σε 358 παρόχους · έως και 95% εξοικονόμηση tokens σε επιλέξιμους φόρτους εργασίας · 0$ για να ξεκινήσετε με 150+ δωρεάν βαθμίδες και 54 επαναλαμβανόμενους/χωρίς κλειδί παρόχους για πάντα δωρεάν · 36 ενσωματώσεις CLI/πρακτόρων μέσω μιας ρύθμισης · Συμβατότητα API OpenAI, Claude, Gemini και Responses στο /v1 · έλεγχοι παραγωγής συμπεριλαμβανομένων διακοπτών κυκλώματος, TLS stealth, εργαλείων MCP 110, A2A, μνήμης, guardrails, evals και 39.000+ στατικών δηλώσεων δοκιμών σε 5.100+ αρχεία δοκιμών που παρακολουθούνται."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Γιατί OmniRoute — σταματήστε να διαχειρίζεστε 10 διαφορετικούς πίνακες ελέγχου, ανενεργά κλειδιά API και απρόσμενους λογαριασμούς. Δέκα καθημερινά προβλήματα και οι λύσεις τους: αχρησιμοποίητο όριο που λήγει → μεγιστοποίηση της αξιοποίησης των συνδρομών· όρια ρυθμού εν μέσω προγραμματισμού → αυτόματη εναλλακτική δρομολόγηση 4 επιπέδων (Συνδρομή → API → Οικονομικό → Δωρεάν)· έξοδοι εργαλείων που καταναλώνουν token → συμπίεση RTK + Caveman (15–95%)· ακριβά API → δρομολόγηση βελτιστοποιημένη ως προς το κόστος· ξεχωριστή ρύθμιση για κάθε εργαλείο → ένα endpoint, ένας πίνακας ελέγχου· αποκλεισμός της τεχνητής νοημοσύνης → proxy 3 επιπέδων + απόκρυψη TLS· ανενεργά κλειδιά → ανθεκτικότητα 3 επιπέδων (circuit breakers, χρόνος αναμονής κλειδιών, αποκλεισμός μοντέλων)· κοινή χρήση μίας συνδρομής από την ομάδα → δεξαμενές κλειδιών με ποσοστώσεις δίκαιης κατανομής· προτροπές που περνούν μέσα από το cloud κάποιου τρίτου → τοπική λειτουργία κατά προτεραιότητα με κλειδιά κρυπτογραφημένα μέσω AES-256-GCM· έλλειψη ορατότητας δαπανών → αναλυτικά στοιχεία σε πραγματικό χρόνο (χρήση, όριο, εξοικονόμηση, καθυστέρηση p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Γιατί OmniRoute — σταματήστε να χειρίζεστε 10 πίνακες ελέγχου, νεκρά κλειδιά API και απρόβλεπτους λογαριασμούς. Δέκα καθημερινοί πόνοι έναντι λύσεων: ποσόστωση που λήγει αχρησιμοποίητη → μεγιστοποίηση συνδρομών; όρια ρυθμού εν μέσω κωδικοποίησης → αυτόματη εφεδρεία 4 επιπέδων (Συνδρομή → API → Φθηνό → Δωρεάν); έξοδοι εργαλείων που καταναλώνουν tokens → συμπίεση RTK + Caveman (15–95%); ακριβά APIs → δρομολόγηση βελτιστοποιημένη ως προς το κόστος; κάθε εργαλείο η δική του ρύθμιση → ένα τελικό σημείο, ένας πίνακας ελέγχου; AI μπλοκαρισμένο → proxy 3 επιπέδων + TLS stealth; νεκρά κλειδιά → ανθεκτικότητα 3 επιπέδων (διακόπτες κυκλώματος, ψύξη κλειδιού, κλείδωμα μοντέλου); ομάδα που μοιράζεται μία συνδρομή → ομάδες κλειδιών με ποσοστώσεις δίκαιης κατανομής; προτροπές μέσω του cloud κάποιου → τοπική προτεραιότητα με κρυπτογραφημένα κλειδιά AES-256-GCM; καμία ορατότητα δαπανών → ζωντανά αναλυτικά στοιχεία (χρήση, ποσόστωση, εξοικονόμηση, p95 latency)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Ροή αιτημάτων του OmniRoute: το IDE ή το CLI σας (Claude Code, Cursor, Cline…) καλεί ένα τοπικό endpoint (http://localhost:20128/v1)· ο Έξυπνος Δρομολογητής OmniRoute (συμπίεση RTK + Caveman, 19 στρατηγικές δρομολόγησης, circuit breakers, απόκρυψη TLS, MCP, A2A, προστατευτικά όρια) μπορεί να χρησιμοποιήσει εναλλακτική δρομολόγηση μεταξύ 4 επιπέδων παρόχων, όσο παραμένει διαθέσιμος ένας κατάλληλος και υγιής προορισμός — Επίπεδο 1 Συνδρομή, Επίπεδο 2 Κλειδί API, Επίπεδο 3 Οικονομικό και Επίπεδο 4 Δωρεάν."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Ροή αιτημάτων OmniRoute: το IDE ή το CLI σας (Claude Code, Cursor, Cline…) καλεί ένα τοπικό τελικό σημείο (http://localhost:20128/v1); ο Έξυπνος Δρομολογητής OmniRoute (συμπίεση RTK + Caveman, 19 στρατηγικές δρομολόγησης, διακόπτες κυκλώματος, TLS stealth, MCP, A2A, guardrails) μπορεί να κάνει εφεδρεία σε 4 επίπεδα παρόχων όσο παραμένει ένας επιλέξιμος υγιής στόχος — Επίπεδο 1 Συνδρομή, Επίπεδο 2 Κλειδί API, Επίπεδο 3 Φθηνό και Επίπεδο 4 Δωρεάν."/>
 
 </div>
 
@@ -488,13 +488,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🏆 Τι Κάνει το OmniRoute να Ξεχωρίζει
+## 🏆 Τι κάνει το OmniRoute να ξεχωρίζει
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Τι κάνει το OmniRoute να ξεχωρίζει — μια χρονολογημένη σύγκριση δυνατοτήτων με τα 9router, OpenRouter, CLIProxyAPI και LiteLLM σε 13 δυνατότητες. OmniRoute: 359 πάροχοι, 150+ ενσωματωμένα δωρεάν επίπεδα, 19 στρατηγικές δρομολόγησης, συμπίεση token με 12 μηχανές, ενσωματωμένος διακομιστής MCP με 110 εργαλεία, πρωτόκολλο πρακτόρων A2A, μόνιμη μνήμη, προστατευτικοί μηχανισμοί, πράκτορες cloud, απόκρυψη δακτυλικού αποτυπώματος TLS, Desktop/Termux/PWA και 42 τοπικές προσαρμογές διεπαφής χρήστη i18n. Το OmniRoute διατίθεται με άδεια MIT και μπορεί να φιλοξενηθεί σε δική σας υποδομή. Οι δυνατότητες και οι αριθμοί των ανταγωνιστών ενδέχεται να αλλάξουν· ανατρέξτε στη συνδεδεμένη μεθοδολογία."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Τι κάνει το OmniRoute να ξεχωρίζει — ένα στιγμιότυπο χαρακτηριστικών (ενδέχεται να είναι παλιό) έναντι των 9router, OpenRouter, CLIProxyAPI και LiteLLM σε 13 δυνατότητες. OmniRoute: 358 πάροχοι, 150+ ενσωματωμένες δωρεάν βαθμίδες, 19 στρατηγικές δρομολόγησης, συμπίεση token 12 μηχανών, ενσωματωμένος διακομιστής MCP με 110 εργαλεία, πρωτόκολλο πράκτορα A2A, επίμονη μνήμη, μηχανισμοί προστασίας, πράκτορες cloud, απόκρυψη δακτυλικού αποτυπώματος TLS, Desktop/Termux/PWA και 42 τοπικές ρυθμίσεις διεπαφής χρήστη i18n. Το OmniRoute διαθέτει άδεια MIT και είναι αυτο-φιλοξενήσιμο. Οι δυνατότητες και οι μετρήσεις των ανταγωνιστών ενδέχεται να αλλάξουν· δείτε τη συνδεδεμένη μεθοδολογία."/>
 
-<sub>📊 Πλήρης μεθοδολογία &amp; λεπτομέρειες ανά δυνατότητα σε σύγκριση με τα 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Πλήρης μεθοδολογία &amp; λεπτομέρειες ανά χαρακτηριστικό έναντι 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1271,23 +1271,23 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
 
 <table>
   <tr><th align="left">Επίπεδο</th><th align="left">Τεχνολογία</th></tr>
-  <tr><td nowrap><b>Περιβάλλον εκτέλεσης</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Γλώσσα</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> σε όλο το <code>src/</code> και το <code>open-sse/</code> (μηδενική χρήση του <code>any</code> στον πυρήνα από την έκδοση v2.0)</td></tr>
+  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Γλώσσα</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> σε <code>src/</code> και <code>open-sse/</code> (μηδέν <code>any</code> στον πυρήνα από την έκδοση 2.0)</td></tr>
   <tr><td nowrap><b>Πλαίσιο</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Βάση δεδομένων</b></td><td>better-sqlite3 (SQLite, καταγραφή WAL) + LowDB (παλαιού τύπου JSON) — 122 λειτουργικές μονάδες τομέα, 182 μετεγκαταστάσεις</td></tr>
-  <tr><td nowrap><b>Μνήμη</b></td><td>Αναζήτηση πλήρους κειμένου SQLite FTS5 + διανυσματικές ενσωματώσεις κβαντισμένες σε int8, τυποποιημένη εξασθένηση</td></tr>
-  <tr><td nowrap><b>Σχήματα</b></td><td>Zod 4 — επικύρωση εισόδου/εξόδου εργαλείων MCP + συμβάσεις API</td></tr>
+  <tr><td nowrap><b>Βάση Δεδομένων</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 modules τομέα, 183 μεταβάσεις</td></tr>
+  <tr><td nowrap><b>Μνήμη</b></td><td>SQLite FTS5 πλήρες κείμενο + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>Σχήματα</b></td><td>Zod 4 — Επικύρωση εισόδου/εξόδου εργαλείου MCP + συμβόλαια API</td></tr>
   <tr><td nowrap><b>Πρωτόκολλα</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Ροή δεδομένων</b></td><td>Server-Sent Events (SSE) + γέφυρα WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Συμπίεση</b></td><td>Διοχέτευση 12 μηχανών — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Έλεγχος ταυτότητας &amp; ασφάλεια</b></td><td>OAuth 2.0 (PKCE) + JWT + κλειδιά API + έλεγχος ταυτότητας MCP περιορισμένου πεδίου · AES-256-GCM για αποθηκευμένα δεδομένα · DOMPurify</td></tr>
-  <tr><td nowrap><b>Απόκρυψη</b></td><td>wreq-js — πλαστοπροσωπία αποτυπώματος JA3 / JA4 TLS, διακομιστής μεσολάβησης 3 επιπέδων</td></tr>
-  <tr><td nowrap><b>Ανθεκτικότητα</b></td><td>Αυτόματος διακόπτης κυκλώματος, εκθετική υποχώρηση, προστασία από το φαινόμενο thundering herd, αυτοΐαση auto-combo</td></tr>
-  <tr><td nowrap><b>Καταγραφή</b></td><td>pino — δομημένα αρχεία καταγραφής JSON με περιβάλλον αιτήματος</td></tr>
-  <tr><td nowrap><b>Δοκιμές</b></td><td>Πρόγραμμα εκτέλεσης δοκιμών Node.js + Vitest — <b>39.000+ δηλώσεις στατικών δοκιμών</b> σε 5.100+ παρακολουθούμενα αρχεία δοκιμών (μονάδας, ενσωμάτωσης, E2E, ασφάλειας, οικοσυστήματος)</td></tr>
-  <tr><td nowrap><b>Πλατφόρμες</b></td><td>Υπολογιστής (Electron) · Android (Termux) · PWA (οποιοδήποτε πρόγραμμα περιήγησης)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — αυτόματη δημοσίευση στο npm + Docker Hub κατά την κυκλοφορία</td></tr>
-  <tr><td nowrap><b>Σύνδεσμοι</b></td><td><a href="https://omniroute.online">Ιστότοπος</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Συμπίεση</b></td><td>Διαδικασία 12 μηχανών — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Έλεγχος ταυτότητας &amp; ασφάλεια</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM εν ηρεμία · DOMPurify</td></tr>
+  <tr><td nowrap><b>Απόκρυψη</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-επιπέδων proxy</td></tr>
+  <tr><td nowrap><b>Ανθεκτικότητα</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
+  <tr><td nowrap><b>Καταγραφή</b></td><td>pino — δομημένα αρχεία καταγραφής JSON με πλαίσιο αιτήματος</td></tr>
+  <tr><td nowrap><b>Δοκιμές</b></td><td>Node.js test runner + Vitest — <b>39.000+ δηλώσεις στατικών δοκιμών</b> σε 5.100+ αρχεία δοκιμών (μονάδας, ολοκλήρωσης, E2E, ασφάλειας, οικοσυστήματος)</td></tr>
+  <tr><td nowrap><b>Πλατφόρμες</b></td><td>Επιτραπέζιος υπολογιστής (Electron) · Android (Termux) · PWA (οποιοδήποτε πρόγραμμα περιήγησης)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — αυτόματη δημοσίευση npm + Docker Hub κατά την κυκλοφορία</td></tr>
+  <tr><td nowrap><b>Σύνδεσμοι</b></td><td><a href="https://omniroute.online">Ιστοσελίδα</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

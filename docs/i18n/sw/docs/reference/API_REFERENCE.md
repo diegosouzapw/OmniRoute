@@ -407,93 +407,74 @@ Tumia endpoint hii wakati sidecar inaendeshwa nje ya mchakato na haiwezi kuleta
 
 ---
 
-## Njia za Mwisho za Uoanifu
+## Vituo vya Upatanifu
 
-| Mbinu | Njia                                      | Muundo                                   |
-| ----- | ----------------------------------------- | ---------------------------------------- |
-| POST  | `/v1/chat/completions`                    | OpenAI                                   |
-| POST  | `/v1/messages`                            | Anthropic                                |
-| POST  | `/v1/responses`                           | OpenAI Responses                         |
-| POST  | `/v1/embeddings`                          | OpenAI                                   |
-| POST  | `/v1/images/generations`                  | OpenAI Images                            |
-| POST  | `/v1/images/edits`                        | OpenAI Images (kuhariri/inpaint)         |
-| POST  | `/v1/videos/generations`                  | Uzalishaji wa video wa mtindo wa OpenAI  |
-| POST  | `/v1/music/generations`                   | Uzalishaji wa muziki wa mtindo wa OpenAI |
-| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (hurejesha data ya sauti)     |
-| POST  | `/v1/rerank`                              | Upangaji upya wa mtindo wa Cohere/Voyage |
-| POST  | `/v1/classify`                            | Uainishaji wa Jina (`api.jina.ai`)       |
-| POST  | `/v1/segment`                             | Kigawanyaji cha Jina (`segment.jina.ai`) |
-| POST  | `/v1/moderations`                         | OpenAI Moderations                       |
-| GET   | `/v1/models`                              | OpenAI                                   |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                                |
-| GET   | `/v1beta/models`                          | Gemini                                   |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                   |
-| POST  | `/v1/api/chat`                            | Ollama                                   |
-| GET   | `/api/v1/vscode/{token}/`                 | Lakabu ya katalogi ya OpenAI             |
-| GET   | `/api/v1/vscode/{token}/models`           | Lakabu ya modeli za OpenAI               |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | Lakabu ya OpenAI yenye tokeni            |
-| POST  | `/api/v1/vscode/{token}/responses`        | Lakabu ya OpenAI Responses yenye tokeni  |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Lakabu ya Ollama yenye tokeni            |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Lakabu ya lebo za Ollama yenye tokeni    |
+| Method | Path                                      | Format                                                   |
+| ------ | ----------------------------------------- | -------------------------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                                   |
+| POST   | `/v1/messages`                            | Anthropic                                                |
+| POST   | `/v1/responses`                           | Majibu ya OpenAI                                         |
+| POST   | `/v1/embeddings`                          | OpenAI                                                   |
+| POST   | `/v1/images/generations`                  | Picha za OpenAI                                          |
+| POST   | `/v1/images/edits`                        | Picha za OpenAI (hariri/jaza)                            |
+| POST   | `/v1/videos/generations`                  | Uzalishaji wa video wa mtindo wa OpenAI                  |
+| POST   | `/v1/music/generations`                   | Uzalishaji wa muziki wa mtindo wa OpenAI                 |
+| POST   | `/v1/audio/transcriptions`                | Sauti ya OpenAI (STT)                                    |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (inrudisha mwili wa sauti)                    |
+| POST   | `/v1/rerank`                              | Panga upya kwa mtindo wa Cohere/Voyage                   |
+| POST   | `/v1/classify`                            | Panga Jina (`api.jina.ai`)                               |
+| POST   | `/v1/segment`                             | Kigawanyaji cha Jina (`segment.jina.ai`)                 |
+| POST   | `/v1/moderations`                         | Usimamizi wa OpenAI                                      |
+| GET    | `/v1/models`                              | OpenAI                                                   |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                                                |
+| GET    | `/v1beta/models`                          | Gemini                                                   |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                                   |
+| POST   | `/v1/api/chat`                            | Ollama                                                   |
+| GET    | `/api/v1/vscode/{token}/`                 | Jina mbadala la katalogi ya OpenAI                       |
+| GET    | `/api/v1/vscode/{token}/models`           | Jina mbadala la miundo ya OpenAI                         |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Jina mbadala la OpenAI lililowekwa tokeni                |
+| POST   | `/api/v1/vscode/{token}/responses`        | Majibu ya OpenAI yaliyowekwa tokeni jina mbadala         |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Jina mbadala la Ollama lililowekwa tokeni                |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Vitambulisho vya Ollama vilivyowekwa tokeni jina mbadala |
 
-Njia zote za POST hufuata muundo uleule: `Bearer your-api-key` + data ya JSON iliyothibitishwa na Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, n.k., angalia `src/shared/validation/schemas.ts`). 4xx hurejeshwa uthibitishaji wa schema unaposhindwa.
+Njia zote za POST zinafuata umbo sawa: `Bearer your-api-key` + mwili wa JSON uliothibitishwa na Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, n.k., angalia `src/shared/validation/schemas.ts`). 4xx inarudishwa kwenye kushindwa kwa schema.
 
-Kwa wateja wasioweza kuambatisha `Authorization: Bearer ...`, OmniRoute pia hukubali funguo za API katika URL kupitia uoanifu wa query-string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) au njia maalum za mwisho za `/api/v1/vscode/{token}/...` zilizoelezwa hapa chini.
+Kwa wateja ambao hawawezi kuambatisha `Authorization: Bearer ...`, OmniRoute pia inakubali funguo za API kwenye URL kupitia utangamano wa kamba ya swali (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) au vituo maalum vya `/api/v1/vscode/{token}/...` vilivyoelezwa hapa chini.
 
 ```bash
-# Upangaji upya (mtoa huduma wa sajili ya wingu, au nodi ya mtoa huduma inayooana na OpenAI kama "<prefix>/<model>")
+# Panga upya (mtoa huduma wa rejista ya wingu, au nodi ya mtoa huduma inayooana na OpenAI kama "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Uainishaji wa Jina (vitambulisho vya Foundation API)
+# Panga Jina (vitambulisho vya API ya Msingi)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Kigawanyaji cha Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Utafutaji wa Jina (s.jina.ai; lakabu za watoa huduma: jina-search, jina-ai, jina)
+# Utafutaji wa Jina (s.jina.ai; majina mbadala ya mtoa huduma: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Udhibiti wa maudhui
+# Usimamizi
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — hurejesha data ya audio/mpeg (au muundo ulioombwa)
+# TTS — inarudisha mwili wa audio/mpeg (au umbizo lililoombwa)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Uhariri wa picha (multipart)
+# Hariri picha (sehemu nyingi)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Uzalishaji wa video / muziki (kitambulisho cha modeli chenye kiambishi awali cha mtoa huduma)
+# Uzalishaji wa video / muziki (kitambulisho cha mfumo kilichotanguliwa na mtoa huduma)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Nodi za watoa huduma za upangaji upya:** `POST /v1/rerank` pia huelekeza maombi kwa nodi za watoa huduma
-> zinazoana na OpenAI (oMLX, vLLM, Infinity, TEI nyuma ya lango, …) zinazotambuliwa kama
-> `<node-prefix>/<model>`. Nodi za loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) zinafaa kila wakati.
-> Nodi kwenye host nyingine yoyote — kifaa cha LAN au kifaa rika cha Tailscale — zinafaa tu ikiwa
-> mwendeshaji amewasha alama ya kipengele ya `RERANK_REMOTE_PROVIDER_NODES` **na** URL ya msingi ya nodi
-> inakidhi sera ya URL zinazotoka za mtoa huduma (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` /
-> `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); maombi hayaelekezwi kamwe kwa host za metadata za wingu.
-> Hatua ya upangaji upya ya injini ya kumbukumbu huita njia hii kupitia loopback, kwa hivyo kanuni hiyo hiyo
-> hudhibiti `rerankProviderModel` katika mipangilio ya Kumbukumbu.
+> **Nodi za mtoa huduma wa kupanga upya:** `POST /v1/rerank` pia inaelekeza kwenye nodi za mtoa huduma zinazooana na OpenAI (oMLX, vLLM, Infinity, TEI nyuma ya lango, …) zinazoshughulikiwa kama `<node-prefix>/<model>`. Nodi za loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) zinastahiki kila wakati. Nodi kwenye seva pangishi nyingine yoyote — sanduku la LAN au rika la Tailscale — zinastahiki tu wakati opereta anawasha bendera ya kipengele cha `RERANK_REMOTE_PROVIDER_NODES` **na** URL ya msingi ya nodi inapita sera ya URL ya nje ya mtoa huduma (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); seva pangishi za metadata za wingu hazielekezwi kamwe. Hatua ya kupanga upya ya injini ya kumbukumbu inaita njia hii kupitia loopback, kwa hivyo sheria hiyo hiyo inasimamia `rerankProviderModel` katika mipangilio ya Kumbukumbu.
 >
-> **Miundo ya seva za ndani:** nodi huitwa kupitia `<base>/v1/rerank` na, inapopatikana 404, kupitia
-> `<base>/rerank` (Infinity, TEI). Data inayotumwa kwenda juu hubeba tahajia ya Cohere/OpenAI
-> (`documents`, `return_documents`) pamoja na tahajia ya TEI (`texts`, `return_text`), na jibu kutoka juu
-> husawazishwa kuwa kifurushi cha Cohere: orodha tupu ya TEI `[{index, score, text}]`,
-> `{results: [{index, score}]}` kutoka kwa malango mepesi, na `{data: [...]}` ya mtindo wa Voyage, zote
-> humfikia mteja kama `{results: [{index, relevance_score, document?}]}`, zikiwa zimepangwa kulingana na
-> alama na kupunguzwa hadi `top_n`.
+> **Maumbo ya seva ya ndani:** nodi inaitwa kwa `<base>/v1/rerank` na, kwenye 404, kwa `<base>/rerank` (Infinity, TEI). Mwili wa juu hubeba tahajia ya Cohere/OpenAI (`documents`, `return_documents`) na tahajia ya TEI (`texts`, `return_text`), na jibu la juu limerekebishwa kwa bahasha ya Cohere: `[{index, score, text}]` tupu ya TEI, `{results: [{index, score}]}` kutoka kwa lango nyembamba, na `{data: [...]}` ya mtindo wa Voyage zote zinarudi kwa mteja kama `{results: [{index, relevance_score, document?}]}`, zikipangwa kwa alama na kuwekewa kikomo kwa `top_n`.
 
-> **Ugunduzi wa nodi za watoa huduma:** modeli kwenye nodi ya mtoa huduma inayoana na OpenAI huonekana
-> katika `GET /v1/models` chini ya kiambishi awali cha nodi. Safu zisizo na metadata ya njia ya mwisho
-> (hali ya kawaida kwa orodha za ndani za `/v1/models`) hurithi `apiType` ya nodi, hivyo modeli za nodi ya
-> `embeddings` huwa `type: "embedding"` na modeli za nodi ya `rerank` huwa `type: "rerank"` badala ya
-> kutumia gumzo kama chaguo-msingi; `supportedEndpoints` iliyobainishwa wazi kwenye safu iliyosawazishwa
-> au iliyoongezwa mwenyewe bado hupewa kipaumbele.
+> **Ugunduzi wa nodi ya mtoa huduma:** miundo kwenye nodi ya mtoa huduma inayooana na OpenAI inaonekana katika `GET /v1/models` chini ya kiambishi awali cha nodi. Safu ambazo hazina metadata ya kituo (kawaida kwa orodha za ndani za `/v1/models`) hurithi `apiType` ya nodi, kwa hivyo miundo ya nodi ya `embeddings` ni `type: "embedding"` na miundo ya nodi ya `rerank` ni `type: "rerank"` badala ya kuelekea kwenye gumzo; `supportedEndpoints` iliyo wazi kwenye safu iliyosawazishwa au iliyoongezwa mwenyewe bado inatanguliza.
 
-### Njia Maalum za Watoa Huduma
+### Njia Maalum za Mtoa Huduma
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -501,7 +482,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Kiambishi awali cha mtoa huduma huongezwa kiotomatiki ikiwa hakipo. Miundo isiyolingana hurejesha `400`.
+Kiambishi awali cha mtoa huduma huongezwa kiotomatiki kikikosekana. Miundo isiyolingana hurudisha `400`.
 
 ---
 

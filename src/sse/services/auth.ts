@@ -81,6 +81,7 @@ import {
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isSharedWalletCredits402 } from "@omniroute/open-sse/services/accountFallback/sharedWalletCredits.ts";
 import { isOpencodeFreeTierRefusalForProvider } from "@omniroute/open-sse/executors/opencodeGeoBlock.ts";
+import { isOpencodeFreeTierSkipped } from "@omniroute/open-sse/services/opencodeFreeTierSkip.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS, RateLimitReason } from "@omniroute/open-sse/config/constants.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
@@ -783,6 +784,12 @@ async function maybeSyntheticNoAuthFallback(
   // key reach free providers (OpenCode Free, etc.) that it should not access.
   if (Array.isArray(allowedConnections) && allowedConnections.length > 0) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
+  // #14313: a free-tier refusal just paused this keyless path — do not re-select
+  // the synthetic noauth connection until the short TTL expires.
+  if (isOpencodeFreeTierSkipped(providerId)) {
+    log.info("AUTH", `${providerId} | no-auth fallback skipped (OpenCode free-tier pause)`);
+    return null;
+  }
   if (
     isAnonymousFallbackOnlyProvider(providerId) &&
     (await isAnonymousFallbackDisabledBySettings(providerId))
@@ -1902,7 +1909,7 @@ export async function getProviderCredentials(
         allRateLimited: true,
         retryAfter,
         retryAfterHuman: formatRetryAfter(retryAfter),
-        lastError: `All ${provider} accounts have exhausted their quota`,
+        lastError: `All ${provider} accounts have exhausted their quota (cached quota state, no upstream attempt; earliest reset ${formatRetryAfter(retryAfter)})`,
         lastErrorCode: 429,
       };
     }

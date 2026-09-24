@@ -421,90 +421,72 @@ Bifrost, CLIProxyAPI 및 향후 사이드카 라우터에서 사용하는 JSON �
 
 ## 호환성 엔드포인트
 
-| 메서드 | 경로                                      | 형식                             |
-| ------ | ----------------------------------------- | -------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                           |
-| POST   | `/v1/messages`                            | Anthropic                        |
-| POST   | `/v1/responses`                           | OpenAI Responses                 |
-| POST   | `/v1/embeddings`                          | OpenAI                           |
-| POST   | `/v1/images/generations`                  | OpenAI Images                    |
-| POST   | `/v1/images/edits`                        | OpenAI Images(편집/인페인팅)     |
-| POST   | `/v1/videos/generations`                  | OpenAI 스타일 동영상 생성        |
-| POST   | `/v1/music/generations`                   | OpenAI 스타일 음악 생성          |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio(STT)                |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS(오디오 본문 반환)     |
-| POST   | `/v1/rerank`                              | Cohere/Voyage 스타일 재순위 지정 |
-| POST   | `/v1/classify`                            | Jina 분류(`api.jina.ai`)         |
-| POST   | `/v1/segment`                             | Jina 세그먼터(`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI Moderations               |
-| GET    | `/v1/models`                              | OpenAI                           |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                        |
-| GET    | `/v1beta/models`                          | Gemini                           |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent           |
-| POST   | `/v1/api/chat`                            | Ollama                           |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI 카탈로그 별칭             |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI 모델 별칭                 |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI 토큰화 별칭               |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses 토큰화 별칭     |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama 토큰화 별칭               |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama 태그 토큰화 별칭          |
+| 메서드 | 경로                                      | 형식                              |
+| ------ | ----------------------------------------- | --------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                            |
+| POST   | `/v1/messages`                            | Anthropic                         |
+| POST   | `/v1/responses`                           | OpenAI 응답                       |
+| POST   | `/v1/embeddings`                          | OpenAI                            |
+| POST   | `/v1/images/generations`                  | OpenAI 이미지                     |
+| POST   | `/v1/images/edits`                        | OpenAI 이미지 (편집/인페인트)     |
+| POST   | `/v1/videos/generations`                  | OpenAI 스타일 비디오 생성         |
+| POST   | `/v1/music/generations`                   | OpenAI 스타일 음악 생성           |
+| POST   | `/v1/audio/transcriptions`                | OpenAI 오디오 (STT)               |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (오디오 본문 반환)     |
+| POST   | `/v1/rerank`                              | Cohere/Voyage 스타일 재순위화     |
+| POST   | `/v1/classify`                            | Jina 분류 (`api.jina.ai`)         |
+| POST   | `/v1/segment`                             | Jina 세그멘터 (`segment.jina.ai`) |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                |
+| GET    | `/v1/models`                              | OpenAI                            |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                         |
+| GET    | `/v1beta/models`                          | Gemini                            |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent            |
+| POST   | `/v1/api/chat`                            | Ollama                            |
+| GET    | `/api/v1/vscode/{token}/`                 | OpenAI 카탈로그 별칭              |
+| GET    | `/api/v1/vscode/{token}/models`           | OpenAI 모델 별칭                  |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI 토큰화된 별칭              |
+| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI 응답 토큰화된 별칭         |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama 토큰화된 별칭              |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama 태그 토큰화된 별칭         |
 
-모든 POST 경로는 동일한 형식을 따릅니다. `Bearer your-api-key` + Zod로 검증된 JSON 본문(`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` 등, `src/shared/validation/schemas.ts` 참조). 스키마 검증에 실패하면 4xx가 반환됩니다.
+모든 POST 경로는 동일한 형태를 따릅니다: `Bearer your-api-key` + Zod로 유효성 검사된 JSON 본문 (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` 등, `src/shared/validation/schemas.ts` 참조). 스키마 유효성 검사 실패 시 4xx가 반환됩니다.
 
-`Authorization: Bearer ...`를 첨부할 수 없는 클라이언트를 위해 OmniRoute는 쿼리 문자열 호환 방식(`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) 또는 아래에 설명된 전용 `/api/v1/vscode/{token}/...` 엔드포인트를 통해 URL에 포함된 API 키도 허용합니다.
+`Authorization: Bearer ...`를 첨부할 수 없는 클라이언트를 위해, OmniRoute는 쿼리 문자열 호환성 (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) 또는 아래에 문서화된 전용 `/api/v1/vscode/{token}/...` 엔드포인트를 통해 URL에서 API 키를 허용합니다.
 
 ```bash
-# 재순위 지정(클라우드 레지스트리 공급자 또는 "<prefix>/<model>" 형식의 OpenAI 호환 공급자 노드)
+# 재순위화 (클라우드 레지스트리 제공자 또는 "<prefix>/<model>" 형식의 OpenAI 호환 제공자 노드)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina 분류(Foundation API 자격 증명)
+# Jina 분류 (Foundation API 자격 증명)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina 세그먼터
+# Jina 세그멘터
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina 검색(s.jina.ai; 공급자 별칭: jina-search, jina-ai, jina)
+# Jina 검색 (s.jina.ai; 제공자 별칭: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# 모더레이션
+# Moderations
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg(또는 요청된 형식) 본문 반환
+# TTS — audio/mpeg (또는 요청된 형식) 본문 반환
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# 이미지 편집(multipart)
+# 이미지 편집 (멀티파트)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# 동영상/음악 생성(공급자 접두사가 있는 모델 ID)
+# 비디오 / 음악 생성 (제공자 접두사가 붙은 모델 ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **재순위 지정 공급자 노드:** `POST /v1/rerank`는 `<node-prefix>/<model>`로 지정된
-> OpenAI 호환 공급자 노드(oMLX, vLLM, Infinity, 게이트웨이 뒤의 TEI 등)로도 라우팅합니다.
-> 루프백 노드(`localhost`, `127.0.0.1`, `172.16.0.0/12`)는 항상 사용할 수 있습니다.
-> 다른 호스트의 노드(LAN 장비 또는 Tailscale 피어)는 운영자가
-> `RERANK_REMOTE_PROVIDER_NODES` 기능 플래그를 활성화하고 **동시에** 노드의 기본 URL이 공급자
-> 아웃바운드 URL 정책(`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)을
-> 통과하는 경우에만 사용할 수 있습니다. 클라우드 메타데이터 호스트로는 절대 라우팅되지 않습니다.
-> 메모리 엔진의 재순위 지정 단계는 루프백을 통해 이 경로를 호출하므로, Memory 설정의
-> `rerankProviderModel`에도 동일한 규칙이 적용됩니다.
+> **재순위화 제공자 노드:** `POST /v1/rerank`는 `<node-prefix>/<model>` 형식으로 지정된 OpenAI 호환 제공자 노드(oMLX, vLLM, Infinity, 게이트웨이 뒤의 TEI 등)로도 라우팅됩니다. 루프백 노드(`localhost`, `127.0.0.1`, `172.16.0.0/12`)는 항상 적격합니다. LAN 박스 또는 Tailscale 피어와 같은 다른 호스트의 노드는 운영자가 `RERANK_REMOTE_PROVIDER_NODES` 기능 플래그를 활성화하고 노드의 기본 URL이 제공자 아웃바운드 URL 정책(`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)을 통과하는 경우에만 적격합니다. 클라우드 메타데이터 호스트로는 절대 라우팅되지 않습니다. 메모리 엔진의 재순위화 단계는 루프백을 통해 이 경로를 호출하므로, 메모리 설정의 `rerankProviderModel`에도 동일한 규칙이 적용됩니다.
 >
-> **로컬 서버 형식:** 노드는 `<base>/v1/rerank`에서 호출되며, 404가 발생하면
-> `<base>/rerank`(Infinity, TEI)에서 호출됩니다. 업스트림 본문에는 Cohere/OpenAI 표기
-> (`documents`, `return_documents`)와 TEI 표기(`texts`, `return_text`)가 모두 포함되며,
-> 업스트림 응답은 Cohere 엔벌로프로 정규화됩니다. 즉, TEI의 단순
-> `[{index, score, text}]`, 경량 게이트웨이의 `{results: [{index, score}]}`, Voyage 스타일의
-> `{data: [...]}`는 모두 클라이언트에 `{results: [{index, relevance_score, document?}]}`
-> 형식으로 반환되며, 점수를 기준으로 정렬되고 `top_n`으로 제한됩니다.
+> **로컬 서버 형태:** 노드는 `<base>/v1/rerank`에서 호출되며, 404 오류 발생 시 `<base>/rerank`에서 호출됩니다 (Infinity, TEI). 업스트림 본문은 Cohere/OpenAI 표기법(`documents`, `return_documents`)과 TEI 표기법(`texts`, `return_text`)을 모두 포함하며, 업스트림 응답은 Cohere 엔벨로프 형식으로 정규화됩니다: TEI의 순수한 `[{index, score, text}]`, 씬 게이트웨이의 `{results: [{index, score}]}`, 그리고 Voyage 스타일의 `{data: [...]}`는 모두 클라이언트에게 `{results: [{index, relevance_score, document?}]}` 형태로 반환되며, 점수별로 정렬되고 `top_n`으로 제한됩니다.
+>
+> **제공자 노드 검색:** OpenAI 호환 제공자 노드의 모델은 노드 접두사 아래 `GET /v1/models`에 나타납니다. 엔드포인트 메타데이터가 없는 행(로컬 `/v1/models` 목록의 일반적인 경우)은 노드의 `apiType`을 상속하므로, `embeddings` 노드의 모델은 기본적으로 채팅이 아닌 `type: "embedding"`이 되고, `rerank` 노드의 모델은 `type: "rerank"`가 됩니다. 동기화되거나 수동으로 추가된 행에 명시적인 `supportedEndpoints`가 있는 경우 여전히 우선권을 가집니다.
 
-> **공급자 노드 검색:** OpenAI 호환 공급자 노드의 모델은 노드 접두사 아래의 `GET /v1/models`에
-> 표시됩니다. 엔드포인트 메타데이터가 없는 행(로컬 `/v1/models` 목록에서 일반적)은 노드의
-> `apiType`을 상속하므로, `embeddings` 노드의 모델은 `type: "embedding"`이 되고
-> `rerank` 노드의 모델은 기본값인 채팅 대신 `type: "rerank"`이 됩니다. 동기화되었거나
-> 수동으로 추가된 행에 명시적인 `supportedEndpoints`가 있으면 여전히 이것이 우선합니다.
-
-### 전용 공급자 경로
+### 전용 제공자 경로
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -512,7 +494,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-provider 접두사가 없으면 자동으로 추가됩니다. 일치하지 않는 모델은 `400`을 반환합니다.
+프로바이더 접두사가 누락된 경우 자동으로 추가됩니다. 모델이 일치하지 않으면 `400`을 반환합니다.
 
 ---
 
@@ -1129,10 +1111,10 @@ GET /api/telemetry/summary
 ## 예산
 
 ```bash
-# 모든 API 키에 대한 예산 상태를 가져옵니다.
+# 모든 API 키의 예산 상태 가져오기
 GET /api/usage/budget
 
-# 예산을 설정하거나 업데이트합니다.
+# 예산 설정 또는 업데이트
 POST /api/usage/budget
 Content-Type: application/json
 
@@ -1146,7 +1128,7 @@ Content-Type: application/json
 }
 ```
 
-> **스키마 참고 사항** (`setBudgetSchema`): `apiKeyId`는 필수입니다. `dailyLimitUsd`, `weeklyLimitUsd`, `monthlyLimitUsd` 중 하나 이상이 0보다 커야 합니다. 선택 필드: `warningThreshold` (0–1), `resetInterval` (`daily` | `weekly` | `monthly`), `resetTime` (`HH:MM`). 레거시 `{keyId, limit, period}` 형식은 `400 Bad Request`를 반환합니다.
+> **스키마 참고 사항** (`setBudgetSchema`): `apiKeyId`는 필수입니다; `dailyLimitUsd`, `weeklyLimitUsd`, `monthlyLimitUsd` 중 하나 이상은 0보다 커야 합니다. 선택 필드: `warningThreshold` (0–1), `resetInterval` (`daily` | `weekly` | `monthly`), `resetTime` (`HH:MM`). 레거시 `{keyId, limit, period}` 형식은 `400 Bad Request`를 반환합니다.
 
 ## 토큰 한도
 

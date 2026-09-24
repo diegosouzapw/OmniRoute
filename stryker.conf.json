@@ -313,6 +313,7 @@
       "tests/unit/search-432-plan-limit-cooldown.test.ts",
       "tests/unit/livews-forward-backoff-4604.test.ts",
       "tests/unit/local-token-budget-429-skips-cooldown.test.ts",
+      "tests/unit/per-key-ceiling-skips-neighbor-cooldown.test.ts",
       "tests/unit/management-auth-hardening.test.ts",
       "tests/unit/mark-account-unavailable-numeric-epoch-guard.test.ts",
       "tests/unit/masked-200-exhaustion-fallback-6427.test.ts",

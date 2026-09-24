@@ -8,6 +8,7 @@
  * `paidModelFilter.ts` and `candidateOverrides.ts` in this directory.
  */
 import { isAccountUnavailable, isModelLocked } from "../accountFallback.ts";
+import { isOpencodeFreeTierSkipped } from "../opencodeFreeTierSkip.ts";
 
 export const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 
@@ -80,7 +81,12 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
   let changed = false;
   const filtered = pool.flatMap((candidate) => {
     if (candidate.connectionId === SYNTHETIC_NOAUTH_CONNECTION_ID) {
-      if (isModelLocked(candidate.provider, SYNTHETIC_NOAUTH_CONNECTION_ID, candidate.model)) {
+      // #14313: after a free-tier refusal on the keyless path, pause only this
+      // synthetic candidate for a short TTL (never model lockout / cooldown).
+      if (
+        isModelLocked(candidate.provider, SYNTHETIC_NOAUTH_CONNECTION_ID, candidate.model) ||
+        isOpencodeFreeTierSkipped(candidate.provider)
+      ) {
         changed = true;
         return [];
       }

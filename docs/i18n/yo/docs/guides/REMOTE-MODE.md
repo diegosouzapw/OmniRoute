@@ -341,67 +341,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # kọ́kọ́ ṣe export OMNI
 
 ---
 
-## Ṣíṣàkóso àwọn àyíká (yípadà láàárín àwọn olupin)
+## Ṣiṣakoso awọn ipo (yipada laarin awọn olupin)
 
-**Àyíká** jẹ́ olupin tí a ti fipamọ́ (baseUrl + ẹ̀rí ìdánimọ̀ + àyè ìwọlé). `omniroute connect`
-ń ṣẹ̀dá ọ̀kan, ó sì ń mú un ṣiṣẹ́; láti ìgbà náà lọ, gbogbo àṣẹ ni yóò máa tọ́ka sí i. Ṣàkóso wọn,
-kí o sì yípadà láàárín wọn pẹ̀lú `omniroute contexts`:
+Ìpò kan (context) jẹ́ olupin tí a ti fipamọ́ (baseUrl + credential + scope). `omniroute connect` nṣẹda ọkan ti o si mu u ṣiṣẹ; lati igba naa gbogbo aṣẹ yoo fojusi rẹ. Ṣakoso ati yipada laarin wọn pẹlu `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # gbogbo àwọn àyíká; èyí tí ń ṣiṣẹ́ ni a fi ● sàmì sí
-omniroute contexts current         # olupin tí ń ṣiṣẹ́, ipò ìfàṣẹsí, àyè ìwọlé
+omniroute contexts list            # gbogbo awọn ipo; eyi ti nṣiṣẹ lọwọ ni a samisi ●
+omniroute contexts current         # olupin ti nṣiṣẹ lọwọ, ipo ijẹrisi, ipari
 ```
 
 ```text
-  | Orúkọ  | URL Ìpìlẹ̀                 | Ìfàṣẹsí | Àyè Ìwọlé | Àpèjúwe
-● | vps     | http://100.67.86.91:20128 | token   | admin     | OmniRoute jíjìnnà (…)
-  | default | http://localhost:20128    | ✗       |           |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Yí àwọn olupin padà** — gbogbo àṣẹ tó bá tẹ̀lé yóò lo àyíká tí ń ṣiṣẹ́:
+**Yipada awọn olupin** — gbogbo aṣẹ ti o tẹle yoo tẹle ipo ti nṣiṣẹ lọwọ:
 
 ```bash
-omniroute contexts use vps         # → gbogbo àṣẹ yóò tọ́ka sí VPS jíjìnnà báyìí
-omniroute tokens list              #   (ń ṣiṣẹ́ lórí VPS náà)
+omniroute contexts use vps         # → gbogbo awọn aṣẹ bayi yoo lu VPS latọna jijin
+omniroute tokens list              #   (ṣiṣẹ lodi si VPS)
 
-omniroute contexts use default     # → padà sí localhost
-omniroute tokens list              #   (ń ṣiṣẹ́ lórí olupin agbègbè)
+omniroute contexts use default     # → pada si localhost
+omniroute tokens list              #   (ṣiṣẹ lodi si olupin agbegbe)
 ```
 
-**Fi àyíká kan kún un lọ́wọ́** (dípò `connect`), ṣàyẹ̀wò rẹ̀, tàbí tún un lórúkọ:
+**Fi ipo kan kun pẹlu ọwọ** (dipo `connect`), ṣayẹwo, tabi tun lorukọ:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # gbogbo àlàyé fún àyíká kan
+omniroute contexts show staging    # awọn alaye kikun fun ipo kan
 omniroute contexts rename staging stg
 ```
 
-**Yọ àyíká kan kúrò** — yóò béèrè ìmúdájú; fi `--yes` ránṣẹ́ láti fo ìgbésẹ̀ náà
-(ó pọn dandan fún àwọn script / shell tí kì í ṣe ìbánisọ̀rọ̀, èyí tí yóò kọ̀ láìléwu bí bẹ́ẹ̀ kọ́):
+**Yọ ipo kan kuro** — yoo beere fun ijẹrisi; kọja `--yes` lati foju rẹ (o nilo fun awọn iwe afọwọkọ / awọn ikarahun ti kii ṣe ibaraẹnisọrọ, eyiti yoo kọ lailewu bibẹẹkọ):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> A kò lè yọ `default` (localhost) kúrò. Bí a bá yọ àyíká tí ń ṣiṣẹ́ kúrò,
-> yóò padà sí `default`. Ìmọ̀ràn: yíyọ àyíká kan kúrò yóò pa ẹ̀rí ìdánimọ̀ tí a fipamọ́ sí **agbègbè** rẹ̀ nìkan —
-> fagilé token náà lórí olupin pẹ̀lú `omniroute tokens revoke <id>` láti fòpin sí
-> ìwọlé náà ní tòótọ́.
+> `default` (localhost) ko le yọ kuro. Yiyọ ipo ti nṣiṣẹ lọwọ yoo pada si `default`. Imọran: yiyọ ipo kan kuro nikan npa iwe-ẹri ti a ti fipamọ **agbegbe** rẹ — fagilee ami-ẹri naa lori olupin pẹlu `omniroute tokens revoke <id>` lati pa iwọle patapata.
 
-**Gbé àwọn àyíká jáde / wọlé** (fún àpẹẹrẹ, láti gbé wọn láàárín àwọn ẹ̀rọ). Àwọn àyíká tuntun máa ń tọ́jú
-ìtọ́kasí keychain nìkan; a kì í ṣe ẹ̀dà àwọn ẹ̀rí ìdánimọ̀ sínú ohun tí a gbé jáde nígbà tí
-keychain OS bá wà:
+**Ṣe okeere / gbe wọle awọn ipo** (fun apẹẹrẹ lati gbe wọn laarin awọn ẹrọ). Awọn okeere npa awọn iwe-ẹri kuro nipasẹ aiyipada, pẹlu awọn iwe-ẹri ti o fipamọ nipasẹ ifasẹhin faili. Lo `--include-secrets` ni gbangba nigbati o ba nilo afẹyinti ti o ni iwe-ẹri ti o le gbe:
 
 ```bash
-omniroute contexts export --out contexts.json     # àìyípadà: stdout
-omniroute contexts import contexts.json            # kọ lé e lórí; --merge láti pa àwọn tó ti wà mọ́
-omniroute contexts migrate --yes                  # gbé àwọn token plaintext àtijọ́ lọ sí keychain
+omniroute contexts export --out contexts.json     # ti yọ kuro; ibi ti aiyipada: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # kọ lori; --merge lati tọju eyi ti o wa tẹlẹ
+omniroute contexts migrate --yes                  # gbe awọn ami-ẹri plaintext atijọ si keychain
 ```
 
-Lórí àwọn ètò headless tí kò ní keychain OS tó ṣeé lò, CLI yóò padà lo
-`config.json` pẹ̀lú mode `0600`, yóò sì tẹ ìkìlọ̀ ẹ̀ẹ̀kan ṣoṣo jáde. Ka àwọn ohun tí a gbé jáde láti
-ọ̀nà àfidípò yẹn (àti gbogbo config àtijọ́ ṣáájú ìṣílọ) sí ohun ìkọ̀kọ̀.
+`--include-secrets` nyanju awọn itọkasi keychain ṣaaju ṣiṣe okeere ati pe yoo kuna ti ko ba le ka iwe-ẹri eyikeyi ti a tọka si. `--no-secrets` nigbagbogbo ni ipo akọkọ. Awọn faili okeere ni a kọ ni atomiki pẹlu ipo `0600`. Tọju okeere ti o ni aṣiri ni gbangba bi ohun elo aṣiri. Lori awọn eto ti ko ni ori laisi keychain OS ti o wulo, CLI yoo pada si `config.json` pẹlu ipo `0600` ati pe yoo tẹ ikilọ ẹyọkan kan; okeere aiyipada yoo wa ni piparẹ ni ipo yii.
 
 ---
 

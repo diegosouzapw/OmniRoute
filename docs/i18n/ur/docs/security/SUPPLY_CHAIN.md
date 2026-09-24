@@ -4,56 +4,51 @@
 
 ---
 
-OmniRoute، npm + Docker آرٹیفیکٹس شائع کرتا ہے۔ یہ گیٹس ماخذ کی تصدیق،
-انوینٹری (SBOM) اور CVE اسکیننگ فراہم کرتے ہیں؛ یہ سب OSS ہیں اور ریلیز ورک فلوز میں مربوط ہیں۔
-**پہلے-تنبیہ** طرزِ عمل — فی الحال یہ رپورٹ کرتے ہیں، اور پہلی کامیاب
-ریلیز کے بعد انہیں بلاکنگ میں ترقی دی جائے گی۔
+OmniRoute npm + Docker آرٹفیکٹس شائع کرتا ہے۔ یہ گیٹس provenance، inventory (SBOM) اور CVE سکیننگ فراہم کرتے ہیں، یہ سب OSS ہیں، اور ریلیز ورک فلوز میں شامل ہیں۔ **مشاورتی-پہلے** کا رویہ — وہ ابھی رپورٹ کرتے ہیں، اور پہلی کامیاب ریلیز کے بعد بلاک کرنے کی سطح پر ترقی دیتے ہیں۔
 
-| گیٹ                      | ٹول                                            | کہاں                          | بلاک کرتا ہے؟           | آؤٹ پٹ                                                  |
-| ------------------------ | ---------------------------------------------- | ----------------------------- | ----------------------- | ------------------------------------------------------- |
-| SLSA ماخذ کی تصدیق (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | صرف اشاعت ناکام ہونے پر | npmjs بیج / `npm audit signatures`                      |
-| SBOM npm                 | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | صرف تیاری ناکام ہونے پر | ریلیز اثاثہ + آرٹیفیکٹ                                  |
-| SBOM امیج                | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (مرج)    | تنبیہی                  | CycloneDX آرٹیفیکٹ                                      |
-| Trivy CVE (SARIF)        | `aquasecurity/trivy-action`                    | `docker-publish.yml` (مرج)    | تنبیہی                  | SARIF (HIGH+CRITICAL) → سیکیورٹی ٹیب                    |
-| Trivy CRITICAL گیٹ       | `aquasecurity/trivy-action`                    | `docker-publish.yml` (مرج)    | **بلاکنگ**              | قابلِ اصلاح CRITICAL پر `exit-code: '1'`                |
-| osv vulnCount            | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **بلاکنگ**              | `metrics.vulnCount` کو ریچیٹ کرتا ہے (`direction:down`) |
-| OpenSSF Scorecard        | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | تنبیہی                  | SARIF → سیکیورٹی + بیج                                  |
+| گیٹ                   | ٹول                                            | کہاں                          | بلاک کرتا ہے؟           | آؤٹ پٹ                                         |
+| --------------------- | ---------------------------------------------- | ----------------------------- | ----------------------- | ---------------------------------------------- |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | صرف اگر پبلش ناکام ہو   | badge npmjs / `npm audit signatures`           |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | صرف اگر جنریشن ناکام ہو | Release asset + artifact                       |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | مشاورتی                 | CycloneDX artifact                             |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | مشاورتی                 | SARIF (HIGH+CRITICAL) → Security tab           |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **بلاک کرنے والا**      | `exit-code: '1'` on fixable CRITICAL           |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **بلاک کرنے والا**      | `metrics.vulnCount` کو رچٹ کرتا ہے (سمت: نیچے) |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | مشاورتی                 | SARIF → سیکیورٹی + بیج                         |
 
-امیج CVE ریچیٹ، `docker-publish.yml` میں **دو مراحل** استعمال کرتا ہے: SARIF مرحلہ
-(`HIGH,CRITICAL`، `exit-code: 0`) بلاک کیے بغیر HIGH+CRITICAL کو سیکیورٹی ٹیب میں
-نمایاں رکھتا ہے؛ جبکہ _CRITICAL گیٹ_ مرحلہ (`severity: CRITICAL`، `ignore-unfixed: true`،
-`exit-code: 1`) کسی ایسے CRITICAL CVE پر ریلیز کو ناکام کر دیتا ہے **جس کی اصلاح دستیاب ہو**۔ `ignore-unfixed`
-کسی ایسے بیس امیج CVE کی وجہ سے ریلیز بلاک ہونے سے روکتا ہے جس کے لیے اپ اسٹریم پیچ موجود نہ ہو۔
+امیج CVE رچٹ `docker-publish.yml` میں **دو مراحل** استعمال کرتا ہے: SARIF مرحلہ (`HIGH,CRITICAL`, `exit-code: 0`) HIGH+CRITICAL کو سیکیورٹی ٹیب میں بلاک کیے بغیر مرئی رکھتا ہے؛ _CRITICAL گیٹ_ مرحلہ (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) ایک CRITICAL CVE پر ریلیز کو ناکام کر دیتا ہے **جس کا حل دستیاب ہو**۔ `ignore-unfixed` ایک بیس-امیج CVE کے لیے ریلیز کو بلاک ہونے سے روکتا ہے جس میں کوئی اپ اسٹریم پیچ نہ ہو۔
 
-## ⚠️ CVE تغیر (بلاکنگ osv/Trivy گیٹس)
+## ⚠️ CVE تغیر (osv/Trivy گیٹس کو بلاک کرنا)
 
-osv اور Trivy، dependencies کا موازنہ ایسے CVE ڈیٹابیسز سے کرتے ہیں جو **مسلسل بڑھتے رہتے ہیں**۔ کوئی PR
-جو **کسی dependency کو تبدیل نہ کرے**، اچانک ناکام ہو سکتا ہے کیونکہ کسی موجودہ dependency میں نیا CVE
-ظاہر ہو گیا ہو (osv: ناپا گیا `vulnCount` > بیس لائن؛ Trivy: امیج میں نیا
-قابلِ اصلاح CRITICAL)۔ **یہ بلاکنگ CVE گیٹ کا متوقع عملی رویہ ہے،
-پروڈکٹ کی پسپائی نہیں۔**
+osv اور Trivy deps کا موازنہ CVE ڈیٹا بیسز سے کرتے ہیں جو **مسلسل بڑھتے رہتے ہیں**۔ ایک PR جو **کسی بھی ڈیپنڈنسی کو نہیں چھوتا** اچانک سرخ ہو سکتا ہے کیونکہ ایک نیا CVE موجودہ ڈیپنڈنسی میں ظاہر ہوا (osv: ماپا گیا `vulnCount` > baseline؛ Trivy: امیج میں ایک نیا قابل اصلاح CRITICAL)۔ **یہ ایک بلاک کرنے والے CVE گیٹ کا متوقع آپریشنل رویہ ہے، نہ کہ پروڈکٹ کی خرابی۔**
 
-جب کسی نئے ظاہر ہونے والے CVE کی وجہ سے osv یا Trivy ناکام ہو جائے، تو حل یہ ہے:
+جب osv یا Trivy کسی نئے ظاہر ہونے والے CVE کی وجہ سے سرخ ہو جائیں، تو اس کا علاج یہ ہے:
 
-1. **متاثرہ dependency کا ورژن بڑھائیں** (ترجیحی) — `package.json`
-   `overrides` (بالواسطہ dependencies) کے ذریعے پیچ شدہ ورژن پر اپ گریڈ کریں، یا امیج کو کسی پیچ شدہ بیس پر دوبارہ بنائیں۔
-2. **اگر کوئی اپ اسٹریم اصلاح دستیاب نہ ہو:**
-   - **osv:** `config/quality/quality-baseline.json` میں `metrics.vulnCount` کی نئی بیس لائن مقرر کریں
-     (`npm run quality:ratchet -- --update` مخصوص گیٹس کا احاطہ نہیں کرتا — قدر کو
-     دستی طور پر، `direction:down` کے ساتھ، ایک توجیہی نوٹ + ٹریکنگ ایشو سمیت تبدیل کریں)۔
-   - **Trivy:** `.trivyignore` میں ایک اندراج شامل کریں (ہر سطر میں CVE-ID)، ساتھ ایک توجیہی
-     تبصرہ + ٹریکنگ ایشو بھی دیں۔ `ignore-unfixed: true` پہلے ہی بغیر
-     پیچ والے CVEs کا خودکار طور پر احاطہ کرتا ہے۔
+1.  **متاثرہ ڈیپنڈنسی کو اپ ڈیٹ کریں** (ترجیحی) — `package.json` `overrides` (transitive deps) کے ذریعے پیچ شدہ ورژن میں اپ گریڈ کریں یا ایک پیچ شدہ بیس پر امیج کو دوبارہ بنائیں۔
+2.  **اگر کوئی اپ اسٹریم حل نہیں ہے:**
+    - **osv:** `config/quality/quality-baseline.json` میں `metrics.vulnCount` کو دوبارہ بیس لائن کریں (`npm run quality:ratchet -- --update` مخصوص گیٹس کا احاطہ نہیں کرتا — قدر کو دستی طور پر ترمیم کریں، `direction:down`) ایک توجیہاتی نوٹ + ٹریکنگ ایشو کے ساتھ۔
+    - **Trivy:** `.trivyignore` میں ایک اندراج شامل کریں (ہر لائن پر CVE-ID) ایک توجیہاتی تبصرہ + ٹریکنگ ایشو کے ساتھ۔ `ignore-unfixed: true` پہلے ہی پیچ کے بغیر CVEs کو خود بخود کور کرتا ہے۔
 
-دونوں گیٹس، ٹول کی عدم موجودگی یا پیمائش کی ناکامی کی صورت میں **بحفاظت SKIP**
-(exit 0) کرتے ہیں (osv-scanner کا PATH میں نہ ہونا، osv.dev/نیٹ ورک کا ناقابلِ رسائی ہونا، غلط JSON) —
-**پیمائش** کی ناکامی کبھی بلاک نہیں کرتی؛ صرف **ناپی گئی** پسپائی بلاک کرتی ہے۔
+دونوں گیٹس **خوبی سے چھوڑ دیتے ہیں** (exit 0) جب ٹول موجود نہ ہو یا پیمائش ناکام ہو جائے (osv-scanner PATH میں نہ ہو، osv.dev/network ناقابل رسائی ہو، غلط JSON) — ایک **پیمائش** کی ناکامی کبھی بلاک نہیں کرتی، صرف ایک **ماپی گئی** خرابی بلاک کرتی ہے۔
 
-## بیک لاگ: Scorecard تنبیہی → بلاکنگ
+## تسلیم شدہ معلوم خطرات
 
-Scorecard رپورٹنگ کے ساتھ پہلی کامیاب ریلیز کے بعد:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: اسکور ریچیٹ (ناپے گئے اسکور کو منجمد کرتا ہے؛ یہ کم نہیں ہو سکتا)۔
+`extract-zip@2.0.1` میں دو غیر پیچ شدہ (unpatched) اعلیٰ شدت کی سم لنک ٹریورسل (symlink-traversal) ایڈوائزریز موجود ہیں۔ مذکورہ بالا CVE ویرینس (Variance) ریمیڈی (remedy) کی "کوئی اپ اسٹریم فکس نہیں" (no upstream fix) شاخ کے مطابق، یہ ایک **تسلیم شدہ خطرہ** ہے، نہ کہ کوئی اضافہ (bump):
 
-یہ Phase 7 گیٹس (osv-scanner، gitleaks، actionlint+zizmor) کی تکمیل کرتا ہے: zizmor
-خود ورک فلوز کا آڈٹ کرتا ہے؛ Scorecard مجموعی طور پر ریپوزٹری کی حالت کی پیمائش کرتا ہے۔
+- **چین (Chain):** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`۔ `package-lock.json` کے ذریعے تصدیق شدہ — پوری ڈیپینڈنسی ٹری (dependency tree) میں صرف ایک پیکیج (`@openai/codex-security`) `extract-zip` کا اعلان کرتا ہے، اور صرف ایک پیکیج (`promptfoo`) `@openai/codex-security` کا اعلان کرتا ہے۔
+- **چین میں کہیں بھی کوئی فکسڈ ریلیز موجود نہیں ہے۔** `extract-zip@2.0.1` (2020 میں شائع ہوا) پیکیج کی آخری ریلیز ہے — اسے برقرار نہیں رکھا جا رہا (unmaintained)۔ `@openai/codex-security` کا موجودہ npm-latest (`0.1.29`) اب بھی `extract-zip@2.0.1` کو کھینچتا (pulls) ہے۔
+- **پروڈکشن سے ناقابل رسائی۔** `promptfoo` صرف devDependency ہے (کبھی `dependencies` کے تحت درج نہیں ہوتا)، اور `src/`، `open-sse/`، یا `bin/` کے تحت کوئی بھی فائل `extract-zip` npm پیکیج کو امپورٹ (imports) نہیں کرتی — OmniRoute کا اپنا `extractZip()` ہیلپر (`src/lib/versionManager/binaryManager.ts:93`) مقامی `unzip`/`tar` کو شیل آؤٹ (shells out) کرتا ہے اور اس سے غیر متعلق ہے۔ `@openai/codex-security` بھی `extract-zip` کے onEntry کال بیک (callback) کے اوپر اپنا سم لنک ٹریورسل گارڈ (symlink-traversal guard) فراہم کرتا ہے۔
+- `package.json` `overrides` کے ذریعے `extract-zip` کو عرفی نام (alias) **نہ دیں** — واحد قابل عمل ڈراپ اِن ریپلیسمنٹ (drop-in replacement) الیکٹران-آرگ-انٹرنل (Electron-org-internal) ہے اور یہ `@openai/codex-security` کے اپنے onEntry/defaultDirMode/defaultFileMode چیکس (checks) کے ساتھ API-incompatible ہے؛ اسے اوور رائیڈ (overriding) کرنے سے اس پیکیج کے سیکیورٹی چیکس خاموشی سے ٹوٹ جائیں گے۔
+- **بیس لائن (Baseline):** ماپا گیا osv `vulnCount` (3) پہلے ہی منجمد `config/quality/quality-baseline.json` بیس لائن (27) سے کافی کم ہے — کسی ریچیٹ (ratchet) تبدیلی کی ضرورت نہیں۔
+- **ریگریشن گارڈ (Regression guard):** `tests/unit/extract-zip-14482-exposure.test.ts` مذکورہ بالا چین اور نو-پروڈکشن-امپورٹ انویریئنٹ (no-production-import invariant) کی تصدیق کرتا ہے؛ اگر ان میں سے کوئی بھی کبھی ٹوٹتا ہے (مثلاً مستقبل کا کوئی PR `extract-zip` کو پروڈکشن سے قابل رسائی بناتا ہے) تو یہ CI کو ناکام کر دیتا ہے۔
+- **ٹریکنگ (Tracking):** ایشو #14482۔
+
+## بیک لاگ (Backlog): سکور کارڈ ایڈوائزری (Scorecard advisory) → بلاکنگ (blocking)
+
+سکور کارڈ رپورٹنگ (Scorecard reporting) کے ساتھ پہلی گرین ریلیز کے بعد:
+
+- سکور کارڈ (Scorecard): سکور ریچیٹ (score ratchet) (ماپے گئے سکور کو منجمد کرتا ہے؛ کم نہیں ہو سکتا)۔
+
+فیز 7 گیٹس (Phase 7 gates) (osv-scanner, gitleaks, actionlint+zizmor) کی تکمیل کرتا ہے: zizmor خود ورک فلوز (workflows) کا آڈٹ کرتا ہے؛ سکور کارڈ (Scorecard) ریپو پوسچر (repo posture) کو مجموعی طور پر ماپتا ہے۔

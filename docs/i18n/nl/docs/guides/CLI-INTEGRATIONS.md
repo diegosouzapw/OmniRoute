@@ -4,26 +4,11 @@
 
 ---
 
-OmniRoute levert een reeks `setup-*`-opdrachten waarmee een programmeer-CLI
-(Codex, Claude Code, OpenCode, Cline, …) wordt geconfigureerd om OmniRoute als backend te gebruiken — zodat
-de tool met **één** endpoint communiceert en OmniRoute met
-automatische fallback naar de juiste provider routeert. Elke opdracht leest de **actuele** modelcatalogus van een actieve
-OmniRoute-instantie (lokaal of extern) en schrijft het eigen configuratiebestand van de tool naar **jouw**
-machine. Waar de tool dit ondersteunt, wordt via een omgevingsvariabele naar de API-sleutel verwezen. Opdrachten die een lokaal omgevingsbestand voor de tool opslaan, worden hieronder vermeld.
+OmniRoute levert een reeks `setup-*` commando's die een coding CLI (Codex, Claude Code, OpenCode, Cline, …) configureren om OmniRoute als backend te gebruiken — zodat de tool met **één** endpoint praat en OmniRoute naar de juiste provider routeert met automatische fallback. Elk commando leest de **live** modelcatalogus van een draaiende OmniRoute (lokaal of op afstand) en schrijft het eigen configuratiebestand van de tool op **uw** machine. De API-sleutel wordt gerefereerd door een omgevingsvariabele waar de tool dit ondersteunt. Commando's die een tool-lokaal omgevingsbestand opslaan, worden hieronder vermeld.
 
-Er is ook een generiek startprogramma — `omniroute run <target>` — dat
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` of `gemini` start met de
-juiste geïnjecteerde omgevingsvariabelen, zonder enige configuratie te schrijven. Doelen en hun
-aliassen zijn afkomstig uit het canonieke manifest `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`) en `omniroute completion` biedt dezelfde
-uit het manifest afgeleide doelwoorden. De verouderde afzonderlijke startprogramma's per tool —
-`omniroute launch` (Claude Code) en `omniroute launch-codex` (Codex) — blijven
-beschikbaar.
+Er is ook een generieke launcher — `omniroute run <target>` — die `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` of `gemini` start met de juiste env geïnjecteerd, zonder enige configuratie te schrijven. Targets en hun aliassen komen uit het canonieke manifest `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), en `omniroute completion` biedt dezelfde van het manifest afgeleide targetwoorden. De legacy per-tool launchers — `omniroute launch` (Claude Code) en `omniroute launch-codex` (Codex) — blijven beschikbaar.
 
-Het onboarden van providers is beschikbaar vanuit dezelfde lokale/externe context. De
-onderstaande API-first-opdrachten houden beheerauthenticatie gescheiden van providerreferenties
-en tonen nooit een referentie in gestructureerde uitvoer:
+Provider onboarding is beschikbaar vanuit dezelfde lokale/remote context. De API-first commando's hieronder houden management authenticatie gescheiden van provider credentials en printen nooit een credential in gestructureerde output:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -33,19 +18,17 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Gebruik voor scripts bij voorkeur `--credential-stdin` of `--credential-env`; `--credential`
-blijft beschikbaar voor gecontroleerd lokaal gebruik. `providers remove` vereist `--yes` in een
-niet-interactieve terminal en alle vijf opdrachten respecteren de actieve context of de
-globale opties `--base-url`/`--api-key`.
+Voor scripts, geef de voorkeur aan `--credential-stdin` of `--credential-env`; `--credential` is behouden voor gecontroleerd lokaal gebruik. `providers remove` vereist `--yes` op een niet-interactieve terminal, en alle vijf commando's respecteren de actieve context of de globale `--base-url`/`--api-key` opties.
 
-Raadpleeg voor de eenmalige, handgeschreven basisconfiguratie van de twee uitgebreidste integraties de
-uitgebreide handleidingen per tool:
+Provider selectors weigeren ambigue ID-voorvoegsels, namen of providernamen; gebruik een volledige verbindings-ID wanneer meerdere verbindingen overeenkomen. Create- en edit-commando's lezen de opgeslagen verbinding terug, en verwijdering verifieert dat deze niet langer leesbaar is. Een import slaat een bestaand provider/naam-paar over. Geïmporteerde items kunnen het management endpoint, de context of de management credentials die aan de CLI zijn geleverd niet overschrijven.
 
-- [Claude Code-configuratie](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI-configuratie](./CODEX-CLI-CONFIGURATION.md)
-- [Externe modus](./REMOTE-MODE.md) — bedien een externe OmniRoute (VPS / Tailnet) vanaf je laptop
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — de OmniCopilot-extensie; deze kan deze
-  `setup-*`-opdrachten ook vanuit de editor voor je uitvoeren
+Voor de eenmalige, handgeschreven basisconfiguratie van de twee rijkste integraties, zie de per-tool deep dives:
+
+- [Claude Code configuratie](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI configuratie](./CODEX-CLI-CONFIGURATION.md)
+- [Remote Mode](./REMOTE-MODE.md) — bestuur een externe OmniRoute (VPS / Tailnet) vanaf uw laptop
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — de OmniCopilot extensie; deze kan ook deze
+  `setup-*` commando's voor u uitvoeren vanuit de editor
 
 ---
 

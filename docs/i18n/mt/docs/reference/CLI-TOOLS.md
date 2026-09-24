@@ -43,11 +43,9 @@ ACP Agents (fluss invers ta' tnissiġ):
 
 ---
 
-## Awto-ikkonfigura permezz ta' `setup-*`
+## Awtokkonfigura b'`setup-*`
 
-M'għandekx bżonn tikteb il-konfigurazzjoni ta' kull għodda bl-idejn. L-OmniRoute jibgħat `setup-*`
-kull kmand għal kull CLI appoġġjat li jaqra l-katalgu **dirett** tal-mudelli minn OmniRoute
-li qed jaħdem (lokali jew mill-bogħod) u jikteb il-konfigurazzjoni tal-għodda stess fuq il-magna tiegħek:
+M'għandekx għalfejn tikteb il-konfigurazzjoni ta' kull għodda manwalment. OmniRoute jinkludi kmand `setup-*` għal kull CLI appoġġjat li jaqra l-katalogu tal-mudelli **ħaj** minn OmniRoute li qed jaħdem (lokali jew remot) u jikteb il-konfigurazzjoni tal-għodda stess fuq il-magna tiegħek:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,48 +55,17 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Kull wieħed jaċċetta `--remote <url> --api-key <key>` (ikkonfigura għodda lokali kontra
-OmniRoute mill-bogħod), `--dry-run` (urija mingħajr miktub), u `--port`. L-għodod mingħajr skoperta
-awtomatika tal-mudelli (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) jieħdu
-`--model <id>` (u `--yes` għal konnessjonijiet mhux interattivi). `setup-5dive` huwa r-riċetta
-waħda li ma tiktibx taħt `$HOME`: tikkonfigura flotta ta' aġenti 5dive billi tiktib
-profil tal-awtentiċità propjetà tal-għalliem fuq il-host tal-flotta, għalhekk terġa' taqbad permezz ta' `sudo`
-u m'għandu l-ebda mod mill-bogħod tagħha stess. Biex tibda CLI bil-
-ambjent xierqa injettat u l-ebda dikjarar fil-fatt, juża l-iskrin generali
-`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — il-miri u l-psewdonimi ġejjin minn `bin/cli/cli-manifest.mjs`); l-iskrini tal-mirja
-persuna ta' qabel `omniroute launch` (Claude Code) u `omniroute launch-codex`
-(Codex) jibqgħu disponibbli. Gemini CLI huwa biss għall-bidu: huwa mirja ta' `omniroute run`
-iżda m'għandux riċetta `setup-*`/`configure`.
+Kull wieħed jaċċetta `--remote <url> --api-key <key>` (jikkonfigura għodda lokali kontra OmniRoute remot), `--dry-run` (previżjoni mingħajr kitba), u `--port`. Għodod mingħajr awto-skoperta tal-mudelli (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) jieħdu `--model <id>` (u `--yes` għal eżekuzzjonijiet mhux interattivi). `setup-5dive` hija l-unika riċetta li ma tiktebx taħt `$HOME`: tikkonfigura flotta ta' aġenti 5dive billi tikteb profil ta' awtentikazzjoni proprjetà tal-għerq fuq il-host tal-flotta, għalhekk terġa' tesegwixxi permezz ta' `sudo` u m'għandhiex mod remot tagħha stess. Biex tniedi CLI bl-ambjent it-tajjeb injettat u l-ebda konfigurazzjoni miktuba, uża l-lanċjar ġeneriku `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — il-miri u l-alias jiġu minn `bin/cli/cli-manifest.mjs`); il-lanċjaturi legati għal kull għodda `omniroute launch` (Claude Code) u `omniroute launch-codex` (Codex) jibqgħu disponibbli. Gemini CLI huwa biss għat-tnedija: huwa mira ta' `omniroute run` iżda m'għandux riċetta `setup-*`/`configure`.
 
-> **Referenza sħiħa:** it-tabella master — dak li kull kmand jikteb, kull `--`
-> lokal vs mill-bħod, u liema għodod iridu suffiss `/v1` — tinsab fi
-> **[Integrazzjonijiet CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Referenza sħiħa:** it-tabella prinċipali — x'jikteb kull kmand, kull flag, lokali vs remot, u liema għodod iridu suffiss `/v1` — tinsab f'**[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
 
-### Tmexxija ta' dawn ġewwa kontenitur
+### Tħaddimhom ġewwa kontenitur
 
-Kmand `setup-*` eżekwit ġewwa l-kontenitur tal-OmniRoute jikteb fil-
-djar ta' l-ispazju personali tal-kontenitur stess, li l-ebda CLI tal-maħfra ma jaqra u li jidjieq mal-kontenitur. L-OmniRoute jiskopri dan u joħroġ `2` bl-istruzzjonijiet minflok
-ma jikteb. Tnejn miż-żewġ modi appoġġjati — tinstalla l-CLI fil-maħfra u
-`omniroute connect` mal-kontenitur, jew iġġiegħel-montar il-kartieri tal-konfigurazzjoni u issettja
-`CLI_CONFIG_HOME` (il-profil `host` tal-kompożizzjoni). Kull kmand `setup-*`, flimkien ma'
-`omniroute configure` u `omniroute config set`, jaċċetta
-`--allow-container-write` meta l-ikkonfigurazzjoni tal-CLIs tal-kontenitur stess hi dak li
-tlabt verament; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` jagħmel l-istess għas-
-server. Ara
-[Docker Guide → Konfigurazzjoni ta' għodod CLI tal-maħfra](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Kmand `setup-*` eżegwit ġewwa l-kontenitur OmniRoute jikteb fid-dar tal-kontenitur stess, li l-ebda host CLI ma jaqra u li jisparixxi mal-kontenitur. OmniRoute jiskopri dan u joħroġ `2` b'istruzzjonijiet minflok ma jikteb. Żewġ modi appoġġjati 'l quddiem — installa l-CLI fuq il-host u `omniroute connect` mal-kontenitur, jew bind-mount id-dirs tal-konfigurazzjoni u ssettja `CLI_CONFIG_HOME` (il-profil `host` tal-compose). Kull kmand `setup-*`, flimkien ma' `omniroute configure` u `omniroute config set`, jaċċetta `--allow-container-write` meta l-konfigurazzjoni tal-CLIs tal-kontenitur stess hija dak li fil-fatt ridt; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` jagħmel l-istess għas-server. Ara [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-It-twaħħil tal-dashboard **endpoint tal-applikazzjoni** (`POST /api/cli-tools/apply`) jinfurza
-l-istess gardun: ġewwa kontenitur, it-tikjib li l-mira tiegħu mhiex immontata mill-maħfra
-twieġeb **`422`** b'`containerEphemeralTarget: true`, it-test sikur tal-ħsara u — għall-għodod
-b'riċetta tal-maħfra (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` (eż. `omniroute setup-opencode`) biex imexxi
-fil-maħfra minflok; xejn ma jikteb. `dryRun: true` jibqa' jaħdem fil-mudell tal-kontenitur
-u jirritorna l-kontenut ġenerat + it-triq tal-mira mingħajr ma jmiss l-iskrin, sabiex
-tista' preview mill-dashboard u tapplika fil-maħfra. Dan il-ġestjone huwa
-intenzjonat u protett mill-ħsara minn
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — qatt "tiffissa" 422
-billi tneħħi l-gardun.
+L-**endpoint tal-applikazzjoni** tad-dashboard (`POST /api/cli-tools/apply`) jinforza l-istess gwardja: f'kontenitur, kitba li l-mira tagħha mhix bind-mounted mill-host twieġeb **`422`** b'`containerEphemeralTarget: true`, it-test ta' żball sikur u — għall-għodod b'riċetta tal-host (claude, codex, opencode, cline, kilo, continue) — `hostSetupCommand` (eż. `omniroute setup-opencode`) biex titħaddem fuq il-host minflok; xejn ma jinkiteb. `dryRun: true` jibqa' jaħdem fil-modalità tal-kontenitur u jirritorna previżjoni redatta + path tal-mira mingħajr ma jmiss id-disk. Il-kontenut tal-previżjoni mhuwiex konfigurazzjoni li fiha kredenzjali biex tiġi kkupjata jew importata. Applika bl-għodda oriġinali/URL bażi/API key/inputs tal-mudell fuq il-host, jew uża l-kmand ta' setup indikat fuq in-naħa tal-host. Ara [CLI configuration security](../security/CLI-CONFIGURATION.md) għall-header tal-previżjoni u l-kuntratt tat-talba. Dan l-imġiba hija intenzjonata u protetta minn regression minn `tests/unit/api/cli-tools/apply-container-guard.test.ts` — qatt ma "ssewwi" 422 billi tneħħi l-gwardja.
+
+---
 
 ## Sors tal-Verita'
 
@@ -137,40 +104,40 @@ u l-wired tal-kaxxa `--model` minnu. Il-guard tal-tibdil
 il-katalog tal-UI u kull wiċċ tal-konsumatur iżżommhom f'fomm — mira miżjuda f'
 wieħed mingħajr l-oħrajn falliċ iġġib l-isfuna milli joħroġ b'mod silenżjuż.
 
-## 1. Il-Katalgu tal-Kodiċi CLI (26 għodda)
+## 1. Katalogu tal-Kodiċi CLI (26 għodda)
 
-L-għodod kollha li jidhru f’`/dashboard/cli-code`. Dawk b’`baseUrlSupport: none` huma kkonfigurati permezz ta’ MITM jew gwida manwali minflok URL bażi personalizzat:
+L-għodod kollha li jidhru f'`/dashboard/cli-code`. Dawk b'`baseUrlSupport: none` huma konnessi permezz ta' MITM jew gwida manwali minflok URL bażi personalizzat:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | isem                    | fornitur            | baseUrlSupport | tip ta' konfigurazzjoni | acpSpawnable |
+| ------------ | ----------------------- | ------------------- | -------------- | ----------------------- | ------------ |
+| claude       | Claude Code             | Anthropic           | full           | env                     | true         |
+| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom                  | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom                  | false        |
+| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom                  | true         |
+| kilo         | Kilo Code               | Kilo-Org            | full           | custom                  | false        |
+| roo          | Roo Code                | Roo (OSS)           | full           | guide                   | false        |
+| continue     | Continue                | continue.dev        | full           | guide                   | false        |
+| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide                   | true         |
+| forge        | ForgeCode               | Antinomy HQ         | full           | custom                  | true         |
+| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom                  | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom                  | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom                  | false        |
+| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide                   | true         |
+| droid        | Factory Droid           | Factory AI          | partial        | guide                   | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom                  | false        |
+| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide                   | true         |
+| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom                  | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom                  | false        |
+| grok-build   | Grok Build              | xAI                 | full           | custom                  | false        |
+| crush        | Crush                   | OSS (Charm)         | full           | custom                  | false        |
+| qwen         | Qwen Code               | Alibaba             | full           | guide                   | true         |
+| cursor       | Cursor                  | Anysphere           | none           | guide                   | false        |
+| antigravity  | Antigravity             | Google              | none           | mitm                    | false        |
+| hermes       | Hermes                  | Nous Research       | none           | guide                   | false        |
+| kiro         | Kiro AI                 | Amazon              | none           | mitm                    | false        |
+| custom       | Custom CLI              | —                   | full           | custom-builder          | false        |
 
-L-għodod b’`baseUrlSupport: "partial"` juru badge "⚠ URL Bażi parzjali" fil-kard tad-dashboard.
+Għodod b'`baseUrlSupport: "partial"` juru badge "⚠ URL Bażi parzjali" fil-karta tad-dashboard.
 ---
 
 ## 2. Katalgu tal-Aġenti CLI (10 għodod)
