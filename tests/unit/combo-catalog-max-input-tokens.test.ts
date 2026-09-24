@@ -9,6 +9,10 @@ const TEST_DATA_DIR = fs.mkdtempSync(
 );
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET ||= "combo-max-input-test-secret";
+// Each build below is a cold catalog build, bounded by CATALOG_BUILD_TIMEOUT_MS (8s by
+// default, #12627); on a loaded runner the bound trips and the response is a 503 instead of
+// the metadata under test. Pin it out of the way exactly like 12058 does.
+process.env.CATALOG_BUILD_TIMEOUT_MS = "120000";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
@@ -85,6 +89,8 @@ describe("Combo catalog max_input_tokens and provider prefix stripping", () => {
       ],
     });
 
+    catalog.__resetCatalogBuilderRunsForTest();
+
     const response = await catalog.getUnifiedModelsResponse(
       new Request("http://localhost/api/v1/models")
     );
@@ -114,6 +120,8 @@ describe("Combo catalog max_input_tokens and provider prefix stripping", () => {
         },
       ],
     });
+
+    catalog.__resetCatalogBuilderRunsForTest();
 
     const response = await catalog.getUnifiedModelsResponse(
       new Request("http://localhost/api/v1/models")
@@ -165,6 +173,8 @@ describe("Combo catalog max_input_tokens and provider prefix stripping", () => {
         },
       ],
     });
+
+    catalog.__resetCatalogBuilderRunsForTest();
 
     const response = await catalog.getUnifiedModelsResponse(
       new Request("http://localhost/api/v1/models")
