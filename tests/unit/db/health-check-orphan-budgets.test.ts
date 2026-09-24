@@ -16,12 +16,13 @@ import Database from "better-sqlite3";
 
 import { runDbHealthCheck, type DbHealthCheckResult } from "../../../src/lib/db/healthCheck.ts";
 import { SYNTHETIC_ENV_API_KEY_ID } from "../../../src/shared/constants/apiKeyIdentities.ts";
+import type { SqliteAdapter } from "../../../src/lib/db/adapters/types.ts";
 
 const MANAGED_KEY_ID = "11111111-2222-3333-4444-555555555555";
 const REAL_ORPHAN_ID = "99999999-8888-7777-6666-555555555555";
 
 type Harness = {
-  db: any;
+  db: SqliteAdapter;
   cleanup: () => void;
   backups: number;
   run: (autoRepair?: boolean) => DbHealthCheckResult;
@@ -29,7 +30,7 @@ type Harness = {
   historyIds: () => string[];
 };
 
-function adapt(raw: any, name: string) {
+function adapt(raw: Database.Database, name: string): SqliteAdapter {
   return {
     driver: "better-sqlite3" as const,
     get open() {
@@ -39,8 +40,8 @@ function adapt(raw: any, name: string) {
     prepare: (sql: string) => raw.prepare(sql),
     exec: (sql: string) => raw.exec(sql),
     pragma: (p: string, o?: { simple?: boolean }) => raw.pragma(p, o),
-    transaction: (fn: any) => raw.transaction(fn),
-    immediate: (fn: any) => raw.transaction(fn).immediate(),
+    transaction: (fn: (...args: unknown[]) => unknown) => raw.transaction(fn),
+    immediate: (fn: () => void) => raw.transaction(fn).immediate(),
     backup: async () => undefined,
     checkpoint: () => undefined,
     close: () => raw.close(),
@@ -88,7 +89,7 @@ function makeHarness(seed: {
       rmSync(dir, { recursive: true, force: true });
     },
     run: (autoRepair = true) =>
-      runDbHealthCheck(db as any, {
+      runDbHealthCheck(db, {
         autoRepair,
         skipIntegrityCheck: true,
         expectedSchemaVersion: "1",
@@ -98,12 +99,16 @@ function makeHarness(seed: {
         },
       }),
     budgetIds: () =>
-      (raw.prepare("SELECT api_key_id FROM domain_budgets ORDER BY api_key_id").all() as any[]).map(
-        (r) => r.api_key_id
-      ),
+      (
+        raw.prepare("SELECT api_key_id FROM domain_budgets ORDER BY api_key_id").all() as {
+          api_key_id: string;
+        }[]
+      ).map((r) => r.api_key_id),
     historyIds: () =>
       (
-        raw.prepare("SELECT api_key_id FROM domain_cost_history ORDER BY api_key_id").all() as any[]
+        raw.prepare("SELECT api_key_id FROM domain_cost_history ORDER BY api_key_id").all() as {
+          api_key_id: string;
+        }[]
       ).map((r) => r.api_key_id),
   };
   return harness;
@@ -154,7 +159,7 @@ test("CASE C — a genuine orphan is still removed", () => {
 test("CASE D — orphan budget only", () => {
   const h = makeHarness({ budgets: [REAL_ORPHAN_ID] });
   try {
-    const result = h.run();
+    h.run();
     assert.deepEqual(h.budgetIds(), []);
   } finally {
     h.cleanup();
@@ -164,7 +169,7 @@ test("CASE D — orphan budget only", () => {
 test("CASE E — orphan history only", () => {
   const h = makeHarness({ history: [REAL_ORPHAN_ID] });
   try {
-    const result = h.run();
+    h.run();
     assert.deepEqual(h.historyIds(), []);
   } finally {
     h.cleanup();
@@ -177,7 +182,7 @@ test("CASE F — nothing orphaned emits no destructive repair", () => {
     history: [MANAGED_KEY_ID, SYNTHETIC_ENV_API_KEY_ID],
   });
   try {
-    const result = h.run();
+    h.run();
     assert.equal(h.budgetIds().length, 2);
     assert.equal(h.backups, 0, "a no-op repair must not take a backup");
   } finally {

@@ -388,8 +388,6 @@ function scanQuotaSnapshots(
  */
 const SYNTHETIC_OWNER_IDS = getSyntheticApiKeyIds();
 
-const ORPHAN_DOMAIN_ROWS_REASON = "api_key_id has no owner in api_keys and is not synthetic";
-
 function orphanDomainRowsPredicate(): string {
   const placeholders = SYNTHETIC_OWNER_IDS.map(() => "?").join(", ");
   const syntheticGuard = placeholders ? ` AND api_key_id NOT IN (${placeholders})` : "";
