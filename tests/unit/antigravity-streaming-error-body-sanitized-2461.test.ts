@@ -4,7 +4,6 @@ import assert from "node:assert/strict";
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
 import {
   clearAntigravityVersionCaches,
-  seedAntigravityIdeVersionCache,
   seedAntigravityCliVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 
@@ -22,7 +21,6 @@ test.afterEach(() => {
 test("AntigravityExecutor.execute (stream=true) sanitizes a non-ok upstream body instead of piping raw bytes", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2026.04.17-test");
   seedAntigravityCliVersionCache("2026.04.17-test");
 
   // Simulate a gzip-compressed 403 body (magic bytes 0x1f 0x8b), the exact shape

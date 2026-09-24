@@ -46,13 +46,17 @@ test("connects are SAVED with degraded status, not rejected", () => {
   );
 });
 
-test("gate only applies to antigravity and agy, marks typed error fields", () => {
+test("gate only applies to the consolidated antigravity provider, marks typed error fields", () => {
   const gateSource = fs.readFileSync(
     path.join(here, "../../src/lib/oauth/antigravityProjectGate.ts"),
     "utf8"
   );
   assert.match(gateSource, /"antigravity"/);
-  assert.match(gateSource, /"agy"/);
+  assert.equal(
+    /"agy"/.test(gateSource),
+    false,
+    "the removed agy provider id must not keep its own degrade branch"
+  );
   assert.match(gateSource, /testStatus: "degraded"/);
   assert.match(gateSource, /errorCode: "missing_project_id"/);
   assert.match(gateSource, /lastErrorType: "oauth_missing_project_id"/);

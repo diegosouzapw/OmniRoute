@@ -1,10 +1,8 @@
 import { ANTIGRAVITY_CONFIG } from "../constants/oauth";
-import type { AntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import {
+  antigravityCliUserAgent,
   getAntigravityContentHeaders,
-  getAntigravityIdeNodeHeaders,
   getAntigravityLoadCodeAssistMetadata,
-  getAntigravityOAuthUserAgent,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { extractCodeAssistOnboardTierId } from "@omniroute/open-sse/services/codeAssistSubscription.ts";
 import {
@@ -64,13 +62,8 @@ async function fetchFirstOk(endpoints: string[], init: RequestInit, timeoutMs?: 
   throw lastError || new Error("No Antigravity endpoints configured");
 }
 
-function getPostExchangeHeaders(
-  profile: AntigravityClientProfile,
-  accessToken: string
-): Record<string, string> {
-  return profile === "cli"
-    ? getAntigravityContentHeaders("cli", accessToken)
-    : getAntigravityIdeNodeHeaders(accessToken);
+function getPostExchangeHeaders(accessToken: string): Record<string, string> {
+  return getAntigravityContentHeaders(accessToken);
 }
 
 function buildAntigravityAuthUrl(
@@ -97,7 +90,6 @@ function buildAntigravityAuthUrl(
 
 async function exchangeAntigravityToken(
   config: AntigravityOAuthConfig,
-  clientProfile: AntigravityClientProfile,
   code: string,
   redirectUri: string
 ): Promise<AntigravityTokenPayload> {
@@ -114,7 +106,7 @@ async function exchangeAntigravityToken(
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       Accept: "application/json",
-      "User-Agent": getAntigravityOAuthUserAgent(clientProfile),
+      "User-Agent": antigravityCliUserAgent(),
     },
     body: new URLSearchParams(bodyParams),
   });
@@ -161,10 +153,9 @@ async function onboardAntigravityUser(
 
 async function postExchangeAntigravity(
   config: AntigravityOAuthConfig,
-  clientProfile: AntigravityClientProfile,
   tokens: AntigravityTokenPayload
 ): Promise<AntigravityPostExchange> {
-  const headers = getPostExchangeHeaders(clientProfile, tokens.access_token);
+  const headers = getPostExchangeHeaders(tokens.access_token);
   const metadata = getAntigravityLoadCodeAssistMetadata();
   const userInfoResponse = await fetch(`${config.userInfoUrl}?alt=json`, {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
@@ -244,11 +235,7 @@ async function postExchangeAntigravity(
   return { userInfo, projectId, tierId };
 }
 
-function mapAntigravityTokens(
-  clientProfile: AntigravityClientProfile,
-  tokens: AntigravityTokenPayload,
-  extra?: AntigravityPostExchange
-) {
+function mapAntigravityTokens(tokens: AntigravityTokenPayload, extra?: AntigravityPostExchange) {
   return {
     accessToken: tokens.access_token,
     refreshToken: tokens.refresh_token,
@@ -260,7 +247,6 @@ function mapAntigravityTokens(
     // Code project instead of persisting a dead "active" row.
     projectDiscoveryOutcome: extra?.projectDiscoveryOutcome,
     providerSpecificData: {
-      clientProfile,
       projectId: extra?.projectId,
       tier: extra?.tierId,
       // Which OAuth client issued this connection's refresh token. The token
@@ -278,18 +264,15 @@ function mapAntigravityTokens(
   };
 }
 
-export function createAntigravityOAuthProvider(
-  config: AntigravityOAuthConfig,
-  clientProfile: AntigravityClientProfile
-) {
+export function createAntigravityOAuthProvider(config: AntigravityOAuthConfig) {
   return {
     config,
     flowType: "authorization_code" as const,
     buildAuthUrl: buildAntigravityAuthUrl,
     exchangeToken: (runtimeConfig, code, redirectUri) =>
-      exchangeAntigravityToken(runtimeConfig, clientProfile, code, redirectUri),
+      exchangeAntigravityToken(runtimeConfig, code, redirectUri),
     postExchange: (tokens) =>
-      postExchangeAntigravity(config, clientProfile, tokens).then((extra) => ({
+      postExchangeAntigravity(config, tokens).then((extra) => ({
         ...extra,
         // Record the LITERAL client id that issued the refresh token we
         // just received (custom:<id> / builtin), so refreshes keep
@@ -301,8 +284,8 @@ export function createAntigravityOAuthProvider(
           ? `custom:${config.clientId}`
           : "builtin",
       })),
-    mapTokens: (tokens, extra) => mapAntigravityTokens(clientProfile, tokens, extra),
+    mapTokens: (tokens, extra) => mapAntigravityTokens(tokens, extra),
   };
 }
 
-export const antigravity = createAntigravityOAuthProvider(ANTIGRAVITY_CONFIG, "ide");
+export const antigravity = createAntigravityOAuthProvider(ANTIGRAVITY_CONFIG);

@@ -79,7 +79,7 @@ export function listNoCredentialProviders(): string[] {
  * new mistake still trips the gate.
  */
 export const NOT_TOKEN_QUANTIFIABLE_BUT_CREDENTIALED: readonly string[] = [
-  "agy", // OAuth sign-in; nothing to paste, but still an account
+  "antigravity", // OAuth sign-in (CLI identity); nothing to paste, but still an account
   "blackbox", // probed 2026-07-20 -> 401 "No api key passed in"
   "friendliai", // probed -> 401 "no authorization info provided"
   "iflytek", // probed -> 401 Unauthorized

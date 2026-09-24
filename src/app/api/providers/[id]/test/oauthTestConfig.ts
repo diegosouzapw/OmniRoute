@@ -12,7 +12,7 @@ import {
 } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import { isGeoBlockedError } from "@omniroute/open-sse/services/errorClassifier.ts";
 
-// Real model-surface probe for antigravity/agy. The previous probe only hit the
+// Real model-surface probe for antigravity. The previous probe only hit the
 // OAuth userinfo endpoint, which is NOT geo-restricted — so "Test Connection"
 // stayed green while every model call failed with "User location is not
 // supported for the API use." Probe the actual Cloud Code model endpoint
@@ -65,7 +65,7 @@ async function buildAntigravityProbe(
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       Accept: "text/event-stream",
-      ...getAntigravityContentHeaders(profile, accessToken),
+      ...getAntigravityContentHeaders(accessToken),
     },
     body: JSON.stringify({
       ...(projectId ? { project: projectId } : {}),

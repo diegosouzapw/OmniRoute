@@ -42,7 +42,7 @@ export function getQuotaScopedModelForProvider(
   model: string | null | undefined
 ): string | null {
   if (!model) return null;
-  if (provider !== "antigravity" && provider !== "agy") return model;
+  if (provider !== "antigravity") return model;
   const family = getAntigravityQuotaFamily(model);
   return family === "other" ? model : `family:${family}`;
 }
@@ -51,7 +51,7 @@ export function getQuotaScopeLabelForProvider(
   provider: string | null | undefined,
   model: string | null | undefined
 ): string {
-  if (provider !== "antigravity" && provider !== "agy") return "model";
+  if (provider !== "antigravity") return "model";
   return getAntigravityQuotaFamily(model) === "other" ? "model" : "family";
 }
 
@@ -59,12 +59,12 @@ export function getQuotaFetchScope(
   provider: string | null | undefined,
   model: string | null | undefined
 ): string {
-  if (provider !== "antigravity" && provider !== "agy") return "*";
+  if (provider !== "antigravity") return "*";
   return getQuotaScopedModelForProvider(provider, model) ?? "*";
 }
 
 export function isAntigravityQuotaProvider(provider: string | null | undefined): boolean {
-  return provider === "antigravity" || provider === "agy";
+  return provider === "antigravity";
 }
 
 export function quotaWindowNamesForScope(

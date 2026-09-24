@@ -7,7 +7,7 @@
  * the fallback queries and asserts the flip — the regression guard for the id contract.
  *
  * Contract note: the fallback queries `usage_history WHERE model = <public model id>`
- * (e.g. gemini-3.7-flash-high), so the executor MUST log usage under that same model id
+ * (e.g. gemini-3.8-flash-high), so the executor MUST log usage under that same model id
  * for the fallback to fire. This test pins exactly that join.
  */
 import test from "node:test";
@@ -47,7 +47,7 @@ test("Antigravity fetchAvailableModels(used=0) → localUsageHistory when usage_
   db.prepare(
     `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, tokens_reasoning, success, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, 1, ?)`
-  ).run("antigravity", "gemini-3.7-flash-high", "conn-local-1", 1000, 1500, 500, seededTimestamp);
+  ).run("antigravity", "gemini-3.8-flash-high", "conn-local-1", 1000, 1500, 500, seededTimestamp);
   // Total seeded tokens = 3000 → ceil(3000/1000) = 3 units used.
 
   globalThis.fetch = (async (input: any) => {
@@ -61,7 +61,7 @@ test("Antigravity fetchAvailableModels(used=0) → localUsageHistory when usage_
       ok: true,
       json: async () => ({
         models: {
-          "gemini-3.7-flash-high": {
+          "gemini-3.8-flash-high": {
             quotaInfo: { remainingFraction: 1.0, resetTime },
           },
         },
@@ -79,8 +79,8 @@ test("Antigravity fetchAvailableModels(used=0) → localUsageHistory when usage_
 
   const result = await getUsageForProvider(connection, { forceRefresh: true });
   assert.ok(result && "quotas" in result, "should return quotas");
-  const quota = (result as any).quotas["gemini-3.7-flash-high"];
-  assert.ok(quota, "should have the gemini-3.7-flash-high quota");
+  const quota = (result as any).quotas["gemini-3.8-flash-high"];
+  assert.ok(quota, "should have the gemini-3.8-flash-high quota");
   assert.equal(quota.quotaSource, "localUsageHistory", "stale full bucket replaced by local usage");
   assert.equal(quota.used, 3, "3000 seeded tokens → 3 units used");
 });
@@ -99,7 +99,7 @@ test("Antigravity stays fetchAvailableModels when usage_history has no matching 
       ok: true,
       json: async () => ({
         models: {
-          "gemini-3.7-flash-high": { quotaInfo: { remainingFraction: 1.0, resetTime } },
+          "gemini-3.8-flash-high": { quotaInfo: { remainingFraction: 1.0, resetTime } },
         },
       }),
     } as Response;
@@ -114,7 +114,7 @@ test("Antigravity stays fetchAvailableModels when usage_history has no matching 
   };
 
   const result = await getUsageForProvider(connection, { forceRefresh: true });
-  const quota = (result as any).quotas["gemini-3.7-flash-high"];
+  const quota = (result as any).quotas["gemini-3.8-flash-high"];
   assert.ok(quota, "should have the quota");
   assert.equal(quota.quotaSource, "fetchAvailableModels", "no local rows → keep the catalog view");
   assert.equal(quota.used, 0, "full bucket stays at 0 used");

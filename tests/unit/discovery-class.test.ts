@@ -13,7 +13,6 @@ const L1 = [
   "codex",
   "github",
   "ghe-copilot",
-  "agy",
   "antigravity",
   "gemini",
   "cursor",
@@ -22,11 +21,13 @@ const L1 = [
 ] as const;
 
 test("test 1: L1 ids are account-live", () => {
-  assert.equal(ACCOUNT_LIVE_PROVIDER_IDS.length, 10);
+  assert.equal(ACCOUNT_LIVE_PROVIDER_IDS.length, 9);
   for (const id of L1) {
     assert.equal(getDiscoveryClass(id), "account-live", id);
   }
   assert.equal(getDiscoveryClass("CLAUDE"), "account-live");
+  // The agy provider was consolidated into antigravity; its id is no longer routed.
+  assert.equal(getDiscoveryClass("agy"), "static-only");
 });
 
 test("test 2: curated web providers are static-only", () => {

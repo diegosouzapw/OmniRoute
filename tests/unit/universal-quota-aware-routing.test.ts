@@ -16,7 +16,11 @@ test("registerGenericQuotaFetchers wires antigravity and claude fetchers", () =>
   registerGenericQuotaFetchers();
   assert.ok(getQuotaFetcher("antigravity"), "antigravity fetcher should be registered");
   assert.ok(getQuotaFetcher("claude"), "claude fetcher should be registered");
-  assert.ok(getQuotaFetcher("agy"), "agy alias fetcher should be registered");
+  assert.equal(
+    getQuotaFetcher("agy"),
+    undefined,
+    "the consolidated agy provider must not keep a separate fetcher registration"
+  );
 });
 
 test("convertUsageToQuotaInfo normalizes Claude session/weekly into window5h/window7d", () => {

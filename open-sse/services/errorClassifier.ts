@@ -224,7 +224,6 @@ function isGeoBlockEligibleProvider(provider?: string | null): boolean {
   const p = (provider || "").toLowerCase();
   if (
     p === "antigravity" ||
-    p === "agy" ||
     p === "gemini" ||
     p === "gemini-cli" ||
     p === "vertex"

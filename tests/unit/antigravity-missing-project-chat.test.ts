@@ -8,7 +8,7 @@ const { BaseExecutor, buildRequest, handleChat, resetStorage, settingsDb } = har
 const providersDb = await import("../../src/lib/db/providers.ts");
 const { clearAntigravityProjectCache } =
   await import("../../open-sse/services/antigravityProjectBootstrap.ts");
-const { seedAntigravityIdeVersionCache, seedAntigravityCliVersionCache } =
+const { seedAntigravityCliVersionCache } =
   await import("../../open-sse/services/antigravityVersion.ts");
 
 const BOOTSTRAP_URL = "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
@@ -19,7 +19,6 @@ test.beforeEach(async () => {
   await resetStorage();
   await settingsDb.updateSettings({ requestRetry: 0, maxRetryIntervalSec: 0 });
   clearAntigravityProjectCache();
-  seedAntigravityIdeVersionCache("2026.04.17-missing-project-test");
   seedAntigravityCliVersionCache("2026.04.17-missing-project-test");
 });
 

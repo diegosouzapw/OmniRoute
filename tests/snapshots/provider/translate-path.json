@@ -134,32 +134,6 @@
       "stream": "https://api.agnes-ai.cn/v1/chat/completions"
     }
   },
-  "agy": {
-    "format": "antigravity",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
-      }
-    },
-    "url": {
-      "nonStream": "https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent",
-      "stream": "https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse"
-    }
-  },
   "ai21": {
     "format": "openai",
     "headers": {
@@ -380,18 +354,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
+        "User-Agent": "antigravity/cli/1.2.3 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
+        "User-Agent": "antigravity/cli/1.2.3 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
+        "User-Agent": "antigravity/cli/1.2.3 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
       }
     },
     "url": {

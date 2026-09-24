@@ -3,7 +3,7 @@ import {
   createProviderConnection,
   updateProviderConnection,
 } from "@/lib/db/providers";
-import { AGY_CONFIG } from "@/lib/oauth/constants/oauth";
+import { ANTIGRAVITY_CONFIG } from "@/lib/oauth/constants/oauth";
 import {
   getAntigravityContentHeaders,
   getAntigravityLoadCodeAssistMetadata,
@@ -128,7 +128,7 @@ export async function enrichWithAntigravityBackend(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
-    const userInfoRes = await fetch(`${AGY_CONFIG.userInfoUrl}?alt=json`, {
+    const userInfoRes = await fetch(`${ANTIGRAVITY_CONFIG.userInfoUrl}?alt=json`, {
       headers: { Authorization: `Bearer ${parsed.accessToken}` },
       signal: controller.signal,
     });
@@ -144,9 +144,9 @@ export async function enrichWithAntigravityBackend(
   const loadController = new AbortController();
   const loadTimer = setTimeout(() => loadController.abort(), 8000);
   try {
-    const headers = getAntigravityContentHeaders("cli", parsed.accessToken);
+    const headers = getAntigravityContentHeaders(parsed.accessToken);
     const metadata = getAntigravityLoadCodeAssistMetadata();
-    for (const endpoint of AGY_CONFIG.loadCodeAssistEndpoints) {
+    for (const endpoint of ANTIGRAVITY_CONFIG.loadCodeAssistEndpoints) {
       try {
         const res = await fetch(endpoint, {
           method: "POST",
@@ -178,7 +178,7 @@ export async function enrichWithAntigravityBackend(
 // ──── Find existing connection ────────────────────────────────────────────────
 
 export async function findExistingAgyConnection(email: string): Promise<JsonRecord | null> {
-  const connections = await getProviderConnections({ provider: "agy" });
+  const connections = await getProviderConnections({ provider: "antigravity" });
   const lowerEmail = email.toLowerCase();
   return (
     (connections.find((c) => {
@@ -207,7 +207,7 @@ export async function createConnectionFromAgyToken(
         );
       }
 
-      const degradedProject = antigravityDegradedProjectState("agy", {
+      const degradedProject = antigravityDegradedProjectState("antigravity", {
         projectId: enriched.projectId ?? "",
         providerSpecificData: { projectId: enriched.projectId ?? "", clientProfile: "cli" },
       });
@@ -256,13 +256,13 @@ export async function createConnectionFromAgyToken(
   }
 
   const name = options.name || resolvedEmail || "Antigravity CLI (imported)";
-  const degradedProject = antigravityDegradedProjectState("agy", {
+  const degradedProject = antigravityDegradedProjectState("antigravity", {
     projectId: enriched.projectId ?? "",
     providerSpecificData: { projectId: enriched.projectId ?? "", clientProfile: "cli" },
   });
 
   const connection = await createProviderConnection({
-    provider: "agy",
+    provider: "antigravity",
     authType: "oauth",
     name,
     email: resolvedEmail || undefined,

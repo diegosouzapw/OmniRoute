@@ -5,7 +5,6 @@ import {
   ANTIGRAVITY_MODEL_ALIASES,
   ANTIGRAVITY_PUBLIC_MODELS,
 } from "../../open-sse/config/antigravityModelAliases.ts";
-import { AGY_PUBLIC_MODELS } from "../../open-sse/config/agyModels.ts";
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
 
 // Regression tests for #6402 — schema-invalid `messages` fields fell through
@@ -132,7 +131,6 @@ const ANTIGRAVITY_GEMINI_MODELS = Array.from(
   new Set(
     [
       ...ANTIGRAVITY_PUBLIC_MODELS.map((model) => model.id),
-      ...AGY_PUBLIC_MODELS.map((model) => model.id),
       ...Object.keys(ANTIGRAVITY_MODEL_ALIASES),
       ...Object.values(ANTIGRAVITY_MODEL_ALIASES),
     ].filter((model) => /^(gemini(?!-claude)|rev19)/.test(model))
@@ -195,9 +193,9 @@ test("Antigravity Gemini-family regression covers every current callable tier", 
   for (const model of [
     "gemini-pro-agent",
     "gemini-3.1-pro-low",
-    "gemini-3.7-flash-high",
-    "gemini-3.7-flash-medium",
-    "gemini-3.7-flash-low",
+    "gemini-3.8-flash-high",
+    "gemini-3.8-flash-medium",
+    "gemini-3.8-flash-low",
     "gemini-3.1-flash-lite",
   ]) {
     assert.ok(coveredModels.has(model), `expected regression coverage for ${model}`);

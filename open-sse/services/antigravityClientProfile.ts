@@ -5,10 +5,7 @@ import {
 } from "@/shared/constants/antigravityClientProfile";
 import { getAntigravityContentHeaders } from "./antigravityHeaders.ts";
 import type { AntigravityCredentialsLike } from "./antigravityIdentity.ts";
-import {
-  resolveAntigravityCliVersion,
-  resolveAntigravityIdeVersion,
-} from "./antigravityVersion.ts";
+import { resolveAntigravityCliVersion } from "./antigravityVersion.ts";
 
 export {
   ANTIGRAVITY_CLIENT_PROFILE_VALUES,
@@ -30,6 +27,11 @@ const ABSENT_CONTENT_IDENTITY_HEADERS = [
   "Client-Metadata",
 ] as const;
 
+/**
+ * The consolidated `antigravity` provider always presents the official CLI
+ * identity. The parameter is kept for call-site compatibility; legacy
+ * persisted values (`ide`, `harness`, `sdk`) normalize to `cli`.
+ */
 export function getAntigravityClientProfile(
   credentials?: AntigravityProfileCredentials | null
 ): AntigravityClientProfile {
@@ -44,9 +46,9 @@ export function getAntigravityClientProfile(
 }
 
 export function resolveAntigravityClientVersion(
-  profile: AntigravityClientProfile
+  _profile?: AntigravityClientProfile
 ): Promise<string> {
-  return profile === "cli" ? resolveAntigravityCliVersion() : resolveAntigravityIdeVersion();
+  return resolveAntigravityCliVersion();
 }
 
 export function removeHeaderCaseInsensitive(headers: Record<string, string>, name: string): void {
@@ -66,14 +68,14 @@ function getProjectHeaderValue(body: unknown): string | null {
   return project;
 }
 
-/** Apply the selected official client identity to a Cloud Code content request. */
+/** Apply the official CLI client identity to a Cloud Code content request. */
 export function applyAntigravityClientProfileHeaders(
   headers: Record<string, string>,
   credentials: AntigravityProfileCredentials | null | undefined,
   body: unknown
 ): AntigravityClientProfile {
   const profile = getAntigravityClientProfile(credentials);
-  const identityHeaders = getAntigravityContentHeaders(profile);
+  const identityHeaders = getAntigravityContentHeaders();
 
   removeHeaderCaseInsensitive(headers, "User-Agent");
   headers["User-Agent"] = identityHeaders["User-Agent"];
@@ -87,5 +89,5 @@ export function applyAntigravityClientProfileHeaders(
     headers["x-goog-user-project"] = project;
   }
 
-  return profile;
+  return DEFAULT_ANTIGRAVITY_CLIENT_PROFILE;
 }

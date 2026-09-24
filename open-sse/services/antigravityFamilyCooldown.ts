@@ -37,8 +37,7 @@ function lockAntigravityFamilyModel(
   reason: string,
   cooldownMs: number
 ): void {
-  lockModel("agy", connectionId, model, reason, cooldownMs);
-  lockModel("antigravity", connectionId, model, reason, cooldownMs);
+    lockModel("antigravity", connectionId, model, reason, cooldownMs);
 }
 
 export async function persistAntigravityFamilyCooldown(params: {
@@ -148,7 +147,7 @@ export function markAntigravityModelQuotaExhausted(
   if (!model) return false;
   lockAntigravityFamilyModel(connectionId, model, "quota_exhausted", retryAfterMs);
   persistAntigravityFamilyCooldownIfQuota({
-    provider: "agy",
+    provider: "antigravity",
     connectionId,
     model,
     cooldownMs: retryAfterMs,

@@ -6,7 +6,6 @@
  *    so that loopback redirect URIs are preserved.
  * 2. Truly custom credentials trigger the public base URL override.
  * 3. resolvePublicCred() is used dynamically for default ID comparison.
- * 4. The `agy` provider alias inherits antigravity credential detection.
  *
  * All tests run fully offline — no network calls.
  */
@@ -56,20 +55,6 @@ test("antigravity with default public credentials keeps loopback redirect URI", 
   );
 });
 
-test("agy provider with default antigravity credentials keeps loopback redirect URI", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://localhost:20128/callback", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
-    ANTIGRAVITY_OAUTH_CLIENT_ID: DEFAULT_ANTIGRAVITY_CLIENT_ID,
-    ANTIGRAVITY_OAUTH_CLIENT_SECRET: "GOCSPX-SomeDefaultSecret",
-  });
-
-  assert.equal(
-    redirectUri,
-    "http://localhost:20128/callback",
-    "agy must inherit antigravity default credential detection"
-  );
-});
-
 // ---------------------------------------------------------------------------
 // Custom credentials → redirect overridden to public base URL
 // ---------------------------------------------------------------------------
@@ -84,16 +69,6 @@ test("antigravity with custom credentials switches loopback to public base URL",
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
     }
   );
-
-  assert.equal(redirectUri, "https://omniroute.example.com/callback");
-});
-
-test("agy with custom credentials switches loopback to public base URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://localhost:20128/callback", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
-    ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-agy.apps.googleusercontent.com",
-    ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-agy-secret",
-  });
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });
@@ -329,7 +304,9 @@ test("antigravity with client type 'web' and custom credentials switches loopbac
   );
 });
 
-test("agy with client type 'web' and custom credentials switches loopback to public URL", () => {
+test("agy with client type 'web' and custom credentials no longer gets the antigravity override", () => {
+  // The `agy` provider was consolidated into `antigravity`; production
+  // deliberately no longer special-cases `agy` here, so the loopback stays.
   const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://127.0.0.1:20128/callback", {
     OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_TYPE: "web",
@@ -339,8 +316,8 @@ test("agy with client type 'web' and custom credentials switches loopback to pub
 
   assert.equal(
     redirectUri,
-    "https://omniroute.example.com/callback",
-    "agy must inherit web client type from antigravity"
+    "http://127.0.0.1:20128/callback",
+    "the removed agy id must not inherit the antigravity web-client override"
   );
 });
 

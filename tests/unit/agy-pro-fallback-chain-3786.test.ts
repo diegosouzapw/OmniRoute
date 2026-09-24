@@ -11,7 +11,7 @@ import {
   getAntigravityModelFallbacks,
 } from "../../open-sse/config/antigravityModelAliases.ts";
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
-import { seedAntigravityIdeVersionCache } from "../../open-sse/services/antigravityVersion.ts";
+import { seedAntigravityCliVersionCache } from "../../open-sse/services/antigravityVersion.ts";
 
 type ChatCompletionPayload = {
   object?: string;
@@ -81,7 +81,7 @@ function envelopeModel(init: RequestInit | undefined): string {
 test("execute retries pro-low with the next candidate when the first id 400s", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -113,7 +113,7 @@ test("execute retries pro-low with the next candidate when the first id 400s", a
 test("execute exhausts the pro-low chain on all-400 and surfaces a sanitized 400", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -148,7 +148,7 @@ test("execute exhausts the pro-low chain on all-400 and surfaces a sanitized 400
 test("pro-low happy path makes exactly one upstream call", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -179,7 +179,7 @@ test("pro-low happy path makes exactly one upstream call", async () => {
 test("(#3786) exception on first candidate (timeout) falls through to second candidate returning 200", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -216,7 +216,7 @@ test("(#3786) exception on first candidate (timeout) falls through to second can
 test("(#3786) all candidates throw exceptions -- error includes 'chain exhausted'", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -261,7 +261,7 @@ test("(#3786) all candidates throw exceptions -- error includes 'chain exhausted
 test("(#3786) a non-pro model that 400s does NOT trigger the fallback chain", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -289,7 +289,7 @@ test("(#3786) a non-pro model that 400s does NOT trigger the fallback chain", as
 test("(#3786) mixed: first 400 + last throws returns firstResult (original 400) instead of throwing", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -326,7 +326,7 @@ test("(#3786) mixed: first 400 + last throws returns firstResult (original 400) 
 test("(#3786) AbortError from standard Error (not DOMException) propagates immediately", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   // Signal is NOT aborted -- this exercises the new Error.name === "AbortError" path.
   const controller = new AbortController();
 

@@ -21,7 +21,9 @@ test("classifies each credential model from the real registries", () => {
   // Verified live 2026-08-11: HTTP 200 with no Authorization header (#10068).
   assert.equal(getCredentialRequirement("kilo-gateway"), "optional");
   // OAuth: nothing to paste, but the user still signs in.
-  assert.equal(getCredentialRequirement("agy"), "oauth");
+  assert.equal(getCredentialRequirement("antigravity"), "oauth");
+  // The removed agy id fails closed now.
+  assert.equal(getCredentialRequirement("agy"), "required");
   // Ordinary key-gated provider.
   assert.equal(getCredentialRequirement("groq"), "required");
   // Unknown ids must fail closed, never be advertised as free access.

@@ -21,43 +21,46 @@ const { normalizeAntigravityModelsResponse, mapAntigravityModelForClient } =
 
 test("tiered group aliases the bare base onto the high tier", () => {
   const aliases = deriveSyncedTierAliases({
-    agy: ["gemini-3.7-flash-high", "gemini-3.7-flash-medium", "gemini-3.7-flash-low"],
+    antigravity: ["gemini-3.7-flash-high", "gemini-3.7-flash-medium", "gemini-3.7-flash-low"],
   });
-  assert.deepEqual(aliases, { "gemini-3.7-flash": "agy/gemini-3.7-flash-high" });
+  assert.deepEqual(aliases, { "gemini-3.7-flash": "antigravity/gemini-3.7-flash-high" });
 });
 
 test("missing high tier falls back to medium, then low", () => {
-  assert.deepEqual(deriveSyncedTierAliases({ agy: ["x-model-medium", "x-model-low"] }), {
-    "x-model": "agy/x-model-medium",
+  assert.deepEqual(deriveSyncedTierAliases({ antigravity: ["x-model-medium", "x-model-low"] }), {
+    "x-model": "antigravity/x-model-medium",
   });
-  assert.deepEqual(deriveSyncedTierAliases({ agy: ["y-model-low"] }), {
-    "y-model": "agy/y-model-low",
+  assert.deepEqual(deriveSyncedTierAliases({ antigravity: ["y-model-low"] }), {
+    "y-model": "antigravity/y-model-low",
   });
 });
 
 test("a callable bare base gets no alias", () => {
   const aliases = deriveSyncedTierAliases({
-    agy: ["gemini-3.7-flash", "gemini-3.7-flash-high", "gemini-3.7-flash-low"],
+    antigravity: ["gemini-3.7-flash", "gemini-3.7-flash-high", "gemini-3.7-flash-low"],
   });
   assert.equal(aliases["gemini-3.7-flash"], undefined);
 });
 
 test("non-tiered model ids are ignored", () => {
-  assert.deepEqual(deriveSyncedTierAliases({ agy: ["gemini-pro-agent", "claude-sonnet-4-6"] }), {});
+  assert.deepEqual(
+    deriveSyncedTierAliases({ antigravity: ["gemini-pro-agent", "claude-sonnet-4-6"] }),
+    {}
+  );
 });
 
-test("agy provider wins over antigravity for the same base", () => {
+test("only the consolidated antigravity provider participates in the derivation", () => {
   const aliases = deriveSyncedTierAliases({
     antigravity: ["gemini-3.7-flash-high"],
     agy: ["gemini-3.7-flash-medium"],
   });
-  assert.deepEqual(aliases, { "gemini-3.7-flash": "agy/gemini-3.7-flash-medium" });
+  assert.deepEqual(aliases, { "gemini-3.7-flash": "antigravity/gemini-3.7-flash-high" });
 });
 
 test("empty or unknown providers produce nothing", () => {
   assert.deepEqual(deriveSyncedTierAliases({}), {});
   assert.deepEqual(deriveSyncedTierAliases({ openai: ["gpt-x-high"] }), {});
-  assert.deepEqual(deriveSyncedTierAliases({ agy: [] }), {});
+  assert.deepEqual(deriveSyncedTierAliases({ antigravity: [] }), {});
 });
 
 test("discovery normalization carries numeric token limits when present", () => {
@@ -92,10 +95,11 @@ test("normalization accepts contextWindow/maxOutputTokens spellings and drops ju
 });
 
 test("client mapping preserves token limits", () => {
-  const mapped = mapAntigravityModelForClient(
-    { id: "gemini-3.7-flash-high", name: "Gemini 3.7 Flash (High)", inputTokenLimit: 1048576 },
-    "agy"
-  );
+  const mapped = mapAntigravityModelForClient({
+    id: "gemini-3.7-flash-high",
+    name: "Gemini 3.7 Flash (High)",
+    inputTokenLimit: 1048576,
+  });
   assert.equal(mapped.inputTokenLimit, 1048576);
   assert.equal(typeof mapped.id, "string");
 });
@@ -106,9 +110,9 @@ test("getSyncedAutoAliases reads the live synced catalog", async () => {
   const { resetDbInstance } = await import("../../src/lib/db/core.ts");
   resetDbInstance();
 
-  // Only ACTIVE connections' synced rows count — seed a real agy connection.
+  // Only ACTIVE connections' synced rows count — seed a real antigravity connection.
   const connection = await createProviderConnection({
-    provider: "agy",
+    provider: "antigravity",
     authType: "oauth",
     name: "auto-alias-fixture",
     accessToken: "fixture-access-token",
@@ -118,11 +122,11 @@ test("getSyncedAutoAliases reads the live synced catalog", async () => {
   });
   const connectionId = String((connection as Record<string, unknown>).id);
 
-  await replaceSyncedAvailableModelsForConnection("agy", connectionId, [
+  await replaceSyncedAvailableModelsForConnection("antigravity", connectionId, [
     { id: "gemini-3.7-flash-high", name: "Gemini 3.7 Flash (High)" },
     { id: "gemini-3.7-flash-medium", name: "Gemini 3.7 Flash (Medium)" },
   ]);
 
   const aliases = await getSyncedAutoAliases();
-  assert.equal(aliases["gemini-3.7-flash"], "agy/gemini-3.7-flash-high");
+  assert.equal(aliases["gemini-3.7-flash"], "antigravity/gemini-3.7-flash-high");
 });

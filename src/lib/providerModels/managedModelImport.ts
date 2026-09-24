@@ -22,7 +22,6 @@ import {
   ANTIGRAVITY_REVERSE_MODEL_ALIASES,
   isDiscoverableAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
-import { isDiscoverableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
 import { filterChatSelectableModels } from "@omniroute/open-sse/services/modelEndpointPolicy.ts";
 import { filterSelectableModels } from "@omniroute/open-sse/services/modelLifecycle.ts";
 import { isSelfHostedChatProvider } from "@/shared/constants/providers";
@@ -265,15 +264,13 @@ export async function importManagedModels({
     previousSyncedAvailableModelsInput ??
     (await getSyncedAvailableModelsForConnection(providerId, connectionId));
   const normalizedDiscoveredModels = normalizeDiscoveredModels(fetchedModels, providerId);
-  // Gemini 3.5 Flash elimination (ddf1bb760, carried from #11259): antigravity/
-  // agy discovery is restricted to each family's discoverable ids BEFORE any
+  // Gemini 3.5 Flash elimination (ddf1bb760, carried from #11259): antigravity
+  // discovery is restricted to the family's discoverable ids BEFORE any
   // chat-selection filtering.
   const providerFilteredModels =
     providerId === "antigravity"
       ? normalizedDiscoveredModels.filter((model) => isDiscoverableAntigravityModelId(model.id))
-      : providerId === "agy"
-        ? normalizedDiscoveredModels.filter((model) => isDiscoverableAgyModelId(model.id))
-        : normalizedDiscoveredModels;
+      : normalizedDiscoveredModels;
   // #11088 (option 1): self-hosted providers keep their non-chat models — chat
   // filtering happens at read time (resolveLocalSyncedEndpointRoute). Every other
   // provider keeps the import-time chat filter: the read-time path is gated on

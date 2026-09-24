@@ -22,7 +22,7 @@ import {
 
 /** Providers whose connections support live model discovery. Extend as other
  * discovery-capable providers get wired to the reactive trigger. */
-const REACTIVE_SYNC_PROVIDERS = new Set<string>(["antigravity", "agy"]);
+const REACTIVE_SYNC_PROVIDERS = new Set<string>(["antigravity"]);
 
 /** Minimum interval between two reactive syncs for the same connection. */
 const REACTIVE_SYNC_COOLDOWN_MS = 10 * 60 * 1000;
