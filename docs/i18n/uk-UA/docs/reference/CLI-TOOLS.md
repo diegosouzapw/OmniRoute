@@ -1,29 +1,20 @@
-# CLI-TOOLS (Українська)
+# CLI Tools — OmniRoute (Українська)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
-title: "CLI Інструменти — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-18
----
+Останнє оновлення: 2026-08-23
 
-# CLI Інструменти — OmniRoute
+OmniRoute інтегрується з трьома категоріями CLI-інструментів, розподіленими між трьома окремими сторінками панелі керування:
 
-Останнє оновлення: 2026-08-18
+| Сторінка       | Маршрут                 | Концепція                                                                                         | Кількість   |
+| -------------- | ----------------------- | ------------------------------------------------------------------------------------------------- | ----------- |
+| **CLI-код**    | `/dashboard/cli-code`   | Інструменти програмування, які ви спрямовуєте на OmniRoute (Клієнт → CLI → OmniRoute → Провайдер) | 26          |
+| **CLI-агенти** | `/dashboard/cli-agents` | Автономні агенти, яких ви спрямовуєте на OmniRoute (той самий потік, ширша сфера дії)             | 10          |
+| **ACP-агенти** | `/dashboard/acp-agents` | CLI, які OmniRoute запускає як бекенд через stdio/ACP (зворотний потік)                           | див. реєстр |
 
-OmniRoute інтегрується з трьома категоріями CLI інструментів, розподілених по трьом спеціалізованим панелям:
-
-| Сторінка       | Маршрут                 | Концепція                                                                             | Кількість   |
-| -------------- | ----------------------- | ------------------------------------------------------------------------------------- | ----------- |
-| **CLI Код**    | `/dashboard/cli-code`   | Інструменти коду, які ви вказуєте на OmniRoute (Клієнт → CLI → OmniRoute → Провайдер) | 26          |
-| **CLI Агенти** | `/dashboard/cli-agents` | Автономні агенти, які ви вказуєте на OmniRoute (той самий потік, ширший обсяг)        | 8           |
-| **ACP Агенти** | `/dashboard/acp-agents` | CLI, які OmniRoute створює як бекенд через stdio/ACP (обернений потік)                | див. реєстр |
-
-Спадкові маршрути перенаправляються через 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
+Застарілі маршрути переспрямовуються за допомогою 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
 ---
 
@@ -144,9 +135,9 @@ kilo, continue) — командою `hostSetupCommand` (наприклад, `om
 каталог UI та кожна споживча поверхня залишаються синхронізованими — ціль, додана до
 однієї поверхні без інших, призводить до збою тестування замість тихого відхилення.
 
-## 1. Каталог CLI Кодів (26 інструментів)
+## 1. Каталог CLI Code (26 інструментів)
 
-Усі інструменти, які з'являються в `/dashboard/cli-code`. Ті, що мають `baseUrlSupport: none`, підключені через MITM або ручний посібник замість користувацької базової URL:
+Усі інструменти, що відображаються в `/dashboard/cli-code`. Інструменти з `baseUrlSupport: none` підключаються через MITM або за допомогою інструкції з ручного налаштування замість користувацької базової URL-адреси:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -177,7 +168,8 @@ kilo, continue) — командою `hostSetupCommand` (наприклад, `om
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Інструменти з `baseUrlSupport: "partial"` показують значок "⚠ Часткова базова URL" на картці інформаційної панелі.
+Інструменти з `baseUrlSupport: "partial"` відображають значок «⚠ Часткова підтримка базової URL-адреси» на картці панелі керування.
+---
 
 ## 2. Каталог CLI Агентів (8 інструментів)
 
@@ -597,19 +589,19 @@ kiro-cli status
 
 ---
 
-## 10. Внутрішній OmniRoute CLI
+## 10. Внутрішній CLI OmniRoute
 
-Бінарний файл `omniroute` надає команди для управління життєвим циклом сервера, налаштування, діагностики та управління провайдерами. Точка входу: `bin/omniroute.mjs`.
+Бінарний файл `omniroute` надає команди для керування життєвим циклом сервера, налаштування, діагностики та керування провайдерами. Точка входу: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Запустити сервер (порт за замовчуванням 20128)
+omniroute                              # Запустити сервер (стандартний порт 20128)
 omniroute setup                        # Інтерактивний майстер налаштування
-omniroute doctor                       # Перевірити конфігурацію, БД, порти, виконання
-omniroute providers list               # Налаштовані з'єднання з провайдерами
-omniroute providers test-all           # Перевірити кожне активне з'єднання
+omniroute doctor                       # Перевірити конфігурацію, БД, порти та середовище виконання
+omniroute providers list               # Налаштовані підключення до провайдерів
+omniroute providers test-all           # Перевірити кожне активне підключення
 omniroute reset-password               # Скинути пароль адміністратора
-omniroute logs                         # Потік журналів запитів
-omniroute health                       # Детальне здоров'я (перерви, кеш, пам'ять)
+omniroute logs                         # Транслювати журнали запитів
+omniroute health                       # Детальний стан (запобіжники, кеш, пам’ять)
 omniroute --version                    # Вивести версію
 omniroute --help                       # Показати всі команди
 ```
@@ -618,136 +610,137 @@ omniroute --help                       # Показати всі команди
 
 ```bash
 omniroute setup                        # Інтерактивний майстер налаштування
-omniroute setup --non-interactive      # CI/автоматизований режим (читає змінні середовища + прапори)
-omniroute setup --password '<value>'   # Встановити пароль адміністратора безпосередньо
+omniroute setup --non-interactive      # Режим CI/автоматизації (зчитує змінні середовища та прапорці)
+omniroute setup --password '<value>'   # Установити пароль адміністратора безпосередньо
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Додати та протестувати провайдера за один раз
+  --test-provider                      # Додати й перевірити провайдера за один крок
 ```
 
-Визнані змінні середовища для неінтерактивного налаштування:
+Розпізнавані змінні середовища для неінтерактивного налаштування:
 
-| Var                 | Мета                                                                      |
+| Змінна              | Призначення                                                               |
 | ------------------- | ------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | API-ключ провайдера (прив'язаний до `--api-key` через Commander `.env()`) |
-| `DATA_DIR`          | Перезаписати каталог даних OmniRoute                                      |
+| `OMNIROUTE_API_KEY` | API-ключ провайдера (прив’язаний до `--api-key` через Commander `.env()`) |
+| `DATA_DIR`          | Перевизначає каталог даних OmniRoute                                      |
 
-Всі інші неінтерактивні введення передаються як прапори, а не змінні середовища:
+Усі інші вхідні дані для неінтерактивного режиму передаються як прапорці, а не змінні середовища:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (див. параметри `omniroute setup` вище).
 
 ### Діагностика
 
 ```bash
-omniroute doctor                       # Перевірити конфігурацію, БД, порти, виконання, пам'ять, живість
-omniroute doctor --json                # Машинозчитуваний JSON
-omniroute doctor --no-liveness         # Пропустити HTTP перевірку здоров'я
-omniroute doctor --host 0.0.0.0        # Перезаписати хост живості
-omniroute doctor --liveness-url <url>  # Повний URL-адреса кінцевої точки здоров'я
+omniroute doctor                       # Перевірити конфігурацію, БД, порти, середовище виконання, пам’ять і працездатність
+omniroute doctor --json                # Машиночитаний JSON
+omniroute doctor --no-liveness         # Пропустити HTTP-перевірку працездатності
+omniroute doctor --host 0.0.0.0        # Перевизначити хост для перевірки працездатності
+omniroute doctor --liveness-url <url>  # Перевизначити повну URL-адресу кінцевої точки стану
 ```
 
-Доктор виконує ці перевірки: `Конфігурація`, `База даних`, `Зберігання/шифрування`,
-`Доступність порту`, `Виконання вузла`, `Рідний бінарний файл` (better-sqlite3),
-`Пам'ять` та `Живість сервера`. Він виходить з ненульовим кодом, якщо будь-яка перевірка не пройшла.
+Команда doctor виконує такі перевірки: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory` і `Server liveness`. Вона завершує роботу з ненульовим кодом, якщо будь-яка перевірка має статус `fail`.
 
-### Управління провайдерами
+### Керування провайдерами
 
 ```bash
 omniroute providers available                       # Каталог провайдерів OmniRoute
-omniroute providers available --search openai       # Фільтрувати каталог за id/назвою/псевдонімом/категорією
+omniroute providers available --search openai       # Фільтрувати каталог за ідентифікатором/назвою/псевдонімом/категорією
 omniroute providers available --category api-key    # Фільтрувати за категорією (api-key, oauth, free, ...)
-omniroute providers available --json                # Машинозчитуваний JSON
+omniroute providers available --json                # Машиночитаний JSON
 
-omniroute providers list                            # Налаштовані з'єднання з провайдерами
+omniroute providers list                            # Налаштовані підключення до провайдерів
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Перевірити одне налаштоване з'єднання
-omniroute providers test-all                        # Перевірити кожне активне з'єднання
-omniroute providers validate                        # Локальна структурна валідація
+omniroute providers test <id|name>                  # Перевірити одне налаштоване підключення
+omniroute providers test-all                        # Перевірити кожне активне підключення
+omniroute providers validate                        # Лише локальна структурна перевірка
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Існуючий OAuth потік
+omniroute providers auth <provider>                 # Наявний потік OAuth
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` є API-орієнтованими і, отже, працюють проти
-активного локального або віддаленого контексту. Введення облікових даних повинно використовувати
-`--credential-stdin` або `--credential-env`; `--dry-run --json` звітує лише про
-редаговану присутність/форму. `providers available` читає каталог OmniRoute;
+`providers add/import/auth/edit/remove` насамперед використовують API, тому працюють з
+активним локальним або віддаленим контекстом. Облікові дані слід передавати через
+`--credential-stdin` або `--credential-env`; `--dry-run --json` повідомляє лише
+замасковану інформацію про наявність/структуру. `providers available` зчитує каталог OmniRoute;
 `providers list/test/test-all/validate` зберігають свою локальну поведінку SQLite і
-не вимагають, щоб сервер працював.
+не потребують запущеного сервера.
 
 ### Відновлення та скидання
 
 ```bash
 omniroute reset-password                # Скинути пароль адміністратора (також: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Показати попередження + пробний запуск для скидання зашифрованих облікових даних
-omniroute reset-encrypted-columns --force  # Насправді скинути зашифровані облікові дані в SQLite
+omniroute reset-encrypted-columns       # Показати попередження та пробний запуск скидання зашифрованих облікових даних
+omniroute reset-encrypted-columns --force  # Фактично встановити для зашифрованих облікових даних значення null у SQLite
 ```
 
-### Експорт облікових даних (⚠ обробляти з обережністю)
+### Експорт облікових даних (⚠ поводьтеся обережно)
 
 ```bash
-omniroute auth export                                 # Показати попередження + підтвердження — без доступу до БД
-omniroute auth export --force                          # Експортувати ВСІ РОЗШИФРОВАНІ облікові дані з'єднань у stdout як JSON
-omniroute auth export --force --id <id>                 # Експортувати лише відповідне з'єднання
+omniroute auth export                                 # Показати попередження та запит підтвердження — без доступу до БД
+omniroute auth export --force                          # Експортувати РОЗШИФРОВАНІ облікові дані ВСІХ підключень у stdout як JSON
+omniroute auth export --force --id <id>                 # Експортувати лише відповідне підключення
 omniroute auth export --force --format env               # Вивести рядки OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Записати у файл (створений з правами 0600)
+omniroute auth export --force --out creds.json           # Записати у файл (створюється з дозволами 0600)
 ```
 
-`auth export` є **локальним** (пряме читання з SQLite, без HTTP маршруту) і навмисно виводить/записує
-**текстові** значення `apiKey`/`accessToken`/`refreshToken`/`idToken` — це функція, а не
-помилка. Нічого не читається з бази даних, і нічого не розшифровується без `--force`. Попереджувальний банер завжди виводиться перед будь-яким текстовим виводом. Потрібно, щоб `STORAGE_ENCRYPTION_KEY`
-був встановлений. Поле, яке не вдалося розшифрувати (застарілий ключ, пошкоджений шифротекст), повідомляється як
-`<field>DecryptFailed: true` замість того, щоб переривати весь експорт або витікати основну помилку.
+`auth export` працює **лише локально** (безпосереднє читання SQLite, без HTTP-маршруту) і навмисно виводить/записує
+значення `apiKey`/`accessToken`/`refreshToken`/`idToken` як **звичайний текст** — це функція, а не
+помилка. Без `--force` нічого не зчитується з бази даних і нічого не розшифровується. Перед виведенням
+будь-якого звичайного тексту в stderr завжди друкується банер із попередженням. Потрібно встановити
+`STORAGE_ENCRYPTION_KEY`. Поле, яке не вдалося розшифрувати (застарілий ключ, пошкоджений шифротекст), позначається як
+`<field>DecryptFailed: true` замість переривання всього експорту або розкриття основної помилки.
 
 ### Інші підкоманди
 
-Ці команди передбачають, що сервер OmniRoute працює, якщо не зазначено інше:
+Якщо не зазначено інше, вони передбачають наявність запущеного сервера OmniRoute:
 
 ```bash
-omniroute status                       # Комплексний статус виконання
-omniroute logs                         # Потік журналів запитів (--json, --search, --follow)
-omniroute config show                  # Відобразити поточну конфігурацію
+omniroute status                       # Повний стан середовища виконання
+omniroute logs                         # Потокове виведення журналів запитів (--json, --search, --follow)
+omniroute config list                  # Показати налаштовані інструменти CLI
 
-omniroute provider list                # Перелік доступних провайдерів (псевдонім команди providers list)
+omniroute provider list                # Перелічити доступних провайдерів (псевдонім для providers list)
 omniroute provider add                 # Зареєструвати OmniRoute як провайдера в інструменті
-omniroute keys add | list | remove     # Управління API-ключами
-omniroute models [provider]            # Перелік моделей (--json, --search)
+omniroute keys add | list | remove     # Керувати ключами API
+omniroute models [provider]            # Перелічити моделі (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Знімок конфігурації + БД
-omniroute restore                      # Відновлення з попереднього знімка
+omniroute backup                       # Створити знімок конфігурації та БД
+omniroute restore                      # Відновити з попереднього знімка
 
-omniroute health                       # Детальне здоров'я (перерви, кеш, пам'ять)
+omniroute health                       # Докладний стан (запобіжники, кеш, пам’ять)
 omniroute quota                        # Використання квоти провайдера
-omniroute cache                        # Статус кешу
-omniroute cache clear                  # Очистити семантичні + підписні кеші
+omniroute cache                        # Стан кешу
+omniroute cache clear                  # Очистити семантичний кеш і кеш сигнатур
 
-omniroute mcp status | restart         # Статус сервера MCP / перезапуск
-omniroute a2a status | card            # Статус сервера A2A / картка агента
+omniroute mcp status | restart         # Стан / перезапуск сервера MCP
+omniroute a2a status | card            # Стан сервера A2A / картка агента
 
-omniroute tunnel list | create | stop  # Управління тунелями (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Перегляд / встановлення змінних середовища (тимчасово)
+omniroute tunnel list | create | stop  # Керувати тунелями (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Переглянути / встановити змінні середовища (тимчасово)
 
-omniroute test                         # Тест на підключення провайдера
+omniroute test                         # Швидка перевірка підключення до провайдера
 omniroute update                       # Перевірити наявність оновлень
-omniroute completion                   # Генерувати завершення оболонки
+omniroute completion                   # Згенерувати автодоповнення для оболонки
 ```
 
-### Загальні прапори
+### Поширені прапорці
 
-| Прапор              | Опис                                                 |
-| ------------------- | ---------------------------------------------------- |
-| `--no-open`         | Не відкривати браузер автоматично при запуску        |
-| `--port <n>`        | Перезаписати порт API (за замовчуванням 20128)       |
-| `--mcp`             | Запустити як сервер MCP через stdio (для IDE)        |
-| `--non-interactive` | CI режим (без запитів; читає з env/flags)            |
-| `--json`            | Машинозчитуваний JSON вивід (doctor, providers тощо) |
-| `--help`, `-h`      | Показати специфічну допомогу для команди             |
-| `--version`, `-v`   | Вивести встановлену версію                           |
+| Прапорець           | Опис                                                           |
+| ------------------- | -------------------------------------------------------------- |
+| `--no-open`         | Не відкривати браузер автоматично під час запуску              |
+| `--port <n>`        | Перевизначити порт API (за замовчуванням 20128)                |
+| `--mcp`             | Запустити як сервер MCP через stdio (для IDE)                  |
+| `--non-interactive` | Режим CI (без запитів; зчитує зі змінних середовища/прапорців) |
+| `--json`            | Машиночитаний вивід JSON (doctor, providers тощо)              |
+| `--help`, `-h`      | Показати довідку для конкретної команди                        |
+| `--version`, `-v`   | Вивести встановлену версію                                     |
 
 ---
 

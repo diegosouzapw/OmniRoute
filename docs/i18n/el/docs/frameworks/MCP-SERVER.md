@@ -1,21 +1,12 @@
-# MCP-SERVER (Ελληνικά)
+# OmniRoute MCP Server Documentation (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
-title: "OmniRoute MCP Server Documentation"
-version: 3.8.50
-lastUpdated: 2026-08-08
----
-
-# Τεκμηρίωση OmniRoute MCP Server
-
-> Διακομιστής Model Context Protocol με 110 εργαλεία που καλύπτουν λειτουργίες δρομολόγησης, cache, συμπίεσης, μνήμης, δεξιοτήτων, proxy, pool, Radar και πηγών περιεχομένου.
+> Διακομιστής Model Context Protocol με 110 εργαλεία για λειτουργίες δρομολόγησης, προσωρινής μνήμης, συμπίεσης, μνήμης, δεξιοτήτων, διακομιστή μεσολάβησης, pool, Radar και πηγών περιβάλλοντος.
 >
-> Πηγή αλήθειας: το `open-sse/mcp-server/server.ts` υπολογίζει **110 μοναδικά εργαλεία** με την `countUniqueMcpTools()`: 45 κανονικοί ορισμοί (συμπεριλαμβανομένων των έξι εργαλείων κύκλου ζωής CCR, της τριάδας agent-skills, των `omniroute_radar_catalog` και `omniroute_x_search`), συν μνήμη (3), δεξιότητες (4), δεξιότητες GitHub (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), τοπικό corpus (3) και δύο εργαλεία συμπίεσης αποκλειστικά για RTK.
+> Πηγή αλήθειας: το `open-sse/mcp-server/server.ts` υπολογίζει **110 μοναδικά εργαλεία** με το `countUniqueMcpTools()`: 45 κανονικούς ορισμούς (συμπεριλαμβανομένων των έξι εργαλείων κύκλου ζωής CCR, της τριάδας agent-skills, των `omniroute_radar_catalog` και `omniroute_x_search`), καθώς και εργαλεία μνήμης (3), δεξιοτήτων (4), δεξιοτήτων GitHub (3), pool (6), παιχνιδοποίησης (8), προσθηκών (8), Notion (6), Obsidian (22), τοπικού σώματος κειμένων (3) και δύο εργαλείων συμπίεσης αποκλειστικά για RTK.
 
 ## Εγκατάσταση
 
@@ -25,12 +16,29 @@ lastUpdated: 2026-08-08
 omniroute --mcp
 ```
 
-Ή μέσω του μεταφορέα open-sse:
+Ή μέσω της μεταφοράς open-sse:
 
 ```bash
-# Μεταφορέας HTTP streamable (θύρα 20130)
-omniroute --dev  # Το MCP εκκινεί αυτόματα στο endpoint /mcp
+# Μεταφορά HTTP με δυνατότητα ροής (θύρα 20130)
+omniroute --dev  # Το MCP εκκινείται αυτόματα στο τελικό σημείο /mcp
 ```
+
+Οι μεταφορές HTTP (`sse` / `streamable-http`, οι οποίες εξυπηρετούνται εντός της διεργασίας από τον διακομιστή του dashboard) είναι
+απενεργοποιημένες από προεπιλογή και προηγουμένως μπορούσαν να ενεργοποιηθούν ή να απενεργοποιηθούν μόνο από τη σελίδα `/dashboard/mcp`. Από την έκδοση v3.8.51
+και μετά, το CLI προσφέρει ισοδύναμες δυνατότητες:
+
+```bash
+omniroute mcp status                                  # κατάσταση ενεργοποίησης/σύνδεσης, μεταφορά, πλήθος εργαλείων
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # επαναφέρει τις ενεργές συνεδρίες sse/streamable-http
+```
+
+Τα `mcp enable`/`mcp disable` εκτελούν PATCH στην ίδια ρύθμιση `mcpEnabled` (και προαιρετικά στη ρύθμιση `mcpTransport`)
+που εναλλάσσει το dashboard μέσω του `/api/settings`. Το `mcp restart` καλεί το `POST /api/mcp/restart`: τερματίζει
+τις ενεργές συνεδρίες `sse`/`streamable-http`, ώστε το επόμενο αίτημα να εκτελέσει εκ νέου την αρχικοποίηση χωρίς προβλήματα, επιστρέφει
+`409` εάν το MCP είναι απενεργοποιημένο και `501` για τη μεταφορά `stdio` (οι πελάτες stdio διαχειρίζονται τη δική τους
+υποδιεργασία — δεν υπάρχει χειριστήριο εντός της διεργασίας για επανεκκίνηση).
 
 ## Μεταφορείς
 
@@ -281,12 +289,111 @@ OmniRoute μέσω του ίδιου μοντέλου σύνδεσης που χ
 
 ---
 
-## Αυθεντικοποίηση & Εμβέλειες
+## Έλεγχος ταυτότητας & πεδία εφαρμογής
 
-Τα εργαλεία MCP αυθεντικοποιούνται μέσω εμβελειών κλειδιού API. Η επιβολή εμβελειών είναι κεντρικοποιημένη στο
-`open-sse/mcp-server/scopeEnforcement.ts`. Κάθε εργαλείο απαιτεί συγκεκριμένες εμβέλειες:
+Οι κλήσεις εργαλείων MCP διαβάζουν τις συμβολοσειρές πεδίων εφαρμογής από τον καλούντα. Αυτός ο έλεγχος είναι ένας από τρεις
+ανεξάρτητους χώρους ονομάτων. Η επιτυχία σε έναν ελεγκτή δεν συνεπάγεται επιτυχία στους άλλους.
+Οι κανόνες περιγράφονται στην ενότητα [Τρεις χώροι ονομάτων πεδίων εφαρμογής](#three-scope-namespaces).
+Ο κατάλογος εργαλείων βρίσκεται στην ενότητα [Πεδία εφαρμογής εργαλείων MCP](#mcp-tool-scopes).
 
-| Εμβέλεια              | Εργαλεία                                                                                                                                                                             |
+### Τρεις χώροι ονομάτων πεδίων εφαρμογής
+
+Το `manage` σε ένα κλειδί API, το `read:compression` σε ένα εργαλείο MCP και το `read` σε ένα
+διακριτικό πρόσβασης `oma_live_…` αποτελούν τρεις διαφορετικές παραχωρήσεις. Οι καλούντες που στέλνουν ένα διακριτικό πρόσβασης
+`read` σε μια διαδρομή διαχείρισης που πραγματοποιεί μεταβολές λαμβάνουν HTTP 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Αυτή η κατάταξη είναι η `scopeSatisfies`. Δεν συμβουλεύεται τον πίνακα MCP και ο αντιστοιχιστής MCP
+δεν τη συμβουλεύεται.
+
+| Χώρος ονομάτων                   | Διαπιστευτήριο                                                                    | Ελεγκτής                                      | Μια επιτυχία επιτρέπει                                                                 |
+| :------------------------------- | :-------------------------------------------------------------------------------- | :-------------------------------------------- | :------------------------------------------------------------------------------------- |
+| Διαχείριση μέσω κλειδιού API     | `api_keys.scopes`                                                                 | `hasManageScope`                              | Διαχείριση REST για το συγκεκριμένο κλειδί Bearer                                      |
+| Πρόσθετα δικαιώματα κλειδιού API | ίδιος πίνακας, μία ακριβής συμβολοσειρά                                           | η βοηθητική συνάρτηση που αναφέρεται παρακάτω | Μόνο τη συγκεκριμένη δυνατότητα                                                        |
+| Πεδία εφαρμογής εργαλείων MCP    | ίδιος πίνακας, διαφορετικά το `_meta` του MCP, διαφορετικά `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                                | Το συγκεκριμένο εργαλείο, αφού ενεργοποιηθεί η επιβολή                                 |
+| Διακριτικό πρόσβασης             | `oma_live_…`                                                                      | `scopeSatisfies`                              | Τη διαδρομή διαχείρισης της οποίας η μέθοδος και η διαδρομή απαιτούν αυτή την κατάταξη |
+
+Η δημιουργία κάθε διαπιστευτηρίου καλύπτεται στην ενότητα
+[Έλεγχος ταυτότητας διαχείρισης](../guides/MANAGEMENT-AUTH.md).
+
+#### Πεδία εφαρμογής κλειδιών API
+
+Ένας πίνακας `api_keys.scopes` εξυπηρετεί δύο σκοπούς. Για αυτούς χρησιμοποιούνται διαφορετικές συναρτήσεις.
+
+**REST διαχείρισης.** Τα `manage` και `admin` είναι τα μέλη του
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+Η `hasManageScope` είναι αυτή που εξουσιοδοτεί τις διαδρομές διαχείρισης για το συγκεκριμένο κλειδί. Το `admin`
+παρέχει δυνατότητες διαχείρισης σε αυτές τις διαδρομές. Η λέξη `admin` εδώ δεν αποτελεί
+κατάταξη διακριτικού πρόσβασης και δεν επεκτείνεται σε πεδία εφαρμογής εργαλείων MCP.
+
+**Πρόσθετες συμβολοσειρές.** Καθεμία ελέγχεται μέσω ακριβούς συμμετοχής και παραμένει
+εκτός του `MANAGEMENT_API_KEY_SCOPES`.
+
+| Πεδίο εφαρμογής                | Μια επιτυχία επιτρέπει                                                                                                                                                                                 |
+| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Μόνο την εξαίρεση LOCAL_ONLY για το μη loopback `/api/mcp/` (`hasMcpConnectOrManageScope`). Ένα κλειδί με `manage` ή `admin` εξακολουθεί να περνά αυτή την εξαίρεση.                                   |
+| `self:usage`                   | Το `GET /api/v1/me/status` για αυτό το κλειδί (`src/app/api/v1/me/status/route.ts`). Το `POST /api/keys` προσθέτει αυτό το πεδίο εφαρμογής κατά τη δημιουργία (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Τα όρια λογαριασμού ανάντη υπηρεσίας μέσα στο συγκεκριμένο ωφέλιμο φορτίο κατάστασης (`src/lib/usage/apiKeySelfService.ts`). Η διαδρομή κατάστασης εξακολουθεί να απαιτεί `self:usage`.                |
+| `policy:bypass-provider-quota` | Οι κλήσεις εξαγωγής συμπερασμάτων αυτού του κλειδιού παρακάμπτουν την πολιτική ορίων του παρόχου (`hasProviderQuotaBypassScope` στο `src/sse/handlers/chat.ts`).                                       |
+
+#### Αντιστοίχιση
+
+Ο κατάλογος είναι ο πίνακας στην ενότητα [Πεδία εφαρμογής εργαλείων MCP](#mcp-tool-scopes). Μην
+θεωρείτε το `MCP_SCOPE_LIST` στο `src/shared/constants/mcpScopes.ts` ως αυτόν τον κατάλογο:
+είναι το αρχικό υποσύνολο με τύπους. Μεταγενέστερα εργαλεία δηλώνουν επιπλέον πεδία εφαρμογής δίπλα του
+(`read:notion`, `read:skills`, `read:local-corpus` και τα υπόλοιπα του πίνακα).
+
+Η `evaluateToolScopes` στο `open-sse/mcp-server/scopeEnforcement.ts` επιτρέπει μια κλήση
+όταν κάθε απαιτούμενο πεδίο εφαρμογής αντιστοιχεί σε κάποιο παραχωρημένο πεδίο εφαρμογής:
+
+- Το `*` αντιστοιχεί σε κάθε απαιτούμενο πεδίο εφαρμογής.
+- Ένα παραχωρημένο πεδίο εφαρμογής που τελειώνει σε `*` αντιστοιχεί σε ένα απαιτούμενο πεδίο εφαρμογής που ξεκινά με
+  το πρόθεμα πριν από τον αστερίσκο. Το `read:*` αντιστοιχεί στο `read:compression`.
+- Κάθε άλλο παραχωρημένο πεδίο εφαρμογής αντιστοιχεί μόνο στην πανομοιότυπη απαιτούμενη συμβολοσειρά.
+
+Ένα κλειδί του οποίου τα πεδία εφαρμογής είναι `["manage"]` αποτυγχάνει στη `scopeMatches` για το `read:compression`.
+Η ίδια κλήση αποτυγχάνει για τα `admin`, `mcp:connect`, `read` και `write` όταν αυτά
+είναι οι μόνες παραχωρημένες συμβολοσειρές. Δεν υπάρχει ιεραρχία μεταξύ των πεδίων εφαρμογής εργαλείων MCP
+πέρα από το τελικό `*`.
+
+Η επιβολή είναι απενεργοποιημένη εκτός εάν έχει οριστεί `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (προεπιλογή
+`false`). Όσο είναι απενεργοποιημένη, η `evaluateToolScopes` επιτρέπει την κλήση και παρακάμπτει τον
+κατάλογο. Όσο είναι ενεργοποιημένη, το HTTP χρησιμοποιεί το `api_keys.scopes` του κλειδιού Bearer ως
+`authInfo` (δείτε [Σύνδεση πεδίων εφαρμογής HTTP ανά κλειδί](#per-key-http-scope-binding-7895)).
+Όταν δεν επιλύονται πεδία εφαρμογής κλειδιού, το παραχωρημένο σύνολο μεταπίπτει στο `_meta` του MCP και έπειτα
+στο `OMNIROUTE_MCP_SCOPES`.
+
+#### Πεδία εφαρμογής διακριτικών πρόσβασης
+
+Τα διακριτικά `oma_live_…` (`src/lib/accessTokens/scopes.ts`) φέρουν `read`, `write`
+ή `admin`. Η `scopeSatisfies` αποτελεί κατάταξη: το `admin` καλύπτει τα `write` και `read`, ενώ το
+`write` καλύπτει το `read`. Τα άγνωστα πεδία εφαρμογής δεν καλύπτουν τίποτα.
+
+Η `evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) συγκρίνει αυτή την
+κατάταξη με την `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- Τα `GET`, `HEAD` και `OPTIONS` απαιτούν `read`.
+- Κάθε άλλη μέθοδος απαιτεί `write`.
+- Οι διαδρομές στο `ADMIN_SCOPE_PREFIXES` απαιτούν `admin` για κάθε μέθοδο. Το `/api/mcp`
+  βρίσκεται σε αυτή τη λίστα, επομένως ένα διακριτικό πρόσβασης `write` εξακολουθεί να μην μπορεί να καλέσει την επιφάνεια HTTP
+  του MCP.
+- Οι διαδρομές στο `ADMIN_MUTATION_PREFIXES` απαιτούν `admin` μόνο για μεταβολές.
+
+Το `PATCH /api/keys/{id}` είναι μετάλλαξη και δεν βρίσκεται σε αυτές τις λίστες διαχειριστή, επομένως ένα token με scope
+`read` λαμβάνει 403:
+`Access token scope 'read' is insufficient; 'write' required.`
+Ένα access token με scope `write` ή `admin` ικανοποιεί τις απαιτήσεις αυτής της διαδρομής. Ένα JWT του dashboard, το token machine-id του loopback CLI και ένα API key με scope `manage` ή `admin` ακολουθούν
+άλλους κλάδους και δεν περιορίζονται από αυτήν την κατάταξη.
+
+Ένα access token που περνά το `scopeSatisfies` για το `/api/mcp` έχει περάσει
+μόνο την πύλη διαχείρισης. Οι κλήσεις εργαλείων εξακολουθούν να εκτελούν το `scopeMatches` με βάση τα scopes του API key.
+Η κατάταξη του access token δεν αποτελεί είσοδο για το `scopeMatches`.
+
+### Scopes εργαλείων MCP
+
+Η επιβολή των scopes είναι κεντρικοποιημένη στο `open-sse/mcp-server/scopeEnforcement.ts`.
+Κάθε εργαλείο απαιτεί συγκεκριμένα scopes:
+
+| Εύρος                 | Εργαλεία                                                                                                                                                                             |
 | :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                    |
 | `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                            |
@@ -322,35 +429,15 @@ OmniRoute μέσω του ίδιου μοντέλου σύνδεσης που χ
 | `write:obsidian`      | 9 εργαλεία εγγραφής — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                 |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                    |
 
-Υποστηρίζονται εμβέλειες με χαρακτήρα μπαλαντέρ: το `read:*` παρέχει πρόσβαση σε όλες τις εμβέλειες ανάγνωσης, ενώ το `*` παρέχει πλήρη πρόσβαση.
+Υποστηρίζονται scope με χαρακτήρες wildcard: το `read:*` παραχωρεί όλα τα scope ανάγνωσης, ενώ το `*` παραχωρεί πλήρη πρόσβαση.
 
-### `mcp:connect` — περιορισμένη δυνατότητα δρομολόγησης (#7895)
+### `mcp:connect` — περιορισμένη δυνατότητα διαδρομής (#7895)
 
-Η πρόσβαση στη μεταφορά HTTP/SSE MCP (`/api/mcp/*`) από μη τοπικές διευθύνσεις απαιτεί την
-εξαίρεση LOCAL_ONLY για το `/api/mcp/` (βλ. `docs/security/ROUTE_GUARD_TIERS.md`). Ιστορικά,
-αυτή η εξαίρεση δεχόταν μόνο κλειδί API πλήρους εμβέλειας `manage`/`admin` — πολύ ευρύ για έναν
-καλούντα που χρειάζεται μόνο επικοινωνία MCP. Το `src/shared/constants/managementScopes.ts` εξάγει πλέον
-το `MCP_CONNECT_SCOPE = "mcp:connect"`: μια προσθετική, στενή εμβέλεια (ίδιο προηγούμενο με
-το `SELF_USAGE_SCOPE`) που εξουσιοδοτεί ΜΟΝΟ την παράκαμψη `/api/mcp/` στο
-`src/server/authz/policies/management.ts` — δεν παρέχει άλλη πρόσβαση σε διαδρομές διαχείρισης
-και διατηρείται σκόπιμα ΕΚΤΟΣ `MANAGEMENT_API_KEY_SCOPES`. Ένα κλειδί με εμβέλεια `manage`/`admin`
-εξακολουθεί να περνά την εξαίρεση αναλλοίωτο· το `mcp:connect` αποτελεί μια εναλλακτική χαμηλότερων προνομίων για
-απομακρυσμένους καλούντες αποκλειστικά MCP, η οποία ελέγχεται μέσω του `hasMcpConnectOrManageScope()`.
+Η πρόσβαση στη μεταφορά HTTP/SSE MCP (`/api/mcp/*`) από διεύθυνση εκτός loopback απαιτεί την εξαίρεση LOCAL_ONLY για το `/api/mcp/` (βλ. `docs/security/ROUTE_GUARD_TIERS.md`). Ιστορικά, αυτή η εξαίρεση δεχόταν μόνο ένα API key με πλήρες scope `manage`/`admin` — υπερβολικά ευρύ για έναν καλούντα που χρειάζεται μόνο να επικοινωνεί μέσω MCP. Το `src/shared/constants/managementScopes.ts` εξάγει πλέον το `MCP_CONNECT_SCOPE = "mcp:connect"`: ένα πρόσθετο, περιορισμένο scope (ακολουθώντας το ίδιο προηγούμενο με το `SELF_USAGE_SCOPE`) που εξουσιοδοτεί ΜΟΝΟ την παράκαμψη του `/api/mcp/` στο `src/server/authz/policies/management.ts` — δεν παραχωρεί πρόσβαση σε καμία άλλη διαδρομή διαχείρισης και διατηρείται σκόπιμα ΕΚΤΟΣ του `MANAGEMENT_API_KEY_SCOPES`. Ένα κλειδί που διαθέτει `manage`/`admin` εξακολουθεί να περνά από την εξαίρεση χωρίς αλλαγές· το `mcp:connect` αποτελεί μια εναλλακτική χαμηλότερων προνομίων για απομακρυσμένους καλούντες που χρησιμοποιούν μόνο MCP και ελέγχεται μέσω της `hasMcpConnectOrManageScope()`.
 
-### Δέσμευση εμβέλειας HTTP ανά κλειδί (#7895)
+### Σύνδεση scope HTTP ανά κλειδί (#7895)
 
-Μέσω HTTP/SSE, το `open-sse/mcp-server/httpTransport.ts` επιλύει πλέον τις πραγματικές
-`api_keys.scopes` του καλούντος μέσω του `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-και τις διαβιβάζει στο `transport.handleRequest(req, { authInfo })` του MCP SDK, έτσι ώστε
-το `extra.authInfo.scopes` που φτάνει σε κάθε κλήση εργαλείου να αντικατοπτρίζει τις ίδιες τις εμβέλειες του κλειδιού Bearer.
-Η συνάρτηση `resolveCallerScopeContext()` του `scopeEnforcement.ts` ήδη προτεραιοποιούσε το `authInfo` έναντι
-του εναλλακτικού `_meta` και της μεταβλητής περιβάλλοντος `OMNIROUTE_MCP_SCOPES` — αυτό απλώς τροφοδοτεί τώρα
-αυτή την πρώτη, υψηλότερης προτεραιότητας πηγή, η οποία προηγουμένως δεν τροφοδοτούνταν μέσω HTTP. Όταν δεν επιλύεται
-κανένα κλειδί API (απουσία επικεφαλίδας, μη έγκυρο κλειδί), το `authInfo` παραμένει `undefined` και η επίλυση
-υποβαθμίζεται στην υπάρχουσα αλυσίδα `meta`/env αναλλοίωτη. Αυτό ΔΕΝ αντιστρέφει την προεπιλογή
-του `OMNIROUTE_MCP_ENFORCE_SCOPES` — η επιβολή εξακολουθεί να απαιτεί ρητή ενεργοποίηση· η αλλαγή αυτή
-απλώς δίνει προτεραιότητα στη διαδρομή ανά κλειδί μόλις ενεργοποιηθεί. Το stdio δεν διαθέτει ταυτότητα ανά καλούντα (βλ.
-`mcpCallerIdentity.ts`) και δεν επηρεάζεται — παραμένει στην αλυσίδα εναλλακτικών `_meta`/env.
+Μέσω HTTP/SSE, το `open-sse/mcp-server/httpTransport.ts` αναλύει πλέον τα πραγματικά `api_keys.scopes` του καλούντος μέσω της `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) και τα μεταβιβάζει στη `transport.handleRequest(req, { authInfo })` του MCP SDK, ώστε τα `extra.authInfo.scopes` που φτάνουν σε κάθε κλήση εργαλείου να αντικατοπτρίζουν τα scope του ίδιου του Bearer key. Η `resolveCallerScopeContext()` του `scopeEnforcement.ts` έδινε ήδη προτεραιότητα στο `authInfo` έναντι του `_meta` και της εφεδρικής επιλογής μέσω της μεταβλητής περιβάλλοντος `OMNIROUTE_MCP_SCOPES` — αυτή η αλλαγή απλώς τροφοδοτεί την πρώτη πηγή, η οποία έχει την υψηλότερη προτεραιότητα και προηγουμένως δεν τροφοδοτούνταν μέσω HTTP. Όταν δεν αναλύεται κανένα API key (απουσία header, μη έγκυρο κλειδί), το `authInfo` παραμένει `undefined` και η ανάλυση συνεχίζει στην υπάρχουσα αλυσίδα `meta`/μεταβλητής περιβάλλοντος χωρίς αλλαγές. Αυτό ΔΕΝ αλλάζει την προεπιλεγμένη τιμή του `OMNIROUTE_MCP_ENFORCE_SCOPES` — η επιβολή πρέπει ακόμη να ενεργοποιηθεί ρητά· αυτή η αλλαγή απλώς διασφαλίζει ότι η διαδρομή ανά κλειδί έχει προτεραιότητα μόλις ενεργοποιηθεί. Το stdio δεν διαθέτει ταυτότητα ανά καλούντα (βλ. `mcpCallerIdentity.ts`) και δεν επηρεάζεται — παραμένει στην εφεδρική αλυσίδα `_meta`/μεταβλητής περιβάλλοντος.
 
 ---
 

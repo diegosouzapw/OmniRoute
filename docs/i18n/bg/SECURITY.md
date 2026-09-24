@@ -1,159 +1,184 @@
 # Security Policy (Български)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
-## Reporting Vulnerabilities
+## Докладване на уязвимости
 
-If you discover a security vulnerability in OmniRoute, please report it responsibly:
+Ако откриете уязвимост в сигурността на OmniRoute, моля, докладвайте я отговорно:
 
-1. **DO NOT** open a public GitHub issue
-2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Include: description, reproduction steps, and potential impact
+1. **НЕ** създавайте публичен GitHub проблем
+2. Използвайте [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
+3. Включете: описание, стъпки за възпроизвеждане и потенциално въздействие
 
-## Response Timeline
+## Срокове за реакция
 
-| Stage               | Target                      |
-| ------------------- | --------------------------- |
-| Acknowledgment      | 48 hours                    |
-| Triage & Assessment | 5 business days             |
-| Patch Release       | 14 business days (critical) |
+| Етап                 | Целеви срок                  |
+| -------------------- | ---------------------------- |
+| Потвърждение         | 48 часа                      |
+| Триаж и оценка       | 5 работни дни                |
+| Издаване на корекция | 14 работни дни (за критични) |
 
-## Supported Versions
+## Поддържани версии
 
-| Version | Support Status |
-| ------- | -------------- |
-| 3.6.x   | ✅ Active      |
-| 3.5.x   | ✅ Security    |
-| < 3.5.0 | ❌ Unsupported |
+| Версия  | Състояние на поддръжката |
+| ------- | ------------------------ |
+| 3.8.x   | ✅ Активна               |
+| 3.7.x   | ✅ Сигурност             |
+| < 3.7.0 | ❌ Не се поддържа        |
 
 ---
 
-## Security Architecture
+## Архитектура на сигурността
 
-OmniRoute implements a multi-layered security model:
+OmniRoute реализира многослоен модел за сигурност:
 
 ```
-Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+Заявка → CORS → Authz конвейер (класифициране → политики → прилагане)
+        → Защитни механизми (маскиране на PII, инжектиране в подкани, мост за изображения)
+        → Ограничител на честотата → Прекъсвач на веригата → Период на изчакване → Блокиране на модела → Доставчик
 ```
 
-### 🔐 Authentication & Authorization
+### 🔐 Удостоверяване и упълномощаване
 
-| Feature              | Implementation                                             |
-| -------------------- | ---------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
-| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 32 granular scopes for MCP tool access control             |
+| Функционалност                 | Реализация                                                                                                                                                                                              |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Вход в таблото**             | Удостоверяване с парола и JWT токени (HttpOnly бисквитки)                                                                                                                                               |
+| **Удостоверяване с API ключ**  | HMAC-подписани ключове с CRC проверка                                                                                                                                                                   |
+| **OAuth 2.0 + PKCE**           | Специфичното за доставчика OAuth удостоверяване чрез браузър/устройство използва PKCE, когато се поддържа; идентификационните данни на Devin, предназначени само за импортиране, се обработват отделно. |
+| **Обновяване на токени**       | Автоматично обновяване на OAuth токените преди изтичането им                                                                                                                                            |
+| **Сигурни бисквитки**          | `AUTH_COOKIE_SECURE=true` за HTTPS среди                                                                                                                                                                |
+| **Authz конвейер**             | Класифициране на маршрутите (PUBLIC / CLIENT_API / MANAGEMENT) — вижте `docs/architecture/AUTHZ_GUIDE.md`                                                                                               |
+| **Нива за защита на маршрути** | 3-степенен модел за маршрути за управление (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — вижте `docs/security/ROUTE_GUARD_TIERS.md`                                                                    |
+| **MCP с обхват за управление** | Отдалеченият достъп до `/api/mcp/*` се ограничава чрез API ключове с обхват `manage`; `/api/cli-tools/runtime/*` остава стриктно ограничен до loopback. Вижте ROUTE_GUARD_TIERS                         |
+| **MCP обхвати**                | 32 подробни обхвата (read:health, write:combos, execute:completions и др.) — вижте `docs/frameworks/MCP-SERVER.md`                                                                                      |
 
-### 🛡️ Encryption at Rest
+### 🛡️ Шифроване на съхраняваните данни
 
-All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
+Всички чувствителни данни, съхранявани в SQLite, са шифровани с **AES-256-GCM**, като ключът се извежда чрез scrypt:
 
-- API keys, access tokens, refresh tokens, and ID tokens
-- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
+- API ключове, токени за достъп, токени за обновяване и ID токени
+- Формат с версии: `enc:v1:<iv>:<ciphertext>:<authTag>`
+- Режим на пропускане (обикновен текст), когато `STORAGE_ENCRYPTION_KEY` не е зададен
 
 ```bash
-# Generate encryption key:
+# Генериране на ключ за шифроване:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🧠 Prompt Injection Guard
+### 🛡️ Рамка за защитни механизми
 
-Middleware that detects and blocks prompt injection attacks in LLM requests:
+OmniRoute се предоставя с **регистър на защитни механизми** с динамично презареждане (`src/lib/guardrails/`), съдържащ 3 вградени защитни механизма, подредени по приоритет:
 
-| Pattern Type        | Severity | Example                                        |
-| ------------------- | -------- | ---------------------------------------------- |
-| System Override     | High     | "ignore all previous instructions"             |
-| Role Hijack         | High     | "you are now DAN, you can do anything"         |
-| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
-| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
-| Instruction Leak    | Medium   | "show me your system prompt"                   |
+| Защитен механизъм  | Приоритет | Предназначение                                                                                                           |
+| ------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `vision-bridge`    | 5         | Свързва модели без поддръжка на изображения с описания, отчитащи изображенията; SSRF защита за URL адреси на изображения |
+| `pii-masker`       | 10        | Редактиране на PII преди и след извикване (имейли, телефонни номера, CPF, CNPJ, кредитни карти, SSN)                     |
+| `prompt-injection` | 20        | Открива модели за отмяна на инструкции, присвояване на роли, jailbreak и изтичане на информация                          |
 
-Configure via dashboard (Settings → Security) or `.env`:
+Персонализираните защитни механизми се регистрират чрез `registerGuardrail(new MyGuardrail())`. Моделът е fail-open (изключенията никога не блокират трафика). Отказът за отделна заявка се извършва чрез заглавката `x-omniroute-disabled-guardrails`. → Вижте [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
+
+### 🧠 Защита срещу инжектиране в подкани
+
+Евристичен междинен софтуер, работещ на принципа на максималното възможно усилие, който открива модели за инжектиране в подкани при LLM заявки.
+**Не е цялостна защитна стена срещу инжектиране в подкани** — възможни са фалшиви положителни резултати (безобидни
+подкани за персонажи/RPG) и фалшиви отрицателни резултати (leetspeak, интервали, модели на езици, различни от английски).
+
+| Тип модел                 | Сериозност | Пример                                                        |
+| ------------------------- | ---------- | ------------------------------------------------------------- |
+| Отмяна на системата       | Висока     | "игнорирай всички предишни инструкции"                        |
+| Присвояване на роля       | Средна     | "вече си DAN и можеш да правиш всичко"                        |
+| Инжектиране на разделител | Висока     | Кодирани разделители за нарушаване на границите на контекста  |
+| DAN/Jailbreak             | Средна     | Известни модели на jailbreak подкани                          |
+| Изтичане на инструкции    | Висока     | "покажи ми системната си подкана"                             |
+| Заобикаляне чрез кодиране | Средна     | Декодиране чрез base64/rot13/hex + ключови думи за инструкции |
+
+В режим `block` се блокират само откриванията с **висока** сериозност. Групите със средна сериозност
+се записват в журнал, но никога не се блокират от `sanitizeRequest`.
+
+Конфигурирайте чрез таблото (Настройки → Сигурност) или `.env`:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
+INPUT_SANITIZER_MODE=block    # warn | block (политика за инжектиране; наследеният режим "redact" не премахва текста на инжекцията)
+INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (по подразбиране) | medium | low — сериозностите на или над това ниво се блокират в режим block
 ```
 
-### 🔒 PII Redaction
+### 🔒 Редактиране на PII
 
-Automatic detection and optional redaction of personally identifiable information:
+Автоматично откриване и незадължително редактиране на лични данни:
 
-| PII Type      | Pattern               | Replacement        |
-| ------------- | --------------------- | ------------------ |
-| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
-| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
-| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
-| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
-| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
-| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
+| Тип лични данни | Шаблон                | Заместваща стойност |
+| --------------- | --------------------- | ------------------- |
+| Имейл           | `user@domain.com`     | `[EMAIL_REDACTED]`  |
+| CPF (Бразилия)  | `123.456.789-00`      | `[CPF_REDACTED]`    |
+| CNPJ (Бразилия) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`   |
+| Кредитна карта  | `4111-1111-1111-1111` | `[CC_REDACTED]`     |
+| Телефон         | `+55 11 99999-9999`   | `[PHONE_REDACTED]`  |
+| SSN (САЩ)       | `123-45-6789`         | `[SSN_REDACTED]`    |
 
 ```env
-PII_REDACTION_ENABLED=true
+PII_REDACTION_ENABLED=true   # заявява пренаписване на лични данни; независимо от INPUT_SANITIZER_MODE
+PII_RESPONSE_SANITIZATION=true  # незадължително: редактира личните данни в отговорите от доставчика, връщани на клиентите
 ```
 
-### 🌐 Network Security
+### 🌐 Мрежова сигурност
 
-| Feature                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
-| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
-| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
-| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
-| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
+| Функция                        | Описание                                                                                         |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| **CORS**                       | Изричен списък с разрешени източници (`CORS_ALLOWED_ORIGINS`; наследена настройка `CORS_ORIGIN`) |
+| **Филтриране по IP**           | Списъци с разрешени/блокирани IP диапазони в таблото за управление                               |
+| **Ограничаване на заявки**     | Ограничения на честотата на заявките за всеки доставчик с автоматично изчакване                  |
+| **Защита от лавина от заявки** | Mutex + заключване за всяка връзка предотвратяват каскадни грешки 502                            |
+| **TLS отпечатък**              | Имитиране на TLS отпечатък, подобен на браузър, за намаляване на разпознаването като бот         |
+| **CLI отпечатък**              | Подреждане на заглавките/тялото за всеки доставчик, съответстващо на сигнатурите на нативния CLI |
 
-### 🔌 Resilience & Availability
+### 🔌 Устойчивост и наличност
 
-| Feature                 | Description                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
-| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
-| **Exponential Backoff** | Automatic retry with increasing delays                             |
-| **Health Dashboard**    | Real-time provider health monitoring                               |
+| Функция                        | Описание                                                                                |
+| ------------------------------ | --------------------------------------------------------------------------------------- |
+| **Автоматичен прекъсвач**      | 3 състояния (Затворен → Отворен → Полуотворен) за всеки доставчик, съхранявани в SQLite |
+| **Идемпотентност на заявките** | 5-секунден прозорец за дедупликация на дублиращи се заявки                              |
+| **Експоненциално изчакване**   | Автоматичен повторен опит с нарастващи интервали                                        |
+| **Табло за изправност**        | Наблюдение в реално време на състоянието на доставчиците                                |
 
-### 📋 Compliance
+### 📋 Съответствие
 
-| Feature            | Description                                                 |
-| ------------------ | ----------------------------------------------------------- |
-| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
-| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
-| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
-| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
-| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
+| Функция                     | Описание                                                                            |
+| --------------------------- | ----------------------------------------------------------------------------------- |
+| **Съхранение на журналите** | Автоматично почистване след `CALL_LOG_RETENTION_DAYS`                               |
+| **Отказ от журнализиране**  | Флагът `noLog` за отделен API ключ деактивира регистрирането на заявки              |
+| **Одитен журнал**           | Административните действия се проследяват в таблицата `audit_log`                   |
+| **MCP одит**                | Поддържано от SQLite одитно журнализиране за всички извиквания на MCP инструменти   |
+| **Валидиране със Zod**      | Всички входни данни за API се валидират със схеми на Zod v4 при зареждане на модула |
 
 ---
 
-## Required Environment Variables
+## Задължителни променливи на средата
 
-All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
+Всички тайни трябва да бъдат зададени преди стартирането на сървъра. Сървърът ще **прекрати незабавно работата си**, ако те липсват или са слаби.
 
 ```bash
-# REQUIRED — server will not start without these:
-JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
+# ЗАДЪЛЖИТЕЛНО — сървърът няма да се стартира без тях:
+JWT_SECRET=$(openssl rand -base64 48)     # минимум 32 знака
+API_KEY_SECRET=$(openssl rand -hex 32)    # минимум 16 знака
 
-# RECOMMENDED — enables encryption at rest:
+# ПРЕПОРЪЧИТЕЛНО — активира криптиране на съхранените данни:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
+Сървърът активно отхвърля известни слаби стойности като `changeme`, `secret` или `password`.
 
 ---
 
-## Docker Security
+## Сигурност на Docker
 
-- Use non-root user in production
-- Mount secrets as read-only volumes
-- Never copy `.env` files into Docker images
-- Use `.dockerignore` to exclude sensitive files
-- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
+- Използвайте потребител без root права в продукционна среда
+- Монтирайте тайните като томове само за четене
+- Никога не копирайте `.env` файлове в Docker образи
+- Използвайте `.dockerignore`, за да изключите чувствителните файлове
+- Задайте `AUTH_COOKIE_SECURE=true`, когато приложението работи зад HTTPS
 
 ```bash
 docker run -d \
@@ -170,10 +195,56 @@ docker run -d \
 
 ---
 
-## Dependencies
+## Зависимости
 
-- Run `npm audit` regularly
-- Keep dependencies updated
-- The project uses `husky` + `lint-staged` for pre-commit checks
-- CI pipeline runs ESLint security rules on every push
-- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- Изпълнявайте редовно `npm audit` (`npm run audit:deps` обхваща основната част + electron)
+- Поддържайте зависимостите актуални
+- Проектът използва `husky` + `lint-staged` за проверки преди commit (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI конвейерът изпълнява правилата за сигурност на ESLint при всяко изпращане на промени (`no-eval`, `no-implied-eval`, `no-new-func` = грешка)
+- Константите на доставчиците се валидират при зареждането на модула чрез Zod (`src/shared/validation/schemas.ts`)
+- Използват се библиотеки със сигурни настройки по подразбиране: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (без риск от SQLi благодарение на параметризираните заявки), `bcryptjs` (хеширане на пароли)
+
+## Строги правила за сигурност
+
+Тези правила се налагат чрез инструментите и проверяващите:
+
+1. **Никога не включвайте тайни в commit** — `.env` е включен в gitignore; `.env.example` е шаблонът (без литерални стойности, само коментари — вижте PUBLIC_CREDS.md по-долу)
+2. **Никога не използвайте `eval()`, `new Function()` или косвен eval** — ESLint налага това правило
+3. **Никога не заобикаляйте hooks на Husky** (`--no-verify`, `--no-gpg-sign`) без изрично одобрение от оператора
+4. **Никога не пишете необработен SQL в маршрутите** — винаги използвайте `src/lib/db/` (параметризиран)
+5. **Винаги валидирайте входните данни със Zod** — `src/shared/validation/schemas.ts`
+6. **Винаги пречиствайте заглавките към upstream услугите** — списъкът със забранени заглавки е в `src/shared/constants/upstreamHeaders.ts`
+7. **Криптирайте идентификационните данни при съхранение** — AES-256-GCM чрез `src/lib/db/encryption.ts`
+8. **Публични OAuth идентификатори за upstream услуги чрез `resolvePublicCred()`** — никога не вграждайте литерални стойности като `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` в изходния код. Вижте [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Отговорите за грешки трябва да преминават през `buildErrorBody()` / `sanitizeErrorMessage()`** — никога не включвайте необработени `err.stack` / `err.message` в телата на HTTP / SSE / executor / MCP отговорите. Вижте [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **Стойностите по време на изпълнение за `exec()` / `spawn()` трябва да се подават чрез опцията `env`** — никога не вмъквайте чрез интерполация външни пътища или ненадеждни стойности в скриптове, предавани на shell. Справка: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Предпочитайте библиотеки със сигурни настройки по подразбиране** — вижте [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Използвайте първо тях, преди да създавате собствено решение.
+
+## Констатации от скенери за веригата за доставки (Socket.dev / Snyk / подобни)
+
+> **Бележка за обхвата:** `socket.yml` в корена на хранилището единствено определя `projectIgnorePaths` за извършваното от страна на регистъра сканиране след публикуване на публикувания npm артефакт от Socket.dev — това не е задължителна CI/PR проверка за сливане. Нито един работен процес в `.github/workflows`, скрипт в `package.json` или цел в `Makefile` не извиква Socket.dev.
+
+Публикуваният npm артефакт `omniroute` включва компилацията на Next.js с `output: "standalone"`, което означава, че всеки обработчик на маршрут — включително документираните привилегировани функционалности (MITM, импортиране от Zed, Cloud Sync, вграден надзорник на услуги) — попада в минифицираните фрагменти `.next/server/*.js`. Евристичните скенери за веригата за доставки често съпоставят тези фрагменти с шаблони от сигнатури за зловреден софтуер.
+
+Използваната от нас конфигурация на скенера се намира в [`socket.yml`](socket.yml) в корена на хранилището (формат v2 на GitHub App на Socket.dev — вижте <https://docs.socket.dev/docs/socket-yml>). Тя изрично изключва директории, които не се разпространяват (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/` и т.н.), така че скенерът да докладва само за пътища в кода, които действително достигат до потребителите на публикувания пакет — самото сканиране се задейства от GitHub App на Socket, който прочита този файл, а не от работен процес в това хранилище.
+
+За всяка категория констатации поддържаме удостоверение от отговорник за всяка отделна констатация:
+
+- **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
+  карта за всяка констатация: файл с изходен код ↔ маркиран фрагмент ↔ поведение ↔ приложена мярка за ограничаване във v3.8.6.
+- Блоковете `SECURITY-AUDITOR-NOTE:` в изходния код при всяка маркирана функция препращат към същия документ.
+
+За потребители, чиито процеси не позволяват смекчаване на предупреждението: компилирайте с `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Това заменя четирите чувствителни модула със заместители, които по време на изпълнение връщат HTTP 503 `feature-disabled`, така че привилегированите пътища в кода физически да отсъстват от пакета. Вижте [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) за процедурата по публикуване.
+
+## Препратки
+
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — конвейер за оторизация
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — рамка от предпазни механизми
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — журнал за одит и съхранение
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **задължителен** шаблон за публични идентификационни данни за услуги нагоре по веригата
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **задължителен** шаблон за отговори при грешки
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — декларация от отговорника относно констатациите на скенери за веригата за доставки
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — предпазител на веригата + период на изчакване + блокиране
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS пръстови отпечатъци (правно/етично уведомление)
+- [`CLAUDE.md`](CLAUDE.md) — строги правила за AI агенти
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — подбор от библиотеки със сигурни настройки по подразбиране

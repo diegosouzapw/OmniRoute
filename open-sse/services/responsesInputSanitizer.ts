@@ -3,6 +3,12 @@ import { isValidResponsesItemId } from "./responsesItemId.ts";
 type JsonRecord = Record<string, unknown>;
 type SanitizeResponsesInputOptions = {
   dropInternalAssistantMessages?: boolean;
+  // Codex's multi_agent_v2 uses a proprietary `agent_message` input-item type to pass
+  // tasks/replies between a parent thread and a sub-agent. The real Codex/ChatGPT backend
+  // understands this type; every other Responses-API upstream (e.g. Muse Spark 1.3 /
+  // opencode-go) does not and rejects the request with `input[N] did not match any
+  // supported type` (#13698). Set true only for the native Codex/ChatGPT passthrough path.
+  preserveAgentMessages?: boolean;
 };
 const INTERNAL_ASSISTANT_PHASES = new Set(["commentary"]);
 const SERVER_ITEM_ID_PREFIX_BY_TYPE: Record<string, string> = {
@@ -141,11 +147,67 @@ function sanitizeOutputContent(record: JsonRecord): JsonRecord {
   return { ...record, output };
 }
 
-function sanitizeInputItem(item: unknown): unknown {
+function isAgentMessageInputItem(record: JsonRecord): boolean {
+  return record.type === "agent_message" || record.role === "agent_message";
+}
+
+function agentMessageContextText(record: JsonRecord): string {
+  return `[Agent message context] ${JSON.stringify({ author: record.author, recipient: record.recipient })}`;
+}
+
+function agentMessageContentPart(part: unknown): unknown {
+  const record = toRecord(part);
+  if (!record) return { type: "input_text", text: typeof part === "string" ? part : "" };
+
+  if (record.type === "encrypted_content") {
+    // No plaintext to forward for an encrypted part -- surface a placeholder instead of
+    // leaking an opaque payload or silently dropping the item.
+    return { type: "input_text", text: "[Agent message encrypted content omitted]" };
+  }
+
+  if (record.type === "output_text" || record.type === "text") {
+    return { type: "input_text", text: typeof record.text === "string" ? record.text : "" };
+  }
+
+  if (record.type === "image_url" || record.type === "input_image") {
+    return sanitizeContentPart(record, "user");
+  }
+
+  return record;
+}
+
+function convertAgentMessageItem(record: JsonRecord): JsonRecord {
+  const contextPart = { type: "input_text", text: agentMessageContextText(record) };
+  const content = record.content;
+
+  let bodyParts: unknown[];
+  if (typeof content === "string") {
+    bodyParts = [{ type: "input_text", text: content }];
+  } else if (Array.isArray(content)) {
+    bodyParts = content.map((part) =>
+      typeof part === "string" ? { type: "input_text", text: part } : agentMessageContentPart(part)
+    );
+  } else {
+    bodyParts = [{ type: "input_text", text: JSON.stringify(content ?? "") }];
+  }
+
+  return {
+    type: "message",
+    role: "user",
+    content: [contextPart, ...bodyParts],
+  };
+}
+
+function sanitizeInputItem(item: unknown, options: SanitizeResponsesInputOptions): unknown {
   const record = toRecord(item);
   if (!record) return item;
 
-  let next = sanitizeInputItemId(record);
+  let next = record;
+  if (!options.preserveAgentMessages && isAgentMessageInputItem(next)) {
+    next = convertAgentMessageItem(next);
+  }
+
+  next = sanitizeInputItemId(next);
   if (isResponsesMessageItem(next)) {
     next = sanitizeMessageContent(next);
   }
@@ -175,8 +237,22 @@ export function sanitizeResponsesInputItems(
     }
 
     const cloned = clone ? structuredClone(item) : item;
-    sanitized.push(sanitizeInputItem(cloned));
+    sanitized.push(sanitizeInputItem(cloned, options));
   }
 
   return sanitized;
+}
+
+// Codex-specific call site (#13698): the native Codex/ChatGPT passthrough path is the only
+// caller that needs both flags derived from one boolean, kept here (not in the frozen
+// open-sse/executors/codex.ts) so a per-property change never grows that file's line count.
+export function sanitizeCodexResponsesInput(
+  body: Record<string, unknown>,
+  nativeCodexPassthrough: boolean
+): void {
+  if (!Array.isArray(body.input)) return;
+  body.input = sanitizeResponsesInputItems(body.input, false, {
+    dropInternalAssistantMessages: !nativeCodexPassthrough,
+    preserveAgentMessages: nativeCodexPassthrough,
+  });
 }

@@ -1,78 +1,14 @@
-// Runtime DOM shims for the wasm-bindgen glue code (compiled from Rust wasm-pack,
-// targeting the browser). These are NOT test mocks — the WASM module calls into
-// gl.bindTexImage2D-style canvas APIs via the wasm-bindgen generated JS, which
-// expects window, document, HTMLCanvasElement, and CanvasRenderingContext2D at
-// module load time. When running in Node.js (the OmniRoute server), these globals
-// don't exist, so we provide minimal stubs that satisfy the wasm-bindgen
-// constructor shape checks. The stubs are never called for actual rendering --
-// the WASM signer only uses the canvas to compute a hashed fingerprint value.
-//
-// Deliberately NOT a module-load side effect: installing these globals just by
-// importing this file would leak `global.window`/`global.document` stubs into
-// every other test file that transitively imports it (e.g. through the provider
-// registry), even when that test never touches TinyCMS. `initTinyCmsWasm()`
-// below calls `setupDomMocks()` once, right before instantiating the WASM
-// module, on the production path. Tests call it explicitly in a before/
-// beforeEach hook and restore the previous globals via the returned callback in
-// after/afterEach.
-export type DomMockRestore = () => void;
+// DOM shims live in tinycmsDomMocks.ts — never alias `window` to the Node
+// global. See that file for why `g.window = g` without `location` poisons
+// Next.js SSR (`getLocationOrigin`) for the rest of the process lifetime.
+import {
+  setupDomMocks,
+  withTinyCmsDomMocks,
+  withTinyCmsDomMocksAsync,
+  type DomMockRestore,
+} from "./tinycmsDomMocks.ts";
 
-export function setupDomMocks(): DomMockRestore {
-  if (typeof global === 'undefined') return () => {};
-  // Single typed handle to `global` so the rest of this function reads/writes
-  // window/document/HTMLCanvasElement/CanvasRenderingContext2D — none of which
-  // exist on Node's `global` type — through one cast instead of one per site.
-  const g = global as Record<string, any>;
-  const hadWindow = 'window' in g;
-  const hadWindowCtor = 'Window' in g;
-  const hadCanvasElement = 'HTMLCanvasElement' in g;
-  const hadCanvasContext = 'CanvasRenderingContext2D' in g;
-  const hadDocument = 'document' in g;
-
-  if (!g.window) g.window = g;
-  if (!g.Window) g.Window = function () {};
-  if (!g.HTMLCanvasElement) g.HTMLCanvasElement = function () {};
-  if (!g.CanvasRenderingContext2D) g.CanvasRenderingContext2D = function () {};
-  if (!g.document) {
-    g.document = {
-      createElement(tag: string) {
-        if (tag === 'canvas') {
-          const canvas = {
-            width: 100,
-            height: 100,
-            getContext(type: string) {
-              if (type === '2d') {
-                const ctx = {
-                  fillStyle: '',
-                  font: '',
-                  fillRect() {},
-                  fillText() {},
-                  toDataURL() { return 'data:image/png;base64,MOCK_DATA'; }
-                };
-                Object.setPrototypeOf(ctx, g.CanvasRenderingContext2D.prototype);
-                return ctx;
-              }
-              return null;
-            },
-            toDataURL() { return 'data:image/png;base64,MOCK_DATA'; }
-          };
-          Object.setPrototypeOf(canvas, g.HTMLCanvasElement.prototype);
-          return canvas;
-        }
-        return null;
-      }
-    };
-  }
-  Object.setPrototypeOf(g.window, g.Window.prototype);
-
-  return () => {
-    if (!hadWindow) delete g.window;
-    if (!hadWindowCtor) delete g.Window;
-    if (!hadCanvasElement) delete g.HTMLCanvasElement;
-    if (!hadCanvasContext) delete g.CanvasRenderingContext2D;
-    if (!hadDocument) delete g.document;
-  };
-}
+export { setupDomMocks, type DomMockRestore };
 
 // WASM binary compiled from the TinyCMS signer wasm-bindgen source
 // (wasm_signer_bg.wasm). Extracted from the upstream client's
@@ -466,22 +402,15 @@ async function __wbg_init(module_or_path) {
 let wasmInitialized = false;
 export async function initTinyCmsWasm() {
   if (wasmInitialized) return;
-  // Install the DOM shims the wasm-bindgen glue expects before instantiating
-  // the module (see setupDomMocks() above), and restore them right after —
-  // scoped to just this init call instead of the process lifetime. This
-  // process runs the Next.js dashboard SSR too (npm-global install), so
-  // leaving global.window/document installed here would poison every later
-  // SSR render (#12072). generateSecurePayload() below re-installs its own
-  // shims around each call, since the wasm-bindgen glue reaches back into
-  // document.createElement/getContext on every invocation, not just at init.
-  const restore = setupDomMocks();
-  try {
-    const wasmBuffer = Buffer.from(WASM_BASE64, 'base64');
+  // Install the DOM shims the wasm-bindgen glue expects, then restore (#12072).
+  // The await below yields, so Next.js SSR can run concurrently with a live
+  // `window` stub — that stub must include `location` (tinycmsDomMocks.ts) or
+  // getLocationOrigin throws `Cannot destructure property 'protocol'`.
+  await withTinyCmsDomMocksAsync(async () => {
+    const wasmBuffer = Buffer.from(WASM_BASE64, "base64");
     await __wbg_init(wasmBuffer);
     wasmInitialized = true;
-  } finally {
-    restore();
-  }
+  });
 }
 
 // Add type bindings
@@ -509,15 +438,18 @@ export function generateSecurePayload(
   client_ip: string,
   difficulty: number
 ): SecurePayload {
-  // Scope the DOM shims to just this synchronous call (install -> use ->
-  // restore) instead of relying on whatever initTinyCmsWasm() left behind
-  // — that call now restores its own shims immediately, and this is fully
-  // synchronous (no await between install and restore), so nothing else on
-  // Node's single-threaded event loop can observe the shim in between.
-  const restore = setupDomMocks();
-  try {
-    return generate_secure_payload(username, timestamp, nonce_js, challenge, client_ip, difficulty) as SecurePayload;
-  } finally {
-    restore();
-  }
+  // Scope the DOM shims to this synchronous call (install -> use -> restore).
+  // #12072 already restored after the call; tinycmsDomMocks.ts also gives
+  // window.location so a concurrent Next SSR tick cannot crash.
+  return withTinyCmsDomMocks(
+    () =>
+      generate_secure_payload(
+        username,
+        timestamp,
+        nonce_js,
+        challenge,
+        client_ip,
+        difficulty
+      ) as SecurePayload
+  );
 }

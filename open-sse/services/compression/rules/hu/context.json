@@ -1,0 +1,108 @@
+{
+  "language": "hu",
+  "category": "context",
+  "rules": [
+    {
+      "name": "explanatory_prefix",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a függvény úgy tűnik, hogy|a kód úgy tűnik, hogy|az osztály az, amely|ez a modul az, amely)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "Function:",
+      "replacementMap": {
+        "a függvény úgy tűnik, hogy": "Function:",
+        "a kód úgy tűnik, hogy": "Code:",
+        "az osztály az, amely": "Class:",
+        "ez a modul az, amely": "Module:"
+      },
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite",
+      "description": "Collapse explanatory Hungarian prefixes into compact labels."
+    },
+    {
+      "name": "question_to_directive",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:el tudnád magyarázni,? miért|meg tudnád mutatni,? hogyan|meg tudnád mondani,? miért|meg tudnád mondani,? hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "replacementMap": {
+        "el tudnád magyarázni, miért": "Magyarázd el, miért ",
+        "meg tudnád mutatni, hogyan": "Mutasd meg, hogyan ",
+        "meg tudnád mondani, miért": "Mondd meg, miért ",
+        "meg tudnád mondani, hogy": ""
+      },
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite",
+      "description": "Turn indirect Hungarian questions into direct requests."
+    },
+    {
+      "name": "context_setup",
+      "pattern": "^(?:itt van a kódom|itt a kódom|az alábbi kód|a következő kód|itt található a kód)\\s*[:.]?\\s*",
+      "flags": "giu",
+      "replacement": "Code: ",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite",
+      "description": "Replace code-introduction prose with a compact context label."
+    },
+    {
+      "name": "intent_clarification",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:amit el szeretnék érni,? az|az a célom,? hogy|amire szükségem van,? az|azt próbálom megoldani,? hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "Goal:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite",
+      "description": "Collapse explicit goal framing into a compact label."
+    },
+    {
+      "name": "background_removal",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:ahogy tudod,?\\s*|ahogy korábban megbeszéltük,?\\s*|mint korábban említettem,?\\s*)",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite",
+      "description": "Remove repeated background framing."
+    },
+    {
+      "name": "meta_commentary",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:ne feledd, hogy|tartsd szem előtt, hogy|fontos megjegyezni, hogy|megjegyzés:)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite",
+      "description": "Remove meta-commentary that does not add task-specific context."
+    },
+    {
+      "name": "example_setup",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:itt egy példa|az alábbi egy példa|példaként itt van)(?![\\p{L}\\p{N}_])\\s*[:.]?\\s*",
+      "flags": "giu",
+      "replacement": "Példa: ",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite",
+      "description": "Collapse example-introduction wording."
+    },
+    {
+      "name": "problem_statement",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:az a problémám, hogy|a problémám az, hogy|a probléma az, hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "Probléma: ",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite",
+      "description": "Turn verbose problem framing into a compact label."
+    },
+    {
+      "name": "expected_result",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:azt szeretném, hogy|azt szeretném elérni, hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "Elvárt: ",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "full",
+      "description": "Collapse desired-result framing into a compact label."
+    }
+  ]
+}

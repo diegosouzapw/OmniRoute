@@ -53,13 +53,15 @@ interface ErrorBodyLike {
 }
 
 /**
- * Run the executor with valid-looking credentials. Every case in this suite is
- * expected to short-circuit on the capability guard, so Playwright is never
- * reached — a test that hangs here means the guard did not fire.
+ * Run the executor with valid-looking credentials. `tool_choice` cases short-
+ * circuit on the static capability guard, so Playwright is never reached.
+ * `reasoning_effort` cases (#13381) now require a mocked browser to reach the
+ * Extended Thinking selection step — `gemini-3.1-pro` is the default model
+ * mode (no interaction attempted), so it never interferes with that check.
  */
 async function run(body: Record<string, unknown>) {
   return new GeminiWebExecutor().execute({
-    model: "gemini-3.6-flash",
+    model: "gemini-3.1-pro",
     body: { messages: [{ role: "user", content: "hi" }], stream: false, ...body },
     stream: false,
     credentials: { apiKey: "__Secure-1PSID=test-cookie" },
@@ -152,20 +154,66 @@ test("#9356 forcing is rejected on its own terms, even with no tools[] array", (
 });
 
 // ─── Executor wiring ────────────────────────────────────────────────────────
+//
+// #13381 (2026-09-15 owner decision, Option B) changed how `reasoning_effort`
+// is enforced at the executor level: eligible Gemini accounts DO expose a
+// real Extended Thinking toggle in the web UI (reporter follow-up comment,
+// 2026-09-11), so a blanket "we can never do this" — rejecting BEFORE any
+// browser is even launched, regardless of account — would be the same
+// dishonesty #13381 exists to remove. `reasoning_effort` above "minimal" is
+// therefore no longer rejected by the static pre-browser guard below; it is
+// now ATTEMPTED via a genuine in-browser Extended Thinking selection step
+// (open-sse/executors/gemini-web/modeSelection.ts) and only rejected if that
+// attempt cannot confirm the control — see
+// tests/unit/issue-13381-gemini-web-model-selection.test.ts for that full
+// confirmed/unconfirmed contract. The two tests below are updated to match:
+// they still prove the SAME `checkGeminiWebUnsupportedControls` pure-function
+// classification above is honored end-to-end, adapted to the fact that
+// reaching it now requires a (mocked) browser session.
+//
+// `tool_choice` forcing is UNCHANGED: no UI control for it exists on any
+// account, ever, so it still fails fast before Playwright launches and
+// before the credential check.
 
-test("#9356 executor returns 400 for reasoning_effort=high before launching a browser", async () => {
-  const result = await run({ reasoning_effort: "high" });
+test(
+  "#9356/#13381 executor returns 400 for reasoning_effort=high once the Extended Thinking " +
+    "control cannot be confirmed (genuinely attempted via a mocked browser, not a blanket reject)",
+  async () => {
+    const playwright = await import("playwright");
+    const originalLaunch = playwright.chromium.launch;
+    playwright.chromium.launch = (async () => ({
+      newContext: async () => ({
+        addCookies: async () => {},
+        newPage: async () => ({
+          on: () => {},
+          goto: async () => {},
+          waitForTimeout: async () => {},
+          // No Extended Thinking control exists in this fake page — every
+          // selector lookup reports "not found", proving the fail-closed path.
+          waitForSelector: async () => null,
+          keyboard: { type: async () => {}, insertText: async () => {}, press: async () => {} },
+        }),
+      }),
+      close: async () => {},
+    })) as unknown as typeof originalLaunch;
 
-  assert.equal(result.response.status, 400);
-  const body = (await result.response.json()) as ErrorBodyLike;
-  assert.equal(body.error.code, GEMINI_WEB_UNSUPPORTED_CONTROL_CODE);
-  assert.match(body.error.message, /reasoning_effort/);
-  assert.equal(
-    body.error.message.includes("at /"),
-    false,
-    "error bodies must stay sanitized — no stack traces"
-  );
-});
+    try {
+      const result = await run({ reasoning_effort: "high" });
+
+      assert.equal(result.response.status, 400);
+      const body = (await result.response.json()) as ErrorBodyLike;
+      assert.equal(body.error.code, GEMINI_WEB_UNSUPPORTED_CONTROL_CODE);
+      assert.match(body.error.message, /Extended Thinking/);
+      assert.equal(
+        body.error.message.includes("at /"),
+        false,
+        "error bodies must stay sanitized — no stack traces"
+      );
+    } finally {
+      playwright.chromium.launch = originalLaunch;
+    }
+  }
+);
 
 test("#9356 executor returns 400 for tool_choice=required before launching a browser", async () => {
   const result = await run({ tools: [GET_WEATHER_TOOL], tool_choice: "required" });
@@ -176,12 +224,18 @@ test("#9356 executor returns 400 for tool_choice=required before launching a bro
   assert.match(body.error.message, /tool_choice/);
 });
 
-test("#9356 the capability guard runs ahead of the credential check", async () => {
+test("#9356 the tool_choice capability guard runs ahead of the credential check", async () => {
   // A request that is BOTH uncredentialed and incompatible must report the
-  // incompatibility: adding a cookie would not make it work.
+  // incompatibility: adding a cookie would not make it work. `tool_choice` is
+  // the control this applies to post-#13381 — it never requires a browser to
+  // know it cannot be honored (unlike `reasoning_effort`, see above).
   const result = await new GeminiWebExecutor().execute({
     model: "gemini-3.6-flash",
-    body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "high" },
+    body: {
+      messages: [{ role: "user", content: "hi" }],
+      tools: [GET_WEATHER_TOOL],
+      tool_choice: "required",
+    },
     stream: false,
     credentials: {},
     signal: AbortSignal.timeout(10_000),

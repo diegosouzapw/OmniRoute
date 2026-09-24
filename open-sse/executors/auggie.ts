@@ -92,12 +92,7 @@ export async function initAuggieModels(
     liveModelSet = new Set();
     return;
   }
-  const child = spawn(bin, ["model", "list"], {
-    env: process.env,
-    stdio: ["ignore", "pipe", "pipe"],
-    shell: false,
-    windowsHide: true,
-  });
+  const child = spawn(bin, ["model", "list"], buildAuggieSpawnOptions(["ignore", "pipe", "pipe"]));
   const fragments: string[] = [];
   child.stdout.on("data", (d: Buffer) => fragments.push(d.toString("utf8")));
   let settled = false;
@@ -218,15 +213,19 @@ function buildAuggieArgs(model: string): string[] {
  * elements to the shell, it does not concatenate them into a single
  * command line.
  */
-export function buildAuggieSpawnOptions(stdio: ["pipe", "pipe", "pipe"]): {
+export function buildAuggieSpawnOptions<S extends readonly string[]>(
+  stdio: S
+): {
   env: NodeJS.ProcessEnv;
-  stdio: ["pipe", "pipe", "pipe"];
+  stdio: S;
   shell: boolean;
+  windowsHide: true;
 } {
   return {
     env: process.env,
     stdio,
     shell: process.platform === "win32",
+    windowsHide: true,
   };
 }
 
@@ -294,6 +293,52 @@ function isEnoentLike(message: string): boolean {
   return message.includes("ENOENT") || message.includes("not found");
 }
 
+// ─── In-band quota-exhausted detection (#12949) ───────────────────────────────
+// When a user's Augment/Auggie quota is exhausted, the real `auggie` CLI does NOT
+// exit non-zero — it prints a human-readable warning to stdout and exits 0 (a
+// clean exit). Left unchecked, that text is wrapped verbatim as a normal, 200
+// assistant reply, so combo/fallback routing (which only fails over on a non-2xx
+// status, or a top-level `error` SSE envelope for streaming) never sees a failure
+// and keeps sending requests to the same exhausted connection. Anchored tightly to
+// Auggie's actual fixed wording (not generic words like "quota"/"usage" alone) so
+// a legitimate reply that merely discusses usage/quota in passing is not
+// misclassified — see the "no false positive" case in
+// tests/unit/issue-12949-auggie-quota-exhausted-200.test.ts.
+const AUGGIE_QUOTA_EXHAUSTED_PATTERNS = [
+  /you have run out of usage/i,
+  /run out of usage for/i,
+  /usage limit exceeded/i,
+];
+
+export function isAuggieQuotaExhaustedText(text: string): boolean {
+  return AUGGIE_QUOTA_EXHAUSTED_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+const AUGGIE_QUOTA_EXHAUSTED_CODE = "AUGGIE_QUOTA_EXHAUSTED";
+
+/**
+ * Build the 429 error Response for a detected in-band quota-exhausted message
+ * (non-streaming path). Mirrors the shape `blackbox-web.ts` uses for its own
+ * in-band, HTTP-200 error text (upgrade/login-required/rate-limit) — see
+ * open-sse/executors/blackbox-web.ts:590-647 — a direct JSON error body rather
+ * than buildErrorBody(), whose `code`/`type` fields are projected onto a bounded
+ * public-identifier vocabulary that does not (yet) include this provider-specific
+ * code.
+ */
+function buildAuggieQuotaErrorResponse(message: string): Response {
+  const body = {
+    error: {
+      message: sanitizeErrorMessage(message),
+      type: "upstream_error",
+      code: AUGGIE_QUOTA_EXHAUSTED_CODE,
+    },
+  };
+  return new Response(JSON.stringify(body), {
+    status: 429,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 // Windows cmd.exe and POSIX shells never raise a Node `spawn` 'error' event for a
 // missing binary when `shell: true` is used (see buildAuggieSpawnOptions) — they
 // report it as a normal non-zero exit with the "not found" text on stderr instead.
@@ -331,11 +376,7 @@ export function checkAuggieCliVersion(timeoutMs = 5000): Promise<AuggieCliVersio
 
     let child: ReturnType<typeof spawn>;
     try {
-      // No `shell` option — fixed argv, no cmd.exe interpretation.
-      child = spawn(bin, ["--version"], {
-        env: process.env,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
+      child = spawn(bin, ["--version"], buildAuggieSpawnOptions(["ignore", "pipe", "pipe"]));
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       settle({ ok: false, error: isEnoentLike(message) ? cliNotFoundMessage(bin) : message });
@@ -522,8 +563,8 @@ export class AuggieExecutor extends BaseExecutor {
           );
         };
 
-        const emitError = (message: string) => {
-          emit(`data: ${JSON.stringify(buildErrorBody(502, message))}\n\n`);
+        const emitError = (message: string, statusCode = 502) => {
+          emit(`data: ${JSON.stringify(buildErrorBody(statusCode, message))}\n\n`);
           emit("data: [DONE]\n\n");
           finish();
         };
@@ -585,8 +626,41 @@ export class AuggieExecutor extends BaseExecutor {
         });
 
         let stderrTail = "";
+
+        // #12949: a quota-exhausted response is always short and delivered on the
+        // very first stdout chunk(s), so we buffer only the START of the stream
+        // (bounded — well over the quota message's length) and run the detector
+        // against it before forwarding anything as a normal delta. Once the buffer
+        // window is flushed (budget hit, or the process closes first) every later
+        // chunk is relayed live as before — no added latency for the overwhelming
+        // majority of successful, longer responses.
+        const QUOTA_DETECTION_BUFFER_BYTES = 2048;
+        let pendingBuffer = "";
+        let bufferFlushed = false;
+        let quotaDetected = false;
+
+        const flushPendingBuffer = () => {
+          if (bufferFlushed) return;
+          bufferFlushed = true;
+          if (isAuggieQuotaExhaustedText(pendingBuffer)) {
+            quotaDetected = true;
+            emitError(sanitizeErrorMessage(pendingBuffer.trim()), 429);
+            return;
+          }
+          if (pendingBuffer) emitDelta(pendingBuffer);
+          pendingBuffer = "";
+        };
+
         child.stdout?.on("data", (chunk: Buffer) => {
-          emitDelta(chunk.toString("utf8"));
+          if (quotaDetected || finished) return;
+          if (bufferFlushed) {
+            emitDelta(chunk.toString("utf8"));
+            return;
+          }
+          pendingBuffer += chunk.toString("utf8");
+          if (pendingBuffer.length >= QUOTA_DETECTION_BUFFER_BYTES) {
+            flushPendingBuffer();
+          }
         });
 
         child.stderr?.on("data", (chunk: Buffer) => {
@@ -606,6 +680,8 @@ export class AuggieExecutor extends BaseExecutor {
             );
             return;
           }
+          flushPendingBuffer();
+          if (quotaDetected || finished) return;
           emitStop();
         });
       },
@@ -691,6 +767,12 @@ export class AuggieExecutor extends BaseExecutor {
                   )
             )
           );
+          return;
+        }
+        // #12949: a clean exit (code 0) can still carry an in-band quota-exhausted
+        // warning on stdout — detect it before wrapping the text as a completion.
+        if (isAuggieQuotaExhaustedText(stdout)) {
+          settle(buildAuggieQuotaErrorResponse(stdout.trim()));
           return;
         }
         settle(buildChatCompletionResponse(model, promptText, stdout));

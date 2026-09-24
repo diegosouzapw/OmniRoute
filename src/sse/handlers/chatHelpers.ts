@@ -10,6 +10,7 @@ import {
 } from "../services/auth";
 import { maybeReactivateAfterExplicitProbe } from "../services/explicitInactiveProbe";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { clearRequestRejectedStreak } from "@omniroute/open-sse/services/requestRejectedStreak.ts";
 import { createBuiltinAutoCombo } from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
@@ -349,6 +350,7 @@ export async function resolveModelOrError(
     customModelTargetFormat,
     extendedContext,
     apiFormat,
+    resolvedThinkingEffort: modelInfo.resolvedThinkingEffort,
   };
 }
 
@@ -443,6 +445,7 @@ export async function executeChatWithBreaker({
   extendedContext,
   modelApiFormat,
   modelTargetFormat,
+  resolvedThinkingEffort,
   providerProfile,
   cachedSettings,
   skipUpstreamRetry = false,
@@ -454,11 +457,11 @@ export async function executeChatWithBreaker({
   reasoningTransportFallback = "drop",
   sessionAffinityKey = null,
   managedLease = null,
-  // #12150 P1b: additive, optional video-bridge log/Memory shadow — undefined
-  // for every non-video request. Passed straight through to handleChatCore;
-  // see its own destructure default for the shape and consumers.
+  // #12150 P1b: additive, optional video-bridge log/Memory shadow — undefined for every
+  // non-video request. Passed straight through to handleChatCore; see its own destructure default.
   videoBridgeLog = undefined,
   fallbackAttempts = undefined,
+  forcedConnectionId = null,
 }: ExecuteChatWithBreakerOptions): Promise<ExecuteChatWithBreakerResult> {
   let tlsFingerprintUsed = false;
   const normalizedTrafficType: TrafficType =
@@ -496,6 +499,7 @@ export async function executeChatWithBreaker({
               extendedContext,
               apiFormat: modelApiFormat,
               targetFormat: modelTargetFormat,
+              resolvedThinkingEffort,
             },
             credentials: refreshedCredentials,
             log: handlerLog,
@@ -520,6 +524,7 @@ export async function executeChatWithBreaker({
             managedLease,
             videoBridgeLog,
             fallbackAttempts,
+            forcedConnectionId,
             skipResourcePressureGuard: true,
             onCredentialsRefreshed: async (newCreds: any) => {
               await updateProviderCredentials(credentials.connectionId, {
@@ -537,6 +542,9 @@ export async function executeChatWithBreaker({
             },
             onRequestSuccess: async () => {
               if (isShadowTraffic) return;
+              // A healthy response ends any run of per-request refusals
+              // (#12859) — only a real success does, not an elapsed cooldown.
+              if (credentials.connectionId) clearRequestRejectedStreak(credentials.connectionId);
               await clearAccountError(credentials.connectionId, credentials);
               await maybeReactivateAfterExplicitProbe({
                 connectionId: credentials.connectionId,
@@ -937,11 +945,25 @@ export function handleNoCredentials(
  */
 export const STREAM_EARLY_EOF_MAX_RETRIES = 1;
 
+// A genuine 0-byte upstream empty response (emitClaudeEmptyStreamErrorAndAbort,
+// code "empty_response" — call logs 1788132529140-96ef4a / 1788142914004-062cf6)
+// is the same class of transient upstream glitch as STREAM_EARLY_EOF: the
+// upstream sent HTTP 200 then closed with zero useful frames. Treat it the
+// same — ONE bounded same-connection re-attempt, never a loop.
+const RETRYABLE_STREAM_EMPTY_CODES: ReadonlySet<string> = new Set([
+  "STREAM_EARLY_EOF",
+  "empty_response",
+]);
+
 export function shouldRetryStreamEarlyEof(
   errorCode: string | null | undefined,
   attempt: number
 ): boolean {
-  return errorCode === "STREAM_EARLY_EOF" && attempt < STREAM_EARLY_EOF_MAX_RETRIES;
+  return (
+    typeof errorCode === "string" &&
+    RETRYABLE_STREAM_EMPTY_CODES.has(errorCode) &&
+    attempt < STREAM_EARLY_EOF_MAX_RETRIES
+  );
 }
 
 // The sibling hop widens the terminal/failover boundary, so it ships off
@@ -977,7 +999,8 @@ export function decideProxyResolutionFailure(
 export async function safeResolveProxy(
   connectionId: string,
   apiKeyId?: string,
-  providerId?: string
+  providerId?: string,
+  comboName?: string | null
 ) {
   try {
     const resolved = await resolveProxyForConnection(connectionId, apiKeyId, providerId);
@@ -987,7 +1010,7 @@ export async function safeResolveProxy(
     // opts back into direct). Explicit "proxy off" is not a leak (see the guard).
     if (
       !(resolved as { proxy?: unknown } | null)?.proxy &&
-      hasBlockingProxyAssignment(connectionId, providerId)
+      hasBlockingProxyAssignment(connectionId, providerId, comboName)
     ) {
       return decideProxyResolutionFailure(
         Object.assign(
@@ -1059,6 +1082,8 @@ export async function safeLogEvents({
   comboName,
   clientRawRequest,
   tlsFingerprintUsed = false,
+  rotationAccount = null,
+  correlationId = null,
 }) {
   // Feed the provider's real answer back to proxy selection (never result.status: some 429s
   // are generated locally; proxyInfo carries the status captured around fetch). Must stay
@@ -1112,6 +1137,8 @@ export async function safeLogEvents({
       connectionId: credentials.connectionId,
       comboId: comboName || null,
       account: credentials.connectionId?.slice(0, 8) || null,
+      rotationAccount: rotationAccount || null,
+      correlationId: correlationId || null,
       tlsFingerprint: tlsFingerprintUsed,
       upstreamStatus: proxyInfo?.upstreamStatus ?? null,
     });

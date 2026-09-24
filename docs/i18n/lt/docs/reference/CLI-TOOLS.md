@@ -1,29 +1,20 @@
-# CLI-TOOLS (Lietuvių)
+# CLI Tools — OmniRoute (Lietuvių)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
-
-title: "CLI įrankiai — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-23
----
-
-# CLI įrankiai — OmniRoute
 
 Paskutinį kartą atnaujinta: 2026-08-23
 
-OmniRoute integruojamas su trimis CLI įrankių kategorijomis, pateikiamomis trijuose atskiruose valdymo skydelio puslapiuose:
+„OmniRoute“ integruojasi su trimis CLI įrankių kategorijomis, pateikiamomis trijuose atskiruose valdymo skydelio puslapiuose:
 
-| Puslapis        | Maršrutas               | Koncepcija                                                                                | Kiekis       |
-| --------------- | ----------------------- | ----------------------------------------------------------------------------------------- | ------------ |
-| **CLI kodas**   | `/dashboard/cli-code`   | Programavimo įrankiai, nukreipiami į OmniRoute (Klientas → CLI → OmniRoute → Teikėjas)    | 26           |
-| **CLI agentai** | `/dashboard/cli-agents` | Autonominiai agentai, nukreipiami į OmniRoute (tas pats srautas, platesnė apimtis)        | 10           |
-| **ACP agentai** | `/dashboard/acp-agents` | CLI, kuriuos OmniRoute paleidžia kaip vidinę sistemą per stdio/ACP (atvirkštinis srautas) | žr. registrą |
+| Puslapis       | Maršrutas               | Koncepcija                                                                                         | Kiekis       |
+| -------------- | ----------------------- | -------------------------------------------------------------------------------------------------- | ------------ |
+| **CLI Code's** | `/dashboard/cli-code`   | Programavimo įrankiai, kuriuos nukreipiate į „OmniRoute“ (klientas → CLI → „OmniRoute“ → teikėjas) | 26           |
+| **CLI Agents** | `/dashboard/cli-agents` | Autonominiai agentai, kuriuos nukreipiate į „OmniRoute“ (ta pati eiga, platesnė taikymo sritis)    | 10           |
+| **ACP Agents** | `/dashboard/acp-agents` | CLI, kuriuos „OmniRoute“ paleidžia kaip galinę sistemą per stdio/ACP (atvirkštinė eiga)            | žr. registrą |
 
-Seni maršrutai peradresuojami naudojant 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
+Senieji maršrutai peradresuojami naudojant 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
 ---
 
@@ -150,7 +141,7 @@ vienos sąsajos, bet nepridedamas prie kitų, testų rinkinys nepavyksta, užuot
 
 ---
 
-## 1. „CLI Code“ katalogas (26 įrankiai)
+## 1. CLI kodo katalogas (26 įrankiai)
 
 Visi įrankiai, rodomi `/dashboard/cli-code`. Įrankiai, kurių `baseUrlSupport: none`, prijungiami per MITM arba naudojant rankinį vadovą, o ne pasirinktinį bazinį URL:
 
@@ -181,27 +172,27 @@ Visi įrankiai, rodomi `/dashboard/cli-code`. Įrankiai, kurių `baseUrlSupport:
 | antigravity  | Antigravity             | Google              | none           | mitm           | false        |
 | hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Pasirinktinis CLI       | —                   | full           | custom-builder | false        |
+| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Įrankių, kurių `baseUrlSupport: "partial"`, informacijos suvestinės kortelėje rodomas ženklelis „⚠ Bazinis URL palaikomas iš dalies“.
+Įrankių, kurių `baseUrlSupport: "partial"`, informacijos suvestinės kortelėje rodoma žyma „⚠ Dalinis bazinio URL palaikymas“.
 ---
 
 ## 2. CLI agentų katalogas (10 įrankių)
 
-Autonominiai agentai, rodomi puslapyje `/dashboard/cli-agents`:
+Autonominiai agentai, rodomi `/dashboard/cli-agents`:
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
+| id           | pavadinimas      | tiekėjas                 | baseUrlSupport | acpSpawnable |
 | ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| hermes-agent | Hermes Agent     | Nous Research            | visiškas       | false        |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | visiškas       | true         |
+| goose        | Goose            | Block / Linux Foundation | visiškas       | true         |
+| interpreter  | Open Interpreter | OSS                      | visiškas       | true         |
+| warp         | Warp AI          | Warp Inc.                | dalinis        | true         |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | visiškas       | false        |
+| omp          | Oh My Pi         | OSS                      | visiškas       | true         |
+| letta        | Letta CLI        | Letta                    | visiškas       | false        |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | visiškas       | false        |
+| 5dive        | 5dive            | OSS (5dive-ai)           | visiškas       | false        |
 
 ---
 
@@ -611,57 +602,57 @@ esantį `/dashboard/cli-tools → Kiro`.
 
 ## 10. Vidinė OmniRoute CLI
 
-Dvejetainis failas `omniroute` suteikia serverio gyvavimo ciklo, sąrankos, diagnostikos ir teikėjų valdymo komandas. Įvesties taškas: `bin/omniroute.mjs`.
+Vykdomasis failas `omniroute` suteikia komandas serverio gyvavimo ciklui, konfigūravimui, diagnostikai ir teikėjų valdymui. Įėjimo taškas: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Paleisti serverį (numatytasis prievadas 20128)
-omniroute setup                        # Interaktyvus sąrankos vediklis
+omniroute                              # Paleisti serverį (numatytasis prievadas – 20128)
+omniroute setup                        # Interaktyvus konfigūravimo vediklis
 omniroute doctor                       # Patikrinti konfigūraciją, DB, prievadus ir vykdymo aplinką
 omniroute providers list               # Sukonfigūruoti ryšiai su teikėjais
 omniroute providers test-all           # Patikrinti kiekvieną aktyvų ryšį
 omniroute reset-password               # Iš naujo nustatyti administratoriaus slaptažodį
-omniroute logs                         # Srautiniu būdu rodyti užklausų žurnalus
+omniroute logs                         # Srautu perduoti užklausų žurnalus
 omniroute health                       # Išsami būklė (grandinės pertraukikliai, podėlis, atmintis)
-omniroute --version                    # Parodyti versiją
-omniroute --help                       # Parodyti visas komandas
+omniroute --version                    # Išvesti versiją
+omniroute --help                       # Rodyti visas komandas
 ```
 
-### Sąranka ir inicijavimas
+### Konfigūravimas ir inicijavimas
 
 ```bash
-omniroute setup                        # Interaktyvus sąrankos vediklis
+omniroute setup                        # Interaktyvus konfigūravimo vediklis
 omniroute setup --non-interactive      # CI / automatizavimo režimas (skaito aplinkos kintamuosius ir parametrus)
 omniroute setup --password '<value>'   # Tiesiogiai nustatyti administratoriaus slaptažodį
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Vienu veiksmu pridėti ir išbandyti teikėją
+  --test-provider                      # Vienu veiksmu pridėti ir patikrinti teikėją
 ```
 
-Neinteraktyvioje sąrankoje atpažįstami aplinkos kintamieji:
+Neinteraktyvaus konfigūravimo metu atpažįstami aplinkos kintamieji:
 
 | Kintamasis          | Paskirtis                                                           |
 | ------------------- | ------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Teikėjo API raktas (susietas su `--api-key` per Commander `.env()`) |
+| `OMNIROUTE_API_KEY` | Teikėjo API raktas (su `--api-key` susietas per Commander `.env()`) |
 | `DATA_DIR`          | Pakeisti OmniRoute duomenų katalogą                                 |
 
-Visos kitos neinteraktyvios įvestys perduodamos kaip parametrai, o ne aplinkos kintamieji:
+Visos kitos neinteraktyvios įvestys perduodamos kaip parametrai, o ne kaip aplinkos kintamieji:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (žr. pirmiau pateiktas `omniroute setup` parinktis).
 
 ### Diagnostika
 
 ```bash
-omniroute doctor                       # Patikrinti konfigūraciją, DB, prievadus, vykdymo aplinką, atmintį ir gyvybingumą
-omniroute doctor --json                # Mašininio skaitymo JSON
+omniroute doctor                       # Patikrinti konfigūraciją, DB, prievadus, vykdymo aplinką, atmintį ir pasiekiamumą
+omniroute doctor --json                # Kompiuterio skaitomas JSON
 omniroute doctor --no-liveness         # Praleisti HTTP būklės patikrą
-omniroute doctor --host 0.0.0.0        # Pakeisti gyvybingumo pagrindinį kompiuterį
+omniroute doctor --host 0.0.0.0        # Pakeisti pasiekiamumo patikros pagrindinį kompiuterį
 omniroute doctor --liveness-url <url>  # Pakeisti visą būklės galinio taško URL
 ```
 
-Komanda doctor vykdo šias patikras: `Config`, `Database`, `Storage/encryption`,
+Doctor vykdo šias patikras: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` ir `Server liveness`. Jei kurios nors patikros rezultatas yra `fail`, komanda baigiama ne nuliniu išėjimo kodu.
+`Memory` ir `Server liveness`. Jei kurios nors patikros rezultatas yra `fail`, procesas baigiamas nenuliniu išėjimo kodu.
 
 ### Teikėjų valdymas
 
@@ -669,17 +660,17 @@ Komanda doctor vykdo šias patikras: `Config`, `Database`, `Storage/encryption`,
 omniroute providers available                       # OmniRoute teikėjų katalogas
 omniroute providers available --search openai       # Filtruoti katalogą pagal ID / pavadinimą / alternatyvų pavadinimą / kategoriją
 omniroute providers available --category api-key    # Filtruoti pagal kategoriją (api-key, oauth, free, ...)
-omniroute providers available --json                # Mašininio skaitymo JSON
+omniroute providers available --json                # Kompiuterio skaitomas JSON
 
 omniroute providers list                            # Sukonfigūruoti ryšiai su teikėjais
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Patikrinti vieną sukonfigūruotą ryšį
 omniroute providers test-all                        # Patikrinti kiekvieną aktyvų ryšį
-omniroute providers validate                        # Tik vietinis struktūros tikrinimas
+omniroute providers validate                        # Tik vietinė struktūros patikra
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Esamas OAuth procesas
+omniroute providers auth <provider>                 # Esama OAuth eiga
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
@@ -687,7 +678,7 @@ omniroute providers remove <id|name> --yes
 `providers add/import/auth/edit/remove` pirmiausia naudoja API, todėl veikia su
 aktyviu vietiniu arba nuotoliniu kontekstu. Prisijungimo duomenys turėtų būti įvedami naudojant
 `--credential-stdin` arba `--credential-env`; `--dry-run --json` pateikia tik
-užmaskuotą buvimo ir struktūros informaciją. `providers available` skaito OmniRoute katalogą;
+užmaskuotą informaciją apie jų buvimą ir struktūrą. `providers available` skaito OmniRoute katalogą;
 `providers list/test/test-all/validate` išlaiko vietinę SQLite veikseną ir
 nereikalauja, kad serveris veiktų.
 
@@ -695,46 +686,46 @@ nereikalauja, kad serveris veiktų.
 
 ```bash
 omniroute reset-password                # Iš naujo nustatyti administratoriaus slaptažodį (taip pat: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Parodyti įspėjimą ir bandomąjį šifruotų prisijungimo duomenų nustatymą iš naujo
-omniroute reset-encrypted-columns --force  # Iš tikrųjų nustatyti šifruotų prisijungimo duomenų SQLite reikšmes į null
+omniroute reset-encrypted-columns       # Rodyti įspėjimą ir bandomąjį šifruotų prisijungimo duomenų nustatymo iš naujo vykdymą
+omniroute reset-encrypted-columns --force  # Iš tikrųjų nustatyti šifruotų SQLite prisijungimo duomenų reikšmę į null
 ```
 
 ### Prisijungimo duomenų eksportavimas (⚠ elkitės atsargiai)
 
 ```bash
-omniroute auth export                                 # Parodyti įspėjimą ir prašyti patvirtinimo — be prieigos prie DB
-omniroute auth export --force                          # Eksportuoti VISŲ ryšių IŠŠIFRUOTUS prisijungimo duomenis į stdout JSON formatu
+omniroute auth export                                 # Rodyti įspėjimą ir prašyti patvirtinimo — be prieigos prie DB
+omniroute auth export --force                          # Eksportuoti VISŲ ryšių IŠŠIFRUOTUS prisijungimo duomenis į stdout kaip JSON
 omniroute auth export --force --id <id>                 # Eksportuoti tik atitinkantį ryšį
 omniroute auth export --force --format env               # Išvesti OMNIROUTE_<PROVIDER>_<FIELD>=<value> eilutes
-omniroute auth export --force --out creds.json           # Įrašyti į failą (sukuriamą su 0600 leidimais)
+omniroute auth export --force --out creds.json           # Įrašyti į failą (sukuriamas su 0600 leidimais)
 ```
 
 `auth export` veikia **tik vietoje** (tiesiogiai skaito SQLite, nenaudodama HTTP maršruto) ir sąmoningai išveda arba įrašo
-**atviru tekstu** pateiktas `apiKey` / `accessToken` / `refreshToken` / `idToken` reikšmes — tai funkcija, o ne
-klaida. Be `--force` niekas neskaitoma iš duomenų bazės ir niekas neiššifruojama. Prieš išvedant
-bet kokį atvirą tekstą, į stderr visada išvedamas įspėjamasis pranešimas. Turi būti nustatytas
-`STORAGE_ENCRYPTION_KEY`. Laukas, kurio nepavyksta iššifruoti (pasenęs raktas, sugadintas šifruotas tekstas), pateikiamas kaip
-`<field>DecryptFailed: true`, užuot nutraukus visą eksportavimą ar atskleidus pagrindinę klaidą.
+**paprastojo teksto** `apiKey`/`accessToken`/`refreshToken`/`idToken` reikšmes — tai funkcija, o ne
+klaida. Be `--force` niekas neskaitoma iš duomenų bazės ir niekas neiššifruojama. Prieš išvedant bet kokį paprastąjį tekstą
+visada į stderr išvedama įspėjimo juosta. Būtina nustatyti `STORAGE_ENCRYPTION_KEY`.
+Jei lauko nepavyksta iššifruoti (pasenęs raktas arba sugadintas šifruotasis tekstas), vietoje viso eksportavimo nutraukimo ar pagrindinės klaidos atskleidimo pateikiama
+`<field>DecryptFailed: true`.
 
-### Kitos antrinės komandos
+### Kitos pokomandės
 
-Jei nenurodyta kitaip, šioms komandoms būtinas veikiantis OmniRoute serveris:
+Jei nenurodyta kitaip, jos daro prielaidą, kad OmniRoute serveris veikia:
 
 ```bash
-omniroute status                       # Išsami vykdymo aplinkos būsena
-omniroute logs                         # Srautiniu būdu rodyti užklausų žurnalus (--json, --search, --follow)
-omniroute config show                  # Parodyti dabartinę konfigūraciją
+omniroute status                       # Išsami vykdymo būsenos informacija
+omniroute logs                         # Užklausų žurnalų srautas (--json, --search, --follow)
+omniroute config list                  # Rodyti sukonfigūruotus CLI įrankius
 
-omniroute provider list                # Išvardyti galimus teikėjus (providers list alternatyva)
-omniroute provider add                 # Užregistruoti OmniRoute kaip teikėją įrankyje
-omniroute keys add | list | remove     # Valdyti API raktus
+omniroute provider list                # Išvardyti pasiekiamus teikėjus (komandos „providers list“ alternatyvus pavadinimas)
+omniroute provider add                 # Užregistruoti „OmniRoute“ kaip įrankio teikėją
+omniroute keys add | list | remove     # Tvarkyti API raktus
 omniroute models [provider]            # Išvardyti modelius (--json, --search)
 omniroute combo list | switch | create | delete
 
 omniroute backup                       # Sukurti konfigūracijos ir DB momentinę kopiją
 omniroute restore                      # Atkurti iš ankstesnės momentinės kopijos
 
-omniroute health                       # Išsami būklė (grandinės pertraukikliai, podėlis, atmintis)
+omniroute health                       # Išsami būklės informacija (pertraukikliai, podėlis, atmintis)
 omniroute quota                        # Teikėjo kvotos naudojimas
 omniroute cache                        # Podėlio būsena
 omniroute cache clear                  # Išvalyti semantinį ir parašų podėlius
@@ -742,25 +733,25 @@ omniroute cache clear                  # Išvalyti semantinį ir parašų podėl
 omniroute mcp status | restart         # MCP serverio būsena / paleidimas iš naujo
 omniroute a2a status | card            # A2A serverio būsena / agento kortelė
 
-omniroute tunnel list | create | stop  # Valdyti tunelius (cloudflare/tailscale/ngrok)
+omniroute tunnel list | create | stop  # Tvarkyti tunelius (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # Peržiūrėti / nustatyti aplinkos kintamuosius (laikinai)
 
 omniroute test                         # Teikėjo ryšio bazinis patikrinimas
-omniroute update                       # Patikrinti, ar yra naujinimų
-omniroute completion                   # Sugeneruoti apvalkalo automatinį užbaigimą
+omniroute update                       # Patikrinti, ar yra naujinių
+omniroute completion                   # Generuoti komandinio apvalkalo užbaigimo scenarijų
 ```
 
-### Bendrieji parametrai
+### Bendrosios parinktys
 
-| Parametras          | Aprašymas                                                          |
+| Parinktis           | Aprašymas                                                          |
 | ------------------- | ------------------------------------------------------------------ |
 | `--no-open`         | Paleidžiant automatiškai neatverti naršyklės                       |
-| `--port <n>`        | Pakeisti API prievadą (numatytasis 20128)                          |
+| `--port <n>`        | Pakeisti API prievadą (numatytasis – 20128)                        |
 | `--mcp`             | Vykdyti kaip MCP serverį per stdio (IDE aplinkoms)                 |
-| `--non-interactive` | CI režimas (be raginimų; skaito iš aplinkos kintamųjų / parametrų) |
-| `--json`            | Mašininio skaitymo JSON išvestis (doctor, providers ir kt.)        |
-| `--help`, `-h`      | Parodyti konkrečios komandos žinyną                                |
-| `--version`, `-v`   | Parodyti įdiegtą versiją                                           |
+| `--non-interactive` | CI režimas (be raginimų; skaito iš aplinkos kintamųjų / parinkčių) |
+| `--json`            | Kompiuterio skaitoma JSON išvestis (doctor, providers ir kt.)      |
+| `--help`, `-h`      | Rodyti konkrečios komandos žinyną                                  |
+| `--version`, `-v`   | Išvesti įdiegtą versiją                                            |
 
 ---
 

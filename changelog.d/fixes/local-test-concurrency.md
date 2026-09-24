@@ -1,1 +1,0 @@
-- **fix(test):** run the local `test` and `test:unit` scripts at concurrency 4 so a full-suite run no longer exhausts the machine's commit charge and kills unrelated processes

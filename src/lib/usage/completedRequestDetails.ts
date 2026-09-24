@@ -3,12 +3,44 @@ import type { PendingRequestDetail } from "./usageHistory";
 
 const COMPLETED_DETAIL_TTL_MS = 120_000;
 const MAX_COMPLETED_DETAILS = 256;
+/**
+ * JON-562: completed details are a short-lived dashboard bridge, not a second payload store.
+ * The 16 MiB estimated cache payload budget keeps room for normal bridge entries while bounding
+ * the strings and object fields this module accounts for. It is not a process-memory ceiling.
+ */
+export const MAX_COMPLETED_DETAILS_BYTES = 16 * 1024 * 1024;
 
 const completedDetails = new Map<string, PendingRequestDetail>();
 const completedDetailTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const completedDetailBytes = new Map<string, number>();
+let totalCompletedDetailBytes = 0;
+
+function estimateRetainedBytes(value: unknown, seen = new WeakSet<object>()): number {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "string") return Buffer.byteLength(value, "utf8");
+  if (typeof value === "number" || typeof value === "bigint") return 8;
+  if (typeof value === "boolean") return 4;
+  if (typeof value !== "object" || seen.has(value)) return 0;
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    return 32 + value.reduce((total, entry) => total + estimateRetainedBytes(entry, seen), 0);
+  }
+
+  let bytes = 64;
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    bytes += Buffer.byteLength(key, "utf8") + estimateRetainedBytes(entry, seen);
+  }
+  return bytes;
+}
 
 function deleteCompletedDetail(id: string) {
   completedDetails.delete(id);
+  totalCompletedDetailBytes = Math.max(
+    0,
+    totalCompletedDetailBytes - (completedDetailBytes.get(id) ?? 0)
+  );
+  completedDetailBytes.delete(id);
   const existingTimer = completedDetailTimers.get(id);
   if (existingTimer) {
     clearTimeout(existingTimer);
@@ -17,7 +49,10 @@ function deleteCompletedDetail(id: string) {
 }
 
 function trimCompletedDetails() {
-  while (completedDetails.size > MAX_COMPLETED_DETAILS) {
+  while (
+    completedDetails.size > MAX_COMPLETED_DETAILS ||
+    totalCompletedDetailBytes > MAX_COMPLETED_DETAILS_BYTES
+  ) {
     const oldestId = completedDetails.keys().next().value;
     if (!oldestId) break;
     deleteCompletedDetail(oldestId);
@@ -28,17 +63,61 @@ export function getCompletedDetails(): Map<string, PendingRequestDetail> {
   return completedDetails;
 }
 
-export function storeCompletedDetail(detail: PendingRequestDetail) {
-  completedDetails.set(detail.id, detail);
+/**
+ * Read the estimated payload bytes currently accounted to the completed-detail cache.
+ * @returns The cache's estimated payload-byte total.
+ */
+export function getCompletedDetailsByteSize(): number {
+  return totalCompletedDetailBytes;
+}
+
+/**
+ * Read the completed-detail cache counters.
+ * @returns Entry, cleanup-timer and estimated payload-byte counts.
+ */
+export function getCompletedDetailsCacheStats(): {
+  entries: number;
+  cleanupTimers: number;
+  bytes: number;
+} {
+  return {
+    entries: completedDetails.size,
+    cleanupTimers: completedDetailTimers.size,
+    bytes: totalCompletedDetailBytes,
+  };
+}
+
+/**
+ * Store a detached completed-request preview.
+ * @param detail - Completed request detail to detach and cache.
+ * @returns `true` only when the entry remains cached after count and byte-budget eviction.
+ * @throws If `detail` contains a value that `structuredClone` cannot copy.
+ */
+export function storeCompletedDetail(detail: PendingRequestDetail): boolean {
+  const inputBytes = estimateRetainedBytes(detail);
+  if (inputBytes > MAX_COMPLETED_DETAILS_BYTES) {
+    deleteCompletedDetail(detail.id);
+    return false;
+  }
+
+  // `truncatePendingPreview()` uses String#slice. V8 may represent that short preview as a
+  // sliced string whose hidden parent is the full multi-megabyte request. A structured clone
+  // materializes the visible preview into cache-owned storage and drops the pending graph.
+  const detached = structuredClone(detail);
+  const detachedBytes = estimateRetainedBytes(detached);
+  totalCompletedDetailBytes -= completedDetailBytes.get(detail.id) ?? 0;
+  completedDetails.set(detail.id, detached);
+  completedDetailBytes.set(detail.id, detachedBytes);
+  totalCompletedDetailBytes += detachedBytes;
   trimCompletedDetails();
+  return completedDetails.has(detail.id);
 }
 
 export function scheduleCompletedDetailCleanup(id: string) {
   const existingTimer = completedDetailTimers.get(id);
   if (existingTimer) clearTimeout(existingTimer);
   const timer = setTimeout(() => {
-    completedDetails.delete(id);
-    completedDetailTimers.delete(id);
+    deleteCompletedDetail(id);
   }, COMPLETED_DETAIL_TTL_MS);
   timer.unref?.();
   completedDetailTimers.set(id, timer);
@@ -48,6 +127,8 @@ export function clearCompletedDetails() {
   for (const timer of completedDetailTimers.values()) clearTimeout(timer);
   completedDetailTimers.clear();
   completedDetails.clear();
+  completedDetailBytes.clear();
+  totalCompletedDetailBytes = 0;
 }
 
 function isUnset(value: unknown): boolean {

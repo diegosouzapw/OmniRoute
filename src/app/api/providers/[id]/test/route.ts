@@ -244,7 +244,7 @@ function isTokenExpired(connection: any) {
 // token — but is capped and stripped of control characters defensively before it reaches
 // the stored/surfaced error message, per docs/security/ERROR_SANITIZATION.md.
 function sanitizeUpstreamBodyText(bodyText: string): string {
-  const collapsed = bodyText.replace(/[\r\n\t -]+/g, " ").trim();
+  const collapsed = bodyText.replace(/[\r\n\t\u0000-\u001f]+/g, " ").trim();
   const MAX_LENGTH = 300;
   return collapsed.length > MAX_LENGTH ? `${collapsed.slice(0, MAX_LENGTH)}…` : collapsed;
 }
@@ -814,6 +814,27 @@ export async function testOAuthConnection(
             connection.provider === "agy"
           ? await res.text().catch(() => "")
           : "";
+
+    if (connection.provider === "antigravity" || connection.provider === "agy") {
+      console.log(
+        `[OAuthTest] ${connection.provider} probe returned HTTP ${res.status}:`,
+        bodyText.slice(0, 500)
+      );
+    }
+
+    // #13010: a Cloud Code envelope failure answers with its own JSON `error.message`.
+    // Appending it turns a useless "API returned 400" into the actual upstream reason.
+    // Collapsed/truncated by the same helper the gitlab-duo path uses.
+    let upstreamDetail = "";
+    if (bodyText) {
+      try {
+        const parsed = JSON.parse(bodyText);
+        if (typeof parsed?.error?.message === "string" && parsed.error.message.trim()) {
+          upstreamDetail = `: ${sanitizeUpstreamBodyText(parsed.error.message)}`;
+        }
+      } catch {}
+    }
+
     // #12958: surface the real upstream body for a gitlab-duo 403 that also fails the
     // public-fallback probe, instead of a generic "Access denied" — the operator needs
     // to tell an entitlement/scope failure apart from an instance-config or revoked-token
@@ -831,7 +852,7 @@ export async function testOAuthConnection(
           ? "Token invalid or revoked"
           : res.status === 403
             ? gitlabDuoAccessDeniedMessage
-            : `API returned ${res.status}`;
+            : `API returned ${res.status}${upstreamDetail}`;
 
     return {
       valid: false,

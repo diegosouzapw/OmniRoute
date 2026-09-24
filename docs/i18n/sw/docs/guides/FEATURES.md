@@ -1,268 +1,338 @@
 # OmniRoute — Dashboard Features Gallery (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇧🇦 [bs](../../../bs/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇧🇦 [bs](../../../bs/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+
+Mwongozo wa kuona wa kila sehemu ya dashibodi ya OmniRoute.
+
+> 📅 **Ilisasishwa mwisho:** 2026-06-28 — **v3.8.40**
 
 ---
 
-## 🔌 Providers
+## ✨ Vivutio vya v3.8.0
 
-![Providers Dashboard](screenshots/01-providers.png)
+Mzunguko wa v3.7.x → v3.8.0 umeongeza uelekezaji otomatiki usiohitaji usanidi, watoa huduma wapya, mitiririko ya OAuth, ustahimilivu wa kina zaidi, na matumizi bora zaidi ya CLI. Vipengele vikuu vimeorodheshwa hapa chini — maelezo kamili yanapatikana mbele zaidi katika hati hii na kwenye vipimo vilivyounganishwa.
 
----
+- 🤖 **Mchanganyiko Otomatiki / Uelekezaji otomatiki usiohitaji usanidi** — tumia viambishi awali `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Unaendeshwa na injini ya ukadiriaji yenye vipengele 16 na **vifurushi 6 vya modi** vilivyoteuliwa (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- 🆕 **Mtoa huduma wa Command Code** (#2199) — usajili kamili wenye katalogi ya modeli na ufuatiliaji wa mgao
+- 🆕 **Mtoa huduma wa Z.AI** — mtoa huduma mpya wa kiwango cha bure mwenye lebo za mgao
+- 🎬 **Upanuzi wa maudhui ya KIE** — katalogi iliyopanuliwa inayojumuisha modeli za kutengeneza video
+- 🔐 **Uthibitishaji wa Devin** — Desktop huingiza ufunguo uliopo wa API wa Devin; CLI hutumia vitambulisho vya ndani vya `devin auth login`
+- 🆓 **Watoa huduma 8 wapya wa bure** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Uelekezaji wa viwango W1–W4 unaozingatia manifesti** — manifesti za watoa huduma huendesha uteuzi wa viwango kulingana na uzani
+- 🎨 **Cursor yenye ulinganifu kamili na OpenAI** — miito ya zana, utiririshaji, na usimamizi wa vipindi kuanzia mwanzo hadi mwisho
+- 📊 **Matumizi ya mpango wa Cursor Pro** — data ya mgao na mzunguko huonyeshwa kwenye dashibodi ya vikomo vya watoa huduma
+- ⚡ **Uchanganuzi wa viwango vya huduma / uchanganuzi wa kiwango cha kasi cha Codex** — mwonekano wa matumizi kwa kila kiwango
+- 📌 **Uelekezaji thabiti kwa kila kipindi** — vipindi vya Codex hubaki kwenye akaunti ileile kati ya zamu
+- 🔊 **Maboresho ya TTS ya Inworld** — katalogi za sauti, utiririshaji, na maboresho ya ucheleweshaji
+- 🔑 **Uthibitishaji wa Kiro usio na kiolesura** — ingia kupitia hifadhi ya ndani ya SQLite ya `kiro-cli`, bila kuhitaji kivinjari
+- 📉 **Ufuatiliaji wa mgao na vikomo vya DeepSeek** — matumizi ya kila siku/kila mwezi huonyeshwa kupitia dashibodi
+- 🔄 **Mkakati wa uelekezaji unaozingatia uwekaji upya** — michanganyiko sasa hupendelea akaunti ambazo kipindi chake cha mgao kitawekwa upya mapema zaidi
+- ⏱️ **`fallbackDelayMs`** na **utambuzi badilifu wa kikomo cha zana** — udhibiti sahihi zaidi wa muda wa kutumia mbadala + vikomo vya idadi ya zana kwa kila mtoa huduma
+- 🔧 **Upunguzaji wa uwezo wa modi ya mandharinyuma (Responses API)** — hurudi kwenye modi sawia pamoja na onyo lililoundwa kwa mpangilio wakati huduma ya juu haina uwezo wa kuangalia hali ya mandharinyuma
+- 🚦 **Uainishaji wa 429 kwa kila mtoa huduma** + kigeuzi cha `useUpstream429BreakerHints` — tabia sahihi zaidi ya kivunja mzunguko kwa kutumia vidokezo vya vikomo vya kasi kutoka huduma ya juu
+- 🩺 **Dashibodi ya vipindi vya kusubiri vya modeli** — fuatilia kufungiwa kwa kila modeli na uwashe tena mwenyewe kutoka kwenye UI
+- 🔒 **Utambuzi badilifu wa cheti cha Linux cha MITM** — hufanya kazi kwenye Debian/Ubuntu, Fedora/RHEL, Arch, na distro nyingine
+- 💻 **Seti ya maboresho ya CLI** — amri zaidi ya 20 ikijumuisha `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- 🔍 **Ugunduzi wa modeli ya upachikaji ya Qdrant** — uchunguzi otomatiki wa modeli ya hifadhi ya vekta
+- 🔑 **Funguo za API / funguo za Bearer zenye mawanda ya `manage`** — tekeleza shughuli za usimamizi kiprogramu kupitia API
+- 🏥 **Uchanganuzi wa afya ya malengo ya mchanganyiko** + **kiunda mchanganyiko chenye muundo** — afya ya kila lengo na kiunda cha UI cha kuunganisha hatua za `(provider, model, connection)`
+- 🤝 **Mtoa huduma wa GitLab Duo OAuth** — ingia kwa kutumia vitambulisho vya GitLab
+- 🧠 **Akiba ya Kurudia Uchakataji wa Kimantiki** — uhifadhi mseto wa kumbukumbu ya ndani + SQLite wa vifuatilizi vya uchakataji wa kimantiki
 
-## 🎨 Combos
-
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-Recent combo improvements:
-
-- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
-- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
-- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
-- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
-
-![Combos Dashboard](screenshots/02-combos.png)
-
----
-
-## 📊 Analytics
-
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
-
----
-
-## 🏥 System Health
-
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
-
-![Health Dashboard](screenshots/04-health.png)
+📚 **Nyaraka zinazohusiana:** [Mfumo wa Ujuzi](../frameworks/SKILLS.md) · [Mfumo wa Kumbukumbu](../frameworks/MEMORY.md) · [Mawakala wa Wingu](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Akiba ya Kurudia Uchakataji wa Kimantiki](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🔧 Translator Playground
+## 🔌 Watoa huduma
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+Dhibiti miunganisho ya watoa huduma za AI: watoa huduma wa OAuth (Claude Code, Codex), watoa huduma wa funguo za API (Groq, DeepSeek, OpenRouter), na watoa huduma bila malipo (Qoder, Kiro). Akaunti za Kiro zinajumuisha ufuatiliaji wa salio la mikopo — mikopo iliyosalia, jumla ya mgao, na tarehe ya kusasishwa huonekana katika Dashibodi → Matumizi.
 
-![Translator Playground](screenshots/05-translator.png)
+Miunganisho ya OpenRouter inaweza kuhifadhi `preset` maalumu kwa kila muunganisho katika Mipangilio ya Kina. Ikiwekwa, OmniRoute huituma kama sehemu ya kiwango cha juu ya ombi la OpenRouter, kwa mfano `"preset": "email-copywriter"`, isipokuwa ombi la mteja tayari limetoa `preset` yake yenyewe.
 
----
-
-## 🎮 Model Playground _(v2.0.9+)_
-
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+![Dashibodi ya Watoa Huduma](../screenshots/01-providers.png)
 
 ---
 
-## 🎨 Themes _(v2.0.5+)_
+## 🎨 Michanganyiko
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+Unda michanganyiko ya uelekezaji wa modeli kwa mikakati 19 ya umma: priority, weighted, round-robin, context-relay, fill-first, p2c (uchaguzi wa nguvu-ya-mbili), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (mtoa-huduma-mzuri-wa-mwisho-anayejulikana), context-optimized, cache-optimized, **fusion** (tuma kwa kundi la modeli sambamba, kisha unganisha jibu moja kupitia mwamuzi), na **pipeline**. Kila mchanganyiko huunganisha modeli nyingi kwa ubadilishaji wa kiotomatiki endapo mojawapo itashindwa, na hujumuisha violezo vya haraka pamoja na ukaguzi wa utayari.
 
----
+Maboresho ya hivi karibuni ya michanganyiko:
 
-## ⚙️ Settings
+- **Kiunda michanganyiko kilichopangwa** — unda kila hatua kwa kuchagua mtoa huduma, modeli, na akaunti/muunganisho mahususi
+- **Usaidizi wa mtoa huduma anayerudiwa** — tumia tena mtoa huduma yuleyule mara nyingi katika mchanganyiko mmoja mradi tu jozi tatu za `(provider, model, connection)` ziwe za kipekee
+- **Afya ya lengo la mchanganyiko** — sehemu za takwimu na afya sasa hutofautisha malengo/hatua mahususi za mchanganyiko badala ya kukusanya kila kitu katika mifuatano ya modeli
+- **Mpangilio wa tabaka changamani** — `defaultTier -> fallbackTier` sasa huathiri mpangilio wa utekelezaji/ubadilishaji wakati wa uendeshaji kwa hatua za kiwango cha juu za mchanganyiko
+- **Violezo vya kidokezo cha mfumo** — `system_message` ya mchanganyiko inaauni
+  vihifadhi nafasi vya upande wa seva `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` na `{{FINGERPRINT}}`,
+  vinavyopanuliwa kutoka kwenye lengo lililoelekezwa kihalisi kabla tu ya kutumwa.
+  Vimewekewa orodha ya vinavyoruhusiwa na havijirudii; vihifadhi nafasi visivyojulikana hubaki kama vilivyo; thamani tupu
+  hupanuliwa kuwa tupu; vidokezo vya mfumo vya mteja haviandikwi upya kamwe. `{{FINGERPRINT}}`
+  hutatuliwa tu kwa watoa huduma bila malipo wanaotegemea alama ya utambulisho na wenye alama ya utambulisho iliyobandikwa au
+  inayozungushwa kiotomatiki — hupanuliwa kuwa tupu kwingineko (kwa mfano,
+  miunganisho ya alama moja ya utambulisho, watoa huduma wasiotumia fp). Upanuzi unajumuisha
+  mzunguko wa kawaida wa utumaji, round-robin, na vipindi vya akiba ya muktadha vilivyobandikwa;
+  mikakati ya fusion, chaos, pipeline na nested-execute bado haipanui
+  vihifadhi nafasi.
 
-Comprehensive settings panel with tabs:
-
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
-
----
-
-## 🔧 CLI Tools
-
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+![Dashibodi ya Michanganyiko](../screenshots/02-combos.png)
 
 ---
 
-## 🤖 CLI Agents _(v2.0.11+)_
+## 📊 Takwimu
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Takwimu za kina za matumizi zenye matumizi ya tokeni, makadirio ya gharama, ramani za joto za shughuli, chati za mgawanyo wa kila wiki, na uchanganuzi kwa kila mtoa huduma.
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+![Dashibodi ya Takwimu](../screenshots/03-analytics.png)
 
 ---
 
-## 🔗 Context Relay _(v3.5.5+)_
+## 🏥 Afya ya Mfumo
 
-A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+Ufuatiliaji wa wakati halisi: muda wa uendeshaji, kumbukumbu, toleo, asilimia za ucheleweshaji (p50/p95/p99), takwimu za akiba, hali za vivunja mzunguko vya watoa huduma, vipindi vinavyotumika vinavyofuatiliwa viwango vya matumizi, na afya ya malengo ya michanganyiko.
 
-Configurable via combo-level or global settings:
-
-- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
-- **Max Messages For Summary** — How much recent history to condense
-- **Summary Model** — Optional override model for generating the handoff summary
-
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+![Dashibodi ya Afya](../screenshots/04-health.png)
 
 ---
 
-## 🛡️ Proxy Hardening _(v3.5.5+)_
+## 🔧 Mazingira ya Majaribio ya Kitafsiri
 
-Comprehensive proxy configuration enforcement across the entire request pipeline:
+Hali nne za kutatua hitilafu za tafsiri za API: **Mazingira ya Majaribio** (kigeuzi cha umbizo), **Kijaribu Gumzo** (maombi ya moja kwa moja), **Benchi la Majaribio** (majaribio ya kundi), na **Kifuatiliaji cha Moja kwa Moja** (mtiririko wa wakati halisi).
 
-- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
-- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
-- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+![Mazingira ya Majaribio ya Kitafsiri](../screenshots/05-translator.png)
 
 ---
 
-## 📧 Email Privacy Masking _(v3.5.6+)_
+## 🎮 Mazingira ya Majaribio ya Modeli _(v2.0.9+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
-
----
-
-## 👁️ Model Visibility Toggle _(v3.5.6+)_
-
-The provider page model list now includes:
-
-- **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
-- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
+Jaribu modeli yoyote moja kwa moja kutoka kwenye dashibodi. Chagua mtoa huduma, modeli na endpoint, andika vidokezo kwa kutumia Monaco Editor, tiririsha majibu kwa wakati halisi, katisha katikati ya mtiririko, na uone vipimo vya muda.
 
 ---
 
-## 🔧 OAuth Env Repair _(v3.6.1+)_
+## 🎨 Mandhari _(v2.0.5+)_
 
-One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
-
-- Missing OAuth client credentials
-- Corrupted env file entries
-- Backup path sanitization
+Mandhari za rangi zinazoweza kubinafsishwa kwa dashibodi nzima. Chagua kutoka kwenye rangi 7 zilizowekwa awali (Matumbawe, Bluu, Nyekundu, Kijani, Urujuani, Machungwa, Samawati) au unda mandhari maalum kwa kuchagua rangi yoyote ya hex. Inaauni hali ya mwanga, giza na mfumo.
 
 ---
 
-## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+## ⚙️ Mipangilio
 
-Clean removal scripts for all installation methods:
+Paneli ya mipangilio ya kina yenye **vichupo 7**:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+- **Jumla** — Hifadhi ya mfumo, usimamizi wa nakala rudufu (hamisha/leta hifadhidata)
+- **Mwonekano** — Kiteuzi cha mandhari (giza/mwanga/mfumo), mipangilio ya awali ya rangi za mandhari na rangi maalum, uonekanaji wa kumbukumbu ya afya, vidhibiti vya uonekanaji wa vipengee vya utepe wa pembeni na vitenganishi vya vikundi, vidhibiti vya uonekanaji wa handaki la endpoint
+- **AI** — Vipengele vya msaidizi wa AI, mipangilio chaguomsingi ya uelekezaji (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), akiba ya marudio ya u reasoning, na vibadilishaji vya ujuzi/kumbukumbu
+- **Usalama** — Ulinzi wa endpoint ya API, uzuiaji wa watoa huduma maalum, uchujaji wa IP, taarifa za kipindi
+- **Uelekezaji** — Majina mbadala ya modeli, upunguzaji wa kiwango cha majukumu ya chinichini, uelekezaji wa ngazi unaozingatia manifest (W1–W4), `fallbackDelayMs`, uelekezaji thabiti kwa kila kipindi
+- **Ustahimilivu** — Udumishaji wa vikomo vya kiwango, urekebishaji wa circuit breaker, uzimaji kiotomatiki wa akaunti zilizopigwa marufuku, ufuatiliaji wa muda wa kuisha kwa watoa huduma, kiwango cha ukabidhishaji cha **Context Relay** na usanidi wa modeli ya muhtasari, uainishaji wa 429 kwa kila mtoa huduma na kibadilishaji cha `useUpstream429BreakerHints`, vipindi vya kupumzisha modeli
+- **Mahiri** — Ubatilishaji wa usanidi, historia ya ukaguzi wa usanidi, hali ya upunguzaji wa fallback, upunguzaji wa hali ya chinichini kwa Responses API
 
----
-
-## 🖼️ Media _(v2.0.3+)_
-
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
-
----
-
-## 📝 Request Logs
-
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
-
-![Usage Logs](screenshots/08-usage.png)
+![Dashibodi ya Mipangilio](../screenshots/06-settings.png)
 
 ---
 
-## 🌐 API Endpoint
+## 🔧 Zana za CLI
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+Usanidi wa kubofya mara moja kwa zana za AI za uandishi wa msimbo: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, na Factory Droid. Inajumuisha uwekaji/uwekaji upya wa usanidi kiotomatiki, wasifu wa miunganisho, na ulinganishaji wa modeli.
 
-![Endpoint Dashboard](screenshots/09-endpoint.png)
-
----
-
-## 🔑 API Key Management
-
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+![Dashibodi ya Zana za CLI](../screenshots/07-cli-tools.png)
 
 ---
 
-## 📋 Audit Log
+## 🤖 Mawakala wa CLI _(v2.0.11+)_
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+Dashibodi ya kugundua na kusimamia mawakala wa CLI. Inaonyesha gridi ya mawakala 16 waliojengewa ndani (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) ikiwa na:
 
----
-
-## 🖥️ Desktop Application
-
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
-
-Key features:
-
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
-
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+- **Hali ya usakinishaji** — Imesakinishwa / Haijapatikana pamoja na utambuzi wa toleo
+- **Beji za itifaki** — stdio, HTTP, n.k.
+- **Mawakala maalum** — Sajili zana yoyote ya CLI kupitia fomu (jina, faili tekelezi, amri ya toleo, hoja za spawn)
+- **Ulinganishaji wa Alama ya Utambulisho ya CLI** — Kibadilishaji cha kila mtoa huduma ili kulinganisha sahihi asili za maombi ya CLI, kupunguza hatari ya kupigwa marufuku huku ikihifadhi IP ya proksi
+- **Uthibitishaji wa Devin wa ndani** — Devin CLI hutumia `devin auth login`; mtiririko wa OAuth wa kivinjari hauhitajiki
 
 ---
 
-## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
+## 🔗 Uhamishaji wa Muktadha _(v3.5.5+)_
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+Mkakati mseto unaohifadhi mwendelezo wa kipindi wakati ubadilishaji wa akaunti unapotokea katikati ya mazungumzo. Kabla ya akaunti inayotumika kumaliza kikomo chake, OmniRoute hutengeneza muhtasari uliopangwa wa makabidhiano chinichini. Baada ya ombi linalofuata kuelekezwa kwenye akaunti tofauti, muhtasari huingizwa kama ujumbe wa mfumo ili akaunti mpya iendelee ikiwa na muktadha kamili.
 
-Key behaviours:
+Inaweza kusanidiwa kupitia mipangilio ya kiwango cha mseto au mipangilio ya jumla:
 
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
-- Streams terminated cleanly on session close or upstream error
-- Works alongside the existing HTTP+SSE streaming path simultaneously
+- **Kizingiti cha Makabidhiano** — Asilimia ya matumizi ya kiwango kinachoruhusiwa inayosababisha utengenezaji wa muhtasari (chaguo-msingi 85%)
+- **Idadi ya Juu ya Ujumbe kwa Muhtasari** — Kiasi cha historia ya hivi karibuni cha kufupisha
+- **Modeli ya Muhtasari** — Modeli ya hiari ya kubatilisha chaguo la kawaida kwa ajili ya kutengeneza muhtasari wa makabidhiano
 
----
-
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
-
-Multi-device and external operator access is now possible via **scoped sync tokens**:
-
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
-
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+Kwa sasa inasaidia ubadilishaji wa akaunti za Codex. Angalia [nyaraka za Uhamishaji wa Muktadha](../architecture/ARCHITECTURE.md).
 
 ---
 
-## 🧠 GLM Thinking Preset _(v3.6.6+)_
+## 🗜️ Mfinyazo wa Kidokezo _(v3.7.9+)_
 
-**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+Muktadha na Akiba sasa hutoa kurasa mahususi kwa Caveman, RTK, na Michanganyiko ya Mfinyazo:
 
-**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+- **Caveman** — vifurushi vya kanuni vinavyozingatia lugha, onyesho la awali, vidhibiti vya hali ya matokeo, na uchanganuzi
+- **RTK** — mfinyazo unaozingatia amri kwa matokeo ya shell, git, majaribio, uundaji, vifurushi, Docker, miundombinu, JSON, na ufuatiliaji wa rundo
+- **Michanganyiko ya Mfinyazo** — mifumo mfululizo iliyopewa majina kama vile `rtk -> caveman`, inayohusishwa na michanganyiko ya uelekezaji; hesabu chaguo-msingi ya mrundikano hufikia wastani wa `~89%` na uokoaji wa muktadha unaostahiki wa `78-95%` wakati injini zote mbili zinatumika
+- **Urejeshaji wa matokeo ghafi** — vielekezi vya hiari vya RTK vya matokeo ghafi yaliyofichwa taarifa nyeti kwa ajili ya kutatua hitilafu zilizofinyazwa
 
----
-
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
-
-All provider validation and model discovery calls now go through a two-layer outbound guard:
-
-1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
-2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
-
-Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+Angalia [Mwongozo wa Mfinyazo](../compression/COMPRESSION_GUIDE.md), [Mfinyazo wa RTK](../compression/RTK_COMPRESSION.md), na
+[Injini za Mfinyazo](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+## 🛡️ Uimarishaji wa Proksi _(v3.5.5+)_
 
-Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+Utekelezaji kamili wa usanidi wa proksi katika mtiririko mzima wa maombi:
+
+- **Ukaguzi wa Afya ya Tokeni** — Uonyeshaji upya wa OAuth wa chinichini sasa hutatua usanidi wa proksi kwa kila muunganisho, na hivyo kuzuia hitilafu katika mazingira yanayohitaji proksi
+- **Uthibitishaji wa Ufunguo wa API** — Uthibitishaji wa ufunguo wa mtoa huduma (`POST /api/providers/validate`) huelekezwa kupitia `runWithProxyContext`, huku ukiheshimu mipangilio ya proksi ya kiwango cha mtoa huduma na ya jumla
+- **Marekebisho ya Kisambazaji cha undici** — Visambazaji vya proksi hutumia utekelezaji wa fetch wa undici yenyewe badala ya fetch iliyojengewa ndani ya Node, na hivyo kutatua hitilafu za `invalid onRequestStart method` kwenye Node.js 22
+- **Utambuzi wa Toleo la Node.js** — Ukurasa wa kuingia hutambua mapema matoleo ya Node.js yasiyooana (24+) na kuonyesha bango la onyo lenye maagizo ya kutumia Node 22 LTS
 
 ---
 
-## 📋 Compliance Audit v2 _(v3.6.6+)_
+## 📧 Ufichaji wa Faragha ya Barua Pepe _(v3.5.6+)_
 
-The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.
+Barua pepe za akaunti za OAuth hufichwa kwa chaguo-msingi (k.m. `di*****@g****.com`) ili kuzuia kufichuliwa kimakosa wakati wa kushiriki picha za skrini au kurekodi maonyesho. Tumia Mipangilio → Mwonekano → Uonekanaji wa barua pepe ya akaunti ili kuonyesha au kuficha barua pepe kamili za akaunti kwa ujumla katika skrini za watoa huduma, michanganyiko, kumbukumbu, kiwango kinachoruhusiwa, na mazingira ya majaribio.
+
+---
+
+## 👁️ Kitufe cha Kubadilisha Uonekanaji wa Modeli _(v3.5.6+)_
+
+Orodha ya modeli kwenye ukurasa wa mtoa huduma sasa inajumuisha:
+
+- **Upau wa utafutaji/uchujaji wa wakati halisi** — Tafuta modeli mahususi kwa haraka
+- **Kitufe cha kubadilisha uonekanaji kwa kila modeli** (ikoni ya 👁) — Modeli zilizofichwa hufifishwa na kuondolewa kwenye katalogi ya `/v1/models`
+- **Beji ya idadi inayotumika** (`N/M active`) — Huonyesha kwa muhtasari idadi ya modeli zilizowezeshwa ikilinganishwa na jumla
+
+---
+
+## 🔧 Urekebishaji wa Env ya OAuth _(v3.6.1+)_
+
+Kitendo cha mbofyo mmoja cha "Rekebisha env" kwa watoa huduma wa OAuth ambacho hurejesha vigeu vya mazingira vinavyokosekana na kurekebisha hali ya uthibitishaji iliyoharibika. Kinaweza kufikiwa kupitia `Dashibodi → Watoa Huduma → [Mtoa Huduma wa OAuth] → Rekebisha env`. Hugundua na kurekebisha kiotomatiki:
+
+- Vitambulisho vya mteja wa OAuth vinavyokosekana
+- Maingizo ya faili ya env yaliyoharibika
+- Usafishaji wa njia ya nakala rudufu
+
+---
+
+## 🗑️ Usakinishaji-ondoa / Usakinishaji-ondoa Kamili _(v3.6.2+)_
+
+Hati za uondoaji safi kwa mbinu zote za usakinishaji:
+
+| Amri                     | Kitendo                                                                                  |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Huondoa programu ya mfumo lakini **huhifadhi DB na usanidi wako** katika `~/.omniroute`. |
+| `npm run uninstall:full` | Huondoa programu NA **hufuta kabisa usanidi, funguo na hifadhidata zote**.               |
+
+---
+
+## 🖼️ Midia _(v2.0.3+)_
+
+Zalisha picha, video na muziki kutoka kwenye dashibodi. Inatumia OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open na MusicGen.
+
+---
+
+## 📝 Kumbukumbu za Maombi
+
+Uwekaji kumbukumbu wa maombi katika muda halisi wenye uchujaji kwa mtoa huduma, modeli, akaunti na ufunguo wa API. Huonyesha misimbo ya hali, matumizi ya tokeni, muda wa kusubiri na maelezo ya majibu.
+
+![Kumbukumbu za Matumizi](../screenshots/08-usage.png)
+
+---
+
+## 🌐 Endpoint ya API
+
+Endpoint yako iliyounganishwa ya API yenye uchanganuzi wa uwezo: Ukamilishaji wa Gumzo, Responses API, Embeddings, Uzalishaji wa Picha, Upangaji Upya, Unukuzi wa Sauti, Ubadilishaji wa Maandishi kuwa Usemi, Ukaguzi wa Maudhui na funguo za API zilizosajiliwa. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel na proksi ya wingu zinapatikana kwa ufikiaji wa mbali.
+
+![Dashibodi ya Endpoint](../screenshots/09-endpoint.png)
+
+---
+
+## 🔑 Usimamizi wa Funguo za API
+
+Unda, weka mawanda na batilisha funguo za API. Kila ufunguo unaweza kuzuiwa kwa modeli/watoa huduma mahususi ukiwa na ufikiaji kamili au ruhusa za kusoma pekee. Usimamizi unaoonekana wa funguo wenye ufuatiliaji wa matumizi.
+
+---
+
+## 📋 Kumbukumbu ya Ukaguzi
+
+Ufuatiliaji wa vitendo vya kiutawala wenye uchujaji kwa aina ya kitendo, mtendaji, lengo, anwani ya IP na muhuri wa muda. Historia kamili ya matukio ya usalama.
+
+---
+
+## 🖥️ Programu ya Eneo-kazi
+
+Programu asilia ya eneo-kazi ya Electron kwa Windows, macOS na Linux. Endesha OmniRoute kama programu inayojitegemea yenye muunganisho wa trei ya mfumo, usaidizi wa nje ya mtandao, usasishaji kiotomatiki na usakinishaji wa mbofyo mmoja.
+
+Vipengele muhimu:
+
+- Ukaguzi wa mara kwa mara wa utayari wa seva (hakuna skrini tupu wakati wa kuanzisha kutoka hali baridi)
+- Trei ya mfumo yenye usimamizi wa porti
+- Sera ya Usalama wa Maudhui
+- Kufuli la instansi moja
+- Usasishaji kiotomatiki wakati wa kuwasha upya
+- UI inayotegemea mfumo (vitufe vya dirisha vya macOS, upau-msingi wa kichwa wa Windows/Linux)
+- Ufungashaji ulioimarishwa wa toleo la Electron — `node_modules` zilizounganishwa kwa viungo vya kiishara katika kifurushi kinachojitegemea hugunduliwa na kukataliwa kabla ya kufungasha, hivyo kuzuia utegemezi wa wakati wa utekelezaji kwa mashine ya ujenzi (v2.5.5+)
+- **Uzimaji salama** — `before-quit` ya Electron huzima Next.js kwa usahihi, hivyo kuzuia kufungwa kwa hifadhidata ya SQLite WAL (v3.6.2+)
+
+📖 Tazama [`electron/README.md`](../../electron/README.md) kwa nyaraka kamili.
+
+---
+
+## 🌐 Daraja la WebSocket la V1 _(v3.6.6+)_
+
+OmniRoute sasa inatumia **viteja vya WebSocket vinavyooana na OpenAI** kupitia endpoint ya uboreshaji ya `/v1/ws`. Seva maalum ya `scripts/dev/v1-ws-bridge.mjs` hufunika Next.js na kuboresha miunganisho ya WS kuwa vipindi kamili vya utiririshaji wa pande mbili. Uthibitishaji hutumia ufunguo uleule wa API au kidakuzi cha kipindi kama maombi ya HTTP.
+
+Tabia muhimu:
+
+- Uboreshaji wa WS huthibitishwa na `src/lib/ws/handshake.ts` kabla ya muunganisho kuanzishwa
+- Mitiririko husitishwa kwa usahihi kipindi kinapofungwa au hitilafu ya chanzo cha juu inapotokea
+- Hufanya kazi kwa wakati mmoja sambamba na njia iliyopo ya utiririshaji ya HTTP+SSE
+
+---
+
+## 🔑 Tokeni za Usawazishaji na Kifurushi cha Usanidi _(v3.6.6+)_
+
+Ufikiaji wa vifaa vingi na wa waendeshaji wa nje sasa unawezekana kupitia **tokeni za usawazishaji zenye mawanda maalum**:
+
+- **`POST /api/sync/tokens`** — Toa tokeni mpya ya usawazishaji (yenye mawanda maalum na muda wa hiari wa kuisha)
+- **`DELETE /api/sync/tokens/:id`** — Batilisha tokeni
+- **`GET /api/sync/bundle`** — Pakua picha ya hali ya JSON yenye toleo na ufunguo wa ETag ya mipangilio yote isiyo nyeti (nywila zimefichwa)
+
+Kifurushi cha usanidi huundwa na `src/lib/sync/bundle.ts`. Watumiaji hulinganisha kichwa cha jibu cha `ETag` ili kugundua mabadiliko bila kupakua tena data yote.
+
+---
+
+## 🧠 Mpangilio Awali wa Kufikiri wa GLM _(v3.6.6+)_
+
+**GLM Thinking (`glmt`)** sasa ni mtoa huduma mkuu aliyesajiliwa: kiwango cha juu cha tokeni 65 536 za matokeo, bajeti ya kufikiri ya 24 576, muda chaguo-msingi wa kuisha wa sekunde 900, muundo wa API unaooana na Claude, na usawazishaji wa pamoja wa matumizi na familia ya GLM.
+
+**Uhesabuji mseto wa tokeni** pia umeongezwa katika v3.6.6: mtoa huduma anayeoana na Claude anapowasilisha `/messages/count_tokens`, OmniRoute huiita kabla ya maombi makubwa, huku ikitumia kwa urahisi ukadiriaji kama mbadala.
+
+---
+
+## 🛡️ Uletaji Salama wa Data Zinazotoka na Kinga ya SSRF _(v3.6.6+)_
+
+Uthibitishaji wote wa watoa huduma na miito ya ugunduzi wa modeli sasa hupitia kinga ya safu mbili ya miunganisho inayotoka:
+
+1. **Kinga ya URL** (`src/shared/network/outboundUrlGuard.ts`) — Huzuia masafa ya anwani za IP za faragha/loopback/link-local kabla soketi haijafunguliwa.
+2. **Kifungashio salama cha uletaji** (`src/shared/network/safeOutboundFetch.ts`) — Hutumia kinga ya URL, husawazisha muda wa kuisha, na hujaribu tena hitilafu za muda kwa ongezeko la muda wa kusubiri kwa mpangilio wa eksponenti.
+
+Ukiukaji wa kinga huwasilishwa kama HTTP 422 (`URL_GUARD_BLOCKED`) na huandikwa kwenye kumbukumbu ya ukaguzi wa uzingatiaji kupitia `providerAudit.ts`.
+
+---
+
+## 🔄 Majaribio Yanayozingatia Kipindi cha Kusubiri _(v3.6.6+)_
+
+Maombi ya gumzo sasa **hujaribiwa tena kiotomatiki** wakati mtoa huduma wa juu anaporejesha kipindi cha kusubiri kinachohusu modeli mahususi. Huweza kusanidiwa kupitia `REQUEST_RETRY` (chaguo-msingi: 2) na `MAX_RETRY_INTERVAL_SEC` (chaguo-msingi: sekunde 30). Ujifunzaji wa vichwa vya ukomo wa kiwango umeboreshwa katika `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, na `Retry-After` — hali ya kipindi cha kusubiri kwa kila modeli inaonekana kwenye dashibodi ya Ustahimilivu.
+
+---
+
+## 📋 Ukaguzi wa Uzingatiaji v2 _(v3.6.6+)_
+
+Kumbukumbu ya ukaguzi imepanuliwa kwa kuongeza uorodheshaji wa kurasa unaotumia kielekezi, uboreshaji wa muktadha wa ombi (kitambulisho cha ombi, wakala wa mtumiaji, IP), matukio ya uthibitishaji yaliyopangwa, matukio ya CRUD ya watoa huduma yenye muktadha wa tofauti, na uwekaji kumbukumbu wa uthibitishaji uliozuiwa na SSRF. Matukio mapya hutolewa na `src/lib/compliance/providerAudit.ts`.

@@ -17,7 +17,7 @@ import {
   buildKimiCodeIdentityHeaders,
   getKimiCodeCliUserAgent,
 } from "../../config/providers/registry/kimi/coding/runtime.ts";
-import { toRecord, toNumber } from "./scalars.ts";
+import { toRecord, toNumber, clampPercentage } from "./scalars.ts";
 import { createQuotaFromUsage, type UsageQuota, parseResetTime } from "./quota.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -139,6 +139,29 @@ function createKimiCountQuota(value: unknown): UsageQuota | null {
   return createQuotaFromUsage(used, limit, detail.resetTime ?? detail.reset_at ?? detail.resetAt);
 }
 
+function createKimiRatioQuota(value: unknown): UsageQuota | null {
+  const detail = toRecord(value);
+  const ratio = optionalNumber(detail.used_ratio ?? detail.usedRatio);
+  if (ratio === null || ratio < 0) return null;
+  // used_ratio is 0-1. ratio*100 is not binary-exact
+  // (0.147051 * 100 === 14.705099999999998). Round to four decimal percent.
+  const used = clampPercentage(Math.round(ratio * 1e6) / 1e4);
+  return createQuotaFromUsage(used, 100, detail.reset_time ?? detail.resetTime ?? detail.resetAt);
+}
+
+function applyKimiMembershipRatios(quotas: Record<string, UsageQuota>, usages: unknown): void {
+  const rec = toRecord(usages);
+  const mapping: Array<[string, string, string]> = [
+    ["limit_7d", "code_7d", "Code · 7d"],
+    ["limit_5h", "code_5h", "Code · 5h"],
+  ];
+  for (const [source, key, displayName] of mapping) {
+    const quota = createKimiRatioQuota(rec[source]);
+    if (!quota) continue;
+    quotas[key] = { ...quota, displayName };
+  }
+}
+
 type KimiWindowLabel = { key: string; displayName: string };
 
 function normalizeKimiWindow(value: unknown, fallbackIndex: number): KimiWindowLabel {
@@ -243,7 +266,7 @@ export async function getKimiUsage(
 
     const quotas: Record<string, UsageQuota> = {};
     const dataObj = toRecord(data);
-    const billing = buildKimiBillingStatus(dataObj.boosterWallet);
+    const billing = buildKimiBillingStatus(dataObj.boosterWallet ?? dataObj.booster_wallet);
 
     // The managed Kimi Code API reports the Code 7-day quota in `usage`.
     // The website's separate shared-membership total/Kimi split comes from a
@@ -276,6 +299,8 @@ export async function getKimiUsage(
         : normalized.displayName;
       quotas[key] = { ...quota, displayName };
     }
+
+    applyKimiMembershipRatios(quotas, dataObj.usages);
 
     // Check for quota windows (Claude-like format with utilization) as fallback
     const hasUtilization = (window: JsonRecord) =>

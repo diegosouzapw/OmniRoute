@@ -12,14 +12,23 @@ export interface DbHealthJob {
   pagerCorruption: PagerCorruptionNote | null;
 }
 
+/**
+ * `skipIntegrityCheck` (#13149): a caller may waive the integrity scan — the dashboard
+ * poll does. It is part of the job identity, so a waived scan is never replayed from the
+ * cache to a caller that asked for a full one (the reverse direction is safe).
+ */
 export function createDbHealthCoordinator(
-  execute: (autoRepair: boolean) => Promise<DbHealthCheckResult>,
+  execute: (autoRepair: boolean, skipIntegrityCheck: boolean) => Promise<DbHealthCheckResult>,
   options: { now?: () => number; cacheMs?: number } = {}
 ) {
   const now = options.now ?? Date.now;
   const cacheMs = options.cacheMs ?? 60_000;
   let stopping = false;
-  let active: { autoRepair: boolean; promise: Promise<DbHealthCheckResult> } | null = null;
+  let active: {
+    autoRepair: boolean;
+    skipIntegrityCheck: boolean;
+    promise: Promise<DbHealthCheckResult>;
+  } | null = null;
   let cached: { result: DbHealthCheckResult; expires: number } | null = null;
   return {
     get busy(): boolean {
@@ -34,10 +43,13 @@ export function createDbHealthCoordinator(
       cancel();
       await active?.promise.catch(() => {});
     },
-    run(autoRepair: boolean): Promise<DbHealthCheckResult> {
+    run(autoRepair: boolean, skipIntegrityCheck = false): Promise<DbHealthCheckResult> {
       if (stopping) return Promise.reject(new Error("Database health checks are stopping"));
       if (active) {
-        return active.autoRepair === autoRepair
+        // A run that DID scan integrity satisfies a caller that was willing to skip it,
+        // never the reverse (#13149) — so only widen, never narrow, the in-flight job.
+        return active.autoRepair === autoRepair &&
+          (active.skipIntegrityCheck === skipIntegrityCheck || !active.skipIntegrityCheck)
           ? active.promise
           : Promise.reject(new Error("Database health check already in progress"));
       }
@@ -49,9 +61,11 @@ export function createDbHealthCoordinator(
         resolve = yes;
         reject = no;
       });
-      active = { autoRepair, promise };
+      active = { autoRepair, skipIntegrityCheck, promise };
       const succeed = (result: DbHealthCheckResult) => {
-        if (!autoRepair) cached = { result, expires: now() + cacheMs };
+        // Only a full (integrity-scanning) diagnosis may be replayed from the cache:
+        // caching a skipped scan would silently downgrade a later full request (#13149).
+        if (!autoRepair && !skipIntegrityCheck) cached = { result, expires: now() + cacheMs };
         active = null;
         resolve(result);
       };
@@ -60,7 +74,7 @@ export function createDbHealthCoordinator(
         reject(error);
       };
       try {
-        execute(autoRepair).then(succeed, fail);
+        execute(autoRepair, skipIntegrityCheck).then(succeed, fail);
       } catch (error) {
         fail(error);
       }

@@ -26,6 +26,12 @@ test("muse-code models include llama-4-maverick", () => {
   assert.ok(ids.includes("llama-4-maverick"), "must include llama-4-maverick");
 });
 
+test("muse-code models include muse-spark subscription ids", () => {
+  const ids = muse_codeProvider.models.map((m) => m.id);
+  assert.ok(ids.includes("muse-spark-1.3"), "must include muse-spark-1.3");
+  assert.ok(ids.includes("muse-spark-1.3-contributor"), "must include muse-spark-1.3-contributor");
+});
+
 test("muse-code models include llama-4-scout", () => {
   const ids = muse_codeProvider.models.map((m) => m.id);
   assert.ok(ids.includes("llama-4-scout"), "must include llama-4-scout");

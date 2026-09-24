@@ -202,3 +202,75 @@ test("lastRunAt survives a simulated restart (state reloaded from key_value)", a
   assert.equal(afterRestart, beforeRestart);
   scheduler.stop();
 });
+
+// ──────────────── #12821: deferred full-VACUUM requests ────────────────
+
+test("getState() exposes the deferred full-VACUUM request fields as null by default", () => {
+  const state = scheduler.getState();
+  assert.equal(state.fullVacuumRequestedAt, null);
+  assert.equal(state.fullVacuumRequestReason, null);
+});
+
+test("requestFullVacuum() records the request, persists it, and keeps the first timestamp", () => {
+  setOptimizationSettings({ scheduledVacuum: "weekly", vacuumHour: 2 });
+  scheduler.init();
+  try {
+    const first = scheduler.requestFullVacuum("cleanup left 42 free page(s)");
+    assert.equal(typeof first.fullVacuumRequestedAt, "number");
+    assert.equal(first.fullVacuumRequestReason, "cleanup left 42 free page(s)");
+    // It must NOT run the VACUUM itself — only record intent.
+    assert.equal(first.lastRunAt, null);
+    assert.equal(first.isRunning, false);
+
+    const second = scheduler.requestFullVacuum("cleanup left 7 free page(s)");
+    assert.equal(second.fullVacuumRequestedAt, first.fullVacuumRequestedAt, "first timestamp wins");
+    assert.equal(
+      second.fullVacuumRequestReason,
+      "cleanup left 7 free page(s)",
+      "latest reason wins"
+    );
+
+    // Persisted in the same key_value blob as the rest of the state.
+    const row = core
+      .getDbInstance()
+      .prepare("SELECT value FROM key_value WHERE namespace = 'scheduler' AND key = 'vacuum'")
+      .get() as { value: string } | undefined;
+    assert.ok(row, "state row must exist");
+    const persisted = JSON.parse(row.value);
+    assert.equal(persisted.fullVacuumRequestedAt, first.fullVacuumRequestedAt);
+    assert.equal(persisted.fullVacuumRequestReason, "cleanup left 7 free page(s)");
+  } finally {
+    scheduler.stop();
+  }
+});
+
+test("a deferred request survives a simulated restart and is cleared by the next successful run", async () => {
+  setOptimizationSettings({ scheduledVacuum: "never" });
+  scheduler.init();
+  scheduler.requestFullVacuum("auto_vacuum=0 cannot reclaim incrementally");
+  const requestedAt = scheduler.getState().fullVacuumRequestedAt;
+  assert.equal(typeof requestedAt, "number");
+
+  // Restart: in-memory state wiped, init() reloads from key_value.
+  scheduler.__resetForTests();
+  assert.equal(scheduler.getState().fullVacuumRequestedAt, null);
+  scheduler.init();
+  assert.equal(scheduler.getState().fullVacuumRequestedAt, requestedAt);
+  assert.match(scheduler.getState().fullVacuumRequestReason ?? "", /auto_vacuum=0/);
+
+  // scheduledVacuum=never is honored: nothing is armed even though a request is pending.
+  assert.equal(scheduler.getState().enabled, false);
+  assert.equal(scheduler.getState().nextRunAt, null);
+
+  // The next successful full run (scheduled or manual via the Storage page) satisfies it.
+  try {
+    const result = await scheduler.runNow();
+    assert.equal(result.success, true);
+    const state = scheduler.getState();
+    assert.equal(state.fullVacuumRequestedAt, null);
+    assert.equal(state.fullVacuumRequestReason, null);
+    assert.notEqual(state.lastRunAt, null);
+  } finally {
+    scheduler.stop();
+  }
+});

@@ -1,43 +1,14 @@
-# CLI-INTEGRATIONS (မြန်မာ)
+# CLI Integrations (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇦 [bs](../../../bs/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
 
 ---
 
-title: "CLI ပေါင်းစည်းမှုများ — မည်သည့် coding CLI ကိုမဆို OmniRoute သို့ ချိတ်ဆက်ပါ"
-version: 3.8.50
-lastUpdated: 2026-08-18
----
+OmniRoute တွင် coding CLI (Codex, Claude Code, OpenCode, Cline၊ …) များအား OmniRoute ကို backend အဖြစ် အသုံးပြုရန် ပြင်ဆင်ပေးသည့် `setup-*` command အစုတစ်ခု ပါဝင်သည် — ထို့ကြောင့် tool သည် endpoint **တစ်ခုတည်း** နှင့် ဆက်သွယ်ပြီး OmniRoute က သင့်လျော်သော provider ထံသို့ auto-fallback ဖြင့် route လုပ်ပေးသည်။ Command တစ်ခုစီသည် လက်ရှိ run နေသော OmniRoute (local သို့မဟုတ် remote) မှ **တိုက်ရိုက်** model catalog ကို ဖတ်ပြီး tool ၏ ကိုယ်ပိုင် config file ကို **သင့်** စက်ပေါ်တွင် ရေးသားပေးသည်။ Tool က ပံ့ပိုးသည့် နေရာတိုင်းတွင် API key ကို environment variable ဖြင့် ရည်ညွှန်းထားသည်။ Tool-local environment file ကို အမြဲတမ်း သိမ်းဆည်းသည့် command များကို အောက်တွင် မှတ်ချက်ပြုထားသည်။
 
-# CLI ပေါင်းစည်းမှုများ
+Config တစ်စုံတစ်ရာ လုံးဝရေးသားခြင်းမရှိဘဲ သင့်လျော်သော env များကို ထည့်သွင်း၍ `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` သို့မဟုတ် `gemini` ကို စတင်ပေးသည့် ယေဘုယျ launcher — `omniroute run <target>` — လည်း ရှိသည်။ Target များနှင့် ၎င်းတို့၏ alias များသည် canonical manifest `bin/cli/cli-manifest.mjs` မှ လာသည် (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`)၊ ထို့အပြင် `omniroute completion` ကလည်း အဆိုပါ manifest မှ ဆင်းသက်လာသော target စကားလုံးများကို ပေးသည်။ ယခင် tool တစ်ခုချင်းစီအလိုက် launcher များဖြစ်သည့် `omniroute launch` (Claude Code) နှင့် `omniroute launch-codex` (Codex) တို့ကိုလည်း ဆက်လက်အသုံးပြုနိုင်သည်။
 
-OmniRoute တွင် coding CLI (Codex, Claude Code, OpenCode, Cline, …) တစ်ခုကို
-OmniRoute အား ၎င်း၏ backend အဖြစ် အသုံးပြုရန် စီစဉ်သတ်မှတ်ပေးသည့် `setup-*`
-command များ ပါဝင်သည် — ထို့ကြောင့် tool သည် endpoint **တစ်ခုတည်း** နှင့် ဆက်သွယ်ပြီး
-OmniRoute က သင့်တော်သည့် provider ထံသို့ auto-fallback ဖြင့် လမ်းကြောင်းပေးသည်။
-Command တစ်ခုစီသည် လည်ပတ်နေသော OmniRoute (local သို့မဟုတ် remote) မှ
-**လက်ရှိ** model catalog ကို ဖတ်ယူပြီး tool ၏ ကိုယ်ပိုင် config file ကို
-**သင့်** စက်ပေါ်တွင် ရေးသားသည်။ Tool က ပံ့ပိုးသည့် နေရာတိုင်းတွင် API key ကို
-environment variable ဖြင့် ရည်ညွှန်းထားသည်။ Tool-local environment file ကို
-အမြဲတမ်းသိမ်းဆည်းသည့် command များကို အောက်တွင် မှတ်သားဖော်ပြထားသည်။
-
-မည်သည့် config ကိုမျှ မရေးသားဘဲ မှန်ကန်သော env ကို ထည့်သွင်းကာ
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` သို့မဟုတ် `gemini` ကို
-စတင်ပေးသည့် ယေဘုယျ launcher — `omniroute run <target>` — လည်း ရှိသည်။
-Target များနှင့် ၎င်းတို့၏ alias များကို canonical manifest
-`bin/cli/cli-manifest.mjs` မှ ရယူသည်
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`)၊ ထို့ပြင် `omniroute completion` သည်လည်း
-အလားတူ manifest မှ ရယူထားသော target စကားလုံးများကို ပေးသည်။ Tool တစ်ခုချင်းစီအတွက်
-ယခင် launcher များဖြစ်သည့် `omniroute launch` (Claude Code) နှင့်
-`omniroute launch-codex` (Codex) တို့ကိုလည်း ဆက်လက်အသုံးပြုနိုင်သည်။
-
-Provider စတင်ချိတ်ဆက်သတ်မှတ်ခြင်းကိုလည်း အလားတူ local/remote context မှ
-လုပ်ဆောင်နိုင်သည်။ အောက်ပါ API-first command များသည် စီမံခန့်ခွဲမှုဆိုင်ရာ
-authentication ကို provider credential များနှင့် သီးခြားထားပြီး structured
-output ထဲတွင် credential ကို မည်သည့်အခါမျှ မဖော်ပြပါ။
+Provider စတင်ချိတ်ဆက်သတ်မှတ်ခြင်းကိုလည်း အလားတူ local/remote context မှ လုပ်ဆောင်နိုင်သည်။ အောက်ပါ API-first command များသည် management authentication ကို provider credential များနှင့် သီးခြားခွဲထားပြီး structured output တွင် credential ကို မည်သည့်အခါမျှ မဖော်ပြပါ။
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -47,21 +18,15 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Script များအတွက် `--credential-stdin` သို့မဟုတ် `--credential-env` ကို
-ဦးစားပေးအသုံးပြုပါ။ `--credential` ကို ထိန်းချုပ်ထားသော local အသုံးပြုမှုအတွက်
-ဆက်လက်ထားရှိထားသည်။ Non-interactive terminal တစ်ခုတွင် `providers remove`
-သည် `--yes` လိုအပ်ပြီး command ငါးခုစလုံးသည် လက်ရှိအသုံးပြုနေသော context
-သို့မဟုတ် global `--base-url`/`--api-key` option များကို လိုက်နာသည်။
+Script များအတွက် `--credential-stdin` သို့မဟုတ် `--credential-env` ကို ဦးစားပေးအသုံးပြုပါ။ `--credential` ကို ထိန်းချုပ်ထားသော local အသုံးပြုမှုအတွက် ဆက်လက်ထားရှိထားသည်။ Non-interactive terminal ပေါ်တွင် `providers remove` ကို အသုံးပြုရန် `--yes` လိုအပ်ပြီး command ငါးခုစလုံးသည် active context သို့မဟုတ် global `--base-url`/`--api-key` option များကို လိုက်နာသည်။
 
-လုပ်ဆောင်ချက်အပြည့်စုံဆုံး ပေါင်းစည်းမှုနှစ်ခု၏ တစ်ကြိမ်သာ ကိုယ်တိုင်ရေးသားရသော
-အခြေခံ setup အကြောင်းကို tool တစ်ခုချင်းစီအလိုက် အသေးစိတ်လမ်းညွှန်ချက်များတွင်
-ကြည့်ပါ။
+လုပ်ဆောင်ချက်အစုံလင်ဆုံး integration နှစ်ခု၏ တစ်ကြိမ်သာ လက်ဖြင့်ရေးသားရသော အခြေခံ setup အတွက် tool တစ်ခုချင်းစီဆိုင်ရာ အသေးစိတ်လမ်းညွှန်များကို ကြည့်ပါ။
 
-- [Claude Code စီစဉ်သတ်မှတ်ခြင်း](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI စီစဉ်သတ်မှတ်ခြင်း](./CODEX-CLI-CONFIGURATION.md)
-- [Remote Mode](./REMOTE-MODE.md) — သင့် laptop မှ remote OmniRoute (VPS / Tailnet) ကို ထိန်းချုပ်ပါ
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot extension ဖြစ်ပြီး editor အတွင်းမှ
-  ဤ `setup-*` command များကိုလည်း သင့်အတွက် လုပ်ဆောင်ပေးနိုင်သည်
+- [Claude Code ပြင်ဆင်သတ်မှတ်ခြင်း](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI ပြင်ဆင်သတ်မှတ်ခြင်း](./CODEX-CLI-CONFIGURATION.md)
+- [Remote Mode](./REMOTE-MODE.md) — သင့် laptop မှ remote OmniRoute (VPS / Tailnet) ကို ထိန်းချုပ်အသုံးပြုပါ
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot extension ဖြစ်ပြီး editor အတွင်းမှနေ၍ ဤ
+  `setup-*` command များကိုလည်း သင့်အတွက် run ပေးနိုင်သည်
 
 ---
 

@@ -32,7 +32,12 @@ import {
 } from "../db/proxies";
 import { bumpProxyConfigGeneration } from "../db/settings";
 import { isSubscriptionDue } from "./due";
-import { isLocalCoreEndpointAllowed } from "./coreEndpoint";
+import {
+  isLocalCoreEndpointAllowed,
+  parseLocalCoreEndpoints,
+  redactCoreEntryForDetail,
+} from "./coreEndpoint";
+import { isProxyReachable } from "../proxyHealth";
 import { resolveTargetScopes } from "./scopes";
 import {
   isSubscriptionFetchUrlAllowed,
@@ -42,7 +47,7 @@ import {
 } from "./fetchGuard";
 import { areLocalProviderUrlsAllowed } from "@/shared/network/outboundUrlGuardPolicy";
 import { withRetry } from "./fetchRetry";
-import { parseSubscription, redactedNodeSummary, type ParsedSubscription } from "./parse";
+import { isUsableSubscriptionContent, parseSubscription, redactedNodeSummary, type ParsedSubscription } from "./parse";
 
 export type ProxySubscriptionMode = "global" | "rule";
 export type ProxySubscriptionStatus = "ok" | "error" | "empty";
@@ -408,6 +413,22 @@ async function keepOwnedSyncedRow(
   }
 }
 
+/**
+ * Build the URL the reachability probe dials for a validated core entry.
+ *
+ * The probe resolves a missing port via its own scheme default (socks5→1080)
+ * while the registry row uses the upsert rule (https→443, else 8080) — so the
+ * probe must carry the row's effective port explicitly, otherwise verdict and
+ * row disagree on port-less entries. Userinfo is preserved for the connection;
+ * the warning `detail` always uses the redacted entry, never this URL.
+ */
+function buildProbeUrl(coreUrl: URL, coreType: string, port: number): string {
+  const auth = coreUrl.username
+    ? `${coreUrl.username}${coreUrl.password ? `:${coreUrl.password}` : ""}@`
+    : "";
+  return `${coreType}://${auth}${coreUrl.hostname.toLowerCase()}:${port}`;
+}
+
 /** Fetch + parse + sync nodes into proxy_registry, then (if enabled) (re)bind. */
 async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
   const sub = await getSubscriptionById(id);
@@ -433,7 +454,7 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
       id,
       "error",
       `Fetch failed: ${msg}`,
-      null,
+      sub.lastNodes,
       new Date().toISOString(),
       fetchConsec
     );
@@ -449,6 +470,31 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
   }
 
   const parsed: ParsedSubscription = parseSubscription(body);
+
+  // Refuse unrecognized content before any registry write: an invalid or
+  // temporarily broken feed must never empty the pool. Serve the persisted
+  // last-known-good nodes instead and leave every registry row untouched.
+  if (!isUsableSubscriptionContent(parsed)) {
+    const refuseError = subscriptionErrorCode("NO_USABLE_NODES");
+    const invalidConsec = (sub.consecutiveFailures || 0) + 1;
+    await updateSubscriptionStatus(
+      id,
+      "error",
+      refuseError,
+      sub.lastNodes,
+      new Date().toISOString(),
+      invalidConsec
+    );
+    return {
+      subscriptionId: id,
+      nodes: 0,
+      needsCore: 0,
+      boundProxies: 0,
+      status: "error",
+      error: refuseError,
+      applied: false,
+    };
+  }
   const db = getDbInstance();
 
   const keptIds: string[] = [];
@@ -480,39 +526,141 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
       await keepOwnedSyncedRow(upserted, keptIds);
     }
 
-    // needsCore nodes → bind the operator-supplied local core endpoint (single).
+    // needsCore nodes → bind each operator-supplied local core endpoint (one
+    // line of the field becomes its own registry row and pool member).
     if (parsed.needsCore.length > 0) {
-      if (sub.localCoreEndpoint && isLocalCoreEndpointAllowed(sub.localCoreEndpoint)) {
-        try {
-          const coreUrl = new URL(sub.localCoreEndpoint);
+      const entries = parseLocalCoreEndpoints(sub.localCoreEndpoint);
+      if (entries.length === 0) {
+        const nodes = parsed.needsCore
+          .map((n) => `${n.rawProtocol}://${n.host ?? ""}${n.port ? ":" + n.port : ""}`)
+          .join(", ");
+        warning = subscriptionErrorCode("NEEDS_CORE_NOT_CONFIGURED", nodes);
+      } else {
+        // Normalize per entry for keying: gate first, then dedup on
+        // (scheme, host, port, username). The port default follows the upsert
+        // rule below (https→443, else 8080) — not the probe default.
+        const invalid: string[] = [];
+        const unreachable: string[] = [];
+        const collisions: string[] = [];
+        const seenKeys = new Set<string>();
+        const validEntries: Array<{
+          entry: string;
+          probeUrl: string;
+          coreUrl: URL;
+          coreType: string;
+          port: number;
+          username?: string;
+          password?: string;
+        }> = [];
+        for (const entry of entries) {
+          if (!isLocalCoreEndpointAllowed(entry)) {
+            invalid.push(redactCoreEntryForDetail(entry));
+            continue;
+          }
+          let coreUrl: URL;
+          try {
+            coreUrl = new URL(entry);
+          } catch {
+            invalid.push(redactCoreEntryForDetail(entry));
+            continue;
+          }
           const coreType =
             coreUrl.protocol === "https:"
               ? "https"
               : coreUrl.protocol === "socks5:"
                 ? "socks5"
                 : "http";
-          const upserted = await upsertProxy(
-            {
-              name: `${sub.name} (local core)`,
-              type: coreType,
-              host: coreUrl.hostname,
-              port: Number(coreUrl.port) || (coreType === "https" ? 443 : 8080),
-              username: coreUrl.username ? decodeUserinfo(coreUrl.username) : undefined,
-              password: coreUrl.password ? decodeUserinfo(coreUrl.password) : undefined,
-              source: "subscription",
-              subscriptionId: id,
-            },
-            { claimOwnership: false }
-          );
-          await keepOwnedSyncedRow(upserted, keptIds);
-        } catch {
-          warning = subscriptionErrorCode("LOCAL_CORE_ENDPOINT_INVALID");
+          const port = Number(coreUrl.port) || (coreType === "https" ? 443 : 8080);
+          let username = "";
+          let password: string | undefined;
+          try {
+            username = coreUrl.username ? decodeUserinfo(coreUrl.username) : "";
+            password = coreUrl.password ? decodeUserinfo(coreUrl.password) : undefined;
+          } catch {
+            invalid.push(redactCoreEntryForDetail(entry));
+            continue;
+          }
+          const key = `${coreType}://${coreUrl.hostname.toLowerCase()}:${port}:${username}`;
+          if (seenKeys.has(key)) continue;
+          // A scheme collision shares (host, port, username) with an already
+          // accepted entry: the registry keys on that tuple without the scheme,
+          // so a second upsert would silently overwrite the first row's type.
+          // Keep the first entry, report the loser.
+          const ownerKey = `://${coreUrl.hostname.toLowerCase()}:${port}:${username}`;
+          let collided = false;
+          for (const seen of seenKeys) {
+            if (seen.endsWith(ownerKey)) {
+              collided = true;
+              break;
+            }
+          }
+          if (collided) {
+            collisions.push(redactCoreEntryForDetail(entry));
+            continue;
+          }
+          seenKeys.add(key);
+          // Probe the normalized URL, not the raw entry: the probe resolves a
+          // missing port via its own scheme default (socks5→1080) while the
+          // row uses the upsert rule (https→443, else 8080). Probing the raw
+          // entry would test a different port than the row serves.
+          const probeUrl = buildProbeUrl(coreUrl, coreType, port);
+          validEntries.push({
+            entry,
+            probeUrl,
+            coreUrl,
+            coreType,
+            port,
+            username: username || undefined,
+            password,
+          });
         }
-      } else {
-        const nodes = parsed.needsCore
-          .map((n) => `${n.rawProtocol}://${n.host ?? ""}${n.port ? ":" + n.port : ""}`)
-          .join(", ");
-        warning = subscriptionErrorCode("NEEDS_CORE_NOT_CONFIGURED", nodes);
+        // Probe reachability per entry, concurrently: the TCP probes are
+        // independent reads, so they fan out under Promise.all instead of
+        // stacking N sequential timeouts on the periodic sync path. Upserts
+        // stay sequential below. The verdict only feeds the warning detail —
+        // a row is created even when the core is unreachable.
+        const probeVerdicts = await Promise.all(
+          validEntries.map(async (valid) => {
+            try {
+              return await isProxyReachable(valid.probeUrl, undefined, 0);
+            } catch {
+              return false;
+            }
+          })
+        );
+        probeVerdicts.forEach((reachable, i) => {
+          if (!reachable) unreachable.push(redactCoreEntryForDetail(validEntries[i].entry));
+        });
+        for (const valid of validEntries) {
+          try {
+            const upserted = await upsertProxy(
+              {
+                name:
+                  validEntries.length > 1
+                    ? `${sub.name} (local core :${valid.port}/${valid.coreType})`
+                    : `${sub.name} (local core)`,
+                type: valid.coreType,
+                host: valid.coreUrl.hostname,
+                port: valid.port,
+                username: valid.username,
+                password: valid.password,
+                source: "subscription",
+                subscriptionId: id,
+              },
+              { claimOwnership: false }
+            );
+            await keepOwnedSyncedRow(upserted, keptIds);
+          } catch {
+            invalid.push(redactCoreEntryForDetail(valid.entry));
+          }
+        }
+        const parts: string[] = [];
+        if (invalid.length > 0) parts.push(`invalid: ${invalid.join("; ")}`);
+        if (unreachable.length > 0) parts.push(`unreachable: ${unreachable.join("; ")}`);
+        if (collisions.length > 0) parts.push(`key-collision: ${collisions.join("; ")}`);
+        if (parts.length > 0) {
+          warning = subscriptionErrorCode("LOCAL_CORE_ENDPOINT_INVALID", parts.join(" | "));
+        }
       }
     }
 
@@ -550,7 +698,7 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
       id,
       "error",
       `Sync write failed: ${msg}`,
-      null,
+      sub.lastNodes,
       new Date().toISOString(),
       writeConsec
     );

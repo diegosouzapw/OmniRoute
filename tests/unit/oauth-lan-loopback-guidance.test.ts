@@ -103,7 +103,10 @@ test("OAuthModal renders the structured panel instead of the generic error step"
 
   assert.match(
     modal,
-    /else if \(isLocalhost\) \{[\s\S]{0,300}buildPkceLoopbackMismatchHint/,
+    // Match the isLocalhost arm regardless of extra conditions on it — #9944 added
+    // `&& !opts?.manualLoopback` so an operator can opt out. What must not regress is
+    // that this arm builds the structured hint, not that the condition stays bare.
+    /else if \(isLocalhost[^)]*\) \{[\s\S]{0,300}buildPkceLoopbackMismatchHint/,
     "the isLocalhost arm of PKCE_CALLBACK_SERVER_PROVIDERS must build the structured hint"
   );
   assert.match(

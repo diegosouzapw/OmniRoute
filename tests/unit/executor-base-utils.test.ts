@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { getEventListeners } from "node:events";
+import type { EventEmitter } from "node:events";
 
 const base = await import("../../open-sse/executors/base.ts");
 
@@ -114,6 +116,42 @@ test("mergeAbortSignals aborts when secondary fires", () => {
   assert.ok(!merged.aborted);
   c2.abort(new Error("secondary"));
   assert.ok(merged.aborted);
+});
+
+// Regression: mergeAbortSignals used to attach its "abort" listeners to `primary`/
+// `secondary` and never remove them. Every executor fetch attempt calls this (once
+// per URL/retry — open-sse/executors/base.ts's fetchWithStartTimeout), so a busy
+// combo request accumulated one live listener per call on the long-lived combo/
+// client signal. Each leaked listener still fires when that signal is aborted later
+// (e.g. a hedge cancellation — COMBO_HEDGE_CANCELLED_REASON, "hedge-cancelled" —
+// arriving after this particular merge's own caller already finished), for a
+// `merged` output nothing is watching anymore. Proven here by counting real
+// listener growth (via node:events' getEventListeners) across repeated merges of
+// the SAME long-lived primary signal — exactly the fetchWithStartTimeout pattern.
+test("mergeAbortSignals removes its listeners once the merged signal settles (no leak across repeated merges)", () => {
+  const countAbortListeners = (target: AbortSignal) =>
+    getEventListeners(target as unknown as EventEmitter, "abort").length;
+
+  const longLived = new AbortController();
+  const before = countAbortListeners(longLived.signal);
+
+  for (let i = 0; i < 25; i++) {
+    const perAttempt = new AbortController();
+    const merged = base.mergeAbortSignals(longLived.signal, perAttempt.signal);
+    assert.ok(!merged.aborted);
+    // Simulate this attempt finishing on its own (its own timeout/abort fires),
+    // the way each fetchWithStartTimeout call's timeoutController does.
+    perAttempt.abort(new Error(`attempt-${i}-timeout`));
+    assert.ok(merged.aborted);
+  }
+
+  const after = countAbortListeners(longLived.signal);
+  assert.ok(
+    after <= before + 1,
+    `expected mergeAbortSignals to clean up its "abort" listener on the long-lived ` +
+      `signal after each merge settles; listener count grew from ~${before} to ${after} ` +
+      `across 25 merges (leak)`
+  );
 });
 
 test("sanitizeReasoningEffortForProvider passes through body without reasoning_effort", () => {

@@ -30,7 +30,7 @@ test("fusion: fans out to the whole panel then routes a judge synthesis turn", a
     name: "m-fusion",
     strategy: "fusion",
     config: { judgeModel: "openai/gpt-4o-mini", fusionTuning: { minPanel: 2 } },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6", "gemini/gemini-2.5-flash"],
   });
   h.installRecordingFetch();
 
@@ -50,7 +50,7 @@ test("fusion: returns 503 when the whole panel fails", async () => {
     name: "m-fusion-dead",
     strategy: "fusion",
     config: { judgeModel: "openai/gpt-4o-mini" },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
   // Every panel call fails → fusion has nothing to synthesize → 503.
   h.installRecordingFetch(() => h.failure(503));

@@ -82,6 +82,7 @@ test("Responses route: post-keepalive JSON error body must carry a `type` field 
       `instead of surfacing the real upstream error.`
   );
   assert.equal(lastPayload.type, "error");
+  assert.equal(typeof lastPayload.sequence_number, "number");
   assert.equal(lastPayload.message, 'Unknown name "encrypted" ... Cannot find field.');
   assert.equal(lastPayload.code, "bad_request");
 });
@@ -109,6 +110,7 @@ test("Responses route: non-JSON/empty post-keepalive error body falls back to a 
   const lastPayload = lastDataPayload(await readAll(result));
 
   assert.equal(lastPayload.type, "error");
+  assert.equal(typeof lastPayload.sequence_number, "number");
   assert.ok(
     typeof lastPayload.message === "string" && lastPayload.message.length > 0,
     `fallback frame must never be opaque/empty; got ${JSON.stringify(lastPayload)}`

@@ -335,3 +335,17 @@ test("every Bun server spawn (supervisor, --daemon, --no-recovery) uses the shar
   );
   assert.doesNotMatch(serveSrc, /join\(APP_DIR,\s*"open-sse/);
 });
+
+test("#13992: supervised server spawn hides the console window on Windows", () => {
+  const supervisorSrc = fs.readFileSync(
+    path.join(REPO_ROOT, "bin/cli/runtime/processSupervisor.mjs"),
+    "utf8"
+  );
+
+  assert.match(
+    supervisorSrc,
+    /spawn\(process\.execPath,\s*buildServerSpawnArgs\([\s\S]*?\),\s*\{[\s\S]*?windowsHide:\s*true[\s\S]*?\}\)/,
+    "the supervised server spawn() must pass windowsHide: true so a tray-mode restart never " +
+      "flashes a visible console on Windows"
+  );
+});

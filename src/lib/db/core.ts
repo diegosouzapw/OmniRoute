@@ -38,6 +38,7 @@ import {
   type CallLogArtifact,
 } from "../usage/callLogArtifacts";
 import { migrateLegacyEncryptedString } from "./encryption";
+import { serializeJsonField } from "./providers/columns";
 import { invalidateDbCache } from "./readCache";
 import { rowToCamel } from "./caseMapping";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
@@ -52,8 +53,10 @@ import {
   getWalMaintenanceState,
   logCheckpointOutcome,
 } from "./walMaintenance";
+import { isNativeSqliteLoadError, isSqliteDriverUnavailableError } from "./sqliteLoadError";
 // Re-exported so existing call sites that pull these helpers off the core module keep working.
 export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
+export { isNativeSqliteLoadError, isSqliteDriverUnavailableError };
 import {
   ensureProviderConnectionsColumns,
   ensureUsageHistoryAccountIndex,
@@ -149,39 +152,6 @@ const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
   { table: "upstream_proxy_config", maxRows: 5_000 },
   { table: "webhooks", maxRows: 5_000 },
 ];
-
-export function isNativeSqliteLoadError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  const code = getErrorCode(error);
-  return (
-    message.includes("Module did not self-register") ||
-    message.includes("NODE_MODULE_VERSION") ||
-    message.includes("ERR_DLOPEN_FAILED") ||
-    // bun and similar runtimes that skip the postinstall script never download
-    // the prebuilt *.node binary, so `bindings()` fails with this message
-    // before any DLOPEN even happens (#2358).
-    message.includes("Could not locate the bindings file") ||
-    message.includes("Cannot find module 'better-sqlite3'") ||
-    code === "ERR_DLOPEN_FAILED" ||
-    code === "MODULE_NOT_FOUND"
-  );
-}
-
-export function isSqliteDriverUnavailableError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-
-  return (
-    message.includes("Nenhum driver SQLite disponível") ||
-    message.includes("Chame ensureDbInitialized() no startup") ||
-    message.includes("sql.js WASM ainda não foi pré-inicializado")
-  );
-}
-
-function getErrorCode(error: unknown): string | undefined {
-  if (!error || typeof error !== "object" || !("code" in error)) return undefined;
-  const code = (error as { code?: unknown }).code;
-  return typeof code === "string" ? code : undefined;
-}
 
 /**
  * Closes a probe/throwaway connection obtained from `openSqliteDatabase()` —
@@ -970,13 +940,16 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
 }
 
 // Auto-checkpoint moves WAL pages back into the main DB file but never shrinks the WAL
-// file itself; only wal_checkpoint(TRUNCATE) does, and a long-running server never closes its DB.
-// The scheduler lives in ./walMaintenance (periodic TRUNCATE + busy warn + PASSIVE retry).
+// file itself; only wal_checkpoint(TRUNCATE) does. TRUNCATE runs at shutdown
+// (closeDbInstance) and never on a live timer: truncating a live process's WAL rewrites
+// the shared wal-index under handles that hold it mapped and can SIGBUS the event loop
+// (issue #13973). Runtime maintenance lives in ./walMaintenance (PASSIVE + busy warn +
+// retry).
 
 const healthShutdown = new AbortController();
-const managedHealth = createDbHealthCoordinator(async (autoRepair) => {
+const managedHealth = createDbHealthCoordinator(async (autoRepair, skipIntegrity) => {
   const db = getDbInstance();
-  const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
+  const skipIntegrityCheck = skipIntegrity || process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
   const backupDir = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
   const result =
     db.driver === "sql.js" || db.name === ":memory:" || !db.name
@@ -1000,10 +973,10 @@ const managedHealth = createDbHealthCoordinator(async (autoRepair) => {
   if (result.repairedCount > 0) invalidateDbCache();
   return result;
 });
-
-export function runManagedDbHealthCheck(options?: { autoRepair?: boolean }) {
+type ManagedHealthCheckOptions = { autoRepair?: boolean; skipIntegrityCheck?: boolean };
+export function runManagedDbHealthCheck(options?: ManagedHealthCheckOptions) {
   if (getPagerCorruption()) managedHealth.invalidate();
-  return managedHealth.run(options?.autoRepair === true);
+  return managedHealth.run(options?.autoRepair === true, options?.skipIntegrityCheck === true);
 }
 
 export function getDbInstance(): SqliteDatabase {
@@ -1116,8 +1089,9 @@ export function getDbInstance(): SqliteDatabase {
   // Detect and handle old schema format — preserve data when possible (#146)
   // Uses a single probe connection that becomes the real connection when possible.
   if (fs.existsSync(sqliteFile)) {
+    let probe: SqliteDatabase | null = null;
     try {
-      const probe = openSqliteDatabase(sqliteFile, { readonly: true });
+      probe = openSqliteDatabase(sqliteFile, { readonly: true });
       // #9934: init asymmetry — bin/cli/sqlite.mjs::openOmniRouteDb (used by
       // `omniroute setup`) creates storage.sqlite with only the partial inline
       // schema (key_value + provider_connections) and never runs migrations.
@@ -1184,6 +1158,12 @@ export function getDbInstance(): SqliteDatabase {
         closeProbeIfSafe(probe);
       }
     } catch (e: unknown) {
+      try {
+        closeProbeIfSafe(probe);
+        probe = null;
+      } catch {
+        /* ignore */
+      }
       const message = e instanceof Error ? e.message : String(e);
       console.warn("[DB] Could not probe existing DB:", message);
 
@@ -1242,6 +1222,12 @@ export function getDbInstance(): SqliteDatabase {
           /* ok */
         }
       }
+    } finally {
+      try {
+        closeProbeIfSafe(probe);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -1262,40 +1248,41 @@ export function getDbInstance(): SqliteDatabase {
   }
 
   const db = openSqliteDatabase(sqliteFile);
-  // Emit the same "[DB] Driver: ..." line openDatabaseAsync() prints so the
-  // packaged-app smoke guard (#7592) can assert the native driver was
-  // selected on the server's primary DB path too, not only the backup-import
-  // route.
-  console.log(`[DB] Driver: ${db.driver} | file: ${sqliteFile}`);
-  // better-sqlite3 is synchronous, so a contended write parks the Node event loop for up to
-  // busy_timeout ms (a 0-CPU freeze that stacks under load → /health stops responding). The
-  // hot-path writers here (usage_history, call_logs) are best-effort and the WinUI host opens
-  // the same DB, so cap the block at 2s instead of 5s: normal writes complete in <1ms, and a
-  // contended op can no longer freeze the loop past the host watchdog's 6s liveness probe.
-  //
-  // Install the busy handler before the connection's first statement. `journal_mode = WAL`
-  // needs a SHARED lock, and another process closing its WAL connection briefly holds the
-  // file EXCLUSIVE (checkpoint + WAL delete); node:sqlite opens with busy timeout 0, so with
-  // the pragmas in the other order that window surfaced as `database is locked` at startup.
-  db.pragma("busy_timeout = 2000");
-  db.pragma("journal_mode = WAL");
-  db.pragma("synchronous = NORMAL");
-  db.pragma(`cache_size = -${DEFAULT_DATABASE_SETTINGS.optimization.cacheSize}`);
-  db.pragma("temp_store = MEMORY");
-  // Tables first, then the legacy-column healers, and only then the indexes: an upgraded
-  // database can already own call_logs/usage_history/provider_connections with an older
-  // column set, where the CREATE TABLE is a no-op but the indexes still reference columns
-  // the healers below are the ones adding.
-  db.exec(SCHEMA_TABLES_SQL);
-  ensureProviderConnectionsColumns(db);
-  ensureUsageHistoryColumns(db);
-  ensureCallLogsColumns(db);
-  db.exec(SCHEMA_INDEXES_SQL);
+  try {
+    // Emit the same "[DB] Driver: ..." line openDatabaseAsync() prints so the
+    // packaged-app smoke guard (#7592) can assert the native driver was
+    // selected on the server's primary DB path too, not only the backup-import
+    // route.
+    console.log(`[DB] Driver: ${db.driver} | file: ${sqliteFile}`);
+    // better-sqlite3 is synchronous, so a contended write parks the Node event loop for up to
+    // busy_timeout ms (a 0-CPU freeze that stacks under load → /health stops responding). The
+    // hot-path writers here (usage_history, call_logs) are best-effort and the WinUI host opens
+    // the same DB, so cap the block at 2s instead of 5s: normal writes complete in <1ms, and a
+    // contended op can no longer freeze the loop past the host watchdog's 6s liveness probe.
+    //
+    // Install the busy handler before the connection's first statement. `journal_mode = WAL`
+    // needs a SHARED lock, and another process closing its WAL connection briefly holds the
+    // file EXCLUSIVE (checkpoint + WAL delete); node:sqlite opens with busy timeout 0, so with
+    // the pragmas in the other order that window surfaced as `database is locked` at startup.
+    db.pragma("busy_timeout = 2000");
+    db.pragma("journal_mode = WAL");
+    db.pragma("synchronous = NORMAL");
+    db.pragma(`cache_size = -${DEFAULT_DATABASE_SETTINGS.optimization.cacheSize}`);
+    db.pragma("temp_store = MEMORY");
+    // Tables first, then the legacy-column healers, and only then the indexes: an upgraded
+    // database can already own call_logs/usage_history/provider_connections with an older
+    // column set, where the CREATE TABLE is a no-op but the indexes still reference columns
+    // the healers below are the ones adding.
+    db.exec(SCHEMA_TABLES_SQL);
+    ensureProviderConnectionsColumns(db);
+    ensureUsageHistoryColumns(db);
+    ensureCallLogsColumns(db);
+    db.exec(SCHEMA_INDEXES_SQL);
 
-  // ── Versioned Migrations ──
-  // Auto-seed 001 as applied (the inline SCHEMA_SQL already created these tables)
-  // then run any new migrations (002+)
-  db.exec(`
+    // ── Versioned Migrations ──
+    // Auto-seed 001 as applied (the inline SCHEMA_SQL already created these tables)
+    // then run any new migrations (002+)
+    db.exec(`
     CREATE TABLE IF NOT EXISTS _omniroute_migrations (
       version TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -1305,72 +1292,80 @@ export function getDbInstance(): SqliteDatabase {
     VALUES ('001', 'initial_schema');
   `);
 
-  runMigrations(db, { isNewDb, databaseExistedBeforeInitialization });
-  // Fresh installs need the same post-migration index guarantee as upgraded
-  // databases, including recovery from an interrupted migration 127 attempt.
-  ensureUsageHistoryAccountIndex(db);
+    runMigrations(db, { isNewDb, databaseExistedBeforeInitialization });
+    // Fresh installs need the same post-migration index guarantee as upgraded
+    // databases, including recovery from an interrupted migration 127 attempt.
+    ensureUsageHistoryAccountIndex(db);
 
-  applyStoredDatabaseOptimizationSettings(db);
+    applyStoredDatabaseOptimizationSettings(db);
 
-  // Apply mmap_size from stored settings (migration 046), fallback to 256MiB
-  try {
-    const mmapRow = db
-      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
-      .get("databaseSettings", "mmapSize") as { value: string } | undefined;
-    const mmapSize = mmapRow ? Math.max(0, parseInt(mmapRow.value, 10) || 0) : 268435456;
-    if (mmapSize > 0) {
-      db.pragma(`mmap_size = ${mmapSize}`);
-    }
-  } catch {
-    // mmap_size is best-effort; not available in all runtimes (e.g. web)
-  }
-
-  offloadLegacyCallLogDetails(db);
-
-  // Auto-migrate from db.json if exists
-  if (jsonDbFile && fs.existsSync(jsonDbFile)) {
-    migrateFromJson(db, jsonDbFile);
-  }
-
-  if (failedProbePath && preservedCriticalState.preservedTables.length > 0) {
+    // Apply mmap_size from stored settings (migration 046), fallback to 256MiB
     try {
-      const restoredTables = restoreCriticalDbState(db, preservedCriticalState);
-      console.log(
-        `[DB] Restored preserved critical DB state after probe failure: ${summarizePreservedTables(
-          restoredTables
-        )}`
-      );
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      try {
-        closeProbeIfSafe(db);
-      } catch {
-        /* ignore */
+      const mmapRow = db
+        .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+        .get("databaseSettings", "mmapSize") as { value: string } | undefined;
+      const mmapSize = mmapRow ? Math.max(0, parseInt(mmapRow.value, 10) || 0) : 268435456;
+      if (mmapSize > 0) {
+        db.pragma(`mmap_size = ${mmapSize}`);
       }
-      cleanupRecreatedSqliteFiles(sqliteFile);
-      throw new Error(
-        `[DB] Automatic recovery aborted after probe failure. ` +
-          `Preserved database: ${failedProbePath}. ` +
-          `Restore failure: ${message}.`
-      );
+    } catch {
+      // mmap_size is best-effort; not available in all runtimes (e.g. web)
     }
+
+    offloadLegacyCallLogDetails(db);
+
+    // Auto-migrate from db.json if exists
+    if (jsonDbFile && fs.existsSync(jsonDbFile)) {
+      migrateFromJson(db, jsonDbFile);
+    }
+
+    if (failedProbePath && preservedCriticalState.preservedTables.length > 0) {
+      try {
+        const restoredTables = restoreCriticalDbState(db, preservedCriticalState);
+        console.log(
+          `[DB] Restored preserved critical DB state after probe failure: ${summarizePreservedTables(
+            restoredTables
+          )}`
+        );
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        try {
+          closeProbeIfSafe(db);
+        } catch {
+          /* ignore */
+        }
+        cleanupRecreatedSqliteFiles(sqliteFile);
+        throw new Error(
+          `[DB] Automatic recovery aborted after probe failure. ` +
+            `Preserved database: ${failedProbePath}. ` +
+            `Restore failure: ${message}.`
+        );
+      }
+    }
+
+    // Store schema version
+    const versionStmt = db.prepare(
+      "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', '1')"
+    );
+    versionStmt.run();
+
+    // Register the singleton BEFORE the health-check gate below: the flag read
+    // (isDbHealthcheckStartupDeferredEnabled, like any DB-backed feature-flag
+    // override) itself calls getDbInstance(), and with the singleton still
+    // unset at this point that call would see no existing instance and open a
+    // second, independent connection — which hits the very same unset-singleton
+    // gate on its own way through, recursing without end (each recursion opens
+    // its own real DB connection and re-runs migrations-check, so this is a
+    // real resource-exhaustion loop, not just a deep call stack). #13717 rework.
+    setDb(db);
+  } catch (error) {
+    try {
+      closeProbeIfSafe(db);
+    } catch {
+      /* ignore */
+    }
+    throw error;
   }
-
-  // Store schema version
-  const versionStmt = db.prepare(
-    "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', '1')"
-  );
-  versionStmt.run();
-
-  // Register the singleton BEFORE the health-check gate below: the flag read
-  // (isDbHealthcheckStartupDeferredEnabled, like any DB-backed feature-flag
-  // override) itself calls getDbInstance(), and with the singleton still
-  // unset at this point that call would see no existing instance and open a
-  // second, independent connection — which hits the very same unset-singleton
-  // gate on its own way through, recursing without end (each recursion opens
-  // its own real DB connection and re-runs migrations-check, so this is a
-  // real resource-exhaustion loop, not just a deep call stack). #13717 rework.
-  setDb(db);
 
   if (shouldRunStartupDbHealthCheck()) {
     if (isDbHealthcheckStartupDeferredEnabled()) {
@@ -1586,7 +1581,8 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           rate_limited_until, health_check_interval, last_health_check_at,
           last_tested, api_key, id_token, provider_specific_data,
           expires_in, display_name, global_priority, default_model,
-          token_type, consecutive_use_count, rate_limit_protection, last_used_at, created_at, updated_at
+          token_type, consecutive_use_count, rate_limit_protection, last_used_at,
+          rate_limit_overrides_json, created_at, updated_at
         ) VALUES (
           @id, @provider, @authType, @name, @email, @priority, @isActive,
           @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt,
@@ -1595,11 +1591,26 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           @rateLimitedUntil, @healthCheckInterval, @lastHealthCheckAt,
           @lastTested, @apiKey, @idToken, @providerSpecificData,
           @expiresIn, @displayName, @globalPriority, @defaultModel,
-          @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @createdAt, @updatedAt
+          @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt,
+          @rateLimitOverridesJson, @createdAt, @updatedAt
         )
       `);
+      const selectExistingOverrides = db.prepare(
+        "SELECT rate_limit_overrides_json FROM provider_connections WHERE id = ?"
+      );
 
       for (const conn of data.providerConnections || []) {
+        // Preserve operator overrides when db.json carries none: INSERT OR
+        // REPLACE would otherwise reset the column to NULL. Executed inside
+        // the transaction and reinjected into the INSERT — never a 2nd UPDATE.
+        const hasOverrides = conn.rateLimitOverrides != null;
+        let rateLimitOverridesJson = serializeJsonField(conn.rateLimitOverrides);
+        if (!hasOverrides && typeof conn.id === "string") {
+          const existing = selectExistingOverrides.get(conn.id) as
+            | { rate_limit_overrides_json: string | null }
+            | undefined;
+          if (existing) rateLimitOverridesJson = existing.rate_limit_overrides_json;
+        }
         insertConn.run({
           id: conn.id,
           provider: conn.provider,
@@ -1639,6 +1650,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           lastUsedAt: conn.lastUsedAt || null,
           rateLimitProtection:
             conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
+          rateLimitOverridesJson,
           createdAt: conn.createdAt || new Date().toISOString(),
           updatedAt: conn.updatedAt || new Date().toISOString(),
         });

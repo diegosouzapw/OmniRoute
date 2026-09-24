@@ -962,9 +962,10 @@ test("getAccessToken cleans the in-flight cache after resolve and separates diff
             log
           );
 
-          assert.equal(fetchCount, 3);
+          assert.equal(fetchCount, 2, "same consumed refresh token is served from the rotation map");
           assert.equal(first.accessToken, "access-refresh-a");
           assert.equal(second.accessToken, "access-refresh-a");
+          assert.equal(second.refreshToken, "next-refresh-a");
           assert.equal(third.accessToken, "access-refresh-b");
         }
       );
