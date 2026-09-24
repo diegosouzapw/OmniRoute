@@ -1312,14 +1312,10 @@ export function recordProviderSuccess(
  * Reset the shared provider breaker.
  */
 export function clearProviderFailure(provider: string | null | undefined): void {
-  // Also clear the network-error dedup so a fresh blip right after a reset is counted
-  // instead of silently swallowed by the previous (now stale) dedup window (#13887).
-  if (provider) {
-    lastNetworkErrorByProvider.delete(provider);
-    for (const key of [...lastConnectionFailure.keys()]) {
-      if (key.startsWith(`${provider}:`)) lastConnectionFailure.delete(key);
-    }
-  }
+  // Also clear the network-error dedup so a fresh blip after a reset is counted (#13887).
+  if (provider) lastNetworkErrorByProvider.delete(provider);
+  for (const key of lastConnectionFailure.keys())
+    if (provider && key.startsWith(`${provider}:`)) lastConnectionFailure.delete(key);
   const breaker = getProviderBreaker(provider);
   breaker?.reset();
 }
