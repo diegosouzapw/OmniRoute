@@ -294,3 +294,47 @@ describe("useModelImportHandlers — upstream model auto-fetch", () => {
     expect(fetchConnections).toHaveBeenCalled();
   });
 });
+
+describe("useModelImportHandlers — imported model metadata", () => {
+  it("preserves a discovered per-model targetFormat", async () => {
+    const hook = renderHook(
+      buildParams({
+        providerId: "vertex",
+        connections: [conn("vertex-connection", true)],
+      })
+    );
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              id: "grok-4.6",
+              name: "Grok 4.6",
+              apiFormat: "chat-completions",
+              supportedEndpoints: ["chat"],
+              targetFormat: "openai",
+            },
+          ],
+        }),
+      } as Response)
+      .mockResolvedValue({ ok: true } as Response);
+
+    await act(async () => {
+      await hook.get().handleImportModels();
+    });
+
+    const createCall = fetchMock.mock.calls.find(
+      ([url, init]) => url === "/api/provider-models" && init?.method === "POST"
+    );
+    expect(createCall).toBeDefined();
+    expect(JSON.parse(String(createCall?.[1]?.body))).toEqual(
+      expect.objectContaining({
+        provider: "vertex",
+        modelId: "grok-4.6",
+        targetFormat: "openai",
+      })
+    );
+  });
+});

@@ -67,12 +67,17 @@ function t(key: string): string {
 function getButton(text: string): HTMLButtonElement | null {
   return (
     (Array.from(document.querySelectorAll("button")).find((b) => b.textContent?.includes(text)) as
-      | HTMLButtonElement
-      | undefined) ?? null
+      HTMLButtonElement | undefined) ?? null
   );
 }
 
 const roots: Array<{ unmount: () => void }> = [];
+
+beforeEach(() => {
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
+});
 
 afterEach(() => {
   roots.forEach((r) => {
@@ -232,6 +237,11 @@ describe("AddWebhookWizard — step 2→3 creates webhook with correct kind", ()
     vi.stubGlobal("fetch", mockFetch);
 
     renderIntoBody(<AddWebhookWizard isOpen={true} onClose={vi.fn()} onCreated={vi.fn()} t={t} />);
+
+    // Let the wizard's open/reset effect settle before interacting with step 1.
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     // Step 1: default is "slack", click Next
     const nextBtn1 = getButton("Next");

@@ -40,6 +40,14 @@ const STREAMING_RESPONSE_HEADER_DENYLIST = new Set([
  */
 const CODEX_TURN_STATE_RESPONSE_HEADER = "x-codex-turn-state";
 
+/**
+ * #13601: when upstream headers exceed the forwarding budget, the drop is
+ * surfaced to the caller with this count header instead of staying log-only.
+ * Diagnostic headers already win the budget via getForwardingPriority; this
+ * covers the remainder so no drop is ever silent to the client.
+ */
+export const DROPPED_UPSTREAM_HEADERS_RESPONSE_HEADER = "X-OmniRoute-Dropped-Upstream-Headers";
+
 const DEFAULT_FORWARDED_HEADER_BUDGET_BYTES = 768;
 
 /**
@@ -272,7 +280,12 @@ export function buildStreamingResponseHeaders(
 
   const responseHeaders: Record<string, string> = {
     ...Object.fromEntries(forwardedHeaders),
-    "Content-Type": "text/event-stream",
+    // #13601: surface the drop to the caller so it is never silent. Only
+    // present when at least one header was dropped; absent otherwise.
+    ...(droppedHeaders.length > 0
+      ? { [DROPPED_UPSTREAM_HEADERS_RESPONSE_HEADER]: String(droppedHeaders.length) }
+      : {}),
+    "Content-Type": "text/event-stream; charset=utf-8",
     "Cache-Control": "no-cache, no-transform",
     Connection: "keep-alive",
     "X-Accel-Buffering": "no",

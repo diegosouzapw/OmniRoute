@@ -176,3 +176,27 @@ test("Imports: base.ts imports runWithOnPersist from open-sse tokenRefresh", asy
   assert.match(src, /runWithOnPersist/);
   assert.match(src, /from\s+"\.\.\/services\/tokenRefresh\.ts"/);
 });
+
+
+test("serialized refresh re-checks rotation inside the lane, not before waiting", async () => {
+  const src = await read("open-sse/services/tokenRefresh.ts");
+  const start = src.indexOf("async function _getAccessTokenWithStalenessCheck");
+  const inner = src.indexOf("async function _refreshWithFreshCredentials");
+  assert.ok(start >= 0 && inner > start, "staleness helper must wrap the freshness re-check");
+  const wrapper = src.slice(start, inner);
+  assert.match(
+    wrapper,
+    /serializeRefresh\(provider,\s*\(\)\s*=>/,
+    "the network POST must stay behind serializeRefresh"
+  );
+  assert.match(wrapper, /_refreshWithFreshCredentials/);
+  assert.doesNotMatch(
+    wrapper,
+    /lookupRotation/,
+    "lookupRotation before serializeRefresh is the race that burns a Claude refresh token"
+  );
+  const body = src.slice(inner, inner + 2500);
+  assert.match(body, /lookupRotation\(/);
+  assert.match(body, /recordRotation\(/);
+  assert.match(body, /_getAccessTokenInternal\(/);
+});

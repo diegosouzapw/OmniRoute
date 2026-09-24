@@ -47,8 +47,14 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/services/compression/engines/llmlingua/onnxWorker.js",
   "open-sse/services/compression/compressionWorker.js",
   "src/lib/usage/callLogArtifactWorker.js",
+  "src/lib/db/healthCheckWorker.js",
   "package.json",
   "peer-stamp.mjs",
+  // #13636/#14064: server-ws.mjs imports ./httpClientAbortGuard.mjs (process crash
+  // guard); assembleStandalone copies it from src/shared/utils. Without this entry
+  // the prepublish prune deletes it and every boot of the published package dies
+  // with ERR_MODULE_NOT_FOUND — the 3.8.47 head-response-guard class.
+  "httpClientAbortGuard.mjs",
   "main-server-timeouts.mjs",
   // server-ws.mjs import (sd_notify helper) — enforced by the closure test
   // tests/unit/pack-artifact-server-ws-closure.test.ts.
@@ -98,6 +104,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "config/release/wreq-js-rust-license-inventory.json",
   "config/release/wreq-js-rust-notices.md",
   "bin/aliasResolver.mjs",
+  // #14006: Antigravity MITM bridge (operator tool for the Antigravity IDE/CLI).
+  // Pure node:* imports, shipped via package.json "files": ["bin/"].
+  "bin/antigravity-bridge.mjs",
   "bin/chatgpt-web-codex-mcp.mjs",
   // #7808: ESM loader hook split out of bin/aliasResolver.mjs to silence CodeQL
   // js/incomplete-url-substring-sanitization (the old code built a
@@ -190,6 +199,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/open-sse/services/compression/engines/rtk/filters/generic-output.json",
   "dist/src/lib/usage/callLogArtifactWorker.js",
+  "dist/src/lib/db/healthCheckWorker.js",
   "dist/open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.js",
   "dist/open-sse/services/compression/rules/en/filler.json",
   "dist/server.js",
@@ -199,6 +209,8 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/main-server-timeouts.mjs",
   // server-ws.mjs import (sd_notify helper) — enforced by the closure test.
   "dist/systemd-notify.mjs",
+  // server-ws.mjs import (process crash guard, #13636/#14064) — enforced by the closure test.
+  "dist/httpClientAbortGuard.mjs",
   "dist/http-method-guard.cjs",
   // #5452: regression guard — make check:pack-artifact fail loudly if the TLS
   // opt-in sidecar (imported by dist/server-ws.mjs) ever vanishes from the tarball.

@@ -1,29 +1,20 @@
-# CLI-TOOLS (Ελληνικά)
+# CLI Tools — OmniRoute (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
-
-title: "Εργαλεία CLI — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-23
----
-
-# Εργαλεία CLI — OmniRoute
 
 Τελευταία ενημέρωση: 2026-08-23
 
-Το OmniRoute ενσωματώνεται με τρεις κατηγορίες εργαλείων CLI που κατανέμονται σε τρεις αφιερωμένες σελίδες του dashboard:
+Το OmniRoute ενσωματώνεται με τρεις κατηγορίες εργαλείων CLI, κατανεμημένες σε τρεις αποκλειστικές σελίδες του πίνακα ελέγχου:
 
-| Σελίδα         | Διαδρομή                | Έννοια                                                                              | Πλήθος       |
-| -------------- | ----------------------- | ----------------------------------------------------------------------------------- | ------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | Εργαλεία κώδικα που κατευθύνετε στο OmniRoute (Client → CLI → OmniRoute → Provider) | 26           |
-| **CLI Agents** | `/dashboard/cli-agents` | Αυτόνομοι πράκτορες που κατευθύνετε στο OmniRoute (ίδια ροή, ευρύτερο εύρος)        | 10           |
-| **ACP Agents** | `/dashboard/acp-agents` | CLIs που το OmniRoute εκκινεί ως backend μέσω stdio/ACP (αντίστροφη ροή)            | βλ. registry |
+| Σελίδα         | Διαδρομή                | Έννοια                                                                                       | Πλήθος          |
+| -------------- | ----------------------- | -------------------------------------------------------------------------------------------- | --------------- |
+| **CLI Code's** | `/dashboard/cli-code`   | Εργαλεία προγραμματισμού που κατευθύνετε στο OmniRoute (Πελάτης → CLI → OmniRoute → Πάροχος) | 26              |
+| **CLI Agents** | `/dashboard/cli-agents` | Αυτόνομοι πράκτορες που κατευθύνετε στο OmniRoute (ίδια ροή, ευρύτερο πεδίο)                 | 10              |
+| **ACP Agents** | `/dashboard/acp-agents` | CLI που εκκινεί το OmniRoute ως backend μέσω stdio/ACP (αντίστροφη ροή)                      | δείτε το μητρώο |
 
-Οι παλαιές διαδρομές ανακατευθύνονται μέσω 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
+Οι παλαιότερες διαδρομές ανακατευθύνουν μέσω 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
 ---
 
@@ -149,9 +140,9 @@ kilo, continue) — ένα `hostSetupCommand` (π.χ. `omniroute setup-opencode`
 
 ---
 
-## 1. Κατάλογος CLI Code (26 εργαλεία)
+## 1. Κατάλογος του CLI Code (26 εργαλεία)
 
-Όλα τα εργαλεία που εμφανίζονται στο `/dashboard/cli-code`. Αυτά με `baseUrlSupport: none` συνδέονται μέσω MITM ή ενός χειροκίνητου οδηγού αντί για προσαρμοσμένη βασική URL:
+Όλα τα εργαλεία που εμφανίζονται στο `/dashboard/cli-code`. Όσα έχουν `baseUrlSupport: none` δρομολογούνται μέσω MITM ή μέσω χειροκίνητου οδηγού αντί για προσαρμοσμένο βασικό URL:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -182,11 +173,12 @@ kilo, continue) — ένα `hostSetupCommand` (π.χ. `omniroute setup-opencode`
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Τα εργαλεία με `baseUrlSupport: "partial"` εμφανίζουν ένα σήμα "⚠ Μερική Base URL" στην κάρτα του dashboard.
+Τα εργαλεία με `baseUrlSupport: "partial"` εμφανίζουν μια ένδειξη "⚠ Μερικό βασικό URL" στην κάρτα του πίνακα ελέγχου.
+---
 
-## 2. Κατάλογος CLI Agents (10 εργαλεία)
+## 2. Κατάλογος πρακτόρων CLI (10 εργαλεία)
 
-Αυτόνομοι agents που εμφανίζονται στο `/dashboard/cli-agents`:
+Αυτόνομοι πράκτορες που εμφανίζονται στο `/dashboard/cli-agents`:
 
 | id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
 | ------------ | ---------------- | ------------------------ | -------------- | ------------ |
@@ -610,72 +602,72 @@ kiro-cli status
 
 ## 10. Εσωτερικό CLI του OmniRoute
 
-Το δυαδικό αρχείο `omniroute` παρέχει εντολές για τον κύκλο ζωής του διακομιστή, τη ρύθμιση, τη διαγνωστική ανάλυση και τη διαχείριση παρόχων. Σημείο εισόδου: `bin/omniroute.mjs`.
+Το εκτελέσιμο αρχείο `omniroute` παρέχει εντολές για τον κύκλο ζωής του διακομιστή, την αρχική ρύθμιση, τα διαγνωστικά και τη διαχείριση παρόχων. Σημείο εισόδου: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Εκκίνηση διακομιστή (προεπιλεγμένη θύρα 20128)
-omniroute setup                        # Διαδραστικός οδηγός ρύθμισης
-omniroute doctor                       # Έλεγχος διαμόρφωσης, βάσης δεδομένων, θυρών, χρόνου εκτέλεσης
+omniroute setup                        # Διαδραστικός οδηγός αρχικής ρύθμισης
+omniroute doctor                       # Έλεγχος ρυθμίσεων, βάσης δεδομένων, θυρών και περιβάλλοντος εκτέλεσης
 omniroute providers list               # Διαμορφωμένες συνδέσεις παρόχων
 omniroute providers test-all           # Δοκιμή κάθε ενεργής σύνδεσης
 omniroute reset-password               # Επαναφορά του κωδικού πρόσβασης διαχειριστή
-omniroute logs                         # Ροή αρχείων καταγραφής αιτημάτων
-omniroute health                       # Λεπτομερής κατάσταση υγείας (breakers, cache, μνήμη)
-omniroute --version                    # Εκτύπωση έκδοσης
+omniroute logs                         # Συνεχής ροή αρχείων καταγραφής αιτημάτων
+omniroute health                       # Αναλυτική κατάσταση εύρυθμης λειτουργίας (breakers, cache, μνήμη)
+omniroute --version                    # Εμφάνιση έκδοσης
 omniroute --help                       # Εμφάνιση όλων των εντολών
 ```
 
-### Ρύθμιση & Αρχικοποίηση
+### Αρχική ρύθμιση και αρχικοποίηση
 
 ```bash
-omniroute setup                        # Διαδραστικός οδηγός ρύθμισης
+omniroute setup                        # Διαδραστικός οδηγός αρχικής ρύθμισης
 omniroute setup --non-interactive      # Λειτουργία CI/αυτοματισμού (διαβάζει μεταβλητές περιβάλλοντος + flags)
-omniroute setup --password '<value>'   # Άμεση ορισμός κωδικού πρόσβασης διαχειριστή
+omniroute setup --password '<value>'   # Άμεσος ορισμός κωδικού πρόσβασης διαχειριστή
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
   --test-provider                      # Προσθήκη και δοκιμή παρόχου σε ένα βήμα
 ```
 
-Αναγνωρισμένες μεταβλητές περιβάλλοντος για μη διαδραστική ρύθμιση:
+Αναγνωρισμένες μεταβλητές περιβάλλοντος για μη διαδραστική αρχική ρύθμιση:
 
-| Μεταβλητή           | Σκοπός                                                                  |
-| ------------------- | ----------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Κλειδί API παρόχου (συνδεδεμένο με `--api-key` μέσω Commander `.env()`) |
-| `DATA_DIR`          | Παράκαμψη του καταλόγου δεδομένων του OmniRoute                         |
+| Μεταβλητή           | Σκοπός                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Κλειδί API παρόχου (συνδέεται με το `--api-key` μέσω της μεθόδου `.env()` του Commander) |
+| `DATA_DIR`          | Παράκαμψη του καταλόγου δεδομένων του OmniRoute                                          |
 
-Όλες οι άλλες μη διαδραστικές εισόδοι μεταβιβάζονται ως flags, όχι ως μεταβλητές περιβάλλοντος:
+Όλες οι άλλες μη διαδραστικές είσοδοι μεταβιβάζονται ως flags και όχι ως μεταβλητές περιβάλλοντος:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(βλέπε τις επιλογές `omniroute setup` παραπάνω).
+(δείτε τις επιλογές του `omniroute setup` παραπάνω).
 
-### Διαγνωστική Ανάλυση
+### Διαγνωστικά
 
 ```bash
-omniroute doctor                       # Έλεγχος διαμόρφωσης, βάσης δεδομένων, θυρών, χρόνου εκτέλεσης, μνήμης, liveness
-omniroute doctor --json                # Αναγνώσιμο από μηχανή JSON
-omniroute doctor --no-liveness         # Παράλειψη του HTTP health probe
-omniroute doctor --host 0.0.0.0        # Παράκαμψη host liveness
-omniroute doctor --liveness-url <url>  # Πλήρης παράκαμψη URL τελικού σημείου υγείας
+omniroute doctor                       # Έλεγχος ρυθμίσεων, βάσης δεδομένων, θυρών, περιβάλλοντος εκτέλεσης, μνήμης και διαθεσιμότητας
+omniroute doctor --json                # JSON αναγνώσιμο από μηχανή
+omniroute doctor --no-liveness         # Παράλειψη του ελέγχου εύρυθμης λειτουργίας μέσω HTTP
+omniroute doctor --host 0.0.0.0        # Παράκαμψη του host ελέγχου διαθεσιμότητας
+omniroute doctor --liveness-url <url>  # Παράκαμψη με πλήρες URL του endpoint εύρυθμης λειτουργίας
 ```
 
 Το doctor εκτελεί τους εξής ελέγχους: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` και `Server liveness`. Τερματίζει με μη μηδενική τιμή αν οποιοσδήποτε έλεγχος αποτύχει (`fail`).
+`Memory` και `Server liveness`. Τερματίζεται με μη μηδενικό κωδικό εξόδου εάν οποιοσδήποτε έλεγχος έχει τιμή `fail`.
 
-### Διαχείριση Παρόχων
+### Διαχείριση παρόχων
 
 ```bash
-omniroute providers available                       # Κατάλογος παρόχων OmniRoute
-omniroute providers available --search openai       # Φιλτράρισμα καταλόγου κατά id/name/alias/category
+omniroute providers available                       # Κατάλογος παρόχων του OmniRoute
+omniroute providers available --search openai       # Φιλτράρισμα καταλόγου κατά id/όνομα/ψευδώνυμο/κατηγορία
 omniroute providers available --category api-key    # Φιλτράρισμα κατά κατηγορία (api-key, oauth, free, ...)
-omniroute providers available --json                # Αναγνώσιμο από μηχανή JSON
+omniroute providers available --json                # JSON αναγνώσιμο από μηχανή
 
 omniroute providers list                            # Διαμορφωμένες συνδέσεις παρόχων
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Δοκιμή μίας διαμορφωμένης σύνδεσης
 omniroute providers test-all                        # Δοκιμή κάθε ενεργής σύνδεσης
-omniroute providers validate                        # Τοπική μόνο δομική επικύρωση
+omniroute providers validate                        # Δομική επικύρωση μόνο τοπικά
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Υπάρχουσα ροή OAuth
@@ -683,81 +675,83 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-Τα `providers add/import/auth/edit/remove` είναι API-first και επομένως λειτουργούν έναντι
-του ενεργού τοπικού ή απομακρυσμένου context. Η εισαγωγή διαπιστευτηρίων πρέπει να χρησιμοποιεί
-`--credential-stdin` ή `--credential-env`· το `--dry-run --json` αναφέρει μόνο
-τη συγκαλυμμένη παρουσία/μορφή. Το `providers available` διαβάζει τον κατάλογο OmniRoute·
-τα `providers list/test/test-all/validate` διατηρούν την τοπική τους συμπεριφορά SQLite και
-δεν απαιτούν τον διακομιστή να εκτελείται.
+Οι εντολές `providers add/import/auth/edit/remove` χρησιμοποιούν κατά προτεραιότητα το API και επομένως λειτουργούν με βάση
+το ενεργό τοπικό ή απομακρυσμένο context. Για την εισαγωγή διαπιστευτηρίων πρέπει να χρησιμοποιούνται
+τα `--credential-stdin` ή `--credential-env`· το `--dry-run --json` αναφέρει μόνο
+την παρουσία/μορφή με απόκρυψη ευαίσθητων δεδομένων. Το `providers available` διαβάζει τον κατάλογο του OmniRoute·
+τα `providers list/test/test-all/validate` διατηρούν την τοπική συμπεριφορά SQLite και
+δεν απαιτούν την εκτέλεση του διακομιστή.
 
-### Ανάκτηση & Επαναφορά
+### Ανάκτηση και επαναφορά
 
 ```bash
 omniroute reset-password                # Επαναφορά του κωδικού πρόσβασης διαχειριστή (επίσης: omniroute-reset-password)
 omniroute reset-encrypted-columns       # Εμφάνιση προειδοποίησης + dry-run για επαναφορά κρυπτογραφημένων διαπιστευτηρίων
-omniroute reset-encrypted-columns --force  # Πραγματική μηδένιση κρυπτογραφημένων διαπιστευτηρίων στο SQLite
+omniroute reset-encrypted-columns --force  # Πραγματικός μηδενισμός των κρυπτογραφημένων διαπιστευτηρίων στο SQLite
 ```
 
-### Εξαγωγή Διαπιστευτηρίων (⚠ χειριστείτε με προσοχή)
+### Εξαγωγή διαπιστευτηρίων (⚠ χειριστείτε με προσοχή)
 
 ```bash
-omniroute auth export                                 # Εμφάνιση προειδοποίησης + gate επιβεβαίωσης — χωρίς πρόσβαση στη βάση δεδομένων
-omniroute auth export --force                          # Εξαγωγή ΑΠΟΚΡΥΠΤΟΓΡΑΦΗΜΕΝΩΝ διαπιστευτηρίων ΟΛΩΝ των συνδέσεων στο stdout ως JSON
-omniroute auth export --force --id <id>                 # Εξαγωγή μόνο της αντίστοιχης σύνδεσης
-omniroute auth export --force --format env               # Εκπομπή γραμμών OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export                                 # Εμφάνιση προειδοποίησης + αίτημα επιβεβαίωσης — χωρίς πρόσβαση στη βάση δεδομένων
+omniroute auth export --force                          # Εξαγωγή των ΑΠΟΚΡΥΠΤΟΓΡΑΦΗΜΕΝΩΝ διαπιστευτηρίων ΟΛΩΝ των συνδέσεων στο stdout ως JSON
+omniroute auth export --force --id <id>                 # Εξαγωγή μόνο της σύνδεσης που αντιστοιχεί
+omniroute auth export --force --format env               # Παραγωγή γραμμών OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Εγγραφή σε αρχείο (δημιουργείται με δικαιώματα 0600)
 ```
 
-Το `auth export` είναι **τοπικό μόνο** (άμεση ανάγνωση SQLite, χωρίς HTTP route) και σκόπιμα εκτυπώνει/γράφει
-**απλό κείμενο** για τιμές `apiKey`/`accessToken`/`refreshToken`/`idToken` — αυτό είναι το χαρακτηριστικό, όχι
-σφάλμα. Τίποτα δεν διαβάζεται από τη βάση δεδομένων και τίποτα δεν αποκρυπτογραφείται χωρίς `--force`. Ένα προειδοποιητικό banner στο stderr εκτυπώνεται πάντα πριν εκπεμφθεί οποιοδήποτε απλό κείμενο. Απαιτεί τη ρύθμιση του `STORAGE_ENCRYPTION_KEY`. Ένα πεδίο που αποτυγχάνει να αποκρυπτογραφηθεί (παλιό κλειδί, κατεστραμμένο ciphertext) αναφέρεται ως
-`<field>DecryptFailed: true` αντί να ακυρώσει ολόκληρη την εξαγωγή ή να αποκαλύψει το υποκείμενο σφάλμα.
+Το `auth export` εκτελείται **μόνο τοπικά** (άμεση ανάγνωση SQLite, χωρίς διαδρομή HTTP) και σκοπίμως εμφανίζει/εγγράφει
+τιμές `apiKey`/`accessToken`/`refreshToken`/`idToken` σε **απλό κείμενο** — αυτό αποτελεί λειτουργία και όχι
+σφάλμα. Χωρίς το `--force`, δεν διαβάζεται τίποτα από τη βάση δεδομένων και δεν αποκρυπτογραφείται τίποτα. Ένα banner
+προειδοποίησης εμφανίζεται πάντοτε στο stderr πριν από την έξοδο οποιουδήποτε απλού κειμένου. Απαιτεί να έχει
+οριστεί το `STORAGE_ENCRYPTION_KEY`. Ένα πεδίο που αποτυγχάνει να αποκρυπτογραφηθεί (παρωχημένο κλειδί, κατεστραμμένο κρυπτοκείμενο) αναφέρεται ως
+`<field>DecryptFailed: true`, αντί να διακόπτεται ολόκληρη η εξαγωγή ή να αποκαλύπτεται το υποκείμενο σφάλμα.
 
 ### Άλλες υποεντολές
 
-Αυτές προϋποθέτουν έναν διακομιστή OmniRoute σε λειτουργία, εκτός αν αναφέρεται διαφορετικά:
+Αυτές προϋποθέτουν ότι εκτελείται ένας διακομιστής OmniRoute, εκτός εάν αναφέρεται διαφορετικά:
 
 ```bash
-omniroute status                       # Ολοκληρωμένη κατάσταση χρόνου εκτέλεσης
-omniroute logs                         # Ροή αρχείων καταγραφής αιτημάτων (--json, --search, --follow)
-omniroute config show                  # Εμφάνιση τρέχουσας διαμόρφωσης
+omniroute status                       # Αναλυτική κατάσταση χρόνου εκτέλεσης
+omniroute logs                         # Ροή καταγραφών αιτημάτων (--json, --search, --follow)
+omniroute config list                  # Εμφάνιση διαμορφωμένων εργαλείων CLI
 
-omniroute provider list                # Λίστα διαθέσιμων παρόχων (ψευδώνυμο του providers list)
-omniroute provider add                 # Καταχώριση OmniRoute ως παρόχου σε ένα εργαλείο
+omniroute provider list                # Παράθεση διαθέσιμων παρόχων (ψευδώνυμο του providers list)
+omniroute provider add                 # Καταχώριση του OmniRoute ως παρόχου σε ένα εργαλείο
 omniroute keys add | list | remove     # Διαχείριση κλειδιών API
-omniroute models [provider]            # Λίστα μοντέλων (--json, --search)
+omniroute models [provider]            # Παράθεση μοντέλων (--json, --search)
 omniroute combo list | switch | create | delete
 
 omniroute backup                       # Στιγμιότυπο διαμόρφωσης + βάσης δεδομένων
 omniroute restore                      # Επαναφορά από προηγούμενο στιγμιότυπο
 
-omniroute health                       # Λεπτομερής κατάσταση υγείας (breakers, cache, μνήμη)
+omniroute health                       # Αναλυτική κατάσταση εύρυθμης λειτουργίας (διακόπτες, κρυφή μνήμη, μνήμη)
 omniroute quota                        # Χρήση ορίου παρόχου
-omniroute cache                        # Κατάσταση cache
-omniroute cache clear                  # Εκκαθάριση semantic + signature caches
+omniroute cache                        # Κατάσταση κρυφής μνήμης
+omniroute cache clear                  # Εκκαθάριση σημασιολογικής κρυφής μνήμης + κρυφής μνήμης υπογραφών
 
 omniroute mcp status | restart         # Κατάσταση / επανεκκίνηση διακομιστή MCP
-omniroute a2a status | card            # Κατάσταση διακομιστή A2A / agent card
+omniroute a2a status | card            # Κατάσταση διακομιστή A2A / κάρτα πράκτορα
 
-omniroute tunnel list | create | stop  # Διαχείριση tunnels (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Επιθεώρηση / ορισμός μεταβλητών περιβάλλοντος (προσωρινά)
+omniroute tunnel list | create | stop  # Διαχείριση σηράγγων (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Προβολή / ορισμός μεταβλητών περιβάλλοντος (προσωρινά)
 
-omniroute test                         # Δοκιμή σύνδεσης παρόχου (smoke test)
+omniroute test                         # Γρήγορος έλεγχος συνδεσιμότητας παρόχου
 omniroute update                       # Έλεγχος για ενημερώσεις
-omniroute completion                   # Δημιουργία συμπλήρωσης shell
+omniroute completion                   # Δημιουργία συμπλήρωσης κελύφους
 ```
 
-### Κοινά flags
+### Συνήθεις σημαίες
 
-| Flag                | Περιγραφή                                                            |
-| ------------------- | -------------------------------------------------------------------- |
-| `--no-open`         | Χωρίς αυτόματο άνοιγμα του προγράμματος περιήγησης κατά την εκκίνηση |
-| `--port <n>`        | Παράκαμψη της θύρας API (προεπιλογή 20128)                           |
-| `--mcp`             | Εκτέλεση ως διακομιστής MCP μέσω stdio (για IDE)                     |
-| `--non-interactive` | Λειτουργία CI (χωρίς prompts· διαβάζει από env/flags)                |
-| `--json`            | Αναγνώσιμη από μηχανή JSON έξοδος (doctor, providers κ.λπ.)          |
-| `--help`, `-h`      | Εμφάνιση βοήθειας για συγκεκριμένη εντολή                            |
-| `--version`, `-v`   | Εκτύπωση της εγκατεστημένης έκδοσης                                  |
+| Σημαία              | Περιγραφή                                                                      |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `--no-open`         | Να μην ανοίγει αυτόματα το πρόγραμμα περιήγησης κατά την εκκίνηση              |
+| `--port <n>`        | Παράκαμψη της θύρας API (προεπιλογή 20128)                                     |
+| `--mcp`             | Εκτέλεση ως διακομιστής MCP μέσω stdio (για IDE)                               |
+| `--non-interactive` | Λειτουργία CI (χωρίς προτροπές· ανάγνωση από μεταβλητές περιβάλλοντος/σημαίες) |
+| `--json`            | Έξοδος JSON αναγνώσιμη από μηχανή (doctor, providers κ.λπ.)                    |
+| `--help`, `-h`      | Εμφάνιση βοήθειας για τη συγκεκριμένη εντολή                                   |
+| `--version`, `-v`   | Εκτύπωση της εγκατεστημένης έκδοσης                                            |
 
 ---
 

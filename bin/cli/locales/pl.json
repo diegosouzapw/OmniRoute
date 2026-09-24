@@ -14,6 +14,812 @@
     "jsonOpt": "Wyjście jako JSON",
     "yesOpt": "Pomiń potwierdzenie"
   },
+  "setup": {
+    "title": "Konfiguracja OmniRoute",
+    "passwordPrompt": "Hasło administratora",
+    "providerPrompt": "Domyślny dostawca (pozostaw puste, aby pominąć)",
+    "done": "Konfiguracja zakończona",
+    "passwordSet": "Hasło administratora zostało skonfigurowane",
+    "providerSet": "Skonfigurowano dostawcę: {name}",
+    "testingProvider": "Testowanie połączenia z dostawcą: {name}",
+    "testPassed": "Test dostawcy zakończony pomyślnie",
+    "testFailed": "Test dostawcy nie powiódł się: {error}",
+    "loginEnabled": "Logowanie: włączone (hasło zaktualizowane)",
+    "loginDisabled": "Logowanie: wyłączone",
+    "providerInfo": "Dostawca: {info}",
+    "opencode": "Zainstaluj i skonfiguruj dołączoną wtyczkę @omniroute/opencode-plugin dla OpenCode"
+  },
+  "doctor": {
+    "title": "Diagnostyka OmniRoute",
+    "dbOk": "Baza danych: OK ({path})",
+    "dbMissing": "Baza danych: niezainicjowana — uruchom `omniroute setup`",
+    "portOk": "Port {port}: dostępny",
+    "portConflict": "Port {port}: używany przez inny proces",
+    "encryptionOk": "Klucz szyfrowania: skonfigurowany",
+    "encryptionMissing": "Brak klucza szyfrowania — uruchom `omniroute setup`",
+    "allGood": "Wszystkie testy zakończone pomyślnie.",
+    "warnings": "Liczba ostrzeżeń: {count} — zobacz powyżej."
+  },
+  "providers": {
+    "title": "Dostawcy",
+    "noProviders": "Nie skonfigurowano żadnych dostawców. Uruchom: omniroute setup",
+    "testing": "Testowanie dostawcy {name}...",
+    "available": "Liczba dostępnych dostawców: {count}",
+    "connected": "Połączono",
+    "disconnected": "Rozłączono",
+    "validationFailed": "Walidacja nie powiodła się: {error}",
+    "metrics": {
+      "description": "Pokaż wskaźniki wydajności dostawców (opóźnienie, współczynnik powodzenia, koszt)",
+      "provider": "Filtruj według identyfikatora dostawcy",
+      "connection_id": "Filtruj według identyfikatora połączenia",
+      "period": "Okres: 1h|6h|24h|7d|30d (domyślnie: 24h)",
+      "metric": "Skup się na konkretnym polu wskaźnika",
+      "sort": "Sortuj według pola (malejąco)",
+      "limit": "Maksymalna liczba wierszy (domyślnie: 50)",
+      "watch": "Odświeżaj co 5 s (tryb na żywo)",
+      "compare": "Oddzielone przecinkami identyfikatory dostawców do porównania obok siebie"
+    },
+    "metric_single": {
+      "description": "Pobierz pojedynczą wartość wskaźnika dla określonego połączenia"
+    },
+    "rotate": {
+      "description": "Zmień klucz API usługi nadrzędnej dla połączenia z dostawcą",
+      "newKeyOpt": "Nowa wartość klucza API (unikaj: preferuj --from-env)",
+      "fromEnvOpt": "Odczytaj nowy klucz ze zmiennej środowiskowej VAR",
+      "oauthOpt": "Zamiast tego uruchom ponownie proces uwierzytelniania OAuth",
+      "skipTestOpt": "Pomiń test połączenia po rotacji",
+      "dryRunOpt": "Wyświetl, co zostałoby zmienione, bez zapisywania",
+      "confirmPrompt": "Zastąpić klucz API dla połączenia „{name}” ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Klucz dla „{name}” ({id}) zostałby zrotowany. Nie wprowadzono żadnych zmian.",
+      "oauthHint": "Połączenie OAuth — uruchom: omniroute oauth {provider}",
+      "envVarEmpty": "Zmienna środowiskowa {var} nie jest ustawiona lub jest pusta.",
+      "success": "Zrotowano klucz dla „{name}”. Uruchom `providers test {id}`, aby go zweryfikować.",
+      "testPassed": "Test po rotacji zakończył się pomyślnie.",
+      "testFailed": "Test po rotacji nie powiódł się: {error}"
+    },
+    "status": {
+      "description": "Pokaż stan kluczy dla wszystkich połączeń z dostawcami (wiek, wygaśnięcie, okres karencji)",
+      "providerOpt": "Filtruj według nazwy dostawcy",
+      "header": "ID         Dostawca      Nazwa                    Stan wygaśnięcia  Stan testu  Koniec okresu karencji",
+      "noData": "Brak dostępnych danych o połączeniach z dostawcami.",
+      "requiresServer": "Polecenie providers status wymaga uruchomionego serwera OmniRoute."
+    }
+  },
+  "keys": {
+    "title": "Klucze API",
+    "addDescription": "Dodaj lub zaktualizuj klucz API dostawcy",
+    "listDescription": "Wyświetl wszystkie skonfigurowane klucze API",
+    "removeDescription": "Usuń klucz API dostawcy",
+    "regenerateDescription": "Wygeneruj ponownie klucz API OmniRoute",
+    "revokeDescription": "Unieważnij klucz API OmniRoute",
+    "revealDescription": "Pokaż niezamaskowaną wartość klucza API",
+    "usageDescription": "Pokaż ostatnie użycie klucza API",
+    "usageLimitOpt": "Liczba ostatnich żądań",
+    "rotateDescription": "Wygeneruj nowy klucz i unieważnij stary",
+    "graceOpt": "Okres karencji (ms) przed unieważnieniem starego klucza",
+    "stdinOpt": "Odczytaj klucz API ze standardowego wejścia zamiast z argumentu",
+    "added": "Dodano klucz dla {provider}.",
+    "removed": "Usunięto klucz.",
+    "listed": "Liczba kluczy: {count}.",
+    "noKeys": "Nie skonfigurowano żadnych kluczy.",
+    "noUsage": "Nie znaleziono danych o użyciu.",
+    "confirmRemove": "Usunąć klucz {id}?",
+    "confirmRegenerate": "Wygenerować ponownie klucz {id}?",
+    "confirmRevoke": "Unieważnić klucz {id}?",
+    "confirmRotate": "Zrotować klucz {id}? (stary klucz zostanie unieważniony po okresie karencji)",
+    "regenerated": "Wygenerowano ponownie. Nowy klucz: {key}",
+    "revoked": "Klucz {id} został unieważniony.",
+    "rotated": "Klucz {id} został zmieniony. Identyfikator nowego klucza: {newId}",
+    "revealWarning": "⚠  Spowoduje to wyświetlenie pełnego, niezamaskowanego klucza. Upewnij się, że nikt nie widzi Twojego ekranu.",
+    "providerRequired": "Dostawca jest wymagany.",
+    "keyRequired": "Klucz API jest wymagany.",
+    "stdinEmpty": "Nie podano klucza API przez stdin.",
+    "unknownProvider": "Nieznany dostawca: {provider}",
+    "policy": {
+      "title": "Zasady klucza",
+      "showDescription": "Wyświetl zasady limitów i kosztów dla klucza",
+      "setDescription": "Ustaw zasady limitów i kosztów dla klucza",
+      "rateLimitOpt": "Maksymalna liczba żądań na minutę",
+      "maxCostOpt": "Maksymalny koszt dzienny (USD)",
+      "allowedModelsOpt": "Rozdzielona przecinkami lista dozwolonych modeli",
+      "nothingToSet": "Nie podano żadnych pól zasad. Użyj --rate-limit, --max-cost lub --allowed-models.",
+      "updated": "Zasady zostały zaktualizowane."
+    },
+    "expiration": {
+      "title": "Wygaśnięcie klucza",
+      "listDescription": "Wyświetl klucze, które wkrótce wygasną",
+      "daysOpt": "Wyświetl klucze wygasające w ciągu N dni",
+      "none": "Brak kluczy wygasających w ciągu {days} dni.",
+      "listTitle": "Klucze wygasające w ciągu {days} dni:"
+    }
+  },
+  "authExport": {
+    "description": "Eksportuj ODSZYFROWANE dane uwierzytelniające dostawcy (tylko lokalnie, dane wyjściowe w postaci zwykłego tekstu)",
+    "idOpt": "Eksportuj tylko połączenie odpowiadające temu identyfikatorowi, nazwie lub dostawcy",
+    "formatOpt": "Format danych wyjściowych: json lub env",
+    "outOpt": "Zapisz dane wyjściowe do pliku zamiast do stdout (z uprawnieniami 0600)",
+    "forceOpt": "Potwierdź, że rozumiesz, iż spowoduje to wyświetlenie lub zapisanie sekretów w postaci zwykłego tekstu",
+    "warning": "⚠ Spowoduje to wyświetlenie lub zapisanie ODSZYFROWANYCH kluczy API i tokenów OAuth w postaci zwykłego tekstu. Upewnij się, że Twój ekran, historia powłoki i wszelkie pliki wyjściowe pozostają prywatne.",
+    "confirmHeading": "⚠ OSTRZEŻENIE: spowoduje to wyeksportowanie ODSZYFROWANYCH danych uwierzytelniających dostawcy w postaci zwykłego tekstu",
+    "confirmBody": "To polecenie odszyfrowuje i wyświetla lub zapisuje apiKey, accessToken, refreshToken oraz\nidToken dla wybranych połączeń. Traktuj dane wyjściowe jako sekret.",
+    "confirmFooter": "Aby potwierdzić, uruchom:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY jest wymagany do eksportowania danych uwierzytelniających.",
+    "notFound": "Nie znaleziono połączenia: {id}",
+    "invalidFormat": "Nieprawidłowy format: {format}. Użyj json lub env."
+  },
+  "stream": {
+    "description": "Przesyłaj strumieniowo odpowiedź czatu z trybami inspekcji SSE",
+    "file": "Wczytaj prompt z pliku",
+    "stdin": "Wczytaj prompt ze stdin",
+    "model": "Identyfikator modelu (domyślnie: auto)",
+    "system": "Prompt systemowy",
+    "combo": "Wymuś określoną kombinację według nazwy",
+    "max_tokens": "Maksymalna liczba tokenów w odpowiedzi",
+    "responses_api": "Użyj /v1/responses zamiast /v1/chat/completions",
+    "raw": "Wyświetlaj nieprzetworzone wiersze SSE w otrzymanej postaci",
+    "debug": "Wyświetl informacje o czasie przetwarzania poszczególnych fragmentów w stderr",
+    "save": "Zapisz wszystkie zdarzenia SSE do pliku .jsonl",
+    "error": {
+      "empty_prompt": "Błąd: prompt jest wymagany (argument pozycyjny, --file lub --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Analityka użycia, budżety, limity i dzienniki",
+    "analytics": {
+      "description": "Pokaż zagregowaną analitykę użycia",
+      "period": "Zakres czasu: 1d|7d|30d|90d|ytd|all (domyślnie: 30d)",
+      "provider": "Filtruj według identyfikatora dostawcy"
+    },
+    "budget": {
+      "description": "Zarządzaj budżetami kosztów",
+      "set": {
+        "scope": "Zakres budżetu (domyślnie: globalny)",
+        "period": "Okres budżetowy: daily|weekly|monthly (domyślnie: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Pokaż wykorzystanie limitu dostawcy",
+      "provider": "Filtruj według identyfikatora dostawcy",
+      "check": "Pokaż, czy limit pozwala na nowe żądanie"
+    },
+    "logs": {
+      "description": "Pokaż dzienniki wywołań żądań",
+      "limit": "Liczba zwracanych wpisów dziennika (domyślnie: 100)",
+      "search": "Zapytanie wyszukiwania do filtrowania dzienników",
+      "since": "Zwróć dzienniki od tego znacznika czasu",
+      "follow": "Śledź na bieżąco nowe wpisy dziennika",
+      "api_key": "Filtruj dzienniki według klucza API"
+    },
+    "utilization": {
+      "description": "Pokaż wskaźniki wykorzystania kluczy API",
+      "api_key": "Filtruj według klucza API"
+    },
+    "history": {
+      "description": "Pokaż historię żądań",
+      "limit": "Liczba wpisów historii (domyślnie: 100)"
+    },
+    "proxy_logs": {
+      "description": "Pokaż dzienniki żądań na poziomie proxy",
+      "limit": "Liczba wpisów dziennika proxy (domyślnie: 100)"
+    }
+  },
+  "cost": {
+    "description": "Pokaż raport kosztów z podziałem według dostawcy, modelu, kombinacji lub klucza API",
+    "period": "Zakres czasu: 1d|7d|30d|90d|ytd|all (domyślnie: 30d)",
+    "since": "Data początkowa (format ISO, np. 2026-01-01) — zastępuje --period",
+    "until": "Data końcowa (format ISO)",
+    "group_by": "Grupuj wyniki według: provider|model|api-key|combo|day (domyślnie: provider)",
+    "api_key_filter": "Filtruj według określonego klucza API",
+    "limit": "Maksymalna liczba wyświetlanych wierszy (domyślnie: 100)"
+  },
+  "simulate": {
+    "description": "Symulacja routingu bez wykonywania żądań — pokaż, którzy dostawcy zostaliby wybrani, bez wywoływania usługi nadrzędnej",
+    "file": "Wczytaj pełną treść żądania z pliku JSON",
+    "model": "Identyfikator modelu (domyślnie: auto)",
+    "combo": "Wymuś określoną kombinację według nazwy",
+    "reasoning": "Poziom intensywności rozumowania (low|medium|high)",
+    "thinking": "Budżet tokenów na rozszerzone rozumowanie",
+    "explain": "Wyświetl drzewo mechanizmów zastępczych i zakres kosztów w stderr",
+    "noCombo": "Nie znaleziono pasującej kombinacji. Skonfiguruj ją za pomocą: omniroute combo create"
+  },
+  "chat": {
+    "description": "Wyślij jednorazowy prompt czatu do OmniRoute",
+    "file": "Wczytaj prompt z pliku",
+    "stdin": "Wczytaj prompt ze standardowego wejścia",
+    "system": "Prompt systemowy",
+    "model": "Identyfikator modelu (domyślnie: auto)",
+    "max_tokens": "Maksymalna liczba tokenów w odpowiedzi",
+    "temperature": "Temperatura próbkowania (0–2)",
+    "top_p": "Próbkowanie jądrowe top-p",
+    "reasoning_effort": "Poziom intensywności rozumowania (low|medium|high)",
+    "thinking_budget": "Budżet tokenów rozszerzonego rozumowania",
+    "combo": "Wymuś określoną kombinację według nazwy",
+    "responses_api": "Użyj /v1/responses zamiast /v1/chat/completions",
+    "stream": "Przesyłaj odpowiedź strumieniowo",
+    "no_history": "Nie zapisuj w ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Błąd: prompt jest wymagany (argument pozycyjny, --file lub --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Uruchom serwer OmniRoute (działanie domyślne)",
+    "starting": "Uruchamianie serwera OmniRoute na porcie {port}...",
+    "ready": "Dostępny pod adresem http://localhost:{port}",
+    "stopping": "Zatrzymywanie serwera (PID {pid})...",
+    "stopped": "Serwer został zatrzymany.",
+    "notRunning": "Serwer nie jest uruchomiony.",
+    "port": "Port nasłuchiwania (domyślnie: 20128)",
+    "no_open": "Nie otwieraj automatycznie przeglądarki",
+    "daemon": "Uruchom serwer jako demon w tle",
+    "log": "Wyświetlaj logi serwera bezpośrednio",
+    "no_recovery": "Wyłącz automatyczne ponowne uruchamianie po awarii (tryb debugowania)",
+    "max_restarts": "Maksymalna liczba ponownych uruchomień po awarii w ciągu 30 s przed rezygnacją (domyślnie: 2)",
+    "tray": "Uruchom w zasobniku systemowym (tylko aplikacja komputerowa, opcjonalnie)",
+    "no_tray": "Wyłącz ikonę w zasobniku systemowym",
+    "ready_timeout": "Limit czasu sondy gotowości w ms (również OMNIROUTE_READY_TIMEOUT_MS, domyślnie 60000)",
+    "tls_cert": "Ścieżka do certyfikatu TLS (PEM) do obsługi HTTPS (również OMNIROUTE_TLS_CERT)",
+    "tls_key": "Ścieżka do klucza prywatnego TLS (PEM) do obsługi HTTPS (również OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Kopia zapasowa",
+    "description": "Utwórz kopię zapasową danych OmniRoute",
+    "creating": "Tworzenie kopii zapasowej...",
+    "done": "Kopia zapasowa została zapisana w {path}",
+    "noFiles": "Brak plików do utworzenia kopii zapasowej (baza danych nie została zainicjalizowana)",
+    "failed": "Tworzenie kopii zapasowej nie powiodło się: {error}",
+    "restoring": "Przywracanie z {path}...",
+    "restored": "Przywracanie zakończone.",
+    "restoreDescription": "Przywróć z kopii zapasowej",
+    "listTitle": "Dostępne kopie zapasowe",
+    "noBackups": "Nie znaleziono kopii zapasowych.",
+    "notFound": "Nie znaleziono kopii zapasowej: {name}",
+    "confirmRestore": "Zastąpić bieżące dane kopią zapasową z {ts}?",
+    "createDescription": "Utwórz kopię zapasową danych OmniRoute",
+    "nameOpt": "Niestandardowa nazwa kopii zapasowej",
+    "cloudOpt": "Prześlij kopię zapasową do magazynu w chmurze",
+    "encryptOpt": "Zaszyfruj kopię zapasową za pomocą AES-256-GCM",
+    "keyFileOpt": "Ścieżka do pliku zawierającego hasło szyfrowania",
+    "excludeOpt": "Wyklucz plik pasujący do wzorca (opcja powtarzalna)",
+    "retentionOpt": "Zachowaj tylko ostatnie N kopii zapasowych",
+    "passphrasePrompt": "Hasło szyfrowania:",
+    "noPassphrase": "Hasło jest wymagane w przypadku zaszyfrowanej kopii zapasowej.",
+    "cloudFailed": "Ostrzeżenie: przesyłanie do chmury nie powiodło się. Lokalna kopia zapasowa została zapisana.",
+    "cloudUploaded": "Kopia zapasowa przesłana do chmury: {url}",
+    "auto": {
+      "title": "Harmonogram kopii zapasowych",
+      "enableDescription": "Włącz zaplanowane automatyczne tworzenie kopii zapasowych",
+      "disableDescription": "Wyłącz zaplanowane automatyczne tworzenie kopii zapasowych",
+      "statusDescription": "Pokaż bieżący stan harmonogramu kopii zapasowych",
+      "cronOpt": "Wyrażenie cron harmonogramu (domyślnie: codziennie o 3:00)",
+      "enabled": "Automatyczne tworzenie kopii zapasowych jest włączone (cron: {cron}).",
+      "hint": "Harmonogram jest odczytywany przez omniroute serve podczas uruchamiania.",
+      "disabled": "Automatyczne tworzenie kopii zapasowych jest wyłączone.",
+      "notConfigured": "Nie skonfigurowano harmonogramu kopii zapasowych."
+    }
+  },
+  "health": {
+    "description": "Sprawdź kondycję serwera i stan komponentów",
+    "noServer": "Serwer nie jest uruchomiony. Uruchom go za pomocą: omniroute serve",
+    "title": "Kondycja",
+    "status": "Stan: {status}",
+    "uptime": "Czas działania: {uptime}",
+    "requests": "Żądania (24 godz.): {count}",
+    "cost": "Koszt (24 godz.): ${cost}"
+  },
+  "quota": {
+    "description": "Pokaż wykorzystanie limitów dostawcy",
+    "noServer": "Serwer nie jest uruchomiony. Uruchom go za pomocą: omniroute serve",
+    "noData": "Brak informacji o limitach."
+  },
+  "cache": {
+    "description": "Zarządzaj pamięcią podręczną odpowiedzi",
+    "noServer": "Serwer nie jest uruchomiony. Uruchom go za pomocą: omniroute serve",
+    "cleared": "Pamięć podręczna została wyczyszczona.",
+    "clearFailed": "Nie udało się wyczyścić pamięci podręcznej."
+  },
+  "redis": {
+    "description": "Uruchom lokalny kontener Redis jednym kliknięciem (Podman lub Docker) do buforowania i śledzenia limitów OmniRoute"
+  },
+  "test": {
+    "description": "Przetestuj połączenie z dostawcą",
+    "noServer": "Serwer nie działa. Uruchom go za pomocą: omniroute serve",
+    "testing": "Testowanie {provider} / {model}...",
+    "passed": "Połączenie powiodło się!",
+    "failed": "Połączenie nie powiodło się: {error}",
+    "allProvidersOpt": "Przetestuj wszystkich skonfigurowanych dostawców",
+    "latencyOpt": "Pokaż pomiary opóźnień (średnie/min./maks. ms)",
+    "repeatOpt": "Powtórz test N razy i zagreguj wyniki",
+    "compareOpt": "Modele do porównania rozdzielone przecinkami (np. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Zapisz wyniki do pliku JSON",
+    "saved": "Wyniki zapisano w {path}",
+    "compareTitle": "Porównanie modeli",
+    "compareMinTwo": "Opcja --compare wymaga co najmniej dwóch modeli (rozdzielonych przecinkami)",
+    "noProviders": "Nie skonfigurowano żadnych dostawców. Dodaj dostawcę za pomocą: omniroute keys add"
+  },
+  "update": {
+    "checking": "Sprawdzanie dostępności aktualizacji...",
+    "upToDate": "Używasz już najnowszej wersji ({version}).",
+    "available": "Dostępna aktualizacja: {current} → {latest}",
+    "installing": "Instalowanie {latest}...",
+    "done": "Zaktualizowano do wersji {latest}. Uruchom ponownie serwer, aby zastosować zmiany."
+  },
+  "mcp": {
+    "title": "Serwer MCP",
+    "running": "Serwer MCP działa ({transport})",
+    "stopped": "Serwer MCP został zatrzymany.",
+    "restarted": "Serwer MCP został uruchomiony ponownie.",
+    "stoppedHint": "Uruchom `omniroute mcp enable`, aby go włączyć.",
+    "enabled": "Serwer MCP został włączony.",
+    "disabled": "Serwer MCP został wyłączony.",
+    "enable": {
+      "description": "Włącz serwer MCP",
+      "transport": "Transport do użycia: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Wyłącz serwer MCP"
+    },
+    "call": {
+      "description": "Wywołaj bezpośrednio narzędzie MCP",
+      "args": "Obiekt argumentów JSON (wpisany bezpośrednio)",
+      "args_file": "Ścieżka do pliku argumentów JSON",
+      "stream": "Użyj punktu końcowego przesyłania strumieniowego (/api/mcp/stream)",
+      "scope": "Wymagany zakres (opcja powtarzalna, np. read:health)"
+    },
+    "scopes": {
+      "description": "Wyświetl dostępne zakresy MCP",
+      "tool": "Pokaż zakresy wymagane przez określone narzędzie"
+    },
+    "tools": {
+      "description": "Sprawdź narzędzia MCP",
+      "list": {
+        "description": "Wyświetl wszystkie narzędzia MCP",
+        "scope": "Filtruj według zakresu"
+      },
+      "info": {
+        "description": "Pokaż metadane narzędzia MCP"
+      },
+      "schema": {
+        "description": "Pokaż schemat JSON danych wejściowych/wyjściowych narzędzia MCP",
+        "io": "Rodzaj schematu: input|output (domyślnie: input)"
+      }
+    },
+    "audit": {
+      "description": "Dziennik audytu MCP (alias dla audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Wyświetl dostępne umiejętności A2A z karty agenta"
+    },
+    "invoke": {
+      "description": "Wywołaj umiejętność A2A i zwróć identyfikator zadania",
+      "input": "Obiekt wejściowy JSON",
+      "input_file": "Ścieżka do wejściowego pliku JSON",
+      "wait": "Przed zwróceniem wyniku poczekaj na ukończenie zadania",
+      "timeout": "Limit czasu oczekiwania na ukończenie w ms (domyślnie: 60000)"
+    },
+    "tasks": {
+      "description": "Zarządzaj zadaniami A2A",
+      "list": {
+        "status": "Filtruj według statusu",
+        "skill": "Filtruj według identyfikatora umiejętności"
+      },
+      "watch": {
+        "description": "Sprawdzaj status zadania aż do ukończenia"
+      },
+      "stream": {
+        "description": "Przesyłaj strumieniowo zdarzenia wykonania zadania przez SSE"
+      },
+      "logs": {
+        "description": "Pokaż komunikaty i artefakty zadania"
+      }
+    }
+  },
+  "policy": {
+    "description": "Zarządzaj zasadami autoryzacji OmniRoute",
+    "list": {
+      "description": "Wyświetl zasady",
+      "kind": "Filtruj według rodzaju (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filtruj według zakresu (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Pobierz szczegóły zasady według identyfikatora"
+    },
+    "create": {
+      "description": "Utwórz zasadę z pliku JSON",
+      "file": "Ścieżka do pliku JSON zasady"
+    },
+    "update": {
+      "description": "Zaktualizuj zasadę z pliku JSON",
+      "file": "Ścieżka do pliku JSON zasady"
+    },
+    "delete": {
+      "description": "Usuń zasadę według identyfikatora",
+      "yes": "Pomiń monit o potwierdzenie"
+    },
+    "evaluate": {
+      "description": "Próbna ocena zasady (kod wyjścia 0=dozwolone, 4=odrzucone)",
+      "api_key": "Klucz API do oceny",
+      "action": "Akcja do sprawdzenia (np. chat, embed, admin)",
+      "resource": "Ścieżka lub identyfikator zasobu",
+      "context": "Dodatkowy kontekst jako obiekt JSON"
+    },
+    "export": {
+      "description": "Wyeksportuj wszystkie zasady do pliku JSON"
+    },
+    "import": {
+      "description": "Zaimportuj zasady z pliku JSON",
+      "overwrite": "Zastąp istniejące zasady o tym samym identyfikatorze"
+    }
+  },
+  "compression": {
+    "description": "Skonfiguruj i sprawdź potok kompresji OmniRoute",
+    "status": {
+      "description": "Pokaż bieżący stan i ustawienia kompresji"
+    },
+    "configure": {
+      "description": "Skonfiguruj ustawienia kompresji",
+      "engine": "Silnik kompresji (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Poziom agresywności Caveman 0.0–1.0",
+      "rtk_budget": "Budżet tokenów RTK",
+      "language_pack": "Pakiet językowy do aktywacji"
+    },
+    "engine": {
+      "description": "Pobierz lub ustaw aktywny mechanizm kompresji"
+    },
+    "combos": {
+      "description": "Zarządzaj statystykami kombinacji kompresji"
+    },
+    "rules": {
+      "description": "Zarządzaj regułami kompresji",
+      "add": {
+        "pattern": "Wzorzec do dopasowania (wyrażenie regularne lub pole:wzorzec)",
+        "action": "Działanie: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Wyświetl dostępne pakiety językowe kompresji"
+    },
+    "preview": {
+      "description": "Wyświetl podgląd efektu kompresji żądania",
+      "file": "Ścieżka do pliku JSON żądania"
+    }
+  },
+  "tunnel": {
+    "title": "Tunele",
+    "listDescription": "Wyświetl aktywne tunele",
+    "createDescription": "Utwórz tunel",
+    "created": "Utworzono tunel: {url}",
+    "stopped": "Tunel zatrzymany.",
+    "confirmStop": "Zatrzymać tunel {id}?",
+    "stopDescription": "Zatrzymaj tunel",
+    "statusDescription": "Wyświetl szczegółowy stan tunelu",
+    "logsDescription": "Wyświetl dzienniki tunelu",
+    "infoDescription": "Wyświetl szczegóły konfiguracji tunelu",
+    "rotateDescription": "Wygeneruj nowy adres URL tunelu",
+    "tailOpt": "Liczba wyświetlanych wierszy dziennika",
+    "typeRequired": "Typ tunelu jest wymagany.",
+    "noLogs": "Brak dostępnych dzienników.",
+    "notAvailable": "Informacje o tunelu są niedostępne.",
+    "noTunnels": "Brak aktywnych tuneli.",
+    "infoTitle": "Informacje o tunelu: {type}",
+    "rotated": "Zmieniono adres URL tunelu: {url}",
+    "confirmRotate": "Zmienić adres URL tunelu {type}? (zostanie wygenerowany nowy adres URL)"
+  },
+  "stop": {
+    "description": "Zatrzymaj serwer OmniRoute",
+    "stopping": "Zatrzymywanie serwera (PID {pid})...",
+    "stopped": "Serwer zatrzymany.",
+    "notRunning": "Żaden serwer nie jest uruchomiony.",
+    "portFallback": "Nie znaleziono pliku PID, próba zatrzymania na podstawie portu..."
+  },
+  "restart": {
+    "description": "Uruchom ponownie serwer OmniRoute",
+    "restarting": "Ponowne uruchamianie serwera OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Otwórz panel OmniRoute w przeglądarce",
+    "opening": "Otwieranie panelu pod adresem {url}",
+    "urlOnly": "Wyświetl adres URL panelu bez otwierania przeglądarki",
+    "tui": "Otwórz interaktywny panel TUI (terminalowy interfejs użytkownika, 7 kart)"
+  },
+  "models": {
+    "description": "Wyświetl dostępne modele (wymaga serwera)",
+    "search": "Filtruj modele według identyfikatora, nazwy, dostawcy lub opisu",
+    "noServer": "Serwer nie działa. Uruchom go za pomocą: omniroute serve",
+    "noModels": "Nie znaleziono modeli."
+  },
+  "audit": {
+    "description": "Uzyskaj dostęp do dzienników zgodności i audytu MCP",
+    "source": "Źródło dziennika: all|compliance|mcp (domyślnie: all)",
+    "since": "Zwróć wpisy od tego znacznika czasu (ISO 8601)",
+    "until": "Zwróć wpisy do tego znacznika czasu (ISO 8601)",
+    "tail": {
+      "description": "Pokaż ostatnie wpisy dziennika audytu",
+      "follow": "Stale śledź nowe wpisy (odpytywanie co 2 s)",
+      "limit": "Maksymalna liczba wyświetlanych wpisów (domyślnie: 100)"
+    },
+    "search": {
+      "description": "Przeszukaj wpisy dziennika audytu według słowa kluczowego",
+      "limit": "Maksymalna liczba wyników (domyślnie: 200)",
+      "actor": "Filtruj według identyfikatora podmiotu",
+      "action": "Filtruj według nazwy działania"
+    },
+    "export": {
+      "description": "Eksportuj dziennik audytu do pliku",
+      "format": "Format wyjściowy: jsonl|csv (domyślnie: jsonl)"
+    },
+    "stats": {
+      "description": "Pokaż statystyki dziennika audytu",
+      "period": "Okres: 1d|7d|30d (domyślnie: 7d)"
+    },
+    "get": {
+      "description": "Pobierz pojedynczy wpis dziennika audytu według identyfikatora"
+    }
+  },
+  "skills": {
+    "description": "Zarządzaj umiejętnościami OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Wyświetl zainstalowane umiejętności",
+      "type": "Filtruj według typu (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Pokaż tylko włączone umiejętności",
+      "disabled": "Pokaż tylko wyłączone umiejętności",
+      "api_key": "Filtruj według klucza API"
+    },
+    "get": {
+      "description": "Pobierz szczegóły umiejętności według identyfikatora"
+    },
+    "install": {
+      "description": "Zainstaluj umiejętność z pliku lub adresu URL",
+      "from_file": "Ścieżka do pliku definicji umiejętności w formacie JSON",
+      "from_url": "Adres URL zdalnej definicji umiejętności",
+      "type": "Typ umiejętności (sandbox|custom|hybrid)",
+      "enable": "Włącz umiejętność po instalacji"
+    },
+    "enable": {
+      "description": "Włącz umiejętność według identyfikatora"
+    },
+    "disable": {
+      "description": "Wyłącz umiejętność według identyfikatora",
+      "yes": "Pomiń monit o potwierdzenie"
+    },
+    "delete": {
+      "description": "Usuń umiejętność według identyfikatora",
+      "yes": "Pomiń monit o potwierdzenie"
+    },
+    "execute": {
+      "description": "Uruchom umiejętność według identyfikatora",
+      "input": "Obiekt wejściowy JSON",
+      "input_file": "Ścieżka do pliku wejściowego JSON",
+      "timeout": "Limit czasu wykonania w ms (domyślnie: 30000)"
+    },
+    "executions": {
+      "description": "Wyświetl historię uruchomień umiejętności",
+      "skill": "Filtruj według ID umiejętności",
+      "limit": "Maksymalna liczba wyników (domyślnie: 50)",
+      "status": "Filtruj według statusu (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Zarządzaj umiejętnościami zainstalowanymi przez SSH"
+    },
+    "marketplace": {
+      "description": "Przeglądaj i instaluj umiejętności z marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Wyszukuj pakiety w marketplace",
+        "category": "Filtruj według kategorii",
+        "tag": "Filtruj według tagu",
+        "limit": "Maksymalna liczba wyników (domyślnie: 30)",
+        "sort": "Sortuj według: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Pokaż szczegóły pakietu i plik readme"
+      },
+      "install": {
+        "description": "Zainstaluj pakiet z marketplace",
+        "version": "Wersja pakietu (domyślnie: latest)",
+        "enable": "Włącz po instalacji",
+        "yes": "Pomiń monit o potwierdzenie"
+      },
+      "categories": {
+        "description": "Wyświetl kategorie marketplace"
+      },
+      "featured": {
+        "description": "Pokaż polecane pakiety z marketplace"
+      }
+    }
+  },
+  "memory": {
+    "description": "Zarządzaj pamięcią konwersacyjną OmniRoute (FTS5 + wektorową)",
+    "search": {
+      "description": "Przeszukuj wpisy pamięci za pomocą zapytania semantycznego",
+      "type": "Filtruj według typu pamięci (user|feedback|project|reference)",
+      "limit": "Maksymalna liczba wyników (domyślnie: 20)",
+      "api_key": "Filtruj według klucza API",
+      "token_budget": "Ogranicz łączną liczbę tokenów w wynikach"
+    },
+    "add": {
+      "description": "Dodaj nowy wpis do pamięci",
+      "content": "Treść tekstowa pamięci",
+      "file": "Wczytaj zawartość z pliku",
+      "type": "Typ pamięci (domyślnie: user)",
+      "metadata": "Obiekt metadanych JSON",
+      "api_key": "Powiąż z kluczem API"
+    },
+    "clear": {
+      "description": "Usuń wpisy pamięci pasujące do filtrów",
+      "type": "Filtruj według typu",
+      "older": "Usuń wpisy starsze niż podany okres (30d, 6m, 1y)",
+      "api_key": "Filtruj według klucza API",
+      "yes": "Pomiń monit o potwierdzenie"
+    },
+    "list": {
+      "description": "Wyświetl wpisy pamięci bez rankingu wyszukiwania",
+      "type": "Filtruj według typu",
+      "limit": "Maksymalna liczba wyników (domyślnie: 100)",
+      "api_key": "Filtruj według klucza API"
+    },
+    "get": {
+      "description": "Pobierz pojedynczy wpis pamięci według ID"
+    },
+    "delete": {
+      "description": "Usuń wpis pamięci według ID",
+      "yes": "Pomiń monit o potwierdzenie"
+    },
+    "health": {
+      "description": "Pokaż stan podsystemu pamięci (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Zarządzaj połączeniami z dostawcami OAuth",
+    "providers": {
+      "description": "Wyświetl dostawców obsługujących OAuth i typy ich przepływów"
+    },
+    "start": {
+      "description": "Rozpocznij przepływ autoryzacji OAuth dla dostawcy",
+      "provider": "Identyfikator dostawcy (gemini, copilot, cursor, …)",
+      "no_browser": "Wyświetl tylko URL — nie otwieraj przeglądarki",
+      "import_system": "Automatycznie zaimportuj dane uwierzytelniające z lokalnej konfiguracji systemu",
+      "social": "Dostawca logowania społecznościowego (google|github) — wymagany dla kiro",
+      "timeout": "Limit czasu oczekiwania na autoryzację w ms (domyślnie: 300000)"
+    },
+    "status": {
+      "description": "Wyświetl aktywne połączenia OAuth",
+      "provider": "Filtruj według identyfikatora dostawcy"
+    },
+    "revoke": {
+      "description": "Unieważnij połączenie OAuth",
+      "provider": "Identyfikator dostawcy, którego połączenie ma zostać unieważnione",
+      "connection_id": "Unieważnij określone połączenie według identyfikatora",
+      "yes": "Pomiń monit o potwierdzenie"
+    }
+  },
+  "cloud": {
+    "description": "Zarządzaj zadaniami agentów AI w chmurze (codex, devin, jules)",
+    "agents": {
+      "description": "Wyświetl dostępnych agentów chmurowych"
+    },
+    "agent": {
+      "description": "Zarządzaj zadaniami agenta chmurowego {agent}",
+      "auth": {
+        "description": "Autoryzuj agenta {agent} przez OAuth"
+      }
+    },
+    "task": {
+      "description": "Zarządzaj zadaniami agentów chmurowych",
+      "create": {
+        "description": "Utwórz nowe zadanie agenta",
+        "title": "Tytuł zadania (domyślnie pierwsze 80 znaków monitu)",
+        "prompt": "Treść monitu zadania",
+        "prompt_file": "Wczytaj monit z pliku",
+        "repo": "URL repozytorium do sklonowania na potrzeby zadania",
+        "branch": "Nazwa gałęzi do użycia",
+        "metadata": "Obiekt metadanych JSON"
+      },
+      "list": {
+        "description": "Wyświetl zadania agentów",
+        "status": "Filtruj według stanu (running|completed|failed|cancelled)",
+        "limit": "Maksymalna liczba wyników (domyślnie: 50)"
+      },
+      "get": {
+        "description": "Pobierz szczegóły zadania według identyfikatora"
+      },
+      "status": {
+        "description": "Wyświetl stan zadania (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Anuluj trwające zadanie",
+        "yes": "Pomiń monit o potwierdzenie"
+      },
+      "approve": {
+        "description": "Zatwierdź plan agenta, aby rozpocząć wykonywanie"
+      },
+      "message": {
+        "description": "Wyślij wiadomość do trwającego zadania"
+      }
+    },
+    "sources": {
+      "description": "Wyświetl pliki źródłowe utworzone przez zadanie"
+    }
+  },
+  "eval": {
+    "description": "Zarządzaj zestawami ewaluacyjnymi i ich uruchomieniami",
+    "suites": {
+      "description": "Zarządzaj zestawami ewaluacyjnymi",
+      "list": {
+        "description": "Wyświetl zestawy ewaluacyjne"
+      },
+      "get": {
+        "description": "Pobierz szczegóły zestawu ewaluacyjnego według ID"
+      },
+      "create": {
+        "description": "Utwórz zestaw ewaluacyjny z pliku JSON",
+        "file": "Ścieżka do pliku JSON z definicją zestawu"
+      }
+    },
+    "run": {
+      "description": "Rozpocznij ewaluację zestawu",
+      "model": "ID modelu do ewaluacji (domyślnie: auto)",
+      "combo": "Wymuś określoną kombinację według nazwy",
+      "concurrency": "Liczba próbek przetwarzanych równolegle (domyślnie: 4)",
+      "tag": "Oznacz ten przebieg tagiem, aby móc go później filtrować",
+      "watch": "Monitoruj postęp przebiegu aż do zakończenia"
+    },
+    "list": {
+      "description": "Wyświetl przebiegi ewaluacji",
+      "suite": "Filtruj według ID zestawu",
+      "status": "Filtruj według statusu",
+      "since": "Zwróć przebiegi od tego znacznika czasu",
+      "limit": "Maksymalna liczba wyników (domyślnie: 50)"
+    },
+    "get": {
+      "description": "Pobierz szczegóły przebiegu ewaluacji według ID"
+    },
+    "results": {
+      "description": "Pokaż wyniki próbek dla przebiegu ewaluacji",
+      "failed": "Pokaż tylko próbki zakończone niepowodzeniem"
+    },
+    "cancel": {
+      "description": "Anuluj trwającą ewaluację",
+      "yes": "Pomiń monit o potwierdzenie"
+    },
+    "scorecard": {
+      "description": "Pokaż kartę wyników zakończonego przebiegu ewaluacji"
+    }
+  },
+  "webhooks": {
+    "description": "Zarządzaj webhookami OmniRoute",
+    "events": {
+      "description": "Wyświetl wszystkie dostępne typy zdarzeń webhooków"
+    },
+    "list": {
+      "description": "Wyświetl skonfigurowane webhooki"
+    },
+    "get": {
+      "description": "Pobierz szczegóły webhooka według ID"
+    },
+    "add": {
+      "description": "Zarejestruj nowy webhook",
+      "url": "Docelowy URL",
+      "events": "Lista typów zdarzeń rozdzielonych przecinkami",
+      "secret": "Sekret do podpisu HMAC",
+      "header": "Dodatkowy nagłówek w formacie key=value (opcja powtarzalna)",
+      "no_enabled": "Utwórz webhook w stanie wyłączonym"
+    },
+    "update": {
+      "description": "Zaktualizuj istniejący webhook",
+      "enabled": "Ustaw stan włączenia (true|false)"
+    },
+    "remove": {
+      "description": "Usuń webhook",
+      "yes": "Pomiń monit o potwierdzenie"
+    },
+    "test": {
+      "description": "Wyślij zdarzenie testowe do webhooka",
+      "event": "Typ zdarzenia do symulacji (domyślnie: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Inteligentny router AI z automatycznym fallbackiem",
     "version": "Wydrukuj wersję i wyjdź",
@@ -26,7 +832,509 @@
     "context": "Kontekst/profil serwera dla tego polecenia",
     "lang": "Ustaw język wyświetlania CLI (nadpisuje OMNIROUTE_LANG)"
   },
-  "redis": {
-    "description": "Uruchom lokalny kontener Redis jednym kliknięciem (Podman lub Docker) do buforowania i śledzenia limitów OmniRoute"
+  "files": {
+    "description": "Zarządzaj plikami (przesyłanie, wyświetlanie, pobieranie informacji, pobieranie, usuwanie)",
+    "list": {
+      "purpose": "Filtruj według przeznaczenia",
+      "limit": "Maksymalna liczba wyników"
+    },
+    "get": {
+      "description": "Pobierz metadane pliku"
+    },
+    "upload": {
+      "description": "Prześlij plik",
+      "purpose": "Przeznaczenie pliku (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Pobierz zawartość pliku",
+      "out": "Zapisz w ścieżce (domyślnie: stdout)"
+    },
+    "delete": {
+      "yes": "Pomiń potwierdzenie"
+    }
+  },
+  "batches": {
+    "description": "Zarządzaj zadaniami wsadowymi zgodnymi z OpenAI",
+    "list": {
+      "status": "Filtruj według statusu",
+      "limit": "Maksymalna liczba wyników"
+    },
+    "create": {
+      "description": "Utwórz zadanie wsadowe",
+      "inputFile": "Identyfikator pliku wejściowego",
+      "endpoint": "Docelowy endpoint",
+      "window": "Okno realizacji",
+      "metadata": "Dodaj metadane klucz=wartość"
+    },
+    "submit": {
+      "description": "Prześlij plik JSONL i utwórz zadanie wsadowe",
+      "jsonl": "Ścieżka do pliku JSONL",
+      "endpoint": "Docelowy endpoint",
+      "wait": "Czekaj na zakończenie"
+    },
+    "cancel": {
+      "yes": "Pomiń potwierdzenie"
+    },
+    "wait": {
+      "timeout": "Limit czasu w ms"
+    },
+    "output": {
+      "out": "Zapisz dane wyjściowe w ścieżce"
+    },
+    "errors": {
+      "out": "Zapisz błędy w ścieżce"
+    }
+  },
+  "translator": {
+    "description": "Konwertuj treści żądań między formatami LLM",
+    "detect": {
+      "description": "Wykryj format treści"
+    },
+    "translate": {
+      "description": "Konwertuj treść z jednego formatu na inny"
+    },
+    "send": {
+      "description": "Przetłumacz i wyślij do usługi nadrzędnej"
+    },
+    "stream": {
+      "description": "Konwertuj strumieniowo treść żądania"
+    },
+    "from": "Format źródłowy (openai|anthropic|gemini|cohere)",
+    "to": "Format docelowy (openai|anthropic|gemini|cohere)",
+    "file": "Ścieżka do pliku JSON z treścią żądania",
+    "out": "Zapisz dane wyjściowe do pliku",
+    "model": "Zastąp model",
+    "history": {
+      "limit": "Maksymalna liczba wyników"
+    }
+  },
+  "pricing": {
+    "description": "Zarządzaj danymi cenowymi modeli",
+    "sync": {
+      "description": "Synchronizuj ceny ze źródeł nadrzędnych",
+      "provider": "Filtruj według dostawcy",
+      "force": "Wymuś ponowną synchronizację"
+    },
+    "list": {
+      "provider": "Filtruj według dostawcy",
+      "model": "Filtruj według modelu",
+      "limit": "Maksymalna liczba wyników"
+    },
+    "defaults": {
+      "description": "Zarządzaj domyślnymi cenami",
+      "input": "Koszt wejścia za 1 mln tokenów (USD)",
+      "output": "Koszt wyjścia za 1 mln tokenów (USD)",
+      "cacheRead": "Koszt odczytu z pamięci podręcznej za 1 mln tokenów (USD)",
+      "cacheWrite": "Koszt zapisu do pamięci podręcznej za 1 mln tokenów (USD)"
+    },
+    "diff": {
+      "description": "Pokaż rozbieżności względem cen źródłowych",
+      "model": "Filtruj według modelu"
+    }
+  },
+  "radar": {
+    "description": "Sprawdź i zsynchronizuj lokalne źródła katalogu Radar",
+    "status": "Pokaż lokalne ustawienia Radar i stan pamięci podręcznej źródeł",
+    "sync": "Zsynchronizuj katalog, polecenia, oferty i Intel za pośrednictwem lokalnego serwera"
+  },
+  "resilience": {
+    "description": "Sprawdź mechanizmy odporności i zarządzaj nimi",
+    "status": {
+      "provider": "Filtruj według dostawcy"
+    },
+    "breakers": {
+      "provider": "Filtruj według dostawcy"
+    },
+    "cooldowns": {
+      "provider": "Filtruj według dostawcy",
+      "connectionId": "Filtruj według identyfikatora połączenia"
+    },
+    "lockouts": {
+      "provider": "Filtruj według dostawcy",
+      "model": "Filtruj według modelu"
+    },
+    "reset": {
+      "description": "Zresetuj stan wyłącznika/czasu odczekania",
+      "provider": "Dostawca do zresetowania",
+      "connectionId": "Identyfikator połączenia do zresetowania",
+      "model": "Model, dla którego zresetować blokadę",
+      "allCooldowns": "Zresetuj wszystkie czasy odczekania dostawcy",
+      "yes": "Pomiń potwierdzenie"
+    },
+    "profile": {
+      "description": "Zarządzaj profilem odporności",
+      "name": "Nazwa profilu"
+    },
+    "config": {
+      "description": "Zarządzaj konfiguracją odporności",
+      "threshold": "Próg błędów",
+      "resetTimeout": "Limit czasu resetowania w ms",
+      "baseCooldown": "Bazowy czas odczekania w ms"
+    }
+  },
+  "nodes": {
+    "description": "Zarządzaj węzłami dostawcy (punktami końcowymi)",
+    "list": {
+      "provider": "Filtruj według dostawcy",
+      "enabled": "Pokaż tylko włączone węzły"
+    },
+    "add": {
+      "provider": "Nazwa dostawcy",
+      "baseUrl": "Bazowy adres URL węzła",
+      "name": "Nazwa węzła",
+      "weight": "Waga równoważenia obciążenia",
+      "region": "Znacznik regionu",
+      "authHeader": "Niestandardowy nagłówek uwierzytelniania (key=value)"
+    },
+    "update": {
+      "baseUrl": "Nowy bazowy adres URL",
+      "name": "Nowa nazwa",
+      "weight": "Nowa waga",
+      "region": "Nowy region",
+      "enabled": "Włącz lub wyłącz (true|false)"
+    },
+    "remove": {
+      "yes": "Pomiń potwierdzenie"
+    },
+    "validate": {
+      "baseUrl": "URL do zweryfikowania",
+      "provider": "Dostawca, względem którego przeprowadzić weryfikację"
+    },
+    "test": {
+      "description": "Wyślij żądanie testowe do węzła"
+    },
+    "metrics": {
+      "description": "Pokaż metryki węzła",
+      "period": "Okres (np. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Skonfiguruj potok inżynierii kontekstu (Caveman, RTK)",
+    "analytics": {
+      "period": "Okres (np. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Zarządzaj kompresorem kontekstu Caveman",
+      "config": {
+        "description": "Pokaż lub zaktualizuj konfigurację Caveman",
+        "aggressiveness": "Poziom agresywności 0.0–1.0",
+        "maxShrinkPct": "Maksymalny procent kompresji",
+        "preserveTags": "Tagi do zachowania, rozdzielone przecinkami"
+      }
+    },
+    "rtk": {
+      "description": "Zarządzaj optymalizatorem kontekstu RTK",
+      "config": {
+        "description": "Pokaż lub zaktualizuj konfigurację RTK",
+        "tokenBudget": "Budżet tokenów dla RTK",
+        "reservePct": "Procent rezerwy"
+      },
+      "filters": {
+        "description": "Zarządzaj filtrami RTK",
+        "pattern": "Wzorzec filtra (wyrażenie regularne)",
+        "priority": "Priorytet filtra (domyślnie: 100)",
+        "action": "Działanie filtra: drop|shrink|replace",
+        "yes": "Pomiń potwierdzenie"
+      },
+      "test": {
+        "file": "Ścieżka do pliku JSON żądania"
+      }
+    },
+    "combos": {
+      "description": "Zarządzanie kombinacjami z uwzględnieniem kontekstu"
+    }
+  },
+  "sessions": {
+    "description": "Przeglądaj aktywne sesje i zarządzaj nimi",
+    "list": {
+      "user": "Filtruj według użytkownika",
+      "kind": "Filtruj według rodzaju (dashboard|api-key|mcp|a2a)",
+      "active": "Pokaż tylko aktywne sesje",
+      "limit": "Maksymalna liczba wyników (domyślnie: 100)"
+    },
+    "expire": {
+      "yes": "Pomiń potwierdzenie"
+    },
+    "expireAll": {
+      "user": "Użytkownik, którego sesje mają wygasnąć",
+      "yes": "Pomiń potwierdzenie"
+    }
+  },
+  "tags": {
+    "description": "Zarządzaj tagami zasobów",
+    "add": {
+      "color": "Kolor tagu (wartość szesnastkowa lub nazwa)",
+      "description": "Opis tagu"
+    },
+    "remove": {
+      "yes": "Pomiń potwierdzenie"
+    },
+    "assign": {
+      "tag": "Nazwa tagu",
+      "to": "Zasób docelowy w formacie type:id (np. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Nazwa tagu",
+      "from": "Zasób źródłowy w formacie type:id"
+    }
+  },
+  "openapi": {
+    "description": "Uzyskaj dostęp do specyfikacji OpenAPI OmniRoute i przetestuj ją",
+    "dump": {
+      "description": "Wyślij specyfikację OpenAPI na standardowe wyjście lub zapisz ją do pliku",
+      "format": "Format wyjściowy: yaml|json (domyślnie: yaml)",
+      "out": "Zapisz w ścieżce pliku"
+    },
+    "validate": {
+      "description": "Zweryfikuj specyfikację OpenAPI"
+    },
+    "try": {
+      "description": "Przetestuj endpoint API przy użyciu specyfikacji",
+      "method": "Metoda HTTP (domyślnie: GET)",
+      "body": "Ścieżka do pliku JSON z treścią żądania",
+      "query": "Parametr zapytania w formacie key=value (można powtórzyć)",
+      "header": "Nagłówek w formacie key=value (można powtórzyć)"
+    },
+    "endpoints": {
+      "description": "Wyświetl wszystkie endpointy API",
+      "search": "Filtruj według ścieżki lub podsumowania"
+    },
+    "paths": {
+      "description": "Wyświetl wszystkie ścieżki API"
+    }
+  },
+  "combo": {
+    "title": "Kombinacje",
+    "switched": "Aktywna kombinacja: {name}",
+    "created": "Utworzono kombinację: {name}",
+    "deleted": "Usunięto kombinację: {name}",
+    "noCombos": "Nie skonfigurowano żadnych kombinacji.",
+    "confirmDelete": "Usunąć kombinację {name}?",
+    "suggest": {
+      "description": "Zaproponuj najlepszą kombinację do zadania, korzystając z oceny AI",
+      "task": "Opis zadania",
+      "maxCost": "Maksymalny koszt żądania w USD",
+      "maxLatencyMs": "Maksymalne opóźnienie w milisekundach",
+      "weights": "Wagi oceny w formacie JSON, np. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Liczba najlepszych kandydatów do wyświetlenia (domyślnie: 5)",
+      "explain": "Wyświetl uzasadnienie na standardowym wyjściu błędów",
+      "switch": "Aktywuj najwyżej ocenioną kombinację"
+    }
+  },
+  "oneproxy": {
+    "description": "Zarządzaj pulą serwerów nadrzędnych OneProxy",
+    "stats": {
+      "provider": "Filtruj według dostawcy",
+      "period": "Okres (domyślnie: 24h)"
+    },
+    "fetch": {
+      "description": "Pobierz serwery proxy z puli",
+      "count": "Liczba serwerów proxy do pobrania (domyślnie: 1)",
+      "type": "Typ proxy: http|socks5 (domyślnie: http)"
+    },
+    "rotate": {
+      "description": "Wymuś rotację proxy",
+      "provider": "Dostawca, dla którego ma zostać wykonana rotacja",
+      "connectionId": "Identyfikator konkretnego połączenia do rotacji"
+    },
+    "config": {
+      "description": "Wyświetl lub zaktualizuj konfigurację OneProxy",
+      "enabled": "Włącz pulę serwerów proxy (true|false)",
+      "poolSize": "Rozmiar puli",
+      "providerSource": "URL dostawcy proxy",
+      "rotationPolicy": "Zasady rotacji: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Wyświetl bieżącą pulę serwerów proxy wraz z metrykami"
+    }
+  },
+  "open": {
+    "description": "Otwórz określoną stronę panelu OmniRoute w przeglądarce",
+    "url": "Wyświetl tylko URL, nie otwieraj przeglądarki"
+  },
+  "telemetry": {
+    "description": "Uzyskaj dostęp do zagregowanych danych telemetrycznych",
+    "summary": {
+      "description": "Wyświetl podsumowanie zagregowanych danych telemetrycznych",
+      "period": "Okres: 24h|7d|30d (domyślnie: 24h)",
+      "compareTo": "Porównaj z poprzednim okresem"
+    },
+    "export": {
+      "description": "Eksportuj zdarzenia telemetryczne do formatu JSONL",
+      "out": "Ścieżka pliku wyjściowego (domyślnie: telemetry.jsonl)",
+      "period": "Okres eksportu (domyślnie: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Synchronizuj konfigurację między instancjami OmniRoute",
+    "push": {
+      "description": "Wyślij konfigurację do chmury lub instancji zdalnej",
+      "target": "Cel (cloud lub context:name)",
+      "bundle": "Elementy pakietu do synchronizacji",
+      "dryRun": "Wyświetl podgląd bez stosowania zmian"
+    },
+    "pull": {
+      "description": "Pobierz konfigurację z chmury lub instancji zdalnej",
+      "source": "Źródło (cloud lub context:name)",
+      "merge": "Scal z istniejącą konfiguracją",
+      "replace": "Zastąp istniejącą konfigurację",
+      "dryRun": "Wyświetl podgląd bez stosowania zmian"
+    },
+    "diff": {
+      "source": "Kontekst źródłowy",
+      "target": "Kontekst docelowy"
+    },
+    "bundle": {
+      "description": "Eksportuj konfigurację jako plik pakietu",
+      "include": "Elementy do uwzględnienia (oddzielone przecinkami)"
+    },
+    "import": {
+      "description": "Importuj plik pakietu",
+      "dryRun": "Sprawdź poprawność bez stosowania zmian"
+    },
+    "initialize": {
+      "fromCloud": "Zainicjuj z kopii zapasowej w chmurze"
+    },
+    "tokens": {
+      "description": "Zarządzaj tokenami synchronizacji",
+      "create": {
+        "name": "Nazwa tokenu",
+        "scope": "Zakres tokenu",
+        "ttl": "Czas ważności tokenu (np. 30d)"
+      },
+      "revoke": {
+        "yes": "Pomiń potwierdzenie"
+      }
+    },
+    "resolve": {
+      "description": "Rozwiąż konflikty synchronizacji interaktywnie"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Zarządzaj kontekstami/profilami serwera (add, use, list, show, remove, rename, export, import)"
+    },
+    "lang": {
+      "description": "Zarządzaj językiem interfejsu CLI",
+      "getDescription": "Wyświetl kod aktualnie aktywnego języka",
+      "setDescription": "Ustaw język wyświetlania i zapisz go w konfiguracji",
+      "listDescription": "Wyświetl listę wszystkich dostępnych języków",
+      "listTitle": "Dostępne języki",
+      "current": "Język: {code} ({name})",
+      "saved": "Ustawiono język na {code} ({name}).",
+      "noCode": "Wymagany jest kod języka. Uruchom „omniroute config lang list”, aby zobaczyć dostępne kody.",
+      "unknown": "Nieznany kod języka: {code}. Uruchom „omniroute config lang list”, aby zobaczyć dostępne kody.",
+      "alreadySet": "Język jest już ustawiony na {code}.",
+      "envHint": "Wskazówka: możesz również ustawić OMNIROUTE_LANG={code} w swoim środowisku."
+    }
+  },
+  "completion": {
+    "description": "Generuj lub instaluj skrypty uzupełniania powłoki",
+    "zsh": "Wyświetl skrypt uzupełniania dla zsh",
+    "bash": "Wyświetl skrypt uzupełniania dla bash",
+    "fish": "Wyświetl skrypt uzupełniania dla fish",
+    "install": "Zainstaluj globalnie skrypt uzupełniania dla wykrytej powłoki",
+    "refresh": "Odśwież pamięć podręczną kombinacji/dostawców/modeli"
+  },
+  "logs": {
+    "description": "Przesyłaj strumieniowo lub eksportuj dzienniki żądań",
+    "follow": "Przesyłaj dzienniki strumieniowo w czasie rzeczywistym",
+    "filter": "Filtruj według poziomu (error,warn,info) — wartości rozdzielone przecinkami",
+    "lines": "Liczba wierszy do pobrania",
+    "timeout": "Limit czasu połączenia w ms",
+    "baseUrl": "Bazowy adres URL API OmniRoute",
+    "requestId": "Filtruj według identyfikatora żądania",
+    "apiKey": "Filtruj według klucza API",
+    "combo": "Filtruj według nazwy kombinacji",
+    "status": "Filtruj według kodu stanu HTTP",
+    "durationMin": "Minimalny czas trwania żądania w ms",
+    "durationMax": "Maksymalny czas trwania żądania w ms",
+    "export": "Zapisz dzienniki do pliku (json/jsonl/csv)",
+    "exported": "Dzienniki zapisano w {path}",
+    "stopped": "Zatrzymano strumieniowanie dzienników.",
+    "streamError": "Błąd strumieniowania dzienników: {message}"
+  },
+  "tray": {
+    "description": "Steruj ikoną w zasobniku systemowym",
+    "show": "Pokaż ikonę w zasobniku systemowym (jeśli serwer działa z opcją --tray)",
+    "hide": "Ukryj ikonę w zasobniku systemowym",
+    "quit": "Zakończ OmniRoute za pomocą ikony w zasobniku systemowym"
+  },
+  "autostart": {
+    "description": "Zarządzaj automatycznym uruchamianiem OmniRoute podczas rozruchu (Linux: usługa użytkownika systemd)",
+    "enable": "Włącz automatyczne uruchamianie podczas rozruchu",
+    "disable": "Wyłącz automatyczne uruchamianie podczas rozruchu",
+    "toggle": "Przełącz automatyczne uruchamianie podczas rozruchu",
+    "status": "Pokaż stan automatycznego uruchamiania"
+  },
+  "runtime": {
+    "description": "Zarządzaj natywnymi zależnościami środowiska uruchomieniowego",
+    "check": "Sprawdź stan natywnych zależności w katalogu środowiska uruchomieniowego",
+    "repair": "Zainstaluj ponownie natywne zależności w katalogu środowiska uruchomieniowego",
+    "repair_force": "Wymuś ponowną instalację, nawet jeśli zależności są prawidłowe",
+    "clean": "Usuń katalog środowiska uruchomieniowego (zwalnia miejsce na dysku)",
+    "clean_yes": "Pomiń potwierdzenie"
+  },
+  "repl": {
+    "description": "Interaktywny, wieloturowy REPL z LLM",
+    "model": "Model do użycia (domyślnie: auto)",
+    "combo": "Nazwa kombinacji do użycia",
+    "system": "Monit systemowy",
+    "resume": "Wznów zapisaną sesję według nazwy"
+  },
+  "plugin": {
+    "description": "Zarządzaj wtyczkami CLI (omniroute-cmd-*)",
+    "list": "Wyświetl zainstalowane wtyczki",
+    "install": "Zainstaluj wtyczkę z npm lub ścieżki lokalnej",
+    "remove": "Usuń zainstalowaną wtyczkę",
+    "info": "Pokaż szczegóły zainstalowanej wtyczki",
+    "search": "Przeszukaj rejestr npm pod kątem dostępnych wtyczek",
+    "update": "Zaktualizuj zainstalowane wtyczki",
+    "scaffold": "Wygeneruj szablon nowej wtyczki"
+  },
+  "launch": {
+    "description": "Uruchom Claude Code skonfigurowany do pracy z OmniRoute (lokalnym lub zdalnym, z --profile)",
+    "token": "Token, który klient Claude powinien wysyłać (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute jest nieosiągalny na porcie {port}. Uruchom go poleceniem 'omniroute serve'.",
+    "notFound": "Nie znaleziono CLI 'claude' w PATH."
+  },
+  "run": {
+    "description": "Uruchom obsługiwany docelowy interfejs CLI za pośrednictwem OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Wygeneruj profile Claude Code w ~/.claude/profiles na podstawie katalogu modeli OmniRoute"
+  },
+  "connect": {
+    "description": "Połącz się ze zdalnym serwerem OmniRoute i przejdź do trybu zdalnego"
+  },
+  "tokens": {
+    "description": "Zarządzaj tokenami dostępu CLI o ograniczonym zakresie (tryb zdalny)"
+  },
+  "configure": {
+    "description": "Wybierz dostawcę i model z aktywnego serwera oraz skonfiguruj obsługiwany lokalny interfejs CLI"
+  },
+  "launchCodex": {
+    "description": "Uruchom Codex CLI skonfigurowany do pracy z OmniRoute (lokalnym lub na zdalnym VPS)"
+  },
+  "setupCodex": {
+    "description": "Wygeneruj pliki profili w ~/.codex na podstawie aktualnego katalogu modeli OmniRoute"
+  },
+  "packs": {
+    "description": "Zarządzaj opcjonalnymi pakietami środowiska uruchomieniowego (ML / automatyzacja przeglądarki)",
+    "listDescription": "Wyświetl opcjonalne pakiety i stan ich instalacji",
+    "installDescription": "Zainstaluj opcjonalny pakiet w DATA_DIR",
+    "verifyDescription": "Zweryfikuj zainstalowane pakiety względem dostarczonego indeksu sum kontrolnych",
+    "removeDescription": "Usuń zainstalowany opcjonalny pakiet",
+    "sourceOpt": "Katalog zawierający dane pakietów i indeks pakietów",
+    "warnNoIndex": "Nie znaleziono optional-packs.index.json — instalacja i weryfikacja są niedostępne w tej kopii repozytorium (plik jest dostarczany w pakietach aplikacji desktopowej)",
+    "errUnknown": "nieznany pakiet: {name}",
+    "errNoIndex": "nie znaleziono indeksu pakietów; przekaż --source <dir> wskazujące katalog zawierający dane pakietu (w pakietach aplikacji desktopowej znajduje się on obok aplikacji)",
+    "installed": "pakiet \"{name}\" został zainstalowany i zweryfikowany w {dir}",
+    "restartHint": "uruchom ponownie serwer OmniRoute (lub aplikację komputerową), aby środowisko uruchomieniowe wykryło pakiet",
+    "removed": "pakiet „{name}” został usunięty",
+    "notInstalled": "pakiet „{name}” nie był zainstalowany",
+    "verifyOk": "zweryfikowano wszystkie zainstalowane pakiety",
+    "verifyFailed": "weryfikacja nie powiodła się dla {count} pakietów",
+    "noneInstalled": "nie zainstalowano żadnych opcjonalnych pakietów"
   }
 }

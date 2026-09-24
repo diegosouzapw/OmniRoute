@@ -14,6 +14,812 @@
     "jsonOpt": "Ieșire ca JSON",
     "yesOpt": "Omite confirmarea"
   },
+  "setup": {
+    "title": "Configurare OmniRoute",
+    "passwordPrompt": "Parolă de administrator",
+    "providerPrompt": "Furnizor implicit (lăsați necompletat pentru a omite)",
+    "done": "Configurare finalizată",
+    "passwordSet": "Parola de administrator a fost configurată",
+    "providerSet": "Furnizor configurat: {name}",
+    "testingProvider": "Se testează conexiunea la furnizor: {name}",
+    "testPassed": "Testul furnizorului a reușit",
+    "testFailed": "Testul furnizorului a eșuat: {error}",
+    "loginEnabled": "Autentificare: activată (parolă actualizată)",
+    "loginDisabled": "Autentificare: dezactivată",
+    "providerInfo": "Furnizor: {info}",
+    "opencode": "Instalați și configurați pachetul @omniroute/opencode-plugin inclus pentru OpenCode"
+  },
+  "doctor": {
+    "title": "Diagnosticare OmniRoute",
+    "dbOk": "Bază de date: OK ({path})",
+    "dbMissing": "Bază de date: neinițializată — rulați `omniroute setup`",
+    "portOk": "Portul {port}: disponibil",
+    "portConflict": "Portul {port}: utilizat de un alt proces",
+    "encryptionOk": "Cheie de criptare: configurată",
+    "encryptionMissing": "Cheia de criptare lipsește — rulați `omniroute setup`",
+    "allGood": "Toate verificările au trecut.",
+    "warnings": "{count} avertisment(e) — consultați informațiile de mai sus."
+  },
+  "providers": {
+    "title": "Furnizori",
+    "noProviders": "Nu este configurat niciun furnizor. Rulați: omniroute setup",
+    "testing": "Se testează {name}...",
+    "available": "{count} furnizor(i) disponibil(i)",
+    "connected": "Conectat",
+    "disconnected": "Deconectat",
+    "validationFailed": "Validarea a eșuat: {error}",
+    "metrics": {
+      "description": "Afișați indicatorii de performanță ai furnizorului (latență, rată de succes, cost)",
+      "provider": "Filtrați după ID-ul furnizorului",
+      "connection_id": "Filtrați după ID-ul conexiunii",
+      "period": "Perioadă: 1h|6h|24h|7d|30d (implicit: 24h)",
+      "metric": "Concentrați-vă asupra unui anumit câmp de indicatori",
+      "sort": "Sortați după câmp (descrescător)",
+      "limit": "Număr maxim de rânduri (implicit: 50)",
+      "watch": "Reîmprospătați la fiecare 5 s (mod live)",
+      "compare": "ID-uri de furnizori separate prin virgulă pentru comparare alăturată"
+    },
+    "metric_single": {
+      "description": "Obțineți valoarea unui singur indicator pentru o anumită conexiune"
+    },
+    "rotate": {
+      "description": "Rotiți cheia API upstream pentru o conexiune la furnizor",
+      "newKeyOpt": "Noua valoare a cheii API (de evitat: preferați --from-env)",
+      "fromEnvOpt": "Citiți cheia nouă din variabila de mediu VAR",
+      "oauthOpt": "Declanșați în schimb fluxul de reautentificare OAuth",
+      "skipTestOpt": "Omiteți testul de conectivitate de după rotație",
+      "dryRunOpt": "Afișați ce s-ar modifica fără a scrie",
+      "confirmPrompt": "Înlocuiți cheia API pentru conexiunea „{name}” ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Cheia pentru „{name}” ({id}) ar fi rotită. Nu s-a efectuat nicio modificare.",
+      "oauthHint": "Conexiune OAuth — rulați: omniroute oauth {provider}",
+      "envVarEmpty": "Variabila de mediu {var} nu este setată sau este goală.",
+      "success": "Cheia pentru „{name}” a fost rotită. Rulați `providers test {id}` pentru verificare.",
+      "testPassed": "Testul de după rotație a reușit.",
+      "testFailed": "Testul de după rotație a eșuat: {error}"
+    },
+    "status": {
+      "description": "Afișați starea cheilor pentru toate conexiunile furnizorilor (vechime, expirare, perioadă de așteptare)",
+      "providerOpt": "Filtrați după numele furnizorului",
+      "header": "ID         Furnizor      Nume                     Stare expirare  Stare test  Perioadă de așteptare până la",
+      "noData": "Nu sunt disponibile date despre conexiunile furnizorilor.",
+      "requiresServer": "Pentru `providers status`, serverul OmniRoute trebuie să ruleze."
+    }
+  },
+  "keys": {
+    "title": "Chei API",
+    "addDescription": "Adăugați sau actualizați o cheie API pentru un furnizor",
+    "listDescription": "Listați toate cheile API configurate",
+    "removeDescription": "Eliminați cheia API a unui furnizor",
+    "regenerateDescription": "Regenerați o cheie API OmniRoute",
+    "revokeDescription": "Revocați o cheie API OmniRoute",
+    "revealDescription": "Dezvăluiți valoarea nemascată a cheii API",
+    "usageDescription": "Afișați utilizarea recentă a unei chei API",
+    "usageLimitOpt": "Numărul solicitărilor recente",
+    "rotateDescription": "Generați o cheie nouă și invalidați-o pe cea veche",
+    "graceOpt": "Perioada de grație (ms) înainte de invalidarea cheii vechi",
+    "stdinOpt": "Citiți cheia API din stdin în locul argumentului",
+    "added": "Cheia pentru {provider} a fost adăugată.",
+    "removed": "Cheia a fost eliminată.",
+    "listed": "{count} cheie/chei.",
+    "noKeys": "Nu este configurată nicio cheie.",
+    "noUsage": "Nu s-au găsit date de utilizare.",
+    "confirmRemove": "Eliminați cheia {id}?",
+    "confirmRegenerate": "Regenerați cheia {id}?",
+    "confirmRevoke": "Revocați cheia {id}?",
+    "confirmRotate": "Rotiți cheia {id}? (cheia veche va fi invalidată după perioada de grație)",
+    "regenerated": "Regenerată. Cheie nouă: {key}",
+    "revoked": "Cheia {id} a fost revocată.",
+    "rotated": "Cheia {id} a fost rotită. Noul ID al cheii: {newId}",
+    "revealWarning": "⚠  Aceasta va afișa cheia completă, nemascată. Asigurați-vă că ecranul este privat.",
+    "providerRequired": "Furnizorul este obligatoriu.",
+    "keyRequired": "Cheia API este obligatorie.",
+    "stdinEmpty": "Nu a fost furnizată nicio cheie API prin stdin.",
+    "unknownProvider": "Furnizor necunoscut: {provider}",
+    "policy": {
+      "title": "Politica cheii",
+      "showDescription": "Afișează politica privind rata/costul pentru o cheie",
+      "setDescription": "Setează politica privind rata/costul pentru o cheie",
+      "rateLimitOpt": "Numărul maxim de solicitări pe minut",
+      "maxCostOpt": "Costul maxim pe zi (USD)",
+      "allowedModelsOpt": "Listă de modele permise, separate prin virgulă",
+      "nothingToSet": "Nu au fost furnizate câmpuri pentru politică. Utilizați --rate-limit, --max-cost sau --allowed-models.",
+      "updated": "Politica a fost actualizată."
+    },
+    "expiration": {
+      "title": "Expirarea cheii",
+      "listDescription": "Listează cheile care expiră în curând",
+      "daysOpt": "Afișează cheile care expiră în decurs de N zile",
+      "none": "Nicio cheie nu expiră în decurs de {days} zile.",
+      "listTitle": "Chei care expiră în decurs de {days} zile:"
+    }
+  },
+  "authExport": {
+    "description": "Exportă credențialele DECRIPTATE ale furnizorului (doar local, rezultat în text simplu)",
+    "idOpt": "Exportă numai conexiunea care corespunde acestui ID/nume/furnizor",
+    "formatOpt": "Format de ieșire: json sau env",
+    "outOpt": "Scrie rezultatul într-un fișier în loc de stdout (scris cu permisiuni 0600)",
+    "forceOpt": "Confirmați că înțelegeți că această acțiune afișează/scrie secrete în text simplu",
+    "warning": "⚠ Această acțiune afișează/scrie chei API și tokenuri OAuth DECRIPTATE, în text simplu. Asigurați-vă că ecranul, istoricul shell-ului și orice fișier de ieșire rămân private.",
+    "confirmHeading": "⚠ AVERTISMENT: această acțiune exportă credențialele DECRIPTATE ale furnizorului în text simplu",
+    "confirmBody": "Această comandă decriptează și afișează/scrie apiKey, accessToken, refreshToken și\nidToken pentru conexiunile selectate. Tratați rezultatul ca pe un secret.",
+    "confirmFooter": "Pentru confirmare, rulați:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY este necesară pentru exportarea credențialelor.",
+    "notFound": "Conexiunea nu a fost găsită: {id}",
+    "invalidFormat": "Format nevalid: {format}. Utilizați json sau env."
+  },
+  "stream": {
+    "description": "Transmite în flux un răspuns de chat cu moduri de inspectare SSE",
+    "file": "Citește mesajul din fișier",
+    "stdin": "Citește mesajul din stdin",
+    "model": "ID-ul modelului (implicit: auto)",
+    "system": "Mesaj de sistem",
+    "combo": "Forțează o anumită combinație după nume",
+    "max_tokens": "Numărul maxim de tokenuri din răspuns",
+    "responses_api": "Utilizează /v1/responses în loc de /v1/chat/completions",
+    "raw": "Afișează liniile SSE brute pe măsură ce sunt primite",
+    "debug": "Afișează în stderr informații despre durata fiecărui fragment",
+    "save": "Salvează toate evenimentele SSE într-un fișier .jsonl",
+    "error": {
+      "empty_prompt": "Eroare: promptul este obligatoriu (argument pozițional, --file sau --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Analize de utilizare, bugete, cote și jurnale",
+    "analytics": {
+      "description": "Afișează analizele agregate de utilizare",
+      "period": "Interval de timp: 1d|7d|30d|90d|ytd|all (implicit: 30d)",
+      "provider": "Filtrează după ID-ul furnizorului"
+    },
+    "budget": {
+      "description": "Gestionează bugetele de costuri",
+      "set": {
+        "scope": "Domeniul bugetului (implicit: global)",
+        "period": "Perioada bugetului: daily|weekly|monthly (implicit: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Afișează utilizarea cotei furnizorului",
+      "provider": "Filtrează după ID-ul furnizorului",
+      "check": "Afișează dacă există cotă disponibilă pentru o solicitare nouă"
+    },
+    "logs": {
+      "description": "Afișează jurnalele apelurilor de solicitare",
+      "limit": "Numărul de intrări de jurnal returnate (implicit: 100)",
+      "search": "Interogare de căutare pentru filtrarea jurnalelor",
+      "since": "Returnează jurnalele începând de la acest marcaj temporal",
+      "follow": "Urmărește continuu noile intrări de jurnal",
+      "api_key": "Filtrează jurnalele după cheia API"
+    },
+    "utilization": {
+      "description": "Afișează indicatorii de utilizare a cheii API",
+      "api_key": "Filtrează după cheia API"
+    },
+    "history": {
+      "description": "Afișează istoricul solicitărilor",
+      "limit": "Numărul de intrări din istoric (implicit: 100)"
+    },
+    "proxy_logs": {
+      "description": "Afișează jurnalele solicitărilor la nivel de proxy",
+      "limit": "Numărul de intrări din jurnalul proxy (implicit: 100)"
+    }
+  },
+  "cost": {
+    "description": "Afișează raportul de costuri cu defalcare după furnizor, model, combinație sau cheie API",
+    "period": "Interval de timp: 1d|7d|30d|90d|ytd|all (implicit: 30d)",
+    "since": "Data de început (format ISO, de ex. 2026-01-01) — suprascrie --period",
+    "until": "Data de sfârșit (format ISO)",
+    "group_by": "Grupează rezultatele după: provider|model|api-key|combo|day (implicit: provider)",
+    "api_key_filter": "Filtrează după o anumită cheie API",
+    "limit": "Numărul maxim de rânduri afișate (implicit: 100)"
+  },
+  "simulate": {
+    "description": "Simulare de rutare fără execuție — afișează ce furnizori ar fi selectați fără a apela serviciul din amonte",
+    "file": "Încarcă întregul corp al solicitării dintr-un fișier JSON",
+    "model": "ID-ul modelului (implicit: auto)",
+    "combo": "Forțează o anumită combinație după nume",
+    "reasoning": "Nivelul efortului de raționare (low|medium|high)",
+    "thinking": "Bugetul de tokenuri pentru raționare extinsă",
+    "explain": "Afișează în stderr arborele de rezervă și intervalul de costuri",
+    "noCombo": "Nu s-a găsit nicio combinație corespunzătoare. Configurează una cu: omniroute combo create"
+  },
+  "chat": {
+    "description": "Trimite o solicitare unică de chat către OmniRoute",
+    "file": "Citește solicitarea din fișier",
+    "stdin": "Citește solicitarea de la stdin",
+    "system": "Solicitare de sistem",
+    "model": "ID-ul modelului (implicit: auto)",
+    "max_tokens": "Numărul maxim de tokenuri din răspuns",
+    "temperature": "Temperatura de eșantionare (0–2)",
+    "top_p": "Eșantionare nucleus top-p",
+    "reasoning_effort": "Nivelul efortului de raționament (low|medium|high)",
+    "thinking_budget": "Bugetul de tokenuri pentru gândire extinsă",
+    "combo": "Forțează o anumită combinație după nume",
+    "responses_api": "Folosește /v1/responses în loc de /v1/chat/completions",
+    "stream": "Transmite răspunsul în flux, în mod incremental",
+    "no_history": "Nu salva în ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Eroare: solicitarea este obligatorie (argument pozițional, --file sau --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Pornește serverul OmniRoute (acțiune implicită)",
+    "starting": "Se pornește serverul OmniRoute pe portul {port}...",
+    "ready": "Disponibil la http://localhost:{port}",
+    "stopping": "Se oprește serverul (PID {pid})...",
+    "stopped": "Serverul a fost oprit.",
+    "notRunning": "Serverul nu rulează.",
+    "port": "Portul de ascultare (implicit: 20128)",
+    "no_open": "Nu deschide automat browserul",
+    "daemon": "Rulează serverul ca daemon în fundal",
+    "log": "Afișează jurnalele serverului în linie",
+    "no_recovery": "Dezactivează repornirea automată în caz de eroare (mod de depanare)",
+    "max_restarts": "Numărul maxim de reporniri după erori în interval de 30 s înainte de abandonare (implicit: 2)",
+    "tray": "Pornește în bara de sistem (doar pe desktop, opțional)",
+    "no_tray": "Dezactivează pictograma din bara de sistem",
+    "ready_timeout": "Timpul de expirare al verificării disponibilității, în ms (și OMNIROUTE_READY_TIMEOUT_MS, implicit 60000)",
+    "tls_cert": "Calea către un certificat TLS (PEM) pentru furnizarea HTTPS (și OMNIROUTE_TLS_CERT)",
+    "tls_key": "Calea către cheia privată TLS (PEM) pentru furnizarea HTTPS (și OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Copie de rezervă",
+    "description": "Creează o copie de rezervă a datelor OmniRoute",
+    "creating": "Se creează copia de rezervă...",
+    "done": "Copia de rezervă a fost salvată în {path}",
+    "noFiles": "Nu există fișiere pentru copia de rezervă (baza de date nu este inițializată)",
+    "failed": "Crearea copiei de rezervă a eșuat: {error}",
+    "restoring": "Se restaurează din {path}...",
+    "restored": "Restaurarea s-a finalizat.",
+    "restoreDescription": "Restaurează dintr-o copie de rezervă",
+    "listTitle": "Copii de rezervă disponibile",
+    "noBackups": "Nu s-au găsit copii de rezervă.",
+    "notFound": "Copia de rezervă nu a fost găsită: {name}",
+    "confirmRestore": "Suprascrieți datele curente cu copia de rezervă din {ts}?",
+    "createDescription": "Creează o copie de rezervă a datelor OmniRoute",
+    "nameOpt": "Nume personalizat pentru copia de rezervă",
+    "cloudOpt": "Încarcă copia de rezervă în spațiul de stocare în cloud",
+    "encryptOpt": "Criptează copia de rezervă cu AES-256-GCM",
+    "keyFileOpt": "Calea către fișierul care conține fraza de acces pentru criptare",
+    "excludeOpt": "Exclude fișierul care corespunde modelului (opțiune repetabilă)",
+    "retentionOpt": "Păstrează doar ultimele N copii de rezervă",
+    "passphrasePrompt": "Fraza de acces pentru criptare:",
+    "noPassphrase": "Fraza de acces este obligatorie pentru copia de rezervă criptată.",
+    "cloudFailed": "Avertisment: încărcarea în cloud a eșuat. Copia de rezervă locală a fost salvată.",
+    "cloudUploaded": "Copia de rezervă a fost încărcată în cloud: {url}",
+    "auto": {
+      "title": "Programarea copiilor de rezervă",
+      "enableDescription": "Activează copiile de rezervă automate programate",
+      "disableDescription": "Dezactivează copiile de rezervă automate programate",
+      "statusDescription": "Afișează starea curentă a programării copiilor de rezervă",
+      "cronOpt": "Expresie cron pentru programare (implicit: zilnic la ora 3:00)",
+      "enabled": "Copierea de rezervă automată este activată (cron: {cron}).",
+      "hint": "Programarea este citită de omniroute serve la pornire.",
+      "disabled": "Copierea de rezervă automată este dezactivată.",
+      "notConfigured": "Nu este configurată nicio programare pentru copiile de rezervă."
+    }
+  },
+  "health": {
+    "description": "Verifică starea de funcționare a serverului și starea componentelor",
+    "noServer": "Serverul nu rulează. Porniți-l cu: omniroute serve",
+    "title": "Stare de funcționare",
+    "status": "Stare: {status}",
+    "uptime": "Timp de funcționare: {uptime}",
+    "requests": "Solicitări (24 h): {count}",
+    "cost": "Cost (24 h): ${cost}"
+  },
+  "quota": {
+    "description": "Afișează utilizarea cotei furnizorului",
+    "noServer": "Serverul nu rulează. Porniți-l cu: omniroute serve",
+    "noData": "Nu sunt disponibile informații despre cotă."
+  },
+  "cache": {
+    "description": "Gestionează memoria cache pentru răspunsuri",
+    "noServer": "Serverul nu rulează. Porniți-l cu: omniroute serve",
+    "cleared": "Memoria cache a fost golită.",
+    "clearFailed": "Golirea memoriei cache a eșuat."
+  },
+  "redis": {
+    "description": "Lansează un container Redis local cu un singur clic (Podman sau Docker) pentru cache și urmărirea cotelor OmniRoute"
+  },
+  "test": {
+    "description": "Testează conexiunea cu un furnizor",
+    "noServer": "Serverul nu rulează. Porniți-l cu: omniroute serve",
+    "testing": "Se testează {provider} / {model}...",
+    "passed": "Conexiune reușită!",
+    "failed": "Conexiunea a eșuat: {error}",
+    "allProvidersOpt": "Testează toți furnizorii configurați",
+    "latencyOpt": "Afișează măsurătorile latenței (medie/min./max. ms)",
+    "repeatOpt": "Repetă testul de N ori și agregă rezultatele",
+    "compareOpt": "Modele separate prin virgulă pentru comparare (de ex. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Salvează rezultatele într-un fișier JSON",
+    "saved": "Rezultatele au fost salvate în {path}",
+    "compareTitle": "Compararea modelelor",
+    "compareMinTwo": "Sunt necesare cel puțin două modele pentru --compare (separate prin virgulă)",
+    "noProviders": "Nu este configurat niciun furnizor. Adaugă unul cu: omniroute keys add"
+  },
+  "update": {
+    "checking": "Se verifică dacă există actualizări...",
+    "upToDate": "Versiunea este deja actualizată ({version}).",
+    "available": "Actualizare disponibilă: {current} → {latest}",
+    "installing": "Se instalează {latest}...",
+    "done": "S-a actualizat la {latest}. Repornește serverul pentru a aplica actualizarea."
+  },
+  "mcp": {
+    "title": "Server MCP",
+    "running": "Serverul MCP rulează ({transport})",
+    "stopped": "Serverul MCP s-a oprit.",
+    "restarted": "Serverul MCP a fost repornit.",
+    "stoppedHint": "Rulează `omniroute mcp enable` pentru a-l activa.",
+    "enabled": "Serverul MCP a fost activat.",
+    "disabled": "Serverul MCP a fost dezactivat.",
+    "enable": {
+      "description": "Activează serverul MCP",
+      "transport": "Transport de utilizat: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Dezactivează serverul MCP"
+    },
+    "call": {
+      "description": "Invocă direct un instrument MCP",
+      "args": "Obiect JSON cu argumente (în linie)",
+      "args_file": "Calea către fișierul JSON cu argumente",
+      "stream": "Utilizează endpointul de streaming (/api/mcp/stream)",
+      "scope": "Domeniu de acces necesar (repetabil, de ex. read:health)"
+    },
+    "scopes": {
+      "description": "Listează domeniile de acces MCP disponibile",
+      "tool": "Afișează domeniile de acces necesare unui anumit instrument"
+    },
+    "tools": {
+      "description": "Inspectează instrumentele MCP",
+      "list": {
+        "description": "Listează toate instrumentele MCP",
+        "scope": "Filtrează după domeniul de acces"
+      },
+      "info": {
+        "description": "Afișează metadatele unui instrument MCP"
+      },
+      "schema": {
+        "description": "Afișează schema JSON de intrare/ieșire pentru un instrument MCP",
+        "io": "Tip schemă: input|output (implicit: input)"
+      }
+    },
+    "audit": {
+      "description": "Jurnal de audit MCP (alias pentru audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Listează abilitățile A2A disponibile din cardul agentului"
+    },
+    "invoke": {
+      "description": "Invocă o abilitate A2A și returnează ID-ul sarcinii",
+      "input": "Obiect JSON de intrare",
+      "input_file": "Calea către fișierul JSON de intrare",
+      "wait": "Așteaptă finalizarea sarcinii înainte de returnare",
+      "timeout": "Timp maxim de așteptare pentru finalizare, în ms (implicit: 60000)"
+    },
+    "tasks": {
+      "description": "Gestionează sarcinile A2A",
+      "list": {
+        "status": "Filtrează după stare",
+        "skill": "Filtrează după ID-ul abilității"
+      },
+      "watch": {
+        "description": "Verifică periodic starea sarcinii până la finalizare"
+      },
+      "stream": {
+        "description": "Transmite în flux evenimentele de execuție a sarcinii prin SSE"
+      },
+      "logs": {
+        "description": "Afișează mesajele și artefactele sarcinii"
+      }
+    }
+  },
+  "policy": {
+    "description": "Gestionează politicile de autorizare OmniRoute",
+    "list": {
+      "description": "Listează politicile",
+      "kind": "Filtrează după tip (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filtrează după domeniu (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Obține detaliile politicii după ID"
+    },
+    "create": {
+      "description": "Creează o politică dintr-un fișier JSON",
+      "file": "Calea către fișierul JSON al politicii"
+    },
+    "update": {
+      "description": "Actualizează o politică dintr-un fișier JSON",
+      "file": "Calea către fișierul JSON al politicii"
+    },
+    "delete": {
+      "description": "Șterge o politică după ID",
+      "yes": "Omite solicitarea de confirmare"
+    },
+    "evaluate": {
+      "description": "Evaluare simulată a politicii (cod de ieșire 0=permis, 4=respins)",
+      "api_key": "Cheia API de evaluat",
+      "action": "Acțiunea de verificat (de ex., chat, embed, admin)",
+      "resource": "Calea sau identificatorul resursei",
+      "context": "Context suplimentar ca obiect JSON"
+    },
+    "export": {
+      "description": "Exportă toate politicile într-un fișier JSON"
+    },
+    "import": {
+      "description": "Importă politicile dintr-un fișier JSON",
+      "overwrite": "Suprascrie politicile existente cu același ID"
+    }
+  },
+  "compression": {
+    "description": "Configurează și inspectează pipeline-ul de compresie OmniRoute",
+    "status": {
+      "description": "Afișează starea și setările actuale ale compresiei"
+    },
+    "configure": {
+      "description": "Configurează setările de compresie",
+      "engine": "Motor de compresie (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Nivelul de agresivitate Caveman 0.0–1.0",
+      "rtk_budget": "Bugetul de tokenuri RTK",
+      "language_pack": "Pachetul lingvistic de activat"
+    },
+    "engine": {
+      "description": "Obține sau setează motorul de compresie activ"
+    },
+    "combos": {
+      "description": "Gestionează statisticile combinațiilor de compresie"
+    },
+    "rules": {
+      "description": "Gestionează regulile de compresie",
+      "add": {
+        "pattern": "Model de potrivire (regex sau câmp:model)",
+        "action": "Acțiune: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Listează pachetele lingvistice de compresie disponibile"
+    },
+    "preview": {
+      "description": "Previzualizează efectul compresiei asupra unei solicitări",
+      "file": "Calea către fișierul JSON al solicitării"
+    }
+  },
+  "tunnel": {
+    "title": "Tuneluri",
+    "listDescription": "Listează tunelurile active",
+    "createDescription": "Creează un tunel",
+    "created": "Tunel creat: {url}",
+    "stopped": "Tunel oprit.",
+    "confirmStop": "Oprești tunelul {id}?",
+    "stopDescription": "Oprește un tunel",
+    "statusDescription": "Afișează starea detaliată a unui tunel",
+    "logsDescription": "Afișează jurnalele unui tunel",
+    "infoDescription": "Afișează detaliile de configurare ale unui tunel",
+    "rotateDescription": "Generează un URL nou pentru tunel",
+    "tailOpt": "Numărul de linii de jurnal de afișat",
+    "typeRequired": "Tipul tunelului este obligatoriu.",
+    "noLogs": "Nu sunt disponibile jurnale.",
+    "notAvailable": "Informațiile despre tunel nu sunt disponibile.",
+    "noTunnels": "Nu există tuneluri active.",
+    "infoTitle": "Informații despre tunel: {type}",
+    "rotated": "URL-ul tunelului a fost schimbat: {url}",
+    "confirmRotate": "Schimbi URL-ul tunelului {type}? (va fi generat un URL nou)"
+  },
+  "stop": {
+    "description": "Oprește serverul OmniRoute",
+    "stopping": "Se oprește serverul (PID {pid})...",
+    "stopped": "Server oprit.",
+    "notRunning": "Nu rulează niciun server.",
+    "portFallback": "Nu s-a găsit niciun fișier PID, se încearcă oprirea pe baza portului..."
+  },
+  "restart": {
+    "description": "Repornește serverul OmniRoute",
+    "restarting": "Se repornește serverul OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Deschide panoul de control OmniRoute într-un browser",
+    "opening": "Se deschide panoul de control la {url}",
+    "urlOnly": "Afișează URL-ul panoului de control fără a deschide browserul",
+    "tui": "Deschide panoul de control TUI interactiv (interfață în terminal, 7 file)"
+  },
+  "models": {
+    "description": "Listează modelele disponibile (necesită serverul)",
+    "search": "Filtrează modelele după ID, nume, furnizor sau descriere",
+    "noServer": "Serverul nu rulează. Porniți-l cu: omniroute serve",
+    "noModels": "Nu s-au găsit modele."
+  },
+  "audit": {
+    "description": "Accesați jurnalele de conformitate și de audit MCP",
+    "source": "Sursa jurnalului: all|compliance|mcp (implicit: all)",
+    "since": "Returnează intrările începând de la acest marcaj temporal (ISO 8601)",
+    "until": "Returnează intrările până la acest marcaj temporal (ISO 8601)",
+    "tail": {
+      "description": "Afișează intrările recente din jurnalul de audit",
+      "follow": "Urmărește continuu intrările noi (interogare la 2s)",
+      "limit": "Numărul maxim de intrări de afișat (implicit: 100)"
+    },
+    "search": {
+      "description": "Caută în intrările jurnalului de audit după cuvânt-cheie",
+      "limit": "Numărul maxim de rezultate (implicit: 200)",
+      "actor": "Filtrează după ID-ul actorului",
+      "action": "Filtrează după numele acțiunii"
+    },
+    "export": {
+      "description": "Exportă jurnalul de audit într-un fișier",
+      "format": "Format de ieșire: jsonl|csv (implicit: jsonl)"
+    },
+    "stats": {
+      "description": "Afișează statisticile jurnalului de audit",
+      "period": "Perioada de timp: 1d|7d|30d (implicit: 7d)"
+    },
+    "get": {
+      "description": "Obține o singură intrare din jurnalul de audit după ID"
+    }
+  },
+  "skills": {
+    "description": "Gestionează abilitățile OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Listează abilitățile instalate",
+      "type": "Filtrează după tip (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Afișează numai abilitățile activate",
+      "disabled": "Afișează numai abilitățile dezactivate",
+      "api_key": "Filtrează după cheia API"
+    },
+    "get": {
+      "description": "Obține detalii despre o abilitate după ID"
+    },
+    "install": {
+      "description": "Instalează o abilitate dintr-un fișier sau URL",
+      "from_file": "Calea către fișierul cu definiția JSON a abilității",
+      "from_url": "URL-ul definiției abilității la distanță",
+      "type": "Tipul abilității (sandbox|custom|hybrid)",
+      "enable": "Activează abilitatea după instalare"
+    },
+    "enable": {
+      "description": "Activează o abilitate după ID"
+    },
+    "disable": {
+      "description": "Dezactivează o abilitate după ID",
+      "yes": "Omite solicitarea de confirmare"
+    },
+    "delete": {
+      "description": "Șterge o abilitate după ID",
+      "yes": "Omite solicitarea de confirmare"
+    },
+    "execute": {
+      "description": "Execută o abilitate după ID",
+      "input": "Obiect de intrare JSON",
+      "input_file": "Calea către fișierul JSON de intrare",
+      "timeout": "Timpul-limită de execuție în ms (implicit: 30000)"
+    },
+    "executions": {
+      "description": "Listează istoricul execuțiilor abilităților",
+      "skill": "Filtrează după ID-ul abilității",
+      "limit": "Numărul maxim de rezultate (implicit: 50)",
+      "status": "Filtrează după stare (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Gestionează abilitățile instalate prin SSH"
+    },
+    "marketplace": {
+      "description": "Explorează și instalează abilități din marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Caută pachete în marketplace",
+        "category": "Filtrează după categorie",
+        "tag": "Filtrează după etichetă",
+        "limit": "Numărul maxim de rezultate (implicit: 30)",
+        "sort": "Sortează după: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Afișează detaliile pachetului și fișierul readme"
+      },
+      "install": {
+        "description": "Instalează un pachet din marketplace",
+        "version": "Versiunea pachetului (implicit: latest)",
+        "enable": "Activează după instalare",
+        "yes": "Omite solicitarea de confirmare"
+      },
+      "categories": {
+        "description": "Listează categoriile din marketplace"
+      },
+      "featured": {
+        "description": "Afișează pachetele recomandate din marketplace"
+      }
+    }
+  },
+  "memory": {
+    "description": "Gestionează memoria conversațională OmniRoute (FTS5 + vectorială)",
+    "search": {
+      "description": "Caută intrări în memorie prin interogare semantică",
+      "type": "Filtrează după tipul memoriei (user|feedback|project|reference)",
+      "limit": "Numărul maxim de rezultate (implicit: 20)",
+      "api_key": "Filtrează după cheia API",
+      "token_budget": "Limitează numărul total de tokenuri din rezultate"
+    },
+    "add": {
+      "description": "Adaugă o intrare nouă în memorie",
+      "content": "Conținutul text al memoriei",
+      "file": "Citește conținutul din fișier",
+      "type": "Tipul memoriei (implicit: user)",
+      "metadata": "Obiect de metadate JSON",
+      "api_key": "Asociază cu cheia API"
+    },
+    "clear": {
+      "description": "Șterge intrările din memorie care corespund filtrelor",
+      "type": "Filtrează după tip",
+      "older": "Șterge intrările mai vechi decât durata specificată (30d, 6m, 1y)",
+      "api_key": "Filtrează după cheia API",
+      "yes": "Omite solicitarea de confirmare"
+    },
+    "list": {
+      "description": "Listează intrările din memorie fără clasificare după relevanța căutării",
+      "type": "Filtrează după tip",
+      "limit": "Numărul maxim de rezultate (implicit: 100)",
+      "api_key": "Filtrează după cheia API"
+    },
+    "get": {
+      "description": "Obține o singură intrare din memorie după ID"
+    },
+    "delete": {
+      "description": "Șterge o intrare din memorie după ID",
+      "yes": "Omite solicitarea de confirmare"
+    },
+    "health": {
+      "description": "Afișează starea subsistemului de memorie (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Gestionează conexiunile furnizorilor OAuth",
+    "providers": {
+      "description": "Listează furnizorii compatibili cu OAuth și tipurile lor de fluxuri"
+    },
+    "start": {
+      "description": "Pornește fluxul de autorizare OAuth pentru un furnizor",
+      "provider": "ID-ul furnizorului (gemini, copilot, cursor, …)",
+      "no_browser": "Afișează doar URL-ul — nu deschide browserul",
+      "import_system": "Importă automat datele de autentificare din configurația sistemului local",
+      "social": "Furnizor de autentificare socială (google|github) — obligatoriu pentru kiro",
+      "timeout": "Timp de așteptare pentru autorizare, în ms (implicit: 300000)"
+    },
+    "status": {
+      "description": "Listează conexiunile OAuth active",
+      "provider": "Filtrează după ID-ul furnizorului"
+    },
+    "revoke": {
+      "description": "Revocă o conexiune OAuth",
+      "provider": "ID-ul furnizorului pentru revocare",
+      "connection_id": "Revocă o anumită conexiune după ID",
+      "yes": "Omite solicitarea de confirmare"
+    }
+  },
+  "cloud": {
+    "description": "Gestionează sarcinile agenților AI din cloud (codex, devin, jules)",
+    "agents": {
+      "description": "Listează agenții din cloud disponibili"
+    },
+    "agent": {
+      "description": "Gestionează sarcinile agentului {agent} din cloud",
+      "auth": {
+        "description": "Autorizează {agent} prin OAuth"
+      }
+    },
+    "task": {
+      "description": "Gestionează sarcinile agenților din cloud",
+      "create": {
+        "description": "Creează o sarcină nouă pentru agent",
+        "title": "Titlul sarcinii (implicit, primele 80 de caractere ale solicitării)",
+        "prompt": "Textul solicitării pentru sarcină",
+        "prompt_file": "Citește solicitarea din fișier",
+        "repo": "URL-ul depozitului de clonat pentru sarcină",
+        "branch": "Numele ramurii de utilizat",
+        "metadata": "Obiect JSON cu metadate"
+      },
+      "list": {
+        "description": "Listează sarcinile agentului",
+        "status": "Filtrează după stare (running|completed|failed|cancelled)",
+        "limit": "Numărul maxim de rezultate (implicit: 50)"
+      },
+      "get": {
+        "description": "Obține detaliile sarcinii după ID"
+      },
+      "status": {
+        "description": "Afișează starea sarcinii (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Anulează o sarcină în curs de executare",
+        "yes": "Omite solicitarea de confirmare"
+      },
+      "approve": {
+        "description": "Aprobă planul agentului pentru a începe executarea"
+      },
+      "message": {
+        "description": "Trimite un mesaj unei sarcini în curs de executare"
+      }
+    },
+    "sources": {
+      "description": "Listează fișierele sursă produse de o sarcină"
+    }
+  },
+  "eval": {
+    "description": "Gestionează suitele și rulările de evaluare",
+    "suites": {
+      "description": "Gestionează suitele de evaluare",
+      "list": {
+        "description": "Listează suitele de evaluare"
+      },
+      "get": {
+        "description": "Obține detaliile suitei de evaluare după ID"
+      },
+      "create": {
+        "description": "Creează o suită de evaluare dintr-un fișier JSON",
+        "file": "Calea către fișierul JSON cu definiția suitei"
+      }
+    },
+    "run": {
+      "description": "Pornește o rulare de evaluare pentru o suită",
+      "model": "ID-ul modelului de evaluat (implicit: auto)",
+      "combo": "Forțează o anumită combinație după nume",
+      "concurrency": "Numărul de eșantioane procesate simultan (implicit: 4)",
+      "tag": "Etichetează această rulare pentru filtrare ulterioară",
+      "watch": "Urmărește progresul rulării până la finalizare"
+    },
+    "list": {
+      "description": "Listează rulările de evaluare",
+      "suite": "Filtrează după ID-ul suitei",
+      "status": "Filtrează după stare",
+      "since": "Returnează rulările începând de la această marcă temporală",
+      "limit": "Numărul maxim de rezultate (implicit: 50)"
+    },
+    "get": {
+      "description": "Obține detaliile rulării de evaluare după ID"
+    },
+    "results": {
+      "description": "Afișează rezultatele eșantioanelor pentru o rulare de evaluare",
+      "failed": "Afișează numai eșantioanele nereușite"
+    },
+    "cancel": {
+      "description": "Anulează o evaluare în curs de rulare",
+      "yes": "Omite solicitarea de confirmare"
+    },
+    "scorecard": {
+      "description": "Afișează fișa de evaluare pentru o rulare de evaluare finalizată"
+    }
+  },
+  "webhooks": {
+    "description": "Gestionează webhook-urile OmniRoute",
+    "events": {
+      "description": "Listează toate tipurile disponibile de evenimente webhook"
+    },
+    "list": {
+      "description": "Listează webhook-urile configurate"
+    },
+    "get": {
+      "description": "Obține detaliile webhook-ului după ID"
+    },
+    "add": {
+      "description": "Înregistrează un webhook nou",
+      "url": "URL-ul de destinație",
+      "events": "Lista tipurilor de evenimente, separate prin virgulă",
+      "secret": "Secretul de semnare HMAC",
+      "header": "Antet suplimentar în formatul key=value (poate fi repetat)",
+      "no_enabled": "Creează webhook-ul în stare dezactivată"
+    },
+    "update": {
+      "description": "Actualizează un webhook existent",
+      "enabled": "Setează starea de activare (true|false)"
+    },
+    "remove": {
+      "description": "Șterge un webhook",
+      "yes": "Omite solicitarea de confirmare"
+    },
+    "test": {
+      "description": "Trimite un eveniment de test către un webhook",
+      "event": "Tipul de eveniment de simulat (implicit: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Router AI inteligent cu fallback automat",
     "version": "Afișează versiunea și ieși",
@@ -26,7 +832,509 @@
     "context": "Contextul/profilul serverului pentru această comandă",
     "lang": "Setează limba de afișare CLI (suprascrie OMNIROUTE_LANG)"
   },
-  "redis": {
-    "description": "Lansează un container Redis local cu un singur clic (Podman sau Docker) pentru cache și urmărirea cotelor OmniRoute"
+  "files": {
+    "description": "Gestionează fișierele (încărcare, listare, obținere, descărcare, ștergere)",
+    "list": {
+      "purpose": "Filtrează după scop",
+      "limit": "Numărul maxim de rezultate"
+    },
+    "get": {
+      "description": "Obține metadatele fișierului"
+    },
+    "upload": {
+      "description": "Încarcă un fișier",
+      "purpose": "Scopul fișierului (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Descarcă conținutul fișierului",
+      "out": "Salvează în calea specificată (implicit: stdout)"
+    },
+    "delete": {
+      "yes": "Omite confirmarea"
+    }
+  },
+  "batches": {
+    "description": "Gestionează joburile batch compatibile cu OpenAI",
+    "list": {
+      "status": "Filtrează după stare",
+      "limit": "Număr maxim de rezultate"
+    },
+    "create": {
+      "description": "Creează un job batch",
+      "inputFile": "ID-ul fișierului de intrare",
+      "endpoint": "Endpoint țintă",
+      "window": "Fereastra de finalizare",
+      "metadata": "Adaugă metadate cheie=valoare"
+    },
+    "submit": {
+      "description": "Încarcă fișierul JSONL și creează un job batch",
+      "jsonl": "Calea către fișierul JSONL",
+      "endpoint": "Endpoint țintă",
+      "wait": "Așteaptă finalizarea"
+    },
+    "cancel": {
+      "yes": "Omite confirmarea"
+    },
+    "wait": {
+      "timeout": "Timp-limită în ms"
+    },
+    "output": {
+      "out": "Salvează rezultatul în calea specificată"
+    },
+    "errors": {
+      "out": "Salvează erorile în calea specificată"
+    }
+  },
+  "translator": {
+    "description": "Tradu corpurile cererilor între formatele LLM",
+    "detect": {
+      "description": "Detectează formatul corpului"
+    },
+    "translate": {
+      "description": "Convertește corpul dintr-un format în altul"
+    },
+    "send": {
+      "description": "Tradu și trimite către upstream"
+    },
+    "stream": {
+      "description": "Tradu în flux corpul unei cereri"
+    },
+    "from": "Format sursă (openai|anthropic|gemini|cohere)",
+    "to": "Format țintă (openai|anthropic|gemini|cohere)",
+    "file": "Calea către fișierul JSON cu corpul cererii",
+    "out": "Salvează rezultatul într-un fișier",
+    "model": "Suprascrie modelul",
+    "history": {
+      "limit": "Număr maxim de rezultate"
+    }
+  },
+  "pricing": {
+    "description": "Gestionează datele de preț pentru modele",
+    "sync": {
+      "description": "Sincronizează prețurile din sursele upstream",
+      "provider": "Filtrează după furnizor",
+      "force": "Forțează resincronizarea"
+    },
+    "list": {
+      "provider": "Filtrează după furnizor",
+      "model": "Filtrează după model",
+      "limit": "Număr maxim de rezultate"
+    },
+    "defaults": {
+      "description": "Gestionează prețurile implicite",
+      "input": "Cost de intrare per 1 milion de tokenuri (USD)",
+      "output": "Cost de ieșire per 1 milion de tokenuri (USD)",
+      "cacheRead": "Cost de citire din cache per 1 milion de tokenuri (USD)",
+      "cacheWrite": "Cost de scriere în cache per 1 milion de tokenuri (USD)"
+    },
+    "diff": {
+      "description": "Afișează abaterea față de prețurile sursei",
+      "model": "Filtrează după model"
+    }
+  },
+  "radar": {
+    "description": "Inspectează și sincronizează fluxurile catalogului Radar local",
+    "status": "Afișează setările Radar locale și starea cache-ului fluxurilor",
+    "sync": "Sincronizează catalogul, recomandările, ofertele și Intel prin serverul local"
+  },
+  "resilience": {
+    "description": "Inspectează și gestionează mecanismele de reziliență",
+    "status": {
+      "provider": "Filtrează după furnizor"
+    },
+    "breakers": {
+      "provider": "Filtrează după furnizor"
+    },
+    "cooldowns": {
+      "provider": "Filtrează după furnizor",
+      "connectionId": "Filtrează după ID-ul conexiunii"
+    },
+    "lockouts": {
+      "provider": "Filtrează după furnizor",
+      "model": "Filtrează după model"
+    },
+    "reset": {
+      "description": "Resetează starea întrerupătorului/perioadei de așteptare",
+      "provider": "Furnizor de resetat",
+      "connectionId": "ID-ul conexiunii de resetat",
+      "model": "Model pentru resetarea blocării",
+      "allCooldowns": "Resetează toate perioadele de așteptare pentru furnizor",
+      "yes": "Omite confirmarea"
+    },
+    "profile": {
+      "description": "Gestionează profilul de reziliență",
+      "name": "Numele profilului"
+    },
+    "config": {
+      "description": "Gestionează configurația de reziliență",
+      "threshold": "Pragul de eșecuri",
+      "resetTimeout": "Timp de resetare în ms",
+      "baseCooldown": "Perioada de așteptare de bază în ms"
+    }
+  },
+  "nodes": {
+    "description": "Gestionează nodurile furnizorilor (punctele finale)",
+    "list": {
+      "provider": "Filtrează după furnizor",
+      "enabled": "Afișează numai nodurile activate"
+    },
+    "add": {
+      "provider": "Numele furnizorului",
+      "baseUrl": "URL-ul de bază al nodului",
+      "name": "Numele nodului",
+      "weight": "Ponderea pentru echilibrarea încărcării",
+      "region": "Eticheta regiunii",
+      "authHeader": "Antet de autentificare personalizat (key=value)"
+    },
+    "update": {
+      "baseUrl": "Noul URL de bază",
+      "name": "Noul nume",
+      "weight": "Pondere nouă",
+      "region": "Regiune nouă",
+      "enabled": "Activați sau dezactivați (true|false)"
+    },
+    "remove": {
+      "yes": "Omiteți confirmarea"
+    },
+    "validate": {
+      "baseUrl": "URL de validat",
+      "provider": "Furnizorul față de care se face validarea"
+    },
+    "test": {
+      "description": "Trimiteți o cerere de test către nod"
+    },
+    "metrics": {
+      "description": "Afișați metricile nodului",
+      "period": "Perioadă de timp (de ex. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Configurați fluxul de inginerie a contextului (Caveman, RTK)",
+    "analytics": {
+      "period": "Perioadă de timp (de ex. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Gestionați compresorul de context Caveman",
+      "config": {
+        "description": "Afișați sau actualizați configurația Caveman",
+        "aggressiveness": "Agresivitate 0.0–1.0",
+        "maxShrinkPct": "Procentaj maxim de reducere",
+        "preserveTags": "Etichete separate prin virgulă care trebuie păstrate"
+      }
+    },
+    "rtk": {
+      "description": "Gestionați optimizatorul de context RTK",
+      "config": {
+        "description": "Afișați sau actualizați configurația RTK",
+        "tokenBudget": "Buget de tokenuri pentru RTK",
+        "reservePct": "Procentaj de rezervă"
+      },
+      "filters": {
+        "description": "Gestionați filtrele RTK",
+        "pattern": "Model de filtru (expresie regulată)",
+        "priority": "Prioritatea filtrului (implicit: 100)",
+        "action": "Acțiunea filtrului: drop|shrink|replace",
+        "yes": "Omiteți confirmarea"
+      },
+      "test": {
+        "file": "Calea către fișierul JSON al cererii"
+      }
+    },
+    "combos": {
+      "description": "Gestionarea combinațiilor în funcție de context"
+    }
+  },
+  "sessions": {
+    "description": "Inspectați și gestionați sesiunile active",
+    "list": {
+      "user": "Filtrați după utilizator",
+      "kind": "Filtrați după tip (dashboard|api-key|mcp|a2a)",
+      "active": "Afișați numai sesiunile active",
+      "limit": "Număr maxim de rezultate (implicit: 100)"
+    },
+    "expire": {
+      "yes": "Omiteți confirmarea"
+    },
+    "expireAll": {
+      "user": "Utilizatorul ale cărui sesiuni trebuie să expire",
+      "yes": "Omiteți confirmarea"
+    }
+  },
+  "tags": {
+    "description": "Gestionați etichetele resurselor",
+    "add": {
+      "color": "Culoarea etichetei (hexazecimal sau nume)",
+      "description": "Descrierea etichetei"
+    },
+    "remove": {
+      "yes": "Omiteți confirmarea"
+    },
+    "assign": {
+      "tag": "Numele etichetei",
+      "to": "Resursă țintă în format tip:id (de ex. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Numele etichetei",
+      "from": "Resursă sursă în format tip:id"
+    }
+  },
+  "openapi": {
+    "description": "Accesează și testează specificația OpenAPI OmniRoute",
+    "dump": {
+      "description": "Exportă specificația OpenAPI în stdout sau într-un fișier",
+      "format": "Format de ieșire: yaml|json (implicit: yaml)",
+      "out": "Salvează la calea fișierului"
+    },
+    "validate": {
+      "description": "Validează specificația OpenAPI"
+    },
+    "try": {
+      "description": "Testează un endpoint API prin intermediul specificației",
+      "method": "Metodă HTTP (implicit: GET)",
+      "body": "Calea către fișierul JSON cu corpul cererii",
+      "query": "Parametru de interogare în format cheie=valoare (repetabil)",
+      "header": "Antet în format cheie=valoare (repetabil)"
+    },
+    "endpoints": {
+      "description": "Listează toate endpointurile API",
+      "search": "Filtrează după cale sau rezumat"
+    },
+    "paths": {
+      "description": "Listează toate căile API"
+    }
+  },
+  "combo": {
+    "title": "Combinații",
+    "switched": "Combinație activă: {name}",
+    "created": "Combinație creată: {name}",
+    "deleted": "Combinație ștearsă: {name}",
+    "noCombos": "Nu există combinații configurate.",
+    "confirmDelete": "Ștergi combinația {name}?",
+    "suggest": {
+      "description": "Sugerează cea mai bună combinație pentru o sarcină folosind evaluarea AI",
+      "task": "Descrierea sarcinii",
+      "maxCost": "Cost maxim per cerere în USD",
+      "maxLatencyMs": "Latență maximă în milisecunde",
+      "weights": "Ponderi de evaluare JSON, de ex. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Numărul de candidați de top de afișat (implicit: 5)",
+      "explain": "Afișează justificarea în stderr",
+      "switch": "Activează combinația clasată pe primul loc"
+    }
+  },
+  "oneproxy": {
+    "description": "Gestionează grupul de servere upstream OneProxy",
+    "stats": {
+      "provider": "Filtrează după furnizor",
+      "period": "Perioadă de timp (implicit: 24h)"
+    },
+    "fetch": {
+      "description": "Preia proxy-uri din grup",
+      "count": "Numărul de proxy-uri de preluat (implicit: 1)",
+      "type": "Tip de proxy: http|socks5 (implicit: http)"
+    },
+    "rotate": {
+      "description": "Forțează rotația proxy-ului",
+      "provider": "Furnizorul pentru care se efectuează rotația",
+      "connectionId": "ID-ul specific al conexiunii pentru care se efectuează rotația"
+    },
+    "config": {
+      "description": "Afișează sau actualizează configurația OneProxy",
+      "enabled": "Activează grupul de proxy-uri (true|false)",
+      "poolSize": "Dimensiunea grupului",
+      "providerSource": "URL pentru furnizorul de proxy",
+      "rotationPolicy": "Politica de rotație: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Listează grupul curent de proxy-uri cu metrici"
+    }
+  },
+  "open": {
+    "description": "Deschide o anumită pagină a panoului de control OmniRoute în browser",
+    "url": "Afișează doar URL-ul, fără a deschide browserul"
+  },
+  "telemetry": {
+    "description": "Accesează datele de telemetrie agregate",
+    "summary": {
+      "description": "Afișează rezumatul telemetriei agregate",
+      "period": "Perioada de timp: 24h|7d|30d (implicit: 24h)",
+      "compareTo": "Compară cu perioada anterioară"
+    },
+    "export": {
+      "description": "Exportă evenimentele de telemetrie în JSONL",
+      "out": "Calea fișierului de ieșire (implicit: telemetry.jsonl)",
+      "period": "Perioada de timp pentru export (implicit: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Sincronizează configurația între instanțele OmniRoute",
+    "push": {
+      "description": "Trimite configurația în cloud sau către instanța la distanță",
+      "target": "Ținta (cloud sau context:name)",
+      "bundle": "Componentele pachetului de sincronizat",
+      "dryRun": "Previzualizează fără aplicare"
+    },
+    "pull": {
+      "description": "Preia configurația din cloud sau de la distanță",
+      "source": "Sursa (cloud sau context:name)",
+      "merge": "Îmbină cu configurația existentă",
+      "replace": "Înlocuiește configurația existentă",
+      "dryRun": "Previzualizează fără aplicare"
+    },
+    "diff": {
+      "source": "Contextul sursă",
+      "target": "Contextul țintă"
+    },
+    "bundle": {
+      "description": "Exportă configurația ca fișier-pachet",
+      "include": "Componente de inclus (separate prin virgulă)"
+    },
+    "import": {
+      "description": "Importă un fișier-pachet",
+      "dryRun": "Validează fără aplicare"
+    },
+    "initialize": {
+      "fromCloud": "Inițializează din copia de siguranță din cloud"
+    },
+    "tokens": {
+      "description": "Gestionează tokenurile de sincronizare",
+      "create": {
+        "name": "Numele tokenului",
+        "scope": "Domeniul de aplicare al tokenului",
+        "ttl": "TTL-ul tokenului (de ex. 30d)"
+      },
+      "revoke": {
+        "yes": "Omite confirmarea"
+      }
+    },
+    "resolve": {
+      "description": "Rezolvă interactiv conflictele de sincronizare"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Gestionează contextele/profilurile serverului (adaugă, utilizează, listează, afișează, elimină, redenumește, exportă, importă)"
+    },
+    "lang": {
+      "description": "Gestionează limba de afișare a CLI-ului",
+      "getDescription": "Afișează codul limbii active în prezent",
+      "setDescription": "Setează limba de afișare și salveaz-o în configurație",
+      "listDescription": "Listează toate limbile disponibile",
+      "listTitle": "Limbi disponibile",
+      "current": "Limbă: {code} ({name})",
+      "saved": "Limba a fost setată la {code} ({name}).",
+      "noCode": "Codul limbii este obligatoriu. Rulează „omniroute config lang list” pentru a vedea codurile disponibile.",
+      "unknown": "Cod de limbă necunoscut: {code}. Rulează „omniroute config lang list” pentru a vedea codurile disponibile.",
+      "alreadySet": "Limba este deja setată la {code}.",
+      "envHint": "Sfat: poți seta și OMNIROUTE_LANG={code} în mediul tău."
+    }
+  },
+  "completion": {
+    "description": "Generează sau instalează scripturi de completare pentru shell",
+    "zsh": "Afișează scriptul de completare pentru zsh",
+    "bash": "Afișează scriptul de completare pentru bash",
+    "fish": "Afișează scriptul de completare pentru fish",
+    "install": "Instalează global scriptul de completare pentru shell-ul detectat",
+    "refresh": "Reîmprospătează memoria cache pentru combinații/furnizori/modele"
+  },
+  "logs": {
+    "description": "Transmite în timp real sau exportă jurnalele de solicitări",
+    "follow": "Transmite jurnalele în timp real",
+    "filter": "Filtrează după nivel (error,warn,info) — valori separate prin virgulă",
+    "lines": "Numărul de linii de preluat",
+    "timeout": "Timpul de expirare al conexiunii în ms",
+    "baseUrl": "URL-ul de bază al API-ului OmniRoute",
+    "requestId": "Filtrează după ID-ul solicitării",
+    "apiKey": "Filtrează după cheia API",
+    "combo": "Filtrează după numele combinației",
+    "status": "Filtrează după codul de stare HTTP",
+    "durationMin": "Durata minimă a solicitării în ms",
+    "durationMax": "Durata maximă a solicitării în ms",
+    "export": "Salvează jurnalele într-un fișier (json/jsonl/csv)",
+    "exported": "Jurnalele au fost salvate în {path}",
+    "stopped": "Transmiterea jurnalelor a fost oprită.",
+    "streamError": "Eroare la transmiterea jurnalelor: {message}"
+  },
+  "tray": {
+    "description": "Controlează pictograma din zona de notificare",
+    "show": "Afișează pictograma din zona de notificare (dacă serverul rulează cu --tray)",
+    "hide": "Ascunde pictograma din zona de notificare",
+    "quit": "Închide OmniRoute din zona de notificare"
+  },
+  "autostart": {
+    "description": "Gestionează pornirea automată a OmniRoute la inițializarea sistemului (Linux: serviciu systemd al utilizatorului)",
+    "enable": "Activează pornirea automată la inițializarea sistemului",
+    "disable": "Dezactivează pornirea automată la inițializarea sistemului",
+    "toggle": "Comută pornirea automată la inițializarea sistemului",
+    "status": "Afișează starea pornirii automate"
+  },
+  "runtime": {
+    "description": "Gestionează dependențele native de execuție",
+    "check": "Verifică starea dependențelor native din directorul de execuție",
+    "repair": "Reinstalează dependențele native în directorul de execuție",
+    "repair_force": "Forțează reinstalarea chiar dacă sunt valide",
+    "clean": "Elimină directorul de execuție (eliberează spațiu pe disc)",
+    "clean_yes": "Omite confirmarea"
+  },
+  "repl": {
+    "description": "REPL interactiv cu LLM, în mai multe etape",
+    "model": "Modelul de utilizat (implicit: automat)",
+    "combo": "Numele combinației de utilizat",
+    "system": "Prompt de sistem",
+    "resume": "Reia o sesiune salvată după nume"
+  },
+  "plugin": {
+    "description": "Gestionează pluginurile CLI (omniroute-cmd-*)",
+    "list": "Listează pluginurile instalate",
+    "install": "Instalează un plugin din npm sau dintr-o cale locală",
+    "remove": "Elimină un plugin instalat",
+    "info": "Afișează detalii despre un plugin instalat",
+    "search": "Caută pluginuri disponibile în registrul npm",
+    "update": "Actualizează pluginurile instalate",
+    "scaffold": "Generează structura de bază pentru un plugin nou"
+  },
+  "launch": {
+    "description": "Lansează Claude Code configurat pentru OmniRoute (local sau la distanță, cu --profile)",
+    "token": "Tokenul pe care clientul Claude trebuie să îl trimită (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute nu este accesibil la {port}. Pornește-l cu 'omniroute serve'.",
+    "notFound": "CLI-ul 'claude' nu a fost găsit în PATH."
+  },
+  "run": {
+    "description": "Lansează o țintă CLI acceptată prin OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Generează profiluri Claude Code în ~/.claude/profiles din catalogul de modele OmniRoute"
+  },
+  "connect": {
+    "description": "Conectează-te la un server OmniRoute la distanță și intră în modul la distanță"
+  },
+  "tokens": {
+    "description": "Gestionează tokenurile de acces CLI cu domeniu de aplicare (mod la distanță)"
+  },
+  "configure": {
+    "description": "Alege un furnizor și un model de pe serverul activ și configurează un CLI local acceptat"
+  },
+  "launchCodex": {
+    "description": "Lansează Codex CLI configurat pentru OmniRoute (local sau pe un VPS la distanță)"
+  },
+  "setupCodex": {
+    "description": "Generează fișiere de profil în ~/.codex din catalogul live de modele OmniRoute"
+  },
+  "packs": {
+    "description": "Gestionează pachetele opționale de execuție (ML / automatizarea browserului)",
+    "listDescription": "Listează pachetele opționale și starea instalării acestora",
+    "installDescription": "Instalează un pachet opțional în DATA_DIR",
+    "verifyDescription": "Verifică pachetele instalate folosind indexul de sume de control inclus",
+    "removeDescription": "Elimină un pachet opțional instalat",
+    "sourceOpt": "Directorul care conține datele pachetelor și indexul de pachete",
+    "warnNoIndex": "optional-packs.index.json nu a fost găsit — instalarea/verificarea nu sunt disponibile în această copie de lucru (pachetele desktop îl includ)",
+    "errUnknown": "pachet necunoscut: {name}",
+    "errNoIndex": "indexul de pachete nu a fost găsit; specifică --source <dir> care conține datele pachetului (pachetele desktop îl includ lângă aplicație)",
+    "installed": "pachetul „{name}” a fost instalat și verificat în {dir}",
+    "restartHint": "reporniți serverul OmniRoute (sau aplicația desktop) pentru ca mediul de execuție să încarce pachetul",
+    "removed": "pachetul „{name}” a fost eliminat",
+    "notInstalled": "pachetul „{name}” nu a fost instalat",
+    "verifyOk": "toate pachetele instalate au fost verificate",
+    "verifyFailed": "{count} pachet(e) nu au trecut verificarea",
+    "noneInstalled": "nu este instalat niciun pachet opțional"
   }
 }

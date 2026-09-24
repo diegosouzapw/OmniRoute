@@ -52,6 +52,9 @@ export {
   setModelAlias,
   deleteModelAlias,
   deleteModelAliasesForProvider,
+  getManagedModelAliasNames,
+  markManagedModelAlias,
+  unmarkManagedModelAlias,
 } from "./models/aliases";
 export { getMitmAlias, setMitmAliasAll } from "./models/mitmAlias";
 export type { SyncedAvailableModel } from "./models/synced";
@@ -62,6 +65,13 @@ export {
   type CustomModelVisionDatabase,
   type CustomModelVisionOverrideReadOptions,
 } from "./models/customVisionOverride";
+export {
+  getSyncedAvailableModelVision,
+  listSyncedAvailableModelVision,
+  type SyncedAvailableModelVisionMap,
+  type SyncedAvailableModelVisionDatabase,
+  type SyncedAvailableModelVisionReadOptions,
+} from "./models/syncedAvailableModelVision";
 
 // ──────────────── Custom Models ────────────────
 
@@ -129,7 +139,12 @@ export async function addCustomModel(
   // custom OpenAI-compatible video models. Persisted on the model row; the
   // /v1/videos/generations handler reads it back to pick the job/poll path.
   generationConfig?: { preset: string },
-  isFree?: boolean
+  isFree?: boolean,
+  extraMeta?: {
+    dimensions?: number;
+    supportedInputTypes?: string[];
+    modelType?: "chat" | "embedding" | "image" | "rerank";
+  }
 ) {
   const db = getDbInstance();
   const row = db
@@ -157,6 +172,13 @@ export async function addCustomModel(
     ...(typeof supportsVision === "boolean" ? { supportsVision } : {}),
     ...(typeof isFree === "boolean" ? { isFree } : {}),
     ...(generationConfig && generationConfig.preset ? { generationConfig } : {}),
+    ...(typeof extraMeta?.dimensions === "number" && extraMeta.dimensions > 0
+      ? { dimensions: extraMeta.dimensions }
+      : {}),
+    ...(Array.isArray(extraMeta?.supportedInputTypes)
+      ? { supportedInputTypes: extraMeta.supportedInputTypes }
+      : {}),
+    ...(typeof extraMeta?.modelType === "string" ? { modelType: extraMeta.modelType } : {}),
   };
   models.push(model);
   db.prepare(
@@ -686,20 +708,37 @@ function applyTriStateBooleanOverride(
 export async function updateCustomModel(
   providerId: string,
   modelId: string,
-  updates: Record<string, unknown> = {}
+  updates: Record<string, unknown> = {},
+  options: { createIfMissing?: boolean } = {}
 ) {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
     .get(providerId);
-  if (!row) return null;
 
-  const value = getKeyValue(row).value;
-  if (!value) return null;
+  const value = row ? getKeyValue(row).value : null;
+  const models: JsonRecord[] = value ? JSON.parse(value) : [];
+  let index = models.findIndex((m: JsonRecord) => m.id === modelId);
 
-  const models = JSON.parse(value);
-  const index = models.findIndex((m: JsonRecord) => m.id === modelId);
-  if (index === -1) return null;
+  if (index === -1) {
+    if (!options.createIfMissing) return null;
+    // A model discovered via sync/passthrough (syncedAvailableModels) has no
+    // customModels row until an operator explicitly overrides one of its
+    // fields -- PUT /api/provider-models is exactly that "set an override"
+    // action, so upsert here (same default shape as addCustomModel()) instead
+    // of 404ing on the very save it exists to serve. Observed live: a
+    // llama.cpp connection's auto-discovered embedding model had no way to be
+    // marked "supports embeddings" because it had never been explicitly
+    // imported as a custom model first.
+    models.push({
+      id: modelId,
+      name: modelId,
+      source: "manual",
+      apiFormat: "chat-completions",
+      supportedEndpoints: ["chat"],
+    });
+    index = models.length - 1;
+  }
 
   const current = models[index];
   const currentCompat = (current as JsonRecord).compatByProtocol as CompatByProtocolMap | undefined;
@@ -770,10 +809,12 @@ export async function updateCustomModel(
 
   models[index] = next;
 
-  db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'customModels' AND key = ?").run(
-    JSON.stringify(models),
-    providerId
-  );
+  // INSERT OR REPLACE (not UPDATE): the createIfMissing path above may be
+  // writing this provider's customModels row for the first time, and an
+  // UPDATE...WHERE would silently match zero rows in that case.
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
+  ).run(providerId, JSON.stringify(models));
 
   finishModelCatalogWriteWithBackup();
   return next;

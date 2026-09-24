@@ -5,9 +5,16 @@ import type { SqliteAdapter } from "./adapters/types";
 import { registerDbStateResetter } from "./stateReset";
 
 /**
- * WAL maintenance owns the periodic `wal_checkpoint(TRUNCATE)` lifecycle that
- * used to live inside `core.ts`: interval parsing, the scheduler, and reading
- * the pragma result so a busy checkpoint warns instead of logging success.
+ * WAL maintenance owns the periodic `wal_checkpoint(PASSIVE)` lifecycle that
+ * used to live inside `core.ts`: interval parsing, the scheduler, busy
+ * accounting, and reading the pragma result so a busy checkpoint warns
+ * instead of logging success.
+ *
+ * There is deliberately no periodic TRUNCATE: truncating the WAL of a live
+ * process rewrites the shared wal-index (storage.sqlite-shm) while other
+ * handles and in-flight statements hold it mapped, which can crash the event
+ * loop with SIGBUS (issue #13973). A WAL above the size guard uses RESTART
+ * instead, which starts a new WAL file without rewriting the mapped index.
  */
 export type WalCheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
 
@@ -36,7 +43,6 @@ export interface WalMaintenanceState {
 
 const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 
-const DEFAULT_WAL_TRUNCATE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const DEFAULT_WAL_PASSIVE_INTERVAL_MS = 5 * 60 * 1000;
 const DEFAULT_WAL_GUARD_MAX_BYTES = 256 * 1024 * 1024;
 const RETRY_DELAY_MS = 60_000;
@@ -44,7 +50,6 @@ const RETRY_DELAY_MS = 60_000;
 export const WAL_BUSY_NAMESPACE = "walMaintenance";
 export const WAL_BUSY_KEY = "busyTotal";
 
-let walTimer: NodeJS.Timeout | null = null;
 let walPassiveTimer: NodeJS.Timeout | null = null;
 let retryTimer: NodeJS.Timeout | null = null;
 let ticks = 0;
@@ -56,6 +61,29 @@ let lastOkAt: string | null = null;
 let pendingBusyDelta = 0;
 // The handle the running scheduler was started with; used for the shutdown flush.
 let activeDb: SqliteAdapter | null = null;
+let truncateDeprecationWarned = false;
+
+/**
+ * Operators who set OMNIROUTE_WAL_TRUNCATE_INTERVAL_MS to a positive value believe a
+ * periodic TRUNCATE is reclaiming their WAL on a timer. It is not: that scheduler was
+ * removed because a live TRUNCATE can SIGBUS the process (issue #13973). Warn once per
+ * process so the stale setting is visible instead of silently ignored.
+ */
+function warnPeriodicTruncateRemoved(env: NodeJS.ProcessEnv): void {
+  if (truncateDeprecationWarned) return;
+  const rawValue = env.OMNIROUTE_WAL_TRUNCATE_INTERVAL_MS;
+  if (typeof rawValue !== "string" || rawValue.trim().length === 0) return;
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed) || parsed <= 0) return;
+  truncateDeprecationWarned = true;
+  console.warn(
+    "[DB] OMNIROUTE_WAL_TRUNCATE_INTERVAL_MS is no longer used and has no effect: periodic " +
+      "live wal_checkpoint(TRUNCATE) was removed because truncating the WAL of a live " +
+      "process can invalidate the shared wal-index mapping and crash the server with " +
+      "SIGBUS (issue #13973). Runtime checkpoints are PASSIVE; the shutdown checkpoint " +
+      "truncates the WAL."
+  );
+}
 
 /**
  * Count one busy checkpoint. Memory only, on purpose: a busy checkpoint means the
@@ -160,17 +188,6 @@ export function runCheckpointNow(
   }
 }
 
-export function getWalMaintenanceIntervalMs(env: NodeJS.ProcessEnv = process.env): number {
-  const rawValue = env.OMNIROUTE_WAL_TRUNCATE_INTERVAL_MS;
-  if (typeof rawValue === "string" && rawValue.trim().length > 0) {
-    const parsed = Number(rawValue);
-    if (Number.isFinite(parsed) && parsed >= 0) {
-      return parsed;
-    }
-  }
-  return DEFAULT_WAL_TRUNCATE_INTERVAL_MS;
-}
-
 export function getWalPassiveIntervalMs(env: NodeJS.ProcessEnv = process.env): number {
   const rawValue = env.OMNIROUTE_WAL_PASSIVE_INTERVAL_MS;
   if (typeof rawValue === "string" && rawValue.trim().length > 0) {
@@ -214,7 +231,8 @@ export function logCheckpointOutcome(
   if (outcome.skipped) return;
   if (outcome.busy) {
     console.warn(
-      `[DB] SQLite WAL checkpoint busy — ${outcome.logFrames} frames pending (streak ${streak})`
+      `[DB] SQLite WAL checkpoint busy - ${outcome.logFrames} frames pending, ` +
+        `${outcome.checkpointedFrames ?? 0} checkpointed this attempt (streak ${streak})`
     );
     return;
   }
@@ -274,26 +292,46 @@ function startWalPassiveScheduler(
         isBuildPhase: isNextBuildPhase(),
       });
       if (stats.skipped) return;
-      if (!stats.busy && stats.ok) flushBusyTotal(db);
-      if (stats.busy || (stats.checkpointedFrames ?? 0) > 0) {
-        console.log(
-          `[DB] WAL passive checkpoint (busy=${stats.busy ? 1 : 0} logFrames=${stats.logFrames} ` +
-            `checkpointedFrames=${stats.checkpointedFrames} walMb=${formatWalMb(walBeforeBytes)})`
-        );
-      }
+      ticks++;
+      // Check the size guard on every tick, busy or not: a WAL that stays above the
+      // guard while readers hold the database is exactly the case the operator must
+      // hear about, and a busy tick must not hide it.
       const guardMaxBytes = getWalGuardMaxBytes(env);
       if (walBeforeBytes != null && walBeforeBytes > guardMaxBytes) {
-        const startedAtMs = Date.now();
-        const truncateStats = runCheckpointNow(db, "TRUNCATE", {
+        // Never TRUNCATE a live WAL: rewriting the shared wal-index under handles that
+        // hold it mapped can SIGBUS the process (issue #13973). RESTART checkpoints
+        // the WAL and starts a new one without changing the mapped file geometry.
+        const restart = runCheckpointNow(db, "RESTART", {
           sqliteFile,
           isCloud,
           isBuildPhase: isNextBuildPhase(),
         });
-        console.log(
+        console.warn(
           `[DB] WAL above guard (${formatWalMb(walBeforeBytes)}MB > ${Math.floor(guardMaxBytes / (1024 * 1024))}MB); ` +
-            `ran TRUNCATE in ${Date.now() - startedAtMs}ms ` +
-            `(walMbAfter=${formatWalMb(getWalFileSizeBytes(sqliteFile))} busy=${truncateStats.busy ? 1 : 0} ` +
-            `checkpointedFrames=${truncateStats.checkpointedFrames})`
+            `ran wal_checkpoint(RESTART) ok=${restart.ok} busy=${restart.busy}` +
+            ` checkpointedFrames=${restart.checkpointedFrames}` +
+            (restart.error ? ` error=${restart.error}` : "")
+        );
+      }
+      if (stats.busy) {
+        // Passive ticks carry the busy telemetry now that no TRUNCATE tick is left to
+        // do it: a contended PASSIVE is the same "readers never let go" signal, and the
+        // 60s retry gives a busy WAL a second chance long before the next 5m tick.
+        recordBusy();
+        logCheckpointOutcome(stats, "PASSIVE", busyStreak);
+        schedulePassiveRetry(db);
+        return;
+      }
+      if (stats.ok) {
+        recordOk();
+        flushBusyTotal(db);
+      } else {
+        logCheckpointOutcome(stats, "PASSIVE", busyStreak);
+      }
+      if ((stats.checkpointedFrames ?? 0) > 0) {
+        console.log(
+          `[DB] WAL passive checkpoint (logFrames=${stats.logFrames} ` +
+            `checkpointedFrames=${stats.checkpointedFrames} walMb=${formatWalMb(walBeforeBytes)})`
         );
       }
     } catch (error: unknown) {
@@ -309,6 +347,7 @@ export function startWalMaintenance(
   sqliteFile: string | null,
   env: NodeJS.ProcessEnv = process.env
 ): void {
+  warnPeriodicTruncateRemoved(env);
   // stopWalMaintenance() flushes what it can and zeroes session state, so capture the
   // in-memory total first; the gate stays before any DB touch.
   const priorBusyTotal = busyTotal;
@@ -316,39 +355,6 @@ export function startWalMaintenance(
   if (sqliteFile === null || isCloud || isNextBuildPhase() || isAutomatedTestProcess()) return;
   activeDb = db;
   busyTotal = mergeBusyTotal(priorBusyTotal, loadPersistedBusyTotal(db));
-  const intervalMs = getWalMaintenanceIntervalMs(env);
-  if (intervalMs <= 0) {
-    startWalPassiveScheduler(db, sqliteFile, env);
-    return;
-  }
-  walTimer = setInterval(() => {
-    try {
-      if (!db.open) return;
-      const walBeforeBytes = getWalFileSizeBytes(sqliteFile);
-      const startedAtMs = Date.now();
-      const outcome = runCheckpointNow(db, "TRUNCATE");
-      if (outcome.skipped) return;
-      ticks++;
-      if (outcome.busy) {
-        recordBusy();
-        logCheckpointOutcome(outcome, "TRUNCATE", busyStreak);
-        schedulePassiveRetry(db);
-      } else if (outcome.ok) {
-        recordOk();
-        flushBusyTotal(db);
-        console.log(
-          `[DB] Periodic SQLite WAL checkpoint completed (TRUNCATE) in ${Date.now() - startedAtMs}ms ` +
-            `(walMbBefore=${formatWalMb(walBeforeBytes)} walMbAfter=${formatWalMb(getWalFileSizeBytes(sqliteFile))} ` +
-            `busy=${outcome.busy ? 1 : 0} logFrames=${outcome.logFrames} checkpointedFrames=${outcome.checkpointedFrames})`
-        );
-      } else {
-        logCheckpointOutcome(outcome, "TRUNCATE", busyStreak);
-      }
-    } catch {
-      // A periodic scheduler must never throw into the event loop.
-    }
-  }, intervalMs);
-  walTimer.unref?.();
   startWalPassiveScheduler(db, sqliteFile, env);
 }
 
@@ -357,10 +363,6 @@ export function stopWalMaintenance(): void {
   flushBusyTotal(activeDb);
   activeDb = null;
   pendingBusyDelta = 0;
-  if (walTimer) {
-    clearInterval(walTimer);
-    walTimer = null;
-  }
   if (walPassiveTimer) {
     clearInterval(walPassiveTimer);
     walPassiveTimer = null;
@@ -403,6 +405,7 @@ export function mergeBusyTotal(prior: number, loaded: number): number {
 
 export function __resetForTests(): void {
   stopWalMaintenance();
+  truncateDeprecationWarned = false;
 }
 
 registerDbStateResetter(stopWalMaintenance);

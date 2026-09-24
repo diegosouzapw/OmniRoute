@@ -1,29 +1,20 @@
-# CLI-TOOLS (Bahasa Indonesia)
+# CLI Tools — OmniRoute (Bahasa Indonesia)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
-title: "Alat CLI — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-18
----
-
-# Alat CLI — OmniRoute
-
-Terakhir diperbarui: 2026-08-18
+Terakhir diperbarui: 2026-08-23
 
 OmniRoute terintegrasi dengan tiga kategori alat CLI yang tersebar di tiga halaman dasbor khusus:
 
-| Halaman      | Rute                    | Konsep                                                                              | Jumlah         |
-| ------------ | ----------------------- | ----------------------------------------------------------------------------------- | -------------- |
-| **Kode CLI** | `/dashboard/cli-code`   | Alat pengkodean yang Anda arahkan ke OmniRoute (Klien → CLI → OmniRoute → Penyedia) | 26             |
-| **Agen CLI** | `/dashboard/cli-agents` | Agen otonom yang Anda arahkan ke OmniRoute (alur yang sama, cakupan lebih luas)     | 8              |
-| **Agen ACP** | `/dashboard/acp-agents` | CLI yang diluncurkan OmniRoute sebagai backend melalui stdio/ACP (alur terbalik)    | lihat registri |
+| Halaman        | Rute                    | Konsep                                                                             | Jumlah         |
+| -------------- | ----------------------- | ---------------------------------------------------------------------------------- | -------------- |
+| **CLI Code's** | `/dashboard/cli-code`   | Alat pengodean yang Anda arahkan ke OmniRoute (Klien → CLI → OmniRoute → Penyedia) | 26             |
+| **CLI Agents** | `/dashboard/cli-agents` | Agen otonom yang Anda arahkan ke OmniRoute (alur yang sama, cakupan lebih luas)    | 10             |
+| **ACP Agents** | `/dashboard/acp-agents` | CLI yang dijalankan OmniRoute sebagai backend melalui stdio/ACP (alur terbalik)    | lihat registri |
 
-Rute warisan mengalihkan melalui 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
+Rute lama dialihkan melalui 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
 ---
 
@@ -587,158 +578,160 @@ di bawah `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. Internal OmniRoute CLI
+## 10. CLI Internal OmniRoute
 
-Biner `omniroute` menyediakan perintah untuk siklus hidup server, pengaturan, diagnostik, dan manajemen penyedia. Titik masuk: `bin/omniroute.mjs`.
+Biner `omniroute` menyediakan perintah untuk siklus hidup server, penyiapan, diagnostik, dan pengelolaan penyedia. Titik masuk: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Mulai server (port default 20128)
-omniroute setup                        # Wizard pengaturan interaktif
-omniroute doctor                       # Periksa konfigurasi, DB, port, runtime
+omniroute                              # Memulai server (port default 20128)
+omniroute setup                        # Wizard penyiapan interaktif
+omniroute doctor                       # Memeriksa konfigurasi, DB, port, dan runtime
 omniroute providers list               # Koneksi penyedia yang dikonfigurasi
-omniroute providers test-all           # Uji setiap koneksi aktif
-omniroute reset-password               # Atur ulang kata sandi admin
-omniroute logs                         # Streaming log permintaan
-omniroute health                       # Kesehatan terperinci (pemutus, cache, memori)
-omniroute --version                    # Cetak versi
-omniroute --help                       # Tampilkan semua perintah
+omniroute providers test-all           # Menguji setiap koneksi aktif
+omniroute reset-password               # Mengatur ulang kata sandi admin
+omniroute logs                         # Mengalirkan log permintaan
+omniroute health                       # Status kesehatan terperinci (breaker, cache, memori)
+omniroute --version                    # Menampilkan versi
+omniroute --help                       # Menampilkan semua perintah
 ```
 
-### Pengaturan & Inisialisasi
+### Penyiapan & Inisialisasi
 
 ```bash
-omniroute setup                        # Wizard pengaturan interaktif
-omniroute setup --non-interactive      # Mode CI/automasi (membaca variabel env + flag)
-omniroute setup --password '<value>'   # Atur kata sandi admin langsung
+omniroute setup                        # Wizard penyiapan interaktif
+omniroute setup --non-interactive      # Mode CI/otomatisasi (membaca variabel lingkungan + flag)
+omniroute setup --password '<value>'   # Menetapkan kata sandi admin secara langsung
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Tambah dan uji penyedia dalam satu langkah
+  --test-provider                      # Menambahkan dan menguji penyedia sekaligus
 ```
 
-Variabel lingkungan yang dikenali untuk pengaturan non-interaktif:
+Variabel lingkungan yang dikenali untuk penyiapan noninteraktif:
 
 | Var                 | Tujuan                                                                 |
 | ------------------- | ---------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | Kunci API penyedia (terikat ke `--api-key` melalui Commander `.env()`) |
-| `DATA_DIR`          | Ganti direktori data OmniRoute                                         |
+| `DATA_DIR`          | Mengganti direktori data OmniRoute                                     |
 
-Semua input non-interaktif lainnya diteruskan sebagai flag, bukan variabel lingkungan:
+Semua input noninteraktif lainnya diteruskan sebagai flag, bukan variabel lingkungan:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (lihat opsi `omniroute setup` di atas).
 
 ### Diagnostik
 
 ```bash
-omniroute doctor                       # Periksa konfigurasi, DB, port, runtime, memori, kelangsungan
+omniroute doctor                       # Memeriksa konfigurasi, DB, port, runtime, memori, dan keaktifan
 omniroute doctor --json                # JSON yang dapat dibaca mesin
-omniroute doctor --no-liveness         # Lewati probe kesehatan HTTP
-omniroute doctor --host 0.0.0.0        # Ganti host kelangsungan
-omniroute doctor --liveness-url <url>  # Ganti URL endpoint kesehatan penuh
+omniroute doctor --no-liveness         # Melewati pemeriksaan kesehatan HTTP
+omniroute doctor --host 0.0.0.0        # Mengganti host pemeriksaan keaktifan
+omniroute doctor --liveness-url <url>  # Mengganti URL lengkap endpoint kesehatan
 ```
 
-Dokter menjalankan pemeriksaan ini: `Konfigurasi`, `Database`, `Penyimpanan/enkripsi`,
-`Ketersediaan Port`, `Runtime Node`, `Biner asli` (better-sqlite3),
-`Memori`, dan `Kelangsungan Server`. Ia keluar dengan status non-nol jika ada pemeriksaan yang `gagal`.
+Doctor menjalankan pemeriksaan berikut: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory`, dan `Server liveness`. Proses berakhir dengan kode bukan nol jika ada pemeriksaan yang berstatus `fail`.
 
-### Manajemen Penyedia
+### Pengelolaan Penyedia
 
 ```bash
 omniroute providers available                       # Katalog penyedia OmniRoute
-omniroute providers available --search openai       # Filter katalog berdasarkan id/nama/alias/kategori
-omniroute providers available --category api-key    # Filter berdasarkan kategori (api-key, oauth, gratis, ...)
+omniroute providers available --search openai       # Memfilter katalog berdasarkan id/nama/alias/kategori
+omniroute providers available --category api-key    # Memfilter berdasarkan kategori (api-key, oauth, free, ...)
 omniroute providers available --json                # JSON yang dapat dibaca mesin
 
 omniroute providers list                            # Koneksi penyedia yang dikonfigurasi
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Uji satu koneksi yang dikonfigurasi
-omniroute providers test-all                        # Uji setiap koneksi aktif
-omniroute providers validate                        # Validasi struktural hanya lokal
+omniroute providers test <id|name>                  # Menguji satu koneksi yang dikonfigurasi
+omniroute providers test-all                        # Menguji setiap koneksi aktif
+omniroute providers validate                        # Validasi struktural khusus lokal
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Alur OAuth yang ada
+omniroute providers auth <provider>                 # Alur OAuth yang sudah ada
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` adalah API-first dan oleh karena itu bekerja terhadap
-konteks lokal atau jarak jauh yang aktif. Input kredensial harus menggunakan
+`providers add/import/auth/edit/remove` mengutamakan API dan oleh karena itu bekerja terhadap
+konteks lokal atau jarak jauh yang aktif. Input kredensial sebaiknya menggunakan
 `--credential-stdin` atau `--credential-env`; `--dry-run --json` hanya melaporkan
-keberadaan/bentuk yang disunting. `providers available` membaca katalog OmniRoute;
-`providers list/test/test-all/validate` mempertahankan perilaku SQLite lokal mereka dan
-tidak memerlukan server untuk berjalan.
+keberadaan/bentuk yang telah disamarkan. `providers available` membaca katalog OmniRoute;
+`providers list/test/test-all/validate` mempertahankan perilaku SQLite lokalnya dan
+tidak mengharuskan server berjalan.
 
-### Pemulihan & Atur Ulang
+### Pemulihan & Pengaturan Ulang
 
 ```bash
-omniroute reset-password                # Atur ulang kata sandi admin (juga: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Tampilkan peringatan + dry-run untuk atur ulang kredensial terenkripsi
-omniroute reset-encrypted-columns --force  # Benar-benar menghapus kredensial terenkripsi di SQLite
+omniroute reset-password                # Mengatur ulang kata sandi admin (juga: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Menampilkan peringatan + simulasi untuk pengaturan ulang kredensial terenkripsi
+omniroute reset-encrypted-columns --force  # Benar-benar mengosongkan kredensial terenkripsi di SQLite
 ```
 
 ### Ekspor Kredensial (⚠ tangani dengan hati-hati)
 
 ```bash
-omniroute auth export                                 # Tampilkan peringatan + gerbang konfirmasi — tidak ada akses DB
-omniroute auth export --force                          # Ekspor SEMUA kredensial DECRYPTED koneksi ke stdout sebagai JSON
-omniroute auth export --force --id <id>                 # Ekspor hanya koneksi yang cocok
-omniroute auth export --force --format env               # Emit OMNIROUTE_<PROVIDER>_<FIELD>=<value> baris
-omniroute auth export --force --out creds.json           # Tulis ke file (dibuat dengan izin 0600)
+omniroute auth export                                 # Menampilkan peringatan + konfirmasi — tanpa akses DB
+omniroute auth export --force                          # Mengekspor kredensial TERDEKRIPSI dari SEMUA koneksi ke stdout sebagai JSON
+omniroute auth export --force --id <id>                 # Hanya mengekspor koneksi yang cocok
+omniroute auth export --force --format env               # Menghasilkan baris OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Menulis ke file (dibuat dengan izin 0600)
 ```
 
-`auth export` adalah **hanya lokal** (baca SQLite langsung, tidak ada rute HTTP) dan dengan sengaja mencetak/menulis
-nilai **plaintext** `apiKey`/`accessToken`/`refreshToken`/`idToken` — itu adalah fitur, bukan
-bug. Tidak ada yang dibaca dari database, dan tidak ada yang didekripsi, tanpa `--force`. Sebuah banner peringatan stderr
-selalu dicetak sebelum ada plaintext yang dikeluarkan. Memerlukan `STORAGE_ENCRYPTION_KEY` untuk
-diatur. Sebuah field yang gagal untuk didekripsi (kunci kadaluarsa, ciphertext rusak) dilaporkan sebagai
-`<field>DecryptFailed: true` alih-alih menghentikan seluruh ekspor atau membocorkan kesalahan yang mendasarinya.
+`auth export` bersifat **khusus lokal** (membaca SQLite secara langsung, tanpa rute HTTP) dan dengan sengaja mencetak/menulis
+nilai **teks biasa** `apiKey`/`accessToken`/`refreshToken`/`idToken` — itu adalah fitur, bukan
+bug. Tidak ada data yang dibaca dari basis data, dan tidak ada yang didekripsi, tanpa `--force`. Banner
+peringatan selalu dicetak ke stderr sebelum teks biasa apa pun dikeluarkan. Mengharuskan `STORAGE_ENCRYPTION_KEY`
+ditetapkan. Bidang yang gagal didekripsi (kunci usang, ciphertext rusak) dilaporkan sebagai
+`<field>DecryptFailed: true`, alih-alih membatalkan seluruh ekspor atau membocorkan kesalahan yang mendasarinya.
 
-### Subperintah Lainnya
+### Subperintah lainnya
 
-Ini mengasumsikan server OmniRoute yang berjalan, kecuali dinyatakan sebaliknya:
+Subperintah ini mengasumsikan server OmniRoute sedang berjalan, kecuali dinyatakan lain:
 
 ```bash
 omniroute status                       # Status runtime yang komprehensif
 omniroute logs                         # Streaming log permintaan (--json, --search, --follow)
-omniroute config show                  # Tampilkan konfigurasi saat ini
+omniroute config list                  # Menampilkan alat CLI yang dikonfigurasi
 
-omniroute provider list                # Daftar penyedia yang tersedia (alias dari providers list)
-omniroute provider add                 # Daftarkan OmniRoute sebagai penyedia di alat
-omniroute keys add | list | remove     # Kelola kunci API
-omniroute models [provider]            # Daftar model (--json, --search)
+omniroute provider list                # Menampilkan penyedia yang tersedia (alias dari providers list)
+omniroute provider add                 # Mendaftarkan OmniRoute sebagai penyedia pada suatu alat
+omniroute keys add | list | remove     # Mengelola kunci API
+omniroute models [provider]            # Menampilkan model (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Snapshot konfigurasi + DB
-omniroute restore                      # Pulihkan dari snapshot sebelumnya
+omniroute backup                       # Membuat snapshot konfigurasi + DB
+omniroute restore                      # Memulihkan dari snapshot sebelumnya
 
-omniroute health                       # Kesehatan terperinci (pemutus, cache, memori)
+omniroute health                       # Status kesehatan terperinci (pemutus, cache, memori)
 omniroute quota                        # Penggunaan kuota penyedia
 omniroute cache                        # Status cache
-omniroute cache clear                  # Hapus cache semantik + tanda tangan
+omniroute cache clear                  # Menghapus cache semantik + tanda tangan
 
-omniroute mcp status | restart         # Status server MCP / restart
+omniroute mcp status | restart         # Status / mulai ulang server MCP
 omniroute a2a status | card            # Status server A2A / kartu agen
 
-omniroute tunnel list | create | stop  # Kelola terowongan (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Periksa / atur variabel env (sementara)
+omniroute tunnel list | create | stop  # Mengelola tunnel (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Memeriksa / mengatur variabel lingkungan (sementara)
 
-omniroute test                         # Uji konektivitas penyedia
-omniroute update                       # Periksa pembaruan
-omniroute completion                   # Hasilkan penyelesaian shell
+omniroute test                         # Pengujian singkat konektivitas penyedia
+omniroute update                       # Memeriksa pembaruan
+omniroute completion                   # Menghasilkan pelengkapan shell
 ```
 
-### Flag Umum
+### Flag umum
 
 | Flag                | Deskripsi                                                     |
 | ------------------- | ------------------------------------------------------------- |
-| `--no-open`         | Jangan otomatis membuka browser saat mulai                    |
-| `--port <n>`        | Ganti port API (default 20128)                                |
-| `--mcp`             | Jalankan sebagai server MCP melalui stdio (untuk IDE)         |
-| `--non-interactive` | Mode CI (tanpa prompt; membaca dari env/flags)                |
+| `--no-open`         | Jangan membuka browser secara otomatis saat dimulai           |
+| `--port <n>`        | Mengganti port API (default 20128)                            |
+| `--mcp`             | Berjalan sebagai server MCP melalui stdio (untuk IDE)         |
+| `--non-interactive` | Mode CI (tanpa prompt; membaca dari env/flag)                 |
 | `--json`            | Output JSON yang dapat dibaca mesin (doctor, providers, dll.) |
-| `--help`, `-h`      | Tampilkan bantuan spesifik perintah                           |
-| `--version`, `-v`   | Cetak versi yang terinstal                                    |
+| `--help`, `-h`      | Menampilkan bantuan khusus perintah                           |
+| `--version`, `-v`   | Menampilkan versi yang terinstal                              |
+
+---
 
 ## Endpoint API yang Tersedia
 

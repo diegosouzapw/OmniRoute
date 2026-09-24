@@ -178,3 +178,30 @@ export function mergeConsecutiveSameRoleContents(contents: GeminiContent[]): Gem
   }
   return merged;
 }
+
+// Gemini also rejects a functionCall-bearing "model" turn with no preceding
+// turn at all:
+//   400 INVALID_ARGUMENT "Please ensure that function call turn comes
+//   immediately after a user turn or after a function response turn."
+// `contents[]` only ever uses role "user" or "model" here, and
+// mergeConsecutiveSameRoleContents above guarantees no two adjacent entries
+// share a role -- so for every index >= 1 the previous entry can only be
+// "user", satisfying this rule automatically. The one case that slips
+// through is history that OPENS with a functionCall-bearing "model" turn,
+// e.g. because the true leading user turn was dropped somewhere upstream
+// (continuation reconstruction, context compression, a truncated client
+// history) while a mid-conversation assistant tool-call turn survived.
+// Prepend a minimal synthetic user turn so Gemini accepts the request
+// instead of rejecting it outright -- cheaper and more robust than trying to
+// enumerate every possible upstream cause of a truncated leading turn.
+export function ensureHistoryDoesNotOpenWithFunctionCall(
+  contents: GeminiContent[]
+): GeminiContent[] {
+  const first = contents[0];
+  if (!first || first.role !== "model") return contents;
+  const opensWithFunctionCall = first.parts.some(
+    (part) => part && typeof part === "object" && "functionCall" in part
+  );
+  if (!opensWithFunctionCall) return contents;
+  return [{ role: "user", parts: [{ text: "(continuing the conversation)" }] }, ...contents];
+}

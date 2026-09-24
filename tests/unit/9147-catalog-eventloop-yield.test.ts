@@ -7,6 +7,16 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-9147-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-9147-test-secret";
+// This case measures whether the builder YIELDS, not how fast it finishes. The
+// production cold-path budget (CATALOG_BUILD_TIMEOUT_MS, 8s) is not the subject:
+// when the seeded catalog-scale build overruns it, getUnifiedModelsResponse
+// answers 503 `catalog_build_timeout` and the two assertions that actually guard
+// the invariant — the max event-loop gap and the traversal to the last seeded
+// model — are never reached, because the status check precedes them. That is how
+// this guard went silently dead on loaded runners (CI observed 8350ms, right at
+// the bound). Pin a budget far above any healthy build so the yield invariant is
+// evaluated; build-latency budgeting is a separate concern from this test.
+process.env.CATALOG_BUILD_TIMEOUT_MS = "120000";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");

@@ -184,13 +184,15 @@ export default function AddApiKeyModal({
     ? providerText(t, "modalTokenIdLabel", "Token ID")
     : isAwsPolly
       ? providerText(t, "awsPollySecretAccessKeyLabel", "AWS Secret Access Key")
-      : isQoder
-        ? t("personalAccessTokenLabel")
-        : webSessionCredential
-          ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
-          : apiKeyOptional
-            ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
-            : t("apiKeyLabel");
+      : isVertex
+        ? providerText(t, "vertexCredentialLabel", "API Key or Service Account JSON")
+        : isQoder
+          ? t("personalAccessTokenLabel")
+          : webSessionCredential
+            ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
+            : apiKeyOptional
+              ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
+              : t("apiKeyLabel");
   const apiCredentialPlaceholder = isModal
     ? "ak-xxxxxxxxxxxxxxxx"
     : isVertex
@@ -210,19 +212,25 @@ export default function AddApiKeyModal({
         "modalTokenIdHint",
         "Modal auth uses a Token ID + Token Secret pair. Create one at https://modal.com/settings → API Tokens."
       )
-    : isQoder
-      ? t("qoderPatHint")
-      : isFreebuff
-        ? "Freebuff uses an authentic CLI auth token obtained via codebuff CLI login or automated harvester."
-        : isWebSessionCredential
-          ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
-          : isLocalSelfHostedProvider
-            ? t("localProviderApiKeyOptionalHint", {
-                provider: localProviderMetadata?.name || providerName || provider || "",
-              })
-            : apiKeyOptional
-              ? t("apiKeyOptionalHint")
-              : undefined;
+    : isVertex
+      ? providerText(
+          t,
+          "vertexCredentialHint",
+          "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery."
+        )
+      : isQoder
+        ? t("qoderPatHint")
+        : isFreebuff
+          ? "Freebuff uses an authentic CLI auth token obtained via codebuff CLI login or automated harvester."
+          : isWebSessionCredential
+            ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
+            : isLocalSelfHostedProvider
+              ? t("localProviderApiKeyOptionalHint", {
+                  provider: localProviderMetadata?.name || providerName || provider || "",
+                })
+              : apiKeyOptional
+                ? t("apiKeyOptionalHint")
+                : undefined;
   const credentialValidationFailedMessage = isWebSessionCredential
     ? providerText(
         t,

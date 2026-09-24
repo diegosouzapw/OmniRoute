@@ -137,7 +137,7 @@ interface ProviderModalsPanelProps {
   // Proxy config
   proxyTarget: ProxyTarget | null;
   setProxyTarget: (t: ProxyTarget | null) => void;
-  fetchProxyConfig: () => Promise<void>;
+  refreshProxyState: () => Promise<void>;
   // Import progress
   importProgress: ImportProgress;
   showImportModal: boolean;
@@ -221,7 +221,7 @@ export default function ProviderModalsPanel({
   emailsVisible,
   proxyTarget,
   setProxyTarget,
-  fetchProxyConfig,
+  refreshProxyState,
   importProgress,
   showImportModal,
   setShowImportModal,
@@ -444,7 +444,7 @@ export default function ProviderModalsPanel({
           levelId={proxyTarget.id}
           levelLabel={proxyTarget.label}
           onSaved={() => {
-            void fetchProxyConfig();
+            void refreshProxyState();
           }}
         />
       )}

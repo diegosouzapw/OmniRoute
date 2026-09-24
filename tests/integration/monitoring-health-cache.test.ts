@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-health-cache-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -75,4 +76,8 @@ test("DELETE (circuit-breaker reset) invalidates the cache immediately", async (
   await new Promise((r) => setTimeout(r, 5)); // ensure the clock advances past ms precision
   const t2 = await healthTimestamp();
   assert.notEqual(t2, t1, "a GET right after DELETE must rebuild (cache invalidated)");
+});
+
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });

@@ -58,6 +58,10 @@ export const USAGE_FETCHER_PROVIDERS = [
   "vertex-partner",
   "codebuddy-cn",
   "openrouter",
+  // LLM Gateway DevPass allowance (GET /v1/key → monthly + weekly premium)
+  "llmgateway",
+  // Lyceum credit balance (GET /api/v2/external/billing/credits)
+  "lyceum",
   // PromptQL playground credits (data.pro.ql.app getCreditSummary)
   "promptql",
   "pql",

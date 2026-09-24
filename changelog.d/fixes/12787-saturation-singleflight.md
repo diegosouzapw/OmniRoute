@@ -1,1 +1,0 @@
-- **fix(quota):** share one upstream quota read when identical saturation checks arrive at the same time, so traffic bursts don't multiply provider API calls ([#12787](https://github.com/diegosouzapw/OmniRoute/pull/12787)) — thanks @maxmad64bis

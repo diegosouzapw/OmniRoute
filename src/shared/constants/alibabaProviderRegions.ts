@@ -189,6 +189,65 @@ export function resolveAlibabaProviderBaseUrl(
   return ALIBABA_PROVIDER_ENDPOINTS[family][region];
 }
 
+function resolveAlibabaCompatibleApiRoot(
+  providerId: string,
+  providerSpecificData: unknown,
+  fallback: string,
+  apiFamily: "compatible-mode" | "compatible-api"
+): string {
+  const resolved = stripTrailingSlashes(
+    resolveAlibabaProviderBaseUrl(providerId, providerSpecificData, fallback).trim()
+  ).replace(/\/(?:chat\/completions|embeddings|reranks?|models)$/i, "");
+  if (!resolved) return "";
+
+  const compatibleRoot = resolved.replace(/\/compatible-(?:mode|api)\/v1$/i, `/${apiFamily}/v1`);
+  if (compatibleRoot !== resolved) return compatibleRoot;
+
+  try {
+    const url = new URL(resolved);
+    const isAlibabaCloudRoot =
+      (url.pathname === "" || url.pathname === "/") &&
+      (url.hostname === "dashscope.aliyuncs.com" ||
+        url.hostname === "dashscope-intl.aliyuncs.com" ||
+        url.hostname.endsWith(".maas.aliyuncs.com"));
+    if (isAlibabaCloudRoot) return `${stripTrailingSlashes(resolved)}/${apiFamily}/v1`;
+  } catch {
+    // Keep operator-supplied proxy paths unchanged; validation owns URL rejection.
+  }
+
+  return resolved;
+}
+
+/** Resolve the selected Alibaba connection's OpenAI-compatible embedding endpoint. */
+export function resolveAlibabaProviderEmbeddingUrl(
+  providerId: string,
+  providerSpecificData?: unknown,
+  fallback = ""
+): string {
+  const root = resolveAlibabaCompatibleApiRoot(
+    providerId,
+    providerSpecificData,
+    fallback,
+    "compatible-mode"
+  );
+  return root ? `${root}/embeddings` : "";
+}
+
+/** Resolve qwen3-rerank's flat compatible endpoint for the selected connection. */
+export function resolveAlibabaQwen3RerankUrl(
+  providerId: string,
+  providerSpecificData?: unknown,
+  fallback = ""
+): string {
+  const root = resolveAlibabaCompatibleApiRoot(
+    providerId,
+    providerSpecificData,
+    fallback,
+    "compatible-api"
+  );
+  return root ? `${root}/reranks` : "";
+}
+
 export function resolveAlibabaProviderModelsUrl(
   providerId: string,
   providerSpecificData?: unknown,

@@ -1,19 +1,10 @@
-# ARCHITECTURE (Ελληνικά)
+# OmniRoute Architecture (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
 
 ---
 
-title: "OmniRoute Architecture"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# Αρχιτεκτονική OmniRoute
-
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
 
 _Τελευταία ενημέρωση: 2026-06-28_
 
@@ -357,166 +348,168 @@ Modules παρόχων OAuth (22 μεμονωμένα αρχεία στον κα
 
 Αναλυτική τεκμηρίωση: `docs/frameworks/EMBEDDED-SERVICES.md`
 
-## Κύρια Υποσυστήματα (v3.8.0)
+## Κύρια υποσυστήματα (v3.8.0)
 
-### Α. Μηχανή Auto Combo
+### A. Μηχανή Auto Combo
 
-Το Auto Combo βαθμολογεί και επιλέγει δυναμικά στόχους δρομολόγησης κατά τον χρόνο αιτήματος, αντί να
-βασίζεται σε στατικό ορισμό combo. Τροφοδοτεί την οικογένεια προθεμάτων μοντέλων `auto/*`.
+Το Auto Combo βαθμολογεί δυναμικά και επιλέγει στόχους δρομολόγησης κατά τον χρόνο του αιτήματος, αντί να
+βασίζεται σε έναν στατικό ορισμό combo. Τροφοδοτεί την οικογένεια προθεμάτων μοντέλων `auto/*`.
 
 - Σημείο εισόδου μηχανής: `open-sse/services/autoCombo/` (`autoComboEngine.ts`,
   `scoringEngine.ts`, `virtualFactory.ts`, `modePacks.ts`)
-- Resolver: `src/domain/comboResolver.ts` (αυτόματη ανίχνευση προθέματος `auto/`)
-- Dashboard: `/dashboard/auto-combo`
+- Επίλυση: `src/domain/comboResolver.ts` (αυτόματη ανίχνευση του προθέματος `auto/`)
+- Πίνακας ελέγχου: `/dashboard/auto-combo`
 - Τηλεμετρία: πίνακας SQLite `auto_combo_decisions`
 
 Βασικές δυνατότητες:
 
-- **19 στρατηγικές δρομολόγησης** (priority, weighted, fill-first, round-robin, P2C, random,
-  least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random,
-  **auto**, lkgp, context-optimized, context-relay, **fusion**, συν ένα μονοπάτι εναλλακτικής δρομολόγησης) —
-  το auto είναι η κύρια προσθήκη στο v3.8.0· το `fusion` (fan-out πίνακα + σύνθεση κριτή,
-  `open-sse/services/fusion.ts`) είναι νέο στο v3.8.36.
-- **Βαθμολόγηση 16 παραγόντων**: quota, health, inverse cost, inverse latency, task fit και
-  δέκα ακόμη. Ο κανονικός πίνακας παραγόντων και των προεπιλεγμένων βαρών τους βρίσκεται στο
-  [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) — η επανάληψή του εδώ θα δημιουργούσε ένα δεύτερο σημείο που θα μπορούσε να παλιώσει.
-- **Εικονικό εργοστάσιο** υλοποιεί εφήμερα combos όταν δεν υπάρχει αντίστοιχο combo με ονομασία,
-  αντλώντας υποψηφίους από υγιείς ενεργές συνδέσεις παρόχων.
-- **Προθέματα Auto**: `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`,
-  `auto/smart`, `auto/lkgp` — καθένα υποστηρίζεται από ρυθμισμένο προφίλ βαρών.
-- **6 mode packs**: `ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`,
+- **19 στρατηγικές δρομολόγησης** (προτεραιότητα, σταθμισμένη, πρώτα-η-πλήρωση, κυκλική εναλλαγή, P2C, τυχαία,
+  λιγότερο χρησιμοποιημένη, βελτιστοποιημένη ως προς το κόστος, με επίγνωση επαναφοράς, παράθυρο επαναφοράς, διαθέσιμο περιθώριο, αυστηρά τυχαία,
+  **auto**, lkgp, βελτιστοποιημένη ως προς το πλαίσιο, αναμετάδοση πλαισίου, **fusion**, καθώς και μια διαδρομή εφεδρείας) —
+  το auto είναι η σημαντικότερη προσθήκη στην v3.8.0· το `fusion` (διασπορά σε πάνελ + σύνθεση από κριτή,
+  `open-sse/services/fusion.ts`) είναι νέο στην v3.8.36.
+- **Βαθμολόγηση 16 παραγόντων**: ποσόστωση, υγεία, αντίστροφο κόστος, αντίστροφη καθυστέρηση, καταλληλότητα για την εργασία και
+  δέκα ακόμη. Ο κανονικός πίνακας παραγόντων και τα προεπιλεγμένα βάρη τους βρίσκονται στο
+  [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) — η επανάληψή του εδώ θα
+  δημιουργούσε ένα δεύτερο σημείο όπου θα μπορούσε να καταστεί παρωχημένος.
+- Το **εικονικό εργοστάσιο** υλοποιεί προσωρινά combos όταν δεν
+  υπάρχει αντίστοιχο επώνυμο combo, αντλώντας υποψηφίους από υγιείς ενεργές συνδέσεις παρόχων.
+- **Προθέματα auto**: `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`,
+  `auto/smart`, `auto/lkgp` — καθένα υποστηρίζεται από ένα βελτιστοποιημένο προφίλ βαρών.
+- **6 πακέτα λειτουργίας**: `ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`,
   `reliability-first` και `chaos-mode` — προκαθορισμένες διαμορφώσεις βαρών που μπορούν να κληθούν από
-  το dashboard. (Να μην συγχέονται με τα παραπάνω προθέματα `auto/*`, τα οποία αποτελούν παραλλαγές κατά τον χρόνο αιτήματος.)
+  τον πίνακα ελέγχου. (Δεν πρέπει να συγχέονται με τα παραπάνω προθέματα `auto/*`, τα οποία είναι
+  παραλλαγές κατά τον χρόνο του αιτήματος.)
 
-Για πλήρη αλγοριθμική λεπτομέρεια (τύποι παραγόντων, ρύθμιση βαρών), δείτε το
+Για πλήρεις λεπτομέρειες του αλγορίθμου (τύποι παραγόντων, ρύθμιση βαρών), ανατρέξτε στο
 [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md).
 
-### Β. Cloud Agents
+### B. Πράκτορες cloud
 
-Το Cloud Agents τυλίγει τρίτες φιλοξενούμενες πλατφόρμες agents κώδικα (Codex Cloud, Devin,
-Jules) πίσω από έναν ομοιόμορφο κύκλο ζωής εργασιών υποστηριζόμενο από βάση δεδομένων. Όλα τα endpoints δημιουργίας/επιθεώρησης
-εργασιών απαιτούν αυθεντικοποίηση διαχείρισης.
+Το Cloud Agents περιτυλίγει πλατφόρμες φιλοξενούμενων πρακτόρων κώδικα τρίτων (Codex Cloud, Devin,
+Jules) πίσω από έναν ομοιόμορφο κύκλο ζωής εργασιών που υποστηρίζεται από βάση δεδομένων. Όλα τα τελικά σημεία δημιουργίας/επιθεώρησης
+εργασιών απαιτούν έλεγχο ταυτότητας διαχείρισης.
 
-- Ρίζα ενότητας: `src/lib/cloudAgent/` (`baseAgent.ts`, `registry.ts`, `api.ts`,
-  `types.ts`, `db.ts`, συν ανά-agent υποκατάλογοι στο `agents/`)
-- Υλοποιήσεις ανά agent: `agents/codex/`, `agents/devin/`, `agents/jules/`
-- Δημόσια endpoints: `/api/v1/agents/tasks/*` (list/create/get/cancel)
-- Endpoints διαχείρισης: `/api/cloud/*` (provisioning, status, batch)
-- Dashboard: `/dashboard/cloud-agents`
+- Ρίζα μονάδας: `src/lib/cloudAgent/` (`baseAgent.ts`, `registry.ts`, `api.ts`,
+  `types.ts`, `db.ts`, καθώς και υποκατάλογοι ανά πράκτορα κάτω από το `agents/`)
+- Υλοποιήσεις ανά πράκτορα: `agents/codex/`, `agents/devin/`, `agents/jules/`
+- Δημόσια τελικά σημεία: `/api/v1/agents/tasks/*` (παράθεση/δημιουργία/ανάκτηση/ακύρωση)
+- Τελικά σημεία διαχείρισης: `/api/cloud/*` (παροχή, κατάσταση, μαζική επεξεργασία)
+- Πίνακας ελέγχου: `/dashboard/cloud-agents`
 - Αποθήκευση: πίνακας `cloud_agent_tasks`
 
-Για provisioning ανά agent και λεπτομέρειες OAuth, δείτε το
+Για λεπτομέρειες σχετικά με την παροχή και το OAuth ανά πράκτορα, ανατρέξτε στο
 [`docs/frameworks/CLOUD_AGENT.md`](../frameworks/CLOUD_AGENT.md).
 
-### Γ. Guardrails
+### C. Μηχανισμοί προστασίας
 
-Η ενότητα guardrails είναι ένα middleware επίπεδο με δυνατότητα hot-reload που επιθεωρεί αιτήματα
-και αποκρίσεις για PII, prompt injection και μη ασφαλές περιεχόμενο όρασης. Οι παραβιάσεις
-διακόπτουν το αίτημα με HTTP **503** συν έναν δομημένο κωδικό σφάλματος, επιτρέποντας
-στους κατάντη καλούντες να επαναλάβουν ή να διακλαδιστούν.
+Η μονάδα μηχανισμών προστασίας είναι ένα επίπεδο middleware με δυνατότητα δυναμικής επαναφόρτωσης, το οποίο επιθεωρεί αιτήματα
+και αποκρίσεις για PII, εισαγωγή κακόβουλων προτροπών και μη ασφαλές οπτικό περιεχόμενο. Οι παραβιάσεις
+τερματίζουν πρόωρα το αίτημα με HTTP **503** μαζί με έναν δομημένο κωδικό σφάλματος, επιτρέποντας
+στους μεταγενέστερους καλούντες να επαναλάβουν το αίτημα ή να ακολουθήσουν διαφορετικό κλάδο.
 
-- Ρίζα ενότητας: `src/lib/guardrails/` (`base.ts`, `registry.ts`, `piiMasker.ts`,
+- Ρίζα μονάδας: `src/lib/guardrails/` (`base.ts`, `registry.ts`, `piiMasker.ts`,
   `promptInjection.ts`, `visionBridge.ts`, `visionBridgeHelpers.ts`)
-- Hot reload: το registry παρακολουθεί αλλαγές στη ρύθμιση παραμέτρων και ανακατασκευάζει την αλυσίδα επί τόπου
-- Σημεία σύνδεσης: είσοδος χειριστή chat, χειριστής δημιουργίας εικόνων, απολυμαντήρας αποκρίσεων
-- Συμβόλαιο HTTP: οι παραβιάσεις εμφανίζονται ως `503` με `error.code = "GUARDRAIL_VIOLATION"`
+- Δυναμική επαναφόρτωση: το μητρώο παρακολουθεί αλλαγές διαμόρφωσης και αναδομεί την αλυσίδα επιτόπου
+- Σημεία ενσωμάτωσης: είσοδος χειριστή συνομιλίας, χειριστής δημιουργίας εικόνων, εξυγιαντής αποκρίσεων
+- Σύμβαση HTTP: οι παραβιάσεις εμφανίζονται ως `503` με `error.code = "GUARDRAIL_VIOLATION"`
 
-Για σύνταξη κανονισμών και ρύθμιση κατωφλίων, δείτε το
+Για τη σύνταξη συνόλων κανόνων και τη ρύθμιση ορίων, ανατρέξτε στο
 [`docs/security/GUARDRAILS.md`](../security/GUARDRAILS.md).
 
-### Δ. Domain Layer
+### D. Επίπεδο τομέα
 
-Ο χώρος ονομάτων `src/domain/` κεντρώνει τις αποφάσεις πολιτικής ώστε οι χειριστές διαδρομών να μην
-χρειάζεται να συναρμολογούν οι ίδιοι τη λογική lockout/budget/fallback.
+Ο χώρος ονομάτων `src/domain/` συγκεντρώνει τις αποφάσεις πολιτικής, ώστε οι χειριστές διαδρομών να μην
+χρειάζεται να συνθέτουν μόνοι τους τη λογική αποκλεισμού/προϋπολογισμού/εφεδρείας.
 
 - Μηχανή πολιτικής: `src/domain/policyEngine.ts` — ενιαίο σημείο εισόδου για
-  αξιολόγηση πριν την εκτέλεση (σειρά: lockout → budget → fallback)
+  αξιολόγηση πριν από την εκτέλεση (αποκλεισμός → προϋπολογισμός → σειρά εφεδρείας)
 - Κανόνες κόστους: `src/domain/costRules.ts`
-- Πολιτική εναλλακτικής δρομολόγησης: `src/domain/fallbackPolicy.ts`
-- Πολιτική lockout: `src/domain/lockoutPolicy.ts`
+- Πολιτική εφεδρείας: `src/domain/fallbackPolicy.ts`
+- Πολιτική αποκλεισμού: `src/domain/lockoutPolicy.ts`
 - Δρομολόγηση βάσει ετικετών: `src/domain/tagRouter.ts`
-- Resolver combo: `src/domain/comboResolver.ts` — επιλύει ονόματα combo, προθέματα
-  `auto/*` και στόχους μοντέλων με μπαλαντέρ σε συγκεκριμένα σχέδια εκτέλεσης
-- Ενωτής κανόνων σύνδεσης/μοντέλου: `src/domain/connectionModelRules.ts`
+- Επίλυση combo: `src/domain/comboResolver.ts` — επιλύει ονόματα combo, προθέματα auto/\*
+  και στόχους μοντέλων με χαρακτήρες μπαλαντέρ σε συγκεκριμένα σχέδια εκτέλεσης
+- Σύνδεση κανόνων σύνδεσης/μοντέλου: `src/domain/connectionModelRules.ts`
 - Στιγμιότυπα διαθεσιμότητας μοντέλων: `src/domain/modelAvailability.ts`
-- Παρακολούθηση λήξης παρόχου: `src/domain/providerExpiration.ts`
-- Cache quota: `src/domain/quotaCache.ts`
+- Παρακολούθηση λήξης παρόχων: `src/domain/providerExpiration.ts`
+- Κρυφή μνήμη ποσόστωσης: `src/domain/quotaCache.ts`
 - Κατάσταση υποβάθμισης: `src/domain/degradation.ts`
-- Έλεγχος ρύθμισης παραμέτρων: `src/domain/configAudit.ts`
-- Δόμηση μεταδεδομένων απόκρισης OmniRoute: `src/domain/omnirouteResponseMeta.ts`
+- Έλεγχος διαμόρφωσης: `src/domain/configAudit.ts`
+- Δημιουργός μεταδεδομένων αποκρίσεων OmniRoute: `src/domain/omnirouteResponseMeta.ts`
 - Υποσύστημα αξιολόγησης: `src/domain/assessment/` — περιοδικές εργασίες αξιολόγησης
 
-### Ε. Αγωγός Εξουσιοδότησης
+### E. Διοχέτευση εξουσιοδότησης
 
-Ο αγωγός εξουσιοδότησης ταξινομεί κάθε εισερχόμενο αίτημα και εφαρμόζει την
-κατάλληλη αλυσίδα πολιτικής πριν την αποστολή.
+Η διοχέτευση εξουσιοδότησης ταξινομεί κάθε εισερχόμενο αίτημα και εφαρμόζει την
+κατάλληλη αλυσίδα πολιτικών πριν από την αποστολή.
 
-- Σημείο εισόδου αγωγού: `src/server/authz/pipeline.ts`
-- Ταξινομητής αιτημάτων: `src/server/authz/classify.ts` — διακρίνει δημόσιες
-  διαδρομές συμβατότητας από διαδρομές διαχείρισης
+- Σημείο εισόδου διοχέτευσης: `src/server/authz/pipeline.ts`
+- Ταξινομητής αιτημάτων: `src/server/authz/classify.ts` — διακρίνει τις δημόσιες
+  διαδρομές συμβατότητας από τις διαδρομές διαχείρισης
 - Κατάλογος δημόσιων διαδρομών: `src/shared/constants/publicApiRoutes.ts`
 - Πολιτικές: `src/server/authz/policies/` — συνθέσιμα κατηγορήματα
-  (`requireApiKey`, `requireManagement`, `requireFreshAuth`, κ.λπ.)
-- Βοηθητικά headers: `src/server/authz/headers.ts`
-- Βοηθός επαλήθευσης: `src/server/authz/assertAuth.ts`
+  (`requireApiKey`, `requireManagement`, `requireFreshAuth` κ.λπ.)
+- Βοηθητικά εργαλεία κεφαλίδων: `src/server/authz/headers.ts`
+- Βοηθητική συνάρτηση επιβεβαίωσης: `src/server/authz/assertAuth.ts`
 - Πλαίσιο αιτήματος: `src/server/authz/context.ts`
 
-Οι δημόσιες διαδρομές έναντι διαδρομών διαχείρισης αποτελούν αυστηρό όριο: τα APIs agent/cooldown και
-οι μεταλλάξεις παρόχων απαιτούν αυθεντικοποίηση διαχείρισης (HTTP 401 αν απουσιάζει).
+Οι δημόσιες διαδρομές και οι διαδρομές διαχείρισης διαχωρίζονται από ένα αυστηρό όριο: τα API πρακτόρων/περιόδου αναμονής και
+οι μεταβολές παρόχων απαιτούν έλεγχο ταυτότητας διαχείρισης (HTTP 401 αν απουσιάζει).
 
-Για τους πλήρεις κανόνες ταξινόμησης διαδρομών, δείτε το
+Για τους πλήρεις κανόνες ταξινόμησης διαδρομών, ανατρέξτε στο
 [`docs/architecture/AUTHZ_GUIDE.md`](./AUTHZ_GUIDE.md).
 
-### ΣΤ. Workflow FSM και Δρομολογητής με Επίγνωση Εργασιών
+### F. FSM ροής εργασιών και δρομολογητής με επίγνωση εργασιών
 
-Ένας δρομολογητής βασισμένος σε μηχανή πεπερασμένων καταστάσεων (FSM) τοποθετημένος πάνω από την επιλογή combo
-για την κατεύθυνση κίνησης βάσει του ανιχνευμένου σταδίου ροής εργασίας (planning, execution,
-review) και της συγγένειας με εργασίες παρασκηνίου.
+Ένας δρομολογητής καθοδηγούμενος από μηχανή πεπερασμένων καταστάσεων, τοποθετημένος πάνω από την επιλογή combo, για να κατευθύνει
+την κίνηση βάσει του ανιχνευμένου σταδίου της ροής εργασιών (σχεδιασμός, εκτέλεση,
+ανασκόπηση) και της συνάφειας με εργασίες παρασκηνίου.
 
-- Workflow FSM: `open-sse/services/workflowFSM.ts`
+- FSM ροής εργασίας: `open-sse/services/workflowFSM.ts`
 - Δρομολογητής με επίγνωση εργασιών: `open-sse/services/taskAwareRouter.ts`
 - Ανιχνευτής εργασιών παρασκηνίου: `open-sse/services/backgroundTaskDetector.ts`
-- Ταξινομητής πρόθεσης: `open-sse/services/intentClassifier.ts`
+- Ταξινομητής προθέσεων: `open-sse/services/intentClassifier.ts`
 
-Οι μεταβάσεις FSM τροφοδοτούνται στη βαθμολόγηση του Auto Combo, με προτίμηση σε φθηνότερα μοντέλα
-για εργασίες παρασκηνίου/αυτοματισμού και σε ισχυρότερα μοντέλα για διαδραστικές
-στροφές planning/review.
+Οι μεταβάσεις του FSM τροφοδοτούν τη βαθμολόγηση του Auto Combo, ευνοώντας τα οικονομικότερα μοντέλα
+για εργασίες παρασκηνίου/αυτοματισμού και τα ισχυρότερα μοντέλα για διαδραστικούς
+κύκλους σχεδιασμού/αναθεώρησης.
 
-### Ζ. Ανθεκτικότητα Ειδικά ανά Πάροχο
+### G. Ανθεκτικότητα ανά πάροχο
 
-Αρκετοί πάροχοι διαθέτουν αποκλειστικές ενότητες ανθεκτικότητας και απόκρυψης που επικάθονται
-στα παγκόσμια επίπεδα circuit breaker / connection cooldown / model lockout:
+Αρκετοί πάροχοι διαθέτουν εξειδικευμένες μονάδες ανθεκτικότητας και απόκρυψης που αξιοποιούν
+τα καθολικά επίπεδα διακόπτη κυκλώματος / χρόνου αναμονής σύνδεσης / αποκλεισμού μοντέλου:
 
 - Μηχανή Antigravity 429: `open-sse/services/antigravity429Engine.ts` (εναλλάσσει
-  ταυτότητα, καθαρίζει headers απόκρισης, οδηγεί παρακολούθηση credits/εκδόσεων μέσω
-  `antigravityCredits.ts`, `antigravityHeaderScrub.ts`, `antigravityHeaders.ts`,
+  ταυτότητα, αφαιρεί κεφαλίδες απόκρισης, διαχειρίζεται την παρακολούθηση πιστώσεων/εκδόσεων μέσω
+  των `antigravityCredits.ts`, `antigravityHeaderScrub.ts`, `antigravityHeaders.ts`,
   `antigravityIdentity.ts`, `antigravityVersion.ts`)
-- Πολιτική quota ModelScope: `open-sse/services/modelscopePolicy.ts`
-- Claude Code CCH (Compatibility Channel Handshake): `open-sse/services/claudeCodeCCH.ts`,
-  συν `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`,
+- Πολιτική ορίων χρήσης ModelScope: `open-sse/services/modelscopePolicy.ts`
+- CCH (Χειραψία Καναλιού Συμβατότητας) του Claude Code: `open-sse/services/claudeCodeCCH.ts`,
+  καθώς και `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`,
   `claudeCodeToolRemapper.ts`
 - Διαμόρφωση αποτυπώματος Claude Code: `open-sse/services/claudeCodeFingerprint.ts`
 - Συσκότιση Claude Code: `open-sse/services/claudeCodeObfuscation.ts`
 
-Για το πλήρες εγχειρίδιο απόκρυψης και επιχειρησιακές οδηγίες, δείτε το
-[`docs/security/STEALTH_GUIDE.md`](../security/STEALTH_GUIDE.md).
+Για το πλήρες εγχειρίδιο απόκρυψης και τις οδηγίες λειτουργίας, ανατρέξτε στο
+`docs/security/STEALTH_GUIDE.md` (git· δεν μεταγλωττίζεται στο `/docs`).
 
-### Η. Webhooks, Reasoning Cache, Read Cache
+### H. Webhooks, προσωρινή μνήμη συλλογισμού, προσωρινή μνήμη ανάγνωσης
 
-- **Webhooks** — εξερχόμενη αποστολή για συμβάντα παρόχου/λογαριασμού/εργασίας.
-  - Αποστολέας: `src/lib/webhookDispatcher.ts`
-  - Αποθήκευση: πίνακας SQLite `webhooks` (μέσω `src/lib/db/webhooks.ts`)
-  - Dashboard: `/dashboard/webhooks` (συνδρομές, μυστικά, ιστορικό επανάληψης)
-  - Για ταξινομία συμβάντων και σημασιολογία επανάληψης, δείτε το [`docs/frameworks/WEBHOOKS.md`](../frameworks/WEBHOOKS.md).
-- **Reasoning Cache** — επαναδιαδραματίσιμα blocks συλλογισμού για παρόχους που εκπέμπουν
-  tokens σκέψης (Claude, GLMT, κ.λπ.) ώστε διαδοχικές στροφές να παρακάμπτουν την επανασκέψη.
-  - Επίπεδο DB: `src/lib/db/reasoningCache.ts`
+- **Webhooks** — εξερχόμενη αποστολή συμβάντων παρόχων/λογαριασμών/εργασιών.
+  - Διεκπεραιωτής: `src/lib/webhookDispatcher.ts`
+  - Αποθήκευση: πίνακας SQLite `webhooks` (μέσω του `src/lib/db/webhooks.ts`)
+  - Πίνακας ελέγχου: `/dashboard/webhooks` (συνδρομές, μυστικά, ιστορικό επαναλήψεων)
+  - Για την ταξινομία συμβάντων και τη σημασιολογία επαναλήψεων, ανατρέξτε στο [`docs/frameworks/WEBHOOKS.md`](../frameworks/WEBHOOKS.md).
+- **Προσωρινή μνήμη συλλογισμού** — επαναλήψιμα τμήματα συλλογισμού για παρόχους που εκπέμπουν
+  διακριτικά σκέψης (Claude, GLMT κ.λπ.), ώστε οι διαδοχικοί κύκλοι να μπορούν να παραλείπουν τον εκ νέου συλλογισμό.
+  - Επίπεδο βάσης δεδομένων: `src/lib/db/reasoningCache.ts`
   - Επίπεδο υπηρεσίας: `open-sse/services/reasoningCache.ts`
-  - Για σημασιολογία αναπαραγωγής, δείτε το [`docs/routing/REASONING_REPLAY.md`](../routing/REASONING_REPLAY.md).
-- **Read Cache** — βραχύβια cache αποκρίσεων με κλειδί βάσει υπογραφής, που χρησιμοποιείται για
-  τη συμπύκνωση πανομοιότυπων επαναλήψεων από ελαττωματικά upstream SDKs.
-  - Επίπεδο DB: `src/lib/db/readCache.ts`
-  - Endpoint στατιστικών: `GET /api/cache/stats`, dashboard στο `/dashboard/cache`
+  - Για τη σημασιολογία αναπαραγωγής, ανατρέξτε στο [`docs/routing/REASONING_REPLAY.md`](../routing/REASONING_REPLAY.md).
+- **Προσωρινή μνήμη ανάγνωσης** — βραχύβια προσωρινή μνήμη αποκρίσεων με κλειδί την υπογραφή, η οποία χρησιμοποιείται για
+  τη συγχώνευση πανομοιότυπων επαναλήψεων από προβληματικά SDK ανάντη.
+  - Επίπεδο βάσης δεδομένων: `src/lib/db/readCache.ts`
+  - Τελικό σημείο στατιστικών: `GET /api/cache/stats`, πίνακας ελέγχου στη διεύθυνση `/dashboard/cache`
 
 ## 3) Επίπεδο Επιμονής (Persistence Layer)
 

@@ -1,29 +1,20 @@
-# CLI-TOOLS (ខ្មែរ)
+# CLI Tools — OmniRoute (ខ្មែរ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
-title: "ឧបករណ៍ CLI — OmniRoute"
-version: 3.8.50
-lastUpdated: 2026-08-23
----
+បានធ្វើបច្ចុប្បន្នភាពចុងក្រោយ៖ 2026-08-23
 
-# ឧបករណ៍ CLI — OmniRoute
+OmniRoute រួមបញ្ចូលជាមួយឧបករណ៍ CLI បីប្រភេទ ដែលបែងចែកនៅលើទំព័រផ្ទាំងគ្រប់គ្រងចំនួនបីដាច់ដោយឡែក៖
 
-ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ៖ 2026-08-23
+| ទំព័រ          | Route                   | គោលគំនិត                                                                                | ចំនួន        |
+| -------------- | ----------------------- | --------------------------------------------------------------------------------------- | ------------ |
+| **CLI Code's** | `/dashboard/cli-code`   | ឧបករណ៍សរសេរកូដដែលអ្នកតម្រង់ទៅកាន់ OmniRoute (Client → CLI → OmniRoute → Provider)       | 26           |
+| **CLI Agents** | `/dashboard/cli-agents` | Agent ស្វយ័តដែលអ្នកតម្រង់ទៅកាន់ OmniRoute (លំហូរដូចគ្នា ប៉ុន្តែមានវិសាលភាពទូលំទូលាយជាង) | 10           |
+| **ACP Agents** | `/dashboard/acp-agents` | CLI ដែល OmniRoute ដំណើរការជា backend តាមរយៈ stdio/ACP (លំហូរបញ្ច្រាស)                   | មើល registry |
 
-OmniRoute រួមបញ្ចូលជាមួយឧបករណ៍ CLI ចំនួនបីប្រភេទ ដែលត្រូវបានបែងចែកនៅលើទំព័រផ្ទាំងគ្រប់គ្រងពិសេសចំនួនបី៖
-
-| ទំព័រ          | ផ្លូវ                   | គោលគំនិត                                                                             | ចំនួន            |
-| -------------- | ----------------------- | ------------------------------------------------------------------------------------ | ---------------- |
-| **CLI Code's** | `/dashboard/cli-code`   | ឧបករណ៍សរសេរកូដដែលអ្នកតម្រង់ទៅកាន់ OmniRoute (Client → CLI → OmniRoute → Provider)    | 26               |
-| **CLI Agents** | `/dashboard/cli-agents` | Agent ស្វយ័តដែលអ្នកតម្រង់ទៅកាន់ OmniRoute (លំហូរដូចគ្នា ប៉ុន្តែវិសាលភាពទូលំទូលាយជាង) | 10               |
-| **ACP Agents** | `/dashboard/acp-agents` | CLI ដែល OmniRoute បង្កើតជាផ្នែក backend តាម stdio/ACP (លំហូរបញ្ច្រាស)                | មើលបញ្ជីចុះឈ្មោះ |
-
-ផ្លូវចាស់ត្រូវបានបញ្ជូនបន្តតាម 308៖ `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`។
+Route ចាស់ៗបញ្ជូនបន្តតាមរយៈ 308៖ `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
 ---
 
@@ -186,22 +177,22 @@ kilo, continue) — `hostSetupCommand` មួយ (ឧ. `omniroute setup-opencode
 ឧបករណ៍ដែលមាន `baseUrlSupport: "partial"` បង្ហាញស្លាក "⚠ URL មូលដ្ឋានមួយផ្នែក" នៅក្នុងកាតផ្ទាំងគ្រប់គ្រង។
 ---
 
-## 2. បញ្ជីភ្នាក់ងារ CLI (ឧបករណ៍ 10)
+## 2. កាតាឡុកភ្នាក់ងារ CLI (ឧបករណ៍ 10)
 
-ភ្នាក់ងារស្វ័យប្រវត្តិដែលបង្ហាញនៅក្នុង `/dashboard/cli-agents`៖
+ភ្នាក់ងារស្វយ័តដែលបង្ហាញនៅក្នុង `/dashboard/cli-agents`៖
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
-| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| id           | ឈ្មោះ            | អ្នកផ្គត់ផ្គង់           | ការគាំទ្រ baseUrl | អាចបង្កើតដោយ acp |
+| ------------ | ---------------- | ------------------------ | ----------------- | ---------------- |
+| hermes-agent | Hermes Agent     | Nous Research            | ពេញលេញ            | មិនពិត           |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | ពេញលេញ            | ពិត              |
+| goose        | Goose            | Block / Linux Foundation | ពេញលេញ            | ពិត              |
+| interpreter  | Open Interpreter | OSS                      | ពេញលេញ            | ពិត              |
+| warp         | Warp AI          | Warp Inc.                | ដោយផ្នែក          | ពិត              |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | ពេញលេញ            | មិនពិត           |
+| omp          | Oh My Pi         | OSS                      | ពេញលេញ            | ពិត              |
+| letta        | Letta CLI        | Letta                    | ពេញលេញ            | មិនពិត           |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | ពេញលេញ            | មិនពិត           |
+| 5dive        | 5dive            | OSS (5dive-ai)           | ពេញលេញ            | មិនពិត           |
 
 ---
 
@@ -610,28 +601,28 @@ kiro-cli status
 
 ---
 
-## 10. OmniRoute CLI ខាងក្នុង
+## 10. OmniRoute CLI ផ្ទៃក្នុង
 
-ឯកសារប្រតិបត្តិ `omniroute` ផ្តល់ពាក្យបញ្ជាសម្រាប់វដ្តជីវិតរបស់ម៉ាស៊ីនមេ ការដំឡើង ការវិនិច្ឆ័យបញ្ហា និងការគ្រប់គ្រងអ្នកផ្តល់សេវា។ ចំណុចចាប់ផ្តើម៖ `bin/omniroute.mjs`។
+ឯកសារប្រតិបត្តិ `omniroute` ផ្តល់ពាក្យបញ្ជាសម្រាប់វដ្តជីវិតរបស់ម៉ាស៊ីនមេ ការរៀបចំ ការធ្វើរោគវិនិច្ឆ័យ និងការគ្រប់គ្រងអ្នកផ្តល់សេវា។ ចំណុចចាប់ផ្តើម៖ `bin/omniroute.mjs`។
 
 ```bash
 omniroute                              # ចាប់ផ្តើមម៉ាស៊ីនមេ (ច្រកលំនាំដើម 20128)
-omniroute setup                        # អ្នកជំនួយការដំឡើងបែបអន្តរកម្ម
-omniroute doctor                       # ពិនិត្យការកំណត់រចនាសម្ព័ន្ធ DB ច្រក និង runtime
+omniroute setup                        # អ្នកជំនួយការរៀបចំអន្តរកម្ម
+omniroute doctor                       # ពិនិត្យការកំណត់រចនាសម្ព័ន្ធ DB ច្រក និងបរិស្ថានពេលដំណើរការ
 omniroute providers list               # ការតភ្ជាប់អ្នកផ្តល់សេវាដែលបានកំណត់រចនាសម្ព័ន្ធ
 omniroute providers test-all           # សាកល្បងរាល់ការតភ្ជាប់ដែលសកម្ម
 omniroute reset-password               # កំណត់ពាក្យសម្ងាត់អ្នកគ្រប់គ្រងឡើងវិញ
-omniroute logs                         # ផ្សាយបន្តផ្ទាល់កំណត់ហេតុសំណើ
+omniroute logs                         # ស្ទ្រីមកំណត់ហេតុសំណើ
 omniroute health                       # ស្ថានភាពសុខភាពលម្អិត (breakers, cache, memory)
 omniroute --version                    # បង្ហាញកំណែ
 omniroute --help                       # បង្ហាញពាក្យបញ្ជាទាំងអស់
 ```
 
-### ការដំឡើង និងការចាប់ផ្តើម
+### ការរៀបចំ និងការចាប់ផ្តើម
 
 ```bash
-omniroute setup                        # អ្នកជំនួយការដំឡើងបែបអន្តរកម្ម
-omniroute setup --non-interactive      # របៀប CI/ស្វ័យប្រវត្តិកម្ម (អាន env vars + flags)
+omniroute setup                        # អ្នកជំនួយការរៀបចំអន្តរកម្ម
+omniroute setup --non-interactive      # របៀប CI/ស្វ័យប្រវត្តិកម្ម (អានអថេរបរិស្ថាន + flags)
 omniroute setup --password '<value>'   # កំណត់ពាក្យសម្ងាត់អ្នកគ្រប់គ្រងដោយផ្ទាល់
 omniroute setup --add-provider \
   --provider openai \
@@ -639,30 +630,30 @@ omniroute setup --add-provider \
   --test-provider                      # បន្ថែម និងសាកល្បងអ្នកផ្តល់សេវាក្នុងពេលតែមួយ
 ```
 
-អថេរបរិស្ថានដែលត្រូវបានស្គាល់សម្រាប់ការដំឡើងមិនអន្តរកម្ម៖
+អថេរបរិស្ថានដែលត្រូវបានទទួលស្គាល់សម្រាប់ការរៀបចំដោយគ្មានអន្តរកម្ម៖
 
-| អថេរ                | គោលបំណង                                                                   |
-| ------------------- | ------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | សោ API របស់អ្នកផ្តល់សេវា (ភ្ជាប់ទៅ `--api-key` តាមរយៈ Commander `.env()`) |
-| `DATA_DIR`          | ជំនួសទីតាំងថតទិន្នន័យរបស់ OmniRoute                                       |
+| អថេរ                | គោលបំណង                                                                    |
+| ------------------- | -------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | API key របស់អ្នកផ្តល់សេវា (ភ្ជាប់ទៅ `--api-key` តាមរយៈ Commander `.env()`) |
+| `DATA_DIR`          | កំណត់ជំនួសថតទិន្នន័យ OmniRoute                                             |
 
-ធាតុបញ្ចូលមិនអន្តរកម្មផ្សេងទៀតទាំងអស់ត្រូវបានបញ្ជូនជា flags មិនមែនអថេរបរិស្ថានទេ៖
+ធាតុបញ្ចូលដោយគ្មានអន្តរកម្មផ្សេងទៀតទាំងអស់ត្រូវបានបញ្ជូនជា flags មិនមែនជាអថេរបរិស្ថានទេ៖
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (សូមមើលជម្រើស `omniroute setup` ខាងលើ)។
 
-### ការវិនិច្ឆ័យបញ្ហា
+### ការធ្វើរោគវិនិច្ឆ័យ
 
 ```bash
-omniroute doctor                       # ពិនិត្យការកំណត់រចនាសម្ព័ន្ធ DB ច្រក runtime អង្គចងចាំ និងភាពរស់រវើក
+omniroute doctor                       # ពិនិត្យការកំណត់រចនាសម្ព័ន្ធ DB ច្រក បរិស្ថានពេលដំណើរការ អង្គចងចាំ និងស្ថានភាពនៅរស់
 omniroute doctor --json                # JSON ដែលម៉ាស៊ីនអាចអានបាន
-omniroute doctor --no-liveness         # រំលងការស្ទង់ស្ថានភាពសុខភាព HTTP
-omniroute doctor --host 0.0.0.0        # ជំនួស host សម្រាប់ការត្រួតពិនិត្យភាពរស់រវើក
-omniroute doctor --liveness-url <url>  # ជំនួស URL ពេញលេញរបស់ endpoint ស្ថានភាពសុខភាព
+omniroute doctor --no-liveness         # រំលងការស្ទង់ពិនិត្យសុខភាពតាម HTTP
+omniroute doctor --host 0.0.0.0        # កំណត់ជំនួស host សម្រាប់ការពិនិត្យស្ថានភាពនៅរស់
+omniroute doctor --liveness-url <url>  # កំណត់ជំនួស URL ពេញលេញរបស់ endpoint សុខភាព
 ```
 
 doctor ដំណើរការការត្រួតពិនិត្យទាំងនេះ៖ `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` និង `Server liveness`។ វានឹងបញ្ចប់ដោយលេខកូដមិនមែនសូន្យ ប្រសិនបើការត្រួតពិនិត្យណាមួយមានស្ថានភាព `fail`។
+`Memory` និង `Server liveness`។ វាបញ្ចប់ដោយលេខកូដមិនស្មើសូន្យ ប្រសិនបើការត្រួតពិនិត្យណាមួយមានស្ថានភាព `fail`។
 
 ### ការគ្រប់គ្រងអ្នកផ្តល់សេវា
 
@@ -675,9 +666,9 @@ omniroute providers available --json                # JSON ដែលម៉ាស
 omniroute providers list                            # ការតភ្ជាប់អ្នកផ្តល់សេវាដែលបានកំណត់រចនាសម្ព័ន្ធ
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # សាកល្បងការតភ្ជាប់ដែលបានកំណត់រចនាសម្ព័ន្ធមួយ
+omniroute providers test <id|name>                  # សាកល្បងការតភ្ជាប់មួយដែលបានកំណត់រចនាសម្ព័ន្ធ
 omniroute providers test-all                        # សាកល្បងរាល់ការតភ្ជាប់ដែលសកម្ម
-omniroute providers validate                        # ផ្ទៀងផ្ទាត់រចនាសម្ព័ន្ធតែក្នុងមូលដ្ឋាន
+omniroute providers validate                        # ការផ្ទៀងផ្ទាត់រចនាសម្ព័ន្ធក្នុងមូលដ្ឋានតែប៉ុណ្ណោះ
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # លំហូរ OAuth ដែលមានស្រាប់
@@ -685,83 +676,83 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` ប្រើ API ជាចម្បង ដូច្នេះដំណើរការជាមួយ
-context មូលដ្ឋាន ឬពីចម្ងាយដែលកំពុងសកម្ម។ ការបញ្ចូលព័ត៌មានសម្ងាត់គួរប្រើ
+`providers add/import/auth/edit/remove` ផ្តោតលើ API ជាចម្បង ហេតុនេះវាដំណើរការជាមួយ
+បរិបទក្នុងមូលដ្ឋាន ឬពីចម្ងាយដែលកំពុងសកម្ម។ ការបញ្ចូលព័ត៌មានសម្ងាត់គួរប្រើ
 `--credential-stdin` ឬ `--credential-env`; `--dry-run --json` រាយការណ៍តែ
-វត្តមាន/រូបរាងដែលបានលាក់បាំងប៉ុណ្ណោះ។ `providers available` អានកាតាឡុក OmniRoute;
-`providers list/test/test-all/validate` រក្សាឥរិយាបថ SQLite មូលដ្ឋានរបស់ពួកវា និង
+វត្តមាន/ទម្រង់ដែលបានលាក់ព័ត៌មានរសើបប៉ុណ្ណោះ។ `providers available` អានកាតាឡុក OmniRoute;
+`providers list/test/test-all/validate` រក្សាឥរិយាបថ SQLite ក្នុងមូលដ្ឋានរបស់វា ហើយ
 មិនតម្រូវឱ្យម៉ាស៊ីនមេកំពុងដំណើរការទេ។
 
 ### ការសង្គ្រោះ និងការកំណត់ឡើងវិញ
 
 ```bash
-omniroute reset-password                # កំណត់ពាក្យសម្ងាត់អ្នកគ្រប់គ្រងឡើងវិញ (ឈ្មោះមួយទៀត៖ omniroute-reset-password)
-omniroute reset-encrypted-columns       # បង្ហាញការព្រមាន + dry-run សម្រាប់កំណត់ព័ត៌មានសម្ងាត់ដែលបានអ៊ិនគ្រីបឡើងវិញ
-omniroute reset-encrypted-columns --force  # ពិតជាកំណត់ព័ត៌មានសម្ងាត់ដែលបានអ៊ិនគ្រីបទៅជា null ក្នុង SQLite
+omniroute reset-password                # កំណត់ពាក្យសម្ងាត់អ្នកគ្រប់គ្រងឡើងវិញ (ក៏អាចប្រើ៖ omniroute-reset-password)
+omniroute reset-encrypted-columns       # បង្ហាញការព្រមាន + dry-run សម្រាប់ការកំណត់ព័ត៌មានសម្ងាត់ដែលបានអ៊ិនគ្រីបឡើងវិញ
+omniroute reset-encrypted-columns --force  # កំណត់ព័ត៌មានសម្ងាត់ដែលបានអ៊ិនគ្រីបក្នុង SQLite ទៅជា null ពិតប្រាកដ
 ```
 
 ### ការនាំចេញព័ត៌មានសម្ងាត់ (⚠ ប្រើប្រាស់ដោយប្រុងប្រយ័ត្ន)
 
 ```bash
-omniroute auth export                                 # បង្ហាញការព្រមាន + ជំហានបញ្ជាក់ — មិនចូលប្រើ DB
+omniroute auth export                                 # បង្ហាញការព្រមាន + ទាមទារការបញ្ជាក់ — មិនចូលប្រើ DB
 omniroute auth export --force                          # នាំចេញព័ត៌មានសម្ងាត់ដែលបានឌិគ្រីបរបស់ការតភ្ជាប់ទាំងអស់ទៅ stdout ជា JSON
 omniroute auth export --force --id <id>                 # នាំចេញតែការតភ្ជាប់ដែលត្រូវគ្នា
 omniroute auth export --force --format env               # បញ្ចេញបន្ទាត់ OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # សរសេរទៅឯកសារ (បង្កើតជាមួយសិទ្ធិ 0600)
+omniroute auth export --force --out creds.json           # សរសេរទៅឯកសារ (បង្កើតដោយមានសិទ្ធិ 0600)
 ```
 
-`auth export` ដំណើរការ **តែក្នុងមូលដ្ឋាន** (អាន SQLite ដោយផ្ទាល់ ដោយគ្មាន HTTP route) ហើយបោះពុម្ព/សរសេរ
-តម្លៃ `apiKey`/`accessToken`/`refreshToken`/`idToken` ជា **អត្ថបទធម្មតា** ដោយចេតនា — នេះជាមុខងារ មិនមែនជា
-កំហុសទេ។ គ្មានអ្វីត្រូវបានអានពីមូលដ្ឋានទិន្នន័យ ហើយគ្មានអ្វីត្រូវបានឌិគ្រីបទេ បើគ្មាន `--force`។ ផ្ទាំង
-ការព្រមាននៅ stderr តែងតែត្រូវបានបង្ហាញ មុនពេលអត្ថបទធម្មតាណាមួយត្រូវបានបញ្ចេញ។ តម្រូវឱ្យកំណត់ `STORAGE_ENCRYPTION_KEY`។
-វាលដែលបរាជ័យក្នុងការឌិគ្រីប (សោហួសសុពលភាព ឬ ciphertext ខូច) ត្រូវបានរាយការណ៍ជា
-`<field>DecryptFailed: true` ជំនួសឱ្យការបញ្ឈប់ការនាំចេញទាំងមូល ឬការលេចធ្លាយកំហុសមូលដ្ឋាន។
+`auth export` ដំណើរការ **ក្នុងមូលដ្ឋានតែប៉ុណ្ណោះ** (អាន SQLite ដោយផ្ទាល់ គ្មាន HTTP route) ហើយដោយចេតនា វាបង្ហាញ/សរសេរ
+តម្លៃ **អត្ថបទធម្មតា** `apiKey`/`accessToken`/`refreshToken`/`idToken` — នេះគឺជាមុខងារ មិនមែនជា
+កំហុសទេ។ គ្មានអ្វីត្រូវបានអានពីមូលដ្ឋានទិន្នន័យ ហើយក៏គ្មានអ្វីត្រូវបានឌិគ្រីបទេ បើគ្មាន `--force`។ ផ្ទាំង
+ព្រមានតាម stderr តែងតែត្រូវបានបង្ហាញ មុនពេលអត្ថបទធម្មតាណាមួយត្រូវបានបញ្ចេញ។ តម្រូវឱ្យកំណត់ `STORAGE_ENCRYPTION_KEY`។
+វាលដែលឌិគ្រីបបរាជ័យ (សោហួសសុពលភាព អត្ថបទសម្ងាត់ខូច) ត្រូវបានរាយការណ៍ជា
+`<field>DecryptFailed: true` ជំនួសឱ្យការបញ្ឈប់ការនាំចេញទាំងមូល ឬការបង្ហាញកំហុសមូលដ្ឋាន។
 
 ### ពាក្យបញ្ជារងផ្សេងទៀត
 
-ពាក្យបញ្ជាទាំងនេះសន្មតថាម៉ាស៊ីនមេ OmniRoute កំពុងដំណើរការ លើកលែងតែមានការកត់សម្គាល់ផ្សេងពីនេះ៖
+ពាក្យបញ្ជាទាំងនេះសន្មតថាម៉ាស៊ីនមេ OmniRoute កំពុងដំណើរការ លើកលែងតែមានការកត់សម្គាល់ផ្សេង៖
 
 ```bash
-omniroute status                       # ស្ថានភាពពេលដំណើរការដ៏ទូលំទូលាយ
-omniroute logs                         # បង្ហាញលំហូរកំណត់ហេតុសំណើ (--json, --search, --follow)
-omniroute config show                  # បង្ហាញការកំណត់រចនាសម្ព័ន្ធបច្ចុប្បន្ន
+omniroute status                       # ស្ថានភាពពេលដំណើរការលម្អិត
+omniroute logs                         # បង្ហាញកំណត់ហេតុសំណើជាបន្តបន្ទាប់ (--json, --search, --follow)
+omniroute config list                  # បង្ហាញឧបករណ៍ CLI ដែលបានកំណត់រចនាសម្ព័ន្ធ
 
-omniroute provider list                # រាយបញ្ជីអ្នកផ្តល់សេវាដែលមាន (ឈ្មោះក្លែងក្លាយរបស់ providers list)
+omniroute provider list                # រាយបញ្ជីអ្នកផ្តល់សេវាដែលអាចប្រើបាន (ឈ្មោះក្លែងកាត់របស់ providers list)
 omniroute provider add                 # ចុះឈ្មោះ OmniRoute ជាអ្នកផ្តល់សេវានៅលើឧបករណ៍មួយ
 omniroute keys add | list | remove     # គ្រប់គ្រង API keys
 omniroute models [provider]            # រាយបញ្ជីម៉ូដែល (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # ថតចម្លងទុកការកំណត់រចនាសម្ព័ន្ធ + DB
-omniroute restore                      # ស្តារឡើងវិញពីច្បាប់ចម្លងដែលបានថតទុកពីមុន
+omniroute backup                       # ថតចម្លងរូបភាពនៃការកំណត់រចនាសម្ព័ន្ធ + មូលដ្ឋានទិន្នន័យ
+omniroute restore                      # ស្ដារពីរូបភាពថតចម្លងពីមុន
 
-omniroute health                       # ស្ថានភាពសុខភាពលម្អិត (breakers, cache, memory)
+omniroute health                       # ស្ថានភាពលម្អិត (ឧបករណ៍ផ្ដាច់សៀគ្វី, ឃ្លាំងសម្ងាត់, អង្គចងចាំ)
 omniroute quota                        # ការប្រើប្រាស់កូតារបស់អ្នកផ្តល់សេវា
-omniroute cache                        # ស្ថានភាព cache
-omniroute cache clear                  # សម្អាត semantic + signature caches
+omniroute cache                        # ស្ថានភាពឃ្លាំងសម្ងាត់
+omniroute cache clear                  # សម្អាតឃ្លាំងសម្ងាត់ semantic + signature
 
-omniroute mcp status | restart         # ស្ថានភាព / ការចាប់ផ្តើម MCP server ឡើងវិញ
-omniroute a2a status | card            # ស្ថានភាព A2A server / កាត agent
+omniroute mcp status | restart         # ស្ថានភាព / ចាប់ផ្ដើមម៉ាស៊ីនមេ MCP ឡើងវិញ
+omniroute a2a status | card            # ស្ថានភាពម៉ាស៊ីនមេ A2A / កាតភ្នាក់ងារ
 
-omniroute tunnel list | create | stop  # គ្រប់គ្រង tunnels (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # ពិនិត្យ / កំណត់ env vars (បណ្តោះអាសន្ន)
+omniroute tunnel list | create | stop  # គ្រប់គ្រង tunnel (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # ពិនិត្យមើល / កំណត់អថេរបរិស្ថាន (បណ្ដោះអាសន្ន)
 
-omniroute test                         # ការធ្វើតេស្តរហ័សលើការតភ្ជាប់របស់អ្នកផ្តល់សេវា
-omniroute update                       # ពិនិត្យមើលបច្ចុប្បន្នភាព
-omniroute completion                   # បង្កើតការបំពេញពាក្យបញ្ជា shell
+omniroute test                         # ការធ្វើតេស្តរហ័សលើការតភ្ជាប់ទៅអ្នកផ្តល់សេវា
+omniroute update                       # ពិនិត្យរកបច្ចុប្បន្នភាព
+omniroute completion                   # បង្កើតការបំពេញពាក្យបញ្ជា shell ដោយស្វ័យប្រវត្តិ
 ```
 
-### ជម្រើសដែលប្រើជាទូទៅ
+### ជម្រើសទូទៅ
 
-| ជម្រើស              | សេចក្ដីពិពណ៌នា                                                |
-| ------------------- | ------------------------------------------------------------- |
-| `--no-open`         | កុំបើកកម្មវិធីរុករកតាមអ៊ីនធឺណិតដោយស្វ័យប្រវត្តិនៅពេលចាប់ផ្តើម |
-| `--port <n>`        | កំណត់ API port ជំនួស (លំនាំដើម 20128)                         |
-| `--mcp`             | ដំណើរការជា MCP server តាមរយៈ stdio (សម្រាប់ IDEs)             |
-| `--non-interactive` | មុខងារ CI (គ្មានសំណួរបញ្ចូល; អានពី env/flags)                 |
-| `--json`            | លទ្ធផល JSON ដែលម៉ាស៊ីនអាចអានបាន (doctor, providers ជាដើម)     |
-| `--help`, `-h`      | បង្ហាញជំនួយជាក់លាក់សម្រាប់ពាក្យបញ្ជា                          |
-| `--version`, `-v`   | បង្ហាញកំណែដែលបានដំឡើង                                         |
+| ជម្រើស              | សេចក្ដីពិពណ៌នា                                            |
+| ------------------- | --------------------------------------------------------- |
+| `--no-open`         | កុំបើកកម្មវិធីរុករកដោយស្វ័យប្រវត្តិនៅពេលចាប់ផ្ដើម         |
+| `--port <n>`        | ប្រើ API port ផ្សេងពីលំនាំដើម (លំនាំដើម 20128)            |
+| `--mcp`             | ដំណើរការជាម៉ាស៊ីនមេ MCP តាមរយៈ stdio (សម្រាប់ IDEs)       |
+| `--non-interactive` | របៀប CI (គ្មានការសួរ; អានពីអថេរបរិស្ថាន/ជម្រើស)           |
+| `--json`            | លទ្ធផល JSON ដែលម៉ាស៊ីនអាចអានបាន (doctor, providers ជាដើម) |
+| `--help`, `-h`      | បង្ហាញជំនួយជាក់លាក់សម្រាប់ពាក្យបញ្ជា                      |
+| `--version`, `-v`   | បង្ហាញកំណែដែលបានដំឡើង                                     |
 
 ---
 

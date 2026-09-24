@@ -1,1 +1,0 @@
-- fix(memory): authenticate the internal /v1/rerank loopback call so memory reranking no longer silently degrades to unranked order when REQUIRE_API_KEY=true (#12745)

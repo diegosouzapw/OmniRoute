@@ -338,7 +338,8 @@ export default function SubscriptionTab() {
 
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-text-muted">{t("proxySubscription.localCoreEndpoint")}</span>
-              <input
+              <textarea
+                rows={3}
                 className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
                 value={form.localCoreEndpoint}
                 onChange={(e) => setForm({ ...form, localCoreEndpoint: e.target.value })}

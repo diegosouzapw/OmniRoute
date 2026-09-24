@@ -5,6 +5,7 @@ import { handleChat } from "@/sse/handlers/chat";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { resolveIncomingCorrelationId } from "@/shared/utils/correlationPreserve.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { handleSelfHostedCompletions } from "@omniroute/open-sse/services/selfHostedEntry.ts";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
@@ -36,6 +37,7 @@ import {
   assertCommonChatGptWebModelAvailable,
   isCommonChatGptWebRetirementError,
 } from "@/shared/constants/chatgptWebRetirement";
+import { ensureSemanticCacheDbBridge } from "@/lib/cache/semanticCacheDbBridge";
 
 let initPromise = null;
 
@@ -48,6 +50,7 @@ const injectionGuard = createInjectionGuard({ logger: null });
  */
 function ensureInitialized() {
   if (!initPromise) {
+    ensureSemanticCacheDbBridge();
     initPromise = Promise.resolve(initTranslators()).then(() => {
       console.log("[SSE] Translators initialized");
     });
@@ -121,7 +124,7 @@ export async function POST(request) {
   const admission = admissionResult;
   request = admission.request;
   const finishAdmission = (response: Response) =>
-    releaseChatAdmissionWhenDone(response, admission.lease);
+    releaseChatAdmissionWhenDone(response, admission.lease, { signal: request.signal });
 
   try {
     // One-line marker for diagnosing 413 / Server-Action interceptions.
@@ -156,6 +159,16 @@ export async function POST(request) {
             return finishAdmission(
               errorResponse(400, `${field}: ${issue?.message ?? "Invalid request"}`)
             );
+          }
+
+          // Self-hosted unified entry (D4 — RIC-738): when a provider config is
+          // present, divert BEFORE the cloud-only model retirement/alias checks so
+          // self-hosted model ids (`local/llama3`, `ollama/qwen2`, ...) never trip
+          // cloud-peer 410s or alias rewrites. Config-absent requests proceed to the
+          // normal cloud pipeline unchanged.
+          const selfHostedResponse = await handleSelfHostedCompletions(request, parsedBody);
+          if (selfHostedResponse) {
+            return finishAdmission(selfHostedResponse);
           }
 
           try {
@@ -257,7 +270,8 @@ export async function POST(request) {
       // eventual handler body; only that confirmed cleanup releases heavyweight capacity.
       const handlerResponse = releaseChatAdmissionAfterHandler(
         handleChat(request, null, parsedBody, reqId),
-        admission.lease
+        admission.lease,
+        { signal: request.signal }
       );
       const streamedResponse = await withEarlyStreamKeepalive(handlerResponse, {
         signal: request.signal,

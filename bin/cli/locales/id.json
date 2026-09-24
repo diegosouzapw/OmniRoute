@@ -14,6 +14,812 @@
     "jsonOpt": "Keluaran sebagai JSON",
     "yesOpt": "Lewati konfirmasi"
   },
+  "setup": {
+    "title": "Penyiapan OmniRoute",
+    "passwordPrompt": "Kata sandi admin",
+    "providerPrompt": "Penyedia default (biarkan kosong untuk melewati)",
+    "done": "Penyiapan selesai",
+    "passwordSet": "Kata sandi admin telah dikonfigurasi",
+    "providerSet": "Penyedia dikonfigurasi: {name}",
+    "testingProvider": "Menguji koneksi penyedia: {name}",
+    "testPassed": "Pengujian penyedia berhasil",
+    "testFailed": "Pengujian penyedia gagal: {error}",
+    "loginEnabled": "Login: diaktifkan (kata sandi diperbarui)",
+    "loginDisabled": "Login: dinonaktifkan",
+    "providerInfo": "Penyedia: {info}",
+    "opencode": "Instal dan konfigurasikan @omniroute/opencode-plugin bawaan untuk OpenCode"
+  },
+  "doctor": {
+    "title": "Diagnostik OmniRoute",
+    "dbOk": "Basis data: OK ({path})",
+    "dbMissing": "Basis data: belum diinisialisasi — jalankan `omniroute setup`",
+    "portOk": "Port {port}: tersedia",
+    "portConflict": "Port {port}: sedang digunakan oleh proses lain",
+    "encryptionOk": "Kunci enkripsi: dikonfigurasi",
+    "encryptionMissing": "Kunci enkripsi tidak ditemukan — jalankan `omniroute setup`",
+    "allGood": "Semua pemeriksaan berhasil.",
+    "warnings": "{count} peringatan — lihat di atas."
+  },
+  "providers": {
+    "title": "Penyedia",
+    "noProviders": "Belum ada penyedia yang dikonfigurasi. Jalankan: omniroute setup",
+    "testing": "Menguji {name}...",
+    "available": "{count} penyedia tersedia",
+    "connected": "Terhubung",
+    "disconnected": "Terputus",
+    "validationFailed": "Validasi gagal: {error}",
+    "metrics": {
+      "description": "Tampilkan metrik performa penyedia (latensi, tingkat keberhasilan, biaya)",
+      "provider": "Filter berdasarkan ID penyedia",
+      "connection_id": "Filter berdasarkan ID koneksi",
+      "period": "Periode waktu: 1h|6h|24h|7d|30d (default: 24h)",
+      "metric": "Fokus pada kolom metrik tertentu",
+      "sort": "Urutkan berdasarkan kolom (menurun)",
+      "limit": "Jumlah baris maksimum (default: 50)",
+      "watch": "Segarkan setiap 5 detik (mode langsung)",
+      "compare": "ID penyedia yang dipisahkan koma untuk dibandingkan secara berdampingan"
+    },
+    "metric_single": {
+      "description": "Dapatkan satu nilai metrik untuk koneksi tertentu"
+    },
+    "rotate": {
+      "description": "Rotasi kunci API upstream untuk koneksi penyedia",
+      "newKeyOpt": "Nilai kunci API baru (hindari: sebaiknya gunakan --from-env)",
+      "fromEnvOpt": "Baca kunci baru dari variabel lingkungan VAR",
+      "oauthOpt": "Picu alur autentikasi ulang OAuth sebagai gantinya",
+      "skipTestOpt": "Lewati pengujian konektivitas setelah rotasi",
+      "dryRunOpt": "Tampilkan perubahan yang akan dilakukan tanpa menyimpannya",
+      "confirmPrompt": "Ganti kunci API untuk koneksi \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Akan merotasi kunci untuk \"{name}\" ({id}). Tidak ada perubahan yang dilakukan.",
+      "oauthHint": "Koneksi OAuth — jalankan: omniroute oauth {provider}",
+      "envVarEmpty": "Variabel lingkungan {var} tidak ditetapkan atau kosong.",
+      "success": "Kunci untuk \"{name}\" telah dirotasi. Jalankan `providers test {id}` untuk memverifikasi.",
+      "testPassed": "Pengujian setelah rotasi berhasil.",
+      "testFailed": "Pengujian setelah rotasi gagal: {error}"
+    },
+    "status": {
+      "description": "Tampilkan status kesehatan kunci untuk semua koneksi penyedia (usia, kedaluwarsa, masa tunggu)",
+      "providerOpt": "Filter berdasarkan nama penyedia",
+      "header": "ID         Penyedia       Nama                     Status Kedaluwarsa  Status Pengujian  Masa Tunggu Hingga",
+      "noData": "Tidak ada data koneksi penyedia yang tersedia.",
+      "requiresServer": "providers status mengharuskan server OmniRoute berjalan."
+    }
+  },
+  "keys": {
+    "title": "Kunci API",
+    "addDescription": "Tambahkan atau perbarui kunci API untuk penyedia",
+    "listDescription": "Cantumkan semua kunci API yang dikonfigurasi",
+    "removeDescription": "Hapus kunci API untuk penyedia",
+    "regenerateDescription": "Buat ulang kunci API OmniRoute",
+    "revokeDescription": "Cabut kunci API OmniRoute",
+    "revealDescription": "Tampilkan nilai kunci API tanpa penyamaran",
+    "usageDescription": "Tampilkan penggunaan terbaru untuk kunci API",
+    "usageLimitOpt": "Jumlah permintaan terbaru",
+    "rotateDescription": "Buat kunci baru dan batalkan kunci lama",
+    "graceOpt": "Masa tenggang (ms) sebelum kunci lama dibatalkan",
+    "stdinOpt": "Baca kunci API dari stdin, bukan dari argumen",
+    "added": "Kunci ditambahkan untuk {provider}.",
+    "removed": "Kunci dihapus.",
+    "listed": "{count} kunci.",
+    "noKeys": "Tidak ada kunci yang dikonfigurasi.",
+    "noUsage": "Tidak ditemukan data penggunaan.",
+    "confirmRemove": "Hapus kunci {id}?",
+    "confirmRegenerate": "Buat ulang kunci {id}?",
+    "confirmRevoke": "Cabut kunci {id}?",
+    "confirmRotate": "Rotasi kunci {id}? (kunci lama akan dibatalkan setelah masa tenggang)",
+    "regenerated": "Berhasil dibuat ulang. Kunci baru: {key}",
+    "revoked": "Kunci {id} telah dicabut.",
+    "rotated": "Kunci {id} telah dirotasi. ID kunci baru: {newId}",
+    "revealWarning": "⚠  Ini akan menampilkan kunci lengkap tanpa penyamaran. Pastikan layar Anda tidak terlihat oleh orang lain.",
+    "providerRequired": "Penyedia wajib diisi.",
+    "keyRequired": "Kunci API wajib diisi.",
+    "stdinEmpty": "Tidak ada kunci API yang diberikan melalui stdin.",
+    "unknownProvider": "Penyedia tidak dikenal: {provider}",
+    "policy": {
+      "title": "Kebijakan Kunci",
+      "showDescription": "Tampilkan kebijakan batas permintaan/biaya untuk suatu kunci",
+      "setDescription": "Tetapkan kebijakan batas permintaan/biaya untuk suatu kunci",
+      "rateLimitOpt": "Jumlah maksimum permintaan per menit",
+      "maxCostOpt": "Biaya maksimum per hari (USD)",
+      "allowedModelsOpt": "Daftar model yang diizinkan, dipisahkan dengan koma",
+      "nothingToSet": "Tidak ada kolom kebijakan yang diberikan. Gunakan --rate-limit, --max-cost, atau --allowed-models.",
+      "updated": "Kebijakan telah diperbarui."
+    },
+    "expiration": {
+      "title": "Kedaluwarsa Kunci",
+      "listDescription": "Cantumkan kunci yang akan segera kedaluwarsa",
+      "daysOpt": "Tampilkan kunci yang akan kedaluwarsa dalam N hari",
+      "none": "Tidak ada kunci yang akan kedaluwarsa dalam {days} hari.",
+      "listTitle": "Kunci yang akan kedaluwarsa dalam {days} hari:"
+    }
+  },
+  "authExport": {
+    "description": "Ekspor kredensial penyedia yang TELAH DIDEKRIPSI (khusus lokal, keluaran teks biasa)",
+    "idOpt": "Ekspor hanya koneksi yang cocok dengan id/nama/penyedia ini",
+    "formatOpt": "Format keluaran: json atau env",
+    "outOpt": "Tulis keluaran ke file, bukan stdout (ditulis dengan izin 0600)",
+    "forceOpt": "Konfirmasikan bahwa Anda memahami tindakan ini akan mencetak/menulis rahasia dalam teks biasa",
+    "warning": "⚠ Tindakan ini mencetak/menulis kunci API dan token OAuth yang TELAH DIDEKRIPSI dalam teks biasa. Pastikan layar, riwayat shell, dan file keluaran Anda tetap bersifat privat.",
+    "confirmHeading": "⚠ PERINGATAN: tindakan ini mengekspor kredensial penyedia yang TELAH DIDEKRIPSI dalam teks biasa",
+    "confirmBody": "Perintah ini mendekripsi dan mencetak/menulis apiKey, accessToken, refreshToken, dan\nidToken untuk koneksi yang dipilih. Perlakukan keluarannya sebagai rahasia.",
+    "confirmFooter": "Untuk mengonfirmasi, jalankan:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY diperlukan untuk mengekspor kredensial.",
+    "notFound": "Koneksi tidak ditemukan: {id}",
+    "invalidFormat": "Format tidak valid: {format}. Gunakan json atau env."
+  },
+  "stream": {
+    "description": "Streaming respons obrolan dengan mode inspeksi SSE",
+    "file": "Baca prompt dari file",
+    "stdin": "Baca prompt dari stdin",
+    "model": "ID model (default: auto)",
+    "system": "Prompt sistem",
+    "combo": "Paksa penggunaan kombinasi tertentu berdasarkan nama",
+    "max_tokens": "Jumlah maksimum token dalam respons",
+    "responses_api": "Gunakan /v1/responses alih-alih /v1/chat/completions",
+    "raw": "Cetak baris SSE mentah sebagaimana diterima",
+    "debug": "Cetak info waktu per chunk ke stderr",
+    "save": "Simpan semua event SSE ke file .jsonl",
+    "error": {
+      "empty_prompt": "Kesalahan: prompt wajib diisi (argumen posisi, --file, atau --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Analitik penggunaan, anggaran, kuota, dan log",
+    "analytics": {
+      "description": "Tampilkan analitik penggunaan teragregasi",
+      "period": "Rentang waktu: 1d|7d|30d|90d|ytd|all (default: 30d)",
+      "provider": "Filter berdasarkan ID provider"
+    },
+    "budget": {
+      "description": "Kelola anggaran biaya",
+      "set": {
+        "scope": "Cakupan anggaran (default: global)",
+        "period": "Periode anggaran: daily|weekly|monthly (default: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Tampilkan penggunaan kuota provider",
+      "provider": "Filter berdasarkan ID provider",
+      "check": "Tampilkan apakah kuota tersedia untuk permintaan baru"
+    },
+    "logs": {
+      "description": "Tampilkan log panggilan permintaan",
+      "limit": "Jumlah entri log yang akan dikembalikan (default: 100)",
+      "search": "Kueri pencarian untuk memfilter log",
+      "since": "Kembalikan log sejak stempel waktu ini",
+      "follow": "Pantau entri log baru secara terus-menerus",
+      "api_key": "Filter log berdasarkan kunci API"
+    },
+    "utilization": {
+      "description": "Tampilkan metrik penggunaan kunci API",
+      "api_key": "Filter berdasarkan kunci API"
+    },
+    "history": {
+      "description": "Tampilkan riwayat permintaan",
+      "limit": "Jumlah entri riwayat (default: 100)"
+    },
+    "proxy_logs": {
+      "description": "Tampilkan log permintaan tingkat proxy",
+      "limit": "Jumlah entri log proxy (default: 100)"
+    }
+  },
+  "cost": {
+    "description": "Tampilkan laporan biaya dengan perincian berdasarkan provider, model, combo, atau kunci API",
+    "period": "Rentang waktu: 1d|7d|30d|90d|ytd|all (default: 30d)",
+    "since": "Tanggal mulai (format ISO, mis. 2026-01-01) — menggantikan --period",
+    "until": "Tanggal akhir (format ISO)",
+    "group_by": "Kelompokkan hasil berdasarkan: provider|model|api-key|combo|day (default: provider)",
+    "api_key_filter": "Filter berdasarkan kunci API tertentu",
+    "limit": "Jumlah maksimum baris yang akan ditampilkan (default: 100)"
+  },
+  "simulate": {
+    "description": "Simulasi perutean dry-run — tampilkan provider yang akan dipilih tanpa memanggil upstream",
+    "file": "Muat isi lengkap permintaan dari file JSON",
+    "model": "ID model (default: auto)",
+    "combo": "Paksa combo tertentu berdasarkan nama",
+    "reasoning": "Tingkat upaya penalaran (low|medium|high)",
+    "thinking": "Anggaran token untuk extended thinking",
+    "explain": "Cetak pohon fallback dan rentang biaya ke stderr",
+    "noCombo": "Tidak ditemukan combo yang cocok. Konfigurasikan dengan: omniroute combo create"
+  },
+  "chat": {
+    "description": "Kirim prompt chat sekali jalan ke OmniRoute",
+    "file": "Baca prompt dari file",
+    "stdin": "Baca prompt dari stdin",
+    "system": "Prompt sistem",
+    "model": "ID model (default: auto)",
+    "max_tokens": "Token maksimum dalam respons",
+    "temperature": "Suhu sampling (0–2)",
+    "top_p": "Sampling nukleus top-p",
+    "reasoning_effort": "Tingkat upaya penalaran (low|medium|high)",
+    "thinking_budget": "Anggaran token untuk pemikiran lanjutan",
+    "combo": "Paksa kombo tertentu berdasarkan nama",
+    "responses_api": "Gunakan /v1/responses alih-alih /v1/chat/completions",
+    "stream": "Alirkan respons secara bertahap",
+    "no_history": "Jangan simpan ke ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Kesalahan: prompt wajib diisi (argumen posisi, --file, atau --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Mulai server OmniRoute (tindakan default)",
+    "starting": "Memulai server OmniRoute pada port {port}...",
+    "ready": "Siap di http://localhost:{port}",
+    "stopping": "Menghentikan server (PID {pid})...",
+    "stopped": "Server dihentikan.",
+    "notRunning": "Server tidak berjalan.",
+    "port": "Port yang digunakan untuk mendengarkan (default: 20128)",
+    "no_open": "Jangan buka browser secara otomatis",
+    "daemon": "Jalankan server sebagai daemon latar belakang",
+    "log": "Tampilkan log server secara langsung",
+    "no_recovery": "Nonaktifkan mulai ulang otomatis saat crash (mode debugging)",
+    "max_restarts": "Jumlah maksimum mulai ulang akibat crash dalam 30 detik sebelum menyerah (default: 2)",
+    "tray": "Mulai di baki sistem (khusus desktop, harus diaktifkan)",
+    "no_tray": "Nonaktifkan ikon baki sistem",
+    "ready_timeout": "Batas waktu probe kesiapan dalam ms (juga OMNIROUTE_READY_TIMEOUT_MS, default 60000)",
+    "tls_cert": "Path ke sertifikat TLS (PEM) untuk menyajikan HTTPS (juga OMNIROUTE_TLS_CERT)",
+    "tls_key": "Path ke kunci privat TLS (PEM) untuk menyajikan HTTPS (juga OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Cadangan",
+    "description": "Buat cadangan data OmniRoute",
+    "creating": "Membuat cadangan...",
+    "done": "Cadangan disimpan ke {path}",
+    "noFiles": "Tidak ada file untuk dicadangkan (basis data belum diinisialisasi)",
+    "failed": "Pencadangan gagal: {error}",
+    "restoring": "Memulihkan dari {path}...",
+    "restored": "Pemulihan selesai.",
+    "restoreDescription": "Pulihkan dari cadangan",
+    "listTitle": "Cadangan yang Tersedia",
+    "noBackups": "Tidak ditemukan cadangan.",
+    "notFound": "Cadangan tidak ditemukan: {name}",
+    "confirmRestore": "Timpa data saat ini dengan cadangan dari {ts}?",
+    "createDescription": "Buat cadangan data OmniRoute",
+    "nameOpt": "Nama cadangan khusus",
+    "cloudOpt": "Unggah cadangan ke penyimpanan cloud",
+    "encryptOpt": "Enkripsi cadangan dengan AES-256-GCM",
+    "keyFileOpt": "Jalur ke file yang berisi frasa sandi enkripsi",
+    "excludeOpt": "Kecualikan file yang cocok dengan pola (dapat diulangi)",
+    "retentionOpt": "Simpan hanya N cadangan terakhir",
+    "passphrasePrompt": "Frasa sandi enkripsi:",
+    "noPassphrase": "Frasa sandi diperlukan untuk cadangan terenkripsi.",
+    "cloudFailed": "Peringatan: pengunggahan ke cloud gagal. Cadangan lokal telah disimpan.",
+    "cloudUploaded": "Cadangan cloud telah diunggah: {url}",
+    "auto": {
+      "title": "Jadwal Pencadangan",
+      "enableDescription": "Aktifkan pencadangan otomatis terjadwal",
+      "disableDescription": "Nonaktifkan pencadangan otomatis terjadwal",
+      "statusDescription": "Tampilkan status jadwal pencadangan saat ini",
+      "cronOpt": "Ekspresi cron untuk jadwal (default: setiap hari pukul 03.00)",
+      "enabled": "Pencadangan otomatis diaktifkan (cron: {cron}).",
+      "hint": "Jadwal dibaca oleh omniroute serve saat dimulai.",
+      "disabled": "Pencadangan otomatis dinonaktifkan.",
+      "notConfigured": "Tidak ada jadwal pencadangan yang dikonfigurasi."
+    }
+  },
+  "health": {
+    "description": "Periksa kesehatan server dan status komponen",
+    "noServer": "Server tidak berjalan. Mulai dengan: omniroute serve",
+    "title": "Kesehatan",
+    "status": "Status: {status}",
+    "uptime": "Waktu aktif: {uptime}",
+    "requests": "Permintaan (24 jam): {count}",
+    "cost": "Biaya (24 jam): ${cost}"
+  },
+  "quota": {
+    "description": "Tampilkan penggunaan kuota penyedia",
+    "noServer": "Server tidak berjalan. Mulai dengan: omniroute serve",
+    "noData": "Tidak ada informasi kuota yang tersedia."
+  },
+  "cache": {
+    "description": "Kelola cache respons",
+    "noServer": "Server tidak berjalan. Mulai dengan: omniroute serve",
+    "cleared": "Cache telah dibersihkan.",
+    "clearFailed": "Gagal membersihkan cache."
+  },
+  "redis": {
+    "description": "Luncurkan kontainer Redis lokal dengan satu klik (Podman atau Docker) untuk caching dan pelacakan kuota OmniRoute"
+  },
+  "test": {
+    "description": "Uji koneksi penyedia",
+    "noServer": "Server tidak berjalan. Mulai dengan: omniroute serve",
+    "testing": "Menguji {provider} / {model}...",
+    "passed": "Koneksi berhasil!",
+    "failed": "Koneksi gagal: {error}",
+    "allProvidersOpt": "Uji semua penyedia yang telah dikonfigurasi",
+    "latencyOpt": "Tampilkan pengukuran latensi (rata-rata/min/maks ms)",
+    "repeatOpt": "Ulangi pengujian sebanyak N kali dan gabungkan hasilnya",
+    "compareOpt": "Model yang dipisahkan koma untuk dibandingkan (mis. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Simpan hasil ke file JSON",
+    "saved": "Hasil disimpan ke {path}",
+    "compareTitle": "Perbandingan Model",
+    "compareMinTwo": "Setidaknya dua model diperlukan untuk --compare (dipisahkan koma)",
+    "noProviders": "Tidak ada penyedia yang dikonfigurasi. Tambahkan dengan: omniroute keys add"
+  },
+  "update": {
+    "checking": "Memeriksa pembaruan...",
+    "upToDate": "Sudah menggunakan versi terbaru ({version}).",
+    "available": "Pembaruan tersedia: {current} → {latest}",
+    "installing": "Menginstal {latest}...",
+    "done": "Telah diperbarui ke {latest}. Mulai ulang server untuk menerapkannya."
+  },
+  "mcp": {
+    "title": "Server MCP",
+    "running": "Server MCP berjalan ({transport})",
+    "stopped": "Server MCP dihentikan.",
+    "restarted": "Server MCP dimulai ulang.",
+    "stoppedHint": "Jalankan `omniroute mcp enable` untuk mengaktifkannya.",
+    "enabled": "Server MCP diaktifkan.",
+    "disabled": "Server MCP dinonaktifkan.",
+    "enable": {
+      "description": "Aktifkan server MCP",
+      "transport": "Transportasi yang digunakan: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Nonaktifkan server MCP"
+    },
+    "call": {
+      "description": "Panggil alat MCP secara langsung",
+      "args": "Objek argumen JSON (sebaris)",
+      "args_file": "Jalur ke file argumen JSON",
+      "stream": "Gunakan endpoint streaming (/api/mcp/stream)",
+      "scope": "Cakupan yang diperlukan (dapat diulang, mis. read:health)"
+    },
+    "scopes": {
+      "description": "Cantumkan cakupan MCP yang tersedia",
+      "tool": "Tampilkan cakupan yang diperlukan oleh alat tertentu"
+    },
+    "tools": {
+      "description": "Periksa alat MCP",
+      "list": {
+        "description": "Cantumkan semua alat MCP",
+        "scope": "Filter berdasarkan cakupan"
+      },
+      "info": {
+        "description": "Tampilkan metadata untuk alat MCP"
+      },
+      "schema": {
+        "description": "Tampilkan skema JSON input/output untuk alat MCP",
+        "io": "Jenis skema: input|output (default: input)"
+      }
+    },
+    "audit": {
+      "description": "Log audit MCP (alias untuk audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Cantumkan skill A2A yang tersedia dari kartu agen"
+    },
+    "invoke": {
+      "description": "Jalankan skill A2A dan kembalikan ID tugas",
+      "input": "Objek input JSON",
+      "input_file": "Jalur ke file input JSON",
+      "wait": "Tunggu hingga tugas selesai sebelum mengembalikan hasil",
+      "timeout": "Batas waktu menunggu penyelesaian dalam ms (default: 60000)"
+    },
+    "tasks": {
+      "description": "Kelola tugas A2A",
+      "list": {
+        "status": "Filter berdasarkan status",
+        "skill": "Filter berdasarkan ID skill"
+      },
+      "watch": {
+        "description": "Periksa status tugas secara berkala hingga selesai"
+      },
+      "stream": {
+        "description": "Streaming peristiwa eksekusi tugas melalui SSE"
+      },
+      "logs": {
+        "description": "Tampilkan pesan dan artefak tugas"
+      }
+    }
+  },
+  "policy": {
+    "description": "Kelola kebijakan otorisasi OmniRoute",
+    "list": {
+      "description": "Cantumkan kebijakan",
+      "kind": "Filter berdasarkan jenis (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filter berdasarkan cakupan (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Dapatkan detail kebijakan berdasarkan ID"
+    },
+    "create": {
+      "description": "Buat kebijakan dari file JSON",
+      "file": "Jalur ke file JSON kebijakan"
+    },
+    "update": {
+      "description": "Perbarui kebijakan dari file JSON",
+      "file": "Jalur ke file JSON kebijakan"
+    },
+    "delete": {
+      "description": "Hapus kebijakan berdasarkan ID",
+      "yes": "Lewati permintaan konfirmasi"
+    },
+    "evaluate": {
+      "description": "Evaluasi kebijakan uji coba (exit 0=diizinkan, 4=ditolak)",
+      "api_key": "Kunci API yang akan dievaluasi",
+      "action": "Tindakan yang akan diperiksa (misalnya chat, embed, admin)",
+      "resource": "Jalur atau pengenal sumber daya",
+      "context": "Konteks tambahan sebagai objek JSON"
+    },
+    "export": {
+      "description": "Ekspor semua kebijakan ke file JSON"
+    },
+    "import": {
+      "description": "Impor kebijakan dari file JSON",
+      "overwrite": "Timpa kebijakan yang ada dengan ID yang sama"
+    }
+  },
+  "compression": {
+    "description": "Konfigurasikan dan periksa pipeline kompresi OmniRoute",
+    "status": {
+      "description": "Tampilkan status dan pengaturan kompresi saat ini"
+    },
+    "configure": {
+      "description": "Konfigurasikan pengaturan kompresi",
+      "engine": "Mesin kompresi (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Agresivitas Caveman 0.0–1.0",
+      "rtk_budget": "Anggaran token RTK",
+      "language_pack": "Paket bahasa yang akan diaktifkan"
+    },
+    "engine": {
+      "description": "Dapatkan atau atur mesin kompresi aktif"
+    },
+    "combos": {
+      "description": "Kelola statistik kombinasi kompresi"
+    },
+    "rules": {
+      "description": "Kelola aturan kompresi",
+      "add": {
+        "pattern": "Pola yang akan dicocokkan (regex atau field:pattern)",
+        "action": "Tindakan: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Cantumkan paket bahasa kompresi yang tersedia"
+    },
+    "preview": {
+      "description": "Pratinjau efek kompresi pada permintaan",
+      "file": "Path ke file JSON permintaan"
+    }
+  },
+  "tunnel": {
+    "title": "Terowongan",
+    "listDescription": "Cantumkan terowongan aktif",
+    "createDescription": "Buat terowongan",
+    "created": "Terowongan dibuat: {url}",
+    "stopped": "Terowongan dihentikan.",
+    "confirmStop": "Hentikan terowongan {id}?",
+    "stopDescription": "Hentikan terowongan",
+    "statusDescription": "Tampilkan status terperinci terowongan",
+    "logsDescription": "Tampilkan log terowongan",
+    "infoDescription": "Tampilkan detail konfigurasi terowongan",
+    "rotateDescription": "Buat URL terowongan baru",
+    "tailOpt": "Jumlah baris log yang akan ditampilkan",
+    "typeRequired": "Jenis terowongan wajib diisi.",
+    "noLogs": "Tidak ada log yang tersedia.",
+    "notAvailable": "Informasi terowongan tidak tersedia.",
+    "noTunnels": "Tidak ada terowongan aktif.",
+    "infoTitle": "Informasi terowongan: {type}",
+    "rotated": "URL terowongan dirotasi: {url}",
+    "confirmRotate": "Rotasi terowongan {type}? (URL baru akan dibuat)"
+  },
+  "stop": {
+    "description": "Hentikan server OmniRoute",
+    "stopping": "Menghentikan server (PID {pid})...",
+    "stopped": "Server dihentikan.",
+    "notRunning": "Tidak ada server yang berjalan.",
+    "portFallback": "File PID tidak ditemukan, mencoba penghentian berbasis port..."
+  },
+  "restart": {
+    "description": "Mulai ulang server OmniRoute",
+    "restarting": "Memulai ulang server OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Buka dasbor OmniRoute di browser",
+    "opening": "Membuka dasbor di {url}",
+    "urlOnly": "Cetak URL dasbor tanpa membuka browser",
+    "tui": "Buka dasbor TUI interaktif (UI terminal, 7 tab)"
+  },
+  "models": {
+    "description": "Cantumkan model yang tersedia (memerlukan server)",
+    "search": "Filter model berdasarkan id, nama, penyedia, atau deskripsi",
+    "noServer": "Server tidak berjalan. Mulai dengan: omniroute serve",
+    "noModels": "Tidak ada model yang ditemukan."
+  },
+  "audit": {
+    "description": "Akses log audit kepatuhan dan MCP",
+    "source": "Sumber log: all|compliance|mcp (default: all)",
+    "since": "Tampilkan entri sejak stempel waktu ini (ISO 8601)",
+    "until": "Tampilkan entri hingga stempel waktu ini (ISO 8601)",
+    "tail": {
+      "description": "Tampilkan entri log audit terbaru",
+      "follow": "Pantau entri baru secara terus-menerus (polling 2 detik)",
+      "limit": "Jumlah maksimum entri yang ditampilkan (default: 100)"
+    },
+    "search": {
+      "description": "Cari entri log audit berdasarkan kata kunci",
+      "limit": "Jumlah maksimum hasil (default: 200)",
+      "actor": "Filter berdasarkan ID pelaku",
+      "action": "Filter berdasarkan nama tindakan"
+    },
+    "export": {
+      "description": "Ekspor log audit ke file",
+      "format": "Format output: jsonl|csv (default: jsonl)"
+    },
+    "stats": {
+      "description": "Tampilkan statistik log audit",
+      "period": "Periode waktu: 1d|7d|30d (default: 7d)"
+    },
+    "get": {
+      "description": "Dapatkan satu entri log audit berdasarkan ID"
+    }
+  },
+  "skills": {
+    "description": "Kelola skill OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Cantumkan skill yang terinstal",
+      "type": "Filter berdasarkan jenis (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Tampilkan hanya skill yang diaktifkan",
+      "disabled": "Tampilkan hanya skill yang dinonaktifkan",
+      "api_key": "Filter berdasarkan kunci API"
+    },
+    "get": {
+      "description": "Dapatkan detail skill berdasarkan ID"
+    },
+    "install": {
+      "description": "Instal skill dari file atau URL",
+      "from_file": "Jalur ke file definisi JSON skill",
+      "from_url": "URL definisi skill jarak jauh",
+      "type": "Jenis skill (sandbox|custom|hybrid)",
+      "enable": "Aktifkan skill setelah instalasi"
+    },
+    "enable": {
+      "description": "Aktifkan skill berdasarkan ID"
+    },
+    "disable": {
+      "description": "Nonaktifkan skill berdasarkan ID",
+      "yes": "Lewati prompt konfirmasi"
+    },
+    "delete": {
+      "description": "Hapus skill berdasarkan ID",
+      "yes": "Lewati prompt konfirmasi"
+    },
+    "execute": {
+      "description": "Jalankan skill berdasarkan ID",
+      "input": "Objek input JSON",
+      "input_file": "Jalur ke file input JSON",
+      "timeout": "Batas waktu eksekusi dalam milidetik (default: 30000)"
+    },
+    "executions": {
+      "description": "Cantumkan riwayat eksekusi skill",
+      "skill": "Filter berdasarkan ID keterampilan",
+      "limit": "Jumlah hasil maksimum (default: 50)",
+      "status": "Filter berdasarkan status (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Kelola keterampilan yang diinstal melalui SSH"
+    },
+    "marketplace": {
+      "description": "Telusuri dan instal keterampilan dari marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Cari paket marketplace",
+        "category": "Filter berdasarkan kategori",
+        "tag": "Filter berdasarkan tag",
+        "limit": "Jumlah hasil maksimum (default: 30)",
+        "sort": "Urutkan berdasarkan: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Tampilkan detail paket dan readme"
+      },
+      "install": {
+        "description": "Instal paket marketplace",
+        "version": "Versi paket (default: latest)",
+        "enable": "Aktifkan setelah instalasi",
+        "yes": "Lewati permintaan konfirmasi"
+      },
+      "categories": {
+        "description": "Cantumkan kategori marketplace"
+      },
+      "featured": {
+        "description": "Tampilkan paket marketplace unggulan"
+      }
+    }
+  },
+  "memory": {
+    "description": "Kelola memori percakapan OmniRoute (FTS5 + vector)",
+    "search": {
+      "description": "Cari entri memori berdasarkan kueri semantik",
+      "type": "Filter berdasarkan jenis memori (user|feedback|project|reference)",
+      "limit": "Jumlah hasil maksimum (default: 20)",
+      "api_key": "Filter berdasarkan kunci API",
+      "token_budget": "Batasi jumlah total token dalam hasil"
+    },
+    "add": {
+      "description": "Tambahkan entri memori baru",
+      "content": "Konten teks memori",
+      "file": "Baca konten dari file",
+      "type": "Jenis memori (default: user)",
+      "metadata": "Objek metadata JSON",
+      "api_key": "Kaitkan dengan kunci API"
+    },
+    "clear": {
+      "description": "Hapus entri memori yang cocok dengan filter",
+      "type": "Filter berdasarkan jenis",
+      "older": "Hapus entri yang lebih lama dari durasi (30d, 6m, 1y)",
+      "api_key": "Filter berdasarkan kunci API",
+      "yes": "Lewati permintaan konfirmasi"
+    },
+    "list": {
+      "description": "Cantumkan entri memori tanpa pemeringkatan pencarian",
+      "type": "Filter berdasarkan jenis",
+      "limit": "Jumlah hasil maksimum (default: 100)",
+      "api_key": "Filter berdasarkan kunci API"
+    },
+    "get": {
+      "description": "Dapatkan satu entri memori berdasarkan ID"
+    },
+    "delete": {
+      "description": "Hapus entri memori berdasarkan ID",
+      "yes": "Lewati permintaan konfirmasi"
+    },
+    "health": {
+      "description": "Tampilkan kesehatan subsistem memori (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Kelola koneksi penyedia OAuth",
+    "providers": {
+      "description": "Cantumkan penyedia yang mendukung OAuth beserta jenis alurnya"
+    },
+    "start": {
+      "description": "Mulai alur otorisasi OAuth untuk penyedia",
+      "provider": "ID penyedia (gemini, copilot, cursor, …)",
+      "no_browser": "Cetak URL saja — jangan buka browser",
+      "import_system": "Impor kredensial secara otomatis dari konfigurasi sistem lokal",
+      "social": "Penyedia login sosial (google|github) — wajib untuk kiro",
+      "timeout": "Batas waktu menunggu otorisasi dalam milidetik (default: 300000)"
+    },
+    "status": {
+      "description": "Cantumkan koneksi OAuth aktif",
+      "provider": "Filter berdasarkan ID penyedia"
+    },
+    "revoke": {
+      "description": "Cabut koneksi OAuth",
+      "provider": "ID penyedia yang akan dicabut",
+      "connection_id": "Cabut koneksi tertentu berdasarkan ID",
+      "yes": "Lewati permintaan konfirmasi"
+    }
+  },
+  "cloud": {
+    "description": "Kelola tugas agen AI cloud (codex, devin, jules)",
+    "agents": {
+      "description": "Cantumkan agen cloud yang tersedia"
+    },
+    "agent": {
+      "description": "Kelola tugas agen cloud {agent}",
+      "auth": {
+        "description": "Otorisasi {agent} melalui OAuth"
+      }
+    },
+    "task": {
+      "description": "Kelola tugas agen cloud",
+      "create": {
+        "description": "Buat tugas agen baru",
+        "title": "Judul tugas (default ke 80 karakter pertama dari prompt)",
+        "prompt": "Teks prompt tugas",
+        "prompt_file": "Baca prompt dari file",
+        "repo": "URL repositori yang akan dikloning untuk tugas",
+        "branch": "Nama branch yang akan digunakan",
+        "metadata": "Objek metadata JSON"
+      },
+      "list": {
+        "description": "Cantumkan tugas agen",
+        "status": "Filter berdasarkan status (running|completed|failed|cancelled)",
+        "limit": "Hasil maksimum (default: 50)"
+      },
+      "get": {
+        "description": "Dapatkan detail tugas berdasarkan ID"
+      },
+      "status": {
+        "description": "Cetak status tugas (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Batalkan tugas yang sedang berjalan",
+        "yes": "Lewati permintaan konfirmasi"
+      },
+      "approve": {
+        "description": "Setujui rencana agen untuk memulai eksekusi"
+      },
+      "message": {
+        "description": "Kirim pesan ke tugas yang sedang berjalan"
+      }
+    },
+    "sources": {
+      "description": "Cantumkan file sumber yang dihasilkan oleh tugas"
+    }
+  },
+  "eval": {
+    "description": "Kelola rangkaian evaluasi dan prosesnya",
+    "suites": {
+      "description": "Kelola rangkaian evaluasi",
+      "list": {
+        "description": "Cantumkan suite evaluasi"
+      },
+      "get": {
+        "description": "Dapatkan detail suite evaluasi berdasarkan ID"
+      },
+      "create": {
+        "description": "Buat suite evaluasi dari file JSON",
+        "file": "Jalur ke file JSON definisi suite"
+      }
+    },
+    "run": {
+      "description": "Mulai proses evaluasi untuk sebuah suite",
+      "model": "ID model yang akan dievaluasi (default: auto)",
+      "combo": "Paksa kombinasi tertentu berdasarkan nama",
+      "concurrency": "Jumlah sampel serentak (default: 4)",
+      "tag": "Beri tag pada proses ini untuk pemfilteran nanti",
+      "watch": "Pantau progres proses hingga selesai"
+    },
+    "list": {
+      "description": "Cantumkan proses evaluasi",
+      "suite": "Filter berdasarkan ID suite",
+      "status": "Filter berdasarkan status",
+      "since": "Tampilkan proses sejak stempel waktu ini",
+      "limit": "Jumlah hasil maksimum (default: 50)"
+    },
+    "get": {
+      "description": "Dapatkan detail proses evaluasi berdasarkan ID"
+    },
+    "results": {
+      "description": "Tampilkan hasil sampel untuk proses evaluasi",
+      "failed": "Tampilkan hanya sampel yang gagal"
+    },
+    "cancel": {
+      "description": "Batalkan proses evaluasi yang sedang berjalan",
+      "yes": "Lewati permintaan konfirmasi"
+    },
+    "scorecard": {
+      "description": "Tampilkan kartu skor untuk proses evaluasi yang telah selesai"
+    }
+  },
+  "webhooks": {
+    "description": "Kelola webhook OmniRoute",
+    "events": {
+      "description": "Cantumkan semua jenis peristiwa webhook yang tersedia"
+    },
+    "list": {
+      "description": "Cantumkan webhook yang dikonfigurasi"
+    },
+    "get": {
+      "description": "Dapatkan detail webhook berdasarkan ID"
+    },
+    "add": {
+      "description": "Daftarkan webhook baru",
+      "url": "URL tujuan",
+      "events": "Daftar jenis peristiwa yang dipisahkan koma",
+      "secret": "Rahasia penandatanganan HMAC",
+      "header": "Header tambahan dalam format key=value (dapat diulang)",
+      "no_enabled": "Buat webhook dalam keadaan dinonaktifkan"
+    },
+    "update": {
+      "description": "Perbarui webhook yang ada",
+      "enabled": "Atur status aktif (true|false)"
+    },
+    "remove": {
+      "description": "Hapus webhook",
+      "yes": "Lewati permintaan konfirmasi"
+    },
+    "test": {
+      "description": "Kirim peristiwa pengujian ke webhook",
+      "event": "Jenis peristiwa yang akan disimulasikan (default: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Router AI Cerdas dengan Fallback Otomatis",
     "version": "Cetak versi dan keluar",
@@ -26,7 +832,509 @@
     "context": "Konteks/profil server untuk perintah ini",
     "lang": "Atur bahasa tampilan CLI (menggantikan OMNIROUTE_LANG)"
   },
-  "redis": {
-    "description": "Luncurkan kontainer Redis lokal dengan satu klik (Podman atau Docker) untuk caching dan pelacakan kuota OmniRoute"
+  "files": {
+    "description": "Kelola file (unggah, cantumkan, dapatkan, unduh, hapus)",
+    "list": {
+      "purpose": "Filter berdasarkan tujuan",
+      "limit": "Hasil maksimum"
+    },
+    "get": {
+      "description": "Dapatkan metadata file"
+    },
+    "upload": {
+      "description": "Unggah file",
+      "purpose": "Tujuan file (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Unduh konten file",
+      "out": "Simpan ke path (default: stdout)"
+    },
+    "delete": {
+      "yes": "Lewati konfirmasi"
+    }
+  },
+  "batches": {
+    "description": "Kelola tugas batch yang kompatibel dengan OpenAI",
+    "list": {
+      "status": "Filter berdasarkan status",
+      "limit": "Hasil maksimum"
+    },
+    "create": {
+      "description": "Buat tugas batch",
+      "inputFile": "ID file input",
+      "endpoint": "Endpoint target",
+      "window": "Jangka waktu penyelesaian",
+      "metadata": "Tambahkan metadata key=value"
+    },
+    "submit": {
+      "description": "Unggah file JSONL dan buat batch",
+      "jsonl": "Path ke file JSONL",
+      "endpoint": "Endpoint target",
+      "wait": "Tunggu hingga selesai"
+    },
+    "cancel": {
+      "yes": "Lewati konfirmasi"
+    },
+    "wait": {
+      "timeout": "Batas waktu dalam ms"
+    },
+    "output": {
+      "out": "Simpan output ke path"
+    },
+    "errors": {
+      "out": "Simpan kesalahan ke path"
+    }
+  },
+  "translator": {
+    "description": "Terjemahkan body permintaan antarformat LLM",
+    "detect": {
+      "description": "Deteksi format body"
+    },
+    "translate": {
+      "description": "Konversi body dari satu format ke format lainnya"
+    },
+    "send": {
+      "description": "Terjemahkan dan teruskan ke upstream"
+    },
+    "stream": {
+      "description": "Terjemahkan body permintaan secara streaming"
+    },
+    "from": "Format sumber (openai|anthropic|gemini|cohere)",
+    "to": "Format target (openai|anthropic|gemini|cohere)",
+    "file": "Path ke file JSON body permintaan",
+    "out": "Simpan output ke file",
+    "model": "Ganti model",
+    "history": {
+      "limit": "Hasil maksimum"
+    }
+  },
+  "pricing": {
+    "description": "Kelola data harga untuk model",
+    "sync": {
+      "description": "Sinkronkan harga dari sumber upstream",
+      "provider": "Filter berdasarkan provider",
+      "force": "Paksa sinkronisasi ulang"
+    },
+    "list": {
+      "provider": "Filter berdasarkan provider",
+      "model": "Filter berdasarkan model",
+      "limit": "Hasil maksimum"
+    },
+    "defaults": {
+      "description": "Kelola harga default",
+      "input": "Biaya input per 1 juta token (USD)",
+      "output": "Biaya output per 1 juta token (USD)",
+      "cacheRead": "Biaya baca cache per 1 juta token (USD)",
+      "cacheWrite": "Biaya tulis cache per 1 juta token (USD)"
+    },
+    "diff": {
+      "description": "Tampilkan perbedaan dari harga upstream",
+      "model": "Filter berdasarkan model"
+    }
+  },
+  "radar": {
+    "description": "Periksa dan sinkronkan feed katalog Radar lokal",
+    "status": "Tampilkan pengaturan Radar lokal dan status cache feed",
+    "sync": "Sinkronkan katalog, rujukan, penawaran, dan Intel melalui server lokal"
+  },
+  "resilience": {
+    "description": "Periksa dan kelola mekanisme ketahanan",
+    "status": {
+      "provider": "Filter berdasarkan penyedia"
+    },
+    "breakers": {
+      "provider": "Filter berdasarkan penyedia"
+    },
+    "cooldowns": {
+      "provider": "Filter berdasarkan penyedia",
+      "connectionId": "Filter berdasarkan ID koneksi"
+    },
+    "lockouts": {
+      "provider": "Filter berdasarkan penyedia",
+      "model": "Filter berdasarkan model"
+    },
+    "reset": {
+      "description": "Atur ulang status pemutus/cooldown",
+      "provider": "Penyedia yang akan diatur ulang",
+      "connectionId": "ID koneksi yang akan diatur ulang",
+      "model": "Model yang pengunciannya akan diatur ulang",
+      "allCooldowns": "Atur ulang semua cooldown untuk penyedia",
+      "yes": "Lewati konfirmasi"
+    },
+    "profile": {
+      "description": "Kelola profil ketahanan",
+      "name": "Nama profil"
+    },
+    "config": {
+      "description": "Kelola konfigurasi ketahanan",
+      "threshold": "Ambang batas kegagalan",
+      "resetTimeout": "Batas waktu pengaturan ulang dalam ms",
+      "baseCooldown": "Cooldown dasar dalam ms"
+    }
+  },
+  "nodes": {
+    "description": "Kelola node penyedia (endpoint)",
+    "list": {
+      "provider": "Filter berdasarkan penyedia",
+      "enabled": "Hanya tampilkan node yang diaktifkan"
+    },
+    "add": {
+      "provider": "Nama penyedia",
+      "baseUrl": "URL dasar untuk node",
+      "name": "Nama node",
+      "weight": "Bobot penyeimbangan beban",
+      "region": "Tag wilayah",
+      "authHeader": "Header autentikasi khusus (key=value)"
+    },
+    "update": {
+      "baseUrl": "URL dasar baru",
+      "name": "Nama baru",
+      "weight": "Bobot baru",
+      "region": "Wilayah baru",
+      "enabled": "Aktifkan atau nonaktifkan (true|false)"
+    },
+    "remove": {
+      "yes": "Lewati konfirmasi"
+    },
+    "validate": {
+      "baseUrl": "URL yang akan divalidasi",
+      "provider": "Provider yang digunakan untuk validasi"
+    },
+    "test": {
+      "description": "Kirim permintaan pengujian ke node"
+    },
+    "metrics": {
+      "description": "Tampilkan metrik node",
+      "period": "Periode waktu (misalnya 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Konfigurasikan pipeline rekayasa konteks (Caveman, RTK)",
+    "analytics": {
+      "period": "Periode waktu (misalnya 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Kelola kompresor konteks Caveman",
+      "config": {
+        "description": "Tampilkan atau perbarui konfigurasi Caveman",
+        "aggressiveness": "Agresivitas 0.0–1.0",
+        "maxShrinkPct": "Persentase penyusutan maksimum",
+        "preserveTags": "Tag yang dipisahkan koma untuk dipertahankan"
+      }
+    },
+    "rtk": {
+      "description": "Kelola pengoptimal konteks RTK",
+      "config": {
+        "description": "Tampilkan atau perbarui konfigurasi RTK",
+        "tokenBudget": "Anggaran token untuk RTK",
+        "reservePct": "Persentase cadangan"
+      },
+      "filters": {
+        "description": "Kelola filter RTK",
+        "pattern": "Pola filter (regex)",
+        "priority": "Prioritas filter (default: 100)",
+        "action": "Tindakan filter: drop|shrink|replace",
+        "yes": "Lewati konfirmasi"
+      },
+      "test": {
+        "file": "Jalur ke file JSON permintaan"
+      }
+    },
+    "combos": {
+      "description": "Pengelolaan kombo berbasis konteks"
+    }
+  },
+  "sessions": {
+    "description": "Periksa dan kelola sesi aktif",
+    "list": {
+      "user": "Filter berdasarkan pengguna",
+      "kind": "Filter berdasarkan jenis (dashboard|api-key|mcp|a2a)",
+      "active": "Tampilkan hanya sesi aktif",
+      "limit": "Jumlah hasil maksimum (default: 100)"
+    },
+    "expire": {
+      "yes": "Lewati konfirmasi"
+    },
+    "expireAll": {
+      "user": "Pengguna yang sesinya akan diakhiri",
+      "yes": "Lewati konfirmasi"
+    }
+  },
+  "tags": {
+    "description": "Kelola tag sumber daya",
+    "add": {
+      "color": "Warna tag (hex atau nama)",
+      "description": "Deskripsi tag"
+    },
+    "remove": {
+      "yes": "Lewati konfirmasi"
+    },
+    "assign": {
+      "tag": "Nama tag",
+      "to": "Sumber daya target sebagai type:id (mis. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Nama tag",
+      "from": "Sumber daya asal sebagai type:id"
+    }
+  },
+  "openapi": {
+    "description": "Akses dan uji spesifikasi OpenAPI OmniRoute",
+    "dump": {
+      "description": "Ekspor spesifikasi OpenAPI ke stdout atau file",
+      "format": "Format keluaran: yaml|json (default: yaml)",
+      "out": "Simpan ke jalur file"
+    },
+    "validate": {
+      "description": "Validasi spesifikasi OpenAPI"
+    },
+    "try": {
+      "description": "Uji endpoint API melalui spesifikasi",
+      "method": "Metode HTTP (default: GET)",
+      "body": "Jalur ke file JSON isi permintaan",
+      "query": "Parameter kueri sebagai key=value (dapat diulang)",
+      "header": "Header sebagai key=value (dapat diulang)"
+    },
+    "endpoints": {
+      "description": "Cantumkan semua endpoint API",
+      "search": "Filter berdasarkan jalur atau ringkasan"
+    },
+    "paths": {
+      "description": "Cantumkan semua jalur API"
+    }
+  },
+  "combo": {
+    "title": "Kombinasi",
+    "switched": "Kombinasi aktif: {name}",
+    "created": "Kombinasi dibuat: {name}",
+    "deleted": "Kombinasi dihapus: {name}",
+    "noCombos": "Tidak ada kombinasi yang dikonfigurasi.",
+    "confirmDelete": "Hapus kombinasi {name}?",
+    "suggest": {
+      "description": "Sarankan kombinasi terbaik untuk suatu tugas menggunakan penilaian AI",
+      "task": "Deskripsi tugas",
+      "maxCost": "Biaya maksimum per permintaan dalam USD",
+      "maxLatencyMs": "Latensi maksimum dalam milidetik",
+      "weights": "Bobot penilaian JSON, mis. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Jumlah kandidat teratas yang ditampilkan (default: 5)",
+      "explain": "Cetak alasan ke stderr",
+      "switch": "Aktifkan kombinasi berperingkat teratas"
+    }
+  },
+  "oneproxy": {
+    "description": "Kelola kumpulan upstream OneProxy",
+    "stats": {
+      "provider": "Filter berdasarkan penyedia",
+      "period": "Periode waktu (default: 24h)"
+    },
+    "fetch": {
+      "description": "Ambil proxy dari kumpulan",
+      "count": "Jumlah proxy yang akan diambil (default: 1)",
+      "type": "Jenis proxy: http|socks5 (default: http)"
+    },
+    "rotate": {
+      "description": "Paksa rotasi proxy",
+      "provider": "Penyedia yang akan dirotasi",
+      "connectionId": "ID koneksi tertentu yang akan dirotasi"
+    },
+    "config": {
+      "description": "Tampilkan atau perbarui konfigurasi OneProxy",
+      "enabled": "Aktifkan kumpulan proksi (true|false)",
+      "poolSize": "Ukuran kumpulan",
+      "providerSource": "URL untuk penyedia proksi",
+      "rotationPolicy": "Kebijakan rotasi: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Tampilkan kumpulan proksi saat ini beserta metrik"
+    }
+  },
+  "open": {
+    "description": "Buka halaman dasbor OmniRoute tertentu di browser",
+    "url": "Hanya cetak URL, jangan buka browser"
+  },
+  "telemetry": {
+    "description": "Akses data telemetri agregat",
+    "summary": {
+      "description": "Tampilkan ringkasan telemetri agregat",
+      "period": "Periode waktu: 24h|7d|30d (default: 24h)",
+      "compareTo": "Bandingkan dengan periode sebelumnya"
+    },
+    "export": {
+      "description": "Ekspor peristiwa telemetri ke JSONL",
+      "out": "Jalur file keluaran (default: telemetry.jsonl)",
+      "period": "Periode waktu untuk ekspor (default: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Sinkronkan konfigurasi antarinstans OmniRoute",
+    "push": {
+      "description": "Kirim konfigurasi ke cloud atau instans jarak jauh",
+      "target": "Target (cloud atau context:name)",
+      "bundle": "Bagian bundel yang akan disinkronkan",
+      "dryRun": "Pratinjau tanpa menerapkan"
+    },
+    "pull": {
+      "description": "Ambil konfigurasi dari cloud atau instans jarak jauh",
+      "source": "Sumber (cloud atau context:name)",
+      "merge": "Gabungkan dengan konfigurasi yang ada",
+      "replace": "Ganti konfigurasi yang ada",
+      "dryRun": "Pratinjau tanpa menerapkan"
+    },
+    "diff": {
+      "source": "Konteks sumber",
+      "target": "Konteks target"
+    },
+    "bundle": {
+      "description": "Ekspor konfigurasi sebagai file bundel",
+      "include": "Bagian yang akan disertakan (dipisahkan koma)"
+    },
+    "import": {
+      "description": "Impor file bundel",
+      "dryRun": "Validasi tanpa menerapkan"
+    },
+    "initialize": {
+      "fromCloud": "Inisialisasi dari cadangan cloud"
+    },
+    "tokens": {
+      "description": "Kelola token sinkronisasi",
+      "create": {
+        "name": "Nama token",
+        "scope": "Cakupan token",
+        "ttl": "TTL token (misalnya 30d)"
+      },
+      "revoke": {
+        "yes": "Lewati konfirmasi"
+      }
+    },
+    "resolve": {
+      "description": "Selesaikan konflik sinkronisasi secara interaktif"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Kelola konteks/profil server (add, use, list, show, remove, rename, export, import)"
+    },
+    "lang": {
+      "description": "Kelola bahasa tampilan CLI",
+      "getDescription": "Tampilkan kode bahasa yang sedang aktif",
+      "setDescription": "Atur bahasa tampilan dan simpan ke konfigurasi",
+      "listDescription": "Tampilkan semua bahasa yang tersedia",
+      "listTitle": "Bahasa yang Tersedia",
+      "current": "Bahasa: {code} ({name})",
+      "saved": "Bahasa diatur ke {code} ({name}).",
+      "noCode": "Kode bahasa diperlukan. Jalankan 'omniroute config lang list' untuk melihat kode yang tersedia.",
+      "unknown": "Kode bahasa tidak dikenal: {code}. Jalankan 'omniroute config lang list' untuk melihat kode yang tersedia.",
+      "alreadySet": "Bahasa sudah diatur ke {code}.",
+      "envHint": "Kiat: Anda juga dapat mengatur OMNIROUTE_LANG={code} di lingkungan Anda."
+    }
+  },
+  "completion": {
+    "description": "Buat atau instal skrip pelengkapan shell",
+    "zsh": "Cetak skrip pelengkapan zsh",
+    "bash": "Cetak skrip pelengkapan bash",
+    "fish": "Cetak skrip pelengkapan fish",
+    "install": "Instal skrip pelengkapan secara global untuk shell yang terdeteksi",
+    "refresh": "Perbarui cache kombinasi/penyedia/model"
+  },
+  "logs": {
+    "description": "Streaming atau ekspor log permintaan",
+    "follow": "Streaming log secara real-time",
+    "filter": "Filter berdasarkan level (error,warn,info) — dipisahkan koma",
+    "lines": "Jumlah baris yang akan diambil",
+    "timeout": "Batas waktu koneksi dalam milidetik",
+    "baseUrl": "URL dasar API OmniRoute",
+    "requestId": "Filter berdasarkan ID permintaan",
+    "apiKey": "Filter berdasarkan kunci API",
+    "combo": "Filter berdasarkan nama kombinasi",
+    "status": "Filter berdasarkan kode status HTTP",
+    "durationMin": "Durasi minimum permintaan dalam milidetik",
+    "durationMax": "Durasi maksimum permintaan dalam milidetik",
+    "export": "Simpan log ke file (json/jsonl/csv)",
+    "exported": "Log disimpan ke {path}",
+    "stopped": "Streaming log dihentikan.",
+    "streamError": "Kesalahan streaming log: {message}"
+  },
+  "tray": {
+    "description": "Kontrol ikon baki sistem",
+    "show": "Tampilkan ikon baki (jika server berjalan dengan --tray)",
+    "hide": "Sembunyikan ikon baki",
+    "quit": "Keluar dari OmniRoute melalui baki"
+  },
+  "autostart": {
+    "description": "Kelola mulai otomatis OmniRoute saat boot (Linux: layanan pengguna systemd)",
+    "enable": "Aktifkan mulai otomatis saat boot",
+    "disable": "Nonaktifkan mulai otomatis saat boot",
+    "toggle": "Alihkan mulai otomatis saat boot",
+    "status": "Tampilkan status mulai otomatis"
+  },
+  "runtime": {
+    "description": "Kelola dependensi runtime native",
+    "check": "Periksa status dependensi native di direktori runtime",
+    "repair": "Instal ulang dependensi native di direktori runtime",
+    "repair_force": "Paksa instal ulang meskipun valid",
+    "clean": "Hapus direktori runtime (mengosongkan ruang disk)",
+    "clean_yes": "Lewati konfirmasi"
+  },
+  "repl": {
+    "description": "REPL multi-giliran interaktif dengan LLM",
+    "model": "Model yang akan digunakan (default: otomatis)",
+    "combo": "Nama kombinasi yang akan digunakan",
+    "system": "Prompt sistem",
+    "resume": "Lanjutkan sesi tersimpan berdasarkan nama"
+  },
+  "plugin": {
+    "description": "Kelola plugin CLI (omniroute-cmd-*)",
+    "list": "Cantumkan plugin yang terinstal",
+    "install": "Instal plugin dari npm atau jalur lokal",
+    "remove": "Hapus plugin yang terinstal",
+    "info": "Tampilkan detail plugin yang terinstal",
+    "search": "Cari plugin yang tersedia di registri npm",
+    "update": "Perbarui plugin yang terinstal",
+    "scaffold": "Buat kerangka boilerplate plugin baru"
+  },
+  "launch": {
+    "description": "Luncurkan Claude Code yang diarahkan ke OmniRoute (lokal atau jarak jauh, dengan --profile)",
+    "token": "Token yang harus dikirim oleh klien Claude (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute tidak dapat dijangkau di {port}. Jalankan dengan 'omniroute serve'.",
+    "notFound": "CLI 'claude' tidak ditemukan di PATH."
+  },
+  "run": {
+    "description": "Luncurkan target CLI yang didukung melalui OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Buat profil Claude Code di ~/.claude/profiles dari katalog model OmniRoute"
+  },
+  "connect": {
+    "description": "Hubungkan ke server OmniRoute jarak jauh dan masuk ke mode jarak jauh"
+  },
+  "tokens": {
+    "description": "Kelola token akses CLI tercakup (mode jarak jauh)"
+  },
+  "configure": {
+    "description": "Pilih penyedia+model dari server aktif dan konfigurasikan CLI lokal yang didukung"
+  },
+  "launchCodex": {
+    "description": "Luncurkan Codex CLI yang diarahkan ke OmniRoute (VPS lokal atau jarak jauh)"
+  },
+  "setupCodex": {
+    "description": "Buat file profil ~/.codex dari katalog model langsung OmniRoute"
+  },
+  "packs": {
+    "description": "Kelola paket runtime opsional (ML / otomatisasi browser)",
+    "listDescription": "Cantumkan paket opsional dan status instalasinya",
+    "installDescription": "Instal paket opsional ke DATA_DIR",
+    "verifyDescription": "Verifikasi paket yang terinstal berdasarkan indeks checksum bawaan",
+    "removeDescription": "Hapus paket opsional yang terinstal",
+    "sourceOpt": "Direktori yang berisi payload paket dan indeks paket",
+    "warnNoIndex": "optional-packs.index.json tidak ditemukan — instalasi/verifikasi tidak tersedia dalam checkout ini (bundel desktop menyertakannya)",
+    "errUnknown": "paket tidak dikenal: {name}",
+    "errNoIndex": "indeks paket tidak ditemukan; berikan --source <dir> yang berisi payload paket (bundel desktop menyertakannya di samping aplikasi)",
+    "installed": "paket \"{name}\" telah diinstal dan diverifikasi di {dir}",
+    "restartHint": "mulai ulang server OmniRoute (atau aplikasi desktop) agar runtime memuat paket tersebut",
+    "removed": "paket \"{name}\" dihapus",
+    "notInstalled": "paket \"{name}\" belum diinstal",
+    "verifyOk": "semua paket yang diinstal telah diverifikasi",
+    "verifyFailed": "{count} paket gagal diverifikasi",
+    "noneInstalled": "tidak ada paket opsional yang diinstal"
   }
 }

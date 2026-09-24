@@ -309,6 +309,7 @@ const HEAVY_AGENT_BETA_MODEL_PREFIXES = ["claude-opus", "claude-sonnet"];
  */
 const CONTEXT_1M_BETA_MODEL_PREFIXES = ["claude-opus"];
 const CONTEXT_1M_NATIVE_MODEL_PREFIXES = ["claude-opus-5"];
+const MID_CONVERSATION_SYSTEM_MODEL_PREFIXES = ["claude-opus", "claude-fable"];
 
 function matchesModelPrefix(model: unknown, prefixes: string[]): boolean {
   if (typeof model !== "string") return false;
@@ -340,7 +341,9 @@ export function shouldUseMidConversationSystem(
   const effectiveModel = model ?? (typeof payload.model === "string" ? payload.model : "");
 
   return (
-    hasSystem && hasTools && matchesModelPrefix(effectiveModel, CONTEXT_1M_BETA_MODEL_PREFIXES)
+    hasSystem &&
+    hasTools &&
+    matchesModelPrefix(effectiveModel, MID_CONVERSATION_SYSTEM_MODEL_PREFIXES)
   );
 }
 
@@ -463,6 +466,24 @@ export function stripProxyToolPrefix(body: Record<string, unknown>): void {
           if (stripped !== undefined) block.name = stripped;
         }
       }
+    }
+  }
+}
+
+/**
+ * Drop any previously injected billing header / Claude Code sentinel block from a
+ * `system` array, so re-prepending them on a retry stays idempotent instead of stacking
+ * (issue #1712 — stacking breaks prompt-cache prefix matching). Mutates `sysBlocks`.
+ */
+export function stripClaudeSystemPrefixBlocks(
+  sysBlocks: Array<Record<string, unknown>>,
+  sentinel: string
+): void {
+  for (let i = sysBlocks.length - 1; i >= 0; i--) {
+    const text = sysBlocks[i]?.text;
+    if (typeof text !== "string") continue;
+    if (text.startsWith("x-anthropic-billing-header:") || text.startsWith(sentinel)) {
+      sysBlocks.splice(i, 1);
     }
   }
 }

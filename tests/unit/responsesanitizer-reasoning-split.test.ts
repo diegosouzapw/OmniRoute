@@ -80,13 +80,13 @@ describe("responseSanitizer/reasoning — Kimi Code K3 textual reasoning-tag rou
   });
 });
 
-// ── MiniMax M3 textual reasoning-tag route (9router#2231) ──────────────────────
+// ── MiniMax M3 textual reasoning-tag route (9router#2231, #13558) ──────────────
 //
 // MiniMax M3 leaks raw <think>...</think> into `content` instead of a separate
-// reasoning_content field on the 8 OpenAI-format provider tiers below. The two
-// direct minimax/minimax-cn tiers stay on Anthropic's Messages format
-// (targetFormat: "claude") and already surface reasoning natively — they must
-// stay unaffected.
+// reasoning_content field on the 8 OpenAI-format provider tiers below, AND on
+// its two direct minimax/minimax-cn tiers (Anthropic Messages format,
+// targetFormat: "claude") — see the "MiniMax M3 fix regression guards" describe
+// block below for those two.
 describe("responseSanitizer/reasoning — MiniMax M3 textual reasoning-tag route", () => {
   const affectedRoutes: Array<[string, string]> = [
     ["trae", "minimax-m3"],
@@ -137,14 +137,25 @@ describe("responseSanitizer/reasoning — MiniMax M3 textual reasoning-tag route
 });
 
 describe("responseSanitizer/reasoning — MiniMax M3 fix regression guards", () => {
-  it("direct minimax tier (openai format) stays unaffected for textual reasoning tags", () => {
-    assert.equal(isTextualReasoningTagNativeRoute("minimax", "minimax-m3"), false);
-    assert.equal(shouldParseTextualReasoningTags("minimax", "MiniMax-M3"), false);
+  // #13558: the direct minimax/minimax-cn tiers (Anthropic Messages format)
+  // were previously excluded here on the false assumption that speaking
+  // Claude's wire format meant reasoning already arrived as a structured
+  // `thinking` block. MiniMax M3 leaks <think> on these tiers too, so they
+  // must now be treated as tag-native routes just like the OpenAI-format
+  // tiers above.
+  it("direct minimax tier (Anthropic Messages format) IS affected for textual reasoning tags", () => {
+    assert.equal(isTextualReasoningTagNativeRoute("minimax", "minimax-m3"), true);
+    assert.equal(shouldParseTextualReasoningTags("minimax", "MiniMax-M3"), true);
   });
 
-  it("direct minimax-cn tier (openai format) stays unaffected for textual reasoning tags", () => {
-    assert.equal(isTextualReasoningTagNativeRoute("minimax-cn", "minimax-m3"), false);
-    assert.equal(shouldParseTextualReasoningTags("minimax-cn", "MiniMax-M3"), false);
+  it("direct minimax-cn tier (Anthropic Messages format) IS affected for textual reasoning tags", () => {
+    assert.equal(isTextualReasoningTagNativeRoute("minimax-cn", "minimax-m3"), true);
+    assert.equal(shouldParseTextualReasoningTags("minimax-cn", "MiniMax-M3"), true);
+  });
+
+  it("non-M3 minimax models on the direct minimax/minimax-cn tiers stay unaffected", () => {
+    assert.equal(isTextualReasoningTagNativeRoute("minimax", "minimax-text-01"), false);
+    assert.equal(isTextualReasoningTagNativeRoute("minimax-cn", "abab6.5s-chat"), false);
   });
 
   it("MiniMax M2.x (non-M3) models on OpenAI-format tiers stay unaffected", () => {

@@ -23,13 +23,22 @@
  *
  * How this gate works: DIFF-AWARE, like its sibling. It compares the English catalog at the
  * merge base against the working tree; every key that is NEW in English must be present and
- * non-placeholder in every locale. Pre-existing gaps are deliberately frozen — this gate
- * judges only what the current change adds, so it can be turned on without a migration.
+ * TRANSLATED in every locale. Pre-existing gaps are deliberately frozen — this gate judges
+ * only what the current change adds, so it can be turned on without a migration.
  *
- * Escape hatch, same as the sibling: set the value to `__MISSING__:<english>` to make the
- * runtime fall back to correct English and queue the key for the translation pipeline.
- * NOTE that `vi` bans placeholders (tests/unit/i18n-vi-completeness.test.ts), so `vi` needs
- * a real translation.
+ * A `__MISSING__:<english>` marker does NOT satisfy this gate (since 2026-09-17). It used to:
+ * the marker was the documented deferral, because the runtime falls back to correct English.
+ * Then on 2026-09-16 eight feature PRs added 61 keys to en.json and stamped the marker into
+ * all 65 locales instead of translating; this gate accepted every one of them, nothing blocked
+ * the PRs, and the real-translation ratio gate (`check-translation-ratio`, blocking) went red
+ * on the release tip for everybody (pt-BR 3.2 % > 2.5 % + 0.5). A marker is an absent
+ * translation wearing a runtime-safe coat, and it is judged as absent here. Translate:
+ *
+ *   node scripts/i18n/sync-ui-keys.mjs --locale=<codes> --translate-markers --batch-size=40
+ *   bash scripts/i18n/translate-new-keys.sh            # same thing, all locales in parallel
+ *
+ * Keys that must stay English (product/engine/flag names a test pins) go in
+ * `scripts/i18n/untranslatable-keys.json`, never behind a marker.
  *
  * Usage:
  *   node scripts/i18n/check-new-key-coverage.mjs            # strict, exit 1
@@ -68,8 +77,8 @@ export function flattenLeaves(node, prefix = "", out = {}) {
 /**
  * Pure core: which (key, locale) pairs are keys new in English that a locale never got?
  *
- * A `__MISSING__:` placeholder counts as satisfied — it is the documented, runtime-correct
- * way to defer a translation.
+ * A `__MISSING__:` placeholder counts as ABSENT — it is not a translation, and accepting it
+ * is what let the 2026-09-16 batch ship 61 untranslated keys into 65 locales.
  *
  * @param {object} args
  * @param {object} args.baseEn   en.json at the base ref
@@ -91,7 +100,7 @@ export function findUntranslatedNewKeys({ baseEn, headEn, headLocales }) {
     for (const key of newKeys) {
       const value = flat[key];
       const satisfied =
-        typeof value === "string" && (value.trim() !== "" || value.startsWith(PLACEHOLDER_PREFIX));
+        typeof value === "string" && value.trim() !== "" && !value.startsWith(PLACEHOLDER_PREFIX);
       if (!satisfied) gaps.push({ key, locale });
     }
   }
@@ -186,14 +195,20 @@ function main() {
   }
   const label = opts.warn ? "WARN" : "FAIL";
   console.error(
-    `\n[i18n-new-keys] ${label} — ${byKey.size} new English key(s) missing from some locales:`
+    `\n[i18n-new-keys] ${label} — ${byKey.size} new English key(s) untranslated in some locales:`
   );
   for (const [key, locales] of byKey) {
-    console.error(`  ✗ ${key} — missing in ${locales.length}: ${locales.join(", ")}`);
+    console.error(`  ✗ ${key} — untranslated in ${locales.length}: ${locales.join(", ")}`);
   }
+  const codes = [...new Set(gaps.map((g) => g.locale))].sort().join(",");
   console.error(
-    "\n  Translate them, or set `__MISSING__:<english>` to defer (the runtime then falls back\n" +
-      "  to English). `vi` bans placeholders — it needs a real translation."
+    "\n  A `__MISSING__:<english>` marker does not count — it is an absent translation.\n" +
+      "  Translate the keys (needs OMNIROUTE_TRANSLATION_API_URL/_API_KEY/_MODEL in .env):\n" +
+      `    node scripts/i18n/sync-ui-keys.mjs --locale=${codes} --translate-markers --batch-size=40\n` +
+      "  or, all locales in parallel (detached runner):\n" +
+      "    bash scripts/i18n/translate-new-keys.sh\n" +
+      "  A key that must stay English (a pinned product/engine/flag name) belongs in\n" +
+      "  scripts/i18n/untranslatable-keys.json."
   );
   if (!opts.warn) process.exit(1);
 }

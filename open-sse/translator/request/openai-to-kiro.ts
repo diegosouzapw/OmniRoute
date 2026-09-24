@@ -183,6 +183,13 @@ function convertMessages(messages, tools, model) {
   let currentRole = null;
   let toolsAttached = false;
   let toolDocs = "";
+  // The actual turn object that ends up carrying `toolDocs` (issue #13652).
+  // `buildKiroPayload()` only prepends the doc block onto `currentMessage`, so
+  // once this turn is demoted into `history` (any turn after the first, on a
+  // resent multi-turn request) we need to know it was NOT promoted, and embed
+  // the doc text directly onto it instead of letting it get re-glued onto
+  // whatever the newest turn happens to be.
+  let toolDocsCarrier = null;
 
   // Only Claude models support images in Kiro. Kiro also routes non-Claude
   // models (deepseek, minimax, glm, qwen3-coder-next) that do not accept image
@@ -242,7 +249,10 @@ function convertMessages(messages, tools, model) {
         }
         const built = buildKiroToolSpecs(tools);
         userMsg.userInputMessage.userInputMessageContext.tools = built.specs;
-        if (built.docs) toolDocs = built.docs;
+        if (built.docs) {
+          toolDocs = built.docs;
+          toolDocsCarrier = userMsg;
+        }
         toolsAttached = true;
       }
 
@@ -530,8 +540,28 @@ function convertMessages(messages, tools, model) {
     }
     const built = buildKiroToolSpecs(tools);
     currentMessage.userInputMessage.userInputMessageContext.tools = built.specs;
-    if (built.docs) toolDocs = built.docs;
+    if (built.docs) {
+      toolDocs = built.docs;
+      toolDocsCarrier = currentMessage;
+    }
     toolsAttached = true;
+  }
+
+  // The relocated doc text is only safe to leave in `toolDocs` (which
+  // `buildKiroPayload()` unconditionally prepends onto `currentMessage`) when
+  // the turn that originally carried it IS `currentMessage` — true for a
+  // single-turn conversation and the "no user turn" fallback above. On any
+  // later turn of a resent multi-turn request, the tool-bearing turn has been
+  // demoted into `history` instead, so re-prepending `toolDocs` here would
+  // glue the *already delivered* doc block onto the newest turn every time
+  // (issue #13652). Embed it directly onto the carrier turn's own content —
+  // still in `history` at this point — and clear `toolDocs` so
+  // `buildKiroPayload()` does not also inject it.
+  if (toolDocs && toolDocsCarrier && toolDocsCarrier !== currentMessage) {
+    const carrierMessage = toolDocsCarrier.userInputMessage;
+    const existingContent = carrierMessage.content || "";
+    carrierMessage.content = `# Tool Documentation\n\n${toolDocs}\n\n---\n\n${existingContent}`;
+    toolDocs = "";
   }
 
   // Clean up history for Kiro API compatibility

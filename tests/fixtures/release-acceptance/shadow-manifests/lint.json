@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "identity": {
+    "repository": "diegosouzapw/OmniRoute",
+    "run_id": "1",
+    "run_attempt": 1,
+    "workflow": "release-acceptance.yml",
+    "trigger": "push",
+    "scope": "release",
+    "requested_ref": "refs/heads/release/v3.8.51",
+    "base_sha": "30b5bf18fbe827a0283ce17e91bda22cc8b4c13e",
+    "candidate_sha": "30b5bf18fbe827a0283ce17e91bda22cc8b4c13e",
+    "tested_sha": "30b5bf18fbe827a0283ce17e91bda22cc8b4c13e"
+  },
+  "required_gates": [
+    {
+      "gate_id": "lint",
+      "suite_id": null,
+      "shard_index": null,
+      "shard_total": null
+    }
+  ],
+  "gates": [
+    {
+      "gate_id": "lint",
+      "suite_id": null,
+      "shard_index": null,
+      "shard_total": null,
+      "tested_sha": "30b5bf18fbe827a0283ce17e91bda22cc8b4c13e",
+      "run_id": "1",
+      "run_attempt": 1,
+      "command_id": "lint",
+      "gate_type": "static",
+      "status": "PASS",
+      "cause": null,
+      "exit_code": 0,
+      "duration_ms": 10,
+      "evidence": [
+        {
+          "artifact_id": "logs",
+          "member": "lint.log",
+          "algorithm": "sha256",
+          "digest": "7f227db1653b6b723b07c8f2f6eb488f1f09e2f083ca7a3f5e02bbb274f5ff2e"
+        }
+      ]
+    }
+  ],
+  "evidence_errors": [],
+  "verdict": "VERIFIED",
+  "artifact": null
+}

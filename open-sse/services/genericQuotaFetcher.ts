@@ -26,6 +26,7 @@ import {
 } from "./quotaPreflight.ts";
 import { getAntigravityQuotaFamily, getQuotaFetchScope } from "./antigravityQuotaFamily.ts";
 import { boundedMap } from "../../src/lib/quota/boundedMap.ts";
+import { toNumberOrNull } from "@/shared/utils/numeric";
 
 type UsageFetcher = (
   connection: Parameters<typeof getUsageForProvider>[0],
@@ -150,15 +151,6 @@ if (typeof _cacheCleanup === "object" && "unref" in _cacheCleanup) {
   (_cacheCleanup as { unref?: () => void }).unref?.();
 }
 
-function toNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = parseFloat(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return null;
-}
-
 /**
  * Compute percentUsed (0-1) for a single quota entry. Prefers the explicit
  * remainingPercentage / used / total fields surfaced by per-provider
@@ -176,15 +168,15 @@ function percentUsedForQuota(entry: unknown): number | null {
   // otherwise one unreported model falsely exhausts the whole connection.
   if (q.fractionReported === false) return null;
 
-  const remainingPercentage = toNumber(q.remainingPercentage);
+  const remainingPercentage = toNumberOrNull(q.remainingPercentage);
   if (remainingPercentage !== null) {
     // remainingPercentage is 0-100 in the usage.ts contract.
     const used = (100 - Math.max(0, Math.min(100, remainingPercentage))) / 100;
     return used;
   }
 
-  const used = toNumber(q.used);
-  const total = toNumber(q.total);
+  const used = toNumberOrNull(q.used);
+  const total = toNumberOrNull(q.total);
   if (used !== null && total !== null && total > 0) {
     return Math.max(0, Math.min(1, used / total));
   }
@@ -218,6 +210,28 @@ type UsageToQuotaContext = {
   requestedModel?: string | null;
   provider?: string | null;
 };
+
+function aggregateGroupedQuotaValues(
+  windows: Record<string, { percentUsed: number; resetAt: string | null }>
+): { percentUsed: number; resetAt: string | null } {
+  const effectiveByBase = new Map<string, { percentUsed: number; resetAt: string | null }>();
+  for (const [key, entry] of Object.entries(windows)) {
+    const base = key.endsWith("_freetrial") ? key.slice(0, -10) : key;
+    const cur = effectiveByBase.get(base);
+    if (!cur || entry.percentUsed < cur.percentUsed) {
+      effectiveByBase.set(base, { percentUsed: entry.percentUsed, resetAt: entry.resetAt ?? null });
+    }
+  }
+  let percentUsed = 0;
+  let resetAt: string | null = null;
+  for (const eff of effectiveByBase.values()) {
+    if (eff.percentUsed > percentUsed) {
+      percentUsed = eff.percentUsed;
+      resetAt = eff.resetAt;
+    }
+  }
+  return { percentUsed, resetAt };
+}
 
 export function convertUsageToQuotaInfo(
   usage: unknown,
@@ -267,13 +281,7 @@ export function convertUsageToQuotaInfo(
   if (Object.keys(providerScopedWindows).length === 0) return null;
 
   const normalized = normalizeQuotaWindows(providerScopedWindows, context);
-  const scopedEntries = Object.values(providerScopedWindows);
-  const percentUsed = scopedEntries.reduce((worst, entry) => Math.max(worst, entry.percentUsed), 0);
-  const resetAt =
-    scopedEntries.reduce<{ percentUsed: number; resetAt: string | null } | null>(
-      (worst, entry) => (!worst || entry.percentUsed > worst.percentUsed ? entry : worst),
-      null
-    )?.resetAt ?? null;
+  const { percentUsed, resetAt } = aggregateGroupedQuotaValues(providerScopedWindows);
 
   return {
     used: 0,
@@ -327,11 +335,11 @@ function normalizeQuotaWindows(
       : null;
 
   // Explicit time windows (canonical and legacy aliases).
-  const fiveHourWindow = windows["session (5h)"] || windows["session"];
+  const fiveHourWindow = windows["session (5h)"] || windows["session"] || windows.code_5h;
   if (fiveHourWindow && !normalized.window5h) {
     normalized.window5h = fiveHourWindow;
   }
-  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"];
+  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"] || windows.code_7d;
   if (sevenDayWindow && !normalized.window7d) {
     normalized.window7d = sevenDayWindow;
   }

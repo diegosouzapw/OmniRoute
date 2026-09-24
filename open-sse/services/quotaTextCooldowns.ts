@@ -165,3 +165,28 @@ export function buildSessionQuotaFallback(errorStr: string): QuotaTextFallback |
     reason: RateLimitReason.QUOTA_EXHAUSTED,
   };
 }
+
+// xAI Grok Build free-tier per-model rolling 24h token cap. Live 429:
+// "You've used all the included free usage for model grok-4.6 for now.
+//  Usage resets over a rolling 24-hour window — tokens (actual/limit): N/M."
+// Grok Build is passthroughModels, so this stays a model lockout (not a
+// connection park). Combo must treat it as quota_exhausted so it does not
+// wait comboCooldownWait.maxWaitMs (~30s) and retry the same login.
+const ROLLING_24H_QUOTA_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
+export function isRolling24hUsageLimitText(lower: string): boolean {
+  return (
+    lower.includes("used all the included free usage") ||
+    (lower.includes("rolling 24-hour window") && lower.includes("tokens (actual/limit)"))
+  );
+}
+
+export function buildRolling24hQuotaFallback(errorStr: string): QuotaTextFallback | null {
+  if (!isRolling24hUsageLimitText(errorStr.toLowerCase())) return null;
+  return {
+    shouldFallback: true,
+    cooldownMs: ROLLING_24H_QUOTA_COOLDOWN_MS,
+    reason: RateLimitReason.QUOTA_EXHAUSTED,
+    quotaResetHintMs: ROLLING_24H_QUOTA_COOLDOWN_MS,
+  };
+}

@@ -185,14 +185,28 @@ export interface NonStreamingClientTranslateInput {
   /**
    * Transcript used for no-tool_calls reasoning replay (#1628).
    * Must be the client-translated Chat `messages` (parent: `translatedBody.messages`),
-   * not `finalBody` — Responses-shaped `finalBody` has `input`, not `messages`.
+   * not `finalBody` — Responses-shaped `finalBody` has `input`, not `messages`. For a
+   * Responses-shaped body the parent passes the pivot transcript `translateRequest`
+   * reports through `onReasoningReplayHistory` instead.
    */
   historyMessages?: unknown[] | null;
   responseToolNameMap: Map<string, string> | null;
+  customToolNames?: ReadonlySet<string>;
   requestToolIdentityMap: Map<string, { namespace?: string; name: string }> | null;
   reasoningCacheScope: string | null;
+  /** Never retain reasoning from a response that may echo video transcript cues. */
+  videoTranscriptSensitive?: boolean;
   clientHeaders: Headers | Record<string, unknown> | null;
   isClaudeCodeCompatible: boolean;
+  /**
+   * The client's explicit thinking intent for THIS request (same value the
+   * streaming path threads into the SSE translator). Without it the
+   * non-streaming OpenAI→Claude conversion falls back to its legacy
+   * "always relay a thinking block" default, so the very same request answered
+   * with `stream:false` leaked reasoning that `stream:true` correctly withheld.
+   * `undefined` keeps the legacy relay for callers that cannot express intent.
+   */
+  requestedThinking?: boolean;
   phase: "intermediate" | "final";
 }
 

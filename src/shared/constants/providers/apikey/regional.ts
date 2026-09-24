@@ -104,7 +104,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     // Kimi official-partnership aff link (2026-07) — folds into the kimi-coding
     // card (PROVIDER_CONNECTION_ALIASES in providerPageUtils.ts) so this rarely
     // renders its own header, but stays in sync with kimi-coding's aff link.
-    website: "https://www.kimi.com/code?aff=omniroute",
+    website: "https://www.kimi.ai/code?aff=omniroute",
     hiddenFromDashboard: true,
   },
   minimax: {
@@ -468,6 +468,19 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     hasFree: true,
     freeNote: "Permanently free API - no credit card required.",
     authHint: "Get API key at agnes-ai.com",
+  },
+  "agnes-cn": {
+    id: "agnes-cn",
+    serviceKinds: ["llm"],
+    alias: "agnescn",
+    name: "Agnes AI (China)",
+    icon: "auto_awesome",
+    color: "#047857",
+    textIcon: "AC",
+    website: "https://api.agnes-ai.cn",
+    hasFree: true,
+    freeNote: "Permanently free, no API credit card required.",
+    authHint: "Get API key from the Agnes CN site.",
   },
   sealion: {
     id: "sealion",

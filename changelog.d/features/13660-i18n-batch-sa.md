@@ -1,1 +1,0 @@
-- **feat(i18n):** 8 new locales — Kannada (`kn`), Malayalam (`ml`), Odia (`or`), Punjabi (`pa`), Nepali (`ne`), Sinhala (`si`), Burmese (`my`), Khmer (`km`) — across the dashboard, docs mirrors, CLI, README and the site (59 locales). The translator now restores the ICU literal escape around angle placeholders and splits oversized docs sections before translating. (#0000)

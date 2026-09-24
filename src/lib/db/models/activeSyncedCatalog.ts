@@ -238,7 +238,11 @@ async function loadConnectionCatalog(storedProviderId: string): Promise<Connecti
   };
 }
 
-export async function getActiveSyncedCatalog(providerId: string): Promise<ActiveSyncedCatalog> {
+/** Set includeCustomModels=false for consumers that overlay custom rows separately. */
+export async function getActiveSyncedCatalog(
+  providerId: string,
+  includeCustomModels = true
+): Promise<ActiveSyncedCatalog> {
   const storedProviderId = resolveStoredProviderId(providerId);
   if (!storedProviderId) {
     return { authoritative: false, models: [] };
@@ -249,12 +253,10 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
     const siblingCatalogs = await Promise.all(lookupIds.map(loadConnectionCatalog));
     // #12866 unions the agy/antigravity sibling catalogs; #12934 then overlays the
     // picker-added customModels so dispatch admits the same rows the picker REST shows.
+    const discovered = unionModels(siblingCatalogs.map((catalog) => catalog.models));
     const models = enrichCursorCatalog(
       storedProviderId,
-      await unionCustomModels(
-        storedProviderId,
-        unionModels(siblingCatalogs.map((catalog) => catalog.models))
-      )
+      includeCustomModels ? await unionCustomModels(storedProviderId, discovered) : discovered
     );
     if (models.length > 0) {
       // #12849: only gate on this catalog while at least one sibling connection
@@ -283,7 +285,12 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
       authoritative: false,
       models: enrichCursorCatalog(
         storedProviderId,
-        await unionCustomModels(storedProviderId, await getSyncedAvailableModels(storedProviderId))
+        includeCustomModels
+          ? await unionCustomModels(
+              storedProviderId,
+              await getSyncedAvailableModels(storedProviderId)
+            )
+          : await getSyncedAvailableModels(storedProviderId)
       ),
     };
   } catch {

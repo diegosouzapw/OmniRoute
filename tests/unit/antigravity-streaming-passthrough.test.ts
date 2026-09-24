@@ -36,6 +36,7 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
   const calls = [];
+  const telemetry: string[] = [];
   seedAntigravityIdeVersionCache("2026.04.17-test");
   seedAntigravityCliVersionCache("2026.04.17-test");
 
@@ -71,7 +72,13 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
       body: { request: { contents: [] } },
       stream: false,
       credentials: { accessToken: "token", projectId: "project-1" },
-      log: { debug() {}, warn() {} },
+      log: {
+        debug(_scope, message) {
+          telemetry.push(String(message));
+        },
+        warn() {},
+      },
+      correlationId: "prompt194-native-retry-test",
     });
     // Non-streaming collects the upstream SSE and returns the already-converted
     // OpenAI chat.completion payload — no further SSE parsing on the caller side.
@@ -79,6 +86,10 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
     assert.equal(payload.object, "chat.completion");
 
     assert.equal(calls.length, 2);
+    const physicalSends = telemetry.filter((line) => line.includes("[Antigravity] PhysicalSend"));
+    assert.equal(physicalSends.length, calls.length);
+    assert.match(physicalSends[0] ?? "", /RequestId: prompt194-native-retry-test/);
+    assert.match(physicalSends[1] ?? "", /PhysicalSend: 2/);
     assert.equal(result.response.status, 200);
     assert.equal(payload.choices[0].message.content, "Hello again");
     assert.deepEqual(payload.usage, {

@@ -93,7 +93,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CODEX_SRC = path.resolve(__dirname, "../../open-sse/executors/codex.ts");
 
-test("#2331 codex.ts still prioritizes modelEffort first in rawEffort chain", () => {
+test("#2331 codex.ts still ranks modelEffort above client-injected reasoning defaults", () => {
   const src = fs.readFileSync(CODEX_SRC, "utf8");
 
   // The chain we expect: rawEffort = modelEffort || explicitReasoning || ...
@@ -104,10 +104,20 @@ test("#2331 codex.ts still prioritizes modelEffort first in rawEffort chain", ()
   assert.ok(match, "rawEffort assignment not found in codex.ts");
 
   const chain = match![1].replace(/\s+/g, " ").trim();
-  const firstToken = chain.split("||")[0].trim();
-  assert.equal(
-    firstToken,
-    "modelEffort",
-    `rawEffort priority chain must start with modelEffort, got: ${chain}`
+  const order = chain.split("||").map((token) => token.trim());
+  const at = (token: string) => order.indexOf(token);
+
+  // #2331's invariant is a RELATIVE one: a model-suffix alias (gpt-5.5-xhigh) must beat
+  // the defaults a client injects (OpenCode's reasoning.effort=medium, reasoning_effort).
+  // It is not a claim about the head of the chain — #13556 deliberately put the
+  // server-selected force rule ahead of everything, which is stronger than both.
+  assert.ok(at("modelEffort") >= 0, `modelEffort missing from chain: ${chain}`);
+  assert.ok(
+    at("modelEffort") < at("explicitReasoning"),
+    `modelEffort must outrank explicitReasoning, got: ${chain}`
+  );
+  assert.ok(
+    at("modelEffort") < at("requestReasoningEffort"),
+    `modelEffort must outrank requestReasoningEffort, got: ${chain}`
   );
 });

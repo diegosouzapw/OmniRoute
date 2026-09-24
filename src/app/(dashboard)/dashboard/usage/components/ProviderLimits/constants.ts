@@ -18,6 +18,8 @@ export const PROVIDER_LABEL: Record<string, string> = {
   "xai-oauth": "xAI OAuth (Grok)",
   xao: "xAI OAuth (Grok)",
   "grok-cli": "Grok Build",
+  llmgateway: "LLM Gateway",
+  lyceum: "Lyceum",
 };
 
 export const PROVIDER_ORDER: Record<string, number> = {
@@ -38,6 +40,8 @@ export const PROVIDER_ORDER: Record<string, number> = {
   "xai-oauth": 16,
   xao: 16,
   "grok-cli": 17,
+  llmgateway: 18,
+  lyceum: 19,
 };
 
 export const TIER_FILTERS = [

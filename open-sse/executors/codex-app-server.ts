@@ -1,22 +1,21 @@
-import {
-  bridgeToResponsesSSE,
-  buildResponseJSON,
-} from "../vendor/codex-chatgpt-web/bridge.ts";
+import { bridgeToResponsesSSE, buildResponseJSON } from "../vendor/codex-chatgpt-web/bridge.ts";
 import { AsyncEventQueue } from "../vendor/codex-chatgpt-web/event-queue.ts";
 import type { AdapterEvent } from "../vendor/codex-chatgpt-web/types.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { BaseExecutor, type ExecuteInput, type ExecutorExecuteResult } from "./base.ts";
+import { CodexAppServerClient, type CodexAppServerClientOptions } from "./codex/appServerClient.ts";
 import {
-  CodexAppServerClient,
-  type CodexAppServerClientOptions,
-} from "./codex/appServerClient.ts";
-import { resolveAppServerConfig, resolveThreadStartPolicy, type CodexAppServerConfig } from "./codex/appServerConfig.ts";
+  resolveAppServerConfig,
+  resolveThreadStartPolicy,
+  type CodexAppServerConfig,
+} from "./codex/appServerConfig.ts";
 import {
   translateNotification,
   translateToolCall,
   type DynamicToolCallLike,
 } from "./codex/appServerEvents.ts";
+import { splitCodexReasoningSuffix } from "./codex/reasoningSuffix.ts";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 const SSE_HEADERS = {
@@ -80,13 +79,17 @@ function collectText(item: unknown, out: string[]): void {
   }
 }
 
-/** Optional reasoning effort carried on the Responses body (`reasoning.effort`). */
+/** Optional reasoning effort carried on the Responses body (`reasoning.effort` or `reasoning_effort`). */
 function extractEffort(body: unknown): string | undefined {
   if (!body || typeof body !== "object") return undefined;
-  const reasoning = (body as Record<string, unknown>).reasoning;
+  const b = body as Record<string, unknown>;
+  const reasoning = b.reasoning;
   if (reasoning && typeof reasoning === "object") {
     const effort = (reasoning as Record<string, unknown>).effort;
     if (typeof effort === "string" && effort.length > 0) return effort;
+  }
+  if (typeof b.reasoning_effort === "string" && b.reasoning_effort.length > 0) {
+    return b.reasoning_effort;
   }
   return undefined;
 }
@@ -238,7 +241,11 @@ export class CodexAppServerExecutor extends BaseExecutor {
     const policy = resolveThreadStartPolicy(config, psd);
 
     const promptText = extractPromptText(input.body);
-    const effort = extractEffort(input.body);
+    const { baseModel, effort: suffixEffort } = splitCodexReasoningSuffix(input.model);
+    const bodyEffort = extractEffort(input.body);
+    // Explicit model suffix selection (e.g. gpt-5.5-high) represents an explicit
+    // user/combo choice and overrides client-injected defaults in the request body (#2331, #14277).
+    const effort = suffixEffort || bodyEffort;
     const toolMaps = buildAppServerToolMaps(input.body);
     const hasTools = toolMaps.specs.length > 0;
     const events = new AsyncEventQueue<AdapterEvent>();
@@ -283,9 +290,7 @@ export class CodexAppServerExecutor extends BaseExecutor {
           // Harness function tools are advertised via thread/start's `dynamicTools`,
           // which is an EXPERIMENTAL app-server field: opt into experimental API so
           // codex accepts it (and can emit the item/tool/call ServerRequest).
-          capabilities: hasTools
-            ? { experimentalApi: true, requestAttestation: false }
-            : null,
+          capabilities: hasTools ? { experimentalApi: true, requestAttestation: false } : null,
         });
         const threadResult = (await client.request("thread/start", {
           cwd: config.cwd,
@@ -339,7 +344,9 @@ export class CodexAppServerExecutor extends BaseExecutor {
         // request (the stateless-full-history contract every OmniRoute provider uses).
         client.onToolCall((_id, params, api) => {
           if (terminated) return;
-          const toolParams = (params && typeof params === "object" ? params : {}) as DynamicToolCallLike;
+          const toolParams = (
+            params && typeof params === "object" ? params : {}
+          ) as DynamicToolCallLike;
           translateToolCall(toolParams, (event) => events.push(event));
           // Settle the app-server request so the socket does not stall. The router
           // does not have the tool output (the harness will produce it next turn),
@@ -379,7 +386,7 @@ export class CodexAppServerExecutor extends BaseExecutor {
         await client.request("turn/start", {
           threadId,
           input: turnInput,
-          model: input.model,
+          model: baseModel,
           ...(effort ? { effort } : {}),
         });
         // `turn/start` resolving only ACCEPTS the turn (status: inProgress). The

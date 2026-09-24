@@ -27,3 +27,21 @@ test("the custom Next runner owns exit and awaits application cleanup before clo
   assert.ok(applicationCleanup < nextClose, "application cleanup must finish before Next closes");
   assert.ok(nextClose < processExit, "process exit must remain the final shutdown action");
 });
+
+test("custom Next runner closes existing connections and supports force exit on Ctrl+C", () => {
+  const closeAll = runNextSource.indexOf("server.closeAllConnections?.()");
+  const serverClose = runNextSource.indexOf("server.close(resolve)");
+  assert.ok(closeAll >= 0, "must close active/keep-alive connections to prevent hanging on Ctrl+C");
+  assert.ok(closeAll < serverClose, "connections must be terminated before server.close wait");
+
+  assert.match(
+    runNextSource,
+    /if\s*\(\s*isShuttingDown\s*\)\s*\{\s*\/\/[^\n]*\n\s*process\.exit\(1\);?\s*\}/,
+    "second signal / Ctrl+C must immediately exit"
+  );
+  assert.match(
+    runNextSource,
+    /setTimeout\(\(\)\s*=>\s*\{\s*process\.exit\(0\);?\s*\},\s*\d+\)/,
+    "must have fallback force exit timer"
+  );
+});

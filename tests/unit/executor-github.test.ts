@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 
 import { GithubExecutor } from "../../open-sse/executors/github.ts";
 import { PROVIDER_MODELS } from "../../open-sse/config/providerModels.ts";
+import {
+  GITHUB_COPILOT_CLI_INTEGRATION_ID,
+  GITHUB_COPILOT_CHAT_INTEGRATION_ID,
+} from "../../open-sse/config/providerHeaderProfiles.ts";
 
 function registerModel(provider, model) {
   PROVIDER_MODELS[provider] = [...(PROVIDER_MODELS[provider] || []), model];
@@ -592,4 +596,189 @@ test("GithubExecutor.transformRequest strips invalid synthetic Responses reasoni
 
   assert.equal(result.input[0].id, undefined);
   assert.equal(result.input[0].type, "reasoning");
+});
+
+test("GithubExecutor.buildHeaders honors case-insensitive client copilot-integration-id", () => {
+  const executor = new GithubExecutor();
+
+  const lowerCase = executor.buildHeaders({ accessToken: "gh" }, true, {
+    "copilot-integration-id": "custom-cli-id",
+  });
+  assert.equal(lowerCase["copilot-integration-id"], "custom-cli-id");
+
+  const mixedCase = executor.buildHeaders({ accessToken: "gh" }, true, {
+    "CoPiLoT-InTeGrAtIoN-iD": "custom-mixed-id",
+  });
+  assert.equal(mixedCase["copilot-integration-id"], "custom-mixed-id");
+
+  const defaultHeaders = executor.buildHeaders({ accessToken: "gh" });
+  assert.equal(defaultHeaders["copilot-integration-id"], GITHUB_COPILOT_CLI_INTEGRATION_ID);
+});
+
+test("GithubExecutor.execute retries 403 identity denial once with copilot-chat", async () => {
+  const executor = new GithubExecutor();
+  const originalFetch = globalThis.fetch;
+  const seenIntegrationIds: string[] = [];
+
+  globalThis.fetch = async (_url, init: RequestInit = {}) => {
+    const headers = init.headers as Record<string, string>;
+    const integrationId = headers["copilot-integration-id"];
+    seenIntegrationIds.push(integrationId);
+
+    if (integrationId === GITHUB_COPILOT_CLI_INTEGRATION_ID) {
+      return new Response(
+        JSON.stringify({
+          message: "Access denied: copilot-developer-cli is not permitted by organization policy",
+        }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const result = await executor.execute({
+      model: "gpt-4.1",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        accessToken: "gh-access-token",
+        providerSpecificData: { copilotToken: "copilot-token" },
+      },
+    });
+
+    assert.deepEqual(seenIntegrationIds, [
+      GITHUB_COPILOT_CLI_INTEGRATION_ID,
+      GITHUB_COPILOT_CHAT_INTEGRATION_ID,
+    ]);
+    const res = result as { response: Response; headers: Record<string, string> };
+    assert.equal(res.response.status, 200);
+    assert.equal(res.headers["copilot-integration-id"], GITHUB_COPILOT_CHAT_INTEGRATION_ID);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GithubExecutor.execute repeated 403 identity denial retries at most once", async () => {
+  const executor = new GithubExecutor();
+  const originalFetch = globalThis.fetch;
+  const seenIntegrationIds: string[] = [];
+
+  globalThis.fetch = async (_url, init: RequestInit = {}) => {
+    const headers = init.headers as Record<string, string>;
+    seenIntegrationIds.push(headers["copilot-integration-id"]);
+    return new Response(JSON.stringify({ message: "Access denied: Copilot 403 Forbidden" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const result = await executor.execute({
+      model: "gpt-4.1",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        accessToken: "gh-access-token",
+        providerSpecificData: { copilotToken: "copilot-token" },
+      },
+    });
+
+    assert.deepEqual(seenIntegrationIds, [
+      GITHUB_COPILOT_CLI_INTEGRATION_ID,
+      GITHUB_COPILOT_CHAT_INTEGRATION_ID,
+    ]);
+    const res = result as { response: Response };
+    assert.equal(res.response.status, 403);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GithubExecutor.execute suppresses 403 fallback when client header or env pin is present or on quota error", async () => {
+  const executor = new GithubExecutor();
+  const originalFetch = globalThis.fetch;
+  let callCount = 0;
+  const seenIntegrationIds: string[] = [];
+
+  globalThis.fetch = async (_url, init: RequestInit = {}) => {
+    callCount++;
+    const headers = init.headers as Record<string, string>;
+    seenIntegrationIds.push(headers["copilot-integration-id"]);
+    return new Response(JSON.stringify({ message: "Access denied: organization policy" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  const originalEnv = process.env.COPILOT_INTEGRATION_ID;
+  try {
+    // 1. Explicit client header pin suppresses fallback
+    callCount = 0;
+    seenIntegrationIds.length = 0;
+    await executor.execute({
+      model: "gpt-4.1",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        accessToken: "gh-access-token",
+        providerSpecificData: { copilotToken: "copilot-token" },
+      },
+      clientHeaders: { "copilot-integration-id": GITHUB_COPILOT_CLI_INTEGRATION_ID },
+    });
+    assert.equal(callCount, 1);
+    assert.deepEqual(seenIntegrationIds, [GITHUB_COPILOT_CLI_INTEGRATION_ID]);
+
+    // 2. Explicit env pin suppresses fallback
+    process.env.COPILOT_INTEGRATION_ID = GITHUB_COPILOT_CLI_INTEGRATION_ID;
+    callCount = 0;
+    seenIntegrationIds.length = 0;
+    await executor.execute({
+      model: "gpt-4.1",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        accessToken: "gh-access-token",
+        providerSpecificData: { copilotToken: "copilot-token" },
+      },
+    });
+    assert.equal(callCount, 1);
+    assert.deepEqual(seenIntegrationIds, [GITHUB_COPILOT_CLI_INTEGRATION_ID]);
+    delete process.env.COPILOT_INTEGRATION_ID;
+
+    // 3. Quota 403 error does not trigger identity retry
+    callCount = 0;
+    seenIntegrationIds.length = 0;
+    globalThis.fetch = async (_url, init: RequestInit = {}) => {
+      callCount++;
+      const headers = init.headers as Record<string, string>;
+      seenIntegrationIds.push(headers["copilot-integration-id"]);
+      return new Response(JSON.stringify({ message: "Quota exceeded: monthly limit reached" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+    await executor.execute({
+      model: "gpt-4.1",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        accessToken: "gh-access-token",
+        providerSpecificData: { copilotToken: "copilot-token" },
+      },
+    });
+    assert.equal(callCount, 1);
+    assert.deepEqual(seenIntegrationIds, [GITHUB_COPILOT_CLI_INTEGRATION_ID]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalEnv === undefined) {
+      delete process.env.COPILOT_INTEGRATION_ID;
+    } else {
+      process.env.COPILOT_INTEGRATION_ID = originalEnv;
+    }
+  }
 });

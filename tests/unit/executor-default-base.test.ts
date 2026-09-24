@@ -601,9 +601,8 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
       stream: false,
       credentials: {
         apiKey: "cc-key",
-        providerSpecificData: {
-          ccSessionId: "session-1",
-        },
+        // #13452: buildUrl() now requires a hydrated baseUrl.
+        providerSpecificData: { ccSessionId: "session-1", baseUrl: "https://cc.test/v1" },
       },
       clientHeaders: {
         "x-app": "cli",
@@ -623,6 +622,7 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
         apiKey: "cc-key",
         providerSpecificData: {
           ccSessionId: "session-1",
+          baseUrl: "https://cc.test/v1",
           requestDefaults: { context1m: true, redactThinking: true },
         },
       },
@@ -658,6 +658,7 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
         apiKey: "cc-key",
         providerSpecificData: {
           ccSessionId: "session-1",
+          baseUrl: "https://cc-proxy.example.test/v1",
           requestDefaults: { context1m: true },
         },
       },
@@ -734,9 +735,7 @@ test("DefaultExecutor.execute reports the exact serialized provider request befo
         stream: false,
         credentials: {
           apiKey: "cc-key",
-          providerSpecificData: {
-            ccSessionId: "session-1",
-          },
+          providerSpecificData: { ccSessionId: "session-1", baseUrl: "https://cc.test/v1" }, // #13452
         },
       })
     );
@@ -1312,7 +1311,7 @@ test("DefaultExecutor.refreshCredentials swallows refresh errors and logs them",
 
   try {
     const result = await executor.refreshCredentials(
-      { refreshToken: "refresh-me" },
+      { refreshToken: "refresh-me-unrotated" },
       { error: (tag, message) => messages.push({ tag, message }) }
     );
     assert.equal(result, null);

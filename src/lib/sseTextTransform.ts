@@ -1,6 +1,7 @@
 export type FieldCategory = "content" | "reasoning" | "toolArgs" | "partialJson";
 
-const CATEGORY_MAP: Record<string, FieldCategory> = {
+// Keys that always map to a fixed category, regardless of where they appear in the chunk.
+const FIXED_CATEGORY_MAP: Record<string, FieldCategory> = {
   reasoning: "reasoning",
   thinking: "reasoning",
   reasoning_content: "reasoning",
@@ -8,8 +9,69 @@ const CATEGORY_MAP: Record<string, FieldCategory> = {
   partial_json: "partialJson",
 };
 
+// System/protocol metadata keys that must never be routed through the PII processor or
+// buffer, no matter which JSON shape they appear in. Shared by the real-time sanitizeObject
+// pass (below) and streamingPiiTransform.ts's onFlush generic-fallback branch — the two
+// copies of this list had drifted (see issue #13488): neither one listed `provider`,
+// `native_finish_reason`, or the `reasoning_details[].format` field, so those OpenRouter
+// metadata strings fell through to the default "content" category and got spliced into the
+// same sliding-window buffer as the actual answer text.
+export const METADATA_KEYS = new Set([
+  "id",
+  "model",
+  "object",
+  "created",
+  "finish_reason",
+  "finishReason",
+  "native_finish_reason",
+  "role",
+  "type",
+  "index",
+  "stop_reason",
+  "stop_sequence",
+  "system_fingerprint",
+  "service_tier",
+  "usage",
+  "prompt_tokens",
+  "completion_tokens",
+  "total_tokens",
+  "input_tokens",
+  "output_tokens",
+  "logprobs",
+  "refusal",
+  "name",
+  "event",
+  "provider",
+  "format",
+]);
+
+/**
+ * Classify a string field as a PII-processed category, or `null` when it is metadata that
+ * must pass through untouched. `parentKey` is the key of the object that directly contains
+ * `key` (empty string at the JSON root) — it disambiguates `text`, which means the answer
+ * everywhere except inside a `reasoning_details[]` item, where it is reasoning text (and
+ * `format` alongside it is metadata, not content, even though it is not disambiguated by
+ * parent elsewhere). Any string field not explicitly recognized as metadata defaults to
+ * "content" — this keeps non-standard/unrecognized stream shapes (arbitrary JSON keys that
+ * match none of the known provider formats) from silently losing their text.
+ */
+export function classifyField(key: string, parentKey = ""): FieldCategory | null {
+  if (FIXED_CATEGORY_MAP[key]) {
+    return FIXED_CATEGORY_MAP[key];
+  }
+  if (key === "text" && parentKey === "reasoning_details") {
+    return "reasoning";
+  }
+  if (METADATA_KEYS.has(key)) {
+    return null;
+  }
+  return "content";
+}
+
+// Back-compat helper kept for any external caller expecting a category rather than `null`
+// for metadata; internal call sites use `classifyField` so they can skip metadata entirely.
 export function getFieldCategory(key: string): FieldCategory {
-  return CATEGORY_MAP[key] || "content";
+  return classifyField(key) ?? "content";
 }
 
 const STOP_EVENT_TYPES = new Set([
@@ -123,34 +185,18 @@ export function createSseTextTransform(
           const isStopSignal = checkIfStopSignal(json);
           const isSnapshot = checkIfSnapshot(json);
 
-          const METADATA_KEYS = [
-            "id",
-            "model",
-            "object",
-            "created",
-            "finish_reason",
-            "finishReason",
-            "role",
-            "type",
-            "index",
-            "stop_reason",
-            "stop_sequence",
-            "system_fingerprint",
-            "service_tier",
-            "usage",
-            "prompt_tokens",
-            "completion_tokens",
-            "total_tokens",
-            "input_tokens",
-            "output_tokens",
-            "logprobs",
-            "refusal",
-            "name",
-            "event",
-          ];
-
-          // Recursively sanitize all string properties (except system metadata)
-          const sanitizeObject = (obj: any, currentChoiceIdx = 0, currentToolIdx = 0) => {
+          // Recursively sanitize string properties, skipping recognized system metadata
+          // (`classifyField` returns null for METADATA_KEYS — `provider`,
+          // `native_finish_reason`, `reasoning_details[].format`, etc.). `parentKey` is the
+          // key of the enclosing object (unchanged across array-index recursion) so
+          // `classifyField` can tell `reasoning_details[].text` apart from ordinary content
+          // text. See issue #13488.
+          const sanitizeObject = (
+            obj: any,
+            currentChoiceIdx = 0,
+            currentToolIdx = 0,
+            parentKey = ""
+          ) => {
             if (!obj || typeof obj !== "object") return;
 
             let choiceIdx = currentChoiceIdx;
@@ -167,14 +213,15 @@ export function createSseTextTransform(
             }
 
             const compositeKey = `${choiceIdx}_${toolIdx}`;
+            const isArray = Array.isArray(obj);
 
             for (const key of Object.keys(obj)) {
-              if (METADATA_KEYS.includes(key)) {
-                continue;
-              }
               if (typeof obj[key] === "string") {
                 const val = obj[key];
-                const field: FieldCategory = getFieldCategory(key);
+                const field = classifyField(key, parentKey);
+                if (field === null) {
+                  continue;
+                }
                 if (field === "toolArgs" || field === "partialJson") {
                   obj[key] = val;
                   matched = true;
@@ -183,7 +230,7 @@ export function createSseTextTransform(
                 obj[key] = processor(val, field, isStopSignal, compositeKey, isSnapshot);
                 matched = true;
               } else if (typeof obj[key] === "object") {
-                sanitizeObject(obj[key], choiceIdx, toolIdx);
+                sanitizeObject(obj[key], choiceIdx, toolIdx, isArray ? parentKey : key);
               }
             }
           };

@@ -308,7 +308,7 @@ export function openaiToOpenAIResponsesRequest(
     if (role === "tool") {
       input.push({
         type: "function_call_output",
-        call_id: clampCallId(toString(msg.tool_call_id)),
+        call_id: clampCallId(toString(msg.tool_call_id).trim()),
         output:
           typeof msg.content === "string"
             ? msg.content
@@ -328,7 +328,7 @@ export function openaiToOpenAIResponsesRequest(
     if (role === "function") {
       input.push({
         type: "function_call_output",
-        call_id: clampCallId(`call_${toString(msg.name)}`),
+        call_id: clampCallId(`call_${toString(msg.name).trim()}`),
         output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
         status: "completed",
       });

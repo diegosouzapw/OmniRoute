@@ -79,6 +79,7 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/middleware/", // SECURITY_AUDIT M8: middleware hooks compile+run arbitrary JS via new vm.Script (src/lib/middleware/registry.ts) on the request hot path — same code-exec class as /api/plugins/, so loopback-gate it for parity (Hard Rules #15 + #17)
   "/api/system/version", // auto-update: spawns git checkout + npm install — RCE-via-tunnel surface (Hard Rules #15 + #17, found by 6A.8 route-guard gate)
   "/api/db-backups/exportAll", // spawns tar for export archive (Hard Rules #15 + #17, found by 6A.8 route-guard gate)
+  "/api/db/health", // runManagedDbHealthCheck() forks native diagnostics into a child process via healthCheckRunner.ts (Hard Rules #15 + #17, #13717)
   "/api/local/", // T-12: 1-click local service launchers (Redis today; spawns podman/docker) — loopback-enforced by isLocalRequestAllowed() in src/lib/security/localEndpoints.ts (Hard Rules #15 + #17)
   "/api/headroom/start", // Headroom token-saver proxy lifecycle: spawns headroom-ai python CLI (Hard Rules #15 + #17)
   "/api/headroom/stop", // Headroom token-saver proxy lifecycle: sends SIGTERM/SIGKILL to managed PID (Hard Rules #15 + #17)

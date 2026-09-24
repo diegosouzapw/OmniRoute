@@ -15,6 +15,10 @@ import { restoreClaudeToolName } from "../services/claudeCodeToolRemapper.ts";
 import { extractReplayableResponsesReasoningText } from "../services/reasoningInputPolicy.ts";
 import { sanitizeToolId } from "../translator/helpers/schemaCoercion.ts";
 import { stripEmptyOptionalToolArgs } from "../translator/response/openai-responses/pureHelpers.ts";
+import {
+  extractThinkingFromContent,
+  shouldParseTextualReasoningTags,
+} from "./responseSanitizer/reasoning.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -144,21 +148,24 @@ export function translateNonStreamingResponse(
   targetFormat: string,
   sourceFormat: string,
   toolNameMap?: Map<string, string> | null,
-  toolSchemas?: Map<string, JsonRecord> | null
+  toolSchemas?: Map<string, JsonRecord> | null,
+  requestedThinking?: boolean
 ): JsonRecord;
 export function translateNonStreamingResponse(
   responseBody: unknown,
   targetFormat: string,
   sourceFormat: string,
   toolNameMap?: Map<string, string> | null,
-  toolSchemas?: Map<string, JsonRecord> | null
+  toolSchemas?: Map<string, JsonRecord> | null,
+  requestedThinking?: boolean
 ): unknown;
 export function translateNonStreamingResponse(
   responseBody: unknown,
   targetFormat: string,
   sourceFormat: string,
   toolNameMap?: Map<string, string> | null,
-  toolSchemas?: Map<string, JsonRecord> | null
+  toolSchemas?: Map<string, JsonRecord> | null,
+  requestedThinking?: boolean
 ): unknown {
   // If already in source format, return as-is
   if (targetFormat === sourceFormat) {
@@ -571,6 +578,22 @@ export function translateNonStreamingResponse(
         }
       }
 
+      // #13558: MiniMax-M3's Anthropic-compatible endpoint puts its reasoning
+      // inline as <think>...</think> inside an ordinary "text" content block
+      // instead of a structured "thinking" block, so it never hit the
+      // thinkingContent accumulation above. Strip any such markup out of the
+      // accumulated text and merge it into thinkingContent, gated the same
+      // way the streaming/passthrough paths already are.
+      if (textContent && shouldParseTextualReasoningTags(undefined, root.model)) {
+        const extracted = extractThinkingFromContent(textContent);
+        textContent = extracted.content;
+        if (extracted.thinking) {
+          thinkingContent = thinkingContent
+            ? `${thinkingContent}\n\n${extracted.thinking}`
+            : extracted.thinking;
+        }
+      }
+
       // #9971: a content-less-but-valid Claude body (thinking / redacted_thinking
       // / tool_use-only, or a truncated extended-thinking-only stream) has blocks
       // but no final text. Surfacing it here helps correlate a live VPS capture
@@ -655,7 +678,11 @@ export function translateNonStreamingResponse(
 
   // Phase 3: Translate from OpenAI back to Client Source format
   if (sourceFormat === FORMATS.CLAUDE && sourceFormat !== targetFormat) {
-    return convertOpenAINonStreamingToClaude(toRecord(intermediateOpenAI), toolNameMap ?? null);
+    return convertOpenAINonStreamingToClaude(
+      toRecord(intermediateOpenAI),
+      toolNameMap ?? null,
+      requestedThinking
+    );
   }
 
   // Gemini-family clients (Gemini, Antigravity): the streaming SSE path already
@@ -701,7 +728,8 @@ function resolveReasoningText(messageObj: JsonRecord): string {
  */
 function convertOpenAINonStreamingToClaude(
   openaiResponse: JsonRecord,
-  toolNameMap?: Map<string, string> | null
+  toolNameMap?: Map<string, string> | null,
+  requestedThinking?: boolean
 ): JsonRecord {
   const choices = openaiResponse.choices as unknown[] | undefined;
   const isChoicesArray = Array.isArray(choices);
@@ -718,7 +746,16 @@ function convertOpenAINonStreamingToClaude(
   let hasTextOrReasoning = false;
 
   const reasoningText = resolveReasoningText(messageObj);
-  if (reasoningText) {
+  // `requestedThinking === false` (client explicitly opted out): mirror the
+  // streaming translator's gate. When ordinary content is present, reasoning
+  // is suppressed entirely (no thinking leak). When the response is
+  // reasoning-ONLY (empty content — the GLM-5.2 autocompact pattern), relay
+  // reasoning as an ordinary text block so the response is not empty (no 502)
+  // and no thinking block leaks to a thinking-opt-out client.
+  // `requestedThinking === undefined` (legacy callers that do not pass it)
+  // keeps the original "always a thinking block" relay.
+  const suppressThinking = requestedThinking === false;
+  if (reasoningText && !suppressThinking) {
     hasTextOrReasoning = true;
     content.push({
       type: "thinking",
@@ -735,6 +772,16 @@ function convertOpenAINonStreamingToClaude(
     content.push({
       type: "text",
       text: resolvedText === "" ? "(empty response)" : resolvedText,
+    });
+  } else if (suppressThinking && reasoningText) {
+    // Reasoning-ONLY response with thinking opted out (requestedThinking===false):
+    // no ordinary content, reasoning suppressed above. Relay the reasoning text as
+    // an ordinary text block so the response is not empty (no 502) and no thinking
+    // block leaks — mirrors the streaming translator's finish-time fallback.
+    hasTextOrReasoning = true;
+    content.push({
+      type: "text",
+      text: reasoningText,
     });
   } else if (!hasTextOrReasoning) {
     content.push({

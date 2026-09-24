@@ -256,6 +256,7 @@
     "max_restarts": "30 წამში ავარიული გათიშვის შემდეგ ხელახალი გაშვებების მაქსიმალური რაოდენობა დანებებამდე (ნაგულისხმევი: 2)",
     "tray": "სისტემურ უჯრაში გაშვება (მხოლოდ დესკტოპისთვის, სურვილისამებრ)",
     "no_tray": "სისტემური უჯრის ხატულის გამორთვა",
+    "ready_timeout": "მზადყოფნის შემოწმების მოლოდინის დრო მილიწამებში (ასევე OMNIROUTE_READY_TIMEOUT_MS, ნაგულისხმევად 60000)",
     "tls_cert": "HTTPS-ისთვის TLS სერტიფიკატის (PEM) გზა (ასევე OMNIROUTE_TLS_CERT)",
     "tls_key": "HTTPS-ისთვის TLS პირადი გასაღების (PEM) გზა (ასევე OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP სერვერი მუშაობს ({transport})",
     "stopped": "MCP სერვერი გაჩერდა.",
     "restarted": "MCP სერვერი გადაიტვირთა.",
+    "stoppedHint": "მის ჩასართავად გაუშვით `omniroute mcp enable`.",
+    "enabled": "MCP სერვერი ჩართულია.",
+    "disabled": "MCP სერვერი გამორთულია.",
+    "enable": {
+      "description": "MCP სერვერის ჩართვა",
+      "transport": "გამოსაყენებელი ტრანსპორტი: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP სერვერის გამორთვა"
+    },
     "call": {
       "description": "MCP ხელსაწყოს პირდაპირ გამოძახება",
       "args": "JSON არგუმენტების ობიექტი (ჩაშენებული)",

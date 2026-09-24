@@ -398,31 +398,38 @@ curl https://localhost:20128/api/cli-tools/all-statuses \
 
 POST cli tools › apply
 
+Submit the original toolId, apiKey, optional baseUrl/model and optional dryRun in the JSON body. Returned content is a redacted, non-cacheable preview, not an importable configuration. A non-dry-run request writes the original generated configuration; the container write guard remains active.
+
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/apply \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{}'
+  -d '{"toolId":"claude","apiKey":"<configuration-api-key>","dryRun":true}'
 ```
 
 ### GET /api/cli-tools/config
 
 GET cli tools › config
 
+Returns redacted, non-cacheable previews. Send the configuration API key in x-omniroute-config-api-key, separate from management authentication. API keys in query strings are rejected. Preview content must not be copied into a credential-bearing configuration or submitted as an apply payload.
+
 ```bash
 curl https://localhost:20128/api/cli-tools/config \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "x-omniroute-config-api-key: <configuration-api-key>"
 ```
 
 ### POST /api/cli-tools/config
 
 POST cli tools › config
 
+Submit toolId, apiKey and optional baseUrl/model as JSON. Unknown fields are rejected. Returned content is a redacted, non-cacheable preview, not an importable configuration. To apply, submit the original inputs to POST /api/cli-tools/apply instead of replaying the preview content.
+
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/config \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{}'
+  -d '{"toolId":"claude","apiKey":"<configuration-api-key>"}'
 ```
 
 ### GET /api/cli-tools/deepseek-tui-settings

@@ -37,8 +37,12 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   bedrock: () => import("./bedrock.ts").then((m) => new m.BedrockExecutor()),
   codex: () => import("./codex.ts").then((m) => new m.CodexExecutor()),
   "codex-app-server": () =>
-    import("./codex-app-server.ts").then(
-      (m) => new m.CodexAppServerExecutor({}, "codex-app-server")
+    Promise.all([import("./codex-app-server.ts"), import("./codex.ts")]).then(
+      ([appServer, codex]) =>
+        new appServer.CodexAppServerExecutor(
+          { websocketFn: codex.getCodexAppServerWebsocketTransport() },
+          "codex-app-server"
+        )
     ),
   maxai: () => import("./maxai.ts").then((m) => new m.MaxAiExecutor()),
   uc: () => import("./uc.ts").then((m) => new m.UcExecutor()),
@@ -159,8 +163,6 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   db: () => import("./doubao-web.ts").then((m) => new m.DoubaoWebExecutor()), // Alias
   "zai-web": () => import("./zai-web.ts").then((m) => new m.ZaiWebExecutor()),
   zw: () => import("./zai-web.ts").then((m) => new m.ZaiWebExecutor()), // Alias
-  chipotle: () => import("./chipotle.ts").then((m) => new m.ChipotleExecutor()),
-  pepper: () => import("./chipotle.ts").then((m) => new m.ChipotleExecutor()), // Alias
   lmarena: () => import("./lmarena.ts").then((m) => new m.LMArenaExecutor()),
   lma: () => import("./lmarena.ts").then((m) => new m.LMArenaExecutor()), // Alias
   "grok-cli": () => import("./grok-cli.ts").then((m) => new m.GrokCliExecutor()),

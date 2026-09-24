@@ -285,12 +285,15 @@ export function detectTestKind(modelStr: string, customModel: any, nodeApiType?:
     !isRerank &&
     (apiFormat === "embeddings" ||
       nodeType === "embeddings" ||
+      customModel?.modelType === "embedding" ||
       supportedEndpoints.includes("embeddings") ||
       lowerModel.includes("embedding") ||
       lowerModel.includes("bge-") ||
       lowerModel.includes("text-embed") ||
       lowerModel.includes("jina-clip") ||
-      lowerModel.includes("colbert"));
+      lowerModel.includes("colbert") ||
+      lowerModel.includes("harrier-") ||
+      lowerModel.includes("nomic-embed"));
   // A Responses node answers on /v1/responses only. Without this the model fell
   // through to the chat branch below, which posts a Chat Completions body to
   // /v1/chat/completions: the route can still answer 200 while carrying nothing a
