@@ -15,6 +15,7 @@ import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegis
 import {
   getAllImageModels,
   isRegisteredImageModel,
+  parseImageModel,
 } from "@omniroute/open-sse/config/imageRegistry";
 import { aiHordeImageCatalog } from "@omniroute/open-sse/services/aihordeImageCatalog";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
@@ -103,6 +104,7 @@ import {
   maybeOmitCatalogModelName,
   getThinkingCapabilityFields,
   mergeComboCapabilities,
+  visionDerivedModalities,
   getConnectionScopedEffortTiers,
   type ConnectionScopedReasoningCatalog,
   memoizeTargetMetadata,
@@ -123,6 +125,7 @@ import {
   getProviderPrefixes as getProviderPrefixesFromMaps,
   getComboTargetModelId as getComboTargetModelIdFromMaps,
 } from "./catalogProviderMaps";
+import { indexNodeApiTypes, nodeModelEndpoints, overlayEndpoints } from "./catalogNodeModality";
 import {
   getModelCatalogAuthRejection,
   isCodexModelCatalogClient,
@@ -394,6 +397,7 @@ async function buildUnifiedModelsResponseCore(
     const providerIdToPrefix: Record<string, string> = {};
     const providerNodeIdByPrefix: Record<string, string> = {};
     const nodeIdToProviderType: Record<string, string> = {};
+    const nodeApiTypes = indexNodeApiTypes(providerNodes);
     for (const node of providerNodes) {
       const resolvedPrefix =
         node.prefix?.trim() ||
@@ -793,8 +797,7 @@ async function buildUnifiedModelsResponseCore(
         ...(contextLength ? { context_length: contextLength } : {}),
         ...(maxInputTokens ? { max_input_tokens: maxInputTokens } : {}),
         ...(maxOutputTokens ? { max_output_tokens: maxOutputTokens } : {}),
-        ...(inputModalities.length > 0 ? { input_modalities: inputModalities } : {}),
-        ...(outputModalities.length > 0 ? { output_modalities: outputModalities } : {}),
+        ...visionDerivedModalities(capabilities, inputModalities, outputModalities), // #12798
         ...(Object.keys(capabilities).length > 0 ? { capabilities } : {}),
       };
     };
@@ -1266,7 +1269,7 @@ async function buildUnifiedModelsResponseCore(
               : sm.id;
 
           const aliasId = `${alias}/${displayModelId}`;
-          const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
+          const endpoints = nodeModelEndpoints(sm.supportedEndpoints, nodeApiTypes[providerId]);
           const apiFormat = typeof sm.apiFormat === "string" ? sm.apiFormat : "chat-completions";
           const classification = classifyModelSupportedEndpoints(endpoints);
           const modelType = classification.type;
@@ -1538,7 +1541,11 @@ async function buildUnifiedModelsResponseCore(
     }
     for (const imgModel of getAllImageModels()) {
       if (!isProviderActive(imgModel.provider)) continue;
-      const rawModelId = getSpecialtyModelRelativeId(imgModel.id, imgModel.provider);
+      const parsedImageModel = parseImageModel(imgModel.id);
+      const rawModelId =
+        parsedImageModel.provider === imgModel.provider && parsedImageModel.model
+          ? parsedImageModel.model
+          : getSpecialtyModelRelativeId(imgModel.id, imgModel.provider);
       if (!providerSupportsModel(imgModel.provider, rawModelId)) continue;
       if (isModelHiddenBulk(imgModel.provider, rawModelId, null, "images")) continue;
       models.push({
@@ -1735,7 +1742,7 @@ async function buildUnifiedModelsResponseCore(
               id: aliasId,
               ...(typeof model.name === "string" ? { name: model.name } : {}),
               ...(apiFormat ? { api_format: apiFormat } : {}),
-              ...(endpoints ? { supported_endpoints: endpoints } : {}),
+              ...overlayEndpoints(endpoints),
               ...(typeof model.inputTokenLimit === "number"
                 ? { context_length: model.inputTokenLimit }
                 : {}),
@@ -1748,10 +1755,7 @@ async function buildUnifiedModelsResponseCore(
             continue;
           }
 
-          // Determine type from supportedEndpoints
-          const endpoints = Array.isArray(model.supportedEndpoints)
-            ? model.supportedEndpoints
-            : ["chat"];
+          const endpoints = nodeModelEndpoints(model.supportedEndpoints, nodeApiTypes[providerId]);
           const apiFormat =
             typeof model.apiFormat === "string" ? model.apiFormat : "chat-completions";
           const classification = classifyModelSupportedEndpoints(endpoints);

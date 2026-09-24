@@ -8,7 +8,7 @@ import { generateClineConfig } from "./cline";
 import { generateCodexConfig, findLegacyCodexYaml } from "./codex";
 import { generateContinueConfig } from "./continue";
 import { generateHermesConfig } from "./hermes";
-import { generateHermesAgentConfig, type HermesAgentConfigPayload } from "./hermes-agent";
+import { generateHermesAgentConfig } from "./hermes-agent";
 import { generateKilocodeConfig } from "./kilocode";
 import { generateOpencodeConfig } from "./opencode";
 import { generateWhyCodesConfig } from "./whycodes";
@@ -30,6 +30,8 @@ export interface GenerateResult {
   migration?: string;
 }
 
+export { redactGeneratedConfig } from "../configPreview";
+
 export function validateBaseUrl(url: string): boolean {
   try {
     const u = new URL(url);
@@ -37,11 +39,6 @@ export function validateBaseUrl(url: string): boolean {
   } catch {
     return false;
   }
-}
-
-function expandHome(p: string): string {
-  const home = os.homedir();
-  return p.replace(/^~\//, home + "/");
 }
 
 // Static paths that do not depend on runtime env vars can stay eagerly computed.

@@ -1,10 +1,10 @@
 # API Reference (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **ဘာသာစကားများ:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 OmniRoute API အတွက် အဓိကကိုးကားချက်ဖြစ်သည်။ ၎င်းတွင် အများပြည်သူအသုံးပြုနိုင်သော `/v1` မျက်နှာပြင်နှင့် အသုံးအများဆုံး စီမံခန့်ခွဲမှု endpoint များကို ဖော်ပြထားသည်။ စက်ဖြင့်ဖတ်ရှုနိုင်သော [`docs/openapi.yaml`](../openapi.yaml) နှင့် `src/app/api/` အောက်ရှိ route tree တို့သည် အပြည့်အစုံပါဝင်သော ကိုးကားရင်းမြစ်များဖြစ်သည်။
 
@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **Cache-hit ကုန်ကျစရိတ် အဓိပ္ပာယ်သတ်မှတ်ချက်:** semantic-cache HIT (`X-OmniRoute-Cache-Hit: true`) ဖြစ်သည့်အခါ upstream ခေါ်ဆိုမှု မပြုလုပ်သောကြောင့် `X-OmniRoute-Response-Cost` သည် `0.0000000000` ဖြစ်သည် (hit ကို ဝန်ဆောင်မှုပေးရန် ကုန်ကျသည့် **ထပ်တိုး** ကုန်ကျစရိတ်)။ မူလကုန်ကျစရိတ်/ဖြစ်လာနိုင်ခဲ့သည့် ကုန်ကျစရိတ်ကို `X-OmniRoute-Cost-Saved` တွင် သီးခြားဖော်ပြသည်။ ငွေတောင်းခံမှုကို အသုံးပြုသည့်စနစ်များသည် `X-OmniRoute-Response-Cost` ကို စုစုပေါင်းတွက်ချက်သင့်သည် (hit များအတွက် ကုန်ကျစရိတ်မရှိပါ)။ cache ခွဲခြမ်းစိတ်ဖြာမှုများတွင် `X-OmniRoute-Cost-Saved` ကို စုစည်းတွက်ချက်နိုင်သည်။
 
-## သီးသန့် စီမံခန့်ခွဲထားသော Session Lease များ
+## သီးသန့်စီမံခန့်ခွဲထားသော Session Leases များ
 
-သီးသန့် စီမံခန့်ခွဲထားသော session leasing သည် ရွေးချယ်အသုံးပြုနိုင်ပြီး client နှင့် မသက်ဆိုင်သည့် routing contract တစ်ခုဖြစ်သည်။ လက်ရှိ owner တစ်ဦးသည် သတ်မှတ်ချက်နှင့် ကိုက်ညီသော OmniRoute connection တစ်ခုကို ထိန်းသိမ်းထားသည်။ ၎င်းသည် model တစ်ခုကို lease လုပ်ခြင်းမဟုတ်သကဲ့သို့ OAuth ကိုလည်း မလိုအပ်ပါ၊ သီးခြား client တစ်ခုကိုလည်း ဖော်ထုတ်သတ်မှတ်ခြင်းမရှိသလို သီးခြား provider တစ်ခုကိုလည်း မလိုအပ်ပါ။
+သီးသန့်စီမံခန့်ခွဲထားသော session leasing သည် ရွေးချယ်နိုင်သော၊ client-ကြားနေ routing စာချုပ်တစ်ခုဖြစ်သည်- တက်ကြွသောပိုင်ရှင်တစ်ဦးသည် အရည်အချင်းပြည့်မီသော OmniRoute ချိတ်ဆက်မှုတစ်ခုကို ပိုင်ဆိုင်သည်။ ၎င်းသည် မော်ဒယ်တစ်ခုကို ငှားရမ်းခြင်း၊ OAuth လိုအပ်ခြင်း၊ သီးခြား client တစ်ခုကို ခွဲခြားသတ်မှတ်ခြင်း သို့မဟုတ် သီးခြား provider တစ်ခုကို လိုအပ်ခြင်း မရှိပါ။
 
-အထောက်အထားစိစစ်ရန် အသုံးပြုသော API key တွင် scope `lease:exclusive` နှင့် အလွတ်မဟုတ်ကြောင်း အတိအလင်း သတ်မှတ်ထားသော `allowedConnections` စာရင်း ရှိရမည်။ Database mutation boundary သည် key ဖန်တီးမှုနှင့် တစ်စိတ်တစ်ပိုင်း update များတွင် field နှစ်ခုစလုံးကို တွဲဖက်၍ မဖြစ်မနေ သတ်မှတ်ထားစေသည်။
+စစ်မှန်ကြောင်းအထောက်အထားပြ API key တွင် `lease:exclusive` scope နှင့် ရှင်းလင်းသော အချည်းနှီးမဟုတ်သော `allowedConnections` စာရင်းရှိရမည်။ ဒေတာဘေ့စ်ပြောင်းလဲမှု နယ်နိမိတ်သည် key ဖန်တီးမှုနှင့် တစ်စိတ်တစ်ပိုင်း အပ်ဒိတ်များတွင် အကွက်နှစ်ခုလုံးကို အတူတကွ အကောင်အထည်ဖော်သည်။
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-အောင်မြင်သော acquire၊ renew နှင့် release response များသည် timestamp များ၊ `state` နှင့် အတိအကျ အပေါင်းတန်ဖိုးရှိသော `generation` ကို ဖော်ပြပေးသော်လည်း ရွေးချယ်ထားသည့် connection သို့မဟုတ် credential များကို မည်သည့်အခါမျှ မဖော်ပြပါ။ Renew နှင့် release တို့သည် generation ကို JSON body ထဲတွင် ပေးပို့သည်-
+အောင်မြင်စွာ ရယူခြင်း၊ သက်တမ်းတိုးခြင်းနှင့် ထုတ်ပြန်ခြင်း တုံ့ပြန်မှုများသည် အချိန်တံဆိပ်များ၊ `state` နှင့် တိကျသော အပြုသဘောဆောင်သော `generation` ကို ဖော်ပြသော်လည်း ရွေးချယ်ထားသော ချိတ်ဆက်မှု သို့မဟုတ် အထောက်အထားများကို မည်သည့်အခါမျှ မဖော်ပြပါ။ သက်တမ်းတိုးခြင်းနှင့် ထုတ်ပြန်ခြင်းတို့သည် JSON body တွင် generation ကို ပံ့ပိုးပေးသည်-
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-လက်ရှိ lease owner သည် ၎င်း၏ လက်ရှိ binding အတွက် privacy-safe display metadata ကို အတိအလင်း တောင်းဆိုနိုင်သည်-
+တက်ကြွသော lease ပိုင်ရှင်တစ်ဦးသည် ၎င်း၏လက်ရှိ binding အတွက် privacy-safe display metadata ကို ရှင်းလင်းစွာ တောင်းဆိုနိုင်သည်။
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-ဤရွေးချယ်အသုံးပြုရသော status action ကို database transaction တစ်ခုတည်းအတွင်း opaque owner၊ အထောက်အထားစိစစ်ပြီးသော managed API key နှင့် အတိအကျ လက်ရှိအသုံးပြုနေသော generation တို့ဖြင့် fence လုပ်ထားသည်။ `displayName` သည် အစနှင့်အဆုံး whitespace များကို ဖြတ်တောက်ထားသော configured connection name သာဖြစ်ပြီး လုံခြုံစွာ အသုံးပြုနိုင်သည့် configured name မရှိသောအခါ `null` ဖြစ်သည်။ OmniRoute သည် email သို့မဟုတ် ထုတ်လုပ်ဖန်တီးထားသော account identity ကို မည်သည့်အခါမျှ အစားထိုးအသုံးမပြုပါ။ Provider value သည် sensitive မဖြစ်သော display label တစ်ခုဖြစ်ပြီး ထုတ်လုပ်ဖန်တီးထားသော compatible-provider identifier မဟုတ်ပါ။ Credential များ၊ token များ၊ cookie များ၊ မူရင်း connection သို့မဟုတ် API key id များ၊ owner hash များ၊ fencing secret များနှင့် internal routing data များကို ထည့်သွင်းမထားပါ။
+ဤရွေးချယ်နိုင်သော status လုပ်ဆောင်ချက်ကို ပိုင်ရှင်၊ စစ်မှန်ကြောင်းအထောက်အထားပြထားသော စီမံခန့်ခွဲထားသော API key နှင့် ဒေတာဘေ့စ် transaction တစ်ခုတည်းရှိ တိကျသော တက်ကြွသော generation တို့ဖြင့် ကာရံထားသည်။ `displayName` သည် ဖြတ်တောက်ထားသော စီစဉ်သတ်မှတ်ထားသော ချိတ်ဆက်မှုအမည်သာဖြစ်သည်။ ဘေးကင်းသော စီစဉ်သတ်မှတ်ထားသော အမည်မရှိပါက ၎င်းသည် `null` ဖြစ်သည်။ OmniRoute သည် အီးမေးလ် သို့မဟုတ် ထုတ်လုပ်ထားသော အကောင့်အထောက်အထားကို မည်သည့်အခါမျှ အစားထိုးခြင်းမရှိပါ။ provider တန်ဖိုးသည် အထိခိုက်မခံသော display label ဖြစ်ပြီး ထုတ်လုပ်ထားသော တွဲဖက်သုံးနိုင်သော-provider identifier မဟုတ်ပါ။ အထောက်အထားများ၊ တိုကင်များ၊ ကွတ်ကီးများ၊ ကုန်ကြမ်းချိတ်ဆက်မှု သို့မဟုတ် API key id များ၊ ပိုင်ရှင် hashes များ၊ fencing secrets များနှင့် အတွင်းပိုင်း routing ဒေတာများကို ချန်လှပ်ထားသည်။
 
-မှားယွင်းသော key၊ မှားယွင်းသော owner၊ သက်တမ်းနောက်ကျနေသော generation၊ မရှိတော့သော၊ သက်တမ်းကုန်ဆုံးသော၊ release လုပ်ထားသောနှင့် invalidate လုပ်ထားသော lookup များအားလုံးသည် connection metadata မပါဘဲ တူညီသော `409 LEASE_FENCE_STALE` error ကို ပြန်ပေးသည်။ Capacity-wait response ကို ရရှိထားသော client တွင် စစ်ဆေးကြည့်ရှုနိုင်သည့် လက်ရှိ binding မရှိပါ။ Routing က လက်ရှိ lease တစ်ခုကို ပြောင်းလဲသောအခါ တူညီသော generation သည် ဆက်လက်အကျုံးဝင်ပြီး status က binding အသစ်ကို atomically ပြန်ပေးကာ အဟောင်းကို မည်သည့်အခါမျှ ပြန်မပေးပါ။ Acquire၊ renew၊ release နှင့် waiting response များသည် ၎င်းတို့၏ ယခင်ပုံစံများကို ဆက်လက်ထိန်းသိမ်းထားသောကြောင့် ရှိပြီးသား client များမှာ မပြောင်းလဲပါ။
+မှားယွင်းသော key၊ မှားယွင်းသော ပိုင်ရှင်၊ ခေတ်နောက်ကျနေသော generation၊ ပျောက်ဆုံးနေသော၊ သက်တမ်းကုန်ဆုံးနေသော၊ ထုတ်ပြန်ထားသော၊ နှင့် အတည်မပြုနိုင်သော ရှာဖွေမှုများအားလုံးသည် ချိတ်ဆက်မှု metadata မပါဘဲ တူညီသော `409 LEASE_FENCE_STALE` အမှားကို ပြန်ပေးသည်။ capacity-wait တုံ့ပြန်မှုကို လက်ခံရရှိသော client တွင် စစ်ဆေးရန် တက်ကြွသော binding မရှိပါ။ routing သည် တက်ကြွသော lease ကို ပြောင်းလဲသောအခါ၊ တူညီသော generation သည် ဆက်လက်မှန်ကန်နေပြီး status သည် အသစ်သော binding ကို အလိုအလျောက် ပြန်ပေးသည်၊ အဟောင်းကို မည်သည့်အခါမျှ မပြန်ပေးပါ။ ရှိပြီးသား client များသည် မပြောင်းလဲဘဲ ရှိနေသည်၊ အဘယ်ကြောင့်ဆိုသော် ရယူခြင်း၊ သက်တမ်းတိုးခြင်း၊ ထုတ်ပြန်ခြင်းနှင့် စောင့်ဆိုင်းနေသော တုံ့ပြန်မှုများသည် ၎င်းတို့၏ ယခင်ပုံစံများကို ထိန်းသိမ်းထားသောကြောင့်ဖြစ်သည်။
 
-ဤ server contract သည် မူရင်း OpenAI Codex `/status` ကို မပြောင်းလဲပါ။ လက်ရှိ မူရင်း Codex သည် ၎င်း၏ model provider နှင့် ထည့်သွင်းပေးထားသော authentication/account state ကို အစီရင်ခံသော်လည်း မည်သည့် arbitrary custom provider account metadata ကိုမဆို ပြသပေးခြင်းမရှိပါ။ နောင် client integration တစ်ခုသည် ဤ action ကို ခေါ်ယူပြီး `connection.displayName` ကို မည်သို့ပြသရမည်ကို ဆုံးဖြတ်ရမည်။
+ဤဆာဗာစာချုပ်သည် စတော့ခ် OpenAI Codex `/status` ကို မပြောင်းလဲပါ။ စတော့ခ် Codex သည် ၎င်း၏မော်ဒယ် provider နှင့် built-in authentication/account state ကို လက်ရှိတွင် အစီရင်ခံသော်လည်း မည်သည့်စိတ်ကြိုက် provider account metadata ကိုမျှ မဖော်ပြပါ။ နောက်ပိုင်း client ပေါင်းစည်းမှုတစ်ခုသည် ဤလုပ်ဆောင်ချက်ကို ခေါ်ဆိုပြီး `connection.displayName` ကို မည်သို့ပြသရမည်ကို ဆုံးဖြတ်ရမည်ဖြစ်သည်။
 
-ထို့နောက် managed inference request တိုင်းသည် control header နှစ်ခုလုံးကို ပေးပို့သည်-
+စီမံခန့်ခွဲထားသော inference တောင်းဆိုမှုတိုင်းသည် ထိန်းချုပ်မှုခေါင်းစီးနှစ်ခုလုံးကို ပံ့ပိုးပေးသည်-
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-အတိအကျ owner၊ generation၊ လက်ရှိ connection နှင့် အထောက်အထားစိစစ်ပြီးသော API key တို့ကို ပံ့ပိုးထားသည့် upstream attempt တစ်ခုစီမတိုင်မီ ချက်ချင်း fence လုပ်သည်။ အခြား key က တူညီသော connection ကို ခွင့်ပြုထားသည့်တိုင် ထို key ဖြင့် owner နှင့် generation ကို ပြန်လည်အသုံးပြုခြင်းသည် မအောင်မြင်ပါ။ မူရင်း owner များကို အမြဲတမ်းသိမ်းဆည်းခြင်း၊ log မှတ်တမ်းတင်ခြင်း၊ request snapshot တွင် ထိန်းသိမ်းထားခြင်း သို့မဟုတ် upstream သို့ လွှဲပို့ခြင်း မပြုပါ။
+တိကျသောပိုင်ရှင်၊ generation၊ တက်ကြွသောချိတ်ဆက်မှုနှင့် စစ်မှန်ကြောင်းအထောက်အထားပြထားသော API key တို့ကို ပံ့ပိုးထားသော upstream ကြိုးပမ်းမှုတစ်ခုစီမတိုင်မီ ချက်ချင်းကာရံထားသည်။ အခြား key တစ်ခုဖြင့် ပိုင်ရှင်နှင့် generation ကို ပြန်လည်ဖွင့်ခြင်းသည် ထို key သည် တူညီသောချိတ်ဆက်မှုကို ခွင့်ပြုသည့်တိုင် မအောင်မြင်ပါ။ ကုန်ကြမ်းပိုင်ရှင်များကို မသိမ်းဆည်းထားပါ၊ မှတ်တမ်းတင်ထားခြင်းမရှိပါ၊ တောင်းဆိုမှု snapshot တွင် ထိန်းသိမ်းထားခြင်းမရှိပါ သို့မဟုတ် upstream သို့ ပေးပို့ခြင်းမရှိပါ။
 
-ယာယီ အပြိုင်အသုံးပြုမှု ပဋိပက္ခဖြစ်ခြင်းအတွက် HTTP `429` ကို `Retry-After` နှင့်အတူ ပြန်ပေးသည်-
+ယာယီပြိုင်ဆိုင်မှုသည် HTTP `429` ကို `Retry-After` နှင့်အတူ ပြန်ပေးသည်-
 
 ```json
 {
@@ -157,33 +157,35 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-ဤ response သည် ပုံမှန် သတ်မှတ်ချက်နှင့်ကိုက်ညီသော set သည် အလွတ်မဟုတ်ခဲ့ပြီး လွတ်နေသော candidate တိုင်းကို အခြား active lease တစ်ခုက ထိန်းသိမ်းထားသည်ဟုသာ ဆိုလိုသည်။ ပံ့ပိုးမထားသော model/provider များ၊ policy မကိုက်ညီမှု၊ cooldown၊ quota၊ health နှင့် အခြားပုံမှန် eligibility failure များသည် ၎င်းတို့၏ ရှိပြီးသား OmniRoute response များကို ဆက်လက်ထိန်းသိမ်းထားသည်။
+ဤတုံ့ပြန်မှုသည် သာမန်အရည်အချင်းပြည့်မီသော အစုံသည် အချည်းနှီးမဟုတ်ဘဲ လွတ်လပ်သော ကိုယ်စားလှယ်လောင်းတိုင်းကို ပြင်ပတက်ကြွသော lease တစ်ခုက ပိုင်ဆိုင်ထားကြောင်းသာ ဆိုလိုသည်။ ပံ့ပိုးမထားသော မော်ဒယ်များ/ပံ့ပိုးသူများ၊ မူဝါဒမကိုက်ညီမှု၊ cooldown၊ quota၊ ကျန်းမာရေးနှင့် အခြားသာမန်အရည်အချင်းပြည့်မီမှု ပျက်ကွက်မှုများသည် ၎င်းတို့၏ရှိပြီးသား OmniRoute တုံ့ပြန်မှုများကို ထိန်းသိမ်းထားသည်။
 
 ### `x-omniroute-compression`
 
-Request တစ်ခုချင်းစီအလိုက် compression plan ကို override လုပ်ခြင်းဖြစ်သည်။ ဦးစားပေးမှု အမြင့်ဆုံးဖြစ်ပြီး routing-combo override၊ active profile၊ auto-trigger နှင့် panel Default တို့ထက် ဦးစားပေးသည်။ Value များ-
+compression plan ကို တောင်းဆိုမှုတစ်ခုစီအတွက် ပြန်လည်ပြင်ဆင်ခြင်း။ အမြင့်ဆုံးဦးစားပေး — routing-combo override၊ active profile၊ auto-trigger နှင့် panel Default တို့ကို ကျော်လွန်သည်။ တန်ဖိုးများ-
 
-| Value         | အကျိုးသက်ရောက်မှု                                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `off`         | ဤ request အတွက် compression မပြုပါ။                                                                                            |
-| `default`     | Panel မှ ဆင်းသက်လာသော Default profile ဖြစ်သည် (active profile ကို လျစ်လျူရှုသည်)။                                              |
-| `engine:<id>` | ဖွင့်ထားသောအခါ engine တစ်ခုတည်း၊ ဥပမာ `engine:rtk`။                                                                            |
-| `<combo>`     | အမည်ပေးထားသော combo တစ်ခုဖြစ်ပြီး ပထမဦးစွာ name ဖြင့် (စာလုံးအကြီးအသေးမခွဲဘဲ) တိုက်ဆိုင်စစ်ဆေးကာ ထို့နောက် id ဖြင့် စစ်ဆေးသည်။ |
+| တန်ဖိုး       | အကျိုးသက်ရောက်မှု                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `off`         | ဤတောင်းဆိုမှုအတွက် compression မရှိပါ။                                                                           |
+| `default`     | panel-derived Default profile (active profile ကို လျစ်လျူရှုသည်)။ Lossy engines များကို ပိတ်ထားသည်။              |
+| `safe`        | Dedup နှင့် whitespace folding သာ။                                                                               |
+| `allow-lossy` | ဤတောင်းဆိုမှုအတွက် operator plan ကို ထိန်းသိမ်းထားပါ၊ အကျဉ်းချုပ်များနှင့် style rewrites များအပါအဝင်။           |
+| `engine:<id>` | ဖွင့်ထားသည့်အခါ engine တစ်ခုတည်း၊ ဥပမာ `engine:rtk`။ ထို engine အတွက် တောင်းဆိုမှုတစ်ခုစီအတွက် ရွေးချယ်နိုင်သော။ |
+| `<combo>`     | အမည်ဖြင့် ကိုက်ညီသော combo တစ်ခု (case-insensitive) ဦးစွာ၊ ထို့နောက် id ဖြင့်။                                   |
 
-မှတ်ချက်များ-
+မှတ်စုများ-
 
-- မသိသော value များကို လျစ်လျူရှုသည် (request ကို မည်သည့်အခါမျှ ပယ်ချမည်မဟုတ်ပါ)။ Resolution သည် ပုံမှန် operator precedence သို့ ဆက်လက်ကျသွားသည်။
-- Combo အများအပြားသည် တူညီသော name ကို မျှဝေထားပါက တိကျသေချာစွာ တိုက်ဆိုင်မှုရရှိရန် combo **id** ကို ပေးပို့ပါ။
-- Name က `off` သို့မဟုတ် `default` ဖြစ်သော combo ကို name ဖြင့် ရွေးချယ်၍မရပါ (ထို keyword များကို ပထမဦးစွာ အဓိပ္ပာယ်ဖော်သည်)။ ထိုသို့သော combo ကို ၎င်း၏ id ဖြင့် ကိုးကားပါ။
-- Master compression switch သည် မဖြစ်မနေဖြတ်သန်းရသော gate ဖြစ်သည်။ Compression ကို global အဆင့်တွင် ပိတ်ထားပါက ဤ header က ၎င်းကို ဖွင့်၍မရပါ။
+- မသိသောတန်ဖိုးများကို လျစ်လျူရှုသည် (တောင်းဆိုမှုကို မည်သည့်အခါမျှ ပယ်ချခြင်းမရှိပါ)။ ဖြေရှင်းချက်သည် ပုံမှန် operator ဦးစားပေးသို့ ကျရောက်သည်။
+- combo များစွာသည် အမည်တစ်ခုကို မျှဝေပါက၊ တိကျသော ကိုက်ညီမှုအတွက် combo **id** ကို ပေးပါ။
+- အမည် `off` သို့မဟုတ် `default` ဖြစ်သော combo တစ်ခုကို အမည်ဖြင့် ရွေးချယ်၍မရပါ (ထိုသော့ချက်စာလုံးများကို ဦးစွာ အဓိပ္ပာယ်ဖွင့်ဆိုသည်)။ ထိုကဲ့သို့သော combo ကို ၎င်း၏ id ဖြင့် ရည်ညွှန်းပါ။
+- master compression switch သည် ခက်ခဲသော gate တစ်ခုဖြစ်သည်- compression ကို ကမ္ဘာလုံးဆိုင်ရာ ပိတ်ထားသောအခါ၊ ဤခေါင်းစီးသည် ၎င်းကို ဖွင့်၍မရပါ။
 
-အသုံးပြုထားသော plan ကို response header တွင် ပြန်လည်ဖော်ပြသည်-
+အသုံးပြုထားသော plan ကို တုံ့ပြန်မှုခေါင်းစီးတွင် ပြန်လည်ဖော်ပြသည်-
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-ဤနေရာတွင် `<source>` သည် `request-header`၊ `routing-override`၊ `active-profile`၊ `auto-trigger`၊ `default` သို့မဟုတ် `off` တို့ထဲမှ တစ်ခုဖြစ်သည်။
+`<source>` သည် `request-header`၊ `routing-override`၊ `active-profile`၊ `auto-trigger`၊ `default` သို့မဟုတ် `off` တို့မှ တစ်ခုဖြစ်သည်။
 
 ---
 
@@ -415,54 +417,54 @@ Sidecar တစ်ခုသည် out-of-process အနေဖြင့် လည�
 
 ---
 
-## လိုက်ဖက်ညီမှု Endpoint များ
+## ကိုက်ညီမှုရှိသော Endpoint များ
 
-| နည်းလမ်း | လမ်းကြောင်း                               | ဖော်မတ်                                     |
-| -------- | ----------------------------------------- | ------------------------------------------- |
-| POST     | `/v1/chat/completions`                    | OpenAI                                      |
-| POST     | `/v1/messages`                            | Anthropic                                   |
-| POST     | `/v1/responses`                           | OpenAI Responses                            |
-| POST     | `/v1/embeddings`                          | OpenAI                                      |
-| POST     | `/v1/images/generations`                  | OpenAI Images                               |
-| POST     | `/v1/images/edits`                        | OpenAI Images (တည်းဖြတ်ခြင်း/inpaint)       |
-| POST     | `/v1/videos/generations`                  | OpenAI ပုံစံ ဗီဒီယိုဖန်တီးခြင်း             |
-| POST     | `/v1/music/generations`                   | OpenAI ပုံစံ တေးဂီတဖန်တီးခြင်း              |
-| POST     | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                          |
-| POST     | `/v1/audio/speech`                        | OpenAI TTS (audio body ကို ပြန်ပေးသည်)      |
-| POST     | `/v1/rerank`                              | Cohere/Voyage ပုံစံ ပြန်လည်အစီအစဉ်ချခြင်း   |
-| POST     | `/v1/classify`                            | Jina အမျိုးအစားခွဲခြားခြင်း (`api.jina.ai`) |
-| POST     | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)          |
-| POST     | `/v1/moderations`                         | OpenAI Moderations                          |
-| GET      | `/v1/models`                              | OpenAI                                      |
-| POST     | `/v1/messages/count_tokens`               | Anthropic                                   |
-| GET      | `/v1beta/models`                          | Gemini                                      |
-| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                      |
-| POST     | `/v1/api/chat`                            | Ollama                                      |
-| GET      | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias                        |
-| GET      | `/api/v1/vscode/{token}/models`           | OpenAI models alias                         |
-| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias                      |
-| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenized alias            |
-| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias                      |
-| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias                 |
+| နည်းလမ်း | လမ်းကြောင်း                               | ဖော်မတ်                               |
+| -------- | ----------------------------------------- | ------------------------------------- |
+| POST     | `/v1/chat/completions`                    | OpenAI                                |
+| POST     | `/v1/messages`                            | Anthropic                             |
+| POST     | `/v1/responses`                           | OpenAI Responses                      |
+| POST     | `/v1/embeddings`                          | OpenAI                                |
+| POST     | `/v1/images/generations`                  | OpenAI Images                         |
+| POST     | `/v1/images/edits`                        | OpenAI Images (တည်းဖြတ်ခြင်း/inpaint) |
+| POST     | `/v1/videos/generations`                  | OpenAI ပုံစံ ဗီဒီယိုထုတ်လုပ်ခြင်း     |
+| POST     | `/v1/music/generations`                   | OpenAI ပုံစံ တေးဂီတထုတ်လုပ်ခြင်း      |
+| POST     | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                    |
+| POST     | `/v1/audio/speech`                        | OpenAI TTS (အသံ body ကို ပြန်ပေးသည်)  |
+| POST     | `/v1/rerank`                              | Cohere/Voyage ပုံစံ rerank            |
+| POST     | `/v1/classify`                            | Jina classify (`api.jina.ai`)         |
+| POST     | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)    |
+| POST     | `/v1/moderations`                         | OpenAI Moderations                    |
+| GET      | `/v1/models`                              | OpenAI                                |
+| POST     | `/v1/messages/count_tokens`               | Anthropic                             |
+| GET      | `/v1beta/models`                          | Gemini                                |
+| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                |
+| POST     | `/v1/api/chat`                            | Ollama                                |
+| GET      | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias                  |
+| GET      | `/api/v1/vscode/{token}/models`           | OpenAI models alias                   |
+| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias                |
+| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenized alias      |
+| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias                |
+| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias           |
 
-POST route အားလုံးသည် တူညီသော ပုံစံကို လိုက်နာသည်- `Bearer your-api-key` + Zod ဖြင့် စစ်ဆေးအတည်ပြုထားသော JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` စသည်တို့၊ `src/shared/validation/schemas.ts` ကို ကြည့်ပါ)။ Schema စစ်ဆေးမှု မအောင်မြင်ပါက 4xx ကို ပြန်ပေးသည်။
+POST လမ်းကြောင်းအားလုံးသည် တူညီသောပုံစံကို လိုက်နာသည်- `Bearer your-api-key` + Zod ဖြင့် အတည်ပြုထားသော JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` စသည်တို့၊ `src/shared/validation/schemas.ts` ကို ကြည့်ပါ)။ Schema အတည်ပြုမှု မအောင်မြင်ပါက 4xx ကို ပြန်ပေးသည်။
 
-`Authorization: Bearer ...` ကို ပူးတွဲမပေးပို့နိုင်သော client များအတွက် OmniRoute သည် query-string compatibility (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) သို့မဟုတ် အောက်တွင် မှတ်တမ်းတင်ထားသော သီးသန့် `/api/v1/vscode/{token}/...` endpoint များမှတစ်ဆင့် URL အတွင်းရှိ API key များကိုလည်း လက်ခံသည်။
+`Authorization: Bearer ...` ကို ထည့်သွင်းမပေးပို့နိုင်သော client များအတွက် OmniRoute သည် query-string ကိုက်ညီမှု (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) သို့မဟုတ် အောက်တွင် မှတ်တမ်းတင်ထားသော သီးသန့် `/api/v1/vscode/{token}/...` endpoint များမှတစ်ဆင့် URL အတွင်း API key များကိုလည်း လက်ခံသည်။
 
 ```bash
-# ပြန်လည်အစီအစဉ်ချခြင်း
+# Rerank (cloud registry provider သို့မဟုတ် "<prefix>/<model>" အဖြစ် OpenAI နှင့် ကိုက်ညီသော provider node)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina အမျိုးအစားခွဲခြားခြင်း (Foundation API အထောက်အထားများ)
+# Jina classify (Foundation API အထောက်အထားများ)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Jina segmenter
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina ရှာဖွေမှု (s.jina.ai; provider alias များ- jina-search, jina-ai, jina)
+# Jina search (s.jina.ai; provider alias များ- jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderation များ
+# Moderations
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — audio/mpeg (သို့မဟုတ် တောင်းဆိုထားသော ဖော်မတ်) body ကို ပြန်ပေးသည်
@@ -471,10 +473,32 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # ပုံတည်းဖြတ်ခြင်း (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# ဗီဒီယို/တေးဂီတ ဖန်တီးခြင်း (provider prefix ပါသော model id)
+# ဗီဒီယို / တေးဂီတ ထုတ်လုပ်ခြင်း (provider prefix ပါသော model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Rerank provider node များ:** `POST /v1/rerank` သည် `<node-prefix>/<model>` အဖြစ် လိပ်စာသတ်မှတ်ထားသော OpenAI နှင့် ကိုက်ညီသည့် provider node များ
+> (oMLX, vLLM, Infinity, gateway နောက်ကွယ်ရှိ TEI၊ …) သို့လည်း route လုပ်ပေးသည်။ Loopback
+> node များ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ကို အမြဲတမ်း အသုံးပြုနိုင်သည်။ အခြား
+> host တစ်ခုခုရှိ node များ — LAN စက်တစ်လုံး သို့မဟုတ် Tailscale peer — ကို operator က
+> `RERANK_REMOTE_PROVIDER_NODES` feature flag ကို ဖွင့်ထားပြီး node ၏ base URL သည် provider
+> outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ကို ဖြတ်သန်းနိုင်မှသာ အသုံးပြုနိုင်သည်။
+> cloud-metadata host များသို့မူ မည်သည့်အခါမျှ route မလုပ်ပါ။ Memory engine ၏ rerank အဆင့်သည် ဤ route ကို
+> loopback မှတစ်ဆင့် ခေါ်ဆိုသောကြောင့် Memory ဆက်တင်များရှိ `rerankProviderModel` ကိုလည်း တူညီသောစည်းမျဉ်းက ထိန်းချုပ်သည်။
+>
+> **Local server ပုံစံများ:** node ကို `<base>/v1/rerank` တွင် ခေါ်ဆိုပြီး 404 ဖြစ်ပါက `<base>/rerank`
+> (Infinity, TEI) တွင် ခေါ်ဆိုသည်။ Upstream body သည် Cohere/OpenAI စာလုံးပေါင်း (`documents`,
+> `return_documents`) နှင့် TEI စာလုံးပေါင်း (`texts`, `return_text`) နှစ်မျိုးလုံးကို သယ်ဆောင်ပြီး upstream response ကို
+> Cohere envelope သို့ စံညှိပေးသည်- TEI ၏ ရိုးရိုး `[{index, score, text}]`၊ ပါးလွှာသော gateway များမှ
+> `{results: [{index, score}]}` နှင့် Voyage ပုံစံ `{data: [...]}` အားလုံးသည် client ထံသို့
+> `{results: [{index, relevance_score, document?}]}` အဖြစ် ပြန်ရောက်လာပြီး score အလိုက် စီထားကာ `top_n` ဖြင့် အရေအတွက်ကန့်သတ်ထားသည်။
+
+> **Provider-node ရှာဖွေတွေ့ရှိမှု:** OpenAI နှင့် ကိုက်ညီသော provider node ပေါ်ရှိ model များသည် `GET /v1/models`
+> တွင် node prefix အောက်၌ ပေါ်လာသည်။ Endpoint metadata မပါဝင်သော row များ (local `/v1/models` စာရင်းများတွင် တွေ့ရလေ့ရှိသည်)
+> သည် node ၏ `apiType` ကို ဆက်ခံသောကြောင့် `embeddings` node တစ်ခု၏ model များသည် `type: "embedding"` ဖြစ်ပြီး
+> `rerank` node တစ်ခု၏ model များသည် chat အဖြစ် ပုံသေသတ်မှတ်ခံရမည့်အစား `type: "rerank"` ဖြစ်သည်။ Sync လုပ်ထားသော သို့မဟုတ် ကိုယ်တိုင်ထည့်ထားသော row တစ်ခုရှိ
+> အတိအလင်းသတ်မှတ်ထားသည့် `supportedEndpoints` သည် ဆက်လက်၍ ဦးစားပေးခံရသည်။
 
 ### သီးသန့် Provider Route များ
 
@@ -484,7 +508,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Provider prefix မရှိပါက အလိုအလျောက် ထည့်ပေးသည်။ မကိုက်ညီသော model များအတွက် `400` ကို ပြန်ပေးသည်။
+Provider prefix မပါရှိပါက အလိုအလျောက် ထည့်သွင်းပေးသည်။ မကိုက်ညီသော model များအတွက် `400` ကို ပြန်ပေးသည်။
 
 ---
 
@@ -1587,21 +1611,21 @@ routing၊ compression နှင့် provider မျိုးစုံကွ�
 
 ## CLI ကိရိယာများ စီမံခန့်ခွဲမှု
 
-OmniRoute နှင့် ပေါင်းစည်းအသုံးပြုသည့် CLI ကိရိယာများ (antigravity, chipotle, commandCode,
-devin-cli စသည်တို့) ကို စီမံခန့်ခွဲရန်။ စာရင်းအပြည့်အစုံအတွက် [Provider ကိုးကားချက်](./PROVIDER_REFERENCE.md) ကို ကြည့်ပါ။
+OmniRoute နှင့် ပေါင်းစပ်အသုံးပြုသော CLI ကိရိယာများ (antigravity, commandCode၊
+devin-cli စသည်) ကို စီမံခန့်ခွဲပါ။ စာရင်းအပြည့်အစုံအတွက် [ပံ့ပိုးသူ ကိုးကားချက်](./PROVIDER_REFERENCE.md) ကို ကြည့်ပါ။
 
-| နည်းလမ်း | လမ်းကြောင်း                             | ဖော်ပြချက်                                                                                                                                                                                                          |
-| -------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET      | `/api/cli-tools/all-statuses`           | CLI ကိရိယာအားလုံး၏ အခြေအနေ (ထည့်သွင်းထားမှု၊ version၊ နောက်ဆုံးတွေ့ရှိချိန်)                                                                                                                                        |
-| GET      | `/api/cli-tools/status`                 | CLI ကိရိယာတစ်ခု၏ အခြေအနေအသေးစိတ် (`?tool=` query)                                                                                                                                                                   |
-| POST     | `/api/cli-tools/apply`                  | ကိရိယာတစ်ခု၏ ထုတ်လုပ်ထားသော config ကို ရေးသားရန် (`dryRun` ဖြင့် အစမ်းကြည့်နိုင်သည်၊ container အတွင်း လုပ်ဆောင်သည့်အခါ `422` + `containerEphemeralTarget`၊ `migration` သည် အဟောင်း Codex YAML ကို မှတ်သားဖော်ပြသည်) |
-| GET      | `/api/cli-tools/backups`                | CLI ကိရိယာ configuration backup များကို စာရင်းပြုစုရန်                                                                                                                                                              |
-| POST     | `/api/cli-tools/backups`                | CLI ကိရိယာ configuration အားလုံး၏ backup တစ်ခု ဖန်တီးရန်                                                                                                                                                            |
-| POST     | `/api/cli-tools/backups`                | ပြန်လည်ရယူရန်- body ထဲတွင် `{tool, backupId}` ထည့်ပြီး တူညီသော endpoint ကို အသုံးပြုပါက ထို backup ကို ပြန်လည်ရယူပေးမည်                                                                                             |
-| GET      | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM proxy အခြေအနေ ("antigravity-mitm" CLI ကိရိယာ)                                                                                                                                                      |
-| POST     | `/api/cli-tools/antigravity-mitm/alias` | antigravity-mitm alias များကို စီစဉ်သတ်မှတ်ရန်                                                                                                                                                                      |
+| နည်းလမ်း | လမ်းကြောင်း                             | ဖော်ပြချက်                                                                                                                                                                                                       |
+| -------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET      | `/api/cli-tools/all-statuses`           | CLI ကိရိယာအားလုံး၏ အခြေအနေ (ထည့်သွင်းထားမှု၊ ဗားရှင်း၊ နောက်ဆုံးတွေ့ရှိချိန်)                                                                                                                                    |
+| GET      | `/api/cli-tools/status`                 | CLI ကိရိယာတစ်ခု၏ အသေးစိတ်အခြေအနေ (`?tool=` query)                                                                                                                                                                |
+| POST     | `/api/cli-tools/apply`                  | ကိရိယာတစ်ခုအတွက် ထုတ်လုပ်ထားသော config ကို ရေးသားသည် (`dryRun` ဖြင့် အကြိုကြည့်နိုင်သည်၊ container အတွင်း လုပ်ဆောင်ပါက `422` + `containerEphemeralTarget`၊ `migration` သည် ယခင် Codex YAML ကို မှတ်သားဖော်ပြသည်) |
+| GET      | `/api/cli-tools/backups`                | CLI ကိရိယာ configuration အရန်သိမ်းဆည်းမှုများကို စာရင်းပြုစုသည်                                                                                                                                                  |
+| POST     | `/api/cli-tools/backups`                | CLI ကိရိယာ configuration အားလုံး၏ အရန်သိမ်းဆည်းမှုတစ်ခုကို ဖန်တီးသည်                                                                                                                                             |
+| POST     | `/api/cli-tools/backups`                | ပြန်လည်ရယူခြင်း- body ထဲတွင် `{tool, backupId}` ပါဝင်သည့် တူညီသော endpoint သည် ထိုအရန်သိမ်းဆည်းမှုကို ပြန်လည်ရယူပေးသည်                                                                                           |
+| GET      | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM proxy အခြေအနေ ("antigravity-mitm" CLI ကိရိယာ)                                                                                                                                                   |
+| POST     | `/api/cli-tools/antigravity-mitm/alias` | antigravity-mitm alias များကို စီစဉ်သတ်မှတ်သည်                                                                                                                                                                   |
 
-**အထောက်အထားစိစစ်ခြင်း:** management session လိုအပ်သည်။
+**အထောက်အထားစိစစ်မှု:** စီမံခန့်ခွဲမှု session လိုအပ်သည်။
 
 ---
 

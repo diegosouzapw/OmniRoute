@@ -17,7 +17,7 @@ import {
   getAntigravityFetchAvailableModelsUrls,
 } from "../../config/antigravityUpstream.ts";
 import {
-  isDiscoverableAntigravityModelId,
+  isUserVisibleAntigravityQuotaModelId,
   toClientAntigravityQuotaModelId,
 } from "../../config/antigravityModelAliases.ts";
 import { isDiscoverableAgyModelId } from "../../config/agyModels.ts";
@@ -646,7 +646,7 @@ export async function getAntigravityUsage(
         info.isInternal === true ||
         !(provider === "agy"
           ? isDiscoverableAgyModelId(modelKey)
-          : isDiscoverableAntigravityModelId(modelKey)) ||
+          : isUserVisibleAntigravityQuotaModelId(modelKey)) ||
         Object.keys(quotaInfo).length === 0
       ) {
         continue;
@@ -703,7 +703,7 @@ export async function getAntigravityUsage(
         quotas[modelKey] ||
         !(provider === "agy"
           ? isDiscoverableAgyModelId(modelKey)
-          : isDiscoverableAntigravityModelId(modelKey))
+          : isUserVisibleAntigravityQuotaModelId(modelKey))
       ) {
         continue;
       }

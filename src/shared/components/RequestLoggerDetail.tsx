@@ -20,6 +20,8 @@ import { useJsonTreeExpandLevel } from "@/store/jsonTreeExpandStore";
 import {
   PayloadSection,
   ConversationContextSection,
+  buildPipelinePayloadSections,
+  isBodySizeLimitOmission,
 } from "@/shared/components/RequestLoggerDetail.sections";
 
 // ─── Copy-all composition ────────────────────────────────────────────────────
@@ -470,22 +472,21 @@ export default function RequestLoggerDetail({
 
   const pipelinePayloads = detail?.pipelinePayloads || null;
   const payloadSections = pipelinePayloads
-    ? [
-        ["clientRawRequest", t("payload.clientRawRequest")],
-        ["clientRequest", t("payload.clientRequest")],
-        ["openaiRequest", t("payload.openaiRequest")],
-        ["providerRequest", t("payload.providerRequest")],
-        ["providerResponse", t("payload.providerResponse")],
-        ["clientResponse", t("payload.clientResponse")],
-        ["error", t("payload.pipelineError")],
-      ]
-        .map(([key, title]) => ({
-          key,
-          title,
-          json: toPrettyJson(pipelinePayloads[key]),
-        }))
-        .filter((section) => section.json)
+    ? buildPipelinePayloadSections(
+        [
+          ["clientRawRequest", t("payload.clientRawRequest")],
+          ["clientRequest", t("payload.clientRequest")],
+          ["openaiRequest", t("payload.openaiRequest")],
+          ["providerRequest", t("payload.providerRequest")],
+          ["providerResponse", t("payload.providerResponse")],
+          ["clientResponse", t("payload.clientResponse")],
+          ["error", t("payload.pipelineError")],
+        ],
+        pipelinePayloads
+      )
     : [];
+  const requestBodyOmitted = isBodySizeLimitOmission(detail?.requestBody);
+  const responseBodyOmitted = isBodySizeLimitOmission(detail?.responseBody);
   const requestJson = detail?.requestBody ? toPrettyJson(detail.requestBody) : null;
   const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
   const streamChunks = (() => {
@@ -1155,6 +1156,7 @@ export default function RequestLoggerDetail({
                     title={section.title}
                     sectionId={section.key}
                     json={section.json}
+                    notice={section.notice}
                     onCopy={() => onCopy(section.json)}
                   />
                 ))}
@@ -1164,6 +1166,7 @@ export default function RequestLoggerDetail({
                   title={t("responsePayloadLegacy")}
                   sectionId="responsePayloadLegacy"
                   json={responseJson}
+                  notice={responseBodyOmitted}
                   onCopy={() => onCopy(responseJson)}
                 />
               )}
@@ -1173,6 +1176,7 @@ export default function RequestLoggerDetail({
                   title={t("requestPayloadLegacy")}
                   sectionId="requestPayloadLegacy"
                   json={requestJson}
+                  notice={requestBodyOmitted}
                   onCopy={() => onCopy(requestJson)}
                 />
               )}

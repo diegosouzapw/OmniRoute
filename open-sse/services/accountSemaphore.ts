@@ -13,7 +13,15 @@ export interface AcquireAccountSemaphoreOptions {
   maxConcurrency?: number | null;
   timeoutMs?: number;
   signal?: AbortSignal | null;
+  /**
+   * Max queued waiters before SEMAPHORE_QUEUE_FULL. `0` (and any non-positive
+   * value) means NO queue limit — it is what chatCore forwards from
+   * `resilienceSettings.requestQueue.maxQueueDepth`, whose documented default is
+   * `0 = disabled` (#6593). To reject instead of waiting, use `failFast`.
+   */
   maxQueueSize?: number;
+  /** Reject with SEMAPHORE_QUEUE_FULL whenever the slot cannot be taken right now. */
+  failFast?: boolean;
 }
 
 export interface SemaphoreRequirement {
@@ -208,9 +216,35 @@ export function acquire(
     timeoutMs = DEFAULT_TIMEOUT_MS,
     signal = null,
     maxQueueSize = DEFAULT_MAX_QUEUE_SIZE,
+    failFast = false,
   }: AcquireAccountSemaphoreOptions = {}
 ): Promise<() => void> {
-  return acquireMany([{ key, maxConcurrency }], { timeoutMs, signal, maxQueueSize });
+  return acquireMany([{ key, maxConcurrency }], { timeoutMs, signal, maxQueueSize, failFast });
+}
+
+/**
+ * Admission policy for a request that cannot take its slots right now.
+ * `failFast` (#12911, Codex WS leases): never wait. `maxQueueSize > 0`: bounded
+ * queue. `maxQueueSize <= 0`: unbounded — the #6593 "0 = disabled" contract that
+ * chatCore relies on under default resilience settings.
+ */
+function findQueueRejection(keys: string[], maxQueueSize: number, failFast: boolean): Error | null {
+  if (failFast) {
+    return createSemaphoreError(
+      "SEMAPHORE_QUEUE_FULL",
+      `Semaphore busy (fail-fast) for ${keys[0]}`
+    );
+  }
+  if (maxQueueSize <= 0) return null;
+  for (const key of keys) {
+    if (gates.get(key)!.queue.length >= maxQueueSize) {
+      return createSemaphoreError(
+        "SEMAPHORE_QUEUE_FULL",
+        `Semaphore queue full (${maxQueueSize}) for ${key}`
+      );
+    }
+  }
+  return null;
 }
 
 /**
@@ -225,6 +259,7 @@ export function acquireMany(
     timeoutMs = DEFAULT_TIMEOUT_MS,
     signal = null,
     maxQueueSize = DEFAULT_MAX_QUEUE_SIZE,
+    failFast = false,
   }: AcquireManyOptions = {}
 ): Promise<() => void> {
   const enabled = new Map<string, number>();
@@ -251,19 +286,8 @@ export function acquireMany(
     return Promise.resolve(createCompositeReleaseFn(keys));
   }
 
-  if (maxQueueSize >= 0) {
-    for (const key of keys) {
-      const gate = gates.get(key)!;
-      if (gate.queue.length >= maxQueueSize) {
-        return Promise.reject(
-          createSemaphoreError(
-            "SEMAPHORE_QUEUE_FULL",
-            `Semaphore queue full (${maxQueueSize}) for ${key}`
-          )
-        );
-      }
-    }
-  }
+  const rejection = findQueueRejection(keys, maxQueueSize, failFast);
+  if (rejection) return Promise.reject(rejection);
 
   return new Promise((resolve, reject) => {
     const request: AcquireRequest = {

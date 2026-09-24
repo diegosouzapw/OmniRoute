@@ -185,12 +185,17 @@ export interface NonStreamingClientTranslateInput {
   /**
    * Transcript used for no-tool_calls reasoning replay (#1628).
    * Must be the client-translated Chat `messages` (parent: `translatedBody.messages`),
-   * not `finalBody` — Responses-shaped `finalBody` has `input`, not `messages`.
+   * not `finalBody` — Responses-shaped `finalBody` has `input`, not `messages`. For a
+   * Responses-shaped body the parent passes the pivot transcript `translateRequest`
+   * reports through `onReasoningReplayHistory` instead.
    */
   historyMessages?: unknown[] | null;
   responseToolNameMap: Map<string, string> | null;
+  customToolNames?: ReadonlySet<string>;
   requestToolIdentityMap: Map<string, { namespace?: string; name: string }> | null;
   reasoningCacheScope: string | null;
+  /** Never retain reasoning from a response that may echo video transcript cues. */
+  videoTranscriptSensitive?: boolean;
   clientHeaders: Headers | Record<string, unknown> | null;
   isClaudeCodeCompatible: boolean;
   /**

@@ -346,12 +346,16 @@ export function openaiToClaudeResponse(chunk, state) {
     reasoningContent !== "" &&
     !isInternalReasoningPlaceholder(reasoningContent);
   if (hasReasoning) {
-    // Re-gate the thinking block EMISSION on requestedThinking === true. The
-    // _reasoningAccum accumulation below stays OUTSIDE the gate and always runs,
-    // so fix B still synthesizes a text block for reasoning-only responses (no
-    // 502, compact applies). Gating the whole block including accumulation
-    // breaks fix B => 502/compact loop.
-    if (state.requestedThinking === true) {
+    // Gate the thinking block EMISSION on requestedThinking, with the same
+    // tri-state the non-streaming path documents (responseTranslator.ts):
+    // `false` = client opted out, suppress; `true` = client opted in, relay;
+    // `undefined` = legacy caller that never passed it, keep the original
+    // "always a thinking block" relay. Only an explicit opt-out suppresses —
+    // `=== true` here silently dropped reasoning for every legacy caller while
+    // the JSON path kept relaying it (#12905 follow-up). The _reasoningAccum
+    // accumulation below stays OUTSIDE the gate and always runs, so fix B still
+    // synthesizes a text block for reasoning-only opt-out responses (no 502).
+    if (state.requestedThinking !== false) {
       stopTextBlock(state, results);
 
       if (!state.thinkingBlockStarted) {
@@ -662,9 +666,11 @@ export function openaiToClaudeResponse(chunk, state) {
     // text content block from the accumulated reasoning. Claude Code's
     // autocompact parser extracts the summary from a TEXT content block — a
     // thinking block alone is judged "empty response" and the compact is
-    // rejected, looping the session. When requestedThinking===true, skip this so
-    // reasoning is not double-exposed (thinking block + text block both carrying it).
-    if (!state.textBlockStarted && state._reasoningAccum && state.requestedThinking !== true) {
+    // rejected, looping the session. Only when the client explicitly opted OUT
+    // (requestedThinking === false): for `true` and for legacy `undefined` the
+    // reasoning already went out as a thinking block above, and synthesizing a
+    // text block too would double-expose it.
+    if (!state.textBlockStarted && state._reasoningAccum && state.requestedThinking === false) {
       state.textBlockIndex = state.nextBlockIndex++;
       state.textBlockStarted = true;
       state.textBlockClosed = false;

@@ -788,7 +788,7 @@ OPENAI_API_KEY: "{{apiKey}}"`,
       },
       {
         type: "warning",
-        text: "Config path: Linux/macOS ~/.omp/agent/models.yml • Windows %USERPROFILE%\\.omp\\.omp\\agent\\models.yml",
+        text: "Config path: Linux/macOS ~/.omp/agent/models.yml • Windows %USERPROFILE%\\.omp\\agent\\models.yml",
       },
     ],
   },

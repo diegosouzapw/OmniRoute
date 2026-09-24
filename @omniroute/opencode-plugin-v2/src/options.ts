@@ -55,6 +55,9 @@ const pluginOptionsSchema = z
     // routes to, so the same model sold through two connections is
     // distinguishable in the picker.
     providerTag: z.boolean().default(true),
+    // Inference telemetry is off by default: the host must opt in before the
+    // plugin touches the sdk domain at all.
+    telemetry: z.boolean().default(false),
     apiFormat: apiFormatSchema.optional(),
   })
   .strict();

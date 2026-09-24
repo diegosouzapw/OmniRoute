@@ -1,1 +1,0 @@
-- **fix(sse):** strip echoed system/directive preamble on /v1/messages responses and preserve large analysis/summary blocks in systemPreambleStripper to stop autocompact empty-response ([#12905](https://github.com/diegosouzapw/OmniRoute/pull/12905)) — thanks @initguru

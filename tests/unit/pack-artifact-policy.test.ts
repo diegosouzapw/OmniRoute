@@ -299,6 +299,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "config/release/wreq-js-rust-notices.md",
     "dist/head-response-guard.cjs",
     "dist/http-method-guard.cjs",
+    // #13636/#14064: server-ws.mjs crash guard, enforced by the closure suites.
     "dist/httpClientAbortGuard.mjs",
     "dist/main-server-timeouts.mjs",
     "dist/open-sse/services/compression/engines/rtk/filters/generic-output.json",

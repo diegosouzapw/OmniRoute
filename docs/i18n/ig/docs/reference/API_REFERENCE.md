@@ -1,10 +1,10 @@
 # API Reference (Igbo)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Asụsụ:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 Ntụaka bụ isi maka OmniRoute API. Ọ na-ekpuchi ihu ọha `/v1` na endpoint nchịkwa ndị a na-ejikarị eme ihe; [`docs/openapi.yaml`](../openapi.yaml) nke igwe nwere ike ịgụ na osisi route dị n'okpuru `src/app/api/` bụ isi mmalite zuru ezu.
 
@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Nkọwa ọnụahịa cache-hit:** mgbe semantic-cache bụ HIT (`X-OmniRoute-Cache-Hit: true`), a naghị akpọ upstream, ya mere `X-OmniRoute-Response-Cost` bụ `0.0000000000` (ọnụahịa **mgbakwunye** nke izipu hit ahụ). A na-akọ ọnụahịa mbụ/ọnụahịa ọ gaara abụ iche na `X-OmniRoute-Cost-Saved`. Ndị na-eji data ịgba ụgwọ kwesịrị ịchịkọta `X-OmniRoute-Response-Cost` (hits anaghị efu ego); nyocha cache nwere ike ịchịkọta `X-OmniRoute-Cost-Saved`.
 
-## Mgbazinye Oge Nnọkọ A Na-achịkwa Nanị Ya
+## Ntinye Akwụkwọ Nnọkọ a na-achịkwa nke Pụrụ Iche
 
-Mgbazinye oge nnọkọ a na-achịkwa nanị ya bụ nkwekọrịta nhazi ụzọ nke onye ahịa ọ bụla nwere ike iji ma ọ bụrụ na ọ họrọ: otu onye nwe na-arụ ọrụ
-na-ejide otu njikọ OmniRoute tozuru etozu. Ọ naghị agbazinye model, achọ OAuth, mata otu
-onye ahịa kpọmkwem, ma ọ bụ chọọ otu provider kpọmkwem.
+Ntinye akwụkwọ nnọkọ a na-achịkwa nke pụrụ iche (Exclusive managed session leasing) bụ nkwekọrịta ntụzịaka nke ntinye aka n'onwe ya, nke na-adịghị ele onye ahịa ọ bụla anya n'ihu: otu onye nwe ya na-arụ ọrụ na-ejide otu njikọ OmniRoute tozuru oke. Ọ naghị agbazite model, ọ naghị achọ OAuth, ọ naghị amata otu onye ahịa, ma ọ bụ chọọ otu onye na-enye ọrụ (provider) pụrụ iche.
 
-API key a na-eji eme nkwenye njirimara ga-enwerịrị scope `lease:exclusive` na ndepụta
-`allowedConnections` doro anya nke na-abụghị efu. Ókè mgbanwe database na-amanye ka e nwee field abụọ ahụ ọnụ mgbe a na-emepụta key
-na mgbe a na-eme mmelite akụkụ ụfọdụ.
+Igodo API na-eme nkwenye ga-enwerịrị scope `lease:exclusive` na ndepụta `allowedConnections` doro anya nke na-abaghị uru. Oke mgbanwe nchekwa data na-amanye ubi abụọ ahụ ọnụ na mmepụta igodo na mmelite akụkụ ụfọdụ.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Nzaghachi acquire, renew, na release gara nke ọma na-egosipụta timestamp, `state`, na
-`generation` ziri ezi nke dị mma, mana ha anaghị egosi njikọ ahọpụtara ma ọ bụ credentials. Renew na release na-enye
-generation n'ime JSON body:
+Nzaghachi nweta (acquire), megharịa (renew), na hapụ (release) nke gara nke ọma na-egosipụta akara oge (timestamps), `state`, na `generation` ziri ezi, mana ọ dịghị mgbe ọ na-egosipụta njikọ ma ọ bụ nzere (credentials) ahọpụtara. Renew na release na-enye generation n'ime JSON body:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generation n'ime JSON body:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Onye nwe lease na-arụ ọrụ nwere ike ịrịọ metadata ngosipụta na-echekwa nzuzo n'ụzọ doro anya maka binding ya dị ugbu a:
+Onye nwe lease na-arụ ọrụ nwere ike ịrịọ metadata ngosipụta na-echekwa nzuzo n'ụzọ doro anya maka njikọ ya ugbu a:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Onye nwe lease na-arụ ọrụ nwere ike ịrịọ metadata ngosipụta na-ech
 }
 ```
 
-A na-echebe action status a a na-ahọrọ iji site n'aka owner na-enweghị nkọwa, managed API key e mere nkwenye njirimara ya, na
-generation na-arụ ọrụ ziri ezi n'ime otu transaction database. `displayName` bụ naanị aha
-njikọ ahaziri nke ewepụrụ oghere ndị dị na nsọtụ ya; ọ bụ `null` mgbe enweghị aha ahaziri dị nchebe.
-OmniRoute anaghị eji email ma ọ bụ njirimara account emepụtara dochie ya. Uru provider bụ label ngosipụta na-enweghị
-ozi nzuzo, ọ bụghịkwa identifier compatible-provider emepụtara. A naghị etinye credentials, tokens, cookies, raw connection ma ọ bụ
-API key ids, owner hashes, fencing secrets, na data nhazi ụzọ dị n'ime.
+Omume ọkwa ntinye aka a bụ nke onye nwe ya na-adịghị ahụ anya (opaque owner), igodo API a kwadoro, na ọgbọ (generation) na-arụ ọrụ ziri ezi gbachiri gburugburu n'ime otu azụmahịa nchekwa data. `displayName` bụ naanị aha njikọ ahaziri ahazi nke a kpụchara akpụcha; ọ bụ `null` mgbe ọ dịghị aha ahaziri ahazi dị mma dị. OmniRoute anaghị eji email ma ọ bụ njirimara akaụntụ emepụtara dochie anya ya. Uru provider bụ akara ngosipụta na-adịghị emetụ n'ahụ ma ọ bụghị njirimara compatible-provider emepụtara. Ewepụrụ nzere (credentials), tokens, cookies, njikọ raw ma ọ bụ id igodo API, hash ndị nwe ya, ihe nzuzo fencing, na data ntụzịaka ime n'ime.
 
-Nchọpụta jiri key na-ezighi ezi, owner na-ezighi ezi, generation ochie, ihe na-efu, nke kubigara oge, nke a tọhapụrụ, na nke a kagburu
-na-eweghachi otu error `409 LEASE_FENCE_STALE` ahụ na-enweghị metadata njikọ. Onye ahịa natara nzaghachi ichere capacity enweghị binding na-arụ ọrụ ọ ga-enyocha. Mgbe routing na-ebufe lease na-arụ ọrụ,
-otu generation ahụ ka na-adị ire, status na-eweghachikwa binding ọhụrụ ahụ n'otu atomic operation, ọ bụghị nke ochie.
-Ndị ahịa dị ugbu a anaghị agbanwe n'ihi na nzaghachi acquire, renew, release, na waiting na-ejigide
-usoro ha gara aga.
+Nchọgharị igodo na-ezighi ezi, onye nwe ya na-ezighi ezi, ọgbọ merela ochie (stale-generation), nke na-efu efu, nke kubiela ume, nke a tọhapụrụ, na nke emebiri emebi niile na-eweghachi otu njehie `409 LEASE_FENCE_STALE` na-enweghị metadata njikọ. Onye ahịa natara nzaghachi nchere ikike (capacity-wait) enweghị njikọ na-arụ ọrụ ọ ga-enyocha. Mgbe ntụzịaka na-agbanwe lease na-arụ ọrụ, otu ọgbọ ahụ na-anọgide na-adị irè ma ọkwa na-eweghachi njikọ ọhụrụ ahụ ozugbo, ọ dịghị mgbe ọ na-eweghachi nke ochie. Ndị ahịa dị adị na-anọgide n'agbanweghị agbanwe n'ihi na acquire, renew, release, na nzaghachi nchere na-ejigide ụdị ha mbụ.
 
-Nkwekọrịta server a anaghị agbanwe stock OpenAI Codex `/status`. Ugbu a, stock Codex na-akọ
-model provider ya na ọnọdụ authentication/account arụnyere n'ime ya, mana ọ naghị egosipụta metadata
-account provider omenala ọ bụla; njikọta client ga-eme n'ọdịnihu ga-akpọ action a ma kpebie otu esi
-egosipụta `connection.displayName`.
+Nkwekọrịta sava a anaghị agbanwe OpenAI Codex `/status` nke nkịtị. Codex nkịtị na-akọ ugbu a model provider ya na ọnọdụ nkwenye/akaụntụ arụnyere n'ime ya mana ọ naghị egosipụta metadata akaụntụ onye na-enye ọrụ ọ bụla; njikọ onye ahịa mechara ga-akpọ omume a ma kpebie otu a ga-esi gosipụta `connection.displayName`.
 
-Arịrịọ managed inference ọ bụla ga-enyezi control header abụọ ahụ:
+Arịrịọ nkwubi okwu (inference request) ọ bụla a na-achịkwa na-enyezi header njikwa abụọ ahụ:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-A na-echebe owner ziri ezi, generation, njikọ na-arụ ọrụ, na API key e mere nkwenye njirimara ya ozugbo
-tupu mbọ upstream ọ bụla akwadoro. Iji key ọzọ kpọgharịa owner na generation ga-ada ọbụna
-mgbe key ahụ nyere ikike iji otu njikọ ahụ. A naghị echekwa raw owners, edekọ ha na log, debe ha n'ime
-request snapshot, ma ọ bụ zipụ ha upstream.
+Onye nwe ya ziri ezi, ọgbọ, njikọ na-arụ ọrụ, na igodo API a kwadoro ka a na-agbachi gburugburu ozugbo tupu nnwale upstream ọ bụla akwadoro. Iji onye nwe ya na ọgbọ ọzọ nwere igodo ọzọ na-ada ada ọbụlagodi mgbe igodo ahụ kwere ka otu njikọ ahụ. A naghị echekwa ndị nwe raw, na-edeba ha na log, na-ejigide ha na snapshot arịrịọ, ma ọ bụ na-eziga ha na upstream.
 
-Asọmpi nwa oge na-eweghachi HTTP `429` ya na `Retry-After` na:
+Esemokwu nwa oge na-eweghachi HTTP `429` yana `Retry-After` na:
 
 ```json
 {
@@ -178,30 +157,29 @@ Asọmpi nwa oge na-eweghachi HTTP `429` ya na `Retry-After` na:
 }
 ```
 
-Nzaghachi a pụtara naanị na ordinary eligible set abụghị efu nakwa na lease na-arụ ọrụ nke onye ọzọ
-jidere candidate niile nwere onwe ha. Model/provider anaghị akwado, policy mismatch, cooldown, quota,
-health, na ọdịda eligibility ndị ọzọ a na-ahụkarị na-ejigide nzaghachi OmniRoute ha dị ugbu a.
+Nzaghachi a pụtara naanị na usoro tozuru oke nkịtị abụghị nke efu na onye ọ bụla nwere ike ịbụ onye nwe lease ọzọ na-arụ ọrụ na-ejide ya. Model/provider anaghị akwado, enweghị nkwekọrịta iwu, oge izu ike (cooldown), quota, ahụike, na ọdịda ntozu nkịtị ndị ọzọ na-ejigide nzaghachi OmniRoute ha dị adị.
 
 ### `x-omniroute-compression`
 
-Override nke compression plan maka arịrịọ ọ bụla. Ọ nwere precedence kachasị elu — ọ na-emeri override routing-combo,
-active profile, auto-trigger, na Default nke panel. Uru:
+Nkagbu atụmatụ mkpakọ (compression plan) maka arịrịọ ọ bụla. Ibu ụzọ kachasị elu — ọ na-emeri nkagbu routing-combo, profile na-arụ ọrụ, auto-trigger, na Default nke panel. Uru ndị a:
 
-| Uru           | Mmetụta                                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Enweghị compression maka arịrịọ a.                                                                                              |
-| `default`     | Default profile sitere na panel (ọ na-eleghara active profile anya).                                                            |
-| `engine:<id>` | Otu engine mgbe enyere ya ikike, dịka `engine:rtk`.                                                                             |
-| `<combo>`     | Combo nwere aha, nke a ga-ebu ụzọ dakọtara site n'aha (na-eleghara nnukwu ma ọ bụ obere mkpụrụedemede anya), emesịa site na id. |
+| Uru           | Mmetụta                                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `off`         | Enweghị mkpakọ maka arịrịọ a.                                                                                                  |
+| `default`     | Profile Default sitere na panel (na-eleghara profile na-arụ ọrụ anya). A hapụrụ injin ndị na-atụfu data (lossy engines) n'èzí. |
+| `safe`        | Mwepụ oyiri (Dedup) na mpịakọta ohere efu (whitespace folding) naanị.                                                          |
+| `allow-lossy` | Debe atụmatụ onye ọrụ maka arịrịọ a, gụnyere nchịkọta na idegharị ụdị.                                                         |
+| `engine:<id>` | Otu injin mgbe agbanyere ya, dịka ọmụmaatụ `engine:rtk`. Ntinye aka maka arịrịọ ọ bụla maka injin ahụ.                         |
+| `<combo>`     | Combo nwere aha, nke a na-ejikọta site na aha (anaghị ele mkpụrụedemede ukwu/obere anya) na mbụ, emesịa site na id.            |
 
-Ndetu:
+Ihe rịba ama:
 
-- A na-eleghara uru amaghi anya (a naghị ajụ arịrịọ ahụ); resolution na-aga n'ihu ruo na usoro precedence nkịtị.
-- Ọ bụrụ na ọtụtụ combo nwere otu aha, nyefee **id** nke combo ka matching wee bụrụ nke a pụrụ ikpebi otu ụzọ.
-- Enweghị ike ịhọrọ combo aha ya bụ `off` ma ọ bụ `default` site n'aha (a na-akọwa keyword ndị ahụ mbụ); jiri id ya rụtụ aka na combo dị otu ahụ.
-- Master compression switch bụ hard gate: mgbe agbanyụrụ compression n'ụwa niile, header a enweghị ike ịgbanye ya.
+- A na-eleghara uru ndị a na-amaghị anya (anaghị ajụ arịrịọ ahụ); mkpebi na-adaba na ibu ụzọ onye ọrụ nkịtị.
+- Ọ bụrụ na ọtụtụ combo nwere otu aha, nyefee combo **id** maka njikọ doro anya.
+- Combo nke aha ya bụ `off` ma ọ bụ `default` enweghị ike ịhọrọ site na aha (a na-ebu ụzọ kọwaa mkpụrụokwu ndị ahụ); zoo aka na combo dị otú ahụ site na id ya.
+- Mgbanwe mkpakọ master bụ ọnụ ụzọ siri ike: mgbe agbanyụrụ mkpakọ n'ụwa niile, header a enweghị ike ịgbanye ya.
 
-A na-ezipụ plan etinyere azụ n'ime response header:
+A na-egosipụta atụmatụ etinyere n'ime header nzaghachi:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
@@ -438,42 +416,42 @@ Jiri endpoint a mgbe sidecar na-arụ ọrụ n'èzí usoro ma ọ nweghị ike 
 
 ---
 
-## Endpoint Ndakọrịta
+## Ebe Njedebe Ndakọrịta
 
-| Usoro | Ụzọ                                       | Ọdịdị                                  |
-| ----- | ----------------------------------------- | -------------------------------------- |
-| POST  | `/v1/chat/completions`                    | OpenAI                                 |
-| POST  | `/v1/messages`                            | Anthropic                              |
-| POST  | `/v1/responses`                           | OpenAI Responses                       |
-| POST  | `/v1/embeddings`                          | OpenAI                                 |
-| POST  | `/v1/images/generations`                  | OpenAI Images                          |
-| POST  | `/v1/images/edits`                        | OpenAI Images (nrụzi/inpaint)          |
-| POST  | `/v1/videos/generations`                  | Mmepụta vidiyo n'ụdị OpenAI            |
-| POST  | `/v1/music/generations`                   | Mmepụta egwu n'ụdị OpenAI              |
-| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (na-eweghachi ahụ ọdịyo)    |
-| POST  | `/v1/rerank`                              | Nhazigharị n'ụdị Cohere/Voyage         |
-| POST  | `/v1/classify`                            | Nkewapụta Jina (`api.jina.ai`)         |
-| POST  | `/v1/segment`                             | Onye nkewa Jina (`segment.jina.ai`)    |
-| POST  | `/v1/moderations`                         | OpenAI Moderations                     |
-| GET   | `/v1/models`                              | OpenAI                                 |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                              |
-| GET   | `/v1beta/models`                          | Gemini                                 |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                 |
-| POST  | `/v1/api/chat`                            | Ollama                                 |
-| GET   | `/api/v1/vscode/{token}/`                 | Aha ọzọ maka katalọgụ OpenAI           |
-| GET   | `/api/v1/vscode/{token}/models`           | Aha ọzọ maka ụdị OpenAI                |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | Aha ọzọ OpenAI nwere token             |
-| POST  | `/api/v1/vscode/{token}/responses`        | Aha ọzọ OpenAI Responses nwere token   |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Aha ọzọ Ollama nwere token             |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Aha ọzọ maka mkpado Ollama nwere token |
+| Usoro | Ụzọ                                       | Ọdịdị                                   |
+| ----- | ----------------------------------------- | --------------------------------------- |
+| POST  | `/v1/chat/completions`                    | OpenAI                                  |
+| POST  | `/v1/messages`                            | Anthropic                               |
+| POST  | `/v1/responses`                           | OpenAI Responses                        |
+| POST  | `/v1/embeddings`                          | OpenAI                                  |
+| POST  | `/v1/images/generations`                  | OpenAI Images                           |
+| POST  | `/v1/images/edits`                        | OpenAI Images (ndezi/inpaint)           |
+| POST  | `/v1/videos/generations`                  | Mmepụta vidiyo n'ụdị OpenAI             |
+| POST  | `/v1/music/generations`                   | Mmepụta egwu n'ụdị OpenAI               |
+| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                      |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (na-eweghachi ọdịnaya ọdịyo) |
+| POST  | `/v1/rerank`                              | Nhazigharị ọkwa n'ụdị Cohere/Voyage     |
+| POST  | `/v1/classify`                            | Nkewapụta Jina (`api.jina.ai`)          |
+| POST  | `/v1/segment`                             | Onye nkewa Jina (`segment.jina.ai`)     |
+| POST  | `/v1/moderations`                         | OpenAI Moderations                      |
+| GET   | `/v1/models`                              | OpenAI                                  |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                               |
+| GET   | `/v1beta/models`                          | Gemini                                  |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                  |
+| POST  | `/v1/api/chat`                            | Ollama                                  |
+| GET   | `/api/v1/vscode/{token}/`                 | Aha ọzọ nke katalọgụ OpenAI             |
+| GET   | `/api/v1/vscode/{token}/models`           | Aha ọzọ nke ụdịdị OpenAI                |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | Aha ọzọ OpenAI nwere token              |
+| POST  | `/api/v1/vscode/{token}/responses`        | Aha ọzọ OpenAI Responses nwere token    |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Aha ọzọ Ollama nwere token              |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Aha ọzọ Ollama tags nwere token         |
 
-Ụzọ POST niile na-agbaso otu nhazi: `Bearer your-api-key` + ahụ JSON nke Zod kwadoro (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, wdg., lee `src/shared/validation/schemas.ts`). A na-eweghachi 4xx ma ọ bụrụ na nkwado schema ada.
+Ụzọ POST niile na-agbaso otu nhazi ahụ: `Bearer your-api-key` + ọdịnaya JSON Zod nyochara (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, wdg., lee `src/shared/validation/schemas.ts`). A na-eweghachi 4xx ma ọ bụrụ na nkwado schema ada.
 
-Maka ndị ahịa na-enweghị ike itinye `Authorization: Bearer ...`, OmniRoute na-anabatakwa igodo API n'ime URL site na ndakọrịta eriri ajụjụ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ma ọ bụ endpoint `/api/v1/vscode/{token}/...` ndị akọwapụtara n'okpuru.
+Maka ndị ahịa na-enweghị ike itinye `Authorization: Bearer ...`, OmniRoute na-anabatakwa igodo API n'ime URL site na ndakọrịta eriri-ajụjụ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ma ọ bụ ebe njedebe `/api/v1/vscode/{token}/...` ndị akọwara n'okpuru.
 
 ```bash
-# Hazigharịa ọkwa
+# Hazigharịa ọkwa (onye na-eweta ndekọ igwe ojii, ma ọ bụ node onye na-eweta dakọtara na OpenAI dịka "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Nkewapụta Jina (nzere Foundation API)
@@ -482,24 +460,46 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # Onye nkewa Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Ọchụchọ Jina (s.jina.ai; aha ndị ọzọ nke onye na-enye ọrụ: jina-search, jina-ai, jina)
+# Ọchụchọ Jina (s.jina.ai; aha ndị ọzọ nke onye na-eweta: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Nlekọta ọdịnaya
+# Nnyocha ọdịnaya
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — na-eweghachi ahụ audio/mpeg (ma ọ bụ ọdịdị a rịọrọ)
+# TTS — na-eweghachi ọdịnaya audio/mpeg (ma ọ bụ usoro a rịọrọ)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Nrụzi onyonyo (multipart)
+# Ndezi onyonyo (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Mmepụta vidiyo / egwu (ID ụdị nwere nganiihu onye na-enye ọrụ)
+# Mmepụta vidiyo / egwu (ID ụdịdị nwere prefix onye na-eweta)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### Ụzọ Ndị Na-enye Ọrụ Raara Ahụ
+> **Node ndị na-eweta maka nhazigharị ọkwa:** `POST /v1/rerank` na-ezigakwa arịrịọ gaa na node ndị na-eweta dakọtara na OpenAI
+> (oMLX, vLLM, Infinity, TEI dị n'azụ gateway, …) ndị a na-akpọrọ dịka `<node-prefix>/<model>`. Node loopback
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) tozuru etozu mgbe niile. Node dị na host ọ bụla ọzọ
+> — igbe LAN ma ọ bụ onye mmekọ Tailscale — na-etozu naanị mgbe onye nchịkwa mere ka ọkọlọtọ atụmatụ
+> `RERANK_REMOTE_PROVIDER_NODES` rụọ ọrụ **ma** URL ntọala node ahụ gafere iwu URL ọpụpụ nke onye na-eweta
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> a naghị eziga arịrịọ na host metadata igwe ojii ma ọlị. Nzọụkwụ nhazigharị ọkwa nke injin ebe nchekwa na-akpọ ụzọ a site na
+> loopback, ya mere otu iwu ahụ na-achịkwa `rerankProviderModel` na ntọala Ebe Nchekwa.
+>
+> **Nhazi sava mpaghara:** a na-akpọ node ahụ na `<base>/v1/rerank`, ma ọ bụrụ na e nweta 404, na `<base>/rerank`
+> (Infinity, TEI). Ọdịnaya upstream na-ebu ma nsupe Cohere/OpenAI (`documents`,
+> `return_documents`) ma nsupe TEI (`texts`, `return_text`), a na-ahazikwa nzaghachi upstream
+> ka ọ bụrụ envelopu Cohere: ndepụta nkịtị TEI `[{index, score, text}]`, `{results: [{index, score}]}`
+> sitere na gateway ndị dị mfe, na `{data: [...]}` n'ụdị Voyage, ha niile na-alaghachikwuru onye ahịa dịka
+> `{results: [{index, relevance_score, document?}]}`, nke a haziri dịka akara ma kpachie ya na `top_n`.
+
+> **Nchọpụta node onye na-eweta:** ụdịdị ndị dị na node onye na-eweta dakọtara na OpenAI na-apụta na `GET /v1/models`
+> n'okpuru prefix node ahụ. Ahịrị ndị na-enweghị metadata ebe njedebe (dịka ọ na-adịkarị na ndepụta `/v1/models` mpaghara)
+> na-eketa `apiType` nke node ahụ, ya mere ụdịdị nke node `embeddings` bụ `type: "embedding"` ma ụdịdị
+> nke node `rerank` bụ `type: "rerank"` kama ịlaghachi na chat dịka ndabara; `supportedEndpoints` akọwapụtara
+> kpọmkwem n'ahịrị emekọrịtara ma ọ bụ nke agbakwunyere aka ka nwere ikike mbụ.
+
+### Ụzọ Ndị Na-eweta Pụrụ Iche
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -507,7 +507,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-A na-agbakwunye nganiihu onye na-enye ọrụ na-akpaghị aka ma ọ bụrụ na ọ dịghị. Ụdị ndị na-adabaghị na-eweghachi `400`.
+A na-agbakwunye prefix nke provider na-akpaghị aka ma ọ bụrụ na ọ dịghị. Models ndị na-adabaghị na-eweghachi `400`.
 
 ---
 
@@ -1610,21 +1610,21 @@ Ebe njedebe ndị naanị onye nchịkwa nwere ike iji maka njikwa ọrụ.
 
 ## Njikwa Ngwaọrụ CLI
 
-Jikwaa ngwaọrụ CLI ndị na-ejikọta na OmniRoute (antigravity, chipotle, commandCode,
-devin-cli, wdg.). Lee [Ntụaka Onye Na-eweta](./PROVIDER_REFERENCE.md) maka ndepụta zuru ezu.
+Jikwaa ngwaọrụ CLI ndị na-arụkọ ọrụ na OmniRoute (antigravity, commandCode,
+devin-cli, wdg.). Hụ [Ntụaka Ndị Na-eweta Ọrụ](./PROVIDER_REFERENCE.md) maka ndepụta zuru ezu.
 
 | Usoro | Ụzọ                                     | Nkọwa                                                                                                                                                                 |
 | ----- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | GET   | `/api/cli-tools/all-statuses`           | Ọnọdụ ngwaọrụ CLI niile (arụnyere, ụdị, oge ikpeazụ a hụrụ ya)                                                                                                        |
 | GET   | `/api/cli-tools/status`                 | Nkọwa ọnọdụ maka otu ngwaọrụ CLI (ajụjụ `?tool=`)                                                                                                                     |
-| POST  | `/api/cli-tools/apply`                  | Dee config e mepụtara maka ngwaọrụ (`dryRun` na-egosi ihe ga-apụta; `422` + `containerEphemeralTarget` mgbe ọ nọ na container; `migration` na-akọwa Codex YAML ochie) |
-| GET   | `/api/cli-tools/backups`                | Depụta nkwado ndabere config ngwaọrụ CLI                                                                                                                              |
-| POST  | `/api/cli-tools/backups`                | Mepụta nkwado ndabere nke config ngwaọrụ CLI niile                                                                                                                    |
-| POST  | `/api/cli-tools/backups`                | Weghachite: otu ebe njedebe ahụ nwere `{tool, backupId}` n'ahụ na-eweghachite nkwado ndabere ahụ                                                                      |
-| GET   | `/api/cli-tools/antigravity-mitm`       | Ọnọdụ proxy Antigravity MITM (ngwaọrụ CLI "antigravity-mitm")                                                                                                         |
-| POST  | `/api/cli-tools/antigravity-mitm/alias` | Hazie aha nnọchi antigravity-mitm                                                                                                                                     |
+| POST  | `/api/cli-tools/apply`                  | Dee nhazi emepụtara nke ngwaọrụ (`dryRun` na-egosi ihe ga-apụta; `422` + `containerEphemeralTarget` mgbe ọ dị n'ime container; `migration` na-akọwa Codex YAML ochie) |
+| GET   | `/api/cli-tools/backups`                | Depụta ndabere nhazi ngwaọrụ CLI                                                                                                                                      |
+| POST  | `/api/cli-tools/backups`                | Mepụta ndabere nke nhazi ngwaọrụ CLI niile                                                                                                                            |
+| POST  | `/api/cli-tools/backups`                | Weghachite: otu endpoint ahụ nwere `{tool, backupId}` n'ime body na-eweghachite ndabere ahụ                                                                           |
+| GET   | `/api/cli-tools/antigravity-mitm`       | Ọnọdụ proxy MITM nke Antigravity (ngwaọrụ CLI "antigravity-mitm")                                                                                                     |
+| POST  | `/api/cli-tools/antigravity-mitm/alias` | Hazie alias nke antigravity-mitm                                                                                                                                      |
 
-**Nyocha ikike:** Chọrọ nnọkọ njikwa.
+**Nyocha ikike:** Chọrọ session njikwa.
 
 ---
 

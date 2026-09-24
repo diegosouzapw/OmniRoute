@@ -110,6 +110,26 @@ function isOmniRouteInternalHeader(headerName: string): boolean {
   return headerName.toLowerCase().startsWith("x-omniroute-");
 }
 
+/**
+ * #14116: true when `headerName` is one of the Codex per-account quota /
+ * reset / credits / plan-type response headers (x-codex-*-used-percent,
+ * -reset, -window, -credits, -plan-type, -over-secondary). Extracted so both
+ * the forwarding-priority boost above and the foreign-combo-account strip in
+ * {@link buildStreamingResponseHeaders} share one definition.
+ */
+export function isCodexAccountQuotaHeader(headerName: string): boolean {
+  const normalized = headerName.toLowerCase();
+  return (
+    normalized.startsWith("x-codex-") &&
+    (normalized.includes("used-percent") ||
+      normalized.includes("reset") ||
+      normalized.includes("window") ||
+      normalized.includes("credits") ||
+      normalized.includes("over-secondary") ||
+      normalized.includes("plan-type"))
+  );
+}
+
 function getForwardingPriority(headerName: string): number {
   const normalized = headerName.toLowerCase();
   if (
@@ -125,15 +145,7 @@ function getForwardingPriority(headerName: string): number {
   if (normalized.includes("ratelimit") || normalized.includes("rate-limit")) return 2;
   // Codex quota / reset / credits do not contain "ratelimit" in the name,
   // so they used to fall through to priority 3 and lose to date/csp/cf-ray.
-  if (
-    normalized.startsWith("x-codex-") &&
-    (normalized.includes("used-percent") ||
-      normalized.includes("reset") ||
-      normalized.includes("window") ||
-      normalized.includes("credits") ||
-      normalized.includes("over-secondary") ||
-      normalized.includes("plan-type"))
-  ) {
+  if (isCodexAccountQuotaHeader(normalized)) {
     return 2;
   }
   if (
@@ -195,11 +207,47 @@ export function stripNextMiddlewareControlHeaders(headers: Headers): void {
   }
 }
 
+/**
+ * #14116: the `meta` accepted by {@link buildStreamingResponseHeaders} carries
+ * the same fields as `buildOmniRouteResponseMetaHeaders`'s options PLUS the
+ * combo/pool account-identity triple needed to detect a foreign-account
+ * response. All three are optional so every existing call site (direct path,
+ * no combo) keeps behaving exactly as before.
+ */
+export type StreamingResponseHeadersMeta = Parameters<
+  typeof buildOmniRouteResponseMetaHeaders
+>[0] & {
+  /** Whether this request was served through combo/pool routing. */
+  isCombo?: boolean;
+  /** The connection the caller pinned/requested, if any (e.g. `x-omniroute-connection`, a combo step's forced connectionId, or a sticky session-affinity pin). */
+  requestedConnectionId?: string | null;
+  /** The connection that ACTUALLY served this response (`credentials.connectionId`). */
+  selectedConnectionId?: string | null;
+};
+
+/**
+ * #14116: true when combo/pool routing served this response through a
+ * connection other than the one the caller pinned/requested — i.e. the
+ * response's account-scoped quota headers describe a foreign account's
+ * quota, not the caller's own, and must not be forwarded. False on the
+ * direct path (no combo) and whenever no requested connection is known, so
+ * unpinned combo responses keep today's forwarding behavior.
+ */
+function isForeignComboAccountResponse(meta: StreamingResponseHeadersMeta): boolean {
+  return Boolean(
+    meta.isCombo &&
+    meta.requestedConnectionId &&
+    meta.selectedConnectionId &&
+    meta.requestedConnectionId !== meta.selectedConnectionId
+  );
+}
+
 export function buildStreamingResponseHeaders(
   providerHeaders: Headers,
-  meta: Parameters<typeof buildOmniRouteResponseMetaHeaders>[0],
+  meta: StreamingResponseHeadersMeta,
   log: ResponseHeaderLogger = defaultLogger
 ): Record<string, string> {
+  const foreignAccount = isForeignComboAccountResponse(meta);
   const connectionScopedHeaders = new Set(
     (providerHeaders.get("connection") || "")
       .split(",")
@@ -223,7 +271,11 @@ export function buildStreamingResponseHeaders(
       isNextMiddlewareControlHeader(normalized) ||
       isOmniRouteInternalHeader(normalized) ||
       // Forwarded separately below, outside the byte budget.
-      normalized === CODEX_TURN_STATE_RESPONSE_HEADER
+      normalized === CODEX_TURN_STATE_RESPONSE_HEADER ||
+      // #14116: this response was served by a combo/pool sibling account
+      // other than the one the caller pinned/requested — its quota headers
+      // describe THAT account, not the caller's own, so never forward them.
+      (foreignAccount && isCodexAccountQuotaHeader(normalized))
     ) {
       return;
     }

@@ -7,16 +7,9 @@ import { join } from "node:path";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-images-"));
 
-// Stub DNS for fetchRemoteImage's GHSA-cmhj-wh2f-9cgx DNS-rebinding guard
-// (assertHostnameResolvesPublic in src/shared/network/remoteImageFetch.ts).
-// Several image-handler tests (Fal AI URL->b64 normalization, BFL polling
-// with base64 input images, NanoBanana polling with URL->b64 conversion)
-// mock globalThis.fetch with example.com URLs that don't resolve in CI; the
-// handler invokes fetchRemoteImage without exposing a `lookup` injection
-// point, so we monkey-patch dns.promises.lookup to always return a public IP
-// so the rebinding guard passes and the test exercises the mocked fetch
-// behaviour as intended. Node --test runs each file in its own process, so
-// this rebinding does not leak across files.
+// Stub DNS for fetchRemoteImage's GHSA-cmhj-wh2f-9cgx guard so mocked example.com URLs
+// resolve as public. #13883's `pinDns: true` pins the connection via undici, bypassing a
+// mocked globalThis.fetch — `mockFetch()` also sets the `setPinnedFetchTestOverride()` seam.
 const originalDnsLookup = dns.promises.lookup;
 (dns.promises as { lookup: unknown }).lookup = (async (
   _hostname: string,
@@ -32,6 +25,11 @@ process.on("exit", () => {
 const { IMAGE_PROVIDERS, parseImageModel, getAllImageModels } =
   await import("../../open-sse/config/imageRegistry.ts");
 const { handleImageGeneration } = await import("../../open-sse/handlers/imageGeneration.ts");
+const { setPinnedFetchTestOverride } = await import("../../src/shared/network/remoteImageFetch.ts");
+function mockFetch(impl) {
+  globalThis.fetch = impl;
+  setPinnedFetchTestOverride(impl);
+}
 
 function immediateTimeout(callback, _ms, ...args) {
   if (typeof callback === "function") callback(...args);
@@ -366,7 +364,7 @@ test("handleImageGeneration calls Fal AI with Key auth and normalizes URL result
   const originalFetch = globalThis.fetch;
   let requestCapture;
 
-  globalThis.fetch = async (url, options = {}) => {
+  mockFetch(async (url, options = {}) => {
     const stringUrl = String(url);
     if (stringUrl === "https://fal.run/fal-ai/flux-pro/v1.1-ultra") {
       requestCapture = {
@@ -391,7 +389,7 @@ test("handleImageGeneration calls Fal AI with Key auth and normalizes URL result
     }
 
     throw new Error(`Unexpected URL: ${stringUrl}`);
-  };
+  });
 
   try {
     const result = await handleImageGeneration({
@@ -416,7 +414,7 @@ test("handleImageGeneration calls Fal AI with Key auth and normalizes URL result
     assert.equal(requestCapture.body.sync_mode, true);
     assert.equal(result.data.data[0].b64_json, "BQYH");
   } finally {
-    globalThis.fetch = originalFetch;
+    mockFetch(originalFetch);
   }
 });
 
@@ -424,7 +422,7 @@ test("handleImageGeneration routes Stability AI edit models to native endpoints"
   const originalFetch = globalThis.fetch;
   let requestCapture;
 
-  globalThis.fetch = async (url, options = {}) => {
+  mockFetch(async (url, options = {}) => {
     const stringUrl = String(url);
     if (stringUrl === "https://example.com/stability-input.png") {
       return new Response(new Uint8Array([4, 5]), {
@@ -447,7 +445,7 @@ test("handleImageGeneration routes Stability AI edit models to native endpoints"
     }
 
     throw new Error(`Unexpected URL: ${stringUrl}`);
-  };
+  });
 
   try {
     const result = await handleImageGeneration({
@@ -476,7 +474,7 @@ test("handleImageGeneration routes Stability AI edit models to native endpoints"
     assert.equal((requestCapture.body.get("mask") as Blob).size, 1);
     assert.equal(result.data.data[0].b64_json, "c3RhYmlsaXR5LWltYWdl");
   } finally {
-    globalThis.fetch = originalFetch;
+    mockFetch(originalFetch);
   }
 });
 
@@ -537,7 +535,7 @@ test("handleImageGeneration polls Black Forest Labs results and sends base64 inp
   let pollCapture;
 
   globalThis.setTimeout = immediateTimeout;
-  globalThis.fetch = async (url, options = {}) => {
+  mockFetch(async (url, options = {}) => {
     const stringUrl = String(url);
     if (stringUrl === "https://example.com/bfl-input.png") {
       return new Response(new Uint8Array([1, 2]), {
@@ -582,7 +580,7 @@ test("handleImageGeneration polls Black Forest Labs results and sends base64 inp
     }
 
     throw new Error(`Unexpected URL: ${stringUrl}`);
-  };
+  });
 
   try {
     const result = await handleImageGeneration({
@@ -605,7 +603,7 @@ test("handleImageGeneration polls Black Forest Labs results and sends base64 inp
     assert.equal(pollCapture.headers["x-key"], "bfl-key");
     assert.equal(result.data.data[0].b64_json, "CQgH");
   } finally {
-    globalThis.fetch = originalFetch;
+    mockFetch(originalFetch);
     globalThis.setTimeout = originalSetTimeout;
   }
 });
@@ -660,7 +658,7 @@ test("handleImageGeneration uploads source images to Topaz and returns base64 ou
   const originalFetch = globalThis.fetch;
   let requestCapture;
 
-  globalThis.fetch = async (url, options = {}) => {
+  mockFetch(async (url, options = {}) => {
     const stringUrl = String(url);
     if (stringUrl === "https://example.com/topaz-input.png") {
       return new Response(new Uint8Array([1, 2, 3]), {
@@ -686,7 +684,7 @@ test("handleImageGeneration uploads source images to Topaz and returns base64 ou
     }
 
     throw new Error(`Unexpected URL: ${stringUrl}`);
-  };
+  });
 
   try {
     const result = await handleImageGeneration({
@@ -709,7 +707,7 @@ test("handleImageGeneration uploads source images to Topaz and returns base64 ou
     assert.ok(requestCapture.image instanceof File);
     assert.equal(result.data.data[0].b64_json, "BwcH");
   } finally {
-    globalThis.fetch = originalFetch;
+    mockFetch(originalFetch);
   }
 });
 
@@ -1050,7 +1048,7 @@ test("handleImageGeneration polls NanoBanana task results and converts URLs to b
   const originalFetch = globalThis.fetch;
   const calls = [];
 
-  globalThis.fetch = async (url, options = {}) => {
+  mockFetch(async (url, options = {}) => {
     const stringUrl = String(url);
     calls.push(stringUrl);
 
@@ -1078,7 +1076,7 @@ test("handleImageGeneration polls NanoBanana task results and converts URLs to b
     }
 
     throw new Error(`Unexpected URL: ${stringUrl}`);
-  };
+  });
 
   try {
     const result = await handleImageGeneration({
@@ -1099,7 +1097,7 @@ test("handleImageGeneration polls NanoBanana task results and converts URLs to b
     ]);
     assert.deepEqual(result.data.data, [{ b64_json: "AQIDBA==", revised_prompt: "banana async" }]);
   } finally {
-    globalThis.fetch = originalFetch;
+    mockFetch(originalFetch);
   }
 });
 
@@ -1815,7 +1813,7 @@ test("handleImageGeneration routes codex image requests through /responses with 
   try {
     const result = await handleImageGeneration({
       body: {
-        model: "codex/gpt-5.6-sol",
+        model: "codex/gpt-5.6-sol-image",
         prompt: "Draw a happy red kitten",
         response_format: "b64_json",
       },
@@ -2193,7 +2191,7 @@ test("handleImageGeneration still downloads a public image_url whose DNS resolve
   const fetchedUrls = [];
   let requestCapture;
 
-  globalThis.fetch = async (url, options = {}) => {
+  mockFetch(async (url, options = {}) => {
     const stringUrl = String(url);
     fetchedUrls.push(stringUrl);
     if (stringUrl === "https://cdn.example.com/public-input.png") {
@@ -2210,7 +2208,7 @@ test("handleImageGeneration still downloads a public image_url whose DNS resolve
       });
     }
     throw new Error(`Unexpected URL: ${stringUrl}`);
-  };
+  });
 
   try {
     const result = await handleImageGeneration({
@@ -2229,6 +2227,6 @@ test("handleImageGeneration still downloads a public image_url whose DNS resolve
     assert.equal(fetchedUrls[0], "https://cdn.example.com/public-input.png");
     assert.equal((requestCapture.body.get("image") as Blob).size, 3);
   } finally {
-    globalThis.fetch = originalFetch;
+    mockFetch(originalFetch);
   }
 });

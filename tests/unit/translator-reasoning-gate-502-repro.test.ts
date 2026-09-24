@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 const { openaiToClaudeResponse } =
   await import("../../open-sse/translator/response/openai-to-claude.ts");
 
-function createState() {
+function createState(): Record<string, unknown> & { requestedThinking?: boolean } {
   return {
     toolCalls: new Map(),
     _pendingXmlToolCalls: [],
@@ -42,7 +42,10 @@ function flatten(items: unknown[]) {
 // leaked thinking block).
 
 test("REGRESSION guard: reasoning-only response with requestedThinking=false does NOT 502 (fix B synthesizes a text block; gate suppresses the thinking block)", () => {
-  const state = createState(); // requestedThinking absent => false
+  const state = createState();
+  // "did not request" is `requestedThinking === false` — what chatCore resolves for an
+  // opted-out client. A bare state (`undefined`) is the legacy always-relay shape (#13866).
+  state.requestedThinking = false;
 
   // GLM-5.2 autocompact: ONLY reasoning_content, no content delta.
   const reasoning = openaiToClaudeResponse(

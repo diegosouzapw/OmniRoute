@@ -68,7 +68,7 @@ export async function checkToolConfigStatus(
       return "configured";
     }
 
-    if (toolId === "hermes") {
+    if (toolId === "hermes" || toolId === "omp") {
       const lower = content.toLowerCase();
       const hasOmniRoute =
         lower.includes("omniroute") ||

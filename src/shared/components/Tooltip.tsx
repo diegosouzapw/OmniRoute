@@ -24,9 +24,10 @@ import { createPortal } from "react-dom";
 
 interface TooltipProps {
   children: ReactNode;
-  content?: string;
+  content?: ReactNode;
   position?: "top" | "bottom" | "left" | "right";
   className?: string;
+  tooltipClassName?: string;
   delayMs?: number;
   /**
    * Issue #2352: Render the tooltip in a React portal so it escapes the
@@ -52,6 +53,7 @@ export default function Tooltip({
   content,
   position = "top",
   className = "",
+  tooltipClassName = "",
   delayMs = 200,
   usePortal = true,
   multiline = false,
@@ -60,7 +62,7 @@ export default function Tooltip({
   const tooltipId = useId();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLSpanElement | null>(null);
-  const tooltipRef = useRef<HTMLSpanElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
 
   const show = useCallback(() => {
     clearTimeout(timeoutRef.current);
@@ -90,39 +92,41 @@ export default function Tooltip({
     if (!wrap || !tt) return;
     const rect = wrap.getBoundingClientRect();
     const tRect = tt.getBoundingClientRect();
-    const scrollY = window.scrollY;
-    const scrollX = window.scrollX;
     let top = 0;
     let left = 0;
     switch (position) {
       case "bottom":
-        top = rect.bottom + scrollY + 8;
-        left = rect.left + scrollX + rect.width / 2 - tRect.width / 2;
+        top = rect.bottom + 8;
+        left = rect.left + rect.width / 2 - tRect.width / 2;
         break;
       case "left":
-        top = rect.top + scrollY + rect.height / 2 - tRect.height / 2;
-        left = rect.left + scrollX - tRect.width - 8;
+        top = rect.top + rect.height / 2 - tRect.height / 2;
+        left = rect.left - tRect.width - 8;
         break;
       case "right":
-        top = rect.top + scrollY + rect.height / 2 - tRect.height / 2;
-        left = rect.right + scrollX + 8;
+        top = rect.top + rect.height / 2 - tRect.height / 2;
+        left = rect.right + 8;
         break;
       case "top":
       default:
-        top = rect.top + scrollY - tRect.height - 8;
-        left = rect.left + scrollX + rect.width / 2 - tRect.width / 2;
+        top = rect.top - tRect.height - 8;
+        left = rect.left + rect.width / 2 - tRect.width / 2;
         break;
     }
     // Clamp horizontally inside the viewport so a trigger near the right
     // edge does not produce a tooltip that bleeds off the screen.
     const margin = 8;
-    const maxLeft = window.innerWidth + scrollX - tRect.width - margin;
-    const minLeft = scrollX + margin;
+    const maxLeft = window.innerWidth - tRect.width - margin;
+    const minLeft = margin;
     if (left > maxLeft) left = maxLeft;
     if (left < minLeft) left = minLeft;
+
+    // Lock position immediately without any slide/flying animation from (0,0).
+    tt.style.transition = "none";
     tt.style.top = `${top}px`;
     tt.style.left = `${left}px`;
     tt.style.visibility = "visible";
+    tt.style.opacity = "1";
   }, [visible, usePortal, position, content]);
 
   const positionClasses = {
@@ -149,14 +153,13 @@ export default function Tooltip({
   );
 
   const widthClass = multiline ? "max-w-xs whitespace-normal break-words" : "whitespace-nowrap";
-  const baseTooltipClass =
-    "z-50 px-2.5 py-1.5 text-xs font-medium text-white bg-gray-900/95 rounded-md shadow-lg pointer-events-none animate-in fade-in duration-150 motion-reduce:transition-none motion-reduce:animate-none border border-white/10";
+  const baseTooltipClass = `z-50 px-3 py-2 text-xs font-medium text-white bg-[#10141e]/95 rounded-lg shadow-xl pointer-events-none transition-opacity duration-150 motion-reduce:transition-none border border-white/10 backdrop-blur-sm ${tooltipClassName}`;
 
   const portalEnabled = usePortal && typeof window !== "undefined";
 
   const tooltipEl =
     visible && content ? (
-      <span
+      <div
         ref={tooltipRef}
         id={tooltipId}
         role="tooltip"
@@ -165,13 +168,15 @@ export default function Tooltip({
             ? `fixed ${baseTooltipClass} ${widthClass}`
             : `absolute ${baseTooltipClass} ${widthClass} ${positionClasses[position] || positionClasses.top}`
         }
-        // For portal-rendered tooltips, mount off-screen + hidden so the
-        // layout effect can measure dimensions before the user sees a flash.
-        // The useLayoutEffect above promotes visibility once coords are set.
-        style={portalEnabled ? { top: -9999, left: -9999, visibility: "hidden" } : undefined}
+        // For portal-rendered tooltips, mount hidden with opacity 0 at origin so
+        // layout effect sets the exact viewport coordinates before revealing it.
+        // This prevents the tooltip from flying or sliding in from top-left.
+        style={
+          portalEnabled ? { top: -9999, left: -9999, visibility: "hidden", opacity: 0 } : undefined
+        }
       >
         {content}
-      </span>
+      </div>
     ) : null;
 
   return (

@@ -1334,16 +1334,16 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.153.4 (<OS>; <ARCH>)",
-        "Version": "0.153.4",
+        "User-Agent": "codex-cli/0.155.0 (<OS>; <ARCH>)",
+        "Version": "0.155.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.153.4 (<OS>; <ARCH>)",
-        "Version": "0.153.4",
+        "User-Agent": "codex-cli/0.155.0 (<OS>; <ARCH>)",
+        "Version": "0.155.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "oauth": {
@@ -1351,8 +1351,8 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.153.4 (<OS>; <ARCH>)",
-        "Version": "0.153.4",
+        "User-Agent": "codex-cli/0.155.0 (<OS>; <ARCH>)",
+        "Version": "0.155.0",
         "X-Codex-Beta-Features": "responses_websockets"
       }
     },
@@ -2458,29 +2458,6 @@
     "url": {
       "nonStream": "https://generativelanguage.googleapis.com/v1beta/models/test-model:generateContent",
       "stream": "https://generativelanguage.googleapis.com/v1beta/models/test-model:streamGenerateContent?alt=sse"
-    }
-  },
-  "gemini-business": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://business.gemini.google/home",
-      "stream": "https://business.gemini.google/home"
     }
   },
   "gemini-web": {
@@ -3706,6 +3683,29 @@
       "stream": "https://api.longcat.chat/openai/v1/chat/completions"
     }
   },
+  "lyceum": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.lyceum.technology/openai/v1/chat/completions",
+      "stream": "https://api.lyceum.technology/openai/v1/chat/completions"
+    }
+  },
   "maritalk": {
     "format": "openai",
     "headers": {
@@ -4080,19 +4080,25 @@
       "apiKey": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "muse-build/1.3.0 (interactive; macos-aarch64; build ac7280f2aca67769d1455a8847bb502b617d50f6)"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "muse-build/1.3.0 (interactive; macos-aarch64; build ac7280f2aca67769d1455a8847bb502b617d50f6)"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "muse-build/1.3.0 (interactive; macos-aarch64; build ac7280f2aca67769d1455a8847bb502b617d50f6)"
       }
     },
-    "url": {}
+    "url": {
+      "nonStream": "https://api.meta.ai/v1/responses",
+      "stream": "https://api.meta.ai/v1/responses"
+    }
   },
   "muse-spark-web": {
     "format": "openai",

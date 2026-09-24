@@ -1,10 +1,10 @@
 # API Reference (Lietuvių)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Kalbos:** 🇺🇸 [Anglų](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 Pagrindinis „OmniRoute“ API žinynas. Jame aprašoma viešoji `/v1` sąsaja ir dažniausiai naudojami valdymo galiniai taškai; išsamūs šaltiniai yra kompiuterio skaitomas failas [`docs/openapi.yaml`](../openapi.yaml) ir maršrutų medis kataloge `src/app/api/`.
 
@@ -86,15 +86,15 @@ Content-Type: application/json
 
 > **Podėlio pataikymo sąnaudų semantika:** semantinio podėlio `HIT` (`X-OmniRoute-Cache-Hit: true`) atveju išorinis iškvietimas neatliekamas, todėl `X-OmniRoute-Response-Cost` yra `0.0000000000` (pataikymo aptarnavimo **prieauginės** sąnaudos). Pradinės arba galėjusios susidaryti sąnaudos atskirai pateikiamos `X-OmniRoute-Cost-Saved`. Atsiskaitymo sistemų naudotojai turėtų sumuoti `X-OmniRoute-Response-Cost` (pataikymai nieko nekainuoja); podėlio analizė gali agreguoti `X-OmniRoute-Cost-Saved`.
 
-## Išskirtinės valdomų seansų nuomos
+## Išskirtinės valdomos sesijos nuomos
 
-Išskirtinė valdomų seansų nuoma yra pasirenkama, nuo kliento nepriklausoma maršruto parinkimo sutartis: vienas aktyvus savininkas
-valdo vieną tinkamą „OmniRoute“ ryšį. Ji nenuomoja modelio, nereikalauja „OAuth“, neidentifikuoja
+Išskirtinė valdomos sesijos nuoma yra pasirenkama, nuo kliento nepriklausoma maršrutizavimo sutartis: vienas aktyvus savininkas
+turi vieną tinkamą OmniRoute ryšį. Ji nenuomoja modelio, nereikalauja OAuth, neidentifikuoja
 konkretaus kliento ir nereikalauja konkretaus teikėjo.
 
-Autentifikavimui naudojamas API raktas turi turėti sritį `lease:exclusive` ir aiškiai nurodytą netuščią
-`allowedConnections` sąrašą. Duomenų bazės keitimo riba užtikrina, kad abu laukai būtų pateikti kartu
-kuriant raktą ir atliekant dalinius atnaujinimus.
+Autentifikavimo API raktas turi turėti `lease:exclusive` sritį ir aiškų, ne tuščią
+`allowedConnections` sąrašą. Duomenų bazės mutacijos riba užtikrina abiejų laukų kartu
+raktų kūrimo ir dalinių atnaujinimų metu.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Sėkminguose įgijimo, atnaujinimo ir atlaisvinimo atsakymuose pateikiamos laiko žymos, `state` ir tiksli teigiama
-`generation`, tačiau niekada nepateikiamas pasirinktas ryšys ar prisijungimo duomenys. Atnaujinant ir atlaisvinant
-generacija pateikiama JSON turinyje:
+Sėkmingi įsigijimo, atnaujinimo ir atleidimo atsakymai atskleidžia laiko žymas, `state` ir tikslų teigiamą
+`generation`, bet niekada pasirinkto ryšio ar kredencialų. Atnaujinimas ir atleidimas pateikia
+generaciją JSON kūne:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ generacija pateikiama JSON turinyje:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Aktyvios nuomos savininkas gali aiškiai paprašyti privatumą išsaugančių dabartinio susiejimo rodymo metaduomenų:
+Aktyvus nuomos savininkas gali aiškiai paprašyti privatumą saugančių rodymo metaduomenų savo dabartiniam susiejimui:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +137,38 @@ Aktyvios nuomos savininkas gali aiškiai paprašyti privatumą išsaugančių da
 }
 ```
 
-Šis pasirenkamas būsenos veiksmas vienoje duomenų bazės operacijoje apsaugomas neskaidriu savininko identifikatoriumi, autentifikuotu valdomu API raktu ir tikslia
-aktyvia generacija. `displayName` yra tik apkarpytas sukonfigūruoto
-ryšio pavadinimas; kai saugaus sukonfigūruoto pavadinimo nėra, jo reikšmė yra `null`. „OmniRoute“ niekada jo nepakeičia
-el. pašto adresu ar sugeneruota paskyros tapatybe. Teikėjo reikšmė yra nejautri rodymo žyma ir niekada nėra
-sugeneruotas suderinamo teikėjo identifikatorius. Prisijungimo duomenys, prieigos raktai, slapukai, neapdoroti ryšio ar API
-rakto identifikatoriai, savininko maišos, apsaugos paslaptys ir vidiniai maršruto parinkimo duomenys neįtraukiami.
+Šis pasirenkamas būsenos veiksmas yra apsaugotas nepermatomo savininko, autentifikuoto valdomo API rakto ir tikslios
+aktyvios generacijos vienoje duomenų bazės transakcijoje. `displayName` yra tik apkarpytas sukonfigūruoto
+ryšio pavadinimas; jis yra `null`, kai nėra saugaus sukonfigūruoto pavadinimo. OmniRoute niekada nepakeičia
+el. pašto ar sugeneruoto paskyros tapatybės. Teikėjo vertė yra nejautrus rodymo žymuo ir niekada
+nėra sugeneruotas suderinamo teikėjo identifikatorius. Kredencialai, žetonai, slapukai, neapdoroti ryšio ar API
+raktų ID, savininko maišos, apsaugos paslaptys ir vidiniai maršrutizavimo duomenys yra neįtraukiami.
 
-Užklausos su netinkamu raktu, netinkamu savininku, pasenusia generacija, taip pat nerastos, pasibaigusios, atlaisvintos ar panaikintos nuomos
-grąžina tą pačią `409 LEASE_FENCE_STALE` klaidą be ryšio metaduomenų. Klientas, gavęs laukimo dėl pajėgumo atsakymą, neturi aktyvaus susiejimo, kurį galėtų patikrinti. Kai maršruto parinkimas pakeičia aktyvios nuomos ryšį,
-ta pati generacija lieka galioti, o būsenos veiksmas atomiškai grąžina naują susiejimą, niekada ne senąjį.
-Esami klientai lieka nepakeisti, nes įgijimo, atnaujinimo, atlaisvinimo ir laukimo atsakymų
-ankstesnė struktūra išlieka.
+Neteisingo rakto, neteisingo savininko, pasenusios generacijos, trūkstamų, pasibaigusių, atleistų ir
+negaliojančių paieškų metu visada grąžinama ta pati `409 LEASE_FENCE_STALE` klaida be ryšio metaduomenų. Klientas,
+gavęs laukimo dėl pajėgumo atsakymą, neturi aktyvaus susiejimo, kurį galėtų patikrinti. Kai maršrutizavimas
+perkelia aktyvią nuomą, ta pati generacija išlieka galiojanti, o būsena atomiškai grąžina naują susiejimą,
+niekada senąjį. Esami klientai lieka nepakitę, nes įsigijimo, atnaujinimo, atleidimo ir laukimo atsakymai
+išlaiko savo ankstesnes formas.
 
-Ši serverio sutartis nekeičia standartinės „OpenAI Codex“ `/status` funkcijos. Šiuo metu standartinė „Codex“ pateikia savo
-modelio teikėją ir integruotą autentifikavimo bei paskyros būseną, tačiau neatvaizduoja pasirinktinių
-teikėjo paskyros metaduomenų; būsima kliento integracija turės iškviesti šį veiksmą ir nuspręsti, kaip
+Ši serverio sutartis nekeičia standartinio OpenAI Codex `/status`. Standartinis Codex šiuo metu praneša
+savo modelio teikėją ir įmontuotą autentifikavimo/paskyros būseną, bet nerodo savavališkų pasirinktinių
+teikėjo paskyros metaduomenų; vėlesnė kliento integracija turi iškviesti šį veiksmą ir nuspręsti, kaip
 rodyti `connection.displayName`.
 
-Tada kiekvienoje valdomoje išvedimo užklausoje pateikiamos abi valdymo antraštės:
+Kiekvienas valdomas išvedimo užklausas tada pateikia abi valdymo antraštes:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Tikslaus savininko, generacijos, aktyvaus ryšio ir autentifikuoto API rakto atitiktis patikrinama prieš pat
-kiekvieną palaikomą bandymą kreiptis į aukštesnio lygio paslaugą. Pakartotinai panaudojus savininką ir generaciją su kitu raktu, užklausa nepavyksta net
-kai tas raktas leidžia naudoti tą patį ryšį. Neapdoroti savininko identifikatoriai nėra saugomi, registruojami žurnaluose, išlaikomi
-užklausos momentinėje kopijoje ar persiunčiami aukštesnio lygio paslaugai.
+Tikslus savininkas, generacija, aktyvus ryšys ir autentifikuotas API raktas yra apsaugoti
+iš karto prieš kiekvieną palaikomą aukštesnio lygio bandymą. Pakartotinis savininko ir generacijos
+naudojimas su kitu raktu nepavyksta, net jei tas raktas leidžia tą patį ryšį. Neapdoroti savininkai
+nėra išsaugomi, registruojami, saugomi užklausos momentinėje nuotraukoje ar persiunčiami aukštyn.
 
-Laikinas užimtumas grąžina HTTP `429` su `Retry-After` ir:
+Laikinas ginčas grąžina HTTP `429` su `Retry-After` ir:
 
 ```json
 {
@@ -178,36 +179,38 @@ Laikinas užimtumas grąžina HTTP `429` su `Retry-After` ir:
 }
 ```
 
-Šis atsakymas reiškia tik tai, kad įprastas tinkamų ryšių rinkinys nebuvo tuščias, o kiekvienas laisvas kandidatas buvo
-užimtas kitos aktyvios nuomos. Nepalaikomi modeliai ar teikėjai, strategijos neatitiktis, laukimo laikotarpis, kvota,
-būklė ir kitos įprastos tinkamumo klaidos išlaiko esamus „OmniRoute“ atsakymus.
+Šis atsakymas reiškia tik tai, kad įprastas tinkamų elementų rinkinys nebuvo tuščias ir kiekvienas laisvas kandidatas
+buvo užimtas užsienio aktyvios nuomos. Nepalaikomi modeliai/teikėjai, politikos neatitikimas, atvėsinimas, kvota,
+sveikata ir kiti įprasti tinkamumo gedimai išlaiko savo esamus OmniRoute atsakymus.
 
 ### `x-omniroute-compression`
 
-Suspaudimo plano pakeitimas konkrečiai užklausai. Turi aukščiausią prioritetą — yra viršesnis už maršruto parinkimo derinio
-pakeitimą, aktyvų profilį, automatinį paleidiklį ir skydelio numatytąją nuostatą. Reikšmės:
+Kiekvienos užklausos suspaudimo plano perrašymas. Didžiausias prioritetas – perrašo maršrutizavimo-kombinacijos
+perrašymą, aktyvų profilį, automatinį paleidimą ir skydelio numatytąjį. Reikšmės:
 
-| Reikšmė       | Poveikis                                                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Šiai užklausai suspaudimas netaikomas.                                                                                          |
-| `default`     | Iš skydelio gautas numatytasis profilis (aktyvus profilis ignoruojamas).                                                        |
-| `engine:<id>` | Vienas modulis, kai jis įjungtas, pvz., `engine:rtk`.                                                                           |
-| `<combo>`     | Pavadintas derinys, pirmiausia sutapatinamas pagal pavadinimą (neatsižvelgiant į raidžių registrą), tada pagal identifikatorių. |
+| Reikšmė       | Poveikis                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `off`         | Nėra suspaudimo šiai užklausai.                                                                                    |
+| `default`     | Skydelio numatytasis profilis (ignoruoja aktyvų profilį). Nuostolingi varikliai išjungiami.                        |
+| `safe`        | Tik dublikatų šalinimas ir tarpų sulankstymas.                                                                     |
+| `allow-lossy` | Išlaikyti operatoriaus planą šiai užklausai, įskaitant santraukas ir stiliaus perrašymus.                          |
+| `engine:<id>` | Vienas variklis, kai įjungtas, pvz., `engine:rtk`. Kiekvienos užklausos pasirinkimas tam varikliui.                |
+| `<combo>`     | Pavadinta kombinacija, pirmiausia atitinkanti pagal pavadinimą (nepaisant didžiųjų/mažųjų raidžių), tada pagal ID. |
 
 Pastabos:
 
-- Nežinomos reikšmės ignoruojamos (užklausa niekada neatmetama); parinkimas tęsiamas pagal įprastą operatorių pirmumo tvarką.
-- Jei keli deriniai turi tą patį pavadinimą, deterministiniam sutapatinimui perduokite derinio **id**.
-- Derinio, kurio pavadinimas yra `off` arba `default`, negalima pasirinkti pagal pavadinimą (šie raktažodžiai interpretuojami pirmiausia); tokį derinį nurodykite pagal jo identifikatorių.
-- Pagrindinis suspaudimo jungiklis yra absoliutus apribojimas: kai suspaudimas išjungtas visuotinai, ši antraštė negali jo įjungti.
+- Nežinomos reikšmės ignoruojamos (užklausa niekada neatmetama); sprendimas pereina prie įprasto operatoriaus prioriteto.
+- Jei kelios kombinacijos turi tą patį pavadinimą, perduokite kombinacijos **ID**, kad būtų nustatytas deterministinis atitikimas.
+- Kombinacija, kurios pavadinimas yra `off` arba `default`, negali būti pasirinkta pagal pavadinimą (šie raktiniai žodžiai interpretuojami pirmiausia); tokią kombinaciją nurodykite pagal jos ID.
+- Pagrindinis suspaudimo jungiklis yra griežtas vartai: kai suspaudimas išjungtas globaliai, ši antraštė negali jo įjungti.
 
-Pritaikytas planas pakartojamas atsakymo antraštėje:
+Pritaikytas planas atkartojamas atsakymo antraštėje:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-kur `<source>` yra viena iš šių reikšmių: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` arba `off`.
+kur `<source>` yra vienas iš `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` arba `off`.
 
 ---
 
@@ -448,49 +451,49 @@ Naudokite šį galinį tašką, kai pagalbinis procesas vykdomas atskirai ir neg
 
 ## Suderinamumo galiniai taškai
 
-| Metodas | Kelias                                    | Formatas                                                 |
-| ------- | ----------------------------------------- | -------------------------------------------------------- |
-| POST    | `/v1/chat/completions`                    | OpenAI                                                   |
-| POST    | `/v1/messages`                            | Anthropic                                                |
-| POST    | `/v1/responses`                           | OpenAI Responses                                         |
-| POST    | `/v1/embeddings`                          | OpenAI                                                   |
-| POST    | `/v1/images/generations`                  | OpenAI Images                                            |
-| POST    | `/v1/images/edits`                        | OpenAI Images (redagavimas / užpildymas)                 |
-| POST    | `/v1/videos/generations`                  | OpenAI stiliaus vaizdo įrašų generavimas                 |
-| POST    | `/v1/music/generations`                   | OpenAI stiliaus muzikos generavimas                      |
-| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (kalbos atpažinimas)                        |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (grąžina garso turinį)                        |
-| POST    | `/v1/rerank`                              | Cohere/Voyage stiliaus perrikiavimas                     |
-| POST    | `/v1/classify`                            | Jina klasifikavimas (`api.jina.ai`)                      |
-| POST    | `/v1/segment`                             | Jina segmentuotuvas (`segment.jina.ai`)                  |
-| POST    | `/v1/moderations`                         | OpenAI Moderations                                       |
-| GET     | `/v1/models`                              | OpenAI                                                   |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                                                |
-| GET     | `/v1beta/models`                          | Gemini                                                   |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                                   |
-| POST    | `/v1/api/chat`                            | Ollama                                                   |
-| GET     | `/api/v1/vscode/{token}/`                 | OpenAI katalogo alternatyvusis kelias                    |
-| GET     | `/api/v1/vscode/{token}/models`           | OpenAI modelių alternatyvusis kelias                     |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI alternatyvusis kelias su prieigos raktu           |
-| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Responses alternatyvusis kelias su prieigos raktu |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama alternatyvusis kelias su prieigos raktu           |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama žymų alternatyvusis kelias su prieigos raktu      |
+| Metodas | Kelias                                    | Formatas                                                  |
+| ------- | ----------------------------------------- | --------------------------------------------------------- |
+| POST    | `/v1/chat/completions`                    | OpenAI                                                    |
+| POST    | `/v1/messages`                            | Anthropic                                                 |
+| POST    | `/v1/responses`                           | OpenAI Responses                                          |
+| POST    | `/v1/embeddings`                          | OpenAI                                                    |
+| POST    | `/v1/images/generations`                  | OpenAI Images                                             |
+| POST    | `/v1/images/edits`                        | OpenAI Images (redagavimas / atkūrimas)                   |
+| POST    | `/v1/videos/generations`                  | OpenAI stiliaus vaizdo įrašų generavimas                  |
+| POST    | `/v1/music/generations`                   | OpenAI stiliaus muzikos generavimas                       |
+| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                                        |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (grąžina garso turinį)                         |
+| POST    | `/v1/rerank`                              | Cohere/Voyage stiliaus perrikiavimas                      |
+| POST    | `/v1/classify`                            | Jina klasifikavimas (`api.jina.ai`)                       |
+| POST    | `/v1/segment`                             | Jina segmentavimo priemonė (`segment.jina.ai`)            |
+| POST    | `/v1/moderations`                         | OpenAI Moderations                                        |
+| GET     | `/v1/models`                              | OpenAI                                                    |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                                                 |
+| GET     | `/v1beta/models`                          | Gemini                                                    |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                                    |
+| POST    | `/v1/api/chat`                            | Ollama                                                    |
+| GET     | `/api/v1/vscode/{token}/`                 | OpenAI katalogo alternatyvusis adresas                    |
+| GET     | `/api/v1/vscode/{token}/models`           | OpenAI modelių alternatyvusis adresas                     |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI alternatyvusis adresas su prieigos raktu           |
+| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Responses alternatyvusis adresas su prieigos raktu |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama alternatyvusis adresas su prieigos raktu           |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama žymų alternatyvusis adresas su prieigos raktu      |
 
-Visų POST maršrutų struktūra yra vienoda: `Bearer your-api-key` + Zod patikrintas JSON turinys (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ir kt.; žr. `src/shared/validation/schemas.ts`). Nepavykus schemos patikrai, grąžinamas 4xx.
+Visi POST maršrutai naudoja tą pačią struktūrą: `Bearer your-api-key` ir Zod patikrintas JSON turinys (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ir kt.; žr. `src/shared/validation/schemas.ts`). Nepavykus schemos patikrai grąžinamas 4xx.
 
-Klientams, kurie negali pridėti `Authorization: Bearer ...`, OmniRoute taip pat priima API raktus URL adrese: naudodama užklausos eilutės suderinamumo parametrus (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) arba toliau aprašytus specialiuosius `/api/v1/vscode/{token}/...` galinius taškus.
+Klientams, kurie negali pridėti `Authorization: Bearer ...`, OmniRoute taip pat leidžia pateikti API raktus URL, naudojant užklausos eilutės suderinamumą (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) arba toliau aprašytus specialiuosius `/api/v1/vscode/{token}/...` galinius taškus.
 
 ```bash
-# Perrikiavimas
+# Perrikiavimas (debesijos registro teikėjas arba su OpenAI suderinamas teikėjo mazgas kaip „<prefix>/<model>“)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina klasifikavimas (Foundation API prisijungimo duomenys)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmentuotuvas
+# Jina segmentavimo priemonė
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina paieška (s.jina.ai; teikėjo alternatyvūs pavadinimai: jina-search, jina-ai, jina)
+# Jina paieška (s.jina.ai; teikėjo alternatyvieji pavadinimai: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderavimas
@@ -507,6 +510,28 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
+> **Perrikiavimo teikėjo mazgai:** `POST /v1/rerank` taip pat nukreipia užklausas į su OpenAI suderinamus teikėjo mazgus
+> (oMLX, vLLM, Infinity, TEI už šliuzo, …), nurodomus kaip `<node-prefix>/<model>`. Grįžtamojo ryšio
+> mazgai (`localhost`, `127.0.0.1`, `172.16.0.0/12`) visada yra tinkami. Mazgai bet kuriame kitame
+> pagrindiniame kompiuteryje — LAN įrenginyje arba Tailscale lygiaverčiame mazge — tinkami tik tada, kai operatorius įjungia
+> `RERANK_REMOTE_PROVIDER_NODES` funkcijos žymą **ir** mazgo bazinis URL atitinka teikėjo
+> išeinančių URL politiką (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> užklausos niekada nenukreipiamos į debesijos metaduomenų pagrindinius kompiuterius. Atminties variklio perrikiavimo veiksmas iškviečia šį maršrutą per
+> grįžtamojo ryšio sąsają, todėl ta pati taisyklė taikoma `rerankProviderModel` Atminties nuostatose.
+>
+> **Vietinių serverių struktūros:** mazgas iškviečiamas adresu `<base>/v1/rerank`, o gavus 404 — adresu `<base>/rerank`
+> (Infinity, TEI). Aukštyn siunčiamame turinyje pateikiami ir Cohere/OpenAI rašybos variantai (`documents`,
+> `return_documents`), ir TEI variantai (`texts`, `return_text`), o atsakymas iš aukštyn esančio serverio
+> normalizuojamas į Cohere apvalkalą: TEI grynasis `[{index, score, text}]`, `{results: [{index, score}]}`
+> iš supaprastintų šliuzų ir Voyage stiliaus `{data: [...]}` klientui grąžinami kaip
+> `{results: [{index, relevance_score, document?}]}`, surikiuoti pagal įvertį ir apriboti iki `top_n`.
+
+> **Teikėjo mazgų aptikimas:** su OpenAI suderinamo teikėjo mazgo modeliai rodomi `GET /v1/models`
+> po mazgo priešdėliu. Eilutės, kuriose nėra galinio taško metaduomenų (tai įprasta vietiniams `/v1/models` sąrašams),
+> paveldi mazgo `apiType`, todėl `embeddings` mazgo modelių tipas yra `type: "embedding"`, o
+> `rerank` mazgo modelių — `type: "rerank"`, užuot numatytai naudojus pokalbių tipą; sinchronizuotoje arba rankiniu būdu pridėtoje eilutėje aiškiai nurodytas
+> `supportedEndpoints` vis tiek turi pirmenybę.
+
 ### Specialieji teikėjų maršrutai
 
 ```bash
@@ -515,7 +540,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Jei teikėjo priešdėlio nėra, jis pridedamas automatiškai. Neatitinkantys modeliai grąžina `400`.
+Teikėjo prefiksas automatiškai pridedamas, jei jo nėra. Neatitinkantys modeliai grąžina `400`.
 
 ---
 
@@ -1619,21 +1644,21 @@ Tik administratoriams skirti operacinio valdymo galiniai taškai.
 
 ## CLI įrankių valdymas
 
-Valdykite CLI įrankius, integruojamus su „OmniRoute“ (antigravity, chipotle, commandCode,
-devin-cli ir kt.). Visą sąrašą rasite [Teikėjų žinyne](./PROVIDER_REFERENCE.md).
+Valdykite CLI įrankius, integruojamus su OmniRoute (antigravity, commandCode,
+devin-cli ir kt.). Visą sąrašą rasite [teikėjų žinyne](./PROVIDER_REFERENCE.md).
 
-| Metodas | Kelias                                  | Aprašymas                                                                                                                                                                           |
-| ------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET     | `/api/cli-tools/all-statuses`           | Visų CLI įrankių būsena (įdiegimas, versija, kada paskutinį kartą aptiktas)                                                                                                         |
-| GET     | `/api/cli-tools/status`                 | Išsami vieno CLI įrankio būsena (`?tool=` užklausa)                                                                                                                                 |
-| POST    | `/api/cli-tools/apply`                  | Įrašyti sugeneruotą įrankio konfigūraciją (`dryRun` pateikia peržiūrą; naudojant konteinerį grąžinama `422` + `containerEphemeralTarget`; `migration` nurodo pasenusį „Codex“ YAML) |
-| GET     | `/api/cli-tools/backups`                | Pateikti CLI įrankių konfigūracijų atsarginių kopijų sąrašą                                                                                                                         |
-| POST    | `/api/cli-tools/backups`                | Sukurti visų CLI įrankių konfigūracijų atsarginę kopiją                                                                                                                             |
-| POST    | `/api/cli-tools/backups`                | Atkurti: tas pats galinis taškas atkuria atsarginę kopiją, kai užklausos turinyje pateikiama `{tool, backupId}`                                                                     |
-| GET     | `/api/cli-tools/antigravity-mitm`       | „Antigravity“ MITM tarpinio serverio būsena (`antigravity-mitm` CLI įrankis)                                                                                                        |
-| POST    | `/api/cli-tools/antigravity-mitm/alias` | Konfigūruoti `antigravity-mitm` alternatyviuosius vardus                                                                                                                            |
+| Metodas | Kelias                                  | Aprašymas                                                                                                                                                             |
+| ------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET     | `/api/cli-tools/all-statuses`           | Visų CLI įrankių būsena (įdiegimas, versija, paskutinio aptikimo laikas)                                                                                              |
+| GET     | `/api/cli-tools/status`                 | Išsami vieno CLI įrankio būsena (`?tool=` užklausa)                                                                                                                   |
+| POST    | `/api/cli-tools/apply`                  | Įrašo sugeneruotą įrankio konfigūraciją (`dryRun` pateikia peržiūrą; `422` + `containerEphemeralTarget`, kai veikia konteineryje; `migration` nurodo seną Codex YAML) |
+| GET     | `/api/cli-tools/backups`                | Pateikia CLI įrankių konfigūracijų atsarginių kopijų sąrašą                                                                                                           |
+| POST    | `/api/cli-tools/backups`                | Sukuria visų CLI įrankių konfigūracijų atsarginę kopiją                                                                                                               |
+| POST    | `/api/cli-tools/backups`                | Atkuria: tas pats galinis taškas, kai užklausos turinyje pateikiama `{tool, backupId}`, atkuria nurodytą atsarginę kopiją                                             |
+| GET     | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM tarpinio serverio būsena („antigravity-mitm“ CLI įrankis)                                                                                            |
+| POST    | `/api/cli-tools/antigravity-mitm/alias` | Konfigūruoja antigravity-mitm alternatyviuosius vardus                                                                                                                |
 
-**Autentifikavimas:** Reikalinga valdymo sesija.
+**Autentifikavimas:** reikalinga valdymo sesija.
 
 ---
 

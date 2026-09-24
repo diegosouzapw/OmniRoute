@@ -755,3 +755,84 @@ test("401 carrying a real fingerprint signal still marks auth-level (exemption i
   assert.equal(exhausted, true, "a 401 with a fingerprint-looking body must still mark auth-level");
   assert.ok(s.exhaustedConnections.has("test-dedup-provider:conn-1"));
 });
+
+test("403 on per-model-quota provider does NOT mark connection or provider exhausted (#14136)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "gemini", connectionId: "gemini-conn-1" }),
+    {
+      ...baseOpts,
+      errorText: "User does not have permission to access model gemini-1.5-pro",
+      rawModel: "gemini-1.5-pro",
+      result: { status: 403 },
+      fallbackResult: { creditsExhausted: false },
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, false, "403 on per-model-quota provider must not exhaust provider");
+  assert.equal(
+    s.exhaustedConnections.size,
+    0,
+    "403 on per-model-quota provider must not exhaust connection"
+  );
+  assert.equal(s.exhaustedProviders.size, 0);
+});
+
+test("403 on vertex with model-scoped permission denial does NOT exhaust connection (#14136)", () => {
+  const s = sets();
+  const vertexModelScopedError = JSON.stringify({
+    error: {
+      code: 403,
+      message: "Permission denied on resource",
+      details: [
+        {
+          reason: "IAM_PERMISSION_DENIED",
+          metadata: {
+            resource: "projects/test-p/locations/us-central1/publishers/google/models/gemini-ultra",
+          },
+        },
+      ],
+    },
+  });
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "vertex", connectionId: "vertex-conn-1" }),
+    {
+      ...baseOpts,
+      errorText: vertexModelScopedError,
+      rawModel: "gemini-ultra",
+      result: { status: 403 },
+      fallbackResult: { creditsExhausted: false },
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedConnections.size, 0);
+});
+
+test("403 on vertex with connection-wide permission denial DOES exhaust connection (#14136)", () => {
+  const s = sets();
+  const vertexConnectionWideError = JSON.stringify({
+    error: {
+      code: 403,
+      message: "Cloud AI Platform API has not been used in project before or it is disabled.",
+      details: [
+        {
+          reason: "SERVICE_DISABLED",
+        },
+      ],
+    },
+  });
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "vertex", connectionId: "vertex-conn-1" }),
+    {
+      ...baseOpts,
+      errorText: vertexConnectionWideError,
+      rawModel: "gemini-ultra",
+      result: { status: 403 },
+      fallbackResult: { creditsExhausted: false },
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, true);
+  assert.ok(s.exhaustedConnections.has("vertex:vertex-conn-1"));
+});

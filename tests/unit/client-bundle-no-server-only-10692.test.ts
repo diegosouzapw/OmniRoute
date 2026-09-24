@@ -19,14 +19,19 @@ import { fileURLToPath } from "node:url";
  * This walks the real static-import graph, the same edges the bundler follows, from EVERY
  * `"use client"` file in the repo rather than a hand-picked pair.
  *
+ * First-party dynamic `import()` with a static string specifier IS followed. The
+ * bundler resolves those edges into the client chunk just like static imports
+ * (a `"use client"` page reaching a server-only module through `await import()`
+ * fails the production build with `Module not found`), so a guard that ignores
+ * them stays green on a broken build. Only specifiers that resolve through the
+ * same first-party resolver as static imports are followed — npm packages and
+ * non-literal specifiers are ignored exactly like their static counterparts.
+ *
  * Two deliberate exclusions, both load-bearing:
  *
  *  - **`import type` is not an edge.** TypeScript erases it before the bundler sees it. A scan
  *    that counts type imports reports 26 phantom leaks against 2 real ones here — a guard that
  *    cries wolf gets switched off.
- *  - **Dynamic `import()` is not followed.** It does not actually break a bundle edge (that was
- *    tried for #10692 and failed), but it does move the module into a chunk the browser only
- *    fetches on demand, which is a legitimate boundary for a lazily-used server path.
  *
  * A reached module counts as server-only when it statically imports a Node builtin the
  * production bundler cannot resolve for the browser. The pinned list below (the original
@@ -156,7 +161,7 @@ function isTypeOnlyClause(clause: string): boolean {
 
 /** Value-carrying static specifiers only. */
 function staticSpecifiers(source: string): string[] {
-  const withoutDynamic = source.replace(/\bimport\s*\(/g, "__dynamic_import__(");
+  const withoutDynamic = source.replace(/\bimport\s*\(/g, "__dynamic_import__");
   const out: string[] = [];
   for (const pattern of [
     /(?:^|\n)\s*import\s+([^;'"]*)from\s*["']([^"']+)["']/g,
@@ -174,6 +179,24 @@ function staticSpecifiers(source: string): string[] {
   return out;
 }
 
+/**
+ * First-party dynamic-import targets (`import("…")` / `await import(`…`)`) with a
+ * resolvable static specifier. The bundler follows exactly these edges into the
+ * client chunk, so the guard must too. Non-literal specifiers (`import(variable)`)
+ * cannot be resolved statically by the bundler either and are ignored; npm-package
+ * specifiers resolve to null downstream, like their static counterparts.
+ */
+function dynamicSpecifiers(source: string): string[] {
+  const out: string[] = [];
+  for (const match of source.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g)) {
+    out.push(match[1]);
+  }
+  for (const match of source.matchAll(/\bimport\s*\(\s*`([^`$]+)`\s*\)/g)) {
+    out.push(match[1]);
+  }
+  return out;
+}
+
 const specifierCache = new Map<string, string[]>();
 function specifiersOf(file: string): string[] {
   const cached = specifierCache.get(file);
@@ -181,7 +204,8 @@ function specifiersOf(file: string): string[] {
   const absolute = path.join(REPO_ROOT, file);
   let specs: string[] = [];
   if (fs.existsSync(absolute)) {
-    specs = staticSpecifiers(fs.readFileSync(absolute, "utf8"));
+    const source = fs.readFileSync(absolute, "utf8");
+    specs = [...staticSpecifiers(source), ...dynamicSpecifiers(source)];
   }
   specifierCache.set(file, specs);
   return specs;
@@ -268,6 +292,23 @@ test("no client entry point statically reaches server-only code", () => {
   );
 });
 
+test("dynamic import specifiers: literals are followed, variables and npm packages are not", () => {
+  assert.deepEqual(
+    dynamicSpecifiers(
+      `const a = await import("@/lib/db/readCache");\nconst b = await import("./local");`
+    ),
+    ["@/lib/db/readCache", "./local"]
+  );
+  // Non-literal specifiers cannot be resolved statically — by the bundler or the guard.
+  assert.deepEqual(dynamicSpecifiers("const m = await import(specifier);"), []);
+  assert.deepEqual(dynamicSpecifiers("const m = await import(`./${name}`);"), []);
+  // npm packages leave the repo graph: they are extracted here but resolve to null.
+  assert.equal(resolveSpecifier("open-sse/services/model.ts", "zod"), null);
+  assert.equal(
+    resolveSpecifier("open-sse/services/model.ts", "@/lib/db/readCache"),
+    "src/lib/db/readCache.ts"
+  );
+});
 test("builtin classification: node: scheme always forbidden, bare polyfilled names tolerated", () => {
   for (const specifier of ["node:fs", "node:path", "node:os", "node:crypto", "fs", "fs/promises"]) {
     assert.equal(isBrowserForbiddenBuiltin(specifier), true, specifier);

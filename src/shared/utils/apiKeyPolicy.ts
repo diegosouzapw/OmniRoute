@@ -14,6 +14,7 @@ import { getComboByName } from "@/lib/db/combos";
 import { isDashboardSessionAuthenticated } from "./apiAuth";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
+import { checkKeyQuota } from "@/domain/keyQuota";
 import { checkTokenLimits } from "@omniroute/open-sse/services/tokenLimitCounter.ts";
 import {
   errorResponse,
@@ -23,7 +24,10 @@ import {
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
-import { resolveEndpointCategory } from "@/shared/constants/endpointCategories";
+import {
+  resolveCanonicalEndpointPath,
+  resolveEndpointCategory,
+} from "@/shared/constants/endpointCategories";
 import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
 import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
 import { buildApiKeyUsageLimitPolicyRejection } from "@/lib/usage/apiKeyUsageLimits";
@@ -72,6 +76,7 @@ export interface ApiKeyMetadata {
   name?: string;
   modelAccessMode?: "all" | "restricted";
   allowedModels?: string[];
+  blockedModels?: string[];
   allowedCombos?: string[];
   allowedConnections?: string[];
   allowedQuotas?: string[];
@@ -317,6 +322,25 @@ async function validateQuotaRoutingTarget(
   }
 }
 
+/**
+ * Make the combo rejection actionable.
+ *
+ * The 403 below is a KEY-POLICY decision, not a routing fault — but the bare
+ * "Combo X is not allowed for this API key" reads like a routing bug, so callers
+ * (especially the AI agents that drive them) retry the same model or fall through
+ * a whole compaction cascade on every attempt. Name the two real remedies so the
+ * operator can fix it in one step instead of debugging combo routing.
+ */
+function comboCannotBeUsedMessage(modelStr: string, comboName: string | null): string {
+  const name = comboName || modelStr;
+  return (
+    `Combo "${name}" is not allowed for this API key. ` +
+    `This key's allowed combos do not include "${name}" — add "${name}" (or "combo/*") ` +
+    `to this key's allowed combos in Dashboard → API Manager, or route to a combo ` +
+    `this key already permits.`
+  );
+}
+
 async function validateStandardRoutingTarget(
   request: Request,
   apiKey: string,
@@ -331,7 +355,7 @@ async function validateStandardRoutingTarget(
       if (!comboAccess.allowed) {
         return errorResponse(
           HTTP_STATUS.FORBIDDEN,
-          `Combo "${comboAccess.comboName || modelStr}" is not allowed for this API key`
+          comboCannotBeUsedMessage(modelStr, comboAccess.comboName)
         );
       }
     } catch (error) {
@@ -343,6 +367,7 @@ async function validateStandardRoutingTarget(
   const hasModelRestrictions =
     apiKeyInfo.modelAccessMode === "restricted" ||
     Boolean(apiKeyInfo.allowedModels?.length) ||
+    Boolean(apiKeyInfo.blockedModels?.length) ||
     apiKeyInfo.disableNonPublicModels === true;
   if (!requestedComboName && hasModelRestrictions && modelStr.startsWith("auto/")) {
     requestedComboName = modelStr;
@@ -497,10 +522,12 @@ function validateEndpointAccess(context: PolicyContext): Response | null {
   if (!apiKeyInfo.allowedEndpoints?.length) return null;
   try {
     // A route handler sees the client's original URL: `/v1/…` when the
-    // `/v1/:path*` rewrite fired, but `/api/v1/…` when the client hit the App
-    // Router path directly (no rewrite). The category prefixes are `/v1/…`, so
-    // strip the `/api` shape or a restricted key silently passes on that path.
-    const pathname = new URL(request.url).pathname.replace(/^\/api(?=\/v1\/)/, "");
+    // `/v1/:path*` rewrite fired, `/api/v1/…` when the client hit the App
+    // Router path directly (no rewrite), and the raw alias spelling
+    // (`/chat/completions`, `/models`, `/codex/…`, `/v1/v1/…`) in every case.
+    // The category prefixes are `/v1/…`, so canonicalize the path first or a
+    // restricted key silently passes on those spellings (#13685).
+    const pathname = resolveCanonicalEndpointPath(new URL(request.url).pathname);
     const category = resolveEndpointCategory(pathname);
     if (category && !apiKeyInfo.allowedEndpoints.includes(category)) {
       return errorResponse(
@@ -582,6 +609,7 @@ async function validateModelAccess(context: PolicyContext): Promise<Response | n
   const hasModelRestrictions =
     apiKeyInfo.modelAccessMode === "restricted" ||
     Boolean(apiKeyInfo.allowedModels?.length) ||
+    Boolean(apiKeyInfo.blockedModels?.length) ||
     apiKeyInfo.disableNonPublicModels === true;
   if (!requestedComboName && hasModelRestrictions) {
     if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) {
@@ -618,7 +646,7 @@ async function validateComboAccess(
       comboName: comboAccess.comboName,
       rejection: errorResponse(
         HTTP_STATUS.FORBIDDEN,
-        `Combo "${comboAccess.comboName || modelStr}" is not allowed for this API key`
+        comboCannotBeUsedMessage(modelStr, comboAccess.comboName)
       ),
     };
   } catch (error) {
@@ -659,6 +687,19 @@ function validateTokenLimit(context: PolicyContext): Response | null {
   } catch (error) {
     log.error("API_POLICY", "Token limit check failed. Request blocked.", { error });
     return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Token limit policy unavailable");
+  }
+}
+
+function validateKeyQuota(context: PolicyContext): Response | null {
+  const { apiKeyInfo } = context;
+  if (!apiKeyInfo.id) return null;
+  try {
+    const verdict = checkKeyQuota(apiKeyInfo.id);
+    if (verdict.allowed) return null;
+    return errorResponse(HTTP_STATUS.RATE_LIMITED, verdict.reason || "API key quota exceeded");
+  } catch (error) {
+    log.error("API_POLICY", "API key quota check failed. Request blocked.", { error });
+    return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key quota policy unavailable");
   }
 }
 
@@ -767,6 +808,8 @@ export async function enforceApiKeyPolicy(
 
   const budgetRejection = validateBudget(context);
   if (budgetRejection) return { apiKey, apiKeyInfo, rejection: budgetRejection };
+  const keyQuotaRejection = validateKeyQuota(context);
+  if (keyQuotaRejection) return { apiKey, apiKeyInfo, rejection: keyQuotaRejection };
   const tokenRejection = validateTokenLimit(context);
   if (tokenRejection) return { apiKey, apiKeyInfo, rejection: tokenRejection };
   const rateRejection = await validateRateLimitAndThrottle(context);

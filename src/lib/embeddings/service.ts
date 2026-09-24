@@ -33,6 +33,7 @@ import { calculateCost } from "@/lib/usage/costCalculator";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { resolveLocalSyncedEndpointRoute } from "@/lib/providerModels/syncedEndpointRouting";
+import { resolveAlibabaProviderEmbeddingUrl } from "@/shared/constants/alibabaProviderRegions";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 type ProviderCredentialsResult = Awaited<ReturnType<typeof getProviderCredentials>>;
@@ -340,14 +341,29 @@ export async function createEmbeddingResponse(
         `[${provider}] All ${credentials.expiredCount || 1} connection(s) ${reason} — please reconnect in the dashboard`
       );
     }
-  } else if (provider === "ollama-local" || provider === "lmstudio") {
-    // Ollama and LM Studio are keyless, but a configured connection can still
-    // provide a custom local host. Hydrate that optional connection without
-    // imposing an authentication requirement, then keep the static localhost
-    // default when no connection exists. getProviderCredentials("lmstudio")
-    // resolves the dashboard's hyphenated "lm-studio" connection via the
-    // provider search pool/alias (#11233); a selection or rate-limit failure
-    // must not break the flow — proceed without credentials.
+    // #13945: blockedByKeyPolicy is the third credential-diagnostic sentinel
+    // (alongside allRateLimited/allExpired above) — without this check a
+    // truthy sentinel would reach the embeddings executor below with no
+    // apiKey/accessToken. Defensive: this call site does not pass
+    // allowedConnections today, so the sentinel cannot fire yet, but it
+    // guards the same contract the moment that scope is wired in (mirrors
+    // #13832's blockedByKeyPolicy handling in the chat path).
+    if ("blockedByKeyPolicy" in credentials && credentials.blockedByKeyPolicy) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        formatMissingEmbeddingCredentialsError(provider)
+      );
+    }
+  } else if (
+    provider === "ollama-local" ||
+    provider === "lmstudio" ||
+    provider === "llama-cpp" ||
+    provider === "lemonade"
+  ) {
+    // Local providers are key-optional, but a configured connection can provide
+    // a custom host or API key (e.g. Lemonade bearer auth). Hydrate that optional
+    // connection without imposing an authentication requirement, then keep the
+    // static localhost default when no connection exists.
     const localCredentials = await getProviderCredentials(credentialsProviderId);
     if (
       localCredentials &&
@@ -356,6 +372,24 @@ export async function createEmbeddingResponse(
     ) {
       credentials = localCredentials;
     }
+  }
+
+  // Alibaba's embedding endpoint is connection-scoped: workspace and region
+  // live in providerSpecificData, so the static chat registry cannot select it.
+  if (
+    credentials &&
+    !options.resolvedProvider &&
+    (provider === "alibaba" || provider === "alibaba-cn")
+  ) {
+    const providerSpecificData = (
+      credentials as { providerSpecificData?: Record<string, unknown> | null }
+    ).providerSpecificData;
+    const connectionBaseUrl = resolveAlibabaProviderEmbeddingUrl(
+      provider,
+      providerSpecificData,
+      providerConfig.baseUrl
+    );
+    if (connectionBaseUrl) providerConfig = { ...providerConfig, baseUrl: connectionBaseUrl };
   }
 
   // #474: when the request used a bare model name (no "/" — e.g. an alias that

@@ -6,6 +6,7 @@ import {
   buildRerankProviderListing,
   mergeRerankProviderListings,
 } from "@/lib/memory/embedding/rerankListings";
+import { listProviderNodeModalityListings } from "@/lib/memory/embedding/nodeModalityListings";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 /**
@@ -37,22 +38,9 @@ export async function GET(request: NextRequest) {
       curated.push(buildRerankProviderListing(providerId, config, hasKey));
     }
 
-    // Local rerank-capable provider_nodes appended after curated entries.
-    const extra = [];
-    try {
-      const { getCachedProviderNodes } = await import("@/lib/db/readCache");
-      const nodes = await getCachedProviderNodes();
-      for (const n of Array.isArray(nodes) ? nodes : []) {
-        const apiType = (n as { apiType?: string }).apiType || "";
-        if (!["chat", "responses", "rerank"].includes(apiType)) continue;
-        const prefix = (n as { prefix?: string }).prefix;
-        const baseUrl = (n as { baseUrl?: string }).baseUrl;
-        if (!prefix || !baseUrl) continue;
-        extra.push({ provider: prefix, hasKey: true, models: [] });
-      }
-    } catch {
-      // best-effort
-    }
+    // Local provider nodes, listed with the rerank-typed models they expose
+    // (synced + custom rows; see nodeModalityListings.ts).
+    const extra = await listProviderNodeModalityListings("rerank");
 
     return NextResponse.json({ providers: mergeRerankProviderListings(curated, extra) });
   } catch (err: unknown) {

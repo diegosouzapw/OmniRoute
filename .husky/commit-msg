@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Hard Rule #16 — no AI/bot Co-Authored-By trailers or AI-generation footers in commit metadata.
+# Human co-authors stay. Incident record: #14436.
+node scripts/check/check-ai-attribution.mjs --message-file "$1"
