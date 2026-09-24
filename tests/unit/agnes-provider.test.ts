@@ -680,10 +680,7 @@ test("agnes Video V2.0 does not mistake a slash-containing non-URL value for the
 
     assert.equal(result.error, undefined);
     assert.equal(result.success, true);
-    assert.equal(
-      result.data.data[0].url,
-      "https://platform-outputs.agnes-ai.space/video-real.mp4"
-    );
+    assert.equal(result.data.data[0].url, "https://platform-outputs.agnes-ai.space/video-real.mp4");
   } finally {
     globalThis.fetch = originalFetch;
     globalThis.setTimeout = originalSetTimeout;
@@ -798,7 +795,7 @@ test("agnes Video V2.0 extracts result URL from video_url, stringified metadata,
 
 test("agnes Video V2.0 prefers task_id over a generic id when the preset path is absent (#13726)", async () => {
   const originalFetch = globalThis.fetch;
-    const polled: string[] = [];
+  const polled: string[] = [];
   const originalSetTimeout = globalThis.setTimeout;
 
   globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
@@ -823,11 +820,11 @@ test("agnes Video V2.0 prefers task_id over a generic id when the preset path is
         { status: 200, headers: { "content-type": "application/json" } }
       );
     }
-      polled.push(call.url);
+    polled.push(call.url);
     return new Response(
       JSON.stringify({
         status: "completed",
-          url: "https://platform-outputs.agnes-ai.space/video-ok.mp4",
+        url: "https://platform-outputs.agnes-ai.space/video-ok.mp4",
       }),
       { status: 200, headers: { "content-type": "application/json" } }
     );
@@ -843,10 +840,10 @@ test("agnes Video V2.0 prefers task_id over a generic id when the preset path is
       log: null,
     });
 
-      assert.ok(
-        polled.some((u) => u.includes("real-job-42")),
-        "poll should use task_id, got: " + polled.join(",")
-      );
+    assert.ok(
+      polled.some((u) => u.includes("real-job-42")),
+      "poll should use task_id, got: " + polled.join(",")
+    );
   } finally {
     globalThis.fetch = originalFetch;
     globalThis.setTimeout = originalSetTimeout;
@@ -855,7 +852,7 @@ test("agnes Video V2.0 prefers task_id over a generic id when the preset path is
 
 test("agnes Video V2.0 does not fall back to a thumbnail nested under metadata (#13726)", async () => {
   const originalFetch = globalThis.fetch;
-    const polled: string[] = [];
+  const polled: string[] = [];
   const originalSetTimeout = globalThis.setTimeout;
 
   globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
@@ -880,11 +877,11 @@ test("agnes Video V2.0 does not fall back to a thumbnail nested under metadata (
         { status: 200, headers: { "content-type": "application/json" } }
       );
     }
-      polled.push(call.url);
+    polled.push(call.url);
     return new Response(
       JSON.stringify({
         status: "completed",
-          result: { url: "https://cdn.example.com/preview-thumb.png" },
+        result: { url: "https://cdn.example.com/preview-thumb.png" },
       }),
       { status: 200, headers: { "content-type": "application/json" } }
     );
@@ -900,10 +897,10 @@ test("agnes Video V2.0 does not fall back to a thumbnail nested under metadata (
       log: null,
     });
 
-      assert.notStrictEqual(
-        result?.data?.data?.[0]?.url,
-        "https://cdn.example.com/preview-thumb.png"
-      );
+    assert.notStrictEqual(
+      result?.data?.data?.[0]?.url,
+      "https://cdn.example.com/preview-thumb.png"
+    );
   } finally {
     globalThis.fetch = originalFetch;
     globalThis.setTimeout = originalSetTimeout;
@@ -912,7 +909,7 @@ test("agnes Video V2.0 does not fall back to a thumbnail nested under metadata (
 
 test("agnes Video V2.0 keeps scanning past an image and returns the real video url (#13726)", async () => {
   const originalFetch = globalThis.fetch;
-    const polled: string[] = [];
+  const polled: string[] = [];
   const originalSetTimeout = globalThis.setTimeout;
 
   globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
@@ -937,14 +934,14 @@ test("agnes Video V2.0 keeps scanning past an image and returns the real video u
         { status: 200, headers: { "content-type": "application/json" } }
       );
     }
-      polled.push(call.url);
+    polled.push(call.url);
     return new Response(
       JSON.stringify({
         status: "completed",
-          result: [
-            { url: "https://cdn.example.com/preview.png" },
-            { url: "https://cdn.example.com/real-video.mp4" },
-          ],
+        result: [
+          { url: "https://cdn.example.com/preview.png" },
+          { url: "https://cdn.example.com/real-video.mp4" },
+        ],
       }),
       { status: 200, headers: { "content-type": "application/json" } }
     );
@@ -960,10 +957,47 @@ test("agnes Video V2.0 keeps scanning past an image and returns the real video u
       log: null,
     });
 
-      assert.equal(
-        result.data.data[0].url,
-        "https://cdn.example.com/real-video.mp4"
-      );
+    assert.equal(result.data.data[0].url, "https://cdn.example.com/real-video.mp4");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("agnes Video V2.0 still returns a relative url at the documented preset path when nothing stricter matches (#13726)", async () => {
+  // Before #13726 any non-empty string at preset.resultPath was returned as-is.
+  // The stricter https/data/leading-slash filter must not turn that into a 502
+  // for a provider whose documented field holds a relative path.
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+  globalThis.fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
+    if ((init?.method || "GET") === "POST") {
+      return new Response(JSON.stringify({ video_id: "video-rel-1", status: "queued" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(
+      JSON.stringify({ status: "completed", metadata: { url: "videos/abc.mp4" } }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = await handleVideoGeneration({
+      body: { model: "agnes/agnes-video-v2.0", prompt: "A cinematic drone shot" },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+
+    assert.equal(result.error, undefined);
+    assert.equal(result.success, true);
+    assert.equal(result.data.data[0].url, "videos/abc.mp4");
   } finally {
     globalThis.fetch = originalFetch;
     globalThis.setTimeout = originalSetTimeout;

@@ -471,9 +471,7 @@ function extractUrl(value: unknown): string | null {
       // Reject images inside the scan, not at the call site: the walk returns
       // its first hit, so a post-filter would drop the whole payload instead of
       // letting the search move on to the real video.
-      return NON_VIDEO_EXTENSION.test(trimmed.split(/[?#]/)[0] ?? "")
-        ? null
-        : trimmed;
+      return NON_VIDEO_EXTENSION.test(trimmed.split(/[?#]/)[0] ?? "") ? null : trimmed;
     }
     return null;
   }
@@ -512,10 +510,28 @@ function extractUrl(value: unknown): string | null {
   return null;
 }
 
+// Pre-#13726 behavior, kept as the last resort: whatever non-empty string sits
+// at the preset's documented path (or its first array entry / entry.url) is the
+// result, even a relative path without a leading slash. The strict walk above
+// only runs first so a real video url elsewhere can win over an odd value here.
+function readDocumentedResult(found: unknown): string | null {
+  if (typeof found === "string" && found.trim()) return found.trim();
+  if (Array.isArray(found)) {
+    const first = found[0];
+    if (typeof first === "string" && first.trim()) return first.trim();
+    if (first && typeof first === "object" && !Array.isArray(first)) {
+      const urlEntry = (first as Record<string, unknown>).url;
+      if (typeof urlEntry === "string" && urlEntry.trim()) return urlEntry.trim();
+    }
+  }
+  return null;
+}
+
 function readResultUrl(data: unknown, resultPath: string): string | null {
-  const direct = extractUrl(readPath(data, resultPath));
+  const documented = readPath(data, resultPath);
+  const direct = extractUrl(documented);
   if (direct) return direct;
 
   // The preset path missed, so scan the rest of the payload for a video url.
-  return extractUrl(data);
+  return extractUrl(data) ?? readDocumentedResult(documented);
 }
