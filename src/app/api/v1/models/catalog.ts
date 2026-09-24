@@ -762,10 +762,7 @@ async function buildUnifiedModelsResponseCore(
         : undefined;
 
       const baseMetadata = explicitContextLength
-        ? {
-            context_length: explicitContextLength,
-            max_input_tokens: explicitContextLength,
-          }
+        ? { context_length: explicitContextLength, max_input_tokens: explicitContextLength }
         : {};
       if (targets.length === 0) return baseMetadata;
 
@@ -782,11 +779,9 @@ async function buildUnifiedModelsResponseCore(
         knownMetadata.map((metadata) => metadata.maxInputTokens)
       );
       const maxInputTokens =
-        explicitContextLength !== undefined
-          ? targetMinMaxInput !== undefined
-            ? Math.min(explicitContextLength, targetMinMaxInput)
-            : explicitContextLength
-          : targetMinMaxInput;
+        explicitContextLength === undefined
+          ? targetMinMaxInput
+          : Math.min(explicitContextLength, targetMinMaxInput ?? explicitContextLength);
       const maxOutputTokens = minKnownNumber(
         knownMetadata.map((metadata) => metadata.maxOutputTokens)
       );
