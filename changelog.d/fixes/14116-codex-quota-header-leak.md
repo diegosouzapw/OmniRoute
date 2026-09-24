@@ -1,0 +1,1 @@
+- fix(sse): stop leaking a foreign combo/pool account's Codex quota headers to the caller (#14116)
