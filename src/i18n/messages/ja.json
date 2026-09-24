@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "ローカルプロキシコアのエンドポイントが無効です。SS/VMess/Trojan/VLESS ノードは無視されました。",
         "NEEDS_CORE_NOT_CONFIGURED": "このサブスクリプションにはローカルプロキシコア（SS/VMess/Trojan/VLESS）が必要なノードが含まれています。ローカルコアの SOCKS5 エンドポイントを設定するまでルーティングされません。",
-        "NO_USABLE_NODES": "サブスクリプションから使用可能なノードが得られませんでした（http/https/socks5 またはローカルコアエンドポイントを持つノード）。"
+        "NO_USABLE_NODES": "サブスクリプションから使用可能なノードが得られませんでした（http/https/socks5 またはローカルコアエンドポイントを持つノード）。",
+        "SELECTOR_SWITCH_FAILED": "プロキシコアの制御呼び出しに失敗しました。以前のルートは有効のままです。制御URLとシークレットを確認してから更新してください。"
       },
       "description": "プロキシ サブスクリプション リンクを貼り付けます。有効にすると、トラフィックはグローバル モードまたはルール (指定されたプロバイダー) モードでプロキシ プールを介してルーティングされます。サブスクリプション ノードはプロキシ プールに自動的に同期され、既存のポーリング、ヘルスチェック、および漏洩防止メカニズムを再利用します。",
       "addSubscription": "サブスクリプションの追加",
@@ -6939,7 +6940,20 @@
       "providerRouting": "プロバイダー ルーティング",
       "refresh": "更新",
       "refreshInterval": "更新間隔",
-      "ruleModeDescription": "ルールモードの説明"
+      "ruleModeDescription": "ルールモードの説明",
+      "controlUrl": "制御APIのURL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "制御APIシークレット",
+      "controlSecretPlaceholder": "保存済みシークレットを維持するには空欄のままにする",
+      "controlSecretSaved": "シークレットを保存しました",
+      "controlSecretNotSet": "シークレットが保存されていません",
+      "selectorMinGap": "切り替えの最小間隔 (秒)",
+      "selectorHelp": "local-core行に「 selector=<name>」を追加してセレクターグループに結び付けます。",
+      "lastSwitch": "前回の切り替え",
+      "lastSwitchNever": "切り替えはまだ記録されていません",
+      "lastSwitchMember": "提供中のメンバー",
+      "nextSwitch": "次に切り替え可能",
+      "nextSwitchNow": "今すぐ"
     },
     "bulkHealthcheck": "一括ヘルスチェック",
     "bulkHealthcheckDesc": "設定済みのすべてのプロキシを対象URLに対してテストし、動作するものを確認します。",

@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "El endpoint local de proxy-core no es válido; se ignoraron los nodos SS/VMess/Trojan/VLESS.",
         "NEEDS_CORE_NOT_CONFIGURED": "Esta suscripción tiene nodos que necesitan un núcleo de proxy local (SS/VMess/Trojan/VLESS); no se enrutarán hasta que configures el endpoint SOCKS5 de local-core.",
-        "NO_USABLE_NODES": "La suscripción no produjo ningún nodo utilizable (http/https/socks5 o nodos con un endpoint de núcleo local)."
+        "NO_USABLE_NODES": "La suscripción no produjo ningún nodo utilizable (http/https/socks5 o nodos con un endpoint de núcleo local).",
+        "SELECTOR_SWITCH_FAILED": "La llamada de control del proxy-core falló; la ruta anterior sigue activa. Compruebe la URL y el secreto de control y actualice."
       },
       "description": "Pegue su enlace de suscripción de proxy. Una vez habilitado, el tráfico se enruta a través del grupo de proxy en modo global o de regla (Proveedor especificado). Los nodos de suscripción se sincronizan automáticamente con el grupo de proxy y reutilizan los mecanismos existentes de sondeo, verificación de estado y antifugas.",
       "addSubscription": "Agregar suscripción",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Enrutamiento de Proveedores",
       "refresh": "Actualizar",
       "refreshInterval": "Intervalo de Actualización",
-      "ruleModeDescription": "Descripción del Modo de Regla"
+      "ruleModeDescription": "Descripción del Modo de Regla",
+      "controlUrl": "URL de la API de control",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Secreto de la API de control",
+      "controlSecretPlaceholder": "Dejar vacío para conservar el secreto guardado",
+      "controlSecretSaved": "Secreto guardado",
+      "controlSecretNotSet": "Ningún secreto guardado",
+      "selectorMinGap": "Tiempo mínimo entre cambios (segundos)",
+      "selectorHelp": "Añada « selector=<name> » a una línea local-core para vincularla a un grupo selector.",
+      "lastSwitch": "Último cambio",
+      "lastSwitchNever": "Aún no hay cambios registrados",
+      "lastSwitchMember": "Miembro en servicio",
+      "nextSwitch": "Próximo cambio posible",
+      "nextSwitchNow": "Ahora"
     },
     "bulkHealthcheck": "Comprobación de estado masiva",
     "bulkHealthcheckDesc": "Prueba todos los proxies configurados con una URL de destino para determinar cuáles funcionan.",

@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Le point de terminaison du proxy-core local est invalide ; les nœuds SS/VMess/Trojan/VLESS ont été ignorés.",
         "NEEDS_CORE_NOT_CONFIGURED": "Cet abonnement contient des nœuds qui nécessitent un proxy core local (SS/VMess/Trojan/VLESS) ; ils ne sont pas routés tant que vous n'avez pas configuré le point de terminaison SOCKS5 du local-core.",
-        "NO_USABLE_NODES": "L'abonnement n'a renvoyé aucun nœud utilisable (http/https/socks5 ou nœuds avec un point de terminaison de core local)."
+        "NO_USABLE_NODES": "L'abonnement n'a renvoyé aucun nœud utilisable (http/https/socks5 ou nœuds avec un point de terminaison de core local).",
+        "SELECTOR_SWITCH_FAILED": "L'appel de contrôle du proxy-core a échoué ; la route précédente reste active. Vérifiez l'URL et le secret de contrôle, puis actualisez."
       },
       "description": "Collez votre lien d'abonnement proxy. Une fois activé, le trafic est acheminé via le pool de proxy en mode global ou en mode règle (fournisseur spécifié). Les nœuds d'abonnement sont automatiquement synchronisés avec le pool de proxy et réutilisent les mécanismes d'interrogation, de contrôle de santé et anti-fuite existants.",
       "addSubscription": "Ajouter un abonnement",
@@ -6939,7 +6940,20 @@
       "providerRouting": "fournisseurs Routing",
       "refresh": "Actualiser",
       "refreshInterval": "Actualiser Interval",
-      "ruleModeDescription": "Description du mode de règle"
+      "ruleModeDescription": "Description du mode de règle",
+      "controlUrl": "URL de l'API de contrôle",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Secret de l'API de contrôle",
+      "controlSecretPlaceholder": "Laisser vide pour conserver le secret enregistré",
+      "controlSecretSaved": "Secret enregistré",
+      "controlSecretNotSet": "Aucun secret enregistré",
+      "selectorMinGap": "Temps minimal entre les bascules (secondes)",
+      "selectorHelp": "Ajoutez « selector=<name> » à une ligne local-core pour la lier à un groupe selector.",
+      "lastSwitch": "Dernière bascule",
+      "lastSwitchNever": "Aucune bascule enregistrée",
+      "lastSwitchMember": "Membre desservi",
+      "nextSwitch": "Prochaine bascule possible",
+      "nextSwitchNow": "Maintenant"
     },
     "bulkHealthcheck": "Vérification groupée de l’état",
     "bulkHealthcheckDesc": "Testez tous les proxys configurés avec une URL cible afin d’identifier ceux qui fonctionnent.",

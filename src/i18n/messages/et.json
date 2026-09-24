@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Kohaliku puhverserverituuma lõpp-punkt on vigane; SS/VMess/Trojan/VLESS-sõlmi eirati.",
         "NEEDS_CORE_NOT_CONFIGURED": "Sellel tellimusel on sõlmi, mis vajavad kohalikku puhverserverituuma (SS/VMess/Trojan/VLESS); neid ei marsruudita enne, kui konfigureerite kohaliku tuuma SOCKS5 lõpp-punkti.",
-        "NO_USABLE_NODES": "Tellimus ei tagastanud ühtegi kasutatavat sõlme (http/https/socks5 või kohaliku tuuma lõpp-punktiga sõlmed)."
+        "NO_USABLE_NODES": "Tellimus ei tagastanud ühtegi kasutatavat sõlme (http/https/socks5 või kohaliku tuuma lõpp-punktiga sõlmed).",
+        "SELECTOR_SWITCH_FAILED": "Puhversüdamiku juhtkõne ebaõnnestus; eelmine marsruut jääb aktiivseks. Kontrollige juht-URL-i ja saladust, seejärel värskendage."
       },
       "description": "Kleepige siia oma puhverserveri tellimuse link. Pärast lubamist marsruuditakse liiklus puhverserverite kogumi kaudu globaalses või reeglipõhises (määratud teenusepakkuja) režiimis. Tellimuse sõlmed sünkroonitakse automaatselt puhverserverite kogumisse ning nende puhul kasutatakse olemasolevaid küsitlus-, seisundikontrolli- ja lekkekaitsemehhanisme.",
       "addSubscription": "Lisa tellimus",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Teenusepakkuja marsruutimine",
       "refresh": "Värskenda",
       "refreshInterval": "Värskendamise intervall",
-      "ruleModeDescription": "Reeglirežiimi kirjeldus"
+      "ruleModeDescription": "Reeglirežiimi kirjeldus",
+      "controlUrl": "Juht-API URL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Juht-API saladus",
+      "controlSecretPlaceholder": "Salvestatud saladuse hoidmiseks jätke tühjaks",
+      "controlSecretSaved": "Saladus salvestatud",
+      "controlSecretNotSet": "Salvestatud saladust pole",
+      "selectorMinGap": "Vahetuste vaheline vähim aeg (sekundites)",
+      "selectorHelp": "Lisage local-core reale « selector=<name> », et siduda see selector-rühmaga.",
+      "lastSwitch": "Viimane vahetus",
+      "lastSwitchNever": "Ühtegi vahetust pole veel salvestatud",
+      "lastSwitchMember": "Teenindav liige",
+      "nextSwitch": "Järgmine võimalik vahetus",
+      "nextSwitchNow": "Nüüd"
     },
     "bulkHealthcheck": "Hulgiviisiline seisundikontroll",
     "bulkHealthcheckDesc": "Testige kõiki seadistatud puhverservereid siht-URL-iga, et teha kindlaks, millised neist töötavad.",

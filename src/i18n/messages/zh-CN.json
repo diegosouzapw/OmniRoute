@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "本地代理核心端点无效；已忽略 SS/VMess/Trojan/VLESS 节点。",
         "NEEDS_CORE_NOT_CONFIGURED": "此订阅包含需要本地代理核心 (SS/VMess/Trojan/VLESS) 的节点；在配置本地核心 SOCKS5 端点之前，它们不会被路由。",
-        "NO_USABLE_NODES": "订阅未产生可用节点 (http/https/socks5 或具有本地核心端点的节点)。"
+        "NO_USABLE_NODES": "订阅未产生可用节点 (http/https/socks5 或具有本地核心端点的节点)。",
+        "SELECTOR_SWITCH_FAILED": "代理核心控制调用失败；上一条路由保持有效。请检查控制 URL 和密钥，然后刷新。"
       },
       "description": "粘贴你的代理订阅链接，开启后即可按全局或规则（指定 Provider）模式走代理。订阅节点会自动同步进代理池，并复用既有的轮询、健康检查与防泄漏机制。",
       "addSubscription": "新增订阅",
@@ -6939,7 +6940,20 @@
       "providerRouting": "提供者路由",
       "refresh": "刷新",
       "refreshInterval": "刷新间隔",
-      "ruleModeDescription": "规则模式描述"
+      "ruleModeDescription": "规则模式描述",
+      "controlUrl": "控制 API 地址",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "控制 API 密钥",
+      "controlSecretPlaceholder": "留空以保留已保存的密钥",
+      "controlSecretSaved": "密钥已保存",
+      "controlSecretNotSet": "尚未保存密钥",
+      "selectorMinGap": "切换最小间隔（秒）",
+      "selectorHelp": "在 local-core 行后附加「 selector=<name>」以将其绑定到 selector 分组。",
+      "lastSwitch": "上次切换",
+      "lastSwitchNever": "尚未记录切换",
+      "lastSwitchMember": "服务中的成员",
+      "nextSwitch": "下次可切换",
+      "nextSwitchNow": "现在"
     },
     "bulkHealthcheck": "批量健康检查",
     "bulkHealthcheckDesc": "针对目标 URL 测试所有已配置代理，找出可用代理。",

@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokalna končna točka jedra posredniškega strežnika ni veljavna; vozlišča SS/VMess/Trojan/VLESS so bila prezrta.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ta naročnina vsebuje vozlišča, ki potrebujejo lokalno jedro posredniškega strežnika (SS/VMess/Trojan/VLESS); promet se prek njih ne usmerja, dokler ne konfigurirate končne točke SOCKS5 lokalnega jedra.",
-        "NO_USABLE_NODES": "Naročnina ni vrnila nobenega uporabnega vozlišča (http/https/socks5 ali vozlišč s končno točko lokalnega jedra)."
+        "NO_USABLE_NODES": "Naročnina ni vrnila nobenega uporabnega vozlišča (http/https/socks5 ali vozlišč s končno točko lokalnega jedra).",
+        "SELECTOR_SWITCH_FAILED": "Krmilni klic proxy-core ni uspel; prejšnja pot ostane dejavna. Preverite krmilni URL in skrivnost, nato osvežite."
       },
       "description": "Prilepite povezavo do svoje naročnine na posredniške strežnike. Ko je omogočena, se promet usmerja prek zbirke posredniških strežnikov v globalnem načinu ali načinu pravil (določeni ponudnik). Vozlišča naročnine se samodejno sinhronizirajo z zbirko posredniških strežnikov ter uporabljajo obstoječe mehanizme periodičnega preverjanja, preverjanja stanja in preprečevanja uhajanja podatkov.",
       "addSubscription": "Dodaj naročnino",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Usmerjanje ponudnika",
       "refresh": "Osveži",
       "refreshInterval": "Interval osveževanja",
-      "ruleModeDescription": "Opis načina pravil"
+      "ruleModeDescription": "Opis načina pravil",
+      "controlUrl": "URL krmilnega API-ja",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Skrivnost krmilnega API-ja",
+      "controlSecretPlaceholder": "Pustite prazno, da ohranite shranjeno skrivnost",
+      "controlSecretSaved": "Skrivnost shranjena",
+      "controlSecretNotSet": "Ni shranjene skrivnosti",
+      "selectorMinGap": "Najmanjši čas med preklopi (sekunde)",
+      "selectorHelp": "Dodajte « selector=<name> » v vrstico local-core, da jo vežete na skupino selector.",
+      "lastSwitch": "Zadnji preklop",
+      "lastSwitchNever": "Še ni zabeleženega preklopa",
+      "lastSwitchMember": "Član, ki streže",
+      "nextSwitch": "Naslednji mogoči preklop",
+      "nextSwitchNow": "Zdaj"
     },
     "bulkHealthcheck": "Množično preverjanje stanja",
     "bulkHealthcheckDesc": "Preizkusite vse konfigurirane posredniške strežnike z dostopom do ciljnega URL-ja, da ugotovite, kateri delujejo.",

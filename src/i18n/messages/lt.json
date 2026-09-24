@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Vietinio tarpinio serverio branduolio galinis taškas netinkamas; SS/VMess/Trojan/VLESS mazgai buvo ignoruoti.",
         "NEEDS_CORE_NOT_CONFIGURED": "Šioje prenumeratoje yra mazgų, kuriems reikia vietinio tarpinio serverio branduolio (SS/VMess/Trojan/VLESS); jų srautas nebus nukreipiamas, kol nesukonfigūruosite vietinio branduolio SOCKS5 galinio taško.",
-        "NO_USABLE_NODES": "Prenumerata nepateikė jokių tinkamų naudoti mazgų (http/https/socks5 arba mazgų su vietinio branduolio galiniu tašku)."
+        "NO_USABLE_NODES": "Prenumerata nepateikė jokių tinkamų naudoti mazgų (http/https/socks5 arba mazgų su vietinio branduolio galiniu tašku).",
+        "SELECTOR_SWITCH_FAILED": "Tarpinio branduolio valdymo iškvietimas nepavyko; ankstesnis maršrutas lieka aktyvus. Patikrinkite valdymo URL ir paslaptį, tada atnaujinkite."
       },
       "description": "Įklijuokite tarpinio serverio prenumeratos nuorodą. Įjungus srautas nukreipiamas per tarpinių serverių telkinį visuotiniu arba taisyklių (nurodyto teikėjo) režimu. Prenumeratos mazgai automatiškai sinchronizuojami su tarpinių serverių telkiniu ir naudoja esamus periodinio tikrinimo, būklės patikros bei apsaugos nuo nutekėjimo mechanizmus.",
       "addSubscription": "Pridėti prenumeratą",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Teikėjo maršruto parinkimas",
       "refresh": "Atnaujinti",
       "refreshInterval": "Atnaujinimo intervalas",
-      "ruleModeDescription": "Taisyklių režimo aprašymas"
+      "ruleModeDescription": "Taisyklių režimo aprašymas",
+      "controlUrl": "Valdymo API URL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Valdymo API paslaptis",
+      "controlSecretPlaceholder": "Palikite tuščią, kad išsaugotumėte įrašytą paslaptį",
+      "controlSecretSaved": "Paslaptis išsaugota",
+      "controlSecretNotSet": "Nėra išsaugotos paslapties",
+      "selectorMinGap": "Mažiausias laikas tarp perjungimų (sekundės)",
+      "selectorHelp": "Pridėkite „ selector=<name> “ prie local-core eilutės, kad susietumėte ją su selector grupe.",
+      "lastSwitch": "Paskutinis perjungimas",
+      "lastSwitchNever": "Dar nėra įrašytų perjungimų",
+      "lastSwitchMember": "Aptarnaujantis narys",
+      "nextSwitch": "Kitas galimas perjungimas",
+      "nextSwitchNow": "Dabar"
     },
     "bulkHealthcheck": "Masinis būklės patikrinimas",
     "bulkHealthcheckDesc": "Patikrinkite visus sukonfigūruotus tarpinius serverius naudodami tikslinį URL, kad nustatytumėte, kurie iš jų veikia.",

@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "로컬 proxy-core 엔드포인트가 유효하지 않습니다. SS/VMess/Trojan/VLESS 노드가 무시되었습니다.",
         "NEEDS_CORE_NOT_CONFIGURED": "이 구독에는 로컬 프록시 코어(SS/VMess/Trojan/VLESS)가 필요한 노드가 있습니다. local-core SOCKS5 엔드포인트를 구성하기 전까지는 라우팅되지 않습니다.",
-        "NO_USABLE_NODES": "구독에서 사용할 수 있는 노드(http/https/socks5 또는 로컬 코어 엔드포인트가 있는 노드)가 반환되지 않았습니다."
+        "NO_USABLE_NODES": "구독에서 사용할 수 있는 노드(http/https/socks5 또는 로컬 코어 엔드포인트가 있는 노드)가 반환되지 않았습니다.",
+        "SELECTOR_SWITCH_FAILED": "프록시 코어 제어 호출에 실패했습니다. 이전 경로는 계속 유효합니다. 제어 URL과 시크릿을 확인한 뒤 새로고침하세요."
       },
       "description": "프록시 구독 링크를 붙여넣으세요. 활성화되면 트래픽은 전역 또는 규칙(지정된 공급자) 모드에서 프록시 풀을 통해 라우팅됩니다. 구독 노드는 프록시 풀에 자동으로 동기화되며 기존 폴링, 상태 확인 및 누출 방지 메커니즘을 재사용합니다.",
       "addSubscription": "구독 추가",
@@ -6939,7 +6940,20 @@
       "providerRouting": "제공자 라우팅",
       "refresh": "새로 고침",
       "refreshInterval": "새로 고침 간격",
-      "ruleModeDescription": "규칙 모드 설명"
+      "ruleModeDescription": "규칙 모드 설명",
+      "controlUrl": "제어 API URL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "제어 API 시크릿",
+      "controlSecretPlaceholder": "저장된 시크릿을 유지하려면 비워 두세요",
+      "controlSecretSaved": "시크릿 저장됨",
+      "controlSecretNotSet": "저장된 시크릿 없음",
+      "selectorMinGap": "전환 최소 간격(초)",
+      "selectorHelp": "local-core 줄에 「 selector=<name>」을 추가하여 셀렉터 그룹에 바인딩합니다.",
+      "lastSwitch": "마지막 전환",
+      "lastSwitchNever": "기록된 전환이 아직 없음",
+      "lastSwitchMember": "서비스 중인 멤버",
+      "nextSwitch": "다음 전환 가능",
+      "nextSwitchNow": "지금"
     },
     "bulkHealthcheck": "일괄 상태 확인",
     "bulkHealthcheckDesc": "구성된 모든 프록시를 대상 URL에 대해 테스트하여 작동하는 프록시를 찾습니다.",

@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "የአካባቢው proxy-core መዳረሻ ነጥብ ልክ አይደለም፤ የSS/VMess/Trojan/VLESS ኖዶች ችላ ተብለዋል።",
         "NEEDS_CORE_NOT_CONFIGURED": "ይህ ምዝገባ የአካባቢ proxy core (SS/VMess/Trojan/VLESS) የሚያስፈልጋቸው ኖዶች አሉት፤ የlocal-core SOCKS5 መዳረሻ ነጥቡን እስኪያዋቅሩ ድረስ አይዘዋወሩም።",
-        "NO_USABLE_NODES": "ምዝገባው ጥቅም ላይ የሚውሉ ኖዶችን አላመጣም (http/https/socks5 ወይም የአካባቢ core መዳረሻ ነጥብ ያላቸው ኖዶች)።"
+        "NO_USABLE_NODES": "ምዝገባው ጥቅም ላይ የሚውሉ ኖዶችን አላመጣም (http/https/socks5 ወይም የአካባቢ core መዳረሻ ነጥብ ያላቸው ኖዶች)።",
+        "SELECTOR_SWITCH_FAILED": "የፕሮክሲ-ኮር መቆጣጠሪያ ጥሪ አልተሳካም; የቀደመው መስመር ንቁ ሆኖ ይቆያል። የመቆጣጠሪያ URL እና ሚስጥር ያረጋግጡ፣ ከዚያ ያድሱ።"
       },
       "description": "የፕሮክሲ ምዝገባ አገናኝዎን ይለጥፉ። አንዴ ከነቃ፣ ትራፊክ በዓለም አቀፍ ወይም በደንብ (የተወሰነ Provider) ሁነታ በፕሮክሲ ስብስቡ በኩል ይዘዋወራል። የምዝገባ ኖዶች በራስ-ሰር ወደ ፕሮክሲ ስብስቡ ይመሳሰላሉ፣ እንዲሁም ነባሮቹን የየጊዜው ማጣሪያ፣ የጤና ፍተሻ እና ፍሳሽ መከላከያ ዘዴዎች እንደገና ይጠቀማሉ።",
       "addSubscription": "ምዝገባ ያክሉ",
@@ -6939,7 +6940,20 @@
       "providerRouting": "የProvider ማዘዋወር",
       "refresh": "አድስ",
       "refreshInterval": "የማደሻ ክፍተት",
-      "ruleModeDescription": "የደንብ ሁነታ መግለጫ"
+      "ruleModeDescription": "የደንብ ሁነታ መግለጫ",
+      "controlUrl": "መቆጣጠሪያ API URL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "መቆጣጠሪያ API ሚስጥር",
+      "controlSecretPlaceholder": "የተቀመጠውን ሚስጥር ለማቆየት ባዶ ይተዉ",
+      "controlSecretSaved": "ሚስጥር ተቀምጧል",
+      "controlSecretNotSet": "ምንም የተቀመጠ ሚስጥር የለም",
+      "selectorMinGap": "በመቀያየር መካከል ዝቅተኛ ጊዜ (ሰከንዶች)",
+      "selectorHelp": "ከselector ቡድን ጋር ለማሰር local-core መስመር ላይ « selector=<name> » ይጨምሩ።",
+      "lastSwitch": "የመጨረሻ መቀያየር",
+      "lastSwitchNever": "ገና ምንም መቀያየር አልተመዘገበም",
+      "lastSwitchMember": "የሚያገለግል አባል",
+      "nextSwitch": "ቀጣይ የሚቻል መቀያየር",
+      "nextSwitchNow": "አሁን"
     },
     "bulkHealthcheck": "የጅምላ ጤና ምርመራ",
     "bulkHealthcheckDesc": "የትኞቹ እንደሚሰሩ ለማወቅ ሁሉንም የተዋቀሩ ፕሮክሲዎች በዒላማ URL ላይ ይሞክሩ።",

@@ -7,7 +7,7 @@ import {
   proxyEgressKey,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
 import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
-
+import { maybeSwitchOnSetAside } from "@/lib/proxySubscription/selectorTrigger";
 /**
  * Feed the outcome the provider actually returned through a proxy (captured around the
  * patched fetch and carried on proxyInfo.upstreamStatus) back to proxy selection. Opt-in:
@@ -32,7 +32,15 @@ export function noteProxyOutcome(
   const inRefusalScope = isEgressBucketedLockScope(provider);
   if (status === 429 && inRefusalScope) {
     const key = proxyEgressKey(proxyInfo?.proxy);
-    if (key !== null && isProxySkipRecentlyFailedEnabled()) noteProxyRefusal(key, "ip_quota_429");
+    if (key === null || !isProxySkipRecentlyFailedEnabled()) return;
+    const period = noteProxyRefusal(key, "ip_quota_429");
+    if (period === null) return;
+    // Steer the local core selector off the set-aside member. Fire-and-
+    // forget, off the request path, never blocking, never throwing: the callee
+    // owns a defensive catch, this one guards the sync caller.
+    void maybeSwitchOnSetAside(key).catch((e) => {
+      console.warn(`[SelectorControl] trigger failed: ${e instanceof Error ? e.message : e}`);
+    });
     return;
   }
   if (status < 200 || status >= 300 || !hasProxyRefusals()) return;

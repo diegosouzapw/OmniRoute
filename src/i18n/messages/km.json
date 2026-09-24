@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "ចំណុចបញ្ចប់ proxy-core ក្នុងម៉ាស៊ីនមិនត្រឹមត្រូវទេ ដូច្នេះ node SS/VMess/Trojan/VLESS មិនត្រូវបានយកមកប្រើទេ។",
         "NEEDS_CORE_NOT_CONFIGURED": "ការជាវនេះមាន node ដែលត្រូវការ proxy core ក្នុងម៉ាស៊ីន (SS/VMess/Trojan/VLESS)។ ពួកវានឹងមិនត្រូវបានកំណត់ផ្លូវទេ រហូតដល់អ្នកកំណត់រចនាសម្ព័ន្ធចំណុចបញ្ចប់ SOCKS5 របស់ local-core។",
-        "NO_USABLE_NODES": "ការជាវនេះមិនមាន node ដែលអាចប្រើបានទេ (http/https/socks5 ឬ node ដែលមានចំណុចបញ្ចប់ local core)។"
+        "NO_USABLE_NODES": "ការជាវនេះមិនមាន node ដែលអាចប្រើបានទេ (http/https/socks5 ឬ node ដែលមានចំណុចបញ្ចប់ local core)។",
+        "SELECTOR_SWITCH_FAILED": "ការហៅបញ្ជា proxy-core បានបរាជ័យ; ផ្លូវមុននៅតែសកម្ម។ សូមពិនិត្យ URL និង secret បញ្ជា រួចផ្ទុកឡើងវិញ។"
       },
       "description": "បិទភ្ជាប់តំណការជាវប្រូកស៊ីរបស់អ្នក។ នៅពេលបើកដំណើរការ ចរាចរណ៍នឹងត្រូវបានកំណត់ផ្លូវតាមបណ្តុំប្រូកស៊ី ក្នុងរបៀបសកល ឬរបៀបតាមច្បាប់ (Provider ដែលបានបញ្ជាក់)។ node នៃការជាវនឹងត្រូវបានធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិទៅក្នុងបណ្តុំប្រូកស៊ី និងប្រើឡើងវិញនូវយន្តការស្ទង់ពិនិត្យ ការពិនិត្យសុខភាព និងការការពារការលេចធ្លាយដែលមានស្រាប់។",
       "addSubscription": "បន្ថែមការជាវ",
@@ -6939,7 +6940,20 @@
       "providerRouting": "ការកំណត់ផ្លូវរបស់ Provider",
       "refresh": "ធ្វើបច្ចុប្បន្នភាព",
       "refreshInterval": "ចន្លោះពេលធ្វើបច្ចុប្បន្នភាព",
-      "ruleModeDescription": "ការពិពណ៌នាអំពីរបៀបផ្អែកលើច្បាប់"
+      "ruleModeDescription": "ការពិពណ៌នាអំពីរបៀបផ្អែកលើច្បាប់",
+      "controlUrl": "URL API បញ្ជា",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "secret API បញ្ជា",
+      "controlSecretPlaceholder": "ទុកទទេដើម្បីរក្សា secret ដែលបានរក្សាទុក",
+      "controlSecretSaved": "បានរក្សាទុក secret",
+      "controlSecretNotSet": "មិនមាន secret ដែលបានរក្សាទុក",
+      "selectorMinGap": "ពេលវេលាអប្បបរមារវាងការប្តូរ (វិនាទី)",
+      "selectorHelp": "បន្ថែម « selector=<name> » ទៅបន្ទាត់ local-core ដើម្បីចងទៅក្រុម selector។",
+      "lastSwitch": "ការប្តូរចុងក្រោយ",
+      "lastSwitchNever": "មិនទាន់មានការប្តូរដែលបានកត់ត្រា",
+      "lastSwitchMember": "សមាជិកកំពុងបម្រើ",
+      "nextSwitch": "ការប្តូរបន្ទាប់ដែលអាចធ្វើបាន",
+      "nextSwitchNow": "ឥឡូវ"
     },
     "bulkHealthcheck": "ការពិនិត្យស្ថានភាពជាក្រុម",
     "bulkHealthcheckDesc": "សាកល្បងប្រូកស៊ីដែលបានកំណត់រចនាសម្ព័ន្ធទាំងអស់ជាមួយ URL គោលដៅ ដើម្បីរកមើលថាតើមួយណាដំណើរការ។",
