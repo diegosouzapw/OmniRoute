@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Samhlacha costas buanna taisce:** ar buanna taisce séimeantach (`X-OmniRoute-Catch-Hit: true`) ní dhéantar glao ar ais, mar sin is `0.0000000000` é `X-OmniRoute-Response-Cost` (an costas **fhorlíontach** a sheirbheálann an buanna). Tugtar tuairisc ar an bhunchoiste/bheadh-fosta costas ar leithligh i `X-OmniRoute-Cost-Saved`. Ba cheart do thomhaltóirí billíochta `X-OmniRoute-Response-Cost` a shuim (ní chosnaíonn buanna taisce aon ní); is féidir le taisce-anailísíocht `X-OmniRoute-Cost-Saved` a chomhoibriú.
 
-## Cúraimí Sesiúin Eisiach Aistrithe
+## Léasanna Seisiún Bainistithe Eisiacha
 
-Is éard atá i gceist le cíosú suíochán aistrithe eisiach ná conradh ródála roghnach neodrúil an chliaint: sealbhóir gníomhach amháin
-seasann ceann amháin de cheangal bailí OmniRoute. Níl sé ag cíosú samhail, ní éilíonn sé OAuth, ní aithníonn sé
-cliant ar leith, níl sé ag teastáil ó sholáthraí ar leith.
+Is conradh ródaithe roghnach, neodrach ó thaobh an chliaint de é léasú seisiún bainistithe eisiach: tá nasc OmniRoute incháilithe amháin ag úinéir gníomhach amháin. Ní dhéanann sé samhail a léasú, ní theastaíonn OAuth uaidh, ní aithníonn sé cliant ar leith, ná ní theastaíonn soláthraí ar leith uaidh.
 
-Caithfidh an eochair API fíordheimhnithe an raon `lease:exclusive` a bheith aici agus liosta ceart
-`allowedConnections` neamhfholamh. Dearann an teorainn athrúchán bunachar sonraí an dá réimse le chéile nuair a
-cruthaítear eochair agus i nglanbhfuascailt páirteach.
+Caithfidh an eochair API fíordheimhnithe an scóip `lease:exclusive` a bheith aici agus liosta follasach neamh-fholamh `allowedConnections`. Cuireann teorainn athraithe an bhunachair shonraí an dá réimse i bhfeidhm le chéile ar chruthú eochrach agus ar nuashonruithe páirteacha.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Taispeánann freagraí éadáil, athnuaite agus scaoilte rathúla stampsa ama, `state`, agus an dearfach beacht
-`generation`, ach ní dhéanann siad riamh ceangal roghnaithe nó ainmhíniú teagmhála. Soláthraíonn athnú agus scaoileadh an
-giniúint sa corp JSON:
+Nochtann freagraí rathúla maidir le fáil, athnuachan, agus scaoileadh stampaí ama, `state`, agus an `generation` dearfach cruinn, ach ní nochtann siad an nasc roghnaithe ná na dintiúir riamh. Soláthraíonn athnuachan agus scaoileadh an ghlúin sa chorp JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ giniúint sa corp JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Is féidir le sealbhóir suíochán gníomhach iarratas a dhéanamh go soiléir ar mheitadaita taispeána sábháilte príobháideachais a bhfuil a cheangal reatha aige:
+Is féidir le húinéir léasa gníomhach iarraidh go follasach ar mheiteashonraí taispeána atá sábháilte ó thaobh príobháideachta de dá cheangal reatha:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,43 +125,28 @@ Is féidir le sealbhóir suíochán gníomhach iarratas a dhéanamh go soiléir 
   "renewedAt": "2026-08-28T12:00:30.000Z",
   "expiresAt": "2026-08-28T12:02:30.000Z",
   "connection": {
-    " displayName": "Príomhchódacs",
+    "displayName": "Primary Codex",
     "provider": "codex"
   }
 }
 ```
 
-Cuirtear an stádas roghnach seo i bhfeidhm ag an sealbhóir dorchadais, an eochair API aistrithe dearbhaithe, agus an
-giniúint gníomhach beacht in aon idirbheart bunachar sonraí amháin. Níl `displayName` ach an t-ainm ceangail cumraithe
-gearrtha; is é `null` é nuair nach bhfuil ainm sábháilte cumraithe ann. Ní déanann OmniRoute riamh ríomhphost nó
-aitheantas cuntas ginte a athchur. Is é an luach soláthraí lipéad taispeána neamh-thollsmaoine agus ní
-aitheantas soláthraí comhoiriúnach ginte riamh. Earraí teagmhála, teibhiní, fianáin, IDanna ceangail nó API amh,
-hashes sealbhóra, rúin fhaing, agus sonraí ródála inmheánacha fágtar amach.
+Tá an gníomh stádais roghnach seo fálaithe ag an úinéir teimhneach, an eochair API bainistithe fíordheimhnithe, agus an ghlúin ghníomhach chruinn in aon idirbheart bunachair shonraí amháin. Níl i `displayName` ach an t-ainm nasctha cumraithe bearrtha; is `null` é nuair nach bhfuil ainm cumraithe sábháilte ann. Ní chuireann OmniRoute ríomhphost ná aitheantas cuntais ginte in ionad riamh. Is lipéad taispeána neamh-íogair é luach an tsoláthraí agus ní aitheantóir soláthraí comhoiriúnach ginte riamh. Eisiatar dintiúir, comharthaí, fianáin, amh-nasc nó aitheantóirí eochrach API, haiseanna úinéara, rúin fálaithe, agus sonraí ródaithe inmheánacha.
 
-Filleann gach amharc cearr-eochair, cearr-sealbhóir, giniúint sean-aimsir, in easnamh, as dáta, scaoilte, agus neamhbhailí ar an
-bhfeall céanna `409 LEASE_FENCE_STALE` gan mheitadaita ceangail. Níl aon cheangal gníomhach ag claint a fuair an freagra
-feithimh acmhainne le scrúdú. Nuair a thrasnaíonn an ródáil suíochán gníomhach, fanann an giniúint céanna bailí agus
-fillfidh an stádas go hataimice ar an gceangal nua, ní ar an sean-cheangal amháin. Fanann na cliaint atá ann gan athrú toisc
-go gcoinneoidh freagraí éadáil, athnuna, scaoilte agus feithimh a n-cruthanna roimhe seo.
+Filleann cuardaigh eochrach mícheart, úinéara mícheart, glúine seanchaite, in easnamh, imithe in éag, scaoilte, agus neamhbhailíochtaithe an earráid chéanna `409 LEASE_FENCE_STALE` gan meiteashonraí nasctha. Níl aon cheangal gníomhach ag cliant a fuair an freagra fanachta acmhainne le hiniúchadh. Nuair a aistríonn ródú léas gníomhach, fanann an ghlúin chéanna bailí agus filleann an stádas an ceangal nua go adamhach, ní an sean-cheangal riamh. Fanann cliaint reatha gan athrú toisc go gcoimeádann freagraí fála, athnuachana, scaoilte, agus fanachta a gcruthanna roimhe seo.
 
-Ní athraíonn an conradh freastalaí seo stádas Codex OpenAI gnáth `/status`. Tuarascálann Codex gnáth anois a
-sholáthraí samhail agus stádas dearbhaithe/chuntas ionsuite ach ní dhéanann sé mheitadaita cuntais sholáthraí saincheaptha
-ar bithe a rindreáil; caithfidh comhtháthú cliant ina dhiaidh sin glao a dhéanamh ar an ngníomh seo agus cinneadh a dhéanamh conas
-`connection.displayName` a thaispeáint.
+Ní athraíonn an conradh freastalaí seo stoc OpenAI Codex `/status`. Tuairiscíonn stoc Codex faoi láthair a sholáthraí samhail agus a staid fíordheimhnithe/cuntais ionsuite ach ní dhéanann sé meiteashonraí cuntais soláthraí saincheaptha treallach a rindreáil; caithfidh comhtháthú cliant níos déanaí an gníomh seo a ghlaoch agus cinneadh a dhéanamh conas `connection.displayName` a thaispeáint.
 
-Ansin soláthraíonn gach iarratas tomhaillte aistrithe an dá cheann rialaithe:
+Soláthraíonn gach iarratas inferála bainistithe ansin an dá cheanntásc rialaithe:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Dearadh an sealbhóir beacht, an giniúint, an ceangal gníomhach, agus an eochair API dearbhaithe díreach roimh
-gach iarracht suas-chreasa tacaíochta. Ní theipeann an t-sealbhóir agus an giniúint a atreorú le heochair eile fiú
-nuair a cheadaíonn an eochair sin an ceangal céanna. Ní stóráiltear, ní logáiltear, ní choimeádtear i mbunachar
-snaidhm iarratais, ná ní sheoltar úinéirí amh thart.
+Tá an t-úinéir cruinn, an ghlúin, an nasc gníomhach, agus an eochair API fíordheimhnithe fálaithe díreach roimh gach iarracht in aghaidh an tsrutha tacaithe. Teipeann ar úinéir agus glúin a athsheinm le heochair eile fiú nuair a cheadaíonn an eochair sin an nasc céanna. Ní dhéantar amh-úinéirí a bhuanú, a logáil, a choinneáil sa ghrianghraf iarratais, ná a chur ar aghaidh in aghaidh an tsrutha.
 
-Fillean troid shealadach le HTTP `429` le `Retry-After` agus:
+Filleann achrann sealadach HTTP `429` le `Retry-After` agus:
 
 ```json
 {
@@ -178,39 +157,35 @@ Fillean troid shealadach le HTTP `429` le `Retry-After` agus:
 }
 ```
 
-Ciallaíonn an freagra seo ach go raibh an tacar gníomhach gnáth go heisiach agus go raibh gach iarrthóir saor
-ag coinneáil ag suíochán coigríche gníomhach. Coinníonn samhlacha/soláthraithe gan tacaíocht, mímhaitheas polasaí, fuarú,
-ciste, sláinte, agus teipthe eisiúcháin gnáth a bhfreagairtí OmniRoute reatha.
+Ciallaíonn an freagra seo amháin go raibh an tacar incháilithe gnáth neamh-fholamh agus go raibh gach iarrthóir saor in aisce á choinneáil ag léas gníomhach eachtrach. Coinníonn samhlacha/soláthraithe neamhthacaithe, neamhréir beartais, fuarú, cuóta, sláinte, agus teipeanna incháilitheachta gnáth eile a bhfreagraí OmniRoute atá ann cheana féin.
 
 ### `x-omniroute-compression`
 
-Forbhreathnú ríomhaireachta in aghaidh an iarratais ar an bplean comhbhrú. Imeallacht is airde — buann sé an ródáil-chomhcheangal
-forbhreathnú, an próifíl gníomhach, tuarascáil auto, agus an Réamhshocrú Pána. Luachanna:
+Sáraíonn sé an plean comhbhrúite in aghaidh an iarratais. An tosaíocht is airde — sáraíonn sé an sárú ródaithe-chomhcheangail, an próifíl ghníomhach, an t-uath-spreagadh, agus an Painéal Réamhshocraithe. Luachanna:
 
-| Luach         | Éifeacht                                                                          |
-| ------------- | --------------------------------------------------------------------------------- |
-| `off`         | Gan comhbhrú don iarratas seo.                                                    |
-| `default`     | An Réamhshocrú próifíl pána (neamhaird ar an bpróifíl gníomhach).                 |
-| `engine:<id>` | Inneall amháin nuair atá cumasaithe, mar shampla `engine:rtk`.                    |
-| `<combo>`     | Comhcheangal ainmnithe, meaitseáilte le hainm (gan cás i dtosach), ansin le h-id. |
+| Luach         | Éifeacht                                                                                                                                |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Gan comhbhrú don iarratas seo.                                                                                                          |
+| `default`     | An próifíl Réamhshocraithe a dhíorthaítear ón bpainéal (déanann sé neamhaird ar an bpróifíl ghníomhach). Fágtar innill chaillteacha as. |
+| `safe`        | Dí-dhúbailt agus fillte spás bán amháin.                                                                                                |
+| `allow-lossy` | Coinnigh plean an oibreora don iarratas seo, lena n-áirítear achoimrí agus athscríbhinní stíle.                                         |
+| `engine:<id>` | Inneall amháin nuair atá sé cumasaithe, m.sh. `engine:rtk`. Rogha in aghaidh an iarratais don inneall sin.                              |
+| `<combo>`     | Comhcheangal ainmnithe, a mheaitseáiltear de réir ainm (neamh-íogair ó thaobh cás-litreach de) ar dtús, ansin de réir aitheantais.      |
 
 Nótaí:
 
-- Déantar neamhshuim ar luachanna anaithnide (ní dhiúltaitar an t-arratas riamh); tarlaíonn an t-aimsriúchán
-  tríd an tosaíocht oibríora gnáth.
-- Má roinntear ainmanna ag iliomad comhcheangal, seol an t-ainm **id** le haghaidh meaitseála dearfa.
-- Ní féidir comhcheangal a roghnú le hainm `off` nó `default` (tugtar ar na príomhfhocail sin i dtosach);
-  déan tagairt don chomhcheangal sin le a h-id.
-- Is geata crua é an tswitch comhbhrú máistir: nuair a dhíchumasútear comhbhrú ar fud an chórais,
-  ní féidir an ceann seo cumasú.
+- Déantar neamhaird ar luachanna anaithnide (ní dhiúltaítear don iarratas riamh); titeann an réiteach tríd go dtí an gnáth-thosaíocht oibreora.
+- Má roinneann il-chomhcheangail ainm, cuir an **aitheantas** comhcheangail ar aghaidh le haghaidh meaitseála cinntithí.
+- Ní féidir comhcheangal a bhfuil a ainm `off` nó `default` a roghnú de réir ainm (déantar na heochairfhocail sin a léirmhíniú ar dtús); déan tagairt do chomhcheangal den sórt sin de réir a aitheantais.
+- Is geata crua é an príomh-lasc comhbhrúite: nuair a bhíonn comhbhrú díchumasaithe go domhanda, ní féidir leis an gceanntásc seo é a chumasú.
 
-Filleann an plean i bhfeidhm sa cheann freagra:
+Déantar an plean feidhmithe a athrá sa cheanntásc freagartha:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-áit a bhfuil `<source>` ceann de `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, nó `off`.
+áit a bhfuil `<source>` ar cheann de `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, nó `off`.
 
 ---
 

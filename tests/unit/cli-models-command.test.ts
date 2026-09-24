@@ -66,7 +66,7 @@ test("models --json returns 0 and prints JSON when server responds", async () =>
     if (String(url).includes("/api/health")) {
       return makeResponse({ status: "ok" });
     }
-    if (String(url).includes("/api/models")) {
+    if (String(url).includes("/api/v1/models")) {
       return makeResponse(mockModels);
     }
     throw new Error("unexpected URL: " + url);

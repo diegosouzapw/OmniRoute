@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Susținut de prietenii noștri Open Source
+## 🤝 Susținut de Prietenii noștri Open Source
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Inteligență de frontieră deschisă · 2,8 trilioane de parametri · context de 1 milion de tokenuri"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Inteligență de Frontieră Deschisă · 2.8T parametri · context de 1M-tokeni"/>
   </a>
 </p>
 
-> **Vrei să ni te alături ca prieten Open Source?** Acestea sunt companiile care susțin proiectele open source și ajută OmniRoute să continue să evolueze — iar noi spunem public unde ajunge fiecare token pe care ni-l oferă. Contactează-ne: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Vrei să te alături ca Prieten Open Source?** Acestea sunt companiile care susțin open source și ajută la menținerea OmniRoute în mișcare — și spunem public unde se duce fiecare token pe care ni-l oferă. Contactează-ne: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Prieten Open Source fondator"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Prieten Fondator Open Source"/>
     </td>
     <td>
-      Mulțumim <b>Kimi (Moonshot AI)</b>, prietenul nostru Open Source fondator, pentru susținerea acestui proiect! Kimi este laboratorul de inteligență artificială din spatele familiilor de modele cu ponderi deschise K2 și K3 — <b>Kimi K3</b> oferă o fereastră de context de 1 milion de tokenuri, capabilități vizuale native și programare la nivel de frontieră la o fracțiune din prețurile modelelor închise și funcționează imediat cu Claude Code, Codex și toate instrumentele de programare deservite de OmniRoute.
+      Mulțumiri <b>Kimi (Moonshot AI)</b>, Prietenul nostru Fondator Open Source, pentru susținerea acestui proiect! Kimi este laboratorul AI din spatele familiilor de modele K2 și K3 cu greutate deschisă — <b>Kimi K3</b> oferă o fereastră de context de 1M-tokeni, viziune nativă și codare la nivel de frontieră la o fracțiune din prețurile modelelor închise, și funcționează imediat cu Claude Code, Codex și fiecare instrument de codare pe care OmniRoute îl servește.
       <br/><br/>
-      <b>Ce este susținut prin sprijinul Kimi:</b> Creditele API oferite de Kimi alimentează fluxul OmniRoute de lansare validat prin inteligență artificială — etapa de <i>validare a îmbinării susținută de Kimi K3</i>, care verifică fiecare solicitare pull înainte de lansare — precum și dezvoltarea zilnică de funcționalități. Suportul de primă clasă pentru Kimi este disponibil pe ambele căi: prin <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">API-ul Kimi</a> direct (<code>kimi-k3</code>) și prin <a href="https://www.kimi.com/code?aff=omniroute">planul de programare Kimi Code</a> (OAuth și cheie API). OmniRoute este, de asemenea, primul proiect open source brazilian din programul de susținere Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Obține o cheie API Kimi cu 15% credite suplimentare →</b></a>
+      <b>Ce susține sprijinul Kimi:</b> Creditele API Kimi alimentează pipeline-ul de lansare validat de AI al OmniRoute — etapa de <i>validare a fuzionării alimentată de Kimi K3</i> care revizuiește fiecare cerere de pull înainte de a fi expediată — plus dezvoltarea zilnică de funcționalități. Suportul Kimi de primă clasă este livrat pe ambele căi: <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">API-ul Kimi</a> direct (<code>kimi-k3</code>) și <a href="https://www.kimi.ai/code?aff=omniroute">planul de codare Kimi Code</a> (OAuth și cheie API). OmniRoute este, de asemenea, primul proiect open-source brazilian din programul de suport Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Obține o cheie API Kimi cu 15% credite suplimentare →</b></a>
     </td>
   </tr>
   <tr>
@@ -301,21 +301,21 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Prieten Open Source"/>
     </td>
     <td>
-      Mulțumim <b>Cheaper Inference</b>, un prieten Open Source al OmniRoute, pentru susținerea acestui proiect! Cheaper Inference este un gateway care clasifică opțiunile după cost și revinde 42 de modele de frontieră — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok și MiniMax — printr-un singur endpoint compatibil cu OpenAI, direcționând fiecare solicitare către cel mai ieftin furnizor eligibil, fără a percepe vreodată mai mult decât prețul de listă al creatorului modelului.
+      Mulțumiri <b>Cheaper Inference</b>, un Prieten Open Source OmniRoute, pentru susținerea acestui proiect! Cheaper Inference este un gateway clasificat după cost care revinde 42 de modele de frontieră — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok și MiniMax — printr-un singur endpoint compatibil OpenAI, rutând fiecare cerere către cel mai ieftin furnizor eligibil fără a percepe vreodată mai mult decât prețul de listă al creatorului modelului.
       <br/><br/>
-      <b>Suport de primă clasă în OmniRoute:</b> Chat Completions, endpointul nativ <code>/v1/responses</code>, capabilități vizuale, apelarea instrumentelor și 3 modele de imagini (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, accesibile ca <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Obține o cheie API →</b></a>
+      <b>Suport de primă clasă în OmniRoute:</b> Chat Completions, endpoint-ul nativ <code>/v1/responses</code>, viziune, apelare de instrumente și 3 modele de imagine (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, accesibile ca <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Obține o cheie API →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Linkurile etichetate cu <code>aff=omniroute</code> sunt linkuri de parteneriat. Acestea finanțează proiectul fără niciun cost suplimentar pentru tine.</sub>
+<sub>Link-urile etichetate <code>aff=omniroute</code> sunt link-uri partenere. Acestea finanțează proiectul fără costuri suplimentare pentru tine.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Promoții de afiliere</b> — cupoane gratuite la înregistrare oferite de furnizori care nu ne sponsorizează (apasă pentru a extinde)</sub></summary>
+<summary><sub><b>🎟️ Promoții Afiliate</b> — cupoane de înregistrare gratuite de la furnizori pe care nu îi sponsorizăm (click pentru a extinde)</sub></summary>
 
-<sub><i>Această secțiune este destinată exclusiv codurilor de recomandare/cupon. Parteneriatele sponsorizate se află mai sus, în secțiunea <b>🤝 Susținut de prietenii noștri Open Source</b>. OmniRoute nu are nicio sponsorizare sau relație de parteneriat cu furnizorii enumerați aici — acestea sunt cupoane publice pe care le poate folosi oricine.</i></sub>
+<sub><i>Această secțiune este doar pentru coduri de recomandare/cupon. Parteneriatele sponsorizate se găsesc în secțiunea <b>🤝 Susținut de Prietenii noștri Open Source</b> de mai sus. OmniRoute nu are sponsorizare sau parteneriat cu furnizorii enumerați aici — acestea sunt cupoane publice pe care oricine le poate folosi.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — înregistrare prin afiliere · <b>credite gratuite în valoare de 100 USD</b> la înregistrare (server gratuit, așteaptă-te la o latență mai mare — recomandat pentru testare, nu pentru producție). Suport de primă clasă în OmniRoute începând cu <b>v3.8.50</b>: Chat Completions, formatul de comunicație compatibil cu Anthropic și calea compatibilă cu OpenAI. Modelele disponibile includ <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> și altele. <b><a href="https://agentrouter.org/register?aff=70LM">Obține cei 100 USD →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — înregistrare afiliat · <b>$100 credite gratuite</b> la înregistrare (server gratuit, așteptați-vă la o latență mai mare — cel mai bun pentru testare, nu pentru producție). Suport de primă clasă în OmniRoute începând cu <b>v3.8.50</b>: Chat Completions, formatul wire compatibil Anthropic și calea compatibilă OpenAI. Modelele disponibile includ <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> și altele. <b><a href="https://agentrouter.org/register?aff=70LM">Ia-ți cei $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Link de afiliere — OmniRoute nu are nicio sponsorizare sau relație de parteneriat cu acest furnizor.</i></sub>
+      <sub>⚠️ <i>Link afiliat — OmniRoute nu are sponsorizare sau parteneriat cu acest furnizor.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Cunoști un alt furnizor cu un cupon generos și gratuit la înregistrare, de care ar putea beneficia utilizatorii OmniRoute? Deschide un issue și îl vom adăuga aici.</sub>
+<sub>Cunoști un alt furnizor cu un cupon generos de înregistrare gratuită care aduce beneficii utilizatorilor OmniRoute? Deschide o problemă și îl vom adăuga aici.</sub>
 
 </details>
 
@@ -1264,29 +1264,29 @@ Valori canonice la 2026-08-24: **1.029 de videoclipuri unice** · **11.132.922 d
 <br/>
 <div align="center">
 
-## 🛠️ Stivă tehnologică
+## 🛠️ Stiva Tehnologică
 
 </div>
 
 <table>
-  <tr><th align="left">Nivel</th><th align="left">Tehnologie</th></tr>
-  <tr><td nowrap><b>Mediu de execuție</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><th align="left">Strat</th><th align="left">Tehnologie</th></tr>
+  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Limbaj</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> în <code>src/</code> și <code>open-sse/</code> (zero <code>any</code> în nucleu începând cu v2.0)</td></tr>
-  <tr><td nowrap><b>Cadru de lucru</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Bază de date</b></td><td>better-sqlite3 (SQLite, jurnalizare WAL) + LowDB (JSON vechi) — 122 de module de domeniu, 178 de migrări</td></tr>
-  <tr><td nowrap><b>Memorie</b></td><td>Căutare în text integral SQLite FTS5 + reprezentări vectoriale cuantizate int8, degradare tipizată</td></tr>
-  <tr><td nowrap><b>Scheme</b></td><td>Zod 4 — validarea intrărilor/ieșirilor instrumentelor MCP + contracte API</td></tr>
+  <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Bază de date</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 module de domeniu, 182 migrații</td></tr>
+  <tr><td nowrap><b>Memorie</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, decay tipizat</td></tr>
+  <tr><td nowrap><b>Scheme</b></td><td>Zod 4 — validare I/O instrument MCP + contracte API</td></tr>
   <tr><td nowrap><b>Protocoale</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Transmitere în flux</b></td><td>Evenimente trimise de server (SSE) + punte WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Compresie</b></td><td>Flux de procesare cu 12 motoare — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Autentificare &amp; securitate</b></td><td>OAuth 2.0 (PKCE) + JWT + chei API + autentificare MCP cu domeniu limitat · AES-256-GCM pentru datele stocate · DOMPurify</td></tr>
-  <tr><td nowrap><b>Disimulare</b></td><td>wreq-js — imitarea amprentelor TLS JA3 / JA4, proxy pe 3 niveluri</td></tr>
-  <tr><td nowrap><b>Reziliență</b></td><td>Disjunctor, întârziere exponențială, protecție împotriva efectului de turmă, autoremediere automată a combinațiilor</td></tr>
-  <tr><td nowrap><b>Jurnalizare</b></td><td>pino — jurnale JSON structurate, cu contextul solicitării</td></tr>
-  <tr><td nowrap><b>Testare</b></td><td>Rularea testelor din Node.js + Vitest — <b>peste 39.000 de declarații statice de teste</b> în peste 5.100 de fișiere de testare urmărite (unitare, de integrare, E2E, de securitate, de ecosistem)</td></tr>
+  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + punte WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Compresie</b></td><td>pipeline cu 12 motoare — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autentificare &amp; securitate</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + autentificare MCP cu scop · AES-256-GCM în repaus · DOMPurify</td></tr>
+  <tr><td nowrap><b>Invizibilitate</b></td><td>wreq-js — impersonare amprentă digitală JA3 / JA4 TLS, proxy pe 3 niveluri</td></tr>
+  <tr><td nowrap><b>Rezistență</b></td><td>Întrerupător de circuit, backoff exponențial, anti-thundering-herd, auto-combo auto-vindecare</td></tr>
+  <tr><td nowrap><b>Logare</b></td><td>pino — loguri JSON structurate cu context de cerere</td></tr>
+  <tr><td nowrap><b>Testare</b></td><td>Node.js test runner + Vitest — <b>peste 39.000 de declarații de test statice</b> în peste 5.100 de fișiere de test urmărite (unitate, integrare, E2E, securitate, ecosistem)</td></tr>
   <tr><td nowrap><b>Platforme</b></td><td>Desktop (Electron) · Android (Termux) · PWA (orice browser)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — publicare automată pe npm + Docker Hub la lansare</td></tr>
-  <tr><td nowrap><b>Linkuri</b></td><td><a href="https://omniroute.online">Site web</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — publicare automată npm + Docker Hub la lansare</td></tr>
+  <tr><td nowrap><b>Linkuri</b></td><td><a href="https://omniroute.online">Website</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

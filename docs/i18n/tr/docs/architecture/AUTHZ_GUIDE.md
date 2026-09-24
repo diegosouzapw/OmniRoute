@@ -4,12 +4,12 @@
 
 ---
 
-> **Doğruluk kaynağı:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Son güncelleme:** 2026-06-28 — v3.8.40
+> **Doğruluk Kaynağı:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Son Güncelleme:** 2026-09-22 — kapsam ad alanları `MCP-SERVER.md`'yi işaret ediyor
 
-OmniRoute, her API isteğini denetleyen, rota farkındalığına sahip bir yetkilendirme işlem hattına sahiptir. Sınıflandırma **deterministiktir** ve **başarısızlık durumunda erişimi reddeder** — sınıflandırılamayan her şey `MANAGEMENT` olarak değerlendirilir ve bir oturum veya yönetim düzeyinde belirteç gerektirir. Bu sayfa, rotaların bakımını yapan veya yeni uç noktalar tasarlayan mühendisler için modeli açıklar.
+OmniRoute, her API isteğini denetleyen rota-farkındalıklı bir yetkilendirme hattına sahiptir. Sınıflandırma **deterministik** ve **kapalı-güvenli**dir — sınıflandırılamayan her şey `MANAGEMENT` olarak sonuçlanır ve bir oturum veya yönetim düzeyinde bir jeton gerektirir. Bu sayfa, rotaları sürdüren veya yeni uç noktalar tasarlayan mühendisler için modeli açıklar.
 
-![AuthZ işlem hattı (3 rota sınıfı + politika değerlendirmesi)](../diagrams/exported/authz-pipeline.svg)
+![Yetkilendirme hattı (3 rota sınıfı + politika değerlendirmesi)](../diagrams/exported/authz-pipeline.svg)
 
 > Kaynak: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -202,24 +202,22 @@ Kümeyi kullanım kolaylığına göre değil, şekle göre seçin. Tek bir rota
 
 ## Kapsamlar
 
-API anahtarları bir `scopes` dizisi taşır (`api_keys.scopes` içinde JSON olarak saklanır; bkz. `src/lib/db/apiKeys.ts`).
+Üç ad alanı. Her denetleyici yalnızca kendi dizelerini okur. Yan yana karşılaştırma, `manage`'in `read:compression` için `scopeMatches`'i neden başarısız kıldığını ve bir `read` erişim belirtecinin neden `/api/keys/{id}` adresine `PATCH` yapamadığını içeren detaylar [Üç kapsam ad alanı](../frameworks/MCP-SERVER.md#three-scope-namespaces) bölümündedir.
+
+API anahtarları bir `scopes` dizisi taşır (`api_keys.scopes` içinde JSON olarak saklanır, bkz. `src/lib/db/apiKeys.ts`).
 
 ### Yönetim kapsamı
 
-- `manage` / `admin` — Bearer olarak gönderildiğinde anahtara yönetim API uç noktalarına erişim izni verir.
+- `manage` / `admin` — `hasManageScope`. Yönetim API rotalarına taşıyıcı erişimi.
+- `mcp:connect`, `self:usage`, `self:account-quota` ve `policy:bypass-provider-quota` eklemeli tam eşleşen kapsamlardır. Bunlar `MANAGEMENT_API_KEY_SCOPES` dışında yer alır. `mcp:connect` yalnızca `/api/mcp/` döngüsel olmayan ayrılmış bölümünü açar.
 
-### MCP kapsamları (`src/shared/constants/mcpScopes.ts`)
+### MCP araç kapsamları
 
-Her MCP aracı, `MCP_TOOL_SCOPES` aracılığıyla belirli kapsamlar gerektirir. Tam liste (`MCP_SCOPE_LIST`):
+Katalog ve eşleştirme kuralları (aynı dize veya `*` ile biten verilmiş bir kapsam): [MCP araç kapsamları](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `src/shared/constants/mcpScopes.ts` içindeki `MCP_SCOPE_LIST`, tam katalog değil, orijinal yazılmış alt kümedir. Uygulama, `resolveCallerScopeContext()` MCP kimlik doğrulama bilgisinden, istek meta verilerinden veya `OMNIROUTE_MCP_SCOPES`'tan kapsamları çözümledikten sonra `open-sse/mcp-server/scopeEnforcement.ts` içinde çalışır. `OMNIROUTE_MCP_ENFORCE_SCOPES=true` olmadığı sürece kapalı kalır.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Erişim belirteci kapsamları
 
-`open-sse/mcp-server/server.ts` içindeki kapsam zorlaması, `resolveCallerScopeContext()` MCP kimlik doğrulama bilgilerinden, istek meta verilerinden veya `OMNIROUTE_MCP_SCOPES` değerinden kapsamları çözümledikten sonra her aracın kapsam listesini `evaluateToolScopes()` işlevine aktarır.
+`oma_live_…` belirteçlerinde `read` / `write` / `admin`, `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`) tarafından sıralanır. Bu sıralama yalnızca erişim belirteci kimlik bilgisi için geçerlidir. Bkz. [Yönetim Kimlik Doğrulaması](../guides/MANAGEMENT-AUTH.md).
 
 ## Kimlik Doğrulama Gereksinimi Anahtarı
 
@@ -267,7 +265,7 @@ x-omniroute-auth-scopes:    virgülle ayrılmış liste
 
 ## Ayrıca Bakınız
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — uç nokta başına kimlik doğrulama işareti
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — uç nokta başına kimlik doğrulama işaretçisi
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — kimlik doğrulama olayları için denetim günlüğü
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP kapsamı uygulama ayrıntıları
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — üç kapsam ad alanı ve MCP araç kapsamı kataloğu
 - Kaynak: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

@@ -86,11 +86,15 @@ Content-Type: application/json
 
 > **Semántica del coste de los aciertos de caché:** cuando se produce un acierto en la caché semántica (`X-OmniRoute-Cache-Hit: true`), no se realiza ninguna llamada al proveedor ascendente, por lo que `X-OmniRoute-Response-Cost` es `0.0000000000` (el coste **incremental** de servir el acierto). El coste original o que se habría producido se indica por separado en `X-OmniRoute-Cost-Saved`. Los consumidores de datos de facturación deben sumar `X-OmniRoute-Response-Cost` (los aciertos no tienen coste); los sistemas de análisis de caché pueden agregar `X-OmniRoute-Cost-Saved`.
 
-## Arrendamientos exclusivos de sesiones gestionadas
+## Concesiones exclusivas de sesiones administradas
 
-El arrendamiento exclusivo de sesiones gestionadas es un contrato de enrutamiento opcional e independiente del cliente: un propietario activo mantiene una conexión apta de OmniRoute. No arrienda un modelo, no requiere OAuth, no identifica a un cliente concreto ni exige un proveedor específico.
+La concesión exclusiva de sesiones administradas es un contrato de enrutamiento opcional y neutral respecto al cliente: un propietario activo
+mantiene una conexión de OmniRoute apta. No concede un modelo, no requiere OAuth, no identifica a un
+cliente específico ni requiere un proveedor específico.
 
-La clave de API utilizada para la autenticación debe tener el ámbito `lease:exclusive` y una lista explícita no vacía de `allowedConnections`. El límite de mutación de la base de datos exige ambos campos conjuntamente durante la creación de claves y las actualizaciones parciales.
+La clave de API usada para la autenticación debe tener el ámbito `lease:exclusive` y una lista
+`allowedConnections` explícita y no vacía. El límite de mutación de la base de datos exige ambos campos
+conjuntamente al crear claves y realizar actualizaciones parciales.
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Las respuestas correctas de adquisición, renovación y liberación exponen marcas de tiempo, `state` y el valor positivo exacto de `generation`, pero nunca la conexión seleccionada ni las credenciales. La renovación y la liberación proporcionan la generación en el cuerpo JSON:
+Las respuestas correctas de adquisición, renovación y liberación exponen marcas de tiempo, `state` y la
+`generation` positiva exacta, pero nunca la conexión seleccionada ni las credenciales. La renovación y la
+liberación proporcionan la generación en el cuerpo JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +117,8 @@ Las respuestas correctas de adquisición, renovación y liberación exponen marc
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-El propietario de un arrendamiento activo puede solicitar explícitamente metadatos de visualización que protejan la privacidad para su vinculación actual:
+El propietario de una concesión activa puede solicitar explícitamente metadatos de visualización seguros
+para la privacidad correspondientes a su vinculación actual:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,20 +138,40 @@ El propietario de un arrendamiento activo puede solicitar explícitamente metada
 }
 ```
 
-Esta acción de estado opcional queda delimitada por el propietario opaco, la clave de API gestionada autenticada y la generación activa exacta dentro de una única transacción de base de datos. `displayName` es únicamente el nombre de conexión configurado sin espacios en blanco al principio ni al final; es `null` cuando no existe un nombre configurado seguro. OmniRoute nunca lo sustituye por un correo electrónico ni por una identidad de cuenta generada. El valor del proveedor es una etiqueta de visualización no confidencial y nunca un identificador generado de un proveedor compatible. Se excluyen las credenciales, los tokens, las cookies, los identificadores sin procesar de conexiones o claves de API, los hashes de propietarios, los secretos de delimitación y los datos internos de enrutamiento.
+Esta acción de estado opcional queda protegida por el propietario opaco, la clave de API administrada
+autenticada y la generación activa exacta dentro de una única transacción de base de datos. `displayName`
+es únicamente el nombre de conexión configurado y sin espacios circundantes; es `null` cuando no existe
+un nombre configurado seguro. OmniRoute nunca lo sustituye por un correo electrónico ni por una identidad
+de cuenta generada. El valor del proveedor es una etiqueta de visualización no confidencial y nunca un
+identificador generado de proveedor compatible. Se excluyen las credenciales, los tokens, las cookies,
+los identificadores sin procesar de conexiones o claves de API, los hashes de propietarios, los secretos
+de protección y los datos internos de enrutamiento.
 
-Las consultas con una clave incorrecta, un propietario incorrecto, una generación obsoleta, datos ausentes, un arrendamiento vencido, liberado o invalidado devuelven todas el mismo error `409 LEASE_FENCE_STALE` sin metadatos de conexión. Un cliente que haya recibido la respuesta de espera de capacidad no tiene ninguna vinculación activa que inspeccionar. Cuando el enrutamiento cambia un arrendamiento activo, la misma generación sigue siendo válida y el estado devuelve atómicamente la nueva vinculación, nunca la anterior. Los clientes existentes no sufren cambios porque las respuestas de adquisición, renovación, liberación y espera conservan sus formatos anteriores.
+Las consultas con una clave incorrecta, un propietario incorrecto, una generación obsoleta, datos
+ausentes, una concesión caducada, liberada o invalidada devuelven todas el mismo error
+`409 LEASE_FENCE_STALE` sin metadatos de conexión. Un cliente que haya recibido la respuesta de espera
+por capacidad no tiene ninguna vinculación activa que inspeccionar. Cuando el enrutamiento cambia una
+concesión activa, la misma generación continúa siendo válida y el estado devuelve atómicamente la nueva
+vinculación, nunca la anterior. Los clientes existentes no sufren cambios porque las respuestas de
+adquisición, renovación, liberación y espera conservan sus formatos anteriores.
 
-Este contrato del servidor no modifica `/status` de OpenAI Codex estándar. Actualmente, Codex estándar informa sobre su proveedor de modelos y el estado integrado de autenticación/cuenta, pero no representa metadatos de cuenta arbitrarios de proveedores personalizados; una futura integración de cliente deberá llamar a esta acción y decidir cómo mostrar `connection.displayName`.
+Este contrato del servidor no modifica `/status` de OpenAI Codex estándar. Actualmente, Codex estándar
+informa de su proveedor de modelos y del estado integrado de autenticación/cuenta, pero no representa
+metadatos arbitrarios de cuentas de proveedores personalizados; una futura integración del cliente deberá
+invocar esta acción y decidir cómo mostrar `connection.displayName`.
 
-A partir de entonces, cada solicitud de inferencia gestionada proporciona ambas cabeceras de control:
+A continuación, cada solicitud de inferencia administrada proporciona ambos encabezados de control:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-El propietario exacto, la generación, la conexión activa y la clave de API autenticada se delimitan inmediatamente antes de cada intento ascendente compatible. Reutilizar el propietario y la generación con otra clave falla incluso cuando esa clave permite la misma conexión. Los propietarios sin procesar no se conservan, registran ni retienen en la instantánea de la solicitud, ni se reenvían al sistema ascendente.
+El propietario exacto, la generación, la conexión activa y la clave de API autenticada se validan
+inmediatamente antes de cada intento ascendente compatible. La reutilización del propietario y la
+generación con otra clave falla incluso cuando esa clave permite la misma conexión. Los propietarios sin
+procesar no se conservan, no se registran, no se retienen en la instantánea de la solicitud ni se reenvían
+al servidor ascendente.
 
 La contención temporal devuelve HTTP `429` con `Retry-After` y:
 
@@ -157,27 +184,34 @@ La contención temporal devuelve HTTP `429` con `Retry-After` y:
 }
 ```
 
-Esta respuesta solo significa que el conjunto apto ordinario no estaba vacío y que todos los candidatos libres estaban retenidos por un arrendamiento activo ajeno. Los modelos/proveedores no compatibles, las discrepancias de políticas, los períodos de enfriamiento, las cuotas, el estado de salud y otros fallos ordinarios de idoneidad conservan sus respuestas existentes de OmniRoute.
+Esta respuesta solo significa que el conjunto apto ordinario no estaba vacío y que cada candidato libre
+estaba ocupado por una concesión activa ajena. Los modelos/proveedores no compatibles, las discrepancias
+de políticas, los períodos de espera, las cuotas, el estado de salud y otros fallos ordinarios de
+elegibilidad conservan sus respuestas existentes de OmniRoute.
 
 ### `x-omniroute-compression`
 
-Anulación por solicitud del plan de compresión. Tiene la máxima precedencia: prevalece sobre la anulación de la combinación de enrutamiento, el perfil activo, la activación automática y el valor predeterminado del panel. Valores:
+Anulación por solicitud del plan de compresión. Tiene la máxima precedencia: se impone a la anulación de
+la combinación de enrutamiento, al perfil activo, al activador automático y al valor Predeterminado del
+panel. Valores:
 
-| Valor         | Efecto                                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Sin compresión para esta solicitud.                                                                                 |
-| `default`     | El perfil predeterminado derivado del panel (ignora el perfil activo).                                              |
-| `engine:<id>` | Un único motor cuando está habilitado, p. ej., `engine:rtk`.                                                        |
-| `<combo>`     | Una combinación con nombre, comparada primero por nombre (sin distinguir mayúsculas y minúsculas) y después por id. |
+| Valor         | Efecto                                                                                                                  |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Sin compresión para esta solicitud.                                                                                     |
+| `default`     | El perfil Predeterminado derivado del panel (ignora el perfil activo). Los motores con pérdida permanecen desactivados. |
+| `safe`        | Solo deduplicación y normalización de espacios en blanco.                                                               |
+| `allow-lossy` | Mantiene el plan del operador para esta solicitud, incluidos los resúmenes y las reescrituras de estilo.                |
+| `engine:<id>` | Un único motor cuando está habilitado, p. ej., `engine:rtk`. Activación por solicitud para ese motor.                   |
+| `<combo>`     | Una combinación con nombre, buscada primero por nombre (sin distinguir mayúsculas y minúsculas) y después por id.       |
 
 Notas:
 
-- Los valores desconocidos se ignoran (la solicitud nunca se rechaza); la resolución continúa según la precedencia normal de operadores.
+- Los valores desconocidos se ignoran (la solicitud nunca se rechaza); la resolución continúa según la precedencia normal del operador.
 - Si varias combinaciones comparten un nombre, proporcione el **id** de la combinación para obtener una coincidencia determinista.
 - Una combinación cuyo nombre sea `off` o `default` no puede seleccionarse por nombre (esas palabras clave se interpretan primero); haga referencia a dicha combinación mediante su id.
-- El interruptor principal de compresión actúa como una barrera estricta: cuando la compresión está deshabilitada globalmente, esta cabecera no puede habilitarla.
+- El interruptor principal de compresión es una restricción absoluta: cuando la compresión está deshabilitada globalmente, este encabezado no puede habilitarla.
 
-El plan aplicado se devuelve en la cabecera de respuesta:
+El plan aplicado se devuelve en el encabezado de respuesta:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
