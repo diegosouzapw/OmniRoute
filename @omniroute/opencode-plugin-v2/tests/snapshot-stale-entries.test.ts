@@ -35,7 +35,6 @@ function setupCtx(providerId: string): {
       providerId,
       baseURL: "https://gw.example.com",
       apiKey: "k-snapfix",
-      toolsOnly: false,
     },
     provider: {
       transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
@@ -54,7 +53,10 @@ function setupCtx(providerId: string): {
 
 function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
   const published = new Map<string, Record<string, unknown>>();
-  for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+  for (const entry of added as Array<{
+    info: { id: string };
+    models: Array<Record<string, unknown>>;
+  }>) {
     for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
   }
   return published;
@@ -156,7 +158,9 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
         );
       });
       assert.ok(
-        warns.some((w) => w.includes("dropping 3 stale snapshot entries with an unusable api block")),
+        warns.some((w) =>
+          w.includes("dropping 3 stale snapshot entries with an unusable api block")
+        ),
         `expected stale-drop warn, got: ${JSON.stringify(warns)}`
       );
     } finally {
@@ -273,7 +277,10 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
     // Present-but-unusable url: stale, for the same reason a missing npm is.
     for (const url of [undefined, "", "   ", "/v1", "gw.example.com/v1", "ftp://gw/v1"]) {
       assert.equal(
-        isStaleSnapshotModel({ id: "a/b", api: { id: "x", npm, ...(url === undefined ? {} : { url }) } }),
+        isStaleSnapshotModel({
+          id: "a/b",
+          api: { id: "x", npm, ...(url === undefined ? {} : { url }) },
+        }),
         true,
         `expected ${JSON.stringify(url)} to be treated as stale`
       );

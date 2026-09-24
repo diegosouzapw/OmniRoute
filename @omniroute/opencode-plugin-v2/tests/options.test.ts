@@ -16,7 +16,7 @@ describe("parsePluginOptions", () => {
     assert.equal(opts.usableOnly, false);
     assert.equal(opts.enrichment, true);
     assert.equal(opts.freeOnly, false);
-    assert.equal(opts.toolsOnly, true);
+    assert.equal(opts.toolsOnly, false);
     assert.equal(opts.visionOnly, false);
     assert.equal(opts.modelCacheTtlMs, undefined);
   });

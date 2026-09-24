@@ -46,7 +46,7 @@ const pluginOptionsSchema = z
     hiddenModels: z.array(z.string()).optional(),
     usableOnly: z.boolean().default(false),
     freeOnly: z.boolean().default(false),
-    toolsOnly: z.boolean().default(true),
+    toolsOnly: z.boolean().default(false),
     visionOnly: z.boolean().default(false),
     // v1 parity: enrichment overlay on by default (names + pricing).
     enrichment: z.boolean().default(true),

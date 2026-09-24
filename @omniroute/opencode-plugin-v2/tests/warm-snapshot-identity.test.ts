@@ -44,7 +44,7 @@ describe("warm snapshot is read under the credential actually in use", () => {
       const added: unknown[] = [];
       const registration = Promise.resolve({ dispose: async () => {} });
       const ctx = {
-        options: { baseURL, providerId: "warmid", apiKey: "key-written-in-the-config", toolsOnly: false },
+        options: { baseURL, providerId: "warmid", apiKey: "key-written-in-the-config" },
         provider: {
           transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
             cb({ add: (input: unknown) => added.push(input) });
@@ -65,7 +65,10 @@ describe("warm snapshot is read under the credential actually in use", () => {
       };
       await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
       const published = new Map<string, Record<string, unknown>>();
-      for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+      for (const entry of added as Array<{
+        info: { id: string };
+        models: Array<Record<string, unknown>>;
+      }>) {
         for (const m of entry.models) published.set(`${entry.info.id}/${String(m.id)}`, m);
       }
       assert.ok(

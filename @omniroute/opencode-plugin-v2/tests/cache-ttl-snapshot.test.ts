@@ -11,7 +11,6 @@ interface CtxOpts {
   baseURL: string;
   apiKey: string;
   modelCacheTtlMs?: number;
-  toolsOnly?: boolean;
 }
 
 function stubFetch(
@@ -90,7 +89,10 @@ async function setupPlugin(opts: CtxOpts): Promise<{
 
 function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
   const published = new Map<string, Record<string, unknown>>();
-  for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+  for (const entry of added as Array<{
+    info: { id: string };
+    models: Array<Record<string, unknown>>;
+  }>) {
     for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
   }
   return published;
@@ -141,7 +143,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
         providerId: "ttl-hit",
         baseURL: "https://gw.example.com",
         apiKey: "k-ttl",
-        toolsOnly: false,
       });
       const published = publishedOf(added);
       assert.equal(counter.models, 1);
@@ -172,7 +173,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
         baseURL: "https://gw.example.com",
         apiKey: "k-expire",
         modelCacheTtlMs: 1000,
-        toolsOnly: false,
       });
       void _addedE;
       assert.equal(counter.models, 1);
@@ -225,7 +225,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
         providerId: "singleflight",
         baseURL: "https://gw.example.com",
         apiKey: "k-sf",
-        toolsOnly: false,
       });
       release();
       await pending;
@@ -252,7 +251,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
         providerId: "warm",
         baseURL: "https://gw.example.com",
         apiKey: "k-warm",
-        toolsOnly: false,
       });
       assert.ok(publishedOf(added).has("warm/mw"));
       assert.ok(statSync(diskSnapshotPath("warm")).isFile());
@@ -294,7 +292,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
         providerId: "warm",
         baseURL: "https://gw.example.com",
         apiKey: "k-warm",
-        toolsOnly: false,
       });
       const published = publishedOf(added);
       assert.ok(
@@ -326,7 +323,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
         baseURL: "https://gw.example.com",
         apiKey: "k-inval",
         modelCacheTtlMs: 1,
-        toolsOnly: false,
       });
       void first;
       assert.equal(counter.models, 1);
@@ -339,7 +335,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
         baseURL: "https://gw.example.com",
         apiKey: "k-inval",
         modelCacheTtlMs: 1,
-        toolsOnly: false,
       });
       void second;
       assert.equal(counter.models, 2);

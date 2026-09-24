@@ -34,7 +34,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
   } {
     const added: unknown[] = [];
     const ctx = {
-      options: { baseURL: "https://gw.example.com", providerId, apiKey: "k-" + providerId, toolsOnly: false },
+      options: { baseURL: "https://gw.example.com", providerId, apiKey: "k-" + providerId },
       provider: {
         transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
           cb({ add: (input: unknown) => added.push(input) });
@@ -54,7 +54,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
 
   function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
     const published = new Map<string, Record<string, unknown>>();
-    for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+    for (const entry of added as Array<{
+      info: { id: string };
+      models: Array<Record<string, unknown>>;
+    }>) {
       for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
     }
     return published;
@@ -411,7 +414,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     globalThis.fetch = stubFetch({ autoCombosHangs: false });
     const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
     const ctx = {
-      options: { baseURL: "https://gw.example.com", providerId: "staged-integ", apiKey: "k", toolsOnly: false },
+      options: { baseURL: "https://gw.example.com", providerId: "staged-integ", apiKey: "k" },
       provider: {
         transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
           catalogCallbacks.push(async () => {
@@ -419,10 +422,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
           });
           return Promise.resolve({ dispose: async () => {} });
         },
-        },
-        model: {
-          transform: () => Promise.resolve({ dispose: async () => {} }),
-        },
+      },
+      model: {
+        transform: () => Promise.resolve({ dispose: async () => {} }),
+      },
       integration: {
         transform: () => {
           throw new Error("host says no");
