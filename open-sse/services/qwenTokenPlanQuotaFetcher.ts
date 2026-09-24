@@ -94,11 +94,13 @@ const TIER_CACHE_TTL_MS = 60 * 60_000;
 // Window keys surfaced to the dashboard / quota-window registry
 export const QWEN_TOKEN_PLAN_WINDOW_5H = "window_5h";
 export const QWEN_TOKEN_PLAN_WINDOW_WEEKLY = "window_weekly";
+export const QWEN_TOKEN_PLAN_WINDOW_MONTHLY = "window_monthly";
 
 // usage payload field prefix → window key (fields: per<prefix>Percentage / per<prefix>ResetTime)
 const WINDOW_FIELD_MAP: Record<string, string> = {
   "5Hour": QWEN_TOKEN_PLAN_WINDOW_5H,
   "1Week": QWEN_TOKEN_PLAN_WINDOW_WEEKLY,
+  Monthly: QWEN_TOKEN_PLAN_WINDOW_MONTHLY,
 };
 
 export interface QwenTokenPlanQuota extends QuotaInfo {
@@ -108,7 +110,7 @@ export interface QwenTokenPlanQuota extends QuotaInfo {
   /** Subscription tier (e.g. "pro") or null when the subscription call failed. */
   specCode: string | null;
   /** Credit limits of the active tier (from quota-config), when resolvable. */
-  tierLimits: { fiveHour: number | null; weekly: number | null };
+  tierLimits: { fiveHour: number | null; weekly: number | null; monthly: number | null };
 }
 
 interface UsageCacheEntry {
@@ -118,7 +120,7 @@ interface UsageCacheEntry {
 
 interface TierCacheEntry {
   specCode: string | null;
-  tierLimits: { fiveHour: number | null; weekly: number | null };
+  tierLimits: { fiveHour: number | null; weekly: number | null; monthly: number | null };
   fetchedAt: number;
 }
 
@@ -342,6 +344,7 @@ async function resolveTierInfo(
     tierLimits: {
       fiveHour: toNumberOrNull(tierRecord["five_hour"]),
       weekly: toNumberOrNull(tierRecord["weekly"]),
+      monthly: toNumberOrNull(tierRecord["monthly"]),
     },
     fetchedAt: Date.now(),
   };
@@ -395,7 +398,7 @@ export async function fetchQwenTokenPlanQuota(
   const worst = windowEntries.reduce((max, w) => (w.percentUsed > max.percentUsed ? w : max));
 
   const tier = await resolveTierInfo(connectionId, cookie, secToken, site);
-  const total = tier.tierLimits.weekly ?? 100;
+  const total = tier.tierLimits.monthly ?? tier.tierLimits.weekly ?? 100;
 
   const quota: QwenTokenPlanQuota = {
     used: Math.round(worst.percentUsed * total),
@@ -433,5 +436,6 @@ export function registerQwenTokenPlanQuotaFetcher(): void {
   registerQuotaWindows("qwen-cloud-token-plan", [
     QWEN_TOKEN_PLAN_WINDOW_5H,
     QWEN_TOKEN_PLAN_WINDOW_WEEKLY,
+    QWEN_TOKEN_PLAN_WINDOW_MONTHLY,
   ]);
 }

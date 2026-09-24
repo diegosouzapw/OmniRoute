@@ -652,11 +652,27 @@ export class GeminiWebExecutor extends BaseExecutor {
       if (imageMode) {
         await this.persistRotatedCookies(context, cookie, credentials, onCredentialsRefreshed, log);
         const modelId = model || "gemini-2.5-pro";
+        
+        let responseB64: string[] | undefined;
+        if ((body as any)?.x_gemini_web_image_b64) {
+          responseB64 = [];
+          for (const url of responseImages) {
+            try {
+              const res = await context.request.get(url, { ignoreHTTPSErrors: true });
+              const buf = await res.body();
+              responseB64.push(buf.toString('base64'));
+            } catch (err) {
+              responseB64.push("");
+            }
+          }
+        }
+
         return {
           response: new Response(
             JSON.stringify({
               ...formatChatCompletion(responseText, modelId),
               x_gemini_web_image_urls: responseImages,
+              ...(responseB64 ? { x_gemini_web_image_b64: responseB64 } : {})
             }),
             { status: 200, headers: { "Content-Type": "application/json" } }
           ),
