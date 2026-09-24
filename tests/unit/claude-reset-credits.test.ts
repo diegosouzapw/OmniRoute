@@ -196,3 +196,35 @@ test("CodexResetCreditsModal helpers format Claude credits appropriately", () =>
   const confirmText = getResetCreditConfirmation("claude", undefined, dummyTr);
   assert.match(confirmText, /Claude usage limits/);
 });
+
+test("getClaudeUsage extracts bankedResetCredits from cedar_ember response", async () => {
+  const { getClaudeUsage } = await import("../../open-sse/services/usage/claude.ts");
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: unknown) => {
+    const url = String(input);
+    if (url.includes("/api/oauth/usage")) {
+      return new Response(
+        JSON.stringify({
+          five_hour: { utilization: 20 },
+          seven_day: { utilization: 40 },
+          cedar_ember: {
+            grants: [
+              { id: "g1", resets_left: 1 },
+              { id: "g2", resets_left: 2 },
+            ],
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    return new Response(JSON.stringify({}), { status: 200 });
+  }) as typeof fetch;
+
+  try {
+    const usage = await getClaudeUsage("test-token");
+    assert.equal(usage.bankedResetCredits, 3);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

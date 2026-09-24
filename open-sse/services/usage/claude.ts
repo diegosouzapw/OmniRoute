@@ -27,7 +27,7 @@ const FABLE_WEEKLY_LIMIT_SCHEMA = z.object({
 
 // Claude API config
 const CLAUDE_CONFIG = {
-  oauthUsageUrl: "https://api.anthropic.com/api/oauth/usage",
+  oauthUsageUrl: "https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1",
   usageUrl: "https://api.anthropic.com/v1/organizations/{org_id}/usage",
   settingsUrl: "https://api.anthropic.com/v1/settings",
   apiVersion: "2023-06-01",
@@ -79,7 +79,8 @@ export async function getClaudeUsage(accessToken?: string) {
           "Accept-Encoding": "gzip, compress, deflate, br",
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
-          "User-Agent": `claude-code/${getClaudeCodeVersion()}`,
+          "User-Agent": `claude-cli/${getClaudeCodeVersion()} (external, cli)`,
+          "x-app": "cli",
           "anthropic-beta": "oauth-2025-04-20",
         },
         signal: ctrl.signal,

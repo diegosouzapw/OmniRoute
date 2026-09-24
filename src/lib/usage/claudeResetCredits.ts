@@ -102,17 +102,21 @@ async function fetchClaudeUsageBody(accessToken: string): Promise<unknown> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 10_000);
   try {
-    const res = await fetch("https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1", {
-      method: "GET",
-      headers: {
-        Accept: "application/json, text/plain, */*",
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        "User-Agent": `claude-code/${getClaudeCodeVersion()}`,
-        "anthropic-beta": "oauth-2025-04-20",
-      },
-      signal: ctrl.signal,
-    });
+    const res = await fetch(
+      "https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1",
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          "User-Agent": `claude-cli/${getClaudeCodeVersion()} (external, cli)`,
+          "x-app": "cli",
+          "anthropic-beta": "oauth-2025-04-20",
+        },
+        signal: ctrl.signal,
+      }
+    );
     if (!res.ok) {
       const errBody = (await res.json().catch(() => null)) as JsonRecord | null;
       const msg =

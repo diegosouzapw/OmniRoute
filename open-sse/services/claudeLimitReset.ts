@@ -34,7 +34,7 @@ type FetchLike = typeof fetch;
 export const CLAUDE_LIMIT_RESET_PROGRAM = "juniper_tide";
 export const CLAUDE_GRANT_RESET_PROGRAM = "cedar_ember";
 export const CLAUDE_LIMIT_RESET_STATUS_URL =
-  "https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1";
+  "https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1";
 export const CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS = 5_000;
 export const CLAUDE_LIMIT_RESET_CLAIM_TIMEOUT_MS = 25_000;
 /** Back-off after a failed/unavailable claim before the next wall may re-query. */
@@ -104,13 +104,12 @@ function stringOrNull(value: unknown): string | null {
 }
 
 function oauthHeaders(accessToken: string): Record<string, string> {
-  // Same shape as the existing /api/oauth/usage poller (usage/claude.ts): axios-style
-  // `claude-code/<version>` UA, not the Stainless `claude-cli/…` one.
   return {
     Accept: "application/json, text/plain, */*",
     Authorization: `Bearer ${accessToken}`,
     "Content-Type": "application/json",
-    "User-Agent": `claude-code/${getClaudeCodeVersion()}`,
+    "User-Agent": `claude-cli/${getClaudeCodeVersion()} (external, cli)`,
+    "x-app": "cli",
     "anthropic-beta": "oauth-2025-04-20",
   };
 }
