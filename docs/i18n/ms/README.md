@@ -268,11 +268,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Kecerdasan Termaju Terbuka · 2.8T parameter · konteks 1M-token"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **Ingin menyertai sebagai Rakan Sumber Terbuka?** Ini ialah syarikat-syarikat yang menyokong sumber terbuka dan membantu memastikan OmniRoute terus bergerak maju — dan kami menyatakan secara terbuka ke mana setiap token yang mereka berikan kepada kami digunakan. Hubungi: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Ingin menyertai sebagai Rakan Sumber Terbuka?** Ini adalah syarikat-syarikat yang menyokong sumber terbuka dan membantu OmniRoute terus bergerak — dan kami menyatakan secara terbuka ke mana setiap token yang mereka berikan kepada kami pergi. Hubungi: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Rakan Sumber Terbuka Pengasas"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Rakan Pengasas Sumber Terbuka"/>
     </td>
     <td>
-      Terima kasih kepada <b>Kimi (Moonshot AI)</b>, Rakan Sumber Terbuka pengasas kami, kerana menyokong projek ini! Kimi ialah makmal AI di sebalik keluarga model berwajaran terbuka K2 dan K3 — <b>Kimi K3</b> menyediakan tetingkap konteks 1M-token, keupayaan penglihatan natif dan pengekodan bertaraf termaju pada sebahagian kecil daripada harga model tertutup, serta berfungsi terus tanpa konfigurasi tambahan dengan Claude Code, Codex dan setiap alat pengekodan yang disokong oleh OmniRoute.
+      Terima kasih kepada <b>Kimi (Moonshot AI)</b>, Rakan Sumber Terbuka pengasas kami, kerana menyokong projek ini! Kimi adalah makmal AI di sebalik keluarga model K2 dan K3 dengan berat terbuka — <b>Kimi K3</b> menawarkan tetingkap konteks 1M-token, penglihatan asli dan pengekodan peringkat sempadan pada sebahagian kecil daripada harga model tertutup, dan berfungsi dengan baik dengan Claude Code, Codex dan setiap alat pengekodan yang disediakan oleh OmniRoute.
       <br/><br/>
-      <b>Perkara yang dikuasakan oleh sokongan Kimi:</b> Kredit API Kimi menguasakan saluran keluaran OmniRoute yang disahkan oleh AI — peringkat <i>pengesahan penggabungan yang dikuasakan oleh Kimi K3</i> yang menyemak setiap permintaan tarik sebelum ia dikeluarkan — serta pembangunan ciri harian. Sokongan kelas pertama untuk Kimi tersedia melalui kedua-dua saluran: <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> langsung (<code>kimi-k3</code>) dan <a href="https://www.kimi.com/code?aff=omniroute">pelan pengekodan Kimi Code</a> (OAuth dan kunci API). OmniRoute juga merupakan projek sumber terbuka Brazil yang pertama dalam program sokongan Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Dapatkan kunci Kimi API dengan kredit tambahan 15% →</b></a>
+      <b>Apa yang disokong oleh Kimi:</b> Kredit API Kimi menggerakkan saluran keluaran yang disahkan AI OmniRoute — peringkat <i>pengesahan gabungan yang dikuasakan oleh Kimi K3</i> yang menyemak setiap permintaan tarik sebelum ia dihantar — serta pembangunan ciri harian. Sokongan Kimi kelas pertama dihantar pada kedua-dua rel: <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">API Kimi</a> langsung (<code>kimi-k3</code>) dan <a href="https://www.kimi.ai/code?aff=omniroute">pelan pengekodan Kimi Code</a> (OAuth dan kunci API). OmniRoute juga merupakan projek sumber terbuka Brazil pertama dalam program sokongan Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Dapatkan kunci API Kimi dengan 15% kredit tambahan →</b></a>
     </td>
   </tr>
   <tr>
@@ -301,21 +301,21 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Rakan Sumber Terbuka"/>
     </td>
     <td>
-      Terima kasih kepada <b>Cheaper Inference</b>, Rakan Sumber Terbuka OmniRoute, kerana menyokong projek ini! Cheaper Inference ialah gerbang yang menyusun mengikut kos dan menjual semula 42 model termaju — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok dan MiniMax — melalui satu titik akhir yang serasi dengan OpenAI, dengan menghalakan setiap permintaan kepada penyedia layak yang paling murah tanpa pernah mengenakan bayaran melebihi harga senarai pembuat model.
+      Terima kasih kepada <b>Cheaper Inference</b>, Rakan Sumber Terbuka OmniRoute, kerana menyokong projek ini! Cheaper Inference adalah gerbang yang dinilai kos yang menjual semula 42 model sempadan — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok dan MiniMax — di sebalik satu titik akhir yang serasi dengan OpenAI, menghantar setiap permintaan kepada penyedia yang paling murah tanpa pernah mengenakan bayaran melebihi harga senarai pembuat model.
       <br/><br/>
-      <b>Sokongan kelas pertama dalam OmniRoute:</b> Chat Completions, titik akhir natif <code>/v1/responses</code>, penglihatan, panggilan alat dan 3 model imej (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, yang boleh dicapai sebagai <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Dapatkan kunci API →</b></a>
+      <b>Sokongan kelas pertama dalam OmniRoute:</b> Chat Completions, titik akhir <code>/v1/responses</code> asli, penglihatan, panggilan alat dan 3 model imej (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, boleh dicapai sebagai <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Dapatkan kunci API →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Pautan yang ditandai dengan <code>aff=omniroute</code> ialah pautan rakan kongsi. Pautan tersebut membiayai projek ini tanpa sebarang kos tambahan kepada anda.</sub>
+<sub>Pautan yang ditandai <code>aff=omniroute</code> adalah pautan rakan kongsi. Ia membiayai projek tanpa kos tambahan kepada anda.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Promosi Ahli Gabungan</b> — kupon pendaftaran percuma daripada penyedia yang tidak kami taja (klik untuk kembangkan)</sub></summary>
+<summary><sub><b>🎟️ Promosi Afiliasi</b> — kupon pendaftaran percuma daripada penyedia yang tidak kami taja (klik untuk kembangkan)</sub></summary>
 
-<sub><i>Bahagian ini hanya untuk kod rujukan/kupon. Perkongsian tajaan dipaparkan dalam bahagian <b>🤝 Disokong oleh Rakan Sumber Terbuka Kami</b> di atas. OmniRoute tidak mempunyai penajaan atau perkongsian dengan penyedia yang disenaraikan di sini — ini ialah kupon awam yang boleh digunakan oleh sesiapa sahaja.</i></sub>
+<sub><i>Bahagian ini adalah untuk kod rujukan/kupon sahaja. Perkongsian yang ditaja terdapat dalam <b>🤝 Disokong oleh Rakan Sumber Terbuka Kami</b> di atas. OmniRoute tidak mempunyai penajaan atau perkongsian dengan penyedia yang disenaraikan di sini — ini adalah kupon awam yang boleh digunakan oleh sesiapa sahaja.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — pendaftaran ahli gabungan · <b>kredit percuma $100</b> semasa mendaftar (pelayan percuma, jangkakan kependaman yang lebih tinggi — paling sesuai untuk pengujian, bukan pengeluaran). Sokongan kelas pertama dalam OmniRoute sejak <b>v3.8.50</b>: Chat Completions, format komunikasi yang serasi dengan Anthropic dan laluan yang serasi dengan OpenAI. Model yang tersedia termasuk <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> dan banyak lagi. <b><a href="https://agentrouter.org/register?aff=70LM">Dapatkan $100 anda →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — pendaftaran afiliasi · <b>$100 kredit percuma</b> semasa pendaftaran (pelayan percuma, jangkakan kependaman yang lebih tinggi — terbaik untuk ujian, bukan pengeluaran). Sokongan kelas pertama dalam OmniRoute sejak <b>v3.8.50</b>: Chat Completions, format wayar yang serasi dengan Anthropic dan laluan yang serasi dengan OpenAI. Model yang tersedia termasuk <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> dan banyak lagi. <b><a href="https://agentrouter.org/register?aff=70LM">Dapatkan $100 anda →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Pautan ahli gabungan — OmniRoute tidak mempunyai penajaan atau perkongsian dengan penyedia ini.</i></sub>
+      <sub>⚠️ <i>Pautan afiliasi — OmniRoute tidak mempunyai penajaan atau perkongsian dengan penyedia ini.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Tahu penyedia lain yang menawarkan kupon pendaftaran percuma yang lumayan dan memberi manfaat kepada pengguna OmniRoute? Buka isu dan kami akan menambahkannya di sini.</sub>
+<sub>Tahu penyedia lain dengan kupon pendaftaran percuma yang murah hati yang memberi manfaat kepada pengguna OmniRoute? Buka isu dan kami akan menambahnya di sini.</sub>
 
 </details>
 
@@ -1256,29 +1256,29 @@ Metrik kanonik pada 2026-08-24: **1.029 video unik** · **11.132.922 tontonan di
 <br/>
 <div align="center">
 
-## 🛠️ Tindan Teknologi
+## 🛠️ Timbunan Teknologi
 
 </div>
 
 <table>
   <tr><th align="left">Lapisan</th><th align="left">Teknologi</th></tr>
-  <tr><td nowrap><b>Persekitaran masa jalan</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Bahasa</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> merentasi <code>src/</code> dan <code>open-sse/</code> (tiada <code>any</code> dalam teras sejak v2.0)</td></tr>
-  <tr><td nowrap><b>Kerangka kerja</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Pangkalan data</b></td><td>better-sqlite3 (SQLite, penjurnalan WAL) + LowDB (JSON legasi) — 122 modul domain, 178 migrasi</td></tr>
-  <tr><td nowrap><b>Memori</b></td><td>Teks penuh SQLite FTS5 + pembenaman vektor terkuantisasi int8, penyusutan bertipe</td></tr>
+  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Bahasa</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> merentasi <code>src/</code> dan <code>open-sse/</code> (sifar <code>any</code> dalam teras sejak v2.0)</td></tr>
+  <tr><td nowrap><b>Rangka Kerja</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Pangkalan Data</b></td><td>better-sqlite3 (SQLite, penjurnalan WAL) + LowDB (legasi JSON) — 122 modul domain, 182 migrasi</td></tr>
+  <tr><td nowrap><b>Memori</b></td><td>SQLite FTS5 teks penuh + pembenaman vektor terkuantisasi int8, pereputan bertaip</td></tr>
   <tr><td nowrap><b>Skema</b></td><td>Zod 4 — pengesahan I/O alat MCP + kontrak API</td></tr>
   <tr><td nowrap><b>Protokol</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Penstriman</b></td><td>Server-Sent Events (SSE) + jambatan WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Pemampatan</b></td><td>Saluran pemprosesan 12 enjin — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Pengesahan &amp; keselamatan</b></td><td>OAuth 2.0 (PKCE) + JWT + Kunci API + pengesahan berskop MCP · AES-256-GCM semasa disimpan · DOMPurify</td></tr>
-  <tr><td nowrap><b>Penyamaran</b></td><td>wreq-js — penyamaran cap jari TLS JA3 / JA4, proksi 3 peringkat</td></tr>
-  <tr><td nowrap><b>Ketahanan</b></td><td>Pemutus litar, undur eksponen, anti-thundering-herd, pemulihan kendiri auto-combo</td></tr>
+  <tr><td nowrap><b>Mampatan</b></td><td>Saluran paip 12 enjin — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Pengesahan &amp; keselamatan</b></td><td>OAuth 2.0 (PKCE) + JWT + Kunci API + pengesahan skop MCP · AES-256-GCM dalam keadaan rehat · DOMPurify</td></tr>
+  <tr><td nowrap><b>Siluman</b></td><td>wreq-js — penyamaran cap jari TLS JA3 / JA4, proksi 3 peringkat</td></tr>
+  <tr><td nowrap><b>Ketahanan</b></td><td>Pemutus litar, undur eksponen, anti-thundering-herd, penyembuhan diri auto-combo</td></tr>
   <tr><td nowrap><b>Pengelogan</b></td><td>pino — log JSON berstruktur dengan konteks permintaan</td></tr>
-  <tr><td nowrap><b>Pengujian</b></td><td>Pelaksana ujian Node.js + Vitest — <b>39,000+ pengisytiharan ujian statik</b> merentasi 5,100+ fail ujian yang dijejaki (unit, penyepaduan, E2E, keselamatan, ekosistem)</td></tr>
+  <tr><td nowrap><b>Pengujian</b></td><td>Node.js test runner + Vitest — <b>39,000+ pengisytiharan ujian statik</b> merentasi 5,100+ fail ujian yang dijejaki (unit, integrasi, E2E, keselamatan, ekosistem)</td></tr>
   <tr><td nowrap><b>Platform</b></td><td>Desktop (Electron) · Android (Termux) · PWA (mana-mana pelayar)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — penerbitan automatik ke npm + Docker Hub semasa keluaran</td></tr>
-  <tr><td nowrap><b>Pautan</b></td><td><a href="https://omniroute.online">Laman web</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — penerbitan npm automatik + Docker Hub semasa keluaran</td></tr>
+  <tr><td nowrap><b>Pautan</b></td><td><a href="https://omniroute.online">Laman Web</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

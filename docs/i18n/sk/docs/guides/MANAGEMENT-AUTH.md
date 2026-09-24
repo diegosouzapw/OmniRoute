@@ -4,87 +4,90 @@
 
 ---
 
-OmniRoute má **štyri skupiny prihlasovacích údajov**, ktoré môžu autorizovať trasy správy.
-Nie sú vzájomne zameniteľné. Kľúče inferenčného API (`sk-…`) **nespravujú**
+OmniRoute má **štyri rodiny poverení**, ktoré môžu autorizovať manažérske trasy.
+Nie sú vzájomne zameniteľné. Kľúče Inference API (`sk-…`) **nespravujú**
 server, pokiaľ im nebol explicitne udelený rozsah `manage` alebo `admin`.
 
 Kanonická implementácia: `src/lib/api/requireManagementAuth.ts`.
 
-| Prihlasovací údaj              | Typický tvar                          | Kde sa vytvára                                               | Zamýšľané použitie             | Možnosti správy                                                                                                 |
-| ------------------------------ | ------------------------------------- | ------------------------------------------------------------ | ------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Relácia JWT ovládacieho panela | súbor cookie `auth_token`             | Prihlásenie do ovládacieho panela                            | Webové používateľské rozhranie | Úplná správa prostredníctvom ovládacieho panela, podliehajúca pravidlám CSRF, lokálnosti a vždy chránených trás |
-| Token ID zariadenia CLI        | interný/lokálny                       | Úvodné nastavenie CLI (`omniroute` na tom istom zariadení)   | Lokálne CLI                    | Iba lokálna správa                                                                                              |
-| Prístupový token s rozsahom    | `oma_live_…`                          | **Nastavenia → Prístupové tokeny** alebo `omniroute connect` | Vzdialené CLI a API správy     | Musí spĺňať požadovaný rozsah trasy `read`, `write` alebo `admin`                                               |
-| Kľúč inferenčného API          | `sk-…` (a ďalšie predpony kľúčov API) | **Správca API / Kľúče API**                                  | Inferencia `/v1/*`             | **Žiadne**, pokiaľ metadáta kľúča neobsahujú `manage` alebo `admin`                                             |
+| Poverenie                    | Typická forma                      | Vytvorené kde                                                | Zamýšľané použitie                  | Schopnosť správy                                                                      |
+| :--------------------------- | :--------------------------------- | :----------------------------------------------------------- | :---------------------------------- | :------------------------------------------------------------------------------------ |
+| JWT relácia Dashboardu       | `auth_token` cookie                | Prihlásenie do Dashboardu                                    | Používateľské rozhranie prehliadača | Úplná správa dashboardu, podliehajúca pravidlám CSRF, lokality a vždy chránených trás |
+| Token ID stroja CLI          | interné / lokálne                  | Bootstrap CLI (`omniroute` na rovnakom stroji)               | Lokálne CLI                         | Len lokálna správa                                                                    |
+| Token s obmedzeným prístupom | `oma_live_…`                       | **Nastavenia → Prístupové tokeny** alebo `omniroute connect` | Vzdialené CLI a API správy          | Musí spĺňať požadovaný rozsah `read`, `write` alebo `admin` trasy                     |
+| Kľúč Inference API           | `sk-…` (a iné predpony API kľúčov) | **Správca API / API kľúče**                                  | `/v1/*` inferencia                  | **Žiadna**, pokiaľ metadáta kľúča neobsahujú `manage` alebo `admin`                   |
 
-Prihlasovacie údaje `oma_` sú prihlasovacie údaje pre správu/CLI. **Nie sú** kľúčmi inferenčného API.
+Poverenia `oma_` sú poverenia pre správu/CLI. **Nie sú** kľúčmi Inference API.
 
-Ak je prihlasovanie alebo autentifikácia pomocou kľúča API pre server zakázaná, niektoré trasy správy môžu
-prijímať neautentifikované volania. Trasy obmedzené iba na lokálny prístup a vždy chránené trasy naďalej uplatňujú
-vlastné pravidlá. Predloženie jedného z týchto prihlasovacích údajov preto nie je všeobecne
-povinné a jeho vlastníctvo nie je bez požadovaného rozsahu a lokálnosti trasy všeobecne
-postačujúce.
+Ak je prihlásenie/autentifikácia API kľúčom pre server zakázaná, niektoré manažérske trasy môžu
+akceptovať neautentifikované volania. Trasy len pre lokálne použitie a vždy chránené trasy stále uplatňujú
+svoje vlastné pravidlá. Predloženie jedného z týchto poverení preto nie je univerzálne
+povinné a jeho vlastníctvo nie je univerzálne dostatočné bez požadovaného
+rozsahu a lokality trasy.
 
-Súvisiace: [Vzdialený režim](./REMOTE-MODE.md) (ako sa vytvára `oma_live_…` pre vzdialené CLI).
+Súvisiace: [Vzdialený režim](./REMOTE-MODE.md) (ako sa `oma_live_…` vytvára pre vzdialené CLI).
 
 ---
 
 ## Matice rozsahov
 
-Tieto dva slovníky rozsahov sú **odlišné**. Nekombinujte ich.
+Rozsahy správy API kľúčov a rozsahy prístupových tokenov sú odlišné slovníky.
+Rozsahy nástrojov MCP sú tretím slovníkom, kontrolovaným pomocou `scopeMatches` namiesto
+ktorejkoľvek funkcie v tabuľkách nižšie. Vedľa seba:
+[Tri menné priestory rozsahov](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
 ### Rozsahy prístupových tokenov (`oma_live_…`)
 
-| Rozsah  | Typické operácie                                                                                              |
-| ------- | ------------------------------------------------------------------------------------------------------------- |
-| `read`  | Výpisy a stavové požiadavky GET, ktoré môže token zobraziť                                                    |
-| `write` | Zmeny (vytvorenie/aktualizácia/odstránenie) pod úrovňou správcu                                               |
-| `admin` | Úplný prístup vzdialeného CLI/pripájacieho tokenu (úvodné nastavenie pomocou hesla ho používa ako predvolený) |
+| Rozsah  | Typické operácie                                                                       |
+| :------ | :------------------------------------------------------------------------------------- |
+| `read`  | Zoznam/stav GET požiadaviek, ktoré token smie vidieť                                   |
+| `write` | Mutácie (vytvorenie/aktualizácia/vymazanie) pod úrovňou admin                          |
+| `admin` | Úplné vzdialené CLI / pripojovací token (predvolené nastavenia bootstrapu hesla sú tu) |
 
-Token s rozsahom `read` nemôže volať trasu `write`. Tvar správy za behu:
+Token s `read` nemôže volať trasu `write`. Tvar správy za behu:
 `Rozsah prístupového tokenu '<have>' je nedostatočný; vyžaduje sa '<need>'.`
 
-### Rozsahy správy kľúčov API
+### Rozsahy správy API kľúčov
 
-| Rozsah   | Význam                                                                         |
-| -------- | ------------------------------------------------------------------------------ |
-| (žiadny) | Iba inferencia. Trasy správy vracajú 403.                                      |
-| `manage` | API správy (rovnaká brána ako vetva kľúča API funkcie `requireManagementAuth`) |
-| `admin`  | Spĺňa aj `hasManageScope` (považuje sa za spôsobilý na správu)                 |
+| Rozsah   | Význam                                                                 |
+| :------- | :--------------------------------------------------------------------- |
+| (žiadny) | Len inferencia. Manažérske trasy vracajú 403.                          |
+| `manage` | API správy (rovnaká brána ako vetva API kľúča `requireManagementAuth`) |
+| `admin`  | Tiež spĺňa `hasManageScope` (považované za schopné správy)             |
 
-Povoľte pre kľúč rozsah `manage` v používateľskom rozhraní Kľúče API/Správca API. Nepoužívajte opakovane
-kľúč klienta chatu na automatizáciu, pokiaľ ste mu tento rozsah neudelili zámerne.
+Povoľte `manage` na kľúči v používateľskom rozhraní API kľúče / Správca API.
+Nepoužívajte kľúč chatového klienta na automatizáciu, pokiaľ ste úmyselne neudelili tento rozsah.
 
 ---
 
-## Ako vytvárať a odvolávať
+## Ako vytvoriť a zrušiť
 
-### Relácia JWT ovládacieho panela
+### JWT relácia palubnej dosky
 
-1. Otvorte `/login` a prihláste sa pomocou hesla správy (`INITIAL_PASSWORD` pri prvom spustení).
-2. Súbor cookie `auth_token` má príznak HttpOnly. Ovládací panel v prehliadači ho používa automaticky.
-3. Odhláste sa prostredníctvom `/api/auth/logout`. Nie je potrebné kopírovať žiadny dlhodobý tajný údaj.
+1.  Otvorte `/login`, prihláste sa pomocou hesla pre správu (`INITIAL_PASSWORD` pri prvom spustení).
+2.  Cookie `auth_token` je HttpOnly. Palubná doska prehliadača ju používa automaticky.
+3.  Odhláste sa cez `/api/auth/logout`. Neexistuje žiadny dlhodobý tajný kľúč na skopírovanie.
 
-### Token ID zariadenia CLI
+### Token CLI machine-id
 
-1. Spustite `omniroute` na **rovnakom hostiteľovi** ako server (slučka spätnej väzby).
-2. CLI vytvorí token ID zariadenia v adresári `~/.omniroute/` (chmod 600).
-3. Z iného zariadenia to **nefunguje**. Pre vzdialené CLI použite prístupový token.
+1.  Spustite `omniroute` na **rovnakom hostiteľovi** ako server (loopback).
+2.  CLI inicializuje token machine-id pod `~/.omniroute/` (chmod 600).
+3.  Toto **nefunguje** z iného stroja. Pre vzdialené CLI použite prístupový token.
 
 ### Prístupový token s rozsahom (`oma_live_…`)
 
-1. Ovládací panel: **Nastavenia → Prístupové tokeny** → vytvoriť (názov + rozsah). **Tajný údaj sa zobrazí iba raz.**
-2. Alebo CLI: `omniroute connect <host>` (heslo → token). Pozrite si [Vzdialený režim](./REMOTE-MODE.md).
-3. Hlavička: `Authorization: Bearer oma_live_…`
-4. Odvolajte ho na rovnakej stránke Prístupové tokeny (alebo odstráňte kontext CLI).
-5. Server ukladá iba haš. S textom v otvorenej podobe zaobchádzajte ako s heslom.
+1.  Palubná doska: **Nastavenia → Prístupové tokeny** → vytvoriť (názov + rozsah). **Tajný kľúč sa zobrazí iba raz.**
+2.  Alebo CLI: `omniroute connect <host>` (heslo → token). Pozrite si [Vzdialený režim](./REMOTE-MODE.md).
+3.  Hlavička: `Authorization: Bearer oma_live_…`
+4.  Zrušte z rovnakej stránky Prístupových tokenov (alebo odstráňte kontext CLI).
+5.  Server ukladá iba hash. S otvoreným textom zaobchádzajte ako s heslom.
 
-### Kľúč API s rozsahom správy
+### API kľúč s rozsahom správy
 
-1. Ovládací panel: **Správca API / Kľúče API** → vytvoriť alebo upraviť kľúč → povoliť `manage` (alebo `admin`).
-2. Hlavička: `Authorization: Bearer sk-…` (skutočná predpona kľúča).
-3. Odvolajte kľúč alebo odstráňte rozsah `manage` v rovnakom používateľskom rozhraní.
-4. Pre automatizáciu, ktorá nie je CLI, používajte zásadu najmenších oprávnení: pri úlohách využívajúcich iba GET uprednostnite prístupový token s rozsahom `read`; rozsah `manage` na kľúči API používajte iba vtedy, keď volajúci musí komunikovať s `/v1` aj so správou.
+1.  Palubná doska: **Správca API / API kľúče** → vytvorte alebo upravte kľúč → povoľte `manage` (alebo `admin`).
+2.  Hlavička: `Authorization: Bearer sk-…` (skutočná predpona kľúča).
+3.  Zrušte alebo odstráňte `manage` v rovnakom používateľskom rozhraní.
+4.  Najmenšie oprávnenia pre automatizáciu, ktorá nie je CLI: uprednostnite `read` prístupový token pre úlohy iba na čítanie (GET); použite `manage` na API kľúči iba vtedy, keď volajúci musí tiež komunikovať s `/v1` a správou.
 
 ---
 
@@ -96,20 +99,20 @@ Authorization: Bearer sk-<secret>
 Cookie: auth_token=<dashboard-jwt>
 ```
 
-Neuvádzajte prihlasovacie údaje na správu v ceste URL ani v reťazci dopytu. Overovanie pre správu sa vykonáva iba prostredníctvom hlavičky alebo súboru cookie.
+Neumiestňujte prihlasovacie údaje pre správu do cesty URL alebo reťazca dotazu. Overenie správy je iba v hlavičke/cookie.
 
 ---
 
-## Príklady na skopírovanie a vloženie
+## Príklady na kopírovanie a vkladanie
 
-Iba na čítanie (zobrazenie zoznamu poskytovateľov). Použite prístupový token s oprávnením `read`:
+Iba na čítanie (zoznam poskytovateľov). Použite `read` prístupový token:
 
 ```bash
 curl -sS "$OMNIROUTE_URL/api/providers" \
   -H "Authorization: Bearer oma_live_<read-token>"
 ```
 
-Úprava (vytvorenie pripojenia k poskytovateľovi). Použite prístupový token s oprávnením `write`/`admin` alebo API kľúč s rozsahom `manage`:
+Úprava (vytvorenie pripojenia poskytovateľa). Použite `write`/`admin` prístupový token alebo API kľúč s rozsahom správy:
 
 ```bash
 curl -sS -X POST "$OMNIROUTE_URL/api/providers" \
@@ -118,7 +121,7 @@ curl -sS -X POST "$OMNIROUTE_URL/api/providers" \
   -d '{"provider":"openai","apiKey":"<upstream-key>"}'
 ```
 
-Inferencia (nie správa). Bežný API kľúč, oprávnenie `manage` sa nevyžaduje:
+Inferencie (nie správa). Obyčajný API kľúč, nevyžaduje sa `manage`:
 
 ```bash
 curl -sS "$OMNIROUTE_URL/v1/models" \
@@ -127,26 +130,24 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Aktuálne chyby za behu (nezobrazujte tajné údaje)
+## Aktuálne chyby za behu (neoznamujte tajné kľúče)
 
-| Situácia                                        | Typický stav | Správa (bez citlivých údajov)                                                |
-| ----------------------------------------------- | ------------ | ---------------------------------------------------------------------------- |
-| Chýbajúce prihlasovacie údaje                   | 401          | `Vyžaduje sa overenie`                                                       |
-| Neplatný/expirovaný token `oma_live_…`          | 401          | `Neplatný alebo expirovaný prístupový token`                                 |
-| Platný API kľúč bez oprávnenia `manage`/`admin` | 403          | `API kľúč nemá rozsah 'manage'. Povoľte ho na ovládacom paneli API kľúčov.`  |
-| Neplatný bežný API kľúč na trase správy         | 403          | `Neplatný token správy`                                                      |
-| Nedostatočný rozsah prístupového tokenu         | 403          | `Rozsah prístupového tokenu '<have>' je nedostatočný; vyžaduje sa '<need>'.` |
+| Situácia                                        | Typický stav | Správa (vyčistená)                                                   |
+| :---------------------------------------------- | :----------- | :------------------------------------------------------------------- |
+| Žiadne poverenie                                | 401          | `Authentication required`                                            |
+| Neplatný/expirovaný `oma_live_…`                | 401          | `Invalid or expired access token`                                    |
+| Platný API kľúč bez `manage`/`admin`            | 403          | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Neplatný obyčajný API kľúč na manažérskej trase | 403          | `Invalid management token`                                           |
+| Rozsah prístupového tokenu je príliš nízky      | 403          | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-„Neplatný token správy“ znamená, že nosný token **nebol** prijatý ako prihlasovací údaj na správu. Neurčuje, ktorý typ prihlasovacích údajov máte vytvoriť. Použite tabuľku vyššie: inferenčné kľúče potrebujú rozsah `manage`; vzdialené CLI potrebuje `oma_live_…`; ovládací panel používa súbor cookie relácie.
-
----
+„Invalid management token“ znamená, že nositeľ **nebol** prijatý ako poverenie pre správu. **Nehovorí** vám, ktorú rodinu tokenov máte vytvoriť. Použite vyššie uvedenú tabuľku: inferenčné kľúče potrebujú rozsah `manage`; vzdialené CLI potrebuje `oma_live_…`; palubná doska používa reláciu cookie.
 
 ## Odporúčaná voľba s najmenšími oprávneniami
 
-| Volajúci                                              | Použitie                                                       |
-| ----------------------------------------------------- | -------------------------------------------------------------- |
-| Prehliadač                                            | Relácia ovládacieho panela                                     |
-| CLI na hostiteľskom serveri                           | Token zariadenia                                               |
-| CLI na notebooku komunikujúcom so vzdialeným serverom | `oma_live_…` z `omniroute connect`                             |
-| CI / skripty (iba správa)                             | `oma_live_…` s najmenším funkčným rozsahom                     |
-| CI, ktoré musí volať `/v1` aj `/api`                  | API kľúč s rozsahom `manage` **alebo** dva prihlasovacie údaje |
+| Volajúci                                          | Použitie                                         |
+| :------------------------------------------------ | :----------------------------------------------- |
+| Prehliadač                                        | Dashboard session                                |
+| CLI na hostiteľskom serveri                       | Machine token                                    |
+| CLI na laptope komunikujúce s vzdialeným serverom | `oma_live_…` z `omniroute connect`               |
+| CI / skripty (len správa)                         | `oma_live_…` s najmenším rozsahom, ktorý funguje |
+| CI, ktoré musí volať `/v1` aj `/api`              | API key s `manage` **alebo** dvoma povereniami   |

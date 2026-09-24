@@ -4,21 +4,14 @@
 
 ---
 
-title: "Przewodnik po autoryzacji"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
+> **Źródło prawdy:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Ostatnia aktualizacja:** 2026-09-22 — przestrzenie nazw zakresu wskazują na MCP-SERVER.md
 
-# Przewodnik po autoryzacji
+OmniRoute posiada potok autoryzacji świadomy tras, który kontroluje każde żądanie API. Klasyfikacja jest **deterministyczna** i **zamknięta w przypadku awarii** — wszystko, co nie może zostać sklasyfikowane, trafia jako `MANAGEMENT` i wymaga sesji lub tokenu o uprawnieniach zarządzania. Ta strona wyjaśnia model dla inżynierów utrzymujących trasy lub projektujących nowe punkty końcowe.
 
-> **Source of truth:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Last updated:** 2026-06-28 — v3.8.40
+![Potok AuthZ (3 klasy tras + ocena polityki)](../diagrams/exported/authz-pipeline.svg)
 
-OmniRoute ma potok autoryzacji zależny od trasy, który bramkuje każde żądanie API. Klasyfikacja jest **deterministyczna** i **fail-closed** — wszystko, czego nie da się sklasyfikować, trafia do `MANAGEMENT` i wymaga sesji albo tokenu klasy management. Ta strona opisuje model dla inżynierów utrzymujących trasy lub projektujących nowe endpointy.
-
-![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
-
-> Source: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+> Źródło: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## Dwa tryby uwierzytelniania
 
@@ -183,28 +176,24 @@ export async function POST(request: Request) {
 
 Dodaj prefiks do `PUBLIC_API_ROUTE_PREFIXES` (lub `PUBLIC_READONLY_API_ROUTE_PREFIXES` dla GET-only). Zaktualizuj testy jednostkowe w `tests/unit/public-api-routes.test.ts` i `tests/unit/authz/classify.test.ts`.
 
-## Scope'y
+## Zakresy
 
-Klucze API niosą tablicę `scopes` (przechowywaną jako JSON w `api_keys.scopes`, zob. `src/lib/db/apiKeys.ts`).
+Trzy przestrzenie nazw. Każdy moduł sprawdzający odczytuje tylko własne ciągi znaków. Porównanie, w tym dlaczego `manage` nie przechodzi `scopeMatches` dla `read:compression` i dlaczego token dostępu `read` nie może `PATCH /api/keys/{id}`, znajduje się w [Trzy przestrzenie nazw zakresów](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Scope management
+Klucze API zawierają tablicę `scopes` (przechowywaną jako JSON w `api_keys.scopes`, zobacz `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — daje kluczowi dostęp do endpointów management API przy wysyłce jako Bearer.
+### Zakres zarządzania
 
-### Scope'y MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Dostęp typu Bearer do tras API zarządzania.
+- `mcp:connect`, `self:usage`, `self:account-quota` i `policy:bypass-provider-quota` to addytywne zakresy o dokładnym dopasowaniu. Znajdują się poza `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` otwiera tylko wydzieloną, nieloopbackową część `/api/mcp/`.
 
-Każde narzędzie MCP wymaga określonych scope'ów przez `MCP_TOOL_SCOPES`. Pełna lista (`MCP_SCOPE_LIST`):
+### Zakresy narzędzi MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalog i reguły dopasowania (identyczny ciąg znaków lub przyznany zakres kończący się na `*`): [Zakresy narzędzi MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `MCP_SCOPE_LIST` w `src/shared/constants/mcpScopes.ts` to oryginalny, typowany podzbiór, a nie pełny katalog. Wymuszanie odbywa się w `open-sse/mcp-server/scopeEnforcement.ts` po tym, jak `resolveCallerScopeContext()` rozpozna zakresy z informacji uwierzytelniających MCP, metadanych żądania lub `OMNIROUTE_MCP_SCOPES`. Pozostaje wyłączone, chyba że `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Egzekwowanie scope w `open-sse/mcp-server/server.ts` przekazuje listę scope'ów każdego narzędzia do
-`evaluateToolScopes()` po tym, jak `resolveCallerScopeContext()` rozwiąże scope'y z informacji auth MCP,
-metadanych żądania lub `OMNIROUTE_MCP_SCOPES`.
+### Zakresy tokenów dostępu
+
+`read` / `write` / `admin` na tokenach `oma_live_…`, uszeregowane według `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`). Ta ranga dotyczy wyłącznie poświadczeń tokenu dostępu. Zobacz [Uwierzytelnianie zarządzania](../guides/MANAGEMENT-AUTH.md).
 
 ## Przełącznik wymagania auth
 
@@ -250,9 +239,9 @@ x-omniroute-auth-scopes:    comma-separated list
 
 Używaj `assertAuth(req, expectedClass)` wewnątrz handlerów — rzuca `AuthzAssertionError` z kodem `AUTHZ_NOT_INITIALIZED`, jeśli middleware zostało ominięte (przydatne do łapania regresji konfiguracji w testach).
 
-## Zobacz także
+## Zobacz również
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — znacznik auth per endpoint
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — log audytu zdarzeń auth
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — szczegóły egzekwowania scope MCP
-- Source: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — znacznik autoryzacji dla każdego punktu końcowego
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — dziennik audytu dla zdarzeń autoryzacji
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trzy przestrzenie nazw zakresów i katalog zakresów narzędzi MCP
+- Źródło: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

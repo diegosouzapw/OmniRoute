@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Nkọwa ọnụahịa cache-hit:** mgbe semantic-cache bụ HIT (`X-OmniRoute-Cache-Hit: true`), a naghị akpọ upstream, ya mere `X-OmniRoute-Response-Cost` bụ `0.0000000000` (ọnụahịa **mgbakwunye** nke izipu hit ahụ). A na-akọ ọnụahịa mbụ/ọnụahịa ọ gaara abụ iche na `X-OmniRoute-Cost-Saved`. Ndị na-eji data ịgba ụgwọ kwesịrị ịchịkọta `X-OmniRoute-Response-Cost` (hits anaghị efu ego); nyocha cache nwere ike ịchịkọta `X-OmniRoute-Cost-Saved`.
 
-## Mgbazinye Oge Nnọkọ A Na-achịkwa Nanị Ya
+## Ntinye Akwụkwọ Nnọkọ a na-achịkwa nke Pụrụ Iche
 
-Mgbazinye oge nnọkọ a na-achịkwa nanị ya bụ nkwekọrịta nhazi ụzọ nke onye ahịa ọ bụla nwere ike iji ma ọ bụrụ na ọ họrọ: otu onye nwe na-arụ ọrụ
-na-ejide otu njikọ OmniRoute tozuru etozu. Ọ naghị agbazinye model, achọ OAuth, mata otu
-onye ahịa kpọmkwem, ma ọ bụ chọọ otu provider kpọmkwem.
+Ntinye akwụkwọ nnọkọ a na-achịkwa nke pụrụ iche (Exclusive managed session leasing) bụ nkwekọrịta ntụzịaka nke ntinye aka n'onwe ya, nke na-adịghị ele onye ahịa ọ bụla anya n'ihu: otu onye nwe ya na-arụ ọrụ na-ejide otu njikọ OmniRoute tozuru oke. Ọ naghị agbazite model, ọ naghị achọ OAuth, ọ naghị amata otu onye ahịa, ma ọ bụ chọọ otu onye na-enye ọrụ (provider) pụrụ iche.
 
-API key a na-eji eme nkwenye njirimara ga-enwerịrị scope `lease:exclusive` na ndepụta
-`allowedConnections` doro anya nke na-abụghị efu. Ókè mgbanwe database na-amanye ka e nwee field abụọ ahụ ọnụ mgbe a na-emepụta key
-na mgbe a na-eme mmelite akụkụ ụfọdụ.
+Igodo API na-eme nkwenye ga-enwerịrị scope `lease:exclusive` na ndepụta `allowedConnections` doro anya nke na-abaghị uru. Oke mgbanwe nchekwa data na-amanye ubi abụọ ahụ ọnụ na mmepụta igodo na mmelite akụkụ ụfọdụ.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Nzaghachi acquire, renew, na release gara nke ọma na-egosipụta timestamp, `state`, na
-`generation` ziri ezi nke dị mma, mana ha anaghị egosi njikọ ahọpụtara ma ọ bụ credentials. Renew na release na-enye
-generation n'ime JSON body:
+Nzaghachi nweta (acquire), megharịa (renew), na hapụ (release) nke gara nke ọma na-egosipụta akara oge (timestamps), `state`, na `generation` ziri ezi, mana ọ dịghị mgbe ọ na-egosipụta njikọ ma ọ bụ nzere (credentials) ahọpụtara. Renew na release na-enye generation n'ime JSON body:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generation n'ime JSON body:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Onye nwe lease na-arụ ọrụ nwere ike ịrịọ metadata ngosipụta na-echekwa nzuzo n'ụzọ doro anya maka binding ya dị ugbu a:
+Onye nwe lease na-arụ ọrụ nwere ike ịrịọ metadata ngosipụta na-echekwa nzuzo n'ụzọ doro anya maka njikọ ya ugbu a:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Onye nwe lease na-arụ ọrụ nwere ike ịrịọ metadata ngosipụta na-ech
 }
 ```
 
-A na-echebe action status a a na-ahọrọ iji site n'aka owner na-enweghị nkọwa, managed API key e mere nkwenye njirimara ya, na
-generation na-arụ ọrụ ziri ezi n'ime otu transaction database. `displayName` bụ naanị aha
-njikọ ahaziri nke ewepụrụ oghere ndị dị na nsọtụ ya; ọ bụ `null` mgbe enweghị aha ahaziri dị nchebe.
-OmniRoute anaghị eji email ma ọ bụ njirimara account emepụtara dochie ya. Uru provider bụ label ngosipụta na-enweghị
-ozi nzuzo, ọ bụghịkwa identifier compatible-provider emepụtara. A naghị etinye credentials, tokens, cookies, raw connection ma ọ bụ
-API key ids, owner hashes, fencing secrets, na data nhazi ụzọ dị n'ime.
+Omume ọkwa ntinye aka a bụ nke onye nwe ya na-adịghị ahụ anya (opaque owner), igodo API a kwadoro, na ọgbọ (generation) na-arụ ọrụ ziri ezi gbachiri gburugburu n'ime otu azụmahịa nchekwa data. `displayName` bụ naanị aha njikọ ahaziri ahazi nke a kpụchara akpụcha; ọ bụ `null` mgbe ọ dịghị aha ahaziri ahazi dị mma dị. OmniRoute anaghị eji email ma ọ bụ njirimara akaụntụ emepụtara dochie anya ya. Uru provider bụ akara ngosipụta na-adịghị emetụ n'ahụ ma ọ bụghị njirimara compatible-provider emepụtara. Ewepụrụ nzere (credentials), tokens, cookies, njikọ raw ma ọ bụ id igodo API, hash ndị nwe ya, ihe nzuzo fencing, na data ntụzịaka ime n'ime.
 
-Nchọpụta jiri key na-ezighi ezi, owner na-ezighi ezi, generation ochie, ihe na-efu, nke kubigara oge, nke a tọhapụrụ, na nke a kagburu
-na-eweghachi otu error `409 LEASE_FENCE_STALE` ahụ na-enweghị metadata njikọ. Onye ahịa natara nzaghachi ichere capacity enweghị binding na-arụ ọrụ ọ ga-enyocha. Mgbe routing na-ebufe lease na-arụ ọrụ,
-otu generation ahụ ka na-adị ire, status na-eweghachikwa binding ọhụrụ ahụ n'otu atomic operation, ọ bụghị nke ochie.
-Ndị ahịa dị ugbu a anaghị agbanwe n'ihi na nzaghachi acquire, renew, release, na waiting na-ejigide
-usoro ha gara aga.
+Nchọgharị igodo na-ezighi ezi, onye nwe ya na-ezighi ezi, ọgbọ merela ochie (stale-generation), nke na-efu efu, nke kubiela ume, nke a tọhapụrụ, na nke emebiri emebi niile na-eweghachi otu njehie `409 LEASE_FENCE_STALE` na-enweghị metadata njikọ. Onye ahịa natara nzaghachi nchere ikike (capacity-wait) enweghị njikọ na-arụ ọrụ ọ ga-enyocha. Mgbe ntụzịaka na-agbanwe lease na-arụ ọrụ, otu ọgbọ ahụ na-anọgide na-adị irè ma ọkwa na-eweghachi njikọ ọhụrụ ahụ ozugbo, ọ dịghị mgbe ọ na-eweghachi nke ochie. Ndị ahịa dị adị na-anọgide n'agbanweghị agbanwe n'ihi na acquire, renew, release, na nzaghachi nchere na-ejigide ụdị ha mbụ.
 
-Nkwekọrịta server a anaghị agbanwe stock OpenAI Codex `/status`. Ugbu a, stock Codex na-akọ
-model provider ya na ọnọdụ authentication/account arụnyere n'ime ya, mana ọ naghị egosipụta metadata
-account provider omenala ọ bụla; njikọta client ga-eme n'ọdịnihu ga-akpọ action a ma kpebie otu esi
-egosipụta `connection.displayName`.
+Nkwekọrịta sava a anaghị agbanwe OpenAI Codex `/status` nke nkịtị. Codex nkịtị na-akọ ugbu a model provider ya na ọnọdụ nkwenye/akaụntụ arụnyere n'ime ya mana ọ naghị egosipụta metadata akaụntụ onye na-enye ọrụ ọ bụla; njikọ onye ahịa mechara ga-akpọ omume a ma kpebie otu a ga-esi gosipụta `connection.displayName`.
 
-Arịrịọ managed inference ọ bụla ga-enyezi control header abụọ ahụ:
+Arịrịọ nkwubi okwu (inference request) ọ bụla a na-achịkwa na-enyezi header njikwa abụọ ahụ:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-A na-echebe owner ziri ezi, generation, njikọ na-arụ ọrụ, na API key e mere nkwenye njirimara ya ozugbo
-tupu mbọ upstream ọ bụla akwadoro. Iji key ọzọ kpọgharịa owner na generation ga-ada ọbụna
-mgbe key ahụ nyere ikike iji otu njikọ ahụ. A naghị echekwa raw owners, edekọ ha na log, debe ha n'ime
-request snapshot, ma ọ bụ zipụ ha upstream.
+Onye nwe ya ziri ezi, ọgbọ, njikọ na-arụ ọrụ, na igodo API a kwadoro ka a na-agbachi gburugburu ozugbo tupu nnwale upstream ọ bụla akwadoro. Iji onye nwe ya na ọgbọ ọzọ nwere igodo ọzọ na-ada ada ọbụlagodi mgbe igodo ahụ kwere ka otu njikọ ahụ. A naghị echekwa ndị nwe raw, na-edeba ha na log, na-ejigide ha na snapshot arịrịọ, ma ọ bụ na-eziga ha na upstream.
 
-Asọmpi nwa oge na-eweghachi HTTP `429` ya na `Retry-After` na:
+Esemokwu nwa oge na-eweghachi HTTP `429` yana `Retry-After` na:
 
 ```json
 {
@@ -178,30 +157,29 @@ Asọmpi nwa oge na-eweghachi HTTP `429` ya na `Retry-After` na:
 }
 ```
 
-Nzaghachi a pụtara naanị na ordinary eligible set abụghị efu nakwa na lease na-arụ ọrụ nke onye ọzọ
-jidere candidate niile nwere onwe ha. Model/provider anaghị akwado, policy mismatch, cooldown, quota,
-health, na ọdịda eligibility ndị ọzọ a na-ahụkarị na-ejigide nzaghachi OmniRoute ha dị ugbu a.
+Nzaghachi a pụtara naanị na usoro tozuru oke nkịtị abụghị nke efu na onye ọ bụla nwere ike ịbụ onye nwe lease ọzọ na-arụ ọrụ na-ejide ya. Model/provider anaghị akwado, enweghị nkwekọrịta iwu, oge izu ike (cooldown), quota, ahụike, na ọdịda ntozu nkịtị ndị ọzọ na-ejigide nzaghachi OmniRoute ha dị adị.
 
 ### `x-omniroute-compression`
 
-Override nke compression plan maka arịrịọ ọ bụla. Ọ nwere precedence kachasị elu — ọ na-emeri override routing-combo,
-active profile, auto-trigger, na Default nke panel. Uru:
+Nkagbu atụmatụ mkpakọ (compression plan) maka arịrịọ ọ bụla. Ibu ụzọ kachasị elu — ọ na-emeri nkagbu routing-combo, profile na-arụ ọrụ, auto-trigger, na Default nke panel. Uru ndị a:
 
-| Uru           | Mmetụta                                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Enweghị compression maka arịrịọ a.                                                                                              |
-| `default`     | Default profile sitere na panel (ọ na-eleghara active profile anya).                                                            |
-| `engine:<id>` | Otu engine mgbe enyere ya ikike, dịka `engine:rtk`.                                                                             |
-| `<combo>`     | Combo nwere aha, nke a ga-ebu ụzọ dakọtara site n'aha (na-eleghara nnukwu ma ọ bụ obere mkpụrụedemede anya), emesịa site na id. |
+| Uru           | Mmetụta                                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `off`         | Enweghị mkpakọ maka arịrịọ a.                                                                                                  |
+| `default`     | Profile Default sitere na panel (na-eleghara profile na-arụ ọrụ anya). A hapụrụ injin ndị na-atụfu data (lossy engines) n'èzí. |
+| `safe`        | Mwepụ oyiri (Dedup) na mpịakọta ohere efu (whitespace folding) naanị.                                                          |
+| `allow-lossy` | Debe atụmatụ onye ọrụ maka arịrịọ a, gụnyere nchịkọta na idegharị ụdị.                                                         |
+| `engine:<id>` | Otu injin mgbe agbanyere ya, dịka ọmụmaatụ `engine:rtk`. Ntinye aka maka arịrịọ ọ bụla maka injin ahụ.                         |
+| `<combo>`     | Combo nwere aha, nke a na-ejikọta site na aha (anaghị ele mkpụrụedemede ukwu/obere anya) na mbụ, emesịa site na id.            |
 
-Ndetu:
+Ihe rịba ama:
 
-- A na-eleghara uru amaghi anya (a naghị ajụ arịrịọ ahụ); resolution na-aga n'ihu ruo na usoro precedence nkịtị.
-- Ọ bụrụ na ọtụtụ combo nwere otu aha, nyefee **id** nke combo ka matching wee bụrụ nke a pụrụ ikpebi otu ụzọ.
-- Enweghị ike ịhọrọ combo aha ya bụ `off` ma ọ bụ `default` site n'aha (a na-akọwa keyword ndị ahụ mbụ); jiri id ya rụtụ aka na combo dị otu ahụ.
-- Master compression switch bụ hard gate: mgbe agbanyụrụ compression n'ụwa niile, header a enweghị ike ịgbanye ya.
+- A na-eleghara uru ndị a na-amaghị anya (anaghị ajụ arịrịọ ahụ); mkpebi na-adaba na ibu ụzọ onye ọrụ nkịtị.
+- Ọ bụrụ na ọtụtụ combo nwere otu aha, nyefee combo **id** maka njikọ doro anya.
+- Combo nke aha ya bụ `off` ma ọ bụ `default` enweghị ike ịhọrọ site na aha (a na-ebu ụzọ kọwaa mkpụrụokwu ndị ahụ); zoo aka na combo dị otú ahụ site na id ya.
+- Mgbanwe mkpakọ master bụ ọnụ ụzọ siri ike: mgbe agbanyụrụ mkpakọ n'ụwa niile, header a enweghị ike ịgbanye ya.
 
-A na-ezipụ plan etinyere azụ n'ime response header:
+A na-egosipụta atụmatụ etinyere n'ime header nzaghachi:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>

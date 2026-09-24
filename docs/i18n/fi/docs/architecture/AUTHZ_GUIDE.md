@@ -5,11 +5,11 @@
 ---
 
 > **Totuuden lähde:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Päivitetty viimeksi:** 2026-06-28 — v3.8.40
+> **Viimeksi päivitetty:** 2026-09-22 — laajuuden nimiavaruudet osoittavat tiedostoon MCP-SERVER.md
 
-OmniRoutessa on reittitietoinen valtuutusputki, joka suojaa jokaisen API-pyynnön. Luokittelu on **determinististä** ja **sulkeutuu turvallisesti** — kaikki, mitä ei voida luokitella, päätyy luokkaan `MANAGEMENT` ja edellyttää istuntoa tai hallintatason tunnistetta. Tällä sivulla selitetään malli reittejä ylläpitäville tai uusia päätepisteitä suunnitteleville kehittäjille.
+OmniRoutessa on reittitietoinen valtuutusputki, joka valvoo jokaista API-pyyntöä. Luokittelu on **deterministinen** ja **fail-closed** — kaikki, mitä ei voida luokitella, päätyy `MANAGEMENT`-luokkaan ja vaatii istunnon tai hallintatason tunnuksen. Tämä sivu selittää mallin insinööreille, jotka ylläpitävät reittejä tai suunnittelevat uusia päätepisteitä.
 
-![AuthZ-putki (3 reittiluokkaa + käytäntöjen arviointi)](../diagrams/exported/authz-pipeline.svg)
+![Valtuutusputki (3 reittiluokkaa + käytäntöjen arviointi)](../diagrams/exported/authz-pipeline.svg)
 
 > Lähde: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -198,28 +198,37 @@ export async function POST(request: Request) {
 
 Valitse joukko muodon, älä helppouden perusteella. Yksittäinen reitti lisätään joukkoon `PUBLIC_API_ROUTES_EXACT` (tai vain GET-pyynnöille joukkoon `PUBLIC_READONLY_CORS_API_ROUTES`); vain aito alipuu lisätään joukkoon `PUBLIC_API_ROUTE_PREFIXES`, ja sen **täytyy päättyä merkkiin `/`**. Yksittäisen reitin lisääminen etuliiteluetteloon julkaisee myös kaikki viereiset polut, joilla on samat alkumerkit — mukaan lukien myöhemmin lisättävät dynaamisten segmenttien sisarreitit (GHSA-74g9-q8f6-793h). Päivitä yksikkötestit tiedostoissa `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` ja `tests/unit/authz/classify.test.ts`.
 
-## Käyttöoikeusalueet
+## Laajuudet
 
-API-avaimet sisältävät `scopes`-taulukon (tallennetaan JSON-muodossa kenttään `api_keys.scopes`, katso `src/lib/db/apiKeys.ts`).
+Kolme nimiavaruutta. Jokainen tarkistaja lukee vain omat merkkijononsa. Vertailu,
+mukaan lukien miksi `manage` epäonnistuu `scopeMatches`-tarkistuksessa `read:compression`-kohdalla ja miksi `read`-käyttöoikeustunnus ei voi `PATCH /api/keys/{id}`, löytyy
+[Kolme laajuuden nimiavaruutta](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Hallinnan käyttöoikeusalue
+API-avaimet sisältävät `scopes`-taulukon (tallennetaan JSON-muodossa `api_keys.scopes`-kenttään, katso `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — antaa avaimelle pääsyn hallinta-API:n päätepisteisiin, kun avain lähetetään Bearer-tunnisteena.
+### Hallintalaajuus
 
-### MCP-käyttöoikeusalueet (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Bearer-pääsy hallinnan API-reitteihin.
+- `mcp:connect`, `self:usage`, `self:account-quota` ja
+  `policy:bypass-provider-quota` ovat additiivisia tarkkoja vastaavuuslaajuuksia. Ne ovat
+  `MANAGEMENT_API_KEY_SCOPES`-ulkopuolella. `mcp:connect` avaa vain
+  `/api/mcp/`-reitin, joka on ei-loopback-poikkeus.
 
-Kukin MCP-työkalu edellyttää tiettyjä käyttöoikeusalueita `MCP_TOOL_SCOPES`-määrityksen mukaisesti. Täydellinen luettelo (`MCP_SCOPE_LIST`):
+### MCP-työkalun laajuudet
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Luettelo ja vastaavuussäännöt (identtinen merkkijono tai myönnetty laajuus, joka päättyy `*`):
+[MCP-työkalun laajuudet](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` tiedostossa `src/shared/constants/mcpScopes.ts` on alkuperäinen tyypitetty
+osajoukko, ei koko luettelo. Täytäntöönpano tapahtuu
+`open-sse/mcp-server/scopeEnforcement.ts`-tiedostossa sen jälkeen, kun `resolveCallerScopeContext()`
+ratkaisee laajuudet MCP-todennustiedoista, pyynnön metatiedoista tai `OMNIROUTE_MCP_SCOPES`-muuttujasta.
+Se pysyy poissa käytöstä, ellei `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Käyttöoikeusalueiden valvonta tiedostossa `open-sse/mcp-server/server.ts` välittää kunkin työkalun käyttöoikeusalueiden luettelon funktiolle
-`evaluateToolScopes()` sen jälkeen, kun `resolveCallerScopeContext()` on selvittänyt käyttöoikeusalueet MCP-todennustiedoista,
-pyynnön metatiedoista tai muuttujasta `OMNIROUTE_MCP_SCOPES`.
+### Käyttöoikeustunnuksen laajuudet
+
+`read` / `write` / `admin` `oma_live_…`-tunnuksissa, järjestetty `scopeSatisfies`-funktion mukaan
+(`src/lib/accessTokens/scopes.ts`). Tämä järjestys koskee vain käyttöoikeustunnuksen
+tunnistetietoja. Katso [Hallinnan todennus](../guides/MANAGEMENT-AUTH.md).
 
 ## Todennusvaatimuksen valitsin
 
@@ -267,7 +276,7 @@ Käytä käsittelijöissä funktiota `assertAuth(req, expectedClass)` — se hei
 
 ## Katso myös
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — todennusmerkintä päätepisteittäin
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — todennustapahtumien valvontaloki
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP-käyttöoikeusalueiden valvonnan tiedot
-- Lähdekoodi: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — todennusmerkintä päätepistettä kohti
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — tarkastusloki todennustapahtumille
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — kolme laajuusnimiavaruutta ja MCP-työkalun laajuuskatalogi
+- Lähde: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
