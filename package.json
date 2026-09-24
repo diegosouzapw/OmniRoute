@@ -388,7 +388,7 @@
     "better-sqlite3": "^13.0.3",
     "js-tiktoken": "^1.0.20",
     "keytar": "^7.9.0",
-    "onnxruntime-node": "1.24.3",
+    "onnxruntime-node": "1.30.0",
     "sqlite-vec": "^0.1.9",
     "wreq-js": "3.2.0"
   },
@@ -484,7 +484,7 @@
   "overrides": {
     "browserslist": "^4.28.8",
     "joi": "^18.2.8",
-    "onnxruntime-node": "1.24.3",
+    "onnxruntime-node": "1.30.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "fast-xml-parser": "^5.10.1",
     "sharp": "^0.35.4",
