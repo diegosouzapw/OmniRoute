@@ -18,6 +18,7 @@
 import { sleepAbortable } from "./opencodeTransientFailure.ts";
 import { classifyUpstream429, type RateLimit429Verdict } from "./opencodeRateLimited.ts";
 import { proxyKeyOf } from "./opencodeGeoBlock.ts";
+import { pickAccount, type RotatableAccount } from "./accountRotation.ts";
 import { noteProxyRefusal, proxyEgressKey } from "../utils/proxyRefusalMemory.ts";
 
 export const DIRECT_EGRESS_SENTINEL = "direct";
@@ -540,4 +541,39 @@ export function _touchEgressKeyForTest(key: string, nowMs: number = Date.now()):
 /** Inject RNG for the suspect duration (deterministic tests). Tests only. */
 export function _setSuspectRandForTest(rand: (() => number) | null): void {
   suspectSeedRand = rand;
+}
+
+/**
+ * One real call after a 429 when no account is a candidate. The rotation guard
+ * skips a non-candidate without calling it, so members excluded only by state
+ * left by earlier requests (proxy set aside, account cooling down) were never
+ * tried and the request served the 429. `take` hands out, once per request, an
+ * account whose proxy this request has not refused yet; `allows` lets that one
+ * account through the guard.
+ */
+export function lastResort429<A extends RotatableAccount>(
+  accounts: A[],
+  cursor: { nextAccountIdx: number; lastHealthyFingerprint?: string },
+  ...refusedHere: Set<string>[]
+) {
+  let spent = false;
+  let granted: A | null = null;
+  const isOpen = (account: A): boolean => {
+    const key = proxyKeyOf(account.proxy);
+    return key !== null && !refusedHere.some((keys) => keys.has(key));
+  };
+  return {
+    take(lastStatus: number | null, account: A, isCandidate: (a: A) => boolean): A {
+      granted = null;
+      if (spent || lastStatus !== 429 || isCandidate(account)) return account;
+      const spare = pickAccount(accounts, cursor, isOpen);
+      if (!isOpen(spare)) return account;
+      spent = true;
+      granted = spare;
+      return spare;
+    },
+    allows(account: A, isCandidate: (a: A) => boolean): boolean {
+      return account === granted || isCandidate(account);
+    },
+  };
 }

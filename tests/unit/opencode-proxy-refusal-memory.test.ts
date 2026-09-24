@@ -193,4 +193,38 @@ describe("OpencodeExecutor proxy refusal memory", () => {
     await run(exec, noAccounts, [429, 429, 429, 429, 429]);
     assert.strictEqual(memory.__proxyRefusalMemorySizeForTesting(), 0);
   });
+
+  it("after a 429, a member set aside by an earlier request still gets one real call", async () => {
+    for (let i = 1; i < 3; i++) memory.noteProxyRefusal(keyFor(i), "ip_quota_429");
+    const exec = new OpencodeExecutor("opencode-zen");
+
+    const result = await run(exec, proxied(), [429, 200]);
+    assert.strictEqual(result.status, 200);
+    assert.strictEqual(result.observed.length, 2);
+    assert.strictEqual(result.observed[0], port(0));
+    assert.notStrictEqual(result.observed[1], port(0));
+    const served = ports.findIndex((p) => String(p) === result.observed[1]);
+    assert.strictEqual(memory.isProxyAvoided(keyFor(served)), false);
+  });
+
+  it("the last resort after a 429 is a single call, then the 429 is served", async () => {
+    for (let i = 1; i < 3; i++) memory.noteProxyRefusal(keyFor(i), "ip_quota_429");
+    const exec = new OpencodeExecutor("opencode-zen");
+
+    const result = await run(exec, proxied(), [429, 429, 429]);
+    assert.strictEqual(result.status, 429);
+    assert.strictEqual(result.observed.length, 2);
+    assert.strictEqual(new Set(result.observed).size, 2);
+  });
+
+  it("with the flag off, members cooling down from an earlier request still get one call", async () => {
+    delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+    const exec = new OpencodeExecutor("opencode-zen");
+    assert.strictEqual((await run(exec, proxied(), [429, 429, 429])).observed.length, 3);
+
+    const result = await run(exec, proxied(), [429, 200]);
+    assert.strictEqual(result.status, 200);
+    assert.strictEqual(result.observed.length, 2);
+    assert.notStrictEqual(result.observed[0], result.observed[1]);
+  });
 });
