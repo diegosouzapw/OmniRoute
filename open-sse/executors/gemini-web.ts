@@ -516,7 +516,7 @@ export class GeminiWebExecutor extends BaseExecutor {
     const modelId = model || DEFAULT_MODEL_ID;
 
     let browser: any = null;
-    let context: any = null;
+    let context: import("playwright").BrowserContext | null = null;
     let abortBrowser: (() => void) | null = null;
     try {
       if (signal?.aborted) {
