@@ -1,0 +1,1 @@
+- **fix(providers):** The "SSRF Guard" toggle on the Feature Flags page now takes effect; before, only `OUTBOUND_SSRF_GUARD_ENABLED` in the environment was read, so switching the guard back on in the dashboard did not undo an env `false`. A dashboard OFF saved earlier now applies after upgrading ([#14172](https://github.com/diegosouzapw/OmniRoute/pull/14172))
