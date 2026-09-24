@@ -34,8 +34,11 @@ on:
 # every one OOM-killing `npm run build` inside BuildKit (#11976). The :next
 # channel only needs the newest SHA; cancel-in-progress is the same pattern as
 # quality.yml / nightly-release-green.
+# The nightly `schedule` run (runner-alert only) gets its own group: it runs on the
+# default branch ref, so sharing the publish group would let cancel-in-progress kill
+# an in-flight release-branch publish every night (#14560 follow-up).
 concurrency:
-  group: docker-publish-${{ github.ref }}
+  group: docker-publish-${{ github.event_name == 'schedule' && 'runner-alert' || github.ref }}
   cancel-in-progress: true
 
 # Least-privilege default: read-only at the top level; the build and merge jobs that
@@ -144,11 +147,20 @@ jobs:
     steps:
       - name: Check an online runner carries the omni-build label
         env:
-          GH_TOKEN: ${{ github.token }}
+          # Listing self-hosted runners needs the repository "Administration: read"
+          # permission, which GITHUB_TOKEN can never be granted through `permissions:`.
+          # RUNNER_STATUS_TOKEN (optional secret: fine-grained PAT with Administration
+          # read on this repo, or a classic PAT with `repo`) activates the check;
+          # without it the API answers 403 and the preflight fails OPEN with a
+          # warning, so a missing/under-scoped token can never block a publish.
+          GH_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN || github.token }}
         run: |
           set -euo pipefail
-          ONLINE=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runners" \
-            --paginate --jq '[.runners[] | select(.status == "online") | select(any(.labels[]; .name == "omni-build"))] | length')
+          if ! ONLINE=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runners" \
+            --paginate --jq '[.runners[] | select(.status == "online") | select(any(.labels[]; .name == "omni-build"))] | length'); then
+            echo "::warning::Could not list self-hosted runners (token lacks Administration read — set the RUNNER_STATUS_TOKEN secret). Skipping the omni-build availability check."
+            exit 0
+          fi
           echo "online omni-build runners: ${ONLINE}"
           if [ "${ONLINE}" -eq 0 ]; then
             echo "::error::No ONLINE runner carries the omni-build label. The amd64 build would queue forever (silent publish stall, #14560)."
@@ -159,7 +171,12 @@ jobs:
   build:
     name: Build Docker (${{ matrix.platform }})
     needs: [prepare, runner-preflight]
-    if: github.event_name != 'schedule' && needs.prepare.outputs.skip != 'true'
+    # runner-preflight is SKIPPED when USE_VPS_RUNNER is off; a plain `if:` would
+    # inherit the implicit success() check and skip the whole build with it.
+    if: >-
+      !cancelled() && github.event_name != 'schedule' &&
+      needs.prepare.result == 'success' && needs.prepare.outputs.skip != 'true' &&
+      (needs.runner-preflight.result == 'success' || needs.runner-preflight.result == 'skipped')
     # amd64: the .113 omni-build pool (31 GB / 32 cores, ONE listener since
     # #12048). Hosted ubuntu-24.04 is ~7 GB and dies ResourceExhausted (#11976).
     # Falls back to hosted when USE_VPS_RUNNER is off. arm64: no ARM box — stay
@@ -657,13 +674,20 @@ jobs:
     steps:
       - name: Open/update/close the tracking issue
         env:
+          # Issue writes use GITHUB_TOKEN (issues: write); only the runner listing
+          # needs RUNNER_STATUS_TOKEN (see runner-preflight). Without it the check is
+          # skipped with a warning instead of opening/closing the issue on bad data.
           GH_TOKEN: ${{ github.token }}
+          RUNNERS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN || github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
           TITLE="Docker publish runner offline: no online omni-build runner"
-          ONLINE=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runners" \
-            --paginate --jq '[.runners[] | select(.status == "online") | select(any(.labels[]; .name == "omni-build"))] | length')
+          if ! ONLINE=$(GH_TOKEN="$RUNNERS_TOKEN" gh api "repos/${GITHUB_REPOSITORY}/actions/runners" \
+            --paginate --jq '[.runners[] | select(.status == "online") | select(any(.labels[]; .name == "omni-build"))] | length'); then
+            echo "::warning::Could not list self-hosted runners (token lacks Administration read — set the RUNNER_STATUS_TOKEN secret). Alert skipped."
+            exit 0
+          fi
           echo "online omni-build runners: ${ONLINE}"
 
           EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
