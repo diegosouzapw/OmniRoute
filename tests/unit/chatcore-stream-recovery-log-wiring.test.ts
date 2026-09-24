@@ -1,7 +1,8 @@
 // handleChatCore wiring of the mid-stream continuation log hooks: a real streaming request
 // with stream recovery + mid-stream continuation enabled, an upstream that commits the
 // holdback window and then drops, and a continuation that finishes the answer. The injected
-// log must receive the release attempt line at warn and the stitched outcome at debug.
+// log must receive the release attempt line at warn and the stitched outcome at info,
+// both carrying the requesting call's correlationId.
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -72,8 +73,9 @@ test("handleChatCore routes continuation logs through buildContinuationLogHooks"
 
   const warn: string[] = [];
   const debug: string[] = [];
+  const info: string[] = [];
   const log = {
-    info() {},
+    info: (tag: string, msg: string) => info.push(`${tag} ${msg}`),
     error() {},
     warn: (tag: string, msg: string) => warn.push(`${tag} ${msg}`),
     debug: (tag: string, msg: string) => debug.push(`${tag} ${msg}`),
@@ -95,6 +97,7 @@ test("handleChatCore routes continuation logs through buildContinuationLogHooks"
     userAgent: "unit-test",
     isCombo: false,
     log,
+    correlationId: "req-wiring-1",
   } as unknown as Parameters<typeof handleChatCore>[0]);
 
   const response = (result as { response?: Response }).response;
@@ -104,11 +107,17 @@ test("handleChatCore routes continuation logs through buildContinuationLogHooks"
   assert.equal(calls, 2, "one upstream request plus one continuation");
   assert.match(text, /nice to meet you!/);
   const recoveryWarns = warn.filter((l) => l.startsWith("STREAM_RECOVERY "));
-  assert.deepEqual(recoveryWarns, ["STREAM_RECOVERY mid-stream continuation attempt 1/4"]);
+  assert.deepEqual(recoveryWarns, [
+    "STREAM_RECOVERY mid-stream continuation attempt 1/4 correlationId=req-wiring-1",
+  ]);
+  assert.deepEqual(
+    debug.filter((l) => l.startsWith("STREAM_RECOVERY ")),
+    []
+  );
   assert.ok(
-    debug.includes(
-      "STREAM_RECOVERY mid-stream continuation attempt 1/4 outcome=suffix suffixChars=19"
+    info.includes(
+      "STREAM_RECOVERY mid-stream continuation attempt 1/4 outcome=suffix suffixChars=19 correlationId=req-wiring-1"
     ),
-    debug.filter((l) => l.startsWith("STREAM_RECOVERY")).join(" | ")
+    info.filter((l) => l.startsWith("STREAM_RECOVERY")).join(" | ")
   );
 });

@@ -3457,7 +3457,7 @@ export async function handleChatCore({
                           )
                         ),
                       continueStream,
-                      ...buildContinuationLogHooks(log),
+                      ...buildContinuationLogHooks(log, correlationId),
                       throughputWatchdog,
                       onWatchdogAbort: () =>
                         log?.warn?.(
