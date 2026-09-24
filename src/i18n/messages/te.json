@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl టోకెన్ సృష్టించడంలో విఫలమైంది",
     "providerProxy": "ప్రాక్సీ",
     "providerProxyConfigureHint": "ప్రాక్సీని కాన్ఫిగర్ చేయండి",
-    "providerProxyTitleConfigured": "ప్రాక్సీ కాన్ఫిగర్ చేయబడింది: {host}"
+    "providerProxyTitleConfigured": "ప్రాక్సీ కాన్ఫిగర్ చేయబడింది: {host}",
+    "inheritConnectionOption": "స్వంత ప్రాక్సీ లేదు (కనెక్షన్‌ను వారసత్వంగా)",
+    "inheritedProxy": "కనెక్షన్ వారసత్వం: {host}",
+    "inheritedPool": "కనెక్షన్ పూల్ వారసత్వం ({count})",
+    "poolEmptyBlocked": "పూల్ ఖాళీ — అభ్యర్థనలు విఫలమవుతాయి (ప్రత్యక్షం కాదు)",
+    "directEgress": "ప్రత్యక్షం (ప్రాక్సీ లేకుండా)"
   },
   "gamification": {
     "leaderboardScopes": {

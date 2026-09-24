@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl டோக்கன் உருவாக்குவதில் தோல்வி அடைந்தது",
     "providerProxy": "பிராக்சி",
     "providerProxyConfigureHint": "பிராக்ஸியை கட்டமைக்கவும்",
-    "providerProxyTitleConfigured": "பிராக்ஸி அமைக்கப்பட்டுள்ளது: {host}"
+    "providerProxyTitleConfigured": "பிராக்ஸி அமைக்கப்பட்டுள்ளது: {host}",
+    "inheritConnectionOption": "சொந்த ப்ராக்ஸி இல்லை (இணைப்பை மரபுரிமை)",
+    "inheritedProxy": "இணைப்பு மரபுரிமை: {host}",
+    "inheritedPool": "இணைப்பு தொகுப்பு மரபுரிமை ({count})",
+    "poolEmptyBlocked": "தொகுப்பு காலி — கோரிக்கைகள் தோல்வி (நேரடி அல்ல)",
+    "directEgress": "நேரடி (ப்ராக்ஸி இல்லை)"
   },
   "gamification": {
     "leaderboardScopes": {

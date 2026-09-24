@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Theip ar chomhartha Dahl a chruthú",
     "providerProxy": "Seachfhreastalaí",
     "providerProxyConfigureHint": "Cumraigh seachfhreastalaí",
-    "providerProxyTitleConfigured": "Seachfhreastalaí cumraithe: {host}"
+    "providerProxyTitleConfigured": "Seachfhreastalaí cumraithe: {host}",
+    "inheritConnectionOption": "Gan seachfhreastalaí féin (oidhríonn nasc)",
+    "inheritedProxy": "Oidhreacht nasc: {host}",
+    "inheritedPool": "Oidhreacht linn nasc ({count})",
+    "poolEmptyBlocked": "Linn folamh — teipeann ar iarratais (ní díreach)",
+    "directEgress": "Díreach (gan seachfhreastalaí)"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahlトークンの作成に失敗しました",
     "providerProxy": "プロキシ",
     "providerProxyConfigureHint": "プロキシを設定する",
-    "providerProxyTitleConfigured": "プロキシが設定されました: {host}"
+    "providerProxyTitleConfigured": "プロキシが設定されました: {host}",
+    "inheritConnectionOption": "独自プロキシなし(接続を継承)",
+    "inheritedProxy": "接続を継承:{host}",
+    "inheritedPool": "接続プールを継承({count})",
+    "poolEmptyBlocked": "プールが空—リクエストは失敗します(直接ではありません)",
+    "directEgress": "直接(プロキシなし)"
   },
   "gamification": {
     "leaderboardScopes": {

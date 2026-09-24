@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Mislukt om Dahl-token te maken",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configureer proxy",
-    "providerProxyTitleConfigured": "Proxy geconfigureerd: {host}"
+    "providerProxyTitleConfigured": "Proxy geconfigureerd: {host}",
+    "inheritConnectionOption": "Geen eigen proxy (erft verbinding)",
+    "inheritedProxy": "Erft verbinding: {host}",
+    "inheritedPool": "Erft verbindingspool ({count})",
+    "poolEmptyBlocked": "Pool leeg — verzoeken mislukken (niet direct)",
+    "directEgress": "Direct (geen proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "ایجاد توکن دال ناموفق بود",
     "providerProxy": "پراکسی",
     "providerProxyConfigureHint": "تنظیم پروکسی",
-    "providerProxyTitleConfigured": "پروکسی پیکربندی شده: {host}"
+    "providerProxyTitleConfigured": "پروکسی پیکربندی شده: {host}",
+    "inheritConnectionOption": "بدون پروکسی اختصاصی (اتصال را به ارث می‌برد)",
+    "inheritedProxy": "اتصال را به ارث می‌برد: {host}",
+    "inheritedPool": "استخر اتصال را به ارث می‌برد ({count})",
+    "poolEmptyBlocked": "استخر خالی است — درخواست‌ها ناموفق می‌شوند (نه مستقیم)",
+    "directEgress": "مستقیم (بدون پروکسی)"
   },
   "gamification": {
     "leaderboardScopes": {

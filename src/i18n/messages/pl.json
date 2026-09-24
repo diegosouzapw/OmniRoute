@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Nie udało się utworzyć tokena Dahl",
     "providerProxy": "Serwer proxy",
     "providerProxyConfigureHint": "Skonfiguruj proxy",
-    "providerProxyTitleConfigured": "Proxy skonfigurowany: {host}"
+    "providerProxyTitleConfigured": "Proxy skonfigurowany: {host}",
+    "inheritConnectionOption": "Brak własnego proxy (dziedziczy połączenie)",
+    "inheritedProxy": "Dziedziczy połączenie: {host}",
+    "inheritedPool": "Dziedziczy pulę połączeń ({count})",
+    "poolEmptyBlocked": "Pula pusta — żądania nie powiodą się (nie bezpośrednio)",
+    "directEgress": "Bezpośrednio (bez proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

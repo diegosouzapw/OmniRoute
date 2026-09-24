@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "បរាជ័យក្នុងការបង្កើតថូខឹន Dahl",
     "providerProxy": "ប្រូកស៊ី",
     "providerProxyConfigureHint": "កំណត់រចនាសម្ព័ន្ធប្រូកស៊ី",
-    "providerProxyTitleConfigured": "បានកំណត់រចនាសម្ព័ន្ធប្រូកស៊ី៖ {host}"
+    "providerProxyTitleConfigured": "បានកំណត់រចនាសម្ព័ន្ធប្រូកស៊ី៖ {host}",
+    "inheritConnectionOption": "គ្មានប្រូកស៊ីផ្ទាល់ខ្លួន (ទទួលមរតកការតភ្ជាប់)",
+    "inheritedProxy": "ទទួលមរតកការតភ្ជាប់: {host}",
+    "inheritedPool": "ទទួលមរតកបណ្តុំការតភ្ជាប់ ({count})",
+    "poolEmptyBlocked": "បណ្តុំទទេ — សំណើបរាជ័យ (មិនផ្ទាល់)",
+    "directEgress": "ផ្ទាល់ (គ្មានប្រូកស៊ី)"
   },
   "gamification": {
     "leaderboardScopes": {

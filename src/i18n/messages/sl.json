@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Žetona Dahl ni bilo mogoče ustvariti",
     "providerProxy": "Posredniški strežnik",
     "providerProxyConfigureHint": "Nastavi posredniški strežnik",
-    "providerProxyTitleConfigured": "Posredniški strežnik je nastavljen: {host}"
+    "providerProxyTitleConfigured": "Posredniški strežnik je nastavljen: {host}",
+    "inheritConnectionOption": "Brez lastnega proxyja (podeduje povezavo)",
+    "inheritedProxy": "Podeduje povezavo: {host}",
+    "inheritedPool": "Podeduje bazen povezav ({count})",
+    "poolEmptyBlocked": "Bazen prazen — zahteve ne uspejo (ne neposredno)",
+    "directEgress": "Neposredno (brez proxyja)"
   },
   "gamification": {
     "leaderboardScopes": {

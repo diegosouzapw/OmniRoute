@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Nabigong lumikha ng Dahl token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "I-configure ang proxy",
-    "providerProxyTitleConfigured": "Naka-configure ang Proxy: {host}"
+    "providerProxyTitleConfigured": "Naka-configure ang Proxy: {host}",
+    "inheritConnectionOption": "Walang sariling proxy (nagmamana ng koneksyon)",
+    "inheritedProxy": "Nagmamana ng koneksyon: {host}",
+    "inheritedPool": "Nagmamana ng pool ng koneksyon ({count})",
+    "poolEmptyBlocked": "Walang laman ang pool — nabibigo ang mga request (hindi direkta)",
+    "directEgress": "Direkta (walang proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

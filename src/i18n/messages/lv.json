@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Neizdevās izveidot Dahl marķieri",
     "providerProxy": "Starpniekserveris",
     "providerProxyConfigureHint": "Konfigurēt starpniekserveri",
-    "providerProxyTitleConfigured": "Starpniekserveris konfigurēts: {host}"
+    "providerProxyTitleConfigured": "Starpniekserveris konfigurēts: {host}",
+    "inheritConnectionOption": "Bez sava starpniekservera (manto savienojumu)",
+    "inheritedProxy": "Manto savienojumu: {host}",
+    "inheritedPool": "Manto savienojumu pūlu ({count})",
+    "poolEmptyBlocked": "Pūls tukšs — pieprasījumi neizdodas (ne tieši)",
+    "directEgress": "Tiešs (bez starpniekservera)"
   },
   "gamification": {
     "leaderboardScopes": {

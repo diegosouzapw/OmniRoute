@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Չհաջողվեց ստեղծել Dahl թոքենը",
     "providerProxy": "Պրոքսի",
     "providerProxyConfigureHint": "Կարգավորել պրոքսին",
-    "providerProxyTitleConfigured": "Պրոքսին կարգավորված է՝ {host}"
+    "providerProxyTitleConfigured": "Պրոքսին կարգավորված է՝ {host}",
+    "inheritConnectionOption": "Սեփական պրոքսի չկա (ժառանգում է կապը)",
+    "inheritedProxy": "Ժառանգում է կապը՝ {host}",
+    "inheritedPool": "Ժառանգում է կապերի խումբը ({count})",
+    "poolEmptyBlocked": "Խումբը դատարկ է — հարցումները ձախողվում են (ոչ ուղիղ)",
+    "directEgress": "Ուղիղ (առանց պրոքսիի)"
   },
   "gamification": {
     "leaderboardScopes": {

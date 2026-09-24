@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl 토큰을 생성하지 못했습니다.",
     "providerProxy": "프록시",
     "providerProxyConfigureHint": "프록시 구성",
-    "providerProxyTitleConfigured": "프록시가 구성되었습니다: {host}"
+    "providerProxyTitleConfigured": "프록시가 구성되었습니다: {host}",
+    "inheritConnectionOption": "자체 프록시 없음(연결 상속)",
+    "inheritedProxy": "연결 상속: {host}",
+    "inheritedPool": "연결 풀 상속({count})",
+    "poolEmptyBlocked": "풀 비어 있음 — 요청 실패(직접 아님)",
+    "directEgress": "직접(프록시 없음)"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Ma rnexxiex jinħoloq it-token ta’ Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Ikkonfigura l-proxy",
-    "providerProxyTitleConfigured": "Proxy kkonfigurat: {host}"
+    "providerProxyTitleConfigured": "Proxy kkonfigurat: {host}",
+    "inheritConnectionOption": "L-ebda proxy proprju (jiret il-konnessjoni)",
+    "inheritedProxy": "Jiret il-konnessjoni: {host}",
+    "inheritedPool": "Jiret il-pool tal-konnessjonijiet ({count})",
+    "poolEmptyBlocked": "Pool vojt — it-talbiet ifallu (mhux dirett)",
+    "directEgress": "Dirett (bla proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

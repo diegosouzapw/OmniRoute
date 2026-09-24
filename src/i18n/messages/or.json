@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl ଟୋକେନ୍ ସୃଷ୍ଟି କରିବାରେ ବିଫଳ",
     "providerProxy": "ପ୍ରକ୍ସି",
     "providerProxyConfigureHint": "ପ୍ରକ୍ସି ବିନ୍ୟାସ କରନ୍ତୁ",
-    "providerProxyTitleConfigured": "ପ୍ରକ୍ସି ବିନ୍ୟାସ ହୋଇଛି: {host}"
+    "providerProxyTitleConfigured": "ପ୍ରକ୍ସି ବିନ୍ୟାସ ହୋଇଛି: {host}",
+    "inheritConnectionOption": "ନିଜସ୍ୱ ପ୍ରୋକ୍ସି ନାହିଁ (ସଂଯୋଗ ଉତ୍ତରାଧିକାର)",
+    "inheritedProxy": "ସଂଯୋଗ ଉତ୍ତରାଧିକାର: {host}",
+    "inheritedPool": "ସଂଯୋଗ ପୁଲ୍ ଉତ୍ତରାଧିକାର ({count})",
+    "poolEmptyBlocked": "ପୁଲ୍ ଖାଲି — ଅନୁରୋଧ ବିଫଳ ହୁଏ (ସିଧା ନୁହେଁ)",
+    "directEgress": "ସିଧା (ପ୍ରୋକ୍ସି ବିନା)"
   },
   "gamification": {
     "leaderboardScopes": {

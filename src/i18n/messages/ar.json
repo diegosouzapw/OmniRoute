@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "فشل في إنشاء رمز دال",
     "providerProxy": "وكيل",
     "providerProxyConfigureHint": "تكوين الوكيل",
-    "providerProxyTitleConfigured": "تم تكوين الوكيل: {host}"
+    "providerProxyTitleConfigured": "تم تكوين الوكيل: {host}",
+    "inheritConnectionOption": "لا وكيل خاص (يرث الاتصال)",
+    "inheritedProxy": "يرث الاتصال: {host}",
+    "inheritedPool": "يرث تجمع الاتصالات ({count})",
+    "poolEmptyBlocked": "التجمع فارغ — تفشل الطلبات (ليس مباشرًا)",
+    "directEgress": "مباشر (بدون وكيل)"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Не вдалося створити токен Dahl",
     "providerProxy": "Проксі",
     "providerProxyConfigureHint": "Налаштувати проксі",
-    "providerProxyTitleConfigured": "Проксі налаштовано: {host}"
+    "providerProxyTitleConfigured": "Проксі налаштовано: {host}",
+    "inheritConnectionOption": "Без власного проксі (успадковує зʼєднання)",
+    "inheritedProxy": "Успадковує зʼєднання: {host}",
+    "inheritedPool": "Успадковує пул зʼєднань ({count})",
+    "poolEmptyBlocked": "Пул порожній — запити не вдаються (не напряму)",
+    "directEgress": "Напряму (без проксі)"
   },
   "gamification": {
     "leaderboardScopes": {

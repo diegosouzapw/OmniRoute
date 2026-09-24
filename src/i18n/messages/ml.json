@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl ടോക്കൺ സൃഷ്ടിക്കുന്നതിൽ പരാജയപ്പെട്ടു",
     "providerProxy": "പ്രോക്സി",
     "providerProxyConfigureHint": "പ്രോക്സി കോൺഫിഗർ ചെയ്യുക",
-    "providerProxyTitleConfigured": "പ്രോക്സി കോൺഫിഗർ ചെയ്തു: {host}"
+    "providerProxyTitleConfigured": "പ്രോക്സി കോൺഫിഗർ ചെയ്തു: {host}",
+    "inheritConnectionOption": "സ്വന്തം പ്രോക്സി ഇല്ല (കണക്ഷൻ പാരമ്പര്യമായി)",
+    "inheritedProxy": "കണക്ഷൻ പാരമ്പര്യമായി: {host}",
+    "inheritedPool": "കണക്ഷൻ പൂൾ പാരമ്പര്യമായി ({count})",
+    "poolEmptyBlocked": "പൂൾ ശൂന്യം — അഭ്യർത്ഥനകൾ പരാജയപ്പെടുന്നു (നேരിട്ടല്ല)",
+    "directEgress": "നേരിട്ട് (പ്രോക്സി ഇല്ലാതെ)"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl tokenini yaratib boʻlmadi",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Proksini sozlash",
-    "providerProxyTitleConfigured": "Proksi sozlangan: {host}"
+    "providerProxyTitleConfigured": "Proksi sozlangan: {host}",
+    "inheritConnectionOption": "Shaxsiy proksi yo‘q (ulanishni meros oladi)",
+    "inheritedProxy": "Ulanishni meros oladi: {host}",
+    "inheritedPool": "Ulanishlar hovuzini meros oladi ({count})",
+    "poolEmptyBlocked": "Hovuz bo‘sh — so‘rovlar muvaffaqiyatsiz (to‘g‘ridan-to‘g‘ri emas)",
+    "directEgress": "To‘g‘ridan-to‘g‘ri (proksisiz)"
   },
   "gamification": {
     "leaderboardScopes": {

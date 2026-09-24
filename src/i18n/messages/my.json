@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl token ကို ဖန်တီး၍ မရပါ",
     "providerProxy": "ပရောက်စီ",
     "providerProxyConfigureHint": "ပရောက်စီကို စီစဉ်သတ်မှတ်ရန်",
-    "providerProxyTitleConfigured": "ပရောက်စီကို စီစဉ်သတ်မှတ်ပြီးပါပြီ: {host}"
+    "providerProxyTitleConfigured": "ပရောက်စီကို စီစဉ်သတ်မှတ်ပြီးပါပြီ: {host}",
+    "inheritConnectionOption": "ကိုယ်ပိုင် proxy မရှိ (ချိတ်ဆက်မှုကို အမွေခံသည်)",
+    "inheritedProxy": "ချိတ်ဆက်မှုကို အမွေခံသည်: {host}",
+    "inheritedPool": "ချိတ်ဆက်မှု pool ကို အမွေခံသည် ({count})",
+    "poolEmptyBlocked": "Pool လွတ်နေသည် — တောင်းဆိုမှုများ ကျရှုံးမည် (တိုက်ရိုက်မဟုတ်)",
+    "directEgress": "တိုက်ရိုက် (proxy မပါ)"
   },
   "gamification": {
     "leaderboardScopes": {

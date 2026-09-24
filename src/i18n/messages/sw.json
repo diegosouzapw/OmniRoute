@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Imeshindikana kuunda token ya Dahl",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Sanidi proxy",
-    "providerProxyTitleConfigured": "Proxy imewekwa: {host}"
+    "providerProxyTitleConfigured": "Proxy imewekwa: {host}",
+    "inheritConnectionOption": "Hakuna proksi binafsi (inarithi muunganisho)",
+    "inheritedProxy": "Inarithi muunganisho: {host}",
+    "inheritedPool": "Inarithi dimbwi la miunganisho ({count})",
+    "poolEmptyBlocked": "Dimbwi tupu — maombi yanashindwa (siyo moja kwa moja)",
+    "directEgress": "Moja kwa moja (bila proksi)"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "無法創建 Dahl 令牌",
     "providerProxy": "代理伺服器",
     "providerProxyConfigureHint": "配置代理",
-    "providerProxyTitleConfigured": "代理已配置：{host}"
+    "providerProxyTitleConfigured": "代理已配置：{host}",
+    "inheritConnectionOption": "無自有代理(繼承連線)",
+    "inheritedProxy": "繼承連線:{host}",
+    "inheritedPool": "繼承連線集區({count})",
+    "poolEmptyBlocked": "集區為空——請求將失敗(非直連)",
+    "directEgress": "直連(無代理)"
   },
   "gamification": {
     "leaderboardScopes": {

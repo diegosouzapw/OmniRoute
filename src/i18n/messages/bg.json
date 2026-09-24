@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Неуспешно създаване на токен Dahl",
     "providerProxy": "Прокси",
     "providerProxyConfigureHint": "Конфигурирайте прокси",
-    "providerProxyTitleConfigured": "Конфигуриран прокси: {host}"
+    "providerProxyTitleConfigured": "Конфигуриран прокси: {host}",
+    "inheritConnectionOption": "Без собствено прокси (наследява връзката)",
+    "inheritedProxy": "Наследява връзката: {host}",
+    "inheritedPool": "Наследява пула от връзки ({count})",
+    "poolEmptyBlocked": "Пулът е празен — заявките се провалят (не директно)",
+    "directEgress": "Директно (без прокси)"
   },
   "gamification": {
     "leaderboardScopes": {

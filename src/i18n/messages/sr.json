@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Креирање Dahl токена није успело",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Podesi proksi",
-    "providerProxyTitleConfigured": "Proksi podešen: {host}"
+    "providerProxyTitleConfigured": "Proksi podešen: {host}",
+    "inheritConnectionOption": "Без сопственог проксија (наслеђује везу)",
+    "inheritedProxy": "Наслеђује везу: {host}",
+    "inheritedPool": "Наслеђује базен веза ({count})",
+    "poolEmptyBlocked": "Базен празан — захтеви не успевају (не директно)",
+    "directEgress": "Директно (без проксија)"
   },
   "gamification": {
     "leaderboardScopes": {

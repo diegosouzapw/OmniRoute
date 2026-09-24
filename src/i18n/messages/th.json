@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "ไม่สามารถสร้างโทเค็น Dahl ได้",
     "providerProxy": "พร็อกซี",
     "providerProxyConfigureHint": "กำหนดค่าพร็อกซี",
-    "providerProxyTitleConfigured": "กำหนดพร็อกซีแล้ว: {host}"
+    "providerProxyTitleConfigured": "กำหนดพร็อกซีแล้ว: {host}",
+    "inheritConnectionOption": "ไม่มีพร็อกซีของตัวเอง (สืบทอดการเชื่อมต่อ)",
+    "inheritedProxy": "สืบทอดการเชื่อมต่อ: {host}",
+    "inheritedPool": "สืบทอดพูลการเชื่อมต่อ ({count})",
+    "poolEmptyBlocked": "พูลว่าง — คำขอจะล้มเหลว (ไม่โดยตรง)",
+    "directEgress": "โดยตรง (ไม่มีพร็อกซี)"
   },
   "gamification": {
     "leaderboardScopes": {

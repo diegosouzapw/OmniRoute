@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Ṣíṣẹ̀dá àmì Dahl kùnà",
     "providerProxy": "Aṣojú",
     "providerProxyConfigureHint": "Ṣètò proxy",
-    "providerProxyTitleConfigured": "A ti ṣètò proxy: {host}"
+    "providerProxyTitleConfigured": "A ti ṣètò proxy: {host}",
+    "inheritConnectionOption": "Ko si proxy tirẹ (jogun asopọ)",
+    "inheritedProxy": "Jogun asopọ: {host}",
+    "inheritedPool": "Jogun adagun asopọ ({count})",
+    "poolEmptyBlocked": "Adagun ṣofo — awọn ibeere kuna (kii ṣe taara)",
+    "directEgress": "Taara (laisi proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

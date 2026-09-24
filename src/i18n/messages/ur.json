@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl ٹوکن بنانے میں ناکامی",
     "providerProxy": "پراکسی",
     "providerProxyConfigureHint": "پراکسی ترتیب دیں",
-    "providerProxyTitleConfigured": "پراکسی ترتیب دی گئی: {host}"
+    "providerProxyTitleConfigured": "پراکسی ترتیب دی گئی: {host}",
+    "inheritConnectionOption": "کوئی ذاتی پراکسی نہیں (کنکشن وراثت میں)",
+    "inheritedProxy": "کنکشن وراثت میں: {host}",
+    "inheritedPool": "کنکشن پول وراثت میں ({count})",
+    "poolEmptyBlocked": "پول خالی — درخواستیں ناکام ہوتی ہیں (براہ راست نہیں)",
+    "directEgress": "براہ راست (بغیر پراکسی)"
   },
   "gamification": {
     "leaderboardScopes": {

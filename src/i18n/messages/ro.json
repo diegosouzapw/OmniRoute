@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Nu s-a reușit crearea tokenului Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configurează proxy",
-    "providerProxyTitleConfigured": "Proxy configurat: {host}"
+    "providerProxyTitleConfigured": "Proxy configurat: {host}",
+    "inheritConnectionOption": "Fără proxy propriu (moștenește conexiunea)",
+    "inheritedProxy": "Moștenește conexiunea: {host}",
+    "inheritedPool": "Moștenește pool-ul de conexiuni ({count})",
+    "poolEmptyBlocked": "Pool gol — cererile eșuează (nu direct)",
+    "directEgress": "Direct (fără proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

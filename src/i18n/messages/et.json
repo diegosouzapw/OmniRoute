@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl-tokeni loomine ebaõnnestus",
     "providerProxy": "Puhverserver",
     "providerProxyConfigureHint": "Seadista puhverserver",
-    "providerProxyTitleConfigured": "Puhverserver on seadistatud: {host}"
+    "providerProxyTitleConfigured": "Puhverserver on seadistatud: {host}",
+    "inheritConnectionOption": "Isiklikku puhverserverit pole (pärib ühenduse)",
+    "inheritedProxy": "Pärib ühenduse: {host}",
+    "inheritedPool": "Pärib ühenduste kogumi ({count})",
+    "poolEmptyBlocked": "Kogum tühi — päringud ebaõnnestuvad (mitte otse)",
+    "directEgress": "Otse (puhverserverita)"
   },
   "gamification": {
     "leaderboardScopes": {

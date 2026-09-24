@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Nepodarilo sa vytvoriť token Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Nastaviť proxy",
-    "providerProxyTitleConfigured": "Proxy je nakonfigurovaný: {host}"
+    "providerProxyTitleConfigured": "Proxy je nakonfigurovaný: {host}",
+    "inheritConnectionOption": "Bez vlastnej proxy (dedí pripojenie)",
+    "inheritedProxy": "Dedí pripojenie: {host}",
+    "inheritedPool": "Dedí fond pripojení ({count})",
+    "poolEmptyBlocked": "Fond prázdny — požiadavky zlyhajú (nie priamo)",
+    "directEgress": "Priamo (bez proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

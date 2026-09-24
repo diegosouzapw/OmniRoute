@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl-tokenin luominen epäonnistui",
     "providerProxy": "Välimuisti",
     "providerProxyConfigureHint": "Määritä välityspalvelin",
-    "providerProxyTitleConfigured": "Proxy on määritetty: {host}"
+    "providerProxyTitleConfigured": "Proxy on määritetty: {host}",
+    "inheritConnectionOption": "Ei omaa välityspalvelinta (perii yhteyden)",
+    "inheritedProxy": "Perii yhteyden: {host}",
+    "inheritedPool": "Perii yhteyspoolin ({count})",
+    "poolEmptyBlocked": "Pooli tyhjä — pyynnöt epäonnistuvat (ei suoraan)",
+    "directEgress": "Suora (ei välityspalvelinta)"
   },
   "gamification": {
     "leaderboardScopes": {

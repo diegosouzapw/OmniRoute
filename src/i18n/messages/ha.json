@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "An kasa ƙirƙirar Dahl token",
     "providerProxy": "Wakili",
     "providerProxyConfigureHint": "Saita proxy",
-    "providerProxyTitleConfigured": "An saita proxy: {host}"
+    "providerProxyTitleConfigured": "An saita proxy: {host}",
+    "inheritConnectionOption": "Babu proxy na kansa (yana gadon haɗi)",
+    "inheritedProxy": "Yana gadon haɗi: {host}",
+    "inheritedPool": "Yana gadon tafkin haɗi ({count})",
+    "poolEmptyBlocked": "Tafkin babu kowa — buƙatun suna faduwa (ba kai tsaye ba)",
+    "directEgress": "Kai tsaye (babu proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

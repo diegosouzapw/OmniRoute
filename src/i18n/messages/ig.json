@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Ịmepụta token Dahl dara",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Hazie proxy",
-    "providerProxyTitleConfigured": "Ahaziela proxy: {host}"
+    "providerProxyTitleConfigured": "Ahaziela proxy: {host}",
+    "inheritConnectionOption": "Enweghị proxy nkeonwe (na-eketa njikọ)",
+    "inheritedProxy": "Na-eketa njikọ: {host}",
+    "inheritedPool": "Na-eketa ọdọ njikọ ({count})",
+    "poolEmptyBlocked": "Ọdọ tọgbọrọ — arịrịọ na-ada (ọ bụghị ozugbo)",
+    "directEgress": "Ozugbo (enweghị proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

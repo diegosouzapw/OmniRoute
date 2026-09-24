@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Nepavyko sukurti Dahl prieigos rakto",
     "providerProxy": "Tarpinis serveris",
     "providerProxyConfigureHint": "Konfigūruoti tarpinį serverį",
-    "providerProxyTitleConfigured": "Tarpinis serveris sukonfigūruotas: {host}"
+    "providerProxyTitleConfigured": "Tarpinis serveris sukonfigūruotas: {host}",
+    "inheritConnectionOption": "Be savo tarpinio serverio (paveldi ryšį)",
+    "inheritedProxy": "Paveldi ryšį: {host}",
+    "inheritedPool": "Paveldi ryšių telkinį ({count})",
+    "poolEmptyBlocked": "Telkinys tuščias — užklausos nepavyksta (ne tiesiogiai)",
+    "directEgress": "Tiesiogiai (be tarpinio serverio)"
   },
   "gamification": {
     "leaderboardScopes": {

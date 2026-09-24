@@ -12779,7 +12779,12 @@
     "createDahlTokenFailed": "Neuspjelo kreiranje Dahl tokena",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurišite proxy",
-    "providerProxyTitleConfigured": "Proxy konfigurisan: {host}"
+    "providerProxyTitleConfigured": "Proxy konfigurisan: {host}",
+    "inheritConnectionOption": "Bez vlastitog proxyja (nasljeđuje konekciju)",
+    "inheritedProxy": "Nasljeđuje konekciju: {host}",
+    "inheritedPool": "Nasljeđuje bazen konekcija ({count})",
+    "poolEmptyBlocked": "Bazen prazan — zahtjevi ne uspijevaju (ne direktno)",
+    "directEgress": "Direktno (bez proxyja)"
   },
   "gamification": {
     "leaderboardScopes": {

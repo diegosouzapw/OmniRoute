@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl token yaratmaq mümkün olmadı",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Proksi konfiqurasiya et",
-    "providerProxyTitleConfigured": "Proxy konfiqurasiya edilib: {host}"
+    "providerProxyTitleConfigured": "Proxy konfiqurasiya edilib: {host}",
+    "inheritConnectionOption": "Şəxsi proksi yoxdur (bağlantını miras alır)",
+    "inheritedProxy": "Bağlantını miras alır: {host}",
+    "inheritedPool": "Bağlantı hovuzunu miras alır ({count})",
+    "poolEmptyBlocked": "Hovuz boşdur — sorğular uğursuz olur (birbaşa deyil)",
+    "directEgress": "Birbaşa (proksisiz)"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl टोकन सिर्जना गर्न असफल भयो",
     "providerProxy": "प्रोक्सी",
     "providerProxyConfigureHint": "प्रोक्सी कन्फिगर गर्नुहोस्",
-    "providerProxyTitleConfigured": "प्रोक्सी कन्फिगर गरियो: {host}"
+    "providerProxyTitleConfigured": "प्रोक्सी कन्फिगर गरियो: {host}",
+    "inheritConnectionOption": "आफ्नै प्रोक्सी छैन (जडान उत्तराधिकार)",
+    "inheritedProxy": "जडान उत्तराधिकार: {host}",
+    "inheritedPool": "जडान पुल उत्तराधिकार ({count})",
+    "poolEmptyBlocked": "पुल खाली — अनुरोधहरू असफल हुन्छन् (प्रत्यक्ष होइन)",
+    "directEgress": "प्रत्यक्ष (प्रोक्सी बिना)"
   },
   "gamification": {
     "leaderboardScopes": {

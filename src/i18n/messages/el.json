@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Αποτυχία δημιουργίας διακριτικού Dahl",
     "providerProxy": "Διακομιστής μεσολάβησης",
     "providerProxyConfigureHint": "Ρύθμιση διακομιστή μεσολάβησης",
-    "providerProxyTitleConfigured": "Ρυθμίστηκε διακομιστής μεσολάβησης: {host}"
+    "providerProxyTitleConfigured": "Ρυθμίστηκε διακομιστής μεσολάβησης: {host}",
+    "inheritConnectionOption": "Χωρίς δικό του proxy (κληρονομεί τη σύνδεση)",
+    "inheritedProxy": "Κληρονομεί τη σύνδεση: {host}",
+    "inheritedPool": "Κληρονομεί το pool συνδέσεων ({count})",
+    "poolEmptyBlocked": "Το pool άδειο — τα αιτήματα αποτυγχάνουν (όχι απευθείας)",
+    "directEgress": "Απευθείας (χωρίς proxy)"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Gagal untuk mencipta token Dahl",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Konfigurasikan proksi",
-    "providerProxyTitleConfigured": "Proksi dikonfigurasikan: {host}"
+    "providerProxyTitleConfigured": "Proksi dikonfigurasikan: {host}",
+    "inheritConnectionOption": "Tiada proksi sendiri (mewarisi sambungan)",
+    "inheritedProxy": "Mewarisi sambungan: {host}",
+    "inheritedPool": "Mewarisi kolam sambungan ({count})",
+    "poolEmptyBlocked": "Kolam kosong — permintaan gagal (bukan langsung)",
+    "directEgress": "Langsung (tanpa proksi)"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "የDahl ቶከን መፍጠር አልተሳካም",
     "providerProxy": "ፕሮክሲ",
     "providerProxyConfigureHint": "ፕሮክሲ አዋቅር",
-    "providerProxyTitleConfigured": "ፕሮክሲ ተዋቅሯል፦ {host}"
+    "providerProxyTitleConfigured": "ፕሮክሲ ተዋቅሯል፦ {host}",
+    "inheritConnectionOption": "የራሱ ፕሮክሲ የለም (ግንኙነት ይወርሳል)",
+    "inheritedProxy": "ግንኙነት ይወርሳል: {host}",
+    "inheritedPool": "የግንኙነት ፑል ይወርሳል ({count})",
+    "poolEmptyBlocked": "ፑል ባዶ — ጥያቄዎች ይሳናሉ (ቀጥተኛ አይደለም)",
+    "directEgress": "ቀጥተኛ (ፕሮክሲ የሌለው)"
   },
   "gamification": {
     "leaderboardScopes": {

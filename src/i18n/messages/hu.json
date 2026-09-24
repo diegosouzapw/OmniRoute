@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Sikertelen a Dahl token létrehozása",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Proxy beállítása",
-    "providerProxyTitleConfigured": "Proxy beállítva: {host}"
+    "providerProxyTitleConfigured": "Proxy beállítva: {host}",
+    "inheritConnectionOption": "Nincs saját proxy (a kapcsolatot örökli)",
+    "inheritedProxy": "Örökölt kapcsolat: {host}",
+    "inheritedPool": "Örökölt kapcsolati készlet ({count})",
+    "poolEmptyBlocked": "A készlet üres — a kérések meghiúsulnak (nem közvetlen)",
+    "directEgress": "Közvetlen (proxy nélkül)"
   },
   "gamification": {
     "leaderboardScopes": {

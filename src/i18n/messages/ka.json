@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl ტოკენის შექმნა ვერ მოხერხდა",
     "providerProxy": "პროქსი",
     "providerProxyConfigureHint": "პროქსის კონფიგურაცია",
-    "providerProxyTitleConfigured": "პროქსი კონფიგურირებულია: {host}"
+    "providerProxyTitleConfigured": "პროქსი კონფიგურირებულია: {host}",
+    "inheritConnectionOption": "საკუთარი პროქსი არ არის (კავშირს მემკვიდრეობს)",
+    "inheritedProxy": "მემკვიდრეობს კავშირს: {host}",
+    "inheritedPool": "მემკვიდრეობს კავშირების პულს ({count})",
+    "poolEmptyBlocked": "პული ცარიელია — მოთხოვნები ვარდება (არა პირდაპირ)",
+    "directEgress": "პირდაპირ (პროქსის გარეშე)"
   },
   "gamification": {
     "leaderboardScopes": {

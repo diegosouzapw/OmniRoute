@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "Dahl ටෝකනය සෑදීමට අසමත් විය",
     "providerProxy": "ප්රොක්සි",
     "providerProxyConfigureHint": "ප්රොක්සි වින්යාස කරන්න",
-    "providerProxyTitleConfigured": "ප්රොක්සි වින්යාස කර ඇත: {host}"
+    "providerProxyTitleConfigured": "ප්රොක්සි වින්යාස කර ඇත: {host}",
+    "inheritConnectionOption": "ස්වන්ත ප්‍රොක්සියක් නැත (සම්බන්ධතාව උරුම වේ)",
+    "inheritedProxy": "සම්බන්ධතාව උරුම වේ: {host}",
+    "inheritedPool": "සම්බන්ධතා තටාකය උරුම වේ ({count})",
+    "poolEmptyBlocked": "තටාකය හිස් — ඉල්ලීම් අසාර්ථකයි (සෘජු නොවේ)",
+    "directEgress": "සෘජු (ප්‍රොක්සි නැතිව)"
   },
   "gamification": {
     "leaderboardScopes": {

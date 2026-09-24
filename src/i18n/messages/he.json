@@ -12790,7 +12790,12 @@
     "createDahlTokenFailed": "נכשל ביצירת טוקן דל",
     "providerProxy": "פרוקסי",
     "providerProxyConfigureHint": "הגדר פרוקסי",
-    "providerProxyTitleConfigured": "פרוקסי מוגדר: {host}"
+    "providerProxyTitleConfigured": "פרוקסי מוגדר: {host}",
+    "inheritConnectionOption": "אין proxy משלו (יורש את החיבור)",
+    "inheritedProxy": "יורש את החיבור: {host}",
+    "inheritedPool": "יורש את מאגר החיבורים ({count})",
+    "poolEmptyBlocked": "המאגר ריק — בקשות נכשלות (לא ישיר)",
+    "directEgress": "ישיר (ללא proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
