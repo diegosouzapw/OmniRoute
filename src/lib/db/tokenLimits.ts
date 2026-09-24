@@ -90,7 +90,7 @@ function ensureSchema() {
       enabled         INTEGER NOT NULL DEFAULT 1,
       created_at      TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
-      UNIQUE (api_key_id, scope_type, scope_value)
+      UNIQUE (api_key_id, scope_type, scope_value, reset_interval)
     );
     CREATE INDEX IF NOT EXISTS idx_aktl_api_key_id ON api_key_token_limits (api_key_id);
     CREATE TABLE IF NOT EXISTS api_key_token_counters (
@@ -136,36 +136,100 @@ function rowToTokenLimit(row: unknown): TokenLimit {
  * Insert or update a token limit. Upsert key is (api_key_id, scope_type, scope_value).
  * Returns the persisted row.
  */
-export function upsertTokenLimit(input: UpsertTokenLimitInput): TokenLimit {
-  ensureSchema();
-  const db = getDbInstance();
-  const scopeType = normalizeScopeType(input.scopeType);
-  const scopeValue = scopeType === "global" ? "" : (input.scopeValue ?? "").trim();
-  const resetInterval = normalizeResetInterval(input.resetInterval);
-  const resetTime =
-    typeof input.resetTime === "string" && input.resetTime ? input.resetTime : "00:00";
-  const enabled = input.enabled === false ? 0 : 1;
-  const tokenLimit = Math.floor(toNumber(input.tokenLimit));
-  const id = input.id && input.id.trim() ? input.id.trim() : randomUUID();
+/** An id-targeted update that would take another limit's (scope, reset interval) slot. */
+export class TokenLimitConflictError extends Error {
+  constructor(scopeType: TokenLimitScopeType, resetInterval: BudgetResetInterval) {
+    super(`This key already has a ${resetInterval} ${scopeType} token limit for that scope.`);
+    this.name = "TokenLimitConflictError";
+  }
+}
 
+/** An id-targeted update for a token limit that does not exist. */
+export class TokenLimitNotFoundError extends Error {
+  constructor() {
+    super("Token limit not found.");
+    this.name = "TokenLimitNotFoundError";
+  }
+}
+
+function normalizeUpsertInput(input: UpsertTokenLimitInput) {
+  const scopeType = normalizeScopeType(input.scopeType);
+  return {
+    apiKeyId: input.apiKeyId,
+    scopeType,
+    scopeValue: scopeType === "global" ? "" : (input.scopeValue ?? "").trim(),
+    resetInterval: normalizeResetInterval(input.resetInterval),
+    resetTime: typeof input.resetTime === "string" && input.resetTime ? input.resetTime : "00:00",
+    enabled: input.enabled === false ? 0 : 1,
+    tokenLimit: Math.floor(toNumber(input.tokenLimit)),
+  };
+}
+
+function updateTokenLimitById(id: string, row: ReturnType<typeof normalizeUpsertInput>): void {
+  const db = getDbInstance();
+  const clash = db
+    .prepare(
+      `SELECT id FROM api_key_token_limits
+       WHERE api_key_id = @apiKeyId AND scope_type = @scopeType AND scope_value = @scopeValue
+         AND reset_interval = @resetInterval AND id != @id`
+    )
+    .get({ ...row, id });
+  if (clash) throw new TokenLimitConflictError(row.scopeType, row.resetInterval);
+  const result = db
+    .prepare(
+      `UPDATE api_key_token_limits
+       SET scope_type = @scopeType, scope_value = @scopeValue, token_limit = @tokenLimit,
+           reset_interval = @resetInterval, reset_time = @resetTime, enabled = @enabled,
+           updated_at = datetime('now')
+       WHERE id = @id AND api_key_id = @apiKeyId`
+    )
+    .run({ ...row, id });
+  if (result.changes === 0) throw new TokenLimitNotFoundError();
+}
+
+/** Insert, or update the key's existing limit for the same scope AND reset interval. */
+function insertOrMergeTokenLimit(row: ReturnType<typeof normalizeUpsertInput>): string {
+  const db = getDbInstance();
   db.prepare(
     `INSERT INTO api_key_token_limits
        (id, api_key_id, scope_type, scope_value, token_limit, reset_interval, reset_time, enabled, created_at, updated_at)
      VALUES (@id, @apiKeyId, @scopeType, @scopeValue, @tokenLimit, @resetInterval, @resetTime, @enabled, datetime('now'), datetime('now'))
-     ON CONFLICT(api_key_id, scope_type, scope_value)
-     DO UPDATE SET token_limit    = excluded.token_limit,
-                   reset_interval = excluded.reset_interval,
-                   reset_time     = excluded.reset_time,
-                   enabled        = excluded.enabled,
-                   updated_at     = datetime('now')`
-  ).run({ id, apiKeyId: input.apiKeyId, scopeType, scopeValue, tokenLimit, resetInterval, resetTime, enabled });
-
-  const row = db
+     ON CONFLICT(api_key_id, scope_type, scope_value, reset_interval)
+     DO UPDATE SET token_limit = excluded.token_limit,
+                   reset_time  = excluded.reset_time,
+                   enabled     = excluded.enabled,
+                   updated_at  = datetime('now')`
+  ).run({ ...row, id: randomUUID() });
+  const written = db
     .prepare(
-      "SELECT * FROM api_key_token_limits WHERE api_key_id = ? AND scope_type = ? AND scope_value = ?"
+      `SELECT id FROM api_key_token_limits
+       WHERE api_key_id = ? AND scope_type = ? AND scope_value = ? AND reset_interval = ?`
     )
-    .get(input.apiKeyId, scopeType, scopeValue);
-  return rowToTokenLimit(row);
+    .get(row.apiKeyId, row.scopeType, row.scopeValue, row.resetInterval) as { id: string };
+  return written.id;
+}
+
+/**
+ * Save a token limit. With `id`, that row is updated (it may change scope or window; taking
+ * another limit's (scope, reset interval) slot throws TokenLimitConflictError, an unknown id
+ * TokenLimitNotFoundError). Without `id`, a new limit is added — or the key's limit for the same
+ * scope and reset interval is updated, never a limit of another window.
+ */
+export function upsertTokenLimit(input: UpsertTokenLimitInput): TokenLimit {
+  ensureSchema();
+  const row = normalizeUpsertInput(input);
+  const requestedId = input.id?.trim();
+  let id: string;
+  if (requestedId) {
+    updateTokenLimitById(requestedId, row);
+    id = requestedId;
+  } else {
+    id = insertOrMergeTokenLimit(row);
+  }
+  const written = getDbInstance()
+    .prepare("SELECT * FROM api_key_token_limits WHERE id = ?")
+    .get(id);
+  return rowToTokenLimit(written);
 }
 
 /** List all token limits for an API key (ordered most-specific first: model, provider, global). */
@@ -281,11 +345,7 @@ export function incrementWindowTokens(
 }
 
 /** Append a window-reset audit log row. */
-export function logTokenLimitReset(
-  limitId: string,
-  prevTokens: number,
-  windowStart: string
-): void {
+export function logTokenLimitReset(limitId: string, prevTokens: number, windowStart: string): void {
   ensureSchema();
   const db = getDbInstance();
   db.prepare(
