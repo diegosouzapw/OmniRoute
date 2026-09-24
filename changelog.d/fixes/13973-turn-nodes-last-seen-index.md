@@ -1,0 +1,1 @@
+- **fix(backend):** index `conversation_turn_nodes(last_seen_at)` so the 6h retention sweep range-scans instead of full-scanning every batch ([#13973](https://github.com/diegosouzapw/OmniRoute/issues/13973))
