@@ -7,6 +7,8 @@ import {
   GITHUB_COPILOT_CLI_USER_AGENT,
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
+  GITHUB_COPILOT_CLI_INTEGRATION_ID,
+  GITHUB_COPILOT_CHAT_INTEGRATION_ID,
   GITHUB_COPILOT_INTEGRATION_ID,
   GITHUB_COPILOT_INTERACTION_TYPE,
   GITHUB_COPILOT_HARNESS_ID,
@@ -22,6 +24,8 @@ import {
   getGitHubCopilotRefreshHeaders,
   getKiroServiceHeaders,
   getQoderDashscopeCompatHeaders,
+  normalizeCopilotIntegrationId,
+  resolveCopilotIntegrationIdOverride,
 } from "../../open-sse/config/providerHeaderProfiles.ts";
 
 test("provider header profiles expose current GitHub chat and internal headers", () => {
@@ -105,5 +109,68 @@ test("provider header profiles tolerate browser-like process shims", async () =>
     Object.defineProperty(process, "platform", { value: originalPlatform, configurable: true });
     Object.defineProperty(process, "arch", { value: originalArch, configurable: true });
     Object.defineProperty(process, "version", { value: originalVersion, configurable: true });
+  }
+});
+
+test("Copilot integration ID constants and resolution precedence", () => {
+  assert.equal(GITHUB_COPILOT_CLI_INTEGRATION_ID, "copilot-developer-cli");
+  assert.equal(GITHUB_COPILOT_CHAT_INTEGRATION_ID, "copilot-chat");
+  assert.equal(GITHUB_COPILOT_INTEGRATION_ID, GITHUB_COPILOT_CLI_INTEGRATION_ID);
+
+  // normalizeCopilotIntegrationId validates strings and rejects CR/LF or whitespace
+  assert.equal(normalizeCopilotIntegrationId("custom-client"), "custom-client");
+  assert.equal(normalizeCopilotIntegrationId("  custom-client  "), "custom-client");
+  assert.equal(normalizeCopilotIntegrationId(""), null);
+  assert.equal(normalizeCopilotIntegrationId("   "), null);
+  assert.equal(normalizeCopilotIntegrationId("bad\r\nheader"), null);
+  assert.equal(normalizeCopilotIntegrationId("bad\nheader"), null);
+  assert.equal(normalizeCopilotIntegrationId(123), null);
+  assert.equal(normalizeCopilotIntegrationId(null), null);
+
+  // Default headers use CLI integration ID
+  const defaultHeaders = getGitHubCopilotChatHeaders();
+  assert.equal(defaultHeaders["copilot-integration-id"], GITHUB_COPILOT_CLI_INTEGRATION_ID);
+
+  // options.integrationId overrides default
+  const optionHeaders = getGitHubCopilotChatHeaders("application/json", "user", {
+    integrationId: "custom-opt-id",
+  });
+  assert.equal(optionHeaders["copilot-integration-id"], "custom-opt-id");
+
+  // Environment variable override and precedence
+  const originalEnv = process.env.COPILOT_INTEGRATION_ID;
+  try {
+    process.env.COPILOT_INTEGRATION_ID = "env-integration-id";
+    assert.equal(resolveCopilotIntegrationIdOverride(), "env-integration-id");
+
+    // Env overrides default
+    const envHeaders = getGitHubCopilotChatHeaders();
+    assert.equal(envHeaders["copilot-integration-id"], "env-integration-id");
+
+    // options.integrationId takes precedence over env override
+    const optOverEnvHeaders = getGitHubCopilotChatHeaders("application/json", "user", {
+      integrationId: "opt-wins",
+    });
+    assert.equal(optOverEnvHeaders["copilot-integration-id"], "opt-wins");
+
+    // Invalid env value with CR/LF falls back to CLI default
+    process.env.COPILOT_INTEGRATION_ID = "invalid\r\nid";
+    assert.equal(resolveCopilotIntegrationIdOverride(), null);
+    const fallbackHeaders = getGitHubCopilotChatHeaders();
+    assert.equal(fallbackHeaders["copilot-integration-id"], GITHUB_COPILOT_CLI_INTEGRATION_ID);
+
+    // Empty/whitespace env value falls back to CLI default
+    process.env.COPILOT_INTEGRATION_ID = "   ";
+    assert.equal(resolveCopilotIntegrationIdOverride(), null);
+    assert.equal(
+      getGitHubCopilotChatHeaders()["copilot-integration-id"],
+      GITHUB_COPILOT_CLI_INTEGRATION_ID
+    );
+  } finally {
+    if (originalEnv === undefined) {
+      delete process.env.COPILOT_INTEGRATION_ID;
+    } else {
+      process.env.COPILOT_INTEGRATION_ID = originalEnv;
+    }
   }
 });

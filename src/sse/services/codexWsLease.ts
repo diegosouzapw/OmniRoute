@@ -18,7 +18,8 @@ export async function acquireCodexWsLease(
         typeof configuredMaxConcurrent === "number" && configuredMaxConcurrent > 0
           ? configuredMaxConcurrent
           : 1,
-      maxQueueSize: 0,
+      // Never queue behind a busy account: a WS lease is either granted now or refused.
+      failFast: true,
     });
     const leaseId = randomUUID();
     leases.set(leaseId, release);

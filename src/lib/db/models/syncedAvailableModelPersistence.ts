@@ -33,6 +33,7 @@ function scheduleReconcileAfterSyncWrite(): void {
   }, 0);
   reconcileAfterSyncTimer.unref?.();
 }
+
 export function finishSyncedAvailableModelsWrite(): void {
   backupDbFile("pre-write");
   invalidateModelCatalogCache();
@@ -54,6 +55,7 @@ export async function deleteSyncedAvailableModelsForProvider(providerId: string)
   if (changes > 0) finishSyncedAvailableModelsWrite();
   return changes;
 }
+
 export function persistCanonicalSyncedAvailableModels<T>(
   key: string,
   normalizedModels: T[],

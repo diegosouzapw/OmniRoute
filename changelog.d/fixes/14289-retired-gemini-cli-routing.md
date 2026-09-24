@@ -1,0 +1,1 @@
+- **fix(providers):** retired cloud `gemini-cli` connections now fail closed before executor fallback or proxy overrides can route them through another backend ([#14289](https://github.com/diegosouzapw/OmniRoute/pull/14289)) — thanks @peterbussch

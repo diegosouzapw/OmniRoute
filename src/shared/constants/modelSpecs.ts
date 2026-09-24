@@ -197,54 +197,6 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  // Output limit published at https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash.
-  // Thinking budgets follow the 3.7 Flash high/medium/low/tiered split.
-  "gemini-3.8-flash-high": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 24576,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-  },
-  "gemini-3.8-flash-medium": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 8192,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-  },
-  "gemini-3.8-flash-low": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 1024,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-  },
-  "gemini-3.8-flash": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 8192,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-    aliases: ["gemini-3.8-flash-tiered"],
-  },
-  "gemini-3.8-flash-tiered": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 8192,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-  },
 
   // Gemini 3.7 Flash tiers: high 24.5k, medium 8k, low 1k thinking tokens.
   "gemini-3.7-flash-high": {
@@ -285,6 +237,53 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["gemini-3.7-flash-tiered"],
   },
   "gemini-3.7-flash-tiered": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 8192,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  // ── Gemini 3.8 Flash (current Antigravity/AGY live tiers) ─────────
+  "gemini-3.8-flash-high": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 24576,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "gemini-3.8-flash-medium": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 8192,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "gemini-3.8-flash-low": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 1024,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "gemini-3.8-flash": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 8192,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["gemini-3.8-flash-tiered"],
+  },
+  "gemini-3.8-flash-tiered": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
     defaultThinkingBudget: 8192,
@@ -577,6 +576,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
     aliases: ["qwen3.7-max", "qwen3-max-2026-01-23"],
   },
+  // #14181: the GA `qwen3.8-max` is a distinct model served by opencode-go (and
+  // listed bare by alibaba/qwen-cloud/kilocode/clinepass/xkiro) — it gets its own
+  // spec row instead of aliasing to the preview, which remains a separate model.
+  "qwen3.8-max": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
   "qwen3.8-max-preview": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
@@ -584,7 +594,6 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["qwen3.8-max"],
   },
   "qwen3.6-plus": {
     maxOutputTokens: 65536,

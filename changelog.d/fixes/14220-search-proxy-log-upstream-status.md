@@ -1,0 +1,1 @@
+- **fix(proxy-logs):** search proxy-log rows keep the HTTP status the provider actually returned (`upstream_status`, null when no response arrived), matching the chat writer ([#14220](https://github.com/diegosouzapw/OmniRoute/pull/14220)) — thanks @maxmad64bis

@@ -24,6 +24,7 @@ import { vertexGenerateSpeech } from "../executors/vertexMedia.ts";
 import { handleGeminiTtsSpeech } from "../executors/geminiTts.ts";
 import { handleAwsPollySpeech } from "../executors/awsPollyTts.ts";
 import { GttsUpstreamError, normalizeGttsLang, synthesizeGtts } from "../executors/gtts.ts";
+import { handleFishAudioSpeech } from "../executors/fishAudioTts.ts";
 import { errorResponse } from "../utils/error.ts";
 import { resolveElevenLabsVoiceId } from "./elevenLabsVoiceMap.ts";
 import { audioStreamResponse, upstreamErrorResponse } from "../utils/audioResponse.ts";
@@ -442,35 +443,6 @@ async function handleCartesiaSpeech(providerConfig, body, modelId, token) {
       transcript: body.input,
       ...(body.voice ? { voice: { mode: "id", id: body.voice } } : {}),
       output_format: outputFormat,
-    }),
-  });
-
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
-
-  return audioStreamResponse(res);
-}
-
-/**
- * Handle Fish Audio TTS
- * POST { text, format, reference_id, prosody } → binary audio bytes
- * Auth: Authorization: Bearer <api-key>, model as an HTTP header
- * Docs: https://docs.fish.audio/api-reference/endpoint/openapi-v1/text-to-speech
- */
-async function handleFishAudioSpeech(providerConfig, body, modelId, token) {
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      model: modelId,
-    },
-    body: JSON.stringify({
-      text: body.input,
-      format: body.response_format || "mp3",
-      ...(body.voice ? { reference_id: body.voice } : {}),
-      ...(body.speed ? { prosody: { speed: body.speed } } : {}),
     }),
   });
 

@@ -1,1 +1,0 @@
-- **fix(api):** make `/v1/models` stale refresh response-safe and generation-safe, with narrow synced-model invalidation ([#8728](https://github.com/diegosouzapw/OmniRoute/pull/8728)). Related to #8697.

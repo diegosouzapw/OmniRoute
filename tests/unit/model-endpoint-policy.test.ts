@@ -28,6 +28,65 @@ test("OpenAI video models are not chat-selectable without upstream endpoint meta
   });
 });
 
+test("OpenRouter :batch variants are not chat-selectable", () => {
+  for (const modelId of [
+    "google/gemini-3.6-flash:batch",
+    "anthropic/claude-sonnet-4.5:batch",
+    "minimax/minimax-m3:batch",
+    "inkling:batch",
+  ]) {
+    assert.deepEqual(getModelEndpointDecision("openrouter", modelId), {
+      kind: "non-chat",
+      chatSelectable: false,
+      reason: "provider-policy",
+    });
+  }
+});
+
+test("OpenRouter's other variant suffixes stay chat-selectable", () => {
+  // Excluding these would shrink the routable catalogue -- they are routing
+  // hints on the same chat model, not a different endpoint.
+  for (const modelId of [
+    "google/gemini-3.6-flash:free",
+    "anthropic/claude-sonnet-4.5:thinking",
+    "meta-llama/llama-4-70b:nitro",
+    "perplexity/sonar:online",
+    "google/gemini-3.6-flash",
+  ]) {
+    assert.equal(isChatSelectableModel("openrouter", { id: modelId }), true, modelId);
+  }
+});
+
+test("a synthetic chat default does not re-admit an OpenRouter batch variant", () => {
+  // The rows already stored for these carry `["chat"]` as the synthetic import
+  // default, which is exactly what re-imported them.
+  assert.equal(
+    isChatSelectableModel("openrouter", {
+      id: "google/gemini-3.6-flash:batch",
+      supportedEndpoints: ["chat"],
+    }),
+    false
+  );
+});
+
+test("the batch policy is scoped to OpenRouter", () => {
+  assert.equal(isChatSelectableModel("custom-provider", { id: "some-model:batch" }), true);
+  assert.equal(isChatSelectableModel(null, { id: "some-model:batch" }), true);
+});
+
+test("filterChatSelectableModels drops the batch variant and keeps its base model", () => {
+  const models = [
+    { id: "google/gemini-3.6-flash" },
+    { id: "google/gemini-3.6-flash:batch" },
+    { id: "google/gemini-3.6-flash:free" },
+  ];
+
+  assert.deepEqual(
+    filterChatSelectableModels("openrouter", models).map((model) => model.id),
+    ["google/gemini-3.6-flash", "google/gemini-3.6-flash:free"]
+  );
+});
+
 test("provider policy is scoped and does not classify another provider by model name", () => {
   assert.equal(
     isChatSelectableModel("custom-provider", { id: "gpt-image-shaped-chat-model" }),

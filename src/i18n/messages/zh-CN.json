@@ -287,7 +287,7 @@
     "modelNamePlaceholder": "模型名称",
     "mcpQuickStartStep2": "MCP 快速开始步骤 2",
     "quickStart": "快速开始",
-    "fullExportFailedWithError": "完整导出失败并出现错误",
+    "fullExportFailedWithError": "完整导出失败，出现错误",
     "loadingBackups": "正在加载备份",
     "anthropicBaseUrlPlaceholder": "Anthropic 基础 URL",
     "description": "描述",
@@ -359,7 +359,7 @@
     "rerankDesc": "重排说明",
     "modelsPathPlaceholder": "Model 路径",
     "noCombosYet": "暂无 Combo",
-    "connectedVerificationPendingWithError": "已连接，验证待处理并出现错误",
+    "connectedVerificationPendingWithError": "已连接，验证待处理，但出现错误",
     "comboDefaultsGuideHint1": "配置 Combo 默认策略和目标。",
     "enableCloudTitle": "启用云端",
     "configuredProvidersHint": "仅显示已配置的 Provider。",
@@ -369,7 +369,7 @@
     "removeProviderOverrideAria": "移除提供者覆盖",
     "nodeVersion": "Node 版本",
     "openai": "OpenAI",
-    "exportFailedWithError": "导出失败并出现错误",
+    "exportFailedWithError": "导出失败，出现错误",
     "proxyConfigured": "代理已配置",
     "concurrencyPerModel": "每个模型并发数",
     "protocolTasksLabel": "协议任务标签",
@@ -992,12 +992,12 @@
   "featureFlagExposeCcDiscoveryAliasesDescription": "在 /v1/models 上发布 claude/&lt;provider&gt;/&lt;model&gt; 镜像 ID，让 Claude Code 网关模型发现能列出非 Claude 模型。警告：全局启用会使所有客户端的目录条目翻倍。",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; 网关别名的总开关。开启（默认）：/v1/models 会为每个符合条件且支持思考的 Claude 模型公布一个无思考变体，请求中发送的 no-think/ ID 会解析回实际模型，并抑制推理。关闭：不会公布任何变体，no-think/ ID 会像其他未知模型 ID 一样处理。开启此开关时，每个模型的 ModelSpec.noThinkingAlias 选择启用/停用设置仍然适用。",
   "featureFlagChatVirtualLanesEnabledDescription": "为提供者调度启用按租户的自适应虚拟准入通道（#9654）：一个租户的突发流量不再导致另一个租户收到 503。OMNIROUTE_CHAT_VIRTUAL_LANES 环境变量优先于此仪表板设置；更改在服务器重启后生效。",
-  "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "控制面板提供者页面：仅在提供者明确支持的信号上显示“免费”徽章——不再对没有文档说明免费层级的已注册提供者使用显示名称启发式规则、非布尔型免费字段和 :free 后缀。关闭时沿用旧版徽章规则。",
+  "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "控制面板提供者页面：仅根据提供者认可的信号显示“免费”徽章——对于没有文档说明免费层级的已注册提供者，不再使用显示名称启发式规则、非布尔型免费字段和 :free 后缀。关闭时沿用旧版徽章规则。",
   "featureFlagProxySkipRecentlyFailedDescription": "代理池和 opencode 的按账户轮换会在每个进程的一段时间内，停止再次提供刚刚失败的代理（TCP 探测被拒绝，或通过该代理收到 429）。每次重复失败时，该时段都会翻倍，直至达到上限。不会写入代理状态；当所有候选代理都被暂时搁置时，选择保持不变。默认关闭：选择顺序与普通轮换完全相同。",
-  "featureFlagProxyPoolEgressObservationDescription": "在仪表板的代理池下显示：过去 24 小时内观察到多少个出口 IP 为其成员提供服务、使用这些 IP 的连接数，以及单个 IP 背后观察到的最大数量。此信息为只读，根据代理日志计算，绝不用于路由。默认关闭：代理池编辑器保持不变，观测路由返回 null。",
+  "featureFlagProxyPoolEgressObservationDescription": "在仪表板的代理池下显示：过去 24 小时内观察到多少个出口 IP 为其成员提供服务、使用这些 IP 的连接数，以及单个 IP 对应的最大连接数。此信息为只读，根据代理日志计算，绝不用于路由。默认关闭：代理池编辑器保持不变，观测路由返回 null。",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "在代理健康检查中，如果探测被目标拒绝（401/403/429：代理已转发，但目标拒绝了此出口 IP），则像探测成功一样重置代理的连续失败计数。默认关闭：拒绝保持中性，并保留当前连续失败计数。无论如何，5xx 均保持结果不确定，而且拒绝绝不会导致代理被移除、禁用或重新激活。",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "允许自动清理任务删除早于 OMNIROUTE_BATCH_RETENTION_DAYS 的终态（已完成/失败/已取消/已过期）Batch API 作业及其逐行检查点，并清除超过各自 expires_at 的已上传文件的 BLOB 内容。默认关闭：在运维人员选择启用之前，所有现有安装都将继续像以前一样保留这些数据。无论是否启用，运维人员触发的 DELETE /api/v1/batches/delete-completed 路由均不受影响——它是一个独立且无条件执行的公共 API 契约。",
-  "featureFlagXaiOauthLiveModelDiscoveryDescription": "对于 xai-oauth 连接，使用 OAuth 不记名令牌从 https://api.x.ai/v1/models 获取实时 xAI 模型目录，而不是使用固定不变的静态种子数据。默认关闭：xai-oauth 将继续原样提供静态种子数据。出现任何解析错误时，发现功能都会回退到种子数据。",
+  "featureFlagXaiOauthLiveModelDiscoveryDescription": "对于 xai-oauth 连接，使用 OAuth 持有者令牌从 https://api.x.ai/v1/models 获取实时 xAI 模型目录，而不是使用固定不变的静态种子数据。默认关闭：xai-oauth 将继续原样提供静态种子数据。出现任何解析错误时，发现功能都会回退到种子数据。",
   "featureFlagDbHealthcheckStartupDeferredEnabledDescription": "在服务器开始接受请求后运行启动时数据库完整性/健康检查，而不是阻塞启动直至检查完成。默认关闭：启动过程会像此更改之前一样等待检查完成，因此损坏的数据库仍会在处理第一个请求之前被发现。",
   "sidebar": {
     "home": "首页",
@@ -1282,7 +1282,7 @@
     "agentBridgeSubtitle": "拦截 IDE 代理流量",
     "trafficInspector": "流量检查器",
     "trafficInspectorSubtitle": "检查来自应用的请求与响应流量",
-    "trafficInspectorPurpose": "准确查看您的应用向 AI 提供者发送和接收的内容。适用于任何与 OpenAI 兼容的客户端。",
+    "trafficInspectorPurpose": "准确查看您的应用发送给 AI 提供者以及从中接收的内容。适用于任何 OpenAI 兼容客户端。",
     "cliCode": "CLI 代码的",
     "cliCodeSubtitle": "指向 OmniRoute 的代码工具",
     "cliAgents": "CLI 代理",
@@ -1293,6 +1293,9 @@
     "mainNavigation": "主导航",
     "unpinSection": "取消固定分区",
     "pinSectionOpen": "固定分区打开",
+    "pinItem": "固定项目",
+    "unpinItem": "取消固定项目",
+    "pinnedSection": "已固定",
     "reloadPage": "重新加载页面",
     "dragReorderSection": "拖拽以重新排序分区",
     "dragReorderItem": "拖拽以重新排序",
@@ -1893,7 +1896,7 @@
     "noAuthLabel": "无认证",
     "readinessEyebrow": "准备开始路由",
     "readinessTitle": "发送你的第一个请求",
-    "readinessSubtitle": "只需四个小步骤。OmniRoute 会在你操作时检查就绪状态。",
+    "readinessSubtitle": "只需四个小步骤。OmniRoute 会随着你的操作检查就绪状态。",
     "readinessStep1": "连接提供者",
     "readinessStep2": "配置端点身份验证",
     "readinessStep3": "复制端点",
@@ -2306,7 +2309,7 @@
     "savePermissions": "保存权限",
     "endpointRestrictions": "允许的端点",
     "allEndpointsAllowed": "此密钥可以访问所有 API 端点。",
-    "endpointsRestricted": "仅限用于 {count} 个端点。",
+    "endpointsRestricted": "仅限用于 {count} 个端点{count, plural, one {} other {}}。",
     "autoResolve": "自动解析",
     "autoResolveDesc": "为这个 API 密钥自动将有歧义的模型名解析到原生提供者。",
     "streamDefaultMode": "流默认兼容性",
@@ -2423,9 +2426,9 @@
     "bypassProviderQuotaDescription": "允许此密钥在路由期间忽略上游服务商/账户的截止策略。API 密钥的美元配额仍然适用。",
     "quotaPill": "配额",
     "quotaModeOnly": "仅配额",
-    "exclusiveLease": "专属租约",
-    "exclusiveLeaseNoticeTitle": "专属租约",
-    "exclusiveLeaseNoticeDesc": "此 API 密钥拥有用于专用连接路由的专属租约权限。",
+    "exclusiveLease": "独占租约",
+    "exclusiveLeaseNoticeTitle": "独占租约",
+    "exclusiveLeaseNoticeDesc": "此 API 密钥拥有用于专用连接路由的独占租约权限。",
     "allConnections": "所有连接",
     "onlySelectedConnections": "仅选定的连接",
     "selectAtLeastOneConnection": "请至少选择一个连接，或选择“所有连接”。",
@@ -3674,7 +3677,7 @@
     "wizardStep4Title": "审查并保存",
     "wizardStep4Desc": "审查您的配置并激活组合",
     "usageGuideInvokeTitle": "如何调用此组合",
-    "usageGuideInvokeDesc": "将组合的确切名称作为模型发送，例如 model: \"my-combo\"（或 combo/my-combo）。",
+    "usageGuideInvokeDesc": "将组合的确切名称作为模型名称发送，例如 model: \"my-combo\"（或 combo/my-combo）。",
     "usageGuideInvokeAutoNote": "auto 和 auto/* 是一个独立的零配置路由器，不会使用你的组合（除非某个组合确实命名为 auto）。",
     "usageGuideInvokeOpenrouterNote": "openrouter/auto 是真正的 OpenRouter 付费产品（Auto Best Available），并非 OmniRoute 别名——可通过“设置 → 路由 → 隐藏付费模型”将其排除。",
     "emailVisibilityStateOn": "开启",
@@ -4675,8 +4678,8 @@
     "allOperational": "所有系统均可运行",
     "issuesDetected": "检测到系统问题",
     "healthVerdictReady": "OmniRoute 已就绪",
-    "healthVerdictActionRequired": "需要采取操作以恢复完整运行",
-    "healthVerdictCoolingDown": "近期更改后正在冷却",
+    "healthVerdictActionRequired": "需要采取操作以完全恢复运行",
+    "healthVerdictCoolingDown": "近期更改后正处于冷却期",
     "healthSubtitle": "系统健康检查",
     "advancedDiagnosticsTitle": "高级诊断",
     "hide": "隐藏",
@@ -5015,6 +5018,8 @@
     "failedSetPassword": "设置密码失败。再试一次。",
     "failedAddProvider": "添加提供者失败。再试一次。",
     "connectionError": "连接错误。请再试一次。",
+    "bootstrapTokenLabel": "引导令牌",
+    "bootstrapTokenHelp": "此连接未被识别为本地连接（使用 Docker 端口转发时很常见）。请在服务器/容器日志中查找一次性引导令牌，并将其粘贴到上方以继续。",
     "provider": "提供者",
     "apiKeyHelp": "API密钥是AI服务的密码。从提供者的网站（例如 platform.openai.com、console.anthropic.com）获取一个。",
     "tier": {
@@ -5058,6 +5063,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "提供者",
     "Account Deactivated": "账户已停用",
     "allProviders": "所有提供者",
@@ -5086,7 +5096,7 @@
     "importFromFileImport": "导入 {count} 个服务商",
     "importFromFileResult": "已导入 {success} 个服务商（{failed} 个失败）",
     "importFromFileDownloadTemplate": "下载 CSV 模板",
-    "importFromFileMoreErrors": "另有 +{count} 项",
+    "importFromFileMoreErrors": "+{count} 项",
     "importFromFileSchemaHint": "CSV 列按位置排列：provider、name、apiKey、baseUrl（可选）、priority（可选）。provider 列必须是现有的托管提供者 ID，或已注册的 OpenAI/Anthropic 兼容节点 ID——此导入操作不会创建新的端点节点。",
     "adaptaTutorial": {
       "title": "如何连接 Adapta Web",
@@ -5549,7 +5559,7 @@
     "ccAliasSectionTitle": "在 Claude Code 中公开（claude/…）",
     "ccAliasSectionHint": "使用 claude/&lt;provider&gt;/&lt;model&gt; 镜像 ID 公布此提供者的模型，以便 Claude Code 的网关模型发现功能列出这些模型。默认关闭 — 启用后，所有客户端的目录条目数量将翻倍。",
     "ccAliasProviderLevelLabel": "提供者默认设置",
-    "ccAliasModelOverridesLabel": "按模型覆盖",
+    "ccAliasModelOverridesLabel": "各模型的覆盖设置",
     "ccAliasModelOverrideAriaLabel": "覆盖 {modelId} 的设置",
     "ccAliasStateInherit": "继承",
     "ccAliasStateOn": "开启",
@@ -5795,6 +5805,10 @@
     "grokWebCookieHint": "从 Grok Web 会话复制 Cookie。",
     "blockClaudeExtraUsageDescription": "隐藏部分供应商返回的重复Claude额外用量记录，避免和主token统计重复。",
     "blockClaudeExtraUsageLabel": "屏蔽重复Claude用量",
+    "claudeLowPriorityModeLabel": "达到 5 小时限额后以较低优先级继续",
+    "claudeLowPriorityModeDescription": "当此账户达到 5 小时使用限额且 Anthropic 提供较低优先级通道时，OmniRoute 会接受该通道，并继续发送带有 anthropic-usage-limit: slow 的请求，直到时间窗口重置，而不是让连接进入冷却状态。每周限额仍然适用，响应可能需要等待空闲容量。",
+    "claudeAutoLimitResetLabel": "自动重置会话限额（每周一次）",
+    "claudeAutoLimitResetDescription": "当此账户达到 5 小时使用限额且有可用的会话限额重置机会时，OmniRoute 会自动使用该机会，并以全速重试。这会使用账户每周一次的重置机会，且仍会计入每周限额。",
     "disableCoolingDescription": "跳过瞬态冷却，以便此连接在发生可恢复错误后仍符合条件（被禁/过期等终态仍适用）。",
     "disableCoolingLabel": "禁用此连接的冷却",
     "bulkPasteAdded": "{count, plural, one {已添加 1 个 key} other {已添加 # 个 key}}",
@@ -5972,8 +5986,8 @@
     "validationModelIdHint": "用于验证此提供者连接的模型 ID。",
     "validationModelIdLabel": "验证模型 ID",
     "validationModelIdPlaceholder": "输入用于测试的模型 ID",
-    "vertexCredentialLabel": "API Key or Service Account JSON",
-    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
+    "vertexCredentialLabel": "API 密钥或服务账号 JSON",
+    "vertexCredentialHint": "API 密钥使用精选项目目录。服务账号 JSON 支持实时发现 Model Garden 中的模型。",
     "vertexServiceAccountPlaceholder": "粘贴 Service Account JSON（{\"type\":\"service_account\"...}）或 OAuth access_token",
     "webCookieProviders": "Web Cookie 提供者",
     "weeklyShort": "每周",
@@ -6136,7 +6150,7 @@
       "agentrouter": "在 https://agentrouter.org/register 获取 $200 免费额度 — 无需信用卡。",
       "unorouter": "在 https://unorouter.ai 创建一个 API 密钥，然后将其作为 Bearer 令牌粘贴到这里。",
       "agnes": "在 agnes-ai.com 获取 API 密钥",
-      "agnes-cn": "使用中国站（api.agnes-ai.cn）签发的 API 密钥连接 Agnes。国际站（apihub.agnes-ai.com）的密钥不能用。",
+      "agnes-cn": "使用中国站（api.agnes-ai.cn）签发的 API 密钥连接 Agnes AI。国际站（apihub.agnes-ai.com）的密钥不能用。",
       "aimlapi": "免费层已暂停 (2026) — AI/ML API 现在仅支持按需付费（最低充值 $20）；无循环免费额度。",
       "ai21": "注册即送 $10 体验额度（有效期 3 个月），无需信用卡",
       "alibaba": "使用 API 密钥连接阿里巴巴。",
@@ -6278,7 +6292,6 @@
       "stability-ai": "使用 API 密钥连接 Stability AI。",
       "stepfun": "在 platform.stepfun.com 获取 API 密钥",
       "sumopod": "SumoPod 在 https://ai.sumopod.com/v1/chat/completions 提供了兼容 OpenAI 的 chat completions 端点，以及实时的 /v1/models 目录。OmniRoute 使用 OpenAI 协议并通过直通方式列出模型。",
-      "suno": "粘贴来自 suno.ai 的 session cookie（Clerk 认证）",
       "synthetic": "使用 API 密钥连接 Synthetic。",
       "tencent": "在 console.cloud.tencent.com 获取 API 密钥",
       "thebai": "用于 TheB.AI 兼容 OpenAI 网关的 Bearer API 密钥。",
@@ -6709,12 +6722,12 @@
     "autoDisableDescription": "若提供者连接返回特定的永久封禁信号（如 HTTP 403\"请验证您的账户\"），则将其永久标记为停用。这会将其从组合轮换中移除。",
     "autoDisableThreshold": "封禁阈值",
     "autoDisableThresholdDesc": "触发永久停用所需的连续封禁信号次数。",
-    "autoDisableBannedScope": "自动停用应用于",
-    "autoDisableBannedScopeDesc": "如果 OmniRoute 在被封禁后持续重试，登录席位（付费订阅和免费账户）可能会被上游锁定。付费预付费 API 密钥没有此风险——请将其保留在池中，以便优先填充策略使用下一个密钥。",
+    "autoDisableBannedScope": "自动停用的应用范围",
+    "autoDisableBannedScopeDesc": "如果 OmniRoute 在被封禁后持续重试，登录席位（付费订阅和免费账户）可能会被上游锁定。付费预付费 API 密钥没有此风险——请将其保留在池中，以便 fill-first 使用下一个密钥。",
     "autoDisableBannedScopeAll": "所有连接",
     "autoDisableBannedScopeAllDesc": "停用所有返回永久封禁信号的连接，包括预付费 API 密钥。",
     "autoDisableBannedScopeSubscription": "仅登录 / 订阅账户",
-    "autoDisableBannedScopeSubscriptionDesc": "停用 OAuth、Cookie、会话和网页登录席位（付费或免费）。预付费 API 密钥保持启用，以便路由进行故障转移。",
+    "autoDisableBannedScopeSubscriptionDesc": "停用 OAuth、cookie、会话和网页登录席位（付费或免费）。预付费 API 密钥保持启用，以便路由进行故障转移。",
     "customBannedSignals": "封禁关键词",
     "customBannedSignalsDesc": "触发永久封号检测的附加关键词。内置关键词始终生效。",
     "customBannedSignalsPlaceholder": "例如 api key revoked",
@@ -7107,11 +7120,11 @@
     "quotaPreflightTitle": "配额预检阈值",
     "quotaPreflightSubtitle": "在将请求发送到上游之前，跳过配额已耗尽的账户",
     "quotaPreflightEnable": "启用配额预检",
-    "quotaPreflightEnableDesc": "每次请求前，检查账户的剩余配额（5 小时 / 每周 / 每月窗口）。配额等于或低于阈值的账户将被跳过，且不会调用上游。在“提供者配额”页面设置的各窗口阈值始终优先于此处的默认值。",
+    "quotaPreflightEnableDesc": "每次请求前，检查账户的剩余配额（5 小时 / 每周 / 每月窗口）。配额等于或低于阈值的账户将被跳过，且不会调用上游。在 Provider Quota 页面设置的各窗口阈值始终优先于此处的默认值。",
     "quotaPreflightCutoff": "全局截止阈值（最低剩余百分比）",
     "quotaPreflightCutoffDesc": "当账户的剩余额度降至此百分比或更低时，停止使用该账户；适用于所有未单独设置截止阈值的窗口。此值与 Provider Quota 页面上的剩余百分比进度条一致。",
     "quotaPreflightWindowsHint": "已设置窗口级或提供者级截止阈值的窗口（在 Provider Quota 页面的 Cutoff 弹窗中设置）不受此默认值影响。",
-    "quotaPreflightLoadFailed": "无法加载额度预检设置。",
+    "quotaPreflightLoadFailed": "无法加载配额预检设置。",
     "modelAliases": "模型别名",
     "modelAliasesTitle": "模型别名",
     "modelAliasesDesc": "使用精确匹配或通配符模式重映射模型名称。",
@@ -7491,6 +7504,8 @@
     "clearSyncedPricing": "清除同步定价",
     "compressionTitle": "提示词压缩",
     "compressionDesc": "在发送给提供者之前压缩提示词，以减少 token 使用量",
+    "autoCombosTitle": "自动组合",
+    "autoCombosDesc": "允许此密钥使用内置的 auto/* 组合，这些组合会从所有已配置的提供者中自动选择模型",
     "compressionGuidanceFullGuideLink": "完整压缩指南",
     "compressionGuidanceShow": "详情",
     "compressionGuidanceHide": "隐藏详情",
@@ -7626,7 +7641,7 @@
     "resilienceRequestsPerMinute": "每分钟请求数",
     "resilienceMinTimeBetweenRequests": "请求之间的最小时间",
     "resilienceConcurrentRequests": "并发请求数",
-    "resilienceConnectionScopeConcurrentRequests": "每个连接/额度范围的并发请求数",
+    "resilienceConnectionScopeConcurrentRequests": "每个连接/配额范围的并发请求数",
     "resilienceGlobalConcurrentRequests": "全局上游并发请求数（0 = 禁用）",
     "resilienceMaxQueueWaitTime": "最大队列等待时间",
     "resilienceBaseCooldown": "基础冷却时间",
@@ -7782,7 +7797,7 @@
     "retentionMcpAudit": "MCP 审核（天）",
     "retentionA2aEvents": "A2A 活动（天）",
     "retentionCallLogs": "通话记录（天）",
-    "retentionConversationTurnNodes": "Conversation turn nodes (days)",
+    "retentionConversationTurnNodes": "对话轮次节点（天）",
     "retentionUsageHistory": "使用历史（天）",
     "retentionMemoryEntries": "内存条目（天）",
     "retentionXpAuditLog": "XP 审计日志（天数）",
@@ -8398,7 +8413,12 @@
     "cliproxyapiHealth": "健康",
     "cliproxyapiPort": "端口",
     "qdrantHost": "主机",
-    "qdrantCollection": "集合"
+    "qdrantCollection": "集合",
+    "catalogScopeTitle": "Models API 列表",
+    "catalogScopeDesc": "GET /v1/models 为此密钥公开的内容。缩小列表范围绝不会改变此密钥可以调用的模型。",
+    "catalogScopeAll": "两者",
+    "catalogScopeCombos": "仅组合",
+    "catalogScopeModels": "仅模型"
   },
   "contextRtk": {
     "title": "命令输出过滤引擎",
@@ -8691,7 +8711,7 @@
     "contextEditingNote": "目前仅适用于 Claude (Anthropic)。这是一种委托模式：提供者在服务端清除旧的工具使用块 — 我们不会重写消息。这不会影响其他提供者。",
     "namedCombos": "命名组合",
     "namedCombosDescription": "保存不同的流水线并将其分配给特定的路由组合。",
-    "activeProfileMasterSwitchOffWarning": "在主“提示词压缩”开关开启之前，下方的活动配置文件不会运行。",
+    "activeProfileMasterSwitchOffWarning": "在主“提示词压缩”开关开启之前，下方当前启用的配置文件不会运行。",
     "activeProfileMasterSwitchOffCta": "在“设置”中开启",
     "comboNamePlaceholder": "组合名称",
     "descriptionPlaceholder": "描述",
@@ -8823,7 +8843,7 @@
       },
       "codingSafe": {
         "label": "编码安全",
-        "description": "将权限指令、工具架构和实时工具输出保持为原生形式，并保护最近 12 轮对话。在会话积累历史记录之前不会压缩任何内容。"
+        "description": "将权威内容、工具架构和实时工具输出保持为原生形式，并保护最近 12 轮对话。在会话积累历史记录之前不会压缩任何内容。"
       },
       "passthrough": {
         "label": "直通",
@@ -9534,6 +9554,13 @@
     "confirmRedeemResetCreditButton": "兑换额度",
     "resetCreditRedeemed": "重置已兑换",
     "resetCreditRedeemFailed": "兑换重置额度失败",
+    "glmResetCreditsModalTitle": "GLM Coding Plan 重置卡",
+    "glmResetCreditsModalExplainer": "重置卡按过期时间排序。请选择要重置的 5 小时或每周使用周期。",
+    "glmResetCreditFiveHourTitle": "重置 5 小时使用周期",
+    "glmResetCreditWeekTitle": "重置每周使用周期",
+    "glmConfirmRedeemResetCredit": "兑换后会立即重置所选使用周期，并永久消耗此卡。",
+    "glmConfirmRedeemFiveHourResetCredit": "兑换后会立即重置 5 小时使用周期，并永久消耗此卡。",
+    "glmConfirmRedeemWeekResetCredit": "兑换后会立即重置每周使用周期，并永久消耗此卡。",
     "suiteBuilderSaveFailed": "保存套件失败",
     "clone": "克隆",
     "exportSuite": "导出",
@@ -10994,6 +11021,9 @@
     "poolEgressObservation": "{exits, plural, one {# 个出口} other {# 个出口}}，由 {connections, plural, one {# 个连接} other {# 个连接}}使用 · 单个出口最多 {max} 个连接 · 过去 {hours} 小时",
     "poolEgressObservationEmpty": "过去 {hours} 小时内未观察到流量",
     "poolEgressObservationHint": "根据此时间窗口内的代理日志统计：观察到此池成员使用的不同出口 IP，以及使用这些 IP 的 OmniRoute 连接。“单个出口”是指整个时间窗口内，而不是同一时刻。每个 IP 的 429 锁定仅会暂停同一提供者系列的连接。",
+    "poolMemberEgress": "{host}:{port} 通过 {egressIp} 离开 · 过去 {hours} 小时",
+    "poolMemberEgressEmpty": "{host}:{port}：过去 {hours} 小时内未观察到流量",
+    "poolMemberEgressHint": "在此时间窗口内通过该池成员观察到的最近出口 IP，读取自代理日志。时间窗口内无流量的成员将显示无流量提示。",
     "poolRemove": "移除",
     "poolRemoveFailed": "从池中移除代理失败",
     "poolAddLabel": "添加代理",
@@ -11397,6 +11427,7 @@
         "clientResponse": "客户端响应",
         "pipelineError": "管道错误"
       },
+      "payloadSizeLimitOmitted": "已省略负载 — 此部分超出了调用日志大小限制（CALL_LOG_PIPELINE_MAX_SIZE_KB），未被存储；这不是真正的上游错误。",
       "payloadMissing": "此日志条目的详细有效负载工件不再可用。",
       "payloadCorrupt": "无法解析详细的有效负载工件。",
       "notAvailable": "不适用",
@@ -11449,8 +11480,8 @@
       "correlationId": "关联 ID",
       "correlationIdValue": "关联 ID: {id}",
       "detailedPayloadInfo": "如果您想要新请求的四阶段客户端/提供者负载视图，请先启用详细日志记录。",
-      "copyAll": "全部复制",
-      "copiedAll": "已全部复制"
+      "copyAll": "复制全部",
+      "copiedAll": "已复制全部"
     }
   },
   "proxyLogger": {
@@ -12195,6 +12226,29 @@
     "raw": "原始"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI 助手",
+      "intro": "复制命令，在安装了 CLI 的计算机上运行。此面板不会执行命令，也不会复制凭据。",
+      "hostNotice": "检测结果描述的是 OmniRoute 服务器主机，而非运行此浏览器的计算机。已配置并不代表已测试推理。",
+      "target": "CLI 工具",
+      "context": "现有上下文名称（可选）",
+      "contextHint": "留空以使用 CLI 当前启用的上下文。命名上下文可以指向本地或远程服务器；请先在终端中列出它们。",
+      "contextInvalid": "使用 1–64 个字母、数字、点、连字符或下划线，并以字母或数字开头。",
+      "modelHint": "此 CLI 需要指定模型。复制启动预览之前，请输入真实的提供者/模型标识符。",
+      "modelInvalid": "模型标识符须以字母或数字开头，且不含空格或 shell 特殊字符。",
+      "runtime": "运行环境",
+      "runnable": "可运行",
+      "notRunnable": "不可运行",
+      "unknown": "未知",
+      "detectionError": "无法检测服务器。请刷新检测以重试；终端命令仍可使用。",
+      "contextsStep": "检查终端上下文",
+      "configureStep": "选择模型并配置",
+      "runStep": "预览启动",
+      "configureHint": "此交互式命令会在执行该命令的计算机上写入 CLI 配置。",
+      "runHint": "模拟运行仅显示启动计划，不会启动 CLI。这不是推理测试。",
+      "copyFailed": "无法复制。请选中命令并手动复制。",
+      "empty": "此版本没有可执行的 CLI 目标。请使用下方的工具指南。"
+    },
     "concept": {
       "code": {
         "title": "CLI 代码的",
@@ -12752,8 +12806,8 @@
     "badges": {
       "radar-supporter": {
         "name": "Radar 支持者",
-        "description": "已验证实时 OmniRoute Radar 支持者源",
-        "criteria": "验证经过签名的实时 Radar 支持者源。"
+        "description": "已验证实时 OmniRoute Radar 支持者数据源",
+        "criteria": "验证经过签名的实时 Radar 支持者数据源。"
       },
       "first-token": {
         "name": "首个 Token",
@@ -13064,7 +13118,7 @@
         "description": "对于聚合的 429/503 不可用响应，如果无法确定具体的未来重试时间，则省略 Retry-After，而不是发送人为设定的 1 秒；添加 error.retry_after_provenance，并读取组合耗尽路径中的文本重试提示。"
       },
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
-        "label": "受保护优先级基础设施停止返回 502",
+        "label": "受保护优先级基础设施中止时返回 502",
         "description": "当仅配额回退的优先级目标因可证实并非配额的原因（提供者断路器处于打开状态或预测性延迟跳过）而停止组合时，返回 502 而不是 503。"
       }
     }
@@ -13343,12 +13397,12 @@
       "effort": {
         "inherit": "保留请求的推理强度",
         "default": "设为默认值",
-        "force": "强制推理力度"
+        "force": "强制推理强度"
       },
       "effortHint": {
-        "inherit": "保持请求的推理力度不变。",
-        "default": "仅当请求未指定推理力度时使用此力度。",
-        "force": "即使客户端指定了其他值，也请求使用此力度。请检查最终的上游请求以验证提供者的行为。"
+        "inherit": "保持请求的推理强度不变。",
+        "default": "仅当请求没有推理信号时使用此推理强度。",
+        "force": "即使客户端指定了其他值，也请求使用此推理强度。请检查最终的上游请求，以验证提供者的行为。"
       },
       "advanced": "高级：标签、优先级和思考预算",
       "priorityHint": "在同一作用域内，值越高优先级越高。API 密钥规则优先于组合、模型和全局规则。",
@@ -13531,8 +13585,8 @@
     "accessAbuseRule": "滥用审核——24 小时内出现第 4 个不同的 IP 只会触发人工审核标记；绝不会自动阻止或撤销密钥。",
     "accessOffersRule": "实时优惠由人工策划，可能会变更或过期。",
     "privacyTitle": "Radar 会交换哪些信息",
-    "privacyDownloadsRule": "下载——您的安装实例会接收经过加密签名的目录和推荐元数据；有效的实时密钥还可解锁经过签名的优惠和 Intel。",
-    "privacySendsRule": "发送——服务器端同步会将支持者密钥作为 Bearer token 发送，HTTPS 基础设施也会接收到连接 IP。源请求统计不会以原始形式存储这两项数据：仅保留密钥哈希、汇总用量，以及用于滥用审核且每日轮换的截断 IP HMAC。",
+    "privacyDownloadsRule": "下载——您的安装实例会接收经过密码学签名的目录和推荐元数据；有效的实时密钥还可解锁经过签名的优惠和 Intel。",
+    "privacySendsRule": "发送——服务器端同步会将支持者密钥作为 Bearer token 发送，HTTPS 基础设施也会接收到连接 IP。数据源请求统计不会以原始形式存储这两项数据：仅保留密钥哈希、汇总用量，以及用于滥用审核且每日轮换的截断 IP HMAC。",
     "privacyNeverRule": "绝不收集——提示词、响应、对话、提供者凭据、模型流量、正常运行时间、延迟和本地提供者配置绝不会发送到 Radar。",
     "activateButton": "激活社区版",
     "activating": "正在激活...",
@@ -13548,9 +13602,9 @@
     "colProvider": "提供者",
     "colModel": "模型",
     "colQuota": "配额",
-    "colLimits": "速率限制",
+    "colLimits": "限制",
     "trainsOnPrompts": "使用提示词进行训练",
-    "trainsOnPromptsHelp": "此提供者的条款表明，其可能会使用您发送的提示词进行训练。没有此标记的模型要么声明不会这样做，要么未对此进行说明——未作声明并不构成保证。",
+    "trainsOnPromptsHelp": "此提供者披露其可能会使用您的提示词训练模型",
     "limitsUnknownHelp": "限制仅由 Radar 数据源报告；此条目没有已发布的限制",
     "contextUnknownHelp": "此条目的上下文窗口未知",
     "capabilityUnknownHelp": "数据源未报告此能力",
@@ -13565,7 +13619,7 @@
     "capThinking": "思考",
     "catalogTab": "目录",
     "freeCreditsTab": "免费额度",
-    "freeCreditsSubtitle": "来自 Radar 跟踪的提供者的推荐链接——使用这些链接不会产生任何额外费用，同时还能帮助支持 OmniRoute。",
+    "freeCreditsSubtitle": "来自 Radar 跟踪的提供者的推荐链接——使用这些链接不会产生任何额外费用，也有助于支持 OmniRoute。",
     "fixedLinksEmpty": "暂无可用的推荐链接。同步 Radar 以检查更新。",
     "requiredActionLabel": "操作步骤：",
     "claimButton": "领取额度",
@@ -13738,7 +13792,7 @@
   },
   "featureFlagCapabilityFilterEnabledDescription": "在目标模型缺少所需能力（视觉、工具、结构化输出、上下文窗口）时，拒绝调度前的请求。保护绕过组合层兼容性过滤器的直接单一提供者请求。",
   "featureFlagDisableContextWindowChecksDescription": "对于直接发送到单个模型的请求，跳过 OmniRoute 本地的上下文窗口和最大输入令牌检查。上游提供者仍会强制执行其实际限制。提示词压缩和输出令牌上限仍然有效。",
-  "featureFlagSearchStatsHideDeletedConnectionsDescription": "搜索统计信息和最近搜索仅统计仍保持实时连接的提供者（无需密钥的提供者，如 duckduckgo-free，始终会被统计）。关闭时，将保留每一条包含提供者 ID 的搜索记录。",
+  "featureFlagSearchStatsHideDeletedConnectionsDescription": "搜索统计信息和最近搜索仅统计仍有有效连接的提供者（无需密钥的提供者，如 duckduckgo-free，始终会被统计）。关闭此选项后，会保留每一条带有提供者 ID 的已留存搜索记录。",
   "publicSystem": {
     "notFound": {
       "title": "页面未找到",
@@ -14215,7 +14269,7 @@
     "supporterBadge": "Radar 支持者",
     "methodology": "方法论",
     "eloMethod": "ELO，初始值 {initial}，K={factor}",
-    "freshness": "目录新鲜度",
+    "freshness": "目录时效性",
     "ageDays": "{days, plural, one {# 天前} other {# 天前}}",
     "trend": "目录趋势",
     "modelDelta": "{current} 个模型，+{added} / -{removed}",
@@ -14226,9 +14280,9 @@
     "rating": "评分",
     "matches": "对局数",
     "freshnessValues": {
-      "fresh": "新鲜",
-      "aging": "逐渐老化",
-      "stale": "陈旧"
+      "fresh": "较新",
+      "aging": "逐渐过时",
+      "stale": "已过时"
     },
     "trendValues": {
       "growing": "增长中",
@@ -14243,11 +14297,11 @@
     "contextWindowMismatch": "请求超出提供者上下文窗口"
   },
   "cheaperInferenceSponsorBanner": {
-    "title": "Cheaper Inference 是 OmniRoute 的开源合作伙伴",
-    "description": "一个按成本排序的网关，通过单一 OpenAI 兼容端点转售数十种前沿模型——将每个请求路由至符合条件且价格最低的提供者，并且绝不高于标价。",
+    "title": "Cheaper Inference 是 OmniRoute 的开源之友",
+    "description": "一个按成本排序的网关，通过单一 OpenAI 兼容端点转售数十种前沿模型——将每个请求路由至符合条件且价格最低的提供者，且绝不高于标价。",
     "cta": "获取 API 密钥",
     "partnerLinkNote": "合作伙伴链接",
     "dismissAriaLabel": "关闭"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "禁止在 /v1/models 目录中生成思考级别变体（例如 -low、-medium、-high）。"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "禁用在 /v1/models 目录中生成思考级别变体（例如 -low、-medium、-high）。"
 }

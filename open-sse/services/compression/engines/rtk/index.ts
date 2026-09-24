@@ -314,7 +314,7 @@ export function processRtkText(
   // #13388: skip dedup for non-shell tool results (file reads, grep, glob, etc.)
   // where repeated structural lines are semantically meaningful. Also skip when
   // the content is a document-like read to avoid false-positive dedup on code files.
-  const shouldSkipDedup = options.skipFilters || isDocumentLikeRead;
+  const shouldSkipDedup = Boolean(options.skipFilters);
   const deduped = shouldSkipDedup
     ? { text: result, collapsed: 0 }
     : deduplicateRepeatedLines(result, { threshold: config.deduplicateThreshold });

@@ -353,21 +353,6 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
-  "gemini-business": {
-    id: "gemini-business",
-    serviceKinds: ["llm"],
-    alias: "gembiz",
-    name: "Gemini Business (Enterprise)",
-    icon: "business_center",
-    color: "#4285F4",
-    textIcon: "GB",
-    website: "https://business.gemini.google",
-    hasFree: true,
-    freeNote:
-      "Free for Google Workspace enterprise accounts — enterprise Gemini models (Pro, Flash, image, video) via direct StreamGenerate HTTP API. No subscription required, just enterprise SSO.",
-    authHint:
-      "From your enterprise account: open business.gemini.google/home/cid/{your-cid}, then copy __Secure-1PSID and __Secure-1PSIDTS cookies from DevTools → Application → Cookies. Paste as a cookie header below.",
-  },
   "zenmux-free": {
     id: "zenmux-free",
     serviceKinds: ["llm"],

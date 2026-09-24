@@ -34,7 +34,10 @@ import {
   validateCodexWsDecision,
 } from "@/lib/reasoningRouting/policy";
 import { resolveRequestRoutingTags } from "@/domain/tagRouter";
-import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
+import {
+  validateApiKeyRoutingTarget,
+  type ApiKeyMetadata as PolicyApiKeyMetadata,
+} from "@/shared/utils/apiKeyPolicy";
 import { persistResponsesWsCallHistory } from "./history";
 import { applyResponsesWsCompression } from "./compression";
 import { getComboByName } from "@/lib/db/combos";
@@ -50,7 +53,52 @@ const executor = new CodexExecutor();
 const log = logger("RESPONSES_WS");
 
 type JsonRecord = Record<string, unknown>;
-type ApiKeyMetadata = Awaited<ReturnType<typeof getApiKeyMetadata>>;
+// Key metadata reaches this bridge from two sources that each declare their own
+// shape: `getApiKeyMetadata()` (every field required) and `enforceApiKeyPolicy()`
+// (every field optional). The policy shape is the wider of the two and the db
+// shape is assignable to it, so it is the only one that can hold both — pinning
+// the alias to the db shape is what produced the "Type 'ApiKeyMetadata' is
+// missing … from type 'ApiKeyMetadata'" mismatch at the policy boundary.
+type ApiKeyMetadata = PolicyApiKeyMetadata | null;
+
+/**
+ * Bridge helpers below either fail with a ready-made HTTP response or return
+ * their success payload. `error` must exist on exactly ONE member of each union:
+ * for an unannotated object-literal union TypeScript synthesises `error?:
+ * undefined` on the success member, and `"error" in x` then keeps that member
+ * too — which is how every `if ("error" in context)` guard in this file silently
+ * stopped narrowing. Annotating the returns keeps the discriminant real.
+ */
+type CodexWsFailure = { error: Response };
+
+type CodexWsReasoningRoute = {
+  decision: Awaited<ReturnType<typeof resolveReasoningRoutingRule>>;
+  intent: ReturnType<typeof extractReasoningIntent>;
+  sourceModels: Awaited<ReturnType<typeof resolveReasoningSourceModels>>;
+  routingTags: ReturnType<typeof resolveRequestRoutingTags>;
+};
+
+type CodexWsCredentials = {
+  credentials: NonNullable<Awaited<ReturnType<typeof checkAndRefreshToken>>>;
+  leaseId: string;
+};
+
+type CodexWsRequestContext = CodexWsReasoningRoute & {
+  authRequest: Request;
+  apiKey: string | null;
+  responseBody: JsonRecord;
+  requestedModel: string;
+  clientHeaders: Record<string, string>;
+  metadata: ApiKeyMetadata;
+  allowedConnections: string[] | null;
+};
+
+type CodexWsUpstreamContext = CodexWsRequestContext &
+  CodexWsCredentials & {
+    provider: string;
+    model: string;
+    reasoningDecision: Awaited<ReturnType<typeof resolveReasoningRoutingRule>>;
+  };
 
 const bridgePayloadSchema = z
   .object({
@@ -325,10 +373,10 @@ async function enforceCodexWsApiKeyPolicy(
 async function prepareReasoningRoute(
   authRequest: Request,
   apiKey: string | null,
-  metadata: ApiKeyMetadata | null,
+  metadata: ApiKeyMetadata,
   requestedModel: string,
   responseBody: JsonRecord
-) {
+): Promise<CodexWsFailure | CodexWsReasoningRoute> {
   const reasoningIntent = extractReasoningIntent(requestedModel, responseBody);
   const sourceModels = await resolveReasoningSourceModels(reasoningIntent.model, (model) =>
     resolveCodexWsModelInfo(model, getModelInfo)
@@ -373,7 +421,7 @@ async function resolveCodexCredentials(
   provider: string,
   model: string,
   allowedConnections: string[] | null
-) {
+): Promise<CodexWsFailure | CodexWsCredentials> {
   const excludedConnectionIds: string[] = [];
   let credentials: Awaited<ReturnType<typeof getProviderCredentialsWithQuotaPreflight>> = null;
 
@@ -428,7 +476,9 @@ async function resolveCodexCredentials(
   };
 }
 
-async function resolveCodexRequestContext(body: JsonRecord) {
+async function resolveCodexRequestContext(
+  body: JsonRecord
+): Promise<CodexWsFailure | CodexWsRequestContext> {
   if (!isFeatureFlagEnabled("OMNIROUTE_CODEX_WS_ENABLED")) {
     return {
       error: jsonError(503, "codex_ws_disabled", "Codex Responses WebSocket transport is disabled"),
@@ -477,7 +527,7 @@ async function resolveCodexRequestContext(body: JsonRecord) {
     requestedModel,
     responseBody
   );
-  if (reasoningRoute.error) return { error: reasoningRoute.error };
+  if ("error" in reasoningRoute) return reasoningRoute;
   return {
     authRequest,
     apiKey,
@@ -491,8 +541,8 @@ async function resolveCodexRequestContext(body: JsonRecord) {
 }
 
 async function resolveCodexUpstreamContext(
-  context: Awaited<ReturnType<typeof resolveCodexRequestContext>>
-) {
+  context: CodexWsFailure | CodexWsRequestContext
+): Promise<CodexWsFailure | CodexWsUpstreamContext> {
   if ("error" in context) return context;
   const routedModel = context.decision?.targetModel ?? context.requestedModel;
   const modelInfo = await resolveCodexWsModelInfo(routedModel, getModelInfo);
@@ -512,7 +562,7 @@ async function resolveCodexUpstreamContext(
     model,
     context.allowedConnections
   );
-  if (credentialResult.error) return credentialResult;
+  if ("error" in credentialResult) return credentialResult;
   let reasoningDecision = context.decision;
   if (!reasoningDecision) {
     try {
@@ -563,7 +613,7 @@ async function resolveCodexProxy(provider: string): Promise<string | undefined> 
   try {
     return proxyConfigToUrl(await resolveProxy(provider)) || undefined;
   } catch (err) {
-    logger.warn(`[codex-responses-ws] proxy resolution failed: ${sanitizeErrorMessage(err)}`);
+    log.warn(`[codex-responses-ws] proxy resolution failed: ${sanitizeErrorMessage(err)}`);
     return undefined;
   }
 }
@@ -629,7 +679,9 @@ async function prepare(body: JsonRecord) {
     );
     transformed = (await executor.transformRequest(
       model,
-      responseBodyWithMemory,
+      // This route already accepts native Responses input. Match HTTP passthrough
+      // so the executor preserves custom tools and native tool-result history.
+      { ...responseBodyWithMemory, _nativeCodexPassthrough: true },
       true,
       credentialsWithFingerprint
     )) as JsonRecord;

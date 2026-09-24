@@ -1,10 +1,10 @@
 # API Reference (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Γλώσσες:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 Βασική τεκμηρίωση αναφοράς για το OmniRoute API. Καλύπτει τη δημόσια επιφάνεια `/v1` και τα συχνότερα χρησιμοποιούμενα τελικά σημεία διαχείρισης· το μηχανικώς αναγνώσιμο [`docs/openapi.yaml`](../openapi.yaml) και το δέντρο διαδρομών στο `src/app/api/` αποτελούν τις πλήρεις πηγές αναφοράς.
 
@@ -86,11 +86,15 @@ Content-Type: application/json
 
 > **Σημασιολογία κόστους επιτυχίας κρυφής μνήμης:** σε σημασιολογική HIT κρυφής μνήμης (`X-OmniRoute-Cache-Hit: true`) δεν πραγματοποιείται upstream κλήση, οπότε το `X-OmniRoute-Response-Cost` είναι `0.0000000000` (το **επιπλέον** κόστος εξυπηρέτησης της επιτυχίας). Το αρχικό/υποθετικό κόστος αναφέρεται ξεχωριστά στο `X-OmniRoute-Cost-Saved`. Οι καταναλωτές χρέωσης θα πρέπει να αθροίζουν το `X-OmniRoute-Response-Cost` (οι επιτυχίες δεν έχουν κόστος)· η ανάλυση κρυφής μνήμης μπορεί να συγκεντρώνει το `X-OmniRoute-Cost-Saved`.
 
-## Αποκλειστικές Μισθώσεις Διαχειριζόμενης Συνεδρίας
+## Αποκλειστικές μισθώσεις διαχειριζόμενων συνεδριών
 
-Η αποκλειστική μίσθωση διαχειριζόμενης συνεδρίας είναι ένα προαιρετικό, ουδέτερο ως προς τον πελάτη συμβόλαιο δρομολόγησης: ένας ενεργός κάτοχος διατηρεί μία επιλέξιμη σύνδεση OmniRoute. Δεν μισθώνει μοντέλο, δεν απαιτεί OAuth, δεν αναγνωρίζει συγκεκριμένο πελάτη και δεν απαιτεί συγκεκριμένο πάροχο.
+Η αποκλειστική μίσθωση διαχειριζόμενων συνεδριών είναι μια προαιρετική, ανεξάρτητη από τον πελάτη σύμβαση δρομολόγησης: ένας ενεργός κάτοχος
+δεσμεύει μία επιλέξιμη σύνδεση OmniRoute. Δεν μισθώνει κάποιο μοντέλο, δεν απαιτεί OAuth, δεν προσδιορίζει
+συγκεκριμένο πελάτη και δεν απαιτεί συγκεκριμένο πάροχο.
 
-Το κλειδί API που χρησιμοποιείται για την πιστοποίηση πρέπει να έχει εμβέλεια `lease:exclusive` και μια ρητή μη κενή λίστα `allowedConnections`. Το όριο μετάλλαξης της βάσης δεδομένων επιβάλλει και τα δύο πεδία μαζί κατά τη δημιουργία κλειδιού και τις μερικές ενημερώσεις.
+Το API key που χρησιμοποιείται για τον έλεγχο ταυτότητας πρέπει να διαθέτει το scope `lease:exclusive` και μια ρητή, μη κενή
+λίστα `allowedConnections`. Το όριο μεταβολής της βάσης δεδομένων επιβάλλει την ταυτόχρονη παρουσία και των δύο πεδίων κατά τη
+δημιουργία κλειδιού και τις μερικές ενημερώσεις.
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Οι επιτυχείς αποκρίσεις απόκτησης, ανανέωσης και αποδέσμευσης εκθέτουν χρονικές σφραγίδες, `state` και την ακριβή θετική `generation`, αλλά ποτέ την επιλεγμένη σύνδεση ή τα διαπιστευτήρια. Η ανανέωση και η αποδέσμευση παρέχουν την generation στο σώμα JSON:
+Οι επιτυχείς αποκρίσεις απόκτησης, ανανέωσης και αποδέσμευσης εκθέτουν χρονικές σημάνσεις, το `state` και την ακριβή θετική
+`generation`, αλλά ποτέ την επιλεγμένη σύνδεση ή τα διαπιστευτήρια. Η ανανέωση και η αποδέσμευση παρέχουν τη
+γενιά στο σώμα JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +117,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Ένας ενεργός κάτοχος μίσθωσης μπορεί να ζητήσει ρητά μεταδεδομένα εμφάνισης που διασφαλίζουν την ιδιωτικότητα για την τρέχουσα δέσμευσή του:
+Ένας ενεργός κάτοχος μίσθωσης μπορεί να ζητήσει ρητά μεταδεδομένα εμφάνισης που προστατεύουν το απόρρητο για την τρέχουσα δέσμευσή του:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,11 +137,23 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-Αυτή η προαιρετική ενέργεια κατάστασης φράσσεται από τον αδιαφανή κάτοχο, το πιστοποιημένο διαχειριζόμενο κλειδί API και την ακριβή ενεργή generation σε μία συναλλαγή βάσης δεδομένων. Το `displayName` είναι μόνο το διαμορφωμένο όνομα σύνδεσης μετά από περικοπή κενών· είναι `null` όταν δεν υπάρχει ασφαλές διαμορφωμένο όνομα. Το OmniRoute δεν υποκαθιστά ποτέ μια διεύθυνση email ή μια δημιουργημένη ταυτότητα λογαριασμού. Η τιμή του παρόχου είναι μια μη ευαίσθητη ετικέτα εμφάνισης και ποτέ ένα δημιουργημένο αναγνωριστικό συμβατού παρόχου. Διαπιστευτήρια, tokens, cookies, ακατέργαστα αναγνωριστικά σύνδεσης ή κλειδιού API, κατακερματισμοί κατόχου, μυστικά φράγματος και εσωτερικά δεδομένα δρομολόγησης εξαιρούνται.
+Αυτή η προαιρετική ενέργεια κατάστασης περιφράσσεται από τον αδιαφανή κάτοχο, το διαχειριζόμενο API key με επαληθευμένη ταυτότητα και την ακριβή
+ενεργή γενιά σε μία συναλλαγή βάσης δεδομένων. Το `displayName` είναι μόνο το διαμορφωμένο όνομα
+σύνδεσης με αφαιρεμένα τα περιττά κενά· είναι `null` όταν δεν υπάρχει ασφαλές διαμορφωμένο όνομα. Το OmniRoute δεν υποκαθιστά ποτέ ένα
+email ή μια δημιουργημένη ταυτότητα λογαριασμού. Η τιμή παρόχου είναι μια μη ευαίσθητη ετικέτα εμφάνισης και ποτέ
+ένα δημιουργημένο αναγνωριστικό συμβατού παρόχου. Εξαιρούνται τα διαπιστευτήρια, τα token, τα cookie, τα ανεπεξέργαστα αναγνωριστικά σύνδεσης ή
+API key, τα hash κατόχων, τα μυστικά περίφραξης και τα εσωτερικά δεδομένα δρομολόγησης.
 
-Οι αναζητήσεις με λάθος κλειδί, λάθος κάτοχο, παρωχημένη generation, ανύπαρκτη, ληγμένη, αποδεσμευμένη ή ακυρωμένη μίσθωση επιστρέφουν όλες το ίδιο σφάλμα `409 LEASE_FENCE_STALE` χωρίς μεταδεδομένα σύνδεσης. Ένας πελάτης που έλαβε την απόκριση αναμονής χωρητικότητας δεν έχει ενεργή δέσμευση για επιθεώρηση. Όταν η δρομολόγηση μεταβαίνει μια ενεργή μίσθωση, η ίδια generation παραμένει έγκυρη και η κατάσταση επιστρέφει ατομικά τη νέα δέσμευση, ποτέ την παλιά. Οι υπάρχοντες πελάτες παραμένουν αμετάβλητοι, καθώς οι αποκρίσεις απόκτησης, ανανέωσης, αποδέσμευσης και αναμονής διατηρούν τα προηγούμενα σχήματά τους.
+Οι αναζητήσεις με λάθος κλειδί, λάθος κάτοχο, παρωχημένη γενιά, καθώς και οι ελλιπείς, ληγμένες, αποδεσμευμένες και ακυρωμένες αναζητήσεις,
+επιστρέφουν όλες το ίδιο σφάλμα `409 LEASE_FENCE_STALE` χωρίς μεταδεδομένα σύνδεσης. Ένας πελάτης που έλαβε την απόκριση αναμονής χωρητικότητας δεν έχει ενεργή δέσμευση προς επιθεώρηση. Όταν η δρομολόγηση μεταφέρει μια ενεργή μίσθωση,
+η ίδια γενιά παραμένει έγκυρη και η κατάσταση επιστρέφει ατομικά τη νέα δέσμευση, ποτέ την παλιά.
+Οι υφιστάμενοι πελάτες παραμένουν αμετάβλητοι, επειδή οι αποκρίσεις απόκτησης, ανανέωσης, αποδέσμευσης και αναμονής διατηρούν
+τις προηγούμενες δομές τους.
 
-Αυτό το συμβόλαιο διακομιστή δεν αλλάζει το stock OpenAI Codex `/status`. Το stock Codex αναφέρει αυτήν τη στιγμή τον πάροχο μοντέλου και την ενσωματωμένη κατάσταση πιστοποίησης/λογαριασμού, αλλά δεν αποδίδει αυθαίρετα μεταδεδομένα λογαριασμού προσαρμοσμένου παρόχου· μια μεταγενέστερη ενσωμάτωση πελάτη πρέπει να καλέσει αυτήν την ενέργεια και να αποφασίσει πώς θα εμφανίσει το `connection.displayName`.
+Αυτή η σύμβαση διακομιστή δεν αλλάζει το τυπικό `/status` του OpenAI Codex. Το τυπικό Codex αναφέρει επί του παρόντος τον
+πάροχο μοντέλου του και την ενσωματωμένη κατάσταση ελέγχου ταυτότητας/λογαριασμού, αλλά δεν εμφανίζει αυθαίρετα προσαρμοσμένα
+μεταδεδομένα λογαριασμού παρόχου· μια μελλοντική ενσωμάτωση πελάτη πρέπει να καλέσει αυτή την ενέργεια και να αποφασίσει πώς θα
+εμφανίσει το `connection.displayName`.
 
 Κάθε διαχειριζόμενο αίτημα συμπερασμού παρέχει έπειτα και τις δύο κεφαλίδες ελέγχου:
 
@@ -144,9 +162,12 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Ο ακριβής κάτοχος, η generation, η ενεργή σύνδεση και το πιστοποιημένο κλειδί API φράσσονται αμέσως πριν από κάθε υποστηριζόμενη απόπειρα upstream. Η αναπαραγωγή κατόχου και generation με άλλο κλειδί αποτυγχάνει ακόμη και όταν αυτό το κλειδί επιτρέπει την ίδια σύνδεση. Οι ακατέργαστοι κάτοχοι δεν διατηρούνται, δεν καταγράφονται, δεν αποθηκεύονται στο στιγμιότυπο αιτήματος και δεν προωθούνται upstream.
+Ο ακριβής κάτοχος, η γενιά, η ενεργή σύνδεση και το API key με επαληθευμένη ταυτότητα περιφράσσονται αμέσως
+πριν από κάθε υποστηριζόμενη προσπάθεια προς τα ανάντη. Η επανάληψη χρήσης του κατόχου και της γενιάς με άλλο κλειδί αποτυγχάνει, ακόμη
+και όταν το συγκεκριμένο κλειδί επιτρέπει την ίδια σύνδεση. Οι ανεπεξέργαστες τιμές κατόχου δεν αποθηκεύονται μόνιμα, δεν καταγράφονται, δεν διατηρούνται στο
+στιγμιότυπο του αιτήματος και δεν προωθούνται προς τα ανάντη.
 
-Η προσωρινή διαμάχη επιστρέφει HTTP `429` με `Retry-After` και:
+Η προσωρινή διεκδίκηση πόρων επιστρέφει HTTP `429` με `Retry-After` και:
 
 ```json
 {
@@ -157,33 +178,38 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-Αυτή η απόκριση σημαίνει μόνο ότι το κανονικό επιλέξιμο σύνολο ήταν μη κενό και κάθε ελεύθερος υποψήφιος κατεχόταν από μια ξένη ενεργή μίσθωση. Μη υποστηριζόμενα μοντέλα/πάροχοι, αναντιστοιχία πολιτικής, περίοδος ψύξης, ποσόστωση, υγεία και άλλες συνήθεις αποτυχίες επιλεξιμότητας διατηρούν τις υπάρχουσες αποκρίσεις OmniRoute.
+Αυτή η απόκριση σημαίνει μόνο ότι το κανονικό σύνολο επιλέξιμων συνδέσεων δεν ήταν κενό και κάθε ελεύθερος υποψήφιος
+δεσμευόταν από ξένη ενεργή μίσθωση. Τα μη υποστηριζόμενα μοντέλα/οι μη υποστηριζόμενοι πάροχοι, η ασυμφωνία πολιτικής, η περίοδος αναμονής, το όριο χρήσης,
+η εύρυθμη λειτουργία και άλλες συνήθεις αποτυχίες επιλεξιμότητας διατηρούν τις υπάρχουσες αποκρίσεις OmniRoute.
 
 ### `x-omniroute-compression`
 
-Παράκαμψη ανά αίτημα του πλάνου συμπίεσης. Υψηλότερη προτεραιότητα — υπερισχύει της παράκαμψης combo δρομολόγησης, του ενεργού προφίλ, της αυτόματης ενεργοποίησης και της Προεπιλογής πίνακα. Τιμές:
+Παράκαμψη του πλάνου συμπίεσης ανά αίτημα. Έχει την υψηλότερη προτεραιότητα — υπερισχύει της παράκαμψης συνδυασμού δρομολόγησης,
+του ενεργού προφίλ, της αυτόματης ενεργοποίησης και της προεπιλογής του πίνακα. Τιμές:
 
-| Τιμή          | Αποτέλεσμα                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------------ |
-| `off`         | Καμία συμπίεση για αυτό το αίτημα.                                                                     |
-| `default`     | Το προεπιλεγμένο προφίλ που προκύπτει από τον πίνακα (αγνοεί το ενεργό προφίλ).                        |
-| `engine:<id>` | Μεμονωμένη μηχανή όταν είναι ενεργοποιημένη, π.χ. `engine:rtk`.                                        |
-| `<combo>`     | Ένα ονομαστό combo, αντιστοιχισμένο κατ' όνομα (χωρίς διάκριση πεζών/κεφαλαίων) πρώτα, έπειτα κατά id. |
+| Τιμή          | Αποτέλεσμα                                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Καμία συμπίεση για αυτό το αίτημα.                                                                                                       |
+| `default`     | Το προεπιλεγμένο προφίλ που προκύπτει από τον πίνακα (αγνοεί το ενεργό προφίλ). Οι μη αντιστρεπτές μηχανές παραμένουν απενεργοποιημένες. |
+| `safe`        | Μόνο αποδιπλοποίηση και σύμπτυξη κενών διαστημάτων.                                                                                      |
+| `allow-lossy` | Διατήρηση του πλάνου του διαχειριστή για αυτό το αίτημα, συμπεριλαμβανομένων περιλήψεων και αναδιατυπώσεων ύφους.                        |
+| `engine:<id>` | Μία μεμονωμένη μηχανή όταν είναι ενεργοποιημένη, π.χ. `engine:rtk`. Προαιρετική ενεργοποίηση ανά αίτημα για αυτή τη μηχανή.              |
+| `<combo>`     | Ένας επώνυμος συνδυασμός, με αντιστοίχιση πρώτα βάσει ονόματος (χωρίς διάκριση πεζών-κεφαλαίων) και έπειτα βάσει id.                     |
 
 Σημειώσεις:
 
-- Άγνωστες τιμές αγνοούνται (το αίτημα δεν απορρίπτεται ποτέ)· η επίλυση διαπερνά στην κανονική προτεραιότητα χειριστή.
-- Αν πολλά combo μοιράζονται ένα όνομα, περάστε το **id** του combo για ντετερμινιστική αντιστοίχιση.
-- Ένα combo με όνομα `off` ή `default` δεν μπορεί να επιλεγεί κατ' όνομα (αυτές οι λέξεις-κλειδιά ερμηνεύονται πρώτα)· αναφερθείτε σε τέτοιο combo μέσω του id του.
-- Ο κεντρικός διακόπτης συμπίεσης είναι αυστηρή πύλη: όταν η συμπίεση είναι απενεργοποιημένη καθολικά, αυτή η κεφαλίδα δεν μπορεί να την ενεργοποιήσει.
+- Οι άγνωστες τιμές αγνοούνται (το αίτημα δεν απορρίπτεται ποτέ)· η επίλυση συνεχίζει σύμφωνα με την κανονική σειρά προτεραιότητας του διαχειριστή.
+- Αν πολλοί συνδυασμοί έχουν το ίδιο όνομα, περάστε το **id** του συνδυασμού για ντετερμινιστική αντιστοίχιση.
+- Ένας συνδυασμός του οποίου το όνομα είναι `off` ή `default` δεν μπορεί να επιλεγεί βάσει ονόματος (αυτές οι λέξεις-κλειδιά ερμηνεύονται πρώτες)· αναφερθείτε σε έναν τέτοιο συνδυασμό μέσω του id του.
+- Ο κύριος διακόπτης συμπίεσης αποτελεί απόλυτη δικλείδα: όταν η συμπίεση είναι απενεργοποιημένη καθολικά, αυτή η κεφαλίδα δεν μπορεί να την ενεργοποιήσει.
 
-Το εφαρμοσμένο πλάνο αντηχείται πίσω στην κεφαλίδα απόκρισης:
+Το εφαρμοζόμενο πλάνο επιστρέφεται στην κεφαλίδα απόκρισης:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-όπου `<source>` είναι ένα από τα εξής: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ή `off`.
+όπου το `<source>` είναι ένα από τα `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ή `off`.
 
 ---
 
@@ -387,57 +413,57 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## Endpoints Συμβατότητας
+## Τελικά σημεία συμβατότητας
 
-| Μέθοδος | Διαδρομή                                  | Μορφή                                |
-| ------- | ----------------------------------------- | ------------------------------------ |
-| POST    | `/v1/chat/completions`                    | OpenAI                               |
-| POST    | `/v1/messages`                            | Anthropic                            |
-| POST    | `/v1/responses`                           | OpenAI Responses                     |
-| POST    | `/v1/embeddings`                          | OpenAI                               |
-| POST    | `/v1/images/generations`                  | OpenAI Images                        |
-| POST    | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)         |
-| POST    | `/v1/videos/generations`                  | Δημιουργία βίντεο τύπου OpenAI       |
-| POST    | `/v1/music/generations`                   | Δημιουργία μουσικής τύπου OpenAI     |
-| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                   |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (επιστρέφει σώμα ήχου)    |
-| POST    | `/v1/rerank`                              | Rerank τύπου Cohere/Voyage           |
-| POST    | `/v1/classify`                            | Jina classify (`api.jina.ai`)        |
-| POST    | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)   |
-| POST    | `/v1/moderations`                         | OpenAI Moderations                   |
-| GET     | `/v1/models`                              | OpenAI                               |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                            |
-| GET     | `/v1beta/models`                          | Gemini                               |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent               |
-| POST    | `/v1/api/chat`                            | Ollama                               |
-| GET     | `/api/v1/vscode/{token}/`                 | Ψευδώνυμο καταλόγου OpenAI           |
-| GET     | `/api/v1/vscode/{token}/models`           | Ψευδώνυμο μοντέλων OpenAI            |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | Tokenized ψευδώνυμο OpenAI           |
-| POST    | `/api/v1/vscode/{token}/responses`        | Tokenized ψευδώνυμο OpenAI Responses |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Tokenized ψευδώνυμο Ollama           |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Tokenized ψευδώνυμο ετικετών Ollama  |
+| Μέθοδος | Διαδρομή                                  | Μορφή                                    |
+| ------- | ----------------------------------------- | ---------------------------------------- |
+| POST    | `/v1/chat/completions`                    | OpenAI                                   |
+| POST    | `/v1/messages`                            | Anthropic                                |
+| POST    | `/v1/responses`                           | OpenAI Responses                         |
+| POST    | `/v1/embeddings`                          | OpenAI                                   |
+| POST    | `/v1/images/generations`                  | OpenAI Images                            |
+| POST    | `/v1/images/edits`                        | OpenAI Images (επεξεργασία/inpaint)      |
+| POST    | `/v1/videos/generations`                  | Δημιουργία βίντεο τύπου OpenAI           |
+| POST    | `/v1/music/generations`                   | Δημιουργία μουσικής τύπου OpenAI         |
+| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (επιστρέφει σώμα ήχου)        |
+| POST    | `/v1/rerank`                              | Επανακατάταξη τύπου Cohere/Voyage        |
+| POST    | `/v1/classify`                            | Ταξινόμηση Jina (`api.jina.ai`)          |
+| POST    | `/v1/segment`                             | Τμηματοποιητής Jina (`segment.jina.ai`)  |
+| POST    | `/v1/moderations`                         | OpenAI Moderations                       |
+| GET     | `/v1/models`                              | OpenAI                                   |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                                |
+| GET     | `/v1beta/models`                          | Gemini                                   |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                   |
+| POST    | `/v1/api/chat`                            | Ollama                                   |
+| GET     | `/api/v1/vscode/{token}/`                 | Ψευδώνυμο καταλόγου OpenAI               |
+| GET     | `/api/v1/vscode/{token}/models`           | Ψευδώνυμο μοντέλων OpenAI                |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | Ψευδώνυμο OpenAI με διακριτικό           |
+| POST    | `/api/v1/vscode/{token}/responses`        | Ψευδώνυμο OpenAI Responses με διακριτικό |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ψευδώνυμο Ollama με διακριτικό           |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ψευδώνυμο ετικετών Ollama με διακριτικό  |
 
-Όλες οι διαδρομές POST ακολουθούν το ίδιο σχήμα: `Bearer your-api-key` + σώμα JSON επικυρωμένο από Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, κ.λπ., βλ. `src/shared/validation/schemas.ts`). Επιστρέφεται 4xx σε αποτυχία σχήματος.
+Όλες οι διαδρομές POST ακολουθούν την ίδια δομή: `Bearer your-api-key` + σώμα JSON επικυρωμένο μέσω Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` κ.λπ., δείτε το `src/shared/validation/schemas.ts`). Σε αποτυχία του σχήματος επιστρέφεται 4xx.
 
-Για clients που δεν μπορούν να επισυνάψουν `Authorization: Bearer ...`, το OmniRoute δέχεται επίσης κλειδιά API στο URL είτε μέσω συμβατότητας query-string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) είτε μέσω των αφιερωμένων endpoints `/api/v1/vscode/{token}/...` που τεκμηριώνονται παρακάτω.
+Για προγράμματα-πελάτες που δεν μπορούν να επισυνάψουν `Authorization: Bearer ...`, το OmniRoute δέχεται επίσης κλειδιά API στη διεύθυνση URL είτε μέσω συμβατότητας με συμβολοσειρά ερωτήματος (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) είτε μέσω των αποκλειστικών τελικών σημείων `/api/v1/vscode/{token}/...` που τεκμηριώνονται παρακάτω.
 
 ```bash
-# Rerank
+# Επανακατάταξη (πάροχος μητρώου cloud ή κόμβος παρόχου συμβατού με OpenAI ως "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (διαπιστευτήρια Foundation API)
+# Ταξινόμηση Jina (διαπιστευτήρια Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Τμηματοποιητής Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; ψευδώνυμα παρόχου: jina-search, jina-ai, jina)
+# Αναζήτηση Jina (s.jina.ai· ψευδώνυμα παρόχου: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderations
+# Έλεγχοι περιεχομένου
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — επιστρέφει σώμα audio/mpeg (ή ζητούμενη μορφή)
+# TTS — επιστρέφει σώμα audio/mpeg (ή σώμα στην αιτούμενη μορφή)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Επεξεργασία εικόνας (multipart)
@@ -448,7 +474,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
 
-### Αφιερωμένες Διαδρομές Παρόχου
+> **Κόμβοι παρόχων επανακατάταξης:** Το `POST /v1/rerank` δρομολογεί επίσης σε κόμβους παρόχων συμβατούς με OpenAI
+> (oMLX, vLLM, Infinity, TEI πίσω από πύλη, …), οι οποίοι προσδιορίζονται ως `<node-prefix>/<model>`. Οι κόμβοι
+> loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) είναι πάντοτε επιλέξιμοι. Οι κόμβοι σε οποιονδήποτε άλλο
+> κεντρικό υπολογιστή —ένα μηχάνημα LAN ή ένας ομότιμος κόμβος Tailscale— είναι επιλέξιμοι μόνο όταν ο διαχειριστής ενεργοποιήσει τη
+> σημαία δυνατότητας `RERANK_REMOTE_PROVIDER_NODES` **και** η βασική διεύθυνση URL του κόμβου συμμορφώνεται με την πολιτική εξερχόμενων
+> URL παρόχου (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)·
+> οι κεντρικοί υπολογιστές μεταδεδομένων cloud δεν αποτελούν ποτέ προορισμό δρομολόγησης. Το βήμα επανακατάταξης της μηχανής μνήμης καλεί αυτήν τη διαδρομή μέσω
+> loopback, επομένως ο ίδιος κανόνας διέπει το `rerankProviderModel` στις ρυθμίσεις Μνήμης.
+>
+> **Δομές τοπικού διακομιστή:** Ο κόμβος καλείται στο `<base>/v1/rerank` και, σε περίπτωση 404, στο `<base>/rerank`
+> (Infinity, TEI). Το σώμα που αποστέλλεται προς τα ανάντη περιλαμβάνει τόσο την ορθογραφία Cohere/OpenAI (`documents`,
+> `return_documents`) όσο και την ορθογραφία TEI (`texts`, `return_text`), ενώ η απόκριση από τα ανάντη
+> κανονικοποιείται στο περίβλημα Cohere: ο γυμνός πίνακας `[{index, score, text}]` του TEI, το `{results: [{index, score}]}`
+> από ελαφριές πύλες και το τύπου Voyage `{data: [...]}` επιστρέφονται όλα στον πελάτη ως
+> `{results: [{index, relevance_score, document?}]}`, ταξινομημένα κατά βαθμολογία και περιορισμένα στο `top_n`.
+
+> **Εντοπισμός κόμβων παρόχων:** Τα μοντέλα σε έναν κόμβο παρόχου συμβατό με OpenAI εμφανίζονται στο `GET /v1/models`
+> κάτω από το πρόθεμα του κόμβου. Οι γραμμές που δεν περιέχουν μεταδεδομένα τελικού σημείου (σύνηθες για τοπικές καταχωρίσεις `/v1/models`)
+> κληρονομούν το `apiType` του κόμβου, επομένως τα μοντέλα ενός κόμβου `embeddings` έχουν `type: "embedding"` και τα
+> μοντέλα ενός κόμβου `rerank` έχουν `type: "rerank"` αντί να χρησιμοποιούν από προεπιλογή τη συνομιλία· ένα ρητό
+> `supportedEndpoints` σε μια συγχρονισμένη ή μη αυτόματα προστεθειμένη γραμμή εξακολουθεί να έχει προτεραιότητα.
+
+### Αποκλειστικές διαδρομές παρόχων
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -456,7 +504,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Το πρόθεμα παρόχου προστίθεται αυτόματα αν λείπει. Μη αντιστοιχισμένα μοντέλα επιστρέφουν `400`.
+Το πρόθεμα του παρόχου προστίθεται αυτόματα εάν λείπει. Τα μη αντιστοιχισμένα μοντέλα επιστρέφουν `400`.
 
 ---
 
@@ -1543,23 +1591,23 @@ Endpoints αναλυτικών σε πραγματικό χρόνο για τη�
 
 ---
 
-## Διαχείριση Εργαλείων CLI
+## Διαχείριση εργαλείων CLI
 
-Διαχείριση εργαλείων CLI που ενσωματώνονται με το OmniRoute (antigravity, chipotle, commandCode,
-devin-cli, κ.λπ.). Δείτε την [Αναφορά Παρόχου](./PROVIDER_REFERENCE.md) για την πλήρη λίστα.
+Διαχειριστείτε εργαλεία CLI που ενσωματώνονται με το OmniRoute (antigravity, commandCode,
+devin-cli κ.λπ.). Ανατρέξτε στην [Αναφορά παρόχων](./PROVIDER_REFERENCE.md) για την πλήρη λίστα.
 
-| Μέθοδος | Διαδρομή                                | Περιγραφή                                                                                                                                                                         |
-| ------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET     | `/api/cli-tools/all-statuses`           | Κατάσταση όλων των εργαλείων CLI (εγκατεστημένα, έκδοση, τελευταία εμφάνιση)                                                                                                      |
-| GET     | `/api/cli-tools/status`                 | Λεπτομέρειες κατάστασης για ένα εργαλείο CLI (ερώτημα `?tool=`)                                                                                                                   |
-| POST    | `/api/cli-tools/apply`                  | Εγγραφή της παραγόμενης ρύθμισης ενός εργαλείου (`dryRun` για προεπισκόπηση· `422` + `containerEphemeralTarget` όταν είναι σε container· `migration` σημειώνει παλαιό Codex YAML) |
-| GET     | `/api/cli-tools/backups`                | Λίστα αντιγράφων ασφαλείας ρυθμίσεων εργαλείων CLI                                                                                                                                |
-| POST    | `/api/cli-tools/backups`                | Δημιουργία αντιγράφου ασφαλείας όλων των ρυθμίσεων εργαλείων CLI                                                                                                                  |
-| POST    | `/api/cli-tools/backups`                | Επαναφορά: το ίδιο τερματικό με `{tool, backupId}` στο σώμα επαναφέρει το συγκεκριμένο αντίγραφο ασφαλείας                                                                        |
-| GET     | `/api/cli-tools/antigravity-mitm`       | Κατάσταση proxy MITM του Antigravity (το εργαλείο CLI "antigravity-mitm")                                                                                                         |
-| POST    | `/api/cli-tools/antigravity-mitm/alias` | Ρύθμιση ψευδωνύμων antigravity-mitm                                                                                                                                               |
+| Μέθοδος | Διαδρομή                                | Περιγραφή                                                                                                                                                                                                      |
+| ------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET     | `/api/cli-tools/all-statuses`           | Κατάσταση όλων των εργαλείων CLI (εγκατάσταση, έκδοση, τελευταία εμφάνιση)                                                                                                                                     |
+| GET     | `/api/cli-tools/status`                 | Λεπτομέρειες κατάστασης για ένα εργαλείο CLI (παράμετρος ερωτήματος `?tool=`)                                                                                                                                  |
+| POST    | `/api/cli-tools/apply`                  | Εγγραφή της δημιουργημένης διαμόρφωσης ενός εργαλείου (το `dryRun` παρέχει προεπισκόπηση· `422` + `containerEphemeralTarget` σε περιβάλλον container· το `migration` επισημαίνει ένα παλαιού τύπου Codex YAML) |
+| GET     | `/api/cli-tools/backups`                | Παράθεση αντιγράφων ασφαλείας των διαμορφώσεων εργαλείων CLI                                                                                                                                                   |
+| POST    | `/api/cli-tools/backups`                | Δημιουργία αντιγράφου ασφαλείας όλων των διαμορφώσεων εργαλείων CLI                                                                                                                                            |
+| POST    | `/api/cli-tools/backups`                | Επαναφορά: το ίδιο endpoint με `{tool, backupId}` στο σώμα επαναφέρει το συγκεκριμένο αντίγραφο ασφαλείας                                                                                                      |
+| GET     | `/api/cli-tools/antigravity-mitm`       | Κατάσταση του διακομιστή μεσολάβησης MITM του Antigravity (το εργαλείο CLI "antigravity-mitm")                                                                                                                 |
+| POST    | `/api/cli-tools/antigravity-mitm/alias` | Διαμόρφωση ψευδωνύμων του antigravity-mitm                                                                                                                                                                     |
 
-**Πιστοποίηση:** Απαιτεί διαχειριστική συνεδρία.
+**Έλεγχος ταυτότητας:** Απαιτείται συνεδρία διαχείρισης.
 
 ---
 

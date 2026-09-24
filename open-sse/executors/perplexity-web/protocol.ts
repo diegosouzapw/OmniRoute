@@ -91,25 +91,46 @@ export const THINKING_MAP: Record<string, string> = {
   "pplx-grok-4.6": "grok46medium",
 };
 
-export const CITATION_RE = /\[\d+\]/g;
+// Eats the space before the marker so "text [1] more" cleans to "text more".
+// Never squash runs of spaces here: the non-streaming path (tool mode always)
+// would flatten code indentation (#13968).
+export const CITATION_RE = / ?\[\d+\]/g;
 export const GROK_TAG_RE = /<grok:[^>]*>.*?<\/grok:[^>]*>/gs;
 export const GROK_SELF_RE = /<grok:[^>]*\/>/g;
 export const XML_DECL_RE = /<[?]xml[^?]*[?]>/g;
 export const RESPONSE_TAG_RE = /<\/?response\b[^>]*>/gi;
-export const MULTI_SPACE = / {2,}/g;
 export const MULTI_NL = /\n{3,}/g;
 
+// A citation marker and a subscript are spelled the same way, so citation
+// cleanup has to skip anything that is code: fenced blocks, <tool> payloads and
+// inline spans. Order matters — closed regions first, then the unterminated
+// tails (a stream cut off mid-answer), and the inline span last so the third
+// backtick of a fence is never taken for an empty `` span.
+export const CODE_SPAN_RE =
+  /(```[\s\S]*?```|<tool>[\s\S]*?<\/tool>|```[\s\S]*$|<tool>[\s\S]*$|`[^`\n]+`)/g;
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
+
+// cleanResponse() runs over the whole answer before tool mode parses <tool>
+// text into tool_calls, so an unguarded CITATION_RE turned `arr[0]` into `arr`
+// in rendered code blocks and in tool-call arguments alike (#14121).
+export function stripCitations(text: string): string {
+  // String.split with a capturing group interleaves the delimiters at odd
+  // indices; those are the protected regions and pass through untouched.
+  return text
+    .split(CODE_SPAN_RE)
+    .map((part, i) => (i % 2 === 1 ? part : part.replace(CITATION_RE, "")))
+    .join("");
+}
 
 export function cleanResponse(text: string, strip = true): string {
   let t = text;
   t = t.replace(XML_DECL_RE, "");
-  t = t.replace(CITATION_RE, "");
+  t = stripCitations(t);
   t = t.replace(GROK_TAG_RE, "");
   t = t.replace(GROK_SELF_RE, "");
   t = t.replace(RESPONSE_TAG_RE, "");
   if (strip) {
-    t = t.replace(MULTI_SPACE, " ");
     t = t.replace(MULTI_NL, "\n\n");
     t = t.trim();
   }
@@ -408,7 +429,12 @@ function searchHintEnabled(): boolean {
 }
 
 export function buildQuery(parsed: ParsedMessages, followUpUuid: string | null): string {
-  if (followUpUuid) return parsed.currentMsg;
+  if (followUpUuid) {
+    const sys = parsed.systemMsg.trim();
+    const hint = searchHintEnabled() ? `\n\n${SEARCH_HINT}` : "";
+    const contract = sys ? `${sys}${hint}` : "";
+    return contract ? `${contract}\n\n${parsed.currentMsg}` : parsed.currentMsg;
+  }
 
   const obj: Record<string, unknown> = {};
   if (parsed.systemMsg.trim()) {

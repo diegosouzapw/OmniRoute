@@ -86,8 +86,13 @@ test("OpenAI stream: reasoning_content closes before text content starts", () =>
   assert.equal(result[5].delta.text, "Answer");
 });
 
-test("OpenAI stream: reasoning_content is suppressed by default when client did not request thinking", () => {
-  const state = createState();
+test("OpenAI stream: reasoning_content is suppressed when the client did not request thinking", () => {
+  // "Did not request" is what chatCore resolves to `requestedThinking: false`
+  // (hasActiveClaudeThinking() always yields a boolean at open-sse/handlers/chatCore.ts).
+  // A bare createState() leaves it `undefined`, which is the LEGACY caller shape the
+  // non-streaming path documents as "always relay a thinking block" — so the
+  // suppression contract has to be asserted with the value production sends.
+  const state = { ...createState(), requestedThinking: false };
   const reasoning = openaiToClaudeResponse(
     {
       id: "chatcmpl-2d",

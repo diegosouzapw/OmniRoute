@@ -1,6 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runCheckpointNow, logCheckpointOutcome } from "../../src/lib/db/walMaintenance.ts";
+import {
+  runCheckpointNow,
+  logCheckpointOutcome,
+  getWalPassiveIntervalMs,
+  getWalGuardMaxBytes,
+} from "../../src/lib/db/walMaintenance.ts";
 
 function fakeDb(result: unknown, throws?: string) {
   return {
@@ -103,27 +108,6 @@ test("guarded ctx skips without calling pragma", () => {
   const out = runCheckpointNow(db as never, "TRUNCATE", { sqliteFile: null });
   assert.equal(out.skipped, true);
   assert.equal(called, 0);
-});
-
-test("interval defaults to 6h, rejects garbage, honors 0", async () => {
-  const { getWalMaintenanceIntervalMs } = await import("../../src/lib/db/walMaintenance.ts");
-  assert.equal(getWalMaintenanceIntervalMs({} as NodeJS.ProcessEnv), 6 * 60 * 60 * 1000);
-  assert.equal(
-    getWalMaintenanceIntervalMs({
-      OMNIROUTE_WAL_TRUNCATE_INTERVAL_MS: "nope",
-    } as NodeJS.ProcessEnv),
-    6 * 60 * 60 * 1000
-  );
-  assert.equal(
-    getWalMaintenanceIntervalMs({
-      OMNIROUTE_WAL_TRUNCATE_INTERVAL_MS: "60000",
-    } as NodeJS.ProcessEnv),
-    60000
-  );
-  assert.equal(
-    getWalMaintenanceIntervalMs({ OMNIROUTE_WAL_TRUNCATE_INTERVAL_MS: "0" } as NodeJS.ProcessEnv),
-    0
-  );
 });
 
 test("__resetForTests zeroes state", async () => {
@@ -235,7 +219,7 @@ const db = {
   close: () => real.close(),
 };
 const persisted = () => Number(real.prepare("SELECT value FROM key_value WHERE namespace='walMaintenance' AND key='busyTotal'").get()?.value ?? 0);
-const env = { OMNIROUTE_WAL_TRUNCATE_INTERVAL_MS: "60", OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: "0" };
+const env = { OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: "60" };
 const out = {};
 startWalMaintenance(db, file, env);
 out.restoredAtBoot = getWalMaintenanceState().busyTotal;
@@ -330,4 +314,64 @@ test("boot wiring: restores the persisted total, never writes on a busy tick, fl
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+test("getWalPassiveIntervalMs parses env: garbage falls back to the 5m default", () => {
+  const DEF = 5 * 60 * 1000;
+  assert.equal(getWalPassiveIntervalMs({}), DEF, "unset -> default");
+  assert.equal(
+    getWalPassiveIntervalMs({ OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: "" }),
+    DEF,
+    "empty -> default"
+  );
+  assert.equal(
+    getWalPassiveIntervalMs({ OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: "  " }),
+    DEF,
+    "whitespace -> default"
+  );
+  assert.equal(
+    getWalPassiveIntervalMs({ OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: "abc" }),
+    DEF,
+    "non-numeric -> default"
+  );
+  assert.equal(
+    getWalPassiveIntervalMs({ OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: "-50" }),
+    DEF,
+    "negative -> default"
+  );
+  assert.equal(
+    getWalPassiveIntervalMs({ OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: "Infinity" }),
+    DEF,
+    "non-finite -> default"
+  );
+});
+
+test("getWalPassiveIntervalMs: '0' disables the scheduler, valid values pass through", () => {
+  assert.equal(getWalPassiveIntervalMs({ OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: "0" }), 0);
+  assert.equal(getWalPassiveIntervalMs({ OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: "60000" }), 60000);
+  assert.equal(getWalPassiveIntervalMs({ OMNIROUTE_WAL_PASSIVE_INTERVAL_MS: " 60000 " }), 60000);
+});
+
+test("getWalGuardMaxBytes parses env: garbage falls back to the 256MB default", () => {
+  const DEF = 256 * 1024 * 1024;
+  assert.equal(getWalGuardMaxBytes({}), DEF, "unset -> default");
+  assert.equal(
+    getWalGuardMaxBytes({ OMNIROUTE_WAL_GUARD_MAX_MB: "abc" }),
+    DEF,
+    "non-numeric -> default"
+  );
+  assert.equal(
+    getWalGuardMaxBytes({ OMNIROUTE_WAL_GUARD_MAX_MB: "0" }),
+    DEF,
+    "below 1MB -> default"
+  );
+  assert.equal(
+    getWalGuardMaxBytes({ OMNIROUTE_WAL_GUARD_MAX_MB: "0.5" }),
+    DEF,
+    "fractional below 1 -> default"
+  );
+  assert.equal(
+    getWalGuardMaxBytes({ OMNIROUTE_WAL_GUARD_MAX_MB: "512" }),
+    512 * 1024 * 1024,
+    "valid MB value -> bytes"
+  );
 });

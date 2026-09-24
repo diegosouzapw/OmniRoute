@@ -5,9 +5,10 @@ import os from "node:os";
 import path from "node:path";
 
 // With PROXY_SKIP_RECENTLY_FAILED on, pool selection skips members that just failed, for
-// every rotation strategy, and the per-connection resolution cache stops re-serving such a
-// member (once per set-aside event, never a DB cascade per request). With every member set
-// aside, or the flag off (the default), selection is exactly what it was.
+// every rotation strategy. The per-connection resolution used by the chat path
+// (resolveProxyForConnection) re-runs the registry cascade on every call for a multi-member
+// pool (#13575) and skips a set-aside member on top of that. With every member set aside, or
+// the flag off (the default), set-aside skipping does not apply but rotation continues.
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-pool-skip-refused-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -167,34 +168,41 @@ test("a DB override turning the flag off wins over the environment", async () =>
   assert.deepEqual(await picks(2), [members[0].host, members[2].host]);
 });
 
-test("a connection's cached pool member is not re-served once set aside", async () => {
+// #13575: the chat-path resolveProxyForConnection() no longer freezes a multi-member
+// pool's choice for the connection's lifetime — it re-runs the registry cascade on every
+// call (like every other pool consumer) so round-robin/sticky/random keep working exactly
+// as resolveProxyForScopeFromRegistry() already does when called directly. A member set
+// aside is still skipped on top of that rotation, same as before.
+test("a connection's chat-path resolution skips a member set aside", async () => {
   const [a, b, c] = await pool(3, "account", "conn-pool");
   const first = await settingsDb.resolveProxyForConnection("conn-pool");
   assert.equal((first as { proxy: { host: string } }).proxy.host, a.host);
-  assert.strictEqual(await settingsDb.resolveProxyForConnection("conn-pool"), first);
 
-  setAside(a);
+  setAside(b);
+  // Ranked (b last) + skip: cursor 1 lands on c, served past the set-aside member.
   const next = await settingsDb.resolveProxyForConnection("conn-pool");
-  assert.equal((next as { proxy: { host: string } }).proxy.host, b.host);
+  assert.equal((next as { proxy: { host: string } }).proxy.host, c.host);
 
-  memory.noteProxyRecovered(keyOf(a), "proxy_unreachable");
-  assert.equal(memory.isProxyAvoided(keyOf(a)), false);
-  assert.deepEqual(
-    [await pick("account", "conn-pool"), await pick("account", "conn-pool")],
-    [c.host, a.host]
-  );
+  memory.noteProxyRecovered(keyOf(b), "proxy_unreachable");
+  assert.equal(memory.isProxyAvoided(keyOf(b)), false);
+  // Rank + skip moves the cursor past c (served at cursor 1, cursor now 2), so the
+  // next pick serves c again (cursor 2 in the restored position order [a,b,c]),
+  // then rotation resumes at a.
+  const after = [await pick("account", "conn-pool"), await pick("account", "conn-pool")];
+  assert.deepEqual(after, [c.host, a.host]);
 });
 
-test("with the flag off a connection keeps its cached pool member even once set aside", async () => {
-  const [a] = await pool(3, "account", "conn-off");
+test("with the flag off a connection's chat-path resolution still rotates normally", async () => {
+  const [a, b] = await pool(3, "account", "conn-off");
   delete process.env.PROXY_SKIP_RECENTLY_FAILED;
   const first = await settingsDb.resolveProxyForConnection("conn-off");
   assert.equal((first as { proxy: { host: string } }).proxy.host, a.host);
   setAside(a);
-  assert.strictEqual(await settingsDb.resolveProxyForConnection("conn-off"), first);
+  const next = await settingsDb.resolveProxyForConnection("conn-off");
+  assert.equal((next as { proxy: { host: string } }).proxy.host, b.host);
 });
 
-test("with every member set aside the cascade re-runs once, not on every request", async () => {
+test("with every member set aside, chat-path resolution keeps rotating like the registry", async () => {
   // Round-robin advances its persisted cursor on each cascade run, so the cursor counts
   // how many times the registry pool was actually queried for this connection.
   const [a, b] = await pool(2, "account", "conn-all");
@@ -218,10 +226,9 @@ test("with every member set aside the cascade re-runs once, not on every request
   assert.equal((second as { proxy: { host: string } }).proxy.host, b.host);
   assert.equal(cursor(), 2);
 
-  for (let i = 0; i < 5; i++) {
-    assert.strictEqual(await settingsDb.resolveProxyForConnection("conn-all"), second);
-  }
-  assert.equal(cursor(), 2, "a member set aside before the entry was cached must not bypass it");
+  const third = await settingsDb.resolveProxyForConnection("conn-all");
+  assert.equal((third as { proxy: { host: string } }).proxy.host, a.host);
+  assert.equal(cursor(), 3);
 });
 
 test("a legacy single-proxy level stays cached even when its proxy is set aside", async () => {

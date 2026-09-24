@@ -157,7 +157,7 @@ test("handleChat treats a pure Accept: text/event-stream as stream=true and retu
 
   const raw = await response.text();
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("Content-Type"), "text/event-stream");
+  assert.equal(response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.ok(response.headers.get("X-OmniRoute-Session-Id"));
   assert.match(raw, /Accept header stream/);
   assert.match(raw, /\[DONE\]/);
@@ -203,6 +203,7 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
   await seedConnection("deepseek", { apiKey: "sk-deepseek-task-route" });
   const seenAuthHeaders = [];
   const seenRequestBodies = [];
+  const seenUrls = [];
   setTaskRoutingConfig({
     enabled: true,
     detectionEnabled: true,
@@ -213,28 +214,11 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
   });
 
   globalThis.fetch = async (_url, init = {}) => {
+    seenUrls.push(String(_url));
     const headers = toPlainHeaders(init.headers);
     seenAuthHeaders.push(headers.Authorization ?? headers.authorization);
     seenRequestBodies.push(JSON.parse(String(init.body)));
-    return new Response(
-      JSON.stringify({
-        id: "resp_task_route",
-        object: "response",
-        status: "completed",
-        model: "deepseek-v4-flash",
-        output: [
-          {
-            id: "msg_task_route",
-            type: "message",
-            role: "assistant",
-            status: "completed",
-            content: [{ type: "output_text", text: "Task-routed response", annotations: [] }],
-          },
-        ],
-        usage: { input_tokens: 4, output_tokens: 2, total_tokens: 6 },
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    return buildOpenAIResponse("Task-routed response");
   };
 
   const response = await handleChat(
@@ -250,8 +234,10 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
 
   assert.equal(response.status, 200);
   assert.deepEqual(seenAuthHeaders, ["Bearer sk-deepseek-task-route"]);
-  assert.equal(seenRequestBodies[0].messages, undefined);
-  assert.equal(seenRequestBodies[0].input[0].role, "user");
+  assert.deepEqual(seenUrls, ["https://api.deepseek.com/chat/completions"]);
+  assert.equal(seenRequestBodies[0].input, undefined);
+  assert.equal(seenRequestBodies[0].messages[0].role, "user");
+  assert.equal(seenRequestBodies[0].model, "deepseek-v4-flash");
   assert.equal(json.choices[0].message.content, "Task-routed response");
 });
 
@@ -317,7 +303,10 @@ test("handleChat keeps protected combo fallback separate from Global Fallback Mo
 });
 
 test("handleChat defaults a Combo's incompatible reasoning fallback to drop", async () => {
-  await seedConnection("deepseek", { apiKey: "sk-deepseek-reasoning-drop" });
+  await seedConnection("deepseek", {
+    apiKey: "sk-deepseek-reasoning-drop",
+    providerSpecificData: { targetFormat: "openai-responses" },
+  });
   await combosDb.createCombo({
     name: "reasoning-transport-drop",
     strategy: "priority",
@@ -330,6 +319,7 @@ test("handleChat defaults a Combo's incompatible reasoning fallback to drop", as
 
   let upstreamBody: { input?: unknown } | null = null;
   globalThis.fetch = async (_url, init = {}) => {
+    assert.equal(String(_url), "https://api.deepseek.com/responses");
     upstreamBody = JSON.parse(String(init.body));
     return new Response(
       JSON.stringify({

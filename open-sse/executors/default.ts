@@ -14,7 +14,7 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
-  mergeClientAnthropicBeta,
+  applyClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
 } from "../config/anthropicHeaders.ts";
 import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
@@ -579,6 +579,15 @@ export class DefaultExecutor extends BaseExecutor {
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
       case "clinepass": // dual-auth (OAuth or BYOK) — see applyClineAuthHeaders()
+        // buildClinepassHeaders() (called below via isClinepass=true) is the single
+        // source of truth for the OAuth-vs-BYOK decision, keyed off
+        // credentials.accessToken — do not re-decide it here off credentials.authType,
+        // which can diverge from the real credential shape (#11828 review).
+        if (credentials?.accessToken) {
+          console.debug("[Auth] Using OAuth token for Cline/Kilo Code request.");
+        } else {
+          console.debug("[Auth] Using direct API key for Cline/Kilo Code request.");
+        }
         applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
         break;
       case "cline":
@@ -678,18 +687,13 @@ export class DefaultExecutor extends BaseExecutor {
       // 400 "Tool reference not found". Allowlist-merge preserves it without
       // forwarding betas the backend rejects.
       const clientBeta = clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null;
-      const betaKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
-      if (betaKey && clientBeta) {
-        headers[betaKey] = mergeClientAnthropicBeta(
-          headers[betaKey],
-          clientBeta,
-          undefined,
-          // Gate the client-negotiated context-1m beta on the RESOLVED target model:
-          // combo/fallback can route a request negotiated for a [1m] sibling onto a
-          // model that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
-          model
-        );
-      }
+      // `model` gates the client-negotiated context-1m beta on the RESOLVED target:
+      // combo/fallback can route a request negotiated for a [1m] sibling onto a model
+      // that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
+      applyClientAnthropicBeta(headers, clientBeta, {
+        seedWhenAbsent: this.provider?.startsWith?.("anthropic-compatible-") === true,
+        model,
+      });
     }
 
     normalizeAnthropicHeaderVariants(headers);

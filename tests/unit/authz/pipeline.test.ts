@@ -102,6 +102,32 @@ test("runAuthzPipeline redirects root to dashboard before management auth", asyn
   assert.equal(response.headers.get("location"), "http://localhost/dashboard");
 });
 
+test("runAuthzPipeline forwards zed-hosted native-app callback from root to /callback preserving the query string (#13140)", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/?user_id=abc123&access_token=tok-xyz"),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 307);
+  assert.equal(
+    response.headers.get("location"),
+    "http://localhost/callback?user_id=abc123&access_token=tok-xyz"
+  );
+});
+
+test("runAuthzPipeline still redirects root to dashboard when only one native-app callback param is present (#13140)", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(request("http://localhost/?user_id=abc123"), {
+    enforce: true,
+  });
+
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "http://localhost/dashboard");
+});
+
 test("runAuthzPipeline redirects unauthenticated dashboard pages to login", async () => {
   await forceAuthRequired();
 

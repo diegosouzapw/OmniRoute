@@ -333,6 +333,108 @@ curl -X POST https://localhost:20128/api/services/mux/auto-restart-adopted \
   -d '{}'
 ```
 
+### POST /api/services/openwa/install
+
+Install open-wa from npm
+
+Installs the `@open-wa/wa-automate` npm package (WhatsApp Web automation via headless Chromium/Puppeteer) under DATA_DIR/services/openwa/. Bundles a Puppeteer Chromium download, so this install is much slower than the other embedded services. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/openwa/install \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/openwa/start
+
+Start open-wa
+
+Spawns `wa-automate --port <port> --host 127.0.0.1 --session-data-path data`. The HTTP API does not start listening until the WhatsApp client handshake resolves, which blocks on a human scanning the pairing QR code (shown in the logs panel) on first pairing — state stays `starting` well past the other services' typical cold-start window. Idempotent if already running. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/openwa/start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/openwa/stop
+
+Stop open-wa
+
+Gracefully stops open-wa. Idempotent. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/openwa/stop \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/openwa/restart
+
+Restart open-wa
+
+stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/openwa/restart \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/openwa/update
+
+Update open-wa to a newer npm version
+
+Stops, installs newer version, restarts. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/openwa/update \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/services/openwa/status
+
+Get open-wa status
+
+Returns live supervisor state and DB metadata. `health` only reflects whether `/api-docs/` answered — it does not indicate whether a WhatsApp session is paired. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl https://localhost:20128/api/services/openwa/status \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/services/openwa/auto-start
+
+Toggle open-wa auto-start
+
+When enabled, open-wa starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/openwa/auto-start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/openwa/auto-restart-adopted
+
+Toggle open-wa auto-restart-when-adopted
+
+When enabled, an externally-adopted (not OmniRoute-spawned) open-wa process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/openwa/auto-restart-adopted \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### POST /api/services/bifrost/install
 
 Install Bifrost

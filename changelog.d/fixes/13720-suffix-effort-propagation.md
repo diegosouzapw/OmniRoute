@@ -1,1 +1,0 @@
-- fix(chat): preserve suffix-model reasoning effort across model attempts so a replacement model no longer inherits or drops the original suffix, and keep explicit reasoning choices in request dedup hashes (#13720)

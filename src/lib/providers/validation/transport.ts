@@ -153,15 +153,14 @@ export const WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API = new Set([
 
 // #12107 — web-cookie providers whose registry entry exists to publish a model catalog
 // (so `/v1/models` and `/v1/providers/{id}/models` list something) but whose `baseUrl`
-// is a browser console, not an API host. gemini-business's entry points at
-// business.gemini.google/home: the executor only uses that origin to derive a
-// per-tenant StreamGenerate path (`/home/cid/{CID}/_/BardChatUi/...`), so there is no
-// side-effect-free auth probe on the host — `${baseUrl}/models` is a page Google never
-// served, and a 401/403 from a console page is not a credential signal either. Unlike
-// WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API these providers are therefore not probed at
-// all: validation stays the honest "unsupported" it reported before the registry entry
-// existed, decided BEFORE any network call.
-export const WEB_COOKIE_PROVIDERS_WITHOUT_AUTH_PROBE = new Set(["gemini-business"]);
+// is a browser console, not an API host, so there is no side-effect-free auth probe on
+// the host. Unlike WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API these providers are therefore
+// not probed at all: validation stays the honest "unsupported" it reported before the
+// registry entry existed, decided BEFORE any network call.
+// #14217: gemini-business (the previous sole member) was retired — see
+// docs/reference/REMOVED_PROVIDERS.md — so this set is currently empty; keep it as the
+// documented extension point for the next catalog-only, unprobeable web-cookie provider.
+export const WEB_COOKIE_PROVIDERS_WITHOUT_AUTH_PROBE = new Set<string>([]);
 
 export function toWebCookieValidationErrorResult(provider: string, error: unknown) {
   if (
@@ -178,12 +177,43 @@ export function toWebCookieValidationErrorResult(provider: string, error: unknow
   return toValidationErrorResult(error);
 }
 
+/**
+ * proxyFetch.ts computes a detailed transport diagnosis (DNS/socket error
+ * code, syscall, address) whenever a direct fetch fails on both the pooled
+ * undici dispatcher and the native-fetch fallback, and attaches it to the
+ * thrown error as `.proxyFetchDetail`. safeOutboundFetch's
+ * normalizeFetchFailure() then wraps that error in a SafeOutboundFetchError
+ * whose `.message` is copied from the generic "fetch failed" string and
+ * whose `.cause` is the original error carrying `.proxyFetchDetail`. Without
+ * this, the computed diagnosis never reaches the caller (#14309).
+ */
+function extractProxyFetchDetail(error: unknown): string | undefined {
+  if (!(error instanceof Error)) return undefined;
+  const cause = (error as Error & { cause?: unknown }).cause;
+  if (!(cause instanceof Error)) return undefined;
+  const detail = (cause as Error & { proxyFetchDetail?: unknown }).proxyFetchDetail;
+  return typeof detail === "string" && detail.length > 0 ? detail : undefined;
+}
+
+const GENERIC_TRANSPORT_FAILURE_PATTERN = /^fetch failed$/i;
+
 export function toValidationErrorResult(error: unknown) {
   let rawMessage: unknown = error || "Validation failed";
   try {
     if (error instanceof Error) rawMessage = error.message;
   } catch {
     rawMessage = "Validation failed";
+  }
+  try {
+    if (
+      typeof rawMessage === "string" &&
+      GENERIC_TRANSPORT_FAILURE_PATTERN.test(rawMessage.trim())
+    ) {
+      const detail = extractProxyFetchDetail(error);
+      if (detail) rawMessage = `Network error: ${detail}`;
+    }
+  } catch {
+    // Diagnostic enrichment is advisory; never let it break error reporting.
   }
   const message = sanitizeErrorMessage(rawMessage);
   let statusCode: number | null = null;

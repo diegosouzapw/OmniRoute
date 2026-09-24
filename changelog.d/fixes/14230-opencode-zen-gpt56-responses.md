@@ -1,0 +1,1 @@
+- **fix(providers):** OpenCode Zen GPT-5.6 models (sol, terra, luna) route to the Responses API instead of 503ing on /chat/completions ([#14230](https://github.com/diegosouzapw/OmniRoute/pull/14230)) — thanks @mhenke

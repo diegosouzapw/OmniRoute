@@ -3,7 +3,7 @@
 <rect x="16" y="16" width="868" height="564" rx="13" fill="#161b22" stroke="#30363d"/>
 <text x="868" y="572" fill="#484f58" font-size="10.5" text-anchor="end">OmniRoute · /dashboard/free-tiers · preview mockup</text>
 <text x="32" y="50" fill="#e6edf3" font-size="18" font-weight="700">Monthly free-token budget</text>
-<text x="868" y="50" fill="#7d8590" font-size="13" text-anchor="end">22 free pools · 482 models · one endpoint</text>
+<text x="868" y="50" fill="#7d8590" font-size="13" text-anchor="end">22 free pools · 489 models · one endpoint</text>
 <text x="32" y="84" fill="#7d8590" font-size="11.5">Steady / month</text>
 <text x="32" y="114" fill="#e6edf3" font-size="27" font-weight="800">~1.62B</text>
 <text x="330" y="84" fill="#7d8590" font-size="11.5">First month (+ signup credits)</text>
@@ -102,6 +102,6 @@
 <text x="84" y="466" fill="#7ee787" font-size="11.5" text-anchor="middle">hyperbolic 5M</text>
 <rect x="32" y="492" width="836" height="48" rx="8" fill="#1c2230" stroke="#30363d"/>
 <text x="46" y="506" fill="#7d8590" font-size="12">Pool-deduped, honest counting — no inflated rate-limit ceilings. Some terms suggest personal-use only; we flag them so you decide.</text>
-<text x="46" y="520" fill="#7d8590" font-size="11.5">+ 15 permanently-free, no-cap providers (e.g. agnes, ainative, aion) · OpenRouter $10 → +24M/mo.</text>
+<text x="46" y="520" fill="#7d8590" font-size="11.5">+ 16 permanently-free, no-cap providers (e.g. agnes, agnes-cn, ainative) · OpenRouter $10 → +24M/mo.</text>
 <text x="46" y="534" fill="#d29922" font-size="11.5">+ ~6M behind regional identity verification (modelscope) — real quota, never in the headline.</text>
 </svg>

@@ -476,7 +476,9 @@ export default function ProxyLogger() {
                       )}
                       {visibleColumns.proxy && (
                         <td className="px-3 py-2 font-mono text-[11px] text-primary">
-                          {log.proxy ? `${log.proxy.host}:${log.proxy.port}` : "—"}
+                          {log.proxy
+                            ? log.proxy.name || `${log.proxy.host}:${log.proxy.port}`
+                            : "—"}
                         </td>
                       )}
                       {visibleColumns.tls && (

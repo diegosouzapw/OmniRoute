@@ -1,0 +1,1 @@
+- fix(providers): surface the real transport diagnosis (DNS/socket cause) instead of a bare "fetch failed" in provider validation errors (#14309)

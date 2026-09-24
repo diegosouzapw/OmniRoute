@@ -74,6 +74,30 @@ function toolOutputContentToString(output: unknown): string {
   return parts.join("\n");
 }
 
+/**
+ * #14111: lift `input_image` parts out of a Responses tool output as Chat
+ * Completions `image_url` content parts, so a following multimodal user message
+ * can carry them to the downstream model — the `tool` message itself is
+ * text-only on Chat Completions, which is why the placeholder exists (#8459).
+ */
+function toolOutputImagesToChatParts(output: unknown): JsonRecord[] {
+  if (!Array.isArray(output)) return [];
+  const images: JsonRecord[] = [];
+  for (const item of output) {
+    if (typeof item !== "object" || item === null) continue;
+    const rec = item as Record<string, unknown>;
+    if (rec.type !== "input_image") continue;
+    const url = toString(rec.image_url);
+    if (!url) continue;
+    const part: JsonRecord = { type: "image_url", image_url: { url } };
+    if (rec.detail !== undefined) {
+      (part.image_url as JsonRecord).detail = rec.detail;
+    }
+    images.push(part);
+  }
+  return images;
+}
+
 function appendReasoningContent(current: unknown, next: string): string {
   const existing = typeof current === "string" ? current : "";
   return existing ? `${existing}\n\n${next}` : next;
@@ -287,6 +311,10 @@ export function openaiResponsesToOpenAIRequest(
           tool_call_id: toString(item.tool_call_id),
           content: toolOutputContentToString(item.content),
         });
+        const roleToolImages = toolOutputImagesToChatParts(item.content);
+        if (roleToolImages.length > 0) {
+          messages.push({ role: "user", content: roleToolImages });
+        }
         continue;
       }
 
@@ -427,6 +455,12 @@ export function openaiResponsesToOpenAIRequest(
         tool_call_id: toString(item.call_id),
         content: toolOutputContentToString(item.output),
       });
+      // #14111: Chat Completions `tool` content is text-only, so a following
+      // multimodal user message carries the output's images to vision models.
+      const toolImages = toolOutputImagesToChatParts(item.output);
+      if (toolImages.length > 0) {
+        messages.push({ role: "user", content: toolImages });
+      }
       continue;
     }
 
@@ -493,6 +527,10 @@ export function openaiResponsesToOpenAIRequest(
         tool_call_id: toString(item.call_id),
         content: toolContent,
       });
+      const customToolImages = toolOutputImagesToChatParts(item.output);
+      if (customToolImages.length > 0) {
+        messages.push({ role: "user", content: customToolImages });
+      }
       continue;
     }
 
@@ -516,14 +554,16 @@ export function openaiResponsesToOpenAIRequest(
       continue;
     }
 
-    // Skip tool_search_call items. These are Responses-API-only metadata items
-    // emitted by Codex's dynamic tool-search optimization: they record that the
-    // model queried a subset of available tools, but carry no content that Chat
-    // Completions can represent. Throwing here would break every multi-turn
-    // conversation where Codex previously used tool_search (the whole session
-    // would carry tool_search_call items forward in `input`). Skipping matches
-    // the reasoning-item policy: display-only metadata, no chat side-effect.
-    if (itemType === "tool_search_call" || itemType === "tool_search_result") {
+    // Skip Responses-only search metadata. tool_search_call/tool_search_result
+    // are Codex's dynamic tool-discovery items; web_search_call is emitted by
+    // OmniRoute's web-search fallback alongside function_call_output, which
+    // already carries the result for Chat Completions. Replayed metadata has no
+    // lossless Chat representation and must not fail a follow-up turn.
+    if (
+      itemType === "tool_search_call" ||
+      itemType === "tool_search_result" ||
+      itemType === "web_search_call"
+    ) {
       continue;
     }
 
@@ -760,7 +800,10 @@ export function openaiResponsesToOpenAIRequest(
   ) {
     const tc = toRecord(result.tool_choice);
     const tcType = toString(tc.type);
-    if (tcType === "function" && tc.name !== undefined && !tc.function) {
+    // Custom/freeform tools are normalized to Chat function tools with an { input: string }
+    // schema above. Force the normalized function here while response-side custom-tool metadata
+    // restores custom_tool_call and raw input for the Responses client.
+    if ((tcType === "function" || tcType === "custom") && tc.name !== undefined && !tc.function) {
       result.tool_choice = { type: "function", function: { name: tc.name } };
     } else if (tcType === "local_shell") {
       result.tool_choice = { type: "function", function: { name: "shell" } };

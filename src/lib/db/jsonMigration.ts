@@ -16,6 +16,7 @@ import { normalizeRoutingStrategy } from "@/shared/constants/routingStrategies";
 import { normalizeComboRecord } from "@/lib/combos/steps";
 import { validateComboInvariant } from "@/lib/combos/invariants";
 import { parseModelAccessMode } from "./apiKeys/modelAccessMode";
+import { serializeJsonField } from "./providers/columns";
 import {
   resolveImportedUsageAccountIdentity,
   resolveOrphanedUsageAccountIdentity,
@@ -72,7 +73,8 @@ export function runJsonMigration(
       rate_limited_until, health_check_interval, last_health_check_at,
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
-      token_type, consecutive_use_count, rate_limit_protection, last_used_at, created_at, updated_at
+      token_type, consecutive_use_count, rate_limit_protection, last_used_at,
+      rate_limit_overrides_json, created_at, updated_at
     ) VALUES (
       @id, @provider, @authType, @name, @email, @priority, @isActive,
       @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt,
@@ -81,7 +83,8 @@ export function runJsonMigration(
       @rateLimitedUntil, @healthCheckInterval, @lastHealthCheckAt,
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
-      @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @createdAt, @updatedAt
+      @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt,
+      @rateLimitOverridesJson, @createdAt, @updatedAt
     )
   `);
 
@@ -107,9 +110,24 @@ export function runJsonMigration(
     )
   `);
 
+  const selectExistingOverrides = db.prepare(
+    "SELECT rate_limit_overrides_json FROM provider_connections WHERE id = ?"
+  );
+
   const migrate = db.transaction(() => {
     // 1. Provider Connections
     for (const conn of data.providerConnections ?? []) {
+      // Preserve operator overrides when the backup carries none: INSERT OR
+      // REPLACE would otherwise reset the column to NULL. Executed inside
+      // the transaction and reinjected into the INSERT - never a 2nd UPDATE.
+      const hasOverrides = conn.rateLimitOverrides != null;
+      let rateLimitOverridesJson = serializeJsonField(conn.rateLimitOverrides);
+      if (!hasOverrides && typeof conn.id === "string") {
+        const existing = selectExistingOverrides.get(conn.id) as
+          | { rate_limit_overrides_json: string | null }
+          | undefined;
+        if (existing) rateLimitOverridesJson = existing.rate_limit_overrides_json;
+      }
       insertConn.run({
         id: conn.id,
         provider: conn.provider,
@@ -149,6 +167,7 @@ export function runJsonMigration(
         lastUsedAt: conn.lastUsedAt ?? null,
         rateLimitProtection:
           conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
+        rateLimitOverridesJson,
         createdAt: conn.createdAt ?? new Date().toISOString(),
         updatedAt: conn.updatedAt ?? new Date().toISOString(),
       });

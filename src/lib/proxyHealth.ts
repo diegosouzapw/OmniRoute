@@ -169,7 +169,12 @@ function defaultPortForScheme(protocol: string): string {
     case "socks5":
     case "socks5h":
       return "1080";
+    // #14157: the WHATWG URL parser drops the port when it equals the scheme
+    // default, so `http://host:80` reaches this fallback with port === "".
+    // The default http proxy port is 80; probing 8080 fast-failed every
+    // default-port http proxy and pushed healthy connections into cooldown.
     case "http":
+      return "80";
     default:
       return "8080";
   }

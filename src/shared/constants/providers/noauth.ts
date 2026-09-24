@@ -163,7 +163,7 @@ export const NOAUTH_PROVIDERS = {
     passthroughModels: true,
     serviceKinds: ["llm"],
     authHint:
-      "No auth required. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync; verified live model: solidrust/Hermes-3-Llama-3.1-8B-AWQ.",
+      "No auth required. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync; verified live model: Lorbus/Qwen3.6-27B-int4-AutoRound.",
     freeNote: "Free forever — no signup, no credit card. OpenAI-compatible endpoints.",
     notice: {
       text: "UncloseAI needs no API key. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync.",

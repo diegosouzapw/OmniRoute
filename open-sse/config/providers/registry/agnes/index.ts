@@ -1,5 +1,22 @@
 import type { RegistryEntry } from "../../shared.ts";
 
+// Official Agnes chat contract from live /v1/chat/completions probes
+// (2026-09-14, apihub.agnes-ai.com). 2.0/2.5 accept none/low/medium/high/max
+// and 400 on xhigh/off/ultra/minimal. 3.0 additionally accepts minimal and
+// xhigh. HuggingFace's Agnes-3.0-Flash card lists four of these
+// (none/low/medium/high); live 3.0 also takes minimal and xhigh, so the
+// registry follows the live API rather than the shorter card.
+export const AGNES_FLASH_THINKING_EFFORTS = ["none", "low", "medium", "high", "max"] as const;
+export const AGNES_30_THINKING_EFFORTS = [
+  "none",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
+
 export const agnesProvider: RegistryEntry = {
   id: "agnes",
   format: "openai",
@@ -15,6 +32,7 @@ export const agnesProvider: RegistryEntry = {
       contextLength: 262144,
       maxOutputTokens: 65536,
       supportsReasoning: true,
+      supportedThinkingEfforts: [...AGNES_FLASH_THINKING_EFFORTS],
       supportsVision: true,
       toolCalling: true,
     },
@@ -24,18 +42,20 @@ export const agnesProvider: RegistryEntry = {
       contextLength: 524288,
       maxOutputTokens: 65536,
       supportsReasoning: true,
+      supportedThinkingEfforts: [...AGNES_FLASH_THINKING_EFFORTS],
       supportsVision: true,
       toolCalling: true,
       interleavedField: "reasoning_content",
     },
+    // Wiki (2026-09-10): agnes-3.0-flash is 512k context / 65,536
+    // output, same window as 2.5-flash. Live /v1/models lists it.
     {
-      // Wiki (2026-09-10) lists agnes-3.0-flash at 512K context / 65,536 max
-      // output, same window as 2.5 Flash. Live GET /v1/models includes it.
       id: "agnes-3.0-flash",
       name: "Agnes 3.0 Flash",
       contextLength: 524288,
       maxOutputTokens: 65536,
       supportsReasoning: true,
+      supportedThinkingEfforts: [...AGNES_30_THINKING_EFFORTS],
       supportsVision: true,
       toolCalling: true,
       interleavedField: "reasoning_content",

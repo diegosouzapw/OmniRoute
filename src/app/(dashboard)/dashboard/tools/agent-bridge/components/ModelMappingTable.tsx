@@ -90,7 +90,7 @@ export function ModelMappingTable({ agentId, mappings, onSave }: ModelMappingTab
                         type="text"
                         value={row.source}
                         onChange={(e) => updateSource(i, e.target.value)}
-                        placeholder="e.g., gpt-4"
+                        placeholder="e.g., gemini-3.6-flash-medium, or * for all unmapped"
                         className="w-full rounded border border-border/40 bg-card px-2 py-1 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary/50"
                       />
                     </td>
@@ -125,6 +125,10 @@ export function ModelMappingTable({ agentId, mappings, onSave }: ModelMappingTab
               </tbody>
             </table>
           </div>
+          <p className="text-xs text-text-muted">
+            Use * as the source to route every model without an explicit mapping through OmniRoute
+            to the selected target. Exact source matches always win over *.
+          </p>
 
           <div className="flex justify-between items-center">
             <button

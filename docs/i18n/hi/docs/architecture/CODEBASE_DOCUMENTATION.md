@@ -1,6 +1,6 @@
 # OmniRoute Codebase Documentation (हिन्दी)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇦 [bs](../../../bs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
 
@@ -436,8 +436,8 @@ server/
 
 ## 4. `open-sse/` — स्ट्रीमिंग इंजन वर्कस्पेस
 
-एक अलग npm वर्कस्पेस, जिसे `@omniroute/open-sse` के रूप में प्रकाशित किया गया है। यह अनुरोध
-प्रोसेसिंग, एक्ज़ीक्यूटर, ट्रांसलेटर, सेवाओं, ट्रांसफ़ॉर्मर और MCP सर्वर का प्रबंधन करता है।
+अलग npm वर्कस्पेस, जिसे `@omniroute/open-sse` के रूप में प्रकाशित किया जाता है। यह अनुरोध
+प्रसंस्करण, एक्ज़ीक्यूटर, ट्रांसलेटर, सेवाओं, ट्रांसफ़ॉर्मर और MCP सर्वर का प्रबंधन करता है।
 
 ```
 open-sse/
@@ -445,13 +445,13 @@ open-sse/
 ├── package.json            वर्कस्पेस मैनिफ़ेस्ट
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 प्रोवाइडर रजिस्ट्री, हेडर प्रोफ़ाइल, पहचान, …
+├── config/                 प्रदाता रजिस्ट्री, हेडर प्रोफ़ाइल, पहचान, …
 ├── handlers/               अनुरोध हैंडलर (चैट, एम्बेडिंग, ऑडियो, इमेज, …)
-├── executors/              108 प्रोवाइडर-विशिष्ट HTTP एक्ज़ीक्यूटर
-├── translator/             प्रारूप रूपांतरण (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
+├── executors/              108 प्रदाता-विशिष्ट HTTP एक्ज़ीक्यूटर
+├── translator/             फ़ॉर्मेट रूपांतरण (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions स्ट्रीम ट्रांसफ़ॉर्मर
 ├── services/               80+ सेवा मॉड्यूल (कॉम्बो, फ़ॉलबैक, कोटा, पहचान, …)
-├── utils/                  स्ट्रीमिंग हेल्पर, TLS क्लाइंट, AWS SigV4, प्रॉक्सी फ़ेच, …
+├── utils/                  स्ट्रीमिंग सहायक, TLS क्लाइंट, AWS SigV4, प्रॉक्सी फ़ेच, …
 └── mcp-server/             MCP सर्वर (3 ट्रांसपोर्ट, 33 स्कोप, 110 टूल)
 ```
 
@@ -471,22 +471,22 @@ open-sse/
 | `moderations.ts`        | मॉडरेशन                                                                |
 | `search.ts`             | वेब खोज                                                                |
 | `sseParser.ts`          | SSE इवेंट पार्सर                                                       |
-| `usageExtractor.ts`     | अपस्ट्रीम स्ट्रीम से टोकन संख्या निकालना                               |
-| `responseSanitizer.ts`  | प्रोवाइडर-विशिष्ट अवांछित सामग्री हटाना                                |
-| `responseTranslator.ts` | प्रोवाइडर प्रतिक्रिया और ट्रांसलेटर लेयर के बीच संयोजक                 |
+| `usageExtractor.ts`     | अपस्ट्रीम स्ट्रीम से टोकन की संख्याएँ निकालना                          |
+| `responseSanitizer.ts`  | प्रदाता-विशिष्ट अनावश्यक सामग्री हटाना                                 |
+| `responseTranslator.ts` | प्रदाता प्रतिक्रिया और ट्रांसलेटर लेयर के बीच संयोजन                   |
 
 ### 4.2 `open-sse/executors/`
 
-108 प्रोवाइडर एक्ज़ीक्यूटर, जिनमें से प्रत्येक `BaseExecutor` (`base.ts`) को विस्तारित करता है:
+108 प्रदाता एक्ज़ीक्यूटर, जिनमें से प्रत्येक `BaseExecutor` (`base.ts`) को एक्सटेंड करता है:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop`, साथ ही `claudeIdentity.ts`
-(साझा पहचान हेल्पर) और `index.ts` (रजिस्ट्री)।
+(साझा पहचान सहायक) और `index.ts` (रजिस्ट्री)।
 
-> नोट: यहाँ सूचीबद्ध नहीं किए गए प्रोवाइडर को जेनेरिक
-> OpenAI-संगत एक्ज़ीक्यूटर का उपयोग करके `default.ts` द्वारा सेवा दी जाती है। संपूर्ण प्रोवाइडर कैटलॉग (355 प्रोवाइडर)
+> नोट: यहाँ सूचीबद्ध नहीं किए गए प्रदाताओं को जेनेरिक
+> OpenAI-संगत एक्ज़ीक्यूटर का उपयोग करके `default.ts` द्वारा सेवा दी जाती है। संपूर्ण प्रदाता कैटलॉग (355 प्रदाता)
 > `src/shared/constants/providers.ts` में मौजूद है।
 
 ### 4.3 `open-sse/translator/`
@@ -501,11 +501,11 @@ open-sse/
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`।
-- **9 हेल्पर** (`translator/helpers/`):
+- **9 सहायक** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, साथ ही
-  हेल्पर परीक्षण।
-- **इमेज हेल्पर** (`translator/image/sizeMapper.ts`)।
+  सहायक परीक्षण।
+- **इमेज सहायक** (`translator/image/sizeMapper.ts`)।
 - शीर्ष-स्तर: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`।
 
 ### 4.4 `open-sse/transformer/`
@@ -515,55 +515,55 @@ open-sse/
 
 ### 4.5 `open-sse/services/`
 
-मुख्य विशेषताएँ (पूरी सूची `open-sse/services/` के अंतर्गत है):
+मुख्य अंश (पूरी सूची `open-sse/services/` के अंतर्गत है):
 
-| विषय              | फ़ाइलें                                                                                                                                                                                                                                           |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| कॉम्बो रूटिंग     | `combo.ts` (19 रणनीतियाँ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                              |
-| ऑटो कॉम्बो इंजन   | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
-| लचीलापन           | `accountFallback.ts` (कूलडाउन + लॉकआउट), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                                |
-| कोटा              | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
-| कैशिंग            | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                     |
-| रूटिंग इंटेलिजेंस | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
-| मॉडल प्रबंधन      | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
-| संपीड़न           | `compression/` — पूर्ण संपीड़न इंजन वायरिंग                                                                                                                                                                                                       |
-| टोकन + सत्र       | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
-| टियर / मैनिफ़ेस्ट | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
-| IP / नेटवर्क      | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
-| बैच               | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| उपयोग             | `usage.ts`                                                                                                                                                                                                                                        |
+| विषय              | फ़ाइलें                                                                                                                                                                                                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| कॉम्बो रूटिंग     | `combo.ts` (19 रणनीतियाँ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
+| ऑटो कॉम्बो इंजन   | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| प्रत्यास्थता      | `accountFallback.ts` (कूलडाउन + लॉकआउट), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                           |
+| कोटा              | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| कैशिंग            | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| रूटिंग इंटेलिजेंस | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| मॉडल प्रबंधन      | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| संपीड़न           | `compression/` — संपूर्ण संपीड़न इंजन वायरिंग                                                                                                                                                                                                            |
+| टोकन + सत्र       | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| टियर / मैनिफ़ेस्ट | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / नेटवर्क      | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| बैच               | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| उपयोग             | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- `server.ts` में **110 अद्वितीय टूल** वायर किए गए हैं (`schemas/tools.ts` में 45 कैनोनिकल +
-  मेमोरी, स्किल्स, GitHub-स्किल्स, पूल, गेमिफ़िकेशन, प्लगइन, Notion, Obsidian,
+- `server.ts` में वायर किए गए **110 अद्वितीय टूल** (`schemas/tools.ts` में 45 कैनोनिकल +
+  मेमोरी, स्किल्स, GitHub-skills, पूल, गेमिफ़िकेशन, प्लगइन, Notion, Obsidian,
   लोकल-कॉर्पस और संपीड़न मॉड्यूल — यूनियन की गणना `countUniqueMcpTools` द्वारा की जाती है)।
 - **3 ट्रांसपोर्ट**: stdio, HTTP Streamable, SSE।
-- रनटाइम पर **33 स्कोप** लागू किए जाते हैं — आधार सूची `src/shared/constants/mcpScopes.ts` में है, जबकि पूरा सेट प्रत्येक टूल मॉड्यूल द्वारा घोषित स्कोप्स का यूनियन है।
+- रनटाइम पर **33 स्कोप** लागू किए जाते हैं — आधार सूची `src/shared/constants/mcpScopes.ts` में है, जबकि पूर्ण सेट प्रत्येक टूल मॉड्यूल द्वारा घोषित स्कोप का यूनियन है।
 - ऑडिट तालिका: `mcp_tool_audit` (`audit.ts` द्वारा पॉप्युलेट की जाती है)।
 - फ़ाइलें: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
-  और `__tests__/` के अंतर्गत टेस्ट।
+  साथ ही `__tests__/` के अंतर्गत परीक्षण।
 - संपूर्ण टूल कैटलॉग के लिए [MCP-SERVER.md](../frameworks/MCP-SERVER.md) देखें।
 
 ### 4.7 `open-sse/config/`
 
-प्रोवाइडर रजिस्ट्रियाँ (`providerRegistry.ts`, `providerModels.ts`,
-`providerHeaderProfiles.ts`), प्रत्येक फ़ॉर्मेट के लिए मॉडल रजिस्ट्रियाँ (`audioRegistry.ts`,
+प्रोवाइडर रजिस्ट्री (`providerRegistry.ts`, `providerModels.ts`,
+`providerHeaderProfiles.ts`), प्रत्येक फ़ॉर्मेट के लिए मॉडल रजिस्ट्री (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-आइडेंटिटी हेल्पर्स (`codexIdentity.ts`, `codexInstructions.ts`,
+पहचान सहायक (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-क्रेडेंशियल हेल्पर्स (`credentialLoader.ts`, `codexClient.ts`), और क्लाउड
-एडेप्टर्स (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+क्रेडेंशियल सहायक (`credentialLoader.ts`, `codexClient.ts`), और क्लाउड
+अडैप्टर (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`)।
 
 ### 4.8 `open-sse/utils/`
 
-स्ट्रीमिंग प्रिमिटिव्स और प्रोवाइडर हेल्पर्स: `stream.ts`, `streamHandler.ts`,
+स्ट्रीमिंग प्रिमिटिव और प्रोवाइडर हेल्पर: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,
@@ -656,31 +656,31 @@ bin/
 
 ## 8. `scripts/`
 
-उद्देश्य के अनुसार 6 उप-फ़ोल्डरों में व्यवस्थित।
+उद्देश्य के आधार पर 6 सबफ़ोल्डर में व्यवस्थित।
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
   `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
-  `native-binary-compat.mjs`.
+  `native-binary-compat.mjs`।
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
   `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
-  `system-info.mjs`.
+  `system-info.mjs`।
 - **`scripts/check/`** — `check-cycles.mjs`, `check-docs-sync.mjs`,
   `check-docs-counts-sync.mjs`, `check-env-doc-sync.mjs`,
   `check-deprecated-versions.mjs`, `check-route-validation.mjs`,
   `check-t11-any-budget.mjs`, `check-pr-test-policy.mjs`,
-  `check-supported-node-runtime.ts`, `test-report-summary.mjs`.
-- **`scripts/docs/`** — `generate-docs-index.mjs`, `gen-provider-reference.ts`.
+  `check-supported-node-runtime.ts`, `test-report-summary.mjs`।
+- **`scripts/docs/`** — `generate-docs-index.mjs`, `gen-provider-reference.ts`।
 - **`scripts/i18n/`** — `generate-multilang.mjs`, `run-visual-qa.mjs`,
   `generate-qa-checklist.mjs`, `apply-priority-overrides.mjs`,
   `validate_translation.py`, `check_translations.py`, `i18n_autotranslate.py`,
-  `untranslatable-keys.json`.
+  `untranslatable-keys.json`।
 - **`scripts/ad-hoc/`** — `cursor-tap.cjs`, `sync-cursor-models.mjs`,
-  `migrate-env.mjs`, `dbsetup.js`.
+  `migrate-env.mjs`, `dbsetup.js`।
 
 ---
 

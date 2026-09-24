@@ -11,7 +11,7 @@
  */
 import React from "react";
 import { act } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 import ProviderPageHeader from "@/app/(dashboard)/dashboard/providers/[id]/components/ProviderPageHeader";
 
@@ -33,10 +33,14 @@ const BASE_PROPS = {
 
 describe("ProviderPageHeader — Get API key link", () => {
   let container: HTMLDivElement | null = null;
+  const mounted: { root: Root; container: HTMLDivElement }[] = [];
 
-  afterEach(() => {
+  afterEach(async () => {
+    for (const instance of mounted.splice(0)) {
+      await act(async () => instance.root.unmount());
+      instance.container.remove();
+    }
     if (container) {
-      document.body.removeChild(container);
       container = null;
     }
   });
@@ -45,12 +49,16 @@ describe("ProviderPageHeader — Get API key link", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
+    mounted.push({ root, container });
     act(() => {
       root.render(
         <ProviderPageHeader
           {...BASE_PROPS}
           {...overrides}
-          providerInfo={{ ...BASE_PROPS.providerInfo, ...(overrides.providerInfo as Record<string, unknown> || {}) }}
+          providerInfo={{
+            ...BASE_PROPS.providerInfo,
+            ...((overrides.providerInfo as Record<string, unknown>) || {}),
+          }}
         />
       );
     });

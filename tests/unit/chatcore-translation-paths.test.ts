@@ -379,6 +379,7 @@ async function invokeChatCore({
   reasoningTransportFallback = "drop",
   managedLease = null,
   cachedSettings = null,
+  modelTargetFormat = undefined,
 }: any = {}) {
   const calls: any[] = [];
 
@@ -408,7 +409,10 @@ async function invokeChatCore({
     const requestBody = structuredClone(body);
     const result = await handleChatCore({
       body: requestBody,
-      modelInfo: { provider, model, extendedContext: false },
+      modelInfo:
+        modelTargetFormat !== undefined
+          ? { provider, model, extendedContext: false, targetFormat: modelTargetFormat }
+          : { provider, model, extendedContext: false },
       credentials: credentials || {
         apiKey: "sk-test",
         // #13452/#13798: buildUrl() refuses an `*-compatible-*` node with no baseUrl
@@ -1565,6 +1569,65 @@ test("chatCore normalizes native Claude Code messages before CC-compatible relay
   // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
   assert.equal(call.body.messages[2].content[0].type, "tool_result");
 });
+
+// Issue #13971: the CC-bridge unconditionally preserved raw tool_result blocks even when the
+// target speaks OpenAI-compatible (503 on those gateways). Fix: gate preserveToolResultBlocks
+// on targetFormat === FORMATS.CLAUDE. userAgent is plain (non-Claude-Code) so both requests hit
+// the CC-bridge's normalizeClaudeUpstreamMessages branch (chatCore.ts:2377-2385), not the
+// Claude-Code semantic-passthrough branch above it, which this fix does not touch.
+function ccBridgeToolResultCall(modelTargetFormat?: string) {
+  return invokeChatCore({
+    provider: "anthropic-compatible-cc-test",
+    model: "claude-sonnet-4-6",
+    endpoint: "/v1/messages",
+    credentials: {
+      apiKey: "sk-test",
+      providerSpecificData: { baseUrl: "https://proxy.example.com/v1/messages" },
+    },
+    body: {
+      model: "claude-sonnet-4-6",
+      max_tokens: 64,
+      messages: [
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "toolu_x", name: "Read", input: {} }],
+        },
+        {
+          role: "user",
+          content: [{ type: "tool_result", tool_use_id: "toolu_x", content: "file contents" }],
+        },
+      ],
+      tools: [{ name: "Read", input_schema: { type: "object", properties: {} } }],
+    },
+    userAgent: "unit-test",
+    responseFormat: "claude",
+    modelTargetFormat,
+  });
+}
+test("chatCore strips tool_result blocks on the CC-bridge path when the target is OpenAI-compatible", async () => {
+  const { call, result } = await ccBridgeToolResultCall("openai");
+  assert.equal(result.success, true);
+  // No block may be raw tool_result/tool_use — that shape 503'd on #13971; the
+  // orphan-tool-use cleanup also drops the now-unmatched assistant turn, a stronger guard.
+  for (const message of call.body.messages) {
+    for (const block of message.content) {
+      assert.notEqual(block.type, "tool_result");
+      assert.notEqual(block.type, "tool_use");
+    }
+  }
+  const flattened = call.body.messages
+    .flatMap((m: { content: Array<{ text?: string }> }) => m.content)
+    .map((b: { text?: string }) => b.text)
+    .join("\n");
+  assert.match(flattened, /file contents/);
+});
+// Same branch, real (Claude-native) target format — tool_result stays preserved raw.
+test("chatCore still preserves tool_result blocks on the CC-bridge path when the target is Claude-native", async () => {
+  const { call, result } = await ccBridgeToolResultCall();
+  assert.equal(result.success, true);
+  assert.equal(call.body.messages[0].content[0].type, "tool_use");
+  assert.equal(call.body.messages[1].content[0].type, "tool_result");
+});
 test("chatCore preserves cache_control automatically for Claude Code single-model requests", async () => {
   await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
   invalidateCacheControlSettingsCache();
@@ -1831,6 +1894,40 @@ test("chatCore sets Claude tool prefix disabling, strips empty Anthropic text bl
     collectTextBlocks(call.body.messages).map((block) => block.text),
     ["hello"]
   );
+});
+// #13835: a third-party provider's own ordinary tool name (GitHub Copilot's client-executed
+// "web_fetch" function tool) must still get the proxy_ prefix even though this request lands
+// in the same general (non-claude-passthrough) branch as the "claude" provider test above —
+// only genuine first-party Anthropic traffic (provider "claude") should skip prefixing.
+test("chatCore still prefixes ordinary third-party tool names for non-Anthropic providers targeting Claude", async () => {
+  const { call } = await invokeChatCore({
+    provider: "github",
+    model: "claude-haiku-4.5",
+    endpoint: "/v1/chat/completions",
+    credentials: { apiKey: "gh-key", providerSpecificData: {} },
+    body: {
+      model: "github/claude-haiku-4.5",
+      messages: [{ role: "user", content: "fetch a url" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "web_fetch",
+            description: "Fetches a URL from the internet.",
+            parameters: {
+              type: "object",
+              properties: { url: { type: "string" } },
+              required: ["url"],
+            },
+          },
+        },
+      ],
+    },
+    responseFormat: "claude",
+  });
+
+  assert.equal(call.body.tools[0].name, "proxy_web_fetch");
+  assert.equal(call.body._toolNameMap, undefined);
 });
 test("chatCore restores prefixed Claude passthrough tool names in upstream responses", async () => {
   const { result } = await invokeChatCore({
@@ -2993,7 +3090,7 @@ test("buildStreamingResponseHeaders drops upstream compression and framing heade
     )
   );
 
-  assert.equal(headers.get("Content-Type"), "text/event-stream");
+  assert.equal(headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.equal(headers.get("Content-Encoding"), null);
   assert.equal(headers.get("Content-Length"), null);
   assert.equal(headers.get("Transfer-Encoding"), null);
@@ -3028,7 +3125,7 @@ test("chatCore strips upstream compression and length headers from streaming res
   });
 
   assert.equal(result.success, true);
-  assert.equal(result.response.headers.get("Content-Type"), "text/event-stream");
+  assert.equal(result.response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.equal(result.response.headers.get("Content-Length"), null);
   assert.equal(result.response.headers.get("X-Upstream-Trace"), "trace-1");
   assert.equal(result.response.headers.get("X-OmniRoute-Cache"), "MISS");

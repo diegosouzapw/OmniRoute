@@ -1,0 +1,42 @@
+name: Release acceptance
+
+on:
+  push:
+    branches: ["release/v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-acceptance-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acceptance:
+    name: Release acceptance
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Emit shadow acceptance report
+        run: |
+          node scripts/quality/validate-release-acceptance.mjs \
+            --plan tests/fixtures/release-acceptance/plan-lint.json \
+            --manifests tests/fixtures/release-acceptance/shadow-manifests \
+            --out release-acceptance-report.json
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-acceptance-report
+          path: release-acceptance-report.json
+          if-no-files-found: ignore
+          retention-days: 30

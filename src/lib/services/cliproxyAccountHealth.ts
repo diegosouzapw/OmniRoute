@@ -108,6 +108,17 @@ export function sanitizeCliproxyAuthFiles(payload: unknown): CliproxyAccountHeal
     .filter((file) => file.authIndex !== "");
 }
 
+/** Read-time label for a stored auth index. Drops emails, paths, and blank labels. */
+export function labelForCliproxyAuthIndex(
+  authIndex: string | null | undefined,
+  accounts: readonly CliproxyAccountHealth[]
+): string | null {
+  if (!authIndex) return null;
+  const label = accounts.find((account) => account.authIndex === authIndex)?.label.trim() ?? "";
+  if (!label || label.length > 80 || /[@/\\\s]/.test(label)) return null;
+  return label;
+}
+
 async function resolveConnection(
   options: GetCliproxyAccountHealthOptions
 ): Promise<

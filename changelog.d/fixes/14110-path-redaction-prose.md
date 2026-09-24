@@ -1,0 +1,1 @@
+- fix(guardrails): fail closed on unknown-root filesystem paths followed by ambiguous prose in sanitized error messages (#14110)
