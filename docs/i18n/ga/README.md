@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="Painéal OmniRoute" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
 
 <br/>
 <br/>
 
 # 🚀 OmniRoute — An Geata AI Saor in Aisce
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Ná stop de bheith ag códú choíche. Gach uirlis AI → 359 soláthraí — 150+ saor in aisce — trí chríochphointe amháin. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity isteach i Claude / GPT / Gemini SAOR IN AISCE le cúltaca uathoibríoch. Sábhálann comhbhrú carntha RTK + Caveman 15–95% de chomharthaí (~89% ar an meán) — ná buail teorainneacha choíche. 359 soláthraí AI · 150+ sraith saor in aisce · ~1.62B comhartha saor in aisce/mí · 19 straitéis ródaithe · $0 le tosú."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Ná stop ag códú choíche. Gach uirlis AI → 359 soláthraí — 150+ saor in aisce — trí phointe deiridh amháin. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity isteach i Claude / GPT / Gemini SAOR IN AISCE le cúltaca uathoibríoch. Sábhálann comhbhrú RTK + Caveman 15–95% comharthaí (~89% ar an meán) — ná sáraigh teorainneacha choíche. 359 soláthraí AI · 150+ sraith saor in aisce · ~1.62B comharthaí saor in aisce/mí · 19 straitéis ródaithe · $0 le tosú."/>
 
 </div>
 
@@ -214,11 +214,11 @@
 
 <div align="center">
 
-## 🆓 Oibríonn sé ón nóiméad a shuiteálann tú é — gan eochracha, gan chumraíocht
+## 🆓 Oibríonn sé an dara ceann a shuiteálann tú é — gan eochracha, gan cumraíocht
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oibríonn sé ón nóiméad a shuiteálann tú é — gan aon chumraíocht. Trí chéim: 1. Suiteáil — npm i -g omniroute, tosaíonn an freastalaí ar localhost:20128. 2. Dírigh d’uirlis ar http://localhost:20128/v1 — aon uirlis atá comhoiriúnach le OpenAI (Claude Code, Cursor, Cline). 3. Freagraíonn sé — glaoigh ar an tsamhail auto chun freagra láithreach a fháil, gan eochair API, gan chlárú, gan chumraíocht. Tá an soláthraí gan eochair OpenCode Free réamhshreangaithe sa teaglaim auto, mar sin freagraíonn suiteáil úr láithreach."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oibríonn sé an dara ceann a shuiteálann tú é — gan cumraíocht. Trí chéim: 1. Suiteáil — npm i -g omniroute, tosóidh an freastalaí ar localhost:20128. 2. Dírithe do uirlis ag http://localhost:20128/v1 — aon uirlis atá comhoiriúnach le OpenAI (Claude Code, Cursor, Cline). 3. Freagraíonn sé — glaoigh ar mhúnla auto le haghaidh freagra láithreach, gan eochair API, gan clárú, gan cumraíocht. Tá an soláthraí gan eochair OpenCode Free réamh-sreangaithe isteach sa teaglama auto, mar sin freagraíonn suiteáil úr as an mbosca."/>
 
 ```bash
 # Suiteáil úr, gan aon dintiúir — oibríonn `auto` cheana féin:
@@ -227,9 +227,9 @@ curl http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Arbh fhearr leat inneall sonrach saor in aisce? Glaoigh ar `oc/…` (OpenCode Free) go díreach. Ansin téigh ar aghaidh go `auto` agus lig do OmniRoute roghnú.</sub>
+<sub>An fearr leat cúlra saor in aisce ar leith? Glaoigh ar `oc/…` (OpenCode Free) go díreach. Ansin céimigh go `auto` agus lig do OmniRoute roghnú.</sub>
 
-<sub>📦 Scripteanna mearthosaithe le cóipeáil agus greamú do **Python, Node.js, PHP, agus cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Cóipeáil-ghreamaigh scripteanna mear-thosaithe le haghaidh **Python, Node.js, PHP, agus cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="An Gealltanas — críochphointe amháin agus 359 soláthraí. Coinníonn cúltaca uathoibríoch an ródú ar siúl fad is atá sprioc shláintiúil eile ar fáil. Sé cholún: cúltaca athléimneach thar 359 soláthraí · suas le 95% de choigilteas comharthaí ar ualaí oibre incháilithe · $0 chun tosú le breis agus 150 sraith saor in aisce agus 54 soláthraí saor go deo, athfhillteach nó gan eochair · 36 comhtháthú CLI/gníomhaire trí chumraíocht amháin · comhoiriúnacht le OpenAI, Claude, Gemini agus Responses API ag /v1 · rialuithe táirgeachta lena n-áirítear scoradáin chiorcaid, duaithníocht TLS, 110 uirlis MCP, A2A, cuimhne, ráillí cosanta, meastóireachtaí agus breis agus 39,000 dearbhú tástála statach thar bhreis agus 5,100 comhad tástála a rianaítear."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="An Gealltanas — Pointe deiridh amháin agus 359 soláthraí. Coinníonn cúlchiste uathoibríoch an ródú agus sprioc sláintiúil eile ar fáil. Sé cholún: cúlchiste athléimneach thar 359 soláthraí · suas le 95% coigilteas comharthaí ar ualaí oibre incháilithe · $0 le tosú le 150+ sraitheanna saor in aisce agus 54 soláthraí saor in aisce go deo athfhillteach/gan eochair · 36 comhtháthú CLI/gníomhaire trí chumraíocht amháin · comhoiriúnacht API OpenAI, Claude, Gemini agus Freagraí ag /v1 · rialuithe táirgeachta lena n-áirítear scoradáin chiorcaid, stealth TLS, uirlisí MCP 110, A2A, cuimhne, ráillí cosanta, meastóireachtaí agus 39,000+ dearbhú tástála statach thar 5,100+ comhad tástála rianaithe."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Cén Fáth OmniRoute — ná bí ag déileáil a thuilleadh le 10 ndeais, eochracha API neamhbhailí agus billí gan choinne. Deich bhfadhb laethúla agus a réitigh: cuóta ag dul in éag gan úsáid → bain an leas is fearr as síntiúis; teorainneacha ráta i lár códaithe → cúltaca uathoibríoch 4 shraith (Síntiús → API → Saor → Saor in Aisce); aschuir uirlisí ag ídiú comharthaí → comhbhrú RTK + Caveman (15–95%); APIanna costasacha → ródú cost-optamaithe; cumraíocht ar leith do gach uirlis → críochphointe amháin, deais amháin; AI blocáilte → seachfhreastalaí 3 leibhéal + duaithníocht TLS; eochracha neamhbhailí → athléimneacht 3 chiseal (scoradáin chiorcaid, tréimhse shuaimhnithe eochrach, frithdhúnadh samhla); foireann ag roinnt síntiúis amháin → linnte eochracha le cuótaí cothromroinnte; leideanna ag dul trí néal duine éigin eile → cur chuige áitiúil ar dtús le heochracha criptithe AES-256-GCM; gan aon infheictheacht ar chaiteachas → anailísíocht bheo (úsáid, cuóta, coigilteas, aga folaigh p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Cén Fáth OmniRoute — stop ag jongláil 10 deais, eochracha API marbh agus billí iontasacha. Deich bpian laethúil vs réitigh: cuóta ag dul in éag gan úsáid → uasmhéadaigh síntiúis; teorainneacha rátaí i lár an chódaithe → cúlchiste uathoibríoch 4-leibhéal (Síntiús → API → Saor → Saor in Aisce); aschuir uirlisí ag dó comharthaí → comhbhrú RTK + Caveman (15–95%); APIanna daora → ródú optamaithe ó thaobh costais de; gach uirlis a socrú féin → pointe deiridh amháin, deais amháin; AI blocáilte → seachfhreastalaí 3-leibhéal + stealth TLS; eochracha marbh → athléimneacht 3-leibhéal (scoradáin chiorcaid, fuarú eochrach, glasáil samhail); foireann ag roinnt síntiús amháin → linnte eochracha le cuótaí cothrom-roinnte; leideanna trí scamall duine éigin → áitiúil-ar dtús le heochracha criptithe AES-256-GCM; gan infheictheacht caiteachais → anailísíocht bheo (úsáid, cuóta, coigilteas, latency p95)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Sreabhadh iarratais OmniRoute: glaonn d’IDE nó CLI (Claude Code, Cursor, Cline…) ar chríochphointe áitiúil amháin (http://localhost:20128/v1); is féidir le Ródaire Cliste OmniRoute (comhbhrú RTK + Caveman, 19 straitéis ródaithe, scoradáin chiorcaid, duaithníocht TLS, MCP, A2A, ráillí cosanta) cúltaca a dhéanamh thar 4 shraith soláthraithe fad is atá sprioc shláintiúil incháilithe ar fáil — Sraith 1 Síntiús, Sraith 2 Eochair API, Sraith 3 Saor agus Sraith 4 Saor in Aisce."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Sreabhadh iarratais OmniRoute: glaonn do IDE nó CLI (Claude Code, Cursor, Cline…) ar phointe deiridh áitiúil amháin (http://localhost:20128/v1); is féidir leis an OmniRoute Smart Router (comhbhrú RTK + Caveman, 19 straitéis ródaithe, scoradáin chiorcaid, stealth TLS, MCP, A2A, ráillí cosanta) cúlchiste a dhéanamh thar 4 shraith soláthraí fad is atá sprioc incháilithe sláintiúil fós ann — Sraith 1 Síntiús, Sraith 2 Eochair API, Sraith 3 Saor agus Sraith 4 Saor in Aisce."/>
 
 </div>
 
@@ -492,9 +492,9 @@ Na **19** straitéis go léir — measc & meaitseáil in aghaidh chéim combo:
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Cad a dhéanann OmniRoute uathúil — léargas dátaithe ar ghnéithe i gcomparáid le 9router, OpenRouter, CLIProxyAPI agus LiteLLM thar 13 chumas. OmniRoute: 359 soláthraí, breis agus 150 sraith saor in aisce ionsuite, 19 straitéis ródaithe, comhbhrú comharthaí le 12 inneall, freastalaí MCP ionsuite le 110 uirlis, prótacal gníomhairí A2A, cuimhne mharthanach, ráillí cosanta, gníomhairí néil, duaithníocht méarloirg TLS, Desktop/Termux/PWA agus 42 logchaighdeán comhéadain i18n. Tá OmniRoute ceadúnaithe faoi MIT agus is féidir é a fhéinstóráil. D’fhéadfadh cumais agus líon na ngnéithe sna táirgí iomaíocha athrú; féach ar an modheolaíocht nasctha."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Cad a dhéanann OmniRoute uathúil — léargas gnéithe dátaithe i gcomparáid le 9router, OpenRouter, CLIProxyAPI agus LiteLLM thar 13 cumas. OmniRoute: 359 soláthraí, 150+ sraith saor in aisce ionsuite, 19 straitéis ródaithe, comhbhrú comharthaí 12-inneall, freastalaí MCP ionsuite le 110 uirlis, prótacal gníomhaire A2A, cuimhne leanúnach, ráillí cosanta, gníomhairí scamall, ceilteacht méarlorg TLS, Deasc/Termux/PWA agus 42 logánú UI i18n. Tá OmniRoute ceadúnaithe faoi MIT agus is féidir é a óstáil féin. Féadfaidh cumais agus líon na n-iomaitheoirí athrú; féach an mhodheolaíocht nasctha."/>
 
-<sub>📊 An mhodheolaíocht iomlán &amp; sonraí faoi gach gné i gcomparáid le 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Modheolaíocht iomlán &amp; sonraí in aghaidh na gnéithe i gcomparáid le 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 

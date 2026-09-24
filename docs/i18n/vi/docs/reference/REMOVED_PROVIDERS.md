@@ -44,12 +44,13 @@ phí") và có thể được đưa trở lại nếu dịch vụ hoạt động
    mục nhà cung cấp, ánh xạ bộ thực thi hoặc mã nguồn sổ đăng ký nhà cung cấp. Hãy thêm các định
    danh mới vào bài kiểm thử đó trong cùng PR thêm hàng mới tại đây.
 
-## Sổ đăng ký
+## Đăng ký
 
-| Ngày gỡ bỏ | Id nhà cung cấp | Bí danh | Miền                                    | Người yêu cầu                          | PR gỡ bỏ                                                       | Ghi chú                                                                                                                                                |
-| ---------- | --------------- | ------- | --------------------------------------- | -------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-08-12 | `puter`         | `pu`    | `puter.com`                             | Chủ sở hữu Puter (Nariman Jelveh)      | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | Nhà cung cấp dùng khóa API. Migration `152_remove_puter_provider.sql` dọn dẹp cấu hình đã lưu.                                                         |
-| 2026-09-02 | `theoldllm`     | `tllm`  | `theoldllm.com`, `theoldllm.vercel.app` | Đơn vị vận hành dịch vụ (email hỗ trợ) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Nhà cung cấp không dùng khóa. Nhận được yêu cầu bằng văn bản vào 2026-08-30. Các issue và thảo luận chuyên biệt đã bị xóa, các PR đã được đổi tiêu đề. |
+| Gỡ bỏ vào | ID nhà cung cấp | Bí danh | Miền | Được yêu cầu bởi | PR gỡ bỏ | Ghi chú  
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-08-12 | `puter` | `pu` | `puter.com` | Chủ sở hữu của Puter (Nariman Jelveh) | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | Nhà cung cấp khóa API. Di chuyển `152_remove_puter_provider.sql` dọn dẹp cấu hình đã lưu trữ. |
+| 2026-09-02 | `theoldllm` | `tllm` | `theoldllm.com`, `theoldllm.vercel.app` | Nhà điều hành dịch vụ (email hỗ trợ) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Nhà cung cấp không cần khóa. Yêu cầu bằng văn bản đã được nhận vào ngày 2026-08-30. Các vấn đề và thảo luận chuyên dụng đã bị xóa, các PR đã được đổi tiêu đề. |
+| 2026-09-21 | `suno` | `suno` | `studio-api.suno.ai`, `studio-api-prod.suno.com` | Quyết định của chủ dự án (`#14224`) | [#14468](https://github.com/diegosouzapw/OmniRoute/pull/14468) | Nhà cung cấp xác thực bằng cookie, không phải do nhà điều hành gỡ bỏ. `studio-api.suno.ai` đã bị tạm ngừng (503); máy chủ trực tiếp yêu cầu trao đổi Clerk JWT cộng với một phụ thuộc giải hCaptcha trả phí mà OmniRoute đã chọn không thêm vào cho một nhà cung cấp âm nhạc duy nhất. `kie/suno-v4.0` và `kie/suno-v3.5` (được lưu trữ bởi kie.ai) không bị ảnh hưởng và vẫn được hỗ trợ. |
 
 ## Thêm một mục
 

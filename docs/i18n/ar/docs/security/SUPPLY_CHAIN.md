@@ -4,56 +4,54 @@
 
 ---
 
-تنشر OmniRoute حِزم npm + Docker. توفّر هذه البوابات إثبات المنشأ،
-وقائمة المكوّنات (SBOM)، وفحص ثغرات CVE، وكلها مفتوحة المصدر ومدمجة في مسارات عمل الإصدار.
-نهج **التحذير أولًا** — تُصدر تقارير حاليًا، ثم تُرقّى إلى الحظر بعد أول
-إصدار ناجح.
+تنشر OmniRoute عناصر npm + Docker. توفر هذه البوابات إثبات المنشأ، وجرد المكونات البرمجية (SBOM)، وفحص CVE، وكلها مفتوحة المصدر (OSS)، ومدمجة في سير عمل الإصدار.
+نهج **استشاري أولاً** — يتم الإبلاغ عنها الآن، ثم يتم ترقيتها إلى حظر بعد الإصدار الأخضر الأول.
 
-| البوابة                      | الأداة                                         | الموضع                        | هل تحظر؟            | المخرجات                                              |
-| ---------------------------- | ---------------------------------------------- | ----------------------------- | ------------------- | ----------------------------------------------------- |
-| إثبات منشأ SLSA ‏(npm)       | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | فقط إذا فشل النشر   | شارة npmjs / ‏`npm audit signatures`                  |
-| SBOM لـ npm                  | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | فقط إذا فشل الإنشاء | أصل إصدار + عنصر ناتج                                 |
-| SBOM للصورة                  | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (الدمج)  | تحذيرية             | عنصر ناتج بتنسيق CycloneDX                            |
-| ثغرات Trivy ‏(SARIF)         | `aquasecurity/trivy-action`                    | `docker-publish.yml` (الدمج)  | تحذيرية             | SARIF ‏(HIGH+CRITICAL) ← علامة تبويب الأمان           |
-| بوابة Trivy للحالات CRITICAL | `aquasecurity/trivy-action`                    | `docker-publish.yml` (الدمج)  | **حاجبة**           | `exit-code: '1'` عند وجود حالة CRITICAL قابلة للإصلاح |
-| vulnCount في osv             | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **حاجبة**           | تُثبّت `metrics.vulnCount` تدريجيًا (الاتجاه: تنازلي) |
-| بطاقة تقييم OpenSSF          | `ossf/scorecard-action`                        | `scorecard.yml` (مهمة دورية)  | تحذيرية             | SARIF ← الأمان + شارة                                 |
+| البوابة               | الأداة                                         | المكان                        | هل تحظر؟            | المخرجات                                        |
+| --------------------- | ---------------------------------------------- | ----------------------------- | ------------------- | ----------------------------------------------- |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | فقط إذا فشل النشر   | شارة npmjs / `npm audit signatures`             |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | فقط إذا فشل التوليد | أصل الإصدار + عنصر                              |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | استشاري             | عنصر CycloneDX                                  |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | استشاري             | SARIF (عالي+حرج) ← علامة تبويب الأمان           |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **حظر**             | `exit-code: '1'` عند وجود CRITICAL قابل للإصلاح |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **حظر**             | تعدل `metrics.vulnCount` (الاتجاه: تنازلي)      |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | استشاري             | SARIF ← الأمان + شارة                           |
 
-يستخدم التثبيت التدريجي لثغرات CVE في الصورة **خطوتين** داخل `docker-publish.yml`: تُبقي خطوة SARIF
-‏(`HIGH,CRITICAL`، ‏`exit-code: 0`) حالات HIGH+CRITICAL ظاهرة في علامة تبويب الأمان
-من دون حظر؛ بينما تؤدي خطوة _بوابة CRITICAL_ ‏(`severity: CRITICAL`، ‏`ignore-unfixed: true`،
-‏`exit-code: 1`) إلى إفشال الإصدار عند وجود ثغرة CVE من مستوى **CRITICAL يتوفر لها إصلاح**. يمنع `ignore-unfixed`
-حظر الإصدار بسبب ثغرة CVE في الصورة الأساسية لا تتوفر لها رقعة من المصدر.
+يستخدم نظام تعديل CVE للصور **خطوتين** في `docker-publish.yml`: خطوة SARIF (`HIGH,CRITICAL`، `exit-code: 0`) تبقي HIGH+CRITICAL مرئية في علامة تبويب الأمان دون حظر؛ خطوة _بوابة CRITICAL_ (`severity: CRITICAL`، `ignore-unfixed: true`، `exit-code: 1`) تفشل الإصدار عند وجود CVE حرج **مع توفر إصلاح**. تمنع `ignore-unfixed` حظر الإصدار بسبب CVE في الصورة الأساسية بدون تصحيح من المصدر.
 
-## ⚠️ تباين CVE (بوابات osv/Trivy الحاجبة)
+## ⚠️ تباين CVE (بوابات osv/Trivy الحظرية)
 
-يقارن osv وTrivy التبعيات بقواعد بيانات CVE التي **تنمو باستمرار**. قد يتحول طلب سحب
-**لا يعدّل أي تبعيات** فجأة إلى حالة فشل بسبب الكشف عن ثغرة CVE جديدة
-في تبعية موجودة (osv: قيمة `vulnCount` المقاسة > خط الأساس؛ Trivy: حالة CRITICAL جديدة
-قابلة للإصلاح في الصورة). **هذا سلوك تشغيلي متوقّع لبوابة CVE حاجبة،
-وليس تراجعًا في المنتج.**
+تقارن osv و Trivy التبعيات بقواعد بيانات CVE التي **تنمو باستمرار**. قد يتحول طلب سحب (PR) **لا يمس أي تبعيات** فجأة إلى اللون الأحمر بسبب الكشف عن CVE جديد في تبعية موجودة (osv: `vulnCount` المقاس > خط الأساس؛ Trivy: CRITICAL جديد قابل للإصلاح في الصورة). **هذا سلوك تشغيلي متوقع لبوابة CVE الحظرية، وليس تراجعًا في المنتج.**
 
-عندما يفشل osv أو Trivy بسبب ثغرة CVE كُشف عنها حديثًا، يكون الحل كما يلي:
+عندما تتحول osv أو Trivy إلى اللون الأحمر بسبب CVE تم الكشف عنه حديثًا، يكون العلاج هو:
 
-1. **ترقية التبعية المتأثرة** (الخيار المفضّل) — الترقية إلى الإصدار المصحّح عبر `package.json`
-   و`overrides` (للتبعيات غير المباشرة)، أو إعادة بناء الصورة اعتمادًا على صورة أساسية مصحّحة.
-2. **إذا لم يتوفر إصلاح من المصدر:**
-   - **osv:** أعِد ضبط خط أساس `metrics.vulnCount` في `config/quality/quality-baseline.json`
-     (لا يغطي `npm run quality:ratchet -- --update` البوابات المخصّصة — عدّل القيمة
-     يدويًا، مع `direction:down`) مع ملاحظة تبرير + مشكلة للتتبّع.
-   - **Trivy:** أضف إدخالًا إلى `.trivyignore` (مُعرّف CVE واحد في كل سطر) مع تعليق
-     يوضّح التبرير + مشكلة للتتبّع. يغطي `ignore-unfixed: true` بالفعل تلقائيًا ثغرات CVE التي لا تتوفر
-     لها رقع.
+1.  **تحديث التبعية المتأثرة** (مفضل) — الترقية إلى الإصدار المصحح عبر `overrides` في `package.json` (التبعيات المتعدية) أو إعادة بناء الصورة على أساس مصحح.
+2.  **إذا لم يكن هناك إصلاح من المصدر:**
+    - **osv:** إعادة تعيين خط الأساس لـ `metrics.vulnCount` في `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` لا يغطي البوابات المخصصة — قم بتحرير القيمة يدويًا، `direction:down`) مع ملاحظة تبرير + مشكلة تتبع.
+    - **Trivy:** أضف إدخالاً في `.trivyignore` (معرف CVE لكل سطر) مع تعليق تبرير + مشكلة تتبع. تغطي `ignore-unfixed: true` بالفعل CVEs التي لا تحتوي على تصحيحات تلقائيًا.
 
-تتخطى كلتا البوابتين الفحص **بسلاسة** (رمز الخروج 0) عندما تكون الأداة غير موجودة أو يفشل القياس
-(`osv-scanner` غير موجود في PATH، أو يتعذر الوصول إلى osv.dev/الشبكة، أو JSON غير صالح) — فشل
-**القياس** لا يؤدي أبدًا إلى الحظر؛ وحده التراجع **المقاس** يؤدي إلى الحظر.
+تتخطى كلتا البوابتين **بشكل سلس** (exit 0) عندما تكون الأداة غائبة أو يفشل القياس (osv-scanner ليس في PATH، أو osv.dev/network غير قابل للوصول، أو JSON غير صالح) — لا يؤدي فشل **القياس** أبدًا إلى الحظر، فقط التراجع **المقاس** هو الذي يحظر.
 
-## الأعمال المتراكمة: تحويل تحذير Scorecard إلى بوابة حاجبة
+## المخاطر المقبولة المعروفة
 
-بعد أول إصدار ناجح يتضمن تقارير Scorecard:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: تثبيت تدريجي للنتيجة (يُثبّت النتيجة المقاسة، ولا يسمح بانخفاضها).
+يحمل `extract-zip@2.0.1` استشارتين غير مصححتين وعاليتي الخطورة بشأن اجتياز الروابط الرمزية (symlink-traversal).
+وفقًا لفرع "لا يوجد إصلاح من المصدر" من علاج تباين CVE أعلاه، هذا **خطر مقبول**، وليس تحديثًا:
 
-يُكمل هذا بوابات المرحلة 7 ‏(osv-scanner وgitleaks وactionlint+zizmor): يفحص zizmor
-مسارات العمل نفسها؛ بينما يقيس Scorecard وضع المستودع إجمالًا.
+- **السلسلة:** `promptfoo` (تبعية تطوير) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  تم التأكيد عبر `package-lock.json` — حزمة واحدة بالضبط في شجرة التبعيات بأكملها (`@openai/codex-security`) تعلن عن `extract-zip`، وحزمة واحدة بالضبط (`promptfoo`) تعلن عن `@openai/codex-security`.
+- **لا يوجد إصدار ثابت في أي مكان في السلسلة.** `extract-zip@2.0.1` (نُشر عام 2020) هو الإصدار الأخير للحزمة — وهو غير مُصان. لا يزال الإصدار الحالي الأحدث من npm لـ `@openai/codex-security` (`0.1.29`) يسحب `extract-zip@2.0.1`.
+- **لا يمكن الوصول إليه من بيئة الإنتاج.** `promptfoo` هي تبعية تطوير فقط (لم تُدرج أبدًا ضمن `dependencies`)، ولا يوجد ملف ضمن `src/` أو `open-sse/` أو `bin/` يستورد حزمة npm `extract-zip` — المساعد `extractZip()` الخاص بـ OmniRoute (`src/lib/versionManager/binaryManager.ts:93`) يستخدم `unzip`/`tar` الأصلي وهو غير ذي صلة. يشحن `@openai/codex-security` أيضًا حماية خاصة به لاجتياز الروابط الرمزية (symlink-traversal guard) بالإضافة إلى رد الاتصال `onEntry` الخاص بـ `extract-zip`.
+- **لا تقم** بإنشاء اسم مستعار لـ `extract-zip` عبر `overrides` في `package.json` — البديل الوحيد القابل للتطبيق هو Electron-org-internal وغير متوافق مع واجهة برمجة التطبيقات (API) مع فحوصات `onEntry`/`defaultDirMode`/`defaultFileMode` الخاصة بـ `@openai/codex-security`؛ تجاوزها سيعطل فحوصات الأمان لتلك الحزمة بصمت.
+- **الخط الأساسي:** عدد الثغرات الأمنية (osv `vulnCount`) المقاس (3) هو بالفعل أقل بكثير من الخط الأساسي المجمد في `config/quality/quality-baseline.json` (27) — لا يلزم تغيير في آلية التقييم.
+- **حماية التراجع:** `tests/unit/extract-zip-14482-exposure.test.ts` يؤكد السلسلة والثابتة "عدم الاستيراد في بيئة الإنتاج" المذكورة أعلاه؛ ويفشل CI إذا انكسر أي منهما (على سبيل المثال، إذا جعل طلب سحب مستقبلي `extract-zip` قابلاً للوصول من بيئة الإنتاج).
+- **المتابعة:** المشكلة #14482.
+
+## المتأخرات: استشارة Scorecard ← حظر
+
+بعد الإصدار الأخضر الأول مع تقارير Scorecard:
+
+- Scorecard: آلية تقييم النقاط (تجمد النتيجة المقاسة؛ لا يمكن أن تنخفض).
+
+يكمل بوابات المرحلة 7 (osv-scanner, gitleaks, actionlint+zizmor): يقوم zizmor بتدقيق سير العمل نفسه؛ يقيس Scorecard وضع المستودع بشكل إجمالي.

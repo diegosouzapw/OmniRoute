@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute kontrolna ploča" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Besplatni AI pristupnik
+# 🚀 OmniRoute — Besplatni AI Gateway
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Nikada nemojte prestati programirati. Svaki AI alat → 360 pružalaca — više od 150 besplatnih — putem jedne krajnje tačke. Claude Code, Codex, Cursor, Cline, Copilot i Antigravity povežite s BESPLATNIM modelima Claude / GPT / Gemini uz automatsko prebacivanje. Kombinovana RTK + Caveman kompresija štedi 15–95% tokena (~89% u prosjeku) — nikada ne dosegnite ograničenja. 360 AI pružalaca · više od 150 besplatnih nivoa · ~1,62 mlrd. besplatnih tokena mjesečno · 19 strategija usmjeravanja · početak za $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Nikad ne prestajte kodirati. Svaki AI alat → 359 provajdera — 150+ besplatnih — putem jedne krajnje tačke. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity u BESPLATNI Claude / GPT / Gemini sa automatskim povratkom. RTK + Caveman složena kompresija štedi 15–95% tokena (~89% prosječno) — nikada nećete dostići ograničenja. 359 AI provajdera · 150+ besplatnih nivoa · ~1.62B besplatnih tokena/mj · 19 strategija rutiranja · $0 za početak."/>
 
 </div>
 
@@ -219,18 +219,18 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Radi čim ga instalirate — bez konfiguracije. Tri koraka: 1. Instalirajte — npm i -g omniroute, server se pokreće na localhost:20128. 2. Usmjerite svoj alat na http://localhost:20128/v1 — bilo koji alat kompatibilan s OpenAI-jem (Claude Code, Cursor, Cline). 3. Dobijate odgovor — pozovite model auto za trenutan odgovor, bez API ključa, registracije ili konfiguracije. Pružalac OpenCode Free bez ključa unaprijed je povezan s kombinacijom auto, tako da nova instalacija radi odmah."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Radi čim ga instalirate — nulta konfiguracija. Tri koraka: 1. Instalirajte — npm i -g omniroute, server se pokreće na localhost:20128. 2. Usmjerite svoj alat na http://localhost:20128/v1 — bilo koji alat kompatibilan s OpenAI-jem (Claude Code, Cursor, Cline). 3. Odgovara — pozovite model auto za trenutni odgovor, bez API ključa, bez registracije, bez konfiguracije. Dobavljač bez ključa OpenCode Free je unaprijed povezan s auto kombinacijom, tako da svježa instalacija odmah reaguje."/>
 
 ```bash
-# Nova instalacija, bez pristupnih podataka — `auto` već radi:
+# Svježa instalacija, nula akreditiva — `auto` već radi:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Preferirate određeni besplatni pozadinski sistem? Pozovite `oc/…` (OpenCode Free) direktno. Zatim prijeđite na `auto` i prepustite izbor OmniRouteu.</sub>
+<sub>Preferirate određeni besplatni backend? Pozovite `oc/…` (OpenCode Free) direktno. Zatim pređite na `auto` i pustite OmniRoute da odabere.</sub>
 
-<sub>📦 Skripte za brzi početak metodom kopiranja i lijepljenja za **Python, Node.js, PHP i cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Skripte za brzi početak kopiraj-zalijepi za **Python, Node.js, PHP i cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -240,7 +240,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Obećanje — jedna krajnja tačka i 360 pružalaca. Automatski rezervni odabir nastavlja usmjeravanje sve dok je dostupno drugo ispravno odredište. Šest stubova: otporan rezervni odabir između 360 pružalaca · do 95% uštede tokena na odgovarajućim radnim opterećenjima · početak od $0 uz više od 150 besplatnih nivoa i 54 pružaoca koji su trajno besplatni, periodično ili bez ključa · 36 CLI/agentskih integracija putem jedne konfiguracije · kompatibilnost s OpenAI, Claude, Gemini i Responses API na /v1 · kontrole za produkciju, uključujući prekidače strujnog kola, TLS prikrivanje, MCP sa 110 alata, A2A, memoriju, zaštitne mehanizme, evaluacije i više od 39.000 deklaracija statičkih testova u više od 5.100 praćenih testnih datoteka."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Obećanje — Jedna krajnja tačka i 359 dobavljača. Automatski povratak nastavlja rutiranje dok je dostupan drugi zdravi cilj. Šest stubova: otporan povratak preko 359 dobavljača · do 95% uštede tokena na prihvatljivim radnim opterećenjima · 0$ za početak sa 150+ besplatnih nivoa i 54 ponavljajuća/besplatna dobavljača bez ključa zauvijek · 36 CLI/agent integracija kroz jednu konfiguraciju · OpenAI, Claude, Gemini i Responses API kompatibilnost na /v1 · kontrole proizvodnje uključujući prekidače, TLS stealth, MCP 110 alate, A2A, memoriju, zaštitne ograde, evaluacije i 39.000+ statičkih deklaracija testova preko 5.100+ praćenih testnih datoteka."/>
 
 <br/>
 <br/>
@@ -251,11 +251,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Zašto OmniRoute — prestanite se boriti s 10 kontrolnih ploča, nevažećim API ključevima i neočekivanim računima. Deset svakodnevnih problema i rješenja: kvota ističe neiskorištena → maksimalno iskoristite pretplate; ograničenja učestalosti zahtjeva usred programiranja → automatski rezervni odabir u 4 nivoa (Pretplata → API → Jeftino → Besplatno); izlazni podaci alata troše tokene → RTK + Caveman kompresija (15–95%); skupi API-ji → usmjeravanje optimizirano prema troškovima; svaki alat zahtijeva vlastito podešavanje → jedna krajnja tačka, jedna kontrolna ploča; AI je blokiran → proxy u 3 nivoa + TLS prikrivanje; nevažeći ključevi → otpornost u 3 sloja (prekidači strujnog kola, period čekanja ključa, zaključavanje modela); tim dijeli jednu pretplatu → skupovi ključeva s pravedno raspoređenim kvotama; upiti prolaze kroz tuđi oblak → lokalni pristup s ključevima šifriranim pomoću AES-256-GCM; nema uvida u potrošnju → analitika uživo (korištenje, kvota, uštede, p95 latencija)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Zašto OmniRoute — prestanite žonglirati s 10 kontrolnih ploča, mrtvim API ključevima i iznenadnim računima. Deset svakodnevnih problema naspram rješenja: kvota ističe neiskorištena → maksimizirajte pretplate; ograničenja stope usred kodiranja → 4-slojni automatski povratak (Pretplata → API → Jeftino → Besplatno); izlazi alata troše tokene → RTK + Caveman kompresija (15–95%); skupi API-ji → rutiranje optimizirano za troškove; svaki alat vlastito podešavanje → jedna krajnja tačka, jedna kontrolna ploča; AI blokiran → 3-nivoa proxy + TLS stealth; mrtvi ključevi → 3-slojni otpor (prekidači, hlađenje ključa, zaključavanje modela); tim dijeli jednu pretplatu → skupovi ključeva s kvotama pravedne raspodjele; promptovi kroz nečiji oblak → lokalno prvo s AES-256-GCM šifriranim ključevima; nema vidljivosti potrošnje → analitika uživo (upotreba, kvota, uštede, p95 latencija)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Tok zahtjeva u OmniRouteu: vaš IDE ili CLI (Claude Code, Cursor, Cline…) poziva jednu lokalnu krajnju tačku (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman kompresija, 19 strategija usmjeravanja, prekidači strujnog kola, TLS prikrivanje, MCP, A2A, zaštitni mehanizmi) može koristiti rezervni odabir između 4 nivoa pružalaca sve dok postoji odgovarajuće ispravno odredište — Nivo 1 Pretplata, Nivo 2 API ključ, Nivo 3 Jeftino i Nivo 4 Besplatno."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Tok zahtjeva OmniRoute: vaš IDE ili CLI (Claude Code, Cursor, Cline…) poziva jednu lokalnu krajnju tačku (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman kompresija, 19 strategija rutiranja, prekidači, TLS stealth, MCP, A2A, zaštitne ograde) može se vratiti na 4 nivoa dobavljača dok god postoji odgovarajući zdravi cilj — Nivo 1 Pretplata, Nivo 2 API ključ, Nivo 3 Jeftino i Nivo 4 Besplatno."/>
 
 </div>
 
@@ -489,13 +489,13 @@ Svih **19** strategija — kombinirajte ih po želji za svaki korak kombinacije:
 
 <div align="center">
 
-## 🏆 Po čemu se OmniRoute izdvaja
+## 🏆 Po čemu se OmniRoute ističe
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Po čemu se OmniRoute izdvaja — vremenski označen pregled funkcionalnosti u poređenju s rješenjima 9router, OpenRouter, CLIProxyAPI i LiteLLM kroz 13 mogućnosti. OmniRoute: 360 pružalaca usluga, više od 150 ugrađenih besplatnih nivoa, 19 strategija usmjeravanja, kompresija tokena s 12 mehanizama, ugrađeni MCP server sa 110 alata, A2A protokol za agente, trajna memorija, zaštitne ograde, agenti u oblaku, prikrivanje TLS otiska, Desktop/Termux/PWA i 42 lokalizacije korisničkog interfejsa. OmniRoute je licenciran MIT licencom i može se samostalno hostovati. Mogućnosti i brojke konkurenata mogu se promijeniti; pogledajte povezanu metodologiju."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Po čemu se OmniRoute ističe — zastarjeli snimak značajki u poređenju sa 9router, OpenRouter, CLIProxyAPI i LiteLLM kroz 13 mogućnosti. OmniRoute: 359 provajdera, 150+ besplatnih nivoa ugrađenih, 19 strategija rutiranja, kompresija tokena sa 12 motora, ugrađeni MCP server sa 110 alata, A2A agentski protokol, trajna memorija, zaštitne ograde, cloud agenti, TLS fingerprint stealth, Desktop/Termux/PWA i 42 i18n UI lokalizacije. OmniRoute je licenciran pod MIT licencom i može se samostalno hostovati. Mogućnosti i brojevi konkurenata se mogu promijeniti; pogledajte povezanu metodologiju."/>
 
-<sub>📊 Potpuna metodologija i detalji po funkcionalnostima u poređenju s rješenjima 9router, OpenRouter, CLIProxyAPI i LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Potpuna metodologija &amp; detalji po značajkama u poređenju sa 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 

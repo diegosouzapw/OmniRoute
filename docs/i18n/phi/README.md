@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — Ang Libreng AI Gateway
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Huwag kailanman tumigil sa pag-code. Bawat AI tool → 359 provider — 150+ libre — sa pamamagitan ng iisang endpoint. Claude Code, Codex, Cursor, Cline, Copilot at Antigravity tungo sa LIBRENG Claude / GPT / Gemini na may awtomatikong fallback. Ang pinagsamang compression ng RTK + Caveman ay nakakatipid ng 15–95% ng mga token (~89% sa average) — huwag kailanman umabot sa mga limitasyon. 359 AI provider · 150+ libreng tier · ~1.62B libreng token/buwan · 19 na diskarte sa routing · $0 para magsimula."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Huwag tumigil sa pag-code. Bawat AI tool → 359 provider — 150+ libre — sa pamamagitan ng isang endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity sa LIBRENG Claude / GPT / Gemini na may auto-fallback. Ang RTK + Caveman stacked compression ay nakakatipid ng 15–95% token (~89% average) — hindi kailanman aabot sa limitasyon. 359 AI provider · 150+ libreng tier · ~1.62B libreng token/buwan · 19 diskarte sa pagruruta · $0 para makapagsimula."/>
 
 </div>
 
@@ -214,11 +214,11 @@
 
 <div align="center">
 
-## 🆓 Gumagana agad sa sandaling i-install mo ito — walang key, walang config
+## 🆓 Gumagana agad pagka-install — walang susi, walang config
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Gumagana agad sa sandaling i-install mo ito — walang config. Tatlong hakbang: 1. I-install — npm i -g omniroute, magbubukas ang server sa localhost:20128. 2. Ituro ang iyong tool sa http://localhost:20128/v1 — anumang tool na compatible sa OpenAI (Claude Code, Cursor, Cline). 3. Sasagot ito — tawagin ang model auto para sa agarang tugon, nang walang API key, pagpaparehistro, o configuration. Ang keyless provider na OpenCode Free ay paunang nakakonekta sa auto combo, kaya tumutugon kaagad ang bagong install."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Gumagana agad pagka-install — zero config. Tatlong hakbang: 1. I-install — npm i -g omniroute, magsisimula ang server sa localhost:20128. 2. Ituro ang iyong tool sa http://localhost:20128/v1 — anumang tool na tugma sa OpenAI (Claude Code, Cursor, Cline). 3. Sumasagot ito — tawagan ang model auto para sa agarang tugon, nang walang API key, walang pagpaparehistro, walang configuration. Ang keyless provider na OpenCode Free ay naka-pre-wire sa auto combo, kaya ang isang bagong install ay tumutugon agad."/>
 
 ```bash
 # Bagong install, walang credentials — gumagana na ang `auto`:
@@ -227,9 +227,9 @@ curl http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Mas gusto mo ba ang isang partikular na libreng backend? Direktang tawagin ang `oc/…` (OpenCode Free). Pagkatapos, lumipat sa `auto` at hayaan ang OmniRoute na pumili.</sub>
+<sub>Mas gusto mo ba ang isang partikular na libreng backend? Direktang tawagan ang `oc/…` (OpenCode Free). Pagkatapos ay lumipat sa `auto` at hayaan ang OmniRoute na pumili.</sub>
 
-<sub>📦 Mga quickstart script na puwedeng i-copy-paste para sa **Python, Node.js, PHP, at cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Mga script ng quickstart na pwedeng kopyahin-i-paste para sa **Python, Node.js, PHP, at cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Ang Pangako — Isang endpoint at 359 provider. Pinananatili ng awtomatikong fallback ang pagruruta habang may isa pang maayos na target. Anim na haligi: matatag na fallback sa 359 provider · hanggang 95% na matitipid sa token para sa mga kwalipikadong workload · $0 para magsimula gamit ang 150+ libreng tier at 54 umuulit/keyless na provider na libre magpakailanman · 36 na CLI/agent integration sa pamamagitan ng iisang config · compatibility sa OpenAI, Claude, Gemini, at Responses API sa /v1 · mga kontrol para sa production kabilang ang mga circuit breaker, TLS stealth, MCP na may 110 tool, A2A, memory, guardrail, eval, at 39,000+ static na deklarasyon ng test sa 5,100+ sinusubaybayang test file."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Ang Pangako — Isang endpoint at 359 provider. Ang awtomatikong fallback ay nagpapanatili ng routing habang may available na isa pang malusog na target. Anim na haligi: matatag na fallback sa 359 provider · hanggang 95% na pagtitipid sa token sa mga karapat-dapat na workload · $0 para magsimula sa 150+ libreng tier at 54 na paulit-ulit/keyless na libre-magpakailanman na provider · 36 CLI/agent integration sa pamamagitan ng isang config · OpenAI, Claude, Gemini at Responses API compatibility sa /v1 · mga kontrol sa produksyon kabilang ang circuit breakers, TLS stealth, MCP 110 tools, A2A, memory, guardrails, evals at 39,000+ static test declarations sa 5,100+ tracked test files."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Bakit OmniRoute — itigil ang pagpapalipat-lipat sa 10 dashboard, mga hindi gumaganang API key, at mga hindi inaasahang bayarin. Sampung pang-araw-araw na problema at solusyon: nag-e-expire ang quota nang hindi nagagamit → sulitin ang mga subscription; naaabot ang rate limit habang nagko-code → 4-tier na auto-fallback (Subscription → API → Cheap → Free); inuubos ng mga output ng tool ang mga token → RTK + Caveman compression (15–95%); mamahaling API → pagrurutang naka-optimize sa gastos; magkakaibang setup para sa bawat tool → isang endpoint, isang dashboard; naka-block ang AI → 3-level proxy + TLS stealth; mga hindi gumaganang key → 3-layer na resilience (mga circuit breaker, key cooldown, model lockout); iisang subscription na pinagsasaluhan ng team → mga key pool na may patas na quota; dumadaan ang mga prompt sa cloud ng ibang tao → local-first na may mga key na naka-encrypt gamit ang AES-256-GCM; walang visibility sa gastusin → live analytics (paggamit, quota, matitipid, p95 latency)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Bakit OmniRoute — itigil ang paghawak ng 10 dashboard, patay na API keys at mga sorpresang bayarin. Sampung pang-araw-araw na problema vs solusyon: quota na nag-e-expire nang hindi nagagamit → i-maximize ang mga subscription; rate limits habang nagko-coding → 4-tier auto-fallback (Subscription → API → Mura → Libre); tool outputs na sumusunog ng tokens → RTK + Caveman compression (15–95%); mamahaling API → cost-optimized routing; bawat tool ay may sariling setup → isang endpoint, isang dashboard; AI na naka-block → 3-level proxy + TLS stealth; patay na keys → 3-layer resilience (circuit breakers, key cooldown, model lockout); team na nagbabahagi ng isang subscription → key pools na may fair-share quotas; prompts sa pamamagitan ng cloud ng iba → local-first na may AES-256-GCM encrypted keys; walang visibility sa gastos → live analytics (paggamit, quota, savings, p95 latency)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Daloy ng request sa OmniRoute: tumatawag ang iyong IDE o CLI (Claude Code, Cursor, Cline…) sa iisang lokal na endpoint (http://localhost:20128/v1); maaaring mag-fallback ang OmniRoute Smart Router (RTK + Caveman compression, 19 na diskarte sa pagruruta, mga circuit breaker, TLS stealth, MCP, A2A, mga guardrail) sa 4 na tier ng provider habang may natitirang kwalipikado at maayos na target — Tier 1 Subscription, Tier 2 API Key, Tier 3 Cheap, at Tier 4 Free."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Daloy ng kahilingan ng OmniRoute: ang iyong IDE o CLI (Claude Code, Cursor, Cline…) ay tumatawag sa isang lokal na endpoint (http://localhost:20128/v1); ang OmniRoute Smart Router (RTK + Caveman compression, 19 routing strategies, circuit breakers, TLS stealth, MCP, A2A, guardrails) ay maaaring mag-fallback sa 4 na tier ng provider habang may natitirang karapat-dapat na malusog na target — Tier 1 Subscription, Tier 2 API Key, Tier 3 Mura at Tier 4 Libre."/>
 
 </div>
 
@@ -488,13 +488,13 @@ Lahat ng **19** na estratehiya — paghalu-haluin at pagtugmain sa bawat hakbang
 
 <div align="center">
 
-## 🏆 Ano ang Nagpapabukod-tangi sa OmniRoute
+## 🏆 Ano ang Nagpapatingkad sa OmniRoute
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Ano ang nagpapabukod-tangi sa OmniRoute — isang snapshot ng mga feature ayon sa petsa kumpara sa 9router, OpenRouter, CLIProxyAPI at LiteLLM sa 13 kakayahan. OmniRoute: 359 provider, 150+ libreng tier na built-in, 19 na estratehiya sa routing, 12-engine na token compression, built-in na MCP server na may 110 tool, A2A agent protocol, persistent memory, mga guardrail, mga cloud agent, TLS fingerprint stealth, Desktop/Termux/PWA at 42 locale ng i18n UI. Ang OmniRoute ay may lisensyang MIT at maaaring i-self-host. Maaaring magbago ang mga kakayahan at bilang ng mga kakumpitensya; tingnan ang naka-link na metodolohiya."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Ano ang nagpapatingkad sa OmniRoute — isang lumang snapshot ng feature kumpara sa 9router, OpenRouter, CLIProxyAPI at LiteLLM sa 13 kakayahan. OmniRoute: 359 provider, 150+ libreng tier na built-in, 19 na diskarte sa pagruruta, 12-engine token compression, built-in na MCP server na may 110 tool, A2A agent protocol, persistent memory, guardrails, cloud agents, TLS fingerprint stealth, Desktop/Termux/PWA at 42 i18n UI locale. Ang OmniRoute ay may lisensyang MIT at self-hostable. Maaaring magbago ang mga kakayahan at bilang ng kakumpitensya; tingnan ang naka-link na metodolohiya."/>
 
-<sub>📊 Kumpletong metodolohiya at detalye ng bawat feature kumpara sa 9router, OpenRouter, CLIProxyAPI at LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Buong metodolohiya &amp; detalye ng bawat feature kumpara sa 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 

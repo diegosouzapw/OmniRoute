@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — 免費 AI 閘道
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — 永不中斷程式開發。所有 AI 工具 → 359 家提供者 — 150+ 個免費方案 — 全部透過單一端點。將 Claude Code、Codex、Cursor、Cline、Copilot 與 Antigravity 接入免費的 Claude / GPT / Gemini，並支援自動容錯移轉。RTK + Caveman 堆疊式壓縮可節省 15–95% 的 token（平均約 89%）— 永不觸及限制。359 家 AI 提供者 · 150+ 個免費方案 · 每月約 16.2 億個免費 token · 19 種路由策略 · $0 即可開始。"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — 永不停止編碼。所有 AI 工具 → 359 家提供者 — 150+ 免費 — 透過一個端點。將 Claude Code、Codex、Cursor、Cline、Copilot 和 Antigravity 整合到免費的 Claude / GPT / Gemini 中，並具備自動備援功能。RTK + Caveman 堆疊壓縮可節省 15–95% 的 token (~89% 平均) — 永不觸及限制。359 家 AI 提供者 · 150+ 免費層級 · ~1.62B 免費 token/月 · 19 種路由策略 · $0 即可開始。"/>
 
 </div>
 
@@ -214,47 +214,47 @@
 
 <div align="center">
 
-## 🆓 安裝完成立即可用 — 不需金鑰、不需設定
+## 🆓 安裝後立即生效 — 無需金鑰，無需配置
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="安裝完成立即可用 — 零設定。三個步驟：1. 安裝 — npm i -g omniroute，伺服器會在 localhost:20128 啟動。2. 將您的工具指向 http://localhost:20128/v1 — 任何與 OpenAI 相容的工具（Claude Code、Cursor、Cline）皆可。3. 立即取得回應 — 呼叫 auto 模型即可即時取得回覆，無需 API 金鑰、註冊或設定。免金鑰的 OpenCode Free 提供者已預先接入 auto 組合，因此全新安裝後即可直接回應。"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="安裝後立即生效 — 零配置。三個步驟：1. 安裝 — npm i -g omniroute，伺服器在 localhost:20128 啟動。2. 將您的工具指向 http://localhost:20128/v1 — 任何與 OpenAI 相容的工具（Claude Code、Cursor、Cline）。3. 它會回應 — 呼叫模型 auto 即可即時回覆，無需 API 金鑰，無需註冊，無需配置。無金鑰提供者 OpenCode Free 已預先連接到 auto 組合中，因此全新安裝即可開箱即用。"/>
 
 ```bash
-# 全新安裝，零憑證 — `auto` 已可直接使用：
+# 全新安裝，零憑證 — `auto` 已可運作：
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>偏好特定的免費後端？可直接呼叫 `oc/…`（OpenCode Free）。之後再升級使用 `auto`，讓 OmniRoute 自動挑選。</sub>
+<sub>偏好特定的免費後端？直接呼叫 `oc/…` (OpenCode Free)。然後升級到 `auto`，讓 OmniRoute 選擇。</sub>
 
-<sub>📦 適用於 **Python、Node.js、PHP 與 cURL**、可直接複製貼上的快速入門指令碼 → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 **Python、Node.js、PHP 和 cURL** 的複製貼上快速入門腳本 → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 我們的承諾
+# 💥 承諾
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="我們的承諾 — 單一端點，連接 359 個提供者。只要仍有其他健康的目標可用，自動備援就會持續進行路由。六大支柱：橫跨 359 個提供者的彈性備援 · 符合條件的工作負載最高可節省 95% 的權杖 · 以 $0 起步，提供 150+ 個免費方案，以及 54 個定期重置／免金鑰的永久免費提供者 · 透過單一設定支援 36 種 CLI／代理程式整合 · 在 /v1 相容於 OpenAI、Claude、Gemini 與 Responses API · 生產環境控制功能，包括斷路器、TLS 隱匿、具備 110 項工具的 MCP、A2A、記憶體、護欄、評估，以及分布於 5,100+ 個追蹤測試檔案中的 39,000+ 項靜態測試宣告。"/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="承諾 — 一個端點和 359 個提供者。當有其他健康的目標可用時，自動備援會保持路由。六大支柱：跨 359 個提供者的彈性備援 · 符合條件的工作負載可節省高達 95% 的代幣 · 150 多個免費層級和 54 個經常性/無金鑰永久免費提供者，啟動成本為 $0 · 透過一個配置實現 36 個 CLI/代理整合 · 與 OpenAI、Claude、Gemini 和 Responses API 在 /v1 處相容 · 生產控制，包括斷路器、TLS 隱身、MCP 110 工具、A2A、記憶體、防護欄、評估以及跨 5,100 多個追蹤測試檔案的 39,000 多個靜態測試聲明。"/>
 
 <br/>
 <br/>
 
 <div align="center">
 
-# 🤔 為什麼選擇 OmniRoute？
+# 🤔 為何選擇 OmniRoute？
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="為什麼選擇 OmniRoute — 不再需要周旋於 10 個儀表板、失效的 API 金鑰與突如其來的帳單之間。十大日常痛點與解決方案：配額未使用便過期 → 充分利用訂閱；寫程式途中遭遇速率限制 → 4 層自動備援（訂閱 → API → 低價 → 免費）；工具輸出消耗大量權杖 → RTK + Caveman 壓縮（15–95%）；API 費用昂貴 → 成本最佳化路由；每項工具都要單獨設定 → 單一端點、單一儀表板；AI 遭封鎖 → 3 級代理伺服器 + TLS 隱匿；金鑰失效 → 3 層韌性機制（斷路器、金鑰冷卻、模型鎖定）；團隊共用單一訂閱 → 採用公平配額的金鑰池；提示詞經由他人的雲端傳輸 → 本機優先，金鑰使用 AES-256-GCM 加密；無法掌握支出 → 即時分析（用量、配額、節省金額、p95 延遲）。"/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="為何選擇 OmniRoute — 停止同時處理 10 個儀表板、失效的 API 金鑰和意外帳單。十個日常痛點與解決方案：配額過期未使用 → 最大化訂閱；編碼中途遇到速率限制 → 4 層自動備援（訂閱 → API → 便宜 → 免費）；工具輸出消耗代幣 → RTK + Caveman 壓縮 (15–95%)；昂貴的 API → 成本優化路由；每個工具都有自己的設定 → 一個端點，一個儀表板；AI 被阻擋 → 3 層代理 + TLS 隱身；失效的金鑰 → 3 層彈性（斷路器、金鑰冷卻、模型鎖定）；團隊共用一個訂閱 → 帶有公平配額的金鑰池；透過某人的雲端提示 → 本地優先，使用 AES-256-GCM 加密金鑰；無支出可見性 → 即時分析（使用量、配額、節省、p95 延遲）。"/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute 請求流程：您的 IDE 或 CLI（Claude Code、Cursor、Cline……）呼叫單一本機端點（http://localhost:20128/v1）；只要仍有符合條件且健康的目標可用，OmniRoute 智慧路由器（RTK + Caveman 壓縮、19 種路由策略、斷路器、TLS 隱匿、MCP、A2A、護欄）即可在 4 個提供者層級之間進行備援 — 第 1 層：訂閱、第 2 層：API 金鑰、第 3 層：低價、第 4 層：免費。"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute 請求流程：您的 IDE 或 CLI (Claude Code, Cursor, Cline…) 呼叫一個本地端點 (http://localhost:20128/v1)；OmniRoute 智慧路由器 (RTK + Caveman 壓縮、19 種路由策略、斷路器、TLS 隱身、MCP、A2A、防護欄) 可以在符合條件的健康目標仍然存在時，在 4 個提供者層級之間進行備援 — 第 1 層訂閱、第 2 層 API 金鑰、第 3 層便宜和第 4 層免費。"/>
 
 </div>
 
@@ -492,9 +492,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute 的獨特之處 — 與 9router、OpenRouter、CLIProxyAPI 和 LiteLLM 針對 13 項功能所做的特定時間點比較。OmniRoute：359 個提供者、內建 150 多個免費方案、19 種路由策略、12 引擎權杖壓縮、內建具有 110 個工具的 MCP 伺服器、A2A 代理協定、持久記憶、護欄、雲端代理、TLS 指紋隱匿、Desktop/Termux/PWA，以及支援 42 種國際化 UI 語言。OmniRoute 採用 MIT 授權，並可自行託管。競爭產品的功能與數量可能有所變動；請參閱連結中的方法說明。"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute 的獨特之處 — 一個過時的功能快照，與 9router、OpenRouter、CLIProxyAPI 和 LiteLLM 在 13 項功能上的比較。OmniRoute：359 個提供者，內建 150 多個免費層級，19 種路由策略，12 引擎代幣壓縮，內建帶有 110 種工具的 MCP 伺服器，A2A 代理協議，持久記憶體，防護欄，雲端代理，TLS 指紋隱身，桌面/Termux/PWA 和 42 種國際化 UI 語言環境。OmniRoute 採用 MIT 許可證並可自行託管。競爭對手的功能和數量可能會有所變動；請參閱連結的方法論。"/>
 
-<sub>📊 完整方法說明及與 9router、OpenRouter、CLIProxyAPI 和 LiteLLM 的逐項功能比較 → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 完整方法論與各功能詳情，對比 9router、OpenRouter、CLIProxyAPI 和 LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 

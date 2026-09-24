@@ -346,34 +346,32 @@ opencode -m omniroute/glm/glm-5.2 "..."          # ekspor OMNIROUTE_API_KEY terl
 
 ---
 
-## Mengelola konteks (beralih antarserver)
+## Mengelola konteks (beralih antar server)
 
-**Konteks** adalah server yang disimpan (baseUrl + kredensial + cakupan). `omniroute connect`
-membuat konteks dan menjadikannya aktif; sejak saat itu, setiap perintah menargetkannya. Kelola dan
-beralih antar-konteks dengan `omniroute contexts`:
+Sebuah **konteks** adalah server yang tersimpan (baseUrl + kredensial + scope). `omniroute connect` membuat satu dan menjadikannya aktif; setelah itu setiap perintah akan menargetkannya. Kelola dan beralih di antara konteks-konteks tersebut dengan `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # semua konteks; konteks aktif ditandai dengan ●
-omniroute contexts current         # server aktif, status autentikasi, cakupan
+omniroute contexts list            # semua konteks; yang aktif ditandai ●
+omniroute contexts current         # server aktif, status otentikasi, scope
 ```
 
 ```text
-  | Nama    | URL Dasar                  | Autentikasi | Cakupan | Deskripsi
-● | vps     | http://100.67.86.91:20128 | token       | admin   | OmniRoute Jarak Jauh (…)
-  | default | http://localhost:20128    | ✗           |         |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
 **Beralih server** — setiap perintah berikutnya mengikuti konteks aktif:
 
 ```bash
-omniroute contexts use vps         # → semua perintah kini mengakses VPS jarak jauh
-omniroute tokens list              #   (dijalankan terhadap VPS)
+omniroute contexts use vps         # → semua perintah sekarang mengenai VPS jarak jauh
+omniroute tokens list              #   (berjalan melawan VPS)
 
 omniroute contexts use default     # → kembali ke localhost
-omniroute tokens list              #   (dijalankan terhadap server lokal)
+omniroute tokens list              #   (berjalan melawan server lokal)
 ```
 
-**Tambahkan konteks secara manual** (alih-alih menggunakan `connect`), periksa, atau ganti namanya:
+**Tambahkan konteks secara manual** (bukan dengan `connect`), periksa, atau ganti nama:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
@@ -382,31 +380,24 @@ omniroute contexts show staging    # detail lengkap untuk satu konteks
 omniroute contexts rename staging stg
 ```
 
-**Hapus konteks** — meminta konfirmasi; berikan `--yes` untuk melewatinya
-(diperlukan untuk skrip / shell noninteraktif, yang jika tidak diberikan akan menolak secara aman):
+**Hapus konteks** — akan meminta konfirmasi; gunakan `--yes` untuk melewatinya (diperlukan untuk skrip / shell non-interaktif, yang jika tidak akan menolak dengan aman):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) tidak dapat dihapus. Menghapus konteks aktif akan kembali
-> ke `default`. Kiat: menghapus konteks hanya menghapus kredensial **lokal** yang tersimpan —
-> cabut token di server dengan `omniroute tokens revoke <id>` untuk benar-benar
-> memutus akses.
+> `default` (localhost) tidak dapat dihapus. Menghapus konteks aktif akan kembali ke `default`. Tips: menghapus konteks hanya akan menghapus kredensial tersimpan **lokal** — cabut token di server dengan `omniroute tokens revoke <id>` untuk benar-benar menghentikan akses.
 
-**Ekspor / impor** konteks (misalnya untuk memindahkannya antarmesin). Konteks baru hanya menyimpan
-referensi keychain; kredensial tidak disalin ke dalam ekspor jika keychain OS
-tersedia:
+**Ekspor / impor** konteks (misalnya untuk memindahkannya antar mesin). Ekspor secara default menghilangkan kredensial, termasuk kredensial yang disimpan oleh fallback file. Gunakan `--include-secrets` secara eksplisit saat diperlukan cadangan yang berisi kredensial portabel:
 
 ```bash
-omniroute contexts export --out contexts.json     # bawaan: stdout
-omniroute contexts import contexts.json            # timpa; gunakan --merge untuk mempertahankan yang sudah ada
+omniroute contexts export --out contexts.json     # disunting; tujuan default: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # timpa; --merge untuk mempertahankan yang sudah ada
 omniroute contexts migrate --yes                  # pindahkan token plaintext lama ke keychain
 ```
 
-Pada sistem headless tanpa keychain OS yang dapat digunakan, CLI akan beralih ke
-`config.json` dengan mode `0600` dan menampilkan peringatan satu kali. Perlakukan hasil ekspor dari
-mekanisme cadangan tersebut (dan konfigurasi lama sebelum migrasi) sebagai materi rahasia.
+`--include-secrets` menyelesaikan referensi keychain sebelum mengekspor dan akan gagal jika kredensial yang direferensikan tidak dapat dibaca. `--no-secrets` selalu diutamakan. File ekspor ditulis secara atomik dengan mode `0600`. Perlakukan ekspor yang secara eksplisit berisi rahasia sebagai materi rahasia. Pada sistem headless tanpa keychain OS yang dapat digunakan, CLI akan kembali menggunakan `config.json` dengan mode `0600` dan mencetak peringatan satu kali; ekspor default tetap disunting dalam mode ini.
 
 ---
 

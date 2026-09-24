@@ -42,10 +42,10 @@ ombi, na kiungo cha ruhusa hiyo lazima kiongezwe kwenye kipengee husika.
 
 ## Sajili
 
-| Iliondolewa tarehe | Id ya mtoa huduma | Jina mbadala | Domains                                 | Iliombwa na                                    | PR ya uondoaji                                                 | Madokezo                                                                                                                                   |
-| ------------------ | ----------------- | ------------ | --------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-08-12         | `puter`           | `pu`         | `puter.com`                             | Mmiliki wa Puter (Nariman Jelveh)              | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | Mtoa huduma wa API-key. Migration `152_remove_puter_provider.sql` husafisha usanidi uliohifadhiwa.                                         |
-| 2026-09-02         | `theoldllm`       | `tllm`       | `theoldllm.com`, `theoldllm.vercel.app` | Mwendeshaji wa huduma (barua pepe ya usaidizi) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Mtoa huduma asiyehitaji ufunguo. Ombi lililoandikwa lilipokelewa 2026-08-30. Issues na mjadala mahususi zilifutwa, PR zikabadilishwa mada. |
+| Imeondolewa mnamo | Kitambulisho cha mtoa huduma | Lakabu | Vikoa | Iliombwa na | PR ya Kuondoa | Vidokezo  
+| `puter` | `pu` | `puter.com` | Imeombwa na mmiliki wa Puter (Nariman Jelveh) | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | Mtoa huduma wa API-key. Uhamishaji `152_remove_puter_provider.sql` husafisha usanidi ulihifadhiwa. |
+| `theoldllm` | `tllm` | `theoldllm.com`, `theoldllm.vercel.app` | Opereta wa huduma (barua pepe ya usaidizi) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Mtoa huduma asiye na ufunguo. Ombi la maandishi lilipokelewa 2026-08-30. Masuala maalum na majadiliano yamefutwa, PRs zimebadilishwa majina. |
+| `suno` | `suno` | `studio-api.suno.ai`, `studio-api-prod.suno.com` | Uamuzi wa mmiliki wa mradi (`#14224`) | [#14468](https://github.com/diegosouzapw/OmniRoute/pull/14468) | Mtoa huduma wa uthibitishaji wa kuki, si kufutwa na opereta. `studio-api.suno.ai` ilisitishwa (503); seva pangishi hai inahitaji ubadilishanaji wa Clerk JWT pamoja na utegemezi wa kulipia wa kutatua hCaptcha ambao OmniRoute ilichagua kutoa kwa mtoa huduma mmoja wa muziki. `kie/suno-v4.0` na `kie/suno-v3.5` (zinazopangishwa na kie.ai) hazijaathirika na zinaendelea kuungwa mkono. |
 
 ## Kuongeza ingizo
 

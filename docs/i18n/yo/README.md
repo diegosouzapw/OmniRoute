@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="Pátákó OmniRoute" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="Dasibọọdu OmniRoute" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Ẹnu-ọ̀nà AI Ọ̀fẹ́
+# 🚀 OmniRoute — Ẹnu-ọna AI Ọfẹ
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Má ṣe dá ṣíṣe kóòdù dúró láéláé. Gbogbo irinṣẹ́ AI → olùpèsè 359 — 150+ jẹ́ ọ̀fẹ́ — nípasẹ̀ endpoint kan ṣoṣo. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity sínú Claude / GPT / Gemini Ọ̀FẸ́ pẹ̀lú ìyípadà aládàáṣiṣẹ́ sí aṣàyàn mìíràn. Ìfúnpọ̀ alákòókò RTK + Caveman ń fi 15–95% àwọn token pamọ́ (~89% ní ìwọ̀nba) — má ṣe dé ààlà láéláé. Olùpèsè AI 359 · ìpele ọ̀fẹ́ 150+ · ~1.62B token ọ̀fẹ́/oṣù · ọgbọ́n ìdarí ipa-ọ̀nà 19 · $0 láti bẹ̀rẹ̀."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Máṣe dẹ́kun kíkọ koodu. Gbogbo irinṣẹ AI → Awọn olupese 359 — 150+ ọfẹ — nipasẹ ipari-oju kan. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity sinu Claude / GPT / Gemini ỌFẸ pẹlu atunṣe-ara-ẹni. RTK + Caveman stacked compression n fipamọ 15–95% awọn ami (~89% ni apapọ) — kò ní dé àwọn ìpinnu. Awọn olupese AI 359 · Awọn ipele ọfẹ 150+ · ~1.62B awọn ami ọfẹ/oṣu · Awọn ilana ipa-ọna 19 · $0 lati bẹrẹ."/>
 
 </div>
 
@@ -214,47 +214,47 @@
 
 <div align="center">
 
-## 🆓 Ó ń ṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀ tí o bá fi sí ẹrọ — kò nílò kọ́kọ́rọ́, kò nílò ìṣètò
+## 🆓 Ó ń ṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀ tí o bá ti fi í sílẹ̀ — kò sí kọ́kọ́rọ́, kò sí ìṣètò
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ó ń ṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀ tí o bá fi sí ẹrọ — ìṣètò kankan kò sí. Ìgbésẹ̀ mẹ́ta: 1. Fi sí ẹrọ — npm i -g omniroute, olupin yóò bẹ̀rẹ̀ lórí localhost:20128. 2. Darí irinṣẹ́ rẹ sí http://localhost:20128/v1 — irinṣẹ́ èyíkéyìí tó bá OpenAI mu (Claude Code, Cursor, Cline). 3. Ó dáhùn — pe model auto fún ìdáhùn lẹ́sẹ̀kẹsẹ̀, láìsí kọ́kọ́rọ́ API, ìforúkọsílẹ̀, tàbí ìṣètò. Olùpèsè tí kò nílò kọ́kọ́rọ́, OpenCode Free, ti wà ní ìṣètò tẹ́lẹ̀ nínú àkójọpọ̀ auto, nítorí náà fifi tuntun sí ẹrọ yóò dáhùn lẹ́sẹ̀kẹsẹ̀."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ó ń ṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀ tí o bá ti fi í sílẹ̀ — kò sí ìṣètò. Àwọn ìgbésẹ̀ mẹ́ta: 1. Fífi sílẹ̀ — npm i -g omniroute, server bẹ̀rẹ̀ lórí localhost:20128. 2. Tọ́ka ohun èlò rẹ sí http://localhost:20128/v1 — ohun èlò èyíkéyìí tí ó bá bá OpenAI mu (Claude Code, Cursor, Cline). 3. Ó dáhùn — pe model auto fún ìdáhùn lẹ́sẹ̀kẹsẹ̀, láìsí kọ́kọ́rọ́ API, láìsí ìforúkọsílẹ̀, láìsí ìṣètò. Olùpèsè aláìní kọ́kọ́rọ́ OpenCode Free ti wà ní àsopọ̀ tẹ́lẹ̀ sínú auto combo, nítorí náà ìfísílẹ̀ tuntun ń dáhùn lẹ́sẹ̀kẹsẹ̀."/>
 
 ```bash
-# Fifi tuntun sí ẹrọ, kò nílò ẹ̀rí ìdánimọ̀ — `auto` ti ń ṣiṣẹ́ tẹ́lẹ̀:
+# Ìfísílẹ̀ tuntun, kò sí ìdánilójú — `auto` ti ń ṣiṣẹ́ tẹ́lẹ̀:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Ṣé o fẹ́ ẹ̀yìn-ètò ọ̀fẹ́ kan pàtó? Pe `oc/…` (OpenCode Free) ní tààrà. Lẹ́yìn náà, tẹ̀síwájú sí `auto`, kí o sì jẹ́ kí OmniRoute yan.</sub>
+<sub>Ṣe o fẹ́ran backend ọfẹ kan pàtó? Pe `oc/…` (OpenCode Free) tààrà. Lẹ́yìn náà, lọ sí `auto` kí o sì jẹ́ kí OmniRoute yàn.</sub>
 
-<sub>📦 Da àwọn ìwé-àṣẹ ìbẹ̀rẹ̀-kíákíá fún **Python, Node.js, PHP, àti cURL** kọ́, kí o sì lẹ̀ wọ́n → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Da àwọn àkọsílẹ̀ ìbẹ̀rẹ̀ kánkán fún **Python, Node.js, PHP, àti cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 Ìlérí Náà
+# 💥 Ìlérí náà
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Ìlérí Náà — ojú-ọ̀nà ìwọlé kan àti olùpèsè 359. Ìyípadà aládàáṣiṣẹ́ ń jẹ́ kí ìdarí ọ̀nà tẹ̀síwájú níwọ̀n ìgbà tí ibi àfojúsùn míì tó péye bá ṣì wà. Ọ̀wọ́n mẹ́fà: ìyípadà tó lágbára káàkiri olùpèsè 359 · ìfipamọ́ tó tó 95% lórí token fún àwọn iṣẹ́ tó yẹ · $0 láti bẹ̀rẹ̀ pẹ̀lú ìpele ọ̀fẹ́ 150+ àti olùpèsè ọ̀fẹ́ títí láé 54 tó ń tún ara wọn ṣe/tí kò nílò kọ́kọ́rọ́ · ìsopọ̀ CLI/agent 36 nípasẹ̀ ìṣètò kan · ìbámu pẹ̀lú OpenAI, Claude, Gemini àti Responses API ní /v1 · àwọn ìṣàkóso ìmújáde tó ní circuit breakers, ìfarapamọ́ TLS, irinṣẹ́ MCP 110, A2A, ìrántí, guardrails, evals àti àwọn ìkéde ìdánwò àìyípadà 39,000+ káàkiri fáìlì ìdánwò 5,100+ tí a ń tọpinpin."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Ìlérí náà — Ojú-ìwé kan àti àwọn olùpèsè 359. Ìpadàsẹ́yìn aládàáṣe ń tẹ̀síwájú láti ṣe ìtọ́nisọ́nà nígbà tí ibi àfojúsùn mìíràn tí ó wà ní àlàáfíà bá wà. Àwọn òpó mẹ́fà: ìpadàsẹ́yìn tó lágbára kọjá àwọn olùpèsè 359 · títí di ìdá 95% ìfipamọ́ token lórí àwọn iṣẹ́ tó yẹ · $0 láti bẹ̀rẹ̀ pẹ̀lú àwọn ipele ọfẹ 150+ àti àwọn olùpèsè ọfẹ-títí-láé 54 tí ń tún ara wọn ṣe/aláìní kọ́kọ́rọ́ · àwọn ìsopọ̀ CLI/agent 36 nípasẹ̀ ìṣètò kan · OpenAI, Claude, Gemini àti ìbámu API Responses ní /v1 · àwọn ìṣàkóso ìṣelọ́pọ̀ pẹ̀lú àwọn oníṣẹ́-ìgbàsílẹ̀, TLS stealth, àwọn ohun èlò MCP 110, A2A, ìrántí, àwọn ààlà, àwọn ìṣirò àti àwọn ìkéde ìdánwò tí ó dúró ṣinṣin 39,000+ kọjá àwọn faili ìdánwò tí a tọ́pasẹ̀ 5,100+."/>
 
 <br/>
 <br/>
 
 <div align="center">
 
-# 🤔 Kí Nìdí OmniRoute?
+# 🤔 Kí nìdí OmniRoute?
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Kí Nìdí OmniRoute — dáwọ́ fífi dashboard 10 ṣiṣẹ́ lọ́tọ̀ọ̀tọ̀, àwọn kọ́kọ́rọ́ API tí kò ṣiṣẹ́ àti àwọn owó àìròtẹ́lẹ̀ dúró. Ìṣòro ojoojúmọ́ mẹ́wàá àti ojútùú wọn: quota tó ń dópin láìlò → lo àwọn subscription dé ìwọ̀n tó pọ̀ jù; rate limits ní àárín kíkọ kóòdù → ìyípadà aládàáṣiṣẹ́ onípele mẹ́rin (Subscription → API → Cheap → Free); àwọn àbájáde irinṣẹ́ tó ń jẹ token run → ìfúnpọ̀ RTK + Caveman (15–95%); àwọn API olówó iyebíye → ìdarí ọ̀nà tí a ṣètò láti dín iye owó kù; irinṣẹ́ kọ̀ọ̀kan pẹ̀lú ìṣètò tirẹ̀ → ojú-ọ̀nà ìwọlé kan, dashboard kan; dídínà AI → aṣojú onípele mẹ́ta + ìfarapamọ́ TLS; àwọn kọ́kọ́rọ́ tí kò ṣiṣẹ́ → ìfaradà onípele mẹ́ta (circuit breakers, key cooldown, model lockout); ẹgbẹ́ kan tó ń pín subscription kan → àwọn àkójọpọ̀ kọ́kọ́rọ́ pẹ̀lú quota ìpín tó dọ́gba; àwọn prompt tó ń gba cloud ẹlòmíràn kọjá → local-first pẹ̀lú àwọn kọ́kọ́rọ́ tí AES-256-GCM paroko; àìrí bí owó ṣe ń ná → ìtúpalẹ̀ alásìkò-gidi (ìlò, quota, ìfipamọ́, p95 latency)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Kí nìdí OmniRoute — dẹ́kun gbígbé àwọn dashboard 10, àwọn kọ́kọ́rọ́ API tí kò wúlò àti àwọn ìwé-owo àìròtẹ́lẹ̀. Àwọn ìṣòro mẹ́wàá ojoojúmọ́ vs àwọn àtúnṣe: quota tí ó ń parí tí kò wúlò → mú àwọn ìforúkọsílẹ̀ pọ̀ sí i; àwọn ìpinnu ìwọ̀n ní àárín kódì → ìpadàsẹ́yìn aládàáṣe ipele mẹ́rin (Ìforúkọsílẹ̀ → API → Òṣìṣẹ́ → Ọfẹ); àwọn ìjáde ohun èlò tí ń sun àwọn token → RTK + Caveman compression (15–95%); àwọn API tí ó gbówólórí → ìtọ́nisọ́nà tí ó dá lórí owó; gbogbo ohun èlò pẹ̀lú ìṣètò tirẹ̀ → ojú-ìwé kan, dashboard kan; AI tí a dènà → 3-level proxy + TLS stealth; àwọn kọ́kọ́rọ́ tí kò wúlò → ìfaradà ipele mẹ́ta (àwọn oníṣẹ́-ìgbàsílẹ̀, ìtura kọ́kọ́rọ́, ìdènà model); ìpínpín ìforúkọsílẹ̀ kan láàárín ẹgbẹ́ → àwọn adágún kọ́kọ́rọ́ pẹ̀lú àwọn quota ìpín-dọ́gba; àwọn ìtọ́nisọ́nà nípasẹ̀ awọsanma ẹnìkan → àkọ́kọ́-agbègbè pẹ̀lú àwọn kọ́kọ́rọ́ tí a fi AES-256-GCM fi pamọ́; kò sí ìríran ìnáwó → àwọn àtúpalẹ̀ gidi (lílò, quota, ìfipamọ́, p95 latency)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Ìṣàn ìbéèrè OmniRoute: IDE tàbí CLI rẹ (Claude Code, Cursor, Cline…) ń pe ojú-ọ̀nà ìwọlé abẹ́lẹ̀ kan (http://localhost:20128/v1); OmniRoute Smart Router (ìfúnpọ̀ RTK + Caveman, ọ̀nà ìdarí 19, circuit breakers, ìfarapamọ́ TLS, MCP, A2A, guardrails) lè yí padà káàkiri ìpele olùpèsè mẹ́rin níwọ̀n ìgbà tí ibi àfojúsùn tó péye àti tó ń ṣiṣẹ́ bá ṣì wà — Ìpele 1 Subscription, Ìpele 2 API Key, Ìpele 3 Cheap àti Ìpele 4 Free."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Ìṣàn ìbéèrè OmniRoute: IDE tàbí CLI rẹ (Claude Code, Cursor, Cline…) ń pe ojú-ìwé agbègbè kan (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman compression, àwọn ìlànà ìtọ́nisọ́nà 19, àwọn oníṣẹ́-ìgbàsílẹ̀, TLS stealth, MCP, A2A, àwọn ààlà) lè padà sẹ́yìn kọjá àwọn ipele olùpèsè 4 nígbà tí ibi àfojúsùn tí ó yẹ tí ó wà ní àlàáfíà bá wà — Ipele 1 Ìforúkọsílẹ̀, Ipele 2 Kọ́kọ́rọ́ API, Ipele 3 Òṣìṣẹ́ àti Ipele 4 Ọfẹ."/>
 
 </div>
 
@@ -488,13 +488,13 @@ Gbogbo àwọn ìlànà **19** — dapọ̀ wọn bí o ṣe fẹ́ fún ìgbés
 
 <div align="center">
 
-## 🏆 Ohun Tó Ṣe OmniRoute Yàtọ̀
+## 🏆 Kí ló jẹ́ kí OmniRoute Yàtọ̀
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Ohun tó ṣe OmniRoute yàtọ̀ — àwòrán àwọn ẹ̀ya ní àkókò kan ní ìfiwéra pẹ̀lú 9router, OpenRouter, CLIProxyAPI àti LiteLLM lórí àwọn agbára 13. OmniRoute: àwọn olùpèsè 359, àwọn ìpele ọ̀fẹ́ tó ju 150 lọ tí a ti ṣàfikún, àwọn ọ̀nà ìdarí 19, ìṣùpọ̀ token onímọ́tò 12, olupin MCP tí a ti ṣàfikún pẹ̀lú irinṣẹ́ 110, ìlànà aṣojú A2A, ìrántí tó dúró pẹ́, àwọn ìdènà ààbò, àwọn aṣojú cloud, ìfarapamọ́ ìtẹ̀sí ìka ọwọ́ TLS, Desktop/Termux/PWA àti àwọn èdè UI i18n 42. OmniRoute ní ìwé-àṣẹ MIT, ó sì ṣeé gbalejo fúnra ẹni. Àwọn agbára àti iye àwọn olùdíje lè yí padà; wo ọ̀nà ìṣèwádìí tí a tọ́ka sí."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Kí ló jẹ́ kí OmniRoute yàtọ̀ — àwòrán àkọsílẹ̀ àwọn àbùdá tí kò tíì gbóòrò sí i ní ìfiwéra pẹ̀lú 9router, OpenRouter, CLIProxyAPI àti LiteLLM lórí àwọn agbára 13. OmniRoute: àwọn olùpèsè 359, àwọn ipele ọfẹ́ 150+ tí a kọ́ sínú rẹ̀, àwọn ìlànà ìdarí 19, ìfúnpọ̀ àmì-ọ̀rọ̀ ẹ̀rọ 12, olùpèsè MCP tí a kọ́ sínú rẹ̀ pẹ̀lú àwọn irinṣẹ́ 110, ìlànà aṣojú A2A, ìrántí tí ó wà títí, àwọn ààbò, àwọn aṣojú àwọsánmà, ìkọ̀kọ̀ ìtẹ̀wọ́-ìka TLS, Ojú-iṣẹ́/Termux/PWA àti àwọn èdè UI i18n 42. OmniRoute jẹ́ ìwé-àṣẹ MIT àti pé ó lè gbàlejò ara rẹ̀. Àwọn agbára àti iye àwọn olùdíje lè yí padà; wo ìlànà tí a so mọ́."/>
 
-<sub>📊 Ọ̀nà ìṣèwádìí kíkún &amp; àlàyé ẹ̀ya kọ̀ọ̀kan ní ìfiwéra pẹ̀lú 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Ìlànà kíkún &amp; àwọn àkọsílẹ̀ àbùdá kọ̀ọ̀kan ní ìfiwéra pẹ̀lú 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 

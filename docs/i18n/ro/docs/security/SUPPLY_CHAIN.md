@@ -4,56 +4,68 @@
 
 ---
 
-OmniRoute publică artefacte npm + Docker. Aceste porți asigură proveniența,
-inventarul (SBOM) și scanarea CVE, toate OSS, integrate în fluxurile de lucru pentru lansare.
-Abordare **mai întâi consultativă** — momentan doar raportează, urmând să devină blocante după
-prima lansare reușită.
+OmniRoute publică artefacte npm + Docker. Aceste porți oferă proveniență, inventar (SBOM) și scanare CVE, toate open-source (OSS), integrate în fluxurile de lucru de lansare. Abordare **consultativă inițial** — raportează acum, promovează la blocare după prima lansare reușită.
 
-| Poartă                 | Instrument                                     | Unde                          | Blochează?                   | Rezultat                                       |
-| ---------------------- | ---------------------------------------------- | ----------------------------- | ---------------------------- | ---------------------------------------------- |
-| Proveniență SLSA (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | doar dacă publicarea eșuează | insignă npmjs / `npm audit signatures`         |
-| SBOM npm               | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | doar dacă generarea eșuează  | Resursă de lansare + artefact                  |
-| SBOM imagine           | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | consultativ                  | Artefact CycloneDX                             |
-| CVE Trivy (SARIF)      | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | consultativ                  | SARIF (HIGH+CRITICAL) → fila Security          |
-| Poartă Trivy CRITICAL  | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **blocantă**                 | `exit-code: '1'` pentru CRITICAL remediabile   |
-| vulnCount osv          | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **blocantă**                 | ajustează `metrics.vulnCount` (direction:down) |
-| OpenSSF Scorecard      | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | consultativ                  | SARIF → Security + insignă                     |
+| Poartă                 | Instrument                                     | Unde                          | Blochează?                   | Ieșire                                       |
+| :--------------------- | :--------------------------------------------- | :---------------------------- | :--------------------------- | :------------------------------------------- |
+| Proveniență SLSA (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | doar dacă publicarea eșuează | badge npmjs / `npm audit signatures`         |
+| SBOM npm               | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | doar dacă generarea eșuează  | Asset de lansare + artefact                  |
+| SBOM imagine           | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | consultativ                  | Artefact CycloneDX                           |
+| Trivy CVE (SARIF)      | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | consultativ                  | SARIF (HIGH+CRITICAL) → fila Securitate      |
+| Poartă CRITICAL Trivy  | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **blocare**                  | `exit-code: '1'` la CRITICAL remediabil      |
+| osv vulnCount          | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **blocare**                  | ajustează `metrics.vulnCount` (direcție:jos) |
+| OpenSSF Scorecard      | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | consultativ                  | SARIF → Securitate + badge                   |
 
-Mecanismul de control progresiv al CVE-urilor din imagine utilizează **doi pași** în `docker-publish.yml`: pasul SARIF
-(`HIGH,CRITICAL`, `exit-code: 0`) păstrează vulnerabilitățile HIGH+CRITICAL vizibile în fila Security
-fără a bloca; pasul _porții CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) oprește lansarea în cazul unui CVE CRITICAL **pentru care există o remediere**. `ignore-unfixed`
-împiedică blocarea lansării din cauza unui CVE din imaginea de bază care nu are un patch disponibil în amonte.
+Mecanismul de ajustare CVE al imaginii utilizează **doi pași** în `docker-publish.yml`: pasul SARIF (`HIGH,CRITICAL`, `exit-code: 0`) menține vulnerabilitățile HIGH+CRITICAL vizibile în fila Securitate fără a bloca; pasul _porții CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) eșuează lansarea la o vulnerabilitate CVE CRITICAL **cu o soluție disponibilă**. `ignore-unfixed` previne blocarea lansării pentru o vulnerabilitate CVE a imaginii de bază fără un patch upstream.
 
-## ⚠️ Variabilitatea CVE-urilor (porți osv/Trivy blocante)
+## ⚠️ Variația CVE (porți de blocare osv/Trivy)
 
-osv și Trivy compară dependențele cu baze de date CVE care **se extind continuu**. Un PR
-care **nu modifică nicio dependență** poate deveni brusc roșu deoarece a fost
-dezvăluit un CVE nou într-o dependență existentă (osv: `vulnCount` măsurat > valoarea de referință; Trivy: un
-nou CVE CRITICAL remediabil în imagine). **Acesta este comportamentul operațional AȘTEPTAT al unei porți CVE
-blocante, nu o regresie a produsului.**
+osv și Trivy compară dependențele cu baze de date CVE care **cresc continuu**. Un PR care **nu modifică dependențe** poate deveni brusc roșu deoarece o nouă vulnerabilitate CVE a fost dezvăluită într-o dependență existentă (osv: `vulnCount` măsurat > linie de bază; Trivy: o nouă vulnerabilitate CRITICAL remediabilă în imagine). **Acesta este un comportament operațional AȘTEPTAT al unei porți CVE de blocare, nu o regresie a produsului.**
 
-Când osv sau Trivy devin roșii din cauza unui CVE nou dezvăluit, soluția este:
+Când osv sau Trivy devin roșii din cauza unei vulnerabilități CVE nou dezvăluite, soluția este:
 
-1. **Actualizați dependența afectată** (opțiunea preferată) — faceți upgrade la versiunea corectată prin `package.json`
-   `overrides` (pentru dependențele tranzitive) sau reconstruiți imaginea folosind o bază corectată.
-2. **Dacă nu există nicio remediere în amonte:**
-   - **osv:** restabiliți valoarea de referință pentru `metrics.vulnCount` în `config/quality/quality-baseline.json`
-     (`npm run quality:ratchet -- --update` nu acoperă porțile dedicate — editați valoarea
-     manual, `direction:down`), incluzând o notă justificativă + un tichet de urmărire.
-   - **Trivy:** adăugați o intrare în `.trivyignore` (câte un CVE-ID pe linie), împreună cu un comentariu
-     justificativ + un tichet de urmărire. `ignore-unfixed: true` acoperă deja automat CVE-urile
-     fără patch-uri.
+1.  **Actualizați dependența afectată** (preferat) — actualizați la versiunea patch-uită prin `overrides` din `package.json` (dependențe tranzitive) sau reconstruiți imaginea pe o bază patch-uită.
+2.  **Dacă nu există o soluție upstream:**
+    - **osv:** re-stabiliți linia de bază pentru `metrics.vulnCount` în `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` nu acoperă porțile dedicate — editați valoarea manual, `direction:down`) cu o notă de justificare + un tichet de urmărire.
+    - **Trivy:** adăugați o intrare în `.trivyignore` (CVE-ID pe linie) cu un comentariu de justificare + un tichet de urmărire. `ignore-unfixed: true` acoperă deja automat vulnerabilitățile CVE fără patch-uri.
 
-Ambele porți **OMIT fără eroare** (cod de ieșire 0) atunci când instrumentul lipsește sau măsurarea
-eșuează (osv-scanner nu se află în PATH, osv.dev/rețeaua este inaccesibilă, JSON nevalid) — o
-eroare de **măsurare** nu blochează niciodată; doar o regresie **măsurată** blochează.
+Ambele porți **SAR automat** (exit 0) atunci când instrumentul lipsește sau măsurarea eșuează (osv-scanner nu este în PATH, osv.dev/rețea inaccesibilă, JSON invalid) — un eșec de **măsurare** nu blochează niciodată, doar o regresie **măsurată** blochează.
 
-## Restanțe: Scorecard consultativ → blocant
+## Riscuri cunoscute și acceptate
 
-După prima lansare reușită care include raportarea Scorecard:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: control progresiv al scorului (fixează scorul măsurat; acesta nu poate scădea).
+`extract-zip@2.0.1` conține două avertismente de severitate ridicată, necorectate, de tip symlink-traversal.
+Conform ramurii "no upstream fix" a soluției CVE Variance de mai sus, acesta este un
+**risc acceptat**, nu o actualizare:
 
-Completează porțile din Faza 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-auditează fluxurile de lucru propriu-zise; Scorecard măsoară în ansamblu starea depozitului.
+- **Lanț:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Confirmat prin `package-lock.json` — exact un pachet din întregul arbore de dependențe
+  (`@openai/codex-security`) declară `extract-zip`, și exact un pachet
+  (`promptfoo`) declară `@openai/codex-security`.
+- **Nu există nicio versiune fixă nicăieri în lanț.** `extract-zip@2.0.1` (publicat în 2020) este versiunea finală a pachetului — nu este menținut. `@openai/codex-security`'s
+  versiunea curentă npm-latest (`0.1.29`) încă utilizează `extract-zip@2.0.1`.
+- **Inaccesibil din producție.** `promptfoo` este doar devDependency (nu este niciodată listat
+  sub `dependencies`), și niciun fișier din `src/`, `open-sse/`, sau `bin/` nu importă
+  pachetul npm `extract-zip` — propriul helper `extractZip()` al OmniRoute
+  (`src/lib/versionManager/binaryManager.ts:93`) apelează `unzip`/`tar` nativ
+  și este fără legătură. `@openai/codex-security` include, de asemenea, propria sa
+  protecție symlink-traversal pe lângă callback-ul onEntry al extract-zip.
+- **Nu** aliasați `extract-zip` prin `package.json` `overrides` — singura înlocuire viabilă
+  este Electron-org-internal și este incompatibilă API cu propriile verificări onEntry/defaultDirMode/defaultFileMode ale `@openai/codex-security`;
+  suprascrierea ar anula în tăcere verificările de securitate ale acelui pachet.
+- **Linie de bază:** `vulnCount` (3) măsurat de osv este deja mult sub linia de bază înghețată
+  `config/quality/quality-baseline.json` (27) — nu este necesară nicio modificare a pragului.
+- **Protecție împotriva regresiei:** `tests/unit/extract-zip-14482-exposure.test.ts` afirmă
+  lanțul și invariantul de non-import din producție de mai sus; eșuează CI dacă oricare
+  dintre acestea se încalcă vreodată (de exemplu, un PR viitor face `extract-zip` accesibil din producție).
+- **Urmărire:** problema #14482.
+
+## Restanțe: Avertisment Scorecard → blocare
+
+După prima lansare verde cu raportare Scorecard:
+
+- Scorecard: pragul scorului (îngheață scorul măsurat; nu poate scădea).
+
+Completează porțile Fazei 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
+auditează fluxurile de lucru în sine; Scorecard măsoară postura depozitului în ansamblu.

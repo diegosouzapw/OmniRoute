@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute valdymo skydelis" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute prietaisų skydelis" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — nemokamas DI tinklų sietuvas
+# 🚀 OmniRoute — Nemokamas AI šliuzas
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — niekada nenustokite programuoti. Kiekvienas DI įrankis → 359 paslaugų teikėjai — daugiau nei 150 nemokamų — per vieną galinį tašką. Claude Code, Codex, Cursor, Cline, Copilot ir Antigravity į NEMOKAMUS Claude / GPT / Gemini su automatiniu atsarginiu perjungimu. RTK ir Caveman daugiasluoksnis glaudinimas sutaupo 15–95 % žetonų (vid. ~89 %) — niekada nepasiekite limitų. 359 DI paslaugų teikėjai · daugiau nei 150 nemokamų planų · ~1,62 mlrd. nemokamų žetonų per mėn. · 19 maršruto parinkimo strategijų · pradėkite už $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Niekada nenustokite programuoti. Kiekvienas AI įrankis → 359 tiekėjai — 150+ nemokamų — per vieną galinį tašką. Claude Code, Codex, Cursor, Cline, Copilot ir Antigravity į NEMOKAMĄ Claude / GPT / Gemini su automatiniu atsarginiu variantu. RTK + Caveman sudėtinė kompresija sutaupo 15–95% žetonų (~89% vid.) — niekada nepasiekite limitų. 359 AI tiekėjai · 150+ nemokamų lygių · ~1.62 mlrd. nemokamų žetonų/mėn. · 19 maršrutizavimo strategijų · $0 pradėti."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 Veikia vos įdiegus — jokių raktų, jokios konfigūracijos
+## 🆓 Veikia iškart įdiegus — jokių raktų, jokios konfigūracijos
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Veikia vos įdiegus — jokios konfigūracijos. Trys žingsniai: 1. Įdiekite — npm i -g omniroute, serveris paleidžiamas adresu localhost:20128. 2. Nukreipkite savo įrankį į http://localhost:20128/v1 — tinka bet kuris su OpenAI suderinamas įrankis (Claude Code, Cursor, Cline). 3. Jis atsako — iškvieskite modelį auto ir akimirksniu gaukite atsakymą be API rakto, registracijos ar konfigūracijos. Rakto nereikalaujantis tiekėjas OpenCode Free yra iš anksto įtrauktas į auto derinį, todėl ką tik įdiegta sistema veikia iš karto."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Veikia iškart įdiegus — nulinė konfigūracija. Trys žingsniai: 1. Įdiekite — npm i -g omniroute, serveris paleidžiamas localhost:20128. 2. Nukreipkite savo įrankį į http://localhost:20128/v1 — bet kokį su OpenAI suderinamą įrankį (Claude Code, Cursor, Cline). 3. Jis atsako — iškvieskite modelį auto, kad gautumėte momentinį atsakymą, be API rakto, be registracijos, be konfigūracijos. Beraktis teikėjas OpenCode Free yra iš anksto prijungtas prie auto kombinacijos, todėl naujas diegimas atsako iškart."/>
 
 ```bash
-# Naujas diegimas, jokių prisijungimo duomenų — `auto` jau veikia:
+# Naujas diegimas, jokių kredencialų — `auto` jau veikia:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -d '{"model":"auto","messages":[{"role":"user","content":"Labas!"}]}'
+  -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Pageidaujate konkretaus nemokamo serverio? Kreipkitės tiesiogiai į `oc/…` (OpenCode Free). Tada pereikite prie `auto` ir leiskite OmniRoute pasirinkti.</sub>
+<sub>Pageidaujate konkretaus nemokamo backend'o? Iškvieskite `oc/…` (OpenCode Free) tiesiogiai. Tada pereikite prie `auto` ir leiskite OmniRoute pasirinkti.</sub>
 
-<sub>📦 Paruošti kopijuoti ir įklijuoti greitojo paleidimo scenarijai, skirti **Python, Node.js, PHP ir cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Nukopijuokite ir įklijuokite greitos pradžios scenarijus, skirtus **Python, Node.js, PHP ir cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Pažadas — vienas galinis taškas ir 359 tiekėjai. Automatinis atsarginis nukreipimas tęsia užklausų nukreipimą, kol pasiekiamas kitas tinkamai veikiantis tikslas. Šeši ramsčiai: atsparus atsarginis nukreipimas tarp 359 tiekėjų · iki 95 % mažesnis žetonų naudojimas tinkamoms užduotims · pradėkite nuo $0 su daugiau nei 150 nemokamų planų ir 54 pasikartojančiais arba rakto nereikalaujančiais amžinai nemokamais tiekėjais · 36 CLI ir agentų integracijos naudojant vieną konfigūraciją · suderinamumas su OpenAI, Claude, Gemini ir Responses API adresu /v1 · gamybinės aplinkos valdikliai, įskaitant grandinės pertraukiklius, TLS maskavimą, MCP 110 įrankių, A2A, atmintį, apsaugos priemones, vertinimus ir daugiau nei 39 000 statinių testų deklaracijų daugiau nei 5 100 stebimų testų failų."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Pažadas — vienas galinis taškas ir 359 teikėjai. Automatinis atsarginis variantas palaiko maršrutizavimą, kol yra kitas sveikas tikslas. Šeši ramsčiai: atsparus atsarginis variantas per 359 teikėjus · iki 95% žetonų sutaupymas tinkamoms darbo apkrovoms · 0 USD pradėti su 150+ nemokamų lygių ir 54 pasikartojančiais/berakčiais amžinai nemokamais teikėjais · 36 CLI/agentų integracijos per vieną konfigūraciją · OpenAI, Claude, Gemini ir Responses API suderinamumas /v1 · gamybos kontrolė, įskaitant grandinės pertraukiklius, TLS slaptumą, MCP 110 įrankius, A2A, atmintį, apsaugos priemones, vertinimus ir 39 000+ statinių testų deklaracijų per 5 100+ stebimų testų failų."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Kodėl OmniRoute — nebereikės blaškytis tarp 10 valdymo skydelių, neveikiančių API raktų ir netikėtų sąskaitų. Dešimt kasdienių problemų ir jų sprendimų: nepanaudota kvota baigia galioti → maksimaliai išnaudokite prenumeratas; programavimo metu pasiekiami dažnio apribojimai → 4 lygių automatinis atsarginis nukreipimas (Prenumerata → API → Pigu → Nemokama); įrankių išvestys eikvoja žetonus → RTK + Caveman glaudinimas (15–95 %); brangios API → pagal sąnaudas optimizuotas nukreipimas; kiekvienam įrankiui reikia atskiros sąrankos → vienas galinis taškas, vienas valdymo skydelis; AI užblokuotas → 3 lygių tarpinis serveris + TLS maskavimas; neveikiantys raktai → 3 sluoksnių atsparumas (grandinės pertraukikliai, rakto atvėsimo laikotarpis, modelio blokavimas); komanda dalijasi viena prenumerata → raktų telkiniai su sąžiningai paskirstytomis kvotomis; užklausos siunčiamos per svetimą debesiją → pirmenybė vietiniam veikimui ir AES-256-GCM užšifruoti raktai; nėra išlaidų matomumo → tiesioginė analitika (naudojimas, kvota, sutaupyta suma, p95 delsa)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Kodėl OmniRoute — nustokite žongliruoti 10 prietaisų skydelių, neveikiančiais API raktais ir netikėtomis sąskaitomis. Dešimt kasdienių problemų ir jų sprendimai: kvota baigiasi nenaudojama → maksimaliai išnaudokite prenumeratas; greičio apribojimai kodo rašymo metu → 4 lygių automatinis atsarginis variantas (Prenumerata → API → Pigu → Nemokama); įrankių išvestys degina žetonus → RTK + Caveman suspaudimas (15–95%); brangūs API → sąnaudų optimizuotas maršrutizavimas; kiekvienas įrankis turi savo nustatymus → vienas galinis taškas, vienas prietaisų skydelis; AI užblokuotas → 3 lygių tarpinis serveris + TLS slaptumas; neveikiantys raktai → 3 lygių atsparumas (grandinės pertraukikliai, raktų atvėsinimas, modelio užblokavimas); komanda dalijasi viena prenumerata → raktų telkiniai su sąžiningo dalijimosi kvotomis; užklausos per kažkieno debesį → pirmiausia vietinis su AES-256-GCM šifruotais raktais; išlaidų matomumo trūkumas → gyva analizė (naudojimas, kvota, sutaupymai, p95 vėlavimas)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute užklausos eiga: jūsų IDE arba CLI (Claude Code, Cursor, Cline…) kreipiasi į vieną vietinį galinį tašką (http://localhost:20128/v1); OmniRoute išmanusis maršruto parinktuvas (RTK + Caveman glaudinimas, 19 maršruto parinkimo strategijų, grandinės pertraukikliai, TLS maskavimas, MCP, A2A, apsaugos priemonės) gali vykdyti atsarginį nukreipimą tarp 4 tiekėjų lygių, kol lieka tinkamas ir veikiantis tikslas — 1 lygis: prenumerata, 2 lygis: API raktas, 3 lygis: pigu ir 4 lygis: nemokama."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute užklausos srautas: jūsų IDE arba CLI (Claude Code, Cursor, Cline...) iškviečia vieną vietinį galinį tašką (http://localhost:20128/v1); OmniRoute išmanusis maršrutizatorius (RTK + Caveman suspaudimas, 19 maršrutizavimo strategijų, grandinės pertraukikliai, TLS slaptumas, MCP, A2A, apsaugos priemonės) gali grįžti prie 4 teikėjų lygių, kol lieka tinkamas sveikas tikslas – 1 lygio prenumerata, 2 lygio API raktas, 3 lygio pigus ir 4 lygio nemokamas."/>
 
 </div>
 
@@ -488,13 +488,13 @@ Visos **19** strategijų — derinkite jas kiekviename kombinacijos žingsnyje:
 
 <div align="center">
 
-## 🏆 Kuo „OmniRoute“ išsiskiria
+## 🏆 Kuo OmniRoute išsiskiria
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Kuo „OmniRoute“ išsiskiria — konkretaus momento 13 galimybių palyginimas su „9router“, „OpenRouter“, „CLIProxyAPI“ ir „LiteLLM“. „OmniRoute“: 359 teikėjai, integruota daugiau nei 150 nemokamų planų, 19 maršruto parinkimo strategijų, 12 variklių žetonų glaudinimas, integruotas MCP serveris su 110 įrankių, A2A agentų protokolas, išliekamoji atmintis, apsaugos priemonės, debesijos agentai, slaptas TLS kontrolinio atspaudo maskavimas, „Desktop“ / „Termux“ / PWA ir 42 lokalizuotos naudotojo sąsajos kalbos. „OmniRoute“ platinama pagal MIT licenciją ir gali būti talpinama savo infrastruktūroje. Konkurentų galimybės ir skaičiai gali keistis; žr. pateiktą metodikos nuorodą."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Kuo OmniRoute išsiskiria – pasenusi funkcijų apžvalga, lyginant su 9router, OpenRouter, CLIProxyAPI ir LiteLLM, apimanti 13 galimybių. OmniRoute: 359 tiekėjai, daugiau nei 150 integruotų nemokamų lygių, 19 maršrutizavimo strategijų, 12 variklių žetonų suspaudimas, integruotas MCP serveris su 110 įrankių, A2A agento protokolas, nuolatinė atmintis, apsaugos priemonės, debesų agentai, TLS pirštų atspaudų slaptumas, Desktop/Termux/PWA ir 42 i18n UI lokalės. OmniRoute yra licencijuota pagal MIT ir gali būti talpinama savarankiškai. Konkurentų galimybės ir skaičiai gali keistis; žr. susietą metodiką."/>
 
-<sub>📊 Visa metodika ir išsami informacija apie kiekvieną funkciją, palyginti su „9router“, „OpenRouter“, „CLIProxyAPI“ ir „LiteLLM“ → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Išsami metodika ir išsami informacija apie funkcijas, lyginant su 9router, OpenRouter, CLIProxyAPI ir LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 

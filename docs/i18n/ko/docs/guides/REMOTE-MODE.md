@@ -313,67 +313,70 @@ opencode -m omniroute/glm/glm-5.2 "..."          # 먼저 OMNIROUTE_API_KEY 내�
 
 ---
 
-## 컨텍스트 관리(서버 간 전환)
+## 컨텍스트 관리 (서버 간 전환)
 
 **컨텍스트**는 저장된 서버(baseUrl + 자격 증명 + 범위)입니다. `omniroute connect`는
-컨텍스트를 생성하고 활성화합니다. 이후 모든 명령은 해당 컨텍스트를 대상으로 실행됩니다.
+하나를 생성하고 활성화하며, 그 이후의 모든 명령은 해당 컨텍스트를 대상으로 합니다.
 `omniroute contexts`를 사용하여 컨텍스트를 관리하고 전환할 수 있습니다.
 
 ```bash
-omniroute contexts list            # 모든 컨텍스트. 활성 컨텍스트에는 ● 표시
+omniroute contexts list            # 모든 컨텍스트; 활성 컨텍스트는 ●로 표시됩니다.
 omniroute contexts current         # 활성 서버, 인증 상태, 범위
 ```
 
 ```text
-  | 이름    | 기본 URL                  | 인증  | 범위  | 설명
-● | vps     | http://100.67.86.91:20128 | token | admin | 원격 OmniRoute (…)
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
   | default | http://localhost:20128    | ✗     |       |
 ```
 
-**서버 전환** — 이후의 모든 명령은 활성 컨텍스트를 따릅니다.
+**서버 전환** — 모든 후속 명령은 활성 컨텍스트를 따릅니다.
 
 ```bash
-omniroute contexts use vps         # → 이제 모든 명령이 원격 VPS를 대상으로 실행됨
-omniroute tokens list              #   (VPS를 대상으로 실행)
+omniroute contexts use vps         # → 이제 모든 명령이 원격 VPS를 대상으로 합니다.
+omniroute tokens list              #   (VPS에 대해 실행됩니다.)
 
-omniroute contexts use default     # → localhost로 복귀
-omniroute tokens list              #   (로컬 서버를 대상으로 실행)
+omniroute contexts use default     # → localhost로 돌아갑니다.
+omniroute tokens list              #   (로컬 서버에 대해 실행됩니다.)
 ```
 
-**컨텍스트를 수동으로 추가**하거나(`connect` 대신), 검사하거나, 이름을 변경합니다.
+**수동으로 컨텍스트 추가** (`connect` 대신), 검사 또는 이름 변경:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # 한 컨텍스트의 전체 세부 정보
+omniroute contexts show staging    # 단일 컨텍스트에 대한 전체 세부 정보
 omniroute contexts rename staging stg
 ```
 
-**컨텍스트 제거** — 확인 메시지가 표시됩니다. 이를 건너뛰려면 `--yes`를 전달하세요
-(스크립트/비대화형 셸에서는 필수이며, 그렇지 않으면 안전하게 거부됩니다).
+**컨텍스트 제거** — 확인 메시지가 표시됩니다. 건너뛰려면 `--yes`를 전달합니다.
+(스크립트/비대화형 셸의 경우 필요하며, 그렇지 않으면 안전하게 거부됩니다.)
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default`(localhost)는 제거할 수 없습니다. 활성 컨텍스트를 제거하면
-> `default`로 대체됩니다. 팁: 컨텍스트를 제거하면 **로컬**에 저장된 자격 증명만
-> 삭제됩니다. 액세스를 실제로 차단하려면 서버에서 `omniroute tokens revoke <id>`를
-> 사용하여 토큰을 폐기하세요.
+> `default` (localhost)는 제거할 수 없습니다. 활성 컨텍스트를 제거하면
+> `default`로 폴백됩니다. 팁: 컨텍스트를 제거하는 것은 **로컬**에 저장된 자격 증명만
+> 삭제하는 것입니다. 실제로 액세스를 종료하려면 `omniroute tokens revoke <id>`로
+> 서버에서 토큰을 취소해야 합니다.
 
-컨텍스트 **내보내기/가져오기**(예: 머신 간에 컨텍스트를 이동할 때). OS
-키체인을 사용할 수 있는 경우, 새 컨텍스트에는 키체인 참조만 유지되며 자격 증명은
-내보내기에 복사되지 않습니다.
+컨텍스트 **내보내기/가져오기** (예: 컴퓨터 간 이동). 내보내기는 기본적으로 자격 증명을
+생략하며, 파일 폴백으로 저장된 자격 증명도 포함합니다. 휴대 가능한 자격 증명 포함 백업이
+필요한 경우 `--include-secrets`를 명시적으로 사용하십시오.
 
 ```bash
-omniroute contexts export --out contexts.json     # 기본값: stdout
-omniroute contexts import contexts.json            # 덮어쓰기. 기존 항목을 유지하려면 --merge
-omniroute contexts migrate --yes                  # 기존 평문 토큰을 키체인으로 이동
+omniroute contexts export --out contexts.json     # 수정됨; 기본 대상: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # 덮어쓰기; 기존 항목을 유지하려면 --merge
+omniroute contexts migrate --yes                  # 레거시 일반 텍스트 토큰을 키체인으로 이동
 ```
 
-사용 가능한 OS 키체인이 없는 헤드리스 시스템에서는 CLI가 모드 `0600`의
-`config.json`을 대신 사용하고 일회성 경고를 출력합니다. 이 대체 방식으로 생성된
-내보내기 파일과 마이그레이션 전의 기존 구성은 모두 비밀 자료로 취급하세요.
+`--include-secrets`는 내보내기 전에 키체인 참조를 확인하고, 참조된 자격 증명을 읽을 수
+없는 경우 실패합니다. `--no-secrets`는 항상 우선합니다. 내보내기 파일은 모드 `0600`으로
+원자적으로 작성됩니다. 명시적인 비밀 정보가 포함된 내보내기는 비밀 자료로 취급하십시오.
+사용 가능한 OS 키체인이 없는 헤드리스 시스템에서는 CLI가 모드 `0600`으로 `config.json`으로
+폴백하고 일회성 경고를 출력합니다. 이 모드에서는 기본 내보내기가 수정된 상태로 유지됩니다.
 
 ---
 

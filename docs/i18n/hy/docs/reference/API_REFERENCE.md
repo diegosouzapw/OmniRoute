@@ -420,7 +420,7 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## Համատեղելիության վերջնակետեր (Endpoints)
+## Համատեղելիության վերջնակետեր
 
 | Մեթոդ | Ուղի                                      | Ձևաչափ                             |
 | ----- | ----------------------------------------- | ---------------------------------- |
@@ -430,10 +430,10 @@ GET /api/v1/provider-plugin-manifest
 | POST  | `/v1/embeddings`                          | OpenAI                             |
 | POST  | `/v1/images/generations`                  | OpenAI Images                      |
 | POST  | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)       |
-| POST  | `/v1/videos/generations`                  | OpenAI-style տեսանյութի ստեղծում   |
-| POST  | `/v1/music/generations`                   | OpenAI-style երաժշտության ստեղծում |
+| POST  | `/v1/videos/generations`                  | OpenAI-style video generation      |
+| POST  | `/v1/music/generations`                   | OpenAI-style music generation      |
 | POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (վերադարձնում է աուդիո) |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (returns audio body)    |
 | POST  | `/v1/rerank`                              | Cohere/Voyage-style rerank         |
 | POST  | `/v1/classify`                            | Jina classify (`api.jina.ai`)      |
 | POST  | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`) |
@@ -450,12 +450,12 @@ GET /api/v1/provider-plugin-manifest
 | POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias             |
 | GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias        |
 
-Բոլոր POST երթուղիները հետևում են նույն կառուցվածքին՝ `Bearer your-api-key` + Zod-ով վավերացված JSON մարմին (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` և այլն, տես `src/shared/validation/schemas.ts`): Սխեմայի անհամապատասխանության դեպքում վերադարձվում է 4xx սխալ:
+Բոլոր POST երթուղիները հետևում են նույն ձևին՝ `Bearer your-api-key` + Zod-վավերացված JSON մարմին (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` և այլն, տե՛ս `src/shared/validation/schemas.ts`): Սխեմայի ձախողման դեպքում վերադարձվում է 4xx:
 
-Այն հաճախորդների համար, որոնք չեն կարող կցել `Authorization: Bearer ...` վերնագիրը, OmniRoute-ը ընդունում է API բանալիները նաև URL-ի միջոցով՝ կամ query-string համատեղելիությամբ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), կամ ստորև նշված հատուկ `/api/v1/vscode/{token}/...` վերջնակետերի միջոցով:
+Այն հաճախորդների համար, ովքեր չեն կարող կցել `Authorization: Bearer ...`, OmniRoute-ը նաև ընդունում է API բանալիներ URL-ում՝ կամ հարցման տողի համատեղելիության միջոցով (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), կամ ներքևում փաստաթղթավորված հատուկ `/api/v1/vscode/{token}/...` վերջնակետերի միջոցով:
 
 ```bash
-# Rerank (ամպային ռեգիստրի մատակարար կամ OpenAI-համատեղելի մատակարարի հանգույց որպես "<prefix>/<model>")
+# Rerank (ամպային ռեգիստրի մատակարար, կամ OpenAI-համատեղելի մատակարարի հանգույց՝ որպես "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina classify (Foundation API հավատարմագրեր)
@@ -464,46 +464,46 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # Jina segmenter
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; մատակարարի ալիասներ՝ jina-search, jina-ai, jina)
+# Jina search (s.jina.ai; մատակարարի կեղծանուններ՝ jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderations
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — վերադարձնում է audio/mpeg (կամ հայցվող ձևաչափի) մարմին
+# TTS — վերադարձնում է audio/mpeg (կամ պահանջվող ձևաչափի) մարմին
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Պատկերի խմբագրում (multipart)
+# Image edit (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Տեսանյութի / երաժշտության ստեղծում (մատակարարի նախդիրով մոդելի id)
+# Video / music generation (մատակարարի նախածանցով մոդելի ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Rerank մատակարարի հանգույցներ:** `POST /v1/rerank`-ը նաև ուղղորդում է դեպի OpenAI-համատեղելի մատակարարի հանգույցներ
-> (oMLX, vLLM, Infinity, TEI դարպասի հետևում և այլն), որոնք հասցեավորվում են որպես `<node-prefix>/<model>`: Loopback
-> հանգույցները (`localhost`, `127.0.0.1`, `172.16.0.0/12`) միշտ հասանելի են: Ցանկացած այլ հոսթի վրա գտնվող հանգույցները՝
-> LAN սարք կամ Tailscale հանգույց, հասանելի են միայն այն դեպքում, երբ օպերատորը միացնում է
-> `RERANK_REMOTE_PROVIDER_NODES` ֆունկցիոնալ դրոշը **և** հանգույցի հիմնական URL-ն անցնում է մատակարարի
-> արտաքին URL քաղաքականությունը (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`):
-> Cloud-metadata հոսթերին երբեք հարցումներ չեն ուղղվում: Հիշողության շարժիչի (memory engine) rerank քայլը կանչում է այս երթուղին
-> loopback-ի միջոցով, ուստի նույն կանոնը կարգավորում է նաև `rerankProviderModel`-ը Memory կարգավորումներում:
+> **Rerank մատակարարի հանգույցներ.** `POST /v1/rerank`-ը նաև ուղղորդում է OpenAI-համատեղելի մատակարարի հանգույցներին
+> (oMLX, vLLM, Infinity, TEI դարպասի հետևում, …)՝ հասցեագրված որպես `<node-prefix>/<model>`: Loopback
+> հանգույցները (`localhost`, `127.0.0.1`, `172.16.0.0/12`) միշտ իրավասու են: Ցանկացած այլ
+> հոսթի վրա գտնվող հանգույցները՝ LAN տուփ կամ Tailscale peer, իրավասու են միայն այն դեպքում, երբ օպերատորը միացնում է
+> `RERANK_REMOTE_PROVIDER_NODES` ֆունկցիայի դրոշը **և** հանգույցի հիմնական URL-ը անցնում է մատակարարի
+> արտաքին URL քաղաքականությունը (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> ամպային մետատվյալների հոսթերը երբեք չեն ուղղորդվում: Հիշողության շարժիչի rerank քայլը կանչում է այս երթուղին loopback-ի միջոցով,
+> ուստի նույն կանոնն է գործում `rerankProviderModel`-ի համար Հիշողության կարգավորումներում:
 >
-> **Տեղական սերվերի ձևաչափեր:** հանգույցը կանչվում է `<base>/v1/rerank` հասցեով, իսկ 404-ի դեպքում՝ `<base>/rerank`
-> (Infinity, TEI): Ելքային մարմինը կրում է և՛ Cohere/OpenAI ուղղագրությունը (`documents`, `return_documents`),
-> և՛ TEI ուղղագրությունը (`texts`, `return_text`), իսկ պատասխանը նորմալացվում է ըստ Cohere-ի ձևաչափի.
-> TEI-ի պարզ `[{index, score, text}]`-ը, պարզ դարպասների `{results: [{index, score}]}`-ը և Voyage-ոճի
-> `{data: [...]}`-ը բոլորը վերադառնում են հաճախորդին որպես `{results: [{index, relevance_score, document?}]}`,
-> տեսակավորված ըստ միավորի և սահմանափակված `top_n`-ով:
+> **Տեղական սերվերի ձևեր.** հանգույցը կանչվում է `<base>/v1/rerank` հասցեով և, 404-ի դեպքում, `<base>/rerank`
+> հասցեով (Infinity, TEI): Վերին հոսքի մարմինը պարունակում է և՛ Cohere/OpenAI ուղղագրությունը (`documents`,
+> `return_documents`), և՛ TEI ուղղագրությունը (`texts`, `return_text`), և վերին հոսքի պատասխանը
+> նորմալացվում է Cohere ծրարին. TEI-ի մերկ `[{index, score, text}]`, `{results: [{index, score}]}`
+> բարակ դարպասներից, և Voyage-ոճի `{data: [...]}` բոլորը վերադառնում են հաճախորդին որպես
+> `{results: [{index, relevance_score, document?}]}`, դասավորված ըստ միավորի և սահմանափակված `top_n`-ով:
 
-> **Մատակարարի հանգույցների հայտնաբերում:** OpenAI-համատեղելի մատակարարի հանգույցի մոդելները հայտնվում են `GET /v1/models`
-> ցանկում՝ հանգույցի նախդիրի տակ: Այն տողերը, որոնք չունեն վերջնակետի մետատվյալներ (բնորոշ է տեղական `/v1/models` ցուցակներին),
-> ժառանգում են հանգույցի `apiType`-ը, ուստի `embeddings` հանգույցի մոդելները ստանում են `type: "embedding"`, իսկ
-> `rerank` հանգույցի մոդելները՝ `type: "rerank"`՝ լռելյայն chat-ի փոխարեն: Սինքրոնացված կամ ձեռքով ավելացված տողի վրա
-> հստակ նշված `supportedEndpoints`-ը դեռևս ունի առաջնահերթություն:
+> **Մատակարարի հանգույցի հայտնաբերում.** OpenAI-համատեղելի մատակարարի հանգույցի մոդելները հայտնվում են `GET /v1/models`-ում
+> հանգույցի նախածանցի տակ: Այն տողերը, որոնք չունեն վերջնակետի մետատվյալներ (բնորոշ է տեղական `/v1/models` ցուցակներին),
+> ժառանգում են հանգույցի `apiType`-ը, ուստի `embeddings` հանգույցի մոդելները `type: "embedding"` են, իսկ
+> `rerank` հանգույցի մոդելները `type: "rerank"` են՝ չնայած չաթի լռելյայնին. համաժամեցված կամ ձեռքով ավելացված տողի վրա
+> հստակ `supportedEndpoints`-ը դեռևս գերակայում է:
 
-### Մատակարարի հատուկ երթուղիներ
+### Նվիրված մատակարարի երթուղիներ
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -511,7 +511,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-`provider` նախածանցն ավտոմատ կերպով ավելացվում է, եթե բացակայում է։ Անհամապատասխան մոդելները վերադարձնում են `400`։
+Մատակարարի նախածանցը ավտոմատ կերպով ավելացվում է, եթե բացակայում է: Անհամապատասխան մոդելները վերադարձնում են `400`:
 
 ---
 

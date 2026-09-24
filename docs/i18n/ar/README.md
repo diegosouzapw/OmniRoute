@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="لوحة تحكم OmniRoute" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
 
 <br/>
 <br/>
 
 # 🚀 OmniRoute — بوابة الذكاء الاصطناعي المجانية
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — لا تتوقف عن البرمجة أبدًا. كل أداة ذكاء اصطناعي ← 359 مزودًا — أكثر من 150 منها مجاني — عبر نقطة نهاية واحدة. استخدم Claude Code وCodex وCursor وCline وCopilot وAntigravity مع Claude / GPT / Gemini مجانًا، مع التبديل الاحتياطي التلقائي. يوفر الضغط المتراكم باستخدام RTK + Caveman ما بين 15 و95% من الرموز (~89% في المتوسط) — فلا تصل إلى الحدود القصوى أبدًا. 359 مزودًا للذكاء الاصطناعي · أكثر من 150 فئة مجانية · ~1.62 مليار رمز مجاني شهريًا · 19 استراتيجية توجيه · ابدأ بتكلفة $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — لا تتوقف عن البرمجة أبدًا. كل أداة ذكاء اصطناعي ← 359 مزودًا — 150+ مجانية — عبر نقطة نهاية واحدة. Claude Code, Codex, Cursor, Cline, Copilot و Antigravity إلى Claude / GPT / Gemini مجانًا مع التراجع التلقائي. ضغط RTK + Caveman المكدس يوفر 15-95% من الرموز (~89% في المتوسط) — لا تصل إلى الحدود أبدًا. 359 مزود ذكاء اصطناعي · 150+ طبقة مجانية · ~1.62 مليار رمز مجاني شهريًا · 19 استراتيجية توجيه · 0 دولار للبدء."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 يعمل فور تثبيته — بلا مفاتيح أو إعدادات
+## 🆓 يعمل فور تثبيته — بدون مفاتيح، بدون إعدادات
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="يعمل فور تثبيته — بلا إعدادات. ثلاث خطوات: 1. التثبيت — npm i -g omniroute، ويبدأ الخادم على localhost:20128. 2. وجّه أداتك إلى http://localhost:20128/v1 — أي أداة متوافقة مع OpenAI ‏(Claude Code أو Cursor أو Cline). 3. يجيبك — استدعِ النموذج auto للحصول على رد فوري، بلا مفتاح API أو تسجيل أو إعدادات. موفّر OpenCode Free الذي لا يتطلب مفتاحًا مهيّأ مسبقًا ضمن تركيبة auto، لذا تستجيب النسخة المثبّتة حديثًا مباشرةً دون أي إعداد إضافي."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="يعمل فور تثبيته — بدون إعدادات. ثلاث خطوات: 1. التثبيت — npm i -g omniroute، يبدأ تشغيل الخادم على localhost:20128. 2. وجه أداتك إلى http://localhost:20128/v1 — أي أداة متوافقة مع OpenAI (Claude Code, Cursor, Cline). 3. يجيب — استدعِ النموذج التلقائي للحصول على رد فوري، بدون مفتاح API، بدون تسجيل، بدون إعدادات. مزود OpenCode Free بدون مفتاح مدمج مسبقًا في المجموعة التلقائية، لذا يستجيب التثبيت الجديد فورًا."/>
 
 ```bash
-# تثبيت جديد، بلا بيانات اعتماد — يعمل `auto` بالفعل:
+# تثبيت جديد، بدون بيانات اعتماد — `auto` يعمل بالفعل:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>هل تفضّل واجهة خلفية مجانية محددة؟ استدعِ `oc/…` ‏(OpenCode Free) مباشرةً. ثم انتقل إلى `auto` ودع OmniRoute يختَر.</sub>
+<sub>هل تفضل واجهة خلفية مجانية محددة؟ استدعِ `oc/…` (OpenCode Free) مباشرة. ثم انتقل إلى `auto` ودع OmniRoute يختار.</sub>
 
-<sub>📦 سكربتات بدء سريع جاهزة للنسخ واللصق لـ **Python وNode.js وPHP وcURL** ← [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 نصوص بدء سريعة للنسخ واللصق لـ **Python و Node.js و PHP و cURL** ← [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="الوعد — نقطة نهاية واحدة و359 موفّرًا. يواصل التحويل الاحتياطي التلقائي التوجيه ما دام هناك هدف سليم آخر متاح. ست ركائز: تحويل احتياطي مرن عبر 359 موفّرًا · توفير يصل إلى 95% من الرموز المميزة لأحمال العمل المؤهلة · بدء الاستخدام مقابل $0 مع أكثر من 150 فئة مجانية و54 موفّرًا مجانيًا دائمًا، متكررًا أو بلا مفتاح · 36 تكاملًا مع واجهات CLI والوكلاء عبر إعداد واحد · توافق مع OpenAI وClaude وGemini وResponses API على /v1 · عناصر تحكم للإنتاج تشمل قواطع الدوائر، وتمويه TLS، و110 أدوات MCP، وA2A، والذاكرة، وحواجز الحماية، والتقييمات، وأكثر من 39,000 تصريح اختبار ثابت موزعة على أكثر من 5,100 ملف اختبار متتبّع."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="الوعد — نقطة نهاية واحدة و 359 مزودًا. يواصل التراجع التلقائي التوجيه بينما يتوفر هدف صحي آخر. ستة ركائز: تراجع مرن عبر 359 مزودًا · توفير يصل إلى 95% من الرموز المميزة على أعباء العمل المؤهلة · 0 دولار للبدء مع أكثر من 150 طبقة مجانية و 54 مزودًا مجانيًا دائمًا/بدون مفتاح · 36 تكامل CLI/وكيل من خلال إعداد واحد · توافق OpenAI و Claude و Gemini و Responses API على /v1 · ضوابط الإنتاج بما في ذلك قواطع الدائرة، وتخفي TLS، وأدوات MCP 110، و A2A، والذاكرة، وحواجز الحماية، والتقييمات، وأكثر من 39,000 إعلان اختبار ثابت عبر أكثر من 5,100 ملف اختبار متعقب."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="لماذا OmniRoute — توقّف عن التنقل بين 10 لوحات معلومات ومفاتيح API معطّلة وفواتير مفاجئة. عشر مشكلات يومية مقابل حلولها: انتهاء الحصة دون استخدامها ← تحقيق أقصى استفادة من الاشتراكات؛ بلوغ حدود المعدل أثناء البرمجة ← تحويل احتياطي تلقائي من 4 مستويات (الاشتراك ← API ← الرخيص ← المجاني)؛ استهلاك مخرجات الأدوات للرموز المميزة ← ضغط RTK + Caveman ‏(15–95%)؛ واجهات API باهظة التكلفة ← توجيه محسّن من حيث التكلفة؛ لكل أداة إعدادها الخاص ← نقطة نهاية واحدة ولوحة معلومات واحدة؛ حظر الذكاء الاصطناعي ← وكيل من 3 مستويات + تمويه TLS؛ مفاتيح معطّلة ← مرونة من 3 طبقات (قواطع الدوائر، وفترة تهدئة المفاتيح، وقفل النموذج)؛ مشاركة الفريق اشتراكًا واحدًا ← مجموعات مفاتيح بحصص عادلة؛ مرور المطالبات عبر سحابة طرف آخر ← نهج محلي أولًا مع مفاتيح مشفّرة باستخدام AES-256-GCM؛ غياب رؤية واضحة للإنفاق ← تحليلات مباشرة (الاستخدام، والحصة، والتوفير، وزمن انتقال p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="لماذا OmniRoute — توقف عن التوفيق بين 10 لوحات تحكم، ومفاتيح API الميتة، والفواتير المفاجئة. عشرة آلام يومية مقابل الإصلاحات: انتهاء صلاحية الحصة غير المستخدمة ← تعظيم الاشتراكات؛ حدود المعدل أثناء الترميز ← تراجع تلقائي من 4 مستويات (اشتراك ← API ← رخيص ← مجاني)؛ مخرجات الأداة تحرق الرموز المميزة ← ضغط RTK + Caveman (15-95%)؛ واجهات برمجة التطبيقات باهظة الثمن ← توجيه محسّن التكلفة؛ كل أداة لها إعدادها الخاص ← نقطة نهاية واحدة، لوحة تحكم واحدة؛ الذكاء الاصطناعي محظور ← وكيل من 3 مستويات + تخفي TLS؛ مفاتيح ميتة ← مرونة من 3 طبقات (قواطع الدائرة، تبريد المفتاح، قفل النموذج)؛ مشاركة الفريق لاشتراك واحد ← مجموعات مفاتيح مع حصص عادلة؛ مطالبات عبر سحابة شخص ما ← محلي أولاً مع مفاتيح مشفرة AES-256-GCM؛ عدم وضوح الإنفاق ← تحليلات مباشرة (الاستخدام، الحصة، التوفير، زمن الاستجابة p95)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="تدفق طلب OmniRoute: تستدعي بيئة IDE أو واجهة CLI لديك (Claude Code أو Cursor أو Cline…) نقطة نهاية محلية واحدة (http://localhost:20128/v1)؛ ويمكن للموجّه الذكي OmniRoute ‏(ضغط RTK + Caveman، و19 استراتيجية توجيه، وقواطع الدوائر، وتمويه TLS، وMCP، وA2A، وحواجز الحماية) التحويل احتياطيًا عبر 4 مستويات من الموفّرين ما دام هناك هدف مؤهل وسليم — المستوى 1: الاشتراك، والمستوى 2: مفتاح API، والمستوى 3: الرخيص، والمستوى 4: المجاني."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="تدفق طلب OmniRoute: يستدعي IDE أو CLI الخاص بك (Claude Code, Cursor, Cline…) نقطة نهاية محلية واحدة (http://localhost:20128/v1)؛ يمكن للموجه الذكي OmniRoute (ضغط RTK + Caveman، 19 استراتيجية توجيه، قواطع الدائرة، تخفي TLS، MCP، A2A، حواجز الحماية) التراجع عبر 4 مستويات من المزودين بينما يظل هدف صحي مؤهل متاحًا — المستوى 1 الاشتراك، المستوى 2 مفتاح API، المستوى 3 رخيص، والمستوى 4 مجاني."/>
 
 </div>
 
@@ -488,13 +488,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🏆 ما الذي يميّز OmniRoute
+## 🏆 ما الذي يميز OmniRoute
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="ما الذي يميّز OmniRoute — لقطة مؤرخة لمقارنة الميزات مع 9router وOpenRouter وCLIProxyAPI وLiteLLM عبر 13 قدرة. OmniRoute: ‏359 مزودًا، وأكثر من 150 مستوى مجانيًا مدمجًا، و19 استراتيجية توجيه، وضغط رموز بـ12 محركًا، وخادم MCP مدمج يضم 110 أدوات، وبروتوكول وكلاء A2A، وذاكرة دائمة، وحواجز حماية، ووكلاء سحابيون، وتمويه بصمة TLS، ودعم Desktop وTermux وPWA، و42 لغة لواجهة المستخدم. OmniRoute مرخّص بموجب MIT وقابل للاستضافة الذاتية. قد تتغير قدرات المنافسين وأعدادها؛ راجع المنهجية المرتبطة."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="ما الذي يميز OmniRoute — لقطة ميزات قديمة مقارنة بـ 9router و OpenRouter و CLIProxyAPI و LiteLLM عبر 13 قدرة. OmniRoute: 359 مزودًا، أكثر من 150 طبقة مجانية مدمجة، 19 استراتيجية توجيه، ضغط الرموز بـ 12 محركًا، خادم MCP مدمج بـ 110 أدوات، بروتوكول وكيل A2A، ذاكرة دائمة، حواجز حماية، وكلاء سحابيون، إخفاء بصمة TLS، دعم لسطح المكتب/Termux/PWA و 42 لغة واجهة مستخدم عالمية. OmniRoute مرخص بترخيص MIT وقابل للاستضافة الذاتية. قد تتغير قدرات المنافسين وأعدادهم؛ راجع المنهجية المرتبطة."/>
 
-<sub>📊 المنهجية الكاملة وتفاصيل كل ميزة مقارنةً بـ 9router وOpenRouter وCLIProxyAPI وLiteLLM ← [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 المنهجية الكاملة وتفاصيل كل ميزة مقارنة بـ 9router و OpenRouter و CLIProxyAPI و LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1594,13 +1594,13 @@ gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
 
 <div align="center">
 
-## 🌍 StarMapper
+## 🌍 مخطط النجوم
 
 <a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
     <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
+    <img alt="مخطط النجوم" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
   </picture>
 </a>
 </div>

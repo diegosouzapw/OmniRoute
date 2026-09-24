@@ -320,67 +320,63 @@ opencode -m omniroute/glm/glm-5.2 "..."          # ابتدا OMNIROUTE_API_KEY 
 
 ---
 
-## مدیریت contextها (جابجایی بین سرورها)
+## مدیریت زمینهها (جابجایی بین سرورها)
 
-یک **context**، سروری ذخیرهشده است (baseUrl + اعتبارنامه + scope). دستور `omniroute connect`
-یکی ایجاد میکند و آن را فعال میسازد؛ از آن پس همهٔ دستورها آن را هدف قرار میدهند. با
-`omniroute contexts` آنها را مدیریت کنید و بینشان جابهجا شوید:
+یک **زمینه** (context) یک سرور ذخیره شده است (baseUrl + credential + scope). `omniroute connect`
+یکی از آنها را ایجاد کرده و فعال میکند؛ از آن پس هر دستوری آن را هدف قرار میدهد. آنها را با `omniroute contexts` مدیریت و بینشان جابجا شوید:
 
 ```bash
-omniroute contexts list            # همهٔ contextها؛ مورد فعال با ● مشخص شده است
-omniroute contexts current         # سرور فعال، وضعیت احراز هویت و scope
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
 ```
 
 ```text
   | Name    | Base URL                  | Auth  | Scope | Description
-● | vps     | http://100.67.86.91:20128 | token | admin | OmniRoute راهدور (…)
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
   | default | http://localhost:20128    | ✗     |       |
 ```
 
-**جابجایی بین سرورها** — هر دستور بعدی از context فعال پیروی میکند:
+**جابجایی سرورها** — هر دستور بعدی از زمینه فعال پیروی میکند:
 
 ```bash
-omniroute contexts use vps         # ← اکنون همهٔ دستورها VPS راهدور را هدف میگیرند
-omniroute tokens list              #   (روی VPS اجرا میشود)
+omniroute contexts use vps         # → all commands now hit the remote VPS
+omniroute tokens list              #   (runs against the VPS)
 
-omniroute contexts use default     # ← بازگشت به localhost
-omniroute tokens list              #   (روی سرور محلی اجرا میشود)
+omniroute contexts use default     # → back to localhost
+omniroute tokens list              #   (runs against the local server)
 ```
 
-**افزودن دستی یک context** (بهجای `connect`)، بررسی یا تغییر نام آن:
+**افزودن یک زمینه به صورت دستی** (به جای `connect`)، بررسی، یا تغییر نام:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "محیط staging"
-omniroute contexts show staging    # جزئیات کامل یک context
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # full details for one context
 omniroute contexts rename staging stg
 ```
 
-**حذف یک context** — درخواست تأیید میکند؛ برای رد کردن آن، `--yes` را وارد کنید
-(برای اسکریپتها / پوستههای غیرتعاملی الزامی است، زیرا در غیر این صورت برای حفظ ایمنی درخواست رد میشود):
+**حذف یک زمینه** — درخواست تأیید میکند؛ برای رد شدن از آن، `--yes` را ارسال کنید
+(برای اسکریپتها / شلهای غیرتعاملی که در غیر این صورت به طور ایمن رد میشوند، لازم است):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) قابل حذف نیست. با حذف context فعال، سیستم به
-> `default` بازمیگردد. نکته: حذف یک context فقط اعتبارنامهٔ ذخیرهشدهٔ **محلی** را حذف میکند —
-> برای قطع واقعی دسترسی، token را با `omniroute tokens revoke <id>` روی سرور
-> باطل کنید.
+> `default` (localhost) قابل حذف نیست. حذف زمینه فعال به `default` بازمیگردد. نکته: حذف یک زمینه فقط اعتبارنامه ذخیره شده **محلی** را حذف میکند —
+> برای از بین بردن واقعی دسترسی، توکن را در سرور با `omniroute tokens revoke <id>` لغو کنید.
 
-**برونبری / درونریزی** contextها (برای مثال، جهت انتقال آنها بین دستگاهها). contextهای جدید
-فقط یک ارجاع به keychain را نگه میدارند؛ در صورت در دسترس بودن keychain سیستمعامل،
-اعتبارنامهها در فایل برونبری کپی نمیشوند:
+**خروجی / ورودی گرفتن** از زمینهها (مثلاً برای انتقال آنها بین ماشینها). خروجیها به طور پیشفرض اعتبارنامهها را حذف میکنند، از جمله اعتبارنامههای ذخیره شده توسط فایل جایگزین.
+هنگامی که یک پشتیبان قابل حمل حاوی اعتبارنامه مورد نیاز است، به صراحت از `--include-secrets` استفاده کنید:
 
 ```bash
-omniroute contexts export --out contexts.json     # پیشفرض: stdout
-omniroute contexts import contexts.json            # بازنویسی؛ برای حفظ موارد موجود از --merge استفاده کنید
-omniroute contexts migrate --yes                  # انتقال tokenهای متنی قدیمی به keychain
+omniroute contexts export --out contexts.json     # redacted; default destination: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
 
-در سیستمهای headless که keychain قابلاستفادهای از سیستمعامل ندارند، CLI به
-`config.json` با mode برابر `0600` بازمیگردد و یک هشدار یکباره نمایش میدهد. فایلهای برونبریشده از
-این حالت جایگزین (و هر پیکربندی قدیمی پیش از مهاجرت) را بهعنوان اطلاعات محرمانه در نظر بگیرید.
+`--include-secrets` قبل از خروجی گرفتن، ارجاعات keychain را حل میکند و در صورتی که هر اعتبارنامه ارجاع داده شده قابل خواندن نباشد، با شکست مواجه میشود. `--no-secrets` همیشه اولویت دارد.
+فایلهای خروجی به صورت اتمی با حالت `0600` نوشته میشوند. یک خروجی صریح حاوی اطلاعات محرمانه را به عنوان یک ماده محرمانه در نظر بگیرید. در سیستمهای بدون رابط کاربری گرافیکی (headless) که keychain سیستم عامل قابل استفادهای ندارند، CLI به `config.json` با حالت `0600` بازمیگردد و یک هشدار یکبار مصرف چاپ میکند؛ یک خروجی پیشفرض در این حالت سانسور شده باقی میماند.
 
 ---
 

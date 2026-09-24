@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute-hallintapaneeli" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRouten hallintapaneeli" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Ilmainen tekoäly-yhdyskäytävä
+# 🚀 OmniRoute — Ilmainen tekoälyyhdyskäytävä
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Älä koskaan lopeta koodaamista. Jokainen tekoälytyökalu → 359 palveluntarjoajaa — yli 150 ilmaista — yhden päätepisteen kautta. Claude Code, Codex, Cursor, Cline, Copilot ja Antigravity ILMAISEEN Claudeen / GPT:hen / Geminiin automaattisella varajärjestelmään siirtymisellä. RTK:n ja Cavemanin yhdistetty pakkaus säästää 15–95 % tokeneista (keskimäärin noin 89 %) — rajat eivät koskaan tule vastaan. 359 tekoälypalveluntarjoajaa · yli 150 ilmaistasoa · noin 1,62 mrd. ilmaista tokenia/kk · 19 reititysstrategiaa · aloitusmaksu 0 $."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Älä koskaan lopeta koodaamista. Jokainen tekoälytyökalu → 359 palveluntarjoajaa — yli 150 ilmaista — yhden päätepisteen kautta. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity ILMAISEKSI Claude / GPT / Gemini -palveluihin automaattisella varajärjestelmällä. RTK + Caveman pinottu pakkaus säästää 15–95 % tokeneista (~89 % keskimäärin) — älä koskaan ylitä rajoja. 359 tekoälypalveluntarjoajaa · yli 150 ilmaista tasoa · ~1,62 miljardia ilmaista tokenia/kk · 19 reititysstrategiaa · $0 aloittamiseen."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 Toimii heti asennuksen jälkeen — ei avaimia, ei määrityksiä
+## 🆓 Toimii heti asennuksen jälkeen — ei avaimia, ei asetuksia
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Toimii heti asennuksen jälkeen — ilman määrityksiä. Kolme vaihetta: 1. Asenna — npm i -g omniroute, palvelin käynnistyy osoitteessa localhost:20128. 2. Ohjaa työkalusi osoitteeseen http://localhost:20128/v1 — mikä tahansa OpenAI-yhteensopiva työkalu (Claude Code, Cursor, Cline). 3. Se vastaa — kutsu auto-mallia saadaksesi vastauksen välittömästi ilman API-avainta, rekisteröitymistä tai määrityksiä. Avaimeton OpenCode Free -palveluntarjoaja on valmiiksi yhdistetty auto-yhdistelmään, joten tuore asennus vastaa heti käyttövalmiina."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Toimii heti asennuksen jälkeen — ei asetuksia. Kolme vaihetta: 1. Asenna — npm i -g omniroute, palvelin käynnistyy osoitteessa localhost:20128. 2. Osoita työkalusi osoitteeseen http://localhost:20128/v1 — mikä tahansa OpenAI-yhteensopiva työkalu (Claude Code, Cursor, Cline). 3. Se vastaa — kutsu mallia auto saadaksesi välittömän vastauksen, ilman API-avainta, rekisteröitymistä tai asetuksia. Avaimeton palveluntarjoaja OpenCode Free on esiasennettu auto-yhdistelmään, joten uusi asennus vastaa heti käyttövalmiina."/>
 
 ```bash
-# Tuore asennus ilman tunnistetietoja — `auto` toimii jo:
+# Uusi asennus, ei tunnuksia — auto toimii jo:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Haluatko käyttää tiettyä ilmaista taustapalvelua? Kutsu suoraan `oc/…`-mallia (OpenCode Free). Siirry sitten käyttämään `auto`-mallia ja anna OmniRouten valita.</sub>
+<sub>Haluatko mieluummin tietyn ilmaisen taustaohjelman? Kutsu `oc/…` (OpenCode Free) suoraan. Siirry sitten `auto`-tilaan ja anna OmniRouten valita.</sub>
 
-<sub>📦 Kopioitavat pika-aloitusskriptit **Pythonille, Node.js:lle, PHP:lle ja cURLille** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Kopioi ja liitä pika-aloitusskriptit **Pythonille, Node.js:lle, PHP:lle ja cURLille** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Lupaus — yksi päätepiste ja 359 palveluntarjoajaa. Automaattinen varajärjestelmä jatkaa reititystä niin kauan kuin toinen toimintakuntoinen kohde on käytettävissä. Kuusi pilaria: vikasietoinen varajärjestelmä 359 palveluntarjoajan välillä · jopa 95 %:n säästö tunnisteissa soveltuvissa työkuormissa · käytön voi aloittaa 0 dollarilla yli 150 ilmaistason sekä 54 toistuvasti ilmaisen tai avaimettoman, ikuisesti ilmaisen palveluntarjoajan ansiosta · 36 CLI- ja agentti-integraatiota yhdellä määrityksellä · OpenAI-, Claude-, Gemini- ja Responses API -yhteensopivuus osoitteessa /v1 · tuotantokäytön hallintaominaisuudet, kuten circuit breaker -mekanismit, TLS-häivytys, MCP:n 110 työkalua, A2A, muisti, suojakaiteet, arvioinnit ja yli 39 000 staattista testimääritystä yli 5 100 seuratussa testitiedostossa."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Lupaus — Yksi päätepiste ja 359 palveluntarjoajaa. Automaattinen varajärjestelmä jatkaa reititystä, kun toinen toimiva kohde on saatavilla. Kuusi pilaria: joustava varajärjestelmä 359 palveluntarjoajan yli · jopa 95 % tokenisäästöt kelvollisissa työkuormissa · 0 $ aloittaa yli 150 ilmaisella tasolla ja 54 toistuvalla/avaimettomalla ikuisesti ilmaisella palveluntarjoajalla · 36 CLI/agentti-integraatiota yhdellä asetuksella · OpenAI, Claude, Gemini ja Responses API -yhteensopivuus osoitteessa /v1 · tuotannon hallintalaitteet, mukaan lukien katkaisijat, TLS-salailu, MCP 110 -työkalut, A2A, muisti, suojakaiteet, arvioinnit ja yli 39 000 staattista testilausuntoa yli 5 100 seurattavassa testitiedostossa."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Miksi OmniRoute — lopeta tasapainoilu 10 hallintapaneelin, toimimattomien API-avainten ja yllättävien laskujen välillä. Kymmenen päivittäistä ongelmaa ja niiden ratkaisut: kiintiö vanhenee käyttämättömänä → hyödynnä tilaukset täysimääräisesti; nopeusrajoitukset kesken ohjelmoinnin → 4-tasoinen automaattinen varajärjestelmä (Tilaus → API → Edullinen → Ilmainen); työkalujen tulosteet kuluttavat tunnisteita → RTK- ja Caveman-pakkaus (15–95 %); kalliit API:t → kustannusoptimoitu reititys; jokainen työkalu vaatii oman määrityksensä → yksi päätepiste, yksi hallintapaneeli; tekoäly on estetty → 3-tasoinen välityspalvelin + TLS-häivytys; toimimattomat avaimet → 3-kerroksinen vikasietoisuus (circuit breaker -mekanismit, avainten jäähdytys, mallien lukitus); tiimi jakaa yhden tilauksen → avainvarannot oikeudenmukaisesti jaetuilla kiintiöillä; kehotteet kulkevat jonkun muun pilven kautta → ensisijaisesti paikallinen toteutus AES-256-GCM-salatuilla avaimilla; ei näkyvyyttä kuluihin → reaaliaikainen analytiikka (käyttö, kiintiö, säästöt, p95-viive)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Miksi OmniRoute — lopeta 10 hallintapaneelin, kuolleiden API-avaimien ja yllätyslaskujen jongleeraus. Kymmenen päivittäistä ongelmaa vs. ratkaisut: käyttämättömänä vanheneva kiintiö → maksimoi tilaukset; nopeusrajoitukset koodauksen aikana → 4-tasoinen automaattinen varajärjestelmä (Tilaus → API → Halpa → Ilmainen); työkalujen tulosteet kuluttavat tokeneita → RTK + Caveman-pakkaus (15–95%); kalliit API:t → kustannusoptimoitu reititys; jokaisella työkalulla oma asennus → yksi päätepiste, yksi hallintapaneeli; AI estetty → 3-tason välityspalvelin + TLS-salailu; kuolleet avaimet → 3-kerroksinen joustavuus (katkaisijat, avaimen jäähtyminen, mallin lukitus); tiimi jakaa yhden tilauksen → avainpoolit oikeudenmukaisilla kiintiöillä; kehotteet jonkun pilven kautta → paikallisesti ensin AES-256-GCM-salatuilla avaimilla; ei kulutusnäkyvyyttä → reaaliaikainen analytiikka (käyttö, kiintiö, säästöt, p95-viive)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute-pyynnön kulku: IDE:si tai CLI:si (Claude Code, Cursor, Cline…) kutsuu yhtä paikallista päätepistettä (http://localhost:20128/v1); OmniRoute Smart Router (RTK- ja Caveman-pakkaus, 19 reititysstrategiaa, circuit breaker -mekanismit, TLS-häivytys, MCP, A2A, suojakaiteet) voi siirtyä varajärjestelmään 4 palveluntarjoajatason välillä niin kauan kuin soveltuva toimintakuntoinen kohde on käytettävissä — taso 1: Tilaus, taso 2: API-avain, taso 3: Edullinen ja taso 4: Ilmainen."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRouten pyyntövirta: IDE tai CLI (Claude Code, Cursor, Cline…) kutsuu yhtä paikallista päätepistettä (http://localhost:20128/v1); OmniRouten älykäs reititin (RTK + Caveman-pakkaus, 19 reititysstrategiaa, katkaisijat, TLS-salailu, MCP, A2A, suojakaiteet) voi palata 4 palveluntarjoajatason yli, kun kelvollinen ja toimiva kohde on edelleen saatavilla — Taso 1 Tilaus, Taso 2 API-avain, Taso 3 Halpa ja Taso 4 Ilmainen."/>
 
 </div>
 
@@ -492,9 +492,9 @@ Kaikki **19** strategiaa — yhdistele vapaasti yhdistelmän eri vaiheissa:
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Mikä erottaa OmniRouten muista — tiettyyn ajankohtaan perustuva ominaisuusvertailu 9routeriin, OpenRouteriin, CLIProxyAPIin ja LiteLLM:ään 13 ominaisuuden osalta. OmniRoute: 359 palveluntarjoajaa, yli 150 sisäänrakennettua ilmaistasoa, 19 reititysstrategiaa, 12 moottorin token-pakkaus, sisäänrakennettu MCP-palvelin 110 työkalulla, A2A-agenttiprotokolla, pysyvä muisti, suojaukset, pilviagentit, TLS-sormenjäljen häivytys, Desktop/Termux/PWA ja käyttöliittymä 42 kielellä. OmniRoute on MIT-lisensoitu ja sitä voi ylläpitää itse. Kilpailijoiden ominaisuudet ja määrät voivat muuttua; katso linkitetty menetelmäkuvaus."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Mikä erottaa OmniRouten muista — ajankohtainen ominaisuuskuva vs. 9router, OpenRouter, CLIProxyAPI ja LiteLLM 13 ominaisuuden osalta. OmniRoute: 359 palveluntarjoajaa, yli 150 sisäänrakennettua ilmaista tasoa, 19 reititysstrategiaa, 12-moottorinen token-pakkaus, sisäänrakennettu MCP-palvelin 110 työkalulla, A2A-agenttiprotokolla, pysyvä muisti, suojakaiteet, pilviagentit, TLS-sormenjälkien piilotus, Desktop/Termux/PWA ja 42 i18n-käyttöliittymäkieltä. OmniRoute on MIT-lisensoitu ja itsehostattava. Kilpailijoiden ominaisuudet ja määrät voivat muuttua; katso linkitetty metodologia."/>
 
-<sub>📊 Täydellinen menetelmäkuvaus ja ominaisuuskohtaiset tiedot verrattuna 9routeriin, OpenRouteriin, CLIProxyAPIin ja LiteLLM:ään → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Täydellinen metodologia &amp; ominaisuuskohtaiset yksityiskohdat vs. 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [\`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md\`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 

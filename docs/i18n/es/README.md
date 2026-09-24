@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="Panel de OmniRoute" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="Panel de control de OmniRoute" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — La puerta de enlace gratuita para IA
+# 🚀 OmniRoute — La Pasarela de IA Gratuita
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Nunca dejes de programar. Todas las herramientas de IA → 359 proveedores — más de 150 gratuitos — a través de un único endpoint. Claude Code, Codex, Cursor, Cline, Copilot y Antigravity con Claude / GPT / Gemini GRATIS y conmutación por error automática. La compresión combinada de RTK + Caveman ahorra entre un 15 y un 95 % de tokens (~89 % de media): nunca alcanzarás los límites. 359 proveedores de IA · más de 150 niveles gratuitos · ~1,62 mil millones de tokens gratuitos al mes · 19 estrategias de enrutamiento · 0 $ para empezar."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Nunca dejes de programar. Cada herramienta de IA → 359 proveedores — más de 150 gratuitos — a través de un único endpoint. Claude Code, Codex, Cursor, Cline, Copilot y Antigravity en Claude / GPT / Gemini GRATUITOS con auto-retroceso. La compresión apilada RTK + Caveman ahorra del 15 al 95% de los tokens (promedio del ~89%) — nunca alcanza los límites. 359 proveedores de IA · más de 150 niveles gratuitos · ~1.62B tokens gratuitos/mes · 19 estrategias de enrutamiento · $0 para empezar."/>
 
 </div>
 
@@ -214,32 +214,32 @@
 
 <div align="center">
 
-## 🆓 Funciona desde el momento en que lo instalas — sin claves ni configuración
+## 🆓 Funciona al instante de instalarlo — sin claves, sin configuración
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Funciona desde el momento en que lo instalas — configuración cero. Tres pasos: 1. Instálalo — npm i -g omniroute, el servidor se inicia en localhost:20128. 2. Apunta tu herramienta a http://localhost:20128/v1 — cualquier herramienta compatible con OpenAI (Claude Code, Cursor, Cline). 3. Responde — llama al modelo auto para obtener una respuesta instantánea, sin clave de API, registro ni configuración. El proveedor sin claves OpenCode Free viene preconfigurado en la combinación auto, por lo que una instalación nueva responde de inmediato."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Funciona al instante de instalarlo — cero configuración. Tres pasos: 1. Instalar — npm i -g omniroute, el servidor arranca en localhost:20128. 2. Apunte su herramienta a http://localhost:20128/v1 — cualquier herramienta compatible con OpenAI (Claude Code, Cursor, Cline). 3. Responde — llame al modelo auto para una respuesta instantánea, sin clave API, sin registro, sin configuración. El proveedor sin clave OpenCode Free viene preconfigurado en la combinación auto, por lo que una instalación nueva responde de inmediato."/>
 
 ```bash
-# Instalación nueva, sin credenciales — `auto` ya funciona:
+# Instalación nueva, cero credenciales — `auto` ya funciona:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -d '{"model":"auto","messages":[{"role":"user","content":"¡Hola!"}]}'
+  -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>¿Prefieres un backend gratuito específico? Llama directamente a `oc/…` (OpenCode Free). Después, pasa a `auto` y deja que OmniRoute elija.</sub>
+<sub>¿Prefiere un backend gratuito específico? Llame a `oc/…` (OpenCode Free) directamente. Luego, pase a `auto` y deje que OmniRoute elija.</sub>
 
-<sub>📦 Scripts de inicio rápido listos para copiar y pegar para **Python, Node.js, PHP y cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Scripts de inicio rápido para copiar y pegar para **Python, Node.js, PHP y cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 La promesa
+# 💥 La Promesa
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="La promesa — Un endpoint y 359 proveedores. La conmutación por error automática mantiene el enrutamiento mientras haya otro destino operativo disponible. Seis pilares: conmutación por error resiliente entre 359 proveedores · hasta un 95 % de ahorro en tokens para cargas de trabajo aptas · inicio por $0 con más de 150 niveles gratuitos y 54 proveedores gratuitos para siempre, recurrentes o sin claves · 36 integraciones con CLI/agentes mediante una sola configuración · compatibilidad con las API de OpenAI, Claude, Gemini y Responses en /v1 · controles de producción que incluyen disyuntores, sigilo TLS, 110 herramientas MCP, A2A, memoria, mecanismos de protección, evaluaciones y más de 39 000 declaraciones de pruebas estáticas en más de 5 100 archivos de pruebas registrados."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="La Promesa — Un endpoint y 359 proveedores. La reserva automática mantiene el enrutamiento mientras haya otro objetivo saludable disponible. Seis pilares: reserva resiliente en 359 proveedores · hasta un 95% de ahorro de tokens en cargas de trabajo elegibles · $0 para empezar con más de 150 niveles gratuitos y 54 proveedores recurrentes/sin clave gratuitos para siempre · 36 integraciones CLI/agente a través de una única configuración · compatibilidad con OpenAI, Claude, Gemini y la API de Respuestas en /v1 · controles de producción que incluyen disyuntores, sigilo TLS, herramientas MCP 110, A2A, memoria, barreras de seguridad, evaluaciones y más de 39,000 declaraciones de prueba estáticas en más de 5,100 archivos de prueba rastreados."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Por qué OmniRoute — deja de lidiar con 10 paneles, claves de API inactivas y facturas inesperadas. Diez problemas cotidianos y sus soluciones: cuota que caduca sin usarse → maximiza las suscripciones; límites de velocidad en plena programación → conmutación por error automática de 4 niveles (Suscripción → API → Económico → Gratuito); salidas de herramientas que consumen tokens → compresión RTK + Caveman (15–95 %); API costosas → enrutamiento optimizado por costes; cada herramienta requiere su propia configuración → un endpoint, un panel; IA bloqueada → proxy de 3 niveles + sigilo TLS; claves inactivas → resiliencia de 3 capas (disyuntores, tiempo de espera de claves, bloqueo de modelos); un equipo compartiendo una suscripción → grupos de claves con cuotas de reparto equitativo; prompts que pasan por la nube de otra persona → enfoque local primero con claves cifradas mediante AES-256-GCM; ninguna visibilidad del gasto → análisis en tiempo real (uso, cuota, ahorro, latencia p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Por qué OmniRoute — deje de hacer malabares con 10 paneles, claves API muertas y facturas sorpresa. Diez problemas diarios vs soluciones: cuota que expira sin usar → maximizar suscripciones; límites de tasa a mitad de la codificación → reserva automática de 4 niveles (Suscripción → API → Barato → Gratuito); salidas de herramientas que queman tokens → compresión RTK + Caveman (15–95%); APIs caras → enrutamiento optimizado por costos; cada herramienta su propia configuración → un endpoint, un panel; IA bloqueada → proxy de 3 niveles + sigilo TLS; claves muertas → resiliencia de 3 capas (disyuntores, enfriamiento de claves, bloqueo de modelos); equipo compartiendo una suscripción → grupos de claves con cuotas de uso justo; prompts a través de la nube de alguien → primero local con claves cifradas AES-256-GCM; sin visibilidad de gastos → análisis en vivo (uso, cuota, ahorros, latencia p95)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Flujo de solicitudes de OmniRoute: tu IDE o CLI (Claude Code, Cursor, Cline…) llama a un único endpoint local (http://localhost:20128/v1); el enrutador inteligente de OmniRoute (compresión RTK + Caveman, 19 estrategias de enrutamiento, disyuntores, sigilo TLS, MCP, A2A, mecanismos de protección) puede realizar una conmutación por error entre 4 niveles de proveedores mientras quede un destino apto y operativo — Nivel 1 Suscripción, Nivel 2 Clave de API, Nivel 3 Económico y Nivel 4 Gratuito."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Flujo de solicitud de OmniRoute: su IDE o CLI (Claude Code, Cursor, Cline…) llama a un endpoint local (http://localhost:20128/v1); el enrutador inteligente de OmniRoute (compresión RTK + Caveman, 19 estrategias de enrutamiento, disyuntores, sigilo TLS, MCP, A2A, barreras de seguridad) puede recurrir a 4 niveles de proveedores mientras quede un objetivo saludable elegible — Nivel 1 Suscripción, Nivel 2 Clave API, Nivel 3 Barato y Nivel 4 Gratuito."/>
 
 </div>
 
@@ -488,13 +488,13 @@ Las **19** estrategias — combínalas como quieras en cada paso del combo:
 
 <div align="center">
 
-## 🏆 Qué distingue a OmniRoute
+## 🏆 Qué diferencia a OmniRoute
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Qué distingue a OmniRoute: una comparativa puntual de funcionalidades frente a 9router, OpenRouter, CLIProxyAPI y LiteLLM en 13 capacidades. OmniRoute: 359 proveedores, más de 150 niveles gratuitos integrados, 19 estrategias de enrutamiento, compresión de tokens con 12 motores, servidor MCP integrado con 110 herramientas, protocolo de agentes A2A, memoria persistente, medidas de protección, agentes en la nube, ocultación de huella digital TLS, Desktop/Termux/PWA y 42 configuraciones regionales de interfaz i18n. OmniRoute tiene licencia MIT y puede alojarse de forma autónoma. Las capacidades y cifras de los competidores pueden cambiar; consulta la metodología enlazada."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Qué diferencia a OmniRoute: una instantánea de características desactualizada frente a 9router, OpenRouter, CLIProxyAPI y LiteLLM en 13 capacidades. OmniRoute: 359 proveedores, más de 150 niveles gratuitos incorporados, 19 estrategias de enrutamiento, compresión de tokens de 12 motores, servidor MCP incorporado con 110 herramientas, protocolo de agente A2A, memoria persistente, barandillas, agentes en la nube, sigilo de huellas dactilares TLS, Desktop/Termux/PWA y 42 configuraciones regionales de interfaz de usuario i18n. OmniRoute tiene licencia MIT y es autoalojable. Las capacidades y recuentos de los competidores pueden cambiar; consulte la metodología vinculada."/>
 
-<sub>📊 Metodología completa y detalles por funcionalidad frente a 9router, OpenRouter, CLIProxyAPI y LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Metodología completa y detalles por característica frente a 9router, OpenRouter, CLIProxyAPI y LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 

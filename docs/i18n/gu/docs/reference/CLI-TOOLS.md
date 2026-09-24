@@ -43,34 +43,28 @@ ACP Agents (વિપરીત ઉત્પન્ન પ્રવાહ):
 
 ---
 
-## `setup-*` સાથે આપોઆપ કન્ફિગર કરો
+## `setup-*` સાથે સ્વતઃ-રૂપરેખાંકિત કરો
 
-તમે દરેક ટૂલની કન્ફિગરેશન હાથથી લખવાની જરૂર નથી. OmniRoute એક `setup-*`
-કમાન્ડ પ્રત્યેક સમર્થિત CLI માટે મોકલે છે જે એક ચાલતી
-OmniRoute (સ્થાનિક અથવા દૂરસ્થ)માંથી **લાઇવ** મોડલ કેટલોગ વાંચે છે અને તમારા મશીન પર ટૂલની પોતાની કન્ફિગરેશન લખે છે:
+તમારે દરેક ટૂલનું કન્ફિગ હાથથી લખવાની જરૂર નથી. OmniRoute સપોર્ટેડ CLI દીઠ `setup-*` કમાન્ડ પ્રદાન કરે છે જે ચાલતા OmniRoute (સ્થાનિક અથવા દૂરસ્થ) માંથી **લાઇવ** મોડેલ કેટલોગ વાંચે છે અને તમારા મશીન પર ટૂલનું પોતાનું કન્ફિગ લખે છે:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-દરેક `--remote <url> --api-key <key>` સ્વીકારે છે (દૂરસ્થ OmniRoute સામે સ્થાનિક ટૂલને કન્ફિગર કરો), `--dry-run` (લખ્યા વિના પૂર્વદર્શન), અને `--port`. મોડલ આપોઆપ શોધી ન શકતા ટૂલ્સ (Cline, Kilo, Roo, Goose, Aider, Qwen) `--model <id>` લે છે (અને `--yes` નોન-ઇન્ટરેક્ટિવ ચલાવવા માટે). યોગ્ય એન્વાયર્નમેન્ટ ઇન્જેક્ટેડ અને બિલકુલ કન્ફિગરેશન લખ્યા વિના CLI શરૂ કરવા માટે, સામાન્ય `omniroute run <target>` લોન્ચરનો ઉપયોગ કરો (claude, codex, aider, goose, opencode, qwen, gemini — ટાર્ગેટ અને અલિયાસ `bin/cli/cli-manifest.mjs`માંથી આવે છે); લેગસી પ્રત્યેક ટૂલ લોન્ચર્સ `omniroute launch` (Claude Code) અને `omniroute launch-codex` (Codex) ઉપલબ્ધ રહે છે. Gemini CLI માત્ર લોન્ચ-માત્ર છે: તે `omniroute run` ટાર્ગેટ છે પરંતુ તેમાં `setup-*`/`configure` રેસીપી નથી.
+દરેક `--remote <url> --api-key <key>` (દૂરસ્થ OmniRoute સામે સ્થાનિક ટૂલને ગોઠવો), `--dry-run` (લખ્યા વિના પૂર્વાવલોકન), અને `--port` સ્વીકારે છે. મોડેલ સ્વતઃ-શોધ વિનાના ટૂલ્સ (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (અને બિન-ઇન્ટરેક્ટિવ રન માટે `--yes`) લે છે. `setup-5dive` એ એકમાત્ર રેસીપી છે જે `$HOME` હેઠળ લખતી નથી: તે ફ્લીટ હોસ્ટ પર રૂટ-માલિકીની ઓથ પ્રોફાઇલ લખીને 5dive એજન્ટ ફ્લીટને ગોઠવે છે, તેથી તે `sudo` દ્વારા ફરીથી એક્ઝિક્યુટ થાય છે અને તેનો પોતાનો કોઈ રિમોટ મોડ નથી. યોગ્ય env ઇન્જેક્ટ કરીને અને કોઈ કન્ફિગ લખ્યા વિના CLI લોન્ચ કરવા માટે, સામાન્ય `omniroute run <target>` લોન્ચરનો ઉપયોગ કરો (claude, codex, aider, goose, opencode, qwen, gemini — લક્ષ્યો અને ઉપનામો `bin/cli/cli-manifest.mjs` માંથી આવે છે); લેગસી પ્રતિ-ટૂલ લોન્ચર્સ `omniroute launch` (Claude Code) અને `omniroute launch-codex` (Codex) ઉપલબ્ધ રહે છે. Gemini CLI ફક્ત લોન્ચ-માત્ર છે: તે `omniroute run` લક્ષ્ય છે પરંતુ તેની પાસે કોઈ `setup-*`/`configure` રેસીપી નથી.
 
-> **પૂર્ણ સંદર્ભ:** માસ્ટર ટેબલ — દરેક કમાન્ડ શું લખે છે, દરેક ફ્લેગ,
-> સ્થાનિક વિરુદ્ધ દૂરસ્થ, અને કયા ટૂલ્સ `/v1` સોફિક્સ માંગે છે — રહે છે
+> **સંપૂર્ણ સંદર્ભ:** માસ્ટર ટેબલ — દરેક કમાન્ડ શું લખે છે, દરેક ફ્લેગ, સ્થાનિક વિરુદ્ધ દૂરસ્થ, અને કયા ટૂલ્સને `/v1` સફિક્સ જોઈએ છે — અહીં છે
 > **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
 
-### કન્ટેનરમાં આ ચલાવવું
+### આને કન્ટેનરની અંદર ચલાવવું
 
-OmniRoute કન્ટેનરમાં અમલમાં લાવવામાં આવેલ `setup-*` કમાન્ડ કન્ટેનરના પોતાના હોમમાં લખે છે, જે કોઈ હોસ્ટ CLI વાંચતું નથી અને જે કન્ટેનર સાથે ગુમ થઈ જાય છે. OmniRoute તે શોધે છે અને લખવા બદલે સૂચનાઓ સાથે `2` ની બહાર નીકળે છે. આગળ વધવા માટે બે સમર્થિત માર્ગો — હોસ્ટ પર CLI ઇન્સ્ટોલ કરો અને `omniroute connect` કન્ટેનર સાથે, અથવા કન્ફિગરેશન ડિરેક્ટરીઓને બાઇન્ડ-માઉન્ટ કરો અને `CLI_CONFIG_HOME` સેટ કરો (કમ્પોઝ `હોસ્ટ` પ્રોફાઇલ). દરેક `setup-*` કમાન્ડ, ઉપરાંત `omniroute configure` અને `omniroute config set`, કન્ટેનરના પોતાના CLIs ને કન્ફિગર કરતી વખતે `--allow-container-write` સ્વીકારે છે; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` સર્વર માટે તે જ કરે છે. જુઓ
-[Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+OmniRoute કન્ટેનરની અંદર ચલાવવામાં આવેલો `setup-*` કમાન્ડ કન્ટેનરના પોતાના હોમમાં લખે છે, જેને કોઈ હોસ્ટ CLI વાંચતું નથી અને જે કન્ટેનર સાથે અદૃશ્ય થઈ જાય છે. OmniRoute તે શોધી કાઢે છે અને લખવાને બદલે સૂચનાઓ સાથે `2` થી બહાર નીકળી જાય છે. આગળ વધવાના બે સમર્થિત રસ્તાઓ — હોસ્ટ પર CLI ઇન્સ્ટોલ કરો અને કન્ટેનર સાથે `omniroute connect` કરો, અથવા કન્ફિગ ડિરેક્ટરીઓને બાઈન્ડ-માઉન્ટ કરો અને `CLI_CONFIG_HOME` સેટ કરો (કમ્પોઝ `host` પ્રોફાઇલ). દરેક `setup-*` કમાન્ડ, ઉપરાંત `omniroute configure` અને `omniroute config set`, `--allow-container-write` સ્વીકારે છે જ્યારે કન્ટેનરના પોતાના CLIs ને ગોઠવવાનો તમારો ખરેખર અર્થ હોય; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` સર્વર માટે પણ તે જ કરે છે. [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) જુઓ.
 
-ડેશબોર્ડનું **લાગુ કરો એન્ડપોઈન્ટ** (`POST /api/cli-tools/apply`) સમાન રક્ષણ લાગુ કરે છે: કન્ટેનરમાં, લખાણ જેનો લક્ષ્ય હોસ્ટમાંથી બાઇન્ડ-માઉન્ટ નથી તે **`422`** સાથે જવાબ આપે છે `containerEphemeralTarget: true`, સુરક્ષિત ભૂલ
-ટેક્સ્ટ અને — હોસ્ટ રેસીપી ધરાવતા ટૂલ્સ માટે (claude, codex, opencode, cline,
-kilo, continue) — એક `hostSetupCommand` (ઉદાહરણ તરીકે `omniroute setup-opencode`) જે હોસ્ટ પર ચલાવવા માટે; કશું લખાયું નથી. `dryRun: true` કન્ટેનર મોડમાં કાર્યરત રહે છે અને જનરેટ કરેલ સામગ્રી + લક્ષ્ય પાથ પાછું આપે છે, જેથી તમે ડેશબોર્ડમાંથી પૂર્વદર્શન કરી શકો અને હોસ્ટ પર લાગુ કરી શકો. આ વર્તન ઇરાદાપૂર્વક છે અને
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` દ્વારા રેગ્રેશન-ગાર્ડેડ છે — ક્યારેય "ફિક્સ" 422 ને રક્ષણ દૂર કરીને.
+ડેશબોર્ડનો **એપ્લાય એન્ડપોઇન્ટ** (`POST /api/cli-tools/apply`) સમાન ગાર્ડ લાગુ કરે છે: કન્ટેનરમાં, જેનું લક્ષ્ય હોસ્ટમાંથી બાઈન્ડ-માઉન્ટ થયેલું નથી તે લખવાથી `containerEphemeralTarget: true` સાથે **`422`** જવાબ મળે છે, સલામત ભૂલ ટેક્સ્ટ અને — હોસ્ટ રેસીપીવાળા ટૂલ્સ (claude, codex, opencode, cline, kilo, continue) માટે — હોસ્ટ પર ચલાવવા માટે `hostSetupCommand` (દા.ત. `omniroute setup-opencode`); કંઈપણ લખવામાં આવતું નથી. `dryRun: true` કન્ટેનર મોડમાં કામ કરવાનું ચાલુ રાખે છે અને ડિસ્કને સ્પર્શ કર્યા વિના સુધારેલું પૂર્વાવલોકન + લક્ષ્ય પાથ પરત કરે છે. પૂર્વાવલોકન સામગ્રી કૉપિ કરવા અથવા આયાત કરવા માટે ક્રેડેન્શિયલ-ધારક કન્ફિગરેશન નથી. હોસ્ટ પર મૂળ ટૂલ/બેઝ URL/API કી/મોડેલ ઇનપુટ્સ સાથે લાગુ કરો, અથવા સૂચવેલ હોસ્ટ-સાઇડ સેટઅપ કમાન્ડનો ઉપયોગ કરો. પૂર્વાવલોકન હેડર અને વિનંતી કરાર માટે [CLI configuration security](../security/CLI-CONFIGURATION.md) જુઓ. આ વર્તન ઇરાદાપૂર્વકનું છે અને `tests/unit/api/cli-tools/apply-container-guard.test.ts` દ્વારા રિગ્રેશન-ગાર્ડેડ છે — ગાર્ડને દૂર કરીને ક્યારેય 422 ને "ઠીક" કરશો નહીં.
 
 ---
 

@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute İdarəetmə Paneli" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute İdarə Paneli" width="820"/>
 
 <br/>
 <br/>
 
 # 🚀 OmniRoute — Pulsuz Süni İntellekt Şlüzü
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Kod yazmağı heç vaxt dayandırmayın. Bütün süni intellekt alətləri → 359 provayder — 150+-ı pulsuz — vahid son nöqtə vasitəsilə. Claude Code, Codex, Cursor, Cline, Copilot və Antigravity-ni avtomatik ehtiyat keçidlə PULSUZ Claude / GPT / Gemini-yə qoşun. RTK + Caveman birləşdirilmiş sıxılması tokenlərə 15–95% (~89% orta hesabla) qənaət edir — heç vaxt limitlərə çatmayın. 359 süni intellekt provayderi · 150+ pulsuz tarif · ayda ~1.62 mlrd pulsuz token · 19 yönləndirmə strategiyası · başlamaq üçün $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Heç vaxt kodlaşdırmanı dayandırma. Hər bir süni intellekt aləti → 359 provayder — 150+ pulsuz — bir son nöqtə vasitəsilə. Claude Code, Codex, Cursor, Cline, Copilot və Antigravity-ni avtomatik geri dönüşlə PULSUZ Claude / GPT / Gemini-yə çevirin. RTK + Caveman yığılmış sıxılma 15–95% tokenə qənaət edir (~89% orta) — heç vaxt limitlərə çatmayın. 359 süni intellekt provayderi · 150+ pulsuz səviyyə · ~1.62B pulsuz token/ay · 19 marşrutlaşdırma strategiyası · Başlamaq üçün $0."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 Quraşdırdığınız andan işləyir — açar və konfiqurasiya tələb olunmur
+## 🆓 Quraşdırdığınız anda işləyir — açarlar, konfiqurasiya yoxdur
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Quraşdırdığınız andan işləyir — sıfır konfiqurasiya. Üç addım: 1. Quraşdırın — npm i -g omniroute, server localhost:20128 ünvanında işə düşür. 2. Alətinizi http://localhost:20128/v1 ünvanına yönəldin — OpenAI ilə uyğun istənilən alət (Claude Code, Cursor, Cline). 3. Cavab verir — API açarı, qeydiyyat və konfiqurasiya olmadan ani cavab almaq üçün auto modelini çağırın. Açarsız OpenCode Free provayderi əvvəlcədən auto kombinasiyasına qoşulub, buna görə yeni quraşdırma dərhal cavab verir."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Quraşdırdığınız anda işləyir — sıfır konfiqurasiya. Üç addım: 1. Quraşdırın — npm i -g omniroute, server localhost:20128-də işə düşür. 2. Alətinizi http://localhost:20128/v1-ə yönləndirin — istənilən OpenAI-uyğun alət (Claude Code, Cursor, Cline). 3. Cavab verir — ani cavab üçün model auto-nu çağırın, API açarı, qeydiyyat, konfiqurasiya yoxdur. Açarız təminatçı OpenCode Free auto kombinasiyasına əvvəlcədən qoşulub, beləliklə, yeni quraşdırma qutudan çıxan kimi cavab verir."/>
 
 ```bash
-# Yeni quraşdırma, heç bir giriş məlumatı yoxdur — `auto` artıq işləyir:
+# Yeni quraşdırma, sıfır etimadnamə — `auto` artıq işləyir:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Konkret pulsuz arxa sistemə üstünlük verirsiniz? Birbaşa `oc/…` (OpenCode Free) çağırın. Sonra `auto`-ya keçin və seçimi OmniRoute-a həvalə edin.</sub>
+<sub>Xüsusi pulsuz arxa tərəfə üstünlük verirsiniz? Birbaşa `oc/…` (OpenCode Free) çağırın. Sonra `auto`-ya keçin və OmniRoute-un seçməsinə icazə verin.</sub>
 
-<sub>📦 **Python, Node.js, PHP və cURL** üçün kopyalayıb yapışdırmağa hazır sürətli başlanğıc skriptləri → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 **Python, Node.js, PHP və cURL** üçün sürətli başlanğıc skriptlərini kopyalayıb yapışdırın → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Vəd — bir son nöqtə və 359 provayder. Başqa sağlam hədəf mövcud olduğu müddətdə avtomatik ehtiyat keçid marşrutlaşdırmanı davam etdirir. Altı sütun: 359 provayder arasında dayanıqlı ehtiyat keçid · uyğun iş yüklərində 95%-dək token qənaəti · 150+ pulsuz tarif və təkrarlanan/açarsız, həmişəlik pulsuz 54 provayder ilə $0-dan başlayın · bir konfiqurasiya vasitəsilə 36 CLI/agent inteqrasiyası · /v1 ünvanında OpenAI, Claude, Gemini və Responses API uyğunluğu · avtomatik qoruyucular, TLS gizliliyi, MCP 110 alətləri, A2A, yaddaş, qoruyucu məhdudiyyətlər, qiymətləndirmələr və izlənilən 5,100+ test faylı üzrə 39,000+ statik test bəyanatı daxil olmaqla istehsal səviyyəli idarəetmə imkanları."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Vəd — Bir son nöqtə və 359 təminatçı. Avtomatik ehtiyat nüsxəsi başqa sağlam hədəf mövcud olduqda marşrutlaşdırmanı davam etdirir. Altı sütun: 359 təminatçı arasında dayanıqlı ehtiyat nüsxəsi · uyğun iş yüklərində 95%-ə qədər token qənaəti · 150+ pulsuz səviyyə və 54 təkrarlanan/açarsız əbədi pulsuz təminatçı ilə başlamaq üçün 0$ · bir konfiqurasiya vasitəsilə 36 CLI/agent inteqrasiyası · /v1-də OpenAI, Claude, Gemini və Responses API uyğunluğu · dövrə kəsiciləri, TLS gizliliyi, MCP 110 alətləri, A2A, yaddaş, qoruyucu çərçivələr, qiymətləndirmələr və 5,100+ izlənilən test faylında 39,000+ statik test bəyannaməsi daxil olmaqla istehsal nəzarətləri."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Niyə OmniRoute — 10 idarə paneli, işləməyən API açarları və gözlənilməz hesablarla məşğul olmağı dayandırın. On gündəlik problem və həlli: istifadə edilmədən müddəti bitən kvota → abunəliklərdən maksimum yararlanın; kodlaşdırma zamanı sürət limitləri → 4 səviyyəli avtomatik ehtiyat keçid (Abunəlik → API → Ucuz → Pulsuz); tokenləri sərf edən alət çıxışları → RTK + Caveman sıxışdırması (15–95%); bahalı API-lər → xərc baxımından optimallaşdırılmış marşrutlaşdırma; hər alət üçün ayrıca quraşdırma → bir son nöqtə, bir idarə paneli; AI bloklanıb → 3 səviyyəli proksi + TLS gizliliyi; işləməyən açarlar → 3 qat dayanıqlılıq (avtomatik qoruyucular, açarların gözləmə müddəti, modelin bloklanması); bir abunəliyi paylaşan komanda → ədalətli bölgü kvotaları olan açar hovuzları; sorğular başqasının buludundan keçir → AES-256-GCM ilə şifrələnmiş açarlar və lokal yanaşma; xərclərin görünməməsi → canlı analitika (istifadə, kvota, qənaət, p95 gecikməsi)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Niyə OmniRoute — 10 idarəetmə panelini, ölü API açarlarını və sürpriz hesabları idarə etməyi dayandırın. On gündəlik ağrı vs düzəlişlər: istifadə olunmamış kvota bitir → abunəlikləri maksimuma çatdırın; kodlaşdırma zamanı sürət limitləri → 4 səviyyəli avtomatik ehtiyat nüsxəsi (Abunəlik → API → Ucuz → Pulsuz); alət çıxışları tokenləri yandırır → RTK + Caveman sıxılma (15–95%); bahalı API-lər → xərc optimallaşdırılmış marşrutlaşdırma; hər alətin öz qurulumu → bir son nöqtə, bir idarəetmə paneli; AI bloklandı → 3 səviyyəli proksi + TLS gizliliyi; ölü açarlar → 3 səviyyəli dayanıqlıq (dövrə kəsiciləri, açar soyutma, model kilidləmə); komanda bir abunəliyi paylaşır → ədalətli pay kvotaları ilə açar hovuzları; kiminsə buludu vasitəsilə sorğular → AES-256-GCM şifrələnmiş açarlarla yerli-əvvəl; xərc görünürlüyü yoxdur → canlı analitika (istifadə, kvota, qənaət, p95 gecikmə)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute sorğu axını: IDE və ya CLI-niz (Claude Code, Cursor, Cline…) vahid lokal son nöqtəni (http://localhost:20128/v1) çağırır; OmniRoute Smart Router (RTK + Caveman sıxışdırması, 19 marşrutlaşdırma strategiyası, avtomatik qoruyucular, TLS gizliliyi, MCP, A2A, qoruyucu məhdudiyyətlər) uyğun sağlam hədəf qaldığı müddətdə 4 provayder səviyyəsi arasında ehtiyat keçid edə bilər — Səviyyə 1 Abunəlik, Səviyyə 2 API Açarı, Səviyyə 3 Ucuz və Səviyyə 4 Pulsuz."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute sorğu axını: sizin IDE və ya CLI (Claude Code, Cursor, Cline…) bir yerli son nöqtəni (http://localhost:20128/v1) çağırır; OmniRoute Smart Router (RTK + Caveman sıxılma, 19 marşrutlaşdırma strategiyası, dövrə kəsiciləri, TLS gizliliyi, MCP, A2A, qoruyucu çərçivələr) uyğun sağlam hədəf qaldıqda 4 təminatçı səviyyəsi arasında ehtiyat nüsxəsi yarada bilər — Səviyyə 1 Abunəlik, Səviyyə 2 API Açar, Səviyyə 3 Ucuz və Səviyyə 4 Pulsuz."/>
 
 </div>
 
@@ -488,13 +488,13 @@ Bütün **19** strategiya — hər kombo addımında qarışdırın və uyğunla
 
 <div align="center">
 
-## 🏆 OmniRoute-u fərqləndirən nədir
+## 🏆 OmniRoute-u Fərqləndirən Nədir
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute-u fərqləndirən cəhətlər — 13 imkan üzrə 9router, OpenRouter, CLIProxyAPI və LiteLLM ilə müqayisədə müəyyən tarixə aid funksiya icmalı. OmniRoute: 359 provayder, daxili 150+ pulsuz tarif, 19 marşrutlaşdırma strategiyası, 12 mühərrikli token sıxışdırması, 110 alətə malik daxili MCP serveri, A2A agent protokolu, daimi yaddaş, qoruyucu məhdudiyyətlər, bulud agentləri, TLS rəqəmsal izi ilə gizlənmə, Desktop/Termux/PWA və 42 i18n interfeys dili. OmniRoute MIT lisenziyalıdır və öz serverinizdə yerləşdirilə bilər. Rəqiblərin imkanları və göstəriciləri dəyişə bilər; keçiddəki metodologiyaya baxın."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute-u fərqləndirən nədir — 9router, OpenRouter, CLIProxyAPI və LiteLLM ilə 13 imkan üzrə köhnəlmiş xüsusiyyət anlıq görüntüsü. OmniRoute: 359 provayder, 150+ daxili pulsuz səviyyə, 19 marşrutlaşdırma strategiyası, 12 mühərrikli token sıxılması, 110 alətli daxili MCP serveri, A2A agent protokolu, davamlı yaddaş, qoruyucular, bulud agentləri, TLS barmaq izi gizliliyi, Desktop/Termux/PWA və 42 i18n UI lokalları. OmniRoute MIT lisenziyalıdır və öz-özünə hostlana bilər. Rəqib imkanları və sayları dəyişə bilər; əlaqəli metodologiyaya baxın."/>
 
-<sub>📊 Tam metodologiya və hər bir funksiya üzrə 9router, OpenRouter, CLIProxyAPI və LiteLLM ilə ətraflı müqayisə → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Tam metodologiya və hər xüsusiyyət üzrə detallar 9router, OpenRouter, CLIProxyAPI və LiteLLM ilə müqayisədə → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
