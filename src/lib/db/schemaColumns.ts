@@ -260,7 +260,7 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE call_logs ADD COLUMN session_tag TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.session_tag column");
     }
-    // added by 187_call_logs_reasoning_encrypted; back-filled here for
+    // added by 188_call_logs_reasoning_encrypted; back-filled here for
     // lineages that skipped the migration file — the call-log write path
     // references these columns on every insert.
     if (!columnNames.has("reasoning_duration_ms")) {
@@ -326,6 +326,14 @@ export function ensureProxyLogsColumns(db: SqliteDatabase) {
     if (!columnNames.has("correlation_id")) {
       db.exec("ALTER TABLE proxy_logs ADD COLUMN correlation_id TEXT");
       console.log("[DB] Added proxy_logs.correlation_id column");
+    }
+    if (!columnNames.has("attempt_number")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN attempt_number INTEGER");
+      console.log("[DB] Added proxy_logs.attempt_number column");
+    }
+    if (!columnNames.has("attempt_issue")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN attempt_issue TEXT");
+      console.log("[DB] Added proxy_logs.attempt_issue column");
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

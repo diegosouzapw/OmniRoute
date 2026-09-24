@@ -222,11 +222,6 @@ function calculateTargetContextAffinity(
   return 0.1;
 }
 
-function getBootstrapLatencyMs(modelId: string): number {
-  const normalized = String(modelId || "").toLowerCase();
-  return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
-}
-
 export function poolMedianP95Ms(
   stats: Record<string, { p95LatencyMs?: unknown }>
 ): number | undefined {
