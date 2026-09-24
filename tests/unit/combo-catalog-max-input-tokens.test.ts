@@ -17,8 +17,6 @@ process.env.CATALOG_BUILD_TIMEOUT_MS = "120000";
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
-const contextOverridesDb = await import("../../src/lib/db/modelContextOverrides.ts");
-const capabilities = await import("../../src/lib/modelCapabilities.ts");
 const catalog = await import("../../src/app/api/v1/models/catalog.ts");
 const {
   buildAliasMaps,
@@ -134,58 +132,5 @@ describe("Combo catalog max_input_tokens and provider prefix stripping", () => {
     assert.ok(combo);
     assert.equal(combo?.context_length, 500000);
     assert.equal(combo?.max_input_tokens, 500000);
-  });
-
-  it("retains 1M context and input capacity for claude-opus-5 despite auto:discovery overrides", async () => {
-    // Simulate flawed discovery pinning 128000 (output limit conflation)
-    contextOverridesDb.setModelContextOverride("claude", "claude-opus-5", 128000, "auto:discovery");
-
-    const resolved = capabilities.getResolvedModelCapabilities({
-      provider: "claude",
-      model: "claude-opus-5",
-    });
-    assert.equal(resolved.contextWindow, 1000000, "contextWindow must remain 1M");
-    assert.equal(resolved.maxInputTokens, 1000000, "maxInputTokens must remain 1M");
-
-    const gateCap = capabilities.resolveInputTokenCapForGate(
-      { provider: "claude", model: "claude-opus-5" },
-      { isCombo: true }
-    );
-    assert.equal(gateCap, 1000000, "combo gate cap must remain 1M");
-
-    await providersDb.createProviderConnection({
-      provider: "claude",
-      authType: "oauth",
-      name: "claude-test-conn",
-      isActive: true,
-      testStatus: "active",
-      providerSpecificData: {},
-    });
-
-    await combosDb.createCombo({
-      name: "claude-opus-5-combo-test",
-      strategy: "priority",
-      context_length: 1000000,
-      models: [
-        {
-          model: "claude/claude-opus-5",
-          providerId: "claude",
-        },
-      ],
-    });
-
-    catalog.__resetCatalogBuilderRunsForTest();
-
-    const response = await catalog.getUnifiedModelsResponse(
-      new Request("http://localhost/api/v1/models")
-    );
-    assert.equal(response.status, 200);
-
-    const body = (await response.json()) as { data: Array<Record<string, unknown>> };
-    const combo = body.data.find((item) => item.id === "claude-opus-5-combo-test");
-
-    assert.ok(combo, "combo should exist in models list");
-    assert.equal(combo?.context_length, 1000000);
-    assert.equal(combo?.max_input_tokens, 1000000, "combo max_input_tokens must be 1M, not 128000");
   });
 });

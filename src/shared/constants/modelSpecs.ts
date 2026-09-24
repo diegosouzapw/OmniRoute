@@ -77,8 +77,8 @@ const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [
   ),
 ];
 
-// Provider discovery/sync sources can under-report GLM-5.2 and Claude IDs as 128K/64K.
-// Keep native/bare Z.AI GLM and Anthropic Claude context authoritative, but do not blindly apply
+// Provider discovery/sync sources can under-report GLM-5.2 IDs as 128K.
+// Keep native/bare Z.AI GLM-5.2 context authoritative, but do not blindly apply
 // it to every provider-wrapped alias: hosted providers can and do cap lower.
 const AUTHORITATIVE_CONTEXT_WINDOW_MODEL_IDS = new Set([
   "glm-5.3-flash",
@@ -93,20 +93,6 @@ const AUTHORITATIVE_CONTEXT_WINDOW_MODEL_IDS = new Set([
   "glm-5.2",
   "glm-5.2-high",
   "glm-5.2-max",
-  "claude-opus-5",
-  "claude-opus-4-8",
-  "claude-opus-4-7",
-  "claude-opus-4-6",
-  "claude-sonnet-5",
-  "claude-sonnet-4-6",
-  "claude-fable-5",
-  "claude-fable-5-1",
-  "claude-opus-4-5",
-  "claude-opus-4-5-20251101",
-  "claude-sonnet-4-5",
-  "claude-sonnet-4-5-20250929",
-  "claude-haiku-4-5",
-  "claude-haiku-4-5-20251001",
 ]);
 const AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS = new Map<string, number>([
   ["cloudflare-ai/@cf/zai-org/glm-5.2", 262144],
@@ -918,10 +904,10 @@ export function getModelSpec(modelId: string): ModelSpec | undefined {
 
 export function getAuthoritativeContextWindow(modelId: string | null | undefined): number | null {
   if (typeof modelId !== "string" || modelId.length === 0) return null;
-  const canonical = findModelSpecIdByExactOrAlias(modelId) ?? modelId;
-  const normalized = canonical.toLowerCase();
-  for (const entry of AUTHORITATIVE_CONTEXT_WINDOW_MODEL_IDS) {
-    if (entry.toLowerCase() === normalized) return MODEL_SPECS[entry]?.contextWindow ?? null;
+  const normalized = modelId.toLowerCase();
+  for (const canonical of AUTHORITATIVE_CONTEXT_WINDOW_MODEL_IDS) {
+    if (canonical.toLowerCase() === normalized)
+      return MODEL_SPECS[canonical]?.contextWindow ?? null;
   }
   return null;
 }

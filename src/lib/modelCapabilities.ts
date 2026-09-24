@@ -12,10 +12,7 @@ import {
 } from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { MODELS_DEV_PROVIDER_MAP } from "@/lib/modelsDevSync/transform";
-import {
-  getModelContextOverride,
-  getModelContextOverrideRecord,
-} from "@/lib/db/modelContextOverrides";
+import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
 import {
   getModelCapabilityOverride,
   getReasoningEffortsOverride,
@@ -623,60 +620,18 @@ function getContextOverride(
     : null;
 }
 
-function getContextOverrideSource(
-  resolved: {
-    provider: string | null;
-    model: string | null;
-    rawModel: string | null;
-  },
-  snapshot?: ModelCapabilityResolutionSnapshot | null
-): "manual" | "auto:discovery" | null {
-  if (snapshot?.contextOverrideSources && resolved.provider && resolved.model) {
-    const src = snapshot.contextOverrideSources.get(resolved.provider)?.get(resolved.model);
-    if (src) return src;
-    if (resolved.rawModel && resolved.rawModel !== resolved.model) {
-      const rawSrc = snapshot.contextOverrideSources.get(resolved.provider)?.get(resolved.rawModel);
-      if (rawSrc) return rawSrc;
-    }
-  }
-  const rec = getModelContextOverrideRecord(resolved.provider, resolved.model);
-  if (rec) return rec.source;
-  if (resolved.rawModel && resolved.rawModel !== resolved.model) {
-    const rawRec = getModelContextOverrideRecord(resolved.provider, resolved.rawModel);
-    if (rawRec) return rawRec.source;
-  }
-  return null;
-}
-
 /**
  * Resolve a persisted context override by canonical id, then by the exact raw
  * alias supplied by the caller. Neither lookup inherits to related models.
  *
  * `snapshot` is the #9147 build-local bulk load; when supplied the on-demand
  * SQLite read is skipped and the preloaded nested map is used instead.
- *
- * An `auto:discovery` override that is lower than an authoritative context window
- * is ignored so that under-reported discovery limits do not falsely restrict combos.
  */
 export function getResolvedModelContextOverride(
   input: CapabilityInput,
   snapshot?: ModelCapabilityResolutionSnapshot | null
 ): number | null {
-  const resolved = resolveCapabilityInput(input);
-  const override = getContextOverride(resolved, snapshot);
-  if (override === null) return null;
-  const authoritative = getAuthoritativeStaticContextWindow(
-    resolved.provider,
-    resolved.model,
-    resolved.rawModel
-  );
-  if (authoritative !== null && override < authoritative) {
-    const source = getContextOverrideSource(resolved, snapshot);
-    if (source === "auto:discovery") {
-      return null;
-    }
-  }
-  return override;
+  return getContextOverride(resolveCapabilityInput(input), snapshot);
 }
 
 function getInputTokenCapabilityOverride(resolved: {
@@ -871,19 +826,11 @@ export function getResolvedModelCapabilities(
   );
   // A persisted context-window override (operator-set or auto-discovered)
   // reflects the real *total* window and wins over every static/synced source.
-  // Exception: an `auto:discovery` override must NOT supersede an authoritative
-  // static/provider context window (Feature 5004 discovery can misread output limits
-  // or under-report). Only an explicit `manual` override can beat authoritative specs.
-  const rawPersistedContextWindow = usePersistedOverrides
+  // `maxInputTokens` still follows its own precedence chain; only when that
+  // chain has no narrower source does it naturally fall back to this window.
+  const persistedContextWindow = usePersistedOverrides
     ? getContextOverride(resolved, snapshot)
     : null;
-  const persistedContextWindow = (() => {
-    if (rawPersistedContextWindow === null) return null;
-    if (authoritativeContextWindow === null) return rawPersistedContextWindow;
-    const source = getContextOverrideSource(resolved, snapshot);
-    if (source === "auto:discovery") return null;
-    return rawPersistedContextWindow;
-  })();
   const contextWindow =
     persistedContextWindow ??
     authoritativeContextWindow ??
@@ -1046,23 +993,9 @@ export function resolveInputTokenCapForGate(
 
   // 2. Combo rescue: an exact persisted context override supersedes the smaller
   //    catalog/client input hint (mirrors contextOverrideGate.evaluateContextLimit).
-  //    An `auto:discovery` override must not cap below an authoritative context window.
   if (isCombo) {
     const contextOverride = getContextOverride(resolved);
-    if (contextOverride !== null) {
-      const authoritative = getAuthoritativeStaticContextWindow(
-        resolved.provider,
-        resolved.model,
-        resolved.rawModel
-      );
-      if (authoritative === null || contextOverride >= authoritative) {
-        return contextOverride;
-      }
-      const source = getContextOverrideSource(resolved);
-      if (source === "manual") {
-        return contextOverride;
-      }
-    }
+    if (contextOverride !== null) return contextOverride;
   }
 
   // 3. Canonical chain (already clamped to the total window by the resolver).
