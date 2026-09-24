@@ -5,8 +5,8 @@
 #  Profiles:
 #    base  → minimal image, no CLI tools
 #    web   → runner-web (+Chromium/Playwright) for web-cookie providers
-#    cli   → CLIs installed inside the container (portable)
-#    host  → runner-base + host-mounted CLI binaries (Linux-first)
+#    cli   → bundled CLIs installed inside the container (portable)
+#    host  → runner-base + host-mounted CLI binaries (Linux-first; Linux only)
 #    cliproxyapi → CLIProxyAPI sidecar on port 8317
 #    memory  → Qdrant sidecar on port 6333 (semantic memory offload)
 #    bifrost → Bifrost Go sidecar on port 8080 (Tier-1 LLM router)
@@ -15,11 +15,17 @@
 #    docker compose --profile base up -d
 #    docker compose --profile web up -d   # gemini-web / claude-web / claude-turnstile
 #    docker compose --profile cli up -d
+#    # Windows Docker Desktop: use the bundled CLI image and rebuild it
+#    docker compose --profile cli up -d --build
 #    docker compose --profile host up -d
 #    docker compose --profile cliproxyapi up -d
 #    docker compose --profile cli --profile cliproxyapi up -d
 #    docker compose --profile base --profile memory up -d   # adds Qdrant sidecar
 #    docker compose --profile base --profile bifrost up -d  # adds Bifrost sidecar
+#
+#  Docker Compose uses `--profile <name> <command>`; `load profile` is not a
+#  valid command. The `base` profile has no CLI tools, and `host` is Linux-only.
+#  Windows Docker Desktop users who need the four bundled CLI packages should use `cli`.
 #
 #  See docs/architecture/cluster-decisions.md for the per-component rationale
 #  (Qdrant=opt-in, Bifrost=opt-in, Caddy=upstream LB, no Dragonfly/NATS/PG/Neo4j/MinIO).

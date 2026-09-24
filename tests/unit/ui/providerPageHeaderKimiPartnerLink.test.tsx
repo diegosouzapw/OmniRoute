@@ -8,7 +8,7 @@
  */
 import React from "react";
 import { act } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 import ProviderPageHeader from "@/app/(dashboard)/dashboard/providers/[id]/components/ProviderPageHeader";
 
@@ -18,10 +18,14 @@ const t = (key: string) => key;
 
 describe("ProviderPageHeader — Kimi partner-link note", () => {
   let container: HTMLDivElement | null = null;
+  const mounted: { root: Root; container: HTMLDivElement }[] = [];
 
-  afterEach(() => {
+  afterEach(async () => {
+    for (const instance of mounted.splice(0)) {
+      await act(async () => instance.root.unmount());
+      instance.container.remove();
+    }
     if (container) {
-      document.body.removeChild(container);
       container = null;
     }
   });
@@ -30,6 +34,7 @@ describe("ProviderPageHeader — Kimi partner-link note", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
+    mounted.push({ root, container });
     act(() => {
       root.render(
         <ProviderPageHeader
@@ -48,7 +53,7 @@ describe("ProviderPageHeader — Kimi partner-link note", () => {
 
   it.each([
     ["moonshot", "Kimi", "https://platform.kimi.ai?aff=omniroute"],
-    ["kimi-coding", "Kimi Code CLI", "https://www.kimi.com/code?aff=omniroute"],
+    ["kimi-coding", "Kimi Code CLI", "https://www.kimi.ai/code?aff=omniroute"],
     ["kimi-web", "Kimi Web", "https://www.kimi.ai"],
   ])("flags the %s header link as a partner link", (id, name, website) => {
     const el = renderHeader(id, name, website);

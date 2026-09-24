@@ -19,6 +19,8 @@ import { AI_HORDE_IMAGE_PROVIDER } from "./providers/registry/aihorde/imageModel
 
 interface ImageModelEntry {
   id: string;
+  /** Public catalog id when the callable upstream id would collide with another model surface. */
+  catalogId?: string;
   name: string;
   inputModalities?: string[];
   // See STABILITY_AI_IMAGE_MODELS for why this exists: some models accept "text"
@@ -150,7 +152,13 @@ function resolveSameProviderBareAlias(providerId, model) {
 function findImageModelConfig(providerId, modelId) {
   const provider = IMAGE_PROVIDERS[providerId];
   if (!provider) return null;
-  return provider.models.find((model) => model.id === modelId) || null;
+  return (
+    provider.models.find((model) => model.id === modelId || model.catalogId === modelId) || null
+  );
+}
+
+function resolveImageProviderModelId(providerId, modelId) {
+  return findImageModelConfig(providerId, modelId)?.id || modelId;
 }
 
 // Kept out of getImageModelEntry() (which sits at the complexity-ratchet cap) — an
@@ -242,9 +250,21 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authHeader: "bearer",
     format: "codex-responses",
     models: [
-      { id: "gpt-5.6-sol", name: "GPT 5.6 Sol (Codex Image)" },
-      { id: "gpt-5.6-terra", name: "GPT 5.6 Terra (Codex Image)" },
-      { id: "gpt-5.6-luna", name: "GPT 5.6 Luna (Codex Image)" },
+      {
+        id: "gpt-5.6-sol",
+        catalogId: "gpt-5.6-sol-image",
+        name: "GPT 5.6 Sol (Codex Image)",
+      },
+      {
+        id: "gpt-5.6-terra",
+        catalogId: "gpt-5.6-terra-image",
+        name: "GPT 5.6 Terra (Codex Image)",
+      },
+      {
+        id: "gpt-5.6-luna",
+        catalogId: "gpt-5.6-luna-image",
+        name: "GPT 5.6 Luna (Codex Image)",
+      },
     ],
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
   },
@@ -905,6 +925,25 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     // passes any OpenAI-style size through. These are the aspect buckets.
     supportedSizes: ["1024x1024", "1024x576", "576x1024", "1024x768", "768x1024"],
   },
+
+  // Cloudflare Workers AI image generation (FLUX.1 Schnell). Reuses the same
+  // Account ID + API Token connection as the existing `cloudflare-ai` chat
+  // provider (apikey/enterprise-cloud.ts, open-sse/executors/cloudflare-ai.ts).
+  // Not OpenAI-compatible (dynamic per-account URL, base64-in-JSON response),
+  // so it gets its own `cloudflare-ai-image` format/handler
+  // (handleCloudflareAiImageGeneration) rather than the generic OpenAI path.
+  "cloudflare-ai": {
+    id: "cloudflare-ai",
+    alias: "cf",
+    // Documentation only — the real URL is built per-account in the handler:
+    // https://api.cloudflare.com/client/v4/accounts/<accountId>/ai/run/<model>
+    baseUrl: "https://api.cloudflare.com/client/v4/accounts",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "cloudflare-ai-image",
+    models: [{ id: "@cf/black-forest-labs/flux-1-schnell", name: "FLUX.1 Schnell (Workers AI)" }],
+    supportedSizes: ["1024x1024", "768x768", "512x512"],
+  },
 };
 
 /**
@@ -938,7 +977,9 @@ export function parseImageModel(modelStr) {
       const aliased =
         resolveImageModelAlias(`${providerId}/${model}`) ||
         resolveSameProviderBareAlias(providerId, model);
-      return aliased || { provider: providerId, model };
+      return (
+        aliased || { provider: providerId, model: resolveImageProviderModelId(providerId, model) }
+      );
     }
     // Check alias if available
     if (config.alias && modelStr.startsWith(config.alias + "/")) {
@@ -946,17 +987,22 @@ export function parseImageModel(modelStr) {
       const aliased =
         resolveImageModelAlias(`${providerId}/${model}`) ||
         resolveSameProviderBareAlias(providerId, model);
-      return aliased || { provider: providerId, model };
+      return (
+        aliased || { provider: providerId, model: resolveImageProviderModelId(providerId, model) }
+      );
     }
   }
 
   // No provider prefix — try to find the model in every provider, excluding cookie-auth (web) bridges
   for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
+    const modelConfig = config.models.find(
+      (model) => model.id === modelStr || model.catalogId === modelStr
+    );
     if (
       config.authHeader !== "cookie" &&
-      (config.routingAliases?.includes(modelStr) || config.models.some((m) => m.id === modelStr))
+      (config.routingAliases?.includes(modelStr) || modelConfig)
     ) {
-      return { provider: providerId, model: modelStr };
+      return { provider: providerId, model: modelConfig?.id || modelStr };
     }
   }
 
@@ -971,7 +1017,7 @@ function imageProviderCatalogEntries(
   config: ImageProviderConfig
 ): ImageCatalogModelEntry[] {
   return config.models.map((model) => ({
-    id: `${providerId}/${model.id}`,
+    id: `${providerId}/${model.catalogId || model.id}`,
     name: model.name,
     provider: providerId,
     supportedSizes: model.supportedSizes || config.supportedSizes,

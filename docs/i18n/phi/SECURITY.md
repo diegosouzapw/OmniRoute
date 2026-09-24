@@ -1,6 +1,6 @@
 # Security Policy (Filipino)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -222,34 +222,41 @@ Ipinapatupad ng tooling at mga reviewer ang mga panuntunang ito:
 
 ## Mga natuklasan ng supply-chain scanner (Socket.dev / Snyk / katulad)
 
-Isinasama ng naka-publish na `omniroute` npm artifact ang Next.js `output: "standalone"`
-build, na nangangahulugang ang bawat route handler — kabilang ang mga dokumentadong may-pribilehiyong
-feature (MITM, Zed import, Cloud Sync, embedded service supervisor) — ay
-napupunta sa mga naka-minify na chunk ng `.next/server/*.js`. Madalas na
-itinutugma ng mga heuristic supply-chain scanner ang mga chunk na iyon sa mga malware signature.
+> **Tala tungkol sa saklaw:** Hinuhubog lamang ng `socket.yml` sa root ng repository ang `projectIgnorePaths` para sa registry-side post-publish scan ng Socket.dev sa na-publish na npm artifact — hindi ito isang ipinapatupad na CI/PR merge gate. Walang workflow sa `.github/workflows`, walang script sa `package.json`, at walang target sa `Makefile` na nagpapatakbo sa Socket.dev.
 
-Ang configuration ng scanner na ginagamit namin ay nasa [`socket.yml`](socket.yml) sa
-root ng repository (Socket.dev GitHub App format v2 — tingnan ang
-<https://docs.socket.dev/docs/socket-yml>). Tahasan nitong ibinubukod ang
-mga directory na hindi isinasama sa release (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/`, atbp.) upang mag-ulat lamang ang scanner tungkol sa mga code path na
-aktuwal na nakararating sa mga user ng naka-publish na package — ang mismong scan ay pinapatakbo ng Socket
-GitHub App na nagbabasa sa file na iyon, hindi ng isang workflow sa repository na ito.
+Kasama sa na-publish na `omniroute` npm artifact ang Next.js `output: "standalone"`
+build, na nangangahulugang ang bawat route handler — kabilang ang mga
+dokumentadong privileged feature (MITM, Zed import, Cloud Sync, embedded
+service supervisor) — ay napupunta sa mga naka-minify na chunk na
+`.next/server/*.js`. Madalas na itinutugma ng mga heuristic supply-chain
+scanner ang mga chunk na iyon sa mga malware signature.
 
-Para sa bawat kategorya ng natuklasan, nagpapanatili kami ng pagpapatunay ng maintainer para sa bawat natuklasan:
+Makikita ang ginagamit naming configuration ng scanner sa
+[`socket.yml`](socket.yml) sa root ng repo (Socket.dev GitHub App format v2 —
+tingnan ang <https://docs.socket.dev/docs/socket-yml>). Tahasan nitong
+ibinubukod ang mga directory na hindi ipinapadala (`tests/`, `_tasks/`,
+`_references/`, `_ideia/`, `_mono_repo/`, `docs/`, atbp.) upang mag-ulat
+lamang ang scanner tungkol sa mga code path na aktuwal na nakararating sa mga
+gumagamit ng na-publish na package — ang mismong scan ay pinapatakbo ng Socket
+GitHub App na bumabasa sa file na iyon, hindi ng isang workflow sa repository
+na ito.
+
+Para sa bawat kategorya ng natuklasan, nagpapanatili kami ng pagpapatunay ng
+maintainer para sa bawat natuklasan:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mapa para sa bawat natuklasan: source file ↔ na-flag na chunk ↔ gawi ↔ mitigasyong
-  inilapat sa v3.8.6.
-- Ang mga `SECURITY-AUDITOR-NOTE:` block sa source sa bawat na-flag na function ay
-  tumutukoy pabalik sa parehong dokumento.
+  mapa ng bawat natuklasan: source file ↔ na-flag na chunk ↔ gawi ↔ mitigation
+  na inilapat sa v3.8.6.
+- Ang mga in-source na block na `SECURITY-AUDITOR-NOTE:` sa bawat na-flag na
+  function ay tumutukoy pabalik sa parehong dokumento.
 
-Para sa mga user na hindi maaaring luwagan ng pipeline ang alerto: mag-build gamit ang
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Pinapalitan nito ang apat na
-sensitibong module ng mga stub na nagbabalik ng HTTP 503 `feature-disabled` sa
-runtime, kaya pisikal na wala sa bundle ang mga may-pribilehiyong code path.
-Tingnan ang [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-para sa proseso ng pag-publish.
+Para sa mga user na hindi maaaring magluwag ng alert ang pipeline: mag-build
+gamit ang `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Pinapalitan nito
+ang apat na sensitibong module ng mga stub na nagbabalik ng HTTP 503
+`feature-disabled` sa runtime, kaya pisikal na wala sa bundle ang mga
+privileged code path. Tingnan ang
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+para sa paraan ng pag-publish.
 
 ## Mga Sanggunian
 

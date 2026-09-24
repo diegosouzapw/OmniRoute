@@ -1,0 +1,1 @@
+- **sse:** stop every upstream failure from throwing out of `handleChatCore` — `persistFailureUsage` read `providerResponse` from outside its scope (regression from #14544), so all 13 failure paths raised `ReferenceError: providerResponse is not defined` instead of returning the upstream error and recording failure usage.

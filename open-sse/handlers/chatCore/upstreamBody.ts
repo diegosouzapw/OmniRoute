@@ -15,6 +15,7 @@ import {
   type ConnectionCacheOverride,
 } from "../../utils/cacheControlPolicy.ts";
 import { FORMATS } from "../../translator/formats.ts";
+import { stripInternalBodyFields } from "../../config/cliFingerprints.ts";
 import { sanitizeRequestForResolvedTarget } from "../../services/targetRequestSanitizer.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
@@ -259,6 +260,14 @@ function normalizeAttemptBody(opts: PrepareUpstreamBodyOptions): Body {
   }
   bodyToSend = stripGpt5SamplingWhenReasoning(bodyToSend, provider, modelToCall, log);
   bodyToSend = stripGpt5ReasoningWhenTools(bodyToSend, provider, modelToCall, targetFormat, log);
+
+  // All models, including universal/context-handoff summary models, pass through
+  // this shared pre-executor boundary. Remove OmniRoute-only routing markers here
+  // so custom executors that serialize their own request bodies cannot leak them.
+  // keepExecutorMarkers: `_native*Passthrough` is read by the executor further down
+  // (codex.ts/xai.ts) and deleted there; applyFingerprint() strips it at
+  // serialization. Removing it here would disable native passthrough (#14496).
+  stripInternalBodyFields(bodyToSend, { keepExecutorMarkers: true });
   return bodyToSend;
 }
 

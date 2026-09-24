@@ -120,7 +120,8 @@ import {
 } from "./combo/autoStrategy.ts";
 import {
   resolveResetWindowConfig,
-  calculateResetWindowAffinity,
+  calculateAutoResetWindowAffinity,
+  resolveAutoResetWindowConfig,
   type ResetWindowConfig,
 } from "./combo/quotaScoring.ts";
 import { fetchResetAwareQuotaWithCache, preScreenTargets } from "./combo/quotaStrategies.ts";
@@ -221,11 +222,6 @@ function calculateTargetContextAffinity(
   return 0.1;
 }
 
-function getBootstrapLatencyMs(modelId: string): number {
-  const normalized = String(modelId || "").toLowerCase();
-  return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
-}
-
 export function poolMedianP95Ms(
   stats: Record<string, { p95LatencyMs?: unknown }>
 ): number | undefined {
@@ -287,7 +283,7 @@ export async function buildAutoCandidates(
   targets: ResolvedComboTarget[],
   comboName: string,
   sessionId: string | null | undefined = null,
-  resetWindowConfig: ResetWindowConfig = resolveResetWindowConfig(null),
+  resetWindowConfig: ResetWindowConfig = resolveAutoResetWindowConfig(null),
   resilienceSettings: ResilienceSettings | null = null
 ): Promise<AutoProviderCandidate[]> {
   const hiddenModelsMap = getHiddenModelsByProvider();
@@ -484,7 +480,7 @@ export async function buildAutoCandidates(
           );
         }
         const quota = await quotaPromises.get(quotaKey)!;
-        resetWindowAffinity = calculateResetWindowAffinity(quota, resetWindowConfig);
+        resetWindowAffinity = calculateAutoResetWindowAffinity(quota, resetWindowConfig);
         if (!quotaCutoffBlocked) {
           quotaRemaining = quotaRemainingPercentFromQuota(quota, {
             provider,
@@ -622,7 +618,13 @@ export async function resolveTargetTimeoutMsForTarget(
  * one metadata-only log line for durability across restarts.
  */
 export async function handleComboChat(options: HandleComboChatOptions): Promise<Response> {
-  const traceInvocationId = options.invocationId ?? createInvocationId();
+  const comboInvocationId = (options.combo as { traceInvocationId?: unknown } | null | undefined)
+    ?.traceInvocationId;
+  const traceInvocationId =
+    options.invocationId ??
+    (typeof comboInvocationId === "string" && comboInvocationId.length > 0
+      ? comboInvocationId
+      : createInvocationId());
   const response = await handleComboChatInner({ ...options, invocationId: traceInvocationId });
   response.headers.set("X-OmniRoute-Combo-Trace", traceInvocationId);
   const trace = getComboTrace(traceInvocationId);

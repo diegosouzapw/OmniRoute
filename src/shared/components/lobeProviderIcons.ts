@@ -142,7 +142,6 @@ import StabilityColorIcon from "@lobehub/icons/es/Stability/components/Color";
 import StabilityMonoIcon from "@lobehub/icons/es/Stability/components/Mono";
 // Stepfun has no Color component in the installed @lobehub/icons version; use Mono as fallback
 import StepfunMonoIcon from "@lobehub/icons/es/Stepfun/components/Mono";
-import SunoMonoIcon from "@lobehub/icons/es/Suno/components/Mono";
 import TavilyColorIcon from "@lobehub/icons/es/Tavily/components/Color";
 import TavilyMonoIcon from "@lobehub/icons/es/Tavily/components/Mono";
 import TogetherColorIcon from "@lobehub/icons/es/Together/components/Color";
@@ -282,7 +281,6 @@ const LOBE_ICON_COMPONENTS = {
   Snowflake: { mono: SnowflakeMonoIcon, color: SnowflakeColorIcon },
   Stability: { mono: StabilityMonoIcon, color: StabilityColorIcon },
   Stepfun: { mono: StepfunMonoIcon, color: StepfunMonoIcon },
-  Suno: { mono: SunoMonoIcon },
   Tavily: { mono: TavilyMonoIcon, color: TavilyColorIcon },
   Tencent: { mono: TencentMonoIcon, color: TencentColorIcon },
   Together: { mono: TogetherMonoIcon, color: TogetherColorIcon },
@@ -368,7 +366,6 @@ const LOBE_PROVIDER_ALIASES = {
   friendliai: "Friendli",
   gemini: "Gemini",
   "gemini-web": "Gemini",
-  "gemini-business": "Gemini",
   github: "GithubCopilot",
   "github-copilot": "GithubCopilot",
   "ghe-copilot": "GithubCopilot",
@@ -406,6 +403,7 @@ const LOBE_PROVIDER_ALIASES = {
   mistralai: "Mistral",
   moonshot: "Moonshot",
   morph: "Morph",
+  "muse-code": "MetaAI",
   "muse-spark-web": "MetaAI",
   nanobanana: "NanoBanana",
   nebius: "Nebius",
@@ -443,7 +441,6 @@ const LOBE_PROVIDER_ALIASES = {
   stepfun: "Stepfun",
   stability: "Stability",
   "stability-ai": "Stability",
-  suno: "Suno",
   tavily: "Tavily",
   "tavily-search": "Tavily",
   tencent: "Tencent",

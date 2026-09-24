@@ -216,6 +216,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
+    key: "ROTATION_ATTRIBUTION",
+    label: "Rotation Attribution Logging",
+    description:
+      "Opencode rotation records which account served or was skipped (masked ids only, never full account ids) and links proxy log entries to their request, so the operator can tell skipped accounts apart from unused ones. Off by default: no extra log lines, no extra columns written.",
+    descriptionI18nKey: "featureFlagRotationAttributionDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
     key: "PROXY_POOL_EGRESS_OBSERVATION",
     label: "Proxy Pool Egress Observation",
     description:
@@ -264,11 +276,47 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
+    key: "FLUSH_EMPTY_RETRY_ENABLED",
+    label: "Flush Empty Turn Retry",
+    description:
+      "On translated streaming turns, when the upstream turn carries no usable content (reasoning-only completion or zero valuable chunks), issue bounded retries through the normal credential path (up to `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX`) before anything is exposed to the client. Off by default: empty turns keep the current behavior (empty 200 or empty-content 502).",
+    descriptionI18nKey: "featureFlagFlushEmptyRetryEnabledDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
     key: "OPENCODE_RATE_LIMITED_429_EARLY_STOP",
     label: "OpenCode Rate-Limited 429 Early Stop",
     description:
       "For the OpenCode multi-account rotation, stop the account wave at the first 429 classified as a real rate limit (a parseable Retry-After header, or a body naming a rate/usage limit) and return that upstream 429 unchanged (status, body, Retry-After and quota headers), instead of trying every remaining account. Unclassified 429s keep rotating. Off by default: the free tier is limited per egress IP (#9611), so every 429 rotates to the next account, and an exhausted wave returns the last upstream 429.",
     descriptionI18nKey: "featureFlagOpencodeRateLimited429EarlyStopDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "OPENCODE_PARK_AND_RESUME",
+    label: "OpenCode 429 Park And Resume",
+    description:
+      "For the OpenCode multi-account rotation, park the request after repeated transient 429s (or a fresh pool-strain marker) with a heartbeat, then replay one capped leg of up to 3 sequential accounts instead of fanning out the whole fleet. Off by default: every 429 rotates to the next account exactly as before.",
+    descriptionI18nKey: "featureFlagOpencodeParkAndResumeDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "STREAM_READINESS_STALL_RETRY",
+    label: "Stream Readiness Stall Retry",
+    description:
+      "For streaming chat requests, when the first upstream body stalls before producing a usable event, issue one bounded second attempt through the same routing path with the same readiness budget and no account penalty. Off by default: a stalled first body fails the request without a retry.",
+    descriptionI18nKey: "featureFlagStreamReadinessStallRetryDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",
@@ -413,7 +461,9 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Enforce scope restrictions on MCP tool access",
     descriptionI18nKey: "featureFlagOmnirouteMcpEnforceScopesDescription",
     category: "runtime",
-    defaultValue: "true",
+    // Ships off: the gate rejects a caller that sends no scopes at all, so turning it on
+    // is an operator decision (.env.example has shipped `=false` since the gate landed).
+    defaultValue: "false",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",
@@ -873,10 +923,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: "XAI_OAUTH_LIVE_MODEL_DISCOVERY",
     label: "xAI OAuth Live Model Discovery",
     description:
-      "Fetch the live xAI model catalog for xai-oauth connections from https://api.x.ai/v1/models using the OAuth bearer token, instead of the frozen static seed. Off by default: xai-oauth keeps serving the static seed unchanged. On any resolution error, discovery falls back to the seed (unverified whether x.ai accepts an OAuth bearer at this endpoint).",
+      "Fetch the live xAI model catalog for xai-oauth connections from https://api.x.ai/v1/models using the OAuth bearer token, instead of the frozen static seed. On by default. Set the flag to false to keep serving the static seed. HTTP failures fall back to the seed in the discovery route; the flag getter itself does not issue HTTP.",
     descriptionI18nKey: "featureFlagXaiOauthLiveModelDiscoveryDescription",
     category: "runtime",
-    defaultValue: "false",
+    defaultValue: "true",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",

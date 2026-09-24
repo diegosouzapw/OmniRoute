@@ -1,6 +1,6 @@
 # Security Policy (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,35 +220,40 @@ docker run -d \
 10. **`exec()` / `spawn()` runtime value များကို `env` option မှတစ်ဆင့် ပေးပါ** — ပြင်ပ path များ သို့မဟုတ် မယုံကြည်ရသော တန်ဖိုးများကို shell မှတစ်ဆင့် ပေးပို့သည့် script များအတွင်း string interpolation မည်သည့်အခါမျှ မလုပ်ပါနှင့်။ ကိုးကားရန်- `src/mitm/cert/install.ts::updateNssDatabases`။
 11. **ပုံသေအားဖြင့် လုံခြုံသော library များကို ဦးစားပေးပါ** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink) ကို ကြည့်ပါ။ ကိုယ်တိုင် ဖန်တီးအကောင်အထည်မဖော်မီ ၎င်းတို့ကို ဦးစွာ အသုံးပြုရန် စဉ်းစားပါ။
 
-## Supply-chain scanner တွေ့ရှိချက်များ (Socket.dev / Snyk / အလားတူ)
+## Supply-chain စကင်နာ တွေ့ရှိချက်များ (Socket.dev / Snyk / အလားတူ)
 
-ထုတ်ဝေထားသည့် `omniroute` npm artifact တွင် Next.js `output: "standalone"`
-build ကို bundle အဖြစ် ထည့်သွင်းထားသည်။ ဆိုလိုသည်မှာ မှတ်တမ်းပြုစုထားသော အထူးအခွင့်အရေးလိုအပ်သည့်
-လုပ်ဆောင်ချက်များ (MITM၊ Zed import၊ Cloud Sync၊ embedded service supervisor) အပါအဝင် route handler
-တိုင်းသည် `.next/server/*.js` minified chunk များထဲသို့ ရောက်ရှိသွားသည်။ Heuristic supply-chain scanner
-များသည် ထို chunk များကို malware signature များနှင့် မကြာခဏ pattern-match ပြုလုပ်ကြသည်။
+> **စစ်ဆေးမှုအတိုင်းအတာ မှတ်ချက်:** repository root ရှိ `socket.yml` သည် ထုတ်ဝေထားသော npm artifact ကို Socket.dev ၏ registry ဘက်ခြမ်းမှ ထုတ်ဝေပြီးနောက် စကင်ဖတ်ရာတွင် `projectIgnorePaths` ကိုသာ သတ်မှတ်ပေးသည် — ၎င်းသည် မဖြစ်မနေလိုက်နာရသော CI/PR merge gate မဟုတ်ပါ။ `.github/workflows` ရှိ မည်သည့် workflow ကမျှ၊ `package.json` script ကမျှ၊ `Makefile` target ကမျှ Socket.dev ကို ခေါ်ယူအသုံးပြုခြင်း မရှိပါ။
 
-ကျွန်ုပ်တို့အသုံးပြုသည့် scanner configuration သည် repo root ရှိ
+ထုတ်ဝေထားသော `omniroute` npm artifact တွင် Next.js `output: "standalone"`
+build ပါဝင်ထည့်သွင်းထားသည်။ ဆိုလိုသည်မှာ မှတ်တမ်းတင်ဖော်ပြထားသော အထူးအခွင့်အရေးလိုအပ်သည့်
+လုပ်ဆောင်ချက်များ (MITM၊ Zed import၊ Cloud Sync၊ ထည့်သွင်းထားသော service supervisor) အပါအဝင်
+route handler တိုင်းသည် `.next/server/*.js` minified chunk များထဲသို့
+ရောက်ရှိသွားသည်။ Heuristic supply-chain စကင်နာများသည် ထို chunk များကို
+malware signature များနှင့် မကြာခဏ pattern-match လုပ်လေ့ရှိသည်။
+
+ကျွန်ုပ်တို့အသုံးပြုသည့် စကင်နာ configuration သည် repository root ရှိ
 [`socket.yml`](socket.yml) တွင် တည်ရှိသည် (Socket.dev GitHub App format v2 — ကြည့်ရန်
-<https://docs.socket.dev/docs/socket-yml>)။ Scanner က အမှန်တကယ် ထုတ်ဝေထားသည့် အသုံးပြုသူများထံ
-ရောက်ရှိသော code path များကိုသာ အစီရင်ခံနိုင်စေရန် ၎င်းသည် ဖြန့်ချိခြင်းမရှိသည့် directory များ
-(`tests/`၊ `_tasks/`၊ `_references/`၊ `_ideia/`၊ `_mono_repo/`၊
-`docs/` စသည်) ကို အတိအလင်း ဖယ်ထုတ်ထားသည် — scan ကို ဤ repository ရှိ workflow တစ်ခုက
-မဟုတ်ဘဲ ထိုဖိုင်ကို ဖတ်ရှုသည့် Socket GitHub App က လုပ်ဆောင်သည်။
+<https://docs.socket.dev/docs/socket-yml>)။ စကင်နာသည် အမှန်တကယ်
+ထုတ်ဝေထားသော အသုံးပြုသူများထံ ရောက်ရှိသည့် code path များကိုသာ အစီရင်ခံစေရန်
+ဖြန့်ချိမှုတွင် မပါဝင်သော directory များ (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` စသည်တို့) ကို အတိအလင်း ဖယ်ထုတ်ထားသည် — စကင်ဖတ်ခြင်းကို
+ဤ repository ရှိ workflow တစ်ခုက လုပ်ဆောင်ခြင်းမဟုတ်ဘဲ ထိုဖိုင်ကို ဖတ်သည့် Socket
+GitHub App က လုပ်ဆောင်ခြင်းဖြစ်သည်။
 
-တွေ့ရှိချက် အမျိုးအစားတစ်ခုစီအတွက် တွေ့ရှိချက်အလိုက် maintainer အတည်ပြုချက်တစ်ခုကို ကျွန်ုပ်တို့ ထိန်းသိမ်းထားသည်-
+တွေ့ရှိချက်အမျိုးအစားတစ်ခုစီအတွက် တွေ့ရှိချက်အလိုက် maintainer အတည်ပြုချက်ကို ထိန်းသိမ်းထားသည်-
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  တွေ့ရှိချက်အလိုက် မြေပုံ- source file ↔ အမှတ်အသားပြုခံရသည့် chunk ↔ လုပ်ဆောင်ပုံ ↔ v3.8.6 တွင်
-  အသုံးပြုထားသည့် လျော့ပါးကာကွယ်မှု။
-- အမှတ်အသားပြုခံရသည့် function နေရာတစ်ခုစီရှိ source အတွင်းမှ `SECURITY-AUDITOR-NOTE:` block များသည်
-  အလားတူ document သို့ ပြန်လည်ညွှန်းဆိုထားသည်။
+  တွေ့ရှိချက်အလိုက် မြေပုံ- source file ↔ အမှတ်အသားပြုခံရသော chunk ↔ လုပ်ဆောင်ပုံ ↔ v3.8.6 တွင်
+  အသုံးပြုထားသော လျော့ပါးကာကွယ်မှု။
+- အမှတ်အသားပြုခံရသော function နေရာတစ်ခုစီရှိ source အတွင်းမှ `SECURITY-AUDITOR-NOTE:` block များသည်
+  အလားတူ document ကို ပြန်လည်ညွှန်းဆိုထားသည်။
 
-Alert ကို ဖြေလျှော့၍မရသော pipeline အသုံးပြုသူများအတွက်-
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` ဖြင့် build လုပ်ပါ။ ၎င်းသည် runtime တွင်
-HTTP 503 `feature-disabled` ကို ပြန်ပေးသော stub များဖြင့် အရေးကြီး module လေးခုကို အစားထိုးပေးသဖြင့်
-အထူးအခွင့်အရေးလိုအပ်သော code path များသည် bundle ထဲတွင် လုံးဝ မပါဝင်တော့ပါ။
-ထုတ်ဝေခြင်းနည်းလမ်းအတွက် [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+alert ကို လျှော့ပေါ့ခွင့်မပြုနိုင်သော pipeline အသုံးပြုသူများအတွက်-
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` ဖြင့် build လုပ်ပါ။ ၎င်းသည်
+အရေးကြီးသည့် module လေးခုကို runtime တွင် HTTP 503 `feature-disabled` ပြန်ပေးသော
+stub များဖြင့် အစားထိုးသဖြင့် အထူးအခွင့်အရေးလိုအပ်သည့် code path များသည် bundle ထဲတွင်
+ရုပ်ပိုင်းဆိုင်ရာအရ လုံးဝပါဝင်တော့မည်မဟုတ်ပါ။ ထုတ်ဝေခြင်းနည်းလမ်းအတွက်
+[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 ကို ကြည့်ပါ။
 
 ## ကိုးကားချက်များ

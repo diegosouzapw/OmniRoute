@@ -1,0 +1,1 @@
+- **fix(rate-limit):** a queued request no longer runs in the async context of the request that freed the slot; each scheduled job keeps the output, logging and attribution of the caller that queued it ([#14621](https://github.com/diegosouzapw/OmniRoute/pull/14621)) — thanks @maxmad64bis

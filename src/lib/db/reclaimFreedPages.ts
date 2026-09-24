@@ -21,10 +21,11 @@
  *   the file. We record the request with `vacuumScheduler` and let it run in
  *   its configured window (or never, if the operator said so).
  *
- * In WAL mode the truncation only reaches the main file at a checkpoint, so a
- * pass folds the WAL back periodically and ends with `wal_checkpoint(TRUNCATE)`;
- * otherwise the `.sqlite` would keep its size and the `-wal` would sit at its
- * high-water mark until the next 6-hourly checkpoint.
+ * In WAL mode reclaimed pages only reach the main file at a checkpoint. A pass
+ * folds the WAL back periodically and finishes with a non-blocking PASSIVE
+ * checkpoint. Never TRUNCATE a live WAL: other mapped SQLite handles can be
+ * invalidated (SIGBUS; #14005). WAL high-water sizing is handled separately by
+ * WAL maintenance.
  *
  * @module lib/db/reclaimFreedPages
  */
@@ -116,12 +117,12 @@ function isBusyError(err: unknown): boolean {
   return /database is locked|SQLITE_BUSY|SQLITE_LOCKED/i.test(message);
 }
 
-function checkpointQuietly(db: SqliteAdapter, mode: "PASSIVE" | "TRUNCATE"): void {
+function checkpointQuietly(db: SqliteAdapter, mode: "PASSIVE"): void {
   if (!db.open) return;
   try {
     db.checkpoint(mode);
   } catch {
-    // Best effort: the 6-hourly TRUNCATE checkpoint in core.ts will catch up.
+    // Best effort: WAL maintenance will retry later.
   }
 }
 
@@ -228,8 +229,8 @@ export async function reclaimFreedPages(
     }
   }
 
-  // In WAL mode the file only shrinks when the truncating commit is checkpointed.
-  if (batches > 0) checkpointQuietly(db, "TRUNCATE");
+  // Fold reclaimed pages back without mutating live WAL file geometry.
+  if (batches > 0) checkpointQuietly(db, "PASSIVE");
 
   return finish("incremental", freelist, batches, stopReason, error);
 }

@@ -40,7 +40,52 @@
  *       relayed 5xx stays `inconclusive` (policy B) and keeps the streak.
  */
 
-export type ProxyProbeOutcome = "ok" | "fail" | "inconclusive" | "blocked";
+export type ProxyProbeOutcome = "ok" | "fail" | "hang" | "inconclusive" | "blocked";
+
+/**
+ * Sidecar cause for a refused relay. Carried ALONGSIDE the verdict, never
+ * inside it: `decideProxyHealthAction` never branches on a cause, so a cause
+ * can neither write a status nor filter traffic. The only proven 403 is one
+ * the caller proves via `signals.geoProven`; the sweep never proves (HEAD
+ * probe, no body), so sweep 403s always land on `unproven`.
+ */
+export type ProbeCause = "unclassified" | "target_refused" | "unproven";
+
+export interface RefusalCauseSignals {
+  /** The caller proved a geographic motive for this 403. Defaults to false. */
+  geoProven?: boolean;
+}
+
+/**
+ * PURE: classify the cause of a refused relay. 451 is a proven refusal by
+ * status alone; 403 needs an explicit proof; 401/429 claim no cause.
+ */
+export function classifyRefusalCause(status: number, signals: RefusalCauseSignals = {}): ProbeCause {
+  if (status === 451) return "target_refused";
+  if (status === 403) return signals.geoProven === true ? "target_refused" : "unproven";
+  return "unclassified";
+}
+
+export interface ProbeErrorSignals {
+  /** Our own deadline fired (controller aborted). */
+  aborted: boolean;
+  /** The proxy host resolved (a hang implies we got past DNS). */
+  resolved: boolean;
+  /** A TLS handshake completed. */
+  tlsNegotiated: boolean;
+}
+
+/**
+ * PURE: distinguish a stalled handshake from a frank failure. A hang means we
+ * reached the host but the handshake never completed before our own deadline;
+ * anything aborted without those conditions keeps today's `inconclusive`.
+ */
+export function classifyProbeError(signals: ProbeErrorSignals): "hang" | "fail" | "inconclusive" {
+  if (signals.aborted) {
+    return signals.resolved && !signals.tlsNegotiated ? "hang" : "inconclusive";
+  }
+  return "fail";
+}
 
 /** Statuses that mean the TARGET refused this egress IP rather than served it. */
 const TARGET_BLOCK_STATUSES: ReadonlySet<number> = new Set([401, 403, 429]);
@@ -128,7 +173,9 @@ export function decideProxyHealthAction(input: ProxyHealthDecisionInput): ProxyH
     };
   }
 
-  // Conclusive failure.
+  // Conclusive failure. `hang` (a stalled handshake) falls through with `fail`:
+  // same count, same policy C (no status write by default). The verdicts stay
+  // distinct upstream so the sweep can observe hangs separately.
   const failures = priorFailures + 1;
 
   // C: default mode only counts/logs — never downgrades.

@@ -57,6 +57,8 @@ const COGNATES = new Set([
   // also the word in Azerbaijani, Czech, Danish, Indonesian, Malay, Dutch, Polish, Romanian,
   // Slovak, Turkish and Uzbek; "Recent" is Dutch; "Error" is the Filipino loanword.
   "az.home.recentRequestsModel",
+  // "Model" is also the Bosnian word (same cognate as hr/sr) — added with the locale in #14187.
+  "bs.home.recentRequestsModel",
   "cs.home.recentRequestsModel",
   "da.home.recentRequestsModel",
   "id.home.recentRequestsModel",

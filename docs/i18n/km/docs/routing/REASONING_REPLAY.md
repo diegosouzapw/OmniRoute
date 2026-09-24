@@ -1,6 +1,6 @@
 # Reasoning Replay Cache (ខ្មែរ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/REASONING_REPLAY.md) · 🇪🇹 [am](../../../am/docs/routing/REASONING_REPLAY.md) · 🇸🇦 [ar](../../../ar/docs/routing/REASONING_REPLAY.md) · 🇦🇿 [az](../../../az/docs/routing/REASONING_REPLAY.md) · 🇧🇬 [bg](../../../bg/docs/routing/REASONING_REPLAY.md) · 🇧🇩 [bn](../../../bn/docs/routing/REASONING_REPLAY.md) · 🇨🇿 [cs](../../../cs/docs/routing/REASONING_REPLAY.md) · 🇩🇰 [da](../../../da/docs/routing/REASONING_REPLAY.md) · 🇩🇪 [de](../../../de/docs/routing/REASONING_REPLAY.md) · 🇬🇷 [el](../../../el/docs/routing/REASONING_REPLAY.md) · 🇪🇸 [es](../../../es/docs/routing/REASONING_REPLAY.md) · 🇪🇪 [et](../../../et/docs/routing/REASONING_REPLAY.md) · 🇮🇷 [fa](../../../fa/docs/routing/REASONING_REPLAY.md) · 🇫🇮 [fi](../../../fi/docs/routing/REASONING_REPLAY.md) · 🇫🇷 [fr](../../../fr/docs/routing/REASONING_REPLAY.md) · 🇮🇪 [ga](../../../ga/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [gu](../../../gu/docs/routing/REASONING_REPLAY.md) · 🇳🇬 [ha](../../../ha/docs/routing/REASONING_REPLAY.md) · 🇮🇱 [he](../../../he/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [hi](../../../hi/docs/routing/REASONING_REPLAY.md) · 🇭🇷 [hr](../../../hr/docs/routing/REASONING_REPLAY.md) · 🇭🇺 [hu](../../../hu/docs/routing/REASONING_REPLAY.md) · 🇦🇲 [hy](../../../hy/docs/routing/REASONING_REPLAY.md) · 🇮🇩 [id](../../../id/docs/routing/REASONING_REPLAY.md) · 🇳🇬 [ig](../../../ig/docs/routing/REASONING_REPLAY.md) · 🇮🇹 [it](../../../it/docs/routing/REASONING_REPLAY.md) · 🇯🇵 [ja](../../../ja/docs/routing/REASONING_REPLAY.md) · 🇬🇪 [ka](../../../ka/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [kn](../../../kn/docs/routing/REASONING_REPLAY.md) · 🇰🇷 [ko](../../../ko/docs/routing/REASONING_REPLAY.md) · 🇱🇹 [lt](../../../lt/docs/routing/REASONING_REPLAY.md) · 🇱🇻 [lv](../../../lv/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [ml](../../../ml/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [mr](../../../mr/docs/routing/REASONING_REPLAY.md) · 🇲🇾 [ms](../../../ms/docs/routing/REASONING_REPLAY.md) · 🇲🇹 [mt](../../../mt/docs/routing/REASONING_REPLAY.md) · 🇲🇲 [my](../../../my/docs/routing/REASONING_REPLAY.md) · 🇳🇵 [ne](../../../ne/docs/routing/REASONING_REPLAY.md) · 🇳🇱 [nl](../../../nl/docs/routing/REASONING_REPLAY.md) · 🇳🇴 [no](../../../no/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [or](../../../or/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [pa](../../../pa/docs/routing/REASONING_REPLAY.md) · 🇵🇭 [phi](../../../phi/docs/routing/REASONING_REPLAY.md) · 🇵🇱 [pl](../../../pl/docs/routing/REASONING_REPLAY.md) · 🇵🇹 [pt](../../../pt/docs/routing/REASONING_REPLAY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/REASONING_REPLAY.md) · 🇷🇴 [ro](../../../ro/docs/routing/REASONING_REPLAY.md) · 🇷🇺 [ru](../../../ru/docs/routing/REASONING_REPLAY.md) · 🇱🇰 [si](../../../si/docs/routing/REASONING_REPLAY.md) · 🇸🇰 [sk](../../../sk/docs/routing/REASONING_REPLAY.md) · 🇸🇮 [sl](../../../sl/docs/routing/REASONING_REPLAY.md) · 🇷🇸 [sr](../../../sr/docs/routing/REASONING_REPLAY.md) · 🇸🇪 [sv](../../../sv/docs/routing/REASONING_REPLAY.md) · 🇰🇪 [sw](../../../sw/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [ta](../../../ta/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [te](../../../te/docs/routing/REASONING_REPLAY.md) · 🇹🇭 [th](../../../th/docs/routing/REASONING_REPLAY.md) · 🇹🇷 [tr](../../../tr/docs/routing/REASONING_REPLAY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/REASONING_REPLAY.md) · 🇵🇰 [ur](../../../ur/docs/routing/REASONING_REPLAY.md) · 🇺🇿 [uz](../../../uz/docs/routing/REASONING_REPLAY.md) · 🇻🇳 [vi](../../../vi/docs/routing/REASONING_REPLAY.md) · 🇳🇬 [yo](../../../yo/docs/routing/REASONING_REPLAY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/REASONING_REPLAY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/REASONING_REPLAY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/REASONING_REPLAY.md) · 🇪🇹 [am](../../../am/docs/routing/REASONING_REPLAY.md) · 🇸🇦 [ar](../../../ar/docs/routing/REASONING_REPLAY.md) · 🇦🇿 [az](../../../az/docs/routing/REASONING_REPLAY.md) · 🇧🇬 [bg](../../../bg/docs/routing/REASONING_REPLAY.md) · 🇧🇩 [bn](../../../bn/docs/routing/REASONING_REPLAY.md) · 🇧🇦 [bs](../../../bs/docs/routing/REASONING_REPLAY.md) · 🇨🇿 [cs](../../../cs/docs/routing/REASONING_REPLAY.md) · 🇩🇰 [da](../../../da/docs/routing/REASONING_REPLAY.md) · 🇩🇪 [de](../../../de/docs/routing/REASONING_REPLAY.md) · 🇬🇷 [el](../../../el/docs/routing/REASONING_REPLAY.md) · 🇪🇸 [es](../../../es/docs/routing/REASONING_REPLAY.md) · 🇪🇪 [et](../../../et/docs/routing/REASONING_REPLAY.md) · 🇮🇷 [fa](../../../fa/docs/routing/REASONING_REPLAY.md) · 🇫🇮 [fi](../../../fi/docs/routing/REASONING_REPLAY.md) · 🇫🇷 [fr](../../../fr/docs/routing/REASONING_REPLAY.md) · 🇮🇪 [ga](../../../ga/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [gu](../../../gu/docs/routing/REASONING_REPLAY.md) · 🇳🇬 [ha](../../../ha/docs/routing/REASONING_REPLAY.md) · 🇮🇱 [he](../../../he/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [hi](../../../hi/docs/routing/REASONING_REPLAY.md) · 🇭🇷 [hr](../../../hr/docs/routing/REASONING_REPLAY.md) · 🇭🇺 [hu](../../../hu/docs/routing/REASONING_REPLAY.md) · 🇦🇲 [hy](../../../hy/docs/routing/REASONING_REPLAY.md) · 🇮🇩 [id](../../../id/docs/routing/REASONING_REPLAY.md) · 🇳🇬 [ig](../../../ig/docs/routing/REASONING_REPLAY.md) · 🇮🇹 [it](../../../it/docs/routing/REASONING_REPLAY.md) · 🇯🇵 [ja](../../../ja/docs/routing/REASONING_REPLAY.md) · 🇬🇪 [ka](../../../ka/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [kn](../../../kn/docs/routing/REASONING_REPLAY.md) · 🇰🇷 [ko](../../../ko/docs/routing/REASONING_REPLAY.md) · 🇱🇹 [lt](../../../lt/docs/routing/REASONING_REPLAY.md) · 🇱🇻 [lv](../../../lv/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [ml](../../../ml/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [mr](../../../mr/docs/routing/REASONING_REPLAY.md) · 🇲🇾 [ms](../../../ms/docs/routing/REASONING_REPLAY.md) · 🇲🇹 [mt](../../../mt/docs/routing/REASONING_REPLAY.md) · 🇲🇲 [my](../../../my/docs/routing/REASONING_REPLAY.md) · 🇳🇵 [ne](../../../ne/docs/routing/REASONING_REPLAY.md) · 🇳🇱 [nl](../../../nl/docs/routing/REASONING_REPLAY.md) · 🇳🇴 [no](../../../no/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [or](../../../or/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [pa](../../../pa/docs/routing/REASONING_REPLAY.md) · 🇵🇭 [phi](../../../phi/docs/routing/REASONING_REPLAY.md) · 🇵🇱 [pl](../../../pl/docs/routing/REASONING_REPLAY.md) · 🇵🇹 [pt](../../../pt/docs/routing/REASONING_REPLAY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/REASONING_REPLAY.md) · 🇷🇴 [ro](../../../ro/docs/routing/REASONING_REPLAY.md) · 🇷🇺 [ru](../../../ru/docs/routing/REASONING_REPLAY.md) · 🇱🇰 [si](../../../si/docs/routing/REASONING_REPLAY.md) · 🇸🇰 [sk](../../../sk/docs/routing/REASONING_REPLAY.md) · 🇸🇮 [sl](../../../sl/docs/routing/REASONING_REPLAY.md) · 🇷🇸 [sr](../../../sr/docs/routing/REASONING_REPLAY.md) · 🇸🇪 [sv](../../../sv/docs/routing/REASONING_REPLAY.md) · 🇰🇪 [sw](../../../sw/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [ta](../../../ta/docs/routing/REASONING_REPLAY.md) · 🇮🇳 [te](../../../te/docs/routing/REASONING_REPLAY.md) · 🇹🇭 [th](../../../th/docs/routing/REASONING_REPLAY.md) · 🇹🇷 [tr](../../../tr/docs/routing/REASONING_REPLAY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/REASONING_REPLAY.md) · 🇵🇰 [ur](../../../ur/docs/routing/REASONING_REPLAY.md) · 🇺🇿 [uz](../../../uz/docs/routing/REASONING_REPLAY.md) · 🇻🇳 [vi](../../../vi/docs/routing/REASONING_REPLAY.md) · 🇳🇬 [yo](../../../yo/docs/routing/REASONING_REPLAY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/REASONING_REPLAY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/REASONING_REPLAY.md)
 
 ---
 
@@ -22,22 +22,24 @@ thinking-mode provider មួយចំនួនបដិសេធវេនបន
 ## ស្ថាបត្យកម្ម
 
 ```
-វេន N (assistant បង្កើត):
-  → response មាន reasoning_content + tool_calls
+វេន N (ជំនួយការបង្កើត):
+  → ការឆ្លើយតបមាន reasoning_content + tool_calls
   → ប្រសិនបើ requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      សរសេរ (memory + DB) ដោយប្រើ tool_call.id នីមួយៗជាគន្លឹះ
-  → បញ្ជូន response ទៅ client (ដែលអាចរក្សាទុក ឬមិនរក្សាទុក reasoning)
+      សរសេរ (អង្គចងចាំ + DB) ដោយប្រើ tool_call.id នីមួយៗជាសោ
+  → បញ្ជូនការឆ្លើយតបទៅម៉ាស៊ីនភ្ញៀវ (ដែលអាចរក្សាទុក ឬមិនរក្សាទុក reasoning)
 
-វេន N+1 (client ផ្ញើសំណើបន្ត):
-  → translator រកឃើញ៖ requiresReasoningReplay(provider, model) === true
-  → សម្រាប់សារ assistant នីមួយៗដែលមាន tool_calls និងគ្មាន reasoning_content:
-      lookupReasoning(toolCalls[0].id) → memory → DB
+វេន N+1 (ម៉ាស៊ីនភ្ញៀវផ្ញើសារបន្ត):
+  → កម្មវិធីបកប្រែរកឃើញថា: requiresReasoningReplay(provider, model) === true
+  → សម្រាប់សាររបស់ជំនួយការនីមួយៗដែលមាន tool_calls ហើយគ្មាន reasoning_content:
+      lookupReasoning(toolCalls[0].id) → អង្គចងចាំ → DB
       រកឃើញ  → msg.reasoning_content = cached; recordReplay()
-      រកមិនឃើញ → msg.reasoning_content = "" (ជម្រើសបម្រុង legacy សម្រាប់ DeepSeek ចាស់ៗ)
-  → upstream មើលឃើញប្រវត្តិដែលស៊ីសង្វាក់គ្នា → គ្មាន 400
+      រកមិនឃើញ → msg.reasoning_content = "" (ជម្រើសជំនួសបែបចាស់សម្រាប់ DeepSeek ជំនាន់ចាស់)
+  → ប្រព័ន្ធខាងលើមើលឃើញប្រវត្តិស៊ីសង្វាក់គ្នា → គ្មាន 400
 ```
 
-ការចាប់យកកើតឡើងក្នុង `open-sse/handlers/chatCore.ts` (ពីរទីតាំង នៅត្រង់ទីតាំងហៅ `cacheReasoningFromAssistantMessage` ទាំងពីរ)។ ការចាក់ឡើងវិញកើតឡើងក្នុង `open-sse/translator/index.ts` បន្ទាប់ពីការបង្ខំឱ្យត្រូវតាម schema ប៉ុន្តែមុនពេលបញ្ជូនចេញ។
+ការចាប់យកកើតឡើងនៅក្នុង `open-sse/handlers/chatCore.ts` (ពីរទីតាំង គឺនៅទីតាំងហៅ `cacheReasoningFromAssistantMessage` ទាំងពីរ)។ ការចាក់ឡើងវិញកើតឡើងនៅក្នុង `open-sse/translator/index.ts` បន្ទាប់ពីការបង្ខំឱ្យត្រូវតាមគ្រោងការណ៍ ប៉ុន្តែមុនពេលបញ្ជូនបន្ត។
+
+វេនរបស់ជំនួយការធម្មតា (ដែលមិនមែនជាការហៅឧបករណ៍) ត្រូវបានកំណត់សោតាមវិធីផ្សេង៖ `buildAssistantMessageCacheKey()` បង្កើតសេចក្ដីសង្ខេបពីវិសាលភាពសម័យ រួមជាមួយកំណត់ត្រាសន្ទនាទម្រង់ OpenAI ដែលបានធ្វើឱ្យមានទម្រង់ស្តង់ដារ រហូតដល់វេននោះ ព្រោះ DeepSeek តម្រូវឱ្យមាន reasoning នៃវេនមុនៗ _ទាំងអស់_ នៅពេលមាន `tools`។ សម្រាប់គោលដៅ Responses-API (ឧទាហរណ៍ `opencode-go/deepseek-v4-flash` ដែលត្រូវបានបញ្ជូនទៅ `/responses`) តួសំណើខាងលើមាន `input` មិនមែន `messages` ទេ ដូច្នេះ `translateRequest()` (`open-sse/translator/index.ts`) រាយការណ៍កំណត់ត្រាសន្ទនាចំណុចកណ្ដាលដែលវាបានបង្កើតសេចក្ដីសង្ខេប តាមរយៈជម្រើស callback ហើយទីតាំងចាប់យកទាំងនោះក៏បង្កើតសេចក្ដីសង្ខេបពីកំណត់ត្រាសន្ទនាដូចគ្នានោះដែរ។ ដំណាក់កាលចាក់ឡើងវិញរបស់ Responses ដំណើរការលើចំណុចកណ្ដាល OpenAI សម្រាប់គ្រប់ទម្រង់ប្រភព ដូច្នេះម៉ាស៊ីនភ្ញៀវ Anthropic Messages (Claude → OpenAI → Responses) ក៏ត្រូវបានចាក់ឡើងវិញផងដែរ។
 
 ## ការផ្ទុក — Memory + SQLite បែបកូនកាត់
 
@@ -58,7 +60,7 @@ Hot path ប្រើ `Map` ក្នុង memory (LRU តាមពេលបង
 
 ## គ្រោងការណ៍មូលដ្ឋានទិន្នន័យ
 
-Migration: `src/lib/db/migrations/033_create_reasoning_cache.sql`
+ការផ្លាស់ប្តូរគ្រោងការណ៍៖ `src/lib/db/migrations/033_create_reasoning_cache.sql`
 
 ```sql
 CREATE TABLE IF NOT EXISTS reasoning_cache (
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indexes: `expires_at`, `provider`, `model`, `created_at`។ `expires_at` ត្រូវបានរក្សាទុកជា Unix epoch seconds; ស្រទាប់ SELECT ធ្វើឱ្យតម្លៃអត្ថបទ legacy មានទម្រង់ស្តង់ដារតាមរយៈ `EXPIRES_AT_EPOCH_SQL`។
+លិបិក្រម៖ `expires_at`, `provider`, `model`, `created_at`។ `expires_at` ត្រូវបានរក្សាទុកជាចំនួនវិនាទីនៃ Unix epoch; ស្រទាប់ SELECT ធ្វើឱ្យតម្លៃអត្ថបទចាស់ៗមានទម្រង់ស្តង់ដារតាមរយៈ `EXPIRES_AT_EPOCH_SQL`។
 
 ## ការរកឃើញ Provider / Model
 

@@ -100,6 +100,27 @@ export function isApiKeyRevealEnabledFlag(): boolean {
   }
 }
 
+let lastResolvedMcpScopeEnforcement: boolean | undefined;
+
+/**
+ * MCP tool-call scope enforcement. Resolved per call so the Feature Flags toggle
+ * (requiresRestart: false) applies without a restart. An unavailable flag store must never
+ * silently drop the gate, so a failed read keeps the last value that did resolve, and falls
+ * back to the environment variable the gate used before only if none ever did.
+ */
+export function isMcpScopeEnforcementEnabled(): boolean {
+  try {
+    lastResolvedMcpScopeEnforcement = isFeatureFlagEnabled("OMNIROUTE_MCP_ENFORCE_SCOPES");
+    return lastResolvedMcpScopeEnforcement;
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve OMNIROUTE_MCP_ENFORCE_SCOPES, keeping the last known value:",
+      error instanceof Error ? error.message : error
+    );
+    return lastResolvedMcpScopeEnforcement ?? process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
+  }
+}
+
 export function isModelCatalogNamesEnabled(): boolean {
   return isFeatureFlagEnabled("MODEL_CATALOG_INCLUDE_NAMES");
 }
@@ -183,6 +204,23 @@ export function isProxySkipRecentlyFailedEnabled(): boolean {
   } catch (error) {
     console.error(
       "[featureFlags] Failed to resolve PROXY_SKIP_RECENTLY_FAILED, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+/**
+ * Rotation attribution (skipped-account log lines, per-account rotation state,
+ * masked serving-account id and request correlation on proxy log entries).
+ * Opt-in; an unreadable flag store keeps it hidden (fail-safe off).
+ */
+export function isRotationAttributionEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("ROTATION_ATTRIBUTION");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve ROTATION_ATTRIBUTION, defaulting to disabled:",
       error instanceof Error ? error.message : error
     );
     return false;
@@ -320,6 +358,40 @@ export function isAntigravityAccountLeaseEnabled(
   } catch (error) {
     console.error(
       "[featureFlags] Failed to resolve ANTIGRAVITY_ACCOUNT_LEASE_ENABLED, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+/**
+ * OpenCode 429 park-and-resume. Opt-in: when off, every 429 rotates to the
+ * next account exactly as before.
+ * Fail closed: an unreadable flag store keeps the pre-flag behavior (disabled).
+ */
+export function isOpencodeParkAndResumeEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("OPENCODE_PARK_AND_RESUME");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve OPENCODE_PARK_AND_RESUME, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+/**
+ * Stream readiness stall retry. Opt-in: when off, a stalled first body fails
+ * the request without a retry. Fail closed: an unreadable flag store keeps
+ * the pre-flag behavior (disabled).
+ */
+export function isStreamReadinessStallRetryEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("STREAM_READINESS_STALL_RETRY");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve STREAM_READINESS_STALL_RETRY, defaulting to disabled:",
       error instanceof Error ? error.message : error
     );
     return false;

@@ -1,0 +1,1 @@
+- fix(deps): align `onnxruntime-node` to 1.30.0 (in lockstep with `@huggingface/transformers` 4.3.0) and set `onnxruntime-node-install=skip` in `.npmrc`, so a failed CUDA/binary download in the `onnxruntime-node` postinstall no longer makes npm silently drop the whole optional `@huggingface/transformers` chain and crash the transformers loader at startup

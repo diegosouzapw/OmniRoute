@@ -10,9 +10,12 @@
  * not match the user's actual bill. For those providers analytics should show
  * $0 instead — see {@link module:lib/usage/costCalculator}.
  *
- * This is intentionally a DISPLAY-only signal: it is consulted by the analytics
- * surfaces (opt-in via the `flatRateAsZero` cost option), never by the budget /
- * quota / routing paths, so per-request cost estimation is unchanged.
+ * This classification is the single source of provider economics. Analytics
+ * consult it for display (opt-in via the `flatRateAsZero` cost option), and
+ * `lib/usage/meteredBudgetPolicy` derives the metered-dollar-budget decisions
+ * from it — whether a candidate spends the allowance, and how much of it a
+ * completed call consumes. Per-request cost ESTIMATION is unchanged: nothing
+ * here rewrites a price, and the quota/rate-limit paths do not consult it.
  *
  * @module lib/usage/flatRateProviders
  */
@@ -39,6 +42,7 @@ const FLAT_RATE_SUBSCRIPTION_PROVIDER_IDS: ReadonlySet<string> = new Set([
   "minimax", // "Minimax Coding" plan
   "kimi-coding", // Kimi Coding plan (OAuth)
   "kimi-coding-apikey", // Kimi Coding plan (API-key auth, still flat-rate)
+  "muse-code", // Muse Code subscription (device OAuth minted key or META_API_KEY)
   "xiaomi-mimo", // Xiaomi MiMo plan (issue: "MiMo Token Plan")
   "bailian-coding-plan", // Alibaba Token Plan (legacy provider ID)
   "qwen-cloud-token-plan", // Qwen Cloud Token Plan

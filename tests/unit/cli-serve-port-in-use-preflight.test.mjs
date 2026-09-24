@@ -73,14 +73,100 @@ test("findListeningPids reports the PID holding the port (posix lsof)", async ()
   assert.deepEqual(pids, [4242, 4243]);
 });
 
-test("findListeningPids returns empty when nothing is listening", async () => {
+test("findListeningPids returns null when discovery is unavailable (#14518)", async () => {
   const pids = await findListeningPids(20128, {
     platform: "win32",
     execFileAsync: async () => {
       throw new Error("netstat unavailable");
     },
   });
-  assert.deepEqual(pids, [], "a discovery failure must not be reported as a busy port");
+  assert.equal(pids, null, "a discovery failure is 'unknown'; the caller bind-probes instead");
+});
+
+// Tests for #14518: on a host without lsof/netstat (Termux, slim containers),
+// findListeningPids() returned [] — indistinguishable from "no listener" — so
+// the serve preflight waved the doomed second instance through and the user
+// got an EADDRINUSE restart loop instead of the one-line port-in-use message.
+// The fix makes the guard bind-probe the port itself when discovery tools are
+// missing, so "tool absent" can never again be read as "port free".
+
+test("findListeningPids returns null when the discovery binary does not exist", async () => {
+  const enoent = Object.assign(new Error("spawn lsof ENOENT"), { code: "ENOENT" });
+  const pids = await findListeningPids(20128, {
+    platform: "linux",
+    execFileAsync: async () => {
+      throw enoent;
+    },
+  });
+  assert.equal(pids, null, "a missing tool is 'unknown', not 'free'");
+});
+
+test("findListeningPids returns null for a missing netstat on win32", async () => {
+  const enoent = Object.assign(new Error("spawn netstat ENOENT"), { code: "ENOENT" });
+  const pids = await findListeningPids(20128, {
+    platform: "win32",
+    execFileAsync: async () => {
+      throw enoent;
+    },
+  });
+  assert.equal(pids, null);
+});
+
+test("probePortFree is false while a socket holds the port and true after release", async () => {
+  const { probePortFree } = await import("../../bin/cli/utils/pid.mjs");
+  const server = net.createServer();
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const { port } = server.address();
+  try {
+    assert.equal(await probePortFree(port), false, "a held port must not read as free");
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
+  assert.equal(await probePortFree(port), true, "a released port must bind cleanly");
+});
+
+test("reportPortInUse degrades gracefully when the owner pid is unknown", async () => {
+  const { reportPortInUse } = await import("../../bin/cli/commands/serve.mjs");
+  const lines = [];
+  const origErr = console.error.bind(console);
+  console.error = (...args) => lines.push(args.join(" "));
+  try {
+    reportPortInUse(20128, []);
+  } finally {
+    console.error = origErr;
+  }
+  const out = lines.join("\n");
+  assert.match(out, /Port 20128 is already in use/, "must still name the port");
+  assert.match(out, /unknown|unidentified/, "must say the owner could not be identified");
+  assert.match(out, /omniroute stop/, "must keep the resolution path");
+});
+
+test("serve preflight rejects a busy port even without any discovery tool (end-to-end for #14518)", async () => {
+  const { probePortFree, findListeningPids } = await import("../../bin/cli/utils/pid.mjs");
+  const server = net.createServer();
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const { port } = server.address();
+  const enoent = Object.assign(new Error("spawn lsof ENOENT"), { code: "ENOENT" });
+  try {
+    // Simulate the Termux condition: discovery tool absent.
+    const pids = await findListeningPids(port, {
+      platform: "linux",
+      execFileAsync: async () => {
+        throw enoent;
+      },
+    });
+    assert.equal(pids, null, "guard cannot rely on pid discovery here");
+    // The fixed preflight then bind-probes; that must expose the conflict.
+    assert.equal(await probePortFree(port), false, "busy port must be caught by the probe");
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
 });
 
 test(

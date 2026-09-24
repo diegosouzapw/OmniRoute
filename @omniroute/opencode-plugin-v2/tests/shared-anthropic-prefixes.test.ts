@@ -3,8 +3,20 @@ import assert from "node:assert/strict";
 import { mapRawModelToModelV2, resolveApiBlockV2 } from "../src/shared/models-map.js";
 import { parsePluginOptions } from "../src/options.js";
 import { publishCatalog } from "../src/catalog.js";
-import type { CatalogDraft } from "@opencode-ai/plugin/v2/promise";
-import type { ModelV2Info, ProviderV2Info } from "@opencode-ai/sdk/v2/types";
+type BetaDraft = {
+  provider: {
+    list?: () => unknown[];
+    get?: (id: string) => unknown;
+    update: (id: string, fn: (p: Record<string, any>) => void) => void;
+    remove?: () => void;
+  };
+  model: {
+    get?: (...a: string[]) => unknown;
+    update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => void;
+    remove?: () => void;
+    default?: { get: () => undefined; set: () => void };
+  };
+};
 
 const GW = "https://gw.example.com";
 const PREFIXES = ["cc", "claude", "anthropic", "kiro", "kr"];
@@ -100,8 +112,8 @@ describe("deprecated anthropicPrefixes", () => {
   });
 
   it("copied v1 config routes anthropic and warns deprecation through publishCatalog", async () => {
-    const providers = new Map<string, ProviderV2Info>();
-    const models = new Map<string, ModelV2Info>();
+    const providers = new Map<string, Record<string, any>>();
+    const models = new Map<string, Record<string, any>>();
     const warns: string[] = [];
     const origWarn = console.warn;
     console.warn = (...args: unknown[]) => {
@@ -116,8 +128,8 @@ describe("deprecated anthropicPrefixes", () => {
         provider: {
           list: () => [],
           get: (id: string) => providers.get(id) as never,
-          update: (id: string, fn: (p: ProviderV2Info) => void) => {
-            const p = (providers.get(id) ?? { id }) as ProviderV2Info;
+          update: (id: string, fn: (p: Record<string, any>) => void) => {
+            const p = (providers.get(id) ?? { id }) as Record<string, any>;
             fn(p);
             providers.set(id, p);
           },
@@ -125,18 +137,18 @@ describe("deprecated anthropicPrefixes", () => {
         },
         model: {
           get: () => undefined,
-          update: (pid: string, mid: string, fn: (m: ModelV2Info) => void) => {
+          update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => {
             const k = pid + "/" + mid;
-            const m = (models.get(k) ?? { id: mid, providerID: pid }) as ModelV2Info;
+            const m = (models.get(k) ?? { id: mid, providerID: pid }) as Record<string, any>;
             fn(m);
             models.set(k, m);
           },
           remove: () => {},
           default: { get: () => undefined, set: () => {} },
         },
-      } as CatalogDraft;
-      const res = await publishCatalog(
-        draft,
+      };
+      const { collectCatalog, buildProviderPayload } = await import("../src/catalog.js");
+      const collected = await collectCatalog(
         {
           providerId: "omniroute",
           baseURL: GW,
@@ -152,11 +164,18 @@ describe("deprecated anthropicPrefixes", () => {
           enrichmentFetcher: async () => new Map(),
         }
       );
-      assert.deepEqual(res, { models: 1, combos: 0, autoCombos: 0 });
-      const m = models.get("omniroute/cc/claude-x");
+      assert.deepEqual(collected.counts, { models: 1, combos: 0, autoCombos: 0 });
+      const payload = buildProviderPayload(collected, {
+        providerId: "omniroute",
+        baseURL: GW,
+        apiKey: "k",
+        timeoutMs: 1000,
+        modelCacheTtlMs: 300000,
+        usableOnly: false,
+      });
+      const m = payload.models.find((x) => String((x as unknown as { id: string }).id) === "cc/claude-x") as unknown as Record<string, any>;
       assert.ok(m);
-      if (m?.api.type !== "aisdk") throw new Error("model api must be aisdk");
-      assert.equal(m?.api.id, "anthropic");
+      assert.equal(m?.package, "@opencode/ai/providers/anthropic");
     } finally {
       console.warn = origWarn;
     }

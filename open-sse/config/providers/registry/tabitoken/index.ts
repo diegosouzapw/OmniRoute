@@ -50,7 +50,12 @@ export const tabitokenProvider: RegistryEntry = {
     },
   ],
   models: [
-    { id: "claude-opus-5", name: "Claude Opus 5" },
+    {
+      id: "claude-opus-5",
+      name: "Claude Opus 5",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+    },
     { id: "claude-opus-5-thinking", name: "Claude Opus 5 (Thinking)" },
     { id: "claude-opus-4-8", name: "Claude Opus 4.8" },
     { id: "claude-opus-4-8-thinking", name: "Claude Opus 4.8 (Thinking)" },

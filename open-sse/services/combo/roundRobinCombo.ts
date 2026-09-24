@@ -92,7 +92,7 @@ import {
   resolveDelayMs,
   comboModelNotFoundResponse,
   isStreamReadinessFailureErrorBody,
-  isTokenLimitBreachErrorBody,
+  isLocalKeyPolicyBreachErrorBody,
   isLocalQueueCapacityErrorBody,
   toRecordedTarget,
   getExhaustedTargetSkipReason,
@@ -330,7 +330,9 @@ export async function handleRoundRobinCombo({
             rawModel &&
             isModelLocked(stickyTarget.provider, stickyTarget.connectionId || "", rawModel)
           ) &&
-          (isModelAvailable ? await isModelAvailable(stickyTarget.modelStr, stickyTarget) : true);
+          (isModelAvailable
+            ? (await isModelAvailable(stickyTarget.modelStr, stickyTarget)) === true
+            : true);
         if (!stickyAvailable) {
           log.info(
             "COMBO-RR",
@@ -498,7 +500,7 @@ export async function handleRoundRobinCombo({
       // Pre-check availability
       if (isModelAvailable) {
         const available = await isModelAvailable(modelStr, targetForAttempt);
-        if (!available) {
+        if (available !== true) {
           log.debug?.(
             "COMBO-RR",
             `Skipping ${modelStr} — no credentials available or model excluded`
@@ -906,7 +908,7 @@ export async function handleRoundRobinCombo({
 
           // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
           const isTokenLimitBreach =
-            result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+            result.status === 429 && isLocalKeyPolicyBreachErrorBody(errorBody);
           const isLocalQueueCapacity = isLocalQueueCapacityErrorBody(errorBody);
 
           if (isLocalQueueCapacity) {

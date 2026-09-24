@@ -49,8 +49,9 @@ import { classify429FromError, type FailureKind } from "../../shared/utils/class
 import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHints";
 import { isFeatureFlagEnabled } from "../../shared/utils/featureFlags";
 
-import { logProxyEvent } from "../../lib/proxyLogger";
 import { noteProxyOutcome } from "./proxyOutcomeMemory";
+import { logProxyJournal } from "./proxyJournal";
+import type { AttemptJournalEntry } from "./proxyJournal";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
 
@@ -457,11 +458,11 @@ export async function executeChatWithBreaker({
   reasoningTransportFallback = "drop",
   sessionAffinityKey = null,
   managedLease = null,
-  // #12150 P1b: additive, optional video-bridge log/Memory shadow — undefined
-  // for every non-video request. Passed straight through to handleChatCore;
-  // see its own destructure default for the shape and consumers.
+  // #12150 P1b: additive, optional video-bridge log/Memory shadow — undefined for every
+  // non-video request. Passed straight through to handleChatCore; see its own destructure default.
   videoBridgeLog = undefined,
   fallbackAttempts = undefined,
+  forcedConnectionId = null,
 }: ExecuteChatWithBreakerOptions): Promise<ExecuteChatWithBreakerResult> {
   let tlsFingerprintUsed = false;
   const normalizedTrafficType: TrafficType =
@@ -524,6 +525,7 @@ export async function executeChatWithBreaker({
             managedLease,
             videoBridgeLog,
             fallbackAttempts,
+            forcedConnectionId,
             skipResourcePressureGuard: true,
             onCredentialsRefreshed: async (newCreds: any) => {
               await updateProviderCredentials(credentials.connectionId, {
@@ -1060,11 +1062,14 @@ export function withUpstreamStatus<T extends object>(
 }
 
 /** Merge both things the applied-proxy sink captured: the executor proxy, then the status. */
+export type { AttemptJournalEntry } from "./proxyJournal";
 export function mergeAppliedProxySink(
   proxyInfo: { proxy?: unknown; level?: string; levelId?: string | null } | null | undefined,
-  sink: { proxy: unknown; upstreamStatus?: number }
+  sink: { proxy: unknown; upstreamStatus?: number; attempts?: AttemptJournalEntry[] }
 ) {
-  return withUpstreamStatus(applyExecutorProxyToInfo(proxyInfo, sink.proxy), sink);
+  const merged = withUpstreamStatus(applyExecutorProxyToInfo(proxyInfo, sink.proxy), sink);
+  if (sink.attempts?.length) return { ...(merged || {}), attempts: sink.attempts };
+  return merged;
 }
 
 // Async because the egress-IP lookup lazy-imports proxyEgress; callers treat
@@ -1081,6 +1086,8 @@ export async function safeLogEvents({
   comboName,
   clientRawRequest,
   tlsFingerprintUsed = false,
+  rotationAccount = null,
+  correlationId = null,
 }) {
   // Feed the provider's real answer back to proxy selection (never result.status: some 429s
   // are generated locally; proxyInfo carries the status captured around fetch). Must stay
@@ -1094,48 +1101,18 @@ export async function safeLogEvents({
   }
 
   try {
-    const rawIp =
-      clientRawRequest?.headers?.["x-forwarded-for"] ||
-      clientRawRequest?.headers?.["x-real-ip"] ||
-      clientRawRequest?.headers?.["cf-connecting-ip"] ||
-      null;
-    const rawIpValue = Array.isArray(rawIp) ? rawIp[0] : rawIp;
-    const clientIp = typeof rawIpValue === "string" ? rawIpValue.split(",")[0].trim() : null;
-
-    // Resolve the egress IP (the IP the upstream actually saw) from cache — never
-    // blocking the request. Warm it in the background for next time. null until
-    // the first warm completes; direct (no proxy) is also tracked.
-    let egressIp: string | null = null;
-    try {
-      const { getCachedEgressIp, warmEgressIp } = await import("../../lib/proxyEgress");
-      const { proxyConfigToUrl } = await import("@omniroute/open-sse/utils/proxyDispatcher.ts");
-      const proxyUrl = proxyInfo?.proxy ? proxyConfigToUrl(proxyInfo.proxy) : null;
-      egressIp = getCachedEgressIp(proxyUrl);
-      warmEgressIp(proxyUrl);
-    } catch {
-      // egress visibility is best-effort; never break the request path
-    }
-
-    logProxyEvent({
-      status: result.success
-        ? "success"
-        : result.status === 408 || result.status === 504
-          ? "timeout"
-          : "error",
-      proxy: proxyInfo?.proxy || null,
-      level: proxyInfo?.level || "direct",
-      levelId: proxyInfo?.levelId || null,
+    await logProxyJournal({
+      result,
+      proxyInfo,
+      proxyLatency,
       provider,
-      targetUrl: `${provider}/${model}`,
-      clientIp,
-      egressIp,
-      latencyMs: proxyLatency,
-      error: result.success ? null : result.error || null,
-      connectionId: credentials.connectionId,
-      comboId: comboName || null,
-      account: credentials.connectionId?.slice(0, 8) || null,
-      tlsFingerprint: tlsFingerprintUsed,
-      upstreamStatus: proxyInfo?.upstreamStatus ?? null,
+      model,
+      credentials,
+      comboName,
+      clientRawRequest,
+      tlsFingerprintUsed,
+      rotationAccount,
+      correlationId,
     });
   } catch {}
 

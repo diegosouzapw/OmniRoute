@@ -1,7 +1,7 @@
 /**
  * quotaTrackersBatch.ts — startup registration for batch quota trackers
  * (AgentRouter, v0-vercel, freemodel-dev, grok-cli, xai-oauth, firecrawl,
- * llmgateway).
+ * llmgateway, lyceum).
  *
  * Kept in a dedicated module (rather than adding more inline calls to
  * `src/sse/handlers/chat.ts`, which is a frozen file at its LOC baseline) so the
@@ -14,7 +14,9 @@ import { registerFreeModelQuotaFetcher } from "./freeModelQuotaFetcher.ts";
 import { registerGrokCliQuotaFetcher } from "./grokCliQuotaFetcher.ts";
 import { registerXaiOauthQuotaFetcher } from "./xaiOauthQuotaFetcher.ts";
 import { registerFirecrawlQuotaFetcher } from "./firecrawlQuotaFetcher.ts";
+import { registerContext7QuotaFetcher } from "./context7QuotaFetcher.ts";
 import { registerLlmgatewayQuotaFetcher } from "./llmgatewayQuotaFetcher.ts";
+import { registerLyceumQuotaFetcher } from "./lyceumQuotaFetcher.ts";
 
 export function registerQuotaTrackersBatch(): void {
   registerAgentrouterQuotaFetcher();
@@ -23,7 +25,9 @@ export function registerQuotaTrackersBatch(): void {
   registerGrokCliQuotaFetcher();
   registerXaiOauthQuotaFetcher();
   registerFirecrawlQuotaFetcher();
+  registerContext7QuotaFetcher();
   registerLlmgatewayQuotaFetcher();
+  registerLyceumQuotaFetcher();
 }
 
 // Side-effect registration at module load, mirroring the sibling

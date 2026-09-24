@@ -43,6 +43,42 @@ import { maybeOmitCatalogModelName } from "./catalogHelpers";
 import { applyCatalogPage, catalogJsonResponse, parseCatalogPage } from "./catalogPagination";
 import { isCodexModelCatalogClient } from "./catalogRequest";
 
+type CatalogVariantAuthorizer = (model: Record<string, any>) => boolean | Promise<boolean>;
+
+async function resolveCatalogVariantAuthorizer(
+  request: Request
+): Promise<CatalogVariantAuthorizer | null> {
+  const apiKey = extractApiKey(request);
+  if (!apiKey) return null;
+
+  const { getApiKeyMetadata, isModelAllowedForKey } = await import("@/lib/db/apiKeys");
+  const keyMeta = await getApiKeyMetadata(apiKey);
+  if (!keyMeta || keyMeta.id === "env-key" || keyMeta.allowedQuotas?.length) return null;
+
+  const hasModelRestrictions =
+    keyMeta.modelAccessMode === "restricted" ||
+    Boolean(keyMeta.allowedModels?.length) ||
+    Boolean(keyMeta.blockedModels?.length) ||
+    keyMeta.disableNonPublicModels === true;
+  if (!hasModelRestrictions) return null;
+
+  return (model) => typeof model.id === "string" && isModelAllowedForKey(apiKey, model.id);
+}
+
+async function filterUnauthorizedAppendedVariants(
+  baseModels: Array<Record<string, any>>,
+  modelsWithVariants: Array<Record<string, any>>,
+  authorize: CatalogVariantAuthorizer | null
+): Promise<Array<Record<string, any>>> {
+  if (!authorize || modelsWithVariants.length <= baseModels.length) return modelsWithVariants;
+
+  const retained = modelsWithVariants.slice(0, baseModels.length);
+  for (const variant of modelsWithVariants.slice(baseModels.length)) {
+    if (await authorize(variant)) retained.push(variant);
+  }
+  return retained;
+}
+
 /**
  * Post-filter chain applied AFTER the API-key filter, so variants and mirrors are
  * only derived from models the caller may actually see.
@@ -59,10 +95,13 @@ export async function applyCatalogPostFilters(
     prefixMode: string;
     aliasToProviderId: Record<string, string>;
     hideNoThinkVariants?: boolean;
+    authorizeSyntheticModel?: CatalogVariantAuthorizer;
   }
 ): Promise<Array<Record<string, any>>> {
   const yieldTurn = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
   let finalModels = models;
+  const authorizeSyntheticModel =
+    ctx.authorizeSyntheticModel ?? (await resolveCatalogVariantAuthorizer(request));
 
   // variants are only generated for surviving models.
   if (new URL(request.url).searchParams.get("configuredOnly") === "true") {
@@ -84,9 +123,14 @@ export async function applyCatalogPostFilters(
   // clients (OpenCode) that can't set a reasoning_effort config the way VS Code does.
   // Gated like the synced-effort pass below: OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS suppresses -low/-medium/-high catalog variants.
   if (!isDisableThinkingLevelVariantsEnabled()) {
-    finalModels = appendClaudeEffortVariants(
-      finalModels,
-      ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined
+    const beforeClaudeEffortVariants = finalModels;
+    finalModels = await filterUnauthorizedAppendedVariants(
+      beforeClaudeEffortVariants,
+      appendClaudeEffortVariants(
+        beforeClaudeEffortVariants,
+        ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined
+      ),
+      authorizeSyntheticModel
     );
   }
 
@@ -99,10 +143,15 @@ export async function applyCatalogPostFilters(
   // here and injected, keeping the open-sse helper I/O-free (one flag read per catalog
   // build, not one per model).
   if (!ctx.hideNoThinkVariants) {
-    finalModels = appendNoThinkingVariants(
-      finalModels,
-      ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined,
-      { featureEnabled: isNoThinkingAliasEnabled() }
+    const beforeNoThinkingVariants = finalModels;
+    finalModels = await filterUnauthorizedAppendedVariants(
+      beforeNoThinkingVariants,
+      appendNoThinkingVariants(
+        beforeNoThinkingVariants,
+        ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined,
+        { featureEnabled: isNoThinkingAliasEnabled() }
+      ),
+      authorizeSyntheticModel
     );
   }
 
@@ -165,7 +214,12 @@ export async function applyCatalogPostFilters(
   // captured `reasoning.supported_efforts` at sync time (capabilities.effort_tiers).
   // Derived from the already key-filtered list; skips codex/kimi (own suffix mechanism).
   if (!isDisableThinkingLevelVariantsEnabled()) {
-    finalModels = appendSyncedEffortVariants(finalModels);
+    const beforeSyncedEffortVariants = finalModels;
+    finalModels = await filterUnauthorizedAppendedVariants(
+      beforeSyncedEffortVariants,
+      appendSyncedEffortVariants(beforeSyncedEffortVariants),
+      authorizeSyntheticModel
+    );
   }
 
   await yieldTurn();

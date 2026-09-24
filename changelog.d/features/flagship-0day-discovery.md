@@ -1,0 +1,1 @@
+- **feat(providers):** request Claude's model list with `limit=1000`, enable xAI API-key model passthrough, default `XAI_OAUTH_LIVE_MODEL_DISCOVERY` on, and persist `autoSync: true` on new Grok Build OAuth connections so newly published chat ids can appear without a seed bump.

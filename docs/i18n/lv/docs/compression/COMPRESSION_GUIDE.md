@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -186,67 +186,57 @@ Ar Stacked:          nosūtīti 10K-2.5K tokenu  (78-95% ietaupījuma diapazons 
 
 Dodieties uz `Dashboard → Context & Cache`:
 
-- **Caveman** — režīma izvēle, valodu pakotnes, priekšskatījums un globālie noklusējumi
+- **Caveman** — režīma izvēle, valodu pakotnes, priekšskatījums un globālās noklusējuma vērtības
 - **RTK** — komandu filtru priekšskatījums, RTK drošības iestatījumi un filtru katalogs
-- **Compression Combos** — nosaukti dzinēju konveijeri, kas piešķirti maršrutēšanas kombinācijām
-- **Auto-Trigger Threshold** — automātiski aktivizē saspiešanu, kad tokenu skaits pārsniedz slieksni
+- **Compression Combos** — nosauktas dzinēju cauruļvadu sistēmas, kas piešķirtas maršrutēšanas kombinācijām
+- **Auto-Trigger Threshold** — automātiski ieslēgt kompresiju, ja marķieru skaits pārsniedz slieksni
 
-### Atsevišķas kombinācijas ignorēšana
+### Pārrakstīšana katrai kombinācijai
 
-Sadaļā `Dashboard → Context & Cache → Compression Combos` piešķiriet saspiešanas kombināciju maršrutēšanas
-kombinācijai:
+Sadaļā `Dashboard → Context & Cache → Compression Combos` piešķiriet kompresijas kombināciju maršrutēšanas kombinācijai:
 
 ```txt
-Kombinācija: "free-tier-fallback"
-  Saspiešanas kombinācija: "coding-agent-stack"
-  Konveijers: RTK -> Caveman
-  Mērķi:
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Tas ļauj izmantot vairāklīmeņu saspiešanu bezmaksas/kodēšanas pakalpojumu sniedzējiem, vienlaikus saglabājot vienkāršoto režīmu maksas
-abonementiem.
+Tas ļauj izmantot sakārtotu kompresiju bezmaksas/kodēšanas pakalpojumu sniedzējiem, vienlaikus saglabājot vieglo režīmu maksas abonementiem.
 
-Šis "Atsevišķas kombinācijas ignorēšanas" piešķīrums ir cita vadīkla nekā **maršrutēšanas kombinācijas saspiešanas
-režīma** ignorēšana (Default/Off/Lite/Standard/Aggressive/Ultra) — šī ignorēšana neizvēlas nosauktu
-saspiešanas kombinācijas konveijeru; tā tikai iestata lauku `compressionMode`, kuru izmanto
-`resolveCompressionPlan`. To var iestatīt vai nu kombinācijas kartītē (`Dashboard → Combos`), vai kopš
-#6760 — katrai maršrutēšanas kombinācijai atsevišķi sarakstā "Assign to routing", kas atrodas
-`Dashboard → Context & Cache → Compression Combos`, tieši blakus iepriekš aprakstītajai konveijera piešķiršanas izvēles rūtiņai.
-Abās saskarnēs izmaiņas tiek saglabātas, izmantojot vienu un to pašu `PUT /api/combos/{id}` galapunktu.
+Šis "Pārrakstīšanas katrai kombinācijai" piešķīrums ir atšķirīga vadība no **maršrutēšanas kombinācijas kompresijas režīma** pārrakstīšanas (Default/Off/Lite/Standard/Aggressive/Ultra) — šī pārrakstīšana neizvēlas nosauktu kompresijas kombinācijas cauruļvadu; tā tikai iestata `compressionMode` lauku, ko izmanto `resolveCompressionPlan`. To var iestatīt vai nu kombinācijas kartītē (`Dashboard → Combos`), vai, kopš #6760, katrai maršrutēšanas kombinācijai sarakstā "Assign to routing" sadaļā `Dashboard → Context & Cache → Compression Combos`, tieši blakus iepriekš dokumentētajai cauruļvadu piešķiršanas izvēles rūtiņai. Abas saskarnes saglabājas, izmantojot to pašu `PUT /api/combos/{id}` galapunktu.
 
-### Atsevišķa pieprasījuma ignorēšana
+### Pārrakstīšana katram pieprasījumam
 
-Nosūtiet `x-omniroute-compression` pieprasījuma galveni, lai ignorētu saspiešanas plānu vienam
-pieprasījumam. Tai ir augstākā prioritāte — tā prevalē pār maršrutēšanas kombinācijas ignorēšanu, aktīvo profilu,
-automātisko aktivizēšanu un paneļa noklusējumu. Nezināmas vērtības tiek ignorētas (pieprasījums nekad netiek noraidīts), un
-globālais galvenais slēdzis joprojām kontrolē visu: ja saspiešana ir globāli izslēgta, galvene nevar
-to ieslēgt. Vērtības:
+Nosūtiet `x-omniroute-compression` pieprasījuma galveni, lai pārrakstītu kompresijas plānu vienam pieprasījumam. Tam ir visaugstākā prioritāte — tas pārspēj maršrutēšanas kombinācijas pārrakstīšanu, aktīvo profilu, automātisko aktivizēšanu un paneļa noklusējuma iestatījumu. Nezināmas vērtības tiek ignorētas (pieprasījums nekad netiek noraidīts), un globālais galvenais slēdzis joprojām kontrolē visu: ja kompresija ir globāli izslēgta, galvene to nevar ieslēgt. Vērtības:
 
-| Vērtība       | Efekts                                                                                         |
-| ------------- | ---------------------------------------------------------------------------------------------- |
-| `off`         | Šim pieprasījumam saspiešana netiek veikta.                                                    |
-| `default`     | No paneļa atvasinātais noklusējuma profils (ignorē aktīvo profilu).                            |
-| `engine:<id>` | Viens dzinējs, ja tas ir iespējots, piem., `engine:rtk`.                                       |
-| `<combo>`     | Nosaukta kombinācija, vispirms meklējot pēc nosaukuma (neņemot vērā reģistru), pēc tam pēc ID. |
+| Vērtība       | Efekts                                                                                                          |
+| ------------- | --------------------------------------------------------------------------------------------------------------- |
+| `off`         | Nav kompresijas šim pieprasījumam.                                                                              |
+| `default`     | No paneļa atvasinātais noklusējuma profils (ignorē aktīvo profilu). Zaudējošie dzinēji tiek atstāti izslēgti.   |
+| `safe`        | Tas pats, kas izlaižot galveni: tikai dublikātu noņemšana un atstarpju salocīšana.                              |
+| `allow-lossy` | Saglabāt šī pieprasījuma operatora plānu, ieskaitot kopsavilkumus, atbilstības filtrus un stila pārrakstījumus. |
+| `engine:<id>` | Viens dzinējs, ja tas ir iespējots, piemēram, `engine:rtk`. Tas ir katra pieprasījuma piekrišana šim dzinējam.  |
+| `<combo>`     | Nosaukta kombinācija, kas vispirms tiek saskaņota pēc nosaukuma (bez reģistrjutības), pēc tam pēc ID.           |
 
-Piemērotais plāns tiek atgriezts `X-OmniRoute-Compression: <mode>; source=<source>` atbildes
-galvenē, kur `<source>` ir viena no šīm vērtībām: `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default` vai `off`.
+Bez `allow-lossy`, `engine:<id>` vai nosauktas kombinācijas zaudējošie dzinēji netiek lietoti. Pieprasījums joprojām saņem sesijas dublikātu noņemšanu un atstarpju salocīšanu, ja kompresija ir ieslēgta.
+
+Lietotais plāns tiek atgriezts atbildes galvenē `X-OmniRoute-Compression: <mode>; source=<source>`, kur `<source>` ir viens no `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` vai `off`.
 
 ### API
 
 ```bash
-# Iegūt saspiešanas iestatījumus
+# Iegūt kompresijas iestatījumus
 curl http://localhost:20128/api/settings/compression
 
-# Atjaunināt saspiešanas iestatījumus
+# Atjaunināt kompresijas iestatījumus
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Priekšskatīt konkrētu RTK/vairāklīmeņu lietderīgo slodzi
+# Priekšskatīt specifisku RTK/sakārtotu datu slodzi
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
@@ -254,7 +244,7 @@ curl -X POST http://localhost:20128/api/compression/preview \
 # Uzskaitīt RTK filtru pakotnes
 curl http://localhost:20128/api/context/rtk/filters
 
-# Testēt RTK tieši ar neobligātiem komandas metadatiem
+# Tieši testēt RTK ar papildu komandas metadatiem
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -299,15 +289,15 @@ Katra saspiestā pieprasījuma statistika tiek iekļauta servera žurnālos:
 
 ---
 
-## Posmu ceļvedis
+## Fāžu ceļvedis
 
-| Posms    | Režīmi                                                                                                                                                                           | Statuss     |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| 1. posms | Izslēgts, viegls                                                                                                                                                                 | ✅ Izlaists |
-| 2. posms | Standarta, agresīvs, īpaši intensīvs                                                                                                                                             | ✅ Izlaists |
-| 3. posms | RTK, slāņots, saspiešanas kombinācijas                                                                                                                                           | ✅ Izlaists |
-| 4. posms | Izvades stili, SLM līmeņa īpaši intensīvais režīms, novērtēšanas sistēma                                                                                                         | ✅ Izlaists |
-| 4C posms | Adaptīvs konteksta budžets („regulators”) — skaitļošanas dzinis + API (`contextBudget` parametrā `PUT /api/settings/compression`) + informācijas paneļa režīmu/politiku vadīklas | ✅ Izlaists |
+| Fāze    | Režīmi                                                                                                                                                                     | Statuss      |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| 1. fāze | Izslēgts, Viegls                                                                                                                                                           | ✅ Piegādāts |
+| 2. fāze | Standarta, Agresīvs, Ultra                                                                                                                                                 | ✅ Piegādāts |
+| 3. fāze | RTK, Salikts, Kompresijas kombinācijas                                                                                                                                     | ✅ Piegādāts |
+| 4. fāze | Izvades stili, SLM līmeņa Ultra, novērtēšanas sistēma                                                                                                                      | ✅ Piegādāts |
+| 4C fāze | Adaptīvs konteksta budžets ("ciparnīca") — skaitļošanas dzinējs + API (`contextBudget` uz `PUT /api/settings/compression`) + informācijas paneļa režīma/politikas vadīklas | ✅ Piegādāts |
 
 ---
 
@@ -319,28 +309,23 @@ RTK režīmu iedvesmojis **[RTK - Rust Token Killer](https://github.com/rtk-ai/r
 
 ---
 
-## Uzlabotas saspiešanas sistēmas
+## Uzlabotas kompresijas sistēmas
 
-Papildus 7 standarta režīmiem OmniRoute ietver vairākas uzlabotas saspiešanas
-sistēmas, kas darbojas automātiski atkarībā no konteksta.
+Papildus 7 standarta režīmiem, OmniRoute ietver vairākas uzlabotas kompresijas sistēmas, kas darbojas automātiski, pamatojoties uz kontekstu.
 
-### Kešatmiņu ņemoša vērā saspiešana
+### Kešatmiņu apzinoša kompresija
 
-Daži nodrošinātāji (piemēram, Anthropic ar uzvedņu kešatmiņu) atbalsta **uzvedņu kešatmiņu**,
-kas ļauj kešot uzvednes daļas, lai samazinātu izmaksas un latentumu. Kad
-kešošana ir iespējota, agresīva saspiešana var faktiski **pasliktināt** veiktspēju,
-jo tā maina kešotos marķierus un padara kešatmiņu nederīgu.
+Daži pakalpojumu sniedzēji (piemēram, Anthropic ar uzvedņu kešatmiņu) atbalsta **uzvedņu kešatmiņu**, kas ļauj tiem kešot daļas no uzvednes, lai samazinātu izmaksas un latentumu. Kad kešatmiņa ir iespējota, agresīva kompresija faktiski var **pasliktināt** veiktspēju, jo tā maina kešotos žetonus, anulējot kešatmiņu.
 
-Modulis `cachingAware.ts` to atrisina, **nosakot kešošanas kontekstu** un
-**attiecīgi pielāgojot saspiešanas stratēģiju**.
+Modulis `cachingAware.ts` to atrisina, **nosakot kešatmiņas kontekstu** un **attiecīgi pielāgojot kompresijas stratēģiju**.
 
 #### Kā tas darbojas
 
-1. **Kešošanas konteksta noteikšana** — pieprasījuma pamattekstā meklē `cache_control` marķierus
-2. **Kešošanu atbalstošo nodrošinātāju identificēšana** — pārbauda, vai mērķa nodrošinātājs atbalsta kešošanu
-3. **Stratēģijas pielāgošana** — kešošanu atbalstošiem nodrošinātājiem pazemina `aggressive`/`ultra` līdz `standard`
-4. **Sistēmas uzvednes izlaišana** — sistēmas uzvednes parasti tiek kešotas, tāpēc tās netiek saspiestas
-5. **Deterministisku transformāciju izmantošana** — izmanto tikai tādas transformācijas, kas nodrošina konsekventu izvadi
+1. **Nosaka kešatmiņas kontekstu** — Skenē pieprasījuma pamattekstu, meklējot `cache_control` marķierus
+2. **Identificē kešatmiņas pakalpojumu sniedzējus** — Pārbauda, vai mērķa pakalpojumu sniedzējs atbalsta kešatmiņu
+3. **Pielāgo stratēģiju** — Pazemina `aggressive`/`ultra` uz `standard` kešatmiņas pakalpojumu sniedzējiem
+4. **Izlaiž sistēmas uzvedni** — Sistēmas uzvednes parasti tiek kešotas, tāpēc tās netiek kompresētas
+5. **Izmanto deterministiskas transformācijas** — Izmanto tikai transformācijas, kas rada konsekventu izvadi
 
 #### Koda piemērs
 
@@ -365,21 +350,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kad izmantot
 
-Kešatmiņu ņemoša vērā saspiešana ir **vienmēr ieslēgta** — konfigurācija nav nepieciešama. Tā tiek aktivizēta tikai
-tad, ja:
+Kešatmiņu apzinoša kompresija ir **vienmēr ieslēgta** — nav nepieciešama konfigurācija. Tā tiek aktivizēta tikai tad, ja:
 
-- Pieprasījumā ir `cache_control` marķieri
-- Mērķa nodrošinātājs atbalsta uzvedņu kešošanu (Anthropic, OpenAI u.c.)
+- Pieprasījumam ir `cache_control` marķieri
+- Mērķa pakalpojumu sniedzējs atbalsta uzvedņu kešatmiņu (Anthropic, OpenAI utt.)
 
-### Pakāpeniska novecošana
+### Progresīva novecošana
 
-Garās sarunās uzkrājas daudzi ziņojumu cikli, taču vecāki cikli kļūst mazāk
-nozīmīgi. Modulis `progressiveAging.ts` **samazina ziņojumu detalizācijas pakāpi atkarībā no cikla attāluma**:
+Garās sarunās uzkrājas daudz ziņojumu, taču vecāki ziņojumi kļūst mazāk aktuāli. Modulis `progressiveAging.ts` **degradē ziņojumus pēc pagrieziena attāluma**:
 
-- **Nesenie cikli (0-3)**: saglabāti burtiski (pilna detalizācija)
-- **Vidēji seni cikli (4-8)**: viegla saspiešana (atstarpju un formatējuma sakārtošana)
-- **Veci cikli (9+)**: Caveman saspiešana (liekvārdības noņemšana, kopsavilkuma veidošana)
-- **Ļoti veci cikli (20+)**: būtiski saīsināti vai atmesti
+- **Jaunākie pagriezieni (0-3)**: Saglabāti vārds vārdā (pilna detaļa)
+- **Vidējie pagriezieni (4-8)**: Viegla kompresija (atstarpes, formatējuma tīrīšana)
+- **Vecie pagriezieni (9+)**: Alvejas kompresija (aizpildītāju noņemšana, kopsavilkums)
+- **Ļoti veci pagriezieni (20+)**: Spēcīgi apkopoti vai izlaisti
 
 #### Koda piemērs
 
@@ -390,48 +373,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... vēl 50 cikli ...
+  // ... vēl 50 pagriezieni ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Pirmie 3 cikli: burtiski
-  light: 8, // 4.–8. cikls: viegla saspiešana
-  moderate: 20, // 9.–20. cikls: Caveman saspiešana
-  // Sākot ar 21. ciklu: būtiska saīsināšana
+  verbatim: 3, // Pirmie 3 pagriezieni: vārds vārdā
+  light: 8, // Pagriezieni 4-8: viegla kompresija
+  moderate: 20, // Pagriezieni 9-20: alvejas kompresija
+  // Pagriezieni 21+: smags kopsavilkums
 });
 
-// saved = ietaupīto marķieru skaits
+// saved = ietaupīto žetonu skaits
 ```
 
 #### Kad izmantot
 
-Progresīvā novecošana ir **vienmēr ieslēgta** `aggressive` un `ultra` režīmos. Tā ir
-īpaši efektīva:
+Progresīva novecošana ir **vienmēr ieslēgta** `aggressive` un `ultra` režīmiem. Tā ir īpaši efektīva:
 
-- Ilgstošām programmēšanas sesijām
+- Ilgstošām kodēšanas sesijām
 - Vairāku dienu sarunām
 - Aģentu darbplūsmām ar daudziem rīku izsaukumiem
 
-### Alu cilvēka izvades režīms
+### Alvejas izvades režīms
 
-`outputMode.ts` modulis ievieto **sistēmas uzvednes norādījumus**, lai pats
-modelis ģenerētu saspiestu, lakonisku izvadi („alu cilvēka” stilā).
+Modulis `outputMode.ts` injicē **sistēmas uzvednes instrukcijas**, lai modelis pats radītu kompresētu, īsu izvadi ("alvejas" stilā).
 
 #### Kā tas darbojas
 
-Tā vietā, lai saspiestu ievadi, šis režīms pievieno šādu sistēmas uzvedni:
+Tā vietā, lai kompresētu ievadi, šis režīms pievieno sistēmas uzvedni, piemēram:
 
-> „Atbildi ar pēc iespējas mazāk vārdiem. Izlaid pieklājības frāzes. Lieto īsus teikumus.”
+> "Atbildiet ar minimāliem vārdiem. Izlaidiet pieklājības frāzes. Izmantojiet īsus teikumus."
 
-Tas darbojas īpaši labi:
+Tas īpaši labi darbojas:
 
-- Koda ģenerēšanai (īsāka izvade = mazāk tokenu)
-- Īsiem jautājumiem un atbildēm (nav vajadzīgi izvērsti skaidrojumi)
-- Pakešapstrādei (maksimālai caurlaidspējai)
+- Koda ģenerēšanai (īsāka izvade = mazāk žetonu)
+- Ātriem jautājumiem un atbildēm (nav nepieciešami sarežģīti paskaidrojumi)
+- Partijas apstrādei (maksimāla caurlaides spēja)
 
 #### Kad izmantot
 
-Alu cilvēka izvades režīms ir **jāieslēdz apzināti** — iestatiet to, izmantojot kombinēto konfigurāciju:
+Alvejas izvades režīms ir **izvēles** — iestatiet to, izmantojot kombinēto konfigurāciju:
 
 ```json
 {
@@ -446,39 +427,35 @@ Alu cilvēka izvades režīms ir **jāieslēdz apzināti** — iestatiet to, izm
 
 ### Izvades stili (katalogs)
 
-Iepriekš aprakstītais alu cilvēka izvades režīms ir **mantotais viena stila risinājums**. 4. posmā tas tika vispārināts,
-izveidojot kombinējamu izvades stilu katalogu: `OUTPUT_STYLE_CATALOG` failā
-`open-sse/services/compression/outputStyles/catalog.ts`. Katrs stils ir sistēmas uzvednes
-norādījums, kas liek pašam modelim ģenerēt ekonomiskāku izvadi; stilus var iespējot
-kopā, un tie tiek ievietoti kataloga secībā.
+Iepriekš minētais alvejas izvades režīms ir **mantotais viena stila ceļš**. 4. fāze to vispārināja par saliekamu izvades stilu katalogu: `OUTPUT_STYLE_CATALOG` failā `open-sse/services/compression/outputStyles/catalog.ts`. Katrs stils ir sistēmas uzvednes instrukcija, kas liek modelim pašam radīt lētāku izvadi; stilus var iespējot kopā un tie tiek injicēti kataloga secībā.
 
-| Stils                                   | `id`          | Ko tas dara                                                                                                                                                                                                                              | Norādījumu valodas                                                                      |
-| --------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Lakoniska proza                         | `terse-prose` | Atmet liekvārdību/artikulus/piesardzīgus formulējumus; precīzi saglabā tehnisko saturu. Tas pats teksts, kas mantotajā alu cilvēka izvades režīmā (izmantots ar atsauci, nevis atkārtoti ievadīts).                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                           |
-| Mazāk koda                              | `less-code`   | YAGNI pakāpju princips: mazākās funkcionējošās izmaiņas, nekādu nepieprasītu abstrakciju.                                                                                                                                                | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                           |
-| Zirgaste (slinks vecākais izstrādātājs) | `ponytail`    | „Labākais kods ir kods, kas nekad nav uzrakstīts”: atkārtota izmantošana > pārrakstīšana, pamatcēlonis > simptoms, īsākā funkcionējošā izmaiņu kopa.                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                           |
-| Man ir UDHS (vispirms darbība)          | `i-have-adhd` | Vispirms darbība (komanda/ceļš/fragments pirms apraksta), numurēti un ierobežoti soļi, VIENS konkrēts nākamais solis, bez ievada/kopsavilkuma/noslēguma. Pielāgots no [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                           |
-| Lakonisks CJK (文言)                    | `terse-cjk`   | Īpaši lakonisks klasiskās ķīniešu valodas stils.                                                                                                                                                                                         | zh (ierobežots pēc lokalizācijas: tiek piedāvāts tikai tad, ja noteiktā valoda ir `zh`) |
+| Stils                                   | `id`          | Ko tas dara                                                                                                                                                                                                                         | Instrukciju valodas                                                           |
+| --------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Lakoniska proza                         | `terse-prose` | Izlaiž pildvielas/rakstus/norobežojumus; saglabā tehnisko būtību precīzu. Tas pats teksts, kas mantotajā caveman izvades režīmā (atsauces, nav pārrakstīts).                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                 |
+| Mazāk koda                              | `less-code`   | YAGNI kāpnes: mazākās strādājošās izmaiņas, bez nepieprasītām abstrakcijām.                                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                 |
+| Ponytail (slinks vecākais izstrādātājs) | `ponytail`    | "Labākais kods ir kods, kas nekad nav uzrakstīts": atkārtota izmantošana > pārrakstīšana, pamatcēlonis > simptoms, īsākā strādājošā atšķirība.                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                 |
+| Man ir ADHD (darbība-pirms)             | `i-have-adhd` | Darbība pirms (komanda/ceļš/fragments pirms prozas), numurēti ierobežoti soļi, VIENS konkrēts nākamais solis, bez preambulas/atkārtojuma/noslēguma. Pielāgots no [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                 |
+| Lakonisks CJK (文言)                    | `terse-cjk`   | Klasiskās ķīniešu valodas ultra-lakonisks stils.                                                                                                                                                                                    | zh (lokāles ierobežots: tiek piedāvāts tikai tad, ja noteiktā valoda ir `zh`) |
 
 Katram stilam ir trīs intensitātes līmeņi — `lite`, `full`, `ultra` — un katrs līmenis
-beidzas ar kopīgo ierobežojumu klauzulu, kas saglabā koda blokus, failu ceļus, komandas,
-kļūdu virknes, URL un identifikatorus nemainītus.
+beidzas ar kopīgu robežu klauzulu, kas saglabā koda blokus, failu ceļus, komandas,
+kļūdu virknes, URL un identifikatorus burtiski.
 
-#### Kā darbojas ievietošana
+#### Kā darbojas injekcija
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) salīdzina
-atlasi ar katalogu (nezināmi identifikatori un lokalizācijai neatbilstoši stili tiek
-atmesti, nekad neradot kļūdu), savieno atlasītos norādījumus kataloga secībā,
-vienreiz pievieno ierobežojumu klauzulu un ievieto rezultātu sistēmas
-uzvednes sākumā aiz viena idempotences marķiera (`[OmniRoute Output Styles]`) — atkārtota
-lietošana neko nemaina. Ja noteiktajai pieprasījuma valodai ir pieejams tulkojums,
-angļu valodas norādījuma vietā tiek ievietots lokalizētais norādījums.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) atrisina
+izvēli pret katalogu (nezināmi ID un lokālei neatbilstoši stili tiek
+atmesti, nekad nav kļūda), apvieno atlasītās instrukcijas kataloga secībā,
+pievieno robežu klauzulu **vienreiz** un ievieto rezultātu sistēmas
+uzvednē aiz viena idempotences marķiera (`[OmniRoute Output Styles]`) — atkārtota
+piemērošana ir bezdarbība. Ja noteiktajai pieprasījuma valodai ir tulkojums,
+tiek injicēta lokalizētā instrukcija angļu valodas vietā.
 
 #### Kā iespējot
 
-Informācijas panelī: **Konteksts → Iestatījumi → Saspiešana** — katram stilam viena
-rinda ar ieslēgšanas/izslēgšanas slēdzi un līmeņa atlasītāju. Programmatiski saspiešanas konfigurācija saglabā
-atlasi šādi:
+Informācijas panelī: **Context → Settings → Compression** — viena rinda katram stilam ar
+ieslēgšanas/izslēgšanas slēdzi un līmeņa selektoru. Programmatiski kompresijas konfigurācija
+saglabā izvēli kā:
 
 ```json
 {
@@ -489,59 +466,59 @@ atlasi šādi:
 }
 ```
 
-Atpakaļsaderība: mantotais kombinētais iestatījums `outputMode: "caveman"` joprojām darbojas un tiek kartēts uz
-`terse-prose`; visās mantotajās valodās tas baitu līmenī ir identisks iepriekšējam ievietojumam.
+Atpakaļsaderība: mantotais `outputMode: "caveman"` kombinētais iestatījums joprojām darbojas un atbilst
+`terse-prose`, baitiski identisks vecajai injekcijai katrā mantotajā valodā.
 
-Valodas atlase: ja `languageConfig.enabled` ir ieslēgts, `autoDetect` nosaka
-jaunākā lietotāja ziņojuma valodu (tas pats detektors, ko izmanto ievades dziņi);
-izslēdzot `autoDetect`, tiek fiksēta `defaultLanguage`. Ja izslēgts → angļu valoda.
+Valodu izvēle: ar `languageConfig.enabled` ieslēgtu, `autoDetect` izvēlas
+jaunākās lietotāja ziņas valodu (tas pats detektors, kas ievades dzinējiem);
+izslēdzot `autoDetect`, tiek fiksēta `defaultLanguage`. Izslēgts → angļu.
 
-Stilu × valodu matrica ir fiksēta ar
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: jaunu stilu nevar izlaist
+Stila × valodu matrica ir fiksēta ar
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: jauns stils nevar tikt piegādāts
 bez vismaz pt-BR tulkojuma (vai skaidri izsekota izņēmuma), un
-esošs stils nevar nemanāmi zaudēt lokalizāciju. Lai pievienotu stilu, skatiet
+esošs stils nevar klusi zaudēt lokāli. Lai pievienotu stilu, skatiet
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Rīku rezultātu saspiešana
+### Rīka rezultātu kompresija
 
-`toolResultCompressor.ts` modulis nodrošina **5 specializētas saspiešanas stratēģijas**
-rīku rezultātiem (funkciju izsaukumiem, aģentu izvadei, meklēšanas rezultātiem utt.):
+Modulis `toolResultCompressor.ts` nodrošina **5 specializētas kompresijas stratēģijas**
+rīku rezultātiem (funkciju izsaukumi, aģentu izvades, meklēšanas rezultāti utt.):
 
-1. **Meklēšanas rezultātu saspiešana** — noņem liekos rezultātus, saglabā N labākos
-2. **Failu lasīšanas saspiešana** — apcērt lielus failus, saglabā galvenes/importus
-3. **Koda izpildes saspiešana** — saglabā tikai būtisko stdout/stderr
-4. **Datubāzes vaicājumu saspiešana** — ierobežo rindas, noņem izvērstos metadatus
-5. **API atbilžu saspiešana** — izņem laukus ar null vērtību, saīsina masīvus
+1. **Meklēšanas rezultātu kompresija** — Noņem liekos rezultātus, saglabā top-N
+2. **Failu lasīšanas kompresija** — Saīsina lielus failus, saglabā galvenes/importus
+3. **Koda izpildes kompresija** — Saglabā tikai būtisko stdout/stderr
+4. **Datu bāzes vaicājumu kompresija** — Ierobežo rindas, noņem detalizētus metadatus
+5. **API atbildes kompresija** — Noņem nulles laukus, kondensē masīvus
 
 #### Kad izmantot
 
-Rīku rezultātu saspiešana ir **vienmēr ieslēgta**, ja ir rīku izsaukumi. Nekāda
-konfigurēšana nav nepieciešama.
+Rīka rezultātu kompresija ir **vienmēr ieslēgta**, ja ir rīku izsaukumi. Nav
+nepieciešama konfigurācija.
 
-### Secīgais konveijers
+### Sakrauta cauruļvads
 
-Secīgais režīms palaiž **vairākus dziņus pēc kārtas** — parasti vispirms RTK
-(60–90% ietaupījums rīku izvadē), pēc tam Caveman (vēl 30% ietaupījums
-atlikušajā tekstā). Tādējādi tiek sasniegts **78–95% kopējais ietaupījums**.
+Sakrautais režīms palaiž **vairākus dzinējus secīgi** — parasti vispirms RTK
+(60-90% ietaupījums rīka izvadei), tad Caveman (30% papildu ietaupījums
+atlikušajam tekstam). Tas nodrošina **78-95% kopējo ietaupījumu**.
 
 #### Kā tas darbojas
 
 ```
-Ievade (1000 tokenu)
-  → RTK (komandu kontekstu ņemošs filtrs) → 200 tokenu
-    → Caveman (liekvārdības noņemšana) → 140 tokenu
-  → Izvade (140 tokenu, 86% ietaupījums)
+Ievade (1000 žetoni)
+  → RTK (komandu apzinīgs filtrs) → 200 žetoni
+    → Caveman (pildvielu noņemšana) → 140 žetoni
+  → Izvade (140 žetoni, 86% ietaupījums)
 ```
 
 #### Kad izmantot
 
-Izmantojiet secīgo režīmu:
+Izmantojiet sakrauto režīmu:
 
-- Darbplūsmām ar intensīvu rīku izmantošanu (aģentiskai programmēšanai, pētniecībai)
-- Pret izmaksām jutīgai pakešapstrādei
-- Ja nepieciešams maksimāli ietaupīt tokenus
+- Rīku intensīvām darbplūsmām (aģentiska kodēšana, pētniecība)
+- Izmaksu jutīgai pakešu apstrādei
+- Kad nepieciešams maksimāls žetonu ietaupījums
 
-Konfigurējiet, izmantojot kombinēto konfigurāciju:
+Konfigurējiet, izmantojot kombināciju:
 
 ```json
 {

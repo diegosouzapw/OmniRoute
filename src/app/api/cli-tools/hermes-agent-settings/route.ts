@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import fs from "fs/promises";
 import path from "path";
 import { z } from "zod";
@@ -8,10 +9,18 @@ import { validateBaseUrl } from "@/lib/cli-helper/config-generator";
 import {
   generateHermesAgentConfig,
   getCurrentHermesAgentRoles,
+  HERMES_AGENT_ROLES,
+  type HermesAgentRole,
 } from "@/lib/cli-helper/config-generator/hermes-agent";
 import { getHermesConfigPath } from "@/lib/cli-helper/config-generator/hermesHome";
 import { getApiKeyById } from "@/lib/db/apiKeys";
+import { createMultiBackup } from "@/shared/services/backupService";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+
+const hermesRoleIds = HERMES_AGENT_ROLES.map((role) => role.id) as [
+  HermesAgentRole,
+  ...HermesAgentRole[],
+];
 
 const hermesAgentSettingsSchema = z.object({
   baseUrl: z.string().min(1, "baseUrl is required"),
@@ -20,7 +29,7 @@ const hermesAgentSettingsSchema = z.object({
   selections: z
     .array(
       z.object({
-        role: z.string(),
+        role: z.enum(hermesRoleIds),
         model: z.string(),
       })
     )
@@ -41,6 +50,65 @@ const getConfigPath = () => getHermesConfigPath();
 
 function getMetadataPath(configPath: string) {
   return path.join(path.dirname(configPath), ".first-setup.json");
+}
+
+const HERMES_API_KEY_ENV = "OMNIROUTE_API_KEY";
+const HERMES_API_KEY_PLACEHOLDERS = new Set(["YOUR_OMNIROUTE_API_KEY_HERE", "sk_omniroute"]);
+
+async function readTextIfPresent(filePath: string): Promise<string> {
+  try {
+    return await fs.readFile(filePath, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return "";
+    throw error;
+  }
+}
+
+function upsertHermesApiKey(existing: string, value: string): string {
+  if (/[\r\n]/.test(value)) throw new Error("Invalid OmniRoute API key");
+  const replacement = `${HERMES_API_KEY_ENV}=${value}`;
+  const next: string[] = [];
+  let replaced = false;
+  for (const line of existing.split(/\r?\n/)) {
+    if (!line.startsWith(`${HERMES_API_KEY_ENV}=`)) {
+      next.push(line);
+    } else if (!replaced) {
+      next.push(replacement);
+      replaced = true;
+    }
+  }
+  if (!replaced) {
+    while (next.length && next[next.length - 1] === "") next.pop();
+    next.push(replacement);
+  }
+  return `${next.join("\n")}\n`;
+}
+
+function hasUsableHermesApiKey(existing: string): boolean {
+  const prefix = `${HERMES_API_KEY_ENV}=`;
+  const line = existing.split(/\r?\n/).find((candidate) => candidate.startsWith(prefix));
+  if (!line) return false;
+  let value = line.slice(prefix.length).trim();
+  if (
+    value.length >= 2 &&
+    ((value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'")))
+  ) {
+    value = value.slice(1, -1);
+  }
+  return value.length > 0 && !HERMES_API_KEY_PLACEHOLDERS.has(value);
+}
+
+async function writeAtomic(filePath: string, content: string, mode: number): Promise<void> {
+  const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    await fs.writeFile(tempPath, content, { encoding: "utf8", mode });
+    await fs.chmod(tempPath, mode);
+    await fs.rename(tempPath, filePath);
+  } catch (error) {
+    await fs.unlink(tempPath).catch(() => {});
+    throw error;
+  }
 }
 
 export async function GET(request: Request) {
@@ -100,13 +168,8 @@ export async function POST(request: Request) {
 
   await fs.mkdir(configDir, { recursive: true });
 
-  // #10711: HermesAgentToolCard's "Apply" flow only ever sends `keyId` (never
-  // a raw `apiKey`) — the same precedented pattern as claude-settings/route.ts
-  // and codex-settings/route.ts. Resolve the real key by ID here so
-  // generateHermesAgentConfig() does not fall through to its
-  // "YOUR_OMNIROUTE_API_KEY_HERE" placeholder. Never trust a client-supplied
-  // key string directly: the /api/keys list endpoint returns masked values,
-  // so the only safe source of a usable key is resolving by ID from the DB.
+  // Resolve keyId server-side. The generator references OMNIROUTE_API_KEY;
+  // only the non-preview apply path writes the resolved secret to Hermes' .env.
   let resolvedApiKey = apiKey ?? null;
   if (keyId) {
     try {
@@ -142,7 +205,20 @@ export async function POST(request: Request) {
     });
   }
 
-  await fs.writeFile(configPath, result.yaml, "utf-8");
+  const envPath = path.join(configDir, ".env");
+  const existingEnv = await readTextIfPresent(envPath);
+  const hasExistingApiKey = hasUsableHermesApiKey(existingEnv);
+  if (!resolvedApiKey && !hasExistingApiKey) {
+    return NextResponse.json(
+      { error: "The selected OmniRoute API key could not be resolved" },
+      { status: 400 }
+    );
+  }
+  await createMultiBackup("hermes-agent", [configPath, envPath]);
+  if (resolvedApiKey) {
+    await writeAtomic(envPath, upsertHermesApiKey(existingEnv, resolvedApiKey), 0o600);
+  }
+  await writeAtomic(configPath, result.yaml, 0o600);
 
   // Record first setup time if this is the first save via OmniRoute
   const metaPath = getMetadataPath(configPath);

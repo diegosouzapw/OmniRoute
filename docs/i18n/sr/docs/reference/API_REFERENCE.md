@@ -1,10 +1,10 @@
 # API Reference (Српски)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 Основна референца за OmniRoute API. Обухвата јавну површину `/v1` и најчешће коришћене крајње тачке за управљање; машински читљива датотека [`docs/openapi.yaml`](../openapi.yaml) и стабло рута у `src/app/api/` представљају исцрпне изворе.
 
@@ -86,15 +86,15 @@ Content-Type: application/json
 
 > **Семантика трошка код кеш погодка (cache-hit):** приликом семантичког кеш погодка (`X-OmniRoute-Cache-Hit: true`) не позива се провајдер узводно, тако да је `X-OmniRoute-Response-Cost` `0.0000000000` (**инкрементални** трошак опслуживања погодка). Оригинални/потенцијални трошак се пријављује одвојено у `X-OmniRoute-Cost-Saved`. Потрошачи наплате треба да сабирају `X-OmniRoute-Response-Cost` (погоци не коштају ништа); аналитика кеша може агрегирати `X-OmniRoute-Cost-Saved`.
 
-## Ексклузивни закупи управљане сесије
+## Ekskluzivni zakupi upravljanih sesija
 
-Ексклузивно закупљивање управљане сесије је опциони, клијентски неутралан рутирајући уговор: један активни власник
-држи једну подобну OmniRoute везу. Он не закупљује модел, не захтева OAuth, не идентификује
-одређеног клијента, ни не захтева одређеног провајдера.
+Ekskluzivni zakup upravljane sesije je opt-in, klijent-neutralan ugovor o rutiranju: jedan aktivni vlasnik
+drži jednu podobnu OmniRoute vezu. Ne zakupljuje model, ne zahteva OAuth, ne identifikuje
+određenog klijenta, niti zahteva određenog provajdera.
 
-API кључ који врши аутентикацију мора имати опсег `lease:exclusive` и експлицитну непразну
-листу `allowedConnections`. Граница мутације базе података намеће оба поља заједно приликом
-креирања кључа и делимичних ажурирања.
+Autentifikacioni API ključ mora imati opseg `lease:exclusive` i eksplicitnu nepraznu
+`allowedConnections` listu. Granica mutacije baze podataka sprovodi oba polja zajedno pri kreiranju ključa
+i delimičnim ažuriranjima.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Успешни одговори на acquire, renew и release излажу временске ознаке, `state` и тачну позитивну
-вредност `generation`, али никада изабрану везу или креденцијале. Renew и release достављају
-generation у JSON телу:
+Uspešni odgovori za akviziciju, obnavljanje i oslobađanje izlažu vremenske oznake, `state` i tačnu pozitivnu
+`generation`, ali nikada odabranu vezu ili akreditive. Obnavljanje i oslobađanje daju
+generaciju u JSON telu:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ generation у JSON телу:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Активни власник закупа може експлицитно затражити приватносно безбедне метаподатке приказа за своје тренутно везивање:
+Aktivni vlasnik zakupa može eksplicitno zatražiti metapodatke za prikaz koji su sigurni za privatnost za svoje trenutno vezivanje:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +137,35 @@ generation у JSON телу:
 }
 ```
 
-Ова опциона акција статуса је оивичена непрозирним власником, аутентикованим управљаним API кључем и тачном
-активном generation вредношћу у једној трансакцији базе података. `displayName` је само подрезано конфигурисано
-име везе; вредност је `null` када не постоји безбедно конфигурисано име. OmniRoute никада не замењује
-имејл или генерисан идентитет налога. Вредност provider је ознака приказа без осетљивих података и никада
-генерисан идентификатор компатибилног провајдера. Креденцијали, токени, колачићи (cookies), сирови идентификатори везе или API
-кључа, хешеви власника, тајне ограђивања и интерни подаци рутирања су искључени.
+Ova opt-in statusna akcija je ograđena neprozirnim vlasnikom, autentifikovanim upravljanim API ključem i tačnom
+aktivnom generacijom u jednoj transakciji baze podataka. `displayName` je samo skraćeni konfigurisani
+naziv veze; `null` je kada ne postoji siguran konfigurisani naziv. OmniRoute nikada ne zamenjuje
+e-poštu ili generisani identitet naloga. Vrednost provajdera je neosetljiva oznaka za prikaz i nikada
+generisani identifikator kompatibilnog provajdera. Akreditivi, tokeni, kolačići, sirovi ID-ovi veze ili API ključeva, heševi vlasnika, tajne ograde i interni podaci o rutiranju su isključeni.
 
-Претраге са погрешним кључем, погрешним власником, застарелом generation вредношћу, недостајуће, истекле, ослобођене и поништене
-све враћају исту грешку `409 LEASE_FENCE_STALE` без метаподатака везе. Клијент који је примио одговор о чекању на капацитет нема активно везивање за преглед. Када рутирање пренесе активни закуп на другу везу,
-исти generation остаје важећи и status атомски враћа ново везивање, никада старо.
-Постојећи клијенти остају непромењени јер acquire, renew, release и одговори чекања задржавају
-своје претходне облике.
+Pogrešan ključ, pogrešan vlasnik, zastarela generacija, nedostajući, istekli, oslobođeni i poništeni upiti svi
+vraćaju istu grešku `409 LEASE_FENCE_STALE` bez metapodataka veze. Klijent koji je primio odgovor o čekanju kapaciteta nema aktivno vezivanje za inspekciju. Kada rutiranje prebacuje aktivni zakup,
+ista generacija ostaje važeća i status atomski vraća novo vezivanje, nikada staro.
+Postojeći klijenti ostaju nepromenjeni jer odgovori za akviziciju, obnavljanje, oslobađanje i čekanje zadržavaju
+svoje prethodne oblike.
 
-Овај серверски уговор не мења стандардни OpenAI Codex `/status`. Стандардни Codex тренутно пријављује свог
-провајдера модела и уграђено стање аутентикације/налога, али не приказује произвољне метаподатке налога прилагођеног
-провајдера; каснија клијентска интеграција мора позвати ову акцију и одлучити како да
-прикаже `connection.displayName`.
+Ovaj serverski ugovor ne menja standardni OpenAI Codex `/status`. Standardni Codex trenutno izveštava o svom
+provajderu modela i ugrađenom stanju autentifikacije/naloga, ali ne prikazuje proizvoljne prilagođene
+metapodatke naloga provajdera; kasnija klijentska integracija mora pozvati ovu akciju i odlučiti kako
+da prikaže `connection.displayName`.
 
-Сваки управљани захтев за инференцију тада доставља оба контролна заглавља:
+Svaki zahtev za upravljano zaključivanje tada dostavlja oba kontrolna zaglavlja:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Тачан власник, generation, активна веза и аутентикован API кључ се ограђују непосредно
-пре сваког подржаног покушаја узводно (upstream). Понављање власника и generation вредности са другим кључем не успева и када
-тај кључ дозвољава исту везу. Сирови власници се не чувају трајно, не логују, не задржавају у
-снимку захтева ни прослеђују узводно.
+Tačan vlasnik, generacija, aktivna veza i autentifikovani API ključ su ograđeni odmah
+pre svakog podržanog pokušaja uzvodno. Ponovno korišćenje vlasnika i generacije sa drugim ključem ne uspeva čak
+i kada taj ključ dozvoljava istu vezu. Sirovi vlasnici se ne čuvaju, ne loguju, ne zadržavaju u snimku zahteva, niti se prosleđuju uzvodno.
 
-Привремена контенција враћа HTTP `429` са `Retry-After` и:
+Privremena konkurencija vraća HTTP `429` sa `Retry-After` i:
 
 ```json
 {
@@ -178,36 +176,38 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-Овај одговор значи само да обичан подобан скуп није био празан и да је сваки слободан кандидат
-био заузет туђим активним закупом. Неподржани модели/провајдери, неусклађеност политике, cooldown, квота,
-здравствено стање и остале обичне неуспешне провере подобности задржавају своје постојеће OmniRoute одговоре.
+Ovaj odgovor samo znači da je uobičajeni skup podobnih bio neprazan i da je svaki slobodan kandidat bio
+zauzet stranim aktivnim zakupom. Nepodržani modeli/provajderi, neusklađenost politike, hlađenje, kvota,
+zdravlje i drugi uobičajeni neuspesi podobnosti zadržavaju svoje postojeće OmniRoute odgovore.
 
 ### `x-omniroute-compression`
 
-Прекорачење плана компресије по захтеву. Има највиши приоритет — надјачава прекорачење routing-комбинације,
-активни профил, аутоматски покретач и подразумевану вредност панела. Вредности:
+Premošćavanje plana kompresije po zahtevu. Najviši prioritet — nadjačava premošćavanje kombinacije rutiranja,
+aktivni profil, automatsko pokretanje i podrazumevani panel. Vrednosti:
 
-| Вредност      | Ефекат                                                                                          |
-| ------------- | ----------------------------------------------------------------------------------------------- |
-| `off`         | Без компресије за овај захтев.                                                                  |
-| `default`     | Подразумевани профил изведен из панела (игнорише активни профил).                               |
-| `engine:<id>` | Појединачни мотор када је омогућен, нпр. `engine:rtk`.                                          |
-| `<combo>`     | Именована комбинација, поклапа се по имену (без разлике велика/мала слова) прво, затим по id-у. |
+| Vrednost      | Efekat                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| `off`         | Nema kompresije za ovaj zahtev.                                                                      |
+| `default`     | Podrazumevani profil izveden iz panela (ignoriše aktivni profil). Gubitni motori su isključeni.      |
+| `safe`        | Samo deduplikacija i savijanje belina.                                                               |
+| `allow-lossy` | Zadržite plan operatora za ovaj zahtev, uključujući sažetke i prepravke stila.                       |
+| `engine:<id>` | Jedan motor kada je omogućen, npr. `engine:rtk`. Opt-in po zahtevu za taj motor.                     |
+| `<combo>`     | Imenovana kombinacija, prvo se podudara po imenu (bez obzira na velika i mala slova), zatim po ID-u. |
 
-Напомене:
+Napomene:
 
-- Непознате вредности се игноришу (захтев се никада не одбија); резолуција прелази на нормалан приоритет оператора.
-- Ако више комбинација дели исто име, проследите **id** комбинације за детерминистичко поклапање.
-- Комбинација чије је име `off` или `default` не може бити изабрана по имену (те кључне речи се тумаче прво); референцирајте такву комбинацију по њеном id-у.
-- Главни прекидач компресије је чврста препрека: када је компресија глобално онемогућена, ово заглавље је не може омогућити.
+- Nepoznate vrednosti se ignorišu (zahtev se nikada ne odbija); rezolucija se nastavlja na normalan prioritet operatora.
+- Ako više kombinacija deli ime, prosledite **ID** kombinacije za determinističko podudaranje.
+- Kombinacija čije je ime `off` ili `default` ne može biti odabrana po imenu (te ključne reči se prvo interpretiraju); referencirajte takvu kombinaciju po njenom ID-u.
+- Glavni prekidač za kompresiju je čvrsta kapija: kada je kompresija globalno onemogućena, ovo zaglavlje je ne može omogućiti.
 
-Примењени план се враћа у заглављу одговора:
+Primenjeni plan se vraća u zaglavlju odgovora:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-где је `<source>` једно од `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, или `off`.
+gde je `<source>` jedno od `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, ili `off`.
 
 ---
 
@@ -445,51 +445,51 @@ Koristite ovaj endpoint kada sidecar radi izvan procesa (out-of-process) i ne mo
 
 ---
 
-## Kompatibilni endpointi
+## Kompatibilne krajnje tačke
 
-| Metoda | Putanja                                   | Format                                    |
-| ------ | ----------------------------------------- | ----------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                    |
-| POST   | `/v1/messages`                            | Anthropic                                 |
-| POST   | `/v1/responses`                           | OpenAI Responses                          |
-| POST   | `/v1/embeddings`                          | OpenAI                                    |
-| POST   | `/v1/images/generations`                  | OpenAI Images                             |
-| POST   | `/v1/images/edits`                        | OpenAI Images (izmena/inpaint)            |
-| POST   | `/v1/videos/generations`                  | Generisanje video sadržaja u OpenAI stilu |
-| POST   | `/v1/music/generations`                   | Generisanje muzike u OpenAI stilu         |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                        |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (vraća audio telo)             |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-stil rerangiranja           |
-| POST   | `/v1/classify`                            | Jina klasifikacija (`api.jina.ai`)        |
-| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)        |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                        |
-| GET    | `/v1/models`                              | OpenAI                                    |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                                 |
-| GET    | `/v1beta/models`                          | Gemini                                    |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                    |
-| POST   | `/v1/api/chat`                            | Ollama                                    |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI alias za katalog                   |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI alias za modele                    |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenizovani alias                 |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenizovani alias       |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenizovani alias                 |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenizovani alias            |
+| Metoda | Putanja                                   | Format                             |
+| ------ | ----------------------------------------- | ---------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                             |
+| POST   | `/v1/messages`                            | Anthropic                          |
+| POST   | `/v1/responses`                           | OpenAI Odgovori                    |
+| POST   | `/v1/embeddings`                          | OpenAI                             |
+| POST   | `/v1/images/generations`                  | OpenAI Slike                       |
+| POST   | `/v1/images/edits`                        | OpenAI Slike (izmena/inpaint)      |
+| POST   | `/v1/videos/generations`                  | Generisanje videa u OpenAI stilu   |
+| POST   | `/v1/music/generations`                   | Generisanje muzike u OpenAI stilu  |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (vraća audio telo)      |
+| POST   | `/v1/rerank`                              | Rerank u Cohere/Voyage stilu       |
+| POST   | `/v1/classify`                            | Jina klasifikacija (`api.jina.ai`) |
+| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`) |
+| POST   | `/v1/moderations`                         | OpenAI Moderacije                  |
+| GET    | `/v1/models`                              | OpenAI                             |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                          |
+| GET    | `/v1beta/models`                          | Gemini                             |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent             |
+| POST   | `/v1/api/chat`                            | Ollama                             |
+| GET    | `/api/v1/vscode/{token}/`                 | OpenAI katalog alias               |
+| GET    | `/api/v1/vscode/{token}/models`           | OpenAI modeli alias                |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenizovani alias          |
+| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Odgovori tokenizovani alias |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenizovani alias          |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tagovi tokenizovani alias   |
 
-Svi POST ruteri prate isti oblik: `Bearer your-api-key` + Zod-validirano JSON telo (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, itd., vidi `src/shared/validation/schemas.ts`). Prilikom neuspešne validacije šeme vraća se 4xx.
+Sve POST rute prate isti oblik: `Bearer your-api-key` + Zod-validirano JSON telo (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, itd., pogledajte `src/shared/validation/schemas.ts`). 4xx se vraća u slučaju neuspeha šeme.
 
-Za klijente koji ne mogu da dodaju `Authorization: Bearer ...`, OmniRoute takođe prihvata API ključeve u URL-u, bilo putem query-string kompatibilnosti (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ili putem namenskih `/api/v1/vscode/{token}/...` endpointa dokumentovanih ispod.
+Za klijente koji ne mogu da prilože `Authorization: Bearer ...`, OmniRoute takođe prihvata API ključeve u URL-u putem kompatibilnosti sa upitnim nizom (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ili namenskih `/api/v1/vscode/{token}/...` krajnjih tačaka dokumentovanih u nastavku.
 
 ```bash
-# Rerank
+# Rerank (provajder cloud registra, ili čvor provajdera kompatibilan sa OpenAI kao "<prefiks>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina klasifikacija (Foundation API akreditivi)
+# Jina klasifikacija (akreditivi Foundation API-ja)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Jina segmenter
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina pretraga (s.jina.ai; aliasi provajdera: jina-search, jina-ai, jina)
+# Jina pretraga (s.jina.ai; alias provajdera: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderacije
@@ -501,12 +501,34 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # Izmena slike (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Generisanje video/muzičkog sadržaja (id modela sa prefiksom provajdera)
+# Generisanje videa / muzike (ID modela sa prefiksom provajdera)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-### Namenski ruteri za provajdere
+> **Čvorovi provajdera za rerank:** `POST /v1/rerank` takođe rutira ka čvorovima provajdera kompatibilnim sa OpenAI
+> (oMLX, vLLM, Infinity, TEI iza gateway-a, …) adresiranim kao `<node-prefix>/<model>`. Loopback
+> čvorovi (`localhost`, `127.0.0.1`, `172.16.0.0/12`) su uvek prihvatljivi. Čvorovi na bilo kom drugom
+> hostu — LAN kutija ili Tailscale peer — su prihvatljivi samo kada operator omogući
+> `RERANK_REMOTE_PROVIDER_NODES` zastavicu funkcije **i** osnovni URL čvora prođe politiku
+> odlaznog URL-a provajdera (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> hostovi sa cloud metapodacima nikada se ne rutiraju. Korak rerank-a memorijskog mehanizma poziva ovu rutu preko
+> loopback-a, tako da isto pravilo reguliše `rerankProviderModel` u podešavanjima memorije.
+>
+> **Oblici lokalnog servera:** čvor se poziva na `<base>/v1/rerank` i, u slučaju 404, na `<base>/rerank`
+> (Infinity, TEI). Uzvodno telo nosi i Cohere/OpenAI pravopis (`documents`,
+> `return_documents`) i TEI pravopis (`texts`, `return_text`), a uzvodni odgovor je
+> normalizovan na Cohere omotač: TEI-jev goli `[{index, score, text}]`, `{results: [{index, score}]}`
+> iz tankih gateway-a, i Voyage-stil `{data: [...]}` sve se vraćaju klijentu kao
+> `{results: [{index, relevance_score, document?}]}`, sortirani po rezultatu i ograničeni na `top_n`.
+
+> **Otkrivanje čvorova provajdera:** modeli na čvoru provajdera kompatibilnom sa OpenAI pojavljuju se u `GET /v1/models`
+> pod prefiksom čvora. Redovi koji ne sadrže metapodatke krajnje tačke (tipično za lokalne `/v1/models` liste)
+> nasleđuju `apiType` čvora, tako da su modeli čvora `embeddings` `type: "embedding"`, a modeli
+> čvora `rerank` su `type: "rerank"` umesto da podrazumevano budu chat; eksplicitni
+> `supportedEndpoints` na sinhronizovanom ili ručno dodatom redu i dalje ima prednost.
+
+### Namenske rute provajdera
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -514,7 +536,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Prefiks provajdera se automatski dodaje ako nedostaje. Neusklađeni modeli vraćaju `400`.
+Prefiks provajdera se automatski dodaje ako nedostaje. Neodgovarajući modeli vraćaju `400`.
 
 ---
 

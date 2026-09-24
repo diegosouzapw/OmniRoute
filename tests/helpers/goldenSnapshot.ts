@@ -31,7 +31,7 @@ class GoldenMismatchError extends Error {
 
 /**
  * Compare `value` with a stable JSON snapshot at `tests/snapshots/<name>.json`.
- * - First run (file missing): writes the file and passes.
+ * - Missing file: fails without creating unreviewed evidence.
  * - UPDATE_GOLDEN=1: rewrites the file and passes.
  * - Mismatch: throws GoldenMismatchError with a diff-friendly message.
  *
@@ -43,10 +43,16 @@ export function goldenSnapshot(name: string, value: unknown, dir = DEFAULT_DIR):
   const file = path.join(dir, `${name}.json`);
   const serialized = stable(value);
 
-  if (process.env.UPDATE_GOLDEN === "1" || !fs.existsSync(file)) {
+  if (process.env.UPDATE_GOLDEN === "1") {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, serialized + "\n");
     return;
+  }
+
+  if (!fs.existsSync(file)) {
+    throw new Error(
+      `Missing golden snapshot for "${name}". Generate explicitly with UPDATE_GOLDEN=1 and review the diff.`
+    );
   }
 
   const expected = fs.readFileSync(file, "utf8").trimEnd();

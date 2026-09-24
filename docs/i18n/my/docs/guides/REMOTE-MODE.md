@@ -1,6 +1,6 @@
 # Remote Mode (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇧🇦 [bs](../../../bs/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
 
 ---
 
@@ -340,67 +340,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # OMNIROUTE_API_KEY ကို �
 
 ---
 
-## Context များကို စီမံခြင်း (server များအကြား ပြောင်းခြင်း)
+## Context များ စီမံခန့်ခွဲခြင်း (ဆာဗာများအကြား ပြောင်းလဲခြင်း)
 
-**context** ဆိုသည်မှာ သိမ်းဆည်းထားသော server တစ်ခု (baseUrl + credential + scope) ဖြစ်သည်။ `omniroute connect`
-သည် context တစ်ခုကို ဖန်တီးပြီး active ဖြစ်စေသည်။ ထိုအချိန်မှစ၍ command အားလုံးသည် ယင်းကို ဦးတည်လုပ်ဆောင်သည်။ Context များကို
-`omniroute contexts` ဖြင့် စီမံပြီး ပြောင်းနိုင်သည်-
+**Context** ဆိုသည်မှာ သိမ်းဆည်းထားသော ဆာဗာ (baseUrl + credential + scope) တစ်ခုဖြစ်သည်။ `omniroute connect` သည် context တစ်ခုကို ဖန်တီးပြီး ၎င်းကို active ဖြစ်စေသည်။ ထိုအချိန်မှစ၍ command တိုင်းသည် ၎င်းကို ပစ်မှတ်ထားသည်။ ၎င်းတို့ကို `omniroute contexts` ဖြင့် စီမံခန့်ခွဲပြီး ပြောင်းလဲနိုင်သည်-
 
 ```bash
-omniroute contexts list            # context အားလုံး၊ active ဖြစ်နေသည့် context ကို ● ဖြင့် မှတ်သားထားသည်
-omniroute contexts current         # active server၊ auth အခြေအနေနှင့် scope
+omniroute contexts list            # context အားလုံး; active ဖြစ်နေသော context ကို ● ဖြင့် မှတ်သားထားသည်
+omniroute contexts current         # active ဖြစ်နေသော ဆာဗာ၊ authentication အခြေအနေ၊ scope
 ```
 
 ```text
-  | အမည်    | အခြေခံ URL                 | Auth  | Scope | ဖော်ပြချက်
-● | vps     | http://100.67.86.91:20128 | token | admin | အဝေးထိန်း OmniRoute (…)
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
   | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Server များ ပြောင်းရန်** — နောက်ဆက်တွဲ command အားလုံးသည် active context ကို အသုံးပြုသည်-
+**ဆာဗာများ ပြောင်းလဲခြင်း** — နောက်ဆက်တွဲ command တိုင်းသည် active context ကို လိုက်နာသည်-
 
 ```bash
-omniroute contexts use vps         # → ယခု command အားလုံးသည် အဝေးရှိ VPS ကို အသုံးပြုသည်
-omniroute tokens list              #   (VPS ကို ဦးတည်ပြီး လုပ်ဆောင်သည်)
+omniroute contexts use vps         # → command အားလုံးသည် ယခုအခါ remote VPS ကို ရောက်ရှိသွားသည်
+omniroute tokens list              #   (VPS တွင် လုပ်ဆောင်သည်)
 
 omniroute contexts use default     # → localhost သို့ ပြန်သွားသည်
-omniroute tokens list              #   (local server ကို ဦးတည်ပြီး လုပ်ဆောင်သည်)
+omniroute tokens list              #   (local server တွင် လုပ်ဆောင်သည်)
 ```
 
-**Context တစ်ခုကို ကိုယ်တိုင်ထည့်ရန်** (`connect` ကို အသုံးမပြုဘဲ)၊ စစ်ဆေးရန် သို့မဟုတ် အမည်ပြောင်းရန်-
+**Context တစ်ခုကို ကိုယ်တိုင် ထည့်သွင်းခြင်း** (`connect` အစား)၊ စစ်ဆေးခြင်း သို့မဟုတ် အမည်ပြောင်းလဲခြင်း-
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # context တစ်ခု၏ အသေးစိတ်အချက်အလက် အပြည့်အစုံ
+omniroute contexts show staging    # context တစ်ခုအတွက် အသေးစိတ်အချက်အလက်များ
 omniroute contexts rename staging stg
 ```
 
-**Context တစ်ခုကို ဖယ်ရှားရန်** — အတည်ပြုချက် တောင်းမည်။ အတည်ပြုချက်ကို ကျော်ရန် `--yes` ထည့်ပါ
-(မထည့်ပါက ဘေးကင်းစွာ ငြင်းပယ်မည့် script များ / non-interactive shell များအတွက် လိုအပ်သည်)-
+**Context တစ်ခုကို ဖယ်ရှားခြင်း** — အတည်ပြုရန် တောင်းဆိုသည်။ ၎င်းကို ကျော်ရန် `--yes` ကို ထည့်သွင်းပါ (script များ / non-interactive shell များအတွက် လိုအပ်သည်၊ ၎င်းတို့သည် အခြားနည်းဖြင့် လုံခြုံစွာ ငြင်းပယ်သည်)-
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) ကို ဖယ်ရှား၍မရပါ။ Active context ကို ဖယ်ရှားပါက
-> `default` သို့ ပြန်သွားမည်။ အကြံပြုချက်- context တစ်ခုကို ဖယ်ရှားခြင်းသည် သိမ်းဆည်းထားသော **local** credential ကိုသာ ဖျက်သည် —
-> အသုံးပြုခွင့်ကို အမှန်တကယ် ပိတ်ရန် server ပေါ်ရှိ token ကို `omniroute tokens revoke <id>` ဖြင့်
-> ရုပ်သိမ်းပါ။
+> `default` (localhost) ကို ဖယ်ရှား၍မရပါ။ active context ကို ဖယ်ရှားခြင်းသည် `default` သို့ ပြန်လည်ရောက်ရှိစေသည်။ အကြံပြုချက်- context တစ်ခုကို ဖယ်ရှားခြင်းသည် **local** တွင် သိမ်းဆည်းထားသော credential ကိုသာ ဖယ်ရှားခြင်းဖြစ်သည်။ ဝင်ရောက်ခွင့်ကို အမှန်တကယ် ပိတ်ရန် ဆာဗာပေါ်ရှိ token ကို `omniroute tokens revoke <id>` ဖြင့် ရုပ်သိမ်းပါ။
 
-Context များကို **export / import** လုပ်ခြင်း (ဥပမာ စက်များအကြား ရွှေ့ပြောင်းရန်)။ OS
-keychain ကို အသုံးပြုနိုင်သည့်အခါ context အသစ်များတွင် keychain reference တစ်ခုသာ အမြဲတမ်းသိမ်းဆည်းပြီး credential များကို
-export ထဲသို့ ကူးယူမည်မဟုတ်ပါ-
+**Context များ Export / Import လုပ်ခြင်း** (ဥပမာ- စက်များအကြား ရွှေ့ပြောင်းရန်)။ Export များသည် မူရင်းအတိုင်း credential များကို ချန်လှပ်ထားသည်၊ ၎င်းတွင် file fallback ဖြင့် သိမ်းဆည်းထားသော credential များလည်း ပါဝင်သည်။ သယ်ဆောင်ရလွယ်ကူသော credential ပါဝင်သည့် backup လိုအပ်သည့်အခါ `--include-secrets` ကို ရှင်းရှင်းလင်းလင်း အသုံးပြုပါ-
 
 ```bash
-omniroute contexts export --out contexts.json     # မူလသတ်မှတ်ချက်- stdout
-omniroute contexts import contexts.json            # အစားထိုးရေးသားမည်၊ ရှိပြီးသားများကို ထိန်းသိမ်းရန် --merge သုံးပါ
-omniroute contexts migrate --yes                  # legacy plaintext token များကို keychain သို့ ရွှေ့ပါ
+omniroute contexts export --out contexts.json     # ဖျက်ထားသည်; မူရင်း ဦးတည်ရာ- stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # ထပ်ရေးသည်; ရှိပြီးသားများကို ထိန်းသိမ်းရန် --merge
+omniroute contexts migrate --yes                  # အဟောင်း plaintext token များကို keychain သို့ ရွှေ့ပြောင်းသည်
 ```
 
-အသုံးပြုနိုင်သော OS keychain မရှိသည့် headless system များတွင် CLI သည် mode `0600` ပါသော
-`config.json` ကို အစားထိုးအသုံးပြုပြီး တစ်ကြိမ်တည်းသတိပေးချက်ကို ပြသသည်။ ထိုအစားထိုးနည်းလမ်းမှ
-export များ (နှင့် migration မလုပ်မီ legacy config များ) ကို လျှို့ဝှက်အချက်အလက်အဖြစ် သတ်မှတ်ကိုင်တွယ်ပါ။
+`--include-secrets` သည် export မလုပ်မီ keychain reference များကို ဖြေရှင်းပြီး ကိုးကားထားသော credential တစ်ခုခုကို ဖတ်၍မရပါက ပျက်ကွက်သည်။ `--no-secrets` သည် အမြဲတမ်း ဦးစားပေးသည်။ Export file များကို mode `0600` ဖြင့် atomically ရေးသားသည်။ ရှင်းလင်းသော secret ပါဝင်သည့် export ကို လျှို့ဝှက်ပစ္စည်းအဖြစ် သတ်မှတ်ပါ။ အသုံးပြုနိုင်သော OS keychain မရှိသော headless system များတွင် CLI သည် mode `0600` ဖြင့် `config.json` သို့ ပြန်လည်ရောက်ရှိပြီး တစ်ကြိမ်သာ သတိပေးချက်ကို ပုံနှိပ်သည်။ ဤ mode တွင် default export သည် ဖျက်ထားဆဲဖြစ်သည်။
 
 ---
 

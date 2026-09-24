@@ -179,15 +179,17 @@ test("a connection's chat-path resolution skips a member set aside", async () =>
   assert.equal((first as { proxy: { host: string } }).proxy.host, a.host);
 
   setAside(b);
+  // Ranked (b last) + skip: cursor 1 lands on c, served past the set-aside member.
   const next = await settingsDb.resolveProxyForConnection("conn-pool");
   assert.equal((next as { proxy: { host: string } }).proxy.host, c.host);
 
   memory.noteProxyRecovered(keyOf(b), "proxy_unreachable");
   assert.equal(memory.isProxyAvoided(keyOf(b)), false);
-  assert.deepEqual(
-    [await pick("account", "conn-pool"), await pick("account", "conn-pool")],
-    [a.host, b.host]
-  );
+  // Rank + skip moves the cursor past c (served at cursor 1, cursor now 2), so the
+  // next pick serves c again (cursor 2 in the restored position order [a,b,c]),
+  // then rotation resumes at a.
+  const after = [await pick("account", "conn-pool"), await pick("account", "conn-pool")];
+  assert.deepEqual(after, [c.host, a.host]);
 });
 
 test("with the flag off a connection's chat-path resolution still rotates normally", async () => {

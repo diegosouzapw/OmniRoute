@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (עברית)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -182,78 +182,69 @@ range    = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
 
 ## הגדרות
 
-### לוח הבקרה
+### Dashboard
 
-נווטו אל `Dashboard → Context & Cache`:
+נווט אל `Dashboard → Context & Cache`:
 
 - **Caveman** — בחירת מצב, חבילות שפה, תצוגה מקדימה וברירות מחדל גלובליות
-- **RTK** — תצוגה מקדימה של מסנן הפקודות, הגדרות הבטיחות של RTK וקטלוג המסננים
-- **שילובי דחיסה** — תהליכי עיבוד בעלי שם, המוקצים לשילובי ניתוב
-- **סף הפעלה אוטומטית** — הפעלה אוטומטית של דחיסה כאשר מספר הטוקנים חורג מהסף
+- **RTK** — תצוגה מקדימה של מסנני פקודות, הגדרות בטיחות RTK וקטלוג מסננים
+- **Compression Combos** — צינורות עיבוד (pipelines) של מנועים בעלי שם המשויכים לשילובי ניתוב (routing combos)
+- **Auto-Trigger Threshold** — הפעלה אוטומטית של דחיסה כאשר מספר הטוקנים חורג מהסף
 
-### דריסה לפי שילוב
+### דריסה לפי שילוב (Per-Combo Override)
 
-ב-`Dashboard → Context & Cache → Compression Combos`, הקצו שילוב דחיסה לשילוב ניתוב:
+ב-`Dashboard → Context & Cache → Compression Combos`, שייך שילוב דחיסה (compression combo) לשילוב ניתוב (routing combo):
 
 ```txt
-שילוב: "free-tier-fallback"
-  שילוב דחיסה: "coding-agent-stack"
-  תהליך עיבוד: RTK -> Caveman
-  יעדים:
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-כך ניתן להשתמש בדחיסה משולבת אצל ספקים חינמיים או ספקי קידוד, תוך שמירה על מצב קל במינויים
-בתשלום.
+זה מאפשר להשתמש ב-stacked compression בספקי חינם/קוד תוך שמירה על מצב lite במנויים בתשלום.
 
-הקצאת "דריסה לפי שילוב" זו היא אמצעי בקרה שונה מדריסת **מצב הדחיסה של שילוב הניתוב**
-(Default/Off/Lite/Standard/Aggressive/Ultra) — דריסה זו אינה בוחרת תהליך עיבוד של שילוב דחיסה
-בעל שם; היא רק מגדירה את השדה `compressionMode`, שבו משתמש
-`resolveCompressionPlan`. ניתן להגדיר אותה בכרטיס השילוב (`Dashboard → Combos`) או, החל מ-
-#6760, עבור כל שילוב ניתוב בנפרד ברשימה "Assign to routing" שב-
-`Dashboard → Context & Cache → Compression Combos`, ממש לצד תיבת הסימון להקצאת תהליך העיבוד
-המתועדת לעיל. השינויים משני הממשקים נשמרים דרך אותה נקודת קצה `PUT /api/combos/{id}`.
+הקצאת "Per-Combo Override" זו היא בקר שונה מדריסת **מצב דחיסת שילוב-ניתוב (routing-combo compression mode)**‏ (Default/Off/Lite/Standard/Aggressive/Ultra) — דריסה זו אינה בוחרת צינור עיבוד compression-combo בעל שם; היא רק מגדירה את השדה `compressionMode` שבו נעזר `resolveCompressionPlan`. ניתן להגדיר זאת בכרטיס השילוב (`Dashboard → Combos`) או, החל מ-#6760, לכל שילוב ניתוב ברשימת "Assign to routing" ב-`Dashboard → Context & Cache → Compression Combos`, ממש ליד תיבת הסימון של הקצאת ה-pipeline שתועדה לעיל. שני הממשקים נשמרים דרך אותו endpoint של `PUT /api/combos/{id}`.
 
-### דריסה לפי בקשה
+### דריסה לפי בקשה (Per-request override)
 
-שלחו את כותרת הבקשה `x-omniroute-compression` כדי לדרוס את תוכנית הדחיסה עבור בקשה
-בודדת. יש לה את העדיפות הגבוהה ביותר — היא גוברת על דריסת שילוב הניתוב, הפרופיל הפעיל,
-ההפעלה האוטומטית וברירת המחדל של הלוח. המערכת מתעלמת מערכים לא מוכרים (הבקשה לעולם אינה נדחית),
-ומתג ההפעלה הראשי הגלובלי עדיין שולט בכל: כאשר הדחיסה כבויה באופן גלובלי, הכותרת אינה יכולה
-להפעיל אותה. ערכים:
+שלח את ה-request header בשם `x-omniroute-compression` כדי לדרוס את תוכנית הדחיסה עבור בקשה בודדת. יש לו את הקדימות הגבוהה ביותר — הוא גובר על דריסת שילוב-הניתוב, הפרופיל הפעיל, ה-auto-trigger וברירת המחדל (Default) של הפאנל. ערכים לא ידועים זוכים להתעלמות (הבקשה לעולם אינה נדחית) והמתג הראשי הגלובלי עדיין שולט על הכל: כאשר הדחיסה כבויה גלובלית, ה-header לא יכול להפעיל אותה. ערכים:
 
-| ערך           | השפעה                                                                    |
-| ------------- | ------------------------------------------------------------------------ |
-| `off`         | ללא דחיסה עבור בקשה זו.                                                  |
-| `default`     | פרופיל ברירת המחדל הנגזר מהלוח (מתעלם מהפרופיל הפעיל).                   |
-| `engine:<id>` | מנוע יחיד, כאשר הוא מופעל, לדוגמה `engine:rtk`.                          |
-| `<combo>`     | שילוב בעל שם, המותאם תחילה לפי שם (ללא תלות ברישיות) ולאחר מכן לפי מזהה. |
+| ערך           | השפעה                                                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------------------- |
+| `off`         | ללא דחיסה עבור בקשה זו.                                                                                  |
+| `default`     | פרופיל ה-Default הנגזר מהפאנל (מתעלם מהפרופיל הפעיל). מנועים מאבדי נתונים (Lossy engines) נשארים כבויים. |
+| `safe`        | זהה להשמטת ה-header: ‏session dedup ו-whitespace folding בלבד.                                           |
+| `allow-lossy` | שמור על תוכנית המפעיל של בקשה זו, כולל סיכומים, מסנני רלוונטיות ושכתוב סגנון.                            |
+| `engine:<id>` | מנוע בודד כאשר הוא מופעל, לדוגמה `engine:rtk`. זוהי בחירה (opt-in) לפי בקשה עבור אותו מנוע.              |
+| `<combo>`     | שילוב בעל שם, מותאם לפי שם (ללא רגישות לאותיות גדולות/קטנות) תחילה, ולאחר מכן לפי id.                    |
 
-התוכנית שהוחלה מוחזרת בכותרת התגובה `X-OmniRoute-Compression: <mode>; source=<source>`,
-כאשר `<source>` הוא אחד מבין `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default` או `off`.
+ללא `allow-lossy`, ‏`engine:<id>`, או שילוב בעל שם, מנועים מאבדי נתונים לא יופעלו. הבקשה עדיין תעבור session dedup ו-whitespace folding כאשר הדחיסה מופעלת.
+
+התוכנית שהוחלה מוחזרת ב-response header בשם `X-OmniRoute-Compression: <mode>; source=<source>`, כאשר `<source>` הוא אחד מ: `request-header`, ‏`routing-override`, ‏`active-profile`, ‏`auto-trigger`, ‏`default`, או `off`.
 
 ### API
 
 ```bash
-# קבלת הגדרות הדחיסה
+# קבלת הגדרות דחיסה
 curl http://localhost:20128/api/settings/compression
 
-# עדכון הגדרות הדחיסה
+# עדכון הגדרות דחיסה
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# תצוגה מקדימה של מטען RTK/stacked מסוים
+# תצוגה מקדימה של מטען (payload) ספציפי של RTK/stacked
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
-  -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
+  -d '{"mode":"rtk","messages":[{"role":"tool","content":"פלט של npm test כאן"}]}'
 
-# הצגת רשימת חבילות המסננים של RTK
+# רשימת חבילות מסנני RTK
 curl http://localhost:20128/api/context/rtk/filters
 
-# בדיקה ישירה של RTK עם מטא-נתוני פקודה אופציונליים
+# בדיקת RTK ישירות עם מטא-דאטה אופציונלי של פקודה
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -278,9 +269,9 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ---
 
-## סטטיסטיקות דחיסה
+## נתוני דחיסה
 
-כל בקשה דחוסה כוללת נתונים סטטיסטיים ביומני השרת:
+כל בקשה דחוסה כוללת נתונים ביומני השרת:
 
 ```json
 {
@@ -298,15 +289,15 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ---
 
-## מפת דרכים לפי שלבים
+## מפת דרכים לשלבים
 
-| שלב    | מצבים                                                                                                                            | סטטוס   |
-| ------ | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| שלב 1  | Off, Lite                                                                                                                        | ✅ הושק |
-| שלב 2  | Standard, Aggressive, Ultra                                                                                                      | ✅ הושק |
-| שלב 3  | RTK, Stacked, שילובי דחיסה                                                                                                       | ✅ הושק |
-| שלב 4  | סגנונות פלט, Ultra ברמת SLM, מסגרת הערכה                                                                                         | ✅ הושק |
-| שלב 4C | תקציב הקשר אדפטיבי ("חוגה") — מנוע חישוב + API (`contextBudget` ב-`PUT /api/settings/compression`) + פקדי מצב/מדיניות בלוח הבקרה | ✅ הושק |
+| שלב    | מצבים                                                                                                                                | סטטוס   |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| שלב 1  | כבוי, קל                                                                                                                             | ✅ נשלח |
+| שלב 2  | רגיל, אגרסיבי, אולטרה                                                                                                                | ✅ נשלח |
+| שלב 3  | RTK, מוערם, שילובי דחיסה                                                                                                             | ✅ נשלח |
+| שלב 4  | סגנונות פלט, אולטרה ברמת SLM, רתמת הערכה                                                                                             | ✅ נשלח |
+| שלב 4C | תקציב הקשר אדפטיבי ("חוגה") — מנוע חישוב + API (`contextBudget` ב-`PUT /api/settings/compression`) + בקרות מצב/מדיניות בלוח המחוונים | ✅ נשלח |
 
 ---
 
@@ -320,26 +311,21 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ## מערכות דחיסה מתקדמות
 
-מעבר ל-7 המצבים הסטנדרטיים, OmniRoute כולל כמה מערכות דחיסה מתקדמות
-שפועלות אוטומטית בהתאם להקשר.
+מעבר ל-7 המצבים הסטנדרטיים, OmniRoute כוללת מספר מערכות דחיסה מתקדמות הפועלות אוטומטית בהתאם להקשר.
 
-### דחיסה מודעת למטמון
+### דחיסה מודעת מטמון
 
-ספקים מסוימים (כמו Anthropic עם שמירת הנחיות במטמון) תומכים ב-**שמירת הנחיות במטמון**,
-המאפשרת להם לשמור חלקים מההנחיה במטמון כדי להפחית עלויות וזמן השהיה. כאשר
-שמירה במטמון מופעלת, דחיסה אגרסיבית עלולה למעשה **לפגוע** בביצועים
-מכיוון שהיא משנה את האסימונים השמורים במטמון ובכך מבטלת את תוקף המטמון.
+חלק מהספקים (כמו Anthropic עם שמירת מטמון של הנחיות) תומכים ב**שמירת מטמון של הנחיות (prompt caching)**, המאפשרת להם לשמור במטמון חלקים מההנחיה כדי להפחית עלויות והשהיה. כאשר שמירת מטמון מופעלת, דחיסה אגרסיבית עלולה למעשה **לפגוע** בביצועים מכיוון שהיא משנה את האסימונים השמורים במטמון, ובכך מבטלת את תוקף המטמון.
 
-המודול `cachingAware.ts` פותר זאת באמצעות **זיהוי הקשר של שמירה במטמון**
-ו-**התאמת אסטרטגיית הדחיסה** בהתאם.
+מודול `cachingAware.ts` פותר זאת על ידי **זיהוי הקשר שמירת מטמון** ו**התאמת אסטרטגיית הדחיסה** בהתאם.
 
-#### כיצד זה עובד
+#### איך זה עובד
 
-1. **זיהוי הקשר של שמירה במטמון** — סריקת גוף הבקשה לאיתור סמני `cache_control`
-2. **זיהוי ספקים התומכים במטמון** — בדיקה אם ספק היעד תומך בשמירה במטמון
-3. **התאמת האסטרטגיה** — הורדת `aggressive`/`ultra` ל-`standard` עבור ספקים התומכים במטמון
-4. **דילוג על הנחיית המערכת** — הנחיות מערכת נשמרות בדרך כלל במטמון, ולכן אין לדחוס אותן
-5. **שימוש בטרנספורמציות דטרמיניסטיות** — שימוש רק בטרנספורמציות שמפיקות פלט עקבי
+1. **זיהוי הקשר שמירת מטמון** — סורק את גוף הבקשה עבור סמני `cache_control`.
+2. **זיהוי ספקי שמירת מטמון** — בודק אם ספק היעד תומך בשמירת מטמון.
+3. **התאמת אסטרטגיה** — מוריד את הדירוג של `aggressive`/`ultra` ל-`standard` עבור ספקי שמירת מטמון.
+4. **דילוג על הנחיית מערכת** — הנחיות מערכת נשמרות בדרך כלל במטמון, לכן אין לדחוס אותן.
+5. **שימוש בטרנספורמציות דטרמיניסטיות** — משתמש רק בטרנספורמציות המפיקות פלט עקבי.
 
 #### דוגמת קוד
 
@@ -364,21 +350,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### מתי להשתמש
 
-דחיסה מודעת למטמון **פעילה תמיד** — אין צורך בהגדרה. היא נכנסת לפעולה רק
-כאשר:
+דחיסה מודעת מטמון **תמיד מופעלת** — אין צורך בתצורה. היא נכנסת לפעולה רק כאשר:
 
-- הבקשה כוללת סמני `cache_control`
-- ספק היעד תומך בשמירת הנחיות במטמון (Anthropic, OpenAI וכו')
+- לבקשה יש סמני `cache_control`.
+- ספק היעד תומך בשמירת מטמון של הנחיות (Anthropic, OpenAI וכו').
 
-### התיישנות הדרגתית
+### הזדקנות פרוגרסיבית
 
-שיחות ארוכות צוברות תורות רבים של הודעות, אך תורות ישנים נעשים פחות
-רלוונטיים. המודול `progressiveAging.ts` **מפחית את רמת הפירוט של הודעות בהתאם למרחק בין התורות**:
+שיחות ארוכות צוברות פניות רבות, אך פניות ישנות יותר הופכות פחות רלוונטיות. מודול `progressiveAging.ts` **מדרג הודעות לפי מרחק פנייה**:
 
-- **תורות אחרונים (0-3)**: נשמרים מילה במילה (פירוט מלא)
-- **תורות בינוניים (4-8)**: דחיסת Lite (ניקוי רווחים ועיצוב)
-- **תורות ישנים (9+)**: דחיסת Caveman (הסרת מילות מילוי וסיכום)
-- **תורות ישנים מאוד (20+)**: מסוכמים באופן נרחב או מושמטים
+- **פניות אחרונות (0-3)**: נשמרות כלשונן (פרטים מלאים).
+- **פניות בינוניות (4-8)**: דחיסה קלה (רווחים לבנים, ניקוי עיצוב).
+- **פניות ישנות (9+)**: דחיסת "איש מערות" (הסרת מילוי, סיכום).
+- **פניות ישנות מאוד (20+)**: מסוכמות בכבדות או מושמטות.
 
 #### דוגמת קוד
 
@@ -389,48 +373,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... עוד 50 תורות ...
+  // ... 50 פניות נוספות ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // 3 התורות הראשונים: מילה במילה
-  light: 8, // תורות 4-8: דחיסת Lite
-  moderate: 20, // תורות 9-20: דחיסת Caveman
-  // תורות 21 ואילך: סיכום נרחב
+  verbatim: 3, // 3 הפניות הראשונות: כלשונן
+  light: 8, // פניות 4-8: דחיסה קלה
+  moderate: 20, // פניות 9-20: דחיסת איש מערות
+  // פניות 21+: סיכום כבד
 });
 
-// saved = מספר האסימונים שנחסכו
+// saved = מספר האסימונים שנשמרו
 ```
 
 #### מתי להשתמש
 
-הזדקנות הדרגתית **פעילה תמיד** במצבים `aggressive` ו-`ultra`. היא
-יעילה במיוחד עבור:
+הזדקנות פרוגרסיבית **תמיד מופעלת** עבור מצבי `aggressive` ו-`ultra`. היא יעילה במיוחד עבור:
 
-- הפעלות קידוד ממושכות
-- שיחות המתפרסות על פני כמה ימים
-- תהליכי עבודה סוכניים עם קריאות רבות לכלים
+- סשנים ארוכים של קידוד.
+- שיחות מרובות ימים.
+- זרימות עבודה מבוססות סוכנים עם קריאות כלים רבות.
 
-### מצב פלט איש מערות
+### מצב פלט "איש מערות"
 
-המודול `outputMode.ts` מזריק **הוראות לפרומפט המערכת** כדי לגרום
-למודל עצמו להפיק פלט דחוס ותמציתי (בסגנון "איש מערות").
+מודול `outputMode.ts` מחדיר **הוראות הנחיית מערכת** כדי לגרום למודל עצמו להפיק פלט דחוס ותמציתי (סגנון "איש מערות").
 
-#### כיצד זה עובד
+#### איך זה עובד
 
-במקום לדחוס את הקלט, מצב זה מוסיף פרומפט מערכת כגון:
+במקום לדחוס את הקלט, מצב זה מוסיף הנחיית מערכת כגון:
 
-> "השב במינימום מילים. דלג על דברי נימוס. השתמש במשפטים קצרים."
+> "השב במילים מינימליות. דלג על נימוסים. השתמש במשפטים קצרים."
 
-זה עובד טוב במיוחד עבור:
+זה עובד היטב במיוחד עבור:
 
-- יצירת קוד (פלט תמציתי יותר = פחות טוקנים)
-- שאלות ותשובות מהירות (אין צורך בהסברים מפורטים)
-- עיבוד באצווה (למקסום התפוקה)
+- יצירת קוד (פלט תמציתי יותר = פחות אסימונים).
+- שאלות ותשובות מהירות (אין צורך בהסברים מפורטים).
+- עיבוד אצווה (מקסום תפוקה).
 
 #### מתי להשתמש
 
-מצב פלט איש מערות הוא **אופציונלי** — הגדירו אותו באמצעות תצורת השילוב:
+מצב פלט "איש מערות" הוא **אופציונלי** — הגדר אותו באמצעות תצורת הקומבו:
 
 ```json
 {
@@ -445,39 +427,35 @@ const { messages: aged, saved } = applyAging(messages, {
 
 ### סגנונות פלט (קטלוג)
 
-מצב פלט איש המערות שלעיל הוא **הנתיב הישן בעל הסגנון היחיד**. שלב 4 הכליל אותו
-לקטלוג של סגנונות פלט הניתנים לשילוב: `OUTPUT_STYLE_CATALOG` בתוך
-`open-sse/services/compression/outputStyles/catalog.ts`. כל סגנון הוא הוראה בפרומפט המערכת
-שגורמת למודל עצמו להפיק פלט חסכוני יותר; ניתן להפעיל סגנונות
-יחד, והם מוזרקים לפי סדר הקטלוג.
+מצב פלט "איש מערות" לעיל הוא **הנתיב הישן של סגנון יחיד**. שלב 4 הרחיב אותו לקטלוג של סגנונות פלט ניתנים להרכבה: `OUTPUT_STYLE_CATALOG` ב-`open-sse/services/compression/outputStyles/catalog.ts`. כל סגנון הוא הוראת הנחיית מערכת שגורמת למודל עצמו להפיק פלט זול יותר; ניתן להפעיל סגנונות יחד והם מוחדרים לפי סדר הקטלוג.
 
-| סגנון                    | `id`          | מה הוא עושה                                                                                                                                                                                         | שפות ההוראות                                           |
-| ------------------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| פרוזה תמציתית            | `terse-prose` | משמיט מלל מיותר/תוויות/הסתייגויות; שומר במדויק על התוכן הטכני. אותו טקסט כמו במצב פלט איש המערות הישן (בהפניה, ללא הקלדה מחדש).                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi          |
-| פחות קוד                 | `less-code`   | סולם YAGNI: השינוי הפעיל הקטן ביותר, ללא הפשטות שלא התבקשו.                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi          |
-| קוקו (מפתח בכיר עצלן)    | `ponytail`    | "הקוד הטוב ביותר הוא הקוד שמעולם לא נכתב": שימוש חוזר > כתיבה מחדש, שורש הבעיה > תסמין, ה-diff הפעיל הקצר ביותר.                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi          |
-| יש לי ADHD (פעולה תחילה) | `i-have-adhd` | פעולה תחילה (פקודה/נתיב/קטע קוד לפני הסבר), צעדים ממוספרים ומוגבלים, צעד המשך קונקרטי אחד, ללא הקדמה/סיכום/דברי סיום. מותאם מתוך [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi          |
-| CJK תמציתי (文言)        | `terse-cjk`   | סגנון סיני קלאסי אולטרה-תמציתי.                                                                                                                                                                     | zh (מוגבל לפי אזור: מוצע רק כאשר השפה שנקבעה היא `zh`) |
+| סגנון                     | `id`          | מה הוא עושה                                                                                                                                                                                   | שפות הוראה                                              |
+| :------------------------ | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------ |
+| פרוזה תמציתית             | `terse-prose` | משמיט מילים מיותרות/מילות יחס/הסתייגויות; שומר על מהות טכנית מדויקת. אותו טקסט כמו מצב הפלט הישן של "איש המערות" (מופנה, לא מוקלד מחדש).                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi           |
+| פחות קוד                  | `less-code`   | סולם YAGNI: השינוי הקטן ביותר שעובד, ללא הפשטות לא מבוקשות.                                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi           |
+| קוקו (מפתח בכיר עצלן)     | `ponytail`    | "הקוד הטוב ביותר הוא הקוד שמעולם לא נכתב": שימוש חוזר > כתיבה מחדש, שורש הבעיה > סימפטום, ההבדל הקצר ביותר שעובד.                                                                             | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi           |
+| יש לי ADHD (פעולה-ראשונה) | `i-have-adhd` | פעולה ראשונה (פקודה/נתיב/קטע קוד לפני פרוזה), שלבים ממוספרים ומוגבלים, צעד קונקרטי אחד הבא, ללא הקדמה/סיכום/סגירה. מותאם מ-[ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi           |
+| CJK תמציתי (文言)         | `terse-cjk`   | סגנון אולטרה-תמציתי של סינית קלאסית.                                                                                                                                                          | zh (מוגבל לפי אזור: מוצע רק כאשר השפה המוגדרת היא `zh`) |
 
-כל סגנון מסופק בשלוש רמות עוצמה — `lite`, `full`, `ultra` — וכל רמה
-מסתיימת בסעיף הגבולות המשותף, המשמר בלוקי קוד, נתיבי קבצים, פקודות,
-מחרוזות שגיאה, כתובות URL ומזהים ללא שינוי.
+כל סגנון מגיע עם שלוש רמות עוצמה — `lite`, `full`, `ultra` — וכל רמה
+מסתיים בסעיף הגבולות המשותף, השומר על בלוקי קוד, נתיבי קבצים, פקודות,
+מחרוזות שגיאה, כתובות URL ומזהים כפי שהם.
 
-#### כיצד ההזרקה פועלת
+#### איך ההזרקה עובדת
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) מתאימה
-את הבחירה לקטלוג (מזהים לא מוכרים וסגנונות שאינם תואמים לאזור
-מושמטים, ולעולם אינם גורמים לשגיאה), משרשרת את ההוראות שנבחרו לפי סדר הקטלוג,
-מוסיפה את סעיף הגבולות **פעם אחת**, ומציבה את התוצאה בתחילת פרומפט
-המערכת, מאחורי סמן יחיד המבטיח אידמפוטנטיות (`[OmniRoute Output Styles]`) — החלה
-חוזרת אינה מבצעת דבר. כאשר קיים תרגום לשפה שזוהתה בבקשה,
-מוזרקת ההוראה המתורגמת במקום ההוראה באנגלית.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) פותר
+את הבחירה מול הקטלוג (מזהים לא ידועים וסגנונות שאינם תואמים לאזור
+נשמטים, לעולם לא שגיאה), משרשר את ההוראות שנבחרו בסדר הקטלוג,
+מצרף את סעיף הגבולות **פעם אחת**, ומקדים את התוצאה לתוך ה-system
+prompt מאחורי סמן אידמפוטנטיות יחיד (`[OmniRoute Output Styles]`) — יישום
+חוזר הוא פעולה ריקה. כאשר לשפת הבקשה המזוהה יש תרגום,
+ההוראה המקומית מוזרקת במקום אנגלית.
 
-#### כיצד להפעיל
+#### איך להפעיל
 
-בלוח הבקרה: **הקשר → הגדרות → דחיסה** — שורה אחת לכל סגנון, עם
+במרכז השליטה: **Context → Settings → Compression** — שורה אחת לכל סגנון עם
 מתג הפעלה/כיבוי ובורר רמה. באופן תכנותי, תצורת הדחיסה שומרת
-את הבחירה כך:
+את הבחירה כ:
 
 ```json
 {
@@ -488,59 +466,59 @@ const { messages: aged, saved } = applyAging(messages, {
 }
 ```
 
-תאימות לאחור: הגדרת השילוב הישנה `outputMode: "caveman"` עדיין פועלת וממופה אל
-`terse-prose`, באופן זהה ברמת הבתים להזרקה הישנה בכל שפה שנתמכה בעבר.
+תאימות לאחור: הגדרת הקומבו הישנה `outputMode: "caveman"` עדיין עובדת וממופה ל-
+`terse-prose`, זהה בבתים להזרקה הישנה בכל שפה ישנה.
 
 בחירת שפה: כאשר `languageConfig.enabled` מופעל, `autoDetect` בוחר את
-שפת הודעת המשתמש האחרונה (אותו גלאי המשמש את מנועי הקלט);
-כיבוי `autoDetect` מקבע את `defaultLanguage`. כבוי → אנגלית.
+שפת ההודעה האחרונה של המשתמש (אותו מזהה כמו מנועי הקלט);
+כיבוי `autoDetect` מקבע את `defaultLanguage`. כבוי ← אנגלית.
 
-מטריצת הסגנון × שפה מקובעת באמצעות
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: לא ניתן להפיץ סגנון חדש
-ללא תרגום ל-pt-BR לפחות (או חריגה מפורשת שנמצאת במעקב), וסגנון
-קיים אינו יכול לאבד אזור בשקט. להוספת סגנון, ראו
+מטריצת הסגנון × שפה מקובעת על ידי
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: סגנון חדש אינו יכול להישלח
+ללא לפחות תרגום ל-pt-BR (או חריגה מפורשת במעקב), וסגנון
+קיים אינו יכול לאבד שפה מקומית בשקט. כדי להוסיף סגנון, ראה
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### דחיסת תוצאות כלים
+### דחיסת תוצאות כלי עבודה
 
-המודול `toolResultCompressor.ts` מספק **5 אסטרטגיות דחיסה ייעודיות**
-לתוצאות כלים (קריאות לפונקציות, פלטי סוכנים, תוצאות חיפוש וכו'):
+מודול `toolResultCompressor.ts` מספק **5 אסטרטגיות דחיסה מיוחדות**
+לתוצאות כלי עבודה (קריאות לפונקציות, פלטי סוכנים, תוצאות חיפוש וכו'):
 
-1. **דחיסת תוצאות חיפוש** — מסירה תוצאות מיותרות ושומרת את N התוצאות המובילות
-2. **דחיסת קריאת קבצים** — מקצרת קבצים גדולים ומשמרת כותרות/ייבואים
-3. **דחיסת הרצת קוד** — שומרת רק פלט stdout/stderr חיוני
-4. **דחיסת שאילתות מסד נתונים** — מגבילה שורות ומסירה מטא-נתונים מפורטים
-5. **דחיסת תגובות API** — מסירה שדות null ומצמצמת מערכים
-
-#### מתי להשתמש
-
-דחיסת תוצאות כלים **פעילה תמיד** כאשר קיימות קריאות לכלים. אין
-צורך בהגדרה.
-
-### צינור עיבוד מוערם
-
-המצב המוערם מפעיל **כמה מנועים ברצף** — בדרך כלל RTK ראשון
-(חיסכון של 60-90% בפלט כלים), ולאחר מכן מצב איש מערות (חיסכון נוסף של 30%
-בטקסט הנותר). כך מושג **חיסכון כולל של 78-95%**.
-
-#### כיצד זה עובד
-
-```
-קלט (1000 טוקנים)
-  → RTK (מסנן מודע לפקודות) → 200 טוקנים
-    → איש מערות (הסרת מלל מיותר) → 140 טוקנים
-  → פלט (140 טוקנים, חיסכון של 86%)
-```
+1. **דחיסת תוצאות חיפוש** — מסיר תוצאות מיותרות, שומר את N המובילים
+2. **דחיסת קריאת קבצים** — מקצר קבצים גדולים, שומר כותרות/ייבוא
+3. **דחיסת ביצוע קוד** — שומר רק את ה-stdout/stderr החיוניים
+4. **דחיסת שאילתות מסד נתונים** — מגביל שורות, מסיר מטא נתונים מילוליים
+5. **דחיסת תגובות API** — מסיר שדות ריקים, מכווץ מערכים
 
 #### מתי להשתמש
 
-השתמשו במצב מוערם עבור:
+דחיסת תוצאות כלי עבודה **תמיד מופעלת** כאשר קיימות קריאות לכלי עבודה. אין
+צורך בתצורה.
 
-- תהליכי עבודה עתירי כלים (קידוד סוכני, מחקר)
-- עיבוד באצווה הרגיש לעלויות
-- כאשר נדרש חיסכון מרבי בטוקנים
+### צינור עיבוד נתונים מוערם
 
-הגדירו באמצעות שילוב:
+מצב מוערם מריץ **מספר מנועים ברצף** — בדרך כלל RTK ראשון
+(חיסכון של 60-90% בפלט כלי עבודה), ואז Caveman (חיסכון נוסף של 30% ב-
+הטקסט הנותר). זה משיג **חיסכון כולל של 78-95%**.
+
+#### איך זה עובד
+
+```
+קלט (1000 אסימונים)
+  ← RTK (מסנן מודע לפקודות) ← 200 אסימונים
+    ← Caveman (הסרת מילים מיותרות) ← 140 אסימונים
+  ← פלט (140 אסימונים, חיסכון של 86%)
+```
+
+#### מתי להשתמש
+
+השתמש במצב מוערם עבור:
+
+- זרימות עבודה עתירות כלים (קידוד סוכנים, מחקר)
+- עיבוד אצווה רגיש לעלות
+- כאשר אתה זקוק לחיסכון מרבי באסימונים
+
+הגדר באמצעות קומבו:
 
 ```json
 {

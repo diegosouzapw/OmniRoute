@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Hrvatski)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -184,56 +184,46 @@ Uz Stacked:           10K-2.5K tokena poslano     (prihvatljivi raspon RTK+Cavem
 
 ### Nadzorna ploča
 
-Idite na `Dashboard → Context & Cache`:
+Idite na `Nadzorna ploča → Kontekst i predmemorija`:
 
-- **Caveman** — odabir načina rada, jezični paketi, pretpregled i globalne zadane postavke
-- **RTK** — pretpregled filtra naredbi, sigurnosne postavke za RTK i katalog filtara
-- **Kombinacije kompresije** — imenovani cjevovodi mehanizama dodijeljeni kombinacijama usmjeravanja
-- **Prag automatskog pokretanja** — automatski aktivira kompresiju kada broj tokena premaši prag
+- **Caveman** — odabir načina rada, jezični paketi, pregled i globalne zadane postavke
+- **RTK** — pregled filtra naredbi, RTK sigurnosne postavke i katalog filtara
+- **Kombinacije kompresije** — imenovane cjevovode motora dodijeljene kombinacijama usmjeravanja
+- **Prag automatskog okidača** — automatski uključuje kompresiju kada broj tokena prijeđe prag
 
-### Nadjačavanje po kombinaciji
+### Premošćivanje po kombinaciji
 
-U `Dashboard → Context & Cache → Compression Combos` dodijelite kombinaciju kompresije kombinaciji
-usmjeravanja:
+U `Nadzorna ploča → Kontekst i predmemorija → Kombinacije kompresije`, dodijelite kombinaciju kompresije kombinaciji usmjeravanja:
 
 ```txt
-Kombinacija: "free-tier-fallback"
-  Kombinacija kompresije: "coding-agent-stack"
-  Cjevovod: RTK -> Caveman
-  Ciljevi:
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-To vam omogućuje upotrebu složene kompresije na besplatnim/programerskim pružateljima, uz zadržavanje laganog načina rada na plaćenim
-pretplatama.
+Ovo vam omogućuje korištenje složene kompresije na besplatnim/kodirajućim pružateljima usluga, dok zadržavate lagani način rada na plaćenim pretplatama.
 
-Ova dodjela „Nadjačavanje po kombinaciji” razlikuje se od nadjačavanja **načina kompresije kombinacije
-usmjeravanja** (Default/Off/Lite/Standard/Aggressive/Ultra) — to nadjačavanje ne odabire imenovani
-cjevovod kombinacije kompresije; ono samo postavlja polje `compressionMode` koje provjerava
-`resolveCompressionPlan`. Može se postaviti na kartici kombinacije (`Dashboard → Combos`) ili, od
-#6760, za svaku kombinaciju usmjeravanja na popisu „Assign to routing” u
-`Dashboard → Context & Cache → Compression Combos`, odmah pokraj potvrdnog okvira za dodjelu cjevovoda
-koji je prethodno dokumentiran. Oba sučelja spremaju postavke putem iste krajnje točke `PUT /api/combos/{id}`.
+Ovo dodjeljivanje "Premošćivanja po kombinaciji" je drugačija kontrola od premošćivanja **načina kompresije kombinacije usmjeravanja** (Default/Off/Lite/Standard/Aggressive/Ultra) — to premošćivanje ne odabire imenovani cjevovod kombinacije kompresije; ono samo postavlja polje `compressionMode` koje konzultira `resolveCompressionPlan`. Može se postaviti ili na kartici kombinacije (`Nadzorna ploča → Kombinacije`) ili, od #6760, po kombinaciji usmjeravanja na popisu "Dodijeli usmjeravanju" na `Nadzorna ploča → Kontekst i predmemorija → Kombinacije kompresije`, odmah pored potvrdnog okvira za dodjelu cjevovoda dokumentiranog gore. Obje površine se pohranjuju putem iste `PUT /api/combos/{id}` krajnje točke.
 
-### Nadjačavanje po zahtjevu
+### Premošćivanje po zahtjevu
 
-Pošaljite zaglavlje zahtjeva `x-omniroute-compression` kako biste nadjačali plan kompresije za pojedinačni
-zahtjev. Ono ima najviši prioritet — nadjačava postavku kombinacije usmjeravanja, aktivni profil,
-automatsko pokretanje i zadanu postavku na ploči. Nepoznate se vrijednosti zanemaruju (zahtjev se nikada ne odbija), a
-globalni glavni prekidač i dalje upravlja svime: kada je kompresija globalno isključena, zaglavlje je ne može
-uključiti. Vrijednosti:
+Pošaljite zaglavlje zahtjeva `x-omniroute-compression` kako biste premostili plan kompresije za pojedinačni zahtjev. Ono ima najveći prioritet — nadjačava premošćivanje kombinacije usmjeravanja, aktivni profil, automatski okidač i zadanu postavku panela. Nepoznate vrijednosti se ignoriraju (zahtjev se nikada ne odbija) i globalni glavni prekidač i dalje kontrolira sve: kada je kompresija globalno isključena, zaglavlje je ne može uključiti. Vrijednosti:
 
-| Vrijednost    | Učinak                                                                                                               |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Bez kompresije za ovaj zahtjev.                                                                                      |
-| `default`     | Zadani profil izveden iz postavki ploče (zanemaruje aktivni profil).                                                 |
-| `engine:<id>` | Jedan mehanizam kada je omogućen, npr. `engine:rtk`.                                                                 |
-| `<combo>`     | Imenovana kombinacija, najprije usklađena prema nazivu (bez razlikovanja velikih i malih slova), a zatim prema ID-u. |
+| Vrijednost    | Učinak                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| `off`         | Nema kompresije za ovaj zahtjev.                                                                       |
+| `default`     | Zadani profil izveden iz panela (zanemaruje aktivni profil). Gubitni motori ostaju isključeni.         |
+| `safe`        | Isto kao izostavljanje zaglavlja: samo dedup i sažimanje praznina.                                     |
+| `allow-lossy` | Zadržite plan operatora ovog zahtjeva, uključujući sažetke, filtre relevantnosti i prepisivanje stila. |
+| `engine:<id>` | Jedan motor kada je omogućen, npr. `engine:rtk`. Ovo je opcija uključivanja po zahtjevu za taj motor.  |
+| `<combo>`     | Imenovana kombinacija, prvo se podudara po imenu (neovisno o veličini slova), zatim po ID-u.           |
 
-Primijenjeni plan vraća se u zaglavlju odgovora `X-OmniRoute-Compression: <mode>; source=<source>`,
-pri čemu je `<source>` jedna od vrijednosti `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default` ili `off`.
+Bez `allow-lossy`, `engine:<id>` ili imenovane kombinacije, gubitni motori se ne primjenjuju. Zahtjev i dalje dobiva dedup sesije i sažimanje praznina kada je kompresija uključena.
+
+Primijenjeni plan se vraća u zaglavlju odgovora `X-OmniRoute-Compression: <mode>; source=<source>`, gdje je `<source>` jedan od `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ili `off`.
 
 ### API
 
@@ -246,15 +236,15 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Pretpregled određenog RTK/složenog korisnog sadržaja
+# Pregledaj specifični RTK/složeni teret
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# Prikaži popis paketa RTK filtara
+# Popis RTK filtarskih paketa
 curl http://localhost:20128/api/context/rtk/filters
 
-# Izravno testiraj RTK s neobaveznim metapodacima naredbe
+# Testiraj RTK izravno s opcionalnim metapodacima naredbe
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -301,13 +291,13 @@ Svaki komprimirani zahtjev uključuje statistiku u zapisnicima poslužitelja:
 
 ## Plan faza
 
-| Faza    | Načini rada                                                                                                                                                                          | Status        |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
-| Faza 1  | Isključeno, lagano                                                                                                                                                                   | ✅ Isporučeno |
-| Faza 2  | Standardno, agresivno, ultra                                                                                                                                                         | ✅ Isporučeno |
-| Faza 3  | RTK, složeno, kombinacije kompresije                                                                                                                                                 | ✅ Isporučeno |
-| Faza 4  | Stilovi izlaza, ultra razine SLM-a, okvir za evaluaciju                                                                                                                              | ✅ Isporučeno |
-| Faza 4C | Prilagodljivi proračun konteksta („regulator”) — računalni mehanizam + API (`contextBudget` na `PUT /api/settings/compression`) + kontrole načina rada/pravilnika na nadzornoj ploči | ✅ Isporučeno |
+| Faza    | Načini rada                                                                                                                                                          | Status        |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Faza 1  | Off, Lite                                                                                                                                                            | ✅ Isporučeno |
+| Faza 2  | Standard, Aggressive, Ultra                                                                                                                                          | ✅ Isporučeno |
+| Faza 3  | RTK, Stacked, Compression Combos                                                                                                                                     | ✅ Isporučeno |
+| Faza 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                                          | ✅ Isporučeno |
+| Faza 4C | Prilagodljivi kontekstni budžet ("brojčanik") — računalni pogon + API (`contextBudget` na `PUT /api/settings/compression`) + kontrole načina/politike nadzorne ploče | ✅ Isporučeno |
 
 ---
 
@@ -321,26 +311,21 @@ RTK način rada nadahnut je projektom **[RTK - Rust Token Killer](https://github
 
 ## Napredni sustavi kompresije
 
-Osim 7 standardnih načina rada, OmniRoute uključuje nekoliko naprednih sustava
-kompresije koji rade automatski ovisno o kontekstu.
+Osim 7 standardnih načina rada, OmniRoute uključuje nekoliko naprednih sustava kompresije koji rade automatski na temelju konteksta.
 
-### Kompresija prilagođena predmemoriji
+### Kompresija svjesna predmemorije
 
-Neki pružatelji (poput Anthropic-a s predmemoriranjem upita) podržavaju **predmemoriranje upita**,
-što im omogućuje predmemoriranje dijelova upita radi smanjenja troškova i latencije. Kada je
-predmemoriranje omogućeno, agresivna kompresija zapravo može **naštetiti** performansama
-jer mijenja predmemorirane tokene i time poništava predmemoriju.
+Neki pružatelji usluga (poput Anthropic-a s predmemoriranjem upita) podržavaju **predmemoriranje upita**, što im omogućuje da predmemoriraju dijelove upita kako bi smanjili troškove i latenciju. Kada je predmemoriranje omogućeno, agresivna kompresija zapravo može **naštetiti** performansama jer mijenja predmemorirane tokene, poništavajući predmemoriju.
 
-Modul `cachingAware.ts` to rješava **otkrivanjem konteksta predmemoriranja** i
-**prilagođavanjem strategije kompresije** u skladu s njim.
+Modul `cachingAware.ts` to rješava **detektiranjem konteksta predmemoriranja** i **prilagođavanjem strategije kompresije** u skladu s tim.
 
-#### Kako funkcionira
+#### Kako radi
 
-1. **Otkrivanje konteksta predmemoriranja** — Pretražuje tijelo zahtjeva u potrazi za oznakama `cache_control`
-2. **Prepoznavanje pružatelja s predmemoriranjem** — Provjerava podržava li ciljni pružatelj predmemoriranje
-3. **Prilagodba strategije** — Snižava `aggressive`/`ultra` na `standard` za pružatelje s predmemoriranjem
-4. **Preskakanje sistemskog upita** — Sistemski se upiti obično predmemoriraju, stoga ih ne treba komprimirati
-5. **Upotreba determinističkih transformacija** — Upotrebljava samo transformacije koje daju dosljedan izlaz
+1.  **Detektira kontekst predmemoriranja** — Skenira tijelo zahtjeva za oznake `cache_control`
+2.  **Identificira pružatelje usluga s predmemoriranjem** — Provjerava podržava li ciljni pružatelj usluga predmemoriranje
+3.  **Prilagođava strategiju** — Smanjuje `aggressive`/`ultra` na `standard` za pružatelje usluga s predmemoriranjem
+4.  **Preskače sistemski upit** — Sistemski upiti su obično predmemorirani, stoga ih nemojte komprimirati
+5.  **Koristi determinističke transformacije** — Koristi samo transformacije koje proizvode dosljedan izlaz
 
 #### Primjer koda
 
@@ -363,23 +348,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Kada upotrebljavati
+#### Kada koristiti
 
-Kompresija prilagođena predmemoriji **uvijek je uključena** — konfiguracija nije potrebna. Aktivira se samo
-kada:
+Kompresija svjesna predmemorije je **uvijek uključena** — nije potrebna konfiguracija. Aktivira se samo kada:
 
-- Zahtjev sadrži oznake `cache_control`
-- Ciljni pružatelj podržava predmemoriranje upita (Anthropic, OpenAI itd.)
+- Zahtjev ima oznake `cache_control`
+- Ciljni pružatelj usluga podržava predmemoriranje upita (Anthropic, OpenAI, itd.)
 
 ### Progresivno starenje
 
-Dugi razgovori nakupljaju mnogo poruka, ali starije poruke postaju manje
-relevantne. Modul `progressiveAging.ts` **degradira poruke prema udaljenosti od posljednje poruke**:
+Dugi razgovori akumuliraju mnogo izmjena poruka, ali starije izmjene postaju manje relevantne. Modul `progressiveAging.ts` **degradira poruke prema udaljenosti izmjene**:
 
-- **Nedavne poruke (0-3)**: Čuvaju se doslovno (sa svim pojedinostima)
-- **Srednje stare poruke (4-8)**: Lagana kompresija (uklanjanje suvišnih razmaka, čišćenje oblikovanja)
-- **Stare poruke (9+)**: Caveman kompresija (uklanjanje suvišnog sadržaja, sažimanje)
-- **Vrlo stare poruke (20+)**: Opsežno se sažimaju ili odbacuju
+- **Nedavne izmjene (0-3)**: Zadržane doslovno (potpuni detalji)
+- **Srednje izmjene (4-8)**: Lagana kompresija (razmaci, čišćenje formatiranja)
+- **Stare izmjene (9+)**: Pećinska kompresija (uklanjanje punila, sažimanje)
+- **Vrlo stare izmjene (20+)**: Jako sažete ili odbačene
 
 #### Primjer koda
 
@@ -390,46 +373,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... još 50 poruka ...
+  // ... još 50 izmjena ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Prve 3 poruke: doslovno
-  light: 8, // Poruke 4-8: lagana kompresija
-  moderate: 20, // Poruke 9-20: Caveman kompresija
-  // Poruke 21+: opsežno sažimanje
+  verbatim: 3, // Prve 3 izmjene: doslovno
+  light: 8, // Izmjene 4-8: lagana kompresija
+  moderate: 20, // Izmjene 9-20: pećinska kompresija
+  // Izmjene 21+: jako sažimanje
 });
 
-// saved = broj ušteđenih tokena
+// saved = broj spremljenih tokena
 ```
 
-#### Kada upotrebljavati
+#### Kada koristiti
 
-Progresivno starenje **uvijek je uključeno** za načine rada `aggressive` i `ultra`. Posebno je učinkovito za:
+Progresivno starenje je **uvijek uključeno** za `aggressive` i `ultra` načine rada. Posebno je učinkovito za:
 
-- Dugotrajne sesije programiranja
+- Dugotrajne sesije kodiranja
 - Višednevne razgovore
-- Agentske tijekove rada s mnogo poziva alata
+- Agentne radne procese s mnogo poziva alata
 
-### Način izlaza Caveman
+### Način izlaza "Pećinski čovjek"
 
-Modul `outputMode.ts` umeće **upute u sistemski prompt** kako bi sam model stvarao sažet, štur izlaz (stil "pećinskog čovjeka").
+Modul `outputMode.ts` ubacuje **upute za sistemski upit** kako bi sam model proizveo komprimiran, sažet izlaz (stil "pećinskog čovjeka").
 
-#### Kako funkcionira
+#### Kako radi
 
-Umjesto sažimanja ulaza, ovaj način dodaje sistemski prompt poput:
+Umjesto komprimiranja ulaza, ovaj način rada dodaje sistemski upit poput:
 
-> "Odgovaraj s minimalno riječi. Preskoči ljubaznosti. Koristi kratke rečenice."
+> "Odgovori minimalnim riječima. Preskoči uljudnosti. Koristi kratke rečenice."
 
-To je posebno učinkovito za:
+Ovo posebno dobro funkcionira za:
 
 - Generiranje koda (sažetiji izlaz = manje tokena)
-- Brza pitanja i odgovore (nisu potrebna opširna objašnjenja)
-- Skupnu obradu (maksimalna propusnost)
+- Brza pitanja i odgovori (nema potrebe za opširnim objašnjenjima)
+- Skupnu obradu (maksimiziranje propusnosti)
 
-#### Kada ga koristiti
+#### Kada koristiti
 
-Način izlaza Caveman **uključuje se opcionalno** — postavite ga putem kombinirane konfiguracije:
+Način izlaza "Pećinski čovjek" je **opcionalan** — postavite ga putem kombinirane konfiguracije:
 
 ```json
 {
@@ -442,27 +425,37 @@ Način izlaza Caveman **uključuje se opcionalno** — postavite ga putem kombin
 }
 ```
 
-### Stilovi izlaza (katalog)
+### Izlazni stilovi (katalog)
 
-Prethodno opisani način izlaza Caveman **naslijeđeni je put s jednim stilom**. Faza 4 proširila ga je u katalog kombiniranih stilova izlaza: `OUTPUT_STYLE_CATALOG` u datoteci `open-sse/services/compression/outputStyles/catalog.ts`. Svaki stil predstavlja uputu u sistemskom promptu koja navodi sam model da stvara ekonomičniji izlaz; stilovi se mogu uključiti zajedno i umeću se redoslijedom iz kataloga.
+Gore navedeni način izlaza "Pećinski čovjek" je **naslijeđeni put s jednim stilom**. Faza 4 ga je generalizirala u katalog složivih izlaznih stilova: `OUTPUT_STYLE_CATALOG` u `open-sse/services/compression/outputStyles/catalog.ts`. Svaki stil je instrukcija sistemskog upita koja čini da sam model proizvodi jeftiniji izlaz; stilovi se mogu omogućiti zajedno i ubacuju se prema redoslijedu u katalogu.
 
-| Stil                                   | `id`          | Što radi                                                                                                                                                                                                                                | Jezici uputa                                                         |
-| -------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| Sažeta proza                           | `terse-prose` | Uklanja poštapalice/članove/ograđivanje; tehnički sadržaj ostaje precizan. Isti tekst kao u naslijeđenom načinu izlaza Caveman (referenciran, ne prepisan).                                                                             | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
-| Manje koda                             | `less-code`   | YAGNI ljestvica: najmanja funkcionalna promjena, bez nezatraženih apstrakcija.                                                                                                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
-| Konjski rep (lijeni stariji programer) | `ponytail`    | "Najbolji je kod onaj koji nikad nije napisan": ponovna uporaba > ponovno pisanje, temeljni uzrok > simptom, najkraća funkcionalna razlika.                                                                                             | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
-| Imam ADHD (prvo radnja)                | `i-have-adhd` | Prvo radnja (naredba/putanja/isječak prije proze), numerirani ograničeni koraci, JEDAN konkretan sljedeći korak, bez uvoda/sažetka/završnih napomena. Prilagođeno iz [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
-| Sažeti CJK (文言)                      | `terse-cjk`   | Izrazito sažet stil klasičnog kineskog.                                                                                                                                                                                                 | zh (ograničeno lokalom: nudi se samo kada je razriješeni jezik `zh`) |
+| Stil                          | `id`          | Što radi                                                                                                                                                                                                                         | Jezici instrukcija                                                     |
+| :---------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
+| Sažeta proza                  | `terse-prose` | Izostavlja punila/članke/ograđivanja; zadržava točnu tehničku suštinu. Isti tekst kao i stari način izlaza 'caveman' (referenciran, nije ponovno upisan).                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Manje koda                    | `less-code`   | YAGNI ljestve: najmanja funkcionalna promjena, bez nezahtijevanih apstrakcija.                                                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Ponytail (lijeni stariji dev) | `ponytail`    | "Najbolji kod je kod koji nikada nije napisan": ponovna upotreba > prepisivanje, temeljni uzrok > simptom, najkraći funkcionalni diff.                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Imam ADHD (akcija-prvo)       | `i-have-adhd` | Akcija prvo (naredba/putanja/isječak prije proze), numerirani ograničeni koraci, JEDAN konkretan sljedeći korak, bez uvoda/sažetka/zaključaka. Prilagođeno iz [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Sažeti CJK (文言)             | `terse-cjk`   | Ultra-sažeti stil klasičnog kineskog.                                                                                                                                                                                            | zh (ograničeno lokacijom: nudi se samo kada je razriješeni jezik `zh`) |
 
-Svaki stil dolazi s tri razine intenziteta — `lite`, `full`, `ultra` — a svaka razina završava zajedničkom klauzulom o granicama, koja blokove koda, putanje datoteka, naredbe, tekstove pogrešaka, URL-ove i identifikatore zadržava neizmijenjenima.
+Svaki stil dolazi s tri razine intenziteta — `lite`, `full`, `ultra` — i svaka razina
+završava zajedničkom klauzulom o granicama, koja zadržava blokove koda, putanje datoteka, naredbe,
+nizove pogrešaka, URL-ove i identifikatore doslovno.
 
-#### Kako umetanje funkcionira
+#### Kako funkcionira injekcija
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) razrješava odabir prema katalogu (nepoznati `id`-ovi i stilovi koji ne odgovaraju lokalu odbacuju se i nikada ne uzrokuju pogrešku), spaja odabrane upute redoslijedom iz kataloga, dodaje klauzulu o granicama **jednom** i umeće rezultat na početak sistemskog prompta iza jedinstvene oznake idempotentnosti (`[OmniRoute Output Styles]`) — ponovna primjena ne čini ništa. Kada postoji prijevod za otkriveni jezik zahtjeva, umjesto upute na engleskom umeće se lokalizirana uputa.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) razrješava
+odabir prema katalogu (nepoznati ID-ovi i stilovi koji ne odgovaraju lokaciji se
+odbacuju, nikada ne uzrokuju pogrešku), spaja odabrane instrukcije redoslijedom iz kataloga,
+dodaje klauzulu o granicama **jednom**, i unaprijed učitava rezultat u sistemski
+prompt iza jednog markera idempotentnosti (`[OmniRoute Output Styles]`) — ponovna primjena
+je no-op. Kada detektirani jezik zahtjeva ima prijevod, lokalizirana
+instrukcija se ubacuje umjesto engleske.
 
 #### Kako omogućiti
 
-Na nadzornoj ploči: **Kontekst → Postavke → Kompresija** — jedan redak po stilu s prekidačem za uključivanje/isključivanje i izbornikom razine. Programska konfiguracija kompresije sprema odabir kao:
+Na nadzornoj ploči: **Kontekst → Postavke → Kompresija** — jedan redak po stilu s
+prekidačem za uključivanje/isključivanje i biračem razine. Programski, konfiguracija kompresije
+pohranjuje odabir kao:
 
 ```json
 {
@@ -473,48 +466,59 @@ Na nadzornoj ploči: **Kontekst → Postavke → Kompresija** — jedan redak po
 }
 ```
 
-Kompatibilnost unatrag: naslijeđena kombinirana postavka `outputMode: "caveman"` i dalje radi te se preslikava na `terse-prose`, uz identičan slijed bajtova kao u starom umetanju za svaki naslijeđeni jezik.
+Kompatibilnost unatrag: stara kombinirana postavka `outputMode: "caveman"` i dalje radi i mapira se na
+`terse-prose`, bajt-identična staroj injekciji u svakom starom jeziku.
 
-Odabir jezika: kada je `languageConfig.enabled` uključen, `autoDetect` odabire jezik najnovije korisničke poruke (isti detektor kao u mehanizmima za ulaz); isključivanje opcije `autoDetect` fiksira `defaultLanguage`. Isključeno → engleski.
+Odabir jezika: s uključenim `languageConfig.enabled`, `autoDetect` odabire
+jezik najnovije korisničke poruke (isti detektor kao i ulazni mehanizmi);
+isključivanje `autoDetect` fiksira `defaultLanguage`. Isključeno → Engleski.
 
-Matrica stilova × jezika fiksirana je testom `tests/unit/compression/output-styles-i18n-matrix.test.ts`: novi se stil ne može isporučiti bez barem prijevoda na pt-BR (ili izričite praćene iznimke), a postojeći stil ne može neprimjetno izgubiti lokal. Za dodavanje stila pogledajte [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Matrica stil × jezik je fiksirana pomoću
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: novi stil ne može biti isporučen
+bez barem pt-BR prijevoda (ili eksplicitne praćene iznimke), a
+postojeći stil ne može tiho izgubiti lokalizaciju. Za dodavanje stila, pogledajte
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Kompresija rezultata alata
 
-Modul `toolResultCompressor.ts` pruža **5 specijaliziranih strategija kompresije** za rezultate alata (pozive funkcija, izlaze agenata, rezultate pretraživanja itd.):
+Modul `toolResultCompressor.ts` pruža **5 specijaliziranih strategija kompresije**
+za rezultate alata (pozivi funkcija, izlazi agenta, rezultati pretraživanja itd.):
 
-1. **Kompresija rezultata pretraživanja** — uklanja suvišne rezultate, zadržava prvih N
-2. **Kompresija čitanja datoteka** — skraćuje velike datoteke, zadržava zaglavlja/uvoze
-3. **Kompresija izvršavanja koda** — zadržava samo nužni stdout/stderr
-4. **Kompresija upita baze podataka** — ograničava retke, uklanja opširne metapodatke
-5. **Kompresija odgovora API-ja** — uklanja polja s vrijednošću null, sažima polja
+1.  **Kompresija rezultata pretraživanja** — Uklanja suvišne rezultate, zadržava top-N
+2.  **Kompresija čitanja datoteka** — Skraćuje velike datoteke, čuva zaglavlja/uvoze
+3.  **Kompresija izvršavanja koda** — Zadržava samo bitne stdout/stderr
+4.  **Kompresija upita baze podataka** — Ograničava retke, uklanja opširne metapodatke
+5.  **Kompresija API odgovora** — Uklanja null polja, kondenzira nizove
 
-#### Kada je koristiti
+#### Kada koristiti
 
-Kompresija rezultata alata **uvijek je uključena** kada postoje pozivi alata. Konfiguracija nije potrebna.
+Kompresija rezultata alata je **uvijek uključena** kada su prisutni pozivi alata. Nije
+potrebna konfiguracija.
 
-### Složeni obradni kanal
+### Složeni cjevovod
 
-Složeni način pokreće **više mehanizama uzastopno** — obično prvo RTK (60–90 % uštede na izlazu alata), a zatim Caveman (dodatnih 30 % uštede na preostalom tekstu). Time se postiže **ukupna ušteda od 78–95 %**.
+Složeni način rada pokreće **više mehanizama u nizu** — obično prvo RTK
+(60-90% uštede na izlazu alata), zatim Caveman (30% dodatne uštede na
+preostalom tekstu). Time se postiže **ukupna ušteda od 78-95%**.
 
-#### Kako funkcionira
+#### Kako radi
 
 ```
 Ulaz (1000 tokena)
-  → RTK (filtar koji prepoznaje naredbe) → 200 tokena
-    → Caveman (uklanjanje poštapalica) → 140 tokena
-  → Izlaz (140 tokena, 86 % uštede)
+  → RTK (filter svjestan naredbi) → 200 tokena
+    → Caveman (uklanjanje punila) → 140 tokena
+  → Izlaz (140 tokena, 86% uštede)
 ```
 
-#### Kada ga koristiti
+#### Kada koristiti
 
-Koristite složeni način za:
+Koristite složeni način rada za:
 
-- Tijekove rada s intenzivnom uporabom alata (agentsko programiranje, istraživanje)
-- Troškovno osjetljivu skupnu obradu
-- Situacije kada vam je potrebna maksimalna ušteda tokena
+- Radne tokove s puno alata (agentsko kodiranje, istraživanje)
+- Troškovno osjetljivu serijsku obradu
+- Kada trebate maksimalnu uštedu tokena
 
-Konfigurirajte putem kombinirane konfiguracije:
+Konfigurirajte putem kombinacije:
 
 ```json
 {

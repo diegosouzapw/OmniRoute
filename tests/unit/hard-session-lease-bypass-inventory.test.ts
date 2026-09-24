@@ -19,6 +19,11 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // `getProviderCredentials` across the seam as a dependency (a reference, not a
     // call), so the two sites are inventoried at their new home — see the
     // property-access branch in countCalls().
+    // #14213 (8bf6b60a) re-added one direct call: the opt-in FLUSH_EMPTY_RETRY path picks
+    // the next credential for a bounded empty-turn retry. The retry dispatches through
+    // executeProviderRequest(), whose assertManagedLeaseFence(attemptConnectionId) rejects a
+    // connection other than the leased one — so it is fenced centrally (class A).
+    "open-sse/handlers/chatCore.ts": 1,
     "open-sse/handlers/chatCore/providerExecutionPipeline.ts": 2,
     "open-sse/services/imageCombo.ts": 1,
     "open-sse/services/speechCombo.ts": 1,
@@ -135,6 +140,8 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/providers/test-batch/route.ts": 2,
     "src/app/api/rate-limits/route.ts": 1,
     "src/app/api/services/dario/admin/import-from-omniroute/route.ts": 2,
+    // 7a921299 (configurable semantic-cache embeddings): the provider picker reads the connection rows once.
+    "src/app/api/settings/cache-config/embeddingOptions.ts": 1,
     "src/app/api/settings/export-json/route.ts": 1,
     "src/app/api/settings/qdrant/embedding-models/route.ts": 1,
     "src/app/api/settings/route.ts": 1,
@@ -190,7 +197,9 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/quota/connectionRecovery.ts": 2,
     "src/lib/sync/bundle.ts": 1,
     // #11495: verify-only sweep queries oauth + cookie connections
-    "src/lib/tokenHealthCheck.ts": 2,
+    // #13874: the health check re-reads the row inside the refresh lane to see whether
+    // a Layer 2 refresh already rotated the token before it POSTs a consumed one (2 -> 3).
+    "src/lib/tokenHealthCheck.ts": 3,
     "src/lib/tokenHealthCheckCopilot.ts": 1,
     "src/lib/usage/callLogs.ts": 1,
     "src/lib/usage/codexResetCredits.ts": 1,
@@ -216,6 +225,7 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
   credential: Object.fromEntries(
     Object.keys(EXPECTED.credential).map((file) => [
       file,
+      file === "open-sse/handlers/chatCore.ts" ||
       file === "src/app/api/v1/session-leases/route.ts" ||
       file === "src/sse/handlers/chat.ts" ||
       file === "src/sse/services/auth.ts"

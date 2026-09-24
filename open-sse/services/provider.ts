@@ -6,6 +6,7 @@ import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
   joinClaudeCodeCompatibleUrl,
+  maybeAppendSkillsBeta,
 } from "./claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { buildClineHeaders } from "@/shared/utils/clineAuth";
@@ -111,6 +112,19 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
   // a cloudcode reply regardless of which provider actually served it.
   if (/\/antigravity(?=\/|:|$)/i.test(path) || /^antigravity(?=\/|:|$)/i.test(path)) {
     return "antigravity";
+  }
+
+  // #14165: the /v1beta Gemini ingress converts gemini -> openai chat format
+  // before re-entering handleChat while the request URL keeps its /v1beta
+  // path. With no path branch, detectFormat's `max_tokens` heuristic misread
+  // the converted body (messages + max_tokens) as claude, so non-streaming
+  // replies came back anthropic-shaped and streaming replies were empty. The
+  // ingress always produces an openai chat body; a body that still carries
+  // the raw gemini `contents` envelope keeps the body-based detection below.
+  if (/\/v1beta(?:\/|$)/i.test(path) || /^v1beta(?:\/|$)/i.test(path)) {
+    if (!(body && typeof body === "object" && body.contents && Array.isArray(body.contents))) {
+      return "openai";
+    }
   }
 
   if (
@@ -335,7 +349,6 @@ export function buildProviderUrl(
 
 // Build provider headers
 export function buildProviderHeaders(provider, credentials, stream = true, body = null) {
-  void body;
   const config = getProviderConfig(provider);
   const entry = getRegistryEntry(provider);
   const headers = {
@@ -370,6 +383,9 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
         ccHeaders["Authorization"] = `Bearer ${token}`;
       }
     }
+    // For CC-compatible providers returning early, ensure skills beta is conditionally applied
+    // (within this block, isClaudeCodeCompatible(provider) is guaranteed true):
+    maybeAppendSkillsBeta(ccHeaders, provider, body, true);
     return ccHeaders;
   }
   if (isAnthropicCompatible(provider)) {
@@ -432,6 +448,9 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
   if (stream) {
     headers["Accept"] = "text/event-stream";
   }
+
+  // For standard/compatible provider paths, ensure skills beta is conditionally applied
+  maybeAppendSkillsBeta(headers, provider, body);
 
   return headers;
 }

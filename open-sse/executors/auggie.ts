@@ -23,7 +23,7 @@
  *   5. ~/.auggie/bin/auggie                  (alternate installer layout)
  */
 
-import { spawn } from "node:child_process";
+import { spawn, type StdioOptions } from "node:child_process";
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
@@ -92,12 +92,7 @@ export async function initAuggieModels(
     liveModelSet = new Set();
     return;
   }
-  const child = spawn(bin, ["model", "list"], {
-    env: process.env,
-    stdio: ["ignore", "pipe", "pipe"],
-    shell: false,
-    windowsHide: true,
-  });
+  const child = spawn(bin, ["model", "list"], buildAuggieSpawnOptions(["ignore", "pipe", "pipe"]));
   const fragments: string[] = [];
   child.stdout.on("data", (d: Buffer) => fragments.push(d.toString("utf8")));
   let settled = false;
@@ -218,15 +213,23 @@ function buildAuggieArgs(model: string): string[] {
  * elements to the shell, it does not concatenate them into a single
  * command line.
  */
-export function buildAuggieSpawnOptions(stdio: ["pipe", "pipe", "pipe"]): {
+// #14496: `S extends readonly string[]` does not satisfy any `spawn()` overload
+// (TS2769), and once the overload fails the returned ChildProcess is inferred
+// without its stdio streams, which is where the TS18047 "possibly null" pile came
+// from. Constraining to StdioOptions keeps the literal tuple AND matches spawn().
+export function buildAuggieSpawnOptions<S extends StdioOptions>(
+  stdio: S
+): {
   env: NodeJS.ProcessEnv;
-  stdio: ["pipe", "pipe", "pipe"];
+  stdio: S;
   shell: boolean;
+  windowsHide: true;
 } {
   return {
     env: process.env,
     stdio,
     shell: process.platform === "win32",
+    windowsHide: true,
   };
 }
 
@@ -377,11 +380,7 @@ export function checkAuggieCliVersion(timeoutMs = 5000): Promise<AuggieCliVersio
 
     let child: ReturnType<typeof spawn>;
     try {
-      // No `shell` option — fixed argv, no cmd.exe interpretation.
-      child = spawn(bin, ["--version"], {
-        env: process.env,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
+      child = spawn(bin, ["--version"], buildAuggieSpawnOptions(["ignore", "pipe", "pipe"]));
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       settle({ ok: false, error: isEnoentLike(message) ? cliNotFoundMessage(bin) : message });

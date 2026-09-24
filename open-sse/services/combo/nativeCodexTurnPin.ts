@@ -322,7 +322,7 @@ export async function isPinnedTargetModelScopedUnusable(args: {
       () => true
     );
     if (
-      !available &&
+      available !== true &&
       provider &&
       rawModel &&
       (isModelLocked(provider, connectionId, rawModel) || hasPerModelQuota(provider, rawModel))
