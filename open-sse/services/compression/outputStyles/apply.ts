@@ -139,7 +139,7 @@ function buildStyleBoundaries(resolved: OutputStyleSelectionEntry[], language: s
 }
 
 /**
- * Inject one or more output styles deterministically and front-loaded into the system prompt.
+ * Inject one or more output styles deterministically and appended to the system prompt.
  * - Selection resolved in catalog order; unknown/locale-mismatched styles dropped.
  * - Boundary block appended once at the end: SHARED_BOUNDARIES plus the
  *   `boundaries` clause of every style that declares one (localized via
