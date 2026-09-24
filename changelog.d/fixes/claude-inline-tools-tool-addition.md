@@ -1,1 +1,0 @@
-- fix(sse): negotiate the inline-tools beta for `tool_addition` blocks as well as `tool_removal` — Claude Code sends both, and a request carrying only `tool_addition` was rejected upstream with "`tool_addition` blocks require anthropic-beta: inline-tools-2026-09-15"
