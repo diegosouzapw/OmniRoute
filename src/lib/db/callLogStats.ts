@@ -284,7 +284,7 @@ export function getSearchAggregateStats(todayIso: string): SearchAggregateStats 
           COALESCE(SUM(CASE WHEN c.timestamp >= ? THEN 1 ELSE 0 END), 0) as today,
           COALESCE(SUM(CASE WHEN c.status >= 400 OR c.error_summary IS NOT NULL THEN 1 ELSE 0 END), 0) as errors,
           AVG(CASE WHEN c.duration > 0 THEN c.duration END) as avg_duration,
-          COALESCE(SUM(CASE WHEN c.duration > 0 AND c.duration < 5 THEN 1 ELSE 0 END), 0) as cached
+          COALESCE(SUM(CASE WHEN c.cache_source = 'semantic' THEN 1 ELSE 0 END), 0) as cached
          FROM call_logs c
          WHERE c.request_type = 'search'
           AND ${getSearchLiveProviderGuardSql()}`

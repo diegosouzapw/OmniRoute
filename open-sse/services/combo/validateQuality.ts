@@ -295,7 +295,8 @@ export async function validateResponseQuality(
   response: Response,
   isStreaming: boolean,
   log: { warn?: (...args: unknown[]) => void },
-  responseValidation?: ResponseValidationConfig | null
+  responseValidation?: ResponseValidationConfig | null,
+  signal?: AbortSignal | null
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
   // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
   // detect the empty-content-block pattern (content_filter stop_reason with
@@ -497,10 +498,33 @@ export async function validateResponseQuality(
       });
     }
 
+    // Client-abort awareness for the peek: a read() on a stalled upstream (long
+    // prefill) otherwise stays pending until the first byte, long after the
+    // client is gone.
+    let onAbort: (() => void) | null = null;
+    const abortedPromise = signal
+      ? new Promise<"aborted">((resolve) => {
+          onAbort = () => resolve("aborted");
+          if (signal.aborted) onAbort();
+          else signal.addEventListener("abort", onAbort, { once: true });
+        })
+      : null;
+    const readOrAbort = async () => {
+      if (!abortedPromise) return reader.read();
+      const r = await Promise.race([reader.read(), abortedPromise]);
+      return r === "aborted" ? null : r;
+    };
+
     // Main bounded-peek loop.
     try {
       while (true) {
-        const { done, value } = await reader.read();
+        const next = await readOrAbort();
+        if (next === null) {
+          // Same as the error path: never await cancel() on a tee branch.
+          reader.cancel(signal?.reason).catch(() => {});
+          return { valid: true };
+        }
+        const { done, value } = next;
 
         if (done) {
           // Stream finished — flush the TextDecoder and parse any remaining text.
@@ -642,6 +666,8 @@ export async function validateResponseQuality(
       }
       // Other read errors — pass through (stream readiness timeout will catch truly broken streams)
       return { valid: true };
+    } finally {
+      if (signal && onAbort) signal.removeEventListener("abort", onAbort);
     }
   }
 

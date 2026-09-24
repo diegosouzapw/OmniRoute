@@ -12,6 +12,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitizatio
 import { getDbInstance } from "../db/core";
 import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
+import { updateRequestTokensById } from "./usageHistory";
 import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
 import {
   seedPendingContinuationState,
@@ -653,6 +654,18 @@ async function saveCallLogOperation(entry: any): Promise<void> {
 }
 
 export function saveCallLog(entry: any): Promise<void> {
+  // Usage is also needed by the live dashboard when disk history is disabled.
+  // Retain only counters, never the request/response bodies from this entry.
+  if (entry?.tokens && typeof entry.tokens === "object") {
+    updateRequestTokensById(entry.pendingRequestId ?? entry.id, {
+      in: getLoggedInputTokens(entry.tokens),
+      out: getLoggedOutputTokens(entry.tokens),
+      cacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
+      cacheCreation: getPromptCacheCreationTokensOrNull(entry.tokens),
+      reasoning: getReasoningTokensOrNull(entry.tokens),
+      compressed: typeof entry.tokensCompressed === "number" ? entry.tokensCompressed : null,
+    });
+  }
   if (!shouldPersistToDisk || callLogSavesClosing) return Promise.resolve();
 
   const operation = saveCallLogOperation(entry);

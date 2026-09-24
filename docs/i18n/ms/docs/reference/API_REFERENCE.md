@@ -88,13 +88,9 @@ Content-Type: application/json
 
 ## Pajakan Sesi Terurus Eksklusif
 
-Pajakan sesi terurus eksklusif ialah kontrak penghalaan ikut serta yang neutral terhadap klien: satu pemilik aktif
-memegang satu sambungan OmniRoute yang layak. Ia tidak memajak model, memerlukan OAuth, mengenal pasti
-klien tertentu atau memerlukan penyedia tertentu.
+Pajakan sesi terurus eksklusif ialah kontrak penghalaan opt-in, neutral-klien: satu pemilik aktif memegang satu sambungan OmniRoute yang layak. Ia tidak memajak model, memerlukan OAuth, mengenal pasti klien tertentu, atau memerlukan penyedia tertentu.
 
-Kunci API yang mengesahkan identiti mesti mempunyai skop `lease:exclusive` dan senarai
-`allowedConnections` eksplisit yang tidak kosong. Sempadan mutasi pangkalan data menguatkuasakan kedua-dua medan
-secara bersama ketika penciptaan kunci dan kemas kini separa.
+Kunci API pengesahan mesti mempunyai skop `lease:exclusive` dan senarai `allowedConnections` yang eksplisit dan tidak kosong. Sempadan mutasi pangkalan data menguatkuasakan kedua-dua medan bersama-sama pada penciptaan kunci dan kemas kini separa.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Respons pemerolehan, pembaharuan dan pelepasan yang berjaya mendedahkan cap masa, `state` dan nilai positif tepat
-`generation`, tetapi tidak pernah mendedahkan sambungan atau bukti kelayakan yang dipilih. Pembaharuan dan pelepasan membekalkan
-generasi dalam badan JSON:
+Respons pemerolehan, pembaharuan, dan pelepasan yang berjaya mendedahkan cap masa, `state`, dan `generation` positif yang tepat, tetapi tidak pernah sambungan atau kelayakan yang dipilih. Pembaharuan dan pelepasan membekalkan generasi dalam badan JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generasi dalam badan JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Pemilik pajakan aktif boleh meminta secara eksplisit metadata paparan yang selamat dari segi privasi untuk pengikatan semasanya:
+Pemilik pajakan aktif boleh secara eksplisit meminta metadata paparan selamat privasi untuk pengikatan semasanya:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,35 +131,20 @@ Pemilik pajakan aktif boleh meminta secara eksplisit metadata paparan yang selam
 }
 ```
 
-Tindakan status ikut serta ini dipagari oleh pemilik legap, kunci API terurus yang disahkan dan generasi aktif
-yang tepat dalam satu transaksi pangkalan data. `displayName` hanyalah nama sambungan dikonfigurasikan yang telah dirapikan;
-nilainya ialah `null` apabila tiada nama dikonfigurasikan yang selamat. OmniRoute tidak pernah menggantikannya dengan
-e-mel atau identiti akaun yang dijana. Nilai penyedia ialah label paparan tidak sensitif dan tidak pernah merupakan
-pengecam penyedia serasi yang dijana. Bukti kelayakan, token, kuki, ID sambungan atau kunci API mentah,
-cincangan pemilik, rahsia pemagaran dan data penghalaan dalaman dikecualikan.
+Tindakan status opt-in ini dipagari oleh pemilik legap, kunci API terurus yang disahkan, dan generasi aktif yang tepat dalam satu transaksi pangkalan data. `displayName` hanyalah nama sambungan yang dikonfigurasi yang dipangkas; ia adalah `null` apabila tiada nama yang dikonfigurasi yang selamat wujud. OmniRoute tidak pernah menggantikan e-mel atau identiti akaun yang dijana. Nilai penyedia adalah label paparan yang tidak sensitif dan tidak pernah menjadi pengecam penyedia serasi yang dijana. Kelayakan, token, kuki, id sambungan mentah atau kunci API, hash pemilik, rahsia pagar, dan data penghalaan dalaman dikecualikan.
 
-Carian dengan kunci salah, pemilik salah, generasi lapuk, tiada, tamat tempoh, dilepaskan atau dibatalkan semuanya
-mengembalikan ralat `409 LEASE_FENCE_STALE` yang sama tanpa metadata sambungan. Klien yang menerima respons menunggu kapasiti tidak mempunyai pengikatan aktif untuk diperiksa. Apabila penghalaan mengalihkan pajakan aktif,
-generasi yang sama kekal sah dan status mengembalikan pengikatan baharu secara atomik, bukan yang lama.
-Klien sedia ada kekal tidak berubah kerana respons pemerolehan, pembaharuan, pelepasan dan penantian mengekalkan
-bentuknya yang terdahulu.
+Carian kunci salah, pemilik salah, generasi lapuk, hilang, tamat tempoh, dilepaskan, dan tidak sah semuanya mengembalikan ralat `409 LEASE_FENCE_STALE` yang sama tanpa metadata sambungan. Klien yang menerima respons menunggu kapasiti tidak mempunyai pengikatan aktif untuk diperiksa. Apabila penghalaan mengubah pajakan aktif, generasi yang sama kekal sah dan status secara atomik mengembalikan pengikatan baharu, tidak pernah yang lama. Klien sedia ada kekal tidak berubah kerana respons pemerolehan, pembaharuan, pelepasan, dan menunggu mengekalkan bentuk sebelumnya.
 
-Kontrak pelayan ini tidak mengubah `/status` OpenAI Codex standard. Codex standard pada masa ini melaporkan
-penyedia modelnya serta keadaan pengesahan/akaun terbina dalam tetapi tidak memaparkan metadata akaun
-penyedia tersuai sewenang-wenangnya; penyepaduan klien pada masa hadapan mesti memanggil tindakan ini dan menentukan cara
-untuk memaparkan `connection.displayName`.
+Kontrak pelayan ini tidak mengubah stok OpenAI Codex `/status`. Stok Codex pada masa ini melaporkan penyedia modelnya dan keadaan pengesahan/akaun terbina dalam tetapi tidak memaparkan metadata akaun penyedia tersuai sewenang-wenangnya; integrasi klien kemudian mesti memanggil tindakan ini dan memutuskan cara memaparkan `connection.displayName`.
 
-Setiap permintaan inferens terurus kemudiannya membekalkan kedua-dua pengepala kawalan:
+Setiap permintaan inferens terurus kemudian membekalkan kedua-dua pengepala kawalan:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Pemilik tepat, generasi, sambungan aktif dan kunci API yang disahkan dipagari serta-merta
-sebelum setiap percubaan huluan yang disokong. Memainkan semula pemilik dan generasi dengan kunci lain akan gagal walaupun
-kunci tersebut membenarkan sambungan yang sama. Pemilik mentah tidak disimpan secara berterusan, dilog, dikekalkan dalam
-petikan permintaan atau dimajukan ke huluan.
+Pemilik, generasi, sambungan aktif, dan kunci API yang disahkan yang tepat dipagari serta-merta sebelum setiap percubaan hulu yang disokong. Mengulang pemilik dan generasi dengan kunci lain gagal walaupun kunci tersebut membenarkan sambungan yang sama. Pemilik mentah tidak dikekalkan, dicatat, disimpan dalam tangkapan permintaan, atau diteruskan ke hulu.
 
 Pertikaian sementara mengembalikan HTTP `429` dengan `Retry-After` dan:
 
@@ -178,36 +157,35 @@ Pertikaian sementara mengembalikan HTTP `429` dengan `Retry-After` dan:
 }
 ```
 
-Respons ini hanya bermaksud bahawa set layak biasa tidak kosong dan setiap calon bebas sedang
-dipegang oleh pajakan aktif asing. Model/penyedia yang tidak disokong, ketidakpadanan dasar, tempoh bertenang, kuota,
-kesihatan dan kegagalan kelayakan biasa yang lain mengekalkan respons OmniRoute sedia ada.
+Respons ini hanya bermaksud bahawa set layak biasa tidak kosong dan setiap calon bebas dipegang oleh pajakan aktif asing. Model/penyedia yang tidak disokong, ketidakpadanan polisi, tempoh bertenang, kuota, kesihatan, dan kegagalan kelayakan biasa yang lain mengekalkan respons OmniRoute sedia ada mereka.
 
 ### `x-omniroute-compression`
 
-Penggantian pelan pemampatan bagi setiap permintaan. Keutamaan tertinggi — mengatasi penggantian gabungan penghalaan,
-profil aktif, pencetus automatik dan Lalai panel. Nilai:
+Penggantian setiap permintaan bagi pelan pemampatan. Keutamaan tertinggi — mengatasi penggantian gabungan penghalaan, profil aktif, pencetus automatik, dan panel Lalai. Nilai:
 
-| Nilai         | Kesan                                                                                                                |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Tiada pemampatan untuk permintaan ini.                                                                               |
-| `default`     | Profil Lalai yang diperoleh daripada panel (mengabaikan profil aktif).                                               |
-| `engine:<id>` | Satu enjin apabila didayakan, cth. `engine:rtk`.                                                                     |
-| `<combo>`     | Gabungan bernama, dipadankan mengikut nama (tidak sensitif huruf besar/kecil) terlebih dahulu, kemudian mengikut ID. |
+| Nilai         | Kesan                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| `off`         | Tiada pemampatan untuk permintaan ini.                                                                  |
+| `default`     | Profil Lalai terbitan panel (mengabaikan profil aktif). Enjin lossy dibiarkan mati.                     |
+| `safe`        | Dedup dan lipatan ruang putih sahaja.                                                                   |
+| `allow-lossy` | Kekalkan pelan operator untuk permintaan ini, termasuk ringkasan dan penulisan semula gaya.             |
+| `engine:<id>` | Satu enjin apabila diaktifkan, cth. `engine:rtk`. Opt-in setiap permintaan untuk enjin tersebut.        |
+| `<combo>`     | Gabungan bernama, dipadankan mengikut nama (tidak peka huruf besar/kecil) dahulu, kemudian mengikut id. |
 
 Nota:
 
-- Nilai yang tidak diketahui diabaikan (permintaan tidak pernah ditolak); penyelesaian diteruskan mengikut keutamaan operator biasa.
-- Jika berbilang gabungan berkongsi nama, berikan **id** gabungan untuk padanan deterministik.
-- Gabungan yang namanya ialah `off` atau `default` tidak boleh dipilih mengikut nama (kata kunci tersebut ditafsirkan terlebih dahulu); rujuk gabungan tersebut melalui ID-nya.
-- Suis pemampatan induk ialah gerbang mutlak: apabila pemampatan dilumpuhkan secara global, pengepala ini tidak boleh mendayakannya.
+- Nilai yang tidak diketahui diabaikan (permintaan tidak pernah ditolak); penyelesaian jatuh kepada keutamaan operator biasa.
+- Jika berbilang gabungan berkongsi nama, hantar **id** gabungan untuk padanan yang ditentukan.
+- Gabungan yang namanya `off` atau `default` tidak boleh dipilih mengikut nama (kata kunci tersebut ditafsirkan dahulu); rujuk gabungan tersebut mengikut idnya.
+- Suis pemampatan utama adalah pintu keras: apabila pemampatan dilumpuhkan secara global, pengepala ini tidak boleh mengaktifkannya.
 
-Pelan yang digunakan dicerminkan kembali dalam pengepala respons:
+Pelan yang digunakan digemakan kembali dalam pengepala respons:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-dengan `<source>` ialah salah satu daripada `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` atau `off`.
+di mana `<source>` adalah salah satu daripada `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, atau `off`.
 
 ---
 

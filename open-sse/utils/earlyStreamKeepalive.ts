@@ -32,6 +32,7 @@
  */
 
 import { recordEarlyKeepaliveBytes } from "./earlyKeepaliveByteBuffer.ts";
+import { SYNTHETIC_RESPONSES_SEQUENCE_NUMBER } from "./responsesSequence.ts";
 
 const ENCODER = new TextEncoder();
 const KEEPALIVE_FRAME = ENCODER.encode(": keepalive\n\n");
@@ -86,7 +87,10 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
     code: null,
     message: "Upstream stream failed before completion.",
     param: null,
-    sequence_number: 0,
+    // #14330: was hardcoded to 0, colliding with the real per-stream emitter's
+    // first event (also numbered 1 from its own `state.seq` base of 0) — this
+    // frame is synthesized outside that counter, so it uses the shared seed.
+    sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
   })}\n\n`
 );
 
@@ -125,7 +129,15 @@ function buildResponsesErrorDataLine(text: string): string {
     parsed && typeof parsed.diagnostics === "object" && parsed.diagnostics !== null
       ? { diagnostics: parsed.diagnostics }
       : {};
-  return JSON.stringify({ type: "error", code, message, param, sequence_number: 0, ...extras });
+  return JSON.stringify({
+    type: "error",
+    code,
+    message,
+    param,
+    // #14330: was hardcoded to 0 — see OPENAI_RESPONSES_ERROR_FRAME above.
+    sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+    ...extras,
+  });
 }
 
 export type EarlyStreamKeepaliveOptions = {

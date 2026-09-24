@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Được hỗ trợ bởi những Người bạn Mã nguồn Mở của chúng tôi
+## 🤝 Được hỗ trợ bởi những người bạn mã nguồn mở của chúng tôi
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Trí tuệ tiên phong mở · 2,8 nghìn tỷ tham số · ngữ cảnh 1 triệu token"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **Bạn muốn tham gia với tư cách Người bạn Mã nguồn Mở?** Đây là những công ty ủng hộ mã nguồn mở và giúp OmniRoute tiếp tục phát triển — đồng thời chúng tôi công khai mục đích sử dụng của mọi token mà họ cung cấp. Hãy liên hệ: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Bạn muốn tham gia với tư cách là một Người bạn mã nguồn mở?** Đây là những công ty ủng hộ mã nguồn mở và giúp OmniRoute tiếp tục hoạt động — và chúng tôi công khai nơi mọi khoản đóng góp của họ được sử dụng. Liên hệ: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Người bạn Mã nguồn Mở Sáng lập"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      Xin cảm ơn <b>Kimi (Moonshot AI)</b>, Người bạn Mã nguồn Mở sáng lập của chúng tôi, vì đã ủng hộ dự án này! Kimi là phòng thí nghiệm AI đứng sau các dòng mô hình trọng số mở K2 và K3 — <b>Kimi K3</b> cung cấp cửa sổ ngữ cảnh 1 triệu token, khả năng thị giác nguyên bản và năng lực lập trình ở cấp độ tiên phong với chi phí chỉ bằng một phần nhỏ so với các mô hình đóng, đồng thời hoạt động ngay lập tức với Claude Code, Codex và mọi công cụ lập trình mà OmniRoute phục vụ.
+      Cảm ơn <b>Kimi (Moonshot AI)</b>, Người bạn mã nguồn mở sáng lập của chúng tôi, đã ủng hộ dự án này! Kimi là phòng thí nghiệm AI đứng sau các dòng mô hình K2 và K3 có trọng lượng mở — <b>Kimi K3</b> cung cấp cửa sổ ngữ cảnh 1M-token, tầm nhìn gốc và mã hóa cấp độ tiên tiến với chi phí thấp hơn nhiều so với các mô hình đóng, và hoạt động ngay lập tức với Claude Code, Codex và mọi công cụ mã hóa mà OmniRoute phục vụ.
       <br/><br/>
-      <b>Sự hỗ trợ của Kimi mang lại điều gì:</b> Tín dụng API của Kimi vận hành quy trình phát hành được AI xác thực của OmniRoute — giai đoạn <i>xác thực hợp nhất do Kimi K3 hỗ trợ</i>, nơi mọi pull request đều được xem xét trước khi phát hành — cùng với hoạt động phát triển tính năng hằng ngày. Hỗ trợ hạng nhất dành cho Kimi được cung cấp trên cả hai phương thức: <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> trực tiếp (<code>kimi-k3</code>) và <a href="https://www.kimi.com/code?aff=omniroute">gói lập trình Kimi Code</a> (OAuth và khóa API). OmniRoute cũng là dự án mã nguồn mở đầu tiên của Brazil tham gia chương trình hỗ trợ của Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Nhận khóa Kimi API kèm thêm 15% tín dụng →</b></a>
+      <b>Hỗ trợ của Kimi cung cấp:</b> Các khoản tín dụng API của Kimi cung cấp năng lượng cho quy trình phát hành được AI xác thực của OmniRoute — giai đoạn <i>xác thực hợp nhất được cung cấp bởi Kimi K3</i> xem xét mọi yêu cầu kéo trước khi nó được xuất bản — cộng với việc phát triển tính năng hàng ngày. Hỗ trợ Kimi hạng nhất được vận chuyển trên cả hai đường ray: <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">API Kimi</a> trực tiếp (<code>kimi-k3</code>) và <a href="https://www.kimi.ai/code?aff=omniroute">gói mã hóa Kimi Code</a> (OAuth và khóa API). OmniRoute cũng là dự án mã nguồn mở đầu tiên của Brazil trong chương trình hỗ trợ của Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Nhận khóa API Kimi với 15% tín dụng bổ sung →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Người bạn Mã nguồn Mở"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
     </td>
     <td>
-      Xin cảm ơn <b>Cheaper Inference</b>, một Người bạn Mã nguồn Mở của OmniRoute, vì đã ủng hộ dự án này! Cheaper Inference là một cổng được xếp hạng theo chi phí, bán lại 42 mô hình tiên phong — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok và MiniMax — thông qua một điểm cuối tương thích với OpenAI duy nhất, định tuyến từng yêu cầu đến nhà cung cấp đủ điều kiện có giá rẻ nhất mà không bao giờ tính phí cao hơn giá niêm yết của nhà sản xuất mô hình.
+      Cảm ơn <b>Cheaper Inference</b>, một Người bạn mã nguồn mở của OmniRoute, đã ủng hộ dự án này! Cheaper Inference là một cổng xếp hạng chi phí bán lại 42 mô hình tiên tiến — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok và MiniMax — đằng sau một điểm cuối tương thích với OpenAI, định tuyến mỗi yêu cầu đến nhà cung cấp đủ điều kiện rẻ nhất mà không bao giờ tính phí cao hơn giá niêm yết của nhà sản xuất mô hình.
       <br/><br/>
-      <b>Hỗ trợ hạng nhất trong OmniRoute:</b> Chat Completions, điểm cuối <code>/v1/responses</code> nguyên bản, thị giác, gọi công cụ và 3 mô hình hình ảnh (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, có thể truy cập dưới dạng <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Nhận khóa API →</b></a>
+      <b>Hỗ trợ hạng nhất trong OmniRoute:</b> Chat Completions, điểm cuối <code>/v1/responses</code> gốc, tầm nhìn, gọi công cụ và 3 mô hình hình ảnh (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, có thể truy cập dưới dạng <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Nhận khóa API →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Các liên kết được gắn thẻ <code>aff=omniroute</code> là liên kết đối tác. Chúng tài trợ cho dự án mà không làm phát sinh thêm chi phí cho bạn.</sub>
+<sub>Các liên kết được gắn thẻ <code>aff=omniroute</code> là liên kết đối tác. Chúng tài trợ cho dự án mà không tốn thêm chi phí cho bạn.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Khuyến mãi liên kết</b> — phiếu ưu đãi đăng ký miễn phí từ các nhà cung cấp không tài trợ cho chúng tôi (nhấp để mở rộng)</sub></summary>
+<summary><sub><b>🎟️ Khuyến mãi liên kết</b> — phiếu đăng ký miễn phí từ các nhà cung cấp mà chúng tôi không tài trợ (nhấp để mở rộng)</sub></summary>
 
-<sub><i>Phần này chỉ dành cho mã giới thiệu/phiếu ưu đãi. Các mối quan hệ đối tác được tài trợ nằm trong phần <b>🤝 Được hỗ trợ bởi những Người bạn Mã nguồn Mở của chúng tôi</b> ở trên. OmniRoute không có quan hệ tài trợ hoặc đối tác với các nhà cung cấp được liệt kê tại đây — đây là các phiếu ưu đãi công khai mà bất kỳ ai cũng có thể sử dụng.</i></sub>
+<sub><i>Phần này chỉ dành cho mã giới thiệu/phiếu giảm giá. Các đối tác tài trợ nằm trong phần <b>🤝 Được hỗ trợ bởi những người bạn mã nguồn mở của chúng tôi</b> ở trên. OmniRoute không có bất kỳ sự tài trợ hoặc hợp tác nào với các nhà cung cấp được liệt kê ở đây — đây là các phiếu giảm giá công khai mà bất kỳ ai cũng có thể sử dụng.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — đăng ký qua liên kết giới thiệu · <b>$100 tín dụng miễn phí</b> khi đăng ký (máy chủ miễn phí, có thể có độ trễ cao hơn — phù hợp nhất để thử nghiệm, không dành cho môi trường production). Được hỗ trợ hạng nhất trong OmniRoute kể từ <b>v3.8.50</b>: Chat Completions, định dạng truyền tương thích với Anthropic và đường dẫn tương thích với OpenAI. Các mô hình có sẵn bao gồm <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> và nhiều mô hình khác. <b><a href="https://agentrouter.org/register?aff=70LM">Nhận $100 của bạn →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — đăng ký liên kết · <b>$100 tín dụng miễn phí</b> khi đăng ký (máy chủ miễn phí, có thể có độ trễ cao hơn — tốt nhất để thử nghiệm, không phải sản xuất). Hỗ trợ hạng nhất trong OmniRoute kể từ <b>v3.8.50</b>: Chat Completions, định dạng dây tương thích với Anthropic và đường dẫn tương thích với OpenAI. Các mô hình có sẵn bao gồm <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> và nhiều hơn nữa. <b><a href="https://agentrouter.org/register?aff=70LM">Nhận $100 của bạn →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Liên kết liên kết — OmniRoute không có quan hệ tài trợ hoặc đối tác với nhà cung cấp này.</i></sub>
+      <sub>⚠️ <i>Liên kết liên kết — OmniRoute không có bất kỳ sự tài trợ hoặc hợp tác nào với nhà cung cấp này.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Bạn biết nhà cung cấp nào khác có phiếu ưu đãi đăng ký miễn phí hào phóng, mang lại lợi ích cho người dùng OmniRoute không? Hãy mở một issue và chúng tôi sẽ thêm nhà cung cấp đó vào đây.</sub>
+<sub>Bạn có biết nhà cung cấp nào khác có phiếu đăng ký miễn phí hào phóng mang lại lợi ích cho người dùng OmniRoute không? Mở một vấn đề và chúng tôi sẽ thêm nó vào đây.</sub>
 
 </details>
 
@@ -1256,28 +1256,28 @@ Số liệu chuẩn vào 2026-08-24: **1.029 video duy nhất** · **11.132.922 
 <br/>
 <div align="center">
 
-## 🛠️ Ngăn xếp công nghệ
+## 🛠️ Ngăn xếp Công nghệ
 
 </div>
 
 <table>
   <tr><th align="left">Lớp</th><th align="left">Công nghệ</th></tr>
   <tr><td nowrap><b>Môi trường chạy</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Ngôn ngữ</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> trên toàn bộ <code>src/</code> và <code>open-sse/</code> (không có <code>any</code> trong phần lõi kể từ v2.0)</td></tr>
+  <tr><td nowrap><b>Ngôn ngữ</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> trên <code>src/</code> và <code>open-sse/</code> (không có <code>any</code> trong lõi kể từ v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Cơ sở dữ liệu</b></td><td>better-sqlite3 (SQLite, ghi nhật ký WAL) + LowDB (JSON kế thừa) — 122 mô-đun miền nghiệp vụ, 178 bản di chuyển</td></tr>
-  <tr><td nowrap><b>Bộ nhớ</b></td><td>Tìm kiếm toàn văn SQLite FTS5 + vector nhúng lượng tử hóa int8, suy giảm có kiểu</td></tr>
-  <tr><td nowrap><b>Lược đồ</b></td><td>Zod 4 — xác thực đầu vào/đầu ra của công cụ MCP + hợp đồng API</td></tr>
+  <tr><td nowrap><b>Cơ sở dữ liệu</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 module miền, 182 migrations</td></tr>
+  <tr><td nowrap><b>Bộ nhớ</b></td><td>SQLite FTS5 full-text + nhúng vector lượng tử hóa int8, phân rã có kiểu</td></tr>
+  <tr><td nowrap><b>Lược đồ</b></td><td>Zod 4 — Xác thực I/O công cụ MCP + hợp đồng API</td></tr>
   <tr><td nowrap><b>Giao thức</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Truyền phát</b></td><td>Server-Sent Events (SSE) + cầu nối WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Nén</b></td><td>Quy trình 12 bộ máy — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Xác thực &amp; bảo mật</b></td><td>OAuth 2.0 (PKCE) + JWT + khóa API + xác thực theo phạm vi MCP · AES-256-GCM cho dữ liệu lưu trữ · DOMPurify</td></tr>
-  <tr><td nowrap><b>Ẩn danh</b></td><td>wreq-js — giả lập dấu vân tay TLS JA3 / JA4, proxy 3 cấp</td></tr>
-  <tr><td nowrap><b>Khả năng phục hồi</b></td><td>Bộ ngắt mạch, thời gian chờ tăng theo cấp số nhân, chống hiệu ứng đám đông, tự phục hồi tổ hợp tự động</td></tr>
-  <tr><td nowrap><b>Ghi nhật ký</b></td><td>pino — nhật ký JSON có cấu trúc kèm ngữ cảnh yêu cầu</td></tr>
-  <tr><td nowrap><b>Kiểm thử</b></td><td>Trình chạy kiểm thử Node.js + Vitest — <b>hơn 39.000 khai báo kiểm thử tĩnh</b> trên hơn 5.100 tệp kiểm thử được theo dõi (đơn vị, tích hợp, E2E, bảo mật, hệ sinh thái)</td></tr>
+  <tr><td nowrap><b>Truyền phát</b></td><td>Server-Sent Events (SSE) + Cầu nối WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Nén</b></td><td>Hệ thống 12-engine — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Xác thực & bảo mật</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + xác thực phạm vi MCP · AES-256-GCM khi lưu trữ · DOMPurify</td></tr>
+  <tr><td nowrap><b>Ẩn danh</b></td><td>wreq-js — Giả mạo dấu vân tay JA3 / JA4 TLS, proxy 3 cấp</td></tr>
+  <tr><td nowrap><b>Khả năng phục hồi</b></td><td>Bộ ngắt mạch, lùi lũy thừa, chống thundering-herd, tự phục hồi tự động kết hợp</td></tr>
+  <tr><td nowrap><b>Ghi nhật ký</b></td><td>pino — nhật ký JSON có cấu trúc với ngữ cảnh yêu cầu</td></tr>
+  <tr><td nowrap><b>Kiểm thử</b></td><td>Node.js test runner + Vitest — <b>Hơn 39.000 khai báo kiểm thử tĩnh</b> trên hơn 5.100 tệp kiểm thử được theo dõi (unit, integration, E2E, security, ecosystem)</td></tr>
   <tr><td nowrap><b>Nền tảng</b></td><td>Máy tính để bàn (Electron) · Android (Termux) · PWA (mọi trình duyệt)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — tự động phát hành lên npm + Docker Hub khi phát hành phiên bản</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — tự động xuất bản npm + Docker Hub khi phát hành</td></tr>
   <tr><td nowrap><b>Liên kết</b></td><td><a href="https://omniroute.online">Trang web</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

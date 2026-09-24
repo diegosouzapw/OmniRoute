@@ -9,6 +9,7 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { AgentBridgeServerState } from "@/app/(dashboard)/dashboard/tools/agent-bridge/AgentBridgePageClient";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
@@ -25,6 +26,17 @@ globalThis.fetch = vi.fn().mockResolvedValue({
 } as unknown as Response);
 
 const cleanupCallbacks: Array<() => void> = [];
+const serverState: AgentBridgeServerState = {
+  running: true,
+  port: 20128,
+  certTrusted: false,
+  upstreamCa: null,
+  lastStartedAt: null,
+  activeConns: 0,
+  interceptedCount: 0,
+  dnsConfigured: false,
+  orphanedStateDetected: false,
+};
 
 function makeContainer(): HTMLElement {
   const container = document.createElement("div");
@@ -66,18 +78,19 @@ describe("AgentCard", { timeout: 30000 }, () => {
   });
 
   it("renders agent name and hosts", async () => {
-    const { AgentCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
-    );
+    const { AgentCard } =
+      await import("../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard");
 
     const container = makeContainer();
     await act(async () => {
       const root = createRoot(container);
+      cleanupCallbacks.push(() => act(() => root.unmount()));
       root.render(
         React.createElement(AgentCard, {
           target: mockTarget,
           agentState: undefined,
           serverRunning: false,
+          serverState: { ...serverState, running: false },
           mappings: [],
           onDnsToggle: vi.fn(),
           onMappingsSave: vi.fn(),
@@ -90,18 +103,19 @@ describe("AgentCard", { timeout: 30000 }, () => {
   }, 30000);
 
   it("expands on click and shows DNS toggle", async () => {
-    const { AgentCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
-    );
+    const { AgentCard } =
+      await import("../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard");
 
     const container = makeContainer();
     await act(async () => {
       const root = createRoot(container);
+      cleanupCallbacks.push(() => act(() => root.unmount()));
       root.render(
         React.createElement(AgentCard, {
           target: mockTarget,
           agentState: undefined,
           serverRunning: true,
+          serverState,
           mappings: [],
           onDnsToggle: vi.fn(),
           onMappingsSave: vi.fn(),
@@ -120,9 +134,8 @@ describe("AgentCard", { timeout: 30000 }, () => {
   }, 30000);
 
   it("calls onDnsToggle when DNS button clicked", async () => {
-    const { AgentCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
-    );
+    const { AgentCard } =
+      await import("../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard");
 
     // Simulate that the per-agent RiskNoticeModal (Fix4 M5) has already been
     // accepted for this agent — otherwise the DNS click opens the modal first
@@ -136,6 +149,7 @@ describe("AgentCard", { timeout: 30000 }, () => {
 
     await act(async () => {
       const root = createRoot(container);
+      cleanupCallbacks.push(() => act(() => root.unmount()));
       root.render(
         React.createElement(AgentCard, {
           target: mockTarget,
@@ -148,6 +162,7 @@ describe("AgentCard", { timeout: 30000 }, () => {
             last_error: null,
           },
           serverRunning: true,
+          serverState,
           mappings: [],
           onDnsToggle,
           onMappingsSave: vi.fn(),
@@ -175,18 +190,19 @@ describe("AgentCard", { timeout: 30000 }, () => {
   }, 30000);
 
   it("opens wizard when setup wizard button clicked", async () => {
-    const { AgentCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
-    );
+    const { AgentCard } =
+      await import("../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard");
 
     const container = makeContainer();
     await act(async () => {
       const root = createRoot(container);
+      cleanupCallbacks.push(() => act(() => root.unmount()));
       root.render(
         React.createElement(AgentCard, {
           target: mockTarget,
           agentState: undefined,
           serverRunning: true,
+          serverState,
           mappings: [],
           onDnsToggle: vi.fn(),
           onMappingsSave: vi.fn(),
@@ -204,6 +220,7 @@ describe("AgentCard", { timeout: 30000 }, () => {
     const wizardBtn = Array.from(document.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("setupWizard")
     );
+    expect(wizardBtn).toBeDefined();
 
     await act(async () => {
       wizardBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));

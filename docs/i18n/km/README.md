@@ -268,11 +268,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — បញ្ញាជួរមុខបើកចំហ · 2.8T ប៉ារ៉ាម៉ែត្រ · បរិបទ 1M-token"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — បញ្ញាព្រំដែនបើកចំហ · ប៉ារ៉ាម៉ែត្រ 2.8T · បរិបទ 1M-token"/>
   </a>
 </p>
 
-> **ចង់ចូលរួមជាមិត្តភក្តិប្រភពបើកចំហមែនទេ?** ទាំងនេះគឺជាក្រុមហ៊ុនដែលគាំទ្រប្រភពបើកចំហ និងជួយឱ្យ OmniRoute បន្តដំណើរការ — ហើយយើងប្រកាសជាសាធារណៈថា token ទាំងអស់ដែលពួកគេផ្តល់ឱ្យយើងត្រូវបានប្រើប្រាស់ទៅលើអ្វីខ្លះ។ សូមទាក់ទង៖ [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **ចង់ចូលរួមជាមិត្តភក្តិប្រភពបើកចំហទេ?** ទាំងនេះគឺជាក្រុមហ៊ុនដែលគាំទ្រប្រភពបើកចំហ និងជួយរក្សា OmniRoute ឱ្យដំណើរការ — ហើយយើងប្រកាសជាសាធារណៈថាគ្រប់ token ដែលពួកគេផ្តល់ឱ្យយើងទៅណា។ ទាក់ទងមក៖ [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -287,9 +287,9 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="មិត្តភក្តិប្រភពបើកចំហស្ថាបនិក"/>
     </td>
     <td>
-      សូមអរគុណដល់ <b>Kimi (Moonshot AI)</b> ដែលជាមិត្តភក្តិប្រភពបើកចំហស្ថាបនិករបស់យើង សម្រាប់ការគាំទ្រគម្រោងនេះ! Kimi គឺជាមន្ទីរពិសោធន៍ AI នៅពីក្រោយគ្រួសារម៉ូដែល open-weight K2 និង K3 — <b>Kimi K3</b> ផ្តល់នូវបង្អួចបរិបទ 1M-token, សមត្ថភាពមើលឃើញដើម និងសមត្ថភាពសរសេរកូដកម្រិតជួរមុខក្នុងតម្លៃមួយចំណែកតូចនៃម៉ូដែលបិទ ព្រមទាំងអាចដំណើរការបានភ្លាមៗជាមួយ Claude Code, Codex និងគ្រប់ឧបករណ៍សរសេរកូដដែល OmniRoute បម្រើ។
+      សូមអរគុណដល់ <b>Kimi (Moonshot AI)</b> ដែលជាមិត្តភក្តិប្រភពបើកចំហស្ថាបនិករបស់យើង សម្រាប់ការគាំទ្រគម្រោងនេះ! Kimi គឺជាមន្ទីរពិសោធន៍ AI នៅពីក្រោយគ្រួសារម៉ូដែល K2 និង K3 ដែលមានទម្ងន់បើកចំហ — <b>Kimi K3</b> ផ្តល់នូវបង្អួចបរិបទ 1M-token, ចក្ខុវិស័យដើម និងការសរសេរកូដកម្រិតព្រំដែនក្នុងតម្លៃមួយភាគនៃតម្លៃម៉ូដែលបិទជិត ហើយដំណើរការចេញពីប្រអប់ជាមួយ Claude Code, Codex និងឧបករណ៍សរសេរកូដទាំងអស់ដែល OmniRoute ផ្តល់ជូន។
       <br/><br/>
-      <b>អ្វីដែលការគាំទ្ររបស់ Kimi ផ្តល់ថាមពលឱ្យ៖</b> ឥណទាន API របស់ Kimi ផ្តល់ថាមពលដល់បំពង់ដំណើរការចេញផ្សាយដែលផ្ទៀងផ្ទាត់ដោយ AI របស់ OmniRoute — ដំណាក់កាល <i>ផ្ទៀងផ្ទាត់ការបញ្ចូលបញ្ចូលគ្នាដោយប្រើ Kimi K3</i> ដែលពិនិត្យគ្រប់ pull request មុនពេលចេញផ្សាយ — រួមទាំងការអភិវឌ្ឍមុខងារប្រចាំថ្ងៃ។ ការគាំទ្រកម្រិតទីមួយសម្រាប់ Kimi ត្រូវបានផ្តល់ជូនតាមផ្លូវទាំងពីរ៖ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> ដោយផ្ទាល់ (<code>kimi-k3</code>) និង <a href="https://www.kimi.com/code?aff=omniroute">គម្រោងសរសេរកូដ Kimi Code</a> (OAuth និង API key)។ OmniRoute ក៏ជាគម្រោងប្រភពបើកចំហរបស់ប្រេស៊ីលដំបូងគេក្នុងកម្មវិធីគាំទ្ររបស់ Kimi ផងដែរ។ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>ទទួលយក Kimi API key ជាមួយឥណទានបន្ថែម 15% →</b></a>
+      <b>អ្វីដែលការគាំទ្ររបស់ Kimi ផ្តល់ថាមពល៖</b> ឥណទាន API របស់ Kimi ផ្តល់ថាមពលដល់បំពង់បង្ហូរចេញដែលបានផ្ទៀងផ្ទាត់ដោយ AI របស់ OmniRoute — ដំណាក់កាល <i>ការផ្ទៀងផ្ទាត់ការបញ្ចូលគ្នាដែលផ្តល់ថាមពលដោយ Kimi K3</i> ដែលពិនិត្យមើលរាល់សំណើសុំទាញមុនពេលវាចេញផ្សាយ — បូករួមទាំងការអភិវឌ្ឍន៍មុខងារប្រចាំថ្ងៃ។ ការគាំទ្រ Kimi លំដាប់ទីមួយត្រូវបានដឹកជញ្ជូនលើផ្លូវដែកទាំងពីរ៖ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> ដោយផ្ទាល់ (<code>kimi-k3</code>) និង <a href="https://www.kimi.ai/code?aff=omniroute">គម្រោងសរសេរកូដ Kimi Code</a> (OAuth និង API key)។ OmniRoute ក៏ជាគម្រោងប្រភពបើកចំហរបស់ប្រេស៊ីលដំបូងគេនៅក្នុងកម្មវិធីគាំទ្ររបស់ Kimi ផងដែរ។ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>ទទួលបាន Kimi API key ជាមួយនឹងឥណទានបន្ថែម 15% →</b></a>
     </td>
   </tr>
   <tr>
@@ -301,21 +301,21 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="មិត្តភក្តិប្រភពបើកចំហ"/>
     </td>
     <td>
-      សូមអរគុណដល់ <b>Cheaper Inference</b> ដែលជាមិត្តភក្តិប្រភពបើកចំហរបស់ OmniRoute សម្រាប់ការគាំទ្រគម្រោងនេះ! Cheaper Inference គឺជា gateway ដែលចាត់ថ្នាក់តាមតម្លៃ ហើយលក់បន្តម៉ូដែលជួរមុខចំនួន 42 — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok និង MiniMax — នៅពីក្រោយ endpoint តែមួយដែលឆបគ្នាជាមួយ OpenAI ដោយបញ្ជូនសំណើនីមួយៗទៅកាន់អ្នកផ្តល់សេវាដែលមានតម្លៃថោកបំផុត និងមានសិទ្ធិ ដោយមិនដែលគិតថ្លៃលើសពីតម្លៃរាយរបស់អ្នកបង្កើតម៉ូដែលឡើយ។
+      សូមអរគុណដល់ <b>Cheaper Inference</b> ដែលជាមិត្តភក្តិប្រភពបើកចំហរបស់ OmniRoute សម្រាប់ការគាំទ្រគម្រោងនេះ! Cheaper Inference គឺជាច្រកទ្វារដែលត្រូវបានចាត់ថ្នាក់តាមតម្លៃដែលលក់បន្តម៉ូដែលព្រំដែនចំនួន 42 — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok និង MiniMax — នៅពីក្រោយចុងចំណុចដែលត្រូវគ្នាជាមួយ OpenAI មួយ ដោយបញ្ជូនសំណើនិមួយៗទៅកាន់អ្នកផ្តល់សេវាដែលមានសិទ្ធិថោកបំផុតដោយមិនគិតថ្លៃលើសពីតម្លៃបញ្ជីរបស់អ្នកបង្កើតម៉ូដែលឡើយ។
       <br/><br/>
-      <b>ការគាំទ្រកម្រិតទីមួយក្នុង OmniRoute៖</b> Chat Completions, endpoint ដើម <code>/v1/responses</code>, សមត្ថភាពមើលឃើញ, ការហៅឧបករណ៍ និងម៉ូដែលរូបភាពចំនួន 3 (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code> ដែលអាចចូលប្រើជា <code>cheaperinference/&lt;model&gt;</code>)។ <a href="https://cheaperinference.com/?utm_source=omniroute"><b>ទទួលយក API key →</b></a>
+      <b>ការគាំទ្រលំដាប់ទីមួយនៅក្នុង OmniRoute៖</b> Chat Completions, ចុងចំណុច <code>/v1/responses</code> ដើម, ចក្ខុវិស័យ, ការហៅឧបករណ៍ និងម៉ូដែលរូបភាព 3 (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, អាចទៅដល់បានជា <code>cheaperinference/&lt;model&gt;</code>)។ <a href="https://cheaperinference.com/?utm_source=omniroute"><b>ទទួលបាន API key →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>តំណដែលមានស្លាក <code>aff=omniroute</code> គឺជាតំណដៃគូ។ តំណទាំងនេះជួយផ្តល់មូលនិធិដល់គម្រោងដោយមិនបន្ថែមការចំណាយណាមួយសម្រាប់អ្នកឡើយ។</sub>
+<sub>តំណភ្ជាប់ដែលបានដាក់ស្លាក <code>aff=omniroute</code> គឺជាតំណភ្ជាប់ដៃគូ។ ពួកគេផ្តល់មូលនិធិដល់គម្រោងដោយមិនគិតថ្លៃបន្ថែមសម្រាប់អ្នក។</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ ប្រូម៉ូសិនសម្ព័ន្ធ</b> — គូប៉ុងចុះឈ្មោះឥតគិតថ្លៃពីអ្នកផ្តល់សេវាដែលយើងមិនបានឧបត្ថម្ភ (ចុចដើម្បីពង្រីក)</sub></summary>
+<summary><sub><b>🎟️ ការផ្សព្វផ្សាយរបស់សាខា</b> — ប័ណ្ណចុះឈ្មោះឥតគិតថ្លៃពីអ្នកផ្តល់សេវាដែលយើងមិនឧបត្ថម្ភ (ចុចដើម្បីពង្រីក)</sub></summary>
 
-<sub><i>ផ្នែកនេះគឺសម្រាប់តែលេខកូដយោង/គូប៉ុងប៉ុណ្ណោះ។ ភាពជាដៃគូដែលមានការឧបត្ថម្ភស្ថិតនៅក្នុងផ្នែក <b>🤝 គាំទ្រដោយមិត្តភក្តិប្រភពបើកចំហរបស់យើង</b> ខាងលើ។ OmniRoute មិនមានការឧបត្ថម្ភ ឬភាពជាដៃគូជាមួយអ្នកផ្តល់សេវាដែលបានរាយនៅទីនេះទេ — ទាំងនេះគឺជាគូប៉ុងសាធារណៈដែលអ្នកណាក៏អាចប្រើបាន។</i></sub>
+<sub><i>ផ្នែកនេះគឺសម្រាប់តែកូដយោង/ប័ណ្ណប៉ុណ្ណោះ។ ភាពជាដៃគូដែលបានឧបត្ថម្ភមាននៅក្នុង <b>🤝 គាំទ្រដោយមិត្តភក្តិប្រភពបើកចំហរបស់យើង</b> ខាងលើ។ OmniRoute មិនមានការឧបត្ថម្ភ ឬភាពជាដៃគូជាមួយអ្នកផ្តល់សេវាដែលបានរាយបញ្ជីនៅទីនេះទេ — ទាំងនេះគឺជាប័ណ្ណសាធារណៈដែលនរណាម្នាក់អាចប្រើបាន។</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — ការចុះឈ្មោះតាមរយៈសម្ព័ន្ធ · <b>ឥណទានឥតគិតថ្លៃ $100</b> នៅពេលចុះឈ្មោះ (ម៉ាស៊ីនមេឥតគិតថ្លៃ ដូច្នេះអាចមានភាពយឺតយ៉ាវខ្ពស់ជាងមុន — សមស្របបំផុតសម្រាប់ការធ្វើតេស្ត មិនមែនសម្រាប់ប្រព័ន្ធផលិតកម្មទេ)។ មានការគាំទ្រកម្រិតទីមួយក្នុង OmniRoute ចាប់តាំងពី <b>v3.8.50</b>៖ Chat Completions, wire format ដែលឆបគ្នាជាមួយ Anthropic និងផ្លូវដែលឆបគ្នាជាមួយ OpenAI។ ម៉ូដែលដែលអាចប្រើបានរួមមាន <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> និងច្រើនទៀត។ <b><a href="https://agentrouter.org/register?aff=70LM">ទទួលយក $100 របស់អ្នក →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — ការចុះឈ្មោះសាខា · <b>ឥណទានឥតគិតថ្លៃ $100</b> នៅពេលចុះឈ្មោះ (ម៉ាស៊ីនមេឥតគិតថ្លៃ រំពឹងថាមានភាពយឺតយ៉ាវខ្ពស់ — ល្អបំផុតសម្រាប់ការធ្វើតេស្ត មិនមែនសម្រាប់ការផលិតទេ)។ ការគាំទ្រលំដាប់ទីមួយនៅក្នុង OmniRoute ចាប់តាំងពី <b>v3.8.50</b>៖ Chat Completions, ទម្រង់ខ្សែដែលត្រូវគ្នាជាមួយ Anthropic និងផ្លូវដែលត្រូវគ្នាជាមួយ OpenAI។ ម៉ូដែលដែលមានរួមមាន <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> និងច្រើនទៀត។ <b><a href="https://agentrouter.org/register?aff=70LM">ចាប់យក $100 របស់អ្នក →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>តំណសម្ព័ន្ធ — OmniRoute មិនមានការឧបត្ថម្ភ ឬភាពជាដៃគូជាមួយអ្នកផ្តល់សេវានេះទេ។</i></sub>
+      <sub>⚠️ <i>តំណភ្ជាប់សាខា — OmniRoute មិនមានការឧបត្ថម្ភ ឬភាពជាដៃគូជាមួយអ្នកផ្តល់សេវានេះទេ។</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>ស្គាល់អ្នកផ្តល់សេវាផ្សេងទៀតដែលមានគូប៉ុងចុះឈ្មោះឥតគិតថ្លៃដ៏សប្បុរស ដែលផ្តល់អត្ថប្រយោជន៍ដល់អ្នកប្រើ OmniRoute ដែរឬទេ? បើក issue មួយ ហើយយើងនឹងបន្ថែមវានៅទីនេះ។</sub>
+<sub>ដឹងពីអ្នកផ្តល់សេវាផ្សេងទៀតដែលមានប័ណ្ណចុះឈ្មោះឥតគិតថ្លៃដ៏សប្បុរសដែលផ្តល់អត្ថប្រយោជន៍ដល់អ្នកប្រើប្រាស់ OmniRoute ទេ? បើកបញ្ហាហើយយើងនឹងបន្ថែមវានៅទីនេះ។</sub>
 
 </details>
 
@@ -1262,23 +1262,23 @@ process ដូចគ្នានៅលើ port តែមួយ ដូច្ន�
 
 <table>
   <tr><th align="left">ស្រទាប់</th><th align="left">បច្ចេកវិទ្យា</th></tr>
-  <tr><td nowrap><b>បរិស្ថានដំណើរការ</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ភាសា</b></td><td>TypeScript 6.0 — <b>TypeScript 100%</b> នៅទូទាំង <code>src/</code> និង <code>open-sse/</code> (គ្មាន <code>any</code> នៅក្នុងស្នូលចាប់តាំងពី v2.0)</td></tr>
-  <tr><td nowrap><b>ក្របខណ្ឌ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>មូលដ្ឋានទិន្នន័យ</b></td><td>better-sqlite3 (SQLite, ការកត់ត្រាបែប WAL) + LowDB (កេរដំណែល JSON) — ម៉ូឌុលដែន 122, ការផ្ទេរទិន្នន័យ 178</td></tr>
-  <tr><td nowrap><b>អង្គចងចាំ</b></td><td>ការស្វែងរកអត្ថបទពេញលេញ SQLite FTS5 + ការបង្កប់វ៉ិចទ័រដែលបានធ្វើបរិមាណកម្មជា int8, ការថយចុះដែលមានប្រភេទ</td></tr>
-  <tr><td nowrap><b>គ្រោងការណ៍</b></td><td>Zod 4 — សុពលកម្មធាតុចូល/ចេញរបស់ឧបករណ៍ MCP + កិច្ចសន្យា API</td></tr>
+  <tr><td nowrap><b>បរិស្ថានប្រតិបត្តិ</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>ភាសា</b></td><td>TypeScript 6.0 — <b>TypeScript 100%</b> ពេញ `src/` និង `open-sse/` (គ្មាន `any` នៅក្នុង core តាំងពី v2.0)</td></tr>
+  <tr><td nowrap><b>ក្របខ័ណ្ឌ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>មូលដ្ឋានទិន្នន័យ</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domain modules, 182 migrations</td></tr>
+  <tr><td nowrap><b>អង្គចងចាំ</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>គ្រោងការណ៍</b></td><td>Zod 4 — ការផ្ទៀងផ្ទាត់ I/O ឧបករណ៍ MCP + កិច្ចសន្យា API</td></tr>
   <tr><td nowrap><b>ពិធីការ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>ការផ្សាយស្ទ្រីម</b></td><td>Server-Sent Events (SSE) + ស្ពាន WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>ការបង្ហាប់</b></td><td>បំពង់ដំណើរការ 12 ម៉ាស៊ីន — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ &amp; សុវត្ថិភាព</b></td><td>OAuth 2.0 (PKCE) + JWT + សោ API + ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណតាមវិសាលភាព MCP · AES-256-GCM សម្រាប់ទិន្នន័យដែលបានរក្សាទុក · DOMPurify</td></tr>
+  <tr><td nowrap><b>ការផ្សាយ</b></td><td>Server-Sent Events (SSE) + ស្ពាន WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>ការបង្ហាប់</b></td><td>បំពង់បង្ហូរ 12-engine — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>ការផ្ទៀងផ្ទាត់ និងសុវត្ថិភាព</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + ការផ្ទៀងផ្ទាត់ MCP scoped · AES-256-GCM នៅពេលសម្រាក · DOMPurify</td></tr>
   <tr><td nowrap><b>ការលាក់បាំង</b></td><td>wreq-js — ការក្លែងបន្លំស្នាមម្រាមដៃ JA3 / JA4 TLS, ប្រូកស៊ី 3 កម្រិត</td></tr>
-  <tr><td nowrap><b>ភាពធន់</b></td><td>ឧបករណ៍ផ្តាច់សៀគ្វី, ការពន្យារពេលកើនឡើងជាអិចស្ប៉ូណង់ស្យែល, ការទប់ស្កាត់សំណើសម្រុកក្នុងពេលតែមួយ, ការព្យាបាលដោយខ្លួនឯងតាមរយៈការផ្សំដោយស្វ័យប្រវត្តិ</td></tr>
-  <tr><td nowrap><b>ការកត់ត្រា</b></td><td>pino — កំណត់ហេតុ JSON ដែលមានរចនាសម្ព័ន្ធ និងបរិបទសំណើ</td></tr>
-  <tr><td nowrap><b>ការធ្វើតេស្ត</b></td><td>កម្មវិធីដំណើរការតេស្ត Node.js + Vitest — <b>សេចក្តីប្រកាសតេស្តឋិតិវន្តជាង 39,000</b> នៅក្នុងឯកសារតេស្តដែលបានតាមដានជាង 5,100 (ឯកតា, សមាហរណកម្ម, E2E, សុវត្ថិភាព, ប្រព័ន្ធអេកូឡូស៊ី)</td></tr>
-  <tr><td nowrap><b>វេទិកា</b></td><td>កុំព្យូទ័រលើតុ (Electron) · Android (Termux) · PWA (កម្មវិធីរុករកណាមួយ)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — បោះផ្សាយទៅ npm និង Docker Hub ដោយស្វ័យប្រវត្តិនៅពេលចេញកំណែ</td></tr>
-  <tr><td nowrap><b>តំណ</b></td><td><a href="https://omniroute.online">គេហទំព័រ</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>ភាពធន់</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
+  <tr><td nowrap><b>ការកត់ត្រា</b></td><td>pino — កំណត់ហេតុ JSON ដែលមានរចនាសម្ព័ន្ធជាមួយនឹងបរិបទសំណើ</td></tr>
+  <tr><td nowrap><b>ការធ្វើតេស្ត</b></td><td>Node.js test runner + Vitest — <b>ការប្រកាសតេស្តឋិតិវន្ត 39,000+</b> លើឯកសារតេស្តដែលបានតាមដាន 5,100+ (unit, integration, E2E, security, ecosystem)</td></tr>
+  <tr><td nowrap><b>វេទិកា</b></td><td>Desktop (Electron) · Android (Termux) · PWA (កម្មវិធីរុករកណាមួយ)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ការបោះពុម្ព npm ដោយស្វ័យប្រវត្តិ + Docker Hub នៅពេលចេញផ្សាយ</td></tr>
+  <tr><td nowrap><b>តំណភ្ជាប់</b></td><td><a href="https://omniroute.online">គេហទំព័រ</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

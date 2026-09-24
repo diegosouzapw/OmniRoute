@@ -21,6 +21,7 @@ import {
   forwardOpencodeClientHeaders,
   resolveOpencodeCliDefaults,
 } from "../utils/opencodeHeaders.ts";
+import { projectOpencodeSessionBody } from "../utils/opencodeSessionIdentity.ts";
 import {
   listForRequest,
   releaseRequestList,
@@ -1136,30 +1137,12 @@ export class OpencodeExecutor extends BaseExecutor {
       gatedScope
     );
 
-    this._clientSession = clientSuppliedOpencodeSession(clientHeaders);
+    this._clientSession = clientSuppliedOpencodeSession(clientHeaders, body);
     if (clientHeaders || cliDefaults) {
-      const b = body && typeof body === "object" ? (body as Record<string, unknown>) : null;
       forwardOpencodeClientHeaders(headers, clientHeaders ?? {}, {
         synthesizeRequestId: true,
         cliDefaults,
-        sessionBody: b
-          ? {
-              model: typeof b.model === "string" ? b.model : undefined,
-              system: b.system,
-              messages: Array.isArray(b.messages)
-                ? (b.messages as Array<{ role?: string; content?: unknown }>)
-                : undefined,
-              // The Responses surface carries the conversation under `input`; without it the
-              // fingerprint collapses to the model alone and every conversation on that model
-              // would share one upstream session.
-              input: Array.isArray(b.input)
-                ? (b.input as Array<{ role?: string; content?: unknown }>)
-                : undefined,
-              tools: Array.isArray(b.tools)
-                ? (b.tools as Array<{ name?: string; function?: { name?: string } }>)
-                : undefined,
-            }
-          : undefined,
+        sessionBody: projectOpencodeSessionBody(body),
       });
     }
 

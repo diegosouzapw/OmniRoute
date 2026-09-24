@@ -44,6 +44,7 @@ import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudge
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { projectCodexPublicError } from "../utils/codexPublicError.ts";
 import { errorResponse } from "../utils/error.ts";
+import { buildSyntheticResponsesFailedEvent } from "../utils/responsesSequence.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
@@ -511,14 +512,11 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
 
   if (statusCode !== null) error.status_code = statusCode;
 
-  return {
-    type: "response.failed",
-    response: {
-      id: typeof response?.id === "string" ? response.id : null,
-      status: "failed",
-      error,
-    },
-  };
+  return buildSyntheticResponsesFailedEvent({
+    id: typeof response?.id === "string" ? response.id : null,
+    status: "failed",
+    error,
+  });
 }
 
 // Drop non-standard `codex.*` SSE events (notably `codex.rate_limits`) from
@@ -979,14 +977,13 @@ export class CodexExecutor extends BaseExecutor {
       if (closed) return;
       nextInput.log?.warn?.("CODEX", `WebSocket stream failed (${code}): ${message}`);
       const controller = streamController;
-      const payload = JSON.stringify({
-        type: "response.failed",
-        response: {
+      const payload = JSON.stringify(
+        buildSyntheticResponsesFailedEvent({
           id: null,
           status: "failed",
           error: projectCodexPublicError({ status: 502, code, type: "provider_error" }),
-        },
-      });
+        })
+      );
       try {
         controller?.enqueue(encoder.encode(`event: response.failed\ndata: ${payload}\n\n`));
       } catch {
