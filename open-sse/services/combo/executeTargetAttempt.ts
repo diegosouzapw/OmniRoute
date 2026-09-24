@@ -768,8 +768,7 @@ export async function executeTargetAttempt(opts: {
     const isStreamEarlyEof =
       (result.status === 502 || result.status === 504) && isStreamEarlyEofErrorBody(errorBody);
 
-    // FIX 5: a local per-API-key policy 429 (token limit, metered budget) must
-    // not cool shared accounts — nothing upstream refused this call.
+    // FIX 5: a local per-API-key policy 429 (token limit, budget) must not cool shared accounts.
     const isTokenLimitBreach = result.status === 429 && isLocalKeyPolicyBreachErrorBody(errorBody);
     const isLocalQueueCapacity = isLocalQueueCapacityErrorBody(errorBody);
 

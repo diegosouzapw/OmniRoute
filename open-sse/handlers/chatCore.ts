@@ -294,12 +294,7 @@ import {
   initialPendingBody,
   updatePendingScope,
 } from "@/lib/usage/pendingRequestScope";
-import {
-  recordCost,
-  recordChatCallCost,
-  buildCostCtx,
-  type RecordCostDetails,
-} from "@/domain/costRules";
+import { recordCost, recordChatCallCost, buildCostCtx } from "@/domain/costRules";
 import { meteredBudgetCost } from "@/lib/usage/meteredBudgetPolicy";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import {
@@ -6157,10 +6152,8 @@ export async function handleChatCore({
       streamUsage,
       serviceTier: effectiveServiceTier,
       calculateCost,
-      // Only the budget-consumable share may draw down the allowance; `details`
-      // (ledger) is forwarded untouched so requestId/traceId correlation survives
-      // a zeroed-out flat-rate call.
-      recordCost: (apiKeyId: string, cost: number, details?: RecordCostDetails) => {
+      // Only the budget-consumable share may draw down the allowance.
+      recordCost: (apiKeyId, cost, details) => {
         const budgetCost = meteredBudgetCost(provider, cost);
         if (budgetCost > 0) recordCost(apiKeyId, budgetCost, details);
       },
