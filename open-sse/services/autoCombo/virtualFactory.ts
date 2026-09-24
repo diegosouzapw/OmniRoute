@@ -60,6 +60,7 @@ import {
 } from "./resilienceCandidateFilter";
 import type { ChaosTuning } from "./chaosEngine";
 import {
+  applyTracedPoolStage,
   recordAutoCandidatePool,
   recordAutoDroppedCandidates,
   recordAutoSurvivors,
@@ -738,6 +739,13 @@ export async function prepareVirtualAutoComboInputs(
 
     const traceInvocationId = options.traceInvocationId;
     recordAutoCandidatePool(traceInvocationId, pool);
+    // Closes over the mutable `pool` binding so each stage below only names
+    // what changed, not the trace plumbing (invocation id + prior pool).
+    const applyStage = (
+      next: VirtualAutoComboCandidate[],
+      stage: Parameters<typeof applyTracedPoolStage>[3],
+      detail: string
+    ) => applyTracedPoolStage(traceInvocationId, pool, next, stage, detail);
 
     const resilienceFilteredPool = filterResilienceBlockedCandidates(
       pool,
@@ -751,35 +759,18 @@ export async function prepareVirtualAutoComboInputs(
     // exclude paid-only backends from EVERY `auto/*` candidate pool.
     const paid = filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
     warnPoolDrop(log, "hidePaidModels", paid.diagnosis?.excludedPaid, pool.length);
-    recordAutoDroppedCandidates(traceInvocationId, pool, paid.pool, "paid_only", "hidePaidModels");
-    pool = paid.pool;
+    pool = applyStage(paid.pool, "paid_only", "hidePaidModels");
 
     const lockout = skip ? null : filterLockoutCandidates(pool); // dispatch only (#9133)
     warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
     if (lockout) {
-      recordAutoDroppedCandidates(
-        traceInvocationId,
-        pool,
-        lockout.pool,
-        "model_lockout",
-        "model-lockout"
-      );
-      pool = lockout.pool;
+      pool = applyStage(lockout.pool, "model_lockout", "model-lockout");
     }
 
     // #11481: mandatory mirror of the /v1/models exposure allow/deny list —
     // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
     const exposureFilteredPool = filterModelExposureCandidates(pool, settings);
-    if (exposureFilteredPool !== pool) {
-      recordAutoDroppedCandidates(
-        traceInvocationId,
-        pool,
-        exposureFilteredPool,
-        "model_exposure",
-        "model-exposure"
-      );
-      pool = exposureFilteredPool;
-    }
+    pool = applyStage(exposureFilteredPool, "model_exposure", "model-exposure");
 
     // STRICT_ZERO_COST: opt-in, off by default (`settings.freeAccessPolicy !== "strict"`
     // leaves `pool` byte-identical, same contract as `hidePaidModels`). See
@@ -835,10 +826,7 @@ export async function prepareVirtualAutoComboInputs(
 
     // Separate, optional ToS guard — independent of economic safety on purpose.
     const tosFilteredPool = filterTosAvoidCandidates(pool, settings.excludeTosAvoid === true);
-    if (tosFilteredPool !== pool) {
-      recordAutoDroppedCandidates(traceInvocationId, pool, tosFilteredPool, "tos", "tos-avoid");
-      pool = tosFilteredPool;
-    }
+    pool = applyStage(tosFilteredPool, "tos", "tos-avoid");
 
     return pool;
   };

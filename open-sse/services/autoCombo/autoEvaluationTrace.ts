@@ -57,9 +57,7 @@ export function recordAutoExclusion(
       stage,
       outcome: "excluded",
       reason,
-      ...(detail === undefined
-        ? {}
-        : { detail: typeof detail === "function" ? detail() : detail }),
+      ...(detail === undefined ? {} : { detail: typeof detail === "function" ? detail() : detail }),
     });
   });
 }
@@ -86,6 +84,22 @@ export function recordAutoDroppedCandidates(
       }
     }
   });
+}
+
+/**
+ * Record the candidates a filter stage dropped (best-effort, no-op when the
+ * pool is unchanged) and return the post-filter pool, so call sites collapse
+ * the record-then-reassign pattern into one line.
+ */
+export function applyTracedPoolStage<T extends AutoTraceCandidate>(
+  invocationId: string | undefined,
+  before: readonly T[],
+  after: T[],
+  stage: AutoEvaluationStage,
+  detail: string
+): T[] {
+  recordAutoDroppedCandidates(invocationId, before, after, stage, detail);
+  return after;
 }
 
 export function recordAutoSurvivors(

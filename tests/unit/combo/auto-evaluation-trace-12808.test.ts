@@ -9,9 +9,8 @@ const {
   startAutoEvaluationTrace,
   startComboTrace,
 } = await import("../../../open-sse/services/combo/decisionTrace.ts");
-const { filterResilienceBlockedCandidates } = await import(
-  "../../../open-sse/services/autoCombo/resilienceCandidateFilter.ts"
-);
+const { filterResilienceBlockedCandidates } =
+  await import("../../../open-sse/services/autoCombo/resilienceCandidateFilter.ts");
 
 beforeEach(() => resetComboTraceStore());
 
@@ -82,9 +81,8 @@ test("forced Auto evaluation trace write failure never propagates into routing",
 });
 
 test("Auto candidate trace omits connection/account identifiers", async () => {
-  const { recordAutoCandidatePool } = await import(
-    "../../../open-sse/services/autoCombo/autoEvaluationTrace.ts"
-  );
+  const { recordAutoCandidatePool } =
+    await import("../../../open-sse/services/autoCombo/autoEvaluationTrace.ts");
   startComboTrace("combo-auto-privacy", { strategy: "auto", comboName: "auto" });
   startAutoEvaluationTrace("combo-auto-privacy");
   const candidateWithAccountMetadata = {
