@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Zamietnuť požiadavky pred odoslaním, keď cieľový model postráda požadované schopnosti (vízia, nástroje, štruktúrovaný výstup, kontextové okno). Chráni priamu požiadavku od jedného poskytovateľa, ktorá obchádza filter kompatibility kombinovanej vrstvy.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Započítavať využitie modelov bez stanovenej ceny ako $0 v kvótach využitia v USD na kľúč namiesto toho, aby sa kvóta považovala za prekročenú. Predvolene vypnuté: model bez ceny alebo alias smerovania môže skryť skutočné výdavky, takže kvóta zlyhá v uzatvorenom stave.",
   "featureFlagDisableContextWindowChecksDescription": "Pri priamych požiadavkách na jeden model preskočiť lokálnu kontrolu kontextového okna a maximálneho počtu vstupných tokenov v OmniRoute. Poskytovatelia vyššej úrovne naďalej uplatňujú svoje skutočné limity. Kompresia výzvy a limity výstupných tokenov zostávajú aktívne.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Štatistiky vyhľadávania a nedávne vyhľadávania počítajú iba poskytovateľov, ktorí majú stále aktívne pripojenie (poskytovatelia bez kľúča, ako napríklad duckduckgo-free, sa počítajú vždy). Pri možnosti Vypnuté sa zachová každý uchovaný riadok vyhľadávania s ID poskytovateľa.",
   "publicSystem": {

@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Rejeitar pedidos antes do envio quando o modelo de destino não tiver as capacidades necessárias (visão, ferramentas, saída estruturada, janela de contexto). Protege pedidos diretos de um único fornecedor que contornam o filtro de compatibilidade da camada combinada.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Contar a utilização de modelos sem preço como $0 nas quotas de utilização em USD por chave, em vez de tratar a quota como excedida. Desativado por predefinição: um modelo sem preço ou alias de encaminhamento pode ocultar o gasto real, pelo que a quota falha fechada.",
   "featureFlagDisableContextWindowChecksDescription": "Ignorar a verificação local do OmniRoute relativa à janela de contexto e ao número máximo de tokens de entrada para pedidos diretos de um único modelo. Os fornecedores a montante continuam a aplicar os respetivos limites reais. A compressão de prompts e os limites de tokens de saída permanecem ativos.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "As estatísticas de pesquisa e as pesquisas recentes só contabilizam fornecedores que ainda tenham uma ligação ativa (os fornecedores sem chave, como duckduckgo-free, são sempre contabilizados). A opção Desativado mantém todas as linhas de pesquisa retidas com um ID de fornecedor.",
   "publicSystem": {

@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Tələb olunan imkanlar (görmə, alətlər, strukturlaşdırılmış çıxış, kontekst pəncərəsi) olmayan hədəf modelində göndərilmədən əvvəl tələbləri rədd edin. Kombinasiya qatının uyğunluq filtrini keçən birbaşa tək təminatçı tələblərini qoruyur.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Kvotanın aşıldığını hesab etmək əvəzinə, açar üzrə USD istifadə kvotalarında qiyməti olmayan modellərin istifadəsini $0 kimi hesablayın. Defolt olaraq deaktivdir: qiymətləndirilməmiş model və ya marşrutlaşdırma aliası real xərcləri gizlədə bilər, buna görə də kvota qapalı vəziyyətdə xəta verir.",
   "featureFlagDisableContextWindowChecksDescription": "Birbaşa tək model sorğuları üçün OmniRoute-un lokal kontekst pəncərəsi və maksimum giriş tokeni yoxlamasını keçin. Yuxarı səviyyəli provayderlər faktiki limitlərini yenə də tətbiq edirlər. Sorğu sıxışdırması və çıxış tokeni limitləri aktiv qalır.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Axtarış statistikası və son axtarışlar yalnız hələ də aktiv bağlantısı olan provayderləri nəzərə alır (duckduckgo-free kimi açarsız provayderlər həmişə nəzərə alınır). Söndürüldükdə provayder ID-si olan bütün saxlanılmış axtarış sətirləri qorunur.",
   "publicSystem": {

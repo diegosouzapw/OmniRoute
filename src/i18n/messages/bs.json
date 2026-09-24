@@ -13824,6 +13824,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Odbijte zahtjeve prije slanja kada ciljni model nema potrebne mogućnosti (vid, alati, strukturirani izlaz, kontekstni prozor). Štiti direktne zahtjeve jednog provajdera koji zaobilaze filter kompatibilnosti combo-sloja.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Računaj potrošnju modela koji nemaju cijenu kao $0 u USD kvotama potrošnje po ključu umjesto da se kvota tretira kao prekoračena. Podrazumijevano isključeno: model bez cijene ili alias za rutiranje može sakriti stvarnu potrošnju, pa se kvota automatski odbija.",
   "featureFlagDisableContextWindowChecksDescription": "Preskoči lokalnu provjeru kontekstnog prozora i maksimalnog broja ulaznih tokena OmniRoute-a za direktne zahtjeve jednog modela. Upstream provajderi i dalje primjenjuju svoja stvarna ograničenja. Kompresija prompta i ograničenja izlaznih tokena ostaju aktivni.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Statistike pretrage i nedavne pretrage računaju samo provajdere koji i dalje imaju aktivnu konekciju (provajderi bez ključa kao što je duckduckgo-free uvijek se računaju). Isključivanje zadržava svaki red pretrage sa ID-jem provajdera.",
   "publicSystem": {

@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Jụ arịrịọ tupu izipu ya mgbe ụdị e lekwasịrị anya enweghị ikike ndị achọrọ (ọhụụ, ngwaọrụ, nsonaazụ ahaziri, windo ọnọdụ). Nke a na-echebe arịrịọ kpọmkwem nke otu onye na-eweta ọrụ, nke na-agafeghị nzacha ndakọrịta nke combo-layer.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Gụọ ojiji nke model ndị na-enweghị ọnụahịa dị ka $0 n'oke ojiji USD nke igodo ọ bụla kama iwere na agafela oke ahụ. A gbanyụrụ ya na ndabara: model na-enweghị ọnụahịa ma ọ bụ aha ọzọ maka nhazi ụzọ nwere ike izochi ezigbo mmefu, ya mere oke ahụ na-emechi ma jụ arịrịọ mgbe o dara.",
   "featureFlagDisableContextWindowChecksDescription": "Mafee nyocha mpaghara nke OmniRoute maka windo ọnọdụ na oke token ntinye kachasị n'arịrịọ kpọmkwem nke otu ụdị. Ndị na-eweta ọrụ dị n'elu ka na-amanye oke ha n'ezie. Mkpakọ prompt na oke token nsonaazụ ka na-arụ ọrụ.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Ndekọ ọnụ ọgụgụ ọchụchọ na ọchụchọ ndị e mere n'oge na-adịbeghị anya na-agụ naanị ndị na-eweta ọrụ ka nwere njikọ na-arụ ọrụ (a na-agụ ndị na-eweta ọrụ na-enweghị igodo dịka duckduckgo-free mgbe niile). Ịgbanyụ ya na-edobe ahịrị ọchụchọ niile echekwara nwere ID onye na-eweta ọrụ.",
   "publicSystem": {

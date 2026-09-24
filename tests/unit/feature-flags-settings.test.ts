@@ -46,7 +46,7 @@ const {
 // read-only diagnostics) takes it to 77. STREAM_READINESS_STALL_RETRY
 // (one bounded retry when a stream stalls before usable output, default off)
 // takes the registry to 78.
-const EXPECTED_FEATURE_FLAG_COUNT = 78;
+const EXPECTED_FEATURE_FLAG_COUNT = 79;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry

@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Hylkää pyynnöt ennen lähettämistä, kun kohdemallilta puuttuu vaadittuja ominaisuuksia (näkö, työkalut, jäsennelty ulostulo, kontekstikkelu). Suojaa suorat yhden tarjoajan pyynnöt, jotka ohittavat yhdistelmäkerroksen yhteensopivuussuodattimen.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Laske hinnattomien mallien käyttö $0:ksi avainkohtaisissa USD-käyttökiintiöissä sen sijaan, että kiintiö katsottaisiin ylittyneeksi. Oletusarvoisesti poissa käytöstä: hinnoittelematon malli tai reititysalias voi piilottaa todellisen kulutuksen, joten kiintiö epäonnistuu suljettu-tilaan.",
   "featureFlagDisableContextWindowChecksDescription": "Ohita OmniRouten paikallinen konteksti-ikkunan ja syötetokenien enimmäismäärän tarkistus suorissa yhden mallin pyynnöissä. Ylävirran palveluntarjoajat valvovat edelleen todellisia rajojaan. Kehotteen pakkaus ja tulostetokenien enimmäismäärät pysyvät käytössä.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Hakutilastot ja viimeisimmät haut huomioivat vain palveluntarjoajat, joilla on edelleen aktiivinen yhteys (avaimettomat palveluntarjoajat, kuten duckduckgo-free, huomioidaan aina). Pois käytöstä -asetus säilyttää jokaisen tallennetun hakurivin, jolla on palveluntarjoajan tunnus.",
   "publicSystem": {

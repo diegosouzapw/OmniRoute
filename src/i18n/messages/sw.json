@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "kataa maombi kabla ya kutuma wakati mfano wa lengo hauna uwezo unaohitajika (maono, zana, matokeo yaliyoandikwa, dirisha la muktadha). Inalinda maombi ya moja kwa moja kutoka kwa mtoa huduma mmoja ambayo yanapita chujio cha ulinganifu wa safu ya mchanganyiko.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Hesabu matumizi ya modeli zisizo na bei kama $0 katika viwango vya matumizi vya USD kwa kila ufunguo badala ya kuchukulia kuwa kiwango kimezidiwa. Imezimwa kwa chaguomsingi: modeli isiyo na bei au jina mbadala la uelekezaji inaweza kuficha matumizi halisi, hivyo kiwango hushindwa kikiwa kimefungwa.",
   "featureFlagDisableContextWindowChecksDescription": "Ruka ukaguzi wa ndani wa OmniRoute wa dirisha la muktadha na kiwango cha juu cha tokeni za ingizo kwa maombi ya moja kwa moja ya muundo mmoja. Watoa huduma wa nje bado hutekeleza vikomo vyao halisi. Mfinyazo wa kidokezo na vikomo vya tokeni za towe huendelea kutumika.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Takwimu za utafutaji na utafutaji wa hivi karibuni huhesabu tu watoa huduma ambao bado wana muunganisho unaotumika (watoa huduma wasiohitaji ufunguo kama vile duckduckgo-free huhesabiwa kila wakati). Hali ya Kuzima huhifadhi kila safu ya utafutaji iliyohifadhiwa yenye kitambulisho cha mtoa huduma.",
   "publicSystem": {

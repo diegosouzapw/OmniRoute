@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Odrzuć żądania przed wysyłką, gdy docelowy model nie ma wymaganych możliwości (wizja, narzędzia, strukturalne wyjście, okno kontekstowe). Chroni bezpośrednie żądania od pojedynczego dostawcy, które omijają filtr zgodności warstwy kombinacyjnej.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Licz użycie modeli bez określonej ceny jako $0 w limitach użycia w USD na klucz, zamiast traktować limit jako przekroczony. Domyślnie wyłączone: model bez ceny lub alias routingu może ukryć rzeczywiste wydatki, dlatego limit blokuje dostęp (fail-closed).",
   "featureFlagDisableContextWindowChecksDescription": "Pomiń lokalne sprawdzanie przez OmniRoute rozmiaru okna kontekstu i maksymalnej liczby tokenów wejściowych dla bezpośrednich żądań kierowanych do jednego modelu. Dostawcy nadrzędni nadal egzekwują swoje rzeczywiste limity. Kompresja promptów i limity tokenów wyjściowych pozostają aktywne.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Statystyki wyszukiwania i ostatnie wyszukiwania uwzględniają tylko dostawców, którzy nadal mają aktywne połączenie (dostawcy niewymagający klucza, tacy jak duckduckgo-free, są uwzględniani zawsze). Wyłączenie tej opcji zachowuje każdy przechowywany wpis wyszukiwania z identyfikatorem dostawcy.",
   "publicSystem": {

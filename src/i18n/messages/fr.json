@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Rejeter les demandes avant l'expédition lorsque le modèle cible manque des capacités requises (vision, outils, sortie structurée, fenêtre de contexte). Protège les demandes directes à un seul fournisseur qui contournent le filtre de compatibilité de la couche combo.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Compter l'utilisation des modèles sans prix comme $0 dans les quotas d'utilisation en USD par clé au lieu de considérer le quota comme dépassé. Désactivé par défaut : un modèle sans prix ou un alias de routage peut masquer les dépenses réelles, le quota est donc bloquant en cas d'échec.",
   "featureFlagDisableContextWindowChecksDescription": "Ignorer la vérification locale d’OmniRoute concernant la fenêtre de contexte et le nombre maximal de jetons d’entrée pour les requêtes directes adressées à un seul modèle. Les fournisseurs en amont appliquent toujours leurs limites réelles. La compression des prompts et les plafonds de jetons de sortie restent actifs.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Les statistiques de recherche et les recherches récentes ne prennent en compte que les fournisseurs disposant encore d’une connexion active (les fournisseurs sans clé tels que duckduckgo-free sont toujours pris en compte). Lorsque cette option est désactivée, chaque ligne de recherche conservée garde un identifiant de fournisseur.",
   "publicSystem": {

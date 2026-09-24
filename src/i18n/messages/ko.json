@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "대상 모델에 필수 기능(비전, 도구, 구조화된 출력, 컨텍스트 창)이 부족할 경우 요청을 발송 전에 거부합니다. 콤보 레이어 호환성 필터를 우회하는 직접 단일 공급자 요청을 보호합니다.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "할당량이 초과된 것으로 처리하는 대신 키별 USD 사용량 할당량에서 가격 정보가 없는 모델의 사용량을 $0로 계산합니다. 기본값은 꺼짐입니다: 가격 정보가 없는 모델이나 라우팅 별칭은 실제 지출을 숨길 수 있으므로 할당량은 닫힌 상태로 실패합니다.",
   "featureFlagDisableContextWindowChecksDescription": "단일 모델로 직접 요청할 때 OmniRoute의 로컬 컨텍스트 창 및 최대 입력 토큰 검사를 건너뜁니다. 업스트림 제공업체는 여전히 실제 한도를 적용합니다. 프롬프트 압축과 출력 토큰 상한은 계속 적용됩니다.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "검색 통계와 최근 검색에는 현재 연결이 활성화된 제공업체만 포함됩니다(duckduckgo-free와 같이 키가 필요 없는 제공업체는 항상 포함됨). 이 옵션을 끄면 제공업체 ID가 있는 보존된 모든 검색 행이 유지됩니다.",
   "publicSystem": {

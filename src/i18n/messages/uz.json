@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Maqsadli modelda zarur imkoniyatlar (tasvirni koʻrish, vositalar, tuzilgan chiqish, kontekst oynasi) boʻlmasa, soʻrovlarni yuborishdan oldin rad eting. Bu kombinatsiya qatlamidagi moslik filtrini chetlab oʻtadigan yagona provayderga yoʻnaltirilgan bevosita soʻrovlarni himoya qiladi.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Kvotadan oshib ketgan deb hisoblash oʻrniga, har bir kalit boʻyicha USD sarf-xarajat kvotalarida narxi belgilanmagan modellardan foydalanishni $0 deb hisoblang. Standart holatda oʻchiq: narxlanmagan model yoki marshrutlash taxallusi haqiqiy xarajatni yashirishi mumkin, shuning uchun kvota yopiq holatda ishlamay qoladi.",
   "featureFlagDisableContextWindowChecksDescription": "Yagona modelga yoʻnaltirilgan bevosita soʻrovlar uchun OmniRoute'ning mahalliy kontekst oynasi va maksimal kirish tokenlari tekshiruvini oʻtkazib yuboring. Yuqori oqimdagi provayderlar oʻzlarining amaldagi cheklovlarini baribir qoʻllaydi. Promptni siqish va chiqish tokenlari cheklovlari faol qoladi.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Qidiruv statistikasi va soʻnggi qidiruvlarda faqat faol ulanishga ega provayderlar hisobga olinadi (duckduckgo-free kabi kalitsiz provayderlar har doim hisobga olinadi). Oʻchiq holatda provayder identifikatoriga ega barcha saqlab qolingan qidiruv qatorlari saqlanadi.",
   "publicSystem": {

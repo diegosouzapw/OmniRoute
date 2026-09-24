@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Rechazar solicitudes antes del despacho cuando el modelo objetivo carece de capacidades requeridas (visión, herramientas, salida estructurada, ventana de contexto). Protege las solicitudes directas de un solo proveedor que eluden el filtro de compatibilidad de la capa combinada.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Contabiliza el uso de modelos sin precio como $0 en las cuotas de uso en USD por clave en lugar de considerar la cuota como excedida. Desactivado de forma predeterminada: un modelo sin precio o un alias de enrutamiento puede ocultar el gasto real, por lo que la cuota se bloquea ante fallos.",
   "featureFlagDisableContextWindowChecksDescription": "Omite la comprobación local de OmniRoute de la ventana de contexto y del máximo de tokens de entrada para las solicitudes directas a un único modelo. Los proveedores ascendentes siguen aplicando sus límites reales. La compresión de prompts y los límites de tokens de salida permanecen activos.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Las estadísticas de búsqueda y las búsquedas recientes solo cuentan los proveedores que aún tienen una conexión activa (los proveedores sin clave, como duckduckgo-free, siempre cuentan). Si se desactiva esta opción, se conservan todas las filas de búsqueda retenidas con un id de proveedor.",
   "publicSystem": {

@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Lükka päringud enne edastamist tagasi, kui sihtmudelil puuduvad nõutavad võimalused (nägemine, tööriistad, struktureeritud väljund, kontekstiaken). See kaitseb ühe teenusepakkuja otsepäringuid, mis mööduvad kombokihi ühilduvusfiltrist.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Arvesta hinnata mudelite kasutus võtmepõhistes USD-kasutuskvootides $0-na, selle asemel et käsitleda kvooti ületatuna. Vaikimisi väljas: hinnata mudel või marsruutimisalias võib varjata tegelikke kulusid, seega keeldub kvoot tõrke korral toimimast.",
   "featureFlagDisableContextWindowChecksDescription": "Jäta ühe mudeli otsepäringute puhul OmniRoute'i kohalik kontekstiakna ja sisendtokenite maksimumarvu kontroll vahele. Ülesvoolu teenusepakkujad jõustavad endiselt oma tegelikud piirangud. Viiba tihendamine ja väljundtokenite piirangud jäävad aktiivseks.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Otsingustatistika ja hiljutised otsingud arvestavad ainult teenusepakkujaid, millel on endiselt aktiivne ühendus (võtmeta teenusepakkujaid, nagu duckduckgo-free, arvestatakse alati). Valik „Väljas“ säilitab iga alleshoitud otsingurea koos teenusepakkuja ID-ga.",
   "publicSystem": {

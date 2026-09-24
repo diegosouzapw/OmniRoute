@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Noraidīt pieprasījumus pirms nosūtīšanas, ja mērķa modelim trūkst nepieciešamo iespēju (attēlu apstrāde, rīki, strukturēta izvade, konteksta logs). Aizsargā tiešus viena pakalpojumu sniedzēja pieprasījumus, kas apiet combo-layer saderības filtru.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Skaitīt modeļu bez cenas izmantošanu kā $0 katras atslēgas USD izmantošanas kvotās, nevis uzskatīt kvotu par pārsniegtu. Pēc noklusējuma izslēgts: modelis bez cenas vai maršrutēšanas aizstājvārds var slēpt faktiskos izdevumus, tāpēc kvota kļūdas gadījumā tiek bloķēta.",
   "featureFlagDisableContextWindowChecksDescription": "Izlaist OmniRoute lokālo konteksta loga un max-input-token pārbaudi tiešiem viena modeļa pieprasījumiem. Augšupējie pakalpojumu sniedzēji joprojām piemēro savus faktiskos ierobežojumus. Uzvedņu saspiešana un izvades marķieru ierobežojumi paliek aktīvi.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Meklēšanas statistikā un nesenajos meklējumos tiek ņemti vērā tikai tie nodrošinātāji, kuriem joprojām ir aktīvs savienojums (nodrošinātāji bez atslēgas, piemēram, duckduckgo-free, tiek ņemti vērā vienmēr). Ja opcija ir izslēgta, tiek saglabāta katra paturētā meklēšanas rinda ar nodrošinātāja ID.",
   "publicSystem": {

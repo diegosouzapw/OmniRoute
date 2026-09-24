@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Ƙi buƙatu kafin aikawa idan samfurin da aka nufa ba shi da iyawar da ake buƙata (gani, kayan aiki, tsararren fitarwa, taga mahallin bayani). Wannan yana kare buƙatun kai-tsaye na mai samarwa guda ɗaya waɗanda ke tsallake matatar dacewa ta combo-layer.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Ƙididdige amfani da samfuran da ba su da farashi a matsayin $0 a cikin iyakokin amfani da USD na kowane maɓalli maimakon ɗaukar cewa an wuce iyakar. A kashe yake ta tsohuwa: samfurin da ba shi da farashi ko sunan laƙabin zaɓin hanya na iya ɓoye ainihin kuɗin da aka kashe, don haka iyakar tana toshewa.",
   "featureFlagDisableContextWindowChecksDescription": "Tsallake binciken taga mahallin bayani da iyakar token na shigarwa na OmniRoute don buƙatun kai-tsaye na samfuri guda ɗaya. Masu samarwa na waje za su ci gaba da tilasta ainihin iyakokinsu. Matse prompt da iyakokin token na fitarwa za su ci gaba da aiki.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Ƙididdigar bincike da binciken baya-bayan nan suna ƙirga kawai masu samarwa da har yanzu suke da haɗi mai aiki (masu samarwa marasa maɓalli kamar duckduckgo-free koyaushe ana ƙirga su). Kashewa yana adana kowane layin bincike da aka riƙe tare da ID na mai samarwa.",
   "publicSystem": {

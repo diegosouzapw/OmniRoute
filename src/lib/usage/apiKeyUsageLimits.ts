@@ -2,6 +2,7 @@ import { getDbInstance } from "@/lib/db/core";
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
 import { getProviderQuotaWindowStartIso } from "@/lib/db/quotaResetEvents";
 import { calculateCostDetailed } from "./costCalculator";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const FORTALEZA_UTC_OFFSET_MS = 3 * 60 * 60 * 1000;
@@ -438,8 +439,9 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
     if (!priced) {
       hasUnpricedUsage = true;
       console.warn(
-        `[apiKeyUsageLimits] no pricing found for ${provider}/${model} — usage counted as $0 ` +
-          "and enforcement is failing closed for this window (#12341)"
+        `[apiKeyUsageLimits] no pricing found for ${provider}/${model} — usage counted as $0; ` +
+          "a configured USD quota fails closed for this window unless " +
+          "USAGE_LIMIT_IGNORE_UNPRICED is on (#12341)"
       );
     }
     total += costUsd;
@@ -480,14 +482,17 @@ export async function getApiKeyUsageLimitStatus(
   // as an invisible $0 — treat the limit as exceeded rather than trust an
   // undercounted spend total. A window with no configured limit was never
   // enforced, so unpriced usage there is only logged, not blocking.
+  // USAGE_LIMIT_IGNORE_UNPRICED is the operator opt-out: unpriced usage then
+  // stays at $0 and only priced spend counts toward the limit.
+  const failClosedOnUnpriced = !isFeatureFlagEnabled("USAGE_LIMIT_IGNORE_UNPRICED");
   const dailyExceeded =
     enabled &&
     dailyLimitUsd !== null &&
-    (dailySpentUsd >= dailyLimitUsd || dailySpend.hasUnpricedUsage);
+    (dailySpentUsd >= dailyLimitUsd || (failClosedOnUnpriced && dailySpend.hasUnpricedUsage));
   const weeklyExceeded =
     enabled &&
     weeklyLimitUsd !== null &&
-    (weeklySpentUsd >= weeklyLimitUsd || weeklySpend.hasUnpricedUsage);
+    (weeklySpentUsd >= weeklyLimitUsd || (failClosedOnUnpriced && weeklySpend.hasUnpricedUsage));
 
   return {
     enabled,

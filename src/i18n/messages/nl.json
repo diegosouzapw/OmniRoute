@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Weiger verzoeken vóór verzending wanneer het doellmodel ontbrekende vereiste mogelijkheden heeft (zicht, tools, gestructureerde output, contextvenster). Beschermt directe verzoeken van een enkele aanbieder die de compatibiliteitsfilter van de comb-laag omzeilen.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Tel het gebruik van modellen zonder prijs als $0 in USD-gebruiksquota per sleutel in plaats van het quotum als overschreden te beschouwen. Standaard uitgeschakeld: een model zonder prijs of een routeringsalias kan werkelijke uitgaven verbergen, waardoor het quotum fail-closed gaat.",
   "featureFlagDisableContextWindowChecksDescription": "Sla de lokale controle van OmniRoute op het contextvenster en het maximale aantal invoertokens over voor rechtstreekse verzoeken aan één model. Upstreamproviders blijven hun daadwerkelijke limieten afdwingen. Promptcompressie en limieten voor uitvoertokens blijven actief.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Zoekstatistieken en recente zoekopdrachten tellen alleen providers mee die nog een actieve verbinding hebben (providers zonder sleutel, zoals duckduckgo-free, tellen altijd mee). Als deze optie is uitgeschakeld, blijven alle bewaarde zoekrijen met een provider-id behouden.",
   "publicSystem": {

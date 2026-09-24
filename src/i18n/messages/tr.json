@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Hedef model gerekli yeteneklere (görüş, araçlar, yapılandırılmış çıktı, bağlam penceresi) sahip olmadığında, gönderimden önce istekleri reddedin. Kombinasyon katmanı uyumluluk filtresini atlayan doğrudan tek sağlayıcı isteklerini korur.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Kotanın aşıldığını varsaymak yerine, anahtar başına USD kullanım kotalarında fiyatı olmayan modellerin kullanımını $0 olarak sayın. Varsayılan olarak kapalıdır: fiyatlandırılmamış bir model veya yönlendirme takma adı gerçek harcamayı gizleyebilir, bu nedenle kota kapalı kalarak başarısız olur.",
   "featureFlagDisableContextWindowChecksDescription": "Doğrudan tek modelli istekler için OmniRoute'un yerel bağlam penceresi ve maksimum giriş tokeni denetimlerini atlayın. Üst sağlayıcılar kendi gerçek sınırlarını uygulamaya devam eder. İstem sıkıştırma ve çıkış tokeni sınırları etkin kalır.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Arama istatistikleri ve son aramalar yalnızca hâlâ etkin bağlantısı olan sağlayıcıları hesaba katar (duckduckgo-free gibi anahtarsız sağlayıcılar her zaman hesaba katılır). Bu seçenek kapalıyken, sağlayıcı kimliği olan tüm saklanan arama satırları korunur.",
   "publicSystem": {

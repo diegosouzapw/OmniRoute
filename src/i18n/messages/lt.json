@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Atmesti užklausas prieš jas perduodant, kai tikslinis modelis neturi reikiamų galimybių (vaizdų apdorojimo, įrankių, struktūrizuotos išvesties, konteksto lango). Tai apsaugo tiesiogines vienam teikėjui skirtas užklausas, kurios apeina derinių lygmens suderinamumo filtrą.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Kainos neturinčių modelių naudojimą pagal raktą nustatytose USD naudojimo kvotose skaičiuoti kaip $0, užuot laikant, kad kvota viršyta. Pagal numatytąsias nuostatas išjungta: modelis be kainos arba nukreipimo alternatyvusis pavadinimas gali paslėpti faktines išlaidas, todėl kvota klaidos atveju blokuojama.",
   "featureFlagDisableContextWindowChecksDescription": "Tiesioginėms vieno modelio užklausoms praleisti OmniRoute vietinę konteksto lango ir didžiausio įvesties žetonų skaičiaus patikrą. Išoriniai teikėjai vis tiek taiko savo faktinius apribojimus. Raginimų glaudinimas ir išvesties žetonų apribojimai lieka aktyvūs.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Paieškos statistikoje ir naujausiose paieškose skaičiuojami tik tie teikėjai, kurie vis dar turi aktyvų ryšį (teikėjai, kuriems nereikia rakto, pvz., duckduckgo-free, skaičiuojami visada). Pasirinkus „Išjungta“, įtraukiama kiekviena išsaugota paieškos eilutė su teikėjo ID.",
   "publicSystem": {

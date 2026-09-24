@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Odbija zahtjeve prije slanja kada ciljnom modelu nedostaju potrebne mogućnosti (vizija, alati, strukturirani izlaz, kontekstni prozor). Štiti izravne zahtjeve prema jednom pružatelju koji zaobilaze filtar kompatibilnosti sloja combo-layer.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Računaj potrošnju modela koji nemaju cijenu kao $0 u kvotama potrošnje u USD po ključu umjesto da se kvota tretira kao prekoračena. Prema zadanim postavkama isključeno: model bez cijene ili pseudonim za usmjeravanje može sakriti stvarnu potrošnju, pa se kvota blokira u slučaju pogreške.",
   "featureFlagDisableContextWindowChecksDescription": "Preskače lokalnu provjeru kontekstnog prozora i maksimalnog broja ulaznih tokena sustava OmniRoute za izravne zahtjeve prema jednom modelu. Uzlazni pružatelji i dalje primjenjuju svoja stvarna ograničenja. Kompresija upita i ograničenja izlaznih tokena ostaju aktivni.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Statistika pretraživanja i nedavna pretraživanja broje samo pružatelje koji još uvijek imaju aktivnu vezu (pružatelji bez ključa, poput duckduckgo-free, uvijek se broje). Kad je opcija isključena, zadržava se svaki spremljeni redak pretraživanja s ID-jem pružatelja.",
   "publicSystem": {

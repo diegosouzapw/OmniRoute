@@ -13835,6 +13835,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "在目標模型缺乏所需功能（視覺、工具、結構化輸出、上下文窗口）時，拒絕發送前的請求。保護繞過組合層兼容性過濾器的直接單一提供者請求。",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "在每個金鑰的 USD 用量配額中，將未定價模型的使用量計為 $0，而非視為超出配額。預設關閉：未定價模型或路由別名可能會隱藏實際支出，因此配額採取封閉式失敗。",
   "featureFlagDisableContextWindowChecksDescription": "對直接的單一模型請求，略過 OmniRoute 的本機上下文視窗與輸入權杖上限檢查。上游提供者仍會強制執行其實際限制。提示詞壓縮與輸出權杖上限仍會生效。",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "搜尋統計資料與最近的搜尋只會計入仍有有效連線的提供者（不需要金鑰的提供者，例如 duckduckgo-free，則一律會計入）。關閉後，將保留每一筆含有提供者 ID 的搜尋記錄。",
   "publicSystem": {
