@@ -26,6 +26,7 @@ import {
   flattenGrokBuildNamespaceTools,
   restoreGrokBuildNamespaceToolCalls,
 } from "./grokCliNamespaceTools.ts";
+import { normalizeGrokBuildToolSchemas } from "./grokCliToolSchema.ts";
 
 const GROK_BUILD_MAX_TOOLS = 200;
 const GROK_BUILD_REASONING_EFFORT_SET = new Set(GROK_BUILD_SUPPORTED_REASONING_EFFORTS);
@@ -369,6 +370,11 @@ export class GrokCliExecutor extends BaseExecutor {
     // xAI's cli-chat-proxy rejects requests containing more than 200 tools.
     if (Array.isArray(transformed.tools) && transformed.tools.length > GROK_BUILD_MAX_TOOLS) {
       transformed.tools = transformed.tools.slice(0, GROK_BUILD_MAX_TOOLS);
+    }
+    // Grok Build refuses a root anyOf/oneOf with a `$ref` or non-object branch
+    // (`invalid_client_tool_schema`), e.g. Codex desktop's `automation_update`.
+    if (Array.isArray(transformed.tools)) {
+      transformed.tools = normalizeGrokBuildToolSchemas(transformed.tools);
     }
 
     // Repair tool-result payloads that would fail Grok's strict JSON body parser (#7611)

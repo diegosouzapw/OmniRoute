@@ -65,6 +65,41 @@ function captureFetch(body: Record<string, unknown>) {
   return calls;
 }
 
+/**
+ * Drive the executor through the 403 -> /alpha/generate fallback and return the
+ * Chat-shaped `params` the CLI endpoint actually received.
+ */
+async function captureCliFallback(body: Record<string, unknown>) {
+  const cliCalls: Array<{ url: string; body: Record<string, unknown> }> = [];
+  globalThis.fetch = async (url, init = {}) => {
+    const urlStr = String(url);
+    cliCalls.push({ url: urlStr, body: JSON.parse(String(init.body)) });
+    if (urlStr.includes("/provider/v1/responses")) {
+      return new Response(
+        JSON.stringify({ error: { message: "upgrade_required", code: "upgrade_required" } }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    const cliSse =
+      'data: {"type":"text-delta","text":"ok"}\n\n' +
+      'data: {"type":"finish","finishReason":"stop","usage":{"inputTokens":1,"outputTokens":1,"totalTokens":2}}\n\n';
+    return new Response(cliSse, { status: 200, headers: { "Content-Type": "text/event-stream" } });
+  };
+
+  await (
+    await getExecutor("command-code")
+  ).execute({
+    model: "gpt-5.6-luna",
+    stream: false,
+    credentials: { apiKey: "cc_go_plan_key" },
+    body,
+  });
+
+  const cli = cliCalls.find((c) => c.url.includes("/alpha/generate"));
+  assert.ok(cli, "expected the CLI fallback to fire");
+  return cli.body.params as Record<string, unknown>;
+}
+
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
 });
@@ -162,6 +197,253 @@ test("Command Code executor passes reasoning/thinking fields through at the top 
   assert.deepEqual(posted.thinking, { type: "enabled" });
   assert.equal(posted.effort, "high");
   assert.deepEqual(posted.extra_body, { enable_thinking: true });
+});
+
+test("Command Code executor routes a Responses-shaped body to /provider/v1/responses", async () => {
+  const calls = captureFetch({ id: "resp_1", object: "response", output: [] });
+  const { url } = await (
+    await getExecutor("command-code")
+  ).execute({
+    model: "gpt-5.6-luna",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      stream: false,
+      input: [{ role: "user", content: "Hi" }],
+      reasoning: { effort: "none" },
+      max_output_tokens: 256,
+    },
+  });
+
+  assert.equal(url, "https://api.commandcode.ai/provider/v1/responses");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.commandcode.ai/provider/v1/responses");
+
+  const posted = calls[0].body as Record<string, unknown>;
+  // The Responses reasoning field — the only knob Command Code honors for
+  // effort "none" — must survive untouched.
+  assert.deepEqual(posted.reasoning, { effort: "none" });
+  assert.equal(posted.messages, undefined, "Responses shape must not grow a messages field");
+  // Responses output cap is max_output_tokens; no fabricated Chat max_tokens.
+  assert.equal(posted.max_output_tokens, 256);
+  assert.ok(!("max_tokens" in posted));
+});
+
+test("Command Code executor keeps a chat-shaped body on /provider/v1/chat/completions", async () => {
+  const calls = captureFetch({});
+  const { url } = await (
+    await getExecutor("command-code")
+  ).execute({
+    model: "gpt-5.6-luna",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      stream: false,
+      messages: [{ role: "user", content: "Hi" }],
+      reasoning_effort: "none",
+    },
+  });
+
+  assert.equal(url, "https://api.commandcode.ai/provider/v1/chat/completions");
+  assert.equal(calls[0].url, "https://api.commandcode.ai/provider/v1/chat/completions");
+});
+
+test("Command Code executor clamps an oversized max_output_tokens on the Responses path", async () => {
+  const calls = captureFetch({});
+  await (
+    await getExecutor("command-code")
+  ).execute({
+    model: "gpt-5.6-luna",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { input: "Hi", max_output_tokens: 500000 },
+  });
+
+  const posted = calls[0].body as Record<string, unknown>;
+  assert.equal(posted.max_output_tokens, 200000);
+});
+
+test("Command Code /alpha/generate fallback projects a Responses-shaped body onto messages", async () => {
+  const calls: Array<{ url: string; body: Record<string, unknown> }> = [];
+  globalThis.fetch = async (url, init = {}) => {
+    const urlStr = String(url);
+    calls.push({ url: urlStr, body: JSON.parse(String(init.body)) });
+
+    if (urlStr.includes("/provider/v1/responses")) {
+      return new Response(
+        JSON.stringify({ error: { message: "upgrade_required", code: "upgrade_required" } }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    const cliSse =
+      'data: {"type":"text-delta","text":"ok"}\n\n' +
+      'data: {"type":"finish","finishReason":"stop","usage":{"inputTokens":1,"outputTokens":1,"totalTokens":2}}\n\n';
+    return new Response(cliSse, { status: 200, headers: { "Content-Type": "text/event-stream" } });
+  };
+
+  await (
+    await getExecutor("command-code")
+  ).execute({
+    model: "gpt-5.6-luna",
+    stream: false,
+    credentials: { apiKey: "cc_go_plan_key" },
+    body: {
+      input: [{ role: "user", content: "Hi there" }],
+      reasoning: { effort: "none" },
+      max_output_tokens: 256,
+    },
+  });
+
+  assert.equal(calls.length, 2);
+  const cli = calls[1];
+  assert.ok(cli.url.includes("/alpha/generate"), `expected CLI fallback, got ${cli.url}`);
+  // A Responses request has no `messages`; the /alpha/generate surface nests its
+  // Chat-shaped payload under `params`. The fallback must project `input` onto
+  // `params.messages`, never send an empty list.
+  const params = cli.body.params as Record<string, unknown>;
+  const sent = params.messages as Array<{ role: string; content: unknown }>;
+  assert.ok(Array.isArray(sent), `expected params.messages to be an array, got ${typeof sent}`);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].role, "user");
+  assert.match(JSON.stringify(sent[0].content), /Hi there/);
+  // And the Responses output cap must survive as the CLI's max_tokens.
+  assert.equal(params.max_tokens, 256);
+});
+
+test("Command Code /alpha/generate fallback projects Responses tool items onto Chat tool_calls", async () => {
+  const cliBody = await captureCliFallback({
+    input: [
+      { role: "user", content: "What is 2+2?" },
+      { type: "function_call", call_id: "call_1", name: "add", arguments: '{"a":2,"b":2}' },
+      { type: "function_call_output", call_id: "call_1", output: "4" },
+    ],
+  });
+
+  const sent = cliBody.messages as Array<Record<string, unknown>>;
+  assert.equal(sent.length, 3);
+  assert.equal(sent[0].role, "user");
+  assert.equal(sent[1].role, "assistant");
+  // convertMessages flattens tool_calls into content parts; assert on the
+  // semantically load-bearing fields rather than the exact wire shape.
+  const assistant = JSON.stringify(sent[1]);
+  assert.match(assistant, /call_1/);
+  assert.match(assistant, /"add"/);
+  assert.match(assistant, /\\"a\\":2/);
+  assert.equal(sent[2].role, "tool");
+  assert.match(JSON.stringify(sent[2]), /call_1/);
+  assert.match(JSON.stringify(sent[2]), /"4"/);
+});
+
+test("Command Code /alpha/generate fallback maps Responses instructions onto system", async () => {
+  const cliBody = await captureCliFallback({
+    instructions: "You are terse.",
+    input: [{ role: "user", content: "Hi" }],
+  });
+  assert.match(String(cliBody.system), /You are terse\./);
+});
+
+test("Command Code /alpha/generate fallback merges consecutive Responses function_calls into one turn", async () => {
+  const cliBody = await captureCliFallback({
+    input: [
+      { role: "user", content: "Add these" },
+      { type: "function_call", call_id: "c1", name: "add", arguments: '{"a":1}' },
+      { type: "function_call", call_id: "c2", name: "add", arguments: '{"a":2}' },
+      { type: "function_call_output", call_id: "c1", output: "1" },
+      { type: "function_call_output", call_id: "c2", output: "2" },
+    ],
+  });
+
+  const sent = cliBody.messages as Array<Record<string, unknown>>;
+  assert.equal(sent.length, 4, "two calls in one turn collapse into one assistant message");
+  assert.equal(sent[1].role, "assistant");
+  assert.match(JSON.stringify(sent[1]), /c1/);
+  assert.match(JSON.stringify(sent[1]), /c2/);
+});
+
+test("Command Code executor treats a body carrying both input and messages as chat", async () => {
+  // `messages` is the Chat discriminator and wins: `input` is only consulted when
+  // `messages` is absent. Pinned so an accidental flip cannot silently reroute.
+  const calls = captureFetch({});
+  const { url } = await (
+    await getExecutor("command-code")
+  ).execute({
+    model: "gpt-5.6-luna",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { input: [{ role: "user", content: "Hi" }], messages: [{ role: "user", content: "Hi" }] },
+  });
+  assert.equal(url, "https://api.commandcode.ai/provider/v1/chat/completions");
+  assert.equal(calls[0].url, "https://api.commandcode.ai/provider/v1/chat/completions");
+});
+
+test("Command Code /alpha/generate fallback skips a Responses body with no faithful CLI form", async () => {
+  const calls: string[] = [];
+  globalThis.fetch = async (url) => {
+    const urlStr = String(url);
+    calls.push(urlStr);
+    return new Response(
+      JSON.stringify({ error: { message: "upgrade_required", code: "upgrade_required" } }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  // A reasoning item is Responses-only: it has no `role`, so projecting it onto
+  // `messages` would silently drop it and corrupt the replay.
+  const { response } = await (
+    await getExecutor("command-code")
+  ).execute({
+    model: "gpt-5.6-luna",
+    stream: false,
+    credentials: { apiKey: "cc_go_plan_key" },
+    body: {
+      input: [
+        { type: "reasoning", id: "rs_1", summary: [] },
+        { role: "user", content: "Hi" },
+      ],
+    },
+  });
+
+  assert.equal(calls.length, 1, "must not replay a mangled body to /alpha/generate");
+  assert.ok(calls[0].includes("/provider/v1/responses"));
+  // The upstream error surfaces rather than being masked by a broken fallback.
+  assert.equal(response.status, 403);
+});
+
+test("Command Code executor floors a tiny muse-spark max_output_tokens on the Responses path", async () => {
+  const calls = captureFetch({});
+  await (
+    await getExecutor("command-code")
+  ).execute({
+    model: "meta/muse-spark-1.3",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { input: "Hi", max_output_tokens: 64 },
+  });
+
+  // Hidden reasoning eats the output budget first, so the floor has to apply on
+  // max_output_tokens exactly as it does on the Chat path's max_tokens.
+  const posted = calls[0].body as Record<string, unknown>;
+  assert.equal(posted.max_output_tokens, 512);
+  assert.ok(!("max_tokens" in posted), "Responses shape must not grow a Chat max_tokens");
+});
+
+test("Command Code executor still floors muse-spark max_tokens on the Chat path after the Responses early-return", async () => {
+  const calls = captureFetch({});
+  await (
+    await getExecutor("command-code")
+  ).execute({
+    model: "meta/muse-spark-1.3",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }], max_tokens: 64 },
+  });
+
+  // The Responses branch returns early; a Chat-shaped body must fall through to
+  // the Chat floor and keep the Chat endpoint + Chat cap field.
+  const posted = calls[0].body as Record<string, unknown>;
+  assert.equal(calls[0].url, "https://api.commandcode.ai/provider/v1/chat/completions");
+  assert.equal(posted.max_tokens, 512);
+  assert.ok(!("max_output_tokens" in posted), "Chat shape must not grow a Responses cap");
 });
 
 test("Command Code executor honors body.model rewrite from payload rules", async () => {

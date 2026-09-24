@@ -15,6 +15,7 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
+import { stampOwnListenerSelfHop } from "./selfHop.ts";
 import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import {
@@ -786,6 +787,9 @@ async function patchedFetchUnrecorded(
   options: FetchWithDispatcherOptions = {},
   deps: ProxyFetchDeps = {}
 ) {
+  // #13593: a hop back to this listener carries the process self-hop token
+  // so admission does not shed it with public traffic.
+  stampOwnListenerSelfHop(input, options);
   // Explicit direct contexts must win even when a caller supplied a stale
   // dispatcher. Native fetch preserves direct streaming semantics.
   if (proxyContext.getStore() === DIRECT_PROXY_CONTEXT) {

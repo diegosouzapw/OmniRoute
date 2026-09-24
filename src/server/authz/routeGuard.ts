@@ -295,6 +295,12 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
 export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
   "/api/system/version",
   "/api/tunnels/cloudflared",
+  // GET /api/mcp/audit and /stats are read-only SQLite queries behind
+  // requireManagementAuth. The rest of /api/mcp/* stays local-only because
+  // SSE/stream can spawn. Without this exemption a tunnel-served dashboard
+  // 403s the timeline MCP poll forever (#13941).
+  "/api/mcp/audit",
+  "/api/mcp/audit/stats",
 ]);
 
 /** Safe HTTP methods that can be exempted for read-only paths. */

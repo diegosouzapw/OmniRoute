@@ -92,7 +92,7 @@ import {
   resolveDelayMs,
   comboModelNotFoundResponse,
   isStreamReadinessFailureErrorBody,
-  isTokenLimitBreachErrorBody,
+  isLocalKeyPolicyBreachErrorBody,
   isLocalQueueCapacityErrorBody,
   toRecordedTarget,
   getExhaustedTargetSkipReason,
@@ -908,7 +908,7 @@ export async function handleRoundRobinCombo({
 
           // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
           const isTokenLimitBreach =
-            result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+            result.status === 429 && isLocalKeyPolicyBreachErrorBody(errorBody);
           const isLocalQueueCapacity = isLocalQueueCapacityErrorBody(errorBody);
 
           if (isLocalQueueCapacity) {
