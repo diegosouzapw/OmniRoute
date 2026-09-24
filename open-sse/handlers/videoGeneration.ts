@@ -19,6 +19,7 @@ import { handleXaiVideoGeneration } from "./videoGeneration/xaiGrokImagineHandle
 import { handleSegmindVideoGeneration } from "./videoGeneration/providers/segmind.ts";
 import { handleUcVideoGeneration } from "./videoGeneration/providers/ucVideo.ts";
 import { handleAdobeFireflyVideoGeneration } from "./videoGeneration/adobeFireflyHandler.ts";
+import { handleSyntxVideoGeneration } from "./videoGeneration/syntxHandler.ts";
 import { handleOpenAIVideoGeneration } from "./videoGeneration/openai.ts";
 import { getVideoJobPreset, handleVideoJobGeneration } from "./videoGeneration/job.ts";
 import {
@@ -329,6 +330,16 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
   }
   if (providerConfig.format === "adobe-firefly-video") {
     return handleAdobeFireflyVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+  if (providerConfig.format === "syntx-video") {
+    return handleSyntxVideoGeneration({
       model,
       provider,
       providerConfig,

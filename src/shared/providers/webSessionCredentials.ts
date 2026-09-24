@@ -349,6 +349,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "__Secure-better-auth.session_token"],
   },
+  syntx: {
+    kind: "token",
+    credentialName: "SYNTX.ai Bearer JWT",
+    placeholder: "Paste eyJ… JWT from Authorization: Bearer on api.syntx.ai",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "apiKey", "accessToken"],
+  },
   maxai: {
     kind: "token",
     credentialName: "MaxAI access token (Bearer) + device id",

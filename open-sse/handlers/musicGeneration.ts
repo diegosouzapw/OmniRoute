@@ -33,6 +33,7 @@ import {
 } from "../utils/kieTask.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { handleFalMusicGeneration } from "./mediaGeneration/fal.ts";
+import { handleSyntxMusicGeneration } from "./syntxAudio.ts";
 import { handleMinimaxMusicGeneration } from "./mediaGeneration/minimaxMusic.ts";
 
 function normalizeKieSunoModel(model: string): string {
@@ -160,6 +161,10 @@ export async function handleMusicGeneration({ body, credentials, log }) {
       credentials,
       log,
     });
+  }
+
+  if (providerConfig.format === "syntx-music") {
+    return handleSyntxMusicGeneration({ model, provider, body, credentials, log });
   }
 
   return {

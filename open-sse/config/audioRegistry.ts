@@ -9,6 +9,10 @@
 
 import { getProviderAlias } from "@/shared/constants/providers";
 import { isLoopbackNodeHost } from "@/shared/network/loopbackNodeHost";
+import {
+  toRegistrySpeechModels as toSyntxSpeechModels,
+  toRegistryTranscriptionModels as toSyntxTranscriptionModels,
+} from "../services/syntxMediaCatalog.ts";
 
 interface AudioModel {
   id: string;
@@ -25,6 +29,7 @@ export interface AudioProvider {
    * id already is the credential key.
    */
   credentialProviderId?: string;
+  alias?: string;
   baseUrl: string;
   authType: string;
   authHeader: string;
@@ -260,6 +265,15 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "whisper-1", name: "Whisper 1" },
       { id: "gpt-4o-transcription", name: "GPT-4o Transcription" },
     ],
+  },
+  syntx: {
+    id: "syntx",
+    alias: "stx",
+    baseUrl: "https://api.syntx.ai/api/v1/audio/transcriptions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "syntx-audio",
+    models: toSyntxTranscriptionModels(),
   },
 };
 
@@ -601,6 +615,15 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "none",
     format: "uc-tts",
     models: [{ id: "jade", name: "UC Voice (Jade)" }],
+  },
+  syntx: {
+    id: "syntx",
+    alias: "stx",
+    baseUrl: "https://api.syntx.ai/api/v1/audio/speech",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "syntx-audio",
+    models: toSyntxSpeechModels(),
   },
 };
 

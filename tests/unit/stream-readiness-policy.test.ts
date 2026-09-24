@@ -337,3 +337,28 @@ test("does not treat an unrelated id containing 'thinking' as an alias suffix", 
   assert.equal(result.timeoutMs, 80_000);
   assert.ok(!result.reasons.includes("extended_thinking"));
 });
+
+test("gives SYNTX a 10-minute readiness window that is not clamped to 180s", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "syntx",
+    model: "claude-opus-4-8",
+    body: { messages: items(2) },
+  });
+
+  assert.equal(result.timeoutMs, 600_000);
+  assert.equal(result.maxTimeoutMs, 600_000);
+  assert.ok(result.reasons.includes("syntx_long_generate"));
+});
+
+test("applies the SYNTX readiness window to the stx alias", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "stx",
+    model: "gpt-5-nano-2025-08-07",
+    body: { messages: items(2) },
+  });
+
+  assert.equal(result.timeoutMs, 600_000);
+  assert.ok(result.reasons.includes("syntx_long_generate"));
+});

@@ -13,6 +13,8 @@ import {
 import { SafeOutboundFetchError } from "@/shared/network/safeOutboundFetch";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { normalizeGeminiCookieInput } from "@omniroute/open-sse/utils/geminiCookies.ts";
+import { looksLikeJwt, resolveSyntxToken, syntxAuthHeaders } from "@omniroute/open-sse/services/syntxAuth.ts";
+import { SYNTX_MODELS_URL } from "@omniroute/open-sse/services/syntxModels.ts";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import {
   META_AI_ASBD_ID,
@@ -757,6 +759,37 @@ export async function validateTinyCmsWebProvider({ apiKey, providerSpecificData 
     }
 
     return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+export async function validateSyntxProvider({ apiKey, providerSpecificData = {}, accessToken }: any) {
+  try {
+    const token = resolveSyntxToken({ apiKey, accessToken, providerSpecificData });
+    if (!looksLikeJwt(token)) {
+      return {
+        valid: false,
+        error: "Paste your SYNTX.ai Bearer JWT from syntx.ai DevTools -> Network -> api.syntx.ai",
+      };
+    }
+
+    const response = await validationRead(SYNTX_MODELS_URL, {
+      method: "GET",
+      headers: applyCustomUserAgent(syntxAuthHeaders(token), providerSpecificData),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid or expired SYNTX JWT — re-paste Authorization Bearer from syntx.ai",
+      };
+    }
+    if (response.status >= 500) {
+      return { valid: false, error: `SYNTX unavailable (${response.status})` };
+    }
+    if (response.ok) return { valid: true, error: null };
+    return { valid: false, error: `SYNTX validation failed (${response.status})` };
   } catch (error: any) {
     return toValidationErrorResult(error);
   }

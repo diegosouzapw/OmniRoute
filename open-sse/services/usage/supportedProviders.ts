@@ -70,6 +70,8 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "command-code",
   "conol-web",
   "cnl",
+  "syntx",
+  "stx",
   // Alibaba Coding Plan triple-window quota (#9603 UI gap — fetcher existed, list entry missing)
   "bailian-coding-plan",
   // Qwen Cloud / Model Studio personal Token Plan (cookie-authenticated console gateway)

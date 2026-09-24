@@ -47,6 +47,7 @@ import {
   validateDevinCloudAgentProvider,
   validateInnerAiProvider,
   validateNotionWebProvider,
+  validateSyntxProvider,
 } from "./validation/webProvidersB";
 import {
   validateHerokuProvider,
@@ -332,6 +333,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,
+    syntx: validateSyntxProvider,
+    stx: validateSyntxProvider,
     "azure-openai": validateAzureOpenAIProvider,
     "azure-ai": validateAzureAiProvider,
     "voyage-ai": ({ apiKey, providerSpecificData }: any) => {

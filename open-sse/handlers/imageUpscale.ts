@@ -21,6 +21,7 @@ import { getUpscaleProvider, parseUpscaleModel } from "../config/upscaleRegistry
 import { handleAdobeFireflyImageUpscale } from "./imageUpscale/adobeFirefly.ts";
 import { handleStabilityImageUpscale } from "./imageUpscale/stability.ts";
 import { handleTopazImageUpscale } from "./imageUpscale/topaz.ts";
+import { handleSyntxImageUpscale } from "./imageUpscale/syntx.ts";
 import type {
   UpscaleCredentials,
   UpscaleHandlerResult,
@@ -95,6 +96,15 @@ export async function handleImageUpscale({
         model,
         provider,
         providerConfig,
+        body,
+        credentials: resolvedCredentials,
+        log,
+        ...(fetchImpl ? { fetchImpl } : {}),
+      });
+    case "syntx-upscale":
+      return handleSyntxImageUpscale({
+        model,
+        provider,
         body,
         credentials: resolvedCredentials,
         log,

@@ -6,15 +6,18 @@
  */
 
 import { parseModelFromRegistry, getAllModelsFromRegistry } from "./registryUtils.ts";
+import { toRegistryMusicModels as toSyntxMusicModels } from "../services/syntxMediaCatalog.ts";
 
 interface MusicModel {
   id: string;
   name: string;
   isMarket?: boolean;
+  mediaCapabilities?: Record<string, unknown>;
 }
 
 interface MusicProvider {
   id: string;
+  alias?: string;
   baseUrl: string;
   statusUrl?: string;
   /** Regional deployment of the same contract, reachable via a base-URL override. */
@@ -96,6 +99,15 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
       { id: "stable-audio-open", name: "Stable Audio Open" },
       { id: "musicgen-medium", name: "MusicGen Medium" },
     ],
+  },
+  syntx: {
+    id: "syntx",
+    alias: "stx",
+    baseUrl: "https://api.syntx.ai/api/v1/audio/speech",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "syntx-music",
+    models: toSyntxMusicModels(),
   },
 };
 
