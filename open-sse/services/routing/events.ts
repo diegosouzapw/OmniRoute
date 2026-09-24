@@ -73,6 +73,8 @@ export interface RoutingEvent {
   /** finish_reason from the provider response (stop / length / tool_calls / ...). */
   finishReason: string | null;
   connectionId: string | null;
+  /** API key id that authorized this request (usage attribution). Never the raw key. */
+  apiKeyId: string | null;
   ts: number;
 }
 
@@ -184,6 +186,7 @@ export function createRoutingEvent(input: {
   status?: number | null;
   finishReason?: string | null;
   connectionId?: string | null;
+  apiKeyId?: string | null;
   ts?: number;
 }): RoutingEvent {
   return {
@@ -203,6 +206,7 @@ export function createRoutingEvent(input: {
     status: input.status ?? null,
     finishReason: input.finishReason ?? null,
     connectionId: input.connectionId ?? null,
+    apiKeyId: input.apiKeyId ?? null,
     ts: input.ts ?? Date.now(),
   };
 }

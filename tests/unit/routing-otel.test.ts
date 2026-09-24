@@ -33,6 +33,7 @@ function event(partial: Partial<RoutingEvent> = {}): RoutingEvent {
     status: 200,
     finishReason: "stop",
     connectionId: "conn-1",
+    apiKeyId: null,
     ts: 1_700_000_000_000,
     ...partial,
   };
@@ -77,6 +78,91 @@ test("buildOtlpTracesPayload emits GenAI semantic-convention spans", () => {
   assert.equal(attrs["omniroute.routing.fallback_used"], "1");
   assert.equal(attrs["omniroute.connection_id"], "conn-1");
   assert.ok(BigInt(span.startTimeUnixNano) > 0n);
+});
+
+test("buildOtlpTracesPayload emits omniroute.api_key.id when set", () => {
+  const payload = buildOtlpTracesPayload(
+    [event({ apiKeyId: "key-abc-123" })],
+    "omniroute-test"
+  ) as {
+    resourceSpans: Array<{
+      scopeSpans: Array<{
+        spans: Array<{
+          attributes: Array<{ key: string; value: { stringValue?: string; intValue?: string } }>;
+        }>;
+      }>;
+    }>;
+  };
+  const span = payload.resourceSpans[0].scopeSpans[0].spans[0];
+  const attrs = Object.fromEntries(
+    span.attributes.map((a) => [a.key, a.value.stringValue ?? a.value.intValue])
+  );
+  assert.equal(attrs["omniroute.api_key.id"], "key-abc-123");
+});
+
+test("buildOtlpTracesPayload omits api_key.id when null", () => {
+  const payload = buildOtlpTracesPayload([event()], "omniroute-test") as {
+    resourceSpans: Array<{
+      scopeSpans: Array<{
+        spans: Array<{
+          attributes: Array<{ key: string }>;
+        }>;
+      }>;
+    }>;
+  };
+  const span = payload.resourceSpans[0].scopeSpans[0].spans[0];
+  assert.ok(
+    !span.attributes.some((a) => a.key === "omniroute.api_key.id"),
+    "omniroute.api_key.id must be absent when null"
+  );
+});
+
+test("buildOtlpTracesPayload emits gen_ai.usage.cost when cost > 0", () => {
+  const payload = buildOtlpTracesPayload([event({ cost: 0.042 })], "omniroute-test") as {
+    resourceSpans: Array<{
+      scopeSpans: Array<{
+        spans: Array<{
+          attributes: Array<{
+            key: string;
+            value: { stringValue?: string; intValue?: string; doubleValue?: string };
+          }>;
+        }>;
+      }>;
+    }>;
+  };
+  const span = payload.resourceSpans[0].scopeSpans[0].spans[0];
+  const attrs = Object.fromEntries(
+    span.attributes.map(
+      (a: {
+        key: string;
+        value: { stringValue?: string; intValue?: string; doubleValue?: number };
+      }) => [a.key, a.value.stringValue ?? a.value.intValue ?? a.value.doubleValue]
+    )
+  );
+  assert.equal(attrs["gen_ai.usage.cost"], 0.042);
+  assert.equal(attrs["gen_ai.usage.cost.currency"], "USD");
+});
+
+test("buildOtlpTracesPayload omits gen_ai.usage.cost when cost is null or zero", () => {
+  const payload = buildOtlpTracesPayload(
+    [event({ cost: null }), event({ cost: 0 })],
+    "omniroute-test"
+  ) as {
+    resourceSpans: Array<{
+      scopeSpans: Array<{
+        spans: Array<{
+          attributes: Array<{ key: string }>;
+        }>;
+      }>;
+    }>;
+  };
+  const spans = payload.resourceSpans[0].scopeSpans[0].spans;
+  for (const span of spans) {
+    assert.ok(
+      !span.attributes.some((a) => a.key === "gen_ai.usage.cost"),
+      "gen_ai.usage.cost must be absent when cost is null or zero"
+    );
+  }
 });
 
 test("OtlpHttpsEventSink record() enqueues without I/O and flush sends via fetch", async () => {

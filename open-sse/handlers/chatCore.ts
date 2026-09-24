@@ -5532,6 +5532,7 @@ export async function handleChatCore({
             status: HTTP_STATUS.BAD_GATEWAY,
             finishReason: routingFinishReason(translatedResponse),
             connectionId: credentials?.connectionId ?? null,
+            apiKeyId: apiKeyInfo?.id ?? null,
           })
         );
         return createErrorResult(
@@ -5669,6 +5670,7 @@ export async function handleChatCore({
           status: 200,
           finishReason: routingFinishReason(translatedResponse),
           connectionId: credentials?.connectionId ?? null,
+          apiKeyId: apiKeyInfo?.id ?? null,
         })
       );
 
@@ -5945,50 +5947,69 @@ export async function handleChatCore({
 
     // Routing event (feedback foundation) — fire-and-forget, cheap, never blocks
     // the stream. Feeds the quality tracker + optional OTel exporter.
-    void emitRoutingEvent(
-      createRoutingEvent({
-        requestId: traceId || pendingRequestId || "unknown",
-        provider: provider || "unknown",
-        model: model || "unknown",
-        strategy: isCombo ? (comboStrategy ?? "combo") : "direct",
-        latencyMs: Date.now() - startTime,
-        ttftMs: typeof ttft === "number" && Number.isFinite(ttft) && ttft >= 0 ? ttft : null,
-        itlMs:
-          typeof streamItlMs === "number" && Number.isFinite(streamItlMs) && streamItlMs >= 0
-            ? streamItlMs
-            : null,
-        inputTokens:
-          streamUsage && typeof streamUsage === "object"
-            ? (() => {
-                const promptTokens = (streamUsage as Record<string, unknown>).prompt_tokens;
-                return typeof promptTokens === "number" && Number.isFinite(promptTokens)
-                  ? promptTokens
-                  : null;
-              })()
-            : null,
-        outputTokens:
-          streamUsage && typeof streamUsage === "object"
-            ? (() => {
-                const completionTokens = (streamUsage as Record<string, unknown>).completion_tokens;
-                return typeof completionTokens === "number" && Number.isFinite(completionTokens)
-                  ? completionTokens
-                  : null;
-              })()
-            : null,
-        cost: null,
-        retries: 0,
-        fallbackUsed: false, // combo-level fallback tracked by decisionTrace
-        outcome:
-          normalizedStreamStatus === 200
-            ? "success"
-            : streamErrorCode === "stream_interrupted" || streamErrorCode === "aborted"
-              ? "stream_interrupted"
-              : outcomeFromStatus(normalizedStreamStatus),
-        status: normalizedStreamStatus,
-        finishReason: routingFinishReason(streamResponseBody),
-        connectionId: streamConnectionId ?? credentials?.connectionId ?? null,
+    // Cost is resolved asynchronously (pricing DB lookup) and the event is
+    // emitted only after it lands, so OTel spans carry gen_ai.usage.cost.
+    const emitStreamRoutingEvent = (routedCost: number | null) => {
+      void emitRoutingEvent(
+        createRoutingEvent({
+          requestId: traceId || pendingRequestId || "unknown",
+          provider: provider || "unknown",
+          model: model || "unknown",
+          strategy: isCombo ? (comboStrategy ?? "combo") : "direct",
+          latencyMs: Date.now() - startTime,
+          ttftMs: typeof ttft === "number" && Number.isFinite(ttft) && ttft >= 0 ? ttft : null,
+          itlMs:
+            typeof streamItlMs === "number" && Number.isFinite(streamItlMs) && streamItlMs >= 0
+              ? streamItlMs
+              : null,
+          inputTokens:
+            streamUsage && typeof streamUsage === "object"
+              ? (() => {
+                  const promptTokens = (streamUsage as Record<string, unknown>).prompt_tokens;
+                  return typeof promptTokens === "number" && Number.isFinite(promptTokens)
+                    ? promptTokens
+                    : null;
+                })()
+              : null,
+          outputTokens:
+            streamUsage && typeof streamUsage === "object"
+              ? (() => {
+                  const completionTokens = (streamUsage as Record<string, unknown>).completion_tokens;
+                  return typeof completionTokens === "number" && Number.isFinite(completionTokens)
+                    ? completionTokens
+                    : null;
+                })()
+              : null,
+          cost: routedCost,
+          retries: 0,
+          fallbackUsed: false, // combo-level fallback tracked by decisionTrace
+          outcome:
+            normalizedStreamStatus === 200
+              ? "success"
+              : streamErrorCode === "stream_interrupted" || streamErrorCode === "aborted"
+                ? "stream_interrupted"
+                : outcomeFromStatus(normalizedStreamStatus),
+          status: normalizedStreamStatus,
+          finishReason: routingFinishReason(streamResponseBody),
+          connectionId: streamConnectionId ?? credentials?.connectionId ?? null,
+          apiKeyId: apiKeyInfo?.id ?? null,
+        })
+      );
+    };
+
+    const streamUsageForCost =
+      streamUsage && typeof streamUsage === "object"
+        ? normalizeUsage(streamUsage as Record<string, number | undefined>)
+        : null;
+    if (streamUsageForCost) {
+      calculateCost(provider, model, streamUsageForCost, {
+        serviceTier: effectiveServiceTier,
       })
-    );
+        .then((cc) => emitStreamRoutingEvent(Number.isFinite(cc) ? cc : null))
+        .catch(() => emitStreamRoutingEvent(null));
+    } else {
+      emitStreamRoutingEvent(null);
+    }
 
     persistAttemptLogs({
       status: normalizedStreamStatus,

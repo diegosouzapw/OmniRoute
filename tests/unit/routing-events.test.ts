@@ -52,6 +52,7 @@ test("createRoutingEvent fills observability defaults", () => {
   assert.equal(e.fallbackUsed, false);
   assert.equal(e.finishReason, null);
   assert.equal(e.connectionId, null);
+  assert.equal(e.apiKeyId, null);
   assert.ok(e.ts > 0);
   assert.equal(e.status, 500);
 });

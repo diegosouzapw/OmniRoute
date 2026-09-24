@@ -215,6 +215,13 @@ function toSpan(event: RoutingEventLike): OtelSpan {
   ];
   if (event.connectionId) attributes.push(attr("omniroute.connection_id", event.connectionId));
 
+  const costUsd = typeof event.cost === "number" && Number.isFinite(event.cost) ? event.cost : null;
+  if (costUsd !== null && costUsd > 0) {
+    attributes.push(attr("gen_ai.usage.cost", costUsd));
+    attributes.push(attr("gen_ai.usage.cost.currency", "USD"));
+  }
+  if (event.apiKeyId) attributes.push(attr("omniroute.api_key.id", event.apiKeyId));
+
   return {
     traceId,
     spanId,
