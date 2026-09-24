@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Mú ìdúróṣinṣin sáà kúrò",
     "sessionStickinessEnabled": "Ìdúróṣinṣin ti ṣiṣẹ́",
     "sessionStickinessDisabled": "Ìdúróṣinṣin ti dáwọ́ dúró",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Ètò àsàyàn-tẹ́lẹ̀ Kimi Coding",
     "kimiPresetDescription": "Kimi K3 gẹ́gẹ́ bí awoṣe àkọ́kọ́ (Moonshot API), pẹ̀lú ìpadà sẹ́yìn aládàáṣe sí àwọn àsopọ̀ Kimi Code rẹ (kimi-coding, kimi-web) nígbà tí a bá ti ṣètò wọn.",
     "kimiPresetCta": "Ṣàfikún ètò àsàyàn-tẹ́lẹ̀",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Èyí yóò ṣe ẹ̀dà àwọn olùpèsè/àwọn awoṣe tó sopọ̀ lọ́wọ́lọ́wọ́ tí ó bá àdàkọ yìí mu, yóò sì fi wọ́n sínú àkójọpọ̀ tí a lè ṣàtúnṣe.",
     "duplicateAutoComboFailedPrefix": "Kò ṣeé ṣe láti ṣe ẹ̀dà àkójọpọ̀ aládàáṣiṣẹ́:",
     "duplicateAutoComboUnknownError": "Àṣìṣe àìmọ̀",
-    "duplicateAutoComboTitle": "Ṣẹ̀dá àkójọpọ̀ àìyípadà láti inú {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ṣẹ̀dá àkójọpọ̀ àìyípadà láti inú {name}"
   },
   "costs": {
     "title": "Àwọn ìnáwó",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "Kò sí àkọsílẹ̀ aṣojú síbẹ̀. Ṣètò àwọn aṣojú kí o sì ṣe àwọn ìpè API láti rí wọn níbí.",
     "noMatchingLogs": "Kò sí àkọsílẹ̀ tó bá àwọn asẹ́ lọ́wọ́lọ́wọ́ mu.",
     "tlsFingerprint": "Àmì ìka ọwọ́ TLS Chrome 124",
-    "colPublicIp": "IP Gbogbogbò"
+    "colPublicIp": "IP Gbogbogbò",
+    "colUpstream": "Ibi isalẹ",
+    "colEgress": "IP Egress",
+    "colCorrelation": "Iṣọkan",
+    "colServedBy": "Ti a ṣe nipasẹ",
+    "filterTraffic": "Iṣan omi",
+    "filterTests": "Awọn idanwo",
+    "filterSource": "Orisun"
   },
   "endpointOptions": {
     "speech": "Ọ̀rọ̀",
@@ -14119,7 +14126,12 @@
     "directNative": "Taara (ìbílẹ̀)",
     "targetUrl": "URL àfojúsùn",
     "error": "Àṣìṣe",
-    "configuration": "Àtòjọ ètò próósì"
+    "configuration": "Àtòjọ ètò próósì",
+    "upstreamStatus": "Ipo isalẹ",
+    "noResponse": "Ko si idahun",
+    "egressIp": "IP Egress",
+    "servedBy": "Ti a ṣe nipasẹ",
+    "correlationId": "ID Iṣọkan"
   },
   "requestTimeline": {
     "title": "Ìlà àkókò ìbéèrè",

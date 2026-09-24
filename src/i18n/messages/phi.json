@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "I-disable ang session stickiness",
     "sessionStickinessEnabled": "Naka-on ang stickiness",
     "sessionStickinessDisabled": "Naka-off ang stickiness",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preset ng Kimi Coding",
     "kimiPresetDescription": "Kimi K3 bilang pangunahing modelo (Moonshot API), na may awtomatikong fallback sa iyong mga koneksyon sa Kimi Code (kimi-coding, kimi-web) kapag naka-configure.",
     "kimiPresetCta": "Magdagdag ng preset",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Ito ay kukuha ng snapshot ng kasalukuyang nakakonektang mga provider/model na tugma sa template na ito sa isang editable na combo.",
     "duplicateAutoComboFailedPrefix": "Nabigo ang pag-duplicate ng auto-combo:",
     "duplicateAutoComboUnknownError": "Hindi alam na error",
-    "duplicateAutoComboTitle": "Gumawa ng static combo mula sa {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Gumawa ng static combo mula sa {name}"
   },
   "costs": {
     "title": "Mga gastos",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "Wala pang mga proxy log. I-configure ang mga proxy at magsagawa ng mga API call upang makita ang mga ito rito.",
     "noMatchingLogs": "Walang log na tumutugma sa kasalukuyang mga filter.",
     "tlsFingerprint": "TLS Fingerprint ng Chrome 124",
-    "colPublicIp": "Pampublikong IP"
+    "colPublicIp": "Pampublikong IP",
+    "colUpstream": "Upstream",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Pagsasama",
+    "colServedBy": "Ipinagkaloob ng",
+    "filterTraffic": "Trapiko",
+    "filterTests": "Mga Pagsubok",
+    "filterSource": "Pinagmulan"
   },
   "endpointOptions": {
     "speech": "Pagsasalita",
@@ -14119,7 +14126,12 @@
     "directNative": "Direkta",
     "targetUrl": "Target na URL",
     "error": "Error",
-    "configuration": "Konfigurasyon ng Proxy"
+    "configuration": "Konfigurasyon ng Proxy",
+    "upstreamStatus": "Katayuan ng Upstream",
+    "noResponse": "Walang tugon",
+    "egressIp": "Egress IP",
+    "servedBy": "Ipinagkaloob ng",
+    "correlationId": "ID ng Pagsasama"
   },
   "requestTimeline": {
     "title": "Kronolohiya ng Kahilingan",

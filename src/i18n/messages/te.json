@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "సెషన్ స్టిక్కీనెస్‌ను నిలిపివేయండి",
     "sessionStickinessEnabled": "స్టిక్కీనెస్ ఆన్",
     "sessionStickinessDisabled": "స్టిక్కీనెస్ ఆఫ్",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ప్రీసెట్",
     "kimiPresetDescription": "ప్రాథమిక మోడల్‌గా Kimi K3 (Moonshot API), కాన్ఫిగర్ చేసినప్పుడు మీ Kimi Code కనెక్షన్‌లకు (kimi-coding, kimi-web) ఆటోమేటిక్ ఫాల్‌బ్యాక్‌తో.",
     "kimiPresetCta": "ప్రీసెట్‌ను జోడించు",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ఈ టెంప్లేట్‌తో సరిపోయే ప్రస్తుత కనెక్ట్ చేసిన ప్రొవైడర్లు/మోడల్‌లను ఎడిటబుల్ కంబోలో స్నాప్‌షాట్ తీసుకుంటుంది.",
     "duplicateAutoComboFailedPrefix": "ఆటోకంబో డూప్లికేట్ చేయడంలో విఫలమైంది:",
     "duplicateAutoComboUnknownError": "తెలియని దోషం",
-    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి"
   },
   "costs": {
     "title": "ఖర్చులు",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "ఇంకా ప్రాక్సీ లాగ్లు లేవు. వాటిని ఇక్కడ చూడటానికి ప్రాక్సీలను కాన్ఫిగర్ చేసి API కాల్లు చేయండి.",
     "noMatchingLogs": "ప్రస్తుత ఫిల్టర్లకు సరిపోలే లాగ్లు లేవు.",
     "tlsFingerprint": "Chrome 124 TLS ఫింగర్ప్రింట్",
-    "colPublicIp": "పబ్లిక్ IP"
+    "colPublicIp": "పబ్లిక్ IP",
+    "colUpstream": "అప్‌స్ట్రీమ్",
+    "colEgress": "ఇగ్రెస్ IP",
+    "colCorrelation": "సంబంధం",
+    "colServedBy": "సేవ అందించినది",
+    "filterTraffic": "ట్రాఫిక్",
+    "filterTests": "పరీక్షలు",
+    "filterSource": "మూలం"
   },
   "endpointOptions": {
     "speech": "స్పీచ్",
@@ -14119,7 +14126,12 @@
     "directNative": "ప్రత్యక్ష (నేటివ్)",
     "targetUrl": "లక్ష్య URL",
     "error": "లోపం",
-    "configuration": "ప్రాక్సీ కాన్ఫిగరేషన్"
+    "configuration": "ప్రాక్సీ కాన్ఫిగరేషన్",
+    "upstreamStatus": "అప్‌స్ట్రీమ్ స్థితి",
+    "noResponse": "స్పందన లేదు",
+    "egressIp": "ఇగ్రెస్ IP",
+    "servedBy": "సేవ అందించినది",
+    "correlationId": "సంబంధ ID"
   },
   "requestTimeline": {
     "title": "అభ్యర్థన సమయరేఖ",

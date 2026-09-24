@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Sessiya yapışqanlığını söndürün",
     "sessionStickinessEnabled": "Yapışqanlıq aktivdir",
     "sessionStickinessDisabled": "Yapışqanlıq qapalıdır",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding hazır ayarı",
     "kimiPresetDescription": "Əsas model olaraq Kimi K3 (Moonshot API), konfiqurasiya edildikdə Kimi Code bağlantılarınıza (kimi-coding, kimi-web) avtomatik keçid ilə.",
     "kimiPresetCta": "Hazır ayarı əlavə et",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Bu, bu şablona uyğun olan hazırkı qoşulmuş provayderləri/modeləri redaktə oluna bilən kombo kimi saxlayacaq.",
     "duplicateAutoComboFailedPrefix": "Avtokombo kopyalanması uğursuz oldu:",
     "duplicateAutoComboUnknownError": "Naməlum xəta",
-    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat"
   },
   "costs": {
     "title": "Xərclər",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "Hələ proksi jurnalı yoxdur. Onları burada görmək üçün proksiləri konfiqurasiya edin və API çağırışları edin.",
     "noMatchingLogs": "Cari filtrlərə uyğun jurnal yoxdur.",
     "tlsFingerprint": "Chrome 124 TLS barmaq izi",
-    "colPublicIp": "İctimai IP"
+    "colPublicIp": "İctimai IP",
+    "colUpstream": "Yuxarı axın",
+    "colEgress": "Çıxış IP",
+    "colCorrelation": "Korrelyasiya",
+    "colServedBy": "Təmin edən",
+    "filterTraffic": "Trafik",
+    "filterTests": "Testlər",
+    "filterSource": "Mənbə"
   },
   "endpointOptions": {
     "speech": "Nitq",
@@ -14119,7 +14126,12 @@
     "directNative": "Birbaşa",
     "targetUrl": "Hədəf URL",
     "error": "Xəta",
-    "configuration": "Proksi Konfiqurasiyası"
+    "configuration": "Proksi Konfiqurasiyası",
+    "upstreamStatus": "Yuxarı axın statusu",
+    "noResponse": "Cavab yoxdur",
+    "egressIp": "Çıxış IP",
+    "servedBy": "Təmin edən",
+    "correlationId": "Korrelyasiya ID"
   },
   "requestTimeline": {
     "title": "Sorğu Zaman Çizgisi",

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Désactiver la persistance de session",
     "sessionStickinessEnabled": "Persistance activée",
     "sessionStickinessDisabled": "Persistance désactivée",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Préréglage Kimi Coding",
     "kimiPresetDescription": "Kimi K3 comme modèle principal (Moonshot API), avec repli automatique vers vos connexions Kimi Code (kimi-coding, kimi-web) lorsqu'elles sont configurées.",
     "kimiPresetCta": "Ajouter le préréglage",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Cela capturera les fournisseurs/modèles actuellement connectés qui correspondent à ce modèle dans une combinaison modifiable.",
     "duplicateAutoComboFailedPrefix": "Échec de la duplication de la combinaison automatique :",
     "duplicateAutoComboUnknownError": "Erreur inconnue",
-    "duplicateAutoComboTitle": "Créer une combinaison statique à partir de {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Créer une combinaison statique à partir de {name}"
   },
   "costs": {
     "title": "Coûts",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "Aucun journal de proxy pour le moment. Configurez des proxys et effectuez des appels API pour les afficher ici.",
     "noMatchingLogs": "Aucun journal ne correspond aux filtres actuels.",
     "tlsFingerprint": "Empreinte TLS de Chrome 124",
-    "colPublicIp": "IP publique"
+    "colPublicIp": "IP publique",
+    "colUpstream": "Amont",
+    "colEgress": "IP de sortie",
+    "colCorrelation": "Corrélation",
+    "colServedBy": "Servi par",
+    "filterTraffic": "Trafic",
+    "filterTests": "Tests",
+    "filterSource": "Source"
   },
   "endpointOptions": {
     "speech": "Parole",
@@ -14119,7 +14126,12 @@
     "directNative": "Direct (natif)",
     "targetUrl": "URL cible",
     "error": "Erreur",
-    "configuration": "Configuration du proxy"
+    "configuration": "Configuration du proxy",
+    "upstreamStatus": "État amont",
+    "noResponse": "Aucune réponse",
+    "egressIp": "IP de sortie",
+    "servedBy": "Servi par",
+    "correlationId": "ID de corrélation"
   },
   "requestTimeline": {
     "title": "Chronologie des requêtes",

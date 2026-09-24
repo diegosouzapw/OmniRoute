@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "सेसन स्टिकिनेस असक्षम गर्नुहोस्",
     "sessionStickinessEnabled": "स्टिकिनेस सक्रिय",
     "sessionStickinessDisabled": "स्टिकिनेस निष्क्रिय",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding प्रिसेट",
     "kimiPresetDescription": "Kimi K3 लाई प्राथमिक मोडेलका रूपमा (Moonshot API) प्रयोग गर्छ, र कन्फिगर गरिएको अवस्थामा तपाईंका Kimi Code जडानहरू (kimi-coding, kimi-web) मा स्वचालित रूपमा फलब्याक गर्छ।",
     "kimiPresetCta": "प्रिसेट थप्नुहोस्",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "यसले यो टेम्प्लेटसँग मेल खाने हाल जडान भएका प्रदायक/मोडेलहरूको स्न्यापसट लिएर सम्पादनयोग्य कम्बो बनाउनेछ।",
     "duplicateAutoComboFailedPrefix": "स्वचालित कम्बो डुप्लिकेट गर्न असफल भयो:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटि",
-    "duplicateAutoComboTitle": "{name} बाट स्थिर कम्बो सिर्जना गर्नुहोस्",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} बाट स्थिर कम्बो सिर्जना गर्नुहोस्"
   },
   "costs": {
     "title": "लागत",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "अझै कुनै प्रोक्सी लग छैन। तिनलाई यहाँ हेर्न प्रोक्सीहरू कन्फिगर गरी API कलहरू गर्नुहोस्।",
     "noMatchingLogs": "हालका फिल्टरहरूसँग कुनै लग मेल खाँदैन।",
     "tlsFingerprint": "Chrome 124 TLS फिङ्गरप्रिन्ट",
-    "colPublicIp": "सार्वजनिक IP"
+    "colPublicIp": "सार्वजनिक IP",
+    "colUpstream": "उपधारा",
+    "colEgress": "निष्कासन आईपी",
+    "colCorrelation": "सहसंबंध",
+    "colServedBy": "द्वारा सेवा गरियो",
+    "filterTraffic": "यातायात",
+    "filterTests": "परीक्षणहरू",
+    "filterSource": "स्रोत"
   },
   "endpointOptions": {
     "speech": "वाणी",
@@ -14119,7 +14126,12 @@
     "directNative": "प्रत्यक्ष (नेटिभ)",
     "targetUrl": "लक्षित URL",
     "error": "त्रुटि",
-    "configuration": "प्रोक्सी कन्फिगरेसन"
+    "configuration": "प्रोक्सी कन्फिगरेसन",
+    "upstreamStatus": "उपधारा स्थिति",
+    "noResponse": "कोई प्रतिक्रिया छैन",
+    "egressIp": "निष्कासन आईपी",
+    "servedBy": "द्वारा सेवा गरिएको",
+    "correlationId": "संबंधित ID"
   },
   "requestTimeline": {
     "title": "अनुरोध समयरेखा",

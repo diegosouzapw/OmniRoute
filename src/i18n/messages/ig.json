@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Gbanyụọ njikọgide nnọkọ",
     "sessionStickinessEnabled": "Njikọgide agbanwuru",
     "sessionStickinessDisabled": "Njikọgide agbanyụrụ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Nhazi Kimi Coding",
     "kimiPresetDescription": "Kimi K3 dị ka model bụ isi (Moonshot API), yana ịlaghachi na njikọ Kimi Code gị (kimi-coding, kimi-web) na-akpaghị aka mgbe ahaziri ha.",
     "kimiPresetCta": "Tinye nhazi",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Nke a ga-echekwa ọnọdụ ndị na-eweta ọrụ/model ejikọrọ ugbu a dabara na ndebiri a n'ime ngwakọta a pụrụ idezi.",
     "duplicateAutoComboFailedPrefix": "Ime oyiri nke ngwakọta akpaka dara:",
     "duplicateAutoComboUnknownError": "Njehie amaghị ama",
-    "duplicateAutoComboTitle": "Mepụta ngwakọta anaghị agbanwe agbanwe site na {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Mepụta ngwakọta anaghị agbanwe agbanwe site na {name}"
   },
   "costs": {
     "title": "Ọnụ ahịa",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "Enweghị ndekọ proxy ugbu a. Hazie proxy ma kpọọ API ka ị hụ ha ebe a.",
     "noMatchingLogs": "Ọ nweghị ndekọ dabara na nzacha ndị dị ugbu a.",
     "tlsFingerprint": "Akara mkpịsịaka TLS nke Chrome 124",
-    "colPublicIp": "IP ọha"
+    "colPublicIp": "IP ọha",
+    "colUpstream": "N'elu",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Njikọ",
+    "colServedBy": "Nyeere site na",
+    "filterTraffic": "Ọnụ ọgụgụ",
+    "filterTests": "Nnwale",
+    "filterSource": "Isi iyi"
   },
   "endpointOptions": {
     "speech": "Okwu",
@@ -14119,7 +14126,12 @@
     "directNative": "Kpọmkwem (nke e wuru n'ime ya)",
     "targetUrl": "URL ebumnuche",
     "error": "Njehie",
-    "configuration": "Nhazi proksi"
+    "configuration": "Nhazi proksi",
+    "upstreamStatus": "N'elu ọnọdụ",
+    "noResponse": "Enweghị nzaghachi",
+    "egressIp": "Egress IP",
+    "servedBy": "Nyeere site na",
+    "correlationId": "Njikọ ID"
   },
   "requestTimeline": {
     "title": "Usoro oge arịrịọ",

@@ -11537,7 +11537,14 @@
     "noProxyLogs": "No proxy logs yet. Configure proxies and make API calls to see them here.",
     "noMatchingLogs": "No logs match the current filters.",
     "tlsFingerprint": "Chrome 124 TLS Fingerprint",
-    "colPublicIp": "Public IP"
+    "colPublicIp": "Public IP",
+    "colUpstream": "Upstream",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Correlation",
+    "colServedBy": "Served by",
+    "filterTraffic": "Traffic",
+    "filterTests": "Tests",
+    "filterSource": "Source"
   },
   "endpointOptions": {
     "speech": "Speech",
@@ -14119,7 +14126,12 @@
     "directNative": "Direct (native)",
     "targetUrl": "Target URL",
     "error": "Error",
-    "configuration": "Proxy Configuration"
+    "configuration": "Proxy Configuration",
+    "upstreamStatus": "Upstream status",
+    "noResponse": "No response",
+    "egressIp": "Egress IP",
+    "servedBy": "Served by",
+    "correlationId": "Correlation ID"
   },
   "requestTimeline": {
     "title": "Request Timeline",

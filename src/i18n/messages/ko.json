@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "세션 고정 비활성화",
     "sessionStickinessEnabled": "세션 고정 켬",
     "sessionStickinessDisabled": "세션 고정 끔",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding 프리셋",
     "kimiPresetDescription": "Kimi K3를 기본 모델(Moonshot API)로 사용하며, 설정 시 Kimi Code 연결(kimi-coding, kimi-web)로 자동 폴백됩니다.",
     "kimiPresetCta": "프리셋 추가",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "이 템플릿과 일치하는 현재 연결된 제공자/모델을 편집 가능한 콤보로 스냅샷합니다.",
     "duplicateAutoComboFailedPrefix": "자동 콤보 복제 실패:",
     "duplicateAutoComboUnknownError": "알 수 없는 오류",
-    "duplicateAutoComboTitle": "{name}에서 정적 콤보 만들기",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}에서 정적 콤보 만들기"
   },
   "costs": {
     "title": "비용",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "아직 프록시 로그가 없습니다. 프록시를 구성하고 API를 호출하면 여기에 표시됩니다.",
     "noMatchingLogs": "현재 필터와 일치하는 로그가 없습니다.",
     "tlsFingerprint": "Chrome 124 TLS 핑거프린트",
-    "colPublicIp": "공인 IP"
+    "colPublicIp": "공인 IP",
+    "colUpstream": "업스트림",
+    "colEgress": "Egress IP",
+    "colCorrelation": "상관관계",
+    "colServedBy": "제공자",
+    "filterTraffic": "트래픽",
+    "filterTests": "테스트",
+    "filterSource": "소스"
   },
   "endpointOptions": {
     "speech": "음성",
@@ -14119,7 +14126,12 @@
     "directNative": "직접",
     "targetUrl": "대상 URL",
     "error": "오류",
-    "configuration": "프록시 구성"
+    "configuration": "프록시 구성",
+    "upstreamStatus": "업스트림 상태",
+    "noResponse": "응답 없음",
+    "egressIp": "Egress IP",
+    "servedBy": "제공자",
+    "correlationId": "상관관계 ID"
   },
   "requestTimeline": {
     "title": "요청 타임라인",

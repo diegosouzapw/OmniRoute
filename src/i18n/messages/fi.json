@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Poista istuntotarttuvuus käytöstä",
     "sessionStickinessEnabled": "Tarttuvuus päällä",
     "sessionStickinessDisabled": "Tarttuvuus pois päältä",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding -esiasetus",
     "kimiPresetDescription": "Kimi K3 ensisijaisena mallina (Moonshot API), automaattisella varayhteydellä Kimi Code -yhteyksiisi (kimi-coding, kimi-web), kun ne on määritetty.",
     "kimiPresetCta": "Lisää esiasetus",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Tämä tallentaa tämän mallin mukaiset tällä hetkellä yhdistetyt tarjoajat/mallit muokattavaan yhdistelmään.",
     "duplicateAutoComboFailedPrefix": "Automaattisen yhdistelmän kaksoiskappaleen luonti epäonnistui:",
     "duplicateAutoComboUnknownError": "Tuntematon virhe",
-    "duplicateAutoComboTitle": "Luo staattinen yhdistelmä kohteesta {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Luo staattinen yhdistelmä kohteesta {name}"
   },
   "costs": {
     "title": "Kustannukset",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "Välityspalvelinlokeja ei vielä ole. Määritä välityspalvelimet ja tee API-kutsuja, niin lokit näkyvät täällä.",
     "noMatchingLogs": "Yksikään loki ei vastaa nykyisiä suodattimia.",
     "tlsFingerprint": "Chrome 124 TLS-sormenjälki",
-    "colPublicIp": "Julkinen IP"
+    "colPublicIp": "Julkinen IP",
+    "colUpstream": "Ylävirta",
+    "colEgress": "Lähtö-IP",
+    "colCorrelation": "Korrelaatio",
+    "colServedBy": "Palvelija",
+    "filterTraffic": "Liikenne",
+    "filterTests": "Testit",
+    "filterSource": "Lähde"
   },
   "endpointOptions": {
     "speech": "Puhe",
@@ -14119,7 +14126,12 @@
     "directNative": "Suora",
     "targetUrl": "Kohde-URL",
     "error": "Virhe",
-    "configuration": "Välityspalvelimen asetukset"
+    "configuration": "Välityspalvelimen asetukset",
+    "upstreamStatus": "Ylävirran tila",
+    "noResponse": "Ei vastausta",
+    "egressIp": "Lähtö-IP",
+    "servedBy": "Palvelija",
+    "correlationId": "Korrelaatio-ID"
   },
   "requestTimeline": {
     "title": "Pyyntö Aikajana",

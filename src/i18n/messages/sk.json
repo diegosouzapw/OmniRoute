@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Zakázať session stickiness",
     "sessionStickinessEnabled": "Stickiness zapnutá",
     "sessionStickinessDisabled": "Stickiness vypnutá",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Predvoľba Kimi Coding",
     "kimiPresetDescription": "Kimi K3 ako primárny model (Moonshot API) s automatickým záložným riešením na vaše pripojenia Kimi Code (kimi-coding, kimi-web), ak sú nakonfigurované.",
     "kimiPresetCta": "Pridať predvoľbu",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Tým sa zachytí aktuálne pripojení poskytovatelia/modely, ktoré zodpovedajú tejto šablóne, do upraviteľnej kombinácie.",
     "duplicateAutoComboFailedPrefix": "Duplikácia automatickej kombinácie zlyhala:",
     "duplicateAutoComboUnknownError": "Neznáma chyba",
-    "duplicateAutoComboTitle": "Vytvorte staticú kombináciu z {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Vytvorte staticú kombináciu z {name}"
   },
   "costs": {
     "title": "náklady",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "Zatiaľ nie sú k dispozícii žiadne denníky proxy. Nakonfigurujte proxy a uskutočnite volania API, aby sa tu zobrazili.",
     "noMatchingLogs": "Aktuálnym filtrom nezodpovedajú žiadne denníky.",
     "tlsFingerprint": "Odtlačok TLS pre Chrome 124",
-    "colPublicIp": "Verejná IP"
+    "colPublicIp": "Verejná IP",
+    "colUpstream": "Nadriadený",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korelácia",
+    "colServedBy": "Poskytované",
+    "filterTraffic": "Prevádzka",
+    "filterTests": "Testy",
+    "filterSource": "Zdroj"
   },
   "endpointOptions": {
     "speech": "Reč",
@@ -14119,7 +14126,12 @@
     "directNative": "Priamy",
     "targetUrl": "Cieľová URL",
     "error": "Chyba",
-    "configuration": "Konfigurácia proxy"
+    "configuration": "Konfigurácia proxy",
+    "upstreamStatus": "Stav nadriadeného",
+    "noResponse": "Žiadna odpoveď",
+    "egressIp": "Egress IP",
+    "servedBy": "Poskytované",
+    "correlationId": "ID korelácie"
   },
   "requestTimeline": {
     "title": "Časová os požiadaviek",

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Keela seansi püsivus",
     "sessionStickinessEnabled": "Püsivus sees",
     "sessionStickinessDisabled": "Püsivus väljas",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding eelseadistus",
     "kimiPresetDescription": "Kimi K3 põhimudelina (Moonshot API) koos automaatse ümberlülitumisega teie Kimi Code ühendustele (kimi-coding, kimi-web), kui need on seadistatud.",
     "kimiPresetCta": "Lisa eelseadistus",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "See salvestab hetkel ühendatud ja sellele mallile vastavad teenusepakkujad/mudelid redigeeritavasse kombinatsiooni.",
     "duplicateAutoComboFailedPrefix": "Automaatse kombinatsiooni dubleerimine ebaõnnestus:",
     "duplicateAutoComboUnknownError": "Tundmatu viga",
-    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon"
   },
   "costs": {
     "title": "Kulud",
@@ -11537,7 +11537,14 @@
     "noProxyLogs": "Puhverserveri logisid pole veel. Seadista puhverserverid ja tee API-päringuid, et neid siin näha.",
     "noMatchingLogs": "Ükski logi ei vasta praegustele filtritele.",
     "tlsFingerprint": "Chrome 124 TLS-sõrmejälg",
-    "colPublicIp": "Avalik IP"
+    "colPublicIp": "Avalik IP",
+    "colUpstream": "Ülesvool",
+    "colEgress": "Väljaminev IP",
+    "colCorrelation": "Korreleerimine",
+    "colServedBy": "Teenindab",
+    "filterTraffic": "Liiklus",
+    "filterTests": "Testid",
+    "filterSource": "Allikas"
   },
   "endpointOptions": {
     "speech": "Kõne",
@@ -14119,7 +14126,12 @@
     "directNative": "Otse (natiivne)",
     "targetUrl": "Siht-URL",
     "error": "Viga",
-    "configuration": "Proksi konfiguratsioon"
+    "configuration": "Proksi konfiguratsioon",
+    "upstreamStatus": "Ülesvoolu olek",
+    "noResponse": "Ei vastata",
+    "egressIp": "Väljaminev IP",
+    "servedBy": "Teenindab",
+    "correlationId": "Korreleerimise ID"
   },
   "requestTimeline": {
     "title": "Päringu ajajoon",
