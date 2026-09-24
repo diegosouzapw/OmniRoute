@@ -2,6 +2,12 @@ import { CORS_HEADERS } from "@/shared/utils/cors";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import { withChatAdmission } from "@/shared/middleware/withChatAdmission";
+import { v1ResponsesInputTokensSchema } from "@/shared/validation/schemas";
+import {
+  formatValidationMessage,
+  isValidationFailure,
+  validateBody,
+} from "@/shared/validation/helpers";
 import {
   countTextTokens,
   tokenizerContextFromBody,
@@ -146,13 +152,28 @@ async function postHandler(request: Request): Promise<Response> {
     return json({ error: { message: "Invalid JSON body", type: "invalid_request_error" } }, 400);
   }
 
-  const record = asRecord(body);
-  if (!record) {
+  if (!asRecord(body)) {
     return json(
       { error: { message: "Request body must be a JSON object", type: "invalid_request_error" } },
       400
     );
   }
+
+  // Hard Rule #7 (t06 gate): the wire types the counter reads are pinned by Zod;
+  // unknown keys still pass through (they are counted, never forwarded).
+  const validation = validateBody(v1ResponsesInputTokensSchema, body);
+  if (isValidationFailure(validation)) {
+    return json(
+      {
+        error: {
+          message: formatValidationMessage(validation.error),
+          type: "invalid_request_error",
+        },
+      },
+      400
+    );
+  }
+  const record = validation.data;
 
   // Preserve the same API-key and model-policy boundary as the catch-all
   // Responses route this static route shadows. Token counting is local, but it
@@ -165,7 +186,7 @@ async function postHandler(request: Request): Promise<Response> {
     return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
   }
 
-  const model = typeof record.model === "string" ? record.model : "";
+  const model = record.model ?? "";
   const policy = await enforceApiKeyPolicy(request, model);
   if (policy.rejection) return policy.rejection;
 

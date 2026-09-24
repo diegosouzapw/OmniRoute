@@ -36,6 +36,11 @@ import {
   getAllCircuitBreakerStatuses,
   getCircuitBreaker,
 } from "../../src/shared/utils/circuitBreaker";
+import { MODEL_ACCESS_DENIED_PATTERNS, isModelScoped400 } from "./modelAccessDenied.ts";
+import {
+  connectionCircuitBreakerName,
+  failureCircuitBreakerName,
+} from "./connectionCircuitBreaker.ts";
 import {
   classify429FromError,
   looksLikeQuotaExhausted,
@@ -371,30 +376,9 @@ const MODEL_ACCESS_AMBIGUOUS_TYPES = new Set([
   "permission_error", // Anthropic: could be model access OR key/org/feature scope
 ]);
 
-// Model access patterns — the account does not have access to the requested model
-// but a different account (e.g. PRO vs free tier) may support it.
-// Exported so combo.ts #2101 can exempt model-scoped 400s from the body-specific
-// stop guard (#5249): "model not supported" must advance to the next combo target
-// even when the message also contains wrapper words like "invalid" / "bad request".
-export const MODEL_ACCESS_DENIED_PATTERNS = [
-  /\binvalid model\b/i,
-  /\bmodel.*not.*(?:available|found|supported|accessible)\b/i,
-  /\bmodel.*(?:does not exist|doesn't exist)\b/i,
-  // "does not support" / "unsupported model" — GitHub Copilot / OpenAI-compatible
-  // often phrase model rejection this way without the "is not supported" word order.
-  /\bmodel\b[\s\S]{0,80}?\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b/i,
-  /\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b[\s\S]{0,80}?\bmodel\b/i,
-  /\bunsupported\s+model\b/i,
-  /\baccess.*denied.*model\b/i,
-  /\bmodel.*access.*denied\b/i,
-  /\bplease select a different model\b/i,
-  /\bunknown\s+provider\s+for\s+model\b/i,
-  // "...access to the requested model" / "model ... access" — bounded lookahead
-  // (no nested quantifiers) so it stays ReDoS-safe while requiring BOTH an
-  // access/permission word and "model" so a pure auth error never matches.
-  /\b(?:access|permission)[\s\S]{0,60}?\bmodel\b/i,
-  /\bmodel[\s\S]{0,60}?\b(?:access|permission)\b/i,
-];
+// KooshaPari (#8251): the pattern list lives in modelAccessDenied.ts.
+// Re-exported so existing accountFallback imports keep working.
+export { MODEL_ACCESS_DENIED_PATTERNS, isModelScoped400 };
 
 // Pure credential/authentication failures — the key or token itself is bad, which
 // is NOT a model-availability problem. Some providers phrase these as a 400 that
@@ -1156,7 +1140,8 @@ function getProviderBreaker(provider: string | null | undefined) {
 
 function configureProviderBreaker(
   provider: string | null | undefined,
-  profile?: ProviderBreakerProfile | null
+  profile?: ProviderBreakerProfile | null,
+  breakerName?: string
 ) {
   if (!provider) return null;
 
@@ -1166,7 +1151,7 @@ function configureProviderBreaker(
   // Stored value type is `boolean | undefined` — never `null` after PATCH.
   const userValue = resolvedProfile.useUpstream429BreakerHints;
   const useHints = resolveUseUpstream429BreakerHints(provider, userValue);
-  return getCircuitBreaker(provider, {
+  return getCircuitBreaker(breakerName || provider, {
     failureThreshold: resolvedProfile.failureThreshold ?? resolvedProfile.circuitBreakerThreshold,
     resetTimeout: resolvedProfile.resetTimeoutMs ?? resolvedProfile.circuitBreakerReset,
     ...(useHints
@@ -1187,9 +1172,15 @@ function configureProviderBreaker(
 /**
  * Check if a provider is currently blocked by the shared circuit breaker.
  */
-export function isProviderInCooldown(provider: string | null | undefined): boolean {
-  const breaker = getProviderBreaker(provider);
-  return breaker ? !breaker.canExecute() : false;
+export function isProviderInCooldown(
+  provider: string | null | undefined,
+  connectionId?: string | null
+): boolean {
+  if (!provider) return false;
+  const providerBreaker = getProviderBreaker(provider);
+  if (providerBreaker && !providerBreaker.canExecute()) return true;
+  if (!connectionId) return false;
+  return !getCircuitBreaker(connectionCircuitBreakerName(provider, connectionId)).canExecute();
 }
 
 /**
@@ -1259,7 +1250,11 @@ export function recordProviderFailure(
     pruneConnectionFailureDedupeEntries();
   }
 
-  const breaker = configureProviderBreaker(provider, profile);
+  const breaker = configureProviderBreaker(
+    provider,
+    profile,
+    failureCircuitBreakerName(provider, connectionId, opts?.isNetworkError)
+  );
   if (!breaker) return;
 
   if (!breaker.canExecute()) return;
@@ -1288,7 +1283,9 @@ export function recordProviderSuccess(
 ): void {
   if (!provider || provider === "unknown") return;
 
-  const breaker = getProviderBreaker(provider);
+  const breaker = connectionId
+    ? getCircuitBreaker(connectionCircuitBreakerName(provider, connectionId))
+    : getProviderBreaker(provider);
   if (!breaker) return;
   const breakerState = breaker.getStatus().state;
 

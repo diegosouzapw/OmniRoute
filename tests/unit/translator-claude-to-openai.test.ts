@@ -316,7 +316,7 @@ test("Claude -> OpenAI converts tool_result blocks into tool messages and preser
                 { type: "text", text: "20C" },
                 {
                   type: "image",
-                  source: { type: "url", url: "https://example.com/ignored.png" },
+                  source: { type: "url", url: "https://example.com/chart.png" },
                 },
               ],
             },
@@ -337,9 +337,14 @@ test("Claude -> OpenAI converts tool_result blocks into tool messages and preser
     tool_call_id: "tu_1",
     content: "20C",
   });
+  // The URL image is lifted into the trailing user turn, as a base64 one already was:
+  // OpenAI `tool` messages cannot carry images.
   assert.deepEqual(result.messages[2], {
     role: "user",
-    content: "Thanks",
+    content: [
+      { type: "image_url", image_url: { url: "https://example.com/chart.png" } },
+      { type: "text", text: "Thanks" },
+    ],
   });
 });
 

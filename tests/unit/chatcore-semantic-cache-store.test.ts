@@ -94,6 +94,19 @@ test("disabled → no store, no gate calls past enabled", () => {
   assert.equal(calls.cacheable, 0);
 });
 
+test("transcript-observed responses never enter the semantic cache", () => {
+  const { deps, stored, calls } = makeDeps();
+  storeSemanticCacheResponse(
+    baseArgs({
+      translatedResponse: { choices: [{ message: { content: "PRIVATE_NONSTREAM_SENTINEL" } }] },
+      videoTranscriptSensitive: true,
+    }),
+    deps
+  );
+  assert.equal(stored.length, 0);
+  assert.equal(calls.cacheable, 0);
+});
+
 test("not cacheable-for-write → no store", () => {
   const { deps, stored } = makeDeps({ isCacheableForWrite: () => false });
   storeSemanticCacheResponse(baseArgs(), deps);

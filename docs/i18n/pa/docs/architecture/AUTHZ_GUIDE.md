@@ -1,13 +1,13 @@
 # Authorization Guide (ਪੰਜਾਬੀ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **ਸੱਚਾਈ ਦਾ ਸਰੋਤ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **ਆਖਰੀ ਵਾਰ ਅੱਪਡੇਟ ਕੀਤਾ:** 2026-06-28 — v3.8.40
+> **ਸੱਚ ਦਾ ਸਰੋਤ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **ਆਖਰੀ ਵਾਰ ਅੱਪਡੇਟ ਕੀਤਾ ਗਿਆ:** 2026-09-22 — ਸਕੋਪ ਨੇਮਸਪੇਸ MCP-SERVER.md ਵੱਲ ਇਸ਼ਾਰਾ ਕਰਦੇ ਹਨ
 
-OmniRoute ਕੋਲ ਇੱਕ ਰੂਟ-ਅਵੇਅਰ ਅਧਿਕਾਰ-ਪ੍ਰਮਾਣਨ ਪਾਈਪਲਾਈਨ ਹੈ ਜੋ ਹਰ API ਬੇਨਤੀ ਨੂੰ ਨਿਯੰਤਰਿਤ ਕਰਦੀ ਹੈ। ਵਰਗੀਕਰਨ **ਨਿਰਧਾਰਤ** ਅਤੇ **fail-closed** ਹੈ — ਜਿਸ ਵੀ ਚੀਜ਼ ਦਾ ਵਰਗੀਕਰਨ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ, ਉਹ `MANAGEMENT` ਵਜੋਂ ਮੰਨੀ ਜਾਂਦੀ ਹੈ ਅਤੇ ਉਸ ਲਈ ਇੱਕ ਸੈਸ਼ਨ ਜਾਂ ਮੈਨੇਜਮੈਂਟ-ਗ੍ਰੇਡ ਟੋਕਨ ਲੋੜੀਂਦਾ ਹੁੰਦਾ ਹੈ। ਇਹ ਪੰਨਾ ਰੂਟਾਂ ਦੀ ਦੇਖਭਾਲ ਕਰਨ ਜਾਂ ਨਵੇਂ ਐਂਡਪੌਇੰਟ ਡਿਜ਼ਾਈਨ ਕਰਨ ਵਾਲੇ ਇੰਜੀਨੀਅਰਾਂ ਲਈ ਮਾਡਲ ਦੀ ਵਿਆਖਿਆ ਕਰਦਾ ਹੈ।
+OmniRoute ਕੋਲ ਇੱਕ ਰੂਟ-ਜਾਣੂ ਅਧਿਕਾਰ ਪਾਈਪਲਾਈਨ ਹੈ ਜੋ ਹਰ API ਬੇਨਤੀ ਨੂੰ ਗੇਟ ਕਰਦੀ ਹੈ। ਵਰਗੀਕਰਨ **ਨਿਰਧਾਰਤ** ਅਤੇ **ਫੇਲ-ਕਲੋਜ਼ਡ** ਹੈ — ਕੋਈ ਵੀ ਚੀਜ਼ ਜਿਸਨੂੰ ਵਰਗੀਕ੍ਰਿਤ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ, ਉਹ `MANAGEMENT` ਦੇ ਰੂਪ ਵਿੱਚ ਖਤਮ ਹੁੰਦੀ ਹੈ ਅਤੇ ਇੱਕ ਸੈਸ਼ਨ ਜਾਂ ਪ੍ਰਬੰਧਨ-ਗ੍ਰੇਡ ਟੋਕਨ ਦੀ ਮੰਗ ਕਰਦੀ ਹੈ। ਇਹ ਪੰਨਾ ਰੂਟਾਂ ਨੂੰ ਬਣਾਈ ਰੱਖਣ ਵਾਲੇ ਜਾਂ ਨਵੇਂ ਐਂਡਪੁਆਇੰਟ ਡਿਜ਼ਾਈਨ ਕਰਨ ਵਾਲੇ ਇੰਜੀਨੀਅਰਾਂ ਲਈ ਮਾਡਲ ਦੀ ਵਿਆਖਿਆ ਕਰਦਾ ਹੈ।
 
 ![AuthZ ਪਾਈਪਲਾਈਨ (3 ਰੂਟ ਕਲਾਸਾਂ + ਨੀਤੀ ਮੁਲਾਂਕਣ)](../diagrams/exported/authz-pipeline.svg)
 
@@ -198,28 +198,35 @@ export async function POST(request: Request) {
 
 ਸਹੂਲਤ ਦੇ ਆਧਾਰ 'ਤੇ ਨਹੀਂ, ਸਗੋਂ ਆਕਾਰ ਦੇ ਆਧਾਰ 'ਤੇ ਸੈੱਟ ਚੁਣੋ। ਇੱਕ ਰੂਟ `PUBLIC_API_ROUTES_EXACT` ਵਿੱਚ ਜਾਂਦਾ ਹੈ (ਜਾਂ ਕੇਵਲ-GET ਲਈ `PUBLIC_READONLY_CORS_API_ROUTES` ਵਿੱਚ); ਕੇਵਲ ਇੱਕ ਅਸਲ ਸਬਟ੍ਰੀ ਹੀ `PUBLIC_API_ROUTE_PREFIXES` ਵਿੱਚ ਜਾਂਦੀ ਹੈ, ਅਤੇ ਇਸਦਾ ਅੰਤ `/` ਨਾਲ ਹੋਣਾ **ਲਾਜ਼ਮੀ ਹੈ**। ਪ੍ਰੀਫਿਕਸ ਸੂਚੀ ਵਿੱਚ ਇੱਕ ਇਕੱਲਾ ਰੂਟ ਪਾਉਣ ਨਾਲ ਉਹ ਸਾਰੇ ਨਾਲ ਲੱਗਦੇ ਪਾਥ ਵੀ ਸਰਵਜਨਿਕ ਹੋ ਜਾਂਦੇ ਹਨ ਜਿਨ੍ਹਾਂ ਦੇ ਸ਼ੁਰੂਆਤੀ ਅੱਖਰ ਇੱਕੋ ਹਨ — ਇਸ ਵਿੱਚ ਬਾਅਦ ਵਿੱਚ ਜੋੜੇ ਗਏ ਡਾਇਨਾਮਿਕ-ਸੈਗਮੈਂਟ ਸਿਬਲਿੰਗ ਵੀ ਸ਼ਾਮਲ ਹਨ (GHSA-74g9-q8f6-793h)। `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` ਅਤੇ `tests/unit/authz/classify.test.ts` ਵਿੱਚ ਯੂਨਿਟ ਟੈਸਟ ਅੱਪਡੇਟ ਕਰੋ।
 
-## ਸਕੋਪ
+## ਸਕੋਪਸ
 
-API ਕੁੰਜੀਆਂ ਵਿੱਚ ਇੱਕ `scopes` ਐਰੇ ਹੁੰਦਾ ਹੈ (JSON ਵਜੋਂ `api_keys.scopes` ਵਿੱਚ ਸਟੋਰ ਕੀਤਾ ਜਾਂਦਾ ਹੈ, `src/lib/db/apiKeys.ts` ਵੇਖੋ)।
+ਤਿੰਨ ਨਾਮਸਪੇਸ। ਹਰੇਕ ਚੈਕਰ ਸਿਰਫ਼ ਆਪਣੀਆਂ ਸਤਰਾਂ ਪੜ੍ਹਦਾ ਹੈ। ਨਾਲ-ਨਾਲ, ਜਿਸ ਵਿੱਚ ਇਹ ਵੀ ਸ਼ਾਮਲ ਹੈ ਕਿ `manage` `read:compression` ਲਈ `scopeMatches` ਵਿੱਚ ਕਿਉਂ ਫੇਲ੍ਹ ਹੁੰਦਾ ਹੈ ਅਤੇ ਇੱਕ `read` ਐਕਸੈਸ ਟੋਕਨ `PATCH /api/keys/{id}` ਕਿਉਂ ਨਹੀਂ ਕਰ ਸਕਦਾ, ਉਹ ਹੈ [ਤਿੰਨ ਸਕੋਪ ਨਾਮਸਪੇਸ](../frameworks/MCP-SERVER.md#three-scope-namespaces)।
+
+API ਕੁੰਜੀਆਂ ਇੱਕ `scopes` ਐਰੇ ਰੱਖਦੀਆਂ ਹਨ (ਜੋ `api_keys.scopes` ਵਿੱਚ JSON ਵਜੋਂ ਸਟੋਰ ਕੀਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ, ਦੇਖੋ `src/lib/db/apiKeys.ts`)।
 
 ### ਪ੍ਰਬੰਧਨ ਸਕੋਪ
 
-- `manage` / `admin` — Bearer ਵਜੋਂ ਭੇਜੇ ਜਾਣ 'ਤੇ ਕੁੰਜੀ ਨੂੰ ਪ੍ਰਬੰਧਨ API ਐਂਡਪੌਇੰਟਾਂ ਤੱਕ ਪਹੁੰਚ ਦਿੰਦਾ ਹੈ।
+- `manage` / `admin` — `hasManageScope`। ਪ੍ਰਬੰਧਨ API ਰੂਟਾਂ ਤੱਕ ਬੀਅਰਰ ਪਹੁੰਚ।
+- `mcp:connect`, `self:usage`, `self:account-quota`, ਅਤੇ
+  `policy:bypass-provider-quota` ਐਡਿਟਿਵ ਐਗਜ਼ੈਕਟ-ਮੈਚ ਸਕੋਪ ਹਨ। ਉਹ
+  `MANAGEMENT_API_KEY_SCOPES` ਤੋਂ ਬਾਹਰ ਹਨ। `mcp:connect` ਸਿਰਫ਼
+  `/api/mcp/` ਨਾਨ-ਲੂਪਬੈਕ ਕਾਰਵ-ਆਊਟ ਖੋਲ੍ਹਦਾ ਹੈ।
 
-### MCP ਸਕੋਪ (`src/shared/constants/mcpScopes.ts`)
+### MCP ਟੂਲ ਸਕੋਪਸ
 
-ਹਰੇਕ MCP ਟੂਲ ਲਈ `MCP_TOOL_SCOPES` ਰਾਹੀਂ ਖਾਸ ਸਕੋਪ ਲੋੜੀਂਦੇ ਹਨ। ਪੂਰੀ ਸੂਚੀ (`MCP_SCOPE_LIST`):
+ਕੈਟਾਲਾਗ ਅਤੇ ਮੈਚਿੰਗ ਨਿਯਮ (ਇੱਕੋ ਜਿਹੀ ਸਤਰ, ਜਾਂ ਇੱਕ ਗ੍ਰਾਂਟਡ ਸਕੋਪ ਜੋ `*` ਨਾਲ ਖਤਮ ਹੁੰਦਾ ਹੈ):
+[MCP ਟੂਲ ਸਕੋਪਸ](../frameworks/MCP-SERVER.md#mcp-tool-scopes)।
+`src/shared/constants/mcpScopes.ts` ਵਿੱਚ `MCP_SCOPE_LIST` ਅਸਲੀ ਟਾਈਪਡ
+ਸਬਸੈੱਟ ਹੈ, ਨਾ ਕਿ ਉਹ ਪੂਰਾ ਕੈਟਾਲਾਗ। ਲਾਗੂਕਰਨ
+`open-sse/mcp-server/scopeEnforcement.ts` ਵਿੱਚ ਚੱਲਦਾ ਹੈ ਜਦੋਂ `resolveCallerScopeContext()`
+MCP ਪ੍ਰਮਾਣਿਕਤਾ ਜਾਣਕਾਰੀ, ਬੇਨਤੀ ਮੈਟਾਡੇਟਾ, ਜਾਂ `OMNIROUTE_MCP_SCOPES` ਤੋਂ ਸਕੋਪਾਂ ਨੂੰ ਹੱਲ ਕਰਦਾ ਹੈ।
+ਇਹ ਉਦੋਂ ਤੱਕ ਬੰਦ ਰਹਿੰਦਾ ਹੈ ਜਦੋਂ ਤੱਕ `OMNIROUTE_MCP_ENFORCE_SCOPES=true` ਨਹੀਂ ਹੁੰਦਾ।
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### ਐਕਸੈਸ-ਟੋਕਨ ਸਕੋਪਸ
 
-`open-sse/mcp-server/server.ts` ਵਿੱਚ ਸਕੋਪ ਲਾਗੂਕਰਨ, `resolveCallerScopeContext()` ਵੱਲੋਂ MCP ਪ੍ਰਮਾਣੀਕਰਨ ਜਾਣਕਾਰੀ,
-ਬੇਨਤੀ ਮੈਟਾਡੇਟਾ, ਜਾਂ `OMNIROUTE_MCP_SCOPES` ਤੋਂ ਸਕੋਪ ਨਿਰਧਾਰਤ ਕੀਤੇ ਜਾਣ ਤੋਂ ਬਾਅਦ, ਹਰੇਕ ਟੂਲ ਦੀ ਸਕੋਪ ਸੂਚੀ
-`evaluateToolScopes()` ਨੂੰ ਪਾਸ ਕਰਦਾ ਹੈ।
+`oma_live_…` ਟੋਕਨਾਂ 'ਤੇ `read` / `write` / `admin`, `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) ਦੁਆਰਾ ਦਰਜਾਬੰਦੀ ਕੀਤੀ ਗਈ। ਇਹ ਰੈਂਕ ਸਿਰਫ਼ ਐਕਸੈਸ-ਟੋਕਨ
+ਪ੍ਰਮਾਣ ਪੱਤਰ 'ਤੇ ਲਾਗੂ ਹੁੰਦਾ ਹੈ। ਦੇਖੋ [ਪ੍ਰਬੰਧਨ ਪ੍ਰਮਾਣਿਕਤਾ](../guides/MANAGEMENT-AUTH.md)।
 
 ## ਪ੍ਰਮਾਣੀਕਰਨ ਲੋੜੀਂਦਾ ਟੌਗਲ
 
@@ -267,7 +274,7 @@ x-omniroute-auth-scopes:    ਕੌਮਿਆਂ ਨਾਲ ਵੱਖ ਕੀਤੀ 
 
 ## ਇਹ ਵੀ ਵੇਖੋ
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ਹਰ ਐਂਡਪੌਇੰਟ ਲਈ ਪ੍ਰਮਾਣੀਕਰਨ ਮਾਰਕਰ
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ਪ੍ਰਮਾਣੀਕਰਨ ਘਟਨਾਵਾਂ ਲਈ ਆਡਿਟ ਲੌਗ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP ਸਕੋਪ ਲਾਗੂਕਰਨ ਦੇ ਵੇਰਵੇ
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ਪ੍ਰਤੀ ਐਂਡਪੁਆਇੰਟ ਪ੍ਰਮਾਣਿਕਤਾ ਮਾਰਕਰ
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — ਪ੍ਰਮਾਣਿਕਤਾ ਇਵੈਂਟਾਂ ਲਈ ਆਡਿਟ ਲੌਗ
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ਤਿੰਨ ਸਕੋਪ ਨਾਮਸਥਾਨ ਅਤੇ MCP ਟੂਲ-ਸਕੋਪ ਕੈਟਾਲਾਗ
 - ਸਰੋਤ: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

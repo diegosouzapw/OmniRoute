@@ -1,7 +1,9 @@
 import {
   deleteModelAlias,
+  getManagedModelAliasNames,
   getModelAliases,
   getModelIsHidden,
+  markManagedModelAlias,
   setModelAlias,
 } from "@/lib/db/models";
 import { getProviderNodeById } from "@/lib/db/providers";
@@ -87,6 +89,79 @@ export async function deleteManagedAvailableModelAliasesForProvider(
   return removedAliases;
 }
 
+type AliasSyncState = {
+  workingAliases: Record<string, string>;
+  managedAliasNames: Set<string>;
+  removedAliases: string[];
+};
+
+// Deletes one managed alias and keeps the in-memory sync state (workingAliases,
+// managedAliasNames, removedAliases) consistent with the deletion.
+async function dropManagedAlias(state: AliasSyncState, alias: string): Promise<void> {
+  await deleteModelAlias(alias);
+  delete state.workingAliases[alias];
+  state.managedAliasNames.delete(alias);
+  state.removedAliases.push(alias);
+}
+
+// Prune pass (#11836): only alias names OmniRoute itself generated/adopted
+// (`managedAliasNames`) are eligible for deletion here — a hand-created custom alias that
+// happens to already point at a model's full id must never be deleted just because that
+// model transiently drops out of the sync's target set.
+async function pruneMissingManagedAliases(
+  state: AliasSyncState,
+  storagePrefix: string,
+  targetFullModels: Set<string>
+): Promise<void> {
+  for (const [alias, value] of Object.entries(state.workingAliases)) {
+    if (!state.managedAliasNames.has(alias)) continue;
+    if (!value.startsWith(`${storagePrefix}/`)) continue;
+    if (targetFullModels.has(value)) continue;
+
+    await dropManagedAlias(state, alias);
+  }
+}
+
+// A hidden model keeps no managed alias — drop any managed alias still pointing at it.
+async function pruneHiddenModelAliases(state: AliasSyncState, fullModel: string): Promise<void> {
+  for (const [alias, value] of Object.entries(state.workingAliases)) {
+    if (value !== fullModel || !state.managedAliasNames.has(alias)) continue;
+    await dropManagedAlias(state, alias);
+  }
+}
+
+// Assigns (or adopts) the alias for one visible model. Only an alias OmniRoute itself
+// writes here is eligible for the prune passes above (#11836) — an alias that already
+// carries the right value (whether it is a genuinely managed alias from a prior sync, or a
+// hand-created custom alias that happens to coincide with `fullModel`) is left exactly
+// as-is and its provenance is never changed.
+async function assignManagedAlias(
+  state: AliasSyncState,
+  modelId: string,
+  fullModel: string,
+  displayPrefix: string
+): Promise<string | null> {
+  const alias = resolveManagedModelAlias({
+    modelId,
+    fullModel,
+    providerDisplayAlias: displayPrefix,
+    existingAliases: state.workingAliases,
+  });
+
+  if (!alias) return null;
+
+  if (state.workingAliases[alias] !== fullModel) {
+    await setModelAlias(alias, fullModel);
+    state.workingAliases[alias] = fullModel;
+    if (!state.managedAliasNames.has(alias)) {
+      await markManagedModelAlias(alias);
+      state.managedAliasNames.add(alias);
+    }
+  }
+
+  return alias;
+}
+
 export async function syncManagedAvailableModelAliases(
   providerId: string,
   modelIds: string[],
@@ -103,63 +178,45 @@ export async function syncManagedAvailableModelAliases(
   const storagePrefix = getProviderStoragePrefix(providerId);
   const displayPrefix = await getProviderDisplayPrefix(providerId);
   const existingAliasesRaw = await getModelAliases();
-  const workingAliases = Object.fromEntries(
-    Object.entries(existingAliasesRaw).filter((entry): entry is [string, string] => {
-      const [, value] = entry;
-      return typeof value === "string";
-    })
-  );
+  const state: AliasSyncState = {
+    workingAliases: Object.fromEntries(
+      Object.entries(existingAliasesRaw).filter((entry): entry is [string, string] => {
+        const [, value] = entry;
+        return typeof value === "string";
+      })
+    ),
+    // Provenance marker (#11836): only alias names OmniRoute itself generated/adopted are
+    // eligible for the prune passes below — a hand-created custom alias that happens to
+    // already point at a model's full id must never be deleted just because that model
+    // transiently drops out of the sync's target set.
+    managedAliasNames: await getManagedModelAliasNames(),
+    removedAliases: [],
+  };
 
   const targetModelIds = normalizeModelIds(modelIds);
   const targetFullModels = new Set(targetModelIds.map((modelId) => `${storagePrefix}/${modelId}`));
-  const removedAliases: string[] = [];
 
   if (pruneMissing) {
-    for (const [alias, value] of Object.entries(workingAliases)) {
-      if (!value.startsWith(`${storagePrefix}/`)) continue;
-      if (targetFullModels.has(value)) continue;
-
-      await deleteModelAlias(alias);
-      delete workingAliases[alias];
-      removedAliases.push(alias);
-    }
+    await pruneMissingManagedAliases(state, storagePrefix, targetFullModels);
   }
 
   const assignedAliases: string[] = [];
 
   for (const modelId of targetModelIds) {
+    const fullModel = `${storagePrefix}/${modelId}`;
+
     if (getModelIsHidden(providerId, modelId)) {
-      const fullModel = `${storagePrefix}/${modelId}`;
-      for (const [alias, value] of Object.entries(workingAliases)) {
-        if (value !== fullModel) continue;
-        await deleteModelAlias(alias);
-        delete workingAliases[alias];
-        removedAliases.push(alias);
-      }
+      await pruneHiddenModelAliases(state, fullModel);
       continue;
     }
 
-    const fullModel = `${storagePrefix}/${modelId}`;
-    const alias = resolveManagedModelAlias({
-      modelId,
-      fullModel,
-      providerDisplayAlias: displayPrefix,
-      existingAliases: workingAliases,
-    });
-
-    if (!alias) continue;
-
-    if (workingAliases[alias] !== fullModel) {
-      await setModelAlias(alias, fullModel);
-      workingAliases[alias] = fullModel;
-    }
-
-    assignedAliases.push(alias);
+    const alias = await assignManagedAlias(state, modelId, fullModel, displayPrefix);
+    if (alias) assignedAliases.push(alias);
   }
 
   return {
     assignedAliases,
-    removedAliases,
+    removedAliases: state.removedAliases,
     storagePrefix,
   };
 }

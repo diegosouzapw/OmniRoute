@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -174,65 +174,69 @@ Caveman 的响应输出模式是独立的：启用后，请使用 Caveman 自身
 
 ## 配置
 
-### 仪表板
+### 仪表盘
 
-导航至 `Dashboard → Context & Cache`：
+导航到 `Dashboard → Context & Cache`：
 
-- **Caveman** — 模式选择、语言包、预览和全局默认值
+- **Caveman** — 模式选择、语言包、预览和全局默认设置
 - **RTK** — 命令过滤器预览、RTK 安全设置和过滤器目录
-- **Compression Combos** — 分配给路由组合的命名引擎管线
-- **Auto-Trigger Threshold** — 当令牌数超过阈值时自动启用压缩
+- **Compression Combos** — 分配给路由组合的命名引擎管道
+- **Auto-Trigger Threshold** — 当令牌计数超过阈值时自动启用压缩
 
-### 按组合覆盖
+### 每组合覆盖
 
-在 `Dashboard → Context & Cache → Compression Combos` 中，为路由组合分配一个压缩组合：
+在 `Dashboard → Context & Cache → Compression Combos` 中，将一个压缩组合分配给一个路由组合：
 
 ```txt
-组合："free-tier-fallback"
-  压缩组合："coding-agent-stack"
-  管线：RTK -> Caveman
-  目标：
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-这让你可以对免费/编码提供者使用堆叠压缩，同时在付费订阅上保持精简模式。
+这允许您在免费/编码提供者上使用堆叠压缩，同时在付费订阅上保持精简模式。
 
-此“按组合覆盖”分配与**路由组合压缩模式**覆盖（默认/关闭/精简/标准/激进/超强）是不同的控制项——后者不会选择命名的压缩组合管线；它只会设置由 `resolveCompressionPlan` 查询的 `compressionMode` 字段。它既可以在组合卡片（`Dashboard → Combos`）上设置，也可以从 #6760 起，在 `Dashboard → Context & Cache → Compression Combos` 的“分配给路由”列表中，紧挨上述管线分配复选框，为每个路由组合进行设置。这两个界面都通过同一个 `PUT /api/combos/{id}` 端点持久化。
+此“每组合覆盖”分配与**路由组合压缩模式**覆盖（Default/Off/Lite/Standard/Aggressive/Ultra）是不同的控制——该覆盖不选择命名的压缩组合管道；它只是设置 `resolveCompressionPlan` 查询的 `compressionMode` 字段。它可以在组合卡片（`Dashboard → Combos`）上设置，或者自 #6760 以来，可以在 `Dashboard → Context & Cache → Compression Combos` 的“分配到路由”列表中为每个路由组合设置，就在上面文档中提到的管道分配复选框旁边。这两个界面都通过相同的 `PUT /api/combos/{id}` 端点进行持久化。
 
-### 按请求覆盖
+### 每请求覆盖
 
-发送 `x-omniroute-compression` 请求标头，以覆盖单个请求的压缩计划。它具有最高优先级——优先于路由组合覆盖、活动配置文件、自动触发和面板默认值。未知值将被忽略（请求绝不会因此被拒绝），并且全局总开关仍会控制所有压缩：当全局关闭压缩时，该标头无法将其开启。可用值：
+发送 `x-omniroute-compression` 请求头以覆盖单个请求的压缩计划。它具有最高优先级——它优于路由组合覆盖、活动配置文件、自动触发和面板默认设置。未知值将被忽略（请求永远不会被拒绝），并且全局主开关仍然控制一切：当全局关闭压缩时，该头无法将其打开。值：
 
-| 值            | 效果                                                       |
-| ------------- | ---------------------------------------------------------- |
-| `off`         | 不压缩此请求。                                             |
-| `default`     | 使用面板派生的默认配置文件（忽略活动配置文件）。           |
-| `engine:<id>` | 启用时使用单个引擎，例如 `engine:rtk`。                    |
-| `<combo>`     | 命名组合，首先按名称匹配（不区分大小写），然后按 id 匹配。 |
+| 值            | 效果                                                              |
+| ------------- | ----------------------------------------------------------------- |
+| `off`         | 此请求不进行压缩。                                                |
+| `default`     | 面板派生的默认配置文件（忽略活动配置文件）。有损引擎保持关闭。    |
+| `safe`        | 与省略此头相同：仅进行去重和空白折叠。                            |
+| `allow-lossy` | 保留此请求的操作符计划，包括摘要、相关性过滤器和样式重写。        |
+| `engine:<id>` | 启用时为单个引擎，例如 `engine:rtk`。这是该引擎的每请求选择加入。 |
+| `<combo>`     | 命名组合，首先按名称（不区分大小写）匹配，然后按 ID 匹配。        |
 
-应用的计划会通过 `X-OmniRoute-Compression: <mode>; source=<source>` 响应标头回传，其中 `<source>` 是 `request-header`、`routing-override`、`active-profile`、`auto-trigger`、`default` 或 `off` 之一。
+如果没有 `allow-lossy`、`engine:<id>` 或命名组合，则不应用有损引擎。当压缩开启时，请求仍会进行会话去重和空白折叠。
+
+应用的计划会在 `X-OmniRoute-Compression: <mode>; source=<source>` 响应头中回显，其中 `<source>` 是 `request-header`、`routing-override`、`active-profile`、`auto-trigger`、`default` 或 `off` 之一。
 
 ### API
 
 ```bash
-# 获取压缩设置
+# Get compression settings
 curl http://localhost:20128/api/settings/compression
 
-# 更新压缩设置
+# Update compression settings
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# 预览特定的 RTK/堆叠载荷
+# Preview a specific RTK/stacked payload
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# 列出 RTK 过滤器包
+# List RTK filter packs
 curl http://localhost:20128/api/context/rtk/filters
 
-# 使用可选命令元数据直接测试 RTK
+# Test RTK directly with optional command metadata
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -256,9 +260,9 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ---
 
-## 压缩统计信息
+## 压缩统计
 
-每个经过压缩的请求都会在服务器日志中包含统计信息：
+每个压缩请求的服务器日志中都包含以下统计信息：
 
 ```json
 {
@@ -278,13 +282,13 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ## 阶段路线图
 
-| 阶段    | 模式                                                                                                                     | 状态      |
-| ------- | ------------------------------------------------------------------------------------------------------------------------ | --------- |
-| 阶段 1  | Off、Lite                                                                                                                | ✅ 已发布 |
-| 阶段 2  | Standard、Aggressive、Ultra                                                                                              | ✅ 已发布 |
-| 阶段 3  | RTK、Stacked、Compression Combos                                                                                         | ✅ 已发布 |
-| 阶段 4  | Output Styles、SLM-tier Ultra、评估工具                                                                                  | ✅ 已发布 |
-| 阶段 4C | 自适应上下文预算（“旋钮”）—— 计算引擎 + API（`PUT /api/settings/compression` 上的 `contextBudget`）+ 仪表板模式/策略控制 | ✅ 已发布 |
+| 阶段    | 模式                                                                                                                  | 状态      |
+| ------- | --------------------------------------------------------------------------------------------------------------------- | --------- |
+| 阶段 1  | 关闭, 精简                                                                                                            | ✅ 已发布 |
+| 阶段 2  | 标准, 激进, 超级                                                                                                      | ✅ 已发布 |
+| 阶段 3  | RTK, 堆叠, 压缩组合                                                                                                   | ✅ 已发布 |
+| 阶段 4  | 输出样式, SLM 级超级, 评估工具                                                                                        | ✅ 已发布 |
+| 阶段 4C | 自适应上下文预算（“拨盘”）— 计算引擎 + API (`contextBudget` on `PUT /api/settings/compression`) + 仪表板模式/策略控制 | ✅ 已发布 |
 
 ---
 
@@ -298,21 +302,21 @@ RTK 模式受 **[RTK AI](https://github.com/rtk-ai)** 的 **[RTK - Rust Token Ki
 
 ## 高级压缩系统
 
-除了 7 种标准模式之外，OmniRoute 还包括多个高级压缩系统，它们会根据上下文自动运行。
+除了 7 种标准模式之外，OmniRoute 还包含多种高级压缩系统，它们会根据上下文自动运行。
 
 ### 缓存感知压缩
 
-某些提供者（例如支持提示词缓存的 Anthropic）支持**提示词缓存**，从而可以缓存提示词的部分内容，以降低成本和延迟。启用缓存后，激进压缩实际上可能会**损害**性能，因为它会更改已缓存的 token，导致缓存失效。
+一些提供者（例如 Anthropic 及其提示缓存）支持**提示缓存**，这允许它们缓存提示的部分内容以降低成本和延迟。当启用缓存时，激进的压缩实际上会**损害**性能，因为它会改变缓存的 token，从而使缓存失效。
 
 `cachingAware.ts` 模块通过**检测缓存上下文**并相应地**调整压缩策略**来解决此问题。
 
 #### 工作原理
 
-1. **检测缓存上下文** — 扫描请求正文中的 `cache_control` 标记
-2. **识别缓存提供者** — 检查目标提供者是否支持缓存
-3. **调整策略** — 对于缓存提供者，将 `aggressive`/`ultra` 降级为 `standard`
-4. **跳过系统提示词** — 系统提示词通常会被缓存，因此不对其进行压缩
-5. **使用确定性转换** — 仅使用可产生一致输出的转换
+1.  **检测缓存上下文** — 扫描请求体以查找 `cache_control` 标记
+2.  **识别支持缓存的提供者** — 检查目标提供者是否支持缓存
+3.  **调整策略** — 对于支持缓存的提供者，将 `aggressive`/`ultra` 降级为 `standard`
+4.  **跳过系统提示** — 系统提示通常会被缓存，因此不要压缩它们
+5.  **使用确定性转换** — 仅使用产生一致输出的转换
 
 #### 代码示例
 
@@ -337,19 +341,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### 何时使用
 
-缓存感知压缩**始终启用**——无需配置。它仅在以下情况下生效：
+缓存感知压缩**始终开启** — 无需配置。它仅在以下情况生效：
 
 - 请求包含 `cache_control` 标记
-- 目标提供者支持提示词缓存（Anthropic、OpenAI 等）
+- 目标提供者支持提示缓存（Anthropic、OpenAI 等）
 
 ### 渐进式老化
 
-较长的对话会积累许多轮消息，但较早的轮次会逐渐降低相关性。`progressiveAging.ts` 模块会**根据轮次距离降低消息的详细程度**：
+长时间的对话会累积许多消息轮次，但较旧的轮次相关性会降低。`progressiveAging.ts` 模块**根据轮次距离降级消息**：
 
-- **最近的轮次（0-3）**：逐字保留（完整细节）
-- **中等距离的轮次（4-8）**：Lite 压缩（清理空白和格式）
-- **较早的轮次（9+）**：Caveman 压缩（移除冗余内容、摘要）
-- **非常早的轮次（20+）**：大幅摘要或丢弃
+- **最近的轮次 (0-3)**：逐字保留（完整细节）
+- **中等轮次 (4-8)**：轻度压缩（空白符，格式清理）
+- **旧轮次 (9+)**：原始人压缩（去除填充词，摘要）
+- **非常旧的轮次 (20+)**：重度摘要或丢弃
 
 #### 代码示例
 
@@ -360,14 +364,14 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 另外 50 个轮次 ...
+  // ... 更多 50 轮 ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // 前 3 个轮次：逐字保留
-  light: 8, // 第 4-8 个轮次：lite 压缩
-  moderate: 20, // 第 9-20 个轮次：caveman 压缩
-  // 第 21 个及之后的轮次：大幅摘要
+  verbatim: 3, // 前 3 轮：逐字
+  light: 8, // 第 4-8 轮：轻度压缩
+  moderate: 20, // 第 9-20 轮：原始人压缩
+  // 第 21 轮及以上：重度摘要
 });
 
 // saved = 节省的 token 数量
@@ -375,31 +379,31 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### 何时使用
 
-渐进式老化在 `aggressive` 和 `ultra` 模式下**始终启用**。它尤其适用于：
+渐进式老化对于 `aggressive` 和 `ultra` 模式**始终开启**。它特别适用于：
 
-- 长时间运行的编码会话
-- 持续多天的对话
-- 包含大量工具调用的智能体工作流
+- 长时间编码会话
+- 多日对话
+- 包含大量工具调用的代理工作流
 
-### 穴居人输出模式
+### 原始人输出模式
 
-`outputMode.ts` 模块会注入**系统提示词指令**，使模型本身生成经过压缩、简洁的输出（“穴居人”风格）。
+`outputMode.ts` 模块注入**系统提示指令**，使模型本身生成压缩、简洁的输出（一种“原始人”风格）。
 
 #### 工作原理
 
-此模式不会压缩输入，而是添加类似下面的系统提示词：
+这种模式不是压缩输入，而是添加一个系统提示，例如：
 
-> “用最少的词回复。省略客套话。使用短句。”
+> “用最少的词回复。跳过客套话。使用短句。”
 
-它尤其适用于：
+这特别适用于：
 
-- 代码生成（输出越简洁，所用 token 越少）
-- 快速问答（无需详尽解释）
+- 代码生成（更简洁的输出 = 更少的 token）
+- 快速问答（无需详细解释）
 - 批处理（最大化吞吐量）
 
 #### 何时使用
 
-穴居人输出模式是**选择启用**的——通过组合配置进行设置：
+原始人输出模式是**可选加入**的 — 通过组合配置进行设置：
 
 ```json
 {
@@ -412,36 +416,31 @@ const { messages: aged, saved } = applyAging(messages, {
 }
 ```
 
-### 输出风格（目录）
+### 输出样式（目录）
 
-上述穴居人输出模式是**旧版单一风格路径**。Phase 4 将其泛化为可组合输出风格目录：位于
-`open-sse/services/compression/outputStyles/catalog.ts` 中的 `OUTPUT_STYLE_CATALOG`。每种风格都是一条系统提示词
-指令，使模型本身生成成本更低的输出；可同时启用多种风格，并按目录顺序注入。
+上述原始人输出模式是**遗留的单一样式路径**。第四阶段将其泛化为可组合输出样式的目录：`open-sse/services/compression/outputStyles/catalog.ts` 中的 `OUTPUT_STYLE_CATALOG`。每种样式都是一个系统提示指令，使模型本身生成更经济的输出；样式可以一起启用，并按目录顺序注入。
 
-| 风格                       | `id`          | 作用                                                                                                                                                                                                  | 指令语言                                             |
-| -------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| 简洁叙述                   | `terse-prose` | 去除填充词、冠词和模棱两可的表达；准确保留技术实质。文本与旧版穴居人输出模式相同（通过引用复用，而非重新录入）。                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi        |
-| 更少代码                   | `less-code`   | YAGNI 阶梯：采用最小可用改动，不添加未要求的抽象。                                                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi        |
-| 马尾辫（懒惰的高级开发者） | `ponytail`    | “最好的代码是从未写过的代码”：复用优于重写，根因优于症状，采用最短的可用差异。                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi        |
-| 我有 ADHD（行动优先）      | `i-have-adhd` | 行动优先（先给出命令/路径/代码片段，再给出说明），使用数量有限的编号步骤，只提供一个具体的下一步，不要开场白/回顾/结束语。改编自 [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd)（MIT）。 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi        |
-| 简洁 CJK（文言）           | `terse-cjk`   | 极度简洁的文言文风格。                                                                                                                                                                                | zh（受区域设置限制：仅当解析后的语言为 `zh` 时提供） |
+| 风格                         | `id`          | 功能                                                                                                                                                                         | 指令语言                                       |
+| ---------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 简洁散文                     | `terse-prose` | 删除填充词/冠词/模糊措辞；保持技术实质精确。与旧版 caveman 输出模式（引用而非重写）的文本相同。                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi  |
+| 少代码                       | `less-code`   | YAGNI 阶梯：最小化工作变更，无不必要的抽象。                                                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi  |
+| 马尾辫（懒惰的高级开发人员） | `ponytail`    | “最好的代码是从未编写的代码”：重用 > 重写，根本原因 > 症状，最短工作差异。                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi  |
+| 我有ADHD（行动优先）         | `i-have-adhd` | 行动优先（命令/路径/代码片段优先于散文），有编号的限定步骤，一个具体的下一步，无引言/回顾/结束语。改编自 [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT)。 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi  |
+| 简洁中文/日文/韩文 (文言)    | `terse-cjk`   | 文言文超简洁风格。                                                                                                                                                           | zh（区域设置限制：仅当解析语言为 `zh` 时提供） |
 
-每种风格均提供三个强度级别——`lite`、`full`、`ultra`——并且每个级别
-都以共享的边界条款结尾，以确保代码块、文件路径、命令、
-错误字符串、URL 和标识符保持原样。
+每种风格都提供三种强度级别——`lite`、`full`、`ultra`——并且每个级别
+都以共享的边界条款结束，该条款保持代码块、文件路径、命令、
+错误字符串、URL 和标识符的原样不变。
 
-#### 注入方式
+#### 注入原理
 
-`applyOutputStyles()`（`open-sse/services/compression/outputStyles/apply.ts`）会根据目录解析
-所选项（未知 id 和区域设置不匹配的风格会被丢弃，绝不会报错），按目录顺序拼接所选指令，
-仅追加**一次**边界条款，并通过单个幂等标记（`[OmniRoute Output Styles]`）将结果前置注入系统
-提示词——重复应用时不会执行任何操作。当检测到的请求语言有对应翻译时，将注入本地化
-指令而非英文指令。
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) 根据目录解析
+选择（未知 ID 和区域设置不匹配的样式会被丢弃，绝不会出错），按目录顺序连接选定的指令，
+**一次性**附加边界条款，并将结果预加载到系统提示中，置于一个幂等标记 (`[OmniRoute Output Styles]`) 之后——重复应用是空操作。当检测到的请求语言有翻译时，将注入本地化指令而非英文指令。
 
-#### 启用方式
+#### 如何启用
 
-在仪表板中：**上下文 → 设置 → 压缩**——每种风格占一行，包含
-开关和级别选择器。通过编程方式配置时，压缩配置会将所选项持久化为：
+在仪表板中：**上下文 → 设置 → 压缩**——每种样式一行，带有一个开/关切换和级别选择器。通过编程方式，压缩配置将选择持久化为：
 
 ```json
 {
@@ -452,56 +451,51 @@ const { messages: aged, saved } = applyAging(messages, {
 }
 ```
 
-向后兼容：旧版组合设置 `outputMode: "caveman"` 仍然有效，并会映射到
-`terse-prose`；在每种旧版语言中，其注入内容均与旧版逐字节一致。
+向后兼容：旧版 `outputMode: "caveman"` 组合设置仍然有效，并映射到
+`terse-prose`，与所有旧版语言中的旧注入字节相同。
 
-语言选择：启用 `languageConfig.enabled` 后，`autoDetect` 会选择
-最新一条用户消息的语言（使用与输入引擎相同的检测器）；
-关闭 `autoDetect` 后，将固定使用 `defaultLanguage`。关闭语言配置 → 使用英语。
+语言选择：当 `languageConfig.enabled` 开启时，`autoDetect` 会选择最新用户消息的语言（与输入引擎的检测器相同）；关闭 `autoDetect` 会固定 `defaultLanguage`。关闭 → 英语。
 
-风格 × 语言矩阵由
-`tests/unit/compression/output-styles-i18n-matrix.test.ts` 固定：新风格若没有至少一个 pt-BR 翻译
-（或明确记录的例外），则无法发布；现有风格也不能在无提示的情况下失去某个区域设置。要添加风格，请参阅
+样式 × 语言矩阵由
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` 固定：新样式发布时必须至少包含 pt-BR 翻译（或明确跟踪的例外情况），现有样式不能悄无声息地丢失区域设置。要添加样式，请参阅
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style)。
 
 ### 工具结果压缩
 
-`toolResultCompressor.ts` 模块为工具结果（函数调用、智能体输出、搜索结果等）提供 **5 种专用压缩策略**：
+`toolResultCompressor.ts` 模块为工具结果（函数调用、代理输出、搜索结果等）提供了 **5 种专门的压缩策略**：
 
-1. **搜索结果压缩**——移除冗余结果，保留前 N 项
-2. **文件读取压缩**——截断大型文件，保留文件头/导入项
-3. **代码执行压缩**——仅保留必要的 stdout/stderr
-4. **数据库查询压缩**——限制行数，移除冗长的元数据
-5. **API 响应压缩**——移除 null 字段，压缩数组
+1.  **搜索结果压缩** — 删除冗余结果，保留前 N 个
+2.  **文件读取压缩** — 截断大文件，保留头部/导入
+3.  **代码执行压缩** — 仅保留必要的标准输出/标准错误
+4.  **数据库查询压缩** — 限制行数，删除冗余元数据
+5.  **API 响应压缩** — 剥离空字段，精简数组
 
 #### 何时使用
 
-存在工具调用时，工具结果压缩**始终启用**。无需配置。
+当存在工具调用时，工具结果压缩**始终开启**。无需配置。
 
-### 堆叠管线
+### 堆叠管道
 
-堆叠模式会**依次运行多个引擎**——通常先运行 RTK
-（可将工具输出减少 60-90%），然后运行 Caveman（将剩余文本进一步减少 30%）。
-这可实现**总计 78-95% 的节省**。
+堆叠模式**按顺序运行多个引擎**——通常先运行 RTK（工具输出节省 60-90%），然后运行 Caveman（对剩余文本额外节省 30%）。这实现了**总计 78-95% 的节省**。
 
 #### 工作原理
 
 ```
-输入（1000 个 token）
-  → RTK（命令感知过滤器）→ 200 个 token
-    → Caveman（移除填充内容）→ 140 个 token
-  → 输出（140 个 token，节省 86%）
+Input (1000 tokens)
+  → RTK (command-aware filter) → 200 tokens
+    → Caveman (filler removal) → 140 tokens
+  → Output (140 tokens, 86% savings)
 ```
 
 #### 何时使用
 
-以下场景适合使用堆叠模式：
+在以下情况下使用堆叠模式：
 
-- 大量使用工具的工作流（智能体编码、研究）
-- 成本敏感型批处理
-- 需要最大程度节省 token 时
+- 工具密集型工作流（代理式编码、研究）
+- 成本敏感的批处理
+- 当您需要最大程度的 token 节省时
 
-通过组合配置进行设置：
+通过组合配置：
 
 ```json
 {

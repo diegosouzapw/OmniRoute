@@ -1,0 +1,1 @@
+- fix(opencode): preserve explicit native and Claude conversation IDs before request translation, keeping the existing canonical session shape and fingerprint fallback. ([#14390](https://github.com/diegosouzapw/OmniRoute/pull/14390))

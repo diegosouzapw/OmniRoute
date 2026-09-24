@@ -1,10 +1,10 @@
 # API Reference (Bahasa Melayu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 Rujukan teras untuk API OmniRoute. Ia merangkumi permukaan awam `/v1` dan titik akhir pengurusan yang paling kerap digunakan; fail [`docs/openapi.yaml`](../openapi.yaml) yang boleh dibaca mesin dan pepohon laluan di bawah `src/app/api/` merupakan sumber yang lengkap.
 
@@ -88,13 +88,9 @@ Content-Type: application/json
 
 ## Pajakan Sesi Terurus Eksklusif
 
-Pajakan sesi terurus eksklusif ialah kontrak penghalaan ikut serta yang neutral terhadap klien: satu pemilik aktif
-memegang satu sambungan OmniRoute yang layak. Ia tidak memajak model, memerlukan OAuth, mengenal pasti
-klien tertentu atau memerlukan penyedia tertentu.
+Pajakan sesi terurus eksklusif ialah kontrak penghalaan opt-in, neutral-klien: satu pemilik aktif memegang satu sambungan OmniRoute yang layak. Ia tidak memajak model, memerlukan OAuth, mengenal pasti klien tertentu, atau memerlukan penyedia tertentu.
 
-Kunci API yang mengesahkan identiti mesti mempunyai skop `lease:exclusive` dan senarai
-`allowedConnections` eksplisit yang tidak kosong. Sempadan mutasi pangkalan data menguatkuasakan kedua-dua medan
-secara bersama ketika penciptaan kunci dan kemas kini separa.
+Kunci API pengesahan mesti mempunyai skop `lease:exclusive` dan senarai `allowedConnections` yang eksplisit dan tidak kosong. Sempadan mutasi pangkalan data menguatkuasakan kedua-dua medan bersama-sama pada penciptaan kunci dan kemas kini separa.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Respons pemerolehan, pembaharuan dan pelepasan yang berjaya mendedahkan cap masa, `state` dan nilai positif tepat
-`generation`, tetapi tidak pernah mendedahkan sambungan atau bukti kelayakan yang dipilih. Pembaharuan dan pelepasan membekalkan
-generasi dalam badan JSON:
+Respons pemerolehan, pembaharuan, dan pelepasan yang berjaya mendedahkan cap masa, `state`, dan `generation` positif yang tepat, tetapi tidak pernah sambungan atau kelayakan yang dipilih. Pembaharuan dan pelepasan membekalkan generasi dalam badan JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generasi dalam badan JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Pemilik pajakan aktif boleh meminta secara eksplisit metadata paparan yang selamat dari segi privasi untuk pengikatan semasanya:
+Pemilik pajakan aktif boleh secara eksplisit meminta metadata paparan selamat privasi untuk pengikatan semasanya:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,35 +131,20 @@ Pemilik pajakan aktif boleh meminta secara eksplisit metadata paparan yang selam
 }
 ```
 
-Tindakan status ikut serta ini dipagari oleh pemilik legap, kunci API terurus yang disahkan dan generasi aktif
-yang tepat dalam satu transaksi pangkalan data. `displayName` hanyalah nama sambungan dikonfigurasikan yang telah dirapikan;
-nilainya ialah `null` apabila tiada nama dikonfigurasikan yang selamat. OmniRoute tidak pernah menggantikannya dengan
-e-mel atau identiti akaun yang dijana. Nilai penyedia ialah label paparan tidak sensitif dan tidak pernah merupakan
-pengecam penyedia serasi yang dijana. Bukti kelayakan, token, kuki, ID sambungan atau kunci API mentah,
-cincangan pemilik, rahsia pemagaran dan data penghalaan dalaman dikecualikan.
+Tindakan status opt-in ini dipagari oleh pemilik legap, kunci API terurus yang disahkan, dan generasi aktif yang tepat dalam satu transaksi pangkalan data. `displayName` hanyalah nama sambungan yang dikonfigurasi yang dipangkas; ia adalah `null` apabila tiada nama yang dikonfigurasi yang selamat wujud. OmniRoute tidak pernah menggantikan e-mel atau identiti akaun yang dijana. Nilai penyedia adalah label paparan yang tidak sensitif dan tidak pernah menjadi pengecam penyedia serasi yang dijana. Kelayakan, token, kuki, id sambungan mentah atau kunci API, hash pemilik, rahsia pagar, dan data penghalaan dalaman dikecualikan.
 
-Carian dengan kunci salah, pemilik salah, generasi lapuk, tiada, tamat tempoh, dilepaskan atau dibatalkan semuanya
-mengembalikan ralat `409 LEASE_FENCE_STALE` yang sama tanpa metadata sambungan. Klien yang menerima respons menunggu kapasiti tidak mempunyai pengikatan aktif untuk diperiksa. Apabila penghalaan mengalihkan pajakan aktif,
-generasi yang sama kekal sah dan status mengembalikan pengikatan baharu secara atomik, bukan yang lama.
-Klien sedia ada kekal tidak berubah kerana respons pemerolehan, pembaharuan, pelepasan dan penantian mengekalkan
-bentuknya yang terdahulu.
+Carian kunci salah, pemilik salah, generasi lapuk, hilang, tamat tempoh, dilepaskan, dan tidak sah semuanya mengembalikan ralat `409 LEASE_FENCE_STALE` yang sama tanpa metadata sambungan. Klien yang menerima respons menunggu kapasiti tidak mempunyai pengikatan aktif untuk diperiksa. Apabila penghalaan mengubah pajakan aktif, generasi yang sama kekal sah dan status secara atomik mengembalikan pengikatan baharu, tidak pernah yang lama. Klien sedia ada kekal tidak berubah kerana respons pemerolehan, pembaharuan, pelepasan, dan menunggu mengekalkan bentuk sebelumnya.
 
-Kontrak pelayan ini tidak mengubah `/status` OpenAI Codex standard. Codex standard pada masa ini melaporkan
-penyedia modelnya serta keadaan pengesahan/akaun terbina dalam tetapi tidak memaparkan metadata akaun
-penyedia tersuai sewenang-wenangnya; penyepaduan klien pada masa hadapan mesti memanggil tindakan ini dan menentukan cara
-untuk memaparkan `connection.displayName`.
+Kontrak pelayan ini tidak mengubah stok OpenAI Codex `/status`. Stok Codex pada masa ini melaporkan penyedia modelnya dan keadaan pengesahan/akaun terbina dalam tetapi tidak memaparkan metadata akaun penyedia tersuai sewenang-wenangnya; integrasi klien kemudian mesti memanggil tindakan ini dan memutuskan cara memaparkan `connection.displayName`.
 
-Setiap permintaan inferens terurus kemudiannya membekalkan kedua-dua pengepala kawalan:
+Setiap permintaan inferens terurus kemudian membekalkan kedua-dua pengepala kawalan:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Pemilik tepat, generasi, sambungan aktif dan kunci API yang disahkan dipagari serta-merta
-sebelum setiap percubaan huluan yang disokong. Memainkan semula pemilik dan generasi dengan kunci lain akan gagal walaupun
-kunci tersebut membenarkan sambungan yang sama. Pemilik mentah tidak disimpan secara berterusan, dilog, dikekalkan dalam
-petikan permintaan atau dimajukan ke huluan.
+Pemilik, generasi, sambungan aktif, dan kunci API yang disahkan yang tepat dipagari serta-merta sebelum setiap percubaan hulu yang disokong. Mengulang pemilik dan generasi dengan kunci lain gagal walaupun kunci tersebut membenarkan sambungan yang sama. Pemilik mentah tidak dikekalkan, dicatat, disimpan dalam tangkapan permintaan, atau diteruskan ke hulu.
 
 Pertikaian sementara mengembalikan HTTP `429` dengan `Retry-After` dan:
 
@@ -178,36 +157,35 @@ Pertikaian sementara mengembalikan HTTP `429` dengan `Retry-After` dan:
 }
 ```
 
-Respons ini hanya bermaksud bahawa set layak biasa tidak kosong dan setiap calon bebas sedang
-dipegang oleh pajakan aktif asing. Model/penyedia yang tidak disokong, ketidakpadanan dasar, tempoh bertenang, kuota,
-kesihatan dan kegagalan kelayakan biasa yang lain mengekalkan respons OmniRoute sedia ada.
+Respons ini hanya bermaksud bahawa set layak biasa tidak kosong dan setiap calon bebas dipegang oleh pajakan aktif asing. Model/penyedia yang tidak disokong, ketidakpadanan polisi, tempoh bertenang, kuota, kesihatan, dan kegagalan kelayakan biasa yang lain mengekalkan respons OmniRoute sedia ada mereka.
 
 ### `x-omniroute-compression`
 
-Penggantian pelan pemampatan bagi setiap permintaan. Keutamaan tertinggi — mengatasi penggantian gabungan penghalaan,
-profil aktif, pencetus automatik dan Lalai panel. Nilai:
+Penggantian setiap permintaan bagi pelan pemampatan. Keutamaan tertinggi — mengatasi penggantian gabungan penghalaan, profil aktif, pencetus automatik, dan panel Lalai. Nilai:
 
-| Nilai         | Kesan                                                                                                                |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Tiada pemampatan untuk permintaan ini.                                                                               |
-| `default`     | Profil Lalai yang diperoleh daripada panel (mengabaikan profil aktif).                                               |
-| `engine:<id>` | Satu enjin apabila didayakan, cth. `engine:rtk`.                                                                     |
-| `<combo>`     | Gabungan bernama, dipadankan mengikut nama (tidak sensitif huruf besar/kecil) terlebih dahulu, kemudian mengikut ID. |
+| Nilai         | Kesan                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| `off`         | Tiada pemampatan untuk permintaan ini.                                                                  |
+| `default`     | Profil Lalai terbitan panel (mengabaikan profil aktif). Enjin lossy dibiarkan mati.                     |
+| `safe`        | Dedup dan lipatan ruang putih sahaja.                                                                   |
+| `allow-lossy` | Kekalkan pelan operator untuk permintaan ini, termasuk ringkasan dan penulisan semula gaya.             |
+| `engine:<id>` | Satu enjin apabila diaktifkan, cth. `engine:rtk`. Opt-in setiap permintaan untuk enjin tersebut.        |
+| `<combo>`     | Gabungan bernama, dipadankan mengikut nama (tidak peka huruf besar/kecil) dahulu, kemudian mengikut id. |
 
 Nota:
 
-- Nilai yang tidak diketahui diabaikan (permintaan tidak pernah ditolak); penyelesaian diteruskan mengikut keutamaan operator biasa.
-- Jika berbilang gabungan berkongsi nama, berikan **id** gabungan untuk padanan deterministik.
-- Gabungan yang namanya ialah `off` atau `default` tidak boleh dipilih mengikut nama (kata kunci tersebut ditafsirkan terlebih dahulu); rujuk gabungan tersebut melalui ID-nya.
-- Suis pemampatan induk ialah gerbang mutlak: apabila pemampatan dilumpuhkan secara global, pengepala ini tidak boleh mendayakannya.
+- Nilai yang tidak diketahui diabaikan (permintaan tidak pernah ditolak); penyelesaian jatuh kepada keutamaan operator biasa.
+- Jika berbilang gabungan berkongsi nama, hantar **id** gabungan untuk padanan yang ditentukan.
+- Gabungan yang namanya `off` atau `default` tidak boleh dipilih mengikut nama (kata kunci tersebut ditafsirkan dahulu); rujuk gabungan tersebut mengikut idnya.
+- Suis pemampatan utama adalah pintu keras: apabila pemampatan dilumpuhkan secara global, pengepala ini tidak boleh mengaktifkannya.
 
-Pelan yang digunakan dicerminkan kembali dalam pengepala respons:
+Pelan yang digunakan digemakan kembali dalam pengepala respons:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-dengan `<source>` ialah salah satu daripada `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` atau `off`.
+di mana `<source>` adalah salah satu daripada `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, atau `off`.
 
 ---
 
@@ -434,40 +412,40 @@ Gunakan titik akhir ini apabila sidecar berjalan di luar proses dan tidak dapat 
 
 ## Titik Akhir Keserasian
 
-| Kaedah | Laluan                                    | Format                               |
-| ------ | ----------------------------------------- | ------------------------------------ |
-| POST   | `/v1/chat/completions`                    | OpenAI                               |
-| POST   | `/v1/messages`                            | Anthropic                            |
-| POST   | `/v1/responses`                           | Respons OpenAI                       |
-| POST   | `/v1/embeddings`                          | OpenAI                               |
-| POST   | `/v1/images/generations`                  | Imej OpenAI                          |
-| POST   | `/v1/images/edits`                        | Imej OpenAI (edit/inpaint)           |
-| POST   | `/v1/videos/generations`                  | Penjanaan video gaya OpenAI          |
-| POST   | `/v1/music/generations`                   | Penjanaan muzik gaya OpenAI          |
-| POST   | `/v1/audio/transcriptions`                | Audio OpenAI (STT)                   |
-| POST   | `/v1/audio/speech`                        | TTS OpenAI (mengembalikan isi audio) |
-| POST   | `/v1/rerank`                              | Penyusunan semula gaya Cohere/Voyage |
-| POST   | `/v1/classify`                            | Pengelasan Jina (`api.jina.ai`)      |
-| POST   | `/v1/segment`                             | Pensegmen Jina (`segment.jina.ai`)   |
-| POST   | `/v1/moderations`                         | Moderasi OpenAI                      |
-| GET    | `/v1/models`                              | OpenAI                               |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                            |
-| GET    | `/v1beta/models`                          | Gemini                               |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent               |
-| POST   | `/v1/api/chat`                            | Ollama                               |
-| GET    | `/api/v1/vscode/{token}/`                 | Alias katalog OpenAI                 |
-| GET    | `/api/v1/vscode/{token}/models`           | Alias model OpenAI                   |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias bertoken OpenAI                |
-| POST   | `/api/v1/vscode/{token}/responses`        | Alias bertoken Respons OpenAI        |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias bertoken Ollama                |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias teg bertoken Ollama            |
+| Kaedah | Laluan                                    | Format                                 |
+| ------ | ----------------------------------------- | -------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                 |
+| POST   | `/v1/messages`                            | Anthropic                              |
+| POST   | `/v1/responses`                           | OpenAI Responses                       |
+| POST   | `/v1/embeddings`                          | OpenAI                                 |
+| POST   | `/v1/images/generations`                  | OpenAI Images                          |
+| POST   | `/v1/images/edits`                        | OpenAI Images (suntingan/inpaint)      |
+| POST   | `/v1/videos/generations`                  | Penjanaan video gaya OpenAI            |
+| POST   | `/v1/music/generations`                   | Penjanaan muzik gaya OpenAI            |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (mengembalikan badan audio) |
+| POST   | `/v1/rerank`                              | Pengisihan semula gaya Cohere/Voyage   |
+| POST   | `/v1/classify`                            | Pengelasan Jina (`api.jina.ai`)        |
+| POST   | `/v1/segment`                             | Pensegmen Jina (`segment.jina.ai`)     |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                     |
+| GET    | `/v1/models`                              | OpenAI                                 |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                              |
+| GET    | `/v1beta/models`                          | Gemini                                 |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                 |
+| POST   | `/v1/api/chat`                            | Ollama                                 |
+| GET    | `/api/v1/vscode/{token}/`                 | Alias katalog OpenAI                   |
+| GET    | `/api/v1/vscode/{token}/models`           | Alias model OpenAI                     |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias OpenAI bertoken                  |
+| POST   | `/api/v1/vscode/{token}/responses`        | Alias OpenAI Responses bertoken        |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias Ollama bertoken                  |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias tag Ollama bertoken              |
 
-Semua laluan POST mengikut bentuk yang sama: `Bearer your-api-key` + isi JSON yang disahkan oleh Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` dan sebagainya, lihat `src/shared/validation/schemas.ts`). 4xx dikembalikan apabila pengesahan skema gagal.
+Semua laluan POST mengikut struktur yang sama: `Bearer your-api-key` + badan JSON yang disahkan oleh Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, dan sebagainya, lihat `src/shared/validation/schemas.ts`). 4xx dikembalikan apabila pengesahan skema gagal.
 
-Bagi klien yang tidak dapat melampirkan `Authorization: Bearer ...`, OmniRoute turut menerima kunci API dalam URL sama ada melalui keserasian rentetan pertanyaan (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) atau titik akhir khusus `/api/v1/vscode/{token}/...` yang didokumenkan di bawah.
+Untuk klien yang tidak boleh melampirkan `Authorization: Bearer ...`, OmniRoute turut menerima kunci API dalam URL melalui sama ada keserasian rentetan pertanyaan (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) atau titik akhir khusus `/api/v1/vscode/{token}/...` yang didokumenkan di bawah.
 
 ```bash
-# Susun semula
+# Isih semula (penyedia pendaftaran awan atau nod penyedia serasi OpenAI sebagai "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Pengelasan Jina (kelayakan API Foundation)
@@ -479,19 +457,41 @@ POST /v1/segment     { "content": "...", "return_chunks": true }
 # Carian Jina (s.jina.ai; alias penyedia: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderasi
+# Penyederhanaan
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — mengembalikan isi audio/mpeg (atau format yang diminta)
+# TTS — mengembalikan badan audio/mpeg (atau format yang diminta)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Edit imej (multipart)
+# Suntingan imej (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Penjanaan video / muzik (ID model berawalan penyedia)
+# Penjanaan video / muzik (ID model dengan awalan penyedia)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 ```
+
+> **Nod penyedia pengisihan semula:** `POST /v1/rerank` turut menghalakan permintaan kepada nod penyedia serasi OpenAI
+> (oMLX, vLLM, Infinity, TEI di belakang get laluan, …) yang dialamatkan sebagai `<node-prefix>/<model>`. Nod gelung balik
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) sentiasa layak. Nod pada mana-mana hos lain
+> — mesin LAN atau rakan setara Tailscale — hanya layak apabila pengendali mendayakan bendera ciri
+> `RERANK_REMOTE_PROVIDER_NODES` **dan** URL asas nod tersebut melepasi dasar URL keluar penyedia
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> hos metadata awan tidak akan dihalakan kepadanya. Langkah pengisihan semula enjin memori memanggil laluan ini melalui
+> gelung balik, maka peraturan yang sama mengawal `rerankProviderModel` dalam tetapan Memori.
+>
+> **Struktur pelayan setempat:** nod dipanggil pada `<base>/v1/rerank` dan, apabila menerima 404, pada `<base>/rerank`
+> (Infinity, TEI). Badan huluan membawa kedua-dua ejaan Cohere/OpenAI (`documents`,
+> `return_documents`) dan ejaan TEI (`texts`, `return_text`), manakala respons huluan
+> dinormalkan kepada sampul Cohere: respons kosong TEI `[{index, score, text}]`, `{results: [{index, score}]}`
+> daripada get laluan ringkas, dan `{data: [...]}` gaya Voyage semuanya dikembalikan kepada klien sebagai
+> `{results: [{index, relevance_score, document?}]}`, diisih mengikut skor dan dihadkan kepada `top_n`.
+
+> **Penemuan nod penyedia:** model pada nod penyedia serasi OpenAI muncul dalam `GET /v1/models`
+> di bawah awalan nod. Baris yang tidak mengandungi metadata titik akhir (lazim bagi penyenaraian `/v1/models` setempat)
+> mewarisi `apiType` nod, maka model nod `embeddings` mempunyai `type: "embedding"` dan model nod
+> `rerank` mempunyai `type: "rerank"` dan bukannya menggunakan sembang secara lalai; `supportedEndpoints` yang dinyatakan
+> secara eksplisit pada baris yang disegerakkan atau ditambah secara manual masih diberi keutamaan.
 
 ### Laluan Penyedia Khusus
 

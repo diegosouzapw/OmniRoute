@@ -35,6 +35,9 @@
 
 import { checkBudget } from "@/domain/costRules";
 import { isFlatRateProvider } from "./flatRateProviders";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import * as log from "@/sse/utils/logger";
 
 /**
  * Whether a call to this provider draws down the metered dollar allowance.
@@ -93,4 +96,27 @@ export function checkMeteredBudgetForProvider(
   const budget = checkBudget(apiKeyId);
   if (budget.allowed) return ALLOWED;
   return { allowed: false, reason: budget.reason || "Budget limit exceeded" };
+}
+
+/**
+ * The per-dispatch monetary-eligibility gate: called once a candidate provider
+ * is known, before a credential is acquired (a refusal must never take one), and
+ * before the fallback loop (a local refusal must never be read as an upstream
+ * rate limit and cool a healthy connection). Returns the 429 to send, or null to
+ * proceed. Kept out of the handler to stay under its frozen file-size ratchet.
+ */
+export function rejectIfMeteredBudgetExceeded(
+  apiKeyId: string | null | undefined,
+  providerId: string | null | undefined,
+  modelStr: string
+): Response | null {
+  const decision = checkMeteredBudgetForProvider(apiKeyId, providerId);
+  if (decision.allowed) return null;
+  log.info(
+    "BUDGET",
+    `Rejecting ${modelStr} — ${providerId} draws on the metered budget and it is exhausted`
+  );
+  return errorResponse(HTTP_STATUS.RATE_LIMITED, decision.reason || "Budget limit exceeded", {
+    code: "BUDGET_EXCEEDED",
+  });
 }

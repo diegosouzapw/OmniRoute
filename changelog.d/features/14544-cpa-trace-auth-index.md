@@ -1,0 +1,1 @@
+- **feat(providers):** correlate CLIProxyAPI `X-CPA-TRACE-ID` `auth_index` with usage history and the sanitized account-health label ([#14544](https://github.com/diegosouzapw/OmniRoute/pull/14544)) — thanks @RaviTharuma

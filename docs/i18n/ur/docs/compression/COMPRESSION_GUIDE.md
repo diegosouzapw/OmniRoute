@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (اردو)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -180,20 +180,20 @@ Stacked کے ساتھ:       10K-2.5K ٹوکنز بھیجے گئے     (اہل R
 
 ---
 
-## کنفیگریشن
+## Configuration
 
-### ڈیش بورڈ
+### Dashboard
 
-`Dashboard → Context & Cache` پر جائیں:
+`Dashboard → Context & Cache` پر نیویگیٹ کریں:
 
-- **Caveman** — موڈ کا انتخاب، لینگویج پیکس، پیش منظر، اور عالمی ڈیفالٹس
-- **RTK** — کمانڈ فلٹر کا پیش منظر، RTK حفاظتی ترتیبات، اور فلٹر کیٹلاگ
-- **کمپریشن کومبوز** — نام زدہ انجن پائپ لائنز جو روٹنگ کومبوز کو تفویض کی گئی ہیں
-- **خودکار ٹرگر کی حد** — ٹوکنز کی تعداد حد سے تجاوز کرنے پر کمپریشن کو خودکار طور پر فعال کریں
+- **Caveman** — موڈ کا انتخاب، لینگویج پیکس، پیش نظارہ (preview)، اور عالمی ڈیفالٹس
+- **RTK** — کمانڈ فلٹر کا پیش نظارہ، RTK حفاظتی ترتیبات، اور فلٹر کیٹلاگ
+- **Compression Combos** — نامزد کردہ انجن پائپ لائنز جو روٹنگ کمبوز کے لیے مختص ہیں
+- **Auto-Trigger Threshold** — جب ٹوکن کی تعداد حد (threshold) سے تجاوز کر جائے تو خودکار طور پر کمپریشن کو فعال کریں
 
-### فی کومبو اوور رائیڈ
+### Per-Combo Override
 
-`Dashboard → Context & Cache → Compression Combos` میں، کسی روٹنگ کومبو کو ایک کمپریشن کومبو تفویض کریں:
+`Dashboard → Context & Cache → Compression Combos` میں، ایک روٹنگ کمبو کے لیے کمپریشن کمبو تفویض کریں:
 
 ```txt
 Combo: "free-tier-fallback"
@@ -204,35 +204,26 @@ Combo: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-اس سے آپ مفت/کوڈنگ فراہم کنندگان پر اسٹیکڈ کمپریشن استعمال کر سکتے ہیں، جبکہ بامعاوضہ
-سبسکرپشنز پر لائٹ موڈ برقرار رکھ سکتے ہیں۔
+یہ آپ کو مفت/کوڈنگ فراہم کنندگان (providers) پر اسٹیکڈ کمپریشن (stacked compression) استعمال کرنے کی اجازت دیتا ہے جبکہ بامعاوضہ سبسکرپشنز پر لائٹ موڈ (lite mode) برقرار رکھتا ہے۔
 
-یہ "فی کومبو اوور رائیڈ" تفویض **روٹنگ کومبو کمپریشن
-موڈ** اوور رائیڈ (Default/Off/Lite/Standard/Aggressive/Ultra) سے ایک مختلف کنٹرول ہے — وہ اوور رائیڈ کسی نام زدہ
-کمپریشن کومبو پائپ لائن کا انتخاب نہیں کرتا؛ وہ صرف `compressionMode` فیلڈ متعین کرتا ہے جسے
-`resolveCompressionPlan` استعمال کرتا ہے۔ اسے یا تو کومبو کارڈ (`Dashboard → Combos`) پر، یا
-#6760 کے بعد سے، `Dashboard → Context & Cache → Compression Combos` میں "Assign to routing" فہرست کے اندر
-ہر روٹنگ کومبو کے لیے، اوپر درج پائپ لائن تفویض چیک باکس کے بالکل ساتھ متعین کیا جا سکتا ہے۔
-دونوں جگہوں کی تبدیلیاں ایک ہی `PUT /api/combos/{id}` اینڈ پوائنٹ کے ذریعے محفوظ رہتی ہیں۔
+یہ "Per-Combo Override" اسائنمنٹ **routing-combo compression mode** اوور رائیڈ (Default/Off/Lite/Standard/Aggressive/Ultra) سے ایک مختلف کنٹرول ہے — یہ اوور رائیڈ کسی نامزد کردہ compression-combo پائپ لائن کا انتخاب نہیں کرتا؛ یہ صرف `compressionMode` فیلڈ کو سیٹ کرتا ہے جسے `resolveCompressionPlan` استعمال کرتا ہے۔ اسے یا تو کمبو کارڈ (`Dashboard → Combos`) پر سیٹ کیا جا سکتا ہے یا، #6760 کے بعد سے، `Dashboard → Context & Cache → Compression Combos` پر "Assign to routing" کی فہرست میں فی روٹنگ کمبو سیٹ کیا جا سکتا ہے، بالکل اوپر دستاویزی پائپ لائن اسائنمنٹ چیک باکس کے ساتھ۔ دونوں سطحیں ایک ہی `PUT /api/combos/{id}` اینڈ پوائنٹ کے ذریعے محفوظ (persist) ہوتی ہیں۔
 
-### فی درخواست اوور رائیڈ
+### Per-request override
 
-کسی ایک درخواست کے لیے کمپریشن پلان کو اوور رائیڈ کرنے کی خاطر `x-omniroute-compression` درخواست ہیڈر
-بھیجیں۔ اس کی ترجیح سب سے زیادہ ہے — یہ روٹنگ کومبو اوور رائیڈ، فعال پروفائل،
-خودکار ٹرگر، اور پینل کے Default پر فوقیت رکھتا ہے۔ نامعلوم قدروں کو نظر انداز کیا جاتا ہے (درخواست کبھی مسترد نہیں کی جاتی)، اور
-عالمی ماسٹر سوئچ پھر بھی ہر چیز کو کنٹرول کرتا ہے: جب کمپریشن عالمی طور پر بند ہو تو ہیڈر اسے
-فعال نہیں کر سکتا۔ قدریں:
+کسی ایک درخواست (request) کے لیے کمپریشن پلان کو اوور رائیڈ کرنے کے لیے `x-omniroute-compression` درخواست ہیڈر بھیجیں۔ اس کی ترجیح سب سے زیادہ ہے — یہ routing-combo اوور رائیڈ، فعال پروفائل (active profile)، خودکار ٹرگر (auto-trigger)، اور پینل ڈیفالٹ (panel Default) کو پیچھے چھوڑ دیتا ہے۔ نامعلوم ویلیوز کو نظر انداز کر دیا جاتا ہے (درخواست کو کبھی مسترد نہیں کیا جاتا) اور عالمی ماسٹر سوئچ (global master switch) اب بھی سب کچھ کنٹرول کرتا ہے: جب کمپریشن عالمی سطح پر بند ہو، تو ہیڈر اسے آن نہیں کر سکتا۔ ویلیوز درج ذیل ہیں:
 
-| قدر           | اثر                                                                                            |
-| ------------- | ---------------------------------------------------------------------------------------------- |
-| `off`         | اس درخواست کے لیے کوئی کمپریشن نہیں۔                                                           |
-| `default`     | پینل سے اخذ کردہ Default پروفائل (فعال پروفائل کو نظر انداز کرتا ہے)۔                          |
-| `engine:<id>` | فعال ہونے کی صورت میں ایک واحد انجن، مثلاً `engine:rtk`۔                                       |
-| `<combo>`     | ایک نام زدہ کومبو، پہلے نام کے مطابق (حروف کی صورت سے قطع نظر)، پھر id کے مطابق ملایا جاتا ہے۔ |
+| ویلیو         | اثر                                                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | اس درخواست کے لیے کوئی کمپریشن نہیں ہوگی۔                                                                                                               |
+| `default`     | پینل سے اخذ کردہ ڈیفالٹ پروفائل (فعال پروفائل کو نظر انداز کرتا ہے)۔ نقصان دہ (lossy) انجن بند رہتے ہیں۔                                                |
+| `safe`        | ہیڈر کو چھوڑ دینے کے مترادف: صرف ڈپلیکیشن کا خاتمہ (dedup) اور وائٹ اسپیس فولڈنگ (whitespace folding)۔                                                  |
+| `allow-lossy` | اس درخواست کے آپریٹر پلان کو برقرار رکھیں، بشمول خلاصے (summaries)، مطابقت کے فلٹرز (relevance filters)، اور اسٹائل کی دوبارہ تحریریں (style rewrites)۔ |
+| `engine:<id>` | فعال ہونے پر ایک واحد انجن، مثال کے طور پر `engine:rtk`۔ یہ اس انجن کے لیے فی درخواست آپٹ ان (opt-in) ہے۔                                               |
+| `<combo>`     | ایک نامزد کمبو، جو پہلے نام (کیس کی تفریق کے بغیر) اور پھر آئی ڈی (id) کے ذریعے میچ کیا جاتا ہے۔                                                        |
 
-لاگو شدہ پلان کو `X-OmniRoute-Compression: <mode>; source=<source>` جوابی
-ہیڈر میں واپس دکھایا جاتا ہے، جہاں `<source>`، `request-header`، `routing-override`، `active-profile`،
-`auto-trigger`، `default`، یا `off` میں سے ایک ہوتا ہے۔
+`allow-lossy`، `engine:<id>`، یا کسی نامزد کمبو کے بغیر، نقصان دہ (lossy) انجن لاگو نہیں ہوتے ہیں۔ کمپریشن آن ہونے پر درخواست کو اب بھی سیشن ڈیڈپ (session dedup) اور وائٹ اسپیس فولڈنگ حاصل ہوتی ہے۔
+
+لاگو کردہ پلان `X-OmniRoute-Compression: <mode>; source=<source>` رسپانس ہیڈر میں واپس بھیجا جاتا ہے، جہاں `<source>` ان میں سے ایک ہوتا ہے: `request-header`، `routing-override`، `active-profile`، `auto-trigger`، `default`، یا `off`۔
 
 ### API
 
@@ -240,17 +231,17 @@ Combo: "free-tier-fallback"
 # کمپریشن کی ترتیبات حاصل کریں
 curl http://localhost:20128/api/settings/compression
 
-# کمپریشن کی ترتیبات اپ ڈیٹ کریں
+# کمپریشن کی ترتیبات کو اپ ڈیٹ کریں
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# کسی مخصوص RTK/stacked پے لوڈ کا پیش منظر دیکھیں
+# ایک مخصوص RTK/stacked پے لوڈ کا پیش نظارہ کریں
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# RTK فلٹر پیکس کی فہرست حاصل کریں
+# RTK فلٹر پیک کی فہرست حاصل کریں
 curl http://localhost:20128/api/context/rtk/filters
 
 # اختیاری کمانڈ میٹا ڈیٹا کے ساتھ براہ راست RTK کی جانچ کریں
@@ -298,15 +289,15 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ---
 
-## مراحل کا روڈ میپ
+## مرحلہ جاتی منصوبہ
 
-| مرحلہ    | موڈز                                                                                                                               | حیثیت              |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| مرحلہ 1  | بند، لائٹ                                                                                                                          | ✅ جاری کر دیا گیا |
-| مرحلہ 2  | اسٹینڈرڈ، ایگریسیو، الٹرا                                                                                                          | ✅ جاری کر دیا گیا |
-| مرحلہ 3  | RTK، اسٹیکڈ، کمپریشن کومبوز                                                                                                        | ✅ جاری کر دیا گیا |
-| مرحلہ 4  | آؤٹ پٹ اسٹائلز، SLM-درجے کا الٹرا، جانچ کا نظام                                                                                    | ✅ جاری کر دیا گیا |
-| مرحلہ 4C | موافق کانٹیکسٹ بجٹ ("ڈائل") — کمپیوٹ انجن + API (`PUT /api/settings/compression` پر `contextBudget`) + ڈیش بورڈ موڈ/پالیسی کنٹرولز | ✅ جاری کر دیا گیا |
+| مرحلہ    | طریقے                                                                                                                                | حالت               |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| مرحلہ 1  | آف، لائٹ                                                                                                                             | ✅ جاری کر دیا گیا |
+| مرحلہ 2  | معیاری، جارحانہ، الٹرا                                                                                                               | ✅ جاری کر دیا گیا |
+| مرحلہ 3  | RTK، اسٹیکڈ، کمپریشن کومبوز                                                                                                          | ✅ جاری کر دیا گیا |
+| مرحلہ 4  | آؤٹ پٹ اسٹائلز، SLM-ٹیر الٹرا، ایوال ہارڈنس                                                                                          | ✅ جاری کر دیا گیا |
+| مرحلہ 4C | اڈاپٹیو کانٹیکسٹ بجٹ ("ڈائل") — کمپیوٹ انجن + API (`contextBudget` on `PUT /api/settings/compression`) + ڈیش بورڈ موڈ/پالیسی کنٹرولز | ✅ جاری کر دیا گیا |
 
 ---
 
@@ -320,26 +311,21 @@ RTK موڈ **[RTK AI](https://github.com/rtk-ai)** کے **[RTK - Rust Token Kill
 
 ## جدید کمپریشن سسٹمز
 
-7 معیاری موڈز کے علاوہ، OmniRoute میں کئی جدید کمپریشن
-سسٹمز شامل ہیں جو کانٹیکسٹ کی بنیاد پر خودکار طور پر کام کرتے ہیں۔
+7 معیاری طریقوں سے ہٹ کر، OmniRoute میں کئی جدید کمپریشن سسٹمز شامل ہیں جو سیاق و سباق کی بنیاد پر خود بخود کام کرتے ہیں۔
 
-### کیش سے آگاہ کمپریشن
+### کیش-آگاہ کمپریشن
 
-کچھ فراہم کنندگان (جیسے پرامپٹ کیشنگ کے ساتھ Anthropic) **پرامپٹ کیشنگ** کی معاونت کرتے ہیں،
-جو انہیں لاگت اور تاخیر کم کرنے کے لیے پرامپٹ کے کچھ حصے کیش کرنے دیتی ہے۔ جب
-کیشنگ فعال ہو، تو ایگریسیو کمپریشن دراصل کارکردگی کو **نقصان** پہنچا سکتی ہے
-کیونکہ یہ کیش شدہ ٹوکنز کو تبدیل کرکے کیش کو غیر مؤثر کر دیتی ہے۔
+کچھ فراہم کنندگان (جیسے Anthropic پرامپٹ کیشنگ کے ساتھ) **پرامپٹ کیشنگ** کو سپورٹ کرتے ہیں، جو انہیں لاگت اور لیٹنسی کو کم کرنے کے لیے پرامپٹ کے کچھ حصوں کو کیش کرنے کی اجازت دیتا ہے۔ جب کیشنگ فعال ہوتی ہے، تو جارحانہ کمپریشن دراصل کارکردگی کو **نقصان** پہنچا سکتا ہے کیونکہ یہ کیش شدہ ٹوکنز کو تبدیل کرتا ہے، جس سے کیش غیر فعال ہو جاتا ہے۔
 
-`cachingAware.ts` ماڈیول **کیشنگ کانٹیکسٹ کا پتہ لگا کر** اور
-اس کے مطابق **کمپریشن حکمت عملی کو ایڈجسٹ کرکے** یہ مسئلہ حل کرتا ہے۔
+`cachingAware.ts` ماڈیول اس مسئلے کو **کیشنگ سیاق و سباق کا پتہ لگا کر** اور اس کے مطابق **کمپریشن حکمت عملی کو ایڈجسٹ کر کے** حل کرتا ہے۔
 
 #### یہ کیسے کام کرتا ہے
 
-1. **کیشنگ کانٹیکسٹ کا پتہ لگانا** — `cache_control` مارکرز کے لیے درخواست کی باڈی اسکین کرتا ہے
-2. **کیشنگ فراہم کنندگان کی شناخت** — جانچتا ہے کہ آیا ہدف فراہم کنندہ کیشنگ کی معاونت کرتا ہے
-3. **حکمت عملی کو ایڈجسٹ کرنا** — کیشنگ فراہم کنندگان کے لیے `aggressive`/`ultra` کو `standard` میں ڈاؤن گریڈ کرتا ہے
-4. **سسٹم پرامپٹ کو چھوڑنا** — سسٹم پرامپٹس عموماً کیش ہوتے ہیں، اس لیے انہیں کمپریس نہ کریں
-5. **متعین تبدیلیاں استعمال کرنا** — صرف ایسی تبدیلیاں استعمال کریں جو مستقل آؤٹ پٹ پیدا کرتی ہوں
+1.  **کیشنگ سیاق و سباق کا پتہ لگائیں** — `cache_control` مارکرز کے لیے درخواست کے باڈی کو اسکین کرتا ہے۔
+2.  **کیشنگ فراہم کنندگان کی شناخت کریں** — چیک کرتا ہے کہ آیا ہدف فراہم کنندہ کیشنگ کو سپورٹ کرتا ہے۔
+3.  **حکمت عملی کو ایڈجسٹ کریں** — کیشنگ فراہم کنندگان کے لیے `aggressive`/`ultra` کو `standard` میں ڈاؤن گریڈ کرتا ہے۔
+4.  **سسٹم پرامپٹ کو چھوڑ دیں** — سسٹم پرامپٹ عام طور پر کیش ہوتے ہیں، لہذا انہیں کمپریس نہ کریں۔
+5.  **ڈیٹرمینسٹک ٹرانسفارمیشنز استعمال کریں** — صرف ایسی ٹرانسفارمیشنز استعمال کریں جو مستقل آؤٹ پٹ پیدا کرتی ہیں۔
 
 #### کوڈ کی مثال
 
@@ -364,21 +350,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### کب استعمال کریں
 
-کیش سے آگاہ کمپریشن **ہمیشہ فعال** رہتی ہے — کسی کنفیگریشن کی ضرورت نہیں۔ یہ صرف اس وقت
-فعال ہوتی ہے جب:
+کیش-آگاہ کمپریشن **ہمیشہ آن** ہوتا ہے — کسی کنفیگریشن کی ضرورت نہیں۔ یہ صرف تب فعال ہوتا ہے جب:
 
-- درخواست میں `cache_control` مارکرز موجود ہوں
-- ہدف فراہم کنندہ پرامپٹ کیشنگ (Anthropic، OpenAI، وغیرہ) کی معاونت کرتا ہو
+- درخواست میں `cache_control` مارکرز ہوں۔
+- ہدف فراہم کنندہ پرامپٹ کیشنگ کو سپورٹ کرتا ہو (Anthropic, OpenAI، وغیرہ)۔
 
-### تدریجی فرسودگی
+### ترقی پسند عمر رسیدہ (Progressive Aging)
 
-طویل گفتگوؤں میں پیغامات کے کئی ادوار جمع ہو جاتے ہیں، لیکن پرانے ادوار کی
-مطابقت کم ہوتی جاتی ہے۔ `progressiveAging.ts` ماڈیول **دور کی بنیاد پر پیغامات کی تفصیل کم کرتا ہے**:
+لمبی گفتگو میں پیغامات کی کئی باری جمع ہو جاتی ہیں، لیکن پرانی باری کم متعلقہ ہو جاتی ہیں۔ `progressiveAging.ts` ماڈیول **پیغامات کو باری کے فاصلے کے لحاظ سے خراب کرتا ہے**:
 
-- **حالیہ ادوار (0-3)**: من و عن رکھے جاتے ہیں (مکمل تفصیل)
-- **درمیانی ادوار (4-8)**: لائٹ کمپریشن (خالی جگہ، فارمیٹنگ کی صفائی)
-- **پرانے ادوار (9+)**: Caveman کمپریشن (غیر ضروری مواد کا اخراج، خلاصہ کاری)
-- **بہت پرانے ادوار (20+)**: بہت مختصر خلاصہ کیے جاتے ہیں یا حذف کر دیے جاتے ہیں
+- **حالیہ باری (0-3)**: من و عن رکھی جاتی ہیں (مکمل تفصیل)
+- **درمیانی باری (4-8)**: ہلکی کمپریشن (وائٹ اسپیس، فارمیٹنگ کی صفائی)
+- **پرانی باری (9+)**: کیو مین کمپریشن (فلر ہٹانا، خلاصہ)
+- **بہت پرانی باری (20+)**: بہت زیادہ خلاصہ یا حذف کر دی جاتی ہیں۔
 
 #### کوڈ کی مثال
 
@@ -389,48 +373,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... مزید 50 ادوار ...
+  // ... مزید 50 باری ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // پہلے 3 ادوار: من و عن
-  light: 8, // ادوار 4-8: لائٹ کمپریشن
-  moderate: 20, // ادوار 9-20: caveman کمپریشن
-  // ادوار 21+: بھرپور خلاصہ کاری
+  verbatim: 3, // پہلی 3 باری: من و عن
+  light: 8, // باری 4-8: ہلکی کمپریشن
+  moderate: 20, // باری 9-20: کیو مین کمپریشن
+  // باری 21+: بھاری خلاصہ
 });
 
-// saved = محفوظ کیے گئے ٹوکنز کی تعداد
+// saved = محفوظ کردہ ٹوکنز کی تعداد
 ```
 
 #### کب استعمال کریں
 
-تدریجی فرسودگی `aggressive` اور `ultra` موڈز کے لیے **ہمیشہ فعال** رہتی ہے۔ یہ
-خصوصاً ان صورتوں میں مؤثر ہے:
+ترقی پسند عمر رسیدہ `aggressive` اور `ultra` طریقوں کے لیے **ہمیشہ آن** ہوتا ہے۔ یہ خاص طور پر مؤثر ہے:
 
-- طویل دورانیے کے کوڈنگ سیشنز
-- کئی دنوں پر محیط گفتگوئیں
-- بہت سی ٹول کالز والے ایجنٹک ورک فلوز
+- طویل مدتی کوڈنگ سیشنز کے لیے
+- کئی دنوں پر محیط گفتگو کے لیے
+- بہت سے ٹول کالز کے ساتھ ایجنٹک ورک فلوز کے لیے
 
 ### کیو مین آؤٹ پٹ موڈ
 
-`outputMode.ts` ماڈیول **سسٹم پرامپٹ ہدایات** شامل کرتا ہے تاکہ
-ماڈل خود مختصر اور جامع آؤٹ پٹ (ایک "کیو مین" انداز) تیار کرے۔
+`outputMode.ts` ماڈیول **سسٹم پرامپٹ ہدایات** کو شامل کرتا ہے تاکہ ماڈل خود کمپریسڈ، مختصر آؤٹ پٹ (ایک "کیو مین" انداز) تیار کرے۔
 
 #### یہ کیسے کام کرتا ہے
 
-ان پٹ کو کمپریس کرنے کے بجائے، یہ موڈ اس طرح کا سسٹم پرامپٹ شامل کرتا ہے:
+ان پٹ کو کمپریس کرنے کے بجائے، یہ موڈ ایک سسٹم پرامپٹ شامل کرتا ہے جیسے:
 
-> "کم سے کم الفاظ میں جواب دیں۔ رسمی خوش کلامی چھوڑ دیں۔ مختصر جملے استعمال کریں۔"
+> "کم سے کم الفاظ میں جواب دیں۔ خوش اخلاقی کو چھوڑ دیں۔ مختصر جملے استعمال کریں۔"
 
-یہ خصوصاً ان صورتوں میں اچھا کام کرتا ہے:
+یہ خاص طور پر اچھی طرح کام کرتا ہے:
 
-- کوڈ جنریشن (مختصر آؤٹ پٹ = کم ٹوکنز)
-- فوری سوال و جواب (تفصیلی وضاحتوں کی ضرورت نہیں)
-- بیچ پروسیسنگ (تھروپٹ کو زیادہ سے زیادہ کرنا)
+- کوڈ جنریشن کے لیے (مختصر آؤٹ پٹ = کم ٹوکنز)
+- فوری سوال و جواب کے لیے (تفصیلی وضاحت کی ضرورت نہیں)
+- بیچ پروسیسنگ کے لیے (زیادہ سے زیادہ تھرو پٹ)
 
 #### کب استعمال کریں
 
-کیو مین آؤٹ پٹ موڈ **اختیاری** ہے — اسے combo config کے ذریعے سیٹ کریں:
+کیو مین آؤٹ پٹ موڈ **اختیاری** ہے — اسے کومبو کنفیگ کے ذریعے سیٹ کریں:
 
 ```json
 {
@@ -445,39 +427,25 @@ const { messages: aged, saved } = applyAging(messages, {
 
 ### آؤٹ پٹ اسٹائلز (کیٹلاگ)
 
-اوپر دیا گیا کیو مین آؤٹ پٹ موڈ **پرانا واحد اسٹائل والا راستہ** ہے۔ Phase 4 نے اسے
-مرکب آؤٹ پٹ اسٹائلز کے ایک کیٹلاگ میں عمومی بنا دیا: `OUTPUT_STYLE_CATALOG`،
-`open-sse/services/compression/outputStyles/catalog.ts` میں۔ ہر اسٹائل ایک سسٹم پرامپٹ
-ہدایت ہے جو ماڈل کو خود کم لاگت والا آؤٹ پٹ تیار کرنے پر آمادہ کرتی ہے؛ اسٹائلز کو بیک وقت فعال
-کیا جا سکتا ہے اور انہیں کیٹلاگ کی ترتیب کے مطابق شامل کیا جاتا ہے۔
+اوپر دیا گیا کیو مین آؤٹ پٹ موڈ **میراثی سنگل-اسٹائل پاتھ** ہے۔ فیز 4 نے اسے کمپوزیبل آؤٹ پٹ اسٹائلز کے ایک کیٹلاگ میں عام کیا: `open-sse/services/compression/outputStyles/catalog.ts` میں `OUTPUT_STYLE_CATALOG`۔ ہر اسٹائل ایک سسٹم-پرامپٹ ہدایت ہے جو ماڈل کو خود سستا آؤٹ پٹ تیار کرنے پر مجبور کرتی ہے؛ اسٹائلز کو ایک ساتھ فعال کیا جا سکتا ہے اور کیٹلاگ کی ترتیب میں شامل کیا جاتا ہے۔
 
-| اسٹائل                      | `id`          | یہ کیا کرتا ہے                                                                                                                                                                                                      | ہدایات کی زبانیں                                                       |
-| --------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| مختصر نثر                   | `terse-prose` | غیر ضروری الفاظ/آرٹیکلز/مبہم محتاط عبارتیں حذف کرتا ہے؛ تکنیکی مواد کو بعینہٖ برقرار رکھتا ہے۔ متن وہی ہے جو پرانے کیو مین آؤٹ پٹ موڈ میں ہے (حوالہ دیا گیا ہے، دوبارہ تحریر نہیں کیا گیا)۔                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| کم کوڈ                      | `less-code`   | YAGNI درجہ بندی: سب سے چھوٹی قابلِ عمل تبدیلی، بلا درخواست تجریدات نہیں۔                                                                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| پونی ٹیل (سست سینئر ڈویلپر) | `ponytail`    | "بہترین کوڈ وہ ہے جو کبھی لکھا ہی نہ جائے": دوبارہ استعمال > دوبارہ تحریر، بنیادی وجہ > علامت، مختصر ترین قابلِ عمل diff۔                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| مجھے ADHD ہے (عمل پہلے)     | `i-have-adhd` | عمل پہلے (نثر سے پہلے کمانڈ/پاتھ/اسنیپٹ)، محدود تعداد میں نمبر وار مراحل، صرف ایک ٹھوس اگلا مرحلہ، کوئی تمہید/خلاصہ/اختتامی کلمات نہیں۔ [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) سے ماخوذ۔ | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| مختصر CJK (文言)            | `terse-cjk`   | کلاسیکی چینی کا انتہائی مختصر انداز۔                                                                                                                                                                                | zh (لوکیل سے محدود: صرف اس وقت پیش کیا جاتا ہے جب حل شدہ زبان `zh` ہو) |
+| انداز                       | `id`          | یہ کیا کرتا ہے                                                                                                                                                                                 | ہدایت کی زبانیں                                                                     |
+| --------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| مختصر نثر                   | `terse-prose` | فالتو الفاظ/آرٹیکلز/ہچکچاہٹ کو ہٹاتا ہے؛ تکنیکی مواد کو درست رکھتا ہے۔ وہی متن جو پرانے کیومین آؤٹ پٹ موڈ میں تھا (حوالہ دیا گیا، دوبارہ ٹائپ نہیں کیا گیا)۔                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
+| کم کوڈ                      | `less-code`   | YAGNI سیڑھی: سب سے چھوٹی کام کرنے والی تبدیلی، کوئی غیر مطلوبہ تجرید نہیں۔                                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
+| پونی ٹیل (سست سینئر ڈویلپر) | `ponytail`    | ”بہترین کوڈ وہ کوڈ ہے جو کبھی نہیں لکھا گیا“: دوبارہ استعمال > دوبارہ لکھنا، بنیادی وجہ > علامت، سب سے مختصر کام کرنے والا فرق۔                                                                | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
+| مجھے ADHD ہے (عمل پہلے)     | `i-have-adhd` | عمل پہلے (نثر سے پہلے کمانڈ/پاتھ/سنیپٹ)، نمبر والے محدود اقدامات، ایک ٹھوس اگلا قدم، کوئی تمہید/خلاصہ/اختتام نہیں۔ [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) سے ماخوذ۔ | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
+| مختصر CJK (文言)            | `terse-cjk`   | کلاسیکی چینی انتہائی مختصر انداز۔                                                                                                                                                              | zh (لوکیل کے لحاظ سے محدود: صرف اس صورت میں پیش کیا جاتا ہے جب حل شدہ زبان `zh` ہو) |
 
-ہر اسٹائل کے ساتھ شدت کی تین سطحیں — `lite`، `full`، `ultra` — فراہم کی جاتی ہیں اور ہر سطح
-مشترکہ حدود کی شق پر ختم ہوتی ہے، جو کوڈ بلاکس، فائل پاتھز، کمانڈز،
-خرابی کے اسٹرنگز، URLs اور identifiers کو بعینہٖ برقرار رکھتی ہے۔
+ہر انداز تین شدت کی سطحوں — `lite`، `full`، `ultra` — کے ساتھ آتا ہے اور ہر سطح مشترکہ حدود کی شق کے ساتھ ختم ہوتی ہے، جو کوڈ بلاکس، فائل پاتھ، کمانڈز، ایرر سٹرنگز، URLs اور شناخت کنندگان کو جوں کا توں رکھتی ہے۔
 
-#### شمولیت کیسے کام کرتی ہے
+#### انجیکشن کیسے کام کرتا ہے
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) انتخاب کو
-کیٹلاگ کے مطابق حل کرتا ہے (نامعلوم ids اور لوکیل سے غیر مطابق اسٹائلز
-حذف کر دیے جاتے ہیں، کبھی خرابی پیدا نہیں ہوتی)، منتخب ہدایات کو کیٹلاگ کی ترتیب میں جوڑتا ہے،
-حدود کی شق **صرف ایک بار** شامل کرتا ہے، اور نتیجے کو ایک واحد idempotency marker
-(`[OmniRoute Output Styles]`) کے بعد سسٹم پرامپٹ کے آغاز میں شامل کرتا ہے — دوبارہ اطلاق
-کوئی اثر نہیں رکھتا۔ جب شناخت شدہ درخواست کی زبان کا ترجمہ موجود ہو تو انگریزی کی بجائے
-مقامی زبان کی ہدایت شامل کی جاتی ہے۔
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) کیٹلاگ کے خلاف انتخاب کو حل کرتا ہے (نامعلوم ids اور لوکیل سے مطابقت نہ رکھنے والے انداز کو چھوڑ دیا جاتا ہے، کبھی غلطی نہیں ہوتی)، منتخب ہدایات کو کیٹلاگ کی ترتیب میں جوڑتا ہے، حدود کی شق کو **ایک بار** شامل کرتا ہے، اور نتیجے کو ایک واحد آئیڈیمپوٹینسی مارکر (`[OmniRoute Output Styles]`) کے پیچھے سسٹم پرامپٹ میں سامنے لاتا ہے — دوبارہ لاگو کرنا ایک نو-آپ ہے۔ جب پتہ چلنے والی درخواست کی زبان کا ترجمہ ہوتا ہے، تو انگریزی کے بجائے مقامی ہدایت داخل کی جاتی ہے۔
 
 #### فعال کرنے کا طریقہ
 
-ڈیش بورڈ میں: **Context → Settings → Compression** — ہر اسٹائل کے لیے ایک قطار، جس میں
-on/off ٹوگل اور سطح منتخب کرنے کا اختیار ہوتا ہے۔ پروگرام کے ذریعے، کمپریشن config انتخاب کو
-اس طرح محفوظ رکھتا ہے:
+ڈیش بورڈ میں: **Context → Settings → Compression** — ہر انداز کے لیے ایک قطار جس میں آن/آف ٹوگل اور ایک لیول سلیکٹر ہوتا ہے۔ پروگرام کے ذریعے، کمپریشن کنفگ انتخاب کو اس طرح برقرار رکھتا ہے:
 
 ```json
 {
@@ -488,59 +456,48 @@ on/off ٹوگل اور سطح منتخب کرنے کا اختیار ہوتا ہ�
 }
 ```
 
-پسماندہ مطابقت: پرانی `outputMode: "caveman"` combo ترتیب اب بھی کام کرتی ہے اور
-`terse-prose` سے میپ ہوتی ہے، جو ہر پرانی زبان میں سابقہ شمولیت کے ساتھ بائٹ بہ بائٹ یکساں ہے۔
+پچھلی مطابقت: پرانی `outputMode: "caveman"` کومبو سیٹنگ اب بھی کام کرتی ہے اور `terse-prose` سے نقشہ بناتی ہے، ہر پرانی زبان میں پرانے انجیکشن کے بائٹ کے لحاظ سے یکساں ہے۔
 
-زبان کا انتخاب: `languageConfig.enabled` فعال ہونے پر، `autoDetect` تازہ ترین
-صارف پیغام کی زبان منتخب کرتا ہے (ان پٹ انجنز والا ہی detector)؛
-`autoDetect` کو غیر فعال کرنے سے `defaultLanguage` مستقل ہو جاتی ہے۔ غیر فعال → انگریزی۔
+زبان کا انتخاب: `languageConfig.enabled` آن ہونے پر، `autoDetect` تازہ ترین صارف کے پیغام کی زبان کا انتخاب کرتا ہے (ان پٹ انجنوں جیسا ہی ڈیٹیکٹر)؛ `autoDetect` کو آف کرنے سے `defaultLanguage` پن ہو جاتا ہے۔ آف → انگریزی۔
 
-اسٹائل × زبان matrix کو
-`tests/unit/compression/output-styles-i18n-matrix.test.ts` کے ذریعے مستقل کیا گیا ہے: کوئی نیا اسٹائل
-کم از کم pt-BR ترجمے (یا واضح طور پر ٹریک کی گئی استثنا) کے بغیر جاری نہیں کیا جا سکتا، اور کوئی
-موجودہ اسٹائل خاموشی سے کسی لوکیل سے محروم نہیں ہو سکتا۔ اسٹائل شامل کرنے کے لیے
-[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) دیکھیں۔
+انداز × زبان کا میٹرکس `tests/unit/compression/output-styles-i18n-matrix.test.ts` کے ذریعے پن کیا گیا ہے: ایک نیا انداز کم از کم pt-BR ترجمہ (یا ایک واضح ٹریک شدہ استثنا) کے بغیر نہیں بھیجا جا سکتا، اور ایک موجودہ انداز خاموشی سے لوکیل نہیں کھو سکتا۔ ایک انداز شامل کرنے کے لیے، [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) دیکھیں۔
 
-### ٹول نتائج کی کمپریشن
+### ٹول کے نتائج کی کمپریشن
 
-`toolResultCompressor.ts` ماڈیول ٹول نتائج (فنکشن کالز، ایجنٹ آؤٹ پٹس، تلاش کے نتائج وغیرہ)
-کے لیے **5 خصوصی کمپریشن حکمت عملیاں** فراہم کرتا ہے:
+`toolResultCompressor.ts` ماڈیول ٹول کے نتائج (فنکشن کالز، ایجنٹ آؤٹ پٹس، سرچ نتائج وغیرہ) کے لیے **5 خصوصی کمپریشن حکمت عملی** فراہم کرتا ہے:
 
-1. **تلاش کے نتائج کی کمپریشن** — فالتو نتائج ہٹاتی ہے، سرفہرست N برقرار رکھتی ہے
-2. **فائل پڑھنے کی کمپریشن** — بڑی فائلوں کو مختصر کرتی ہے، headers/imports محفوظ رکھتی ہے
-3. **کوڈ اجرا کی کمپریشن** — صرف ضروری stdout/stderr برقرار رکھتی ہے
-4. **ڈیٹابیس کوئری کمپریشن** — قطاریں محدود کرتی ہے، غیر ضروری تفصیلی metadata ہٹاتی ہے
-5. **API رسپانس کمپریشن** — null فیلڈز ہٹاتی ہے، arrays کو مختصر کرتی ہے
+1.  **سرچ نتائج کی کمپریشن** — غیر ضروری نتائج کو ہٹاتا ہے، ٹاپ-N کو رکھتا ہے
+2.  **فائل پڑھنے کی کمپریشن** — بڑی فائلوں کو چھوٹا کرتا ہے، ہیڈرز/امپورٹس کو محفوظ رکھتا ہے
+3.  **کوڈ ایگزیکیوشن کمپریشن** — صرف ضروری stdout/stderr کو رکھتا ہے
+4.  **ڈیٹا بیس کوئری کمپریشن** — قطاروں کو محدود کرتا ہے، تفصیلی میٹا ڈیٹا کو ہٹاتا ہے
+5.  **API رسپانس کمپریشن** — نل فیلڈز کو ہٹاتا ہے، اریوں کو سکیڑتا ہے
 
-#### کب استعمال کریں
+#### کب استعمال کرنا ہے
 
-ٹول کالز موجود ہونے پر ٹول نتائج کی کمپریشن **ہمیشہ فعال** رہتی ہے۔ کسی
-کنفیگریشن کی ضرورت نہیں۔
+ٹول کے نتائج کی کمپریشن **ہمیشہ آن** رہتی ہے جب ٹول کالز موجود ہوں۔ کسی کنفیگریشن کی ضرورت نہیں۔
 
-### تہہ دار پائپ لائن
+### اسٹیکڈ پائپ لائن
 
-تہہ دار موڈ **متعدد انجنز کو ترتیب وار** چلاتا ہے — عموماً پہلے RTK
-(ٹول آؤٹ پٹ پر 60-90% بچت)، پھر Caveman (باقی متن پر مزید 30% بچت)۔
-اس سے **مجموعی طور پر 78-95% بچت** حاصل ہوتی ہے۔
+اسٹیکڈ موڈ **متعدد انجنوں کو ترتیب وار** چلاتا ہے — عام طور پر پہلے RTK (ٹول آؤٹ پٹ پر 60-90% بچت)، پھر کیومین (باقی متن پر 30% اضافی بچت)۔ یہ **78-95% کل بچت** حاصل کرتا ہے۔
 
 #### یہ کیسے کام کرتا ہے
 
 ```
-ان پٹ (1000 ٹوکنز)
-  → RTK (کمانڈ سے آگاہ فلٹر) → 200 ٹوکنز
-    → Caveman (غیر ضروری الفاظ کا اخراج) → 140 ٹوکنز
-  → آؤٹ پٹ (140 ٹوکنز، 86% بچت)
+Input (1000 tokens)
+  → RTK (command-aware filter) → 200 tokens
+    → Caveman (filler removal) → 140 tokens
+  → Output (140 tokens, 86% savings)
 ```
 
-#### کب استعمال کریں
+#### کب استعمال کرنا ہے
 
-تہہ دار موڈ ان صورتوں میں استعمال کریں:
+اسٹیکڈ موڈ ان کے لیے استعمال کریں:
 
-- ٹولز پر زیادہ انحصار والے ورک فلوز (ایجنٹک کوڈنگ، تحقیق)
+- ٹول پر مبنی ورک فلوز (ایجنٹک کوڈنگ، تحقیق)
 - لاگت کے لحاظ سے حساس بیچ پروسیسنگ
-- جب آپ کو ٹوکنز کی زیادہ سے زیادہ بچت درکار ہو
+- جب آپ کو زیادہ سے زیادہ ٹوکن بچت کی ضرورت ہو
 
-combo کے ذریعے کنفیگر کریں:
+کومبو کے ذریعے کنفیگر کریں:
 
 ```json
 {

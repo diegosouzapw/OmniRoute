@@ -1,0 +1,1 @@
+- **fix(translator):** A Claude image sent as a URL (`source: { type: "url" }`) now reaches the provider: inside a `tool_result` on the OpenAI path, and everywhere on the direct Claude → Gemini path, where it is passed as `fileData` ([#14460](https://github.com/diegosouzapw/OmniRoute/pull/14460))

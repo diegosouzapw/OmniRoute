@@ -32,6 +32,7 @@ import {
 import { isStripReasoningRequested } from "./headers.ts";
 import { applyClientUsageBuffer } from "./clientUsageBuffer.ts";
 import { resolveRequestToolIdentity } from "../../translator/response/openai-responses/requestToolIdentity.ts";
+import { plaintextCollaborationFields } from "../../translator/response/openai-responses/collaborationPlaintextMarker.ts";
 
 export type { NonStreamingClientTranslateInput, NonStreamingClientTranslateResult };
 
@@ -119,6 +120,7 @@ export function translateNonStreamingClientResponse(
       cacheReasoningFromAssistantMessage(msg, provider, model, {
         scope: reasoningCacheScope,
         historyMessages: Array.isArray(historyMessages) ? historyMessages : [],
+        videoTranscriptSensitive: input.videoTranscriptSensitive,
       });
     }
   } catch {
@@ -180,6 +182,7 @@ export function translateNonStreamingClientResponse(
           item.namespace = identity.namespace;
           item.name = identity.name;
         }
+        Object.assign(item, plaintextCollaborationFields(item.namespace, item.name));
       }
     }
   } else if (clientResponseFormat === FORMATS.OPENAI) {
