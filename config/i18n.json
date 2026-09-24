@@ -46,6 +46,14 @@
       "flag": "🇧🇩"
     },
     {
+      "code": "bs",
+      "label": "BS",
+      "name": "Bosanski",
+      "native": "Bosanski",
+      "english": "Bosnian",
+      "flag": "🇧🇦"
+    },
+    {
       "code": "cs",
       "label": "CS",
       "name": "Čeština",

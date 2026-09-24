@@ -38,7 +38,8 @@ export function withChatAdmission(
     try {
       return await releaseChatAdmissionAfterHandler(
         Promise.resolve(handler(admission.request, ...args)),
-        admission.lease
+        admission.lease,
+        { signal: request.signal }
       );
     } catch (error) {
       admission.lease?.release();

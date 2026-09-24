@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Հայերեն)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -68,25 +68,29 @@ docker compose --profile base up -d
 # CLI պրոֆիլ (ներկառուցված Claude Code, Codex, OpenClaw)
 docker compose --profile cli up -d
 
-# Հոսթի պրոֆիլ (նախատեսված է հիմնականում Linux-ի համար. հոսթի CLI երկուական ֆայլերը կցում է միայն կարդալու ռեժիմով)
+# Հոսթի պրոֆիլ (նախատեսված է հիմնականում Linux-ի համար․ հոսթի CLI գործարկելի ֆայլերը մոնտաժվում են միայն կարդալու ռեժիմով)
 docker compose --profile host up -d
 
-# Համատեղեք CLI-ն և CLIProxyAPI կողմնակի կոնտեյները
+# Վեբ պրոֆիլ (Chromium/Playwright՝ վեբ-նստաշրջանի մատակարարների համար)
+docker compose --profile web up -d
+
+# CLI-ի և CLIProxyAPI կողմնակի կոնտեյների համատեղում
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Հասանելի պրոֆիլներ
 
-OmniRoute-ը տրամադրվում է Compose-ի չորս պրոֆիլով։ Ընտրեք ձեր միջավայրին համապատասխանողը։
+OmniRoute-ը տրամադրվում է Compose պրոֆիլներով՝ տեղակայման հիմնական տարբերակների համար։ Ընտրեք ձեր միջավայրին համապատասխանողը։
 
-| Պրոֆիլ            | Ծառայություն     | Երբ օգտագործել                                                                                                                                                                       | Հրաման                                       |
-| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| `base` (լռելյայն) | `omniroute-base` | Առանց ինտերֆեյսի սերվեր / նվազագույն կատարման միջավայր՝ առանց մատակարարների փաթեթավորված CLI-ների                                                                                    | `docker compose --profile base up -d`        |
-| `cli`             | `omniroute-cli`  | Գործակալային աշխատանքային հոսքեր, որոնք կանչում են `omniroute providers/setup/doctor`-ը և փաթեթավորված CLI-ները (Codex, Claude Code, Droid, OpenClaw)                                | `docker compose --profile cli up -d`         |
-| `host`            | `omniroute-host` | Linux հոսթեր, որոնք ցանկանում են `network_mode`-ի նման հասանելիություն հոսթի CLI-ներին՝ `~/.local/bin`, `~/.codex`, `~/.claude` և այլ ուղիները միայն կարդալու ռեժիմով կցելու միջոցով | `docker compose --profile host up -d`        |
-| `cliproxyapi`     | `cliproxyapi`    | Գործարկեք [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) կողմնակի կոնտեյները `8317` պորտում՝ վերին մակարդակի CLI պրոքսիավորման համար                                    | `docker compose --profile cliproxyapi up -d` |
+| Պրոֆիլ            | Ծառայություն     | Երբ օգտագործել                                                                                                                                                                    | Հրաման                                       |
+| ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (լռելյայն) | `omniroute-base` | Առանց գրաֆիկական միջերեսի սերվեր / նվազագույն կատարման միջավայր՝ առանց ներառված մատակարարների CLI-ների                                                                            | `docker compose --profile base up -d`        |
+| `cli`             | `omniroute-cli`  | Գործակալային աշխատանքային հոսքեր, որոնք կանչում են `omniroute providers/setup/doctor`-ը և ներառված CLI-ները (Codex, Claude Code, Droid, OpenClaw)                                 | `docker compose --profile cli up -d`         |
+| `host`            | `omniroute-host` | Linux հոսթեր, որոնց անհրաժեշտ է `network_mode`-ին նման հասանելիություն հոսթի CLI-ներին՝ `~/.local/bin`, `~/.codex`, `~/.claude` և այլն՝ միայն ընթերցման ռեժիմով միակցելու միջոցով | `docker compose --profile host up -d`        |
+| `cliproxyapi`     | `cliproxyapi`    | Գործարկեք [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) կողմնակի կոնտեյները `8317` պորտում՝ վերին հոսքի CLI պրոքսիավորման համար                                     | `docker compose --profile cliproxyapi up -d` |
+| `web`             | `omniroute-web`  | Վեբ-նստաշրջանի մատակարարներ, որոնց անհրաժեշտ է դիտարկիչ՝ `gemini-web`, `claude-web`, `claude-turnstile` (կառուցում է `runner-web`, Chromium-ը ներառված է)                         | `docker compose --profile web up -d`         |
 
-> Հնարավոր է համատեղել մի քանի պրոֆիլ՝ `docker compose --profile cli --profile cliproxyapi up -d`։
+> Կարելի է համատեղել մի քանի պրոֆիլ՝ `docker compose --profile cli --profile cliproxyapi up -d`։
 
 ## Հոսթի CLI գործիքների կարգավորումը, երբ OmniRoute-ն աշխատում է Docker-ում
 
@@ -233,35 +237,37 @@ docker compose -f docker-compose.prod.yml down
 
 ## Dockerfile-ի փուլերը
 
-Պահոցը ներառում է բազմափուլ Dockerfile (`Dockerfile`)։ Հասանելի են երեք փուլեր․ ընտրեք ձեր օգտագործման դեպքին համապատասխան `target`-ը։
+Շտեմարանը ներառում է բազմափուլ Dockerfile (`Dockerfile`)։ Հասանելի է չորս փուլ․ ընտրեք ձեր կիրառման դեպքին համապատասխան `target`-ը։
 
-| Փուլ          | Հիմքային պատկեր       | Նպատակ                                                                                                                                                                                        |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Տեղադրում է կախվածությունները (`npm ci --legacy-peer-deps`) և գործարկում `npm run build`-ը (լռելյայն՝ Turbopack․ տե՛ս ստորև՝ կառուցման ժամանակի ռեսուրսները)                                  |
-| `runner-base` | `node:26-trixie-slim` | Արտադրական գործարկման միջավայր՝ Next.js-ի ինքնուրույն ելքային տարբերակով։ **Մատակարարների CLI-ներ ներառված չեն։**                                                                             |
-| `runner-cli`  | `runner-base`         | Ավելացնում է `git`, `docker.io`, `docker-compose` և գլոբալ CLI-ներ՝ `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`։ **Գործակալային աշխատանքային հոսքերի համար ընտրեք սա։** |
+| Փուլ          | Հիմքային պատկեր       | Նպատակ                                                                                                                                                                                                                                                                                                 |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `builder`     | `node:26-trixie-slim` | Տեղադրում է կախվածությունները (`npm ci --legacy-peer-deps`) և գործարկում `npm run build`-ը (լռելյայն՝ Turbopack․ տե՛ս ստորև՝ Կառուցման ժամանակի ռեսուրսներ)                                                                                                                                            |
+| `runner-base` | `node:26-trixie-slim` | Արտադրական կատարման միջավայր՝ Next.js-ի ինքնուրույն ելքով։ **Մատակարարների CLI-ներ ներառված չեն։**                                                                                                                                                                                                     |
+| `runner-cli`  | `runner-base`         | Ավելացնում է `git`, `docker.io`, `docker-compose` և գլոբալ CLI-ներ՝ `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`։ **Ընտրեք սա գործակալային աշխատանքային հոսքերի համար։**                                                                                                          |
+| `runner-web`  | `runner-base`         | Ավելացնում է Playwright + Chromium դիտարկիչ (`--with-deps`) վեբ նստաշրջանների մատակարարների համար՝ `gemini-web`, `claude-web`, `claude-turnstile`։ **Ընտրեք սա, երբ օգտագործում եք այդ մատակարարները**․ սովորական պատկերն առանց դրա հարցման պահին ձախողվում է (տե՛ս Թողարկման ալիքների `-web` նշումը)։ |
 
-Կառուցեք որոշակի թիրախ ձեռքով․
+Որոշակի թիրախ ձեռքով կառուցելու համար՝
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Կառուցման ժամանակի ռեսուրսներ
 
-Երեք կառուցման արգումենտ վերահսկում են `builder` փուլի ռեսուրսային ծախսը։ Դրանք վերաբերում են միայն կառուցման ժամանակին․
-`OMNIROUTE_MEMORY_MB`-ը (ստորև) առանձին գործարկման ժամանակի կարգավորիչ է։
+Երեք կառուցման արգումենտ վերահսկում է `builder` փուլի ռեսուրսային ծախսը։ Դրանք վերաբերում են միայն կառուցման ժամանակին․
+`OMNIROUTE_MEMORY_MB`-ը (ստորև) առանձին՝ կատարման ժամանակի կարգավորիչ է։
 
-| Կառուցման արգումենտ         | Լռելյայն | Ազդեցություն                                                                                              |
-| --------------------------- | -------- | --------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` արժեքի դեպքում կառուցում է webpack-ով։ Առավելագույն հիշողությունը քիչ է, բայց ավելի դանդաղ է։         |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | V8-ի heap-ի վերին սահմանը (`--max-old-space-size`)՝ ստեղծված `next build`-ի համար։                        |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Փոխանցվում է `CIRCLE_NODE_TOTAL`-ին․ Next-ը էջերի տվյալների հավաքման համար սահմանում է `workers = N - 1`։ |
+| Կառուցման արգումենտ         | Լռելյայն | Ազդեցություն                                                                                               |
+| --------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0`-ի դեպքում կառուցում է webpack-ով։ Առավելագույն հիշողության պակաս սպառում, ավելի դանդաղ։                |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | Ստեղծված `next build`-ի V8 կույտի վերին սահմանը (`--max-old-space-size`)։                                  |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Փոխանցվում է `CIRCLE_NODE_TOTAL`-ին․ Next-ը էջերի տվյալների հավաքման համար հաշվարկում է `workers = N - 1`։ |
 
-`OMNIROUTE_BUILD_WORKERS`-ն այն պարամետրն է, որը պետք է մեծացնել հզոր կառուցման միջավայրում, և առաջինը կասկածել, երբ սահմանափակ ռեսուրսներով կառուցումը ձախողվում է **հետո**՝ `✓ Compiled successfully` հաղորդագրությունից հետո։ Էջերի տվյալների յուրաքանչյուր worker առանձին գործընթաց է, ինչպես նաև ծնող `next build`-ը։ Իրական VPS-ում վերարտադրման ժամանակ (խնդիր #7518) յուրաքանչյուր գործընթացի առավելագույն RSS-ը չափվել է մոտավորապես 4.5 GB՝ անկախ `NODE_OPTIONS` heap-ի դրոշից (Turbopack-ը կոմպիլացնում է V8 heap-ից դուրս գտնվող native/Rust հիշողության մեջ)։ Լռելյայն `2` արժեքը (→ 1 worker, ընդհանուր՝ 2 գործընթաց) նախատեսված է հրապարակման հոսքագծում օգտագործվող GitHub-ի տրամադրած 16 GB / 4 vCPU runner-ների համար։ `8` արժեքի դեպքում (→ 7 worker) այդ runner-ի հիշողությունը սպառվեց, և buildkit-ը ձախողեց քայլը՝ `ResourceExhausted: ... cannot allocate memory` հաղորդագրությամբ։ `3` արժեքը (→ 2 worker) նույնպես չտեղավորվեց, երբ յուրաքանչյուր գործընթացի RSS-ը չափվեց ուղղակիորեն՝ ենթադրվելու փոխարեն։ `tests/unit/docker-build-memory-budget.test.ts`-ը հաշվարկները կատարում է չափված արժեքի հիման վրա և ձախողվում է, եթե կարգավորիչներից որևէ մեկը գերազանցում է runner-ի հնարավորությունները։
+`OMNIROUTE_BUILD_WORKERS`-ն այն արժեքն է, որը պետք է մեծացնել հզոր կառուցման միջավայրում, և որի վրա պետք է կասկածել, երբ սահմանափակ ռեսուրսներով կառուցումը խափանվում է **`✓ Compiled successfully`-ից հետո**։ Էջերի տվյալների յուրաքանչյուր worker առանձին պրոցես է, ինչպես նաև ծնող `next build`-ը։ VPS-ում կատարված իրական վերարտադրումը (խնդիր #7518) ցույց է տվել, որ յուրաքանչյուր պրոցեսի RSS-ի առավելագույն արժեքը մոտավորապես 4.5 GB է՝ անկախ `NODE_OPTIONS` կույտի դրոշակից (Turbopack-ը կոմպիլացնում է V8 կույտից դուրս գտնվող բնիկ/Rust հիշողության մեջ)։ Լռելյայն `2` արժեքը (→ 1 worker, ընդհանուր՝ 2 պրոցես) նախատեսված է 16 GB / 4 vCPU-ով GitHub-ի տրամադրած runner-ների համար, որոնք օգտագործվում են հրապարակման pipeline-ում։ `8`-ի դեպքում (→ 7 worker) այդ runner-ի հիշողությունը սպառվել է, և buildkit-ը ձախողել է քայլը՝ `ResourceExhausted: ... cannot allocate memory` հաղորդագրությամբ։ `3`-ը (→ 2 worker) նույնպես չի տեղավորվել, երբ յուրաքանչյուր պրոցեսի RSS-ը չափվել է ուղղակիորեն, այլ ոչ թե գնահատվել։ `tests/unit/docker-build-memory-budget.test.ts`-ը հաշվարկները կատարում է չափված արժեքի հիման վրա և ձախողվում է, եթե կարգավորիչներից որևէ մեկը գերազանցում է runner-ի հնարավորությունները։
 
-Turbopack-ը կոմպիլացնում է native Rust հիշողության մեջ, որը գտնվում է V8 heap-ից **դուրս**, ուստի `OMNIROUTE_BUILD_MEMORY_MB`-ը չի սահմանափակում այն։ Հիշողության սահմանաչափ ունեցող հոսթում կառուցման գործընթացն այնուհետև OOM killer-ի կողմից SIGKILL է ստանում՝ առանց որևէ սխալի տեքստի․ այն պարզապես կանգ է առնում `Creating an optimized production build`-ի ընթացքում, ինչը հիշողության սպառման փոխարեն նման է կախվածության։ Եթե կառուցման հոսթի ռեսուրսները սահմանափակ են, փոխեք bundler-ը․
+Turbopack-ը կոմպիլացնում է բնիկ Rust հիշողության մեջ, որը գտնվում է V8 կույտից **դուրս**, ուստի `OMNIROUTE_BUILD_MEMORY_MB`-ը չի սահմանափակում այն։ Հիշողության սահմանաչափ ունեցող հոսթի վրա OOM killer-ը կառուցման պրոցեսը SIGKILL-ով դադարեցնում է՝ ընդհանրապես առանց սխալի տեքստի․ այն պարզապես կանգ է առնում `Creating an optimized production build`-ի ընթացքում, ինչը ավելի շատ կախված վիճակ է հիշեցնում, քան հիշողության սպառում։ Եթե կառուցման հոսթի ռեսուրսները սահմանափակ են, փոխեք bundler-ը՝
 
 ```bash
 docker build --target runner-base \
@@ -269,41 +275,41 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker`-ը միացված է, ուստի `next build`-ը գործարկում է ծնող **և** worker գործընթաց, որոնցից յուրաքանչյուրը առանձին է պահպանում `OMNIROUTE_BUILD_MEMORY_MB`-ի սահմանաչափը։ Կոնտեյների սահմանաչափը սահմանեք այդ արժեքից մոտավորապես երկու անգամ բարձր, ոչ թե մեկ։
+`webpackBuildWorker`-ը միացված է, ուստի `next build`-ը գործարկում է ծնող **և** worker պրոցես, որոնցից յուրաքանչյուրն առանձին է պահպանում `OMNIROUTE_BUILD_MEMORY_MB`-ի սահմանաչափը։ Կոնտեյների սահմանաչափը սահմանեք այդ արժեքից մոտավորապես երկու անգամ բարձր, ոչ թե մեկ։
 
-Չափված է այս ծառի վրա (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`)․
+Չափվել է այս կոդային ծառի վրա (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`)՝
 
-| Bundler   | Կոնտեյների սահմանաչափ | Արդյունք                                          |
-| --------- | --------------------- | ------------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB        | Երկու դեպքում էլ լուռ դադարեցվել է OOM-ի պատճառով |
-| webpack   | 8 GiB                 | build worker-ը ստացել է SIGKILL                   |
-| webpack   | 12 GiB                | հաջողվել է, առավելագույնը՝ 11.1 GiB               |
+| Bundler   | Կոնտեյների սահմանաչափ | Արդյունք                                                            |
+| --------- | --------------------- | ------------------------------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB        | Երկու դեպքում էլ OOM-ի պատճառով դադարեցվել է՝ առանց հաղորդագրության |
+| webpack   | 8 GiB                 | build worker-ը դադարեցվել է SIGKILL-ով                              |
+| webpack   | 12 GiB                | հաջողվել է, առավելագույնը՝ 11.1 GiB                                 |
 
-### Գործարկման ժամանակի լռելյայն արժեքներ
+### Կատարման ժամանակի լռելյայն արժեքներ
 
 `runner-base`-ի արտահանած լռելյայն արժեքները՝ `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`։
 
-Հիշողության վարքագիծը Docker-ում․
+Հիշողության վարքագիծը Docker-ում՝
 
-- Պատկերը սահմանում է `OMNIROUTE_MEMORY_MB=1024` և դրանից ստանում `NODE_OPTIONS=--max-old-space-size=1024`։
-- Սերվերի փաստացի գործընթացը մեկնարկում է ինքնուրույն գործարկիչը, որը կարդում է `OMNIROUTE_MEMORY_MB`-ը և ավելացնում `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`։
+- Պատկերը սահմանում է `OMNIROUTE_MEMORY_MB=1024` և դրանից ստանում է `NODE_OPTIONS=--max-old-space-size=1024`։
+- Սերվերի իրական գործընթացը մեկնարկում է ինքնուրույն գործարկիչը, որը կարդում է `OMNIROUTE_MEMORY_MB`-ը և ավելացնում `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`։
 - Node-ն օգտագործում է կրկնվող `--max-old-space-size` պարամետրի վերջին արժեքը, ուստի `OMNIROUTE_MEMORY_MB`-ի սահմանումը վերահսկում է Docker-ի heap-ի արդյունավետ սահմանաչափը։
-- Քանի որ պատկերն այն միշտ սահմանում է, Docker-ում գործարկիչի՝ RAM-ի հիման վրա ճշգրտվող պահուստային տարբերակը երբեք չի կիրառվում։ Աշխատանքային ծանրաբեռնվածության համար հստակորեն մեծացրեք այն (տե՛ս ստորև բերված աղյուսակը)։ `2048`-ը դեռևս չափազանց փոքր է ծրագրավորող գործակալի `/v1/responses` հարցումների համար։
+- Քանի որ պատկերը միշտ սահմանում է այն, գործարկիչի՝ RAM-ի հիման վրա կարգավորվող պահուստային տարբերակը Docker-ում երբեք չի կիրառվում։ Աշխատանքային ծանրաբեռնվածության համար բացահայտորեն մեծացրեք այն (տե՛ս ստորև բերված աղյուսակը)։ `2048`-ը դեռևս չափազանց փոքր է կոդավորման գործակալների `/v1/responses` հարցումների համար։
 
-### Գործարկման ժամանակի RAM-ը ծրագրավորող գործակալների համար
+### Կոդավորման գործակալների աշխատանքի համար անհրաժեշտ RAM-ը
 
-Docker-ի լռելյայն 1 GiB-ը վահանակի/թեթև զրույցի նվազագույն շեմն է, ոչ թե արտադրական չափ։ Երկար `POST /v1/responses` մարմինները (հարյուրավոր հաղորդագրություններ, տասնյակ գործիքներ) սեղմման ընթացքում հիշողության մեջ պահում են տվյալների մի քանի գրաֆ։ Մոտավորապես 3 MiB / 750k-token ծավալով երկու համընկնող հարցում դադարեցրել են V8-ը **12 GiB** old-space-ի դեպքում (`FATAL ERROR: Reached heap limit`), ինչպես նաև հանգեցրել են 16 GiB cgroup-ի OOM-ի։ Տե՛ս [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)։
+Docker-ի լռելյայն 1 GiB-ը կառավարման վահանակի/թեթև զրույցի նվազագույն շեմն է, ոչ թե արտադրական միջավայրի համար նախատեսված չափը։ Երկար `POST /v1/responses` հարցումների մարմինները (հարյուրավոր հաղորդագրություններ, տասնյակ գործիքներ) սեղմման ընթացքում հիշողության մեջ պահում են մի քանի գրաֆներ։ Միմյանց համընկնող երկու՝ մոտավորապես 3 MiB / 750k-token ծավալով հարցումներ հանգեցրել են V8-ի աշխատանքի ընդհատմանը **12 GiB** old-space-ի դեպքում (`FATAL ERROR: Reached heap limit`), ինչպես նաև cgroup-ի OOM-ի՝ 16 GiB-ի դեպքում։ Տե՛ս [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)։
 
-Սահմանեք **cgroup-ի `--memory`-ն heap-ից բարձր**․ native buffer-ները, SQLite-ը և սեղմման միջանկյալ տվյալները գտնվում են V8-ից դուրս։
+Սահմանեք **cgroup-ի `--memory`-ն heap-ից բարձր**․ native բուֆերները, SQLite-ը և սեղմման միջանկյալ տվյալները գտնվում են V8-ից դուրս։
 
-| Աշխատաբեռնվածություն                          | `OMNIROUTE_MEMORY_MB`            | Կոնտեյներ / cgroup          | Նշումներ                                                                                                                                                                  |
-| --------------------------------------------- | -------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Վահանակ, մեկ թեթև զրույց                      | `1024` (պատկերի լռելյայն արժեքը) | ≥2 GiB                      |                                                                                                                                                                           |
-| Մեկ ծրագրավորման գործակալ (Claude/Codex/Grok) | `8192`                           | ≥10 GiB                     | Սովորական մեկ նստաշրջանով `/v1/responses`                                                                                                                                 |
-| Երկու միաժամանակյա երկարատև `/v1/responses`   | `10240`–`12288`                  | ≥12–16 GiB                  | Չափվել է V8-ի ընդհատում՝ մոտավորապես 12 GiB կույտի դեպքում                                                                                                                |
-| Երեքից ավելի միաժամանակյա երկար համատեքստեր   | մի օգտագործեք մեկ պրոցեսում      | հերթագրեք / ավելացրեք RAM-ը | Լռելյայնորեն ռեսուրսատար հարցումների համար թույլատրվում է ընթացքի մեջ գտնվող 1 հարցում․ առանց RAM-ն ավելացնելու այս սահմանաչափի բարձրացումը կրկին առաջացնում է ընդհատումը |
+| Աշխատանքային ծանրաբեռնվածություն              | `OMNIROUTE_MEMORY_MB`           | Կոնտեյներ / cgroup              | Նշումներ                                                                                                                                   |
+| --------------------------------------------- | ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Կառավարման վահանակ, մեկ թեթև զրույց           | `1024` (պատկերի լռելյայն արժեք) | ≥2 GiB                          |                                                                                                                                            |
+| Մեկ կոդավորման գործակալ (Claude/Codex/Grok)   | `8192`                          | ≥10 GiB                         | Սովորական մեկ նստաշրջանով `/v1/responses`                                                                                                  |
+| Երկու միաժամանակյա երկար `/v1/responses`      | `10240`–`12288`                 | ≥12–16 GiB                      | Չափվել է V8-ի ընդհատում՝ մոտ 12 GiB heap-ի դեպքում                                                                                         |
+| Երեք կամ ավելի միաժամանակյա երկար համատեքստեր | մի՛ գործարկեք մեկ գործընթացում  | հերթականացրեք / ավելացրեք RAM-ը | Լռելյայն ծանր հարցումների ընդունման սահմանաչափը միաժամանակ 1 հարցում է․ առանց RAM ավելացնելու այն բարձրացնելը կրկին հանգեցնում է ընդհատման |
 
-Եթե `OMNIROUTE_MEMORY_MB`-ը **սահմանված չէ**, ապա ֆիզիկական սերվերի վրա `omniroute serve`-ը հատկացնում է RAM-ի մոտ 35%-ը (սահմանափակված `[512, 4096]` միջակայքով)։ Docker-ը միշտ սահմանում է `1024`, ուստի պաշտոնական պատկերում այդ հաշվարկը երբեք չի կատարվում։
+Bare metal միջավայրում `omniroute serve`-ը կարգավորում է RAM-ի մոտ 35%-ը (սահմանափակված `[512, 4096]` միջակայքում), երբ `OMNIROUTE_MEMORY_MB`-ը **սահմանված չէ**։ Docker-ը միշտ սահմանում է `1024`, ուստի պաշտոնական պատկերի դեպքում այդ կարգավորումը երբեք չի կատարվում։
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -313,24 +319,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Կրիտիկական միջավայրի փոփոխականներ
 
-[ENVIRONMENT.md](../reference/ENVIRONMENT.md)-ում փաստաթղթավորված լռելյայն արժեքներից բացի՝ Docker-ի ներքո աշխատելիս առավել կարևոր են հետևյալ փոփոխականները.
+[ENVIRONMENT.md](../reference/ENVIRONMENT.md)-ում փաստաթղթավորված լռելյայն արժեքներից բացի՝ Docker-ի ներքո գործարկելիս առավել կարևոր են հետևյալ փոփոխականները.
 
-| Փոփոխական                     | Նպատակ                                                                                                                                                                                                                                                                                                                             | Լռելյայն արժեք                  |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket կամրջի ընդհանուր գաղտնիքը։ **Պարտադիր է արտադրական միջավայրում** — սահմանեք որպես ուժեղ պատահական տող։                                                                                                                                                                                                                   | սահմանված չէ (պետք է տրամադրվի) |
-| `REDIS_URL`                   | Արագության սահմանափակիչի / քեշի հետնամասի միացման տողը                                                                                                                                                                                                                                                                             | `redis://redis:6379`            |
-| `REDIS_PORT`                  | Հոսթային կողմի պորտը ներառված Redis կոնտեյների համար                                                                                                                                                                                                                                                                               | `6379`                          |
-| `REDIS_BIND_HOST`             | Հոսթի ինտերֆեյսը, որի վրա հրապարակվում է ներառված Redis-ի պորտը (հետադարձ կապի ինտերֆեյս, եթե չեք ավելացնում AUTH)                                                                                                                                                                                                                 | `127.0.0.1`                     |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Հոսթի ուղին, որը միացվում է `cli` պրոֆիլում՝ `/workspace/omniroute` հասցեով, ինքնաթարմացման աշխատանքային հոսքերի համար                                                                                                                                                                                                             | `.` (ընթացիկ գրացուցակ)         |
-| `OMNIROUTE_MEMORY_MB`         | Docker-ի ինքնուրույն սերվերի՝ գործարկման ժամանակ օգտագործվող Node-ի heap-ի վերին սահմանը. վերասահմանում է պատկերի վերը նշված լռելյայն արժեքը։ Ծրագրավորման գործակալների համար՝ `8192`+ (տե՛ս [գործարկման ժամանակի RAM-ը](#runtime-ram-for-coding-agents))։                                                                         | `1024`                          |
-| `DASHBOARD_PORT` / `API_PORT` | Վերասահմանում է կառավարման վահանակի (20128) և API-ի (20129) հրապարակված պորտերը                                                                                                                                                                                                                                                    | `20128` / `20129`               |
-| `APP_BIND_HOST`               | Հոսթի ինտերֆեյսը, որի վրա docker-compose-ը հրապարակում է կառավարման վահանակի/API-ի/ակտիվ WS-ի պորտերը։ `REQUIRE_API_KEY=false`-ի դեպքում (լռելյայն արժեքը) `0.0.0.0`-ը անանուն `/v1` պրոքսին հասանելի է դարձնում LAN-ին. ընդլայնեք հասանելիությունը միայն `REQUIRE_API_KEY=true`-ի կամ առջևում տեղադրված հակադարձ պրոքսիի դեպքում։ | `127.0.0.1`                     |
-| `CLIPROXY_BIND_HOST`          | Հոսթի ինտերֆեյսը, որի վրա docker-compose-ը հրապարակում է `cliproxyapi` կողմնակի կոնտեյները. դրա տվյալների հատորը պահում է մատակարարների հավատարմագրերը։                                                                                                                                                                            | `127.0.0.1`                     |
-| `OMNIROUTE_PLUGINS_DIR`       | Գրացուցակը, որը գործարկման միջավայրի փլագինների սկանավորիչը կարդում է և որտեղ տեղադրում է դրանք։ Սահմանեք այն, երբ փլագինները միացված են bind mount-ով. լռելյայն արժեքը հետևում է `HOME`-ին, որը պարտադիր չէ, որ պատկերը արտահանի։                                                                                                 | `~/.omniroute/plugins`          |
-| `OMNIROUTE_BASE_PATH`         | URL-ի ենթուղին, երբ հավելվածը հրապարակվում է հակադարձ պրոքսիի հետևում (օր.՝ `/omniroute`)                                                                                                                                                                                                                                          | _(դատարկ = արմատ)_              |
-| `NEXT_PUBLIC_BASE_URL`        | Բրաուզերի հանրային սկզբնաղբյուրը՝ ներառյալ ենթուղին (օր.՝ `https://host/omniroute`)                                                                                                                                                                                                                                                | սահմանված չէ                    |
-| `PROD_DASHBOARD_PORT`         | Հոսթային կողմի կառավարման վահանակի պորտը `docker-compose.prod.yml`-ի համար                                                                                                                                                                                                                                                         | `20130`                         |
-| `CLIPROXYAPI_PORT`            | Հոսթային կողմի պորտը `cliproxyapi` կողմնակի կոնտեյների համար                                                                                                                                                                                                                                                                       | `8317`                          |
+| Փոփոխական                     | Նպատակ                                                                                                                                                                                                                                                                                                                      | Լռելյայն արժեք                  |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket կամրջի համօգտագործվող գաղտնիք։ **Պարտադիր է արտադրական միջավայրում** — սահմանեք որպես ուժեղ պատահական տող։                                                                                                                                                                                                        | սահմանված չէ (պետք է տրամադրվի) |
+| `REDIS_URL`                   | Միացման տող՝ հարցումների հաճախականության սահմանափակիչի / քեշի սպասարկիչի համար                                                                                                                                                                                                                                              | `redis://redis:6379`            |
+| `REDIS_PORT`                  | Հոսթային պորտ՝ փաթեթում ներառված Redis կոնտեյների համար                                                                                                                                                                                                                                                                     | `6379`                          |
+| `REDIS_BIND_HOST`             | Հոսթի միջերեսը, որի վրա հրապարակվում է փաթեթում ներառված Redis-ի պորտը (հետադարձ կապի միջերես, եթե AUTH չեք ավելացրել)                                                                                                                                                                                                      | `127.0.0.1`                     |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Հոսթի ուղին, որը ինքնաթարմացման աշխատանքային հոսքերի համար միացվում է `cli` պրոֆիլին՝ `/workspace/omniroute` հասցեում                                                                                                                                                                                                       | `.` (ընթացիկ գրացուցակ)         |
+| `OMNIROUTE_MEMORY_MB`         | Node-ի կույտի՝ գործարկման ժամանակի վերին սահմանը Docker-ի ինքնուրույն սերվերի համար. փոխարինում է պատկերի՝ վերևում նշված լռելյայն արժեքը։ Ծրագրավորման գործակալների համար՝ `8192`+ (տես [գործարկման ժամանակի RAM-ը](#runtime-ram-for-coding-agents))։                                                                       | `1024`                          |
+| `DASHBOARD_PORT` / `API_PORT` | Փոխարինում է կառավարման վահանակի (20128) և API-ի (20129) հրապարակված պորտերը                                                                                                                                                                                                                                                | `20128` / `20129`               |
+| `APP_BIND_HOST`               | Հոսթի միջերեսը, որի վրա docker-compose-ը հրապարակում է կառավարման վահանակի/API-ի/ուղիղ WS-ի պորտերը։ `REQUIRE_API_KEY=false`-ի դեպքում (լռելյայն) `0.0.0.0`-ը անանուն `/v1` պրոքսին հասանելի է դարձնում LAN-ին. հասանելիությունն ընդլայնեք միայն `REQUIRE_API_KEY=true`-ի կամ առջևում հակադարձ պրոքսիի առկայության դեպքում։ | `127.0.0.1`                     |
+| `CLIPROXY_BIND_HOST`          | Հոսթի միջերեսը, որի վրա docker-compose-ը հրապարակում է `cliproxyapi` կողմնակի կոնտեյները. դրա տվյալների հատորը պահում է մատակարարների հավատարմագրերը։                                                                                                                                                                       | `127.0.0.1`                     |
+| `OMNIROUTE_PLUGINS_DIR`       | Գրացուցակը, որը կարդում է գործարկման միջավայրի փլագինների սկանավորիչը և որտեղ տեղադրում է դրանք։ Սահմանեք այն, երբ փլագինները միացված են bind mount-ի միջոցով. լռելյայն արժեքը հետևում է `HOME`-ին, որը պարտադիր չէ, որ պատկերը արտահանի։                                                                                   | `~/.omniroute/plugins`          |
+| `OMNIROUTE_BASE_PATH`         | URL-ի ենթաուղին, երբ հավելվածը հրապարակվում է հակադարձ պրոքսիի հետևում (օրինակ՝ `/omniroute`)                                                                                                                                                                                                                               | _(դատարկ = արմատ)_              |
+| `NEXT_PUBLIC_BASE_URL`        | Բրաուզերի հանրային սկզբնաղբյուրը՝ ներառյալ ենթաուղին (օրինակ՝ `https://host/omniroute`)                                                                                                                                                                                                                                     | սահմանված չէ                    |
+| `PROD_DASHBOARD_PORT`         | Կառավարման վահանակի հոսթային պորտը՝ `docker-compose.prod.yml`-ի համար                                                                                                                                                                                                                                                       | `20130`                         |
+| `CLIPROXYAPI_PORT`            | Հոսթային պորտ՝ `cliproxyapi` կողմնակի կոնտեյների համար                                                                                                                                                                                                                                                                      | `8317`                          |
 
 ## Հակադարձ պրոքսի ենթուղու վրա (Traefik / nginx)
 
@@ -462,36 +468,49 @@ Docker տեղակայումների կառավարման վահանակի աջա
 - Docker պատկերները ներառում են համակարգային CA արմատային հավաստագրերը և փոխանցում են դրանք կառավարվող `cloudflared`-ին, ինչը կանխում է TLS վստահության ձախողումները, երբ թունելը սկզբնավորվում է կոնտեյների ներսում։
 - Սահմանեք `CLOUDFLARED_BIN=/absolute/path/to/cloudflared`, եթե ցանկանում եք, որ OmniRoute-ն արդեն գոյություն ունեցող գործարկելի ֆայլ օգտագործի՝ այն ներբեռնելու փոխարեն։
 
-## Պատկերների պիտակներ
+## Պատկերների թեգեր
 
-| Պատկեր                   | Պիտակ    | Չափ    | Նկարագրություն                                                  |
+| Պատկեր                   | Թեգ      | Չափ    | Նկարագրություն                                                  |
 | ------------------------ | -------- | ------ | --------------------------------------------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Ամենաբարձր **հրապարակված** կայուն SemVer-ը (ոչ թե git `main`-ը) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps-ի համար ամրագրեք այս դասի պիտակը                         |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps-ի համար ամրագրեք այս դասի թեգը                           |
 
-Բազմահարթակ մանիֆեստ՝ բնիկ `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi)։ Docker-ն ավտոմատ ընտրում է համապատասխան ճարտարապետությունը․ փոխանցեք `--platform linux/amd64`, եթե ARM հոսթերում անհրաժեշտ է հարկադրաբար օգտագործել AMD64 էմուլյացիա։
+Բազմահարթակ մանիֆեստ՝ բնիկ `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi)։ Docker-ն ինքնաբերաբար ընտրում է համապատասխան ճարտարապետությունը․ փոխանցեք `--platform linux/amd64`, եթե ARM հոսթերում հարկավոր է հարկադրաբար օգտագործել AMD64 էմուլյացիա։
 
 ### Թողարկման ալիքներ
 
-OmniRoute-ը հրապարակում է առանձին Docker ալիքներ՝ կայուն թողարկումների, ակտիվ թողարկման ճյուղի փորձարկման և մշակման կառուցումների համար։
+OmniRoute-ը հրապարակում է Docker-ի առանձին ալիքներ՝ կայուն թողարկումների, ակտիվ թողարկման ճյուղի փորձարկման և մշակման կառուցվածքների համար։
 
-| Ալիք                            | Աղբյուր                                  | Փոփոխելիություն               | Առաջարկվող կիրառում                                                                                                                       |
-| ------------------------------- | ---------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Ստորագրված/տարբերակավորված թողարկում     | Անփոփոխ                       | Արտադրական տեղակայումներ, որոնք ամրագրում են ճշգրիտ թողարկումը                                                                            |
-| `:latest` / `:latest-web`       | Ամենաբարձր **հրապարակված** կայուն SemVer | Փոփոխելի կայուն ցուցիչ        | Հետևում է կայուն թողարկումներին SemVer հրապարակման առաջադրանքից **հետո**․ **չի** հետևում `main`-ին կամ չթողարկված `release/v*` կոմիթներին |
-| `:next` / `:next-web`           | Ընթացիկ լռելյայն `release/v*` ճյուղ      | Փոփոխելի նախաթողարկման ցուցիչ | Ակտիվ թողարկման ճյուղում ներառված, բայց դեռ կայուն թողարկման մաս չկազմող շտկումների փորձարկում                                            |
-| `:main` / `:main-web`           | `main` ճյուղ                             | Փոփոխելի մշակման ցուցիչ       | Միայն մշակման և ինտեգրման փորձարկումների համար                                                                                            |
+| Ալիք                            | Աղբյուր                                  | Փոփոխելիություն               | Առաջարկվող օգտագործում                                                                                                                  |
+| ------------------------------- | ---------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Ստորագրված/տարբերակավորված թողարկում     | Անփոփոխելի                    | Արտադրական տեղակայումներ, որոնք ամրագրում են ճշգրիտ թողարկումը                                                                          |
+| `:latest` / `:latest-web`       | Ամենաբարձր **հրապարակված** կայուն SemVer | Փոփոխելի կայուն ցուցիչ        | Հետևում է կայուն թողարկումներին SemVer-ի հրապարակման առաջադրանքից **հետո**․ չի հետևում `main`-ին կամ չթողարկված `release/v*` կոմիթներին |
+| `:next` / `:next-web`           | Ընթացիկ լռելյայն `release/v*` ճյուղ      | Փոփոխելի նախաթողարկման ցուցիչ | Ակտիվ թողարկման ճյուղում ներառված, բայց դեռ կայուն թողարկման մաս չդարձած ուղղումների փորձարկում                                         |
+| `:main` / `:main-web`           | `main` ճյուղ                             | Փոփոխելի մշակման ցուցիչ       | Միայն մշակման և ինտեգրման փորձարկումների համար                                                                                          |
+
+#### Վեբ-նստաշրջանի մատակարարներ՝ `-web` պատկերները
+
+Վերոնշյալ յուրաքանչյուր ալիք ունի նաև `-web` թեգ (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), որը կառուցվում է `runner-web` փուլից՝ նույն պատկերը՝ գումարած Playwright-ը և Chromium դիտարկիչը։ Սովորական պատկերը մատակարարվում է **առանց** Chromium-ի․ այն անհրաժեշտ է `gemini-web`, `claude-web` և `claude-turnstile` մատակարարներին։
+
+Խափանումը տեղի է ունենում ոչ թե մեկնարկի պահին, այլ ավելի ուշ․ այդ մատակարարները ցուցակում ներկայացնում են իրենց մոդելները և կառավարման վահանակում ցուցադրվում են որպես միացված, իսկ միայն առաջին հարցումն է ձախողվում հետևյալ հաղորդագրությամբ՝
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Եթե օգտագործում եք այդ մատակարարները, ներբեռնեք այն ալիքի `-web` թեգը, որն արդեն օգտագործում եք․ այլ բան չի փոխվում։ npm/CLI տեղադրման դեպքում (առանց Docker պատկերի) համարժեք բացակայող բաղադրիչը դիտարկիչի բինար ֆայլն է․ հոսթում գործարկեք `npx playwright install chromium`։
 
 #### Նախաթողարկման ալիքի օգտագործումը
 
-`next` ալիքը վերակառուցվում է ընթացիկ լռելյայն `release/v*` ճյուղի յուրաքանչյուր push-ի ժամանակ և հրապարակվում է ինչպես AMD64-ի, այնպես էլ ARM64-ի համար։ Ավելի հին սպասարկման ճյուղերը չեն կարող այն վերագրել։ Ալիքը տրամադրում է ներբեռնելի պատկեր այն շտկումների համար, որոնք միավորվել են ակտիվ թողարկման ճյուղում՝ նախքան հաջորդ կայուն պիտակի ստեղծումը։
+`next` ալիքը վերակառուցվում է ընթացիկ լռելյայն `release/v*` ճյուղ կատարվող յուրաքանչյուր push-ի ժամանակ և հրապարակվում է ինչպես AMD64-ի, այնպես էլ ARM64-ի համար։ Ավելի հին սպասարկման ճյուղերը չեն կարող վերագրել այն։ Ալիքը տրամադրում է ներբեռնելի պատկեր այն ուղղումների համար, որոնք մինչև հաջորդ կայուն թեգի ստեղծումը միավորվել են ակտիվ թողարկման ճյուղին։
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Docker Compose-ի դեպքում վերասահմանեք ընտրված պրոֆիլի կողմից օգտագործվող պատկերի պիտակը, ապա ներբեռնեք և վերաստեղծեք ծառայությունը․
+Docker Compose-ի համար վերագրեք ընտրված պրոֆիլի կողմից օգտագործվող պատկերի թեգը, ապա ներբեռնեք պատկերը և վերստեղծեք ծառայությունը․
 
 ```yaml
 services:
@@ -504,32 +523,32 @@ docker compose pull
 docker compose up -d
 ```
 
-#### Անվտանգություն և հետադարձ անցում
+#### Անվտանգություն և հետադարձում
 
-`next`-ը փոփոխական նախաթողարկման ալիք է։ Այն կարող է փոխվել ակտիվ թողարկման ճյուղ կատարված ցանկացած push-ի ժամանակ և **չի աջակցվում արտադրական օգտագործման համար**։ Որոշակի կառուցում գնահատելիս ամրագրեք պատկերի digest-ը․
+`next`-ը փոփոխական նախաթողարկման ալիք է։ Այն կարող է փոխվել ակտիվ թողարկման ճյուղ կատարվող ցանկացած push-ի ժամանակ և **չի աջակցվում արտադրական օգտագործման համար**։ Կոնկրետ կառուցվածքը գնահատելիս ամրագրեք պատկերի դայջեսթը․
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Թեստավորումից առաջ պահուստավորեք OmniRoute-ի տվյալների հատորը կամ bind-mount-ով կցված տվյալների գրացուցակը։ Նախորդ տարբերակին վերադառնալու համար վերականգնեք նախկինում օգտագործված կայուն տարբերակը կամ digest-ը և վերաստեղծեք կոնտեյները.
+Փորձարկումից առաջ պահուստավորեք OmniRoute-ի տվյալների հատորը կամ bind mount-ով միացված տվյալների գրացուցակը։ Հետադարձման համար վերականգնեք նախկինում օգտագործված կայուն տարբերակը կամ դայջեսթը և վերստեղծեք կոնտեյները․
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Թողարկման ճյուղի build-ը երբեք չի կարող տեղափոխել `latest`-ը. միայն համապատասխան կայուն semantic version-ը կարող է թարմացնել կայուն ցուցիչը։ `next` image-ները պահպանում են թողարկման image-ի ստուգումը և CRITICAL խոցելիությունների դեպքում արգելափակող շեմը։
+Թողարկման ճյուղի կառուցվածքը երբեք չի կարող տեղափոխել `latest`-ը․ կայուն ցուցիչը կարող է առաջ մղել միայն պահանջներին համապատասխանող կայուն իմաստաբանական տարբերակը։ `next` պատկերները պահպանում են թողարկման պատկերի ստուգումը և CRITICAL խոցելիությունների դեպքում արգելափակող անցակետը։
 
-**`latest`-ը git-ի արդիականության երաշխիք չէ։** `main`-ում կամ ակտիվ `release/v*` ճյուղում միավորված ուղղումները **չեն** հայտնվում `:latest`-ում, մինչև չհրապարակվի կայուն SemVer image, և հրապարակման job-ը չթարմացնի `:latest`-ը՝ դարձնելով այն նույն digest-ը, ինչ տվյալ SemVer-ը։ Եթե `latest`-ը կարծես սառեցված է, մինչդեռ GitHub-ում ուղղումն արդեն երևում է, ներբեռնեք `:next`-ը՝ թողարկման ճյուղը թեստավորելու համար, կամ սպասեք SemVer tag-ին։
+**`latest`-ը չի երաշխավորում git-ի հետ արդիականություն։** `main`-ում կամ ակտիվ `release/v*` ճյուղում միավորված ուղղումները **չեն** ներառվում `:latest`-ում, մինչև չհրապարակվի կայուն SemVer պատկեր և հրապարակման առաջադրանքը չառաջ մղի `:latest`-ը (նույն դայջեսթով, ինչ այդ SemVer-ը)։ Եթե `latest`-ը կարծես սառեցված է, մինչդեռ GitHub-ում ուղղումն արդեն տեսանելի է, ներբեռնեք `:next`-ը՝ թողարկման ճյուղը փորձարկելու համար, կամ սպասեք SemVer թեգին։
 
-| Ձեր նպատակը                                                                                      | Օգտագործեք                                 |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| GitOps / production, որը չպետք է շեղվի                                                           | Ամրագրեք `:X.Y.Z`-ը (կամ image-ի digest-ը) |
-| Հետևել հրապարակված կայուն տարբերակներին և ընդունել յուրաքանչյուր թողարկման ժամանակ վերաստեղծումը | `:latest`                                  |
-| Թեստավորել չթողարկված `release/v*` commit-ները                                                   | `:next` (ոչ production-ի համար)            |
-| Թեստավորել `main`-ը                                                                              | `:main` (ոչ production-ի համար)            |
+| Ձեր նպատակը                                                                                     | Օգտագործեք                                 |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| GitOps / արտադրական միջավայր, որը չպետք է ինքնաբերաբար փոխվի                                    | Ամրագրեք `:X.Y.Z`-ը (կամ պատկերի դայջեսթը) |
+| Հետևել հրապարակված կայուն տարբերակներին և ընդունել յուրաքանչյուր թողարկման ժամանակ վերստեղծումը | `:latest`                                  |
+| Փորձարկել չթողարկված `release/v*` կոմիթները                                                     | `:next` (ոչ արտադրական միջավայրի համար)    |
+| Փորձարկել `main`-ը                                                                              | `:main` (ոչ արտադրական միջավայրի համար)    |
 
 ## Հասանելիություն. լռելյայն SQLite-ը մեկ ռեպլիկայով է
 

@@ -1,0 +1,1 @@
+- **test(providers):** pin the opencode 400 model-unavailable catalog rule at registry level ([#14251](https://github.com/diegosouzapw/OmniRoute/pull/14251)) — thanks @maxmad64bis

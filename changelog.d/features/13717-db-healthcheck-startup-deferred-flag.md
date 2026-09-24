@@ -1,1 +1,0 @@
-- **feat(flags):** add `DB_HEALTHCHECK_STARTUP_DEFERRED_ENABLED` (default off) — opt-in deferral of the startup DB health/integrity check past process boot via `setImmediate`; off keeps the pre-#13717 behavior of blocking `getDbInstance()` until the check has already run (#13717).

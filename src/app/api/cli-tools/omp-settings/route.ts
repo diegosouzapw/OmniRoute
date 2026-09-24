@@ -38,6 +38,17 @@ const checkOmpInstalled = async () => {
           await fs.access(appDataPath);
           return true;
         } catch {}
+        try {
+          const binPath = path.join(os.homedir(), ".omp", "bin", "omp.exe");
+          await fs.access(binPath);
+          return true;
+        } catch {}
+      } else {
+        try {
+          const binPath = path.join(os.homedir(), ".omp", "bin", "omp");
+          await fs.access(binPath);
+          return true;
+        } catch {}
       }
       return false;
     }
@@ -125,7 +136,7 @@ export async function POST(request: Request) {
       api: "openai-completions",
       authHeader: true,
       disableStrictTools: true,
-      discovery: { type: "proxy" },
+      discovery: { type: "openai-models-list", injectV1: false },
     };
 
     await fs.writeFile(getOmpModelsYmlPath(), yamlDump(modelsYml, { lineWidth: -1 }), "utf-8");

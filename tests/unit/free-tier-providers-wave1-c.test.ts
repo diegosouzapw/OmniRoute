@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { llmKiwiProvider } from "../../open-sse/config/providers/registry/llm-kiwi/index.ts";
 import { llmgatewayProvider } from "../../open-sse/config/providers/registry/llmgateway/index.ts";
+import { lyceumProvider } from "../../open-sse/config/providers/registry/lyceum/index.ts";
 
 test("llmgateway uses a dynamic OpenAI-compatible Bearer API", () => {
   assert.equal(llmgatewayProvider.id, "llmgateway");
@@ -15,6 +16,19 @@ test("llmgateway uses a dynamic OpenAI-compatible Bearer API", () => {
   assert.equal(llmgatewayProvider.modelsUrl, "https://api.llmgateway.io/v1/models");
   assert.equal(llmgatewayProvider.passthroughModels, true);
   assert.deepEqual(llmgatewayProvider.models, []);
+});
+
+test("lyceum uses a dynamic OpenAI-compatible Bearer API", () => {
+  assert.equal(lyceumProvider.id, "lyceum");
+  assert.equal(lyceumProvider.alias, "lyceum");
+  assert.equal(lyceumProvider.format, "openai");
+  assert.equal(lyceumProvider.executor, "default");
+  assert.equal(lyceumProvider.authType, "apikey");
+  assert.equal(lyceumProvider.authHeader, "bearer");
+  assert.equal(lyceumProvider.baseUrl, "https://api.lyceum.technology/openai/v1/chat/completions");
+  assert.equal(lyceumProvider.modelsUrl, "https://api.lyceum.technology/openai/v1/models");
+  assert.equal(lyceumProvider.passthroughModels, true);
+  assert.deepEqual(lyceumProvider.models, []);
 });
 
 test("llm-kiwi seeds only its confirmed free models while retaining live discovery", () => {

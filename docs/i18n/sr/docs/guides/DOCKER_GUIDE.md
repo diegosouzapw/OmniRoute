@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Српски)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -26,6 +26,12 @@
 ---
 
 ## Брзо покретање
+
+> **Самостално хостовање једном командом?** Погледајте
+> [Водич за самостално хостовање](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (објављена слика +
+> Redis, само повратна петља, без избора профила). Брзо покретање у наставку
+> представља пут са једним контејнером за кориснике који већ покрећу Redis на другом месту.
 
 ```bash
 docker run -d \
@@ -59,28 +65,32 @@ docker run -d \
 # Основни профил (без CLI алата)
 docker compose --profile base up -d
 
-# CLI профил (уграђени Claude Code, Codex и OpenClaw)
+# CLI профил (уграђени Claude Code, Codex, OpenClaw)
 docker compose --profile cli up -d
 
-# Профил хоста (првенствено за Linux; монтира CLI бинарне датотеке хоста само за читање)
+# Профил домаћина (првенствено за Linux; монтира CLI бинарне датотеке домаћина само за читање)
 docker compose --profile host up -d
 
-# Комбинујте CLI и CLIProxyAPI пратећи контејнер
+# Веб-профил (Chromium/Playwright за добављаче веб-сесија)
+docker compose --profile web up -d
+
+# Комбиновање CLI профила и CLIProxyAPI пратећег контејнера
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Доступни профили
 
-OmniRoute се испоручује са четири Compose профила. Изаберите онај који одговара вашем окружењу.
+OmniRoute долази са Compose профилима за главне облике постављања. Изаберите онај који одговара вашем окружењу.
 
-| Профил                 | Услуга           | Када се користи                                                                                                                                            | Команда                                      |
-| ---------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (подразумевани) | `omniroute-base` | Сервер без графичког интерфејса / минимално окружење за извршавање, без укључених CLI алата добављача                                                      | `docker compose --profile base up -d`        |
-| `cli`                  | `omniroute-cli`  | Агентски токови рада који позивају `omniroute providers/setup/doctor` и уграђене CLI алате (Codex, Claude Code, Droid, OpenClaw)                           | `docker compose --profile cli up -d`         |
-| `host`                 | `omniroute-host` | Linux хостови којима је потребан приступ CLI алатима хоста налик на `network_mode`, монтирањем `~/.local/bin`, `~/.codex`, `~/.claude` итд. само за читање | `docker compose --profile host up -d`        |
-| `cliproxyapi`          | `cliproxyapi`    | Покрените пратећи контејнер [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) на порту `8317` ради проксирања ка надређеном CLI-ју               | `docker compose --profile cliproxyapi up -d` |
+| Профил                 | Сервис           | Када користити                                                                                                                                                    | Команда                                      |
+| ---------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (подразумевано) | `omniroute-base` | Сервер без графичког интерфејса / минимално окружење за извршавање, без укључених CLI алата добављача                                                             | `docker compose --profile base up -d`        |
+| `cli`                  | `omniroute-cli`  | Агентски токови рада који позивају `omniroute providers/setup/doctor` и укључене CLI алате (Codex, Claude Code, Droid, OpenClaw)                                  | `docker compose --profile cli up -d`         |
+| `host`                 | `omniroute-host` | Linux хостови којима је потребан приступ CLI алатима хоста сличан `network_mode` приступу, монтирањем `~/.local/bin`, `~/.codex`, `~/.claude` итд. само за читање | `docker compose --profile host up -d`        |
+| `cliproxyapi`          | `cliproxyapi`    | Покретање [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) помоћног контејнера на порту `8317` ради проксирања ка спољним CLI сервисима                | `docker compose --profile cliproxyapi up -d` |
+| `web`                  | `omniroute-web`  | Добављачи веб-сесија којима је потребан прегледач: `gemini-web`, `claude-web`, `claude-turnstile` (гради `runner-web`, Chromium је укључен)                       | `docker compose --profile web up -d`         |
 
-> Могуће је комбиновати више профила: `docker compose --profile cli --profile cliproxyapi up -d`.
+> Више профила се може комбиновати: `docker compose --profile cli --profile cliproxyapi up -d`.
 
 ## Конфигурисање CLI алата на хосту када OmniRoute ради у Docker-у
 
@@ -227,50 +237,52 @@ Produkcioni stek radi paralelno sa razvojnim compose okruženjem (različiti naz
 
 ## Фазе Dockerfile-а
 
-Репозиторијум садржи вишефазни Dockerfile (`Dockerfile`). Доступне су три фазе; изаберите одговарајући `target` за свој случај употребе.
+Репозиторијум садржи вишефазни Dockerfile (`Dockerfile`). Доступне су четири фазе; изаберите одговарајући `target` за свој случај употребе.
 
-| Фаза          | Основна слика         | Намена                                                                                                                                                                          |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Инсталира зависности (`npm ci --legacy-peer-deps`) и покреће `npm run build` (подразумевано Turbopack — погледајте Ресурси током изградње у наставку)                           |
-| `runner-base` | `node:26-trixie-slim` | Продукционо окружење за извршавање са самосталним Next.js излазом. **Не садржи CLI алате провајдера.**                                                                          |
-| `runner-cli`  | `runner-base`         | Додаје `git`, `docker.io`, `docker-compose` и глобалне CLI алате: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Изаберите ово за агентске токове рада.** |
+| Фаза          | Основна слика         | Намена                                                                                                                                                                                                                                                                                    |
+| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Инсталира зависности (`npm ci --legacy-peer-deps`) и покреће `npm run build` (подразумевано користи Turbopack — погледајте Ресурси током изградње у наставку)                                                                                                                             |
+| `runner-base` | `node:26-trixie-slim` | Продукционо окружење за извршавање са самосталним Next.js излазом. **Не садржи CLI алате добављача.**                                                                                                                                                                                     |
+| `runner-cli`  | `runner-base`         | Додаје `git`, `docker.io`, `docker-compose` и глобалне CLI алате: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Изаберите ово за агентске радне токове.**                                                                                                          |
+| `runner-web`  | `runner-base`         | Додаје Playwright + Chromium прегледач (`--with-deps`) за добављаче веб-сесија: `gemini-web`, `claude-web`, `claude-turnstile`. **Изаберите ово када користите те добављаче** — основна слика без тога отказује у тренутку захтева (погледајте напомену о `-web` у одељку Канали издања). |
 
 Ручно изградите одређени циљ:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Ресурси током изградње
 
-Три аргумента изградње контролишу захтеве фазе `builder`. Важе само током изградње —
-`OMNIROUTE_MEMORY_MB` (у наставку) је засебна поставка за време извршавања.
+Три аргумента изградње контролишу потрошњу ресурса фазе `builder`. Они важе само током изградње —
+`OMNIROUTE_MEMORY_MB` (испод) је засебно подешавање за време извршавања.
 
-| Аргумент изградње           | Подразумевано | Ефекат                                                                                                    |
-| --------------------------- | ------------- | --------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`           | Вредност `0` уместо тога користи webpack. Мања вршна потрошња меморије, али спорије.                      |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`        | Горња граница V8 гомиле (`--max-old-space-size`) за покренути `next build`.                               |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`           | Прослеђује вредност у `CIRCLE_NODE_TOTAL`; Next изводи `workers = N - 1` за прикупљање података страница. |
+| Аргумент изградње           | Подразумевано | Ефекат                                                                                                        |
+| --------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`           | Вредност `0` уместо тога изграђује помоћу webpack-а. Мања вршна потрошња меморије, али спорије.               |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`        | Горња граница V8 хипа (`--max-old-space-size`) за покренути `next build`.                                     |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`           | Прослеђује вредност у `CIRCLE_NODE_TOTAL`; Next изводи `workers = N - 1` за прикупљање података о страницама. |
 
-`OMNIROUTE_BUILD_WORKERS` треба повећати на моћном систему за изградњу, а на њега
-треба посумњати када ограничена изградња откаже **након** `✓ Compiled successfully`. Сваки
-радник за податке страница је засебан процес, као и сам родитељски процес `next build`;
+`OMNIROUTE_BUILD_WORKERS` је параметар који треба повећати на моћном систему за изградњу и на који
+треба посумњати када изградња са ограниченим ресурсима откаже **након** `✓ Compiled successfully`. Сваки
+радни процес за податке о страницама засебан је процес, као и сам надређени процес `next build`;
 репродукција на активном VPS-у (проблем #7518) измерила је вршни RSS сваког процеса на
-~4,5 GB, независно од заставице гомиле `NODE_OPTIONS` (Turbopack компајлира у
-нативној/Rust меморији изван V8 гомиле). Подразумевана вредност `2` (→ 1 радник, укупно 2
-процеса) прилагођена је GitHub хостованим извршиоцима са 16 GB / 4 vCPU које користи
-процес објављивања. При вредности `8` (→ 7 радника), тај извршилац је остао без меморије и
+~4.5 GB, независно од заставице хипа `NODE_OPTIONS` (Turbopack компајлира у
+изворној/Rust меморији ван V8 хипа). Подразумевана вредност `2` (→ 1 радни процес, укупно 2
+процеса) прилагођена је GitHub-овим хостованим извршиоцима са 16 GB / 4 vCPU које
+користи ток објављивања. При вредности `8` (→ 7 радних процеса) том извршиоцу је понестало меморије и
 buildkit је прекинуо корак грешком `ResourceExhausted: ... cannot allocate memory`;
-вредност `3` (→ 2 радника) и даље није могла да стане у меморију након што је RSS по процесу
-измерен директно уместо да буде процењен. `tests/unit/docker-build-memory-budget.test.ts`
-обавља прорачун на основу измерене вредности и не пролази ако било која од ове две поставке
-премаши могућности извршиоца.
+`3` (→ 2 радна процеса) и даље није могло да стане након што је RSS по процесу измерен
+директно уместо да буде процењен. `tests/unit/docker-build-memory-budget.test.ts`
+обавља прорачун на основу измерене вредности и отказује ако било које подешавање
+прерасте капацитет извршиоца.
 
-Turbopack компајлира у нативној Rust меморији која се налази **изван** V8 гомиле, па је
-`OMNIROUTE_BUILD_MEMORY_MB` не ограничава. На хосту са ограничењем меморије, OOM механизам
-за прекид процеса тада прекида изградњу сигналом SIGKILL без икаквог текста грешке — она се
-једноставно зауставља усред `Creating an optimized production build`, што делује као застој,
+Turbopack компајлира у изворној Rust меморији која се налази **ван** V8 хипа, па је
+`OMNIROUTE_BUILD_MEMORY_MB` не ограничава. На хосту са ограничењем меморије OOM механизам тада
+прекида изградњу сигналом SIGKILL без икаквог текста грешке — она се једноставно
+зауставља усред `Creating an optimized production build`, што делује као да је процес заглављен,
 а не као недостатак меморије. Ако хост за изградњу има ограничене ресурсе, промените алат за паковање:
 
 ```bash
@@ -279,19 +291,19 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` је омогућен, па `next build` покреће родитељски **и** раднички
-процес, а сваки засебно поштује `OMNIROUTE_BUILD_MEMORY_MB`. Поставите ограничење
-контејнера изнад приближно двоструке те вредности, а не само изнад једноструке.
+`webpackBuildWorker` је омогућен, па `next build` покреће надређени **и** радни
+процес, а сваки од њих засебно поштује `OMNIROUTE_BUILD_MEMORY_MB`. Подесите ограничење
+контејнера на приближно више од двоструке те вредности, а не само на једну њену вредност.
 
 Измерено на овом стаблу (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Алат за паковање | Ограничење контејнера | Резултат                                           |
-| ---------------- | --------------------- | -------------------------------------------------- |
-| Turbopack        | 8 GiB / 16 GiB        | OOM прекид при оба ограничења, без поруке          |
-| webpack          | 8 GiB                 | раднички процес изградње прекинут сигналом SIGKILL |
-| webpack          | 12 GiB                | успешно, вршна потрошња 11,1 GiB                   |
+| Алат за паковање | Ограничење контејнера | Резултат                                        |
+| ---------------- | --------------------- | ----------------------------------------------- |
+| Turbopack        | 8 GiB / 16 GiB        | OOM прекид при оба ограничења, без поруке       |
+| webpack          | 8 GiB                 | радни процес изградње прекинут сигналом SIGKILL |
+| webpack          | 12 GiB                | успешно, вршна потрошња од 11.1 GiB             |
 
-### Подразумеване поставке током извршавања
+### Подразумеване вредности током извршавања
 
 Подразумеване вредности које извози `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
@@ -299,23 +311,23 @@ docker build --target runner-base \
 
 - Слика поставља `OMNIROUTE_MEMORY_MB=1024` и из те вредности изводи `NODE_OPTIONS=--max-old-space-size=1024`.
 - Стварни серверски процес покреће самостални покретач, који чита `OMNIROUTE_MEMORY_MB` и додаје `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node користи последњу поновљену вредност `--max-old-space-size`, па постављање `OMNIROUTE_MEMORY_MB` контролише ефективно ограничење Docker гомиле.
-- Пошто је слика увек поставља, сопствена резервна вредност покретача, калибрисана према RAM-у, никада се не примењује у Docker-у. Изричито је повећајте за радно оптерећење (табела у наставку). `2048` је и даље премало за `/v1/responses` агента за програмирање.
+- Node користи последњу поновљену вредност `--max-old-space-size`, тако да постављање `OMNIROUTE_MEMORY_MB` контролише ефективно ограничење Docker хипа.
+- Пошто га слика увек поставља, сопствена резервна вредност покретача, калибрисана према RAM-у, никада се не примењује у Docker окружењу. Изричито је повећајте у складу са радним оптерећењем (табела испод). `2048` је и даље премало за `/v1/responses` агента за програмирање.
 
 ### RAM током извршавања за агенте за програмирање
 
-Подразумеваних 1 GiB у Docker-у представља минимум за контролну таблу и једноставно ћаскање, а не величину за продукцију. Дуга тела захтева `POST /v1/responses` (стотине порука, десетине алата) задржавају више графова у меморији током компресије. Два преклопљена захтева од ~3 MiB / ~750k токена прекинула су V8 са **12 GiB** старог простора (`FATAL ERROR: Reached heap limit`), а такође су изазвала OOM cgroup-е од 16 GiB. Погледајте [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Docker подразумевана вредност од 1 GiB представља минимум за контролну таблу и једноставна ћаскања, а не величину за продукционо окружење. Дуга тела захтева `POST /v1/responses` (стотине порука, десетине алата) током компресије задржавају више графова у меморији. Два преклапајућа захтева величине око 3 MiB / 750k токена изазвала су прекид V8 процеса са **12 GiB** old-space меморије (`FATAL ERROR: Reached heap limit`), а такође и OOM cgroup-е од 16 GiB. Погледајте [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Поставите **cgroup `--memory` изнад величине гомиле** — нативни бафери, SQLite и посредни подаци компресије налазе се изван V8.
+Подесите величину **cgroup `--memory` изнад величине хипа** — изворни бафери, SQLite и међурезултати компресије налазе се изван V8.
 
-| Радно оптерећење                             | `OMNIROUTE_MEMORY_MB`           | Контејнер / cgroup          | Напомене                                                                                                                  |
-| -------------------------------------------- | ------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Контролна табла, један лагани разговор       | `1024` (подразумевано за слику) | ≥2 GiB                      |                                                                                                                           |
-| Један агент за кодирање (Claude/Codex/Grok)  | `8192`                          | ≥10 GiB                     | Типична `/v1/responses`` сесија са једним захтевом                                                                        |
-| Два истовремена дуга `/v1/responses` захтева | `10240`–`12288`                 | ≥12–16 GiB                  | Забележено V8 прекидање при heap меморији од ~12 GiB                                                                      |
-| Три или више истовремених дугих контекста    | не покретати у једном процесу   | серијализовати / више RAM-а | Подразумевано је дозвољен 1 активан захтев са великим оптерећењем; повећање без додатног RAM-а поново доводи до прекидања |
+| Радно оптерећење                                | `OMNIROUTE_MEMORY_MB`         | Контејнер / cgroup          | Напомене                                                                                                         |
+| ----------------------------------------------- | ----------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Контролна табла, једно једноставно ћаскање      | `1024` (подразумевано сликом) | ≥2 GiB                      |                                                                                                                  |
+| Један агент за програмирање (Claude/Codex/Grok) | `8192`                        | ≥10 GiB                     | Типична појединачна сесија `/v1/responses`                                                                       |
+| Два истовремена дуга `/v1/responses` захтева    | `10240`–`12288`               | ≥12–16 GiB                  | Измерен прекид V8 процеса при хипу од око 12 GiB                                                                 |
+| Три или више истовремених дугих контекста       | не користити у једном процесу | серијализовати / више RAM-а | Подразумевано је дозвољен 1 активан захтев великог оптерећења; повећање без додатног RAM-а поново изазива прекид |
 
-Када `OMNIROUTE_MEMORY_MB` **није подешен**, `omniroute serve` на физичком серверу калибрише око 35% RAM-а (ограничено на `[512, 4096]`). Docker увек поставља вредност `1024`, па се та калибрација никада не извршава у званичној слици.
+`omniroute serve` на физичком серверу калибрише око 35% RAM-а (ограничено на `[512, 4096]`) када `OMNIROUTE_MEMORY_MB` **није постављен**. Docker увек поставља `1024`, тако да се та калибрација никада не извршава у званичној слици.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -325,24 +337,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Критичне променљиве окружења
 
-Поред подразумеваних вредности документованих у [ENVIRONMENT.md](../reference/ENVIRONMENT.md), следеће променљиве су најважније при покретању у Docker-у:
+Поред подразумеваних вредности документованих у [ENVIRONMENT.md](../reference/ENVIRONMENT.md), следеће променљиве су најважније при покретању под Docker-ом:
 
-| Променљива                    | Намена                                                                                                                                                                                                                                                                                    | Подразумевано                    |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Дељена тајна за WebSocket мост. **Обавезна у продукцији** — поставите снажан насумични низ знакова.                                                                                                                                                                                       | није постављено (мора се задати) |
-| `REDIS_URL`                   | Ниска за повезивање са позадинским системом за ограничавање брзине / кеширање                                                                                                                                                                                                             | `redis://redis:6379`             |
-| `REDIS_PORT`                  | Порт на страни хоста за приложени Redis контејнер                                                                                                                                                                                                                                         | `6379`                           |
-| `REDIS_BIND_HOST`             | Мрежни интерфејс хоста на којем се објављује приложени Redis порт (повратна петља осим ако не додате AUTH)                                                                                                                                                                                | `127.0.0.1`                      |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Путања на хосту која се монтира у профил `cli` на `/workspace/omniroute` за токове рада самосталног ажурирања                                                                                                                                                                             | `.` (тренутни директоријум)      |
-| `OMNIROUTE_MEMORY_MB`         | Горња граница Node хипа током извршавања за Docker самостални сервер; замењује горенаведену подразумевану вредност слике. Агенти за програмирање: `8192`+ (погледајте [RAM током извршавања](#runtime-ram-for-coding-agents)).                                                            | `1024`                           |
-| `DASHBOARD_PORT` / `API_PORT` | Замењује изложене портове за контролну таблу (20128) и API (20129)                                                                                                                                                                                                                        | `20128` / `20129`                |
-| `APP_BIND_HOST`               | Мрежни интерфејс хоста на којем docker-compose објављује портове контролне табле/API-ја/WS-а уживо. Са `REQUIRE_API_KEY=false` (подразумевано), `0.0.0.0` излаже анонимни `/v1` прокси локалној мрежи — проширите приступ само уз `REQUIRE_API_KEY=true` или реверзни прокси испред њега. | `127.0.0.1`                      |
-| `CLIPROXY_BIND_HOST`          | Мрежни интерфејс хоста на којем docker-compose објављује пратећи контејнер `cliproxyapi` — његов волумен података садржи акредитиве добављача.                                                                                                                                            | `127.0.0.1`                      |
-| `OMNIROUTE_PLUGINS_DIR`       | Директоријум који скенер додатака током извршавања чита и у који их инсталира. Поставите га када су додаци монтирани повезивањем: подразумевана вредност прати `HOME`, који слика не мора да извози.                                                                                      | `~/.omniroute/plugins`           |
-| `OMNIROUTE_BASE_PATH`         | URL потпутања када је апликација објављена иза реверзног проксија (нпр. `/omniroute`)                                                                                                                                                                                                     | _(празно = корен)_               |
-| `NEXT_PUBLIC_BASE_URL`        | Јавно порекло за прегледач, укључујући потпутању (нпр. `https://host/omniroute`)                                                                                                                                                                                                          | није постављено                  |
-| `PROD_DASHBOARD_PORT`         | Порт контролне табле на страни хоста за `docker-compose.prod.yml`                                                                                                                                                                                                                         | `20130`                          |
-| `CLIPROXYAPI_PORT`            | Порт на страни хоста за пратећи контејнер `cliproxyapi`                                                                                                                                                                                                                                   | `8317`                           |
+| Променљива                    | Намена                                                                                                                                                                                                                                                                                              | Подразумевана вредност        |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Дељена тајна за WebSocket мост. **Обавезна у продукцији** — подесите је на снажан насумични нис знакова.                                                                                                                                                                                            | није подешена (мора се унети) |
+| `REDIS_URL`                   | Нис за повезивање са позадинским системом за ограничавање брзине / кеширање                                                                                                                                                                                                                         | `redis://redis:6379`          |
+| `REDIS_PORT`                  | Порт на хосту за приложени Redis контејнер                                                                                                                                                                                                                                                          | `6379`                        |
+| `REDIS_BIND_HOST`             | Мрежни интерфејс хоста на којем се објављује приложени Redis порт (loopback, осим ако не додате AUTH)                                                                                                                                                                                               | `127.0.0.1`                   |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Путања на хосту која се монтира у `cli` профил на `/workspace/omniroute` за токове рада самосталног ажурирања                                                                                                                                                                                       | `.` (тренутни директоријум)   |
+| `OMNIROUTE_MEMORY_MB`         | Горња граница Node heap меморије током извршавања за Docker самостални сервер; замењује горенаведену подразумевану вредност слике. Агенти за програмирање: `8192`+ (погледајте [RAM током извршавања](#runtime-ram-for-coding-agents)).                                                             | `1024`                        |
+| `DASHBOARD_PORT` / `API_PORT` | Замена изложених портова за контролну таблу (20128) и API (20129)                                                                                                                                                                                                                                   | `20128` / `20129`             |
+| `APP_BIND_HOST`               | Мрежни интерфејс хоста на којем docker-compose објављује портове контролне табле/API-ја/live-WS-а. Са `REQUIRE_API_KEY=false` (подразумевано), `0.0.0.0` излаже анонимни `/v1` прокси локалној мрежи — проширите приступ само уз `REQUIRE_API_KEY=true` или ако је испред постављен обрнути прокси. | `127.0.0.1`                   |
+| `CLIPROXY_BIND_HOST`          | Мрежни интерфејс хоста на којем docker-compose објављује `cliproxyapi` sidecar — његов волумен података садржи акредитиве добављача.                                                                                                                                                                | `127.0.0.1`                   |
+| `OMNIROUTE_PLUGINS_DIR`       | Директоријум који скенер додатака током извршавања чита и у који инсталира додатке. Подесите га када су додаци bind-монтирани: подразумевана вредност прати `HOME`, који слика не мора да извози.                                                                                                   | `~/.omniroute/plugins`        |
+| `OMNIROUTE_BASE_PATH`         | URL потпутања када је апликација објављена иза обрнутог проксија (нпр. `/omniroute`)                                                                                                                                                                                                                | _(празно = корен)_            |
+| `NEXT_PUBLIC_BASE_URL`        | Јавно порекло за прегледач, укључујући потпутању (нпр. `https://host/omniroute`)                                                                                                                                                                                                                    | није подешена                 |
+| `PROD_DASHBOARD_PORT`         | Порт контролне табле на хосту за `docker-compose.prod.yml`                                                                                                                                                                                                                                          | `20130`                       |
+| `CLIPROXYAPI_PORT`            | Порт на хосту за `cliproxyapi` sidecar                                                                                                                                                                                                                                                              | `8317`                        |
 
 ## Реверзни прокси на потпутањи (Traefik / nginx)
 
@@ -477,31 +489,44 @@ Caddy поставља стандардна заглавља за прослеђ
 | Слика                    | Ознака   | Величина | Опис                                                          |
 | ------------------------ | -------- | -------- | ------------------------------------------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB   | Највиша **објављена** стабилна SemVer верзија (не git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB   | Фиксирајте ову врсту ознаке за GitOps                         |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB   | Фиксирајте ову класу ознаке за GitOps                         |
 
-Вишеплатформски манифест: изворни `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker аутоматски бира одговарајућу архитектуру; проследите `--platform linux/amd64` ако морате да принудно користите AMD64 емулацију на ARM домаћинима.
+Манифест за више платформи: изворни `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker аутоматски бира одговарајућу архитектуру; проследите `--platform linux/amd64` ако морате да наметнете AMD64 емулацију на ARM хостовима.
 
 ### Канали издања
 
 OmniRoute објављује засебне Docker канале за стабилна издања, тестирање активне гране издања и развојне верзије.
 
-| Канал                           | Извор                                         | Променљивост                          | Препоручена употреба                                                                                                  |
-| ------------------------------- | --------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Потписано/верзионисано издање                 | Непроменљиво                          | Продукционе примене које су фиксиране на тачно издање                                                                 |
-| `:latest` / `:latest-web`       | Највиша **објављена** стабилна SemVer верзија | Променљив стабилан показивач          | Прати стабилна издања **након** SemVer задатка објављивања — **не** прати `main` нити необјављене `release/v*` измене |
-| `:next` / `:next-web`           | Тренутна подразумевана грана `release/v*`     | Променљив показивач претходног издања | Тестирање исправки које су уврштене у активну грану издања, али још нису део стабилног издања                         |
-| `:main` / `:main-web`           | Грана `main`                                  | Променљив развојни показивач          | Само за развојно и интеграционо тестирање                                                                             |
+| Канал                           | Извор                                         | Променљивост                     | Препоручена употреба                                                                                                          |
+| ------------------------------- | --------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Потписано/верзионисано издање                 | Непроменљиво                     | Продукциона постављања која фиксирају тачно одређено издање                                                                   |
+| `:latest` / `:latest-web`       | Највиша **објављена** стабилна SemVer верзија | Променљиви стабилни показивач    | Прати стабилна издања **након** SemVer задатка објављивања — **не** прати `main` нити необјављене комитове гране `release/v*` |
+| `:next` / `:next-web`           | Тренутна подразумевана грана `release/v*`     | Променљиви предиздајни показивач | Тестирање исправки које су доспеле у активну грану издања, али још нису део стабилног издања                                  |
+| `:main` / `:main-web`           | Грана `main`                                  | Променљиви развојни показивач    | Само за развојно и интеграционо тестирање                                                                                     |
 
-#### Коришћење канала претходног издања
+#### Добављачи веб-сесија: `-web` слике
 
-Канал `next` се поново изграђује при сваком слању измена на тренутну подразумевану грану `release/v*` и објављује се и за AMD64 и за ARM64. Старије гране одржавања не могу да га препишу. Канал пружа слику која се може преузети и која садржи исправке спојене у активну грану издања пре него што се направи следећа стабилна ознака.
+Сваки од наведених канала доступан је и као `-web` ознака (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), направљена из фазе `runner-web` — иста слика уз додате Playwright и Chromium прегледач. Основна слика се испоручује **без** Chromium-а; `gemini-web`, `claude-web` и `claude-turnstile` га захтевају.
+
+До грешке не долази при покретању, већ накнадно: ови добављачи приказују своје моделе и у контролној табли изгледају као повезани, а тек први захтев не успева уз поруку
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Ако користите ове добављаче, преузмите `-web` ознаку канала који већ користите — ништа друго се не мења. Код npm/CLI инсталације (без Docker слике), еквивалентни део који недостаје јесте бинарна датотека прегледача: покрените `npx playwright install chromium` на хосту.
+
+#### Коришћење предиздајног канала
+
+Канал `next` се поново изграђује при сваком прослеђивању на тренутну подразумевану грану `release/v*` и објављује се и за AMD64 и за ARM64. Старије гране за одржавање не могу да га замене. Канал пружа слику која се може преузети и која садржи исправке спојене у активну грану издања пре него што буде направљена следећа стабилна ознака.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-За Docker Compose, замените ознаку слике коју користи изабрани профил, а затим преузмите слику и поново направите сервис:
+За Docker Compose замените ознаку слике коју користи изабрани профил, а затим преузмите слику и поново направите сервис:
 
 ```yaml
 services:
@@ -514,32 +539,32 @@ docker compose pull
 docker compose up -d
 ```
 
-#### Безбедност и враћање претходне верзије
+#### Безбедност и враћање на претходну верзију
 
-`next` је променљиви канал претходног издања. Може се променити при сваком слању измена на активну грану издања и **није подржан за продукциону употребу**. Фиксирајте сажетак слике док процењујете одређену верзију:
+`next` је променљиви предиздајни канал. Може се променити при сваком прослеђивању на активну грану издања и **није подржан за употребу у продукцији**. Фиксирајте сажетак слике док процењујете одређену верзију:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Pre testiranja, napravite rezervnu kopiju OmniRoute volumena podataka ili direktorijuma podataka montiranog pomoću bind opcije. Da biste se vratili na prethodnu verziju, vratite prethodno korišćenu stabilnu verziju ili digest i ponovo kreirajte kontejner:
+Пре тестирања направите резервну копију OmniRoute складишног волумена или монтираног директоријума са подацима. Да бисте се вратили на претходну верзију, вратите претходно коришћену стабилну верзију или сажетак и поново направите контејнер:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Build sa grane izdanja nikada ne može da pomeri `latest`; samo odgovarajuća stabilna semantička verzija može da ažurira pokazivač stabilne verzije. `next` slike zadržavaju proveru slike izdanja i blokirajući kontrolni mehanizam za CRITICAL ranjivosti.
+Верзија направљена из гране издања никада не може да помери `latest`; само одговарајућа стабилна семантичка верзија може да унапреди стабилни показивач. Слике канала `next` задржавају проверу слике издања и блокирајућу контролу КРИТИЧНИХ рањивости.
 
-**`latest` nije garancija aktuelnosti u odnosu na git.** Spojene ispravke na grani `main` ili aktivnoj grani `release/v*` **nisu** u `:latest` sve dok se ne objavi stabilna SemVer slika i zadatak objavljivanja ne ažurira `:latest` (isti digest kao taj SemVer). Ako deluje da je `latest` zamrznut, dok GitHub već prikazuje ispravku, preuzmite `:next` da biste testirali granu izdanja ili sačekajte SemVer oznaku.
+**`latest` није гаранција актуелности у односу на git.** Спојене исправке на грани `main` или активној грани `release/v*` **нису** део `:latest` све док стабилна SemVer слика не буде објављена и задатак објављивања не унапреди `:latest` (исти сажетак као та SemVer верзија). Ако `latest` делује замрзнуто иако GitHub већ приказује исправку, преузмите `:next` да бисте тестирали грану издања или сачекајте SemVer ознаку.
 
-| Želite                                                                                   | Koristite                              |
-| ---------------------------------------------------------------------------------------- | -------------------------------------- |
-| GitOps / produkciju koja ne sme da odstupa                                               | Fiksirajte `:X.Y.Z` (ili digest slike) |
-| Da pratite objavljene stabilne verzije i prihvatate ponovno kreiranje pri svakom izdanju | `:latest`                              |
-| Da testirate neobjavljene commit-e grane `release/v*`                                    | `:next` (nije za produkciju)           |
-| Da testirate `main`                                                                      | `:main` (nije za produkciju)           |
+| Шта желите                                                                            | Користите                               |
+| ------------------------------------------------------------------------------------- | --------------------------------------- |
+| GitOps / продукцију која не сме неочекивано да се мења                                | Фиксирајте `:X.Y.Z` (или сажетак слике) |
+| Да пратите објављене стабилне верзије и прихватате поновно прављење при сваком издању | `:latest`                               |
+| Да тестирате необјављене комитове гране `release/v*`                                  | `:next` (није за продукцију)            |
+| Да тестирате `main`                                                                   | `:main` (није за продукцију)            |
 
 ## Доступност: подразумевани SQLite има једну реплику
 

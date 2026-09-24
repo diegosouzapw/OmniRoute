@@ -470,6 +470,40 @@ function extractCall(
   return { name, arguments: toArgumentsString(argsValue) };
 }
 
+// ── DSML invoke-markup normalization ────────────────────────────────────────
+//
+// Some DeepSeek-web harness builds emit tool calls wrapped in a different, well-formed
+// grammar using doubled full-width-pipe "DSML" namespace markers with space-separated
+// structural words instead of the `<tool>`/`<tool_call>` vocabulary above:
+//   <｜｜DSML｜｜ calls> <｜｜DSML｜｜ invoke name="write">
+//     <｜｜DSML｜｜ parameter name="file_path" string="true">...</｜｜DSML｜｜ parameter>
+//   </｜｜DSML｜｜ invoke> </｜｜DSML｜｜ calls>
+// (see #14208). Neither TAG_TOKEN_RE above nor the generic single-pipe `dsmlToolCalls.ts`
+// normalizer recognize this double-pipe shape. Rather than teach every downstream consumer
+// this namespace, rewrite it into the canonical `<tool>`/`<parameter>` tags this file's own
+// tokenizer already understands (same pattern the `dsmlToolCalls.ts` module documents for
+// DeepSeek's single-pipe `<｜DSML｜:Tool>` shape), before tokenization runs.
+const DSML_INVOKE_OPEN_RE = /<[｜|]{1,2}DSML[｜|]{1,2}\s+(calls|invoke|parameter)([^>]*)>/gi;
+const DSML_INVOKE_CLOSE_RE = /<\/[｜|]{1,2}DSML[｜|]{1,2}\s+(calls|invoke|parameter)\s*>/gi;
+
+function normalizeDsmlInvokeMarkup(text: string): string {
+  if (!text.includes("DSML")) return text;
+
+  const withOpens = text.replace(DSML_INVOKE_OPEN_RE, (_full, word: string, attrs: string) => {
+    const tag = word.toLowerCase();
+    if (tag === "calls") return "";
+    const name = getAttr(attrs, "name");
+    const nameAttr = name !== null ? ` name="${name}"` : "";
+    return tag === "invoke" ? `<tool${nameAttr}>` : `<parameter${nameAttr}>`;
+  });
+
+  return withOpens.replace(DSML_INVOKE_CLOSE_RE, (_full, word: string) => {
+    const tag = word.toLowerCase();
+    if (tag === "calls") return "";
+    return tag === "invoke" ? "</tool>" : "</parameter>";
+  });
+}
+
 // ── Public parser ─────────────────────────────────────────────────────────────
 
 /**
@@ -487,6 +521,8 @@ export function parseDeepSeekToolCalls(
   if (typeof text !== "string" || text.length === 0) {
     return { content: text ?? "", toolCalls: null };
   }
+
+  text = normalizeDsmlInvokeMarkup(text);
 
   const tokens = tokenizeToolTags(text);
   if (tokens.length === 0) {

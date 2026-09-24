@@ -1028,3 +1028,22 @@ export function getHeaderIconProviderId(
   }
   return providerInfoId;
 }
+
+/**
+ * #4125: parse the free-text "Context Window Override" field. Blank → no override
+ * (`value: null`, not an error). A non-empty value must be a positive whole number of
+ * tokens; anything else is rejected.
+ *
+ * Lives here rather than in one section because #14337 gives synced/imported rows the
+ * same control: two copies of this rule would be two places for "blank clears" and
+ * "zero is invalid" to drift apart.
+ */
+export function parseContextWindowOverrideInput(raw: string): {
+  value: number | null;
+  invalid: boolean;
+} {
+  const trimmed = raw.trim();
+  if (!trimmed) return { value: null, invalid: false };
+  if (!/^\d+$/.test(trimmed) || Number(trimmed) <= 0) return { value: null, invalid: true };
+  return { value: Number(trimmed), invalid: false };
+}

@@ -1,0 +1,1 @@
+- fix(dashboard): fresh Docker installs no longer loop on the onboarding screen — a one-shot bootstrap token unblocks non-loopback local operators without treating the docker0 gateway as loopback (#14296)
