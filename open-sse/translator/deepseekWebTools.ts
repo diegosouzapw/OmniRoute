@@ -538,7 +538,7 @@ export function parseDeepSeekToolCalls(
       .replace(/<\/?(?:[｜|]{1,2})DSML(?:[｜|]{1,2})\s*(?:calls|tool_calls|function_calls)>/gi, "")
       .replace(/<(\/?)(?:(?:[｜|]{1,2})DSML(?:[｜|]{1,2})\s*)?invoke\b/gi, "<$1tool")
       .replace(/<(\/?)(?:(?:[｜|]{1,2})DSML(?:[｜|]{1,2})\s*)?parameter\b/gi, "<$1parameter")
-      .replace(/(}\s*)<\/(?:parameter|invoke|arguments|calls|tool_calls|function_calls)>/gi, "$1");
+      .replace(/(}\s*)<\/(?:parameter|invoke|calls|tool_calls|function_calls)>/gi, "$1");
 
     // If model emitted bare <parameter> tags without enclosing <tool> or <invoke>
     if (/<parameter\b/i.test(text) && !/<tool\b/i.test(text)) {
