@@ -5,11 +5,11 @@
 ---
 
 > **مصدر الحقيقة:** `src/server/authz/`، `src/shared/constants/publicApiRoutes.ts`، `src/lib/api/requireManagementAuth.ts`، `src/shared/utils/apiAuth.ts`
-> **آخر تحديث:** 2026-06-28 — v3.8.40
+> **آخر تحديث:** 2026-09-22 — تشير مساحات أسماء النطاقات إلى MCP-SERVER.md
 
-يحتوي OmniRoute على مسار معالجة للتفويض يراعي المسارات ويتحكم في كل طلب API. ويكون التصنيف **حتميًا** و**مغلقًا افتراضيًا عند الفشل** — فكل ما يتعذر تصنيفه ينتهي به المطاف ضمن `MANAGEMENT` ويتطلب جلسة أو رمزًا مميزًا بمستوى الإدارة. تشرح هذه الصفحة النموذج للمهندسين الذين يصونون المسارات أو يصممون نقاط نهاية جديدة.
+لدى OmniRoute مسار معالجة تخويل مُدرك للمسارات، يتحكم في كل طلب API. ويُعد التصنيف **حتميًا** و**مغلقًا عند الفشل** — فأي شيء يتعذر تصنيفه ينتهي به المطاف ضمن `MANAGEMENT` ويتطلب جلسة أو رمزًا مميزًا بمستوى الإدارة. تشرح هذه الصفحة النموذج للمهندسين الذين يتولون صيانة المسارات أو تصميم نقاط نهاية جديدة.
 
-![مسار معالجة AuthZ (3 فئات للمسارات + تقييم السياسة)](../diagrams/exported/authz-pipeline.svg)
+![مسار معالجة AuthZ (3 فئات للمسارات + تقييم السياسات)](../diagrams/exported/authz-pipeline.svg)
 
 > المصدر: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -202,26 +202,34 @@ export async function POST(request: Request) {
 
 ## النطاقات
 
-تحمل مفاتيح API مصفوفة `scopes` (تُخزَّن بصيغة JSON في `api_keys.scopes`، راجع `src/lib/db/apiKeys.ts`).
+ثلاثة مساحات أسماء. يقرأ كل مدقّق السلاسل النصية الخاصة به فقط. للمقارنة جنبًا إلى جنب، بما في ذلك سبب فشل `manage` في `scopeMatches` بالنسبة إلى `read:compression` وسبب عدم تمكّن رمز وصول ذي نطاق `read` من تنفيذ `PATCH /api/keys/{id}`، راجع
+[مساحات أسماء النطاقات الثلاث](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+تحمل مفاتيح API مصفوفة `scopes` (مخزّنة بصيغة JSON في `api_keys.scopes`، راجع `src/lib/db/apiKeys.ts`).
 
 ### نطاق الإدارة
 
-- `manage` / `admin` — يمنح المفتاح صلاحية الوصول إلى نقاط نهاية API الإدارية عند إرساله كرمز Bearer.
+- `manage` / `admin` — `hasManageScope`. وصول حامل الرمز إلى مسارات واجهة API الإدارية.
+- إن `mcp:connect` و`self:usage` و`self:account-quota` و
+  `policy:bypass-provider-quota` هي نطاقات تراكمية تعتمد على التطابق التام. وهي تقع
+  خارج `MANAGEMENT_API_KEY_SCOPES`. لا يتيح `mcp:connect` سوى
+  استثناء الوصول غير المحلي إلى `/api/mcp/`.
 
-### نطاقات MCP (`src/shared/constants/mcpScopes.ts`)
+### نطاقات أدوات MCP
 
-تتطلب كل أداة MCP نطاقات محددة عبر `MCP_TOOL_SCOPES`. القائمة الكاملة (`MCP_SCOPE_LIST`):
+دليل النطاقات وقواعد المطابقة (سلسلة نصية متطابقة، أو نطاق ممنوح ينتهي بـ `*`):
+[نطاقات أدوات MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+تمثّل `MCP_SCOPE_LIST` في `src/shared/constants/mcpScopes.ts` المجموعة الفرعية الأصلية
+ذات الأنواع المحددة، وليست الدليل الكامل. يجري الإنفاذ في
+`open-sse/mcp-server/scopeEnforcement.ts` بعد أن تحلّ `resolveCallerScopeContext()`
+النطاقات من معلومات مصادقة MCP أو بيانات الطلب الوصفية أو `OMNIROUTE_MCP_SCOPES`.
+ويظل معطّلًا ما لم تكن `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### نطاقات رموز الوصول
 
-يفرض التحقق من النطاقات في `open-sse/mcp-server/server.ts` قائمة نطاقات كل أداة من خلال تمريرها إلى
-`evaluateToolScopes()` بعد أن تحلّ `resolveCallerScopeContext()` النطاقات من معلومات مصادقة MCP،
-أو بيانات الطلب الوصفية، أو `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` على رموز `oma_live_…`، مرتبة بواسطة `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). ينطبق هذا الترتيب على بيانات اعتماد رمز الوصول
+فقط. راجع [مصادقة الإدارة](../guides/MANAGEMENT-AUTH.md).
 
 ## مفتاح تبديل اشتراط المصادقة
 
@@ -270,6 +278,6 @@ x-omniroute-auth-scopes:    قائمة مفصولة بفواصل
 ## انظر أيضًا
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — علامة المصادقة لكل نقطة نهاية
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — سجل تدقيق لأحداث المصادقة
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — تفاصيل فرض نطاقات MCP
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — سجل التدقيق لأحداث المصادقة
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — نطاقات الأذونات الثلاثة ودليل نطاقات أدوات MCP
 - المصدر: `src/server/authz/`، `src/lib/api/requireManagementAuth.ts`

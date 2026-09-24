@@ -268,11 +268,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — ഓപ്പൺ ഫ്രോണ്ടിയർ ഇന്റലിജൻസ് · 2.8T പാരാമീറ്ററുകൾ · 1M-ടോക്കൺ കോൺടെക്സ്റ്റ്"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — ഓപ്പൺ ഫ്രോണ്ടിയർ ഇൻ്റലിജൻസ് · 2.8T പാരാമീറ്ററുകൾ · 1M-ടോക്കൺ കോൺടെക്സ്റ്റ്"/>
   </a>
 </p>
 
-> **ഒരു ഓപ്പൺ സോഴ്സ് സുഹൃത്തായി ചേരാൻ ആഗ്രഹിക്കുന്നുണ്ടോ?** ഓപ്പൺ സോഴ്സിനെ പിന്തുണയ്ക്കുകയും OmniRoute-ന്റെ മുന്നോട്ടുള്ള പ്രയാണത്തിന് സഹായിക്കുകയും ചെയ്യുന്ന കമ്പനികളാണിവ — അവർ നൽകുന്ന ഓരോ ടോക്കണും എവിടെയാണ് ഉപയോഗിക്കുന്നതെന്ന് ഞങ്ങൾ പരസ്യമായി വ്യക്തമാക്കുകയും ചെയ്യുന്നു. ബന്ധപ്പെടുക: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **ഒരു ഓപ്പൺ സോഴ്സ് സുഹൃത്തായി ചേരാൻ താൽപ്പര്യമുണ്ടോ?** ഓപ്പൺ സോഴ്സിനെ പിന്തുണയ്ക്കുകയും OmniRoute മുന്നോട്ട് കൊണ്ടുപോകാൻ സഹായിക്കുകയും ചെയ്യുന്ന കമ്പനികളാണിവ — അവർ ഞങ്ങൾക്ക് നൽകുന്ന ഓരോ ടോക്കണും എവിടെയാണ് ഉപയോഗിക്കുന്നതെന്ന് ഞങ്ങൾ പരസ്യമായി പറയുന്നു. ബന്ധപ്പെടുക: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -280,60 +280,60 @@ curl http://localhost:20128/v1/chat/completions \
       <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcset="public/providers/kimi-logomark-dark.svg">
-          <img src="public/providers/kimi-logomark-light.svg" width="64" alt="Kimi (Moonshot AI)"/>
+          <img src="public/providers/kimi-logomark-light.svg" width="64" alt="കിമി (മൂൺഷോട്ട് AI)"/>
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
       <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="സ്ഥാപക ഓപ്പൺ സോഴ്സ് സുഹൃത്ത്"/>
     </td>
     <td>
-      ഈ പ്രോജക്റ്റിനെ പിന്തുണയ്ക്കുന്ന ഞങ്ങളുടെ സ്ഥാപക ഓപ്പൺ സോഴ്സ് സുഹൃത്തായ <b>Kimi (Moonshot AI)</b>-ക്ക് നന്ദി! ഓപ്പൺ-വെയ്റ്റ് K2, K3 മോഡൽ കുടുംബങ്ങൾക്ക് പിന്നിലുള്ള AI ലാബാണ് Kimi — ക്ലോസ്ഡ് മോഡലുകളുടെ വിലയുടെ ഒരു ചെറിയ വിഹിതത്തിൽ 1M-ടോക്കൺ കോൺടെക്സ്റ്റ് വിൻഡോയും നേറ്റീവ് വിഷനും ഫ്രോണ്ടിയർ നിലവാരത്തിലുള്ള കോഡിങ്ങും <b>Kimi K3</b> നൽകുന്നു; കൂടാതെ Claude Code, Codex എന്നിവയുമായും OmniRoute പിന്തുണയ്ക്കുന്ന എല്ലാ കോഡിങ് ടൂളുകളുമായും ഉടൻതന്നെ പ്രവർത്തിക്കുന്നു.
+      ഈ പ്രോജക്റ്റിനെ പിന്തുണച്ചതിന് ഞങ്ങളുടെ സ്ഥാപക ഓപ്പൺ സോഴ്സ് സുഹൃത്തായ <b>Kimi (Moonshot AI)</b>-ക്ക് നന്ദി! Kimi എന്നത് ഓപ്പൺ-വെയ്റ്റ് K2, K3 മോഡൽ കുടുംബങ്ങൾക്ക് പിന്നിലുള്ള AI ലാബാണ് — <b>Kimi K3</b> 1M-ടോക്കൺ കോൺടെക്സ്റ്റ് വിൻഡോ, നേറ്റീവ് വിഷൻ, ഫ്രോണ്ടിയർ-ലെവൽ കോഡിംഗ് എന്നിവ ക്ലോസ്ഡ്-മോഡൽ വിലയുടെ ഒരു അംശത്തിൽ നൽകുന്നു, കൂടാതെ Claude Code, Codex, OmniRoute നൽകുന്ന എല്ലാ കോഡിംഗ് ടൂളുകളോടും ഒപ്പം ഇത് പ്രവർത്തിക്കുന്നു.
       <br/><br/>
-      <b>Kimi-യുടെ പിന്തുണ സാധ്യമാക്കുന്നത്:</b> OmniRoute-ന്റെ AI-വാലിഡേറ്റഡ് റിലീസ് പൈപ്പ്ലൈനിന് Kimi-യുടെ API ക്രെഡിറ്റുകൾ കരുത്തേകുന്നു — ഓരോ പുൾ റിക്വസ്റ്റും പുറത്തിറങ്ങുന്നതിന് മുമ്പ് അവലോകനം ചെയ്യുന്ന <i>Kimi K3 നൽകുന്ന മർജ് വാലിഡേഷൻ</i> ഘട്ടത്തിനും ദൈനംദിന ഫീച്ചർ വികസനത്തിനും ഇത് ഉപയോഗിക്കുന്നു. ഫസ്റ്റ്-ക്ലാസ് Kimi പിന്തുണ രണ്ട് മാർഗങ്ങളിലും ലഭ്യമാണ്: നേരിട്ടുള്ള <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>), <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code കോഡിങ് പ്ലാൻ</a> (OAuth, API കീ) എന്നിവയിൽ. Kimi-യുടെ പിന്തുണാ പ്രോഗ്രാമിലെ ആദ്യത്തെ ബ്രസീലിയൻ ഓപ്പൺ സോഴ്സ് പ്രോജക്റ്റും OmniRoute ആണ്. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% അധിക ക്രെഡിറ്റുകളോടെ ഒരു Kimi API കീ നേടുക →</b></a>
+      <b>Kimi-യുടെ പിന്തുണ നൽകുന്നത്:</b> Kimi-യുടെ API ക്രെഡിറ്റുകൾ OmniRoute-ൻ്റെ AI-വാലിഡേറ്റഡ് റിലീസ് പൈപ്പ്ലൈനിന് ശക്തി നൽകുന്നു — ഓരോ പുൾ റിക്വസ്റ്റും ഷിപ്പ് ചെയ്യുന്നതിന് മുമ്പ് അവലോകനം ചെയ്യുന്ന <i>Kimi K3 നൽകുന്ന മെർജ് വാലിഡേഷൻ</i> ഘട്ടം — കൂടാതെ ദൈനംദിന ഫീച്ചർ വികസനവും. ഫസ്റ്റ്-ക്ലാസ് Kimi പിന്തുണ രണ്ട് രീതികളിലും ലഭ്യമാണ്: നേരിട്ടുള്ള <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>), <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code കോഡിംഗ് പ്ലാൻ</a> (OAuth, API കീ). Kimi-യുടെ സപ്പോർട്ട് പ്രോഗ്രാമിലെ ആദ്യത്തെ ബ്രസീലിയൻ ഓപ്പൺ സോഴ്സ് പ്രോജക്റ്റ് കൂടിയാണ് OmniRoute. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% അധിക ക്രെഡിറ്റുകളോടെ ഒരു Kimi API കീ നേടുക →</b></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="150">
       <a href="https://cheaperinference.com/?utm_source=omniroute">
-        <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
+        <img src="./public/providers/cli-generic.svg" width="64" alt="ചീപ്പർ ഇൻഫറൻസ്"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="ഓപ്പൺ സോഴ്സ് സുഹൃത്ത്"/>
     </td>
     <td>
-      ഈ പ്രോജക്റ്റിനെ പിന്തുണയ്ക്കുന്ന OmniRoute ഓപ്പൺ സോഴ്സ് സുഹൃത്തായ <b>Cheaper Inference</b>-ന് നന്ദി! Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok, MiniMax എന്നിവയുൾപ്പെടെ 42 ഫ്രോണ്ടിയർ മോഡലുകൾ ഒരൊറ്റ OpenAI-അനുയോജ്യ എൻഡ്പോയിന്റിലൂടെ പുനർവിൽക്കുന്ന, ചെലവിന്റെ അടിസ്ഥാനത്തിൽ റാങ്ക് ചെയ്ത ഗേറ്റ്വേയാണ് Cheaper Inference. മോഡൽ നിർമാതാവിന്റെ ലിസ്റ്റ് വിലയെക്കാൾ കൂടുതൽ ഒരിക്കലും ഈടാക്കാതെ, ഓരോ റിക്വസ്റ്റും യോഗ്യതയുള്ള ഏറ്റവും ചെലവുകുറഞ്ഞ ദാതാവിലേക്ക് ഇത് റൂട്ട് ചെയ്യുന്നു.
+      ഈ പ്രോജക്റ്റിനെ പിന്തുണച്ചതിന് OmniRoute ഓപ്പൺ സോഴ്സ് സുഹൃത്തായ <b>Cheaper Inference</b>-ന് നന്ദി! Cheaper Inference എന്നത് ഒരു കോസ്റ്റ്-റാങ്ക്ഡ് ഗേറ്റ്വേയാണ്, അത് 42 ഫ്രോണ്ടിയർ മോഡലുകൾ — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok, MiniMax — ഒരു OpenAI-അനുയോജ്യമായ എൻഡ്പോയിന്റിന് പിന്നിൽ റീസെൽ ചെയ്യുന്നു, ഓരോ അഭ്യർത്ഥനയും മോഡൽ നിർമ്മാതാവിൻ്റെ ലിസ്റ്റ് വിലയേക്കാൾ കൂടുതൽ ഈടാക്കാതെ ഏറ്റവും വിലകുറഞ്ഞ യോഗ്യതയുള്ള ദാതാവിലേക്ക് റൂട്ട് ചെയ്യുന്നു.
       <br/><br/>
-      <b>OmniRoute-ലെ ഫസ്റ്റ്-ക്ലാസ് പിന്തുണ:</b> Chat Completions, നേറ്റീവ് <code>/v1/responses</code> എൻഡ്പോയിന്റ്, വിഷൻ, ടൂൾ കോളിങ്, കൂടാതെ 3 ഇമേജ് മോഡലുകൾ (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, ഇവ <code>cheaperinference/&lt;model&gt;</code> ആയി ആക്സസ് ചെയ്യാം). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>ഒരു API കീ നേടുക →</b></a>
+      <b>OmniRoute-ലെ ഫസ്റ്റ്-ക്ലാസ് പിന്തുണ:</b> Chat Completions, നേറ്റീവ് <code>/v1/responses</code> എൻഡ്പോയിന്റ്, വിഷൻ, ടൂൾ കോളിംഗ്, 3 ഇമേജ് മോഡലുകൾ (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, <code>cheaperinference/&lt;model&gt;</code> ആയി ലഭ്യമാണ്). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>ഒരു API കീ നേടുക →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> എന്ന് ടാഗ് ചെയ്തിരിക്കുന്ന ലിങ്കുകൾ പങ്കാളി ലിങ്കുകളാണ്. നിങ്ങൾക്ക് അധിക ചെലവൊന്നുമില്ലാതെ അവ ഈ പ്രോജക്റ്റിന് ധനസഹായം നൽകുന്നു.</sub>
+<sub><code>aff=omniroute</code> എന്ന് ടാഗ് ചെയ്ത ലിങ്കുകൾ പങ്കാളി ലിങ്കുകളാണ്. നിങ്ങൾക്ക് അധിക ചിലവില്ലാതെ അവ പ്രോജക്റ്റിന് ധനസഹായം നൽകുന്നു.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ അഫിലിയേറ്റ് പ്രമോഷൻ</b> — ഞങ്ങൾ സ്പോൺസർ ചെയ്യാത്ത ദാതാക്കളിൽ നിന്നുള്ള സൗജന്യ സൈൻഅപ്പ് കൂപ്പണുകൾ (വിപുലീകരിക്കാൻ ക്ലിക്ക് ചെയ്യുക)</sub></summary>
+<summary><sub><b>🎟️ അഫിലിയേറ്റ് പ്രൊമോ</b> — ഞങ്ങൾ സ്പോൺസർ ചെയ്യാത്ത ദാതാക്കളിൽ നിന്നുള്ള സൗജന്യ സൈൻഅപ്പ് കൂപ്പണുകൾ (വികസിപ്പിക്കാൻ ക്ലിക്ക് ചെയ്യുക)</sub></summary>
 
-<sub><i>ഈ വിഭാഗം റഫറൽ/കൂപ്പൺ കോഡുകൾക്കായി മാത്രമുള്ളതാണ്. സ്പോൺസർ ചെയ്ത പങ്കാളിത്തങ്ങൾ മുകളിലെ <b>🤝 ഞങ്ങളുടെ ഓപ്പൺ സോഴ്സ് സുഹൃത്തുക്കളുടെ പിന്തുണയോടെ</b> എന്ന വിഭാഗത്തിലാണ്. ഇവിടെ പട്ടികപ്പെടുത്തിയിട്ടുള്ള ദാതാക്കളുമായി OmniRoute-ന് സ്പോൺസർഷിപ്പോ പങ്കാളിത്തമോ ഇല്ല — ആർക്കും ഉപയോഗിക്കാവുന്ന പൊതു കൂപ്പണുകളാണിവ.</i></sub>
+<sub><i>ഈ വിഭാഗം റഫറൽ/കൂപ്പൺ കോഡുകൾക്ക് മാത്രമുള്ളതാണ്. സ്പോൺസർ ചെയ്ത പങ്കാളിത്തങ്ങൾ മുകളിലുള്ള <b>🤝 ഞങ്ങളുടെ ഓപ്പൺ സോഴ്സ് സുഹൃത്തുക്കളുടെ പിന്തുണയോടെ</b> എന്ന വിഭാഗത്തിൽ കാണാം. OmniRoute-ന് ഇവിടെ ലിസ്റ്റ് ചെയ്തിട്ടുള്ള ദാതാക്കളുമായി സ്പോൺസർഷിപ്പോ പങ്കാളിത്തമോ ഇല്ല — ഇവ ആർക്കും ഉപയോഗിക്കാവുന്ന പൊതു കൂപ്പണുകളാണ്.</i></sub>
 
 <table>
   <tr>
     <td align="center" width="120">
       <a href="https://agentrouter.org/register?aff=70LM">
-        <img src="./public/providers/cli-generic.svg" width="32" alt="AgentRouter"/>
+        <img src="./public/providers/cli-generic.svg" width="32" alt="ഏജൻ്റ്റൂട്ടർ"/>
       </a>
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — അഫിലിയേറ്റ് സൈൻഅപ്പ് · സൈൻഅപ്പ് ചെയ്യുമ്പോൾ <b>$100 സൗജന്യ ക്രെഡിറ്റുകൾ</b> (സൗജന്യ സെർവർ, കൂടുതൽ ലേറ്റൻസി പ്രതീക്ഷിക്കാം — പ്രൊഡക്ഷനേക്കാൾ ടെസ്റ്റിങ്ങിന് അനുയോജ്യം). <b>v3.8.50</b> മുതൽ OmniRoute-ൽ ഫസ്റ്റ്-ക്ലാസ് പിന്തുണ ലഭ്യമാണ്: Chat Completions, Anthropic-അനുയോജ്യമായ വയർ ഫോർമാറ്റ്, OpenAI-അനുയോജ്യമായ പാത്ത് എന്നിവ. ലഭ്യമായ മോഡലുകളിൽ <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> എന്നിവയും മറ്റുള്ളവയും ഉൾപ്പെടുന്നു. <b><a href="https://agentrouter.org/register?aff=70LM">നിങ്ങളുടെ $100 നേടുക →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — അഫിലിയേറ്റ് സൈൻഅപ്പ് · സൈൻഅപ്പ് ചെയ്യുമ്പോൾ <b>$100 സൗജന്യ ക്രെഡിറ്റുകൾ</b> (സൗജന്യ സെർവർ, ഉയർന്ന ലേറ്റൻസി പ്രതീക്ഷിക്കുക — ടെസ്റ്റിംഗിന് ഏറ്റവും മികച്ചത്, പ്രൊഡക്ഷന് അല്ല). <b>v3.8.50</b> മുതൽ OmniRoute-ൽ ഫസ്റ്റ്-ക്ലാസ് പിന്തുണ: Chat Completions, Anthropic-അനുയോജ്യമായ വയർ ഫോർമാറ്റ്, OpenAI-അനുയോജ്യമായ പാത. ലഭ്യമായ മോഡലുകളിൽ <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> എന്നിവയും അതിലേറെയും ഉൾപ്പെടുന്നു. <b><a href="https://agentrouter.org/register?aff=70LM">നിങ്ങളുടെ $100 നേടുക →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>അഫിലിയേറ്റ് ലിങ്ക് — ഈ ദാതാവുമായി OmniRoute-ന് സ്പോൺസർഷിപ്പോ പങ്കാളിത്തമോ ഇല്ല.</i></sub>
+      <sub>⚠️ <i>അഫിലിയേറ്റ് ലിങ്ക് — OmniRoute-ന് ഈ ദാതാവുമായി സ്പോൺസർഷിപ്പോ പങ്കാളിത്തമോ ഇല്ല.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>OmniRoute ഉപയോക്താക്കൾക്ക് പ്രയോജനപ്പെടുന്ന ഉദാരമായ സൗജന്യ സൈൻഅപ്പ് കൂപ്പൺ നൽകുന്ന മറ്റൊരു ദാതാവിനെ അറിയാമോ? ഒരു ഇഷ്യൂ തുറക്കൂ, ഞങ്ങൾ അത് ഇവിടെ ചേർക്കാം.</sub>
+<sub>OmniRoute ഉപയോക്താക്കൾക്ക് പ്രയോജനം ചെയ്യുന്ന ഉദാരമായ സൗജന്യ സൈൻഅപ്പ് കൂപ്പണുകളുള്ള മറ്റൊരു ദാതാവിനെ അറിയാമോ? ഒരു ഇഷ്യൂ തുറക്കുക, ഞങ്ങൾ അത് ഇവിടെ ചേർക്കും.</sub>
 
 </details>
 
@@ -1262,24 +1262,24 @@ port-ൽ ഒരേ process വഴിയാണ് ലഭ്യമാക്കു�
 </div>
 
 <table>
-  <tr><th align="left">ലെയർ</th><th align="left">സാങ്കേതികവിദ്യ</th></tr>
+  <tr><th align="left">പാളി</th><th align="left">സാങ്കേതികവിദ്യ</th></tr>
   <tr><td nowrap><b>റൺടൈം</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ഭാഷ</b></td><td>TypeScript 6.0 — <code>src/</code>, <code>open-sse/</code> എന്നിവയിലുടനീളം <b>100% TypeScript</b> (v2.0 മുതൽ കോറിൽ <code>any</code> ഒട്ടുമില്ല)</td></tr>
+  <tr><td nowrap><b>ഭാഷ</b></td><td>TypeScript 6.0 — `src/` ലും `open-sse/` ലും **100% ടൈപ്പ്സ്ക്രിപ്റ്റ്** (v2.0 മുതൽ കോറിൽ `any` ഇല്ല)</td></tr>
   <tr><td nowrap><b>ഫ്രെയിംവർക്ക്</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ഡാറ്റാബേസ്</b></td><td>better-sqlite3 (SQLite, WAL ജേണലിങ്) + LowDB (JSON ലെഗസി) — 122 ഡൊമെയ്ൻ മൊഡ്യൂളുകൾ, 178 മൈഗ്രേഷനുകൾ</td></tr>
-  <tr><td nowrap><b>മെമ്മറി</b></td><td>SQLite FTS5 പൂർണ്ണ-ടെക്സ്റ്റ് + int8-ക്വാണ്ടൈസ്ഡ് വെക്റ്റർ എംബെഡ്ഡിങ്ങുകൾ, ടൈപ്പ് ചെയ്ത ഡികേ</td></tr>
-  <tr><td nowrap><b>സ്കീമകൾ</b></td><td>Zod 4 — MCP ടൂൾ I/O സാധൂകരണം + API കരാറുകൾ</td></tr>
+  <tr><td nowrap><b>ഡാറ്റാബേസ്</b></td><td>better-sqlite3 (SQLite, WAL ജേർണലിംഗ്) + LowDB (JSON ലെഗസി) — 122 ഡൊമെയ്ൻ മൊഡ്യൂളുകൾ, 182 മൈഗ്രേഷനുകൾ</td></tr>
+  <tr><td nowrap><b>മെമ്മറി</b></td><td>SQLite FTS5 പൂർണ്ണ ടെക്സ്റ്റ് + int8-ക്വാണ്ടൈസ്ഡ് വെക്റ്റർ എംബഡിംഗുകൾ, ടൈപ്പ്ഡ് ഡികെ</td></tr>
+  <tr><td nowrap><b>സ്കീമകൾ</b></td><td>Zod 4 — MCP ടൂൾ I/O വാലിഡേഷൻ + API കരാറുകൾ</td></tr>
   <tr><td nowrap><b>പ്രോട്ടോക്കോളുകൾ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>സ്ട്രീമിങ്</b></td><td>Server-Sent Events (SSE) + WebSocket ബ്രിഡ്ജ് (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>കംപ്രഷൻ</b></td><td>12-എൻജിൻ പൈപ്പ്ലൈൻ — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>ഓതന്റിക്കേഷനും സുരക്ഷയും</b></td><td>OAuth 2.0 (PKCE) + JWT + API കീകൾ + MCP സ്കോപ്പ് ചെയ്ത ഓതന്റിക്കേഷൻ · സംഭരണാവസ്ഥയിൽ AES-256-GCM എൻക്രിപ്ഷൻ · DOMPurify</td></tr>
-  <tr><td nowrap><b>സ്റ്റെൽത്ത്</b></td><td>wreq-js — JA3 / JA4 TLS ഫിംഗർപ്രിന്റ് അനുകരണം, 3-തല പ്രോക്സി</td></tr>
-  <tr><td nowrap><b>പ്രതിരോധശേഷി</b></td><td>സർക്യൂട്ട് ബ്രേക്കർ, എക്സ്പോണൻഷ്യൽ ബാക്ക്ഓഫ്, ആന്റി-തണ്ടറിങ്-ഹേർഡ്, ഓട്ടോ-കോംബോ സ്വയം-പുനഃസ്ഥാപനം</td></tr>
-  <tr><td nowrap><b>ലോഗിങ്</b></td><td>pino — അഭ്യർത്ഥനാ സന്ദർഭത്തോടുകൂടിയ ഘടനാബദ്ധമായ JSON ലോഗുകൾ</td></tr>
-  <tr><td nowrap><b>ടെസ്റ്റിങ്</b></td><td>Node.js ടെസ്റ്റ് റണ്ണർ + Vitest — ട്രാക്ക് ചെയ്യുന്ന 5,100+ ടെസ്റ്റ് ഫയലുകളിലായി <b>39,000+ സ്റ്റാറ്റിക് ടെസ്റ്റ് ഡിക്ലറേഷനുകൾ</b> (യൂണിറ്റ്, ഇന്റഗ്രേഷൻ, E2E, സുരക്ഷ, ഇക്കോസിസ്റ്റം)</td></tr>
-  <tr><td nowrap><b>പ്ലാറ്റ്ഫോമുകൾ</b></td><td>ഡെസ്ക്ടോപ്പ് (Electron) · Android (Termux) · PWA (ഏത് ബ്രൗസറിലും)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — റിലീസ് ചെയ്യുമ്പോൾ സ്വയമേവ npm പ്രസിദ്ധീകരണവും Docker Hub പ്രസിദ്ധീകരണവും</td></tr>
-  <tr><td nowrap><b>ലിങ്കുകൾ</b></td><td><a href="https://omniroute.online">വെബ്സൈറ്റ്</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>സ്ട്രീമിംഗ്</b></td><td>സെർവർ-സെന്റ് ഇവന്റുകൾ (SSE) + വെബ്സോക്കറ്റ് ബ്രിഡ്ജ് (`/v1/ws`)</td></tr>
+  <tr><td nowrap><b>കംപ്രഷൻ</b></td><td>12-എഞ്ചിൻ പൈപ്പ്ലൈൻ — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>ഓതന്റിക്കേഷൻ & സുരക്ഷ</b></td><td>OAuth 2.0 (PKCE) + JWT + API കീകൾ + MCP സ്കോപ്പ്ഡ് ഓതന്റിക്കേഷൻ · AES-256-GCM അറ്റ് റെസ്റ്റ് · DOMPurify</td></tr>
+  <tr><td nowrap><b>സ്റ്റെൽത്ത്</b></td><td>wreq-js — JA3 / JA4 TLS ഫിംഗർപ്രിന്റ് ഇംപേഴ്സണേഷൻ, 3-ലെവൽ പ്രോക്സി</td></tr>
+  <tr><td nowrap><b>പ്രതിരോധശേഷി</b></td><td>സർക്യൂട്ട് ബ്രേക്കർ, എക്സ്പോണൻഷ്യൽ ബാക്ക്ഓഫ്, ആന്റി-തണ്ടറിംഗ്-ഹെർഡ്, ഓട്ടോ-കോംബോ സെൽഫ്-ഹീലിംഗ്</td></tr>
+  <tr><td nowrap><b>ലോഗിംഗ്</b></td><td>pino — അഭ്യർത്ഥന സന്ദർഭവുമായി ഘടനാപരമായ JSON ലോഗുകൾ</td></tr>
+  <tr><td nowrap><b>ടെസ്റ്റിംഗ്</b></td><td>Node.js ടെസ്റ്റ് റണ്ണർ + Vitest — 5,100+ ട്രാക്ക് ചെയ്ത ടെസ്റ്റ് ഫയലുകളിലായി (യൂണിറ്റ്, ഇൻ്റഗ്രേഷൻ, E2E, സുരക്ഷ, ഇക്കോസിസ്റ്റം) **39,000+ സ്റ്റാറ്റിക് ടെസ്റ്റ് ഡിക്ലറേഷനുകൾ**</td></tr>
+  <tr><td nowrap><b>പ്ലാറ്റ്ഫോമുകൾ</b></td><td>ഡെസ്ക്ടോപ്പ് (ഇലക്ട്രോൺ) · ആൻഡ്രോയിഡ് (ടെർമക്സ്) · PWA (ഏത് ബ്രൗസറും)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — റിലീസിൽ ഓട്ടോ npm പബ്ലിഷ് + ഡോക്കർ ഹബ്</td></tr>
+  <tr><td nowrap><b>ലിങ്കുകൾ</b></td><td><a href="https://omniroute.online">വെബ്സൈറ്റ്</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">ഡോക്കർ ഹബ്</a></td></tr>
 </table>
 
 <div align="center">
@@ -1595,7 +1595,7 @@ gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
 
 <div align="center">
 
-## 🌍 StarMapper
+## 🌍 സ്റ്റാർമാപ്പർ
 
 <a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
   <picture>

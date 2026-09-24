@@ -9,7 +9,6 @@ import { ollama_cloudProvider } from "./registry/ollama-cloud/index.ts";
 import { syntheticProvider } from "./registry/synthetic/index.ts";
 import { ideogramProvider } from "./registry/ideogram/index.ts";
 import { friendliaiProvider } from "./registry/friendliai/index.ts";
-import { sunoProvider } from "./registry/suno/index.ts";
 import { adapta_webProvider } from "./registry/adapta-web/index.ts";
 import { notion_webProvider } from "./registry/notion-web/index.ts";
 import { anthropicProvider } from "./registry/anthropic/index.ts";
@@ -285,7 +284,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   synthetic: syntheticProvider,
   ideogram: ideogramProvider,
   friendliai: friendliaiProvider,
-  suno: sunoProvider,
   "adapta-web": adapta_webProvider,
   "notion-web": notion_webProvider,
   anthropic: anthropicProvider,

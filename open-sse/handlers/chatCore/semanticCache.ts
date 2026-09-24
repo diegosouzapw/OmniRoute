@@ -28,6 +28,7 @@ export async function checkSemanticCache({
   persistAttemptLogs,
   apiKeyId,
   cacheDefaultMode,
+  videoTranscriptSensitive,
 }: {
   semanticCacheEnabled: boolean;
   // Only the fields this read path actually touches are named; everything else
@@ -45,7 +46,9 @@ export async function checkSemanticCache({
   persistAttemptLogs: (args: unknown) => void;
   apiKeyId?: string | null;
   cacheDefaultMode?: "legacy" | "bypass" | null;
+  videoTranscriptSensitive?: boolean;
 }) {
+  if (videoTranscriptSensitive) return null;
   // Per-key bypass: skip cache lookup entirely when the API key opts out.
   if (cacheDefaultMode === "bypass") return null;
   if (semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers)) {

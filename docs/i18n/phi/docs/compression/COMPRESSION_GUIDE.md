@@ -180,18 +180,18 @@ Gamit ang Stacked:   10K-2.5K token ang ipinadala  (78-95% na saklaw para sa eli
 
 ---
 
-## Configuration
+## Konpigurasyon
 
 ### Dashboard
 
-Pumunta sa `Dashboard → Context & Cache`:
+Mag-navigate sa `Dashboard → Context & Cache`:
 
-- **Caveman** — pagpili ng mode, mga language pack, preview, at mga pandaigdigang default
-- **RTK** — preview ng command filter, mga setting sa kaligtasan ng RTK, at catalog ng filter
-- **Compression Combos** — mga pinangalanang pipeline ng engine na itinalaga sa mga routing combo
-- **Auto-Trigger Threshold** — awtomatikong paganahin ang compression kapag lumampas sa threshold ang bilang ng token
+- **Caveman** — pagpili ng mode, language packs, preview, at global defaults
+- **RTK** — command-filter preview, RTK safety settings, at filter catalog
+- **Compression Combos** — pinangalanang engine pipelines na itinalaga sa routing combos
+- **Auto-Trigger Threshold** — awtomatikong i-engage ang compression kapag lumampas sa threshold ang bilang ng token
 
-### Override Bawat Combo
+### Per-Combo Override
 
 Sa `Dashboard → Context & Cache → Compression Combos`, magtalaga ng compression combo sa isang routing
 combo:
@@ -205,41 +205,31 @@ Combo: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-Nagbibigay-daan ito sa iyong gumamit ng stacked compression sa mga libre/coding provider habang
-pinananatili ang lite mode sa mga bayad na subscription.
+Nagbibigay-daan ito sa iyo na gumamit ng stacked compression sa mga libre/coding na provider habang pinapanatili ang lite mode sa mga bayad na subscription.
 
-Ang pagtatalagang ito ng "Override Bawat Combo" ay ibang kontrol sa override ng **compression mode ng
-routing combo** (Default/Off/Lite/Standard/Aggressive/Ultra) — hindi pumipili ang override na iyon ng
-pinangalanang pipeline ng compression combo; itinatakda lamang nito ang field na `compressionMode`
-na kinokonsulta ng `resolveCompressionPlan`. Maaari itong itakda sa combo card
-(`Dashboard → Combos`) o, simula #6760, bawat routing combo sa listahang "Assign to routing" sa
-`Dashboard → Context & Cache → Compression Combos`, sa tabi mismo ng checkbox para sa pagtatalaga ng
-pipeline na nakadokumento sa itaas. Ang parehong interface ay nagse-save gamit ang iisang
-`PUT /api/combos/{id}` endpoint.
+Ang pagtatalaga ng "Per-Combo Override" na ito ay ibang kontrol mula sa **routing-combo compression mode** override (Default/Off/Lite/Standard/Aggressive/Ultra) — ang override na iyon ay hindi pumipili ng pinangalanang compression-combo pipeline; itinakda lamang nito ang field na `compressionMode` na kinonsulta ng `resolveCompressionPlan`. Maaari itong itakda sa combo card (`Dashboard → Combos`) o, mula #6760, bawat routing combo sa listahan ng "Assign to routing" sa `Dashboard → Context & Cache → Compression Combos`, sa tabi mismo ng checkbox ng pipeline-assignment na idinokumento sa itaas. Parehong nagpapatuloy ang dalawang interface sa parehong `PUT /api/combos/{id}` endpoint.
 
-### Override Bawat Request
+### Per-request override
 
-Ipadala ang request header na `x-omniroute-compression` upang i-override ang compression plan para sa
-isang request. Ito ang may pinakamataas na precedence — nangingibabaw ito sa override ng routing
-combo, aktibong profile, auto-trigger, at Default ng panel. Binabalewala ang mga hindi kilalang value
-(hindi kailanman tinatanggihan ang request), at kontrolado pa rin ng pandaigdigang master switch ang
-lahat: kapag naka-off ang compression sa buong sistema, hindi ito maaaring i-on ng header. Mga value:
+Ipadala ang `x-omniroute-compression` request header upang i-override ang compression plan para sa isang request. Ito ang may pinakamataas na priyoridad — nadaig nito ang routing-combo override, ang aktibong profile, auto-trigger, at ang panel Default. Ang mga hindi kilalang halaga ay binabalewala (hindi kailanman tinatanggihan ang request) at ang global master switch ay nagkokontrol pa rin sa lahat: kapag naka-off ang compression sa buong mundo, hindi ito kayang i-on ng header. Mga Halaga:
 
-| Value         | Epekto                                                                                                     |
-| ------------- | ---------------------------------------------------------------------------------------------------------- |
-| `off`         | Walang compression para sa request na ito.                                                                 |
-| `default`     | Ang Default profile na nagmula sa panel (binabalewala ang aktibong profile).                               |
-| `engine:<id>` | Isang engine kapag naka-enable, hal. `engine:rtk`.                                                         |
-| `<combo>`     | Isang pinangalanang combo, unang itinutugma ayon sa pangalan (case-insensitive), pagkatapos ay ayon sa id. |
+| Halaga        | Epekto                                                                                                      |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| `off`         | Walang compression para sa request na ito.                                                                  |
+| `default`     | Ang Default profile na nagmula sa panel (binabalewala ang aktibong profile). Naka-off ang mga lossy engine. |
+| `safe`        | Katulad ng pagtanggal ng header: dedup at whitespace folding lamang.                                        |
+| `allow-lossy` | Panatilihin ang operator plan ng request na ito, kasama ang mga buod, relevance filters, at style rewrites. |
+| `engine:<id>` | Isang engine kapag naka-enable, hal. `engine:rtk`. Ito ang per-request opt-in para sa engine na iyon.       |
+| `<combo>`     | Isang pinangalanang combo, tinutugma muna sa pangalan (case-insensitive), pagkatapos ay sa id.              |
 
-Ibabalik ang inilapat na plan sa response header na
-`X-OmniRoute-Compression: <mode>; source=<source>`, kung saan ang `<source>` ay isa sa
-`request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, o `off`.
+Kung walang `allow-lossy`, `engine:<id>`, o isang pinangalanang combo, hindi inilalapat ang mga lossy engine. Nakukuha pa rin ng request ang session dedup at whitespace folding kapag naka-on ang compression.
+
+Ang inilapat na plano ay ibinabalik sa `X-OmniRoute-Compression: <mode>; source=<source>` response header, kung saan ang `<source>` ay isa sa `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, o `off`.
 
 ### API
 
 ```bash
-# Kunin ang mga setting ng compression
+# Kumuha ng mga setting ng compression
 curl http://localhost:20128/api/settings/compression
 
 # I-update ang mga setting ng compression
@@ -255,7 +245,7 @@ curl -X POST http://localhost:20128/api/compression/preview \
 # Ilista ang mga RTK filter pack
 curl http://localhost:20128/api/context/rtk/filters
 
-# Direktang subukan ang RTK gamit ang opsyonal na command metadata
+# Direktang subukan ang RTK na may opsyonal na command metadata
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -300,15 +290,15 @@ Kasama sa bawat na-compress na request ang mga istatistika sa mga server log:
 
 ---
 
-## Roadmap ng mga Phase
+## Roadmap ng Yugto
 
-| Phase    | Mga Mode                                                                                                                                               | Katayuan       |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
-| Phase 1  | Off, Lite                                                                                                                                              | ✅ Inilabas na |
-| Phase 2  | Standard, Aggressive, Ultra                                                                                                                            | ✅ Inilabas na |
-| Phase 3  | RTK, Stacked, Compression Combos                                                                                                                       | ✅ Inilabas na |
-| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                            | ✅ Inilabas na |
-| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` sa `PUT /api/settings/compression`) + mga kontrol sa mode/policy ng dashboard | ✅ Inilabas na |
+| Yugto    | Mga Mode                                                                                                                                                  | Katayuan     |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Yugto 1  | Off, Lite                                                                                                                                                 | ✅ Naipadala |
+| Yugto 2  | Standard, Aggressive, Ultra                                                                                                                               | ✅ Naipadala |
+| Yugto 3  | RTK, Stacked, Compression Combos                                                                                                                          | ✅ Naipadala |
+| Yugto 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                               | ✅ Naipadala |
+| Yugto 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) + mga kontrol ng mode/patakaran ng dashboard | ✅ Naipadala |
 
 ---
 
@@ -320,30 +310,25 @@ Ang RTK mode ay hango sa **[RTK - Rust Token Killer](https://github.com/rtk-ai/r
 
 ---
 
-## Mga Advanced Compression System
+## Mga Advanced na Sistema ng Kompresyon
 
-Bukod sa 7 standard mode, kabilang sa OmniRoute ang ilang advanced compression
-system na awtomatikong gumagana batay sa konteksto.
+Higit pa sa 7 karaniwang mode, kasama sa OmniRoute ang ilang advanced na sistema ng kompresyon na awtomatikong gumagana batay sa konteksto.
 
-### Cache-Aware Compression
+### Kompresyon na May Kamalayan sa Cache
 
-Sinusuportahan ng ilang provider (tulad ng Anthropic na may prompt caching) ang **prompt caching**,
-na nagbibigay-daan sa kanilang i-cache ang mga bahagi ng prompt upang mabawasan ang gastos at latency. Kapag
-naka-enable ang caching, maaari talagang **makasama** sa performance ang aggressive compression
-dahil binabago nito ang mga naka-cache na token, kaya nawawalan ng bisa ang cache.
+Ang ilang provider (tulad ng Anthropic na may prompt caching) ay sumusuporta sa **prompt caching**, na nagpapahintulot sa kanila na i-cache ang mga bahagi ng prompt upang mabawasan ang mga gastos at latency. Kapag naka-enable ang caching, ang agresibong kompresyon ay maaaring talagang **makasama** sa performance dahil binabago nito ang mga naka-cache na token, na nagpapawalang-bisa sa cache.
 
-Nilulutas ito ng `cachingAware.ts` module sa pamamagitan ng **pag-detect sa caching context** at
-**pag-adjust sa compression strategy** nang naaayon.
+Nilulutas ito ng `cachingAware.ts` module sa pamamagitan ng **pagtukoy sa konteksto ng caching** at **pagsasaayos ng diskarte sa kompresyon** nang naaayon.
 
-#### Paano ito gumagana
+#### Paano Ito Gumagana
 
-1. **I-detect ang caching context** — Sini-scan ang request body para sa mga `cache_control` marker
-2. **Tukuyin ang mga caching provider** — Tinitingnan kung sinusuportahan ng target provider ang caching
-3. **I-adjust ang strategy** — Ibinababa ang `aggressive`/`ultra` sa `standard` para sa mga caching provider
-4. **Laktawan ang system prompt** — Karaniwang naka-cache ang mga system prompt, kaya huwag i-compress ang mga ito
-5. **Gumamit ng mga deterministic transformation** — Gumamit lamang ng mga transformation na lumilikha ng consistent na output
+1.  **Tukuyin ang konteksto ng caching** — Ini-scan ang request body para sa mga `cache_control` marker
+2.  **Tukuyin ang mga provider ng caching** — Sinusuri kung sinusuportahan ng target na provider ang caching
+3.  **Ayusin ang diskarte** — Ibinababa ang `aggressive`/`ultra` sa `standard` para sa mga provider ng caching
+4.  **Laktawan ang system prompt** — Karaniwang naka-cache ang mga system prompt, kaya huwag i-compress ang mga ito
+5.  **Gumamit ng mga deterministic na transpormasyon** — Gumamit lamang ng mga transpormasyon na gumagawa ng pare-parehong output
 
-#### Halimbawa ng code
+#### Halimbawa ng Code
 
 ```ts
 import {
@@ -354,7 +339,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Cache marker
+  cache_control: { type: "ephemeral" }, // ← Marker ng Cache
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -364,25 +349,23 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Kailan gagamitin
+#### Kailan Gagamitin
 
-**Palaging naka-on** ang cache-aware compression — walang kinakailangang configuration. Gumagana lamang ito
-kapag:
+Ang kompresyon na may kamalayan sa cache ay **palaging naka-on** — walang kinakailangang configuration. Ito ay gumagana lamang kapag:
 
-- May mga `cache_control` marker ang request
-- Sinusuportahan ng target provider ang prompt caching (Anthropic, OpenAI, atbp.)
+- Ang request ay may mga `cache_control` marker
+- Sinusuportahan ng target na provider ang prompt caching (Anthropic, OpenAI, atbp.)
 
-### Progressive Aging
+### Progresibong Pag-edad
 
-Nag-iipon ng maraming message turn ang mahahabang pag-uusap, ngunit nagiging hindi gaanong
-relevant ang mga mas lumang turn. **Pinapasimple ng `progressiveAging.ts` module ang mga message batay sa distansya ng turn**:
+Ang mahabang pag-uusap ay nag-iipon ng maraming palitan ng mensahe, ngunit ang mga mas lumang palitan ay nagiging hindi gaanong mahalaga. Ang `progressiveAging.ts` module ay **nagpapababa ng kalidad ng mga mensahe batay sa distansya ng palitan**:
 
-- **Mga kamakailang turn (0-3)**: Pinananatiling verbatim (kumpletong detalye)
-- **Mga katamtamang turn (4-8)**: Lite compression (whitespace, paglilinis ng formatting)
-- **Mga lumang turn (9+)**: Caveman compression (pag-aalis ng filler, summarization)
-- **Mga napakalumang turn (20+)**: Lubos na sini-summarize o inaalis
+- **Mga kamakailang palitan (0-3)**: Pinananatiling verbatim (buong detalye)
+- **Mga katamtamang palitan (4-8)**: Lite compression (whitespace, paglilinis ng formatting)
+- **Mga lumang palitan (9+)**: Caveman compression (pagtanggal ng filler, pagbubuod)
+- **Mga napakalumang palitan (20+)**: Lubos na binubuod o tinatanggal
 
-#### Halimbawa ng code
+#### Halimbawa ng Code
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
@@ -391,46 +374,44 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 pang turn ...
+  // ... 50 more turns ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Unang 3 turn: verbatim
-  light: 8, // Mga turn 4-8: lite compression
-  moderate: 20, // Mga turn 9-20: caveman compression
-  // Mga turn 21+: matinding summarization
+  verbatim: 3, // Unang 3 palitan: verbatim
+  light: 8, // Mga palitan 4-8: lite compression
+  moderate: 20, // Mga palitan 9-20: caveman compression
+  // Mga palitan 21+: mabigat na pagbubuod
 });
 
-// saved = bilang ng mga token na natipid
+// saved = bilang ng mga token na na-save
 ```
 
-#### Kailan gagamitin
+#### Kailan Gagamitin
 
-Ang progresibong pagtanda ay **palaging naka-on** para sa mga mode na `aggressive` at `ultra`. Ito ay
-partikular na epektibo para sa:
+Ang progresibong pag-edad ay **palaging naka-on** para sa `aggressive` at `ultra` na mga mode. Ito ay partikular na epektibo para sa:
 
-- Mga pangmatagalang coding session
-- Mga pag-uusap na tumatagal nang ilang araw
+- Mahabang sesyon ng coding
+- Mga pag-uusap na tumatagal ng ilang araw
 - Mga agentic workflow na may maraming tool call
 
 ### Caveman Output Mode
 
-Ang module na `outputMode.ts` ay nag-i-inject ng **mga tagubilin sa system prompt** upang ang
-mismong modelo ay gumawa ng compressed at maikling output (istilong "caveman").
+Ang `outputMode.ts` module ay nag-i-inject ng **mga tagubilin sa system prompt** upang ang modelo mismo ay makagawa ng compressed, maikling output (isang "caveman" na estilo).
 
-#### Paano ito gumagana
+#### Paano Ito Gumagana
 
-Sa halip na i-compress ang input, nagdaragdag ang mode na ito ng system prompt tulad ng:
+Sa halip na i-compress ang input, ang mode na ito ay nagdaragdag ng system prompt tulad ng:
 
-> "Sumagot gamit ang pinakakaunting salita. Laktawan ang mga pagbati. Gumamit ng maiikling pangungusap."
+> "Sumagot sa pinakakaunting salita. Laktawan ang mga pormalidad. Gumamit ng maiikling pangungusap."
 
-Partikular itong mahusay para sa:
+Ito ay partikular na gumagana nang maayos para sa:
 
 - Pagbuo ng code (mas maikling output = mas kaunting token)
-- Mabilisang Q&A (hindi kailangan ng detalyadong paliwanag)
+- Mabilis na Q&A (hindi kailangan ng detalyadong paliwanag)
 - Batch processing (i-maximize ang throughput)
 
-#### Kailan gagamitin
+#### Kailan Gagamitin
 
 Ang Caveman output mode ay **opt-in** — itakda ito sa pamamagitan ng combo config:
 
@@ -445,41 +426,35 @@ Ang Caveman output mode ay **opt-in** — itakda ito sa pamamagitan ng combo con
 }
 ```
 
-### Mga Estilo ng Output (catalog)
+### Mga Estilo ng Output (katalogo)
 
-Ang Caveman output mode sa itaas ay ang **legacy na single-style path**. Ginawang pangkalahatan ito ng Phase 4
-bilang catalog ng mga composable na estilo ng output: `OUTPUT_STYLE_CATALOG` sa
-`open-sse/services/compression/outputStyles/catalog.ts`. Ang bawat estilo ay isang tagubilin sa system prompt
-na nagtutulak sa mismong modelo na gumawa ng mas murang output; maaaring sabay-sabay na paganahin ang mga estilo
-at ini-inject ang mga ito ayon sa pagkakasunod-sunod sa catalog.
+Ang Caveman output mode sa itaas ay ang **legacy single-style path**. Ginawa itong pangkalahatan ng Phase 4 sa isang katalogo ng mga composable output style: `OUTPUT_STYLE_CATALOG` sa `open-sse/services/compression/outputStyles/catalog.ts`. Ang bawat estilo ay isang tagubilin sa system-prompt na nagpapagawa sa modelo mismo ng mas murang output; ang mga estilo ay maaaring paganahin nang magkasama at ini-inject sa pagkakasunud-sunod ng katalogo.
 
-| Estilo                         | `id`          | Ano ang ginagawa nito                                                                                                                                                                                                                             | Mga wika ng tagubilin                                            |
-| ------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Maikling prosa                 | `terse-prose` | Tinatanggal ang mga palaman/artikulo/pag-aalinlangan; pinananatiling eksakto ang teknikal na nilalaman. Kaparehong teksto ng legacy na Caveman output mode (sanggunian lamang, hindi muling isinulat).                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                    |
-| Mas kaunting code              | `less-code`   | YAGNI ladder: pinakamaliit na gumaganang pagbabago, walang hindi hiniling na abstraction.                                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                    |
-| Ponytail (tamad na senior dev) | `ponytail`    | "Ang pinakamahusay na code ay ang code na hindi kailanman isinulat": reuse > rewrite, ugat na sanhi > sintomas, pinakamaikling gumaganang diff.                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                    |
-| May ADHD ako (aksyon muna)     | `i-have-adhd` | Aksyon muna (command/path/snippet bago ang prosa), may bilang at limitadong mga hakbang, ISANG konkretong susunod na hakbang, walang pambungad/buod/pangwakas. Hinango mula sa [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                    |
-| Maikling CJK (文言)            | `terse-cjk`   | Napakaikling estilo ng Klasikong Tsino.                                                                                                                                                                                                           | zh (locale-gated: inaalok lamang kapag `zh` ang natukoy na wika) |
+| Estilo                     | `id`          | Ginagawa nito                                                                                                                                                                                                                                  | Mga wika ng pagtuturo                                               |
+| -------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Terse prose                | `terse-prose` | Tanggalin ang mga filler/articles/hedging; panatilihing eksakto ang teknikal na substansiya. Parehong teksto ng legacy caveman output mode (referenced, hindi re-typed).                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| Less code                  | `less-code`   | YAGNI ladder: pinakamaliit na gumaganang pagbabago, walang hindi hiniling na abstractions.                                                                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| Ponytail (lazy senior dev) | `ponytail`    | "Ang pinakamahusay na code ay ang code na hindi kailanman isinulat": reuse > rewrite, root cause > symptom, pinakamaikling gumaganang diff.                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| I have ADHD (action-first) | `i-have-adhd` | Aksyon muna (command/path/snippet bago ang prose), may bilang na nakabukod na hakbang, ISANG konkretong susunod na hakbang, walang preamble/recap/closers. Inangkop mula sa [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| Terse CJK (文言)           | `terse-cjk`   | Classical-Chinese ultra-terse style.                                                                                                                                                                                                           | zh (locale-gated: inaalok lamang kapag ang nalutas na wika ay `zh`) |
 
-May tatlong antas ng intensity ang bawat estilo — `lite`, `full`, `ultra` — at ang bawat antas ay
-nagtatapos sa pinagsasaluhang boundaries clause, na nagpapanatili sa mga code block, file path, command,
-error string, URL, at identifier nang verbatim.
+Ang bawat estilo ay may tatlong antas ng intensity — `lite`, `full`, `ultra` — at ang bawat antas
+ay nagtatapos sa shared boundaries clause, na nagpapanatili ng mga code block, file path, commands,
+error string, URL at identifier na verbatim.
 
 #### Paano gumagana ang injection
 
-Nire-resolve ng `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ang
-pagpili batay sa catalog (inaalis ang mga hindi kilalang id at mga estilong hindi tugma sa locale,
-at hindi kailanman itinuturing na error), pinagsasama ang mga napiling tagubilin ayon sa pagkakasunod-sunod
-sa catalog, idinaragdag ang boundaries clause nang **isang beses**, at inilalagay ang resulta sa unahan ng
-system prompt sa likod ng iisang idempotency marker (`[OmniRoute Output Styles]`) — walang epekto ang
-muling pag-apply. Kapag may salin para sa natukoy na wika ng request, ang localized na tagubilin ang
-ini-inject sa halip na Ingles.
+Ang `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ay nagre-resolve
+ng seleksyon laban sa catalog (ang mga hindi kilalang id at mga estilo na hindi tugma sa locale ay
+ibinababa, hindi kailanman isang error), pinagsasama ang mga napiling instruksyon sa pagkakasunud-sunod ng catalog,
+idinadagdag ang boundaries clause **minsan**, at inilalagay ang resulta sa system
+prompt sa likod ng isang idempotency marker (`[OmniRoute Output Styles]`) — ang muling pag-apply
+ay isang no-op. Kapag ang nakitang wika ng kahilingan ay may salin, ang localized
+na instruksyon ay ini-inject sa halip na Ingles.
 
 #### Paano paganahin
 
-Sa dashboard: **Context → Settings → Compression** — isang row bawat estilo na may
-on/off toggle at level selector. Sa programmatic na paraan, pinapanatili ng compression config
-ang pagpili bilang:
+Sa dashboard: **Context → Settings → Compression** — isang row bawat estilo na may on/off toggle at isang level selector. Programmatically, ang compression config ay nagpapanatili ng seleksyon bilang:
 
 ```json
 {
@@ -490,57 +465,57 @@ ang pagpili bilang:
 }
 ```
 
-Back-compat: gumagana pa rin ang legacy na combo setting na `outputMode: "caveman"` at mina-map ito sa
+Back-compat: ang legacy na `outputMode: "caveman"` combo setting ay gumagana pa rin at nagmamapa sa
 `terse-prose`, byte-identical sa lumang injection sa bawat legacy na wika.
 
 Pagpili ng wika: kapag naka-on ang `languageConfig.enabled`, pinipili ng `autoDetect` ang
-wika ng pinakabagong mensahe ng user (kaparehong detector ng mga input engine);
-kapag in-off ang `autoDetect`, naka-pin ang `defaultLanguage`. Kapag off → Ingles.
+wika ng pinakabagong mensahe ng user (parehong detector tulad ng mga input engine);
+ang pag-off ng `autoDetect` ay nagtatakda ng `defaultLanguage`. Off → Ingles.
 
-Naka-pin ang style × language matrix ng
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: hindi maaaring i-release ang bagong estilo
-nang walang kahit isang salin sa pt-BR (o isang tahasang sinusubaybayang exception), at hindi maaaring
-palihim na mawalan ng locale ang isang umiiral na estilo. Upang magdagdag ng estilo, tingnan ang
+Ang style × language matrix ay nakatakda sa
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: ang isang bagong estilo ay hindi maaaring ipadala
+nang walang kahit isang pt-BR na pagsasalin (o isang tahasang sinusubaybayang exception), at ang isang
+umiiral na estilo ay hindi maaaring tahimik na mawalan ng locale. Upang magdagdag ng estilo, tingnan ang
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Compression ng Resulta ng Tool
+### Tool Result Compression
 
-Nagbibigay ang module na `toolResultCompressor.ts` ng **5 espesyal na compression strategy**
-para sa mga resulta ng tool (mga function call, agent output, resulta ng paghahanap, atbp.):
+Ang `toolResultCompressor.ts` module ay nagbibigay ng **5 specialized compression strategies**
+para sa mga resulta ng tool (function calls, agent outputs, search results, atbp.):
 
-1. **Compression ng resulta ng paghahanap** — Tinatanggal ang mga paulit-ulit na resulta, pinananatili ang top-N
-2. **Compression ng pagbasa ng file** — Pinuputol ang malalaking file, pinananatili ang mga header/import
-3. **Compression ng pag-execute ng code** — Pinananatili lamang ang mahahalagang stdout/stderr
-4. **Compression ng database query** — Nililimitahan ang mga row, tinatanggal ang mahahabang metadata
-5. **Compression ng API response** — Tinatanggal ang mga null field, pinaiikli ang mga array
+1. **Search result compression** — Tinatanggal ang mga kalabisan na resulta, pinapanatili ang top-N
+2. **File read compression** — Pinutol ang malalaking file, pinapanatili ang mga header/imports
+3. **Code execution compression** — Pinapanatili lamang ang mahahalagang stdout/stderr
+4. **Database query compression** — Nililimitahan ang mga row, tinatanggal ang verbose metadata
+5. **API response compression** — Tinatanggal ang mga null field, pinagsasama ang mga array
 
 #### Kailan gagamitin
 
-Ang compression ng resulta ng tool ay **palaging naka-on** kapag may mga tool call. Walang
-kailangang configuration.
+Ang tool result compression ay **palaging naka-on** kapag may mga tool call. Walang
+kinakailangang configuration.
 
 ### Stacked Pipeline
 
-Ang stacked mode ay nagpapatakbo ng **maraming engine nang sunod-sunod** — karaniwang RTK muna
-(60-90% na matitipid sa tool output), pagkatapos ay Caveman (karagdagang 30% na matitipid sa
-natitirang teksto). Nakakamit nito ang **78-95% kabuuang matitipid**.
+Ang stacked mode ay nagpapatakbo ng **maraming engine nang sunud-sunod** — karaniwan ay RTK muna
+(60-90% savings sa tool output), pagkatapos ay Caveman (30% karagdagang savings sa
+natitirang teksto). Nakakamit nito ang **78-95% kabuuang savings**.
 
 #### Paano ito gumagana
 
 ```
-Input (1000 token)
-  → RTK (filter na command-aware) → 200 token
-    → Caveman (pag-aalis ng palaman) → 140 token
-  → Output (140 token, 86% na matitipid)
+Input (1000 tokens)
+  → RTK (command-aware filter) → 200 tokens
+    → Caveman (filler removal) → 140 tokens
+  → Output (140 tokens, 86% savings)
 ```
 
 #### Kailan gagamitin
 
 Gamitin ang stacked mode para sa:
 
-- Mga workflow na maraming tool (agentic coding, pananaliksik)
-- Batch processing na sensitibo sa gastos
-- Kapag kailangan mo ang pinakamalaking matitipid sa token
+- Mga workflow na mabigat sa tool (agentic coding, pananaliksik)
+- Pagproseso ng batch na sensitibo sa gastos
+- Kapag kailangan mo ng maximum na pagtitipid sa token
 
 I-configure sa pamamagitan ng combo:
 

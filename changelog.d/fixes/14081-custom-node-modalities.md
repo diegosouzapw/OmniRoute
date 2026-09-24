@@ -1,0 +1,1 @@
+- fix(providers): custom OpenAI-compatible node models keep their synced vision capability through the Vision Bridge guardrail (#14081)

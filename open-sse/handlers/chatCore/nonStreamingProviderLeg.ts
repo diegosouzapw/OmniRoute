@@ -91,6 +91,7 @@ export interface ProviderLegInput {
   customToolNames?: ReadonlySet<string>;
   requestToolIdentityMap?: Map<string, { namespace?: string; name: string }> | null;
   reasoningCacheScope?: string | null;
+  videoTranscriptSensitive?: boolean;
   /** Normalized OpenAI transcript reported by translateRequest for Responses-API
    *  targets (their body has `input`, not `messages`) — the replay-cache write
    *  side must digest the same transcript the read side keyed plain turns on. */
@@ -294,6 +295,7 @@ function finishOk(
     customToolNames: input.customToolNames,
     requestToolIdentityMap: input.requestToolIdentityMap ?? null,
     reasoningCacheScope: input.reasoningCacheScope ?? null,
+    videoTranscriptSensitive: input.videoTranscriptSensitive,
     clientHeaders: input.clientHeaders ?? null,
     isClaudeCodeCompatible: input.isClaudeCodeCompatible ?? false,
     // Same intent the streaming path computes in chatCore before building the

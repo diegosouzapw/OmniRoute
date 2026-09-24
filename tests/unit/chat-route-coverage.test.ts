@@ -203,6 +203,7 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
   await seedConnection("deepseek", { apiKey: "sk-deepseek-task-route" });
   const seenAuthHeaders = [];
   const seenRequestBodies = [];
+  const seenUrls = [];
   setTaskRoutingConfig({
     enabled: true,
     detectionEnabled: true,
@@ -213,28 +214,11 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
   });
 
   globalThis.fetch = async (_url, init = {}) => {
+    seenUrls.push(String(_url));
     const headers = toPlainHeaders(init.headers);
     seenAuthHeaders.push(headers.Authorization ?? headers.authorization);
     seenRequestBodies.push(JSON.parse(String(init.body)));
-    // deepseek's registry default is openai chat-completions (the registry
-    // restructure moved it off openai-responses), so the upstream sees and
-    // answers in Chat Completions shape.
-    return new Response(
-      JSON.stringify({
-        id: "chatcmpl_task_route",
-        object: "chat.completion",
-        model: "deepseek-v4-flash",
-        choices: [
-          {
-            index: 0,
-            message: { role: "assistant", content: "Task-routed response" },
-            finish_reason: "stop",
-          },
-        ],
-        usage: { prompt_tokens: 4, completion_tokens: 2, total_tokens: 6 },
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    return buildOpenAIResponse("Task-routed response");
   };
 
   const response = await handleChat(
@@ -250,9 +234,10 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
 
   assert.equal(response.status, 200);
   assert.deepEqual(seenAuthHeaders, ["Bearer sk-deepseek-task-route"]);
-  // Task-aware routing mapped the coding task onto the deepseek coding model.
+  assert.deepEqual(seenUrls, ["https://api.deepseek.com/chat/completions"]);
+  assert.equal(seenRequestBodies[0].input, undefined);
+  assert.equal(seenRequestBodies[0].messages[0].role, "user");
   assert.equal(seenRequestBodies[0].model, "deepseek-v4-flash");
-  assert.ok(Array.isArray(seenRequestBodies[0].messages));
   assert.equal(json.choices[0].message.content, "Task-routed response");
 });
 
@@ -318,7 +303,10 @@ test("handleChat keeps protected combo fallback separate from Global Fallback Mo
 });
 
 test("handleChat defaults a Combo's incompatible reasoning fallback to drop", async () => {
-  await seedConnection("deepseek", { apiKey: "sk-deepseek-reasoning-drop" });
+  await seedConnection("deepseek", {
+    apiKey: "sk-deepseek-reasoning-drop",
+    providerSpecificData: { targetFormat: "openai-responses" },
+  });
   await combosDb.createCombo({
     name: "reasoning-transport-drop",
     strategy: "priority",
@@ -329,22 +317,31 @@ test("handleChat defaults a Combo's incompatible reasoning fallback to drop", as
     models: ["deepseek/deepseek-v4-flash"],
   });
 
-  let upstreamBody: { messages?: Array<Record<string, unknown>> } | null = null;
+  let upstreamBody: { input?: unknown } | null = null;
   globalThis.fetch = async (_url, init = {}) => {
+    assert.equal(String(_url), "https://api.deepseek.com/responses");
     upstreamBody = JSON.parse(String(init.body));
     return new Response(
       JSON.stringify({
-        id: "chatcmpl_reasoning_drop",
-        object: "chat.completion",
+        id: "resp_reasoning_drop",
+        object: "response",
+        status: "completed",
         model: "deepseek-v4-flash",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: { role: "assistant", content: "continued without prior reasoning" },
-            finish_reason: "stop",
+            id: "msg_reasoning_drop",
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "continued without prior reasoning",
+                annotations: [],
+              },
+            ],
           },
         ],
-        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+        usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
@@ -372,31 +369,20 @@ test("handleChat defaults a Combo's incompatible reasoning fallback to drop", as
   );
 
   assert.equal(response.status, 200);
-  assert.ok(upstreamBody && Array.isArray(upstreamBody.messages));
-  const upstreamMessages = upstreamBody.messages;
-  // The opaque reasoning item must be dropped (the combo reasoning-transport
-  // default), while the function_call + its output survive translation into
-  // deepseek's chat-completions tool shape.
+  assert.ok(upstreamBody && Array.isArray(upstreamBody.input));
+  const upstreamInput = upstreamBody.input;
   assert.equal(
-    upstreamMessages.some((m) => m.role === "assistant" && Array.isArray(m.reasoning)),
+    upstreamInput.some(
+      (item) =>
+        item !== null && typeof item === "object" && "type" in item && item.type === "reasoning"
+    ),
     false
   );
   assert.equal(
-    upstreamMessages.some(
-      (m) =>
-        m.role === "assistant" &&
-        Array.isArray(m.tool_calls) &&
-        m.tool_calls.some(
-          (tc) =>
-            tc !== null &&
-            typeof tc === "object" &&
-            (tc as Record<string, unknown>).type === "function"
-        )
+    upstreamInput.some(
+      (item) =>
+        item !== null && typeof item === "object" && "type" in item && item.type === "function_call"
     ),
-    true
-  );
-  assert.equal(
-    upstreamMessages.some((m) => m.role === "tool" && m.tool_call_id === "call_1"),
     true
   );
 });

@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Ìtumọ̀ iye owó ìbámu-káṣì:** lórí ìbámu HIT nínú káṣì ìtumọ̀ (`X-OmniRoute-Cache-Hit: true`), a kò ṣe ìpè sí iṣẹ́ òkè-rere, nítorí náà `X-OmniRoute-Response-Cost` jẹ́ `0.0000000000` (iye owó **àfikún** fún fífi ìbámu náà ránṣẹ́). Iye owó ìpilẹ̀ṣẹ̀/tí ì bá ti jẹ́ ni a ń jabo lọ́tọ̀ nínú `X-OmniRoute-Cost-Saved`. Àwọn olùlò ìdíyelé gbọ́dọ̀ ṣàkójọpọ̀ `X-OmniRoute-Response-Cost` (àwọn ìbámu kò ná owó kankan); àwọn irinṣẹ́ ìtúpalẹ̀ káṣì sì lè ṣàkójọpọ̀ `X-OmniRoute-Cost-Saved`.
 
-## Àwọn Ìyálò Ìgbà Ìṣiṣẹ́ Àbójútó Aládàáṣe
+## Àwọn Àdéhùn Ìyaloṣiṣẹ́ Ìṣàkóso Àkànṣe
 
-Ìyálò ìgbà ìṣiṣẹ́ àbójútó aládàáṣe jẹ́ àdéhùn ìdarí-ọ̀nà tí a máa ń yàn láti lò, tí kò sì dá lórí oníbàárà: olùní kan ṣoṣo tó ń ṣiṣẹ́
-ni ó di àsopọ̀ OmniRoute kan tó yẹ mú. Kì í ṣe yíyálò àwòṣe, kò béèrè OAuth, kò dá
-oníbàárà kan pàtó mọ̀, bẹ́ẹ̀ ni kò béèrè olupèsè kan pàtó.
+Ìyaloṣiṣẹ́ ìṣàkóso àkànṣe jẹ́ àdéhùn ìlànà ìdarí tí kò ní ìgbẹ́kẹ̀lé sí oníbàárà: olùníṣe kan ṣoṣo ló máa ń di asopọ OmniRoute kan tí ó yẹ. Kò nílò àwòṣe kan, kò nílò OAuth, kò dá oníbàárà kan pàtó mọ̀, bẹ́ẹ̀ ni kò nílò olùpèsè kan pàtó.
 
-Bọ́tìnì API tí ń ṣe ìfàṣẹsí gbọ́dọ̀ ní ààlà `lease:exclusive` àti àtòjọ
-`allowedConnections` tí a sọ ní kedere tí kò sì ṣófo. Ààlà ìyípadà ibi ìpamọ́ dátà máa ń fipá mú kí àwọn ààyè méjèèjì wà papọ̀ nígbà
-ṣíṣẹ̀dá bọ́tìnì àti àwọn ìmúdójúìwọ̀n apá kan.
+Kókó API tí ó ń fìdí rẹ̀ múlẹ̀ gbọ́dọ̀ ní àyè `lease:exclusive` àti àtòjọ `allowedConnections` tí kò ṣófo. Ààlà ìyípadà database ń fi ipá mú àwọn pápá méjèèjì papọ̀ nígbà ìdá kókó àti àwọn ìgbéyàwó àbùdá.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Àwọn èsì àṣeyọrí fún gbígbà, ìsọdọ̀tun, àti ìtúsílẹ̀ máa ń fi àwọn àmì-àkókò, `state`, àti
-`generation` rere gangan hàn, ṣùgbọ́n wọn kì í fi àsopọ̀ tàbí ẹ̀rí ìdánimọ̀ tí a yàn hàn láé. Ìsọdọ̀tun àti ìtúsílẹ̀ máa ń pèsè
-generation náà nínú ara JSON:
+Àwọn ìdáhùn àṣeyọrí fún gbígba, títúnṣe, àti títú sílẹ̀ ń fi àwọn àmì àkókò hàn, `state`, àti `generation` tó dára gan-an, ṣùgbọ́n kò fi asopọ tàbí àwọn ìwé-ẹ̀rí tí a yàn hàn rí. Títúnṣe àti títú sílẹ̀ ń pèsè ìran náà nínú ara JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generation náà nínú ara JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Olùní ìyálò tó ń ṣiṣẹ́ lè béèrè ní kedere fún metadata àfihàn tó dáàbò bo àṣírí fún ìsopọ̀ rẹ̀ lọ́wọ́lọ́wọ́:
+Olùníṣe àdéhùn ìyaloṣiṣẹ́ tí ó wà ní ìṣiṣẹ́ lè béèrè fún àwọn àkọsílẹ̀ ìfihàn àṣírí fún ìsopọ̀ rẹ̀ lọ́wọ́lọ́wọ́:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Olùní ìyálò tó ń ṣiṣẹ́ lè béèrè ní kedere fún metadata àfih
 }
 ```
 
-Ìgbésẹ̀ status tí a yàn láti lò yìí ni a fi olùní àìfarahàn, bọ́tìnì API àbójútó tí a ti fìdí rẹ̀ múlẹ̀, àti
-generation tó ń ṣiṣẹ́ gangan ṣe ààlà rẹ̀ nínú ìdúnàádúrà ibi ìpamọ́ dátà kan ṣoṣo. `displayName` jẹ́ orúkọ
-àsopọ̀ tí a ṣètò tí a gé àyè àfikún rẹ̀ kúrò nìkan; yóò jẹ́ `null` nígbà tí kò bá sí orúkọ àtòjọ tó láàbò.
-OmniRoute kì í fi ímeèlì tàbí ìdánimọ̀ àkọọ́lẹ̀ tí a ṣẹ̀dá rọ́pò rẹ̀ láé. Iye provider jẹ́ àmì àfihàn tí kò ní
-ìsọfúnni kókó, kì í sì í ṣe ìdánimọ̀ olupèsè ibámu tí a ṣẹ̀dá láé. Ẹ̀rí ìdánimọ̀, token, cookie, àsopọ̀ gidi tàbí àwọn
-id bọ́tìnì API, àwọn hash olùní, àwọn àṣírí ìdíwọ̀n, àti dátà ìdarí-ọ̀nà abẹ́nú ni a yọ kúrò.
+Ìṣe ipò yí tí a yàn jẹ́ ààbò nípasẹ̀ olùníṣe tí kò ṣe kedere, kókó API tí a fìdí rẹ̀ múlẹ̀, àti ìran tí ó wà ní ìṣiṣẹ́ gangan nínú ìṣòwò database kan. `displayName` jẹ́ orúkọ asopọ tí a ti ṣètò tí a ti gé kúrú nìkan; ó jẹ́ `null` nígbà tí kò bá sí orúkọ tí a ti ṣètò tí ó dára. OmniRoute kò rọ́pò imeeli tàbí ìdánimọ̀ àkọọlẹ tí a ti ṣe rí. Ìwúlò olùpèsè jẹ́ àmì ìfihàn tí kò ní ìmọ̀lára, kò sì jẹ́ ìdánimọ̀ olùpèsè tí ó bámu tí a ti ṣe rí. Àwọn ìwé-ẹ̀rí, àwọn àmì, àwọn kuki, asopọ àìlẹ́gbẹ́ tàbí àwọn ID kókó API, àwọn hashes olùníṣe, àwọn àṣírí ààbò, àti àwọn àkọsílẹ̀ ìdarí inú ni a yọkúrò.
 
-Àwọn ìṣàwárí pẹ̀lú bọ́tìnì tí kò tọ́, olùní tí kò tọ́, generation tí ó ti pẹ́, ohun tí kò sí, ohun tó ti parí, ohun tí a ti tú sílẹ̀, àti ohun tí a ti sọ di aláìṣiṣẹ́
-gbogbo wọn máa ń dá àṣìṣe `409 LEASE_FENCE_STALE` kan náà padà láìsí metadata àsopọ̀. Oníbàárà tó gba èsì dídúró de àyè kò ní ìsopọ̀ tó ń ṣiṣẹ́ láti ṣàyẹ̀wò. Nígbà tí ìdarí-ọ̀nà bá yí ìyálò tó ń ṣiṣẹ́ padà,
-generation kan náà ṣì máa ń wúlò, status sì máa ń dá ìsopọ̀ tuntun padà lẹ́ẹ̀kan náà, kì í ṣe ti àtijọ́ láé.
-Àwọn oníbàárà tó wà tẹ́lẹ̀ kò ní yípadà nítorí pé àwọn èsì gbígbà, ìsọdọ̀tun, ìtúsílẹ̀, àti dídúró ṣì pa
-ìrísí wọn tẹ́lẹ̀ mọ́.
+Kókó tí kò tọ́, olùníṣe tí kò tọ́, ìran tí ó ti gbó, tí ó sọnù, tí ó ti parí, tí a ti tú sílẹ̀, àti àwọn ìwádìí tí kò wúlò gbogbo rẹ̀ ń padà wá pẹ̀lú àṣìṣe `409 LEASE_FENCE_STALE` kan náà láìsí àkọsílẹ̀ asopọ. Oníbàárà tí ó gba ìdáhùn ìdúró agbára kò ní ìsopọ̀ tí ó wà ní ìṣiṣẹ́ láti yẹ̀wò. Nígbà tí ìdarí bá yí àdéhùn ìyaloṣiṣẹ́ tí ó wà ní ìṣiṣẹ́ padà, ìran kan náà ṣì wúlò, ipò sì ń padà wá pẹ̀lú ìsopọ̀ tuntun, kò sì jẹ́ èyí àtijọ́ rí. Àwọn oníbàárà tí ó wà tẹ́lẹ̀ kò yí padà nítorí pé gbígba, títúnṣe, títú sílẹ̀, àti àwọn ìdáhùn ìdúró ń pa àwọn ìrísí wọn àtijọ́ mọ́.
 
-Àdéhùn olupin yìí kò yí `/status` OpenAI Codex àtẹ̀jáde boṣewa padà. Lọ́wọ́lọ́wọ́, Codex àtẹ̀jáde boṣewa máa ń jàbọ̀
-olupèsè àwòṣe rẹ̀ àti ipò ìfàṣẹsí/àkọọ́lẹ̀ inú rẹ̀, ṣùgbọ́n kò ṣe àfihàn metadata àkọọ́lẹ̀
-olupèsè àdáni èyíkéyìí; ìṣọ̀kan oníbàárà lọ́jọ́ iwájú gbọ́dọ̀ pe ìgbésẹ̀ yìí kí ó sì pinnu bí a ṣe máa
-ṣàfihàn `connection.displayName`.
+Àdéhùn olùpèsè yí kò yí OpenAI Codex `/status` tí ó wà ní ìpamọ́ padà. Codex tí ó wà ní ìpamọ́ lọ́wọ́lọ́wọ́ ń ròyìn olùpèsè àwòṣe rẹ̀ àti ìfìdí-múlẹ̀/ipò àkọọlẹ tí a ti kọ́ sí inú ṣùgbọ́n kò fi àkọsílẹ̀ àkọọlẹ olùpèsè àṣà tí kò lẹ́gbẹ́ hàn; ìsopọ̀ oníbàárà kan nígbà tó bá yá gbọ́dọ̀ pe ìṣe yí, kí ó sì pinnu bí a ṣe fẹ́ fi `connection.displayName` hàn.
 
-Lẹ́yìn náà, gbogbo ìbéèrè ìṣirò àbójútó máa ń pèsè àwọn àkọsílẹ̀ ìṣàkóso méjèèjì:
+Gbogbo ìbéèrè ìyọkúrò tí a ṣakoso lẹhinna n pese awọn akọle iṣakoso mejeeji:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Olùní gangan, generation, àsopọ̀ tó ń ṣiṣẹ́, àti bọ́tìnì API tí a ti fìdí rẹ̀ múlẹ̀ ni a máa ń ṣe ààlà wọn lẹ́sẹ̀kẹsẹ̀
-ṣáájú gbogbo ìgbìyànjú upstream tí a ṣe àtìlẹ́yìn fún. Ṣíṣe àtúnlò olùní àti generation pẹ̀lú bọ́tìnì mìíràn yóò kùnà, kódà
-bí bọ́tìnì yẹn bá gba àsopọ̀ kan náà láàyè. A kì í tọ́jú àwọn olùní gidi sínú ibi ìpamọ́, kọ wọ́n sínú àkọsílẹ̀,
-dá wọn dúró nínú àwòrán-ìpamọ́ ìbéèrè, tàbí fi wọ́n ránṣẹ́ sí upstream.
+Olùníṣe gangan, ìran, asopọ tí ó wà ní ìṣiṣẹ́, àti kókó API tí a fìdí rẹ̀ múlẹ̀ ni a fi ààbò sí lẹ́sẹ̀kẹsẹ̀ ṣáájú gbogbo ìgbìyànjú òkè tí a ti ṣe atilẹyin. Títún olùníṣe àti ìran ṣe pẹ̀lú kókó mìíràn yóò kùnà, kódà bí kókó náà bá fàyè gba asopọ kan náà. Àwọn olùníṣe àìlẹ́gbẹ́ kò ní ìpamọ́, kò ní ìkọsílẹ̀, kò ní ìpamọ́ nínú àwòrán ìbéèrè, tàbí kí a fi ránṣẹ́ sí òkè.
 
-Ìdíje fún ìgbà díẹ̀ máa ń dá HTTP `429` padà pẹ̀lú `Retry-After` àti:
+Ìjàkadì ìgbà díẹ̀ ń padà wá pẹ̀lú HTTP `429` pẹ̀lú `Retry-After` àti:
 
 ```json
 {
@@ -178,36 +157,35 @@ dá wọn dúró nínú àwòrán-ìpamọ́ ìbéèrè, tàbí fi wọ́n rán�
 }
 ```
 
-Èsì yìí túmọ̀ sí pé àkójọpọ̀ àwọn tó yẹ lásán kò ṣófo, gbogbo olùdíje ọ̀fẹ́ sì
-wà lọ́wọ́ ìyálò tó ń ṣiṣẹ́ ti olùní mìíràn. Àwọn àwòṣe/olùpèsè tí kò ní àtìlẹ́yìn, àìbámu ìlànà, àkókò ìsinmi,
-ìpín, ìlera, àti àwọn ìkùnà yíyẹ lásán mìíràn ṣì máa ń pa àwọn èsì OmniRoute wọn tó wà tẹ́lẹ̀ mọ́.
+Ìdáhùn yí túmọ̀ sí pé àtòjọ tí ó yẹ tí ó wà ní ìpamọ́ kò ṣófo, àti pé gbogbo olùdíje tí ó wà láìsí iṣẹ́ ni àdéhùn ìyaloṣiṣẹ́ àjèjì tí ó wà ní ìṣiṣẹ́ ti di mú. Àwọn àwòṣe/olùpèsè tí kò ní atilẹyin, àìbámu ìlànà, ìtura, ìpín, ìlera, àti àwọn àṣìṣe ìyẹwò mìíràn tí ó wà ní ìpamọ́ ń pa àwọn ìdáhùn OmniRoute wọn tí ó wà tẹ́lẹ̀ mọ́.
 
 ### `x-omniroute-compression`
 
-Ìkọjá-ètò fún gbogbo ìbéèrè lórí ètò ìfúnpọ̀. Ó ní àṣẹ tó ga jù — ó borí ìkọjá-ètò routing-combo,
-profile tó ń ṣiṣẹ́, auto-trigger, àti Default pánẹ́lì. Àwọn iye:
+Ìyípadà ìfúnpọ̀ fún ìbéèrè kọ̀ọ̀kan. Ìṣáájú tí ó ga jù lọ — ó borí ìyípadà ìdarí-ìsopọ̀, àwòrán tí ó wà ní ìṣiṣẹ́, ìṣiṣẹ́-ara-ẹni, àti àwọn àwòrán Default. Àwọn ìwúlò:
 
-| Iye           | Ipa                                                                                                       |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| `off`         | Kò sí ìfúnpọ̀ fún ìbéèrè yìí.                                                                              |
-| `default`     | Profile Default tí a mú jáde láti inú pánẹ́lì (kò ka profile tó ń ṣiṣẹ́ sí).                                |
-| `engine:<id>` | Engine kan ṣoṣo nígbà tí a bá mú un ṣiṣẹ́, fún àpẹẹrẹ `engine:rtk`.                                        |
-| `<combo>`     | Combo tó ní orúkọ, tí a kọ́kọ́ bá mu nípasẹ̀ orúkọ (láìka bí lẹ́tà ṣe tóbi tàbí kékeré), lẹ́yìn náà nípasẹ̀ id. |
+| Ìwúlò         | Ìpa                                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------------------- |
+| `off`         | Kò sí ìfúnpọ̀ fún ìbéèrè yí.                                                                                    |
+| `default`     | Àwòrán Default tí a yọ jáde láti àwòrán (kò ka àwòrán tí ó wà ní ìṣiṣẹ́ sí). Àwọn ẹ̀rọ tí ó ń sọnu ni a fi sílẹ̀. |
+| `safe`        | Ìfúnpọ̀ àti ìfúnpọ̀ àyè funfun nìkan.                                                                            |
+| `allow-lossy` | Pa ètò olùṣiṣẹ́ mọ́ fún ìbéèrè yí, pẹ̀lú àwọn àkópọ̀ àti àwọn àtúnṣe ìṣàkóso.                                      |
+| `engine:<id>` | Ẹ̀rọ kan ṣoṣo nígbà tí a bá mú un ṣiṣẹ́, fún àpẹẹrẹ `engine:rtk`. Ìyàn fún ẹ̀rọ náà fún ìbéèrè kọ̀ọ̀kan.            |
+| `<combo>`     | Ìsopọ̀ tí a dárúkọ, tí a bámu nípasẹ̀ orúkọ (kò ka ìṣàkóso sí) ní àkọ́kọ́, lẹ́hin náà nípasẹ̀ ID.                    |
 
 Àwọn àkíyèsí:
 
-- A máa foju kọ àwọn iye àìmọ̀ (a kì í kọ ìbéèrè náà láé); ìpinnu máa tẹ̀ síwájú sí ìtẹ̀lé àṣẹ olùṣiṣẹ́ deede.
-- Bí àwọn combo púpọ̀ bá ní orúkọ kan náà, fi **id** combo náà ránṣẹ́ fún ìbámu tí kò yípadà.
-- Combo tí orúkọ rẹ̀ jẹ́ `off` tàbí `default` kò ṣe é yàn nípasẹ̀ orúkọ (àwọn ọ̀rọ̀ pàtàkì wọ̀nyẹn ni a kọ́kọ́ túmọ̀); tọ́ka sí irú combo bẹ́ẹ̀ nípasẹ̀ id rẹ̀.
-- Yíyípadà àkọ́kọ́ ìfúnpọ̀ jẹ́ ìdènà líle: nígbà tí ìfúnpọ̀ bá jẹ́ aláìṣiṣẹ́ ní gbogbo ètò, àkọsílẹ̀ yìí kò lè mú un ṣiṣẹ́.
+- Àwọn ìwúlò tí a kò mọ̀ ni a kò ka sí (a kò kọ ìbéèrè náà sílẹ̀ rí); ìgbésẹ̀ náà ń ṣubú sí ìṣáájú olùṣiṣẹ́ tí ó wà ní ìpamọ́.
+- Bí àwọn ìsopọ̀ púpọ̀ bá pín orúkọ kan náà, fi **ID** ìsopọ̀ náà ránṣẹ́ fún ìbámu tí ó dájú.
+- Ìsopọ̀ tí orúkọ rẹ̀ jẹ́ `off` tàbí `default` kò lè yàn nípasẹ̀ orúkọ (àwọn ọ̀rọ̀-ìṣe wọ̀nyẹn ni a túmọ̀ ní àkọ́kọ́); tọ́ka sí irú ìsopọ̀ bẹ́ẹ̀ nípasẹ̀ ID rẹ̀.
+- Yíyí ìfúnpọ̀ àkọ́kọ́ jẹ́ ààbò líle: nígbà tí ìfúnpọ̀ bá wà ní àìṣiṣẹ́ ní gbogbo àgbáyé, àkọlé yí kò lè mú un ṣiṣẹ́.
 
-A máa ń fi ètò tí a lò padà hàn nínú àkọsílẹ̀ èsì:
+Ètò tí a fi sílẹ̀ ni a tún fi ránṣẹ́ padà nínú àkọlé ìdáhùn:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-níbi tí `<source>` ti jẹ́ ọ̀kan lára `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, tàbí `off`.
+níbi tí `<source>` jẹ́ ọ̀kan nínú `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, tàbí `off`.
 
 ---
 
