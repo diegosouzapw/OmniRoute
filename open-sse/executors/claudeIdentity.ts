@@ -427,33 +427,6 @@ export function selectBetaFlags(
   if (isHeavyAgent && allowHeavy) {
     flags.push("advanced-tool-use-2025-11-20", "effort-2025-11-24");
   }
-
-  const hasToolRemoval = (() => {
-    const messages = b.messages;
-    if (Array.isArray(messages)) {
-      for (const msg of messages) {
-        if (msg && typeof msg === "object") {
-          const content = (msg as Record<string, unknown>).content;
-          if (Array.isArray(content)) {
-            for (const block of content) {
-              if (
-                block &&
-                typeof block === "object" &&
-                (block as Record<string, unknown>).type === "tool_removal"
-              ) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-    }
-    return false;
-  })();
-  if (clientBetaSet?.has("inline-tools-2026-09-15") || hasToolRemoval) {
-    flags.push("inline-tools-2026-09-15");
-  }
-
   return flags.join(",");
 }
 

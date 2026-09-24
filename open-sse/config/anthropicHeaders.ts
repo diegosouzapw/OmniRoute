@@ -80,9 +80,6 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "thinking-binding-controls-2026-08-01",
   "thinking-display-updates-2026-08-18",
   "dangerous-tool-use-2026-09-03",
-  // inline-tools-2026-09-15 enables dynamic tool_removal and inline tool modifications
-  // sent by newer Claude Code versions in long-running sessions.
-  "inline-tools-2026-09-15",
 ]);
 
 /**
