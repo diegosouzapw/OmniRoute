@@ -1,0 +1,1 @@
+- **docs:** one-click Deploy to NEXUS AI button in the README, `docs/ops/NEXUS_AI_DEPLOYMENT_GUIDE.md`, and a data-only `nexus.json` with an optional `INITIAL_PASSWORD` field ([#14764](https://github.com/diegosouzapw/OmniRoute/pull/14764)) — thanks @saifelyzal
