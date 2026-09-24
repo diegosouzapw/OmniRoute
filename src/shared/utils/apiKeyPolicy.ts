@@ -680,6 +680,18 @@ async function validateComboAccess(
   }
 }
 
+/**
+ * The metered dollar budget check, skipped when the caller defers it to the
+ * resolved candidate (see {@link EnforceApiKeyPolicyOptions.meteredBudget}).
+ */
+function validateBudgetUnlessDeferred(
+  context: PolicyContext,
+  options: EnforceApiKeyPolicyOptions | undefined
+): Response | null {
+  if (options?.meteredBudget === "defer-to-candidate") return null;
+  return validateBudget(context);
+}
+
 function validateBudget(context: PolicyContext): Response | null {
   const { apiKeyInfo } = context;
   if (!apiKeyInfo.id) return null;
@@ -781,7 +793,7 @@ function extractUngatedClientApiKey(request: Request): string | null {
 export async function enforceApiKeyPolicy(
   request: Request,
   modelStr: string | null,
-  options: EnforceApiKeyPolicyOptions = {}
+  options?: EnforceApiKeyPolicyOptions
 ): Promise<ApiKeyPolicyResult> {
   // A real bearer key wins; then a bare x-api-key/x-goog-api-key that auth
   // accepted but extractApiKey() gates out; otherwise an authenticated dashboard
@@ -829,10 +841,8 @@ export async function enforceApiKeyPolicy(
   const modelRejection = await validateModelAccess(context);
   if (modelRejection) return { apiKey, apiKeyInfo, rejection: modelRejection };
 
-  if (options.meteredBudget !== "defer-to-candidate") {
-    const budgetRejection = validateBudget(context);
-    if (budgetRejection) return { apiKey, apiKeyInfo, rejection: budgetRejection };
-  }
+  const budgetRejection = validateBudgetUnlessDeferred(context, options);
+  if (budgetRejection) return { apiKey, apiKeyInfo, rejection: budgetRejection };
   const keyQuotaRejection = validateKeyQuota(context);
   if (keyQuotaRejection) return { apiKey, apiKeyInfo, rejection: keyQuotaRejection };
   const tokenRejection = validateTokenLimit(context);
