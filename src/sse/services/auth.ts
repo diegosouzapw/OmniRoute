@@ -4,6 +4,7 @@ import { hydrateConnectionProviderSpecificData } from "./compatibleNodeBaseUrl.t
 import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
 import { describeUpstreamFailure } from "@/shared/utils/upstreamError";
 import { buildAllExpiredCredentials } from "./authExpiredCredentials.ts";
+import { pickExpiryFirstConnection } from "./expiryFirstAccountSelection.ts";
 import {
   getCachedRawProviderConnections,
   getCachedProviderNodes,
@@ -54,10 +55,6 @@ import {
   getQuotaScopeLabelForProvider,
   isAntigravityQuotaProvider,
 } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
-import {
-  resolveExpiryFirstConfig,
-  scoreExpiryFirstQuota,
-} from "@omniroute/open-sse/services/combo/quotaScoring.ts";
 import {
   rehydrateAntigravityFamilyLocksForConnections,
   persistAntigravityFamilyCooldownIfQuota,
@@ -489,93 +486,6 @@ function collectPolicyQuotaHeadroomPercentages(
 
   return percentages;
 }
-/**
- * Adapts the per-connection quota cache to the shape the combo quota scorers read.
- * The cache stores `{ quotas: { <window>: { remainingPercentage, resetAt } } }`
- * (percent REMAINING, 0-100); the scorers read `{ windows: { <window>:
- * { percentUsed, resetAt } } }` (fraction USED, 0-1). Converting rather than
- * re-fetching keeps account selection free of any upstream quota call.
- *
- * Returns null when no window carries a usable percentage, so the caller can
- * tell "no telemetry" apart from "telemetry says empty".
- */
-export function buildConnectionQuotaWindowsView(
-  connectionId: string
-): Record<string, unknown> | null {
-  const quotas = (getQuotaCache(connectionId) as QuotaCacheView | null)?.quotas;
-  if (!quotas) return null;
-
-  const windows: Record<string, { percentUsed: number; resetAt: string | null }> = {};
-  for (const [windowName, quota] of Object.entries(quotas)) {
-    const remainingPercent = toNumber(quota?.remainingPercentage, Number.NaN);
-    if (!Number.isFinite(remainingPercent)) continue;
-    windows[windowName.toLowerCase()] = {
-      percentUsed: Math.min(1, Math.max(0, 1 - remainingPercent / 100)),
-      resetAt: toStringOrNull(quota?.resetAt),
-    };
-  }
-
-  return Object.keys(windows).length > 0 ? { windows } : null;
-}
-
-/**
- * Orders accounts for `expiry-first` and returns the winner.
- *
- * Pure and quota-source agnostic (`resolveQuotaView` is injected) so the ranking
- * is testable without a database or an upstream call.
- *
- * Accounts within `expiryFirstTieBandPercent` of the leader — compared
- * RELATIVELY, since the score is a rate and not a 0-1 value — are equivalent and
- * rotate least-recently-used. Without the band a rounding difference would pin
- * every request to one account and the strategy would degenerate into fill-first
- * for a pool of equivalent accounts.
- */
-export function selectExpiryFirstConnection<
-  T extends {
-    id: string;
-    priority?: number | null;
-    backoffLevel?: number | null;
-    lastUsedAt?: string | null;
-  },
->(
-  connections: readonly T[],
-  settings: Record<string, unknown> | null,
-  resolveQuotaView: (connectionId: string) => Record<string, unknown> | null,
-  nowMs: number = Date.now()
-): T | null {
-  if (connections.length === 0) return null;
-
-  const config = resolveExpiryFirstConfig(settings);
-  const scored = connections.map((candidate) => ({
-    candidate,
-    score: scoreExpiryFirstQuota(resolveQuotaView(candidate.id), config, nowMs).score,
-  }));
-  scored.sort((a, b) => {
-    if (a.score !== b.score) return b.score - a.score; // most urgent first
-    return (a.candidate.priority || 999) - (b.candidate.priority || 999);
-  });
-
-  const bestScore = scored[0].score;
-  // Every account scored zero (no telemetry, or all exhausted): fall through to
-  // the priority order the pool arrived in rather than picking arbitrarily.
-  if (bestScore <= 0) return connections[0];
-
-  const tied = scored.filter((entry) => (bestScore - entry.score) / bestScore <= config.tieBand);
-  if (tied.length <= 1) return scored[0].candidate;
-
-  tied.sort((a, b) => {
-    const aBackoff = a.candidate.backoffLevel || 0;
-    const bBackoff = b.candidate.backoffLevel || 0;
-    if (aBackoff !== bBackoff) return aBackoff - bBackoff;
-    if (!a.candidate.lastUsedAt && !b.candidate.lastUsedAt)
-      return (a.candidate.priority || 999) - (b.candidate.priority || 999);
-    if (!a.candidate.lastUsedAt) return -1;
-    if (!b.candidate.lastUsedAt) return 1;
-    return new Date(a.candidate.lastUsedAt).getTime() - new Date(b.candidate.lastUsedAt).getTime();
-  });
-  return tied[0].candidate;
-}
-
 function collectCachedQuotaHeadroomPercentages(
   provider: string,
   connection: ProviderConnectionView,
@@ -2186,7 +2096,7 @@ export async function getProviderCredentials(
       const idx =
         parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % orderedConnections.length;
       connection = orderedConnections[idx];
-    } else if (strategy === "least-used") {
+    } else if (strategy === "least-used" || strategy === "expiry-first") {
       // Least Used: pick the one with oldest lastUsedAt.
       // #12279: prefer accounts without backoff first, the same tie-break the
       // round-robin fallback branch applies. Without it the oldest lastUsedAt
@@ -2202,6 +2112,9 @@ export async function getProviderCredentials(
         return new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
       });
       connection = sorted[0];
+      // expiry-first (#14533) ranks by the quota closest to being lost; see its leaf module.
+      if (strategy === "expiry-first")
+        connection = pickExpiryFirstConnection(orderedConnections, settings);
       // Record the use (#10945). This strategy sorts on the very field it was
       // not writing, so on a pool where every lastUsedAt is null the tie-break
       // fell through to `priority` and returned the SAME connection on every
@@ -2218,25 +2131,6 @@ export async function getProviderCredentials(
         (a, b) => (a.priority || 999) - (b.priority || 999)
       );
       connection = sorted[0];
-    } else if (strategy === "expiry-first") {
-      // Expiry-first: spend the quota that is closest to being lost. Ranks each
-      // account by how much it must burn PER HOUR to avoid wasting its leftover
-      // at the next reset, so a full account whose window closes soon outranks an
-      // equally full one that holds for days. fill-first drains the top-priority
-      // account and lets the rest roll over unspent; that lost quota is the whole
-      // reason this strategy exists.
-      connection =
-        selectExpiryFirstConnection(
-          orderedConnections,
-          settings as unknown as Record<string, unknown> | null,
-          buildConnectionQuotaWindowsView
-        ) ?? orderedConnections[0];
-
-      // Commit lastUsedAt for the same reason least-used does (#10945): the tie
-      // band reads the field, so without writing it the rotation would stall.
-      const commit = planLastUsedCommit(connection, connectionsRaw, 1);
-      if (options.lease) commitSelectionSideEffects = commit;
-      else await commit();
     } else if (strategy === "strict-random") {
       // Strict Random: shuffle deck — uses each account once before reshuffling
       const ids = orderedConnections.map((c) => c.id);

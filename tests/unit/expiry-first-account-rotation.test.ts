@@ -25,7 +25,7 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { selectExpiryFirstConnection } from "@/sse/services/auth";
+import { selectExpiryFirstConnection } from "@/sse/services/expiryFirstAccountSelection";
 import {
   resolveExpiryFirstConfig,
   scoreExpiryFirstQuota,
