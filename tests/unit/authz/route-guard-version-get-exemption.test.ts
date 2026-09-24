@@ -122,6 +122,9 @@ describe("isLocalOnlyPath - GET exemption for /api/system/version (#5083)", () =
   //   /api/tunnels/cloudflared - GET is tunnel status; POST still spawns cloudflared
   //                              and stays local-only (#11531, and see
   //                              route-guard-tunnel-processes-local-only.test.ts)
+  //   /api/mcp/audit         - GET is a read-only mcp_tool_audit query behind
+  //   /api/mcp/audit/stats     requireManagementAuth (no spawn); the rest of
+  //                              /api/mcp/* (sse/stream) stays local-only (#13941)
   test("LOCAL_ONLY_API_GET_EXEMPTIONS holds exactly the reviewed paths", () => {
     assert.deepEqual([...LOCAL_ONLY_API_GET_EXEMPTIONS].sort(), [
       "/api/mcp/audit",
