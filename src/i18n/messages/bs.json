@@ -14144,7 +14144,12 @@
     "hour": "sat",
     "day": "dan",
     "unknownModel": "nepoznato",
-    "pending": "na čekanju"
+    "pending": "na čekanju",
+    "allApiKeys": "Svi API ključevi",
+    "mcp": "MCP",
+    "mcpTool": "MCP alat",
+    "scope": "Opseg",
+    "apiKey": "API ključ"
   },
   "metadata": {
     "compressionTitle": "Kompresija",

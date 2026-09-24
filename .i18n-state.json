@@ -78697,7 +78697,7 @@
       }
     },
     "docs/guides/DOCKER_GUIDE.md": {
-      "source_hash": "9860e510385ab89f80a8e265ff5712b0e1d2a5782c402bd2d8fe8ba4b37a834a",
+      "source_hash": "0c6aa7f2b0d941820975b8c831c5608799124a2ef44cf4435fa9b28a95cdf3d0",
       "locales": {
         "pl": {
           "source_hash": "9860e510385ab89f80a8e265ff5712b0e1d2a5782c402bd2d8fe8ba4b37a834a",
@@ -78856,8 +78856,8 @@
           "updated_at": "2026-09-24T16:46:36.825Z"
         },
         "da": {
-          "source_hash": "9860e510385ab89f80a8e265ff5712b0e1d2a5782c402bd2d8fe8ba4b37a834a",
-          "target_hash": "a205eb87006f58c5ccbee9132083623ba717254b2989417fefa76ee8ccb5534b",
+          "source_hash": "0c6aa7f2b0d941820975b8c831c5608799124a2ef44cf4435fa9b28a95cdf3d0",
+          "target_hash": "8e50fbca86021896e83249c98098c92232e3cfbb86478ad09760efe66e24047e",
           "section_hashes": [
             "69d02ce6a243",
             "2ff327384a95",
@@ -78868,7 +78868,7 @@
             "04b55ec8aa2b",
             "047143888462",
             "bae3aecfda35",
-            "1e3795a1bc73",
+            "0d8f3eb59642",
             "24a273f81929",
             "eb1fcd2c081a",
             "e9d7d4ae9742",
@@ -78879,7 +78879,7 @@
             "7317b76faaaa",
             "c68737563e9d"
           ],
-          "updated_at": "2026-09-24T16:46:36.825Z"
+          "updated_at": "2026-09-24T16:54:44.574Z"
         },
         "de": {
           "source_hash": "9860e510385ab89f80a8e265ff5712b0e1d2a5782c402bd2d8fe8ba4b37a834a",
