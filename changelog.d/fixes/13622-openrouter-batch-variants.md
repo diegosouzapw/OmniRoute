@@ -1,1 +1,0 @@
-- **fix(models):** keep OpenRouter's Batch-API-only `:batch` variants out of chat routing — ModelSync imported all 77 of them into the chat catalogue, where every request that landed on one was rejected with `404 This model is only available through the Batch API` (#13622)

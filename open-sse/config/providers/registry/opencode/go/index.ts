@@ -121,6 +121,18 @@ export const opencode_goProvider: RegistryEntry = {
       supportsVision: false,
       supportsReasoning: true,
     },
+    // #14181: OpenCode Go now serves a GA `qwen3.8-max` alongside the preview.
+    // Without this row the provider-aware exemption in resolveModelAlias could not
+    // see it, and the stale built-in rewrite to `qwen3.8-max-preview` (which the
+    // upstream rejects with a 401) fired before dispatch. Base id only — no
+    // effort-tier variants are advertised upstream yet.
+    {
+      id: "qwen3.8-max",
+      name: "Qwen3.8 Max",
+      targetFormat: "claude",
+      supportsVision: false,
+      supportsReasoning: true,
+    },
     // qwen3.6-plus / qwen3.5-plus base ids declared identically on opencode-zen — see
     // OPENCODE_ZEN_GO_SHARED_MODELS.
     {

@@ -64,6 +64,7 @@ import {
   withCompressionEntrypointGuardsAsync,
 } from "./entrypointWrap.ts";
 import { makeMemoKey, memoLookup, memoStore, isDeterministicMode } from "./resultMemo.ts";
+import { applyLossyRequestPolicy } from "./lossyRequestPolicy.ts";
 export { resolveCacheAwareConfig } from "./cacheAwareConfig.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
@@ -126,40 +127,42 @@ function resolveBasePlan(
 
   // Phase 3: an explicit, recognized header wins over every operator layer (Decision B).
   // The master switch above is the hard kill: a header cannot turn compression on.
+  let plan: DerivedPlan;
   if (header) {
     const fromHeader = planFromHeader(config, header, combos);
-    if (fromHeader) return fromHeader; // already tagged "request-header"
+    if (fromHeader) {
+      plan = fromHeader; // already tagged "request-header"
+      return applyLossyRequestPolicy(plan, header);
+    }
   }
 
   const comboMode = checkComboOverride(config, comboId);
   if (comboMode) {
     // A routing-combo "stacked" override still wants the configured stacked pipeline,
     // so route it through the resolver (which reads config.stackedPipeline for stacked).
-    return withSource(resolveCompressionPlan(config, { comboId, combos }), "routing-override");
-  }
-
-  // Active profile: an EXPLICIT operator choice. Resolves regardless of enginesExplicit and
-  // above auto-trigger (manual choice beats automatic escalation), but below a routing-combo
-  // override (route-scoped is more specific).
-  if (config.activeComboId && combos[config.activeComboId]) {
-    return withSource(
+    plan = withSource(resolveCompressionPlan(config, { comboId, combos }), "routing-override");
+  } else if (config.activeComboId && combos[config.activeComboId]) {
+    // Active profile: an EXPLICIT operator choice. Resolves regardless of enginesExplicit and
+    // above auto-trigger (manual choice beats automatic escalation), but below a routing-combo
+    // override (route-scoped is more specific).
+    plan = withSource(
       { mode: "stacked", stackedPipeline: combos[config.activeComboId] },
       "active-profile"
     );
-  }
-
-  if (!adaptiveEnabled(config) && shouldAutoTrigger(config, estimatedTokens)) {
+  } else if (!adaptiveEnabled(config) && shouldAutoTrigger(config, estimatedTokens)) {
     const mode = config.autoTriggerMode ?? "lite";
-    return withSource(
+    plan = withSource(
       mode === "stacked"
         ? { mode, stackedPipeline: config.stackedPipeline ?? [] }
         : { mode, stackedPipeline: [] },
       "auto-trigger"
     );
+  } else {
+    const derived = deriveDefaultPlanFromConfig(config, comboId, combos);
+    plan = withSource(derived, derived.mode === "off" ? "off" : "default");
   }
 
-  const plan = deriveDefaultPlanFromConfig(config, comboId, combos);
-  return withSource(plan, plan.mode === "off" ? "off" : "default");
+  return applyLossyRequestPolicy(plan, header);
 }
 
 /**

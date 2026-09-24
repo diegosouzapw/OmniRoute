@@ -102,6 +102,15 @@ test("P1: _getAccessTokenInternal passes providerSpecificData to refreshKimiCodi
   );
 });
 
+test("P1: _getAccessTokenInternal passes providerSpecificData to refreshMuseCodeToken", async () => {
+  const src = await read("open-sse/services/tokenRefresh.ts");
+  assert.match(
+    src,
+    /case\s+["']muse-code["']:[\s\S]{1,300}providerSpecificData/,
+    "muse-code case must pass providerSpecificData"
+  );
+});
+
 // ─── P1: GitHub Copilot sub-token health check ────────────────────────────────
 
 test("P1: GitHub Copilot sub-token is refreshed by tokenHealthCheck", async () => {

@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (తెలుగు)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -283,12 +283,75 @@ MCP టూల్/రూట్ లేయర్ను చేరుకోవడా�
 
 ---
 
-## ప్రామాణీకరణ & స్కోప్లు
+## ప్రమాణీకరణ & స్కోప్లు
 
-MCP సాధనాలు API కీ స్కోప్ల ద్వారా ప్రామాణీకరించబడతాయి. స్కోప్ అమలు
-`open-sse/mcp-server/scopeEnforcement.ts`లో కేంద్రీకరించబడింది. ప్రతి సాధనానికి నిర్దిష్ట స్కోప్లు అవసరం:
+MCP సాధనం కాలర్ నుండి స్కోప్ స్ట్రింగ్లను చదువుతుంది. ఆ తనిఖీ మూడు స్వతంత్ర నేమ్స్పేస్లలో ఒకటి. ఒక చెకర్ నుండి పాస్ అనేది ఇతరుల నుండి పాస్ కాదు. నియమాలు [మూడు స్కోప్ నేమ్స్పేస్లు](#three-scope-namespaces). సాధన కేటలాగ్ [MCP సాధన స్కోప్లు](#mcp-tool-scopes).
 
-| పరిధి                 | సాధనాలు                                                                                                                                                                       |
+### మూడు స్కోప్ నేమ్స్పేస్లు
+
+ఒక API కీపై `manage`, ఒక MCP సాధనంపై `read:compression`, మరియు ఒక `oma_live_…` యాక్సెస్ టోకెన్పై `read` అనేవి మూడు విభిన్న అనుమతులు. మ్యూటేటింగ్ మేనేజ్మెంట్ రూట్కు `read` యాక్సెస్ టోకెన్ను పంపే కాలర్లు HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` పొందుతారు. ఆ ర్యాంక్ `scopeSatisfies`. ఇది MCP పట్టికను సంప్రదించదు, మరియు MCP మ్యాచర్ దానిని సంప్రదించదు.
+
+| నేమ్స్పేస్        | క్రెడెన్షియల్                                                   | చెకర్                     | పాస్ అనుమతిస్తుంది                                       |
+| :---------------- | :-------------------------------------------------------------- | :------------------------ | :------------------------------------------------------- |
+| API-కీ నిర్వహణ    | `api_keys.scopes`                                               | `hasManageScope`          | ఆ బేరర్ కీ కోసం నిర్వహణ REST                             |
+| API-కీ అడిటివ్    | అదే శ్రేణి, ఒక ఖచ్చితమైన స్ట్రింగ్                              | క్రింద పేర్కొన్న సహాయకుడు | ఆ ఒక్క సామర్థ్యం మాత్రమే                                 |
+| MCP సాధన స్కోప్లు | అదే శ్రేణి, లేకపోతే MCP `_meta`, లేకపోతే `OMNIROUTE_MCP_SCOPES` | `scopeMatches`            | ఆ సాధనం, అమలు ఆన్ అయిన తర్వాత                            |
+| యాక్సెస్ టోకెన్   | `oma_live_…`                                                    | `scopeSatisfies`          | దాని పద్ధతి మరియు మార్గం ఆ ర్యాంక్ను కోరే నిర్వహణ మార్గం |
+
+ప్రతి క్రెడెన్షియల్ను మింట్ చేయడం [నిర్వహణ ప్రమాణీకరణ](../guides/MANAGEMENT-AUTH.md)లో కవర్ చేయబడింది.
+
+#### API-కీ స్కోప్లు
+
+ఒక `api_keys.scopes` శ్రేణి రెండు పనులకు ఉపయోగపడుతుంది. అవి వేర్వేరు ఫంక్షన్లను ఉపయోగిస్తాయి.
+
+**నిర్వహణ REST.** `manage` మరియు `admin` అనేవి `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) సభ్యులు. `hasManageScope` అనేది ఆ కీ కోసం నిర్వహణ మార్గాలను అధికారం చేస్తుంది. `admin` అనేది ఆ మార్గాలపై నిర్వహణ-సామర్థ్యం కలిగి ఉంటుంది. ఇక్కడ `admin` అనే పదం యాక్సెస్-టోకెన్ ర్యాంక్ కాదు మరియు అది MCP సాధన స్కోప్లలోకి విస్తరించదు.
+
+**అడిటివ్ స్ట్రింగ్లు.** ప్రతి ఒక్కటి ఖచ్చితమైన సభ్యత్వ పరీక్ష, మరియు ప్రతి ఒక్కటి `MANAGEMENT_API_KEY_SCOPES` వెలుపల ఉంటుంది.
+
+| స్కోప్                         | పాస్ అనుమతిస్తుంది                                                                                                                                                         |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | నాన్-లూప్బ్యాక్ `/api/mcp/` LOCAL_ONLY కార్వ్-అవుట్ మాత్రమే (`hasMcpConnectOrManageScope`). `manage` లేదా `admin` ఉన్న కీ ఇప్పటికీ ఆ కార్వ్-అవుట్ను పాస్ చేస్తుంది.        |
+| `self:usage`                   | ఈ కీ కోసం `GET /api/v1/me/status` (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` సృష్టించేటప్పుడు ఈ స్కోప్ను జోడిస్తుంది (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | ఆ స్థితి పేలోడ్ లోపల అప్స్ట్రీమ్ ఖాతా కోటాలు (`src/lib/usage/apiKeySelfService.ts`). స్థితి మార్గం ఇప్పటికీ `self:usage` అవసరం.                                            |
+| `policy:bypass-provider-quota` | ఈ కీ యొక్క ఇన్ఫరెన్స్ కాల్స్ ప్రొవైడర్-కోటా పాలసీని దాటవేస్తాయి (`hasProviderQuotaBypassScope` in `src/sse/handlers/chat.ts`).                                             |
+
+#### సరిపోల్చడం
+
+కేటలాగ్ [MCP సాధన స్కోప్లు](#mcp-tool-scopes) కింద ఉన్న పట్టిక. `src/shared/constants/mcpScopes.ts`లోని `MCP_SCOPE_LIST`ను ఆ కేటలాగ్గా పరిగణించవద్దు: ఇది అసలు టైప్ చేయబడిన ఉపసమితి. తర్వాతి సాధనాలు దాని పక్కన మరిన్ని స్కోప్లను ప్రకటిస్తాయి (`read:notion`, `read:skills`, `read:local-corpus`, మరియు పట్టికలోని మిగిలినవి).
+
+`open-sse/mcp-server/scopeEnforcement.ts`లోని `evaluateToolScopes` ప్రతి అవసరమైన స్కోప్ కొన్ని మంజూరు చేయబడిన స్కోప్తో సరిపోలినప్పుడు కాల్ను అనుమతిస్తుంది:
+
+- `*` ప్రతి అవసరమైన స్కోప్తో సరిపోలుతుంది.
+- `*`తో ముగిసే మంజూరు చేయబడిన స్కోప్ నక్షత్రానికి ముందు ఉన్న ప్రిఫిక్స్తో ప్రారంభమయ్యే అవసరమైన స్కోప్తో సరిపోలుతుంది. `read:*` `read:compression`తో సరిపోలుతుంది.
+- ప్రతి ఇతర మంజూరు చేయబడిన స్కోప్ ఒకే అవసరమైన స్ట్రింగ్తో మాత్రమే సరిపోలుతుంది.
+
+`["manage"]` స్కోప్లు ఉన్న కీ `read:compression` కోసం `scopeMatches`లో విఫలమవుతుంది. `admin`, `mcp:connect`, `read`, మరియు `write` మాత్రమే మంజూరు చేయబడిన స్ట్రింగ్లు అయినప్పుడు అదే కాల్ విఫలమవుతుంది. ట్రైలింగ్ `*`కు మించి MCP సాధన స్కోప్ల మధ్య ఎటువంటి క్రమానుగత సంబంధం లేదు.
+
+`OMNIROUTE_MCP_ENFORCE_SCOPES=true` (డిఫాల్ట్ `false`) అయితే తప్ప అమలు ఆఫ్ చేయబడుతుంది. అది ఆఫ్ అయినప్పుడు, `evaluateToolScopes` కాల్ను అనుమతిస్తుంది మరియు కేటలాగ్ను దాటవేస్తుంది. అది ఆన్ అయినప్పుడు, HTTP బేరర్ కీ యొక్క `api_keys.scopes`ను `authInfo`గా ఉపయోగిస్తుంది ([ప్రతి-కీ HTTP స్కోప్ బైండింగ్](#per-key-http-scope-binding-7895) చూడండి). కీ స్కోప్లు పరిష్కరించబడనప్పుడు, మంజూరు చేయబడిన సమితి MCP `_meta`కు, ఆపై `OMNIROUTE_MCP_SCOPES`కు వస్తుంది.
+
+#### యాక్సెస్-టోకెన్ స్కోప్లు
+
+`oma_live_…` టోకెన్లు (`src/lib/accessTokens/scopes.ts`) `read`, `write`, లేదా `admin`ను కలిగి ఉంటాయి. `scopeSatisfies` అనేది ఒక ర్యాంక్: `admin` `write` మరియు `read`ను కవర్ చేస్తుంది, మరియు `write` `read`ను కవర్ చేస్తుంది. తెలియని స్కోప్లు దేనినీ కవర్ చేయవు.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) ఆ ర్యాంక్ను `inferRequiredScope` (`src/server/authz/accessScopes.ts`)తో పోలుస్తుంది:
+
+- `GET`, `HEAD`, మరియు `OPTIONS`కు `read` అవసరం.
+- ప్రతి ఇతర పద్ధతికి `write` అవసరం.
+- `ADMIN_SCOPE_PREFIXES`లోని మార్గాలకు ప్రతి పద్ధతికి `admin` అవసరం. `/api/mcp` ఆ జాబితాలో ఉంది, కాబట్టి `write` యాక్సెస్ టోకెన్ ఇప్పటికీ MCP HTTP ఉపరితలాన్ని కాల్ చేయదు.
+- `ADMIN_MUTATION_PREFIXES`లోని మార్గాలకు మ్యూటేషన్లకు మాత్రమే `admin` అవసరం.
+
+`PATCH /api/keys/{id}` అనేది ఒక మ్యుటేషన్ మరియు ఆ అడ్మిన్ జాబితాలలో లేదు, కాబట్టి ఒక `read` టోకెన్ 403ని అందుకుంటుంది.
+`యాక్సెస్ టోకెన్ స్కోప్ 'read' సరిపోదు; 'write' అవసరం.`
+ఒక `write` లేదా `admin` యాక్సెస్ టోకెన్ ఆ రూట్ను సంతృప్తిపరుస్తుంది. ఒక డాష్బోర్డ్ JWT, లూప్బ్యాక్ CLI మెషిన్-ఐడి టోకెన్, మరియు `manage` లేదా `admin` ఉన్న API కీ ఇతర బ్రాంచ్లను తీసుకుంటాయి మరియు ఈ ర్యాంక్ ద్వారా పరిమితం చేయబడవు.
+
+`/api/mcp` కోసం `scopeSatisfies`ని పాస్ చేసే యాక్సెస్ టోకెన్ మేనేజ్మెంట్ గేట్ను మాత్రమే క్లియర్ చేసింది. టూల్ కాల్స్ ఇప్పటికీ API-కీ స్కోప్లకు వ్యతిరేకంగా `scopeMatches`ని అమలు చేస్తాయి. యాక్సెస్-టోకెన్ ర్యాంక్ `scopeMatches`కి ఇన్పుట్ కాదు.
+
+### MCP టూల్ స్కోప్లు
+
+స్కోప్ ఎన్ఫోర్స్మెంట్ `open-sse/mcp-server/scopeEnforcement.ts`లో కేంద్రీకరించబడింది.
+ప్రతి టూల్కు నిర్దిష్ట స్కోప్లు అవసరం:
+
+| పరిధి                 | ఉపకరణాలు                                                                                                                                                                      |
 | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                             |
 | `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                     |
@@ -320,44 +383,19 @@ MCP సాధనాలు API కీ స్కోప్ల ద్వారా �
 | `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                |
 | `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                            |
 | `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                               |
-| `read:obsidian`       | 13 పఠన సాధనాలు — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | 9 రచన సాధనాలు — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
+| `read:obsidian`       | 13 రీడ్ టూల్స్ — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | 9 రైట్ టూల్స్ — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                             |
 
-వైల్డ్కార్డ్ స్కోప్లకు మద్దతు ఉంది: `read:*` అన్ని రీడ్-స్కోప్లను మంజూరు చేస్తుంది, `*` పూర్తి యాక్సెస్ను మంజూరు చేస్తుంది.
+వైల్డ్కార్డ్ స్కోప్లు మద్దతు ఇవ్వబడతాయి: `read:*` అన్ని రీడ్-స్కోప్లను మంజూరు చేస్తుంది, `*` పూర్తి ప్రాప్యతను మంజూరు చేస్తుంది.
 
-### `mcp:connect` — పరిమిత రూట్ సామర్థ్యం (#7895)
+### `mcp:connect` — ఇరుకైన రూట్ సామర్థ్యం (#7895)
 
-నాన్-లూప్బ్యాక్ నుండి HTTP/SSE MCP ట్రాన్స్పోర్ట్ను (`/api/mcp/*`) చేరుకోవడానికి
-`/api/mcp/` LOCAL_ONLY మినహాయింపు అవసరం (`docs/security/ROUTE_GUARD_TIERS.md` చూడండి). చారిత్రకంగా
-ఆ మినహాయింపు పూర్తి `manage`/`admin`-స్కోప్ API కీని మాత్రమే అంగీకరించేది — కేవలం
-MCPతో కమ్యూనికేట్ చేయాల్సిన కాలర్కు ఇది అవసరానికి మించిన విస్తృత అనుమతి.
-`src/shared/constants/managementScopes.ts` ఇప్పుడు
-`MCP_CONNECT_SCOPE = "mcp:connect"`ను ఎక్స్పోర్ట్ చేస్తుంది: ఇది అదనంగా జోడించగల, పరిమిత స్కోప్
-(`SELF_USAGE_SCOPE` మాదిరిగానే); ఇది
-`src/server/authz/policies/management.ts`లోని `/api/mcp/` బైపాస్కు మాత్రమే అధికారం ఇస్తుంది —
-ఇది ఇతర మేనేజ్మెంట్-రూట్ యాక్సెస్ ఏదీ మంజూరు చేయదు మరియు ఉద్దేశపూర్వకంగా
-`MANAGEMENT_API_KEY_SCOPES`కు వెలుపల ఉంచబడింది. `manage`/`admin` కలిగిన కీ
-ఇప్పటికీ ఎలాంటి మార్పు లేకుండా ఆ మినహాయింపును దాటుతుంది; రిమోట్ MCP-మాత్రమే కాలర్ల కోసం
-`mcp:connect` తక్కువ-అధికార ప్రత్యామ్నాయం, ఇది `hasMcpConnectOrManageScope()` ద్వారా తనిఖీ చేయబడుతుంది.
+HTTP/SSE MCP రవాణా (`/api/mcp/*`) ను నాన్-లూప్బ్యాక్ నుండి చేరుకోవడానికి `/api/mcp/` LOCAL_ONLY కార్వ్-అవుట్ అవసరం (చూడండి `docs/security/ROUTE_GUARD_TIERS.md`). చారిత్రాత్మకంగా ఆ కార్వ్-అవుట్ పూర్తి `manage`/`admin`-స్కోప్ API కీని మాత్రమే అంగీకరించింది — MCP తో మాత్రమే మాట్లాడాల్సిన కాలర్కు ఇది చాలా విస్తృతమైనది. `src/shared/constants/managementScopes.ts` ఇప్పుడు `MCP_CONNECT_SCOPE = "mcp:connect"` ను ఎగుమతి చేస్తుంది: ఇది ఒక అడిటివ్, ఇరుకైన స్కోప్ (`SELF_USAGE_SCOPE` వలె అదే పూర్వగామి) ఇది `src/server/authz/policies/management.ts` లోని `/api/mcp/` బైపాస్ను మాత్రమే అధికారం చేస్తుంది — ఇది ఇతర మేనేజ్మెంట్-రూట్ యాక్సెస్ను మంజూరు చేయదు మరియు `MANAGEMENT_API_KEY_SCOPES` నుండి ఉద్దేశపూర్వకంగా దూరంగా ఉంచబడింది. `manage`/`admin` కలిగి ఉన్న కీ ఇప్పటికీ కార్వ్-అవుట్ను మార్చకుండానే పాస్ చేస్తుంది; `mcp:connect` అనేది రిమోట్ MCP-మాత్రమే కాలర్ల కోసం తక్కువ-ప్రత్యేకాధికార ప్రత్యామ్నాయం, ఇది `hasMcpConnectOrManageScope()` ద్వారా తనిఖీ చేయబడుతుంది.
 
-### ప్రతి కీకి HTTP స్కోప్ బైండింగ్ (#7895)
+### ప్రతి-కీ HTTP స్కోప్ బైండింగ్ (#7895)
 
-HTTP/SSE ద్వారా, `open-sse/mcp-server/httpTransport.ts` ఇప్పుడు
-`resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) ద్వారా కాలర్ యొక్క వాస్తవ
-`api_keys.scopes`ను నిర్ధారించి, దానిని MCP SDK యొక్క
-`transport.handleRequest(req, { authInfo })`కు పంపుతుంది; అందువల్ల ప్రతి టూల్ కాల్కు చేరే
-`extra.authInfo.scopes`, Bearer కీ యొక్క స్వంత స్కోప్లను ప్రతిబింబిస్తుంది.
-`scopeEnforcement.ts`లోని `resolveCallerScopeContext()` ఇప్పటికే `_meta` మరియు
-`OMNIROUTE_MCP_SCOPES` env ఫాల్బ్యాక్ కంటే `authInfo`కే ప్రాధాన్యమిచ్చేది — ఈ మార్పు గతంలో
-HTTP ద్వారా అందించబడని ఆ మొదటి, అత్యధిక-ప్రాధాన్యత గల సోర్స్ను మాత్రమే పూరిస్తుంది. ఏ API కీ
-నిర్ధారించబడనప్పుడు (హెడర్ లేకపోవడం, చెల్లని కీ), `authInfo` `undefined`గానే ఉంటుంది మరియు
-రిజల్యూషన్ ఎలాంటి మార్పు లేకుండా ఇప్పటికే ఉన్న `meta`/env గొలుసుకు కొనసాగుతుంది. ఇది
-`OMNIROUTE_MCP_ENFORCE_SCOPES` యొక్క డిఫాల్ట్ను మార్చదు — అమలును ఇప్పటికీ స్పష్టంగా
-ప్రారంభించాల్సిందే; ప్రారంభించిన తర్వాత ప్రతి-కీ మార్గానికి ప్రాధాన్యం లభించేలా మాత్రమే ఈ మార్పు
-చేస్తుంది. stdioలో ప్రతి కాలర్కు ప్రత్యేక ఐడెంటిటీ ఉండదు
-(`mcpCallerIdentity.ts` చూడండి), కాబట్టి దానిపై ప్రభావం ఉండదు — అది `_meta`/env ఫాల్బ్యాక్
-గొలుసునే ఉపయోగించడం కొనసాగిస్తుంది.
+HTTP/SSE పై, `open-sse/mcp-server/httpTransport.ts` ఇప్పుడు కాలర్ యొక్క నిజమైన `api_keys.scopes` ను `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) ద్వారా పరిష్కరిస్తుంది మరియు దానిని MCP SDK యొక్క `transport.handleRequest(req, { authInfo })` కు పంపుతుంది, తద్వారా ప్రతి టూల్ కాల్ను చేరుకునే `extra.authInfo.scopes` బేరర్ కీ యొక్క స్వంత స్కోప్లను ప్రతిబింబిస్తుంది. `scopeEnforcement.ts` యొక్క `resolveCallerScopeContext()` ఇప్పటికే `_meta` మరియు `OMNIROUTE_MCP_SCOPES` env ఫాల్బ్యాక్ కంటే `authInfo` కు ప్రాధాన్యత ఇచ్చింది — ఇది గతంలో HTTP పై అన్ఫెడ్ చేయబడిన మొదటి, అత్యధిక-ప్రాధాన్యత మూలాన్ని మాత్రమే నింపుతుంది. API కీ పరిష్కరించబడనప్పుడు (హెడర్ లేదు, చెల్లని కీ), `authInfo` నిర్వచించబడకుండా ఉంటుంది మరియు పరిష్కారం ఇప్పటికే ఉన్న `meta`/env చైన్ ద్వారా మార్చకుండానే కొనసాగుతుంది. ఇది `OMNIROUTE_MCP_ENFORCE_SCOPES` యొక్క డిఫాల్ట్ను తిప్పికొట్టదు — అమలు ఇప్పటికీ స్పష్టంగా ప్రారంభించబడాలి; ఈ మార్పు అది ప్రారంభించబడిన తర్వాత ప్రతి-కీ మార్గాన్ని ప్రాధాన్యతనిస్తుంది. stdio కు ప్రతి-కాలర్ గుర్తింపు లేదు (`mcpCallerIdentity.ts` చూడండి) మరియు ప్రభావితం కాదు — ఇది `_meta`/env ఫాల్బ్యాక్ చైన్లోనే ఉంటుంది.
 
 ---
 

@@ -9,6 +9,7 @@ import { ProxyHealthCell } from "./ProxyHealthCell";
 import { ProxyBatchActions } from "./ProxyBatchActions";
 import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
 import { PoolEgressObservation } from "./PoolEgressObservation";
+import { PoolMemberEgressLines } from "./PoolMemberEgressLines";
 import {
   parseBulkImportText,
   type ParsedProxyEntry,
@@ -31,7 +32,7 @@ import {
   repairRelayResponseSchema,
 } from "./proxyRegistryData";
 
- export default function ProxyRegistryManager({
+export default function ProxyRegistryManager({
   onRedeployRelay,
   showVercelRelay = false,
   showDenoRelay = false,
@@ -1240,6 +1241,7 @@ import {
                   {t("poolMembersLabel", { count: poolMembers.length })}
                 </label>
                 <PoolEgressObservation query={poolQuery()} />
+                <PoolMemberEgressLines query={poolQuery()} />
                 {poolMembers.length === 0 ? (
                   <div className="text-sm text-text-muted px-3 py-2 rounded border border-border bg-bg-subtle">
                     {t("poolNoMembers")}

@@ -1,6 +1,6 @@
 # Security Policy (Svenska)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,26 +220,21 @@ Dessa regler upprätthålls av verktyg och granskare:
 10. **Körtidsvärden för `exec()` / `spawn()` via alternativet `env`** — interpolera aldrig externa sökvägar eller opålitliga värden som strängar i skript som skickas till skalet. Referens: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Föredra bibliotek som är säkra som standard** — se [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Använd dem i första hand i stället för att bygga egna lösningar.
 
-## Resultat från skannrar för programvaruförsörjningskedjan (Socket.dev / Snyk / liknande)
+## Resultat från skannrar för leveranskedjan (Socket.dev / Snyk / liknande)
 
-Den publicerade npm-artefakten `omniroute` paketerar Next.js-bygget med `output: "standalone"`, vilket innebär att varje route-hanterare — inklusive dokumenterade privilegierade funktioner (MITM, Zed-import, Cloud Sync, inbäddad tjänsteövervakare) — hamnar i minifierade segment i `.next/server/*.js`. Heuristiska skannrar för programvaruförsörjningskedjan mönstermatchar ofta dessa segment mot signaturer för skadlig kod.
+> **Anmärkning om omfattning:** `socket.yml` i repositoriets rot styr endast `projectIgnorePaths` för Socket.devs skanning på registersidan efter publicering av den publicerade npm-artefakten — den fungerar inte som en obligatorisk spärr för sammanslagning via CI/PR. Inget arbetsflöde i `.github/workflows`, inget skript i `package.json` och inget mål i `Makefile` anropar Socket.dev.
 
-Skannerkonfigurationen som vi använder finns i [`socket.yml`](socket.yml) i repots rot (Socket.dev GitHub App-format v2 — se <https://docs.socket.dev/docs/socket-yml>). Den undantar uttryckligen kataloger som inte distribueras (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/` osv.), så att skannern endast rapporterar kodvägar som faktiskt når användare av den publicerade versionen — själva skanningen drivs av Socket GitHub App, som läser den filen, inte av ett arbetsflöde i detta repo.
+Den publicerade npm-artefakten `omniroute` inkluderar Next.js-versionen med `output: "standalone"`, vilket innebär att varje routningshanterare — inklusive dokumenterade privilegierade funktioner (MITM, Zed-import, Cloud Sync, inbäddad tjänsteövervakare) — hamnar i minifierade segment i `.next/server/*.js`. Heuristiska skannrar för leveranskedjan matchar ofta dessa segment mot signaturer för skadlig kod.
 
-För varje resultatkategori upprätthåller vi ett intyg från ansvariga utvecklare per resultat:
+Skannerkonfigurationen vi använder finns i [`socket.yml`](socket.yml) i repositoriets rot (Socket.dev GitHub App-format v2 — se <https://docs.socket.dev/docs/socket-yml>). Den exkluderar uttryckligen kataloger som inte levereras (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/` osv.), så att skannern endast rapporterar kodvägar som faktiskt når publicerade användare — själva skanningen drivs av Socket GitHub App, som läser den filen, inte av ett arbetsflöde i detta repositorium.
+
+För varje kategori av resultat upprätthåller vi ett intyg från en underhållare för varje enskilt resultat:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mappning per resultat: källfil ↔ flaggat segment ↔ beteende ↔ åtgärd
-  tillämpad i v3.8.6.
-- `SECURITY-AUDITOR-NOTE:`-block i källkoden vid varje flaggad funktion
-  hänvisar tillbaka till samma dokument.
+  mappning per resultat: källfil ↔ flaggat segment ↔ beteende ↔ åtgärd som tillämpats i v3.8.6.
+- `SECURITY-AUDITOR-NOTE:`-block i källkoden vid varje flaggad funktion hänvisar tillbaka till samma dokument.
 
-För användare vars pipeline inte kan tillåta varningen: bygg med
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Detta ersätter de fyra
-känsliga modulerna med stubbar som returnerar HTTP 503 `feature-disabled`
-vid körning, så att de privilegierade kodvägarna är fysiskt frånvarande från paketet.
-Se [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-för publiceringsinstruktionerna.
+För användare vars pipeline inte kan tillåta varningen: bygg med `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Detta ersätter de fyra känsliga modulerna med stubbar som returnerar HTTP 503 `feature-disabled` under körning, så att de privilegierade kodvägarna fysiskt saknas i paketet. Se [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) för publiceringsinstruktionerna.
 
 ## Referenser
 

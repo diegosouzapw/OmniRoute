@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (Suomi)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -587,155 +587,156 @@ osoitteessa `/dashboard/cli-tools → Kiro`.
 
 ## 10. Sisäinen OmniRoute CLI
 
-`omniroute` binaari tarjoaa komentoja palvelimen elinkaaren, asetusten, diagnostiikan ja tarjoajien hallinnan osalta. Sisäänkäyntipiste: `bin/omniroute.mjs`.
+`omniroute`-binääritiedosto tarjoaa komentoja palvelimen elinkaaren hallintaan, käyttöönottoon, diagnostiikkaan ja palveluntarjoajien hallintaan. Aloituspiste: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Käynnistä palvelin (oletusportti 20128)
-omniroute setup                        # Interaktiivinen asennusvelho
-omniroute doctor                       # Tarkista konfiguraatio, DB, portit, ajonaika
-omniroute providers list               # Määritetyt tarjoajayhteydet
-omniroute providers test-all           # Testaa jokainen aktiivinen yhteys
-omniroute reset-password               # Nollaa pääkäyttäjän salasana
-omniroute logs                         # Suoratoista pyyntöjen lokit
-omniroute health                       # Yksityiskohtainen terveys (katkaisijat, välimuisti, muisti)
+omniroute setup                        # Vuorovaikutteinen ohjattu käyttöönotto
+omniroute doctor                       # Tarkista määritykset, tietokanta, portit ja suoritusympäristö
+omniroute providers list               # Määritetyt palveluntarjoajayhteydet
+omniroute providers test-all           # Testaa kaikki aktiiviset yhteydet
+omniroute reset-password               # Nollaa ylläpitäjän salasana
+omniroute logs                         # Suoratoista pyyntölokeja
+omniroute health                       # Yksityiskohtainen terveystila (katkaisimet, välimuisti, muisti)
 omniroute --version                    # Tulosta versio
 omniroute --help                       # Näytä kaikki komennot
 ```
 
-### Asetukset & Alustus
+### Käyttöönotto ja alustus
 
 ```bash
-omniroute setup                        # Interaktiivinen asennusvelho
-omniroute setup --non-interactive      # CI/automaatio-tila (lukee ympäristömuuttujat + liput)
-omniroute setup --password '<value>'   # Aseta pääkäyttäjän salasana suoraan
+omniroute setup                        # Vuorovaikutteinen ohjattu käyttöönotto
+omniroute setup --non-interactive      # CI-/automaatiotila (lukee ympäristömuuttujat ja valitsimet)
+omniroute setup --password '<value>'   # Aseta ylläpitäjän salasana suoraan
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Lisää ja testaa tarjoaja yhdellä kertaa
+  --test-provider                      # Lisää ja testaa palveluntarjoaja yhdellä kertaa
 ```
 
-Tunnetut ympäristömuuttujat ei-interaktiiviselle asennukselle:
+Ei-vuorovaikutteisen käyttöönoton tunnistamat ympäristömuuttujat:
 
-| Var                 | Tarkoitus                                                           |
-| ------------------- | ------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Tarjoajan API-avain (sidottu `--api-key` kautta Commander `.env()`) |
-| `DATA_DIR`          | Korvata OmniRoute-datakansio                                        |
+| Muuttuja            | Tarkoitus                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Palveluntarjoajan API-avain (sidottu valitsimeen `--api-key` Commander `.env()` -toiminnolla) |
+| `DATA_DIR`          | Ohita OmniRouten datahakemisto                                                                |
 
-Kaikki muut ei-interaktiiviset syötteet annetaan lippuina, ei ympäristömuuttujina:
+Kaikki muut ei-vuorovaikutteiset syötteet annetaan valitsimina, eivät ympäristömuuttujina:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(katso `omniroute setup` vaihtoehdot yllä).
+(katso edellä olevat `omniroute setup` -valinnat).
 
 ### Diagnostiikka
 
 ```bash
-omniroute doctor                       # Tarkista konfiguraatio, DB, portit, ajonaika, muisti, elinkyky
-omniroute doctor --json                # Koneellisesti luettava JSON
-omniroute doctor --no-liveness         # Ohita HTTP-terveysmittaus
-omniroute doctor --host 0.0.0.0        # Korvata elinkykyisäntä
-omniroute doctor --liveness-url <url>  # Täydellinen terveys päätepisteen URL-korvaus
+omniroute doctor                       # Tarkista määritykset, tietokanta, portit, suoritusympäristö, muisti ja toimivuus
+omniroute doctor --json                # Koneluettava JSON
+omniroute doctor --no-liveness         # Ohita HTTP-terveystarkistus
+omniroute doctor --host 0.0.0.0        # Ohita toimivuustarkistuksen isäntä
+omniroute doctor --liveness-url <url>  # Ohita terveystilan päätepisteen täydellinen URL-osoite
 ```
 
-Lääkäri suorittaa nämä tarkistukset: `Konfiguraatio`, `Tietokanta`, `Tallennus/salaus`,
-`Portin saatavuus`, `Solmun ajonaika`, `Natiivi binaari` (better-sqlite3),
-`Muisti`, ja `Palvelimen elinkyky`. Se poistuu ei-nollana, jos jokin tarkistus epäonnistuu.
+Diagnostiikkakomento suorittaa seuraavat tarkistukset: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory` ja `Server liveness`. Se poistuu nollasta poikkeavalla tilakoodilla, jos minkä tahansa tarkistuksen tulos on `fail`.
 
-### Tarjoajan Hallinta
+### Palveluntarjoajien hallinta
 
 ```bash
-omniroute providers available                       # OmniRoute tarjoajaluettelo
-omniroute providers available --search openai       # Suodata luetteloa id/nimi/alias/kategoria mukaan
-omniroute providers available --category api-key    # Suodata kategorian mukaan (api-key, oauth, ilmainen, ...)
-omniroute providers available --json                # Koneellisesti luettava JSON
+omniroute providers available                       # OmniRouten palveluntarjoajaluettelo
+omniroute providers available --search openai       # Suodata luetteloa tunnuksen/nimen/aliaksen/luokan mukaan
+omniroute providers available --category api-key    # Suodata luokan mukaan (api-key, oauth, free, ...)
+omniroute providers available --json                # Koneluettava JSON
 
-omniroute providers list                            # Määritetyt tarjoajayhteydet
+omniroute providers list                            # Määritetyt palveluntarjoajayhteydet
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Testaa yksi määritetty yhteys
-omniroute providers test-all                        # Testaa jokainen aktiivinen yhteys
+omniroute providers test-all                        # Testaa kaikki aktiiviset yhteydet
 omniroute providers validate                        # Vain paikallinen rakenteellinen validointi
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Olemassa oleva OAuth-virta
+omniroute providers auth <provider>                 # Olemassa oleva OAuth-työnkulku
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` ovat API-ensimmäisiä ja toimivat siten
-aktiivisen paikallisen tai etäyhteyden kanssa. Todennustiedot tulisi syöttää
-`--credential-stdin` tai `--credential-env`; `--dry-run --json` raportoi vain
-peitetyn läsnäolon/muodon. `providers available` lukee OmniRoute-luetteloa;
-`providers list/test/test-all/validate` säilyttävät paikallisen SQLite-käyttäytymisen ja
-eivät vaadi palvelimen olevan käynnissä.
+`providers add/import/auth/edit/remove` käyttävät ensisijaisesti APIa ja toimivat siksi
+aktiivisessa paikallisessa tai etäkontekstissa. Tunnistetiedot tulee antaa käyttämällä
+valitsinta `--credential-stdin` tai `--credential-env`; `--dry-run --json` ilmoittaa vain
+peitetyn olemassaolon/rakenteen. `providers available` lukee OmniRouten luetteloa;
+`providers list/test/test-all/validate` säilyttävät paikallisen SQLite-toimintatapansa
+eivätkä edellytä palvelimen olevan käynnissä.
 
-### Palautus & Nollaus
+### Palautus ja nollaus
 
 ```bash
-omniroute reset-password                # Nollaa pääkäyttäjän salasana (myös: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Näytä varoitus + dry-run salattujen todennustietojen nollaukselle
-omniroute reset-encrypted-columns --force  # Poista salatut todennustiedot SQLite:ssä
+omniroute reset-password                # Nollaa ylläpitäjän salasana (myös: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Näytä varoitus ja kuivaharjoittelu salattujen tunnistetietojen nollausta varten
+omniroute reset-encrypted-columns --force  # Aseta salatut tunnistetiedot SQLite-tietokannassa null-arvoiksi
 ```
 
-### Todennustietojen Vienti (⚠ käsittele varoen)
+### Tunnistetietojen vienti (⚠ käsittele varoen)
 
 ```bash
-omniroute auth export                                 # Näytä varoitus + vahvistusportti — ei DB-pääsyä
-omniroute auth export --force                          # Vie KAIKKIEN yhteyksien SALATTU todennustiedot stdout:iin JSON-muodossa
+omniroute auth export                                 # Näytä varoitus ja vahvistuspyyntö — ei tietokannan käyttöä
+omniroute auth export --force                          # Vie KAIKKIEN yhteyksien SALAAMATTOMAT tunnistetiedot stdout-virtaan JSON-muodossa
 omniroute auth export --force --id <id>                 # Vie vain vastaava yhteys
-omniroute auth export --force --format env               # Tuota OMNIROUTE_<PROVIDER>_<FIELD>=<value> rivejä
-omniroute auth export --force --out creds.json           # Kirjoita tiedostoon (luodaan 0600-oikeuksilla)
+omniroute auth export --force --format env               # Tulosta OMNIROUTE_<PROVIDER>_<FIELD>=<value>-rivit
+omniroute auth export --force --out creds.json           # Kirjoita tiedostoon (luodaan käyttöoikeuksilla 0600)
 ```
 
-`auth export` on **vain paikallinen** (suora SQLite-luku, ei HTTP-reitti) ja tarkoituksellisesti tulostaa/kirjoittaa
-**selkokielisiä** `apiKey`/`accessToken`/`refreshToken`/`idToken` arvoja — se on ominaisuus, ei
-vika. Mitään ei lueta tietokannasta, eikä mitään salata, ilman `--force`. Stderr
-varoitusbanneri tulostuu aina ennen kuin mitään selkokielistä tulostuu. Vaatii `STORAGE_ENCRYPTION_KEY` asettamista. Kenttä, joka epäonnistuu salauksen purkamisessa (vanha avain, vioittunut salaus) raportoidaan
-`<field>DecryptFailed: true` sen sijaan, että koko vienti keskeytettäisiin tai vuotaisi taustalla olevaa virhettä.
+`auth export` toimii **vain paikallisesti** (suora SQLite-luku, ei HTTP-reittiä) ja tulostaa/kirjoittaa tarkoituksellisesti
+**selväkieliset** `apiKey`-/`accessToken`-/`refreshToken`-/`idToken`-arvot — tämä on ominaisuus, ei
+virhe. Tietokannasta ei lueta mitään eikä mitään pureta ilman valitsinta `--force`. Stderr-virtaan
+tulostetaan aina varoitusotsake ennen minkään selväkielisen tiedon tulostamista. Edellyttää, että
+`STORAGE_ENCRYPTION_KEY` on asetettu. Kenttä, jonka salauksen purku epäonnistuu (vanhentunut avain tai vioittunut salateksti), ilmoitetaan muodossa
+`<field>DecryptFailed: true` sen sijaan, että koko vienti keskeytettäisiin tai taustalla oleva virhe paljastettaisiin.
 
-### Muut alakomennot
+### Muut alikomennot
 
-Nämä olettavat käynnissä olevan OmniRoute-palvelimen, ellei toisin mainita:
+Nämä edellyttävät käynnissä olevaa OmniRoute-palvelinta, ellei toisin mainita:
 
 ```bash
 omniroute status                       # Kattava ajonaikainen tila
-omniroute logs                         # Suoratoista pyyntöjen lokit (--json, --search, --follow)
-omniroute config show                  # Näytä nykyinen konfiguraatio
+omniroute logs                         # Suoratoista pyyntölokeja (--json, --search, --follow)
+omniroute config list                  # Näytä määritetyt CLI-työkalut
 
-omniroute provider list                # Listaa saatavilla olevat tarjoajat (alias tarjoajien listalle)
-omniroute provider add                 # Rekisteröi OmniRoute tarjoajana työkalussa
+omniroute provider list                # Luettele käytettävissä olevat palveluntarjoajat (providers list -komennon alias)
+omniroute provider add                 # Rekisteröi OmniRoute palveluntarjoajaksi työkalussa
 omniroute keys add | list | remove     # Hallitse API-avaimia
-omniroute models [provider]            # Listaa mallit (--json, --search)
+omniroute models [provider]            # Luettele mallit (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Ota konfiguraation + DB varmuuskopio
-omniroute restore                      # Palauta aiemmasta varmuuskopiosta
+omniroute backup                       # Luo tilannevedos määrityksistä ja tietokannasta
+omniroute restore                      # Palauta aiemmasta tilannevedoksesta
 
-omniroute health                       # Yksityiskohtainen terveys (katkaisijat, välimuisti, muisti)
-omniroute quota                        # Tarjoajan kiintiön käyttö
+omniroute health                       # Yksityiskohtainen toimintakunto (katkaisimet, välimuisti, muisti)
+omniroute quota                        # Palveluntarjoajan kiintiön käyttö
 omniroute cache                        # Välimuistin tila
-omniroute cache clear                  # Tyhjennä semanttiset + allekirjoitusvälimuistit
+omniroute cache clear                  # Tyhjennä semanttiset ja allekirjoitusvälimuistit
 
 omniroute mcp status | restart         # MCP-palvelimen tila / uudelleenkäynnistys
 omniroute a2a status | card            # A2A-palvelimen tila / agenttikortti
 
 omniroute tunnel list | create | stop  # Hallitse tunneleita (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Tarkastele / aseta ympäristömuuttujia (tilapäisesti)
+omniroute env show | get <k> | set <k> <v>  # Tarkastele / aseta ympäristömuuttujia (väliaikaisesti)
 
-omniroute test                         # Tarjoajan yhteys testaus
+omniroute test                         # Palveluntarjoajan yhteyksien pikatesti
 omniroute update                       # Tarkista päivitykset
-omniroute completion                   # Generoi shell-täydennys
+omniroute completion                   # Luo komentotulkin täydennysmääritykset
 ```
 
-### Yleiset liput
+### Yleiset valitsimet
 
-| Lippu               | Kuvaus                                                        |
-| ------------------- | ------------------------------------------------------------- |
-| `--no-open`         | Älä avaa selainta automaattisesti käynnistyksen yhteydessä    |
-| `--port <n>`        | Korvata API-portti (oletus 20128)                             |
-| `--mcp`             | Toimi MCP-palvelimena stdio:n yli (IDE:ille)                  |
-| `--non-interactive` | CI-tila (ei kehotteita; lukee ympäristöstä/lipuista)          |
-| `--json`            | Koneellisesti luettava JSON-tuloste (lääkäri, tarjoajat jne.) |
-| `--help`, `-h`      | Näytä komento-kohtainen apu                                   |
-| `--version`, `-v`   | Tulosta asennettu versio                                      |
+| Valitsin            | Kuvaus                                                   |
+| ------------------- | -------------------------------------------------------- |
+| `--no-open`         | Älä avaa selainta automaattisesti käynnistettäessä       |
+| `--port <n>`        | Ohita API-portti (oletus 20128)                          |
+| `--mcp`             | Suorita MCP-palvelimena stdio-yhteydellä (IDE:ille)      |
+| `--non-interactive` | CI-tila (ei kehotteita; lukee ympäristöstä/valitsimista) |
+| `--json`            | Koneluettava JSON-tuloste (doctor, providers jne.)       |
+| `--help`, `-h`      | Näytä komentokohtainen ohje                              |
+| `--version`, `-v`   | Tulosta asennettu versio                                 |
 
 ---
 

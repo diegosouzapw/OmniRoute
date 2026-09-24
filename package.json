@@ -1,7 +1,7 @@
 {
   "name": "omniroute",
   "version": "3.8.51",
-  "description": "Unified AI router with 359 providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
+  "description": "Unified AI router with 358 providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
     "omniroute": "bin/omniroute.mjs",
@@ -196,6 +196,7 @@
     "check:file-size": "node scripts/check/check-file-size.mjs",
     "check:duplication": "node scripts/check/check-duplication.mjs",
     "check:tracked-artifacts": "node scripts/check/check-tracked-artifacts.mjs",
+    "check:ai-attribution": "node scripts/check/check-ai-attribution.mjs",
     "check:test-masking": "node scripts/check/check-test-masking.mjs",
     "check:test-runner-api": "node scripts/check/check-test-runner-api.mjs",
     "check:changelog-integrity": "node scripts/check/check-changelog-integrity.mjs",

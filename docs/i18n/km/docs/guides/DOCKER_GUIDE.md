@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (ខ្មែរ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -25,7 +25,13 @@
 
 ---
 
-## ដំណើរការរហ័ស
+## ការដំណើរការរហ័ស
+
+> **បង្ហោះដោយខ្លួនឯងដោយប្រើពាក្យបញ្ជាតែមួយមែនទេ?** សូមមើល
+> [មគ្គុទ្ទេសក៍បង្ហោះដោយខ្លួនឯង](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (image ដែលបានបោះពុម្ពផ្សាយ +
+> Redis, សម្រាប់តែ loopback, មិនមានជម្រើស profile)។ ការដំណើរការរហ័សខាងក្រោមគឺជា
+> វិធីប្រើ container តែមួយ សម្រាប់អ្នកប្រើដែលកំពុងដំណើរការ Redis នៅកន្លែងផ្សេងរួចហើយ។
 
 ```bash
 docker run -d \
@@ -59,26 +65,30 @@ docker run -d \
 # ប្រូហ្វាល់មូលដ្ឋាន (គ្មានឧបករណ៍ CLI)
 docker compose --profile base up -d
 
-# ប្រូហ្វាល់ CLI (មាន Claude Code, Codex និង OpenClaw ស្រាប់)
+# ប្រូហ្វាល់ CLI (ភ្ជាប់មកជាមួយ Claude Code, Codex, OpenClaw)
 docker compose --profile cli up -d
 
-# ប្រូហ្វាល់ម៉ាស៊ីនមេ (ផ្តោតលើ Linux ជាចម្បង; ម៉ោនឯកសារ binary របស់ CLI ពីម៉ាស៊ីនមេក្នុងទម្រង់បានតែអាន)
+# ប្រូហ្វាល់ម៉ាស៊ីនមេ (ផ្តោតលើ Linux ជាចម្បង; ម៉ោនឯកសារ binary របស់ CLI ពីម៉ាស៊ីនមេជាទម្រង់បានតែអាន)
 docker compose --profile host up -d
 
-# បញ្ចូលគ្នារវាង CLI + CLIProxyAPI sidecar
+# ប្រូហ្វាល់បណ្ដាញ (Chromium/Playwright សម្រាប់អ្នកផ្ដល់សេវាសម័យបណ្ដាញ)
+docker compose --profile web up -d
+
+# បញ្ចូល CLI + sidecar CLIProxyAPI រួមគ្នា
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## ប្រូហ្វាល់ដែលមាន
 
-OmniRoute ផ្តល់ជូនប្រូហ្វាល់ Compose ចំនួនបួន។ សូមជ្រើសរើសប្រូហ្វាល់ដែលត្រូវនឹងបរិស្ថានរបស់អ្នក។
+OmniRoute ផ្តល់ជូនប្រូហ្វាល់ Compose សម្រាប់ទម្រង់ដាក់ឱ្យដំណើរការសំខាន់ៗ។ ជ្រើសរើសមួយដែលសមស្របនឹងបរិស្ថានរបស់អ្នក។
 
-| ប្រូហ្វាល់        | សេវាកម្ម         | ពេលណាគួរប្រើ                                                                                                                                                    | ពាក្យបញ្ជា                                   |
-| ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (លំនាំដើម) | `omniroute-base` | ម៉ាស៊ីនមេដែលគ្មានចំណុចប្រទាក់ / runtime អប្បបរមា ដោយមិនមាន CLI របស់អ្នកផ្តល់សេវាភ្ជាប់មកជាមួយ                                                                   | `docker compose --profile base up -d`        |
-| `cli`             | `omniroute-cli`  | លំហូរការងារបែបភ្នាក់ងារដែលហៅ `omniroute providers/setup/doctor` និង CLI ដែលភ្ជាប់មកជាមួយ (Codex, Claude Code, Droid, OpenClaw)                                  | `docker compose --profile cli up -d`         |
-| `host`            | `omniroute-host` | ម៉ាស៊ីនមេ Linux ដែលចង់បានសិទ្ធិចូលប្រើ CLI របស់ម៉ាស៊ីនមេក្នុងលក្ខណៈដូច `network_mode` ដោយម៉ោន `~/.local/bin`, `~/.codex`, `~/.claude` ជាដើម ក្នុងទម្រង់បានតែអាន | `docker compose --profile host up -d`        |
-| `cliproxyapi`     | `cliproxyapi`    | ដំណើរការ sidecar [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) លើ port `8317` សម្រាប់ធ្វើប្រូកស៊ី CLI ទៅកាន់ upstream                             | `docker compose --profile cliproxyapi up -d` |
+| ប្រូហ្វាល់        | សេវាកម្ម         | ពេលណាត្រូវប្រើ                                                                                                                                                    | ពាក្យបញ្ជា                                   |
+| ----------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (លំនាំដើម) | `omniroute-base` | ម៉ាស៊ីនបម្រើគ្មានចំណុចប្រទាក់ក្រាហ្វិក / បរិស្ថានដំណើរការអប្បបរមា ដោយមិនមាន CLI របស់អ្នកផ្តល់សេវាភ្ជាប់មកជាមួយ                                                    | `docker compose --profile base up -d`        |
+| `cli`             | `omniroute-cli`  | លំហូរការងារបែបភ្នាក់ងារដែលហៅ `omniroute providers/setup/doctor` និង CLI ដែលភ្ជាប់មកជាមួយ (Codex, Claude Code, Droid, OpenClaw)                                    | `docker compose --profile cli up -d`         |
+| `host`            | `omniroute-host` | ម៉ាស៊ីនមេ Linux ដែលត្រូវការសិទ្ធិចូលប្រើ CLI របស់ម៉ាស៊ីនមេ ស្រដៀងនឹង `network_mode` តាមរយៈការម៉ោន `~/.local/bin`, `~/.codex`, `~/.claude` ជាដើម ក្នុងរបៀបបានតែអាន | `docker compose --profile host up -d`        |
+| `cliproxyapi`     | `cliproxyapi`    | ដំណើរការ sidecar [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) នៅលើច្រក `8317` សម្រាប់ការបញ្ជូនប្រូកស៊ី CLI ទៅ upstream                             | `docker compose --profile cliproxyapi up -d` |
+| `web`             | `omniroute-web`  | អ្នកផ្តល់សេវាសម័យវេបដែលត្រូវការកម្មវិធីរុករក៖ `gemini-web`, `claude-web`, `claude-turnstile` (បង្កើត `runner-web` ដោយរួមបញ្ចូល Chromium)                          | `docker compose --profile web up -d`         |
 
 > អាចបញ្ចូលប្រូហ្វាល់ច្រើនជាមួយគ្នាបាន៖ `docker compose --profile cli --profile cliproxyapi up -d`។
 
@@ -227,51 +237,53 @@ Prod stack ដំណើរការស្របគ្នាជាមួយ dev c
 
 ## ដំណាក់កាល Dockerfile
 
-ឃ្លាំងកូដនេះភ្ជាប់មកជាមួយ Dockerfile ពហុដំណាក់កាល (`Dockerfile`)។ មានដំណាក់កាលបីដែលអាចប្រើបាន; សូមជ្រើសរើស `target` ដែលត្រឹមត្រូវសម្រាប់ករណីប្រើប្រាស់របស់អ្នក។
+ឃ្លាំងកូដនេះផ្ដល់ជូន Dockerfile ពហុដំណាក់កាល (`Dockerfile`)។ មានដំណាក់កាលចំនួនបួនដែលអាចប្រើបាន សូមជ្រើសរើស `target` ឱ្យសមស្របនឹងករណីប្រើប្រាស់របស់អ្នក។
 
-| ដំណាក់កាល     | រូបភាពមូលដ្ឋាន        | គោលបំណង                                                                                                                                                                             |
-| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | ដំឡើង dependencies (`npm ci --legacy-peer-deps`) ហើយដំណើរការ `npm run build` (តាមលំនាំដើមប្រើ Turbopack — សូមមើលធនធាននៅពេល build ខាងក្រោម)                                          |
-| `runner-base` | `node:26-trixie-slim` | Runtime សម្រាប់ production ជាមួយ standalone output របស់ Next.js។ **មិនមាន CLI របស់ provider ភ្ជាប់មកជាមួយទេ។**                                                                      |
-| `runner-cli`  | `runner-base`         | បន្ថែម `git`, `docker.io`, `docker-compose` និង CLI សកល៖ `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`។ **សូមជ្រើសរើសវាសម្រាប់ workflow ដែលដំណើរការដោយ agent។** |
+| ដំណាក់កាល     | អ៊ីមេจមូលដ្ឋាន        | គោលបំណង                                                                                                                                                                                                                                                                                                             |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | ដំឡើង dependencies (`npm ci --legacy-peer-deps`) និងដំណើរការ `npm run build` (ប្រើ Turbopack តាមលំនាំដើម — សូមមើលធនធានពេល build ខាងក្រោម)                                                                                                                                                                           |
+| `runner-base` | `node:26-trixie-slim` | បរិស្ថានដំណើរការ production ជាមួយលទ្ធផល standalone របស់ Next.js។ **មិនមានភ្ជាប់ CLI របស់ provider ទេ។**                                                                                                                                                                                                             |
+| `runner-cli`  | `runner-base`         | បន្ថែម `git`, `docker.io`, `docker-compose` និង CLI សកល៖ `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`។ **សូមជ្រើសរើសដំណាក់កាលនេះសម្រាប់ workflow បែប agentic។**                                                                                                                                |
+| `runner-web`  | `runner-base`         | បន្ថែម Playwright + កម្មវិធីរុករក Chromium (`--with-deps`) សម្រាប់ provider ដែលប្រើ web session៖ `gemini-web`, `claude-web`, `claude-turnstile`។ **សូមជ្រើសរើសដំណាក់កាលនេះនៅពេលអ្នកប្រើ provider ទាំងនោះ** — អ៊ីមេจធម្មតានឹងបរាជ័យនៅពេលស្នើសុំ ប្រសិនបើគ្មានវា (សូមមើលកំណត់សម្គាល់ `-web` នៅក្រោមប៉ុស្តិ៍ចេញផ្សាយ)។ |
 
 Build target ជាក់លាក់មួយដោយដៃ៖
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
-### ធនធាននៅពេល build
+### ធនធានពេល build
 
-Build args ចំនួនបីគ្រប់គ្រងធនធានដែលដំណាក់កាល `builder` ប្រើប្រាស់។ ពួកវាអនុវត្តតែនៅពេល build ប៉ុណ្ណោះ —
-`OMNIROUTE_MEMORY_MB` (ខាងក្រោម) គឺជាការកំណត់ runtime ដាច់ដោយឡែកមួយ។
+build arg ចំនួនបីគ្រប់គ្រងការប្រើប្រាស់ធនធានរបស់ដំណាក់កាល `builder`។ ពួកវាប្រើតែនៅពេល build ប៉ុណ្ណោះ —
+`OMNIROUTE_MEMORY_MB` (ខាងក្រោម) គឺជាការកំណត់សម្រាប់ runtime ដាច់ដោយឡែកមួយទៀត។
 
-| Build arg                   | លំនាំដើម | ឥទ្ធិពល                                                                                          |
-| --------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` នឹង build ដោយប្រើ webpack ជំនួសវិញ។ ប្រើអង្គចងចាំនៅកម្រិតកំពូលតិចជាង ប៉ុន្តែយឺតជាង។          |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | កម្រិតអតិបរមា heap របស់ V8 (`--max-old-space-size`) សម្រាប់ `next build` ដែលបានបង្កើតជាដំណើរការ។ |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`      | ផ្តល់តម្លៃទៅ `CIRCLE_NODE_TOTAL`; Next កំណត់ `workers = N - 1` សម្រាប់ការប្រមូលទិន្នន័យទំព័រ។    |
+| Build arg                   | លំនាំដើម | ឥទ្ធិពល                                                                                        |
+| --------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` នឹង build ដោយប្រើ webpack ជំនួសវិញ។ ប្រើអង្គចងចាំនៅកម្រិតកំពូលតិចជាង ប៉ុន្តែយឺតជាង។        |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | កម្រិតអតិបរមានៃ heap របស់ V8 (`--max-old-space-size`) សម្រាប់ `next build` ដែលត្រូវបានបង្កើត។  |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | បញ្ជូនតម្លៃទៅ `CIRCLE_NODE_TOTAL`; Next កំណត់ `workers = N - 1` សម្រាប់ការប្រមូលទិន្នន័យទំព័រ។ |
 
-`OMNIROUTE_BUILD_WORKERS` គឺជាតម្លៃដែលត្រូវបង្កើនលើម៉ាស៊ីន builder ធំ ហើយជាតម្លៃដែលត្រូវ
-សង្ស័យ នៅពេល build ដែលមានធនធានកំណត់បរាជ័យ **បន្ទាប់ពី** `✓ Compiled successfully`។ worker
-សម្រាប់ទិន្នន័យទំព័រនីមួយៗគឺជា process ដាច់ដោយឡែក ហើយ parent `next build` ក៏ដូចគ្នាដែរ;
-ការធ្វើតេស្តឡើងវិញលើ VPS ដែលកំពុងដំណើរការ (បញ្ហា #7518) បានវាស់ peak RSS របស់ process នីមួយៗនៅ
-~4.5 GB ដោយមិនអាស្រ័យលើ heap flag របស់ `NODE_OPTIONS` (Turbopack compile ក្នុង
-អង្គចងចាំ native/Rust ដែលស្ថិតនៅក្រៅ V8 heap)។ តម្លៃលំនាំដើម `2` (→ worker 1, សរុប 2
-process) ត្រូវបានកំណត់ឱ្យសមនឹង runner ដែល host ដោយ GitHub មាន RAM 16 GB / 4 vCPU ដែល
-publish pipeline ប្រើ។ នៅ `8` (→ worker 7) runner នោះបានអស់អង្គចងចាំ ហើយ
-buildkit បានធ្វើឱ្យជំហាននោះបរាជ័យដោយសារ `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ worker 2) នៅតែមិនអាចដំណើរការបាន បន្ទាប់ពី RSS ក្នុង process នីមួយៗត្រូវបានវាស់
-ដោយផ្ទាល់ជំនួសឱ្យការប៉ាន់ស្មាន។ `tests/unit/docker-build-memory-budget.test.ts`
-ធ្វើការគណនាដោយផ្អែកលើតម្លៃដែលបានវាស់ ហើយនឹងបរាជ័យ ប្រសិនបើការកំណត់ណាមួយក្នុងចំណោមការកំណត់ទាំងពីរ
+`OMNIROUTE_BUILD_WORKERS` គឺជាតម្លៃដែលគួរបង្កើននៅលើម៉ាស៊ីន build ធំ ហើយក៏ជាតម្លៃដែលគួរ
+សង្ស័យនៅពេល build លើម៉ាស៊ីនដែលមានធនធានកម្របរាជ័យ **បន្ទាប់ពី** `✓ Compiled successfully`។ worker
+សម្រាប់ទិន្នន័យទំព័រនីមួយៗគឺជា process ដាច់ដោយឡែក ហើយ process មេ `next build` ក៏ដូចគ្នា;
+ការធ្វើតេស្តឡើងវិញលើ VPS ដែលកំពុងដំណើរការជាក់ស្ដែង (issue #7518) បានវាស់ឃើញថា RSS កម្រិតកំពូលរបស់ process នីមួយៗ
+មានតម្លៃ ~4.5 GB ដោយឯករាជ្យពី flag heap របស់ `NODE_OPTIONS` (Turbopack compile នៅក្នុង
+អង្គចងចាំ native/Rust ដែលនៅក្រៅ heap របស់ V8)។ តម្លៃលំនាំដើម `2` (→ worker 1, សរុប 2
+process) ត្រូវបានកំណត់សម្រាប់ runner ដែល host ដោយ GitHub ទំហំ 16 GB / 4 vCPU ដែល
+pipeline សម្រាប់ publish ប្រើ។ នៅតម្លៃ `8` (→ worker 7) runner នោះអស់អង្គចងចាំ ហើយ
+buildkit បានធ្វើឱ្យជំហាននោះបរាជ័យជាមួយ `ResourceExhausted: ... cannot allocate memory`;
+តម្លៃ `3` (→ worker 2) នៅតែមិនគ្រប់គ្រាន់ បន្ទាប់ពី RSS ក្នុងមួយ process ត្រូវបានវាស់
+ដោយផ្ទាល់ ជំនួសឱ្យការប៉ាន់ស្មាន។ `tests/unit/docker-build-memory-budget.test.ts`
+ធ្វើការគណនាដោយផ្អែកលើតួលេខដែលបានវាស់ ហើយនឹងបរាជ័យ ប្រសិនបើការកំណត់ណាមួយក្នុងចំណោមទាំងពីរ
 លើសសមត្ថភាពរបស់ runner។
 
-Turbopack compile ក្នុងអង្គចងចាំ native Rust ដែលស្ថិតនៅ **ក្រៅ** V8 heap ដូច្នេះ
-`OMNIROUTE_BUILD_MEMORY_MB` មិនកំណត់ព្រំដែនវាទេ។ លើ host ដែលមានកម្រិតអង្គចងចាំ
-build នឹងត្រូវបាន OOM killer បញ្ឈប់ដោយ SIGKILL ដោយគ្មានអត្ថបទកំហុសណាមួយឡើយ — វាគ្រាន់តែ
-ឈប់នៅពាក់កណ្តាល `Creating an optimized production build` ដែលមើលទៅដូចជាជាប់គាំង ជាជាង
-អស់អង្គចងចាំ។ ប្រសិនបើ build host មានធនធានកំណត់ សូមប្តូរ bundler៖
+Turbopack compile នៅក្នុងអង្គចងចាំ native Rust ដែលស្ថិតនៅ **ក្រៅ** heap របស់ V8 ដូច្នេះ
+`OMNIROUTE_BUILD_MEMORY_MB` មិនអាចកំណត់ព្រំដែនវាបានទេ។ នៅលើ host ដែលមានកម្រិតអង្គចងចាំ
+build នឹងត្រូវបាន OOM killer បញ្ឈប់ដោយ SIGKILL ដោយមិនមានសារកំហុសអ្វីទាំងអស់ — វាគ្រាន់តែ
+ឈប់នៅពាក់កណ្ដាល `Creating an optimized production build` ដែលមើលទៅដូចជាគាំង ជាជាង
+អស់អង្គចងចាំ។ ប្រសិនបើ build host មានធនធានកម្រិតទាប សូមប្ដូរ bundler៖
 
 ```bash
 docker build --target runner-base \
@@ -279,43 +291,43 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` ត្រូវបានបើក ដូច្នេះ `next build` ដំណើរការទាំង parent **និង** worker
-process ហើយ process នីមួយៗគោរពតាម `OMNIROUTE_BUILD_MEMORY_MB` ដោយឡែកពីគ្នា។ កំណត់កម្រិត
-របស់ container ឱ្យលើសប្រហែលពីរដងនៃតម្លៃនោះ មិនមែនត្រឹមមួយដងទេ។
+`webpackBuildWorker` ត្រូវបានបើក ដូច្នេះ `next build` ដំណើរការ process មេ **និង** process worker
+ហើយ process នីមួយៗគោរពតាម `OMNIROUTE_BUILD_MEMORY_MB` ដោយឡែកពីគ្នា។ កំណត់កម្រិតអង្គចងចាំរបស់ container
+ឱ្យលើសប្រហែលពីរដងនៃតម្លៃនោះ មិនមែនត្រឹមមួយដងទេ។
 
-លទ្ធផលដែលបានវាស់លើ code tree នេះ (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`)៖
+បានវាស់នៅលើមែកធាងនេះ (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`)៖
 
-| Bundler   | កម្រិតអតិបរមារបស់ container | លទ្ធផល                                           |
-| --------- | --------------------------- | ------------------------------------------------ |
-| Turbopack | 8 GiB / 16 GiB              | ត្រូវបាន OOM-kill នៅកម្រិតទាំងពីរ ដោយស្ងាត់ស្ងៀម |
-| webpack   | 8 GiB                       | build worker ត្រូវបានបញ្ឈប់ដោយ SIGKILL           |
-| webpack   | 12 GiB                      | ជោគជ័យ ដោយឡើងដល់កម្រិតកំពូល 11.1 GiB             |
+| Bundler   | កម្រិតអង្គចងចាំរបស់ container | លទ្ធផល                                             |
+| --------- | ----------------------------- | -------------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB                | ត្រូវបាន OOM-killed នៅកម្រិតទាំងពីរ ដោយស្ងាត់ស្ងៀម |
+| webpack   | 8 GiB                         | build worker ត្រូវបាន SIGKILL                      |
+| webpack   | 12 GiB                        | ជោគជ័យ ដោយឡើងដល់កម្រិតកំពូល 11.1 GiB               |
 
-### តម្លៃលំនាំដើមសម្រាប់ runtime
+### តម្លៃលំនាំដើមពេល runtime
 
 តម្លៃលំនាំដើមដែល export ដោយ `runner-base`៖ `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`។
 
-ឥរិយាបថអង្គចងចាំក្នុង Docker៖
+ឥរិយាបថអង្គចងចាំនៅក្នុង Docker៖
 
-- image កំណត់ `OMNIROUTE_MEMORY_MB=1024` ហើយបង្កើត `NODE_OPTIONS=--max-old-space-size=1024` ពីវា។
-- server process ជាក់ស្តែងត្រូវបានចាប់ផ្តើមដោយ standalone launcher ដែលអាន `OMNIROUTE_MEMORY_MB` ហើយបន្ថែម `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`។
-- Node ប្រើតម្លៃ `--max-old-space-size` ដែលបានកំណត់ដដែលចុងក្រោយ ដូច្នេះការកំណត់ `OMNIROUTE_MEMORY_MB` គ្រប់គ្រងកម្រិត Docker heap ដែលមានប្រសិទ្ធភាព។
-- ដោយសារ image តែងតែកំណត់វា fallback ដែល launcher កំណត់តាម RAM ដោយខ្លួនឯងនឹងមិនត្រូវបានប្រើនៅក្រោម Docker ទេ។ បង្កើនវាដោយច្បាស់លាស់សម្រាប់ workload (តារាងខាងក្រោម)។ `2048` នៅតែតូចពេកសម្រាប់ coding-agent `/v1/responses`។
+- Image កំណត់ `OMNIROUTE_MEMORY_MB=1024` ហើយទាញយក `NODE_OPTIONS=--max-old-space-size=1024` ពីវា។
+- ដំណើរការ server ជាក់ស្តែងត្រូវបានចាប់ផ្ដើមដោយ standalone launcher ដែលអាន `OMNIROUTE_MEMORY_MB` ហើយបន្ថែម `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`។
+- Node ប្រើតម្លៃ `--max-old-space-size` ដែលបានបញ្ជាក់ម្តងទៀតចុងក្រោយ ដូច្នេះការកំណត់ `OMNIROUTE_MEMORY_MB` គ្រប់គ្រងដែនកំណត់ heap ជាក់ស្តែងរបស់ Docker។
+- ដោយសារ image តែងតែកំណត់វា fallback ដែលកែតម្រូវតាម RAM របស់ launcher នឹងមិនត្រូវបានប្រើក្រោម Docker ទេ។ សូមបង្កើនវាដោយជាក់លាក់សម្រាប់ workload (តារាងខាងក្រោម)។ `2048` នៅតែតូចពេកសម្រាប់ `/v1/responses` របស់ coding agent។
 
-### RAM សម្រាប់ coding agent នៅពេល runtime
+### RAM ពេលដំណើរការសម្រាប់ coding agent
 
-តម្លៃលំនាំដើម Docker 1 GiB គ្រាន់តែជាកម្រិតអប្បបរមាសម្រាប់ dashboard/light-chat ប៉ុណ្ណោះ មិនមែនជាទំហំសម្រាប់ production ទេ។ Body វែងៗរបស់ `POST /v1/responses` (សាររាប់រយ និង tool រាប់សិប) រក្សាទុក graph ជាច្រើនក្នុងអង្គចងចាំអំឡុងពេល compression។ Request ពីរដែលត្រួតគ្នា មានទំហំប្រហែល ~3 MiB / ~750k-token បានធ្វើឱ្យ V8 បញ្ឈប់នៅ old-space **12 GiB** (`FATAL ERROR: Reached heap limit`) ហើយក៏បានប៉ះ cgroup OOM ទំហំ 16 GiB ផងដែរ។ សូមមើល [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)។
+តម្លៃលំនាំដើម 1 GiB របស់ Docker គឺជាកម្រិតអប្បបរមាសម្រាប់ dashboard/light chat មិនមែនជាទំហំសម្រាប់ production ទេ។ Body វែងៗរបស់ `POST /v1/responses` (មានសាររាប់រយ និង tools រាប់សិប) រក្សាទុកក្រាហ្វជាច្រើនក្នុង memory អំឡុងពេល compression។ Request ពីរដែលត្រួតគ្នា ដែលនីមួយៗមានទំហំប្រហែល ~3 MiB / ~750k-token បានធ្វើឱ្យ V8 បញ្ឈប់នៅ old-space ទំហំ **12 GiB** (`FATAL ERROR: Reached heap limit`) ហើយក៏បានប៉ះ cgroup OOM ទំហំ 16 GiB ផងដែរ។ សូមមើល [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)។
 
-កំណត់ **cgroup `--memory` ឱ្យខ្ពស់ជាង heap** — native buffer, SQLite និងទិន្នន័យបណ្តោះអាសន្នសម្រាប់ compression ស្ថិតនៅក្រៅ V8។
+កំណត់ទំហំ **cgroup `--memory` ឱ្យធំជាង heap** — native buffers, SQLite និងទិន្នន័យបណ្ដោះអាសន្នរបស់ compression ស្ថិតនៅក្រៅ V8។
 
-| បន្ទុកការងារ                             | `OMNIROUTE_MEMORY_MB`       | Container / cgroup                      | កំណត់សម្គាល់                                                                                                                     |
-| ---------------------------------------- | --------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| ផ្ទាំងគ្រប់គ្រង និងការជជែកស្រាលមួយ       | `1024` (លំនាំដើមរបស់ image) | ≥2 GiB                                  |                                                                                                                                  |
-| ភ្នាក់ងារសរសេរកូដមួយ (Claude/Codex/Grok) | `8192`                      | ≥10 GiB                                 | `/v1/responses` ដែលមានសម័យតែមួយជាទូទៅ                                                                                            |
-| `/v1/responses` វែងពីរដំណើរការព្រមគ្នា   | `10240`–`12288`             | ≥12–16 GiB                              | បានវាស់ឃើញថា V8 បញ្ឈប់ដំណើរការនៅពេល heap មានទំហំប្រហែល 12 GiB                                                                    |
-| បរិបទវែងបី ឬច្រើនជាងនេះដំណើរការព្រមគ្នា  | កុំដំណើរការលើ process តែមួយ | តម្រៀបឱ្យដំណើរការតាមលំដាប់ / បន្ថែម RAM | តាមលំនាំដើម ការអនុញ្ញាតបន្ទុកធ្ងន់កំណត់ត្រឹម 1 កំពុងដំណើរការ; ការបង្កើនវាដោយមិនបន្ថែម RAM នឹងបណ្តាលឱ្យមានការបញ្ឈប់ដំណើរការឡើងវិញ |
+| Workload                                   | `OMNIROUTE_MEMORY_MB`            | Container / cgroup             | កំណត់សម្គាល់                                                                                                                        |
+| ------------------------------------------ | -------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard និង light chat មួយ               | `1024` (តម្លៃលំនាំដើមរបស់ image) | ≥2 GiB                         |                                                                                                                                     |
+| Coding agent មួយ (Claude/Codex/Grok)       | `8192`                           | ≥10 GiB                        | ជាទូទៅសម្រាប់ `/v1/responses` ក្នុង session តែមួយ                                                                                   |
+| `/v1/responses` វែងពីរដែលដំណើរការដំណាលគ្នា | `10240`–`12288`                  | ≥12–16 GiB                     | បានវាស់ឃើញថា V8 បញ្ឈប់នៅ heap ទំហំប្រហែល ~12 GiB                                                                                    |
+| Context វែងៗចំនួនបី ឬច្រើនជាងនេះ           | កុំដំណើរការលើ process តែមួយ      | ដំណើរការតាមលំដាប់ / RAM បន្ថែម | តាមលំនាំដើម ការទទួលយក workload ធ្ងន់ៗអនុញ្ញាតឱ្យមាន 1 in-flight; ការបង្កើនវាដោយគ្មាន RAM គ្រប់គ្រាន់នឹងធ្វើឱ្យការបញ្ឈប់នេះកើតឡើងវិញ |
 
-នៅពេល `OMNIROUTE_MEMORY_MB` **មិនត្រូវបានកំណត់** `omniroute serve` លើ bare metal នឹងក្រិតតាមប្រហែល 35% នៃ RAM (ដោយកំណត់ក្នុងចន្លោះ `[512, 4096]`)។ Docker តែងតែកំណត់ `1024` ដូច្នេះការក្រិតតាមនេះមិនដែលដំណើរការនៅក្នុង image ផ្លូវការទេ។
+`omniroute serve` នៅលើ bare metal កែតម្រូវទៅប្រហែល ~35% នៃ RAM (កំណត់ក្នុងចន្លោះ `[512, 4096]`) នៅពេល `OMNIROUTE_MEMORY_MB` **មិនត្រូវបានកំណត់**។ Docker តែងតែកំណត់វាជា `1024` ដូច្នេះការកែតម្រូវនោះមិនដែលដំណើរការនៅក្នុង official image ទេ។
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -327,22 +339,22 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ក្រៅពីតម្លៃលំនាំដើមដែលបានចងក្រងជាឯកសារនៅក្នុង [ENVIRONMENT.md](../reference/ENVIRONMENT.md) អថេរខាងក្រោមមានសារៈសំខាន់បំផុតនៅពេលដំណើរការក្រោម Docker៖
 
-| អថេរ                          | គោលបំណង                                                                                                                                                                                                                                                     | លំនាំដើម                   |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | ពាក្យសម្ងាត់រួមសម្រាប់ WebSocket bridge។ **តម្រូវឱ្យមានក្នុងបរិស្ថានផលិតកម្ម** — កំណត់វាជាខ្សែអក្សរចៃដន្យដែលមានសុវត្ថិភាពខ្ពស់។                                                                                                                             | មិនបានកំណត់ (ត្រូវតែផ្តល់) |
-| `REDIS_URL`                   | ខ្សែអក្សរតភ្ជាប់សម្រាប់ rate limiter / cache backend                                                                                                                                                                                                        | `redis://redis:6379`       |
-| `REDIS_PORT`                  | ច្រកខាងម៉ាស៊ីនមេសម្រាប់ Redis container ដែលភ្ជាប់មកជាមួយ                                                                                                                                                                                                    | `6379`                     |
-| `REDIS_BIND_HOST`             | អ៊ីនធឺហ្វេសម៉ាស៊ីនមេដែលច្រក Redis ដែលភ្ជាប់មកជាមួយត្រូវបានផ្សាយនៅលើ (loopback លុះត្រាតែអ្នកបន្ថែម AUTH)                                                                                                                                                     | `127.0.0.1`                |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | ផ្លូវទីតាំងលើម៉ាស៊ីនមេដែលបាន mount ចូលក្នុង profile `cli` នៅ `/workspace/omniroute` សម្រាប់លំហូរការងារធ្វើបច្ចុប្បន្នភាពដោយខ្លួនឯង                                                                                                                          | `.` (ថតបច្ចុប្បន្ន)        |
-| `OMNIROUTE_MEMORY_MB`         | កម្រិតអតិបរមា Node heap ពេលដំណើរការសម្រាប់ Docker standalone server; ជំនួសតម្លៃលំនាំដើមរបស់ image ខាងលើ។ ភ្នាក់ងារសរសេរកូដ៖ `8192`+ (សូមមើល [RAM ពេលដំណើរការ](#runtime-ram-for-coding-agents))។                                                             | `1024`                     |
-| `DASHBOARD_PORT` / `API_PORT` | កំណត់ជំនួសច្រកដែលបានបើកសម្រាប់ dashboard (20128) និង API (20129)                                                                                                                                                                                            | `20128` / `20129`          |
-| `APP_BIND_HOST`               | អ៊ីនធឺហ្វេសម៉ាស៊ីនមេដែល docker-compose ផ្សាយច្រក dashboard/API/live-WS នៅលើ។ ជាមួយ `REQUIRE_API_KEY=false` (ជាលំនាំដើម) `0.0.0.0` បង្ហាញ proxy `/v1` អនាមិកទៅកាន់ LAN — ពង្រីកការចូលប្រើតែជាមួយ `REQUIRE_API_KEY=true` ឬមាន reverse proxy នៅខាងមុខប៉ុណ្ណោះ។ | `127.0.0.1`                |
-| `CLIPROXY_BIND_HOST`          | អ៊ីនធឺហ្វេសម៉ាស៊ីនមេដែល docker-compose ផ្សាយ sidecar `cliproxyapi` នៅលើ — data volume របស់វារក្សាទុកព័ត៌មានសម្ងាត់របស់អ្នកផ្តល់សេវា។                                                                                                                        | `127.0.0.1`                |
-| `OMNIROUTE_PLUGINS_DIR`       | ថតដែល runtime plugin scanner អាន និងដំឡើង plugin ចូល។ កំណត់វានៅពេល plugin ត្រូវបាន bind-mounted៖ តម្លៃលំនាំដើមអាស្រ័យតាម `HOME` ដែល image មិនចាំបាច់ export។                                                                                                | `~/.omniroute/plugins`     |
-| `OMNIROUTE_BASE_PATH`         | ផ្លូវរង URL នៅពេលកម្មវិធីត្រូវបានផ្សាយនៅពីក្រោយ reverse proxy (ឧ. `/omniroute`)                                                                                                                                                                             | _(ទទេ = root)_             |
-| `NEXT_PUBLIC_BASE_URL`        | ប្រភពសាធារណៈរបស់កម្មវិធីរុករក រួមទាំងផ្លូវរង (ឧ. `https://host/omniroute`)                                                                                                                                                                                  | មិនបានកំណត់                |
-| `PROD_DASHBOARD_PORT`         | ច្រក dashboard ខាងម៉ាស៊ីនមេសម្រាប់ `docker-compose.prod.yml`                                                                                                                                                                                                | `20130`                    |
-| `CLIPROXYAPI_PORT`            | ច្រកខាងម៉ាស៊ីនមេសម្រាប់ sidecar `cliproxyapi`                                                                                                                                                                                                               | `8317`                     |
+| អថេរ                          | គោលបំណង                                                                                                                                                                                                                                                             | លំនាំដើម                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | ពាក្យសម្ងាត់រួមសម្រាប់ WebSocket bridge។ **តម្រូវឱ្យមានក្នុងបរិស្ថាន production** — កំណត់វាជាខ្សែអក្សរចៃដន្យដែលរឹងមាំ។                                                                                                                                              | មិនបានកំណត់ (ត្រូវតែផ្តល់ជូន) |
+| `REDIS_URL`                   | ខ្សែអក្សរតភ្ជាប់សម្រាប់កម្មវិធីកំណត់អត្រា / cache backend                                                                                                                                                                                                           | `redis://redis:6379`          |
+| `REDIS_PORT`                  | ច្រកនៅខាង host សម្រាប់ Redis container ដែលភ្ជាប់មកជាមួយ                                                                                                                                                                                                             | `6379`                        |
+| `REDIS_BIND_HOST`             | host interface ដែលច្រក Redis ដែលភ្ជាប់មកជាមួយត្រូវបានបោះពុម្ពផ្សាយនៅលើវា (loopback លុះត្រាតែអ្នកបន្ថែម AUTH)                                                                                                                                                        | `127.0.0.1`                   |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | path នៅលើ host ដែលត្រូវបាន mount ចូលទៅក្នុង profile `cli` នៅ `/workspace/omniroute` សម្រាប់ដំណើរការ self-update                                                                                                                                                     | `.` (ថតបច្ចុប្បន្ន)           |
+| `OMNIROUTE_MEMORY_MB`         | កម្រិតអតិបរមា Node heap ពេលដំណើរការសម្រាប់ Docker standalone server; ជំនួសតម្លៃលំនាំដើមរបស់ image ខាងលើ។ ភ្នាក់ងារសរសេរកូដ៖ `8192`+ (សូមមើល [RAM ពេលដំណើរការ](#runtime-ram-for-coding-agents))។                                                                     | `1024`                        |
+| `DASHBOARD_PORT` / `API_PORT` | ជំនួសច្រកដែលបើកបង្ហាញសម្រាប់ dashboard (20128) និង API (20129)                                                                                                                                                                                                      | `20128` / `20129`             |
+| `APP_BIND_HOST`               | host interface ដែល docker-compose បោះពុម្ពផ្សាយច្រក dashboard/API/live-WS នៅលើវា។ ជាមួយ `REQUIRE_API_KEY=false` (តម្លៃលំនាំដើម) `0.0.0.0` បើកបង្ហាញ proxy `/v1` អនាមិកទៅកាន់ LAN — ពង្រីកការចូលប្រើតែជាមួយ `REQUIRE_API_KEY=true` ឬ reverse proxy នៅខាងមុខប៉ុណ្ណោះ។ | `127.0.0.1`                   |
+| `CLIPROXY_BIND_HOST`          | host interface ដែល docker-compose បោះពុម្ពផ្សាយ sidecar `cliproxyapi` នៅលើវា — data volume របស់វាផ្ទុកព័ត៌មានសម្គាល់អត្តសញ្ញាណរបស់ provider។                                                                                                                        | `127.0.0.1`                   |
+| `OMNIROUTE_PLUGINS_DIR`       | ថតដែល runtime plugin scanner អាន និងដំឡើងចូល។ កំណត់វានៅពេល plugins ត្រូវបាន bind-mount៖ តម្លៃលំនាំដើមអនុវត្តតាម `HOME` ដែល image មិនចាំបាច់ export ទេ។                                                                                                              | `~/.omniroute/plugins`        |
+| `OMNIROUTE_BASE_PATH`         | URL subpath នៅពេល app ត្រូវបានបោះពុម្ពផ្សាយនៅពីក្រោយ reverse proxy (ឧ. `/omniroute`)                                                                                                                                                                                | _(ទទេ = root)_                |
+| `NEXT_PUBLIC_BASE_URL`        | browser origin សាធារណៈដែលរួមបញ្ចូល subpath (ឧ. `https://host/omniroute`)                                                                                                                                                                                            | មិនបានកំណត់                   |
+| `PROD_DASHBOARD_PORT`         | ច្រក dashboard នៅខាង host សម្រាប់ `docker-compose.prod.yml`                                                                                                                                                                                                         | `20130`                       |
+| `CLIPROXYAPI_PORT`            | ច្រកនៅខាង host សម្រាប់ sidecar `cliproxyapi`                                                                                                                                                                                                                        | `8317`                        |
 
 ## ប្រូកស៊ីបញ្ច្រាសលើផ្លូវរង (Traefik / nginx)
 
@@ -447,36 +459,49 @@ Caddy កំណត់បឋមកថាបញ្ជូនបន្តស្ត�
 - Docker images មានបញ្ចូល system CA roots និងបញ្ជូនវាទៅកាន់ `cloudflared` ដែលបានគ្រប់គ្រង ដើម្បីជៀសវាងបញ្ហាបរាជ័យនៃការទុកចិត្ត TLS នៅពេល tunnel ចាប់ផ្ដើមនៅខាងក្នុងកុងតឺន័រ។
 - កំណត់ `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` ប្រសិនបើអ្នកចង់ឱ្យ OmniRoute ប្រើ binary ដែលមានស្រាប់ ជំនួសឱ្យការទាញយកថ្មី។
 
-## Image Tags
+## ស្លាក Image
 
-| Image                    | Tag      | ទំហំ   | ការពិពណ៌នា                                                              |
-| ------------------------ | -------- | ------ | ----------------------------------------------------------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | SemVer មានស្ថិរភាពដែលបាន **ចេញផ្សាយ** និងខ្ពស់បំផុត (មិនមែន git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Pin ប្រភេទ tag នេះសម្រាប់ GitOps                                        |
+| Image                    | ស្លាក    | ទំហំ   | សេចក្ដីពិពណ៌នា                                                              |
+| ------------------------ | -------- | ------ | --------------------------------------------------------------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | កំណែ SemVer ស្ថិរភាពដែលបាន **បោះពុម្ពផ្សាយ** ខ្ពស់បំផុត (មិនមែន git `main`) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | ចងភ្ជាប់ស្លាកប្រភេទនេះសម្រាប់ GitOps                                        |
 
-Manifest ពហុវេទិកា៖ `linux/amd64` + `linux/arm64` native (Apple Silicon, AWS Graviton, Raspberry Pi)។ Docker ជ្រើសរើសស្ថាបត្យកម្មដែលត្រូវគ្នាដោយស្វ័យប្រវត្តិ។ បញ្ជូន `--platform linux/amd64` ប្រសិនបើអ្នកត្រូវការបង្ខំឱ្យប្រើ AMD64 emulation នៅលើ ARM hosts។
+Manifest ពហុវេទិកា៖ `linux/amd64` + `linux/arm64` ដើម (Apple Silicon, AWS Graviton, Raspberry Pi)។ Docker ជ្រើសរើសស្ថាបត្យកម្មដែលត្រូវគ្នាដោយស្វ័យប្រវត្តិ; បញ្ជូន `--platform linux/amd64` ប្រសិនបើអ្នកត្រូវការបង្ខំការត្រាប់តាម AMD64 នៅលើម៉ាស៊ីនមេ ARM។
 
-### បណ្តាញចេញផ្សាយ
+### ឆានែលចេញផ្សាយ
 
-OmniRoute ចេញផ្សាយបណ្តាញ Docker ដាច់ដោយឡែក សម្រាប់ការចេញផ្សាយមានស្ថិរភាព ការធ្វើតេស្ត release branch ដែលកំពុងសកម្ម និង development builds។
+OmniRoute បោះពុម្ពផ្សាយឆានែល Docker ដាច់ដោយឡែកសម្រាប់ការចេញផ្សាយស្ថិរភាព ការសាកល្បង release branch ដែលកំពុងសកម្ម និង build សម្រាប់ការអភិវឌ្ឍ។
 
-| បណ្តាញ                          | ប្រភព                                               | ភាពអាចកែប្រែបាន                         | ការប្រើប្រាស់ដែលបានណែនាំ                                                                                                              |
-| ------------------------------- | --------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | ការចេញផ្សាយដែលបានចុះហត្ថលេខា/កំណត់ version          | មិនអាចកែប្រែបាន                         | ការដាក់ឱ្យប្រើប្រាស់ production ដែល pin ការចេញផ្សាយជាក់លាក់                                                                           |
-| `:latest` / `:latest-web`       | SemVer មានស្ថិរភាពដែលបាន **ចេញផ្សាយ** និងខ្ពស់បំផុត | សញ្ញាចង្អុលមានស្ថិរភាពដែលអាចកែប្រែបាន   | ធ្វើតាមការចេញផ្សាយមានស្ថិរភាព **បន្ទាប់ពី** SemVer publish job — **មិន** តាមដាន `main` ឬ commits របស់ `release/v*` ដែលមិនទាន់ចេញផ្សាយ |
-| `:next` / `:next-web`           | default branch `release/v*` បច្ចុប្បន្ន             | សញ្ញាចង្អុល pre-release ដែលអាចកែប្រែបាន | សាកល្បងការកែបញ្ហាដែលបានបញ្ចូលទៅក្នុង release branch សកម្ម ប៉ុន្តែមិនទាន់មានក្នុងការចេញផ្សាយមានស្ថិរភាព                                |
-| `:main` / `:main-web`           | branch `main`                                       | សញ្ញាចង្អុល development ដែលអាចកែប្រែបាន | សម្រាប់តែការធ្វើតេស្ត development និង integration ប៉ុណ្ណោះ                                                                            |
+| ឆានែល                           | ប្រភព                                                   | ភាពអាចផ្លាស់ប្ដូរបាន                  | ការប្រើប្រាស់ដែលបានណែនាំ                                                                                                             |
+| ------------------------------- | ------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `:<version>` / `:<version>-web` | ការចេញផ្សាយដែលបានចុះហត្ថលេខា/កំណត់កំណែ                  | មិនអាចផ្លាស់ប្ដូរបាន                  | ការដាក់ឱ្យដំណើរការក្នុង production ដែលចងភ្ជាប់ទៅនឹងកំណែចេញផ្សាយជាក់លាក់មួយ                                                           |
+| `:latest` / `:latest-web`       | កំណែ SemVer ស្ថិរភាពដែលបាន **បោះពុម្ពផ្សាយ** ខ្ពស់បំផុត | ទ្រនិចស្ថិរភាពដែលអាចផ្លាស់ប្ដូរបាន    | តាមដានការចេញផ្សាយស្ថិរភាព **បន្ទាប់ពី** job បោះពុម្ពផ្សាយ SemVer — **មិន** តាមដាន `main` ឬ commit `release/v*` ដែលមិនទាន់បានចេញផ្សាយ |
+| `:next` / `:next-web`           | branch `release/v*` លំនាំដើមបច្ចុប្បន្ន                 | ទ្រនិចមុនចេញផ្សាយដែលអាចផ្លាស់ប្ដូរបាន | សាកល្បងការកែតម្រូវដែលបានបញ្ចូលទៅក្នុង release branch សកម្ម ប៉ុន្តែមិនទាន់មានក្នុងការចេញផ្សាយស្ថិរភាព                                 |
+| `:main` / `:main-web`           | branch `main`                                           | ទ្រនិចអភិវឌ្ឍន៍ដែលអាចផ្លាស់ប្ដូរបាន   | សម្រាប់តែការអភិវឌ្ឍ និងការសាកល្បងសមាហរណកម្មប៉ុណ្ណោះ                                                                                  |
 
-#### ការប្រើប្រាស់បណ្តាញ pre-release
+#### អ្នកផ្ដល់សេវា web-session៖ image `-web`
 
-បណ្តាញ `next` ត្រូវបាន build ឡើងវិញរាល់ពេល push ទៅកាន់ default branch `release/v*` បច្ចុប្បន្ន ហើយត្រូវបានចេញផ្សាយសម្រាប់ទាំង AMD64 និង ARM64។ Maintenance branches ចាស់ៗមិនអាចសរសេរជាន់លើវាបានទេ។ បណ្តាញនេះផ្ដល់ image ដែលអាច pull បាន សម្រាប់ការកែបញ្ហាដែលត្រូវបាន merge ទៅក្នុង release branch សកម្ម មុនពេល stable tag បន្ទាប់ត្រូវបានបង្កើត។
+ឆានែលនីមួយៗខាងលើមានស្លាក `-web` ផងដែរ (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`) ដែលត្រូវបាន build ពី stage `runner-web` — ជា image ដូចគ្នា បូកបន្ថែម Playwright និង browser Chromium។ image ធម្មតាត្រូវបានចែកចាយ **ដោយគ្មាន** Chromium; `gemini-web`, `claude-web` និង `claude-turnstile` ត្រូវការវា។
+
+ការបរាជ័យត្រូវបានពន្យារពេល មិនមែនកើតឡើងនៅពេលចាប់ផ្ដើមទេ៖ អ្នកផ្ដល់សេវាទាំងនោះរាយបញ្ជី model របស់ពួកគេ និងបង្ហាញថាបានតភ្ជាប់នៅក្នុង dashboard ហើយមានតែ request ដំបូងប៉ុណ្ណោះដែលបរាជ័យជាមួយ
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+ប្រសិនបើអ្នកប្រើអ្នកផ្ដល់សេវាទាំងនោះ សូម pull ស្លាក `-web` នៃឆានែលដែលអ្នកកំពុងប្រើ — មិនមានអ្វីផ្សេងទៀតផ្លាស់ប្ដូរទេ។ សម្រាប់ការដំឡើងតាម npm/CLI (គ្មាន Docker image) សមាសភាគដែលខ្វះស្មើគ្នាគឺ browser binary៖ ដំណើរការ `npx playwright install chromium` នៅលើម៉ាស៊ីនមេ។
+
+#### ការប្រើឆានែលមុនចេញផ្សាយ
+
+ឆានែល `next` ត្រូវបាន build ឡើងវិញរាល់ពេល push ទៅ branch `release/v*` លំនាំដើមបច្ចុប្បន្ន ហើយត្រូវបានបោះពុម្ពផ្សាយសម្រាប់ទាំង AMD64 និង ARM64។ maintenance branch ចាស់ៗមិនអាចសរសេរជាន់លើវាបានទេ។ ឆានែលនេះផ្ដល់ image ដែលអាច pull បាន សម្រាប់ការកែតម្រូវដែលបាន merge ចូលទៅក្នុង release branch សកម្ម មុនពេលស្លាកស្ថិរភាពបន្ទាប់ត្រូវបានបង្កើត។
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-សម្រាប់ Docker Compose សូម override image tag ដែលប្រើដោយ profile ដែលបានជ្រើស បន្ទាប់មក pull និងបង្កើត service ឡើងវិញ៖
+សម្រាប់ Docker Compose សូមកំណត់ជំនួសស្លាក image ដែលបានប្រើដោយ profile ដែលបានជ្រើសរើស បន្ទាប់មក pull និងបង្កើត service ឡើងវិញ៖
 
 ```yaml
 services:
@@ -491,30 +516,30 @@ docker compose up -d
 
 #### សុវត្ថិភាព និងការត្រឡប់ក្រោយ
 
-`next` គឺជាបណ្តាញ pre-release ដែលប្រែប្រួល។ វាអាចផ្លាស់ប្ដូរនៅពេលមាន push ណាមួយទៅកាន់ release branch សកម្ម ហើយ **មិនត្រូវបានគាំទ្រសម្រាប់ការប្រើប្រាស់ក្នុង production ទេ**។ សូម pin image digest ខណៈពេលវាយតម្លៃ build ជាក់លាក់មួយ៖
+`next` គឺជាឆានែលមុនចេញផ្សាយដែលអណ្ដែត។ វាអាចផ្លាស់ប្ដូរនៅពេល push ណាមួយទៅ release branch សកម្ម ហើយ **មិនត្រូវបានគាំទ្រសម្រាប់ការប្រើប្រាស់ក្នុង production ទេ**។ ចងភ្ជាប់ image digest ខណៈពេលវាយតម្លៃ build ជាក់លាក់មួយ៖
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-មុនពេលធ្វើតេស្ត សូមបម្រុងទុក data volume របស់ OmniRoute ឬ data directory ដែលបាន bind-mount។ ដើម្បីត្រឡប់ទៅកំណែមុន សូមស្ដារកំណែ stable ឬ digest ដែលបានប្រើពីមុន ហើយបង្កើត container ឡើងវិញ៖
+មុនពេលសាកល្បង សូមបម្រុងទុក OmniRoute data volume ឬ data directory ដែលបាន bind-mount។ ដើម្បីត្រឡប់ក្រោយ សូមស្ដារកំណែស្ថិរភាព ឬ digest ដែលបានប្រើពីមុន ហើយបង្កើត container ឡើងវិញ៖
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Build ពី release branch មិនអាចផ្លាស់ទី `latest` បានឡើយ។ មានតែកំណែ semantic stable ដែលមានលក្ខណៈសម្បត្តិគ្រប់គ្រាន់ប៉ុណ្ណោះ ដែលអាចដំឡើង stable pointer បាន។ Image `next` នៅតែរក្សាការត្រួតពិនិត្យ release image និងច្រកទប់ស្កាត់ vulnerability កម្រិត CRITICAL។
+build ពី release branch មិនអាចផ្លាស់ទី `latest` បានឡើយ; មានតែកំណែ semantic ស្ថិរភាពដែលមានសិទ្ធិប៉ុណ្ណោះ អាចលើកកម្ពស់ទ្រនិចស្ថិរភាពបាន។ image `next` រក្សាទុកការត្រួតពិនិត្យ image ចេញផ្សាយ និងច្រកទប់ស្កាត់ភាពងាយរងគ្រោះកម្រិត CRITICAL។
 
-**`latest` មិនមែនជាការធានាថាថ្មីបំផុតសម្រាប់ git ទេ។** Fix ដែលបាន merge ទៅ `main` ឬទៅ branch `release/v*` ដែលកំពុងសកម្ម គឺ **មិនទាន់** មាននៅក្នុង `:latest` ទេ រហូតទាល់តែ image ដែលមាន SemVer stable ត្រូវបាន publish ហើយ publish job ដំឡើង `:latest` (មាន digest ដូចគ្នានឹង SemVer នោះ)។ ប្រសិនបើ `latest` ហាក់ដូចជាមិនផ្លាស់ប្តូរ ខណៈដែល GitHub បានបង្ហាញ fix នោះរួចហើយ សូម pull `:next` ដើម្បីធ្វើតេស្ត release branch ឬរង់ចាំ SemVer tag។
+**`latest` មិនមែនជាការធានាថាទាន់សម័យជាមួយ git ទេ។** ការកែតម្រូវដែលបាន merge នៅលើ `main` ឬនៅលើ branch `release/v*` សកម្ម **មិន** មាននៅក្នុង `:latest` ទេ រហូតដល់ image SemVer ស្ថិរភាពត្រូវបានបោះពុម្ពផ្សាយ ហើយ job បោះពុម្ពផ្សាយលើកកម្ពស់ `:latest` (មាន digest ដូចគ្នានឹង SemVer នោះ)។ ប្រសិនបើ `latest` មើលទៅដូចជាមិនផ្លាស់ប្ដូរ ខណៈ GitHub បង្ហាញការកែតម្រូវរួចហើយ សូម pull `:next` ដើម្បីសាកល្បង release branch ឬរង់ចាំស្លាក SemVer។
 
-| អ្វីដែលអ្នកចង់បាន                                                   | ប្រើ                               |
-| ------------------------------------------------------------------- | ---------------------------------- |
-| GitOps / production ដែលមិនត្រូវមានការប្រែប្រួលដោយមិនរំពឹងទុក        | Pin `:X.Y.Z` (ឬ image digest)      |
-| តាមដាន stable ដែលបាន publish ហើយទទួលយកការបង្កើតឡើងវិញនៅរាល់ release | `:latest`                          |
-| ធ្វើតេស្ត commit `release/v*` ដែលមិនទាន់បាន release                 | `:next` (មិនមែនសម្រាប់ production) |
-| ធ្វើតេស្ត `main`                                                    | `:main` (មិនមែនសម្រាប់ production) |
+| អ្វីដែលអ្នកចង់បាន                                                               | ប្រើ                               |
+| ------------------------------------------------------------------------------- | ---------------------------------- |
+| GitOps / production ដែលត្រូវតែមិនផ្លាស់ប្ដូរដោយខ្លួនឯង                          | ចងភ្ជាប់ `:X.Y.Z` (ឬ image digest) |
+| តាមដានកំណែស្ថិរភាពដែលបានបោះពុម្ពផ្សាយ និងទទួលយកការបង្កើតឡើងវិញនៅរាល់ការចេញផ្សាយ | `:latest`                          |
+| សាកល្បង commit `release/v*` ដែលមិនទាន់ចេញផ្សាយ                                  | `:next` (មិនមែន production)        |
+| សាកល្បង `main`                                                                  | `:main` (មិនមែន production)        |
 
 ## ភាពអាចប្រើបាន៖ SQLite លំនាំដើមគាំទ្រតែ replica មួយ
 
