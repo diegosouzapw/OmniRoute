@@ -267,8 +267,10 @@ export default function CompressionSettingsTab() {
       if (ok) savedRef.current = { ...savedRef.current, ...updates };
       showQueued();
       setSaving(queuedRef.current.length > 0);
-      setStatus(ok ? "saved" : "error");
-      if (ok) setTimeout(() => setStatus(""), 2000);
+      // A failure stays on screen until the next edit, so a queued success or an earlier
+      // save's timeout cannot hide a field that just rolled back.
+      setStatus((shown) => (ok ? (shown === "error" ? shown : "saved") : "error"));
+      if (ok) setTimeout(() => setStatus((shown) => (shown === "saved" ? "" : shown)), 2000);
     });
   };
 

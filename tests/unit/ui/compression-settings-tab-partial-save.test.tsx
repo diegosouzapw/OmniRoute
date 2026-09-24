@@ -118,6 +118,7 @@ async function renderTab() {
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -180,5 +181,32 @@ describe("CompressionSettingsTab saves only what changed", () => {
     expect(cache.value).toBe("5");
     expect(autoTrigger.value).toBe("100");
     expect(server.stored).toMatchObject({ cacheMinutes: 5, autoTriggerTokens: 100 });
+    // The queued success does not cover up the failure that rolled the cache field back.
+    expect(screen.getByText("saveFailed")).toBeTruthy();
+    expect(screen.queryByText("saved")).toBeNull();
+
+    // The next edit starts a new save, which clears the error.
+    fireEvent.change(autoTrigger, { target: { value: "200" } });
+    await settle();
+    expect(screen.getByText("saved")).toBeTruthy();
+    expect(cache.value).toBe("5");
+  });
+
+  it("keeps a later save's error when an earlier save's success message times out", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    startServer((body) => "autoTriggerTokens" in body);
+    await renderTab();
+
+    fireEvent.change(inputFor("compressionCacheTTL"), { target: { value: "10" } });
+    await settle();
+    expect(screen.getByText("saved")).toBeTruthy();
+
+    fireEvent.change(inputFor("compressionAutoTrigger"), { target: { value: "100" } });
+    await settle();
+    expect(screen.getByText("saveFailed")).toBeTruthy();
+
+    // The first save's 2-second "saved" timeout fires after the second save failed.
+    await act(() => vi.advanceTimersByTimeAsync(2000));
+    expect(screen.getByText("saveFailed")).toBeTruthy();
   });
 });
