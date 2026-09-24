@@ -1,0 +1,1 @@
+- **fix(opencode):** overlapping requests to OpenCode no longer share the target format and client session of whichever request started last; a slow JSON request could get the raw event stream back when another request finished first ([#14149](https://github.com/diegosouzapw/OmniRoute/pull/14149)) — thanks @maxmad64bis

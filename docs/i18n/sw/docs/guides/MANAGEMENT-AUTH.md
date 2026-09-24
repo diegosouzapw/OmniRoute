@@ -1,58 +1,61 @@
 # Management Authentication (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute ina **familia nne za vitambulisho** vinavyoweza kuidhinisha njia za usimamizi.
-Havibadilishani matumizi. Funguo za API ya uinferensi (`sk-…`) **hazisimamii**
-seva isipokuwa zimepewa wazi upeo wa `manage` au `admin`.
+OmniRoute ina **familia nne za vitambulisho** zinazoweza kuidhinisha njia za usimamizi.
+Hazibadiliki. Funguo za API za Inference (`sk-…`) **hazisimamii**
+seva isipokuwa kama zilipewa waziwazi upeo wa `manage` au `admin`.
 
-Utekelezaji rasmi: `src/lib/api/requireManagementAuth.ts`.
+Utekelezaji halisi: `src/lib/api/requireManagementAuth.ts`.
 
-| Kitambulisho                  | Muundo wa kawaida                                     | Kinaundwa wapi                                             | Matumizi yaliyokusudiwa          | Uwezo wa usimamizi                                                                                   |
-| ----------------------------- | ----------------------------------------------------- | ---------------------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Kipindi cha JWT cha dashibodi | kidakuzi cha `auth_token`                             | Kuingia kwenye dashibodi                                   | Kiolesura cha kivinjari          | Usimamizi kamili wa dashibodi, kwa kuzingatia sheria za CSRF, eneo, na njia zinazolindwa kila wakati |
-| Tokeni ya machine-id ya CLI   | ya ndani / ya eneo hilo                               | Uanzishaji wa CLI (`omniroute` kwenye mashine hiyo hiyo)   | CLI ya eneo hilo                 | Usimamizi wa eneo hilo pekee                                                                         |
-| Tokeni ya Ufikiaji yenye Upeo | `oma_live_…`                                          | **Mipangilio → Tokeni za Ufikiaji** au `omniroute connect` | CLI ya mbali na API ya usimamizi | Lazima ikidhi upeo wa `read`, `write`, au `admin` unaohitajika na njia                               |
-| Ufunguo wa API ya uinferensi  | `sk-…` (na viambishi awali vingine vya funguo za API) | **Kidhibiti cha API / Funguo za API**                      | Uinferensi wa `/v1/*`            | **Hakuna** isipokuwa metadata ya ufunguo iwe na `manage` au `admin`                                  |
+| Kitambulisho | Fomu ya kawaida | Imeundwa wapi | Matumizi yaliyokusudiwa | Uwezo wa usimamizi |
+| --------------------- | ----------------------------------- | --------------------------------------------------- | ----------------------------- | Usimamizi kamili wa dashibodi, kulingana na CSRF, eneo, na sheria za njia zilizolindwa kila wakati |
+| Kipindi cha JWT cha Dashibodi | kuki ya `auth_token` | Kuingia kwenye Dashibodi | UI ya Kivinjari | Usimamizi kamili wa dashibodi, kulingana na CSRF, eneo, na sheria za njia zilizolindwa kila wakati |
+| Tokeni ya kitambulisho cha mashine ya CLI | ndani / ndani | Uanzishaji wa CLI (`omniroute` kwenye mashine moja) | CLI ya Ndani | Usimamizi wa ndani tu |
+| Tokeni ya Ufikiaji Iliyopewa Upeo | `oma_live_…` | **Mipangilio → Tokeni za Ufikiaji** au `omniroute connect` | CLI ya Mbali na API ya usimamizi | Lazima itimize upeo unaohitajika wa njia wa `read`, `write`, au `admin` |
+| Funguo ya API ya Inference | `sk-…` (na viambishi vingine vya API-key) | **Meneja wa API / Funguo za API** | `/v1/*` inference | **Hakuna** isipokuwa kama metadata ya funguo inajumuisha `manage` au `admin` |
 
-Vitambulisho vya `oma_` ni vitambulisho vya usimamizi/CLI. **Si** funguo za API ya uinferensi.
+Vitambulisho vya `oma_` ni vitambulisho vya usimamizi/CLI. Sio funguo za API za inference.
 
-Ikiwa uthibitishaji wa kuingia/ufunguo wa API umezimwa kwa seva, baadhi ya njia za usimamizi zinaweza
-kukubali miito isiyothibitishwa. Njia za eneo hilo pekee na njia zinazolindwa kila wakati bado hutumia
-sheria zao wenyewe. Kwa hivyo, kuwasilisha mojawapo ya vitambulisho hivi si lazima kwa hali zote,
-na kuwa na kimojawapo hakutoshi kwa hali zote bila upeo unaohitajika na eneo linalofaa la njia.
+Ikiwa kuingia/uthibitishaji wa API-key umezimwa kwa seva, baadhi ya njia za usimamizi zinaweza
+kukubali simu zisizothibitishwa. Njia za ndani tu na zilizolindwa kila wakati bado zinatumia
+sheria zao wenyewe. Kuwasilisha mojawapo ya vitambulisho hivi kwa hivyo si lazima kila wakati,
+na kumiliki kimoja hakitoshi kila wakati bila upeo unaohitajika na eneo la njia.
 
-Kuhusiana: [Hali ya Mbali](./REMOTE-MODE.md) (jinsi `oma_live_…` inavyoundwa kwa CLI ya mbali).
+Kuhusiana: [Hali ya Mbali](./REMOTE-MODE.md) (jinsi `oma_live_…` inavyotengenezwa kwa CLI ya mbali).
 
 ---
 
-## Majedwali ya upeo
+## Matrisi za Wigo
 
-Misamiati hii miwili ya upeo ni **tofauti**. Usiichanganye.
+Wigo wa usimamizi wa funguo za API na wigo wa tokeni za ufikiaji ni misamiati tofauti.
+Wigo wa zana za MCP ni msamiati wa tatu, huchunguzwa kwa kutumia `scopeMatches` badala ya
+mojawapo ya kazi katika jedwali hapa chini. Sambamba:
+[Nafasi tatu za majina ya wigo](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Upeo wa Tokeni za Ufikiaji (`oma_live_…`)
+### Wigo wa Tokeni za Ufikiaji (`oma_live_…`)
 
-| Upeo    | Operesheni za kawaida                                                                                |
-| ------- | ---------------------------------------------------------------------------------------------------- |
-| `read`  | GET za kuorodhesha/hali ambazo tokeni inaruhusiwa kuona                                              |
-| `write` | Mabadiliko (kuunda/kusasisha/kufuta) yaliyo chini ya kiwango cha msimamizi                           |
-| `admin` | CLI kamili ya mbali / tokeni ya kuunganisha (uanzishaji kwa nenosiri hutumia huu kama chaguo-msingi) |
+| Wigo    | Shughuli za Kawaida                                                                    |
+| ------- | -------------------------------------------------------------------------------------- |
+| `read`  | Orodha/hali ya GETs ambazo tokeni inaruhusiwa kuona                                    |
+| `write` | Mabadiliko (kuunda/kusasisha/kufuta) chini ya msimamizi                                |
+| `admin` | CLI kamili ya mbali / tokeni ya kuunganisha (chaguo-msingi za kuanzisha nenosiri hapa) |
 
-Tokeni yenye `read` haiwezi kuita njia ya `write`. Muundo wa ujumbe wakati wa utekelezaji:
-`Upeo wa tokeni ya ufikiaji '<have>' hautoshi; '<need>' unahitajika.`
+Tokeni yenye `read` haiwezi kuita njia ya `write`. Muundo wa ujumbe wa wakati wa utekelezaji:
+`Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Upeo wa usimamizi wa funguo za API
+### Wigo wa usimamizi wa funguo za API
 
-| Upeo     | Maana                                                                                |
-| -------- | ------------------------------------------------------------------------------------ |
-| (hakuna) | Uinferensi pekee. Njia za usimamizi hurejesha 403.                                   |
-| `manage` | API ya usimamizi (kizuizi sawa na tawi la ufunguo wa API la `requireManagementAuth`) |
-| `admin`  | Pia hutimiza `hasManageScope` (huchukuliwa kuwa na uwezo wa usimamizi)               |
+| Wigo     | Maana                                                                             |
+| -------- | --------------------------------------------------------------------------------- |
+| (none)   | Utabiri pekee. Njia za usimamizi hurejesha 403.                                   |
+| `manage` | API ya Usimamizi (lango sawa na tawi la funguo za API la `requireManagementAuth`) |
+| `admin`  | Pia inakidhi `hasManageScope` (inachukuliwa kuwa na uwezo wa usimamizi)           |
 
-Washa `manage` kwenye ufunguo katika kiolesura cha Funguo za API / Kidhibiti cha API. Usitumie tena
-ufunguo wa kiteja cha gumzo kwa uendeshaji otomatiki isipokuwa uliupa upeo huo kwa makusudi.
+Washa `manage` kwenye ufunguo katika UI ya Funguo za API / Kidhibiti cha API. Usitumie tena
+ufunguo wa mteja wa gumzo kwa otomatiki isipokuwa kama umetoa wigo huo kwa makusudi.
 
 ---
 
@@ -128,29 +131,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Hitilafu za sasa za wakati wa utekelezaji (usirudie siri)
+## Hitilafu za sasa za wakati wa utekelezaji (usirudishe siri)
 
-| Hali                                                     | Hali ya kawaida | Ujumbe (uliosafishwa)                                                |
-| -------------------------------------------------------- | --------------- | -------------------------------------------------------------------- |
-| Hakuna kitambulisho                                      | 401             | `Authentication required`                                            |
-| `oma_live_…` si halali/imekwisha muda                    | 401             | `Invalid or expired access token`                                    |
-| API key halali isiyo na `manage`/`admin`                 | 403             | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| API key ya kawaida isiyo halali kwenye njia ya usimamizi | 403             | `Invalid management token`                                           |
-| Upeo wa Access Token ni mdogo mno                        | 403             | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Hali                                                      | Hali ya kawaida | Ujumbe (umesafishwa)                                                 |
+| :-------------------------------------------------------- | :-------------- | :------------------------------------------------------------------- |
+| Hakuna kitambulisho                                       | 401             | `Authentication required`                                            |
+| `oma_live_…` batili/imeisha muda                          | 401             | `Invalid or expired access token`                                    |
+| Ufunguo halali wa API bila `manage`/`admin`               | 403             | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Ufunguo wa API wa kawaida batili kwenye njia ya usimamizi | 403             | `Invalid management token`                                           |
+| Wigo wa Tokeni ya Kufikia ni mdogo sana                   | 403             | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token" humaanisha bearer **haikukubaliwa** kama kitambulisho cha
-usimamizi. **Haikuambii** ni aina gani unapaswa kuunda. Tumia jedwali lililo hapo juu:
-funguo za uinferensi zinahitaji upeo wa `manage`; CLI ya mbali inahitaji `oma_live_…`; dashibodi
-hutumia kidakuzi cha kipindi.
+"Tokeni ya usimamizi batili" inamaanisha mbebaji **hakukubaliwa** kama kitambulisho cha usimamizi. Haielezi **ni familia gani** ya kutengeneza. Tumia jedwali hapo juu: funguo za inference zinahitaji wigo wa `manage`; CLI ya mbali inahitaji `oma_live_…`; dashibodi inatumia kuki ya kipindi.
 
 ---
 
-## Chaguo linalopendekezwa lenye upendeleo mdogo zaidi
+## Chaguo linalopendekezwa la upendeleo mdogo
 
-| Mpigaji                                                     | Tumia                                              |
-| ----------------------------------------------------------- | -------------------------------------------------- |
-| Kivinjari                                                   | Kipindi cha dashibodi                              |
-| CLI kwenye seva mwenyeji                                    | Tokeni ya mashine                                  |
-| CLI kwenye kompyuta mpakato inayowasiliana na seva ya mbali | `oma_live_…` kutoka `omniroute connect`            |
-| CI / hati (usimamizi pekee)                                 | `oma_live_…` yenye upeo mdogo zaidi unaofanya kazi |
-| CI ambayo lazima iite `/v1` na `/api`                       | API key yenye `manage` **au** vitambulisho viwili  |
+| Mpigaji                                                     | Matumizi                                                 |
+| :---------------------------------------------------------- | :------------------------------------------------------- |
+| Kivinjari                                                   | Kikao cha dashibodi                                      |
+| CLI kwenye seva pangishi                                    | Tokeni ya mashine                                        |
+| CLI kwenye kompyuta mpakato inayewasiliana na seva ya mbali | `oma_live_…` kutoka `omniroute connect`                  |
+| CI / hati (usimamizi pekee)                                 | `oma_live_…` yenye wigo mdogo zaidi unaofanya kazi       |
+| CI ambayo lazima iite zote mbili `/v1` na `/api`            | Ufunguo wa API wenye `manage` **au** vitambulisho viwili |

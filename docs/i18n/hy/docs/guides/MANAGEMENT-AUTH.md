@@ -1,59 +1,59 @@
 # Management Authentication (Հայերեն)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute-ն ունի հավատարմագրերի **չորս ընտանիք**, որոնք կարող են թույլատրել կառավարման երթուղիների օգտագործումը։
-Դրանք փոխարինելի չեն։ Inference API բանալիները (`sk-…`) **չեն** կառավարում
-սերվերը, եթե դրանց բացահայտորեն չի տրամադրվել `manage` կամ `admin` scope։
+OmniRoute-ն ունի **լիազորագրերի չորս ընտանիք**, որոնք կարող են թույլատրել կառավարման երթուղիները:
+Դրանք փոխարինելի չեն: Inference API բանալիները (`sk-…`) **չեն** կառավարում
+սերվերը, եթե նրանց հստակորեն չի տրվել `manage` կամ `admin` տիրույթ:
 
-Կանոնական իրականացում՝ `src/lib/api/requireManagementAuth.ts`։
+Կանոնական իրականացում՝ `src/lib/api/requireManagementAuth.ts`:
 
-| Հավատարմագիր          | Սովորական ձև                              | Որտեղ է ստեղծվում                                    | Նախատեսված օգտագործում      | Կառավարման հնարավորություններ                                                                                    |
-| --------------------- | ----------------------------------------- | ---------------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Dashboard JWT session | `auth_token` cookie                       | Dashboard-ի մուտք                                    | Բրաուզերի UI                | Dashboard-ի ամբողջական կառավարում՝ հաշվի առնելով CSRF-ի, տեղայնության և մշտապես պաշտպանված երթուղիների կանոնները |
-| CLI machine-id token  | ներքին / տեղային                          | CLI-ի սկզբնավորում (`omniroute`՝ նույն համակարգչում) | Տեղային CLI                 | Միայն տեղային կառավարում                                                                                         |
-| Scoped Access Token   | `oma_live_…`                              | **Settings → Access Tokens** կամ `omniroute connect` | Հեռակա CLI և կառավարման API | Պետք է բավարարի երթուղու պահանջվող `read`, `write` կամ `admin` scope-ը                                           |
-| Inference API key     | `sk-…` (և API բանալիների այլ նախածանցներ) | **API Manager / API Keys**                           | `/v1/*` inference           | **Ոչ մի**, եթե բանալու metadata-ն չի ներառում `manage` կամ `admin`                                               |
+| Լիազորագիր                       | Տիպիկ ձև                               | Ստեղծվել է որտեղ                                             | Նախատեսված օգտագործում      | Կառավարման հնարավորություն                                                                                      |
+| -------------------------------- | -------------------------------------- | ------------------------------------------------------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Կառավարման վահանակի JWT նիստ     | `auth_token` քուքի                     | Կառավարման վահանակի մուտք                                    | Բրաուզերի ինտերֆեյս         | Կառավարման վահանակի ամբողջական կառավարում՝ ենթակա CSRF-ի, տեղայնության և միշտ պաշտպանված երթուղիների կանոններին |
+| CLI մեքենայի ID թոքեն            | ներքին / տեղական                       | CLI բութսթրապ (`omniroute` նույն մեքենայի վրա)               | Տեղական CLI                 | Միայն տեղական կառավարում                                                                                        |
+| Սահմանափակ տիրույթի մուտքի թոքեն | `oma_live_…`                           | **Կարգավորումներ → Մուտքի թոքեններ** կամ `omniroute connect` | Հեռակա CLI և կառավարման API | Պետք է բավարարի երթուղու պահանջվող `read`, `write` կամ `admin` տիրույթը                                         |
+| Inference API բանալի             | `sk-…` (և API բանալու այլ նախածանցներ) | **API կառավարիչ / API բանալիներ**                            | `/v1/*` inference           | **Ոչինչ**, եթե բանալու մետատվյալները չեն ներառում `manage` կամ `admin`                                          |
 
-`oma_` հավատարմագրերը կառավարման/CLI հավատարմագրեր են։ Դրանք inference API բանալիներ **չեն**։
+`oma_` լիազորագրերը կառավարման/CLI լիազորագրեր են: Դրանք **չեն** inference API բանալիներ:
 
-Եթե սերվերի համար մուտքի/API բանալիով նույնականացումն անջատված է, կառավարման որոշ երթուղիներ կարող են
-ընդունել չնույնականացված հարցումներ։ Միայն տեղային և մշտապես պաշտպանված երթուղիների համար
-շարունակում են գործել իրենց սեփական կանոնները։ Հետևաբար այս հավատարմագրերից որևէ մեկի ներկայացումը համընդհանուր
-պարտադիր չէ, իսկ դրանցից որևէ մեկի առկայությունն առանց պահանջվող
-scope-ի և երթուղու տեղայնության համընդհանուր բավարար չէ։
+Եթե սերվերի համար անջատված է մուտքի/API բանալու նույնականացումը, ապա որոշ կառավարման երթուղիներ կարող են
+ընդունել չնույնականացված կանչեր: Միայն տեղական և միշտ պաշտպանված երթուղիները դեռ կիրառում են
+իրենց կանոնները: Հետևաբար, այս լիազորագրերից մեկը ներկայացնելը համընդհանուր պարտադիր չէ,
+և մեկը ունենալը համընդհանուր բավարար չէ առանց պահանջվող տիրույթի և երթուղու տեղայնության:
 
-Առնչվող նյութ՝ [Remote Mode](./REMOTE-MODE.md) (ինչպես է `oma_live_…`-ը ստեղծվում հեռակա CLI-ի համար)։
+Առնչվող: [Հեռակա ռեժիմ](./REMOTE-MODE.md) (ինչպես է `oma_live_…` թողարկվում հեռակա CLI-ի համար):
 
 ---
 
-## Scope-երի մատրիցներ
+## Տիրույթի մատրիցներ
 
-Scope-երի այս երկու բառապաշարները **տարբեր են**։ Մի խառնեք դրանք։
+API-բանալու կառավարման տիրույթները և մուտքի թոքենի տիրույթները տարբեր բառապաշարներ են։
+MCP գործիքի տիրույթները երրորդ բառապաշար են, որոնք ստուգվում են `scopeMatches`-ով, այլ ոչ թե ստորև բերված աղյուսակներում նշված ֆունկցիաներից որևէ մեկով։ Կողք կողքի․
+[Երեք տիրույթի անվանատարածք](../frameworks/MCP-SERVER.md#three-scope-namespaces)։
 
-### Access Token-ի scope-եր (`oma_live_…`)
+### Մուտքի թոքենի տիրույթներ (`oma_live_…`)
 
-| Scope   | Սովորական գործողություններ                                                                      |
-| ------- | ----------------------------------------------------------------------------------------------- |
-| `read`  | Ցուցակների/կարգավիճակների GET հարցումներ, որոնք token-ին թույլատրված է տեսնել                   |
-| `write` | Admin-ից ցածր մակարդակի փոփոխություններ (ստեղծում/թարմացում/ջնջում)                             |
-| `admin` | Ամբողջական հեռակա CLI / կապակցման token (գաղտնաբառով սկզբնավորման դեպքում սա է լռելյայն արժեքը) |
+| Տիրույթ | Բնորոշ գործողություններ                                                               |
+| ------- | ------------------------------------------------------------------------------------- |
+| `read`  | Ցուցակ/կարգավիճակ GET-եր, որոնք թոքենին թույլատրված է տեսնել                          |
+| `write` | Փոփոխություններ (ստեղծել/թարմացնել/ջնջել) ադմինից ցածր                                |
+| `admin` | Ամբողջական հեռակա CLI / միացման թոքեն (գաղտնաբառի նախնական կարգավորումներն այստեղ են) |
 
-`read` ունեցող token-ը չի կարող կանչել `write` երթուղի։ Կատարման ժամանակ հաղորդագրությունն ունի հետևյալ ձևը՝
-`Access token scope '<have>' is insufficient; '<need>' required.`
+«read» տիրույթով թոքենը չի կարող կանչել «write» երթուղի։ Գործարկման ժամանակի հաղորդագրության ձևը․
+`Մուտքի թոքենի տիրույթը '<have>' անբավարար է. պահանջվում է '<need>'։`
 
-### API բանալիների կառավարման scope-եր
+### API-բանալու կառավարման տիրույթներ
 
-| Scope    | Նշանակություն                                                                               |
-| -------- | ------------------------------------------------------------------------------------------- |
-| (չկա)    | Միայն inference։ Կառավարման երթուղիները վերադարձնում են 403։                                |
-| `manage` | Կառավարման API (`requireManagementAuth`-ի API բանալու ճյուղի նույն ստուգումը)               |
-| `admin`  | Նաև բավարարում է `hasManageScope`-ը (դիտարկվում է որպես կառավարման հնարավորություն ունեցող) |
+| Տիրույթ   | Իմաստ                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------- |
+| (ոչ մեկը) | Միայն եզրակացություն։ Կառավարման երթուղիները վերադարձնում են 403։                           |
+| `manage`  | Կառավարման API (նույն դարպասը, ինչ `requireManagementAuth` API-բանալու ճյուղը)              |
+| `admin`   | Նաև բավարարում է `hasManageScope`-ը (դիտարկվում է որպես կառավարման հնարավորություն ունեցող) |
 
-Բանալու համար միացրեք `manage`-ը API Keys / API Manager UI-ում։ Ավտոմատացման համար մի վերօգտագործեք
-chat client-ի բանալին, եթե այդ scope-ը միտումնավոր չեք տրամադրել։
+Միացրեք `manage`-ը բանալու վրա API Keys / API Manager ինտերֆեյսում։ Մի օգտագործեք չաթի հաճախորդի բանալին ավտոմատացման համար, եթե դուք միտումնավոր չեք տրամադրել այդ տիրույթը։
 
 ---
 
@@ -127,26 +127,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Ընթացիկ կատարման միջավայրի սխալները (գաղտնի տվյալները մի՛ արտածեք)
+## Ընթացիկ կատարման սխալներ (գաղտնիքները չարտացոլել)
 
-| Իրավիճակ                                          | Սովորական կարգավիճակ | Հաղորդագրություն (գաղտնի տվյալները հեռացված են)                      |
-| ------------------------------------------------- | -------------------- | -------------------------------------------------------------------- |
-| Հավատարմագիր չկա                                  | 401                  | `Authentication required`                                            |
-| Անվավեր/ժամկետանց `oma_live_…`                    | 401                  | `Invalid or expired access token`                                    |
-| Վավեր API բանալի՝ առանց `manage`/`admin` շրջանակի | 403                  | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Անվավեր սովորական API բանալի կառավարման երթուղում | 403                  | `Invalid management token`                                           |
-| Access Token-ի շրջանակը չափազանց ցածր է           | 403                  | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Իրավիճակ                                             | Տիպիկ կարգավիճակ | Հաղորդագրություն (մաքրված)                                                   |
+| ---------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------- |
+| Հավատարմագրեր չկան                                   | 401              | `Պահանջվում է նույնականացում`                                                |
+| Անվավեր/ժամկետանց `oma_live_…`                       | 401              | `Մուտքի թոքենն անվավեր է կամ ժամկետանց`                                      |
+| Վավեր API բանալի՝ առանց `manage`/`admin`             | 403              | `API բանալին չունի 'manage' տիրույթ: Միացրեք այն API բանալիների վահանակում:` |
+| Անվավեր սովորական API բանալի կառավարման երթուղու վրա | 403              | `Անվավեր կառավարման թոքեն`                                                   |
+| Մուտքի թոքենի տիրույթը չափազանց ցածր է               | 403              | `Մուտքի թոքենի տիրույթը '<have>' անբավարար է; պահանջվում է '<need>'։`        |
 
-«Invalid management token» նշանակում է, որ bearer-ը **չի** ընդունվել որպես կառավարման հավատարմագիր։ Այն **չի** հուշում, թե որ տեսակի հավատարմագիր պետք է ստեղծել։ Օգտագործեք վերևի աղյուսակը. եզրահանգման բանալիներին անհրաժեշտ է `manage` շրջանակ, հեռակա CLI-ին՝ `oma_live_…`, իսկ կառավարման վահանակն օգտագործում է աշխատաշրջանի քուքին։
+"`Անվավեր կառավարման թոքեն`" նշանակում է, որ կրողը **չի** ընդունվել որպես կառավարման հավատարմագիր: Այն **չի** հուշում, թե որ ընտանիքը պետք է ստեղծել: Օգտագործեք վերևի աղյուսակը. եզրակացության բանալիներին անհրաժեշտ է `manage` տիրույթ; հեռավոր CLI-ին անհրաժեշտ է `oma_live_…`; վահանակն օգտագործում է սեսիայի քուքին:
 
 ---
 
-## Առաջարկվող նվազագույն արտոնությունների ընտրությունը
+## Առաջարկվող նվազագույն արտոնությունների ընտրություն
 
-| Կանչող                                            | Օգտագործել                                                 |
-| ------------------------------------------------- | ---------------------------------------------------------- |
-| Բրաուզեր                                          | Կառավարման վահանակի աշխատաշրջան                            |
-| CLI՝ սերվերի հոսթում                              | Մեքենայական թոքեն                                          |
-| CLI՝ հեռակա սերվերի հետ հաղորդակցվող նոութբուքում | `oma_live_…`՝ ստացված `omniroute connect`-ից               |
-| CI / սկրիպտներ (միայն կառավարման համար)           | `oma_live_…`՝ աշխատող ամենափոքր շրջանակով                  |
-| CI, որը պետք է կանչի և՛ `/v1`, և՛ `/api`          | API բանալի՝ `manage` շրջանակով, **կամ** երկու հավատարմագիր |
+| Կանչող                                                | Օգտագործում                                        |
+| :---------------------------------------------------- | :------------------------------------------------- |
+| Զննարկիչ                                              | Կառավարման վահանակի նիստ                           |
+| CLI սերվերի հոսթի վրա                                 | Մեքենայի թոքեն                                     |
+| CLI նոութբուքի վրա, որը կապվում է հեռավոր սերվերի հետ | `oma_live_…` `omniroute connect`-ից                |
+| CI / սկրիպտներ (միայն կառավարում)                     | `oma_live_…` ամենափոքր գործող շրջանակով            |
+| CI, որը պետք է կանչի և՛ `/v1`, և՛ `/api`              | API բանալի `manage`-ով **կամ** երկու հավատարմագրեր |

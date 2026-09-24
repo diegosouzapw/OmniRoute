@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -112,34 +112,34 @@ bir yüzeye eklenen bir hedef, sessizce sapmak yerine test paketinin başarısı
 
 `/dashboard/cli-code` içinde görünen tüm araçlar. `baseUrlSupport: none` olanlar, özel bir temel URL yerine MITM veya manuel bir kılavuz üzerinden yapılandırılır:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | ad                      | sağlayıcı             | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | --------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic             | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                  | none           | custom         | false        |
+| cline        | Cline                   | OSS (eski Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org              | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)             | full           | guide          | false        |
+| continue     | Continue                | continue.dev          | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)     | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ           | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)        | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)     | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)          | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (eski SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI            | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS             | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere             | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)     | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)      | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                   | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)           | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba               | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere             | none           | guide          | false        |
+| antigravity  | Antigravity             | Google                | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research         | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                | none           | mitm           | false        |
+| custom       | Özel CLI                | —                     | full           | custom-builder | false        |
 
 `baseUrlSupport: "partial"` olan araçların kontrol paneli kartında "⚠ Kısmi Temel URL" rozeti gösterilir.
 ---
@@ -571,7 +571,7 @@ kiro-cli status
 
 ## 10. Dahili OmniRoute CLI
 
-`omniroute` ikili dosyası; sunucu yaşam döngüsü, kurulum, tanılama ve sağlayıcı yönetimi için komutlar sunar. Giriş noktası: `bin/omniroute.mjs`.
+`omniroute` ikili dosyası; sunucu yaşam döngüsü, kurulum, tanılama ve sağlayıcı yönetimi için komutlar sağlar. Giriş noktası: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Sunucuyu başlatır (varsayılan port 20128)
@@ -581,7 +581,7 @@ omniroute providers list               # Yapılandırılmış sağlayıcı bağl
 omniroute providers test-all           # Her etkin bağlantıyı test eder
 omniroute reset-password               # Yönetici parolasını sıfırlar
 omniroute logs                         # İstek günlüklerini akış halinde gösterir
-omniroute health                       # Ayrıntılı sistem durumu (devre kesiciler, önbellek, bellek)
+omniroute health                       # Ayrıntılı sistem durumu (kesiciler, önbellek, bellek)
 omniroute --version                    # Sürümü yazdırır
 omniroute --help                       # Tüm komutları gösterir
 ```
@@ -600,12 +600,12 @@ omniroute setup --add-provider \
 
 Etkileşimsiz kurulum için tanınan ortam değişkenleri:
 
-| Değişken            | Amaç                                                                              |
-| ------------------- | --------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Sağlayıcı API anahtarı (Commander `.env()` aracılığıyla `--api-key` ile bağlıdır) |
-| `DATA_DIR`          | OmniRoute veri dizinini geçersiz kılar                                            |
+| Değişken            | Amaç                                                                                     |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Sağlayıcı API anahtarı (Commander `.env()` aracılığıyla `--api-key` seçeneğine bağlanır) |
+| `DATA_DIR`          | OmniRoute veri dizinini geçersiz kılar                                                   |
 
-Diğer tüm etkileşimsiz girdiler, ortam değişkenleri olarak değil bayraklar olarak iletilir:
+Diğer tüm etkileşimsiz girdiler ortam değişkenleri olarak değil, bayraklar olarak geçirilir:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (yukarıdaki `omniroute setup` seçeneklerine bakın).
 
@@ -644,11 +644,11 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` öncelikle API'yi kullanır ve bu nedenle
-etkin yerel veya uzak bağlama karşı çalışır. Kimlik bilgisi girişi için
+`providers add/import/auth/edit/remove` öncelikli olarak API'yi kullanır ve bu nedenle
+etkin yerel veya uzak bağlam üzerinde çalışır. Kimlik bilgisi girdisi için
 `--credential-stdin` veya `--credential-env` kullanılmalıdır; `--dry-run --json` yalnızca
-maskelenmiş mevcudiyet/yapı bilgilerini bildirir. `providers available`, OmniRoute kataloğunu okur;
-`providers list/test/test-all/validate` ise yerel SQLite davranışlarını korur ve
+gizlenmiş varlık/yapı bilgilerini bildirir. `providers available`, OmniRoute kataloğunu okur;
+`providers list/test/test-all/validate` yerel SQLite davranışlarını korur ve
 sunucunun çalışmasını gerektirmez.
 
 ### Kurtarma ve Sıfırlama
@@ -669,25 +669,24 @@ omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_
 omniroute auth export --force --out creds.json           # Bir dosyaya yazar (0600 izinleriyle oluşturulur)
 ```
 
-`auth export` **yalnızca yereldir** (doğrudan SQLite okuması, HTTP rotası yoktur) ve kasıtlı olarak
+`auth export` **yalnızca yerel** olarak çalışır (doğrudan SQLite okuması, HTTP rotası yoktur) ve kasıtlı olarak
 **düz metin** `apiKey`/`accessToken`/`refreshToken`/`idToken` değerlerini yazdırır/yazar — bu bir
-hata değil, özelliktir. `--force` olmadan veritabanından hiçbir şey okunmaz ve hiçbir şeyin şifresi
-çözülmez. Herhangi bir düz metin üretilmeden önce stderr'e her zaman bir uyarı başlığı yazdırılır.
-`STORAGE_ENCRYPTION_KEY` değerinin ayarlanmış olması gerekir. Şifresi çözülemeyen bir alan (eskimiş
-anahtar, bozuk şifreli metin), tüm dışa aktarma işlemini durdurmak veya temel hatayı açığa çıkarmak
-yerine `<field>DecryptFailed: true` olarak bildirilir.
+hata değil, özelliktir. `--force` olmadan veritabanından hiçbir şey okunmaz ve hiçbir şeyin şifresi çözülmez. Herhangi bir düz metin yayımlanmadan önce stderr'e
+her zaman bir uyarı başlığı yazdırılır. `STORAGE_ENCRYPTION_KEY` değişkeninin
+ayarlanmış olması gerekir. Şifresi çözülemeyen bir alan (eski anahtar, bozuk şifreli metin), dışa aktarma işleminin tamamını iptal etmek veya temel hatayı sızdırmak yerine
+`<field>DecryptFailed: true` olarak bildirilir.
 
 ### Diğer alt komutlar
 
-Aksi belirtilmedikçe bunlar çalışan bir OmniRoute sunucusunun bulunduğunu varsayar:
+Aksi belirtilmedikçe bunlar çalışan bir OmniRoute sunucusu gerektirir:
 
 ```bash
 omniroute status                       # Kapsamlı çalışma zamanı durumu
-omniroute logs                         # İstek günlüklerini akış olarak göster (--json, --search, --follow)
-omniroute config show                  # Geçerli yapılandırmayı görüntüle
+omniroute logs                         # İstek günlüklerini akış halinde göster (--json, --search, --follow)
+omniroute config list                  # Yapılandırılmış CLI araçlarını göster
 
-omniroute provider list                # Kullanılabilir sağlayıcıları listele (providers list için takma ad)
-omniroute provider add                 # OmniRoute'u bir araçta sağlayıcı olarak kaydet
+omniroute provider list                # Kullanılabilir sağlayıcıları listele (providers list diğer adı)
+omniroute provider add                 # OmniRoute'u bir araca sağlayıcı olarak kaydet
 omniroute keys add | list | remove     # API anahtarlarını yönet
 omniroute models [provider]            # Modelleri listele (--json, --search)
 omniroute combo list | switch | create | delete
@@ -706,19 +705,19 @@ omniroute a2a status | card            # A2A sunucusu durumu / aracı kartı
 omniroute tunnel list | create | stop  # Tünelleri yönet (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # Ortam değişkenlerini incele / ayarla (geçici)
 
-omniroute test                         # Sağlayıcı bağlantısı temel testi
+omniroute test                         # Sağlayıcı bağlantısı hızlı testi
 omniroute update                       # Güncellemeleri denetle
-omniroute completion                   # Kabuk otomatik tamamlaması oluştur
+omniroute completion                   # Kabuk tamamlama betiği oluştur
 ```
 
-### Yaygın seçenekler
+### Yaygın bayraklar
 
-| Seçenek             | Açıklama                                                          |
+| Bayrak              | Açıklama                                                          |
 | ------------------- | ----------------------------------------------------------------- |
 | `--no-open`         | Başlangıçta tarayıcıyı otomatik olarak açma                       |
 | `--port <n>`        | API bağlantı noktasını geçersiz kıl (varsayılan 20128)            |
 | `--mcp`             | stdio üzerinden MCP sunucusu olarak çalıştır (IDE'ler için)       |
-| `--non-interactive` | CI modu (istem yok; ortam değişkenlerinden/seçeneklerden okur)    |
+| `--non-interactive` | CI modu (istem yoktur; ortam değişkenlerinden/bayraklardan okur)  |
 | `--json`            | Makine tarafından okunabilir JSON çıktısı (doctor, providers vb.) |
 | `--help`, `-h`      | Komuta özgü yardımı göster                                        |
 | `--version`, `-v`   | Yüklü sürümü yazdır                                               |

@@ -1,6 +1,6 @@
 # Admission lanes (#9654) — two lane systems, what gates each, where each reports (Bahasa Melayu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇧🇦 [bs](../../../bs/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
 
 ---
 
@@ -9,47 +9,54 @@ saling melengkapi; pengendali perlu mengetahui sistem yang sedang mereka perhati
 
 ## 1. Kemasukan seluruh proses pada aras bait (`chatBodyAdmission.ts`)
 
-- **Skop:** laluan badan berpenimbal/heap untuk `POST /v1/chat/completions`,
+- **Skop:** laluan isi badan berpenimbal/heap untuk `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses`, dan laluan lain yang berbentuk sembang. Melindungi
-  daripada penggandaan heap akibat badan ejen pengekodan yang besar (#4380).
-- **Satu pengawal global proses, bukannya lorong bagi setiap kunci (#10110).** Setiap kunci API
-  (dicincang) atau sesi `anonymous` diterima berdasarkan belanjawan kongsi yang **sama** —
-  ID sesi yang dicincang digunakan HANYA sebagai kunci penjadualan kesaksamaan (penghantaran
-  secara giliran antara penunggu), dan tidak sekali-kali sebagai serpihan kapasiti. Versi terdahulu
-  dokumen ini menerangkan lorong bagi setiap kunci dengan kapasiti bebas; model tersebut
-  telah dialih keluar dalam #10110 kerana ia membolehkan kelayakan palsu tanpa pengesahan
-  menggandakan had seluruh proses.
-- **Gerbang (#503-fanout): belanjawan BAIT pengingesan yang diterbitkan secara automatik, bukannya
-  kiraan permintaan tetap.** Had kiraan permintaan legasi `CHAT_MAX_HEAVY_IN_FLIGHT` (lalai `1`
-  sebelum pembetulan ini) mengehadkan fan keluar ejen pengekodan (berbilang subejen/CLI,
-  dengan badan lazimnya > 256 KB) kepada konkurensi berkesan sekitar 1, lalu menghasilkan
-  503 di bawah beban yang benar-benar biasa. Kini, had tersebut hanya berkuat kuasa apabila pengendali menetapkan
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` secara nyata. Jika tidak ditetapkan, kemasukan sebaliknya
-  dikawal oleh `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — belanjawan yang diterbitkan secara automatik daripada
-  had memori sebenar proses (`src/shared/middleware/admissionBudget.ts`):
-  25% daripada nilai yang lebih ketat antara had heap V8 dengan sebarang had cgroup/bekas,
-  dibahagikan dengan faktor penggandaan sementara 8x, dan diapit antara 8 MiB hingga
-  2 GiB. Penggantian eksplisit menggunakan had apitan yang sama. Ini menskalakan dirinya daripada
-  bekas 512 MB hingga desktop 32 GB tanpa penalaan env. Badan yang tidak dapat
-  dimuatkan dalam belanjawan berkesan akan gagal serta-merta dengan `413 body_exceeds_budget`;
-  hanya persaingan antara badan yang boleh dilayan secara individu akan memasuki baris gilir
-  kesaksamaan terhad. Penjejak tekanan sumber berbilang isyarat masa nyata (nisbah heap V8,
-  cgroup, PSI, peristiwa OOM — `open-sse/utils/resourcePressurePolicy.ts`) memendekkan
-  tempoh menunggu terhad di bawah tekanan `high` dan menggugurkan beban serta-merta dengan
-  `503 resource_pressure` di bawah tekanan `critical`, sebelum sebarang bait sempat
-  diinges.
-- **Penalaan:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — penggantian bagi belanjawan bait yang diterbitkan secara automatik
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — had kiraan permintaan legasi, penyertaan pilihan sahaja
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — tempoh menunggu dalam baris gilir sebelum 503 (lalai 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — injap heap bait yang dibariskan (lalai 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — tidak lagi disyorkan dan
-    tidak melakukan apa-apa sejak #10110 (diterima untuk keserasian konfigurasi, tetapi diabaikan)
+  daripada penguatan heap akibat isi badan ejen pengekodan yang besar (#4380).
+- **Satu pengawal global proses, bukan lorong bagi setiap kunci (#10110).** Setiap kunci API
+  (dicincang) atau sesi `anonymous` diterima berdasarkan belanjawan kongsi yang
+  **sama** — id sesi yang dicincang digunakan HANYA sebagai kunci penjadualan adil
+  (penghantaran secara bergilir-gilir merentas penunggu), dan tidak pernah sebagai
+  pecahan kapasiti. Versi terdahulu dokumen ini menerangkan lorong bagi setiap kunci
+  dengan kapasiti bebas; model tersebut telah dialih keluar dalam #10110 kerana model
+  itu membolehkan kelayakan palsu tanpa pengesahan menggandakan had seluruh proses.
+- **Gerbang (#503-fanout): belanjawan BAIT pengingesan yang diterbitkan secara automatik,
+  bukan bilangan permintaan tetap.** Had bilangan permintaan legasi
+  `CHAT_MAX_HEAVY_IN_FLIGHT` (lalai `1` sebelum pembetulan ini) mengehadkan fan-keluar
+  ejen pengekodan (berbilang subejen/CLI, isi badan lazimnya > 256 KB) kepada
+  keserentakan efektif sekitar 1, yang menyebabkan respons 503 di bawah beban yang
+  benar-benar normal. Kini, had itu hanya berkuat kuasa apabila pengendali menetapkan
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` secara eksplisit. Jika tidak ditetapkan,
+  kemasukan sebaliknya dikawal oleh `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — belanjawan
+  yang diterbitkan secara automatik daripada had memori sebenar proses
+  (`src/shared/middleware/admissionBudget.ts`): 25% daripada nilai yang lebih ketat
+  antara had heap V8 dengan sebarang had cgroup/bekas, dibahagikan dengan faktor
+  penguatan sementara 8x, dan diapit antara 8 MiB dengan 2 GiB. Penggantian eksplisit
+  menggunakan had apitan yang sama. Ini diskalakan secara automatik daripada bekas
+  512 MB kepada komputer meja 32 GB tanpa pelarasan env. Isi badan yang tidak dapat
+  dimuatkan dalam belanjawan efektif akan gagal serta-merta dengan
+  `413 body_exceeds_budget`; hanya persaingan antara isi badan yang masing-masing
+  boleh dilayan akan memasuki baris gilir keadilan yang terbatas. Penjejak tekanan
+  sumber berbilang isyarat secara langsung (nisbah heap V8, cgroup, PSI, peristiwa
+  OOM — `open-sse/utils/resourcePressurePolicy.ts`) memendekkan masa menunggu terbatas
+  di bawah tekanan `high` dan menggugurkan beban serta-merta dengan
+  `503 resource_pressure` di bawah tekanan `critical`, sebelum sebarang bait
+  diinges. PSI dibaca daripada `memory.pressure` cgroup unit ini apabila tersedia
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` merangkumi
+  seluruh hos dan hanya digunakan sebagai sandaran pada perkakasan fizikal /
+  cgroup v1, supaya hos yang melakukan pertukaran memori tidak menyebabkan bekas
+  melahu memberikan respons 503.
+- **Pelarasan:**
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — penggantian untuk belanjawan bait yang diterbitkan secara automatik
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — had bilangan permintaan legasi, ikut serta sahaja
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — masa menunggu dalam baris gilir sebelum 503 (lalai 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — injap heap bait dalam baris gilir (lalai 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — tidak digunakan lagi
+    sejak #10110 (diterima untuk keserasian konfigurasi, diabaikan)
 - **Laporan:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — termasuk
   penambahan #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, dan `countCapEnabled`
   (false pada penggunaan lalai — mengesahkan bahawa belanjawan bait, bukannya had
-  kiraan legasi, ialah had yang sebenarnya berkuat kuasa).
+  bilangan legasi, ialah had yang sebenarnya berkuat kuasa).
 
 ## 2. Lorong maya masa jalan adaptif (`open-sse/services/admission`)
 

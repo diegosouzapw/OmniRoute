@@ -104,7 +104,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     // Kimi official-partnership aff link (2026-07) — folds into the kimi-coding
     // card (PROVIDER_CONNECTION_ALIASES in providerPageUtils.ts) so this rarely
     // renders its own header, but stays in sync with kimi-coding's aff link.
-    website: "https://www.kimi.com/code?aff=omniroute",
+    website: "https://www.kimi.ai/code?aff=omniroute",
     hiddenFromDashboard: true,
   },
   minimax: {

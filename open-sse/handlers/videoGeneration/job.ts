@@ -134,7 +134,7 @@ const VIDEO_JOB_PRESETS: Record<string, VideoJobPreset> = {
     displayName: "Agnes Video 2.5",
     authHeaderName: "Authorization",
     authScheme: "bearer",
-    // Wiki 2026-09-09 + live probe: POST /v1/videos returns `id`, poll GET /v1/videos/{id}, result `url`.
+    // Wiki 2026-09-09 + live probe: POST /v1/videos returns `id`, poll GET /v1/videos/{id}, result `metadata.url`.
     // seconds is a string. Do not reuse agnes-video-job (video_id + /agnesapi).
     baseUrlFallback: "https://apihub.agnes-ai.com",
     submit: {
@@ -155,7 +155,7 @@ const VIDEO_JOB_PRESETS: Record<string, VideoJobPreset> = {
     statusPath: "status",
     statusDone: ["completed"],
     statusFailed: ["failed"],
-    resultPath: "url",
+    resultPath: "metadata.url",
     maxPolls: 60,
     pollIntervalMs: 2000,
   },
@@ -271,7 +271,12 @@ export async function handleVideoJobGeneration({
     // passthrough of the remainder — the API keeps catchall extras
     extras: Object.fromEntries(
       Object.entries(body ?? {}).filter(
-        ([key]) => key !== "model" && key !== "prompt" && key !== "duration"
+        ([key]) =>
+          key !== "model" &&
+          key !== "prompt" &&
+          key !== "duration" &&
+          key !== "poll_interval_ms" &&
+          key !== "max_polls"
       )
     ),
   });

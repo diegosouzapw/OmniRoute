@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (日本語)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -180,16 +180,16 @@ Stacked 使用時:       送信されるトークン数 10K-2.5K     （対象�
 
 ### ダッシュボード
 
-`Dashboard → Context & Cache` に移動します。
+「ダッシュボード → コンテキストとキャッシュ」に移動します。
 
 - **Caveman** — モード選択、言語パック、プレビュー、グローバルデフォルト
-- **RTK** — コマンドフィルターのプレビュー、RTK の安全設定、フィルターカタログ
-- **Compression Combos** — ルーティングコンボに割り当てる、名前付きのエンジンパイプライン
-- **Auto-Trigger Threshold** — トークン数がしきい値を超えたときに圧縮を自動的に有効化
+- **RTK** — コマンドフィルタープレビュー、RTK安全設定、フィルターカタログ
+- **圧縮コンボ** — ルーティングコンボに割り当てられた名前付きエンジンパイプライン
+- **自動トリガーしきい値** — トークン数がしきい値を超えると自動的に圧縮を有効にする
 
 ### コンボごとのオーバーライド
 
-`Dashboard → Context & Cache → Compression Combos` で、圧縮コンボをルーティングコンボに割り当てます。
+「ダッシュボード → コンテキストとキャッシュ → 圧縮コンボ」で、ルーティングコンボに圧縮コンボを割り当てます。
 
 ```txt
 Combo: "free-tier-fallback"
@@ -200,22 +200,26 @@ Combo: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-これにより、有料サブスクリプションでは Lite モードを維持しながら、無料プロバイダーやコーディング向けプロバイダーで多段圧縮を使用できます。
+これにより、無料/コーディングプロバイダーでスタック圧縮を使用しつつ、有料サブスクリプションではライトモードを維持できます。
 
-この「コンボごとのオーバーライド」割り当ては、**ルーティングコンボの圧縮モード**のオーバーライド（Default/Off/Lite/Standard/Aggressive/Ultra）とは別の制御です。後者のオーバーライドでは、名前付きの圧縮コンボパイプラインは選択されません。単に、`resolveCompressionPlan` が参照する `compressionMode` フィールドを設定します。この設定は、コンボカード（`Dashboard → Combos`）で行えるほか、#6760 以降では、`Dashboard → Context & Cache → Compression Combos` の「Assign to routing」リスト内で、上記のパイプライン割り当てチェックボックスのすぐ隣にあるルーティングコンボごとの項目からも行えます。どちらの画面で行った設定も、同じ `PUT /api/combos/{id}` エンドポイントを通じて永続化されます。
+この「コンボごとのオーバーライド」の割り当ては、**ルーティングコンボ圧縮モード**のオーバーライド（Default/Off/Lite/Standard/Aggressive/Ultra）とは異なる制御です。このオーバーライドは、名前付きの圧縮コンボパイプラインを選択するのではなく、`resolveCompressionPlan`によって参照される`compressionMode`フィールドを設定するだけです。これは、コンボカード（「ダッシュボード → コンボ」）で設定することも、または #6760 以降、上記のパイプライン割り当てチェックボックスのすぐ隣にある「ダッシュボード → コンテキストとキャッシュ → 圧縮コンボ」の「ルーティングに割り当てる」リストでルーティングコンボごとに設定することもできます。どちらのインターフェースも、同じ `PUT /api/combos/{id}` エンドポイントを通じて永続化されます。
 
 ### リクエストごとのオーバーライド
 
-単一のリクエストについて圧縮プランをオーバーライドするには、`x-omniroute-compression` リクエストヘッダーを送信します。これは最も優先順位が高く、ルーティングコンボのオーバーライド、アクティブなプロファイル、自動トリガー、およびパネルの Default よりも優先されます。不明な値は無視され（リクエストが拒否されることはありません）、グローバルなマスタースイッチは引き続きすべてを制御します。圧縮がグローバルにオフになっている場合、このヘッダーでオンにすることはできません。指定できる値は次のとおりです。
+単一のリクエストの圧縮プランをオーバーライドするには、`x-omniroute-compression`リクエストヘッダーを送信します。これは最も高い優先順位を持ち、ルーティングコンボのオーバーライド、アクティブなプロファイル、自動トリガー、およびパネルのデフォルトよりも優先されます。不明な値は無視され（リクエストが拒否されることはありません）、グローバルマスター設定がすべてを制御します。つまり、グローバルに圧縮が無効になっている場合、このヘッダーで有効にすることはできません。値は以下の通りです。
 
-| 値            | 効果                                                                             |
-| ------------- | -------------------------------------------------------------------------------- |
-| `off`         | このリクエストでは圧縮しません。                                                 |
-| `default`     | パネルから導出された Default プロファイル（アクティブなプロファイルを無視）。    |
-| `engine:<id>` | 有効化されている場合に単一のエンジンを使用します（例: `engine:rtk`）。           |
-| `<combo>`     | 名前付きコンボ。最初に名前（大文字と小文字を区別しない）、次に ID で照合します。 |
+| Value         | Effect                                                                                                               |
+| :------------ | :------------------------------------------------------------------------------------------------------------------- |
+| `off`         | このリクエストでは圧縮を行いません。                                                                                 |
+| `default`     | パネルから派生したデフォルトプロファイル（アクティブなプロファイルは無視されます）。不可逆エンジンは無効のままです。 |
+| `safe`        | ヘッダーを省略した場合と同じです。重複排除と空白の折りたたみのみを行います。                                         |
+| `allow-lossy` | 要約、関連性フィルター、スタイル書き換えを含む、このリクエストのオペレータープランを維持します。                     |
+| `engine:<id>` | 有効な場合に単一のエンジン（例: `engine:rtk`）。これは、そのエンジンに対するリクエストごとのオプトインです。         |
+| `<combo>`     | 名前（大文字小文字を区別しない）で最初に一致し、次にIDで一致する名前付きコンボ。                                     |
 
-適用されたプランは、`X-OmniRoute-Compression: <mode>; source=<source>` レスポンスヘッダーで返されます。`<source>` は、`request-header`、`routing-override`、`active-profile`、`auto-trigger`、`default`、または `off` のいずれかです。
+`allow-lossy`、`engine:<id>`、または名前付きコンボがない場合、不可逆エンジンは適用されません。圧縮が有効な場合でも、リクエストにはセッションの重複排除と空白の折りたたみが適用されます。
+
+適用されたプランは、`X-OmniRoute-Compression: <mode>; source=<source>`レスポンスヘッダーで返されます。ここで`<source>`は、`request-header`、`routing-override`、`active-profile`、`auto-trigger`、`default`、または`off`のいずれかです。
 
 ### API
 
@@ -228,15 +232,15 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# 特定の RTK/stacked ペイロードをプレビュー
+# 特定のRTK/スタックペイロードをプレビュー
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# RTK フィルターパックを一覧表示
+# RTKフィルターパックを一覧表示
 curl http://localhost:20128/api/context/rtk/filters
 
-# オプションのコマンドメタデータを使用して RTK を直接テスト
+# オプションのコマンドメタデータを使用してRTKを直接テスト
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -263,7 +267,7 @@ RTKの生出力リカバリーでは、何らかのデータを永続化する�
 
 ## 圧縮統計
 
-圧縮されたすべてのリクエストには、サーバーログ内に統計情報が含まれます：
+圧縮されたすべてのリクエストには、サーバーログに統計情報が含まれます。
 
 ```json
 {
@@ -281,15 +285,15 @@ RTKの生出力リカバリーでは、何らかのデータを永続化する�
 
 ---
 
-## フェーズ別ロードマップ
+## フェーズロードマップ
 
-| フェーズ | モード                                                                                                                                                       | ステータス      |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
-| Phase 1  | Off, Lite                                                                                                                                                    | ✅ リリース済み |
-| Phase 2  | Standard, Aggressive, Ultra                                                                                                                                  | ✅ リリース済み |
-| Phase 3  | RTK, Stacked, Compression Combos                                                                                                                             | ✅ リリース済み |
-| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                                  | ✅ リリース済み |
-| Phase 4C | 適応型コンテキスト予算（「ダイヤル」）— コンピュートエンジン + API（`PUT /api/settings/compression`の`contextBudget`）+ ダッシュボードのモード／ポリシー制御 | ✅ リリース済み |
+| フェーズ   | モード                                                                                                                                              | ステータス  |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| フェーズ1  | Off, Lite                                                                                                                                           | ✅ 出荷済み |
+| フェーズ2  | Standard, Aggressive, Ultra                                                                                                                         | ✅ 出荷済み |
+| フェーズ3  | RTK, Stacked, Compression Combos                                                                                                                    | ✅ 出荷済み |
+| フェーズ4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                         | ✅ 出荷済み |
+| フェーズ4C | 適応型コンテキスト予算（「ダイヤル」）— 計算エンジン + API (`contextBudget` on `PUT /api/settings/compression`) + ダッシュボードモード/ポリシー制御 | ✅ 出荷済み |
 
 ---
 
@@ -303,24 +307,21 @@ RTKモードは、**[RTK AI](https://github.com/rtk-ai)**による**[RTK - Rust 
 
 ## 高度な圧縮システム
 
-7つの標準モードに加えて、OmniRouteには、コンテキストに基づいて自動的に動作する複数の高度な圧縮
-システムが含まれています。
+7つの標準モードに加えて、OmniRouteにはコンテキストに基づいて自動的に機能するいくつかの高度な圧縮システムが含まれています。
 
 ### キャッシュ対応圧縮
 
-一部のプロバイダー（プロンプトキャッシュを使用するAnthropicなど）は、プロンプトの一部をキャッシュしてコストとレイテンシーを削減できる**プロンプトキャッシュ**をサポートしています。
-キャッシュが有効な場合、積極的な圧縮によってキャッシュ済みトークンが変更され、キャッシュが無効になるため、実際にはパフォーマンスが**低下**する可能性があります。
+一部のプロバイダー（Anthropicのプロンプトキャッシュなど）は**プロンプトキャッシュ**をサポートしており、これによりプロンプトの一部をキャッシュしてコストとレイテンシを削減できます。キャッシュが有効な場合、積極的な圧縮はキャッシュされたトークンを変更し、キャッシュを無効にするため、実際にはパフォーマンスを**低下させる**可能性があります。
 
-`cachingAware.ts`モジュールは、**キャッシュコンテキストを検出**し、それに応じて
-**圧縮戦略を調整**することで、この問題を解決します。
+`cachingAware.ts`モジュールは、**キャッシュコンテキストを検出し**、それに応じて**圧縮戦略を調整する**ことで、この問題を解決します。
 
 #### 仕組み
 
-1. **キャッシュコンテキストを検出** — リクエスト本文で`cache_control`マーカーをスキャンします
-2. **キャッシュ対応プロバイダーを特定** — 対象プロバイダーがキャッシュをサポートしているか確認します
-3. **戦略を調整** — キャッシュ対応プロバイダーでは`aggressive`/`ultra`を`standard`にダウングレードします
-4. **システムプロンプトをスキップ** — システムプロンプトは通常キャッシュされるため、圧縮しません
-5. **決定論的な変換を使用** — 一貫した出力を生成する変換のみを使用します
+1.  **キャッシュコンテキストの検出** — リクエストボディをスキャンして`cache_control`マーカーを探します。
+2.  **キャッシュ対応プロバイダーの特定** — ターゲットプロバイダーがキャッシュをサポートしているか確認します。
+3.  **戦略の調整** — キャッシュ対応プロバイダーの場合、`aggressive`/`ultra`を`standard`にダウングレードします。
+4.  **システムプロンプトのスキップ** — システムプロンプトは通常キャッシュされるため、圧縮しません。
+5.  **決定論的変換の使用** — 一貫した出力を生成する変換のみを使用します。
 
 #### コード例
 
@@ -345,20 +346,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### 使用するタイミング
 
-キャッシュ対応圧縮は**常に有効**であり、設定は不要です。以下の場合にのみ作動します：
+キャッシュ対応圧縮は**常にオン**であり、設定は不要です。以下の条件が満たされた場合にのみ機能します。
 
-- リクエストに`cache_control`マーカーが含まれている
-- 対象プロバイダーがプロンプトキャッシュをサポートしている（Anthropic、OpenAIなど）
+- リクエストに`cache_control`マーカーがある場合
+- ターゲットプロバイダーがプロンプトキャッシュをサポートしている場合（Anthropic、OpenAIなど）
 
 ### プログレッシブエイジング
 
-長い会話では多数のメッセージターンが蓄積しますが、古いターンほど関連性が
-低くなります。`progressiveAging.ts`モジュールは、**ターンの距離に応じてメッセージを段階的に簡略化**します：
+長い会話では多くのメッセージターンが蓄積されますが、古いターンほど関連性が低くなります。`progressiveAging.ts`モジュールは、**ターン距離によってメッセージを劣化させます**。
 
-- **最近のターン（0-3）**：原文のまま保持（完全な詳細）
-- **中間のターン（4-8）**：Lite圧縮（空白、書式の整理）
-- **古いターン（9+）**：Caveman圧縮（不要語の除去、要約）
-- **非常に古いターン（20+）**：大幅に要約するか削除
+- **最近のターン（0-3）**: 逐語的に保持（完全な詳細）
+- **中間のターン（4-8）**: 軽量圧縮（空白、書式設定のクリーンアップ）
+- **古いターン（9+）**: 原始人圧縮（フィラーの削除、要約）
+- **非常に古いターン（20+）**: 大幅に要約または削除
 
 #### コード例
 
@@ -369,46 +369,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... さらに50ターン ...
+  // ... 50 more turns ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // 最初の3ターン：原文のまま
-  light: 8, // ターン4～8：Lite圧縮
-  moderate: 20, // ターン9～20：Caveman圧縮
-  // ターン21以降：大幅な要約
+  verbatim: 3, // 最初の3ターン: 逐語的
+  light: 8, // 4-8ターン: 軽量圧縮
+  moderate: 20, // 9-20ターン: 原始人圧縮
+  // 21ターン以降: 大幅な要約
 });
 
-// saved = 削減されたトークン数
+// saved = 節約されたトークン数
 ```
 
 #### 使用するタイミング
 
-プログレッシブエージングは、`aggressive`モードと`ultra`モードでは**常に有効**です。特に次の用途で効果を発揮します。
+プログレッシブエイジングは、`aggressive`および`ultra`モードで**常にオン**です。特に以下の状況で効果的です。
 
-- 長時間にわたるコーディングセッション
-- 複数日にまたがる会話
-- 多数のツール呼び出しを伴うエージェント型ワークフロー
+- 長時間のコーディングセッション
+- 数日間にわたる会話
+- 多くのツール呼び出しを伴うエージェントワークフロー
 
 ### 原始人出力モード
 
-`outputMode.ts`モジュールは、モデル自体に圧縮された簡潔な出力（「原始人」スタイル）を生成させるための**システムプロンプト指示**を注入します。
+`outputMode.ts`モジュールは、モデル自体が圧縮された簡潔な出力（「原始人」スタイル）を生成するように**システムプロンプトの指示**を注入します。
 
 #### 仕組み
 
-入力を圧縮する代わりに、このモードでは次のようなシステムプロンプトを追加します。
+このモードは、入力を圧縮する代わりに、次のようなシステムプロンプトを追加します。
 
-> 「最小限の言葉で回答してください。社交辞令は省いてください。短い文を使用してください。」
+> 「最小限の言葉で返答してください。丁寧な言葉は不要です。短い文を使用してください。」
 
-これは特に次の用途で効果を発揮します。
+これは特に以下の状況でうまく機能します。
 
-- コード生成（簡潔な出力 = より少ないトークン）
-- 簡単なQ&A（詳しい説明が不要）
-- バッチ処理（スループットを最大化）
+- コード生成（簡潔な出力 = 少ないトークン）
+- 簡単なQ&A（詳細な説明は不要）
+- バッチ処理（スループットの最大化）
 
 #### 使用するタイミング
 
-原始人出力モードは**オプトイン**です。combo設定で次のように指定します。
+原始人出力モードは**オプトイン**です。コンボ設定で設定します。
 
 ```json
 {
@@ -423,25 +423,25 @@ const { messages: aged, saved } = applyAging(messages, {
 
 ### 出力スタイル（カタログ）
 
-上記の原始人出力モードは、**従来の単一スタイル方式**です。フェーズ4では、これを組み合わせ可能な出力スタイルのカタログへと一般化しました。カタログは`open-sse/services/compression/outputStyles/catalog.ts`内の`OUTPUT_STYLE_CATALOG`です。各スタイルは、モデル自体に低コストな出力を生成させるシステムプロンプト指示です。複数のスタイルを同時に有効化でき、カタログ順に注入されます。
+上記の原始人出力モードは**レガシーな単一スタイルパス**です。フェーズ4では、これを構成可能な出力スタイルのカタログに一般化しました。これは`open-sse/services/compression/outputStyles/catalog.ts`の`OUTPUT_STYLE_CATALOG`です。各スタイルは、モデル自体がより安価な出力を生成するようにするシステムプロンプトの指示であり、スタイルは組み合わせて有効にでき、カタログの順序で注入されます。
 
-| スタイル                           | `id`          | 動作                                                                                                                                                                                                                                                                  | 指示の対応言語                                               |
-| ---------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| 簡潔な文章                         | `terse-prose` | 冗長表現、冠詞、曖昧表現を削除し、技術的な内容は正確に維持します。従来の原始人出力モードと同じテキストです（再記述せず参照します）。                                                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                |
-| コードを減らす                     | `less-code`   | YAGNIラダー：動作する最小限の変更に留め、要求されていない抽象化は行いません。                                                                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                |
-| ポニーテール（怠惰なシニア開発者） | `ponytail`    | 「最良のコードとは、決して書かれなかったコードである」：書き直しより再利用、症状より根本原因、動作する最短の差分を優先します。                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                |
-| 私はADHD（アクション優先）         | `i-have-adhd` | アクションを最初に提示（説明文より先にコマンド、パス、スニペットを提示）し、番号付きの有限な手順、具体的な次のステップを1つだけ示します。前置き、要約、締めの言葉は使用しません。[ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd)（MIT）を基にしています。 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                |
-| 簡潔なCJK（文言）                  | `terse-cjk`   | 漢文調の極めて簡潔なスタイルです。                                                                                                                                                                                                                                    | zh（ロケール制限あり：解決された言語が`zh`の場合にのみ提供） |
+| Style                      | `id`          | What it does                                                                                                                                                                                                            | Instruction languages                                              |
+| :------------------------- | :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
+| Terse prose                | `terse-prose` | フィラー/冠詞/曖昧な表現を削除し、技術的な内容を正確に保ちます。レガシーなcaveman出力モードと同じテキストです（参照されており、再入力されていません）。                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                      |
+| Less code                  | `less-code`   | YAGNIラダー：最小限の動作変更、不要な抽象化なし。                                                                                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                      |
+| Ponytail (lazy senior dev) | `ponytail`    | 「最高のコードは書かれないコードである」：再利用 > 書き換え、根本原因 > 症状、最短の動作差分。                                                                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                      |
+| I have ADHD (action-first) | `i-have-adhd` | アクションファースト（散文の前にコマンド/パス/スニペット）、番号付きの限定されたステップ、具体的な次のステップは1つ、前置き/要約/締めなし。[ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) から採用。 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                      |
+| Terse CJK (文言)           | `terse-cjk`   | 古典中国語の超簡潔なスタイル。                                                                                                                                                                                          | zh (locale-gated: only offered when the resolved language is `zh`) |
 
-各スタイルには`lite`、`full`、`ultra`の3つの強度レベルが用意されています。すべてのレベルの末尾には共通の境界条項が追加され、コードブロック、ファイルパス、コマンド、エラー文字列、URL、識別子がそのまま維持されます。
+各スタイルには3つの強度レベル（`lite`、`full`、`ultra`）があり、各レベルの最後には共通の境界句が付加されます。これにより、コードブロック、ファイルパス、コマンド、エラー文字列、URL、識別子はそのまま保持されます。
 
 #### 注入の仕組み
 
-`applyOutputStyles()`（`open-sse/services/compression/outputStyles/apply.ts`）は、選択内容をカタログと照合して解決します（不明なIDやロケールが一致しないスタイルは削除され、エラーにはなりません）。選択した指示をカタログ順に連結し、境界条項を**一度だけ**追加して、その結果を単一の冪等性マーカー（`[OmniRoute Output Styles]`）の後ろにあるシステムプロンプトの先頭へ配置します。再適用しても何も起こりません。検出されたリクエスト言語の翻訳が存在する場合は、英語の代わりにローカライズされた指示が注入されます。
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) は、選択内容をカタログに対して解決し（不明なIDやロケールが一致しないスタイルは破棄され、エラーにはなりません）、選択された指示をカタログ順に連結し、境界句を**一度だけ**追加し、その結果を単一の冪等性マーカー（`[OmniRoute Output Styles]`）の背後にあるシステムプロンプトに先行してロードします。再適用は何も行いません。検出されたリクエスト言語に翻訳がある場合、英語の代わりにローカライズされた指示が注入されます。
 
-#### 有効化する方法
+#### 有効化の方法
 
-ダッシュボードでは、**Context → Settings → Compression**に移動します。各スタイルに、オン/オフの切り替えとレベル選択を備えた行が1つずつ表示されます。プログラムから使用する場合、圧縮設定では選択内容が次のように保存されます。
+ダッシュボードで：**Context → Settings → Compression** — 各スタイルにつき、オン/オフ切り替えとレベルセレクター付きの行があります。プログラム的には、圧縮設定は選択内容を次のように永続化します。
 
 ```json
 {
@@ -452,48 +452,48 @@ const { messages: aged, saved } = applyAging(messages, {
 }
 ```
 
-後方互換性：従来の`outputMode: "caveman"` combo設定も引き続き機能し、`terse-prose`にマッピングされます。従来の各言語では、以前の注入内容とバイト単位で同一です。
+後方互換性：レガシーな`outputMode: "caveman"`の組み合わせ設定は引き続き機能し、`terse-prose`にマッピングされ、すべてのレガシー言語で古い注入とバイト単位で同一です。
 
-言語選択：`languageConfig.enabled`がオンの場合、`autoDetect`は最新のユーザーメッセージの言語を選択します（入力エンジンと同じ検出器を使用）。`autoDetect`をオフにすると、`defaultLanguage`に固定されます。オフの場合は英語になります。
+言語選択：`languageConfig.enabled`がオンの場合、`autoDetect`は最新のユーザーメッセージの言語を選択します（入力エンジンと同じ検出器）。`autoDetect`をオフにすると`defaultLanguage`が固定されます。オフの場合 → 英語。
 
-スタイル × 言語マトリックスは、`tests/unit/compression/output-styles-i18n-matrix.test.ts`によって固定されています。新しいスタイルは、少なくともpt-BR翻訳（または明示的に追跡される例外）がなければリリースできず、既存のスタイルからロケールが通知なく失われることもありません。スタイルを追加する方法については、[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style)を参照してください。
+スタイルと言語のマトリックスは`tests/unit/compression/output-styles-i18n-matrix.test.ts`によって固定されています。新しいスタイルは、少なくともpt-BRの翻訳（または明示的に追跡された例外）なしには出荷できず、既存のスタイルがサイレントにロケールを失うことはありません。スタイルを追加するには、[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style)を参照してください。
 
 ### ツール結果の圧縮
 
-`toolResultCompressor.ts`モジュールは、ツール結果（関数呼び出し、エージェントの出力、検索結果など）向けに**5つの専用圧縮戦略**を提供します。
+`toolResultCompressor.ts`モジュールは、ツール結果（関数呼び出し、エージェント出力、検索結果など）に対して**5つの特殊な圧縮戦略**を提供します。
 
-1. **検索結果の圧縮** — 重複する結果を削除し、上位N件を維持します
-2. **ファイル読み取りの圧縮** — 大きなファイルを切り詰め、ヘッダーとインポートを維持します
-3. **コード実行の圧縮** — 必要不可欠なstdout/stderrのみを維持します
-4. **データベースクエリの圧縮** — 行数を制限し、冗長なメタデータを削除します
-5. **APIレスポンスの圧縮** — nullフィールドを削除し、配列を簡潔にします
+1.  **検索結果の圧縮** — 重複する結果を削除し、上位N件を保持します。
+2.  **ファイル読み取りの圧縮** — 大容量ファイルを切り詰め、ヘッダー/インポートを保持します。
+3.  **コード実行の圧縮** — 必須の標準出力/標準エラーのみを保持します。
+4.  **データベースクエリの圧縮** — 行数を制限し、冗長なメタデータを削除します。
+5.  **APIレスポンスの圧縮** — nullフィールドを削除し、配列を凝縮します。
 
 #### 使用するタイミング
 
-ツール呼び出しが存在する場合、ツール結果の圧縮は**常に有効**です。設定は不要です。
+ツール呼び出しが存在する場合、ツール結果の圧縮は**常にオン**です。設定は不要です。
 
-### スタックパイプライン
+### スタック型パイプライン
 
-スタックモードでは、**複数のエンジンを順番に**実行します。通常は、最初にRTK（ツール出力を60～90%削減）を実行し、次にCaveman（残りのテキストをさらに30%削減）を実行します。これにより、**合計78～95%の削減**を実現します。
+スタックモードは**複数のエンジンを連続して**実行します。通常、最初にRTK（ツール出力で60-90%の節約）、次にCaveman（残りのテキストでさらに30%の節約）が実行されます。これにより、**合計で78-95%の節約**が達成されます。
 
 #### 仕組み
 
 ```
-入力（1000トークン）
-  → RTK（コマンド対応フィルター）→ 200トークン
-    → Caveman（冗長表現の削除）→ 140トークン
-  → 出力（140トークン、86%削減）
+Input (1000 tokens)
+  → RTK (command-aware filter) → 200 tokens
+    → Caveman (filler removal) → 140 tokens
+  → Output (140 tokens, 86% savings)
 ```
 
 #### 使用するタイミング
 
-スタックモードは、次の用途で使用します。
+スタックモードは以下の場合に使用します。
 
-- ツールを多用するワークフロー（エージェント型コーディング、調査）
-- コストを重視するバッチ処理
-- トークン削減量を最大化する必要がある場合
+- ツールを多用するワークフロー（エージェントコーディング、研究）
+- コストに敏感なバッチ処理
+- 最大限のトークン節約が必要な場合
 
-comboで次のように設定します。
+組み合わせで設定：
 
 ```json
 {
@@ -505,8 +505,6 @@ comboで次のように設定します。
   }
 }
 ```
-
----
 
 ## コンボ単位の圧縮オーバーライド
 
