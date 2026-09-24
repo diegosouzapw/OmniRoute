@@ -43,58 +43,27 @@ ACP Agents (mchakato wa kuzalisha kinyume):
 
 ---
 
-## Auto-configure na `setup-*`
+## Kusanidi Kiotomatiki kwa `setup-*`
 
-Huna haja ya kuandika usanidi wa kila zana kwa mkono. OmniRoute inatoa amri ya `setup-*`
-kila CLI inayoungwa mkono ambayo inasoma katalogi ya mifano **hai** kutoka kwa OmniRoute inayofanya kazi
-(ya ndani au ya mbali) na kuandika usanidi wa zana mwenyewe kwenye mashine yako:
+Sio lazima kuandika usanidi wa kila zana kwa mkono. OmniRoute inajumuisha amri ya `setup-*` kwa kila CLI inayotumika ambayo husoma katalogi ya modeli **hai** kutoka kwa OmniRoute inayoendesha (ya ndani au ya mbali) na kuandika usanidi wa zana hiyo kwenye mashine yako:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Kila moja inakubali `--remote <url> --api-key <key>` (kuunda zana ya ndani dhidi ya
-OmniRoute ya mbali), `--dry-run` (kuangalia bila kuandika), na `--port`. Zana
-bila ugunduzi wa mifano (Cline, Kilo, Roo, Goose, Aider, Qwen) zinahitaji
-`--model <id>` (na `--yes` kwa kazi zisizo za mwingiliano). Ili kuzindua CLI na
-muhimu sahihi iliyowekwa na hakuna usanidi ulioandikwa kabisa, tumia
-mwanzo wa jumla `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — malengo na majina yanatoka `bin/cli/cli-manifest.mjs`); mwanzo wa zamani
-wa kila zana `omniroute launch` (Claude Code) na `omniroute launch-codex`
-(Codex) bado zinapatikana. Gemini CLI ni ya kuzindua tu: ni lengo la `omniroute run`
-lakini haina mapishi ya `setup-*`/`configure`.
+Kila moja inakubali `--remote <url> --api-key <key>` (sanidi zana ya ndani dhidi ya OmniRoute ya mbali), `--dry-run` (hakiki bila kuandika), na `--port`. Zana zisizo na ugunduzi wa kiotomatiki wa modeli (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) huchukua `--model <id>` (na `--yes` kwa uendeshaji usioingiliana). `setup-5dive` ndiyo njia pekee ambayo haiandiki chini ya `$HOME`: inasanidi kundi la mawakala wa 5dive kwa kuandika wasifu wa uthibitishaji unaomilikiwa na root kwenye seva pangishi ya kundi, hivyo inatekeleza tena kupitia `sudo` na haina hali yake ya mbali. Ili kuzindua CLI na mazingira sahihi yaliyowekwa na bila usanidi wowote kuandikwa, tumia kizindua cha jumla cha `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — malengo na majina mbadala hutoka `bin/cli/cli-manifest.mjs`); vizindua vya zamani vya kila zana `omniroute launch` (Claude Code) na `omniroute launch-codex` (Codex) vinabaki kupatikana. Gemini CLI ni ya kuzindua tu: ni lengo la `omniroute run` lakini haina njia ya `setup-*`/`configure`.
 
-> **Rejeleo kamili:** jedwali kuu — kila amri inayoandika, kila bendera,
-> ya ndani dhidi ya ya mbali, na zana zipi zinahitaji kiambishi cha `/v1` — inapatikana katika
-> **[Ushirikiano wa CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Marejeleo Kamili:** jedwali kuu — kile kila amri inaandika, kila bendera, ya ndani dhidi ya ya mbali, na ni zana gani zinazohitaji kiambishi tamati cha `/v1` — kinapatikana katika **[Ujumuishaji wa CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Kukimbia hizi ndani ya kontena
+### Kuendesha hizi ndani ya kontena
 
-Amri ya `setup-*` iliyotekelezwa ndani ya kontena la OmniRoute inaandika kwenye
-nyumba ya kontena yenyewe, ambayo hakuna CLI ya mwenyeji inayosoma na ambayo inatoweka na
-kontena. OmniRoute inagundua hilo na inatoka `2` na maagizo badala ya
-kuandika. Njia mbili zinazoungwa mkono — sakinisha CLI kwenye mwenyeji na
-`omniroute connect` kwa kontena, au bind-mount saraka za usanidi na kuweka
-`CLI_CONFIG_HOME` (profaili ya compose `host`). Kila amri ya `setup-*`, pamoja na
-`omniroute configure` na `omniroute config set`, inakubali
-`--allow-container-write` wakati usanidi wa CLIs za kontena mwenyewe ndio unachomaanisha; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` inafanya vivyo hivyo kwa
-seva. Tazama
-[Muongozo wa Docker → Kuweka zana za CLI za mwenyeji](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Amri ya `setup-*` inayotekelezwa ndani ya kontena la OmniRoute huandika kwenye saraka ya nyumbani ya kontena yenyewe, ambayo hakuna CLI ya seva pangishi inayosoma na ambayo hupotea na kontena. OmniRoute hugundua hilo na huondoka `2` na maelekezo badala ya kuandika. Njia mbili zinazotumika mbele — sakinisha CLI kwenye seva pangishi na `omniroute connect` kwenye kontena, au funga saraka za usanidi na uweke `CLI_CONFIG_HOME` (wasifu wa `host` wa compose). Kila amri ya `setup-*`, pamoja na `omniroute configure` na `omniroute config set`, inakubali `--allow-container-write` wakati kusanidi CLIs za kontena ndicho ulichomaanisha; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` hufanya vivyo hivyo kwa seva. Tazama [Mwongozo wa Docker → Kusanidi zana za CLI za seva pangishi](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**Kipengele cha kutekeleza** cha dashibodi (`POST /api/cli-tools/apply`) kinathibitisha
-mlinzi sawa: ndani ya kontena, kuandika ambako lengo lake halijabind-mount kutoka kwa
-mwenyeji kunajibu **`422`** na `containerEphemeralTarget: true`, maandiko salama ya kosa
-na — kwa zana zenye mapishi ya mwenyeji (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` (mfano `omniroute setup-opencode`) ya kutekeleza
-kwenye mwenyeji badala yake; hakuna kitu kinachoandikwa. `dryRun: true` inaendelea kufanya kazi katika
-hali ya kontena na inarudisha yaliyomo yaliyoundwa + njia ya lengo bila kugusa diski, hivyo
-unaweza kuangalia kutoka kwenye dashibodi na kutekeleza kwenye mwenyeji. Tabia hii ni
-ya makusudi na inalindwa na
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — usijaribu "kurekebisha" 422
-kwa kuondoa mlinzi.
+Sehemu ya mwisho ya **apply** ya dashibodi (`POST /api/cli-tools/apply`) inatekeleza ulinzi huo huo: ndani ya kontena, uandishi ambao lengo lake halijafungwa kutoka kwa seva pangishi hujibu **`422`** na `containerEphemeralTarget: true`, maandishi salama ya hitilafu na — kwa zana zilizo na njia ya seva pangishi (claude, codex, opencode, cline, kilo, continue) — `hostSetupCommand` (k.m. `omniroute setup-opencode`) ya kuendesha kwenye seva pangishi badala yake; hakuna kinachoandikwa. `dryRun: true` inaendelea kufanya kazi katika hali ya kontena na inarudisha hakiki iliyofichwa + njia lengwa bila kugusa diski. Maudhui ya hakiki si usanidi unaobeba vitambulisho vya kunakili au kuingiza. Tumia zana asili/URL ya msingi/ufunguo wa API/pembejeo za modeli kwenye seva pangishi, au tumia amri ya usanidi iliyoonyeshwa upande wa seva pangishi. Tazama [usalama wa usanidi wa CLI](../security/CLI-CONFIGURATION.md) kwa kichwa cha hakiki na mkataba wa ombi. Tabia hii imekusudiwa na inalindwa dhidi ya kurudi nyuma na `tests/unit/api/cli-tools/apply-container-guard.test.ts` — kamwe "usirekebishe" 422 kwa kuondoa ulinzi.
 
 ---
 

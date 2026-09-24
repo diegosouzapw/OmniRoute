@@ -5018,6 +5018,8 @@
     "failedSetPassword": "Postavljanje lozinke nije uspjelo. Pokušajte ponovo.",
     "failedAddProvider": "Dodavanje provajdera nije uspjelo. Pokušajte ponovo.",
     "connectionError": "Greška u vezi. Pokušajte ponovo.",
+    "bootstrapTokenLabel": "Pokretački token",
+    "bootstrapTokenHelp": "Ova veza nije prepoznata kao lokalna (uobičajeno iza Docker prosljeđivanja portova). Provjerite dnevnik servera/kontejnera za jednokratni bootstrap token i zalijepite ga iznad za nastavak.",
     "provider": "Provajder",
     "apiKeyHelp": "API ključ je lozinka za AI servise. Nabavite ga sa web stranice vašeg provajdera (npr. platform.openai.com, console.anthropic.com).",
     "tier": {
@@ -6290,7 +6292,6 @@
       "stability-ai": "Povežite Stability AI pomoću API ključa.",
       "stepfun": "Preuzmite API ključ na platform.stepfun.com",
       "sumopod": "SumoPod nudi OpenAI-kompatibilni chat completions endpoint na https://ai.sumopod.com/v1/chat/completions, plus aktivni /v1/models katalog. OmniRoute koristi OpenAI protokol i listira modele putem passthrough-a.",
-      "suno": "Zalijepite session cookie sa suno.ai (Clerk auth)",
       "synthetic": "Povežite Synthetic pomoću API ključa.",
       "tencent": "Preuzmite API ključ na console.cloud.tencent.com",
       "thebai": "Bearer API ključ za TheB.AI OpenAI-kompatibilni gateway.",

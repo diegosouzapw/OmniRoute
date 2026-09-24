@@ -142,7 +142,7 @@ import { isFeatureFlagEnabled, isRotationAttributionEnabled } from "@/shared/uti
 import * as agyLease from "../services/antigravityLeaseLifecycle";
 import { shouldIsolateProbeFailures } from "@/shared/utils/probeOrigin";
 import { getCircuitBreaker, isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
-import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
+import { markAccountExhaustedFrom429, markQuotaHealthy } from "../../domain/quotaCache";
 import { resolveForcedConnectionForCredentialPool } from "../services/sessionAffinityPin.ts";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
@@ -2077,6 +2077,8 @@ async function handleSingleModelChat(
 
       if (result.success) {
         clearModelLock(provider, credentials.connectionId, model);
+        // #14359 — a real upstream success is authoritative: arm the healthy override.
+        markQuotaHealthy(credentials.connectionId);
         // #12254: exactly-once breaker accounting — combo successes are recorded by
         // combo.ts (recordProviderSuccess); live combo tests never touch the breaker.
         if (classifyProviderBreakerResult(result, isCombo, forceLiveComboTest) === "success") {

@@ -317,7 +317,8 @@ export async function executeRuntimeUnitCombo(args: {
           unitClone,
           clientRequestedStream,
           args.log,
-          args.config.responseValidation as ResponseValidationConfig | undefined
+          args.config.responseValidation as ResponseValidationConfig | undefined,
+          args.signal
         );
         releaseQualityClone(unitClone, response, quality);
         if (quality.valid) {

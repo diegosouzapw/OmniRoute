@@ -4,27 +4,11 @@
 
 ---
 
-Ang OmniRoute ay may pamilya ng mga command na `setup-*` na nagko-configure ng isang coding
-CLI (Codex, Claude Code, OpenCode, Cline, …) upang gamitin ang OmniRoute bilang backend nito — kaya
-nakikipag-ugnayan ang tool sa **iisang** endpoint at niruruta ng OmniRoute ang kahilingan sa tamang provider na may
-awtomatikong fallback. Binabasa ng bawat command ang **live** na katalogo ng modelo mula sa tumatakbong
-OmniRoute (lokal o remote) at isinusulat ang sariling config file ng tool sa **iyong**
-machine. Tinutukoy ang API key sa pamamagitan ng environment variable saanman ito
-sinusuportahan ng tool. Ang mga command na nagpapanatili ng tool-local na environment file ay nakatala sa ibaba.
+Ang OmniRoute ay may kasamang pamilya ng mga `setup-*` na command na nagko-configure ng coding CLI (Codex, Claude Code, OpenCode, Cline, …) upang gamitin ang OmniRoute bilang backend nito — kaya ang tool ay nakikipag-ugnayan sa **isang** endpoint at ang OmniRoute ang nagruruta sa tamang provider na may auto-fallback. Bawat command ay nagbabasa ng **live** na catalog ng modelo mula sa isang tumatakbong OmniRoute (lokal o remote) at isinusulat ang sariling config file ng tool sa **iyong** makina. Ang API key ay tinutukoy ng isang environment variable kung saan sinusuportahan ito ng tool. Ang mga command na nagpapanatili ng tool-local na environment file ay nakasaad sa ibaba.
 
-Mayroon ding generic na launcher — `omniroute run <target>` — na nagpapatakbo ng
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` o `gemini` na may
-tamang env na naka-inject, nang hindi nagsusulat ng anumang config. Ang mga target at ang kanilang
-mga alias ay nagmumula sa canonical manifest na `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), at nag-aalok ang `omniroute completion` ng
-parehong mga target na salita na nagmula sa manifest. Ang mga legacy na launcher para sa bawat tool —
-`omniroute launch` (Claude Code) at `omniroute launch-codex` (Codex) — ay nananatiling
-available.
+Mayroon ding generic launcher — `omniroute run <target>` — na naglulunsad ng `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` o `gemini` na may tamang env na na-inject, nang hindi nagsusulat ng anumang config. Ang mga target at ang kanilang mga alias ay nagmumula sa canonical manifest `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), at ang `omniroute completion` ay nag-aalok ng parehong manifest-derived na target words. Ang mga legacy na per-tool launcher — `omniroute launch` (Claude Code) at `omniroute launch-codex` (Codex) — ay nananatiling available.
 
-Available rin ang onboarding ng provider mula sa parehong lokal/remote na konteksto. Pinananatiling
-hiwalay ng mga API-first na command sa ibaba ang authentication para sa pamamahala mula sa mga credential
-ng provider at hindi kailanman nagpi-print ng credential sa structured output:
+Ang provider onboarding ay available mula sa parehong lokal/remote na konteksto. Ang mga API-first na command sa ibaba ay naghihiwalay ng management authentication mula sa provider credentials at hindi kailanman nagpi-print ng credential sa structured output:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,19 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Para sa mga script, mas piliin ang `--credential-stdin` o `--credential-env`; pinanatili ang `--credential`
-para sa kontroladong lokal na paggamit. Kinakailangan ng `providers remove` ang `--yes` sa isang
-non-interactive na terminal, at sinusunod ng lahat ng limang command ang aktibong konteksto o ang
-mga global na option na `--base-url`/`--api-key`.
+Para sa mga script, mas mainam ang `--credential-stdin` o `--credential-env`; ang `--credential` ay pinanatili para sa kontroladong lokal na paggamit. Ang `providers remove` ay nangangailangan ng `--yes` sa isang non-interactive terminal, at lahat ng limang command ay sumusunod sa aktibong konteksto o sa global na `--base-url`/`--api-key` na opsyon.
 
-Para sa minsanan at manu-manong base setup ng dalawang integrasyong may pinakamaraming feature, tingnan ang
-mga detalyadong gabay para sa bawat tool:
+Ang mga provider selector ay tumatanggi sa mga malabong ID prefix, pangalan o pangalan ng provider; gumamit ng buong connection ID kapag maraming koneksyon ang tumutugma. Ang mga create at edit command ay nagbabasa pabalik ng naka-save na koneksyon, at tinitiyak ng pagtanggal na hindi na ito nababasa. Ang isang import ay nilalaktawan ang isang umiiral na provider/name pair. Ang mga na-import na entry ay hindi maaaring mag-override sa management endpoint, konteksto o management credentials na ibinigay sa CLI.
 
-- [Configuration ng Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
-- [Configuration ng Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Remote Mode](./REMOTE-MODE.md) — kontrolin ang isang remote na OmniRoute (VPS / Tailnet) mula sa iyong laptop
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — ang OmniCopilot extension; maaari rin nitong patakbuhin ang mga
-  command na `setup-*` para sa iyo mula mismo sa loob ng editor
+Para sa isang beses, hand-written na base setup ng dalawang pinakamayamang integrasyon, tingnan ang mga per-tool deep dive:
+
+- [Konfigurasyon ng Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
+- [Konfigurasyon ng Codex CLI](./CODEX-CLI-CONFIGURATION.md)
+- [Remote Mode](./REMOTE-MODE.md) — patakbuhin ang isang remote na OmniRoute (VPS / Tailnet) mula sa iyong laptop
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — ang OmniCopilot extension; maaari rin nitong patakbuhin ang mga `setup-*` na command na ito para sa iyo mula sa loob ng editor
 
 ---
 

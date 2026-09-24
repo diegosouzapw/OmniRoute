@@ -1,0 +1,1 @@
+- **fix(sse):** a client abort on a streamed chat completion now cancels the upstream request after headers arrive (start-timeout wrapper no longer drops the abort link, stream tracker cancels the upstream reader on disconnect, and the combo quality-check peek exits on abort), so local upstreams stop prefilling/decoding abandoned requests

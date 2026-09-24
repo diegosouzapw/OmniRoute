@@ -403,90 +403,90 @@ Sử dụng endpoint này khi một sidecar chạy ngoài tiến trình và khô
 
 ---
 
-## Các endpoint tương thích
+## Điểm cuối tương thích
 
-| Phương thức | Đường dẫn                                 | Định dạng                              |
-| ----------- | ----------------------------------------- | -------------------------------------- |
-| POST        | `/v1/chat/completions`                    | OpenAI                                 |
-| POST        | `/v1/messages`                            | Anthropic                              |
-| POST        | `/v1/responses`                           | OpenAI Responses                       |
-| POST        | `/v1/embeddings`                          | OpenAI                                 |
-| POST        | `/v1/images/generations`                  | OpenAI Images                          |
-| POST        | `/v1/images/edits`                        | OpenAI Images (chỉnh sửa/inpaint)      |
-| POST        | `/v1/videos/generations`                  | Tạo video theo kiểu OpenAI             |
-| POST        | `/v1/music/generations`                   | Tạo nhạc theo kiểu OpenAI              |
-| POST        | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
-| POST        | `/v1/audio/speech`                        | OpenAI TTS (trả về phần thân âm thanh) |
-| POST        | `/v1/rerank`                              | Xếp hạng lại theo kiểu Cohere/Voyage   |
-| POST        | `/v1/classify`                            | Phân loại Jina (`api.jina.ai`)         |
-| POST        | `/v1/segment`                             | Bộ phân đoạn Jina (`segment.jina.ai`)  |
-| POST        | `/v1/moderations`                         | OpenAI Moderations                     |
-| GET         | `/v1/models`                              | OpenAI                                 |
-| POST        | `/v1/messages/count_tokens`               | Anthropic                              |
-| GET         | `/v1beta/models`                          | Gemini                                 |
-| POST        | `/v1beta/models/{...path}`                | Gemini generateContent                 |
-| POST        | `/v1/api/chat`                            | Ollama                                 |
-| GET         | `/api/v1/vscode/{token}/`                 | Bí danh danh mục OpenAI                |
-| GET         | `/api/v1/vscode/{token}/models`           | Bí danh mô hình OpenAI                 |
-| POST        | `/api/v1/vscode/{token}/chat/completions` | Bí danh OpenAI có token                |
-| POST        | `/api/v1/vscode/{token}/responses`        | Bí danh OpenAI Responses có token      |
-| POST        | `/api/v1/vscode/{token}/api/chat`         | Bí danh Ollama có token                |
-| GET         | `/api/v1/vscode/{token}/api/tags`         | Bí danh thẻ Ollama có token            |
+| Phương thức | Đường dẫn                                 | Định dạng                                |
+| ----------- | ----------------------------------------- | ---------------------------------------- |
+| POST        | `/v1/chat/completions`                    | OpenAI                                   |
+| POST        | `/v1/messages`                            | Anthropic                                |
+| POST        | `/v1/responses`                           | OpenAI Responses                         |
+| POST        | `/v1/embeddings`                          | OpenAI                                   |
+| POST        | `/v1/images/generations`                  | OpenAI Images                            |
+| POST        | `/v1/images/edits`                        | OpenAI Images (chỉnh sửa/inpaint)        |
+| POST        | `/v1/videos/generations`                  | Tạo video kiểu OpenAI                    |
+| POST        | `/v1/music/generations`                   | Tạo nhạc kiểu OpenAI                     |
+| POST        | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
+| POST        | `/v1/audio/speech`                        | OpenAI TTS (trả về nội dung âm thanh)    |
+| POST        | `/v1/rerank`                              | Sắp xếp lại kiểu Cohere/Voyage           |
+| POST        | `/v1/classify`                            | Phân loại Jina (`api.jina.ai`)           |
+| POST        | `/v1/segment`                             | Bộ phân đoạn Jina (`segment.jina.ai`)    |
+| POST        | `/v1/moderations`                         | Kiểm duyệt OpenAI                        |
+| GET         | `/v1/models`                              | OpenAI                                   |
+| POST        | `/v1/messages/count_tokens`               | Anthropic                                |
+| GET         | `/v1beta/models`                          | Gemini                                   |
+| POST        | `/v1beta/models/{...path}`                | Gemini generateContent                   |
+| POST        | `/v1/api/chat`                            | Ollama                                   |
+| GET         | `/api/v1/vscode/{token}/`                 | Bí danh danh mục OpenAI                  |
+| GET         | `/api/v1/vscode/{token}/models`           | Bí danh mô hình OpenAI                   |
+| POST        | `/api/v1/vscode/{token}/chat/completions` | Bí danh được mã hóa của OpenAI           |
+| POST        | `/api/v1/vscode/{token}/responses`        | Bí danh được mã hóa của OpenAI Responses |
+| POST        | `/api/v1/vscode/{token}/api/chat`         | Bí danh được mã hóa của Ollama           |
+| GET         | `/api/v1/vscode/{token}/api/tags`         | Bí danh được mã hóa của thẻ Ollama       |
 
-Tất cả các route POST đều có cùng cấu trúc: `Bearer your-api-key` + phần thân JSON được Zod xác thực (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, v.v.; xem `src/shared/validation/schemas.ts`). Mã 4xx được trả về khi xác thực schema thất bại.
+Tất cả các tuyến POST đều có cùng định dạng: `Bearer your-api-key` + JSON body được xác thực bằng Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, v.v., xem `src/shared/validation/schemas.ts`). Mã 4xx được trả về khi xác thực schema thất bại.
 
-Đối với các client không thể đính kèm `Authorization: Bearer ...`, OmniRoute cũng chấp nhận khóa API trong URL thông qua khả năng tương thích chuỗi truy vấn (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) hoặc các endpoint chuyên dụng `/api/v1/vscode/{token}/...` được mô tả bên dưới.
+Đối với các client không thể đính kèm `Authorization: Bearer ...`, OmniRoute cũng chấp nhận khóa API trong URL thông qua khả năng tương thích với chuỗi truy vấn (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) hoặc các điểm cuối `/api/v1/vscode/{token}/...` chuyên dụng được ghi lại bên dưới.
 
 ```bash
-# Xếp hạng lại (nhà cung cấp trong cloud registry hoặc một node nhà cung cấp tương thích với OpenAI dưới dạng "<prefix>/<model>")
+# Sắp xếp lại (nhà cung cấp registry đám mây, hoặc một node nhà cung cấp tương thích OpenAI dưới dạng "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Phân loại Jina (thông tin xác thực Foundation API)
+# Phân loại Jina (thông tin xác thực API nền tảng)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Bộ phân đoạn Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Tìm kiếm Jina (s.jina.ai; các bí danh nhà cung cấp: jina-search, jina-ai, jina)
+# Tìm kiếm Jina (s.jina.ai; bí danh nhà cung cấp: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Kiểm duyệt
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — trả về phần thân audio/mpeg (hoặc định dạng được yêu cầu)
+# TTS — trả về nội dung audio/mpeg (hoặc định dạng được yêu cầu)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Chỉnh sửa hình ảnh (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Tạo video / nhạc (ID mô hình có tiền tố nhà cung cấp)
+# Tạo video / nhạc (id mô hình có tiền tố nhà cung cấp)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Các node nhà cung cấp xếp hạng lại:** `POST /v1/rerank` cũng định tuyến đến các node nhà cung cấp tương thích với OpenAI
-> (oMLX, vLLM, Infinity, TEI phía sau một gateway, …) được định địa chỉ dưới dạng `<node-prefix>/<model>`. Các node loopback
+> **Các node nhà cung cấp sắp xếp lại:** `POST /v1/rerank` cũng định tuyến đến các node nhà cung cấp tương thích với OpenAI
+> (oMLX, vLLM, Infinity, TEI phía sau một gateway, …) được định địa chỉ là `<node-prefix>/<model>`. Các node loopback
 > (`localhost`, `127.0.0.1`, `172.16.0.0/12`) luôn đủ điều kiện. Các node trên bất kỳ
-> host nào khác — một máy trong LAN hoặc peer Tailscale — chỉ đủ điều kiện khi người vận hành bật
-> cờ tính năng `RERANK_REMOTE_PROVIDER_NODES` **và** URL cơ sở của node vượt qua chính sách URL gửi đi của nhà cung cấp
+> máy chủ nào khác — một hộp LAN hoặc peer Tailscale — chỉ đủ điều kiện khi nhà điều hành bật
+> cờ tính năng `RERANK_REMOTE_PROVIDER_NODES` **và** URL cơ sở của node vượt qua chính sách URL đi của nhà cung cấp
 > (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> các host metadata cloud không bao giờ được định tuyến đến. Bước xếp hạng lại của công cụ bộ nhớ gọi route này qua
-> loopback, vì vậy cùng một quy tắc chi phối `rerankProviderModel` trong phần cài đặt Memory.
+> các máy chủ siêu dữ liệu đám mây không bao giờ được định tuyến đến. Bước sắp xếp lại của công cụ bộ nhớ gọi tuyến này qua
+> loopback, vì vậy cùng một quy tắc chi phối `rerankProviderModel` trong cài đặt Bộ nhớ.
 >
-> **Cấu trúc máy chủ cục bộ:** node được gọi tại `<base>/v1/rerank` và, khi nhận 404, tại `<base>/rerank`
-> (Infinity, TEI). Phần thân upstream mang cả cách đặt tên của Cohere/OpenAI (`documents`,
-> `return_documents`) và cách đặt tên của TEI (`texts`, `return_text`), đồng thời phản hồi upstream được
-> chuẩn hóa thành envelope Cohere: mảng thuần `[{index, score, text}]` của TEI, `{results: [{index, score}]}`
-> từ các gateway mỏng và `{data: [...]}` theo kiểu Voyage đều được trả về cho client dưới dạng
-> `{results: [{index, relevance_score, document?}]}`, được sắp xếp theo điểm và giới hạn ở `top_n`.
+> **Các định dạng máy chủ cục bộ:** node được gọi tại `<base>/v1/rerank` và, khi 404, tại `<base>/rerank`
+> (Infinity, TEI). Nội dung upstream mang cả cách viết của Cohere/OpenAI (`documents`,
+> `return_documents`) và cách viết của TEI (`texts`, `return_text`), và phản hồi upstream được
+> chuẩn hóa thành envelope của Cohere: `[{index, score, text}]` trần của TEI, `{results: [{index, score}]}`
+> từ các gateway mỏng, và `{data: [...]}` kiểu Voyage đều được trả về client dưới dạng
+> `{results: [{index, relevance_score, document?}]}`, được sắp xếp theo điểm số và giới hạn ở `top_n`.
 
-> **Khám phá node nhà cung cấp:** các mô hình trên một node nhà cung cấp tương thích với OpenAI xuất hiện trong `GET /v1/models`
-> dưới tiền tố của node. Các hàng không chứa metadata endpoint (thường gặp trong danh sách `/v1/models` cục bộ)
-> kế thừa `apiType` của node, do đó mô hình của một node `embeddings` có `type: "embedding"` và mô hình của một
-> node `rerank` có `type: "rerank"` thay vì mặc định là chat; `supportedEndpoints` được chỉ định rõ ràng
-> trên một hàng đã đồng bộ hoặc được thêm thủ công vẫn được ưu tiên.
+> **Phát hiện node nhà cung cấp:** các mô hình trên một node nhà cung cấp tương thích với OpenAI xuất hiện trong `GET /v1/models`
+> dưới tiền tố node. Các hàng không mang siêu dữ liệu điểm cuối (điển hình cho danh sách `/v1/models` cục bộ)
+> kế thừa `apiType` của node, vì vậy các mô hình của node `embeddings` là `type: "embedding"` và các
+> mô hình của node `rerank` là `type: "rerank"` thay vì mặc định là chat; một `supportedEndpoints` rõ ràng
+> trên một hàng được đồng bộ hóa hoặc thêm thủ công vẫn được ưu tiên.
 
-### Các route nhà cung cấp chuyên dụng
+### Các tuyến nhà cung cấp chuyên dụng
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -494,7 +494,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Tiền tố nhà cung cấp sẽ tự động được thêm nếu thiếu. Các mô hình không khớp sẽ trả về `400`.
+Tiền tố nhà cung cấp sẽ tự động được thêm vào nếu bị thiếu. Các mô hình không khớp sẽ trả về `400`.
 
 ---
 

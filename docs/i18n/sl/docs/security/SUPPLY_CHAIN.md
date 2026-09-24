@@ -4,56 +4,66 @@
 
 ---
 
-OmniRoute objavlja artefakte npm + Docker. Ta preverjanja zagotavljajo izvor,
-popis (SBOM) in pregledovanje CVE, vse z odprtokodnimi orodji, vključenimi v delovne tokove izdaj.
-Pristop **najprej opozorila** — trenutno poročajo, po 1. uspešni
-izdaji pa bodo postala blokirajoča.
+OmniRoute objavlja artefakte npm + Docker. Ti prehodi zagotavljajo izvor (provenance), inventar (SBOM) in skeniranje CVE, vse odprtokodno (OSS), vključeno v poteke dela izdaje. **Pristop najprej svetovanje** — poročajo zdaj, v blokiranje pa preidejo po prvi uspešni izdaji.
 
-| Preverjanje            | Orodje                                         | Kje                              | Blokira?                       | Izhod                                                   |
-| ---------------------- | ---------------------------------------------- | -------------------------------- | ------------------------------ | ------------------------------------------------------- |
-| Izvor SLSA (npm)       | `npm --provenance` (OIDC)                      | `npm-publish.yml`                | samo ob neuspešni objavi       | značka npmjs / `npm audit signatures`                   |
-| SBOM npm               | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`                | samo ob neuspešnem ustvarjanju | sredstvo izdaje + artefakt                              |
-| SBOM slike             | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (združitev) | opozorilno                     | artefakt CycloneDX                                      |
-| Trivy CVE (SARIF)      | `aquasecurity/trivy-action`                    | `docker-publish.yml` (združitev) | opozorilno                     | SARIF (HIGH+CRITICAL) → zavihek Security                |
-| Blokada Trivy CRITICAL | `aquasecurity/trivy-action`                    | `docker-publish.yml` (združitev) | **blokira**                    | `exit-code: '1'` pri odpravljivem CRITICAL              |
-| osv vulnCount          | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`)    | **blokira**                    | postopno znižuje `metrics.vulnCount` (`direction:down`) |
-| OpenSSF Scorecard      | `ossf/scorecard-action`                        | `scorecard.yml` (cron)           | opozorilno                     | SARIF → Security + značka                               |
+| Prehod                  | Orodje                                         | Kje                           | Blokira?                    | Izhod                                        |
+| :---------------------- | :--------------------------------------------- | :---------------------------- | :-------------------------- | :------------------------------------------- |
+| SLSA izvor (npm)        | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | samo če objava ne uspe      | značka npmjs / `npm audit signatures`        |
+| SBOM npm                | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | samo če generiranje ne uspe | Sredstvo izdaje + artefakt                   |
+| SBOM slike              | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | svetovalno                  | Artefakt CycloneDX                           |
+| Trivy CVE (SARIF)       | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | svetovalno                  | SARIF (VISOKO+KRITIČNO) → Zavihek Varnost    |
+| Trivy KRITIČNI prehod   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **blokira**                 | `exit-code: '1'` ob popravljivem KRITIČNEM   |
+| osv število ranljivosti | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **blokira**                 | prilagodi `metrics.vulnCount` (smer:navzdol) |
+| OpenSSF Scorecard       | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | svetovalno                  | SARIF → Varnost + značka                     |
 
-Postopno omejevanje CVE za sliko uporablja **dva koraka** v `docker-publish.yml`: korak SARIF
-(`HIGH,CRITICAL`, `exit-code: 0`) ohranja ranljivosti HIGH+CRITICAL vidne na zavihku Security,
-ne da bi blokiral; korak _blokade CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) povzroči neuspeh izdaje ob ranljivosti CVE stopnje CRITICAL, **za katero je na voljo popravek**. `ignore-unfixed`
-preprečuje blokiranje izdaje zaradi ranljivosti CVE osnovne slike, za katero še ni popravka pri izvornem ponudniku.
+Prilagoditev CVE za sliko uporablja **dva koraka** v `docker-publish.yml`: korak SARIF (`HIGH,CRITICAL`, `exit-code: 0`) ohranja VISOKE+KRITIČNE ranljivosti vidne v zavihku Varnost, ne da bi blokiral; korak _KRITIČNI prehod_ (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) povzroči neuspeh izdaje ob KRITIČNI CVE **z razpoložljivim popravkom**. `ignore-unfixed` preprečuje blokiranje izdaje za CVE osnovne slike brez popravka od zgoraj.
 
-## ⚠️ Spremenljivost CVE (blokirajoča preverjanja osv/Trivy)
+## ⚠️ Varianca CVE (blokiranje osv/Trivy prehodov)
 
-osv in Trivy primerjata odvisnosti s podatkovnimi zbirkami CVE, ki **nenehno rastejo**. Zahteva PR,
-ki **ne spreminja nobenih odvisnosti**, lahko nenadoma postane neuspešna, ker je bila
-razkrita nova ranljivost CVE v obstoječi odvisnosti (osv: izmerjeni `vulnCount` > izhodiščna vrednost; Trivy: nova
-odpravljiva ranljivost CRITICAL v sliki). **To je PRIČAKOVANO operativno vedenje blokirajočega
-preverjanja CVE in ne regresija izdelka.**
+osv in Trivy primerjata odvisnosti z bazami podatkov CVE, ki **nenehno rastejo**. Zahteva za združitev (PR), ki **se ne dotika nobenih odvisnosti**, lahko nenadoma postane rdeča, ker je bila razkrita nova CVE v obstoječi odvisnosti (osv: izmerjeno `vulnCount` > osnovna vrednost; Trivy: nova popravljiva KRITIČNA ranljivost v sliki). **To je PRIČAKOVANO operativno vedenje blokirnega prehoda CVE, ne pa regresija izdelka.**
 
-Ko osv ali Trivy postane neuspešen zaradi na novo razkrite ranljivosti CVE, je rešitev:
+Ko osv ali Trivy postaneta rdeča zaradi novo razkrite CVE, je rešitev:
 
-1. **Posodobite prizadeto odvisnost** (prednostno) — nadgradite na popravljeno različico prek `package.json`
-   `overrides` (prehodne odvisnosti) ali znova zgradite sliko na popravljeni osnovi.
-2. **Če popravek pri izvornem ponudniku ne obstaja:**
-   - **osv:** znova določite izhodiščno vrednost `metrics.vulnCount` v `config/quality/quality-baseline.json`
-     (`npm run quality:ratchet -- --update` ne zajema namenskih preverjanj — vrednost uredite
-     ročno, `direction:down`) z utemeljitveno opombo + sledilno težavo.
-   - **Trivy:** dodajte vnos v `.trivyignore` (en CVE-ID na vrstico) z utemeljitvenim
-     komentarjem + sledilno težavo. `ignore-unfixed: true` že samodejno obravnava ranljivosti CVE brez
-     popravkov.
+1.  **Posodobite prizadeto odvisnost** (prednostno) — nadgradite na popravljeno različico preko `package.json` `overrides` (prehodne odvisnosti) ali ponovno zgradite sliko na popravljeni osnovi.
+2.  **Če ni popravka od zgoraj:**
+    - **osv:** ponovno določite osnovno vrednost `metrics.vulnCount` v `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` ne zajema namenskih prehodov — vrednost uredite ročno, `direction:down`) z opombo o utemeljitvi + sledilno nalogo.
+    - **Trivy:** dodajte vnos v `.trivyignore` (CVE-ID na vrstico) z opombo o utemeljitvi + sledilno nalogo. `ignore-unfixed: true` že samodejno pokriva CVE-je brez popravkov.
 
-Obe preverjanji **nemoteno PRESKOČITA** preverjanje (izhod 0), kadar orodje ni na voljo ali meritev
-ne uspe (osv-scanner ni v PATH, osv.dev/omrežje ni dosegljivo, neveljaven JSON) —
-neuspeh **meritve** nikoli ne blokira; blokira samo **izmerjena** regresija.
+Oba prehoda se **elegantno PRESKOČITA** (izhod 0), če orodje ni prisotno ali meritev ne uspe (osv-scanner ni v PATH, osv.dev/omrežje nedosegljivo, neveljaven JSON) — napaka **meritve** nikoli ne blokira, blokira le **izmerjena** regresija.
 
-## Seznam prihodnjih nalog: opozorilni Scorecard → blokirajoči
+## Znana sprejeta tveganja
 
-Po 1. uspešni izdaji s poročanjem Scorecard:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: postopno omejevanje rezultata (zamrzne izmerjeni rezultat; ta se ne sme zmanjšati).
+`extract-zip@2.0.1` vsebuje dve nepopravljeni visoko-kritični opozorili o prečkanju simbolnih povezav.
+V skladu z vejo "brez popravka navzgor" zgoraj omenjenega popravka CVE Variance je to **sprejeto tveganje**, ne posodobitev:
 
-Dopolnjuje preverjanja 7. faze (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-preverja same delovne tokove; Scorecard meri celotno stanje repozitorija.
+- **Veriga:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Potrjeno preko `package-lock.json` — natanko en paket v celotnem drevesu odvisnosti
+  (`@openai/codex-security`) deklarira `extract-zip`, in natanko en paket
+  (`promptfoo`) deklarira `@openai/codex-security`.
+- **V verigi ne obstaja nobena popravljena izdaja.** `extract-zip@2.0.1` (objavljeno 2020) je končna izdaja paketa — ni vzdrževan. Trenutna npm-najsodobnejša različica (`0.1.29`) `@openai/codex-security` še vedno uporablja `extract-zip@2.0.1`.
+- **Nedosegljivo iz produkcije.** `promptfoo` je samo devDependency (nikoli ni naveden
+  pod `dependencies`), in nobena datoteka pod `src/`, `open-sse/` ali `bin/` ne uvaža
+  paketa npm `extract-zip` — lastna pomočna funkcija `extractZip()` OmniRoute
+  (`src/lib/versionManager/binaryManager.ts:93`) uporablja izvorne `unzip`/`tar`
+  in ni povezana. `@openai/codex-security` prav tako vključuje lastno zaščito pred prečkanjem simbolnih povezav, poleg povratnega klica `onEntry` paketa `extract-zip`.
+- **Ne** uporabljajte vzdevka `extract-zip` preko `package.json` `overrides` — edina izvedljiva
+  nadomestna rešitev je Electron-org-internal in je API-nezdružljiva z
+  lastnimi preverjanji `onEntry`/`defaultDirMode`/`defaultFileMode` paketa
+  `@openai/codex-security`; preglasitev bi tiho pokvarila varnostna preverjanja tega paketa.
+- **Osnovna vrednost:** izmerjeno osv `vulnCount` (3) je že precej pod zamrznjeno
+  osnovno vrednostjo `config/quality/quality-baseline.json` (27) — sprememba "ratchet" ni potrebna.
+- **Zaščita pred regresijo:** `tests/unit/extract-zip-14482-exposure.test.ts` potrjuje
+  verigo in zgoraj omenjeno invarianto brez uvoza v produkcijo; CI ne uspe, če se katera koli od teh kdaj
+  pokvari (npr. prihodnji PR omogoči dosegljivost `extract-zip` iz produkcije).
+- **Sledenje:** težava #14482.
+
+## Zaostanek: Opozorilo Scorecard → blokiranje
+
+Po prvi zeleni izdaji s poročanjem Scorecard:
+
+- Scorecard: "score ratchet" (zamrzne izmerjeno oceno; ne more se zmanjšati).
+
+Dopolnjuje vrata faze 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
+revidira same poteke dela; Scorecard meri splošno stanje repozitorija.
