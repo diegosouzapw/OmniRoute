@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "সেট-লেভেলের পুনঃপ্রচেষ্টার মধ্যে বিলম্ব, ক্ষণস্থায়ী সমস্যা সমাধানের জন্য সময় দেয়।",
       "targetTimeoutMs": "প্রতি-টার্গেটের জন্য ঐচ্ছিক টাইমআউট। খালি রাখলে বর্তমান রিকোয়েস্ট টাইমআউট উত্তরাধিকারসূত্রে নেয়; বড় মানগুলো ওই টাইমআউটের মধ্যে সীমাবদ্ধ করা হয়।",
       "comboTimeoutMs": "সব ফেইলওভার টার্গেট মিলিয়ে পুরো কম্বোর জন্য ঐচ্ছিক ওয়াল-ক্লক সময়সীমা। খালি রাখলে ১০-মিনিটের হ্যাং-স্টপ বহাল থাকে; একটি ধনাত্মক মান দিলে এটি প্রতিস্থাপিত হয়। এটি টার্গেট টাইমআউটের চেয়ে বেশি রাখুন, যাতে ফেইলওভারের জন্য পর্যাপ্ত সময় থাকে।",
-      "disableSessionStickiness": "প্রথম-বার্তার হ্যাশ দ্বারা একটি সম্পূর্ণ কথোপকথনকে একটি সংযোগে পিন করার পরিবর্তে প্রতিটি অনুরোধে একটি ভিন্ন সংযোগে রোটেট করুন। গ্লোবাল ডিফল্ট ওভাররাইড করে। মাল্টি-টার্ন চ্যাটের জন্য প্রম্পট-ক্যাশ হিট সংরক্ষণ করতে Inherit-এ রেখে দিন।"
+      "disableSessionStickiness": "প্রথম-বার্তার হ্যাশ দ্বারা একটি সম্পূর্ণ কথোপকথনকে একটি সংযোগে পিন করার পরিবর্তে প্রতিটি অনুরোধে একটি ভিন্ন সংযোগে রোটেট করুন। গ্লোবাল ডিফল্ট ওভাররাইড করে। মাল্টি-টার্ন চ্যাটের জন্য প্রম্পট-ক্যাশ হিট সংরক্ষণ করতে Inherit-এ রেখে দিন।",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "দ্রুত টেমপ্লেট",
     "templatesDescription": "একটি প্রারম্ভিক প্রোফাইল প্রয়োগ করুন, তারপর মডেল ও কনফিগ সমন্বয় করুন।",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "এটি এই টেমপ্লেটের সাথে মিলে যায় এমন বর্তমান সংযুক্ত প্রদানকারী/মডেলগুলিকে একটি সম্পাদনযোগ্য কম্বোতে স্ন্যাপশট নেবে।",
     "duplicateAutoComboFailedPrefix": "অটোকম্বো ডুপ্লিকেশন ব্যর্থ:",
     "duplicateAutoComboUnknownError": "অজানা ত্রুটি",
-    "duplicateAutoComboTitle": "{name} থেকে একটি স্ট্যাটিক কম্বো তৈরি করুন"
+    "duplicateAutoComboTitle": "{name} থেকে একটি স্ট্যাটিক কম্বো তৈরি করুন",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "খরচ",

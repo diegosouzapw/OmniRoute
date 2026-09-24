@@ -490,6 +490,21 @@ function noProxyMatch(targetUrl) {
   });
 }
 
+/**
+ * True loopback only — NOT the broader private-network set `isLocalAddress`
+ * covers. A LAN peer (192.168.x, a local Ollama box) is still reached over a
+ * real network and keeps the outbound bound-and-replay policy; a loopback
+ * target is this very process.
+ */
+function isLoopbackHost(hostname: string): boolean {
+  const host = hostname
+    .replace(/^\[/, "")
+    .replace(/\]$/, "")
+    .replace(/^::ffff:/i, "")
+    .toLowerCase();
+  return host === "localhost" || host === "::1" || host === "127.0.0.1" || host.startsWith("127.");
+}
+
 function isLocalAddress(hostname: string): boolean {
   const host = hostname
     .replace(/^\[/, "")
@@ -859,6 +874,27 @@ async function patchedFetchUnrecorded(
       deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
+
+    // A loopback self-request (model sync, auto-discovery, internal routes) must
+    // NOT inherit the outbound-egress policy below. That policy bounds
+    // response-start and then REPLAYS the request on a fresh no-keep-alive
+    // dispatcher, which is designed for a dead keep-alive socket to a remote
+    // host (#10214). Against our own listener there is no such socket to
+    // detect: the replay just doubles how long a slow internal request occupies
+    // one of our OWN inbound slots (30s bound + 30s replay). When a provider
+    // stalls, those self-requests pile up against the chat admission limit and
+    // starve live traffic until Cloudflare cuts the client at its 120s proxy
+    // read timeout (HTTP 524). Send loopback straight through the native fetch.
+    let isLoopbackTarget = false;
+    try {
+      isLoopbackTarget = isLoopbackHost(new URL(targetUrl).hostname);
+    } catch {
+      // ignore — a non-parseable target keeps the default egress policy
+    }
+    if (isLoopbackTarget) {
+      return _nativeFallback(input, options);
+    }
+
     let lastDispatcherError: unknown = null;
     const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
     const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);

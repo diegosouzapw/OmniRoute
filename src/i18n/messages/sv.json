@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Fördröjning mellan återförsök på inställd nivå, vilket ger övergående problem tid att lösa.",
       "targetTimeoutMs": "Valfri timeout per mål. Om fältet är tomt ärvs den aktuella timeouten för begäran; högre värden begränsas till denna timeout.",
       "comboTimeoutMs": "Valfri total tidsbudget för hela kombinationen över alla redundansmål. Om fältet är tomt behålls säkerhetsgränsen på 10 minuter; ett positivt värde ersätter den. Ange en längre tid än timeouten för mål så att redundansväxlingen fortfarande hinner genomföras.",
-      "disableSessionStickiness": "Rotera till en annan anslutning vid varje förfrågan istället för att fästa en hel konversation vid en anslutning via det första meddelandets hash. Åsidosätter det globala standardvärdet. Lämna på Ärv för att bevara promptcache-träffar för multi-turn-chattar."
+      "disableSessionStickiness": "Rotera till en annan anslutning vid varje förfrågan istället för att fästa en hel konversation vid en anslutning via det första meddelandets hash. Åsidosätter det globala standardvärdet. Lämna på Ärv för att bevara promptcache-träffar för multi-turn-chattar.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Snabbmallar",
     "templatesDescription": "Använd en startprofil och justera sedan modeller och konfiguration.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Detta kommer att ta en ögonblicksbild av de för närvarande anslutna leverantörerna/modellerna som matchar denna mall i en redigerbar kombination.",
     "duplicateAutoComboFailedPrefix": "Kopiering av automatisk kombination misslyckades:",
     "duplicateAutoComboUnknownError": "Okänt fel",
-    "duplicateAutoComboTitle": "Skapa en statisk kombination från {name}"
+    "duplicateAutoComboTitle": "Skapa en statisk kombination från {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Kostnader",

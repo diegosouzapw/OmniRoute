@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Viivitus komplekti tasemel korduskatsete vahel, mis annab ajutistele probleemidele aega laheneda.",
       "targetTimeoutMs": "Valikuline ajalõpp sihtmärgi kohta. Tühjaks jätmisel päritakse praeguse päringu ajalõpp; suuremad väärtused piiratakse selle ajalõpuga.",
       "comboTimeoutMs": "Valikuline kogu kombinatsiooni täitmise ajapiirang kõigi tõrkesiirde sihtmärkide peale. Tühjaks jätmisel säilib 10-minutiline hangumise katkestus; positiivne väärtus asendab selle. Määra see sihtmärgi ajalõpust pikemaks, et tõrkesiirdeks jääks aega.",
-      "disableSessionStickiness": "Esimese sõnumi räsi põhjal kogu vestluse ühe ühendusega sidumise asemel vaheta iga päringu puhul ühendust. See alistab globaalse vaikeseade. Mitmevooruliste vestluste viipade vahemälu tabamuste säilitamiseks jäta valikuks „Päri“."
+      "disableSessionStickiness": "Esimese sõnumi räsi põhjal kogu vestluse ühe ühendusega sidumise asemel vaheta iga päringu puhul ühendust. See alistab globaalse vaikeseade. Mitmevooruliste vestluste viipade vahemälu tabamuste säilitamiseks jäta valikuks „Päri“.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Kiirmallid",
     "templatesDescription": "Rakenda algprofiil, seejärel kohanda mudeleid ja konfiguratsiooni.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "See salvestab hetkel ühendatud ja sellele mallile vastavad teenusepakkujad/mudelid redigeeritavasse kombinatsiooni.",
     "duplicateAutoComboFailedPrefix": "Automaatse kombinatsiooni dubleerimine ebaõnnestus:",
     "duplicateAutoComboUnknownError": "Tundmatu viga",
-    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon"
+    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Kulud",

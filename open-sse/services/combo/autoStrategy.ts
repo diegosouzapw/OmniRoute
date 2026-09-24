@@ -12,8 +12,8 @@
  * The _activeExecutionCandidates registry Map MUST stay a single instance, so it
  * and its three mutators live together here.
  *
- * NOTE: buildAutoCandidates (and its two private-only helpers
- * calculateTargetContextAffinity / getBootstrapLatencyMs) deliberately stay in
+ * NOTE: buildAutoCandidates (and its private helper
+ * calculateTargetContextAffinity) deliberately stay in
  * combo.ts — it is the sole user of the internal reset-window helpers
  * (resolveResetWindowConfig / fetchResetAwareQuotaWithCache /
  * calculateResetWindowAffinity), so keeping it there avoids a combo ⇄ autoStrategy

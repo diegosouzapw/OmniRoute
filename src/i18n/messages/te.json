@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "సెట్-స్థాయి పునఃప్రయత్నాల మధ్య ఆలస్యం, తాత్కాలిక సమస్యలను పరిష్కరించడానికి సమయం ఇస్తుంది.",
       "targetTimeoutMs": "ప్రతి టార్గెట్కు ఐచ్ఛిక కాలపరిమితి. ఖాళీగా ఉంటే ప్రస్తుత అభ్యర్థన కాలపరిమితిని వారసత్వంగా పొందుతుంది; ఎక్కువ విలువలు ఆ కాలపరిమితికే పరిమితం చేయబడతాయి.",
       "comboTimeoutMs": "అన్ని ఫెయిల్ఓవర్ టార్గెట్లకు వర్తించే, మొత్తం కాంబో కోసం ఐచ్ఛిక వాల్-క్లాక్ సమయ పరిమితి. ఖాళీగా ఉంటే 10 నిమిషాల హ్యాంగ్-స్టాప్ కొనసాగుతుంది; ధనాత్మక విలువ దాన్ని భర్తీ చేస్తుంది. ఫెయిల్ఓవర్కు ఇంకా సమయం ఉండేలా దీన్ని టార్గెట్ కాలపరిమితి కంటే ఎక్కువగా ఉంచండి.",
-      "disableSessionStickiness": "మొదటి-సందేశం హ్యాష్ ద్వారా మొత్తం సంభాషణను ఒకే కనెక్షన్‌కు పిన్ చేయడానికి బదులుగా ప్రతి రిక్వెస్ట్‌కు వేరొక కనెక్షన్‌కు రొటేట్ చేయండి. గ్లోబల్ డిఫాల్ట్‌ను ఓవర్‌రైడ్ చేస్తుంది. మల్టీ-టర్న్ చాట్‌ల కోసం ప్రాంప్ట్-కాష్ హిట్‌లను సంరక్షించడానికి Inherit లో ఉంచండి."
+      "disableSessionStickiness": "మొదటి-సందేశం హ్యాష్ ద్వారా మొత్తం సంభాషణను ఒకే కనెక్షన్‌కు పిన్ చేయడానికి బదులుగా ప్రతి రిక్వెస్ట్‌కు వేరొక కనెక్షన్‌కు రొటేట్ చేయండి. గ్లోబల్ డిఫాల్ట్‌ను ఓవర్‌రైడ్ చేస్తుంది. మల్టీ-టర్న్ చాట్‌ల కోసం ప్రాంప్ట్-కాష్ హిట్‌లను సంరక్షించడానికి Inherit లో ఉంచండి.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "త్వరిత టెంప్లేట్లు",
     "templatesDescription": "ప్రారంభ ప్రొఫైల్ను వర్తింపజేసి, ఆపై మోడళ్లు మరియు కాన్ఫిగ్ను సర్దుబాటు చేయండి.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "ఈ టెంప్లేట్‌తో సరిపోయే ప్రస్తుత కనెక్ట్ చేసిన ప్రొవైడర్లు/మోడల్‌లను ఎడిటబుల్ కంబోలో స్నాప్‌షాట్ తీసుకుంటుంది.",
     "duplicateAutoComboFailedPrefix": "ఆటోకంబో డూప్లికేట్ చేయడంలో విఫలమైంది:",
     "duplicateAutoComboUnknownError": "తెలియని దోషం",
-    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి"
+    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "ఖర్చులు",

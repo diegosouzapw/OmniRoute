@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Àkókò ìdádúró láàárín àwọn ìgbìyànjú àtúnwá ní ìpele àkójọpọ̀, láti fún àwọn ìṣòro ìgbà díẹ̀ láyè láti yanjú.",
       "targetTimeoutMs": "Àkókò ìparí àṣàyàn fún ibi àfojúsùn kọ̀ọ̀kan. Tí ó bá ṣófo, yóò jogún àkókò ìparí ìbéèrè lọ́wọ́lọ́wọ́; àwọn iye tó tóbi jù yóò ní ààlà sí àkókò ìparí náà.",
       "comboTimeoutMs": "Ìwọ̀n àkókò gidi àṣàyàn fún gbogbo Combo kọjá gbogbo àwọn ibi àfojúsùn ìyípadà nígbà ìkùnà. Tí ó bá ṣófo, yóò pa ìdádúró ìdènà dídì ti ìṣẹ́jú 10 mọ́; iye tó dára yóò rọ́pò ó. Jẹ́ kí èyí gùn ju Àkókò ìparí ibi àfojúsùn lọ kí ìyípadà nígbà ìkùnà lè ṣì ní àkókò.",
-      "disableSessionStickiness": "Yí padà sí àsopọ̀ míì fún gbogbo ìbéèrè dípò fífi gbogbo ìjíròrò kan mọ́ àsopọ̀ kan nípasẹ̀ hash ìfiránṣẹ́ àkọ́kọ́. Èyí borí ìṣètò àgbáyé àiyipada. Fi sí Jogún láti pa prompt-cache hits mọ́ fún àwọn ìjíròrò ọlọ́pọ̀ ìpele."
+      "disableSessionStickiness": "Yí padà sí àsopọ̀ míì fún gbogbo ìbéèrè dípò fífi gbogbo ìjíròrò kan mọ́ àsopọ̀ kan nípasẹ̀ hash ìfiránṣẹ́ àkọ́kọ́. Èyí borí ìṣètò àgbáyé àiyipada. Fi sí Jogún láti pa prompt-cache hits mọ́ fún àwọn ìjíròrò ọlọ́pọ̀ ìpele.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Àwọn àdàkọ kíákíá",
     "templatesDescription": "Lo prófáìlì ìbẹ̀rẹ̀ kan, lẹ́yìn náà ṣàtúnṣe àwọn àwòṣe àti àtòpọ̀.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Èyí yóò ṣe ẹ̀dà àwọn olùpèsè/àwọn awoṣe tó sopọ̀ lọ́wọ́lọ́wọ́ tí ó bá àdàkọ yìí mu, yóò sì fi wọ́n sínú àkójọpọ̀ tí a lè ṣàtúnṣe.",
     "duplicateAutoComboFailedPrefix": "Kò ṣeé ṣe láti ṣe ẹ̀dà àkójọpọ̀ aládàáṣiṣẹ́:",
     "duplicateAutoComboUnknownError": "Àṣìṣe àìmọ̀",
-    "duplicateAutoComboTitle": "Ṣẹ̀dá àkójọpọ̀ àìyípadà láti inú {name}"
+    "duplicateAutoComboTitle": "Ṣẹ̀dá àkójọpọ̀ àìyípadà láti inú {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Àwọn ìnáwó",

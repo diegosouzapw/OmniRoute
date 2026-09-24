@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "ጊዜያዊ ችግሮች እንዲፈቱ ጊዜ የሚሰጥ፣ በስብስብ ደረጃ የዳግም ሙከራዎች መካከል ያለ መዘግየት።",
       "targetTimeoutMs": "ለእያንዳንዱ ዒላማ አማራጭ የጊዜ ገደብ። ባዶ ከሆነ የአሁኑን የጥያቄ ጊዜ ገደብ ይወርሳል፤ ከፍ ያሉ እሴቶች በዚያ ጊዜ ገደብ ይገደባሉ።",
       "comboTimeoutMs": "በሁሉም የመተኪያ ዒላማዎች ላይ ለጠቅላላው ጥምር አማራጭ የግድግዳ-ሰዓት በጀት። ባዶ ከሆነ የ10 ደቂቃውን የመንጠልጠል ማቆሚያ ያቆያል፤ አዎንታዊ እሴት ይተካዋል። መተኪያው አሁንም ጊዜ እንዲኖረው ይህን ከዒላማ ጊዜ ገደብ የበለጠ ያድርጉት።",
-      "disableSessionStickiness": "ሙሉውን ውይይት በመጀመሪያው መልዕክት ሃሽ ወደ አንድ ግንኙነት ከማሰር ይልቅ በእያንዳንዱ ጥያቄ ወደ ተለየ ግንኙነት ያዙሩ። ዓለም አቀፉን ነባሪ ቅንብር ይተካል። ለባለብዙ-ዙር ውይይቶች የፕሮምፕት መሸጎጫ ስኬቶችን ለማቆየት Inherit ላይ ይተዉት።"
+      "disableSessionStickiness": "ሙሉውን ውይይት በመጀመሪያው መልዕክት ሃሽ ወደ አንድ ግንኙነት ከማሰር ይልቅ በእያንዳንዱ ጥያቄ ወደ ተለየ ግንኙነት ያዙሩ። ዓለም አቀፉን ነባሪ ቅንብር ይተካል። ለባለብዙ-ዙር ውይይቶች የፕሮምፕት መሸጎጫ ስኬቶችን ለማቆየት Inherit ላይ ይተዉት።",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "ፈጣን አብነቶች",
     "templatesDescription": "የመነሻ መገለጫ ይተግብሩ፣ ከዚያም ሞዴሎችንና ውቅረቱን ያስተካክሉ።",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "ይህ ከዚህ አብነት ጋር የሚዛመዱትን በአሁኑ ጊዜ የተገናኙ አቅራቢዎች/ሞዴሎች ቅጽበታዊ ቅጂ ወደሚስተካከል ጥምረት ይቀይራል።",
     "duplicateAutoComboFailedPrefix": "ራስ-ሰር ጥምረቱን ማባዛት አልተሳካም፦",
     "duplicateAutoComboUnknownError": "ያልታወቀ ስህተት",
-    "duplicateAutoComboTitle": "ከ{name} የማይለወጥ ጥምረት ፍጠር"
+    "duplicateAutoComboTitle": "ከ{name} የማይለወጥ ጥምረት ፍጠር",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "ወጪዎች",

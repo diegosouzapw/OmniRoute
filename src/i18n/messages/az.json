@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Müəyyən səviyyəli təkrar cəhdlər arasında gecikmə, keçici məsələlərin həlli üçün vaxt verir.",
       "targetTimeoutMs": "Hər hədəf üçün ixtiyari vaxt limiti. Boş saxlanıldıqda cari sorğunun vaxt limiti miras alınır; daha böyük dəyərlər həmin vaxt limiti ilə məhdudlaşdırılır.",
       "comboTimeoutMs": "Ehtiyat hədəflərə keçid də daxil olmaqla bütün kombinasiya üçün ixtiyari ümumi real vaxt limiti. Boş saxlanıldıqda ilişib qalmanın qarşısını alan 10 dəqiqəlik limit qorunur; müsbət dəyər onu əvəz edir. Ehtiyat hədəfə keçid üçün vaxt qalması məqsədilə bunu Hədəf üçün vaxt limitindən daha uzun təyin edin.",
-      "disableSessionStickiness": "Bütün söhbəti ilk mesajın heşinə görə bir bağlantıya bağlamaq əvəzinə, hər sorğuda fərqli bir bağlantıya keçin. Qlobal standartı üstələyir. Çoxdönüşlü söhbətlər üçün prompt-cache hitlərini qorumaq üçün İrsi olaraq saxlayın."
+      "disableSessionStickiness": "Bütün söhbəti ilk mesajın heşinə görə bir bağlantıya bağlamaq əvəzinə, hər sorğuda fərqli bir bağlantıya keçin. Qlobal standartı üstələyir. Çoxdönüşlü söhbətlər üçün prompt-cache hitlərini qorumaq üçün İrsi olaraq saxlayın.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Sürətli şablonlar",
     "templatesDescription": "Başlanğıc profilini tətbiq edin, sonra modelləri və konfiqurasiyanı tənzimləyin.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Bu, bu şablona uyğun olan hazırkı qoşulmuş provayderləri/modeləri redaktə oluna bilən kombo kimi saxlayacaq.",
     "duplicateAutoComboFailedPrefix": "Avtokombo kopyalanması uğursuz oldu:",
     "duplicateAutoComboUnknownError": "Naməlum xəta",
-    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat"
+    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Xərclər",

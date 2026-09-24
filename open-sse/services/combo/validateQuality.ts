@@ -270,6 +270,32 @@ function isStreamingUpstreamError(parsed: unknown, eventType: string): boolean {
   return nestedResponse?.status === "failed" && nestedResponse.error != null;
 }
 
+/**
+ * Best-effort one-line description of an upstream streaming error payload.
+ *
+ * Without this the combo reports every in-stream failure as the bare string
+ * "streaming upstream error", and the client sees only "Claude returned an
+ * empty response (no content block)". That masking hid two real, actionable
+ * Anthropic rejections for days (a missing inline-tools beta and an unknown
+ * top-level field), so the upstream text is now carried into the failure
+ * reason and therefore into the call log.
+ */
+function describeStreamingUpstreamError(parsed: unknown): string | null {
+  if (!isRecord(parsed)) return null;
+  const candidates: unknown[] = [
+    parsed.error,
+    isRecord(parsed.response) ? parsed.response.error : null,
+  ];
+  for (const candidate of candidates) {
+    if (!isRecord(candidate)) continue;
+    const message = typeof candidate.message === "string" ? candidate.message.trim() : "";
+    const type = typeof candidate.type === "string" ? candidate.type.trim() : "";
+    const detail = message || type;
+    if (detail) return (type && message ? `${type}: ${message}` : detail).slice(0, 300);
+  }
+  return null;
+}
+
 type StreamingPeekOutcome = "content" | "error" | null;
 
 /**
@@ -370,6 +396,7 @@ export async function validateResponseQuality(
     //     Claude `message_stop`/`message_delta` with `stop_reason` (mirrors
     //     `sse.hasLifecycleEnd`), or a terminal `usage`-only chunk (new).
     let sawStructuredSSE = false;
+    let upstreamErrorDetail: string | null = null;
     let sawTerminator = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
@@ -450,6 +477,7 @@ export async function validateResponseQuality(
         pendingEventType = "";
 
         if (isStreamingUpstreamError(parsed, eventType)) {
+          upstreamErrorDetail = describeStreamingUpstreamError(parsed) ?? upstreamErrorDetail;
           return "error";
         }
 
@@ -543,9 +571,14 @@ export async function validateResponseQuality(
           if (terminalOutcome === "error") {
             log.warn?.(
               "COMBO",
-              "Streaming response reported an upstream error before content — marking as invalid for combo failover"
+              `Streaming response reported an upstream error before content — marking as invalid for combo failover${upstreamErrorDetail ? ` (${upstreamErrorDetail})` : ""}`
             );
-            return { valid: false, reason: "streaming upstream error" };
+            return {
+              valid: false,
+              reason: upstreamErrorDetail
+                ? `streaming upstream error: ${upstreamErrorDetail}`
+                : "streaming upstream error",
+            };
           }
 
           if (sse.hasMessageStart && sse.hasLifecycleEnd && !sse.hasRealContent) {
@@ -641,9 +674,14 @@ export async function validateResponseQuality(
           reader.cancel().catch(() => {});
           log.warn?.(
             "COMBO",
-            "Streaming response reported an upstream error before content — marking as invalid for combo failover"
+            `Streaming response reported an upstream error before content — marking as invalid for combo failover${upstreamErrorDetail ? ` (${upstreamErrorDetail})` : ""}`
           );
-          return { valid: false, reason: "streaming upstream error" };
+          return {
+            valid: false,
+            reason: upstreamErrorDetail
+              ? `streaming upstream error: ${upstreamErrorDetail}`
+              : "streaming upstream error",
+          };
         }
 
         if (outcome === "content") {

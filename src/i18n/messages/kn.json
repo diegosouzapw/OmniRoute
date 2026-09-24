@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "ಸೆಟ್-ಮಟ್ಟದ ಮರುಪ್ರಯತ್ನಗಳ ನಡುವಿನ ವಿಳಂಬವು ತಾತ್ಕಾಲಿಕ ಸಮಸ್ಯೆಗಳು ಪರಿಹಾರವಾಗಲು ಸಮಯ ನೀಡುತ್ತದೆ.",
       "targetTimeoutMs": "ಪ್ರತಿ ಗುರಿಗೆ ಐಚ್ಛಿಕ ಸಮಯಮಿತಿ. ಖಾಲಿ ಬಿಟ್ಟರೆ ಪ್ರಸ್ತುತ ವಿನಂತಿಯ ಸಮಯಮಿತಿಯನ್ನು ಅನುವಂಶಿಕವಾಗಿ ಪಡೆಯುತ್ತದೆ; ಹೆಚ್ಚಿನ ಮೌಲ್ಯಗಳನ್ನು ಆ ಸಮಯಮಿತಿಗೆ ಸೀಮಿತಗೊಳಿಸಲಾಗುತ್ತದೆ.",
       "comboTimeoutMs": "ಎಲ್ಲಾ ವಿಫಲಾಂತರ ಗುರಿಗಳಾದ್ಯಂತ ಇಡೀ ಕಾಂಬೊಗೆ ಐಚ್ಛಿಕ ವಾಲ್-ಕ್ಲಾಕ್ ಕಾಲಮಿತಿ. ಖಾಲಿ ಬಿಟ್ಟರೆ 10 ನಿಮಿಷದ ಹ್ಯಾಂಗ್-ಸ್ಟಾಪ್ ಹಾಗೆಯೇ ಉಳಿಯುತ್ತದೆ; ಧನಾತ್ಮಕ ಮೌಲ್ಯವು ಅದನ್ನು ಬದಲಿಸುತ್ತದೆ. ವಿಫಲಾಂತರಕ್ಕೆ ಇನ್ನೂ ಸಮಯ ದೊರೆಯುವಂತೆ ಇದನ್ನು ಗುರಿ ಸಮಯಮಿತಿಗಿಂತ ಹೆಚ್ಚು ಇರಿಸಿ.",
-      "disableSessionStickiness": "ಮೊದಲ ಸಂದೇಶದ ಹ್ಯಾಶ್ ಆಧರಿಸಿ ಇಡೀ ಸಂಭಾಷಣೆಯನ್ನು ಒಂದೇ ಸಂಪರ್ಕಕ್ಕೆ ಸ್ಥಿರಗೊಳಿಸುವ ಬದಲು, ಪ್ರತಿ ವಿನಂತಿಯಲ್ಲೂ ಬೇರೆ ಸಂಪರ್ಕಕ್ಕೆ ಬದಲಾಯಿಸಿ. ಇದು ಜಾಗತಿಕ ಡೀಫಾಲ್ಟ್ ಅನ್ನು ಅತಿಕ್ರಮಿಸುತ್ತದೆ. ಬಹು-ತಿರುವಿನ ಚಾಟ್ಗಳಿಗೆ ಪ್ರಾಂಪ್ಟ್-ಕ್ಯಾಶ್ ಹಿಟ್ಗಳನ್ನು ಉಳಿಸಿಕೊಳ್ಳಲು Inherit ಆಯ್ಕೆಯಲ್ಲೇ ಬಿಡಿ."
+      "disableSessionStickiness": "ಮೊದಲ ಸಂದೇಶದ ಹ್ಯಾಶ್ ಆಧರಿಸಿ ಇಡೀ ಸಂಭಾಷಣೆಯನ್ನು ಒಂದೇ ಸಂಪರ್ಕಕ್ಕೆ ಸ್ಥಿರಗೊಳಿಸುವ ಬದಲು, ಪ್ರತಿ ವಿನಂತಿಯಲ್ಲೂ ಬೇರೆ ಸಂಪರ್ಕಕ್ಕೆ ಬದಲಾಯಿಸಿ. ಇದು ಜಾಗತಿಕ ಡೀಫಾಲ್ಟ್ ಅನ್ನು ಅತಿಕ್ರಮಿಸುತ್ತದೆ. ಬಹು-ತಿರುವಿನ ಚಾಟ್ಗಳಿಗೆ ಪ್ರಾಂಪ್ಟ್-ಕ್ಯಾಶ್ ಹಿಟ್ಗಳನ್ನು ಉಳಿಸಿಕೊಳ್ಳಲು Inherit ಆಯ್ಕೆಯಲ್ಲೇ ಬಿಡಿ.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "ತ್ವರಿತ ಟೆಂಪ್ಲೇಟ್ಗಳು",
     "templatesDescription": "ಆರಂಭಿಕ ಪ್ರೊಫೈಲ್ ಅನ್ನು ಅನ್ವಯಿಸಿ, ನಂತರ ಮಾಡೆಲ್ಗಳು ಮತ್ತು ಕಾನ್ಫಿಗ್ ಅನ್ನು ಹೊಂದಿಸಿ.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "ಈ ಟೆಂಪ್ಲೇಟ್ಗೆ ಹೊಂದಿಕೆಯಾಗುವ ಪ್ರಸ್ತುತ ಸಂಪರ್ಕಿತ ಪೂರೈಕೆದಾರರು/ಮಾಡೆಲ್ಗಳ ಸ್ನ್ಯಾಪ್ಶಾಟ್ ತೆಗೆದು, ಅದನ್ನು ಸಂಪಾದಿಸಬಹುದಾದ ಕಾಂಬೊ ಆಗಿ ರಚಿಸಲಾಗುತ್ತದೆ.",
     "duplicateAutoComboFailedPrefix": "ಸ್ವಯಂ-ಕಾಂಬೊವನ್ನು ನಕಲಿಸಲು ವಿಫಲವಾಗಿದೆ:",
     "duplicateAutoComboUnknownError": "ಅಜ್ಞಾತ ದೋಷ",
-    "duplicateAutoComboTitle": "{name} ನಿಂದ ಸ್ಥಿರ ಕಾಂಬೊವನ್ನು ರಚಿಸಿ"
+    "duplicateAutoComboTitle": "{name} ನಿಂದ ಸ್ಥಿರ ಕಾಂಬೊವನ್ನು ರಚಿಸಿ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "ವೆಚ್ಚಗಳು",

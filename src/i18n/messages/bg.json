@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "Забавяне между опитите за повторен опит на зададено ниво, което дава време за разрешаване на преходни проблеми.",
       "targetTimeoutMs": "Незадължително време за изчакване за всяка цел. Ако е празно, наследява текущото време за изчакване на заявката; по-големите стойности се ограничават до него.",
       "comboTimeoutMs": "Незадължителен общ времеви лимит за цялата комбинация, обхващащ всички резервни цели. Ако е празно, се запазва 10-минутното прекъсване при блокиране; положителна стойност го заменя. Задайте по-дълго време от изчакването за целта, за да остане време за превключване към резервна цел.",
-      "disableSessionStickiness": "Ротирайте към различна връзка при всяка заявка, вместо да обвързвате цял разговор към една връзка чрез хеша на първото съобщение. Презаписва глобалната стойност по подразбиране. Оставете на „Наследяване“, за да запазите съвпаденията в кеша на подканите (prompt-cache) за многостъпкови чатове."
+      "disableSessionStickiness": "Ротирайте към различна връзка при всяка заявка, вместо да обвързвате цял разговор към една връзка чрез хеша на първото съобщение. Презаписва глобалната стойност по подразбиране. Оставете на „Наследяване“, за да запазите съвпаденията в кеша на подканите (prompt-cache) за многостъпкови чатове.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Бързи шаблони",
     "templatesDescription": "Приложете стартов профил, след това регулирайте моделите и конфигурирайте.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "Това ще направи моментна снимка на текущо свързаните доставчици/модели, които съвпадат с този шаблон, в редактируемо комбо.",
     "duplicateAutoComboFailedPrefix": "Неуспешно копиране на автоматично комбо:",
     "duplicateAutoComboUnknownError": "Неизвестна грешка",
-    "duplicateAutoComboTitle": "Създайте статично комбо от {name}"
+    "duplicateAutoComboTitle": "Създайте статично комбо от {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Разходи",

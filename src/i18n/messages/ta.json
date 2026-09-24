@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "செட்-லெவல் மறுமுயற்சிகளுக்கு இடையே தாமதம், தற்காலிக சிக்கல்களைத் தீர்க்க நேரம் கிடைக்கும்.",
       "targetTimeoutMs": "ஒவ்வொரு இலக்கிற்குமான விருப்ப நேரமுடிவு. காலியாக இருந்தால் தற்போதைய கோரிக்கை நேரமுடிவை மரபுரிமையாகப் பெறும்; பெரிய மதிப்புகள் அந்த நேரமுடிவிற்குள் வரம்பிடப்படும்.",
       "comboTimeoutMs": "அனைத்து தோல்விமாற்று இலக்குகளுக்குமான ஒட்டுமொத்த காம்போவின் விருப்ப கால அளவு வரம்பு. காலியாக இருந்தால் 10 நிமிடத் தொங்கு-நிறுத்தம் தொடரும்; நேர்மறை மதிப்பு அதை மாற்றும். தோல்விமாற்றுக்குப் போதுமான நேரம் கிடைக்க, இதை இலக்கு நேரமுடிவைவிட அதிகமாக வைத்திருங்கள்.",
-      "disableSessionStickiness": "முதல்-செய்தி ஹாஷ் மூலம் முழு உரையாடலையும் ஒரு இணைப்பிற்குப் பின் செய்வதற்குப் பதிலாக, ஒவ்வொரு கோரிக்கையிலும் வேறு இணைப்பிற்கு மாறவும். உலகளாவிய இயல்புநிலையை மேலெழுதுகிறது. மல்டி-டர்ன் அரட்டைகளுக்கான ப்ராம்ப்ட்-கேச் ஹிட்களைப் பாதுகாக்க Inherit இல் விடவும்."
+      "disableSessionStickiness": "முதல்-செய்தி ஹாஷ் மூலம் முழு உரையாடலையும் ஒரு இணைப்பிற்குப் பின் செய்வதற்குப் பதிலாக, ஒவ்வொரு கோரிக்கையிலும் வேறு இணைப்பிற்கு மாறவும். உலகளாவிய இயல்புநிலையை மேலெழுதுகிறது. மல்டி-டர்ன் அரட்டைகளுக்கான ப்ராம்ப்ட்-கேச் ஹிட்களைப் பாதுகாக்க Inherit இல் விடவும்.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "விரைவு வார்ப்புருக்கள்",
     "templatesDescription": "தொடக்கச் சுயவிவரத்தைப் பயன்படுத்தி, பின்னர் மாடல்களையும் உள்ளமைவையும் சரிசெய்யவும்.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "இந்த டெம்ப்ளேட்டுடன் பொருந்தும் தற்போதைய இணைக்கப்பட்ட வழங்குநர்கள்/மாதிரிகளை திருத்தக்கூடிய கம்போவில் எடுக்கும்.",
     "duplicateAutoComboFailedPrefix": "ஆட்டோகம்போ நகலெடுத்தல் தோல்வியடைந்தது:",
     "duplicateAutoComboUnknownError": "அறியப்படாத பிழை",
-    "duplicateAutoComboTitle": "{name} இலிருந்து நிலையான கம்போ உருவாக்கவும்"
+    "duplicateAutoComboTitle": "{name} இலிருந்து நிலையான கம்போ உருவாக்கவும்",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "செலவுகள்",

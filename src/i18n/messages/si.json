@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "තාවකාලික ගැටලු විසඳීමට කාලය ලබා දෙමින්, කට්ටල මට්ටමේ නැවත උත්සාහයන් අතර ප්රමාදය.",
       "targetTimeoutMs": "එක් එක් ඉලක්කය සඳහා විකල්ප කාල සීමාව. හිස්ව තැබුවහොත් වත්මන් ඉල්ලීම් කාල සීමාව උරුම කරගනී; ඊට වඩා විශාල අගයන් එම කාල සීමාවට සීමා කෙරේ.",
       "comboTimeoutMs": "සියලුම failover ඉලක්ක හරහා සම්පූර්ණ Combo සඳහා වන විකල්ප සැබෑ කාල අයවැය. හිස්ව තැබුවහොත් මිනිත්තු 10ක hang-stop එක පවත්වා ගනී; ධන අගයක් එය ප්රතිස්ථාපනය කරයි. failover සඳහා තවමත් කාලය තිබෙන පරිදි මෙය ඉලක්ක කාල සීමාවට වඩා දිගුව තබන්න.",
-      "disableSessionStickiness": "පළමු පණිවිඩයේ hash එක අනුව සම්පූර්ණ සංවාදයක් එක් සම්බන්ධතාවකට ස්ථිර කිරීම වෙනුවට, සෑම ඉල්ලීමකදීම වෙනත් සම්බන්ධතාවකට මාරු වන්න. මෙය ගෝලීය පෙරනිමිය අභිබවා යයි. බහු වාර සංවාද සඳහා prompt-cache ප්රතිලාභ රඳවා ගැනීමට Inherit ලෙස තබන්න."
+      "disableSessionStickiness": "පළමු පණිවිඩයේ hash එක අනුව සම්පූර්ණ සංවාදයක් එක් සම්බන්ධතාවකට ස්ථිර කිරීම වෙනුවට, සෑම ඉල්ලීමකදීම වෙනත් සම්බන්ධතාවකට මාරු වන්න. මෙය ගෝලීය පෙරනිමිය අභිබවා යයි. බහු වාර සංවාද සඳහා prompt-cache ප්රතිලාභ රඳවා ගැනීමට Inherit ලෙස තබන්න.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "ඉක්මන් සැකිලි",
     "templatesDescription": "ආරම්භක පැතිකඩක් යොදන්න, ඉන්පසු මාදිලි සහ වින්යාසය සකසන්න.",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "මෙමඟින් මෙම අච්චුවට ගැළපෙන, දැනට සම්බන්ධිත සැපයුම්කරුවන්/ආකෘතිවල වත්මන් තත්ත්වය සංස්කරණය කළ හැකි සංයෝජනයක් ලෙස සුරකිනු ඇත.",
     "duplicateAutoComboFailedPrefix": "ස්වයංක්රීය සංයෝජනය අනුපිටපත් කිරීමට අසමත් විය:",
     "duplicateAutoComboUnknownError": "නොදන්නා දෝෂයකි",
-    "duplicateAutoComboTitle": "{name} වෙතින් ස්ථිතික සංයෝජනයක් සාදන්න"
+    "duplicateAutoComboTitle": "{name} වෙතින් ස්ථිතික සංයෝජනයක් සාදන්න",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "පිරිවැය",
