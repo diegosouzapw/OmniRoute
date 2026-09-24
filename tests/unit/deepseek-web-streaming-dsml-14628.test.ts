@@ -16,6 +16,7 @@ import assert from "node:assert/strict";
 // issue).
 
 const { DeepSeekWebExecutor } = await import("../../open-sse/executors/deepseek-web.ts");
+type ExecuteInput = Parameters<InstanceType<typeof DeepSeekWebExecutor>["execute"]>[0];
 
 const FW = "\uFF5C";
 const O = (s: string) => `<${FW}${FW}DSML${FW}${FW} ${s}>`;
@@ -33,7 +34,11 @@ const BASH_TOOL = {
 function sseBody(fragments: unknown[]): ReadableStream {
   const encoder = new TextEncoder();
   const lines = fragments.map((f) => `data: ${JSON.stringify({ p: "response/fragments", v: f })}`);
-  const chunks = [...lines, "data: " + JSON.stringify({ p: "response/status", o: "APPEND", v: "FINISHED" }), "data: [DONE]"];
+  const chunks = [
+    ...lines,
+    "data: " + JSON.stringify({ p: "response/status", o: "APPEND", v: "FINISHED" }),
+    "data: [DONE]",
+  ];
   let i = 0;
   return new ReadableStream({
     pull(controller) {
@@ -47,10 +52,14 @@ function dsmlFragments(): string[] {
   const block = [
     O("calls"),
     O('invoke name="bash"'),
-    O('parameter name="command" string="true"') + "python --version; pip --version" + C("parameter"),
+    O('parameter name="command" string="true"') +
+      "python --version; pip --version" +
+      C("parameter"),
     C("invoke"),
     O('invoke name="bash"'),
-    O('parameter name="command" string="true"') + 'Test-Path -LiteralPath "C:/Users/ali/Documents/Default Project"' + C("parameter"),
+    O('parameter name="command" string="true"') +
+      'Test-Path -LiteralPath "C:/Users/ali/Documents/Default Project"' +
+      C("parameter"),
     C("invoke"),
     C("calls"),
   ].join("\n");
@@ -147,8 +156,12 @@ describe("DeepSeekWebExecutor — buffered tool path (#14628)", () => {
       stream: true,
       credentials: { apiKey: "user-token-abc" },
       signal: null,
-      log: { info: (t: string, m: string) => console.error(`[${t}] ${m}`), warn: (t: string, m: string) => console.error(`[${t}] ${m}`), error: (t: string, m: string) => console.error(`[${t}] ${m}`) },
-    } as any);
+      log: {
+        info: (t: string, m: string) => console.error(`[${t}] ${m}`),
+        warn: (t: string, m: string) => console.error(`[${t}] ${m}`),
+        error: (t: string, m: string) => console.error(`[${t}] ${m}`),
+      },
+    } as unknown as ExecuteInput);
 
     assert.equal(result.response.status, 200);
     const ctype = result.response.headers.get("content-type") || "";
@@ -161,7 +174,10 @@ describe("DeepSeekWebExecutor — buffered tool path (#14628)", () => {
       .map((l) => JSON.parse(l.slice(6)));
 
     const toolCallChunk = chunks.find((c) => c.choices?.[0]?.delta?.tool_calls);
-    const finish = chunks.map((c) => c.choices?.[0]?.finish_reason).filter(Boolean).pop();
+    const finish = chunks
+      .map((c) => c.choices?.[0]?.finish_reason)
+      .filter(Boolean)
+      .pop();
 
     assert.ok(toolCallChunk, "no tool_calls delta in stream — DSML leaked as content?");
     const calls = toolCallChunk.choices[0].delta.tool_calls;
@@ -179,12 +195,18 @@ describe("DeepSeekWebExecutor — buffered tool path (#14628)", () => {
       .map((c) => c.choices?.[0]?.delta?.content)
       .filter((t) => typeof t === "string" && t.length > 0)
       .join("");
-    assert.ok(!contentDeltas.includes(FW), "fullwidth-pipe markup must not reach the client as content");
+    assert.ok(
+      !contentDeltas.includes(FW),
+      "fullwidth-pipe markup must not reach the client as content"
+    );
     assert.ok(!contentDeltas.includes("DSML"), "DSML grammar must not reach the client as content");
   });
 
   it("keeps plain (tool-free) streaming content flowing untouched", async () => {
-    stubUpstream([{ type: "ANSWER", content: "hello " }, { type: "ANSWER", content: "world" }]);
+    stubUpstream([
+      { type: "ANSWER", content: "hello " },
+      { type: "ANSWER", content: "world" },
+    ]);
 
     const executor = new DeepSeekWebExecutor();
     const result = await executor.execute({
@@ -194,7 +216,7 @@ describe("DeepSeekWebExecutor — buffered tool path (#14628)", () => {
       credentials: { apiKey: "user-token-abc" },
       signal: null,
       log: null,
-    } as any);
+    } as unknown as ExecuteInput);
 
     assert.equal(result.response.status, 200);
     const body = await drainSSE(result.response);
@@ -204,7 +226,10 @@ describe("DeepSeekWebExecutor — buffered tool path (#14628)", () => {
       .map((l) => JSON.parse(l.slice(6)));
     const text = chunks.map((c) => c.choices?.[0]?.delta?.content || "").join("");
     assert.match(text, /hello\s*world/);
-    const finish = chunks.map((c) => c.choices?.[0]?.finish_reason).filter(Boolean).pop();
+    const finish = chunks
+      .map((c) => c.choices?.[0]?.finish_reason)
+      .filter(Boolean)
+      .pop();
     assert.equal(finish, "stop");
   });
 });
