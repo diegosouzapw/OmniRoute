@@ -173,6 +173,7 @@ test("GHSA-35fw-cv32-2373: every cli-tools route that reaches getCliRuntimeStatu
     "/api/cli-tools/pi-settings",
     "/api/cli-tools/smelt-settings",
     "/api/cli-tools/status",
+    "/api/cli-tools/whycodes-settings",
   ];
   for (const r of routes) {
     assert.equal(isLocalOnlyPath(r), true, `${r} must be local-only`);

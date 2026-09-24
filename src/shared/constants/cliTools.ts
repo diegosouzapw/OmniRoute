@@ -930,7 +930,7 @@ OPENAI_API_KEY: "{{apiKey}}"`,
       {
         step: 1,
         title: "Install WhyCodes",
-        desc: "curl -fsSL https://why.codes/install | bash   (Windows: irm https://why.codes/install.ps1 | iex)",
+        desc: "Install WhyCodes following the vendor's official instructions: https://github.com/whycorporation/whycodes (we do not pipe third-party install scripts to a shell)",
       },
       { step: 2, title: "API Key", type: "apiKeySelector" },
       { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },

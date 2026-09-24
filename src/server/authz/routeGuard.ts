@@ -60,6 +60,7 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/pi-settings", // spawns via getCliRuntimeStatus() to detect the `pi` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
   "/api/cli-tools/smelt-settings", // spawns via getCliRuntimeStatus() to detect the `smelt` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
   "/api/cli-tools/status", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "/api/cli-tools/whycodes-settings", // spawns via getCliRuntimeStatus() to detect the `whycodes` CLI install (Hard Rules #15 + #17, #14107)
   "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
   "/api/tunnels/cloudflared", // POST installs/starts/stops cloudflared; safe methods are exempted below
   "/api/tunnels/tailscale/disable", // stops Funnel and may stop tailscaled/Tailscale service

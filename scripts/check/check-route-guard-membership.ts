@@ -69,6 +69,7 @@ export const SPAWN_CAPABLE_ROUTE_ROOTS: ReadonlyArray<string> = [
   "src/app/api/cli-tools/pi-settings", // GET calls getCliRuntimeStatus() to detect the `pi` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
   "src/app/api/cli-tools/smelt-settings", // GET calls getCliRuntimeStatus() to detect the `smelt` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
   "src/app/api/cli-tools/status", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/whycodes-settings", // GET calls getCliRuntimeStatus() to detect the `whycodes` CLI install (Hard Rules #15 + #17, #14107)
   // GHSA-jx89-f37j-pq89: skills install + execute reach childProcess.spawn transitively
   // (executor.ts -> builtins.ts -> sandbox.ts) — invisible to the source-scan subcheck.
   "src/app/api/skills/install", // POST stores handlerCode verbatim; a built-in name aliases execute_command / eval_code (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)

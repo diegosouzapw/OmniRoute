@@ -44,6 +44,7 @@ const SPAWNING_CLI_TOOLS_ROUTES: ReadonlyArray<string> = [
   "/api/cli-tools/pi-settings",
   "/api/cli-tools/smelt-settings",
   "/api/cli-tools/status",
+  "/api/cli-tools/whycodes-settings",
 ];
 
 for (const route of SPAWNING_CLI_TOOLS_ROUTES) {

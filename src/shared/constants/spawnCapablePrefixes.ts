@@ -43,6 +43,7 @@ export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/pi-settings", // GET probes the `pi` binary via getCliRuntimeStatus()
   "/api/cli-tools/smelt-settings", // GET probes the `smelt` binary via getCliRuntimeStatus()
   "/api/cli-tools/status", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry
+  "/api/cli-tools/whycodes-settings", // GET probes the `whycodes` binary via getCliRuntimeStatus()
   "/api/services/", // T-10: can run npm install + spawn node processes
   "/api/tunnels/cloudflared", // POST installs/starts/stops cloudflared; safe methods remain read-only exempt
   "/api/tunnels/tailscale/disable", // stops Funnel and may stop tailscaled/Tailscale service

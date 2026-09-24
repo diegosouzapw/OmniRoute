@@ -3,13 +3,13 @@ import assert from "node:assert/strict";
 import os from "node:os";
 import path from "node:path";
 
-import { CLI_TOOLS, getCliTool } from "../../../src/shared/constants/cliTools.ts";
+import { CLI_TOOLS, getCliTool } from "../../src/shared/constants/cliTools.ts";
 import {
   CLI_TOOL_IDS,
   getCliConfigPaths,
   normalizeCliToolId,
-} from "../../../src/shared/services/cliRuntime.ts";
-import { getWhyCodesConfigPath } from "../../../src/lib/cli-helper/config-generator/whycodesHome.ts";
+} from "../../src/shared/services/cliRuntime.ts";
+import { getWhyCodesConfigPath } from "../../src/lib/cli-helper/config-generator/whycodesHome.ts";
 
 test("CLI_TOOLS.whycodes is an agent with full base URL and no ACP spawn", () => {
   const tool = getCliTool("whycodes");
