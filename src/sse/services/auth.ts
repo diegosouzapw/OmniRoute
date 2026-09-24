@@ -3010,8 +3010,10 @@ export async function markAccountUnavailable(
       );
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
+    // 402 keeps its dedicated per-model billing branch below (reason "credits").
     const isModelLevelQuotaOrRateLimit =
       !fallbackResult.permanent &&
+      status !== 402 &&
       (fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED ||
         Boolean(fallbackResult.creditsExhausted) ||
         fallbackResult.reason === RateLimitReason.RATE_LIMIT_EXCEEDED);
