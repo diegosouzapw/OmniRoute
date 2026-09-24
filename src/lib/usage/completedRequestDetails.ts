@@ -153,8 +153,7 @@ export function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connec
         const art = readCallArtifact(row.artifact_relpath);
         if (art.state !== "ready" || !art.artifact) continue;
         const pipeline = art.artifact.pipeline as
-          | { providerResponse?: unknown; clientResponse?: unknown }
-          | undefined;
+          { providerResponse?: unknown; clientResponse?: unknown } | undefined;
         // pipeline.* first: it is the translated payload of one specific side.
         // `responseBody` is a single coarse value handed to both sides, so it
         // may only fill a side still empty AFTER the pipeline had its turn --
@@ -177,7 +176,12 @@ export function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connec
           if (isUnset(updated.clientResponse)) updated.clientResponse = responseBody;
         }
         if (updated.providerResponse || updated.clientResponse) {
-          if (completedDetails.has(updated.id)) storeCompletedDetail(updated);
+          const current = completedDetails.get(updated.id);
+          if (current) {
+            // Usage can arrive while the artifact read is awaiting its import.
+            // Keep newer counters instead of restoring the pre-usage snapshot.
+            storeCompletedDetail({ ...updated, tokens: current.tokens ?? updated.tokens });
+          }
           break;
         }
       }

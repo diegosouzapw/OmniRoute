@@ -289,76 +289,118 @@ A dènà àwọn transport SSE àti Streamable HTTP méjèèjì títí a ó fi m
 
 ---
 
-## Ìfàṣẹsí & Àwọn Ààlà Àṣẹ
+## Ìfìdímúlẹ̀ & Àwọn Ààyè
 
-A ń fìdí ìdánimọ̀ àwọn irinṣẹ́ MCP múlẹ̀ nípasẹ̀ àwọn ààlà àṣẹ kọ́kọ́rọ́ API. Ìmúlò àwọn ààlà àṣẹ wà ní àárín gbùngbùn nínú
-`open-sse/mcp-server/scopeEnforcement.ts`. Irinṣẹ́ kọ̀ọ̀kan nílò àwọn ààlà àṣẹ pàtó:
+Ohun èlò MCP n pè àwọn okun ààyè kíkà láti ọ̀dọ̀ olùpè. Ìyẹn yẹ̀wò jẹ́ ọ̀kan nínú àwọn ààyè orúkọ mẹ́ta tí ó dá dúró. Ìkọjá láti ọ̀dọ̀ olùyẹ̀wò kan kì í ṣe ìkọjá láti ọ̀dọ̀ àwọn mìíràn. Àwọn òfin náà ni [Àwọn ààyè orúkọ mẹ́ta](#three-scope-namespaces). Àtòjọ ohun èlò náà ni [Àwọn ààyè ohun èlò MCP](#mcp-tool-scopes).
 
-| Àyè                   | Àwọn irinṣẹ́                                                                                                                                                                   |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                             |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                     |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                        |
-| `read:quota`          | `check_quota`                                                                                                                                                                 |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                        |
-| `read:models`         | `list_models_catalog`                                                                                                                                                         |
-| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                 |
-| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                         |
-| `write:budget`        | `set_budget_guard`                                                                                                                                                            |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                   |
-| `pricing:write`       | `sync_pricing`                                                                                                                                                                |
-| `read:cache`          | `cache_stats`                                                                                                                                                                 |
-| `write:cache`         | `cache_flush`                                                                                                                                                                 |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                    |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                             |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                         |
-| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                              |
-| `write:notion`        | `notion_append_blocks`                                                                                                                                                        |
-| `read:memory`         | `memory_search`                                                                                                                                                               |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                  |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                            |
-| `write:skills`        | `skills_enable`                                                                                                                                                               |
-| `execute:skills`      | `skills_execute`                                                                                                                                                              |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                              |
-| `read:tools`          | `omniroute_tool_search`                                                                                                                                                       |
-| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                     |
-| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                              |
-| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                |
-| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                            |
-| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                               |
-| `read:obsidian`       | Irinṣẹ́ kíkà 13 — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | Irinṣẹ́ kíkọ 9 — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
-| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                             |
+### Àwọn ààyè orúkọ mẹ́ta
 
-Àwọn scope wildcard ni a ṣe àtìlẹ́yìn fún: `read:*` ń fúnni ní gbogbo read-scopes, `*` sì ń fúnni ní ààyè ìwọlé kíkún.
+`manage` lórí kọ́kọ́rọ́ API kan, `read:compression` lórí ohun èlò MCP kan, àti `read` lórí ààmì ìwọlé `oma_live_…` jẹ́ àwọn ìfúnni mẹ́ta tí ó yàtọ̀. Àwọn olùpè tí ó rán ààmì ìwọlé `read` sí ọ̀nà ìṣàkóso tí ó yí padà yóò gba HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` Ìpele yẹn ni `scopeSatisfies`. Kò wo tábìlì MCP, àti pé olùbámu MCP kò wo ó.
 
-### `mcp:connect` — agbára route tó ní ààlà (#7895)
+| Ààyè Orúkọ             | Ìwé-ẹ̀rí                                                                | Olùyẹ̀wò                         | Ìkọjá kan gba láàyè                           |
+| :--------------------- | :--------------------------------------------------------------------- | :------------------------------ | :-------------------------------------------- |
+| Ìṣàkóso kọ́kọ́rọ́ API     | `api_keys.scopes`                                                      | `hasManageScope`                | Ìṣàkóso REST fún kọ́kọ́rọ́ Bearer yẹn            |
+| Àfikún kọ́kọ́rọ́ API      | àkójọ kan náà, okun kan ṣoṣo tí ó péye                                 | olùrànlọ́wọ́ tí a dárúkọ ní ìsàlẹ̀ | Agbára kan ṣoṣo yẹn                           |
+| Àwọn ààyè ohun èlò MCP | àkójọ kan náà, bí bẹ́ẹ̀ kọ́ MCP `_meta`, bí bẹ́ẹ̀ kọ́ `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                  | Ohun èlò yẹn, nígbà tí ìfìdímúlẹ̀ bá wà lórí   |
+| Ààmì ìwọlé             | `oma_live_…`                                                           | `scopeSatisfies`                | Ọ̀nà ìṣàkóso tí ọ̀nà àti ọ̀nà rẹ̀ béèrè ìpele yẹn |
 
-Láti dé ibi ìrìnnà HTTP/SSE MCP (`/api/mcp/*`) láti non-loopback, a nílò
-`/api/mcp/` LOCAL_ONLY carve-out (wo `docs/security/ROUTE_GUARD_TIERS.md`). Ní ìtàn ṣáájú,
-carve-out yẹn gba kìkì API key tó ní `manage`/`admin`-scope kíkún — èyí gbòòrò jù fún
-caller tó nílò láti bá MCP sọ̀rọ̀ nìkan. `src/shared/constants/managementScopes.ts` ń
-export `MCP_CONNECT_SCOPE = "mcp:connect"` báyìí: scope tó jẹ́ àfikún, tó sì ní ààlà (pẹ̀lú àpẹẹrẹ kan náà bí
-`SELF_USAGE_SCOPE`) tó fúnni ní àṣẹ fún `/api/mcp/` bypass NÌKAN nínú
-`src/server/authz/policies/management.ts` — kò fúnni ní ààyè ìwọlé sí management-route mìíràn
-rárá, a sì mọ̀ọ́mọ̀ pa á mọ́ ní ÒDE `MANAGEMENT_API_KEY_SCOPES`. Key tó ní `manage`/`admin`
-ṣì ń kọjá carve-out náà láìsí ìyípadà; `mcp:connect` jẹ́ àṣàyàn tó ní àṣẹ kékeré fún
-àwọn caller MCP-nìkan láti ọ̀nà jíjìn, tí a ń ṣàyẹ̀wò nípasẹ̀ `hasMcpConnectOrManageScope()`.
+Ìṣẹ̀dá ìwé-ẹ̀rí kọ̀ọ̀kan wà nínú [Ìfìdímúlẹ̀ Ìṣàkóso](../guides/MANAGEMENT-AUTH.md).
 
-### Ìsopọ̀ HTTP scope fún key kọ̀ọ̀kan (#7895)
+#### Àwọn ààyè kọ́kọ́rọ́ API
 
-Lórí HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` ń pinnu `api_keys.scopes` gidi ti caller
-báyìí nípasẹ̀ `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-ó sì ń fi í ránṣẹ́ sí `transport.handleRequest(req, { authInfo })` ti MCP SDK, kí
-`extra.authInfo.scopes` tó dé ọ̀dọ̀ tool call kọ̀ọ̀kan lè ṣàfihàn scopes tirẹ̀ ti Bearer key náà.
-`resolveCallerScopeContext()` inú `scopeEnforcement.ts` ti ń fi `authInfo` ṣáájú
-`_meta` àti env fallback `OMNIROUTE_MCP_SCOPES` tẹ́lẹ̀ — ìyípadà yìí kàn ń pèsè ìsọfúnni fún orísun àkọ́kọ́ yẹn,
-tó ní ipò gíga jù lọ, èyí tí kò rí ìsọfúnni rí lórí HTTP. Nígbà tí kò bá sí API key tí a lè pinnu
-(kò sí header, key kò tọ́), `authInfo` máa dúró bí `undefined`, ìpinnu yóò sì tẹ̀síwájú sí
-pq̀lú meta/env tó ti wà láìsí ìyípadà. Èyí KÒ yí default `OMNIROUTE_MCP_ENFORCE_SCOPES`
-padà — a ṣì gbọdọ̀ tan enforcement ní kedere; ìyípadà yìí kàn mú kí
-ọ̀nà per-key ní ipò àkọ́kọ́ nígbà tí a bá ti tan án. stdio kò ní identity fún caller kọ̀ọ̀kan (wo
-`mcpCallerIdentity.ts`) kò sì ní ipa lórí rẹ̀ — ó ṣì ń lo `_meta`/env fallback chain.
+Àkójọ `api_keys.scopes` kan n fún iṣẹ́ méjì. Wọ́n lo àwọn iṣẹ́ tí ó yàtọ̀.
+
+**Ìṣàkóso REST.** `manage` àti `admin` jẹ́ àwọn ọmọ ẹgbẹ́ `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`). `hasManageScope` ni ohun tí ó fún àṣẹ àwọn ọ̀nà ìṣàkóso fún kọ́kọ́rọ́ yẹn. `admin` jẹ́ agbára ìṣàkóso lórí àwọn ọ̀nà yẹn. Ọ̀rọ̀ `admin` níbí kì í ṣe ìpele ààmì ìwọlé àti pé kò fẹ̀ sí àwọn ààyè ohun èlò MCP.
+
+**Àwọn okun àfikún.** Ìkọ̀ọ̀kan jẹ́ àyẹ̀wò ọmọ ẹgbẹ́ tí ó péye, àti pé ìkọ̀ọ̀kan dúró ní ìta `MANAGEMENT_API_KEY_SCOPES`.
+
+| Ààyè                           | Ìkọjá kan gba láàyè                                                                                                                                                   |
+| :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Ìyọkúrò `/api/mcp/` LOCAL_ONLY tí kì í ṣe loopback nìkan (`hasMcpConnectOrManageScope`). Kọ́kọ́rọ́ kan pẹ̀lú `manage` tàbí `admin` ṣì kọjá ìyọkúrò yẹn.                   |
+| `self:usage`                   | `GET /api/v1/me/status` fún kọ́kọ́rọ́ yìí (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` n fi ààyè yìí kún nígbà ìṣẹ̀dá (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Àwọn ìpín àkọọlẹ òkè nínu àkójọpọ̀ ipò yẹn (`src/lib/usage/apiKeySelfService.ts`). Ọ̀nà ipò ṣì béèrè `self:usage`.                                                      |
+| `policy:bypass-provider-quota` | Àwọn ìpè ìfọ̀rọ̀wérọ̀ kọ́kọ́rọ́ yìí fò ìlànà ìpín olùpèsè (`hasProviderQuotaBypassScope` nínú `src/sse/handlers/chat.ts`).                                                  |
+
+#### Ìbámu
+
+Àtòjọ náà ni tábìlì lábẹ́ [Àwọn ààyè ohun èlò MCP](#mcp-tool-scopes). Má ṣe tọ́jú `MCP_SCOPE_LIST` nínú `src/shared/constants/mcpScopes.ts` gẹ́gẹ́ bí àtòjọ yẹn: ó jẹ́ àkójọpọ̀ àkọ́kọ́ tí a tẹ. Àwọn ohun èlò tó tẹ̀lé e kéde àwọn ààyè mìíràn lẹ́gbẹ̀ẹ́ rẹ̀ (`read:notion`, `read:skills`, `read:local-corpus`, àti ìyókù tábìlì náà).
+
+`evaluateToolScopes` nínú `open-sse/mcp-server/scopeEnforcement.ts` gba ìpè láàyè nígbà tí gbogbo ààyè tí a béèrè bá bá ààyè tí a fúnni mu:
+
+- `*` bá gbogbo ààyè tí a béèrè mu.
+- Ààyè tí a fúnni tí ó parí pẹ̀lú `*` bá ààyè tí a béèrè tí ó bẹ̀rẹ̀ pẹ̀lú àlàyé ṣáájú ìràwọ̀ mu. `read:*` bá `read:compression` mu.
+- Gbogbo ààyè tí a fúnni mìíràn bá okun tí ó jọra nìkan mu.
+
+Kọ́kọ́rọ́ kan tí àwọn ààyè rẹ̀ jẹ́ `["manage"]` kùnà `scopeMatches` fún `read:compression`. Ìpè kan náà kùnà fún `admin`, `mcp:connect`, `read`, àti `write` nígbà tí àwọn wọ̀nyẹn nìkan ni àwọn okun tí a fúnni. Kò sí ìpele láàrin àwọn ààyè ohun èlò MCP ju `*` tí ó wà lẹ́yìn.
+
+Ìfìdímúlẹ̀ wà ní àìṣiṣẹ́ àyàfi tí `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (ìpilẹ̀ṣẹ̀ `false`). Nígbà tí ó bá wà ní àìṣiṣẹ́, `evaluateToolScopes` gba ìpè láàyè ó sì fò àtòjọ náà. Nígbà tí ó bá wà lórí, HTTP n lo `api_keys.scopes` kọ́kọ́rọ́ Bearer gẹ́gẹ́ bí `authInfo` (wo [Ìsopọ̀ ààyè HTTP fún kọ́kọ́rọ́ kọ̀ọ̀kan](#per-key-http-scope-binding-7895)). Nígbà tí kò sí àwọn ààyè kọ́kọ́rọ́ tí ó yanjú, àkójọ tí a fúnni yóò lọ sí MCP `_meta`, lẹ́yìn náà `OMNIROUTE_MCP_SCOPES`.
+
+#### Àwọn ààyè ààmì ìwọlé
+
+Àwọn ààmì `oma_live_…` (`src/lib/accessTokens/scopes.ts`) gbé `read`, `write`, tàbí `admin`. `scopeSatisfies` jẹ́ ìpele kan: `admin` bo `write` àti `read`, àti `write` bo `read`. Àwọn ààyè tí a kò mọ̀ kò bo ohunkóhun.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) fi ìpele yẹn wé `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD`, àti `OPTIONS` béèrè `read`.
+- Gbogbo ọ̀nà mìíràn béèrè `write`.
+- Àwọn ọ̀nà nínú `ADMIN_SCOPE_PREFIXES` béèrè `admin` fún gbogbo ọ̀nà. `/api/mcp` wà lórí àtòjọ yẹn, nítorí náà ààmì ìwọlé `write` ṣì kò lè pe ojú-ìwé HTTP MCP.
+- Àwọn ọ̀nà nínú `ADMIN_MUTATION_PREFIXES` béèrè `admin` fún àwọn ìyípadà nìkan.
+
+`PATCH /api/keys/{id}` jẹ́ ìyípadà kò sì sí lórí àwọn àtòjọ alábojútó yẹn, nítorí náà àmì `read` gba 403 `Access token scope 'read' is insufficient; 'write' required.`
+Àmì ìwọlé `write` tàbí `admin` mú ọ̀nà yẹn ṣẹ. JWT dashboard kan, àmì ìdámọ̀ ẹ̀rọ CLI loopback, àti kọ́kọ́rọ́ API kan pẹ̀lú `manage` tàbí `admin` gba àwọn ẹ̀ka mìíràn, ipò yìí kò sì dín wọn kù.
+
+Àmì ìwọlé kan tí ó bá kọjá `scopeSatisfies` fún `/api/mcp` ti kọjá ẹnu-ọ̀nà ìṣàkóso nìkan. Àwọn ìpè irinṣẹ́ ṣì ń ṣiṣẹ́ `scopeMatches` lòdì sí àwọn ìpele kọ́kọ́rọ́ API. Ipò àmì ìwọlé kì í ṣe ìwọlé sí `scopeMatches`.
+
+### Àwọn ìpele irinṣẹ́ MCP
+
+Ìmúṣẹ ìpele wà ní àárín gbùngbùn nínú `open-sse/mcp-server/scopeEnforcement.ts`.
+Irinṣẹ́ kọ̀ọ̀kan nílò àwọn ìpele pàtó:
+
+| Ìwọ̀n                  | Àwọn Irinṣẹ́                                                                                                                                                                        |
+| :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                  |
+| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                          |
+| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                             |
+| `read:quota`          | `check_quota`                                                                                                                                                                      |
+| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                             |
+| `read:models`         | `list_models_catalog`                                                                                                                                                              |
+| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                      |
+| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                              |
+| `write:budget`        | `set_budget_guard`                                                                                                                                                                 |
+| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                        |
+| `pricing:write`       | `sync_pricing`                                                                                                                                                                     |
+| `read:cache`          | `cache_stats`                                                                                                                                                                      |
+| `write:cache`         | `cache_flush`                                                                                                                                                                      |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                         |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                  |
+| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                              |
+| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                   |
+| `write:notion`        | `notion_append_blocks`                                                                                                                                                             |
+| `read:memory`         | `memory_search`                                                                                                                                                                    |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                       |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                 |
+| `write:skills`        | `skills_enable`                                                                                                                                                                    |
+| `execute:skills`      | `skills_execute`                                                                                                                                                                   |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                   |
+| `read:tools`          | `omniroute_tool_search`                                                                                                                                                            |
+| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                          |
+| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                   |
+| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                     |
+| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                 |
+| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                    |
+| `read:obsidian`       | àwọn irinṣẹ́ kika 13 — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | àwọn irinṣẹ́ kikọ 9 — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
+| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                  |
+
+Àwọn àyè àmì-ìdámọ̀ (wildcard scopes) ni a ṣe atilẹyin: `read:*` fún gbogbo àyè kika, `*` fún ìwọlé kíkún.
+
+### `mcp:connect` — agbára ọ̀nà tóóró (#7895)
+
+Láti dé ọ̀nà ìgbéjáde HTTP/SSE MCP (`/api/mcp/*`) láti ibi tí kìí ṣe loopback nílò ìyọkúrò LOCAL_ONLY `/api/mcp/` (wo `docs/security/ROUTE_GUARD_TIERS.md`). Ní ìgbà àtijọ́, ìyọkúrò yẹn gba kọ́kọ́rọ́ API tí ó ní àyè `manage`/`admin` pátápátá nìkan — ó gbòòrò jù fún ẹni tí ó kàn fẹ́ bá MCP sọ̀rọ̀. `src/shared/constants/managementScopes.ts` nísinsìnyí ṣe ìkóńkì `MCP_CONNECT_SCOPE = "mcp:connect"`: àyè tóóró, tí a fi kún (ìṣáájú kan náà bí `SELF_USAGE_SCOPE`) tí ó fún àṣẹ NÌKAN fún ìkọjá `/api/mcp/` nínú `src/server/authz/policies/management.ts` — kò fún ìwọlé sí ọ̀nà ìṣàkóso mìíràn, a sì fi síta láìfọ̀rọ̀wọ́rọ̀ nínú `MANAGEMENT_API_KEY_SCOPES`. Kọ́kọ́rọ́ tí ó ní `manage`/`admin` ṣì ń kọjá ìyọkúrò náà láìyípadà; `mcp:connect` jẹ́ àyè ìwọlé kékeré fún àwọn tí ń pè MCP nìkan láti ọ̀nà jíjìn, tí a yẹ̀ wò nípasẹ̀ `hasMcpConnectOrManageScope()`.
+
+### Ìsopọ̀ àyè HTTP fún kọ́kọ́rọ́ kọ̀ọ̀kan (#7895)
+
+Lórí HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` nísinsìnyí yanjú `api_keys.scopes` gidi ti olùpè nípasẹ̀ `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) ó sì fi ránṣẹ́ sí `transport.handleRequest(req, { authInfo })` ti MCP SDK, nítorí náà `extra.authInfo.scopes` tí ó dé ọ̀kọ̀ọ̀kan ìpè irinṣẹ́ ń fi àwọn àyè kọ́kọ́rọ́ Bearer fúnra rẹ̀ hàn. `resolveCallerScopeContext()` ti `scopeEnforcement.ts` ti fi `authInfo` sí ipò àkọ́kọ́ ju `_meta` àti `OMNIROUTE_MCP_SCOPES` ìpadàbọ̀ àyíká — èyí kàn ń pèsè orísun àkọ́kọ́, tí ó ga jùlọ yẹn, tí kò tíì gba oúnjẹ lórí HTTP tẹ́lẹ̀. Nígbà tí kò sí kọ́kọ́rọ́ API tí ó yanjú (kò sí àkọlé, kọ́kọ́rọ́ tí kò tọ́), `authInfo` dúró bí `undefined` àti ìyànjú sì tẹ̀ síwájú sí `meta`/env àtìlẹ́yìn tí ó wà tẹ́lẹ̀ láìyípadà. Èyí KÒ yí àṣàyàn `OMNIROUTE_MCP_ENFORCE_SCOPES` padà — ìfiagbára mú ṣiṣẹ́ ṣì ní láti jẹ́ kí ó ṣiṣẹ́ ní gbangba; ìyípadà yìí kàn mú kí ọ̀nà kọ́kọ́rọ́ kọ̀ọ̀kan gba ipò àkọ́kọ́ nígbà tí ó bá ti ṣiṣẹ́. stdio kò ní ìdámọ̀ olùpè kọ̀ọ̀kan (wo `mcpCallerIdentity.ts`) kò sì nípa lórí rẹ̀ — ó dúró lórí `_meta`/env àtìlẹ́yìn.
 
 ---
 

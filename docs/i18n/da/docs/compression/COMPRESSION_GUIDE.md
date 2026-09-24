@@ -184,17 +184,16 @@ Med Stacked:       10K-2.5K tokens sendt     (kvalificeret RTK+Caveman-interval 
 
 ### Dashboard
 
-Gå til `Dashboard → Context & Cache`:
+Gå til `Dashboard → Kontekst og cache`:
 
 - **Caveman** — valg af tilstand, sprogpakker, forhåndsvisning og globale standardindstillinger
-- **RTK** — forhåndsvisning af kommandofilter, RTK-sikkerhedsindstillinger og filterkatalog
-- **Komprimeringskombinationer** — navngivne pipelines af motorer, som er tildelt routingkombinationer
+- **RTK** — forhåndsvisning af kommandofiltre, RTK-sikkerhedsindstillinger og filterkatalog
+- **Komprimeringskombinationer** — navngivne engine-pipelines, der er tildelt routingkombinationer
 - **Tærskel for automatisk aktivering** — aktivér automatisk komprimering, når antallet af tokens overstiger tærsklen
 
 ### Tilsidesættelse pr. kombination
 
-I `Dashboard → Context & Cache → Compression Combos` skal du tildele en komprimeringskombination til
-en routingkombination:
+I `Dashboard → Kontekst og cache → Komprimeringskombinationer` skal du tildele en komprimeringskombination til en routingkombination:
 
 ```txt
 Kombination: "free-tier-fallback"
@@ -205,36 +204,26 @@ Kombination: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-Dette giver dig mulighed for at bruge stablet komprimering hos gratis udbydere/kodningsudbydere,
-mens let tilstand bevares for betalte abonnementer.
+Det giver dig mulighed for at bruge stablet komprimering hos gratis/kodningsudbydere, mens lite-tilstand bevares for betalte abonnementer.
 
-Denne tildeling af en "tilsidesættelse pr. kombination" er en anden indstilling end tilsidesættelsen
-af **routingkombinationens komprimeringstilstand** (Default/Off/Lite/Standard/Aggressive/Ultra) —
-denne tilsidesættelse vælger ikke en navngiven pipeline for en komprimeringskombination; den angiver
-blot feltet `compressionMode`, som anvendes af `resolveCompressionPlan`. Den kan enten angives på
-kombinationskortet (`Dashboard → Combos`) eller, siden #6760, pr. routingkombination på listen
-"Assign to routing" under `Dashboard → Context & Cache → Compression Combos`, lige ved siden af
-afkrydsningsfeltet til tildeling af pipeline, som er dokumenteret ovenfor. Begge grænseflader gemmer
-via det samme `PUT /api/combos/{id}`-slutpunkt.
+Denne tildeling af en "tilsidesættelse pr. kombination" er en anden kontrol end tilsidesættelsen af **routingkombinationens komprimeringstilstand** (Standard/Fra/Lite/Standard/Aggressiv/Ultra) — denne tilsidesættelse vælger ikke en navngiven pipeline for en komprimeringskombination; den angiver blot feltet `compressionMode`, som bruges af `resolveCompressionPlan`. Den kan enten angives på kombinationskortet (`Dashboard → Kombinationer`) eller, siden #6760, pr. routingkombination på listen "Tildel til routing" under `Dashboard → Kontekst og cache → Komprimeringskombinationer`, lige ved siden af afkrydsningsfeltet til pipeline-tildeling, som er dokumenteret ovenfor. Begge grænseflader gemmer via det samme `PUT /api/combos/{id}`-endpoint.
 
 ### Tilsidesættelse pr. anmodning
 
-Send anmodningsheaderen `x-omniroute-compression` for at tilsidesætte komprimeringsplanen for en
-enkelt anmodning. Den har højeste prioritet — den går forud for tilsidesættelsen for
-routingkombinationen, den aktive profil, automatisk aktivering og panelets standardindstilling.
-Ukendte værdier ignoreres (anmodningen afvises aldrig), og den globale hovedkontakt styrer stadig
-alt: Når komprimering er slået fra globalt, kan headeren ikke slå den til. Værdier:
+Send request-headeren `x-omniroute-compression` for at tilsidesætte komprimeringsplanen for en enkelt anmodning. Den har højeste prioritet — den tilsidesætter routingkombinationens indstilling, den aktive profil, automatisk aktivering og panelets standardindstilling. Ukendte værdier ignoreres (anmodningen afvises aldrig), og den globale hovedkontakt styrer stadig det hele: Når komprimering er slået fra globalt, kan headeren ikke slå den til. Værdier:
 
-| Værdi         | Effekt                                                                                                            |
-| ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `off`         | Ingen komprimering for denne anmodning.                                                                           |
-| `default`     | Panelets afledte standardprofil (ignorerer den aktive profil).                                                    |
-| `engine:<id>` | En enkelt motor, når den er aktiveret, f.eks. `engine:rtk`.                                                       |
-| `<combo>`     | En navngiven kombination, først matchet efter navn (uden forskel på store og små bogstaver) og derefter efter id. |
+| Værdi         | Effekt                                                                                                          |
+| ------------- | --------------------------------------------------------------------------------------------------------------- |
+| `off`         | Ingen komprimering for denne anmodning.                                                                         |
+| `default`     | Panelets afledte standardprofil (ignorerer den aktive profil). Datatabsgivende engines forbliver deaktiveret.   |
+| `safe`        | Det samme som at udelade headeren: kun deduplikering og sammenfoldning af mellemrum.                            |
+| `allow-lossy` | Behold denne anmodnings operatorplan, herunder resuméer, relevansfiltre og omskrivning af stil.                 |
+| `engine:<id>` | En enkelt engine, når den er aktiveret, f.eks. `engine:rtk`. Dette er tilvalget pr. anmodning for denne engine. |
+| `<combo>`     | En navngiven kombination, der først matches efter navn (uden forskel på store og små bogstaver) og derefter id. |
 
-Den anvendte plan returneres i responsheaderen
-`X-OmniRoute-Compression: <mode>; source=<source>`, hvor `<source>` er én af `request-header`,
-`routing-override`, `active-profile`, `auto-trigger`, `default` eller `off`.
+Uden `allow-lossy`, `engine:<id>` eller en navngiven kombination anvendes datatabsgivende engines ikke. Anmodningen får stadig sessionsbaseret deduplikering og sammenfoldning af mellemrum, når komprimering er slået til.
+
+Den anvendte plan returneres i response-headeren `X-OmniRoute-Compression: <mode>; source=<source>`, hvor `<source>` er en af `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` eller `off`.
 
 ### API
 
@@ -247,7 +236,7 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Forhåndsvis en bestemt RTK/stablet payload
+# Forhåndsvis en specifik RTK-/stacked-payload
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
@@ -255,7 +244,7 @@ curl -X POST http://localhost:20128/api/compression/preview \
 # Vis RTK-filterpakker
 curl http://localhost:20128/api/context/rtk/filters
 
-# Test RTK direkte med valgfri kommandometadata
+# Test RTK direkte med valgfri kommando-metadata
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -300,15 +289,15 @@ Hver komprimeret anmodning inkluderer statistik i serverloggene:
 
 ---
 
-## Faseplan
+## Fasekøreplan
 
-| Fase    | Tilstande                                                                                                                                                         | Status     |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| Fase 1  | Fra, Let                                                                                                                                                          | ✅ Udgivet |
-| Fase 2  | Standard, Aggressiv, Ultra                                                                                                                                        | ✅ Udgivet |
-| Fase 3  | RTK, Stablet, Komprimeringskombinationer                                                                                                                          | ✅ Udgivet |
-| Fase 4  | Outputformater, Ultra på SLM-niveau, evalueringsrammeværk                                                                                                         | ✅ Udgivet |
-| Fase 4C | Adaptivt kontekstbudget ("drejeknap") — beregningsmotor + API (`contextBudget` på `PUT /api/settings/compression`) + kontrolpanel til styring af tilstand/politik | ✅ Udgivet |
+| Fase    | Tilstande                                                                                                                                                 | Status     |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Fase 1  | Fra, Let                                                                                                                                                  | ✅ Udgivet |
+| Fase 2  | Standard, Aggressiv, Ultra                                                                                                                                | ✅ Udgivet |
+| Fase 3  | RTK, Stablet, kompressionskombinationer                                                                                                                   | ✅ Udgivet |
+| Fase 4  | Outputformater, Ultra på SLM-niveau, evalueringsramme                                                                                                     | ✅ Udgivet |
+| Fase 4C | Adaptivt kontekstbudget ("drejeknap") — beregningsmotor + API (`contextBudget` på `PUT /api/settings/compression`) + dashboardstyring af tilstand/politik | ✅ Udgivet |
 
 ---
 
@@ -322,26 +311,21 @@ RTK-tilstanden er inspireret af **[RTK - Rust Token Killer](https://github.com/r
 
 ## Avancerede komprimeringssystemer
 
-Ud over de 7 standardtilstande indeholder OmniRoute flere avancerede komprimeringssystemer,
-der fungerer automatisk ud fra konteksten.
+Ud over de 7 standardtilstande indeholder OmniRoute flere avancerede komprimeringssystemer, som fungerer automatisk ud fra konteksten.
 
 ### Cachebevidst komprimering
 
-Nogle udbydere (som Anthropic med promptcachelagring) understøtter **promptcachelagring**,
-som giver dem mulighed for at cachelagre dele af prompten for at reducere omkostninger og latenstid. Når
-cachelagring er aktiveret, kan aggressiv komprimering faktisk **forringe** ydeevnen,
-fordi den ændrer de cachelagrede tokens og dermed ugyldiggør cachen.
+Nogle udbydere (som Anthropic med promptcaching) understøtter **promptcaching**, hvilket gør det muligt for dem at cache dele af prompten for at reducere omkostninger og svartid. Når caching er aktiveret, kan aggressiv komprimering faktisk **forringe** ydeevnen, fordi den ændrer de cachede tokens og dermed ugyldiggør cachen.
 
-Modulet `cachingAware.ts` løser dette ved at **registrere cachekontekst** og
-**justere komprimeringsstrategien** tilsvarende.
+Modulet `cachingAware.ts` løser dette ved at **registrere cachingkonteksten** og **justere komprimeringsstrategien** i overensstemmelse hermed.
 
 #### Sådan fungerer det
 
-1. **Registrer cachekontekst** — Gennemsøger anmodningens brødtekst for `cache_control`-markører
-2. **Identificer cacheudbydere** — Kontrollerer, om måludbyderen understøtter cachelagring
-3. **Juster strategi** — Nedgraderer `aggressive`/`ultra` til `standard` for cacheudbydere
-4. **Spring systemprompten over** — Systemprompter cachelagres normalt, så de skal ikke komprimeres
-5. **Brug deterministiske transformationer** — Brug kun transformationer, der giver ensartet output
+1. **Registrer cachingkontekst** — Gennemgår request-bodyen for `cache_control`-markører
+2. **Identificer cachingudbydere** — Kontrollerer, om måludbyderen understøtter caching
+3. **Juster strategi** — Nedgraderer `aggressive`/`ultra` til `standard` for cachingudbydere
+4. **Spring systemprompten over** — Systemprompter caches normalt, så de skal ikke komprimeres
+5. **Brug deterministiske transformationer** — Brug kun transformationer, der producerer ensartet output
 
 #### Kodeeksempel
 
@@ -366,21 +350,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Hvornår det skal bruges
 
-Cachebevidst komprimering er **altid aktiveret** — ingen konfiguration er nødvendig. Den træder kun i kraft,
-når:
+Cachebevidst komprimering er **altid aktiveret** — ingen konfiguration er nødvendig. Den træder kun i kraft, når:
 
 - Anmodningen har `cache_control`-markører
-- Måludbyderen understøtter promptcachelagring (Anthropic, OpenAI osv.)
+- Måludbyderen understøtter promptcaching (Anthropic, OpenAI osv.)
 
-### Progressiv aldring
+### Progressiv ældning
 
-Lange samtaler akkumulerer mange beskedudvekslinger, men ældre udvekslinger bliver mindre
-relevante. Modulet `progressiveAging.ts` **forringer beskeder baseret på afstanden mellem udvekslinger**:
+Lange samtaler akkumulerer mange beskedudvekslinger, men ældre udvekslinger bliver mindre relevante. Modulet `progressiveAging.ts` **reducerer detaljegraden i beskeder baseret på afstanden mellem samtalerunderne**:
 
-- **Nylige udvekslinger (0-3)**: Bevares ordret (alle detaljer)
-- **Mellemliggende udvekslinger (4-8)**: Let komprimering (oprydning af blanktegn og formatering)
-- **Gamle udvekslinger (9+)**: Caveman-komprimering (fjernelse af fyldord, opsummering)
-- **Meget gamle udvekslinger (20+)**: Opsummeres kraftigt eller udelades
+- **Nylige runder (0-3)**: Bevares ordret (alle detaljer)
+- **Mellemliggende runder (4-8)**: Let komprimering (oprydning af mellemrum og formatering)
+- **Gamle runder (9+)**: Hulemandskomprimering (fjernelse af fyldord og opsummering)
+- **Meget gamle runder (20+)**: Opsummeres kraftigt eller fjernes
 
 #### Kodeeksempel
 
@@ -391,14 +373,14 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 yderligere udvekslinger ...
+  // ... 50 yderligere runder ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // De første 3 udvekslinger: ordret
-  light: 8, // Udveksling 4-8: let komprimering
-  moderate: 20, // Udveksling 9-20: Caveman-komprimering
-  // Udveksling 21+: kraftig opsummering
+  verbatim: 3, // De første 3 runder: ordret
+  light: 8, // Runde 4-8: let komprimering
+  moderate: 20, // Runde 9-20: hulemandskomprimering
+  // Runde 21+: kraftig opsummering
 });
 
 // saved = antal sparede tokens
@@ -406,23 +388,21 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### Hvornår det skal bruges
 
-Progressiv aldring er **altid aktiveret** for tilstandene `aggressive` og `ultra`. Det er
-særligt effektivt til:
+Progressiv ældning er **altid aktiveret** i tilstandene `aggressive` og `ultra`. Den er særligt effektiv til:
 
 - Langvarige kodningssessioner
-- Samtaler over flere dage
+- Samtaler, der strækker sig over flere dage
 - Agentbaserede arbejdsgange med mange værktøjskald
 
-### Caveman-outputtilstand
+### Hulemandsoutputtilstand
 
-Modulet `outputMode.ts` indsætter **systempromptinstruktioner**, der får selve
-modellen til at generere komprimeret, kortfattet output (en "hulemandsstil").
+Modulet `outputMode.ts` indsætter **systempromptinstruktioner**, der får selve modellen til at producere komprimeret, kortfattet output (en "hulemandsstil").
 
 #### Sådan fungerer det
 
-I stedet for at komprimere inputtet tilføjer denne tilstand en systemprompt såsom:
+I stedet for at komprimere inputtet tilføjer denne tilstand en systemprompt som:
 
-> "Svar med så få ord som muligt. Spring høflighedsfraser over. Brug korte sætninger."
+> "Svar med så få ord som muligt. Undlad høflighedsfraser. Brug korte sætninger."
 
 Dette fungerer særligt godt til:
 
@@ -432,7 +412,7 @@ Dette fungerer særligt godt til:
 
 #### Hvornår det skal bruges
 
-Caveman-outputtilstand er **valgfri** — indstil den via kombinationskonfigurationen:
+Hulemandsoutputtilstand er **valgfri** — angiv den via kombinationskonfigurationen:
 
 ```json
 {
@@ -447,38 +427,34 @@ Caveman-outputtilstand er **valgfri** — indstil den via kombinationskonfigurat
 
 ### Outputstile (katalog)
 
-Caveman-outputtilstanden ovenfor er den **ældre vej med én enkelt stil**. Fase 4 generaliserede den
-til et katalog over outputstile, der kan kombineres: `OUTPUT_STYLE_CATALOG` i
-`open-sse/services/compression/outputStyles/catalog.ts`. Hver stil er en systempromptinstruktion,
-der får selve modellen til at generere billigere output; stilarter kan aktiveres
-sammen og indsættes i katalogrækkefølge.
+Hulemandsoutputtilstanden ovenfor er den **ældre løsning med én enkelt stil**. Fase 4 generaliserede den til et katalog over outputstile, der kan kombineres: `OUTPUT_STYLE_CATALOG` i `open-sse/services/compression/outputStyles/catalog.ts`. Hver stil er en systempromptinstruktion, der får selve modellen til at producere billigere output. Stilarter kan aktiveres sammen og indsættes i katalogets rækkefølge.
 
-| Stil                             | `id`          | Hvad den gør                                                                                                                                                                                                                                   | Instruktionssprog                                                                 |
-| -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Kortfattet prosa                 | `terse-prose` | Fjerner fyldord/artikler/forbehold; bevarer det tekniske indhold præcist. Samme tekst som den ældre Caveman-outputtilstand (refereret, ikke skrevet igen).                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Mindre kode                      | `less-code`   | YAGNI-trin: mindste fungerende ændring, ingen uønskede abstraktioner.                                                                                                                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Hestehale (doven seniorudvikler) | `ponytail`    | "Den bedste kode er den kode, der aldrig blev skrevet": genbrug > omskrivning, grundårsag > symptom, korteste fungerende diff.                                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Jeg har ADHD (handling først)    | `i-have-adhd` | Handling først (kommando/sti/kodestykke før prosa), nummererede afgrænsede trin, ÉT konkret næste trin, ingen indledning/opsummering/afslutningsbemærkninger. Tilpasset fra [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Kortfattet CJK (文言)            | `terse-cjk`   | Ultrakortfattet stil på klassisk kinesisk.                                                                                                                                                                                                     | zh (begrænset efter landestandard: tilbydes kun, når det fastlagte sprog er `zh`) |
+| Stil                             | `id`          | Hvad den gør                                                                                                                                                                                                                      | Instruktionssprog                                                       |
+| -------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Kortfattet prosa                 | `terse-prose` | Fjerner fyldord/artikler/forbehold; bevarer det tekniske indhold præcist. Samme tekst som den ældre caveman-outputtilstand (refereret, ikke genindtastet).                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Mindre kode                      | `less-code`   | YAGNI-trin: mindste fungerende ændring, ingen abstraktioner, der ikke er blevet anmodet om.                                                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Hestehale (doven seniorudvikler) | `ponytail`    | "Den bedste kode er den kode, der aldrig bliver skrevet": genbrug > omskrivning, grundårsag > symptom, korteste fungerende diff.                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Jeg har ADHD (handling først)    | `i-have-adhd` | Handling først (kommando/sti/kodestykke før prosa), nummererede afgrænsede trin, ÉT konkret næste trin, ingen indledning/opsummering/afslutning. Tilpasset fra [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Kortfattet CJK (文言)            | `terse-cjk`   | Ultrakortfattet stil på klassisk kinesisk.                                                                                                                                                                                        | zh (lokalitetsafgrænset: tilbydes kun, når det fastlagte sprog er `zh`) |
 
 Hver stil leveres med tre intensitetsniveauer — `lite`, `full`, `ultra` — og hvert niveau
 slutter med den fælles afgrænsningsklausul, som bevarer kodeblokke, filstier, kommandoer,
 fejlstrenge, URL'er og identifikatorer ordret.
 
-#### Sådan fungerer indsættelsen
+#### Sådan fungerer injektionen
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) sammenholder
-valget med kataloget (ukendte id'er og stilarter, der ikke matcher landestandarden,
+valget med kataloget (ukendte id'er og stilarter, der ikke matcher lokaliteten,
 udelades og medfører aldrig en fejl), sammenkæder de valgte instruktioner i katalogrækkefølge,
 tilføjer afgrænsningsklausulen **én gang** og placerer resultatet forrest i systemprompten
-efter én enkelt idempotensmarkør (`[OmniRoute Output Styles]`) — gentagen anvendelse
-gør intet. Når det registrerede anmodningssprog har en oversættelse, indsættes den
-lokaliserede instruktion i stedet for den engelske.
+efter en enkelt idempotensmarkør (`[OmniRoute Output Styles]`) — genanvendelse
+gør intet. Når der findes en oversættelse til det registrerede sprog i anmodningen,
+indsættes den lokaliserede instruktion i stedet for den engelske.
 
 #### Sådan aktiveres det
 
 I dashboardet: **Kontekst → Indstillinger → Komprimering** — én række pr. stil med en
-til/fra-knap og en niveauvælger. Programmatisk gemmer komprimeringskonfigurationen
+til/fra-kontakt og en niveauvælger. Programmatisk gemmer komprimeringskonfigurationen
 valget som:
 
 ```json
@@ -490,17 +466,18 @@ valget som:
 }
 ```
 
-Bagudkompatibilitet: Den ældre kombinationsindstilling `outputMode: "caveman"` fungerer stadig og knyttes til
-`terse-prose`, byte-identisk med den gamle indsættelse på alle ældre sprog.
+Bagudkompatibilitet: Den ældre kombinationsindstilling `outputMode: "caveman"` fungerer
+stadig og mappes til `terse-prose`, byte-identisk med den gamle injektion på alle
+ældre sprog.
 
 Sprogvalg: Når `languageConfig.enabled` er slået til, vælger `autoDetect`
 sproget i den seneste brugermeddelelse (samme detektor som inputmotorerne);
-hvis `autoDetect` slås fra, fastholdes `defaultLanguage`. Fra → engelsk.
+deaktivering af `autoDetect` fastholder `defaultLanguage`. Deaktiveret → engelsk.
 
-Stil × sprog-matricen fastholdes af
+Stil × sprog-matricen er fastlåst af
 `tests/unit/compression/output-styles-i18n-matrix.test.ts`: En ny stil kan ikke udgives
 uden mindst en pt-BR-oversættelse (eller en eksplicit registreret undtagelse), og en
-eksisterende stil kan ikke ubemærket miste en landestandard. Se
+eksisterende stil kan ikke lydløst miste en lokalitet. Se
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) for at tilføje en stil.
 
 ### Komprimering af værktøjsresultater
@@ -511,17 +488,17 @@ til værktøjsresultater (funktionskald, agentoutput, søgeresultater osv.):
 1. **Komprimering af søgeresultater** — Fjerner overflødige resultater og beholder de bedste N
 2. **Komprimering af fillæsning** — Afkorter store filer og bevarer headere/importer
 3. **Komprimering af kodekørsel** — Beholder kun nødvendig stdout/stderr
-4. **Komprimering af databaseforespørgsler** — Begrænser rækker og fjerner udførlige metadata
-5. **Komprimering af API-svar** — Fjerner null-felter og forkorter arrays
+4. **Komprimering af databaseforespørgsler** — Begrænser rækker og fjerner detaljerede metadata
+5. **Komprimering af API-svar** — Fjerner null-felter og sammenfatter arrays
 
 #### Hvornår det skal bruges
 
-Komprimering af værktøjsresultater er **altid aktiveret**, når der forekommer værktøjskald. Ingen
-konfiguration er nødvendig.
+Komprimering af værktøjsresultater er **altid aktiveret**, når der forekommer værktøjskald.
+Ingen konfiguration er nødvendig.
 
 ### Stablet pipeline
 
-Stablet tilstand kører **flere motorer i rækkefølge** — normalt først RTK
+Den stablede tilstand kører **flere motorer sekventielt** — normalt først RTK
 (60-90 % besparelse på værktøjsoutput), derefter Caveman (yderligere 30 % besparelse på den
 resterende tekst). Dette giver en **samlet besparelse på 78-95 %**.
 
@@ -538,11 +515,11 @@ Input (1000 tokens)
 
 Brug stablet tilstand til:
 
-- Værktøjstunge arbejdsgange (agentbaseret kodning, research)
+- Arbejdsgange med mange værktøjer (agentbaseret kodning, research)
 - Omkostningsfølsom batchbehandling
-- Når du har brug for maksimale tokenbesparelser
+- Når du har brug for størst mulig tokenbesparelse
 
-Konfigurer via kombination:
+Konfigurer via combo:
 
 ```json
 {

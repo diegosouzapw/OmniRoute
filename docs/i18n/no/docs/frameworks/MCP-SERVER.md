@@ -290,40 +290,53 @@ Både SSE- og strømbare HTTP-transporter er blokkert frem til MCP-serveren akti
 
 ---
 
-## Autentisering og tilganger
+## Autentisering og
 
-MCP-verktøy autentiseres gjennom API-nøkkeltilganger. Håndheving av tilganger er sentralisert i
-`open-sse/mcp-server/scopeEnforcement.ts`. Hvert verktøy krever bestemte tilganger:
+`PATCH /api/keys/{id}` er en mutasjon og er ikke på de administratorlistene, så et
+`read`-token mottar 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Et `write`- eller `admin`-aksess-token tilfredsstiller den ruten. En dashboard JWT,
+loopback CLI machine-id-tokenet, og en API-nøkkel med `manage` eller `admin` tar
+andre grener og blir ikke begrenset av denne rangeringen.
+
+Et aksess-token som passerer `scopeSatisfies` for `/api/mcp` har kun passert
+administrasjonsporten. Verktøyanrop kjører fortsatt `scopeMatches` mot API-nøkkel-scopes.
+Aksess-token-rangeringen er ikke en input til `scopeMatches`.
+
+### MCP verktøy-scopes
+
+Scope-håndhevelse er sentralisert i `open-sse/mcp-server/scopeEnforcement.ts`.
+Hvert verktøy krever spesifikke scopes:
 
 | Omfang                | Verktøy                                                                                                                                                                       |
 | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                             |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                     |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                        |
-| `read:quota`          | `check_quota`                                                                                                                                                                 |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                        |
-| `read:models`         | `list_models_catalog`                                                                                                                                                         |
-| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                 |
-| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                         |
-| `write:budget`        | `set_budget_guard`                                                                                                                                                            |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                   |
-| `pricing:write`       | `sync_pricing`                                                                                                                                                                |
-| `read:cache`          | `cache_stats`                                                                                                                                                                 |
-| `write:cache`         | `cache_flush`                                                                                                                                                                 |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                    |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                             |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                         |
-| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                              |
-| `write:notion`        | `notion_append_blocks`                                                                                                                                                        |
-| `read:memory`         | `memory_search`                                                                                                                                                               |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                  |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                            |
-| `write:skills`        | `skills_enable`                                                                                                                                                               |
-| `execute:skills`      | `skills_execute`                                                                                                                                                              |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                              |
-| `read:tools`          | `omniroute_tool_search`                                                                                                                                                       |
-| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                     |
-| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                              |
+| `les:helse`           | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                             |
+| `les:kombinasjoner`   | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                     |
+| `skriv:kombinasjoner` | `switch_combo`, `set_routing_strategy`                                                                                                                                        |
+| `les:kvote`           | `check_quota`                                                                                                                                                                 |
+| `les:bruk`            | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                        |
+| `les:modeller`        | `list_models_catalog`                                                                                                                                                         |
+| `utfør:fullføringer`  | `route_request`, `test_combo`                                                                                                                                                 |
+| `utfør:søk`           | `web_search`, `x_search`, `web_fetch`                                                                                                                                         |
+| `skriv:budsjett`      | `set_budget_guard`                                                                                                                                                            |
+| `skriv:robusthet`     | `set_resilience_profile`, `db_health_check`                                                                                                                                   |
+| `prissetting:skriv`   | `sync_pricing`                                                                                                                                                                |
+| `les:cache`           | `cache_stats`                                                                                                                                                                 |
+| `skriv:cache`         | `cache_flush`                                                                                                                                                                 |
+| `les:komprimering`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                    |
+| `skriv:komprimering`  | `compression_configure`, `set_compression_engine`                                                                                                                             |
+| `les:proxyer`         | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                         |
+| `les:notion`          | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                              |
+| `skriv:notion`        | `notion_append_blocks`                                                                                                                                                        |
+| `les:minne`           | `memory_search`                                                                                                                                                               |
+| `skriv:minne`         | `memory_add`, `memory_clear`                                                                                                                                                  |
+| `les:ferdigheter`     | `skills_list`, `skills_executions`                                                                                                                                            |
+| `skriv:ferdigheter`   | `skills_enable`                                                                                                                                                               |
+| `utfør:ferdigheter`   | `skills_execute`                                                                                                                                                              |
+| `les:katalog`         | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                              |
+| `les:verktøy`         | `omniroute_tool_search`                                                                                                                                                       |
+| `les:radar`           | `omniroute_radar_catalog`                                                                                                                                                     |
+| `les:gamifisering`    | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                              |
 | `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                |
 | `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                            |
 | `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                               |
@@ -331,38 +344,15 @@ MCP-verktøy autentiseres gjennom API-nøkkeltilganger. Håndheving av tilganger
 | `write:obsidian`      | 9 skriveverktøy — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …              |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                             |
 
-Jokertegnomfang støttes: `read:*` gir alle lesetilganger, `*` gir full tilgang.
+Wildcard-omfang støttes: `read:*` gir alle lese-omfang, `*` gir full tilgang.
 
-### `mcp:connect` — begrenset rutefunksjonalitet (#7895)
+### `mcp:connect` — smal rute-kapasitet (#7895)
 
-Tilgang til HTTP/SSE MCP-transporten (`/api/mcp/*`) fra adresser som ikke er loopback, krever
-`/api/mcp/`-unntaket fra LOCAL_ONLY (se `docs/security/ROUTE_GUARD_TIERS.md`). Tidligere
-godtok dette unntaket bare en API-nøkkel med fullt `manage`/`admin`-omfang — for bredt for en
-klient som bare trenger å kommunisere med MCP. `src/shared/constants/managementScopes.ts`
-eksporterer nå `MCP_CONNECT_SCOPE = "mcp:connect"`: et additivt, begrenset omfang (etter samme
-presedens som `SELF_USAGE_SCOPE`) som KUN autoriserer omgåelsen for `/api/mcp/` i
-`src/server/authz/policies/management.ts` — det gir ingen annen tilgang til administrasjonsruter
-og holdes med hensikt UTENFOR `MANAGEMENT_API_KEY_SCOPES`. En nøkkel med `manage`/`admin`
-passerer fortsatt unntaket uendret; `mcp:connect` er et alternativ med lavere privilegier for
-eksterne klienter som kun bruker MCP, kontrollert via `hasMcpConnectOrManageScope()`.
+For å nå HTTP/SSE MCP-transporten (`/api/mcp/*`) fra ikke-loopback krever `/api/mcp/` LOCAL_ONLY unntaket (se `docs/security/ROUTE_GUARD_TIERS.md`). Historisk sett aksepterte dette unntaket kun en full `manage`/`admin`-omfang API-nøkkel — for bredt for en anroper som bare trenger å kommunisere med MCP. `src/shared/constants/managementScopes.ts` eksporterer nå `MCP_CONNECT_SCOPE = "mcp:connect"`: et additivt, smalt omfang (samme presedens som `SELF_USAGE_SCOPE`) som KUN autoriserer `/api/mcp/`-omgåelsen i `src/server/authz/policies/management.ts` — den gir ingen annen tilgang til administrasjonsruter og er bevisst holdt UTENFOR `MANAGEMENT_API_KEY_SCOPES`. En nøkkel som inneholder `manage`/`admin` passerer fortsatt unntaket uendret; `mcp:connect` er et alternativ med lavere privilegier for eksterne MCP-kun-anropere, sjekket via `hasMcpConnectOrManageScope()`.
 
 ### HTTP-omfangsbinding per nøkkel (#7895)
 
-Over HTTP/SSE slår `open-sse/mcp-server/httpTransport.ts` nå opp innringerens faktiske
-`api_keys.scopes` via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-og sender det til MCP SDK-ens `transport.handleRequest(req, { authInfo })`, slik at
-`extra.authInfo.scopes` som når hvert verktøykall, gjenspeiler Bearer-nøkkelens egne omfang.
-`resolveCallerScopeContext()` i `scopeEnforcement.ts` prioriterte allerede `authInfo` over
-reserveløsningen med `_meta` og miljøvariabelen `OMNIROUTE_MCP_SCOPES` — dette fyller bare ut
-den første kilden med høyest prioritet, som tidligere ikke ble matet over HTTP. Når ingen
-API-nøkkel kan slås opp (manglende header eller ugyldig nøkkel), forblir `authInfo` `undefined`,
-og oppslaget går videre til den eksisterende `meta`/miljøvariabel-kjeden uendret. Dette endrer
-IKKE standardverdien for `OMNIROUTE_MCP_ENFORCE_SCOPES` — håndheving må fortsatt aktiveres
-eksplisitt; denne endringen gjør bare at banen per nøkkel får forrang når den er aktivert.
-stdio har ingen identitet per innringer (se `mcpCallerIdentity.ts`) og påvirkes ikke — den
-fortsetter å bruke reserveløsningen med `_meta`/miljøvariabel-kjeden.
-
----
+Over HTTP/SSE løser `open-sse/mcp-server/httpTransport.ts` nå anroperens faktiske `api_keys.scopes` via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) og sender det til MCP SDKs `transport.handleRequest(req, { authInfo })`, slik at `extra.authInfo.scopes` som når hvert verktøyanrop, reflekterer Bearer-nøkkelens egne omfang. `scopeEnforcement.ts`'s `resolveCallerScopeContext()` prioriterte allerede `authInfo` over `_meta` og `OMNIROUTE_MCP_SCOPES` miljøvariabel-tilbakefall — dette fyller kun den første, høyest prioriterte kilden, som tidligere ikke ble matet over HTTP. Når ingen API-nøkkel løses (ingen header, ugyldig nøkkel), forblir `authInfo` `undefined`, og oppløsningen faller tilbake til den eksisterende `meta`/miljøvariabel-kjeden uendret. Dette endrer IKKE `OMNIROUTE_MCP_ENFORCE_SCOPES`'s standardinnstilling — håndhevelse må fortsatt aktiveres eksplisitt; denne endringen gjør bare at banen per nøkkel får forrang når den er aktivert. stdio har ingen identitet per anroper (se `mcpCallerIdentity.ts`) og er upåvirket — den forblir på `_meta`/miljøvariabel-tilbakefallskjeden.
 
 ## Miljøvariabler
 

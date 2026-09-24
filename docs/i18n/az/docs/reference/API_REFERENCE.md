@@ -88,13 +88,13 @@ Content-Type: application/json
 
 ## Eksklüziv idarə olunan sessiya icarələri
 
-Eksklüziv idarə olunan sessiya icarəsi seçim əsasında aktivləşdirilən, klientdən asılı olmayan marşrutlaşdırma müqaviləsidir: bir aktiv sahib
+Eksklüziv idarə olunan sessiya icarəsi seçim əsasında aktivləşdirilən, müştəridən asılı olmayan marşrutlaşdırma müqaviləsidir: bir aktiv sahib
 bir uyğun OmniRoute bağlantısını saxlayır. Bu, modeli icarəyə vermir, OAuth tələb etmir, konkret
-klienti müəyyənləşdirmir və ya konkret provayder tələb etmir.
+müştərini müəyyənləşdirmir və ya konkret provayder tələb etmir.
 
 Autentifikasiya edən API açarı `lease:exclusive` əhatə dairəsinə və açıq şəkildə göstərilmiş, boş olmayan
-`allowedConnections` siyahısına malik olmalıdır. Verilənlər bazasının mutasiya sərhədi açar
-yaradılarkən və qismən yenilənərkən hər iki sahənin birlikdə olmasını təmin edir.
+`allowedConnections` siyahısına malik olmalıdır. Verilənlər bazasının mutasiya sərhədi açarın
+yaradılması və qismən yenilənməsi zamanı hər iki sahənin birlikdə olmasını təmin edir.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Uğurlu əldəetmə, yeniləmə və buraxma cavabları vaxt möhürlərini, `state` sahəsini və dəqiq müsbət
-`generation` dəyərini göstərir, lakin seçilmiş bağlantını və ya giriş məlumatlarını heç vaxt göstərmir. Yeniləmə və buraxma zamanı
-nəsil JSON gövdəsində təqdim olunur:
+Uğurlu əldəetmə, yeniləmə və buraxma cavabları vaxt nişanlarını, `state` dəyərini və dəqiq müsbət
+`generation` dəyərini göstərir, lakin seçilmiş bağlantını və ya etimadnamələri heç vaxt açıqlamır. Yeniləmə və buraxma əməliyyatları
+generation dəyərini JSON gövdəsində təqdim edir:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ nəsil JSON gövdəsində təqdim olunur:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Aktiv icarə sahibi cari bağlantısı üçün məxfiliyi qoruyan ekran metadatasını açıq şəkildə tələb edə bilər:
+Aktiv icarə sahibi cari əlaqələndirməsi üçün məxfiliyi qoruyan göstərmə metadatasını açıq şəkildə tələb edə bilər:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +137,37 @@ Aktiv icarə sahibi cari bağlantısı üçün məxfiliyi qoruyan ekran metadata
 }
 ```
 
-Seçim əsasında aktivləşdirilən bu status əməliyyatı bir verilənlər bazası tranzaksiyasında qeyri-şəffaf sahib, autentifikasiya edilmiş idarə olunan API açarı və dəqiq
-aktiv nəsil ilə məhdudlaşdırılır. `displayName` yalnız boşluqları kəsilmiş, konfiqurasiya olunmuş
-bağlantı adıdır; təhlükəsiz konfiqurasiya olunmuş ad mövcud olmadıqda bu, `null` olur. OmniRoute e-poçt ünvanını və ya yaradılmış
-hesab identifikatorunu heç vaxt onunla əvəz etmir. Provayder dəyəri həssas olmayan ekran etiketidir və heç vaxt
-yaradılmış uyğun provayder identifikatoru deyil. Giriş məlumatları, tokenlər, kukilər, xam bağlantı və ya API
-açarı identifikatorları, sahib heşləri, məhdudlaşdırma sirləri və daxili marşrutlaşdırma məlumatları istisna edilir.
+Seçim əsasında aktivləşdirilən bu status əməliyyatı bir verilənlər bazası tranzaksiyası daxilində qeyri-şəffaf sahib, autentifikasiya edilmiş idarə olunan API açarı və dəqiq
+aktiv generation dəyəri ilə qorunur. `displayName` yalnız kənar boşluqları silinmiş, konfiqurasiya edilmiş
+bağlantı adıdır; təhlükəsiz konfiqurasiya edilmiş ad olmadıqda onun dəyəri `null` olur. OmniRoute heç vaxt onun əvəzinə
+e-poçt ünvanı və ya yaradılmış hesab identifikatoru istifadə etmir. Provayder dəyəri həssas olmayan göstərmə etiketidir və heç vaxt
+yaradılmış uyğun provayder identifikatoru deyil. Etimadnamələr, tokenlər, kukilər, emal edilməmiş bağlantı və ya API
+açarı identifikatorları, sahib heşləri, qoruma sirləri və daxili marşrutlaşdırma məlumatları daxil edilmir.
 
-Yanlış açar, yanlış sahib, köhnəlmiş nəsil, çatışmayan, vaxtı bitmiş, buraxılmış və etibarsızlaşdırılmış axtarışların hamısı
-bağlantı metadatası olmadan eyni `409 LEASE_FENCE_STALE` xətasını qaytarır. Tutum gözləmə cavabı almış klientin yoxlamaq üçün aktiv bağlantısı yoxdur. Marşrutlaşdırma aktiv icarəni dəyişdirdikdə,
-eyni nəsil etibarlı qalır və status atomar şəkildə köhnə bağlantını deyil, yeni bağlantını qaytarır.
-Mövcud klientlər dəyişməz qalır, çünki əldəetmə, yeniləmə, buraxma və gözləmə cavabları
-əvvəlki strukturlarını qoruyur.
+Yanlış açar, yanlış sahib, köhnəlmiş generation, mövcud olmayan, müddəti bitmiş, buraxılmış və etibarsızlaşdırılmış axtarışların hamısı
+bağlantı metadatası olmadan eyni `409 LEASE_FENCE_STALE` xətasını qaytarır. Tutum gözləmə cavabı almış müştərinin yoxlaya biləcəyi aktiv əlaqələndirməsi yoxdur. Marşrutlaşdırma aktiv icarəni dəyişdirdikdə,
+eyni generation etibarlı qalır və status köhnə deyil, yeni əlaqələndirməni atomar şəkildə qaytarır.
+Mövcud müştərilər dəyişməz qalır, çünki əldəetmə, yeniləmə, buraxma və gözləmə cavabları
+əvvəlki strukturlarını saxlayır.
 
 Bu server müqaviləsi standart OpenAI Codex `/status` davranışını dəyişmir. Standart Codex hazırda öz
 model provayderini və daxili autentifikasiya/hesab vəziyyətini bildirir, lakin ixtiyari fərdi
-provayder hesabı metadatasını göstərmir; gələcək klient inteqrasiyası bu əməliyyatı çağırmalı və
+provayder hesabı metadatasını göstərmir; gələcək müştəri inteqrasiyası bu əməliyyatı çağırmalı və
 `connection.displayName` dəyərinin necə göstəriləcəyinə qərar verməlidir.
 
-Bundan sonra hər idarə olunan inferensiya sorğusu hər iki idarəetmə başlığını təqdim edir:
+Bundan sonra idarə olunan hər bir nəticəçıxarma sorğusu hər iki idarəetmə başlığını təqdim edir:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Dəqiq sahib, nəsil, aktiv bağlantı və autentifikasiya edilmiş API açarı hər dəstəklənən yuxarı axın
-cəhdindən dərhal əvvəl məhdudlaşdırılır. Sahib və nəsli başqa açarla təkrar istifadə etmək, hətta həmin açar eyni bağlantıya icazə verdikdə belə
-uğursuz olur. Xam sahib dəyərləri saxlanılmır, jurnala yazılmır, sorğu ani görüntüsündə qorunmur və ya
+Dəqiq sahib, generation, aktiv bağlantı və autentifikasiya edilmiş API açarı dəstəklənən hər bir yuxarı axın cəhdindən
+dərhal əvvəl qorunur. Sahib və generation dəyərlərinin başqa açarla təkrar istifadəsi, həmin açar eyni bağlantıya icazə versə belə,
+uğursuz olur. Emal edilməmiş sahib dəyərləri daimi saxlanmır, jurnala yazılmır, sorğu anlıq görüntüsündə saxlanmır və ya
 yuxarı axına ötürülmür.
 
-Müvəqqəti rəqabət HTTP `429` cavabını `Retry-After` ilə birlikdə qaytarır:
+Müvəqqəti resurs rəqabəti HTTP `429` cavabını `Retry-After` ilə və aşağıdakılarla qaytarır:
 
 ```json
 {
@@ -179,29 +179,31 @@ Müvəqqəti rəqabət HTTP `429` cavabını `Retry-After` ilə birlikdə qaytar
 ```
 
 Bu cavab yalnız adi uyğun dəstin boş olmadığını və hər bir boş namizədin
-başqa sahibə aid aktiv icarə tərəfindən tutulduğunu bildirir. Dəstəklənməyən modellər/provayderlər, siyasət uyğunsuzluğu, gözləmə müddəti, kvota,
-sağlamlıq və digər adi uyğunluq xətaları mövcud OmniRoute cavablarını qoruyur.
+başqa bir aktiv icarə tərəfindən tutulduğunu bildirir. Dəstəklənməyən modellər/provayderlər, siyasət uyğunsuzluğu, soyuma müddəti, kvota,
+sağlamlıq və digər adi uyğunluq xətaları mövcud OmniRoute cavablarını saxlayır.
 
 ### `x-omniroute-compression`
 
-Sıxılma planının hər sorğu üzrə əvəzlənməsi. Ən yüksək üstünlük — marşrutlaşdırma kombinasiyası
-üzrə əvəzləməni, aktiv profili, avtomatik işə düşməni və paneldəki Defolt dəyəri üstələyir. Dəyərlər:
+Sıxışdırma planının hər sorğu üzrə əvəzlənməsi. Ən yüksək prioritetə malikdir — marşrutlaşdırma kombinasiyasının
+əvəzlənməsini, aktiv profili, avtomatik işəsalmanı və paneldəki Defolt dəyəri üstələyir. Dəyərlər:
 
-| Dəyər         | Təsir                                                                                                                   |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Bu sorğu üçün sıxılma yoxdur.                                                                                           |
-| `default`     | Paneldən əldə edilən Defolt profil (aktiv profili nəzərə almır).                                                        |
-| `engine:<id>` | Aktiv olduqda tək mühərrik, məsələn, `engine:rtk`.                                                                      |
-| `<combo>`     | Əvvəlcə ada görə (registrdən asılı olmayaraq), sonra isə identifikatora görə uyğunlaşdırılan adlandırılmış kombinasiya. |
+| Dəyər         | Təsir                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Bu sorğu üçün sıxışdırma tətbiq edilmir.                                                                                  |
+| `default`     | Paneldən əldə edilən Defolt profil (aktiv profili nəzərə almır). İtkili mühərriklər söndürülmüş qalır.                    |
+| `safe`        | Yalnız dublikatların silinməsi və boşluqların birləşdirilməsi.                                                            |
+| `allow-lossy` | Xülasələr və üslub yenidənyazmaları daxil olmaqla operator planını bu sorğu üçün saxlayır.                                |
+| `engine:<id>` | Aktiv olduqda tək mühərrik, məsələn, `engine:rtk`. Həmin mühərrik üçün hər sorğu üzrə aktivləşdirmə.                      |
+| `<combo>`     | Əvvəlcə ada görə (böyük-kiçik hərfə həssas olmadan), sonra identifikatora görə uyğunlaşdırılan adlandırılmış kombinasiya. |
 
 Qeydlər:
 
-- Naməlum dəyərlər nəzərə alınmır (sorğu heç vaxt rədd edilmir); həll prosesi adi operator üstünlüyünə keçir.
-- Bir neçə kombinasiya eyni ada malikdirsə, deterministik uyğunluq üçün kombinasiyanın **id** dəyərini ötürün.
-- Adı `off` və ya `default` olan kombinasiya adla seçilə bilməz (bu açar sözlər əvvəlcə şərh edilir); belə kombinasiyaya identifikatoru ilə istinad edin.
-- Əsas sıxılma keçidi sərt maneədir: sıxılma qlobal olaraq deaktiv edildikdə, bu başlıq onu aktivləşdirə bilməz.
+- Naməlum dəyərlər nəzərə alınmır (sorğu heç vaxt rədd edilmir); müəyyənləşdirmə adi operator prioritetinə keçir.
+- Bir neçə kombinasiya eyni adı paylaşırsa, deterministik uyğunluq üçün kombinasiyanın **id** dəyərini ötürün.
+- Adı `off` və ya `default` olan kombinasiya ada görə seçilə bilməz (bu açar sözlər əvvəlcə şərh olunur); belə kombinasiyaya onun id dəyəri ilə istinad edin.
+- Əsas sıxışdırma keçidi sərt məhdudiyyətdir: sıxışdırma qlobal olaraq deaktiv edildikdə bu başlıq onu aktivləşdirə bilməz.
 
-Tətbiq edilmiş plan cavab başlığında əks etdirilir:
+Tətbiq edilmiş plan cavab başlığında geri qaytarılır:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>

@@ -4,12 +4,12 @@
 
 ---
 
-> **Sors ewlieni tal-verità:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Aġġornat l-aħħar:** 2026-06-28 — v3.8.40
+> **Sors ta' verità:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Aġġornat l-aħħar:** 2026-09-22 — in-namespaces tal-iskop jindikaw MCP-SERVER.md
 
-OmniRoute għandu pipeline ta’ awtorizzazzjoni konxju tar-rotot li jikkontrolla kull talba API. Il-klassifikazzjoni hija **deterministika** u **tingħalaq f’każ ta’ falliment** — kull ħaġa li ma tistax tiġi kklassifikata tispiċċa bħala `MANAGEMENT` u teħtieġ sessjoni jew token ta’ livell ta’ ġestjoni. Din il-paġna tispjega l-mudell għall-inġiniera li jżommu r-rotot jew jiddisinjaw endpoints ġodda.
+OmniRoute għandu pipeline ta' awtorizzazzjoni konxju mir-rotta li jikkontrolla kull talba tal-API. Il-klassifikazzjoni hija **deterministika** u **fail-closed** — kull ħaġa li ma tistax tiġi kklassifikata tispiċċa bħala `MANAGEMENT` u teħtieġ sessjoni jew token ta' grad ta' ġestjoni. Din il-paġna tispjega l-mudell għall-inġiniera li jżommu rotot jew jiddisinjaw endpoints ġodda.
 
-![Pipeline tal-AuthZ (3 klassijiet ta’ rotot + evalwazzjoni tal-politika)](../diagrams/exported/authz-pipeline.svg)
+![Pipeline ta' AuthZ (3 klassijiet ta' rotta + evalwazzjoni tal-politika)](../diagrams/exported/authz-pipeline.svg)
 
 > Sors: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -198,28 +198,24 @@ export async function POST(request: Request) {
 
 Agħżel is-sett skont il-forma, mhux skont il-konvenjenza. Rotta waħda tidħol f’`PUBLIC_API_ROUTES_EXACT` (jew f’`PUBLIC_READONLY_CORS_API_ROUTES` jekk hija GET-only); sottosiġra ġenwina biss tidħol f’`PUBLIC_API_ROUTE_PREFIXES`, u **trid tispiċċa b’`/`**. Jekk tpoġġi rotta individwali fil-lista tal-prefissi, tkun qiegħed tippubblika wkoll kull mogħdija biswitu li taqsam magħha l-karattri inizjali — inklużi rotot aħwa b’segmenti dinamiċi li jiżdiedu aktar tard (GHSA-74g9-q8f6-793h). Aġġorna t-testijiet tal-unità f’`tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` u `tests/unit/authz/classify.test.ts`.
 
-## Ambiti
+## Scopes
 
-Iċ-ċwievet tal-API jinkludu array `scopes` (maħżuna bħala JSON f’`api_keys.scopes`, ara `src/lib/db/apiKeys.ts`).
+Tliet namespaces. Kull checker jaqra biss is-strings tiegħu stess. Il-paragun, inkluż għaliex `manage` ifalli `scopeMatches` għal `read:compression` u għaliex access token ta' `read` ma jistax `PATCH /api/keys/{id}`, jinsab f'[Tliet namespaces ta' scope](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Ambitu ta’ ġestjoni
+API keys iġorru array ta' `scopes` (maħżun bħala JSON f'`api_keys.scopes`, ara `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — jagħti liċ-ċavetta aċċess għall-endpoints tal-API tal-ġestjoni meta tintbagħat bħala Bearer.
+### Scope tal-ġestjoni
 
-### Ambiti tal-MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Aċċess bearer għar-rotot tal-API tal-ġestjoni.
+- `mcp:connect`, `self:usage`, `self:account-quota`, u `policy:bypass-provider-quota` huma scopes addittivi ta' tqabbil eżatt. Dawn jinsabu barra `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` jiftaħ biss il-`/api/mcp/` carve-out mhux loopback.
 
-Kull għodda tal-MCP teħtieġ ambiti speċifiċi permezz ta’ `MCP_TOOL_SCOPES`. Lista sħiħa (`MCP_SCOPE_LIST`):
+### Scopes tal-għodda MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalogu u regoli ta' tqabbil (string identika, jew scope mogħti li jispiċċa b'`*`): [Scopes tal-għodda MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `MCP_SCOPE_LIST` f'`src/shared/constants/mcpScopes.ts` huwa s-subsett oriġinali tat-tip, mhux dak il-katalogu sħiħ. L-infurzar jaħdem f'`open-sse/mcp-server/scopeEnforcement.ts` wara li `resolveCallerScopeContext()` jsolvi l-scopes mill-informazzjoni tal-awtentikazzjoni tal-MCP, il-metadata tat-talba, jew `OMNIROUTE_MCP_SCOPES`. Jibqa' mitfi sakemm `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-L-infurzar tal-ambiti f’`open-sse/mcp-server/server.ts` jgħaddi l-lista tal-ambiti ta’ kull għodda lil
-`evaluateToolScopes()` wara li `resolveCallerScopeContext()` jirriżolvi l-ambiti mill-informazzjoni tal-awtentikazzjoni tal-MCP,
-mill-metadata tat-talba, jew minn `OMNIROUTE_MCP_SCOPES`.
+### Scopes tal-access-token
+
+`read` / `write` / `admin` fuq tokens `oma_live_…`, ikklassifikati minn `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`). Din il-klassifikazzjoni tapplika għall-kredenzjali tal-access token biss. Ara [Awtentikazzjoni tal-Ġestjoni](../guides/MANAGEMENT-AUTH.md).
 
 ## Swiċċ tar-Rekwiżit tal-Awtentikazzjoni
 
@@ -265,9 +261,9 @@ x-omniroute-auth-scopes:    comma-separated list
 
 Uża `assertAuth(req, expectedClass)` ġewwa l-handlers — din tarmi `AuthzAssertionError` bil-kodiċi `AUTHZ_NOT_INITIALIZED` jekk il-middleware jkun ġie evitat (utli biex jinqabdu regressjonijiet fil-konfigurazzjoni waqt it-testijiet).
 
-## Ara Wkoll
+## Ara wkoll
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — markatur tal-awtentikazzjoni għal kull endpoint
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — reġistru tal-awditjar għall-avvenimenti tal-awtentikazzjoni
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — dettalji dwar l-infurzar tal-ambitu tal-MCP
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tliet spazji tal-ismijiet tal-ambitu u katalgu tal-ambitu tal-għodda tal-MCP
 - Sors: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

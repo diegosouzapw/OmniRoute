@@ -4,56 +4,49 @@
 
 ---
 
-Tá **ceithre theaghlach dintiúr** ag OmniRoute ar féidir leo bealaí bainistíochta a údarú.
-Ní féidir iad a úsáid go hidirmhalartach. Ní bhainistíonn eochracha API tátail (`sk-…`) an
-freastalaí mura bhfuil an raon feidhme `manage` nó `admin` deonaithe dóibh go sainráite.
+Tá **ceithre theaghlach dintiúir** ag OmniRoute a fhéadfaidh bealaí bainistíochta a údarú.
+Níl siad inmhalartaithe. Ní bhainistíonn eochracha API Tátail (`sk-…`) an freastalaí **mura** bhfuil scóip `manage` nó `admin` deonaithe go sainráite dóibh.
 
-Cur chun feidhme canónach: `src/lib/api/requireManagementAuth.ts`.
+Cur i bhfeidhm canónach: `src/lib/api/requireManagementAuth.ts`.
 
-| Dintiúr                           | Gnáthfhoirm                                  | Cá gcruthaítear é                                          | Úsáid bheartaithe                 | Cumas bainistíochta                                                                                      |
-| --------------------------------- | -------------------------------------------- | ---------------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Seisiún JWT an deais              | fianán `auth_token`                          | Logáil isteach sa deais                                    | Comhéadan gréasáin sa bhrabhsálaí | Bainistíocht iomlán tríd an deais, faoi réir rialacha CSRF, logántachta agus bealaí atá cosanta i gcónaí |
-| Comhartha aitheantais meaisín CLI | inmheánach / logánta                         | Bútstrápáil CLI (`omniroute` ar an meaisín céanna)         | CLI logánta                       | Bainistíocht logánta amháin                                                                              |
-| Comhartha Rochtana Scópáilte      | `oma_live_…`                                 | **Socruithe → Comharthaí Rochtana** nó `omniroute connect` | CLI cianda agus API bainistíochta | Ní mór dó raon feidhme riachtanach `read`, `write`, nó `admin` an bhealaigh a chomhlíonadh               |
-| Eochair API tátail                | `sk-…` (agus réimíreanna eile eochracha API) | **Bainisteoir API / Eochracha API**                        | Tátal `/v1/*`                     | **Dada** mura n-áirítear `manage` nó `admin` i meiteashonraí na heochrach                                |
+| Dintiúr                           | Foirm tipiciúil                             | Cruthaithe cá                                              | Úsáid bheartaithe                 | Cumas bainistíochta                                                                                 |
+| :-------------------------------- | :------------------------------------------ | :--------------------------------------------------------- | :-------------------------------- | :-------------------------------------------------------------------------------------------------- |
+| Seisiún JWT Painéil               | `auth_token` fianán                         | Logáil isteach Painéil                                     | Comhéadan Úsáideora Brabhsálaí    | Bainistíocht iomlán an phainéil, faoi réir rialacha CSRF, logántachta, agus bealaí cosanta i gcónaí |
+| Comhartha aitheantais meaisín CLI | inmheánach / áitiúil                        | Tosaithe CLI (`omniroute` ar an meaisín céanna)            | CLI Áitiúil                       | Bainistíocht áitiúil amháin                                                                         |
+| Comhartha Rochtana Scóipithe      | `oma_live_…`                                | **Socruithe → Comharthaí Rochtana** nó `omniroute connect` | CLI cianda agus API bainistíochta | Ní mór scóip `read`, `write`, nó `admin` riachtanach an bhealaigh a shásamh                         |
+| Eochair API Tátail                | `sk-…` (agus réimíreanna API-eochrach eile) | **Bainisteoir API / Eochracha API**                        | Tátal `/v1/*`                     | **Níl aon cheann** mura bhfuil `manage` nó `admin` san áireamh i meiteashonraí na heochrach         |
 
-Is dintiúir bhainistíochta/CLI iad dintiúir `oma_`. **Ní** eochracha API tátail iad.
+Is dintiúir bainistíochta/CLI iad dintiúir `oma_`. **Ní** eochracha API Tátail iad.
 
-Má tá fíordheimhniú logála isteach/eochrach API díchumasaithe don fhreastalaí, d'fhéadfadh roinnt bealaí bainistíochta
-glacadh le glaonna neamhfhíordheimhnithe. Cuireann bealaí logánta amháin agus bealaí atá cosanta i gcónaí
-a rialacha féin i bhfeidhm fós. Dá bhrí sin, ní gá ceann de na dintiúir seo a chur i láthair
-i ngach cás, agus ní leor ceann a bheith agat i ngach cás gan an raon feidhme agus
-logántacht bhealaigh riachtanach.
+Má tá fíordheimhniú logáil isteach/API-eochrach díchumasaithe don fhreastalaí, féadfaidh roinnt bealaí bainistíochta glaonna neamhfhíordheimhnithe a ghlacadh. Cuireann bealaí áitiúla amháin agus bealaí cosanta i gcónaí a rialacha féin i bhfeidhm fós. Dá bhrí sin, níl sé éigeantach go huilíoch ceann de na dintiúir seo a chur i láthair, agus ní leor é a bheith agat go huilíoch gan an scóip riachtanach agus logántacht an bhealaigh.
 
-Gaolmhar: [Mód Cianda](./REMOTE-MODE.md) (conas a eisítear `oma_live_…` do CLI cianda).
+Gaolmhar: [Mód Cianda](./REMOTE-MODE.md) (conas a dhéantar `oma_live_…` a bhunú le haghaidh CLI cianda).
 
 ---
 
-## Maitrísí raoin feidhme
+## Maitrísí Scóip
 
-Tá an dá stór focal raoin feidhme seo **éagsúil**. Ná measc iad.
+Is foclóirí éagsúla iad scóip bhainistíochta eochracha API agus scóip chomhartha rochtana. Is tríú foclóir iad scóip uirlisí MCP, a sheiceáiltear le `scopeMatches` seachas ceachtar feidhm sna táblaí thíos. Taobh le taobh: [Trí spásainm scóip](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Raonta feidhme Comhartha Rochtana (`oma_live_…`)
+### Scóip Chomhartha Rochtana (`oma_live_…`)
 
-| Raon feidhme | Gnáthoibríochtaí                                                                          |
-| ------------ | ----------------------------------------------------------------------------------------- |
-| `read`       | Iarrataí GET liostála/stádais a bhfuil cead ag an gcomhartha iad a fheiceáil              |
-| `write`      | Athruithe (cruthú/nuashonrú/scriosadh) faoi bhun leibhéal riarthóra                       |
-| `admin`      | Comhartha iomlán CLI chianda / ceangail (seo an réamhshocrú do bhútstrápáil le pasfhocal) |
+| Scóip   | Gnáthoibríochtaí                                                                   |
+| ------- | ---------------------------------------------------------------------------------- |
+| `read`  | Liosta/stádas GETanna a bhfuil cead ag an chomhartha iad a fheiceáil               |
+| `write` | Athruithe (cruthaigh/nuashonraigh/scrios) faoi bhun riarthóra                      |
+| `admin` | Comhartha iomlán CLI cianda / ceangail (réamhshocruithe tosaithe pasfhocail anseo) |
 
-Ní féidir le comhartha a bhfuil `read` aige bealach `write` a ghlaoch. Cruth na teachtaireachta ag am rite:
-`Access token scope '<have>' is insufficient; '<need>' required.`
+Ní féidir le comhartha le `read` bealach `write` a ghlaoch. Cruth teachtaireachta reatha: `Níl scóip chomhartha rochtana '<have>' leordhóthanach; teastaíonn '<need>'."`
 
-### Raonta feidhme bainistíochta eochrach API
+### Scóip bhainistíochta eochracha API
 
-| Raon feidhme | Brí                                                                                                |
-| ------------ | -------------------------------------------------------------------------------------------------- |
-| (dada)       | Tátal amháin. Filleann bealaí bainistíochta 403.                                                   |
-| `manage`     | API bainistíochta (an geata céanna le brainse eochrach API `requireManagementAuth`)                |
-| `admin`      | Comhlíonann sé `hasManageScope` freisin (caitear leis mar raon atá in ann bainistíocht a dhéanamh) |
+| Scóip    | Brí                                                                                           |
+| -------- | --------------------------------------------------------------------------------------------- |
+| (none)   | Inneachar amháin. Filleann bealaí bainistíochta 403.                                          |
+| `manage` | API Bainistíochta (an geata céanna le brainse eochrach API `requireManagementAuth`)           |
+| `admin`  | Sásaíonn sé `hasManageScope` freisin (caitear leis mar atá sé in ann bainistíocht a dhéanamh) |
 
-Cumasaigh `manage` ar an eochair i gcomhéadan Eochracha API / Bainisteoir API. Ná hathúsáid
-eochair cliaint comhrá le haghaidh uathoibrithe mura bhfuil an raon feidhme sin deonaithe agat d'aon ghnó.
+Cumasaigh `manage` ar an eochair san Chomhéadan Úsáideora Eochracha API / Bainisteoir API. Ná athúsáid eochair cliant comhrá le haghaidh uathoibrithe mura bhfuil an scóip sin deonaithe agat d'aon ghnó.
 
 ---
 
@@ -129,29 +122,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Earráidí reatha ag am rite (ná déan macalla de rúin)
+## Earráidí reatha ama rite (ná déan rúin a aisbhéic)
 
-| Cás                                                    | Gnáthstádas | Teachtaireacht (slánaithe)                                           |
-| ------------------------------------------------------ | ----------- | -------------------------------------------------------------------- |
-| Gan dintiúr                                            | 401         | `Authentication required`                                            |
-| `oma_live_…` neamhbhailí/éagtha                        | 401         | `Invalid or expired access token`                                    |
-| Eochair API bhailí gan `manage`/`admin`                | 403         | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Gnátheochair API neamhbhailí ar bhealach bainistíochta | 403         | `Invalid management token`                                           |
-| Raon feidhme an Chomhartha Rochtana ró-íseal           | 403         | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Cás                                                     | Stádas tipiciúil | Teachtaireacht (glanta)                                              |
+| :------------------------------------------------------ | :--------------- | :------------------------------------------------------------------- |
+| Gan dintiúr                                             | 401              | `Authentication required`                                            |
+| `oma_live_…` neamhbhailí/imithe in éag                  | 401              | `Invalid or expired access token`                                    |
+| Eochair API bhailí gan `manage`/`admin`                 | 403              | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Eochair API gnáth neamhbhailí ar bhealach bainistíochta | 403              | `Invalid management token`                                           |
+| Scóip Chomhartha Rochtana ró-íseal                      | 403              | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-Ciallaíonn "Invalid management token" **nár** glacadh leis an gcomhartha iompróra mar
-dhintiúr bainistíochta. Ní insíonn sé duit cén cineál ba cheart duit a eisiúint. Úsáid an tábla thuas:
-teastaíonn raon feidhme `manage` ó eochracha tátail; teastaíonn `oma_live_…` ón CLI cianda; úsáideann an
-deais fianán an tseisiúin.
+Ciallaíonn "Invalid management token" nár glacadh leis an iompróir **mar** dhintiúr bainistíochta. Ní insíonn sé duit cén teaghlach le heisiúint. Bain úsáid as an tábla thuas: teastaíonn scóip `manage` ó eochracha infeiris; teastaíonn `oma_live_…` ó CLI iargúlta; úsáideann an painéal rialaithe an fianán seisiúin.
 
 ---
 
-## An rogha íosphribhéide a mholtar
+## Rogha Molta an Phribhléid is Lú
 
-| Glaoiteoir                                                  | Úsáid                                              |
-| ----------------------------------------------------------- | -------------------------------------------------- |
-| Brabhsálaí                                                  | Seisiún na deaise                                  |
-| CLI ar óstríomhaire an fhreastalaí                          | Comhartha meaisín                                  |
-| CLI ar ríomhaire glúine atá ag cumarsáid le cianfhreastalaí | `oma_live_…` ó `omniroute connect`                 |
-| CI / scripteanna (bainistíocht amháin)                      | `oma_live_…` leis an raon feidhme is lú a oibríonn |
-| CI ar gá dó `/v1` agus `/api` araon a ghlaoch               | Eochair API le `manage` **nó** dhá dhintiúr        |
+| Glaoiteoir                                               | Úsáid                                              |
+| -------------------------------------------------------- | -------------------------------------------------- |
+| Brabhsálaí                                               | Seisiún Painéil                                    |
+| CLI ar an óstach freastalaí                              | Comhartha meaisín                                  |
+| CLI ar ríomhaire glúine ag labhairt le freastalaí cianda | `oma_live_…` ó `omniroute connect`                 |
+| CI / scripteanna (bainistíocht amháin)                   | `oma_live_…` leis an raon feidhme is lú a oibríonn |
+| CI a chaithfidh glaoch ar `/v1` agus `/api` araon        | Eochair API le `manage` **nó** dhá dhintiúr        |

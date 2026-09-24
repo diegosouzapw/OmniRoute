@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 ჩვენი ღია კოდის მეგობრების მხარდაჭერით
+## 🤝 მხარდაჭერილია ჩვენი ღია კოდის მეგობრების მიერ
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — ღია მოწინავე ინტელექტი · 2.8T პარამეტრი · 1M-ტოკენიანი კონტექსტი"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — ღია სასაზღვრო ინტელექტი · 2.8T პარამეტრი · 1M-ტოკენის კონტექსტი"/>
   </a>
 </p>
 
-> **გსურთ, შემოგვიერთდეთ როგორც ღია კოდის მეგობარი?** ეს ის კომპანიებია, რომლებიც მხარს უჭერენ ღია კოდს და OmniRoute-ის განვითარებას უწყობენ ხელს — ჩვენ კი საჯაროდ ვაცხადებთ, სად იხარჯება მათ მიერ მოწოდებული თითოეული ტოკენი. დაგვიკავშირდით: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **გსურთ შეუერთდეთ როგორც ღია კოდის მეგობარი?** ეს არის კომპანიები, რომლებიც მხარს უჭერენ ღია კოდს და ეხმარებიან OmniRoute-ის მუშაობას — და ჩვენ საჯაროდ ვამბობთ, სად მიდის მათ მიერ მოცემული ყოველი ტოკენი. დაგვიკავშირდით: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="ღია კოდის დამფუძნებელი მეგობარი"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="დამფუძნებელი ღია კოდის მეგობარი"/>
     </td>
     <td>
-      მადლობას ვუხდით <b>Kimi-ს (Moonshot AI)</b>, ჩვენს ღია კოდის დამფუძნებელ მეგობარს, ამ პროექტის მხარდაჭერისთვის! Kimi არის AI ლაბორატორია, რომელიც ღია წონების მქონე K2 და K3 მოდელების ოჯახებს ქმნის — <b>Kimi K3</b> უზრუნველყოფს 1M-ტოკენიან კონტექსტურ ფანჯარას, ხედვის მშობლიურ მხარდაჭერასა და მოწინავე დონის პროგრამირებას დახურული მოდელების ფასის მხოლოდ მცირე ნაწილად და პირდაპირ მუშაობს Claude Code-თან, Codex-თან და პროგრამირების ყველა ხელსაწყოსთან, რომელსაც OmniRoute ემსახურება.
+      მადლობა <b>Kimi (Moonshot AI)</b>-ს, ჩვენს დამფუძნებელ ღია კოდის მეგობარს, ამ პროექტის მხარდაჭერისთვის! Kimi არის AI ლაბორატორია, რომელიც დგას ღია წონის K2 და K3 მოდელების ოჯახების უკან — <b>Kimi K3</b> გთავაზობთ 1M-ტოკენის კონტექსტურ ფანჯარას, მშობლიურ ხედვას და სასაზღვრო დონის კოდირებას დახურული მოდელების ფასის ნაწილზე, და მუშაობს ყუთიდან Claude Code-თან, Codex-თან და ყველა კოდირების ხელსაწყოსთან, რომელსაც OmniRoute ემსახურება.
       <br/><br/>
-      <b>რას უზრუნველყოფს Kimi-ს მხარდაჭერა:</b> Kimi-ს API კრედიტები უზრუნველყოფს OmniRoute-ის AI-ით ვალიდირებულ გამოშვების პროცესს — <i>Kimi K3-ზე დაფუძნებული შერწყმის ვალიდაციის</i> ეტაპს, რომელიც გამოშვებამდე ყველა pull request-ს ამოწმებს — ასევე ფუნქციების ყოველდღიურ განვითარებას. Kimi-ს სრულფასოვანი მხარდაჭერა ორივე არხზეა ხელმისაწვდომი: პირდაპირი <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) და <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code-ის პროგრამირების გეგმა</a> (OAuth და API გასაღები). OmniRoute ასევე პირველი ბრაზილიური ღია კოდის პროექტია Kimi-ს მხარდაჭერის პროგრამაში. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>მიიღეთ Kimi API გასაღები 15%-ით მეტი კრედიტით →</b></a>
+      <b>რას უზრუნველყოფს Kimi-ის მხარდაჭერა:</b> Kimi-ის API კრედიტები უზრუნველყოფს OmniRoute-ის AI-ვალიდირებულ გამოშვების კონვეიერს — <i>Kimi K3-ის მიერ მხარდაჭერილი შერწყმის ვალიდაციის</i> ეტაპს, რომელიც განიხილავს ყოველ pull request-ს მის გამოშვებამდე — პლუს ყოველდღიური ფუნქციების განვითარებას. პირველი კლასის Kimi-ის მხარდაჭერა მიეწოდება ორივე გზით: პირდაპირი <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) და <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code კოდირების გეგმა</a> (OAuth და API გასაღები). OmniRoute ასევე არის პირველი ბრაზილიური ღია კოდის პროექტი Kimi-ის მხარდაჭერის პროგრამაში. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>მიიღეთ Kimi API გასაღები 15% დამატებითი კრედიტებით →</b></a>
     </td>
   </tr>
   <tr>
@@ -301,21 +301,21 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="ღია კოდის მეგობარი"/>
     </td>
     <td>
-      მადლობას ვუხდით <b>Cheaper Inference-ს</b>, OmniRoute-ის ღია კოდის მეგობარს, ამ პროექტის მხარდაჭერისთვის! Cheaper Inference არის ფასის მიხედვით რანჟირებული კარიბჭე, რომელიც ერთ OpenAI-თან თავსებადი endpoint-ის უკან 42 მოწინავე მოდელს — Claude-ს, GPT-5.x-ს, Gemini-ს, Kimi K3-ს, GLM-ს, DeepSeek-ს, Grok-სა და MiniMax-ს — ხელახლა ყიდის და თითოეულ მოთხოვნას ყველაზე იაფ შესაბამის პროვაიდერთან მიმართავს ისე, რომ მოდელის შემქმნელის ოფიციალურ ფასზე მეტს არასოდეს გაკისრებთ.
+      მადლობა <b>Cheaper Inference</b>-ს, OmniRoute-ის ღია კოდის მეგობარს, ამ პროექტის მხარდაჭერისთვის! Cheaper Inference არის ხარჯების მიხედვით რანჟირებული კარიბჭე, რომელიც ყიდის 42 სასაზღვრო მოდელს — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok და MiniMax — ერთი OpenAI-თან თავსებადი ბოლო წერტილის უკან, თითოეული მოთხოვნის გადამისამართებით ყველაზე იაფ შესაბამის პროვაიდერთან, მოდელის შემქმნელის ჩამონათვალის ფასზე მაღლა დატენვის გარეშე.
       <br/><br/>
-      <b>სრულფასოვანი მხარდაჭერა OmniRoute-ში:</b> Chat Completions, მშობლიური <code>/v1/responses</code> endpoint, ხედვა, ხელსაწყოების გამოძახება და 3 გამოსახულების მოდელი (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, რომლებიც ხელმისაწვდომია როგორც <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>მიიღეთ API გასაღები →</b></a>
+      <b>პირველი კლასის მხარდაჭერა OmniRoute-ში:</b> Chat Completions, მშობლიური <code>/v1/responses</code> ბოლო წერტილი, ხედვა, ხელსაწყოების გამოძახება და 3 გამოსახულების მოდელი (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, ხელმისაწვდომია როგორც <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>მიიღეთ API გასაღები →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> ნიშნულის მქონე ბმულები პარტნიორული ბმულებია. ისინი პროექტს აფინანსებს თქვენთვის დამატებითი ხარჯის გარეშე.</sub>
+<sub>ბმულები, რომლებიც მონიშნულია <code>aff=omniroute</code>, არის პარტნიორული ბმულები. ისინი აფინანსებენ პროექტს თქვენთვის დამატებითი ხარჯების გარეშე.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ პარტნიორული აქციები</b> — რეგისტრაციის უფასო კუპონები იმ პროვაიდერებისგან, რომლებიც ჩვენი სპონსორები არ არიან (გასაშლელად დააწკაპუნეთ)</sub></summary>
+<summary><sub><b>🎟️ შვილობილი პრომო</b> — უფასო რეგისტრაციის კუპონები პროვაიდერებისგან, რომლებსაც არ ვასპონსორებთ (გასაშლელად დააჭირეთ)</sub></summary>
 
-<sub><i>ეს განყოფილება მხოლოდ სარეფერალო/კუპონის კოდებისთვისაა განკუთვნილი. დაფინანსებული პარტნიორობები ზემოთ, <b>🤝 ჩვენი ღია კოდის მეგობრების მხარდაჭერით</b> განყოფილებაშია წარმოდგენილი. OmniRoute-ს აქ ჩამოთვლილ პროვაიდერებთან არც სპონსორული და არც პარტნიორული ურთიერთობა არ აქვს — ეს არის საჯარო კუპონები, რომელთა გამოყენებაც ყველას შეუძლია.</i></sub>
+<sub><i>ეს განყოფილება განკუთვნილია მხოლოდ რეფერალური/კუპონის კოდებისთვის. სპონსორირებული პარტნიორობები განთავსებულია ზემოთ <b>🤝 მხარდაჭერილია ჩვენი ღია კოდის მეგობრების მიერ</b> განყოფილებაში. OmniRoute-ს არ აქვს სპონსორობა ან პარტნიორობა აქ ჩამოთვლილ პროვაიდერებთან — ეს არის საჯარო კუპონები, რომელთა გამოყენება ნებისმიერს შეუძლია.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — პარტნიორული რეგისტრაცია · რეგისტრაციისას <b>$100-ის უფასო კრედიტები</b> (უფასო სერვერი, ამიტომ მოსალოდნელია უფრო მაღალი დაყოვნება — უმჯობესია ტესტირებისთვის და არა საწარმოო გარემოსთვის). სრულფასოვანი მხარდაჭერა OmniRoute-ში <b>v3.8.50</b>-დან: Chat Completions, Anthropic-თან თავსებადი საკომუნიკაციო ფორმატი და OpenAI-თან თავსებადი გზა. ხელმისაწვდომ მოდელებს შორისაა <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> და სხვა. <b><a href="https://agentrouter.org/register?aff=70LM">მიიღეთ თქვენი $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — შვილობილი რეგისტრაცია · <b>$100 უფასო კრედიტი</b> რეგისტრაციისას (უფასო სერვერი, მოსალოდნელია უფრო მაღალი შეყოვნება — საუკეთესოა ტესტირებისთვის, არა წარმოებისთვის). პირველი კლასის მხარდაჭერა OmniRoute-ში <b>v3.8.50</b>-დან: Chat Completions, Anthropic-თან თავსებადი სადენიანი ფორმატი და OpenAI-თან თავსებადი გზა. ხელმისაწვდომი მოდელები მოიცავს <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> და სხვა. <b><a href="https://agentrouter.org/register?aff=70LM">აიღეთ თქვენი $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>პარტნიორული ბმული — OmniRoute-ს ამ პროვაიდერთან არც სპონსორული და არც პარტნიორული ურთიერთობა არ აქვს.</i></sub>
+      <sub>⚠️ <i>შვილობილი ბმული — OmniRoute-ს არ აქვს სპონსორობა ან პარტნიორობა ამ პროვაიდერთან.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>იცით სხვა პროვაიდერი, რომელსაც რეგისტრაციისთვის გულუხვი უფასო კუპონი აქვს და OmniRoute-ის მომხმარებლებს გამოადგება? გახსენით issue და მას აქ დავამატებთ.</sub>
+<sub>იცით სხვა პროვაიდერი გულუხვი უფასო რეგისტრაციის კუპონით, რომელიც სარგებელს მოუტანს OmniRoute-ის მომხმარებლებს? გახსენით საკითხი და ჩვენ დავამატებთ მას აქ.</sub>
 
 </details>
 
@@ -1262,23 +1262,23 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1-იც გამ�
 
 <table>
   <tr><th align="left">ფენა</th><th align="left">ტექნოლოგია</th></tr>
-  <tr><td nowrap><b>შესრულების გარემო</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ენა</b></td><td>TypeScript 6.0 — <code>src/</code>-სა და <code>open-sse/</code>-ში <b>100% TypeScript</b> (v2.0-დან ბირთვში არცერთი <code>any</code>)</td></tr>
+  <tr><td nowrap><b>გაშვების გარემო</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>ენა</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> `src/`-სა და `open-sse/`-ში (არცერთი `any` ბირთვში v2.0-დან)</td></tr>
   <tr><td nowrap><b>ფრეიმვორკი</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>მონაცემთა ბაზა</b></td><td>better-sqlite3 (SQLite, WAL-ჟურნალირება) + LowDB (მემკვიდრეობითი JSON) — 122 დომენური მოდული, 178 მიგრაცია</td></tr>
-  <tr><td nowrap><b>მეხსიერება</b></td><td>SQLite FTS5-ის სრული ტექსტის ძიება + int8-კვანტიზებული ვექტორული ჩაშენებები, ტიპიზებული დაქვეითება</td></tr>
-  <tr><td nowrap><b>სქემები</b></td><td>Zod 4 — MCP ინსტრუმენტების შეყვანა/გამოტანის ვალიდაცია + API კონტრაქტები</td></tr>
+  <tr><td nowrap><b>მონაცემთა ბაზა</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 დომენის მოდული, 182 მიგრაცია</td></tr>
+  <tr><td nowrap><b>მეხსიერება</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, ტიპირებული დაშლა</td></tr>
+  <tr><td nowrap><b>სქემები</b></td><td>Zod 4 — MCP ხელსაწყოს I/O ვალიდაცია + API კონტრაქტები</td></tr>
   <tr><td nowrap><b>პროტოკოლები</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>ნაკადური გადაცემა</b></td><td>Server-Sent Events (SSE) + WebSocket ხიდი (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>შეკუმშვა</b></td><td>12-ძრავიანი კონვეიერი — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>ავთენტიფიკაცია და უსაფრთხოება</b></td><td>OAuth 2.0 (PKCE) + JWT + API გასაღებები + მოქმედების არეალით შეზღუდული MCP ავთენტიფიკაცია · შენახული მონაცემების AES-256-GCM დაშიფვრა · DOMPurify</td></tr>
-  <tr><td nowrap><b>შეუმჩნევლობა</b></td><td>wreq-js — JA3 / JA4 TLS-ანაბეჭდის იმიტაცია, 3-დონიანი პროქსი</td></tr>
-  <tr><td nowrap><b>მდგრადობა</b></td><td>ავარიული ამომრთველი, ექსპონენციალური დაყოვნება, მოთხოვნების ერთდროული მოზღვავებისგან დაცვა, კომბინაციების ავტომატური თვითაღდგენა</td></tr>
-  <tr><td nowrap><b>ჟურნალირება</b></td><td>pino — სტრუქტურირებული JSON-ჟურნალები მოთხოვნის კონტექსტით</td></tr>
-  <tr><td nowrap><b>ტესტირება</b></td><td>Node.js-ის ტესტების გამშვები + Vitest — <b>39,000-ზე მეტი სტატიკური ტესტის დეკლარაცია</b> 5,100-ზე მეტ აღრიცხულ სატესტო ფაილში (მოდულური, ინტეგრაციული, E2E, უსაფრთხოების, ეკოსისტემის)</td></tr>
+  <tr><td nowrap><b>სტრიმინგი</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>კომპრესია</b></td><td>12-ძრავიანი კონვეიერი — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>ავთენტიფიკაცია და უსაფრთხოება</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP-ის ფარგლებში ავთენტიფიკაცია · AES-256-GCM მოსვენებულ მდგომარეობაში · DOMPurify</td></tr>
+  <tr><td nowrap><b>ფარულობა</b></td><td>wreq-js — JA3 / JA4 TLS თითის ანაბეჭდის იმიტაცია, 3-დონიანი პროქსი</td></tr>
+  <tr><td nowrap><b>მდგრადობა</b></td><td>წრედის ამომრთველი, ექსპონენციალური უკუდახევა, ანტი-თუნდერინგ-ჰერდი, ავტო-კომბო თვითაღდგენა</td></tr>
+  <tr><td nowrap><b>ლოგირება</b></td><td>pino — სტრუქტურირებული JSON ლოგები მოთხოვნის კონტექსტით</td></tr>
+  <tr><td nowrap><b>ტესტირება</b></td><td>Node.js test runner + Vitest — <b>39,000+ სტატიკური ტესტის დეკლარაცია</b> 5,100+ თვალყურის ქვეშ მყოფ სატესტო ფაილში (ერთეული, ინტეგრაცია, E2E, უსაფრთხოება, ეკოსისტემა)</td></tr>
   <tr><td nowrap><b>პლატფორმები</b></td><td>დესკტოპი (Electron) · Android (Termux) · PWA (ნებისმიერი ბრაუზერი)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — რელიზისას npm-ზე და Docker Hub-ზე ავტომატური გამოქვეყნება</td></tr>
-  <tr><td nowrap><b>ბმულები</b></td><td><a href="https://omniroute.online">ვებსაიტი</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ავტომატური npm გამოქვეყნება + Docker Hub გამოშვებაზე</td></tr>
+  <tr><td nowrap><b>ბმულები</b></td><td><a href="https://omniroute.online">ვებგვერდი</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

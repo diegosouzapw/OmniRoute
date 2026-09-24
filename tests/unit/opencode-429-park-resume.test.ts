@@ -98,7 +98,12 @@ describe("opencode 429 park-and-resume", () => {
   }
 
   function writeMarker(payload: Record<string, unknown>): void {
-    fs.writeFileSync(process.env[MARKER_ENV] as string, JSON.stringify(payload));
+    const markerPath = process.env[MARKER_ENV] as string;
+    fs.writeFileSync(markerPath, JSON.stringify(payload));
+    // #14487: the marker is only trusted when it is owner-locked-down (no
+    // group/other write bit) — the fixture must reflect that, not just the
+    // umask-derived default mode.
+    fs.chmodSync(markerPath, 0o600);
   }
 
   async function run(count: number, stream: boolean, signal: AbortSignal | null = null) {

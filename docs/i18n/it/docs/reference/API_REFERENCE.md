@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Semantica dei costi per i cache hit:** in caso di HIT della cache semantica (`X-OmniRoute-Cache-Hit: true`) non viene effettuata alcuna chiamata upstream, pertanto `X-OmniRoute-Response-Cost` è pari a `0.0000000000` (il costo **incrementale** per servire il risultato dalla cache). Il costo originale/potenziale viene indicato separatamente in `X-OmniRoute-Cost-Saved`. I sistemi di fatturazione devono sommare `X-OmniRoute-Response-Cost` (i cache hit non hanno alcun costo); i sistemi di analisi della cache possono aggregare `X-OmniRoute-Cost-Saved`.
 
-## Lease esclusive di sessioni gestite
+## Lease di Sessione Gestite Esclusive
 
-Il leasing esclusivo di sessioni gestite è un contratto di routing opzionale e indipendente dal client: un unico proprietario attivo
-detiene una connessione OmniRoute idonea. Non concede in leasing un modello, non richiede OAuth, non identifica un
-client specifico e non richiede un provider specifico.
+Il leasing di sessione gestita esclusiva è un contratto di routing opt-in, neutrale rispetto al client: un proprietario attivo detiene una connessione OmniRoute idonea. Non affitta un modello, non richiede OAuth, non identifica un client particolare e non richiede un provider particolare.
 
-La chiave API usata per l'autenticazione deve avere l'ambito `lease:exclusive` e un elenco
-`allowedConnections` esplicito e non vuoto. Il limite delle mutazioni del database impone la presenza congiunta di entrambi i campi durante la
-creazione della chiave e gli aggiornamenti parziali.
+La chiave API di autenticazione deve avere lo scope `lease:exclusive` e un elenco esplicito non vuoto `allowedConnections`. Il limite di mutazione del database impone entrambi i campi insieme alla creazione della chiave e agli aggiornamenti parziali.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Le risposte riuscite di acquisizione, rinnovo e rilascio espongono i timestamp, `state` e l'esatto valore positivo di
-`generation`, ma mai la connessione selezionata o le credenziali. Il rinnovo e il rilascio specificano la
-generazione nel corpo JSON:
+Le risposte di acquisizione, rinnovo e rilascio riuscite espongono timestamp, `state` e l'esatta `generation` positiva, ma mai la connessione o le credenziali selezionate. Rinnovo e rilascio forniscono la generazione nel corpo JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generazione nel corpo JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Il proprietario di un lease attivo può richiedere esplicitamente metadati di visualizzazione rispettosi della privacy per l'associazione corrente:
+Un proprietario di lease attivo può richiedere esplicitamente metadati di visualizzazione sicuri per la privacy per il suo binding corrente:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,23 +131,11 @@ Il proprietario di un lease attivo può richiedere esplicitamente metadati di vi
 }
 ```
 
-Questa azione di stato opzionale è protetta, in un'unica transazione del database, dal proprietario opaco, dalla chiave API gestita autenticata e dall'esatta
-generazione attiva. `displayName` è esclusivamente il nome configurato della connessione, senza spazi iniziali o finali;
-è `null` quando non esiste un nome configurato sicuro. OmniRoute non lo sostituisce mai con
-un indirizzo e-mail o con un'identità account generata. Il valore del provider è un'etichetta di visualizzazione non sensibile e non è mai
-un identificatore generato di provider compatibile. Sono esclusi credenziali, token, cookie, ID non elaborati della connessione o della chiave
-API, hash del proprietario, segreti di fencing e dati di routing interni.
+Questa azione di stato opt-in è protetta dal proprietario opaco, dalla chiave API gestita autenticata e dall'esatta generazione attiva in una singola transazione di database. `displayName` è solo il nome della connessione configurata e troncata; è `null` quando non esiste un nome configurato sicuro. OmniRoute non sostituisce mai un'e-mail o un'identità di account generata. Il valore del provider è un'etichetta di visualizzazione non sensibile e mai un identificatore di provider compatibile generato. Credenziali, token, cookie, ID di connessione o chiave API grezzi, hash del proprietario, segreti di protezione e dati di routing interni sono esclusi.
 
-Le ricerche con chiave errata, proprietario errato, generazione obsoleta oppure relative a lease mancanti, scaduti, rilasciati o invalidati
-restituiscono tutte lo stesso errore `409 LEASE_FENCE_STALE`, senza metadati della connessione. Un client che ha ricevuto la risposta di attesa della capacità non dispone di alcuna associazione attiva da esaminare. Quando il routing modifica la connessione di un lease attivo,
-la stessa generazione rimane valida e lo stato restituisce atomicamente la nuova associazione, mai quella precedente.
-I client esistenti non subiscono modifiche, perché le risposte di acquisizione, rinnovo, rilascio e attesa mantengono
-i formati precedenti.
+Ricerche con chiave errata, proprietario errato, generazione obsoleta, mancanti, scadute, rilasciate e invalidate restituiscono tutte lo stesso errore `409 LEASE_FENCE_STALE` senza metadati di connessione. Un client che ha ricevuto la risposta di attesa capacità non ha un binding attivo da ispezionare. Quando il routing transita un lease attivo, la stessa generazione rimane valida e lo stato restituisce atomicamente il nuovo binding, mai quello vecchio. I client esistenti rimangono invariati perché le risposte di acquisizione, rinnovo, rilascio e attesa mantengono le loro forme precedenti.
 
-Questo contratto del server non modifica `/status` di OpenAI Codex standard. Attualmente, Codex standard segnala il proprio
-provider del modello e lo stato integrato di autenticazione/account, ma non visualizza metadati account arbitrari di
-provider personalizzati; una futura integrazione client dovrà chiamare questa azione e decidere come
-visualizzare `connection.displayName`.
+Questo contratto server non modifica lo stato di OpenAI Codex `/status`. Codex attualmente riporta il suo provider di modelli e lo stato di autenticazione/account integrato, ma non rende metadati arbitrari di account provider personalizzati; una successiva integrazione client deve chiamare questa azione e decidere come visualizzare `connection.displayName`.
 
 Ogni richiesta di inferenza gestita fornisce quindi entrambe le intestazioni di controllo:
 
@@ -162,10 +144,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Il proprietario esatto, la generazione, la connessione attiva e la chiave API autenticata vengono sottoposti a fencing immediatamente
-prima di ogni tentativo upstream supportato. La riproduzione del proprietario e della generazione con un'altra chiave non riesce anche
-quando tale chiave consente la stessa connessione. I proprietari non elaborati non vengono resi persistenti, registrati nei log, conservati
-nello snapshot della richiesta o inoltrati upstream.
+Il proprietario esatto, la generazione, la connessione attiva e la chiave API autenticata sono protetti immediatamente prima di ogni tentativo upstream supportato. Ripetere proprietario e generazione con un'altra chiave fallisce anche quando quella chiave consente la stessa connessione. I proprietari grezzi non vengono persistiti, registrati, mantenuti nello snapshot della richiesta o inoltrati upstream.
 
 La contesa temporanea restituisce HTTP `429` con `Retry-After` e:
 
@@ -178,30 +157,29 @@ La contesa temporanea restituisce HTTP `429` con `Retry-After` e:
 }
 ```
 
-Questa risposta indica soltanto che l'insieme ordinario di connessioni idonee non era vuoto e che ogni candidato libero era
-detenuto da un lease attivo di un altro proprietario. Modelli/provider non supportati, mancata corrispondenza con i criteri, cooldown, quota,
-integrità e altri normali errori di idoneità mantengono le risposte OmniRoute esistenti.
+Questa risposta significa solo che l'insieme idoneo ordinario non era vuoto e ogni candidato libero era detenuto da un lease attivo esterno. Modelli/provider non supportati, mancata corrispondenza delle policy, cooldown, quota, stato di salute e altri fallimenti di idoneità ordinari mantengono le loro risposte OmniRoute esistenti.
 
 ### `x-omniroute-compression`
 
-Override del piano di compressione per la singola richiesta. Ha la precedenza più alta: prevale sull'override della combinazione di routing,
-sul profilo attivo, sull'attivazione automatica e sul valore Default del pannello. Valori:
+Override per richiesta del piano di compressione. Massima precedenza — batte l'override della combo di routing, il profilo attivo, l'attivazione automatica e il Default del pannello. Valori:
 
-| Valore        | Effetto                                                                                                               |
-| ------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Nessuna compressione per questa richiesta.                                                                            |
-| `default`     | Il profilo Default derivato dal pannello (ignora il profilo attivo).                                                  |
-| `engine:<id>` | Un singolo motore, se abilitato, ad es. `engine:rtk`.                                                                 |
-| `<combo>`     | Una combinazione denominata, confrontata prima per nome (senza distinzione tra maiuscole e minuscole), quindi per ID. |
+| Valore        | Effetto                                                                                               |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| `off`         | Nessuna compressione per questa richiesta.                                                            |
+| `default`     | Il profilo Default derivato dal pannello (ignora il profilo attivo). I motori lossy sono disattivati. |
+| `safe`        | Solo deduplicazione e ripiegamento degli spazi bianchi.                                               |
+| `allow-lossy` | Mantiene il piano dell'operatore per questa richiesta, inclusi riepiloghi e riscritture di stile.     |
+| `engine:<id>` | Un singolo motore quando abilitato, ad es. `engine:rtk`. Opt-in per richiesta per quel motore.        |
+| `<combo>`     | Una combo nominata, abbinata prima per nome (case-insensitive), poi per ID.                           |
 
 Note:
 
-- I valori sconosciuti vengono ignorati (la richiesta non viene mai rifiutata); la risoluzione prosegue secondo il normale ordine di precedenza degli operatori.
-- Se più combinazioni condividono lo stesso nome, specificare l'**id** della combinazione per ottenere una corrispondenza deterministica.
-- Una combinazione il cui nome è `off` o `default` non può essere selezionata per nome (queste parole chiave vengono interpretate per prime); fare riferimento a tale combinazione tramite il relativo ID.
-- L'interruttore principale della compressione è un vincolo assoluto: quando la compressione è disabilitata globalmente, questa intestazione non può abilitarla.
+- I valori sconosciuti vengono ignorati (la richiesta non viene mai rifiutata); la risoluzione ricade sulla normale precedenza dell'operatore.
+- Se più combo condividono un nome, passare l'**ID** della combo per una corrispondenza deterministica.
+- Una combo il cui nome è `off` o `default` non può essere selezionata per nome (tali parole chiave vengono interpretate per prime); fare riferimento a tale combo tramite il suo ID.
+- L'interruttore principale della compressione è un blocco rigido: quando la compressione è disabilitata globalmente, questa intestazione non può abilitarla.
 
-Il piano applicato viene restituito nell'intestazione della risposta:
+Il piano applicato viene riportato nell'intestazione della risposta:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
