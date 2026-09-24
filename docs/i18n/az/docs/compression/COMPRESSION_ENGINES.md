@@ -9,38 +9,45 @@ OmniRoute sıxışdırması mühərrik müqavilələri əsasında qurulub. Rejim
 
 ## Rejimlər
 
-| Rejim        | Mühərrik yolu                       | Nəzərdə tutulan giriş                            |
-| ------------ | ----------------------------------- | ------------------------------------------------ |
-| `off`        | yoxdur                              | Sorğunun dəqiq qorunması                         |
-| `lite`       | Caveman lite köməkçiləri            | Aşağı riskli, daim aktiv təmizləmə               |
-| `standard`   | Caveman                             | Təbii dildəki sorğunun yığcamlaşdırılması        |
-| `aggressive` | Caveman + tarixçə/alət xülasəçiləri | Uzun söhbət sessiyaları                          |
-| `ultra`      | Caveman + budama köməkçiləri        | Kontekst limiti aşıldıqda bərpa                  |
-| `rtk`        | RTK                                 | Terminal, shell, build, test və git çıxışı       |
-| `omniglyph`  | OmniGlyph                           | Yerli provayder protokolunda şəkil kimi kontekst |
-| `stacked`    | Konveyer, standart `rtk -> caveman` | Qarışıq alət jurnalları və mətn, maksimum qənaət |
+| Rejim        | Mühərrik yolu                                                                          | Nəzərdə tutulan giriş                            |
+| ------------ | -------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `off`        | yoxdur                                                                                 | Sorğunun dəqiq qorunması                         |
+| `lite`       | Caveman lite köməkçiləri                                                               | Aşağı riskli, daim aktiv təmizləmə               |
+| `standard`   | Caveman                                                                                | Təbii dildəki sorğunun yığcamlaşdırılması        |
+| `aggressive` | Caveman + tarix/alət xülasələşdiriciləri                                               | Uzun söhbət sessiyaları                          |
+| `ultra`      | Caveman + ixtisar köməkçiləri                                                          | Kontekst limiti bərpası                          |
+| `rtk`        | RTK                                                                                    | Terminal, qabıq, qurma, test və git çıxışı       |
+| `omniglyph`  | OmniGlyph                                                                              | Doğma provayder xəttində təsvir kimi kontekst    |
+| `stacked`    | Konveyer. Sorğunun standartı `session-dedup -> lite`-dır. `rtk -> caveman` seçimlidir. | Qarışıq alət jurnalları və mətn, maksimum qənaət |
 
-### OmniGlyph sıxışdırma profilləri
+### OmniGlyph sıxılma profilləri
 
-`omniglyph` mühərriki (`omniglyph` paketi, 1.4.0+) sıxışdırma parametrlərində qlobal olaraq
-`omniglyph.profile` vasitəsilə və ya yığılmış konveyerin addım konfiqurasiyası vasitəsilə hər addım üçün təyin edilən adlandırılmış semantik profili qəbul edir:
+`omniglyph` mühərriki (`omniglyph` paketi, 1.4.0+) adlı semantik profili qəbul edir; bu profil
+sıxılma parametrlərində `omniglyph.profile` vasitəsilə qlobal olaraq və ya yığılmış
+konveyerin addım konfiqurasiyası vasitəsilə hər addım üçün təyin edilir:
 
-| Profil        | Sərhəd                                                                                                         |
-| ------------- | -------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Standart. Dərc edilmiş nəticələrin ölçdüyü siyasət — sistem, alət sənədləri və sıx tarixçəni şəkilləşdirir     |
-| `balanced`    | Aktiv vəziyyəti yerli formatda saxlayır, son 8 gedişi qoruyur, daha köhnə tamamlanmış tarixçəni yığcamlaşdırır |
-| `coding-safe` | Səlahiyyətləri, alət sxemlərini və aktiv alət çıxışını yerli formatda saxlayır, son 12 gedişi qoruyur          |
-| `passthrough` | Transformasiya etmədən yönləndirir; mühərrik ötürülür                                                          |
+| Profil        | Sərhəd                                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Standart. Dərc olunmuş ölçmə nəticələrinin əsaslandığı siyasət — sistem, alət sənədləri və sıx tarix təsvirlərə çevrilir |
+| `balanced`    | Aktiv vəziyyəti doğma formada saxlayır, son 8 gedişi qoruyur, daha köhnə bağlanmış tarixçəni yığcamlaşdırır              |
+| `coding-safe` | Səlahiyyətləri, alət sxemlərini və aktiv alət çıxışını doğma formada saxlayır, son 12 gedişi qoruyur                     |
+| `passthrough` | Çevirmədən yönləndirir; mühərrik ötürülür                                                                                |
 
-Profil **minimum deyil, maksimum həddir**: paketdəki `mergeCompressionProfileOptions`
-çağıran tərəfin itkilərlə sıxışdırılan və profil tərəfindən bağlanmış kanalı yenidən açmasına imkan vermir; buna görə də hər addım üçün
-`preserveSystemPrompt: false` parametri `coding-safe` altında sistem sıxışdırmasını yenidən aktivləşdirə bilməz.
+Profil **aşağı hədd deyil, yuxarı həddir**: paketdəki `mergeCompressionProfileOptions`
+çağıranın profilin bağladığı itkili zolağı əvəzləməklə yenidən açmasına icazə vermir, buna görə
+hər addım üzrə `preserveSystemPrompt: false` parametri `coding-safe` altında sistem
+sıxılmasını yenidən aktivləşdirə bilməz.
 
-Bu kod bazasında aparılan ölçmələrə əsasən: `coding-safe` və `balanced` `minCompressChars` dəyərini maksimuma qaldırır və sistemi, alət sxemlərini və alət nəticələrini yerli formatda saxlayır; buna görə də hələ tarixçə toplamamış sessiya
-`below_min_chars` mərhələsində dayanır və mühərrik heç nəyi transformasiya etmir. Buna görə də standart profil ən təhlükəsiz profil deyil, `aggressive` profilidir.
+Bu kod bazasında aparılan ölçmələrə görə: `coding-safe` və `balanced` `minCompressChars`
+dəyərini maksimuma qaldırır və sistemi, alət sxemlərini və alət nəticələrini doğma formada
+saxlayır; buna görə hələ tarixçə toplamamış sessiya `below_min_chars` mərhələsində dayanır və
+mühərrik heç nəyi çevirmir. Məhz buna görə standart olaraq ən təhlükəsiz profil deyil,
+`aggressive` istifadə olunur.
 
-Paket öz model əhatəsini və profilini mühit konfiqurasiyasından müəyyən edir.
-OmniRoute qərarı heç vaxt ötürmür: adapter model filtrini paketin ən məhdudlaşdırıcı əhatəsinə sabitləyir, buna görə də host mühitinin parametrləri icazə siyahısını yalnız daralda bilər, onu heç vaxt OmniRoute-un ölçülmüş nəticələrindən daha geniş edə bilməz.
+Paket öz model əhatə dairəsini və profilini mühit konfiqurasiyasından müəyyən edir.
+OmniRoute qərarı heç vaxt həvalə etmir: adapter model keçidini paketin ən məhdudlaşdırıcı
+əhatə dairəsinə sabitləyir, buna görə host mühitinin parametrləri icazə siyahısını yalnız
+daralda bilər, onu heç vaxt OmniRoute-un ölçülmüş nəticələrindən kənara genişləndirə bilməz.
 
 ## Mühərrik reyestri
 
@@ -387,7 +394,7 @@ qiymətləndirmələr, keşə həssas prefikslər və s.).
 
 ## Yoxlama
 
-Bu sahə üçün məqsədyönlü yoxlamalar bunlardır:
+Bu sahə üzrə hədəflənmiş yoxlama mərhələləri bunlardır:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

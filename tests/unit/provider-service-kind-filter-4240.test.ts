@@ -31,13 +31,13 @@ function entry(providerId: string, name: string, total: number): Entry {
   };
 }
 
-// vertex → video/music, haiper → video, openai → image/embedding, suno → music
+// vertex → video/music, haiper → video, openai → image/embedding, udio → music
 // (all registry-derived; none declare serviceKinds explicitly here)
 const ENTRIES: Entry[] = [
   entry("vertex", "Vertex AI", 1),
   entry("haiper", "Haiper", 0),
   entry("openai", "OpenAI", 1),
-  entry("suno", "Suno", 1),
+  entry("udio", "Udio", 1),
 ];
 
 function ids(list: Entry[]): string[] {
@@ -77,5 +77,5 @@ test("a null/undefined serviceKindFilter leaves the list unchanged", () => {
 
 test("serviceKindFilter=music keeps only music providers", () => {
   const out = filterConfiguredProviderEntries(ENTRIES, false, "", false, "", "music");
-  assert.deepEqual(ids(out), ["suno", "vertex"]);
+  assert.deepEqual(ids(out), ["udio", "vertex"]);
 });

@@ -9,42 +9,43 @@ Kompresia OmniRoute je postavená na kontraktoch enginov. Režim môže priamo s
 
 ## Režimy
 
-| Režim        | Cesta enginu                              | Určený vstup                                           |
-| ------------ | ----------------------------------------- | ------------------------------------------------------ |
-| `off`        | žiadny                                    | Presné zachovanie promptu                              |
-| `lite`       | Pomocné funkcie Caveman lite              | Vždy aktívne čistenie s nízkym rizikom                 |
-| `standard`   | Caveman                                   | Kondenzácia promptov v prirodzenom jazyku              |
-| `aggressive` | Caveman + sumarizátory histórie/nástrojov | Dlhé chatové relácie                                   |
-| `ultra`      | Caveman + pomocné funkcie na orezávanie   | Obnova pri dosiahnutí limitu kontextu                  |
-| `rtk`        | RTK                                       | Výstup terminálu, shellu, zostavenia, testov a gitu    |
-| `omniglyph`  | OmniGlyph                                 | Kontext ako obrázok na natívnom rozhraní poskytovateľa |
-| `stacked`    | Pipeline, predvolene `rtk -> caveman`     | Zmiešané protokoly nástrojov a próza, maximálna úspora |
+| Režim        | Cesta k enginu                                                                             | Zamýšľaný vstup                                        |
+| :----------- | :----------------------------------------------------------------------------------------- | :----------------------------------------------------- |
+| `off`        | žiadny                                                                                     | Presné zachovanie výzvy                                |
+| `lite`       | Caveman lite pomocníci                                                                     | Nízkorizikové vždy zapnuté čistenie                    |
+| `standard`   | Caveman                                                                                    | Kondenzácia výzvy v prirodzenom jazyku                 |
+| `aggressive` | Caveman + sumarizátory histórie/nástrojov                                                  | Dlhé chatovacie relácie                                |
+| `ultra`      | Caveman + pomocníci na orezávanie                                                          | Obnova limitu kontextu                                 |
+| `rtk`        | RTK                                                                                        | Výstup terminálu, shellu, buildu, testu a gitu         |
+| `omniglyph`  | OmniGlyph                                                                                  | Kontext ako obrázok na natívnom poskytovateľovi        |
+| `stacked`    | Pipeline. Predvolená požiadavka je `session-dedup -> lite`. `rtk -> caveman` je voliteľné. | Zmiešané protokoly nástrojov a próza, maximálne úspory |
 
 ### Profily kompresie OmniGlyph
 
-Engine `omniglyph` (balík `omniglyph`, 1.4.0+) prijíma pomenovaný sémantický profil nastavený
+Engine `omniglyph` (balík `omniglyph`, 1.4.0+) akceptuje pomenovaný sémantický profil, nastavený
 globálne prostredníctvom `omniglyph.profile` v nastaveniach kompresie alebo pre každý krok prostredníctvom
-konfigurácie kroku skladaného pipeline:
+konfigurácie kroku v skladanom pipeline:
 
-| Profil        | Hranica                                                                                                                                  |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Predvolený. Zásady, podľa ktorých boli merané publikované výsledky — prevádza systém, dokumentáciu nástrojov a hustú históriu na obrázky |
-| `balanced`    | Zachováva aktívny stav v natívnej podobe, chráni posledných 8 kôl a zlučuje staršiu uzavretú históriu                                    |
-| `coding-safe` | Zachováva autoritu, schémy nástrojov a aktívny výstup nástrojov v natívnej podobe, chráni posledných 12 kôl                              |
-| `passthrough` | Smeruje bez transformácie; engine sa preskočí                                                                                            |
+| Profil        | Hranica                                                                                                             |
+| :------------ | :------------------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Predvolené. Politika, ktorú merali zverejnené potvrdenky – systém obrázkov, dokumentácia nástrojov a hustá história |
+| `balanced`    | Zachováva živý stav natívny, chráni posledných 8 ťahov, zbalí staršiu uzavretú históriu                             |
+| `coding-safe` | Zachováva autoritu, schémy nástrojov a živý výstup nástrojov natívny, chráni posledných 12 ťahov                    |
+| `passthrough` | Smeruje bez transformácie; engine je preskočený                                                                     |
 
-Profil je **strop, nie spodná hranica**: `mergeCompressionProfileOptions` v balíku
-nedovolí, aby prepísanie volajúcim znovu otvorilo stratovú vetvu, ktorú profil uzavrel, takže nastavenie
-`preserveSystemPrompt: false` pre konkrétny krok nemôže opätovne povoliť kompresiu systému v profile `coding-safe`.
+Profil je **strop, nie podlaha**: `mergeCompressionProfileOptions` v balíku
+odmieta povoliť volajúcemu prepísať znovu otvorenú stratovú cestu, ktorú profil uzavrel, takže
+`preserveSystemPrompt: false` pre každý krok nemôže znova povoliť kompresiu systému pod `coding-safe`.
 
-Merané na tejto kódovej základni: `coding-safe` a `balanced` zvyšujú `minCompressChars` na
-maximum a zachovávajú systém, schémy nástrojov a výsledky nástrojov v natívnej podobe, takže relácia, v ktorej sa ešte
-nenahromadila história, skončí pri `below_min_chars` a engine nič netransformuje. Preto
-je predvolený profil `aggressive`, a nie najbezpečnejší profil.
+Merané na tejto kódovej základni: `coding-safe` a `balanced` zvyšujú `minCompressChars` na svoje
+maximum a zachovávajú systém, schémy nástrojov a výsledky nástrojov natívne, takže relácia, ktorá
+ešte nenazbierala históriu, sa zastaví na `below_min_chars` a engine nič netransformuje. Preto
+je predvolený `aggressive` namiesto najbezpečnejšieho profilu.
 
-Balík určuje vlastný rozsah modelov a profil z konfigurácie svojho prostredia.
-OmniRoute toto rozhodnutie nikdy nedeleguje: adaptér obmedzuje bránu modelov na najreštriktívnejší rozsah balíka,
-takže nastavenia hostiteľského prostredia môžu zoznam povolených položiek iba zúžiť, nikdy ho nemôžu rozšíriť nad rámec nameraných výsledkov OmniRoute.
+Balík rieši svoj vlastný rozsah modelu a profil z konfigurácie prostredia.
+OmniRoute nikdy nedeleguje rozhodnutie: adaptér pripína bránu modelu k najreštriktívnejšiemu rozsahu balíka,
+takže nastavenia hostiteľského prostredia môžu iba zúžiť zoznam povolených, nikdy ho nerozšíriť
+nad merané potvrdenky OmniRoute.
 
 ## Register enginov
 
@@ -385,9 +386,9 @@ citlivé na vyrovnávaciu pamäť atď.).
   `engineBreakdown` — nemožno ho odlíšiť od kroku, ktorý bol preskočený. Rozlíšenie medzi
   „spustené, 0 %“ a „preskočené“ by si vyžadovalo zmenu modelu rozpisu a je odložené.
 
-## Overenie
+## Validácia
 
-Cielené kontroly pre túto oblasť sú:
+Zamerané brány pre túto oblasť sú:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

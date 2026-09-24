@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Уз подршку наших пријатеља отвореног кода
+## 🤝 Podržano od strane naših prijatelja otvorenog koda
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Otvorena granična inteligencija · 2.8T parametara · 1M-token kontekst"/>
   </a>
 </p>
 
-> **Желите да се придружите као пријатељ отвореног кода?** То су компаније које подржавају отворени код и помажу да OmniRoute напредује — и јавно наводимо где иде сваки токен који нам дају. Јавите нам се: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Želite da se pridružite kao prijatelj otvorenog koda?** Ovo su kompanije koje podržavaju otvoreni kod i pomažu OmniRoute-u da nastavi sa radom — i javno objavljujemo gde ide svaki token koji nam daju. Javite nam se: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Osnivački prijatelj otvorenog koda"/>
     </td>
     <td>
-      Захваљујемо се <b>Kimi (Moonshot AI)</b>, нашем оснивачком пријатељу отвореног кода, на подршци овом проjekту! Kimi je AI лабораторија иза породица модела отворене тежине K2 и K3 — <b>Kimi K3</b> нуди контекстни прозор од 1M токена, native визуелну подршку и програмирање на нивоу врхунских модела по знатно нижој цени, и ради без икаквих подешавања са Claude Code, Codex и сваким алатом за програмирање који OmniRoute опслужује.
+      Zahvaljujući <b>Kimi (Moonshot AI)</b>, našem osnivačkom prijatelju otvorenog koda, na podršci ovom projektu! Kimi je AI laboratorija koja stoji iza porodica modela otvorenog koda K2 i K3 — <b>Kimi K3</b> pruža kontekstni prozor od 1M tokena, nativni vid i kodiranje na graničnom nivou po deliću cena zatvorenih modela, i radi odmah po instalaciji sa Claude Code, Codex-om i svakim alatom za kodiranje koji OmniRoute podržava.
       <br/><br/>
-      <b>Шта подршка Kimi-ja омогућава:</b> Kimi-jevi API кредити покрeћу OmniRoute-ов процес издавања верзија валидиран помоћу AI-a — фазу <i>merge validation powered by Kimi K3</i> која прегледа сваки pull request прије него што се објави — као и свакодневни развој функционалности. Подршка првог реда за Kimi доступна је на оба пута: директно преко <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) и преко <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code плана за програмирање</a> (OAuth и API кључ). OmniRoute je такође први бразилски пројекат отвореног кода у Kimi-jevom програму подршке. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Набавите Kimi API кључ са 15% додатних кредита →</b></a>
+      <b>Šta Kimi podrška omogućava:</b> Kimi API krediti pokreću OmniRoute-ov AI-validirani proces izdavanja — faza *validacije spajanja koju pokreće Kimi K3* koja pregleda svaki pull request pre nego što bude objavljen — plus svakodnevni razvoj funkcija. Prvoklasna Kimi podrška se isporučuje na oba načina: direktni <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (`kimi-k3`) i <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code plan kodiranja</a> (OAuth i API ključ). OmniRoute je takođe prvi brazilski open-source projekat u Kimi programu podrške. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Nabavite Kimi API ključ sa 15% dodatnih kredita →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Prijatelj otvorenog koda"/>
     </td>
     <td>
-      Захваљујемо се <b>Cheaper Inference</b>, пријатељу OmniRoute-a у отвореном коду, на подршци овом проjekту! Cheaper Inference је улазна тачка рангирана по трошковима која препродаjе 42 врхунска модела — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok и MiniMax — иза jedne крajне тачке компатибилне са OpenAI, усмјеравајући свaki захтев ka најjeftинijem погодном добавaчу без наплаћивања преко цене коju je odredio произвођач модела.
+      Zahvaljujući <b>Cheaper Inference</b>, prijatelju otvorenog koda OmniRoute-a, na podršci ovom projektu! Cheaper Inference je gateway rangiran po ceni koji preprodaje 42 granična modela — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok i MiniMax — iza jedne OpenAI-kompatibilne krajnje tačke, rutirajući svaki zahtev najjeftinijem kvalifikovanom provajderu bez naplate iznad cene proizvođača modela.
       <br/><br/>
-      <b>Подршка првог реда у OmniRoute:</b> Chat Completions, native крajnja tačka <code>/v1/responses</code>, визуелна подршка, позивање алата (tool calling) и 3 модела за слике (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, доступни kao <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Набавите API кључ →</b></a>
+      <b>Prvoklasna podrška u OmniRoute-u:</b> Chat Completions, nativna `/v1/responses` krajnja tačka, vizija, pozivanje alata i 3 modela slika (`grok-imagine`, `nano-banana-pro`, `nano-banana-2`, dostupni kao `cheaperinference/<model>`). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Nabavite API ključ →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Линкови означени са <code>aff=omniroute</code> су партнерски линкови. Они финансирају проjekat без додатних трошкова за вас.</sub>
+<sub>Linkovi označeni sa `aff=omniroute` su partnerski linkovi. Oni finansiraju projekat bez dodatnih troškova za vas.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Промоције партнерских програма</b> — купони за бесплатну регистрацију од провajдерa које не спонзоришемо (кликните да проширите)</sub></summary>
+<summary><sub><b>🎟️ Partnerska promocija</b> — besplatni kuponi za registraciju od provajdera koje ne sponzorišemo (kliknite za proširenje)</sub></summary>
 
-<sub><i>Овaj одeljak je намењен искључиво кодовима за препоруку/купоне. Спонзорисана партнерства налазе се у одeljku <b>🤝 Уз подршку наших пријатеља отвореног кода</b> изнад. OmniRoute нема спонзорство ни партнерство са провajderima наведеним овде — ovo su jавни купони које свако може искористити.</i></sub>
+<sub><i>Ovaj odeljak je samo za referalne/kuponske kodove. Sponzorisana partnerstva se nalaze u odeljku **🤝 Podržano od strane naših prijatelja otvorenog koda** iznad. OmniRoute nema sponzorstvo niti partnerstvo sa provajderima navedenim ovde — ovo su javni kuponi koje svako može koristiti.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — партнерска регистрација · <b>100 $ бесплатних кредита</b> приликом регистрације (бесплатан сервер, очекујте већу латенцију — најбоље за тестирање, а не за производно окружење). Подршка првог реда у OmniRoute од верзије <b>v3.8.50</b>: Chat Completions, Anthropic-компатибилни формат преноса и OpenAI-компатибилна путања. Доступни модели укључују <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> и друге. <b><a href="https://agentrouter.org/register?aff=70LM">Преузмите свojих 100 $ →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partnerska registracija · <b>$100 besplatnih kredita</b> pri registraciji (besplatan server, očekujte veću latenciju — najbolje za testiranje, ne za produkciju). Prvoklasna podrška u OmniRoute-u od <b>v3.8.50</b>: Chat Completions, Anthropic-kompatibilni format žice i OpenAI-kompatibilna putanja. Dostupni modeli uključuju `claude-opus-4-8`, `claude-opus-5`, `gpt-5.6-sol` i više. <b><a href="https://agentrouter.org/register?aff=70LM">Zgrabite svojih $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Партнерски линк — OmniRoute нема спонзорство ни партнерство са овим провajderom.</i></sub>
+      <sub>⚠️ <i>Partnerski link — OmniRoute nema sponzorstvo niti partnerstvo sa ovim provajderom.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Знате за неког другог провajdera са издашним купоном за бесплатну регистрацију који би користио корисницима OmniRoute-a? Отворите issue и додаћемо га овде.</sub>
+<sub>Znate li drugog provajdera sa izdašnim besplatnim kuponom za registraciju koji koristi korisnicima OmniRoute-a? Otvorite problem i dodaćemo ga ovde.</sub>
 
 </details>
 
@@ -1219,29 +1219,29 @@ Kanonske metrike na 2026-08-24: **1.029 jedinstvenih videa** · **11.132.922 poz
 <br/>
 <div align="center">
 
-## 🛠️ Технолошки стек
+## 🛠️ Tehnološki stek
 
 </div>
 
 <table>
-  <tr><th align="left">Слој</th><th align="left">Технологија</th></tr>
-  <tr><td nowrap><b>Извршно окружење</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Језик</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> у директоријумима <code>src/</code> и <code>open-sse/</code> (без иједног <code>any</code> у језгру од v2.0)</td></tr>
-  <tr><td nowrap><b>Радни оквир</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>База података</b></td><td>better-sqlite3 (SQLite, WAL вођење дневника) + LowDB (наслеђени JSON) — 122 доменска модула, 178 миграција</td></tr>
-  <tr><td nowrap><b>Меморија</b></td><td>SQLite FTS5 претрага пуног текста + векторска угнежђења квантизована на int8, типизирано опадање</td></tr>
-  <tr><td nowrap><b>Шеме</b></td><td>Zod 4 — валидација улаза/излаза MCP алата + API уговори</td></tr>
-  <tr><td nowrap><b>Протоколи</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Стримовање</b></td><td>Догађаји које шаље сервер (SSE) + WebSocket мост (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Компресија</b></td><td>Процесни ток са 12 механизама — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Аутентификација &amp; безбедност</b></td><td>OAuth 2.0 (PKCE) + JWT + API кључеви + MCP аутентификација ограниченог опсега · AES-256-GCM за податке у мировању · DOMPurify</td></tr>
-  <tr><td nowrap><b>Прикривеност</b></td><td>wreq-js — имитирање JA3 / JA4 TLS отиска, посреднички сервер у 3 нивоа</td></tr>
-  <tr><td nowrap><b>Отпорност</b></td><td>Прекидач кола, експоненцијално одлагање, спречавање наглог масовног прилива захтева, аутоматско комбиновано самоопорављање</td></tr>
-  <tr><td nowrap><b>Евидентирање</b></td><td>pino — структурирани JSON дневници са контекстом захтева</td></tr>
-  <tr><td nowrap><b>Тестирање</b></td><td>Node.js покретач тестова + Vitest — <b>39.000+ статичких декларација тестова</b> у више од 5.100 праћених тестних датотека (јединични, интеграциони, E2E, безбедносни и екосистемски тестови)</td></tr>
-  <tr><td nowrap><b>Платформе</b></td><td>Стони рачунари (Electron) · Android (Termux) · PWA (било који прегледач)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — аутоматско објављивање на npm и Docker Hub при издавању</td></tr>
-  <tr><td nowrap><b>Везе</b></td><td><a href="https://omniroute.online">Веб-сајт</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><th align="left">Sloj</th><th align="left">Tehnologija</th></tr>
+  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Jezik</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> kroz <code>src/</code> i <code>open-sse/</code> (nula <code>any</code> u jezgru od v2.0)</td></tr>
+  <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Baza podataka</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON nasleđe) — 122 domenska modula, 182 migracije</td></tr>
+  <tr><td nowrap><b>Memorija</b></td><td>SQLite FTS5 full-text + int8-kvantizovani vektorski embedinzi, typed decay</td></tr>
+  <tr><td nowrap><b>Šeme</b></td><td>Zod 4 — MCP alat za I/O validaciju + API ugovori</td></tr>
+  <tr><td nowrap><b>Protokoli</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>Striming</b></td><td>Server-Sent Events (SSE) + WebSocket most (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Kompresija</b></td><td>12-motorni pajplajn — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autentifikacija i bezbednost</b></td><td>OAuth 2.0 (PKCE) + JWT + API ključevi + MCP autorizacija sa opsegom · AES-256-GCM u mirovanju · DOMPurify</td></tr>
+  <tr><td nowrap><b>Prikrivanje</b></td><td>wreq-js — JA3 / JA4 TLS imitacija otiska prsta, proksi na 3 nivoa</td></tr>
+  <tr><td nowrap><b>Otpornost</b></td><td>Circuit breaker, eksponencijalni povratak, anti-thundering-herd, auto-kombinovano samoizlečenje</td></tr>
+  <tr><td nowrap><b>Logovanje</b></td><td>pino — strukturirani JSON logovi sa kontekstom zahteva</td></tr>
+  <tr><td nowrap><b>Testiranje</b></td><td>Node.js test runner + Vitest — <b>39,000+ statičkih deklaracija testova</b> kroz 5,100+ praćenih test fajlova (jedinični, integracioni, E2E, bezbednosni, ekosistem)</td></tr>
+  <tr><td nowrap><b>Platforme</b></td><td>Desktop (Electron) · Android (Termux) · PWA (bilo koji pregledač)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatsko npm objavljivanje + Docker Hub pri izdanju</td></tr>
+  <tr><td nowrap><b>Linkovi</b></td><td><a href="https://omniroute.online">Veb-sajt</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

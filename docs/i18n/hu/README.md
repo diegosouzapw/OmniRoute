@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Nyílt forráskódú barátaink támogatásával
+## 🤝 Támogatnak nyílt forráskódú barátaink
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Nyílt, élvonalbeli intelligencia · 2,8 billió paraméter · 1 millió tokenes kontextus"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Nyílt Határ Intelligencia · 2.8T paraméter · 1M-token kontextus"/>
   </a>
 </p>
 
-> **Szeretnél csatlakozni nyílt forráskódú barátként?** Ezek a vállalatok támogatják a nyílt forráskódot, és segítenek mozgásban tartani az OmniRoute-ot — mi pedig nyilvánosan közzétesszük, hogy az általuk biztosított minden egyes token mire megy el. Lépj kapcsolatba velünk: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Szeretnél csatlakozni nyílt forráskódú barátként?** Ezek azok a cégek, amelyek támogatják a nyílt forráskódot, és segítenek az OmniRoute működésében – és nyilvánosan elmondjuk, hogy minden tőlük kapott token mire megy. Keress minket: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Alapító nyílt forráskódú barát"/>
+      <img src="https://img.shields.io/badge/Alapító_Barát-1783FF?style=flat-square" alt="Alapító nyílt forráskódú barát"/>
     </td>
     <td>
-      Köszönjük a <b>Kiminek (Moonshot AI)</b>, alapító nyílt forráskódú barátunknak, hogy támogatja ezt a projektet! A Kimi a nyílt súlyozású K2 és K3 modellcsaládok mögött álló mesterségesintelligencia-laboratórium — a <b>Kimi K3</b> 1 millió tokenes kontextusablakot, natív képfeldolgozást és élvonalbeli kódolási képességeket kínál a zárt modellek árának töredékéért, továbbá azonnal használható a Claude Code-dal, a Codexszel és minden, az OmniRoute által kiszolgált kódolási eszközzel.
+      Köszönjük a <b>Kimi (Moonshot AI)</b>-nak, alapító nyílt forráskódú barátunknak, hogy támogatja ezt a projektet! A Kimi az AI labor a nyílt súlyú K2 és K3 modellcsaládok mögött — a <b>Kimi K3</b> 1M-token kontextusablakot, natív látást és határszintű kódolást biztosít a zárt modellek árának töredékéért, és azonnal működik a Claude Code, Codex és minden kódoló eszközzel, amit az OmniRoute kiszolgál.
       <br/><br/>
-      <b>Amit a Kimi támogatása lehetővé tesz:</b> A Kimi API-kreditjei működtetik az OmniRoute mesterséges intelligenciával ellenőrzött kiadási folyamatát — a <i>Kimi K3 által végzett egyesítés-ellenőrzési</i> szakaszt, amely minden pull requestet átvizsgál a kiadás előtt —, valamint a mindennapos funkciófejlesztést. A Kimi első osztályú támogatása mindkét útvonalon elérhető: a közvetlen <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API-n</a> (<code>kimi-k3</code>) és a <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code kódolási csomagon</a> (OAuth és API-kulcs) keresztül. Az OmniRoute egyben az első brazil nyílt forráskódú projekt a Kimi támogatási programjában. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Szerezz Kimi API-kulcsot 15%-kal több kredittel →</b></a>
+      <b>Mire használja a Kimi támogatását:</b> A Kimi API kreditek az OmniRoute AI-val validált kiadási folyamatát táplálják — a <i>Kimi K3 által működtetett egyesítési validálás</i> fázist, amely minden pull requestet áttekint, mielőtt kiadják — plusz a napi funkciófejlesztést. Az első osztályú Kimi támogatás mindkét sínen elérhető: a közvetlen <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) és a <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code kódolási terv</a> (OAuth és API kulcs). Az OmniRoute az első brazil nyílt forráskódú projekt a Kimi támogatási programjában. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Szerezzen Kimi API kulcsot 15% extra kredittel →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Nyílt forráskódú barát"/>
+      <img src="https://img.shields.io/badge/Nyílt_Forráskódú_Barát-31f889?style=flat-square&labelColor=04170d" alt="Nyílt Forráskódú Barát"/>
     </td>
     <td>
-      Köszönjük a <b>Cheaper Inference-nek</b>, az OmniRoute nyílt forráskódú barátjának, hogy támogatja ezt a projektet! A Cheaper Inference egy költség alapján rangsoroló átjáró, amely 42 élvonalbeli modellt — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok és MiniMax — értékesít tovább egyetlen OpenAI-kompatibilis végpont mögött, minden kérést a legolcsóbb megfelelő szolgáltatóhoz irányítva anélkül, hogy valaha is a modell gyártójának listaáránál többet számítana fel.
+      Köszönjük a <b>Cheaper Inference</b>-nek, az OmniRoute nyílt forráskódú barátjának, hogy támogatja ezt a projektet! A Cheaper Inference egy költség-rangsorolt átjáró, amely 42 határmodellt – Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok és MiniMax – értékesít egy OpenAI-kompatibilis végpont mögött, minden kérést a legolcsóbb jogosult szolgáltatóhoz irányítva anélkül, hogy valaha is többet számolna fel, mint a modellgyártó listaára.
       <br/><br/>
-      <b>Első osztályú támogatás az OmniRoute-ban:</b> Chat Completions, a natív <code>/v1/responses</code> végpont, képfeldolgozás, eszközhívás és 3 képmodell (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, amelyek <code>cheaperinference/&lt;model&gt;</code> formában érhetők el). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Szerezz API-kulcsot →</b></a>
+      <b>Első osztályú támogatás az OmniRoute-ban:</b> Chat Completions, a natív <code>/v1/responses</code> végpont, látás, eszközhívás és 3 képmodell (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, elérhető mint <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Szerezzen API kulcsot →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Az <code>aff=omniroute</code> címkével ellátott hivatkozások partnerlinkek. Ezek számodra többletköltség nélkül finanszírozzák a projektet.</sub>
+<sub>Az <code>aff=omniroute</code> címkével ellátott linkek partnerlinkek. Ezek a projektet finanszírozzák Önnek többletköltség nélkül.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Partneri promóciók</b> — ingyenes regisztrációs kuponok olyan szolgáltatóktól, amelyek nem szponzorálnak bennünket (kattints a kibontáshoz)</sub></summary>
+<summary><sub><b>🎟️ Partneri promóció</b> — ingyenes regisztrációs kuponok olyan szolgáltatóktól, amelyeket nem szponzorálunk (kattintson a kibontáshoz)</sub></summary>
 
-<sub><i>Ez a szakasz kizárólag ajánlói/kuponkódokat tartalmaz. A szponzorált partnerségek helye a fenti <b>🤝 Nyílt forráskódú barátaink támogatásával</b> szakasz. Az OmniRoute nem áll szponzori vagy partneri kapcsolatban az itt felsorolt szolgáltatókkal — ezek nyilvános kuponok, amelyeket bárki felhasználhat.</i></sub>
+<sub><i>Ez a szakasz csak ajánló/kuponkódokról szól. A szponzorált partnerségek a fenti <b>🤝 Támogatnak nyílt forráskódú barátaink</b> részben találhatók. Az OmniRoute-nak nincs szponzorálási vagy partnerségi kapcsolata az itt felsorolt szolgáltatókkal – ezek nyilvános kuponok, amelyeket bárki használhat.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partneri regisztráció · <b>$100 ingyenes kredit</b> regisztrációkor (ingyenes szerver, ezért nagyobb késleltetésre számíts — teszteléshez ideális, éles használatra nem). Első osztályú támogatás az OmniRoute-ban a <b>v3.8.50</b> verzió óta: Chat Completions, az Anthropic-kompatibilis adatátviteli formátum és az OpenAI-kompatibilis útvonal. Az elérhető modellek között szerepel a <code>claude-opus-4-8</code>, a <code>claude-opus-5</code>, a <code>gpt-5.6-sol</code> és számos további modell. <b><a href="https://agentrouter.org/register?aff=70LM">Szerezd meg a $100 kreditet →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partneri regisztráció · <b>100 dollár ingyenes kredit</b> regisztrációkor (ingyenes szerver, magasabb késleltetésre számíthat – tesztelésre a legjobb, nem éles környezetbe). Első osztályú támogatás az OmniRoute-ban <b>v3.8.50</b> óta: Chat Completions, az Anthropic-kompatibilis vezetékes formátum és az OpenAI-kompatibilis útvonal. Elérhető modellek: <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> és még sok más. <b><a href="https://agentrouter.org/register?aff=70LM">Szerezze meg a 100 dollárját →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Partnerlink — az OmniRoute nem áll szponzori vagy partneri kapcsolatban ezzel a szolgáltatóval.</i></sub>
+      <sub>⚠️ <i>Partneri link – Az OmniRoute-nak nincs szponzorálási vagy partnerségi kapcsolata ezzel a szolgáltatóval.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Ismersz másik szolgáltatót, amely bőkezű, ingyenes regisztrációs kupont kínál az OmniRoute felhasználóinak? Nyiss egy hibajegyet, és hozzáadjuk ide.</sub>
+<sub>Ismer más szolgáltatót, amely nagylelkű ingyenes regisztrációs kupont kínál, ami az OmniRoute felhasználóinak előnyére válik? Nyisson egy hibajegyet, és hozzáadjuk ide.</sub>
 
 </details>
 
@@ -1256,29 +1256,29 @@ Kanonikus mérőszámok 2026-08-24-én: **1.029 egyedi videó** · **11.132.922 
 <br/>
 <div align="center">
 
-## 🛠️ Technológiai stack
+## 🛠️ Technológiai Verem
 
 </div>
 
 <table>
   <tr><th align="left">Réteg</th><th align="left">Technológia</th></tr>
   <tr><td nowrap><b>Futtatókörnyezet</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Nyelv</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> a <code>src/</code> és az <code>open-sse/</code> teljes területén (a v2.0 óta nulla <code>any</code> az alapkomponensekben)</td></tr>
+  <tr><td nowrap><b>Nyelv</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> a <code>src/</code> és <code>open-sse/</code> mappákban (nulla <code>any</code> a magban a v2.0 óta)</td></tr>
   <tr><td nowrap><b>Keretrendszer</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Adatbázis</b></td><td>better-sqlite3 (SQLite, WAL-naplózás) + LowDB (örökölt JSON) — 122 tartományi modul, 178 migráció</td></tr>
-  <tr><td nowrap><b>Memória</b></td><td>SQLite FTS5 teljes szöveges keresés + int8-kvantált vektoros beágyazások, típusos lecsengés</td></tr>
-  <tr><td nowrap><b>Sémák</b></td><td>Zod 4 — MCP-eszközök bemeneti/kimeneti validálása + API-szerződések</td></tr>
+  <tr><td nowrap><b>Adatbázis</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 tartományi modul, 182 migráció</td></tr>
+  <tr><td nowrap><b>Memória</b></td><td>SQLite FTS5 teljes szöveges + int8-kvantált vektoros beágyazások, típusos bomlás</td></tr>
+  <tr><td nowrap><b>Sémák</b></td><td>Zod 4 — MCP eszköz I/O validáció + API szerződések</td></tr>
   <tr><td nowrap><b>Protokollok</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Adatfolyam</b></td><td>Server-Sent Events (SSE) + WebSocket-híd (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Tömörítés</b></td><td>12 motoros feldolgozási lánc — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Hitelesítés és biztonság</b></td><td>OAuth 2.0 (PKCE) + JWT + API-kulcsok + hatóköralapú MCP-hitelesítés · AES-256-GCM a tárolt adatokhoz · DOMPurify</td></tr>
-  <tr><td nowrap><b>Rejtőzködés</b></td><td>wreq-js — JA3 / JA4 TLS-ujjlenyomat utánzása, 3 szintű proxy</td></tr>
-  <tr><td nowrap><b>Hibatűrés</b></td><td>Megszakító, exponenciális visszalépés, terhelési roham elleni védelem, automatikus kombinációs öngyógyítás</td></tr>
-  <tr><td nowrap><b>Naplózás</b></td><td>pino — strukturált JSON-naplók kéréskontextussal</td></tr>
-  <tr><td nowrap><b>Tesztelés</b></td><td>Node.js tesztfuttató + Vitest — <b>több mint 39 000 statikus tesztdeklaráció</b> több mint 5100 nyomon követett tesztfájlban (egység-, integrációs, E2E-, biztonsági és ökoszisztéma-tesztek)</td></tr>
+  <tr><td nowrap><b>Adatfolyam</b></td><td>Server-Sent Events (SSE) + WebSocket híd (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Tömörítés</b></td><td>12-motoros folyamat — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Hitelesítés és biztonság</b></td><td>OAuth 2.0 (PKCE) + JWT + API kulcsok + MCP hatókörhöz kötött hitelesítés · AES-256-GCM nyugalmi állapotban · DOMPurify</td></tr>
+  <tr><td nowrap><b>Lopakodás</b></td><td>wreq-js — JA3 / JA4 TLS ujjlenyomat-utánzás, 3-szintű proxy</td></tr>
+  <tr><td nowrap><b>Rugalmasság</b></td><td>Áramkörmegszakító, exponenciális visszalépés, anti-thundering-herd, automatikus kombinált öngyógyítás</td></tr>
+  <tr><td nowrap><b>Naplózás</b></td><td>pino — strukturált JSON naplók kérés kontextussal</td></tr>
+  <tr><td nowrap><b>Tesztelés</b></td><td>Node.js test runner + Vitest — <b>39,000+ statikus tesztdeklaráció</b> 5,100+ követett tesztfájlban (egység, integrációs, E2E, biztonsági, ökoszisztéma)</td></tr>
   <tr><td nowrap><b>Platformok</b></td><td>Asztali (Electron) · Android (Termux) · PWA (bármely böngésző)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatikus npm-közzététel + Docker Hub-frissítés kiadáskor</td></tr>
-  <tr><td nowrap><b>Hivatkozások</b></td><td><a href="https://omniroute.online">Webhely</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatikus npm közzététel + Docker Hub kiadáskor</td></tr>
+  <tr><td nowrap><b>Linkek</b></td><td><a href="https://omniroute.online">Weboldal</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">
