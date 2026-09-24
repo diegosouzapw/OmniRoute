@@ -181,7 +181,10 @@ describe("resource pressure policy", () => {
     // page cache on top of 1.62 GiB anon, tripping cgroup_ratio critical at
     // 95% while the real working set was 33% and memory.events stayed zero.
     const tracker = createResourcePressureTracker(fastThresholds);
-    const cgroup = (currentBytes: number, fileBytes: number | null): ResourceSignals["cgroup"] => ({
+    const cgroup = (
+      currentBytes: number,
+      fileBytes: number | null
+    ): ResourceSignals["cgroup"] => ({
       currentBytes,
       maxBytes: 5 * 1024 ** 3,
       highBytes: null,
