@@ -1,0 +1,1 @@
+- **fix(sse):** forward Claude Code's `afk-mode-2026-01-31` auto-mode beta on the Claude OAuth path alongside `dangerous-tool-use-2026-09-03`, so gateway sessions stay eligible for server-side auto-mode classification; a stream regression test pins `message_delta.delta.safeguard_results` and tool_use ids passing through unchanged

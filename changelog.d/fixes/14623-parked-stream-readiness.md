@@ -1,0 +1,1 @@
+- **fix(sse):** a transient parked stream no longer trips stream readiness — the guard honors the parked state instead of returning 502 before the replayed leg arrives ([#14623](https://github.com/diegosouzapw/OmniRoute/pull/14623)) — thanks @maxmad64bis

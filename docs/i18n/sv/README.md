@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute-instrumentpanel" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Den kostnadsfria AI-gatewayen
+# 🚀 OmniRoute — Den Fria AI-Gatewayen
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Sluta aldrig koda. Varje AI-verktyg → 359 leverantörer — 150+ kostnadsfria — via en enda slutpunkt. Claude Code, Codex, Cursor, Cline, Copilot och Antigravity till kostnadsfria Claude / GPT / Gemini med automatisk reservväxling. Staplad komprimering med RTK + Caveman sparar 15–95 % tokens (~89 % i genomsnitt) — nå aldrig gränserna. 359 AI-leverantörer · 150+ kostnadsfria nivåer · ~1,62 md kostnadsfria tokens/mån · 19 routningsstrategier · $0 för att komma igång."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Sluta aldrig koda. Varje AI-verktyg → 358 leverantörer — 150+ gratis — genom en enda slutpunkt. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity till GRATIS Claude / GPT / Gemini med automatisk återgång. RTK + Caveman staplad komprimering sparar 15–95% tokens (~89% i snitt) — nå aldrig gränserna. 358 AI-leverantörer · 150+ gratistjänster · ~1,62 miljarder gratis tokens/mån · 19 routingstrategier · 0 kr att börja."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 Fungerar direkt när du installerar det — inga nycklar, ingen konfiguration
+## 🆓 Fungerar direkt efter installation — inga nycklar, ingen konfiguration
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Fungerar direkt när du installerar det — helt utan konfiguration. Tre steg: 1. Installera — npm i -g omniroute, servern startar på localhost:20128. 2. Rikta ditt verktyg mot http://localhost:20128/v1 — valfritt OpenAI-kompatibelt verktyg (Claude Code, Cursor, Cline). 3. Det svarar — anropa modellen auto för ett omedelbart svar, utan API-nyckel, registrering eller konfiguration. Leverantören utan nyckel, OpenCode Free, är förkonfigurerad i kombinationen auto, så en ny installation svarar direkt."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Fungerar direkt efter installation — noll konfiguration. Tre steg: 1. Installera — npm i -g omniroute, servern startar på localhost:20128. 2. Rikta ditt verktyg mot http://localhost:20128/v1 — vilket OpenAI-kompatibelt verktyg som helst (Claude Code, Cursor, Cline). 3. Det svarar — anropa modell auto för ett omedelbart svar, utan API-nyckel, ingen registrering, ingen konfiguration. Den nyckellösa leverantören OpenCode Free är förkonfigurerad i auto-kombinationen, så en ny installation svarar direkt."/>
 
 ```bash
-# Ny installation, inga autentiseringsuppgifter — `auto` fungerar redan:
+# Ny installation, inga referenser — `auto` fungerar redan:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Föredrar du en specifik kostnadsfri backend? Anropa `oc/…` (OpenCode Free) direkt. Gå sedan vidare till `auto` och låt OmniRoute välja.</sub>
+<sub>Föredrar du en specifik gratis backend? Anropa `oc/…` (OpenCode Free) direkt. Gå sedan över till `auto` och låt OmniRoute välja.</sub>
 
-<sub>📦 Kopiera och klistra in snabbstartsskript för **Python, Node.js, PHP och cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Kopiera-klistra in snabbstartsskript för **Python, Node.js, PHP och cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Löftet — en slutpunkt och 359 leverantörer. Automatisk redundans fortsätter dirigeringen så länge ett annat fungerande mål finns tillgängligt. Sex grundpelare: robust redundans mellan 359 leverantörer · upp till 95 % tokenbesparing för lämpliga arbetsbelastningar · börja för $0 med över 150 kostnadsfria nivåer och 54 återkommande/nyckelfria leverantörer som är gratis för alltid · 36 CLI-/agentintegrationer via en enda konfiguration · kompatibilitet med OpenAI-, Claude-, Gemini- och Responses API vid /v1 · produktionskontroller, inklusive kretsbrytare, TLS-kamouflage, MCP med 110 verktyg, A2A, minne, skyddsräcken, utvärderingar och över 39 000 statiska testdeklarationer i över 5 100 spårade testfiler."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Löftet — En slutpunkt och 358 leverantörer. Automatisk återgång fortsätter dirigeringen så länge ett annat friskt mål är tillgängligt. Sex pelare: robust återgång över 358 leverantörer · upp till 95% tokenbesparingar på kvalificerade arbetsbelastningar · $0 att börja med 150+ gratistjänster och 54 återkommande/nyckellösa gratis-för-alltid-leverantörer · 36 CLI/agent-integrationer via en konfiguration · OpenAI, Claude, Gemini och Responses API-kompatibilitet på /v1 · produktionskontroller inklusive strömbrytare, TLS-stealth, MCP 110-verktyg, A2A, minne, skyddsräcken, utvärderingar och 39 000+ statiska testdeklarationer över 5 100+ spårade testfiler."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Varför OmniRoute — sluta jonglera med 10 kontrollpaneler, inaktiva API-nycklar och oväntade fakturor. Tio vardagliga problem och lösningar: kvoter som löper ut oanvända → maximera prenumerationerna; hastighetsgränser mitt under kodning → automatisk redundans i 4 nivåer (prenumeration → API → billigt → gratis); verktygsutdata som förbrukar tokens → RTK- + Caveman-komprimering (15–95 %); dyra API:er → kostnadsoptimerad dirigering; varje verktyg har sin egen konfiguration → en slutpunkt, en kontrollpanel; AI blockeras → proxy i 3 nivåer + TLS-kamouflage; inaktiva nycklar → motståndskraft i 3 lager (kretsbrytare, vänteperiod för nycklar, modellspärr); team som delar en prenumeration → nyckelpooler med rättvist fördelade kvoter; prompter via någon annans moln → lokalt först med AES-256-GCM-krypterade nycklar; ingen insyn i utgifterna → realtidsanalys (användning, kvot, besparingar, p95-latens)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Varför OmniRoute — sluta jonglera med 10 instrumentpaneler, döda API-nycklar och överraskande räkningar. Tio dagliga problem vs lösningar: kvot som löper ut oanvänd → maximera prenumerationer; hastighetsbegränsningar mitt i kodningen → 4-nivåers automatisk återgång (Prenumeration → API → Billig → Gratis); verktygsutdata som bränner tokens → RTK + Caveman-komprimering (15–95%); dyra API:er → kostnadsoptimerad dirigering; varje verktyg sin egen inställning → en slutpunkt, en instrumentpanel; AI blockerad → 3-nivåers proxy + TLS-stealth; döda nycklar → 3-lagers motståndskraft (strömbrytare, nyckelnedkylning, modellåsning); team som delar en prenumeration → nyckelpooler med rättvisa kvoter; prompter via någons moln → lokalt först med AES-256-GCM krypterade nycklar; ingen synlighet över utgifter → liveanalys (användning, kvot, besparingar, p95 latens)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoutes begärandeflöde: din IDE eller CLI (Claude Code, Cursor, Cline…) anropar en lokal slutpunkt (http://localhost:20128/v1); OmniRoute Smart Router (RTK- + Caveman-komprimering, 19 dirigeringsstrategier, kretsbrytare, TLS-kamouflage, MCP, A2A, skyddsräcken) kan växla mellan 4 leverantörsnivåer så länge ett lämpligt och fungerande mål finns kvar — nivå 1: prenumeration, nivå 2: API-nyckel, nivå 3: billigt och nivå 4: gratis."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute begärandeflöde: din IDE eller CLI (Claude Code, Cursor, Cline…) anropar en lokal slutpunkt (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman-komprimering, 19 dirigeringsstrategier, strömbrytare, TLS-stealth, MCP, A2A, skyddsräcken) kan falla tillbaka över 4 leverantörsnivåer så länge ett kvalificerat friskt mål återstår — Nivå 1 Prenumeration, Nivå 2 API-nyckel, Nivå 3 Billig och Nivå 4 Gratis."/>
 
 </div>
 
@@ -488,13 +488,13 @@ Alla **19** strategier — blanda fritt för varje steg i en combo:
 
 <div align="center">
 
-## 🏆 Det som skiljer OmniRoute från mängden
+## 🏆 Vad som utmärker OmniRoute
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Det som skiljer OmniRoute från mängden — en daterad ögonblicksbild av funktioner jämfört med 9router, OpenRouter, CLIProxyAPI och LiteLLM inom 13 kapaciteter. OmniRoute: 359 leverantörer, fler än 150 inbyggda kostnadsfria nivåer, 19 routningsstrategier, tokenkomprimering med 12 motorer, inbyggd MCP-server med 110 verktyg, A2A-agentprotokoll, beständigt minne, skyddsräcken, molnagenter, smygteknik för TLS-fingeravtryck, Desktop/Termux/PWA och 42 språkversioner av användargränssnittet. OmniRoute är MIT-licensierat och kan driftas lokalt. Konkurrenternas funktioner och antal kan ändras; se den länkade metodiken."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Vad som utmärker OmniRoute – en daterad ögonblicksbild av funktioner jämfört med 9router, OpenRouter, CLIProxyAPI och LiteLLM över 13 funktioner. OmniRoute: 358 leverantörer, 150+ inbyggda gratistjänster, 19 routingstrategier, 12-motorers tokenkomprimering, inbyggd MCP-server med 110 verktyg, A2A-agentprotokoll, persistent minne, skyddsräcken, molnagenter, TLS-fingeravtrycksmaskering, Desktop/Termux/PWA och 42 i18n UI-språk. OmniRoute är MIT-licensierat och kan självhostas. Konkurrenters funktioner och antal kan ändras; se den länkade metodiken."/>
 
-<sub>📊 Fullständig metodik och information per funktion jämfört med 9router, OpenRouter, CLIProxyAPI och LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Fullständig metodik &amp; detaljer per funktion jämfört med 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1273,14 +1273,14 @@ Kanoniska mätvärden den 2026-08-24: **1.029 unika videor** · **11.132.922 kä
   <tr><td nowrap><b>Körtid</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Språk</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> över <code>src/</code> och <code>open-sse/</code> (noll <code>any</code> i kärnan sedan v2.0)</td></tr>
   <tr><td nowrap><b>Ramverk</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Databas</b></td><td>better-sqlite3 (SQLite, WAL-journalföring) + LowDB (JSON-äldre) — 122 domänmoduler, 182 migreringar</td></tr>
-  <tr><td nowrap><b>Minne</b></td><td>SQLite FTS5 fulltextsökning + int8-kvantiserade vektorinbäddningar, typad förfallotid</td></tr>
-  <tr><td nowrap><b>Scheman</b></td><td>Zod 4 — MCP-verktyg I/O-validering + API-kontrakt</td></tr>
+  <tr><td nowrap><b>Databas</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domänmoduler, 183 migreringar</td></tr>
+  <tr><td nowrap><b>Minne</b></td><td>SQLite FTS5 fulltext + int8-kvantiserade vektorembeddingar, typad förfall</td></tr>
+  <tr><td nowrap><b>Scheman</b></td><td>Zod 4 — MCP verktygs I/O-validering + API-kontrakt</td></tr>
   <tr><td nowrap><b>Protokoll</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket-brygga (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Komprimering</b></td><td>12-motorers pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Autentisering &amp; säkerhet</b></td><td>OAuth 2.0 (PKCE) + JWT + API-nycklar + MCP-begränsad autentisering · AES-256-GCM i vila · DOMPurify</td></tr>
-  <tr><td nowrap><b>Smygande</b></td><td>wreq-js — JA3 / JA4 TLS-fingeravtrycksimpersonering, 3-nivåers proxy</td></tr>
+  <tr><td nowrap><b>Autentisering &amp; säkerhet</b></td><td>OAuth 2.0 (PKCE) + JWT + API-nycklar + MCP-omfattad autentisering · AES-256-GCM i vila · DOMPurify</td></tr>
+  <tr><td nowrap><b>Smyg</b></td><td>wreq-js — JA3 / JA4 TLS-fingeravtrycksimpersonering, 3-nivåers proxy</td></tr>
   <tr><td nowrap><b>Resiliens</b></td><td>Strömbrytare, exponentiell backoff, anti-thundering-herd, auto-combo självläkning</td></tr>
   <tr><td nowrap><b>Loggning</b></td><td>pino — strukturerade JSON-loggar med begäranskontext</td></tr>
   <tr><td nowrap><b>Testning</b></td><td>Node.js test runner + Vitest — <b>39 000+ statiska testdeklarationer</b> över 5 100+ spårade testfiler (enhet, integration, E2E, säkerhet, ekosystem)</td></tr>

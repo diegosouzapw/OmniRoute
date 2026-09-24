@@ -345,66 +345,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # ekspordi esmalt OMNIROUTE_API
 
 ---
 
-## Kontekstide haldamine (serverite vahel vahetamine)
+## Kontekstide haldamine (serverite vahetamine)
 
-**Kontekst** on salvestatud server (baseUrl + mandaat + ulatus). `omniroute connect`
-loob selle ja muudab aktiivseks; edaspidi on kõik käsud suunatud sellele. Kontekste saab hallata ja
-nende vahel vahetada käsuga `omniroute contexts`:
+**Kontekst** on salvestatud server (baseUrl + mandaat + ulatus). `omniroute connect` loob selle ja muudab aktiivseks; sellest alates on iga käsk suunatud sellele. Hallake ja vahetage nende vahel käsuga `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # kõik kontekstid; aktiivne on tähistatud sümboliga ●
-omniroute contexts current         # aktiivne server, autentimise olek ja ulatus
+omniroute contexts list            # kõik kontekstid; aktiivne on märgitud ●
+omniroute contexts current         # aktiivne server, autentimise staatus, ulatus
 ```
 
 ```text
-  | Nimi    | Baas-URL                  | Autentimine | Ulatus | Kirjeldus
-● | vps     | http://100.67.86.91:20128 | token       | admin  | Kaug-OmniRoute (…)
-  | default | http://localhost:20128    | ✗           |        |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Serverite vahetamine** — kõik järgnevad käsud kasutavad aktiivset konteksti:
+**Vaheta servereid** — iga järgnev käsk järgib aktiivset konteksti:
 
 ```bash
-omniroute contexts use vps         # → kõik käsud kasutavad nüüd kaug-VPS-i
-omniroute tokens list              #   (käivitatakse VPS-i suhtes)
+omniroute contexts use vps         # → kõik käsud tabavad nüüd kauget VPS-i
+omniroute tokens list              #   (käivitub VPS-i vastu)
 
 omniroute contexts use default     # → tagasi localhosti
-omniroute tokens list              #   (käivitatakse kohaliku serveri suhtes)
+omniroute tokens list              #   (käivitub kohaliku serveri vastu)
 ```
 
-**Konteksti käsitsi lisamine** (`connect` asemel), vaatamine või ümbernimetamine:
+**Lisa kontekst käsitsi** (`connect` asemel), kontrolli või nimeta ümber:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # ühe konteksti täielikud üksikasjad
+omniroute contexts show staging    # ühe konteksti täielikud detailid
 omniroute contexts rename staging stg
 ```
 
-**Konteksti eemaldamine** — küsib kinnitust; kinnituse vahelejätmiseks lisage `--yes`
-(skriptides ja mitteinteraktiivsetes kestades nõutav, sest muidu keeldutakse turvaliselt):
+**Eemalda kontekst** — küsib kinnitust; `--yes` möödub sellest (vajalik skriptide / mitteinteraktiivsete kestade jaoks, mis muidu keelduvad ohutult):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> Konteksti `default` (localhost) ei saa eemaldada. Aktiivse konteksti eemaldamisel võetakse
-> kasutusele `default`. Näpunäide: konteksti eemaldamine kustutab ainult **kohalikult** salvestatud mandaadi —
-> juurdepääsu tegelikuks lõpetamiseks tühistage token serveris käsuga `omniroute tokens revoke <id>`.
+> `default` (localhost) ei saa eemaldada. Aktiivse konteksti eemaldamine taastab `default` konteksti. Nõuanne: konteksti eemaldamine kustutab ainult **kohaliku** salvestatud mandaadi — juurdepääsu lõplikuks tapmiseks tühista token serveris käsuga `omniroute tokens revoke <id>`.
 
-Kontekstide **eksportimine/importimine** (nt nende teisaldamiseks masinate vahel). Uute kontekstide puhul säilitatakse
-ainult võtmerõnga viide; mandaate ei kopeerita eksporti, kui operatsioonisüsteemi
-võtmerõngas on saadaval:
+**Ekspordi / impordi** kontekste (nt nende liigutamiseks masinate vahel). Ekspordid jätavad vaikimisi mandaadid välja, sealhulgas faili varu poolt salvestatud mandaadid. Kasuta `--include-secrets` selgesõnaliselt, kui on vaja kaasaskantavat mandaate sisaldavat varukoopiat:
 
 ```bash
-omniroute contexts export --out contexts.json     # vaikimisi: stdout
-omniroute contexts import contexts.json            # kirjuta üle; olemasolevate säilitamiseks kasuta --merge
-omniroute contexts migrate --yes                  # teisalda pärandteksti lihtteksttokenid võtmerõngasse
+omniroute contexts export --out contexts.json     # redigeeritud; vaikimisi sihtkoht: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # kirjutab üle; --merge olemasolevate säilitamiseks
+omniroute contexts migrate --yes                  # liiguta vanad lihtteksti tokenid võtmehoidjasse
 ```
 
-Ilma kasutatava operatsioonisüsteemi võtmerõngata käsurealiideseta süsteemides kasutab CLI varuvariandina
-faili `config.json` režiimiga `0600` ja kuvab ühekordse hoiatuse. Käsitlege selle
-varuvariandi eksporte (ja migreerimiseelset pärandkonfiguratsiooni) salajase materjalina.
+`--include-secrets` lahendab võtmehoidja viited enne eksportimist ja ebaõnnestub, kui mõnda viidatud mandaati ei saa lugeda. `--no-secrets` on alati ülimuslik. Ekspordifailid kirjutatakse aatomiliselt režiimiga `0600`. Käsitlege selgesõnalist saladusi sisaldavat eksporti kui salajast materjali. Peata süsteemides, kus puudub kasutatav OS-i võtmehoidja, langeb CLI tagasi `config.json` failile režiimiga `0600` ja prindib ühekordse hoiatuse; vaikimisi eksport jääb selles režiimis redigeerituks.
 
 ---
 

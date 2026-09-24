@@ -569,7 +569,9 @@ export class GeminiWebExecutor extends BaseExecutor {
       if (signal?.aborted) {
         throw signal.reason instanceof Error ? signal.reason : new Error("Request aborted");
       }
-      await page.waitForTimeout(3000);
+      // #13382: the composer selector is the readiness check. A fixed 3s sleep
+      // ran even when the editor was already there, and still raced a slow load.
+      await page.waitForSelector(".ql-editor, [contenteditable='true']", { timeout: 10000 });
 
       // #13381 (Option B): verify the requested Gemini UI mode is actually active
       // BEFORE anything is typed. `gemini-3.1-pro` is the mode gemini.google.com/app

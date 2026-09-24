@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute ဒက်ရှ်ဘုတ်" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
 
 <br/>
 <br/>
 
 # 🚀 OmniRoute — အခမဲ့ AI Gateway
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — ကုဒ်ရေးသားခြင်းကို ဘယ်တော့မှ မရပ်တန့်ပါနှင့်။ AI ကိရိယာတိုင်း → ဝန်ဆောင်မှုပေးသူ 359 ခု — အခမဲ့ 150+ ခု — endpoint တစ်ခုမှတစ်ဆင့်။ Claude Code, Codex, Cursor, Cline, Copilot နှင့် Antigravity တို့ကို အခမဲ့ Claude / GPT / Gemini နှင့် ချိတ်ဆက်ပြီး အလိုအလျောက် fallback ပြုလုပ်ပေးသည်။ RTK + Caveman အဆင့်ဆင့် compression က token 15–95% (~89% ပျမ်းမျှ) ချွေတာပေးသည် — limit မပြည့်တော့ပါ။ AI ဝန်ဆောင်မှုပေးသူ 359 ခု · အခမဲ့ tier 150+ ခု · အခမဲ့ token ~1.62B/လ · routing မဟာဗျူဟာ 19 ခု · စတင်ရန် $0။"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — ကုဒ်ရေးခြင်းကို ဘယ်တော့မှ မရပ်ပါနှင့်။ AI ကိရိယာတိုင်း → ပံ့ပိုးသူ ၃၅၈ ဦး — အခမဲ့ ၁၅၀+ — တစ်ခုတည်းသော endpoint မှတစ်ဆင့်။ Claude Code, Codex, Cursor, Cline, Copilot နှင့် Antigravity တို့ကို အခမဲ့ Claude / GPT / Gemini ထဲသို့ အလိုအလျောက် ပြန်လည်ပြောင်းလဲခြင်း (auto-fallback) ဖြင့်။ RTK + Caveman stacked compression သည် 15–95% tokens (~89% ပျမ်းမျှ) ကို ချွေတာသည် — ကန့်သတ်ချက်များကို ဘယ်တော့မှ မကျော်လွန်ပါ။ AI ပံ့ပိုးသူ ၃၅၈ ဦး · အခမဲ့အဆင့် ၁၅၀+ · တစ်လလျှင် အခမဲ့ tokens ~1.62 ဘီလီယံ · routing နည်းဗျူဟာ ၁၉ ခု · စတင်ရန် $0။"/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 ထည့်သွင်းလိုက်တာနဲ့ ချက်ချင်းအလုပ်လုပ်တယ် — key မလို၊ config မလို
+## 🆓 ထည့်သွင်းပြီးသည်နှင့် ချက်ချင်းအလုပ်လုပ်သည် — သော့မလို၊ စနစ်ထည့်သွင်းမှုမလို
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ထည့်သွင်းလိုက်တာနဲ့ ချက်ချင်းအလုပ်လုပ်တယ် — config လုံးဝမလို။ အဆင့်သုံးဆင့်— 1. ထည့်သွင်းပါ — npm i -g omniroute၊ server သည် localhost:20128 တွင် စတင်အလုပ်လုပ်ပါမည်။ 2. သင့် tool ကို http://localhost:20128/v1 သို့ ချိတ်ဆက်ပါ — OpenAI နှင့် တွဲဖက်အသုံးပြုနိုင်သော မည်သည့် tool မဆို (Claude Code, Cursor, Cline)။ 3. ၎င်းက အဖြေပေးပါမည် — API key၊ စာရင်းသွင်းခြင်းနှင့် ပြင်ဆင်သတ်မှတ်ခြင်းတို့ မလိုဘဲ ချက်ချင်းအဖြေရရန် model auto ကို ခေါ်ပါ။ Key မလိုသော provider OpenCode Free ကို auto combo ထဲသို့ ကြိုတင်ချိတ်ဆက်ထားသောကြောင့် အသစ်ထည့်သွင်းပြီးသည်နှင့် ချက်ချင်းတုံ့ပြန်နိုင်ပါသည်။"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ထည့်သွင်းပြီးသည်နှင့် ချက်ချင်းအလုပ်လုပ်သည် — စနစ်ထည့်သွင်းမှုမလို။ အဆင့်သုံးဆင့်- ၁။ ထည့်သွင်းပါ — npm i -g omniroute၊ ဆာဗာသည် localhost:20128 တွင် စတင်အလုပ်လုပ်ပါမည်။ ၂။ သင်၏ကိရိယာကို http://localhost:20128/v1 သို့ ညွှန်ပြပါ — မည်သည့် OpenAI-နှင့် တွဲဖက်အသုံးပြုနိုင်သော ကိရိယာမဆို (Claude Code, Cursor, Cline)။ ၃။ ၎င်းက ပြန်ဖြေပါမည် — ချက်ချင်းပြန်ကြားရန် model auto ကို ခေါ်ဆိုပါ၊ API သော့မလို၊ စာရင်းသွင်းရန်မလို၊ စနစ်ထည့်သွင်းရန်မလိုပါ။ သော့မလိုသော ပံ့ပိုးပေးသူ OpenCode Free ကို auto ပေါင်းစပ်မှုတွင် ကြိုတင်ထည့်သွင်းထားပြီးဖြစ်သောကြောင့် အသစ်ထည့်သွင်းသည်နှင့် ချက်ချင်းအလုပ်လုပ်ပါသည်။"/>
 
 ```bash
-# အသစ်ထည့်သွင်းထားပြီး အထောက်အထား လုံးဝမလို — `auto` က အဆင်သင့်အလုပ်လုပ်နေပြီဖြစ်သည်:
+# အသစ်ထည့်သွင်းမှု၊ အထောက်အထားမလို — `auto` သည် အလုပ်လုပ်ပြီးသားဖြစ်သည်။
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>အခမဲ့ backend တစ်ခုကို သီးသန့်ရွေးချယ်လိုပါသလား။ `oc/…` (OpenCode Free) ကို တိုက်ရိုက်ခေါ်ပါ။ ထို့နောက် `auto` သို့ ပြောင်းပြီး OmniRoute ကို ရွေးချယ်ခိုင်းပါ။</sub>
+<sub>သီးခြားအခမဲ့ backend တစ်ခုကို ပိုနှစ်သက်ပါသလား။ `oc/…` (OpenCode Free) ကို တိုက်ရိုက်ခေါ်ဆိုပါ။ ထို့နောက် `auto` သို့ ပြောင်းပြီး OmniRoute ကို ရွေးချယ်ခွင့်ပြုပါ။</sub>
 
-<sub>📦 **Python, Node.js, PHP နှင့် cURL** အတွက် ကူးထည့်အသုံးပြုနိုင်သော အမြန်စတင် script များ → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 **Python, Node.js, PHP, နှင့် cURL** တို့အတွက် အမြန်စတင်အသုံးပြုနိုင်သော script များကို ကူးယူကူးထည့်ပါ → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,22 +239,22 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="ကတိကဝတ် — endpoint တစ်ခုနှင့် provider 359 ခု။ ကောင်းမွန်စွာအလုပ်လုပ်နေသော အခြား target တစ်ခု ရှိနေသရွေ့ အလိုအလျောက် fallback က routing ကို ဆက်လက်လုပ်ဆောင်ပေးသည်။ မဏ္ဍိုင်ခြောက်ခု— provider 359 ခုအကြား ခံနိုင်ရည်ရှိသော fallback · သင့်လျော်သည့် workload များတွင် token 95% အထိ ချွေတာနိုင်ခြင်း · အခမဲ့ tier 150+ နှင့် ထပ်တလဲလဲရရှိနိုင်သော/key မလိုဘဲ ထာဝရအခမဲ့ provider 54 ခုဖြင့် $0 မှ စတင်နိုင်ခြင်း · config တစ်ခုတည်းဖြင့် CLI/agent integration 36 ခု · /v1 တွင် OpenAI၊ Claude၊ Gemini နှင့် Responses API တို့နှင့် တွဲဖက်အသုံးပြုနိုင်ခြင်း · circuit breaker များ၊ TLS stealth၊ MCP tool 110 ခု၊ A2A၊ memory၊ guardrail များ၊ eval များနှင့် ခြေရာခံထားသော test file 5,100+ အတွင်းရှိ static test declaration 39,000+ အပါအဝင် production ထိန်းချုပ်မှုများ။"/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="ကတိကဝတ် — endpoint တစ်ခုနှင့် ပံ့ပိုးပေးသူ ၃၅၈ ဦး။ အခြားကောင်းမွန်သော ပစ်မှတ်တစ်ခု ရနိုင်နေသရွေ့ အလိုအလျောက် ပြန်လည်ပြောင်းလဲမှုက လမ်းကြောင်းပြောင်းလဲမှုကို ဆက်လက်လုပ်ဆောင်ပေးသည်။ အဓိကအချက် ခြောက်ချက်- ပံ့ပိုးပေးသူ ၃၅၈ ဦးအနှံ့ ခံနိုင်ရည်ရှိသော ပြန်လည်ပြောင်းလဲမှု · သတ်မှတ်ထားသော လုပ်ငန်းများတွင် token ၉၅% အထိ သက်သာစေခြင်း · အခမဲ့အဆင့် ၁၅၀ ကျော်နှင့် ထပ်တလဲလဲ/သော့မလိုသော ထာဝရအခမဲ့ ပံ့ပိုးပေးသူ ၅၄ ဦးဖြင့် $0 ဖြင့် စတင်နိုင်ခြင်း · စနစ်ထည့်သွင်းမှုတစ်ခုတည်းဖြင့် CLI/agent ပေါင်းစပ်မှု ၃၆ ခု · /v1 တွင် OpenAI, Claude, Gemini နှင့် Responses API တွဲဖက်အသုံးပြုနိုင်ခြင်း · circuit breakers, TLS stealth, MCP 110 tools, A2A, memory, guardrails, evals နှင့် ခြေရာခံထားသော စမ်းသပ်ဖိုင် ၅,၁၀၀ ကျော်တွင် static test ကြေညာချက် ၃၉,၀၀၀ ကျော် အပါအဝင် ထုတ်လုပ်မှု ထိန်းချုပ်မှုများ။"/>
 
 <br/>
 <br/>
 
 <div align="center">
 
-# 🤔 OmniRoute ကို ဘာကြောင့် ရွေးချယ်သင့်သလဲ။
+# 🤔 OmniRoute ကို ဘာကြောင့်လဲ။
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRoute ကို ဘာကြောင့် ရွေးချယ်သင့်သလဲ — dashboard 10 ခု၊ အလုပ်မလုပ်တော့သော API key များနှင့် မမျှော်လင့်ထားသော ကုန်ကျစရိတ်များကြား ရှုပ်ထွေးနေမှုကို ရပ်တန့်လိုက်ပါ။ နေ့စဉ်ပြဿနာ 10 ခုနှင့် ဖြေရှင်းနည်းများ— အသုံးမပြုရသေးဘဲ quota သက်တမ်းကုန်ခြင်း → subscription များကို အပြည့်အဝအသုံးချခြင်း၊ coding လုပ်နေစဉ် rate limit ထိခြင်း → အဆင့် 4 ဆင့်ပါ အလိုအလျောက် fallback (Subscription → API → Cheap → Free)၊ tool output များက token များစွာကုန်စေခြင်း → RTK + Caveman compression (15–95%)၊ ဈေးကြီးသော API များ → ကုန်ကျစရိတ်အတွက် အကောင်းဆုံးဖြစ်အောင် routing ပြုလုပ်ခြင်း၊ tool တိုင်းအတွက် သီးခြား setup လုပ်ရခြင်း → endpoint တစ်ခု၊ dashboard တစ်ခု၊ AI ပိတ်ဆို့ခံရခြင်း → အဆင့် 3 ဆင့် proxy + TLS stealth၊ အလုပ်မလုပ်တော့သော key များ → အလွှာ 3 ဆင့် ခံနိုင်ရည် (circuit breaker များ၊ key cooldown၊ model lockout)၊ အဖွဲ့တစ်ခုလုံး subscription တစ်ခုကို မျှဝေအသုံးပြုခြင်း → မျှတသော quota များပါသည့် key pool များ၊ prompt များကို တစ်စုံတစ်ဦး၏ cloud မှတစ်ဆင့် ပို့ဆောင်ရခြင်း → AES-256-GCM ဖြင့် encrypt လုပ်ထားသော key များပါသည့် local-first စနစ်၊ ကုန်ကျစရိတ်ကို မမြင်နိုင်ခြင်း → တိုက်ရိုက် analytics (အသုံးပြုမှု၊ quota၊ ချွေတာမှု၊ p95 latency)။"/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRoute ကို ဘာကြောင့်လဲ — dashboard ၁၀ ခု၊ သုံးမရသော API သော့များနှင့် မမျှော်လင့်သော ဘေလ်များကို ရင်ဆိုင်နေရခြင်းကို ရပ်တန့်ပါ။ နေ့စဉ်ကြုံတွေ့ရသော ပြဿနာ ဆယ်ခုနှင့် ဖြေရှင်းနည်းများ- အသုံးမပြုရသေးဘဲ သက်တမ်းကုန်ဆုံးသော ကန့်သတ်ချက် → စာရင်းသွင်းမှုများကို အများဆုံးအသုံးပြုပါ။ rate limits mid-coding → ၄-အဆင့် အလိုအလျောက် ပြန်လည်ပြောင်းလဲမှု (Subscription → API → Cheap → Free)။ ကိရိယာမှ ထွက်ရှိမှုများက token များကို လောင်ကျွမ်းစေခြင်း → RTK + Caveman compression (၁၅-၉၅%)။ စျေးကြီးသော APIs များ → ကုန်ကျစရိတ်ကို အကောင်းဆုံးဖြစ်အောင် လမ်းကြောင်းပြောင်းလဲခြင်း။ ကိရိယာတိုင်းအတွက် သီးခြားစနစ်ထည့်သွင်းမှု → endpoint တစ်ခု၊ dashboard တစ်ခု။ AI ပိတ်ဆို့ခံရခြင်း → ၃-အဆင့် proxy + TLS stealth။ သုံးမရသော သော့များ → ၃-အဆင့် ခံနိုင်ရည်ရှိမှု (circuit breakers, key cooldown, model lockout)။ အဖွဲ့တစ်ဖွဲ့တည်းက စာရင်းသွင်းမှုတစ်ခုကို မျှဝေသုံးစွဲခြင်း → တရားမျှတစွာ ခွဲဝေသုံးစွဲနိုင်သော သော့အစုအဝေးများ။ အခြားသူ၏ cloud မှတစ်ဆင့် prompts များ → AES-256-GCM ကုဒ်ဝှက်ထားသော သော့များဖြင့် local-first။ သုံးစွဲမှုမြင်နိုင်စွမ်းမရှိခြင်း → live analytics (အသုံးပြုမှု၊ ကန့်သတ်ချက်၊ ချွေတာမှု၊ p95 latency)။"/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute request စီးဆင်းပုံ— သင့် IDE သို့မဟုတ် CLI (Claude Code, Cursor, Cline…) က local endpoint တစ်ခု (http://localhost:20128/v1) ကို ခေါ်သည်။ OmniRoute Smart Router (RTK + Caveman compression၊ routing strategy 19 ခု၊ circuit breaker များ၊ TLS stealth၊ MCP၊ A2A၊ guardrail များ) သည် သတ်မှတ်ချက်နှင့်ကိုက်ညီပြီး ကောင်းမွန်စွာအလုပ်လုပ်နေသော target ရှိနေသရွေ့ provider အဆင့် 4 ဆင့်အကြား fallback လုပ်နိုင်သည် — အဆင့် 1 Subscription၊ အဆင့် 2 API Key၊ အဆင့် 3 Cheap နှင့် အဆင့် 4 Free။"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute တောင်းဆိုမှု စီးဆင်းမှု- သင်၏ IDE သို့မဟုတ် CLI (Claude Code, Cursor, Cline...) သည် local endpoint တစ်ခု (http://localhost:20128/v1) ကို ခေါ်ဆိုသည်။ OmniRoute Smart Router (RTK + Caveman compression, routing နည်းဗျူဟာ ၁၉ ခု၊ circuit breakers, TLS stealth, MCP, A2A, guardrails) သည် သတ်မှတ်ထားသော ကောင်းမွန်သည့် ပစ်မှတ်တစ်ခု ကျန်ရှိနေသရွေ့ ပံ့ပိုးပေးသူ အဆင့် ၄ ဆင့် (အဆင့် ၁ စာရင်းသွင်းမှု၊ အဆင့် ၂ API သော့၊ အဆင့် ၃ စျေးသက်သာ၊ အဆင့် ၄ အခမဲ့) အနှံ့ ပြန်လည်ပြောင်းလဲနိုင်သည်။"/>
 
 </div>
 
@@ -488,13 +488,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🏆 OmniRoute ကို ထူးခြားစေသည့် အချက်များ
+## 🏆 OmniRoute ကို ဘာက ထူးခြားစေသလဲ
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute ကို ထူးခြားစေသည့် အချက်များ — စွမ်းဆောင်ရည် 13 မျိုးအရ 9router၊ OpenRouter၊ CLIProxyAPI နှင့် LiteLLM တို့ကို ရက်စွဲသတ်မှတ်ထားသော အင်္ဂါရပ်မှတ်တမ်းဖြင့် နှိုင်းယှဉ်ထားခြင်း။ OmniRoute တွင် ပံ့ပိုးသူ 359 ဦး၊ အသင့်ထည့်သွင်းထားသော အခမဲ့အဆင့် 150+ ခု၊ လမ်းကြောင်းရွေးချယ်မှု မဟာဗျူဟာ 19 မျိုး၊ အင်ဂျင် 12 ခုသုံး တိုကင်ချုံ့ခြင်း၊ ကိရိယာ 110 ခုပါသော အသင့်ပါရှိသည့် MCP ဆာဗာ၊ A2A အေးဂျင့်ပရိုတိုကော၊ အမြဲတမ်းမှတ်ဉာဏ်၊ လုံခြုံရေးကန့်သတ်ချက်များ၊ cloud အေးဂျင့်များ၊ TLS လက်ဗွေရာ ဖုံးကွယ်ခြင်း၊ Desktop/Termux/PWA နှင့် i18n UI ဘာသာစကားဒေသ 42 ခု ပါဝင်သည်။ OmniRoute သည် MIT လိုင်စင်ဖြင့် ဖြန့်ချိထားပြီး မိမိကိုယ်တိုင် လက်ခံတင်ထားနိုင်သည်။ ပြိုင်ဘက်များ၏ စွမ်းဆောင်ရည်များနှင့် အရေအတွက်များသည် ပြောင်းလဲနိုင်သည်၊ လင့်ခ်ချိတ်ထားသော နည်းလမ်းကို ကြည့်ပါ။"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute ကို ဘာက ထူးခြားစေသလဲ — 9router, OpenRouter, CLIProxyAPI နှင့် LiteLLM တို့နှင့် နှိုင်းယှဉ်ထားသော အင်္ဂါရပ်များ၏ ခေတ်နောက်ကျနေသော ဓာတ်ပုံ (၁၃) ခု။ OmniRoute: ပံ့ပိုးသူ ၃၅၈ ဦး၊ အခမဲ့အဆင့် ၁၅၀+ ပါဝင်ပြီး၊ လမ်းကြောင်းပြဗျူဟာ ၁၉ ခု၊ အင်ဂျင် ၁၂ ခုပါ တိုကင်ချုံ့ခြင်း၊ ကိရိယာ ၁၁၀ ပါဝင်သော built-in MCP ဆာဗာ၊ A2A အေးဂျင့် ပရိုတိုကော၊ အမြဲတမ်းမှတ်ဉာဏ်၊ ကာကွယ်မှုများ၊ cloud အေးဂျင့်များ၊ TLS လက်ဗွေ လျှို့ဝှက်ချက်၊ Desktop/Termux/PWA နှင့် နိုင်ငံတကာ UI ဘာသာစကား ၄၂ မျိုး။ OmniRoute သည် MIT လိုင်စင်ရရှိထားပြီး ကိုယ်တိုင် hosting လုပ်နိုင်သည်။ ပြိုင်ဘက်များ၏ စွမ်းဆောင်ရည်နှင့် အရေအတွက်များ ပြောင်းလဲနိုင်သည်၊ ချိတ်ဆက်ထားသော နည်းစနစ်ကို ကြည့်ပါ။"/>
 
-<sub>📊 နည်းလမ်းအပြည့်အစုံနှင့် အင်္ဂါရပ်တစ်ခုချင်းစီအလိုက် 9router၊ OpenRouter၊ CLIProxyAPI နှင့် LiteLLM တို့ကို အသေးစိတ်နှိုင်းယှဉ်ချက် → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM တို့နှင့် နှိုင်းယှဉ်ထားသော အပြည့်အစုံ နည်းစနစ်နှင့် အင်္ဂါရပ်အလိုက် အသေးစိတ်အချက်အလက်များ → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1258,29 +1258,29 @@ port တစ်ခုတည်းရှိ process တစ်ခုတည်းက
 <br/>
 <div align="center">
 
-## 🛠️ နည်းပညာ Stack
+## 🛠️ နည်းပညာအစုအဝေး
 
 </div>
 
 <table>
   <tr><th align="left">အလွှာ</th><th align="left">နည်းပညာ</th></tr>
-  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ဘာသာစကား</b></td><td>TypeScript 6.0 — <code>src/</code> နှင့် <code>open-sse/</code> တို့တွင် <b>100% TypeScript</b> (v2.0 မှစ၍ core တွင် <code>any</code> မရှိပါ)</td></tr>
+  <tr><td nowrap><b>လုပ်ဆောင်ချိန်</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>ဘာသာစကား</b></td><td>TypeScript 6.0 — `src/` နှင့် `open-sse/` တို့တွင် **100% TypeScript** (v2.0 မှစ၍ core တွင် `any` မရှိပါ)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ဒေတာဘေ့စ်</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domain modules, 182 migrations</td></tr>
-  <tr><td nowrap><b>မှတ်ဉာဏ်</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
-  <tr><td nowrap><b>Schema များ</b></td><td>Zod 4 — MCP tool I/O validation + API contracts</td></tr>
-  <tr><td nowrap><b>Protocols များ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>ဒေတာဘေ့စ်</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — ဒိုမိန်း module ၁၂၂ ခု၊ migration ၁၈၃ ခု</td></tr>
+  <tr><td nowrap><b>မှတ်ဉာဏ်</b></td><td>SQLite FTS5 စာသားအပြည့်အစုံ + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>Schema များ</b></td><td>Zod 4 — MCP tool I/O စစ်ဆေးခြင်း + API စာချုပ်များ</td></tr>
+  <tr><td nowrap><b>Protocol များ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (`/v1/ws`)</td></tr>
   <tr><td nowrap><b>ချုံ့ခြင်း</b></td><td>12-engine pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Auth &amp; လုံခြုံရေး</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM at rest · DOMPurify</td></tr>
-  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-level proxy</td></tr>
-  <tr><td nowrap><b>ခံနိုင်ရည်ရှိခြင်း</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
-  <tr><td nowrap><b>မှတ်တမ်းတင်ခြင်း</b></td><td>pino — request context ပါသော structured JSON logs</td></tr>
-  <tr><td nowrap><b>စမ်းသပ်ခြင်း</b></td><td>Node.js test runner + Vitest — 5,100+ tracked test files (unit, integration, E2E, security, ecosystem) တို့တွင် <b>39,000+ static test declarations</b></td></tr>
-  <tr><td nowrap><b>ပလက်ဖောင်းများ</b></td><td>Desktop (Electron) · Android (Termux) · PWA (မည်သည့် browser မဆို)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — auto npm publish + Docker Hub on release</td></tr>
-  <tr><td nowrap><b>လင့်ခ်များ</b></td><td><a href="https://omniroute.online">ဝဘ်ဆိုဒ်</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>အတည်ပြုခြင်းနှင့် လုံခြုံရေး</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM at rest · DOMPurify</td></tr>
+  <tr><td nowrap><b>လျှို့ဝှက်ခြင်း</b></td><td>wreq-js — JA3 / JA4 TLS လက်ဗွေ အတုယူခြင်း၊ 3-level proxy</td></tr>
+  <tr><td nowrap><b>ခံနိုင်ရည်ရှိခြင်း</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo ကိုယ်တိုင်ပြုပြင်ခြင်း</td></tr>
+  <tr><td nowrap><b>မှတ်တမ်းတင်ခြင်း</b></td><td>pino — request context ပါသော structured JSON မှတ်တမ်းများ</td></tr>
+  <tr><td nowrap><b>စမ်းသပ်ခြင်း</b></td><td>Node.js test runner + Vitest — ခြေရာခံထားသော စမ်းသပ်ဖိုင်ပေါင်း ၅,၁၀၀ ကျော် (unit, integration, E2E, security, ecosystem) တွင် **static test declaration ၃၉,၀၀၀ ကျော်**</td></tr>
+  <tr><td nowrap><b>Platform များ</b></td><td>Desktop (Electron) · Android (Termux) · PWA (မည်သည့် browser မဆို)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ထုတ်ပြန်ချိန်တွင် auto npm publish + Docker Hub</td></tr>
+  <tr><td nowrap><b>လင့်ခ်များ</b></td><td><a href="https://omniroute.online">ဝက်ဘ်ဆိုက်</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

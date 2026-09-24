@@ -43,56 +43,27 @@ ACP Agentit (käänteinen luontivirta):
 
 ---
 
-## Automaattinen konfigurointi `setup-*` avulla
+## Automaattinen konfigurointi `setup-*`-komennoilla
 
-Sinun ei tarvitse kirjoittaa jokaisen työkalun konfiguraatiota käsin. OmniRoute toimittaa `setup-*`
-komennon jokaiselle tuetulle CLI:lle, joka lukee **live** malliluettelon käynnissä olevasta
-OmniRoute:sta (paikallinen tai etä) ja kirjoittaa työkalun oman konfiguraation koneellesi:
+Sinun ei tarvitse kirjoittaa jokaisen työkalun konfiguraatiota käsin. OmniRoute sisältää `setup-*`-komennon jokaista tuettua komentorivityökalua (CLI) varten, joka lukee **reaaliaikaisen** malliluettelon käynnissä olevasta OmniRoutesta (paikallinen tai etä) ja kirjoittaa työkalun oman konfiguraation koneellesi:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Jokainen hyväksyy `--remote <url> --api-key <key>` (konfiguroi paikallinen työkalu etä
-OmniRoutea vastaan), `--dry-run` (esikatselu ilman kirjoittamista) ja `--port`. Työkalut,
-joilla ei ole mallin automaattista löytämistä (Cline, Kilo, Roo, Goose, Aider, Qwen) ottavat
-`--model <id>` (ja `--yes` ei-interaktiivisiin suorituksiin). Käynnistääksesi CLI:n
-oikealla ympäristöllä injektoituna ja ilman konfiguraatiota kirjoitettuna, käytä yleistä
-`omniroute run <target>` käynnistintä (claude, codex, aider, goose, opencode, qwen,
-gemini — kohteet ja aliasit tulevat `bin/cli/cli-manifest.mjs`); perintö
-per-työkalu käynnistimet `omniroute launch` (Claude Code) ja `omniroute launch-codex`
-(Codex) pysyvät saatavilla. Gemini CLI on vain käynnistettävä: se on `omniroute run`
-kohde, mutta sillä ei ole `setup-*`/`configure` reseptiä.
+Jokainen hyväksyy `--remote <url> --api-key <key>` (konfiguroi paikallisen työkalun etä-OmniRoutea vastaan), `--dry-run` (esikatselu ilman kirjoitusta) ja `--port`. Työkalut, joissa ei ole mallin automaattista tunnistusta (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive), ottavat `--model <id>` (ja `--yes` ei-interaktiivisia ajoja varten). `setup-5dive` on ainoa resepti, joka ei kirjoita `$HOME`-hakemiston alle: se konfiguroi 5dive-agenttilaivaston kirjoittamalla pääkäyttäjän omistaman todennusprofiilin laivaston isäntäkoneelle, joten se suorittaa uudelleen `sudo`-komennolla eikä sillä ole omaa etätilaa. Käynnistääksesi komentorivityökalun oikealla ympäristöllä injektoituna ja ilman konfiguraation kirjoittamista, käytä yleistä `omniroute run <target>` -käynnistintä (claude, codex, aider, goose, opencode, qwen, gemini — kohteet ja aliakset tulevat tiedostosta `bin/cli/cli-manifest.mjs`); vanhat työkalukohtaiset käynnistimet `omniroute launch` (Claude Code) ja `omniroute launch-codex` (Codex) ovat edelleen saatavilla. Gemini CLI on vain käynnistettävä: se on `omniroute run` -kohde, mutta sillä ei ole `setup-*`/`configure`-reseptiä.
 
-> **Täydellinen viite:** päätaulukko — mitä kukin komento kirjoittaa, jokainen lippu,
-> paikallinen vs etä, ja mitkä työkalut haluavat `/v1` päätteet — löytyy
-> **[CLI Integraatiot](../guides/CLI-INTEGRATIONS.md)**.
+> **Täydellinen viite:** päätaulukko – mitä kukin komento kirjoittaa, jokainen lippu, paikallinen vs. etä, ja mitkä työkalut haluavat `/v1`-suffiksin – löytyy kohdasta **[CLI-integraatiot](../guides/CLI-INTEGRATIONS.md)**.
 
-### Näiden suorittaminen säiliössä
+### Näiden ajaminen kontissa
 
-`setup-*` komento, joka suoritetaan OmniRoute säiliössä, kirjoittaa säiliön omaan kotiin,
-jota mikään isäntä CLI ei lue ja joka katoaa säiliön mukana. OmniRoute havaitsee tämän ja
-poistuu `2` ohjeiden kanssa sen sijaan, että kirjoittaisi. Kaksi tuettua tapaa edetä —
-asenna CLI isäntään ja `omniroute connect` säiliöön, tai bind-mountaa konfiguraatiokansiot ja
-asettaa `CLI_CONFIG_HOME` (compose `host` profiili). Jokainen `setup-*` komento, plus
-`omniroute configure` ja `omniroute config set`, hyväksyy
-`--allow-container-write`, kun säiliön omien CLI:den konfigurointi on se, mitä todella
-tarkoitit; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` tekee saman palvelimelle. Katso
-[Docker Opas → Isäntä CLI työkalujen konfigurointi](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+OmniRoute-kontin sisällä suoritettu `setup-*`-komento kirjoittaa kontin omaan kotihakemistoon, jota isäntäkoneen komentorivityökalut eivät lue ja joka katoaa kontin mukana. OmniRoute havaitsee tämän ja poistuu tilakoodilla `2` ohjeiden kera kirjoittamisen sijaan. Kaksi tuettua tapaa edetä – asenna komentorivityökalu isäntäkoneelle ja `omniroute connect` konttiin, tai liitä konfiguraatiohakemistot ja aseta `CLI_CONFIG_HOME` (compose `host`-profiili). Jokainen `setup-*`-komento, sekä `omniroute configure` ja `omniroute config set`, hyväksyy `--allow-container-write`, kun kontin omien komentorivityökalujen konfigurointi on se, mitä todella tarkoitit; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` tekee saman palvelimelle. Katso [Docker-opas → Isäntäkoneen komentorivityökalujen konfigurointi, kun OmniRoute toimii Dockerissa](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-Hallintapaneelin **apply endpoint** (`POST /api/cli-tools/apply`) valvoo
-samaa suojaa: säiliössä, kirjoitus, jonka kohde ei ole bind-mounted isännästä, vastaa
-**`422`** `containerEphemeralTarget: true`, turvallinen virheteksti ja — työkaluille,
-joilla on isäntäresepti (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` (esim. `omniroute setup-opencode`), joka suoritetaan
-isännällä sen sijaan; mitään ei kirjoiteta. `dryRun: true` toimii edelleen säiliötilassa
-ja palauttaa luodun sisällön + kohdepolun ilman levyn koskettamista, joten voit esikatsella
-hallintapaneelista ja soveltaa isännällä. Tämä käyttäytyminen on tarkoituksellista ja
-regressiosuojattu `tests/unit/api/cli-tools/apply-container-guard.test.ts` — älä koskaan
-"korjaa" 422:ta poistamalla suojaa.
+Hallintapaneelin **sovelluspäätepiste** (`POST /api/cli-tools/apply`) valvoo samaa suojaa: kontissa kirjoitus, jonka kohde ei ole isäntäkoneelta liitetty, vastaa **`422`**-virheellä ja `containerEphemeralTarget: true` -tekstillä, turvallisella virhetekstillä ja – työkaluille, joilla on isäntäkoneen resepti (claude, codex, opencode, cline, kilo, continue) – `hostSetupCommand`-komennolla (esim. `omniroute setup-opencode`) suoritettavaksi isäntäkoneella; mitään ei kirjoiteta. `dryRun: true` toimii edelleen konttitilassa ja palauttaa muokatun esikatselun + kohdepolun koskematta levyyn. Esikatselun sisältö ei ole tunnistetietoja sisältävä konfiguraatio kopioitavaksi tai tuotavaksi. Suorita sovellus alkuperäisellä työkalulla/perus-URL-osoitteella/API-avaimella/mallisyötteillä isäntäkoneella tai käytä ilmoitettua isäntäkoneen puoleista asennuskomentoa. Katso [CLI-konfiguraation turvallisuus](../security/CLI-CONFIGURATION.md) esikatselun otsikosta ja pyyntösopimuksesta. Tämä käyttäytyminen on tarkoituksellista ja regressiosuojattu tiedostolla `tests/unit/api/cli-tools/apply-container-guard.test.ts` – älä koskaan "korjaa" 422-virhettä poistamalla suojaa.
 
 ---
 

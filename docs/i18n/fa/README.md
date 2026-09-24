@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="داشبورد OmniRoute" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — درگاه رایگان هوش مصنوعی
+# 🚀 OmniRoute — دروازه هوش مصنوعی رایگان
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — هرگز کدنویسی را متوقف نکنید. هر ابزار هوش مصنوعی ← 359 ارائهدهنده — بیش از 150 مورد رایگان — از طریق یک نقطه پایانی. Claude Code، Codex، Cursor، Cline، Copilot و Antigravity را با Claude / GPT / Gemini رایگان و قابلیت جایگزینی خودکار به کار بگیرید. فشردهسازی ترکیبی RTK + Caveman بین 15 تا 95٪ در مصرف توکن صرفهجویی میکند (میانگین حدود 89٪) — دیگر هرگز به محدودیتها نرسید. 359 ارائهدهنده هوش مصنوعی · بیش از 150 سطح رایگان · حدود 1.62 میلیارد توکن رایگان در ماه · 19 راهبرد مسیریابی · شروع با هزینه 0 دلار."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — هرگز کدنویسی را متوقف نکنید. هر ابزار هوش مصنوعی ← ۳۵۸ ارائهدهنده — ۱۵۰+ رایگان — از طریق یک نقطه پایانی. Claude Code, Codex, Cursor, Cline, Copilot و Antigravity به Claude / GPT / Gemini رایگان با بازگشت خودکار. فشردهسازی پشتهای RTK + Caveman ۱۵ تا ۹۵ درصد توکنها را ذخیره میکند (میانگین ~۸۹%) — هرگز به محدودیتها نمیرسید. ۳۵۸ ارائهدهنده هوش مصنوعی · ۱۵۰+ سطح رایگان · ~۱.۶۲ میلیارد توکن رایگان در ماه · ۱۹ استراتژی مسیریابی · $۰ برای شروع."/>
 
 </div>
 
@@ -214,32 +214,32 @@
 
 <div align="center">
 
-## 🆓 از همان لحظهٔ نصب کار میکند — بدون کلید، بدون پیکربندی
+## 🆓 به محض نصب کار میکند — بدون نیاز به کلید، بدون تنظیمات
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="از همان لحظهٔ نصب کار میکند — بدون نیاز به پیکربندی. سه مرحله: ۱. نصب — npm i -g omniroute؛ سرور روی localhost:20128 راهاندازی میشود. ۲. ابزار خود را به http://localhost:20128/v1 متصل کنید — هر ابزار سازگار با OpenAI مانند Claude Code، Cursor یا Cline. ۳. پاسخ میدهد — برای دریافت پاسخی فوری، مدل auto را فراخوانی کنید؛ بدون کلید API، بدون ثبتنام و بدون پیکربندی. ارائهدهندهٔ بدون کلید OpenCode Free از پیش در ترکیب auto قرار گرفته است، بنابراین نصب تازه از همان ابتدا پاسخ میدهد."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="به محض نصب کار میکند — بدون نیاز به تنظیمات. سه مرحله: ۱. نصب — npm i -g omniroute، سرور روی localhost:20128 راهاندازی میشود. ۲. ابزار خود را به http://localhost:20128/v1 هدایت کنید — هر ابزار سازگار با OpenAI (مانند Claude Code, Cursor, Cline). ۳. پاسخ میدهد — مدل auto را برای پاسخ فوری فراخوانی کنید، بدون کلید API، بدون ثبتنام، بدون تنظیمات. ارائهدهنده بدون کلید OpenCode Free از پیش در ترکیب auto سیمکشی شده است، بنابراین یک نصب تازه بلافاصله پاسخ میدهد."/>
 
 ```bash
-# نصب تازه، بدون هیچ اطلاعات احراز هویت — `auto` از قبل کار میکند:
+# نصب تازه، بدون اعتبارنامه — `auto` از قبل کار میکند:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>یک بکاند رایگان مشخص را ترجیح میدهید؟ مستقیماً `oc/…` (OpenCode Free) را فراخوانی کنید. سپس به `auto` ارتقا دهید و اجازه دهید OmniRoute انتخاب کند.</sub>
+<sub>یک بکاند رایگان خاص را ترجیح میدهید؟ مستقیماً `oc/…` (OpenCode Free) را فراخوانی کنید. سپس به `auto` ارتقا دهید و اجازه دهید OmniRoute انتخاب کند.</sub>
 
-<sub>📦 اسکریپتهای شروع سریع قابل کپی و جایگذاری برای **Python، Node.js، PHP و cURL** ← [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 اسکریپتهای شروع سریع را برای **پایتون، Node.js، PHP و cURL** کپی-پیست کنید → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 وعدهٔ ما
+# 💥 وعده
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="وعدهٔ ما — یک نقطهٔ پایانی و 359 ارائهدهنده. تا زمانی که مقصد سالم دیگری در دسترس باشد، بازگشت خودکار مسیریابی را ادامه میدهد. شش ستون: بازگشت مقاوم در میان 359 ارائهدهنده · تا 95% صرفهجویی در توکن برای بارهای کاری واجد شرایط · شروع با هزینهٔ $0 به کمک بیش از 150 سطح رایگان و 54 ارائهدهندهٔ رایگان دائمیِ دورهای/بدون کلید · 36 یکپارچهسازی CLI/عامل از طریق یک پیکربندی · سازگاری با OpenAI، Claude، Gemini و Responses API در /v1 · کنترلهای محیط عملیاتی شامل قطعکنندههای مدار، استتار TLS، تعداد 110 ابزار MCP، ‏A2A، حافظه، محافظها، ارزیابیها و بیش از 39,000 اعلان آزمون ایستا در بیش از 5,100 فایل آزمون رهگیریشده."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="وعده — یک نقطه پایانی و ۳۵۸ ارائهدهنده. بازگشت خودکار (fallback) مسیریابی را تا زمانی که یک هدف سالم دیگر در دسترس باشد، حفظ میکند. شش ستون: بازگشتپذیری انعطافپذیر در میان ۳۵۸ ارائهدهنده · تا ۹۵٪ صرفهجویی در توکن برای بارهای کاری واجد شرایط · شروع با ۰ دلار با بیش از ۱۵۰ سطح رایگان و ۵۴ ارائهدهنده رایگان دائمی/بدون کلید · ۳۶ یکپارچهسازی CLI/عامل از طریق یک پیکربندی · سازگاری با OpenAI، Claude، Gemini و Responses API در /v1 · کنترلهای تولید شامل قطعکنندههای مدار، پنهانسازی TLS، ابزارهای MCP 110، A2A، حافظه، گاردریلها، ارزیابیها و بیش از ۳۹,۰۰۰ اعلان تست استاتیک در بیش از ۵,۱۰۰ فایل تست ردیابی شده."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="چرا OmniRoute — دیگر با 10 داشبورد، کلیدهای API ازکارافتاده و صورتحسابهای غافلگیرکننده دستوپنجه نرم نکنید. ده مشکل روزمره در برابر راهحلها: منقضیشدن سهمیهٔ استفادهنشده ← استفادهٔ حداکثری از اشتراکها؛ محدودیت نرخ هنگام کدنویسی ← بازگشت خودکار 4 سطحی (اشتراک ← API ← ارزان ← رایگان)؛ مصرف توکن توسط خروجی ابزارها ← فشردهسازی RTK + Caveman ‏(15–95%)؛ APIهای گران ← مسیریابی بهینهشده از نظر هزینه؛ تنظیمات جداگانه برای هر ابزار ← یک نقطهٔ پایانی، یک داشبورد؛ مسدودشدن هوش مصنوعی ← پراکسی 3 سطحی + استتار TLS؛ کلیدهای ازکارافتاده ← تابآوری 3 لایه (قطعکنندههای مدار، دورهٔ انتظار کلید، قفلکردن مدل)؛ استفادهٔ تیم از یک اشتراک مشترک ← مخزن کلیدها با سهمیههای منصفانه؛ عبور اعلانها از فضای ابری دیگران ← رویکرد محلیمحور با کلیدهای رمزگذاریشده بهوسیلهٔ AES-256-GCM؛ نبود دید نسبت به هزینهها ← تحلیلهای زنده (مصرف، سهمیه، صرفهجویی، تأخیر p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="چرا OmniRoute — دست از سر و کله زدن با ۱۰ داشبورد، کلیدهای API از کار افتاده و صورتحسابهای غیرمنتظره بردارید. ده مشکل روزمره در مقابل راهحلها: سهمیه منقضی شده استفاده نشده → به حداکثر رساندن اشتراکها؛ محدودیتهای نرخ در حین کدنویسی → بازگشت خودکار ۴ لایه (اشتراک → API → ارزان → رایگان)؛ خروجیهای ابزار که توکنها را میسوزانند → فشردهسازی RTK + Caveman (۱۵-۹۵٪)؛ APIهای گرانقیمت → مسیریابی بهینه شده از نظر هزینه؛ هر ابزار تنظیمات خاص خود را دارد → یک نقطه پایانی، یک داشبورد؛ AI مسدود شده → پروکسی ۳ سطحی + پنهانسازی TLS؛ کلیدهای از کار افتاده → انعطافپذیری ۳ لایه (قطعکنندههای مدار، خنکسازی کلید، قفل مدل)؛ اشتراکگذاری یک اشتراک توسط تیم → مجموعههای کلید با سهمیههای عادلانه؛ پرامپتها از طریق ابر شخص دیگری → اولویت محلی با کلیدهای رمزگذاری شده AES-256-GCM؛ عدم مشاهده هزینهها → تجزیه و تحلیل زنده (استفاده، سهمیه، صرفهجویی، تأخیر p95)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="جریان درخواست OmniRoute: محیط توسعه یا CLI شما (Claude Code، Cursor، Cline و غیره) یک نقطهٔ پایانی محلی (http://localhost:20128/v1) را فراخوانی میکند؛ مسیریاب هوشمند OmniRoute ‏(فشردهسازی RTK + Caveman، تعداد 19 راهبرد مسیریابی، قطعکنندههای مدار، استتار TLS، ‏MCP، ‏A2A و محافظها) میتواند تا زمانی که مقصد سالم و واجد شرایطی باقی مانده باشد، میان 4 سطح ارائهدهنده بازگشت انجام دهد — سطح 1 اشتراک، سطح 2 کلید API، سطح 3 ارزان و سطح 4 رایگان."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="جریان درخواست OmniRoute: IDE یا CLI شما (Claude Code, Cursor, Cline…) یک نقطه پایانی محلی (http://localhost:20128/v1) را فراخوانی میکند؛ روتر هوشمند OmniRoute (فشردهسازی RTK + Caveman، ۱۹ استراتژی مسیریابی، قطعکنندههای مدار، پنهانسازی TLS، MCP، A2A، گاردریلها) میتواند در میان ۴ سطح ارائهدهنده بازگشت کند تا زمانی که یک هدف سالم واجد شرایط باقی بماند — سطح ۱ اشتراک، سطح ۲ کلید API، سطح ۳ ارزان و سطح ۴ رایگان."/>
 
 </div>
 
@@ -492,9 +492,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="ویژگیهای متمایزکننده OmniRoute — تصویری زماندار از مقایسه قابلیتها با 9router، OpenRouter، CLIProxyAPI و LiteLLM در 13 زمینه. OmniRoute: دارای 359 ارائهدهنده، بیش از 150 سطح رایگان داخلی، 19 راهبرد مسیریابی، فشردهسازی توکن با 12 موتور، سرور داخلی MCP با 110 ابزار، پروتکل عامل A2A، حافظه پایدار، حفاظهای امنیتی، عاملهای ابری، پنهانسازی اثرانگشت TLS، نسخههای Desktop/Termux/PWA و رابط کاربری با 42 زبان بومیسازیشده. OmniRoute دارای مجوز MIT و قابل میزبانی شخصی است. قابلیتها و آمار رقبا ممکن است تغییر کنند؛ روششناسی پیوندشده را ببینید."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="چه چیزی OmniRoute را متمایز میکند — یک نمای کلی از ویژگیهای قدیمی در مقایسه با 9router، OpenRouter، CLIProxyAPI و LiteLLM در ۱۳ قابلیت. OmniRoute: ۳۵۸ ارائهدهنده، بیش از ۱۵۰ ردیف رایگان داخلی، ۱۹ استراتژی مسیریابی، فشردهسازی توکن با ۱۲ موتور، سرور MCP داخلی با ۱۱۰ ابزار، پروتکل عامل A2A، حافظه پایدار، گاردریلها، عوامل ابری، پنهانکاری اثر انگشت TLS، دسکتاپ/Termux/PWA و ۴۲ زبان رابط کاربری بینالمللی. OmniRoute دارای مجوز MIT است و قابلیت میزبانی شخصی دارد. قابلیتها و تعداد رقبا ممکن است تغییر کند؛ به متدولوژی پیوند داده شده مراجعه کنید."/>
 
-<sub>📊 روششناسی کامل و جزئیات هر قابلیت در مقایسه با 9router، OpenRouter، CLIProxyAPI و LiteLLM ← [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 متدولوژی کامل و جزئیات هر ویژگی در مقایسه با 9router، OpenRouter، CLIProxyAPI و LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1265,20 +1265,20 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 نیز از آن 
   <tr><td nowrap><b>محیط اجرا</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>زبان</b></td><td>TypeScript 6.0 — <b>۱۰۰٪ تایپاسکریپت</b> در سراسر <code>src/</code> و <code>open-sse/</code> (صفر <code>any</code> در هسته از نسخه ۲.۰)</td></tr>
   <tr><td nowrap><b>فریمورک</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>پایگاه داده</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — ۱۲۲ ماژول دامنه، ۱۸۲ مهاجرت</td></tr>
-  <tr><td nowrap><b>حافظه</b></td><td>SQLite FTS5 متن کامل + تعبیههای برداری کوانتیزه شده int8، واپاشی تایپ شده</td></tr>
-  <tr><td nowrap><b>طرحوارهها</b></td><td>Zod 4 — اعتبارسنجی ورودی/خروجی ابزار MCP + قراردادهای API</td></tr>
+  <tr><td nowrap><b>پایگاه داده</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — ۱۲۲ ماژول دامنه، ۱۸۳ مهاجرت</td></tr>
+  <tr><td nowrap><b>حافظه</b></td><td>SQLite FTS5 تماممتن + جاسازیهای برداری کوانتیزه شده int8، واپاشی تایپشده</td></tr>
+  <tr><td nowrap><b>شماتیکها</b></td><td>Zod 4 — اعتبارسنجی ورودی/خروجی ابزار MCP + قراردادهای API</td></tr>
   <tr><td nowrap><b>پروتکلها</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>جریانسازی</b></td><td>Server-Sent Events (SSE) + پل WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>جریانسازی</b></td><td>رویدادهای ارسالشده توسط سرور (SSE) + پل WebSocket (`/v1/ws`)</td></tr>
   <tr><td nowrap><b>فشردهسازی</b></td><td>پایپلاین ۱۲ موتوره — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>احراز هویت &amp; امنیت</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + احراز هویت محدود MCP · AES-256-GCM در حالت سکون · DOMPurify</td></tr>
-  <tr><td nowrap><b>پنهانکاری</b></td><td>wreq-js — جعل اثر انگشت JA3 / JA4 TLS، پروکسی ۳ سطحی</td></tr>
-  <tr><td nowrap><b>تابآوری</b></td><td>مدارشکن، عقبنشینی نمایی، ضد ازدحام، خودترمیمی خودکار ترکیبی</td></tr>
+  <tr><td nowrap><b>احراز هویت و امنیت</b></td><td>OAuth 2.0 (PKCE) + JWT + کلیدهای API + احراز هویت محدود MCP · AES-256-GCM در حالت استراحت · DOMPurify</td></tr>
+  <tr><td nowrap><b>پنهانکاری</b></td><td>wreq-js — جعل اثر انگشت TLS JA3 / JA4، پروکسی ۳ سطحی</td></tr>
+  <tr><td nowrap><b>تابآوری</b></td><td>مدارشکن، بازگشت نمایی، ضد ازدحام، خودترمیمی خودکار ترکیبی</td></tr>
   <tr><td nowrap><b>ثبت وقایع</b></td><td>pino — لاگهای JSON ساختاریافته با زمینه درخواست</td></tr>
   <tr><td nowrap><b>آزمایش</b></td><td>Node.js test runner + Vitest — <b>بیش از ۳۹,۰۰۰ اعلان تست استاتیک</b> در بیش از ۵,۱۰۰ فایل تست ردیابی شده (واحد، یکپارچهسازی، E2E، امنیت، اکوسیستم)</td></tr>
   <tr><td nowrap><b>پلتفرمها</b></td><td>دسکتاپ (Electron) · اندروید (Termux) · PWA (هر مرورگری)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — انتشار خودکار npm + داکر هاب در زمان انتشار</td></tr>
-  <tr><td nowrap><b>پیوندها</b></td><td><a href="https://omniroute.online">وبسایت</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">داکر هاب</a></td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — انتشار خودکار npm + Docker Hub در زمان انتشار</td></tr>
+  <tr><td nowrap><b>پیوندها</b></td><td><a href="https://omniroute.online">وبسایت</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

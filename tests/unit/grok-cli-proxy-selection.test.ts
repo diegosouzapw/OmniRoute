@@ -7,9 +7,22 @@ import assert from "node:assert/strict";
 import { BaseExecutor } from "../../open-sse/executors/base.ts";
 import { GrokCliExecutor } from "../../open-sse/executors/grok-cli.ts";
 
-test("grok-cli inherits the shared proxy-aware BaseExecutor transport", () => {
+test("grok-cli inherits the shared proxy-aware BaseExecutor transport", async () => {
+  // execute() may only pre/post-process (namespace tools); the transport itself
+  // must stay BaseExecutor.prototype.execute.
   const executor = new GrokCliExecutor();
-
-  assert.equal(Object.hasOwn(GrokCliExecutor.prototype, "execute"), false);
-  assert.equal(executor.execute, BaseExecutor.prototype.execute);
+  const originalExecute = BaseExecutor.prototype.execute;
+  const sentinel = { response: new Response("ok") };
+  let calls = 0;
+  BaseExecutor.prototype.execute = async function () {
+    calls++;
+    return sentinel;
+  };
+  try {
+    const input = { model: "grok-4.6", body: { input: "hi" }, stream: true, credentials: {} };
+    assert.equal(await executor.execute(input), sentinel);
+  } finally {
+    BaseExecutor.prototype.execute = originalExecute;
+  }
+  assert.equal(calls, 1);
 });

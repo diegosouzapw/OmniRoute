@@ -284,11 +284,25 @@ export async function executeWithUpstreamStartTimeout<T>({
   abortPromise.catch(() => {});
   timeoutPromise.catch(() => {});
 
+  let settled = false;
   try {
-    return await Promise.race([execute(combinedController.signal), timeoutPromise, abortPromise]);
+    const result = await Promise.race([
+      execute(combinedController.signal),
+      timeoutPromise,
+      abortPromise,
+    ]);
+    settled = true;
+    return result;
   } finally {
     if (timeoutId) clearTimeout(timeoutId);
-    if (abortListener) signal.removeEventListener("abort", abortListener);
+    // The timeout only bounds time-to-headers, but the client-abort link must
+    // outlive it: once execute() resolves, the response body is still streaming
+    // on combinedController.signal, and a later client disconnect has to reach
+    // the upstream fetch or the provider keeps generating for nobody. Drop the
+    // link only when the attempt failed (the signal is not wired to a live body).
+    // The listener is `once` and the client signal is per-request, so keeping it
+    // is bounded.
+    if (abortListener && !settled) signal.removeEventListener("abort", abortListener);
     // Never removed before this fix: one listener leaked onto the client signal
     // per call (chatCore.ts invokes this once per executor attempt, plus retries).
     if (abortPromiseListener) signal.removeEventListener("abort", abortPromiseListener);

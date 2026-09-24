@@ -17,6 +17,9 @@ import {
 } from "./apiKeyUsageLimitFields";
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
+import { splitSyncedEffortSuffix } from "@omniroute/open-sse/services/model.ts";
+import { getLearnedReasoningEffortForModel } from "@omniroute/open-sse/services/learnedReasoningEffortCaps.ts";
+import { isSkippedEffortProvider } from "@omniroute/open-sse/utils/syncedEffortVariants.ts";
 import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
 import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
 import {
@@ -1539,6 +1542,33 @@ export async function getApiKeyMetadata(
 }
 
 /**
+ * #7694: `/v1/models` and the combo builder advertise `<model>-<tier>` variants for
+ * synced models that declare `supportedThinkingEfforts`, and request routing strips
+ * the tier back to the base model before dispatch. Resolve such an id to its base
+ * discovered model — only for a tier that model itself declares — so the
+ * published-model gate judges the base model instead of rejecting the variant.
+ */
+function resolveSyncedEffortVariantBase(
+  providerId: string,
+  modelId: string,
+  models: ReadonlyArray<{ id?: unknown; supportedThinkingEfforts?: unknown }>
+): string | null {
+  if (isSkippedEffortProvider(providerId)) return null;
+  for (const candidate of models) {
+    if (typeof candidate.id !== "string" || !Array.isArray(candidate.supportedThinkingEfforts)) {
+      continue;
+    }
+    // Same tier set as routing (`effectiveKnownEfforts` in src/sse/services/model.ts):
+    // learned upstream caps win over the synced declaration.
+    const learned = getLearnedReasoningEffortForModel(candidate.id);
+    const knownEfforts = learned ? [...learned] : candidate.supportedThinkingEfforts;
+    const { baseModel, effort } = splitSyncedEffortSuffix(modelId, knownEfforts);
+    if (effort && baseModel === candidate.id) return candidate.id;
+  }
+  return null;
+}
+
+/**
  * Check if a model is allowed for a given API key
  * @param {string} key - The API key
  * @param {string} modelId - The model ID to check
@@ -1598,10 +1628,27 @@ export async function isModelAllowedForKey(
       const allDiscoveredModels = Object.values(syncedModelsByConnection)
         .flat()
         .concat(customModels);
-      const discovered = allDiscoveredModels.some((m) => m.id === shortModelId);
-      if (!discovered) return false;
+      const publishedModelId = allDiscoveredModels.some((m) => m.id === shortModelId)
+        ? shortModelId
+        : resolveSyncedEffortVariantBase(
+            providerId,
+            shortModelId,
+            Object.values(syncedModelsByConnection).flat()
+          );
+      if (!publishedModelId) return false;
 
-      const isPublic = !getModelIsHidden(providerId, shortModelId);
+      // An effort variant dispatches to its base model, so a deny rule on the
+      // base model must also deny the variant.
+      if (publishedModelId !== shortModelId && blockedModels?.length) {
+        const baseCandidates = await getModelPermissionCandidates(
+          `${providerId}/${publishedModelId}`
+        );
+        if (blockedModels.some((pattern) => modelPatternMatches(pattern, baseCandidates))) {
+          return false;
+        }
+      }
+
+      const isPublic = !getModelIsHidden(providerId, publishedModelId);
       if (!isPublic) return false;
     }
   }

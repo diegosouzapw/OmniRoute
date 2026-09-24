@@ -541,6 +541,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
   // and vanish from the dashboard; traceId is per attempt and pairs with request.started.
   saveCallLog({
     id: traceId,
+    pendingRequestId: ctx.pendingRequestId,
     method: "POST",
     path: clientRawRequest?.endpoint || "/v1/chat/completions",
     status,
