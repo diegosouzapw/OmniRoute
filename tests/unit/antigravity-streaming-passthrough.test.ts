@@ -61,7 +61,12 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
       }
     );
   };
-  globalThis.setTimeout = ((callback) => {
+  // Skip only the short 429 retry backoff; the first-SSE-event readiness watchdog
+  // (tens of seconds) must keep its real timer or it fires instantly.
+  globalThis.setTimeout = ((callback, ms, ...args) => {
+    if (typeof ms === "number" && ms >= 30_000) {
+      return originalSetTimeout(callback, ms, ...args);
+    }
     (callback as () => void)();
     return 0;
   }) as typeof setTimeout;
