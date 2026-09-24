@@ -4,14 +4,14 @@
 
 ---
 
-> **Isi mmalite eziokwu:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Emelitere ikpeazụ:** 2026-06-28 — v3.8.40
+> **Isi iyi nke eziokwu:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Emelitere ikpeazụ:** 2026-09-22 — oghere aha oghere na-atụ aka na MCP-SERVER.md
 
-OmniRoute nwere usoro inye ikike nke maara route, nke na-enyocha arịrịọ API ọ bụla tupu o kwe ka ọ gafee. Nkewa ya bụ **nke a na-ekpebi otu ụzọ mgbe niile** ma bụrụkwa **nke na-emechi ma ọ daa** — ihe ọ bụla a na-apụghị ikewa na-abanye na `MANAGEMENT` ma chọọ session ma ọ bụ token nke ọkwa njikwa. Ibe a na-akọwa model ahụ maka ndị injinia na-elekọta routes ma ọ bụ na-emepụta endpoints ọhụrụ.
+OmniRoute nwere usoro ikike nwere ike ịmata ụzọ nke na-echebe arịrịọ API ọ bụla. Nchịkọta bụ **nke doro anya** na **nke na-ada ada** — ihe ọ bụla a na-apụghị ịhazi na-ejedebe dị ka `MANAGEMENT` ma na-achọ nnọkọ ma ọ bụ akara ngosi ọkwa njikwa. Ibe a na-akọwa ụdị maka ndị injinia na-elekọta ụzọ ma ọ bụ na-emepụta ebe njedebe ọhụrụ.
 
-![Usoro AuthZ (klaasị route 3 + nyocha policy)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 ụdị ụzọ + nyocha amụma)](../diagrams/exported/authz-pipeline.svg)
 
-> Isi mmalite: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+> Isi iyi: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## Ụzọ Auth Abụọ
 
@@ -197,28 +197,38 @@ export async function POST(request: Request) {
 
 Họrọ set dịka ọdịdị si dị, ọ bụghị dịka mfe si dị. Otu ụzọ ga-abanye na `PUBLIC_API_ROUTES_EXACT` (ma ọ bụ `PUBLIC_READONLY_CORS_API_ROUTES` ma ọ bụrụ na ọ bụ naanị GET); naanị ezigbo subtree ga-abanye na `PUBLIC_API_ROUTE_PREFIXES`, ọ **ga-ejedebekwa na `/`**. Itinye otu ụzọ na ndepụta prefix na-emekwa ka ụzọ niile dị ya n’akụkụ nke nwere mkpụrụedemede mmalite ndị ahụ bụrụ nke ọha — gụnyere dynamic-segment siblings ndị a ga-agbakwunye n’ọdịnihu (GHSA-74g9-q8f6-793h). Melite unit tests dị na `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` na `tests/unit/authz/classify.test.ts`.
 
-## Oke ikike
+## Scopes
 
-Igodo API nwere n'usoro `scopes` (echekwara ya dịka JSON na `api_keys.scopes`, lee `src/lib/db/apiKeys.ts`).
+Oghere aha atọ. Nyocha ọ bụla na-agụ naanị eriri nke ya. N'akụkụ,
+gụnyere ihe mere `manage` ji ada `scopeMatches` maka `read:compression` na ihe mere
+akara ngosi nnweta `read` enweghị ike `PATCH /api/keys/{id}`, bụ
+[Oghere aha atọ](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Oke ikike njikwa
+Igodo API na-ebu usoro `scopes` (echekwara dị ka JSON na `api_keys.scopes`, lee `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — na-enye igodo ahụ ohere iru ebe njedebe API njikwa mgbe ezitere ya dịka Bearer.
+### Oghere njikwa
 
-### Oke ikike MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Nnweta onye na-ebu ụzọ na ụzọ API njikwa.
+- `mcp:connect`, `self:usage`, `self:account-quota`, na
+  `policy:bypass-provider-quota` bụ oghere mgbakwunye kwekọrọ kpọmkwem. Ha nọ ọdụ
+  na mpụga `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` na-emepe naanị
+  `/api/mcp/` ihe osise na-abụghị loopback.
 
-Ngwaọrụ MCP ọ bụla chọrọ oke ikike ndị akọwapụtara site na `MCP_TOOL_SCOPES`. Ndepụta zuru ezu (`MCP_SCOPE_LIST`):
+### Oghere ngwaọrụ MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Ndepụta na iwu dakọtara (eriri yiri ya, ma ọ bụ oghere enyere na-ejedebe na `*`):
+[Oghere ngwaọrụ MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` na `src/shared/constants/mcpScopes.ts` bụ obere ụdị mbụ,
+ọ bụghị ndepụta zuru ezu ahụ. Mmejuputa iwu na-agba ọsọ na
+`open-sse/mcp-server/scopeEnforcement.ts` mgbe `resolveCallerScopeContext()`
+doziri oghere site na ozi nkwenye MCP, metadata arịrịọ, ma ọ bụ `OMNIROUTE_MCP_SCOPES`.
+Ọ na-anọgide na-agbanyụ ma ọ bụrụ na `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Mmanye oke ikike dị na `open-sse/mcp-server/server.ts` na-ebufe ndepụta oke ikike nke ngwaọrụ ọ bụla n'ime
-`evaluateToolScopes()` mgbe `resolveCallerScopeContext()` kpebisịrị oke ikike site na ozi nyocha njirimara MCP,
-metadata arịrịọ, ma ọ bụ `OMNIROUTE_MCP_SCOPES`.
+### Oghere akara ngosi nnweta
+
+`read` / `write` / `admin` na akara ngosi `oma_live_…`, nke `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) depụtara. Ọkwa a na-emetụta naanị
+asambodo akara ngosi nnweta. Lee [Nkwenye Njikwa](../guides/MANAGEMENT-AUTH.md).
 
 ## Mgbanwe Nhọrọ Maka Ịchọ Nnyocha Njirimara
 
@@ -266,7 +276,7 @@ Jiri `assertAuth(req, expectedClass)` n'ime handlers — ọ na-atụpụta `Aut
 
 ## Hụkwa
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — akara auth maka endpoint ọ bụla
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ndekọ audit maka ihe omume auth
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — nkọwa gbasara mmanye scope MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — akara nkwenye maka njedebe ọ bụla
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — ndekọ nyocha maka ihe omume nkwenye
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — oghere aha atọ na katalọgụ ngwaọrụ MCP
 - Isi mmalite: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

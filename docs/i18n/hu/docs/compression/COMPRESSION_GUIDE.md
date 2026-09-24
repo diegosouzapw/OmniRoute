@@ -182,58 +182,48 @@ Stacked móddal:   10K-2.5K token elküldve     (78-95%-os tartomány a jogosult
 
 ## Konfiguráció
 
-### Vezérlőpult
+### Irányítópult
 
-Lépjen a `Dashboard → Context & Cache` oldalra:
+Navigáljon az `Irányítópult → Kontextus és gyorsítótár` menüpontra:
 
 - **Caveman** — módválasztás, nyelvi csomagok, előnézet és globális alapértelmezések
-- **RTK** — parancsszűrési előnézet, RTK biztonsági beállítások és szűrőkatalógus
-- **Compression Combos** — útválasztási kombinációkhoz rendelt, elnevezett motorfolyamatok
-- **Auto-Trigger Threshold** — a tömörítés automatikus aktiválása, amikor a tokenszám meghaladja a küszöbértéket
+- **RTK** — parancs-szűrő előnézet, RTK biztonsági beállítások és szűrőkatalógus
+- **Tömörítési kombinációk** — elnevezett motorfolyamatok, amelyek útválasztási kombinációkhoz vannak rendelve
+- **Automatikus indítási küszöb** — automatikusan elindítja a tömörítést, ha a tokenek száma meghaladja a küszöböt
 
 ### Kombinációnkénti felülbírálás
 
-A `Dashboard → Context & Cache → Compression Combos` oldalon rendeljen hozzá egy tömörítési kombinációt egy útválasztási
-kombinációhoz:
+Az `Irányítópult → Kontextus és gyorsítótár → Tömörítési kombinációk` menüpontban rendeljen egy tömörítési kombinációt egy útválasztási kombinációhoz:
 
 ```txt
-Kombináció: "free-tier-fallback"
-  Tömörítési kombináció: "coding-agent-stack"
-  Folyamat: RTK -> Caveman
-  Célok:
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Ez lehetővé teszi a halmozott tömörítés használatát az ingyenes/kódolási szolgáltatóknál, miközben a fizetős
-előfizetéseknél megtartja az egyszerűsített módot.
+Ez lehetővé teszi a rétegzett tömörítés használatát ingyenes/kódoló szolgáltatóknál, miközben a fizetős előfizetéseknél a lite mód marad.
 
-Ez a „kombinációnkénti felülbírálási” hozzárendelés eltér az **útválasztási kombináció tömörítési
-módjának** felülbírálásától (Default/Off/Lite/Standard/Aggressive/Ultra) — ez a felülbírálás nem választ ki elnevezett
-tömörítésikombináció-folyamatot; csupán beállítja a `resolveCompressionPlan` által figyelembe vett
-`compressionMode` mezőt. Ez beállítható a kombináció kártyáján (`Dashboard → Combos`), illetve a
-#6760 óta útválasztási kombinációnként az „Assign to routing” listában is, a
-`Dashboard → Context & Cache → Compression Combos` oldalon, közvetlenül a fent dokumentált folyamathozzárendelési jelölőnégyzet
-mellett. Mindkét felületen végzett módosítás ugyanazon `PUT /api/combos/{id}` végponton keresztül marad meg.
+Ez a "Kombinációnkénti felülbírálás" hozzárendelés egy másik vezérlő, mint az **útválasztási kombináció tömörítési módjának** felülbírálása (Alapértelmezett/Ki/Lite/Standard/Agresszív/Ultra) — ez a felülbírálás nem választ ki egy elnevezett tömörítési kombinációs folyamatot; csupán beállítja a `resolveCompressionPlan` által lekérdezett `compressionMode` mezőt. Ez beállítható a kombinációs kártyán (`Irányítópult → Kombinációk`) vagy, a #6760 óta, útválasztási kombinációnként az "Útválasztáshoz rendelés" listában az `Irányítópult → Kontextus és gyorsítótár → Tömörítési kombinációk` menüpontban, közvetlenül a fent dokumentált folyamat-hozzárendelési jelölőnégyzet mellett. Mindkét felület ugyanazon a `PUT /api/combos/{id}` végponton keresztül marad meg.
 
 ### Kérésenkénti felülbírálás
 
-Küldje el az `x-omniroute-compression` kérésfejlécet egyetlen kérés tömörítési tervének
-felülbírálásához. Ennek van a legmagasabb prioritása — felülírja az útválasztási kombináció felülbírálását, az aktív profilt,
-az automatikus aktiválást és a panel alapértelmezését. Az ismeretlen értékeket a rendszer figyelmen kívül hagyja (a kérést soha nem utasítja el),
-és továbbra is a globális főkapcsoló szabályoz mindent: ha a tömörítés globálisan ki van kapcsolva, a fejléc nem
-kapcsolhatja be. Értékek:
+Küldje el az `x-omniroute-compression` kérésfejlécet, hogy felülbírálja a tömörítési tervet egyetlen kérésre. Ez rendelkezik a legmagasabb prioritással – felülírja az útválasztási kombináció felülbírálását, az aktív profilt, az automatikus indítást és a panel alapértelmezett beállítását. Az ismeretlen értékeket figyelmen kívül hagyja (a kérést soha nem utasítja el), és a globális főkapcsoló továbbra is mindent szabályoz: ha a tömörítés globálisan ki van kapcsolva, a fejléc nem tudja bekapcsolni. Értékek:
 
-| Érték         | Hatás                                                                                                             |
-| ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `off`         | Nincs tömörítés ennél a kérésnél.                                                                                 |
-| `default`     | A panelből származtatott alapértelmezett profil (figyelmen kívül hagyja az aktív profilt).                        |
-| `engine:<id>` | Egyetlen motor, ha engedélyezve van, például `engine:rtk`.                                                        |
-| `<combo>`     | Elnevezett kombináció; először név alapján (kis- és nagybetűktől függetlenül), majd azonosító alapján egyeztetve. |
+| Érték         | Hatás                                                                                                                             |
+| :------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Nincs tömörítés ehhez a kéréshez.                                                                                                 |
+| `default`     | A panelről származó alapértelmezett profil (figyelmen kívül hagyja az aktív profilt). A veszteséges motorok kikapcsolva maradnak. |
+| `safe`        | Ugyanaz, mint a fejléc elhagyása: csak duplikáció eltávolítás és szóközök összevonása.                                            |
+| `allow-lossy` | Tartsa meg a kérés operátor tervét, beleértve az összefoglalókat, relevancia szűrőket és stílus átírásokat.                       |
+| `engine:<id>` | Egyetlen motor, ha engedélyezve van, pl. `engine:rtk`. Ez az adott motor kérésenkénti opt-in beállítása.                          |
+| `<combo>`     | Egy elnevezett kombináció, először név (kis- és nagybetű érzéketlen) alapján, majd azonosító alapján egyezik.                     |
 
-Az alkalmazott tervet a rendszer visszaküldi az `X-OmniRoute-Compression: <mode>; source=<source>` válaszfejlécben,
-ahol a `<source>` a következők egyike: `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default` vagy `off`.
+Az `allow-lossy`, `engine:<id>` vagy egy elnevezett kombináció nélkül a veszteséges motorok nem kerülnek alkalmazásra. A kérés továbbra is megkapja a munkamenet duplikáció eltávolítását és a szóközök összevonását, ha a tömörítés be van kapcsolva.
+
+Az alkalmazott terv visszhangzik az `X-OmniRoute-Compression: <mode>; source=<source>` válaszfejlécben, ahol a `<source>` a `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` vagy `off` egyikét jelöli.
 
 ### API
 
@@ -246,15 +236,15 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Egy adott RTK/halmozott adathasznos teher előnézete
+# Egy adott RTK/rétegzett adatcsomag előnézete
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# RTK-szűrőcsomagok listázása
+# RTK szűrőcsomagok listázása
 curl http://localhost:20128/api/context/rtk/filters
 
-# Az RTK közvetlen tesztelése opcionális parancsmetaadatokkal
+# RTK közvetlen tesztelése opcionális parancs metaadatokkal
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -298,15 +288,15 @@ Minden tömörített kéréshez statisztikák tartoznak a szervernaplókban:
 
 ---
 
-## Fázisütemterv
+## Fázis ütemterv
 
-| Fázis    | Módok                                                                                                                                                         | Állapot   |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1. fázis | Off, Lite                                                                                                                                                     | ✅ Kiadva |
-| 2. fázis | Standard, Aggressive, Ultra                                                                                                                                   | ✅ Kiadva |
-| 3. fázis | RTK, Stacked, tömörítési kombinációk                                                                                                                          | ✅ Kiadva |
-| 4. fázis | Kimeneti stílusok, SLM-szintű Ultra, kiértékelési keretrendszer                                                                                               | ✅ Kiadva |
-| 4C fázis | Adaptív kontextuskeret („tárcsa”) — számítási motor + API (`contextBudget` a `PUT /api/settings/compression` végponton) + irányítópult mód-/házirend-vezérlői | ✅ Kiadva |
+| Fázis    | Módok                                                                                                                                                         | Státusz        |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| 1. fázis | Kikapcsolva, Lite                                                                                                                                             | ✅ Kiszállítva |
+| 2. fázis | Standard, Agresszív, Ultra                                                                                                                                    | ✅ Kiszállítva |
+| 3. fázis | RTK, Halmozott, Tömörítési Kombinációk                                                                                                                        | ✅ Kiszállítva |
+| 4. fázis | Kimeneti Stílusok, SLM-szintű Ultra, kiértékelő keretrendszer                                                                                                 | ✅ Kiszállítva |
+| 4C fázis | Adaptív kontextus-költségvetés ("tárcsa") — számítási motor + API (`contextBudget` a `PUT /api/settings/compression`-en) + irányítópult mód/házirend vezérlők | ✅ Kiszállítva |
 
 ---
 
@@ -320,28 +310,23 @@ Az RTK módot az **[RTK AI](https://github.com/rtk-ai)** **[RTK - Rust Token Kil
 
 ## Fejlett tömörítési rendszerek
 
-A 7 szabványos módon túl az OmniRoute több fejlett tömörítési
-rendszert is tartalmaz, amelyek a kontextus alapján automatikusan működnek.
+A 7 szabványos mód mellett az OmniRoute számos fejlett tömörítési rendszert tartalmaz, amelyek a kontextus alapján automatikusan működnek.
 
 ### Gyorsítótár-tudatos tömörítés
 
-Egyes szolgáltatók (például az Anthropic prompt-gyorsítótárazással) támogatják a **promptok gyorsítótárazását**,
-amely lehetővé teszi számukra a prompt egyes részeinek gyorsítótárazását a költségek és a késleltetés csökkentése érdekében. Ha
-a gyorsítótárazás engedélyezve van, az agresszív tömörítés valójában **ronthatja** a teljesítményt,
-mert megváltoztatja a gyorsítótárazott tokeneket, érvénytelenítve ezzel a gyorsítótárat.
+Néhány szolgáltató (például az Anthropic a prompt gyorsítótárazással) támogatja a **prompt gyorsítótárazást**, amely lehetővé teszi a prompt egyes részeinek gyorsítótárazását a költségek és a késleltetés csökkentése érdekében. Amikor a gyorsítótárazás engedélyezve van, az agresszív tömörítés valójában **ronthatja** a teljesítményt, mert megváltoztatja a gyorsítótárazott tokeneket, érvénytelenítve a gyorsítótárat.
 
-A `cachingAware.ts` modul ezt a **gyorsítótárazási kontextus észlelésével** és
-a **tömörítési stratégia ennek megfelelő módosításával** oldja meg.
+A `cachingAware.ts` modul ezt úgy oldja meg, hogy **észleli a gyorsítótárazási kontextust** és **ennek megfelelően módosítja a tömörítési stratégiát**.
 
-#### Működése
+#### Hogyan működik
 
-1. **A gyorsítótárazási kontextus észlelése** — Átvizsgálja a kérés törzsét `cache_control` jelölők után
-2. **A gyorsítótárazást támogató szolgáltatók azonosítása** — Ellenőrzi, hogy a célszolgáltató támogatja-e a gyorsítótárazást
-3. **A stratégia módosítása** — Az `aggressive`/`ultra` módot `standard` módra állítja vissza a gyorsítótárazást támogató szolgáltatóknál
-4. **A rendszerprompt kihagyása** — A rendszerpromptokat általában gyorsítótárazzák, ezért ne tömörítse őket
-5. **Determinisztikus átalakítások használata** — Csak konzisztens kimenetet eredményező átalakításokat használ
+1. **Gyorsítótárazási kontextus észlelése** – Átvizsgálja a kérelem törzsét `cache_control` jelölők után
+2. **Gyorsítótárazó szolgáltatók azonosítása** – Ellenőrzi, hogy a cél szolgáltató támogatja-e a gyorsítótárazást
+3. **Stratégia módosítása** – Az `aggressive`/`ultra` módokat `standard` módra állítja vissza a gyorsítótárazó szolgáltatók esetén
+4. **Rendszer prompt kihagyása** – A rendszer promptok általában gyorsítótárazva vannak, ezért ne tömörítse őket
+5. **Determinisztikus transzformációk használata** – Csak olyan transzformációkat használjon, amelyek konzisztens kimenetet eredményeznek
 
-#### Kódpélda
+#### Kód példa
 
 ```ts
 import {
@@ -352,7 +337,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Gyorsítótár-jelölő
+  cache_control: { type: "ephemeral" }, // ← Gyorsítótár jelölő
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -362,25 +347,23 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Mikor használandó
+#### Mikor kell használni
 
-A gyorsítótár-tudatos tömörítés **mindig be van kapcsolva** — nincs szükség konfigurációra. Csak akkor lép működésbe,
-ha:
+A gyorsítótár-tudatos tömörítés **mindig be van kapcsolva** – nincs szükség konfigurációra. Csak akkor lép működésbe, ha:
 
-- A kérés `cache_control` jelölőket tartalmaz
-- A célszolgáltató támogatja a promptok gyorsítótárazását (Anthropic, OpenAI stb.)
+- A kérelem `cache_control` jelölőket tartalmaz
+- A cél szolgáltató támogatja a prompt gyorsítótárazást (Anthropic, OpenAI stb.)
 
-### Progresszív öregítés
+### Progresszív öregedés
 
-A hosszú beszélgetésekben sok üzenetváltás halmozódik fel, de a régebbi váltások egyre kevésbé
-relevánsak. A `progressiveAging.ts` modul **a fordulók távolsága alapján fokozatosan csökkenti az üzenetek részletességét**:
+A hosszú beszélgetések sok üzenetváltást halmoznak fel, de a régebbi váltások kevésbé relevánssá válnak. A `progressiveAging.ts` modul **az üzeneteket a váltások távolsága alapján rontja**:
 
-- **Legutóbbi fordulók (0-3)**: Változtatás nélkül megmaradnak (teljes részletesség)
-- **Középtávoli fordulók (4-8)**: Lite tömörítés (szóközök és formázás rendezése)
-- **Régi fordulók (9+)**: Caveman tömörítés (töltelékszöveg eltávolítása, összegzés)
-- **Nagyon régi fordulók (20+)**: Erőteljesen összegzi vagy elhagyja őket
+- **Legutóbbi váltások (0-3)**: Szó szerint megőrizve (teljes részletesség)
+- **Közepes váltások (4-8)**: Könnyű tömörítés (szóközök, formázás tisztítása)
+- **Régi váltások (9+)**: Barlanglakó tömörítés (kitöltő szavak eltávolítása, összefoglalás)
+- **Nagyon régi váltások (20+)**: Erősen összefoglalva vagy eldobva
 
-#### Kódpélda
+#### Kód példa
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
@@ -389,46 +372,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... további 50 forduló ...
+  // ... 50 további váltás ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Az első 3 forduló: változtatás nélkül
-  light: 8, // 4–8. forduló: lite tömörítés
-  moderate: 20, // 9–20. forduló: caveman tömörítés
-  // 21. fordulótól: erőteljes összegzés
+  verbatim: 3, // Első 3 váltás: szó szerint
+  light: 8, // 4-8. váltások: könnyű tömörítés
+  moderate: 20, // 9-20. váltások: barlanglakó tömörítés
+  // 21. váltás és felette: erős összefoglalás
 });
 
 // saved = a megtakarított tokenek száma
 ```
 
-#### Mikor használandó
+#### Mikor kell használni
 
-A progresszív öregítés **mindig be van kapcsolva** az `aggressive` és `ultra` módokban. Különösen hatékony a következő esetekben:
+A progresszív öregedés **mindig be van kapcsolva** az `aggressive` és `ultra` módokhoz. Különösen hatékony a következőkhöz:
 
-- Hosszú ideig tartó kódolási munkamenetek
-- Többnapos beszélgetések
-- Sok eszközhívást tartalmazó ágensalapú munkafolyamatok
+- Hosszú kódolási munkamenetek
+- Több napos beszélgetések
+- Ügynöki munkafolyamatok sok eszközhívással
 
 ### Barlanglakó kimeneti mód
 
-Az `outputMode.ts` modul **rendszerprompt-utasításokat** szúr be, hogy maga a modell tömör, szűkszavú kimenetet hozzon létre („barlanglakó” stílusban).
+Az `outputMode.ts` modul **rendszer prompt utasításokat** injektál, hogy maga a modell tömör, szűkszavú kimenetet (egy "barlanglakó" stílust) produkáljon.
 
-#### Működése
+#### Hogyan működik
 
-A bemenet tömörítése helyett ez a mód egy ehhez hasonló rendszerpromptot ad hozzá:
+A bemenet tömörítése helyett ez a mód egy rendszer promptot ad hozzá, például:
 
-> „Válaszolj a lehető legkevesebb szóval. Hagyd ki az udvariassági formulákat. Használj rövid mondatokat.”
+> "Válaszolj minimális szavakkal. Hagyd ki az udvariasságokat. Használj rövid mondatokat."
 
-Ez különösen jól működik a következő esetekben:
+Ez különösen jól működik a következőkhöz:
 
-- Kódgenerálás (tömörebb kimenet = kevesebb token)
-- Gyors kérdések és válaszok (nincs szükség részletes magyarázatokra)
-- Kötegelt feldolgozás (az áteresztőképesség maximalizálása)
+- Kódgenerálás (szűkszavúbb kimenet = kevesebb token)
+- Gyors kérdezz-felelek (nincs szükség bonyolult magyarázatokra)
+- Kötegelt feldolgozás (maximális átviteli sebesség)
 
-#### Mikor érdemes használni
+#### Mikor kell használni
 
-A barlanglakó kimeneti mód használata **külön bekapcsolandó** — állítsa be a kombinált konfiguráción keresztül:
+A barlanglakó kimeneti mód **választható** – a kombinált konfiguráción keresztül állítható be:
 
 ```json
 {
@@ -443,25 +426,25 @@ A barlanglakó kimeneti mód használata **külön bekapcsolandó** — állíts
 
 ### Kimeneti stílusok (katalógus)
 
-A fenti barlanglakó kimeneti mód az **örökölt, egyetlen stílust használó megoldás**. A 4. fázis ezt összeállítható kimeneti stílusok katalógusává általánosította: ez az `OUTPUT_STYLE_CATALOG` az `open-sse/services/compression/outputStyles/catalog.ts` fájlban. Minden stílus egy rendszerprompt-utasítás, amely arra készteti magát a modellt, hogy olcsóbb kimenetet állítson elő; a stílusok együtt is engedélyezhetők, és a katalógus sorrendjében kerülnek beszúrásra.
+A fenti barlanglakó kimeneti mód a **régi, egyetlen stílusú út**. A 4. fázis általánosította ezt egy összeállítható kimeneti stílusok katalógusává: `OUTPUT_STYLE_CATALOG` az `open-sse/services/compression/outputStyles/catalog.ts` fájlban. Minden stílus egy rendszer-prompt utasítás, amely arra készteti magát a modellt, hogy olcsóbb kimenetet produkáljon; a stílusok együtt engedélyezhetők, és a katalógus sorrendjében injektálódnak.
 
-| Stílus                           | `id`          | Mit csinál                                                                                                                                                                                                                                                            | Az utasítás nyelvei                                                                |
-| -------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Tömör próza                      | `terse-prose` | Elhagyja a töltelékszavakat, névelőket és bizonytalankodást; a műszaki tartalmat pontosan megőrzi. Ugyanaz a szöveg, mint az örökölt barlanglakó kimeneti módban (hivatkozva, nem újra beírva).                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                      |
-| Kevesebb kód                     | `less-code`   | YAGNI-létra: a legkisebb működő módosítás, nem kért absztrakciók nélkül.                                                                                                                                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                      |
-| Lófarok (lusta vezető fejlesztő) | `ponytail`    | „A legjobb kód az, amelyet soha nem írtak meg”: újrafelhasználás > újraírás, kiváltó ok > tünet, a legrövidebb működő diff.                                                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                      |
-| ADHD-m van (cselekvésközpontú)   | `i-have-adhd` | Először a művelet (parancs/útvonal/kódrészlet a próza előtt), számozott és korlátozott számú lépések, EGY konkrét következő lépés, bevezető/összefoglalás/záróformula nélkül. Az [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) alapján adaptálva (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                      |
-| Tömör CJK (文言)                 | `terse-cjk`   | Klasszikus kínai, rendkívül tömör stílus.                                                                                                                                                                                                                             | zh (területi beállításhoz kötött: csak akkor érhető el, ha a feloldott nyelv `zh`) |
+| Stílus                      | `id`          | Mit csinál                                                                                                                                                                                                                             | Instrukció nyelvek                                                |
+| --------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Tömör próza                 | `terse-prose` | Elhagyja a töltelékszavakat/névelőket/mellébeszélést; a technikai lényeget pontosan megtartja. Ugyanaz a szöveg, mint a korábbi caveman kimeneti mód (hivatkozott, nem újraírt).                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                     |
+| Kevesebb kód                | `less-code`   | YAGNI elv: a legkisebb működő változtatás, nincsenek kéretlen absztrakciók.                                                                                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                     |
+| Ponytail (lusta senior dev) | `ponytail`    | "A legjobb kód az, amit meg sem írtak": újrahasznosítás > újraírás, kiváltó ok > tünet, a lehető legrövidebb működő diff.                                                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                     |
+| ADHD-m van (akció-fókusz)   | `i-have-adhd` | Akció az első (parancs/elérési út/kódrészlet a próza előtt), számozott korlátos lépések, EGY konkrét következő lépés, nincs bevezetés/összegzés/lezárás. Adaptálva: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                     |
+| Tömör CJK (文言)            | `terse-cjk`   | Klasszikus kínai ultra-tömör stílus.                                                                                                                                                                                                   | zh (lokalizációhoz kötött: csak akkor érhető el, ha a nyelv `zh`) |
 
-Minden stílus három intenzitási szintet kínál — `lite`, `full`, `ultra` —, és minden szint a közös korlátozási záradékkal végződik, amely változatlanul megőrzi a kódblokkokat, fájlútvonalakat, parancsokat, hibaüzeneteket, URL-eket és azonosítókat.
+Minden stílus három intenzitási szinttel rendelkezik — `lite`, `full`, `ultra` — és minden szint a közös határérték-záradékkal végződik, amely érintetlenül hagyja a kódblokkokat, fájlútvonalakat, parancsokat, hibaüzeneteket, URL-eket és azonosítókat.
 
-#### A beszúrás működése
+#### Hogyan működik az injektálás
 
-Az `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) feloldja a kiválasztást a katalógus alapján (az ismeretlen id-k és a területi beállítással nem egyező stílusok elvetésre kerülnek, de soha nem okoznak hibát), a kiválasztott utasításokat a katalógus sorrendjében összefűzi, **egyszer** hozzáfűzi a korlátozási záradékot, majd az eredményt egyetlen idempotenciajelölő (`[OmniRoute Output Styles]`) mögé, a rendszerprompt elejére helyezi — az ismételt alkalmazás nem végez műveletet. Ha az észlelt kérési nyelvhez elérhető fordítás, az angol helyett a lokalizált utasítás kerül beszúrásra.
+Az `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) feloldja a kiválasztást a katalógus alapján (az ismeretlen azonosítók és a nyelvi szempontból nem egyező stílusok kimaradnak, soha nem dobnak hibát), összefűzi a kiválasztott instrukciókat a katalógus sorrendjében, **egyszer** hozzáfűzi a határérték-záradékot, és az eredményt a rendszerszintű prompt elejére helyezi egy egyedi idempotencia jelző (`[OmniRoute Output Styles]`) mögé — az újbóli alkalmazás nem végez műveletet. Ha az észlelt kérés nyelvéhez van fordítás, az angol helyett a lokalizált instrukció kerül beillesztésre.
 
-#### Engedélyezés
+#### Hogyan engedélyezhető
 
-Az irányítópulton: **Kontextus → Beállítások → Tömörítés** — stílusonként egy sor be-/kikapcsolóval és szintválasztóval. Programozott használat esetén a tömörítési konfiguráció így tárolja a kiválasztást:
+A műszerfalon: **Context → Settings → Compression** — stílusonként egy sor, egy ki/be kapcsolóval és egy szintválasztóval. Programozottan a tömörítési konfiguráció így tárolja a kiválasztást:
 
 ```json
 {
@@ -472,48 +455,48 @@ Az irányítópulton: **Kontextus → Beállítások → Tömörítés** — st�
 }
 ```
 
-Visszafelé kompatibilitás: az örökölt `outputMode: "caveman"` kombinált beállítás továbbra is működik, és a `terse-prose` stílusra képeződik le; minden örökölt nyelven bájtról bájtra megegyezik a régi beszúrással.
+Visszafelé kompatibilitás: a korábbi `outputMode: "caveman"` kombinált beállítás továbbra is működik, és a `terse-prose` stílusra képződik le, bájt-azonos módon a régi injektálással minden korábbi nyelven.
 
-Nyelvválasztás: ha a `languageConfig.enabled` be van kapcsolva, az `autoDetect` a legutóbbi felhasználói üzenet nyelvét választja ki (ugyanazzal az érzékelővel, mint a bemeneti motorok); az `autoDetect` kikapcsolása a `defaultLanguage` értékéhez rögzíti a nyelvet. Kikapcsolva → angol.
+Nyelvválasztás: ha a `languageConfig.enabled` be van kapcsolva, az `autoDetect` kiválasztja a legutóbbi felhasználói üzenet nyelvét (ugyanaz a detektor, mint a bemeneti motoroknál); az `autoDetect` kikapcsolása rögzíti a `defaultLanguage` értéket. Kikapcsolva → angol.
 
-A stílus × nyelv mátrixot a `tests/unit/compression/output-styles-i18n-matrix.test.ts` rögzíti: új stílus nem adható ki legalább egy pt-BR fordítás (vagy egy kifejezetten nyilvántartott kivétel) nélkül, és egy meglévő stílusból nem tűnhet el észrevétlenül egyetlen területi beállítás sem. Stílus hozzáadásához lásd az [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) dokumentumot.
+A stílus × nyelv mátrixot a `tests/unit/compression/output-styles-i18n-matrix.test.ts` rögzíti: egy új stílus nem adható ki legalább egy pt-BR fordítás (vagy egy kifejezett, nyomon követett kivétel) nélkül, és egy meglévő stílus nem veszíthet el csendben egy lokalizációt sem. Stílus hozzáadásához lásd: [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Eszközeredmények tömörítése
+### Eszközeredmény tömörítés (Tool Result Compression)
 
-A `toolResultCompressor.ts` modul **5 speciális tömörítési stratégiát** biztosít az eszközeredményekhez (függvényhívások, ágensek kimenetei, keresési eredmények stb.):
+A `toolResultCompressor.ts` modul **5 speciális tömörítési stratégiát** biztosít az eszközeredményekhez (függvényhívások, ágens kimenetek, keresési eredmények stb.):
 
-1. **Keresési eredmények tömörítése** — Eltávolítja a redundáns eredményeket, és megtartja a legjobb N-et
-2. **Fájlolvasás tömörítése** — Csonkolja a nagy fájlokat, megőrzi a fejléceket/importokat
-3. **Kódvégrehajtás tömörítése** — Csak a lényeges stdout/stderr tartalmat tartja meg
-4. **Adatbázis-lekérdezések tömörítése** — Korlátozza a sorok számát, eltávolítja a terjengős metaadatokat
-5. **API-válaszok tömörítése** — Eltávolítja a null mezőket, tömöríti a tömböket
+1. **Keresési eredmény tömörítése** — Eltávolítja a redundáns találatokat, megtartja a top-N elemet.
+2. **Fájlolvasás tömörítése** — Csonkolja a nagy fájlokat, megőrzi a fejléceket/importokat.
+3. **Kódfuttatás tömörítése** — Csak a lényeges stdout/stderr kimeneteket tartja meg.
+4. **Adatbázis-lekérdezés tömörítése** — Korlátozza a sorokat, eltávolítja a bőbeszédű metaadatokat.
+5. **API válasz tömörítése** — Eltávolítja a null mezőket, tömöríti a tömböket.
 
-#### Mikor érdemes használni
+#### Mikor használjuk
 
-Az eszközeredmények tömörítése **mindig be van kapcsolva**, ha vannak eszközhívások. Nincs szükség konfigurációra.
+Az eszközeredmény-tömörítés **mindig be van kapcsolva**, ha eszközhívások történnek. Nincs szükség konfigurációra.
 
-### Egymásra épülő feldolgozási folyamat
+### Halmozott folyamat (Stacked Pipeline)
 
-Az egymásra épülő mód **több motort futtat egymás után** — általában először az RTK-t (60–90%-os megtakarítás az eszközkimeneten), majd a Cavemant (további 30%-os megtakarítás a fennmaradó szövegen). Ez **78–95%-os teljes megtakarítást** eredményez.
+A halmozott mód **több motort futtat egymás után** — általában először az RTK-t (60-90% megtakarítás az eszköz kimeneteken), majd a Caveman-t (további 30% megtakarítás a maradék szövegen). Ez **78-95% teljes megtakarítást** eredményez.
 
-#### Működése
+#### Hogyan működik
 
 ```
 Bemenet (1000 token)
-  → RTK (parancstudatos szűrő) → 200 token
-    → Caveman (töltelékszavak eltávolítása) → 140 token
-  → Kimenet (140 token, 86%-os megtakarítás)
+  → RTK (parancs-tudatos szűrő) → 200 token
+    → Caveman (töltelékszó eltávolítás) → 140 token
+  → Kimenet (140 token, 86% megtakarítás)
 ```
 
-#### Mikor érdemes használni
+#### Mikor használjuk
 
-Használja az egymásra épülő módot a következőkhöz:
+Használja a halmozott módot:
 
-- Sok eszközt használó munkafolyamatok (ágensalapú kódolás, kutatás)
-- Költségérzékeny kötegelt feldolgozás
-- Ha maximális tokenmegtakarításra van szükség
+- Eszköz-intenzív munkafolyamatokhoz (ágens alapú kódolás, kutatás)
+- Költségérzékeny kötegelt feldolgozáshoz
+- Ha maximális token-megtakarításra van szükség
 
-Konfigurálja kombinált beállítással:
+Konfigurálás kombinációval:
 
 ```json
 {

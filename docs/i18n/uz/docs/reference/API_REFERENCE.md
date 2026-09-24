@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Keshga tegish xarajati semantikasi:** semantik keshga TEGISH yuz berganda (`X-OmniRoute-Cache-Hit: true`) yuqori oqimga hech qanday chaqiruv amalga oshirilmaydi, shuning uchun `X-OmniRoute-Response-Cost` qiymati `0.0000000000` boʻladi (keshdagi natijani taqdim etishning **qoʻshimcha** xarajati). Dastlabki/yuzaga kelishi mumkin boʻlgan xarajat `X-OmniRoute-Cost-Saved` orqali alohida koʻrsatiladi. Hisob-kitob isteʼmolchilari `X-OmniRoute-Response-Cost` qiymatlarini jamlashi kerak (keshga tegishlar hech qanday xarajat qilmaydi); kesh tahlillari esa `X-OmniRoute-Cost-Saved` qiymatlarini umumlashtirishi mumkin.
 
-## Eksklyuziv boshqariladigan seans ijaralari
+## Eksklyuziv boshqariladigan sessiya ijaralari
 
-Eksklyuziv boshqariladigan seans ijarasi ixtiyoriy, mijozga bogʻliq boʻlmagan marshrutlash kelishuvidir: bitta faol egasi
-bitta mos OmniRoute ulanishini egallaydi. U modelni ijaraga bermaydi, OAuth talab qilmaydi, muayyan
-mijozni aniqlamaydi va muayyan provayderni talab qilmaydi.
+Eksklyuziv boshqariladigan sessiya ijarasi ixtiyoriy, mijozdan mustaqil marshrutlash shartnomasidir: bitta faol egasi bitta mos OmniRoute ulanishiga ega boʻladi. U modelni ijaraga olmaydi, OAuth talab qilmaydi, maʼlum bir mijozni aniqlamaydi yoki maʼlum bir provayderni talab qilmaydi.
 
-Autentifikatsiya qiluvchi API kaliti `lease:exclusive` doirasiga va aniq koʻrsatilgan, boʻsh boʻlmagan
-`allowedConnections` roʻyxatiga ega boʻlishi kerak. Maʼlumotlar bazasidagi oʻzgartirish chegarasi kalit
-yaratilganda va qisman yangilanganda ikkala maydonning birgalikda mavjud boʻlishini taʼminlaydi.
+Autentifikatsiya qiluvchi API kaliti `lease:exclusive` doirasiga va aniq boʻsh boʻlmagan `allowedConnections` roʻyxatiga ega boʻlishi kerak. Maʼlumotlar bazasini oʻzgartirish chegarasi kalit yaratish va qisman yangilashda ikkala maydonni birgalikda qoʻllaydi.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Muvaffaqiyatli egallash, yangilash va boʻshatish javoblarida vaqt belgilari, `state` va aniq musbat
-`generation` koʻrsatiladi, ammo tanlangan ulanish yoki hisob maʼlumotlari hech qachon oshkor qilinmaydi. Yangilash va boʻshatishda
-avlod JSON tanasida beriladi:
+Muvaffaqiyatli olish, yangilash va chiqarish javoblari vaqt tamgʻalarini, `state`ni va aniq musbat `generation`ni koʻrsatadi, ammo hech qachon tanlangan ulanish yoki hisobga olish maʼlumotlarini koʻrsatmaydi. Yangilash va chiqarish JSON tanasida generationni taqdim etadi:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ avlod JSON tanasida beriladi:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Faol ijara egasi oʻzining joriy bogʻlanishi uchun maxfiylikni saqlovchi koʻrsatish metamaʼlumotlarini aniq soʻrashi mumkin:
+Faol ijara egasi joriy bogʻlanishi uchun maxfiylikni saqlovchi koʻrsatish metamaʼlumotlarini aniq soʻrashi mumkin:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Faol ijara egasi oʻzining joriy bogʻlanishi uchun maxfiylikni saqlovchi koʻrs
 }
 ```
 
-Bu ixtiyoriy holat amali bitta maʼlumotlar bazasi tranzaksiyasi ichida shaffof boʻlmagan egasi, autentifikatsiya qilingan boshqariladigan API kaliti va aniq
-faol avlod bilan himoyalanadi. `displayName` faqat sozlangan ulanish nomining chetlari kesilgan
-koʻrinishidir; xavfsiz sozlangan nom mavjud boʻlmaganda u `null` boʻladi. OmniRoute hech qachon uning oʻrniga
-elektron pochta manzili yoki yaratilgan hisob identifikatorini qoʻymaydi. Provayder qiymati maxfiy boʻlmagan koʻrsatish yorligʻi boʻlib, hech qachon
-yaratilgan mos provayder identifikatori boʻlmaydi. Hisob maʼlumotlari, tokenlar, cookie fayllari, xom ulanish yoki API
-kaliti identifikatorlari, egasi xeshlari, himoyalash sirlari va ichki marshrutlash maʼlumotlari chiqarib tashlanadi.
+Ushbu ixtiyoriy status harakati shaffof egasi, autentifikatsiya qilingan boshqariladigan API kaliti va bitta maʼlumotlar bazasi tranzaksiyasidagi aniq faol generation bilan himoyalangan. `displayName` faqat qisqartirilgan konfiguratsiya qilingan ulanish nomi; xavfsiz konfiguratsiya qilingan nom mavjud boʻlmaganda u `null` boʻladi. OmniRoute hech qachon elektron pochta yoki yaratilgan hisob identifikatorini almashtirmaydi. Provayder qiymati sezgir boʻlmagan koʻrsatish yorligʻi boʻlib, hech qachon yaratilgan mos keluvchi provayder identifikatori emas. Hisobga olish maʼlumotlari, tokenlar, cookie-fayllar, xom ulanish yoki API kalit identifikatorlari, egalik xeshlari, himoya sirlari va ichki marshrutlash maʼlumotlari chiqarib tashlanadi.
 
-Notoʻgʻri kalit, notoʻgʻri egasi, eskirgan avlod, mavjud boʻlmagan, muddati tugagan, boʻshatilgan va bekor qilingan qidiruvlarning barchasi
-ulanish metamaʼlumotlarisiz bir xil `409 LEASE_FENCE_STALE` xatosini qaytaradi. Sigʻimni kutish javobini olgan mijozda tekshirish uchun faol bogʻlanish boʻlmaydi. Marshrutlash faol ijarani boshqa ulanishga oʻtkazganda,
-oʻsha avlod haqiqiyligicha qoladi va holat atomar tarzda eski bogʻlanishni emas, yangi bogʻlanishni qaytaradi.
-Mavjud mijozlar oʻzgarishsiz qoladi, chunki egallash, yangilash, boʻshatish va kutish javoblari
-avvalgi shakllarini saqlab qoladi.
+Notoʻgʻri kalit, notoʻgʻri egalik, eskirgan generation, yoʻqolgan, muddati oʻtgan, chiqarilgan va bekor qilingan qidiruvlarning barchasi ulanish metamaʼlumotlarisiz bir xil `409 LEASE_FENCE_STALE` xatosini qaytaradi. Imkoniyatni kutish javobini olgan mijozda tekshirish uchun faol bogʻlanish mavjud emas. Marshrutlash faol ijarani oʻzgartirganda, bir xil generation haqiqiy boʻlib qoladi va status atomik tarzda yangi bogʻlanishni qaytaradi, hech qachon eskisini emas. Mavjud mijozlar oʻzgarishsiz qoladi, chunki olish, yangilash, chiqarish va kutish javoblari oʻzlarining oldingi shakllarini saqlab qoladi.
 
-Bu server kelishuvi standart OpenAI Codex `/status` xatti-harakatini oʻzgartirmaydi. Standart Codex hozirda oʻzining
-model provayderi va ichki autentifikatsiya/hisob holatini bildiradi, ammo ixtiyoriy maxsus
-provayder hisobi metamaʼlumotlarini koʻrsatmaydi; keyingi mijoz integratsiyasi ushbu amalni chaqirishi va
-`connection.displayName` qanday koʻrsatilishini hal qilishi kerak.
+Ushbu server shartnomasi standart OpenAI Codex `/status`ni oʻzgartirmaydi. Standart Codex hozirda oʻzining model provayderini va oʻrnatilgan autentifikatsiya/hisob holatini xabar qiladi, ammo ixtiyoriy maxsus provayder hisob metamaʼlumotlarini koʻrsatmaydi; keyingi mijoz integratsiyasi ushbu harakatni chaqirishi va `connection.displayName`ni qanday koʻrsatishni hal qilishi kerak.
 
-Shundan soʻng har bir boshqariladigan inferensiya soʻrovi ikkala boshqaruv sarlavhasini ham yuboradi:
+Har bir boshqariladigan xulosa soʻrovi keyin ikkala boshqaruv sarlavhasini taqdim etadi:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Aniq egasi, avlod, faol ulanish va autentifikatsiya qilingan API kaliti har bir qoʻllab-quvvatlanadigan yuqori oqim urinishidan
-bevosita oldin himoyalanadi. Egasi va avlodni boshqa kalit bilan takroran ishlatish, hatto ushbu kalit ayni ulanishga ruxsat bersa ham,
-muvaffaqiyatsiz tugaydi. Xom egalar saqlanmaydi, jurnalga yozilmaydi, soʻrov oniy nusxasida saqlab qolinmaydi va
-yuqori oqimga uzatilmaydi.
+Aniq egasi, generation, faol ulanish va autentifikatsiya qilingan API kaliti har bir qoʻllab-quvvatlanadigan yuqori oqim urinishidan oldin darhol himoyalanadi. Egasi va generationni boshqa kalit bilan qayta ijro etish, hatto bu kalit bir xil ulanishga ruxsat bersa ham, muvaffaqiyatsiz tugaydi. Xom egalar saqlanmaydi, qayd etilmaydi, soʻrov snapshotida saqlanmaydi yoki yuqori oqimga yuborilmaydi.
 
-Vaqtinchalik toʻqnashuv HTTP `429` javobini `Retry-After` bilan va quyidagicha qaytaradi:
+Vaqtinchalik tortishuv HTTP `429`ni `Retry-After` bilan va quyidagilarni qaytaradi:
 
 ```json
 {
@@ -178,36 +157,35 @@ Vaqtinchalik toʻqnashuv HTTP `429` javobini `Retry-After` bilan va quyidagicha 
 }
 ```
 
-Bu javob faqat oddiy mos ulanishlar toʻplami boʻsh boʻlmaganini va har bir boʻsh nomzod
-boshqa egaga tegishli faol ijara tomonidan egallanganini anglatadi. Qoʻllab-quvvatlanmaydigan modellar/provayderlar, siyosat nomuvofiqligi, kutish davri, kvota,
-sogʻliq holati va boshqa odatiy moslik xatolari mavjud OmniRoute javoblarini saqlab qoladi.
+Ushbu javob faqat oddiy mos keluvchi toʻplam boʻsh emasligini va har bir boʻsh nomzod chet el faol ijarasi tomonidan ushlab turilganligini anglatadi. Qoʻllab-quvvatlanmaydigan modellar/provayderlar, siyosat mos kelmasligi, sovutish, kvota, sogʻliq va boshqa oddiy moslik xatolari oʻzlarining mavjud OmniRoute javoblarini saqlab qoladi.
 
 ### `x-omniroute-compression`
 
-Har bir soʻrov uchun siqish rejasini qayta belgilash. Eng yuqori ustuvorlikka ega — marshrutlash kombinatsiyasi
-qayta belgilashidan, faol profildan, avtomatik ishga tushirishdan va paneldagi Default qiymatidan ustun turadi. Qiymatlar:
+Siqish rejasini har bir soʻrov boʻyicha bekor qilish. Eng yuqori ustuvorlik — marshrutlash-kombinatsiyasini bekor qilish, faol profil, avtomatik trigger va panelning Standartini bekor qiladi. Qiymatlar:
 
-| Qiymat        | Taʼsiri                                                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `off`         | Ushbu soʻrov uchun siqish qoʻllanmaydi.                                                                                        |
-| `default`     | Paneldan olingan Default profil (faol profilni eʼtiborsiz qoldiradi).                                                          |
-| `engine:<id>` | Yoqilganida bitta mexanizm, masalan, `engine:rtk`.                                                                             |
-| `<combo>`     | Avval nomi (harf registriga bogʻliq boʻlmagan holda), soʻng identifikatori boʻyicha moslashtiriladigan nomlangan kombinatsiya. |
+| Qiymat        | Effekt                                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `off`         | Ushbu soʻrov uchun siqish yoʻq.                                                                                                      |
+| `default`     | Panel tomonidan olingan Standart profil (faol profilni eʼtiborsiz qoldiradi). Yoʻqotishli dvigatellar oʻchirilgan holda qoldiriladi. |
+| `safe`        | Faqat takrorlash va boʻsh joyni yigʻish.                                                                                             |
+| `allow-lossy` | Ushbu soʻrov uchun operator rejasini saqlab qolish, shu jumladan xulosalar va uslubni qayta yozish.                                  |
+| `engine:<id>` | Yoqilganda bitta dvigatel, masalan, `engine:rtk`. Ushbu dvigatel uchun har bir soʻrov boʻyicha ixtiyoriy qoʻshilish.                 |
+| `<combo>`     | Nomlangan kombinatsiya, avval nomi boʻyicha (katta-kichik harflarga sezgir emas), keyin identifikatori boʻyicha mos keladi.          |
 
-Izohlar:
+Eslatmalar:
 
-- Nomaʼlum qiymatlar eʼtiborsiz qoldiriladi (soʻrov hech qachon rad etilmaydi); aniqlash odatiy operator ustuvorligi boʻyicha davom etadi.
-- Agar bir nechta kombinatsiya bir xil nomga ega boʻlsa, deterministik moslik uchun kombinatsiya **id** qiymatini yuboring.
-- Nomi `off` yoki `default` boʻlgan kombinatsiyani nomi orqali tanlab boʻlmaydi (bu kalit soʻzlar avval talqin qilinadi); bunday kombinatsiyaga uning identifikatori orqali murojaat qiling.
-- Asosiy siqish kaliti qatʼiy toʻsiqdir: siqish global miqyosda oʻchirilgan boʻlsa, bu sarlavha uni yoqa olmaydi.
+- Nomaʼlum qiymatlar eʼtiborsiz qoldiriladi (soʻrov hech qachon rad etilmaydi); yechim oddiy operator ustuvorligiga tushadi.
+- Agar bir nechta kombinatsiyalar bir xil nomga ega boʻlsa, aniq moslik uchun kombinatsiya **id**sini kiriting.
+- Nomi `off` yoki `default` boʻlgan kombinatsiya nomi boʻyicha tanlanishi mumkin emas (bu kalit soʻzlar birinchi navbatda talqin qilinadi); bunday kombinatsiyaga uning identifikatori boʻyicha murojaat qiling.
+- Asosiy siqish tugmasi qattiq darvoza: siqish global ravishda oʻchirilgan boʻlsa, bu sarlavha uni yoqa olmaydi.
 
-Qoʻllangan reja javob sarlavhasida qaytariladi:
+Qoʻllanilgan reja javob sarlavhasida aks ettiriladi:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-bu yerda `<source>` quyidagilardan biri: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` yoki `off`.
+bu yerda `<source>` `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` yoki `off` dan biri.
 
 ---
 

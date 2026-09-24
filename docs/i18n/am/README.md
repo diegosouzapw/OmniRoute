@@ -268,11 +268,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — የክፍት ድንበር ኢንተለጀንስ · 2.8T መለኪያዎች · የ1M-token አውድ"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — የክፍት ድንበር ብልህነት · 2.8T መለኪያዎች · የ1M-token አውድ"/>
   </a>
 </p>
 
-> **እንደ ክፍት ምንጭ ወዳጅ መቀላቀል ይፈልጋሉ?** እነዚህ ክፍት ምንጭን የሚደግፉና OmniRoute ወደፊት እንዲራመድ የሚያግዙ ኩባንያዎች ናቸው — እኛም የሚሰጡን እያንዳንዱ token የት እንደሚውል በይፋ እንገልጻለን። ያነጋግሩን፦ [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **እንደ ክፍት ምንጭ ወዳጅ መቀላቀል ይፈልጋሉ?** እነዚህ ክፍት ምንጭን የሚደግፉና OmniRoute እንዲቀጥል የሚያግዙ ኩባንያዎች ናቸው — እኛም የሚሰጡን እያንዳንዱ token የት እንደሚውል በይፋ እንገልጻለን። ያግኙን፦ [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -287,9 +287,9 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="መስራች የክፍት ምንጭ ወዳጅ"/>
     </td>
     <td>
-      የመስራች ክፍት ምንጭ ወዳጃችን ለሆነው <b>Kimi (Moonshot AI)</b> ይህን ፕሮጀክት ስለደገፈ እናመሰግናለን! Kimi ከክፍት ክብደት ያላቸው K2 እና K3 የሞዴል ቤተሰቦች ጀርባ ያለው የAI ላብራቶሪ ነው — <b>Kimi K3</b> የ1M-token አውድ መስኮት፣ ውስጣዊ የምስል እይታ እና የከፍተኛ ደረጃ ኮድ ማዘጋጀትን ከዝግ-ሞዴል ዋጋዎች በእጅጉ ያነሰ ወጪ ያቀርባል፤ እንዲሁም ከClaude Code፣ Codex እና OmniRoute ከሚያገለግላቸው ሁሉም የኮድ ማዘጋጃ መሣሪያዎች ጋር ወዲያውኑ ይሰራል።
+      ይህን ፕሮጀክት ስለደገፈ <b>Kimi (Moonshot AI)</b>፣ መስራች የክፍት ምንጭ ወዳጃችንን እናመሰግናለን! Kimi ክፍት-ክብደት ያላቸውን K2 እና K3 የሞዴል ቤተሰቦች የፈጠረው የAI ላብራቶሪ ነው — <b>Kimi K3</b> የ1M-token አውድ መስኮት፣ ቤተኛ የምስል ችሎታ እና የድንበር-ደረጃ ኮድ ማድረግን ከዝግ-ሞዴሎች ዋጋ በጣም ባነሰ ያቀርባል፤ እንዲሁም ከClaude Code፣ Codex እና OmniRoute ከሚያገለግላቸው ሁሉም የኮድ መሳሪያዎች ጋር ያለምንም ተጨማሪ ውቅር ይሰራል።
       <br/><br/>
-      <b>የKimi ድጋፍ ኃይል የሚሰጠው፦</b> የKimi API ክሬዲቶች በAI ማረጋገጫ ለሚደረግለት የOmniRoute የልቀት ሂደት — ከመላኩ በፊት እያንዳንዱን pull request የሚገመግመውን <i>በKimi K3 ኃይል የሚሰራ የmerge ማረጋገጫ</i> ደረጃ — እንዲሁም ለዕለት ተዕለት የባህሪ ልማት ኃይል ይሰጣሉ። የከፍተኛ ደረጃ Kimi ድጋፍ በሁለቱም መንገዶች ይቀርባል፦ ቀጥተኛው <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) እና <a href="https://www.kimi.com/code?aff=omniroute">የKimi Code ኮድ ማዘጋጃ ዕቅድ</a> (OAuth እና API key)። OmniRoute በKimi የድጋፍ ፕሮግራም ውስጥ የመጀመሪያው የብራዚል ክፍት-ምንጭ ፕሮጀክትም ነው። <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>የKimi API key ከ15% ተጨማሪ ክሬዲቶች ጋር ያግኙ →</b></a>
+      <b>የKimi ድጋፍ የሚያንቀሳቅሰው፦</b> የKimi API ክሬዲቶች የOmniRouteን በAI የተረጋገጠ የልቀት ሂደት — እያንዳንዱን pull request ከመለቀቁ በፊት የሚገመግመውን <i>በKimi K3 የሚንቀሳቀስ የውህደት ማረጋገጫ</i> ደረጃ — እንዲሁም የዕለት ተዕለት የባህሪ ልማትን ያንቀሳቅሳሉ። ከፍተኛ ደረጃ ያለው የKimi ድጋፍ በሁለቱም መንገዶች ይቀርባል፦ ቀጥተኛው <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) እና <a href="https://www.kimi.ai/code?aff=omniroute">የKimi Code ኮድ ማድረጊያ ዕቅድ</a> (OAuth እና API key)። OmniRoute በKimi የድጋፍ ፕሮግራም ውስጥ የመጀመሪያው የብራዚል ክፍት-ምንጭ ፕሮጀክትም ነው። <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% ተጨማሪ ክሬዲት ያለው Kimi API key ያግኙ →</b></a>
     </td>
   </tr>
   <tr>
@@ -301,21 +301,21 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="የክፍት ምንጭ ወዳጅ"/>
     </td>
     <td>
-      የOmniRoute ክፍት ምንጭ ወዳጅ ለሆነው <b>Cheaper Inference</b> ይህን ፕሮጀክት ስለደገፈ እናመሰግናለን! Cheaper Inference 42 የከፍተኛ ደረጃ ሞዴሎችን — Claude፣ GPT-5.x፣ Gemini፣ Kimi K3፣ GLM፣ DeepSeek፣ Grok እና MiniMax — በአንድ ከOpenAI ጋር ተኳሃኝ በሆነ endpoint በድጋሚ የሚሸጥ፣ በወጪ ደረጃ የተመደበ gateway ነው፤ እያንዳንዱን request ከሞዴሉ አምራች ዝርዝር ዋጋ በላይ ሳያስከፍል ወደ በጣም ርካሹ ብቁ provider ይመራል።
+      ይህን ፕሮጀክት ስለደገፈ <b>Cheaper Inference</b>፣ የOmniRoute ክፍት ምንጭ ወዳጅን እናመሰግናለን! Cheaper Inference 42 የድንበር ሞዴሎችን — Claude፣ GPT-5.x፣ Gemini፣ Kimi K3፣ GLM፣ DeepSeek፣ Grok እና MiniMax — በአንድ ከOpenAI ጋር ተኳሃኝ የሆነ endpoint በኩል እንደገና የሚሸጥ በወጪ የተደረደረ gateway ነው፤ እያንዳንዱን ጥያቄ ከሞዴሉ አምራች የዝርዝር ዋጋ በላይ ሳያስከፍል ወደ በጣም ርካሹ ብቁ አቅራቢ ያዞራል።
       <br/><br/>
-      <b>በOmniRoute ውስጥ የከፍተኛ ደረጃ ድጋፍ፦</b> Chat Completions፣ ውስጣዊው <code>/v1/responses</code> endpoint፣ የምስል እይታ፣ tool calling እና 3 የምስል ሞዴሎች (<code>grok-imagine</code>፣ <code>nano-banana-pro</code>፣ <code>nano-banana-2</code>፣ እንደ <code>cheaperinference/&lt;model&gt;</code> ሊደረስባቸው የሚችል)። <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API key ያግኙ →</b></a>
+      <b>በOmniRoute ውስጥ የከፍተኛ ደረጃ ድጋፍ፦</b> Chat Completions፣ ቤተኛው <code>/v1/responses</code> endpoint፣ ምስል፣ የመሳሪያ ጥሪ እና 3 የምስል ሞዴሎች (<code>grok-imagine</code>፣ <code>nano-banana-pro</code>፣ <code>nano-banana-2</code>፣ እንደ <code>cheaperinference/&lt;model&gt;</code> ሊደረስባቸው የሚችል)። <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API key ያግኙ →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> የሚል መለያ ያላቸው አገናኞች የአጋርነት አገናኞች ናቸው። እርስዎ ተጨማሪ ወጪ ሳይከፍሉ ፕሮጀክቱን ይደግፋሉ።</sub>
+<sub><code>aff=omniroute</code> የሚል መለያ ያላቸው አገናኞች የአጋር አገናኞች ናቸው። ለእርስዎ ምንም ተጨማሪ ወጪ ሳያስከትሉ ፕሮጀክቱን ይደግፋሉ።</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ የአጋርነት ማስተዋወቂያ</b> — እኛ ከማንደግፋቸው providers ነፃ የምዝገባ ኩፖኖች (ለማስፋት ጠቅ ያድርጉ)</sub></summary>
+<summary><sub><b>🎟️ የአጋሮች ማስተዋወቂያ</b> — እኛ ከማንደግፋቸው አቅራቢዎች ነፃ የምዝገባ ኩፖኖች (ለማስፋት ጠቅ ያድርጉ)</sub></summary>
 
-<sub><i>ይህ ክፍል ለreferral/ኩፖን codes ብቻ ነው። ስፖንሰር የተደረጉ አጋርነቶች ከላይ ባለው <b>🤝 በክፍት ምንጭ ወዳጆቻችን የተደገፈ</b> ክፍል ውስጥ ይገኛሉ። OmniRoute እዚህ ከተዘረዘሩት providers ጋር ምንም የስፖንሰርነት ወይም የአጋርነት ግንኙነት የለውም — እነዚህ ማንኛውም ሰው ሊጠቀምባቸው የሚችሉ ይፋዊ ኩፖኖች ናቸው።</i></sub>
+<sub><i>ይህ ክፍል ለሪፈራል/ኩፖን ኮዶች ብቻ ነው። ስፖንሰር የተደረጉ አጋርነቶች ከላይ ባለው <b>🤝 በክፍት ምንጭ ወዳጆቻችን የተደገፈ</b> ክፍል ውስጥ ይገኛሉ። OmniRoute እዚህ ከተዘረዘሩት አቅራቢዎች ጋር ምንም የስፖንሰርነት ወይም የአጋርነት ግንኙነት የለውም — እነዚህ ማንኛውም ሰው ሊጠቀምባቸው የሚችሉ ይፋዊ ኩፖኖች ናቸው።</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — የአጋርነት ምዝገባ · ሲመዘገቡ <b>$100 ነፃ ክሬዲቶች</b> (ነፃ server፤ ከፍተኛ latency ሊኖር ይችላል — ለሙከራ ምርጥ ነው፣ ለproduction ግን አይመከርም)። ከ<b>v3.8.50</b> ጀምሮ በOmniRoute ውስጥ የከፍተኛ ደረጃ ድጋፍ፦ Chat Completions፣ ከAnthropic ጋር ተኳሃኙ wire format እና ከOpenAI ጋር ተኳሃኙ path። የሚገኙ ሞዴሎች <code>claude-opus-4-8</code>፣ <code>claude-opus-5</code>፣ <code>gpt-5.6-sol</code> እና ሌሎችን ያካትታሉ። <b><a href="https://agentrouter.org/register?aff=70LM">$100ዎን ያግኙ →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — የአጋር ምዝገባ · ሲመዘገቡ <b>$100 ነፃ ክሬዲት</b> (ነፃ server፣ ከፍተኛ latency ሊኖር ይችላል — ለሙከራ የተሻለ እንጂ ለproduction አይደለም)። ከ<b>v3.8.50</b> ጀምሮ በOmniRoute ውስጥ የከፍተኛ ደረጃ ድጋፍ፦ Chat Completions፣ ከAnthropic ጋር ተኳሃኝ የሆነው wire format እና ከOpenAI ጋር ተኳሃኝ የሆነው path። የሚገኙ ሞዴሎች <code>claude-opus-4-8</code>፣ <code>claude-opus-5</code>፣ <code>gpt-5.6-sol</code> እና ሌሎችንም ያካትታሉ። <b><a href="https://agentrouter.org/register?aff=70LM">$100ዎን ያግኙ →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>የአጋርነት አገናኝ — OmniRoute ከዚህ provider ጋር ምንም የስፖንሰርነት ወይም የአጋርነት ግንኙነት የለውም።</i></sub>
+      <sub>⚠️ <i>የአጋር አገናኝ — OmniRoute ከዚህ አቅራቢ ጋር ምንም የስፖንሰርነት ወይም የአጋርነት ግንኙነት የለውም።</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>የOmniRoute ተጠቃሚዎችን የሚጠቅም ለጋስ ነፃ የምዝገባ ኩፖን ያለው ሌላ provider ያውቃሉ? issue ይክፈቱ፣ እኛም እዚህ እንጨምረዋለን።</sub>
+<sub>ለOmniRoute ተጠቃሚዎች የሚጠቅም ለጋስ ነፃ የምዝገባ ኩፖን ያለው ሌላ አቅራቢ ያውቃሉ? issue ይክፈቱ፣ እኛም እዚህ እንጨምረዋለን።</sub>
 
 </details>
 
@@ -1262,22 +1262,22 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1ም ይዘለዋ�
 <table>
   <tr><th align="left">ንብርብር</th><th align="left">ቴክኖሎጂ</th></tr>
   <tr><td nowrap><b>የማስኬጃ አካባቢ</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ቋንቋ</b></td><td>TypeScript 6.0 — በ<code>src/</code> እና <code>open-sse/</code> ውስጥ <b>100% TypeScript</b> (ከv2.0 ጀምሮ በዋናው ክፍል ዜሮ <code>any</code>)</td></tr>
+  <tr><td nowrap><b>ቋንቋ</b></td><td>TypeScript 6.0 — በ<code>src/</code> እና <code>open-sse/</code> ውስጥ <b>100% TypeScript</b> (ከv2.0 ጀምሮ በዋናው ኮድ ውስጥ <code>any</code> የለም)</td></tr>
   <tr><td nowrap><b>ማዕቀፍ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>የውሂብ ጎታ</b></td><td>better-sqlite3 (SQLite፣ WAL ጆርናሊንግ) + LowDB (የቆየ JSON) — 122 የጎራ ሞጁሎች፣ 178 ፍልሰቶች</td></tr>
-  <tr><td nowrap><b>ማህደረ ትውስታ</b></td><td>SQLite FTS5 ሙሉ-ጽሑፍ + int8-የተመጠኑ የቬክተር ውክልናዎች፣ በዓይነት የተወሰነ መቀነስ</td></tr>
-  <tr><td nowrap><b>መርሃግብሮች</b></td><td>Zod 4 — የMCP መሣሪያ I/O ማረጋገጫ + የAPI ውሎች</td></tr>
+  <tr><td nowrap><b>የውሂብ ጎታ</b></td><td>better-sqlite3 (SQLite፣ WAL ጆርናሊንግ) + LowDB (የቆየ JSON) — 122 የጎራ ሞጁሎች፣ 182 ፍልሰቶች</td></tr>
+  <tr><td nowrap><b>ማህደረ ትውስታ</b></td><td>SQLite FTS5 ሙሉ-ጽሑፍ + int8-quantized የቬክተር ውክልናዎች፣ በዓይነት የተገለጸ መቀነስ</td></tr>
+  <tr><td nowrap><b>ስኪማዎች</b></td><td>Zod 4 — የMCP መሣሪያ ግቤት/ውጤት ማረጋገጫ + የAPI ውሎች</td></tr>
   <tr><td nowrap><b>ፕሮቶኮሎች</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>ዥረት ማስተላለፍ</b></td><td>ከአገልጋይ የሚላኩ ክስተቶች (SSE) + WebSocket ድልድይ (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>ዥረት ማስተላለፍ</b></td><td>በአገልጋይ የሚላኩ ክስተቶች (SSE) + WebSocket ድልድይ (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>ማመቅ</b></td><td>ባለ12-ሞተር የሂደት መስመር — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>ማረጋገጫ &amp; ደህንነት</b></td><td>OAuth 2.0 (PKCE) + JWT + API ቁልፎች + ወሰን የተበጀለት የMCP ማረጋገጫ · በእረፍት ጊዜ AES-256-GCM · DOMPurify</td></tr>
-  <tr><td nowrap><b>ስውርነት</b></td><td>wreq-js — የJA3 / JA4 TLS አሻራ ማስመሰል፣ ባለ3-ደረጃ ፕሮክሲ</td></tr>
-  <tr><td nowrap><b>ጽናት</b></td><td>የወረዳ መቋረጫ፣ ጨምሮ የሚሄድ ዳግም ሙከራ መዘግየት፣ የተመሳሳይ ጥያቄዎችን መጨናነቅ መከላከል፣ ራሱን በራሱ የሚጠግን ራስ-ጥምረት</td></tr>
-  <tr><td nowrap><b>ምዝግብ ማስቀመጥ</b></td><td>pino — የጥያቄ አውድን ያካተቱ የተዋቀሩ JSON ምዝግቦች</td></tr>
-  <tr><td nowrap><b>ሙከራ</b></td><td>Node.js test runner + Vitest — በ5,100+ ክትትል በሚደረግባቸው የሙከራ ፋይሎች ውስጥ <b>39,000+ የማይንቀሳቀሱ የሙከራ መግለጫዎች</b> (አሃድ፣ ውህደት፣ E2E፣ ደህንነት፣ ሥነ-ምህዳር)</td></tr>
+  <tr><td nowrap><b>ማረጋገጫ &amp; ደህንነት</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + በMCP ወሰን የተገደበ ማረጋገጫ · AES-256-GCM በማከማቻ ጊዜ · DOMPurify</td></tr>
+  <tr><td nowrap><b>ድብቅነት</b></td><td>wreq-js — የJA3 / JA4 TLS አሻራ ማስመሰል፣ ባለ3-ደረጃ ፕሮክሲ</td></tr>
+  <tr><td nowrap><b>ጽናት</b></td><td>የወረዳ መቆራረጫ፣ ኤክስፖኔንሻል መዘግየት፣ የተመሳሳይ ጊዜ ጥያቄ መጨናነቅ መከላከያ፣ ራስ-ሰር ጥምረት በራስ መጠገን</td></tr>
+  <tr><td nowrap><b>ምዝግብ ማስታወሻ</b></td><td>pino — የጥያቄ አውድ ያላቸው የተዋቀሩ JSON ምዝግቦች</td></tr>
+  <tr><td nowrap><b>ሙከራ</b></td><td>Node.js የሙከራ አስኪያጅ + Vitest — በ5,100+ ክትትል በሚደረግባቸው የሙከራ ፋይሎች ውስጥ <b>39,000+ የስታቲክ ሙከራ መግለጫዎች</b> (ዩኒት፣ ውህደት፣ E2E፣ ደህንነት፣ ሥነ-ምህዳር)</td></tr>
   <tr><td nowrap><b>መድረኮች</b></td><td>ዴስክቶፕ (Electron) · Android (Termux) · PWA (ማንኛውም አሳሽ)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ሲለቀቅ በራስ-ሰር ወደ npm ማተም + Docker Hub</td></tr>
-  <tr><td nowrap><b>አገናኞች</b></td><td><a href="https://omniroute.online">ድረ-ገጽ</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — በልቀት ጊዜ ራስ-ሰር ወደ npm ማተም + Docker Hub</td></tr>
+  <tr><td nowrap><b>አገናኞች</b></td><td><a href="https://omniroute.online">ድረ ገጽ</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

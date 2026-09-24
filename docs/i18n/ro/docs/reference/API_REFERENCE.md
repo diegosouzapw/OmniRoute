@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Semantica costurilor pentru accesările cache-ului:** la un HIT în cache-ul semantic (`X-OmniRoute-Cache-Hit: true`) nu este efectuat niciun apel către furnizorul upstream, astfel încât `X-OmniRoute-Response-Cost` este `0.0000000000` (costul **incremental** al furnizării rezultatului din cache). Costul inițial/care ar fi fost suportat este raportat separat în `X-OmniRoute-Cost-Saved`. Consumatorii datelor de facturare trebuie să însumeze `X-OmniRoute-Response-Cost` (accesările cache-ului nu costă nimic); analizele cache-ului pot agrega `X-OmniRoute-Cost-Saved`.
 
-## Închirieri exclusive de sesiuni gestionate
+## Contracte de închiriere exclusive pentru sesiuni gestionate
 
-Închirierea exclusivă a sesiunilor gestionate este un contract de rutare opțional și independent de client: un proprietar activ
-deține o conexiune OmniRoute eligibilă. Aceasta nu închiriază un model, nu necesită OAuth, nu identifică un
-anumit client și nu necesită un anumit furnizor.
+Închirierea exclusivă a sesiunilor gestionate este un contract de rutare opțional, neutru față de client: un proprietar activ deține o conexiune OmniRoute eligibilă. Nu închiriază un model, nu necesită OAuth, nu identifică un anumit client și nu necesită un anumit furnizor.
 
-Cheia API utilizată pentru autentificare trebuie să aibă domeniul de aplicare `lease:exclusive` și o listă
-`allowedConnections` explicită și nevidă. Limita de mutație a bazei de date impune împreună ambele câmpuri la
-crearea cheii și la actualizările parțiale.
+Cheia API de autentificare trebuie să aibă domeniul de aplicare `lease:exclusive` și o listă `allowedConnections` explicită, nevidă. Limita de mutație a bazei de date impune ambele câmpuri împreună la crearea cheii și la actualizările parțiale.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Răspunsurile reușite pentru obținere, reînnoire și eliberare expun marcajele temporale, `state` și valoarea pozitivă exactă
-`generation`, dar niciodată conexiunea selectată sau datele de autentificare. Reînnoirea și eliberarea furnizează
-generația în corpul JSON:
+Răspunsurile de achiziție, reînnoire și eliberare reușite expun marcaje temporale, `state` și `generation` pozitivă exactă, dar niciodată conexiunea sau credențialele selectate. Reînnoirea și eliberarea furnizează generația în corpul JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generația în corpul JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Proprietarul unei închirieri active poate solicita în mod explicit metadate de afișare care protejează confidențialitatea pentru asocierea sa curentă:
+Un proprietar de contract de închiriere activ poate solicita în mod explicit metadate de afișare sigure pentru confidențialitate pentru legătura sa curentă:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Proprietarul unei închirieri active poate solicita în mod explicit metadate de
 }
 ```
 
-Această acțiune opțională de stare este protejată de proprietarul opac, cheia API gestionată și autentificată și
-generația activă exactă, în cadrul unei singure tranzacții în baza de date. `displayName` este doar numele configurat al
-conexiunii, fără spații la extremități; valoarea sa este `null` atunci când nu există un nume configurat sigur. OmniRoute nu înlocuiește niciodată acest nume cu
-o adresă de e-mail sau cu o identitate de cont generată. Valoarea furnizorului este o etichetă de afișare nesensibilă și niciodată
-un identificator generat al unui furnizor compatibil. Datele de autentificare, tokenurile, cookie-urile, ID-urile brute ale conexiunilor sau ale cheilor
-API, hash-urile proprietarilor, secretele de delimitare și datele interne de rutare sunt excluse.
+Această acțiune de stare opțională este protejată de proprietarul opac, cheia API gestionată autentificată și generația activă exactă într-o singură tranzacție de bază de date. `displayName` este doar numele conexiunii configurate trunchiate; este `null` atunci când nu există un nume configurat sigur. OmniRoute nu substituie niciodată un e-mail sau o identitate de cont generată. Valoarea furnizorului este o etichetă de afișare non-sensibilă și niciodată un identificator de furnizor compatibil generat. Credențialele, token-urile, cookie-urile, ID-urile brute de conexiune sau chei API, hash-urile proprietarului, secretele de protecție și datele interne de rutare sunt excluse.
 
-Căutările cu o cheie greșită, un proprietar greșit, o generație învechită, o închiriere lipsă, expirată, eliberată sau invalidată
-returnează toate aceeași eroare `409 LEASE_FENCE_STALE`, fără metadatele conexiunii. Un client care a primit răspunsul de așteptare a capacității nu are nicio asociere activă pe care să o poată inspecta. Atunci când rutarea mută o închiriere activă,
-aceeași generație rămâne validă, iar starea returnează atomic noua asociere, niciodată pe cea veche.
-Clienții existenți rămân neschimbați, deoarece răspunsurile pentru obținere, reînnoire, eliberare și așteptare își păstrează
-formatele anterioare.
+Căutările cu cheie greșită, proprietar greșit, generație învechită, lipsă, expirate, eliberate și invalidate returnează toate aceeași eroare `409 LEASE_FENCE_STALE` fără metadate de conexiune. Un client care a primit răspunsul de așteptare a capacității nu are o legătură activă de inspectat. Când rutarea tranzitează un contract de închiriere activ, aceeași generație rămâne validă, iar starea returnează atomic noua legătură, niciodată cea veche. Clienții existenți rămân neschimbați deoarece răspunsurile de achiziție, reînnoire, eliberare și așteptare își păstrează formele anterioare.
 
-Acest contract al serverului nu modifică ruta `/status` din OpenAI Codex standard. În prezent, Codex standard raportează
-furnizorul modelului și starea încorporată de autentificare/cont, dar nu afișează metadate arbitrare personalizate
-despre contul furnizorului; o integrare ulterioară a clientului trebuie să apeleze această acțiune și să decidă cum să
-afișeze `connection.displayName`.
+Acest contract de server nu modifică `/status` standard OpenAI Codex. Codex standard raportează în prezent furnizorul său de model și starea de autentificare/cont încorporată, dar nu redă metadate arbitrare de cont de furnizor personalizat; o integrare ulterioară a clientului trebuie să apeleze această acțiune și să decidă cum să afișeze `connection.displayName`.
 
-Apoi, fiecare solicitare de inferență gestionată furnizează ambele antete de control:
+Fiecare cerere de inferență gestionată furnizează apoi ambele anteturi de control:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Proprietarul exact, generația, conexiunea activă și cheia API autentificată sunt verificate imediat
-înaintea fiecărei încercări acceptate către serviciul din amonte. Reutilizarea proprietarului și a generației cu altă cheie eșuează chiar
-și atunci când cheia respectivă permite aceeași conexiune. Proprietarii în formă brută nu sunt persistați, înregistrați în jurnale, păstrați în
-instantaneul solicitării sau redirecționați către serviciul din amonte.
+Proprietarul exact, generația, conexiunea activă și cheia API autentificată sunt protejate imediat înainte de fiecare încercare upstream acceptată. Reluarea proprietarului și a generației cu o altă cheie eșuează chiar și atunci când acea cheie permite aceeași conexiune. Proprietarii bruti nu sunt persistați, înregistrați, reținuți în instantaneul cererii sau redirecționați upstream.
 
-Disputarea temporară a resurselor returnează HTTP `429` cu `Retry-After` și:
+Contenția temporară returnează HTTP `429` cu `Retry-After` și:
 
 ```json
 {
@@ -178,36 +157,35 @@ Disputarea temporară a resurselor returnează HTTP `429` cu `Retry-After` și:
 }
 ```
 
-Acest răspuns înseamnă doar că setul obișnuit eligibil nu era gol și că fiecare candidat liber era
-deținut de o închiriere activă străină. Modelele/furnizorii neacceptați, neconcordanțele cu politica, perioadele de așteptare, cotele,
-starea de funcționare și alte erori obișnuite de eligibilitate își păstrează răspunsurile OmniRoute existente.
+Acest răspuns înseamnă doar că setul eligibil obișnuit nu a fost gol și fiecare candidat liber a fost deținut de un contract de închiriere activ străin. Modelele/furnizorii neacceptați, nepotrivirea politicilor, perioada de răcire, cota, starea de sănătate și alte eșecuri obișnuite de eligibilitate își păstrează răspunsurile OmniRoute existente.
 
 ### `x-omniroute-compression`
 
-Suprascriere la nivel de solicitare a planului de compresie. Are cea mai mare prioritate — prevalează asupra suprascrierii combinației de rutare,
-profilului activ, declanșării automate și valorii implicite din panou. Valori:
+Suprascriere per-cerere a planului de compresie. Cea mai mare precedență — învinge suprascrierea combo-ului de rutare, profilul activ, declanșatorul automat și implicitul panoului. Valori:
 
-| Valoare       | Efect                                                                                                     |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| `off`         | Fără compresie pentru această solicitare.                                                                 |
-| `default`     | Profilul implicit derivat din panou (ignoră profilul activ).                                              |
-| `engine:<id>` | Un singur motor, atunci când este activat, de exemplu `engine:rtk`.                                       |
-| `<combo>`     | O combinație denumită, asociată mai întâi după nume (fără a ține cont de litere mari/mici), apoi după ID. |
+| Valoare       | Efect                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| `off`         | Fără compresie pentru această cerere.                                                            |
+| `default`     | Profilul implicit derivat din panou (ignoră profilul activ). Motoarele cu pierderi sunt oprite.  |
+| `safe`        | Doar dedup și plierea spațiilor albe.                                                            |
+| `allow-lossy` | Păstrează planul operatorului pentru această cerere, inclusiv rezumatele și rescrierile de stil. |
+| `engine:<id>` | Un singur motor când este activat, de ex. `engine:rtk`. Opt-in per-cerere pentru acel motor.     |
+| `<combo>`     | Un combo numit, potrivit după nume (insensibil la majuscule) mai întâi, apoi după id.            |
 
 Note:
 
-- Valorile necunoscute sunt ignorate (solicitarea nu este niciodată respinsă); rezoluția continuă conform ordinii normale de prioritate a operatorilor.
-- Dacă mai multe combinații au același nume, transmiteți **id**-ul combinației pentru o asociere deterministă.
-- O combinație al cărei nume este `off` sau `default` nu poate fi selectată după nume (aceste cuvinte-cheie sunt interpretate primele); referiți o astfel de combinație prin ID-ul său.
-- Comutatorul principal pentru compresie este o barieră strictă: atunci când compresia este dezactivată global, acest antet nu o poate activa.
+- Valorile necunoscute sunt ignorate (cererea nu este niciodată respinsă); rezoluția se reduce la precedența normală a operatorului.
+- Dacă mai multe combo-uri partajează un nume, transmiteți **id-ul** combo-ului pentru o potrivire deterministă.
+- Un combo al cărui nume este `off` sau `default` nu poate fi selectat după nume (aceste cuvinte cheie sunt interpretate primele); referiți un astfel de combo prin id-ul său.
+- Comutatorul principal de compresie este o poartă rigidă: atunci când compresia este dezactivată global, acest antet nu o poate activa.
 
-Planul aplicat este returnat în antetul răspunsului:
+Planul aplicat este reflectat în antetul răspunsului:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-unde `<source>` este una dintre valorile `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` sau `off`.
+unde `<source>` este unul dintre `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` sau `off`.
 
 ---
 

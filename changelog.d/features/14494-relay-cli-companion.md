@@ -1,0 +1,1 @@
+- feat(cli): add a copy-only dashboard companion with local/remote-context runbooks, explicit server-host status and credential-free command previews. (#14494)

@@ -11020,6 +11020,9 @@
     "poolEgressObservation": "{exits, plural, one {# izlaz} other {# izlaza}} koristi {connections, plural, one {# konekcija} other {# konekcija}} · do {max} na jednom izlazu · zadnjih {hours} h",
     "poolEgressObservationEmpty": "Nije primijećen saobraćaj u zadnjih {hours} h",
     "poolEgressObservationHint": "Brojčano iz proxy loga tokom perioda: različiti izlazni IP-ovi primijećeni za članove ovog pool-a i OmniRoute konekcije koje su ih koristile. \"Na jednom izlazu\" znači tokom perioda, ne u isto vrijeme. Per-IP 429 blokada pauzira samo konekcije iste porodice providera.",
+    "poolMemberEgress": "{host}:{port} izlaz kroz {egressIp} · posljednjih {hours} h",
+    "poolMemberEgressEmpty": "{host}:{port}: nije zabilježen saobraćaj u posljednjih {hours} h",
+    "poolMemberEgressHint": "Posljednja izlazna IP adresa zabilježena putem ovog člana skupa u posmatranom periodu, očitana iz dnevnika proxyja. Za člana bez saobraćaja u tom periodu prikazuje se poruka da nije bilo saobraćaja.",
     "poolRemove": "Ukloni",
     "poolRemoveFailed": "Neuspjelo uklanjanje proxy-ja iz pool-a",
     "poolAddLabel": "Dodaj proxy",
@@ -12222,6 +12225,29 @@
     "raw": "Sirovo"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI pomoćnik",
+      "intro": "Kopirajte komande za pokretanje na računaru na kojem je instaliran vaš CLI. Ovaj panel ne izvršava komande niti kopira pristupne podatke.",
+      "hostNotice": "Detekcija opisuje računar na kojem radi OmniRoute server, a ne računar ovog preglednika. Konfigurirano ne znači da je inferencija testirana.",
+      "target": "CLI alat",
+      "context": "Naziv postojećeg konteksta (opcionalno)",
+      "contextHint": "Ostavite prazno da koristite aktivni kontekst svog CLI-ja. Imenovani konteksti mogu upućivati na lokalni ili udaljeni server; prvo ih izlistajte u terminalu.",
+      "contextInvalid": "Koristite 1–64 slova, cifre, tačke, crtice ili donje crte, počevši slovom ili cifrom.",
+      "modelHint": "Ovaj CLI zahtijeva model. Unesite stvarni identifikator pružaoca usluga/modela prije kopiranja pregleda pokretanja.",
+      "modelInvalid": "Koristite identifikator modela bez razmaka ili znakova komandne ljuske, počevši slovom ili cifrom.",
+      "runtime": "Izvršavanje",
+      "runnable": "Može se pokrenuti",
+      "notRunnable": "Ne može se pokrenuti",
+      "unknown": "Nepoznato",
+      "detectionError": "Detekcija na serveru nije dostupna. Osvježite detekciju da pokušate ponovo; komande za terminal ostaju dostupne.",
+      "contextsStep": "Provjerite kontekste u terminalu",
+      "configureStep": "Odaberite model i konfigurirajte",
+      "runStep": "Pregledajte pokretanje",
+      "configureHint": "Ova interaktivna komanda zapisuje konfiguraciju CLI-ja na računaru na kojem je izvršite.",
+      "runHint": "Probno pokretanje prikazuje plan pokretanja bez pokretanja CLI-ja. To nije test inferencije.",
+      "copyFailed": "Kopiranje nije uspjelo. Ručno označite i kopirajte komandu.",
+      "empty": "U ovoj verziji nema dostupnih izvršivih CLI ciljeva. Koristite vodiče za alate ispod."
+    },
     "concept": {
       "code": {
         "title": "CLI Kod",

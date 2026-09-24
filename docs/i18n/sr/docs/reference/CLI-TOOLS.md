@@ -142,58 +142,58 @@ kilo, continue) — `hostSetupCommand` (нпр. `omniroute setup-opencode`) за
 
 ---
 
-## 1. Каталог CLI Code алата (26 алата)
+## 1. Katalog CLI koda (26 alata)
 
-Сви алати који се појављују у `/dashboard/cli-code`. Они са `baseUrlSupport: none` су повезани преко MITM-а или ручног водича уместо прилагођеног base URL-а:
+Svi alati koji se pojavljuju u `/dashboard/cli-code`. Oni sa `baseUrlSupport: none` povezani su preko MITM-a ili ručnog uputstva umesto prilagođenog osnovnog URL-a:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | naziv                   | dobavljač               | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | ----------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic               | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                  | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                    | none           | custom         | false        |
+| cline        | Cline                   | OSS (ranije Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org                | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)               | full           | guide          | false        |
+| continue     | Continue                | continue.dev            | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)       | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ             | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)          | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)       | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)            | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (ranije SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI              | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS               | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere               | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)       | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)        | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                     | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)             | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba                 | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere               | none           | guide          | false        |
+| antigravity  | Antigravity             | Google                  | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research           | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                  | none           | mitm           | false        |
+| custom       | Prilagođeni CLI         | —                       | full           | custom-builder | false        |
 
-Алати са `baseUrlSupport: "partial"` приказују значку "⚠ Base URL parcial" на картици контролне табле.
+Alati sa `baseUrlSupport: "partial"` prikazuju značku „⚠ Delimični osnovni URL“ na kartici kontrolne table.
 ---
 
-## 2. Каталог CLI агенса (10 алата)
+## 2. Каталог CLI агената (10 алата)
 
-Аутономни агенти који се појављују у `/dashboard/cli-agents`:
+Аутономни агенти који се приказују у `/dashboard/cli-agents`:
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
-| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| id           | назив            | добављач                 | подршка за baseUrl | могуће покретање преко ACP-а |
+| ------------ | ---------------- | ------------------------ | ------------------ | ---------------------------- |
+| hermes-agent | Hermes Agent     | Nous Research            | потпуна            | не                           |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | потпуна            | да                           |
+| goose        | Goose            | Block / Linux Foundation | потпуна            | да                           |
+| interpreter  | Open Interpreter | OSS                      | потпуна            | да                           |
+| warp         | Warp AI          | Warp Inc.                | делимична          | да                           |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | потпуна            | не                           |
+| omp          | Oh My Pi         | OSS                      | потпуна            | да                           |
+| letta        | Letta CLI        | Letta                    | потпуна            | не                           |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | потпуна            | не                           |
+| 5dive        | 5dive            | OSS (5dive-ai)           | потпуна            | не                           |
 
 ---
 
@@ -602,158 +602,158 @@ pod `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. Interni OmniRoute CLI
+## 10. Интерни OmniRoute CLI
 
-Binarni fajl `omniroute` obezbeđuje komande za životni ciklus servera, podešavanje, dijagnostiku i upravljanje provajderima. Ulazna tačka: `bin/omniroute.mjs`.
+Извршна датотека `omniroute` пружа команде за управљање животним циклусом сервера, подешавање, дијагностику и управљање добављачима. Улазна тачка: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Pokreni server (podrazumevani port 20128)
-omniroute setup                        # Interaktivni čarobnjak za podešavanje
-omniroute doctor                       # Provera konfiguracije, baze podataka, portova, runtime-a
-omniroute providers list               # Konfigurisane konekcije sa provajderima
-omniroute providers test-all           # Testiraj svaku aktivnu konekciju
-omniroute reset-password               # Resetuj admin lozinku
-omniroute logs                         # Prikaz logova zahteva u realnom vremenu
-omniroute health                       # Detaljno zdravstveno stanje (breakers, cache, memorija)
-omniroute --version                    # Ispiši verziju
-omniroute --help                       # Prikaži sve komande
+omniroute                              # Покрени сервер (подразумевани порт 20128)
+omniroute setup                        # Интерактивни чаробњак за подешавање
+omniroute doctor                       # Провери конфигурацију, базу података, портове и извршно окружење
+omniroute providers list               # Конфигурисане везе са добављачима
+omniroute providers test-all           # Тестирај сваку активну везу
+omniroute reset-password               # Ресетуј администраторску лозинку
+omniroute logs                         # Приказуј евиденцију захтева у реалном времену
+omniroute health                       # Детаљно стање (прекидачи, кеш, меморија)
+omniroute --version                    # Прикажи верзију
+omniroute --help                       # Прикажи све команде
 ```
 
-### Podešavanje i inicijalizacija
+### Подешавање и иницијализација
 
 ```bash
-omniroute setup                        # Interaktivni čarobnjak za podešavanje
-omniroute setup --non-interactive      # CI/automatizacioni režim (čita env promenljive + flagove)
-omniroute setup --password '<value>'   # Postavi admin lozinku direktno
+omniroute setup                        # Интерактивни чаробњак за подешавање
+omniroute setup --non-interactive      # Режим за CI/аутоматизацију (чита променљиве окружења + опције)
+omniroute setup --password '<value>'   # Директно постави администраторску лозинку
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Dodaj i testiraj provajdera u jednom koraku
+  --test-provider                      # Додај и тестирај добављача у једном кораку
 ```
 
-Prepoznate promenljive okruženja za neinteraktivno podešavanje:
+Препознате променљиве окружења за неинтерактивно подешавање:
 
-| Promenljiva         | Namena                                                                 |
-| ------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | API ključ provajdera (povezan sa `--api-key` putem Commander `.env()`) |
-| `DATA_DIR`          | Prepiši OmniRoute direktorijum za podatke                              |
+| Променљива          | Намена                                                               |
+| ------------------- | -------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | API кључ добављача (повезан са `--api-key` преко Commander `.env()`) |
+| `DATA_DIR`          | Замена директоријума за OmniRoute податке                            |
 
-Svi ostali neinteraktivni unosi se prosleđuju kao flagovi, a ne kao promenljive okruženja:
+Сви остали неинтерактивни улази прослеђују се као опције, а не као променљиве окружења:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(pogledajte opcije `omniroute setup` iznad).
+(погледајте горенаведене опције за `omniroute setup`).
 
-### Dijagnostika
+### Дијагностика
 
 ```bash
-omniroute doctor                       # Provera konfiguracije, baze podataka, portova, runtime-a, memorije, dostupnosti
-omniroute doctor --json                # Mašinski čitljiv JSON
-omniroute doctor --no-liveness         # Preskoči HTTP health probu
-omniroute doctor --host 0.0.0.0        # Prepiši liveness host
-omniroute doctor --liveness-url <url>  # Potpuno prepisivanje URL-a za health endpoint
+omniroute doctor                       # Провери конфигурацију, базу података, портове, извршно окружење, меморију и доступност
+omniroute doctor --json                # Машински читљив JSON
+omniroute doctor --no-liveness         # Прескочи HTTP проверу стања
+omniroute doctor --host 0.0.0.0        # Замени хост за проверу доступности
+omniroute doctor --liveness-url <url>  # Замени пуну URL адресу крајње тачке за проверу стања
 ```
 
-Doctor pokreće ove provere: `Config`, `Database`, `Storage/encryption`,
+Команда doctor извршава следеће провере: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` i `Server liveness`. Izlazi sa ne-nula kodom ako bilo koja provera vrati `fail`.
+`Memory` и `Server liveness`. Завршава се кодом различитим од нуле ако било која провера има вредност `fail`.
 
-### Upravljanje provajderima
+### Управљање добављачима
 
 ```bash
-omniroute providers available                       # OmniRoute katalog provajdera
-omniroute providers available --search openai       # Filtriraj katalog po id/name/alias/category
-omniroute providers available --category api-key    # Filtriraj po kategoriji (api-key, oauth, free, ...)
-omniroute providers available --json                # Mašinski čitljiv JSON
+omniroute providers available                       # OmniRoute каталог добављача
+omniroute providers available --search openai       # Филтрирај каталог према идентификатору/називу/псеудониму/категорији
+omniroute providers available --category api-key    # Филтрирај према категорији (api-key, oauth, free, ...)
+omniroute providers available --json                # Машински читљив JSON
 
-omniroute providers list                            # Konfigurisane konekcije sa provajderima
+omniroute providers list                            # Конфигурисане везе са добављачима
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Testiraj jednu konfigurisanu konekciju
-omniroute providers test-all                        # Testiraj svaku aktivnu konekciju
-omniroute providers validate                        # Isključivo lokalna strukturna validacija
+omniroute providers test <id|name>                  # Тестирај једну конфигурисану везу
+omniroute providers test-all                        # Тестирај сваку активну везу
+omniroute providers validate                        # Само локална структурна валидација
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Postojeći OAuth tok
+omniroute providers auth <provider>                 # Постојећи OAuth ток
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` su API-first i zato radi u okviru
-aktivnog lokalnog ili udaljenog konteksta. Unos kredencijala treba da koristi
-`--credential-stdin` ili `--credential-env`; `--dry-run --json` prikazuje samo
-zaklonjeno prisustvo/oblik podataka. `providers available` čita OmniRoute katalog;
-`providers list/test/test-all/validate` čuvaju svoje lokalno SQLite ponašanje i
-ne zahtevaju da server bude pokrenut.
+Команде `providers add/import/auth/edit/remove` првенствено користе API и зато раде са
+активним локалним или удаљеним контекстом. За унос акредитива треба користити
+`--credential-stdin` или `--credential-env`; `--dry-run --json` пријављује само
+редиговано присуство/структуру. `providers available` чита OmniRoute каталог;
+`providers list/test/test-all/validate` задржавају своје локално SQLite понашање и
+не захтевају да сервер буде покренут.
 
-### Oporavak i resetovanje
+### Опоравак и ресетовање
 
 ```bash
-omniroute reset-password                # Resetuj admin lozinku (takođe: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Prikaži upozorenje + dry-run za resetovanje šifrovanih kredencijala
-omniroute reset-encrypted-columns --force  # Zaista postavi na null šifrovane kredencijale u SQLite
+omniroute reset-password                # Ресетуј администраторску лозинку (такође: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Прикажи упозорење + пробно извршавање ресетовања шифрованих акредитива
+omniroute reset-encrypted-columns --force  # Заиста постави шифроване акредитиве у SQLite-у на null
 ```
 
-### Izvoz kredencijala (⚠ rukovati sa pažnjom)
+### Извоз акредитива (⚠ поступајте опрезно)
 
 ```bash
-omniroute auth export                                 # Prikaži upozorenje + kapiju za potvrdu — nema pristupa bazi podataka
-omniroute auth export --force                          # Izvezi DEKRIPTOVANE kredencijale SVIH konekcija na stdout kao JSON
-omniroute auth export --force --id <id>                 # Izvezi samo odgovarajuću konekciju
-omniroute auth export --force --format env               # Emituj linije u formatu OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Upiši u fajl (kreiran sa dozvolama 0600)
+omniroute auth export                                 # Прикажи упозорење + захтев за потврду — без приступа бази података
+omniroute auth export --force                          # Извези ДЕШИФРОВАНЕ акредитиве СВИХ веза у stdout као JSON
+omniroute auth export --force --id <id>                 # Извези само одговарајућу везу
+omniroute auth export --force --format env               # Испиши редове OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Упиши у датотеку (направљену са дозволама 0600)
 ```
 
-`auth export` je **isključivo lokalna** komanda (direktno čitanje SQLite, nema HTTP rute) i namerno ispisuje/upisuje
-vrednosti `apiKey`/`accessToken`/`refreshToken`/`idToken` u **plain-text** obliku — to je namenjena funkcionalnost, a ne
-greška. Ništa se ne čita iz baze podataka i ništa se ne dekriptuje bez `--force`. Upozoravajuća poruka na stderr-u
-uvek se ispisuje pre nego što se prikaže bilo koji plain-text sadržaj. Zahteva da `STORAGE_ENCRYPTION_KEY` bude
-postavljen. Za polje koje ne uspe da se dekriptuje (zastareo ključ, oštećen šifrovani tekst) prijavljuje se
-`<field>DecryptFailed: true` umesto prekidanja celog izvoza ili otkrivanja osnovne greške.
+`auth export` је **искључиво локална** команда (директно читање SQLite-а, без HTTP руте) и намерно приказује/уписује
+вредности `apiKey`/`accessToken`/`refreshToken`/`idToken` као **обичан текст** — то је функционалност, а не
+грешка. Без `--force` ништа се не чита из базе података и ништа се не дешифрује. Банер са упозорењем
+увек се исписује у stderr пре него што се емитује било какав обичан текст. Захтева да `STORAGE_ENCRYPTION_KEY`
+буде постављен. Поље чије дешифровање не успе (застарео кључ, оштећен шифрат) пријављује се као
+`<field>DecryptFailed: true`, уместо да се прекине цео извоз или открије основна грешка.
 
-### Ostale podkomande
+### Остале поткоманде
 
-Ove komande pretpostavljaju da je OmniRoute server pokrenut, osim ako je drugačije naznačeno:
+Оне подразумевају да је OmniRoute сервер покренут, осим ако није другачије наведено:
 
 ```bash
-omniroute status                       # Sveobuhvatni status u realnom vremenu
-omniroute logs                         # Prikaz logova zahteva u realnom vremenu (--json, --search, --follow)
-omniroute config show                  # Prikaži trenutnu konfiguraciju
+omniroute status                       # Свеобухватан статус током извршавања
+omniroute logs                         # Праћење дневника захтева у реалном времену (--json, --search, --follow)
+omniroute config list                  # Приказ конфигурисаних CLI алата
 
-omniroute provider list                # Prikaži dostupne provajdere (alias za providers list)
-omniroute provider add                 # Registruj OmniRoute kao provajdera na alatu
-omniroute keys add | list | remove     # Upravljaj API ključevima
-omniroute models [provider]            # Prikaži modele (--json, --search)
+omniroute provider list                # Листа доступних добављача (алијас за providers list)
+omniroute provider add                 # Регистровање OmniRoute-а као добављача у алату
+omniroute keys add | list | remove     # Управљање API кључевима
+omniroute models [provider]            # Листа модела (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Snimak konfiguracije + baze podataka
-omniroute restore                      # Vrati stanje iz prethodnog snimka
+omniroute backup                       # Прављење снимка конфигурације и базе података
+omniroute restore                      # Враћање из претходног снимка
 
-omniroute health                       # Detaljno zdravstveno stanje (breakers, cache, memorija)
-omniroute quota                        # Iskorišćenost kvota provajdera
-omniroute cache                        # Status keša
-omniroute cache clear                  # Obriši semantičke keševe i keševe potpisa
+omniroute health                       # Детаљно стање (прекидачи, кеш, меморија)
+omniroute quota                        # Искоришћеност квоте добављача
+omniroute cache                        # Статус кеша
+omniroute cache clear                  # Брисање семантичког кеша и кеша потписа
 
-omniroute mcp status | restart         # Status / restart MCP servera
-omniroute a2a status | card            # Status A2A servera / kartica agenta
+omniroute mcp status | restart         # Статус / поновно покретање MCP сервера
+omniroute a2a status | card            # Статус A2A сервера / картица агента
 
-omniroute tunnel list | create | stop  # Upravljaj tunelima (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Pregled / postavljanje env promenljivih (privremeno)
+omniroute tunnel list | create | stop  # Управљање тунелима (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Преглед / постављање променљивих окружења (привремено)
 
-omniroute test                         # Test povezanosti sa provajderom
-omniroute update                       # Provera dostupnih ažuriranja
-omniroute completion                   # Generisanje automatskog dovršavanja za shell
+omniroute test                         # Брзи тест повезивања са добављачем
+omniroute update                       # Провера доступности ажурирања
+omniroute completion                   # Генерисање довршавања команди за љуску
 ```
 
-### Zajednički flagovi
+### Уобичајене опције
 
-| Flag                | Opis                                                  |
-| ------------------- | ----------------------------------------------------- |
-| `--no-open`         | Ne otvaraj automatski pregledač prilikom pokretanja   |
-| `--port <n>`        | Prepiši API port (podrazumevano 20128)                |
-| `--mcp`             | Pokreni kao MCP server preko stdio (za IDE-ove)       |
-| `--non-interactive` | CI režim (nema upita; čita iz env/flagova)            |
-| `--json`            | Mašinski čitljiv JSON izlaz (doctor, providers, itd.) |
-| `--help`, `-h`      | Prikaži pomoć za konkretnu komandu                    |
-| `--version`, `-v`   | Ispiši instaliranu verziju                            |
+| Опција              | Опис                                                 |
+| ------------------- | ---------------------------------------------------- |
+| `--no-open`         | Не отварај аутоматски прегледач при покретању        |
+| `--port <n>`        | Промени API порт (подразумевано 20128)               |
+| `--mcp`             | Покрени као MCP сервер преко stdio (за IDE окружења) |
+| `--non-interactive` | CI режим (без упита; чита из окружења/опција)        |
+| `--json`            | Машински читљив JSON излаз (doctor, providers итд.)  |
+| `--help`, `-h`      | Прикажи помоћ специфичну за команду                  |
+| `--version`, `-v`   | Испиши инсталирану верзију                           |
 
 ---
 

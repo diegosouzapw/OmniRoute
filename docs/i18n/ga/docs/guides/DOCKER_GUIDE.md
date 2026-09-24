@@ -65,11 +65,14 @@ docker run -d \
 # Bunphróifíl (gan uirlisí CLI)
 docker compose --profile base up -d
 
-# Próifíl CLI (Claude Code, Codex agus OpenClaw ionsuite)
+# Próifíl CLI (Claude Code, Codex, OpenClaw ionsuite)
 docker compose --profile cli up -d
 
-# Próifíl óstaigh (Linux ar dtús; feistíonn sé dénártha CLI an óstaigh mar inléite amháin)
+# Próifíl óstaigh (Linux ar dtús; gléasann sé dénárthaigh CLI an óstaigh mar inléite amháin)
 docker compose --profile host up -d
+
+# Próifíl ghréasáin (Chromium/Playwright do sholáthraithe seisiúin ghréasáin)
+docker compose --profile web up -d
 
 # Comhcheangail CLI + taobhcharr CLIProxyAPI
 docker compose --profile cli --profile cliproxyapi up -d
@@ -77,16 +80,17 @@ docker compose --profile cli --profile cliproxyapi up -d
 
 ## Próifílí atá ar Fáil
 
-Tagann ceithre phróifíl Compose le OmniRoute. Roghnaigh an ceann a oireann do do thimpeallacht.
+Tagann OmniRoute le próifílí Compose do na príomhchineálacha imscartha. Roghnaigh an ceann a oireann do do thimpeallacht.
 
-| Próifíl              | Seirbhís         | Cathain is ceart í a úsáid                                                                                                                                     | Ordú                                         |
-| -------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (réamhshocrú) | `omniroute-base` | Freastalaí gan chomhéadan / am rite íosta, gan CLIanna soláthraithe san áireamh                                                                                | `docker compose --profile base up -d`        |
-| `cli`                | `omniroute-cli`  | Sreafaí oibre gníomhairíocha a ghlaonn `omniroute providers/setup/doctor` agus CLIanna ionsuite (Codex, Claude Code, Droid, OpenClaw)                          | `docker compose --profile cli up -d`         |
-| `host`               | `omniroute-host` | Óstaigh Linux ar mian leo rochtain ar nós `network_mode` ar CLIanna an óstaigh trí `~/.local/bin`, `~/.codex`, `~/.claude`, srl. a fheistiú mar inléite amháin | `docker compose --profile host up -d`        |
-| `cliproxyapi`        | `cliproxyapi`    | Rith taobhcharr [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) ar phort `8317` le haghaidh seachfhreastalaíochta CLI réamhtheachtaí               | `docker compose --profile cliproxyapi up -d` |
+| Próifíl              | Seirbhís         | Cathain ba cheart í a úsáid                                                                                                                                            | Ordú                                         |
+| -------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (réamhshocrú) | `omniroute-base` | Freastalaí gan chomhéadan grafach / timpeallacht rite íosta, gan CLIanna soláthraithe a bheith cuachta leis                                                            | `docker compose --profile base up -d`        |
+| `cli`                | `omniroute-cli`  | Sreafaí oibre gníomhairíocha a ghlaonn `omniroute providers/setup/doctor` agus CLIanna cuachta (Codex, Claude Code, Droid, OpenClaw)                                   | `docker compose --profile cli up -d`         |
+| `host`               | `omniroute-host` | Óstaigh Linux ar mian leo rochtain ar nós `network_mode` a fháil ar CLIanna an óstaigh trí `~/.local/bin`, `~/.codex`, `~/.claude`, srl. a fheistiú mar inléite amháin | `docker compose --profile host up -d`        |
+| `cliproxyapi`        | `cliproxyapi`    | Rith an taobhcharr [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) ar phort `8317` le haghaidh seachfhreastalaíocht CLI réamhtheachtach                    | `docker compose --profile cliproxyapi up -d` |
+| `web`                | `omniroute-web`  | Soláthraithe seisiúin gréasáin a dteastaíonn brabhsálaí uathu: `gemini-web`, `claude-web`, `claude-turnstile` (tógann sé `runner-web`, agus Chromium san áireamh)      | `docker compose --profile web up -d`         |
 
-> Is féidir próifílí iomadúla a chomhcheangal: `docker compose --profile cli --profile cliproxyapi up -d`.
+> Is féidir próifílí iomadúla a chur le chéile: `docker compose --profile cli --profile cliproxyapi up -d`.
 
 ## Uirlisí CLI an óstaigh a chumrú nuair a ritheann OmniRoute in Docker
 
@@ -234,51 +238,53 @@ Ritheann an chruach táirgthe go comhthreomhar leis an compose forbartha (ainmne
 
 ## Céimeanna Dockerfile
 
-Tagann Dockerfile ilchéime (`Dockerfile`) leis an stór. Cuirtear trí chéim ar fáil; roghnaigh an `target` ceart do do chás úsáide.
+Tagann Dockerfile ilchéime (`Dockerfile`) leis an stór. Tá ceithre chéim ar fáil; roghnaigh an `target` ceart do do chás úsáide.
 
-| Céim          | Buníomhá              | Cuspóir                                                                                                                                                                                                       |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Suiteálann sé spleáchais (`npm ci --legacy-peer-deps`) agus ritheann sé `npm run build` (Turbopack de réir réamhshocraithe — féach Acmhainní ag am tiomsaithe thíos)                                          |
-| `runner-base` | `node:26-trixie-slim` | Timpeallacht rite táirgthe le haschur neamhspleách Next.js. **Ní chuimsítear aon CLI soláthraí.**                                                                                                             |
-| `runner-cli`  | `runner-base`         | Cuireann sé `git`, `docker.io`, `docker-compose` agus CLIanna domhanda leis: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Roghnaigh é seo le haghaidh sreafaí oibre gníomhairíocha.** |
+| Céim          | Buníomhá              | Cuspóir                                                                                                                                                                                                                                                                                                            |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `builder`     | `node:26-trixie-slim` | Suiteálann sé spleáchais (`npm ci --legacy-peer-deps`) agus ritheann sé `npm run build` (Turbopack de réir réamhshocraithe — féach Acmhainní ag am tógála thíos)                                                                                                                                                   |
+| `runner-base` | `node:26-trixie-slim` | Timpeallacht reatha táirgthe le haschur neamhspleách Next.js. **Níl aon CLI soláthraí san áireamh.**                                                                                                                                                                                                               |
+| `runner-cli`  | `runner-base`         | Cuireann sé `git`, `docker.io`, `docker-compose` agus CLIanna domhanda leis: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Roghnaigh é seo le haghaidh sreafaí oibre gníomhairíocha.**                                                                                                      |
+| `runner-web`  | `runner-base`         | Cuireann sé Playwright + brabhsálaí Chromium (`--with-deps`) leis do sholáthraithe seisiún gréasáin: `gemini-web`, `claude-web`, `claude-turnstile`. **Roghnaigh é seo nuair a úsáideann tú na soláthraithe sin** — teipeann ar an ngnáthíomhá tráth iarratais gan é (féach an nóta `-web` faoi Chainéil Eisiúna). |
 
-Tiomsaigh sprioc ar leith de láimh:
+Tóg sprioc shonrach de láimh:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Acmhainní ag am tiomsaithe
+### Acmhainní ag am tógála
 
-Rialaíonn trí argóint tiomsaithe costas na céime `builder`. Ní bhaineann siad ach le ham tiomsaithe —
-is rialtán rite ar leith é `OMNIROUTE_MEMORY_MB` (thíos).
+Rialaíonn trí argóint tógála costas na céime `builder`. Ní bhaineann siad ach le ham tógála —
+is rialtán reatha ar leith é `OMNIROUTE_MEMORY_MB` (thíos).
 
-| Argóint tiomsaithe          | Réamhshocrú | Éifeacht                                                                                                   |
+| Argóint tógála              | Réamhshocrú | Éifeacht                                                                                                   |
 | --------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`         | Tiomsaíonn `0` le webpack ina ionad. Buaicúsáid chuimhne níos ísle, ach níos moille.                       |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`      | Uasteorainn chairn V8 (`--max-old-space-size`) don `next build` a sheoltar.                                |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`         | Tógann `0` le webpack ina ionad. Cuimhne bhuaic níos ísle, ach níos moille.                                |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`      | Uasteorainn charn V8 (`--max-old-space-size`) don `next build` a thosaítear.                               |
 | `OMNIROUTE_BUILD_WORKERS`   | `2`         | Soláthraíonn sé `CIRCLE_NODE_TOTAL`; díorthaíonn Next `workers = N - 1` chun sonraí leathanaigh a bhailiú. |
 
-Is é `OMNIROUTE_BUILD_WORKERS` an ceann is ceart a ardú ar chóras mór tiomsaithe agus an ceann
-is ceart a bheith in amhras faoi nuair a theipeann ar thiomsú srianta **tar éis** `✓ Compiled successfully`. Is
-próiseas ar leith é gach oibrí sonraí leathanaigh, agus is próiseas ar leith é an máthairphróiseas
-`next build` féin freisin; i macasamhlú beo ar VPS (fadhb #7518), tomhaiseadh buaic-RSS gach próisis
-ag ~4.5 GB, neamhspleách ar bhratach chairn `NODE_OPTIONS` (tiomsaíonn Turbopack i gcuimhne
-dhúchasach/Rust lasmuigh de charn V8). Tá an réamhshocrú `2` (→ 1 oibrí, 2
-phróiseas san iomlán) tomhaiste do na riteoirí 16 GB / 4 vCPU arna n-óstáil ag GitHub a úsáideann
-an phíblíne foilsithe. Ag `8` (→ 7 n-oibrí), d'éirigh an riteoir sin as cuimhne agus
+Is é `OMNIROUTE_BUILD_WORKERS` an ceann ba cheart a ardú ar thógálaí mór agus an ceann ba cheart
+a amhras nuair a chliseann tógáil shrianta **tar éis** `✓ Compiled successfully`. Is próiseas
+ar leith é gach oibrí sonraí leathanaigh, agus is próiseas ar leith é an máthairphróiseas `next build`
+freisin; i macasamhlú ar VPS beo (fadhb #7518), tomhaiseadh buaic-RSS gach próisis ag
+~4.5 GB, neamhspleách ar bhratach charn `NODE_OPTIONS` (tiomsaíonn Turbopack i
+gcuimhne dhúchasach/Rust lasmuigh de charn V8). Tá an réamhshocrú `2` (→ 1 oibrí, 2
+phróiseas san iomlán) socraithe de réir na reathaithe 16 GB / 4 vCPU arna n-óstáil ag GitHub a
+úsáideann an phíblíne foilsithe. Ag `8` (→ 7 n-oibrí), d'éirigh an reathaí sin as cuimhne agus
 theip ar buildkit an chéim le `ResourceExhausted: ... cannot allocate memory`;
-níor leor `3` (→ 2 oibrí) fós nuair a tomhaiseadh RSS gach próisis
-go díreach seachas é a thuiscint go hindíreach. Déanann `tests/unit/docker-build-memory-budget.test.ts`
-an uimhríocht bunaithe ar an bhfigiúr tomhaiste agus teipeann air má sháraíonn ceachtar rialtán
-acmhainn an riteora.
+níor luigh `3` (→ 2 oibrí) fós nuair a tomhaiseadh RSS gach próisis
+go díreach seachas é a bheith tátalaithe. Déanann `tests/unit/docker-build-memory-budget.test.ts`
+an uimhríocht bunaithe ar an bhfigiúr tomhaiste agus teipeann sé má sháraíonn ceachtar rialtán
+acmhainn an reathaí.
 
 Tiomsaíonn Turbopack i gcuimhne dhúchasach Rust atá **lasmuigh** de charn V8, mar sin
-ní chuireann `OMNIROUTE_BUILD_MEMORY_MB` teorainn léi. Ar óstríomhaire a bhfuil uasteorainn chuimhne aige,
-déanann an marfóir OOM an tiomsú a SIGKILL gan aon téacs earráide ar chor ar bith — stopann sé
-go simplí i lár `Creating an optimized production build`, rud a fhágann cuma reo seachas
-easpa cuimhne air. Má tá an t-óstríomhaire tiomsaithe srianta, athraigh an pacálaí:
+ní chuireann `OMNIROUTE_BUILD_MEMORY_MB` teorainn léi. Ar óstach a bhfuil uasteorainn chuimhne aige,
+faigheann an tógáil SIGKILL ansin ón marfóir OOM gan aon téacs earráide ar chor ar bith — ní dhéanann sí ach
+stopadh i lár `Creating an optimized production build`, rud a bhreathnaíonn cosúil le reo seachas
+easpa cuimhne. Má tá an t-óstach tógála srianta, athraigh pacáisteoir:
 
 ```bash
 docker build --target runner-base \
@@ -287,42 +293,42 @@ docker build --target runner-base \
 ```
 
 Tá `webpackBuildWorker` cumasaithe, mar sin ritheann `next build` máthairphróiseas **agus** próiseas
-oibrí agus cloíonn gach ceann acu le `OMNIROUTE_BUILD_MEMORY_MB` ar leithligh. Socraigh uasteorainn an
-choimeádáin os cionn tuairim is dhá oiread an luacha sin, ní aon oiread amháin.
+oibrí agus urramaíonn gach ceann acu `OMNIROUTE_BUILD_MEMORY_MB` ar leithligh. Socraigh uasteorainn
+an choimeádáin os cionn thart ar dhá oiread an luacha sin, ní aon oiread amháin.
 
 Tomhaiste ar an gcrann seo (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Pacálaí   | Uasteorainn an choimeádáin | Toradh                                      |
-| --------- | -------------------------- | ------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB             | Mharfaigh OOM é ag an dá cheann, gan fhógra |
-| webpack   | 8 GiB                      | Rinneadh SIGKILL ar an oibrí tiomsaithe     |
-| webpack   | 12 GiB                     | d'éirigh leis, buaic ag 11.1 GiB            |
+| Pacáisteoir | Uasteorainn an choimeádáin | Toradh                                    |
+| ----------- | -------------------------- | ----------------------------------------- |
+| Turbopack   | 8 GiB / 16 GiB             | Mharaigh OOM é ag an dá cheann, gan fógra |
+| webpack     | 8 GiB                      | Fuair an t-oibrí tógála SIGKILL           |
+| webpack     | 12 GiB                     | d'éirigh leis, le buaic 11.1 GiB          |
 
-### Réamhshocruithe rite
+### Réamhshocruithe ag am rite
 
 Réamhshocruithe arna n-easpórtáil ag `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Iompar cuimhne in Docker:
 
 - Socraíonn an íomhá `OMNIROUTE_MEMORY_MB=1024` agus díorthaíonn sí `NODE_OPTIONS=--max-old-space-size=1024` uaidh.
-- Tosaíonn an lainseálaí neamhspleách an próiseas freastalaí féin; léann sé `OMNIROUTE_MEMORY_MB` agus iarcheanglaíonn sé `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Úsáideann Node an luach deireanach de `--max-old-space-size` a athdhéantar, mar sin rialaíonn socrú `OMNIROUTE_MEMORY_MB` teorainn éifeachtach chairn Docker.
-- Toisc go socraíonn an íomhá é i gcónaí, ní chuirtear cúlréiteach an lainseálaí féin, atá calabraithe de réir RAM, i bhfeidhm faoi Docker choíche. Ardaigh go sainráite é don ualach oibre (an tábla thíos). Tá `2048` fós róbheag do `/v1/responses` gníomhaire códúcháin.
+- Tosaíonn an lainseálaí neamhspleách próiseas iarbhír an fhreastalaí; léann sé `OMNIROUTE_MEMORY_MB` agus iarcheanglaíonn sé `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Úsáideann Node an luach deireanach de `--max-old-space-size` nuair a dhéantar é a athrá, mar sin rialaíonn socrú `OMNIROUTE_MEMORY_MB` teorainn éifeachtach chairn Docker.
+- Toisc go socraíonn an íomhá é i gcónaí, ní chuirtear cúltaca chalabraithe de réir RAM an lainseálaí féin i bhfeidhm riamh faoi Docker. Méadaigh go sainráite é don ualach oibre (an tábla thíos). Tá `2048` fós róbheag do `/v1/responses` gníomhaire códaithe.
 
-### RAM rite do ghníomhairí códúcháin
+### RAM ag am rite do ghníomhairí códaithe
 
-Is íosmhéid do dheais/comhrá éadrom é réamhshocrú Docker de 1 GiB, ní méid táirgthe. Coinníonn coirp fhada `POST /v1/responses` (na céadta teachtaireachtaí, na deicheanna uirlisí) iliomad graf sa chuimhne le linn comhbhrúite. Tá dhá iarratas forluiteacha ~3 MiB / ~750k comhartha tar éis V8 a thobscor ag spás seanré **12 GiB** (`FATAL ERROR: Reached heap limit`) agus tar éis OOM cgroup 16 GiB a bhaint amach freisin. Féach [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Is íosteorainn do dheais/comhrá éadrom é réamhshocrú Docker de 1 GiB, ní méid táirgeachta. Coinníonn coirp fhada `POST /v1/responses` (na céadta teachtaireachtaí, na deicheanna uirlisí) roinnt graf sa chuimhne le linn comhbhrúite. Tá dhá iarratas fhorluiteacha de thart ar ~3 MiB / ~750k comhartha tar éis V8 a thobscor ag sean-spás **12 GiB** (`FATAL ERROR: Reached heap limit`) agus OOM cgroup 16 GiB a bhaint amach freisin. Féach [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Socraigh **`--memory` cgroup os cionn an chairn** — tá maoláin dhúchasacha, SQLite agus ábhair idirmheánacha chomhbhrúite lasmuigh de V8.
+Socraigh méid **cgroup `--memory` os cionn an chairn** — tá maoláin dhúchasacha, SQLite, agus torthaí idirmheánacha comhbhrúite lasmuigh de V8.
 
-| Ualach Oibre                                    | `OMNIROUTE_MEMORY_MB`          | Coimeádán / cgroup     | Nótaí                                                                                                                 |
-| ----------------------------------------------- | ------------------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Painéal, comhrá éadrom amháin                   | `1024` (réamhshocrú na híomhá) | ≥2 GiB                 |                                                                                                                       |
-| Gníomhaire códaithe amháin (Claude/Codex/Grok)  | `8192`                         | ≥10 GiB                | `/v1/responses` tipiciúil aon tseisiúin                                                                               |
-| Dhá `/v1/responses` fhada chomhuaineacha        | `10240`–`12288`                | ≥12–16 GiB             | Tomhaiseadh tobscor V8 ag carn de ~12 GiB                                                                             |
-| Trí chomhthéacs fhada chomhuaineacha nó níos mó | ná déan ar phróiseas amháin    | srathú / tuilleadh RAM | Is é 1 iarratas idir lámha an réamhshocrú iontrála d’ualaí troma; má mhéadaítear é gan RAM, tarlaíonn an tobscor arís |
+| Ualach oibre                                     | `OMNIROUTE_MEMORY_MB`           | Coimeádán / cgroup                   | Nótaí                                                                                                            |
+| ------------------------------------------------ | ------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Deais, comhrá éadrom amháin                      | `1024` (réamhshocrú na híomhá)  | ≥2 GiB                               |                                                                                                                  |
+| Gníomhaire códaithe amháin (Claude/Codex/Grok)   | `8192`                          | ≥10 GiB                              | Seisiún aonair tipiciúil `/v1/responses`                                                                         |
+| Dhá `/v1/responses` fhada chomhthráthacha        | `10240`–`12288`                 | ≥12–16 GiB                           | Tobscor V8 tomhaiste ag carn ~12 GiB                                                                             |
+| Trí chomhthéacs fhada chomhthráthacha nó níos mó | ná déan ar aon phróiseas amháin | déan go seicheamhach / tuilleadh RAM | Is é 1 iarratas ar siúl réamhshocrú glactha na n-ualach trom; má mhéadaítear é gan RAM, tugtar an tobscor ar ais |
 
-Déanann `omniroute serve` ar mhiotal lom calabrú go ~35% den RAM (teorannaithe ag `[512, 4096]`) nuair nach bhfuil `OMNIROUTE_MEMORY_MB` **socraithe**. Socraíonn Docker `1024` i gcónaí, mar sin ní ritheann an calabrú sin choíche san íomhá oifigiúil.
+Déanann `omniroute serve` ar mhiotal lom calabrú go ~35% de RAM (teoranta do `[512, 4096]`) nuair nach bhfuil `OMNIROUTE_MEMORY_MB` **socraithe**. Socraíonn Docker `1024` i gcónaí, mar sin ní ritheann an calabrú sin riamh san íomhá oifigiúil.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -332,24 +338,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Athróga Timpeallachta Ríthábhachtacha
 
-Chomh maith leis na luachanna réamhshocraithe atá doiciméadaithe in [ENVIRONMENT.md](../reference/ENVIRONMENT.md), is iad na hathróga seo a leanas is tábhachtaí agus Docker á rith:
+Taobh amuigh de na réamhshocruithe atá doiciméadaithe in [ENVIRONMENT.md](../reference/ENVIRONMENT.md), is iad na hathróga seo a leanas na cinn is tábhachtaí agus Docker á rith:
 
-| Athróg                        | Cuspóir                                                                                                                                                                                                                                                                                         | Réamhshocrú                      |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Rún comhroinnte don droichead WebSocket. **Riachtanach i dtimpeallacht táirgeachta** — socraigh mar theaghrán láidir randamach é.                                                                                                                                                               | gan socrú (ní mór é a sholáthar) |
-| `REDIS_URL`                   | Teaghrán ceangail don teorantóir ráta / inneall taisce                                                                                                                                                                                                                                          | `redis://redis:6379`             |
-| `REDIS_PORT`                  | Port ar thaobh an óstaigh don choimeádán Redis ionsuite                                                                                                                                                                                                                                         | `6379`                           |
-| `REDIS_BIND_HOST`             | Comhéadan óstaigh ar a bhfoilsítear port Redis ionsuite (aisfhilleadh mura gcuireann tú AUTH leis)                                                                                                                                                                                              | `127.0.0.1`                      |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Conair óstaigh atá feistithe i bpróifíl `cli` ag `/workspace/omniroute` le haghaidh sreafaí oibre féin-nuashonraithe                                                                                                                                                                            | `.` (an chomhadlann reatha)      |
-| `OMNIROUTE_MEMORY_MB`         | Uasteorainn charn Node ag am rite do fhreastalaí neamhspleách Docker; sáraíonn sé réamhshocrú na híomhá thuas. Gníomhairí códúcháin: `8192`+ (féach [RAM ag am rite](#runtime-ram-for-coding-agents)).                                                                                          | `1024`                           |
-| `DASHBOARD_PORT` / `API_PORT` | Sáraigh na poirt nochta don phainéal (20128) agus don API (20129)                                                                                                                                                                                                                               | `20128` / `20129`                |
-| `APP_BIND_HOST`               | Comhéadan óstaigh ar a bhfoilsíonn docker-compose poirt an phainéil/API/live-WS. Le `REQUIRE_API_KEY=false` (an réamhshocrú), nochtann `0.0.0.0` an seachfhreastalaí anaithnid `/v1` don LAN — ná leathnaigh é ach le `REQUIRE_API_KEY=true` nó le seachfhreastalaí droim ar ais os a chomhair. | `127.0.0.1`                      |
-| `CLIPROXY_BIND_HOST`          | Comhéadan óstaigh ar a bhfoilsíonn docker-compose an taobhcharr `cliproxyapi` — coinnítear dintiúir soláthraithe ina imleabhar sonraí.                                                                                                                                                          | `127.0.0.1`                      |
-| `OMNIROUTE_PLUGINS_DIR`       | Comhadlann a léann scanóir breiseán an ama rite agus ina suiteálann sé. Socraigh í nuair a bhíonn breiseáin feistithe le nascadh: leanann an réamhshocrú `HOME`, rud nach gá d’íomhá a easpórtáil.                                                                                              | `~/.omniroute/plugins`           |
-| `OMNIROUTE_BASE_PATH`         | Fochonair URL nuair a fhoilsítear an aip taobh thiar de sheachfhreastalaí droim ar ais (m.sh. `/omniroute`)                                                                                                                                                                                     | _(folamh = fréamh)_              |
-| `NEXT_PUBLIC_BASE_URL`        | Bunús poiblí an bhrabhsálaí, an fhochonair san áireamh (m.sh. `https://host/omniroute`)                                                                                                                                                                                                         | gan socrú                        |
-| `PROD_DASHBOARD_PORT`         | Port painéil ar thaobh an óstaigh do `docker-compose.prod.yml`                                                                                                                                                                                                                                  | `20130`                          |
-| `CLIPROXYAPI_PORT`            | Port ar thaobh an óstaigh don taobhcharr `cliproxyapi`                                                                                                                                                                                                                                          | `8317`                           |
+| Athróg                        | Cuspóir                                                                                                                                                                                                                                                                                       | Réamhshocrú                      |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Rún comhroinnte don droichead WebSocket. **Riachtanach sa táirgeadh** — socraigh é mar theaghrán randamach láidir.                                                                                                                                                                            | gan socrú (ní mór é a sholáthar) |
+| `REDIS_URL`                   | Teaghrán ceangail don teorantóir ráta / inneall taisce                                                                                                                                                                                                                                        | `redis://redis:6379`             |
+| `REDIS_PORT`                  | Port ar thaobh an óstaigh don choimeádán Redis cuachta                                                                                                                                                                                                                                        | `6379`                           |
+| `REDIS_BIND_HOST`             | Comhéadan óstaigh ar a bhfoilsítear port Redis cuachta (aislúbadh mura gcuireann tú AUTH leis)                                                                                                                                                                                                | `127.0.0.1`                      |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Conair óstaigh atá gléasta sa phróifíl `cli` ag `/workspace/omniroute` le haghaidh sreafaí oibre féin-nuashonraithe                                                                                                                                                                           | `.` (an chomhadlann reatha)      |
+| `OMNIROUTE_MEMORY_MB`         | Uasteorainn charn Node ag am rite don fhreastalaí neamhspleách Docker; sáraíonn sé réamhshocrú na híomhá thuas. Gníomhairí códaithe: `8192`+ (féach [RAM ag am rite](#runtime-ram-for-coding-agents)).                                                                                        | `1024`                           |
+| `DASHBOARD_PORT` / `API_PORT` | Sáraigh na poirt nochta don deais (20128) agus don API (20129)                                                                                                                                                                                                                                | `20128` / `20129`                |
+| `APP_BIND_HOST`               | Comhéadan óstaigh ar a bhfoilsíonn docker-compose na poirt deaise/API/live-WS. Le `REQUIRE_API_KEY=false` (an réamhshocrú), nochtann `0.0.0.0` an seachfhreastalaí anaithnid `/v1` don LAN — ná leathnaigh é ach le `REQUIRE_API_KEY=true` nó le seachfhreastalaí droim ar ais os a chomhair. | `127.0.0.1`                      |
+| `CLIPROXY_BIND_HOST`          | Comhéadan óstaigh ar a bhfoilsíonn docker-compose an taobhchoimeádán `cliproxyapi` — coimeádann a imleabhar sonraí dintiúir soláthraithe.                                                                                                                                                     | `127.0.0.1`                      |
+| `OMNIROUTE_PLUGINS_DIR`       | Comhadlann a léann scanóir breiseán an ama rite agus a suiteálann sé breiseáin inti. Socraigh í nuair atá breiseáin gléasta le ceangal: leanann an réamhshocrú `HOME`, nach gá d’íomhá a easpórtáil.                                                                                          | `~/.omniroute/plugins`           |
+| `OMNIROUTE_BASE_PATH`         | Fochonair URL nuair a fhoilsítear an aip taobh thiar de sheachfhreastalaí droim ar ais (m.sh. `/omniroute`)                                                                                                                                                                                   | _(folamh = fréamh)_              |
+| `NEXT_PUBLIC_BASE_URL`        | Bunús poiblí an bhrabhsálaí, an fhochonair san áireamh (m.sh. `https://host/omniroute`)                                                                                                                                                                                                       | gan socrú                        |
+| `PROD_DASHBOARD_PORT`         | Port deaise ar thaobh an óstaigh do `docker-compose.prod.yml`                                                                                                                                                                                                                                 | `20130`                          |
+| `CLIPROXYAPI_PORT`            | Port ar thaobh an óstaigh don taobhchoimeádán `cliproxyapi`                                                                                                                                                                                                                                   | `8317`                           |
 
 ## Seachfhreastalaí aisiompaithe ar fhochonair (Traefik / nginx)
 
@@ -485,34 +491,47 @@ Is féidir painéil tolláin críochphointe (Cloudflare, Tailscale, ngrok) a tha
 
 ## Clibeanna Íomhá
 
-| Íomhá                    | Clib     | Méid   | Cur síos                                                 |
-| ------------------------ | -------- | ------ | -------------------------------------------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | An SemVer cobhsaí **foilsithe** is airde (ní git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Pionnáil an aicme clibe seo le haghaidh GitOps           |
+| Íomhá                    | Clib     | Méid   | Cur Síos                                                   |
+| ------------------------ | -------- | ------ | ---------------------------------------------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | An SemVer cobhsaí **foilsithe** is airde (ní git `main` é) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Cuir an aicme clibe seo faoi ghlas le haghaidh GitOps      |
 
-Léiriú il-ardáin: `linux/amd64` + `linux/arm64` dúchasach (Apple Silicon, AWS Graviton, Raspberry Pi). Roghnaíonn Docker an ailtireacht chomhoiriúnach go huathoibríoch; úsáid `--platform linux/amd64` más gá duit aithris AMD64 a fhórsáil ar óstaigh ARM.
+Lastliosta ilardáin: `linux/amd64` + `linux/arm64` dúchasach (Apple Silicon, AWS Graviton, Raspberry Pi). Roghnaíonn Docker an ailtireacht chomhoiriúnach go huathoibríoch; tabhair `--platform linux/amd64` más gá duit aithris AMD64 a bhrú ar óstaigh ARM.
 
 ### Cainéil Eisiúna
 
-Foilsíonn OmniRoute cainéil Docker ar leith le haghaidh eisiúintí cobhsaí, tástáil ghníomhach ar bhrainse eisiúna, agus leaganacha forbartha.
+Foilsíonn OmniRoute cainéil Docker ar leith le haghaidh eisiúintí cobhsaí, tástáil ar an mbrainse eisiúna gníomhach, agus leaganacha forbartha.
 
-| Cainéal                         | Foinse                                      | Inathraitheacht                    | Úsáid mholta                                                                                                                       |
-| ------------------------------- | ------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Eisiúint shínithe/leaganaithe               | Do-athraithe                       | Imscarthaí táirgthe a phionnálann eisiúint bheacht                                                                                 |
-| `:latest` / `:latest-web`       | An SemVer cobhsaí **foilsithe** is airde    | Pointeoir cobhsaí inathraithe      | Leanann sé eisiúintí cobhsaí **tar éis** jab foilsithe SemVer — **ní** rianaíonn sé `main` ná tiomantais `release/v*` neamheisithe |
-| `:next` / `:next-web`           | Brainse réamhshocraithe reatha `release/v*` | Pointeoir réamheisiúna inathraithe | Ceartúcháin tástála atá curtha ar an mbrainse eisiúna gníomhach ach nach bhfuil fós in eisiúint chobhsaí                           |
-| `:main` / `:main-web`           | Brainse `main`                              | Pointeoir forbartha inathraithe    | Tástáil forbartha agus chomhtháthaithe amháin                                                                                      |
+| Cainéal                         | Foinse                                         | Inathraitheacht                    | Úsáid mholta                                                                                                                     |
+| ------------------------------- | ---------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Eisiúint shínithe/leaganaithe                  | Do-athraithe                       | Imscarthuithe táirgeachta a chuireann eisiúint bheacht faoi ghlas                                                                |
+| `:latest` / `:latest-web`       | An SemVer cobhsaí **foilsithe** is airde       | Pointeoir cobhsaí inathraithe      | Leanann sé eisiúintí cobhsaí **tar éis** jab foilsithe SemVer — **ní** leanann sé `main` ná tiomantais neamheisithe `release/v*` |
+| `:next` / `:next-web`           | An brainse réamhshocraithe reatha `release/v*` | Pointeoir réamheisiúna inathraithe | Ceartúcháin a thástáil atá curtha i bhfeidhm ar an mbrainse eisiúna gníomhach ach nach bhfuil in eisiúint chobhsaí fós           |
+| `:main` / `:main-web`           | Brainse `main`                                 | Pointeoir forbartha inathraithe    | Le haghaidh tástáil forbartha agus chomhtháthaithe amháin                                                                        |
+
+#### Soláthraithe seisiúin ghréasáin: na híomhánna `-web`
+
+Tá clib `-web` chomhfhreagrach ag gach cainéal thuas (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), tógtha ón gcéim `runner-web` — an íomhá chéanna móide Playwright agus brabhsálaí Chromium. Seoltar an ghnáthíomhá **gan** Chromium; teastaíonn sé ó `gemini-web`, `claude-web` agus `claude-turnstile`.
+
+Cuirtear an teip siar; ní tharlaíonn sí ag am tosaithe: liostaíonn na soláthraithe sin a samhlacha agus taispeántar mar nasctha iad sa deais, agus ní theipeann ach ar an gcéad iarratas leis seo:
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Má úsáideann tú na soláthraithe sin, tarraing clib `-web` an chainéil atá in úsáid agat cheana — ní athraíonn aon rud eile. I gcás suiteáil npm/CLI (gan íomhá Docker), is é dénártha an bhrabhsálaí an chomhpháirt choibhéiseach atá ar iarraidh: rith `npx playwright install chromium` ar an óstach.
 
 #### An cainéal réamheisiúna a úsáid
 
-Atógtar an cainéal `next` le gach brú chuig an mbrainse réamhshocraithe reatha `release/v*` agus foilsítear é le haghaidh AMD64 agus ARM64 araon. Ní féidir le brainsí cothabhála níos sine scríobh anuas air. Soláthraíonn an cainéal íomhá in-íoslódáilte do cheartúcháin atá cumaiscthe isteach sa bhrainse eisiúna gníomhach sula gcruthaítear an chéad chlib chobhsaí eile.
+Atógtar an cainéal `next` ar gach brú chuig an mbrainse réamhshocraithe reatha `release/v*` agus foilsítear é le haghaidh AMD64 agus ARM64 araon. Ní féidir le brainsí cothabhála níos sine scríobh anuas air. Soláthraíonn an cainéal íomhá intarraingthe le haghaidh ceartúchán a cumascadh isteach sa bhrainse eisiúna gníomhach sula gcruthaítear an chéad chlib chobhsaí eile.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Le haghaidh Docker Compose, sáraigh an chlib íomhá a úsáideann an phróifíl roghnaithe, ansin íoslódáil agus athchruthaigh an tseirbhís:
+Le haghaidh Docker Compose, sáraigh an chlib íomhá a úsáideann an phróifíl roghnaithe, ansin tarraing agus athchruthaigh an tseirbhís:
 
 ```yaml
 services:
@@ -527,30 +546,30 @@ docker compose up -d
 
 #### Sábháilteacht agus rolladh siar
 
-Is cainéal réamheisiúna ar snámh é `next`. D’fhéadfadh sé athrú le brú ar bith chuig an mbrainse eisiúna gníomhach agus **ní thacaítear leis le haghaidh úsáid táirgthe**. Pionnáil díolaim na híomhá agus leagan sonrach á mheas agat:
+Is cainéal réamheisiúna snámhach é `next`. Féadfaidh sé athrú le haon bhrú chuig an mbrainse eisiúna gníomhach agus **ní thacaítear lena úsáid i dtáirgeadh**. Cuir achoimre na híomhá faoi ghlas agus leagan sonrach á mheas agat:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Sula ndéanann tú tástáil, déan cúltaca d’imleabhar sonraí OmniRoute nó den eolaire sonraí atá gléasta le bind mount. Chun dul siar, athchóirigh an leagan cobhsaí nó an achoimre a úsáideadh roimhe seo agus athchruthaigh an coimeádán:
+Sula ndéanfaidh tú tástáil, cruthaigh cúltaca d'imleabhar sonraí OmniRoute nó den chomhadlann sonraí atá gléasta trí cheangal. Chun rolladh siar, athchóirigh an leagan cobhsaí nó an achoimre a úsáideadh roimhe seo agus athchruthaigh an coimeádán:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Ní féidir le leagan tógála ó bhrainse eisiúna `latest` a bhogadh riamh; ní fhéadfaidh ach leagan séimeantach cobhsaí incháilithe an pointeoir cobhsaí a chur chun cinn. Coinníonn na híomhánna `next` cigireacht íomhá na heisiúna agus an geata blocála le haghaidh leochaileachtaí CRITICAL.
+Ní féidir le leagan ó bhrainse eisiúna `latest` a bhogadh choíche; ní fhéadfaidh ach leagan séimeantach cobhsaí incháilithe an pointeoir cobhsaí a chur chun cinn. Coinníonn na híomhánna `next` cigireacht íomhá na heisiúna agus an geata blocála le haghaidh leochaileachtaí CRITICAL.
 
-**Ní ráthaíocht úrnuachta do git é `latest`.** Ní bheidh ceartúcháin atá cumaiscthe ar `main` nó ar an mbrainse gníomhach `release/v*` **i** `:latest` go dtí go bhfoilseofar íomhá chobhsaí SemVer agus go gcuirfidh an jab foilsithe `:latest` chun cinn (an achoimre chéanna leis an SemVer sin). Má dhealraíonn sé go bhfuil `latest` reoite cé go dtaispeánann GitHub an ceartúchán cheana féin, tarraing `:next` chun an brainse eisiúna a thástáil nó fan leis an gclib SemVer.
+**Ní ráthaíocht úire do git é `latest`.** Ní bhíonn ceartúcháin a cumascadh isteach in `main` nó sa bhrainse gníomhach `release/v*` in `:latest` go dtí go bhfoilsítear íomhá SemVer chobhsaí agus go gcuireann an jab foilsithe `:latest` chun cinn (an achoimre chéanna leis an SemVer sin). Más cosúil go bhfuil `latest` reoite agus an ceartúchán le feiceáil ar GitHub cheana féin, tarraing `:next` chun an brainse eisiúna a thástáil nó fan leis an gclib SemVer.
 
-| An rud atá uait                                                                     | Úsáid                                    |
-| ----------------------------------------------------------------------------------- | ---------------------------------------- |
-| GitOps / táirgeadh nach mór dó gan imeacht ón leagan sonraithe                      | Pinnáil `:X.Y.Z` (nó achoimre na híomhá) |
-| Eisiúintí cobhsaí foilsithe a leanúint agus glacadh le hathchruthú le gach eisiúint | `:latest`                                |
-| Tiomantais `release/v*` neamheisithe a thástáil                                     | `:next` (ní le haghaidh táirgthe)        |
-| `main` a thástáil                                                                   | `:main` (ní le haghaidh táirgthe)        |
+| An rud atá uait                                                                     | Úsáid                                            |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------ |
+| GitOps / táirgeadh nach mór dó gan imeacht ón leagan roghnaithe                     | Cuir `:X.Y.Z` faoi ghlas (nó achoimre na híomhá) |
+| Eisiúintí cobhsaí foilsithe a leanúint agus glacadh le hathchruthú ar gach eisiúint | `:latest`                                        |
+| Tiomantais neamheisithe `release/v*` a thástáil                                     | `:next` (ní le haghaidh táirgeachta)             |
+| `main` a thástáil                                                                   | `:main` (ní le haghaidh táirgeachta)             |
 
 ## Infhaighteacht: is macasamhail aonair é SQLite réamhshocraithe
 

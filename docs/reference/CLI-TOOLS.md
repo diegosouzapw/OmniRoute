@@ -97,8 +97,11 @@ host answers **`422`** with `containerEphemeralTarget: true`, the safe error
 text and — for the tools with a host recipe (claude, codex, opencode, cline,
 kilo, continue) — a `hostSetupCommand` (e.g. `omniroute setup-opencode`) to run
 on the host instead; nothing is written. `dryRun: true` keeps working in container
-mode and returns the generated content + target path without touching disk, so
-you can preview from the dashboard and apply on the host. This behavior is
+mode and returns a redacted preview + target path without touching disk. Preview
+content is not a credential-bearing configuration to copy or import. Apply with
+the original tool/base URL/API key/model inputs on the host, or use the indicated
+host-side setup command. See [CLI configuration security](../security/CLI-CONFIGURATION.md)
+for the preview header and request contract. This behavior is
 intentional and regression-guarded by
 `tests/unit/api/cli-tools/apply-container-guard.test.ts` — never "fix" a 422
 by removing the guard.

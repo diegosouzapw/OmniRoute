@@ -109,6 +109,29 @@ export function canAccessOwnedRecord(
 }
 
 /**
+ * The id of the key that should own a record created (or looked up) in this
+ * request — LEDGER-27, omni-code-sec round 3. A valid key resolved ONLY via
+ * the ungated `x-api-key`/`x-goog-api-key` transport (no anthropic-version,
+ * non-Claude UA) is invisible to `extractApiKey()`/`getApiKeyRequestScope()`
+ * (`scope.apiKeyId` stays null for it, #13881/round-2), but
+ * `enforceApiKeyPolicy()` resolves and validates that same key independently
+ * via `extractUngatedClientApiKey()` and hands back a non-null `apiKeyInfo`
+ * once the key clears every lifecycle/policy gate (`policy.rejection ===
+ * null`). Without this fallback, a write handler persisted `apiKeyId: null`
+ * for that transport — an unreadable, undeletable, unaccounted-for row — and
+ * an ownership check on that same transport denied the key its own record.
+ * `scope.apiKeyId` always wins when set (the ordinary Authorization/anthropic
+ * transports already resolved it); a session-only caller (no key at all)
+ * passes through unchanged, since `policyApiKeyInfo` is null in that case too.
+ */
+export function resolveEffectiveApiKeyId(
+  scope: Pick<ApiKeyRequestScope, "apiKeyId">,
+  policyApiKeyInfo: { id: string } | null
+): string | null {
+  return scope.apiKeyId ?? policyApiKeyInfo?.id ?? null;
+}
+
+/**
  * Owner scope of a CLIENT_API list/count read (`GET /v1/files`, `GET /v1/batches`).
  * The intent is explicit on purpose, exactly like the `delete-completed` sweep:
  * a caller is either scoped to the API key it presented, or it is the operator's

@@ -126,7 +126,11 @@ describe("the route uses the shared ownership rule instead of its old inline pre
       "the route still carries the old inline ownership check that 404s session auth"
     );
     assert.ok(
-      /canAccessOwnedRecord\(\s*scope\s*,\s*batch\.apiKeyId\s*\)/.test(src),
+      // Either the bare scope or the LEDGER-27 effective-id form (`{ ...scope,
+      // apiKeyId: effectiveApiKeyId }`) — both delegate to the shared helper.
+      /canAccessOwnedRecord\(\s*(scope|\{\s*\.\.\.scope\s*,\s*apiKeyId:\s*effectiveApiKeyId\s*\})\s*,\s*batch\.apiKeyId\s*\)/.test(
+        src
+      ),
       "the route must delegate ownership to the shared canAccessOwnedRecord helper"
     );
   });

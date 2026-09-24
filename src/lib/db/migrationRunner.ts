@@ -603,6 +603,16 @@ function isSchemaAlreadyApplied(
       // bare ADD COLUMN would throw. Keyed by version — a stale number here would answer for
       // another migration's schema and skip it.
       return hasColumn(db, "proxy_logs", "proxy_name");
+    case "183":
+      // Same shape as 179/181: ensureProxyLogsColumns may have added
+      // rotation_account at boot. Keyed by version only — a stale number here
+      // would answer for another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "rotation_account");
+    case "184":
+      // Same shape as 179/181/183: ensureProxyLogsColumns may have added
+      // correlation_id at boot. Keyed by version only — a stale number here
+      // would answer for another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "correlation_id");
     default:
       return false;
   }

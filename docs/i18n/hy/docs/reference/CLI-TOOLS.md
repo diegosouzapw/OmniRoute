@@ -137,9 +137,9 @@ kilo, continue)՝ `hostSetupCommand`-ով (օրինակ՝ `omniroute setup-openc
 
 ## 1. CLI Code-ի կատալոգը (26 գործիք)
 
-Բոլոր գործիքները, որոնք ցուցադրվում են `/dashboard/cli-code`-ում։ `baseUrlSupport: none` ունեցողները հատուկ բազային URL-ի փոխարեն միացված են MITM-ի միջոցով կամ ձեռքով կազմաձևման ուղեցույցով․
+Բոլոր գործիքները, որոնք ցուցադրվում են `/dashboard/cli-code`-ում։ `baseUrlSupport: none` ունեցող գործիքները հատուկ բազային URL-ի փոխարեն միացվում են MITM-ի կամ ձեռքով կազմաձևման ուղեցույցի միջոցով․
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
+| id           | անուն                   | մատակարար           | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
 | claude       | Claude Code             | Anthropic           | full           | env            | true         |
 | codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
@@ -168,7 +168,7 @@ kilo, continue)՝ `hostSetupCommand`-ով (օրինակ՝ `omniroute setup-openc
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-`baseUrlSupport: "partial"` ունեցող գործիքների կառավարման վահանակի քարտում ցուցադրվում է «⚠ Մասնակի բազային URL» նշանը։
+`baseUrlSupport: "partial"` ունեցող գործիքների վահանակի քարտում ցուցադրվում է «⚠ Մասնակի բազային URL» նշանը։
 ---
 
 ## 2. CLI գործակալների կատալոգ (10 գործիք)
@@ -597,71 +597,71 @@ kiro-cli status
 
 ## 10. Ներքին OmniRoute CLI
 
-`omniroute` գործարկվող ֆայլը տրամադրում է հրամաններ սերվերի կենսացիկլի, սկզբնական կարգավորման, ախտորոշման և մատակարարների կառավարման համար։ Մուտքի կետը՝ `bin/omniroute.mjs`։
+`omniroute` գործարկվող ֆայլը տրամադրում է հրամաններ սերվերի կենսափուլի, սկզբնական կարգավորման, ախտորոշման և մատակարարների կառավարման համար։ Մուտքի կետ՝ `bin/omniroute.mjs`։
 
 ```bash
-omniroute                              # Գործարկել սերվերը (լռելյայն պորտը՝ 20128)
-omniroute setup                        # Սկզբնական կարգավորման ինտերակտիվ օգնական
+omniroute                              # Գործարկել սերվերը (կանխադրված պորտը՝ 20128)
+omniroute setup                        # Ինտերակտիվ կարգավորման օգնական
 omniroute doctor                       # Ստուգել կազմաձևումը, DB-ն, պորտերը և գործարկման միջավայրը
-omniroute providers list               # Կազմաձևված մատակարարների միացումներ
-omniroute providers test-all           # Փորձարկել յուրաքանչյուր ակտիվ միացում
+omniroute providers list               # Կազմաձևված մատակարարների կապերը
+omniroute providers test-all           # Փորձարկել յուրաքանչյուր ակտիվ կապ
 omniroute reset-password               # Վերակայել ադմինիստրատորի գաղտնաբառը
-omniroute logs                         # Հոսքային եղանակով ցուցադրել հարցումների մատյանները
-omniroute health                       # Մանրամասն վիճակ (անջատիչներ, քեշ, հիշողություն)
+omniroute logs                         # Հոսքային կերպով ցուցադրել հարցումների մատյանները
+omniroute health                       # Մանրամասն առողջական վիճակ (անջատիչներ, քեշ, հիշողություն)
 omniroute --version                    # Տպել տարբերակը
 omniroute --help                       # Ցուցադրել բոլոր հրամանները
 ```
 
-### Սկզբնական կարգավորում և սկզբնարժեքավորում
+### Կարգավորում և սկզբնարժեքավորում
 
 ```bash
-omniroute setup                        # Սկզբնական կարգավորման ինտերակտիվ օգնական
+omniroute setup                        # Ինտերակտիվ կարգավորման օգնական
 omniroute setup --non-interactive      # CI/ավտոմատացման ռեժիմ (կարդում է միջավայրի փոփոխականներն ու դրոշակները)
 omniroute setup --password '<value>'   # Ուղղակիորեն սահմանել ադմինիստրատորի գաղտնաբառը
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Մեկ քայլով ավելացնել և փորձարկել մատակարարին
+  --test-provider                      # Մեկ գործողությամբ ավելացնել և փորձարկել մատակարարին
 ```
 
-Ոչ ինտերակտիվ սկզբնական կարգավորման համար ճանաչվող միջավայրի փոփոխականները՝
+Ոչ ինտերակտիվ կարգավորման համար ճանաչվող միջավայրի փոփոխականները՝
 
 | Փոփոխական           | Նպատակ                                                                         |
 | ------------------- | ------------------------------------------------------------------------------ |
 | `OMNIROUTE_API_KEY` | Մատակարարի API բանալի (Commander-ի `.env()`-ի միջոցով կապված է `--api-key`-ին) |
 | `DATA_DIR`          | Վերասահմանել OmniRoute-ի տվյալների գրացուցակը                                  |
 
-Մնացած բոլոր ոչ ինտերակտիվ մուտքային արժեքները փոխանցվում են որպես դրոշակներ, ոչ թե միջավայրի փոփոխականներ՝
+Մնացած բոլոր ոչ ինտերակտիվ մուտքային տվյալները փոխանցվում են որպես դրոշակներ, այլ ոչ թե միջավայրի փոփոխականներ՝
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(տե՛ս վերևում `omniroute setup`-ի ընտրանքները)։
+(տե՛ս վերևում ներկայացված `omniroute setup` ընտրանքները)։
 
 ### Ախտորոշում
 
 ```bash
 omniroute doctor                       # Ստուգել կազմաձևումը, DB-ն, պորտերը, գործարկման միջավայրը, հիշողությունը և հասանելիությունը
-omniroute doctor --json                # Մեքենայաընթեռնելի JSON
-omniroute doctor --no-liveness         # Բաց թողնել HTTP վիճակի զոնդավորումը
+omniroute doctor --json                # Մեքենայորեն ընթեռնելի JSON
+omniroute doctor --no-liveness         # Բաց թողնել HTTP առողջական վիճակի ստուգումը
 omniroute doctor --host 0.0.0.0        # Վերասահմանել հասանելիության հոսթը
-omniroute doctor --liveness-url <url>  # Ամբողջական վիճակի վերջնակետի URL-ի վերասահմանում
+omniroute doctor --liveness-url <url>  # Վերասահմանել առողջական վիճակի վերջնակետի ամբողջական URL-ը
 ```
 
 Doctor-ը կատարում է հետևյալ ստուգումները՝ `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` և `Server liveness`։ Այն ավարտվում է զրոյից տարբեր ելքի կոդով, եթե որևէ ստուգման արդյունքը `fail` է։
+`Memory` և `Server liveness`։ Այն ավարտվում է զրոյից տարբեր կոդով, եթե որևէ ստուգման արդյունքը `fail` է։
 
 ### Մատակարարների կառավարում
 
 ```bash
-omniroute providers available                       # OmniRoute-ի մատակարարների կատալոգ
-omniroute providers available --search openai       # Զտել կատալոգը ըստ id-ի/անվան/այլանվան/կատեգորիայի
+omniroute providers available                       # OmniRoute-ի մատակարարների կատալոգը
+omniroute providers available --search openai       # Զտել կատալոգն ըստ ID-ի/անվան/այլանվան/կատեգորիայի
 omniroute providers available --category api-key    # Զտել ըստ կատեգորիայի (api-key, oauth, free, ...)
-omniroute providers available --json                # Մեքենայաընթեռնելի JSON
+omniroute providers available --json                # Մեքենայորեն ընթեռնելի JSON
 
-omniroute providers list                            # Կազմաձևված մատակարարների միացումներ
+omniroute providers list                            # Կազմաձևված մատակարարների կապերը
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Փորձարկել մեկ կազմաձևված միացում
-omniroute providers test-all                        # Փորձարկել յուրաքանչյուր ակտիվ միացում
+omniroute providers test <id|name>                  # Փորձարկել կազմաձևված մեկ կապ
+omniroute providers test-all                        # Փորձարկել յուրաքանչյուր ակտիվ կապ
 omniroute providers validate                        # Միայն տեղային կառուցվածքային վավերացում
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
@@ -670,59 +670,59 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove`-ը նախևառաջ օգտագործում են API-ն և, հետևաբար, աշխատում են
-ակտիվ տեղային կամ հեռակա համատեքստի հետ։ Հավատարմագրերը պետք է մուտքագրել
-`--credential-stdin`-ի կամ `--credential-env`-ի միջոցով։ `--dry-run --json`-ը հայտնում է միայն
-գաղտնազերծված առկայության/կառուցվածքի մասին։ `providers available`-ը կարդում է OmniRoute-ի կատալոգը։
-`providers list/test/test-all/validate`-ը պահպանում են իրենց տեղային SQLite վարքագիծը և
+`providers add/import/auth/edit/remove` հրամաններն API-ն առաջնահերթ օգտագործող են և, հետևաբար, աշխատում են
+ակտիվ տեղային կամ հեռավար համատեքստի հետ։ Հավաստագրային տվյալները պետք է մուտքագրել
+`--credential-stdin` կամ `--credential-env` հրամանով․ `--dry-run --json`-ը հաղորդում է միայն
+քողարկված առկայությունն ու կառուցվածքը։ `providers available`-ը կարդում է OmniRoute-ի կատալոգը,
+իսկ `providers list/test/test-all/validate`-ը պահպանում են իրենց տեղային SQLite վարքագիծը և
 չեն պահանջում, որ սերվերը գործարկված լինի։
 
 ### Վերականգնում և վերակայում
 
 ```bash
 omniroute reset-password                # Վերակայել ադմինիստրատորի գաղտնաբառը (նաև՝ omniroute-reset-password)
-omniroute reset-encrypted-columns       # Ցուցադրել նախազգուշացում և փորձնական գործարկում՝ կոդավորված հավատարմագրերը վերակայելու համար
-omniroute reset-encrypted-columns --force  # Իրականում SQLite-ում կոդավորված հավատարմագրերի արժեքը դարձնել null
+omniroute reset-encrypted-columns       # Ցուցադրել նախազգուշացում և փորձնական գործարկում՝ կոդավորված հավաստագրային տվյալների վերակայման համար
+omniroute reset-encrypted-columns --force  # Իրականում SQLite-ում կոդավորված հավաստագրային տվյալները դարձնել null
 ```
 
-### Հավատարմագրերի արտահանում (⚠ զգուշությամբ օգտագործեք)
+### Հավաստագրային տվյալների արտահանում (⚠ զգույշ վարվեք)
 
 ```bash
 omniroute auth export                                 # Ցուցադրել նախազգուշացում և հաստատման քայլ՝ առանց DB-ին հասանելիության
-omniroute auth export --force                          # ԲՈԼՈՐ միացումների ՎԵՐԾԱՆՎԱԾ հավատարմագրերը JSON ձևաչափով արտահանել stdout
-omniroute auth export --force --id <id>                 # Արտահանել միայն համապատասխանող միացումը
+omniroute auth export --force                          # ԲՈԼՈՐ կապերի ԱՊԱԿՈԴԱՎՈՐՎԱԾ հավաստագրային տվյալներն արտահանել stdout՝ որպես JSON
+omniroute auth export --force --id <id>                 # Արտահանել միայն համապատասխանող կապը
 omniroute auth export --force --format env               # Արտածել OMNIROUTE_<PROVIDER>_<FIELD>=<value> տողեր
 omniroute auth export --force --out creds.json           # Գրել ֆայլում (ստեղծվում է 0600 թույլտվություններով)
 ```
 
-`auth export`-ն աշխատում է **միայն տեղային եղանակով** (ուղղակի ընթերցում SQLite-ից, առանց HTTP երթուղու) և միտումնավոր տպում/գրում է
-`apiKey`/`accessToken`/`refreshToken`/`idToken` արժեքները **բաց տեքստով**. սա գործառույթ է, ոչ թե
-սխալ։ Առանց `--force`-ի տվյալների բազայից ոչինչ չի ընթերցվում և ոչինչ չի վերծանվում։ Նախքան որևէ բաց տեքստի արտածումը՝ stderr-ում
-միշտ տպվում է նախազգուշացնող հաղորդագրություն։ Պահանջվում է, որ `STORAGE_ENCRYPTION_KEY`-ը
-սահմանված լինի։ Եթե որևէ դաշտ չի հաջողվում վերծանել (հնացած բանալի, վնասված գաղտնագրված տեքստ), ամբողջ արտահանումը դադարեցնելու կամ հիմքում ընկած սխալը բացահայտելու փոխարեն այն ներկայացվում է որպես
-`<field>DecryptFailed: true`։
+`auth export`-ը գործում է **միայն տեղային եղանակով** (SQLite-ի ուղղակի ընթերցում՝ առանց HTTP երթուղու) և դիտավորյալ տպում/գրում է
+**բաց տեքստով** `apiKey`/`accessToken`/`refreshToken`/`idToken` արժեքները․ դա գործառույթ է, ոչ թե
+սխալ։ Առանց `--force`-ի տվյալների շտեմարանից ոչինչ չի ընթերցվում և ոչինչ չի ապակոդավորվում։ Նախքան որևէ բաց տեքստ արտածելը՝
+stderr-ում միշտ տպվում է նախազգուշացնող բաններ։ Պահանջվում է, որ `STORAGE_ENCRYPTION_KEY`-ը
+սահմանված լինի։ Ապակոդավորման ձախողման դեպքում (հնացած բանալի, վնասված գաղտնագիր) դաշտը ներկայացվում է որպես
+`<field>DecryptFailed: true`՝ ամբողջ արտահանումը դադարեցնելու կամ հիմքում ընկած սխալը բացահայտելու փոխարեն։
 
 ### Այլ ենթահրամաններ
 
-Ստորև նշվածները ենթադրում են, որ OmniRoute սերվերը գործարկված է, եթե այլ բան նշված չէ։
+Սրանք ենթադրում են, որ OmniRoute սերվերը գործարկված է, եթե այլ բան նշված չէ։
 
 ```bash
 omniroute status                       # Կատարման միջավայրի համապարփակ կարգավիճակ
 omniroute logs                         # Հարցումների մատյանների հոսքային ցուցադրում (--json, --search, --follow)
-omniroute config show                  # Ցուցադրել ընթացիկ կազմաձևումը
+omniroute config list                  # Ցուցադրել կարգավորված CLI գործիքները
 
-omniroute provider list                # Ցուցակել հասանելի մատակարարներին (providers list-ի այլանունը)
-omniroute provider add                 # Գրանցել OmniRoute-ը որպես գործիքի մատակարար
+omniroute provider list                # Ցուցադրել հասանելի մատակարարները (providers list-ի այլանունը)
+omniroute provider add                 # Գրանցել OmniRoute-ը որպես մատակարար որևէ գործիքում
 omniroute keys add | list | remove     # Կառավարել API բանալիները
-omniroute models [provider]            # Ցուցակել մոդելները (--json, --search)
+omniroute models [provider]            # Ցուցադրել մոդելները (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Ստեղծել կազմաձևման և DB-ի պահապատկեր
-omniroute restore                      # Վերականգնել նախորդ պահապատկերից
+omniroute backup                       # Ստեղծել կարգավորումների և DB-ի պահուստային պատկերը
+omniroute restore                      # Վերականգնել նախորդ պահուստային պատկերից
 
-omniroute health                       # Մանրամասն առողջական վիճակ (անջատիչներ, քեշ, հիշողություն)
-omniroute quota                        # Մատակարարի քվոտայի օգտագործում
-omniroute cache                        # Քեշի կարգավիճակ
+omniroute health                       # Առողջական վիճակի մանրամասներ (անջատիչներ, քեշ, հիշողություն)
+omniroute quota                        # Մատակարարի քվոտայի օգտագործումը
+omniroute cache                        # Քեշի կարգավիճակը
 omniroute cache clear                  # Մաքրել իմաստային և ստորագրությունների քեշերը
 
 omniroute mcp status | restart         # MCP սերվերի կարգավիճակ / վերագործարկում
@@ -733,20 +733,20 @@ omniroute env show | get <k> | set <k> <v>  # Դիտել / սահմանել մի
 
 omniroute test                         # Մատակարարի կապակցման արագ ստուգում
 omniroute update                       # Ստուգել թարմացումների առկայությունը
-omniroute completion                   # Գեներացնել հրամանային թաղանթի ինքնալրացումը
+omniroute completion                   # Ստեղծել shell-ի ինքնալրացում
 ```
 
-### Ընդհանուր դրոշակներ
+### Հաճախ օգտագործվող դրոշակներ
 
 | Դրոշակ              | Նկարագրություն                                                 |
 | ------------------- | -------------------------------------------------------------- |
-| `--no-open`         | Գործարկման ժամանակ ինքնաշխատ չբացել դիտարկիչը                  |
-| `--port <n>`        | Վերասահմանել API միացքը (լռելյայն՝ 20128)                      |
-| `--mcp`             | Աշխատեցնել որպես MCP սերվեր՝ stdio-ի միջոցով (IDE-ների համար)  |
-| `--non-interactive` | CI ռեժիմ (առանց հարցումների․ կարդում է միջավայրից/դրոշակներից) |
-| `--json`            | Մեքենայաընթեռնելի JSON արտածում (doctor, providers և այլն)     |
-| `--help`, `-h`      | Ցուցադրել տվյալ հրամանին հատուկ օգնությունը                    |
-| `--version`, `-v`   | Արտածել տեղադրված տարբերակը                                    |
+| `--no-open`         | Մեկնարկի ժամանակ ինքնաբերաբար չբացել զննարկիչը                 |
+| `--port <n>`        | Փոխարինել API պորտը (լռելյայն՝ 20128)                          |
+| `--mcp`             | Գործարկել որպես MCP սերվեր stdio-ի միջոցով (IDE-ների համար)    |
+| `--non-interactive` | CI ռեժիմ (առանց հուշումների, կարդում է միջավայրից/դրոշակներից) |
+| `--json`            | Մեքենայաընթեռնելի JSON ելք (doctor, providers և այլն)          |
+| `--help`, `-h`      | Ցուցադրել հրամանին հատուկ օգնությունը                          |
+| `--version`, `-v`   | Տպել տեղադրված տարբերակը                                       |
 
 ---
 

@@ -4,12 +4,12 @@
 
 ---
 
-> **事實來源：** `src/server/authz/`、`src/shared/constants/publicApiRoutes.ts`、`src/lib/api/requireManagementAuth.ts`、`src/shared/utils/apiAuth.ts`
-> **最後更新：** 2026-06-28 — v3.8.40
+> **真實來源：** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **上次更新：** 2026-09-22 — 範圍命名空間指向 MCP-SERVER.md
 
-OmniRoute 擁有一套可感知路由的授權管線，會對每個 API 請求進行管控。分類是**確定性的**，且採取**失敗時關閉**原則——任何無法分類的項目最終都會歸類為 `MANAGEMENT`，並要求工作階段或管理級權杖。本頁針對維護路由或設計新端點的工程師說明此模型。
+OmniRoute 具有一個路由感知授權管道，用於把關每個 API 請求。分類是**確定性**且**故障關閉**的 — 任何無法分類的內容最終都會歸類為 `MANAGEMENT`，並要求會話或管理級別的令牌。本頁解釋了供維護路由或設計新端點的工程師使用的模型。
 
-![授權管線（3 種路由類別 + 原則評估）](../diagrams/exported/authz-pipeline.svg)
+![授權管道（3 種路由類別 + 策略評估）](../diagrams/exported/authz-pipeline.svg)
 
 > 來源：[diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -200,24 +200,31 @@ export async function POST(request: Request) {
 
 ## 範圍
 
-API 金鑰包含一個 `scopes` 陣列（以 JSON 儲存於 `api_keys.scopes`，請參閱 `src/lib/db/apiKeys.ts`）。
+三個命名空間。每個檢查器只讀取其自身的字串。關於為什麼 `manage` 會使 `read:compression` 的 `scopeMatches` 失敗，以及為什麼 `read` 存取權杖無法 `PATCH /api/keys/{id}` 的並排說明，請參閱[三個範圍命名空間](../frameworks/MCP-SERVER.md#three-scope-namespaces)。
+
+API 金鑰帶有一個 `scopes` 陣列（以 JSON 格式儲存在 `api_keys.scopes` 中，請參閱 `src/lib/db/apiKeys.ts`）。
 
 ### 管理範圍
 
-- `manage` / `admin` — 以 Bearer 傳送時，授予該金鑰存取管理 API 端點的權限。
+- `manage` / `admin` — `hasManageScope`。對管理 API 路由的 Bearer 存取。
+- `mcp:connect`、`self:usage`、`self:account-quota` 和
+  `policy:bypass-provider-quota` 是附加的精確匹配範圍。它們位於
+  `MANAGEMENT_API_KEY_SCOPES` 之外。`mcp:connect` 僅開啟
+  `/api/mcp/` 非迴路（non-loopback）的劃分。
 
-### MCP 範圍（`src/shared/constants/mcpScopes.ts`）
+### MCP 工具範圍
 
-每個 MCP 工具都會透過 `MCP_TOOL_SCOPES` 要求特定範圍。完整清單（`MCP_SCOPE_LIST`）：
+目錄和匹配規則（相同字串，或以 `*` 結尾的已授予範圍）：
+[MCP 工具範圍](../frameworks/MCP-SERVER.md#mcp-tool-scopes)。
+`src/shared/constants/mcpScopes.ts` 中的 `MCP_SCOPE_LIST` 是原始的類型化
+子集，而非完整的目錄。在 `resolveCallerScopeContext()` 從 MCP 驗證資訊、請求中繼資料或 `OMNIROUTE_MCP_SCOPES` 解析範圍後，執行會在
+`open-sse/mcp-server/scopeEnforcement.ts` 中進行。除非 `OMNIROUTE_MCP_ENFORCE_SCOPES=true`，否則它會保持關閉。
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### 存取權杖範圍
 
-在 `open-sse/mcp-server/server.ts` 中，`resolveCallerScopeContext()` 從 MCP 驗證資訊、請求中繼資料或 `OMNIROUTE_MCP_SCOPES` 解析範圍後，範圍強制執行機制會將每個工具的範圍清單傳入 `evaluateToolScopes()`。
+`oma_live_…` 權杖上的 `read` / `write` / `admin`，按 `scopeSatisfies` 排序
+（`src/lib/accessTokens/scopes.ts`）。此排序僅適用於存取權杖憑證。請參閱
+[管理驗證](../guides/MANAGEMENT-AUTH.md)。
 
 ## 必須驗證切換選項
 
@@ -263,9 +270,9 @@ x-omniroute-auth-scopes:    以逗號分隔的清單
 
 請在處理常式內使用 `assertAuth(req, expectedClass)`——若中介軟體遭到繞過，它會擲出代碼為 `AUTHZ_NOT_INITIALIZED` 的 `AuthzAssertionError`（有助於在測試中發現設定退步問題）。
 
-## 另請參閱
+## 參閱
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — 各端點的驗證標記
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — 驗證事件的稽核記錄
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP 範圍強制執行詳細資訊
-- 原始碼：`src/server/authz/`、`src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — 每個端點的身份驗證標記
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — 身份驗證事件的稽核日誌
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — 三個範圍命名空間和 MCP 工具範圍目錄
+- 來源：`src/server/authz/`、`src/lib/api/requireManagementAuth.ts`

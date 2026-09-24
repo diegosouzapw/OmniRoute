@@ -189,7 +189,12 @@ type TlsFingerprintStore = {
  * the egress logger read the innermost applied proxy (the last writer wins, which
  * is the executor's per-account proxy).
  */
-export type AppliedProxySink = { proxy: unknown; upstreamStatus?: number };
+export type AppliedProxySink = {
+  proxy: unknown;
+  upstreamStatus?: number;
+  /** Masked serving-account id (N112) — set by the rotation executor at dispatch. */
+  rotationAccount?: string | null;
+};
 const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
 
 /**
@@ -201,6 +206,20 @@ const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
  */
 export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
   return appliedProxyContext.run(sink, fn);
+}
+
+/**
+ * Record the masked id of the rotation account serving this request on the
+ * current capture sink (no-op outside a capture — the sink stays null and the
+ * call-site forwards null). Only an already-masked id may be passed in.
+ */
+export function noteRotationAccount(masked: string): void {
+  try {
+    const sink = appliedProxyContext.getStore();
+    if (sink) sink.rotationAccount = masked;
+  } catch {
+    /* attribution is best-effort; never break the request path */
+  }
 }
 
 type FetchWithDispatcherOptions = RequestInit & { dispatcher?: unknown };

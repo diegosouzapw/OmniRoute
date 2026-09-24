@@ -1,0 +1,1 @@
+- fix(providers): KIE flux/kontext no longer returns a fake HTTP-200 success with zero images when the poll response uses the resultImageUrl(s) shape (#14335)

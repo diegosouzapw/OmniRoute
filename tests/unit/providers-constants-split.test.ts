@@ -38,12 +38,14 @@
 // Agnes AI China (#13399, cdcde97c7) adds one apikey/regional entry — 241.
 // xKiro (#12648, 83fa4328f) adds one apikey entry — 242.
 // Lyceum (pay-per-use OpenAI-compatible gateway, 2026-09-20) adds one apikey entry — 243.
+// Muse Code device OAuth dual-auth moves `muse-code` from frontier-labs into
+// OAUTH_PROVIDERS (same pattern as clinepass/codebuddy-cn) — 242.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/providers.ts");
 
-const APIKEY_PROVIDER_COUNT = 243;
+const APIKEY_PROVIDER_COUNT = 242;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [

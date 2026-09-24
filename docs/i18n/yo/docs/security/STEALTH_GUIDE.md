@@ -238,19 +238,19 @@ Gbogbo àwọn endpoint MITM nílò ìfàṣẹsí ìṣàkóso (`requireCliTool
 
 ---
 
-## Àwọn Àtúnṣe User-Agent — àwọn oníyípadà àyíká (`.env.example` abala 12)
+## Àwọn Ìyípadà User-Agent — àwọn àyípadà àyíká (`.env.example` abala 12)
 
-| Oníyípadà                | Àìyípadà                                                        |
+| Àyípadà                  | Àìpéye                                                          |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-`open-sse/executors/base.ts::buildHeaders()` ń lò wọ́n nípasẹ̀ ìṣàwárí alágbára. **Ṣe ìgbésókè àwọn wọ̀nyí nígbà tí àwọn olùpèsè bá tu àwọn ẹ̀yà CLI tuntun jáde** — àwọn ọ̀rọ̀ UA tí ó ti pẹ́ máa ń bẹ̀rẹ̀ sí í jẹ́ kí a kọ̀ wọ́n sílẹ̀ gẹ́gẹ́ bí àwọn oníbàárà tí ó ti di àtijọ́.
+`open-sse/executors/base.ts::buildHeaders()` ń lò wọ́n nípasẹ̀ ìṣàwárí alágbára. **Ṣe àfikún ẹ̀yà wọn nígbà tí àwọn olùpèsè bá ṣe ìtújáde àwọn ẹ̀yà CLI tuntun** — àwọn ọ̀rọ̀ UA tí ó ti pẹ́ máa ń bẹ̀rẹ̀ sí í jẹ́ kí a kọ̀ wọ́n gẹ́gẹ́ bí àwọn oníbàárà tí ó ti di àtijọ́.
 
 ## Àwọn Yíyí Ìpo Ìbámu CLI (`.env.example` abala 13)
 

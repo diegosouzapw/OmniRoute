@@ -31,14 +31,22 @@ type JsonRecord = Record<string, unknown>;
 
 const DEFAULT_COMPRESSION_COMBO_ID = "default-caveman";
 const DEFAULT_COMPRESSION_COMBO_NAME = "Standard Savings";
-const DEFAULT_COMPRESSION_COMBO_DESCRIPTION = "Default RTK + Caveman compression pipeline";
+const DEFAULT_COMPRESSION_COMBO_DESCRIPTION = "Default lossless dedup and whitespace compression";
+const LEGACY_RTK_CAVEMAN_DESCRIPTION = "Default RTK + Caveman compression pipeline";
 const LEGACY_DEFAULT_COMPRESSION_COMBO_DESCRIPTION = "Default Caveman compression pipeline";
 
 function defaultCompressionComboPipeline(): CompressionPipelineStep[] {
-  return [
-    { engine: "rtk", intensity: "standard" },
-    { engine: "caveman", intensity: "full" },
-  ];
+  return [{ engine: "session-dedup" }, { engine: "lite" }];
+}
+
+function isPreviousLossySeedPipeline(pipeline: CompressionPipelineStep[]): boolean {
+  return (
+    pipeline.length === 2 &&
+    pipeline[0]?.engine === "rtk" &&
+    pipeline[0]?.intensity === "standard" &&
+    pipeline[1]?.engine === "caveman" &&
+    pipeline[1]?.intensity === "full"
+  );
 }
 
 function parseJsonArray<T>(value: unknown, fallback: T[]): T[] {
@@ -99,9 +107,13 @@ function upgradeLegacySeededDefaultCompressionCombo(): void {
   const isSeededMetadata =
     String(row.name ?? "") === DEFAULT_COMPRESSION_COMBO_NAME &&
     (description === LEGACY_DEFAULT_COMPRESSION_COMBO_DESCRIPTION ||
+      description === LEGACY_RTK_CAVEMAN_DESCRIPTION ||
       description === DEFAULT_COMPRESSION_COMBO_DESCRIPTION);
 
-  if (!isSeededMetadata || !isLegacySeededDefaultPipeline(normalizePipeline(row.pipeline))) return;
+  const pipeline = normalizePipeline(row.pipeline);
+  const untouchedSeed =
+    isLegacySeededDefaultPipeline(pipeline) || isPreviousLossySeedPipeline(pipeline);
+  if (!isSeededMetadata || !untouchedSeed) return;
 
   db.prepare(
     `
