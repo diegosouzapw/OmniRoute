@@ -448,6 +448,55 @@ test("codex.normalizeCodexGithubCatalogResponse parses current client catalog me
   assert.equal(parsed[0]?.supportsVision, true);
 });
 
+test("codex catalog keeps reasoning tiers when upstream sends objects", () => {
+  const parsed = normalizeCodexModelsResponse({
+    models: [
+      {
+        slug: "gpt-6-sol",
+        display_name: "GPT 6 Sol",
+        visibility: "list",
+        supported_in_api: true,
+        supported_reasoning_levels: [
+          { effort: "low" },
+          { effort: "medium" },
+          { effort: "high" },
+          { effort: "xhigh" },
+          { effort: "max" },
+          { effort: "ultra" },
+          { effort: "" },
+          { value: "high" },
+        ],
+      },
+    ],
+  });
+
+  assert.equal(parsed[0]?.supportsThinking, true);
+  assert.deepEqual(parsed[0]?.supportedThinkingEfforts, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+});
+
+test("codex catalog ignores non-object reasoning entries", () => {
+  const parsed = normalizeCodexModelsResponse({
+    models: [
+      {
+        slug: "gpt-6-sol",
+        display_name: "GPT 6 Sol",
+        visibility: "list",
+        supported_in_api: true,
+        supported_reasoning_levels: [1, null, { effort: "high" }],
+      },
+    ],
+  });
+
+  assert.deepEqual(parsed[0]?.supportedThinkingEfforts, ["high"]);
+});
+
 test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list authoritative", () => {
   const enriched = enrichCodexModelsFromGithubCatalog(
     [

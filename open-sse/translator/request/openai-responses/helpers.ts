@@ -51,7 +51,7 @@ export function imageUrlToText(value: unknown): string {
 }
 
 const CODEX_MAX_EFFORT_MODEL_PATTERN =
-  /^(?:gpt-5\.6-(?:sol|terra|luna)|gpt-6-astra)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/;
+  /^(?:gpt-5\.6-(?:sol|terra|luna)|gpt-6-(?:astra|sol|luna))(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/;
 const KIRO_GPT_5_6_MODEL_PATTERN =
   /^(?:kiro|kr)\/gpt-5\.6-(?:sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max))?$/;
 

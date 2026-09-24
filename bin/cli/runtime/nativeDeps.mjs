@@ -9,10 +9,17 @@ import {
 } from "node:fs";
 import { join, sep } from "node:path";
 import { spawnSync } from "node:child_process";
-import { platform } from "node:os";
+import { platform as osPlatform } from "node:os";
 import { resolveDataDir } from "../data-dir.mjs";
 
 const BETTER_SQLITE3_VERSION = "12.10.1";
+
+// #14355: better-sqlite3's own install script writes here on npm 11+ once
+// the script is actually permitted to run — see ensureRuntimeDir()'s
+// allowScripts field below. Kept as its own named packages this file's
+// `pkgs` list may grow to cover, rather than hardcoding "better-sqlite3"
+// inline at every call site.
+const ALLOW_SCRIPTS_PACKAGES = ["better-sqlite3"];
 
 function runtimeDir() {
   return join(resolveDataDir(), "runtime");
@@ -20,6 +27,34 @@ function runtimeDir() {
 
 function runtimeModules() {
   return join(runtimeDir(), "node_modules");
+}
+
+/**
+ * Name of the prebuilt binary better-sqlite3 ships for this platform, e.g.
+ * `linux-x64.node`. Musl-based Linux uses a distinct `linuxmusl-` prefix.
+ * Mirrors the lookup `prebuild-install`/`node-gyp-build` perform at require
+ * time. Canonical definition lives here (the runtime module); `doctor.mjs`
+ * re-exports it so both commands agree on the same binary-layout logic
+ * (#14355 — they used to diverge and report contradictory results for the
+ * same install).
+ */
+export function prebuiltBinaryName(
+  platform = process.platform,
+  arch = process.arch,
+  report = process.report
+) {
+  let prefix = platform;
+  if (platform === "linux") {
+    let isMusl = false;
+    try {
+      // glibc builds expose `glibcVersionRuntime`; musl builds do not.
+      isMusl = !report?.getReport?.()?.header?.glibcVersionRuntime;
+    } catch {
+      isMusl = false;
+    }
+    prefix = isMusl ? "linuxmusl" : "linux";
+  }
+  return `${prefix}-${arch}.node`;
 }
 
 export function ensureRuntimeDir() {
@@ -35,11 +70,33 @@ export function ensureRuntimeDir() {
           version: "1.0.0",
           private: true,
           description: "User-writable runtime deps for OmniRoute (native binaries)",
+          // #14355: npm 11+ rejects `--allow-scripts=<pkg>` as a CLI flag for
+          // project-scoped installs ("Add the entries to the 'allowScripts'
+          // field in package.json, or to .npmrc, instead") — this is the
+          // only way npm now accepts to run better-sqlite3's install script,
+          // which is what actually produces the native binary.
+          allowScripts: ALLOW_SCRIPTS_PACKAGES,
         },
         null,
         2
       )
     );
+  } else {
+    // #14355: retrofit `allowScripts` into a runtime dir created by an older
+    // OmniRoute version, so an existing install picks up the fix on the next
+    // repair/runtime-check without the user having to delete the directory.
+    try {
+      const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+      const existing = Array.isArray(pkg.allowScripts) ? pkg.allowScripts : [];
+      const missing = ALLOW_SCRIPTS_PACKAGES.filter((name) => !existing.includes(name));
+      if (missing.length > 0) {
+        pkg.allowScripts = [...existing, ...missing];
+        writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
+      }
+    } catch {
+      // Corrupt/unreadable package.json — leave it alone; npmInstallRuntime's
+      // own failure path already surfaces stderr when the install fails.
+    }
   }
   return dir;
 }
@@ -78,21 +135,26 @@ function probeNativeBinaryLoadable(binary) {
 }
 
 export function isBetterSqliteBinaryValid() {
-  const binary = join(
-    runtimeModules(),
-    "better-sqlite3",
-    "build",
-    "Release",
-    "better_sqlite3.node"
-  );
-  if (!existsSync(binary)) return false;
+  const betterSqliteDir = join(runtimeModules(), "better-sqlite3");
+  // #14355: newer better-sqlite3 versions ship prebuilt binaries under
+  // prebuilds/<platform>-<arch>.node instead of (or as well as) the
+  // node-gyp build/Release layout. Checking only the latter reported
+  // valid: false for a binary that was genuinely present and loadable —
+  // doctor.mjs already got this right for its own check; both now share
+  // prebuiltBinaryName() so they can't diverge again.
+  const candidates = [
+    join(betterSqliteDir, "build", "Release", "better_sqlite3.node"),
+    join(betterSqliteDir, "prebuilds", prebuiltBinaryName()),
+  ];
+  const binary = candidates.find((candidate) => existsSync(candidate));
+  if (!binary) return false;
   try {
     const fd = openSync(binary, "r");
     const buf = Buffer.alloc(4);
     readSync(fd, buf, 0, 4, 0);
     closeSync(fd);
     const magic = buf.toString("hex");
-    const os = platform();
+    const os = osPlatform();
     let formatOk;
     if (os === "linux")
       formatOk = magic.startsWith("7f454c46"); // ELF
@@ -114,7 +176,7 @@ export function isBetterSqliteBinaryValid() {
 
 export function npmInstallRuntime(pkgs, opts = {}) {
   const cwd = ensureRuntimeDir();
-  const isWin = platform() === "win32";
+  const isWin = osPlatform() === "win32";
   const isBun = Boolean(process.versions.bun);
 
   let exe, args, displayCmd;
@@ -123,6 +185,12 @@ export function npmInstallRuntime(pkgs, opts = {}) {
     [exe, args] = isWin ? ["cmd.exe", ["/c", "bun", ...bunArgs]] : ["bun", bunArgs];
     displayCmd = `bun ${bunArgs.join(" ")}`;
   } else {
+    // #14355: npm 11+ hard-rejects `--allow-scripts=<pkg>` for project-scoped
+    // installs (EALLOWSCRIPTS: "Add the entries to the 'allowScripts' field
+    // in package.json, or to .npmrc, instead"). ensureRuntimeDir() now writes
+    // that field into the runtime package.json, which every npm version that
+    // recognizes install-script restrictions at all honors — so the CLI flag
+    // is no longer needed and, on npm 11+, actively breaks the install.
     const npmArgs = [
       "install",
       ...pkgs,
@@ -130,7 +198,6 @@ export function npmInstallRuntime(pkgs, opts = {}) {
       "--no-fund",
       "--prefer-online",
       "--save-exact",
-      ...pkgs.map((pkg) => `--allow-scripts=${pkg}`),
     ];
     [exe, args] = isWin ? ["cmd.exe", ["/c", "npm", ...npmArgs]] : ["npm", npmArgs];
     displayCmd = `npm ${npmArgs.join(" ")}`;
@@ -139,13 +206,21 @@ export function npmInstallRuntime(pkgs, opts = {}) {
   if (!opts.silent) {
     process.stdout.write(`[omniroute][runtime] ${displayCmd}\n`);
   }
+  // #14355: `stdio: "ignore"` in silent mode was swallowing npm's own error
+  // output on failure too, leaving only a generic "install failed" message
+  // with no indication of *why* (e.g. the EALLOWSCRIPTS error this issue was
+  // filed over). Pipe stderr even when silent, and only surface it if the
+  // install actually failed — the happy path stays quiet.
   const res = spawnSync(exe, args, {
     cwd,
-    stdio: opts.silent ? "ignore" : "inherit",
+    stdio: opts.silent ? ["ignore", "ignore", "pipe"] : "inherit",
     timeout: opts.timeout ?? 180_000,
     shell: false,
     env: { ...process.env },
   });
+  if (opts.silent && res.status !== 0 && res.stderr && res.stderr.length > 0) {
+    process.stderr.write(res.stderr);
+  }
   return res.status === 0;
 }
 

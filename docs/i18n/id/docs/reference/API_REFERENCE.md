@@ -407,35 +407,35 @@ Gunakan endpoint ini ketika sidecar berjalan di luar proses dan tidak dapat meng
 
 ## Titik Akhir Kompatibilitas
 
-| Metode | Jalur                                     | Format                             |
-| ------ | ----------------------------------------- | ---------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                             |
-| POST   | `/v1/messages`                            | Anthropic                          |
-| POST   | `/v1/responses`                           | OpenAI Responses                   |
-| POST   | `/v1/embeddings`                          | OpenAI                             |
-| POST   | `/v1/images/generations`                  | OpenAI Images                      |
-| POST   | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)       |
-| POST   | `/v1/videos/generations`                  | OpenAI-style video generation      |
-| POST   | `/v1/music/generations`                   | OpenAI-style music generation      |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (returns audio body)    |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-style rerank         |
-| POST   | `/v1/classify`                            | Jina classify (`api.jina.ai`)      |
-| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                 |
-| GET    | `/v1/models`                              | OpenAI                             |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                          |
-| GET    | `/v1beta/models`                          | Gemini                             |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent             |
-| POST   | `/v1/api/chat`                            | Ollama                             |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias               |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI models alias                |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias             |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenized alias   |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias             |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias        |
+| Method | Path                                      | Format                                 |
+| ------ | ----------------------------------------- | -------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                 |
+| POST   | `/v1/messages`                            | Anthropic                              |
+| POST   | `/v1/responses`                           | OpenAI Responses                       |
+| POST   | `/v1/embeddings`                          | OpenAI                                 |
+| POST   | `/v1/images/generations`                  | OpenAI Images                          |
+| POST   | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)           |
+| POST   | `/v1/videos/generations`                  | Generasi video gaya OpenAI             |
+| POST   | `/v1/music/generations`                   | Generasi musik gaya OpenAI             |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (mengembalikan badan audio) |
+| POST   | `/v1/rerank`                              | Rerank gaya Cohere/Voyage              |
+| POST   | `/v1/classify`                            | Klasifikasi Jina (`api.jina.ai`)       |
+| POST   | `/v1/segment`                             | Segmenter Jina (`segment.jina.ai`)     |
+| POST   | `/v1/moderations`                         | Moderasi OpenAI                        |
+| GET    | `/v1/models`                              | OpenAI                                 |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                              |
+| GET    | `/v1beta/models`                          | Gemini                                 |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                 |
+| POST   | `/v1/api/chat`                            | Ollama                                 |
+| GET    | `/api/v1/vscode/{token}/`                 | Alias katalog OpenAI                   |
+| GET    | `/api/v1/vscode/{token}/models`           | Alias model OpenAI                     |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias tokenized OpenAI                 |
+| POST   | `/api/v1/vscode/{token}/responses`        | Alias tokenized OpenAI Responses       |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias tokenized Ollama                 |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias tokenized Ollama tags            |
 
-Semua rute POST mengikuti bentuk yang sama: `Bearer your-api-key` + badan JSON yang divalidasi Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, dll., lihat `src/shared/validation/schemas.ts`). Kode 4xx dikembalikan jika validasi skema gagal.
+Semua rute POST mengikuti bentuk yang sama: `Bearer your-api-key` + badan JSON yang divalidasi Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, dll., lihat `src/shared/validation/schemas.ts`). 4xx dikembalikan jika skema gagal.
 
 Untuk klien yang tidak dapat melampirkan `Authorization: Bearer ...`, OmniRoute juga menerima kunci API di URL melalui kompatibilitas query-string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) atau titik akhir khusus `/api/v1/vscode/{token}/...` yang didokumentasikan di bawah ini.
 
@@ -463,12 +463,17 @@ POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # Video / music generation (provider-prefixed model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
 > **Node penyedia Rerank:** `POST /v1/rerank` juga merutekan ke node penyedia yang kompatibel dengan OpenAI
-> (oMLX, vLLM, Infinity, TEI di balik gateway, …) yang dialamatkan sebagai `<node-prefix>/<model>`. Node loopback
-> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) selalu memenuhi syarat. Node pada host lain — kotak LAN atau peer Tailscale — memenuhi syarat hanya jika operator mengaktifkan fitur `RERANK_REMOTE_PROVIDER_NODES` **dan** URL dasar node melewati kebijakan URL keluar penyedia (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); host metadata cloud tidak pernah dirutekan. Langkah rerank mesin memori memanggil rute ini melalui loopback, jadi aturan yang sama mengatur `rerankProviderModel` di pengaturan Memori.
+> (oMLX, vLLM, Infinity, TEI di belakang gateway, …) yang dialamatkan sebagai `<node-prefix>/<model>`. Node loopback
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) selalu memenuhi syarat. Node pada host lain
+> — kotak LAN atau peer Tailscale — memenuhi syarat hanya jika operator mengaktifkan
+> `RERANK_REMOTE_PROVIDER_NODES` feature flag **dan** URL dasar node melewati kebijakan URL keluar penyedia
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> host metadata cloud tidak pernah dirutekan. Langkah rerank mesin memori memanggil rute ini melalui
+> loopback, sehingga aturan yang sama mengatur `rerankProviderModel` di pengaturan Memori.
 >
 > **Bentuk server lokal:** node dipanggil di `<base>/v1/rerank` dan, pada 404, di `<base>/rerank`
 > (Infinity, TEI). Badan upstream membawa ejaan Cohere/OpenAI (`documents`,
@@ -478,9 +483,10 @@ POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
 > `{results: [{index, relevance_score, document?}]}`, diurutkan berdasarkan skor dan dibatasi pada `top_n`.
 
 > **Penemuan node penyedia:** model pada node penyedia yang kompatibel dengan OpenAI muncul di `GET /v1/models`
-> di bawah prefiks node. Baris yang tidak membawa metadata titik akhir (khas untuk daftar `/v1/models` lokal)
-> mewarisi `apiType` node, sehingga model node `embeddings` adalah `type: "embedding"` dan model node
-> `rerank` adalah `type: "rerank"` alih-alih default ke chat; `supportedEndpoints` eksplisit pada baris yang disinkronkan atau ditambahkan secara manual tetap diutamakan.
+> di bawah awalan node. Baris yang tidak membawa metadata titik akhir (khas untuk daftar `/v1/models` lokal)
+> mewarisi `apiType` node, sehingga model node `embeddings` adalah `type: "embedding"` dan
+> model node `rerank` adalah `type: "rerank"` alih-alih default ke chat; `supportedEndpoints` eksplisit
+> pada baris yang disinkronkan atau ditambahkan secara manual masih lebih diutamakan.
 
 ### Rute Penyedia Khusus
 

@@ -1,0 +1,1 @@
+- **test(sse):** lock per-key ceiling 429s out of neighbor cooldown scope ([#14581](https://github.com/diegosouzapw/OmniRoute/pull/14581)) — thanks @maxmad64bis

@@ -1,0 +1,1 @@
+- **fix(sse):** translate-mode streams from Responses-API upstreams (e.g. grok-cli) no longer collect reasoning, `.done` snapshots and tool-argument deltas into the assistant content used by call logs, semantic cache and memory extraction ([#14598](https://github.com/diegosouzapw/OmniRoute/pull/14598)) — thanks @QuangBlue

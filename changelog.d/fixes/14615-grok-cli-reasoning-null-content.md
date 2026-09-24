@@ -1,0 +1,1 @@
+- **fix(grok-cli):** Codex CLI turns after a tool call no longer fail on Grok Build with `Could not decode the compaction blob`: a `content: null` on replayed reasoning items is dropped before dispatch, leaving the encrypted blob untouched ([#14615](https://github.com/diegosouzapw/OmniRoute/pull/14615)) — thanks @QuangBlue

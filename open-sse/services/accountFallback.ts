@@ -79,8 +79,6 @@ import { isTpdRateLimit, resolveTpdCooldownMs, nextConfiguredResetMs } from "./d
 // Pre-compiled regex constants for hot-path retry parsing (avoid per-call compilation)
 const RETRY_AFTER_RE = /retry\s+after\s+(\d+)\s*s/i;
 const PLEASE_RETRY_RE = /please retry in\s+([\d.]+\s*s)/i;
-const ISO_RETRY_RE =
-  /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i;
 const RESETS_AFTER_RE = /resets? after (\d+h)?(\d+m)?(\d+s)?/i;
 const WILL_RESET_AFTER_RE = /will reset after (\d+h)?(\d+m)?(\d+s)?/i;
 const RESETS_IN_RE = /resets? in (\d+h)?(\d+m)?(\d+s)?/i;
@@ -102,7 +100,7 @@ import {
   buildRolling24hQuotaFallback,
   SUBSCRIPTION_QUOTA_COOLDOWN_MS,
 } from "./quotaTextCooldowns.ts";
-import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
+import { parseDayGranularityResetMs, parseIsoDateTimeResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
 import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
 export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
 export { hasPerModelFailureScope } from "./accountFallback/perModelFailureScope.ts";
@@ -1427,7 +1425,11 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
 // Gemini RetryInfo.retryDelay parsing, #7940) — see the import at the top of this file.
 
 // T07: parse retry time from error text body with combined "XhYmZs" format.
-export function parseRetryFromErrorText(errorText: unknown): number | null {
+export function parseRetryFromErrorText(
+  errorText: unknown,
+  provider?: string | null,
+  nowMs: number = Date.now()
+): number | null {
   if (!errorText || typeof errorText !== "string") return null;
   const msg: string = String(errorText);
 
@@ -1442,15 +1444,9 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     return Math.min(pleaseRetryMs, MAX_SHORT_RETRY_HINT_MS);
   }
 
-  // Issue #2321: parse embedded absolute ISO retry timestamps.
-  const isoMatch = ISO_RETRY_RE.exec(msg);
-  if (isoMatch) {
-    const parsedTs = Date.parse(isoMatch[1]);
-    if (Number.isFinite(parsedTs)) {
-      const waitMs = parsedTs - Date.now();
-      if (waitMs > 0) return waitMs;
-    }
-  }
+  // Issue #2321 / #14479: parse embedded absolute ISO retry timestamps.
+  const isoMs = parseIsoDateTimeResetMs(msg, MAX_PROVIDER_COOLDOWN_MS, nowMs, provider);
+  if (isoMs !== null) return isoMs;
 
   const match = RESETS_AFTER_RE.exec(msg);
   if (match?.[1] || match?.[2] || match?.[3]) return computeDurationMs(match);
@@ -1474,7 +1470,7 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     }
   }
 
-  return parseDayGranularityResetMs(msg, MAX_PROVIDER_COOLDOWN_MS);
+  return parseDayGranularityResetMs(msg, MAX_PROVIDER_COOLDOWN_MS, nowMs, provider);
 }
 
 /**
@@ -1800,7 +1796,7 @@ export function checkFallbackError(
       };
     }
 
-    const retryFromErrorText = parseRetryFromErrorText(errorStr);
+    const retryFromErrorText = parseRetryFromErrorText(errorStr, provider);
     if (retryFromErrorText && retryFromErrorText > 0) {
       return { retryAfterMs: retryFromErrorText, provenance: "body" };
     }
@@ -2050,7 +2046,7 @@ export function checkFallbackError(
       );
       if (subResult) return subResult;
     }
-    const weeklyResult = buildWeeklyQuotaFallback(errorStr);
+    const weeklyResult = buildWeeklyQuotaFallback(errorStr, undefined, provider);
     if (weeklyResult) return weeklyResult;
     // Issue #7071 (session usage cap) is the same sibling gap as #3709 above —
     // runs UNCONDITIONALLY for the same reason: apikey-category providers
@@ -2061,7 +2057,7 @@ export function checkFallbackError(
     if (sessionResult) return sessionResult;
 
     const detectedRetryHint = detectRetryHint();
-    const quotaResetHintMs = detectedRetryHint?.retryAfterMs ?? parseRetryFromErrorText(errorStr);
+    const quotaResetHintMs = detectedRetryHint?.retryAfterMs ?? parseRetryFromErrorText(errorStr, provider);
     const quotaResetHintSource: RetryHintProvenance | undefined = detectedRetryHint
       ? detectedRetryHint.provenance
       : quotaResetHintMs

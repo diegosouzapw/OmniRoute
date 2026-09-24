@@ -1,0 +1,1 @@
+- **fix(cli):** MCP-backed CLI commands now send the required Streamable HTTP headers and parse SSE responses, fixing HTTP 406 failures with `streamable-http` ([#14435](https://github.com/diegosouzapw/OmniRoute/issues/14435)) — thanks @Joaquinbrialva

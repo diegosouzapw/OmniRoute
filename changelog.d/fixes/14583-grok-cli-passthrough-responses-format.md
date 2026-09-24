@@ -1,0 +1,1 @@
+- **fix(providers):** route grok-cli model ids that are not in the static seed (e.g. `grok-4.7` before a model sync) through the Responses wire format. Grok Build only serves `/v1/responses`, and these ids previously fell back to a chat-completions body that failed with HTTP 400 (#14583) — thanks @VIPKaiser

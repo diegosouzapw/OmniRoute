@@ -1501,6 +1501,17 @@ export default function RoutingTab() {
                 value={String(settings.webSearchRouteModel ?? "")}
                 onChange={(v) => updateSetting({ webSearchRouteModel: v })}
                 placeholder={t("webSearchRoutePlaceholder")}
+                // The setting is documented as "leave blank to disable", but without
+                // `allowEmpty` the <Select> renders its placeholder as `disabled`
+                // (ModelSelectField -> Select `placeholderDisabled={!allowEmpty}`), so
+                // once a model was picked the override could never be cleared from the
+                // dashboard again — every web_search request stayed pinned to it
+                // (webSearchRouting.ts resolveWebSearchRouteOverride). `allowCustomInput`
+                // additionally exposes the free-text field so an unlisted/self-hosted
+                // target can be typed and blanked, matching the Modality Bridge pickers.
+                allowEmpty
+                allowCustomInput
+                testId="web-search-route-model"
                 disabled={loading}
                 ariaLabel={t("webSearchRouteTitle")}
               />

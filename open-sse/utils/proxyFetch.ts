@@ -195,7 +195,14 @@ export type AppliedProxySink = {
   /** Masked serving-account id (N112) — set by the rotation executor at dispatch. */
   rotationAccount?: string | null;
 };
-const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
+const APPLIED_PROXY_CONTEXT_KEY = Symbol.for("omniroute.proxyFetch.applied-context");
+type AppliedProxyStore = typeof globalThis & {
+  [APPLIED_PROXY_CONTEXT_KEY]?: AsyncLocalStorage<AppliedProxySink>;
+};
+function getAppliedProxyContext(): AsyncLocalStorage<AppliedProxySink> {
+  return ((globalThis as AppliedProxyStore)[APPLIED_PROXY_CONTEXT_KEY] ??=
+    new AsyncLocalStorage<AppliedProxySink>());
+}
 
 /**
  * Run `fn` with an applied-proxy capture sink in context. Any
@@ -205,7 +212,7 @@ const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
  * resolves. Pure plumbing — no behavioral change to the request itself.
  */
 export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
-  return appliedProxyContext.run(sink, fn);
+  return getAppliedProxyContext().run(sink, fn);
 }
 
 /**
@@ -215,7 +222,7 @@ export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => 
  */
 export function noteRotationAccount(masked: string): void {
   try {
-    const sink = appliedProxyContext.getStore();
+    const sink = getAppliedProxyContext().getStore();
     if (sink) sink.rotationAccount = masked;
   } catch {
     /* attribution is best-effort; never break the request path */
@@ -684,7 +691,7 @@ export async function runWithProxyContext(
     // otherwise leave proxyInfo reading "direct"). Innermost runWithProxyContext
     // wins, which is exactly the per-account proxy the executor selected.
     if (effectiveProxyConfig) {
-      const sink = appliedProxyContext.getStore();
+      const sink = getAppliedProxyContext().getStore();
       if (sink) sink.proxy = effectiveProxyConfig;
     }
 
@@ -1192,7 +1199,7 @@ async function patchedFetchUnrecorded(
   throw lastProxyError;
 }
 
-const getAppliedProxySink = () => appliedProxyContext.getStore();
+const getAppliedProxySink = () => getAppliedProxyContext().getStore();
 const patchedFetch = withUpstreamStatusCapture(patchedFetchUnrecorded, getAppliedProxySink);
 
 /**

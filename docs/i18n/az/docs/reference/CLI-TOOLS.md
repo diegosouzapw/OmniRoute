@@ -43,27 +43,27 @@ ACP Agentləri (tərs yaradılma axını):
 
 ---
 
-## `setup-*` ilə Avtomatik Konfiqurasiya
+## `setup-*` ilə avtomatik konfiqurasiya
 
-Hər alətin konfiqurasiyasını əl ilə yazmağa ehtiyac yoxdur. OmniRoute, dəstəklənən hər bir CLİ üçün **canlı** model kataloqunu oxuyan və alətin öz konfiqurasiyasını sizin maşınınıza yazan `setup-*` komandasını təqdim edir:
+Hər bir alətin konfiqurasiyasını əl ilə yazmaq lazım deyil. OmniRoute, hər dəstəklənən CLI üçün `setup-*` əmrini təqdim edir ki, bu da işləyən OmniRoute-dan (yerli və ya uzaqdan) **canlı** model kataloqunu oxuyur və alətin öz konfiqurasiyasını maşınınızda yazır:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Hər biri `--remote <url> --api-key <key>` (uzaq OmniRoute-a qarşı yerli aləti konfiqurasiya etmək), `--dry-run` (yazmadan önizləmə) və `--port` qəbul edir. Model avtomatik aşkar edilməyən alətlər (Cline, Kilo, Roo, Goose, Aider, Qwen) `--model <id>` (və interaktiv olmayan işlər üçün `--yes`) qəbul edir. Doğru mühitin daxil edildiyi və heç bir konfiqurasiya yazılmadan CLİ başlatmaq üçün, ümumi `omniroute run <target>` başlatıcısını istifadə edin (claude, codex, aider, goose, opencode, qwen, gemini — hədəflər və təyin etmələr `bin/cli/cli-manifest.mjs`-dən gəlir); köhnə alət başlatmaçıları `omniroute launch` (Claude Kodu) və `omniroute launch-codex` (Codex) hələ də mövcuddur. Gemini CLİ yalnız başlatma üçündür: bu `omniroute run` hədəfidir, lakin `setup-*`/`configure` resepti yoxdur.
+Hər biri `--remote <url> --api-key <key>` (uzaq OmniRoute-a qarşı yerli aləti konfiqurasiya etmək), `--dry-run` (yazmadan önizləmə) və `--port` qəbul edir. Modelin avtomatik kəşfi olmayan alətlər (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (və interaktiv olmayan işlər üçün `--yes`) qəbul edir. `setup-5dive` `$HOME` altında yazmayan yeganə reseptdir: o, donanma hostunda kökə məxsus autentifikasiya profilini yazaraq 5dive agent donanmasını konfiqurasiya edir, buna görə də `sudo` vasitəsilə yenidən icra olunur və özünün uzaq rejimi yoxdur. CLI-ni düzgün mühit inyeksiya edilmiş və heç bir konfiqurasiya yazılmadan işə salmaq üçün ümumi `omniroute run <target>` başlatma proqramından istifadə edin (claude, codex, aider, goose, opencode, qwen, gemini — hədəflər və ləqəblər `bin/cli/cli-manifest.mjs`-dən gəlir); köhnə alətə görə başlatma proqramları `omniroute launch` (Claude Code) və `omniroute launch-codex` (Codex) mövcud olaraq qalır. Gemini CLI yalnız başlatma üçündür: o, `omniroute run` hədəfidir, lakin `setup-*`/`configure` resepti yoxdur.
 
-> **Tam istinad:** ustad cədvəl — hər bir komandanın yazdığı, hər bir bayraq, yerli vs uzaq və hansı alətlərin `/v1` əlavəsinə ehtiyacı olduğu — **[CLI İnteqrasiyaları](../guides/CLI-INTEGRATIONS.md)**-da yerləşir.
+> **Tam istinad:** əsas cədvəl — hər bir əmrin nə yazdığı, hər bir bayraq, yerli vs uzaqdan və hansı alətlərin `/v1` sonluğuna ehtiyacı olduğu — **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**-də yerləşir.
 
-### Bir konteyner içində bunları işlətmək
+### Bunları bir konteyner daxilində işlətmək
 
-OmniRoute konteyneri içində icra olunan `setup-*` komandası konteynerin öz evinə yazır, bu da heç bir ev sahibi CLİ tərəfindən oxunmur və konteynerlə birlikdə yox olur. OmniRoute bunu aşkar edir və yazmadan əvvəl təlimatlarla `2` ilə çıxır. İki dəstəklənən yol — CLİ-ni ev sahibində quraşdırmaq və konteynerə `omniroute connect` etmək, ya da konfiqurasiya qovluqlarını bağlamaq və `CLI_CONFIG_HOME` təyin etməkdir (compose `host` profili). Hər `setup-*` komandası, eləcə də `omniroute configure` və `omniroute config set`, konteynerin öz CLİ-lərini konfiqurasiya etmək istədiyiniz zaman `--allow-container-write` qəbul edir; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` server üçün eyni şeyi edir. Baxın
-[Docker Bələdçisi → Ev sahibi CLİ alətlərini konfiqurasiya etmək](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+OmniRoute konteyneri daxilində icra olunan `setup-*` əmri konteynerin öz ev qovluğuna yazır ki, bu da heç bir host CLI tərəfindən oxunmur və konteynerlə birlikdə yox olur. OmniRoute bunu aşkar edir və yazmaq əvəzinə təlimatlarla `2` çıxış kodu ilə çıxır. İrəli getmək üçün iki dəstəklənən yol var — CLI-ni hostda quraşdırın və konteynerə `omniroute connect` edin, ya da konfiqurasiya qovluqlarını bağlayın və `CLI_CONFIG_HOME` (compose `host` profili) təyin edin. Hər bir `setup-*` əmri, üstəgəl `omniroute configure` və `omniroute config set`, konteynerin öz CLI-lərini konfiqurasiya etmək istədiyiniz zaman `--allow-container-write` qəbul edir; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` server üçün eyni şeyi edir. Baxın [Docker Bələdçisi → Host CLI alətlərini konfiqurasiya etmək](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-İdarəetmə panelinin **tətbiq son nöqtəsi** (`POST /api/cli-tools/apply`) eyni qorumağı tətbiq edir: konteynerdə, ev sahibi tərəfindən bağlanmamış bir yazı **`422`** ilə `containerEphemeralTarget: true` cavabını verir, təhlükəsiz xəta mətni və — ev sahibi resepti olan alətlər üçün (claude, codex, opencode, cline, kilo, continue) — ev sahibində işlətmək üçün `hostSetupCommand` (məsələn, `omniroute setup-opencode`) təqdim edir; heç nə yazılmır. `dryRun: true` konteyner rejimində işləməyə davam edir və diskə toxunmadan yaradılan məzmunu + hədəf yolunu qaytarır, beləliklə, siz idarəetmə panelindən önizləyə və ev sahibində tətbiq edə bilərsiniz. Bu davranış məqsədli və `tests/unit/api/cli-tools/apply-container-guard.test.ts` ilə geriyə qorunmuşdur — heç vaxt qorumanı aradan qaldıraraq 422-ni "düzəltməyin".
+İdarəetmə panelinin **tətbiq son nöqtəsi** (`POST /api/cli-tools/apply`) eyni qoruyucunu tətbiq edir: bir konteynerdə, hədəfi hostdan bağlanmamış bir yazı `containerEphemeralTarget: true`, təhlükəsiz səhv mətni və — host resepti olan alətlər üçün (claude, codex, opencode, cline, kilo, continue) — hostda işlədiləcək `hostSetupCommand` (məsələn, `omniroute setup-opencode`) ilə **`422`** cavab verir; heç nə yazılmır. `dryRun: true` konteyner rejimində işləməyə davam edir və diski toxunmadan redaktə edilmiş önizləmə + hədəf yolu qaytarır. Önizləmə məzmunu kopyalamaq və ya idxal etmək üçün etimadnamə daşıyan bir konfiqurasiya deyil. Hostda orijinal alət/əsas URL/API açarı/model girişləri ilə tətbiq edin və ya göstərilən host tərəfindən qurulmuş əmrdən istifadə edin. Önizləmə başlığı və sorğu müqaviləsi üçün [CLI konfiqurasiya təhlükəsizliyi](../security/CLI-CONFIGURATION.md) bölməsinə baxın. Bu davranış qəsdən edilmişdir və `tests/unit/api/cli-tools/apply-container-guard.test.ts` tərəfindən reqressiyadan qorunur — 422 səhvini qoruyucunu çıxararaq heç vaxt "düzəltməyin".
 
 ---
 

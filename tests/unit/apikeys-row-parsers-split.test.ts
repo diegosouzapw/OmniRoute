@@ -39,6 +39,10 @@ test("parseAllowedModels keeps only string entries, tolerates junk", () => {
   assert.deepEqual(P.parseAllowedModels(null), []);
 });
 
+test("list parsers preserve already-decoded database arrays", () => {
+  assert.deepEqual(P.parseAllowedConnections(["connection-a", 1, null]), ["connection-a"]);
+});
+
 test("parseAllowedCombos preserves legacy NULL as allow-all without widening explicit []", () => {
   assert.deepEqual(P.parseAllowedCombos(null), ["combo/*"]);
   assert.deepEqual(P.parseAllowedCombos(undefined), ["combo/*"]);
