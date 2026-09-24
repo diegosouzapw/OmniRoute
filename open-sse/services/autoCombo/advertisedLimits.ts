@@ -34,6 +34,40 @@ type AdvertisedLimitCandidate = {
   resolvedMaxOutputTokens?: number | null;
 };
 
+/** True for a value that is safe to advertise as a positive token limit. */
+function isPositiveFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+/** Resolved context-length limit for one candidate, before the positivity check. */
+function resolveCandidateContextLength(
+  candidate: AdvertisedLimitCandidate
+): number | null | undefined {
+  return candidate.resolvedContextLength !== undefined
+    ? candidate.resolvedContextLength
+    : getTokenLimit(candidate.provider, candidate.model);
+}
+
+/** Resolved max-output-tokens limit for one candidate, before the positivity check. */
+function resolveCandidateMaxOutputTokens(
+  candidate: AdvertisedLimitCandidate
+): number | null | undefined {
+  return candidate.resolvedMaxOutputTokens !== undefined
+    ? candidate.resolvedMaxOutputTokens
+    : getResolvedModelCapabilities({
+        provider: candidate.provider,
+        model: candidate.model,
+      }).maxOutputTokens;
+}
+
+/** Folds one candidate's resolved value into the running MAX-across-candidates. */
+function foldIntoMax(runningMax: number | null, resolved: unknown): number | null {
+  if (!isPositiveFiniteNumber(resolved)) {
+    return runningMax;
+  }
+  return runningMax === null ? resolved : Math.max(runningMax, resolved);
+}
+
 export function computeAdvertisedLimits(candidates: AdvertisedLimitCandidate[]): {
   contextLength: number | null;
   maxOutputTokens: number | null;
@@ -45,26 +79,12 @@ export function computeAdvertisedLimits(candidates: AdvertisedLimitCandidate[]):
   let contextLength: number | null = null;
   let maxOutputTokens: number | null = null;
   for (const candidate of candidates) {
-    const limit =
-      candidate.resolvedContextLength !== undefined
-        ? candidate.resolvedContextLength
-        : getTokenLimit(candidate.provider, candidate.model);
-    if (typeof limit === "number" && Number.isFinite(limit) && limit > 0) {
-      contextLength = contextLength === null ? limit : Math.max(contextLength, limit);
-    }
-    const output =
-      candidate.resolvedMaxOutputTokens !== undefined
-        ? candidate.resolvedMaxOutputTokens
-        : getResolvedModelCapabilities({
-            provider: candidate.provider,
-            model: candidate.model,
-          }).maxOutputTokens;
-    if (typeof output === "number" && Number.isFinite(output) && output > 0) {
-      maxOutputTokens = maxOutputTokens === null ? output : Math.max(maxOutputTokens, output);
-    }
+    contextLength = foldIntoMax(contextLength, resolveCandidateContextLength(candidate));
+    maxOutputTokens = foldIntoMax(maxOutputTokens, resolveCandidateMaxOutputTokens(candidate));
   }
-  if (maxOutputTokens === null) {
-    maxOutputTokens = DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS;
-  }
-  return { contextLength, maxOutputTokens };
+  return {
+    contextLength,
+    maxOutputTokens:
+      maxOutputTokens === null ? DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS : maxOutputTokens,
+  };
 }
