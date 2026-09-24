@@ -92,6 +92,7 @@ import {
 import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
 import {
   resolveModelOrError,
+  comboTargetCredentialProviderId,
   checkPipelineGates,
   checkResourcePressureBeforeProviderWork,
   executeChatWithBreaker,
@@ -1191,7 +1192,7 @@ async function handleChatImplementation(
               return credentials;
             })(),
             cachedSettings: settings,
-            providerId: target?.providerId ?? (target as any)?.provider ?? null,
+            providerId: comboTargetCredentialProviderId(target),
             correlationId: reqId,
             conversationId,
             modelPinned: (target as any)?.modelPinned ?? false,
@@ -1493,7 +1494,7 @@ async function handleSingleModelChat(
             comboExecutionKey: null,
             skipUpstreamRetry: resolvedTarget?.failoverBeforeRetry === true,
             allowRateLimitedConnection: resolvedTarget?.allowRateLimitedConnection === true,
-            providerId: resolvedTarget?.providerId ?? (resolvedTarget as any)?.provider ?? null,
+            providerId: comboTargetCredentialProviderId(resolvedTarget),
             correlationId: runtimeOptions?.correlationId ?? null,
             reasoningTransportFallback:
               redirectCombo.config?.reasoningTransportFallback === "skip" ? "skip" : "drop",

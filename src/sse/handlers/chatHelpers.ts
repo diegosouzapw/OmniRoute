@@ -355,6 +355,12 @@ export async function resolveModelOrError(
   };
 }
 
+export function comboTargetCredentialProviderId(
+  target?: { providerId?: string | null; provider?: string | null } | null
+): string | null {
+  return target?.providerId ?? null;
+}
+
 export async function checkPipelineGates(
   provider: string,
   model: string,
