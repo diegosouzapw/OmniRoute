@@ -1813,7 +1813,7 @@ test("handleImageGeneration routes codex image requests through /responses with 
   try {
     const result = await handleImageGeneration({
       body: {
-        model: "codex/gpt-5.6-sol",
+        model: "codex/gpt-5.6-sol-image",
         prompt: "Draw a happy red kitten",
         response_format: "b64_json",
       },

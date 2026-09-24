@@ -42,11 +42,15 @@ import {
 import { refreshCodebuddyCnToken } from "./tokenRefresh/providers/codebuddyCn.ts";
 import { refreshClineToken } from "./tokenRefresh/providers/cline.ts";
 import { refreshKimiCodingToken } from "./tokenRefresh/providers/kimiCoding.ts";
+import { refreshMuseCodeToken } from "./tokenRefresh/providers/museCode.ts";
 import { refreshGitLabDuoToken } from "./tokenRefresh/providers/gitlabDuo.ts";
 import { refreshClaudeOAuthToken } from "./tokenRefresh/providers/claudeOAuth.ts";
 import { refreshGoogleToken } from "./tokenRefresh/providers/google.ts";
 import { selectGoogleRefreshClient } from "./tokenRefresh/googleClientBinding.ts";
-import { ensureAntigravityProjectAssigned } from "./antigravityProjectBootstrap.ts";
+import {
+  ensureAntigravityProjectAssigned,
+  isUsableAntigravityProjectId,
+} from "./antigravityProjectBootstrap.ts";
 import { persistDiscoveredAntigravityProjectId } from "./antigravityProjectPersist.ts";
 import { refreshCodexToken } from "./tokenRefresh/providers/codex.ts";
 import { refreshCursorToken } from "./tokenRefresh/providers/cursor.ts";
@@ -60,6 +64,7 @@ export {
   refreshCodebuddyCnToken,
   refreshClineToken,
   refreshKimiCodingToken,
+  refreshMuseCodeToken,
   refreshGitLabDuoToken,
   refreshClaudeOAuthToken,
   refreshGoogleToken,
@@ -356,11 +361,14 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
         result?.accessToken &&
         (provider === "antigravity" || provider === "agy") &&
         !credentials.providerSpecificData?.isProjectIdManual &&
-        !(credentials.projectId || credentials.providerSpecificData?.projectId)
+        !(
+          isUsableAntigravityProjectId(credentials.projectId) ||
+          isUsableAntigravityProjectId(credentials.providerSpecificData?.projectId)
+        )
       ) {
         try {
           const discovered = await ensureAntigravityProjectAssigned(result.accessToken, fetch);
-          if (discovered) {
+          if (isUsableAntigravityProjectId(discovered)) {
             result.projectId = discovered;
             result.providerSpecificData = {
               ...(credentials.providerSpecificData || {}),
@@ -430,6 +438,14 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
         proxyConfig
       );
 
+    case "muse-code":
+      return await refreshMuseCodeToken(
+        credentials.refreshToken,
+        credentials.providerSpecificData,
+        log,
+        proxyConfig
+      );
+
     case "gitlab-duo":
       return await refreshGitLabDuoToken(
         credentials.refreshToken,
@@ -464,6 +480,7 @@ export function supportsTokenRefresh(provider) {
     "amazon-q",
     "cline",
     "kimi-coding",
+    "muse-code",
     // Devin auth is not refreshable here: devin-desktop accepts an imported API
     // key (#8228), while devin-cli is local-CLI owned via `devin auth login`
     // (#8407). Neither connection carries a refresh token, so listing either

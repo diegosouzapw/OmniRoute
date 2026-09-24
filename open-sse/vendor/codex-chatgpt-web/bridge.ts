@@ -11,6 +11,7 @@ import { encodeCompactionSummary } from "./responses/compaction";
 import { encodeReasoningEnvelope, type ReasoningEnvelope } from "./responses/reasoning-envelope";
 import { resolveStallTimeoutSec } from "./stall-timeout";
 import { usageDisplayTotalTokens } from "./usage/totals";
+import { plaintextCollaborationFields } from "../../translator/response/openai-responses/collaborationPlaintextMarker";
 
 function uuid(): string {
   return crypto.randomUUID().replace(/-/g, "");
@@ -83,21 +84,6 @@ interface OutputItem {
   type: string;
   id: string;
   [key: string]: unknown;
-}
-
-const PLAINTEXT_COLLABORATION_CALLS = new Set(["spawn_agent", "send_message", "followup_task"]);
-
-/**
- * Codex MultiAgent V2 normally treats collaboration message arguments as backend ciphertext.
- * An empty encrypted_function_args list is the protocol's explicit plaintext-delivery marker.
- */
-function plaintextCollaborationFields(
-  namespace: string | undefined,
-  name: string
-): Record<string, unknown> {
-  return namespace === "collaboration" && PLAINTEXT_COLLABORATION_CALLS.has(name)
-    ? { encrypted_function_args: [] }
-    : {};
 }
 
 export type ResponsesTerminalStatus = "completed" | "failed" | "incomplete";

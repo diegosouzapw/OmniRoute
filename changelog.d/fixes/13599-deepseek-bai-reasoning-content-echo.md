@@ -1,1 +1,0 @@
-- **fix(providers):** echo back `reasoning_content` on `bai` DeepSeek thinking-mode follow-up turns, fixing the upstream 400 "reasoning_content must be passed back" (#13599) — thanks @afonsoft

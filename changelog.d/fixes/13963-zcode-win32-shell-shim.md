@@ -1,0 +1,1 @@
+- fix(providers): use shell:true on win32 for zcode .cmd/.bat shim spawn (#13963)

@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (한국어)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -26,6 +26,12 @@
 ---
 
 ## 빠른 실행
+
+> **명령어 하나로 셀프 호스팅하시겠습니까?**  
+> [셀프 호스팅 가이드](../getting-started/SELF_HOST_GUIDE.md)를 참조하세요 —
+> `docker compose -f docker-compose.selfhost.yml up -d`(게시된 이미지 +
+> Redis, 루프백 전용, 프로필 선택 없음). 아래의 빠른 실행은 이미 다른 곳에서
+> Redis를 실행 중인 사용자를 위한 단일 컨테이너 방식입니다.
 
 ```bash
 docker run -d \
@@ -65,20 +71,24 @@ docker compose --profile cli up -d
 # 호스트 프로필(Linux 우선, 호스트 CLI 바이너리를 읽기 전용으로 마운트)
 docker compose --profile host up -d
 
-# CLI + CLIProxyAPI 사이드카 결합
+# 웹 프로필(웹 세션 제공자를 위한 Chromium/Playwright)
+docker compose --profile web up -d
+
+# CLI + CLIProxyAPI 사이드카 조합
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## 사용 가능한 프로필
 
-OmniRoute는 네 가지 Compose 프로필을 제공합니다. 환경에 맞는 프로필을 선택하세요.
+OmniRoute는 주요 배포 구성에 맞는 Compose 프로필을 제공합니다. 환경에 적합한 프로필을 선택하세요.
 
-| 프로필          | 서비스           | 사용 시점                                                                                                                            | 명령어                                       |
-| --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| `base` (기본값) | `omniroute-base` | 헤드리스 서버 / 최소 런타임이며, 공급자 CLI가 포함되지 않음                                                                          | `docker compose --profile base up -d`        |
-| `cli`           | `omniroute-cli`  | `omniroute providers/setup/doctor` 및 내장 CLI(Codex, Claude Code, Droid, OpenClaw)를 호출하는 에이전트형 워크플로                   | `docker compose --profile cli up -d`         |
-| `host`          | `omniroute-host` | `~/.local/bin`, `~/.codex`, `~/.claude` 등을 읽기 전용으로 마운트하여 호스트 CLI에 `network_mode`와 유사하게 접근하려는 Linux 호스트 | `docker compose --profile host up -d`        |
-| `cliproxyapi`   | `cliproxyapi`    | 업스트림 CLI 프록시를 위해 포트 `8317`에서 [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) 사이드카 실행                 | `docker compose --profile cliproxyapi up -d` |
+| 프로필          | 서비스           | 사용 시기                                                                                                                                   | 명령어                                       |
+| --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (기본값) | `omniroute-base` | 헤드리스 서버 / 최소 런타임이 필요하며 provider CLI가 번들로 포함되지 않아도 되는 경우                                                      | `docker compose --profile base up -d`        |
+| `cli`           | `omniroute-cli`  | `omniroute providers/setup/doctor`와 번들 CLI(Codex, Claude Code, Droid, OpenClaw)를 호출하는 에이전트 워크플로                             | `docker compose --profile cli up -d`         |
+| `host`          | `omniroute-host` | `~/.local/bin`, `~/.codex`, `~/.claude` 등을 읽기 전용으로 마운트하여 호스트 CLI에 `network_mode`와 유사한 방식으로 접근하려는 Linux 호스트 | `docker compose --profile host up -d`        |
+| `cliproxyapi`   | `cliproxyapi`    | 업스트림 CLI 프록시를 위해 포트 `8317`에서 [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) 사이드카 실행                        | `docker compose --profile cliproxyapi up -d` |
+| `web`           | `omniroute-web`  | 브라우저가 필요한 웹 세션 provider: `gemini-web`, `claude-web`, `claude-turnstile` (`runner-web` 빌드, Chromium 포함)                       | `docker compose --profile web up -d`         |
 
 > 여러 프로필을 함께 사용할 수 있습니다: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -226,35 +236,52 @@ docker compose -f docker-compose.prod.yml down
 
 ## Dockerfile 스테이지
 
-이 저장소는 멀티 스테이지 Dockerfile(`Dockerfile`)을 제공합니다. 세 개의 스테이지가 노출되어 있으므로 사용 사례에 적합한 `target`을 선택하세요.
+이 저장소는 멀티 스테이지 Dockerfile(`Dockerfile`)을 제공합니다. 네 개의 스테이지가 공개되어 있으므로 사용 사례에 맞는 `target`을 선택하세요.
 
-| 스테이지      | 베이스 이미지         | 용도                                                                                                                                                                              |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | 종속성을 설치하고(`npm ci --legacy-peer-deps`) `npm run build`를 실행합니다(기본값은 Turbopack — 아래의 빌드 시점 리소스 참조).                                                   |
-| `runner-base` | `node:26-trixie-slim` | Next.js standalone 출력을 사용하는 프로덕션 런타임입니다. **프로바이더 CLI는 포함되지 않습니다.**                                                                                 |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` 및 전역 CLI인 `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`을 추가합니다. **에이전트형 워크플로에는 이것을 선택하세요.** |
+| 스테이지      | 베이스 이미지         | 용도                                                                                                                                                                                                                                                                            |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | 종속성을 설치하고(`npm ci --legacy-peer-deps`) `npm run build`를 실행합니다(기본값은 Turbopack — 아래의 빌드 시 리소스 참조).                                                                                                                                                   |
+| `runner-base` | `node:26-trixie-slim` | Next.js 독립 실행형 출력이 포함된 프로덕션 런타임입니다. **프로바이더 CLI는 포함되지 않습니다.**                                                                                                                                                                                |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` 및 전역 CLI인 `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`를 추가합니다. **에이전트형 워크플로에는 이것을 선택하세요.**                                                                                               |
+| `runner-web`  | `runner-base`         | 웹 세션 프로바이더인 `gemini-web`, `claude-web`, `claude-turnstile`을 위해 Playwright와 Chromium 브라우저(`--with-deps`)를 추가합니다. **이러한 프로바이더를 사용할 때 선택하세요** — 일반 이미지는 이것이 없으면 요청 시 실패합니다(릴리스 채널 아래의 `-web` 참고 사항 참조). |
 
-특정 타깃을 수동으로 빌드하려면 다음을 실행하세요.
+특정 대상을 수동으로 빌드하려면 다음을 실행하세요.
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
-### 빌드 시점 리소스
+### 빌드 시 리소스
 
-세 가지 빌드 인수가 `builder` 스테이지의 리소스 사용량을 제어합니다. 이들은 빌드 시점에만 적용됩니다.
-아래의 `OMNIROUTE_MEMORY_MB`는 별도의 런타임 설정입니다.
+세 가지 빌드 인수가 `builder` 스테이지의 리소스 사용량을 제어합니다. 이 인수들은 빌드 시에만 적용되며 —
+`OMNIROUTE_MEMORY_MB`(아래 참조)는 별도의 런타임 조정 옵션입니다.
 
-| 빌드 인수                   | 기본값 | 효과                                                                                          |
-| --------------------------- | ------ | --------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | `0`이면 대신 webpack으로 빌드합니다. 최대 메모리 사용량은 낮지만 더 느립니다.                 |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | 생성된 `next build`에 대한 V8 힙 상한(`--max-old-space-size`)입니다.                          |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | `CIRCLE_NODE_TOTAL`에 전달됩니다. Next는 페이지 데이터 수집에 `workers = N - 1`을 사용합니다. |
+| 빌드 인수                   | 기본값 | 효과                                                                                               |
+| --------------------------- | ------ | -------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`    | `0`이면 대신 webpack으로 빌드합니다. 최대 메모리 사용량은 줄지만 더 느립니다.                      |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | 생성된 `next build`의 V8 힙 상한(`--max-old-space-size`)입니다.                                    |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | `CIRCLE_NODE_TOTAL`에 전달되며, Next는 페이지 데이터 수집에 사용할 `workers = N - 1`을 도출합니다. |
 
-`OMNIROUTE_BUILD_WORKERS`는 대규모 빌더에서는 늘려야 하고, 리소스가 제한된 빌드가 `✓ Compiled successfully` **이후** 실패할 때는 원인으로 의심해야 하는 설정입니다. 각 페이지 데이터 워커는 별도의 프로세스이며, 상위 `next build` 자체도 별도의 프로세스입니다. 실제 VPS에서 재현한 결과(issue #7518), 각 프로세스의 최대 RSS는 `NODE_OPTIONS` 힙 플래그와 무관하게 약 4.5 GB로 측정되었습니다(Turbopack은 V8 힙 외부의 네이티브/Rust 메모리에서 컴파일합니다). 기본값 `2`(→ 워커 1개, 총 프로세스 2개)는 게시 파이프라인에서 사용하는 16 GB / 4 vCPU GitHub 호스팅 러너에 맞춰져 있습니다. `8`(→ 워커 7개)에서는 해당 러너의 메모리가 고갈되었고 buildkit이 `ResourceExhausted: ... cannot allocate memory`와 함께 단계를 실패 처리했습니다. 프로세스별 RSS를 추론하지 않고 직접 측정한 결과, `3`(→ 워커 2개)도 여전히 메모리 한도 내에 들어오지 않았습니다. `tests/unit/docker-build-memory-budget.test.ts`는 측정값을 기준으로 계산하며, 어느 설정이든 러너의 용량을 초과하면 실패합니다.
+`OMNIROUTE_BUILD_WORKERS`는 대규모 빌더에서 늘려야 하는 값이며, 리소스가 제한된 빌드가
+`✓ Compiled successfully` **이후에** 종료될 때 의심해야 하는 값입니다. 각
+페이지 데이터 워커는 자체 프로세스이며, 상위 `next build` 자체도 별도의 프로세스입니다.
+실제 VPS 재현(issue #7518)에서 각 프로세스의 최대 RSS가
+`NODE_OPTIONS` 힙 플래그와 무관하게 약 4.5 GB로 측정되었습니다(Turbopack은
+V8 힙 외부의 네이티브/Rust 메모리에서 컴파일합니다). 기본값 `2`(→ 워커 1개, 총
+프로세스 2개)는 게시 파이프라인에서 사용하는 16 GB / 4 vCPU GitHub 호스팅 러너에
+맞춰 설정되었습니다. `8`(→ 워커 7개)에서는 해당 러너의 메모리가 부족해졌고
+buildkit이 `ResourceExhausted: ... cannot allocate memory`와 함께 단계를 실패 처리했습니다.
+프로세스별 RSS를 추론하지 않고 직접 측정한 결과, `3`(→ 워커 2개)도 여전히
+메모리에 맞지 않았습니다. `tests/unit/docker-build-memory-budget.test.ts`는
+측정값을 기준으로 계산하며, 어느 조정값이든 러너의 용량을 초과하면 실패합니다.
 
-Turbopack은 V8 힙 **외부**에 있는 네이티브 Rust 메모리에서 컴파일하므로 `OMNIROUTE_BUILD_MEMORY_MB`로는 이를 제한할 수 없습니다. 메모리 상한이 있는 호스트에서는 OOM 킬러가 아무런 오류 메시지 없이 빌드를 SIGKILL합니다. 즉, `Creating an optimized production build` 도중에 멈출 뿐이어서 메모리 부족이 아니라 중단된 것처럼 보입니다. 빌드 호스트의 리소스가 제한된 경우 번들러를 전환하세요.
+Turbopack은 V8 힙 **외부**에 존재하는 네이티브 Rust 메모리에서 컴파일하므로
+`OMNIROUTE_BUILD_MEMORY_MB`로 이를 제한할 수 없습니다. 메모리 상한이 있는 호스트에서는
+오류 텍스트가 전혀 표시되지 않은 채 OOM 킬러에 의해 빌드가 SIGKILL됩니다. 즉,
+`Creating an optimized production build` 도중에 단순히 중지되므로 메모리 부족이
+아니라 멈춘 것처럼 보입니다. 빌드 호스트의 리소스가 제한된 경우 번들러를 전환하세요.
 
 ```bash
 docker build --target runner-base \
@@ -262,41 +289,43 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker`가 활성화되어 있으므로 `next build`는 상위 프로세스와 워커 프로세스를 실행하며, 각 프로세스는 `OMNIROUTE_BUILD_MEMORY_MB`를 별도로 적용합니다. 컨테이너 상한은 해당 값의 한 배가 아니라 대략 두 배보다 높게 설정하세요.
+`webpackBuildWorker`가 활성화되어 있으므로 `next build`는 상위 프로세스와 **별도의** 워커
+프로세스를 실행하며, 각 프로세스는 `OMNIROUTE_BUILD_MEMORY_MB`를 개별적으로 준수합니다.
+컨테이너 상한은 해당 값의 한 배가 아니라 대략 두 배보다 높게 설정하세요.
 
-이 트리에서 측정한 결과(`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`)는 다음과 같습니다.
+이 트리에서 측정한 결과(`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| 번들러    | 컨테이너 상한  | 결과                              |
-| --------- | -------------- | --------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | 둘 다 아무 메시지 없이 OOM 종료됨 |
-| webpack   | 8 GiB          | 빌드 워커가 SIGKILL됨             |
-| webpack   | 12 GiB         | 성공, 최대 11.1 GiB 사용          |
+| 번들러    | 컨테이너 상한  | 결과                           |
+| --------- | -------------- | ------------------------------ |
+| Turbopack | 8 GiB / 16 GiB | 두 경우 모두 조용히 OOM 종료됨 |
+| webpack   | 8 GiB          | 빌드 워커가 SIGKILL됨          |
+| webpack   | 12 GiB         | 성공, 최대 11.1 GiB 사용       |
 
 ### 런타임 기본값
 
-`runner-base`가 내보내는 기본값은 `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`입니다.
+`runner-base`에서 내보내는 기본값: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Docker에서의 메모리 동작:
 
-- 이미지는 `OMNIROUTE_MEMORY_MB=1024`를 설정하고, 이를 바탕으로 `NODE_OPTIONS=--max-old-space-size=1024`를 구성합니다.
-- 실제 서버 프로세스는 standalone 런처가 시작하며, 이 런처는 `OMNIROUTE_MEMORY_MB`를 읽고 `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`를 추가합니다.
-- Node는 반복 지정된 `--max-old-space-size` 값 중 마지막 값을 사용하므로, `OMNIROUTE_MEMORY_MB`를 설정하면 Docker의 실질적인 힙 한도를 제어할 수 있습니다.
-- 이미지가 이 값을 항상 설정하므로, 런처 자체의 RAM 기반 보정 대체값은 Docker에서 적용되지 않습니다. 워크로드에 맞게 명시적으로 늘리세요(아래 표 참조). 코딩 에이전트의 `/v1/responses`에는 `2048`도 여전히 너무 작습니다.
+- 이미지는 `OMNIROUTE_MEMORY_MB=1024`를 설정하고, 여기에서 `NODE_OPTIONS=--max-old-space-size=1024`를 파생합니다.
+- 실제 서버 프로세스는 독립 실행형 런처에 의해 시작되며, 런처는 `OMNIROUTE_MEMORY_MB`를 읽고 `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`를 추가합니다.
+- Node는 반복된 `--max-old-space-size` 값 중 마지막 값을 사용하므로, `OMNIROUTE_MEMORY_MB`를 설정하면 실질적인 Docker 힙 제한을 제어할 수 있습니다.
+- 이미지에서 이 값을 항상 설정하므로 Docker에서는 런처 자체의 RAM 기반 보정 폴백이 적용되지 않습니다. 워크로드에 맞게 명시적으로 늘리십시오(아래 표 참조). 코딩 에이전트의 `/v1/responses`에는 `2048`도 여전히 너무 작습니다.
 
 ### 코딩 에이전트의 런타임 RAM
 
-Docker 기본값인 1 GiB는 대시보드/가벼운 채팅을 위한 최소값이며, 프로덕션 규모가 아닙니다. 긴 `POST /v1/responses` 본문(수백 개의 메시지와 수십 개의 도구)은 압축 중 여러 인메모리 그래프를 유지합니다. 서로 겹치는 약 3 MiB / 약 750k 토큰 요청 두 건은 **12 GiB** old-space에서 V8을 중단시켰으며(`FATAL ERROR: Reached heap limit`), 16 GiB cgroup OOM에도 도달했습니다. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)를 참조하세요.
+Docker 기본값인 1 GiB는 대시보드/가벼운 채팅을 위한 최저 기준이지, 프로덕션 환경에 적합한 크기가 아닙니다. 긴 `POST /v1/responses` 본문(수백 개의 메시지와 수십 개의 도구)은 압축 중에 여러 인메모리 그래프를 유지합니다. 서로 겹쳐 실행된 약 3 MiB / 약 750k 토큰 요청 두 건은 **12 GiB** old-space에서 V8을 중단시켰으며(`FATAL ERROR: Reached heap limit`), 16 GiB cgroup OOM도 발생시켰습니다. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)를 참조하십시오.
 
-cgroup `--memory`는 **힙보다 크게** 설정하세요. 네이티브 버퍼, SQLite 및 압축 중간 데이터는 V8 외부에 존재합니다.
+**cgroup `--memory`는 힙보다 크게 설정하십시오** — 네이티브 버퍼, SQLite 및 압축 중간 데이터는 V8 외부에 위치합니다.
 
-| 워크로드                                 | `OMNIROUTE_MEMORY_MB`            | 컨테이너 / cgroup | 참고                                                                                        |
-| ---------------------------------------- | -------------------------------- | ----------------- | ------------------------------------------------------------------------------------------- |
-| 대시보드, 가벼운 채팅 하나               | `1024` (이미지 기본값)           | ≥2 GiB            |                                                                                             |
-| 코딩 에이전트 하나(Claude/Codex/Grok)    | `8192`                           | ≥10 GiB           | 일반적인 단일 세션 `/v1/responses`                                                          |
-| 동시에 실행되는 긴 `/v1/responses` 두 개 | `10240`–`12288`                  | ≥12–16 GiB        | 힙이 약 12 GiB일 때 V8 중단이 측정됨                                                        |
-| 동시에 실행되는 긴 컨텍스트 세 개 이상   | 단일 프로세스에서 실행하지 말 것 | 직렬화 / RAM 추가 | 기본 고부하 작업 허용량은 진행 중 1개이며, RAM을 늘리지 않고 이를 높이면 중단이 다시 발생함 |
+| 워크로드                                 | `OMNIROUTE_MEMORY_MB`            | 컨테이너 / cgroup | 참고                                                                                           |
+| ---------------------------------------- | -------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------- |
+| 대시보드, 가벼운 채팅 하나               | `1024` (이미지 기본값)           | ≥2 GiB            |                                                                                                |
+| 코딩 에이전트 하나(Claude/Codex/Grok)    | `8192`                           | ≥10 GiB           | 일반적인 단일 세션 `/v1/responses`                                                             |
+| 동시에 실행되는 긴 `/v1/responses` 두 건 | `10240`–`12288`                  | ≥12–16 GiB        | 약 12 GiB 힙에서 V8 중단이 측정됨                                                              |
+| 동시에 실행되는 긴 컨텍스트 세 개 이상   | 단일 프로세스에서 실행하지 말 것 | 직렬화 / RAM 증설 | 기본 고부하 작업 허용량은 실행 중 1건이며, RAM을 늘리지 않고 이 값을 높이면 중단이 다시 발생함 |
 
-베어 메탈에서 `omniroute serve`는 `OMNIROUTE_MEMORY_MB`가 **설정되지 않은** 경우 RAM의 약 35%로 보정합니다(`[512, 4096]` 범위로 제한). Docker는 항상 `1024`로 설정하므로 공식 이미지에서는 이 보정이 실행되지 않습니다.
+베어 메탈에서 `omniroute serve`는 `OMNIROUTE_MEMORY_MB`가 **설정되지 않은** 경우 RAM의 약 35%로 보정합니다(`[512, 4096]` 범위로 제한). Docker는 항상 `1024`를 설정하므로 공식 이미지에서는 이 보정이 실행되지 않습니다.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -304,26 +333,26 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
   -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
 ```
 
-## 필수 환경 변수
+## 중요한 환경 변수
 
 [ENVIRONMENT.md](../reference/ENVIRONMENT.md)에 문서화된 기본값 외에도 Docker에서 실행할 때는 다음 변수가 가장 중요합니다.
 
-| 변수                          | 용도                                                                                                                                                                                                                                                        | 기본값                   |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket 브리지의 공유 비밀 값입니다. **프로덕션 환경에서 필수** — 강력한 무작위 문자열로 설정하세요.                                                                                                                                                      | 설정되지 않음(필수 제공) |
-| `REDIS_URL`                   | 속도 제한기/캐시 백엔드의 연결 문자열입니다.                                                                                                                                                                                                                | `redis://redis:6379`     |
-| `REDIS_PORT`                  | 번들 Redis 컨테이너의 호스트 측 포트입니다.                                                                                                                                                                                                                 | `6379`                   |
-| `REDIS_BIND_HOST`             | 번들 Redis 포트가 게시되는 호스트 인터페이스입니다(AUTH를 추가하지 않는 한 루프백).                                                                                                                                                                         | `127.0.0.1`              |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | 자체 업데이트 워크플로를 위해 `cli` 프로필의 `/workspace/omniroute`에 마운트되는 호스트 경로입니다.                                                                                                                                                         | `.` (현재 디렉터리)      |
-| `OMNIROUTE_MEMORY_MB`         | Docker 독립 실행형 서버의 런타임 Node 힙 상한입니다. 위의 이미지 기본값보다 우선합니다. 코딩 에이전트: `8192` 이상([런타임 RAM](#runtime-ram-for-coding-agents) 참조).                                                                                      | `1024`                   |
-| `DASHBOARD_PORT` / `API_PORT` | 대시보드(20128) 및 API(20129)의 노출 포트를 재정의합니다.                                                                                                                                                                                                   | `20128` / `20129`        |
-| `APP_BIND_HOST`               | docker-compose가 대시보드/API/라이브 WS 포트를 게시하는 호스트 인터페이스입니다. `REQUIRE_API_KEY=false`(기본값)이면 `0.0.0.0`은 익명 `/v1` 프록시를 LAN에 노출합니다. `REQUIRE_API_KEY=true`이거나 앞단에 역방향 프록시가 있는 경우에만 범위를 확장하세요. | `127.0.0.1`              |
-| `CLIPROXY_BIND_HOST`          | docker-compose가 `cliproxyapi` 사이드카를 게시하는 호스트 인터페이스입니다. 해당 데이터 볼륨에는 공급자 자격 증명이 저장됩니다.                                                                                                                             | `127.0.0.1`              |
-| `OMNIROUTE_PLUGINS_DIR`       | 런타임 플러그인 스캐너가 읽고 설치하는 디렉터리입니다. 플러그인이 바인드 마운트된 경우 설정하세요. 기본값은 `HOME`을 따르지만 이미지에서 이를 내보내지 않을 수 있습니다.                                                                                    | `~/.omniroute/plugins`   |
-| `OMNIROUTE_BASE_PATH`         | 앱이 역방향 프록시 뒤에 게시될 때 사용하는 URL 하위 경로입니다(예: `/omniroute`).                                                                                                                                                                           | _(비어 있음 = 루트)_     |
-| `NEXT_PUBLIC_BASE_URL`        | 하위 경로를 포함하는 공개 브라우저 오리진입니다(예: `https://host/omniroute`).                                                                                                                                                                              | 설정되지 않음            |
-| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml`의 호스트 측 대시보드 포트입니다.                                                                                                                                                                                                  | `20130`                  |
-| `CLIPROXYAPI_PORT`            | `cliproxyapi` 사이드카의 호스트 측 포트입니다.                                                                                                                                                                                                              | `8317`                   |
+| 변수                          | 용도                                                                                                                                                                                                                                                             | 기본값                   |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | WebSocket 브리지의 공유 비밀 값입니다. **프로덕션 환경에서는 필수**이며, 강력한 무작위 문자열로 설정하세요.                                                                                                                                                      | 설정되지 않음(제공 필수) |
+| `REDIS_URL`                   | 속도 제한기/캐시 백엔드의 연결 문자열                                                                                                                                                                                                                            | `redis://redis:6379`     |
+| `REDIS_PORT`                  | 번들 Redis 컨테이너의 호스트 측 포트                                                                                                                                                                                                                             | `6379`                   |
+| `REDIS_BIND_HOST`             | 번들 Redis 포트가 게시되는 호스트 인터페이스(AUTH를 추가하지 않는 한 루프백)                                                                                                                                                                                     | `127.0.0.1`              |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | 자체 업데이트 워크플로를 위해 `cli` 프로필에서 `/workspace/omniroute`에 마운트되는 호스트 경로                                                                                                                                                                   | `.` (현재 디렉터리)      |
+| `OMNIROUTE_MEMORY_MB`         | Docker 독립 실행형 서버의 런타임 Node 힙 상한이며, 위의 이미지 기본값을 재정의합니다. 코딩 에이전트: `8192` 이상([런타임 RAM](#runtime-ram-for-coding-agents) 참조).                                                                                             | `1024`                   |
+| `DASHBOARD_PORT` / `API_PORT` | 대시보드(20128) 및 API(20129)의 노출 포트를 재정의합니다.                                                                                                                                                                                                        | `20128` / `20129`        |
+| `APP_BIND_HOST`               | docker-compose가 대시보드/API/라이브 WS 포트를 게시하는 호스트 인터페이스입니다. `REQUIRE_API_KEY=false`(기본값)이면 `0.0.0.0`은 익명 `/v1` 프록시를 LAN에 노출하므로, `REQUIRE_API_KEY=true`로 설정하거나 앞단에 리버스 프록시를 둔 경우에만 범위를 확장하세요. | `127.0.0.1`              |
+| `CLIPROXY_BIND_HOST`          | docker-compose가 `cliproxyapi` 사이드카를 게시하는 호스트 인터페이스이며, 해당 데이터 볼륨에는 공급자 자격 증명이 저장됩니다.                                                                                                                                    | `127.0.0.1`              |
+| `OMNIROUTE_PLUGINS_DIR`       | 런타임 플러그인 스캐너가 읽고 설치하는 디렉터리입니다. 플러그인이 바인드 마운트된 경우 설정하세요. 기본값은 `HOME`을 따르지만 이미지에서 이를 내보내지 않을 수도 있습니다.                                                                                       | `~/.omniroute/plugins`   |
+| `OMNIROUTE_BASE_PATH`         | 앱이 리버스 프록시 뒤에 게시될 때 사용하는 URL 하위 경로(예: `/omniroute`)                                                                                                                                                                                       | _(비어 있음 = 루트)_     |
+| `NEXT_PUBLIC_BASE_URL`        | 하위 경로를 포함한 공개 브라우저 원본 주소(예: `https://host/omniroute`)                                                                                                                                                                                         | 설정되지 않음            |
+| `PROD_DASHBOARD_PORT`         | `docker-compose.prod.yml`의 호스트 측 대시보드 포트                                                                                                                                                                                                              | `20130`                  |
+| `CLIPROXYAPI_PORT`            | `cliproxyapi` 사이드카의 호스트 측 포트                                                                                                                                                                                                                          | `8317`                   |
 
 ## 하위 경로의 리버스 프록시 (Traefik / nginx)
 
@@ -429,34 +458,47 @@ Docker 배포용 대시보드는 `Dashboard → Endpoints`에서 클릭 한 번�
 
 ## 이미지 태그
 
-| 이미지                   | 태그     | 크기   | 설명                                                      |
-| ------------------------ | -------- | ------ | --------------------------------------------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | **게시된** 안정 SemVer 중 가장 높은 버전(git `main` 아님) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps에서는 이 유형의 태그로 고정하세요                  |
+| 이미지                   | 태그     | 크기   | 설명                                              |
+| ------------------------ | -------- | ------ | ------------------------------------------------- |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | 가장 높은 **게시된** 안정 SemVer(git `main` 아님) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps에서는 이 유형의 태그를 고정하여 사용       |
 
-멀티 플랫폼 매니페스트: `linux/amd64` + `linux/arm64` 네이티브(Apple Silicon, AWS Graviton, Raspberry Pi). Docker는 일치하는 아키텍처를 자동으로 선택합니다. ARM 호스트에서 AMD64 에뮬레이션을 강제해야 하는 경우 `--platform linux/amd64`를 전달하세요.
+다중 플랫폼 매니페스트: `linux/amd64` + `linux/arm64` 네이티브 지원(Apple Silicon, AWS Graviton, Raspberry Pi). Docker는 일치하는 아키텍처를 자동으로 선택합니다. ARM 호스트에서 AMD64 에뮬레이션을 강제해야 하는 경우 `--platform linux/amd64`를 전달하세요.
 
 ### 릴리스 채널
 
-OmniRoute는 안정 릴리스, 활성 릴리스 브랜치 테스트 및 개발 빌드를 위한 별도의 Docker 채널을 게시합니다.
+OmniRoute는 안정 릴리스, 활성 릴리스 브랜치 테스트, 개발 빌드를 위한 별도의 Docker 채널을 게시합니다.
 
-| 채널                            | 소스                                | 변경 가능성                    | 권장 용도                                                                                               |
-| ------------------------------- | ----------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | 서명되고 버전이 지정된 릴리스       | 변경 불가                      | 정확한 릴리스로 고정하는 프로덕션 배포                                                                  |
-| `:latest` / `:latest-web`       | **게시된** 안정 SemVer 중 최고 버전 | 변경 가능한 안정 포인터        | SemVer 게시 작업 **후** 안정 릴리스를 따름 — `main` 또는 미릴리스 `release/v*` 커밋을 추적하지 **않음** |
-| `:next` / `:next-web`           | 현재 기본 `release/v*` 브랜치       | 변경 가능한 사전 릴리스 포인터 | 활성 릴리스 브랜치에 반영되었지만 아직 안정 릴리스에는 포함되지 않은 수정 사항 테스트                   |
-| `:main` / `:main-web`           | `main` 브랜치                       | 변경 가능한 개발 포인터        | 개발 및 통합 테스트 전용                                                                                |
+| 채널                            | 소스                             | 변경 가능 여부            | 권장 용도                                                                                                        |
+| ------------------------------- | -------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | 서명되고 버전이 지정된 릴리스    | 변경 불가                 | 정확한 릴리스를 고정하는 프로덕션 배포                                                                           |
+| `:latest` / `:latest-web`       | 가장 높은 **게시된** 안정 SemVer | 변경 가능한 안정 포인터   | SemVer 게시 작업 **이후** 안정 릴리스를 추적 — `main` 또는 릴리스되지 않은 `release/v*` 커밋은 추적하지 **않음** |
+| `:next` / `:next-web`           | 현재 기본 `release/v*` 브랜치    | 변경 가능한 시험판 포인터 | 활성 릴리스 브랜치에 반영되었지만 아직 안정 릴리스에는 포함되지 않은 수정 사항 테스트                            |
+| `:main` / `:main-web`           | `main` 브랜치                    | 변경 가능한 개발 포인터   | 개발 및 통합 테스트 전용                                                                                         |
 
-#### 사전 릴리스 채널 사용
+#### 웹 세션 제공자: `-web` 이미지
 
-`next` 채널은 현재 기본 `release/v*` 브랜치에 푸시될 때마다 다시 빌드되며 AMD64와 ARM64용으로 모두 게시됩니다. 이전 유지보수 브랜치는 이 채널을 덮어쓸 수 없습니다. 이 채널은 다음 안정 태그가 생성되기 전에 활성 릴리스 브랜치에 병합된 수정 사항을 가져올 수 있는 이미지를 제공합니다.
+위의 모든 채널은 `-web` 태그(`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`)도 제공하며, 동일한 이미지에 Playwright와 Chromium 브라우저가 추가된 `runner-web` 스테이지에서 빌드됩니다. 일반 이미지는 Chromium **없이** 제공되며, `gemini-web`, `claude-web`, `claude-turnstile`에는 Chromium이 필요합니다.
+
+오류는 시작 시점이 아니라 나중에 발생합니다. 이러한 제공자는 모델 목록을 표시하고 대시보드에서 연결된 것으로 나타나지만, 첫 번째 요청에서만 다음 오류가 발생합니다.
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+이러한 제공자를 사용하는 경우 현재 사용 중인 채널의 `-web` 태그를 가져오면 됩니다. 그 외에는 아무것도 변경되지 않습니다. npm/CLI 설치(Docker 이미지 미사용)에서 이에 해당하는 누락 항목은 브라우저 바이너리입니다. 호스트에서 `npx playwright install chromium`을 실행하세요.
+
+#### 시험판 채널 사용
+
+`next` 채널은 현재 기본 `release/v*` 브랜치에 푸시할 때마다 다시 빌드되며 AMD64와 ARM64용으로 모두 게시됩니다. 이전 유지보수 브랜치는 이 채널을 덮어쓸 수 없습니다. 이 채널은 다음 안정 태그가 생성되기 전에 활성 릴리스 브랜치에 병합된 수정 사항을 포함하는 가져오기 가능한 이미지를 제공합니다.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Docker Compose에서는 선택한 프로필에서 사용하는 이미지 태그를 재정의한 다음, 서비스를 가져와 다시 생성하세요.
+Docker Compose에서는 선택한 프로필이 사용하는 이미지 태그를 재정의한 다음, 서비스를 가져와 다시 생성하세요.
 
 ```yaml
 services:
@@ -469,9 +511,9 @@ docker compose pull
 docker compose up -d
 ```
 
-#### 안전성 및 롤백
+#### 안전 및 롤백
 
-`next`는 유동적인 사전 릴리스 채널입니다. 활성 릴리스 브랜치에 푸시할 때마다 변경될 수 있으며 **프로덕션 용도로 지원되지 않습니다**. 특정 빌드를 평가하는 동안에는 이미지 다이제스트로 고정하세요.
+`next`는 유동적인 시험판 채널입니다. 활성 릴리스 브랜치에 푸시할 때마다 변경될 수 있으며 **프로덕션 용도로는 지원되지 않습니다**. 특정 빌드를 평가하는 동안 이미지 다이제스트를 고정하세요.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
@@ -485,16 +527,16 @@ docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-릴리스 브랜치 빌드는 절대로 `latest`를 변경할 수 없습니다. 적격한 안정 시맨틱 버전만 안정 버전 포인터를 승격할 수 있습니다. `next` 이미지는 릴리스 이미지 검사와 CRITICAL 취약점을 차단하는 게이트를 유지합니다.
+릴리스 브랜치 빌드는 절대로 `latest`를 변경할 수 없습니다. 적격한 안정 시맨틱 버전만 안정 포인터를 승격할 수 있습니다. `next` 이미지는 릴리스 이미지 검사와 차단 방식의 CRITICAL 취약점 게이트를 그대로 유지합니다.
 
-**`latest`는 git의 최신 상태를 보장하지 않습니다.** `main` 또는 활성 `release/v*` 브랜치에 병합된 수정 사항은 안정적인 SemVer 이미지가 게시되고 게시 작업이 `:latest`를 승격할 때까지 **`:latest`에 포함되지 않습니다**(해당 SemVer와 동일한 다이제스트). GitHub에 수정 사항이 이미 표시되는데도 `latest`가 고정된 것처럼 보인다면 `:next`를 풀하여 릴리스 브랜치를 테스트하거나 SemVer 태그가 게시될 때까지 기다리세요.
+**`latest`는 git의 최신 상태를 보장하지 않습니다.** `main` 또는 활성 `release/v*` 브랜치에 병합된 수정 사항은 안정 SemVer 이미지가 게시되고 게시 작업이 `:latest`를 승격하기 전까지 `:latest`에 포함되지 **않습니다**(해당 SemVer와 동일한 다이제스트). GitHub에 수정 사항이 이미 표시되는데도 `latest`가 그대로인 것처럼 보인다면, `:next`를 가져와 릴리스 브랜치를 테스트하거나 SemVer 태그가 나올 때까지 기다리세요.
 
-| 원하는 사항                                           | 사용 대상                               |
-| ----------------------------------------------------- | --------------------------------------- |
-| 변경되어서는 안 되는 GitOps / 프로덕션                | `:X.Y.Z`(또는 이미지 다이제스트)로 고정 |
-| 게시된 안정 버전을 따르고 각 릴리스에서 재생성을 허용 | `:latest`                               |
-| 미릴리스 `release/v*` 커밋 테스트                     | `:next`(프로덕션용 아님)                |
-| `main` 테스트                                         | `:main`(프로덕션용 아님)                |
+| 원하는 사항                                                   | 사용할 항목                           |
+| ------------------------------------------------------------- | ------------------------------------- |
+| 변경되어서는 안 되는 GitOps / 프로덕션                        | `:X.Y.Z`(또는 이미지 다이제스트) 고정 |
+| 게시된 안정 릴리스를 추적하고 릴리스마다 재생성하는 것을 허용 | `:latest`                             |
+| 릴리스되지 않은 `release/v*` 커밋 테스트                      | `:next`(프로덕션용 아님)              |
+| `main` 테스트                                                 | `:main`(프로덕션용 아님)              |
 
 ## 가용성: 기본 SQLite는 단일 레플리카 구성
 

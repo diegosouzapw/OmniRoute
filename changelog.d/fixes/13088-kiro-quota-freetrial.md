@@ -1,1 +1,0 @@
-- fix(quota): keep Kiro active while any _freetrial pool has quota (#13088)

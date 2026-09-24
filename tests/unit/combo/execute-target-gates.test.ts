@@ -5,6 +5,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { getCircuitBreaker, STATE } from "../../../src/shared/utils/circuitBreaker.ts";
+import { connectionCircuitBreakerName } from "../../../open-sse/services/connectionCircuitBreaker.ts";
 import type {
   AttemptLoopDeps,
   AttemptLoopState,
@@ -104,6 +105,60 @@ test("breaker OPEN skips and does not call handleSingleModel", async () => {
   });
   assert.equal(decision.kind, "skip");
   assert.equal(state.skippedForCircuitOpen, true);
+});
+
+/**
+ * #14530 — the pre-dispatch circuit gate must look the connection breaker up
+ * under `connectionCircuitBreakerName(provider, target.connectionId)`, not
+ * under the bare provider name. Pins the breaker NAME, not just the skip:
+ * the provider breaker stays CLOSED in both tests, so a lookup that fell back
+ * to `getCircuitBreaker(provider)` would let the dead connection proceed, and
+ * a lookup that widened to the provider would wrongly skip its healthy sibling.
+ */
+test("#14530: an OPEN connection breaker skips only that connection", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const provider = `openai-gates-14530-${Date.now()}`;
+  const deadConnectionId = `conn-dead-${Date.now()}`;
+  const connectionBreaker = getCircuitBreaker(
+    connectionCircuitBreakerName(provider, deadConnectionId),
+    { failureThreshold: 1, resetTimeout: 60_000 }
+  );
+  connectionBreaker._onFailure("transient");
+  assert.equal(connectionBreaker.getStatus().state, STATE.OPEN);
+  // The provider-wide breaker must be untouched — that is the whole point.
+  assert.notEqual(getCircuitBreaker(provider).getStatus().state, STATE.OPEN);
+
+  const target = modelTarget({
+    provider,
+    modelStr: `${provider}/gpt-4o-mini`,
+    connectionId: deadConnectionId,
+  });
+  const state = emptyState({ orderedTargets: [target] });
+  const decision = await evaluateExecuteTargetGates({ index: 0, state, deps: baseDeps() });
+  assert.equal(decision.kind, "skip");
+  assert.equal(state.skippedForCircuitOpen, true);
+});
+
+test("#14530: a sibling connection on the same provider still proceeds", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const provider = `openai-gates-14530-sibling-${Date.now()}`;
+  const deadConnectionId = `conn-dead-${Date.now()}`;
+  getCircuitBreaker(connectionCircuitBreakerName(provider, deadConnectionId), {
+    failureThreshold: 1,
+    resetTimeout: 60_000,
+  })._onFailure("transient");
+
+  const healthy = modelTarget({
+    provider,
+    modelStr: `${provider}/gpt-4o-mini`,
+    connectionId: `conn-healthy-${Date.now()}`,
+  });
+  const state = emptyState({ orderedTargets: [healthy] });
+  const decision = await evaluateExecuteTargetGates({ index: 0, state, deps: baseDeps() });
+  assert.equal(decision.kind, "proceed");
+  assert.equal(state.skippedForCircuitOpen, false);
 });
 
 test("exhausted connection skip uses getExhaustedTargetSkipReason", async () => {

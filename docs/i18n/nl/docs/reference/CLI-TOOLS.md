@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (Nederlands)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -135,40 +135,41 @@ en `--model` vlag bedrading daaruit. De driftbewaker
 catalogus, de UI-catalogus en elk consumentoppervlak in sync blijven — een doel dat aan
 één oppervlak is toegevoegd zonder de anderen, faalt de suite in plaats van stilletjes te driften.
 
-## 1. CLI Code's Catalog (26 tools)
+## 1. CLI Code-catalogus (26 tools)
 
-Alle tools die verschijnen in `/dashboard/cli-code`. Degenen met `baseUrlSupport: none` zijn verbonden via MITM of een handmatige gids in plaats van een aangepaste basis-URL:
+Alle tools die voorkomen in `/dashboard/cli-code`. Tools met `baseUrlSupport: none` worden gekoppeld via MITM of een handmatige handleiding in plaats van een aangepaste basis-URL:
 
-| id           | naam                    | leverancier         | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | naam                    | leverancier         | ondersteuning basis-URL | configuratietype | startbaar via ACP |
+| ------------ | ----------------------- | ------------------- | ----------------------- | ---------------- | ----------------- |
+| claude       | Claude Code             | Anthropic           | volledig                | omgeving         | waar              |
+| codex        | OpenAI Codex CLI        | OpenAI              | volledig                | aangepast        | waar              |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                | geen                    | aangepast        | onwaar            |
+| cline        | Cline                   | OSS (ex-Claude Dev) | volledig                | aangepast        | waar              |
+| kilo         | Kilo Code               | Kilo-Org            | volledig                | aangepast        | onwaar            |
+| roo          | Roo Code                | Roo (OSS)           | volledig                | handleiding      | onwaar            |
+| continue     | Continue                | continue.dev        | volledig                | handleiding      | onwaar            |
+| aider        | Aider                   | OSS (P. Gauthier)   | volledig                | handleiding      | waar              |
+| forge        | ForgeCode               | Antinomy HQ         | volledig                | aangepast        | waar              |
+| jcode        | jcode                   | 1jehuang (OSS)      | volledig                | aangepast        | onwaar            |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | volledig                | aangepast        | onwaar            |
+| codewhale    | CodeWhale               | Hmbown (OSS)        | volledig                | aangepast        | onwaar            |
+| opencode     | OpenCode                | Anomaly (ex-SST)    | volledig                | handleiding      | waar              |
+| droid        | Factory Droid           | Factory AI          | gedeeltelijk            | handleiding      | onwaar            |
+| copilot      | GitHub Copilot CLI      | GitHub/MS           | volledig                | aangepast        | onwaar            |
+| cursor-cli   | Cursor CLI              | Anysphere           | gedeeltelijk            | handleiding      | waar              |
+| smelt        | Smelt                   | leonardcser (OSS)   | volledig                | aangepast        | onwaar            |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | volledig                | aangepast        | onwaar            |
+| grok-build   | Grok Build              | xAI                 | volledig                | aangepast        | onwaar            |
+| crush        | Crush                   | OSS (Charm)         | volledig                | aangepast        | onwaar            |
+| qwen         | Qwen Code               | Alibaba             | volledig                | handleiding      | waar              |
+| cursor       | Cursor                  | Anysphere           | geen                    | handleiding      | onwaar            |
+| antigravity  | Antigravity             | Google              | geen                    | mitm             | onwaar            |
+| hermes       | Hermes                  | Nous Research       | geen                    | handleiding      | onwaar            |
+| kiro         | Kiro AI                 | Amazon              | geen                    | mitm             | onwaar            |
+| custom       | Aangepaste CLI          | —                   | volledig                | custom-builder   | onwaar            |
 
-Tools met `baseUrlSupport: "partial"` tonen een badge "⚠ Basis-URL gedeeltelijk" in de dashboardkaart.
+Tools met `baseUrlSupport: "partial"` tonen een badge met "⚠ Gedeeltelijke basis-URL" op de dashboardkaart.
+---
 
 ## 2. CLI Agents Catalog (8 tools)
 
@@ -588,74 +589,74 @@ onder `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. Interne OmniRoute CLI
+## 10. Interne OmniRoute-CLI
 
-De `omniroute` binaire biedt commando's voor serverlevenscyclus, setup, diagnostiek en providerbeheer. Toegangspunt: `bin/omniroute.mjs`.
+Het binaire bestand `omniroute` biedt opdrachten voor de serverlevenscyclus, configuratie, diagnostiek en providerbeheer. Startpunt: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Start server (standaard poort 20128)
-omniroute setup                        # Interactieve setup wizard
-omniroute doctor                       # Controleer config, DB, poorten, runtime
+omniroute                              # Server starten (standaardpoort 20128)
+omniroute setup                        # Interactieve configuratiewizard
+omniroute doctor                       # Configuratie, DB, poorten en runtime controleren
 omniroute providers list               # Geconfigureerde providerverbindingen
-omniroute providers test-all           # Test elke actieve verbinding
-omniroute reset-password               # Reset het admin wachtwoord
-omniroute logs                         # Stream aanvraaglogs
-omniroute health                       # Gedetailleerde gezondheid (breakers, cache, geheugen)
-omniroute --version                    # Print versie
-omniroute --help                       # Toon alle commando's
+omniroute providers test-all           # Elke actieve verbinding testen
+omniroute reset-password               # Het beheerderswachtwoord opnieuw instellen
+omniroute logs                         # Aanvraaglogboeken streamen
+omniroute health                       # Gedetailleerde status (stroomonderbrekers, cache, geheugen)
+omniroute --version                    # Versie weergeven
+omniroute --help                       # Alle opdrachten weergeven
 ```
 
-### Setup & Initialisatie
+### Configuratie en initialisatie
 
 ```bash
-omniroute setup                        # Interactieve setup wizard
-omniroute setup --non-interactive      # CI/automatiseringsmodus (leest omgevingsvariabelen + vlaggen)
-omniroute setup --password '<value>'   # Stel admin wachtwoord direct in
+omniroute setup                        # Interactieve configuratiewizard
+omniroute setup --non-interactive      # CI-/automatiseringsmodus (leest omgevingsvariabelen en vlaggen)
+omniroute setup --password '<value>'   # Beheerderswachtwoord rechtstreeks instellen
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Voeg een provider toe en test deze in één keer
+  --test-provider                      # Een provider in één keer toevoegen en testen
 ```
 
-Erkende omgevingsvariabelen voor niet-interactieve setup:
+Herkende omgevingsvariabelen voor niet-interactieve configuratie:
 
-| Var                 | Doel                                                                   |
-| ------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Provider API-sleutel (gebonden aan `--api-key` via Commander `.env()`) |
-| `DATA_DIR`          | Overschrijf de OmniRoute gegevensmap                                   |
+| Variabele           | Doel                                                                        |
+| ------------------- | --------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | API-sleutel van provider (via Commander `.env()` gekoppeld aan `--api-key`) |
+| `DATA_DIR`          | De OmniRoute-gegevensmap overschrijven                                      |
 
-Alle andere niet-interactieve invoer wordt doorgegeven als vlaggen, niet als omgevingsvariabelen:
+Alle overige niet-interactieve invoer wordt als vlag doorgegeven, niet als omgevingsvariabele:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(zie de `omniroute setup` opties hierboven).
+(zie de bovenstaande opties voor `omniroute setup`).
 
 ### Diagnostiek
 
 ```bash
-omniroute doctor                       # Controleer config, DB, poorten, runtime, geheugen, levensvatbaarheid
-omniroute doctor --json                # Machine-leesbare JSON
-omniroute doctor --no-liveness         # Sla de HTTP gezondheidscontrole over
-omniroute doctor --host 0.0.0.0        # Overschrijf levensvatbaarheid host
-omniroute doctor --liveness-url <url>  # Volledige gezondheids-eindpunt URL overschrijven
+omniroute doctor                       # Configuratie, DB, poorten, runtime, geheugen en beschikbaarheid controleren
+omniroute doctor --json                # Machineleesbare JSON
+omniroute doctor --no-liveness         # De HTTP-statuscontrole overslaan
+omniroute doctor --host 0.0.0.0        # Host voor beschikbaarheidscontrole overschrijven
+omniroute doctor --liveness-url <url>  # Volledige URL van statuseindpunt overschrijven
 ```
 
-De doctor voert deze controles uit: `Config`, `Database`, `Opslag/encryptie`,
-`Poortbeschikbaarheid`, `Node runtime`, `Native binaire` (better-sqlite3),
-`Geheugen`, en `Server levensvatbaarheid`. Het verlaat met een niet-nul waarde als een controle `faalt`.
+De doctor voert deze controles uit: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory` en `Server liveness`. De opdracht wordt afgesloten met een niet-nulwaarde als een controle de status `fail` heeft.
 
 ### Providerbeheer
 
 ```bash
-omniroute providers available                       # OmniRoute provider catalogus
-omniroute providers available --search openai       # Filter catalogus op id/naam/alias/categorie
-omniroute providers available --category api-key    # Filter op categorie (api-key, oauth, gratis, ...)
-omniroute providers available --json                # Machine-leesbare JSON
+omniroute providers available                       # OmniRoute-providercatalogus
+omniroute providers available --search openai       # Catalogus filteren op id/naam/alias/categorie
+omniroute providers available --category api-key    # Filteren op categorie (api-key, oauth, free, ...)
+omniroute providers available --json                # Machineleesbare JSON
 
 omniroute providers list                            # Geconfigureerde providerverbindingen
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Test één geconfigureerde verbinding
-omniroute providers test-all                        # Test elke actieve verbinding
-omniroute providers validate                        # Lokale structurele validatie
+omniroute providers test <id|name>                  # Eén geconfigureerde verbinding testen
+omniroute providers test-all                        # Elke actieve verbinding testen
+omniroute providers validate                        # Alleen lokale structurele validatie
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Bestaande OAuth-stroom
@@ -663,83 +664,85 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` zijn API-eerst en werken daarom tegen
-de actieve lokale of externe context. Invoer van referenties moet gebruik maken van
-`--credential-stdin` of `--credential-env`; `--dry-run --json` rapporteert alleen
-geredigeerde aanwezigheid/vorm. `providers available` leest de OmniRoute catalogus;
-`providers list/test/test-all/validate` behouden hun lokale SQLite gedrag en
-vereisen niet dat de server draait.
+`providers add/import/auth/edit/remove` werken primair via de API en daardoor met
+de actieve lokale of externe context. Gebruik voor invoer van referenties
+`--credential-stdin` of `--credential-env`; `--dry-run --json` rapporteert uitsluitend
+geredigeerde aanwezigheid/structuur. `providers available` leest de OmniRoute-catalogus;
+`providers list/test/test-all/validate` behouden hun lokale SQLite-gedrag en
+vereisen niet dat de server actief is.
 
-### Herstel & Reset
+### Herstel en opnieuw instellen
 
 ```bash
-omniroute reset-password                # Reset het admin wachtwoord (ook: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Toon waarschuwing + dry-run voor reset van versleutelde referenties
-omniroute reset-encrypted-columns --force  # Maak daadwerkelijk versleutelde referenties in SQLite null
+omniroute reset-password                # Het beheerderswachtwoord opnieuw instellen (ook: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Waarschuwing en testuitvoering voor het opnieuw instellen van versleutelde referenties weergeven
+omniroute reset-encrypted-columns --force  # Versleutelde referenties daadwerkelijk op null instellen in SQLite
 ```
 
-### Credential Export (⚠ voorzichtig mee omgaan)
+### Export van referenties (⚠ ga hier voorzichtig mee om)
 
 ```bash
-omniroute auth export                                 # Toon waarschuwing + bevestigingspoort — geen DB-toegang
-omniroute auth export --force                          # Exporteer ALLE verbindingen' ONVERSLEUTELDE referenties naar stdout als JSON
-omniroute auth export --force --id <id>                 # Exporteer alleen de bijbehorende verbinding
-omniroute auth export --force --format env               # Geef OMNIROUTE_<PROVIDER>_<FIELD>=<value> regels uit
-omniroute auth export --force --out creds.json           # Schrijf naar een bestand (gemaakt met 0600 machtigingen)
+omniroute auth export                                 # Waarschuwing en bevestigingsstap weergeven — geen databasetoegang
+omniroute auth export --force                          # ONTSLEUTELDE referenties van ALLE verbindingen als JSON naar stdout exporteren
+omniroute auth export --force --id <id>                 # Alleen de overeenkomende verbinding exporteren
+omniroute auth export --force --format env               # Regels in de vorm OMNIROUTE_<PROVIDER>_<FIELD>=<value> uitvoeren
+omniroute auth export --force --out creds.json           # Naar een bestand schrijven (aangemaakt met machtigingen 0600)
 ```
 
-`auth export` is **lokaal alleen** (directe SQLite-lees, geen HTTP-route) en print/schrijft opzettelijk
-**platte tekst** `apiKey`/`accessToken`/`refreshToken`/`idToken` waarden — dat is de functie, geen
-fout. Er wordt niets uit de database gelezen, en er wordt niets ontsleuteld, zonder `--force`. Een stderr
-waarschuwing banner wordt altijd afgedrukt voordat er enige platte tekst wordt uitgegeven. Vereist dat `STORAGE_ENCRYPTION_KEY`
-is ingesteld. Een veld dat niet kan worden ontsleuteld (verlopen sleutel, corrupte ciphertext) wordt gerapporteerd als
-`<field>DecryptFailed: true` in plaats van de hele export te beëindigen of de onderliggende fout te lekken.
+`auth export` is **uitsluitend lokaal** (rechtstreeks lezen uit SQLite, geen HTTP-route) en toont/schrijft opzettelijk
+**platte tekst**-waarden voor `apiKey`/`accessToken`/`refreshToken`/`idToken` — dat is de functie, geen
+fout. Zonder `--force` wordt niets uit de database gelezen en wordt niets ontsleuteld. Er wordt altijd een
+waarschuwingsbanner naar stderr geschreven voordat platte tekst wordt uitgevoerd. Vereist dat `STORAGE_ENCRYPTION_KEY`
+is ingesteld. Een veld dat niet kan worden ontsleuteld (verouderde sleutel, beschadigde versleutelde tekst) wordt gerapporteerd als
+`<field>DecryptFailed: true`, in plaats van de volledige export af te breken of de onderliggende fout bloot te leggen.
 
-### Andere subcommando's
+### Overige subopdrachten
 
-Deze gaan uit van een draaiende OmniRoute-server, tenzij anders vermeld:
+Deze gaan ervan uit dat er een OmniRoute-server actief is, tenzij anders aangegeven:
 
 ```bash
-omniroute status                       # Uitgebreide runtime status
-omniroute logs                         # Stream aanvraaglogs (--json, --search, --follow)
-omniroute config show                  # Toon huidige configuratie
+omniroute status                       # Uitgebreide runtimestatus
+omniroute logs                         # Aanvraaglogboeken streamen (--json, --search, --follow)
+omniroute config list                  # Geconfigureerde CLI-tools weergeven
 
-omniroute provider list                # Lijst beschikbare providers (alias van providers list)
-omniroute provider add                 # Registreer OmniRoute als een provider op een tool
-omniroute keys add | list | remove     # Beheer API-sleutels
-omniroute models [provider]            # Lijst modellen (--json, --search)
+omniroute provider list                # Beschikbare providers weergeven (alias van providers list)
+omniroute provider add                 # OmniRoute als provider registreren bij een tool
+omniroute keys add | list | remove     # API-sleutels beheren
+omniroute models [provider]            # Modellen weergeven (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Snapshot config + DB
-omniroute restore                      # Herstel van een eerdere snapshot
+omniroute backup                       # Momentopname van configuratie + database maken
+omniroute restore                      # Herstellen vanuit een eerdere momentopname
 
-omniroute health                       # Gedetailleerde gezondheid (breakers, cache, geheugen)
+omniroute health                       # Gedetailleerde status (stroomonderbrekers, cache, geheugen)
 omniroute quota                        # Gebruik van providerquota
-omniroute cache                        # Cache-status
-omniroute cache clear                  # Wis semantische + handtekening caches
+omniroute cache                        # Cachestatus
+omniroute cache clear                  # Semantische cache + handtekeningcache wissen
 
-omniroute mcp status | restart         # MCP serverstatus / herstart
-omniroute a2a status | card            # A2A serverstatus / agentkaart
+omniroute mcp status | restart         # MCP-serverstatus / opnieuw starten
+omniroute a2a status | card            # A2A-serverstatus / agentkaart
 
-omniroute tunnel list | create | stop  # Beheer tunnels (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Inspecteer / stel omgevingsvariabelen in (tijdelijk)
+omniroute tunnel list | create | stop  # Tunnels beheren (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Omgevingsvariabelen bekijken / instellen (tijdelijk)
 
-omniroute test                         # Provider connectiviteit rooktest
-omniroute update                       # Controleer op updates
-omniroute completion                   # Genereer shell voltooiing
+omniroute test                         # Snelle connectiviteitstest voor providers
+omniroute update                       # Controleren op updates
+omniroute completion                   # Shell-aanvulling genereren
 ```
 
-### Veelvoorkomende vlaggen
+### Veelgebruikte vlaggen
 
-| Vlag                | Beschrijving                                            |
-| ------------------- | ------------------------------------------------------- |
-| `--no-open`         | Open de browser niet automatisch bij het starten        |
-| `--port <n>`        | Overschrijf de API-poort (standaard 20128)              |
-| `--mcp`             | Draai als MCP-server over stdio (voor IDE's)            |
-| `--non-interactive` | CI-modus (geen prompts; leest van env/vlaggen)          |
-| `--json`            | Machine-leesbare JSON-uitvoer (doctor, providers, enz.) |
-| `--help`, `-h`      | Toon commando-specifieke hulp                           |
-| `--version`, `-v`   | Print de geïnstalleerde versie                          |
+| Vlag                | Beschrijving                                                   |
+| ------------------- | -------------------------------------------------------------- |
+| `--no-open`         | Browser bij het starten niet automatisch openen                |
+| `--port <n>`        | De API-poort overschrijven (standaard 20128)                   |
+| `--mcp`             | Als MCP-server via stdio uitvoeren (voor IDE's)                |
+| `--non-interactive` | CI-modus (geen prompts; leest uit omgevingsvariabelen/vlaggen) |
+| `--json`            | Machineleesbare JSON-uitvoer (doctor, providers, enz.)         |
+| `--help`, `-h`      | Opdrachtspecifieke hulp weergeven                              |
+| `--version`, `-v`   | De geïnstalleerde versie weergeven                             |
+
+---
 
 ## Beschikbare API-eindpunten
 

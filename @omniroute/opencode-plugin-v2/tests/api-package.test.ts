@@ -1,20 +1,32 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import type { CatalogDraft } from "@opencode-ai/plugin/v2/promise";
-import type { ModelV2Info, ProviderV2Info } from "@opencode-ai/sdk/v2/types";
 import { publishCatalog } from "../src/catalog.js";
+type BetaDraft = {
+  provider: {
+    list?: () => unknown[];
+    get?: (id: string) => unknown;
+    update: (id: string, fn: (p: Record<string, any>) => void) => void;
+    remove?: () => void;
+  };
+  model: {
+    get?: (...a: string[]) => unknown;
+    update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => void;
+    remove?: () => void;
+    default?: { get: () => undefined; set: () => void };
+  };
+};
 
 const SUPPORTED_PACKAGES = new Set(["@ai-sdk/openai-compatible", "@ai-sdk/anthropic"]);
 
-function fakeDraft(): { models: Map<string, ModelV2Info>; draft: CatalogDraft } {
-  const providers = new Map<string, ProviderV2Info>();
-  const models = new Map<string, ModelV2Info>();
+function fakeDraft(): { models: Map<string, Record<string, any>>; draft: BetaDraft } {
+  const providers = new Map<string, Record<string, any>>();
+  const models = new Map<string, Record<string, any>>();
   const draft = {
     provider: {
       list: () => [],
       get: (id: string) => providers.get(id) as never,
-      update: (id: string, fn: (p: ProviderV2Info) => void) => {
-        const p = (providers.get(id) ?? { id }) as ProviderV2Info;
+      update: (id: string, fn: (p: Record<string, any>) => void) => {
+        const p = (providers.get(id) ?? { id }) as Record<string, any>;
         fn(p);
         providers.set(id, p);
       },
@@ -22,16 +34,16 @@ function fakeDraft(): { models: Map<string, ModelV2Info>; draft: CatalogDraft } 
     },
     model: {
       get: () => undefined,
-      update: (pid: string, mid: string, fn: (m: ModelV2Info) => void) => {
+      update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => {
         const k = pid + "/" + mid;
-        const m = (models.get(k) ?? { id: mid, providerID: pid }) as ModelV2Info;
+        const m = (models.get(k) ?? { id: mid, providerID: pid }) as Record<string, any>;
         fn(m);
         models.set(k, m);
       },
       remove: () => {},
       default: { get: () => undefined, set: () => {} },
     },
-  } as CatalogDraft;
+  };
   return { models, draft };
 }
 
@@ -44,7 +56,7 @@ const baseOpts = {
   usableOnly: false,
 };
 
-function apiPackageOf(m: ModelV2Info | undefined): string {
+function apiPackageOf(m: Record<string, any> | undefined): string {
   assert.ok(m, "model must be published");
   assert.equal(m?.api.type, "aisdk");
   if (m?.api.type !== "aisdk") throw new Error("model api must be aisdk");
