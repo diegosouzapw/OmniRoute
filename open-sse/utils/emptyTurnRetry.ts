@@ -1,6 +1,8 @@
 import { translateResponse, initState } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
+import { STREAM_READINESS_MAX_TIMEOUT_MS } from "../config/constants.ts";
 import { hasValidUsage } from "./usageTracking.ts";
+import { hasUsefulStreamContent } from "./streamReadiness.ts";
 import { parseSSELine, hasValuableContent } from "./streamHelpers.ts";
 import { isEmptyTurnCore } from "./streamEmptyChoices.ts";
 import { sanitizeStreamingChunk } from "../handlers/responseSanitizer.ts";
@@ -53,19 +55,21 @@ const IDLE_READ = Symbol("idle-read");
 /**
  * One read under an idle budget. The budget covers the gap between chunks, not
  * the whole turn, so a long generation that keeps producing is never cut short.
- * `idleMs <= 0` keeps the plain unbounded read.
+ * `idleMs <= 0` keeps the plain unbounded read. The in-flight read is passed
+ * in (not re-issued): re-issuing after an expiry would orphan the first read,
+ * which still owns the next chunk.
  */
 async function readWithinIdleBudget(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
+  inFlight: Promise<ReadableStreamReadResult<Uint8Array>>,
   idleMs: number
 ): Promise<ReadableStreamReadResult<Uint8Array> | typeof IDLE_READ> {
-  if (idleMs <= 0) return reader.read();
+  if (idleMs <= 0) return inFlight;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const expiry = new Promise<typeof IDLE_READ>((resolve) => {
     timer = setTimeout(() => resolve(IDLE_READ), idleMs);
   });
   try {
-    return await Promise.race([reader.read(), expiry]);
+    return await Promise.race([inFlight, expiry]);
   } finally {
     clearTimeout(timer);
   }
@@ -74,14 +78,28 @@ async function readWithinIdleBudget(
 async function drainBoundedChunks(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   maxBytes: number,
-  idleMs: number
+  idleMs: number,
+  deadlineMs = 0
 ): Promise<{ chunks: Uint8Array[]; total: number; over: boolean; idle: boolean }> {
   const chunks: Uint8Array[] = [];
   let total = 0;
+  let pending: Promise<ReadableStreamReadResult<Uint8Array>> | null = null;
   for (;;) {
-    const read = await readWithinIdleBudget(reader, idleMs);
-    if (read === IDLE_READ) return { chunks, total, over: false, idle: true };
+    // A single in-flight read spans idle expiries: an expired budget never
+    // orphans the read that still owns the next chunk.
+    if (!pending) pending = reader.read();
+    const read = await readWithinIdleBudget(pending, idleMs);
+    if (read === IDLE_READ) {
+      // An open reasoning item means the model is still working, not stalled:
+      // keep draining under the absolute ceiling instead of judging a mute
+      // turn now. The counter below deliberately over-matches (unpaired adds
+      // stay "open"): biasing toward continuing is the safe direction.
+      if (deadlineMs > 0 && Date.now() < deadlineMs && hasOpenReasoning(decodeSoFar(chunks, total)))
+        continue;
+      return { chunks, total, over: false, idle: true };
+    }
     const { done, value } = read;
+    pending = null;
     if (done) break;
     if (!value) continue;
     total += value.byteLength;
@@ -89,6 +107,11 @@ async function drainBoundedChunks(
     chunks.push(value);
   }
   return { chunks, total, over: false, idle: false };
+}
+
+/** Best-effort decode of chunks drained so far, for the open-reasoning check. */
+function decodeSoFar(chunks: Uint8Array[], total: number): string {
+  return concatChunks(chunks, total) ?? "";
 }
 
 function concatChunks(chunks: Uint8Array[], total: number): string | null {
@@ -103,6 +126,38 @@ function concatChunks(chunks: Uint8Array[], total: number): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * True while a reasoning item is open in the raw buffered text: a
+ * `response.output_item.added` carrying a reasoning/thinking item with no
+ * matching close (`output_item.done`, `response.completed`/`failed`, or
+ * stream end) yet. Substring scan only — never parses, so truncated JSON is
+ * fine. A global counter (not per-item pairing): unpaired adds stay "open",
+ * biasing toward continuing the read, which is the safe direction.
+ */
+export function hasOpenReasoning(text: string): boolean {
+  if (!text) return false;
+  let open = 0;
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    const data = trimmed.slice(5);
+    if (
+      data.includes("response.output_item.added") &&
+      /"type"\s*:\s*"(?:reasoning|thinking)"/.test(data)
+    ) {
+      open += 1;
+    } else if (
+      data.includes("response.output_item.done") ||
+      data.includes("response.completed") ||
+      data.includes("response.failed") ||
+      data.trim() === "[DONE]"
+    ) {
+      if (open > 0) open -= 1;
+    }
+  }
+  return open > 0;
 }
 
 export type BoundedReadOutcome =
@@ -132,13 +187,26 @@ export type BoundedReadOutcome =
 export async function readBoundedResponseOutcome(
   response: Response,
   maxBytes: number,
-  idleMs = 0
+  idleMs = 0,
+  opts?: { maxTotalMs?: number }
 ): Promise<BoundedReadOutcome> {
   const clone = response.clone();
   if (!clone.body) return { kind: "skipped" };
   const reader = clone.body.getReader();
+  // Absolute ceiling for the continued read while reasoning stays open.
+  // Internal default (never propagated from the per-request policy, so the
+  // frozen caller needs no change); 0 keeps the historical behavior.
+  // Wall-clock deadline: a backward NTP step can only stretch, never cut,
+  // a reasoning wait — negligible over this span.
+  const maxTotalMs = opts?.maxTotalMs ?? STREAM_READINESS_MAX_TIMEOUT_MS;
+  const deadlineMs = maxTotalMs > 0 ? Date.now() + maxTotalMs : 0;
   try {
-    const { chunks, total, over, idle } = await drainBoundedChunks(reader, maxBytes, idleMs);
+    const { chunks, total, over, idle } = await drainBoundedChunks(
+      reader,
+      maxBytes,
+      idleMs,
+      deadlineMs
+    );
     if (idle) {
       // Never awaited: this branch exists because the stream stopped answering.
       void reader.cancel().catch(() => undefined);
@@ -167,7 +235,8 @@ export async function readBoundedResponseOutcome(
 
 // Discriminated by a string, not a boolean literal: a boolean discriminant does not
 // narrow under every tsconfig in this repo (the API-route check is one of them).
-export type BufferedTurnVerdict = { kind: "retry"; reason: string } | { kind: "pass"; why: string };
+export type BufferedTurnVerdict =
+  { kind: "retry"; reason: string } | { kind: "pass"; why: string; idlePass?: true };
 
 /**
  * Decide from a bounded read whether the buffered turn deserves a retry: an
@@ -187,12 +256,14 @@ export function judgeBufferedTurn(
     if (clientAborted) {
       return { kind: "pass", why: "stream stalled after the client went away" };
     }
-    const stalled = summarizeReplayedUpstreamTurn(read.text, targetFormat, clientFormat);
-    // Content already produced is worth keeping: the client pipe forwards it and
-    // owns the rest. Nothing usable means the turn is as empty as a silent one.
-    return stalled && !isUselessEmptyTurn(stalled)
-      ? { kind: "pass", why: "stalled turn already carries usable content" }
-      : { kind: "retry", reason: "stream stalled before any usable output" };
+    // Same classifier as the content watchdog: a stalled turn the watchdog
+    // would kill must never be passed through. The translated replay below
+    // cannot decide this — its catch-all keeps every Responses item, so it
+    // calls even a mute turn usable. Only raw useful content passes.
+    if (!hasUsefulStreamContent(read.text)) {
+      return { kind: "retry", reason: "stream stalled before any usable output" };
+    }
+    return { kind: "pass", why: "stalled turn already carries usable content", idlePass: true };
   }
   if (read.kind === "error") {
     return clientAborted

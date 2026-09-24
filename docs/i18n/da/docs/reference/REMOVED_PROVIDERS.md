@@ -4,64 +4,38 @@
 
 ---
 
-Nogle tjenester blev integreret i OmniRoute og senere fjernet, fordi de personer, der driver
-dem, bad om det. Denne side er den permanente registrering af disse fjernelser. Dens eneste
-formål er at forhindre, at de ved et uheld vender tilbage: En bidragyder, der finder en gammel
-fork, en cachelagret npm-tarball, en arkiveret issue eller en anmodning om at "gendanne
-udbyder X", har brug for ét sted, der siger **må ikke genintroduceres**.
+Nogle tjenester blev integreret i OmniRoute og senere fjernet, fordi de personer, der driver dem, bad om det. Denne side er det permanente arkiv over disse fjernelser. Dens eneste formål er at forhindre, at de ved et uheld kommer tilbage: En bidragyder, der finder en gammel fork, en cachen-npm-tarball, et arkiveret issue eller en "gendan udbyder X"-anmodning, har brug for ét sted, der siger **genintroducer ikke**.
 
-Denne side er **ikke** en liste over døde eller udfasede tjenester. Disse registreres i
-[`FREE_TIERS.md`](FREE_TIERS.md) ("Fjernet / intet gratis niveau") og kan vende tilbage, hvis
-tjenesten gør det. Posterne nedenfor kan kun vende tilbage med skriftlig tilladelse fra den
-operatør, der er angivet i anmodningen, og der skal linkes til denne tilladelse fra posten.
+Denne side er **ikke** en liste over døde eller afsluttede tjenester. Disse spores i [`FREE_TIERS.md`](FREE_TIERS.md) ("Fjernet / ingen gratis tier") og kan vende tilbage, hvis tjenesten gør. Elementerne herunder kan kun vende tilbage med skriftlig tilladelse fra den operatør, der er nævnt i anmodningen, og denne tilladelse skal være linket fra elementet.
 
 ## Politik
 
-1. **En anmodning om fjernelse fra en tjenesteoperatør efterkommes og forhandles ikke.**
-   OmniRoute er ikke tilknyttet nogen ekstern tjeneste. Når operatøren af en tjeneste beder om,
-   at integrationen fjernes, bliver den fjernet, uanset om integrationen brugte en officiel
-   API eller ej.
-2. **"Fjernet" betyder alle flader, som OmniRoute kontrollerer.** Executor, registreringspost,
-   udbyder-id og alias, modelliste, endpoints, miljøvariabler, ikon, dashboardkort, den
-   genererede udbyderreference, `FREE_TIERS.md`, miljøreferencen, optællinger i README,
-   `llm.txt`-spejlinger, dedikerede tests og golden snapshots, kodekommentarer,
-   CHANGELOG-punkter (med en registreret afstemning, se
-   `config/release/changelog-reconciliations.json`), noter til GitHub Releases, wikien samt
-   GitHub-issues, -diskussioner og pull requests, hvis emne var den pågældende udbyder (issues
-   og diskussioner slettes; pull requests får en ny titel, deres beskrivelse erstattes, og
-   tråden låses, fordi GitHub ikke kan slette pull requests).
-3. **Genintroducer aldrig en post på denne side uden skriftlig tilladelse.** Det omfatter at
-   føje id'et eller aliasset tilbage til et udbyderkatalog, føje domænerne til en executor,
-   acceptere en PR fra en bidragyder, som "gendanner" den, føje den til kataloget over gratis
-   modeller eller dokumentere en manuel måde at tilgå den på gennem OmniRoute. Luk sådanne
-   PR'er og issues med et link til denne side.
-4. **Hold posten minimal.** Registrer kun det, en reviewer behøver for at kunne genkende en
-   genintroduktion: identifikatorer, domæner, datoer og den pull request, der foretog
-   fjernelsen. Beskriv ikke, hvordan integrationen fungerede.
-5. **Regressionsbeskyttelsen er `tests/unit/removed-providers-blocklist.test.ts`.** Den fejler,
-   hvis en identifikator eller et domæne nedenfor dukker op igen i udbyderkatalogerne,
-   executor-mappingen eller udbyderregistrets kildekode. Føj de nye identifikatorer til denne
-   test i den samme PR, som tilføjer en række her.
+1. **En anmodning om nedtagning fra en tjenesteoperatør efterleves, den forhandles ikke.** OmniRoute er ikke tilknyttet nogen upstream-tjeneste. Når operatøren af en tjeneste beder om, at integrationen fjernes, så fjernes den, uanset om integrationen brugte en officiel API eller ej.
+2. **"Fjernet" betyder overalt, hvor OmniRoute har kontrol.** Udfører (executor), registreringsdatabaseregistrering, udbyder-id og alias, modelliste, slutpunkter (endpoints), miljøvariabler, ikon, dashboard-kort, den genererede udbyderreference, `FREE_TIERS.md`, miljøreferencen, README-tællere, `llm.txt`-spejle, dedikerede tests og golden snapshots, kodekommentarer, CHANGELOG-punkttegn (med en afstemt regnskabsføring, se `config/release/changelog-reconciliations.json`), GitHub Releases-noter, wiki'en samt de GitHub-issues, -diskussioner og -pull requests, hvis emne var den pågældende udbyder (issues og diskussioner slettet; pull requests omdøbt, deres beskrivelse erstattet og tråden låst, fordi GitHub ikke kan slette pull requests).
+3. **Genintroducer aldrig et element på denne side uden skriftlig tilladelse.** Det inkluderer at tilføje id'et eller aliaset tilbage til et udbyderkatalog, tilføje domænerne til en udfører, acceptere en bidragyder-PR, der "gendanner" det, tilføje det til kataloget over gratis modeller eller dokumentere en manuel måde at nå det på gennem OmniRoute. Luk sådanne PR'er og issues med et link til denne side.
+4. **Hold elementet minimalt.** Registrer kun det, en reviewer har brug for til at genkende en genintroduktion: identifikatorer, domæner, datoer og den pull request, der foretog fjernelsen. Beskriv ikke, hvordan integrationen fungerede.
+5. **Regressionsværnet er `tests/unit/removed-providers-blocklist.test.ts`.** Det fejler, når en identifikator eller et domæne herunder dukker op igen i udbyderkatalogerne, udførerkortet eller udbyderregisterets kilder. Tilføj de nye identifikatorer til den test i samme PR, der tilføjer en række her.
 
 ## Register
 
-| Fjernet den | Udbyder-id  | Alias  | Domæner                                 | Anmodet af                          | PR for fjernelse                                               | Noter                                                                                                                       |
-| ----------- | ----------- | ------ | --------------------------------------- | ----------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-12  | `puter`     | `pu`   | `puter.com`                             | Puters ejer (Nariman Jelveh)        | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | Udbyder med API-nøgle. Migreringen `152_remove_puter_provider.sql` rydder gemt konfiguration.                               |
-| 2026-09-02  | `theoldllm` | `tllm` | `theoldllm.com`, `theoldllm.vercel.app` | Tjenesteoperatøren (support-e-mail) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Udbyder uden nøgle. Skriftlig anmodning modtaget 2026-08-30. Dedikerede issues og diskussion slettet, PR'er fik nye titler. |
+| Fjernet den | Udbyder-id        | Alias    | Domæner                                          | Anmodet af                                                                                      | Fjernelses-PR                                                  | Bemærkninger                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----------- | ----------------- | -------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-12  | `puter`           | `pu`     | `puter.com`                                      | Puter's ejer (Nariman Jelveh)                                                                   | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | API-nøgleudbyder. Migration `152_remove_puter_provider.sql` rydder op i gemt konfiguration.                                                                                                                                                                                                                                                                                                                          |
+| 2026-09-02  | `theoldllm`       | `tllm`   | `theoldllm.com`, `theoldllm.vercel.app`          | Tjenesteoperatøren (support-e-mail)                                                             | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Nøglefri udbyder. Skriftlig anmodning modtaget 2026-08-30. Dedikerede issues og diskussion slettet, PR'er omdøbt.                                                                                                                                                                                                                                                                                                    |
+| 2026-09-21  | `gemini-business` | `gembiz` | `business.gemini.google`                         | Projektlederbeslutning (issue [#14217](https://github.com/diegosouzapw/OmniRoute/issues/14217)) | [#14467](https://github.com/diegosouzapw/OmniRoute/pull/14467) | Cookie-baseret webudbyder. Google udfasede `BardFrontendService/StreamGenerate`-slutpunktet, som eksekutoreren målrettede; erstatningen (`biz-discoveryengine.googleapis.com` `widgetStreamAssist`, Bearer JWT bootstrappet fra `__Secure-C_SES`/`csesidx`) kan ikke bygges eller valideres uden en aktiv Gemini Enterprise/Workspace-konto, hvilket projektet ikke har. Udfaset snarere end omskrevet uverificeret. |
+| 2026-09-21  | `suno`            | `suno`   | `studio-api.suno.ai`, `studio-api-prod.suno.com` | Projektlederbeslutning (`#14224`)                                                               | [#14468](https://github.com/diegosouzapw/OmniRoute/pull/14468) | Cookie-autentificeringsudbyder, ikke en operatørnedtagelse. `studio-api.suno.ai` blev suspenderet (503); den aktive vært kræver en Clerk JWT-udveksling plus en betalt hCaptcha-løsende afhængighed, som OmniRoute valgte ikke at tilføje for én musikudbyder. `kie/suno-v4.0` og `kie/suno-v3.5` (kie.ai-hostet) er upåvirkede og forbliver understøttet.                                                           |
 
 ## Tilføjelse af en post
 
-Når der modtages en ny anmodning om fjernelse:
+Når en ny anmodning om fjernelse ankommer:
 
 1. Bekræft, at anmodningen kommer fra operatøren af tjenesten (deres supportadresse eller et
-   domæne, de kontrollerer), og opbevar beskeden privat.
-2. Fjern integrationen ved at følge tjeklisten i politikkens punkt 2. Brug
-   [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) som reference for en udbyder
-   uden nøgle og [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) for en udbyder
-   med API-nøgle og gemte forbindelser (tilføj en migrering).
-3. Føj én række til tabellen ovenfor og identifikatorerne til
-   `tests/unit/removed-providers-blocklist.test.ts` i den samme PR.
-4. Svar operatøren, når PR'en er blevet flettet, med en liste over, hvad der blev fjernet, og
-   hvad OmniRoute ikke kan ændre (allerede udgivne npm- og Docker-versioner, git-historik og
-   tredjepartsforks).
+   domæne, de kontrollerer), og opbevar meddelelsen privat.
+2. Fjern integrationen ved at følge tjeklisten i politikpunkt 2. Brug
+   [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) som reference for en
+   nøglefri udbyder og [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) for en
+   API-nøgleudbyder med lagrede forbindelser (tilføj en migration).
+3. Tilføj en række til tabellen ovenfor og identifikatorerne til
+   `tests/unit/removed-providers-blocklist.test.ts`, i samme PR.
+4. Svar operatøren, når PR'en er flettet, og angiv, hvad der blev fjernet, og hvad OmniRoute
+   ikke kan ændre (allerede udgivne npm- og Docker-versioner, git-historik, tredjeparts-forks).

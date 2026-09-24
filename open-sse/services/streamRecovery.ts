@@ -174,6 +174,13 @@ export function isRetryableStreamError(error: unknown): boolean {
 // Anthropic `event: message_stop`. Presence means the stream ended cleanly.
 const OPENAI_DONE_MARKER = "[DONE]";
 const ANTHROPIC_STOP_MARKER = "message_stop";
+// A complete Responses-API turn ends with `response.completed`, never `[DONE]` —
+// without this the holdback mistakes a short complete Responses stream for a
+// truncation and replays it. `failed`/`incomplete` end the turn the same way:
+// they are never resumed or retried, only flushed as-is.
+const RESPONSES_COMPLETED_MARKER = "response.completed";
+const RESPONSES_FAILED_MARKER = "response.failed";
+const RESPONSES_INCOMPLETE_MARKER = "response.incomplete";
 
 /**
  * Heuristic check for a terminal SSE marker in the buffered opening window. Used to
@@ -184,7 +191,13 @@ const ANTHROPIC_STOP_MARKER = "message_stop";
 export function hasTerminalMarker(bytes: Uint8Array): boolean {
   if (!bytes || bytes.byteLength === 0) return false;
   const text = new TextDecoder().decode(bytes);
-  return text.includes(OPENAI_DONE_MARKER) || text.includes(ANTHROPIC_STOP_MARKER);
+  return (
+    text.includes(OPENAI_DONE_MARKER) ||
+    text.includes(ANTHROPIC_STOP_MARKER) ||
+    text.includes(RESPONSES_COMPLETED_MARKER) ||
+    text.includes(RESPONSES_FAILED_MARKER) ||
+    text.includes(RESPONSES_INCOMPLETE_MARKER)
+  );
 }
 
 // ──────────────── Mid-stream continuation primitives (Fase 4.4) ────────────────
@@ -227,7 +240,25 @@ export interface OpenAiSseScan {
   finishReason: string | null;
   /** True if at least one OpenAI-shaped `choices[].delta` was parsed (format gate). */
   parsedOpenAi: boolean;
+  /**
+   * True if at least one Responses-API event below was parsed (format gate,
+   * symmetric with `parsedOpenAi`): text/resasoning deltas, function-call
+   * signals, or a terminal lifecycle event.
+   */
+  parsedResponses: boolean;
 }
+
+/** Responses-API `type` values the scanner understands. Anything else is ignored. */
+const RESPONSES_TEXT_DELTA = "response.output_text.delta";
+const RESPONSES_TEXT_DONE = "response.output_text.done";
+const RESPONSES_REASONING_DELTA = "response.reasoning_summary_text.delta";
+const RESPONSES_FN_ARGS_DELTA = "response.function_call_arguments.delta";
+const RESPONSES_FN_ARGS_DONE = "response.function_call_arguments.done";
+const RESPONSES_ITEM_ADDED = "response.output_item.added";
+const RESPONSES_ITEM_DONE = "response.output_item.done";
+const RESPONSES_COMPLETED = "response.completed";
+const RESPONSES_FAILED = "response.failed";
+const RESPONSES_INCOMPLETE = "response.incomplete";
 
 /**
  * Scan a slice of OpenAI-compatible SSE for the assistant text, tool-call presence, and
@@ -235,74 +266,208 @@ export interface OpenAiSseScan {
  * to `parsedOpenAi:false` with empty text, so the caller falls back to current behavior.
  */
 export function scanOpenAiSseText(sse: string): OpenAiSseScan {
-  let text = "";
-  let reasoningText = "";
-  let sawToolCall = false;
-  let toolCallFinished = false;
-  let terminal = false;
-  let finishReason: string | null = null;
-  let parsedOpenAi = false;
+  const fold: SseScanFold = {
+    text: "",
+    reasoningText: "",
+    sawToolCall: false,
+    toolCallFinished: false,
+    terminal: false,
+    finishReason: null,
+    parsedOpenAi: false,
+    parsedResponses: false,
+  };
   if (typeof sse !== "string" || sse.length === 0) {
     return {
-      text,
-      reasoningText,
-      sawToolCall,
+      text: fold.text,
+      reasoningText: fold.reasoningText,
+      sawToolCall: fold.sawToolCall,
       sawToolCallInFlight: false,
-      terminal,
-      finishReason,
-      parsedOpenAi,
+      terminal: fold.terminal,
+      finishReason: fold.finishReason,
+      parsedOpenAi: fold.parsedOpenAi,
+      parsedResponses: fold.parsedResponses,
     };
   }
   for (const line of sse.split("\n")) {
-    const trimmed = line.trimStart();
-    if (!trimmed.startsWith("data:")) continue;
-    const payload = trimmed.slice(5).trim();
-    if (!payload) continue;
-    if (payload === "[DONE]") {
-      terminal = true;
-      continue;
-    }
-    let json: unknown;
-    try {
-      json = JSON.parse(payload);
-    } catch {
-      continue;
-    }
-    const choices = (json as { choices?: unknown })?.choices;
-    if (!Array.isArray(choices)) continue;
-    for (const choice of choices) {
-      const delta = (choice as { delta?: unknown })?.delta;
-      if (delta && typeof delta === "object") {
-        parsedOpenAi = true;
-        const content = (delta as { content?: unknown }).content;
-        if (typeof content === "string") text += content;
-        const reasoning = (delta as { reasoning_content?: unknown }).reasoning_content;
-        if (typeof reasoning === "string") reasoningText += reasoning;
-        const toolCalls = (delta as { tool_calls?: unknown }).tool_calls;
-        if (Array.isArray(toolCalls) && toolCalls.length > 0) sawToolCall = true;
-      }
-      const rawFinishReason = (choice as { finish_reason?: unknown })?.finish_reason;
-      if (rawFinishReason === "tool_calls") {
-        // Ends this one choice, but the overall stream/turn stays continuable —
-        // never counts as the general terminal marker (see OpenAiSseScan.terminal).
-        toolCallFinished = true;
-        finishReason = "tool_calls";
-      } else if (rawFinishReason != null) {
-        terminal = true;
-        if (typeof rawFinishReason === "string") finishReason = rawFinishReason;
-      }
-    }
+    scanSseLine(line, fold);
   }
-  const sawToolCallInFlight = sawToolCall && !toolCallFinished;
+  const sawToolCallInFlight = fold.sawToolCall && !fold.toolCallFinished;
   return {
-    text,
-    reasoningText,
-    sawToolCall,
+    text: fold.text,
+    reasoningText: fold.reasoningText,
+    sawToolCall: fold.sawToolCall,
     sawToolCallInFlight,
-    terminal,
-    finishReason,
-    parsedOpenAi,
+    terminal: fold.terminal,
+    finishReason: fold.finishReason,
+    parsedOpenAi: fold.parsedOpenAi,
+    parsedResponses: fold.parsedResponses,
   };
+}
+
+interface SseScanFold {
+  text: string;
+  reasoningText: string;
+  sawToolCall: boolean;
+  toolCallFinished: boolean;
+  terminal: boolean;
+  finishReason: string | null;
+  parsedOpenAi: boolean;
+  parsedResponses: boolean;
+}
+
+/** Parse one raw SSE line into the running scan fold. */
+function scanSseLine(line: string, fold: SseScanFold): void {
+  const trimmed = line.trimStart();
+  if (!trimmed.startsWith("data:")) return;
+  const payload = trimmed.slice(5).trim();
+  if (!payload) return;
+  if (payload === "[DONE]") {
+    fold.terminal = true;
+    return;
+  }
+  let json: unknown;
+  try {
+    json = JSON.parse(payload);
+  } catch {
+    return;
+  }
+  const choices = (json as { choices?: unknown })?.choices;
+  if (Array.isArray(choices)) {
+    for (const choice of choices) scanChatChoice(choice, fold);
+    return;
+  }
+  // Responses-API events: same scan, allowlisted `type` values only. Gated on
+  // `data:` JSON exactly like the chat path above, so a bare `event:` line
+  // without a payload stays invisible here (the holdback substring in
+  // `hasTerminalMarker` still covers the pre-commit window).
+  scanResponsesEvent(json as Record<string, unknown>, {
+    addText: (delta) => {
+      fold.text += delta;
+    },
+    addReasoning: (delta) => {
+      fold.reasoningText += delta;
+    },
+    markToolCall: () => {
+      fold.sawToolCall = true;
+    },
+    markToolCallFinished: () => {
+      fold.sawToolCall = true;
+      fold.toolCallFinished = true;
+    },
+    markTerminal: () => {
+      fold.terminal = true;
+    },
+    markParsed: () => {
+      fold.parsedResponses = true;
+    },
+  });
+}
+
+/** Fold one chat-completions `choices[]` entry into the running scan fold. */
+function scanChatChoice(choice: unknown, fold: SseScanFold): void {
+  const delta = (choice as { delta?: unknown })?.delta;
+  if (delta && typeof delta === "object") {
+    fold.parsedOpenAi = true;
+    const content = (delta as { content?: unknown }).content;
+    if (typeof content === "string") fold.text += content;
+    const reasoning = (delta as { reasoning_content?: unknown }).reasoning_content;
+    if (typeof reasoning === "string") fold.reasoningText += reasoning;
+    const toolCalls = (delta as { tool_calls?: unknown }).tool_calls;
+    if (Array.isArray(toolCalls) && toolCalls.length > 0) fold.sawToolCall = true;
+  }
+  scanChatFinishReason((choice as { finish_reason?: unknown })?.finish_reason, fold);
+}
+
+/** Fold one chat-completions `finish_reason` value into the running scan fold. */
+function scanChatFinishReason(rawFinishReason: unknown, fold: SseScanFold): void {
+  if (rawFinishReason === "tool_calls") {
+    // Ends this one choice, but the overall stream/turn stays continuable —
+    // never counts as the general terminal marker (see OpenAiSseScan.terminal).
+    fold.toolCallFinished = true;
+    fold.finishReason = "tool_calls";
+  } else if (rawFinishReason != null) {
+    fold.terminal = true;
+    if (typeof rawFinishReason === "string") fold.finishReason = rawFinishReason;
+  }
+}
+
+interface ResponsesScanSink {
+  addText: (delta: string) => void;
+  addReasoning: (delta: string) => void;
+  markToolCall: () => void;
+  markToolCallFinished: () => void;
+  markTerminal: () => void;
+  markParsed: () => void;
+}
+
+/**
+ * Fold one parsed Responses-API `data:` payload into the scan. Only the
+ * allowlisted `type` values below set any flag; every other event (lifecycle
+ * echoes such as `response.output_text.done`, unknown provider extensions) is
+ * ignored. `output_item.*` is gated on a `function_call` item — a plain text
+ * turn announces `message` items that must never trip the tool-call lock.
+ */
+function scanResponsesEvent(json: Record<string, unknown>, sink: ResponsesScanSink): void {
+  const eventType = (json as { type?: unknown }).type;
+  if (typeof eventType !== "string") return;
+  if (eventType === RESPONSES_TEXT_DELTA || eventType === RESPONSES_REASONING_DELTA) {
+    scanResponsesTextDelta(json, eventType, sink);
+    return;
+  }
+  if (eventType === RESPONSES_TEXT_DONE) {
+    // Lifecycle echo only (downstream drops it); never text, never a tool call.
+    return;
+  }
+  if (eventType === RESPONSES_FN_ARGS_DELTA || eventType === RESPONSES_FN_ARGS_DONE) {
+    if (eventType === RESPONSES_FN_ARGS_DONE) sink.markToolCallFinished();
+    else sink.markToolCall();
+    sink.markParsed();
+    return;
+  }
+  if (eventType === RESPONSES_ITEM_ADDED || eventType === RESPONSES_ITEM_DONE) {
+    scanResponsesOutputItem(json, eventType, sink);
+    return;
+  }
+  if (
+    eventType === RESPONSES_COMPLETED ||
+    eventType === RESPONSES_FAILED ||
+    eventType === RESPONSES_INCOMPLETE
+  ) {
+    // End of transport in every status, including a `completed` carrying a
+    // failed response snapshot: never resumed, never retried.
+    sink.markTerminal();
+    sink.markParsed();
+  }
+}
+
+/** Fold a text or reasoning delta event into the scan. */
+function scanResponsesTextDelta(
+  json: Record<string, unknown>,
+  eventType: string,
+  sink: ResponsesScanSink
+): void {
+  const delta = (json as { delta?: unknown }).delta;
+  if (typeof delta !== "string" || delta.length === 0) {
+    sink.markParsed();
+    return;
+  }
+  if (eventType === RESPONSES_REASONING_DELTA) sink.addReasoning(delta);
+  else sink.addText(delta);
+  sink.markParsed();
+}
+
+/** Fold an `output_item.*` event into the scan when it carries a function call. */
+function scanResponsesOutputItem(
+  json: Record<string, unknown>,
+  eventType: string,
+  sink: ResponsesScanSink
+): void {
+  const item = (json as { item?: unknown }).item;
+  const itemType = item && typeof item === "object" ? (item as { type?: unknown }).type : undefined;
+  if (itemType !== "function_call") return;
+  if (eventType === RESPONSES_ITEM_DONE) sink.markToolCallFinished();
+  else sink.markToolCall();
+  sink.markParsed();
 }
 
 export interface ContinuableBody {
@@ -313,26 +478,48 @@ export interface ContinuableBody {
 
 /**
  * Build a re-request body that continues from `assistantSoFar` by appending it as an
- * assistant turn. When `assistantSoFar` is empty (nothing usable was emitted yet — e.g. a
- * clean stop that only produced reasoning), the messages are re-sent unchanged instead of
- * appending an empty assistant turn: this simply re-asks for a real answer. Returns null
- * only when the body has no `messages` array at all (nothing to continue from).
+ * assistant turn. Chat bodies (`messages`) win over Responses bodies (`input`) when
+ * both are present. When `assistantSoFar` is empty (nothing usable was emitted yet —
+ * e.g. a clean stop that only produced reasoning), the turns are re-sent unchanged
+ * instead of appending an empty assistant turn: this simply re-asks for a real answer.
+ * Returns null when the body carries neither a non-empty `messages` array nor a
+ * non-empty `input` array (nothing to continue from).
  */
 export function makeContinuationBody(
   body: ContinuableBody,
   assistantSoFar: string
-): (ContinuableBody & { messages: unknown[] }) | null {
+): (ContinuableBody & { messages: unknown[] }) | (ContinuableBody & { input: unknown[] }) | null {
   if (!body || typeof body !== "object") return null;
-  if (!Array.isArray(body.messages) || body.messages.length === 0) return null;
   if (typeof assistantSoFar !== "string") return null;
-  return {
-    ...body,
-    messages:
-      assistantSoFar.length > 0
-        ? [...body.messages, { role: "assistant", content: assistantSoFar }]
-        : [...body.messages],
-    stream: true,
-  };
+  if (Array.isArray(body.messages) && body.messages.length > 0) {
+    return {
+      ...body,
+      messages:
+        assistantSoFar.length > 0
+          ? [...body.messages, { role: "assistant", content: assistantSoFar }]
+          : [...body.messages],
+      stream: true,
+    };
+  }
+  if (Array.isArray(body.input) && body.input.length > 0) {
+    return {
+      ...body,
+      input:
+        assistantSoFar.length > 0
+          ? [
+              ...body.input,
+              {
+                type: "message",
+                role: "assistant",
+                content: [{ type: "output_text", text: assistantSoFar }],
+                status: "completed",
+              },
+            ]
+          : [...body.input],
+      stream: true,
+    };
+  }
+  return null;
 }
 
 /**
@@ -467,6 +654,7 @@ export function createRecoverableStream(
   let emittedSawToolCall = false; // any tool_call delta seen, complete or not
   let emittedToolCallFinish = false; // any finish_reason "tool_calls" seen
   let emittedParsedOpenAi = false;
+  let emittedParsedResponses = false;
   // STREAM_RECOVERY_TOOLCALL_ORDER_FIX, resolved lazily at most once per stream and only
   // on a recovery decision, so the flag costs nothing on streams that end cleanly.
   let toolCallOrderFix: boolean | undefined;
@@ -494,6 +682,7 @@ export function createRecoverableStream(
     if (scan.sawToolCall) emittedSawToolCall = true;
     if (scan.finishReason === "tool_calls") emittedToolCallFinish = true;
     if (scan.parsedOpenAi) emittedParsedOpenAi = true;
+    if (scan.parsedResponses) emittedParsedResponses = true;
   };
 
   const flushHeld = (controller: ReadableStreamDefaultController<Uint8Array>) => {
@@ -543,7 +732,7 @@ export function createRecoverableStream(
   const canContinue = () =>
     continueEnabled &&
     continuations < maxContinuations &&
-    emittedParsedOpenAi &&
+    (emittedParsedOpenAi || emittedParsedResponses) &&
     !emittedToolCallInFlight &&
     (emittedText.length > 0 ? !emittedTerminal : hallucinatedEmptyStop()) &&
     !toolCallBlocksContinuation();
@@ -551,14 +740,39 @@ export function createRecoverableStream(
   // Report why a cut is not continued. Silent for non-OpenAI bodies (continuation never
   // applies to them) so the hook stays quiet on every Claude/Gemini-format stream end.
   const reportRefusal = () => {
-    if (!continueEnabled || !emittedParsedOpenAi || !options.onContinueOutcome) return;
+    if (
+      !continueEnabled ||
+      (!emittedParsedOpenAi && !emittedParsedResponses) ||
+      !options.onContinueOutcome
+    )
+      return;
     let reason: ContinuationRefusal = "not-continuable";
     if (continuations >= maxContinuations) reason = "budget";
     else if (emittedToolCallInFlight || toolCallBlocksContinuation()) reason = "tool-call";
     options.onContinueOutcome({ attempt: continuations, outcome: "refused", reason });
   };
 
+  // True for the Responses path (see `isResponsesTurn` below): the client stream
+  // carries raw upstream Responses events here (translation to chat happens
+  // downstream), so the stitched suffix and the clean terminal must speak the
+  // same format. Mixed-format turns fall back to the chat envelope.
+  const isResponsesTurn = () => emittedParsedResponses && !emittedParsedOpenAi;
+
   const emitCleanTerminal = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    if (isResponsesTurn()) {
+      // A minimal `response.completed` snapshot: the downstream Responses-to-chat
+      // translator treats it exactly like a real upstream terminal — usage
+      // extraction, snapshot tool-call synthesis, then `computeFinishReason` on
+      // the turn state it already accumulated, so `tool_calls` vs `stop` needs
+      // no logic here. A second `completed` after `finishReasonSent` resolves to
+      // no chunk downstream, so re-stating completion is idempotent.
+      controller.enqueue(
+        encoder.encode(
+          'data: {"type":"response.completed","response":{"status":"completed","output":[]}}\n\n'
+        )
+      );
+      return;
+    }
     controller.enqueue(
       encoder.encode('data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n')
     );
@@ -629,12 +843,24 @@ export function createRecoverableStream(
     }
     const suffix = overlapResult;
     if (suffix) {
-      emit(
-        controller,
-        encoder.encode(
-          `data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: suffix } }] })}\n\n`
-        )
-      );
+      if (isResponsesTurn()) {
+        // Same envelope as the upstream text deltas so the downstream
+        // translator folds the suffix into a chat `content` chunk with no
+        // prior announcement events required.
+        emit(
+          controller,
+          encoder.encode(
+            `data: ${JSON.stringify({ type: "response.output_text.delta", output_index: 0, content_index: 0, delta: suffix })}\n\n`
+          )
+        );
+      } else {
+        emit(
+          controller,
+          encoder.encode(
+            `data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: suffix } }] })}\n\n`
+          )
+        );
+      }
       report({ attempt: continuations, outcome: "suffix", suffixChars: suffix.length });
     }
     // A clean finish, or a tool call we cannot safely stitch, ends the recovered stream.

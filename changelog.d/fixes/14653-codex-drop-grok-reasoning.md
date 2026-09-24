@@ -1,0 +1,1 @@
+- **fix(codex):** A combo turn that falls back from `grok-cli` to `codex` no longer fails with `The encrypted content for item rs_… could not be verified`: Grok Build reasoning items (`rs_<uuid>`, `tco_…`) are dropped from the replay before dispatch ([#14653](https://github.com/diegosouzapw/OmniRoute/pull/14653)) — thanks @QuangBlue

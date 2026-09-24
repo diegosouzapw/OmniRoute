@@ -4,56 +4,67 @@
 
 ---
 
-OmniRoute menerbitkan artifak npm + Docker. Gerbang ini menyediakan asal-usul,
-inventori (SBOM) dan pengimbasan CVE, semuanya OSS, yang disepadukan ke dalam aliran kerja keluaran.
-Pendekatan **nasihat-dahulu** — gerbang ini membuat laporan buat masa ini dan akan dijadikan gerbang penyekat selepas keluaran
-hijau pertama.
+OmniRoute menerbitkan artifak npm + Docker. Gerbang-gerbang ini menyediakan provenans, inventori (SBOM) dan pengimbasan CVE, semuanya OSS, yang disambungkan ke aliran kerja keluaran. Pendekatan **mengutamakan nasihat** — mereka melaporkan sekarang, dan akan dinaikkan taraf kepada penyekatan selepas keluaran hijau pertama.
 
-| Gerbang                | Alat                                           | Lokasi                          | Menyekat?                   | Output                                            |
-| ---------------------- | ---------------------------------------------- | ------------------------------- | --------------------------- | ------------------------------------------------- |
-| Asal-usul SLSA (npm)   | `npm --provenance` (OIDC)                      | `npm-publish.yml`               | hanya jika penerbitan gagal | lencana npmjs / `npm audit signatures`            |
-| SBOM npm               | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`               | hanya jika penjanaan gagal  | Aset keluaran + artifak                           |
-| Imej SBOM              | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (gabungan) | nasihat                     | Artifak CycloneDX                                 |
-| CVE Trivy (SARIF)      | `aquasecurity/trivy-action`                    | `docker-publish.yml` (gabungan) | nasihat                     | SARIF (HIGH+CRITICAL) → tab Security              |
-| Gerbang CRITICAL Trivy | `aquasecurity/trivy-action`                    | `docker-publish.yml` (gabungan) | **menyekat**                | `exit-code: '1'` pada CRITICAL yang boleh dibaiki |
-| vulnCount osv          | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`)   | **menyekat**                | mengetatkan `metrics.vulnCount` (arah: menurun)   |
-| Scorecard OpenSSF      | `ossf/scorecard-action`                        | `scorecard.yml` (cron)          | nasihat                     | SARIF → Security + lencana                        |
+| Gerbang                | Alat                                           | Di Mana                       | Menyekat?                   | Output                                               |
+| :--------------------- | :--------------------------------------------- | :---------------------------- | :-------------------------- | :--------------------------------------------------- |
+| Provenans SLSA (npm)   | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | hanya jika penerbitan gagal | lencana npmjs / `npm audit signatures`               |
+| SBOM npm               | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | hanya jika penjanaan gagal  | Aset keluaran + artifak                              |
+| SBOM imej              | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | nasihat                     | Artifak CycloneDX                                    |
+| Trivy CVE (SARIF)      | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | nasihat                     | SARIF (HIGH+CRITICAL) → tab Keselamatan              |
+| Gerbang KRITIKAL Trivy | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **menyekat**                | `exit-code: '1'` pada KRITIKAL yang boleh diperbaiki |
+| osv vulnCount          | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **menyekat**                | melaraskan `metrics.vulnCount` (arah:turun)          |
+| OpenSSF Scorecard      | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | nasihat                     | SARIF → Keselamatan + lencana                        |
 
-Pengetatan CVE imej menggunakan **dua langkah** dalam `docker-publish.yml`: langkah SARIF
-(`HIGH,CRITICAL`, `exit-code: 0`) memastikan HIGH+CRITICAL kekal kelihatan dalam tab Security
-tanpa menyekat; langkah _gerbang CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) menggagalkan keluaran apabila terdapat CVE CRITICAL **dengan pembaikan yang tersedia**. `ignore-unfixed`
-menghalang keluaran daripada disekat kerana CVE imej asas yang tiada tampalan huluan.
+Penyelarasan CVE imej menggunakan **dua langkah** dalam `docker-publish.yml`: langkah SARIF (`HIGH,CRITICAL`, `exit-code: 0`) memastikan HIGH+CRITICAL kelihatan dalam tab Keselamatan tanpa menyekat; langkah _gerbang KRITIKAL_ (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) menggagalkan keluaran pada CVE KRITIKAL **dengan pembetulan yang tersedia**. `ignore-unfixed` menghalang penyekatan keluaran untuk CVE imej asas tanpa tampalan huluan.
 
-## ⚠️ Varians CVE (gerbang osv/Trivy yang menyekat)
+## ⚠️ Varians CVE (menyekat gerbang osv/Trivy)
 
-osv dan Trivy membandingkan kebergantungan dengan pangkalan data CVE yang **berkembang secara berterusan**. Sesuatu PR
-yang **tidak mengubah sebarang kebergantungan** boleh tiba-tiba menjadi merah kerana CVE baharu telah
-didedahkan dalam kebergantungan sedia ada (osv: `vulnCount` yang diukur > garis dasar; Trivy: CRITICAL baharu
-yang boleh dibaiki dalam imej). **Ini ialah tingkah laku operasi YANG DIJANGKA bagi gerbang
-CVE yang menyekat, bukannya regresi produk.**
+osv dan Trivy membandingkan kebergantungan terhadap pangkalan data CVE yang **terus berkembang**. PR yang **tidak menyentuh sebarang kebergantungan** boleh tiba-tiba bertukar merah kerana CVE baharu didedahkan dalam kebergantungan sedia ada (osv: `vulnCount` yang diukur > garis dasar; Trivy: KRITIKAL baharu yang boleh diperbaiki dalam imej). **Ini adalah tingkah laku operasi yang DIJANGKA bagi gerbang CVE yang menyekat, bukan regresi produk.**
 
-Apabila osv atau Trivy menjadi merah kerana CVE yang baru didedahkan, penyelesaiannya ialah:
+Apabila osv atau Trivy bertukar merah disebabkan CVE yang baru didedahkan, penyelesaiannya adalah:
 
-1. **Naik taraf kebergantungan yang terjejas** (diutamakan) — naik taraf kepada versi yang telah ditampal melalui `package.json`
-   `overrides` (kebergantungan transitif) atau bina semula imej menggunakan imej asas yang telah ditampal.
-2. **Jika tiada pembaikan huluan:**
-   - **osv:** tetapkan semula garis dasar `metrics.vulnCount` dalam `config/quality/quality-baseline.json`
-     (`npm run quality:ratchet -- --update` tidak merangkumi gerbang khusus — sunting nilainya secara
-     manual, `direction:down`) dengan nota justifikasi + isu penjejakan.
-   - **Trivy:** tambahkan entri dalam `.trivyignore` (satu CVE-ID setiap baris) dengan komen
-     justifikasi + isu penjejakan. `ignore-unfixed: true` telah pun merangkumi CVE tanpa
-     tampalan secara automatik.
+1.  **Tingkatkan kebergantungan yang terjejas** (pilihan) — naik taraf kepada versi yang ditampal melalui `overrides` `package.json` (kebergantungan transitif) atau bina semula imej pada asas yang ditampal.
+2.  **Jika tiada pembetulan huluan:**
+    - **osv:** tetapkan semula garis dasar `metrics.vulnCount` dalam `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` tidak meliputi gerbang khusus — edit nilai secara manual, `direction:down`) dengan nota justifikasi + isu penjejakan.
+    - **Trivy:** tambah entri dalam `.trivyignore` (CVE-ID setiap baris) dengan komen justifikasi + isu penjejakan. `ignore-unfixed: true` sudah meliputi CVE tanpa tampalan secara automatik.
 
-Kedua-dua gerbang **MELANGKAU dengan baik** (keluar 0) apabila alat tiada atau pengukuran
-gagal (osv-scanner tiada dalam PATH, osv.dev/rangkaian tidak dapat dicapai, JSON tidak sah) — kegagalan
-**pengukuran** tidak akan menyekat; hanya regresi yang **diukur** akan menyekat.
+Kedua-dua gerbang **melangkau dengan lancar** (exit 0) apabila alat tiada atau pengukuran gagal (osv-scanner tiada dalam PATH, osv.dev/rangkaian tidak dapat dicapai, JSON tidak sah) — kegagalan **pengukuran** tidak pernah menyekat, hanya regresi yang **diukur** yang menyekat.
 
-## Backlog: Nasihat Scorecard → menyekat
+## Risiko Diterima yang Diketahui
+
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
+
+`extract-zip@2.0.1` membawa dua nasihat symlink-traversal berisiko tinggi yang belum ditampal.
+Mengikut cabang "tiada pembetulan huluan" dari penyelesaian Varians CVE di atas, ini adalah
+**risiko yang diterima**, bukan peningkatan:
+
+- **Rantaian:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Disahkan melalui `package-lock.json` — tepat satu pakej dalam keseluruhan pepohon
+  kebergantungan (`@openai/codex-security`) mengisytiharkan `extract-zip`, dan tepat satu pakej
+  (`promptfoo`) mengisytiharkan `@openai/codex-security`.
+- **Tiada keluaran tetap wujud di mana-mana dalam rantaian.** `extract-zip@2.0.1` (diterbitkan 2020) adalah keluaran terakhir pakej tersebut — ia tidak diselenggara. `npm-latest` semasa `@openai/codex-security` (`0.1.29`) masih menarik `extract-zip@2.0.1`.
+- **Tidak dapat dicapai dari produksi.** `promptfoo` adalah `devDependency`-sahaja (tidak pernah disenaraikan
+  di bawah `dependencies`), dan tiada fail di bawah `src/`, `open-sse/`, atau `bin/` mengimport
+  pakej npm `extract-zip` — pembantu `extractZip()` OmniRoute sendiri
+  (`src/lib/versionManager/binaryManager.ts:93`) menggunakan `unzip`/`tar` asli
+  dan tidak berkaitan. `@openai/codex-security` juga menyediakan pengawal symlink-traversal sendiri
+  di atas panggilan balik `onEntry` `extract-zip`.
+- **Jangan** alias `extract-zip` melalui `overrides` `package.json` — satu-satunya pengganti yang boleh digunakan
+  adalah Electron-org-internal dan tidak serasi API dengan pemeriksaan `onEntry`/`defaultDirMode`/`defaultFileMode`
+  `@openai/codex-security` sendiri; menggantikannya akan secara senyap memecahkan pemeriksaan keselamatan pakej tersebut.
+- **Garis Dasar:** `vulnCount` osv yang diukur (3) sudah jauh di bawah garis dasar
+  `config/quality/quality-baseline.json` yang dibekukan (27) — tiada perubahan ratchet diperlukan.
+- **Pengawal Regresi:** `tests/unit/extract-zip-14482-exposure.test.ts` mengesahkan
+  rantaian dan invarian tiada-import-produksi di atas; ia akan menyebabkan CI gagal jika salah satu daripadanya
+  rosak (cth. PR masa depan menjadikan `extract-zip` dapat dicapai dari produksi).
+- **Penjejakan:** isu #14482.
+
+## Tunggakan: Nasihat Scorecard → menyekat
 
 Selepas keluaran hijau pertama dengan pelaporan Scorecard:
 
-- Scorecard: pengetatan skor (membekukan skor yang diukur; tidak boleh menurun).
+- Scorecard: ratchet skor (membekukan skor yang diukur; tidak boleh berkurang).
 
 Melengkapi gerbang Fasa 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-mengaudit aliran kerja itu sendiri; Scorecard mengukur postur repositori secara keseluruhan.
+mengaudit aliran kerja itu sendiri; Scorecard mengukur postur repo secara agregat.

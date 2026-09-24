@@ -64,6 +64,10 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
  * and falls back to its own billed classifier requests for the rest of the
  * session. Forwarding the pair intact is what makes a gateway session eligible
  * (https://code.claude.com/docs/en/auto-mode-classifier-billing).
+ *
+ * afk-mode-2026-01-31 is the second beta Claude Code attaches while auto mode is
+ * active (captured on the wire in #14186). Dropping it strips the auto-mode
+ * negotiation the upstream expects next to the classifier pair.
  */
 export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "tool-search-tool-2025-10-19",
@@ -80,6 +84,7 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "thinking-binding-controls-2026-08-01",
   "thinking-display-updates-2026-08-18",
   "dangerous-tool-use-2026-09-03",
+  "afk-mode-2026-01-31",
 ]);
 
 /**

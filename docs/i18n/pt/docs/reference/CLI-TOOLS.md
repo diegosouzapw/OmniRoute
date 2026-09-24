@@ -45,54 +45,25 @@ Agentes ACP (fluxo de geração reverso):
 
 ## Auto-configurar com `setup-*`
 
-Você não precisa escrever a configuração de cada ferramenta à mão. O OmniRoute fornece um comando `setup-*`
-por CLI suportada que lê o catálogo de modelos **ao vivo** de um OmniRoute em execução (local ou remoto) e escreve a configuração da ferramenta na sua máquina:
+Não precisa de escrever a configuração de cada ferramenta manualmente. O OmniRoute inclui um comando `setup-*` por cada CLI suportada que lê o catálogo de modelos **em tempo real** de um OmniRoute em execução (local ou remoto) e escreve a configuração da própria ferramenta na sua máquina:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Cada um aceita `--remote <url> --api-key <key>` (configurar uma ferramenta local contra um
-OmniRoute remoto), `--dry-run` (pré-visualização sem escrita), e `--port`. Ferramentas
-sem descoberta automática de modelo (Cline, Kilo, Roo, Goose, Aider, Qwen) aceitam
-`--model <id>` (e `--yes` para execuções não interativas). Para lançar uma CLI com o
-ambiente correto injetado e sem configuração escrita, use o lançador genérico
-`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — alvos e aliases vêm de `bin/cli/cli-manifest.mjs`); os lançadores legados
-por ferramenta `omniroute launch` (Claude Code) e `omniroute launch-codex`
-(Codex) permanecem disponíveis. A CLI Gemini é apenas para lançamento: é um alvo de
-`omniroute run` mas não tem receita `setup-*`/`configure`.
+Cada um aceita `--remote <url> --api-key <key>` (configura uma ferramenta local contra um OmniRoute remoto), `--dry-run` (pré-visualização sem escrita) e `--port`. Ferramentas sem auto-descoberta de modelos (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) aceitam `--model <id>` (e `--yes` para execuções não interativas). `setup-5dive` é a única receita que não escreve em `$HOME`: configura uma frota de agentes 5dive escrevendo um perfil de autenticação de propriedade do root no host da frota, re-executando assim através de `sudo` e não tendo um modo remoto próprio. Para iniciar uma CLI com o ambiente certo injetado e sem nenhuma configuração escrita, use o lançador genérico `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — os alvos e aliases vêm de `bin/cli/cli-manifest.mjs`); os lançadores legados por ferramenta `omniroute launch` (Claude Code) e `omniroute launch-codex` (Codex) permanecem disponíveis. A CLI Gemini é apenas para lançamento: é um alvo `omniroute run` mas não tem uma receita `setup-*`/`configure`.
 
-> **Referência completa:** a tabela mestre — o que cada comando escreve, cada flag,
-> local vs remoto, e quais ferramentas querem um sufixo `/v1` — está em
-> **[Integrações CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Referência completa:** a tabela mestra — o que cada comando escreve, cada flag, local vs remoto, e quais ferramentas querem um sufixo `/v1` — encontra-se em **[Integrações CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Executando estes dentro de um contêiner
+### Executar estes comandos dentro de um contentor
 
-Um comando `setup-*` executado dentro do contêiner OmniRoute escreve no
-próprio diretório home do contêiner, que nenhuma CLI do host lê e que desaparece com o
-contêiner. O OmniRoute detecta isso e sai com `2` com instruções em vez de escrever. Duas maneiras suportadas de avançar — instalar a CLI no host e
-`omniroute connect` para o contêiner, ou montar os diretórios de configuração e definir
-`CLI_CONFIG_HOME` (o perfil `host` do compose). Cada comando `setup-*`, além de
-`omniroute configure` e `omniroute config set`, aceita
-`--allow-container-write` quando configurar as próprias CLIs do contêiner é o que você
-realmente quis dizer; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` faz o mesmo para
-o servidor. Veja
-[Guia Docker → Configurando ferramentas CLI do host](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Um comando `setup-*` executado dentro do contentor OmniRoute escreve no próprio diretório home do contentor, que nenhuma CLI do host lê e que desaparece com o contentor. O OmniRoute deteta isso e sai com o código `2` com instruções em vez de escrever. Duas formas suportadas de avançar — instalar a CLI no host e `omniroute connect` ao contentor, ou montar os diretórios de configuração e definir `CLI_CONFIG_HOME` (o perfil `host` do compose). Cada comando `setup-*`, mais `omniroute configure` e `omniroute config set`, aceita `--allow-container-write` quando configurar as próprias CLIs do contentor é o que realmente pretendia; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` faz o mesmo para o servidor. Consulte o [Guia Docker → Configurar ferramentas CLI do host](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-O **endpoint de aplicação** do painel (`POST /api/cli-tools/apply`) impõe a
-mesma proteção: em um contêiner, uma escrita cujo alvo não está montado do
-host responde **`422`** com `containerEphemeralTarget: true`, o texto de erro seguro
-e — para as ferramentas com uma receita de host (claude, codex, opencode, cline,
-kilo, continue) — um `hostSetupCommand` (por exemplo, `omniroute setup-opencode`) para executar
-no host em vez disso; nada é escrito. `dryRun: true` continua a funcionar em modo contêiner
-e retorna o conteúdo gerado + caminho alvo sem tocar no disco, para que você possa pré-visualizar do painel e aplicar no host. Este comportamento é
-intencional e protegido contra regressões por
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nunca "corrija" um 422
-removendo a proteção.
+O **endpoint de aplicação** do dashboard (`POST /api/cli-tools/apply`) impõe a mesma proteção: num contentor, uma escrita cujo alvo não está montado a partir do host responde **`422`** com `containerEphemeralTarget: true`, o texto de erro seguro e — para as ferramentas com uma receita de host (claude, codex, opencode, cline, kilo, continue) — um `hostSetupCommand` (por exemplo, `omniroute setup-opencode`) para executar no host em vez disso; nada é escrito. `dryRun: true` continua a funcionar no modo de contentor e retorna uma pré-visualização redigida + caminho de destino sem tocar no disco. O conteúdo da pré-visualização não é uma configuração com credenciais para copiar ou importar. Aplique com a ferramenta original/URL base/chave API/entradas de modelo no host, ou use o comando de configuração do lado do host indicado. Consulte [Segurança da configuração CLI](../security/CLI-CONFIGURATION.md) para o cabeçalho da pré-visualização e o contrato do pedido. Este comportamento é intencional e protegido contra regressões por `tests/unit/api/cli-tools/apply-container-guard.test.ts` — nunca "corrija" um 422 removendo a proteção.
 
 ---
 
