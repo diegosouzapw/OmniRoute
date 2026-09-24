@@ -186,15 +186,14 @@ Dengan Stacked:   10K-2.5K token dihantar       (julat RTK+Caveman yang layak se
 
 Navigasi ke `Dashboard → Context & Cache`:
 
-- **Caveman** — pemilihan mod, pek bahasa, pratonton dan tetapan lalai global
-- **RTK** — pratonton penapis perintah, tetapan keselamatan RTK dan katalog penapis
-- **Compression Combos** — saluran enjin bernama yang ditetapkan kepada kombo penghalaan
-- **Auto-Trigger Threshold** — aktifkan pemampatan secara automatik apabila kiraan token melebihi ambang
+- **Caveman** — pemilihan mod, pek bahasa, pratonton, dan lalai global
+- **RTK** — pratonton penapis arahan, tetapan keselamatan RTK, dan katalog penapis
+- **Compression Combos** — saluran paip enjin bernama yang diberikan kepada kombo penghalaan
+- **Auto-Trigger Threshold** — secara automatik mengaktifkan pemampatan apabila kiraan token melebihi ambang
 
-### Penggantian Mengikut Kombo
+### Ganti Per-Kombo
 
-Dalam `Dashboard → Context & Cache → Compression Combos`, tetapkan kombo pemampatan kepada kombo
-penghalaan:
+Dalam `Dashboard → Context & Cache → Compression Combos`, berikan kombo pemampatan kepada kombo penghalaan:
 
 ```txt
 Combo: "free-tier-fallback"
@@ -205,56 +204,47 @@ Combo: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-Ini membolehkan anda menggunakan pemampatan bertindan pada penyedia percuma/pengekodan sambil mengekalkan mod ringan pada
-langganan berbayar.
+Ini membolehkan anda menggunakan pemampatan bertindan pada penyedia percuma/pengekodan sambil mengekalkan mod lite pada langganan berbayar.
 
-Penetapan "Penggantian Mengikut Kombo" ini ialah kawalan yang berbeza daripada penggantian **mod pemampatan
-kombo penghalaan** (Default/Off/Lite/Standard/Aggressive/Ultra) — penggantian tersebut tidak memilih saluran
-kombo pemampatan bernama; ia hanya menetapkan medan `compressionMode` yang dirujuk oleh
-`resolveCompressionPlan`. Ia boleh ditetapkan sama ada pada kad kombo (`Dashboard → Combos`) atau, sejak
-#6760, bagi setiap kombo penghalaan dalam senarai "Assign to routing" di
-`Dashboard → Context & Cache → Compression Combos`, betul-betul di sebelah kotak pilihan penetapan saluran
-yang didokumenkan di atas. Kedua-dua antara muka menyimpan perubahan melalui titik akhir `PUT /api/combos/{id}` yang sama.
+Penugasan "Ganti Per-Kombo" ini adalah kawalan yang berbeza daripada ganti **mod pemampatan kombo penghalaan** (Default/Off/Lite/Standard/Aggressive/Ultra) — ganti tersebut tidak memilih saluran paip kombo pemampatan bernama; ia hanya menetapkan medan `compressionMode` yang dirujuk oleh `resolveCompressionPlan`. Ia boleh ditetapkan sama ada pada kad kombo (`Dashboard → Combos`) atau, sejak #6760, setiap kombo penghalaan dalam senarai "Assign to routing" pada `Dashboard → Context & Cache → Compression Combos`, betul-betul di sebelah kotak semak penugasan saluran paip yang didokumenkan di atas. Kedua-dua permukaan kekal melalui titik akhir `PUT /api/combos/{id}` yang sama.
 
-### Penggantian bagi setiap permintaan
+### Ganti per-permintaan
 
-Hantar pengepala permintaan `x-omniroute-compression` untuk menggantikan pelan pemampatan bagi satu
-permintaan. Ia mempunyai keutamaan tertinggi — ia mengatasi penggantian kombo penghalaan, profil aktif,
-pencetus automatik dan tetapan Default panel. Nilai yang tidak dikenali akan diabaikan (permintaan tidak pernah ditolak) dan
-suis induk global masih mengawal semuanya: apabila pemampatan dimatikan secara global, pengepala tidak boleh
-menghidupkannya. Nilai:
+Hantar pengepala permintaan `x-omniroute-compression` untuk menggantikan pelan pemampatan untuk satu permintaan. Ia mempunyai keutamaan tertinggi — ia mengatasi ganti kombo penghalaan, profil aktif, pencetus automatik, dan Lalai panel. Nilai yang tidak diketahui diabaikan (permintaan tidak pernah ditolak) dan suis induk global masih mengawal segala-galanya: apabila pemampatan dimatikan secara global, pengepala tidak boleh menghidupkannya. Nilai:
 
-| Nilai         | Kesan                                                                                                             |
-| ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `off`         | Tiada pemampatan untuk permintaan ini.                                                                            |
-| `default`     | Profil Default yang diperoleh daripada panel (mengabaikan profil aktif).                                          |
-| `engine:<id>` | Satu enjin apabila didayakan, contohnya `engine:rtk`.                                                             |
-| `<combo>`     | Kombo bernama, dipadankan mengikut nama (tidak sensitif huruf besar/kecil) terlebih dahulu, kemudian mengikut id. |
+| Nilai         | Kesan                                                                                                     |
+| :------------ | :-------------------------------------------------------------------------------------------------------- |
+| `off`         | Tiada pemampatan untuk permintaan ini.                                                                    |
+| `default`     | Profil Lalai yang diperoleh daripada panel (mengabaikan profil aktif). Enjin yang hilang dibiarkan mati.  |
+| `safe`        | Sama seperti menghilangkan pengepala: dedup dan lipatan ruang putih sahaja.                               |
+| `allow-lossy` | Kekalkan pelan operator permintaan ini, termasuk ringkasan, penapis perkaitan, dan penulisan semula gaya. |
+| `engine:<id>` | Satu enjin apabila diaktifkan, cth. `engine:rtk`. Ini adalah opt-in per-permintaan untuk enjin tersebut.  |
+| `<combo>`     | Kombo bernama, dipadankan mengikut nama (tidak sensitif huruf besar/kecil) dahulu, kemudian mengikut id.  |
 
-Pelan yang digunakan dikembalikan dalam pengepala respons `X-OmniRoute-Compression: <mode>; source=<source>`,
-dengan `<source>` ialah salah satu daripada `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default` atau `off`.
+Tanpa `allow-lossy`, `engine:<id>`, atau kombo bernama, enjin yang hilang tidak digunakan. Permintaan masih mendapat dedup sesi dan lipatan ruang putih apabila pemampatan dihidupkan.
+
+Pelan yang digunakan digemakan semula dalam pengepala respons `X-OmniRoute-Compression: <mode>; source=<source>`, di mana `<source>` adalah salah satu daripada `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, atau `off`.
 
 ### API
 
 ```bash
-# Dapatkan tetapan pemampatan
+# Get compression settings
 curl http://localhost:20128/api/settings/compression
 
-# Kemas kini tetapan pemampatan
+# Update compression settings
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Pratonton muatan RTK/bertindan tertentu
+# Preview a specific RTK/stacked payload
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# Senaraikan pek penapis RTK
+# List RTK filter packs
 curl http://localhost:20128/api/context/rtk/filters
 
-# Uji RTK secara langsung dengan metadata perintah pilihan
+# Test RTK directly with optional command metadata
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -301,13 +291,13 @@ Setiap permintaan yang dimampatkan menyertakan statistik dalam log pelayan:
 
 ## Pelan Hala Tuju Fasa
 
-| Fasa    | Mod                                                                                                                                                 | Status         |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| Fasa 1  | Off, Lite                                                                                                                                           | ✅ Dilancarkan |
-| Fasa 2  | Standard, Aggressive, Ultra                                                                                                                         | ✅ Dilancarkan |
-| Fasa 3  | RTK, Stacked, Gabungan Pemampatan                                                                                                                   | ✅ Dilancarkan |
-| Fasa 4  | Gaya Output, Ultra peringkat SLM, abah-abah penilaian                                                                                               | ✅ Dilancarkan |
-| Fasa 4C | Belanjawan konteks adaptif ("dail") — enjin pengiraan + API (`contextBudget` pada `PUT /api/settings/compression`) + kawalan mod/dasar papan pemuka | ✅ Dilancarkan |
+| Fasa    | Mod                                                                                                                                                      | Status            |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Fasa 1  | Mati, Ringan                                                                                                                                             | ✅ Telah Dihantar |
+| Fasa 2  | Standard, Agresif, Ultra                                                                                                                                 | ✅ Telah Dihantar |
+| Fasa 3  | RTK, Stacked, Gabungan Mampatan                                                                                                                          | ✅ Telah Dihantar |
+| Fasa 4  | Gaya Output, Ultra peringkat SLM, abah-abah penilaian                                                                                                    | ✅ Telah Dihantar |
+| Fasa 4C | Belanjawan konteks adaptif ("dail") — enjin pengkomputeran + API (`contextBudget` pada `PUT /api/settings/compression`) + kawalan mod/dasar papan pemuka | ✅ Telah Dihantar |
 
 ---
 
@@ -319,28 +309,23 @@ Mod RTK diinspirasikan oleh **[RTK - Rust Token Killer](https://github.com/rtk-a
 
 ---
 
-## Sistem Pemampatan Lanjutan
+## Sistem Mampatan Lanjutan
 
-Selain 7 mod standard, OmniRoute menyertakan beberapa sistem pemampatan
-lanjutan yang berfungsi secara automatik berdasarkan konteks.
+Selain 7 mod standard, OmniRoute merangkumi beberapa sistem mampatan lanjutan yang berfungsi secara automatik berdasarkan konteks.
 
-### Pemampatan Peka Cache
+### Mampatan Sedar Cache
 
-Sesetengah penyedia (seperti Anthropic dengan caching gesaan) menyokong **caching gesaan**,
-yang membolehkan mereka menyimpan sebahagian gesaan dalam cache untuk mengurangkan kos dan kependaman. Apabila
-caching didayakan, pemampatan agresif sebenarnya boleh **menjejaskan** prestasi
-kerana ia mengubah token yang dicache, sekali gus membatalkan cache.
+Sesetengah penyedia (seperti Anthropic dengan penimbalan gesaan) menyokong **penimbalan gesaan**, yang membolehkan mereka menimbal sebahagian daripada gesaan untuk mengurangkan kos dan kependaman. Apabila penimbalan diaktifkan, mampatan agresif sebenarnya boleh **merosakkan** prestasi kerana ia mengubah token yang ditimbal, menyebabkan penimbalan tidak sah.
 
-Modul `cachingAware.ts` menyelesaikan perkara ini dengan **mengesan konteks caching** dan
-**melaraskan strategi pemampatan** sewajarnya.
+Modul `cachingAware.ts` menyelesaikan masalah ini dengan **mengesan konteks penimbalan** dan **menyesuaikan strategi mampatan** dengan sewajarnya.
 
 #### Cara ia berfungsi
 
-1. **Kesan konteks caching** — Mengimbas isi permintaan untuk penanda `cache_control`
-2. **Kenal pasti penyedia caching** — Memeriksa sama ada penyedia sasaran menyokong caching
-3. **Laraskan strategi** — Menurunkan taraf `aggressive`/`ultra` kepada `standard` untuk penyedia caching
-4. **Langkau gesaan sistem** — Gesaan sistem biasanya dicache, jadi jangan mampatkannya
-5. **Gunakan transformasi deterministik** — Hanya gunakan transformasi yang menghasilkan output konsisten
+1.  **Mengesan konteks penimbalan** — Mengimbas badan permintaan untuk penanda `cache_control`
+2.  **Mengenal pasti penyedia penimbalan** — Memeriksa sama ada penyedia sasaran menyokong penimbalan
+3.  **Menyesuaikan strategi** — Menurunkan `aggressive`/`ultra` kepada `standard` untuk penyedia penimbalan
+4.  **Melangkau gesaan sistem** — Gesaan sistem biasanya ditimbal, jadi jangan memampatkannya
+5.  **Menggunakan transformasi deterministik** — Hanya menggunakan transformasi yang menghasilkan output yang konsisten
 
 #### Contoh kod
 
@@ -363,23 +348,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Bila hendak digunakan
+#### Bila untuk digunakan
 
-Pemampatan peka cache **sentiasa aktif** — tiada konfigurasi diperlukan. Ia hanya diaktifkan
-apabila:
+Mampatan sedar cache **sentiasa dihidupkan** — tiada konfigurasi diperlukan. Ia hanya berfungsi apabila:
 
 - Permintaan mempunyai penanda `cache_control`
-- Penyedia sasaran menyokong caching gesaan (Anthropic, OpenAI dan sebagainya)
+- Penyedia sasaran menyokong penimbalan gesaan (Anthropic, OpenAI, dsb.)
 
 ### Penuaan Progresif
 
-Perbualan panjang menghimpunkan banyak giliran mesej, tetapi giliran yang lebih lama menjadi kurang
-relevan. Modul `progressiveAging.ts` **mengurangkan tahap perincian mesej mengikut jarak giliran**:
+Perbualan yang panjang mengumpul banyak giliran mesej, tetapi giliran yang lebih lama menjadi kurang relevan. Modul `progressiveAging.ts` **menurunkan mesej mengikut jarak giliran**:
 
-- **Giliran terkini (0-3)**: Dikekalkan kata demi kata (butiran penuh)
-- **Giliran pertengahan (4-8)**: Pemampatan Lite (pembersihan ruang kosong dan pemformatan)
-- **Giliran lama (9+)**: Pemampatan Caveman (penyingkiran pengisi dan peringkasan)
-- **Giliran sangat lama (20+)**: Diringkaskan secara menyeluruh atau digugurkan
+- **Giliran terkini (0-3)**: Dikekalkan secara verbatim (butiran penuh)
+- **Giliran sederhana (4-8)**: Mampatan ringan (ruang kosong, pembersihan format)
+- **Giliran lama (9+)**: Mampatan "caveman" (pembuangan pengisi, ringkasan)
+- **Giliran sangat lama (20+)**: Dirumuskan secara berat atau digugurkan
 
 #### Contoh kod
 
@@ -390,48 +373,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 giliran lagi ...
+  // ... 50 lagi giliran ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // 3 giliran pertama: kata demi kata
-  light: 8, // Giliran 4-8: pemampatan lite
-  moderate: 20, // Giliran 9-20: pemampatan caveman
-  // Giliran 21+: peringkasan menyeluruh
+  verbatim: 3, // 3 giliran pertama: verbatim
+  light: 8, // Giliran 4-8: mampatan ringan
+  moderate: 20, // Giliran 9-20: mampatan caveman
+  // Giliran 21+: ringkasan berat
 });
 
-// saved = bilangan token yang dijimatkan
+// saved = bilangan token yang disimpan
 ```
 
-#### Bila hendak digunakan
+#### Bila untuk digunakan
 
-Penuaan progresif **sentiasa aktif** untuk mod `aggressive` dan `ultra`. Ia
-amat berkesan khususnya untuk:
+Penuaan progresif **sentiasa dihidupkan** untuk mod `aggressive` dan `ultra`. Ia amat berkesan untuk:
 
-- Sesi pengekodan yang berjalan lama
-- Perbualan berbilang hari
-- Aliran kerja berasaskan ejen dengan banyak panggilan alat
+- Sesi pengekodan jangka panjang
+- Perbualan berhari-hari
+- Aliran kerja ejen dengan banyak panggilan alat
 
 ### Mod Output Caveman
 
-Modul `outputMode.ts` menyuntik **arahan gesaan sistem** untuk membuatkan
-model itu sendiri menghasilkan output yang dimampatkan dan ringkas (gaya "caveman").
+Modul `outputMode.ts` menyuntik **arahan gesaan sistem** untuk menjadikan model itu sendiri menghasilkan output yang dimampatkan, ringkas (gaya "caveman").
 
 #### Cara ia berfungsi
 
-Daripada memampatkan input, mod ini menambahkan gesaan sistem seperti:
+Daripada memampatkan input, mod ini menambah gesaan sistem seperti:
 
-> "Balas dengan perkataan minimum. Abaikan basa-basi. Gunakan ayat pendek."
+> "Balas dengan perkataan yang minimum. Langkau kata-kata manis. Gunakan ayat pendek."
 
-Ini amat berkesan khususnya untuk:
+Ini berfungsi dengan baik untuk:
 
-- Penjanaan kod (output lebih ringkas = token lebih sedikit)
-- Soal jawab pantas (tidak memerlukan penerangan panjang lebar)
+- Penjanaan kod (output yang lebih ringkas = token yang lebih sedikit)
+- Soal Jawab pantas (tidak perlu penjelasan yang rumit)
 - Pemprosesan kelompok (memaksimumkan daya pemprosesan)
 
-#### Masa untuk digunakan
+#### Bila untuk digunakan
 
-Mod output Caveman adalah **pilihan ikut serta** — tetapkannya melalui konfigurasi kombo:
+Mod output Caveman adalah **pilihan** — tetapkan melalui konfigurasi kombo:
 
 ```json
 {
@@ -446,39 +427,35 @@ Mod output Caveman adalah **pilihan ikut serta** — tetapkannya melalui konfigu
 
 ### Gaya Output (katalog)
 
-Mod output Caveman di atas ialah **laluan gaya tunggal legasi**. Fasa 4 memperluaskannya
-menjadi katalog gaya output yang boleh digabungkan: `OUTPUT_STYLE_CATALOG` dalam
-`open-sse/services/compression/outputStyles/catalog.ts`. Setiap gaya ialah arahan gesaan sistem
-yang membuatkan model itu sendiri menghasilkan output yang lebih murah; gaya boleh didayakan
-bersama-sama dan disuntik mengikut susunan katalog.
+Mod output Caveman di atas adalah **laluan gaya tunggal legasi**. Fasa 4 menggeneralisasikannya menjadi katalog gaya output yang boleh digabungkan: `OUTPUT_STYLE_CATALOG` dalam `open-sse/services/compression/outputStyles/catalog.ts`. Setiap gaya adalah arahan gesaan sistem yang menjadikan model itu sendiri menghasilkan output yang lebih murah; gaya boleh diaktifkan bersama dan disuntik mengikut susunan katalog.
 
-| Gaya                                  | `id`          | Fungsinya                                                                                                                                                                                                                                                 | Bahasa arahan                                                                                 |
-| ------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Prosa ringkas                         | `terse-prose` | Gugurkan kata pengisi/kata sandang/ungkapan keraguan; kekalkan kandungan teknikal dengan tepat. Teks yang sama seperti mod output caveman legasi (dirujuk, bukan ditaip semula).                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
-| Kurang kod                            | `less-code`   | Tangga YAGNI: perubahan berfungsi yang paling kecil, tanpa abstraksi yang tidak diminta.                                                                                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
-| Ponytail (pembangun kanan yang malas) | `ponytail`    | "Kod terbaik ialah kod yang tidak pernah ditulis": guna semula > tulis semula, punca utama > gejala, diff berfungsi yang paling pendek.                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
-| Saya mempunyai ADHD (tindakan dahulu) | `i-have-adhd` | Tindakan dahulu (perintah/laluan/cebis kod sebelum prosa), langkah bernombor yang terhad, SATU langkah seterusnya yang konkrit, tanpa mukadimah/ringkasan/penutup. Diadaptasi daripada [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
-| CJK ringkas (文言)                    | `terse-cjk`   | Gaya bahasa Cina klasik yang sangat ringkas.                                                                                                                                                                                                              | zh (dihadkan mengikut penempatan: hanya ditawarkan apabila bahasa yang ditentukan ialah `zh`) |
+| Gaya                              | `id`          | Apa yang dilakukannya                                                                                                                                                                                                                         | Bahasa arahan                                                                    |
+| :-------------------------------- | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------- |
+| Prosa ringkas                     | `terse-prose` | Gugurkan pengisi/artikel/penghindaran; kekalkan ketepatan substansi teknikal. Teks yang sama dengan mod output caveman lama (dirujuk, tidak ditaip semula).                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                    |
+| Kurang kod                        | `less-code`   | Tangga YAGNI: perubahan kerja terkecil, tiada abstraksi yang tidak diminta.                                                                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                    |
+| Ponytail (pembangun senior malas) | `ponytail`    | "Kod terbaik adalah kod yang tidak pernah ditulis": guna semula > tulis semula, punca > simptom, perbezaan kerja terpendek.                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                    |
+| Saya ada ADHD (tindakan-dahulu)   | `i-have-adhd` | Tindakan dahulu (perintah/laluan/cebisan sebelum prosa), langkah bernombor terhad, SATU langkah konkrit seterusnya, tiada mukadimah/ringkasan/penutup. Diadaptasi daripada [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                    |
+| CJK ringkas (文言)                | `terse-cjk`   | Gaya ultra-ringkas Cina Klasik.                                                                                                                                                                                                               | zh (terhad-lokal: hanya ditawarkan apabila bahasa yang diselesaikan adalah `zh`) |
 
-Setiap gaya disertakan dengan tiga tahap keamatan — `lite`, `full`, `ultra` — dan setiap tahap
-diakhiri dengan klausa sempadan bersama, yang mengekalkan blok kod, laluan fail, perintah,
+Setiap gaya mempunyai tiga tahap intensiti — `lite`, `full`, `ultra` — dan setiap tahap
+berakhir dengan klausa sempadan yang dikongsi, yang mengekalkan blok kod, laluan fail, perintah,
 rentetan ralat, URL dan pengecam secara verbatim.
 
 #### Cara suntikan berfungsi
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) menentukan
-pilihan berdasarkan katalog (id yang tidak diketahui dan gaya yang tidak sepadan dengan penempatan
-digugurkan, tanpa menghasilkan ralat), menggabungkan arahan yang dipilih mengikut susunan katalog,
-menambahkan klausa sempadan **sekali**, dan meletakkan hasilnya di hadapan gesaan sistem
-selepas satu penanda idempoten (`[OmniRoute Output Styles]`) — penggunaan semula
-tidak melakukan apa-apa. Apabila bahasa permintaan yang dikesan mempunyai terjemahan, arahan
-setempat disuntik dan bukannya arahan bahasa Inggeris.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) menyelesaikan
+pemilihan terhadap katalog (ID yang tidak diketahui dan gaya yang tidak sepadan dengan lokal
+digugurkan, tidak pernah menjadi ralat), menggabungkan arahan yang dipilih mengikut susunan katalog,
+menambah klausa sempadan **sekali**, dan memuatkan hasil ke dalam prompt sistem
+di belakang penanda idempotensi tunggal (`[OmniRoute Output Styles]`) — penggunaan semula
+adalah no-op. Apabila bahasa permintaan yang dikesan mempunyai terjemahan,
+arahan setempat disuntik dan bukannya Bahasa Inggeris.
 
-#### Cara mendayakan
+#### Cara mengaktifkan
 
-Dalam papan pemuka: **Konteks → Tetapan → Pemampatan** — satu baris bagi setiap gaya dengan
-togol hidup/mati dan pemilih tahap. Secara pengaturcaraan, konfigurasi pemampatan menyimpan
-pilihan sebagai:
+Dalam papan pemuka: **Konteks → Tetapan → Pemampatan** — satu baris setiap gaya dengan
+togol hidup/mati dan pemilih tahap. Secara program, konfigurasi pemampatan mengekalkan
+pemilihan sebagai:
 
 ```json
 {
@@ -489,59 +466,59 @@ pilihan sebagai:
 }
 ```
 
-Keserasian ke belakang: tetapan kombo legasi `outputMode: "caveman"` masih berfungsi dan dipetakan kepada
-`terse-prose`, sama bait demi bait dengan suntikan lama dalam setiap bahasa legasi.
+Keserasian ke belakang: tetapan kombo `outputMode: "caveman"` lama masih berfungsi dan memetakan kepada
+`terse-prose`, byte-identik dengan suntikan lama dalam setiap bahasa lama.
 
-Pemilihan bahasa: apabila `languageConfig.enabled` dihidupkan, `autoDetect` memilih
-bahasa mesej pengguna terkini (pengesan yang sama seperti enjin input);
-mematikan `autoDetect` menetapkan `defaultLanguage`. Mati → bahasa Inggeris.
+Pemilihan bahasa: dengan `languageConfig.enabled` dihidupkan, `autoDetect` memilih
+bahasa mesej pengguna terkini (pengesan yang sama dengan enjin input);
+mematikan `autoDetect` menetapkan `defaultLanguage`. Mati → Bahasa Inggeris.
 
 Matriks gaya × bahasa ditetapkan oleh
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: gaya baharu tidak boleh dikeluarkan
-tanpa sekurang-kurangnya terjemahan pt-BR (atau pengecualian eksplisit yang dijejaki), dan
-gaya sedia ada tidak boleh kehilangan penempatan secara senyap. Untuk menambahkan gaya, lihat
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: gaya baharu tidak boleh dihantar
+tanpa sekurang-kurangnya terjemahan pt-BR (atau pengecualian yang dijejaki secara eksplisit), dan
+gaya sedia ada tidak boleh kehilangan lokal secara senyap. Untuk menambah gaya, lihat
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Pemampatan Hasil Alat
 
 Modul `toolResultCompressor.ts` menyediakan **5 strategi pemampatan khusus**
-untuk hasil alat (panggilan fungsi, output ejen, hasil carian dan sebagainya):
+untuk hasil alat (panggilan fungsi, output ejen, hasil carian, dsb.):
 
-1. **Pemampatan hasil carian** — Mengalih keluar hasil berlebihan, mengekalkan N teratas
-2. **Pemampatan pembacaan fail** — Memotong fail besar, mengekalkan pengepala/import
-3. **Pemampatan pelaksanaan kod** — Hanya mengekalkan stdout/stderr yang penting
-4. **Pemampatan pertanyaan pangkalan data** — Mengehadkan baris, mengalih keluar metadata berjela-jela
-5. **Pemampatan respons API** — Membuang medan nol, memadatkan tatasusunan
+1. **Pemampatan hasil carian** — Mengeluarkan hasil yang berlebihan, mengekalkan N teratas
+2. **Pemampatan bacaan fail** — Memotong fail besar, mengekalkan pengepala/import
+3. **Pemampatan pelaksanaan kod** — Mengekalkan hanya stdout/stderr yang penting
+4. **Pemampatan pertanyaan pangkalan data** — Mengehadkan baris, mengeluarkan metadata verbose
+5. **Pemampatan respons API** — Menanggalkan medan null, memadatkan tatasusunan
 
-#### Masa untuk digunakan
+#### Bila untuk digunakan
 
-Pemampatan hasil alat **sentiasa aktif** apabila terdapat panggilan alat. Tiada
+Pemampatan hasil alat **sentiasa dihidupkan** apabila panggilan alat ada. Tiada
 konfigurasi diperlukan.
 
-### Talian Paip Bertindan
+### Saluran Paip Bertindan
 
-Mod bertindan menjalankan **berbilang enjin secara berurutan** — biasanya RTK dahulu
+Mod bertindan menjalankan **pelbagai enjin secara berurutan** — biasanya RTK dahulu
 (penjimatan 60-90% pada output alat), kemudian Caveman (penjimatan tambahan 30% pada
-teks yang selebihnya). Ini mencapai **jumlah penjimatan 78-95%**.
+teks yang tinggal). Ini mencapai **jumlah penjimatan 78-95%**.
 
 #### Cara ia berfungsi
 
 ```
 Input (1000 token)
   → RTK (penapis peka perintah) → 200 token
-    → Caveman (penyingkiran kata pengisi) → 140 token
+    → Caveman (penyingkiran pengisi) → 140 token
   → Output (140 token, penjimatan 86%)
 ```
 
-#### Masa untuk digunakan
+#### Bila untuk digunakan
 
 Gunakan mod bertindan untuk:
 
-- Aliran kerja yang banyak menggunakan alat (pengekodan berasaskan ejen, penyelidikan)
-- Pemprosesan kelompok yang sensitif terhadap kos
+- Aliran kerja yang banyak menggunakan alat (pengekodan ejen, penyelidikan)
+- Pemprosesan kelompok yang sensitif kos
 - Apabila anda memerlukan penjimatan token maksimum
 
-Konfigurasikan melalui kombo:
+Konfigurasi melalui kombo:
 
 ```json
 {

@@ -1,0 +1,1 @@
+- **feat(cli):** Add remote/context-aware manual model CRUD with metadata validation, dry-run, protected override removal and persistence readback; prefer the public model catalog and keep JSON/JSONL complete. Manual models remain inference-unverified. ([#14392](https://github.com/diegosouzapw/OmniRoute/pull/14392))

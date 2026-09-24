@@ -141,18 +141,49 @@ test("Vertex authorization API key detects and persists its project for curated 
   assert.equal(body.intentional, true);
   assert.equal(body.projectIdAutoDetected, true);
   assert.equal(body.catalogMode, "curated_project");
-  assert.equal(body.warning, undefined);
+  // #12328 — a projectId-configured connection whose live discovery fails must still name the
+  // real failure reason instead of silently falling back to a 200 with no warning at all.
+  assert.match(body.warning, /HTTP 403/);
   assert.equal(byId.get("xai/grok-4.6")?.targetFormat, "openai");
   assert.equal(byId.get("zai-org/glm-5-maas")?.targetFormat, "openai");
   assert.equal(byId.get("qwen/qwen3-next-80b-a3b-instruct-maas")?.targetFormat, "openai");
   assert.ok(!byId.has("GLM-5.1-FP8"));
   assert.ok(!byId.has("Qwen3.6-35B-A3B"));
   assert.equal(calledUrls.length, 1);
-  assert.ok(calledUrls[0].includes("generativelanguage.googleapis.com"));
+  // #12328 — Express-key discovery must validate against Vertex AI itself (aiplatform.googleapis.com),
+  // never generativelanguage.googleapis.com (a different Google service that always rejects a
+  // genuine Vertex Express key).
+  assert.equal(new URL(calledUrls[0]).hostname, "aiplatform.googleapis.com");
   assert.ok(!calledUrls[0].includes("vertex-authorization-key"));
 
   const saved = await providersDb.getProviderConnectionById(connection.id);
   assert.equal(saved?.projectId, "316081256616");
+});
+
+// #12328 — a connection that already has a projectId configured (not auto-detected) previously
+// fell back to a silent 200 with NO warning at all when live discovery failed, which was even
+// less visible than the generic no-projectId message. The projectId-configured branch must
+// always carry a warning naming the real failure reason, same as the no-projectId branch.
+test("Vertex API key with a pre-configured projectId still surfaces a warning when discovery fails", async () => {
+  const connection = await seedVertexConnection({
+    apiKey: "vertex-preconfigured-key",
+    projectId: "pre-existing-project",
+  });
+  globalThis.fetch = async () => Response.json({ error: { message: "Rejected" } }, { status: 400 });
+
+  const response = await callRoute(connection.id);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.equal(body.intentional, true);
+  assert.equal(body.catalogMode, "curated_project");
+  assert.equal(body.projectIdAutoDetected, false);
+  assert.match(body.warning, /HTTP 400/);
+  assert.match(body.warning, /curated Express catalog/i);
+
+  const saved = await providersDb.getProviderConnectionById(connection.id);
+  assert.equal(saved?.projectId, "pre-existing-project");
 });
 
 test("Vertex Service Account discovery merges Gemini and all partner transport catalogs", async () => {

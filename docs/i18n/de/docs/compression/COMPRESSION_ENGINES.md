@@ -9,43 +9,43 @@ ausführen (`caveman` oder `rtk`) oder eine deterministische gestapelte Pipeline
 
 ## Modi
 
-| Modus        | Engine-Pfad                              | Vorgesehene Eingabe                                            |
-| ------------ | ---------------------------------------- | -------------------------------------------------------------- |
-| `off`        | keine                                    | Exakte Beibehaltung des Prompts                                |
-| `lite`       | Caveman-Lite-Hilfsfunktionen             | Risikoarme, stets aktive Bereinigung                           |
-| `standard`   | Caveman                                  | Verdichtung natürlichsprachlicher Prompts                      |
-| `aggressive` | Caveman + Verlaufs-/Tool-Zusammenfasser  | Lange Chat-Sitzungen                                           |
-| `ultra`      | Caveman + Bereinigungs-Hilfsfunktionen   | Wiederherstellung bei Erreichen des Kontextlimits              |
-| `rtk`        | RTK                                      | Terminal-, Shell-, Build-, Test- und Git-Ausgaben              |
-| `omniglyph`  | OmniGlyph                                | Kontext als Bild über die native Provider-Schnittstelle        |
-| `stacked`    | Pipeline, standardmäßig `rtk -> caveman` | Gemischte Tool-Protokolle und Fließtext, maximale Einsparungen |
+| Modus        | Engine-Pfad                                                                                           | Vorgesehene Eingabe                                            |
+| ------------ | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `off`        | keiner                                                                                                | Exakte Beibehaltung des Prompts                                |
+| `lite`       | Caveman-Lite-Hilfsfunktionen                                                                          | Risikoarme, stets aktive Bereinigung                           |
+| `standard`   | Caveman                                                                                               | Verdichtung natürlichsprachlicher Prompts                      |
+| `aggressive` | Caveman + Verlaufs-/Tool-Zusammenfasser                                                               | Lange Chat-Sitzungen                                           |
+| `ultra`      | Caveman + Bereinigungs-Hilfsfunktionen                                                                | Wiederherstellung bei Erreichen des Kontextlimits              |
+| `rtk`        | RTK                                                                                                   | Terminal-, Shell-, Build-, Test- und Git-Ausgaben              |
+| `omniglyph`  | OmniGlyph                                                                                             | Kontext als Bild über die native Provider-Schnittstelle        |
+| `stacked`    | Pipeline. Standardmäßig verwendet die Anfrage `session-dedup -> lite`. `rtk -> caveman` ist optional. | Gemischte Tool-Protokolle und Fließtext, maximale Einsparungen |
 
 ### OmniGlyph-Komprimierungsprofile
 
 Die `omniglyph`-Engine (Paket `omniglyph`, 1.4.0+) akzeptiert ein benanntes semantisches Profil, das
-global über `omniglyph.profile` in den Komprimierungseinstellungen oder für jeden Schritt über die
+global über `omniglyph.profile` in den Komprimierungseinstellungen oder pro Schritt über die
 Schrittkonfiguration der gestapelten Pipeline festgelegt wird:
 
-| Profil        | Abgrenzung                                                                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `aggressive`  | Standard. Die Richtlinie, die in den veröffentlichten Messbelegen gemessen wurde — wandelt System, Tool-Dokumentation und dichten Verlauf in Bilder um |
-| `balanced`    | Behält den aktiven Zustand nativ bei, schützt die letzten 8 Gesprächsrunden und verdichtet älteren abgeschlossenen Verlauf                             |
-| `coding-safe` | Behält Autorität, Tool-Schemata und aktive Tool-Ausgaben nativ bei und schützt die letzten 12 Gesprächsrunden                                          |
-| `passthrough` | Leitet ohne Transformation weiter; die Engine wird übersprungen                                                                                        |
+| Profil        | Grenze                                                                                                                                                         |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Standard. Die Richtlinie, die den veröffentlichten Messbelegen zugrunde lag — wandelt Systemkontext, Tool-Dokumentation und umfangreichen Verlauf in Bilder um |
+| `balanced`    | Belässt den aktuellen Zustand im nativen Format, schützt die letzten 8 Gesprächsrunden und fasst ältere abgeschlossene Verläufe zusammen                       |
+| `coding-safe` | Belässt Autoritätsvorgaben, Tool-Schemata und aktuelle Tool-Ausgaben im nativen Format und schützt die letzten 12 Gesprächsrunden                              |
+| `passthrough` | Leitet ohne Transformation weiter; die Engine wird übersprungen                                                                                                |
 
 Das Profil ist eine **Obergrenze, keine Untergrenze**: `mergeCompressionProfileOptions` im Paket
-verhindert, dass eine Überschreibung durch den Aufrufer einen verlustbehafteten Pfad wieder öffnet, den das Profil geschlossen hat. Daher kann ein schrittspezifisches
-`preserveSystemPrompt: false` die Systemkomprimierung unter `coding-safe` nicht wieder aktivieren.
+verhindert, dass eine Überschreibung durch den Aufrufer einen vom Profil geschlossenen verlustbehafteten Pfad wieder öffnet. Daher kann ein schrittspezifisches
+`preserveSystemPrompt: false` die Systemkomprimierung unter `coding-safe` nicht erneut aktivieren.
 
-An dieser Codebasis gemessen: `coding-safe` und `balanced` setzen `minCompressChars` auf den
-Maximalwert und behalten System, Tool-Schemata und Tool-Ergebnisse nativ bei. Daher endet eine Sitzung, in der sich
-noch kein Verlauf angesammelt hat, mit `below_min_chars`, und die Engine transformiert nichts. Aus diesem
-Grund ist `aggressive` die Standardeinstellung und nicht das sicherste Profil.
+Messungen an dieser Codebasis zeigen: `coding-safe` und `balanced` erhöhen `minCompressChars` auf den
+Maximalwert und belassen Systemkontext, Tool-Schemata und Tool-Ergebnisse im nativen Format. Daher endet eine Sitzung, in der sich
+noch kein Verlauf angesammelt hat, bei `below_min_chars`, und die Engine transformiert nichts. Deshalb
+ist `aggressive` statt des sichersten Profils die Standardeinstellung.
 
-Das Paket ermittelt seinen eigenen Modellbereich und sein Profil aus seiner Umgebungskonfiguration.
-OmniRoute delegiert diese Entscheidung niemals: Der Adapter fixiert die Modellbeschränkung auf den
-restriktivsten Bereich des Pakets, sodass Einstellungen der Host-Umgebung die Positivliste nur einschränken,
-aber niemals über die von OmniRoute gemessenen Belege hinaus erweitern können.
+Das Paket bestimmt seinen eigenen Modellumfang und sein Profil aus seiner Umgebungskonfiguration.
+OmniRoute delegiert diese Entscheidung niemals: Der Adapter legt die Modellbeschränkung auf den
+restriktivsten Umfang des Pakets fest, sodass Host-Umgebungseinstellungen die Zulassungsliste nur einschränken, aber niemals
+über die von OmniRoute gemessenen Belege hinaus erweitern können.
 
 ## Engine-Registry
 

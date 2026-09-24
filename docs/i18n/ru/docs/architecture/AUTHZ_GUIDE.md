@@ -5,11 +5,11 @@
 ---
 
 > **Источник истины:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Последнее обновление:** 2026-06-28 — v3.8.40
+> **Последнее обновление:** 2026-09-22 — пространства имен областей указывают на MCP-SERVER.md
 
-OmniRoute использует учитывающий маршруты конвейер авторизации, который контролирует каждый API-запрос. Классификация является **детерминированной** и выполняется по принципу **отказа при неопределённости** — всё, что не удаётся классифицировать, относится к `MANAGEMENT` и требует сессию или токен уровня управления. На этой странице описана модель для инженеров, сопровождающих маршруты или проектирующих новые конечные точки.
+OmniRoute имеет конвейер авторизации, учитывающий маршруты, который контролирует каждый API-запрос. Классификация **детерминирована** и **закрыта при сбое** — всё, что не может быть классифицировано, попадает в категорию `MANAGEMENT` и требует сессии или токена уровня управления. Эта страница объясняет модель для инженеров, поддерживающих маршруты или проектирующих новые конечные точки.
 
-![Конвейер AuthZ (3 класса маршрутов + оценка политик)](../diagrams/exported/authz-pipeline.svg)
+![Конвейер AuthZ (3 класса маршрутов + оценка политики)](../diagrams/exported/authz-pipeline.svg)
 
 > Источник: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -198,28 +198,36 @@ export async function POST(request: Request) {
 
 Выбирайте набор по форме маршрута, а не по удобству. Отдельный маршрут следует помещать в `PUBLIC_API_ROUTES_EXACT` (или в `PUBLIC_READONLY_CORS_API_ROUTES`, если он предназначен только для GET); только настоящее поддерево следует помещать в `PUBLIC_API_ROUTE_PREFIXES`, причём оно **должно заканчиваться на `/`**. Помещение отдельного маршрута в список префиксов также делает публичными все соседние пути с теми же начальными символами, включая маршруты с динамическими сегментами, добавленные позднее (GHSA-74g9-q8f6-793h). Обновите модульные тесты в `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` и `tests/unit/authz/classify.test.ts`.
 
-## Области доступа
+## Области действия
 
-API-ключи содержат массив `scopes` (хранится в формате JSON в `api_keys.scopes`, см. `src/lib/db/apiKeys.ts`).
+Три пространства имен. Каждый проверяющий читает только свои строки. Сравнительный анализ, включая то, почему `manage` не проходит `scopeMatches` для `read:compression` и почему токен доступа `read` не может выполнить `PATCH /api/keys/{id}`, находится в
+[Три пространства имен областей действия](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Область управления
+Ключи API содержат массив `scopes` (хранится как JSON в `api_keys.scopes`, см. `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — предоставляет ключу доступ к конечным точкам API управления при передаче в качестве Bearer-токена.
+### Область действия управления
 
-### Области MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Bearer-доступ к маршрутам API управления.
+- `mcp:connect`, `self:usage`, `self:account-quota` и
+  `policy:bypass-provider-quota` являются аддитивными областями действия с точным совпадением. Они находятся
+  вне `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` открывает только
+  не-loopback вырез `/api/mcp/`.
 
-Каждому инструменту MCP требуются определённые области доступа, заданные через `MCP_TOOL_SCOPES`. Полный список (`MCP_SCOPE_LIST`):
+### Области действия инструментов MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Каталог и правила сопоставления (идентичная строка или предоставленная область действия, заканчивающаяся на `*`):
+[Области действия инструментов MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` в `src/shared/constants/mcpScopes.ts` является исходным типизированным
+подмножеством, а не полным каталогом. Принудительное применение выполняется в
+`open-sse/mcp-server/scopeEnforcement.ts` после того, как `resolveCallerScopeContext()`
+разрешает области действия из информации аутентификации MCP, метаданных запроса или `OMNIROUTE_MCP_SCOPES`.
+Оно остается выключенным, если только `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Механизм проверки областей доступа в `open-sse/mcp-server/server.ts` передаёт список областей каждого инструмента в
-`evaluateToolScopes()` после того, как `resolveCallerScopeContext()` определит области доступа из данных аутентификации MCP,
-метаданных запроса или `OMNIROUTE_MCP_SCOPES`.
+### Области действия токенов доступа
+
+`read` / `write` / `admin` для токенов `oma_live_…`, ранжированных по `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Этот ранг применяется только к учетным данным
+токена доступа. См. [Аутентификация управления](../guides/MANAGEMENT-AUTH.md).
 
 ## Переключатель обязательной аутентификации
 
@@ -269,5 +277,5 @@ x-omniroute-auth-scopes:    список, разделённый запятым�
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — маркер аутентификации для каждой конечной точки
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — журнал аудита событий аутентификации
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — подробности проверки областей доступа MCP
-- Исходный код: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — три пространства имен областей видимости и каталог областей видимости инструментов MCP
+- Источник: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

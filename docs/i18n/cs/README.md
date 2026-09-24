@@ -268,11 +268,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — otevřená špičková inteligence · 2,8 bilionu parametrů · kontext o délce 1 milionu tokenů"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — otevřená špičková inteligence · 2,8 bilionu parametrů · kontext o 1 milionu tokenů"/>
   </a>
 </p>
 
-> **Chcete se přidat jako přítel open source?** Toto jsou společnosti, které podporují open source a pomáhají udržovat OmniRoute v chodu — a my veřejně uvádíme, na co každý token, který nám poskytnou, využíváme. Ozvěte se na: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Chcete se přidat jako přítel open source?** Toto jsou společnosti, které podporují open source a pomáhají udržovat OmniRoute v chodu — a my veřejně uvádíme, na co je použit každý token, který nám poskytnou. Ozvěte se nám: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -287,9 +287,9 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Zakládající přítel open source"/>
     </td>
     <td>
-      Děkujeme společnosti <b>Kimi (Moonshot AI)</b>, našemu zakládajícímu příteli open source, za podporu tohoto projektu! Kimi je laboratoř AI stojící za rodinami modelů s otevřenými vahami K2 a K3 — <b>Kimi K3</b> nabízí kontextové okno o délce 1 milionu tokenů, nativní podporu obrazu a programování na špičkové úrovni za zlomek ceny uzavřených modelů a ihned po instalaci funguje s Claude Code, Codex a všemi programovacími nástroji, které OmniRoute obsluhuje.
+      Děkujeme společnosti <b>Kimi (Moonshot AI)</b>, našemu zakládajícímu příteli open source, za podporu tohoto projektu! Kimi je laboratoř AI stojící za rodinami modelů s otevřenými váhami K2 a K3 — <b>Kimi K3</b> nabízí kontextové okno o 1 milionu tokenů, nativní zpracování obrazu a špičkové schopnosti programování za zlomek ceny uzavřených modelů a ihned funguje s Claude Code, Codex a všemi programovacími nástroji, které OmniRoute obsluhuje.
       <br/><br/>
-      <b>Co podpora od Kimi umožňuje:</b> Kredity API od Kimi pohánějí vydávací proces OmniRoute ověřovaný pomocí AI — fázi <i>ověření sloučení s využitím Kimi K3</i>, která kontroluje každý požadavek na přijetí změn před jeho vydáním — a také každodenní vývoj funkcí. Plnohodnotná podpora Kimi je dostupná oběma způsoby: prostřednictvím přímého <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) i <a href="https://www.kimi.com/code?aff=omniroute">programovacího plánu Kimi Code</a> (OAuth a klíč API). OmniRoute je také prvním brazilským open-source projektem v programu podpory Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Získejte klíč Kimi API s 15 % kreditu navíc →</b></a>
+      <b>Co umožňuje podpora od Kimi:</b> Kredity API od Kimi pohánějí vydávací proces OmniRoute ověřovaný umělou inteligencí — fázi <i>ověření sloučení využívající Kimi K3</i>, která kontroluje každý požadavek na začlenění změn před jeho vydáním — a také každodenní vývoj funkcí. Plnohodnotná podpora Kimi je dostupná oběma způsoby: přes přímé <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) i přes <a href="https://www.kimi.ai/code?aff=omniroute">programovací tarif Kimi Code</a> (OAuth a klíč API). OmniRoute je také prvním brazilským open-source projektem v programu podpory Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Získejte klíč Kimi API s 15 % kreditů navíc →</b></a>
     </td>
   </tr>
   <tr>
@@ -301,21 +301,21 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Přítel open source"/>
     </td>
     <td>
-      Děkujeme službě <b>Cheaper Inference</b>, příteli open source projektu OmniRoute, za podporu tohoto projektu! Cheaper Inference je brána řazená podle ceny, která přeprodává 42 špičkových modelů — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok a MiniMax — prostřednictvím jediného koncového bodu kompatibilního s OpenAI. Každý požadavek směruje k nejlevnějšímu způsobilému poskytovateli, aniž by kdy účtovala více než katalogovou cenu výrobce modelu.
+      Děkujeme společnosti <b>Cheaper Inference</b>, příteli open source projektu OmniRoute, za podporu tohoto projektu! Cheaper Inference je brána řazená podle nákladů, která prostřednictvím jediného koncového bodu kompatibilního s OpenAI přeprodává 42 špičkových modelů — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok a MiniMax — a každý požadavek směruje k nejlevnějšímu vyhovujícímu poskytovateli, aniž by kdy účtovala více než katalogovou cenu tvůrce modelu.
       <br/><br/>
-      <b>Plnohodnotná podpora v OmniRoute:</b> Chat Completions, nativní koncový bod <code>/v1/responses</code>, obrazový vstup, volání nástrojů a 3 obrazové modely (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, dostupné jako <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Získejte klíč API →</b></a>
+      <b>Plnohodnotná podpora v OmniRoute:</b> Chat Completions, nativní koncový bod <code>/v1/responses</code>, zpracování obrazu, volání nástrojů a 3 obrazové modely (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, dostupné jako <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Získejte klíč API →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Odkazy označené <code>aff=omniroute</code> jsou partnerské odkazy. Financují projekt, aniž by vás to stálo cokoli navíc.</sub>
+<sub>Odkazy označené parametrem <code>aff=omniroute</code> jsou partnerské odkazy. Financují projekt bez jakýchkoli dodatečných nákladů pro vás.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Akce affiliate partnerů</b> — bezplatné registrační kupóny od poskytovatelů, které nesponzorujeme (kliknutím rozbalíte)</sub></summary>
+<summary><sub><b>🎟️ Partnerské nabídky</b> — bezplatné registrační kupóny od poskytovatelů, které nesponzorujeme (kliknutím rozbalíte)</sub></summary>
 
-<sub><i>Tato část je určena pouze pro doporučovací/kupónové kódy. Sponzorovaná partnerství jsou uvedena výše v části <b>🤝 Podporováno našimi přáteli open source</b>. OmniRoute nemá s poskytovateli uvedenými zde žádný sponzorský ani partnerský vztah — jde o veřejné kupóny, které může využít kdokoli.</i></sub>
+<sub><i>Tato část je určena pouze pro doporučující a kupónové kódy. Sponzorovaná partnerství jsou uvedena výše v části <b>🤝 Podporováno našimi přáteli open source</b>. OmniRoute nemá s poskytovateli uvedenými zde žádný sponzorský ani partnerský vztah — jedná se o veřejné kupóny, které může využít kdokoli.</i></sub>
 
 <table>
   <tr>
@@ -326,9 +326,9 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — registrace přes affiliate odkaz · <b>bezplatný kredit ve výši $100</b> při registraci (bezplatný server, počítejte s vyšší latencí — nejvhodnější pro testování, nikoli pro produkční provoz). Plnohodnotná podpora v OmniRoute od verze <b>v3.8.50</b>: Chat Completions, přenosový formát kompatibilní s Anthropic a cesta kompatibilní s OpenAI. Mezi dostupné modely patří <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> a další. <b><a href="https://agentrouter.org/register?aff=70LM">Získejte svých $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partnerská registrace · <b>bezplatné kredity v hodnotě $100</b> při registraci (bezplatný server, počítejte s vyšší latencí — nejvhodnější pro testování, nikoli pro produkční prostředí). Plnohodnotná podpora v OmniRoute od verze <b>v3.8.50</b>: Chat Completions, formát přenosu kompatibilní s Anthropic a cesta kompatibilní s OpenAI. Mezi dostupné modely patří <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> a další. <b><a href="https://agentrouter.org/register?aff=70LM">Získejte svých $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Affiliate odkaz — OmniRoute nemá s tímto poskytovatelem žádný sponzorský ani partnerský vztah.</i></sub>
+      <sub>⚠️ <i>Partnerský odkaz — OmniRoute nemá s tímto poskytovatelem žádný sponzorský ani partnerský vztah.</i></sub>
     </td>
   </tr>
 </table>
@@ -1273,19 +1273,19 @@ Kanonické metriky k 2026-08-24: **1.029 jedinečných videí** · **11.132.922 
   <tr><td nowrap><b>Běhové prostředí</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Jazyk</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> v <code>src/</code> a <code>open-sse/</code> (od v2.0 žádné <code>any</code> v jádře)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Databáze</b></td><td>better-sqlite3 (SQLite, žurnálování WAL) + LowDB (starší formát JSON) — 122 doménových modulů, 178 migrací</td></tr>
-  <tr><td nowrap><b>Paměť</b></td><td>Fulltextové vyhledávání SQLite FTS5 + vektorová vnoření kvantizovaná na int8, typovaný útlum</td></tr>
-  <tr><td nowrap><b>Schémata</b></td><td>Zod 4 — validace vstupů/výstupů nástrojů MCP + kontrakty API</td></tr>
+  <tr><td nowrap><b>Databáze</b></td><td>better-sqlite3 (SQLite, žurnálování WAL) + LowDB (starší formát JSON) — 122 doménových modulů, 182 migrací</td></tr>
+  <tr><td nowrap><b>Paměť</b></td><td>Fulltextové vyhledávání SQLite FTS5 + vektorové embeddingy kvantizované na int8, typovaný útlum</td></tr>
+  <tr><td nowrap><b>Schémata</b></td><td>Zod 4 — validace vstupů a výstupů nástrojů MCP + kontrakty API</td></tr>
   <tr><td nowrap><b>Protokoly</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Streamování</b></td><td>Server-Sent Events (SSE) + most WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Komprese</b></td><td>Řetězec 12 enginů — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Ověřování &amp; zabezpečení</b></td><td>OAuth 2.0 (PKCE) + JWT + klíče API + ověřování MCP s omezenými rozsahy · šifrování AES-256-GCM uložených dat · DOMPurify</td></tr>
-  <tr><td nowrap><b>Utajení</b></td><td>wreq-js — napodobování otisků TLS JA3 / JA4, tříúrovňové proxy</td></tr>
-  <tr><td nowrap><b>Odolnost</b></td><td>Jistič, exponenciální prodleva, ochrana proti souběžnému náporu požadavků, samoopravné automatické kombinování</td></tr>
+  <tr><td nowrap><b>Komprese</b></td><td>Pipeline s 12 enginy — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autentizace &amp; zabezpečení</b></td><td>OAuth 2.0 (PKCE) + JWT + klíče API + autentizace MCP s vymezeným rozsahem · AES-256-GCM pro uložená data · DOMPurify</td></tr>
+  <tr><td nowrap><b>Maskování</b></td><td>wreq-js — imitace otisků JA3 / JA4 TLS, tříúrovňové proxy</td></tr>
+  <tr><td nowrap><b>Odolnost</b></td><td>Jistič, exponenciální prodleva, ochrana proti nárazovému souběhu požadavků, samoopravné automatické kombinace</td></tr>
   <tr><td nowrap><b>Protokolování</b></td><td>pino — strukturované protokoly JSON s kontextem požadavku</td></tr>
-  <tr><td nowrap><b>Testování</b></td><td>Testovací nástroj Node.js + Vitest — <b>více než 39 000 statických deklarací testů</b> ve více než 5 100 sledovaných testovacích souborech (jednotkové, integrační, E2E, bezpečnostní, ekosystémové)</td></tr>
+  <tr><td nowrap><b>Testování</b></td><td>Testovací nástroj Node.js + Vitest — <b>39 000+ statických deklarací testů</b> v 5 100+ sledovaných testovacích souborech (jednotkové, integrační, E2E, bezpečnostní a ekosystémové testy)</td></tr>
   <tr><td nowrap><b>Platformy</b></td><td>Desktop (Electron) · Android (Termux) · PWA (libovolný prohlížeč)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatické publikování na npm a Docker Hub při vydání</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatické publikování na npm + Docker Hub při vydání</td></tr>
   <tr><td nowrap><b>Odkazy</b></td><td><a href="https://omniroute.online">Webové stránky</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

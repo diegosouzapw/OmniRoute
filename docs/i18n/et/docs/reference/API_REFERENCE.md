@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **Vahemälu tabamuse kulu semantika:** semantilise vahemälu HIT-i korral (`X-OmniRoute-Cache-Hit: true`) ei tehta ülesvoolu kõnet, mistõttu `X-OmniRoute-Response-Cost` on `0.0000000000` (tabamuse teenindamise **lisakulu**). Algne/oleks-olnud kulu esitatakse eraldi väljal `X-OmniRoute-Cost-Saved`. Arveldust tegevad tarbijad peaksid liitma `X-OmniRoute-Response-Cost` väärtused (tabamused ei maksa midagi); vahemälu analüütika saab koguda `X-OmniRoute-Cost-Saved` väärtusi.
 
-## Eksklusiivsed halllatavate seansside rendid (leases)
+## Eksklusiivsed hallatavate seansside liisingud
 
-Eksklusiivne halllatava seansi rentimine on liitumispõhine, kliendist sõltumatu ruutimislepe: üks aktiivne omanik hoiab üht sobivat OmniRoute ühendust. See ei rendi mudelit, ei nõua OAuth-i, ei tuvasta konkreetset klienti ega nõua konkreetset teenusepakkujat.
+Eksklusiivne hallatavate seansside liising on valikuline, kliendineutraalne marsruutimisleping: üks aktiivne omanik omab ühte sobivat OmniRoute ühendust. See ei liisi mudelit, ei nõua OAuth-i, ei identifitseeri konkreetset klienti ega nõua konkreetset pakkujat.
 
-Autentivat API-võtmel peab olema skoop `lease:exclusive` ja selgesõnaline mittetühi `allowedConnections` loend. Andmebaasi mutatsioonipiir jõustab mõlemad väljad koos võtme loomisel ja osalisel uuendamisel.
+Autentival API võtmel peab olema ulatus `lease:exclusive` ja selgesõnaline mittetühi `allowedConnections` loend. Andmebaasi mutatsiooni piir tagab mõlema välja koos võtme loomisel ja osalistel uuendustel.
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Õnnestunud acquire, renew ja release vastused avaldavad ajatemplid, `state` ja täpse positiivse `generation`, kuid mitte kunagi valitud ühendust või mandaate. Renew ja release edastavad generation väärtuse JSON-kehas:
+Edukad omandamise, uuendamise ja vabastamise vastused näitavad ajatempleid, `state` ja täpset positiivset `generation`, kuid mitte kunagi valitud ühendust ega mandaate. Uuendamine ja vabastamine annavad generatsiooni JSON-i kehas:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Aktiivne rendi omanik saab selgesõnaliselt küsida privaatsust arvestavat kuvamismetaandmestikku oma praeguse seose kohta:
+Aktiivne liisingu omanik saab selgesõnaliselt taotleda privaatsust kaitsvat kuvamise metaandmeid oma praeguse sidumise kohta:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ Aktiivne rendi omanik saab selgesõnaliselt küsida privaatsust arvestavat kuvam
 }
 ```
 
-See liitumispõhine status-tegevus on tõkestatud ühes andmebaasitehingus opaakse omaniku, autenditud halllatava API-võtme ja täpse aktiivse generation väärtuse abil. `displayName` on ainult puhastatud (trimmed) konfigureeritud ühenduse nimi; see on `null`, kui turvalist konfigureeritud nime pole olemas. OmniRoute ei asenda seda kunagi e-postiga või loodud kontoidentiteediga. Provider väärtus on mittetundlik kuvasilt ja mitte kunagi loodud ühilduva teenusepakkuja identifikaator. Mandaadid, tunnusluba (tokens), küpsised, toored ühenduse või API-võtme id-d, omaniku räsid, tõkestussaladused ja sisemine ruutimisandmestik on välja jäetud.
+See valikuline oleku tegevus on piiratud läbipaistmatu omaniku, autentitud hallatava API võtme ja täpse aktiivse generatsiooniga ühes andmebaasi tehingus. `displayName` on ainult kärbitud konfigureeritud ühenduse nimi; see on `null`, kui ohutut konfigureeritud nime ei eksisteeri. OmniRoute ei asenda kunagi e-posti ega genereeritud konto identiteeti. Pakkuja väärtus on mittetundlik kuvamissilt ja mitte kunagi genereeritud ühilduva pakkuja identifikaator. Mandaadid, märgid, küpsised, toorühenduse või API võtme ID-d, omaniku räsid, piirdeaia saladused ja sisemised marsruutimisandmed on välja jäetud.
 
-Vale võti, vale omanik, aegunud generation, puuduv, aegunud, vabastatud ja kehtetuks tunnistatud otsingud tagastavad kõik sama `409 LEASE_FENCE_STALE` vea ühendusmetaandmeteta. Klient, kes sai mahupiirangu ootevastuse, ei omab aktiivset seost, mida kontrollida. Kui ruutimine teeb aktiivse rendi puhul ülemineku, jääb sama generation kehtivaks ja status tagastab tehinguna korrektselt uue seose, mitte kunagi vana. Olemasolevad kliendid jäävad muutumatuks, kuna acquire, renew, release ja ootevastused säilitavad oma varasemad kujud.
+Vale võtme, vale omaniku, aegunud generatsiooni, puuduvate, aegunud, vabastatud ja kehtetuks tunnistatud otsingud tagastavad kõik sama `409 LEASE_FENCE_STALE` vea ilma ühenduse metaandmeteta. Klient, kes sai mahu ootamise vastuse, ei oma aktiivset sidumist, mida kontrollida. Kui marsruutimine viib aktiivse liisingu üle, jääb sama generatsioon kehtivaks ja olek tagastab aatomiliselt uue sidumise, mitte kunagi vana. Olemasolevad kliendid jäävad muutumatuks, sest omandamise, uuendamise, vabastamise ja ootamise vastused säilitavad oma varasemad kujud.
 
-See serveri lepe ei muuda vaikimisi OpenAI Codexi `/status` käitumist. Vaikimisi Codex teatab praegu oma mudeli teenusepakkujat ja sisseehitatud autentimise/konto olekut, kuid ei kuva suvalisi kohandatud teenusepakkuja konto metaandmeid; hilisem kliendi integreerimine peab kutsuma selle tegevuse ja otsustama, kuidas kuvada `connection.displayName`.
+See serverileping ei muuda tavalist OpenAI Codex `/status` olekut. Tavaline Codex teatab praegu oma mudeli pakkujast ja sisseehitatud autentimise/konto olekust, kuid ei renderda suvalisi kohandatud pakkuja konto metaandmeid; hilisem kliendi integratsioon peab kutsuma seda tegevust ja otsustama, kuidas kuvada `connection.displayName`.
 
-Iga halllatav järeldamispäring edastab siis mõlemad kontrollpäised:
+Iga hallatav järelduspäring annab seejärel mõlemad kontrollpäised:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Täpne omanik, generation, aktiivne ühendus ja autenditud API-võti on tõkestatud vahetult enne iga toetatud ülesvoolu katset. Omaniku ja generation kordamine teise võtmega ebaõnnestub isegi kui see võti võimaldab sama ühendust. Toored omanikud ei säilitata, ei logita, ei säilitata päringu jäljendis ega edastata ülesvoolu.
+Täpne omanik, generatsioon, aktiivne ühendus ja autentitud API võti on piiratud vahetult enne iga toetatud ülesvoolu katset. Omaniku ja generatsiooni taasesitamine teise võtmega ebaõnnestub isegi siis, kui see võti lubab sama ühendust. Tooromanikke ei säilitata, logita, hoita päringu hetktõmmises ega edastata ülesvoolu.
 
-Ajutine ressursikonflikt tagastab HTTP `429` koos `Retry-After` päisega ja:
+Ajutine vaidlus tagastab HTTP `429` koos `Retry-After` ja:
 
 ```json
 {
@@ -157,33 +157,35 @@ Ajutine ressursikonflikt tagastab HTTP `429` koos `Retry-After` päisega ja:
 }
 ```
 
-See vastus tähendab ainult seda, et tavapärane sobivate ühenduste hulk oli mittetühi ja kõik vabad kandidaadid oli hõivanud võõra aktiivne rent. Toetamata mudelid/teenusepakkujad, poliitika mittevastavus, jahtumisaeg (cooldown), kvoot, tervis ja teised tavapärased sobivuse ebaõnnestumised säilitavad oma olemasolevad OmniRoute vastused.
+See vastus tähendab ainult seda, et tavaline sobiv komplekt ei olnud tühi ja iga vaba kandidaat oli hoitud välismaise aktiivse liisingu poolt. Toetamata mudelid/pakkujad, poliitika mittevastavus, jahtumine, kvoot, tervis ja muud tavalised sobivuse vead säilitavad oma olemasolevad OmniRoute vastused.
 
 ### `x-omniroute-compression`
 
-Päringupõhine ülekirjutamine (override) tihenduse (compression) plaani jaoks. Kõrgeim eelisõigus — see edestab ruutimiskombinatsiooni (routing-combo) ülekirjutust, aktiivset profiili, automaatpäästikut (auto-trigger) ja paneeli Default väärtust. Väärtused:
+Päringupõhine tihendusplaani ülekirjutamine. Kõrgeim prioriteet – ületab marsruutimis-kombo ülekirjutamise, aktiivse profiili, automaatkäivituse ja paneeli vaikeväärtuse. Väärtused:
 
-| Väärtus       | Mõju                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------- |
-| `off`         | Selle päringu jaoks tihendust ei kasutata.                                                  |
-| `default`     | Paneelist tulenev Default profiil (ignoreerib aktiivset profiili).                          |
-| `engine:<id>` | Üks mootor, kui see on lubatud, nt `engine:rtk`.                                            |
-| `<combo>`     | Nimeline kombinatsioon, otsitakse nime järgi (tõstutundetu) esimesena, seejärel id-i järgi. |
+| Väärtus       | Mõju                                                                                               |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| `off`         | Selle päringu jaoks tihendust ei toimu.                                                            |
+| `default`     | Paneelist tuletatud vaike profiil (ignoreerib aktiivset profiili). Kadudega mootorid jäävad välja. |
+| `safe`        | Ainult dubleerimise ja tühikute kokkuklappimine.                                                   |
+| `allow-lossy` | Säilitab operaatori plaani selle päringu jaoks, sealhulgas kokkuvõtted ja stiili ümberkirjutused.  |
+| `engine:<id>` | Üksik mootor, kui see on lubatud, nt `engine:rtk`. Päringupõhine valik sellele mootorile.          |
+| `<combo>`     | Nimega kombo, sobitatakse esmalt nime järgi (tõstutundetu), seejärel ID järgi.                     |
 
 Märkused:
 
-- Tundmatuid väärtusi ignoreeritakse (päringut ei lükata kunagi tagasi); lahendamine langeb tagasi tavapärasele operaatori eelisjärjekorrale.
-- Kui mitmel kombinatsioonil on samasugune nimi, edasta deterministliku vastavuse jaoks kombinatsiooni **id**.
-- Kombinatsiooni, mille nimi on `off` või `default`, ei saa nime järgi valida (need märksõnad tõlgendatakse esimesena); viita sellisele kombinatsioonile tema id-i järgi.
-- Peamine tihenduslüliti on kõva blokaator: kui tihendus on globaalselt keelatud, ei saa see päis seda lubada.
+- Tundmatud väärtused ignoreeritakse (päringut ei lükata kunagi tagasi); lahendus langeb tavalisele operaatori prioriteedile.
+- Kui mitmel kombil on sama nimi, edastage kombo **ID** deterministliku vaste saamiseks.
+- Kombo, mille nimi on `off` või `default`, ei saa nime järgi valida (need märksõnad tõlgendatakse esmalt); viidake sellisele kombile selle ID järgi.
+- Peamine tihenduslüliti on range värav: kui tihendus on globaalselt keelatud, ei saa see päis seda lubada.
 
-Rakendatud plaan kajastatakse vastuse päises:
+Rakendatud plaan kajastub vastuse päises:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-kus `<source>` on üks järgnevatest: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` või `off`.
+kus `<source>` on üks järgmistest: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` või `off`.
 
 ---
 

@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Semantik biaya cache hit:** pada HIT cache semantik (`X-OmniRoute-Cache-Hit: true`), tidak ada panggilan upstream yang dilakukan, sehingga `X-OmniRoute-Response-Cost` adalah `0.0000000000` (biaya **inkremental** untuk menyajikan hit tersebut). Biaya asli/yang seharusnya terjadi dilaporkan secara terpisah dalam `X-OmniRoute-Cost-Saved`. Konsumen data penagihan harus menjumlahkan `X-OmniRoute-Response-Cost` (hit tidak dikenai biaya); analitik cache dapat mengagregasikan `X-OmniRoute-Cost-Saved`.
 
-## Lease Sesi Terkelola Eksklusif
+## Sewa Sesi Terkelola Eksklusif
 
-Penyewaan sesi terkelola eksklusif adalah kontrak perutean yang bersifat opsional dan netral terhadap klien: satu pemilik aktif
-memegang satu koneksi OmniRoute yang memenuhi syarat. Kontrak ini tidak menyewakan model, mewajibkan OAuth, mengidentifikasi
-klien tertentu, atau mewajibkan penyedia tertentu.
+Penyewaan sesi terkelola eksklusif adalah kontrak perutean yang bersifat opt-in dan netral klien: satu pemilik aktif memegang satu koneksi OmniRoute yang memenuhi syarat. Ini tidak menyewakan model, memerlukan OAuth, mengidentifikasi klien tertentu, atau memerlukan penyedia tertentu.
 
-Kunci API yang digunakan untuk autentikasi harus memiliki cakupan `lease:exclusive` dan daftar
-`allowedConnections` eksplisit yang tidak kosong. Batas mutasi basis data memberlakukan kedua bidang tersebut secara bersamaan saat
-pembuatan kunci dan pembaruan parsial.
+Kunci API yang mengautentikasi harus memiliki cakupan `lease:exclusive` dan daftar `allowedConnections` yang eksplisit dan tidak kosong. Batas mutasi database memberlakukan kedua bidang secara bersamaan pada pembuatan kunci dan pembaruan parsial.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Respons perolehan, perpanjangan, dan pelepasan yang berhasil menampilkan stempel waktu, `state`, dan
-`generation` positif yang tepat, tetapi tidak pernah menampilkan koneksi atau kredensial yang dipilih. Perpanjangan dan pelepasan menyertakan
-generasi dalam isi JSON:
+Respons akuisisi, perpanjangan, dan pelepasan yang berhasil menampilkan stempel waktu, `state`, dan `generation` positif yang tepat, tetapi tidak pernah koneksi atau kredensial yang dipilih. Perpanjangan dan pelepasan menyediakan generasi dalam badan JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generasi dalam isi JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Pemilik lease aktif dapat secara eksplisit meminta metadata tampilan yang aman bagi privasi untuk pengikatannya saat ini:
+Pemilik sewa aktif dapat secara eksplisit meminta metadata tampilan yang aman privasi untuk pengikatan saat ini:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Pemilik lease aktif dapat secara eksplisit meminta metadata tampilan yang aman b
 }
 ```
 
-Tindakan status opsional ini dibatasi oleh pemilik opak, kunci API terkelola yang diautentikasi, dan
-generasi aktif yang tepat dalam satu transaksi basis data. `displayName` hanya merupakan nama koneksi terkonfigurasi
-yang telah dipangkas; nilainya `null` ketika tidak ada nama terkonfigurasi yang aman. OmniRoute tidak pernah menggantinya dengan
-email atau identitas akun yang dihasilkan. Nilai penyedia adalah label tampilan non-sensitif dan tidak pernah berupa
-pengidentifikasi penyedia kompatibel yang dihasilkan. Kredensial, token, cookie, ID mentah koneksi atau kunci API,
-hash pemilik, rahasia pembatas, dan data perutean internal tidak disertakan.
+Tindakan status opt-in ini dibatasi oleh pemilik buram, kunci API terkelola yang diautentikasi, dan generasi aktif yang tepat dalam satu transaksi database. `displayName` hanyalah nama koneksi yang dikonfigurasi yang dipangkas; ini `null` ketika tidak ada nama yang dikonfigurasi yang aman. OmniRoute tidak pernah mengganti email atau identitas akun yang dihasilkan. Nilai penyedia adalah label tampilan yang tidak sensitif dan tidak pernah menjadi pengidentifikasi penyedia yang kompatibel yang dihasilkan. Kredensial, token, cookie, ID koneksi mentah atau kunci API, hash pemilik, rahasia pembatasan, dan data perutean internal dikecualikan.
 
-Pencarian dengan kunci yang salah, pemilik yang salah, generasi kedaluwarsa, data yang hilang, lease yang habis masa berlaku, dilepas, atau dibatalkan semuanya
-mengembalikan kesalahan `409 LEASE_FENCE_STALE` yang sama tanpa metadata koneksi. Klien yang menerima respons tunggu kapasitas tidak memiliki pengikatan aktif untuk diperiksa. Ketika perutean mengalihkan lease aktif,
-generasi yang sama tetap valid dan status secara atomik mengembalikan pengikatan baru, bukan yang lama.
-Klien yang sudah ada tetap tidak berubah karena respons perolehan, perpanjangan, pelepasan, dan penantian mempertahankan
-bentuk sebelumnya.
+Pencarian kunci yang salah, pemilik yang salah, generasi yang usang, hilang, kedaluwarsa, dilepaskan, dan tidak valid semuanya mengembalikan kesalahan `409 LEASE_FENCE_STALE` yang sama tanpa metadata koneksi. Klien yang menerima respons tunggu kapasitas tidak memiliki pengikatan aktif untuk diperiksa. Ketika perutean mentransisikan sewa aktif, generasi yang sama tetap valid dan status secara atomik mengembalikan pengikatan baru, tidak pernah yang lama. Klien yang ada tetap tidak berubah karena respons akuisisi, perpanjangan, pelepasan, dan tunggu mempertahankan bentuk sebelumnya.
 
-Kontrak server ini tidak mengubah `/status` OpenAI Codex standar. Codex standar saat ini melaporkan
-penyedia model serta status autentikasi/akun bawaannya, tetapi tidak merender metadata akun
-penyedia kustom arbitrer; integrasi klien mendatang harus memanggil tindakan ini dan menentukan cara
-menampilkan `connection.displayName`.
+Kontrak server ini tidak mengubah stok OpenAI Codex `/status`. Stok Codex saat ini melaporkan penyedia modelnya dan status autentikasi/akun bawaan tetapi tidak merender metadata akun penyedia kustom arbitrer; integrasi klien selanjutnya harus memanggil tindakan ini dan memutuskan cara menampilkan `connection.displayName`.
 
-Setiap permintaan inferensi terkelola kemudian menyertakan kedua header kontrol:
+Setiap permintaan inferensi terkelola kemudian menyediakan kedua header kontrol:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Pemilik, generasi, koneksi aktif, dan kunci API terautentikasi yang tepat dibatasi tepat
-sebelum setiap upaya upstream yang didukung. Memutar ulang pemilik dan generasi dengan kunci lain akan gagal bahkan
-ketika kunci tersebut mengizinkan koneksi yang sama. Pemilik mentah tidak dipersistenkan, dicatat dalam log, dipertahankan dalam
-snapshot permintaan, atau diteruskan ke upstream.
+Pemilik yang tepat, generasi, koneksi aktif, dan kunci API yang diautentikasi dibatasi segera sebelum setiap upaya upstream yang didukung. Memutar ulang pemilik dan generasi dengan kunci lain gagal bahkan ketika kunci tersebut mengizinkan koneksi yang sama. Pemilik mentah tidak disimpan, dicatat, dipertahankan dalam snapshot permintaan, atau diteruskan ke upstream.
 
-Kontensi sementara mengembalikan HTTP `429` dengan `Retry-After` dan:
+Pertentangan sementara mengembalikan HTTP `429` dengan `Retry-After` dan:
 
 ```json
 {
@@ -178,36 +157,35 @@ Kontensi sementara mengembalikan HTTP `429` dengan `Retry-After` dan:
 }
 ```
 
-Respons ini hanya berarti bahwa himpunan koneksi biasa yang memenuhi syarat tidak kosong dan setiap kandidat bebas sedang
-dipegang oleh lease aktif milik pihak lain. Model/penyedia yang tidak didukung, ketidakcocokan kebijakan, cooldown, kuota,
-kesehatan, dan kegagalan kelayakan biasa lainnya tetap menggunakan respons OmniRoute yang sudah ada.
+Respons ini hanya berarti bahwa set yang memenuhi syarat biasa tidak kosong dan setiap kandidat bebas dipegang oleh sewa aktif asing. Model/penyedia yang tidak didukung, ketidakcocokan kebijakan, pendinginan, kuota, kesehatan, dan kegagalan kelayakan biasa lainnya mempertahankan respons OmniRoute yang ada.
 
 ### `x-omniroute-compression`
 
-Penggantian paket kompresi per permintaan. Memiliki prioritas tertinggi — mengalahkan penggantian kombo perutean,
-profil aktif, pemicu otomatis, dan Default panel. Nilai:
+Penggantian per-permintaan dari rencana kompresi. Prioritas tertinggi — mengalahkan penggantian kombo perutean, profil aktif, pemicu otomatis, dan panel Default. Nilai:
 
-| Nilai         | Efek                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------ |
-| `off`         | Tanpa kompresi untuk permintaan ini.                                                                         |
-| `default`     | Profil Default yang diturunkan dari panel (mengabaikan profil aktif).                                        |
-| `engine:<id>` | Satu mesin saat diaktifkan, misalnya `engine:rtk`.                                                           |
-| `<combo>`     | Kombo bernama, pertama-tama dicocokkan berdasarkan nama (tidak peka huruf besar-kecil), lalu berdasarkan ID. |
+| Nilai         | Efek                                                                                                            |
+| ------------- | --------------------------------------------------------------------------------------------------------------- |
+| `off`         | Tidak ada kompresi untuk permintaan ini.                                                                        |
+| `default`     | Profil Default yang berasal dari panel (mengabaikan profil aktif). Mesin lossy dibiarkan mati.                  |
+| `safe`        | Hanya dedup dan pelipatan spasi.                                                                                |
+| `allow-lossy` | Pertahankan rencana operator untuk permintaan ini, termasuk ringkasan dan penulisan ulang gaya.                 |
+| `engine:<id>` | Satu mesin saat diaktifkan, mis. `engine:rtk`. Opt-in per-permintaan untuk mesin itu.                           |
+| `<combo>`     | Kombo bernama, dicocokkan berdasarkan nama (tidak peka huruf besar/kecil) terlebih dahulu, lalu berdasarkan id. |
 
 Catatan:
 
-- Nilai yang tidak dikenal akan diabaikan (permintaan tidak pernah ditolak); resolusi dilanjutkan ke urutan prioritas operator normal.
-- Jika beberapa kombo memiliki nama yang sama, berikan **id** kombo agar pencocokan deterministik.
-- Kombo yang namanya `off` atau `default` tidak dapat dipilih berdasarkan nama (kata kunci tersebut ditafsirkan terlebih dahulu); rujuk kombo tersebut berdasarkan ID-nya.
-- Sakelar kompresi utama merupakan gerbang mutlak: ketika kompresi dinonaktifkan secara global, header ini tidak dapat mengaktifkannya.
+- Nilai yang tidak dikenal diabaikan (permintaan tidak pernah ditolak); resolusi jatuh ke prioritas operator normal.
+- Jika beberapa kombo memiliki nama yang sama, berikan **id** kombo untuk kecocokan yang deterministik.
+- Kombo yang namanya `off` atau `default` tidak dapat dipilih berdasarkan nama (kata kunci tersebut diinterpretasikan terlebih dahulu); referensikan kombo tersebut berdasarkan id-nya.
+- Sakelar kompresi master adalah gerbang keras: ketika kompresi dinonaktifkan secara global, header ini tidak dapat mengaktifkannya.
 
-Paket yang diterapkan dikembalikan dalam header respons:
+Rencana yang diterapkan diulang kembali di header respons:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-dengan `<source>` adalah salah satu dari `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, atau `off`.
+di mana `<source>` adalah salah satu dari `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, atau `off`.
 
 ---
 
