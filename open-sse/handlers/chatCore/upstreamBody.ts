@@ -264,7 +264,10 @@ function normalizeAttemptBody(opts: PrepareUpstreamBodyOptions): Body {
   // All models, including universal/context-handoff summary models, pass through
   // this shared pre-executor boundary. Remove OmniRoute-only routing markers here
   // so custom executors that serialize their own request bodies cannot leak them.
-  stripInternalBodyFields(bodyToSend);
+  // keepExecutorMarkers: `_native*Passthrough` is read by the executor further down
+  // (codex.ts/xai.ts) and deleted there; applyFingerprint() strips it at
+  // serialization. Removing it here would disable native passthrough (#14496).
+  stripInternalBodyFields(bodyToSend, { keepExecutorMarkers: true });
   return bodyToSend;
 }
 

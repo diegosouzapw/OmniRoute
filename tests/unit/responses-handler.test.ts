@@ -582,7 +582,8 @@ test("handleResponsesCore injects SSE keepalive frames for Responses streams", a
 
     const sse = await result.response.text();
 
-    assert.match(sse, /data: \{"type":"response\.in_progress"\}/);
+    // #14572 (#14330) gives the synthesized frame a sequence_number (seed 1) and a response.
+    assert.match(sse, /data: \{"type":"response\.in_progress","sequence_number":1,/);
     assert.match(sse, /event: response\.created/);
     assert.match(sse, /data: \[DONE\]/);
   } finally {
