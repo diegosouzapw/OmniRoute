@@ -1699,7 +1699,7 @@
     }
   },
   "deepseek": {
-    "format": "openai-responses",
+    "format": "openai",
     "headers": {
       "apiKey": {
         "Accept": "text/event-stream",
@@ -1717,8 +1717,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.deepseek.com/responses",
-      "stream": "https://api.deepseek.com/responses"
+      "nonStream": "https://api.deepseek.com/chat/completions",
+      "stream": "https://api.deepseek.com/chat/completions"
     }
   },
   "deepseek-web": {
@@ -5542,29 +5542,6 @@
     "url": {
       "nonStream": "https://ai.sumopod.com/v1/chat/completions",
       "stream": "https://ai.sumopod.com/v1/chat/completions"
-    }
-  },
-  "suno": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://studio-api.suno.ai/api/generate/v2/",
-      "stream": "https://studio-api.suno.ai/api/generate/v2/"
     }
   },
   "synthetic": {

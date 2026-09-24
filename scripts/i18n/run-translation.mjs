@@ -391,6 +391,46 @@ const SYSTEM_PROMPT = (englishName, native) =>
     `Return ONLY the translated markdown — no preamble, no explanation, no surrounding fences.`,
   ].join(" ");
 
+// ----- Output guard ---------------------------------------------------------
+// The hash-based drift check cannot tell a good mirror from a broken one, and
+// fallback models broke mirrors in two ways that shipped (refresh-5/6,
+// 2026-09-23): reasoning models leaked their `<think>` block and English
+// meta-prose ("I'll keep the table header…") into the translation, and long
+// tables came back with rows missing. Each chunk is therefore cleaned and
+// checked against its source before it is accepted; a chunk that still fails is
+// retried, and a doc whose chunk never validates fails instead of being written.
+
+const THINK_BLOCK = /<think>[\s\S]*?<\/think>\s*/g;
+const WRAPPING_FENCE = /^```(?:markdown|md)?[ \t]*\n([\s\S]*?)\n```[ \t]*$/;
+const META_PROSE = [
+  /\bI'll /g,
+  /\bI will /g,
+  /\bI need to /g,
+  /\bLet me /g,
+  /\bMy plan\b/g,
+  /\bOkay, /g,
+  /\bThe user /g,
+];
+const countMatches = (re, text) => (text.match(re) || []).length;
+const countLines = (re, text) => text.split("\n").filter((l) => re.test(l)).length;
+
+export function validateTranslatedChunk(source, output) {
+  let text = output.replace(THINK_BLOCK, "").trim();
+  const unwrapped = !/^\s*```/.test(source) && text.match(WRAPPING_FENCE);
+  if (unwrapped) text = unwrapped[1].trim();
+  const problems = [];
+  if (/<\/?think>/.test(text)) problems.push("leaked <think> tag");
+  const fences = [countLines(/^\s*```/, source), countLines(/^\s*```/, text)];
+  if (fences[0] !== fences[1]) problems.push(`code fences ${fences[1]}/${fences[0]}`);
+  const rows = [countLines(/^\s*\|/, source), countLines(/^\s*\|/, text)];
+  if (rows[0] !== rows[1]) problems.push(`table rows ${rows[1]}/${rows[0]}`);
+  const meta = META_PROSE.filter((re) => countMatches(re, text) > countMatches(re, source));
+  if (meta.length) problems.push(`meta-prose ${meta.map((re) => re.source).join(", ")}`);
+  return { text, problems };
+}
+
+const CHUNK_ATTEMPTS = 3;
+
 // Splits a markdown body into chunks of <= maxChars. Top-level `## ` headings
 // are the preferred cut; a section that is still longer than maxChars is then
 // split again on `### ` headings and paragraph boundaries, never inside a
@@ -735,11 +775,23 @@ async function translateBody(body, localeEntry, backend) {
       { role: "system", content: system },
       { role: "user", content: chunks[i] },
     ];
-    const out = await callChat(messages, backend);
-    translated.push(out.trim());
+    let checked;
+    for (let attempt = 1; attempt <= CHUNK_ATTEMPTS; attempt++) {
+      checked = validateTranslatedChunk(chunks[i], await callChat(messages, backend));
+      if (checked.problems.length === 0) break;
+      logWarn(
+        `  chunk ${i + 1}/${chunks.length} rejected (attempt ${attempt}/${CHUNK_ATTEMPTS}): ${checked.problems.join("; ")}`
+      );
+    }
+    if (checked.problems.length > 0) {
+      throw new Error(
+        `chunk ${i + 1}/${chunks.length} failed validation: ${checked.problems.join("; ")}`
+      );
+    }
+    translated.push(checked.text);
     if (chunks.length > 1) {
       logInfo(
-        `  chunk ${i + 1}/${chunks.length} translated (${chunks[i].length} → ${out.length} chars)`
+        `  chunk ${i + 1}/${chunks.length} translated (${chunks[i].length} → ${checked.text.length} chars)`
       );
     }
   }
