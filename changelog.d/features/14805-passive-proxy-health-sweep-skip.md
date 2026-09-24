@@ -1,0 +1,1 @@
+- **feat(proxy-health):** skip sweep probes from recent production traffic ([#14805](https://github.com/diegosouzapw/OmniRoute/pull/14805)) — thanks @maxmad64bis

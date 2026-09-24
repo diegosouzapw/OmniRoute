@@ -23,6 +23,7 @@
  */
 
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/db/proxies";
+import { exportProxyLogsSince } from "@/lib/db/proxyLogs";
 import { isProxyLogIncludeIps } from "@/lib/proxyLogger";
 import {
   getRecentEgressSharingSummary,
@@ -55,6 +56,16 @@ import {
   proxyEgressKey,
   type ProxyRefusalKind,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory";
+import {
+  decidePassiveVerdict,
+  getCachedPassiveVerdict,
+  passiveVerdictKey,
+  resolvePassiveCacheTtlMs,
+  resolvePassiveWindowMs,
+  setCachedPassiveVerdict,
+  type PassiveLogRow,
+  type PassiveVerdict,
+} from "./passiveVerdict.ts";
 import { isProxyHealthBlockedResetsStreakEnabled } from "@/shared/utils/featureFlags";
 
 // #6246: a HEAD to the public probe target through a legit (often loaded) proxy
@@ -109,9 +120,10 @@ export function planRecoveryProbes(
   candidates: RecoveryCandidate[],
   limits: RecoveryProbeLimits
 ): RecoveryCandidate[] {
-  const max = Number.isFinite(limits.maxCandidates) && limits.maxCandidates > 0
-    ? Math.floor(limits.maxCandidates)
-    : 0;
+  const max =
+    Number.isFinite(limits.maxCandidates) && limits.maxCandidates > 0
+      ? Math.floor(limits.maxCandidates)
+      : 0;
   if (max === 0) return [];
   return candidates
     .filter((c) => c.key !== null && c.kind === "ip_quota_429")
@@ -299,10 +311,236 @@ async function testOneProxy(proxy: {
     // never resolves for anyone (e.g. databricks's default azuredatabricks.net host is
     // literally 16 zeros). A connection failure there says nothing about this proxy —
     // same principle as the 5xx case above, extended to connection-level errors.
-    return providerTarget ? { outcome: "inconclusive", status: null } : { outcome: "fail", status: null };
+    return providerTarget
+      ? { outcome: "inconclusive", status: null }
+      : { outcome: "fail", status: null };
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/**
+ * Passive verdicts read from production traffic, grouped by proxy endpoint.
+ * Filled from the persisted request log on a short TTL so one sweep pays one
+ * bounded windowed read; a proxy that just failed a real request is skipped
+ * without waiting for the next live probe.
+ */
+interface EndpointVerdict {
+  verdict: PassiveVerdict;
+  /** Distinct providers observed for the endpoint; healthy skips need exactly one. */
+  providers: string[];
+}
+
+function readPassiveVerdicts(
+  proxies: Array<{ host: string; port: number }>
+): Map<string, EndpointVerdict> {
+  const verdicts = new Map<string, EndpointVerdict>();
+  const windowMs = resolvePassiveWindowMs();
+  const ttlMs = resolvePassiveCacheTtlMs();
+  const now = Date.now();
+  const since = new Date(now - windowMs).toISOString();
+  let rows: Record<string, unknown>[] = [];
+  try {
+    // Bounded by the short window via idx_pl_timestamp; never let a DB
+    // hiccup fail the sweep — fall back to live probes (unknown everywhere).
+    rows = exportProxyLogsSince(since);
+  } catch (error) {
+    console.error(`${LOG_PREFIX} Passive verdicts skipped:`, error);
+    return verdicts;
+  }
+  const endpoints = new Set(proxies.map((p) => passiveVerdictKey(p.host, p.port)));
+  const byEndpoint = new Map<string, PassiveLogRow[]>();
+  for (const row of rows) {
+    const host = typeof row.proxy_host === "string" ? row.proxy_host : null;
+    const port = typeof row.proxy_port === "number" ? row.proxy_port : null;
+    if (!host || !port || !endpoints.has(passiveVerdictKey(host, port))) continue;
+    const key = passiveVerdictKey(host, port);
+    const list = byEndpoint.get(key) ?? [];
+    list.push(row as PassiveLogRow);
+    byEndpoint.set(key, list);
+  }
+  for (const [key, keyedRows] of byEndpoint) {
+    const cached = getCachedPassiveVerdict(key, ttlMs, now);
+    const providers = [...new Set(keyedRows.map((r) => r.provider).filter((p) => p))];
+    if (cached !== null) {
+      verdicts.set(key, { verdict: cached.verdict, providers: cached.providers });
+      continue;
+    }
+    const verdict = decidePassiveVerdict({ rows: keyedRows });
+    setCachedPassiveVerdict(key, verdict, providers as string[], now);
+    verdicts.set(key, { verdict, providers: providers as string[] });
+  }
+  return verdicts;
+}
+
+/** Test-only: verdict lookup seam for sweep-level tests. */
+export type PassiveVerdictReader = (proxyId: string) => PassiveVerdict;
+
+let passiveReader: PassiveVerdictReader | null = null;
+
+/** Test-only: override the verdict lookup. */
+export function __setPassiveVerdictReaderForTesting(fn: PassiveVerdictReader | null): void {
+  passiveReader = fn;
+}
+
+type PassiveSkipOutcome = "passive-skipped-degraded" | "passive-skipped-healthy";
+
+/**
+ * Passive skip check for one proxy: production traffic already judged this
+ * endpoint. A recent attributed failure skips the live probe; a recent
+ * success skips it only when the window shows a single provider (a success
+ * for one provider never skips the probe another provider would need).
+ * Returns the skip outcome, or null when the proxy must be probed live.
+ */
+function resolvePassiveSkip(
+  proxy: { id: string; host: string; port: number },
+  passiveVerdicts: Map<string, EndpointVerdict>
+): PassiveSkipOutcome | null {
+  const endpointVerdict = passiveReader
+    ? { verdict: passiveReader(proxy.id), providers: [] as string[] }
+    : (passiveVerdicts.get(`${proxy.host}:${proxy.port}`) ?? {
+        verdict: "unknown" as const,
+        providers: [] as string[],
+      });
+  if (endpointVerdict.verdict === "degraded") return "passive-skipped-degraded";
+  if (endpointVerdict.verdict === "healthy" && isSingleProviderSkip(endpointVerdict)) {
+    return "passive-skipped-healthy";
+  }
+  return null;
+}
+
+/** A healthy verdict skips the probe only with exactly one observed provider. */
+function isSingleProviderSkip(endpointVerdict: EndpointVerdict): boolean {
+  return passiveReader !== null || endpointVerdict.providers.length === 1;
+}
+
+interface SweepOutcomeStep {
+  tested: number;
+  alive: number;
+  inconclusive: number;
+  blocked: number;
+  hangs: number;
+  passiveSkippedDegraded: number;
+  passiveSkippedHealthy: number;
+}
+
+/**
+ * Apply one settled probe outcome to the sweep counters. Passive skips are
+ * scheduling only: counted apart, never as tested, never touching the
+ * failure streak, a status, or the registry. Returns true when the outcome
+ * was fully handled here and needs no health decision.
+ */
+function applyProbeOutcome(outcome: string, counters: SweepOutcomeStep): boolean {
+  if (outcome === "passive-skipped-degraded") {
+    counters.passiveSkippedDegraded++;
+    return true;
+  }
+  if (outcome === "passive-skipped-healthy") {
+    counters.passiveSkippedHealthy++;
+    return true;
+  }
+  counters.tested++;
+  if (outcome === "ok") counters.alive++;
+  else if (outcome === "inconclusive") counters.inconclusive++;
+  else if (outcome === "blocked") counters.blocked++;
+  else if (outcome === "hang") counters.hangs++;
+  return false;
+}
+
+interface SweepBatchInput {
+  batch: Array<{ id: string; host: string; port: number }>;
+  passiveVerdicts: Map<string, EndpointVerdict>;
+}
+
+/**
+ * Probe one batch of proxies: passive skips short-circuit before the live
+ * probe; 429 refusals with a usable key feed the recovery ledger. Returns
+ * the settled per-proxy outcomes in batch order.
+ */
+async function probeSweepBatch({
+  batch,
+  passiveVerdicts,
+}: SweepBatchInput): Promise<Array<{ id: string; outcome: string }>> {
+  const results = await Promise.allSettled(
+    batch.map(async (proxy, indexInBatch) => {
+      const skip = resolvePassiveSkip(proxy, passiveVerdicts);
+      if (skip !== null) return { id: proxy.id, outcome: skip };
+      // Spread the departures: without this the whole batch leaves at the same tick and a
+      // shared egress IP hits the target with CONCURRENCY simultaneous requests.
+      await waitForProbeSlot(indexInBatch, STAGGER_MS);
+      const { outcome, status } = await testOneProxy(proxy);
+      // Ledger: only a sweep-observed 429 with a usable key is recorded.
+      if (outcome === "blocked" && status === 429) {
+        noteSweepRefusal(proxyEgressKey(proxy), status);
+      }
+      return { id: proxy.id, outcome };
+    })
+  );
+  const settled: Array<{ id: string; outcome: string }> = [];
+  for (const result of results) {
+    if (result.status !== "fulfilled") continue;
+    settled.push(result.value);
+  }
+  return settled;
+}
+
+interface SweepDecisionInput {
+  id: string;
+  outcome: string;
+  failureMap: Map<string, number>;
+  autoRemove: boolean;
+  autoDisable: boolean;
+  removeAfter: number;
+  blockedResetsStreak: boolean;
+}
+
+interface SweepDecisionResult {
+  removed: boolean;
+  disabled: boolean;
+}
+
+/**
+ * Apply the probe outcome to the failure streak and registry. With both
+ * flags off the operator-owned status is never touched: a transient probe
+ * failure alone never flips a healthy proxy.
+ */
+async function applySweepDecision({
+  id,
+  outcome,
+  failureMap,
+  autoRemove,
+  autoDisable,
+  removeAfter,
+  blockedResetsStreak,
+}: SweepDecisionInput): Promise<SweepDecisionResult> {
+  const decision = decideProxyHealthAction({
+    outcome,
+    priorFailures: failureMap.get(id) ?? 0,
+    autoRemove,
+    autoDisable,
+    removeAfter,
+    blockedResetsStreak,
+  });
+  if (decision.clearFailures) failureMap.delete(id);
+  else failureMap.set(id, decision.failures);
+  let disabled = false;
+  if (decision.setStatus) {
+    await updateProxy(id, { status: decision.setStatus }).catch(() => {});
+    if (decision.setStatus === "dead") disabled = true;
+  }
+  let removed = false;
+  if (decision.remove) {
+    if (await deleteProxyById(id, { force: true }).catch(() => false)) {
+      failureMap.delete(id);
+      removed = true;
+      try {
+        clearDispatcherCache();
+      } catch {
+        /* non-critical */
+      }
+    }
+  }
+  return { removed, disabled };
 }
 
 async function sweep(): Promise<void> {
@@ -324,6 +562,8 @@ async function sweep(): Promise<void> {
   const { items: proxies } = await listProxies({ includeSecrets: true });
   if (proxies.length === 0) return;
 
+  const passiveVerdicts = readPassiveVerdicts(proxies);
+
   const failureMap = getFailureMap();
   const removeAfter = getRemoveAfter();
   const autoRemove = isAutoRemoveEnabled();
@@ -337,72 +577,57 @@ async function sweep(): Promise<void> {
   let hangs = 0;
   let removed = 0;
   let disabled = 0;
+  let passiveSkippedDegraded = 0;
+  let passiveSkippedHealthy = 0;
 
   for (let i = 0; i < proxies.length; i += CONCURRENCY) {
-    const batch = proxies.slice(i, i + CONCURRENCY);
-    const results = await Promise.allSettled(
-      batch.map(async (proxy, indexInBatch) => {
-        // Spread the departures: without this the whole batch leaves at the same tick and a
-        // shared egress IP hits the target with CONCURRENCY simultaneous requests.
-        await waitForProbeSlot(indexInBatch, STAGGER_MS);
-        const { outcome, status } = await testOneProxy(proxy);
-        // Ledger: only a sweep-observed 429 with a usable key is recorded.
-        // No memory write happens on fail/hang; `proxy_unreachable` is written
-        // only by the hot path (never here), so it is excluded by construction.
-        if (outcome === "blocked" && status === 429) {
-          noteSweepRefusal(proxyEgressKey(proxy), status);
-        }
-        return { id: proxy.id, outcome };
-      })
-    );
+    const settled = await probeSweepBatch({
+      batch: proxies.slice(i, i + CONCURRENCY),
+      passiveVerdicts,
+    });
 
-    for (const result of results) {
-      if (result.status !== "fulfilled") continue;
-      const { id, outcome } = result.value;
-      tested++;
-      if (outcome === "ok") alive++;
-      else if (outcome === "inconclusive") inconclusive++;
-      else if (outcome === "blocked") blocked++;
-      else if (outcome === "hang") hangs++;
+    for (const { id, outcome } of settled) {
+      const step: SweepOutcomeStep = {
+        tested,
+        alive,
+        inconclusive,
+        blocked,
+        hangs,
+        passiveSkippedDegraded,
+        passiveSkippedHealthy,
+      };
+      if (applyProbeOutcome(outcome, step)) {
+        ({
+          tested,
+          alive,
+          inconclusive,
+          blocked,
+          hangs,
+          passiveSkippedDegraded,
+          passiveSkippedHealthy,
+        } = step);
+        continue;
+      }
+      ({ tested, alive, inconclusive, blocked, hangs } = step);
 
-      const decision = decideProxyHealthAction({
+      const { removed: wasRemoved, disabled: wasDisabled } = await applySweepDecision({
+        id,
         outcome,
-        priorFailures: failureMap.get(id) ?? 0,
+        failureMap,
         autoRemove,
         autoDisable,
         removeAfter,
         blockedResetsStreak,
       });
-
-      if (decision.clearFailures) failureMap.delete(id);
-      else failureMap.set(id, decision.failures);
-
-      // #6246 (policy C) / auto-disable (policy D): only mutate the operator-owned
-      // status when the decision explicitly asks for it. With both flags off,
-      // setStatus is null, so a transient probe failure never flips a healthy
-      // proxy's status.
-      if (decision.setStatus) {
-        await updateProxy(id, { status: decision.setStatus }).catch(() => {});
-        if (decision.setStatus === "dead") disabled++;
-      }
-
-      if (decision.remove) {
-        if (await deleteProxyById(id, { force: true }).catch(() => false)) {
-          failureMap.delete(id);
-          removed++;
-          try {
-            clearDispatcherCache();
-          } catch {
-            /* non-critical */
-          }
-        }
-      }
+      if (wasRemoved) removed++;
+      if (wasDisabled) disabled++;
     }
   }
 
   console.log(
     `${LOG_PREFIX} Sweep complete: ${tested} tested, ${alive} alive, ${blocked} refused by target, ` +
-      `${inconclusive} inconclusive, ${removed} auto-removed, ${disabled} auto-disabled`
+      `${inconclusive} inconclusive, ${removed} auto-removed, ${disabled} auto-disabled` +
+      `${passiveSkippedDegraded > 0 || passiveSkippedHealthy > 0 ? `, ${passiveSkippedDegraded} passive-skipped (recent failure), ${passiveSkippedHealthy} passive-skipped (recent success)` : ""}`
   );
   if (hangs > 0) {
     console.debug(`${LOG_PREFIX} stalled handshakes observed: ${hangs}`);
@@ -425,11 +650,13 @@ export async function runRecoveryPass(
   const empty = { planned: 0, recovered: 0, refused: 0 };
   if (!isRecoveryEnabled(env)) return empty;
   const active = limits ?? resolveRecoveryLimits(env);
-  const entries = candidates ?? [...recoveryLedger.entries()].map(([key, { setAsideAt }]) => ({
-    key,
-    kind: "ip_quota_429" as const,
-    setAsideAt,
-  }));
+  const entries =
+    candidates ??
+    [...recoveryLedger.entries()].map(([key, { setAsideAt }]) => ({
+      key,
+      kind: "ip_quota_429" as const,
+      setAsideAt,
+    }));
   const planned = planRecoveryProbes(entries, active);
   if (planned.length === 0) return empty;
   const concurrency = Math.max(
