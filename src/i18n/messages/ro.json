@@ -14111,7 +14111,12 @@
     "hour": "oră",
     "day": "zi",
     "unknownModel": "necunoscut",
-    "pending": "în așteptare"
+    "pending": "în așteptare",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Compresie",

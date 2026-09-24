@@ -1,0 +1,1 @@
+- **fix(sse):** Report buffered-turn verdicts and content-watchdog stall evidence in logs ([#14213](https://github.com/diegosouzapw/OmniRoute/issues/14213)) — thanks @maxmad64bis

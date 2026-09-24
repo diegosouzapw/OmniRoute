@@ -14111,7 +14111,12 @@
     "hour": "oras",
     "day": "araw",
     "unknownModel": "hindi kilala",
-    "pending": "naghihintay"
+    "pending": "naghihintay",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Pagsisikip",

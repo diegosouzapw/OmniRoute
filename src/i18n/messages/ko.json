@@ -14111,7 +14111,12 @@
     "hour": "시간",
     "day": "일",
     "unknownModel": "알 수 없음",
-    "pending": "보류 중"
+    "pending": "보류 중",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "압축",

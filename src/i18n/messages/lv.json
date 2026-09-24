@@ -14111,7 +14111,12 @@
     "hour": "stunda",
     "day": "diena",
     "unknownModel": "nezināms",
-    "pending": "gaida izpildi"
+    "pending": "gaida izpildi",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Saspiešana",

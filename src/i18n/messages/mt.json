@@ -14111,7 +14111,12 @@
     "hour": "siegħa",
     "day": "jum",
     "unknownModel": "mhux magħruf",
-    "pending": "pendenti"
+    "pending": "pendenti",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Kompressjoni",

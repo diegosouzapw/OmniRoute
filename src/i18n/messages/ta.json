@@ -14111,7 +14111,12 @@
     "hour": "மணி நேரம்",
     "day": "நாள்",
     "unknownModel": "அறியப்படாத",
-    "pending": "காத்திருக்கிறது"
+    "pending": "காத்திருக்கிறது",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "சுருக்கம்",

@@ -46,6 +46,7 @@ import { maybeWrapForcedNonStreamingResponsesJson } from "./chatCore/responsesJs
 import { enforceOutputTokenBudget } from "./chatCore/outputTokenBudget.ts";
 import { maybeConvertJsonBodyToSse } from "./chatCore/jsonBodyToSse.ts";
 import {
+  formatBufferedVerdictLog,
   judgeBufferedTurn,
   readBoundedResponseOutcome,
   FLUSH_EMPTY_RETRY_MAX_BYTES,
@@ -5879,7 +5880,8 @@ export async function handleChatCore({
           clientRawRequest?.signal?.aborted === true
         );
         if (verdict.kind === "pass") {
-          log?.debug?.("FLUSH_EMPTY_RETRY", `passing the turn through: ${verdict.why}`);
+          const v = formatBufferedVerdictLog(verdict, correlationId, traceId);
+          log?.[v.level]?.("FLUSH_EMPTY_RETRY", v.line);
           break;
         }
         if (emptyTurnRetries >= STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX) {

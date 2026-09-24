@@ -14111,7 +14111,12 @@
     "hour": "గంట",
     "day": "రోజు",
     "unknownModel": "అజ్ఞాత",
-    "pending": "ప్రతిష్టితమైన"
+    "pending": "ప్రతిష్టితమైన",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "సంకోచనం",

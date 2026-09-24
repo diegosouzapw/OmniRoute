@@ -14111,7 +14111,12 @@
     "hour": "tund",
     "day": "päev",
     "unknownModel": "teadmata",
-    "pending": "ootel"
+    "pending": "ootel",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Tihendamine",

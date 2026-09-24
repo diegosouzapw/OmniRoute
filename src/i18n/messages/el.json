@@ -14111,7 +14111,12 @@
     "hour": "ώρα",
     "day": "ημέρα",
     "unknownModel": "άγνωστο",
-    "pending": "σε αναμονή"
+    "pending": "σε αναμονή",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Συμπίεση",

@@ -14111,7 +14111,12 @@
     "hour": "час",
     "day": "день",
     "unknownModel": "неизвестно",
-    "pending": "в ожидании"
+    "pending": "в ожидании",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Сжатие",

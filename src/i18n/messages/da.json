@@ -14111,7 +14111,12 @@
     "hour": "time",
     "day": "dag",
     "unknownModel": "ukendt",
-    "pending": "afventer"
+    "pending": "afventer",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Komprimering",

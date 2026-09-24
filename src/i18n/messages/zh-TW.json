@@ -14111,7 +14111,12 @@
     "hour": "小時",
     "day": "天",
     "unknownModel": "未知",
-    "pending": "待處理"
+    "pending": "待處理",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "壓縮",

@@ -14111,7 +14111,12 @@
     "hour": "ժամ",
     "day": "օր",
     "unknownModel": "անհայտ",
-    "pending": "սպասման մեջ"
+    "pending": "սպասման մեջ",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Սեղմում",

@@ -14111,7 +14111,12 @@
     "hour": "ura",
     "day": "dan",
     "unknownModel": "neznano",
-    "pending": "na čakanju"
+    "pending": "na čakanju",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Stiskanje",
