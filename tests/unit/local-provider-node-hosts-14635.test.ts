@@ -90,6 +90,29 @@ test.describe("OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS parsing", () => {
     ]);
   });
 
+  test("public FQDNs cannot bypass outbound policy and proxies through the local allowlist", () => {
+    process.env[LOCAL_PROVIDER_NODE_HOSTS_ENV] =
+      "reranker,tei.internal,infinity.svc.cluster.local,foo.example.com";
+    assert.deepEqual([...getConfiguredLocalNodeHosts()].sort(), [
+      "infinity.svc.cluster.local",
+      "reranker",
+      "tei.internal",
+    ]);
+    assert.equal(isLocalProviderNodeHost("https://foo.example.com/v1"), false);
+    assert.equal(
+      isEligibleProviderNodeHost("https://foo.example.com/v1", { allowRemote: false }),
+      false
+    );
+    process.env.HTTPS_PROXY = "http://egress-proxy:7890";
+    delete process.env.NO_PROXY;
+    delete process.env.no_proxy;
+    assert.equal(resolveProxyForRequest("https://foo.example.com/v1").source, "env");
+    assert.deepEqual(resolveProxyForRequest("https://tei.internal/v1"), {
+      source: "direct",
+      proxyUrl: null,
+    });
+  });
+
   test("IP literals and cloud-metadata names are never accepted, and each rejection is reported", () => {
     const warnings: string[] = [];
     const originalWarn = console.warn;

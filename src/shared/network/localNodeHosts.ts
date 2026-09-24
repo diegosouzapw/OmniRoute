@@ -12,6 +12,8 @@
  * the rerank/audio provider-node routes and the local health check, and sent direct
  * instead of through HTTP(S)_PROXY. Unset (the default) changes nothing.
  *
+ * Only single-label service names and `.internal`/`.local` names qualify: listing a
+ * public FQDN must never bypass the remote-node flag, outbound policy and egress proxy.
  * IP literals and cloud-metadata names are never accepted from the list. IPs already have
  * their own classification, and the list must not become a way to route to an IMDS endpoint.
  * Rejected entries are reported once per distinct value with a `console.warn`, so a typo
@@ -33,7 +35,12 @@ export const LOCAL_PROVIDER_NODE_HOSTS_ENV = "OMNIROUTE_LOCAL_PROVIDER_NODE_HOST
 const SHORT_METADATA_HOSTNAMES = new Set(["metadata", "instance-data"]);
 
 // DNS labels as Docker/Compose/Kubernetes produce them. Docker also allows `_` in names.
+// A public FQDN must not bypass the remote-node flag, outbound policy or egress proxies.
 const HOSTNAME_RE = /^[a-z0-9_](?:[a-z0-9_-]{0,62})(?:\.[a-z0-9_](?:[a-z0-9_-]{0,62}))*$/;
+
+function isLocalNameShape(host: string): boolean {
+  return !host.includes(".") || host.endsWith(".internal") || host.endsWith(".local");
+}
 
 let cachedRaw: string | undefined;
 let cachedHosts: ReadonlySet<string> = new Set();
@@ -49,7 +56,7 @@ function readEnv(): string | undefined {
 const NUMERIC_LABEL_RE = /^(?:\d+|0x[0-9a-f]*)$/;
 
 function isAcceptableEntry(host: string): boolean {
-  if (!HOSTNAME_RE.test(host)) return false;
+  if (!HOSTNAME_RE.test(host) || !isLocalNameShape(host)) return false;
   if (ipVersion(host) !== 0) return false;
   if (host.split(".").some((label) => NUMERIC_LABEL_RE.test(label))) return false;
   return !isCloudMetadataHost(host) && !SHORT_METADATA_HOSTNAMES.has(host);
@@ -59,7 +66,7 @@ function warnIgnored(entries: string[]): void {
   if (entries.length === 0 || typeof console === "undefined") return;
   console.warn(
     `[${LOCAL_PROVIDER_NODE_HOSTS_ENV}] ignoring ${entries.length} entr${entries.length === 1 ? "y" : "ies"} ` +
-      `(expected bare hostnames; IP literals and cloud-metadata names are not allowed): ` +
+      `(expected single-label or .internal/.local hostnames; public FQDNs, IP literals and cloud-metadata names are not allowed): ` +
       entries.join(", ")
   );
 }
