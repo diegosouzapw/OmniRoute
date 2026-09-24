@@ -418,88 +418,72 @@ Jiri endpoint a mgbe sidecar na-arụ ọrụ n'èzí usoro ma ọ nweghị ike 
 
 ## Ebe Njedebe Ndakọrịta
 
-| Usoro | Ụzọ                                       | Ọdịdị                                   |
-| ----- | ----------------------------------------- | --------------------------------------- |
-| POST  | `/v1/chat/completions`                    | OpenAI                                  |
-| POST  | `/v1/messages`                            | Anthropic                               |
-| POST  | `/v1/responses`                           | OpenAI Responses                        |
-| POST  | `/v1/embeddings`                          | OpenAI                                  |
-| POST  | `/v1/images/generations`                  | OpenAI Images                           |
-| POST  | `/v1/images/edits`                        | OpenAI Images (ndezi/inpaint)           |
-| POST  | `/v1/videos/generations`                  | Mmepụta vidiyo n'ụdị OpenAI             |
-| POST  | `/v1/music/generations`                   | Mmepụta egwu n'ụdị OpenAI               |
-| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                      |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (na-eweghachi ọdịnaya ọdịyo) |
-| POST  | `/v1/rerank`                              | Nhazigharị ọkwa n'ụdị Cohere/Voyage     |
-| POST  | `/v1/classify`                            | Nkewapụta Jina (`api.jina.ai`)          |
-| POST  | `/v1/segment`                             | Onye nkewa Jina (`segment.jina.ai`)     |
-| POST  | `/v1/moderations`                         | OpenAI Moderations                      |
-| GET   | `/v1/models`                              | OpenAI                                  |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                               |
-| GET   | `/v1beta/models`                          | Gemini                                  |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                  |
-| POST  | `/v1/api/chat`                            | Ollama                                  |
-| GET   | `/api/v1/vscode/{token}/`                 | Aha ọzọ nke katalọgụ OpenAI             |
-| GET   | `/api/v1/vscode/{token}/models`           | Aha ọzọ nke ụdịdị OpenAI                |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | Aha ọzọ OpenAI nwere token              |
-| POST  | `/api/v1/vscode/{token}/responses`        | Aha ọzọ OpenAI Responses nwere token    |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Aha ọzọ Ollama nwere token              |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Aha ọzọ Ollama tags nwere token         |
+| Usoro | Ụzọ                                       | Ụdị                                  |
+| ----- | ----------------------------------------- | ------------------------------------ |
+| POST  | `/v1/chat/completions`                    | OpenAI                               |
+| POST  | `/v1/messages`                            | Anthropic                            |
+| POST  | `/v1/responses`                           | Nzaghachi OpenAI                     |
+| POST  | `/v1/embeddings`                          | OpenAI                               |
+| POST  | `/v1/images/generations`                  | Foto OpenAI                          |
+| POST  | `/v1/images/edits`                        | Foto OpenAI (dezie/tinye agba)       |
+| POST  | `/v1/videos/generations`                  | Mmepụta vidiyo ụdị OpenAI            |
+| POST  | `/v1/music/generations`                   | Mmepụta egwu ụdị OpenAI              |
+| POST  | `/v1/audio/transcriptions`                | Ọdịyo OpenAI (STT)                   |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (na-eweghachi ahụ ọdịyo)  |
+| POST  | `/v1/rerank`                              | Ndozigharị ụdị Cohere/Voyage         |
+| POST  | `/v1/classify`                            | Jina nhazi (`api.jina.ai`)           |
+| POST  | `/v1/segment`                             | Jina nkewa (`segment.jina.ai`)       |
+| POST  | `/v1/moderations`                         | Nlekọta OpenAI                       |
+| GET   | `/v1/models`                              | OpenAI                               |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                            |
+| GET   | `/v1beta/models`                          | Gemini                               |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent               |
+| POST  | `/v1/api/chat`                            | Ollama                               |
+| GET   | `/api/v1/vscode/{token}/`                 | Aha ọzọ ndekọ OpenAI                 |
+| GET   | `/api/v1/vscode/{token}/models`           | Aha ọzọ ụdị OpenAI                   |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | Aha ọzọ OpenAI nwere akara           |
+| POST  | `/api/v1/vscode/{token}/responses`        | Aha ọzọ nzaghachi OpenAI nwere akara |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Aha ọzọ Ollama nwere akara           |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Aha ọzọ akara Ollama nwere akara     |
 
-Ụzọ POST niile na-agbaso otu nhazi ahụ: `Bearer your-api-key` + ọdịnaya JSON Zod nyochara (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, wdg., lee `src/shared/validation/schemas.ts`). A na-eweghachi 4xx ma ọ bụrụ na nkwado schema ada.
+Ụzọ POST niile na-agbaso otu ụdị: `Bearer your-api-key` + Zod-validated JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, wdg., lee `src/shared/validation/schemas.ts`). A na-eweghachi 4xx ma ọ bụrụ na usoro ahụ ada.
 
-Maka ndị ahịa na-enweghị ike itinye `Authorization: Bearer ...`, OmniRoute na-anabatakwa igodo API n'ime URL site na ndakọrịta eriri-ajụjụ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ma ọ bụ ebe njedebe `/api/v1/vscode/{token}/...` ndị akọwara n'okpuru.
+Maka ndị ahịa na-enweghị ike itinye `Authorization: Bearer ...`, OmniRoute na-anabatakwa igodo API na URL site na ndakọrịta eriri ajụjụ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ma ọ bụ ebe njedebe `/api/v1/vscode/{token}/...` e dekọrọ n'okpuru.
 
 ```bash
-# Hazigharịa ọkwa (onye na-eweta ndekọ igwe ojii, ma ọ bụ node onye na-eweta dakọtara na OpenAI dịka "<prefix>/<model>")
+# Ndozigharị (onye na-enye ndekọ igwe ojii, ma ọ bụ ọnụ onye na-enye ndakọrịta OpenAI dị ka "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Nkewapụta Jina (nzere Foundation API)
+# Jina nhazi (Asambodo API Ntọala)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Onye nkewa Jina
+# Jina nkewa
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Ọchụchọ Jina (s.jina.ai; aha ndị ọzọ nke onye na-eweta: jina-search, jina-ai, jina)
+# Jina ọchụchọ (s.jina.ai; aha ọzọ onye na-enye: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Nnyocha ọdịnaya
+# Nlekọta
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — na-eweghachi ọdịnaya audio/mpeg (ma ọ bụ usoro a rịọrọ)
+# TTS — na-eweghachi ahụ ọdịyo/mpeg (ma ọ bụ usoro a rịọrọ) ahụ
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Ndezi onyonyo (multipart)
+# Ndezi onyonyo (ọtụtụ akụkụ)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Mmepụta vidiyo / egwu (ID ụdịdị nwere prefix onye na-eweta)
+# Mmepụta vidiyo / egwu (njirimara ụdị nwere prefix onye na-enye)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Node ndị na-eweta maka nhazigharị ọkwa:** `POST /v1/rerank` na-ezigakwa arịrịọ gaa na node ndị na-eweta dakọtara na OpenAI
-> (oMLX, vLLM, Infinity, TEI dị n'azụ gateway, …) ndị a na-akpọrọ dịka `<node-prefix>/<model>`. Node loopback
-> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) tozuru etozu mgbe niile. Node dị na host ọ bụla ọzọ
-> — igbe LAN ma ọ bụ onye mmekọ Tailscale — na-etozu naanị mgbe onye nchịkwa mere ka ọkọlọtọ atụmatụ
-> `RERANK_REMOTE_PROVIDER_NODES` rụọ ọrụ **ma** URL ntọala node ahụ gafere iwu URL ọpụpụ nke onye na-eweta
-> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> a naghị eziga arịrịọ na host metadata igwe ojii ma ọlị. Nzọụkwụ nhazigharị ọkwa nke injin ebe nchekwa na-akpọ ụzọ a site na
-> loopback, ya mere otu iwu ahụ na-achịkwa `rerankProviderModel` na ntọala Ebe Nchekwa.
+> **Ọnụ ndị na-enye ndozigharị:** `POST /v1/rerank` na-edugakwa na ọnụ ndị na-enye ndakọrịta OpenAI (oMLX, vLLM, Infinity, TEI n'azụ ọnụ ụzọ, …) a na-akpọ dị ka `<node-prefix>/<model>`. Ọnụ loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) na-eru eru mgbe niile. Ọnụ na nnabata ọ bụla ọzọ — igbe LAN ma ọ bụ Tailscale peer — na-eru eru naanị mgbe onye ọrụ na-enyere aka `RERANK_REMOTE_PROVIDER_NODES` ọkọlọtọ njirimara **na** URL isi nke ọnụ ahụ gafere iwu URL mpụga onye na-enye (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); a naghị eduga nnabata metadata igwe ojii. Nzọụkwụ ndozigharị nke injin ebe nchekwa na-akpọ ụzọ a site na loopback, yabụ otu iwu ahụ na-achị `rerankProviderModel` na ntọala Ebe Nchekwa.
 >
-> **Nhazi sava mpaghara:** a na-akpọ node ahụ na `<base>/v1/rerank`, ma ọ bụrụ na e nweta 404, na `<base>/rerank`
-> (Infinity, TEI). Ọdịnaya upstream na-ebu ma nsupe Cohere/OpenAI (`documents`,
-> `return_documents`) ma nsupe TEI (`texts`, `return_text`), a na-ahazikwa nzaghachi upstream
-> ka ọ bụrụ envelopu Cohere: ndepụta nkịtị TEI `[{index, score, text}]`, `{results: [{index, score}]}`
-> sitere na gateway ndị dị mfe, na `{data: [...]}` n'ụdị Voyage, ha niile na-alaghachikwuru onye ahịa dịka
-> `{results: [{index, relevance_score, document?}]}`, nke a haziri dịka akara ma kpachie ya na `top_n`.
+> **Ụdị ihe nkesa mpaghara:** a na-akpọ ọnụ ahụ na `<base>/v1/rerank` na, na 404, na `<base>/rerank` (Infinity, TEI). Ahụ elu na-ebu ma mkpụrụokwu Cohere/OpenAI (`documents`, `return_documents`) na mkpụrụokwu TEI (`texts`, `return_text`), na nzaghachi elu na-edozi ka ọ bụrụ envelopu Cohere: TEI's bare `[{index, score, text}]`, `{results: [{index, score}]}` site na ọnụ ụzọ dị gịrịgịrị, na ụdị Voyage `{data: [...]}` niile na-alaghachikwute onye ahịa dị ka `{results: [{index, relevance_score, document?}]}`, ahazi site na akara ma kpuchie na `top_n`.
 
-> **Nchọpụta node onye na-eweta:** ụdịdị ndị dị na node onye na-eweta dakọtara na OpenAI na-apụta na `GET /v1/models`
-> n'okpuru prefix node ahụ. Ahịrị ndị na-enweghị metadata ebe njedebe (dịka ọ na-adịkarị na ndepụta `/v1/models` mpaghara)
-> na-eketa `apiType` nke node ahụ, ya mere ụdịdị nke node `embeddings` bụ `type: "embedding"` ma ụdịdị
-> nke node `rerank` bụ `type: "rerank"` kama ịlaghachi na chat dịka ndabara; `supportedEndpoints` akọwapụtara
-> kpọmkwem n'ahịrị emekọrịtara ma ọ bụ nke agbakwunyere aka ka nwere ikike mbụ.
+> **Nchọpụta ọnụ onye na-enye:** ụdị dị na ọnụ onye na-enye ndakọrịta OpenAI na-apụta na `GET /v1/models` n'okpuru prefix ọnụ. Ahịrị na-enweghị metadata ebe njedebe (nke a na-ahụkarị maka ndepụta `/v1/models` mpaghara) na-eketa `apiType` nke ọnụ ahụ, yabụ ụdị ọnụ `embeddings` bụ `type: "embedding"` na ụdị ọnụ `rerank` bụ `type: "rerank"` kama ịbụ ndabara na nkata; `supportedEndpoints` doro anya na ahịrị a na-emekọrịta ma ọ bụ nke aka na-agbakwunye ka na-ebute ụzọ.
 
-### Ụzọ Ndị Na-eweta Pụrụ Iche
+### Ụzọ Ndị Na-enye Aka Raara Onwe Ha Nye
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -507,7 +491,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-A na-agbakwunye prefix nke provider na-akpaghị aka ma ọ bụrụ na ọ dịghị. Models ndị na-adabaghị na-eweghachi `400`.
+Nkwụnye aha onye na-enye ọrụ na-etinye onwe ya na-akpaghị aka ma ọ bụrụ na ọ dịghị. Ụdị ndị na-ekwekọghị na-eweghachi `400`.
 
 ---
 

@@ -11,6 +11,12 @@
  */
 
 import { sleepAbortable } from "./opencodeTransientFailure.ts";
+import { synthesizeOpenAiSseFromJson } from "../utils/jsonToSse.ts";
+import { buildErrorBody } from "../utils/error.ts";
+import { sanitizeErrorMessage } from "../utils/errorSanitization.ts";
+import { formatSSE } from "../utils/streamHelpers.ts";
+import { FORMATS } from "../translator/formats.ts";
+import { PARKED_STREAM_HEADER, PARKED_STREAM_VALUE } from "../utils/streamReadiness.ts";
 import { isProxyAvoided, proxyEgressKey, proxySetAsideSeq } from "../utils/proxyRefusalMemory.ts";
 import { maskAccountId, type RotatableAccount } from "./accountRotation.ts";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
@@ -152,6 +158,50 @@ export function replayCandidates<T extends RotatableAccount>(
     .slice(0, PARK_PROBE_MAX);
 }
 
+/** Shared SSE comment frame emitted while parked (single literal, reused by tests). */
+export const PARK_PING_FRAME = ":ping\n\n";
+
+/**
+ * Copy the replayed final body into the parked stream as valid SSE frames:
+ * SSE bytes pass through untouched (ping-then-data order kept);
+ * chat-completion JSON converts via the existing normalizer; any other
+ * fallback is surfaced as a single error data frame, status included.
+ */
+async function copyFinalBodyAsValidFrames(
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  encoder: TextEncoder,
+  finalBody: Response
+): Promise<void> {
+  const contentType = (finalBody.headers.get("content-type") || "").toLowerCase();
+  const status = finalBody.status;
+  if (contentType.includes("text/event-stream")) {
+    const text = await finalBody.text();
+    controller.enqueue(encoder.encode(text));
+    return;
+  }
+  const text = await finalBody.text();
+  // Chat-completion JSON fallback: convert to the equivalent SSE stream via
+  // the existing normalizer (same shape as the streaming pipeline's own
+  // JSON-to-SSE path — valid frames, order kept).
+  const synthesized = synthesizeOpenAiSseFromJson(text);
+  if (synthesized) {
+    controller.enqueue(encoder.encode(synthesized));
+    return;
+  }
+  // Non-convertible fallback (e.g. the last transient 429 error body):
+  // surface it as a single error data frame built with the shared error
+  // helpers, so the parked stream stays a valid SSE frame sequence.
+  const errorBody = buildErrorBody(
+    status >= 400 ? status : 502,
+    sanitizeErrorMessage(text) || "Upstream request failed"
+  );
+  try {
+    controller.enqueue(encoder.encode(formatSSE({ error: errorBody.error }, FORMATS.OPENAI)));
+  } catch {
+    /* consumer gone — the close below ends the stream */
+  }
+}
+
 /** Executor surface the park runner needs (kept injectable for tests). */
 export interface ParkDriver<TAccount extends RotatableAccount = RotatableAccount> {
   execute: (input: ExecuteInput) => Promise<ExecutorExecuteResult & { response: Response }>;
@@ -181,7 +231,7 @@ export async function runParkAndReplay<TAccount extends RotatableAccount>(
       async start(controller) {
         const ping = (): void => {
           try {
-            controller.enqueue(encoder.encode(":ping\n\n"));
+            controller.enqueue(encoder.encode(PARK_PING_FRAME));
           } catch {
             /* consumer gone — the abort check below ends the park */
           }
@@ -198,7 +248,7 @@ export async function runParkAndReplay<TAccount extends RotatableAccount>(
         const probe = await replayOneLeg(driver, input, driver.accounts, log, cid);
         const finalBody = probe?.result.response ?? fallback.response;
         try {
-          controller.enqueue(encoder.encode(await finalBody.text()));
+          await copyFinalBodyAsValidFrames(controller, encoder, finalBody);
         } catch {
           /* unreadable body — close with the pings already sent */
         }
@@ -213,7 +263,10 @@ export async function runParkAndReplay<TAccount extends RotatableAccount>(
       ...fallback,
       response: new Response(stream, {
         status: 200,
-        headers: { "Content-Type": "text/event-stream" },
+        headers: {
+          "Content-Type": "text/event-stream",
+          [PARKED_STREAM_HEADER]: PARKED_STREAM_VALUE,
+        },
       }),
     };
   }

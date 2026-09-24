@@ -318,29 +318,39 @@ export default function BatchListTab({
   const [removingCompleted, setRemovingCompleted] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const completedBatches = batches.filter((b) => b.status === "completed");
+  const MAX_DELETE_ITERATIONS = 5;
 
   const handleRemoveCompleted = async () => {
-    if (completedBatches.length === 0) return;
-    setRemovingCompleted(true);
+    setRemovingCompleted(true); // Uses your existing state variable
+    let hasMore = true;
+    let iterations = 0;
+
     try {
-      const res = await fetch("/api/v1/batches/delete-completed", { method: "DELETE" });
-      if (res.ok) {
-        onRefresh?.();
-      } else {
-        console.error(
-          "[BatchListTab] DELETE /batches/delete-completed returned",
-          res.status,
-          await res.text().catch(() => "")
-        );
+      while (hasMore && iterations < MAX_DELETE_ITERATIONS) {
+        // Use the correct /api/ prefix for Next.js routes
+        const res = await fetch("/api/v1/batches/delete-completed", { method: "DELETE" });
+
+        if (!res.ok) {
+          throw new Error("Failed to delete batches");
+        }
+
+        const data = await res.json();
+        hasMore = data.hasMore === true;
+        iterations++;
       }
-    } catch (err) {
-      console.error("[BatchListTab] DELETE /batches/delete-completed threw", err);
+
+      // Surface the notice if the chunk ceiling was hit
+      if (hasMore) {
+        window.alert("Removed a large number of batches. Click again to clear the rest.");
+      }
+    } catch (error) {
+      console.error("An error occurred while removing batches:", error);
+      window.alert("An error occurred while removing batches.");
     } finally {
       setRemovingCompleted(false);
+      onRefresh?.(); // Uses your component's actual refresh prop
     }
   };
-
   const filtered = batches.filter((b) => {
     if (statusFilter !== "all" && b.status !== statusFilter) return false;
     if (searchQuery) {
@@ -457,9 +467,7 @@ export default function BatchListTab({
                   if (!batch.model || total === 0) return "—";
                   // Prefer real usage data when available (completed batches)
                   const usage = batch.usage as
-                    | { input_tokens?: number; output_tokens?: number }
-                    | null
-                    | undefined;
+                    { input_tokens?: number; output_tokens?: number } | null | undefined;
                   if (usage?.input_tokens != null && usage?.output_tokens != null) {
                     // batch rate ≈ $0.005/1K tokens (blended, already -50%)
                     const cost = ((usage.input_tokens + usage.output_tokens) * 0.005) / 1000;

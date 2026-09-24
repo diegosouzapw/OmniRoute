@@ -270,6 +270,32 @@ function isStreamingUpstreamError(parsed: unknown, eventType: string): boolean {
   return nestedResponse?.status === "failed" && nestedResponse.error != null;
 }
 
+/**
+ * Best-effort one-line description of an upstream streaming error payload.
+ *
+ * Without this the combo reports every in-stream failure as the bare string
+ * "streaming upstream error", and the client sees only "Claude returned an
+ * empty response (no content block)". That masking hid two real, actionable
+ * Anthropic rejections for days (a missing inline-tools beta and an unknown
+ * top-level field), so the upstream text is now carried into the failure
+ * reason and therefore into the call log.
+ */
+function describeStreamingUpstreamError(parsed: unknown): string | null {
+  if (!isRecord(parsed)) return null;
+  const candidates: unknown[] = [
+    parsed.error,
+    isRecord(parsed.response) ? parsed.response.error : null,
+  ];
+  for (const candidate of candidates) {
+    if (!isRecord(candidate)) continue;
+    const message = typeof candidate.message === "string" ? candidate.message.trim() : "";
+    const type = typeof candidate.type === "string" ? candidate.type.trim() : "";
+    const detail = message || type;
+    if (detail) return (type && message ? `${type}: ${message}` : detail).slice(0, 300);
+  }
+  return null;
+}
+
 type StreamingPeekOutcome = "content" | "error" | null;
 
 /**
@@ -295,7 +321,8 @@ export async function validateResponseQuality(
   response: Response,
   isStreaming: boolean,
   log: { warn?: (...args: unknown[]) => void },
-  responseValidation?: ResponseValidationConfig | null
+  responseValidation?: ResponseValidationConfig | null,
+  signal?: AbortSignal | null
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
   // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
   // detect the empty-content-block pattern (content_filter stop_reason with
@@ -323,6 +350,13 @@ export async function validateResponseQuality(
     // Raw Uint8Array chunks accumulated so far — used to replay the prefix
     // in the returned clonedResponse.
     const bufferedChunks: Uint8Array[] = [];
+    // #11804 / #7849: a combo peek that never sees a content verdict used to
+    // retain every chunk until the upstream closed. A long stream then grew
+    // the V8 heap without bound. Stop retaining once this many bytes are held
+    // and forward the rest. Empty-lifecycle failover still runs for streams
+    // that end under the cap.
+    const PEEK_BYTE_CAP = 1_048_576;
+    let bufferedBytes = 0;
     // Decoded text accumulated across chunks for incremental SSE parsing.
     // Only the tail of the most-recently-processed line window remains here
     // between iterations (incomplete lines are deferred to the next chunk).
@@ -362,6 +396,7 @@ export async function validateResponseQuality(
     //     Claude `message_stop`/`message_delta` with `stop_reason` (mirrors
     //     `sse.hasLifecycleEnd`), or a terminal `usage`-only chunk (new).
     let sawStructuredSSE = false;
+    let upstreamErrorDetail: string | null = null;
     let sawTerminator = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
@@ -442,6 +477,7 @@ export async function validateResponseQuality(
         pendingEventType = "";
 
         if (isStreamingUpstreamError(parsed, eventType)) {
+          upstreamErrorDetail = describeStreamingUpstreamError(parsed) ?? upstreamErrorDetail;
           return "error";
         }
 
@@ -497,10 +533,33 @@ export async function validateResponseQuality(
       });
     }
 
+    // Client-abort awareness for the peek: a read() on a stalled upstream (long
+    // prefill) otherwise stays pending until the first byte, long after the
+    // client is gone.
+    let onAbort: (() => void) | null = null;
+    const abortedPromise = signal
+      ? new Promise<"aborted">((resolve) => {
+          onAbort = () => resolve("aborted");
+          if (signal.aborted) onAbort();
+          else signal.addEventListener("abort", onAbort, { once: true });
+        })
+      : null;
+    const readOrAbort = async () => {
+      if (!abortedPromise) return reader.read();
+      const r = await Promise.race([reader.read(), abortedPromise]);
+      return r === "aborted" ? null : r;
+    };
+
     // Main bounded-peek loop.
     try {
       while (true) {
-        const { done, value } = await reader.read();
+        const next = await readOrAbort();
+        if (next === null) {
+          // Same as the error path: never await cancel() on a tee branch.
+          reader.cancel(signal?.reason).catch(() => {});
+          return { valid: true };
+        }
+        const { done, value } = next;
 
         if (done) {
           // Stream finished — flush the TextDecoder and parse any remaining text.
@@ -512,9 +571,14 @@ export async function validateResponseQuality(
           if (terminalOutcome === "error") {
             log.warn?.(
               "COMBO",
-              "Streaming response reported an upstream error before content — marking as invalid for combo failover"
+              `Streaming response reported an upstream error before content — marking as invalid for combo failover${upstreamErrorDetail ? ` (${upstreamErrorDetail})` : ""}`
             );
-            return { valid: false, reason: "streaming upstream error" };
+            return {
+              valid: false,
+              reason: upstreamErrorDetail
+                ? `streaming upstream error: ${upstreamErrorDetail}`
+                : "streaming upstream error",
+            };
           }
 
           if (sse.hasMessageStart && sse.hasLifecycleEnd && !sse.hasRealContent) {
@@ -598,6 +662,7 @@ export async function validateResponseQuality(
 
         // Accumulate raw bytes for potential replay.
         bufferedChunks.push(value);
+        bufferedBytes += value.byteLength;
 
         // Decode incrementally (stream:true keeps multi-byte char state).
         decodedSoFar += decoder.decode(value, { stream: true });
@@ -609,9 +674,14 @@ export async function validateResponseQuality(
           reader.cancel().catch(() => {});
           log.warn?.(
             "COMBO",
-            "Streaming response reported an upstream error before content — marking as invalid for combo failover"
+            `Streaming response reported an upstream error before content — marking as invalid for combo failover${upstreamErrorDetail ? ` (${upstreamErrorDetail})` : ""}`
           );
-          return { valid: false, reason: "streaming upstream error" };
+          return {
+            valid: false,
+            reason: upstreamErrorDetail
+              ? `streaming upstream error: ${upstreamErrorDetail}`
+              : "streaming upstream error",
+          };
         }
 
         if (outcome === "content") {
@@ -620,6 +690,15 @@ export async function validateResponseQuality(
           // clonedResponse that replays all buffered bytes (the current chunk
           // is already in bufferedChunks) and then forwards the remainder of
           // the original reader unchanged.
+          const clonedResponse = buildReplayResponse(reader);
+          return { valid: true, clonedResponse };
+        }
+
+        if (bufferedBytes >= PEEK_BYTE_CAP) {
+          log.warn?.(
+            "COMBO",
+            `Streaming peek reached ${PEEK_BYTE_CAP} bytes before a content verdict — forwarding the rest without further buffering`
+          );
           const clonedResponse = buildReplayResponse(reader);
           return { valid: true, clonedResponse };
         }
@@ -642,6 +721,8 @@ export async function validateResponseQuality(
       }
       // Other read errors — pass through (stream readiness timeout will catch truly broken streams)
       return { valid: true };
+    } finally {
+      if (signal && onAbort) signal.removeEventListener("abort", onAbort);
     }
   }
 

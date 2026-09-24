@@ -282,7 +282,7 @@ OmniRoute's combo engine supports **19 routing strategies** (declared in `src/sh
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `priority`          | First-target ordered list with explicit priority                                                                                                                                          |
 | `weighted`          | Weighted random by per-target weight                                                                                                                                                      |
-| `round-robin`       | Cycle through targets in order                                                                                                                                                            |
+| `round-robin`       | Cycle through targets in order (batched; see below)                                                                                                                                       |
 | `context-relay`     | Hand off context across targets (long conversations)                                                                                                                                      |
 | `fill-first`        | Fill each target's quota before moving to next                                                                                                                                            |
 | `p2c`               | Power-of-2-choices random load balancing                                                                                                                                                  |
@@ -321,6 +321,30 @@ OmniRoute's combo engine supports **19 routing strategies** (declared in `src/sh
 
 For strict rotation use `round-robin`; equal weights on `weighted` give statistical — not
 strict — balance.
+
+### `round-robin` sticky batch and account expansion
+
+Round-robin is batched, not one-request-per-step:
+
+- `stickyRoundRobinLimit` (combo config, then `comboStickyRoundRobinLimit`, then
+  `settings.stickyRoundRobinLimit`, default **3**) keeps the same target for that many
+  consecutive successes before rotating. Set the combo override to `1` for one-request
+  rotation. The combo editor shows the effective value and which layer it came from.
+- `connectionAwareExpansion` (combo config, then settings, default **false**) expands
+  each provider-level step into per-account targets before rotation. Group-B strategies
+  (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) keep a provider-level view until this is on. The combo editor exposes
+  inherit / on / off; inherit uses the global default (off).
+- Prompt-cache locality routing (`promptCacheAffinityEnabled`, default **true**) reorders
+  pinned connections so matching cache keys stay on one account. It takes precedence over
+  round-robin and weighted rotation across pinned per-account steps. Turn it off under
+  Settings → Combo defaults if you need strict rotation. There is no per-combo override.
+
+For multi-account rotation on one model, prefer **one dynamic-account step** (empty
+`connectionId`, whole pool) with sticky limit `1`, not three pinned `connectionId`s.
+Pinned steps plus affinity collapse onto the same account even while the RR counter
+advances.
 
 ## Fusion Strategy
 
