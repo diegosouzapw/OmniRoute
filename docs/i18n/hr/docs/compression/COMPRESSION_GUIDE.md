@@ -315,17 +315,17 @@ Osim 7 standardnih načina rada, OmniRoute uključuje nekoliko naprednih sustava
 
 ### Kompresija svjesna predmemorije
 
-Neki pružatelji usluga (poput Anthropic-a s predmemoriranjem upita) podržavaju **predmemoriranje upita**, što im omogućuje da predmemoriraju dijelove upita kako bi smanjili troškove i latenciju. Kada je predmemoriranje omogućeno, agresivna kompresija zapravo može **naštetiti** performansama jer mijenja predmemorirane tokene, poništavajući predmemoriju.
+Neki pružatelji usluga (poput Anthropic s predmemoriranjem upita) podržavaju **predmemoriranje upita**, što im omogućuje predmemoriranje dijelova upita radi smanjenja troškova i latencije. Kada je predmemoriranje omogućeno, agresivna kompresija zapravo može **naštetiti** performansama jer mijenja predmemorirane tokene, poništavajući predmemoriju.
 
 Modul `cachingAware.ts` to rješava **detektiranjem konteksta predmemoriranja** i **prilagođavanjem strategije kompresije** u skladu s tim.
 
 #### Kako radi
 
-1.  **Detektira kontekst predmemoriranja** — Skenira tijelo zahtjeva za oznake `cache_control`
-2.  **Identificira pružatelje usluga s predmemoriranjem** — Provjerava podržava li ciljni pružatelj usluga predmemoriranje
-3.  **Prilagođava strategiju** — Smanjuje `aggressive`/`ultra` na `standard` za pružatelje usluga s predmemoriranjem
-4.  **Preskače sistemski upit** — Sistemski upiti su obično predmemorirani, stoga ih nemojte komprimirati
-5.  **Koristi determinističke transformacije** — Koristi samo transformacije koje proizvode dosljedan izlaz
+1. **Detektira kontekst predmemoriranja** — Skenira tijelo zahtjeva za `cache_control` oznakama
+2. **Identificira pružatelje usluga predmemoriranja** — Provjerava podržava li ciljni pružatelj usluga predmemoriranje
+3. **Prilagođava strategiju** — Smanjuje `aggressive`/`ultra` na `standard` za pružatelje usluga predmemoriranja
+4. **Preskače sistemski upit** — Sistemski upiti su obično predmemorirani, stoga ih ne komprimira
+5. **Koristi determinističke transformacije** — Koristi samo transformacije koje proizvode dosljedan izlaz
 
 #### Primjer koda
 
@@ -338,7 +338,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Oznaka predmemorije
+  cache_control: { type: "ephemeral" }, // ← Cache marker
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -352,17 +352,17 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 Kompresija svjesna predmemorije je **uvijek uključena** — nije potrebna konfiguracija. Aktivira se samo kada:
 
-- Zahtjev ima oznake `cache_control`
+- Zahtjev ima `cache_control` oznake
 - Ciljni pružatelj usluga podržava predmemoriranje upita (Anthropic, OpenAI, itd.)
 
 ### Progresivno starenje
 
-Dugi razgovori akumuliraju mnogo izmjena poruka, ali starije izmjene postaju manje relevantne. Modul `progressiveAging.ts` **degradira poruke prema udaljenosti izmjene**:
+Dugi razgovori akumuliraju mnogo poruka, ali starije poruke postaju manje relevantne. Modul `progressiveAging.ts` **degradira poruke prema udaljenosti okreta**:
 
-- **Nedavne izmjene (0-3)**: Zadržane doslovno (potpuni detalji)
-- **Srednje izmjene (4-8)**: Lagana kompresija (razmaci, čišćenje formatiranja)
-- **Stare izmjene (9+)**: Pećinska kompresija (uklanjanje punila, sažimanje)
-- **Vrlo stare izmjene (20+)**: Jako sažete ili odbačene
+- **Nedavni okreti (0-3)**: Zadržani doslovno (potpuni detalji)
+- **Srednji okreti (4-8)**: Lagana kompresija (razmaci, čišćenje formatiranja)
+- **Stari okreti (9+)**: Pećinska kompresija (uklanjanje punila, sažimanje)
+- **Vrlo stari okreti (20+)**: Jako sažeti ili izbačeni
 
 #### Primjer koda
 
@@ -373,17 +373,17 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... još 50 izmjena ...
+  // ... 50 more turns ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Prve 3 izmjene: doslovno
-  light: 8, // Izmjene 4-8: lagana kompresija
-  moderate: 20, // Izmjene 9-20: pećinska kompresija
-  // Izmjene 21+: jako sažimanje
+  verbatim: 3, // First 3 turns: verbatim
+  light: 8, // Turns 4-8: lite compression
+  moderate: 20, // Turns 9-20: caveman compression
+  // Turns 21+: heavy summarization
 });
 
-// saved = broj spremljenih tokena
+// saved = number of tokens saved
 ```
 
 #### Kada koristiti
@@ -392,27 +392,27 @@ Progresivno starenje je **uvijek uključeno** za `aggressive` i `ultra` načine 
 
 - Dugotrajne sesije kodiranja
 - Višednevne razgovore
-- Agentne radne procese s mnogo poziva alata
+- Agentičke radne procese s mnogo poziva alata
 
-### Način izlaza "Pećinski čovjek"
+### Pećinski izlazni način rada
 
-Modul `outputMode.ts` ubacuje **upute za sistemski upit** kako bi sam model proizveo komprimiran, sažet izlaz (stil "pećinskog čovjeka").
+Modul `outputMode.ts` ubrizgava **upute za sistemski upit** kako bi sam model proizveo komprimiran, kratak izlaz ("pećinski" stil).
 
 #### Kako radi
 
-Umjesto komprimiranja ulaza, ovaj način rada dodaje sistemski upit poput:
+Umjesto komprimiranja unosa, ovaj način rada dodaje sistemski upit poput:
 
-> "Odgovori minimalnim riječima. Preskoči uljudnosti. Koristi kratke rečenice."
+> "Odgovorite s minimalno riječi. Preskočite uljudnosti. Koristite kratke rečenice."
 
 Ovo posebno dobro funkcionira za:
 
-- Generiranje koda (sažetiji izlaz = manje tokena)
-- Brza pitanja i odgovori (nema potrebe za opširnim objašnjenjima)
+- Generiranje koda (kraći izlaz = manje tokena)
+- Brza pitanja i odgovori (nema potrebe za elaboriranim objašnjenjima)
 - Skupnu obradu (maksimiziranje propusnosti)
 
 #### Kada koristiti
 
-Način izlaza "Pećinski čovjek" je **opcionalan** — postavite ga putem kombinirane konfiguracije:
+Pećinski izlazni način rada je **opcionalan** — postavite ga putem kombinirane konfiguracije:
 
 ```json
 {
@@ -427,35 +427,55 @@ Način izlaza "Pećinski čovjek" je **opcionalan** — postavite ga putem kombi
 
 ### Izlazni stilovi (katalog)
 
-Gore navedeni način izlaza "Pećinski čovjek" je **naslijeđeni put s jednim stilom**. Faza 4 ga je generalizirala u katalog složivih izlaznih stilova: `OUTPUT_STYLE_CATALOG` u `open-sse/services/compression/outputStyles/catalog.ts`. Svaki stil je instrukcija sistemskog upita koja čini da sam model proizvodi jeftiniji izlaz; stilovi se mogu omogućiti zajedno i ubacuju se prema redoslijedu u katalogu.
+Gore navedeni pećinski izlazni način rada je **naslijeđeni put s jednim stilom**. Faza 4 ga je generalizirala u katalog složivih izlaznih stilova: `OUTPUT_STYLE_CATALOG` u `open-sse/services/compression/outputStyles/catalog.ts`. Svaki stil je instrukcija sistemskog upita koja sam model potiče da proizvede jeftiniji izlaz; stilovi se mogu omogućiti zajedno i ubrizgavaju se prema redoslijedu u katalogu.
 
-| Stil                          | `id`          | Što radi                                                                                                                                                                                                                         | Jezici instrukcija                                                     |
-| :---------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
-| Sažeta proza                  | `terse-prose` | Izostavlja punila/članke/ograđivanja; zadržava točnu tehničku suštinu. Isti tekst kao i stari način izlaza 'caveman' (referenciran, nije ponovno upisan).                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Manje koda                    | `less-code`   | YAGNI ljestve: najmanja funkcionalna promjena, bez nezahtijevanih apstrakcija.                                                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Ponytail (lijeni stariji dev) | `ponytail`    | "Najbolji kod je kod koji nikada nije napisan": ponovna upotreba > prepisivanje, temeljni uzrok > simptom, najkraći funkcionalni diff.                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Imam ADHD (akcija-prvo)       | `i-have-adhd` | Akcija prvo (naredba/putanja/isječak prije proze), numerirani ograničeni koraci, JEDAN konkretan sljedeći korak, bez uvoda/sažetka/zaključaka. Prilagođeno iz [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Sažeti CJK (文言)             | `terse-cjk`   | Ultra-sažeti stil klasičnog kineskog.                                                                                                                                                                                            | zh (ograničeno lokacijom: nudi se samo kada je razriješeni jezik `zh`) |
+| Stil                                   | `id`          | Što radi                                                                                                                                                                                                                         | Jezici uputa                                                         |
+| :------------------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------- |
+| Sažeta proza                           | `terse-prose` | Izbacuje punila/članke/ograde; tehnička suština ostaje točna. Isti tekst kao i stari način izlaza caveman (referenciran, nije ponovno upisan).                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
+| Manje koda                             | `less-code`   | YAGNI ljestvica: najmanja radna promjena, bez nezahtijevanih apstrakcija.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
+| Konjski rep (lijeni stariji programer) | `ponytail`    | "Najbolji kod je kod koji nikada nije napisan": ponovna upotreba > prepisivanje, uzrok > simptom, najkraća radna razlika.                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
+| Imam ADHD (prvo akcija)                | `i-have-adhd` | Prvo akcija (naredba/putanja/isječak prije proze), numerirani ograničeni koraci, JEDAN konkretan sljedeći korak, bez uvoda/sažetka/zaključaka. Prilagođeno iz [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
+| Sažeti CJK (文言)                      | `terse-cjk`   | Klasični kineski ultra-sažeti stil.                                                                                                                                                                                              | zh (lokalno ograničeno: nudi se samo kada je razriješeni jezik `zh`) |
 
-Svaki stil dolazi s tri razine intenziteta — `lite`, `full`, `ultra` — i svaka razina
+Svaki stil nudi tri razine intenziteta — `lite`, `full`, `ultra` — i svaka razina
 završava zajedničkom klauzulom o granicama, koja zadržava blokove koda, putanje datoteka, naredbe,
 nizove pogrešaka, URL-ove i identifikatore doslovno.
 
-#### Kako funkcionira injekcija
+#### Kako funkcionira ubrizgavanje
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) razrješava
-odabir prema katalogu (nepoznati ID-ovi i stilovi koji ne odgovaraju lokaciji se
-odbacuju, nikada ne uzrokuju pogrešku), spaja odabrane instrukcije redoslijedom iz kataloga,
-dodaje klauzulu o granicama **jednom**, i unaprijed učitava rezultat u sistemski
-prompt iza jednog markera idempotentnosti (`[OmniRoute Output Styles]`) — ponovna primjena
-je no-op. Kada detektirani jezik zahtjeva ima prijevod, lokalizirana
-instrukcija se ubacuje umjesto engleske.
+odabir prema katalogu (nepoznati ID-ovi i stilovi koji ne odgovaraju lokalizaciji se
+odbacuju, nikada nije pogreška), spaja odabrane upute redoslijedom kataloga,
+dodaje klauzulu o granicama **jednom**, i započinje blok s jednim markerom idempotencije
+(`[OmniRoute Output Styles]`), tako da ponovno primjenjivanje ne radi ništa. Kada razriješeni
+jezik (vidi odabir jezika u nastavku) ima prijevod, lokalizirana uputa se
+ubrizgava umjesto engleske.
+
+Na tijelu s `messages`, zaobilaznica sadržaja (`shouldBypassCavemanOutputMode()` u
+`open-sse/services/compression/outputMode.ts`) provjerava posljednje tri poruke i preskače
+stilove za cijeli krug kada se podudaraju s njezinim ključnim riječima za sigurnost, nepovratne radnje,
+pojašnjenje ili osjetljive na redoslijed. Zaobilaznica se pokreće bez obzira na to kako je postavljena
+preklopka **Auto-Clarity Bypass** na nadzornoj ploči (`cavemanOutputMode.autoClarity`).
+
+Kada zaobilaznica propusti krug, `placeSystemInstruction()` (ista datoteka), koja
+nikada ne stvara novu `messages[0]`, postavlja blok u prvu od ovih koje pronađe:
+
+1. Vodeća sistemska poruka sa sadržajem niza: blok se dodaje nakon njezinog teksta.
+2. Polje `system` na najvišoj razini: blok se dodaje nakon teksta niza, ili
+   dodaje kao novi tekstualni blok u niz blokova sadržaja.
+3. Prva kasnija sistemska poruka sa sadržajem niza: blok se dodaje nakon njezinog
+   teksta.
+4. Ništa od navedenog: blok ide u novu sistemsku poruku na kraju `messages`.
+
+Na tijelu bez `messages`, blok se dodaje u polje `instructions` niza,
+ili postaje `instructions` kada tijelo nosi `input` (niz ili niz). Tijelo
+bez `instructions` i `input` preskače se kao `no_messages`.
 
 #### Kako omogućiti
 
 Na nadzornoj ploči: **Kontekst → Postavke → Kompresija** — jedan redak po stilu s
 prekidačem za uključivanje/isključivanje i biračem razine. Programski, konfiguracija kompresije
-pohranjuje odabir kao:
+čuva odabir kao:
 
 ```json
 {
@@ -466,15 +486,15 @@ pohranjuje odabir kao:
 }
 ```
 
-Kompatibilnost unatrag: stara kombinirana postavka `outputMode: "caveman"` i dalje radi i mapira se na
-`terse-prose`, bajt-identična staroj injekciji u svakom starom jeziku.
+Kompatibilnost unatrag: naslijeđena postavka `outputMode: "caveman"` i dalje radi i mapira se na
+`terse-prose`, bajt-identična starom ubrizgavanju u svakom naslijeđenom jeziku.
 
 Odabir jezika: s uključenim `languageConfig.enabled`, `autoDetect` odabire
 jezik najnovije korisničke poruke (isti detektor kao i ulazni mehanizmi);
 isključivanje `autoDetect` fiksira `defaultLanguage`. Isključeno → Engleski.
 
-Matrica stil × jezik je fiksirana pomoću
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: novi stil ne može biti isporučen
+Matrica stil × jezik fiksirana je pomoću
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: novi stil ne može se isporučiti
 bez barem pt-BR prijevoda (ili eksplicitne praćene iznimke), a
 postojeći stil ne može tiho izgubiti lokalizaciju. Za dodavanje stila, pogledajte
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
@@ -482,40 +502,37 @@ postojeći stil ne može tiho izgubiti lokalizaciju. Za dodavanje stila, pogleda
 ### Kompresija rezultata alata
 
 Modul `toolResultCompressor.ts` pruža **5 specijaliziranih strategija kompresije**
-za rezultate alata (pozivi funkcija, izlazi agenta, rezultati pretraživanja itd.):
+za rezultate alata (pozivi funkcija, izlazi agenata, rezultati pretraživanja itd.):
 
-1.  **Kompresija rezultata pretraživanja** — Uklanja suvišne rezultate, zadržava top-N
-2.  **Kompresija čitanja datoteka** — Skraćuje velike datoteke, čuva zaglavlja/uvoze
-3.  **Kompresija izvršavanja koda** — Zadržava samo bitne stdout/stderr
-4.  **Kompresija upita baze podataka** — Ograničava retke, uklanja opširne metapodatke
-5.  **Kompresija API odgovora** — Uklanja null polja, kondenzira nizove
+1. **Kompresija rezultata pretraživanja** — Uklanja suvišne rezultate, zadržava prvih N
+2. **Kompresija čitanja datoteka** — Skraćuje velike datoteke, čuva zaglavlja/uvoze
+3. **Kompresija izvršavanja koda** — Zadržava samo bitne stdout/stderr
+4. **Kompresija upita baze podataka** — Ograničava retke, uklanja opširne metapodatke
+5. **Kompresija API odgovora** — Uklanja null polja, kondenzira nizove
 
 #### Kada koristiti
 
-Kompresija rezultata alata je **uvijek uključena** kada su prisutni pozivi alata. Nije
-potrebna konfiguracija.
+Kompresija rezultata alata je **uvijek uključena** kada su prisutni pozivi alata. Nije potrebna konfiguracija.
 
 ### Složeni cjevovod
 
-Složeni način rada pokreće **više mehanizama u nizu** — obično prvo RTK
-(60-90% uštede na izlazu alata), zatim Caveman (30% dodatne uštede na
-preostalom tekstu). Time se postiže **ukupna ušteda od 78-95%**.
+Složeni način rada pokreće **više mehanizama u nizu** — obično prvo RTK (60-90% uštede na izlazu alata), zatim Caveman (30% dodatne uštede na preostalom tekstu). Time se postiže **ukupna ušteda od 78-95%**.
 
-#### Kako radi
+#### Kako funkcionira
 
 ```
-Ulaz (1000 tokena)
-  → RTK (filter svjestan naredbi) → 200 tokena
-    → Caveman (uklanjanje punila) → 140 tokena
-  → Izlaz (140 tokena, 86% uštede)
+Ulaz (1000 tokens)
+  → RTK (filter svjestan naredbi) → 200 tokens
+    → Caveman (uklanjanje punila) → 140 tokens
+  → Izlaz (140 tokens, 86% uštede)
 ```
 
 #### Kada koristiti
 
 Koristite složeni način rada za:
 
-- Radne tokove s puno alata (agentsko kodiranje, istraživanje)
-- Troškovno osjetljivu serijsku obradu
+- Radne procese koji intenzivno koriste alate (agentsko kodiranje, istraživanje)
+- Skupnu obradu osjetljivu na troškove
 - Kada trebate maksimalnu uštedu tokena
 
 Konfigurirajte putem kombinacije:

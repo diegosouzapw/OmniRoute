@@ -327,28 +327,23 @@ El modo RTK está inspirado en **[RTK - Rust Token Killer](https://github.com/rt
 
 ---
 
-## Sistemas de compresión avanzados
+## Sistemas de Compresión Avanzados
 
-Además de los 7 modos estándar, OmniRoute incluye varios sistemas de compresión
-avanzados que funcionan automáticamente según el contexto.
+Más allá de los 7 modos estándar, OmniRoute incluye varios sistemas de compresión avanzados que funcionan automáticamente según el contexto.
 
-### Compresión con reconocimiento de caché
+### Compresión Consciente de Caché
 
-Algunos proveedores (como Anthropic con el almacenamiento en caché de prompts) admiten el **almacenamiento en caché de prompts**,
-lo que les permite almacenar en caché partes del prompt para reducir los costes y la latencia. Cuando
-el almacenamiento en caché está activado, la compresión agresiva puede **perjudicar** el rendimiento
-porque cambia los tokens almacenados en caché, invalidando la caché.
+Algunos proveedores (como Anthropic con el almacenamiento en caché de prompts) admiten el **almacenamiento en caché de prompts**, lo que les permite almacenar en caché partes del prompt para reducir costos y latencia. Cuando el almacenamiento en caché está habilitado, una compresión agresiva puede **perjudicar** el rendimiento porque cambia los tokens almacenados en caché, invalidando la caché.
 
-El módulo `cachingAware.ts` resuelve esto **detectando el contexto de almacenamiento en caché** y
-**ajustando la estrategia de compresión** en consecuencia.
+El módulo `cachingAware.ts` resuelve esto **detectando el contexto de almacenamiento en caché** y **ajustando la estrategia de compresión** en consecuencia.
 
 #### Cómo funciona
 
-1. **Detectar el contexto de almacenamiento en caché** — Examina el cuerpo de la solicitud en busca de marcadores `cache_control`
-2. **Identificar proveedores con almacenamiento en caché** — Comprueba si el proveedor de destino admite almacenamiento en caché
-3. **Ajustar la estrategia** — Reduce `aggressive`/`ultra` a `standard` para los proveedores con almacenamiento en caché
-4. **Omitir el prompt del sistema** — Los prompts del sistema suelen almacenarse en caché, por lo que no deben comprimirse
-5. **Usar transformaciones deterministas** — Utiliza únicamente transformaciones que produzcan resultados consistentes
+1. **Detectar el contexto de almacenamiento en caché** — Escanea el cuerpo de la solicitud en busca de marcadores `cache_control`
+2. **Identificar proveedores de almacenamiento en caché** — Comprueba si el proveedor objetivo admite el almacenamiento en caché
+3. **Ajustar la estrategia** — Degrada `aggressive`/`ultra` a `standard` para proveedores con almacenamiento en caché
+4. **Omitir el prompt del sistema** — Los prompts del sistema suelen estar en caché, así que no los comprime
+5. **Usar transformaciones deterministas** — Solo usa transformaciones que produzcan una salida consistente
 
 #### Ejemplo de código
 
@@ -371,23 +366,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Cuándo usarlo
+#### Cuándo usar
 
-La compresión con reconocimiento de caché está **siempre activada** — no requiere configuración. Solo se activa
-cuando:
+La compresión consciente de caché está **siempre activa** — no necesita configuración. Solo se activa cuando:
 
-- La solicitud contiene marcadores `cache_control`
-- El proveedor de destino admite el almacenamiento en caché de prompts (Anthropic, OpenAI, etc.)
+- La solicitud tiene marcadores `cache_control`
+- El proveedor objetivo admite el almacenamiento en caché de prompts (Anthropic, OpenAI, etc.)
 
-### Envejecimiento progresivo
+### Envejecimiento Progresivo
 
-Las conversaciones largas acumulan muchos turnos de mensajes, pero los turnos más antiguos se vuelven menos
-relevantes. El módulo `progressiveAging.ts` **degrada los mensajes según la distancia entre turnos**:
+Las conversaciones largas acumulan muchos turnos de mensajes, pero los turnos más antiguos se vuelven menos relevantes. El módulo `progressiveAging.ts` **degrada los mensajes por distancia de turno**:
 
-- **Turnos recientes (0-3)**: Se conservan literalmente (todos los detalles)
-- **Turnos intermedios (4-8)**: Compresión ligera (limpieza de espacios en blanco y formato)
-- **Turnos antiguos (9+)**: Compresión de estilo cavernícola (eliminación de contenido superfluo y resumen)
-- **Turnos muy antiguos (20+)**: Se resumen considerablemente o se descartan
+- **Turnos recientes (0-3)**: Se mantienen textualmente (detalle completo)
+- **Turnos medios (4-8)**: Compresión ligera (espacios en blanco, limpieza de formato)
+- **Turnos antiguos (9+)**: Compresión "hombre de las cavernas" (eliminación de relleno, resumen)
+- **Turnos muy antiguos (20+)**: Fuertemente resumidos o eliminados
 
 #### Ejemplo de código
 
@@ -402,44 +395,42 @@ const messages = [
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Primeros 3 turnos: literales
+  verbatim: 3, // Primeros 3 turnos: textuales
   light: 8, // Turnos 4-8: compresión ligera
-  moderate: 20, // Turnos 9-20: compresión de estilo cavernícola
-  // Turnos 21+: resumen intensivo
+  moderate: 20, // Turnos 9-20: compresión "hombre de las cavernas"
+  // Turnos 21+: resumen pesado
 });
 
-// saved = número de tokens ahorrados
+// saved = número de tokens guardados
 ```
 
-#### Cuándo usarlo
+#### Cuándo usar
 
-El envejecimiento progresivo está **siempre activado** para los modos `aggressive` y `ultra`. Es
-especialmente eficaz para:
+El envejecimiento progresivo está **siempre activo** para los modos `aggressive` y `ultra`. Es particularmente efectivo para:
 
-- Sesiones de programación prolongadas
+- Sesiones de codificación de larga duración
 - Conversaciones de varios días
-- Flujos de trabajo agénticos con muchas llamadas a herramientas
+- Flujos de trabajo de agentes con muchas llamadas a herramientas
 
-### Modo de salida cavernícola
+### Modo de Salida "Hombre de las Cavernas"
 
-El módulo `outputMode.ts` inyecta **instrucciones en el prompt del sistema** para que el
-propio modelo genere una salida comprimida y concisa (un estilo «cavernícola»).
+El módulo `outputMode.ts` inyecta **instrucciones de prompt del sistema** para hacer que el propio modelo produzca una salida comprimida y concisa (un estilo "hombre de las cavernas").
 
 #### Cómo funciona
 
 En lugar de comprimir la entrada, este modo añade un prompt del sistema como:
 
-> "Responde con el mínimo de palabras. Omite las cortesías. Usa frases cortas."
+> "Responde con las mínimas palabras. Omite las formalidades. Usa frases cortas."
 
-Esto funciona especialmente bien para:
+Esto funciona particularmente bien para:
 
 - Generación de código (salida más concisa = menos tokens)
 - Preguntas y respuestas rápidas (no se necesitan explicaciones elaboradas)
-- Procesamiento por lotes (maximiza el rendimiento)
+- Procesamiento por lotes (maximizar el rendimiento)
 
-#### Cuándo usarlo
+#### Cuándo usar
 
-El modo de salida cavernícola es **opcional** — configúralo mediante la configuración combinada:
+El modo de salida "hombre de las cavernas" es **opcional** — configúralo a través de la configuración combinada:
 
 ```json
 {
@@ -452,41 +443,38 @@ El modo de salida cavernícola es **opcional** — configúralo mediante la conf
 }
 ```
 
-### Estilos de salida (catálogo)
+### Estilos de Salida (catálogo)
 
-El modo de salida cavernícola anterior es la **ruta heredada de estilo único**. La fase 4 lo generalizó
-en un catálogo de estilos de salida componibles: `OUTPUT_STYLE_CATALOG` en
-`open-sse/services/compression/outputStyles/catalog.ts`. Cada estilo es una instrucción del prompt del sistema
-que hace que el propio modelo produzca una salida más económica; los estilos pueden activarse
-simultáneamente y se inyectan en el orden del catálogo.
+El modo de salida "hombre de las cavernas" anterior es la **ruta heredada de estilo único**. La Fase 4 lo generalizó en un catálogo de estilos de salida componibles: `OUTPUT_STYLE_CATALOG` en `open-sse/services/compression/outputStyles/catalog.ts`. Cada estilo es una instrucción de prompt del sistema que hace que el propio modelo produzca una salida más económica; los estilos se pueden habilitar juntos y se inyectan en el orden del catálogo.
 
-| Estilo                                 | `id`          | Qué hace                                                                                                                                                                                                                            | Idiomas de las instrucciones                                                               |
-| -------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Prosa concisa                          | `terse-prose` | Elimina relleno/artículos/matizaciones; mantiene exacta la sustancia técnica. El mismo texto que el modo de salida cavernícola heredado (referenciado, no reescrito).                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                              |
-| Menos código                           | `less-code`   | Escala YAGNI: el cambio funcional más pequeño, sin abstracciones no solicitadas.                                                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                              |
-| Coleta (desarrollador sénior perezoso) | `ponytail`    | "El mejor código es el que nunca se escribe": reutilizar > reescribir, causa raíz > síntoma, el diff funcional más corto.                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                              |
-| Tengo TDAH (acción primero)            | `i-have-adhd` | Primero la acción (comando/ruta/fragmento antes de la prosa), pasos numerados y acotados, UN siguiente paso concreto, sin preámbulo/resumen/cierres. Adaptado de [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                              |
-| CJK conciso (文言)                     | `terse-cjk`   | Estilo ultraconciso de chino clásico.                                                                                                                                                                                               | zh (limitado por configuración regional: solo se ofrece cuando el idioma resuelto es `zh`) |
+| Estilo                         | `id`          | Qué hace                                                                                                                                                                                                                                  | Idiomas de instrucción                                              |
+| ------------------------------ | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Prosa concisa                  | `terse-prose` | Elimina el relleno/artículos/ambigüedades; mantiene la sustancia técnica exacta. Mismo texto que el modo de salida "caveman" heredado (referenciado, no reescrito).                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| Menos código                   | `less-code`   | Escalera YAGNI: el cambio funcional más pequeño, sin abstracciones no solicitadas.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| Ponytail (dev senior perezoso) | `ponytail`    | "El mejor código es el código nunca escrito": reutilizar > reescribir, causa raíz > síntoma, diff funcional más corto.                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| Tengo TDAH (acción primero)    | `i-have-adhd` | Acción primero (comando/ruta/fragmento antes de la prosa), pasos numerados y delimitados, UN único siguiente paso concreto, sin preámbulo/resumen/cierres. Adaptado de [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| CJK conciso (文言)             | `terse-cjk`   | Estilo ultra-conciso chino clásico.                                                                                                                                                                                                       | zh (locale-gated: solo se ofrece cuando el idioma resuelto es `zh`) |
 
-Cada estilo incluye tres niveles de intensidad — `lite`, `full`, `ultra` — y cada nivel
-termina con la cláusula de límites compartida, que conserva literalmente los bloques de código, las rutas de archivos, los comandos,
-los mensajes de error, las URL y los identificadores.
+Cada estilo ofrece tres niveles de intensidad — `lite`, `full`, `ultra` — y cada nivel termina con la cláusula de límites compartidos, que mantiene los bloques de código, rutas de archivo, comandos, cadenas de error, URLs e identificadores textualmente.
 
 #### Cómo funciona la inyección
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) compara
-la selección con el catálogo (los identificadores desconocidos y los estilos que no coinciden con la configuración regional
-se descartan, nunca generan un error), concatena las instrucciones seleccionadas en el orden del catálogo,
-añade la cláusula de límites **una vez** y antepone el resultado al prompt del sistema
-detrás de un único marcador de idempotencia (`[OmniRoute Output Styles]`); volver a aplicarlo
-no tiene efecto. Cuando existe una traducción para el idioma detectado de la solicitud, se inyecta
-la instrucción localizada en lugar de la inglesa.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) resuelve la selección contra el catálogo (los IDs desconocidos y los estilos que no coinciden con la configuración regional se descartan, nunca es un error), concatena las instrucciones seleccionadas en el orden del catálogo, añade la cláusula de límites **una vez**, y comienza el bloque con un único marcador de idempotencia (`[OmniRoute Output Styles]`), de modo que volver a aplicarlo no tiene efecto. Cuando el idioma resuelto (ver Selección de idioma a continuación) tiene una traducción, se inyecta la instrucción localizada en lugar del inglés.
 
-#### Cómo habilitarlo
+En un cuerpo con `messages`, un bypass de contenido (`shouldBypassCavemanOutputMode()` en `open-sse/services/compression/outputMode.ts`) verifica los últimos tres mensajes y omite los estilos para todo el turno cuando coinciden con sus palabras clave de seguridad, acción irreversible, clarificación o sensibles al orden. El bypass se ejecuta independientemente de la configuración del interruptor **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) del panel.
 
-En el panel: **Contexto → Configuración → Compresión** — una fila por estilo con un
-interruptor de activación/desactivación y un selector de nivel. Mediante programación, la configuración de compresión conserva
-la selección como:
+Cuando el bypass permite el paso del turno, `placeSystemInstruction()` (mismo archivo), que nunca crea un nuevo `messages[0]`, coloca el bloque en el primero de estos que encuentra:
+
+1. Un mensaje de sistema inicial con contenido de cadena: el bloque se añade después de su texto.
+2. El campo `system` de nivel superior: el bloque se añade después del texto de una cadena, o se añade como un nuevo bloque de texto a un array de bloques de contenido.
+3. El primer mensaje de sistema posterior con contenido de cadena: el bloque se añade después de su texto.
+4. Ninguno de los anteriores: el bloque se inserta en un nuevo mensaje de sistema al final de `messages`.
+
+En un cuerpo sin `messages`, el bloque se añade a un campo de cadena `instructions`, o se convierte en `instructions` cuando el cuerpo contiene `input` (una cadena o un array). Un cuerpo sin `instructions` ni `input` se omite como `no_messages`.
+
+#### Cómo habilitar
+
+En el panel: **Contexto → Configuración → Compresión** — una fila por estilo con un interruptor de encendido/apagado y un selector de nivel. Programáticamente, la configuración de compresión persiste la selección como:
 
 ```json
 {
@@ -497,59 +485,48 @@ la selección como:
 }
 ```
 
-Compatibilidad con versiones anteriores: la configuración combinada heredada `outputMode: "caveman"` sigue funcionando y se asigna a
-`terse-prose`, idéntico byte por byte a la antigua inyección en todos los idiomas heredados.
+Compatibilidad con versiones anteriores: la configuración combinada heredada `outputMode: "caveman"` sigue funcionando y se mapea a `terse-prose`, idéntica byte a byte a la antigua inyección en todos los idiomas heredados.
 
-Selección de idioma: con `languageConfig.enabled` activado, `autoDetect` selecciona el
-idioma del último mensaje del usuario (el mismo detector que usan los motores de entrada);
-desactivar `autoDetect` fija `defaultLanguage`. Desactivado → inglés.
+Selección de idioma: con `languageConfig.enabled` activado, `autoDetect` selecciona el idioma del último mensaje del usuario (el mismo detector que los motores de entrada); desactivar `autoDetect` fija `defaultLanguage`. Desactivado → Inglés.
 
-La matriz estilo × idioma está fijada por
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: un estilo nuevo no puede publicarse
-sin al menos una traducción a pt-BR (o una excepción explícita con seguimiento), y un
-estilo existente no puede perder silenciosamente una configuración regional. Para añadir un estilo, consulta
-[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+La matriz estilo × idioma está fijada por `tests/unit/compression/output-styles-i18n-matrix.test.ts`: un nuevo estilo no puede lanzarse sin al menos una traducción a pt-BR (o una excepción explícitamente registrada), y un estilo existente no puede perder silenciosamente una configuración regional. Para añadir un estilo, consulte [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Compresión de resultados de herramientas
 
-El módulo `toolResultCompressor.ts` proporciona **5 estrategias de compresión especializadas**
-para los resultados de herramientas (llamadas a funciones, salidas de agentes, resultados de búsqueda, etc.):
+El módulo `toolResultCompressor.ts` proporciona **5 estrategias de compresión especializadas** para los resultados de herramientas (llamadas a funciones, salidas de agentes, resultados de búsqueda, etc.):
 
-1. **Compresión de resultados de búsqueda** — Elimina resultados redundantes y conserva los N primeros
-2. **Compresión de lectura de archivos** — Trunca archivos grandes y conserva encabezados/importaciones
-3. **Compresión de ejecución de código** — Conserva únicamente stdout/stderr esenciales
-4. **Compresión de consultas de base de datos** — Limita las filas y elimina metadatos detallados
-5. **Compresión de respuestas de API** — Elimina campos nulos y condensa matrices
+1.  **Compresión de resultados de búsqueda** — Elimina resultados redundantes, mantiene los N principales
+2.  **Compresión de lectura de archivos** — Trunca archivos grandes, preserva encabezados/importaciones
+3.  **Compresión de ejecución de código** — Mantiene solo stdout/stderr esencial
+4.  **Compresión de consultas de base de datos** — Limita filas, elimina metadatos verbosos
+5.  **Compresión de respuestas de API** — Elimina campos nulos, condensa arrays
 
-#### Cuándo usarla
+#### Cuándo usar
 
-La compresión de resultados de herramientas está **siempre activada** cuando hay llamadas a herramientas. No
-requiere configuración.
+La compresión del resultado de la herramienta está **siempre activada** cuando hay llamadas a herramientas. No se necesita configuración.
 
-### Canalización apilada
+### Pipeline Apilado
 
-El modo apilado ejecuta **varios motores en secuencia** — normalmente primero RTK
-(ahorro del 60-90 % en la salida de herramientas) y después Caveman (ahorro adicional del 30 % en el
-texto restante). Esto consigue un **ahorro total del 78-95 %**.
+El modo apilado ejecuta **múltiples motores en secuencia** — usualmente RTK primero (60-90% de ahorro en la salida de la herramienta), luego Caveman (30% de ahorro adicional en el texto restante). Esto logra un **ahorro total del 78-95%**.
 
 #### Cómo funciona
 
 ```
-Entrada (1000 tokens)
-  → RTK (filtro que reconoce comandos) → 200 tokens
-    → Caveman (eliminación de relleno) → 140 tokens
-  → Salida (140 tokens, 86 % de ahorro)
+Input (1000 tokens) // Entrada (1000 tokens)
+  → RTK (command-aware filter) → 200 tokens // → RTK (filtro consciente de comandos) → 200 tokens
+    → Caveman (filler removal) → 140 tokens // → Caveman (eliminación de relleno) → 140 tokens
+  → Output (140 tokens, 86% savings) // → Salida (140 tokens, 86% de ahorro)
 ```
 
 #### Cuándo usarlo
 
-Usa el modo apilado para:
+Use el modo apilado para:
 
-- Flujos de trabajo con uso intensivo de herramientas (programación agéntica, investigación)
-- Procesamiento por lotes sensible a los costes
-- Cuando necesites el máximo ahorro de tokens
+- Flujos de trabajo intensivos en herramientas (codificación agéntica, investigación)
+- Procesamiento por lotes sensible al costo
+- Cuando necesite el máximo ahorro de tokens
 
-Configúralo mediante una combinación:
+Configure a través de la combinación:
 
 ```json
 {

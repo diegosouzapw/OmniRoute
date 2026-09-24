@@ -309,23 +309,23 @@ Yanayin RTK ya samo asali ne daga **[RTK - Rust Token Killer](https://github.com
 
 ---
 
-## Tsarin Matsa Lamba Na Ci Gaba
+## Ingantattun Tsarin Matsawa
 
-Bayan daidaitattun hanyoyin 7, OmniRoute ya haɗa da tsarin matsa lamba na ci gaba da yawa waɗanda ke aiki kai tsaye dangane da mahallin.
+Bayan yanayin daidaitattun yanayi guda 7, OmniRoute ya haɗa da ingantattun tsarin matsa lamba da yawa waɗanda ke aiki ta atomatik dangane da mahallin.
 
-### Matsa Lamba Mai Sanin Cache
+### Matsawa Mai Sanin Cache
 
-Wasu masu samarwa (kamar Anthropic tare da adana cache na gaggawa) suna tallafawa **adana cache na gaggawa**, wanda ke ba su damar adana sassan gaggawa don rage farashi da jinkiri. Lokacin da aka kunna adana cache, matsa lamba mai tsanani na iya haƙiƙa **cutar** aiki saboda yana canza alamomin da aka adana, yana soke cache ɗin.
+Wasu masu samarwa (kamar Anthropic tare da prompt caching) suna tallafawa **prompt caching**, wanda ke ba su damar adana sassan prompt don rage farashi da jinkiri. Lokacin da aka kunna caching, matsa lamba mai tsanani na iya **cutar** aiki saboda yana canza alamomin da aka adana, yana soke cache.
 
-Module ɗin `cachingAware.ts` yana warware wannan ta hanyar **ganowa mahallin adana cache** da **daidaita dabarun matsa lamba** daidai.
+Module na `cachingAware.ts` yana magance wannan ta hanyar **ganowa mahallin caching** da **daidaita dabarun matsa lamba** daidai.
 
 #### Yadda yake aiki
 
-1. **Gano mahallin adana cache** — Yana bincika jikin buƙatar don alamomin `cache_control`
-2. **Gano masu samar da adana cache** — Yana bincika ko mai samarwa da aka yi niyya yana tallafawa adana cache
-3. **Daidaita dabara** — Yana rage `aggressive`/`ultra` zuwa `standard` don masu samar da adana cache
-4. **Tsallake gaggawa na tsarin** — Gaggawa na tsarin yawanci ana adana su, don haka kar a matsa su
-5. **Yi amfani da canje-canje masu tabbatarwa** — Yi amfani da canje-canje waɗanda ke samar da fitarwa mai daidaito kawai
+1.  **Gano mahallin caching** — Yana bincika jikin buƙatar don alamomin `cache_control`
+2.  **Gano masu samar da caching** — Yana bincika ko mai samarwa da aka yi niyya yana tallafawa caching
+3.  **Daidaita dabara** — Yana rage `aggressive`/`ultra` zuwa `standard` ga masu samar da caching
+4.  **Tsallake prompt na tsarin** — Prompts na tsarin yawanci ana adana su, don haka kar a matsa su
+5.  **Yi amfani da canje-canje masu tabbatarwa** — Yi amfani da canje-canje waɗanda ke samar da fitarwa mai daidaito kawai
 
 #### Misalin code
 
@@ -338,7 +338,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Alamar cache
+  cache_control: { type: "ephemeral" }, // ← Alamar Cache
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -350,19 +350,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Lokacin amfani
 
-Matsa lamba mai sanin cache **yana kunne koyaushe** — babu buƙatar daidaitawa. Yana farawa ne kawai lokacin da:
+Matsawa mai sanin cache **koyaushe yana kunne** — babu buƙatar saiti. Yana farawa ne kawai lokacin da:
 
 - Buƙatar tana da alamomin `cache_control`
-- Mai samarwa da aka yi niyya yana tallafawa adana cache na gaggawa (Anthropic, OpenAI, da sauransu)
+- Mai samarwa da aka yi niyya yana tallafawa prompt caching (Anthropic, OpenAI, da sauransu.)
 
 ### Tsufa Mai Ci Gaba
 
-Tattaunawa mai tsawo tana tara juyawa na saƙonni da yawa, amma tsofaffin juyawa suna zama marasa mahimmanci. Module ɗin `progressiveAging.ts` **yana rage saƙonni ta nisan juyawa**:
+Tattaunawa mai tsawo tana tara juyawa na saƙonni da yawa, amma tsofaffin juyawa suna zama marasa mahimmanci. Module na `progressiveAging.ts` yana **rage darajar saƙonni ta nisan juyawa**:
 
-- **Juyawa na kwanan nan (0-3)**: An ajiye su kamar yadda suke (cikakken bayani)
-- **Juyawa na matsakaici (4-8)**: Matsa lamba mai sauƙi (fararen sarari, tsabtace tsari)
-- **Tsofaffin juyawa (9+)**: Matsa lamba na caveman (cire cikawa, taƙaitawa)
-- **Juyawa tsofaffi sosai (20+)**: An taƙaita su sosai ko an jefar da su
+- **Juyawa na baya-bayan nan (0-3)**: An ajiye su kamar yadda suke (cikakken bayani)
+- **Juyawa na tsakiya (4-8)**: Matsawa mai sauƙi (sarari fanko, gyaran tsari)
+- **Tsofaffin juyawa (9+)**: Matsawa irin ta caveman (cire abubuwan cikawa, taƙaitawa)
+- **Tsofaffin juyawa sosai (20+)**: An taƙaita su sosai ko an jefar da su
 
 #### Misalin code
 
@@ -379,40 +379,40 @@ const messages = [
 const { messages: aged, saved } = applyAging(messages, {
   verbatim: 3, // Juyawa 3 na farko: kamar yadda suke
   light: 8, // Juyawa 4-8: matsa lamba mai sauƙi
-  moderate: 20, // Juyawa 9-20: matsa lamba na caveman
+  moderate: 20, // Juyawa 9-20: matsa lamba irin ta caveman
   // Juyawa 21+: taƙaitawa mai nauyi
 });
 
-// saved = adadin alamomin da aka ajiye
+// saved = adadin alamomin da aka adana
 ```
 
 #### Lokacin amfani
 
-Tsufa mai ci gaba **yana kunne koyaushe** don hanyoyin `aggressive` da `ultra`. Yana da tasiri musamman ga:
+Tsufa mai ci gaba **koyaushe yana kunne** don yanayin `aggressive` da `ultra`. Yana da tasiri musamman ga:
 
-- Dogon zaman coding
+- Zaman coding mai tsawo
 - Tattaunawa na kwanaki da yawa
-- Ayyukan wakilai tare da kiran kayan aiki da yawa
+- Ayyukan aiki na wakili tare da kiran kayan aiki da yawa
 
-### Yanayin Fitarwa Na Caveman
+### Yanayin Fitarwa na Caveman
 
-Module ɗin `outputMode.ts` yana saka **umarnin gaggawa na tsarin** don sa samfurin da kansa ya samar da fitarwa mai matsa lamba, mai taƙaitaccen (salon "caveman").
+Module na `outputMode.ts` yana shigar da **umarnin prompt na tsarin** don sa samfurin da kansa ya samar da fitarwa mai matsa lamba, gajere (salon "caveman").
 
 #### Yadda yake aiki
 
-Maimakon matsa lamba shigarwa, wannan yanayin yana ƙara gaggawa na tsarin kamar:
+Maimakon matsa lamba shigarwa, wannan yanayin yana ƙara prompt na tsarin kamar:
 
-> "Amsa da kalmomi kaɗan. Tsallake gaisuwa. Yi amfani da gajerun jumloli."
+> "Amsa da kalmomi kaɗan. Tsallake gaisuwa. Yi amfani da gajerun jimloli."
 
-Wannan yana aiki musamman da kyau ga:
+Wannan yana aiki musamman ga:
 
-- Samar da code (fitarwa mai taƙaitaccen = alamomi kaɗan)
+- Samar da code (fitarwa mai gajarta = ƙananan alamomi)
 - Tambaya & Amsa mai sauri (babu buƙatar cikakkun bayanai)
 - Sarrafa batch (ƙara yawan aiki)
 
 #### Lokacin amfani
 
-Yanayin fitarwa na Caveman **yana da zaɓi** — saita shi ta hanyar daidaitawar combo:
+Yanayin fitarwa na Caveman yana **zaɓi-shiga** — saita shi ta hanyar saitin haɗin gwiwa:
 
 ```json
 {
@@ -427,34 +427,54 @@ Yanayin fitarwa na Caveman **yana da zaɓi** — saita shi ta hanyar daidaitawar
 
 ### Salon Fitarwa (kasida)
 
-Yanayin fitarwa na Caveman a sama shine **tsohuwar hanyar salon guda ɗaya**. Mataki na 4 ya haɗa shi zuwa kasida na salon fitarwa mai haɗawa: `OUTPUT_STYLE_CATALOG` a cikin `open-sse/services/compression/outputStyles/catalog.ts`. Kowane salon umarni ne na gaggawa na tsarin wanda ke sa samfurin da kansa ya samar da fitarwa mai rahusa; ana iya kunna salon tare kuma ana saka su a cikin tsarin kasida.
+Yanayin fitarwa na Caveman da ke sama shine **tsohuwar hanyar salo guda ɗaya**. Mataki na 4 ya haɗa shi zuwa kasida na salon fitarwa masu haɗawa: `OUTPUT_STYLE_CATALOG` a cikin `open-sse/services/compression/outputStyles/catalog.ts`. Kowane salo umarni ne na tsarin-prompt wanda ke sa samfurin da kansa ya samar da fitarwa mai rahusa; ana iya kunna salon tare kuma ana shigar da su cikin tsarin kasida.
 
-| Salo                                    | `id`          | Abin da yake yi                                                                                                                                                                                                        | Harsunan umarni                                                                |
-| :-------------------------------------- | :------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------- |
-| Rubutun taƙaitacce                      | `terse-prose` | Cire kalmomin cikawa/labarai/shinge; kiyaye ainihin abubuwan fasaha daidai. Rubutu iri ɗaya kamar tsohuwar hanyar fitarwa ta caveman (an ambata, ba a sake bugawa ba).                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
-| Ƙarancin code                           | `less-code`   | Matakin YAGNI: mafi ƙarancin canjin aiki, babu abstractions da ba a buƙata ba.                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
-| Ponytail (babban mai haɓaka mai kasala) | `ponytail`    | "Mafi kyawun code shine code da ba a taɓa rubutawa ba": sake amfani > sake rubutawa, tushen dalili > alama, mafi gajeren bambanci mai aiki.                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
-| Ina da ADHD (aiki-farko)                | `i-have-adhd` | Aiki farko (umarni/hanya/snippet kafin rubutu), matakai masu iyaka masu lamba, mataki ɗaya na gaba, babu gabatarwa/taƙaitawa/rufe. An daidaita daga [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
-| Terse CJK (文言)                        | `terse-cjk`   | Salon gargajiya na Sinanci mai matuƙar taƙaitawa.                                                                                                                                                                      | zh (locale-gated: ana bayarwa ne kawai idan harshen da aka warware shine `zh`) |
+| Salo                                   | `id`          | Abin da yake yi                                                                                                                                                                                                                       | Harsunan umarni                                                                        |
+| -------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Gajeren rubutu                         | `terse-prose` | Cire kalmomin cikawa/labarai/shakka; kiyaye ainihin abubuwan fasaha daidai. Rubutu iri ɗaya ne da tsohon yanayin fitarwa na caveman (an ambata, ba a sake bugawa ba).                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                          |
+| Ƙarancin lambar                        | `less-code`   | Matattakala ta YAGNI: mafi ƙarancin canjin aiki, babu abstractions da ba a nema ba.                                                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                          |
+| Ponytail (mai haɓaka babba mai kasala) | `ponytail`    | "Mafi kyawun lambar ita ce lambar da ba a taɓa rubutawa ba": sake amfani > sake rubutawa, tushen matsala > alama, mafi gajeren bambancin aiki.                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                          |
+| Ina da ADHD (aiki-farko)               | `i-have-adhd` | Aiki farko (umarni/hanya/yanki kafin rubutu), matakai masu iyaka masu lamba, MATAKI ƊAYA na gaba mai ma'ana, babu gabatarwa/taƙaitawa/rufewa. An daidaita shi daga [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                          |
+| Gajeren CJK (文言)                     | `terse-cjk`   | Salon Sinanci na gargajiya mai gajarta sosai.                                                                                                                                                                                         | zh (an iyakance ta yanki: ana bayarwa ne kawai idan harshen da aka warware shine `zh`) |
 
 Kowane salo yana da matakan ƙarfi guda uku — `lite`, `full`, `ultra` — kuma kowane mataki
-yana ƙarewa da ƙa'idar iyakoki na gama gari, wanda ke kiyaye tubalan code, hanyoyin fayil, umarni,
-layukan kuskure, URLs da masu ganowa a zahiri.
+yana ƙarewa da tanadin iyakoki na haɗin gwiwa, wanda ke kiyaye tubalan lambar, hanyoyin fayil, umarni,
+layukan kuskure, URLs da masu ganowa yadda suke.
 
 #### Yadda allura ke aiki
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) yana warware
-zaɓin da aka yi da kasida (ana jefar da ID ɗin da ba a sani ba da salo marasa dacewa da yanki,
-ba kuskure ba ne), yana haɗa umarnin da aka zaɓa a cikin tsarin kasida,
-yana ƙara ƙa'idar iyakoki **sau ɗaya**, kuma yana sanya sakamakon a gaba a cikin tsarin
-gaggawa a bayan alamar idempotency guda ɗaya (`[OmniRoute Output Styles]`) — sake amfani
-ba aiki bane. Lokacin da harshen buƙatar da aka gano yana da fassarar, ana allura
-umarnin da aka keɓance maimakon Ingilishi.
+zaɓin da ke kan kundin (an jefar da id ɗin da ba a sani ba da salo marasa dacewa da yanki,
+ba kuskure ba), yana haɗa umarnin da aka zaɓa a cikin tsarin kundin,
+yana ƙara tanadin iyakoki **sau ɗaya**, kuma yana fara toshewar da alamar idempotency
+guda ɗaya (`[OmniRoute Output Styles]`), don haka sake amfani ba shi da tasiri. Lokacin da harshen da aka warware
+(duba zaɓin Harshe a ƙasa) yana da fassarar, ana allura umarnin da aka keɓance da yanki
+maimakon Turanci.
+
+A jiki mai `messages`, wucewar abun ciki (`shouldBypassCavemanOutputMode()` a cikin
+`open-sse/services/compression/outputMode.ts`) yana duba saƙonni uku na ƙarshe kuma yana tsallake
+salo don dukkan juyawar lokacin da suka dace da kalmomin tsaro, aiki maras juyawa,
+bayani, ko kalmomin da ke da mahimmancin tsari. Wucewar yana gudana komai abin da
+aka saita **Auto-Clarity Bypass** na dashboard (`cavemanOutputMode.autoClarity`) zuwa.
+
+Lokacin da wucewar ya bar juyawar ta wuce, `placeSystemInstruction()` (fayil ɗaya), wanda
+baya taɓa ƙirƙirar sabon `messages[0]`, yana sanya toshewar a cikin na farko daga waɗannan da ya samu:
+
+1.  Saƙon tsarin jagora mai abun ciki na rubutu: an haɗa toshewar bayan rubutunsa.
+2.  Filin `system` na matakin sama: an haɗa toshewar bayan rubutun wani rubutu, ko
+    an ƙara shi azaman sabon toshewar rubutu zuwa jerin tubalan abun ciki.
+3.  Saƙon tsarin na gaba na farko mai abun ciki na rubutu: an haɗa toshewar bayan rubutunsa.
+4.  Babu ɗayan sama: toshewar yana shiga sabon saƙon tsarin a ƙarshen `messages`.
+
+A jiki ba tare da `messages` ba, an haɗa toshewar zuwa filin `instructions` na rubutu,
+ko ya zama `instructions` lokacin da jiki ke ɗauke da `input` (rubutu ko jeri). Jiki
+ba tare da `instructions` ko `input` ba an tsallake shi a matsayin `no_messages`.
 
 #### Yadda ake kunnawa
 
 A cikin dashboard: **Context → Settings → Compression** — jere ɗaya ga kowane salo tare da
-kunna/kashewa da mai zaɓin mataki. A cikin shirye-shirye, saitin matsi yana adana zaɓin kamar:
+maɓallin kunnawa/kashewa da mai zaɓin mataki. Ta hanyar shirye-shirye, saitin matsa lamba
+yana adana zaɓin kamar haka:
 
 ```json
 {
@@ -465,59 +485,56 @@ kunna/kashewa da mai zaɓin mataki. A cikin shirye-shirye, saitin matsi yana ada
 }
 ```
 
-Daidaitawa da baya: tsohon saitin haɗin `outputMode: "caveman"` har yanzu yana aiki kuma yana daidaita zuwa
+Daidaitawar baya: tsohon saitin haɗin `outputMode: "caveman"` har yanzu yana aiki kuma yana nuni zuwa
 `terse-prose`, daidai da tsohuwar allura a kowane tsohon harshe.
 
 Zaɓin harshe: tare da `languageConfig.enabled` a kunne, `autoDetect` yana zaɓar
-harshen sabon saƙon mai amfani (mai gano iri ɗaya kamar injunan shigarwa);
-kashe `autoDetect` yana sanya `defaultLanguage`. Kashe → Ingilishi.
+harshen saƙon mai amfani na baya-bayan nan (mai gano iri ɗaya da injunan shigarwa);
+kashe `autoDetect` yana daidaita `defaultLanguage`. Kashe → Turanci.
 
-Salo × harshe matrix an sanya shi ta
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: sabon salo ba zai iya fitowa ba
-ba tare da aƙalla fassarar pt-BR ba (ko keɓancewa da aka bi diddigi), kuma
-salo da ke akwai ba zai iya rasa yanki a hankali ba. Don ƙara salo, duba
+Matrix ɗin salo × harshe an daidaita shi ta
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: sabon salo ba zai iya fitowa
+ba tare da aƙalla fassarar pt-BR ba (ko keɓancewa da aka bi diddigi), kuma salo da ke akwai
+ba zai iya rasa yanki a hankali ba. Don ƙara salo, duba
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Matsi Sakamakon Kayan Aiki
+### Matsa Sakamakon Kayan Aiki
 
-Module ɗin `toolResultCompressor.ts` yana ba da **dabarun matsi na musamman guda 5**
-don sakamakon kayan aiki (kiran aiki, fitarwa na wakili, sakamakon bincike, da sauransu):
+Module ɗin `toolResultCompressor.ts` yana samar da **dabaru na musamman guda 5 na matsa lamba**
+don sakamakon kayan aiki (kiran ayyuka, fitarwar wakili, sakamakon bincike, da sauransu):
 
-1. **Matsi sakamakon bincike** — Yana cire sakamako marasa amfani, yana kiyaye manyan-N
-2. **Matsi karanta fayil** — Yana gajarta manyan fayiloli, yana kiyaye kanun labarai/shigo da su
-3. **Matsi aiwatar da code** — Yana kiyaye mahimman stdout/stderr kawai
-4. **Matsi tambayar database** — Yana iyakance layuka, yana cire bayanan da ba su da amfani
-5. **Matsi amsar API** — Yana cire filayen null, yana taƙaita arrays
+1.  **Matsa sakamakon bincike** — Yana cire sakamako marasa amfani, yana riƙe da manyan-N
+2.  **Matsa karanta fayil** — Yana gajarta manyan fayiloli, yana kiyaye kanun labarai/shigo da su
+3.  **Matsa aiwatar da lambar** — Yana riƙe da mahimman stdout/stderr kawai
+4.  **Matsa tambayar database** — Yana iyakance layuka, yana cire cikakkun bayanai marasa amfani
+5.  **Matsa amsar API** — Yana cire filayen null, yana taƙaita jerin abubuwa
 
-#### Lokacin amfani
+#### Yaushe za a yi amfani
 
-Matsi sakamakon kayan aiki **yana kunne koyaushe** lokacin da akwai kiran kayan aiki. Babu
-buƙatar daidaitawa.
+Matsa sakamakon kayan aiki yana **aiki koyaushe** idan akwai kiran kayan aiki. Babu buƙatar saiti.
 
-### Bututun da aka tara
+### Bututun Haɗe-haɗe
 
-Yanayin da aka tara yana gudanar da **injuna da yawa a jere** — yawanci RTK farko
-(60-90% ajiyar kuɗi akan fitarwa na kayan aiki), sannan Caveman (30% ƙarin ajiyar kuɗi akan
-sauran rubutun). Wannan yana cimma **78-95% jimlar ajiyar kuɗi**.
+Yanayin haɗe-haɗe yana gudanar da **injuna da yawa a jere** — yawanci RTK ne farko (tanadin 60-90% akan fitarwar kayan aiki), sannan Caveman (ƙarin tanadin 30% akan sauran rubutun). Wannan yana cimma **jimillar tanadin 78-95%**.
 
 #### Yadda yake aiki
 
 ```
 Shigarwa (alamomi 1000)
   → RTK (tace mai sanin umarni) → alamomi 200
-    → Caveman (cire cikawa) → alamomi 140
-  → Fitarwa (alamomi 140, 86% ajiyar kuɗi)
+    → Caveman (cire abubuwan cikawa) → alamomi 140
+  → Fitarwa (alamomi 140, tanadin 86%)
 ```
 
 #### Lokacin amfani
 
-Yi amfani da yanayin da aka tara don:
+Yi amfani da yanayin haɗe-haɗe don:
 
-- Ayyukan da ke da kayan aiki da yawa (coding na wakili, bincike)
-- Sarrafa batch mai mahimmancin farashi
-- Lokacin da kuke buƙatar matsakaicin ajiyar alama
+- Ayyukan da ke da nauyin kayan aiki (coding na wakili, bincike)
+- Sarrafa rukuni mai kula da farashi
+- Lokacin da kake buƙatar matsakaicin tanadin alama
 
-Daidaita ta hanyar haɗin gwiwa:
+Saita ta hanyar haɗawa:
 
 ```json
 {

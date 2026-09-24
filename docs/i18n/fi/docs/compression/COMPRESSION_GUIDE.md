@@ -309,21 +309,21 @@ RTK-tila on saanut inspiraationsa **[RTK AI:n](https://github.com/rtk-ai)** **[R
 
 ---
 
-## Edistykselliset pakkausjärjestelmät
+## Edistyneet pakkausjärjestelmät
 
-7 vakiotilan lisäksi OmniRoute sisältää useita edistyksellisiä pakkausjärjestelmiä, jotka toimivat automaattisesti kontekstin perusteella.
+Seitsemän vakiotilan lisäksi OmniRoute sisältää useita edistyneitä pakkausjärjestelmiä, jotka toimivat automaattisesti kontekstin perusteella.
 
-### Välimuistitietoinen pakkaus
+### Välimuistiin perustuva pakkaus
 
-Jotkut palveluntarjoajat (kuten Anthropic kehotteiden välimuistitallennuksella) tukevat **kehotteiden välimuistitallennusta**, jonka avulla ne voivat tallentaa osia kehotteesta kustannusten ja viiveen vähentämiseksi. Kun välimuistitallennus on käytössä, aggressiivinen pakkaus voi itse asiassa **heikentää** suorituskykyä, koska se muuttaa välimuistiin tallennettuja tunnuksia, mikä mitätöi välimuistin.
+Jotkut palveluntarjoajat (kuten Anthropic kehotteiden välimuistilla) tukevat **kehotteiden välimuistia**, jonka avulla ne voivat tallentaa osia kehotteesta vähentääkseen kustannuksia ja viivettä. Kun välimuisti on käytössä, aggressiivinen pakkaus voi itse asiassa **heikentää** suorituskykyä, koska se muuttaa välimuistissa olevia tunnuksia, mikä mitätöi välimuistin.
 
-`cachingAware.ts`-moduuli ratkaisee tämän **tunnistamalla välimuistitallennuskontekstin** ja **säätämällä pakkausstrategiaa** sen mukaisesti.
+`cachingAware.ts`-moduuli ratkaisee tämän **tunnistamalla välimuistikontekstin** ja **säätämällä pakkausstrategiaa** sen mukaisesti.
 
 #### Miten se toimii
 
-1. **Tunnista välimuistitallennuskonteksti** – Tarkistaa pyynnön rungosta `cache_control`-merkkejä
-2. **Tunnista välimuistitallennusta tukevat palveluntarjoajat** – Tarkistaa, tukeeko kohdepalveluntarjoaja välimuistitallennusta
-3. **Säädä strategiaa** – Alentaa `aggressive`/`ultra`-tilan `standard`-tilaan välimuistitallennusta tukeville palveluntarjoajille
+1. **Tunnista välimuistikonteksti** – Skannaa pyynnön rungon `cache_control`-merkintöjen varalta
+2. **Tunnista välimuistia tukevat palveluntarjoajat** – Tarkistaa, tukeeko kohdepalveluntarjoaja välimuistia
+3. **Säädä strategiaa** – Alentaa `aggressive`/`ultra`-tilan `standard`-tilaan välimuistia tukeville palveluntarjoajille
 4. **Ohita järjestelmäkehote** – Järjestelmäkehotteet ovat yleensä välimuistissa, joten älä pakkaa niitä
 5. **Käytä deterministisiä muunnoksia** – Käytä vain muunnoksia, jotka tuottavat johdonmukaisen tuloksen
 
@@ -338,7 +338,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Välimuistimerkki
+  cache_control: { type: "ephemeral" }, // ← Välimuistimerkintä
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -350,18 +350,18 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Milloin käyttää
 
-Välimuistitietoinen pakkaus on **aina päällä** – ei vaadi konfigurointia. Se aktivoituu vain, kun:
+Välimuistiin perustuva pakkaus on **aina päällä** – ei vaadi konfigurointia. Se aktivoituu vain, kun:
 
-- Pyynnössä on `cache_control`-merkkejä
-- Kohdepalveluntarjoaja tukee kehotteiden välimuistitallennusta (Anthropic, OpenAI jne.)
+- Pyynnössä on `cache_control`-merkintöjä
+- Kohdepalveluntarjoaja tukee kehotteiden välimuistia (Anthropic, OpenAI jne.)
 
 ### Progressiivinen ikääntyminen
 
 Pitkät keskustelut keräävät monia viestivuoroja, mutta vanhemmat vuorot muuttuvat vähemmän relevantiksi. `progressiveAging.ts`-moduuli **heikentää viestejä vuorojen etäisyyden mukaan**:
 
-- **Viimeisimmät vuorot (0-3)**: Säilytetään sanasta sanaan (täydelliset yksityiskohdat)
+- **Viimeisimmät vuorot (0-3)**: Säilytetään sellaisenaan (täysin yksityiskohtaisesti)
 - **Keskimmäiset vuorot (4-8)**: Kevyt pakkaus (välilyönnit, muotoilun siistiminen)
-- **Vanhat vuorot (9+)**: Luolamiespakkaus (täytesanojen poisto, tiivistäminen)
+- **Vanhat vuorot (9+)**: Luolamiespakkaus (täytesanojen poisto, tiivistys)
 - **Erittäin vanhat vuorot (20+)**: Voimakkaasti tiivistetty tai poistettu
 
 #### Koodiesimerkki
@@ -377,10 +377,10 @@ const messages = [
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Ensimmäiset 3 vuoroa: sanasta sanaan
+  verbatim: 3, // Ensimmäiset 3 vuoroa: sellaisenaan
   light: 8, // Vuorot 4-8: kevyt pakkaus
   moderate: 20, // Vuorot 9-20: luolamiespakkaus
-  // Vuorot 21+: voimakas tiivistäminen
+  // Vuorot 21+: voimakas tiivistys
 });
 
 // saved = säästettyjen tunnusten määrä
@@ -394,7 +394,7 @@ Progressiivinen ikääntyminen on **aina päällä** `aggressive`- ja `ultra`-ti
 - Monipäiväisissä keskusteluissa
 - Agenttipohjaisissa työnkuluissa, joissa on paljon työkalukutsuja
 
-### Luolamiehen tulostustila
+### Luolamies-tulostustila
 
 `outputMode.ts`-moduuli lisää **järjestelmäkehotteen ohjeita**, jotta malli itse tuottaa pakattua, ytimekästä tulostetta ("luolamies"-tyyliin).
 
@@ -402,7 +402,7 @@ Progressiivinen ikääntyminen on **aina päällä** `aggressive`- ja `ultra`-ti
 
 Sen sijaan, että tämä tila pakkaa syötteen, se lisää järjestelmäkehotteen, kuten:
 
-> "Vastaa mahdollisimman vähillä sanoilla. Ohita kohteliaisuudet. Käytä lyhyitä lauseita."
+> "Vastaa mahdollisimman vähin sanoin. Ohita kohteliaisuudet. Käytä lyhyitä lauseita."
 
 Tämä toimii erityisen hyvin:
 
@@ -412,7 +412,7 @@ Tämä toimii erityisen hyvin:
 
 #### Milloin käyttää
 
-Luolamiehen tulostustila on **valinnainen** – aseta se yhdistelmäkonfiguraation kautta:
+Luolamies-tulostustila on **opt-in** – aseta se yhdistelmäkonfiguraation kautta:
 
 ```json
 {
@@ -427,30 +427,49 @@ Luolamiehen tulostustila on **valinnainen** – aseta se yhdistelmäkonfiguraati
 
 ### Tulostustyylit (luettelo)
 
-Yllä oleva luolamiehen tulostustila on **perinteinen yhden tyylin polku**. Vaihe 4 yleisti sen luetteloksi yhdisteltäviä tulostustyylejä: `OUTPUT_STYLE_CATALOG` tiedostossa
+Yllä oleva luolamies-tulostustila on **perinteinen yksittäistyylipolku**. Vaihe 4 yleisti sen luetteloksi yhdisteltäviä tulostustyylejä: `OUTPUT_STYLE_CATALOG` tiedostossa
 `open-sse/services/compression/outputStyles/catalog.ts`. Jokainen tyyli on järjestelmäkehotteen ohje, joka saa mallin itse tuottamaan edullisempaa tulostetta; tyylejä voidaan ottaa käyttöön yhdessä ja ne lisätään luettelojärjestyksessä.
 
-| Tyyli                                | `id`          | Mitä se tekee                                                                                                                                                                                                                                          | Ohjekielet                                                             |
-| :----------------------------------- | :------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
-| Tiivis proosa                        | `terse-prose` | Poistaa täytesanat/artikkelit/varovaisuuden; pitää teknisen sisällön täsmällisenä. Sama teksti kuin vanha caveman-tulostustila (viitattu, ei uudelleenkirjoitettu).                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Vähemmän koodia                      | `less-code`   | YAGNI-tikkaat: pienin toimiva muutos, ei pyytämättömiä abstraktioita.                                                                                                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Ponytail (laiska vanhempi kehittäjä) | `ponytail`    | "Paras koodi on koodi, jota ei koskaan kirjoiteta": uudelleenkäyttö > uudelleenkirjoitus, perussyy > oire, lyhin toimiva ero.                                                                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Minulla on ADHD (toiminta ensin)     | `i-have-adhd` | Toiminta ensin (komento/polku/katkelma ennen proosaa), numeroidut rajatut vaiheet, YKSI konkreettinen seuraava vaihe, ei esipuhetta/yhteenvetoa/lopetuksia. Mukautettu [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) -projektista. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Tiivis CJK (文言)                    | `terse-cjk`   | Klassisen kiinan erittäin tiivis tyyli.                                                                                                                                                                                                                | zh (paikallisesti rajattu: tarjolla vain, kun ratkaistu kieli on `zh`) |
+| Tyyli                              | `id`          | Mitä se tekee                                                                                                                                                                                                                                       | Ohjekielet                                                             |
+| ---------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Tiivis proosa                      | `terse-prose` | Jättää pois täytesanat/artikkelit/epäröinnin; pitää teknisen sisällön täsmällisenä. Sama teksti kuin vanhassa caveman-tulostustilassa (viitattu, ei uudelleenkirjoitettu).                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Vähemmän koodia                    | `less-code`   | YAGNI-tikkaat: pienin toimiva muutos, ei pyytämättömiä abstraktioita.                                                                                                                                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Ponytail (laiska seniorikehittäjä) | `ponytail`    | "Paras koodi on koodi, jota ei koskaan kirjoiteta": uudelleenkäyttö > uudelleenkirjoitus, perussyy > oire, lyhin toimiva ero.                                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Minulla on ADHD (toiminta ensin)   | `i-have-adhd` | Toiminta ensin (komento/polku/katkelma ennen proosaa), numeroidut rajatut vaiheet, YKSI konkreettinen seuraava askel, ei esipuhetta/yhteenvetoa/lopetuksia. Mukautettu lähteestä [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Tiivis CJK (文言)                  | `terse-cjk`   | Klassisen kiinan erittäin tiivis tyyli.                                                                                                                                                                                                             | zh (paikallisesti rajattu: tarjolla vain, kun ratkaistu kieli on `zh`) |
 
 Jokaisessa tyylissä on kolme intensiteettitasoa – `lite`, `full`, `ultra` – ja jokainen taso
 päättyy jaettuun rajausehtoon, joka pitää koodilohkot, tiedostopolut, komennot,
-virheketjut, URL-osoitteet ja tunnisteet muuttumattomina.
+virheketjut, URL-osoitteet ja tunnisteet sanasta sanaan.
 
 #### Miten injektio toimii
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ratkaisee
-valinnan luetteloa vasten (tuntemattomat tunnukset ja paikallisesti yhteensopimattomat tyylit
-poistetaan, ei koskaan virhettä), yhdistää valitut ohjeet luettelojärjestyksessä,
-lisää rajausehdon **kerran** ja sijoittaa tuloksen järjestelmän
-kehotteen eteen yhden idempotenttimerkin (`[OmniRoute Output Styles]`) taakse – uudelleen
-soveltaminen ei tee mitään. Kun havaittu pyyntökieli sisältää käännöksen,
-lokalisoitu ohje injektoidaan englannin sijaan.
+valinnan luetteloa vastaan (tuntemattomat id:t ja paikallisesti yhteensopimattomat tyylit
+hylätään, ei koskaan virhettä), yhdistää valitut ohjeet luettelojärjestyksessä,
+lisää rajausehdon **kerran** ja aloittaa lohkon yhdellä idempotenttimerkillä
+(`[OmniRoute Output Styles]`), joten uudelleen soveltaminen ei tee mitään. Kun ratkaistulla
+kielellä (katso Kielivalinta alla) on käännös, lokalisoitu ohje
+injektoidaan englannin sijaan.
+
+Rungossa, jossa on `messages`, sisällön ohitus (`shouldBypassCavemanOutputMode()` tiedostossa
+`open-sse/services/compression/outputMode.ts`) tarkistaa kolme viimeisintä viestiä ja ohittaa
+tyylit koko vuoron ajaksi, kun ne vastaavat sen turvallisuus-, peruuttamattoman toiminnan,
+selvennys- tai järjestysherkkiä avainsanoja. Ohitus suoritetaan riippumatta siitä, mihin
+hallintapaneelin **Auto-Clarity Bypass** -kytkin (`cavemanOutputMode.autoClarity`) on asetettu.
+
+Kun ohitus sallii vuoron läpi, `placeSystemInstruction()` (sama tiedosto), joka
+ei koskaan luo uutta `messages[0]`, sijoittaa lohkon ensimmäiseen näistä, jonka se löytää:
+
+1.  Alkuperäinen järjestelmäviesti merkkijonosisällöllä: lohko lisätään sen tekstin jälkeen.
+2.  Ylätason `system`-kenttä: lohko lisätään merkkijonon tekstin jälkeen tai
+    lisätään uutena tekstilohkona sisältölohkojen taulukkoon.
+3.  Ensimmäinen myöhempi järjestelmäviesti merkkijonosisällöllä: lohko lisätään sen tekstin jälkeen.
+4.  Mikään yllä olevista: lohko menee uuteen järjestelmäviestiin `messages`-kohdan loppuun.
+
+Rungossa, jossa ei ole `messages`-kenttää, lohko lisätään merkkijonon `instructions`-kenttään
+tai siitä tulee `instructions`, kun rungossa on `input` (merkkijono tai taulukko). Runko,
+jossa ei ole `instructions`- eikä `input`-kenttää, ohitetaan nimellä `no_messages`.
 
 #### Miten otetaan käyttöön
 
@@ -467,17 +486,17 @@ valinnan seuraavasti:
 }
 ```
 
-Taaksepäin yhteensopivuus: vanha `outputMode: "caveman"` -yhdistelmäasetus toimii edelleen ja vastaa
+Takautuva yhteensopivuus: vanha `outputMode: "caveman"` -yhdistelmäasetus toimii edelleen ja vastaa
 `terse-prose`-tyyliä, joka on tavu-identtinen vanhan injektion kanssa kaikilla vanhoilla kielillä.
 
-Kielen valinta: kun `languageConfig.enabled` on päällä, `autoDetect` valitsee
+Kielivalinta: kun `languageConfig.enabled` on päällä, `autoDetect` valitsee
 uusimman käyttäjäviestin kielen (sama tunnistin kuin syöttömoottoreissa);
 `autoDetect`-toiminnon poiskytkeminen kiinnittää `defaultLanguage`-asetuksen. Pois päältä → englanti.
 
-Tyyli × kieli -matriisi on kiinnitetty tiedostoon
+Tyyli × kieli -matriisi on kiinnitetty tiedostolla
 `tests/unit/compression/output-styles-i18n-matrix.test.ts`: uusi tyyli ei voi tulla käyttöön
 ilman vähintään pt-BR-käännöstä (tai nimenomaista seurattua poikkeusta), eikä
-olemassa oleva tyyli voi hiljaisesti menettää lokalisointia. Tyylin lisäämiseksi katso
+olemassa oleva tyyli voi hiljaisesti menettää paikallista asetusta. Tyylin lisäämiseksi katso
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Työkalun tulosten pakkaus
@@ -485,30 +504,27 @@ olemassa oleva tyyli voi hiljaisesti menettää lokalisointia. Tyylin lisäämis
 `toolResultCompressor.ts`-moduuli tarjoaa **5 erikoistunutta pakkausstrategiaa**
 työkalujen tuloksille (funktiokutsut, agentin tulosteet, hakutulokset jne.):
 
-1. **Hakutulosten pakkaus** – Poistaa redundantit tulokset, säilyttää N parasta
-2. **Tiedoston lukemisen pakkaus** – Katkaisee suuret tiedostot, säilyttää otsikot/tuonnit
-3. **Koodin suorituksen pakkaus** – Säilyttää vain olennaiset stdout/stderr-tulosteet
-4. **Tietokantakyselyjen pakkaus** – Rajoittaa rivejä, poistaa yksityiskohtaiset metatiedot
-5. **API-vastausten pakkaus** – Poistaa null-kentät, tiivistää taulukot
+1.  **Hakutulosten pakkaus** – Poistaa redundantit tulokset, säilyttää N parasta
+2.  **Tiedoston lukemisen pakkaus** – Katkaisee suuret tiedostot, säilyttää otsikot/tuonnit
+3.  **Koodin suorituksen pakkaus** – Säilyttää vain olennaiset stdout/stderr-tulosteet
+4.  **Tietokantakyselyjen pakkaus** – Rajoittaa rivejä, poistaa yksityiskohtaiset metatiedot
+5.  **API-vastausten pakkaus** – Poistaa null-kentät, tiivistää taulukot
 
 #### Milloin käyttää
 
-Työkalun tulosten pakkaus on **aina päällä**, kun työkalukutsuja on. Ei
-konfigurointia tarvita.
+Työkalun tulosten pakkaus on **aina päällä**, kun työkalukutsuja on läsnä. Määritystä ei tarvita.
 
 ### Pinottu putki
 
-Pinottu tila suorittaa **useita moottoreita peräkkäin** – yleensä ensin RTK
-(60-90 % säästöjä työkalun tulosteissa), sitten Caveman (30 % lisäsäästöjä
-jäljellä olevasta tekstistä). Tämä saavuttaa **78-95 % kokonaissäästöt**.
+Pinottu tila suorittaa **useita moottoreita peräkkäin** — yleensä ensin RTK (60-90 % säästöjä työkalun tulosteessa), sitten Caveman (30 % lisäsäästöjä jäljellä olevasta tekstistä). Tämä saavuttaa **78-95 % kokonaissäästöt**.
 
 #### Miten se toimii
 
 ```
-Syöte (1000 merkkiä)
-  → RTK (komentotietoinen suodatin) → 200 merkkiä
-    → Caveman (täytesanojen poisto) → 140 merkkiä
-  → Tuloste (140 merkkiä, 86 % säästö)
+Syöte (1000 tokenia)
+  → RTK (komentotietoinen suodatin) → 200 tokenia
+    → Caveman (täytesanojen poisto) → 140 tokenia
+  → Tuloste (140 tokenia, 86 % säästöt)
 ```
 
 #### Milloin käyttää
@@ -517,9 +533,9 @@ Käytä pinottua tilaa seuraavissa tapauksissa:
 
 - Työkalupainotteiset työnkulut (agenttipohjainen koodaus, tutkimus)
 - Kustannusherkkä eräkäsittely
-- Kun tarvitset maksimaalisia merkkisäästöjä
+- Kun tarvitset maksimaalisia tokenisäästöjä
 
-Määritä yhdistelmän avulla:
+Määritä yhdistelmän kautta:
 
 ```json
 {

@@ -309,30 +309,25 @@ Der RTK-Modus ist von **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)
 
 ---
 
-## Erweiterte Komprimierungssysteme
+## Erweiterte Kompressionssysteme
 
-Zusätzlich zu den 7 Standardmodi umfasst OmniRoute mehrere erweiterte
-Komprimierungssysteme, die abhängig vom Kontext automatisch arbeiten.
+Neben den 7 Standardmodi enthält OmniRoute mehrere erweiterte Kompressionssysteme, die automatisch kontextbasiert arbeiten.
 
 ### Cache-bewusste Komprimierung
 
-Einige Anbieter (wie Anthropic mit Prompt-Caching) unterstützen **Prompt-Caching**,
-wodurch sie Teile des Prompts zwischenspeichern können, um Kosten und Latenz zu reduzieren. Wenn
-Caching aktiviert ist, kann aggressive Komprimierung die Leistung sogar **beeinträchtigen**,
-da sie die zwischengespeicherten Tokens verändert und dadurch den Cache ungültig macht.
+Einige Anbieter (wie Anthropic mit Prompt-Caching) unterstützen **Prompt-Caching**, wodurch sie Teile des Prompts zwischenspeichern können, um Kosten und Latenz zu reduzieren. Wenn Caching aktiviert ist, kann aggressive Komprimierung die Leistung tatsächlich **beeinträchtigen**, da sie die zwischengespeicherten Tokens ändert und den Cache ungültig macht.
 
-Das Modul `cachingAware.ts` löst dieses Problem, indem es den **Caching-Kontext erkennt** und
-die **Komprimierungsstrategie entsprechend anpasst**.
+Das Modul `cachingAware.ts` löst dies, indem es den **Caching-Kontext erkennt** und die **Komprimierungsstrategie entsprechend anpasst**.
 
 #### Funktionsweise
 
-1. **Caching-Kontext erkennen** — Durchsucht den Request-Body nach `cache_control`-Markierungen
-2. **Caching-Anbieter identifizieren** — Prüft, ob der Zielanbieter Caching unterstützt
-3. **Strategie anpassen** — Stuft `aggressive`/`ultra` bei Caching-Anbietern auf `standard` herab
-4. **System-Prompt überspringen** — System-Prompts werden üblicherweise zwischengespeichert und daher nicht komprimiert
-5. **Deterministische Transformationen verwenden** — Verwendet nur Transformationen, die eine konsistente Ausgabe erzeugen
+1.  **Caching-Kontext erkennen** — Durchsucht den Anfragetext nach `cache_control`-Markierungen
+2.  **Caching-Anbieter identifizieren** — Prüft, ob der Zielanbieter Caching unterstützt
+3.  **Strategie anpassen** — Stuft `aggressive`/`ultra` auf `standard` für Caching-Anbieter herab
+4.  **System-Prompt überspringen** — System-Prompts werden normalerweise zwischengespeichert, daher nicht komprimieren
+5.  **Deterministische Transformationen verwenden** — Nur Transformationen verwenden, die eine konsistente Ausgabe erzeugen
 
-#### Codebeispiel
+#### Code-Beispiel
 
 ```ts
 import {
@@ -353,25 +348,23 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Verwendung
+#### Wann zu verwenden
 
-Die Cache-bewusste Komprimierung ist **immer aktiviert** — es ist keine Konfiguration erforderlich. Sie wird nur aktiv,
-wenn:
+Cache-bewusste Komprimierung ist **immer aktiv** — keine Konfiguration erforderlich. Sie wird nur ausgelöst, wenn:
 
-- Der Request `cache_control`-Markierungen enthält
+- Die Anfrage `cache_control`-Markierungen enthält
 - Der Zielanbieter Prompt-Caching unterstützt (Anthropic, OpenAI usw.)
 
-### Progressive Alterung
+### Progressives Altern
 
-Lange Unterhaltungen sammeln viele Nachrichtenwechsel an, ältere Wechsel werden jedoch zunehmend
-weniger relevant. Das Modul `progressiveAging.ts` **reduziert Nachrichten abhängig von ihrem Abstand zum aktuellen Wechsel**:
+Lange Konversationen sammeln viele Nachrichtenrunden an, aber ältere Runden werden weniger relevant. Das Modul `progressiveAging.ts` **degradiert Nachrichten nach Rundenabstand**:
 
-- **Aktuelle Wechsel (0–3)**: Werden unverändert beibehalten (vollständige Details)
-- **Mittlere Wechsel (4–8)**: Leichte Komprimierung (Bereinigung von Leerzeichen und Formatierung)
-- **Alte Wechsel (9+)**: Caveman-Komprimierung (Entfernung von Füllwörtern, Zusammenfassung)
-- **Sehr alte Wechsel (20+)**: Werden stark zusammengefasst oder verworfen
+- **Jüngste Runden (0-3)**: Wortgetreu beibehalten (volle Details)
+- **Mittlere Runden (4-8)**: Leichte Komprimierung (Leerzeichen, Formatierungsbereinigung)
+- **Alte Runden (9+)**: Höhlenmensch-Komprimierung (Füllwortentfernung, Zusammenfassung)
+- **Sehr alte Runden (20+)**: Stark zusammengefasst oder weggelassen
 
-#### Codebeispiel
+#### Code-Beispiel
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
@@ -380,48 +373,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 weitere Wechsel ...
+  // ... 50 weitere Runden ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Erste 3 Wechsel: unverändert
-  light: 8, // Wechsel 4–8: leichte Komprimierung
-  moderate: 20, // Wechsel 9–20: Caveman-Komprimierung
-  // Wechsel ab 21: starke Zusammenfassung
+  verbatim: 3, // Erste 3 Runden: wortgetreu
+  light: 8, // Runden 4-8: leichte Komprimierung
+  moderate: 20, // Runden 9-20: Höhlenmensch-Komprimierung
+  // Runden 21+: starke Zusammenfassung
 });
 
-// saved = Anzahl der eingesparten Tokens
+// saved = Anzahl der gesparten Tokens
 ```
 
-#### Verwendung
+#### Wann zu verwenden
 
-Die progressive Alterung ist in den Modi `aggressive` und `ultra` **immer aktiviert**. Sie ist
-besonders effektiv für:
+Progressives Altern ist für die Modi `aggressive` und `ultra` **immer aktiv**. Es ist besonders effektiv für:
 
-- Lang andauernde Coding-Sitzungen
-- Mehrtägige Unterhaltungen
-- Agentische Workflows mit vielen Tool-Aufrufen
+- Lang andauernde Codierungssitzungen
+- Mehrtägige Konversationen
+- Agentenbasierte Workflows mit vielen Tool-Aufrufen
 
-### Caveman-Ausgabemodus
+### Höhlenmensch-Ausgabemodus
 
-Das Modul `outputMode.ts` fügt **System-Prompt-Anweisungen** ein, damit das
-Modell selbst eine komprimierte, knappe Ausgabe (im „Caveman“-Stil) erzeugt.
+Das Modul `outputMode.ts` injiziert **System-Prompt-Anweisungen**, um das Modell selbst dazu zu bringen, eine komprimierte, knappe Ausgabe (einen "Höhlenmensch"-Stil) zu erzeugen.
 
 #### Funktionsweise
 
-Anstatt die Eingabe zu komprimieren, fügt dieser Modus einen System-Prompt wie den folgenden hinzu:
+Anstatt die Eingabe zu komprimieren, fügt dieser Modus einen System-Prompt hinzu wie:
 
-> „Antworte mit möglichst wenigen Worten. Verzichte auf Höflichkeitsfloskeln. Verwende kurze Sätze.“
+> "Antworte in minimalen Worten. Überspringe Höflichkeiten. Verwende kurze Sätze."
 
 Dies funktioniert besonders gut für:
 
-- Codegenerierung (knappere Ausgabe = weniger Tokens)
-- Kurze Fragen und Antworten (keine ausführlichen Erklärungen erforderlich)
-- Stapelverarbeitung (maximaler Durchsatz)
+- Code-Generierung (knappere Ausgabe = weniger Tokens)
+- Schnelle Fragen und Antworten (keine Notwendigkeit für ausführliche Erklärungen)
+- Stapelverarbeitung (Maximierung des Durchsatzes)
 
-#### Verwendung
+#### Wann zu verwenden
 
-Der Caveman-Ausgabemodus ist **optional** — aktiviere ihn über die Combo-Konfiguration:
+Der Höhlenmensch-Ausgabemodus ist **optional** — legen Sie ihn über die Combo-Konfiguration fest:
 
 ```json
 {
@@ -436,39 +427,55 @@ Der Caveman-Ausgabemodus ist **optional** — aktiviere ihn über die Combo-Konf
 
 ### Ausgabestile (Katalog)
 
-Der oben beschriebene Caveman-Ausgabemodus ist der **veraltete Pfad mit nur einem Stil**. Phase 4 hat ihn
-zu einem Katalog kombinierbarer Ausgabestile erweitert: `OUTPUT_STYLE_CATALOG` in
-`open-sse/services/compression/outputStyles/catalog.ts`. Jeder Stil ist eine System-Prompt-
-Anweisung, die das Modell selbst dazu bringt, kostengünstigere Ausgaben zu erzeugen; Stile können gemeinsam aktiviert
-werden und werden in der Reihenfolge des Katalogs eingefügt.
+Der oben genannte Höhlenmensch-Ausgabemodus ist der **veraltete Einzelstil-Pfad**. Phase 4 hat ihn zu einem Katalog von zusammensetzbaren Ausgabestilen verallgemeinert: `OUTPUT_STYLE_CATALOG` in `open-sse/services/compression/outputStyles/catalog.ts`. Jeder Stil ist eine System-Prompt-Anweisung, die das Modell selbst dazu bringt, eine günstigere Ausgabe zu erzeugen; Stile können zusammen aktiviert und in der Katalogreihenfolge injiziert werden.
 
-| Stil                                     | `id`          | Funktion                                                                                                                                                                                                                                         | Anweisungssprachen                                                                   |
-| ---------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| Knapp formuliert                         | `terse-prose` | Füllwörter/Artikel/Relativierungen weglassen; technische Substanz exakt beibehalten. Derselbe Text wie im alten Caveman-Ausgabemodus (referenziert, nicht erneut eingegeben).                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Weniger Code                             | `less-code`   | YAGNI-Leiter: kleinste funktionierende Änderung, keine nicht angeforderten Abstraktionen.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Pferdeschwanz (fauler Senior-Entwickler) | `ponytail`    | „Der beste Code ist der Code, der nie geschrieben wurde“: Wiederverwenden > Neuschreiben, Ursache > Symptom, kürzester funktionierender Diff.                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Ich habe ADHS (Aktion zuerst)            | `i-have-adhd` | Aktion zuerst (Befehl/Pfad/Snippet vor Prosa), nummerierte begrenzte Schritte, EIN konkreter nächster Schritt, keine Einleitung/Zusammenfassung/Schlussformeln. Adaptiert von [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Knappes CJK (文言)                       | `terse-cjk`   | Ultraknapper klassisch-chinesischer Stil.                                                                                                                                                                                                        | zh (gebietsschemagebunden: wird nur angeboten, wenn die ermittelte Sprache `zh` ist) |
+| Stil                                     | `id`          | Was es bewirkt                                                                                                                                                                                                                            | Anweisungssprachen                                                       |
+| ---------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Knappe Prosa                             | `terse-prose` | Füllwörter/Artikel/Einschränkungen weglassen; technische Substanz exakt beibehalten. Gleicher Text wie der veraltete Caveman-Ausgabemodus (referenziert, nicht neu eingegeben).                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                            |
+| Weniger Code                             | `less-code`   | YAGNI-Leiter: kleinste funktionierende Änderung, keine unerwünschten Abstraktionen.                                                                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                            |
+| Pferdeschwanz (fauler Senior-Entwickler) | `ponytail`    | „Der beste Code ist der Code, der nie geschrieben wurde“: Wiederverwendung > Neuschreiben, Grundursache > Symptom, kürzester funktionierender Diff.                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                            |
+| Ich habe ADHS (Aktion zuerst)            | `i-have-adhd` | Aktion zuerst (Befehl/Pfad/Snippet vor Prosa), nummerierte, begrenzte Schritte, EIN konkreter nächster Schritt, kein Vorspann/Zusammenfassung/Abschluss. Adaptiert von [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                            |
+| Knappe CJK (文言)                        | `terse-cjk`   | Klassisch-chinesischer, ultrakurzer Stil.                                                                                                                                                                                                 | zh (lokal begrenzt: nur angeboten, wenn die aufgelöste Sprache `zh` ist) |
 
-Jeder Stil wird mit drei Intensitätsstufen ausgeliefert — `lite`, `full`, `ultra` — und jede Stufe
+Jeder Stil bietet drei Intensitätsstufen – `lite`, `full`, `ultra` – und jede Stufe
 endet mit der gemeinsamen Begrenzungsklausel, die Codeblöcke, Dateipfade, Befehle,
-Fehlermeldungen, URLs und Bezeichner unverändert beibehält.
+Fehlerzeichenfolgen, URLs und Bezeichner wörtlich beibehält.
 
-#### Funktionsweise der Injektion
+#### Wie die Injektion funktioniert
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) gleicht
-die Auswahl mit dem Katalog ab (unbekannte IDs und nicht zum Gebietsschema passende Stile werden
-verworfen und verursachen nie einen Fehler), verkettet die ausgewählten Anweisungen in Katalogreihenfolge,
-hängt die Begrenzungsklausel **einmal** an und stellt das Ergebnis im System-Prompt
-hinter einer einzelnen Idempotenzmarkierung (`[OmniRoute Output Styles]`) voran — eine erneute Anwendung
-bewirkt nichts. Wenn für die erkannte Anfragesprache eine Übersetzung vorhanden ist, wird anstelle
-der englischen Anweisung die lokalisierte Anweisung injiziert.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) löst
+die Auswahl anhand des Katalogs auf (unbekannte IDs und nicht übereinstimmende Gebietsschema-Stile werden
+verworfen, niemals ein Fehler), verkettet die ausgewählten Anweisungen in Katalogreihenfolge,
+hängt die Begrenzungsklausel **einmal** an und beginnt den Block mit einem einzigen Idempotenz-Marker
+(`[OmniRoute Output Styles]`), sodass ein erneutes Anwenden ein No-Op ist. Wenn die aufgelöste
+Sprache (siehe Sprachauswahl unten) eine Übersetzung hat, wird die lokalisierte Anweisung
+anstelle von Englisch injiziert.
 
-#### Aktivierung
+Bei einem Body mit `messages` prüft ein Inhalts-Bypass (`shouldBypassCavemanOutputMode()` in
+`open-sse/services/compression/outputMode.ts`) die letzten drei Nachrichten und überspringt
+die Stile für den gesamten Durchlauf, wenn sie seinen sicherheitsrelevanten, irreversiblen Aktions-,
+Klärungs- oder reihenfolgesensiblen Schlüsselwörtern entsprechen. Der Bypass läuft unabhängig
+davon, wie der **Auto-Clarity Bypass**-Schalter (`cavemanOutputMode.autoClarity`) des Dashboards
+eingestellt ist.
 
-Im Dashboard: **Kontext → Einstellungen → Komprimierung** — eine Zeile pro Stil mit einem
-Ein-/Aus-Schalter und einer Stufenauswahl. Programmgesteuert speichert die Komprimierungskonfiguration
-die Auswahl wie folgt:
+Wenn der Bypass den Durchlauf zulässt, platziert `placeSystemInstruction()` (gleiche Datei), das
+niemals eine neue `messages[0]` erstellt, den Block in der ersten der folgenden Stellen, die es findet:
+
+1.  Eine führende Systemnachricht mit String-Inhalt: Der Block wird nach ihrem Text angehängt.
+2.  Das Top-Level-Feld `system`: Der Block wird nach dem Text eines Strings angehängt oder
+    als neuer Textblock zu einem Inhaltsblock-Array hinzugefügt.
+3.  Die erste spätere Systemnachricht mit String-Inhalt: Der Block wird nach ihrem Text angehängt.
+4.  Nichts davon: Der Block wird in eine neue Systemnachricht am Ende von `messages` eingefügt.
+
+Bei einem Body ohne `messages` wird der Block an ein String-Feld `instructions` angehängt oder
+wird zu `instructions`, wenn der Body `input` (ein String oder ein Array) enthält. Ein Body,
+der weder `instructions` noch `input` enthält, wird als `no_messages` übersprungen.
+
+#### Wie man es aktiviert
+
+Im Dashboard: **Kontext → Einstellungen → Komprimierung** – eine Zeile pro Stil mit einem
+Ein-/Ausschalter und einem Level-Selektor. Programmatisch speichert die Komprimierungskonfiguration
+die Auswahl als:
 
 ```json
 {
@@ -479,59 +486,57 @@ die Auswahl wie folgt:
 }
 ```
 
-Abwärtskompatibilität: Die alte Kombinationseinstellung `outputMode: "caveman"` funktioniert weiterhin und wird
-`terse-prose` zugeordnet; in jeder Legacy-Sprache ist die Injektion bytegenau mit der alten identisch.
+Abwärtskompatibilität: Die veraltete Kombinations-Einstellung `outputMode: "caveman"` funktioniert
+weiterhin und wird auf `terse-prose` abgebildet, byte-identisch mit der alten Injektion in jeder
+älteren Sprache.
 
-Sprachauswahl: Wenn `languageConfig.enabled` aktiviert ist, wählt `autoDetect` die
-Sprache der neuesten Benutzernachricht aus (derselbe Detektor wie bei den Eingabe-Engines);
-durch Deaktivieren von `autoDetect` wird `defaultLanguage` festgelegt. Aus → Englisch.
+Sprachauswahl: Wenn `languageConfig.enabled` aktiviert ist, wählt `autoDetect` die Sprache der
+letzten Benutzernachricht (gleicher Detektor wie die Eingabe-Engines); das Deaktivieren von
+`autoDetect` fixiert `defaultLanguage`. Aus → Englisch.
 
-Die Stil-×-Sprachen-Matrix wird durch
-`tests/unit/compression/output-styles-i18n-matrix.test.ts` festgeschrieben: Ein neuer Stil kann nicht
-ohne mindestens eine pt-BR-Übersetzung (oder eine ausdrücklich nachverfolgte Ausnahme) ausgeliefert werden, und ein
-vorhandener Stil kann nicht unbemerkt ein Gebietsschema verlieren. Informationen zum Hinzufügen eines Stils finden Sie unter
-[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Die Stil-×-Sprach-Matrix wird durch
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` festgelegt: Ein neuer Stil kann nicht
+ohne mindestens eine pt-BR-Übersetzung (oder eine explizit verfolgte Ausnahme) ausgeliefert werden,
+und ein bestehender Stil kann nicht stillschweigend ein Gebietsschema verlieren. Um einen Stil
+hinzuzufügen, siehe [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Komprimierung von Tool-Ergebnissen
 
 Das Modul `toolResultCompressor.ts` bietet **5 spezialisierte Komprimierungsstrategien**
-für Tool-Ergebnisse (Funktionsaufrufe, Agentenausgaben, Suchergebnisse usw.):
+für Tool-Ergebnisse (Funktionsaufrufe, Agenten-Ausgaben, Suchergebnisse usw.):
 
-1. **Komprimierung von Suchergebnissen** — Entfernt redundante Ergebnisse, behält die besten N
-2. **Komprimierung gelesener Dateien** — Kürzt große Dateien, behält Header/Importe bei
-3. **Komprimierung der Codeausführung** — Behält nur wesentliche stdout/stderr-Ausgaben bei
-4. **Komprimierung von Datenbankabfragen** — Begrenzt Zeilen, entfernt ausführliche Metadaten
-5. **Komprimierung von API-Antworten** — Entfernt Null-Felder, verdichtet Arrays
+1.  **Suchergebnis-Komprimierung** — Entfernt redundante Ergebnisse, behält die Top-N bei
+2.  **Dateilese-Komprimierung** — Kürzt große Dateien, bewahrt Header/Importe
+3.  **Codeausführungs-Komprimierung** — Behält nur wesentliche stdout/stderr bei
+4.  **Datenbankabfrage-Komprimierung** — Begrenzt Zeilen, entfernt ausführliche Metadaten
+5.  **API-Antwort-Komprimierung** — Entfernt Null-Felder, verdichtet Arrays
 
-#### Verwendungszeitpunkt
+#### Wann zu verwenden
 
-Die Komprimierung von Tool-Ergebnissen ist **immer aktiviert**, wenn Tool-Aufrufe vorhanden sind. Es ist keine
-Konfiguration erforderlich.
+Die Werkzeugergebnis-Kompression ist **immer aktiv**, wenn Werkzeugaufrufe vorhanden sind. Keine Konfiguration erforderlich.
 
 ### Gestapelte Pipeline
 
-Der gestapelte Modus führt **mehrere Engines nacheinander** aus — üblicherweise zuerst RTK
-(60–90 % Einsparung bei Tool-Ausgaben), danach Caveman (weitere 30 % Einsparung beim
-verbleibenden Text). Dadurch werden **insgesamt 78–95 % Einsparung** erreicht.
+Der gestapelte Modus führt **mehrere Engines nacheinander** aus — normalerweise zuerst RTK (60-90% Einsparungen bei der Werkzeugausgabe), dann Caveman (30% zusätzliche Einsparungen beim verbleibenden Text). Dies erzielt **78-95% Gesamteinsparungen**.
 
 #### Funktionsweise
 
 ```
-Eingabe (1000 Token)
-  → RTK (befehlsbewusster Filter) → 200 Token
-    → Caveman (Entfernung von Füllwörtern) → 140 Token
-  → Ausgabe (140 Token, 86 % Einsparung)
+Eingabe (1000 Tokens)
+  → RTK (befehlsbewusster Filter) → 200 Tokens
+    → Caveman (Füllwortentfernung) → 140 Tokens
+  → Ausgabe (140 Tokens, 86% Einsparungen)
 ```
 
-#### Verwendungszeitpunkt
+#### Wann zu verwenden
 
 Verwenden Sie den gestapelten Modus für:
 
-- Tool-intensive Workflows (agentenbasierte Programmierung, Recherche)
+- Werkzeugintensive Workflows (agentisches Codieren, Forschung)
 - Kostensensible Stapelverarbeitung
 - Wenn Sie maximale Token-Einsparungen benötigen
 
-Konfiguration über eine Kombination:
+Konfigurieren über Combo:
 
 ```json
 {

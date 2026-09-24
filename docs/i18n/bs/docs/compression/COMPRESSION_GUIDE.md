@@ -290,26 +290,21 @@ RTK režim je inspirisan **[RTK - Rust Token Killer](https://github.com/rtk-ai/r
 
 ## Napredni sistemi kompresije
 
-Pored 7 standardnih načina rada, OmniRoute uključuje nekoliko naprednih sistema
-kompresije koji rade automatski na osnovu konteksta.
+Pored 7 standardnih režima, OmniRoute uključuje nekoliko naprednih sistema kompresije koji rade automatski na osnovu konteksta.
 
-### Kompresija svjesna keširanja
+### Kompresija svjesna keša
 
-Neki pružaoci usluga (poput Anthropica s keširanjem upita) podržavaju **keširanje upita**,
-što im omogućava da keširaju dijelove upita radi smanjenja troškova i latencije. Kada
-je keširanje omogućeno, agresivna kompresija zapravo može **pogoršati** performanse
-jer mijenja keširane tokene, čime poništava keš.
+Neki provajderi (poput Anthropic-a sa keširanjem upita) podržavaju **keširanje upita**, što im omogućava da keširaju dijelove upita kako bi smanjili troškove i kašnjenje. Kada je keširanje omogućeno, agresivna kompresija zapravo može **naštetiti** performansama jer mijenja keširane tokene, poništavajući keš.
 
-Modul `cachingAware.ts` ovo rješava **otkrivanjem konteksta keširanja** i
-**prilagođavanjem strategije kompresije** u skladu s tim.
+Modul `cachingAware.ts` ovo rješava **detektovanjem konteksta keširanja** i **prilagođavanjem strategije kompresije** u skladu s tim.
 
-#### Kako radi
+#### Kako funkcioniše
 
-1. **Otkrivanje konteksta keširanja** — Pretražuje tijelo zahtjeva radi `cache_control` oznaka
-2. **Prepoznavanje pružalaca koji podržavaju keširanje** — Provjerava podržava li ciljni pružalac keširanje
-3. **Prilagođavanje strategije** — Snižava `aggressive`/`ultra` na `standard` za pružaoce koji podržavaju keširanje
-4. **Preskakanje sistemskog upita** — Sistemski upiti se obično keširaju, pa ih ne treba kompresovati
-5. **Korištenje determinističkih transformacija** — Koriste se samo transformacije koje daju dosljedan izlaz
+1.  **Detektuje kontekst keširanja** — Skenira tijelo zahtjeva za `cache_control` markere
+2.  **Identifikuje provajdere keširanja** — Provjerava da li ciljni provajder podržava keširanje
+3.  **Prilagođava strategiju** — Smanjuje `aggressive`/`ultra` na `standard` za provajdere keširanja
+4.  **Preskače sistemski upit** — Sistemski upiti su obično keširani, pa ih nemojte komprimovati
+5.  **Koristi determinističke transformacije** — Koristi samo transformacije koje proizvode konzistentan izlaz
 
 #### Primjer koda
 
@@ -322,7 +317,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Oznaka keša
+  cache_control: { type: "ephemeral" }, // ← Cache marker
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -334,21 +329,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kada koristiti
 
-Kompresija svjesna keširanja je **uvijek uključena** — konfiguracija nije potrebna. Aktivira se
-samo kada:
+Kompresija svjesna keša je **uvijek uključena** — nije potrebna konfiguracija. Aktivira se samo kada:
 
-- Zahtjev sadrži `cache_control` oznake
-- Ciljni pružalac podržava keširanje upita (Anthropic, OpenAI itd.)
+- Zahtjev ima `cache_control` markere
+- Ciljni provajder podržava keširanje upita (Anthropic, OpenAI, itd.)
 
 ### Progresivno starenje
 
-Dugi razgovori akumuliraju mnogo razmjena poruka, ali starije razmjene postaju manje
-relevantne. Modul `progressiveAging.ts` **degradira poruke prema udaljenosti razmjene**:
+Dugi razgovori akumuliraju mnogo poruka, ali starije poruke postaju manje relevantne. Modul `progressiveAging.ts` **degradira poruke po udaljenosti okreta**:
 
-- **Nedavne razmjene (0-3)**: Zadržavaju se doslovno (svi detalji)
-- **Srednje stare razmjene (4-8)**: Blaga kompresija (čišćenje razmaka i formatiranja)
-- **Stare razmjene (9+)**: Pećinska kompresija (uklanjanje suvišnih riječi, sažimanje)
-- **Veoma stare razmjene (20+)**: Intenzivno se sažimaju ili odbacuju
+- **Nedavni okreti (0-3)**: Zadržani doslovno (potpuni detalji)
+- **Srednji okreti (4-8)**: Lagana kompresija (razmaci, čišćenje formatiranja)
+- **Stari okreti (9+)**: Pećinska kompresija (uklanjanje punila, sažimanje)
+- **Vrlo stari okreti (20+)**: Jako sažeti ili izbačeni
 
 #### Primjer koda
 
@@ -359,48 +352,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... još 50 razmjena ...
+  // ... još 50 okreta ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Prve 3 razmjene: doslovno
-  light: 8, // Razmjene 4-8: blaga kompresija
-  moderate: 20, // Razmjene 9-20: pećinska kompresija
-  // Razmjene 21+: intenzivno sažimanje
+  verbatim: 3, // Prva 3 okreta: doslovno
+  light: 8, // Okreti 4-8: lagana kompresija
+  moderate: 20, // Okreti 9-20: pećinska kompresija
+  // Okreti 21+: teško sažimanje
 });
 
-// saved = broj ušteđenih tokena
+// saved = broj sačuvanih tokena
 ```
 
 #### Kada koristiti
 
-Progresivno starenje je **uvijek uključeno** za načine rada `aggressive` i `ultra`. Posebno
-je efikasno za:
+Progresivno starenje je **uvijek uključeno** za `aggressive` i `ultra` režime. Posebno je efikasno za:
 
-- Dugotrajne sesije programiranja
+- Dugotrajne sesije kodiranja
 - Višednevne razgovore
-- Agentske tokove rada s mnogo poziva alata
+- Agentičke radne tokove sa mnogo poziva alata
 
-### Pećinski način izlaza
+### Pećinski izlazni režim
 
-Modul `outputMode.ts` umeće **upute sistemskog upita** kako bi sam
-model stvarao kompresovan, sažet izlaz (u „pećinskom“ stilu).
+Modul `outputMode.ts` ubacuje **instrukcije sistemskog upita** kako bi sam model proizvodio komprimovan, sažet izlaz (u "pećinskom" stilu).
 
-#### Kako radi
+#### Kako funkcioniše
 
-Umjesto kompresovanja ulaza, ovaj način dodaje sistemski upit poput:
+Umjesto komprimovanja ulaza, ovaj režim dodaje sistemski upit poput:
 
-> "Odgovori s minimalnim brojem riječi. Preskoči ljubazne fraze. Koristi kratke rečenice."
+> "Odgovori minimalnim riječima. Preskoči ljubaznosti. Koristi kratke rečenice."
 
 Ovo posebno dobro funkcioniše za:
 
 - Generisanje koda (sažetiji izlaz = manje tokena)
-- Brza pitanja i odgovore (nema potrebe za opširnim objašnjenjima)
-- Paketnu obradu (maksimalna propusnost)
+- Brza pitanja i odgovori (nema potrebe za opširnim objašnjenjima)
+- Grupnu obradu (maksimiziranje propusnosti)
 
 #### Kada koristiti
 
-Pećinski način izlaza je **opcionalan** — postavite ga putem kombinovane konfiguracije:
+Pećinski izlazni režim je **opcioni** — postavite ga putem kombinovane konfiguracije:
 
 ```json
 {
@@ -413,40 +404,57 @@ Pećinski način izlaza je **opcionalan** — postavite ga putem kombinovane kon
 }
 ```
 
-### Stilovi izlaza (katalog)
+### Izlazni stilovi (katalog)
 
-Gore opisani pećinski način izlaza predstavlja **naslijeđeni put s jednim stilom**. Faza 4 ga je proširila
-u katalog kombinabilnih stilova izlaza: `OUTPUT_STYLE_CATALOG` u
-`open-sse/services/compression/outputStyles/catalog.ts`. Svaki stil je uputa sistemskog upita
-koja navodi sam model da proizvodi jeftiniji izlaz; stilovi se mogu omogućiti
-zajedno i umeću se redoslijedom iz kataloga.
+Gore navedeni pećinski izlazni režim je **naslijeđeni put jednog stila**. Faza 4 ga je generalizovala u katalog složivih izlaznih stilova: `OUTPUT_STYLE_CATALOG` u
+`open-sse/services/compression/outputStyles/catalog.ts`. Svaki stil je instrukcija sistemskog upita koja čini da sam model proizvodi jeftiniji izlaz; stilovi se mogu omogućiti zajedno i ubacuju se po redoslijedu kataloga.
 
-| Stil                            | `id`          | Šta radi                                                                                                                                                                                                                              | Jezici instrukcija                                                   |
-| ------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| Sažeta proza                    | `terse-prose` | Izbacuje suvišne riječi/članove/ograđivanje; zadržava tačnu tehničku suštinu. Isti tekst kao u naslijeđenom Caveman izlaznom režimu (referenciran, bez ponovnog navođenja).                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
-| Manje koda                      | `less-code`   | YAGNI ljestvica: najmanja funkcionalna izmjena, bez netraženih apstrakcija.                                                                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
-| Konjski rep (lijeni senior dev) | `ponytail`    | "Najbolji kod je kod koji nikada nije napisan": ponovna upotreba > ponovno pisanje, osnovni uzrok > simptom, najkraća funkcionalna izmjena.                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
-| Imam ADHD (prvo radnja)         | `i-have-adhd` | Prvo radnja (naredba/putanja/isječak prije proze), numerisani ograničeni koraci, JEDAN konkretan sljedeći korak, bez uvoda/sažetka/završnih riječi. Prilagođeno iz [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
-| Sažeti CJK (文言)               | `terse-cjk`   | Izuzetno sažet stil klasičnog kineskog jezika.                                                                                                                                                                                        | zh (ograničeno lokalom: nudi se samo kada je razriješeni jezik `zh`) |
+| Stil                                | `id`          | Šta radi                                                                                                                                                                                                                         | Jezici instrukcija                                                    |
+| ----------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Sažeta proza                        | `terse-prose` | Izostavlja punioce/članke/ograde; zadržava tehničku suštinu preciznom. Isti tekst kao i stari način izlaza caveman (referenciran, nije ponovo kucan).                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                         |
+| Manje koda                          | `less-code`   | YAGNI ljestve: najmanja funkcionalna promjena, bez nezahtijevanih apstrakcija.                                                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                         |
+| Ponytail (lijeni stariji programer) | `ponytail`    | "Najbolji kod je kod koji nikada nije napisan": ponovna upotreba > prepisivanje, osnovni uzrok > simptom, najkraći funkcionalni diff.                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                         |
+| Imam ADHD (akcija-prvo)             | `i-have-adhd` | Akcija prvo (komanda/putanja/isječak prije proze), numerisani ograničeni koraci, JEDAN konkretan sljedeći korak, bez uvoda/sažetka/zaključaka. Prilagođeno iz [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                         |
+| Sažeti CJK (文言)                   | `terse-cjk`   | Klasični kineski ultra-sažeti stil.                                                                                                                                                                                              | zh (ograničeno lokalitetom: nudi se samo kada je riješeni jezik `zh`) |
 
-Svaki stil dolazi s tri nivoa intenziteta — `lite`, `full`, `ultra` — i svaki nivo
-završava zajedničkom klauzulom o ograničenjima, koja čuva blokove koda, putanje datoteka, naredbe,
-poruke o greškama, URL-ove i identifikatore nepromijenjenima.
+Svaki stil dolazi sa tri nivoa intenziteta — `lite`, `full`, `ultra` — i svaki nivo
+završava zajedničkom klauzulom o granicama, koja zadržava blokove koda, putanje datoteka, komande,
+stringove grešaka, URL-ove i identifikatore doslovno.
 
-#### Kako ubrizgavanje funkcioniše
+#### Kako funkcionira ubrizgavanje
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) razrješava
-odabir prema katalogu (nepoznati ID-ovi i stilovi koji ne odgovaraju lokalu
-odbacuju se, nikada ne uzrokuju grešku), spaja odabrane instrukcije redoslijedom iz kataloga,
-dodaje klauzulu o ograničenjima **jednom** i postavlja rezultat na početak sistemskog
-upita iza jedinstvene oznake idempotentnosti (`[OmniRoute Output Styles]`) — ponovna
-primjena nema efekta. Kada za otkriveni jezik zahtjeva postoji prijevod, umjesto
-engleske instrukcije ubrizgava se lokalizirana instrukcija.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) rješava
+odabir prema katalogu (nepoznati id-ovi i stilovi koji se ne podudaraju s lokalitetom se
+odbacuju, nikada ne uzrokuju grešku), spaja odabrane instrukcije po redoslijedu kataloga,
+dodaje klauzulu o granicama **jednom**, i započinje blok jednim markerom idempotencije
+(`[OmniRoute Output Styles]`), tako da ponovna primjena ne radi ništa. Kada riješeni
+jezik (pogledajte Odabir jezika ispod) ima prijevod, lokalizirana instrukcija se
+ubrizgava umjesto engleske.
+
+Na tijelu sa `messages`, zaobilaženje sadržaja (`shouldBypassCavemanOutputMode()` u
+`open-sse/services/compression/outputMode.ts`) provjerava posljednje tri poruke i preskače
+stilove za cijeli krug kada se podudaraju s njegovim ključnim riječima za sigurnost, nepovratnu akciju,
+pojašnjenje ili osjetljivost na redoslijed. Zaobilaženje se izvršava bez obzira na to kako je
+postavljen prekidač **Automatsko zaobilaženje jasnoće** na kontrolnoj tabli (`cavemanOutputMode.autoClarity`).
+
+Kada zaobilaženje propusti krug, `placeSystemInstruction()` (ista datoteka),
+koja nikada ne stvara novu `messages[0]`, postavlja blok u prvu od ovih opcija koju pronađe:
+
+1. Vodeća sistemska poruka sa string sadržajem: blok se dodaje nakon njenog teksta.
+2. Polje `system` na najvišem nivou: blok se dodaje nakon teksta stringa, ili
+   se dodaje kao novi tekstualni blok u niz blokova sadržaja.
+3. Prva kasnija sistemska poruka sa string sadržajem: blok se dodaje nakon njenog
+   teksta.
+4. Ništa od navedenog: blok ide u novu sistemsku poruku na kraju `messages`.
+
+Na tijelu bez `messages`, blok se dodaje u string polje `instructions`,
+ili postaje `instructions` kada tijelo nosi `input` (string ili niz). Tijelo
+bez `instructions` niti `input` se preskače kao `no_messages`.
 
 #### Kako omogućiti
 
-Na kontrolnoj ploči: **Kontekst → Postavke → Kompresija** — jedan red po stilu s
-prekidačem za uključivanje/isključivanje i biračem nivoa. Programsko, konfiguracija kompresije trajno
+Na kontrolnoj tabli: **Kontekst → Postavke → Kompresija** — jedan red po stilu sa
+prekidačem za uključivanje/isključivanje i selektorom nivoa. Programski, konfiguracija kompresije
 čuva odabir kao:
 
 ```json
@@ -458,59 +466,56 @@ prekidačem za uključivanje/isključivanje i biračem nivoa. Programsko, konfig
 }
 ```
 
-Kompatibilnost unatrag: naslijeđena kombinovana postavka `outputMode: "caveman"` i dalje radi i mapira se na
-`terse-prose`, identično na nivou bajtova starom ubrizgavanju za svaki naslijeđeni jezik.
+Kompatibilnost unazad: naslijeđena kombinovana postavka `outputMode: "caveman"` i dalje radi i mapira se na
+`terse-prose`, bajt-identična starom ubrizgavanju u svakom naslijeđenom jeziku.
 
-Odabir jezika: kada je `languageConfig.enabled` uključen, `autoDetect` bira
-jezik najnovije korisničke poruke (isti detektor kao kod ulaznih mehanizama);
-isključivanje opcije `autoDetect` fiksira `defaultLanguage`. Isključeno → engleski.
+Odabir jezika: sa uključenim `languageConfig.enabled`, `autoDetect` bira
+jezik najnovije korisničke poruke (isti detektor kao i ulazni mehanizmi);
+isključivanje `autoDetect` fiksira `defaultLanguage`. Isključeno → Engleski.
 
-Matrica stil × jezik utvrđena je testom
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: novi stil ne može biti objavljen
-bez barem pt-BR prijevoda (ili eksplicitno evidentiranog izuzetka), a
-postojeći stil ne može neprimjetno izgubiti lokal. Za dodavanje stila pogledajte
+Matrica stila × jezika je fiksirana pomoću
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: novi stil ne može biti isporučen
+bez barem pt-BR prijevoda (ili eksplicitnog praćenog izuzetka), a postojeći stil ne može
+tiho izgubiti lokalitet. Za dodavanje stila, pogledajte
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Kompresija rezultata alata
 
-Modul `toolResultCompressor.ts` pruža **5 specijaliziranih strategija kompresije**
-za rezultate alata (pozive funkcija, izlaze agenata, rezultate pretrage itd.):
+Modul `toolResultCompressor.ts` pruža **5 specijalizovanih strategija kompresije**
+za rezultate alata (pozivi funkcija, izlazi agenata, rezultati pretrage, itd.):
 
-1. **Kompresija rezultata pretrage** — Uklanja suvišne rezultate, zadržava prvih N
+1. **Kompresija rezultata pretrage** — Uklanja suvišne rezultate, zadržava top-N
 2. **Kompresija čitanja datoteka** — Skraćuje velike datoteke, čuva zaglavlja/uvoze
-3. **Kompresija izvršavanja koda** — Zadržava samo ključni stdout/stderr
+3. **Kompresija izvršavanja koda** — Zadržava samo bitne stdout/stderr
 4. **Kompresija upita baze podataka** — Ograničava redove, uklanja opširne metapodatke
-5. **Kompresija API odgovora** — Uklanja null polja, sažima nizove
+5. **Kompresija API odgovora** — Uklanja null polja, kondenzuje nizove
 
 #### Kada koristiti
 
-Kompresija rezultata alata je **uvijek uključena** kada postoje pozivi alata. Nije
-potrebna konfiguracija.
+Kompresija rezultata alata je **uvijek uključena** kada su prisutni pozivi alata. Nije potrebna konfiguracija.
 
 ### Složeni cjevovod
 
-Složeni režim pokreće **više mehanizama uzastopno** — obično prvo RTK
-(60–90% uštede na izlazu alata), a zatim Caveman (dodatnih 30% uštede na
-preostalom tekstu). Time se postiže **78–95% ukupne uštede**.
+Složeni način rada pokreće **više mehanizama u nizu** — obično prvo RTK (60-90% uštede na izlazu alata), zatim Caveman (30% dodatne uštede na preostalom tekstu). Ovo postiže **ukupnu uštedu od 78-95%**.
 
 #### Kako funkcioniše
 
 ```
 Ulaz (1000 tokena)
-  → RTK (filter svjestan naredbi) → 200 tokena
-    → Caveman (uklanjanje suvišnog sadržaja) → 140 tokena
+  → RTK (filter svjestan komandi) → 200 tokena
+    → Caveman (uklanjanje punila) → 140 tokena
   → Izlaz (140 tokena, 86% uštede)
 ```
 
 #### Kada koristiti
 
-Koristite složeni režim za:
+Koristite složeni način rada za:
 
-- Tokove rada s intenzivnom upotrebom alata (agentsko programiranje, istraživanje)
-- Troškovno osjetljivu grupnu obradu
-- Kada trebate maksimalnu uštedu tokena
+- Radne tokove koji intenzivno koriste alate (agentsko kodiranje, istraživanje)
+- Serijsku obradu osjetljivu na troškove
+- Kada vam je potrebna maksimalna ušteda tokena
 
-Konfigurišite putem kombinovane postavke:
+Konfigurišite putem kombinacije:
 
 ```json
 {

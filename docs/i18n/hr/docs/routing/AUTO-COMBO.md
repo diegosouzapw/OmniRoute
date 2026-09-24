@@ -278,53 +278,68 @@ razrijeđene vrijednosti prosljeđuju se postojećim ulazima mehanizma `config.m
 `config.budgetFallback`. Pohranjeni `config.budgetFallback` kombinacije ("strict" |
 "cheapest") postavlja trajno pravilo; zaglavlje ga nadjačava za pojedinačni zahtjev.
 
-## Sve Strategije Usmjeravanja
+## Sve strategije usmjeravanja
 
-OmniRoute-ov kombinirani mehanizam podržava **19 strategija usmjeravanja** (deklarirane u `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam Auto Combo mehanizam dostupan je putem `auto` strategije; ostale su dostupne za trajno pohranjene kombinacije.
+OmniRouteov kombinirani mehanizam podržava **19 strategija usmjeravanja** (deklariranih u `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam Auto Combo mehanizam izložen je pod strategijom `auto`; ostale su dostupne za trajne kombinacije.
 
-| Strategija          | Opis                                                                                                                                                                                                                      |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `priority`          | Popis prvih odredišta poredanih po eksplicitnom prioritetu                                                                                                                                                                |
-| `weighted`          | Nasumični odabir s težinskim omjerom po odredištu                                                                                                                                                                         |
-| `round-robin`       | Ciklično prolaženje kroz odredišta redom                                                                                                                                                                                  |
-| `context-relay`     | Prosljeđivanje konteksta između odredišta (dugi razgovori)                                                                                                                                                                |
-| `fill-first`        | Popunjava kvotu svakog odredišta prije prelaska na sljedeće                                                                                                                                                               |
-| `p2c`               | Nasumično balansiranje opterećenja metodom power-of-2-choices                                                                                                                                                             |
-| `random`            | Jednoliki nasumični odabir                                                                                                                                                                                                |
-| `least-used`        | Odabire odredište s trenutno najnižim opterećenjem                                                                                                                                                                        |
-| `cost-optimized`    | Minimizira $ po zahtjevu prema cjeniku kataloga                                                                                                                                                                           |
-| `reset-aware` ⭐    | Prioritizira prema vremenu resetiranja kvote — kraći prozori resetiranja rangiraju se više                                                                                                                                |
-| `reset-window`      | Preferira odredišta čiji se prozor kvote resetira najranije                                                                                                                                                               |
-| `headroom`          | Odabire odredište s najvećim preostalim prostorom kvote                                                                                                                                                                   |
-| `strict-random`     | Nasumični odabir bez uklanjanja ponavljanja                                                                                                                                                                               |
-| `auto`              | Koristi Auto Combo bodovanje (16 faktora) — **preporučeno**                                                                                                                                                               |
-| `lkgp`              | Last-Known-Good Path (zadržava posljednjeg uspješnog pružatelja, zatim se vraća na pravila)                                                                                                                               |
-| `context-optimized` | Odabire odredište koje najbolje odgovara trenutnoj veličini konteksta                                                                                                                                                     |
-| `cache-optimized`   | Preuređuje odredišta prema afinitetu predmemorije upita — veza s najvećom vjerojatnošću da već drži predmemoriranu predmemoriju ovog zahtjeva isprobava se prva (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Šalje upit paralelno skupini modela, zatim sintetizira jedan odgovor putem suca (vidi dolje)                                                                                                                              |
-| `pipeline`          | Pokreće odredišta sekvencijalno, prosljeđujući izlaz svakog koraka kao ulaz sljedećeg; vraća se samo završni odgovor (#6396)                                                                                              |
+| Strategija          | Opis                                                                                                                                                                                                          |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `priority`          | Popis s eksplicitnim prioritetom, poredan po prvom cilju                                                                                                                                                      |
+| `weighted`          | Ponderirani nasumični odabir po težini za svaki cilj                                                                                                                                                          |
+| `round-robin`       | Kružno prolazi kroz ciljeve po redu (u serijama; vidi dolje)                                                                                                                                                  |
+| `context-relay`     | Predaje kontekst između ciljeva (dugi razgovori)                                                                                                                                                              |
+| `fill-first`        | Popunjava kvotu svakog cilja prije prelaska na sljedeći                                                                                                                                                       |
+| `p2c`               | Balansiranje opterećenja nasumičnim odabirom 'snage 2 izbora'                                                                                                                                                 |
+| `random`            | Jednoliki nasumični odabir                                                                                                                                                                                    |
+| `least-used`        | Odabire cilj s najmanjim trenutnim opterećenjem                                                                                                                                                               |
+| `cost-optimized`    | Minimizira $ po zahtjevu s obzirom na cijene iz kataloga                                                                                                                                                      |
+| `reset-aware` ⭐    | Prioritizira prema vremenu resetiranja kvote — kratki prozori resetiranja rangirani su više                                                                                                                   |
+| `reset-window`      | Preferira ciljeve čiji se prozor kvote najbrže resetira                                                                                                                                                       |
+| `headroom`          | Odabire cilj s najviše preostalog slobodnog kapaciteta kvote                                                                                                                                                  |
+| `strict-random`     | Nasumično bez deduplikacije ponavljanja                                                                                                                                                                       |
+| `auto`              | Koristi Auto Combo bodovanje (16 faktora) — **preporučeno**                                                                                                                                                   |
+| `lkgp`              | Posljednja poznata dobra putanja (povezuje se s posljednjim uspješnim pružateljem, zatim se vraća na pravila)                                                                                                 |
+| `context-optimized` | Odabire cilj koji najbolje odgovara trenutnoj veličini konteksta                                                                                                                                              |
+| `cache-optimized`   | Preuređuje ciljeve prema afinitetu predmemorije upita — veza koja najvjerojatnije već sadrži predmemorirani prefiks ovog zahtjeva isprobava se prva (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Širi se na panel modela paralelno, zatim sintetizira jedan odgovor putem suca (vidi dolje)                                                                                                                    |
+| `pipeline`          | Pokreće ciljeve sekvencijalno, provlačeći izlaz svakog koraka u ulaz sljedećeg koraka; vraća se samo konačni odgovor (#6396)                                                                                  |
 
 ⭐ = Novo u v3.8.0 · 🧬 = Novo u v3.8.36
 
 ### Semantika strategije `weighted`
 
-`weighted` je **proporcionalni nasumični odabir po zahtjevu**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), a ne izravnivač:
+`weighted` je **proporcionalno nasumično izvlačenje po zahtjevu** (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), a ne izjednačivač:
 
-- Svaki zahtjev izvlači **jedan** korak s vjerojatnošću `weight / totalWeight`; preostali koraci
-  poredani su silazno po težini kao rezervni lanac za taj zahtjev.
-- Korak čija je težina `0` (ili nije navedena) **nikada se ne izvlači** dok god neki drugi korak ima
-  težinu > 0 — može poslužiti samo kao rezerva nakon što izvučeni korak ne uspije. Tek kada **sve**
-  težine iznose 0, odabir postaje jednoliki.
-- Koraci čija su sva odredišta nedostupna — prekidač pružatelja u stanju `OPEN`, odredište u
-  hlađenju, model zaključan — uklanjaju se iz izvlačenja prije nego što se ono dogodi
-  (`open-sse/services/combo/targetResolution.ts`), pa jedan zdrav korak može privremeno
-  osvajati sve zahtjeve.
-- `stickyWeightedLimit` (konfiguracija kombinacije, zadano `1` = isključeno) zadržava izvučeni korak
-  za taj broj uzastopnih uspjeha prije ponovnog izvlačenja.
+- Svaki zahtjev izvlači **jedan** korak s vjerojatnošću `weight / totalWeight`; preostali koraci poredani su po opadajućoj težini kao lanac rezervnih opcija za taj zahtjev.
+- Korak čija je težina `0` (ili nedostaje) **nikada se ne izvlači** dok god bilo koji drugi korak ima težinu > 0 — može služiti samo kao rezervna opcija nakon što izvučeni korak ne uspije. Samo kada su **sve** težine 0, odabir postaje jednolik.
+- Koraci čiji su ciljevi svi nedostupni — prekidač kruga pružatelja `OPEN`, hlađenje veze, zaključavanje modela — uklanjaju se iz izvlačenja prije nego što se dogodi (`open-sse/services/combo/targetResolution.ts`), tako da jedan zdrav korak može privremeno dobiti svaki zahtjev.
+- `stickyWeightedLimit` (konfiguracija kombinacije, zadano `1` = isključeno) fiksira izvučeni korak za toliko uzastopnih uspjeha prije ponovnog izvlačenja.
 
-Za strogo kružno izmjenjivanje koristite `round-robin`; jednake težine u `weighted` daju statističku — a ne
-strogu — ravnotežu.
+Za strogu rotaciju koristite `round-robin`; jednake težine na `weighted` daju statističku — ne strogu — ravnotežu.
+
+### `round-robin` ljepljiva serija i proširenje računa
+
+Round-robin je serijski, a ne jedan zahtjev po koraku:
+
+- `stickyRoundRobinLimit` (konfiguracija kombinacije, zatim `comboStickyRoundRobinLimit`, zatim
+  `settings.stickyRoundRobinLimit`, zadano **3**) zadržava istu metu za toliko
+  uzastopnih uspjeha prije rotacije. Postavite nadjačavanje kombinacije na `1` za rotaciju
+  jednog zahtjeva. Uređivač kombinacija prikazuje efektivnu vrijednost i iz kojeg sloja potječe.
+- `connectionAwareExpansion` (konfiguracija kombinacije, zatim postavke, zadano **false**) proširuje
+  svaki korak na razini pružatelja usluga u mete po računu prije rotacije. Strategije grupe B
+  (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) zadržavaju prikaz na razini pružatelja usluga dok se ovo ne uključi. Uređivač kombinacija
+  izlaže nasljeđivanje / uključeno / isključeno; nasljeđivanje koristi globalnu zadanu vrijednost (isključeno).
+- Usmjeravanje lokaliteta predmemorije upita (`promptCacheAffinityEnabled`, zadano **true**) preuređuje
+  prikvačene veze tako da odgovarajući ključevi predmemorije ostanu na jednom računu. Ima prednost nad
+  round-robin i ponderiranom rotacijom preko prikvačenih koraka po računu. Isključite ga pod
+  Postavke → Zadane vrijednosti kombinacije ako vam je potrebna stroga rotacija. Ne postoji nadjačavanje po kombinaciji.
+
+Za rotaciju više računa na jednom modelu, preferirajte **jedan korak dinamičkog računa** (prazan
+`connectionId`, cijeli skup) s ljepljivim ograničenjem `1`, a ne tri prikvačena `connectionId`a.
+Prikvačeni koraci plus afinitet se spajaju na isti račun čak i dok se RR brojač
+povećava.
 
 ## Strategija Fusion
 

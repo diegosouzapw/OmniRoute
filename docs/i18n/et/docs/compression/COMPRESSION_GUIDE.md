@@ -312,7 +312,7 @@ RTK-režiim on inspireeritud projektist **[RTK - Rust Token Killer](https://gith
 
 Lisaks 7 standardrežiimile sisaldab OmniRoute mitmeid täiustatud tihendussüsteeme, mis töötavad automaatselt konteksti alusel.
 
-### Vahemäluteadlik tihendamine
+### Vahemälu-teadlik tihendamine
 
 Mõned pakkujad (nagu Anthropic koos viipade vahemällu salvestamisega) toetavad **viipade vahemällu salvestamist**, mis võimaldab neil vahemällu salvestada viipade osi kulude ja latentsuse vähendamiseks. Kui vahemällu salvestamine on lubatud, võib agressiivne tihendamine tegelikult **kahjustada** jõudlust, sest see muudab vahemällu salvestatud märke, muutes vahemälu kehtetuks.
 
@@ -321,9 +321,9 @@ Moodul `cachingAware.ts` lahendab selle probleemi, **tuvastades vahemällu salve
 #### Kuidas see töötab
 
 1. **Tuvastab vahemällu salvestamise konteksti** – skaneerib päringu keha `cache_control` markerite osas
-2. **Tuvastab vahemällu salvestavad pakkujad** – kontrollib, kas sihtpakkuja toetab vahemällu salvestamist
-3. **Kohandab strateegiat** – alandab `aggressive`/`ultra` tasemele `standard` vahemällu salvestavate pakkujate jaoks
-4. **Jätab süsteemiviiba vahele** – süsteemiviibad on tavaliselt vahemällu salvestatud, seega ärge neid tihendage
+2. **Tuvastab vahemällu salvestamist toetavad pakkujad** – kontrollib, kas sihtpakkuja toetab vahemällu salvestamist
+3. **Kohandab strateegiat** – alandab `aggressive`/`ultra` tasemele `standard` vahemällu salvestamist toetavate pakkujate puhul
+4. **Jätab süsteemiviiba vahele** – süsteemiviibad on tavaliselt vahemällu salvestatud, seega neid ei tihendata
 5. **Kasutab deterministlikke teisendusi** – kasutab ainult teisendusi, mis annavad järjepideva väljundi
 
 #### Koodinäide
@@ -349,7 +349,7 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Millal kasutada
 
-Vahemäluteadlik tihendamine on **alati sisse lülitatud** – konfiguratsiooni pole vaja. See käivitub ainult siis, kui:
+Vahemälu-teadlik tihendamine on **alati sisse lülitatud** – konfiguratsiooni pole vaja. See rakendub ainult siis, kui:
 
 - Päringul on `cache_control` markerid
 - Sihtpakkuja toetab viipade vahemällu salvestamist (Anthropic, OpenAI jne)
@@ -359,9 +359,9 @@ Vahemäluteadlik tihendamine on **alati sisse lülitatud** – konfiguratsiooni 
 Pikad vestlused koguvad palju sõnumivahetusi, kuid vanemad vahetused muutuvad vähem asjakohaseks. Moodul `progressiveAging.ts` **halvendab sõnumeid vahetuste kauguse järgi**:
 
 - **Hiljutised vahetused (0-3)**: Säilitatakse sõna-sõnalt (täielik detail)
-- **Keskmised vahetused (4-8)**: Kerge tihendamine (tühikud, vorminduse puhastamine)
-- **Vanad vahetused (9+)**: Koopainimese tihendamine (täiteainete eemaldamine, kokkuvõte)
-- **Väga vanad vahetused (20+)**: Tugevalt kokkuvõtlikud või eemaldatud
+- **Keskmised vahetused (4-8)**: Kerge tihendamine (tühikud, vormingu puhastamine)
+- **Vanad vahetused (9+)**: Koopainimese tihendamine (täitesõnade eemaldamine, kokkuvõtmine)
+- **Väga vanad vahetused (20+)**: Tugevalt kokku võetud või eemaldatud
 
 #### Koodinäide
 
@@ -379,7 +379,7 @@ const { messages: aged, saved } = applyAging(messages, {
   verbatim: 3, // Esimesed 3 vahetust: sõna-sõnalt
   light: 8, // Vahetused 4-8: kerge tihendamine
   moderate: 20, // Vahetused 9-20: koopainimese tihendamine
-  // Vahetused 21+: tugev kokkuvõte
+  // Vahetused 21+: tugev kokkuvõtmine
 });
 
 // saved = salvestatud märkide arv
@@ -391,7 +391,7 @@ Progressiivne vananemine on **alati sisse lülitatud** režiimide `aggressive` j
 
 - Pikaajaliste kodeerimissessioonide puhul
 - Mitmepäevaste vestluste puhul
-- Agentlike töövoogude puhul paljude tööriistakutsetega
+- Agentipõhiste töövoogude puhul, kus on palju tööriistakutseid
 
 ### Koopainimese väljundrežiim
 
@@ -434,7 +434,7 @@ Koopainimese väljundrežiim on **valikuline** – seadistage see kombineeritud 
 | Vähem koodi                      | `less-code`   | YAGNI redel: väikseim töötav muudatus, pole soovimatuid abstraktsioone.                                                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
 | Hobusesaba (laisk vanemarendaja) | `ponytail`    | "Parim kood on kood, mida pole kunagi kirjutatud": taaskasutus > ümberkirjutamine, algpõhjus > sümptom, lühim töötav diff.                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
 | Mul on ADHD (tegevus-esimene)    | `i-have-adhd` | Tegevus esimesena (käsk/tee/lõik enne proosat), nummerdatud piiratud sammud, ÜKS konkreetne järgmine samm, pole eessõna/kokkuvõtet/lõpetajaid. Kohandatud [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Lühike CJK (文言)                | `terse-cjk`   | Klassikaline hiina üli-lühike stiil.                                                                                                                                                                                         | zh (lokaaliga piiratud: pakutakse ainult siis, kui lahendatud keel on `zh`) |
+| Lühike CJK (文言)                | `terse-cjk`   | Klassikaline-hiina üli-lühike stiil.                                                                                                                                                                                         | zh (lokaaliga piiratud: pakutakse ainult siis, kui lahendatud keel on `zh`) |
 
 Igal stiilil on kolm intensiivsuse taset — `lite`, `full`, `ultra` — ja iga tase
 lõpeb jagatud piiride klausliga, mis hoiab koodiplokid, failiteed, käsud,
@@ -444,15 +444,35 @@ veateated, URL-id ja identifikaatorid muutumatuna.
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) lahendab
 valiku kataloogi vastu (tundmatud id-d ja lokaaliga mittesobivad stiilid
-jäetakse välja, see pole kunagi viga), liidab valitud juhised kataloogi järjekorras,
-lisab piiride klausli **üks kord** ja laadib tulemuse süsteemi
-viipa ette ühe idempotentsuse märgise (`[OmniRoute Output Styles]`) taha — uuesti rakendamine
-ei tee midagi. Kui tuvastatud päringu keelel on tõlge, süstitakse
-lokaliseeritud juhis inglise keele asemel.
+jäetakse välja, pole kunagi viga), liidab valitud juhised kataloogi järjekorras,
+lisab piiride klausli **üks kord** ja alustab plokki ühe idempotentsuse
+markeriga (`[OmniRoute Output Styles]`), nii et uuesti rakendamine on no-op. Kui lahendatud
+keelel (vt Keeleselektsioon allpool) on tõlge, süstitakse lokaliseeritud juhis
+inglise keele asemel.
+
+`messages`-ga kehal kontrollib sisu möödaviik (`shouldBypassCavemanOutputMode()`
+failis `open-sse/services/compression/outputMode.ts`) kolme viimast sõnumit ja jätab
+stiilid kogu pöördeks vahele, kui need vastavad selle turvalisuse, pöördumatute toimingute,
+selgituste või järjekorra suhtes tundlikele märksõnadele. Möödaviik töötab olenemata sellest,
+mis on armatuurlaua **Auto-Clarity Bypass** lüliti (`cavemanOutputMode.autoClarity`)
+seadistatud.
+
+Kui möödaviik laseb pöörde läbi, paigutab `placeSystemInstruction()` (sama fail), mis
+kunagi ei loo uut `messages[0]`, ploki esimesse neist, mille ta leiab:
+
+1. Juhtiv süsteemisõnum stringisisuga: plokk lisatakse selle teksti järele.
+2. Ülemise taseme `system` väli: plokk lisatakse stringi teksti järele või
+   lisatakse uue tekstiplokina sisuplokkide massiivi.
+3. Esimene hilisem süsteemisõnum stringisisuga: plokk lisatakse selle teksti järele.
+4. Mitte midagi eelnevast: plokk läheb uude süsteemisõnumisse `messages` lõpus.
+
+Kehal ilma `messages`-ta lisatakse plokk stringi `instructions` väljale või
+sellest saab `instructions`, kui keha sisaldab `input` (string või massiiv). Keha
+ilma `instructions` ega `input`-ta jäetakse vahele kui `no_messages`.
 
 #### Kuidas lubada
 
-Armatuurlaual: **Context → Settings → Compression** — iga stiili kohta üks rida
+Armatuurlaual: **Context → Settings → Compression** — üks rida stiili kohta
 sisse/välja lülitiga ja taseme valijaga. Programmilises mõttes säilitab tihenduskonfiguratsioon
 valiku järgmiselt:
 
@@ -466,16 +486,16 @@ valiku järgmiselt:
 ```
 
 Tagasiühilduvus: pärand `outputMode: "caveman"` kombineeritud seade töötab endiselt ja vastab
-`terse-prose`-le, olles bait-identne vana süstimisega igas pärandkeeles.
+`terse-prose`-le, olles iga pärandkeele puhul bait-identne vana süstimisega.
 
 Keelevalik: kui `languageConfig.enabled` on sisse lülitatud, valib `autoDetect`
 viimase kasutaja sõnumi keele (sama detektor nagu sisendmootoritel);
 `autoDetect` väljalülitamine fikseerib `defaultLanguage`. Väljas → inglise keel.
 
 Stiili × keele maatriks on fikseeritud
-`tests/unit/compression/output-styles-i18n-matrix.test.ts` abil: uus stiil ei saa ilmuda
-ilma vähemalt pt-BR tõlketa (või selgesõnalise jälgitava erandita) ja
-olemasolev stiil ei saa vaikselt kaotada lokaali. Stiili lisamiseks vaadake
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` abil: uus stiil ei saa
+ilmuda ilma vähemalt pt-BR tõlketa (või selgesõnalise jälgitava erandita) ja
+olemasolev stiil ei saa vaikselt lokaali kaotada. Stiili lisamiseks vaadake
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Tööriista tulemuste tihendamine
@@ -486,26 +506,23 @@ tööriista tulemuste jaoks (funktsioonikutsed, agendi väljundid, otsingutulemu
 1. **Otsingutulemuste tihendamine** — Eemaldab üleliigsed tulemused, säilitab top-N
 2. **Faili lugemise tihendamine** — Kärbib suuri faile, säilitab päised/impordid
 3. **Koodi täitmise tihendamine** — Säilitab ainult olulise stdout/stderr
-4. **Andmebaasi päringu tihendamine** — Piirab ridu, eemaldab verbaalse metaandmed
+4. **Andmebaasi päringu tihendamine** — Piirab ridu, eemaldab detailsed metaandmed
 5. **API vastuse tihendamine** — Eemaldab nullväärtusega väljad, tihendab massiive
 
 #### Millal kasutada
 
-Tööriista tulemuste tihendamine on **alati sisse lülitatud**, kui tööriistakutsed on olemas.
-Konfiguratsiooni pole vaja.
+Tööriista tulemuste tihendamine on **alati sisse lülitatud**, kui tööriistakutsed on olemas. Konfigureerimine pole vajalik.
 
-### Virnastatud torujuhe
+### Virnastatud töövoog
 
-Virnastatud režiim käivitab **mitu mootorit järjest** — tavaliselt esmalt RTK
-(60-90% kokkuhoidu tööriista väljundil), seejärel Caveman (30% täiendavat kokkuhoidu
-ülejäänud tekstil). See saavutab **78-95% kogu kokkuhoiu**.
+Virnastatud režiim käitab **mitu mootorit järjest** — tavaliselt esmalt RTK (60-90% kokkuhoidu tööriista väljundilt), seejärel Caveman (30% täiendavat kokkuhoidu ülejäänud tekstilt). See saavutab **78-95% kogu kokkuhoiu**.
 
 #### Kuidas see töötab
 
 ```
 Sisend (1000 märki)
   → RTK (käsu-teadlik filter) → 200 märki
-    → Caveman (täitesõnade eemaldamine) → 140 märki
+    → Caveman (täiteteksti eemaldamine) → 140 märki
   → Väljund (140 märki, 86% kokkuhoidu)
 ```
 
@@ -513,9 +530,9 @@ Sisend (1000 märki)
 
 Kasutage virnastatud režiimi järgmistel juhtudel:
 
-- Tööriistamahukad töövoogud (agendiline kodeerimine, uurimistöö)
-- Kulutundlik partii töötlemine
-- Kui vajate maksimaalset märgi kokkuhoidu
+- Tööriistamahukad tööprotsessid (agentne kodeerimine, uurimistöö)
+- Kulutundlik pakktöötlus
+- Kui vajate maksimaalset märgisäästu
 
 Konfigureerige kombineeritult:
 

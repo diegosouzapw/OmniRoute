@@ -315,17 +315,17 @@ Selain 7 mode standar, OmniRoute menyertakan beberapa sistem kompresi tingkat la
 
 ### Kompresi Sadar Cache
 
-Beberapa penyedia (seperti Anthropic dengan prompt caching) mendukung **prompt caching**, yang memungkinkan mereka menyimpan bagian-bagian prompt untuk mengurangi biaya dan latensi. Ketika caching diaktifkan, kompresi agresif justru dapat **merugikan** kinerja karena mengubah token yang di-cache, sehingga membatalkan cache.
+Beberapa penyedia (seperti Anthropic dengan _prompt caching_) mendukung **penyimpanan _prompt_ dalam _cache_**, yang memungkinkan mereka menyimpan bagian-bagian _prompt_ untuk mengurangi biaya dan latensi. Ketika _caching_ diaktifkan, kompresi agresif justru dapat **merugikan** kinerja karena mengubah token yang di-_cache_, sehingga membatalkan _cache_.
 
-Modul `cachingAware.ts` mengatasi masalah ini dengan **mendeteksi konteks caching** dan **menyesuaikan strategi kompresi** sesuai kebutuhan.
+Modul `cachingAware.ts` mengatasi masalah ini dengan **mendeteksi konteks _caching_** dan **menyesuaikan strategi kompresi** yang sesuai.
 
 #### Cara kerjanya
 
-1.  **Mendeteksi konteks caching** — Memindai badan permintaan untuk penanda `cache_control`
-2.  **Mengidentifikasi penyedia caching** — Memeriksa apakah penyedia target mendukung caching
-3.  **Menyesuaikan strategi** — Menurunkan `aggressive`/`ultra` ke `standard` untuk penyedia caching
-4.  **Melewatkan prompt sistem** — Prompt sistem biasanya di-cache, jadi jangan dikompresi
-5.  **Menggunakan transformasi deterministik** — Hanya menggunakan transformasi yang menghasilkan keluaran yang konsisten
+1.  **Deteksi konteks _caching_** — Memindai badan permintaan untuk penanda `cache_control`
+2.  **Identifikasi penyedia _caching_** — Memeriksa apakah penyedia target mendukung _caching_
+3.  **Sesuaikan strategi** — Menurunkan `aggressive`/`ultra` ke `standard` untuk penyedia _caching_
+4.  **Lewati _system prompt_** — _System prompt_ biasanya di-_cache_, jadi jangan kompres
+5.  **Gunakan transformasi deterministik** — Hanya gunakan transformasi yang menghasilkan _output_ yang konsisten
 
 #### Contoh kode
 
@@ -350,19 +350,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kapan digunakan
 
-Kompresi sadar cache **selalu aktif** — tidak perlu konfigurasi. Ini hanya berfungsi ketika:
+Kompresi sadar _cache_ **selalu aktif** — tidak perlu konfigurasi. Ini hanya akan aktif ketika:
 
 - Permintaan memiliki penanda `cache_control`
-- Penyedia target mendukung prompt caching (Anthropic, OpenAI, dll.)
+- Penyedia target mendukung _prompt caching_ (Anthropic, OpenAI, dll.)
 
 ### Penuaan Progresif
 
 Percakapan panjang mengumpulkan banyak giliran pesan, tetapi giliran yang lebih lama menjadi kurang relevan. Modul `progressiveAging.ts` **menurunkan kualitas pesan berdasarkan jarak giliran**:
 
-- **Giliran terbaru (0-3)**: Dipertahankan secara verbatim (detail penuh)
+- **Giliran terbaru (0-3)**: Dipertahankan secara verbatim (detail lengkap)
 - **Giliran menengah (4-8)**: Kompresi ringan (spasi, pembersihan format)
-- **Giliran lama (9+)**: Kompresi Caveman (penghapusan pengisi, ringkasan)
-- **Giliran sangat lama (20+)**: Sangat diringkas atau dihilangkan
+- **Giliran lama (9+)**: Kompresi _caveman_ (penghapusan pengisi, ringkasan)
+- **Giliran sangat lama (20+)**: Dirangkum secara intensif atau dihilangkan
 
 #### Contoh kode
 
@@ -380,10 +380,10 @@ const { messages: aged, saved } = applyAging(messages, {
   verbatim: 3, // 3 giliran pertama: verbatim
   light: 8, // Giliran 4-8: kompresi ringan
   moderate: 20, // Giliran 9-20: kompresi caveman
-  // Giliran 21+: ringkasan berat
+  // Giliran 21+: ringkasan intensif
 });
 
-// saved = jumlah token yang disimpan
+// saved = jumlah token yang dihemat
 ```
 
 #### Kapan digunakan
@@ -394,25 +394,25 @@ Penuaan progresif **selalu aktif** untuk mode `aggressive` dan `ultra`. Ini sang
 - Percakapan multi-hari
 - Alur kerja agen dengan banyak panggilan alat
 
-### Mode Keluaran Caveman
+### Mode Output Caveman
 
-Modul `outputMode.ts` menyuntikkan **instruksi prompt sistem** untuk membuat model itu sendiri menghasilkan keluaran yang terkompresi dan ringkas (gaya "caveman").
+Modul `outputMode.ts` menyuntikkan **instruksi _system prompt_** untuk membuat model itu sendiri menghasilkan _output_ yang terkompresi dan ringkas (gaya "caveman").
 
 #### Cara kerjanya
 
-Alih-alih mengompresi masukan, mode ini menambahkan prompt sistem seperti:
+Alih-alih mengompresi _input_, mode ini menambahkan _system prompt_ seperti:
 
 > "Balas dengan kata-kata minimal. Lewati basa-basi. Gunakan kalimat pendek."
 
 Ini bekerja sangat baik untuk:
 
-- Pembuatan kode (keluaran yang lebih ringkas = lebih sedikit token)
-- Tanya Jawab Cepat (tidak perlu penjelasan yang rumit)
-- Pemrosesan batch (memaksimalkan throughput)
+- Pembuatan kode (_output_ yang lebih ringkas = lebih sedikit token)
+- Tanya Jawab cepat (tidak perlu penjelasan yang rumit)
+- Pemrosesan _batch_ (memaksimalkan _throughput_)
 
 #### Kapan digunakan
 
-Mode keluaran Caveman adalah **opsional** — atur melalui konfigurasi kombo:
+Mode _output_ _caveman_ adalah **opsional** — atur melalui konfigurasi kombo:
 
 ```json
 {
@@ -425,37 +425,55 @@ Mode keluaran Caveman adalah **opsional** — atur melalui konfigurasi kombo:
 }
 ```
 
-### Gaya Keluaran (katalog)
+### Gaya Output (katalog)
 
-Mode keluaran Caveman di atas adalah **jalur gaya tunggal warisan**. Fase 4 menggeneralisasikannya menjadi katalog gaya keluaran yang dapat disusun: `OUTPUT_STYLE_CATALOG` di `open-sse/services/compression/outputStyles/catalog.ts`. Setiap gaya adalah instruksi prompt sistem yang membuat model itu sendiri menghasilkan keluaran yang lebih murah; gaya dapat diaktifkan bersama dan disuntikkan sesuai urutan katalog.
+Mode _output_ _caveman_ di atas adalah **jalur gaya tunggal warisan**. Fase 4 menggeneralisasikannya menjadi katalog gaya _output_ yang dapat disusun: `OUTPUT_STYLE_CATALOG` di `open-sse/services/compression/outputStyles/catalog.ts`. Setiap gaya adalah instruksi _system-prompt_ yang membuat model itu sendiri menghasilkan _output_ yang lebih murah; gaya dapat diaktifkan bersama dan disuntikkan sesuai urutan katalog.
 
-| Gaya                               | `id`          | Apa yang dilakukannya                                                                                                                                                                                                                       | Bahasa instruksi                                                                  |
-| :--------------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------- |
-| Prosa Ringkas                      | `terse-prose` | Menghilangkan kata pengisi/artikel/penghindaran; menjaga substansi teknis tetap akurat. Teks yang sama dengan mode output caveman lama (direferensikan, tidak diketik ulang).                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Kode Lebih Sedikit                 | `less-code`   | Tangga YAGNI: perubahan terkecil yang berfungsi, tanpa abstraksi yang tidak diminta.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Ponytail (pengembang senior malas) | `ponytail`    | "Kode terbaik adalah kode yang tidak pernah ditulis": gunakan kembali > tulis ulang, akar masalah > gejala, diff kerja terpendek.                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| Saya punya ADHD (aksi-pertama)     | `i-have-adhd` | Aksi pertama (perintah/jalur/cuplikan sebelum prosa), langkah-langkah terbatas bernomor, SATU langkah konkret berikutnya, tanpa pembukaan/rekap/penutup. Diadaptasi dari [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
-| CJK Ringkas (文言)                 | `terse-cjk`   | Gaya ultra-ringkas Tiongkok Klasik.                                                                                                                                                                                                         | zh (terbatas lokal: hanya ditawarkan ketika bahasa yang diselesaikan adalah `zh`) |
+| Gaya                               | `id`          | Fungsi                                                                                                                                                                                                                                          | Bahasa instruksi                                                                  |
+| :--------------------------------- | :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------- |
+| Prosa ringkas                      | `terse-prose` | Hilangkan pengisi/artikel/penghindaran; pertahankan substansi teknis secara tepat. Teks yang sama dengan mode output caveman lama (direferensikan, tidak diketik ulang).                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
+| Lebih sedikit kode                 | `less-code`   | Tangga YAGNI: perubahan terkecil yang berfungsi, tanpa abstraksi yang tidak diminta.                                                                                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
+| Ponytail (dev senior malas)        | `ponytail`    | "Kode terbaik adalah kode yang tidak pernah ditulis": gunakan kembali > tulis ulang, akar masalah > gejala, diff kerja terpendek.                                                                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
+| Saya punya ADHD (tindakan-pertama) | `i-have-adhd` | Tindakan pertama (perintah/jalur/cuplikan sebelum prosa), langkah-langkah terbatas bernomor, SATU langkah konkret berikutnya, tanpa pembukaan/rekap/penutup. Diadaptasi dari [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
+| CJK ringkas (文言)                 | `terse-cjk`   | Gaya ultra-ringkas Tiongkok Klasik.                                                                                                                                                                                                             | zh (terbatas lokal: hanya ditawarkan ketika bahasa yang diselesaikan adalah `zh`) |
 
 Setiap gaya memiliki tiga tingkat intensitas — `lite`, `full`, `ultra` — dan setiap tingkat
-diakhiri dengan klausa batasan bersama, yang menjaga blok kode, jalur file, perintah,
+diakhiri dengan klausa batas bersama, yang menjaga blok kode, jalur file, perintah,
 string kesalahan, URL, dan pengidentifikasi tetap verbatim.
 
-#### Bagaimana injeksi bekerja
+#### Cara kerja injeksi
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) menyelesaikan
 pilihan terhadap katalog (ID yang tidak dikenal dan gaya yang tidak cocok dengan lokal akan
-diabaikan, tidak pernah menjadi kesalahan), menggabungkan instruksi yang dipilih dalam urutan katalog,
-menambahkan klausa batasan **sekali**, dan memuat hasil ke dalam prompt sistem
-di belakang satu penanda idempoten (`[OmniRoute Output Styles]`) — penerapan ulang
-tidak melakukan apa-apa. Ketika bahasa permintaan yang terdeteksi memiliki terjemahan,
-instruksi yang dilokalkan akan disuntikkan alih-alih bahasa Inggris.
+diabaikan, tidak pernah menjadi kesalahan), menggabungkan instruksi yang dipilih sesuai urutan katalog,
+menambahkan klausa batas **sekali**, dan memulai blok dengan satu penanda idempoten
+(`[OmniRoute Output Styles]`), sehingga penerapan ulang tidak akan melakukan apa-apa. Ketika bahasa yang diselesaikan
+(lihat Pemilihan bahasa di bawah) memiliki terjemahan, instruksi yang dilokalkan akan
+disuntikkan alih-alih bahasa Inggris.
+
+Pada badan dengan `messages`, bypass konten (`shouldBypassCavemanOutputMode()` di
+`open-sse/services/compression/outputMode.ts`) memeriksa tiga pesan terakhir dan melewati
+gaya untuk seluruh giliran ketika pesan tersebut cocok dengan kata kunci keamanan, tindakan tidak dapat diubah,
+klarifikasi, atau sensitif urutan. Bypass ini berjalan terlepas dari pengaturan toggle
+**Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) di dasbor.
+
+Ketika bypass mengizinkan giliran, `placeSystemInstruction()` (file yang sama), yang tidak pernah membuat `messages[0]` baru, menempatkan blok di salah satu dari yang pertama ditemukan:
+
+1.  Pesan sistem awal dengan konten string: blok ditambahkan setelah teksnya.
+2.  Bidang `system` tingkat atas: blok ditambahkan setelah teks string, atau
+    ditambahkan sebagai blok teks baru ke array blok konten.
+3.  Pesan sistem berikutnya yang pertama dengan konten string: blok ditambahkan setelah teksnya.
+4.  Tidak ada di atas: blok masuk ke pesan sistem baru di akhir `messages`.
+
+Pada badan tanpa `messages`, blok ditambahkan ke bidang `instructions` string,
+atau menjadi `instructions` ketika badan membawa `input` (string atau array). Badan
+tanpa `instructions` maupun `input` dilewati sebagai `no_messages`.
 
 #### Cara mengaktifkan
 
 Di dasbor: **Context → Settings → Compression** — satu baris per gaya dengan
-tombol on/off dan pemilih tingkat. Secara terprogram, konfigurasi kompresi
-mempertahankan pilihan sebagai:
+tombol on/off dan pemilih level. Secara terprogram, konfigurasi kompresi mempertahankan
+pilihan sebagai:
 
 ```json
 {
@@ -466,17 +484,17 @@ mempertahankan pilihan sebagai:
 }
 ```
 
-Kompatibilitas mundur: pengaturan kombo `outputMode: "caveman"` lama masih berfungsi dan memetakan ke
-`terse-prose`, identik secara byte dengan injeksi lama di setiap bahasa lama.
+Kompatibilitas mundur: pengaturan kombinasi `outputMode: "caveman"` yang lama masih berfungsi dan memetakan ke
+`terse-prose`, identik byte dengan injeksi lama di setiap bahasa lama.
 
 Pemilihan bahasa: dengan `languageConfig.enabled` aktif, `autoDetect` memilih
-bahasa dari pesan pengguna terbaru (detektor yang sama dengan mesin input);
+bahasa pesan pengguna terbaru (detektor yang sama dengan mesin input);
 mematikan `autoDetect` mengunci `defaultLanguage`. Mati → Inggris.
 
 Matriks gaya × bahasa ditetapkan oleh
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: gaya baru tidak dapat dirilis
-tanpa setidaknya terjemahan pt-BR (atau pengecualian yang dilacak secara eksplisit),
-dan gaya yang ada tidak dapat secara diam-diam kehilangan lokal. Untuk menambahkan gaya, lihat
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: gaya baru tidak dapat dikirim
+tanpa setidaknya terjemahan pt-BR (atau pengecualian yang dilacak secara eksplisit), dan
+gaya yang ada tidak dapat secara diam-diam kehilangan lokal. Untuk menambahkan gaya, lihat
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Kompresi Hasil Alat
@@ -488,25 +506,23 @@ untuk hasil alat (panggilan fungsi, output agen, hasil pencarian, dll.):
 2.  **Kompresi pembacaan file** — Memotong file besar, mempertahankan header/impor
 3.  **Kompresi eksekusi kode** — Hanya menyimpan stdout/stderr yang penting
 4.  **Kompresi kueri basis data** — Membatasi baris, menghapus metadata verbose
-5.  **Kompresi respons API** — Menghapus bidang null, memadatkan array
+5.  **Kompresi respons API** — Menghilangkan bidang null, memadatkan array
 
 #### Kapan digunakan
 
-Kompresi hasil alat **selalu aktif** ketika ada panggilan alat. Tidak diperlukan konfigurasi.
+Kompresi hasil alat **selalu aktif** ketika panggilan alat ada. Tidak perlu konfigurasi.
 
-### Pipa Bertumpuk
+### Pipeline Bertumpuk
 
-Mode bertumpuk menjalankan **beberapa mesin secara berurutan** — biasanya RTK terlebih dahulu
-(penghematan 60-90% pada output alat), kemudian Caveman (penghematan tambahan 30% pada
-teks yang tersisa). Ini mencapai **total penghematan 78-95%**.
+Mode bertumpuk menjalankan **beberapa mesin secara berurutan** — biasanya RTK terlebih dahulu (penghematan 60-90% pada keluaran alat), kemudian Caveman (penghematan tambahan 30% pada teks yang tersisa). Ini mencapai **total penghematan 78-95%**.
 
-#### Bagaimana cara kerjanya
+#### Cara kerjanya
 
 ```
-Input (1000 tokens)
-  → RTK (filter sadar perintah) → 200 tokens
-    → Caveman (penghapusan pengisi) → 140 tokens
-  → Output (140 tokens, 86% penghematan)
+Masukan (1000 token)
+  → RTK (filter sadar perintah) → 200 token
+    → Caveman (penghapusan pengisi) → 140 token
+  → Keluaran (140 token, penghematan 86%)
 ```
 
 #### Kapan digunakan
