@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (中文 (繁體))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -43,29 +43,27 @@ ACP 代理 (反向生成流程):
 
 ---
 
-## 使用 `setup-*` 自動配置
+## 使用 `setup-*` 進行自動配置
 
-您不必手動編寫每個工具的配置。OmniRoute 為每個支持的 CLI 提供一個 `setup-*`
-命令，該命令從運行中的 OmniRoute (本地或遠程) 讀取 **實時** 模型目錄，並在您的機器上寫入工具的配置：
+您無需手動編寫每個工具的配置。OmniRoute 為每個支援的 CLI 提供一個 `setup-*` 命令，該命令會從正在運行的 OmniRoute（本地或遠端）讀取**即時**模型目錄，並將工具自身的配置寫入您的機器上：
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-每個命令接受 `--remote <url> --api-key <key>` (將本地工具配置為遠程 OmniRoute)，`--dry-run` (預覽而不寫入)，以及 `--port`。沒有模型自動發現的工具 (Cline、Kilo、Roo、Goose、Aider、Qwen) 需要 `--model <id>` (並且 `--yes` 用於非互動運行)。要啟動一個 CLI，並注入正確的環境而不寫入任何配置，請使用通用的 `omniroute run <target>` 啟動器 (claude、codex、aider、goose、opencode、qwen、gemini — 目標和別名來自 `bin/cli/cli-manifest.mjs`)；舊的每個工具啟動器 `omniroute launch` (Claude Code) 和 `omniroute launch-codex` (Codex) 仍然可用。Gemini CLI 只能啟動：它是 `omniroute run` 的目標，但沒有 `setup-*`/`configure` 配方。
+每個命令都接受 `--remote <url> --api-key <key>`（針對遠端 OmniRoute 配置本地工具）、`--dry-run`（預覽而不寫入）和 `--port`。不具備模型自動發現功能的工具（Cline、Kilo、Roo、Goose、Aider、Qwen、5dive）需要 `--model <id>`（以及用於非互動式運行的 `--yes`）。`setup-5dive` 是唯一一個不寫入 `$HOME` 的配置方式：它透過在機群主機上寫入一個根擁有的身份驗證設定檔來配置 5dive 代理機群，因此它會透過 `sudo` 重新執行，並且沒有自己的遠端模式。要啟動一個注入了正確環境且完全沒有寫入配置的 CLI，請使用通用的 `omniroute run <target>` 啟動器（claude、codex、aider、goose、opencode、qwen、gemini — 目標和別名來自 `bin/cli/cli-manifest.mjs`）；傳統的每個工具啟動器 `omniroute launch` (Claude Code) 和 `omniroute launch-codex` (Codex) 仍然可用。Gemini CLI 僅限啟動：它是一個 `omniroute run` 目標，但沒有 `setup-*`/`configure` 配置方式。
 
-> **完整參考：** 主表 — 每個命令寫入的內容、每個標誌、本地與遠程，以及哪些工具需要 `/v1` 後綴 — 存在於
-> **[CLI 整合](../guides/CLI-INTEGRATIONS.md)**。
+> **完整參考：** 每個命令寫入的內容、每個旗標、本地與遠端、以及哪些工具需要 `/v1` 後綴的總表，請參閱 **[CLI 整合](../guides/CLI-INTEGRATIONS.md)**。
 
 ### 在容器內運行這些命令
 
-在 OmniRoute 容器內執行的 `setup-*` 命令會寫入容器自己的主目錄，主機 CLI 無法讀取，並且隨著容器消失。OmniRoute 檢測到這一點，並以指示退出 `2`，而不是寫入。有兩種支持的解決方案 — 在主機上安裝 CLI，並使用 `omniroute connect` 連接到容器，或綁定掛載配置目錄並設置 `CLI_CONFIG_HOME` (compose `host` 配置)。每個 `setup-*` 命令，加上 `omniroute configure` 和 `omniroute config set`，在配置容器自己的 CLI 時接受 `--allow-container-write`；`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` 對伺服器也有相同的效果。請參見
-[Docker 指南 → 配置主機 CLI 工具](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)。
+在 OmniRoute 容器內執行的 `setup-*` 命令會寫入容器自己的主目錄，而主機 CLI 無法讀取該目錄，且該目錄會隨容器消失。OmniRoute 會檢測到這一點，並以 `2` 退出並提供指示，而不是進行寫入。有兩種支援的解決方案 — 在主機上安裝 CLI 並 `omniroute connect` 到容器，或者綁定掛載配置目錄並設定 `CLI_CONFIG_HOME`（compose `host` 設定檔）。每個 `setup-*` 命令，以及 `omniroute configure` 和 `omniroute config set`，在您確實打算配置容器自己的 CLI 時，都接受 `--allow-container-write`；`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` 對伺服器也起同樣作用。請參閱 [Docker 指南 → 配置主機 CLI 工具](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)。
 
-儀表板的 **應用端點** (`POST /api/cli-tools/apply`) 強制執行相同的保護：在容器中，目標不是從主機綁定掛載的寫入會返回 **`422`**，並帶有 `containerEphemeralTarget: true`，安全錯誤文本，以及 — 對於具有主機配方的工具 (claude、codex、opencode、cline、kilo、continue) — 一個 `hostSetupCommand` (例如 `omniroute setup-opencode`) 以便在主機上運行；不會寫入任何內容。`dryRun: true` 在容器模式下繼續工作，並返回生成的內容 + 目標路徑而不觸及磁碟，因此您可以從儀表板預覽並在主機上應用。這種行為是故意的，並由 `tests/unit/api/cli-tools/apply-container-guard.test.ts` 進行回歸保護 — 永遠不要通過刪除保護來“修復” 422。
+儀表板的 **應用端點** (`POST /api/cli-tools/apply`) 強制執行相同的防護：在容器中，如果寫入的目標未從主機綁定掛載，則會以 **`422`** 回應，並帶有 `containerEphemeralTarget: true`、安全的錯誤文字，以及 — 對於具有主機配置方式的工具（claude、codex、opencode、cline、kilo、continue） — 一個 `hostSetupCommand`（例如 `omniroute setup-opencode`）來代替在主機上運行；不會寫入任何內容。`dryRun: true` 在容器模式下仍然有效，並返回一個經過編輯的預覽 + 目標路徑，而不會觸及磁碟。預覽內容不是包含憑證的配置，不能複製或導入。請在主機上使用原始工具/基本 URL/API 金鑰/模型輸入進行應用，或使用指示的主機端設定命令。有關預覽標頭和請求契約，請參閱 [CLI 配置安全性](../security/CLI-CONFIGURATION.md)。此行為是故意的，並由 `tests/unit/api/cli-tools/apply-container-guard.test.ts` 進行回歸防護 — 絕不要透過移除防護來「修復」422 錯誤。
 
 ---
 
@@ -141,20 +139,22 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 
 具有 `baseUrlSupport: "partial"` 的工具在儀表板卡片上顯示徽章 "⚠ 基本 URL 部分"。
 
-## 2. CLI 代理目錄 (8 種工具)
+## 2. CLI 代理程式目錄（10 個工具）
 
-出現在 `/dashboard/cli-agents` 的自主代理：
+出現在 `/dashboard/cli-agents` 中的自主代理程式：
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
-| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
+| id           | 名稱             | 提供者                   | baseUrl 支援 | 可由 ACP 產生 |
+| ------------ | ---------------- | ------------------------ | ------------ | ------------- |
+| hermes-agent | Hermes Agent     | Nous Research            | 完整         | 否            |
+| openclaw     | OpenClaw         | OSS（P. Steinberger）    | 完整         | 是            |
+| goose        | Goose            | Block / Linux Foundation | 完整         | 是            |
+| interpreter  | Open Interpreter | OSS                      | 完整         | 是            |
+| warp         | Warp AI          | Warp Inc.                | 部分         | 是            |
+| agent-deck   | Agent Deck       | asheshgoplani（OSS）     | 完整         | 否            |
+| omp          | Oh My Pi         | OSS                      | 完整         | 是            |
+| letta        | Letta CLI        | Letta                    | 完整         | 否            |
+| prime-agent  | Prime Agent      | Prime Intellect（OSS）   | 完整         | 否            |
+| 5dive        | 5dive            | OSS（5dive-ai）          | 完整         | 否            |
 
 ---
 
@@ -560,72 +560,72 @@ kiro-cli status
 
 ## 10. 內部 OmniRoute CLI
 
-`omniroute` 二進位檔提供伺服器生命週期、設置、診斷和提供者管理的命令。進入點：`bin/omniroute.mjs`。
+`omniroute` 二進位檔提供用於伺服器生命週期、設定、診斷與提供者管理的命令。進入點：`bin/omniroute.mjs`。
 
 ```bash
-omniroute                              # 啟動伺服器（預設端口 20128）
-omniroute setup                        # 互動式設置嚮導
-omniroute doctor                       # 檢查配置、數據庫、端口、運行時
-omniroute providers list               # 已配置的提供者連接
-omniroute providers test-all           # 測試每個活動連接
-omniroute reset-password               # 重置管理員密碼
-omniroute logs                         # 串流請求日誌
+omniroute                              # 啟動伺服器（預設連接埠 20128）
+omniroute setup                        # 互動式設定精靈
+omniroute doctor                       # 檢查設定、資料庫、連接埠及執行階段
+omniroute providers list               # 已設定的提供者連線
+omniroute providers test-all           # 測試每個作用中的連線
+omniroute reset-password               # 重設管理員密碼
+omniroute logs                         # 串流顯示請求記錄
 omniroute health                       # 詳細健康狀態（斷路器、快取、記憶體）
-omniroute --version                    # 輸出版本
+omniroute --version                    # 顯示版本
 omniroute --help                       # 顯示所有命令
 ```
 
-### 設置與初始化
+### 設定與初始化
 
 ```bash
-omniroute setup                        # 互動式設置嚮導
-omniroute setup --non-interactive      # CI/自動化模式（讀取環境變數 + 標誌）
-omniroute setup --password '<value>'   # 直接設置管理員密碼
+omniroute setup                        # 互動式設定精靈
+omniroute setup --non-interactive      # CI／自動化模式（讀取環境變數與旗標）
+omniroute setup --password '<value>'   # 直接設定管理員密碼
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # 一次性添加並測試提供者
+  --test-provider                      # 一次完成新增及測試提供者
 ```
 
-非互動式設置的環境變數：
+非互動式設定可辨識的環境變數：
 
-| 變數                | 目的                                                          |
+| 變數                | 用途                                                          |
 | ------------------- | ------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | 提供者 API 密鑰（通過 Commander `.env()` 綁定到 `--api-key`） |
-| `DATA_DIR`          | 覆蓋 OmniRoute 數據目錄                                       |
+| `OMNIROUTE_API_KEY` | 提供者 API 金鑰（透過 Commander `.env()` 繫結至 `--api-key`） |
+| `DATA_DIR`          | 覆寫 OmniRoute 資料目錄                                       |
 
-所有其他非互動式輸入作為標誌傳遞，而不是環境變數：
+所有其他非互動式輸入皆以旗標傳入，而非環境變數：
 `--password`、`--provider`、`--provider-name`、`--provider-base-url`、`--default-model`
-（請參見上面的 `omniroute setup` 選項）。
+（請參閱上方的 `omniroute setup` 選項）。
 
 ### 診斷
 
 ```bash
-omniroute doctor                       # 檢查配置、數據庫、端口、運行時、記憶體、存活性
+omniroute doctor                       # 檢查設定、資料庫、連接埠、執行階段、記憶體及存活狀態
 omniroute doctor --json                # 機器可讀的 JSON
-omniroute doctor --no-liveness         # 跳過 HTTP 健康探測
-omniroute doctor --host 0.0.0.0        # 覆蓋存活性主機
-omniroute doctor --liveness-url <url>  # 完整健康端點 URL 覆蓋
+omniroute doctor --no-liveness         # 略過 HTTP 健康狀態探測
+omniroute doctor --host 0.0.0.0        # 覆寫存活狀態主機
+omniroute doctor --liveness-url <url>  # 覆寫完整的健康狀態端點 URL
 ```
 
-醫生運行這些檢查：`配置`、`數據庫`、`存儲/加密`、
-`端口可用性`、`節點運行時`、`本地二進位檔`（better-sqlite3）、
-`記憶體`和`伺服器存活性`。如果任何檢查失敗，則退出非零。
+doctor 會執行以下檢查：`Config`、`Database`、`Storage/encryption`、
+`Port availability`、`Node runtime`、`Native binary`（better-sqlite3）、
+`Memory` 及 `Server liveness`。若任何檢查結果為 `fail`，其退出碼將為非零值。
 
 ### 提供者管理
 
 ```bash
 omniroute providers available                       # OmniRoute 提供者目錄
-omniroute providers available --search openai       # 按 id/name/alias/category 過濾目錄
-omniroute providers available --category api-key    # 按類別過濾（api-key、oauth、free 等）
+omniroute providers available --search openai       # 依 id／名稱／別名／類別篩選目錄
+omniroute providers available --category api-key    # 依類別篩選（api-key、oauth、free……）
 omniroute providers available --json                # 機器可讀的 JSON
 
-omniroute providers list                            # 已配置的提供者連接
+omniroute providers list                            # 已設定的提供者連線
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # 測試一個已配置的連接
-omniroute providers test-all                        # 測試每個活動連接
-omniroute providers validate                        # 僅限本地的結構驗證
+omniroute providers test <id|name>                  # 測試一個已設定的連線
+omniroute providers test-all                        # 測試每個作用中的連線
+omniroute providers validate                        # 僅限本機的結構驗證
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # 現有的 OAuth 流程
@@ -633,81 +633,85 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` 是 API 首先，因此針對
-活動的本地或遠程上下文工作。憑證輸入應使用
-`--credential-stdin` 或 `--credential-env`；`--dry-run --json` 僅報告
-已編輯的存在/形狀。`providers available` 讀取 OmniRoute 目錄；
-`providers list/test/test-all/validate` 保留其本地 SQLite 行為，並且
-不需要伺服器運行。
+`providers add/import/auth/edit/remove` 採 API 優先方式，因此可針對
+作用中的本機或遠端內容執行。憑證輸入應使用
+`--credential-stdin` 或 `--credential-env`；`--dry-run --json` 僅回報
+經遮蔽的存在狀態／結構。`providers available` 會讀取 OmniRoute 目錄；
+`providers list/test/test-all/validate` 則保留其本機 SQLite 行為，且
+不需要伺服器處於執行狀態。
 
-### 恢復與重置
-
-```bash
-omniroute reset-password                # 重置管理員密碼（也可用：omniroute-reset-password）
-omniroute reset-encrypted-columns       # 顯示警告 + 加密憑證重置的乾運行
-omniroute reset-encrypted-columns --force  # 實際清除 SQLite 中的加密憑證
-```
-
-### 憑證導出 (⚠ 請小心處理)
+### 復原與重設
 
 ```bash
-omniroute auth export                                 # 顯示警告 + 確認門檻 — 無法訪問數據庫
-omniroute auth export --force                          # 將所有連接的解密憑證導出到 stdout 作為 JSON
-omniroute auth export --force --id <id>                 # 僅導出匹配的連接
-omniroute auth export --force --format env               # 輸出 OMNIROUTE_<PROVIDER>_<FIELD>=<value> 行
-omniroute auth export --force --out creds.json           # 寫入文件（以 0600 權限創建）
+omniroute reset-password                # 重設管理員密碼（亦可使用：omniroute-reset-password）
+omniroute reset-encrypted-columns       # 顯示警告並對加密憑證重設進行演練
+omniroute reset-encrypted-columns --force  # 實際將 SQLite 中的加密憑證設為 null
 ```
 
-`auth export` 是 **僅限本地**（直接 SQLite 讀取，無 HTTP 路由）並故意打印/寫入
-**明文** `apiKey`/`accessToken`/`refreshToken`/`idToken` 值 — 這是功能，而不是
-錯誤。沒有從數據庫讀取任何內容，並且在沒有 `--force` 的情況下不會解密。任何明文輸出之前，始終會打印 stderr 警告橫幅。需要設置 `STORAGE_ENCRYPTION_KEY`。無法解密的字段（過期密鑰、損壞的密文）將報告為
-`<field>DecryptFailed: true`，而不是中止整個導出或洩漏底層錯誤。
+### 憑證匯出（⚠ 請謹慎處理）
+
+```bash
+omniroute auth export                                 # 顯示警告與確認關卡——不存取資料庫
+omniroute auth export --force                          # 以 JSON 將所有連線已解密的憑證匯出至 stdout
+omniroute auth export --force --id <id>                 # 僅匯出相符的連線
+omniroute auth export --force --format env               # 輸出 OMNIROUTE_<PROVIDER>_<FIELD>=<value> 格式的行
+omniroute auth export --force --out creds.json           # 寫入檔案（以 0600 權限建立）
+```
+
+`auth export` **僅限本機**（直接讀取 SQLite，不使用 HTTP 路由），並刻意顯示／寫入
+**明文** `apiKey`／`accessToken`／`refreshToken`／`idToken` 值——這是功能，而非
+錯誤。未使用 `--force` 時，不會從資料庫讀取任何內容，也不會解密任何內容。在輸出
+任何明文之前，stderr 一律會顯示警告橫幅。必須設定 `STORAGE_ENCRYPTION_KEY`。
+若某個欄位無法解密（過期金鑰、損毀的密文），則會回報為
+`<field>DecryptFailed: true`，而不會中止整個匯出或洩漏底層錯誤。
 
 ### 其他子命令
 
-這些假設正在運行的 OmniRoute 伺服器，除非另有說明：
+除非另有註明，否則這些命令均假設 OmniRoute 伺服器正在執行：
 
 ```bash
-omniroute status                       # 綜合運行時狀態
-omniroute logs                         # 串流請求日誌 (--json, --search, --follow)
-omniroute config show                  # 顯示當前配置
+omniroute status                       # 完整的執行階段狀態
+omniroute logs                         # 串流顯示請求日誌（--json、--search、--follow）
+omniroute config list                  # 顯示已設定的 CLI 工具
 
-omniroute provider list                # 列出可用提供者（providers list 的別名）
-omniroute provider add                 # 在工具上註冊 OmniRoute 作為提供者
-omniroute keys add | list | remove     # 管理 API 密鑰
-omniroute models [provider]            # 列出模型 (--json, --search)
+omniroute provider list                # 列出可用的提供者（providers list 的別名）
+omniroute provider add                 # 將 OmniRoute 註冊為工具的提供者
+omniroute keys add | list | remove     # 管理 API 金鑰
+omniroute models [provider]            # 列出模型（--json、--search）
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # 快照配置 + 數據庫
-omniroute restore                      # 從先前的快照恢復
+omniroute backup                       # 建立設定與資料庫的快照
+omniroute restore                      # 從先前的快照還原
 
-omniroute health                       # 詳細健康狀態（斷路器、快取、記憶體）
+omniroute health                       # 詳細的健康狀態（斷路器、快取、記憶體）
 omniroute quota                        # 提供者配額使用情況
 omniroute cache                        # 快取狀態
-omniroute cache clear                  # 清除語義 + 簽名快取
+omniroute cache clear                  # 清除語意與簽章快取
 
-omniroute mcp status | restart         # MCP 伺服器狀態 / 重啟
-omniroute a2a status | card            # A2A 伺服器狀態 / 代理卡
+omniroute mcp status | restart         # MCP 伺服器狀態／重新啟動
+omniroute a2a status | card            # A2A 伺服器狀態／代理程式資訊卡
 
-omniroute tunnel list | create | stop  # 管理隧道（cloudflare/tailscale/ngrok）
-omniroute env show | get <k> | set <k> <v>  # 檢查 / 設置環境變數（臨時）
+omniroute tunnel list | create | stop  # 管理通道（cloudflare/tailscale/ngrok）
+omniroute env show | get <k> | set <k> <v>  # 檢查／設定環境變數（暫時）
 
-omniroute test                         # 提供者連接性煙霧測試
+omniroute test                         # 提供者連線能力的冒煙測試
 omniroute update                       # 檢查更新
-omniroute completion                   # 生成 shell 完成
+omniroute completion                   # 產生 shell 自動補全
 ```
 
-### 常見標誌
+### 常用旗標
 
-| 標誌                | 描述                                         |
-| ------------------- | -------------------------------------------- |
-| `--no-open`         | 啟動時不自動打開瀏覽器                       |
-| `--port <n>`        | 覆蓋 API 端口（預設 20128）                  |
-| `--mcp`             | 作為 MCP 伺服器通過 stdio 運行（用於 IDE）   |
-| `--non-interactive` | CI 模式（無提示；從環境/標誌讀取）           |
-| `--json`            | 機器可讀的 JSON 輸出（doctor、providers 等） |
-| `--help`, `-h`      | 顯示命令特定的幫助                           |
-| `--version`, `-v`   | 輸出已安裝版本                               |
+| 旗標                | 說明                                            |
+| ------------------- | ----------------------------------------------- |
+| `--no-open`         | 啟動時不要自動開啟瀏覽器                        |
+| `--port <n>`        | 覆寫 API 連接埠（預設為 20128）                 |
+| `--mcp`             | 透過 stdio 以 MCP 伺服器模式執行（供 IDE 使用） |
+| `--non-interactive` | CI 模式（不顯示提示；從環境變數／旗標讀取）     |
+| `--json`            | 機器可讀的 JSON 輸出（doctor、providers 等）    |
+| `--help`, `-h`      | 顯示命令專屬說明                                |
+| `--version`, `-v`   | 顯示已安裝的版本                                |
+
+---
 
 ## 可用的 API 端點
 

@@ -1,62 +1,59 @@
 # Admission lanes (#9654) — two lane systems, what gates each, where each reports (മലയാളം)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇧🇦 [bs](../../../bs/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
 
 ---
 
 OmniRoute-ൽ വ്യത്യസ്ത വ്യാപ്തികളുള്ള **രണ്ട്** പ്രോസസ്-ലോക്കൽ ലെയിൻ സിസ്റ്റങ്ങളുണ്ട്. അവ
 പരസ്പരപൂരകമാണ്; ഓപ്പറേറ്റർമാർ തങ്ങൾ ഏതാണ് പരിശോധിക്കുന്നതെന്ന് അറിഞ്ഞിരിക്കണം.
 
-## 1. ബൈറ്റ്-ലെവൽ പ്രോസസ്-വൈഡ് അഡ്മിഷൻ (`chatBodyAdmission.ts`)
+## 1. ബൈറ്റ്-തലത്തിലുള്ള പ്രോസസ്-വ്യാപക അഡ്മിഷൻ (`chatBodyAdmission.ts`)
 
-- **വ്യാപ്തി:** `POST /v1/chat/completions`, `/v1/messages`, `/v1/responses`,
-  എന്നിവയ്ക്കും മറ്റ് ചാറ്റ്-രൂപത്തിലുള്ള റൂട്ടുകൾക്കുമുള്ള ബഫർ ചെയ്ത ബോഡി/ഹീപ്പ് പാത.
-  വലിയ കോഡിംഗ്-ഏജന്റ് ബോഡികൾ മൂലമുള്ള ഹീപ്പ് ആംപ്ലിഫിക്കേഷനിൽ നിന്ന് സംരക്ഷിക്കുന്നു
-  (#4380).
-- **ഓരോ കീയ്ക്കും പ്രത്യേകം ലെയിനുകളല്ല, ഒരൊറ്റ പ്രോസസ്-ഗ്ലോബൽ കൺട്രോളർ
-  (#10110).** എല്ലാ API കീകളും (ഹാഷ് ചെയ്തവ) അല്ലെങ്കിൽ `anonymous` സെഷനും
-  **ഒരേ** പങ്കിട്ട ബജറ്റിനെതിരെയാണ് അഡ്മിഷൻ നടത്തുന്നത് — ഹാഷ് ചെയ്ത സെഷൻ ഐഡി
-  ഫെയർനെസ് ഷെഡ്യൂളിംഗ് കീ ആയി മാത്രം ഉപയോഗിക്കുന്നു (കാത്തിരിക്കുന്നവർക്കിടയിലെ
-  റൗണ്ട്-റോബിൻ ഡിസ്പാച്ച്); ഒരിക്കലും കപ്പാസിറ്റി ഷാർഡായി ഉപയോഗിക്കുന്നില്ല. ഈ
-  ഡോക്യുമെന്റിന്റെ മുൻ പതിപ്പ് സ്വതന്ത്ര കപ്പാസിറ്റിയുള്ള ഓരോ കീയ്ക്കുമുള്ള ലെയിനുകൾ
-  വിവരിച്ചിരുന്നു; ആ മോഡൽ പ്രാമാണീകരിക്കാത്ത വ്യാജ ക്രെഡൻഷ്യലുകൾ ഉപയോഗിച്ച്
-  പ്രോസസ്-വൈഡ് പരിധി ഗുണിക്കാൻ അനുവദിച്ചതിനാൽ #10110-ൽ അത് നീക്കം ചെയ്തു.
-- **ഗേറ്റ് (#503-fanout): സ്ഥിരമായ റിക്വസ്റ്റ് എണ്ണമല്ല, സ്വയമേവ നിർണ്ണയിക്കുന്ന
-  ഇൻജെസ്റ്റ് BYTE ബജറ്റ്.** ലെഗസി `CHAT_MAX_HEAVY_IN_FLIGHT` റിക്വസ്റ്റ്-കൗണ്ട്
-  പരിധി (ഈ പരിഹാരത്തിനു മുമ്പുള്ള ഡിഫോൾട്ട് `1`) കോഡിംഗ്-ഏജന്റ് ഫാൻ-ഔട്ടിനെ
-  (ഒന്നിലധികം സബ്ഏജന്റുകൾ/CLI-കൾ, പതിവായി > 256 KB വലുപ്പമുള്ള ബോഡികൾ)
-  ഫലപ്രദമായ ~1 കൺകറൻസിയിലേക്ക് ചുരുക്കിയിരുന്നു; അതിനാൽ പൂർണ്ണമായും സാധാരണ
-  ലോഡിലും 503 സംഭവിച്ചിരുന്നു. ഇപ്പോൾ ഒരു ഓപ്പറേറ്റർ
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` വ്യക്തമായി സജ്ജീകരിക്കുമ്പോൾ മാത്രമാണ്
-  അത് പരിധി നിർണ്ണയിക്കുന്നത്. ഇത് സജ്ജീകരിക്കാതെ വിട്ടാൽ, അഡ്മിഷനെ പകരം
-  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ആണ് നിയന്ത്രിക്കുന്നത് — പ്രോസസിന്റെ
-  യഥാർത്ഥ മെമ്മറി പരിധിയിൽ നിന്ന് സ്വയമേവ നിർണ്ണയിക്കുന്ന ഒരു ബജറ്റ്
-  (`src/shared/middleware/admissionBudget.ts`): V8 ഹീപ്പ് പരിധിയിലും ഏതെങ്കിലും
-  cgroup/container പരിധിയിലും കൂടുതൽ കർശനമായതിന്റെ 25%, 8x താൽക്കാലിക
-  ആംപ്ലിഫിക്കേഷൻ ഘടകം കൊണ്ട് ഹരിച്ച്, 8 MiB-നും 2 GiB-നും ഇടയിൽ പരിമിതപ്പെടുത്തിയത്.
-  വ്യക്തമായ ഓവർറൈഡുകളും ഇതേ പരിധികൾ ഉപയോഗിക്കുന്നു. env ട്യൂണിംഗ് ഒന്നുമില്ലാതെ
-  ഇത് 512 MB കണ്ടെയ്നർ മുതൽ 32 GB ഡെസ്ക്ടോപ്പ് വരെ സ്വയം സ്കെയിൽ ചെയ്യുന്നു.
-  ഫലപ്രദമായ ബജറ്റിനുള്ളിൽ ഉൾക്കൊള്ളാൻ കഴിയാത്ത ഒരു ബോഡി ഉടൻതന്നെ
-  `413 body_exceeds_budget` നൽകി പരാജയപ്പെടും; വ്യക്തിഗതമായി കൈകാര്യം ചെയ്യാവുന്ന
-  ബോഡികൾ തമ്മിലുള്ള മത്സരാവസ്ഥ മാത്രമാണ് പരിധിയുള്ള ഫെയർനെസ് ക്യൂവിൽ പ്രവേശിക്കുന്നത്.
-  സജീവമായ ഒരു മൾട്ടി-സിഗ്നൽ റിസോഴ്സ്-പ്രഷർ ട്രാക്കർ (V8 ഹീപ്പ് അനുപാതം,
-  cgroup, PSI, OOM ഇവന്റുകൾ — `open-sse/utils/resourcePressurePolicy.ts`)
-  `high` പ്രഷറിൽ പരിധിയുള്ള കാത്തിരിപ്പ് ചുരുക്കുകയും, ഏതെങ്കിലും ബൈറ്റുകൾ
-  ഇൻജെസ്റ്റ് ചെയ്യുന്നതിനു മുമ്പുതന്നെ `critical` പ്രഷറിൽ
-  `503 resource_pressure` നൽകി ഉടൻ ലോഡ് ഒഴിവാക്കുകയും ചെയ്യുന്നു.
+- **പരിധി:** `POST /v1/chat/completions`, `/v1/messages`,
+  `/v1/responses`, എന്നിവയുടെയും മറ്റ് ചാറ്റ്-രൂപത്തിലുള്ള റൂട്ടുകളുടെയും buffered-body/heap പാത.
+  വലിയ coding-agent ബോഡികളിൽനിന്നുള്ള heap amplification-നെതിരെ സംരക്ഷിക്കുന്നു (#4380).
+- **ഓരോ കീയ്ക്കും പ്രത്യേകം ലെയിനുകളല്ല, ഒരൊറ്റ process-global controller (#10110).** ഓരോ API കീയും
+  (ഹാഷ് ചെയ്തത്) അല്ലെങ്കിൽ `anonymous` സെഷനും **ഒരേ** പങ്കിട്ട ബജറ്റിനെ അടിസ്ഥാനമാക്കിയാണ്
+  പ്രവേശനം നേടുന്നത് — ഹാഷ് ചെയ്ത session id ഒരു fairness scheduling key ആയി മാത്രമാണ്
+  ഉപയോഗിക്കുന്നത് (കാത്തിരിക്കുന്നവരിലുടനീളം round-robin dispatch), ഒരിക്കലും capacity shard ആയി
+  ഉപയോഗിക്കുന്നില്ല. ഈ ഡോക്യുമെന്റിന്റെ മുൻ പതിപ്പിൽ സ്വതന്ത്ര capacity ഉള്ള ഓരോ കീയ്ക്കുമുള്ള
+  ലെയിനുകൾ വിവരിച്ചിരുന്നു; പ്രാമാണീകരിക്കാത്ത വ്യാജ credentials ഉപയോഗിച്ച് process-wide bound
+  പലമടങ്ങാക്കാൻ ആ മോഡൽ അനുവദിച്ചതിനാൽ #10110-ൽ അത് നീക്കം ചെയ്തു.
+- **ഗേറ്റ് (#503-fanout): സ്ഥിരമായ request count അല്ല, സ്വയമേവ നിർണ്ണയിക്കുന്ന ingest BYTE
+  ബജറ്റ്.** പഴയ `CHAT_MAX_HEAVY_IN_FLIGHT` request-count cap (ഈ പരിഹാരത്തിന് മുമ്പ് default `1`)
+  coding-agent fan-out-നെ (ഒന്നിലധികം subagents/CLIs, സാധാരണയായി > 256 KB വലുപ്പമുള്ള
+  ബോഡികൾ) ഫലപ്രദമായ ~1 concurrency-ലേക്ക് ചുരുക്കിയതിനാൽ, പൂർണ്ണമായും സാധാരണമായ ലോഡിൽ
+  503 പ്രതികരണങ്ങൾ ഉണ്ടായി. ഇപ്പോൾ ഒരു ഓപ്പറേറ്റർ `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`
+  വ്യക്തമായി സജ്ജീകരിക്കുമ്പോൾ മാത്രമാണ് ഇത് നിയന്ത്രണമായി ബാധകമാകുന്നത്. ഇത് സജ്ജീകരിക്കാതെ
+  വിട്ടാൽ, അഡ്മിഷൻ പകരം `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ഉപയോഗിച്ചാണ് നിയന്ത്രിക്കുന്നത് —
+  പ്രോസസിന്റെ യഥാർഥ memory ceiling-ൽനിന്ന് (`src/shared/middleware/admissionBudget.ts`)
+  സ്വയമേവ നിർണ്ണയിക്കുന്ന ഒരു ബജറ്റ്: V8 heap limit-ലും ഏതെങ്കിലും cgroup/container limit-ലും
+  കുറഞ്ഞതിന്റെ 25%, 8x transient-amplification factor കൊണ്ട് ഹരിച്ച്, 8 MiB-ക്കും
+  2 GiB-ക്കും ഇടയിൽ പരിമിതപ്പെടുത്തിയത്. വ്യക്തമായ overrides-നും ഇതേ പരിധികൾ ബാധകമാണ്.
+  env tuning ഒന്നുമില്ലാതെ തന്നെ ഇത് 512 MB container മുതൽ 32 GB desktop വരെ സ്വയം
+  സ്കെയിൽ ചെയ്യുന്നു. ഫലപ്രദമായ ബജറ്റിനുള്ളിൽ ഉൾക്കൊള്ളാൻ കഴിയാത്ത body ഉടൻതന്നെ
+  `413 body_exceeds_budget` എന്ന പിശകോടെ പരാജയപ്പെടും; പ്രത്യേകം കൈകാര്യം ചെയ്യാവുന്ന
+  ബോഡികൾ തമ്മിലുള്ള contention മാത്രമേ പരിധിയുള്ള fairness queue-വിൽ പ്രവേശിക്കൂ.
+  തത്സമയ multi-signal resource-pressure tracker (V8 heap ratio, cgroup, PSI, OOM events —
+  `open-sse/utils/resourcePressurePolicy.ts`) `high` pressure-ൽ പരിധിയുള്ള കാത്തിരിപ്പ്
+  ചുരുക്കുകയും, ഏതെങ്കിലും bytes ingest ചെയ്യുന്നതിന് മുമ്പുതന്നെ `critical` pressure-ൽ
+  `503 resource_pressure` നൽകി ഉടൻ ലോഡ് ഒഴിവാക്കുകയും ചെയ്യുന്നു. ലഭ്യമാണെങ്കിൽ ഈ unit-ന്റെ
+  cgroup `memory.pressure`-ൽനിന്നാണ് PSI വായിക്കുന്നത്
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` host-wide ആണ്,
+  കൂടാതെ bare metal / cgroup v1-ൽ fallback ആയി മാത്രമേ ഉപയോഗിക്കൂ; അതിനാൽ swapping
+  നടക്കുന്ന ഒരു host-ന് idle container-ൽ 503 ഉണ്ടാക്കാൻ കഴിയില്ല.
 - **ട്യൂണിംഗ്:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — സ്വയമേവ നിർണ്ണയിക്കുന്ന ബൈറ്റ് ബജറ്റിനുള്ള ഓവർറൈഡ്
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — ലെഗസി റിക്വസ്റ്റ്-കൗണ്ട് പരിധി, ഓപ്റ്റ്-ഇൻ മാത്രം
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503-ന് മുമ്പുള്ള ക്യൂ കാത്തിരിപ്പ് (ഡിഫോൾട്ട് 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — ക്യൂ ചെയ്ത ബൈറ്റുകൾക്കുള്ള ഹീപ്പ് വാൽവ് (ഡിഫോൾട്ട് 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 മുതൽ ഒഴിവാക്കപ്പെട്ട
-    ഫലമില്ലാത്ത ഓപ്ഷനുകൾ (കോൺഫിഗ് പൊരുത്തത്തിനായി സ്വീകരിക്കുന്നു, അവഗണിക്കുന്നു)
-- **റിപ്പോർട്ടുകൾ:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — ഇതിൽ
-  #503-fanout കൂട്ടിച്ചേർക്കലുകളായ `inflightBytes`, `maxInflightBytes`, `budgetSource`
-  (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, `countCapEnabled`
-  എന്നിവയും ഉൾപ്പെടുന്നു (ഒരു ഡിഫോൾട്ട് ഡിപ്ലോയ്മെന്റിൽ false — ലെഗസി
-  കൗണ്ട് പരിധിയല്ല, ബൈറ്റ് ബജറ്റാണ് യഥാർത്ഥത്തിൽ പരിധി നിർണ്ണയിക്കുന്നതെന്ന്
-  സ്ഥിരീകരിക്കുന്നു).
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — സ്വയമേവ നിർണ്ണയിക്കുന്ന byte budget-നുള്ള override
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — പഴയ request-count cap, opt-in മാത്രം
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503-ന് മുമ്പുള്ള queue-wait (default 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — queued-bytes heap valve (default 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 മുതൽ
+    deprecated no-ops (config compatibility-ക്കായി സ്വീകരിക്കുന്നു, അവഗണിക്കുന്നു)
+- **റിപ്പോർട്ടുകൾ:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — #503-fanout
+  കൂട്ടിച്ചേർക്കലുകളായ `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, `countCapEnabled` എന്നിവ ഉൾപ്പെടെ
+  (default deployment-ൽ false — പഴയ count cap അല്ല, byte budget തന്നെയാണ് യഥാർഥത്തിൽ
+  നിയന്ത്രിക്കുന്നത് എന്ന് സ്ഥിരീകരിക്കുന്നു).
 
 ## 2. അഡാപ്റ്റീവ് റൺടൈം വെർച്വൽ ലെയിനുകൾ (`open-sse/services/admission`)
 

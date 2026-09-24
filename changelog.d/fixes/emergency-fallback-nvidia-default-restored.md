@@ -1,1 +1,0 @@
-- **Emergency fallback:** the budget-exhaustion reroute targets `nvidia/openai/gpt-oss-120b` again, as documented in `ENVIRONMENT.md` and the NVIDIA hosted-model snapshot; #14006 had switched the provider to `groq` inside an unrelated MITM change, so operators without a Groq connection got the original 402 back.

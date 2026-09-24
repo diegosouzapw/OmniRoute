@@ -637,7 +637,21 @@ function redactUnquotedAbsolutePathSpans(value: string): string {
       isWindowsPath || isFileUriPath || isKnownPosixPath
     );
     if (pathEnd < 0) {
-      const mustFailClosed = isWindowsPath || isFileUriPath || isKnownPosixPath;
+      // #14110: an unknown-root POSIX candidate (e.g. `/custom/internal`,
+      // not in POSIX_FILESYSTEM_ROOTS) is just as filesystem-sensitive as a
+      // known-root one once it has multi-segment/extension evidence
+      // (isPosixPath, computed above from isUnquotedPosixSpanCandidateAt) --
+      // an unresolved ambiguous tail must not leave it exposed in clear text.
+      // This intentionally also fail-closes an unknown-root API route in
+      // prose with no anchor to resolve against (e.g. a bare `/v1/x/y.`
+      // followed only by more prose): the shape is identical to a real
+      // filesystem path and there is no reliable lexical discriminator
+      // between the two (owner decision, #14110). A route immediately
+      // followed by another absolute-path span (e.g. "... Use POST
+      // /v1/y instead.") is unaffected -- that shape resolves to a definite
+      // endpoint via acceptEndpointBeforeAnotherAbsolute and never reaches
+      // this branch.
+      const mustFailClosed = isWindowsPath || isFileUriPath || isKnownPosixPath || isPosixPath;
       if (mustFailClosed) {
         // An unequivocal filesystem prefix with an unknowable endpoint must
         // fail closed over the rest of the first line rather than expose a

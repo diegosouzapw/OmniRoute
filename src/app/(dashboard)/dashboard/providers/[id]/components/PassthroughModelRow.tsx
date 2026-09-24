@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/shared/components";
-import { providerText } from "../providerPageHelpers";
+import { parseContextWindowOverrideInput, providerText } from "../providerPageHelpers";
 import ModelCompatPopover from "./ModelCompatPopover";
 import { ModelSourceBadge, type ModelCompatSavePatch } from "./ModelRow";
 
@@ -46,6 +46,13 @@ export interface PassthroughModelRowProps {
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
   testStatus?: "ok" | "error" | "quota" | null;
   testingModel?: boolean;
+  // #14337: synced/imported rows had no edit affordance at all, so the manual
+  // context-window override that #4125 added for custom models — and that the
+  // PUT compatOnly branch has always accepted for these rows — was unreachable
+  // from the UI. Absent handler keeps the row exactly as it was.
+  contextWindowOverride?: number | null;
+  onSaveContextWindowOverride?: (modelId: string, value: number | null) => Promise<void>;
+  savingContextOverride?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -77,10 +84,16 @@ export default function PassthroughModelRow({
   onTestModel,
   testStatus,
   testingModel,
+  contextWindowOverride,
+  onSaveContextWindowOverride,
+  savingContextOverride,
 }: PassthroughModelRowProps) {
   const [editing, setEditing] = useState(false);
   const [aliasValue, setAliasValue] = useState(alias || "");
   const inputRef = useRef<HTMLInputElement>(null);
+  const [editingContext, setEditingContext] = useState(false);
+  const [contextValue, setContextValue] = useState("");
+  const contextInputRef = useRef<HTMLInputElement>(null);
 
   // Only useful when it actually differs from the id — otherwise we would just print
   // the opaque id twice.
@@ -94,9 +107,44 @@ export default function PassthroughModelRow({
     }
   }, [editing]);
 
+  useEffect(() => {
+    if (editingContext && contextInputRef.current) {
+      contextInputRef.current.focus();
+      contextInputRef.current.select();
+    }
+  }, [editingContext]);
+
   const startEditing = () => {
     setAliasValue(alias || "");
     setEditing(true);
+  };
+
+  const startEditingContext = () => {
+    setContextValue(typeof contextWindowOverride === "number" ? String(contextWindowOverride) : "");
+    setEditingContext(true);
+  };
+
+  const submitContextOverride = async () => {
+    if (!onSaveContextWindowOverride) return;
+    const parsed = parseContextWindowOverrideInput(contextValue);
+    // Invalid input keeps the editor open rather than silently discarding the
+    // value or writing a wrong one; the section surfaces the message.
+    if (parsed.invalid) {
+      await onSaveContextWindowOverride(modelId, Number.NaN);
+      return;
+    }
+    await onSaveContextWindowOverride(modelId, parsed.value);
+    setEditingContext(false);
+  };
+
+  const handleContextKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void submitContextOverride();
+    }
+    if (e.key === "Escape") {
+      setEditingContext(false);
+    }
   };
 
   const handleAliasSubmit = () => {
@@ -180,8 +228,64 @@ export default function PassthroughModelRow({
               {providerText(t, "freeBadge", "Free")}
             </Badge>
           )}
+          {/* #14337: the same 🪟 badge custom rows carry, so an override set here
+              is visible after reload instead of being write-only. */}
+          {typeof contextWindowOverride === "number" && !editingContext && (
+            <span
+              className="shrink-0 rounded-full bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-medium text-orange-400"
+              title={t("contextWindowOverrideHint")}
+            >
+              {`🪟 ${contextWindowOverride.toLocaleString()}`}
+            </span>
+          )}
+          {editingContext && (
+            <span className="flex items-center gap-1">
+              <input
+                ref={contextInputRef}
+                type="text"
+                inputMode="numeric"
+                value={contextValue}
+                onChange={(e) => setContextValue(e.target.value)}
+                onKeyDown={handleContextKeyDown}
+                disabled={savingContextOverride}
+                placeholder={t("contextWindowOverridePlaceholder")}
+                title={t("contextWindowOverrideHint")}
+                aria-label={t("contextWindowOverrideLabel")}
+                className="w-28 rounded border border-border bg-background px-1.5 py-0.5 text-[11px]"
+              />
+              <button
+                onClick={() => void submitContextOverride()}
+                disabled={savingContextOverride}
+                className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:opacity-40"
+                title={providerText(t, "save", "Save")}
+              >
+                <span className="material-symbols-outlined text-sm">check</span>
+              </button>
+              <button
+                onClick={() => setEditingContext(false)}
+                disabled={savingContextOverride}
+                className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:opacity-40"
+                title={providerText(t, "cancel", "Cancel")}
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </span>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
+          {/* #14337: the affordance itself. Rendered only when the section
+              supplies a handler, so rows that cannot take an override are
+              unchanged. */}
+          {onSaveContextWindowOverride && !editingContext && (
+            <button
+              onClick={startEditingContext}
+              className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
+              title={t("contextWindowOverrideLabel")}
+              aria-label={t("contextWindowOverrideLabel")}
+            >
+              <span className="material-symbols-outlined text-sm">edit</span>
+            </button>
+          )}
           <button
             onClick={() => onCopy(fullModel, `model-${modelId}`)}
             className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"

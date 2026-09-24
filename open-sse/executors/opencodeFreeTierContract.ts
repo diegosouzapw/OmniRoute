@@ -23,10 +23,19 @@
  */
 import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "../handlers/sseParser.ts";
 import {
+  getObservedToolNames,
   noteRefusedBorrowedToolNames,
   recordAcceptedToolNames,
   resolvePlaceholderNames,
 } from "./opencodeToolObservation.ts";
+import {
+  forgetAttempt,
+  planShape,
+  recallAttempt,
+  recordInjection,
+  rememberAttempt,
+  shapeKeyOf,
+} from "./opencodeRequestShape.ts";
 
 /**
  * What one gated request declared, kept until its outcome is known.
@@ -41,6 +50,8 @@ export interface FreeTierContractAttempt {
   readonly session: string | undefined;
   readonly borrowed: boolean;
   readonly clientToolNames: readonly string[];
+  /** A refusal may still be replayed in the other shape: its outcome is noted afterwards. */
+  readonly probe?: boolean;
 }
 
 /**
@@ -239,6 +250,70 @@ export function applyFreeTierRequestContract<T>(
   return next as T;
 }
 
+/**
+ * Merge a gated request's own tools with the names the store last saw accepted.
+ *
+ * A client that declares tools is left alone by `applyFreeTierRequestContract` — but the
+ * upstream inspects WHICH names are declared, and a subset it never saw pass (measured
+ * 2026-09-21: the 5 explore-agent tools `[glob, grep, read, webfetch, websearch]` on
+ * `muse-spark-1.3-contributor-free`, 11 refusals, zero passes) is answered 403
+ * FreeTierError. When such a refusal comes back, this rebuilds the same body with the
+ * observed names appended after the client's own entries: the client tools keep their
+ * full shape (description, parameters) so the model can still call them, while the
+ * appended names are list entries with an empty parameter object — the same shape the
+ * placeholder path uses, never a callable tool.
+ *
+ * Pure: returns the input body unchanged when no observed names are missing, so the
+ * caller can skip the retry on identity alone. Resolution order is the store's own:
+ * this conversation first, then any conversation on the model, then the operator's
+ * configured names.
+ */
+export function mergeClientToolsWithObserved<T>(
+  body: T,
+  requestFormat: string | null,
+  provider: string,
+  model: string,
+  session: string | undefined,
+  configured: readonly string[]
+): T {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+  const record = body as Record<string, unknown>;
+  if (!Array.isArray(record.tools) || record.tools.length === 0) return body;
+  const own = session ? getObservedToolNames(provider, model, session) : null;
+  const observed = own ?? getObservedToolNames(provider, model) ?? configured;
+  const have = new Set(clientToolNamesOf(body));
+  const missing = observed.filter((name) => !have.has(name));
+  if (missing.length === 0) return body;
+  const next: Record<string, unknown> = { ...(record as Record<string, unknown>) };
+  if (requestFormat === "openai-responses") {
+    next.tools = [
+      ...(record.tools as unknown[]),
+      ...missing.map((name) => ({
+        type: "function",
+        name,
+        description: PLACEHOLDER_TOOL_DESCRIPTION,
+        parameters: PLACEHOLDER_TOOL_PARAMETERS,
+      })),
+    ];
+    return next as T;
+  }
+  if (requestFormat === "openai" || requestFormat === null) {
+    next.tools = [
+      ...(record.tools as unknown[]),
+      ...missing.map((name) => ({
+        type: "function",
+        function: {
+          name,
+          description: PLACEHOLDER_TOOL_DESCRIPTION,
+          parameters: PLACEHOLDER_TOOL_PARAMETERS,
+        },
+      })),
+    ];
+    return next as T;
+  }
+  return body;
+}
+
 function clientToolNamesOf(body: unknown): string[] {
   if (!body || typeof body !== "object" || Array.isArray(body)) return [];
   const tools = (body as Record<string, unknown>).tools;
@@ -260,22 +335,71 @@ function clientToolNamesOf(body: unknown): string[] {
  * surface and model, resolves the placeholder names, applies the body changes, and hands
  * back the attempt so the outcome can be fed to `noteFreeTierOutcome`.
  */
+/**
+ * The attempt of the request being served, found by the identity of the body the executor was
+ * handed. It cannot live on the executor: that instance is shared, and two requests in flight
+ * would read each other's attempt when they finish. It is released when the request is over.
+ */
+export function attemptFor(origin: unknown): FreeTierContractAttempt | null {
+  return recallAttempt<FreeTierContractAttempt>(origin);
+}
+
+function isTrackable(value: unknown): value is object {
+  return typeof value === "object" && value !== null;
+}
+
 export function prepareFreeTierRequest<T>(
   body: T,
   requestFormat: string | null,
   surface: OpencodeSurface,
   provider: string,
   model: string,
-  session?: string
+  session?: string,
+  origin?: object
 ): { body: T; attempt: FreeTierContractAttempt | null } {
   const clientToolNames = clientToolNamesOf(body);
-  if (!requiresFreeTierRequestContract(surface, provider, model)) return { body, attempt: null };
+  if (!requiresFreeTierRequestContract(surface, provider, model)) {
+    if (isTrackable(origin)) forgetAttempt(origin);
+    return { body, attempt: null };
+  }
+  const eligible = isTrackable(origin) && clientToolNames.length === 0;
+  const key = eligible ? shapeKeyOf(provider, model, body) : "";
+  const plan =
+    isTrackable(origin) && eligible
+      ? planShape(origin, key)
+      : { shape: "tools" as const, probe: false };
+  const chosen = plan.shape;
   const names = resolvePlaceholderNames(provider, model, session, configuredPlaceholderToolNames());
-  const borrowed = clientToolNames.length === 0 && names.length > 0;
-  return {
-    body: applyFreeTierRequestContract(body, requestFormat, names),
-    attempt: { provider, model, session, borrowed, clientToolNames },
+  const borrowed = clientToolNames.length === 0 && names.length > 0 && chosen === "tools";
+  const attempt: FreeTierContractAttempt = {
+    provider,
+    model,
+    session,
+    borrowed,
+    clientToolNames,
+    probe: plan.probe,
   };
+  if (isTrackable(origin)) rememberAttempt(origin, attempt);
+  if (isTrackable(origin) && eligible) {
+    recordInjection(origin, {
+      shape: chosen,
+      key,
+      probe: plan.probe,
+      replayNote: () => noteFreeTierOutcome({ ...attempt, probe: false }, false),
+    });
+  }
+  return {
+    body:
+      chosen === "bare"
+        ? withStreaming(body)
+        : applyFreeTierRequestContract(body, requestFormat, names),
+    attempt,
+  };
+}
+
+function withStreaming<T>(body: T): T {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+  return { ...(body as Record<string, unknown>), stream: true } as T;
 }
 
 /**
@@ -297,6 +421,7 @@ export function noteFreeTierOutcome(attempt: FreeTierContractAttempt | null, ok:
     }
     return;
   }
+  if (attempt.probe) return;
   if (attempt.borrowed) {
     noteRefusedBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
   }

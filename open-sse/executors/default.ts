@@ -14,8 +14,9 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
-  mergeClientAnthropicBeta,
+  applyClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
+  maybeAppendSkillsBeta,
 } from "../config/anthropicHeaders.ts";
 import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
@@ -40,7 +41,6 @@ import {
   normalizeWatsonxChatUrl,
   normalizeOciChatUrl,
   normalizeSapChatUrl,
-  normalizeXiaomiMimoChatUrl,
   normalizeOpenAIChatUrl,
   getOpenRouterConnectionPreset,
 } from "./default/urlNormalizers.ts";
@@ -64,6 +64,7 @@ import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 import { normalizePoolConfig } from "./default/poolConfig.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
+import { xiaomiAlternateUrl, xiaomiMimoChatUrl } from "./default/xiaomiTokenPlan.ts";
 import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 
 const NVIDIA_TOOL_CALL_ID_PATTERN = /^[A-Za-z0-9]{9}$/;
@@ -266,7 +267,7 @@ export class DefaultExecutor extends BaseExecutor {
       if (alternate?.baseUrl && !hasManualBaseUrl) {
         // Operator's manual override (#6147) keeps its own semantics and falls
         // through to the provider-specific handling below.
-        const normalized = alternate.baseUrl.replace(/\/$/, "");
+        const normalized = xiaomiAlternateUrl(this.provider, alternate.baseUrl, credentials);
         // A model-scoped alternate (the Gemini protocol: `{base}/{model}:generateContent`)
         // builds its own URL — chatPath/urlSuffix are constants and cannot carry the model.
         if (alternate.urlBuilder) return alternate.urlBuilder(normalized, model, stream);
@@ -359,10 +360,10 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeSapChatUrl(baseUrl);
       }
       case "xiaomi-mimo":
-      case "xiaomi-mimo-token-plan": {
-        const baseUrl = this.resolveBaseUrl(credentials);
-        return normalizeXiaomiMimoChatUrl(baseUrl);
-      }
+      case "xiaomi-mimo-token-plan":
+        return xiaomiMimoChatUrl(this.provider, credentials, () =>
+          this.resolveBaseUrl(credentials)
+        );
       case "snowflake": {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSnowflakeChatUrl(baseUrl);
@@ -473,7 +474,9 @@ export class DefaultExecutor extends BaseExecutor {
     credentials,
     stream = true,
     clientHeaders?: Record<string, string> | null,
-    model?: string | null
+    model?: string | null,
+    _health?: unknown,
+    body?: unknown
   ) {
     const { headers, effectiveKey } = this.buildHeadersPreamble(credentials, stream);
 
@@ -687,19 +690,18 @@ export class DefaultExecutor extends BaseExecutor {
       // 400 "Tool reference not found". Allowlist-merge preserves it without
       // forwarding betas the backend rejects.
       const clientBeta = clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null;
-      const betaKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
-      if (betaKey && clientBeta) {
-        headers[betaKey] = mergeClientAnthropicBeta(
-          headers[betaKey],
-          clientBeta,
-          undefined,
-          // Gate the client-negotiated context-1m beta on the RESOLVED target model:
-          // combo/fallback can route a request negotiated for a [1m] sibling onto a
-          // model that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
-          model
-        );
-      }
+      // `model` gates the client-negotiated context-1m beta on the RESOLVED target:
+      // combo/fallback can route a request negotiated for a [1m] sibling onto a model
+      // that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
+      // `body` gates skills-2025-10-02 on presence of code_execution tool (#14200).
+      applyClientAnthropicBeta(headers, clientBeta, {
+        seedWhenAbsent: this.provider?.startsWith?.("anthropic-compatible-") === true,
+        model,
+        body,
+      });
     }
+
+    maybeAppendSkillsBeta(headers, this.provider, body, this.usesClaudeCodeProtocol(credentials));
 
     normalizeAnthropicHeaderVariants(headers);
 

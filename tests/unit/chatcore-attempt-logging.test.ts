@@ -174,6 +174,38 @@ test("duplicate tool_calls in the assembled body writes provider.spec_violation 
   );
 });
 
+test("video-observed duplicate tool calls retain an audit verdict without retaining the tool name", () => {
+  const privateName = "PRIVATE_VIDEO_TRANSCRIPT_IN_TOOL_NAME";
+  persistAttemptLogs(
+    {
+      status: 200,
+      responseBody: {
+        choices: [
+          {
+            message: {
+              tool_calls: [
+                { function: { name: privateName, arguments: "{}" } },
+                { function: { name: privateName, arguments: "{}" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    baseCtx({
+      pendingRequestId: "attempt-spec-video-1",
+      skillRequestId: "skill-spec-video-1",
+      videoContentRemoved: true,
+    })
+  );
+  const rows = getAuditLog({ action: "provider.spec_violation", requestId: "skill-spec-video-1" });
+  assert.equal(rows.length, 1);
+  const details = rows[0]?.details;
+  assert.ok(details && typeof details === "object");
+  assert.equal((details as { violation?: string }).violation, "duplicate tool_calls entry");
+  assert.equal(JSON.stringify(rows).includes(privateName), false);
+});
+
 test("unique tool_calls do not write provider.spec_violation audit", () => {
   persistAttemptLogs(
     {

@@ -21,7 +21,7 @@ import {
 } from "@/lib/memory/settings";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { logger } from "@omniroute/open-sse/utils/logger.ts";
-import { resolveProxy } from "@omniroute/open-sse/utils/networkProxy.ts";
+import { resolveProxyForConnection } from "@/lib/db/settings";
 import { withCodexFingerprintCredentials } from "@omniroute/open-sse/config/codexIdentity.ts";
 import { withReasoningRuleContext } from "@omniroute/open-sse/utils/reasoningRuleContext.ts";
 import { proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
@@ -609,9 +609,24 @@ async function resolveCodexUpstreamContext(
   };
 }
 
-async function resolveCodexProxy(provider: string): Promise<string | undefined> {
+async function resolveCodexProxy(
+  connectionId: string,
+  apiKeyId?: string | null,
+  provider?: string
+): Promise<string | undefined> {
   try {
-    return proxyConfigToUrl(await resolveProxy(provider)) || undefined;
+    // #14531: resolve through the same full cascade the HTTP path uses
+    // (per-key → account → provider → combo → global, Proxy Registry first,
+    // legacy key_value store after). The previous networkProxy.resolveProxy()
+    // read only the legacy store, so a proxy assigned in the Proxy Registry —
+    // what the dashboard's provider/account/global "Set Proxy" modals write —
+    // never reached the upstream WS connect and the bridge went out direct.
+    const resolved = await resolveProxyForConnection(
+      connectionId,
+      apiKeyId ?? undefined,
+      provider ?? undefined
+    );
+    return proxyConfigToUrl(resolved?.proxy ?? null) || undefined;
   } catch (err) {
     log.warn(`[codex-responses-ws] proxy resolution failed: ${sanitizeErrorMessage(err)}`);
     return undefined;
@@ -702,11 +717,15 @@ async function prepare(body: JsonRecord) {
   try {
     headers = normalizeUpstreamHeaders(executor.buildHeaders(credentialsWithFingerprint, true));
 
-    // #5611: apply the configured Global/provider proxy to the upstream Codex
-    // Responses WebSocket too. The downstream client→OmniRoute hop works, but the
-    // upstream wreq-js.websocket() connect previously ignored the Proxy Registry,
-    // so a no-direct-egress container failed with a DNS lookup error.
-    proxy = await resolveCodexProxy(provider);
+    // #5611: apply the configured proxy to the upstream Codex Responses
+    // WebSocket too. #14531: resolve it through the full per-connection
+    // cascade (Proxy Registry + legacy store, per-key → account → provider →
+    // combo → global) the HTTP path uses, not just the legacy key_value map.
+    proxy = await resolveCodexProxy(
+      refreshedCredentials.connectionId,
+      metadata?.id ?? null,
+      provider
+    );
   } catch (error) {
     releaseCodexWsLease(leaseId);
     return jsonError(

@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Slovenčina)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -182,44 +182,64 @@ S režimom Stacked:   10K-2.5K odoslaných tokenov     (vhodný rozsah RTK+Cavem
 
 ## Konfigurácia
 
-### Ovládací panel
+### Dashboard
 
-Prejdite na `Ovládací panel → Kontext a vyrovnávacia pamäť`:
+Prejdite na `Dashboard → Context & Cache`:
 
-- **Caveman** — výber režimu, jazykové balíky, náhľad a globálne predvolené nastavenia
-- **RTK** — náhľad filtrovania príkazov, bezpečnostné nastavenia RTK a katalóg filtrov
-- **Kombinácie kompresie** — pomenované reťazce enginov priradené ku kombináciám smerovania
-- **Prah automatického spustenia** — automaticky aktivuje kompresiu, keď počet tokenov prekročí prah
+- **Caveman** — výber režimu, jazykové balíčky, náhľad a globálne predvolené nastavenia
+- **RTK** — náhľad filtra príkazov, bezpečnostné nastavenia RTK a katalóg filtrov
+- **Compression Combos** — pomenované potrubia enginov priradené k smerovacím kombám
+- **Auto-Trigger Threshold** — automaticky zapne kompresiu, keď počet tokenov prekročí prahovú hodnotu
 
-### Prepísanie pre jednotlivé kombinácie
+### Prepis pre každé kombo
 
-V časti `Ovládací panel → Kontext a vyrovnávacia pamäť → Kombinácie kompresie` priraďte kombináciu kompresie ku kombinácii smerovania:
+V `Dashboard → Context & Cache → Compression Combos` priraďte kompresné kombo k smerovaciemu
+kombo:
 
 ```txt
-Kombinácia: "free-tier-fallback"
-  Kombinácia kompresie: "coding-agent-stack"
-  Reťazec: RTK -> Caveman
+Kombo: "free-tier-fallback"
+  Kompresné kombo: "coding-agent-stack"
+  Potrubie: RTK -> Caveman
   Ciele:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Vďaka tomu môžete používať vrstvenú kompresiu pri bezplatných poskytovateľoch a poskytovateľoch zameraných na programovanie, zatiaľ čo pri platených predplatných zostane zachovaný odľahčený režim.
+To vám umožní použiť vrstvenú kompresiu na bezplatných/kódovacích poskytovateľoch, zatiaľ čo na
+platených predplatných si ponecháte lite režim.
 
-Toto priradenie „Prepísanie pre jednotlivé kombinácie“ je iný ovládací prvok než prepísanie **režimu kompresie kombinácie smerovania** (Predvolené/Vypnuté/Odľahčené/Štandardné/Agresívne/Ultra) — toto prepísanie nevyberá pomenovaný reťazec kombinácie kompresie; iba nastavuje pole `compressionMode`, ktoré používa `resolveCompressionPlan`. Možno ho nastaviť buď na karte kombinácie (`Ovládací panel → Kombinácie`), alebo od #6760 pre jednotlivé kombinácie smerovania v zozname „Priradiť k smerovaniu“ v časti `Ovládací panel → Kontext a vyrovnávacia pamäť → Kombinácie kompresie`, hneď vedľa začiarkavacieho políčka na priradenie reťazca zdokumentovaného vyššie. Zmeny z oboch rozhraní sa ukladajú prostredníctvom rovnakého koncového bodu `PUT /api/combos/{id}`.
+Toto priradenie "Per-Combo Override" je iné ovládanie ako prepis **režimu kompresie smerovacieho
+komba** (Default/Off/Lite/Standard/Aggressive/Ultra) – tento prepis nevyberá pomenované potrubie
+kompresného komba; iba nastavuje pole `compressionMode`, ktoré konzultuje
+`resolveCompressionPlan`. Môže byť nastavené buď na karte komba (`Dashboard → Combos`), alebo, od
+#6760, pre každé smerovacie kombo v zozname "Assign to routing" na
+`Dashboard → Context & Cache → Compression Combos`, hneď vedľa zaškrtávacieho políčka pre priradenie
+potrubia, ktoré je popísané vyššie. Oba povrchy pretrvávajú prostredníctvom rovnakého koncového
+bodu `PUT /api/combos/{id}`.
 
-### Prepísanie pre jednotlivé požiadavky
+### Prepis pre každú požiadavku
 
-Odošlite hlavičku požiadavky `x-omniroute-compression`, aby ste prepísali plán kompresie pre jednu požiadavku. Má najvyššiu prioritu — má prednosť pred prepísaním kombinácie smerovania, aktívnym profilom, automatickým spustením aj predvoleným nastavením panela. Neznáme hodnoty sa ignorujú (požiadavka sa nikdy neodmietne) a globálny hlavný prepínač naďalej riadi všetko: keď je kompresia globálne vypnutá, hlavička ju nemôže zapnúť. Hodnoty:
+Odošlite hlavičku požiadavky `x-omniroute-compression` na prepísanie plánu kompresie pre jednu
+požiadavku. Má najvyššiu prioritu – prekonáva prepis smerovacieho komba, aktívny profil,
+automatické spustenie a predvolené nastavenie panela. Neznáme hodnoty sú ignorované (požiadavka
+nikdy nie je odmietnutá) a globálny hlavný prepínač stále všetko riadi: keď je kompresia globálne
+vypnutá, hlavička ju nemôže zapnúť. Hodnoty:
 
-| Hodnota       | Účinok                                                                                                    |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| `off`         | Bez kompresie pre túto požiadavku.                                                                        |
-| `default`     | Predvolený profil odvodený z panela (ignoruje aktívny profil).                                            |
-| `engine:<id>` | Jeden engine, ak je povolený, napr. `engine:rtk`.                                                         |
-| `<combo>`     | Pomenovaná kombinácia, najprv porovnávaná podľa názvu (bez rozlišovania veľkosti písmen), potom podľa id. |
+| Hodnota       | Účinok                                                                                                   |
+| ------------- | -------------------------------------------------------------------------------------------------------- |
+| `off`         | Žiadna kompresia pre túto požiadavku.                                                                    |
+| `default`     | Predvolený profil odvodený z panela (ignoruje aktívny profil). Stratové enginy zostávajú vypnuté.        |
+| `safe`        | Rovnaké ako vynechanie hlavičky: iba deduplikácia a skladanie medzier.                                   |
+| `allow-lossy` | Zachovať plán operátora tejto požiadavky, vrátane súhrnov, filtrov relevantnosti a prepisov štýlov.      |
+| `engine:<id>` | Jeden engine, keď je povolený, napr. `engine:rtk`. Toto je opt-in pre tento engine pre každú požiadavku. |
+| `<combo>`     | Pomenované kombo, zhodné najprv podľa názvu (nerozlišuje veľké a malé písmená), potom podľa ID.          |
 
-Použitý plán sa odošle späť v hlavičke odpovede `X-OmniRoute-Compression: <mode>; source=<source>`, kde `<source>` je jedna z hodnôt `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` alebo `off`.
+Bez `allow-lossy`, `engine:<id>` alebo pomenovaného komba sa stratové enginy nepoužijú. Požiadavka
+stále dostane deduplikáciu relácie a skladanie medzier, keď je kompresia zapnutá.
+
+Použitý plán sa vráti v hlavičke odpovede `X-OmniRoute-Compression: <mode>; source=<source>`, kde
+`<source>` je jedna z `request-header`, `routing-override`, `active-profile`, `auto-trigger`,
+`default` alebo `off`.
 
 ### API
 
@@ -232,12 +252,12 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Náhľad konkrétneho obsahu RTK/stacked
+# Náhľad špecifického RTK/vrstveného užitočného zaťaženia
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# Zobrazenie zoznamu balíkov filtrov RTK
+# Zoznam balíkov filtrov RTK
 curl http://localhost:20128/api/context/rtk/filters
 
 # Priame testovanie RTK s voliteľnými metadátami príkazu
@@ -287,13 +307,13 @@ Každá komprimovaná požiadavka obsahuje štatistiky v serverových protokoloc
 
 ## Plán fáz
 
-| Fáza    | Režimy                                                                                                                                                                         | Stav      |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| Fáza 1  | Off, Lite                                                                                                                                                                      | ✅ Vydané |
-| Fáza 2  | Standard, Aggressive, Ultra                                                                                                                                                    | ✅ Vydané |
-| Fáza 3  | RTK, Stacked, Compression Combos                                                                                                                                               | ✅ Vydané |
-| Fáza 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                                                    | ✅ Vydané |
-| Fáza 4C | Adaptívny kontextový rozpočet („ovládač“) — výpočtový mechanizmus + API (`contextBudget` v `PUT /api/settings/compression`) + ovládacie prvky režimu/zásad na ovládacom paneli | ✅ Vydané |
+| Fáza    | Režimy                                                                                                                                                               | Stav      |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Fáza 1  | Off, Lite                                                                                                                                                            | ✅ Dodané |
+| Fáza 2  | Standard, Aggressive, Ultra                                                                                                                                          | ✅ Dodané |
+| Fáza 3  | RTK, Stacked, Compression Combos                                                                                                                                     | ✅ Dodané |
+| Fáza 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                                          | ✅ Dodané |
+| Fáza 4C | Adaptívny rozpočet kontextu ("volič") — výpočtový engine + API (`contextBudget` na `PUT /api/settings/compression`) + ovládacie prvky režimu/politiky palubnej dosky | ✅ Dodané |
 
 ---
 
@@ -307,26 +327,26 @@ Režim RTK je inšpirovaný projektom **[RTK - Rust Token Killer](https://github
 
 ## Pokročilé kompresné systémy
 
-Okrem 7 štandardných režimov obsahuje OmniRoute niekoľko pokročilých kompresných
-systémov, ktoré fungujú automaticky podľa kontextu.
+Okrem 7 štandardných režimov OmniRoute zahŕňa niekoľko pokročilých kompresných
+systémov, ktoré fungujú automaticky na základe kontextu.
 
-### Kompresia zohľadňujúca vyrovnávaciu pamäť
+### Kompresia s ohľadom na cache
 
-Niektorí poskytovatelia (napríklad Anthropic s ukladaním promptov do vyrovnávacej pamäte) podporujú **ukladanie promptov do vyrovnávacej pamäte**,
-ktoré im umožňuje ukladať časti promptu s cieľom znížiť náklady a latenciu. Keď je
-ukladanie do vyrovnávacej pamäte povolené, agresívna kompresia môže v skutočnosti **zhoršiť** výkon,
-pretože mení tokeny uložené vo vyrovnávacej pamäti, čím ju zneplatní.
+Niektorí poskytovatelia (ako Anthropic s prompt caching) podporujú **prompt caching**,
+ktoré im umožňuje ukladať časti promptu do cache, aby sa znížili náklady a latencia. Keď
+je caching povolený, agresívna kompresia môže v skutočnosti **poškodiť** výkon,
+pretože mení tokeny v cache, čím cache zneplatňuje.
 
-Modul `cachingAware.ts` tento problém rieši **detegovaním kontextu ukladania do vyrovnávacej pamäte** a
-zodpovedajúcou **úpravou stratégie kompresie**.
+Modul `cachingAware.ts` to rieši **detekciou kontextu cache** a
+**prispôsobením stratégie kompresie** podľa toho.
 
 #### Ako to funguje
 
-1. **Detegovanie kontextu ukladania do vyrovnávacej pamäte** — Prehľadá telo požiadavky a vyhľadá značky `cache_control`
-2. **Identifikácia poskytovateľov s podporou vyrovnávacej pamäte** — Skontroluje, či cieľový poskytovateľ podporuje ukladanie do vyrovnávacej pamäte
-3. **Úprava stratégie** — Pre poskytovateľov s podporou vyrovnávacej pamäte zníži režim `aggressive`/`ultra` na `standard`
-4. **Vynechanie systémového promptu** — Systémové prompty sa zvyčajne ukladajú do vyrovnávacej pamäte, preto ich nekomprimuje
-5. **Použitie deterministických transformácií** — Používa iba transformácie, ktoré vytvárajú konzistentný výstup
+1.  **Detekcia kontextu cache** — Skenuje telo požiadavky na značky `cache_control`
+2.  **Identifikácia poskytovateľov s cachingom** — Kontroluje, či cieľový poskytovateľ podporuje caching
+3.  **Prispôsobenie stratégie** — Znižuje `aggressive`/`ultra` na `standard` pre poskytovateľov s cachingom
+4.  **Preskočenie systémového promptu** — Systémové prompty sú zvyčajne v cache, takže ich nekomprimujte
+5.  **Použitie deterministických transformácií** — Používajte iba transformácie, ktoré produkujú konzistentný výstup
 
 #### Príklad kódu
 
@@ -339,7 +359,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Značka vyrovnávacej pamäte
+  cache_control: { type: "ephemeral" }, // ← Cache marker
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -351,21 +371,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kedy použiť
 
-Kompresia zohľadňujúca vyrovnávaciu pamäť je **vždy zapnutá** — nie je potrebná žiadna konfigurácia. Aktivuje sa iba
-vtedy, keď:
+Kompresia s ohľadom na cache je **vždy zapnutá** — nevyžaduje žiadnu konfiguráciu. Aktivuje sa
+iba vtedy, keď:
 
 - Požiadavka obsahuje značky `cache_control`
-- Cieľový poskytovateľ podporuje ukladanie promptov do vyrovnávacej pamäte (Anthropic, OpenAI atď.)
+- Cieľový poskytovateľ podporuje prompt caching (Anthropic, OpenAI atď.)
 
 ### Progresívne starnutie
 
-V dlhých konverzáciách sa hromadí veľa kôl správ, ale staršie kolá sa stávajú menej
-relevantnými. Modul `progressiveAging.ts` **degraduje správy podľa vzdialenosti kola**:
+Dlhé konverzácie akumulujú mnoho správ, ale staršie správy sa stávajú menej
+relevantnými. Modul `progressiveAging.ts` **degraduje správy podľa vzdialenosti ťahu**:
 
-- **Nedávne kolá (0-3)**: Zachované doslovne (úplné podrobnosti)
-- **Stredne staré kolá (4-8)**: Kompresia Lite (odstránenie nadbytočných medzier a úprava formátovania)
-- **Staré kolá (9+)**: Kompresia Caveman (odstránenie výplňových slov, sumarizácia)
-- **Veľmi staré kolá (20+)**: Výrazne zhrnuté alebo odstránené
+- **Nedávne ťahy (0-3)**: Zachované doslovne (plné detaily)
+- **Stredné ťahy (4-8)**: Ľahká kompresia (medzery, vyčistenie formátovania)
+- **Staré ťahy (9+)**: Jaskynná kompresia (odstránenie výplní, zhrnutie)
+- **Veľmi staré ťahy (20+)**: Silne zhrnuté alebo vynechané
 
 #### Príklad kódu
 
@@ -376,14 +396,14 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... ďalších 50 kôl ...
+  // ... 50 more turns ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Prvé 3 kolá: doslovne
-  light: 8, // Kolá 4 – 8: kompresia lite
-  moderate: 20, // Kolá 9 – 20: kompresia caveman
-  // Kolá 21+: výrazná sumarizácia
+  verbatim: 3, // Prvé 3 ťahy: doslovne
+  light: 8, // Ťahy 4-8: ľahká kompresia
+  moderate: 20, // Ťahy 9-20: jaskynná kompresia
+  // Ťahy 21+: silné zhrnutie
 });
 
 // saved = počet ušetrených tokenov
@@ -394,30 +414,30 @@ const { messages: aged, saved } = applyAging(messages, {
 Progresívne starnutie je **vždy zapnuté** pre režimy `aggressive` a `ultra`. Je
 obzvlášť účinné pre:
 
-- Dlhé programovacie relácie
+- Dlhotrvajúce kódovacie relácie
 - Viacdňové konverzácie
 - Agentné pracovné postupy s mnohými volaniami nástrojov
 
-### Režim výstupu Caveman
+### Režim výstupu "Jaskynný človek" (Caveman Output Mode)
 
-Modul `outputMode.ts` vkladá **inštrukcie systémovej výzvy**, aby samotný
-model vytváral komprimovaný, stručný výstup (štýl „jaskynného človeka“).
+Modul `outputMode.ts` vkladá **inštrukcie do systémového promptu**, aby samotný
+model produkoval komprimovaný, stručný výstup (štýl "jaskynného človeka").
 
 #### Ako to funguje
 
-Namiesto komprimovania vstupu tento režim pridáva systémovú výzvu, napríklad:
+Namiesto kompresie vstupu tento režim pridá systémový prompt ako:
 
-> „Odpovedaj minimálnym počtom slov. Vynechaj zdvorilostné frázy. Používaj krátke vety.“
+> "Odpovedajte minimálnymi slovami. Vynechajte zdvorilosti. Používajte krátke vety."
 
-Funguje to obzvlášť dobre pre:
+To funguje obzvlášť dobre pre:
 
 - Generovanie kódu (stručnejší výstup = menej tokenov)
-- Rýchle otázky a odpovede (bez potreby podrobných vysvetlení)
+- Rýchle otázky a odpovede (nie je potrebné rozsiahle vysvetľovanie)
 - Dávkové spracovanie (maximalizácia priepustnosti)
 
-#### Kedy ho použiť
+#### Kedy použiť
 
-Režim výstupu Caveman je **voliteľný** — nastavte ho prostredníctvom kombinovanej konfigurácie:
+Režim výstupu "jaskynný človek" je **voliteľný** — nastavte ho prostredníctvom kombinovanej konfigurácie:
 
 ```json
 {
@@ -432,39 +452,39 @@ Režim výstupu Caveman je **voliteľný** — nastavte ho prostredníctvom komb
 
 ### Štýly výstupu (katalóg)
 
-Vyššie uvedený režim výstupu Caveman je **pôvodná cesta s jediným štýlom**. Fáza 4 ho zovšeobecnila
-na katalóg kombinovateľných štýlov výstupu: `OUTPUT_STYLE_CATALOG` v
-`open-sse/services/compression/outputStyles/catalog.ts`. Každý štýl predstavuje inštrukciu systémovej výzvy,
-ktorá vedie samotný model k vytváraniu lacnejšieho výstupu; štýly možno zapnúť
-spoločne a vkladajú sa v poradí katalógu.
+Vyššie uvedený režim výstupu "jaskynný človek" je **stará cesta s jedným štýlom**. Fáza 4 ho zovšeobecnila
+do katalógu skladateľných štýlov výstupu: `OUTPUT_STYLE_CATALOG` v
+`open-sse/services/compression/outputStyles/catalog.ts`. Každý štýl je inštrukcia v systémovom promtpte,
+ktorá prinúti samotný model produkovať lacnejší výstup; štýly môžu byť povolené spoločne a sú vkladané
+v poradí podľa katalógu.
 
-| Štýl                         | `id`          | Čo robí                                                                                                                                                                                                                        | Jazyky inštrukcií                                                                               |
-| ---------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| Stručná próza                | `terse-prose` | Odstraňuje výplňové slová/členy/váhavé formulácie; zachováva presný technický obsah. Rovnaký text ako v pôvodnom režime výstupu Caveman (odkazuje sa naň, neopakuje sa).                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                   |
-| Menej kódu                   | `less-code`   | Rebríček YAGNI: najmenšia funkčná zmena, žiadne nevyžiadané abstrakcie.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                   |
-| Cop (lenivý skúsený vývojár) | `ponytail`    | „Najlepší kód je kód, ktorý nikdy nebol napísaný“: opätovné použitie > prepisovanie, základná príčina > príznak, najkratší funkčný diff.                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                   |
-| Mám ADHD (najprv akcia)      | `i-have-adhd` | Najprv akcia (príkaz/cesta/úryvok pred opisom), očíslované kroky s obmedzeným rozsahom, JEDEN konkrétny ďalší krok, bez úvodu/zhrnutia/záveru. Adaptované z [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                   |
-| Stručné CJK (文言)           | `terse-cjk`   | Mimoriadne stručný štýl klasickej čínštiny.                                                                                                                                                                                    | zh (obmedzené podľa miestneho nastavenia: ponúka sa len vtedy, keď je rozpoznaným jazykom `zh`) |
+| Štýl                         | `id`          | Čo robí                                                                                                                                                                                                                      | Jazyky inštrukcií                                                           |
+| :--------------------------- | :------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------- |
+| Stručná próza                | `terse-prose` | Vypúšťa výplňové slová/články/zdržiavanie; zachováva presnú technickú podstatu. Rovnaký text ako starý výstupný režim caveman (odkazovaný, nie prepísaný).                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
+| Menej kódu                   | `less-code`   | YAGNI rebrík: najmenšia funkčná zmena, žiadne nevyžiadané abstrakcie.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
+| Ponytail (lenivý senior dev) | `ponytail`    | "Najlepší kód je kód, ktorý nikdy nebol napísaný": opätovné použitie > prepísanie, hlavná príčina > symptóm, najkratší funkčný rozdiel.                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
+| Mám ADHD (akcia-prvá)        | `i-have-adhd` | Akcia prvá (príkaz/cesta/úryvok pred prózou), číslované ohraničené kroky, JEDEN konkrétny ďalší krok, žiadna preambula/rekapitulácia/závery. Adaptované z [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
+| Stručné CJK (文言)           | `terse-cjk`   | Klasický čínsky ultra-stručný štýl.                                                                                                                                                                                          | zh (obmedzené na lokalitu: ponúkané len vtedy, keď je rozlíšený jazyk `zh`) |
 
 Každý štýl obsahuje tri úrovne intenzity — `lite`, `full`, `ultra` — a každá úroveň
-sa končí spoločnou klauzulou o hraniciach, ktorá zachováva bloky kódu, cesty k súborom, príkazy,
-chybové reťazce, adresy URL a identifikátory bez zmien.
+končí spoločnou klauzulou o hraniciach, ktorá zachováva bloky kódu, cesty k súborom, príkazy,
+chybové reťazce, URL a identifikátory doslovne.
 
-#### Ako funguje vkladanie
+#### Ako funguje injekcia
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) porovná
-výber s katalógom (neznáme id a štýly nezodpovedajúce miestnemu nastaveniu sa
-vynechajú, nikdy nespôsobia chybu), zreťazí vybrané inštrukcie v poradí katalógu,
-pripojí klauzulu o hraniciach **raz** a vloží výsledok na začiatok systémovej
-výzvy za jedinú značku idempotencie (`[OmniRoute Output Styles]`) — opätovné
-použitie nevykoná žiadnu operáciu. Keď existuje pre rozpoznaný jazyk požiadavky preklad,
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) rozrieši
+výber voči katalógu (neznáme ID a štýly s nesúladom lokality sú
+vynechané, nikdy nejde o chybu), zreťazí vybrané inštrukcie v poradí katalógu,
+pripojí klauzulu o hraniciach **raz** a vloží výsledok na začiatok
+systémovej výzvy za jediným markerom idempotencie (`[OmniRoute Output Styles]`) — opätovné použitie
+je no-op. Keď má detekovaný jazyk požiadavky preklad,
 namiesto angličtiny sa vloží lokalizovaná inštrukcia.
 
-#### Ako zapnúť
+#### Ako povoliť
 
-Na ovládacom paneli: **Kontext → Nastavenia → Kompresia** — jeden riadok pre každý štýl
-s prepínačom zapnutia/vypnutia a výberom úrovne. Programovo konfigurácia kompresie uchováva
-výber takto:
+Na paneli: **Context → Settings → Compression** — jeden riadok pre každý štýl s
+prepínačom zapnutia/vypnutia a voličom úrovne. Programovo, konfigurácia kompresie
+uchováva výber ako:
 
 ```json
 {
@@ -475,17 +495,17 @@ výber takto:
 }
 ```
 
-Spätná kompatibilita: pôvodné kombinované nastavenie `outputMode: "caveman"` naďalej funguje a mapuje sa na
-`terse-prose`, pričom je na úrovni bajtov totožné so starým vkladaním v každom pôvodne podporovanom jazyku.
+Spätná kompatibilita: staré kombinované nastavenie `outputMode: "caveman"` stále funguje a mapuje sa na
+`terse-prose`, bajtovo identické so starou injekciou v každom staršom jazyku.
 
-Výber jazyka: keď je zapnuté `languageConfig.enabled`, `autoDetect` vyberie
-jazyk najnovšej správy používateľa (rovnaký detektor ako vo vstupných moduloch);
-vypnutie `autoDetect` nastaví napevno `defaultLanguage`. Vypnuté → angličtina.
+Výber jazyka: s povoleným `languageConfig.enabled` `autoDetect` vyberie
+jazyk poslednej správy používateľa (rovnaký detektor ako vstupné enginy);
+vypnutie `autoDetect` pripne `defaultLanguage`. Vypnuté → Angličtina.
 
-Matica štýl × jazyk je pevne stanovená testom
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: nový štýl nemožno vydať
-bez aspoň prekladu pt-BR (alebo explicitne sledovanej výnimky) a
-existujúci štýl nemôže bez upozornenia stratiť miestne nastavenie. Informácie o pridaní štýlu nájdete v
+Matica štýl × jazyk je pripnutá pomocou
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: nový štýl nemôže byť dodaný
+bez aspoň pt-BR prekladu (alebo explicitnej sledovanej výnimky) a
+existujúci štýl nemôže potichu stratiť lokalitu. Ak chcete pridať štýl, pozrite si
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Kompresia výsledkov nástrojov
@@ -493,41 +513,41 @@ existujúci štýl nemôže bez upozornenia stratiť miestne nastavenie. Inform�
 Modul `toolResultCompressor.ts` poskytuje **5 špecializovaných stratégií kompresie**
 pre výsledky nástrojov (volania funkcií, výstupy agentov, výsledky vyhľadávania atď.):
 
-1. **Kompresia výsledkov vyhľadávania** — Odstraňuje redundantné výsledky, zachováva najlepších N
-2. **Kompresia čítania súborov** — Skracuje veľké súbory, zachováva hlavičky/importy
-3. **Kompresia vykonávania kódu** — Zachováva iba podstatný stdout/stderr
-4. **Kompresia databázových dotazov** — Obmedzuje počet riadkov, odstraňuje rozvláčne metadáta
-5. **Kompresia odpovedí API** — Odstraňuje polia s hodnotou null, kondenzuje polia
+1.  **Kompresia výsledkov vyhľadávania** — Odstraňuje redundantné výsledky, ponecháva top-N
+2.  **Kompresia čítania súborov** — Skracuje veľké súbory, zachováva hlavičky/importy
+3.  **Kompresia vykonávania kódu** — Ponecháva len podstatné stdout/stderr
+4.  **Kompresia databázových dotazov** — Obmedzuje riadky, odstraňuje podrobné metadáta
+5.  **Kompresia odpovedí API** — Odstraňuje nulové polia, zhusťuje polia
 
-#### Kedy ju použiť
+#### Kedy použiť
 
 Kompresia výsledkov nástrojov je **vždy zapnutá**, keď sú prítomné volania nástrojov. Nie je
 potrebná žiadna konfigurácia.
 
-### Reťazené spracovanie
+### Skladaný pipeline
 
-Reťazený režim spúšťa **viacero modulov za sebou** — zvyčajne najprv RTK
-(úspora 60–90 % pri výstupe nástrojov), potom Caveman (ďalšia úspora 30 % zo
-zostávajúceho textu). Tým sa dosahuje **celková úspora 78–95 %**.
+Skladaný režim spúšťa **viacero enginov v sekvencii** — zvyčajne najprv RTK
+(60-90% úspora na výstupe nástroja), potom Caveman (ďalších 30% úspora na
+zostávajúcom texte). Tým sa dosiahne **celková úspora 78-95%**.
 
 #### Ako to funguje
 
 ```
 Vstup (1000 tokenov)
-  → RTK (filter zohľadňujúci príkazy) → 200 tokenov
+  → RTK (filter s vedomím príkazu) → 200 tokenov
     → Caveman (odstránenie výplne) → 140 tokenov
-  → Výstup (140 tokenov, úspora 86 %)
+  → Výstup (140 tokenov, 86% úspora)
 ```
 
-#### Kedy ho použiť
+#### Kedy použiť
 
-Reťazený režim použite pre:
+Skladaný režim použite pre:
 
-- Pracovné postupy intenzívne využívajúce nástroje (agentné programovanie, výskum)
-- Dávkové spracovanie citlivé na náklady
-- Situácie, keď potrebujete maximálnu úsporu tokenov
+- Pracovné postupy náročné na nástroje (agentné kódovanie, výskum)
+- Nákladovo citlivé dávkové spracovanie
+- Keď potrebujete maximálnu úsporu tokenov
 
-Nakonfigurujte ho prostredníctvom kombinovanej konfigurácie:
+Konfigurujte pomocou kombinácie:
 
 ```json
 {

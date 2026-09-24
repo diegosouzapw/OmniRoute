@@ -1,19 +1,19 @@
 # README (Dansk)
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [or](../or/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇧🇦 [bs](../bs/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [or](../or/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute-dashboard" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute-kontrolpanel" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Den gratis AI-gateway
+# 🚀 OmniRoute — Den Gratis AI-Gateway
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Stop aldrig med at kode. Alle AI-værktøjer → 359 udbydere — 150+ gratis — gennem ét endpoint. Claude Code, Codex, Cursor, Cline, Copilot og Antigravity med GRATIS Claude / GPT / Gemini og automatisk fallback. RTK + Caveman-stablet komprimering sparer 15–95 % tokens (~89 % i gennemsnit) — nå aldrig grænserne. 359 AI-udbydere · 150+ gratis niveauer · ~1,62 mia. gratis tokens/md. · 19 routingstrategier · $0 for at komme i gang."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Stop aldrig med at kode. Hvert AI-værktøj → 358 udbydere — 150+ gratis — gennem ét endepunkt. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity ind i GRATIS Claude / GPT / Gemini med automatisk fallback. RTK + Caveman stablet komprimering sparer 15–95% tokens (~89% i gns.) — ram aldrig grænser. 358 AI-udbydere · 150+ gratis niveauer · ~1.62B gratis tokens/md. · 19 routingstrategier · $0 at starte."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 Virker med det samme, du installerer det — ingen nøgler, ingen konfiguration
+## 🆓 Virker med det samme du installerer det — ingen nøgler, ingen konfiguration
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Virker med det samme, du installerer det — ingen konfiguration. Tre trin: 1. Installér — npm i -g omniroute, serveren starter på localhost:20128. 2. Peg dit værktøj mod http://localhost:20128/v1 — ethvert OpenAI-kompatibelt værktøj (Claude Code, Cursor, Cline). 3. Det svarer — kald modellen auto for at få et øjeblikkeligt svar uden API-nøgle, tilmelding eller konfiguration. Den nøglefri udbyder OpenCode Free er på forhånd koblet til auto-kombinationen, så en ny installation svarer med det samme."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Virker med det samme du installerer det — nul konfiguration. Tre trin: 1. Installer — npm i -g omniroute, serveren starter på localhost:20128. 2. Peg dit værktøj mod http://localhost:20128/v1 — ethvert OpenAI-kompatibelt værktøj (Claude Code, Cursor, Cline). 3. Den svarer — kald model auto for et øjeblikkeligt svar, uden API-nøgle, ingen tilmelding, ingen konfiguration. Nøglefri udbyder OpenCode Free er forudkonfigureret i auto-kombinationen, så en frisk installation svarer med det samme."/>
 
 ```bash
-# Ny installation, ingen legitimationsoplysninger — `auto` virker allerede:
+# Frisk installation, nul legitimationsoplysninger — `auto` virker allerede:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Foretrækker du en bestemt gratis backend? Kald `oc/…` (OpenCode Free) direkte. Gå derefter videre til `auto`, og lad OmniRoute vælge.</sub>
+<sub>Foretrækker du en specifik gratis backend? Kald `oc/…` (OpenCode Free) direkte. Gå derefter over til `auto` og lad OmniRoute vælge.</sub>
 
-<sub>📦 Kopiér og indsæt quickstart-scripts til **Python, Node.js, PHP og cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Kopiér-indsæt quickstart-scripts til **Python, Node.js, PHP og cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Løftet — ét endpoint og 359 udbydere. Automatisk fallback fortsætter routingen, så længe et andet velfungerende mål er tilgængeligt. Seks søjler: robust fallback på tværs af 359 udbydere · op til 95 % tokenbesparelse på egnede arbejdsbelastninger · start for $0 med over 150 gratis niveauer og 54 tilbagevendende/nøglefri udbydere, som er gratis for altid · 36 CLI-/agentintegrationer via én konfiguration · kompatibilitet med OpenAI, Claude, Gemini og Responses API på /v1 · produktionsstyring, herunder circuit breakers, TLS-stealth, MCP med 110 værktøjer, A2A, hukommelse, sikkerhedsbegrænsninger, evalueringer og over 39.000 statiske testdeklarationer på tværs af over 5.100 registrerede testfiler."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Løftet — Ét endpoint og 358 udbydere. Automatisk fallback fortsætter routing, så længe et andet sundt mål er tilgængeligt. Seks søjler: robust fallback på tværs af 358 udbydere · op til 95% token-besparelser på kvalificerede arbejdsbyrder · 0 kr. at starte med 150+ gratis niveauer og 54 tilbagevendende/nøglefri gratis-for-altid udbydere · 36 CLI/agent-integrationer via én konfiguration · OpenAI, Claude, Gemini og Responses API-kompatibilitet på /v1 · produktionskontroller inklusive afbrydere, TLS stealth, MCP 110-værktøjer, A2A, hukommelse, guardrails, evalueringer og 39.000+ statiske testdeklarationer på tværs af 5.100+ sporede testfiler."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Hvorfor OmniRoute — slip for at jonglere med 10 dashboards, udløbne API-nøgler og uventede regninger. Ti daglige problemer og løsninger: kvote udløber ubrugt → få mest muligt ud af abonnementer; hastighedsbegrænsninger midt i kodningen → automatisk fallback i 4 niveauer (abonnement → API → billig → gratis); værktøjsoutput bruger tokens → RTK + Caveman-komprimering (15–95 %); dyre API'er → omkostningsoptimeret routing; hvert værktøj kræver sin egen opsætning → ét endpoint, ét dashboard; AI er blokeret → proxy i 3 niveauer + TLS-stealth; udløbne nøgler → robusthed i 3 lag (circuit breakers, afkøling af nøgler, modellåsning); teamet deler ét abonnement → nøglepuljer med kvoter til retfærdig fordeling; prompts sendes gennem en andens cloud → local-first med AES-256-GCM-krypterede nøgler; ingen indsigt i forbrug → liveanalyse (forbrug, kvote, besparelser, p95-latenstid)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Hvorfor OmniRoute — stop med at jonglere med 10 dashboards, døde API-nøgler og overraskende regninger. Ti daglige problemer vs. løsninger: kvote udløber ubrugt → maksimer abonnementer; rate-begrænsninger midt i kodning → 4-lags auto-fallback (Abonnement → API → Billig → Gratis); værktøjsoutput brænder tokens → RTK + Caveman-komprimering (15–95%); dyre API'er → omkostningsoptimeret routing; hvert værktøj sin egen opsætning → ét endpoint, ét dashboard; AI blokeret → 3-lags proxy + TLS stealth; døde nøgler → 3-lags robusthed (afbrydere, nøgle-nedkøling, model-låsning); team deler ét abonnement → nøglepuljer med fair-share kvoter; prompts via en andens sky → lokalt-først med AES-256-GCM krypterede nøgler; ingen forbrugsoversigt → live-analyse (forbrug, kvote, besparelser, p95 latenstid)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute-anmodningsflow: Din IDE eller CLI (Claude Code, Cursor, Cline…) kalder ét lokalt endpoint (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman-komprimering, 19 routingstrategier, circuit breakers, TLS-stealth, MCP, A2A, sikkerhedsbegrænsninger) kan benytte fallback på tværs af 4 udbyderniveauer, så længe et egnet og velfungerende mål er tilgængeligt — niveau 1: abonnement, niveau 2: API-nøgle, niveau 3: billig og niveau 4: gratis."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute anmodningsflow: din IDE eller CLI (Claude Code, Cursor, Cline…) kalder ét lokalt endpoint (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman-komprimering, 19 routingstrategier, afbrydere, TLS stealth, MCP, A2A, guardrails) kan falde tilbage på tværs af 4 udbyderniveauer, så længe et kvalificeret sundt mål forbliver — Niveau 1 Abonnement, Niveau 2 API-nøgle, Niveau 3 Billig og Niveau 4 Gratis."/>
 
 </div>
 
@@ -268,11 +268,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — åben intelligens på frontniveau · 2,8 billioner parametre · kontekst på 1 mio. tokens"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — banebrydende åben intelligens · 2,8 billioner parametre · kontekst på 1 mio. tokens"/>
   </a>
 </p>
 
-> **Vil du være med som open source-ven?** Det er virksomhederne, der støtter open source og hjælper med at holde OmniRoute i gang — og vi fortæller offentligt, hvad hver eneste token, de giver os, bruges til. Kontakt os: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Vil du være med som open source-ven?** Det er virksomhederne, der støtter open source og hjælper med at holde OmniRoute i gang — og vi fortæller offentligt, hvor hvert eneste token, de giver os, bliver brugt. Kontakt os: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -287,9 +287,9 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Stiftende open source-ven"/>
     </td>
     <td>
-      Tak til <b>Kimi (Moonshot AI)</b>, vores stiftende open source-ven, for at støtte dette projekt! Kimi er AI-laboratoriet bag modelfamilierne K2 og K3 med åbne vægte — <b>Kimi K3</b> leverer et kontekstvindue på 1 mio. tokens, indbygget understøttelse af billeder og programmering på frontniveau til en brøkdel af priserne på lukkede modeller og fungerer direkte med Claude Code, Codex og alle de programmeringsværktøjer, som OmniRoute betjener.
+      Tak til <b>Kimi (Moonshot AI)</b>, vores stiftende open source-ven, for at støtte dette projekt! Kimi er AI-laboratoriet bag K2- og K3-modelfamilierne med åbne vægte — <b>Kimi K3</b> leverer et kontekstvindue på 1 mio. tokens, indbygget vision og kodning på højeste niveau til en brøkdel af priserne på lukkede modeller og fungerer direkte med Claude Code, Codex og alle de kodningsværktøjer, som OmniRoute understøtter.
       <br/><br/>
-      <b>Det muliggør Kimis støtte:</b> Kimis API-kreditter driver OmniRoutes AI-validerede udgivelsespipeline — fasen <i>fletningsvalidering drevet af Kimi K3</i>, som gennemgår hver pull request, før den udgives — samt den daglige udvikling af funktioner. Førsteklasses understøttelse af Kimi leveres via begge kanaler: den direkte <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) og <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code-abonnementet til programmering</a> (OAuth og API-nøgle). OmniRoute er også det første brasilianske open source-projekt i Kimis støtteprogram. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Få en Kimi API-nøgle med 15 % ekstra kreditter →</b></a>
+      <b>Det muliggør Kimis støtte:</b> Kimis API-kreditter driver OmniRoutes AI-validerede udgivelsespipeline — fasen <i>mergevalidering drevet af Kimi K3</i>, som gennemgår hver pull request, før den udgives — samt den daglige funktionsudvikling. Førsteklasses understøttelse af Kimi leveres via begge muligheder: den direkte <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) og <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code-abonnementet til kodning</a> (OAuth og API-nøgle). OmniRoute er også det første brasilianske open source-projekt i Kimis støtteprogram. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Få en Kimi API-nøgle med 15 % ekstra kreditter →</b></a>
     </td>
   </tr>
   <tr>
@@ -301,9 +301,9 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open source-ven"/>
     </td>
     <td>
-      Tak til <b>Cheaper Inference</b>, en af OmniRoutes open source-venner, for at støtte dette projekt! Cheaper Inference er en gateway, der rangerer efter pris og videresælger 42 frontmodeller — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok og MiniMax — bag ét OpenAI-kompatibelt endpoint og dirigerer hver anmodning til den billigste kvalificerede udbyder uden nogensinde at opkræve mere end modelproducentens listepris.
+      Tak til <b>Cheaper Inference</b>, en af OmniRoutes open source-venner, for at støtte dette projekt! Cheaper Inference er en gateway rangeret efter pris, som videresælger 42 banebrydende modeller — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok og MiniMax — via ét OpenAI-kompatibelt endpoint og videresender hver anmodning til den billigste kvalificerede udbyder uden nogensinde at opkræve mere end modelproducentens listepris.
       <br/><br/>
-      <b>Førsteklasses understøttelse i OmniRoute:</b> Chat Completions, det indbyggede <code>/v1/responses</code>-endpoint, billeder, værktøjskald og 3 billedmodeller (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, som kan tilgås som <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Få en API-nøgle →</b></a>
+      <b>Førsteklasses understøttelse i OmniRoute:</b> Chat Completions, det indbyggede <code>/v1/responses</code>-endpoint, vision, værktøjskald og 3 billedmodeller (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, tilgængelige som <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Få en API-nøgle →</b></a>
     </td>
   </tr>
 </table>
@@ -313,9 +313,9 @@ curl http://localhost:20128/v1/chat/completions \
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Partnerkampagne</b> — gratis tilmeldingskuponer fra udbydere, der ikke sponsorerer os (klik for at udvide)</sub></summary>
+<summary><sub><b>🎟️ Partnerkampagner</b> — gratis tilmeldingskuponer fra udbydere, der ikke sponsorerer os (klik for at udvide)</sub></summary>
 
-<sub><i>Dette afsnit er kun til henvisnings-/kuponkoder. Sponsorerede partnerskaber findes under <b>🤝 Støttet af vores open source-venner</b> ovenfor. OmniRoute har ingen sponsoraftale eller noget partnerskab med de udbydere, der er angivet her — det er offentlige kuponer, som alle kan bruge.</i></sub>
+<sub><i>Dette afsnit er kun til henvisnings-/kuponkoder. Sponsorerede partnerskaber findes under <b>🤝 Støttet af vores open source-venner</b> ovenfor. OmniRoute har intet sponsorat eller partnerskab med de udbydere, der er anført her — det er offentlige kuponer, som alle kan bruge.</i></sub>
 
 <table>
   <tr>
@@ -326,9 +326,9 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partnertilmelding · <b>$100 i gratis kreditter</b> ved tilmelding (gratis server, forvent højere latenstid — bedst til test, ikke produktion). Førsteklasses understøttelse i OmniRoute siden <b>v3.8.50</b>: Chat Completions, det Anthropic-kompatible overførselsformat og den OpenAI-kompatible sti. Tilgængelige modeller omfatter <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> og flere. <b><a href="https://agentrouter.org/register?aff=70LM">Få dine $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partnertilmelding · <b>$100 i gratis kreditter</b> ved tilmelding (gratis server, forvent højere latenstid — bedst til test, ikke produktion). Førsteklasses understøttelse i OmniRoute siden <b>v3.8.50</b>: Chat Completions, det Anthropic-kompatible wire-format og den OpenAI-kompatible sti. Tilgængelige modeller omfatter <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> og flere. <b><a href="https://agentrouter.org/register?aff=70LM">Få dine $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Partnerlink — OmniRoute har ingen sponsoraftale eller noget partnerskab med denne udbyder.</i></sub>
+      <sub>⚠️ <i>Partnerlink — OmniRoute har intet sponsorat eller partnerskab med denne udbyder.</i></sub>
     </td>
   </tr>
 </table>
@@ -488,13 +488,13 @@ Alle **19** strategier — bland og kombiner dem for hvert trin i en combo:
 
 <div align="center">
 
-## 🏆 Det, der adskiller OmniRoute
+## 🏆 Hvad adskiller OmniRoute
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Det, der adskiller OmniRoute — et dateret øjebliksbillede af funktioner sammenlignet med 9router, OpenRouter, CLIProxyAPI og LiteLLM på tværs af 13 funktioner. OmniRoute: 359 udbydere, mere end 150 indbyggede gratis niveauer, 19 routingstrategier, tokenkomprimering med 12 motorer, indbygget MCP-server med 110 værktøjer, A2A-agentprotokol, vedvarende hukommelse, sikkerhedsforanstaltninger, cloudagenter, skjult TLS-fingeraftryk, Desktop/Termux/PWA og brugergrænseflade på 42 sprog. OmniRoute er MIT-licenseret og kan hostes selv. Konkurrenternes funktioner og antal kan ændre sig; se den linkede metode."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Hvad adskiller OmniRoute — et dateret øjebliksbillede af funktioner sammenlignet med 9router, OpenRouter, CLIProxyAPI og LiteLLM på tværs af 13 funktioner. OmniRoute: 358 providers, 150+ free tiers built in, 19 routing strategies, 12-engine token compression, built-in MCP server with 110 tools, A2A agent protocol, persistent memory, guardrails, cloud agents, TLS fingerprint stealth, Desktop/Termux/PWA and 42 i18n UI locales. OmniRoute er MIT-licenseret og kan selv-hostes. Konkurrenters funktioner og antal kan ændre sig; se den linkede metodologi."/>
 
-<sub>📊 Fuld metode &amp; oplysninger om hver funktion sammenlignet med 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Fuld metodologi &amp; detaljer pr. funktion sammenlignet med 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1271,23 +1271,23 @@ Kanoniske målinger den 2026-08-24: **1.029 unikke videoer** · **11.132.922 ken
 
 <table>
   <tr><th align="left">Lag</th><th align="left">Teknologi</th></tr>
-  <tr><td nowrap><b>Kørselsmiljø</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Sprog</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> på tværs af <code>src/</code> og <code>open-sse/</code> (ingen <code>any</code> i kernen siden v2.0)</td></tr>
+  <tr><td nowrap><b>Køretid</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Sprog</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> på tværs af <code>src/</code> og <code>open-sse/</code> (nul <code>any</code> i kernen siden v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journalføring) + LowDB (ældre JSON-format) — 122 domænemoduler, 178 migreringer</td></tr>
-  <tr><td nowrap><b>Hukommelse</b></td><td>SQLite FTS5-fuldtekstsøgning + int8-kvantiserede vektorindlejringer, typestyret henfald</td></tr>
-  <tr><td nowrap><b>Skemaer</b></td><td>Zod 4 — validering af input/output for MCP-værktøjer + API-kontrakter</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domænemoduler, 183 migreringer</td></tr>
+  <tr><td nowrap><b>Hukommelse</b></td><td>SQLite FTS5 fuldtekst + int8-kvantiserede vektorindlejringer, typet henfald</td></tr>
+  <tr><td nowrap><b>Skemaer</b></td><td>Zod 4 — MCP værktøj I/O validering + API-kontrakter</td></tr>
   <tr><td nowrap><b>Protokoller</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket-bro (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Komprimering</b></td><td>Pipeline med 12 motorer — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Godkendelse &amp; sikkerhed</b></td><td>OAuth 2.0 (PKCE) + JWT + API-nøgler + omfangsbaseret MCP-godkendelse · AES-256-GCM for lagrede data · DOMPurify</td></tr>
-  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — efterligning af JA3-/JA4-TLS-fingeraftryk, proxy i 3 niveauer</td></tr>
-  <tr><td nowrap><b>Robusthed</b></td><td>Strømafbryder, eksponentiel backoff, beskyttelse mod thundering herd, selvhelende automatisk kombination</td></tr>
-  <tr><td nowrap><b>Logning</b></td><td>pino — strukturerede JSON-logfiler med anmodningskontekst</td></tr>
-  <tr><td nowrap><b>Test</b></td><td>Node.js-testkørsel + Vitest — <b>39.000+ statiske testerklæringer</b> fordelt på 5.100+ sporede testfiler (enheds-, integrations-, E2E-, sikkerheds- og økosystemtest)</td></tr>
-  <tr><td nowrap><b>Platforme</b></td><td>Computer (Electron) · Android (Termux) · PWA (enhver browser)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatisk udgivelse til npm + Docker Hub ved release</td></tr>
-  <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Websted</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>Komprimering</b></td><td>12-motorers pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Godkendelse &amp; sikkerhed</b></td><td>OAuth 2.0 (PKCE) + JWT + API-nøgler + MCP scoped godkendelse · AES-256-GCM i hvile · DOMPurify</td></tr>
+  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS fingeraftryksimitation, 3-niveaus proxy</td></tr>
+  <tr><td nowrap><b>Robusthed</b></td><td>Afbryder, eksponentiel backoff, anti-thundering-herd, auto-combo selvhelbredelse</td></tr>
+  <tr><td nowrap><b>Logning</b></td><td>pino — strukturerede JSON-logs med anmodningskontekst</td></tr>
+  <tr><td nowrap><b>Test</b></td><td>Node.js test runner + Vitest — <b>39.000+ statiske testdeklarationer</b> på tværs af 5.100+ sporede testfiler (enhed, integration, E2E, sikkerhed, økosystem)</td></tr>
+  <tr><td nowrap><b>Platforme</b></td><td>Desktop (Electron) · Android (Termux) · PWA (enhver browser)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatisk npm-udgivelse + Docker Hub ved udgivelse</td></tr>
+  <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Hjemmeside</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

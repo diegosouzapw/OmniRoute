@@ -16,7 +16,12 @@ export const blackboxProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   models: [
-    { id: "claude-fable-5", name: "Claude Fable 5" },
+    {
+      id: "claude-fable-5",
+      name: "Claude Fable 5",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+    },
     { id: "claude-opus-4.8", name: "Claude Opus 4.8" },
     { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
     { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },

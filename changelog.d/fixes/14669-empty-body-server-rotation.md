@@ -1,0 +1,1 @@
+- **fix(sse):** optionally retry once when a stream stalls before usable output, behind a new opt-in flag that leaves the default path unchanged ([#14669](https://github.com/diegosouzapw/OmniRoute/pull/14669)) — thanks @maxmad64bis

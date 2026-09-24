@@ -10,9 +10,12 @@ useDecollidedMigrationsDir();
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-call-log-bodies-first-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { writeCallArtifact, readCallArtifact, isSizeLimitOmissionMarker } = await import(
-  "../../src/lib/usage/callLogArtifacts.ts"
-);
+const {
+  writeCallArtifact,
+  readCallArtifact,
+  isSizeLimitOmissionMarker,
+  getArtifactMaxBytesForTest,
+} = await import("../../src/lib/usage/callLogArtifacts.ts");
 
 const OMITTED = "[omitted: call log artifact size limit exceeded]";
 const PIPELINE_MARKER = {
@@ -60,25 +63,76 @@ function roundTrip(input: ReturnType<typeof artifact>) {
 }
 
 test("artifact bodies-first eviction", async (t) => {
-  await t.test("body overflow keeps pipeline.providerResponse", async () => {
-    // Fixture mirrors the observed shape (not a 900KB/tiny toy alone):
-    // requestBody O(200KB) next to a pipeline sized so the TOTAL just
-    // exceeds the cap. The bodies are what tripped the cap, so they go
-    // first and the pipeline survives.
+  await t.test("request-only overflow omits requestBody, keeps response and pipeline", async () => {
+    // Budget-proven request-only fixture: the pre-image exceeds the cap, but
+    // omitting requestBody alone brings it back under it -- so the new ladder
+    // stage must fire and keep responseBody + pipeline.providerResponse.
     const providerResponse = {
       status: 200,
       body: { data: "p".repeat(330 * 1024) },
     };
-    const stored = roundTrip(
-      artifact({
-        requestBody: "r".repeat(200 * 1024),
-        responseBody: { output: "response" },
-        pipeline: {
-          providerRequest: { url: "https://provider.example/v1/messages", method: "POST" },
-          providerResponse,
-        },
-      })
+    const input = artifact({
+      requestBody: "r".repeat(200 * 1024),
+      responseBody: { output: "response" },
+      pipeline: {
+        providerRequest: { url: "https://provider.example/v1/messages", method: "POST" },
+        providerResponse,
+      },
+    });
+    const capBytes = getArtifactMaxBytesForTest(input);
+    assert.ok(
+      Buffer.byteLength(JSON.stringify(input)) > capBytes,
+      "pre-image must exceed the cap"
     );
+    assert.ok(
+      Buffer.byteLength(JSON.stringify({ ...input, requestBody: OMITTED })) <= capBytes,
+      "omitting requestBody alone must fit the cap"
+    );
+    const stored = roundTrip(input);
+
+    assert.equal(stored.requestBody, OMITTED);
+    assert.deepEqual(stored.responseBody, { output: "response" });
+    // camelCase per requestLogger.ts:19.
+    assert.deepEqual(
+      (stored.pipeline as Record<string, unknown>).providerResponse,
+      providerResponse
+    );
+  });
+
+  await t.test("both-bodies overflow omits both bodies, keeps pipeline", async () => {
+    // Fixture for the second body stage: the response side is large too, so
+    // omitting requestBody alone still exceeds the cap and the ladder must
+    // fall through to omitting both bodies while the pipeline survives. The
+    // budget assertions pin this: pre-image AND request-only form exceed the
+    // cap, both-bodies form fits.
+    const providerResponse = {
+      status: 200,
+      body: { data: "p".repeat(463 * 1024) },
+    };
+    const responseBody = { output: "r".repeat(50 * 1024) };
+    const input = artifact({
+      requestBody: "r".repeat(10 * 1024),
+      responseBody,
+      pipeline: {
+        providerRequest: { url: "https://provider.example/v1/messages", method: "POST" },
+        providerResponse,
+      },
+    });
+    const capBytes = getArtifactMaxBytesForTest(input);
+    assert.ok(
+      Buffer.byteLength(JSON.stringify(input)) > capBytes,
+      "pre-image must exceed the cap"
+    );
+    assert.ok(
+      Buffer.byteLength(JSON.stringify({ ...input, requestBody: OMITTED })) > capBytes,
+      "omitting requestBody alone must still exceed the cap"
+    );
+    assert.ok(
+      Buffer.byteLength(JSON.stringify({ ...input, requestBody: OMITTED, responseBody: OMITTED })) <=
+        capBytes,
+      "omitting both bodies must fit the cap"
+    );
+    const stored = roundTrip(input);
 
     assert.equal(stored.requestBody, OMITTED);
     assert.equal(stored.responseBody, OMITTED);
@@ -154,12 +208,13 @@ test("artifact bodies-first eviction", async (t) => {
     // from pipeline.providerResponse to responseBody. The marker is a
     // non-empty string, so a truthiness check "recovers" it and overwrites the
     // pipeline payload this change exists to keep; the shared predicate is the
-    // contract that stops it.
+    // contract that stops it. Uses the request-only fixture shape so the
+    // stored responseBody is the marker while the pipeline survives.
     const stored = roundTrip(
       artifact({
         requestBody: "r".repeat(200 * 1024),
-        responseBody: { output: "response" },
-        pipeline: { providerResponse: { status: 200, body: { data: "p".repeat(330 * 1024) } } },
+        responseBody: { output: "r".repeat(515 * 1024) },
+        pipeline: { providerResponse: { status: 200, body: { data: "p".repeat(10 * 1024) } } },
       })
     );
 

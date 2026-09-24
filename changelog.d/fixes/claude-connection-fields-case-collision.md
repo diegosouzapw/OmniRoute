@@ -1,1 +1,0 @@
-- **Dashboard:** renamed the Claude connection field helpers to `claudeConnectionFieldValues.ts` — the `.ts`/`.tsx` pair from #13074 differed only by casing, which breaks webpack on case-insensitive filesystems and made esbuild resolve the wrong module in the browser-bundle guard.

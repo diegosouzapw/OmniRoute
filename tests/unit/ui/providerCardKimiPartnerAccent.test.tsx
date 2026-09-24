@@ -18,7 +18,7 @@
  * CI job (see .github/workflows/ci.yml).
  */
 import React from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ProviderCard from "@/app/(dashboard)/dashboard/providers/components/ProviderCard";
@@ -30,10 +30,14 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => {} }) }));
 
 describe("ProviderCard — Kimi (Moonshot AI) founding-friend accent", () => {
   let container: HTMLDivElement | null = null;
+  const mounted: { root: Root; container: HTMLDivElement }[] = [];
 
-  afterEach(() => {
+  afterEach(async () => {
+    for (const instance of mounted.splice(0)) {
+      await act(async () => instance.root.unmount());
+      instance.container.remove();
+    }
     if (container) {
-      document.body.removeChild(container);
       container = null;
     }
   });
@@ -42,6 +46,7 @@ describe("ProviderCard — Kimi (Moonshot AI) founding-friend accent", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
+    mounted.push({ root, container });
     act(() => {
       root.render(
         <ProviderCard

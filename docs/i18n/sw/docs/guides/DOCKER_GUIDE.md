@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -26,6 +26,12 @@
 ---
 
 ## Uendeshaji wa Haraka
+
+> **Unataka kujiendeshea kwa amri moja?** Tazama
+> [Mwongozo wa Kujiendeshea](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (image iliyochapishwa +
+> Redis, loopback pekee, bila chaguo la wasifu). Uendeshaji wa Haraka hapa chini ni
+> njia ya kontena moja kwa watumiaji ambao tayari wanaendesha Redis kwingine.
 
 ```bash
 docker run -d \
@@ -62,23 +68,27 @@ docker compose --profile base up -d
 # Wasifu wa CLI (Claude Code, Codex, OpenClaw zimejumuishwa)
 docker compose --profile cli up -d
 
-# Wasifu wa host (Linux kwanza; huweka binary za CLI za host katika hali ya kusoma pekee)
+# Wasifu wa host (Linux kwanza; huambatisha faili tekelezi za CLI za host kwa hali ya kusoma pekee)
 docker compose --profile host up -d
 
-# Unganisha CLI + sidecar ya CLIProxyAPI
+# Wasifu wa wavuti (Chromium/Playwright kwa watoa huduma wa vipindi vya wavuti)
+docker compose --profile web up -d
+
+# Unganisha CLI + kontena kisaidizi la CLIProxyAPI
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Wasifu Unaopatikana
 
-OmniRoute huja na wasifu wanne wa Compose. Chagua unaolingana na mazingira yako.
+OmniRoute huja na wasifu wa Compose kwa miundo mikuu ya upelekaji. Chagua unaolingana na mazingira yako.
 
-| Wasifu                 | Huduma           | Wakati wa kutumia                                                                                                                                                   | Amri                                         |
-| ---------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (chaguo-msingi) | `omniroute-base` | Seva isiyo na kiolesura / mazingira ya chini kabisa ya utekelezaji, bila CLI za watoa huduma zilizojumuishwa                                                        | `docker compose --profile base up -d`        |
-| `cli`                  | `omniroute-cli`  | Mitiririko ya kazi ya kiwakala inayotumia `omniroute providers/setup/doctor` na CLI zilizojumuishwa (Codex, Claude Code, Droid, OpenClaw)                           | `docker compose --profile cli up -d`         |
-| `host`                 | `omniroute-host` | Host za Linux zinazotaka ufikiaji unaofanana na `network_mode` kwa CLI za host kwa kuweka `~/.local/bin`, `~/.codex`, `~/.claude`, n.k. katika hali ya kusoma pekee | `docker compose --profile host up -d`        |
-| `cliproxyapi`          | `cliproxyapi`    | Endesha sidecar ya [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) kwenye porti `8317` kwa uwekaji proksi wa CLI ya upstream                            | `docker compose --profile cliproxyapi up -d` |
+| Wasifu                 | Huduma           | Wakati wa kutumia                                                                                                                                                                  | Amri                                         |
+| ---------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (chaguo-msingi) | `omniroute-base` | Seva isiyo na kiolesura / mazingira ya uendeshaji ya kiwango cha chini, bila CLI za watoa huduma zilizojumuishwa                                                                   | `docker compose --profile base up -d`        |
+| `cli`                  | `omniroute-cli`  | Mitiririko ya kazi ya mawakala inayoita `omniroute providers/setup/doctor` na CLI zilizojumuishwa (Codex, Claude Code, Droid, OpenClaw)                                            | `docker compose --profile cli up -d`         |
+| `host`                 | `omniroute-host` | Mipangishi ya Linux inayohitaji ufikiaji unaofanana na `network_mode` kwa CLI za mpangishi kwa kupachika `~/.local/bin`, `~/.codex`, `~/.claude`, n.k. katika hali ya kusoma pekee | `docker compose --profile host up -d`        |
+| `cliproxyapi`          | `cliproxyapi`    | Endesha huduma saidizi ya [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) kwenye porti `8317` kwa uelekezaji wa proksi ya CLI ya chanzo cha juu                        | `docker compose --profile cliproxyapi up -d` |
+| `web`                  | `omniroute-web`  | Watoa huduma wa vikao vya wavuti wanaohitaji kivinjari: `gemini-web`, `claude-web`, `claude-turnstile` (hujenga `runner-web`, Chromium imejumuishwa)                               | `docker compose --profile web up -d`         |
 
 > Wasifu kadhaa unaweza kuunganishwa: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -227,51 +237,53 @@ Mfumo wa uzalishaji huendeshwa sambamba na compose ya uundaji (majina ya kontena
 
 ## Hatua za Dockerfile
 
-Hazina hii inajumuisha Dockerfile yenye hatua nyingi (`Dockerfile`). Hatua tatu zimewekwa wazi; chagua `target` inayofaa kwa matumizi yako.
+Hazina huja na Dockerfile ya hatua nyingi (`Dockerfile`). Hatua nne zimetolewa; chagua `target` inayofaa kwa matumizi yako.
 
-| Hatua         | Taswira msingi        | Madhumuni                                                                                                                                                                                |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Husakinisha vitegemezi (`npm ci --legacy-peer-deps`) na kuendesha `npm run build` (Turbopack kwa chaguo-msingi — tazama Rasilimali za wakati wa ujenzi hapa chini)                       |
-| `runner-base` | `node:26-trixie-slim` | Mazingira ya utekelezaji ya uzalishaji yenye towe huru la Next.js. **Hakuna CLI za watoa huduma zilizojumuishwa.**                                                                       |
-| `runner-cli`  | `runner-base`         | Huongeza `git`, `docker.io`, `docker-compose` na CLI za kimataifa: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Chagua hii kwa mitiririko ya kazi ya mawakala.** |
+| Hatua         | Taswira msingi        | Madhumuni                                                                                                                                                                                                                                                                                                     |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Husakinisha vitegemezi (`npm ci --legacy-peer-deps`) na kutekeleza `npm run build` (Turbopack kwa chaguo-msingi — tazama Rasilimali za wakati wa uundaji hapa chini)                                                                                                                                          |
+| `runner-base` | `node:26-trixie-slim` | Mazingira ya utekelezaji wa uzalishaji yenye matokeo huru ya Next.js. **Hayajumuishi CLI za watoa huduma.**                                                                                                                                                                                                   |
+| `runner-cli`  | `runner-base`         | Huongeza `git`, `docker.io`, `docker-compose` na CLI za kimataifa: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Chagua hii kwa mitiririko ya kazi inayotumia mawakala.**                                                                                                              |
+| `runner-web`  | `runner-base`         | Huongeza Playwright + kivinjari cha Chromium (`--with-deps`) kwa watoa huduma wa vipindi vya wavuti: `gemini-web`, `claude-web`, `claude-turnstile`. **Chagua hii unapotumia watoa huduma hao** — taswira ya kawaida hushindwa wakati wa ombi bila hiyo (tazama dokezo la `-web` chini ya Vituo vya Matoleo). |
 
-Jenga target mahususi wewe mwenyewe:
+Unda `target` mahususi mwenyewe:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Rasilimali za wakati wa ujenzi
+### Rasilimali za wakati wa uundaji
 
-Hoja tatu za ujenzi hudhibiti gharama ya hatua ya `builder`. Zinatumika wakati wa ujenzi pekee —
+Hoja tatu za uundaji hudhibiti gharama ya hatua ya `builder`. Zinatumika wakati wa uundaji pekee —
 `OMNIROUTE_MEMORY_MB` (hapa chini) ni kidhibiti tofauti cha wakati wa utekelezaji.
 
-| Hoja ya ujenzi              | Chaguo-msingi | Athari                                                                                                         |
-| --------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`           | `0` hujenga kwa webpack badala yake. Kilele cha matumizi ya kumbukumbu ni cha chini, lakini ni polepole zaidi. |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`        | Kikomo cha heap ya V8 (`--max-old-space-size`) kwa `next build` iliyoanzishwa.                                 |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`           | Hutoa thamani kwa `CIRCLE_NODE_TOTAL`; Next hukokotoa `workers = N - 1` kwa ukusanyaji wa data za kurasa.      |
+| Hoja ya uundaji             | Chaguo-msingi | Athari                                                                                                    |
+| --------------------------- | ------------- | --------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`           | `0` huunda kwa webpack badala yake. Kiwango cha juu cha kumbukumbu huwa kidogo, lakini ni polepole zaidi. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`        | Kikomo cha heap ya V8 (`--max-old-space-size`) kwa `next build` iliyoanzishwa.                            |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`           | Huweka thamani ya `CIRCLE_NODE_TOTAL`; Next hukokotoa `workers = N - 1` kwa ukusanyaji wa data za kurasa. |
 
-`OMNIROUTE_BUILD_WORKERS` ndiyo inayopaswa kuongezwa kwenye mfumo mkubwa wa ujenzi na ndiyo
-inayopaswa kutiliwa shaka wakati ujenzi wenye rasilimali chache unapokoma **baada ya** `✓ Compiled successfully`. Kila
-worker wa data za kurasa ni mchakato wake wenyewe, na mchakato mkuu wa `next build` pia ni
-mchakato tofauti; jaribio la moja kwa moja kwenye VPS (suala #7518) lilipima kilele cha RSS cha kila mchakato kuwa
-~4.5 GB bila kutegemea bendera ya heap ya `NODE_OPTIONS` (Turbopack hukusanya katika
-kumbukumbu asilia/Rust nje ya heap ya V8). Chaguo-msingi la `2` (→ worker 1, jumla ya
-michakato 2) limepangwa kwa runners zinazoendeshwa na GitHub zenye GB 16 / vCPU 4 ambazo
-mchakato wa uchapishaji hutumia. Kwa `8` (→ workers 7), runner huyo aliishiwa na kumbukumbu na
-buildkit ikashindwa kutekeleza hatua hiyo kwa `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ workers 2) bado haikutosha baada ya RSS ya kila mchakato kupimwa
+`OMNIROUTE_BUILD_WORKERS` ndiyo ya kuongeza kwenye mazingira makubwa ya uundaji na ndiyo ya
+kutiliwa shaka wakati uundaji wenye rasilimali chache unapokatika **baada ya** `✓ Compiled successfully`. Kila
+mchakato wa data za kurasa ni mchakato wake binafsi, na mchakato mzazi wa `next build` pia ni tofauti;
+jaribio halisi kwenye VPS (suala #7518) lilipima kilele cha RSS cha kila mchakato kuwa
+~4.5 GB bila kutegemea alama ya heap ya `NODE_OPTIONS` (Turbopack hukusanya katika
+kumbukumbu asilia/ya Rust iliyo nje ya heap ya V8). Chaguo-msingi la `2` (→ mchakato 1 wa kazi, jumla ya
+michakato 2) limepangwa kwa runners zinazohifadhiwa na GitHub zenye 16 GB / vCPU 4 ambazo
+mchakato wa uchapishaji hutumia. Ikiwa `8` (→ michakato 7 ya kazi), runner hiyo iliishiwa kumbukumbu na
+buildkit ikashindwa kutekeleza hatua kwa `ResourceExhausted: ... cannot allocate memory`;
+`3` (→ michakato 2 ya kazi) bado haikutoshea baada ya RSS ya kila mchakato kupimwa
 moja kwa moja badala ya kukadiriwa. `tests/unit/docker-build-memory-budget.test.ts`
-hufanya hesabu dhidi ya thamani iliyopimwa na hushindwa ikiwa kidhibiti chochote kati ya hivyo
+hufanya hesabu kwa kutumia thamani iliyopimwa na hushindwa ikiwa kidhibiti chochote
 kinazidi uwezo wa runner.
 
-Turbopack hukusanya katika kumbukumbu asilia ya Rust iliyo **nje** ya heap ya V8, kwa hivyo
+Turbopack hukusanya katika kumbukumbu asilia ya Rust ambayo ipo **nje** ya heap ya V8, kwa hiyo
 `OMNIROUTE_BUILD_MEMORY_MB` haiiwekei kikomo. Kwenye host yenye kikomo cha kumbukumbu,
-ujenzi huuawa kwa SIGKILL na OOM killer bila maandishi yoyote ya hitilafu — husimama tu
+uundaji huuawa kwa SIGKILL na OOM killer bila maandishi yoyote ya hitilafu — husimama tu
 katikati ya `Creating an optimized production build`, jambo linaloonekana kama kukwama badala
-ya kuishiwa na kumbukumbu. Ikiwa host ya ujenzi ina rasilimali chache, badilisha bundler:
+ya kuishiwa kumbukumbu. Ikiwa host ya uundaji ina rasilimali chache, badilisha bundler:
 
 ```bash
 docker build --target runner-base \
@@ -279,17 +291,17 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` imewezeshwa, kwa hivyo `next build` huendesha mchakato mkuu **na** mchakato
-wa worker, na kila mmoja huzingatia `OMNIROUTE_BUILD_MEMORY_MB` kivyake. Weka kikomo cha container
-juu ya takriban mara mbili ya thamani hiyo, si mara moja.
+`webpackBuildWorker` imewezeshwa, kwa hiyo `next build` huendesha mchakato mzazi **na** mchakato
+wa kazi, na kila mmoja huzingatia `OMNIROUTE_BUILD_MEMORY_MB` kivyake. Weka kikomo cha
+kontena juu ya takribani mara mbili ya thamani hiyo, si mara moja.
 
-Vipimo kwenye tree hii (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Ilipimwa kwenye muundo huu (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Kikomo cha container | Matokeo                                      |
-| --------- | -------------------- | -------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB       | Iliuawa na OOM kwa vyote viwili, bila ujumbe |
-| webpack   | 8 GiB                | worker wa ujenzi aliuawa kwa SIGKILL         |
-| webpack   | 12 GiB               | ilifanikiwa, kilele kilikuwa 11.1 GiB        |
+| Bundler   | Kikomo cha kontena | Matokeo                                 |
+| --------- | ------------------ | --------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB     | Iliuawa na OOM katika zote, kimyakimya  |
+| webpack   | 8 GiB              | Mchakato wa uundaji uliuawa kwa SIGKILL |
+| webpack   | 12 GiB             | Ilifanikiwa, kilele kilikuwa 11.1 GiB   |
 
 ### Chaguo-msingi za wakati wa utekelezaji
 
@@ -297,25 +309,25 @@ Chaguo-msingi zinazosafirishwa na `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0
 
 Tabia ya kumbukumbu katika Docker:
 
-- Taswira huweka `OMNIROUTE_MEMORY_MB=1024` na kupata `NODE_OPTIONS=--max-old-space-size=1024` kutoka kwayo.
+- Image huweka `OMNIROUTE_MEMORY_MB=1024` na hutengeneza `NODE_OPTIONS=--max-old-space-size=1024` kutokana nayo.
 - Mchakato halisi wa seva huanzishwa na kizinduzi huru, ambacho husoma `OMNIROUTE_MEMORY_MB` na kuambatisha `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
 - Node hutumia thamani ya mwisho iliyorudiwa ya `--max-old-space-size`, kwa hivyo kuweka `OMNIROUTE_MEMORY_MB` hudhibiti kikomo halisi cha heap ya Docker.
-- Kwa sababu taswira huiweka kila wakati, thamani ya dharura ya kizinduzi inayorekebishwa kulingana na RAM haitumiki kamwe chini ya Docker. Iongeze waziwazi kulingana na mzigo wa kazi (jedwali hapa chini). `2048` bado ni ndogo mno kwa `/v1/responses` ya wakala wa uandishi wa msimbo.
+- Kwa sababu image huiweka kila wakati, thamani mbadala ya kizinduzi iliyorekebishwa kulingana na RAM haitumiki kamwe chini ya Docker. Iongeze waziwazi kulingana na mzigo wa kazi (jedwali hapa chini). `2048` bado ni ndogo mno kwa `/v1/responses` za mawakala wa uandishi wa msimbo.
 
 ### RAM ya wakati wa utekelezaji kwa mawakala wa uandishi wa msimbo
 
-Chaguo-msingi la Docker la GiB 1 ni kiwango cha chini kwa dashibodi/mazungumzo mepesi, si ukubwa wa uzalishaji. Miili mirefu ya `POST /v1/responses` (mamia ya ujumbe, makumi ya zana) huhifadhi grafu nyingi katika kumbukumbu wakati wa ubanaji. Maombi mawili yanayopishana ya ~3 MiB / ~tokeni 750k yamesababisha V8 kukoma kwenye old-space ya **12 GiB** (`FATAL ERROR: Reached heap limit`) na pia kufikia OOM ya cgroup ya GiB 16. Tazama [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Chaguomsingi la Docker la GiB 1 ni kiwango cha chini kwa dashibodi/mazungumzo mepesi, si ukubwa wa uzalishaji. Miili mirefu ya `POST /v1/responses` (mamia ya ujumbe, makumi ya zana) huhifadhi grafu nyingi kwenye kumbukumbu wakati wa ubanaji. Maombi mawili yanayopishana ya takribani MiB 3 / tokeni 750k kila moja yamesababisha V8 kusitishwa kwenye old-space ya **GiB 12** (`FATAL ERROR: Reached heap limit`) na pia kufikia OOM ya cgroup ya GiB 16. Angalia [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Weka ukubwa wa **cgroup `--memory` juu ya heap** — bafa asilia, SQLite, na data za kati za ubanaji ziko nje ya V8.
+Weka ukubwa wa **cgroup `--memory` juu ya heap** — vihifadhi asili, SQLite, na data za kati za ubanaji ziko nje ya V8.
 
-| Mzigo wa kazi                                                           | `OMNIROUTE_MEMORY_MB`          | Kontena / cgroup                   | Maelezo                                                                                                        |
-| ----------------------------------------------------------------------- | ------------------------------ | ---------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Dashibodi, gumzo moja jepesi                                            | `1024` (chaguomsingi la image) | ≥2 GiB                             |                                                                                                                |
-| Wakala mmoja wa usimbaji (Claude/Codex/Grok)                            | `8192`                         | ≥10 GiB                            | Ombi la kawaida la kipindi kimoja la `/v1/responses`                                                           |
-| Maombi mawili marefu ya `/v1/responses` yanayoendeshwa kwa wakati mmoja | `10240`–`12288`                | ≥12–16 GiB                         | Kusitishwa kwa V8 kulipimwa kwenye heap ya takriban 12 GiB                                                     |
-| Miktadha mitatu au zaidi mirefu inayoendeshwa kwa wakati mmoja          | usitumie mchakato mmoja        | pangilia kwa mfululizo / RAM zaidi | Chaguomsingi la kuingiza kazi nzito ni kazi 1 inayoendelea; kuliongeza bila RAM hurudisha tatizo la kusitishwa |
+| Mzigo wa kazi                                          | `OMNIROUTE_MEMORY_MB`                | Kontena / cgroup                  | Maelezo                                                                                                             |
+| ------------------------------------------------------ | ------------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Dashibodi, mazungumzo mepesi moja                      | `1024` (chaguomsingi la image)       | ≥2 GiB                            |                                                                                                                     |
+| Wakala mmoja wa uandishi wa msimbo (Claude/Codex/Grok) | `8192`                               | ≥10 GiB                           | Kipindi kimoja cha kawaida cha `/v1/responses`                                                                      |
+| `/v1/responses` mbili ndefu kwa wakati mmoja           | `10240`–`12288`                      | ≥12–16 GiB                        | Kusitishwa kwa V8 kulikopimwa kwenye heap ya takribani GiB 12                                                       |
+| Muktadha mirefu mitatu au zaidi kwa wakati mmoja       | usifanye hivyo katika mchakato mmoja | tekeleza kwa mfuatano / RAM zaidi | Chaguomsingi la upokeaji wa kazi nzito ni kazi 1 inayoendelea; kuliongeza bila RAM hurudisha hitilafu ya kusitishwa |
 
-`omniroute serve` kwenye mashine halisi husawazisha takriban 35% ya RAM (ikiwa imewekewa mipaka ya `[512, 4096]`) wakati `OMNIROUTE_MEMORY_MB` **haijawekwa**. Docker huweka `1024` kila wakati, kwa hivyo usawazishaji huo hautekelezwi kamwe katika image rasmi.
+`omniroute serve` kwenye bare metal hurekebisha takribani 35% ya RAM (ikiwa imewekewa mipaka ya `[512, 4096]`) wakati `OMNIROUTE_MEMORY_MB` **haijawekwa**. Docker huweka `1024` kila wakati, kwa hivyo urekebishaji huo hautekelezwi kamwe kwenye image rasmi.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -325,24 +337,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Vigezo Muhimu vya Mazingira
 
-Zaidi ya chaguo-msingi yaliyoelezwa katika [ENVIRONMENT.md](../reference/ENVIRONMENT.md), vigezo vifuatavyo vina umuhimu mkubwa zaidi wakati wa kuendesha chini ya Docker:
+Zaidi ya chaguo-msingi yaliyoandikwa katika [ENVIRONMENT.md](../reference/ENVIRONMENT.md), vigezo vifuatavyo vina umuhimu mkubwa zaidi wakati wa kuendesha chini ya Docker:
 
-| Kigezo                        | Madhumuni                                                                                                                                                                                                                                                                                                  | Chaguo-msingi               |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Siri inayoshirikiwa kwa daraja la WebSocket. **Inahitajika katika mazingira ya uzalishaji** — iweke kuwa mfuatano thabiti wa nasibu.                                                                                                                                                                       | haijawekwa (lazima itolewe) |
-| `REDIS_URL`                   | Mfuatano wa muunganisho kwa kidhibiti cha kiwango / mfumo wa nyuma wa akiba                                                                                                                                                                                                                                | `redis://redis:6379`        |
-| `REDIS_PORT`                  | Porti ya upande wa seva pangishi kwa kontena la Redis lililojumuishwa                                                                                                                                                                                                                                      | `6379`                      |
-| `REDIS_BIND_HOST`             | Kiolesura cha seva pangishi ambacho porti ya Redis iliyojumuishwa inachapishwa juu yake (loopback isipokuwa uongeze AUTH)                                                                                                                                                                                  | `127.0.0.1`                 |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Njia ya seva pangishi iliyopachikwa kwenye wasifu wa `cli` katika `/workspace/omniroute` kwa michakato ya kujisasisha                                                                                                                                                                                      | `.` (saraka ya sasa)        |
-| `OMNIROUTE_MEMORY_MB`         | Kikomo cha heap ya Node wakati wa utekelezaji kwa seva huru ya Docker; hubatilisha chaguo-msingi la image lililo hapo juu. Mawakala wa uandishi wa msimbo: `8192`+ (angalia [RAM ya wakati wa utekelezaji](#runtime-ram-for-coding-agents)).                                                               | `1024`                      |
-| `DASHBOARD_PORT` / `API_PORT` | Hubatilisha porti zilizo wazi kwa dashibodi (20128) na API (20129)                                                                                                                                                                                                                                         | `20128` / `20129`           |
-| `APP_BIND_HOST`               | Kiolesura cha seva pangishi ambacho docker-compose huchapisha porti za dashibodi/API/live-WS juu yake. Ikiwa `REQUIRE_API_KEY=false` (chaguo-msingi), `0.0.0.0` hufichua proksi ya `/v1` isiyohitaji utambulisho kwa LAN — panua ufikiaji tu ukiwa na `REQUIRE_API_KEY=true` au proksi elekezi mbele yake. | `127.0.0.1`                 |
-| `CLIPROXY_BIND_HOST`          | Kiolesura cha seva pangishi ambacho docker-compose huchapisha sidecar ya `cliproxyapi` juu yake — volume yake ya data huhifadhi vitambulisho vya watoa huduma.                                                                                                                                             | `127.0.0.1`                 |
-| `OMNIROUTE_PLUGINS_DIR`       | Saraka ambayo kichanganuzi cha programu-jalizi cha wakati wa utekelezaji husoma na kusakinisha ndani yake. Ikiwe wakati programu-jalizi zimepachikwa kwa bind: chaguo-msingi hufuata `HOME`, ambayo si lazima image i-export.                                                                              | `~/.omniroute/plugins`      |
-| `OMNIROUTE_BASE_PATH`         | Njia ndogo ya URL wakati programu inachapishwa nyuma ya proksi elekezi (k.m. `/omniroute`)                                                                                                                                                                                                                 | _(tupu = mzizi)_            |
-| `NEXT_PUBLIC_BASE_URL`        | Asili ya umma ya kivinjari ikijumuisha njia ndogo (k.m. `https://host/omniroute`)                                                                                                                                                                                                                          | haijawekwa                  |
-| `PROD_DASHBOARD_PORT`         | Porti ya dashibodi ya upande wa seva pangishi kwa `docker-compose.prod.yml`                                                                                                                                                                                                                                | `20130`                     |
-| `CLIPROXYAPI_PORT`            | Porti ya upande wa seva pangishi kwa sidecar ya `cliproxyapi`                                                                                                                                                                                                                                              | `8317`                      |
+| Kigezo                        | Madhumuni                                                                                                                                                                                                                                                                                     | Chaguo-msingi               |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Siri inayoshirikiwa ya daraja la WebSocket. **Inahitajika katika mazingira ya uzalishaji** — iweke kuwa mfuatano thabiti wa nasibu.                                                                                                                                                           | haijawekwa (lazima itolewe) |
+| `REDIS_URL`                   | Mfuatano wa muunganisho wa kidhibiti cha kiwango / mfumo wa nyuma wa akiba                                                                                                                                                                                                                    | `redis://redis:6379`        |
+| `REDIS_PORT`                  | Mlango wa upande wa seva mwenyeji wa kontena la Redis lililojumuishwa                                                                                                                                                                                                                         | `6379`                      |
+| `REDIS_BIND_HOST`             | Kiolesura cha seva mwenyeji ambacho mlango wa Redis uliojumuishwa unachapishwa kwacho (loopback isipokuwa ukiongeza AUTH)                                                                                                                                                                     | `127.0.0.1`                 |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Njia ya seva mwenyeji iliyopachikwa kwenye wasifu wa `cli` katika `/workspace/omniroute` kwa mitiririko ya kazi ya kujisasisha                                                                                                                                                                | `.` (saraka ya sasa)        |
+| `OMNIROUTE_MEMORY_MB`         | Kikomo cha heap ya Node wakati wa utekelezaji kwa seva huru ya Docker; hubatilisha chaguo-msingi la image lililo hapo juu. Mawakala wa uandishi wa msimbo: `8192`+ (angalia [RAM ya wakati wa utekelezaji](#runtime-ram-for-coding-agents)).                                                  | `1024`                      |
+| `DASHBOARD_PORT` / `API_PORT` | Hubatilisha milango iliyofichuliwa ya dashibodi (20128) na API (20129)                                                                                                                                                                                                                        | `20128` / `20129`           |
+| `APP_BIND_HOST`               | Kiolesura cha seva mwenyeji ambacho docker-compose huchapisha milango ya dashibodi/API/live-WS. Kwa `REQUIRE_API_KEY=false` (chaguo-msingi), `0.0.0.0` hufichua proksi ya `/v1` isiyotumia utambulisho kwa LAN — panua ufikiaji tu kwa `REQUIRE_API_KEY=true` au proksi ya nyuma iliyo mbele. | `127.0.0.1`                 |
+| `CLIPROXY_BIND_HOST`          | Kiolesura cha seva mwenyeji ambacho docker-compose huchapisha sidecar ya `cliproxyapi` kwacho — volume yake ya data huhifadhi vitambulisho vya mtoa huduma.                                                                                                                                   | `127.0.0.1`                 |
+| `OMNIROUTE_PLUGINS_DIR`       | Saraka ambayo kichanganuzi cha programu-jalizi cha wakati wa utekelezaji husoma na kusakinisha ndani yake. Ikiwa programu-jalizi zimepachikwa kwa bind, iweke: chaguo-msingi hufuata `HOME`, ambayo image si lazima i-export.                                                                 | `~/.omniroute/plugins`      |
+| `OMNIROUTE_BASE_PATH`         | Njia ndogo ya URL wakati programu imechapishwa nyuma ya proksi ya nyuma (kwa mfano, `/omniroute`)                                                                                                                                                                                             | _(tupu = mzizi)_            |
+| `NEXT_PUBLIC_BASE_URL`        | Chanzo cha umma cha kivinjari kikijumuisha njia ndogo (kwa mfano, `https://host/omniroute`)                                                                                                                                                                                                   | haijawekwa                  |
+| `PROD_DASHBOARD_PORT`         | Mlango wa dashibodi wa upande wa seva mwenyeji kwa `docker-compose.prod.yml`                                                                                                                                                                                                                  | `20130`                     |
+| `CLIPROXYAPI_PORT`            | Mlango wa upande wa seva mwenyeji kwa sidecar ya `cliproxyapi`                                                                                                                                                                                                                                | `8317`                      |
 
 ## Proksi ya Nyuma kwenye Njia Ndogo (Traefik / nginx)
 
@@ -472,36 +484,49 @@ Paneli za tunnel za endpoint (Cloudflare, Tailscale, ngrok) zinaweza kuonyeshwa 
 - Images za Docker hujumuisha mizizi ya CA ya mfumo na kuipitisha kwa `cloudflared` inayosimamiwa, jambo ambalo huepusha hitilafu za uaminifu wa TLS tunnel inapoanza ndani ya kontena.
 - Weka `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` ikiwa unataka OmniRoute itumie binary iliyopo badala ya kupakua mpya.
 
-## Lebo za Image
+## Lebo za Picha
 
-| Image                    | Lebo     | Ukubwa | Maelezo                                                        |
+| Picha                    | Lebo     | Ukubwa | Maelezo                                                        |
 | ------------------------ | -------- | ------ | -------------------------------------------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | SemVer thabiti ya juu zaidi **iliyochapishwa** (si git `main`) |
 | `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Bandika aina hii ya lebo kwa GitOps                            |
 
-Manifest ya mifumo mingi: `linux/amd64` + `linux/arm64` asilia (Apple Silicon, AWS Graviton, Raspberry Pi). Docker huchagua usanifu unaolingana kiotomatiki; pitisha `--platform linux/amd64` ikiwa unahitaji kulazimisha uigaji wa AMD64 kwenye hosts za ARM.
+Manifesti ya majukwaa mengi: `linux/amd64` + `linux/arm64` asilia (Apple Silicon, AWS Graviton, Raspberry Pi). Docker huchagua usanifu unaolingana kiotomatiki; tumia `--platform linux/amd64` ikiwa unahitaji kulazimisha uigaji wa AMD64 kwenye vipangishi vya ARM.
 
-### Channels za Toleo
+### Chaneli za Toleo
 
-OmniRoute huchapisha channels tofauti za Docker kwa matoleo thabiti, majaribio ya release-branch inayotumika, na builds za maendeleo.
+OmniRoute huchapisha chaneli tofauti za Docker kwa matoleo thabiti, majaribio ya tawi la toleo linalotumika, na miundo ya usanidi.
 
-| Channel                         | Chanzo                                         | Uwezo wa kubadilika                          | Matumizi yanayopendekezwa                                                                                                                |
-| ------------------------------- | ---------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Toleo lililotiwa saini/lenye toleo             | Halibadiliki                                 | Usanidi wa uzalishaji unaobandika toleo mahususi                                                                                         |
-| `:latest` / `:latest-web`       | SemVer thabiti ya juu zaidi **iliyochapishwa** | Kielekezi thabiti kinachobadilika            | Hufuata matoleo thabiti **baada** ya kazi ya kuchapisha SemVer — **haifuatilii** `main` wala commits za `release/v*` ambazo hazijatolewa |
-| `:next` / `:next-web`           | Branch chaguo-msingi ya sasa ya `release/v*`   | Kielekezi cha kabla ya toleo kinachobadilika | Kujaribu marekebisho yaliyoingizwa kwenye branch ya toleo inayotumika lakini ambayo bado hayajajumuishwa katika toleo thabiti            |
-| `:main` / `:main-web`           | Branch ya `main`                               | Kielekezi cha maendeleo kinachobadilika      | Kwa majaribio ya maendeleo na ujumuishaji pekee                                                                                          |
+| Chaneli                         | Chanzo                                         | Ubadilikaji                                  | Matumizi yanayopendekezwa                                                                                                                  |
+| ------------------------------- | ---------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `:<version>` / `:<version>-web` | Toleo lililotiwa sahihi/lenye toleo            | Haibadiliki                                  | Usambazaji wa uzalishaji unaobandika toleo mahususi                                                                                        |
+| `:latest` / `:latest-web`       | SemVer thabiti ya juu zaidi **iliyochapishwa** | Kielekezi thabiti kinachobadilika            | Hufuata matoleo thabiti **baada** ya kazi ya uchapishaji wa SemVer — **haifuatilii** `main` au commits ambazo hazijatolewa za `release/v*` |
+| `:next` / `:next-web`           | Tawi chaguo-msingi la sasa la `release/v*`     | Kielekezi kinachobadilika cha kabla ya toleo | Kujaribu marekebisho yaliyowasili kwenye tawi la toleo linalotumika lakini bado hayapo katika toleo thabiti                                |
+| `:main` / `:main-web`           | Tawi la `main`                                 | Kielekezi kinachobadilika cha usanidi        | Kwa majaribio ya usanidi na ujumuishaji pekee                                                                                              |
 
-#### Kutumia channel ya kabla ya toleo
+#### Watoa huduma wa vikao vya wavuti: picha za `-web`
 
-Channel ya `next` hujengwa upya kila msukumo unapofanywa kwenye branch chaguo-msingi ya sasa ya `release/v*`, na huchapishwa kwa AMD64 na ARM64. Branch za zamani za matengenezo haziwezi kuiandika upya. Channel hii hutoa image inayoweza kuvutwa kwa marekebisho ambayo yameunganishwa kwenye branch ya toleo inayotumika kabla ya lebo thabiti inayofuata kutolewa.
+Kila chaneli iliyo hapo juu pia ina lebo ya `-web` (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), iliyoundwa kutoka hatua ya `runner-web` — picha ileile pamoja na Playwright na kivinjari cha Chromium. Picha ya kawaida hutolewa **bila** Chromium; `gemini-web`, `claude-web` na `claude-turnstile` zinaihitaji.
+
+Hitilafu huahirishwa, haitokei wakati wa kuanzisha: watoa huduma hao huorodhesha modeli zao na kuonekana kuwa wameunganishwa kwenye dashibodi, na ni ombi la kwanza pekee linaloshindwa kwa ujumbe huu
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Ikiwa unatumia watoa huduma hao, pakua lebo ya `-web` ya chaneli unayotumia tayari — hakuna kitu kingine kinachobadilika. Kwenye usakinishaji wa npm/CLI (bila picha ya Docker), sehemu inayokosekana inayolingana ni faili tekelezi ya kivinjari: endesha `npx playwright install chromium` kwenye kipangishi.
+
+#### Kutumia chaneli ya kabla ya toleo
+
+Chaneli ya `next` huundwa upya kwa kila push kwenda kwenye tawi chaguo-msingi la sasa la `release/v*` na huchapishwa kwa AMD64 na ARM64. Matawi ya zamani ya matengenezo hayawezi kuiandika upya. Chaneli hii hutoa picha inayoweza kupakuliwa yenye marekebisho ambayo yameunganishwa kwenye tawi la toleo linalotumika kabla ya lebo thabiti inayofuata kutolewa.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Kwa Docker Compose, badilisha lebo ya image inayotumiwa na profile iliyochaguliwa, kisha vuta na uunde upya huduma:
+Kwa Docker Compose, badilisha lebo ya picha inayotumiwa na wasifu uliochaguliwa, kisha pakua na uunde upya huduma:
 
 ```yaml
 services:
@@ -514,32 +539,32 @@ docker compose pull
 docker compose up -d
 ```
 
-#### Usalama na urejeshaji
+#### Usalama na urejeshaji wa toleo la awali
 
-`next` ni channel inayobadilika ya kabla ya toleo. Inaweza kubadilika kwa kila msukumo kwenye branch ya toleo inayotumika na **haitumiki kwa matumizi ya uzalishaji**. Bandika digest ya image unapofanyia tathmini build mahususi:
+`next` ni chaneli inayobadilika ya kabla ya toleo. Inaweza kubadilika kwa push yoyote kwenda kwenye tawi la toleo linalotumika na **haitumiki kwa mazingira ya uzalishaji**. Bandika digest ya picha wakati wa kutathmini muundo mahususi:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Kabla ya kufanya majaribio, hifadhi nakala rudufu ya volume ya data ya OmniRoute au saraka ya data iliyounganishwa kwa bind mount. Ili kurejesha toleo la awali, rejesha toleo thabiti au digest iliyotumika hapo awali na uunde upya kontena:
+Kabla ya kujaribu, hifadhi nakala rudufu ya volume ya data ya OmniRoute au saraka ya data iliyounganishwa kwa bind mount. Ili kurudi kwenye toleo la awali, rejesha toleo thabiti au digest iliyotumika awali na uunde upya kontena:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Build ya tawi la toleo haiwezi kamwe kuhamisha `latest`; ni toleo thabiti linalostahiki la semantic version pekee linaloweza kuendeleza kielekezi thabiti. Image za `next` huhifadhi ukaguzi wa image ya toleo na kizuizi cha udhaifu wa kiwango cha CRITICAL.
+Muundo wa tawi la toleo hauwezi kamwe kuhamisha `latest`; ni toleo thabiti la kisemantiki linalostahiki pekee linaloweza kusogeza mbele kielekezi thabiti. Picha za `next` huhifadhi ukaguzi wa picha ya toleo na kizuizi cha udhaifu wa kiwango cha CRITICAL.
 
-**`latest` si hakikisho la usasishaji kwa git.** Marekebisho yaliyounganishwa kwenye `main` au kwenye tawi amilifu la `release/v*` **hayapo** katika `:latest` hadi image thabiti ya SemVer ichapishwe na job ya uchapishaji iendeleze `:latest` (digest sawa na SemVer hiyo). Ikiwa `latest` inaonekana kutobadilika huku GitHub tayari ikionyesha marekebisho, pull `:next` ili kujaribu tawi la toleo au subiri tag ya SemVer.
+**`latest` si hakikisho la kuwa git ni ya kisasa.** Marekebisho yaliyounganishwa kwenye `main` au kwenye tawi linalotumika la `release/v*` **hayapo** kwenye `:latest` hadi picha thabiti ya SemVer ichapishwe na kazi ya uchapishaji isogeze mbele `:latest` (digest sawa na SemVer hiyo). Ikiwa `latest` inaonekana kutobadilika huku GitHub tayari ikionyesha rekebisho, pakua `:next` ili kujaribu tawi la toleo au usubiri lebo ya SemVer.
 
-| Unachotaka                                                                     | Tumia                                 |
-| ------------------------------------------------------------------------------ | ------------------------------------- |
-| GitOps / uzalishaji ambao lazima usibadilike bila kudhibitiwa                  | Bandika `:X.Y.Z` (au digest ya image) |
-| Fuata matoleo thabiti yaliyochapishwa na ukubali kuunda upya katika kila toleo | `:latest`                             |
-| Jaribu commit ambazo hazijatolewa za `release/v*`                              | `:next` (si kwa uzalishaji)           |
-| Jaribu `main`                                                                  | `:main` (si kwa uzalishaji)           |
+| Unachotaka                                                                         | Tumia                                 |
+| ---------------------------------------------------------------------------------- | ------------------------------------- |
+| GitOps / uzalishaji ambao haupaswi kubadilika bila kutarajiwa                      | Bandika `:X.Y.Z` (au digest ya picha) |
+| Kufuatilia matoleo thabiti yaliyochapishwa na kukubali uundaji upya kwa kila toleo | `:latest`                             |
+| Kujaribu commits ambazo hazijatolewa za `release/v*`                               | `:next` (si kwa uzalishaji)           |
+| Kujaribu `main`                                                                    | `:main` (si kwa uzalishaji)           |
 
 ## Upatikanaji: SQLite chaguomsingi ina nakala moja
 

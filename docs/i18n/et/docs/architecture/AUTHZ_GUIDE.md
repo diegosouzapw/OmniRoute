@@ -1,15 +1,15 @@
 # Authorization Guide (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **Tõeallikas:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Viimati uuendatud:** 2026-06-28 — v3.8.40
+> **Tõe allikas:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Viimati uuendatud:** 2026-09-22 — skoobi nimeruumid viitavad MCP-SERVER.md
 
-OmniRoute'il on marsruuditeadlik autoriseerimiskonveier, mis kontrollib iga API-päringut. Klassifitseerimine on **deterministlik** ja **tõrke korral suletud** — kõik, mida ei saa klassifitseerida, määratakse klassi `MANAGEMENT` ning nõuab seanssi või haldustaseme luba. Sellel lehel selgitatakse mudelit inseneridele, kes hooldavad marsruute või kavandavad uusi lõpp-punkte.
+OmniRoute'il on marsruuditundlik autoriseerimistorustik, mis valvab iga API päringut. Klassifikatsioon on **deterministlik** ja **fail-closed** — kõik, mida ei saa klassifitseerida, lõpeb `MANAGEMENT`ina ja nõuab seanssi või haldustaseme tokenit. See leht selgitab mudelit inseneridele, kes hooldavad marsruute või kujundavad uusi lõpp-punkte.
 
-![AuthZ-konveier (3 marsruudiklassi + poliitika hindamine)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ torustik (3 marsruudiklassi + poliitika hindamine)](../diagrams/exported/authz-pipeline.svg)
 
 > Allikas: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -197,28 +197,38 @@ export async function POST(request: Request) {
 
 Valige kogum kuju, mitte mugavuse järgi. Üks marsruut lisatakse kogumisse `PUBLIC_API_ROUTES_EXACT` (või ainult GET-i jaoks kogumisse `PUBLIC_READONLY_CORS_API_ROUTES`); kogumisse `PUBLIC_API_ROUTE_PREFIXES` lisatakse üksnes tegelik alampuu ning see **peab lõppema märgiga `/`**. Üksiku marsruudi lisamine prefiksiloendisse avalikustab ka kõik külgnevad teed, mille algusmärgid on samad — sealhulgas hiljem lisatud dünaamilise segmendiga sõsarmarsruudid (GHSA-74g9-q8f6-793h). Uuendage ühikteste failides `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` ja `tests/unit/authz/classify.test.ts`.
 
-## Ulatused
+## Skoobid
 
-API-võtmed sisaldavad massiivi `scopes` (talletatud JSON-ina väljal `api_keys.scopes`, vt `src/lib/db/apiKeys.ts`).
+Kolm nimeruumi. Iga kontrollija loeb ainult oma stringe. Kõrvuti võrdlus,
+sealhulgas miks `manage` ebaõnnestub `scopeMatches` puhul `read:compression` jaoks ja miks `read`
+ligipääsutoken ei saa `PATCH /api/keys/{id}`, on
+[Kolm skoobi nimeruumi](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Haldusulatus
+API võtmed sisaldavad `scopes` massiivi (salvestatud JSON-ina `api_keys.scopes` all, vt `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — annab võtmele juurdepääsu haldus-API lõpp-punktidele, kui see saadetakse Bearer-võtmena.
+### Halduse skoop
 
-### MCP ulatused (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Kandja ligipääs halduse API marsruutidele.
+- `mcp:connect`, `self:usage`, `self:account-quota` ja
+  `policy:bypass-provider-quota` on aditiivsed täpselt vastavad skoobid. Need
+  asuvad väljaspool `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` avab ainult
+  `/api/mcp/` mitte-tagasiside erandi.
 
-Iga MCP tööriist nõuab `MCP_TOOL_SCOPES` kaudu kindlaid ulatusi. Täielik loend (`MCP_SCOPE_LIST`):
+### MCP tööriista skoobid
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Kataloog ja vastavusreeglid (identne string või antud skoop, mis lõpeb `*`-ga):
+[MCP tööriista skoobid](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` failis `src/shared/constants/mcpScopes.ts` on algne tüübitud
+alamhulk, mitte see täielik kataloog. Jõustamine toimub
+`open-sse/mcp-server/scopeEnforcement.ts` pärast seda, kui `resolveCallerScopeContext()`
+lahendab skoobid MCP autentimisteabest, päringu metaandmetest või `OMNIROUTE_MCP_SCOPES`-ist.
+See jääb välja lülitatuks, välja arvatud juhul, kui `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Ulatuste jõustamisel failis `open-sse/mcp-server/server.ts` edastatakse iga tööriista ulatuste loend funktsioonile
-`evaluateToolScopes()` pärast seda, kui `resolveCallerScopeContext()` on tuvastanud ulatused MCP autentimisteabest,
-päringu metaandmetest või muutujast `OMNIROUTE_MCP_SCOPES`.
+### Ligipääsutokeni skoobid
+
+`read` / `write` / `admin` `oma_live_…` tokenitel, järjestatud `scopeSatisfies`
+järgi (`src/lib/accessTokens/scopes.ts`). See järjestus kehtib ainult
+ligipääsutokeni mandaadile. Vt [Halduse autentimine](../guides/MANAGEMENT-AUTH.md).
 
 ## Autentimisnõude lüliti
 
@@ -264,9 +274,9 @@ x-omniroute-auth-scopes:    komadega eraldatud loend
 
 Kasutage töötlejates funktsiooni `assertAuth(req, expectedClass)` — kui vahevara jäeti vahele, väljastab see vea `AuthzAssertionError` koodiga `AUTHZ_NOT_INITIALIZED` (kasulik konfiguratsiooni regressioonide tuvastamiseks testides).
 
-## Vaadake ka
+## Vaata ka
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — autentimise märge iga lõpp-punkti kohta
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — autentimissündmuste auditilogi
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP ulatuste jõustamise üksikasjad
-- Lähtekood: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — autentimismärgis iga lõpp-punkti kohta
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — auditi logi autentimissündmuste jaoks
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — kolm skoobi nimeruumi ja MCP tööriista-skoobi kataloog
+- Allikas: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

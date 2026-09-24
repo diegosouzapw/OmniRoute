@@ -1,0 +1,1 @@
+- **fix(auto-combo):** keep models whose catalog declares only non-chat surfaces (image, video, audio, embedding, rerank) out of every `auto/*` candidate pool. Tag x.ai `grok-imagine-*` during discovery so they hit the same filter. Fixes the long-running leak of `grok-imagine-*`/`Wan2.2`/`suno/chirp-*` into `auto/coding` and `auto/smart` (#14584) — thanks @VIPKaiser

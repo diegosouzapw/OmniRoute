@@ -11,6 +11,8 @@
  *   - prior `functionCall` parts       → assistant `tool_calls`
  *   - `functionResponse` parts         → `tool`-role messages
  *
+ * `inlineData` parts of non-model turns become `image_url` data URLs.
+ *
  * Mirrors the shapes already used by the request translator
  * `open-sse/translator/request/gemini-to-openai.ts`.
  */
@@ -60,9 +62,12 @@ interface GeminiGenerateBody {
   };
 }
 
+type InternalContentPart =
+  { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+
 interface InternalMessage {
   role: string;
-  content?: string | null;
+  content?: string | InternalContentPart[] | null;
   tool_calls?: Array<{
     id: string;
     type: "function";
@@ -94,11 +99,12 @@ function newToolCallId(): string {
 }
 
 /**
- * Convert a single Gemini `content` entry into one internal message.
+ * Convert a single Gemini `content` entry into internal messages.
  *
- * `functionResponse` parts become a `tool` message; `functionCall` parts become
+ * `functionResponse` parts become `tool` messages; `functionCall` parts become
  * an assistant message carrying `tool_calls`; otherwise a plain text message.
- * Returns `null` when the content has nothing to contribute.
+ * In a non-model content, `inlineData` parts become `image_url` data URLs, as in
+ * the Gemini translator. Returns `null` when the content has nothing to contribute.
  */
 function convertContent(
   content: GeminiContent,
@@ -125,11 +131,24 @@ function convertContent(
   if (toolMessages.length > 0) return toolMessages;
 
   const textSegments: string[] = [];
+  const contentParts: InternalContentPart[] = [];
   const toolCalls: InternalMessage["tool_calls"] = [];
+  // Chat Completions takes image parts in user content only, so a model turn keeps its text.
+  const acceptsInlineData = content.role !== "model";
 
   for (const part of parts) {
     if (typeof part.text === "string") {
       textSegments.push(part.text);
+      contentParts.push({ type: "text", text: part.text });
+    }
+    const inlineData = (acceptsInlineData ? (part.inlineData ?? part.inline_data) : undefined) as
+      { mimeType?: string; mime_type?: string; data?: unknown } | undefined;
+    if (inlineData && typeof inlineData.data === "string") {
+      const mimeType = inlineData.mimeType || inlineData.mime_type || "image/png";
+      contentParts.push({
+        type: "image_url",
+        image_url: { url: `data:${mimeType};base64,${inlineData.data}` },
+      });
     }
     if (part.functionCall) {
       toolCalls.push({
@@ -144,16 +163,42 @@ function convertContent(
   }
 
   const text = textSegments.join("\n");
+  const hasInlineData = contentParts.some((part) => part.type === "image_url");
 
   if (toolCalls.length > 0) {
     const msg: InternalMessage = { role: "assistant" };
-    if (text) msg.content = text;
+    if (hasInlineData) msg.content = contentParts;
+    else if (text) msg.content = text;
     msg.tool_calls = toolCalls;
     return msg;
   }
 
   const role = content.role === "model" ? "assistant" : "user";
-  return { role, content: text };
+  return { role, content: hasInlineData ? contentParts : text };
+}
+
+/**
+ * Split a content holding `functionResponse` parts next to other parts into one content with
+ * the responses and one with the rest, as `splitCoLocatedFunctionResponses()` does in the
+ * Gemini translator. gemini-cli sends a binary file a tool read that way: the
+ * functionResponse, then the file as inlineData.
+ */
+function splitFunctionResponses(
+  content: GeminiContent
+): Array<{ content: GeminiContent; coLocated: boolean }> {
+  const parts = content?.parts;
+  if (!Array.isArray(parts) || !parts.some((part) => part?.functionResponse)) {
+    return [{ content, coLocated: false }];
+  }
+  const others = parts.filter((part) => !part?.functionResponse);
+  const pieces = [
+    {
+      content: { ...content, parts: parts.filter((part) => part?.functionResponse) },
+      coLocated: false,
+    },
+  ];
+  if (others.length > 0) pieces.push({ content: { ...content, parts: others }, coLocated: true });
+  return pieces;
 }
 
 /**
@@ -182,11 +227,16 @@ export function convertGeminiToInternal(
   // Convert contents to messages (text + tool calls + tool responses)
   if (geminiBody.contents) {
     const toolCallIds = createGeminiToolCallIdPairing(newToolCallId);
-    for (const content of geminiBody.contents) {
-      toolCallIds.beginContent(content);
-      const converted = convertContent(content, toolCallIds);
-      if (Array.isArray(converted)) messages.push(...converted);
-      else if (converted) messages.push(converted);
+    for (const original of geminiBody.contents) {
+      for (const { content, coLocated } of splitFunctionResponses(original)) {
+        toolCallIds.beginContent(content);
+        const converted = convertContent(content, toolCallIds);
+        if (Array.isArray(converted)) messages.push(...converted);
+        // Parts next to the responses that yield nothing (an empty text part) add no message.
+        else if (converted && (!coLocated || converted.content || converted.tool_calls)) {
+          messages.push(converted);
+        }
+      }
     }
   }
 

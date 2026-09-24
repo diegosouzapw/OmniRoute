@@ -293,6 +293,9 @@ jobs:
             # #8781: open-sse workspace typecheck gate — the workspace imports @/ which
             # escapes to src/ via undeclared path aliases. See check-open-sse-typecheck.mjs.
             open-sse-typecheck
+            # Hard Rule #16 — AI/bot attribution in PR commits, title or body (#14436). Reads the PR
+            # from GITHUB_EVENT_PATH; no-op on non-PR events. ci.yml only runs on PRs to main.
+            ai-attribution
           )
           ratchet_gates=(
             secrets vuln-ratchet workflows openapi-breaking
