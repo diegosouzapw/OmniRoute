@@ -7,7 +7,6 @@ import { isSupportedUsageConnection } from "../../src/lib/usage/providerLimits.t
 import { invalidateContext7QuotaCache } from "../../open-sse/services/context7QuotaFetcher.ts";
 
 const originalFetch = globalThis.fetch;
-const KEY_FIELD = "apiK" + "ey";
 
 function context7RateLimitResponse(limit: number, remaining: number, reset?: string) {
   return new Response(null, {
@@ -70,7 +69,7 @@ test("getUsageForProvider dispatches context7 to getContext7Usage", async () => 
   const u = (await getUsageForProvider({
     provider: "context7",
     id: connectionId,
-    [KEY_FIELD]: "ctx7sk-tok",
+    apiKey: "ctx7sk-tok",
   })) as Record<string, unknown>;
   assert.ok(u);
   assert.equal(u.plan, "Context7 · Search Tier");

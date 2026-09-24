@@ -1,14 +1,13 @@
 /**
  * usage/context7.ts — Context7 rate limit quota for Provider Limits.
  *
- * HEAD /api/v1/search via context7QuotaFetcher; shapes ratelimit-* headers
+ * GET /api/v1/search?query=react via context7QuotaFetcher; shapes ratelimit-* headers
  * into the standard `{ plan, quotas }` response.
  */
 
 import { fetchContext7Quota, type Context7Quota } from "../context7QuotaFetcher.ts";
 import { createQuotaFromUsage } from "./quota.ts";
-
-const KEY_FIELD = "apiK" + "ey";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 
 function toRecord(v: unknown): Record<string, unknown> | null {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
@@ -35,10 +34,10 @@ export async function getContext7Usage(
     const resolvedConnection = apiKey
       ? {
           ...(connection || {}),
-          [KEY_FIELD]: apiKey,
+          apiKey,
           credentials: {
             ...toRecord(connection?.credentials),
-            [KEY_FIELD]: apiKey,
+            apiKey,
           },
         }
       : connection;
@@ -62,6 +61,10 @@ export async function getContext7Usage(
       limitReached: q.limitReached,
     };
   } catch (error) {
-    return { message: `Context7 usage error: ${(error as Error).message}` };
+    return {
+      message: `Context7 usage error: ${sanitizeErrorMessage(
+        error instanceof Error ? error.message : String(error)
+      )}`,
+    };
   }
 }

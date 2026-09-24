@@ -15,14 +15,9 @@ afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 
-const KEY_FIELD = "apiK" + "ey";
-
 test("extractContext7Token reads root and credentials shapes", () => {
-  assert.equal(extractContext7Token({ [KEY_FIELD]: "ctx7sk-root" }), "ctx7sk-root");
-  assert.equal(
-    extractContext7Token({ credentials: { [KEY_FIELD]: "ctx7sk-nested" } }),
-    "ctx7sk-nested"
-  );
+  assert.equal(extractContext7Token({ apiKey: "ctx7sk-root" }), "ctx7sk-root");
+  assert.equal(extractContext7Token({ credentials: { apiKey: "ctx7sk-nested" } }), "ctx7sk-nested");
   assert.equal(extractContext7Token({ accessToken: "ctx7sk-token" }), "ctx7sk-token");
   assert.equal(extractContext7Token({}), null);
 });
@@ -82,7 +77,7 @@ test("fetchContext7Quota calls GET /search?query=react with Authorization header
     });
   }) as typeof globalThis.fetch;
 
-  const quota = await fetchContext7Quota(connectionId, { [KEY_FIELD]: "ctx7sk-test-tok" });
+  const quota = await fetchContext7Quota(connectionId, { apiKey: "ctx7sk-test-tok" });
   assert.ok(quota);
   assert.equal(calledUrl, "https://context7.com/api/v1/search?query=react");
   assert.equal(calledMethod, "GET");
@@ -96,7 +91,7 @@ test("fetchContext7Quota calls GET /search?query=react with Authorization header
 test("fetchContext7Quota fail-opens and caches null on 401", async () => {
   const connectionId = `ctx7-401-${Date.now()}`;
   globalThis.fetch = async () => new Response(null, { status: 401 });
-  const quota = await fetchContext7Quota(connectionId, { [KEY_FIELD]: "mock-token" });
+  const quota = await fetchContext7Quota(connectionId, { apiKey: "mock-token" });
   assert.equal(quota, null);
   invalidateContext7QuotaCache(connectionId);
 });
@@ -113,7 +108,7 @@ test("fetchContext7Quota reads ratelimit headers on HTTP 400 response", async ()
       },
     });
 
-  const quota = await fetchContext7Quota(connectionId, { [KEY_FIELD]: "mock-token" });
+  const quota = await fetchContext7Quota(connectionId, { apiKey: "mock-token" });
   assert.ok(quota);
   assert.equal(quota!.total, 200);
   assert.equal(quota!.remainingCredits, 198);
@@ -130,8 +125,8 @@ test("fetchContext7Quota caches null on 500 responses to prevent storming", asyn
     return new Response("Internal Error", { status: 500 });
   };
 
-  const q1 = await fetchContext7Quota(connectionId, { [KEY_FIELD]: "mock-token" });
-  const q2 = await fetchContext7Quota(connectionId, { [KEY_FIELD]: "mock-token" });
+  const q1 = await fetchContext7Quota(connectionId, { apiKey: "mock-token" });
+  const q2 = await fetchContext7Quota(connectionId, { apiKey: "mock-token" });
   assert.equal(q1, null);
   assert.equal(q2, null);
   assert.equal(fetchCount, 1);
@@ -153,8 +148,8 @@ test("fetchContext7Quota caches positive results for 60s", async () => {
     });
   };
 
-  const q1 = await fetchContext7Quota(connectionId, { [KEY_FIELD]: "mock-token" });
-  const q2 = await fetchContext7Quota(connectionId, { [KEY_FIELD]: "mock-token" });
+  const q1 = await fetchContext7Quota(connectionId, { apiKey: "mock-token" });
+  const q2 = await fetchContext7Quota(connectionId, { apiKey: "mock-token" });
   assert.ok(q1);
   assert.ok(q2);
   assert.equal(q1!.remainingCredits, 450);
@@ -179,9 +174,44 @@ test("registerContext7QuotaFetcher registers context7 for preflight", async () =
       },
     });
 
-  const res = await fetcher(connectionId, { [KEY_FIELD]: "mock-token" });
+  const res = await fetcher(connectionId, { apiKey: "mock-token" });
   assert.ok(res);
   assert.equal((res as { limitReached: boolean }).limitReached, true);
+
+  invalidateContext7QuotaCache(connectionId);
+});
+
+test("fetchContext7Quota does not probe upstream without a key (no anonymous limit misattribution)", async () => {
+  const connectionId = `ctx7-nokey-${Date.now()}`;
+  let fetchCount = 0;
+  globalThis.fetch = (async () => {
+    fetchCount++;
+    return new Response(null, {
+      status: 200,
+      headers: { "ratelimit-limit": "60", "ratelimit-remaining": "59" },
+    });
+  }) as typeof globalThis.fetch;
+
+  const quota = await fetchContext7Quota(connectionId, {});
+  assert.equal(quota, null);
+  assert.equal(fetchCount, 0);
+
+  invalidateContext7QuotaCache(connectionId);
+});
+
+test("fetchContext7Quota bounds the probe with an abort signal", async () => {
+  const connectionId = `ctx7-timeout-${Date.now()}`;
+  let signal: AbortSignal | null | undefined;
+  globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+    signal = init?.signal;
+    return new Response(null, {
+      status: 200,
+      headers: { "ratelimit-limit": "100", "ratelimit-remaining": "90" },
+    });
+  }) as typeof globalThis.fetch;
+
+  await fetchContext7Quota(connectionId, { apiKey: "mock-token" });
+  assert.ok(signal instanceof AbortSignal, "probe must carry an AbortSignal timeout");
 
   invalidateContext7QuotaCache(connectionId);
 });

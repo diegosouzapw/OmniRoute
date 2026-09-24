@@ -1,10 +1,17 @@
 import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
+import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 
+/**
+ * Context7 has no dedicated usage/billing endpoint, so quota is read from the
+ * `ratelimit-*` headers of a real, cheap search call (`GET /search?query=react`).
+ * Each uncached probe therefore consumes one unit of the limit it measures;
+ * the 60 s cache keeps that cost bounded. Swap the probe if Context7 ever ships
+ * a real usage endpoint.
+ */
 export const CONTEXT7_SEARCH_URL = "https://context7.com/api/v1/search";
 const CONTEXT7_CACHE_TTL_MS = 60 * 1000;
-
-const KEY_FIELD = "apiK" + "ey";
+const REQUEST_TIMEOUT_MS = 8_000;
 
 export interface Context7Quota {
   used: number;
@@ -33,12 +40,12 @@ function toRecord(v: unknown): Record<string, unknown> | null {
 
 export function extractContext7Token(connection?: Record<string, unknown>): string | null {
   if (!connection) return null;
-  if (typeof connection[KEY_FIELD] === "string" && connection[KEY_FIELD]) {
-    return connection[KEY_FIELD] as string;
+  if (typeof connection.apiKey === "string" && connection.apiKey) {
+    return connection.apiKey;
   }
   const credentials = toRecord(connection.credentials);
-  if (credentials && typeof credentials[KEY_FIELD] === "string" && credentials[KEY_FIELD]) {
-    return credentials[KEY_FIELD] as string;
+  if (credentials && typeof credentials.apiKey === "string" && credentials.apiKey) {
+    return credentials.apiKey;
   }
   if (typeof connection.accessToken === "string" && connection.accessToken) {
     return connection.accessToken;
@@ -89,7 +96,7 @@ export function parseContext7RateLimitHeaders(headers: Headers): Context7Quota |
   };
 }
 
-async function throttleQuotaFetch(
+async function dedupeQuotaFetch(
   connectionId: string,
   fetcher: () => Promise<Context7Quota | null>
 ): Promise<Context7Quota | null> {
@@ -124,17 +131,18 @@ export async function fetchContext7Quota(
     return cached.quota;
   }
 
-  return throttleQuotaFetch(connectionId, async () => {
-    const token = extractContext7Token(connection);
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+  // Without a key the probe would read the ANONYMOUS (per-IP) rate limit and
+  // attribute it to this connection — report "unknown" instead.
+  const token = extractContext7Token(connection);
+  if (!token) return null;
 
+  return dedupeQuotaFetch(connectionId, async () => {
+    await throttleQuotaFetch();
     const url = `${CONTEXT7_SEARCH_URL}?query=react`;
     const response = await fetch(url, {
       method: "GET",
-      headers,
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
     const quota = parseContext7RateLimitHeaders(response.headers);
