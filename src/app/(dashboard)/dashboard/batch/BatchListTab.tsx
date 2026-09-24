@@ -318,8 +318,6 @@ export default function BatchListTab({
   const [removingCompleted, setRemovingCompleted] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  //const completedBatches = batches.filter((b) => b.status === "completed");
-
   const MAX_DELETE_ITERATIONS = 5;
 
   const handleRemoveCompleted = async () => {
