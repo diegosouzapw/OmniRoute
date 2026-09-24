@@ -1,0 +1,1 @@
+- **fix(sse):** Grok Build (grok-cli) no longer 422s on Codex CLI requests: Responses `namespace` tool groups are flattened into function tools on the same-format lane and their `{namespace, name}` identity is restored on returned function calls ([#14596](https://github.com/diegosouzapw/OmniRoute/pull/14596)) — thanks @QuangBlue

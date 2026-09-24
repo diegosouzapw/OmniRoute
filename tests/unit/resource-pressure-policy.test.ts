@@ -181,10 +181,7 @@ describe("resource pressure policy", () => {
     // page cache on top of 1.62 GiB anon, tripping cgroup_ratio critical at
     // 95% while the real working set was 33% and memory.events stayed zero.
     const tracker = createResourcePressureTracker(fastThresholds);
-    const cgroup = (
-      currentBytes: number,
-      fileBytes: number | null
-    ): ResourceSignals["cgroup"] => ({
+    const cgroup = (currentBytes: number, fileBytes: number | null): ResourceSignals["cgroup"] => ({
       currentBytes,
       maxBytes: 5 * 1024 ** 3,
       highBytes: null,
@@ -259,7 +256,7 @@ describe("resource pressure policy", () => {
     assert.equal(state.severity, "normal");
   });
 
-  it("keeps the cgroup_high reason on the raw total charge", () => {
+  it("stays informative on the raw total charge without kernel throttling proof", () => {
     const tracker = createResourcePressureTracker(fastThresholds);
     const mk = (cur: number, file: number, high: number): ResourceSignals => ({
       ...baseSignals(),
@@ -270,12 +267,52 @@ describe("resource pressure policy", () => {
         fileBytes: file,
         events: { low: 0, high: 0, max: 0, oom: 0, oom_kill: 0 },
       },
+      psi: {
+        someAvg10: 0,
+        someAvg60: 0,
+        someAvg300: 0,
+        fullAvg10: 0,
+        fullAvg60: 0,
+        fullAvg300: 0,
+        psiSource: "cgroup",
+      },
     });
     // Total charge 3.5 GiB over a 3 GiB high with 3 GiB of it file cache:
-    // kernel throttles on the total, so the guard must fire on cgroup_high
-    // even though the workingset (0.5 GiB) is tiny.
+    // the kernel reports no throttling (events silent, PSI zero), so the
+    // guard stays at an informative high instead of firing critical.
     tracker.observe(mk(3_758_096_384, 3_221_225_472, 3 * 1024 ** 3));
     const state = tracker.observe(mk(3_758_096_384, 3_221_225_472, 3 * 1024 ** 3));
+    assert.equal(state.severity, "high");
+    assert.equal(state.reason, "cgroup_high");
+  });
+
+  it("reaches critical on the raw total charge with kernel throttling proof", () => {
+    const tracker = createResourcePressureTracker(fastThresholds);
+    const mk = (throttleHigh: number): ResourceSignals => ({
+      ...baseSignals(),
+      cgroup: {
+        currentBytes: 3_758_096_384,
+        maxBytes: 5 * 1024 ** 3,
+        highBytes: 3 * 1024 ** 3,
+        fileBytes: 3_221_225_472,
+        events: { low: 0, high: throttleHigh, max: 0, oom: 0, oom_kill: 0 },
+      },
+      psi: {
+        someAvg10: 0,
+        someAvg60: 0,
+        someAvg300: 0,
+        fullAvg10: 0,
+        fullAvg60: 0,
+        fullAvg300: 0,
+        psiSource: "cgroup",
+      },
+    });
+    // Same raw total, but the kernel throttled (high counter rising across
+    // the window): the proof lets the guard reach critical on cgroup_high.
+    tracker.observe(mk(0));
+    tracker.observe(mk(0));
+    tracker.observe(mk(3));
+    const state = tracker.observe(mk(5));
     assert.equal(state.severity, "critical");
     assert.equal(state.reason, "cgroup_high");
   });
@@ -304,5 +341,41 @@ describe("resource pressure policy", () => {
       "recoveryStreak",
       "severity",
     ]);
+  });
+
+  it("#13124 OMNIROUTE_PRESSURE_PSI_DISABLED ignores host PSI and keeps cgroup", () => {
+    const previous = process.env.OMNIROUTE_PRESSURE_PSI_DISABLED;
+    process.env.OMNIROUTE_PRESSURE_PSI_DISABLED = "1";
+    try {
+      const tracker = createResourcePressureTracker(fastThresholds);
+      const psiCritical = baseSignals({
+        psi: {
+          someAvg10: 90,
+          someAvg60: null,
+          someAvg300: null,
+          fullAvg10: 90,
+          fullAvg60: null,
+          fullAvg300: null,
+        },
+      });
+      assert.equal(tracker.observe(psiCritical).severity, "normal");
+      assert.equal(tracker.observe(psiCritical).severity, "normal");
+
+      const cgroupCritical = baseSignals({
+        cgroup: {
+          currentBytes: 950,
+          maxBytes: 1000,
+          highBytes: null,
+          fileBytes: null,
+          events: null,
+        },
+      });
+      tracker.observe(cgroupCritical);
+      assert.equal(tracker.observe(cgroupCritical).severity, "critical");
+      assert.equal(tracker.getState().reason, "cgroup_ratio");
+    } finally {
+      if (previous === undefined) delete process.env.OMNIROUTE_PRESSURE_PSI_DISABLED;
+      else process.env.OMNIROUTE_PRESSURE_PSI_DISABLED = previous;
+    }
   });
 });

@@ -4,198 +4,179 @@
 
 ---
 
-> 自動節省符合條件之上下文的 15-95%。如需快速概覽，請參閱 [README 壓縮章節](../README.md#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically)。
+> 自動將符合條件的內容節省 15-95%。如需快速概覽，請參閱 [README 壓縮部分](../README.md#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically)。
 
 ## 概覽
 
-OmniRoute 實作了一套模組化的提示詞壓縮管線，會在請求送達上游提供者之前**主動**執行。這表示系統會以透明方式為你節省權杖，無需變更現有工作流程。
+OmniRoute 實作了一個模組化的提示壓縮管線，它在請求到達上游提供者之前**主動**運行。這意味著您的令牌節省是透明發生的 — 無需更改您的工作流程。
 
 ```
-用戶端請求
+客戶端請求
   → 壓縮策略選擇器
-    → 有組合覆寫設定？→ 使用組合設定
-    → 達到自動觸發閾值？→ 使用自動模式
-    → 有預設模式？→ 使用全域設定
-    → 關閉？→ 略過壓縮
+    → 組合覆寫？ → 使用組合設定
+    → 自動觸發閾值？ → 使用自動模式
+    → 預設模式？ → 使用全域設定
+    → 關閉？ → 跳過壓縮
   → 選定的壓縮模式
-    → 關閉：不壓縮
-    → 輕量：安全地清理空白與格式（約 15%）
-    → 標準：移除穴居人式贅詞（約 30%）
-    → 積極：歷史訊息老化與摘要（約 50%）
-    → 極致：啟發式修剪與程式碼區塊精簡（約 75%）
-    → RTK：能辨識命令的終端機／工具輸出篩選（上游節省範圍 60-90%）
-    → 堆疊：依序執行多個引擎的管線，通常先執行 RTK，再執行 Caveman（符合條件內容的節省範圍為 78-95%）
-  → 壓縮後的請求 → 提供者
+    → Off: 無壓縮
+    → Lite: 安全的空白/格式清理 (~15%)
+    → Standard: Caveman-speak 填充詞移除 (~30%)
+    → Aggressive: 歷史老化 + 摘要 (~50%)
+    → Ultra: 啟發式修剪 + 程式碼區塊精簡 (~75%)
+    → RTK: 命令感知終端機/工具輸出過濾 (上游範圍 60-90%)
+    → Stacked: 有序多引擎管線，通常是 RTK 然後 Caveman (符合條件範圍 78-95%)
+  → 壓縮請求 → 提供者
 ```
 
 ---
 
 ## 壓縮模式
 
-### 關閉
+### Off
 
-不套用任何壓縮。所有訊息皆保持原樣傳遞。
+不應用壓縮。所有訊息都未經更改地通過。
 
-### 輕量模式（節省約 15%，延遲 <1ms）
+### Lite 模式 (節省約 15%，延遲 <1ms)
 
-最安全的模式——不會改變任何語意，只會清理格式：
+最安全的模式 — 零語義變更，僅格式清理：
 
-| 技術                     | 說明                         |
-| ------------------------ | ---------------------------- |
-| `collapseWhitespace`     | 合併連續空白行並移除行尾空格 |
-| `dedupSystemPrompt`      | 移除重複的系統訊息           |
-| `compressToolResults`    | 壓縮冗長的工具／函式輸出     |
-| `removeRedundantContent` | 移除重複的指示               |
-| `replaceImageUrls`       | 縮短 base64 圖片資料 URI     |
+| 技術                     | 描述                       |
+| :----------------------- | :------------------------- |
+| `collapseWhitespace`     | 合併連續的空白行和尾隨空格 |
+| `dedupSystemPrompt`      | 移除重複的系統訊息         |
+| `compressToolResults`    | 壓縮冗長的工具/函數輸出    |
+| `removeRedundantContent` | 移除重複的指令             |
+| `replaceImageUrls`       | 縮短 base64 圖片資料 URI   |
 
-**最適合：** 常駐使用、安全性至關重要的工作流程。
+**最適用於：** 始終開啟的使用情境、安全關鍵型工作流程。
 
-### 標準模式（節省約 30%）
+### Standard 模式 (節省約 30%)
 
-靈感來自 [Caveman](https://github.com/JuliusBrussee/caveman)——移除贅詞與冗長措辭，同時保留原意：
+靈感來自 [Caveman](https://github.com/JuliusBrussee/caveman) — 在保留意義的同時移除填充詞和冗長的措辭：
 
-- 移除贅詞（「please」、「I think」、「basically」、「actually」）
-- 精簡冗長片語（「in order to」→「to」、「as a result of」→「because」）
-- 移除禮貌性的委婉措辭（「Would you mind...」、「If you could possibly...」）
-- 針對程式設計提示詞調校的 30 多條規則運算式規則
+- 移除填充詞（"please"、"I think"、"basically"、"actually"）
+- 濃縮冗長短語（"in order to" → "to"、"as a result of" → "because"）
+- 移除客氣的保留語氣（"Would you mind..."、"If you could possibly..."）
+- 針對程式碼提示調整了 30 多條正規表達式規則
 
-**最適合：** 日常程式設計工作流程、注重成本的團隊。
+**最適用於：** 日常程式碼工作流程、注重成本的團隊。
 
-### 積極模式（節省約 50%）
+### Aggressive 模式 (節省約 50%)
 
-適用於長時間工作階段的智慧歷史訊息管理：
+針對長時間會話的智慧歷史管理：
 
-- **訊息老化**——逐步提高較舊訊息的壓縮程度
-- **工具結果摘要**——以摘要取代冗長的工具輸出
-- **結構完整性防護**——確保 `tool_use` + `tool_result` 配對保持一致
-- **上下文視窗感知**——遵守各模型的權杖限制
+- **訊息老化** — 較舊的訊息會逐漸被壓縮
+- **工具結果摘要** — 長工具輸出替換為摘要
+- **結構完整性保護** — 確保 `tool_use` + `tool_result` 對保持一致
+- **上下文視窗感知** — 尊重每個模型的令牌限制
 
-**最適合：** 長時間的除錯工作階段、大型程式碼庫。
+**最適用於：** 擴展的偵錯會話、大型程式碼庫。
 
-### 極致模式（節省約 75%）
+### Ultra 模式 (節省約 75%)
 
-針對權杖極度受限情境的最大化壓縮：
+針對令牌關鍵情境的最大壓縮：
 
-- **啟發式修剪**——移除低於相關性閾值的訊息
-- **程式碼區塊精簡**——壓縮重複的程式碼範例
-- **二分搜尋截斷**——找出上下文視窗的最佳截斷點
-- 包含積極模式的所有功能
+- **啟發式修剪** — 移除低於相關性閾值的訊息
+- **程式碼區塊精簡** — 壓縮重複的程式碼範例
+- **二分搜尋截斷** — 找到上下文視窗的最佳截斷點
+- 包含所有 Aggressive 模式功能
 
-**最適合：** 反覆觸及上下文限制時。
+**最適用於：** 當您重複達到上下文限制時。
 
-### RTK 模式（上游節省範圍 60-90%）
+### RTK 模式 (上游範圍 60-90%)
 
-RTK 模式針對程式設計代理工作階段中出現的冗長工具輸出進行了最佳化：
+RTK 模式針對程式碼代理會話中出現的冗長工具輸出進行了優化：
 
-- 偵測命令／輸出類別，例如 `git status`、`git diff`、`git log`、測試執行器、
-  TypeScript/Vite/Webpack 建置、ESLint/Biome/Prettier、npm 稽核／安裝、Docker 日誌、基礎架構
-  輸出及一般 shell 輸出
-- 套用來自 `open-sse/services/compression/engines/rtk/filters/` 的 JSON 篩選器套件
-- 從專案或全域 `filters.toml` 檔案匯入 RTK TOML schema v1 篩選器，並進行內嵌測試
-  驗證及專案檔案的信任閘控
-- 內建 49 個篩選器，並附有內嵌驗證範例
-- 移除 ANSI 控制序列、進度列、重複行及無法採取行動的雜訊
-- 保留失敗、錯誤、警告、已變更檔案、摘要及長篇輸出的尾端
-- 支援受信任閘控的專案篩選器、全域篩選器，以及可選用的已遮蔽原始輸出復原功能
+- 偵測命令/輸出類別，例如 `git status`、`git diff`、`git log`、測試執行器、
+  TypeScript/Vite/Webpack 建置、ESLint/Biome/Prettier、npm audit/installs、Docker logs、基礎設施
+  輸出以及通用 shell 輸出
+- 應用來自 `open-sse/services/compression/engines/rtk/filters/` 的 JSON 過濾包
+- 從專案或全域 `filters.toml` 檔案匯入 RTK TOML schema v1 過濾器，具有內聯測試
+  驗證和專案檔案的信任門控
+- 內建 49 個過濾器，附帶內聯驗證範例
+- 移除 ANSI 控制序列、進度條、重複行和無關的噪音
+- 保留失敗、錯誤、警告、已更改檔案、摘要以及長輸出的尾部
+- 支援信任門控的專案過濾器、全域過濾器和可選的編輯後原始輸出恢復
 
-**最適合：** 包含 shell、建置、測試、git、grep 及檔案輸出記錄的代理工作階段。
+**最適用於：** 包含 shell、建置、測試、git、grep 和檔案輸出記錄的代理會話。
 
-### 堆疊模式（符合條件內容的節省範圍為 78-95%）
+### Stacked 模式 (符合條件範圍 78-95%)
 
-堆疊模式會以確定性的順序執行多個壓縮引擎。預設管線為：
+Stacked 模式以確定性順序運行多個壓縮引擎。預設管線是：
 
 ```txt
 RTK -> Caveman
 ```
 
-此順序會先精簡終端機／工具輸出，再對
-其餘自然語言提示詞套用 Caveman 語意精簡。堆疊管線可進行全域設定，或透過
-指派給路由組合的壓縮組合進行設定。
+該順序首先保持終端機/工具輸出緊湊，然後對剩餘的自然語言提示應用 Caveman 語義濃縮。堆疊管線可以全域配置，或透過分配給路由組合的壓縮組合進行配置。
 
-**最適合：** 同時包含大量工具日誌與人類指示或助理摘要的混合上下文。
+**最適用於：** 包含大量工具日誌以及人類指令或助理摘要的混合上下文。
 
 ---
 
-## 上游節省量計算
+## 上游節省數學
 
-OmniRoute 記錄了兩種來源的壓縮節省量：上游專案的基準測試，以及
-OmniRoute 自身的引擎組合。
+OmniRoute 從兩個來源記錄壓縮節省：上游專案基準測試和 OmniRoute 自身的引擎組成。
 
-| 來源    | 此處使用的上游 README 數據                                                                           |
-| ------- | ---------------------------------------------------------------------------------------------------- |
-| Caveman | 輸出 token 減少 `~75%`、基準測試平均節省 `65%` 的輸出、範圍為 `22-87%`，以及可壓縮 `~46%` 輸入的工具 |
-| RTK     | 命令輸出節省 `60-90%`；範例工作階段從 `~118,000 -> ~23,900` 個 token，即節省 `79.7%`（`~80%`）       |
+| 來源    | 此處使用的上游 README 數字                                                                 |
+| ------- | ------------------------------------------------------------------------------------------ |
+| Caveman | 輸出 token 減少 `~75%`，基準測試平均輸出節省 `65%`，範圍 `22-87%`，以及輸入壓縮工具 `~46%` |
+| RTK     | 命令輸出節省 `60-90%`；範例會話 `~118,000 -> ~23,900` token，或節省 `79.7%` (`~80%`)       |
 
-對於重疊的工具／上下文承載內容，OmniRoute 的預設組合會依序堆疊引擎：
+對於重疊的工具/上下文負載，預設的 OmniRoute 組合會堆疊引擎：
 
 ```txt
 RTK -> Caveman
 ```
 
-合併後的節省量採乘法計算，而非加法：
+組合節省是乘法的，而非加法的：
 
 ```txt
-combined = 1 - (1 - RTK 節省量) * (1 - Caveman 輸入節省量)
+combined = 1 - (1 - RTK savings) * (1 - Caveman input savings)
 average  = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
 range    = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
 ```
 
-當 RTK 與 Caveman 都能縮減相同的輸入／上下文承載內容時，該 `78-95%` 數值才適用。
-Caveman 的回應輸出模式是獨立的：啟用後，請採用 Caveman 自身的輸出節省量（平均 `65%`、
-標示值 `~75%`、範圍 `22-87%`）。總帳單節省量取決於提示詞與輸出的比例。
+當 RTK 和 Caveman 都能減少相同的輸入/上下文負載時，該 `78-95%` 的數字適用。Caveman 回應輸出模式是獨立的：啟用時，使用 Caveman 自身的輸出節省（平均 `65%`，標題 `~75%`，範圍 `22-87%`）。總計費用節省取決於您的提示/輸出組合。
 
-### 「符合條件」實際上代表什麼
+### 「符合資格」的實際意義
 
-15-95% 的標示範圍確實有效，但僅適用於**重複或冗長**的內容——例如重複的
-錯誤行、不斷輸出相同警告的建置日誌，或過大的 `grep`／檔案讀取傾印。這
-**不**表示每個請求都能節省這麼多。
+15-95% 的標題範圍是真實的，但它僅適用於**冗餘或冗長**的內容 — 重複的錯誤行、垃圾郵件式的相同警告的建置日誌、過大的 `grep`/檔案讀取轉儲。它**不**意味著每個請求都能節省那麼多。
 
-實證驗證（`tests/unit/compression/stacked-compression-tool-result-savings.test.ts`）：對包含 300 行相同
-錯誤訊息的 Anthropic 格式 `tool_result` 區塊執行 `stacked`（RTK + Caveman）後，達到
-**95.93% 的 token 節省量／96.26% 的字元節省量**——完全落在宣稱的範圍內。
-但若對一般、無重複的工具輸出（乾淨的 `grep` 相符項目清單、
-簡短的檔案讀取結果、一般對話文字）執行相同管線，則會正確地產生**接近零的節省量**，因為
-沒有任何可移除的重複內容，而且 `validateCompression()`（`validation.ts`）會拒絕傳送任何會
-刪除或更改程式碼區塊、URL、標題、版本號或全大寫常數識別碼的
-改寫內容。
+經經驗證實（`tests/unit/compression/stacked-compression-tool-result-savings.test.ts`）：針對包含 300 個相同錯誤行的 Anthropic 格式 `tool_result` 區塊執行 `stacked`（RTK + Caveman）產生了 **95.93% 的 token 節省 / 96.26% 的字元節省** — 完全符合廣告範圍。但相同的管道針對正常的、非冗餘的工具輸出（一個乾淨的 `grep` 匹配列表、一個簡短的檔案讀取、普通的對話文本）執行時，正確地產生了**接近零的節省**，因為沒有重複的內容可以移除，並且 `validateCompression()` (`validation.ts`) 拒絕發送會刪除或更改程式碼區塊、URL、標題、版本或全大寫常數識別碼的重寫。
 
-這是符合預期且安全的行為，而非錯誤：即使已完整啟用壓縮，主要用於讀取／grep 乾淨檔案的
-程式設計工作階段，其總節省量仍會較為有限；而遇到失敗迴圈或輸出繁多的
-linter 時，則會在這類流量上達到完整的 78-95% 範圍。不要將單一工作階段
-較低的整體節省百分比視為壓縮設定錯誤的證據——請先檢查
-底層工具輸出是否確實存在重複內容。
+這是預期中安全行為，而非錯誤：一個主要讀取/搜尋乾淨檔案的編碼會話，即使完全啟用壓縮，也會看到適度的總節省，而一個遇到失敗循環或冗長 linter 的會話，則會在該流量上看到完整的 78-95% 範圍。不要將單一會話的低總節省百分比作為壓縮配置錯誤的證據 — 首先檢查底層工具輸出是否確實冗餘。
 
 ---
 
-## Token 節省量視覺化
+## Token 節省視覺化
 
 ```
-不使用壓縮：       傳送 47K 個 token 至 LLM
-使用 Lite：        傳送 40K 個 token        （節省 15%——安全、永遠啟用）
-使用 Standard：    傳送 33K 個 token        （節省 30%——caveman-speak 規則）
-使用 Aggressive：  傳送 24K 個 token        （節省 50%——老化 + 摘要）
-使用 Ultra：       傳送 12K 個 token        （節省 75%——啟發式剪枝）
-使用 RTK：         傳送 19K-5K 個 token     （命令／工具輸出節省 60-90%）
-使用 Stacked：     傳送 10K-2.5K 個 token   （符合條件的 RTK+Caveman 範圍為 78-95%）
+Without compression: 47K tokens sent to LLM (未壓縮：47K token 發送到 LLM)
+With Lite:           40K tokens sent          (15% saved — safe, always-on) (輕量級：發送 40K token — 節省 15%，安全，始終開啟)
+With Standard:       33K tokens sent          (30% saved — caveman-speak rules) (標準：發送 33K token — 節省 30%，遵循 Caveman 語法規則)
+With Aggressive:     24K tokens sent          (50% saved — aging + summarization) (積極：發送 24K token — 節省 50%，老化 + 摘要)
+With Ultra:          12K tokens sent          (75% saved — heuristic pruning) (超高：發送 12K token — 節省 75%，啟發式修剪)
+With RTK:            19K-5K tokens sent       (60-90% saved on command/tool output) (RTK：發送 19K-5K token — 命令/工具輸出節省 60-90%)
+With Stacked:        10K-2.5K tokens sent     (78-95% eligible RTK+Caveman range) (堆疊：發送 10K-2.5K token — 符合資格的 RTK+Caveman 範圍 78-95%)
 ```
 
 ---
 
-## 設定
+## 配置
 
 ### 儀表板
 
-前往 `Dashboard → Context & Cache`：
+導航至 `儀表板 → 上下文與快取`：
 
-- **Caveman** — 模式選擇、語言套件、預覽和全域預設值
-- **RTK** — 指令篩選器預覽、RTK 安全性設定和篩選器目錄
-- **Compression Combos** — 指派給路由組合的具名引擎管線
-- **Auto-Trigger Threshold** — 當權杖數量超過閾值時，自動啟用壓縮
+- **Caveman** — 模式選擇、語言包、預覽和全域預設值
+- **RTK** — 命令過濾器預覽、RTK 安全設定和過濾器目錄
+- **壓縮組合** — 分配給路由組合的命名引擎管道
+- **自動觸發閾值** — 當令牌計數超過閾值時自動啟用壓縮
 
-### 個別組合覆寫
+### 每組合覆寫
 
-在 `Dashboard → Context & Cache → Compression Combos` 中，將壓縮組合指派給路由
-組合：
+在 `儀表板 → 上下文與快取 → 壓縮組合` 中，將壓縮組合分配給路由組合：
 
 ```txt
 Combo: "free-tier-fallback"
@@ -206,34 +187,26 @@ Combo: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-這可讓您在免費／程式開發提供者上使用堆疊式壓縮，同時在付費
-訂閱中維持精簡模式。
+這讓您可以在免費/編碼提供者上使用堆疊壓縮，同時在付費訂閱上保持精簡模式。
 
-此「個別組合覆寫」指派與**路由組合壓縮
-模式**覆寫（Default/Off/Lite/Standard/Aggressive/Ultra）是不同的控制項——該覆寫不會選取具名的
-壓縮組合管線；它只會設定 `resolveCompressionPlan` 所參照的 `compressionMode`
-欄位。您可以在組合卡片（`Dashboard → Combos`）上設定，或自
-#6760 起，在 `Dashboard → Context & Cache → Compression Combos` 的「Assign to routing」清單中，針對各個路由組合進行設定；該選項就位於
-上述管線指派核取方塊旁。兩個介面都會透過相同的 `PUT /api/combos/{id}` 端點儲存設定。
+此「每組合覆寫」分配與**路由組合壓縮模式**覆寫（預設/關閉/精簡/標準/激進/超激進）是不同的控制項 — 該覆寫不會選擇命名的壓縮組合管道；它只是設定由 `resolveCompressionPlan` 查詢的 `compressionMode` 欄位。它可以在組合卡片上設定（`儀表板 → 組合`），或者自 #6760 起，在 `儀表板 → 上下文與快取 → 壓縮組合` 的「分配給路由」列表中，在上述管道分配核取方塊旁邊，為每個路由組合設定。這兩種介面都透過相同的 `PUT /api/combos/{id}` 端點進行持久化。
 
-### 個別請求覆寫
+### 每請求覆寫
 
-傳送 `x-omniroute-compression` 請求標頭，即可針對單一
-請求覆寫壓縮計畫。它具有最高優先順序——優先於路由組合覆寫、作用中的設定檔、
-自動觸發和面板的 Default。未知值會被忽略（絕不會拒絕該請求），而且
-全域主開關仍會控制所有功能：當全域壓縮關閉時，無法透過該標頭
-開啟壓縮。可用值：
+發送 `x-omniroute-compression` 請求標頭以覆寫單一請求的壓縮計畫。它具有最高優先級 — 它會覆蓋路由組合覆寫、活動設定檔、自動觸發和面板預設值。未知值將被忽略（請求永遠不會被拒絕），並且全域主開關仍然控制一切：當全域壓縮關閉時，此標頭無法將其開啟。值：
 
-| 值            | 效果                                                   |
-| ------------- | ------------------------------------------------------ |
-| `off`         | 不壓縮此請求。                                         |
-| `default`     | 由面板決定的 Default 設定檔（忽略作用中的設定檔）。    |
-| `engine:<id>` | 啟用時使用單一引擎，例如 `engine:rtk`。                |
-| `<combo>`     | 具名組合，先依名稱比對（不區分大小寫），再依 id 比對。 |
+| 值            | 效果                                                              |
+| ------------- | ----------------------------------------------------------------- |
+| `off`         | 此請求不進行壓縮。                                                |
+| `default`     | 面板派生的預設設定檔（忽略活動設定檔）。有損引擎保持關閉。        |
+| `safe`        | 與省略標頭相同：僅進行重複資料刪除和空白摺疊。                    |
+| `allow-lossy` | 保留此請求的操作員計畫，包括摘要、相關性過濾器和樣式重寫。        |
+| `engine:<id>` | 啟用時的單一引擎，例如 `engine:rtk`。這是該引擎的每請求選擇加入。 |
+| `<combo>`     | 命名組合，首先按名稱（不區分大小寫）匹配，然後按 ID 匹配。        |
 
-套用的計畫會透過 `X-OmniRoute-Compression: <mode>; source=<source>` 回應
-標頭傳回，其中 `<source>` 是 `request-header`、`routing-override`、`active-profile`、
-`auto-trigger`、`default` 或 `off` 其中之一。
+如果沒有 `allow-lossy`、`engine:<id>` 或命名組合，則不會應用有損引擎。當壓縮開啟時，請求仍會進行會話重複資料刪除和空白摺疊。
+
+應用的計畫會在 `X-OmniRoute-Compression: <mode>; source=<source>` 回應標頭中回傳，其中 `<source>` 是 `request-header`、`routing-override`、`active-profile`、`auto-trigger`、`default` 或 `off` 之一。
 
 ### API
 
@@ -246,15 +219,15 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# 預覽特定的 RTK／堆疊式承載資料
+# 預覽特定的 RTK/堆疊負載
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# 列出 RTK 篩選器套件
+# 列出 RTK 過濾器包
 curl http://localhost:20128/api/context/rtk/filters
 
-# 使用選用的指令中繼資料直接測試 RTK
+# 直接測試 RTK，可選帶有命令元資料
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -264,24 +237,23 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ## 受保護的內容
 
-壓縮引擎**一律保留：**
+壓縮引擎**總是會保留：**
 
-- ✅ 程式碼區塊（圍欄式與行內）
-- ✅ URL 與檔案路徑
-- ✅ JSON 結構與結構化資料
-- ✅ 識別碼與受保護的技術權杖
-- ✅ 數學運算式
-- ✅ 工具／函式呼叫定義
-- ✅ 系統提示詞（在精簡模式中）
+- ✅ 程式碼區塊（圍欄式和行內式）
+- ✅ 網址和檔案路徑
+- ✅ JSON 結構和結構化資料
+- ✅ 識別碼和受保護的技術符記
+- ✅ 數學表達式
+- ✅ 工具/函數呼叫定義
+- ✅ 系統提示（在精簡模式下）
 
-在持久化任何內容之前，RTK 原始輸出復原功能會遮蔽常見的 API 金鑰、Bearer 權杖、Slack 權杖、AWS 存取金鑰、
-密碼、權杖與機密資訊。
+RTK 原始輸出復原會在任何內容被持久化之前，修訂常見的 API 金鑰、Bearer 符記、Slack 符記、AWS 存取金鑰、密碼、符記和機密。
 
 ---
 
-## 壓縮統計資料
+## 壓縮統計
 
-每個壓縮後的請求都會在伺服器日誌中包含統計資料：
+每個壓縮請求都會在伺服器日誌中包含統計資料：
 
 ```json
 {
@@ -301,46 +273,41 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ## 階段路線圖
 
-| 階段       | 模式                                                                                                                         | 狀態      |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 第 1 階段  | 關閉、精簡                                                                                                                   | ✅ 已發布 |
-| 第 2 階段  | 標準、積極、極致                                                                                                             | ✅ 已發布 |
-| 第 3 階段  | RTK、堆疊、壓縮組合                                                                                                          | ✅ 已發布 |
-| 第 4 階段  | 輸出樣式、SLM 層級極致模式、評估框架                                                                                         | ✅ 已發布 |
-| 第 4C 階段 | 自適應上下文預算（「旋鈕」）— 運算引擎 + API（`PUT /api/settings/compression` 上的 `contextBudget`）+ 儀表板模式／原則控制項 | ✅ 已發布 |
+| 階段     | 模式                                                                                                                                          | 狀態      |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Phase 1  | Off, Lite                                                                                                                                     | ✅ 已發布 |
+| Phase 2  | Standard, Aggressive, Ultra                                                                                                                   | ✅ 已發布 |
+| Phase 3  | RTK, Stacked, Compression Combos                                                                                                              | ✅ 已發布 |
+| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                   | ✅ 已發布 |
+| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) + dashboard mode/policy controls | ✅ 已發布 |
 
 ---
 
 ## 致謝
 
-標準模式的壓縮規則靈感來自 **[JuliusBrussee](https://github.com/JuliusBrussee)** 所開發的 **[Caveman](https://github.com/JuliusBrussee/caveman)**（⭐ 51K+）——這個爆紅專案主張「能用少量權杖完成的事，何必使用大量權杖」。Caveman 報告指出，其輸出權杖減少約 `~75%`、基準測試的平均輸出節省率為 `65%`、輸出節省範圍為 `22-87%`，並提供一項輸入壓縮率約為 `~46%` 的工具。
+標準模式壓縮規則的靈感來自於 **[JuliusBrussee](https://github.com/JuliusBrussee)** 的 **[Caveman](https://github.com/JuliusBrussee/caveman)** (⭐ 51K+) — 這個病毒式傳播的專案以「為何使用許多符記，當少數符記就能搞定」為理念。Caveman 報告輸出符記減少約 `75%`，基準測試平均輸出節省 `65%`，輸出範圍為 `22-87%`，以及約 `46%` 的輸入壓縮工具。
 
-RTK 模式的靈感來自 **[RTK AI](https://github.com/rtk-ai)** 所開發的 **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)**——這是一個高效能的命令輸出壓縮專案，適用於終端機、建置、測試、git 與工具輸出篩選。RTK 報告其節省率為 `60-90%`，README 中的範例工作階段顯示節省了約 `~80%`。
+RTK 模式的靈感來自於 **[RTK AI](https://github.com/rtk-ai)** 的 **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** — 這個用於終端機、建置、測試、git 和工具輸出過濾的高效能命令輸出壓縮專案。RTK 報告節省 `60-90%`，其 README 範例會話顯示節省約 `80%`。
 
 ---
 
 ## 進階壓縮系統
 
-除了 7 種標準模式之外，OmniRoute 還包含數個進階壓縮
-系統，可根據上下文自動運作。
+除了 7 種標準模式之外，OmniRoute 還包含多個根據上下文自動運作的進階壓縮系統。
 
 ### 快取感知壓縮
 
-某些提供者（例如具有提示詞快取功能的 Anthropic）支援**提示詞快取**，
-讓其能夠快取提示詞的部分內容，以降低成本與延遲。啟用
-快取後，積極壓縮實際上可能會**損害**效能，
-因為它會變更已快取的權杖，導致快取失效。
+某些提供者（例如 Anthropic 及其提示快取）支援**提示快取**，這讓他們能夠快取提示的部分內容以降低成本和延遲。當快取啟用時，激進的壓縮實際上可能會**損害**效能，因為它會改變快取的符記，從而使快取失效。
 
-`cachingAware.ts` 模組會透過**偵測快取上下文**並
-據此**調整壓縮策略**來解決此問題。
+`cachingAware.ts` 模組透過**偵測快取上下文**並**相應調整壓縮策略**來解決此問題。
 
 #### 運作方式
 
-1. **偵測快取上下文** — 掃描請求本文中的 `cache_control` 標記
-2. **識別支援快取的提供者** — 檢查目標提供者是否支援快取
-3. **調整策略** — 對支援快取的提供者，將 `aggressive`／`ultra` 降級為 `standard`
-4. **略過系統提示詞** — 系統提示詞通常已被快取，因此不壓縮它們
-5. **使用確定性轉換** — 僅使用能產生一致輸出的轉換
+1.  **偵測快取上下文** — 掃描請求主體以尋找 `cache_control` 標記
+2.  **識別快取提供者** — 檢查目標提供者是否支援快取
+3.  **調整策略** — 將快取提供者的 `aggressive`/`ultra` 降級為 `standard`
+4.  **跳過系統提示** — 系統提示通常會被快取，因此不對其進行壓縮
+5.  **使用確定性轉換** — 僅使用產生一致輸出的轉換
 
 #### 程式碼範例
 
@@ -353,7 +320,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← 快取標記
+  cache_control: { type: "ephemeral" }, // ← Cache marker
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -365,21 +332,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### 使用時機
 
-快取感知壓縮**一律啟用**，無需進行任何設定。它只會在
-下列情況下生效：
+快取感知壓縮**始終啟用** — 無需配置。它僅在以下情況下啟動：
 
-- 請求包含 `cache_control` 標記
-- 目標提供者支援提示詞快取（Anthropic、OpenAI 等）
+- 請求具有 `cache_control` 標記
+- 目標提供者支援提示快取（Anthropic、OpenAI 等）
 
 ### 漸進式老化
 
-長對話會累積許多訊息輪次，但較舊的輪次會逐漸降低
-相關性。`progressiveAging.ts` 模組會**依輪次距離降低訊息細節**：
+長對話會累積許多訊息回合，但較舊的回合相關性會降低。`progressiveAging.ts` 模組會**根據回合距離降級訊息**：
 
-- **近期輪次（0-3）**：逐字保留（完整細節）
-- **中期輪次（4-8）**：精簡壓縮（清理空白與格式）
-- **舊輪次（9+）**：Caveman 壓縮（移除贅詞、摘要）
-- **非常舊的輪次（20+）**：大幅摘要或捨棄
+- **最近的回合 (0-3)**：逐字保留（完整細節）
+- **中等回合 (4-8)**：精簡壓縮（空白、格式清理）
+- **舊回合 (9+)**：Caveman 壓縮（移除填充詞、摘要）
+- **非常舊的回合 (20+)**：大量摘要或捨棄
 
 #### 程式碼範例
 
@@ -390,46 +355,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 另外 50 個輪次 ...
+  // ... 還有 50 個回合 ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // 前 3 個輪次：逐字保留
-  light: 8, // 第 4-8 個輪次：精簡壓縮
-  moderate: 20, // 第 9-20 個輪次：Caveman 壓縮
-  // 第 21 個輪次以後：大幅摘要
+  verbatim: 3, // 前 3 個回合：逐字
+  light: 8, // 第 4-8 個回合：精簡壓縮
+  moderate: 20, // 第 9-20 個回合：Caveman 壓縮
+  // 第 21 個回合以上：大量摘要
 });
 
-// saved = 節省的權杖數量
+// saved = 節省的符記數量
 ```
 
 #### 使用時機
 
-漸進式老化在 `aggressive` 與 `ultra` 模式中**永遠啟用**。它特別適用於：
+漸進式老化對於 `aggressive` 和 `ultra` 模式**始終啟用**。它對於以下情況特別有效：
 
-- 長時間進行的程式設計工作階段
-- 持續多日的對話
-- 包含大量工具呼叫的代理式工作流程
+- 長時間的編碼會話
+- 多日對話
+- 具有許多工具呼叫的代理工作流程
 
-### 穴居人輸出模式
+### 原始人輸出模式 (Caveman Output Mode)
 
-`outputMode.ts` 模組會注入**系統提示詞指令**，讓模型本身產生經過壓縮、簡短扼要的輸出（「穴居人」風格）。
+`outputMode.ts` 模組會注入**系統提示指令**，使模型本身產生壓縮、簡潔的輸出（一種「原始人」風格）。
 
 #### 運作方式
 
-此模式不會壓縮輸入，而是加入如下的系統提示詞：
+此模式不是壓縮輸入，而是新增一個系統提示，例如：
 
-> 「使用最少的文字回答。省略客套話。使用短句。」
+> 「請用最少的詞彙回覆。省略客套話。使用短句。」
 
-這特別適用於：
+這對於以下情況特別有效：
 
-- 程式碼產生（輸出越精簡 = token 越少）
-- 快速問答（無須詳盡解釋）
-- 批次處理（最大化輸送量）
+- 程式碼生成（更簡潔的輸出 = 更少的 tokens）
+- 快速問答（無需詳細解釋）
+- 批次處理（最大化吞吐量）
 
-#### 使用時機
+#### 何時使用
 
-穴居人輸出模式是**選擇性啟用**的——請透過組合設定來啟用：
+原始人輸出模式是**可選加入**的 — 透過組合配置設定：
 
 ```json
 {
@@ -442,27 +407,27 @@ const { messages: aged, saved } = applyAging(messages, {
 }
 ```
 
-### 輸出樣式（目錄）
+### 輸出風格 (目錄)
 
-上述穴居人輸出模式是**舊版單一樣式路徑**。第 4 階段將其泛化為可組合的輸出樣式目錄：位於 `open-sse/services/compression/outputStyles/catalog.ts` 的 `OUTPUT_STYLE_CATALOG`。每種樣式都是一項系統提示詞指令，讓模型本身產生成本更低的輸出；可同時啟用多種樣式，並依目錄順序注入。
+上述的原始人輸出模式是**傳統的單一風格路徑**。第四階段將其通用化為一個可組合輸出風格的目錄：`open-sse/services/compression/outputStyles/catalog.ts` 中的 `OUTPUT_STYLE_CATALOG`。每種風格都是一個系統提示指令，使模型本身產生更經濟的輸出；風格可以同時啟用，並按照目錄順序注入。
 
-| 樣式                       | `id`          | 功能                                                                                                                                                                                                  | 指令語言                                             |
-| -------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| 精簡散文                   | `terse-prose` | 移除贅詞、冠詞與保留語氣；精確保留技術實質。文字與舊版穴居人輸出模式相同（引用而非重新輸入）。                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi        |
-| 更少程式碼                 | `less-code`   | YAGNI 階梯：採用最小且可運作的變更，不加入未要求的抽象層。                                                                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi        |
-| 馬尾辮（懶惰的資深開發者） | `ponytail`    | 「最好的程式碼，就是從未寫下的程式碼」：重用優於重寫，根本原因優於表面症狀，採用最短且可運作的差異。                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi        |
-| 我有 ADHD（行動優先）      | `i-have-adhd` | 行動優先（先提供命令／路徑／程式碼片段，再提供說明）、有明確範圍的編號步驟、僅提供一個具體的下一步，不要前言／回顧／結語。改編自 [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd)（MIT）。 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi        |
-| 精簡 CJK（文言）           | `terse-cjk`   | 極度精簡的文言文風格。                                                                                                                                                                                | zh（受地區設定限制：僅在解析出的語言為 `zh` 時提供） |
+| 風格                    | `id`          | 作用                                                                                                                                                                | 指令語言                                      |
+| ----------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| 簡潔散文                | `terse-prose` | 省略填充詞/冠詞/模糊語；保持技術實質精確。與傳統原始人輸出模式的文字相同（引用而非重新輸入）。                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| 更少程式碼              | `less-code`   | YAGNI 階梯：最小化可行變更，無不必要的抽象。                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| 馬尾 (懶惰的資深開發者) | `ponytail`    | 「最好的程式碼是從未寫過的程式碼」：重用 > 重寫，根本原因 > 症狀，最短工作差異。                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| 我有 ADHD (行動優先)    | `i-have-adhd` | 行動優先 (指令/路徑/片段在散文之前)，編號的有限步驟，一個具體的下一步，無前言/回顧/結尾。改編自 [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT)。 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| 簡潔中日韓 (文言)       | `terse-cjk`   | 文言文超簡潔風格。                                                                                                                                                  | zh (區域設定限制：僅在解析語言為 `zh` 時提供) |
 
-每種樣式皆提供三種強度等級——`lite`、`full`、`ultra`——而且每個等級的結尾都包含共用的界限條款，確保程式碼區塊、檔案路徑、命令、錯誤字串、URL 與識別碼維持原樣。
+每種風格都提供三種強度等級 — `lite`、`full`、`ultra` — 且每個等級都以共享邊界條款結尾，該條款保持程式碼區塊、檔案路徑、指令、錯誤字串、URL 和識別符號原文不變。
 
 #### 注入方式
 
-`applyOutputStyles()`（`open-sse/services/compression/outputStyles/apply.ts`）會根據目錄解析選取項目（未知的 id 與地區設定不符的樣式會被捨棄，絕不會引發錯誤）、依目錄順序串接所選指令、僅附加共用界限條款**一次**，並在單一等冪標記（`[OmniRoute Output Styles]`）之後，將結果前置於系統提示詞中——重複套用不會執行任何操作。當偵測到的請求語言有對應翻譯時，會注入本地化指令，而非英文指令。
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) 會根據目錄解析選擇（未知 ID 和區域設定不符的風格會被捨棄，絕不會產生錯誤），按照目錄順序串聯選定的指令，**一次性**附加邊界條款，並將結果預載入到系統提示中，置於單一冪等標記 (`[OmniRoute Output Styles]`) 後方 — 重新應用是無操作。當偵測到的請求語言有翻譯時，會注入本地化指令而非英文。
 
-#### 啟用方式
+#### 如何啟用
 
-在儀表板中：**Context → Settings → Compression**——每種樣式各有一列，包含開／關切換按鈕與等級選擇器。以程式方式設定時，壓縮設定會將選取項目保存為：
+在儀表板中：**上下文 → 設定 → 壓縮** — 每種風格一行，帶有開/關切換和等級選擇器。以程式方式，壓縮配置會將選擇持久化為：
 
 ```json
 {
@@ -473,48 +438,48 @@ const { messages: aged, saved } = applyAging(messages, {
 }
 ```
 
-向後相容性：舊版 `outputMode: "caveman"` 組合設定仍然有效，並會對應至 `terse-prose`；在每種舊版語言中，其內容與舊有注入內容逐位元組完全相同。
+向後兼容：傳統的 `outputMode: "caveman"` 組合設定仍然有效，並映射到 `terse-prose`，在每個傳統語言中與舊注入的位元組完全相同。
 
-語言選擇：啟用 `languageConfig.enabled` 後，`autoDetect` 會選取最新使用者訊息的語言（使用與輸入引擎相同的偵測器）；關閉 `autoDetect` 則會固定使用 `defaultLanguage`。停用時則使用英文。
+語言選擇：當 `languageConfig.enabled` 開啟時，`autoDetect` 會選擇最新使用者訊息的語言（與輸入引擎使用相同的偵測器）；關閉 `autoDetect` 會固定 `defaultLanguage`。關閉 → 英文。
 
-樣式 × 語言矩陣由 `tests/unit/compression/output-styles-i18n-matrix.test.ts` 固定：新樣式若未至少提供 pt-BR 翻譯（或明確追蹤的例外），就無法發布；既有樣式也不能在未告知的情況下失去任何地區設定。若要新增樣式，請參閱 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style)。
+風格 × 語言矩陣由 `tests/unit/compression/output-styles-i18n-matrix.test.ts` 固定：新風格必須至少有 pt-BR 翻譯（或明確追蹤的例外情況）才能發布，且現有風格不能悄無聲息地失去區域設定。要新增風格，請參閱 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style)。
 
 ### 工具結果壓縮
 
-`toolResultCompressor.ts` 模組為工具結果（函式呼叫、代理輸出、搜尋結果等）提供 **5 種專用壓縮策略**：
+`toolResultCompressor.ts` 模組為工具結果（函數呼叫、代理輸出、搜尋結果等）提供了 **5 種專門的壓縮策略**：
 
-1. **搜尋結果壓縮**——移除重複結果，保留前 N 筆
-2. **檔案讀取壓縮**——截斷大型檔案，保留標頭／匯入
-3. **程式碼執行壓縮**——僅保留必要的 stdout/stderr
-4. **資料庫查詢壓縮**——限制資料列數量，移除冗長的中繼資料
-5. **API 回應壓縮**——移除 null 欄位，精簡陣列
+1.  **搜尋結果壓縮** — 移除冗餘結果，保留前 N 個
+2.  **檔案讀取壓縮** — 截斷大檔案，保留標頭/導入
+3.  **程式碼執行壓縮** — 僅保留必要的標準輸出/標準錯誤
+4.  **資料庫查詢壓縮** — 限制行數，移除冗餘元數據
+5.  **API 回應壓縮** — 剝離空欄位，壓縮陣列
 
-#### 使用時機
+#### 何時使用
 
-當存在工具呼叫時，工具結果壓縮會**永遠啟用**。無須設定。
+當存在工具呼叫時，工具結果壓縮**始終開啟**。無需配置。
 
 ### 堆疊管線
 
-堆疊模式會**依序執行多個引擎**——通常先執行 RTK（工具輸出可節省 60-90%），再執行 Caveman（對剩餘文字額外節省 30%）。如此可達到**總計 78-95% 的節省幅度**。
+堆疊模式會**依序執行多個引擎** — 通常是先執行 RTK (工具輸出可節省 60-90%)，然後再執行 Caveman (對剩餘文字額外節省 30%)。這可實現**總計 78-95% 的節省**。
 
 #### 運作方式
 
 ```
-輸入（1000 個 token）
-  → RTK（命令感知篩選器）→ 200 個 token
-    → Caveman（移除贅詞）→ 140 個 token
-  → 輸出（140 個 token，節省 86%）
+輸入 (1000 個 token)
+  → RTK (指令感知篩選器) → 200 個 token
+    → Caveman (填充物移除) → 140 個 token
+  → 輸出 (140 個 token，節省 86%)
 ```
 
 #### 使用時機
 
-以下情況適合使用堆疊模式：
+在以下情況使用堆疊模式：
 
-- 大量使用工具的工作流程（代理式程式設計、研究）
-- 成本敏感的批次處理
-- 需要最大化 token 節省幅度時
+- 工具密集型工作流程 (代理程式編碼、研究)
+- 對成本敏感的批次處理
+- 當您需要最大程度的 token 節省時
 
-透過組合設定進行設定：
+透過組合設定：
 
 ```json
 {
@@ -531,7 +496,7 @@ const { messages: aged, saved } = applyAging(messages, {
 
 ## 壓縮組合覆寫
 
-您可以**針對每個組合**覆寫全域壓縮模式，以針對不同使用情境微調行為：
+您可以**針對每個組合**覆寫全域壓縮模式，以微調不同使用案例的行為：
 
 ```json
 {
@@ -551,21 +516,21 @@ const { messages: aged, saved } = applyAging(messages, {
 }
 ```
 
-這適用於：
+這對於以下情況很有用：
 
-- **程式設計組合**：使用 `aggressive` 模式進行長時間工作階段
-- **快速問答組合**：使用 `lite` 模式快速回應
-- **大量使用工具的組合**：使用 `stacked` 模式以最大限度節省用量
-- **正式環境組合**：使用 `cache-aware` 模式以支援快取提供者
+- **編碼組合**：長時間會話使用 `aggressive` 模式
+- **快速問答組合**：快速回應使用 `lite` 模式
+- **工具密集型組合**：最大化節省使用 `stacked` 模式
+- **生產組合**：快取提供者使用 `cache-aware` 模式
 
 ---
 
-## 另請參閱
+## 參見
 
-- [環境設定](../reference/ENVIRONMENT.md) — 壓縮環境變數
-- [架構指南](../architecture/ARCHITECTURE.md) — 壓縮管線內部機制
-- [使用者指南](../guides/USER_GUIDE.md) — 壓縮功能入門
-- [RTK 壓縮](./RTK_COMPRESSION.md) — RTK 篩選器、信任模型、驗證閘門、原始輸出復原
+- [環境配置](../reference/ENVIRONMENT.md) — 壓縮環境變數
+- [架構指南](../architecture/ARCHITECTURE.md) — 壓縮管線內部結構
+- [使用者指南](../guides/USER_GUIDE.md) — 壓縮入門
+- [RTK 壓縮](./RTK_COMPRESSION.md) — RTK 篩選器、信任模型、驗證閘門、原始輸出恢復
 - [壓縮引擎](./COMPRESSION_ENGINES.md) — Caveman、RTK、堆疊、API、MCP、儀表板
-- [壓縮規則格式](./COMPRESSION_RULES_FORMAT.md) — JSON 規則套件格式
-- [壓縮語言套件](./COMPRESSION_LANGUAGE_PACKS.md) — 特定語言的 Caveman 規則
+- [壓縮規則格式](./COMPRESSION_RULES_FORMAT.md) — JSON 規則包格式
+- [壓縮語言包](./COMPRESSION_LANGUAGE_PACKS.md) — 特定語言的 Caveman 規則

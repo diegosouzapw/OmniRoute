@@ -86,14 +86,14 @@ Content-Type: application/json
 
 > **Sémantika nákladů při zásahu do mezipaměti:** při ZÁSAHU do sémantické mezipaměti (`X-OmniRoute-Cache-Hit: true`) není provedeno žádné volání upstreamu, takže `X-OmniRoute-Response-Cost` je `0.0000000000` (**přírůstkové** náklady na obsloužení zásahu). Původní/předpokládané náklady jsou vykázány samostatně v `X-OmniRoute-Cost-Saved`. Systémy zpracovávající fakturační údaje by měly sčítat `X-OmniRoute-Response-Cost` (zásahy nic nestojí); analytické systémy mezipaměti mohou agregovat `X-OmniRoute-Cost-Saved`.
 
-## Výhradní spravované pronájmy relací
+## Výhradní pronájmy spravovaných relací
 
-Výhradní pronájem spravovaných relací je volitelná, na klientovi nezávislá směrovací smlouva: jeden aktivní vlastník
+Výhradní pronájem spravovaných relací je volitelný směrovací kontrakt nezávislý na klientovi: jeden aktivní vlastník
 drží jedno způsobilé připojení OmniRoute. Nepronajímá model, nevyžaduje OAuth, neidentifikuje
 konkrétního klienta ani nevyžaduje konkrétního poskytovatele.
 
-Ověřovaný API klíč musí mít oprávnění `lease:exclusive` a explicitní neprázdný
-seznam `allowedConnections`. Hranice databázových mutací vynucuje obě pole společně při vytvoření klíče
+Ověřovací klíč API musí mít rozsah `lease:exclusive` a explicitní neprázdný
+seznam `allowedConnections`. Hranice databázové mutace vynucuje obě pole společně při vytvoření klíče
 i při částečných aktualizacích.
 
 ```http
@@ -106,7 +106,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 ```
 
 Úspěšné odpovědi na získání, obnovení a uvolnění zpřístupňují časová razítka, `state` a přesnou kladnou
-hodnotu `generation`, nikdy však vybrané připojení ani přihlašovací údaje. Obnovení a uvolnění předávají
+hodnotu `generation`, ale nikdy nevybrané připojení ani přihlašovací údaje. Obnovení a uvolnění uvádějí
 generaci v těle JSON:
 
 ```json
@@ -117,7 +117,7 @@ generaci v těle JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Aktivní vlastník pronájmu si může explicitně vyžádat metadata vhodná k bezpečnému zobrazení pro svou aktuální vazbu:
+Vlastník aktivního pronájmu si může explicitně vyžádat bezpečná zobrazovaná metadata respektující soukromí pro svou aktuální vazbu:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +137,37 @@ Aktivní vlastník pronájmu si může explicitně vyžádat metadata vhodná k 
 }
 ```
 
-Tato volitelná akce stavu je v rámci jedné databázové transakce ohraničena neprůhledným vlastníkem, ověřeným spravovaným API klíčem a přesnou
+Tato volitelná stavová akce je v rámci jedné databázové transakce chráněna neprůhledným identifikátorem vlastníka, ověřeným spravovaným klíčem API a přesnou
 aktivní generací. `displayName` je pouze oříznutý nakonfigurovaný
-název připojení; pokud žádný bezpečný nakonfigurovaný název neexistuje, má hodnotu `null`. OmniRoute nikdy nenahrazuje tento název
-e-mailem ani vygenerovanou identitou účtu. Hodnota poskytovatele je necitlivý popisek pro zobrazení a nikdy
-nejde o vygenerovaný identifikátor kompatibilního poskytovatele. Přihlašovací údaje, tokeny, soubory cookie, nezpracované identifikátory připojení nebo API
-klíčů, otisky vlastníků, tajné hodnoty pro ohraničení a interní směrovací data jsou vyloučeny.
+název připojení; pokud neexistuje žádný bezpečný nakonfigurovaný název, má hodnotu `null`. OmniRoute nikdy nenahrazuje tento název
+e-mailovou adresou ani vygenerovanou identitou účtu. Hodnota poskytovatele je necitlivý zobrazovaný štítek a nikdy
+nejde o vygenerovaný identifikátor kompatibilního poskytovatele. Přihlašovací údaje, tokeny, soubory cookie, nezpracované identifikátory připojení nebo klíčů
+API, hodnoty hash vlastníků, tajné hodnoty pro ochranu proti zastaralým požadavkům a interní směrovací data jsou vyloučeny.
 
-Vyhledání s nesprávným klíčem, nesprávným vlastníkem, zastaralou generací nebo vyhledání chybějícího, prošlého, uvolněného či zneplatněného pronájmu vždy
+Vyhledání s nesprávným klíčem, nesprávným vlastníkem, zastaralou generací nebo vyhledání chybějícího, vypršeného, uvolněného či zneplatněného pronájmu vždy
 vrátí stejnou chybu `409 LEASE_FENCE_STALE` bez metadat připojení. Klient, který obdržel odpověď o čekání na kapacitu, nemá žádnou aktivní vazbu, kterou by mohl zkontrolovat. Když směrování převede aktivní pronájem,
-zůstává platná stejná generace a stav atomicky vrátí novou vazbu, nikdy ne tu starou.
+zůstává platná stejná generace a stav atomicky vrátí novou vazbu, nikdy ne starou.
 Stávající klienti zůstávají beze změny, protože odpovědi na získání, obnovení, uvolnění a čekání si zachovávají
-své předchozí struktury.
+svou předchozí podobu.
 
-Tato serverová smlouva nemění standardní `/status` OpenAI Codex. Standardní Codex aktuálně hlásí svého
-poskytovatele modelu a vestavěný stav ověření/účtu, ale nezobrazuje libovolná metadata účtů vlastních
-poskytovatelů; budoucí integrace klienta musí zavolat tuto akci a rozhodnout, jak
+Tento serverový kontrakt nemění standardní `/status` OpenAI Codex. Standardní Codex v současnosti hlásí svého
+poskytovatele modelu a vestavěný stav ověřování/účtu, ale nezobrazuje libovolná vlastní
+metadata účtů poskytovatelů; budoucí integrace klienta musí tuto akci zavolat a rozhodnout, jak
 zobrazit `connection.displayName`.
 
-Každý spravovaný inferenční požadavek poté předává obě řídicí hlavičky:
+Každý spravovaný požadavek na inferenci poté uvádí obě řídicí hlavičky:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Přesný vlastník, generace, aktivní připojení a ověřený API klíč jsou ohraničeny bezprostředně
-před každým podporovaným pokusem o přístup k nadřazené službě. Opakované použití vlastníka a generace s jiným klíčem selže, i
-když tento klíč povoluje stejné připojení. Nezpracované hodnoty vlastníků se neukládají, nezaznamenávají do protokolů, neuchovávají ve
-snímku požadavku ani nepředávají nadřazené službě.
+Přesný vlastník, generace, aktivní připojení a ověřený klíč API jsou zkontrolovány
+bezprostředně před každým podporovaným pokusem o přístup k upstreamu. Opakované použití vlastníka a generace s jiným klíčem selže, i
+když daný klíč povoluje stejné připojení. Nezpracované identifikátory vlastníků se neukládají, nezaznamenávají do protokolů, neuchovávají ve
+snímku požadavku ani nepředávají upstreamu.
 
-Dočasná kolize vrátí HTTP `429` s `Retry-After` a:
+Dočasný konflikt vrátí HTTP `429` s hlavičkou `Retry-After` a:
 
 ```json
 {
@@ -179,27 +179,29 @@ Dočasná kolize vrátí HTTP `429` s `Retry-After` a:
 ```
 
 Tato odpověď pouze znamená, že běžná množina způsobilých připojení nebyla prázdná a každý volný kandidát byl
-držen cizím aktivním pronájmem. Nepodporované modely/poskytovatelé, neshoda zásad, doba zklidnění, kvóta,
-stav služby a další běžná selhání způsobilosti si zachovávají své stávající odpovědi OmniRoute.
+držen cizím aktivním pronájmem. Nepodporované modely/poskytovatelé, neshoda zásad, doba vychladnutí, kvóta,
+stav dostupnosti a další běžná selhání způsobilosti si zachovávají své stávající odpovědi OmniRoute.
 
 ### `x-omniroute-compression`
 
-Přepsání plánu komprese pro jednotlivý požadavek. Má nejvyšší prioritu — přebíjí přepsání směrovací kombinace,
-aktivní profil, automatické spuštění i výchozí nastavení panelu. Hodnoty:
+Přepsání plánu komprese pro jednotlivý požadavek. Má nejvyšší prioritu — přebíjí přepsání směrovací kombinací,
+aktivní profil, automatický spouštěč i výchozí nastavení panelu. Hodnoty:
 
-| Hodnota       | Účinek                                                                                                |
-| ------------- | ----------------------------------------------------------------------------------------------------- |
-| `off`         | Pro tento požadavek se nepoužije žádná komprese.                                                      |
-| `default`     | Výchozí profil odvozený z panelu (ignoruje aktivní profil).                                           |
-| `engine:<id>` | Jeden modul, pokud je povolen, např. `engine:rtk`.                                                    |
-| `<combo>`     | Pojmenovaná kombinace, nejprve porovnaná podle názvu (bez rozlišení velikosti písmen), poté podle id. |
+| Hodnota       | Účinek                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `off`         | Pro tento požadavek se nepoužije žádná komprese.                                                              |
+| `default`     | Výchozí profil odvozený z panelu (ignoruje aktivní profil). Ztrátové enginy zůstanou vypnuté.                 |
+| `safe`        | Pouze deduplikace a slučování bílých znaků.                                                                   |
+| `allow-lossy` | Pro tento požadavek zachová plán operátora včetně souhrnů a přepisů stylu.                                    |
+| `engine:<id>` | Jeden engine, pokud je povolen, např. `engine:rtk`. Volitelné zapnutí tohoto enginu pro jednotlivý požadavek. |
+| `<combo>`     | Pojmenovaná kombinace, nejprve porovnávaná podle názvu (bez rozlišení velikosti písmen), poté podle id.       |
 
 Poznámky:
 
-- Neznámé hodnoty jsou ignorovány (požadavek není nikdy odmítnut); vyhodnocení pokračuje podle běžného pořadí priorit operátorů.
-- Pokud má více kombinací stejný název, předejte **id** kombinace, aby bylo nalezení jednoznačné.
-- Kombinaci s názvem `off` nebo `default` nelze vybrat podle názvu (tato klíčová slova jsou interpretována jako první); na takovou kombinaci odkazujte pomocí jejího id.
-- Hlavní přepínač komprese je nepřekročitelná podmínka: pokud je komprese globálně zakázána, tato hlavička ji nemůže povolit.
+- Neznámé hodnoty jsou ignorovány (požadavek není nikdy odmítnut); vyhodnocení pokračuje podle běžného pořadí priorit operátora.
+- Pokud má více kombinací stejný název, předejte pro jednoznačnou shodu **id** kombinace.
+- Kombinaci s názvem `off` nebo `default` nelze vybrat podle názvu (tato klíčová slova se vyhodnocují přednostně); na takovou kombinaci odkazujte pomocí jejího id.
+- Hlavní přepínač komprese je nepřekročitelnou podmínkou: pokud je komprese globálně zakázána, tato hlavička ji nemůže povolit.
 
 Použitý plán se vrací v hlavičce odpovědi:
 
@@ -444,24 +446,24 @@ přímo importovat `open-sse/config/providerPluginManifestRegistry.ts`.
 
 ---
 
-## Kompatibilní koncové body
+## Koncové body kompatibility
 
 | Metoda | Cesta                                     | Formát                               |
 | ------ | ----------------------------------------- | ------------------------------------ |
 | POST   | `/v1/chat/completions`                    | OpenAI                               |
 | POST   | `/v1/messages`                            | Anthropic                            |
-| POST   | `/v1/responses`                           | OpenAI Responses                     |
+| POST   | `/v1/responses`                           | Odpovědi OpenAI                      |
 | POST   | `/v1/embeddings`                          | OpenAI                               |
-| POST   | `/v1/images/generations`                  | OpenAI Images                        |
-| POST   | `/v1/images/edits`                        | OpenAI Images (úpravy/inpainting)    |
+| POST   | `/v1/images/generations`                  | Obrázky OpenAI                       |
+| POST   | `/v1/images/edits`                        | Obrázky OpenAI (úpravy/vyplnění)     |
 | POST   | `/v1/videos/generations`                  | Generování videa ve stylu OpenAI     |
 | POST   | `/v1/music/generations`                   | Generování hudby ve stylu OpenAI     |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                   |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (vrací zvukové tělo)      |
-| POST   | `/v1/rerank`                              | Přerazení ve stylu Cohere/Voyage     |
+| POST   | `/v1/audio/transcriptions`                | Zvuk OpenAI (STT)                    |
+| POST   | `/v1/audio/speech`                        | TTS OpenAI (vrací tělo zvuku)        |
+| POST   | `/v1/rerank`                              | Přerankování ve stylu Cohere/Voyage  |
 | POST   | `/v1/classify`                            | Klasifikace Jina (`api.jina.ai`)     |
 | POST   | `/v1/segment`                             | Segmentátor Jina (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                   |
+| POST   | `/v1/moderations`                         | Moderace OpenAI                      |
 | GET    | `/v1/models`                              | OpenAI                               |
 | POST   | `/v1/messages/count_tokens`               | Anthropic                            |
 | GET    | `/v1beta/models`                          | Gemini                               |
@@ -470,28 +472,28 @@ přímo importovat `open-sse/config/providerPluginManifestRegistry.ts`.
 | GET    | `/api/v1/vscode/{token}/`                 | Alias katalogu OpenAI                |
 | GET    | `/api/v1/vscode/{token}/models`           | Alias modelů OpenAI                  |
 | POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenizovaný alias OpenAI            |
-| POST   | `/api/v1/vscode/{token}/responses`        | Tokenizovaný alias OpenAI Responses  |
+| POST   | `/api/v1/vscode/{token}/responses`        | Tokenizovaný alias odpovědí OpenAI   |
 | POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenizovaný alias Ollama            |
 | GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenizovaný alias značek Ollama     |
 
-Všechny trasy POST mají stejnou strukturu: `Bearer your-api-key` + tělo JSON ověřované pomocí Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` atd., viz `src/shared/validation/schemas.ts`). Při selhání validace schématu je vrácen stav 4xx.
+Všechny POST cesty mají stejný tvar: `Bearer your-api-key` + JSON tělo validované Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` atd., viz `src/shared/validation/schemas.ts`). Při selhání schématu je vrácen kód 4xx.
 
-Pro klienty, kteří nemohou připojit `Authorization: Bearer ...`, přijímá OmniRoute klíče API také v adrese URL, a to buď prostřednictvím kompatibilních parametrů dotazu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), nebo prostřednictvím vyhrazených koncových bodů `/api/v1/vscode/{token}/...` zdokumentovaných níže.
+Pro klienty, kteří nemohou připojit `Authorization: Bearer ...`, OmniRoute také přijímá API klíče v URL buď prostřednictvím kompatibility s řetězcem dotazu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), nebo prostřednictvím vyhrazených koncových bodů `/api/v1/vscode/{token}/...` zdokumentovaných níže.
 
 ```bash
-# Přerazení (poskytovatel z cloudového registru nebo uzel poskytovatele kompatibilní s OpenAI ve tvaru "<prefix>/<model>")
+# Přerankování (poskytovatel cloudového registru nebo uzel poskytovatele kompatibilní s OpenAI jako "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Klasifikace Jina (přihlašovací údaje k Foundation API)
+# Klasifikace Jina (pověření Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Segmentátor Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Vyhledávání Jina (s.jina.ai; aliasy poskytovatele: jina-search, jina-ai, jina)
+# Vyhledávání Jina (s.jina.ai; aliasy poskytovatelů: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderování
+# Moderace
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — vrací tělo audio/mpeg (nebo požadovaný formát)
@@ -500,35 +502,34 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # Úprava obrázku (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Generování videa / hudby (ID modelu s prefixem poskytovatele)
+# Generování videa / hudby (ID modelu s předponou poskytovatele)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Uzly poskytovatelů přerazení:** `POST /v1/rerank` směruje požadavky také na uzly poskytovatelů
-> kompatibilní s OpenAI (oMLX, vLLM, Infinity, TEI za bránou, …), adresované jako `<node-prefix>/<model>`.
-> Uzly zpětné smyčky (`localhost`, `127.0.0.1`, `172.16.0.0/12`) jsou vždy způsobilé. Uzly na jakémkoli
-> jiném hostiteli — zařízení v síti LAN nebo protějšek Tailscale — jsou způsobilé pouze tehdy, když
-> provozovatel povolí příznak funkce `RERANK_REMOTE_PROVIDER_NODES` **a** základní adresa URL uzlu projde
-> zásadami pro odchozí adresy URL poskytovatele (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` /
-> `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); na hostitele cloudových metadat se požadavky nikdy nesměrují.
-> Krok přerazení paměťového enginu volá tuto trasu přes zpětnou smyčku, takže stejné pravidlo řídí
-> `rerankProviderModel` v nastavení paměti.
+> **Uzly poskytovatele přerankování:** `POST /v1/rerank` také směruje na uzly poskytovatele kompatibilní s OpenAI
+> (oMLX, vLLM, Infinity, TEI za bránou, …) adresované jako `<node-prefix>/<model>`. Loopback
+> uzly (`localhost`, `127.0.0.1`, `172.16.0.0/12`) jsou vždy způsobilé. Uzly na jakémkoli jiném
+> hostiteli — LAN boxu nebo Tailscale peeru — jsou způsobilé pouze tehdy, když operátor povolí
+> příznak funkce `RERANK_REMOTE_PROVIDER_NODES` **a** základní URL uzlu splňuje zásady
+> odchozích URL poskytovatele (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> hostitelé s cloudovými metadaty nejsou nikdy směrováni. Krok přerankování paměťového enginu volá tuto cestu přes
+> loopback, takže stejné pravidlo platí pro `rerankProviderModel` v nastavení paměti.
 >
-> **Struktury místních serverů:** uzel je volán na `<base>/v1/rerank` a při odpovědi 404 na `<base>/rerank`
-> (Infinity, TEI). Tělo odesílané nadřazené službě obsahuje jak pojmenování Cohere/OpenAI (`documents`,
-> `return_documents`), tak pojmenování TEI (`texts`, `return_text`), a odpověď nadřazené služby je
-> normalizována do obálky Cohere: holé pole TEI `[{index, score, text}]`, `{results: [{index, score}]}`
-> z jednoduchých bran a struktura ve stylu Voyage `{data: [...]}` jsou klientovi vráceny jako
-> `{results: [{index, relevance_score, document?}]}`, seřazené podle skóre a omezené hodnotou `top_n`.
+> **Tvary lokálních serverů:** uzel je volán na `<base>/v1/rerank` a při 404 na `<base>/rerank`
+> (Infinity, TEI). Tělo upstreamu nese jak Cohere/OpenAI zápis (`documents`,
+> `return_documents`), tak TEI zápis (`texts`, `return_text`), a upstream odpověď je
+> normalizována na obálku Cohere: holé `[{index, score, text}]` z TEI, `{results: [{index, score}]}`
+> z tenkých bran a `{data: [...]}` ve stylu Voyage se všechny vrátí klientovi jako
+> `{results: [{index, relevance_score, document?}]}`, seřazené podle skóre a omezené na `top_n`.
 
-> **Zjišťování uzlů poskytovatelů:** modely v uzlu poskytovatele kompatibilním s OpenAI se zobrazují v `GET /v1/models`
-> pod prefixem uzlu. Řádky, které neobsahují žádná metadata koncového bodu (typické pro místní výpisy `/v1/models`),
-> dědí hodnotu `apiType` daného uzlu, takže modely uzlu `embeddings` mají `type: "embedding"` a modely
-> uzlu `rerank` mají `type: "rerank"` namísto výchozího nastavení na chat; explicitní hodnota
-> `supportedEndpoints` u synchronizovaného nebo ručně přidaného řádku má stále přednost.
+> **Objevování uzlů poskytovatele:** modely na uzlu poskytovatele kompatibilním s OpenAI se objevují v `GET /v1/models`
+> pod předponou uzlu. Řádky, které nenesou žádná metadata koncového bodu (typické pro lokální výpisy `/v1/models`),
+> dědí `apiType` uzlu, takže modely uzlu `embeddings` mají `type: "embedding"` a modely uzlu
+> `rerank` mají `type: "rerank` namísto výchozího chatu; explicitní
+> `supportedEndpoints` na synchronizovaném nebo ručně přidaném řádku má stále přednost.
 
-### Vyhrazené trasy poskytovatelů
+### Vyhrazené cesty poskytovatele
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -536,7 +537,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Prefix poskytovatele se automaticky přidá, pokud chybí. Neshodující se modely vrátí stavový kód `400`.
+Předpona poskytovatele je automaticky přidána, pokud chybí. Neshodné modely vrátí `400`.
 
 ---
 

@@ -1,0 +1,1 @@
+- **fix(codex):** Codex 400s for a replayed reasoning item whose `encrypted_content` cannot be verified now reach clients as `invalid_encrypted_content` instead of `bad_request`, so they can resend without the reasoning item ([#14636](https://github.com/diegosouzapw/OmniRoute/pull/14636)) — thanks @QuangBlue

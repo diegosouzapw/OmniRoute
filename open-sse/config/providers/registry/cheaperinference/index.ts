@@ -242,6 +242,7 @@ export const cheaperinferenceProvider: RegistryEntry = {
   format: "openai",
   executor: "cheaperinference",
   baseUrl: "https://api.cheaperinference.com/v1/chat/completions",
+  modelsUrl: "https://api.cheaperinference.com/v1/models",
   // The gateway serves a native, STATELESS /v1/responses endpoint alongside
   // /v1/chat/completions. Consumed by CheaperInferenceExecutor.buildUrl for the
   // models tagged targetFormat: "openai-responses" above.

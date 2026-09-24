@@ -45,8 +45,8 @@ ACP Agenter (omvendt genereringsflow):
 
 ## Auto-konfigurer med `setup-*`
 
-Du behøver ikke at skrive hver værktøjs konfiguration i hånden. OmniRoute leverer en `setup-*`
-kommando pr. understøttet CLI, der læser den **live** modelkatalog fra en kørende
+Du behøver ikke at skrive hvert værktøjs konfiguration manuelt. OmniRoute leverer en `setup-*`-kommando
+pr. understøttet CLI, der læser den **live** modelkatalog fra en kørende
 OmniRoute (lokal eller fjern) og skriver værktøjets egen konfiguration på din maskine:
 
 ```bash
@@ -54,47 +54,54 @@ omniroute setup-codex        omniroute setup-claude       omniroute setup-openco
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
 Hver accepterer `--remote <url> --api-key <key>` (konfigurer et lokalt værktøj mod en
-fjern OmniRoute), `--dry-run` (forhåndsvisning uden at skrive), og `--port`. Værktøjer
-uden model auto-opdagelse (Cline, Kilo, Roo, Goose, Aider, Qwen) tager
-`--model <id>` (og `--yes` for ikke-interaktive kørsel). For at starte en CLI med den
-rette miljøvariabel injiceret og ingen konfiguration skrevet overhovedet, brug den generiske
+fjern OmniRoute), `--dry-run` (forhåndsvisning uden at skrive) og `--port`. Værktøjer
+uden model auto-opdagelse (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) tager
+`--model <id>` (og `--yes` for ikke-interaktive kørsler). `setup-5dive` er den
+ene opskrift, der ikke skriver under `$HOME`: den konfigurerer en 5dive agentflåde ved
+at skrive en root-ejet auth-profil på flåde-værten, så den genudføres via `sudo`
+og har ingen egen fjern-tilstand. For at starte en CLI med den
+rigtige env injiceret og ingen konfiguration skrevet overhovedet, brug den generiske
 `omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
-gemini — mål og aliaser kommer fra `bin/cli/cli-manifest.mjs`); de legacy
+gemini — targets og aliasser kommer fra `bin/cli/cli-manifest.mjs`); de ældre
 per-værktøj launchers `omniroute launch` (Claude Code) og `omniroute launch-codex`
-(Codex) forbliver tilgængelige. Gemini CLI er kun til lancering: det er et `omniroute run`
-mål, men har ingen `setup-*`/`configure` opskrift.
+(Codex) forbliver tilgængelige. Gemini CLI er kun launch-baseret: det er et `omniroute run`-
+target, men har ingen `setup-*`/`configure`-opskrift.
 
-> **Fuld reference:** mastertabellen — hvad hver kommando skriver, hver flag,
-> lokal vs fjern, og hvilke værktøjer der ønsker et `/v1` suffix — findes i
-> **[CLI Integrationer](../guides/CLI-INTEGRATIONS.md)**.
+> **Fuld reference:** mastertabellen — hvad hver kommando skriver, hvert flag,
+> lokal vs. fjern, og hvilke værktøjer der ønsker et `/v1`-suffiks — findes i
+> **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
 
 ### Kørsel af disse inde i en container
 
-En `setup-*` kommando udført inde i OmniRoute containeren skriver ind i
-containerens egen hjemmemappe, som ingen værts-CLI læser og som forsvinder med
-containeren. OmniRoute opdager det og afslutter med `2` med instruktioner i stedet for
-at skrive. To understøttede måder fremad — installer CLI på værten og
-`omniroute connect` til containeren, eller bind-mount konfigurationsmapperne og sæt
-`CLI_CONFIG_HOME` (den compose `host` profil). Hver `setup-*` kommando, plus
+En `setup-*`-kommando, der udføres inde i OmniRoute-containeren, skriver til containerens
+egen hjemmemappe, som ingen host-CLI læser, og som forsvinder med
+containeren. OmniRoute registrerer dette og afslutter med `2` og instruktioner
+i stedet for at skrive. To understøttede fremgangsmåder – installer CLI'en på hosten og
+`omniroute connect` til containeren, eller bind-mount konfigurationsmapperne og indstil
+`CLI_CONFIG_HOME` (compose `host`-profilen). Hver `setup-*`-kommando, plus
 `omniroute configure` og `omniroute config set`, accepterer
-`--allow-container-write`, når konfiguration af containerens egne CLIs er det, du
+`--allow-container-write`, når konfiguration af containerens egne CLI'er er det, du
 faktisk mente; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` gør det samme for
 serveren. Se
-[Docker Guide → Konfigurering af værts-CLI værktøjer](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+[Docker Guide → Konfiguration af host CLI-værktøjer](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
 Dashboardets **apply endpoint** (`POST /api/cli-tools/apply`) håndhæver den
-samme beskyttelse: i en container, en skrivning hvis mål ikke er bind-mountet fra
-værten svarer **`422`** med `containerEphemeralTarget: true`, den sikre fejltekst og — for
-de værktøjer med en værtsopskrift (claude, codex, opencode, cline,
-kilo, continue) — en `hostSetupCommand` (f.eks. `omniroute setup-opencode`) der skal køres
-på værten i stedet; intet skrives. `dryRun: true` fortsætter med at fungere i container
-tilstand og returnerer det genererede indhold + målsti uden at røre disken, så
-du kan forhåndsvise fra dashboardet og anvende på værten. Denne adfærd er
-intentionel og regressionsbeskyttet af
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — fjern aldrig "fix" en 422
+samme beskyttelse: i en container vil en skrivning, hvis mål ikke er bind-mounted fra
+værten, svare **`422`** med `containerEphemeralTarget: true`, den sikre fejltekst og —
+for værktøjerne med en host-opskrift (claude, codex, opencode, cline,
+kilo, continue) — en `hostSetupCommand` (f.eks. `omniroute setup-opencode`) til at køre
+på værten i stedet; intet skrives. `dryRun: true` fortsætter med at fungere i container-
+tilstand og returnerer en redigeret forhåndsvisning + målsti uden at røre disken. Forhåndsvisningsindhold
+er ikke en legitimationsbærende konfiguration til at kopiere eller importere. Anvend med
+det originale værktøj/base-URL/API-nøgle/modelinput på værten, eller brug den angivne
+host-side setup-kommando. Se [CLI-konfigurationssikkerhed](../security/CLI-CONFIGURATION.md)
+for forhåndsvisningsheaderen og anmodningskontrakten. Denne adfærd er
+tilsigtet og regressionsbeskyttet af
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — "fix" aldrig en 422
 ved at fjerne beskyttelsen.
 
 ---

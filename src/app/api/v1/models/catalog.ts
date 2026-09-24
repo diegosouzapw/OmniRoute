@@ -761,7 +761,9 @@ async function buildUnifiedModelsResponseCore(
         ? combo.context_length
         : undefined;
 
-      const baseMetadata = explicitContextLength ? { context_length: explicitContextLength } : {};
+      const baseMetadata = explicitContextLength
+        ? { context_length: explicitContextLength, max_input_tokens: explicitContextLength }
+        : {};
       if (targets.length === 0) return baseMetadata;
 
       const targetMetadata = targets.map((target) => getComboTargetCatalogMetadata(target));
@@ -773,9 +775,13 @@ async function buildUnifiedModelsResponseCore(
       const contextLength =
         explicitContextLength ??
         minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
-      const maxInputTokens = minKnownNumber(
+      const targetMinMaxInput = minKnownNumber(
         knownMetadata.map((metadata) => metadata.maxInputTokens)
       );
+      const maxInputTokens =
+        explicitContextLength === undefined
+          ? targetMinMaxInput
+          : Math.min(explicitContextLength, targetMinMaxInput ?? explicitContextLength);
       const maxOutputTokens = minKnownNumber(
         knownMetadata.map((metadata) => metadata.maxOutputTokens)
       );

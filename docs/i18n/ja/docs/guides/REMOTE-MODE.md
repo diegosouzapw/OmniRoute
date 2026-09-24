@@ -286,67 +286,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # 最初に OMNIROUTE_API_KEY �
 
 ---
 
-## コンテキストの管理（サーバーの切り替え）
+## コンテキストの管理（サーバー間の切り替え）
 
-**コンテキスト**とは、保存されたサーバー設定（baseUrl + 認証情報 + スコープ）です。`omniroute connect`
-を実行するとコンテキストが作成され、アクティブになります。それ以降、すべてのコマンドはそのコンテキストを対象に実行されます。`omniroute contexts`
-を使用してコンテキストを管理し、切り替えます。
+**コンテキスト**とは、保存されたサーバー（baseUrl + 認証情報 + スコープ）のことです。`omniroute connect` はコンテキストを作成し、それをアクティブにします。それ以降のすべてのコマンドはそのコンテキストをターゲットとします。`omniroute contexts` を使用して、コンテキストを管理したり、切り替えたりできます。
 
 ```bash
-omniroute contexts list            # すべてのコンテキスト。アクティブなものには ● が付く
-omniroute contexts current         # アクティブなサーバー、認証状態、スコープ
+omniroute contexts list            # すべてのコンテキストを表示します。アクティブなコンテキストには ● が付きます。
+omniroute contexts current         # アクティブなサーバー、認証ステータス、スコープを表示します。
 ```
 
 ```text
-  | 名前    | ベース URL                | 認証  | スコープ | 説明
-● | vps     | http://100.67.86.91:20128 | token | admin    | リモート OmniRoute (…)
-  | default | http://localhost:20128    | ✗     |          |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**サーバーの切り替え** — 以降のすべてのコマンドは、アクティブなコンテキストに従います。
+**サーバーを切り替える** — 以降のすべてのコマンドはアクティブなコンテキストに従います。
 
 ```bash
-omniroute contexts use vps         # → 以降のすべてのコマンドはリモート VPS を対象にする
-omniroute tokens list              #   （VPS に対して実行）
+omniroute contexts use vps         # → すべてのコマンドがリモートVPSに送信されるようになります。
+omniroute tokens list              #   (VPSに対して実行されます)
 
-omniroute contexts use default     # → localhost に戻る
-omniroute tokens list              #   （ローカルサーバーに対して実行）
+omniroute contexts use default     # → localhostに戻ります。
+omniroute tokens list              #   (ローカルサーバーに対して実行されます)
 ```
 
-**コンテキストを手動で追加**（`connect` を使用しない場合）、確認、または名前変更するには、次のようにします。
+`connect` の代わりに、**コンテキストを手動で追加**したり、検査したり、名前を変更したりできます。
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "ステージング環境"
-omniroute contexts show staging    # 1 つのコンテキストの完全な詳細
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # 特定のコンテキストの詳細をすべて表示します。
 omniroute contexts rename staging stg
 ```
 
-**コンテキストの削除** — 確認を求められます。確認を省略するには `--yes` を渡します
-（スクリプトや非対話型シェルでは必須です。指定しない場合、安全のため削除は拒否されます）。
+**コンテキストを削除する** — 確認を求められます。これをスキップするには `--yes` を渡します（スクリプトや非対話型シェルでは必須です。これがないと安全に拒否されます）。
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default`（localhost）は削除できません。アクティブなコンテキストを削除すると、
-> `default` にフォールバックします。ヒント：コンテキストを削除しても、保存されている**ローカル**の認証情報が削除されるだけです。
-> アクセスを実際に無効化するには、サーバー上で `omniroute tokens revoke <id>` を実行して
-> トークンを失効させてください。
+> `default` (localhost) は削除できません。アクティブなコンテキストを削除すると、`default` にフォールバックします。ヒント: コンテキストを削除しても、**ローカルに**保存された認証情報が削除されるだけです。実際にアクセスを停止するには、サーバー上で `omniroute tokens revoke <id>` を使用してトークンを失効させてください。
 
-コンテキストの**エクスポート / インポート**（マシン間で移動する場合など）。OS の
-キーチェーンが利用可能な場合、新しいコンテキストにはキーチェーンへの参照のみが保持され、
-認証情報はエクスポートにコピーされません。
+コンテキストを**エクスポート/インポート**します（例: マシン間で移動する場合）。エクスポートでは、デフォルトで認証情報が省略されます。これには、ファイルフォールバックによって保存された認証情報も含まれます。ポータブルな認証情報を含むバックアップが必要な場合は、明示的に `--include-secrets` を使用してください。
 
 ```bash
-omniroute contexts export --out contexts.json     # デフォルト：標準出力
-omniroute contexts import contexts.json            # 上書き。既存のものを保持するには --merge
-omniroute contexts migrate --yes                  # 従来の平文トークンをキーチェーンへ移動
+omniroute contexts export --out contexts.json     # 編集済み; デフォルトの出力先: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # 上書きします; 既存のものを保持するには --merge を使用します。
+omniroute contexts migrate --yes                  # 従来のプレーンテキストトークンをキーチェーンに移動します。
 ```
 
-利用可能な OS キーチェーンがないヘッドレスシステムでは、CLI はモード `0600` の
-`config.json` にフォールバックし、初回のみ警告を表示します。このフォールバック環境からの
-エクスポート（および移行前の従来の設定）は、機密情報として扱ってください。
+`--include-secrets` は、エクスポートする前にキーチェーン参照を解決し、参照された認証情報のいずれかが読み取れない場合は失敗します。`--no-secrets` は常に優先されます。エクスポートファイルは、モード `0600` でアトミックに書き込まれます。明示的な秘密情報を含むエクスポートは、秘密情報として扱ってください。使用可能なOSキーチェーンがないヘッドレスシステムでは、CLIはモード `0600` の `config.json` にフォールバックし、一度限りの警告を出力します。このモードでは、デフォルトのエクスポートは編集されたままになります。
 
 ---
 

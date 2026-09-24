@@ -15,6 +15,8 @@ import {
   listCustomModelVisionOverrides,
   type CustomModelVisionOverrideMap,
   type CustomModelVisionOverrideReadOptions,
+  listSyncedAvailableModelVision,
+  type SyncedAvailableModelVisionMap,
 } from "@/lib/db/models";
 import {
   loadAllSyncedCapabilitiesUncached,
@@ -35,6 +37,8 @@ export interface ModelCapabilityResolutionSnapshot {
   readonly reasoningEffortsOverrides: NestedReasoningEffortsOverrideMap;
   readonly contextOverrides: NestedOverrideMap;
   readonly customVisionOverrides: CustomModelVisionOverrideMap;
+  /** #14081: positive-only vision verdicts from synced custom-node model rows. */
+  readonly syncedAvailableModelVision: SyncedAvailableModelVisionMap;
 }
 
 export interface ModelCapabilityResolutionSnapshotOptions {
@@ -98,5 +102,6 @@ export function createModelCapabilityResolutionSnapshot(
     reasoningEffortsOverrides,
     contextOverrides,
     customVisionOverrides: listCustomModelVisionOverrides(options.customModelVision),
+    syncedAvailableModelVision: listSyncedAvailableModelVision(),
   };
 }

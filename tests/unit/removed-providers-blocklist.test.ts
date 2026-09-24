@@ -16,6 +16,7 @@ const { getProviderById, getProviderByAlias } =
   await import("../../src/shared/constants/providers.ts");
 const { hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
 const { FREE_MODEL_BUDGETS } = await import("../../open-sse/config/freeModelCatalog.data.ts");
+const { MUSIC_PROVIDERS } = await import("../../open-sse/config/musicRegistry.ts");
 
 interface RemovedProvider {
   id: string;
@@ -32,12 +33,25 @@ export const REMOVED_PROVIDERS: readonly RemovedProvider[] = [
     domains: ["theoldllm.com", "theoldllm.vercel.app"],
     removalPr: 12440,
   },
+  {
+    id: "gemini-business",
+    alias: "gembiz",
+    domains: ["business.gemini.google"],
+    removalPr: 14467,
+  },
+  {
+    id: "suno",
+    alias: "suno",
+    domains: ["studio-api.suno.ai", "studio-api-prod.suno.com"],
+    removalPr: 14468,
+  },
 ];
 
 // Source trees where a reintroduction would land. Scanned for ids, aliases and domains.
 const SCANNED_DIRS = [
-  "open-sse/config/providers",
+  "open-sse/config",
   "open-sse/executors",
+  "open-sse/handlers",
   "src/shared/constants/providers",
 ];
 
@@ -78,6 +92,14 @@ for (const removed of REMOVED_PROVIDERS) {
       FREE_MODEL_BUDGETS.filter((b) => b.provider === removed.id),
       [],
       `${removed.id} must not appear in FREE_MODEL_BUDGETS`
+    );
+  });
+
+  test(`removed provider "${removed.id}" has no music registry entry`, () => {
+    assert.equal(
+      MUSIC_PROVIDERS[removed.id],
+      undefined,
+      `${removed.id} must not be in MUSIC_PROVIDERS`
     );
   });
 

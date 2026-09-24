@@ -43,32 +43,27 @@ ACP एजेंट (विपरीत उत्पन्न प्रवाह
 
 ---
 
-## `setup-*` के साथ स्वचालित कॉन्फ़िगर करें
+## `setup-*` के साथ स्वतः-कॉन्फ़िगर करें
 
-आपको प्रत्येक उपकरण की कॉन्फ़िगरेशन हाथ से लिखने की आवश्यकता नहीं है। OmniRoute एक `setup-*`
-कमांड प्रदान करता है जो एक चल रहे OmniRoute (स्थानीय या दूरस्थ) से **लाइव** मॉडल कैटलॉग पढ़ता है
-और आपके मशीन पर उपकरण की अपनी कॉन्फ़िगरेशन लिखता है:
+आपको प्रत्येक टूल का कॉन्फ़िग हाथ से लिखने की आवश्यकता नहीं है। OmniRoute प्रति समर्थित CLI एक `setup-*` कमांड भेजता है जो चल रहे OmniRoute (स्थानीय या दूरस्थ) से **लाइव** मॉडल कैटलॉग पढ़ता है और आपकी मशीन पर टूल का अपना कॉन्फ़िग लिखता है:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-प्रत्येक `--remote <url> --api-key <key>` स्वीकार करता है (एक दूरस्थ OmniRoute के खिलाफ एक स्थानीय उपकरण कॉन्फ़िगर करें), `--dry-run` (लिखे बिना पूर्वावलोकन), और `--port`। मॉडल स्वचालित खोज के बिना उपकरण (Cline, Kilo, Roo, Goose, Aider, Qwen) `--model <id>` लेते हैं (और गैर-इंटरैक्टिव रन के लिए `--yes`)। CLI को सही वातावरण के साथ लॉन्च करने के लिए और बिना किसी कॉन्फ़िगरेशन के, सामान्य `omniroute run <target>` लॉन्चर का उपयोग करें (claude, codex, aider, goose, opencode, qwen, gemini — लक्ष्य और उपनाम `bin/cli/cli-manifest.mjs` से आते हैं); विरासत प्रति-उपकरण लॉन्चर `omniroute launch` (Claude Code) और `omniroute launch-codex` (Codex) उपलब्ध रहते हैं। Gemini CLI केवल लॉन्च-केवल है: यह एक `omniroute run` लक्ष्य है लेकिन इसका कोई `setup-*`/`configure` नुस्खा नहीं है।
+प्रत्येक `--remote <url> --api-key <key>` (एक दूरस्थ OmniRoute के विरुद्ध एक स्थानीय टूल कॉन्फ़िगर करें), `--dry-run` (बिना लिखे पूर्वावलोकन करें), और `--port` स्वीकार करता है। मॉडल स्वतः-खोज के बिना टूल (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (और गैर-इंटरैक्टिव रन के लिए `--yes`) लेते हैं। `setup-5dive` एकमात्र ऐसी रेसिपी है जो `$HOME` के तहत नहीं लिखती है: यह फ्लीट होस्ट पर एक रूट-स्वामित्व वाली प्रमाणीकरण प्रोफ़ाइल लिखकर 5dive एजेंट फ्लीट को कॉन्फ़िगर करती है, इसलिए यह `sudo` के माध्यम से फिर से निष्पादित होती है और इसका अपना कोई दूरस्थ मोड नहीं होता है। सही env इंजेक्टेड और बिना किसी कॉन्फ़िग के CLI लॉन्च करने के लिए, जेनेरिक `omniroute run <target>` लॉन्चर का उपयोग करें (claude, codex, aider, goose, opencode, qwen, gemini — लक्ष्य और उपनाम `bin/cli/cli-manifest.mjs` से आते हैं); लेगेसी प्रति-टूल लॉन्चर `omniroute launch` (Claude Code) और `omniroute launch-codex` (Codex) उपलब्ध रहते हैं। Gemini CLI केवल लॉन्च-योग्य है: यह एक `omniroute run` लक्ष्य है लेकिन इसमें कोई `setup-*`/`configure` रेसिपी नहीं है।
 
-> **पूर्ण संदर्भ:** मास्टर तालिका — प्रत्येक कमांड क्या लिखता है, हर ध्वज,
-> स्थानीय बनाम दूरस्थ, और कौन से उपकरण `/v1` उपसर्ग चाहते हैं —
-> **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** में उपलब्ध है।
+> **पूर्ण संदर्भ:** मास्टर तालिका — प्रत्येक कमांड क्या लिखता है, प्रत्येक फ़्लैग, स्थानीय बनाम दूरस्थ, और कौन से टूल को `/v1` प्रत्यय चाहिए — **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** में रहता है।
 
-### कंटेनर के अंदर इन्हें चलाना
+### इन्हें कंटेनर के अंदर चलाना
 
-OmniRoute कंटेनर के अंदर निष्पादित `setup-*` कमांड कंटेनर के अपने होम में लिखता है, जिसे कोई होस्ट CLI नहीं पढ़ता है और जो कंटेनर के साथ गायब हो जाता है। OmniRoute इसे पहचानता है और लिखने के बजाय निर्देशों के साथ `2` के साथ बाहर निकलता है। आगे बढ़ने के दो समर्थित तरीके हैं — होस्ट पर CLI स्थापित करें और कंटेनर से `omniroute connect` करें, या कॉन्फ़िगरेशन डायरियों को बाइंड-माउंट करें और `CLI_CONFIG_HOME` सेट करें (कॉम्पोज़ `host` प्रोफ़ाइल)। प्रत्येक `setup-*` कमांड, साथ ही `omniroute configure` और `omniroute config set`, `--allow-container-write` स्वीकार करता है जब आप वास्तव में कंटेनर के अपने CLIs को कॉन्फ़िगर करना चाहते थे; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` सर्वर के लिए वही करता है। देखें
-[Docker Guide → होस्ट CLI उपकरणों को कॉन्फ़िगर करना](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)।
+OmniRoute कंटेनर के अंदर निष्पादित एक `setup-*` कमांड कंटेनर के अपने होम में लिखता है, जिसे कोई होस्ट CLI नहीं पढ़ता है और जो कंटेनर के साथ गायब हो जाता है। OmniRoute इसका पता लगाता है और लिखने के बजाय निर्देशों के साथ `2` से बाहर निकलता है। आगे बढ़ने के दो समर्थित तरीके — होस्ट पर CLI स्थापित करें और कंटेनर से `omniroute connect` करें, या कॉन्फ़िग निर्देशिकाओं को बाइंड-माउंट करें और `CLI_CONFIG_HOME` सेट करें (कम्पोज़ `host` प्रोफ़ाइल)। प्रत्येक `setup-*` कमांड, साथ ही `omniroute configure` और `omniroute config set`, `--allow-container-write` स्वीकार करता है जब कंटेनर के अपने CLI को कॉन्फ़िगर करना वास्तव में आपका मतलब था; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` सर्वर के लिए भी ऐसा ही करता है। [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) देखें।
 
-डैशबोर्ड का **apply endpoint** (`POST /api/cli-tools/apply`) वही सुरक्षा लागू करता है: एक कंटेनर में, एक लिखना जिसका लक्ष्य होस्ट से बाइंड-माउंट नहीं किया गया है, **`422`** के साथ उत्तर देता है जिसमें `containerEphemeralTarget: true`, सुरक्षित त्रुटि पाठ और — उन उपकरणों के लिए जिनका होस्ट नुस्खा है (claude, codex, opencode, cline, kilo, continue) — एक `hostSetupCommand` (जैसे `omniroute setup-opencode`) जो होस्ट पर चलाने के लिए है; कुछ भी नहीं लिखा गया है। `dryRun: true` कंटेनर मोड में काम करता रहता है और उत्पन्न सामग्री + लक्ष्य पथ को बिना डिस्क को छुए लौटाता है, ताकि आप डैशबोर्ड से पूर्वावलोकन कर सकें और होस्ट पर लागू कर सकें। यह व्यवहार जानबूझकर है और
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` द्वारा पुनरावृत्ति-रक्षा की गई है — कभी भी "फिक्स" न करें 422 को सुरक्षा को हटाकर।
+डैशबोर्ड का **एप्लाई एंडपॉइंट** (`POST /api/cli-tools/apply`) उसी गार्ड को लागू करता है: एक कंटेनर में, एक राइट जिसका लक्ष्य होस्ट से बाइंड-माउंटेड नहीं है, `containerEphemeralTarget: true`, सुरक्षित त्रुटि टेक्स्ट और — होस्ट रेसिपी वाले टूल (claude, codex, opencode, cline, kilo, continue) के लिए — एक `hostSetupCommand` (जैसे `omniroute setup-opencode`) के साथ **`422`** का जवाब देता है जिसे होस्ट पर चलाना है; कुछ भी नहीं लिखा जाता है। `dryRun: true` कंटेनर मोड में काम करता रहता है और डिस्क को छुए बिना एक संपादित पूर्वावलोकन + लक्ष्य पथ लौटाता है। पूर्वावलोकन सामग्री कॉपी या आयात करने के लिए एक क्रेडेंशियल-असर कॉन्फ़िगरेशन नहीं है। होस्ट पर मूल टूल/बेस URL/API कुंजी/मॉडल इनपुट के साथ लागू करें, या इंगित होस्ट-साइड सेटअप कमांड का उपयोग करें। पूर्वावलोकन हेडर और अनुरोध अनुबंध के लिए [CLI configuration security](../security/CLI-CONFIGURATION.md) देखें। यह व्यवहार जानबूझकर है और `tests/unit/api/cli-tools/apply-container-guard.test.ts` द्वारा प्रतिगमन-संरक्षित है — गार्ड को हटाकर कभी भी 422 को "ठीक" न करें।
 
 ---
 

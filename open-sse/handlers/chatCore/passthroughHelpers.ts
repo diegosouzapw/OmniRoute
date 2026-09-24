@@ -2,11 +2,47 @@ import { FORMATS } from "../../translator/formats.ts";
 import { isVerifiedNativeCodexRequest } from "../../config/codexIdentity.ts";
 import { isClaudeCodeCompatibleProvider } from "../../services/claudeCodeCompatible.ts";
 import { isResponsesEndpointPath } from "../../utils/responsesEndpoint.ts";
+import { mergeClientAnthropicBeta } from "../../config/anthropicHeaders.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
 
 export { isResponsesEndpointPath };
 
 export const XAI_API_PROVIDERS = new Set(["xai", "xai-oauth", "xao"]);
+
+const SAFEGUARDS_PAIRED_BETA = "dangerous-tool-use-2026-09-03";
+
+/**
+ * Top-level fields Claude Code sends that Anthropic accepts only next to their
+ * paired beta. `safeguards` is the auto mode classifier request
+ * (https://code.claude.com/docs/en/auto-mode-classifier-billing); without
+ * `dangerous-tool-use-2026-09-03` on the outbound request, Anthropic rejects
+ * the whole request:
+ *
+ *   400 safeguards: Extra inputs are not permitted
+ *
+ * The executor forwards a client beta only through mergeClientAnthropicBeta, so
+ * the same merge decides here: keep the field when its beta travels with it,
+ * strip it otherwise (the client then falls back to its own classifier).
+ */
+export function unpairedClaudeClientFields(clientAnthropicBeta: string | null | undefined) {
+  const forwarded = mergeClientAnthropicBeta("", clientAnthropicBeta).toLowerCase().split(",");
+  return forwarded.includes(SAFEGUARDS_PAIRED_BETA) ? [] : ["safeguards"];
+}
+
+/**
+ * Drop the top-level fields for which Anthropic's Messages API rejects the
+ * whole request on the native `claude` passthrough, which forwards the client
+ * body verbatim. Third-party Claude-shape gateways are left untouched.
+ */
+export function stripClaudeRejectedTopLevelFields(
+  body: Record<string, unknown>,
+  clientHeaders: Headers | Record<string, unknown> | null | undefined
+): void {
+  // VS Code Claude extension and similar clients send both; Anthropic rejects the pair.
+  if (body.temperature !== undefined && body.top_p !== undefined) delete body.top_p;
+  const clientBeta = getHeaderValueCaseInsensitive(clientHeaders, "anthropic-beta");
+  for (const field of unpairedClaudeClientFields(clientBeta)) delete body[field];
+}
 
 export function shouldUseNativeCodexPassthrough({
   provider,

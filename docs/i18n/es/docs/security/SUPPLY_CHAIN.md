@@ -4,60 +4,52 @@
 
 ---
 
-OmniRoute publica artefactos npm + Docker. Estos controles proporcionan procedencia,
-inventario (SBOM) y análisis de CVE, todos OSS e integrados en los flujos de trabajo de publicación.
-Postura **primero como aviso**: ahora generan informes y pasarán a ser bloqueantes después de la
-primera publicación correcta.
+OmniRoute publica artefactos npm + Docker. Estas puertas proporcionan procedencia, inventario (SBOM) y escaneo de CVE, todo de código abierto (OSS), integrado en los flujos de trabajo de lanzamiento.
+Postura de **asesoramiento primero** — informan ahora, y se promueven a bloqueo después del primer lanzamiento exitoso.
 
-| Control                   | Herramienta                                    | Dónde                         | ¿Bloquea?                    | Resultado                                                           |
-| ------------------------- | ---------------------------------------------- | ----------------------------- | ---------------------------- | ------------------------------------------------------------------- |
-| Procedencia SLSA (npm)    | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | solo si falla la publicación | insignia de npmjs / `npm audit signatures`                          |
-| SBOM de npm               | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | solo si falla la generación  | Recurso de la publicación + artefacto                               |
-| SBOM de la imagen         | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (fusión) | aviso                        | Artefacto CycloneDX                                                 |
-| CVE de Trivy (SARIF)      | `aquasecurity/trivy-action`                    | `docker-publish.yml` (fusión) | aviso                        | SARIF (HIGH+CRITICAL) → pestaña Security                            |
-| Control CRITICAL de Trivy | `aquasecurity/trivy-action`                    | `docker-publish.yml` (fusión) | **bloqueante**               | `exit-code: '1'` para CRITICAL corregibles                          |
-| vulnCount de osv          | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **bloqueante**               | ajusta progresivamente `metrics.vulnCount` (dirección: descendente) |
-| OpenSSF Scorecard         | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | aviso                        | SARIF → Security + insignia                                         |
+| Puerta                | Herramienta                                    | Dónde                         | ¿Bloquea?                    | Salida                                       |
+| :-------------------- | :--------------------------------------------- | :---------------------------- | :--------------------------- | :------------------------------------------- |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | solo si la publicación falla | insignia npmjs / `npm audit signatures`      |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | solo si la generación falla  | Activo de lanzamiento + artefacto            |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | asesoramiento                | Artefacto CycloneDX                          |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | asesoramiento                | SARIF (ALTO+CRÍTICO) → Pestaña de seguridad  |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **bloqueante**               | `exit-code: '1'` en CRÍTICO solucionable     |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **bloqueante**               | ajusta `metrics.vulnCount` (dirección:abajo) |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | asesoramiento                | SARIF → Seguridad + insignia                 |
 
-El ajuste progresivo de CVE de la imagen utiliza **dos pasos** en `docker-publish.yml`: el paso
-SARIF (`HIGH,CRITICAL`, `exit-code: 0`) mantiene visibles los niveles HIGH+CRITICAL en la pestaña
-Security sin bloquear; el paso del _control CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) hace que falle la publicación ante una CVE CRITICAL **con una corrección disponible**.
-`ignore-unfixed` evita bloquear la publicación debido a una CVE de la imagen base que no tenga un
-parche del proveedor original.
+El ajuste de CVE de la imagen utiliza **dos pasos** en `docker-publish.yml`: el paso SARIF (`HIGH,CRITICAL`, `exit-code: 0`) mantiene los CVE ALTO+CRÍTICO visibles en la pestaña de Seguridad sin bloquear; el paso de _puerta CRÍTICA_ (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) falla el lanzamiento ante un CVE CRÍTICO **con una solución disponible**. `ignore-unfixed` evita bloquear el lanzamiento por un CVE de imagen base sin un parche ascendente.
 
-## ⚠️ Variabilidad de CVE (controles bloqueantes de osv/Trivy)
+## ⚠️ Variación de CVE (puertas de bloqueo osv/Trivy)
 
-osv y Trivy comparan las dependencias con bases de datos de CVE que **crecen continuamente**. Una PR
-que **no modifica ninguna dependencia** puede pasar repentinamente a rojo porque se haya divulgado
-una nueva CVE en una dependencia existente (osv: `vulnCount` medido > valor de referencia; Trivy:
-una nueva vulnerabilidad CRITICAL corregible en la imagen). **Este es el comportamiento operativo
-ESPERADO de un control de CVE bloqueante, no una regresión del producto.**
+osv y Trivy comparan las dependencias con bases de datos de CVE que **crecen continuamente**. Una PR que **no toca dependencias** puede de repente ponerse en rojo porque se reveló un nuevo CVE en una dependencia existente (osv: `vulnCount` medido > línea base; Trivy: un nuevo CRÍTICO solucionable en la imagen). **Este es un comportamiento operativo ESPERADO de una puerta de CVE bloqueante, no una regresión del producto.**
 
-Cuando osv o Trivy pasan a rojo debido a una CVE recién divulgada, la solución es:
+Cuando osv o Trivy se ponen en rojo debido a un CVE recién revelado, la solución es:
 
-1. **Actualizar la dependencia afectada** (opción preferida): actualizar a la versión corregida
-   mediante `overrides` en `package.json` (dependencias transitivas) o volver a compilar la imagen
-   sobre una base corregida.
-2. **Si no existe una corrección del proveedor original:**
-   - **osv:** volver a establecer el valor de referencia de `metrics.vulnCount` en
-     `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` no cubre los
-     controles específicos; edite el valor manualmente, `direction:down`) con una nota
-     justificativa + una incidencia de seguimiento.
-   - **Trivy:** añadir una entrada a `.trivyignore` (un ID de CVE por línea) con un comentario
-     justificativo + una incidencia de seguimiento. `ignore-unfixed: true` ya cubre automáticamente
-     las CVE sin parches.
+1.  **Actualizar la dependencia afectada** (preferido) — actualizar a la versión parcheada a través de `overrides` en `package.json` (dependencias transitivas) o reconstruir la imagen sobre una base parcheada.
+2.  **Si no hay una solución ascendente:**
+    - **osv:** re-establecer la línea base de `metrics.vulnCount` en `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` no cubre puertas dedicadas — editar el valor manualmente, `direction:down`) con una nota de justificación + un problema de seguimiento.
+    - **Trivy:** añadir una entrada en `.trivyignore` (CVE-ID por línea) con un comentario de justificación + un problema de seguimiento. `ignore-unfixed: true` ya cubre automáticamente los CVE sin parches.
 
-Ambos controles **OMITEN correctamente** la ejecución (código de salida 0) cuando la herramienta
-no está disponible o falla la medición (`osv-scanner` no está en PATH, osv.dev o la red no están
-disponibles, JSON no válido): un fallo de **medición** nunca bloquea; solo bloquea una regresión
-**medida**.
+Ambas puertas **OMITEN elegantemente** (salida 0) cuando la herramienta está ausente o la medición falla (osv-scanner no está en PATH, osv.dev/network inalcanzable, JSON inválido) — un fallo de **medición** nunca bloquea, solo una regresión **medida** bloquea.
 
-## Pendiente: Scorecard, de aviso a bloqueante
+## Riesgos Conocidos Aceptados
 
-Después de la primera publicación correcta con informes de Scorecard:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: ajuste progresivo de la puntuación (congela la puntuación medida; no puede disminuir).
+`extract-zip@2.0.1` conlleva dos avisos de alta gravedad de recorrido de enlaces simbólicos sin parchear. Según la rama "sin solución ascendente" del remedio de Variación de CVE anterior, esto es un **riesgo aceptado**, no una actualización:
 
-Complementa los controles de la fase 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-audita los propios flujos de trabajo; Scorecard mide de forma agregada la postura del repositorio.
+- **Cadena:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`. Confirmado a través de `package-lock.json` — exactamente un paquete en todo el árbol de dependencias (`@openai/codex-security`) declara `extract-zip`, y exactamente un paquete (`promptfoo`) declara `@openai/codex-security`.
+- **No existe ninguna versión corregida en ninguna parte de la cadena.** `extract-zip@2.0.1` (publicado en 2020) es la versión final del paquete — no tiene mantenimiento. La versión actual de npm-latest (`0.1.29`) de `@openai/codex-security` todavía utiliza `extract-zip@2.0.1`.
+- **Inaccesible desde producción.** `promptfoo` es solo una devDependency (nunca aparece en `dependencies`), y ningún archivo en `src/`, `open-sse/` o `bin/` importa el paquete npm `extract-zip` — el propio asistente `extractZip()` de OmniRoute (`src/lib/versionManager/binaryManager.ts:93`) utiliza los comandos nativos `unzip`/`tar` y no está relacionado. `@openai/codex-security` también incluye su propia protección contra el recorrido de enlaces simbólicos además de la devolución de llamada onEntry de extract-zip.
+- **No** utilice un alias para `extract-zip` a través de `overrides` en `package.json` — el único reemplazo directo viable es Electron-org-internal y es incompatible con la API de las propias comprobaciones onEntry/defaultDirMode/defaultFileMode de `@openai/codex-security`; anularlo rompería silenciosamente las comprobaciones de seguridad de ese paquete.
+- **Línea base:** el `vulnCount` (3) medido por osv ya está muy por debajo de la línea base congelada `config/quality/quality-baseline.json` (27) — no se necesita ningún cambio de ajuste.
+- **Protección contra regresiones:** `tests/unit/extract-zip-14482-exposure.test.ts` afirma la cadena y el invariante de no importación en producción mencionado anteriormente; falla la CI si alguno de ellos se rompe (por ejemplo, si una futura PR hace que `extract-zip` sea accesible desde producción).
+- **Seguimiento:** issue #14482.
+
+## Pendiente: Aviso de Scorecard → bloqueo
+
+Después de la primera versión "verde" con informes de Scorecard:
+
+- Scorecard: ajuste de puntuación (congela la puntuación medida; no puede disminuir).
+
+Complementa las puertas de la Fase 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor audita los propios flujos de trabajo; Scorecard mide la postura del repositorio en conjunto.

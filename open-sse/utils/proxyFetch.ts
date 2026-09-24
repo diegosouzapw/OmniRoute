@@ -15,6 +15,7 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
+import { stampOwnListenerSelfHop } from "./selfHop.ts";
 import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import {
@@ -195,7 +196,14 @@ export type AppliedProxySink = {
   /** Masked serving-account id (N112) — set by the rotation executor at dispatch. */
   rotationAccount?: string | null;
 };
-const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
+const APPLIED_PROXY_CONTEXT_KEY = Symbol.for("omniroute.proxyFetch.applied-context");
+type AppliedProxyStore = typeof globalThis & {
+  [APPLIED_PROXY_CONTEXT_KEY]?: AsyncLocalStorage<AppliedProxySink>;
+};
+function getAppliedProxyContext(): AsyncLocalStorage<AppliedProxySink> {
+  return ((globalThis as AppliedProxyStore)[APPLIED_PROXY_CONTEXT_KEY] ??=
+    new AsyncLocalStorage<AppliedProxySink>());
+}
 
 /**
  * Run `fn` with an applied-proxy capture sink in context. Any
@@ -205,7 +213,7 @@ const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
  * resolves. Pure plumbing — no behavioral change to the request itself.
  */
 export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
-  return appliedProxyContext.run(sink, fn);
+  return getAppliedProxyContext().run(sink, fn);
 }
 
 /**
@@ -215,7 +223,7 @@ export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => 
  */
 export function noteRotationAccount(masked: string): void {
   try {
-    const sink = appliedProxyContext.getStore();
+    const sink = getAppliedProxyContext().getStore();
     if (sink) sink.rotationAccount = masked;
   } catch {
     /* attribution is best-effort; never break the request path */
@@ -483,6 +491,21 @@ function noProxyMatch(targetUrl) {
   });
 }
 
+/**
+ * True loopback only — NOT the broader private-network set `isLocalAddress`
+ * covers. A LAN peer (192.168.x, a local Ollama box) is still reached over a
+ * real network and keeps the outbound bound-and-replay policy; a loopback
+ * target is this very process.
+ */
+function isLoopbackHost(hostname: string): boolean {
+  const host = hostname
+    .replace(/^\[/, "")
+    .replace(/\]$/, "")
+    .replace(/^::ffff:/i, "")
+    .toLowerCase();
+  return host === "localhost" || host === "::1" || host === "127.0.0.1" || host.startsWith("127.");
+}
+
 function isLocalAddress(hostname: string): boolean {
   const host = hostname
     .replace(/^\[/, "")
@@ -684,7 +707,7 @@ export async function runWithProxyContext(
     // otherwise leave proxyInfo reading "direct"). Innermost runWithProxyContext
     // wins, which is exactly the per-account proxy the executor selected.
     if (effectiveProxyConfig) {
-      const sink = appliedProxyContext.getStore();
+      const sink = getAppliedProxyContext().getStore();
       if (sink) sink.proxy = effectiveProxyConfig;
     }
 
@@ -764,6 +787,9 @@ async function patchedFetchUnrecorded(
   options: FetchWithDispatcherOptions = {},
   deps: ProxyFetchDeps = {}
 ) {
+  // #13593: a hop back to this listener carries the process self-hop token
+  // so admission does not shed it with public traffic.
+  stampOwnListenerSelfHop(input, options);
   // Explicit direct contexts must win even when a caller supplied a stale
   // dispatcher. Native fetch preserves direct streaming semantics.
   if (proxyContext.getStore() === DIRECT_PROXY_CONTEXT) {
@@ -852,6 +878,27 @@ async function patchedFetchUnrecorded(
       deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
+
+    // A loopback self-request (model sync, auto-discovery, internal routes) must
+    // NOT inherit the outbound-egress policy below. That policy bounds
+    // response-start and then REPLAYS the request on a fresh no-keep-alive
+    // dispatcher, which is designed for a dead keep-alive socket to a remote
+    // host (#10214). Against our own listener there is no such socket to
+    // detect: the replay just doubles how long a slow internal request occupies
+    // one of our OWN inbound slots (30s bound + 30s replay). When a provider
+    // stalls, those self-requests pile up against the chat admission limit and
+    // starve live traffic until Cloudflare cuts the client at its 120s proxy
+    // read timeout (HTTP 524). Send loopback straight through the native fetch.
+    let isLoopbackTarget = false;
+    try {
+      isLoopbackTarget = isLoopbackHost(new URL(targetUrl).hostname);
+    } catch {
+      // ignore — a non-parseable target keeps the default egress policy
+    }
+    if (isLoopbackTarget) {
+      return _nativeFallback(input, options);
+    }
+
     let lastDispatcherError: unknown = null;
     const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
     const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);
@@ -1192,7 +1239,7 @@ async function patchedFetchUnrecorded(
   throw lastProxyError;
 }
 
-const getAppliedProxySink = () => appliedProxyContext.getStore();
+const getAppliedProxySink = () => getAppliedProxyContext().getStore();
 const patchedFetch = withUpstreamStatusCapture(patchedFetchUnrecorded, getAppliedProxySink);
 
 /**
