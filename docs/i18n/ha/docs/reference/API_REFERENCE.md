@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Ma’anar kuɗi idan an samu cache-hit:** idan semantic-cache ya yi HIT (`X-OmniRoute-Cache-Hit: true`), ba a yin kira zuwa upstream, saboda haka `X-OmniRoute-Response-Cost` yana zama `0.0000000000` (kuɗin **ƙarin** da aka kashe wajen bayar da hit ɗin). Ana bayar da rahoton kuɗin asali/da za a kashe daban a cikin `X-OmniRoute-Cost-Saved`. Masu amfani da bayanan billing su tara jimillar `X-OmniRoute-Response-Cost` (hits ba sa cin kuɗi); nazarin cache kuma zai iya tara jimillar `X-OmniRoute-Cost-Saved`.
 
-## Keɓantattun Hayar Zaman da Ake Sarrafawa
+## Keɓaɓɓun Yarjejeniyoyin Zama na Musamman
 
-Hayar keɓantaccen zaman da ake sarrafawa yarjejeniyar tura buƙatu ce ta zaɓi wadda ba ta dogara da nau'in abokin hulɗa ba: mai mallaka guda ɗaya mai aiki
-ne ke riƙe da haɗin OmniRoute guda ɗaya da ya cancanta. Ba ta hayar da wani samfuri, ba ta buƙatar OAuth, ba ta tantance
-wani takamaiman abokin hulɗa, kuma ba ta buƙatar wani takamaiman mai samarwa.
+Keɓaɓɓun yarjejeniyoyin zama na musamman kwangila ce ta zaɓi, mai zaman kanta daga abokin ciniki: mai mallakar aiki ɗaya yana riƙe da haɗin OmniRoute ɗaya mai cancanta. Ba ya ba da izinin samfuri, yana buƙatar OAuth, yana gano wani abokin ciniki na musamman, ko yana buƙatar wani mai bayarwa na musamman.
 
-Dole ne mabuɗin API da ake amfani da shi wajen tantancewa ya kasance da izinin `lease:exclusive` da kuma jerin
-`allowedConnections` da aka bayyana a sarari kuma ba fanko ba. Iyakar canjin bayanai ta rumbun bayanai tana tilasta amfani da duka filayen tare yayin
-ƙirƙirar mabuɗi da sabuntawa na ɓangare.
+Maɓallin API mai tabbatarwa dole ne ya sami iyakokin `lease:exclusive` da jerin `allowedConnections` marasa komai. Iyakokin canjin bayanai suna tilasta duka filayen tare a kan ƙirƙirar maɓalli da sabuntawa na ɓangare.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Amsoshin acquire, renew, da release da suka yi nasara suna bayyana tambarin lokaci, `state`, da ainihin
-`generation` mai ƙima tabbatacciya, amma ba sa taɓa bayyana haɗin da aka zaɓa ko bayanan shaidar shiga. Renew da release suna aika
-generation a cikin jikin JSON:
+Nasarar samu, sabuntawa, da sakin martani suna nuna lokutan, `state`, da ainihin `generation` mai kyau, amma ba zaɓaɓɓen haɗin ko takardun shaida ba. Sabuntawa da saki suna ba da ƙarni a cikin jikin JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generation a cikin jikin JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Mai mallakar haya mai aiki zai iya neman bayanan nuni masu kiyaye sirri kai tsaye don ɗaurinsa na yanzu:
+Mai mallakar yarjejeniya mai aiki zai iya neman bayanan nuni masu kare sirri a fili don haɗin sa na yanzu:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Mai mallakar haya mai aiki zai iya neman bayanan nuni masu kiyaye sirri kai tsay
 }
 ```
 
-Wannan aikin status na zaɓi ana killace shi ta hanyar mai mallaka marar bayyanannen ma'ana, mabuɗin API da ake sarrafawa wanda aka tantance, da ainihin
-generation mai aiki a cikin ma'amalar rumbun bayanai guda ɗaya. `displayName` sunan haɗin da aka saita ne kawai bayan an cire sararin da bai dace ba;
-yana zama `null` idan babu amintaccen suna da aka saita. OmniRoute ba ya taɓa maye gurbinsa da
-imel ko shaidar asusun da aka samar. Ƙimar provider lakabin nuni ne marar muhimmancin sirri kuma ba ta taɓa zama
-shaida da aka samar ta mai bayarwa mai dacewa ba. An cire bayanan shaidar shiga, tokens, cookies, ɗanyen haɗi ko
-ids na mabuɗin API, hashes na masu mallaka, sirrin killacewa, da bayanan tura buƙatu na ciki.
+Wannan aikin matsayi na zaɓi yana da shinge ta mai mallakar da ba a gani ba, maɓallin API mai sarrafawa, da ainihin ƙarni mai aiki a cikin ma'amala ɗaya ta bayanai. `displayName` shine kawai sunan haɗin da aka daidaita; yana `null` lokacin da babu sunan da aka daidaita mai aminci. OmniRoute ba ya taɓa maye gurbin imel ko asalin asusun da aka samar. Darajar mai bayarwa alama ce ta nuni mara mahimmanci kuma ba ta taɓa zama mai gano mai bayarwa mai dacewa ba. An cire takardun shaida, alamomi, kukis, haɗin kai tsaye ko ID na maɓallin API, hashes na mai mallaka, sirrin shinge, da bayanan hanyoyin ciki.
 
-Neman bayanai da ke da mabuɗin da ba daidai ba, mai mallaka da ba daidai ba, generation da ya tsufa, ya ɓace, ya ƙare, aka sake shi, ko aka soke shi duk suna
-mayar da kuskuren `409 LEASE_FENCE_STALE` iri ɗaya ba tare da bayanan haɗi ba. Abokin hulɗa da ya karɓi amsar jiran ƙarfin aiki ba shi da ɗauri mai aiki da zai bincika. Lokacin da tura buƙatu ta sauya wata haya mai aiki,
-generation ɗin nan ɗin yana ci gaba da aiki kuma status yana mayar da sabon ɗauri kai tsaye a matsayin aiki guda, ba tsohon ba.
-Abokan hulɗa na yanzu ba sa canzawa saboda amsoshin acquire, renew, release, da waiting suna riƙe da
-tsarinsu na baya.
+Maɓalli mara kyau, mai mallakar mara kyau, ƙarni mara kyau, ɓacewa, ƙarewa, saki, da bincike mara inganci duk suna dawo da kuskuren `409 LEASE_FENCE_STALE` iri ɗaya ba tare da bayanan haɗin ba. Abokin ciniki da ya karɓi martanin jira na iya ba shi da haɗin kai tsaye don dubawa. Lokacin da hanyar ta canza yarjejeniya mai aiki, ƙarni ɗaya ya kasance mai inganci kuma matsayi yana dawo da sabon haɗin kai tsaye, ba tsohon ba. Abokan ciniki da ke akwai sun kasance ba su canza ba saboda samu, sabuntawa, saki, da martani na jira suna riƙe da siffofinsu na baya.
 
-Wannan yarjejeniyar uwar garke ba ta canza daidaitaccen OpenAI Codex `/status` ba. A halin yanzu, daidaitaccen Codex yana bayar da rahoton
-mai samar da samfurinsa da yanayin tantancewa/asusun da aka gina a ciki, amma ba ya nuna bayanan asusun
-mai samarwa na musamman yadda aka ga dama; haɗin abokin hulɗa na gaba dole ne ya kira wannan aikin kuma ya yanke shawarar yadda zai
-nuna `connection.displayName`.
+Wannan kwangilar sabar ba ta canza stock OpenAI Codex `/status`. Stock Codex a halin yanzu yana ba da rahoton mai bayar da samfurinsa da tabbatarwa/yanayin asusun da aka gina amma ba ya nuna bayanan asusun mai bayarwa na musamman; haɗin abokin ciniki na gaba dole ne ya kira wannan aikin kuma ya yanke shawarar yadda za a nuna `connection.displayName`.
 
-Daga nan, kowace buƙatar inference da ake sarrafawa tana aika dukkan headers na sarrafawa guda biyu:
+Kowane buƙatar inference mai sarrafawa sannan yana ba da duka kanun sarrafawa:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Ana killace ainihin mai mallaka, generation, haɗin da ke aiki, da mabuɗin API da aka tantance nan take
-kafin kowace yunƙurin upstream da ake goyon baya. Sake amfani da mai mallaka da generation tare da wani mabuɗi yana gaza ko da
-wannan mabuɗin ya ba da izinin haɗin iri ɗaya. Ba a adana ɗanyen bayanan masu mallaka, rubuta su a log, riƙe su a cikin
-hoton buƙata, ko tura su upstream.
+Ainihin mai mallaka, ƙarni, haɗin aiki, da maɓallin API mai tabbatarwa an shinge su nan da nan kafin kowane yunƙurin sama mai goyan baya. Sake kunna mai mallaka da ƙarni tare da wani maɓalli yana gazawa ko da lokacin da wannan maɓalli ya ba da izinin haɗin ɗaya. Ba a adana masu mallaka na asali, ba a shigar da su, ba a riƙe su a cikin hoton buƙatar, ko a tura su sama.
 
-Cunkoso na ɗan lokaci yana mayar da HTTP `429` tare da `Retry-After` da:
+Rigima na ɗan lokaci yana dawo da HTTP `429` tare da `Retry-After` da:
 
 ```json
 {
@@ -178,36 +157,35 @@ Cunkoso na ɗan lokaci yana mayar da HTTP `429` tare da `Retry-After` da:
 }
 ```
 
-Wannan amsa tana nufin kawai cewa saitin cancanta na yau da kullum ba fanko ba ne kuma kowanne ɗan takara mai 'yanci
-yana ƙarƙashin wata haya mai aiki ta wani. Samfura/masu samarwa da ba a goyon baya, rashin dacewar manufofi, cooldown, quota,
-health, da sauran gazawar cancanta na yau da kullum suna riƙe da amsoshin OmniRoute da suke da su.
+Wannan martani yana nufin kawai cewa saitin da ya cancanta na yau da kullun ba shi da komai kuma kowane ɗan takara kyauta an riƙe shi ta hanyar yarjejeniya mai aiki na waje. Samfurori/masu bayarwa marasa goyan baya, rashin daidaituwar manufofi, sanyaya, ƙayyadaddun adadi, lafiya, da sauran gazawar cancanta na yau da kullun suna riƙe da martanin OmniRoute da ke akwai.
 
 ### `x-omniroute-compression`
 
-Sauya tsarin matsawa na kowace buƙata. Shi ne mafi fifiko — yana rinjayar sauyin routing-combo,
-active profile, auto-trigger, da Default na panel. Ƙimomi:
+Override na shirin matsa lamba na kowane buƙata. Mafi girman fifiko — yana doke override na haɗin hanyar, bayanin martaba mai aiki, auto-trigger, da Default na panel. Darajoji:
 
-| Ƙima          | Tasiri                                                                                              |
-| ------------- | --------------------------------------------------------------------------------------------------- |
-| `off`         | Babu matsawa ga wannan buƙatar.                                                                     |
-| `default`     | Default profile da aka samo daga panel (yana yin watsi da active profile).                          |
-| `engine:<id>` | Engine guda ɗaya idan an kunna shi, misali `engine:rtk`.                                            |
-| `<combo>`     | Combo mai suna, ana fara daidaita shi ta suna (ba tare da kula da girman haruffa ba), sannan ta id. |
+| Daraja        | Tasiri                                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Babu matsa lamba don wannan buƙatar.                                                                                      |
+| `default`     | Bayanin martaba na Default da aka samo daga panel (yana watsi da bayanin martaba mai aiki). An bar injunan asara a kashe. |
+| `safe`        | Dedup da ninka farin sarari kawai.                                                                                        |
+| `allow-lossy` | Rike shirin mai aiki don wannan buƙatar, gami da taƙaitawa da sake rubuta salo.                                           |
+| `engine:<id>` | Injin guda ɗaya lokacin da aka kunna, misali `engine:rtk`. Zaɓi na kowane buƙata don wannan injin.                        |
+| `<combo>`     | Haɗin da aka ambata, wanda aka daidaita ta suna (ba tare da la'akari da girman ba) da farko, sannan ta ID.                |
 
 Bayanan kula:
 
-- Ana yin watsi da ƙimomin da ba a sani ba (ba a taɓa ƙin buƙatar); warwarewa tana komawa ga tsarin fifikon mai aiki na yau da kullum.
-- Idan combos da yawa suna da suna iri ɗaya, aika **id** na combo don samun daidaitaccen zaɓi.
-- Ba za a iya zaɓar combo mai suna `off` ko `default` ta hanyar suna ba (ana fara fassara waɗannan kalmomin maɓalli); yi nuni da irin wannan combo ta amfani da id ɗinsa.
-- Babban makunnin matsawa ƙaƙƙarfan shinge ne: idan an kashe matsawa ga tsarin gaba ɗaya, wannan header ba zai iya kunna shi ba.
+- An yi watsi da darajoji marasa sani (ba a taɓa ƙin buƙatar ba); ƙuduri yana faɗuwa zuwa fifikon mai aiki na yau da kullun.
+- Idan haɗe-haɗe da yawa suna raba suna, wuce **ID** na haɗin don daidaitawa mai ƙayyadaddun.
+- Haɗin da sunansa `off` ko `default` ba za a iya zaɓe shi ta suna ba (an fassara waɗannan kalmomin da farko); koma zuwa irin wannan haɗin ta ID ɗin sa.
+- Babban maɓallin matsa lamba shinge ne mai wuya: lokacin da aka kashe matsa lamba a duniya, wannan kanun ba zai iya kunna shi ba.
 
-Ana maimaita tsarin da aka yi amfani da shi a cikin response header:
+An maimaita shirin da aka yi amfani da shi a cikin kanun martani:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-inda `<source>` yake ɗaya daga cikin `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, ko `off`.
+inda `<source>` ɗaya ne daga `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, ko `off`.
 
 ---
 

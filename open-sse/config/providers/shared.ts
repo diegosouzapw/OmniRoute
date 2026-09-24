@@ -245,6 +245,12 @@ export interface RegistryEntry {
    */
   ensureThinkingSignature?: boolean;
   /**
+   * Timezone offset to assume for zone-less (naive) reset timestamps in 429 error bodies
+   * (e.g. "+08:00" for Z.AI/GLM which outputs local Asia/Shanghai time).
+   * Defaults to "Z" (UTC).
+   */
+  naiveResetTimezone?: string;
+  /**
    * Protocolos alternativos que este provedor aceita (ex.: um endpoint
    * Anthropic-compatible alem do OpenAI-compatible padrao). A conexao escolhe
    * via providerSpecificData.targetFormat; ver config/providers/alternateFormats.ts.

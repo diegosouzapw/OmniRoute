@@ -146,6 +146,22 @@ export function getTierStats(): Record<ProviderTier, number> {
 export let tierAsyncFallbackTotal = 0; // exported for testability
 
 export async function classifyTierAsync(provider: string, model: string): Promise<TierAssignment> {
+  // Explicit routing policy takes precedence over price-derived classification,
+  // just as it does in classifyTier. Do not let a DB/catalog lookup overwrite
+  // that policy in the shared cache and change a later synchronous estimate.
+  if (
+    isExplicitlyFree(provider, currentConfig) ||
+    currentConfig.providerOverrides.some(
+      (override) => override.provider.toLowerCase() === provider.toLowerCase()
+    ) ||
+    currentConfig.modelOverrides.some(
+      (override) =>
+        override.provider.toLowerCase() === provider.toLowerCase() &&
+        matchGlob(override.modelPattern, model)
+    )
+  ) {
+    return classifyTier(provider, model);
+  }
   try {
     const { getPricingForModel } = await import("@/lib/db/settings");
     const db = await getPricingForModel(provider, model);

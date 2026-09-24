@@ -5,11 +5,11 @@
 ---
 
 > **Patiesības avots:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Pēdējoreiz atjaunināts:** 2026-06-28 — v3.8.40
+> **Pēdējoreiz atjaunināts:** 2026-09-22 — tvēruma nosaukumvietas norāda uz MCP-SERVER.md
 
-OmniRoute izmanto maršrutus apzinošu autorizācijas konveijeru, kas kontrolē katru API pieprasījumu. Klasifikācija ir **deterministiska** un **kļūmes gadījumā slēgta** — viss, ko nevar klasificēt, tiek klasificēts kā `MANAGEMENT`, un tam ir nepieciešama sesija vai pārvaldības līmeņa pilnvara. Šajā lapā ir izskaidrots modelis inženieriem, kuri uztur maršrutus vai izstrādā jaunus galapunktus.
+OmniRoute ir maršrutu apzinoša autorizācijas cauruļvads, kas aizsargā katru API pieprasījumu. Klasifikācija ir **deterministiska** un **slēgta kļūmes gadījumā** — viss, ko nevar klasificēt, nonāk kā `MANAGEMENT` un prasa sesiju vai pārvaldības līmeņa pilnvaru. Šī lapa izskaidro modeli inženieriem, kas uztur maršrutus vai izstrādā jaunus galapunktus.
 
-![AuthZ konveijers (3 maršrutu klases + politiku izvērtēšana)](../diagrams/exported/authz-pipeline.svg)
+![Autorizācijas cauruļvads (3 maršrutu klases + politikas novērtēšana)](../diagrams/exported/authz-pipeline.svg)
 
 > Avots: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -200,28 +200,35 @@ Veiksmes gadījumā `requireManagementAuth()` atgriež `null`, bet kļūdas gad�
 
 Izvēlieties kopu pēc struktūras, nevis ērtības. Viens maršruts jāievieto `PUBLIC_API_ROUTES_EXACT` (vai `PUBLIC_READONLY_CORS_API_ROUTES`, ja atļauts tikai GET); tikai īsts apakškoks jāievieto `PUBLIC_API_ROUTE_PREFIXES`, un tam **obligāti jābeidzas ar `/`**. Ievietojot vienu maršrutu prefiksu sarakstā, tiek publicēts arī katrs blakus esošais ceļš ar tādiem pašiem sākuma simboliem — tostarp vēlāk pievienoti dinamisko segmentu līdzvērtīgie maršruti (GHSA-74g9-q8f6-793h). Atjauniniet vienībtestus failos `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` un `tests/unit/authz/classify.test.ts`.
 
-## Tvērumi
+## Darbības jomas
 
-API atslēgām ir `scopes` masīvs (saglabāts kā JSON laukā `api_keys.scopes`; skatiet `src/lib/db/apiKeys.ts`).
+Trīs nosaukumvietas. Katrs pārbaudītājs lasa tikai savas virknes. Salīdzinājums,
+tostarp tas, kāpēc `manage` neiztur `scopeMatches` pārbaudi attiecībā uz `read:compression` un kāpēc `read` piekļuves marķieris nevar `PATCH /api/keys/{id}`, ir
+[Trīs darbības jomu nosaukumvietas](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Pārvaldības tvērums
+API atslēgas satur `scopes` masīvu (saglabāts kā JSON failā `api_keys.scopes`, skatīt `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — piešķir atslēgai piekļuvi pārvaldības API galapunktiem, ja tā tiek nosūtīta kā Bearer pilnvara.
+### Pārvaldības darbības joma
 
-### MCP tvērumi (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Nesēja piekļuve pārvaldības API maršrutiem.
+- `mcp:connect`, `self:usage`, `self:account-quota` un
+  `policy:bypass-provider-quota` ir aditīvas precīzas atbilstības darbības jomas. Tās atrodas ārpus `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` atver tikai
+  `/api/mcp/` bezcilpas izgriezumu.
 
-Katram MCP rīkam ir nepieciešami konkrēti tvērumi, kas definēti, izmantojot `MCP_TOOL_SCOPES`. Pilns saraksts (`MCP_SCOPE_LIST`):
+### MCP rīku darbības jomas
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalogs un atbilstības noteikumi (identiska virkne vai piešķirta darbības joma, kas beidzas ar `*`):
+[MCP rīku darbības jomas](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` failā `src/shared/constants/mcpScopes.ts` ir oriģinālā tipizētā
+apakškopa, nevis pilns katalogs. Izpilde notiek
+`open-sse/mcp-server/scopeEnforcement.ts` pēc tam, kad `resolveCallerScopeContext()` atrisina darbības jomas no MCP autentifikācijas informācijas, pieprasījuma metadatiem vai `OMNIROUTE_MCP_SCOPES`.
+Tā paliek izslēgta, ja vien `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Tvērumu piemērošana failā `open-sse/mcp-server/server.ts` nodod katra rīka tvērumu sarakstu funkcijai
-`evaluateToolScopes()` pēc tam, kad `resolveCallerScopeContext()` ir noteikusi tvērumus no MCP autentifikācijas informācijas,
-pieprasījuma metadatiem vai `OMNIROUTE_MCP_SCOPES`.
+### Piekļuves marķiera darbības jomas
+
+`read` / `write` / `admin` uz `oma_live_…` marķieriem, ranžēti pēc `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Šis rangs attiecas tikai uz piekļuves marķiera
+akreditācijas datiem. Skatīt [Pārvaldības autentifikācija](../guides/MANAGEMENT-AUTH.md).
 
 ## Autentifikācijas prasības pārslēgs
 
@@ -267,9 +274,9 @@ x-omniroute-auth-scopes:    ar komatiem atdalīts saraksts
 
 Apdarinātājos izmantojiet `assertAuth(req, expectedClass)` — tas izmet `AuthzAssertionError` ar kodu `AUTHZ_NOT_INITIALIZED`, ja starpprogrammatūra tika apieta (tas palīdz testos konstatēt konfigurācijas regresijas).
 
-## Skatiet arī
+## Skatīt arī
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — autentifikācijas marķieris katram galapunktam
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — autentifikācijas notikumu audita žurnāls
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — detalizēta informācija par MCP tvērumu piemērošanu
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — audita žurnāls autentifikācijas notikumiem
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trīs darbības jomas nosaukumvietas un MCP rīku darbības jomas katalogs
 - Avots: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

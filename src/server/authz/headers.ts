@@ -25,6 +25,16 @@ export const AUTHZ_HEADER_AUTH_SCOPES = "x-omniroute-auth-scopes";
 export const CLI_TOKEN_HEADER = "x-omniroute-cli-token";
 
 /**
+ * Client-supplied one-shot fresh-install bootstrap token (#14296). Unlike the
+ * PEER_IP_HEADER/VIA_PROXY_HEADER family this is NOT server-trusted/stamped —
+ * it is compared against the in-memory value `src/lib/auth/bootstrapToken.ts`
+ * generated and printed to the container/process log, so it is safe to leave
+ * on the forwarded request (not in AUTHZ_TRUSTED_HEADERS) for the route
+ * handler to consume after a successful bootstrap write.
+ */
+export const BOOTSTRAP_TOKEN_HEADER = "x-omniroute-bootstrap-token";
+
+/**
  * The real TCP peer IP, stamped by the custom Node server BEFORE Next runs
  * (scripts/dev/peer-stamp.mjs), formatted as `<token>|<ip>`. The middleware has
  * no socket, so this is the only trustworthy locality signal — but ONLY when the

@@ -124,6 +124,7 @@ export async function checkIdempotencyCache({
   effectiveServiceTier,
   startTime,
   log,
+  videoTranscriptSensitive,
 }: {
   clientRawRequest: IdempotencyRequest;
   provider: string;
@@ -132,7 +133,11 @@ export async function checkIdempotencyCache({
   effectiveServiceTier: EffectiveServiceTier | null | undefined;
   startTime: number;
   log: LoggerLike;
+  videoTranscriptSensitive?: boolean;
 }): Promise<{ hit: { success: true; response: Response } | null; idempotencyKey: string | null }> {
+  // A response may quote the video transcript. No key means neither a replay
+  // from a previous entry nor a write at chatCore's later save site.
+  if (videoTranscriptSensitive) return { hit: null, idempotencyKey: null };
   // NEXA fusion-idempotency fix: namespace the raw header key (see composeIdempotencyKey).
   const rawIdempotencyKey = getIdempotencyKey(clientRawRequest?.headers);
   const idempotencyKey = composeIdempotencyKey({

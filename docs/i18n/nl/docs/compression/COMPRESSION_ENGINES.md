@@ -9,43 +9,43 @@ OmniRoute-compressie is opgebouwd rond enginecontracten. Een modus kan één eng
 
 ## Modi
 
-| Modus        | Enginepad                                | Beoogde invoer                                               |
-| ------------ | ---------------------------------------- | ------------------------------------------------------------ |
-| `off`        | geen                                     | Exact behoud van de prompt                                   |
-| `lite`       | Caveman-litehelpers                      | Altijd actieve opschoning met een laag risico                |
-| `standard`   | Caveman                                  | Verdichting van prompts in natuurlijke taal                  |
-| `aggressive` | Caveman + geschiedenis-/toolsamenvatters | Lange chatsessies                                            |
-| `ultra`      | Caveman + snoeihulpmiddelen              | Herstel bij het bereiken van de contextlimiet                |
-| `rtk`        | RTK                                      | Uitvoer van terminal, shell, builds, tests en git            |
-| `omniglyph`  | OmniGlyph                                | Context als afbeelding via het systeemeigen providerprotocol |
-| `stacked`    | Pipeline, standaard `rtk -> caveman`     | Gemengde toollogs en proza, maximale besparing               |
+| Modus        | Engine-pad                                                                             | Beoogde invoer                                     |
+| ------------ | -------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `off`        | geen                                                                                   | Exacte promptbehoud                                |
+| `lite`       | Caveman lite helpers                                                                   | Laag-risico altijd-actieve opschoning              |
+| `standard`   | Caveman                                                                                | Natuurlijke-taal promptcondensatie                 |
+| `aggressive` | Caveman + history/tool summarizers                                                     | Lange chatsessies                                  |
+| `ultra`      | Caveman + pruning helpers                                                              | Herstel van contextlimiet                          |
+| `rtk`        | RTK                                                                                    | Terminal-, shell-, build-, test- en git-uitvoer    |
+| `omniglyph`  | OmniGlyph                                                                              | Context-als-afbeelding op de native provider-draad |
+| `stacked`    | Pijplijn. De standaardaanvraag is `session-dedup -> lite`. `rtk -> caveman` is opt-in. | Gemengde toollogs en proza, maximale besparingen   |
 
-### OmniGlyph-compressieprofielen
+### OmniGlyph compressieprofielen
 
-De `omniglyph`-engine (package `omniglyph`, 1.4.0+) accepteert een benoemd semantisch profiel, dat
-globaal wordt ingesteld via `omniglyph.profile` in de compressie-instellingen of per stap via de
-stapconfiguratie van de gestapelde pipeline:
+De `omniglyph`-engine (pakket `omniglyph`, 1.4.0+) accepteert een benoemd semantisch profiel, globaal ingesteld
+via `omniglyph.profile` in de compressie-instellingen of per stap via de
+stapconfiguratie van de gestapelde pijplijn:
 
-| Profiel       | Begrenzing                                                                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Standaard. Het beleid waarop de gepubliceerde meetresultaten zijn gebaseerd — zet systeem, tooldocumentatie en compacte geschiedenis om in afbeeldingen |
-| `balanced`    | Behoudt de actieve status in systeemeigen vorm, beschermt de laatste 8 beurten en vouwt oudere afgesloten geschiedenis samen                            |
-| `coding-safe` | Behoudt autoriteit, toolschema's en actieve tooluitvoer in systeemeigen vorm en beschermt de laatste 12 beurten                                         |
-| `passthrough` | Routeert zonder transformatie; de engine wordt overgeslagen                                                                                             |
+| Profiel       | Grens                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Standaard. Het beleid dat de gepubliceerde ontvangsten maten — afbeeldingssysteem, tool-documenten en dichte geschiedenis |
+| `balanced`    | Houdt live status native, beschermt de laatste 8 beurten, vouwt oudere gesloten geschiedenis samen                        |
+| `coding-safe` | Houdt autoriteit, tool-schema's en live tool-uitvoer native, beschermt de laatste 12 beurten                              |
+| `passthrough` | Routeert zonder transformatie; de engine wordt overgeslagen                                                               |
 
-Het profiel is een **bovengrens, geen ondergrens**: `mergeCompressionProfileOptions` in het package
-staat niet toe dat een override van de aanroeper een verliesgevend pad heropent dat door het profiel is gesloten, zodat een instelling per stap
-van `preserveSystemPrompt: false` systeemcompressie onder `coding-safe` niet opnieuw kan inschakelen.
+Het profiel is een **plafond, geen vloer**: `mergeCompressionProfileOptions` in het pakket
+weigert een aanroeper toe te staan een verlieslatende baan te heropenen die het profiel heeft gesloten, dus een `preserveSystemPrompt: false` per stap
+kan systeemcompressie onder `coding-safe` niet opnieuw inschakelen.
 
-Gemeten op deze codebase: `coding-safe` en `balanced` verhogen `minCompressChars` tot de
-maximumwaarde en behouden het systeem, de toolschema's en de toolresultaten in systeemeigen vorm. Daardoor stopt een sessie die nog geen
-geschiedenis heeft opgebouwd bij `below_min_chars` en transformeert de engine niets. Daarom
-is `aggressive` de standaard in plaats van het veiligste profiel.
+Gemeten op deze codebase: `coding-safe` en `balanced` verhogen `minCompressChars` tot het
+maximum en houden systeem, tool-schema's en tool-resultaten native, dus een sessie die nog niet
+geschiedenis heeft opgebouwd, stopt bij `below_min_chars` en de engine transformeert niets. Dat
+is waarom de standaard `aggressive` is in plaats van het veiligste profiel.
 
-Het package bepaalt zijn eigen modelbereik en profiel aan de hand van zijn omgevingsconfiguratie.
-OmniRoute delegeert deze beslissing nooit: de adapter zet de modelpoort vast op het meest
-beperkende bereik van het package, zodat omgevingsinstellingen van de host de toegestane lijst alleen kunnen verkleinen en nooit
-kunnen uitbreiden voorbij de door OmniRoute gemeten resultaten.
+Het pakket lost zijn eigen modelbereik en profiel op uit zijn omgevingsconfiguratie.
+OmniRoute delegeert de beslissing nooit: de adapter koppelt de modelpoort aan het meest
+restrictieve bereik van het pakket, zodat hostomgevingsinstellingen de allowlist alleen kunnen
+verkleinen, nooit verbreden voorbij de gemeten ontvangsten van OmniRoute.
 
 ## Engineregister
 
@@ -386,7 +386,7 @@ en in het algemeen nuttig is voor elk model waarbij de exacte byte-voor-byte-pro
 
 ## Validatie
 
-De gerichte controles voor dit gebied zijn:
+De gerichte poorten voor dit gebied zijn:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

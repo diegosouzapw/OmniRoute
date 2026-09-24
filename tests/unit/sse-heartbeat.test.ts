@@ -51,50 +51,54 @@ async function withSseCommentsOn(fn) {
 }
 
 test("createSseHeartbeatTransform emits SSE comments while preserving stream output", async () => {
-  await withSseCommentsOn(() => withFakeIntervals(async (intervals) => {
-    const transform = createSseHeartbeatTransform({ intervalMs: 250 });
-    const writer = transform.writable.getWriter();
-    const reader = transform.readable.getReader();
-    const emitted = [];
-    const pump = (async () => {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        emitted.push(decodeChunk(value));
-      }
-    })();
+  await withSseCommentsOn(() =>
+    withFakeIntervals(async (intervals) => {
+      const transform = createSseHeartbeatTransform({ intervalMs: 250 });
+      const writer = transform.writable.getWriter();
+      const reader = transform.readable.getReader();
+      const emitted = [];
+      const pump = (async () => {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          emitted.push(decodeChunk(value));
+        }
+      })();
 
-    await writer.write(new TextEncoder().encode('data: {"chunk":"one"}\n\n'));
+      await writer.write(new TextEncoder().encode('data: {"chunk":"one"}\n\n'));
 
-    assert.equal(intervals.length, 1);
-    assert.equal(intervals[0].delay, 250);
+      assert.equal(intervals.length, 1);
+      assert.equal(intervals[0].delay, 250);
 
-    await intervals[0].callback(...intervals[0].args);
-    await writer.close();
-    await pump;
+      await intervals[0].callback(...intervals[0].args);
+      await writer.close();
+      await pump;
 
-    assert.equal(emitted[0], 'data: {"chunk":"one"}\n\n');
-    assert.match(emitted[1], /^: keepalive /);
-    assert.equal(intervals[0].cleared, true);
-  }));
+      assert.equal(emitted[0], 'data: {"chunk":"one"}\n\n');
+      assert.match(emitted[1], /^: keepalive /);
+      assert.equal(intervals[0].cleared, true);
+    })
+  );
 });
 
 test("createSseHeartbeatTransform clears the interval when aborted", async () => {
-  await withSseCommentsOn(() => withFakeIntervals(async (intervals) => {
-    const controller = new AbortController();
-    const transform = createSseHeartbeatTransform({ signal: controller.signal });
-    const reader = transform.readable.getReader();
-    const writer = transform.writable.getWriter();
+  await withSseCommentsOn(() =>
+    withFakeIntervals(async (intervals) => {
+      const controller = new AbortController();
+      const transform = createSseHeartbeatTransform({ signal: controller.signal });
+      const reader = transform.readable.getReader();
+      const writer = transform.writable.getWriter();
 
-    assert.equal(intervals.length, 1);
-    assert.equal(intervals[0].cleared, false);
+      assert.equal(intervals.length, 1);
+      assert.equal(intervals[0].cleared, false);
 
-    controller.abort();
-    assert.equal(intervals[0].cleared, true);
+      controller.abort();
+      assert.equal(intervals[0].cleared, true);
 
-    await writer.close();
-    await reader.cancel();
-  }));
+      await writer.close();
+      await reader.cancel();
+    })
+  );
 });
 
 const { shapeForClientFormat } = await import("../../open-sse/utils/sseHeartbeat.ts");
@@ -172,30 +176,37 @@ test("shape: openai-responses-in-progress emits response.in_progress data event"
     await writer.close();
     await pump;
 
-    assert.equal(emitted[0], 'data: {"type":"response.in_progress"}\n\n');
+    // #14330: the frame now carries a required `sequence_number` and `response`
+    // object so a strict Responses decoder does not abort on it.
+    assert.equal(
+      emitted[0],
+      'data: {"type":"response.in_progress","sequence_number":1,"response":{"id":null,"status":"in_progress"}}\n\n'
+    );
   });
 });
 
 test("shape default is comment (back-compat)", async () => {
-  await withSseCommentsOn(() => withFakeIntervals(async (intervals) => {
-    const transform = createSseHeartbeatTransform({ intervalMs: 100 });
-    const writer = transform.writable.getWriter();
-    const reader = transform.readable.getReader();
-    const emitted = [];
-    const pump = (async () => {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        emitted.push(decodeChunk(value));
-      }
-    })();
+  await withSseCommentsOn(() =>
+    withFakeIntervals(async (intervals) => {
+      const transform = createSseHeartbeatTransform({ intervalMs: 100 });
+      const writer = transform.writable.getWriter();
+      const reader = transform.readable.getReader();
+      const emitted = [];
+      const pump = (async () => {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          emitted.push(decodeChunk(value));
+        }
+      })();
 
-    await intervals[0].callback(...intervals[0].args);
-    await writer.close();
-    await pump;
+      await intervals[0].callback(...intervals[0].args);
+      await writer.close();
+      await pump;
 
-    assert.match(emitted[0], /^: keepalive /);
-  }));
+      assert.match(emitted[0], /^: keepalive /);
+    })
+  );
 });
 
 test("intervalMs <= 0 returns passthrough (no setInterval, no heartbeat)", async () => {
@@ -235,34 +246,36 @@ test("shapeForClientFormat maps formats correctly", () => {
 test("no shape collides with stream.ts event: keepalive strip regex", async () => {
   const shapes = ["comment", "anthropic-ping", "openai-chunk", "openai-responses-in-progress"];
   for (const shape of shapes) {
-    await withSseCommentsOn(() => withFakeIntervals(async (intervals) => {
-      const transform = createSseHeartbeatTransform({
-        intervalMs: 100,
-        shape,
-      });
-      const writer = transform.writable.getWriter();
-      const reader = transform.readable.getReader();
-      const emitted = [];
-      const pump = (async () => {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          emitted.push(decodeChunk(value));
+    await withSseCommentsOn(() =>
+      withFakeIntervals(async (intervals) => {
+        const transform = createSseHeartbeatTransform({
+          intervalMs: 100,
+          shape,
+        });
+        const writer = transform.writable.getWriter();
+        const reader = transform.readable.getReader();
+        const emitted = [];
+        const pump = (async () => {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            emitted.push(decodeChunk(value));
+          }
+        })();
+
+        await intervals[0].callback(...intervals[0].args);
+        await writer.close();
+        await pump;
+
+        const lines = emitted[0].split("\n");
+        for (const line of lines) {
+          assert.doesNotMatch(
+            line.trim(),
+            /^event:\s*keepalive\b/i,
+            `shape ${shape} produced forbidden line: ${line}`
+          );
         }
-      })();
-
-      await intervals[0].callback(...intervals[0].args);
-      await writer.close();
-      await pump;
-
-      const lines = emitted[0].split("\n");
-      for (const line of lines) {
-        assert.doesNotMatch(
-          line.trim(),
-          /^event:\s*keepalive\b/i,
-          `shape ${shape} produced forbidden line: ${line}`
-        );
-      }
-    }));
+      })
+    );
   }
 });

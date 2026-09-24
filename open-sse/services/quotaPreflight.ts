@@ -21,6 +21,7 @@
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
+import { isQuotaHealthy } from "@/domain/quotaCache";
 import { fetchNewApiAggregatorQuota } from "./newApiAggregatorQuotaFetcher.ts";
 import {
   isAntigravityQuotaProvider,
@@ -39,6 +40,8 @@ export interface QuotaCutoffScope {
   provider?: string | null;
   requestedModel?: string | null;
   providerSpecificData?: unknown;
+  // #14359 — recent successful dispatch stands the cutoff down for this connection.
+  connectionId?: string | null;
 }
 
 export interface QuotaWindowInfo {
@@ -323,6 +326,10 @@ export function evaluateQuotaCutoff(
   if (isClaudeExtraUsageAllowed(scope?.provider, scope?.providerSpecificData)) {
     return { proceed: true, quotaPercent: quota.percentUsed };
   }
+  // #14359 — same escape as the dispatch-time predicates: a recent success is not exhaustion.
+  if (scope?.connectionId && isQuotaHealthy(scope.connectionId)) {
+    return { proceed: true, quotaPercent: quota.percentUsed };
+  }
 
   const windows = quota.windows;
   if (windows && Object.keys(windows).length > 0) {
@@ -401,6 +408,7 @@ export async function preflightQuota(
     provider,
     requestedModel,
     providerSpecificData: connection.providerSpecificData,
+    connectionId,
   };
   const windows = quota.windows;
   if (windows && Object.keys(windows).length > 0) {
