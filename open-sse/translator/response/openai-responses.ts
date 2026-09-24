@@ -354,6 +354,12 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
 
   // Handle finish_reason
   if (choice.finish_reason) {
+    // Remembered for sendCompleted(): a truncated/filtered generation must
+    // surface as status:"incomplete" with incomplete_details, not silently
+    // as "completed" -- a client that trusts "completed" has no signal that
+    // the output was cut off mid-generation rather than the model actually
+    // finishing.
+    state.finishReason = choice.finish_reason;
     for (const i in state.msgItemAdded) closeMessage(state, emit, i);
     closeReasoning(state, emit);
     for (const i in state.funcCallIds) closeToolCall(state, emit, i);
@@ -819,15 +825,33 @@ function sendCompleted(state, emit) {
     const upstreamErr = state.upstreamError;
     const publicUpstreamError = projectCompletedStreamError(upstreamErr);
 
+    // A truncated or filtered generation must surface as status:"incomplete"
+    // with incomplete_details, matching real OpenAI Responses API behavior
+    // (already implemented for the ChatGPT-web bridge in
+    // vendor/codex-chatgpt-web/bridge.ts) -- not silently as "completed",
+    // which gives a caller no signal the output was cut off mid-generation
+    // rather than the model actually finishing. Upstream errors still win:
+    // an error mid-stream is a harder failure than a length/filter cutoff.
+    const incompleteReason =
+      state.finishReason === "length"
+        ? "max_output_tokens"
+        : state.finishReason === "content_filter"
+          ? "content_filter"
+          : undefined;
+    const isIncomplete = !upstreamErr && incompleteReason !== undefined;
+
     const response: Record<string, unknown> = {
       id: state.responseId,
       object: "response",
       created_at: state.created,
-      status: upstreamErr ? "failed" : "completed",
+      status: upstreamErr ? "failed" : isIncomplete ? "incomplete" : "completed",
       background: false,
       error: publicUpstreamError,
       output,
     };
+    if (isIncomplete) {
+      response.incomplete_details = { reason: incompleteReason };
+    }
 
     // #3697: same model echo as response.created/in_progress above.
     if (state.model) {
@@ -838,8 +862,9 @@ function sendCompleted(state, emit) {
       response.usage = state.usage;
     }
 
-    emit("response.completed", {
-      type: "response.completed",
+    const eventType = isIncomplete ? "response.incomplete" : "response.completed";
+    emit(eventType, {
+      type: eventType,
       response,
     });
   }

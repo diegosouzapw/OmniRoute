@@ -461,3 +461,71 @@ test("OpenAI -> Responses: no double-escaping of already-escaped JSON arguments"
     );
   }
 });
+
+test("Chat Completions -> Responses: a truncated generation surfaces as response.incomplete with incomplete_details, not response.completed", () => {
+  // A provider that stops on the token limit (finish_reason:"length") must
+  // translate to status:"incomplete" with incomplete_details.reason set to
+  // "max_output_tokens" -- the real OpenAI Responses API contract, already
+  // implemented for the ChatGPT-web bridge but previously missing here, so
+  // a truncated/looping generation silently looked identical to a normal,
+  // successful completion downstream.
+  const events = collectEvents([
+    {
+      id: "chatcmpl-trunc",
+      model: "labs-leanstral-1-5",
+      choices: [
+        {
+          index: 0,
+          delta: { role: "assistant", content: "partial output cut off mid" },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-trunc",
+      model: "labs-leanstral-1-5",
+      choices: [{ index: 0, delta: {}, finish_reason: "length" }],
+      usage: { prompt_tokens: 100, completion_tokens: 8192, total_tokens: 8292 },
+    },
+  ]);
+
+  const completedEvent = events.find((e) => e.event === "response.completed");
+  assert.equal(
+    completedEvent,
+    undefined,
+    "must not emit response.completed for a truncated generation"
+  );
+
+  const incompleteEvent = events.find((e) => e.event === "response.incomplete");
+  assert.ok(incompleteEvent, "must emit response.incomplete instead");
+  assert.equal(incompleteEvent.data.response.status, "incomplete");
+  assert.deepEqual(incompleteEvent.data.response.incomplete_details, {
+    reason: "max_output_tokens",
+  });
+});
+
+test("Chat Completions -> Responses: an ordinary finish_reason:stop still surfaces as response.completed", () => {
+  const events = collectEvents([
+    {
+      id: "chatcmpl-ok",
+      model: "labs-leanstral-1-5",
+      choices: [{ index: 0, delta: { role: "assistant", content: "done" }, finish_reason: null }],
+    },
+    {
+      id: "chatcmpl-ok",
+      model: "labs-leanstral-1-5",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 },
+    },
+  ]);
+
+  const completedEvent = events.find((e) => e.event === "response.completed");
+  assert.ok(completedEvent, "must emit response.completed for an ordinary stop");
+  assert.equal(completedEvent.data.response.status, "completed");
+  assert.equal(completedEvent.data.response.incomplete_details, undefined);
+  assert.equal(
+    events.find((e) => e.event === "response.incomplete"),
+    undefined,
+    "must not emit response.incomplete for an ordinary stop"
+  );
+});
