@@ -1,0 +1,1 @@
+- fix(sse): widen compression worker eligibility gate to accept structured-clone-safe `undefined`/Date/Map/Set/RegExp values, restoring worker offload for real requests (#13154)

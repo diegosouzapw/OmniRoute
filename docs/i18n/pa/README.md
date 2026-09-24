@@ -262,7 +262,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 ਸਾਡੇ ਓਪਨ ਸੋਰਸ ਦੋਸਤਾਂ ਵੱਲੋਂ ਸਮਰਥਿਤ
+## 🤝 ਸਾਡੇ ਓਪਨ ਸੋਰਸ ਦੋਸਤਾਂ ਦੁਆਰਾ ਸਮਰਥਿਤ
 
 </div>
 
@@ -272,7 +272,7 @@ curl http://localhost:20128/v1/chat/completions \
   </a>
 </p>
 
-> **ਕੀ ਤੁਸੀਂ ਓਪਨ ਸੋਰਸ ਦੋਸਤ ਵਜੋਂ ਸ਼ਾਮਲ ਹੋਣਾ ਚਾਹੁੰਦੇ ਹੋ?** ਇਹ ਉਹ ਕੰਪਨੀਆਂ ਹਨ ਜੋ ਓਪਨ ਸੋਰਸ ਦਾ ਸਮਰਥਨ ਕਰਦੀਆਂ ਹਨ ਅਤੇ OmniRoute ਨੂੰ ਅੱਗੇ ਵਧਾਉਣ ਵਿੱਚ ਮਦਦ ਕਰਦੀਆਂ ਹਨ — ਅਤੇ ਅਸੀਂ ਜਨਤਕ ਤੌਰ 'ਤੇ ਦੱਸਦੇ ਹਾਂ ਕਿ ਉਨ੍ਹਾਂ ਵੱਲੋਂ ਦਿੱਤਾ ਹਰ ਟੋਕਨ ਕਿੱਥੇ ਵਰਤਿਆ ਜਾਂਦਾ ਹੈ। ਸੰਪਰਕ ਕਰੋ: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **ਓਪਨ ਸੋਰਸ ਦੋਸਤ ਵਜੋਂ ਸ਼ਾਮਲ ਹੋਣਾ ਚਾਹੁੰਦੇ ਹੋ?** ਇਹ ਉਹ ਕੰਪਨੀਆਂ ਹਨ ਜੋ ਓਪਨ ਸੋਰਸ ਦਾ ਸਮਰਥਨ ਕਰਦੀਆਂ ਹਨ ਅਤੇ ਓਮਨੀਰੂਟ ਨੂੰ ਚਲਦਾ ਰੱਖਣ ਵਿੱਚ ਮਦਦ ਕਰਦੀਆਂ ਹਨ — ਅਤੇ ਅਸੀਂ ਜਨਤਕ ਤੌਰ 'ਤੇ ਦੱਸਦੇ ਹਾਂ ਕਿ ਉਹਨਾਂ ਦੁਆਰਾ ਸਾਨੂੰ ਦਿੱਤਾ ਗਿਆ ਹਰ ਟੋਕਨ ਕਿੱਥੇ ਜਾਂਦਾ ਹੈ। ਸੰਪਰਕ ਕਰੋ: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -280,60 +280,60 @@ curl http://localhost:20128/v1/chat/completions \
       <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcset="public/providers/kimi-logomark-dark.svg">
-          <img src="public/providers/kimi-logomark-light.svg" width="64" alt="Kimi (Moonshot AI)"/>
+          <img src="public/providers/kimi-logomark-light.svg" width="64" alt="ਕਿਮੀ (ਮੂਨਸ਼ੌਟ ਏਆਈ)"/>
         </picture>
       </a>
-      <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
+      <br/><b>ਕਿਮੀ</b><br/><sub>ਮੂਨਸ਼ੌਟ ਏਆਈ</sub><br/><br/>
       <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="ਸੰਸਥਾਪਕ ਓਪਨ ਸੋਰਸ ਦੋਸਤ"/>
     </td>
     <td>
-      ਇਸ ਪ੍ਰੋਜੈਕਟ ਦਾ ਸਮਰਥਨ ਕਰਨ ਲਈ ਸਾਡੇ ਸੰਸਥਾਪਕ ਓਪਨ ਸੋਰਸ ਦੋਸਤ <b>Kimi (Moonshot AI)</b> ਦਾ ਧੰਨਵਾਦ! Kimi, ਓਪਨ-ਵੇਟ K2 ਅਤੇ K3 ਮਾਡਲ ਪਰਿਵਾਰਾਂ ਦੇ ਪਿੱਛੇ ਮੌਜੂਦ AI ਲੈਬ ਹੈ — <b>Kimi K3</b> ਬੰਦ ਮਾਡਲਾਂ ਦੀਆਂ ਕੀਮਤਾਂ ਦੇ ਇੱਕ ਛੋਟੇ ਜਿਹੇ ਹਿੱਸੇ 'ਤੇ 1M-ਟੋਕਨ ਸੰਦਰਭ ਵਿੰਡੋ, ਮੂਲ ਵਿਜ਼ਨ ਅਤੇ ਫਰੰਟੀਅਰ-ਪੱਧਰੀ ਕੋਡਿੰਗ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ, ਅਤੇ Claude Code, Codex ਅਤੇ OmniRoute ਵੱਲੋਂ ਸੇਵਾ ਦਿੱਤੇ ਜਾਂਦੇ ਹਰ ਕੋਡਿੰਗ ਟੂਲ ਨਾਲ ਬਿਨਾਂ ਕਿਸੇ ਵਾਧੂ ਸੈਟਅੱਪ ਦੇ ਕੰਮ ਕਰਦਾ ਹੈ।
+      ਇਸ ਪ੍ਰੋਜੈਕਟ ਦਾ ਸਮਰਥਨ ਕਰਨ ਲਈ ਸਾਡੇ ਸੰਸਥਾਪਕ ਓਪਨ ਸੋਰਸ ਦੋਸਤ, <b>ਕਿਮੀ (ਮੂਨਸ਼ੌਟ ਏਆਈ)</b> ਦਾ ਧੰਨਵਾਦ! ਕਿਮੀ ਓਪਨ-ਵੇਟ K2 ਅਤੇ K3 ਮਾਡਲ ਪਰਿਵਾਰਾਂ ਦੇ ਪਿੱਛੇ AI ਲੈਬ ਹੈ — <b>ਕਿਮੀ K3</b> 1M-ਟੋਕਨ ਸੰਦਰਭ ਵਿੰਡੋ, ਨੇਟਿਵ ਵਿਜ਼ਨ ਅਤੇ ਬੰਦ-ਮਾਡਲ ਕੀਮਤਾਂ ਦੇ ਇੱਕ ਹਿੱਸੇ 'ਤੇ ਫਰੰਟੀਅਰ-ਪੱਧਰ ਦੀ ਕੋਡਿੰਗ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ, ਅਤੇ ਕਲਾਉਡ ਕੋਡ, ਕੋਡੈਕਸ ਅਤੇ ਹਰ ਕੋਡਿੰਗ ਟੂਲ ਨਾਲ ਬਾਕਸ ਤੋਂ ਬਾਹਰ ਕੰਮ ਕਰਦਾ ਹੈ ਜੋ ਓਮਨੀਰੂਟ ਸੇਵਾ ਕਰਦਾ ਹੈ।
       <br/><br/>
-      <b>Kimi ਦਾ ਸਮਰਥਨ ਕਿਸ ਨੂੰ ਸ਼ਕਤੀ ਦਿੰਦਾ ਹੈ:</b> Kimi ਦੇ API ਕ੍ਰੈਡਿਟ OmniRoute ਦੀ AI-ਪ੍ਰਮਾਣਿਤ ਰਿਲੀਜ਼ ਪਾਈਪਲਾਈਨ ਨੂੰ ਚਲਾਉਂਦੇ ਹਨ — <i>Kimi K3 ਦੁਆਰਾ ਸੰਚਾਲਿਤ ਮਰਜ ਪ੍ਰਮਾਣਿਕਤਾ</i> ਪੜਾਅ, ਜੋ ਹਰ ਪੁੱਲ ਰਿਕਵੈਸਟ ਨੂੰ ਜਾਰੀ ਹੋਣ ਤੋਂ ਪਹਿਲਾਂ ਸਮੀਖਿਆ ਕਰਦਾ ਹੈ — ਅਤੇ ਨਾਲ ਹੀ ਰੋਜ਼ਾਨਾ ਫੀਚਰ ਵਿਕਾਸ ਨੂੰ ਵੀ। ਪਹਿਲੇ ਦਰਜੇ ਦਾ Kimi ਸਮਰਥਨ ਦੋਵੇਂ ਮਾਰਗਾਂ 'ਤੇ ਉਪਲਬਧ ਹੈ: ਸਿੱਧਾ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) ਅਤੇ <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code ਕੋਡਿੰਗ ਪਲਾਨ</a> (OAuth ਅਤੇ API ਕੁੰਜੀ)। OmniRoute, Kimi ਦੇ ਸਮਰਥਨ ਪ੍ਰੋਗਰਾਮ ਵਿੱਚ ਸ਼ਾਮਲ ਹੋਣ ਵਾਲਾ ਪਹਿਲਾ ਬ੍ਰਾਜ਼ੀਲੀ ਓਪਨ-ਸੋਰਸ ਪ੍ਰੋਜੈਕਟ ਵੀ ਹੈ। <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% ਵਾਧੂ ਕ੍ਰੈਡਿਟਾਂ ਨਾਲ Kimi API ਕੁੰਜੀ ਪ੍ਰਾਪਤ ਕਰੋ →</b></a>
+      <b>ਕਿਮੀ ਦਾ ਸਮਰਥਨ ਕੀ ਸ਼ਕਤੀ ਦਿੰਦਾ ਹੈ:</b> ਕਿਮੀ ਦੇ API ਕ੍ਰੈਡਿਟ ਓਮਨੀਰੂਟ ਦੀ AI-ਪ੍ਰਮਾਣਿਤ ਰੀਲੀਜ਼ ਪਾਈਪਲਾਈਨ ਨੂੰ ਸ਼ਕਤੀ ਦਿੰਦੇ ਹਨ — <i>ਕਿਮੀ K3 ਦੁਆਰਾ ਸੰਚਾਲਿਤ ਮਰਜ ਪ੍ਰਮਾਣਿਕਤਾ</i> ਪੜਾਅ ਜੋ ਹਰ ਪੁੱਲ ਬੇਨਤੀ ਦੀ ਸਮੀਖਿਆ ਕਰਦਾ ਹੈ ਇਸ ਤੋਂ ਪਹਿਲਾਂ ਕਿ ਇਹ ਭੇਜੀ ਜਾਵੇ — ਨਾਲ ਹੀ ਰੋਜ਼ਾਨਾ ਫੀਚਰ ਵਿਕਾਸ। ਪਹਿਲੀ-ਸ਼੍ਰੇਣੀ ਕਿਮੀ ਸਹਾਇਤਾ ਦੋਵਾਂ ਰੇਲਾਂ 'ਤੇ ਭੇਜੀ ਜਾਂਦੀ ਹੈ: ਸਿੱਧਾ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">ਕਿਮੀ API</a> (<code>kimi-k3</code>) ਅਤੇ <a href="https://www.kimi.ai/code?aff=omniroute">ਕਿਮੀ ਕੋਡ ਕੋਡਿੰਗ ਯੋਜਨਾ</a> (OAuth ਅਤੇ API ਕੁੰਜੀ)। ਓਮਨੀਰੂਟ ਕਿਮੀ ਦੇ ਸਹਾਇਤਾ ਪ੍ਰੋਗਰਾਮ ਵਿੱਚ ਪਹਿਲਾ ਬ੍ਰਾਜ਼ੀਲੀਅਨ ਓਪਨ-ਸੋਰਸ ਪ੍ਰੋਜੈਕਟ ਵੀ ਹੈ। <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% ਵਾਧੂ ਕ੍ਰੈਡਿਟ ਦੇ ਨਾਲ ਇੱਕ ਕਿਮੀ API ਕੁੰਜੀ ਪ੍ਰਾਪਤ ਕਰੋ →</b></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="150">
       <a href="https://cheaperinference.com/?utm_source=omniroute">
-        <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
+        <img src="./public/providers/cli-generic.svg" width="64" alt="ਸਸਤਾ ਅਨੁਮਾਨ"/>
       </a>
-      <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
+      <br/><b>ਸਸਤਾ ਅਨੁਮਾਨ</b><br/><sub>cheaperinference.com</sub><br/><br/>
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="ਓਪਨ ਸੋਰਸ ਦੋਸਤ"/>
     </td>
     <td>
-      ਇਸ ਪ੍ਰੋਜੈਕਟ ਦਾ ਸਮਰਥਨ ਕਰਨ ਲਈ OmniRoute ਦੇ ਇੱਕ ਓਪਨ ਸੋਰਸ ਦੋਸਤ <b>Cheaper Inference</b> ਦਾ ਧੰਨਵਾਦ! Cheaper Inference ਲਾਗਤ ਮੁਤਾਬਕ ਦਰਜਾਬੰਦੀ ਕੀਤਾ ਗਿਆ ਇੱਕ ਗੇਟਵੇ ਹੈ, ਜੋ 42 ਫਰੰਟੀਅਰ ਮਾਡਲਾਂ — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok ਅਤੇ MiniMax — ਨੂੰ ਇੱਕ OpenAI-ਅਨੁਕੂਲ ਐਂਡਪੁਆਇੰਟ ਦੇ ਪਿੱਛੇ ਮੁੜ ਵੇਚਦਾ ਹੈ ਅਤੇ ਹਰ ਬੇਨਤੀ ਨੂੰ ਸਭ ਤੋਂ ਸਸਤੇ ਯੋਗ ਪ੍ਰਦਾਤਾ ਵੱਲ ਰੂਟ ਕਰਦਾ ਹੈ, ਜਦਕਿ ਕਦੇ ਵੀ ਮਾਡਲ ਨਿਰਮਾਤਾ ਦੀ ਸੂਚੀਬੱਧ ਕੀਮਤ ਤੋਂ ਵੱਧ ਚਾਰਜ ਨਹੀਂ ਕਰਦਾ।
+      ਇਸ ਪ੍ਰੋਜੈਕਟ ਦਾ ਸਮਰਥਨ ਕਰਨ ਲਈ ਓਮਨੀਰੂਟ ਓਪਨ ਸੋਰਸ ਦੋਸਤ, <b>ਸਸਤਾ ਅਨੁਮਾਨ</b> ਦਾ ਧੰਨਵਾਦ! ਸਸਤਾ ਅਨੁਮਾਨ ਇੱਕ ਲਾਗਤ-ਦਰਜਾਬੰਦੀ ਵਾਲਾ ਗੇਟਵੇ ਹੈ ਜੋ ਇੱਕ OpenAI-ਅਨੁਕੂਲ ਐਂਡਪੁਆਇੰਟ ਦੇ ਪਿੱਛੇ 42 ਫਰੰਟੀਅਰ ਮਾਡਲਾਂ — ਕਲਾਉਡ, GPT-5.x, ਜੇਮਿਨੀ, ਕਿਮੀ K3, GLM, ਡੀਪਸੀਕ, ਗ੍ਰੋਕ ਅਤੇ ਮਿਨੀਮੈਕਸ — ਨੂੰ ਦੁਬਾਰਾ ਵੇਚਦਾ ਹੈ, ਹਰ ਬੇਨਤੀ ਨੂੰ ਸਭ ਤੋਂ ਸਸਤੇ ਯੋਗ ਪ੍ਰਦਾਤਾ ਨੂੰ ਭੇਜਦਾ ਹੈ ਬਿਨਾਂ ਕਦੇ ਮਾਡਲ ਨਿਰਮਾਤਾ ਦੀ ਸੂਚੀ ਕੀਮਤ ਤੋਂ ਵੱਧ ਚਾਰਜ ਕੀਤੇ।
       <br/><br/>
-      <b>OmniRoute ਵਿੱਚ ਪਹਿਲੇ ਦਰਜੇ ਦਾ ਸਮਰਥਨ:</b> Chat Completions, ਮੂਲ <code>/v1/responses</code> ਐਂਡਪੁਆਇੰਟ, ਵਿਜ਼ਨ, ਟੂਲ ਕਾਲਿੰਗ ਅਤੇ 3 ਇਮੇਜ ਮਾਡਲ (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, ਜਿਨ੍ਹਾਂ ਤੱਕ <code>cheaperinference/&lt;model&gt;</code> ਰਾਹੀਂ ਪਹੁੰਚ ਕੀਤੀ ਜਾ ਸਕਦੀ ਹੈ)। <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API ਕੁੰਜੀ ਪ੍ਰਾਪਤ ਕਰੋ →</b></a>
+      <b>ਓਮਨੀਰੂਟ ਵਿੱਚ ਪਹਿਲੀ-ਸ਼੍ਰੇਣੀ ਸਹਾਇਤਾ:</b> ਚੈਟ ਸੰਪੂਰਨਤਾਵਾਂ, ਨੇਟਿਵ <code>/v1/responses</code> ਐਂਡਪੁਆਇੰਟ, ਵਿਜ਼ਨ, ਟੂਲ ਕਾਲਿੰਗ ਅਤੇ 3 ਚਿੱਤਰ ਮਾਡਲ (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, <code>cheaperinference/&lt;model&gt;</code> ਵਜੋਂ ਪਹੁੰਚਯੋਗ)। <a href="https://cheaperinference.com/?utm_source=omniroute"><b>ਇੱਕ API ਕੁੰਜੀ ਪ੍ਰਾਪਤ ਕਰੋ →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> ਨਾਲ ਟੈਗ ਕੀਤੇ ਲਿੰਕ ਭਾਈਵਾਲ ਲਿੰਕ ਹਨ। ਇਹ ਤੁਹਾਡੇ ਲਈ ਬਿਨਾਂ ਕਿਸੇ ਵਾਧੂ ਲਾਗਤ ਦੇ ਪ੍ਰੋਜੈਕਟ ਨੂੰ ਫੰਡ ਦਿੰਦੇ ਹਨ।</sub>
+<sub><code>aff=omniroute</code> ਟੈਗ ਕੀਤੇ ਲਿੰਕ ਸਹਿਭਾਗੀ ਲਿੰਕ ਹਨ। ਉਹ ਤੁਹਾਡੇ ਲਈ ਬਿਨਾਂ ਕਿਸੇ ਵਾਧੂ ਲਾਗਤ ਦੇ ਪ੍ਰੋਜੈਕਟ ਨੂੰ ਫੰਡ ਦਿੰਦੇ ਹਨ।</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ ਐਫਿਲੀਏਟ ਪ੍ਰੋਮੋ</b> — ਉਨ੍ਹਾਂ ਪ੍ਰਦਾਤਾਵਾਂ ਵੱਲੋਂ ਮੁਫ਼ਤ ਸਾਈਨਅੱਪ ਕੂਪਨ ਜਿਨ੍ਹਾਂ ਨੂੰ ਅਸੀਂ ਸਪਾਂਸਰ ਨਹੀਂ ਕਰਦੇ (ਵਿਸਤਾਰ ਲਈ ਕਲਿੱਕ ਕਰੋ)</sub></summary>
+<summary><sub><b>🎟️ ਐਫੀਲੀਏਟਸ ਪ੍ਰੋਮੋ</b> — ਪ੍ਰਦਾਤਾਵਾਂ ਤੋਂ ਮੁਫਤ ਸਾਈਨਅਪ ਕੂਪਨ ਜਿਨ੍ਹਾਂ ਨੂੰ ਅਸੀਂ ਸਪਾਂਸਰ ਨਹੀਂ ਕਰਦੇ (ਵਿਸਤਾਰ ਕਰਨ ਲਈ ਕਲਿੱਕ ਕਰੋ)</sub></summary>
 
-<sub><i>ਇਹ ਭਾਗ ਸਿਰਫ਼ ਰੈਫ਼ਰਲ/ਕੂਪਨ ਕੋਡਾਂ ਲਈ ਹੈ। ਸਪਾਂਸਰ ਕੀਤੀਆਂ ਭਾਈਵਾਲੀਆਂ ਉੱਪਰ ਦਿੱਤੇ <b>🤝 ਸਾਡੇ ਓਪਨ ਸੋਰਸ ਦੋਸਤਾਂ ਵੱਲੋਂ ਸਮਰਥਿਤ</b> ਭਾਗ ਵਿੱਚ ਹਨ। OmniRoute ਦਾ ਇੱਥੇ ਸੂਚੀਬੱਧ ਪ੍ਰਦਾਤਾਵਾਂ ਨਾਲ ਕੋਈ ਸਪਾਂਸਰਸ਼ਿਪ ਜਾਂ ਭਾਈਵਾਲੀ ਨਹੀਂ ਹੈ — ਇਹ ਜਨਤਕ ਕੂਪਨ ਹਨ ਜਿਨ੍ਹਾਂ ਨੂੰ ਕੋਈ ਵੀ ਵਰਤ ਸਕਦਾ ਹੈ।</i></sub>
+<sub><i>ਇਹ ਭਾਗ ਸਿਰਫ਼ ਰੈਫਰਲ/ਕੂਪਨ ਕੋਡਾਂ ਲਈ ਹੈ। ਸਪਾਂਸਰ ਕੀਤੀਆਂ ਭਾਈਵਾਲੀਆਂ ਉੱਪਰ <b>🤝 ਸਾਡੇ ਓਪਨ ਸੋਰਸ ਦੋਸਤਾਂ ਦੁਆਰਾ ਸਮਰਥਿਤ</b> ਵਿੱਚ ਹਨ। ਓਮਨੀਰੂਟ ਦਾ ਇੱਥੇ ਸੂਚੀਬੱਧ ਪ੍ਰਦਾਤਾਵਾਂ ਨਾਲ ਕੋਈ ਸਪਾਂਸਰਸ਼ਿਪ ਜਾਂ ਭਾਈਵਾਲੀ ਨਹੀਂ ਹੈ — ਇਹ ਜਨਤਕ ਕੂਪਨ ਹਨ ਜੋ ਕੋਈ ਵੀ ਵਰਤ ਸਕਦਾ ਹੈ।</i></sub>
 
 <table>
   <tr>
     <td align="center" width="120">
       <a href="https://agentrouter.org/register?aff=70LM">
-        <img src="./public/providers/cli-generic.svg" width="32" alt="AgentRouter"/>
+        <img src="./public/providers/cli-generic.svg" width="32" alt="ਏਜੰਟਰਾਊਟਰ"/>
       </a>
-      <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
+      <br/><sub><b>ਏਜੰਟਰਾਊਟਰ</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — ਐਫਿਲੀਏਟ ਸਾਈਨਅੱਪ · ਸਾਈਨਅੱਪ ਕਰਨ 'ਤੇ <b>$100 ਦੇ ਮੁਫ਼ਤ ਕ੍ਰੈਡਿਟ</b> (ਮੁਫ਼ਤ ਸਰਵਰ, ਵਧੇਰੇ ਲੇਟੈਂਸੀ ਦੀ ਉਮੀਦ ਰੱਖੋ — ਟੈਸਟਿੰਗ ਲਈ ਸਭ ਤੋਂ ਵਧੀਆ, ਪ੍ਰੋਡਕਸ਼ਨ ਲਈ ਨਹੀਂ)। <b>v3.8.50</b> ਤੋਂ OmniRoute ਵਿੱਚ ਪਹਿਲੇ ਦਰਜੇ ਦਾ ਸਮਰਥਨ: Chat Completions, Anthropic-ਅਨੁਕੂਲ ਵਾਇਰ ਫਾਰਮੈਟ ਅਤੇ OpenAI-ਅਨੁਕੂਲ ਪਾਥ। ਉਪਲਬਧ ਮਾਡਲਾਂ ਵਿੱਚ <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> ਅਤੇ ਹੋਰ ਸ਼ਾਮਲ ਹਨ। <b><a href="https://agentrouter.org/register?aff=70LM">ਆਪਣੇ $100 ਪ੍ਰਾਪਤ ਕਰੋ →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">ਏਜੰਟਰਾਊਟਰ</a></b> — ਐਫੀਲੀਏਟ ਸਾਈਨਅਪ · ਸਾਈਨਅਪ 'ਤੇ <b>$100 ਮੁਫਤ ਕ੍ਰੈਡਿਟ</b> (ਮੁਫਤ ਸਰਵਰ, ਉੱਚ ਲੇਟੈਂਸੀ ਦੀ ਉਮੀਦ ਕਰੋ — ਟੈਸਟਿੰਗ ਲਈ ਸਭ ਤੋਂ ਵਧੀਆ, ਉਤਪਾਦਨ ਲਈ ਨਹੀਂ)। <b>v3.8.50</b> ਤੋਂ ਓਮਨੀਰੂਟ ਵਿੱਚ ਪਹਿਲੀ-ਸ਼੍ਰੇਣੀ ਸਹਾਇਤਾ: ਚੈਟ ਸੰਪੂਰਨਤਾਵਾਂ, ਐਂਥ੍ਰੋਪਿਕ-ਅਨੁਕੂਲ ਵਾਇਰ ਫਾਰਮੈਟ ਅਤੇ OpenAI-ਅਨੁਕੂਲ ਪਾਥ। ਉਪਲਬਧ ਮਾਡਲਾਂ ਵਿੱਚ <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> ਅਤੇ ਹੋਰ ਸ਼ਾਮਲ ਹਨ। <b><a href="https://agentrouter.org/register?aff=70LM">ਆਪਣੇ $100 ਪ੍ਰਾਪਤ ਕਰੋ →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>ਐਫਿਲੀਏਟ ਲਿੰਕ — OmniRoute ਦਾ ਇਸ ਪ੍ਰਦਾਤਾ ਨਾਲ ਕੋਈ ਸਪਾਂਸਰਸ਼ਿਪ ਜਾਂ ਭਾਈਵਾਲੀ ਨਹੀਂ ਹੈ।</i></sub>
+      <sub>⚠️ <i>ਐਫੀਲੀਏਟ ਲਿੰਕ — ਓਮਨੀਰੂਟ ਦਾ ਇਸ ਪ੍ਰਦਾਤਾ ਨਾਲ ਕੋਈ ਸਪਾਂਸਰਸ਼ਿਪ ਜਾਂ ਭਾਈਵਾਲੀ ਨਹੀਂ ਹੈ।</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>ਕੀ ਤੁਸੀਂ ਕਿਸੇ ਹੋਰ ਪ੍ਰਦਾਤਾ ਨੂੰ ਜਾਣਦੇ ਹੋ ਜਿਸਦਾ ਮੁਫ਼ਤ ਸਾਈਨਅੱਪ ਕੂਪਨ ਉਦਾਰ ਹੋਵੇ ਅਤੇ OmniRoute ਵਰਤੋਂਕਾਰਾਂ ਨੂੰ ਲਾਭ ਪਹੁੰਚਾਉਂਦਾ ਹੋਵੇ? ਇੱਕ ਇਸ਼ੂ ਖੋਲ੍ਹੋ ਅਤੇ ਅਸੀਂ ਇਸਨੂੰ ਇੱਥੇ ਸ਼ਾਮਲ ਕਰ ਦੇਵਾਂਗੇ।</sub>
+<sub>ਕਿਸੇ ਹੋਰ ਪ੍ਰਦਾਤਾ ਨੂੰ ਜਾਣਦੇ ਹੋ ਜਿਸ ਕੋਲ ਇੱਕ ਉਦਾਰ ਮੁਫਤ ਸਾਈਨਅਪ ਕੂਪਨ ਹੈ ਜੋ ਓਮਨੀਰੂਟ ਉਪਭੋਗਤਾਵਾਂ ਨੂੰ ਲਾਭ ਪਹੁੰਚਾਉਂਦਾ ਹੈ? ਇੱਕ ਮੁੱਦਾ ਖੋਲ੍ਹੋ ਅਤੇ ਅਸੀਂ ਇਸਨੂੰ ਇੱਥੇ ਸ਼ਾਮਲ ਕਰਾਂਗੇ।</sub>
 
 </details>
 
@@ -1263,22 +1263,22 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ਵੀ ਇਸਨ�
 <table>
   <tr><th align="left">ਪਰਤ</th><th align="left">ਤਕਨਾਲੋਜੀ</th></tr>
   <tr><td nowrap><b>ਰਨਟਾਈਮ</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ਭਾਸ਼ਾ</b></td><td>TypeScript 6.0 — <code>src/</code> ਅਤੇ <code>open-sse/</code> ਵਿੱਚ ਪੂਰੀ ਤਰ੍ਹਾਂ <b>100% TypeScript</b> (v2.0 ਤੋਂ ਕੋਰ ਵਿੱਚ ਇੱਕ ਵੀ <code>any</code> ਨਹੀਂ)</td></tr>
+  <tr><td nowrap><b>ਭਾਸ਼ਾ</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> across <code>src/</code> and <code>open-sse/</code> (zero <code>any</code> in core since v2.0)</td></tr>
   <tr><td nowrap><b>ਫਰੇਮਵਰਕ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ਡਾਟਾਬੇਸ</b></td><td>better-sqlite3 (SQLite, WAL ਜਰਨਲਿੰਗ) + LowDB (ਪੁਰਾਣਾ JSON) — 122 ਡੋਮੇਨ ਮੋਡੀਊਲ, 178 ਮਾਈਗ੍ਰੇਸ਼ਨਾਂ</td></tr>
-  <tr><td nowrap><b>ਮੈਮੋਰੀ</b></td><td>SQLite FTS5 ਪੂਰਾ-ਟੈਕਸਟ + int8-ਕੁਆਂਟਾਈਜ਼ਡ ਵੈਕਟਰ ਐਮਬੈਡਿੰਗਾਂ, ਟਾਈਪਡ ਡਿਕੇ</td></tr>
-  <tr><td nowrap><b>ਸਕੀਮਾਂ</b></td><td>Zod 4 — MCP ਟੂਲ I/O ਪ੍ਰਮਾਣਿਕਤਾ + API ਇਕਰਾਰਨਾਮੇ</td></tr>
+  <tr><td nowrap><b>ਡੇਟਾਬੇਸ</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domain modules, 182 migrations</td></tr>
+  <tr><td nowrap><b>ਮੈਮੋਰੀ</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>ਸਕੀਮਾ</b></td><td>Zod 4 — MCP tool I/O validation + API contracts</td></tr>
   <tr><td nowrap><b>ਪ੍ਰੋਟੋਕੋਲ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>ਸਟ੍ਰੀਮਿੰਗ</b></td><td>ਸਰਵਰ-ਸੈਂਟ ਇਵੈਂਟਸ (SSE) + WebSocket ਬ੍ਰਿਜ (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>ਕੰਪਰੈਸ਼ਨ</b></td><td>12-ਇੰਜਣ ਪਾਈਪਲਾਈਨ — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>ਪ੍ਰਮਾਣੀਕਰਨ ਅਤੇ ਸੁਰੱਖਿਆ</b></td><td>OAuth 2.0 (PKCE) + JWT + API ਕੁੰਜੀਆਂ + MCP ਸਕੋਪਡ ਪ੍ਰਮਾਣੀਕਰਨ · ਸਟੋਰੇਜ ਵਿੱਚ AES-256-GCM ਇਨਕ੍ਰਿਪਸ਼ਨ · DOMPurify</td></tr>
-  <tr><td nowrap><b>ਗੁਪਤਤਾ</b></td><td>wreq-js — JA3 / JA4 TLS ਫਿੰਗਰਪ੍ਰਿੰਟ ਪ੍ਰਤੀਰੂਪਣ, 3-ਪੱਧਰੀ ਪ੍ਰੌਕਸੀ</td></tr>
-  <tr><td nowrap><b>ਲਚਕੀਲਾਪਣ</b></td><td>ਸਰਕਿਟ ਬ੍ਰੇਕਰ, ਐਕਸਪੋਨੇਨਸ਼ੀਅਲ ਬੈਕਆਫ਼, ਐਂਟੀ-ਥੰਡਰਿੰਗ-ਹਰਡ, ਆਟੋ-ਕੌਂਬੋ ਸਵੈ-ਮੁਰੰਮਤ</td></tr>
-  <tr><td nowrap><b>ਲੌਗਿੰਗ</b></td><td>pino — ਬੇਨਤੀ ਸੰਦਰਭ ਸਮੇਤ ਸੰਰਚਿਤ JSON ਲੌਗ</td></tr>
-  <tr><td nowrap><b>ਟੈਸਟਿੰਗ</b></td><td>Node.js ਟੈਸਟ ਰਨਰ + Vitest — 5,100+ ਟ੍ਰੈਕ ਕੀਤੀਆਂ ਟੈਸਟ ਫ਼ਾਈਲਾਂ ਵਿੱਚ <b>39,000+ ਸਥਿਰ ਟੈਸਟ ਘੋਸ਼ਣਾਵਾਂ</b> (ਯੂਨਿਟ, ਇੰਟੀਗ੍ਰੇਸ਼ਨ, E2E, ਸੁਰੱਖਿਆ, ਇਕੋਸਿਸਟਮ)</td></tr>
-  <tr><td nowrap><b>ਪਲੇਟਫਾਰਮ</b></td><td>ਡੈਸਕਟਾਪ (Electron) · Android (Termux) · PWA (ਕੋਈ ਵੀ ਬ੍ਰਾਊਜ਼ਰ)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ਰਿਲੀਜ਼ ਵੇਲੇ ਸਵੈਚਾਲਿਤ npm ਪ੍ਰਕਾਸ਼ਨ + Docker Hub</td></tr>
-  <tr><td nowrap><b>ਲਿੰਕ</b></td><td><a href="https://omniroute.online">ਵੈੱਬਸਾਈਟ</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>ਸਟ੍ਰੀਮਿੰਗ</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>ਕੰਪਰੈਸ਼ਨ</b></td><td>12-engine pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>ਪ੍ਰਮਾਣਿਕਤਾ ਅਤੇ ਸੁਰੱਖਿਆ</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM at rest · DOMPurify</td></tr>
+  <tr><td nowrap><b>ਸਟੀਲਥ</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-level proxy</td></tr>
+  <tr><td nowrap><b>ਲਚਕੀਲਾਪਣ</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
+  <tr><td nowrap><b>ਲੌਗਿੰਗ</b></td><td>pino — structured JSON logs with request context</td></tr>
+  <tr><td nowrap><b>ਜਾਂਚ</b></td><td>Node.js test runner + Vitest — <b>39,000+ static test declarations</b> across 5,100+ tracked test files (unit, integration, E2E, security, ecosystem)</td></tr>
+  <tr><td nowrap><b>ਪਲੇਟਫਾਰਮ</b></td><td>Desktop (Electron) · Android (Termux) · PWA (any browser)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — auto npm publish + Docker Hub on release</td></tr>
+  <tr><td nowrap><b>ਲਿੰਕ</b></td><td><a href="https://omniroute.online">Website</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

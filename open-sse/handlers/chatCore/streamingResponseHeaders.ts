@@ -20,6 +20,13 @@ export function assembleStreamingResponseHeaders(
     compressionResponseMeta?: string | null | undefined;
     comboStrategy?: string | null | undefined;
     fallbackAttempts?: number;
+    // #14116: combo/pool account-identity triple, forwarded straight into
+    // buildStreamingResponseHeaders so a foreign-combo-account response never
+    // leaks that account's Codex quota headers to the caller. All optional —
+    // omitting them preserves today's unconditional-forwarding behavior.
+    isCombo?: boolean;
+    requestedConnectionId?: string | null;
+    selectedConnectionId?: string | null;
   },
   buildStreamingResponseHeaders: typeof defaultBuildStreaming = defaultBuildStreaming
 ): Record<string, string> {
@@ -33,6 +40,9 @@ export function assembleStreamingResponseHeaders(
       costUsd: 0,
       strategy: args.comboStrategy ?? "single",
       ...(args.fallbackAttempts !== undefined ? { fallbackAttempts: args.fallbackAttempts } : {}),
+      isCombo: args.isCombo,
+      requestedConnectionId: args.requestedConnectionId,
+      selectedConnectionId: args.selectedConnectionId,
     }),
     "x-omniroute-request-id": args.pendingRequestId,
   };

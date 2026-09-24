@@ -88,13 +88,13 @@ Content-Type: application/json
 
 ## Exkluzívne spravované prenájmy relácií
 
-Exkluzívny prenájom spravovanej relácie je voliteľná zmluva smerovania nezávislá od klienta: jeden aktívny vlastník
+Exkluzívne spravované prenájmy relácií sú voliteľnou, klient-neutrálnou smerovacou zmluvou: jeden aktívny vlastník
 drží jedno oprávnené pripojenie OmniRoute. Neprenajíma model, nevyžaduje OAuth, neidentifikuje
 konkrétneho klienta ani nevyžaduje konkrétneho poskytovateľa.
 
-Overovací API kľúč musí mať rozsah `lease:exclusive` a explicitný neprázdny
-zoznam `allowedConnections`. Hranica databázovej mutácie vynucuje obe polia spoločne pri
-vytváraní kľúča aj pri čiastočných aktualizáciách.
+Autentifikačný API kľúč musí mať rozsah `lease:exclusive` a explicitný neprázdny
+zoznam `allowedConnections`. Hranica mutácie databázy vynucuje obe polia spoločne pri vytváraní kľúča
+a čiastočných aktualizáciách.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Úspešné odpovede na získanie, obnovenie a uvoľnenie uvádzajú časové pečiatky, `state` a presnú kladnú
-hodnotu `generation`, nikdy však nie vybrané pripojenie ani prihlasovacie údaje. Pri obnovení a uvoľnení sa
-generácia uvádza v tele JSON:
+Úspešné odpovede na získanie, obnovenie a uvoľnenie zobrazujú časové pečiatky, `state` a presnú kladnú
+`generation`, ale nikdy vybrané pripojenie alebo poverenia. Obnovenie a uvoľnenie dodávajú
+generáciu v tele JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ generácia uvádza v tele JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Vlastník aktívneho prenájmu môže explicitne požiadať o zobrazované metadáta svojho aktuálneho naviazania, ktoré neohrozujú súkromie:
+Aktívny vlastník prenájmu môže explicitne požiadať o metadáta zobrazenia chrániace súkromie pre svoje aktuálne viazanie:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +137,38 @@ Vlastník aktívneho prenájmu môže explicitne požiadať o zobrazované metad
 }
 ```
 
-Táto voliteľná stavová akcia je v rámci jednej databázovej transakcie chránená nepriehľadným vlastníkom, overeným spravovaným API kľúčom a presnou
-aktívnou generáciou. `displayName` je iba orezaný nakonfigurovaný
-názov pripojenia; keď neexistuje bezpečný nakonfigurovaný názov, má hodnotu `null`. OmniRoute ho nikdy nenahrádza
-e-mailom ani vygenerovanou identitou účtu. Hodnota poskytovateľa je necitlivý zobrazovaný štítok a nikdy
-nejde o vygenerovaný identifikátor kompatibilného poskytovateľa. Prihlasovacie údaje, tokeny, súbory cookie, nespracované identifikátory pripojení alebo API
-kľúčov, haše vlastníkov, tajné hodnoty ohraničenia a interné údaje smerovania sú vylúčené.
+Táto voliteľná akcia stavu je ohraničená nepriehľadným vlastníkom, autentifikovaným spravovaným API kľúčom a presnou
+aktívnou generáciou v jednej databázovej transakcii. `displayName` je iba orezaný nakonfigurovaný
+názov pripojenia; je `null`, ak neexistuje bezpečný nakonfigurovaný názov. OmniRoute nikdy nenahrádza
+e-mail ani vygenerovanú identitu účtu. Hodnota poskytovateľa je nesenzitívny zobrazovací štítok a nikdy
+vygenerovaný kompatibilný identifikátor poskytovateľa. Poverenia, tokeny, súbory cookie, surové ID pripojenia alebo API kľúča,
+hashy vlastníkov, tajomstvá ohradenia a interné smerovacie údaje sú vylúčené.
 
-Vyhľadávania s nesprávnym kľúčom, nesprávnym vlastníkom, zastaranou generáciou, chýbajúce, exspirované, uvoľnené aj zneplatnené vyhľadávania
-vracajú rovnakú chybu `409 LEASE_FENCE_STALE` bez metadát pripojenia. Klient, ktorý dostal odpoveď o čakaní na kapacitu, nemá žiadne aktívne naviazanie, ktoré by mohol skontrolovať. Keď smerovanie zmení pripojenie aktívneho prenájmu,
-rovnaká generácia zostáva platná a stav atomicky vráti nové naviazanie, nikdy nie staré.
+Nesprávny kľúč, nesprávny vlastník, zastaraná generácia, chýbajúce, expirované, uvoľnené a neplatné vyhľadávania
+všetky vracajú rovnakú chybu `409 LEASE_FENCE_STALE` bez metadát pripojenia. Klient, ktorý prijal
+odpoveď na čakanie na kapacitu, nemá žiadne aktívne viazanie na kontrolu. Keď smerovanie prechádza aktívny prenájom,
+rovnaká generácia zostáva platná a stav atomicky vráti nové viazanie, nikdy nie staré.
 Existujúci klienti zostávajú nezmenení, pretože odpovede na získanie, obnovenie, uvoľnenie a čakanie si zachovávajú
-svoje predchádzajúce štruktúry.
+svoje predchádzajúce tvary.
 
-Táto serverová zmluva nemení štandardné `/status` služby OpenAI Codex. Štandardný Codex v súčasnosti uvádza svojho
-poskytovateľa modelu a vstavaný stav overenia/účtu, ale nezobrazuje ľubovoľné vlastné
-metadáta účtu poskytovateľa; budúca integrácia klienta musí zavolať túto akciu a rozhodnúť, ako
+Táto serverová zmluva nemení štandardný OpenAI Codex `/status`. Štandardný Codex v súčasnosti hlási svojho
+poskytovateľa modelu a vstavaný stav autentifikácie/účtu, ale nezobrazuje ľubovoľné vlastné
+metadáta účtu poskytovateľa; neskoršia integrácia klienta musí zavolať túto akciu a rozhodnúť sa, ako
 zobraziť `connection.displayName`.
 
-Každá spravovaná inferenčná požiadavka potom uvádza obe riadiace hlavičky:
+Každá spravovaná požiadavka na inferenciu potom dodáva obe riadiace hlavičky:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Presný vlastník, generácia, aktívne pripojenie a overený API kľúč sú ohraničené bezprostredne
-pred každým podporovaným pokusom o prístup k upstreamu. Opätovné použitie vlastníka a generácie s iným kľúčom zlyhá, aj
-keď tento kľúč povoľuje rovnaké pripojenie. Nespracované hodnoty vlastníkov sa neuchovávajú, nezaznamenávajú do protokolov, neponechávajú v
-snímke požiadavky ani neposielajú upstreamu.
+Presný vlastník, generácia, aktívne pripojenie a autentifikovaný API kľúč sú ohradené
+bezprostredne pred každým podporovaným pokusom o upstream. Opakované prehrávanie vlastníka a generácie s iným kľúčom zlyhá,
+aj keď tento kľúč povoľuje rovnaké pripojenie. Surové vlastníctvo sa neuchováva, neloguje, neuchováva v snímke požiadavky
+ani neposiela upstream.
 
-Dočasný konflikt vracia HTTP `429` s hlavičkou `Retry-After` a:
+Dočasná kolízia vráti HTTP `429` s `Retry-After` a:
 
 ```json
 {
@@ -178,36 +179,38 @@ Dočasný konflikt vracia HTTP `429` s hlavičkou `Retry-After` a:
 }
 ```
 
-Táto odpoveď znamená iba to, že bežná množina oprávnených pripojení nebola prázdna a každý voľný kandidát bol
-držaný cudzím aktívnym prenájmom. Nepodporované modely/poskytovatelia, nesúlad so zásadami, doba čakania, kvóta,
-stav a ďalšie bežné zlyhania oprávnenosti si zachovávajú svoje existujúce odpovede OmniRoute.
+Táto odpoveď znamená iba to, že bežná oprávnená sada nebola prázdna a každý voľný kandidát bol
+držaný cudzím aktívnym prenájmom. Nepodporované modely/poskytovatelia, nesúlad politiky, cooldown, kvóta,
+zdravie a iné bežné zlyhania oprávnenosti si zachovávajú svoje existujúce odpovede OmniRoute.
 
 ### `x-omniroute-compression`
 
-Prepísanie plánu kompresie pre jednotlivú požiadavku. Má najvyššiu prioritu — prevažuje nad prepísaním kombinácie smerovania,
-aktívnym profilom, automatickým spúšťačom aj predvoleným nastavením panela. Hodnoty:
+Prepísanie plánu kompresie pre každú požiadavku. Najvyššia priorita – prekonáva prepísanie smerovacej kombinácie,
+aktívny profil, automatické spustenie a predvolené nastavenie panela. Hodnoty:
 
-| Hodnota       | Účinok                                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Bez kompresie pre túto požiadavku.                                                                                  |
-| `default`     | Predvolený profil odvodený z panela (ignoruje aktívny profil).                                                      |
-| `engine:<id>` | Jeden mechanizmus, ak je povolený, napr. `engine:rtk`.                                                              |
-| `<combo>`     | Pomenovaná kombinácia, najprv porovnaná podľa názvu (bez rozlišovania veľkosti písmen), potom podľa identifikátora. |
+| Hodnota       | Účinok                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| `off`         | Žiadna kompresia pre túto požiadavku.                                                                |
+| `default`     | Predvolený profil odvodený z panela (ignoruje aktívny profil). Stratové enginy sú vypnuté.           |
+| `safe`        | Iba deduplikácia a skladanie medzier.                                                                |
+| `allow-lossy` | Zachovať plán operátora pre túto požiadavku, vrátane súhrnov a prepisov štýlov.                      |
+| `engine:<id>` | Jeden engine, ak je povolený, napr. `engine:rtk`. Voliteľné pre každú požiadavku pre tento engine.   |
+| `<combo>`     | Pomenovaná kombinácia, najprv zhodná podľa názvu (nerozlišuje veľké a malé písmená), potom podľa ID. |
 
 Poznámky:
 
-- Neznáme hodnoty sa ignorujú (požiadavka sa nikdy neodmietne); vyhodnocovanie pokračuje podľa bežného poradia priorít operátora.
-- Ak má viacero kombinácií rovnaký názov, na deterministické priradenie zadajte **id** kombinácie.
-- Kombináciu s názvom `off` alebo `default` nemožno vybrať podľa názvu (tieto kľúčové slová sa interpretujú ako prvé); na takúto kombináciu odkazujte pomocou jej identifikátora.
-- Hlavný prepínač kompresie je neprekročiteľná podmienka: keď je kompresia globálne zakázaná, táto hlavička ju nemôže povoliť.
+- Neznáme hodnoty sú ignorované (požiadavka nikdy nie je zamietnutá); rozlíšenie prechádza na normálnu prioritu operátora.
+- Ak viaceré kombinácie zdieľajú názov, pre deterministickú zhodu odovzdajte **ID** kombinácie.
+- Kombinácia, ktorej názov je `off` alebo `default`, nemôže byť vybraná podľa názvu (tieto kľúčové slová sú interpretované ako prvé); odkazujte na takúto kombináciu podľa jej ID.
+- Hlavný prepínač kompresie je tvrdá brána: keď je kompresia globálne zakázaná, táto hlavička ju nemôže povoliť.
 
-Použitý plán sa odošle späť v hlavičke odpovede:
+Použitý plán je zopakovaný v hlavičke odpovede:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-kde `<source>` je jedna z hodnôt `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` alebo `off`.
+kde `<source>` je jedna z `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` alebo `off`.
 
 ---
 

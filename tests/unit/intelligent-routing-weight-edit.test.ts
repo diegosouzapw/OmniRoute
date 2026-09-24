@@ -5,11 +5,7 @@ import { parseAutoConfig } from "../../open-sse/services/combo/autoConfig.ts";
 import { calculateAutoResetWindowAffinity } from "../../open-sse/services/combo/quotaScoring.ts";
 import { calculateFactors, calculateScore } from "../../open-sse/services/autoCombo/scoring.ts";
 
-const patchConfig = (config: Record<string, unknown>, patch: Record<string, unknown>) => {
-  const fn = Reflect.get(routing, "applyIntelligentRoutingConfigPatch");
-  assert.equal(typeof fn, "function", "weight edits need to deactivate the preset");
-  return fn(config, patch);
-};
+const patchConfig = routing.applyIntelligentRoutingConfigPatch;
 
 test("editing reset weight switches off ship-fast and activates the saved distribution", () => {
   const saved = {
@@ -23,6 +19,7 @@ test("editing reset weight switches off ship-fast and activates the saved distri
   assert.equal(next.weights.resetWindowAffinity, 0.3);
   assert.deepEqual(next.resetWindowWindows, ["weekly"]);
   assert.equal(saved.modePack, "ship-fast");
+  assert.deepEqual(saved.weights, { quota: 0.25, resetWindowAffinity: 0.15 });
   const cfg = parseAutoConfig({ name: "test", config: next }, []);
   assert.ok(cfg.weights.resetWindowAffinity > 0);
 });

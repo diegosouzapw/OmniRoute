@@ -42,6 +42,12 @@
   "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
+      "tests/unit/bare-403-neutral.test.ts",
+      "tests/unit/chat-noauth-model-cooldown.test.ts",
+      "tests/unit/combo-ref-capabilities-14232.test.ts",
+      "tests/unit/intelligent-routing-weight-edit.test.ts",
+      "tests/unit/noauth-model-lockout-retryable.test.ts",
+      "tests/unit/noauth-refresh-guard.test.ts",
       "tests/unit/10085-compatible-generic-vs-uuid-credential.test.ts",
       "tests/unit/7993-noauth-proxy-routing.test.ts",
       "tests/unit/8200-perplexity-web-401-cooldown.test.ts",
@@ -488,6 +494,7 @@
       "tests/unit/12307-semantic-cache-output-contract.test.ts",
       "tests/unit/antigravity-account-lease-flag.test.ts",
       "tests/unit/circuit-breaker-half-open-probe-lease-13836.test.ts",
+      "tests/unit/codex-quota-header-leak-14116.test.ts",
       "tests/unit/grok-cli-free-usage-429.test.ts",
       "tests/unit/opencode-free-tier-refusal-no-model-lockout.test.ts",
       "tests/unit/prompt194-astra-vision-compat.test.ts",
@@ -495,7 +502,14 @@
       "tests/unit/rate-limit-learned-cap-13594.test.ts",
       "tests/unit/native-codex-auto-resume.test.ts",
       "tests/unit/translator-openai-to-gemini-turn-pairing-13848.test.ts",
-      "tests/unit/obsidian-ssrf-guard.test.ts"
+      "tests/unit/obsidian-ssrf-guard.test.ts",
+      "tests/unit/14486-cli-connect-insecure-default-gate.test.ts",
+      "tests/unit/bare-403-neutral.test.ts",
+      "tests/unit/chat-noauth-model-cooldown.test.ts",
+      "tests/unit/combo-ref-capabilities-14232.test.ts",
+      "tests/unit/intelligent-routing-weight-edit.test.ts",
+      "tests/unit/noauth-model-lockout-retryable.test.ts",
+      "tests/unit/noauth-refresh-guard.test.ts"
     ],
     "nodeArgs": [
       "--import",

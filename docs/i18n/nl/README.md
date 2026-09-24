@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Ondersteund door onze Open Source-vrienden
+## 🤝 Ondersteund door onze Open Source Vrienden
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open grensverleggende intelligentie · 2,8 biljoen parameters · context van 1 miljoen tokens"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligentie · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **Wil je je aansluiten als Open Source-vriend?** Dit zijn de bedrijven die open source ondersteunen en OmniRoute vooruithelpen — en we maken openbaar waar elke token die ze ons geven naartoe gaat. Neem contact op: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Wil je meedoen als Open Source Vriend?** Dit zijn de bedrijven die open source ondersteunen en OmniRoute draaiende houden — en we vermelden publiekelijk waar elke token die ze ons geven naartoe gaat. Neem contact op: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Oprichtende Open Source-vriend"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Oprichter Open Source Vriend"/>
     </td>
     <td>
-      Dank aan <b>Kimi (Moonshot AI)</b>, onze oprichtende Open Source-vriend, voor de ondersteuning van dit project! Kimi is het AI-lab achter de open-weight-modelfamilies K2 en K3 — <b>Kimi K3</b> biedt een contextvenster van 1 miljoen tokens, native beeldverwerking en programmeermogelijkheden van grensverleggend niveau voor een fractie van de prijzen van gesloten modellen, en werkt direct met Claude Code, Codex en elke programmeertool die OmniRoute ondersteunt.
+      Dank aan <b>Kimi (Moonshot AI)</b>, onze oprichtende Open Source Vriend, voor het ondersteunen van dit project! Kimi is het AI-lab achter de open-weight K2 en K3 modelfamilies — <b>Kimi K3</b> levert een 1M-token contextvenster, native visie en grensverleggende codering tegen een fractie van de prijzen van gesloten modellen, en werkt direct met Claude Code, Codex en elke coderingstool die OmniRoute ondersteunt.
       <br/><br/>
-      <b>Wat de ondersteuning van Kimi mogelijk maakt:</b> De API-tegoeden van Kimi ondersteunen de door AI gevalideerde release-pijplijn van OmniRoute — de fase <i>samenvoegvalidatie, mogelijk gemaakt door Kimi K3</i>, die elke pull request beoordeelt voordat deze wordt uitgebracht — en de dagelijkse ontwikkeling van functies. Volwaardige ondersteuning voor Kimi wordt via beide kanalen geleverd: de directe <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) en het <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code-programmeerabonnement</a> (OAuth en API-sleutel). OmniRoute is tevens het eerste Braziliaanse opensourceproject in het ondersteuningsprogramma van Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Ontvang een Kimi API-sleutel met 15% extra tegoed →</b></a>
+      <b>Wat Kimi's ondersteuning mogelijk maakt:</b> Kimi's API-credits voeden OmniRoute's AI-gevalideerde release-pijplijn — de <i>samenvoegvalidatie aangedreven door Kimi K3</i>-fase die elke pull request beoordeelt voordat deze wordt verzonden — plus dagelijkse functieontwikkeling. Eersteklas Kimi-ondersteuning wordt op beide manieren geleverd: de directe <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) en het <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code coderingsplan</a> (OAuth en API-sleutel). OmniRoute is ook het eerste Braziliaanse open-source project in Kimi's ondersteuningsprogramma. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Ontvang een Kimi API-sleutel met 15% extra credits →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source-vriend"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Vriend"/>
     </td>
     <td>
-      Dank aan <b>Cheaper Inference</b>, een Open Source-vriend van OmniRoute, voor de ondersteuning van dit project! Cheaper Inference is een op kosten gerangschikte gateway die 42 grensverleggende modellen doorverkoopt — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok en MiniMax — via één OpenAI-compatibel endpoint. Elk verzoek wordt doorgestuurd naar de goedkoopste geschikte provider, zonder ooit meer in rekening te brengen dan de catalogusprijs van de modelmaker.
+      Dank aan <b>Cheaper Inference</b>, een OmniRoute Open Source Vriend, voor het ondersteunen van dit project! Cheaper Inference is een op kosten gerangschikte gateway die 42 grensverleggende modellen — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok en MiniMax — doorverkoopt via één OpenAI-compatibel eindpunt, waarbij elke aanvraag naar de goedkoopste in aanmerking komende provider wordt gerouteerd zonder ooit meer te rekenen dan de catalogusprijs van de modelmaker.
       <br/><br/>
-      <b>Volwaardige ondersteuning in OmniRoute:</b> Chat Completions, het native <code>/v1/responses</code>-endpoint, beeldverwerking, toolaanroepen en 3 afbeeldingsmodellen (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, bereikbaar als <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Ontvang een API-sleutel →</b></a>
+      <b>Eersteklas ondersteuning in OmniRoute:</b> Chat Completions, het native <code>/v1/responses</code> eindpunt, visie, tool calling en 3 afbeeldingsmodellen (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, bereikbaar als <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Ontvang een API-sleutel →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Links met de tag <code>aff=omniroute</code> zijn partnerlinks. Ze financieren het project zonder extra kosten voor jou.</sub>
+<sub>Links getagd met <code>aff=omniroute</code> zijn partnerlinks. Ze financieren het project zonder extra kosten voor jou.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Affiliatepromoties</b> — gratis aanmeldcoupons van providers die ons niet sponsoren (klik om uit te vouwen)</sub></summary>
+<summary><sub><b>🎟️ Affiliates Promo</b> — gratis aanmeldingscoupons van providers die we niet sponsoren (klik om uit te vouwen)</sub></summary>
 
-<sub><i>Deze sectie is uitsluitend bedoeld voor verwijzings- en couponcodes. Gesponsorde samenwerkingen staan hierboven onder <b>🤝 Ondersteund door onze Open Source-vrienden</b>. OmniRoute heeft geen sponsor- of partnerrelatie met de hier vermelde providers — dit zijn openbare coupons die iedereen kan gebruiken.</i></sub>
+<sub><i>Deze sectie is alleen voor verwijzings-/couponcodes. Gesponsorde partnerschappen staan hierboven in <b>🤝 Ondersteund door onze Open Source Vrienden</b>. OmniRoute heeft geen sponsoring of partnerschap met de hier vermelde providers — dit zijn openbare coupons die iedereen kan gebruiken.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — aanmelding via affiliate · <b>$100 gratis tegoed</b> bij aanmelding (gratis server, houd rekening met een hogere latentie — het meest geschikt voor tests, niet voor productie). Volwaardige ondersteuning in OmniRoute sinds <b>v3.8.50</b>: Chat Completions, het Anthropic-compatibele wire-format en het OpenAI-compatibele pad. Beschikbare modellen zijn onder andere <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> en meer. <b><a href="https://agentrouter.org/register?aff=70LM">Pak je $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — affiliate aanmelding · <b>$100 gratis credits</b> bij aanmelding (gratis server, verwacht hogere latentie — het beste voor testen, niet voor productie). Eersteklas ondersteuning in OmniRoute sinds <b>v3.8.50</b>: Chat Completions, het Anthropic-compatibele wire format en het OpenAI-compatibele pad. Beschikbare modellen zijn onder andere <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> en meer. <b><a href="https://agentrouter.org/register?aff=70LM">Pak je $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Affiliatelink — OmniRoute heeft geen sponsor- of partnerrelatie met deze provider.</i></sub>
+      <sub>⚠️ <i>Affiliate link — OmniRoute heeft geen sponsoring of partnerschap met deze provider.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Ken je een andere provider met een royale gratis aanmeldcoupon waar OmniRoute-gebruikers van profiteren? Open een issue, dan voegen we die hier toe.</sub>
+<sub>Ken je een andere provider met een royale gratis aanmeldingscoupon die OmniRoute-gebruikers ten goede komt? Open een issue en we voegen het hier toe.</sub>
 
 </details>
 
@@ -1256,28 +1256,28 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
 <br/>
 <div align="center">
 
-## 🛠️ Technologiestack
+## 🛠️ Tech Stack
 
 </div>
 
 <table>
   <tr><th align="left">Laag</th><th align="left">Technologie</th></tr>
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Taal</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> in <code>src/</code> en <code>open-sse/</code> (geen enkele <code>any</code> in de kern sinds v2.0)</td></tr>
+  <tr><td nowrap><b>Taal</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> in <code>src/</code> en <code>open-sse/</code> (nul <code>any</code> in de kern sinds v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journaling) + LowDB (verouderde JSON-opslag) — 122 domeinmodules, 178 migraties</td></tr>
-  <tr><td nowrap><b>Geheugen</b></td><td>SQLite FTS5-zoeken in volledige tekst + int8-gekwantiseerde vectorembeddings, getypeerd verval</td></tr>
-  <tr><td nowrap><b>Schema's</b></td><td>Zod 4 — validatie van MCP-toolinvoer en -uitvoer + API-contracten</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domeinmodules, 182 migraties</td></tr>
+  <tr><td nowrap><b>Geheugen</b></td><td>SQLite FTS5 full-text + int8-gekwantiseerde vector embeddings, getypeerd verval</td></tr>
+  <tr><td nowrap><b>Schema's</b></td><td>Zod 4 — MCP tool I/O validatie + API contracten</td></tr>
   <tr><td nowrap><b>Protocollen</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket-bridge (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Compressie</b></td><td>Pipeline met 12 engines — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Authenticatie &amp; beveiliging</b></td><td>OAuth 2.0 (PKCE) + JWT + API-sleutels + MCP-authenticatie met scopes · AES-256-GCM voor opgeslagen gegevens · DOMPurify</td></tr>
-  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — nabootsing van JA3-/JA4-TLS-fingerprints, proxy met 3 niveaus</td></tr>
-  <tr><td nowrap><b>Veerkracht</b></td><td>Circuitbreaker, exponentiële back-off, bescherming tegen thundering herd, zelfherstellende automatische combinaties</td></tr>
-  <tr><td nowrap><b>Logboekregistratie</b></td><td>pino — gestructureerde JSON-logboeken met aanvraagcontext</td></tr>
-  <tr><td nowrap><b>Testen</b></td><td>Node.js-testrunner + Vitest — <b>meer dan 39.000 statische testdeclaraties</b> verspreid over meer dan 5.100 bijgehouden testbestanden (unit-, integratie-, E2E-, beveiligings- en ecosysteemtests)</td></tr>
+  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Compressie</b></td><td>12-engine pijplijn — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Auth &amp; beveiliging</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM at rest · DOMPurify</td></tr>
+  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-level proxy</td></tr>
+  <tr><td nowrap><b>Veerkracht</b></td><td>Circuit breaker, exponentiële backoff, anti-thundering-herd, auto-combo zelfherstel</td></tr>
+  <tr><td nowrap><b>Logging</b></td><td>pino — gestructureerde JSON logs met request context</td></tr>
+  <tr><td nowrap><b>Testen</b></td><td>Node.js test runner + Vitest — <b>39.000+ statische testdeclaraties</b> verspreid over 5.100+ getraceerde testbestanden (unit, integratie, E2E, beveiliging, ecosysteem)</td></tr>
   <tr><td nowrap><b>Platformen</b></td><td>Desktop (Electron) · Android (Termux) · PWA (elke browser)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatische publicatie naar npm + Docker Hub bij een release</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — auto npm publish + Docker Hub bij release</td></tr>
   <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Website</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
