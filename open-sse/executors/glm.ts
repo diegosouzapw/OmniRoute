@@ -164,19 +164,6 @@ function isJsonResponse(response: Response): boolean {
   return (response.headers.get("content-type") || "").toLowerCase().includes("application/json");
 }
 
-async function translateJsonResponse(response: Response): Promise<Response> {
-  const parsed = await response.json().catch(() => null);
-  const translated = translateNonStreamingResponse(parsed, FORMATS.CLAUDE, FORMATS.OPENAI);
-  const headers = cloneHeaders(response.headers);
-  headers.set("content-type", "application/json");
-  headers.delete("content-length");
-  return new Response(JSON.stringify(translated), {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
-
 async function translateAnthropicJsonResponse(response: Response): Promise<Response> {
   const parsed = await response.json().catch(() => null);
   const translated = response.ok

@@ -1,4 +1,5 @@
 import { providerUsesAuthoritativeLiveCatalog } from "@omniroute/open-sse/config/providerRegistry";
+import { getSearchProvider } from "@omniroute/open-sse/config/searchRegistry.ts";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import {
@@ -314,6 +315,11 @@ export async function getAllActiveSyncedModels(): Promise<Record<string, SyncedA
     for (const rawConnection of connections) {
       const connection = readConnectionRef(rawConnection);
       if (!connection) continue;
+
+      // Search providers have no chat models: their synced rows are the
+      // static-import UI's searchTypes (web/news/x), not routable catalog
+      // entries. Keep them out of the /v1/models live source.
+      if (getSearchProvider(connection.provider)) continue;
 
       if (!connectionIdsByProvider.has(connection.provider)) {
         connectionIdsByProvider.set(connection.provider, new Set());

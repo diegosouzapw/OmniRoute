@@ -59,6 +59,7 @@ export const freebuffProvider: RegistryEntry = {
       supportsVision: true,
       supportsReasoning: true,
       contextLength: 131_072,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
     {
       id: "meta/muse-spark-1.2-contributor",
