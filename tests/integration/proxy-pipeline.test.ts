@@ -8,23 +8,18 @@
  * @module tests/integration/proxy-pipeline.test.ts
  */
 
-import { describe, it, beforeEach, afterEach } from "node:test";
+import { describe, it, before, after, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 
 function readSrc(relPath) {
   const full = join(ROOT, "src", relPath);
-  if (!existsSync(full)) return null;
-  return readFileSync(full, "utf8");
-}
-
-function readOpenSse(relPath) {
-  const full = join(ROOT, "open-sse", relPath);
   if (!existsSync(full)) return null;
   return readFileSync(full, "utf8");
 }
@@ -36,7 +31,6 @@ function readOpenSse(relPath) {
 describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
   const src = readSrc("sse/handlers/chat.ts");
   const helpersSrc = readSrc("sse/handlers/chatHelpers.ts");
-  const coreSrc = readOpenSse("handlers/chatCore.ts");
   const dispatchSrc = readSrc("sse/handlers/chatDispatch.ts");
 
   it("should define resolveModelOrError helper", () => {
@@ -50,12 +44,6 @@ describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
 
   it("should define executeChatWithBreaker helper", () => {
     assert.match(helpersSrc, /function\s+executeChatWithBreaker/);
-  });
-
-  it("should keep cost accounting in the core chat pipeline", () => {
-    assert.ok(coreSrc, "open-sse/handlers/chatCore.ts should exist");
-    assert.match(coreSrc, /calculateCost\(/);
-    assert.match(coreSrc, /recordCost\(/);
   });
 
   it("handleSingleModelChat should use resolveModelOrError", () => {
@@ -77,14 +65,80 @@ describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
     assert.ok(dispatchSrc, "src/sse/handlers/chatDispatch.ts should exist");
     assert.match(dispatchSrc, /executeChatWithBreaker\(/);
   });
+});
 
-  it("chatCore should record cost for both non-streaming and streaming responses", () => {
-    // Non-streaming cost is still recorded inline; streaming cost was extracted to
-    // the recordStreamingCost leaf (open-sse/handlers/chatCore/streamingCost.ts,
-    // #4790 / #3501), so chatCore now delegates streaming cost to it.
-    assert.match(coreSrc, /if \(apiKeyInfo\?\.id && estimatedCost > 0\)/);
-    assert.match(coreSrc, /recordStreamingCost\(/);
+describe("Chat Pipeline — cost accounting", () => {
+  let harness: Awaited<ReturnType<typeof createChatPipelineHarness>>;
+  let costRules: typeof import("../../src/domain/costRules.ts");
+  const originalFetch = globalThis.fetch;
+
+  before(async () => {
+    globalThis.fetch = async () => {
+      throw new Error("Unexpected network request in cost accounting test");
+    };
+    harness = await createChatPipelineHarness("proxy-cost-accounting");
+    costRules = await import("../../src/domain/costRules.ts");
+    await harness.seedConnection("openai");
   });
+
+  after(async () => {
+    try {
+      if (harness) {
+        const { flushProxyLogsSync } = await import("../../src/lib/proxyLogger.ts");
+        flushProxyLogsSync();
+        await harness.cleanup();
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  for (const stream of [false, true]) {
+    it(`records exactly one positive cost for a completed ${stream ? "SSE" : "JSON"} chat`, async (t) => {
+      const key = await harness.seedApiKey({ name: `cost-${stream ? "sse" : "json"}` });
+      const usage = { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 };
+      t.mock.method(globalThis, "fetch", async (input: string | URL | Request) => {
+        const url = new URL(input instanceof Request ? input.url : String(input));
+        assert.equal(url.origin, "https://api.openai.com");
+        assert.equal(url.pathname, "/v1/chat/completions");
+        if (!stream) return harness.buildOpenAIResponse("cost recorded", "gpt-4o-mini", usage);
+        const chunk = {
+          id: "chatcmpl-cost-stream",
+          object: "chat.completion.chunk",
+          model: "gpt-4o-mini",
+          choices: [{ index: 0, delta: { content: "cost recorded" }, finish_reason: null }],
+        };
+        const final = {
+          ...chunk,
+          choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+          usage,
+        };
+        return new Response(
+          `data: ${JSON.stringify(chunk)}\n\ndata: ${JSON.stringify(final)}\n\ndata: [DONE]\n\n`,
+          { headers: { "Content-Type": "text/event-stream" } }
+        );
+      });
+      const response = await harness.handleChat(
+        harness.buildRequest({
+          authKey: key.key,
+          body: {
+            model: "openai/gpt-4o-mini",
+            messages: [{ role: "user", content: `account this ${stream ? "stream" : "response"}` }],
+            stream,
+          },
+        })
+      );
+      assert.equal(response.status, 200);
+      assert.match(await response.text(), /cost recorded/);
+      const summary = await harness.waitFor(() => {
+        const current = costRules.getCostSummary(key.id);
+        return current.totalEntries > 0 ? current : null;
+      });
+      assert.ok(summary, "completed chat must appear in the key's public cost summary");
+      assert.equal(summary.totalEntries, 1, "one completion must not be billed twice");
+      assert.ok(summary.dailyTotal > 0, "nonzero usage must carry a positive cost");
+    });
+  }
 });
 
 describe("Chat Pipeline — combo fallback support", () => {

@@ -151,7 +151,7 @@ export function buildCallLogListRows({
       account: connectionNames.get(detail.connectionId || "") || detail.connectionId || "unknown",
       connectionId: detail.connectionId,
       duration: Math.max(0, now - detail.startedAt),
-      tokens: { in: 0, out: 0 },
+      tokens: detail.tokens || { in: 0, out: 0 },
       cacheSource: null,
       sourceFormat: null,
       targetFormat: null,
@@ -161,6 +161,13 @@ export function buildCallLogListRows({
       error: null,
       correlationId: detail.correlationId || null,
       active: true,
+      ...(detail.stale
+        ? {
+            stale: true,
+            sweptAt:
+              typeof detail.sweptAt === "number" ? new Date(detail.sweptAt).toISOString() : null,
+          }
+        : {}),
     });
   }
 
@@ -186,7 +193,7 @@ export function buildCallLogListRows({
       account: connectionNames.get(detail.connectionId || "") || detail.connectionId || "unknown",
       connectionId: detail.connectionId,
       duration,
-      tokens: { in: 0, out: 0 },
+      tokens: detail.tokens || { in: 0, out: 0 },
       cacheSource: null,
       sourceFormat: null,
       targetFormat: null,

@@ -1,6 +1,6 @@
 # 🐳 Docker Guide — OmniRoute (Magyar)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/DOCKER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/DOCKER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/DOCKER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/DOCKER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/DOCKER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/DOCKER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/DOCKER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/DOCKER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/DOCKER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/DOCKER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/DOCKER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/DOCKER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/DOCKER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/DOCKER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/DOCKER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/DOCKER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/DOCKER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/DOCKER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/DOCKER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/DOCKER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/DOCKER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/DOCKER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/DOCKER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/DOCKER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/DOCKER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/DOCKER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/DOCKER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/DOCKER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/DOCKER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/DOCKER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/DOCKER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/DOCKER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/DOCKER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/DOCKER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/DOCKER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/DOCKER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/DOCKER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/DOCKER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/DOCKER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/DOCKER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/DOCKER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/DOCKER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/DOCKER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/DOCKER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/DOCKER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/DOCKER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/DOCKER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/DOCKER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/DOCKER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/DOCKER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/DOCKER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/DOCKER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/DOCKER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/DOCKER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/DOCKER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/DOCKER_GUIDE.md)
 
 ---
 
@@ -65,26 +65,30 @@ docker run -d \
 # Alapprofil (CLI-eszközök nélkül)
 docker compose --profile base up -d
 
-# CLI-profil (beépített Claude Code, Codex és OpenClaw)
+# CLI-profil (beépített Claude Code, Codex, OpenClaw)
 docker compose --profile cli up -d
 
-# Gazdagépprofil (elsősorban Linuxhoz; csak olvashatóként csatolja a gazdagép CLI-binárisait)
+# Gazdagépprofil (elsősorban Linuxhoz; csak olvasható módban csatolja a gazdagép CLI-binárisait)
 docker compose --profile host up -d
 
-# A CLI és a CLIProxyAPI sidecar együttes használata
+# Webprofil (Chromium/Playwright a webes munkamenet-szolgáltatókhoz)
+docker compose --profile web up -d
+
+# CLI + CLIProxyAPI oldalkocsi kombinálása
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Elérhető profilok
 
-Az OmniRoute négy Compose-profilt tartalmaz. Válassza ki a környezetének megfelelőt.
+Az OmniRoute Compose-profilokat biztosít a fő telepítési módokhoz. Válassza ki a környezetének megfelelőt.
 
-| Profil                   | Szolgáltatás     | Mikor használja                                                                                                                                                                          | Parancs                                      |
-| ------------------------ | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (alapértelmezett) | `omniroute-base` | Grafikus felület nélküli kiszolgáló / minimális futtatókörnyezet, beépített szolgáltatói CLI-k nélkül                                                                                    | `docker compose --profile base up -d`        |
-| `cli`                    | `omniroute-cli`  | Ügynökalapú munkafolyamatokhoz, amelyek az `omniroute providers/setup/doctor` parancsot és a beépített CLI-ket (Codex, Claude Code, Droid, OpenClaw) használják                          | `docker compose --profile cli up -d`         |
-| `host`                   | `omniroute-host` | Olyan Linux-gazdagépekhez, amelyek a `~/.local/bin`, `~/.codex`, `~/.claude` stb. csak olvasható csatolásával a `network_mode`-hoz hasonló hozzáférést szeretnének a gazdagép CLI-jeihez | `docker compose --profile host up -d`        |
-| `cliproxyapi`            | `cliproxyapi`    | A [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sidecar futtatásához a `8317`-es porton, a felsőbb rétegbeli CLI-proxyzás érdekében                                        | `docker compose --profile cliproxyapi up -d` |
+| Profil                   | Szolgáltatás     | Mikor használja                                                                                                                                                             | Parancs                                      |
+| ------------------------ | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (alapértelmezett) | `omniroute-base` | Grafikus felület nélküli kiszolgáló / minimális futtatókörnyezet, mellékelt szolgáltatói CLI-k nélkül                                                                       | `docker compose --profile base up -d`        |
+| `cli`                    | `omniroute-cli`  | Ügynökalapú munkafolyamatokhoz, amelyek meghívják az `omniroute providers/setup/doctor` parancsot és a mellékelt CLI-ket (Codex, Claude Code, Droid, OpenClaw)              | `docker compose --profile cli up -d`         |
+| `host`                   | `omniroute-host` | Olyan Linux-gazdagépekhez, amelyek a `~/.local/bin`, `~/.codex`, `~/.claude` stb. írásvédett csatolásával `network_mode`-szerű hozzáférést igényelnek a gazdagép CLI-jeihez | `docker compose --profile host up -d`        |
+| `cliproxyapi`            | `cliproxyapi`    | A [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) oldalkonténer futtatásához a `8317` porton, a felsőbb szintű CLI-proxyzáshoz                                  | `docker compose --profile cliproxyapi up -d` |
+| `web`                    | `omniroute-web`  | Böngészőt igénylő webes munkamenet-szolgáltatókhoz: `gemini-web`, `claude-web`, `claude-turnstile` (elkészíti a `runner-web` komponenst, Chromium mellékelve)               | `docker compose --profile web up -d`         |
 
 > Több profil is kombinálható: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -234,35 +238,53 @@ Az éles környezet a fejlesztői compose-zal párhuzamosan fut (eltérő konté
 
 ## Dockerfile-szakaszok
 
-A tároló egy többlépcsős Dockerfile-t (`Dockerfile`) tartalmaz. Három szakasz érhető el; válaszd a felhasználási esetednek megfelelő `target` értéket.
+A tároló egy többlépcsős Dockerfile-t (`Dockerfile`) tartalmaz. Négy szakasz érhető el; válaszd a felhasználási esetednek megfelelő `target` értéket.
 
-| Szakasz       | Alaplemezkép          | Rendeltetés                                                                                                                                                                                         |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Telepíti a függőségeket (`npm ci --legacy-peer-deps`), majd futtatja az `npm run build` parancsot (alapértelmezés szerint Turbopack — lásd alább a fordítási erőforrásokat)                         |
-| `runner-base` | `node:26-trixie-slim` | Éles futtatókörnyezet a Next.js önálló kimenetével. **Nem tartalmaz szolgáltatói CLI-ket.**                                                                                                         |
-| `runner-cli`  | `runner-base`         | Hozzáadja a `git`, `docker.io`, `docker-compose` eszközöket és a globális CLI-ket: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Ezt válaszd agentikus munkafolyamatokhoz.** |
+| Szakasz       | Alaplemezkép          | Cél                                                                                                                                                                                                                                                                                                                                            |
+| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Telepíti a függőségeket (`npm ci --legacy-peer-deps`), majd futtatja az `npm run build` parancsot (alapértelmezés szerint Turbopack — lásd alább a Fordítási erőforrások részt)                                                                                                                                                                |
+| `runner-base` | `node:26-trixie-slim` | Éles futtatókörnyezet a Next.js önálló kimenetével. **Nem tartalmaz szolgáltatói CLI-ket.**                                                                                                                                                                                                                                                    |
+| `runner-cli`  | `runner-base`         | Hozzáadja a `git`, `docker.io`, `docker-compose` eszközöket és a globális CLI-ket: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Ezt válaszd az ügynökalapú munkafolyamatokhoz.**                                                                                                                                       |
+| `runner-web`  | `runner-base`         | Hozzáadja a Playwrightot és egy Chromium böngészőt (`--with-deps`) a webes munkameneteket használó szolgáltatókhoz: `gemini-web`, `claude-web`, `claude-turnstile`. **Ezt válaszd, ha ezeket a szolgáltatókat használod** — enélkül az alap lemezkép a kérés feldolgozásakor hibát jelez (lásd a Kiadási csatornák alatti `-web` megjegyzést). |
 
-Adott cél manuális összeállítása:
+Egy adott cél manuális összeállítása:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Fordítási erőforrások
 
-Három buildargumentum szabályozza a `builder` szakasz erőforrásigényét. Ezek csak a fordítás idején érvényesek —
-az `OMNIROUTE_MEMORY_MB` (lásd alább) ettől független futásidejű beállítás.
+Három fordítási argumentum szabályozza a `builder` szakasz erőforrásigényét. Ezek csak a fordítás idején érvényesek —
+az `OMNIROUTE_MEMORY_MB` (lásd alább) különálló, futásidejű beállítás.
 
-| Buildargumentum             | Alapérték | Hatás                                                                                                                          |
-| --------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`       | `0` esetén webpackkel fordít. Alacsonyabb memória-csúcsérték, de lassabb.                                                      |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`    | V8-heapkorlát (`--max-old-space-size`) az elindított `next build` számára.                                                     |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`       | Beállítja a `CIRCLE_NODE_TOTAL` értékét; a Next ebből számítja ki a `workers = N - 1` értéket az oldaladatok összegyűjtéséhez. |
+| Fordítási argumentum        | Alapértelmezés | Hatás                                                                                                                              |
+| --------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`            | `0` esetén helyette webpackkel fordít. Alacsonyabb memória-csúcsérték, de lassabb.                                                 |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`         | A létrehozott `next build` V8 heapkorlátja (`--max-old-space-size`).                                                               |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`            | Beállítja a `CIRCLE_NODE_TOTAL` értékét; a Next ebből számítja ki a lapadatok összegyűjtéséhez használt `workers = N - 1` értéket. |
 
-Nagy teljesítményű fordítógépen az `OMNIROUTE_BUILD_WORKERS` értékét érdemes növelni, korlátozott erőforrású fordítás **`✓ Compiled successfully` után** történő leállásakor pedig először ezt érdemes gyanítani. Minden oldaladat-feldolgozó külön folyamat, ahogyan maga a szülő `next build` is; egy valós VPS-en végzett reprodukció (#7518) minden folyamat RSS-csúcsértékét ~4,5 GB-nak mérte, a `NODE_OPTIONS` heapjelzőtől függetlenül (a Turbopack a V8 heapen kívüli natív/Rust-memóriában fordít). Az alapértelmezett `2` érték (→ 1 feldolgozó, összesen 2 folyamat) a közzétételi folyamat által használt, GitHub által üzemeltetett 16 GB-os / 4 vCPU-s futtatókhoz van méretezve. `8` esetén (→ 7 feldolgozó) ennek a futtatónak elfogyott a memóriája, és a buildkit a `ResourceExhausted: ... cannot allocate memory` hibával szakította meg a lépést; `3` (→ 2 feldolgozó) még mindig nem fért el, miután a folyamatonkénti RSS-t közvetlenül mérték ahelyett, hogy következtettek volna rá. A `tests/unit/docker-build-memory-budget.test.ts` a mért érték alapján végzi el a számítást, és hibát jelez, ha bármelyik beállítás meghaladja a futtató kapacitását.
+Az `OMNIROUTE_BUILD_WORKERS` értékét érdemes növelni egy nagy teljesítményű fordítási környezetben, és ezt
+kell először gyanúba venni, ha egy korlátozott erőforrású fordítás **a** `✓ Compiled successfully` **üzenet után** leáll. Minden
+lapadat-feldolgozó külön folyamat, ahogyan maga a szülő `next build` is;
+egy VPS-en végzett reprodukció (#7518 probléma) minden folyamat RSS-csúcsértékét
+~4,5 GB-ra mérte, a `NODE_OPTIONS` heapjelző értékétől függetlenül (a Turbopack a
+V8 heapen kívüli natív/Rust memóriában fordít). Az alapértelmezett `2` (→ 1 feldolgozó, összesen 2
+folyamat) a közzétételi folyamat által használt, GitHub által üzemeltetett 16 GB-os / 4 vCPU-s
+futtatókhoz van méretezve. `8` esetén (→ 7 feldolgozó) ez a futtató kifogyott a memóriából, és
+a buildkit a `ResourceExhausted: ... cannot allocate memory` hibával leállította a lépést;
+a `3` (→ 2 feldolgozó) sem fért el, miután a folyamatonkénti RSS-t
+közvetlenül megmérték ahelyett, hogy következtettek volna rá. A `tests/unit/docker-build-memory-budget.test.ts`
+a mért érték alapján végzi el a számításokat, és hibát jelez, ha bármelyik beállítás
+meghaladja a futtató kapacitását.
 
-A Turbopack a V8 heapen **kívül** található natív Rust-memóriában fordít, ezért az `OMNIROUTE_BUILD_MEMORY_MB` nem korlátozza azt. Memóriakorláttal rendelkező gazdagépen ezért az OOM-kezelő SIGKILL jellel állítja le a fordítást, mindenféle hibaüzenet nélkül — a folyamat egyszerűen megáll a `Creating an optimized production build` közben, ami inkább lefagyásnak tűnik, mint memóriahiánynak. Ha a fordítási gazdagép erőforrásai korlátozottak, válts csomagolóra:
+A Turbopack a V8 heapen **kívül** található natív Rust memóriában fordít, ezért
+az `OMNIROUTE_BUILD_MEMORY_MB` nem korlátozza ezt. Memóriakorláttal rendelkező gazdagépen
+az OOM-megszakító ilyenkor SIGKILL jelzéssel, hibaüzenet nélkül állítja le a fordítást — az egyszerűen
+félbeszakad a `Creating an optimized production build` folyamat közben, ami memóriahiány helyett
+inkább lefagyásnak tűnik. Ha a fordítási gazdagép erőforrásai korlátozottak, válts csomagolót:
 
 ```bash
 docker build --target runner-base \
@@ -270,15 +292,17 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-A `webpackBuildWorker` engedélyezve van, így a `next build` egy szülő- **és** egy feldolgozófolyamatot futtat, amelyek külön-külön veszik figyelembe az `OMNIROUTE_BUILD_MEMORY_MB` értékét. A konténer korlátját ezért ennek az értéknek nagyjából a kétszerese fölé méretezd, ne csak egyszeresére.
+A `webpackBuildWorker` engedélyezve van, így a `next build` egy szülő- **és** egy feldolgozó
+folyamatot futtat, és mindkettő külön-külön veszi figyelembe az `OMNIROUTE_BUILD_MEMORY_MB` értékét. A konténer
+korlátját ezért ennek az értéknek nagyjából a kétszerese fölé méretezd, ne csupán egyszeresére.
 
 Ezen a forrásfán mérve (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Csomagoló | Konténerkorlát | Eredmény                                     |
-| --------- | -------------- | -------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | Mindkettőnél OOM miatti leállítás, csendben  |
-| webpack   | 8 GiB          | A fordítási feldolgozót SIGKILL állította le |
-| webpack   | 12 GiB         | Sikeres, 11,1 GiB-os csúcsértékkel           |
+| Csomagoló | Konténerkorlát | Eredmény                                      |
+| --------- | -------------- | --------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB | Mindkettőnél OOM miatt, csendben leállt       |
+| webpack   | 8 GiB          | A fordítási feldolgozó SIGKILL jelzést kapott |
+| webpack   | 12 GiB         | Sikeres, 11,1 GiB-os csúcsértékkel            |
 
 ### Futásidejű alapértékek
 
@@ -286,25 +310,25 @@ A `runner-base` által exportált alapértékek: `PORT=20128`, `HOSTNAME=0.0.0.0
 
 Memóriakezelés Dockerben:
 
-- A lemezkép beállítja az `OMNIROUTE_MEMORY_MB=1024` értéket, és ebből származtatja a `NODE_OPTIONS=--max-old-space-size=1024` értéket.
-- A tényleges kiszolgálófolyamatot az önálló indító indítja el, amely beolvassa az `OMNIROUTE_MEMORY_MB` értékét, és hozzáfűzi a `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` beállítást.
-- A Node az utolsó ismételt `--max-old-space-size` értéket használja, így az `OMNIROUTE_MEMORY_MB` beállítása szabályozza a Docker tényleges heapkorlátját.
-- Mivel a lemezkép mindig beállítja ezt, az indító saját, rendelkezésre álló RAM alapján kalibrált tartalékértéke Docker alatt soha nem lép életbe. A munkaterheléshez kifejezetten növeld meg (lásd az alábbi táblázatot). A `2048` még mindig túl kevés a kódoló ügynökök `/v1/responses` kéréseihez.
+- A rendszerkép beállítja az `OMNIROUTE_MEMORY_MB=1024` értéket, és ebből származtatja a `NODE_OPTIONS=--max-old-space-size=1024` értéket.
+- A tényleges kiszolgálófolyamatot az önálló indító indítja el, amely beolvassa az `OMNIROUTE_MEMORY_MB` értékét, és hozzáfűzi a `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` kapcsolót.
+- A Node az utolsóként megadott `--max-old-space-size` értéket használja, így az `OMNIROUTE_MEMORY_MB` beállítása szabályozza a Docker tényleges heapkorlátját.
+- Mivel a rendszerkép mindig beállítja, az indító saját, rendelkezésre álló RAM alapján kalibrált tartalékbeállítása Docker alatt soha nem lép érvénybe. A munkaterheléshez kifejezetten növelje meg az értéket (lásd az alábbi táblázatot). A `2048` még mindig túl kevés a kódoló ügynökök `/v1/responses` kéréseihez.
 
 ### Futásidejű RAM kódoló ügynökökhöz
 
-Az alapértelmezett 1 GiB-os Docker-beállítás egy irányítópulthoz vagy könnyű csevegéshez elegendő minimum, nem éles környezethez megfelelő méret. A hosszú `POST /v1/responses` törzsek (több száz üzenet, több tucat eszköz) a tömörítés során több memóriabeli gráfot is megőriznek. Két, egymást átfedő, egyenként ~3 MiB-os / ~750 ezer tokenes kérés **12 GiB-os** old-space mellett is megszakította a V8 működését (`FATAL ERROR: Reached heap limit`), és egy 16 GiB-os cgroup OOM-korlátját is elérte. Lásd: [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Az 1 GiB-os Docker-alapérték egy vezérlőpulthoz vagy könnyű csevegéshez elegendő minimum, nem éles üzemi méret. A hosszú `POST /v1/responses` törzsek (több száz üzenet, több tucat eszköz) a tömörítés során több memóriabeli gráfot is megtartanak. Két, egymással átfedésben futó, egyenként ~3 MiB-os / ~750k tokenes kérés **12 GiB** old-space mellett leállította a V8-at (`FATAL ERROR: Reached heap limit`), és egy 16 GiB-os cgroup OOM-korlátját is elérte. Lásd: [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-A **cgroup `--memory` értékét a heap mérete fölé állítsd** — a natív pufferek, az SQLite és a tömörítés köztes adatai a V8-on kívül helyezkednek el.
+A **cgroup `--memory` méretét a heap méreténél nagyobbra állítsa** — a natív pufferek, az SQLite és a tömörítés köztes adatai a V8-on kívül helyezkednek el.
 
-| Munkaterhelés                             | `OMNIROUTE_MEMORY_MB`             | Konténer / cgroup            | Megjegyzések                                                                                                                                |
-| ----------------------------------------- | --------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Irányítópult, egy könnyű csevegés         | `1024` (lemezkép alapértelmezése) | ≥2 GiB                       |                                                                                                                                             |
-| Egy kódolóügynök (Claude/Codex/Grok)      | `8192`                            | ≥10 GiB                      | Tipikus egymunkamenetes `/v1/responses`                                                                                                     |
-| Két egyidejű hosszú `/v1/responses`       | `10240`–`12288`                   | ≥12–16 GiB                   | Mért V8-megszakítás körülbelül 12 GiB-os halomnál                                                                                           |
-| Három vagy több egyidejű hosszú kontextus | ne futtassa egyetlen folyamatban  | soros végrehajtás / több RAM | Az alapértelmezett erőforrás-igényes beléptetési korlát 1 folyamatban lévő kérés; RAM-bővítés nélküli emelése ismét előidézi a megszakítást |
+| Munkaterhelés                             | `OMNIROUTE_MEMORY_MB`           | Konténer / cgroup    | Megjegyzések                                                                                                                                 |
+| ----------------------------------------- | ------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vezérlőpult, egy könnyű csevegés          | `1024` (rendszerkép alapértéke) | ≥2 GiB               |                                                                                                                                              |
+| Egy kódoló ügynök (Claude/Codex/Grok)     | `8192`                          | ≥10 GiB              | Tipikus egyetlen munkamenetes `/v1/responses`                                                                                                |
+| Két egyidejű hosszú `/v1/responses`       | `10240`–`12288`                 | ≥12–16 GiB           | Mért V8-leállás ~12 GiB heap mellett                                                                                                         |
+| Három vagy több egyidejű hosszú kontextus | ne futtassa egy folyamatban     | sorosítsa / több RAM | A nehézsúlyú kérések alapértelmezett engedélyezési korlátja 1 folyamatban lévő kérés; RAM-bővítés nélküli növelése ismét előidézi a leállást |
 
-Az `omniroute serve` közvetlenül a hardveren futtatva a RAM körülbelül 35%-ára kalibrál (a `[512, 4096]` tartományra korlátozva), ha az `OMNIROUTE_MEMORY_MB` **nincs beállítva**. A Docker mindig `1024` értékre állítja, ezért ez a kalibrálás a hivatalos lemezképben soha nem fut le.
+Az `omniroute serve` fizikai gépen a RAM ~35%-ára kalibrál (a `[512, 4096]` tartományra korlátozva), ha az `OMNIROUTE_MEMORY_MB` **nincs beállítva**. A Docker mindig `1024` értékre állítja, ezért ez a kalibrálás a hivatalos rendszerképben soha nem fut le.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -316,22 +340,22 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 Az [ENVIRONMENT.md](../reference/ENVIRONMENT.md) fájlban dokumentált alapértelmezéseken túl a következő változók a legfontosabbak Docker alatti futtatáskor:
 
-| Változó                       | Cél                                                                                                                                                                                                                                                                                                                                                           | Alapértelmezett                 |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | A WebSocket-híd megosztott titka. **Éles környezetben kötelező** — állítsa erős, véletlenszerű karakterláncra.                                                                                                                                                                                                                                                | nincs beállítva (meg kell adni) |
-| `REDIS_URL`                   | A sebességkorlátozó/gyorsítótár háttérrendszer kapcsolati karakterlánca                                                                                                                                                                                                                                                                                       | `redis://redis:6379`            |
-| `REDIS_PORT`                  | A mellékelt Redis-konténer gazdagépen elérhető portja                                                                                                                                                                                                                                                                                                         | `6379`                          |
-| `REDIS_BIND_HOST`             | Az a gazdagép-interfész, amelyen a mellékelt Redis-port közzé van téve (loopback, hacsak nem ad hozzá AUTH-hitelesítést)                                                                                                                                                                                                                                      | `127.0.0.1`                     |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | A gazdagép azon elérési útja, amely a `cli` profilban a `/workspace/omniroute` útvonalra van csatolva az önfrissítési munkafolyamatokhoz                                                                                                                                                                                                                      | `.` (aktuális könyvtár)         |
-| `OMNIROUTE_MEMORY_MB`         | A Node futásidejű heapmemória-korlátja az önálló Docker-kiszolgálóhoz; felülírja a rendszerkép fenti alapértelmezését. Kódoló ügynökök esetén: `8192`+ (lásd: [futásidejű RAM](#runtime-ram-for-coding-agents)).                                                                                                                                              | `1024`                          |
-| `DASHBOARD_PORT` / `API_PORT` | Felülírja az irányítópult (20128) és az API (20129) közzétett portjait                                                                                                                                                                                                                                                                                        | `20128` / `20129`               |
-| `APP_BIND_HOST`               | Az a gazdagép-interfész, amelyen a docker-compose közzéteszi az irányítópult, az API és az élő WS portjait. `REQUIRE_API_KEY=false` esetén (ez az alapértelmezett) a `0.0.0.0` a névtelen `/v1` proxyt elérhetővé teszi a LAN számára — csak `REQUIRE_API_KEY=true` beállítással vagy egy elé helyezett fordított proxyval tegye szélesebb körben elérhetővé. | `127.0.0.1`                     |
-| `CLIPROXY_BIND_HOST`          | Az a gazdagép-interfész, amelyen a docker-compose közzéteszi a `cliproxyapi` oldalkonténert — ennek adatkötete tárolja a szolgáltatói hitelesítő adatokat.                                                                                                                                                                                                    | `127.0.0.1`                     |
-| `OMNIROUTE_PLUGINS_DIR`       | Az a könyvtár, amelyet a futásidejű beépülőmodul-kereső beolvas, és amelybe telepít. Állítsa be, ha a beépülő modulok bind mounttal vannak csatolva: az alapértelmezés a `HOME` értékét követi, amelyet a rendszerkép nem feltétlenül exportál.                                                                                                               | `~/.omniroute/plugins`          |
-| `OMNIROUTE_BASE_PATH`         | Az alkalmazás URL-alútvonala, ha fordított proxy mögött van közzétéve (például `/omniroute`)                                                                                                                                                                                                                                                                  | _(üres = gyökér)_               |
-| `NEXT_PUBLIC_BASE_URL`        | A nyilvános böngészőeredet az alútvonallal együtt (például `https://host/omniroute`)                                                                                                                                                                                                                                                                          | nincs beállítva                 |
-| `PROD_DASHBOARD_PORT`         | Az irányítópult gazdagépoldali portja a `docker-compose.prod.yml` fájlhoz                                                                                                                                                                                                                                                                                     | `20130`                         |
-| `CLIPROXYAPI_PORT`            | A `cliproxyapi` oldalkonténer gazdagépoldali portja                                                                                                                                                                                                                                                                                                           | `8317`                          |
+| Változó                       | Rendeltetés                                                                                                                                                                                                                                                                                                                                                      | Alapértelmezett                 |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | A WebSocket-híd megosztott titka. **Éles környezetben kötelező** — állítsa erős, véletlenszerű karakterláncra.                                                                                                                                                                                                                                                   | nincs beállítva (meg kell adni) |
+| `REDIS_URL`                   | A sebességkorlátozó/gyorsítótár háttérrendszer kapcsolati karakterlánca                                                                                                                                                                                                                                                                                          | `redis://redis:6379`            |
+| `REDIS_PORT`                  | A mellékelt Redis-konténer gazdagépoldali portja                                                                                                                                                                                                                                                                                                                 | `6379`                          |
+| `REDIS_BIND_HOST`             | Az a gazdagépi hálózati interfész, amelyen a mellékelt Redis portja elérhetővé válik (visszacsatolási interfész, hacsak nem ad hozzá AUTH-ot)                                                                                                                                                                                                                    | `127.0.0.1`                     |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | A `cli` profilba, a `/workspace/omniroute` helyre csatolt gazdagépi elérési út az önfrissítési munkafolyamatokhoz                                                                                                                                                                                                                                                | `.` (aktuális könyvtár)         |
+| `OMNIROUTE_MEMORY_MB`         | A Docker önálló kiszolgálójának futásidejű Node halommemória-korlátja; felülírja a lemezkép fenti alapértelmezését. Kódoló ügynökök esetén: `8192`+ (lásd: [futásidejű RAM](#runtime-ram-for-coding-agents)).                                                                                                                                                    | `1024`                          |
+| `DASHBOARD_PORT` / `API_PORT` | A vezérlőpult (20128) és az API (20129) közzétett portjainak felülbírálása                                                                                                                                                                                                                                                                                       | `20128` / `20129`               |
+| `APP_BIND_HOST`               | Az a gazdagépi hálózati interfész, amelyen a docker-compose közzéteszi a vezérlőpult/API/élő WS portjait. A `REQUIRE_API_KEY=false` (alapértelmezett) beállítás mellett a `0.0.0.0` névtelenül elérhetővé teszi a `/v1` proxyt a LAN számára — csak `REQUIRE_API_KEY=true` beállítással vagy elé helyezett fordított proxyval tegye szélesebb körben elérhetővé. | `127.0.0.1`                     |
+| `CLIPROXY_BIND_HOST`          | Az a gazdagépi hálózati interfész, amelyen a docker-compose közzéteszi a `cliproxyapi` oldalkocsit — ennek adatkötete tárolja a szolgáltatói hitelesítő adatokat.                                                                                                                                                                                                | `127.0.0.1`                     |
+| `OMNIROUTE_PLUGINS_DIR`       | Az a könyvtár, amelyet a futásidejű bővítménykereső beolvas, és amelybe telepít. Állítsa be, ha a bővítmények kötési csatolással vannak csatolva: az alapértelmezés a `HOME` értékét követi, amelyet a lemezkép nem feltétlenül exportál.                                                                                                                        | `~/.omniroute/plugins`          |
+| `OMNIROUTE_BASE_PATH`         | URL-alútvonal, amikor az alkalmazást fordított proxy mögött teszik közzé (például `/omniroute`)                                                                                                                                                                                                                                                                  | _(üres = gyökér)_               |
+| `NEXT_PUBLIC_BASE_URL`        | Nyilvános böngészőeredet az alútvonallal együtt (például `https://host/omniroute`)                                                                                                                                                                                                                                                                               | nincs beállítva                 |
+| `PROD_DASHBOARD_PORT`         | A vezérlőpult gazdagépoldali portja a `docker-compose.prod.yml` fájlhoz                                                                                                                                                                                                                                                                                          | `20130`                         |
+| `CLIPROXYAPI_PORT`            | A `cliproxyapi` oldalkocsi gazdagépoldali portja                                                                                                                                                                                                                                                                                                                 | `8317`                          |
 
 ## Fordított proxy alútvonalon (Traefik / nginx)
 
@@ -465,36 +489,49 @@ A végpontok alagútpaneljei (Cloudflare, Tailscale, ngrok) megjeleníthetők va
 - A Docker-lemezképek tartalmazzák a rendszer CA-gyökértanúsítványait, és átadják őket a felügyelt `cloudflared` folyamatnak, így elkerülhetők a TLS-megbízhatósági hibák, amikor az alagút a konténeren belül indul el.
 - Állítsa be a `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` értéket, ha azt szeretné, hogy az OmniRoute egy meglévő bináris fájlt használjon új letöltése helyett.
 
-## Lemezképcímkék
+## Képcímkék
 
-| Lemezkép                 | Címke    | Méret  | Leírás                                                       |
+| Kép                      | Címke    | Méret  | Leírás                                                       |
 | ------------------------ | -------- | ------ | ------------------------------------------------------------ |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | A legmagasabb **közzétett** stabil SemVer (nem a git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps esetén rögzítse ezt a címkeosztályt                   |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | GitOps esetén ezt a címketípust rögzítse                     |
 
 Többplatformos jegyzék: natív `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). A Docker automatikusan kiválasztja a megfelelő architektúrát; adja meg a `--platform linux/amd64` kapcsolót, ha ARM-gazdagépeken kényszeríteni szeretné az AMD64-emulációt.
 
 ### Kiadási csatornák
 
-Az OmniRoute külön Docker-csatornákat tesz közzé a stabil kiadásokhoz, az aktív kiadási ág teszteléséhez és a fejlesztői build-ekhez.
+Az OmniRoute külön Docker-csatornákat tesz közzé a stabil kiadásokhoz, az aktív kiadási ág teszteléséhez és a fejlesztői buildekhez.
 
-| Csatorna                        | Forrás                                   | Módosíthatóság                      | Ajánlott használat                                                                                                                             |
-| ------------------------------- | ---------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Aláírt/verziózott kiadás                 | Nem módosítható                     | Olyan éles telepítések, amelyek pontos kiadást rögzítenek                                                                                      |
-| `:latest` / `:latest-web`       | Legmagasabb **közzétett** stabil SemVer  | Módosítható stabil mutató           | A stabil kiadásokat követi **egy SemVer-közzétételi feladat után** — **nem** követi a `main` ágat vagy a még kiadatlan `release/v*` commitokat |
-| `:next` / `:next-web`           | Aktuális alapértelmezett `release/v*` ág | Módosítható előzetes kiadási mutató | Az aktív kiadási ágra már bekerült, de stabil kiadásban még nem szereplő javítások tesztelése                                                  |
-| `:main` / `:main-web`           | `main` ág                                | Módosítható fejlesztői mutató       | Kizárólag fejlesztési és integrációs teszteléshez                                                                                              |
+| Csatorna                        | Forrás                                    | Módosíthatóság                      | Ajánlott használat                                                                                                                               |
+| ------------------------------- | ----------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `:<version>` / `:<version>-web` | Aláírt/verziózott kiadás                  | Nem módosítható                     | Éles telepítések, amelyek pontos kiadást rögzítenek                                                                                              |
+| `:latest` / `:latest-web`       | Legmagasabb **közzétett** stabil SemVer   | Módosítható stabil mutató           | A stabil kiadásokat követi **egy SemVer közzétételi feladat után** — **nem** követi a `main` ágat vagy a kiadatlan `release/v*` véglegesítéseket |
+| `:next` / `:next-web`           | Jelenlegi alapértelmezett `release/v*` ág | Módosítható előzetes kiadási mutató | Az aktív kiadási ágba már bekerült, de stabil kiadásban még nem szereplő javítások tesztelése                                                    |
+| `:main` / `:main-web`           | `main` ág                                 | Módosítható fejlesztői mutató       | Kizárólag fejlesztési és integrációs tesztelés                                                                                                   |
+
+#### Webes munkamenet-szolgáltatók: a `-web` képek
+
+A fenti csatornák mindegyike `-web` címkével is elérhető (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), és a `runner-web` szakaszból készül — ugyanaz a kép, kiegészítve a Playwrighttal és egy Chromium böngészővel. Az egyszerű kép **nem tartalmaz** Chromiumot; a `gemini-web`, a `claude-web` és a `claude-turnstile` használatához szükség van rá.
+
+A hiba nem indításkor, hanem késleltetve jelentkezik: ezek a szolgáltatók felsorolják a modelljeiket, és csatlakoztatottként jelennek meg az irányítópulton, de az első kérés a következő hibával meghiúsul:
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Ha ezeket a szolgáltatókat használja, töltse le az aktuálisan használt csatorna `-web` címkéjét — semmi mást nem kell módosítani. npm/CLI-telepítés esetén (Docker-kép nélkül) a megfelelő hiányzó összetevő a böngésző binárisa: futtassa a gazdagépen az `npx playwright install chromium` parancsot.
 
 #### Az előzetes kiadási csatorna használata
 
-A `next` csatorna az aktuális alapértelmezett `release/v*` ágra történő minden feltöltéskor újraépül, és AMD64, valamint ARM64 architektúrához is közzétételre kerül. A régebbi karbantartási ágak nem írhatják felül. A csatorna letölthető lemezképet biztosít azokhoz a javításokhoz, amelyek a következő stabil címke létrehozása előtt már bekerültek az aktív kiadási ágba.
+A `next` csatorna a jelenlegi alapértelmezett `release/v*` ágba történő minden egyes push alkalmával újraépül, és AMD64, valamint ARM64 architektúrához is közzétételre kerül. A régebbi karbantartási ágak nem írhatják felül. A csatorna letölthető képet biztosít azokhoz a javításokhoz, amelyeket a következő stabil címke létrehozása előtt már egyesítettek az aktív kiadási ággal.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Docker Compose használata esetén írja felül a kiválasztott profil által használt lemezképcímkét, majd töltse le és hozza létre újra a szolgáltatást:
+Docker Compose esetén írja felül a kiválasztott profil által használt képcímkét, majd töltse le és hozza létre újra a szolgáltatást:
 
 ```yaml
 services:
@@ -509,30 +546,30 @@ docker compose up -d
 
 #### Biztonság és visszaállítás
 
-A `next` egy folyamatosan változó előzetes kiadási csatorna. Az aktív kiadási ágra történő bármely feltöltéskor megváltozhat, és **éles használata nem támogatott**. Egy adott build kiértékelésekor rögzítse a lemezkép kivonatát:
+A `next` egy lebegő előzetes kiadási csatorna. Az aktív kiadási ágba történő bármely push alkalmával megváltozhat, és **éles környezetben való használata nem támogatott**. Egy adott build kiértékelésekor rögzítse a kép kivonatát:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Tesztelés előtt készítsen biztonsági másolatot az OmniRoute adatkötetéről vagy a bind mounttal csatolt adatkönyvtárról. A visszaállításhoz állítsa vissza a korábban használt stabil verziót vagy digestet, majd hozza létre újra a konténert:
+A tesztelés előtt készítsen biztonsági másolatot az OmniRoute adatkötetéről vagy a bind mounttal csatlakoztatott adatkönyvtárról. A visszaállításhoz állítsa vissza a korábban használt stabil verziót vagy kivonatot, majd hozza létre újra a konténert:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Egy release branch buildje soha nem módosíthatja a `latest` címkét; a stabil mutatót kizárólag egy megfelelő stabil szemantikus verzió léptetheti elő. A `next` rendszerképek esetében továbbra is érvényben marad a kiadási rendszerkép ellenőrzése és a CRITICAL súlyosságú sebezhetőségek esetén aktiválódó blokkoló ellenőrzés.
+Egy kiadási ág buildje soha nem mozdíthatja el a `latest` címkét; a stabil mutatót csak egy megfelelő stabil szemantikus verzió léptetheti elő. A `next` képek megtartják a kiadási kép ellenőrzését és a CRITICAL súlyosságú sebezhetőségeket blokkoló kaput.
 
-**A `latest` nem garantálja a git változásainak aktualitását.** A `main` ágba vagy az aktív `release/v*` ágba beolvasztott javítások **nem** kerülnek bele a `:latest` rendszerképbe mindaddig, amíg közzé nem tesznek egy stabil SemVer rendszerképet, és a közzétételi feladat elő nem lépteti azt `:latest` címkével (ugyanazzal a digesttel, mint az adott SemVer). Ha a `latest` változatlannak tűnik, miközben a GitHubon már látható a javítás, a release branch teszteléséhez töltse le a `:next` rendszerképet, vagy várja meg a SemVer címkét.
+**A `latest` nem garantálja, hogy a git legfrissebb állapotát tartalmazza.** A `main` ágba vagy az aktív `release/v*` ágba egyesített javítások **nem** kerülnek be a `:latest` képbe mindaddig, amíg egy stabil SemVer-kép közzététele meg nem történik, és a közzétételi feladat elő nem lépteti a `:latest` címkét (ugyanarra a kivonatra, mint az adott SemVer). Ha úgy tűnik, hogy a `latest` változatlan, miközben a GitHubon már látható a javítás, a kiadási ág teszteléséhez töltse le a `:next` képet, vagy várjon a SemVer-címkére.
 
-| Cél                                                                                             | Használat                                                  |
-| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| GitOps / éles környezet, amelyben nem megengedett az eltérés                                    | Rögzítse a `:X.Y.Z` verziót (vagy a rendszerkép digestjét) |
-| A közzétett stabil kiadások követése, minden kiadásnál elfogadva a konténer újbóli létrehozását | `:latest`                                                  |
-| Kiadatlan `release/v*` commitok tesztelése                                                      | `:next` (nem éles környezethez)                            |
-| A `main` tesztelése                                                                             | `:main` (nem éles környezethez)                            |
+| Cél                                                                                    | Használat                                         |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| GitOps / éles környezet, amely nem térhet el                                           | Rögzítse a `:X.Y.Z` címkét (vagy a kép kivonatát) |
+| A közzétett stabil kiadások követése, minden kiadásnál elfogadva az újbóli létrehozást | `:latest`                                         |
+| Kiadatlan `release/v*` véglegesítések tesztelése                                       | `:next` (nem éles környezethez)                   |
+| A `main` tesztelése                                                                    | `:main` (nem éles környezethez)                   |
 
 ## Rendelkezésre állás: az alapértelmezett SQLite egyetlen replikás
 

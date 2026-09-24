@@ -713,6 +713,17 @@ export function createDisconnectAwareStream(
     {
       async pull(controller) {
         if (!streamController.isConnected()) {
+          // Closing our side alone leaves the upstream body being pulled by the
+          // transform pipe. Cancel it so the provider stops generating for a
+          // client that is gone. Not on a completed stream (clientTerminalSeen)
+          // nor while a completed tool handoff is still draining the reader.
+          if (
+            !clientTerminalSeen &&
+            streamController.shouldDeferCompletedToolHandoff?.() !== true
+          ) {
+            const reason = "client_disconnected";
+            void Promise.allSettled([reader.cancel(reason), writer.abort(reason)]);
+          }
           controller.close();
           return;
         }

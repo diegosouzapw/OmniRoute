@@ -1,0 +1,1 @@
+- **fix(grok-cli):** Grok Build no longer 400s on Codex CLI turns that carry the native `web_search` tool: the OpenAI-only `external_web_access` and `search_context_size` arguments are dropped before dispatch while the tool itself is kept ([#14609](https://github.com/diegosouzapw/OmniRoute/pull/14609)) — thanks @QuangBlue

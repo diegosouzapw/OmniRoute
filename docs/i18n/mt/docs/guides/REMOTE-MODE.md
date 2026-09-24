@@ -1,6 +1,6 @@
 # Remote Mode (Malti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇧🇦 [bs](../../../bs/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
 
 ---
 
@@ -350,67 +350,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # l-ewwel esporta OMNIROUTE_API
 
 ---
 
-## Ġestjoni tal-kuntesti (aqleb bejn is-servers)
+## Il-ġestjoni tal-kuntesti (tibdil bejn is-servers)
 
-**Kuntest** huwa server issejvjat (baseUrl + kredenzjali + ambitu). `omniroute connect`
-joħloq wieħed u jagħmlu attiv; minn dak il-ħin ’il quddiem kull kmand jużah bħala l-mira tiegħu. Immaniġġjahom u
-aqleb bejniethom b’`omniroute contexts`:
+**Kuntest** huwa server salvat (baseUrl + kredenzjali + skop). `omniroute connect` joħloq wieħed u jagħmlu attiv; minn hemm 'il quddiem kull kmand jimmira lejh. Immaniġġja u aqleb bejniethom b'`omniroute contexts`:
 
 ```bash
-omniroute contexts list            # il-kuntesti kollha; dak attiv huwa mmarkat b’●
-omniroute contexts current         # is-server attiv, l-istatus tal-awtentikazzjoni, l-ambitu
+omniroute contexts list            # il-kuntesti kollha; dak attiv huwa mmarkat ●
+omniroute contexts current         # is-server attiv, l-istatus tal-awtentikazzjoni, l-iskop
 ```
 
 ```text
-  | Isem    | URL Bażi                  | Awtent. | Ambitu | Deskrizzjoni
-● | vps     | http://100.67.86.91:20128 | token   | admin  | OmniRoute remot (…)
-  | default | http://localhost:20128    | ✗       |        |
+  | Isem    | URL Bażi                  | Awtentikazzjoni | Skop  | Deskrizzjoni
+● | vps     | http://100.67.86.91:20128 | token           | admin | OmniRoute Remot (…)
+  | default | http://localhost:20128    | ✗               |       |
 ```
 
-**Aqleb is-servers** — kull kmand sussegwenti juża l-kuntest attiv:
+**Aqleb is-servers** — kull kmand sussegwenti jsegwi l-kuntest attiv:
 
 ```bash
-omniroute contexts use vps         # → il-kmandi kollha issa jmorru lejn il-VPS remot
-omniroute tokens list              #   (jitħaddem kontra l-VPS)
+omniroute contexts use vps         # → il-kmandi kollha issa jolqtu l-VPS remot
+omniroute tokens list              #   (titħaddem kontra l-VPS)
 
 omniroute contexts use default     # → lura għal localhost
-omniroute tokens list              #   (jitħaddem kontra s-server lokali)
+omniroute tokens list              #   (titħaddem kontra s-server lokali)
 ```
 
-**Żid kuntest manwalment** (minflok `connect`), spezzjonah, jew ibdel ismu:
+**Żid kuntest manwalment** (minflok `connect`), spezzjona, jew semmi mill-ġdid:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "ambjent ta’ staging"
-omniroute contexts show staging    # id-dettalji kollha għal kuntest wieħed
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # dettalji sħaħ għal kuntest wieħed
 omniroute contexts rename staging stg
 ```
 
-**Neħħi kuntest** — jitlob konferma; għaddi `--yes` biex taqbiżha
-(meħtieġ għal skripts / shells mhux interattivi, li inkella jirrifjutaw b’mod sikur):
+**Neħħi kuntest** — titlob konferma; għaddi `--yes` biex taqbeżha (meħtieġa għal skripts / shells mhux interattivi, li altrimenti jirrifjutaw b'mod sikur):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) ma jistax jitneħħa. Jekk jitneħħa l-kuntest attiv, is-sistema terġa’ lura
-> għal `default`. Suġġeriment: it-tneħħija ta’ kuntest tħassar biss il-kredenzjali **lokali** ssejvjata —
-> irrevoka t-token fuq is-server b’`omniroute tokens revoke <id>` biex fil-fatt
-> twaqqaf l-aċċess.
+> `default` (localhost) ma jistax jitneħħa. It-tneħħija tal-kuntest attiv terġa' lura għal `default`. Tip: it-tneħħija ta' kuntest tneħħi biss il-kredenzjali ssalvata **lokalment** — irrevoka t-token fuq is-server b'`omniroute tokens revoke <id>` biex fil-fatt toqtol l-aċċess.
 
-**Esporta / importa** kuntesti (eż. biex tmexxihom bejn magni). Kuntesti ġodda jaħżnu
-biss referenza fil-keychain; il-kredenzjali ma jiġux ikkupjati fl-esportazzjoni meta l-keychain
-tas-sistema operattiva jkun disponibbli:
+**Esporta / importa** kuntesti (eż. biex tmexxihom bejn il-magni). L-esportazzjonijiet iħallu barra l-kredenzjali b'mod awtomatiku, inklużi kredenzjali maħżuna mill-fallback tal-fajl. Uża `--include-secrets` espliċitament meta jkun meħtieġ backup portabbli li jġorr kredenzjali:
 
 ```bash
-omniroute contexts export --out contexts.json     # valur predefinit: stdout
-omniroute contexts import contexts.json            # issostitwixxi; --merge biex iżżomm dawk eżistenti
-omniroute contexts migrate --yes                  # mexxi tokens legacy f’test sempliċi lejn il-keychain
+omniroute contexts export --out contexts.json     # imħassra; destinazzjoni awtomatika: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # tissostitwixxi; --merge biex iżżomm dawk eżistenti
+omniroute contexts migrate --yes                  # iċċaqlaq tokens plaintext legati għall-keychain
 ```
 
-Fuq sistemi headless mingħajr keychain tas-sistema operattiva li jista’ jintuża, is-CLI jaqleb għal
-`config.json` bil-modalità `0600` u juri twissija ta’ darba. Ittratta esportazzjonijiet minn
-dik l-alternattiva (u kwalunkwe konfigurazzjoni legacy qabel il-migrazzjoni) bħala materjal sigriet.
+`--include-secrets` issolvi r-referenzi tal-keychain qabel l-esportazzjoni u tfalli jekk xi kredenzjali referenzjata ma tistax tinqara. `--no-secrets` dejjem tieħu preċedenza. Il-fajls tal-esportazzjoni jinkitbu b'mod atomiku bil-mod `0600`. Ittratta esportazzjoni espliċita li ġġorr sigriet bħala materjal sigriet. Fuq sistemi mingħajr ras mingħajr keychain OS utilizzabbli, is-CLI terġa' lura għal `config.json` bil-mod `0600` u tipprintja twissija ta' darba; esportazzjoni awtomatika tibqa' mħassra f'dan il-mod.
 
 ---
 

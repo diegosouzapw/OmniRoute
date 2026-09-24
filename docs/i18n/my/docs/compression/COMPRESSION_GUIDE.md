@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -178,21 +178,20 @@ Stacked ဖြင့်:        token 10K-2.5K ပေးပို့သည်   
 
 ---
 
-## ပြင်ဆင်သတ်မှတ်ခြင်း
+## စီစဉ်သတ်မှတ်ခြင်း
 
 ### ဒက်ရှ်ဘုတ်
 
 `Dashboard → Context & Cache` သို့ သွားပါ-
 
-- **Caveman** — မုဒ်ရွေးချယ်ခြင်း၊ ဘာသာစကားပက်ကေ့ချ်များ၊ အစမ်းကြည့်ရှုခြင်းနှင့် စနစ်တစ်ခုလုံးဆိုင်ရာ မူလသတ်မှတ်ချက်များ
-- **RTK** — command-filter အစမ်းကြည့်ရှုခြင်း၊ RTK လုံခြုံရေးဆိုင်ရာ သတ်မှတ်ချက်များနှင့် filter catalog
-- **Compression Combos** — routing combo များတွင် သတ်မှတ်ပေးထားသော အမည်ပါ engine pipeline များ
-- **Auto-Trigger Threshold** — token အရေအတွက်သည် သတ်မှတ်ထားသည့် threshold ကို ကျော်လွန်သောအခါ compression ကို အလိုအလျောက် စတင်အသုံးပြုခြင်း
+- **Caveman** — မုဒ်ရွေးချယ်မှု၊ ဘာသာစကားပက်ကေ့ချ်များ၊ ကြိုတင်ကြည့်ရှုခြင်းနှင့် ကမ္ဘာလုံးဆိုင်ရာ မူရင်းများ
+- **RTK** — ကွန်မန်း-ဖစ်လ်တာ ကြိုတင်ကြည့်ရှုခြင်း၊ RTK ဘေးကင်းရေး ဆက်တင်များနှင့် ဖစ်လ်တာ ကတ်တလောက်
+- **Compression Combos** — ရောက်တာ ကွန်ဘိုများသို့ သတ်မှတ်ထားသော အမည်ရှိ အင်ဂျင် ပိုက်လိုင်းများ
+- **Auto-Trigger Threshold** — တိုကင်အရေအတွက် သတ်မှတ်ထားသော ကန့်သတ်ချက်ထက် ကျော်လွန်ပါက အလိုအလျောက် ဖိသိပ်မှုကို စတင်လုပ်ဆောင်ခြင်း
 
-### Combo တစ်ခုချင်းစီအလိုက် Override
+### ကွန်ဘိုတစ်ခုချင်းစီအတွက် ထပ်ဆင့်သတ်မှတ်ခြင်း
 
-`Dashboard → Context & Cache → Compression Combos` တွင် compression combo တစ်ခုကို routing
-combo တစ်ခုနှင့် သတ်မှတ်ချိတ်ဆက်ပါ-
+`Dashboard → Context & Cache → Compression Combos` တွင်၊ ရောက်တာ ကွန်ဘိုတစ်ခုသို့ ဖိသိပ်မှု ကွန်ဘိုတစ်ခုကို သတ်မှတ်ပါ-
 
 ```txt
 Combo: "free-tier-fallback"
@@ -203,56 +202,47 @@ Combo: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-ဤနည်းဖြင့် အခပေး subscription များတွင် lite mode ကို ဆက်လက်အသုံးပြုထားစဉ် free/coding provider
-များတွင် အဆင့်ဆင့်ဆက်ထားသော compression ကို အသုံးပြုနိုင်သည်။
+၎င်းသည် အခမဲ့/ကုဒ်ရေးသားခြင်း ပံ့ပိုးပေးသူများတွင် စုစည်းထားသော ဖိသိပ်မှုကို အသုံးပြုနိုင်ပြီး အခပေး စာရင်းသွင်းမှုများတွင် lite မုဒ်ကို ထားရှိနိုင်စေသည်။
 
-ဤ "Per-Combo Override" သတ်မှတ်ချက်သည် **routing-combo compression
-mode** override (Default/Off/Lite/Standard/Aggressive/Ultra) နှင့် မတူညီသော ထိန်းချုပ်မှုတစ်ခုဖြစ်သည် — အဆိုပါ override သည် အမည်ပါ
-compression-combo pipeline တစ်ခုကို ရွေးချယ်ခြင်းမဟုတ်ဘဲ `resolveCompressionPlan` က အသုံးပြုစစ်ဆေးသည့်
-`compressionMode` field ကိုသာ သတ်မှတ်ပေးသည်။ ၎င်းကို combo card (`Dashboard → Combos`) ပေါ်တွင်ဖြစ်စေ၊
-#6760 မှစ၍ အထက်တွင် မှတ်တမ်းတင်ဖော်ပြထားသော pipeline-assignment checkbox ၏ ဘေးရှိ
-`Dashboard → Context & Cache → Compression Combos` ရှိ "Assign to routing" စာရင်းအတွင်း routing combo တစ်ခုချင်းစီအလိုက်ဖြစ်စေ
-သတ်မှတ်နိုင်သည်။ မျက်နှာပြင်နှစ်ခုစလုံးသည် တူညီသော `PUT /api/combos/{id}` endpoint မှတစ်ဆင့် သိမ်းဆည်းထားသည်။
+ဤ "Per-Combo Override" သတ်မှတ်မှုသည် **routing-combo compression mode** override (Default/Off/Lite/Standard/Aggressive/Ultra) နှင့် ကွဲပြားသော ထိန်းချုပ်မှုတစ်ခုဖြစ်သည်။ ထို override သည် အမည်ရှိ ဖိသိပ်မှု-ကွန်ဘို ပိုက်လိုင်းကို ရွေးချယ်ခြင်းမဟုတ်ဘဲ `resolveCompressionPlan` မှ တိုင်ပင်သော `compressionMode` field ကိုသာ သတ်မှတ်သည်။ ၎င်းကို ကွန်ဘိုကတ် (`Dashboard → Combos`) တွင် သို့မဟုတ် #6760 မှစ၍ `Dashboard → Context & Cache → Compression Combos` ရှိ "Assign to routing" စာရင်းတွင် ရောက်တာ ကွန်ဘိုတစ်ခုချင်းစီအတွက်၊ အထက်တွင် မှတ်တမ်းတင်ထားသော ပိုက်လိုင်း-သတ်မှတ်မှု အမှန်ခြစ်ဘောက်စ်ဘေးတွင် သတ်မှတ်နိုင်သည်။ မျက်နှာပြင်နှစ်ခုလုံးသည် တူညီသော `PUT /api/combos/{id}` endpoint မှတစ်ဆင့် ဆက်လက်တည်ရှိနေသည်။
 
-### Request တစ်ခုချင်းစီအလိုက် override
+### တောင်းဆိုမှုတစ်ခုချင်းစီအတွက် ထပ်ဆင့်သတ်မှတ်ခြင်း
 
-Request တစ်ခုတည်းအတွက် compression plan ကို override လုပ်ရန် `x-omniroute-compression` request header ကို
-ပို့ပါ။ ၎င်းတွင် အမြင့်ဆုံး ဦးစားပေးအဆင့်ရှိသည် — routing-combo override၊ လက်ရှိအသုံးပြုနေသော profile၊
-auto-trigger နှင့် panel ၏ Default တို့ထက် ဦးစားပေးသည်။ မသိရှိသော value များကို လျစ်လျူရှုမည် (request ကို မည်သည့်အခါမျှ ငြင်းပယ်မည်မဟုတ်ပါ)၊
-ထို့ပြင် global master switch က အရာအားလုံးကို ဆက်လက်ထိန်းချုပ်ထားသည်- compression ကို စနစ်တစ်ခုလုံးအတွက် ပိတ်ထားပါက header ဖြင့်
-၎င်းကို ဖွင့်၍မရပါ။ Value များမှာ-
+တောင်းဆိုမှုတစ်ခုတည်းအတွက် ဖိသိပ်မှု အစီအစဉ်ကို ထပ်ဆင့်သတ်မှတ်ရန် `x-omniroute-compression` တောင်းဆိုမှု ခေါင်းစီးကို ပေးပို့ပါ။ ၎င်းသည် အမြင့်ဆုံး ဦးစားပေးမှုရှိသည် — ၎င်းသည် routing-combo override၊ active profile၊ auto-trigger နှင့် panel Default တို့ကို ကျော်လွန်သည်။ မသိသော တန်ဖိုးများကို လျစ်လျူရှုသည် (တောင်းဆိုမှုကို ဘယ်တော့မှ ပယ်ချမည်မဟုတ်ပါ) နှင့် ကမ္ဘာလုံးဆိုင်ရာ မာစတာခလုတ်သည် အရာအားလုံးကို ဆက်လက်ထိန်းချုပ်သည်- ဖိသိပ်မှုကို ကမ္ဘာလုံးဆိုင်ရာ ပိတ်ထားသောအခါ၊ ခေါင်းစီးသည် ၎င်းကို ဖွင့်၍မရပါ။ တန်ဖိုးများ-
 
-| Value         | အကျိုးသက်ရောက်မှု                                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `off`         | ဤ request အတွက် compression မပြုလုပ်ပါ။                                                                          |
-| `default`     | Panel မှ ဆုံးဖြတ်ထားသော Default profile (လက်ရှိအသုံးပြုနေသော profile ကို လျစ်လျူရှုသည်)။                         |
-| `engine:<id>` | ဖွင့်ထားသည့်အခါ engine တစ်ခုတည်းကို အသုံးပြုသည်၊ ဥပမာ `engine:rtk`။                                              |
-| `<combo>`     | အမည်ပါ combo တစ်ခု၊ ပထမဦးစွာ အမည်ဖြင့် (စာလုံးအကြီးအသေးမခွဲခြားဘဲ) တိုက်ဆိုင်စစ်ဆေးပြီးနောက် id ဖြင့် စစ်ဆေးသည်။ |
+| တန်ဖိုး       | အကျိုးသက်ရောက်မှု                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `off`         | ဤတောင်းဆိုမှုအတွက် ဖိသိပ်မှုမရှိပါ။                                                                                            |
+| `default`     | panel မှ ဆင်းသက်လာသော Default profile (active profile ကို လျစ်လျူရှုသည်)။ Lossy engines များကို ပိတ်ထားသည်။                    |
+| `safe`        | ခေါင်းစီးကို ချန်လှပ်ထားခြင်းနှင့် တူညီသည်- dedup နှင့် whitespace folding သာ။                                                 |
+| `allow-lossy` | ဤတောင်းဆိုမှု၏ operator plan ကို ထားရှိပါ၊ ၎င်းတွင် အကျဉ်းချုပ်များ၊ သက်ဆိုင်ရာ filter များနှင့် style rewrites များ ပါဝင်သည်။ |
+| `engine:<id>` | ဖွင့်ထားသောအခါ အင်ဂျင်တစ်ခုတည်း၊ ဥပမာ `engine:rtk`။ ၎င်းသည် ထိုအင်ဂျင်အတွက် တောင်းဆိုမှုတစ်ခုချင်းစီ opt-in ဖြစ်သည်။           |
+| `<combo>`     | အမည်ရှိ ကွန်ဘိုတစ်ခု၊ အမည်ဖြင့် (case-insensitive) ဦးစွာ ကိုက်ညီပြီးနောက် id ဖြင့် ကိုက်ညီသည်။                                 |
 
-အသုံးပြုထားသော plan ကို `X-OmniRoute-Compression: <mode>; source=<source>` response
-header တွင် ပြန်လည်ဖော်ပြပေးသည်။ ထိုနေရာရှိ `<source>` သည် `request-header`၊ `routing-override`၊ `active-profile`၊
-`auto-trigger`၊ `default` သို့မဟုတ် `off` တစ်ခုခု ဖြစ်သည်။
+`allow-lossy`၊ `engine:<id>` သို့မဟုတ် အမည်ရှိ ကွန်ဘိုမပါဘဲ၊ lossy engines များကို အသုံးမပြုပါ။ ဖိသိပ်မှုကို ဖွင့်ထားသောအခါ တောင်းဆိုမှုသည် session dedup နှင့် whitespace folding ကို ဆက်လက်ရရှိသည်။
+
+အသုံးပြုထားသော အစီအစဉ်ကို `X-OmniRoute-Compression: <mode>; source=<source>` တုံ့ပြန်မှု ခေါင်းစီးတွင် ပြန်လည်ပဲ့တင်ထပ်သည်၊ ၎င်းတွင် `<source>` သည် `request-header`၊ `routing-override`၊ `active-profile`၊ `auto-trigger`၊ `default` သို့မဟုတ် `off` တို့မှ တစ်ခုဖြစ်သည်။
 
 ### API
 
 ```bash
-# Compression သတ်မှတ်ချက်များကို ရယူရန်
+# ဖိသိပ်မှု ဆက်တင်များကို ရယူပါ
 curl http://localhost:20128/api/settings/compression
 
-# Compression သတ်မှတ်ချက်များကို အပ်ဒိတ်လုပ်ရန်
+# ဖိသိပ်မှု ဆက်တင်များကို အပ်ဒိတ်လုပ်ပါ
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# သတ်မှတ်ထားသော RTK/stacked payload တစ်ခုကို အစမ်းကြည့်ရန်
+# သီးခြား RTK/stacked payload ကို ကြိုတင်ကြည့်ရှုပါ
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# RTK filter pack များကို စာရင်းပြုစုရန်
+# RTK filter packs များကို စာရင်းပြုစုပါ
 curl http://localhost:20128/api/context/rtk/filters
 
-# ရွေးချယ်ထည့်သွင်းနိုင်သော command metadata ဖြင့် RTK ကို တိုက်ရိုက်စမ်းသပ်ရန်
+# RTK ကို ရွေးချယ်နိုင်သော ကွန်မန်း metadata ဖြင့် တိုက်ရိုက် စမ်းသပ်ပါ
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -297,15 +287,15 @@ RTK ကုန်ကြမ်းအထွက် ပြန်လည်ရယူခ
 
 ---
 
-## အဆင့်ဆင့် လမ်းပြမြေပုံ
+## အဆင့်လမ်းပြမြေပုံ
 
-| အဆင့်    | မုဒ်များ                                                                                                                                                                     | အခြေအနေ         |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| အဆင့် 1  | ပိတ်ထားခြင်း၊ Lite                                                                                                                                                           | ✅ ဖြန့်ချိပြီး |
-| အဆင့် 2  | Standard၊ Aggressive၊ Ultra                                                                                                                                                  | ✅ ဖြန့်ချိပြီး |
-| အဆင့် 3  | RTK၊ Stacked၊ Compression Combos                                                                                                                                             | ✅ ဖြန့်ချိပြီး |
-| အဆင့် 4  | Output Styles၊ SLM-tier Ultra၊ eval harness                                                                                                                                  | ✅ ဖြန့်ချိပြီး |
-| အဆင့် 4C | လိုက်လျောညီထွေဖြစ်သော context-budget ("dial") — တွက်ချက်မှုအင်ဂျင် + API (`PUT /api/settings/compression` ပေါ်ရှိ `contextBudget`) + ဒက်ရှ်ဘုတ် မုဒ်/မူဝါဒ ထိန်းချုပ်မှုများ | ✅ ဖြန့်ချိပြီး |
+| အဆင့်    | မုဒ်များ                                                                                                                                      | အခြေအနေ     |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| အဆင့် ၁  | ပိတ်ထားသည်၊ Lite                                                                                                                              | ✅ ပို့ပြီး |
+| အဆင့် ၂  | စံ၊ ပြင်းထန်၊ Ultra                                                                                                                           | ✅ ပို့ပြီး |
+| အဆင့် ၃  | RTK၊ Stacked၊ Compression Combos                                                                                                              | ✅ ပို့ပြီး |
+| အဆင့် ၄  | Output Styles၊ SLM-tier Ultra၊ eval harness                                                                                                   | ✅ ပို့ပြီး |
+| အဆင့် ၄C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) + dashboard mode/policy controls | ✅ ပို့ပြီး |
 
 ---
 
@@ -317,30 +307,25 @@ RTK မုဒ်သည် **[RTK AI](https://github.com/rtk-ai)** ဖန်တ�
 
 ---
 
-## အဆင့်မြင့် ချုံ့ခြင်းစနစ်များ
+## အဆင့်မြင့် ဖိသိမ်းမှုစနစ်များ
 
-ပုံမှန်မုဒ် ၇ ခုအပြင် OmniRoute တွင် အကြောင်းအရာအလိုက် အလိုအလျောက်
-အလုပ်လုပ်သော အဆင့်မြင့် ချုံ့ခြင်းစနစ်များစွာ ပါဝင်သည်။
+စံမုဒ် ၇ ခုအပြင် OmniRoute တွင် အခြေအနေပေါ်မူတည်၍ အလိုအလျောက်အလုပ်လုပ်သော အဆင့်မြင့် ဖိသိမ်းမှုစနစ်များစွာ ပါဝင်သည်။
 
-### Cache ကို ထည့်သွင်းစဉ်းစားသော ချုံ့ခြင်း
+### Cache-Aware ဖိသိမ်းမှု
 
-အချို့ provider များ (prompt caching ပါဝင်သော Anthropic ကဲ့သို့) သည် **prompt caching** ကို ပံ့ပိုးပေးပြီး၊
-ယင်းကြောင့် ကုန်ကျစရိတ်နှင့် ကြာချိန်ကို လျှော့ချရန် prompt ၏ အစိတ်အပိုင်းများကို cache သိမ်းထားနိုင်သည်။
-caching ကို ဖွင့်ထားသည့်အခါ ပြင်းထန်သော ချုံ့ခြင်းသည် cache သိမ်းထားသော တိုကင်များကို ပြောင်းလဲစေပြီး
-cache ကို ပျက်ပြယ်စေသောကြောင့် စွမ်းဆောင်ရည်ကို အမှန်တကယ် **ထိခိုက်စေနိုင်သည်**။
+အချို့သော ပံ့ပိုးသူများ (Anthropic ကဲ့သို့ prompt caching ဖြင့်) သည် **prompt caching** ကို ပံ့ပိုးပေးသည်။ ၎င်းသည် prompt ၏ အစိတ်အပိုင်းများကို cache လုပ်ခြင်းဖြင့် ကုန်ကျစရိတ်နှင့် latency ကို လျှော့ချပေးသည်။ Caching ကို ဖွင့်ထားသောအခါတွင် ပြင်းထန်သော ဖိသိမ်းမှုသည် စွမ်းဆောင်ရည်ကို အမှန်တကယ် **ထိခိုက်စေနိုင်သည်** အဘယ်ကြောင့်ဆိုသော် ၎င်းသည် cache လုပ်ထားသော tokens များကို ပြောင်းလဲစေပြီး cache ကို ပျက်ပြယ်စေသောကြောင့် ဖြစ်သည်။
 
-`cachingAware.ts` module သည် **caching အခြေအနေကို စစ်ဆေးသိရှိခြင်း** နှင့်
-ထိုအခြေအနေနှင့်အညီ **ချုံ့ခြင်းနည်းဗျူဟာကို ချိန်ညှိခြင်း** ဖြင့် ဤပြဿနာကို ဖြေရှင်းသည်။
+`cachingAware.ts` module သည် ဤပြဿနာကို **caching context ကို ရှာဖွေခြင်း** နှင့် **ဖိသိမ်းမှုနည်းဗျူဟာကို ချိန်ညှိခြင်း** ဖြင့် ဖြေရှင်းသည်။
 
-#### အလုပ်လုပ်ပုံ
+#### ၎င်းမည်သို့အလုပ်လုပ်သနည်း
 
-1. **caching အခြေအနေကို စစ်ဆေးခြင်း** — တောင်းဆိုမှု body ထဲရှိ `cache_control` အမှတ်အသားများကို စစ်ဆေးသည်
-2. **caching provider များကို ခွဲခြားသတ်မှတ်ခြင်း** — ဦးတည် provider သည် caching ကို ပံ့ပိုးပေးခြင်းရှိမရှိ စစ်ဆေးသည်
-3. **နည်းဗျူဟာကို ချိန်ညှိခြင်း** — caching provider များအတွက် `aggressive`/`ultra` ကို `standard` သို့ လျှော့ချသည်
-4. **စနစ်ညွှန်ကြားချက်ကို ကျော်သွားခြင်း** — စနစ်ညွှန်ကြားချက်များကို ပုံမှန်အားဖြင့် cache သိမ်းထားသောကြောင့် ၎င်းတို့ကို မချုံ့ပါ
-5. **သတ်မှတ်ထားသည့်အတိုင်း ထပ်တူရလဒ်ထုတ်ပေးသော ပြောင်းလဲမှုများကို အသုံးပြုခြင်း** — တစ်သမတ်တည်း ရလဒ်ထွက်စေသော ပြောင်းလဲမှုများကိုသာ အသုံးပြုသည်
+1. **Caching context ကို ရှာဖွေပါ** — `cache_control` အမှတ်အသားများအတွက် request body ကို စစ်ဆေးသည်။
+2. **Caching ပံ့ပိုးသူများကို ခွဲခြားသတ်မှတ်ပါ** — ပစ်မှတ်ပံ့ပိုးသူသည် caching ကို ပံ့ပိုးခြင်းရှိမရှိ စစ်ဆေးသည်။
+3. **နည်းဗျူဟာကို ချိန်ညှိပါ** — `aggressive`/`ultra` ကို caching ပံ့ပိုးသူများအတွက် `standard` သို့ လျှော့ချသည်။
+4. **System prompt ကို ကျော်သွားပါ** — System prompts များကို အများအားဖြင့် cache လုပ်ထားသောကြောင့် ၎င်းတို့ကို ဖိသိမ်းခြင်းမပြုပါ။
+5. **Deterministic ပြောင်းလဲမှုများကို အသုံးပြုပါ** — တသမတ်တည်းသော output ကို ထုတ်လုပ်သည့် ပြောင်းလဲမှုများကိုသာ အသုံးပြုပါ။
 
-#### ကုဒ်နမူနာ
+#### Code ဥပမာ
 
 ```ts
 import {
@@ -351,7 +336,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Cache အမှတ်အသား
+  cache_control: { type: "ephemeral" }, // ← Cache marker
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -361,25 +346,23 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### အသုံးပြုရမည့်အချိန်
+#### မည်သည့်အချိန်တွင် အသုံးပြုရမည်နည်း။
 
-Cache ကို ထည့်သွင်းစဉ်းစားသော ချုံ့ခြင်းကို **အမြဲဖွင့်ထားသည်** — ဖွဲ့စည်းသတ်မှတ်ရန် မလိုအပ်ပါ။ အောက်ပါအခြေအနေများတွင်သာ
-စတင်အလုပ်လုပ်သည်-
+Cache-aware ဖိသိမ်းမှုသည် **အမြဲတမ်း ဖွင့်ထားသည်** — မည်သည့် configuration မှ မလိုအပ်ပါ။ ၎င်းသည် အောက်ပါအခြေအနေများတွင်သာ အလုပ်လုပ်သည်။
 
-- တောင်းဆိုမှုတွင် `cache_control` အမှတ်အသားများ ပါရှိခြင်း
-- ဦးတည် provider သည် prompt caching ကို ပံ့ပိုးပေးခြင်း (Anthropic၊ OpenAI စသည်တို့)
+- request တွင် `cache_control` အမှတ်အသားများ ပါရှိသည်။
+- ပစ်မှတ်ပံ့ပိုးသူသည် prompt caching ကို ပံ့ပိုးသည် (Anthropic, OpenAI, စသည်ဖြင့်)။
 
-### အဆင့်ဆင့် အဟောင်းပြုလုပ်ခြင်း
+### Progressive Aging
 
-ရှည်လျားသော စကားဝိုင်းများတွင် မက်ဆေ့ချ်အလှည့်များစွာ စုစည်းလာသော်လည်း အလှည့်ဟောင်းများသည်
-ဆက်စပ်မှု လျော့နည်းလာသည်။ `progressiveAging.ts` module သည် **အလှည့်အကွာအဝေးအလိုက် မက်ဆေ့ချ်များ၏ အသေးစိတ်အဆင့်ကို လျှော့ချသည်**-
+ကြာရှည်သော စကားဝိုင်းများသည် မက်ဆေ့ချ်အလှည့်များစွာကို စုဆောင်းမိသော်လည်း ပိုမိုဟောင်းနွမ်းသော အလှည့်များသည် အရေးပါမှု နည်းပါးလာသည်။ `progressiveAging.ts` module သည် **အလှည့်အကွာအဝေးအလိုက် မက်ဆေ့ချ်များကို လျှော့ချသည်**-
 
-- **မကြာသေးမီ အလှည့်များ (0-3)**: မူရင်းအတိုင်း ထိန်းသိမ်းထားသည် (အသေးစိတ်အပြည့်အစုံ)
-- **အလယ်အလတ် အလှည့်များ (4-8)**: Lite ချုံ့ခြင်း (နေရာလွတ်များ၊ ဖော်မတ်ပြင်ဆင်မှု)
-- **အလှည့်ဟောင်းများ (9+)**: Caveman ချုံ့ခြင်း (မလိုအပ်သော စကားလုံးများ ဖယ်ရှားခြင်း၊ အကျဉ်းချုပ်ခြင်း)
-- **အလွန်ဟောင်းသော အလှည့်များ (20+)**: အလွန်အမင်း အကျဉ်းချုပ်ခြင်း သို့မဟုတ် ဖယ်ရှားခြင်း
+- **မကြာသေးမီက အလှည့်များ (၀-၃)**: စကားလုံးအတိုင်း ထားရှိသည် (အပြည့်အစုံ အသေးစိတ်)
+- **အလယ်အလတ် အလှည့်များ (၄-၈)**: Lite ဖိသိမ်းမှု (နေရာလွတ်များ၊ ပုံစံချခြင်း သန့်ရှင်းရေး)
+- **ဟောင်းနွမ်းသော အလှည့်များ (၉+)**: Caveman ဖိသိမ်းမှု (ဖြည့်စွက်စာများ ဖယ်ရှားခြင်း၊ အကျဉ်းချုပ်ခြင်း)
+- **အလွန်ဟောင်းနွမ်းသော အလှည့်များ (၂၀+)**: အလွန်အကျဉ်းချုပ်ခြင်း သို့မဟုတ် ဖယ်ရှားခြင်း
 
-#### ကုဒ်နမူနာ
+#### Code ဥပမာ
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
@@ -388,46 +371,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... နောက်ထပ် အလှည့် ၅၀ ...
+  // ... 50 more turns ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // ပထမအလှည့် ၃ ခု- မူရင်းအတိုင်း
-  light: 8, // အလှည့် ၄-၈- lite ချုံ့ခြင်း
-  moderate: 20, // အလှည့် ၉-၂၀- caveman ချုံ့ခြင်း
-  // အလှည့် ၂၁ နှင့်အထက်- အလွန်အမင်း အကျဉ်းချုပ်ခြင်း
+  verbatim: 3, // ပထမ ၃ အလှည့်: စကားလုံးအတိုင်း
+  light: 8, // အလှည့် ၄-၈: lite ဖိသိမ်းမှု
+  moderate: 20, // အလှည့် ၉-၂၀: caveman ဖိသိမ်းမှု
+  // အလှည့် ၂၁+: အလွန်အကျဉ်းချုပ်ခြင်း
 });
 
-// saved = ချွေတာနိုင်ခဲ့သော တိုကင်အရေအတွက်
+// saved = သိမ်းဆည်းထားသော tokens အရေအတွက်
 ```
 
-#### အသုံးပြုရမည့်အချိန်
+#### မည်သည့်အချိန်တွင် အသုံးပြုရမည်နည်း။
 
-တဖြည်းဖြည်း အဟောင်းပြောင်းခြင်းသည် `aggressive` နှင့် `ultra` မုဒ်များအတွက် **အမြဲတမ်း ဖွင့်ထားသည်**။ အောက်ပါအခြေအနေများတွင် အထူးထိရောက်သည်-
+Progressive aging သည် `aggressive` နှင့် `ultra` မုဒ်များအတွက် **အမြဲတမ်း ဖွင့်ထားသည်**။ ၎င်းသည် အောက်ပါတို့အတွက် အထူးထိရောက်သည်။
 
-- အချိန်ကြာမြင့်စွာ လုပ်ဆောင်သည့် ကုဒ်ရေးသားမှု session များ
-- ရက်ပေါင်းများစွာ ကြာမြင့်သည့် စကားဝိုင်းများ
-- tool call များစွာပါဝင်သည့် agentic workflow များ
+- ကြာရှည်စွာ လုပ်ဆောင်နေသော coding sessions များ
+- ရက်ပေါင်းများစွာ ကြာမြင့်သော စကားဝိုင်းများ
+- ကိရိယာခေါ်ဆိုမှုများစွာပါရှိသော Agentic workflows များ
 
 ### Caveman Output မုဒ်
 
-`outputMode.ts` module သည် model ကိုယ်တိုင်က ချုံ့ထားပြီး တိုတောင်းသော output (“caveman” ပုံစံ) ထုတ်လုပ်စေရန် **system prompt ညွှန်ကြားချက်များ** ကို ထည့်သွင်းပေးသည်။
+`outputMode.ts` module သည် မော်ဒယ်ကိုယ်တိုင် ဖိသိမ်းထားသော၊ တိုတောင်းသော output ( "caveman" ပုံစံ) ကို ထုတ်လုပ်ရန်အတွက် **system prompt ညွှန်ကြားချက်များ** ကို ထည့်သွင်းသည်။
 
-#### အလုပ်လုပ်ပုံ
+#### ၎င်းမည်သို့အလုပ်လုပ်သနည်း
 
-input ကို ချုံ့မည့်အစား ဤမုဒ်သည် အောက်ပါကဲ့သို့ system prompt တစ်ခုကို ထည့်သွင်းသည်-
+input ကို ဖိသိမ်းမည့်အစား ဤမုဒ်သည် အောက်ပါကဲ့သို့သော system prompt ကို ထည့်သွင်းသည်။
 
-> "စကားလုံးအနည်းဆုံးဖြင့် ဖြေပါ။ ယဉ်ကျေးသော စကားများကို ချန်လှပ်ပါ။ ဝါကျတိုများကို အသုံးပြုပါ။"
+> "စကားလုံးအနည်းဆုံးဖြင့် ပြန်ဖြေပါ။ ချစ်ခင်စကားများကို ကျော်သွားပါ။ ဝါကျတိုများကို အသုံးပြုပါ။"
 
-၎င်းသည် အောက်ပါကိစ္စများတွင် အထူးကောင်းမွန်စွာ အလုပ်လုပ်သည်-
+၎င်းသည် အောက်ပါတို့အတွက် အထူးကောင်းမွန်သည်။
 
-- ကုဒ်ထုတ်လုပ်ခြင်း (ပိုတိုသော output = token ပိုနည်းခြင်း)
-- အမြန် အမေးအဖြေ (အသေးစိတ် ရှင်းလင်းချက်များ မလိုအပ်ခြင်း)
-- Batch processing (throughput ကို အများဆုံးဖြစ်စေခြင်း)
+- Code ထုတ်လုပ်ခြင်း (ပိုမိုတိုတောင်းသော output = tokens နည်းပါးခြင်း)
+- အမြန် Q&A (အသေးစိတ်ရှင်းပြရန် မလိုအပ်ပါ)
+- Batch processing (throughput ကို အမြင့်ဆုံးမြှင့်တင်ပါ)
 
-#### အသုံးပြုသင့်သည့်အချိန်
+#### မည်သည့်အချိန်တွင် အသုံးပြုရမည်နည်း။
 
-Caveman output မုဒ်သည် **opt-in** ဖြစ်သည် — combo config မှတစ်ဆင့် သတ်မှတ်ပါ-
+Caveman output မုဒ်သည် **ရွေးချယ်နိုင်သည်** — ၎င်းကို combo config မှတဆင့် သတ်မှတ်ပါ။
 
 ```json
 {
@@ -440,27 +423,37 @@ Caveman output မုဒ်သည် **opt-in** ဖြစ်သည် — combo 
 }
 ```
 
-### Output ပုံစံများ (ကတ်တလောက်)
+### Output ပုံစံများ (catalog)
 
-အထက်ပါ Caveman output မုဒ်သည် **ယခင် single-style လမ်းကြောင်း** ဖြစ်သည်။ Phase 4 တွင် ၎င်းကို ပေါင်းစပ်အသုံးပြုနိုင်သော output ပုံစံများ၏ ကတ်တလောက်အဖြစ် ယေဘုယျပြုခဲ့သည်- `open-sse/services/compression/outputStyles/catalog.ts` ရှိ `OUTPUT_STYLE_CATALOG` ဖြစ်သည်။ ပုံစံတစ်ခုစီသည် model ကိုယ်တိုင်က ကုန်ကျစရိတ်ပိုသက်သာသော output ထုတ်လုပ်စေသည့် system-prompt ညွှန်ကြားချက်တစ်ခုဖြစ်ပြီး၊ ပုံစံများကို အတူတကွ ဖွင့်နိုင်ကာ ကတ်တလောက်အစီအစဉ်အတိုင်း ထည့်သွင်းသည်။
+အထက်ပါ Caveman output မုဒ်သည် **အမွေအနှစ် တစ်ခုတည်းသော ပုံစံလမ်းကြောင်း** ဖြစ်သည်။ Phase 4 သည် ၎င်းကို ပေါင်းစပ်နိုင်သော output ပုံစံများ၏ catalog အဖြစ် အထွေထွေပြုလုပ်ခဲ့သည်- `open-sse/services/compression/outputStyles/catalog.ts` ရှိ `OUTPUT_STYLE_CATALOG`။ ပုံစံတစ်ခုစီသည် မော်ဒယ်ကိုယ်တိုင် ပိုမိုစျေးသက်သာသော output ကို ထုတ်လုပ်စေသည့် system-prompt ညွှန်ကြားချက်တစ်ခုဖြစ်သည်။ ပုံစံများကို အတူတကွ ဖွင့်နိုင်ပြီး catalog အစီအစဉ်အတိုင်း ထည့်သွင်းသည်။
 
-| ပုံစံ                                                | `id`          | လုပ်ဆောင်ချက်                                                                                                                                                                                                                                                                       | ညွှန်ကြားချက် ဘာသာစကားများ                                                                         |
-| ---------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| တိုတောင်းသော စကားပြေ                                 | `terse-prose` | မလိုအပ်သော စကားလုံးများ/articles/မသေချာသလို ပြောဆိုမှုများကို ဖယ်ရှားပြီး နည်းပညာဆိုင်ရာ အနှစ်သာရကို တိကျစွာ ထိန်းသိမ်းသည်။ ယခင် caveman output မုဒ်နှင့် စာသားတူညီသည် (ပြန်ရိုက်မရေးဘဲ ရည်ညွှန်းထားသည်)။                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                      |
-| ကုဒ်ပိုနည်းခြင်း                                     | `less-code`   | YAGNI အဆင့်ဆင့်နည်းလမ်း- အလုပ်လုပ်နိုင်သည့် အနည်းဆုံးပြောင်းလဲမှု၊ မတောင်းဆိုထားသည့် abstraction များမပါဝင်ခြင်း။                                                                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                      |
-| Ponytail (အပျင်းထူသော ဝါရင့် developer)              | `ponytail`    | "အကောင်းဆုံးကုဒ်သည် ဘယ်တော့မှ မရေးခဲ့သောကုဒ်ဖြစ်သည်"- ပြန်ရေးခြင်းထက် ပြန်လည်အသုံးပြုခြင်း၊ လက္ခဏာထက် အရင်းခံအကြောင်းရင်း၊ အလုပ်လုပ်နိုင်သည့် အတိုဆုံး diff။                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                      |
-| ကျွန်ုပ်တွင် ADHD ရှိသည် (လုပ်ဆောင်ချက်ကို ဦးစားပေး) | `i-have-adhd` | လုပ်ဆောင်ချက်ကို ဦးစွာပြခြင်း (စကားပြေမတိုင်မီ command/path/snippet)၊ နံပါတ်စဉ်တပ်ထားသော အကန့်အသတ်ရှိသည့် အဆင့်များ၊ တိကျသော နောက်အဆင့် တစ်ခုတည်း၊ နိဒါန်း/အကျဉ်းချုပ်/အပိတ်စကား မပါဝင်ခြင်း။ [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) မှ ပြုပြင်ယူထားသည်။ | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                      |
-| တိုတောင်းသော CJK (文言)                              | `terse-cjk`   | ရှေးဟောင်းတရုတ်စာပေစတိုင် အလွန်တိုတောင်းသော ပုံစံ။                                                                                                                                                                                                                                  | zh (locale အလိုက် ကန့်သတ်ထားသည်- ဖြေရှင်းသတ်မှတ်ထားသော ဘာသာစကားသည် `zh` ဖြစ်သည့်အခါမှသာ ပေးထားသည်) |
+| ပုံစံ                                             | `id`          | ၎င်းလုပ်ဆောင်သည်                                                                                                                                                                                                                                            | ညွှန်ကြားချက် ဘာသာစကားများ                                          |
+| ------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| တိုတောင်းသော စကားပြေ                              | `terse-prose` | ဖြည့်စွက်စာများ/ဆောင်းပါးများ/ကာကွယ်မှုများကို ဖယ်ရှားပါ။ နည်းပညာဆိုင်ရာ အနှစ်သာရကို တိကျစွာ ထိန်းသိမ်းပါ။ အမွေအနှစ် caveman output mode (ကိုးကားထားသည်၊ ပြန်မရိုက်ပါ) နှင့် တူညီသော စာသား။                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| ကုဒ်နည်းပါးခြင်း                                  | `less-code`   | YAGNI လှေကား- အသေးငယ်ဆုံး လုပ်ဆောင်နိုင်သော ပြောင်းလဲမှု၊ တောင်းဆိုမထားသော abstraction များ မရှိပါ။                                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| မြင်းမြီး (ပျင်းရိသော အကြီးတန်း dev)              | `ponytail`    | "အကောင်းဆုံး ကုဒ်သည် ဘယ်တော့မှ မရေးထားသော ကုဒ်ဖြစ်သည်"- ပြန်လည်အသုံးပြုခြင်း > ပြန်လည်ရေးသားခြင်း၊ အရင်းခံအကြောင်းရင်း > ရောဂါလက္ခဏာ၊ အတိုဆုံး လုပ်ဆောင်နိုင်သော ကွာခြားချက်။                                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| ကျွန်ုပ်တွင် ADHD ရှိသည် (လုပ်ဆောင်ချက်-ဦးစားပေး) | `i-have-adhd` | လုပ်ဆောင်ချက် ဦးစားပေး (command/path/snippet ကို စကားပြေမတိုင်မီ)၊ နံပါတ်တပ်ထားသော အဆင့်များ၊ တိကျသော နောက်တစ်ဆင့်၊ နိဒါန်း/ပြန်လည်သုံးသပ်ခြင်း/ပိတ်ခြင်းများ မရှိပါ။ [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) မှ ပြောင်းလဲထားသည်။ | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
+| တိုတောင်းသော CJK (文言)                           | `terse-cjk`   | ဂန္ထဝင်-တရုတ် အလွန်တိုတောင်းသော ပုံစံ။                                                                                                                                                                                                                      | zh (locale-gated: ဖြေရှင်းပြီးသော ဘာသာစကားသည် `zh` ဖြစ်မှသာ ပေးသည်) |
 
-ပုံစံတိုင်းတွင် `lite`၊ `full`၊ `ultra` ဟူသော ပြင်းအားအဆင့်သုံးခု ပါဝင်ပြီး အဆင့်တိုင်းသည် မျှဝေထားသော နယ်နိမိတ်ဆိုင်ရာ အပိုဒ်ဖြင့် အဆုံးသတ်သည်။ ၎င်းအပိုဒ်သည် code block များ၊ file path များ၊ command များ၊ error string များ၊ URL များနှင့် identifier များကို မူရင်းအတိုင်း ထိန်းသိမ်းပေးသည်။
+ပုံစံတိုင်းတွင် ပြင်းအားအဆင့်သုံးဆင့် — `lite`၊ `full`၊ `ultra` — ပါရှိပြီး အဆင့်တိုင်း
+သည် မျှဝေထားသော နယ်နိမိတ်အပိုဒ်ဖြင့် အဆုံးသတ်သည်။ ၎င်းသည် ကုဒ်ဘလော့များ၊ ဖိုင်လမ်းကြောင်းများ၊
+command များ၊ အမှား string များ၊ URL များနှင့် identifier များကို မူရင်းအတိုင်း ထိန်းသိမ်းထားသည်။
 
-#### ထည့်သွင်းပုံ
+#### ထိုးသွင်းမှု မည်သို့လုပ်ဆောင်သနည်း
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) သည် ရွေးချယ်မှုကို ကတ်တလောက်နှင့် ကိုက်ညီအောင် ဖြေရှင်းသည် (မသိသော id များနှင့် locale မကိုက်ညီသော ပုံစံများကို ဖယ်ရှားပြီး error အဖြစ် ဘယ်တော့မှ မသတ်မှတ်ပါ)၊ ရွေးချယ်ထားသော ညွှန်ကြားချက်များကို ကတ်တလောက်အစီအစဉ်အတိုင်း ဆက်စပ်ပေးသည်၊ နယ်နိမိတ်ဆိုင်ရာ အပိုဒ်ကို **တစ်ကြိမ်သာ** ဖြည့်စွက်ပြီး ရလဒ်ကို idempotency marker တစ်ခုတည်း (`[OmniRoute Output Styles]`) ၏နောက်တွင် system prompt ၏ ရှေ့ပိုင်းသို့ ထည့်သွင်းသည် — ထပ်မံအသုံးချခြင်းသည် မည်သည့်ပြောင်းလဲမှုမျှ မဖြစ်စေပါ။ ရှာဖွေသတ်မှတ်ထားသော request ဘာသာစကားအတွက် ဘာသာပြန်ရှိပါက အင်္ဂလိပ်ညွှန်ကြားချက်အစား ဒေသသုံးဘာသာဖြင့် ပြန်ဆိုထားသော ညွှန်ကြားချက်ကို ထည့်သွင်းသည်။
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) သည်
+ရွေးချယ်မှုကို catalog နှင့် ဖြေရှင်းသည် (မသိသော id များနှင့် locale-မကိုက်ညီသော ပုံစံများကို
+ဖယ်ရှားသည်၊ အမှားအယွင်းမရှိပါ)၊ ရွေးချယ်ထားသော ညွှန်ကြားချက်များကို catalog အစီအစဉ်အတိုင်း
+ပေါင်းစပ်သည်၊ နယ်နိမိတ်အပိုဒ်ကို **တစ်ကြိမ်** ထည့်သွင်းသည်၊ ထို့နောက် ရလဒ်ကို system
+prompt ၏ရှေ့တွင် တစ်ခုတည်းသော idempotency marker (`[OmniRoute Output Styles]`) နောက်တွင်
+ထည့်သွင်းသည် — ပြန်လည်အသုံးပြုခြင်းသည် no-op ဖြစ်သည်။ ရှာဖွေတွေ့ရှိထားသော တောင်းဆိုမှုဘာသာစကားတွင်
+ဘာသာပြန်တစ်ခုရှိပါက၊ ဒေသခံညွှန်ကြားချက်ကို အင်္ဂလိပ်အစား ထိုးသွင်းသည်။
 
-#### ဖွင့်နည်း
+#### မည်သို့ဖွင့်ရမည်နည်း
 
-dashboard တွင်- **Context → Settings → Compression** — ပုံစံတစ်ခုစီအတွက် on/off toggle နှင့် level selector ပါဝင်သော row တစ်ခုစီရှိသည်။ Programmatic နည်းဖြင့် compression config သည် ရွေးချယ်မှုကို အောက်ပါအတိုင်း သိမ်းဆည်းသည်-
+ဒက်ရှ်ဘုတ်တွင်- **Context → Settings → Compression** — ပုံစံတစ်ခုစီအတွက် on/off toggle နှင့်
+level selector ပါသော တစ်တန်းစီ။ ပရိုဂရမ်အရ၊ compression config သည် ရွေးချယ်မှုကို
+အောက်ပါအတိုင်း ထိန်းသိမ်းသည်-
 
 ```json
 {
@@ -471,46 +464,58 @@ dashboard တွင်- **Context → Settings → Compression** — ပုံ�
 }
 ```
 
-နောက်ပြန်လိုက်ဖက်ညီမှု- ယခင် `outputMode: "caveman"` combo setting သည် ဆက်လက်အလုပ်လုပ်ပြီး `terse-prose` သို့ ချိတ်ဆက်ပေးသည်။ ယခင်ဘာသာစကားတိုင်းရှိ အဟောင်း injection နှင့် byte အလိုက် တစ်ထပ်တည်းတူညီသည်။
+Back-compat- အမွေအနှစ် `outputMode: "caveman"` combo setting သည် အလုပ်လုပ်နေဆဲဖြစ်ပြီး
+`terse-prose` သို့ မြေပုံဆွဲသည်။ ၎င်းသည် အမွေအနှစ်ဘာသာစကားတိုင်းတွင် အဟောင်းထိုးသွင်းမှုနှင့်
+byte-တူညီသည်။
 
-ဘာသာစကားရွေးချယ်မှု- `languageConfig.enabled` ကို ဖွင့်ထားပါက `autoDetect` သည် နောက်ဆုံး user message ၏ ဘာသာစကားကို ရွေးချယ်သည် (input engine များနှင့် detector တူညီသည်)။ `autoDetect` ကို ပိတ်လိုက်ပါက `defaultLanguage` ကို ပုံသေသတ်မှတ်သည်။ ပိတ်ထားလျှင် → အင်္ဂလိပ်။
+ဘာသာစကားရွေးချယ်မှု- `languageConfig.enabled` ကို ဖွင့်ထားပါက၊ `autoDetect` သည်
+နောက်ဆုံးအသုံးပြုသူမက်ဆေ့ဂျ်၏ ဘာသာစကားကို ရွေးချယ်သည် (input engine များနှင့် တူညီသော detector)၊
+`autoDetect` ကို ပိတ်လိုက်ပါက `defaultLanguage` ကို သတ်မှတ်သည်။ ပိတ်ထားပါက → အင်္ဂလိပ်။
 
-ပုံစံ × ဘာသာစကား matrix ကို `tests/unit/compression/output-styles-i18n-matrix.test.ts` ဖြင့် ပုံသေထိန်းချုပ်ထားသည်- ပုံစံအသစ်တစ်ခုတွင် အနည်းဆုံး pt-BR ဘာသာပြန်တစ်ခု (သို့မဟုတ် အတိအလင်း မှတ်တမ်းတင်ခြေရာခံထားသော ခြွင်းချက်တစ်ခု) မပါဘဲ ထုတ်ဝေ၍မရသကဲ့သို့ ရှိပြီးသားပုံစံတစ်ခုသည် locale တစ်ခုကို အသိမပေးဘဲ ဖယ်ရှား၍မရပါ။ ပုံစံတစ်ခု ထည့်သွင်းရန် [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) ကို ကြည့်ပါ။
+ပုံစံ × ဘာသာစကား matrix ကို
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` ဖြင့် သတ်မှတ်ထားသည်- ပုံစံအသစ်တစ်ခုသည်
+အနည်းဆုံး pt-BR ဘာသာပြန် (သို့မဟုတ် ရှင်းလင်းစွာ ခြေရာခံထားသော ချွင်းချက်) မပါဘဲ ထုတ်လုပ်၍မရပါ၊
+ရှိပြီးသားပုံစံတစ်ခုသည် locale တစ်ခုကို တိတ်တဆိတ် ဆုံးရှုံး၍မရပါ။ ပုံစံတစ်ခုထည့်ရန်၊
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) ကို ကြည့်ပါ။
 
-### Tool Result ချုံ့ခြင်း
+### Tool Result Compression
 
-`toolResultCompressor.ts` module သည် tool result များ (function call များ၊ agent output များ၊ ရှာဖွေမှုရလဒ်များ စသည်) အတွက် **အထူးပြု compression strategy ၅ မျိုး** ကို ပံ့ပိုးသည်-
+`toolResultCompressor.ts` module သည် tool result များ (function call များ၊ agent output များ၊
+search result များ စသည်ဖြင့်) အတွက် **အထူးပြု compression strategy ၅ ခု** ကို ပံ့ပိုးပေးသည်-
 
-1. **ရှာဖွေမှုရလဒ် ချုံ့ခြင်း** — ထပ်နေသောရလဒ်များကို ဖယ်ရှားပြီး ထိပ်ဆုံး N ခုကို ထိန်းသိမ်းသည်
-2. **ဖိုင်ဖတ်ရှုမှု ချုံ့ခြင်း** — ကြီးမားသောဖိုင်များကို ဖြတ်တောက်ပြီး header/import များကို ထိန်းသိမ်းသည်
-3. **ကုဒ်လုပ်ဆောင်မှု ချုံ့ခြင်း** — မရှိမဖြစ်လိုအပ်သော stdout/stderr ကိုသာ ထိန်းသိမ်းသည်
-4. **Database query ချုံ့ခြင်း** — row အရေအတွက်ကို ကန့်သတ်ပြီး ရှည်လျားသော metadata ကို ဖယ်ရှားသည်
-5. **API response ချုံ့ခြင်း** — null field များကို ဖယ်ရှားပြီး array များကို ကျစ်လျစ်စေသည်
+1. **Search result compression** — ထပ်နေသော ရလဒ်များကို ဖယ်ရှားသည်၊ ထိပ်တန်း-N ကို ထိန်းသိမ်းသည်
+2. **File read compression** — ဖိုင်ကြီးများကို ဖြတ်တောက်သည်၊ header/import များကို ထိန်းသိမ်းသည်
+3. **Code execution compression** — မရှိမဖြစ်လိုအပ်သော stdout/stderr ကိုသာ ထိန်းသိမ်းသည်
+4. **Database query compression** — တန်းများကို ကန့်သတ်သည်၊ အသေးစိတ် metadata များကို ဖယ်ရှားသည်
+5. **API response compression** — null field များကို ဖယ်ရှားသည်၊ array များကို ကျစ်လျစ်စေသည်
 
-#### အသုံးပြုသင့်သည့်အချိန်
+#### မည်သည့်အချိန်တွင် အသုံးပြုရမည်နည်း
 
-tool call များ ပါဝင်သည့်အခါ Tool result compression ကို **အမြဲတမ်း ဖွင့်ထားသည်**။ Configuration ပြုလုပ်ရန် မလိုအပ်ပါ။
+Tool call များရှိနေပါက Tool result compression သည် **အမြဲတမ်း ဖွင့်ထားသည်**။
+configuration မလိုအပ်ပါ။
 
 ### Stacked Pipeline
 
-stacked မုဒ်သည် **engine အများအပြားကို အစဉ်လိုက်** လုပ်ဆောင်သည် — ပုံမှန်အားဖြင့် RTK ကို ဦးစွာအသုံးပြုသည် (tool output တွင် 60-90% ချွေတာမှု)၊ ထို့နောက် Caveman ကို အသုံးပြုသည် (ကျန်ရှိသောစာသားတွင် နောက်ထပ် 30% ချွေတာမှု)။ ဤနည်းဖြင့် **စုစုပေါင်း 78-95% ချွေတာမှု** ရရှိသည်။
+stacked mode သည် **အင်ဂျင်များစွာကို အစီအစဉ်အတိုင်း** လုပ်ဆောင်သည် — များသောအားဖြင့် RTK ကို
+ဦးစွာ (tool output တွင် 60-90% သက်သာသည်)၊ ထို့နောက် Caveman (ကျန်ရှိသော စာသားတွင် 30% ထပ်ဆောင်းသက်သာသည်)။
+၎င်းသည် **စုစုပေါင်း 78-95% သက်သာမှု** ကို ရရှိစေသည်။
 
-#### အလုပ်လုပ်ပုံ
+#### မည်သို့လုပ်ဆောင်သနည်း
 
 ```
 Input (1000 tokens)
-  → RTK (command ကို နားလည်သည့် filter) → 200 tokens
-    → Caveman (မလိုအပ်သော စကားလုံးများ ဖယ်ရှားခြင်း) → 140 tokens
-  → Output (140 tokens၊ 86% ချွေတာမှု)
+  → RTK (command-aware filter) → 200 tokens
+    → Caveman (filler removal) → 140 tokens
+  → Output (140 tokens, 86% savings)
 ```
 
-#### အသုံးပြုသင့်သည့်အချိန်
+#### မည်သည့်အချိန်တွင် အသုံးပြုရမည်နည်း
 
-အောက်ပါကိစ္စများအတွက် stacked မုဒ်ကို အသုံးပြုပါ-
+stacked mode ကို အောက်ပါတို့အတွက် အသုံးပြုပါ-
 
-- Tool အသုံးပြုမှုများသော workflow များ (agentic coding၊ သုတေသန)
-- ကုန်ကျစရိတ်အရေးကြီးသော batch processing
-- token ချွေတာမှုကို အများဆုံးလိုအပ်သည့်အခါ
+- Tool-heavy workflow များ (agentic coding, research)
+- ကုန်ကျစရိတ်သက်သာသော batch processing
+- အများဆုံး token သက်သာမှု လိုအပ်သည့်အခါ
 
 combo မှတစ်ဆင့် configure လုပ်ပါ-
 

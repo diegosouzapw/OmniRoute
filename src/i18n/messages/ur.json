@@ -3443,7 +3443,9 @@
       "setRetryDelayMs": "سیٹ لیول کی دوبارہ کوشش کی کوششوں کے درمیان تاخیر، عارضی مسائل کو حل کرنے کا وقت دیتا ہے۔",
       "targetTimeoutMs": "ہر ہدف کے لیے اختیاری ٹائم آؤٹ۔ خالی چھوڑنے پر موجودہ درخواست کا ٹائم آؤٹ وراثت میں ملتا ہے؛ بڑی اقدار اسی ٹائم آؤٹ تک محدود کر دی جاتی ہیں۔",
       "comboTimeoutMs": "تمام فیل اوور اہداف کے لیے پورے کومبو کا اختیاری مجموعی دورانیہ۔ خالی چھوڑنے پر 10 منٹ کا ہینگ-اسٹاپ برقرار رہتا ہے؛ مثبت قدر اسے بدل دیتی ہے۔ اسے ہدف کے ٹائم آؤٹ سے زیادہ رکھیں تاکہ فیل اوور کے لیے وقت باقی رہے۔",
-      "disableSessionStickiness": "پہلے پیغام کے ہیش کے ذریعے پوری گفتگو کو ایک کنکشن پر پن کرنے کے بجائے ہر درخواست پر ایک مختلف کنکشن پر روٹیٹ کریں۔ یہ گلوبل ڈیفالٹ کو اوور رائیڈ کرتا ہے۔ ملٹی ٹرن چیٹس کے لیے پرامپٹ کیش ہٹس کو برقرار رکھنے کے لیے اسے Inherit پر چھوڑیں۔"
+      "disableSessionStickiness": "پہلے پیغام کے ہیش کے ذریعے پوری گفتگو کو ایک کنکشن پر پن کرنے کے بجائے ہر درخواست پر ایک مختلف کنکشن پر روٹیٹ کریں۔ یہ گلوبل ڈیفالٹ کو اوور رائیڈ کرتا ہے۔ ملٹی ٹرن چیٹس کے لیے پرامپٹ کیش ہٹس کو برقرار رکھنے کے لیے اسے Inherit پر چھوڑیں۔",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "فوری ٹیمپلیٹس",
     "templatesDescription": "ابتدائی پروفائل لاگو کریں، پھر ماڈلز اور کنفیگریشن کو ایڈجسٹ کریں۔",
@@ -3797,7 +3799,16 @@
     "duplicateAutoComboSnapshotMsg": "یہ اس ٹیمپلیٹ سے ملنے والے موجودہ منسلک فراہم کنندگان/ماڈلز کو ایڈیٹ ایبل کمبو میں اسنیپ شاট لے گا۔",
     "duplicateAutoComboFailedPrefix": "آٹو کمبو ڈپلیکیٹ کرنے میں ناکام:",
     "duplicateAutoComboUnknownError": "نامعلوم خرابی",
-    "duplicateAutoComboTitle": "{name} سے ایک جامد کمبو بنائیں"
+    "duplicateAutoComboTitle": "{name} سے ایک جامد کمبو بنائیں",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "اخراجات",
@@ -5018,6 +5029,8 @@
     "failedSetPassword": "پاس ورڈ مقرر نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔",
     "failedAddProvider": "فراہم کنندہ شامل نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔",
     "connectionError": "کنکشن میں خرابی۔ براہِ کرم دوبارہ کوشش کریں۔",
+    "bootstrapTokenLabel": "بوٹ اسٹریپ ٹوکن",
+    "bootstrapTokenHelp": "اس کنکشن کو مقامی کنکشن کے طور پر شناخت نہیں کیا گیا (Docker پورٹ فارورڈنگ کے پیچھے ایسا عام طور پر ہوتا ہے)۔ جاری رکھنے کے لیے سرور/کنٹینر لاگ میں ایک بار استعمال ہونے والا بوٹ اسٹریپ ٹوکن تلاش کریں اور اسے اوپر چسپاں کریں۔",
     "provider": "فراہم کنندہ",
     "apiKeyHelp": "ایک API کلید AI خدمات کے لیے ایک پاس ورڈ ہے۔ اپنے فراہم کنندہ کی ویب سائٹ سے ایک حاصل کریں (جیسے، platform.openai.com، console.anthropic.com)۔",
     "tier": {
@@ -5061,6 +5074,11 @@
     }
   },
   "providers": {
+    "codexReleaseCooldown": "Clear local cooldown",
+    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleasingCooldown": "Clearing…",
+    "codexCooldownReleased": "Local cooldown cleared.",
+    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
     "title": "فراہم کنندگان",
     "Account Deactivated": "اکاؤنٹ غیر فعال کر دیا گیا",
     "allProviders": "تمام فراہم کنندگان",
@@ -6285,7 +6303,6 @@
       "stability-ai": "Stability AI کو ایک API key کے ساتھ منسلک کریں۔",
       "stepfun": "platform.stepfun.com پر API key حاصل کریں",
       "sumopod": "SumoPod ایک OpenAI سے ہم آہنگ چیٹ کمپلیشنز اینڈ پوائنٹ https://ai.sumopod.com/v1/chat/completions پر فراہم کرتا ہے، اور ساتھ ہی ایک لائیو /v1/models کیٹلاگ بھی۔ OmniRoute، OpenAI پروٹوکول استعمال کرتا ہے اور passthrough کے ذریعے ماڈلز کی فہرست بناتا ہے۔",
-      "suno": "suno.ai سے سیشن کوکی (Clerk auth) پیسٹ کریں",
       "synthetic": "Synthetic کو ایک API key کے ساتھ منسلک کریں۔",
       "tencent": "console.cloud.tencent.com پر API key حاصل کریں",
       "thebai": "TheB.AI OpenAI سے ہم آہنگ گیٹ وے کے لیے Bearer API key۔",
@@ -11015,6 +11032,9 @@
     "poolEgressObservation": "{connections, plural, one {# کنکشن} other {# کنکشنز}} کے زیرِ استعمال {exits, plural, one {# اخراج} other {# اخراج}} · ایک اخراج پر زیادہ سے زیادہ {max} · گزشتہ {hours} گھنٹے",
     "poolEgressObservationEmpty": "گزشتہ {hours} گھنٹوں میں کوئی ٹریفک نہیں دیکھی گئی",
     "poolEgressObservationHint": "اس دورانیے کے لیے پراکسی لاگ سے شمار کیا گیا: اس پول کے اراکین کے لیے دیکھے گئے منفرد اخراجی IPs، اور انہیں استعمال کرنے والے OmniRoute کنکشنز۔ \"ایک اخراج پر\" سے مراد پورا دورانیہ ہے، ایک ہی وقت نہیں۔ فی IP 429 لاک آؤٹ صرف فراہم کنندگان کے اسی گروپ کے کنکشنز کو عارضی طور پر روکتا ہے۔",
+    "poolMemberEgress": "{host}:{port} سے {egressIp} کے ذریعے اخراج ہوا · گزشتہ {hours} گھنٹے",
+    "poolMemberEgressEmpty": "{host}:{port}: گزشتہ {hours} گھنٹوں میں کوئی ٹریفک مشاہدہ نہیں ہوا",
+    "poolMemberEgressHint": "اس دورانیے میں اس پول رکن کے ذریعے مشاہدہ کیا گیا آخری ایگریس IP، جو پراکسی لاگ سے پڑھا گیا۔ دورانیے میں کوئی ٹریفک نہ رکھنے والے رکن کے لیے بغیر ٹریفک والی سطر دکھائی جاتی ہے۔",
     "poolRemove": "ہٹائیں",
     "poolRemoveFailed": "پول سے پروکسی کو ہٹانے میں ناکامی",
     "poolAddLabel": "ایک پروکسی شامل کریں",
@@ -12217,6 +12237,29 @@
     "raw": "خام"
   },
   "cliCommon": {
+    "companion": {
+      "title": "CLI معاون",
+      "intro": "اپنی CLI والے کمپیوٹر پر چلانے کے لیے احکامات کاپی کریں۔ یہ پینل احکامات نہیں چلاتا اور نہ ہی تصدیقی معلومات کاپی کرتا ہے۔",
+      "hostNotice": "کھوج OmniRoute سرور کے میزبان کی معلومات دیتی ہے، اس براؤزر کے کمپیوٹر کی نہیں۔ ترتیب دیا جانا اس بات کا ثبوت نہیں کہ ماڈل چلا کر آزمایا گیا ہے۔",
+      "target": "CLI آلہ",
+      "context": "موجودہ سیاق کا نام (اختیاری)",
+      "contextHint": "CLI کا فعال سیاق استعمال کرنے کے لیے خالی چھوڑ دیں۔ نام والے سیاق مقامی یا دور کے سرور کی طرف اشارہ کر سکتے ہیں؛ پہلے ٹرمینل میں ان کی فہرست دیکھیں۔",
+      "contextInvalid": "حرف یا ہندسے سے شروع ہونے والے ۱–۶۴ حروف، ہندسے، نقطے، ہائفن یا انڈراسکور استعمال کریں۔",
+      "modelHint": "اس CLI کے لیے ماڈل درکار ہے۔ اجرا کا پیش منظر کاپی کرنے سے پہلے اصل فراہم کنندہ/ماڈل شناخت درج کریں۔",
+      "modelInvalid": "حرف یا ہندسے سے شروع ہونے والی ماڈل شناخت استعمال کریں جس میں خالی جگہ یا شیل کے حروف نہ ہوں۔",
+      "runtime": "اجرا کا ماحول",
+      "runnable": "چلایا جا سکتا ہے",
+      "notRunnable": "نہیں چلایا جا سکتا",
+      "unknown": "نامعلوم",
+      "detectionError": "سرور کی کھوج دستیاب نہیں۔ دوبارہ کوشش کے لیے کھوج تازہ کریں؛ ٹرمینل احکامات دستیاب رہیں گے۔",
+      "contextsStep": "ٹرمینل کے سیاق دیکھیں",
+      "configureStep": "ماڈل منتخب اور ترتیب دیں",
+      "runStep": "اجرا کا پیش منظر دیکھیں",
+      "configureHint": "یہ تعاملی حکم اسی کمپیوٹر پر CLI کی ترتیب لکھتا ہے جہاں آپ اسے چلاتے ہیں۔",
+      "runHint": "آزمائشی اجرا CLI شروع کیے بغیر اجرا کا منصوبہ دکھاتا ہے۔ یہ ماڈل چلانے کا امتحان نہیں ہے۔",
+      "copyFailed": "کاپی نہیں ہو سکا۔ حکم منتخب کرکے خود کاپی کریں۔",
+      "empty": "اس ورژن میں چلنے کے قابل CLI آلات دستیاب نہیں۔ نیچے دی گئی آلات کی رہنما کتابیں استعمال کریں۔"
+    },
     "concept": {
       "code": {
         "title": "CLI کوڈ",

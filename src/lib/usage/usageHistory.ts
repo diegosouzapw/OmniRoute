@@ -32,6 +32,7 @@ import {
   maybeEnrichCompletedDetail,
   scheduleCompletedDetailCleanup,
   storeCompletedDetail,
+  getCompletedDetails,
 } from "./completedRequestDetails";
 import { shouldPersistToDisk } from "./migrations";
 import { emitUsageRecorded } from "./usageEvents";
@@ -59,6 +60,14 @@ export type PendingRequestMetadata = {
   sessionTag?: string | null;
 };
 export type PendingRequestDetail = {
+  tokens?: {
+    in: number;
+    out: number;
+    cacheRead: number | null;
+    cacheCreation: number | null;
+    reasoning: number | null;
+    compressed: number | null;
+  };
   id: string;
   model: string;
   provider: string;
@@ -79,6 +88,8 @@ export type PendingRequestDetail = {
   stageUpdatedAt?: number | null;
   correlationId?: string | null;
   sessionTag?: string | null;
+  stale?: boolean;
+  sweptAt?: number | null;
   streamChunks?: {
     provider?: string[];
     openai?: string[];
@@ -228,9 +239,11 @@ function ensurePendingSweepTimer(): void {
 }
 
 /**
- * Evicts orphaned pending-request details older than `maxAgeMs` and enforces a hard size
- * cap. Mirrors the normal removal path (decrement counters + cleanup detail buckets) so the
- * dashboard's pending counts self-heal. Exported for deterministic testing.
+ * Marks over-age pending-request details so a stuck request stays visible on the
+ * dashboard, and enforces a hard size cap. Marked entries keep their map, detail
+ * bucket and counters; only the cap path removes entries (marked first, oldest
+ * first), mirroring the normal removal path so the dashboard's pending counts
+ * self-heal. Exported for deterministic testing.
  * @returns number of entries removed.
  */
 export function sweepStalePendingRequests(
@@ -255,7 +268,11 @@ export function sweepStalePendingRequests(
   };
 
   for (const detail of pendingById.values()) {
-    if (now - detail.startedAt > maxAgeMs) remove(detail);
+    if (detail.stale) continue;
+    if (now - detail.startedAt > maxAgeMs) {
+      detail.stale = true;
+      detail.sweptAt = now;
+    }
   }
 
   // Hard backstop: if entries are still piling up faster than they age out, drop the oldest
@@ -263,7 +280,10 @@ export function sweepStalePendingRequests(
   if (pendingById.size > MAX_PENDING_DETAILS) {
     const overflow = pendingById.size - MAX_PENDING_DETAILS;
     const oldest = [...pendingById.values()]
-      .sort((a, b) => a.startedAt - b.startedAt)
+      .sort((a, b) => {
+        if (Boolean(a.stale) !== Boolean(b.stale)) return a.stale ? -1 : 1;
+        return a.startedAt - b.startedAt;
+      })
       .slice(0, overflow);
     for (const detail of oldest) remove(detail);
   }
@@ -367,7 +387,10 @@ export function trackPendingRequest(
       pendingRequests.details[connectionId][modelKey].push(newDetail);
       pendingById.set(newDetail.id, newDetail);
       if (normalizedMetadata.correlationId) {
-        pendingIdByCorrelation.set(normalizedMetadata.correlationId, { id: newDetail.id, touchedAt: now });
+        pendingIdByCorrelation.set(normalizedMetadata.correlationId, {
+          id: newDetail.id,
+          touchedAt: now,
+        });
       }
       return newDetail.id;
     } else if (!started && nextCount >= 0) {
@@ -405,6 +428,18 @@ export function updatePendingRequestById(id: string | null, metadata: PendingReq
   if (!detail) return false;
   Object.assign(detail, normalizePendingMetadata(metadata));
   return true;
+}
+
+/** Attach scalar usage to the exact attempt, even if its stream already finalized. */
+export function updateRequestTokensById(id: unknown, tokens: PendingRequestDetail["tokens"]) {
+  if (typeof id !== "string") return;
+  const pending = pendingById.get(id);
+  if (pending) {
+    pending.tokens = tokens;
+    return;
+  }
+  const completed = getCompletedDetails().get(id);
+  if (completed) storeCompletedDetail({ ...completed, tokens });
 }
 
 /**
@@ -634,8 +669,11 @@ export async function getUsageDb(sinceIso?: string | null, limit?: number, curso
       timeToFirstTokenMs: toNumber(r.ttft_ms),
       errorCode: toStringOrNull(r.error_code),
       timestamp: toStringOrNull(r.timestamp),
+      cpaAuthIndex: toStringOrNull(r.cpa_auth_index),
+      cpaAccountLabel: null as string | null,
     };
   });
+  await attachCpaAccountLabels(history);
 
   // Provide next cursor if we hit the limit (more rows exist)
   const nextCursor =
@@ -684,6 +722,8 @@ export interface UsageEntry {
   /** @deprecated legacy snake_case fallback, read only if `comboStrategy` is unset. */
   combo_strategy?: string | null;
   endpoint?: string | null;
+  /** Opaque CLIProxyAPI auth_index. Never a label, path, token, or email. */
+  cpaAuthIndex?: string | null;
 }
 
 /**
@@ -719,7 +759,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
     db.transaction(() => {
       const existing = db
         .prepare(
-          `SELECT id, endpoint FROM usage_history
+          `SELECT id, endpoint, cpa_auth_index FROM usage_history
            WHERE timestamp = ?
              AND COALESCE(provider, '')     = COALESCE(?, '')
              AND COALESCE(model, '')        = COALESCE(?, '')
@@ -731,19 +771,26 @@ export async function saveRequestUsage(entry: UsageEntry) {
         )
         .get(
           timestamp,
-          (entry.provider ? resolveProviderId(entry.provider) : null),
+          entry.provider ? resolveProviderId(entry.provider) : null,
           entry.model || null,
           entry.connectionId || null,
           entry.apiKeyId || null,
           tokensInput,
           tokensOutput
-        ) as { id: number; endpoint: string | null } | undefined;
+        ) as { id: number; endpoint: string | null; cpa_auth_index: string | null } | undefined;
 
       if (existing) {
         // Back-fill endpoint if the original row missed it.
         if (!existing.endpoint && entry.endpoint) {
           db.prepare(`UPDATE usage_history SET endpoint = ? WHERE id = ?`).run(
             entry.endpoint,
+            existing.id
+          );
+        }
+        // A later completed attempt can carry the trace the first write missed.
+        if (!existing.cpa_auth_index && entry.cpaAuthIndex) {
+          db.prepare(`UPDATE usage_history SET cpa_auth_index = ? WHERE id = ?`).run(
+            entry.cpaAuthIndex,
             existing.id
           );
         }
@@ -755,11 +802,11 @@ export async function saveRequestUsage(entry: UsageEntry) {
         INSERT INTO usage_history (provider, model, connection_id, account_key, account_label,
           account_label_priority, api_key_id, api_key_name, tokens_input, tokens_output,
           tokens_cache_read, tokens_cache_creation, tokens_reasoning, service_tier, status, success,
-          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, cpa_auth_index, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
-        (entry.provider ? resolveProviderId(entry.provider) : null),
+        entry.provider ? resolveProviderId(entry.provider) : null,
         entry.model || null,
         entry.connectionId || null,
         accountIdentity.accountKey,
@@ -784,6 +831,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         entry.errorCode || null,
         entry.comboStrategy || entry.combo_strategy || null,
         entry.endpoint || null,
+        entry.cpaAuthIndex || null,
         timestamp
       );
 
@@ -842,7 +890,7 @@ export async function getUsageHistory(filter: UsageHistoryFilter = {}) {
   sql += " ORDER BY timestamp ASC";
 
   const rows = db.prepare(sql).all(params);
-  return rows.map((row) => {
+  const history = rows.map((row) => {
     const r = asRecord(row);
     return {
       provider: toStringOrNull(r.provider),
@@ -864,8 +912,28 @@ export async function getUsageHistory(filter: UsageHistoryFilter = {}) {
       timeToFirstTokenMs: toNumber(r.ttft_ms),
       errorCode: toStringOrNull(r.error_code),
       timestamp: toStringOrNull(r.timestamp),
+      cpaAuthIndex: toStringOrNull(r.cpa_auth_index),
+      cpaAccountLabel: null as string | null,
     };
   });
+  await attachCpaAccountLabels(history);
+  return history;
+}
+
+async function attachCpaAccountLabels(
+  rows: Array<{ cpaAuthIndex: string | null; cpaAccountLabel: string | null }>
+): Promise<void> {
+  if (!rows.some((row) => row.cpaAuthIndex)) return;
+  try {
+    const { getCliproxyAccountHealth, labelForCliproxyAuthIndex } =
+      await import("@/lib/services/cliproxyAccountHealth");
+    const health = await getCliproxyAccountHealth();
+    for (const row of rows) {
+      row.cpaAccountLabel = labelForCliproxyAuthIndex(row.cpaAuthIndex, health.accounts);
+    }
+  } catch {
+    // The opaque index remains when the sanitized account-health read fails.
+  }
 }
 
 export type { ModelLatencyStatsEntry } from "./usageHistory/helpers";

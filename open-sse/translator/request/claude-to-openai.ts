@@ -502,6 +502,12 @@ function convertClaudeMessage(msg, preserveCacheControl = false) {
                   },
                 });
                 hasImage = true;
+              } else if (c.type === "image" && c.source?.type === "url" && c.source.url) {
+                // Same lift for a URL source, which the `image` case above already accepts.
+                // No scheme test here, unlike the Gemini side: OpenAI's image_url takes a
+                // `data:` URI too, which is exactly what the base64 branch above emits.
+                parts.push({ type: "image_url", image_url: { url: c.source.url } });
+                hasImage = true;
               }
             }
             resultContent =

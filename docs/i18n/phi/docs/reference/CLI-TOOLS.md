@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (Filipino)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -43,59 +43,28 @@ ACP Agents (baligtad na daloy ng paglikha):
 
 ---
 
-## Auto-configure gamit ang `setup-*`
+## Awtomatikong I-configure gamit ang `setup-*`
 
-Hindi mo kailangang isulat ang config ng bawat tool nang mano-mano. Ang OmniRoute ay nagdadala ng `setup-*`
-command para sa bawat suportadong CLI na nagbabasa ng **live** model catalog mula sa isang tumatakbong
-OmniRoute (lokal o remote) at sumusulat ng sariling config ng tool sa iyong makina:
+Hindi mo kailangang isulat nang mano-mano ang config ng bawat tool. Ang OmniRoute ay may kasamang `setup-*` command para sa bawat sinusuportahang CLI na bumabasa ng **live** na catalog ng modelo mula sa isang tumatakbong OmniRoute (lokal o remote) at isinusulat ang sariling config ng tool sa iyong makina:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Bawat isa ay tumatanggap ng `--remote <url> --api-key <key>` (i-configure ang lokal na tool laban sa
-remote OmniRoute), `--dry-run` (preview nang hindi sumusulat), at `--port`. Ang mga tool
-na walang model auto-discovery (Cline, Kilo, Roo, Goose, Aider, Qwen) ay tumatanggap
-ng `--model <id>` (at `--yes` para sa non-interactive na mga run). Upang ilunsad ang isang CLI na may
-tamang env na injected at walang config na naisulat, gamitin ang generic
-`omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
-gemini — ang mga target at alias ay nagmumula sa `bin/cli/cli-manifest.mjs`); ang legacy
-na per-tool launchers `omniroute launch` (Claude Code) at `omniroute launch-codex`
-(Codex) ay nananatiling available. Ang Gemini CLI ay launch-only: ito ay isang `omniroute run`
-target ngunit walang `setup-*`/`configure` recipe.
+Ang bawat isa ay tumatanggap ng `--remote <url> --api-key <key>` (i-configure ang isang lokal na tool laban sa isang remote na OmniRoute), `--dry-run` (preview nang hindi nagsusulat), at `--port`. Ang mga tool na walang auto-discovery ng modelo (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) ay tumatanggap ng `--model <id>` (at `--yes` para sa mga non-interactive na pagpapatakbo). Ang `setup-5dive` ang tanging recipe na hindi nagsusulat sa ilalim ng `$HOME`: kino-configure nito ang isang 5dive agent fleet sa pamamagitan ng pagsusulat ng root-owned auth profile sa fleet host, kaya ito ay muling nag-e-execute sa pamamagitan ng `sudo` at walang sariling remote mode. Upang ilunsad ang isang CLI na may tamang env na na-inject at walang config na naisulat, gamitin ang generic na `omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen, gemini — ang mga target at alias ay nagmumula sa `bin/cli/cli-manifest.mjs`); ang mga legacy na per-tool launcher na `omniroute launch` (Claude Code) at `omniroute launch-codex` (Codex) ay nananatiling available. Ang Gemini CLI ay launch-only: ito ay isang `omniroute run` target ngunit walang `setup-*`/`configure` recipe.
 
-> **Buong sanggunian:** ang master table — kung ano ang isinusulat ng bawat command, bawat flag,
-> lokal vs remote, at kung aling mga tool ang nangangailangan ng `/v1` suffix — ay matatagpuan sa
-> **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
+> **Buong reperensiya:** ang master table — kung ano ang isinusulat ng bawat command, bawat flag, lokal kumpara sa remote, at kung aling mga tool ang nangangailangan ng `/v1` suffix — ay matatagpuan sa **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
 
-### Pagtakbo ng mga ito sa loob ng isang container
+### Pagpapatakbo ng mga ito sa loob ng isang container
 
-Ang isang `setup-*` command na isinagawa sa loob ng OmniRoute container ay sumusulat sa
-sariling home ng container, na walang host CLI na nagbabasa at nawawala kasama ng
-container. Nakikita ito ng OmniRoute at lumalabas ng `2` na may mga tagubilin sa halip na
-sumulat. Dalawang suportadong paraan pasulong — i-install ang CLI sa host at
-`omniroute connect` sa container, o i-bind-mount ang mga config dir at itakda ang
-`CLI_CONFIG_HOME` (ang compose `host` profile). Bawat `setup-*` command, kasama ang
-`omniroute configure` at `omniroute config set`, ay tumatanggap ng
-`--allow-container-write` kapag ang pag-configure ng sariling CLIs ng container ang talagang
-nasa isip mo; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ay ginagawa ang parehong bagay para
-sa server. Tingnan ang
-[Docker Guide → Pag-configure ng host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Ang isang `setup-*` command na isinagawa sa loob ng OmniRoute container ay nagsusulat sa sariling home ng container, na hindi binabasa ng anumang host CLI at nawawala kasama ng container. Nakikita ito ng OmniRoute at lumalabas na may `2` na may mga instruksyon sa halip na magsulat. Dalawang sinusuportahang paraan pasulong — i-install ang CLI sa host at `omniroute connect` sa container, o i-bind-mount ang mga config dir at i-set ang `CLI_CONFIG_HOME` (ang compose `host` profile). Bawat `setup-*` command, kasama ang `omniroute configure` at `omniroute config set`, ay tumatanggap ng `--allow-container-write` kapag ang pag-configure ng sariling CLIs ng container ang talagang ibig mong sabihin; ginagawa rin ng `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ang pareho para sa server. Tingnan ang
+[Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-Ang **apply endpoint** ng dashboard (`POST /api/cli-tools/apply`) ay nagpapatupad ng
-parehong guard: sa isang container, ang isang write na ang target ay hindi bind-mounted mula sa
-host ay sumasagot ng **`422`** na may `containerEphemeralTarget: true`, ang ligtas na error
-text at — para sa mga tool na may host recipe (claude, codex, opencode, cline,
-kilo, continue) — isang `hostSetupCommand` (hal. `omniroute setup-opencode`) na patakbuhin
-sa host sa halip; walang naisusulat. Ang `dryRun: true` ay patuloy na gumagana sa container
-mode at nagbabalik ng nabuo na nilalaman + target path nang hindi humahawak sa disk, kaya
-maari mong i-preview mula sa dashboard at ilapat sa host. Ang pag-uugaling ito ay
-sinadya at naka-regress-guarded ng
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — huwag kailanman "ayusin" ang 422
-sa pamamagitan ng pagtanggal ng guard.
+Ang **apply endpoint** ng dashboard (`POST /api/cli-tools/apply`) ay nagpapatupad ng parehong proteksyon: sa isang container, ang isang pagsusulat na ang target ay hindi naka-bind-mount mula sa host ay sumasagot ng **`422`** na may `containerEphemeralTarget: true`, ang ligtas na text ng error at — para sa mga tool na may host recipe (claude, codex, opencode, cline, kilo, continue) — isang `hostSetupCommand` (hal. `omniroute setup-opencode`) upang patakbuhin sa host sa halip; walang isinusulat. Ang `dryRun: true` ay patuloy na gumagana sa container mode at nagbabalik ng isang redacted na preview + target path nang hindi hinahawakan ang disk. Ang nilalaman ng preview ay hindi isang configuration na naglalaman ng kredensyal upang kopyahin o i-import. Mag-apply gamit ang orihinal na tool/base URL/API key/model inputs sa host, o gamitin ang ipinahiwatig na host-side setup command. Tingnan ang [CLI configuration security](../security/CLI-CONFIGURATION.md) para sa preview header at request contract. Ang pag-uugaling ito ay sinadya at pinoprotektahan laban sa regression ng `tests/unit/api/cli-tools/apply-container-guard.test.ts` — huwag kailanman "ayusin" ang isang 422 sa pamamagitan ng pag-alis ng proteksyon.
 
 ---
 
@@ -138,38 +107,39 @@ isang surface nang walang iba ay nabibigo ang suite sa halip na tahimik na mag-d
 
 ## 1. Katalogo ng CLI Code (26 na tool)
 
-Lahat ng tool na lumalabas sa `/dashboard/cli-code`. Ang mga may `baseUrlSupport: none` ay nakakabit sa pamamagitan ng MITM o isang manwal na gabay sa halip na isang pasadyang base URL:
+Lahat ng tool na lumalabas sa `/dashboard/cli-code`. Ang mga may `baseUrlSupport: none` ay konektado sa pamamagitan ng MITM o isang manual na gabay sa halip na isang custom na base URL:
 
-| id           | pangalan                | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | pangalan                | vendor                  | suporta sa baseUrl | uri ng config  | acpSpawnable |
+| ------------ | ----------------------- | ----------------------- | ------------------ | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic               | full               | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                  | full               | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                    | none               | custom         | false        |
+| cline        | Cline                   | OSS (dating Claude Dev) | full               | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org                | full               | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)               | full               | guide          | false        |
+| continue     | Continue                | continue.dev            | full               | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)       | full               | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ             | full               | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)          | full               | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)       | full               | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)            | full               | custom         | false        |
+| opencode     | OpenCode                | Anomaly (dating SST)    | full               | guide          | true         |
+| droid        | Factory Droid           | Factory AI              | partial            | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS               | full               | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere               | partial            | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)       | full               | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)        | full               | custom         | false        |
+| grok-build   | Grok Build              | xAI                     | full               | custom         | false        |
+| crush        | Crush                   | OSS (Charm)             | full               | custom         | false        |
+| qwen         | Qwen Code               | Alibaba                 | full               | guide          | true         |
+| cursor       | Cursor                  | Anysphere               | none               | guide          | false        |
+| antigravity  | Antigravity             | Google                  | none               | mitm           | false        |
+| hermes       | Hermes                  | Nous Research           | none               | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                  | none               | mitm           | false        |
+| custom       | Custom CLI              | —                       | full               | custom-builder | false        |
 
 Ang mga tool na may `baseUrlSupport: "partial"` ay nagpapakita ng badge na "⚠ Base URL parcial" sa dashboard card.
+---
 
 ## 2. Katalogo ng CLI Agents (8 tools)
 
@@ -589,74 +559,74 @@ sa ilalim ng `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. Internal OmniRoute CLI
+## 10. Panloob na OmniRoute CLI
 
-Ang `omniroute` binary ay nagbibigay ng mga utos para sa lifecycle ng server, setup, diagnostics, at pamamahala ng provider. Entry point: `bin/omniroute.mjs`.
+Ang `omniroute` binary ay nagbibigay ng mga command para sa lifecycle ng server, pag-setup, diagnostics, at pamamahala ng provider. Entry point: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Simulan ang server (default port 20128)
-omniroute setup                        # Interactive setup wizard
-omniroute doctor                       # Suriin ang config, DB, ports, runtime
-omniroute providers list               # Nakakonfigurang koneksyon ng provider
+omniroute                              # Simulan ang server (default na port 20128)
+omniroute setup                        # Interaktibong setup wizard
+omniroute doctor                       # Suriin ang config, DB, mga port, at runtime
+omniroute providers list               # Mga naka-configure na koneksyon ng provider
 omniroute providers test-all           # Subukan ang bawat aktibong koneksyon
 omniroute reset-password               # I-reset ang admin password
-omniroute logs                         # I-stream ang mga request logs
-omniroute health                       # Detalyadong kalusugan (breakers, cache, memory)
+omniroute logs                         # I-stream ang mga request log
+omniroute health                       # Detalyadong kalagayan (mga breaker, cache, memory)
 omniroute --version                    # I-print ang bersyon
-omniroute --help                       # Ipakita ang lahat ng utos
+omniroute --help                       # Ipakita ang lahat ng command
 ```
 
-### Setup & Initialization
+### Pag-setup at Pagsisimula
 
 ```bash
-omniroute setup                        # Interactive setup wizard
-omniroute setup --non-interactive      # CI/automation mode (nagbabasa ng env vars + flags)
-omniroute setup --password '<value>'   # Itakda ang admin password nang direkta
+omniroute setup                        # Interaktibong setup wizard
+omniroute setup --non-interactive      # CI/automation mode (nagbabasa ng mga env var + flag)
+omniroute setup --password '<value>'   # Direktang itakda ang admin password
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Magdagdag at subukan ang provider sa isang pagkakataon
+  --test-provider                      # Magdagdag at sumubok ng provider nang minsanan
 ```
 
-Mga kinikilalang environment variable para sa non-interactive setup:
+Mga kinikilalang environment variable para sa hindi interaktibong pag-setup:
 
-| Var                 | Layunin                                                                         |
-| ------------------- | ------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Provider API key (nakabind sa `--api-key` sa pamamagitan ng Commander `.env()`) |
-| `DATA_DIR`          | Palitan ang OmniRoute data directory                                            |
+| Var                 | Layunin                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | API key ng provider (nakatali sa `--api-key` sa pamamagitan ng Commander `.env()`) |
+| `DATA_DIR`          | I-override ang direktoryo ng data ng OmniRoute                                     |
 
-Lahat ng iba pang non-interactive inputs ay ipinapasa bilang flags, hindi mga environment variable:
+Ang lahat ng iba pang hindi interaktibong input ay ipinapasa bilang mga flag, hindi bilang mga environment variable:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (tingnan ang mga opsyon ng `omniroute setup` sa itaas).
 
 ### Diagnostics
 
 ```bash
-omniroute doctor                       # Suriin ang config, DB, ports, runtime, memory, liveness
-omniroute doctor --json                # Machine-readable JSON
+omniroute doctor                       # Suriin ang config, DB, mga port, runtime, memory, at liveness
+omniroute doctor --json                # JSON na nababasa ng makina
 omniroute doctor --no-liveness         # Laktawan ang HTTP health probe
-omniroute doctor --host 0.0.0.0        # Palitan ang liveness host
-omniroute doctor --liveness-url <url>  # Buong health endpoint URL override
+omniroute doctor --host 0.0.0.0        # I-override ang liveness host
+omniroute doctor --liveness-url <url>  # I-override ang buong URL ng health endpoint
 ```
 
-Ang doctor ay nagsasagawa ng mga pagsusuri: `Config`, `Database`, `Storage/encryption`,
+Isinasagawa ng doctor ang mga pagsusuring ito: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, at `Server liveness`. Ito ay lalabas na non-zero kung ang anumang pagsusuri ay `fail`.
+`Memory`, at `Server liveness`. Nag-e-exit ito nang non-zero kung ang alinmang pagsusuri ay `fail`.
 
-### Provider Management
+### Pamamahala ng Provider
 
 ```bash
-omniroute providers available                       # Catalog ng OmniRoute provider
-omniroute providers available --search openai       # I-filter ang catalog ayon sa id/name/alias/category
+omniroute providers available                       # Catalog ng provider ng OmniRoute
+omniroute providers available --search openai       # I-filter ang catalog ayon sa id/pangalan/alias/kategorya
 omniroute providers available --category api-key    # I-filter ayon sa kategorya (api-key, oauth, free, ...)
-omniroute providers available --json                # Machine-readable JSON
+omniroute providers available --json                # JSON na nababasa ng makina
 
-omniroute providers list                            # Nakakonfigurang koneksyon ng provider
+omniroute providers list                            # Mga naka-configure na koneksyon ng provider
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Subukan ang isang nakakonfigurang koneksyon
+omniroute providers test <id|name>                  # Subukan ang isang naka-configure na koneksyon
 omniroute providers test-all                        # Subukan ang bawat aktibong koneksyon
-omniroute providers validate                        # Local-only structural validation
+omniroute providers validate                        # Lokal lamang na structural validation
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Umiiral na OAuth flow
@@ -664,83 +634,83 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` ay API-first at samakatuwid ay gumagana laban
-sa aktibong lokal o remote na konteksto. Ang input ng credential ay dapat gumamit ng
-`--credential-stdin` o `--credential-env`; `--dry-run --json` ay nag-uulat lamang ng
-redacted presence/shape. Ang `providers available` ay nagbabasa ng catalog ng OmniRoute;
-`providers list/test/test-all/validate` ay nagpapanatili ng kanilang lokal na SQLite na pag-uugali at
-hindi nangangailangan ng server na tumatakbo.
+Ang `providers add/import/auth/edit/remove` ay API-first at samakatuwid ay gumagana laban sa
+aktibong lokal o remote na context. Dapat gamitin ng credential input ang
+`--credential-stdin` o `--credential-env`; ang `--dry-run --json` ay nag-uulat lamang ng
+na-redact na presence/shape. Binabasa ng `providers available` ang catalog ng OmniRoute;
+pinananatili ng `providers list/test/test-all/validate` ang kanilang lokal na gawi sa SQLite at
+hindi kinakailangang tumatakbo ang server.
 
-### Recovery & Reset
+### Pag-recover at Pag-reset
 
 ```bash
-omniroute reset-password                # I-reset ang admin password (din: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Ipakita ang babala + dry-run para sa reset ng encrypted credential
-omniroute reset-encrypted-columns --force  # Talagang i-null out ang encrypted credentials sa SQLite
+omniroute reset-password                # I-reset ang admin password (gayundin: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Ipakita ang babala + dry-run para sa pag-reset ng naka-encrypt na credential
+omniroute reset-encrypted-columns --force  # Aktuwal na gawing null ang mga naka-encrypt na credential sa SQLite
 ```
 
-### Credential Export (⚠ hawakan nang maingat)
+### Pag-export ng Credential (⚠ pangasiwaan nang maingat)
 
 ```bash
-omniroute auth export                                 # Ipakita ang babala + confirmation gate — walang DB access
-omniroute auth export --force                          # I-export ang LAHAT ng DECRYPTED credentials ng koneksyon sa stdout bilang JSON
+omniroute auth export                                 # Ipakita ang babala + confirmation gate — walang access sa DB
+omniroute auth export --force                          # I-export ang mga NA-DECRYPT na credential ng LAHAT ng koneksyon sa stdout bilang JSON
 omniroute auth export --force --id <id>                 # I-export lamang ang tumutugmang koneksyon
-omniroute auth export --force --format env               # Maglabas ng OMNIROUTE_<PROVIDER>_<FIELD>=<value> na mga linya
-omniroute auth export --force --out creds.json           # Isulat sa isang file (nilikha na may 0600 permissions)
+omniroute auth export --force --format env               # Maglabas ng mga linyang OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Isulat sa isang file (ginawa na may mga pahintulot na 0600)
 ```
 
-Ang `auth export` ay **local-only** (direktang pagbabasa ng SQLite, walang HTTP route) at sinadyang nagpi-print/nagsusulat ng
-**plaintext** `apiKey`/`accessToken`/`refreshToken`/`idToken` na mga halaga — iyon ang tampok, hindi isang
-bug. Walang nababasa mula sa database, at walang nade-decrypt, nang walang `--force`. Isang stderr
-warning banner ang palaging nagpi-print bago lumabas ang anumang plaintext. Nangangailangan ng `STORAGE_ENCRYPTION_KEY` na
-itakda. Ang isang field na nabigong ma-decrypt (stale key, corrupt ciphertext) ay iniulat bilang
-`<field>DecryptFailed: true` sa halip na itigil ang buong export o mag-leak ng underlying error.
+Ang `auth export` ay **lokal lamang** (direktang pagbasa sa SQLite, walang HTTP route) at sadyang nagpi-print/nagsusulat ng
+mga **plaintext** na value ng `apiKey`/`accessToken`/`refreshToken`/`idToken` — iyon ang feature, hindi isang
+bug. Walang binabasa mula sa database, at walang dini-decrypt, kung wala ang `--force`. Palaging
+nagpi-print ang warning banner sa stderr bago maglabas ng anumang plaintext. Kinakailangang nakatakda ang `STORAGE_ENCRYPTION_KEY`.
+Ang field na hindi ma-decrypt (lumang key, sirang ciphertext) ay iniuulat bilang
+`<field>DecryptFailed: true` sa halip na ihinto ang buong export o ilantad ang pinagbabatayang error.
 
-### Iba pang subcommands
+### Iba pang mga subcommand
 
-Ang mga ito ay nag-aassume ng tumatakbong OmniRoute server, maliban kung nakasaad na iba:
+Ipinapalagay ng mga ito na may tumatakbong OmniRoute server, maliban kung may ibang nakasaad:
 
 ```bash
-omniroute status                       # Komprehensibong runtime status
-omniroute logs                         # I-stream ang mga request logs (--json, --search, --follow)
-omniroute config show                  # Ipakita ang kasalukuyang configuration
+omniroute status                       # Komprehensibong katayuan ng runtime
+omniroute logs                         # I-stream ang mga log ng kahilingan (--json, --search, --follow)
+omniroute config list                  # Ipakita ang mga naka-configure na CLI tool
 
 omniroute provider list                # Ilista ang mga available na provider (alias ng providers list)
 omniroute provider add                 # Irehistro ang OmniRoute bilang provider sa isang tool
-omniroute keys add | list | remove     # Pamahalaan ang API keys
+omniroute keys add | list | remove     # Pamahalaan ang mga API key
 omniroute models [provider]            # Ilista ang mga modelo (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Snapshot config + DB
-omniroute restore                      # Ibalik mula sa nakaraang snapshot
+omniroute backup                       # Gumawa ng snapshot ng config + DB
+omniroute restore                      # Mag-restore mula sa nakaraang snapshot
 
-omniroute health                       # Detalyadong kalusugan (breakers, cache, memory)
-omniroute quota                        # Paggamit ng provider quota
+omniroute health                       # Detalyadong kalagayan (mga breaker, cache, memory)
+omniroute quota                        # Paggamit ng quota ng provider
 omniroute cache                        # Katayuan ng cache
-omniroute cache clear                  # I-clear ang semantic + signature caches
+omniroute cache clear                  # I-clear ang mga semantic + signature cache
 
-omniroute mcp status | restart         # Katayuan ng MCP server / restart
+omniroute mcp status | restart         # Katayuan / pag-restart ng MCP server
 omniroute a2a status | card            # Katayuan ng A2A server / agent card
 
 omniroute tunnel list | create | stop  # Pamahalaan ang mga tunnel (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Suriin / itakda ang mga env vars (temporary)
+omniroute env show | get <k> | set <k> <v>  # Suriin / itakda ang mga env var (pansamantala)
 
-omniroute test                         # Provider connectivity smoke test
-omniroute update                       # Suriin ang mga update
-omniroute completion                   # Lumikha ng shell completion
+omniroute test                         # Smoke test sa konektibidad ng provider
+omniroute update                       # Tingnan kung may mga update
+omniroute completion                   # Bumuo ng shell completion
 ```
 
-### Karaniwang flags
+### Mga karaniwang flag
 
-| Flag                | Paglalarawan                                                     |
-| ------------------- | ---------------------------------------------------------------- |
-| `--no-open`         | Huwag awtomatikong buksan ang browser sa pagsisimula             |
-| `--port <n>`        | Palitan ang API port (default 20128)                             |
-| `--mcp`             | Tumakbo bilang MCP server sa pamamagitan ng stdio (para sa IDEs) |
-| `--non-interactive` | CI mode (walang prompts; nagbabasa mula sa env/flags)            |
-| `--json`            | Machine-readable JSON output (doctor, providers, atbp.)          |
-| `--help`, `-h`      | Ipakita ang command-specific help                                |
-| `--version`, `-v`   | I-print ang naka-install na bersyon                              |
+| Flag                | Paglalarawan                                                 |
+| ------------------- | ------------------------------------------------------------ |
+| `--no-open`         | Huwag awtomatikong buksan ang browser sa pagsisimula         |
+| `--port <n>`        | Palitan ang API port (default 20128)                         |
+| `--mcp`             | Patakbuhin bilang MCP server sa stdio (para sa mga IDE)      |
+| `--non-interactive` | CI mode (walang prompt; nagbabasa mula sa env/flags)         |
+| `--json`            | JSON output na nababasa ng makina (doctor, providers, atbp.) |
+| `--help`, `-h`      | Ipakita ang tulong na partikular sa command                  |
+| `--version`, `-v`   | I-print ang naka-install na bersyon                          |
 
 ---
 

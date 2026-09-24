@@ -25,6 +25,7 @@ import {
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 import { buildResponsesToolCallItem } from "./responsesToolItem.ts";
 import { resolveRequestToolIdentity } from "./openai-responses/requestToolIdentity.ts";
+import { applyFunctionCallIdentity } from "./openai-responses/functionCallIdentity.ts";
 import { resolveLocalToolCallIndex } from "./openai-responses/toolCallLocalIndex.ts";
 import {
   synthesizeCompletedToolCalls,
@@ -465,7 +466,30 @@ function closeReasoning(state, emit) {
   }
 }
 
+// Some upstreams (deepseek-v4, Kimi-style) interleave plain text deltas AFTER
+// a real tool_call has closed the message item. Emitting those onto the
+// already-done output_index violates the Responses item lifecycle (#13693):
+// Codex CLI aborts on "OutputTextDelta without active item" and the tail text
+// is silently dropped from response.completed. Re-home post-close content onto
+// a FRESH message item at the next free output_index instead — the text keeps
+// flowing and every done item stays immutable. The fresh index must also stay
+// clear of the tool-call block (toolCallOutputIndexBase), hence the scan past
+// reasoning/message AND allocated function-call indexes.
+function nextFreeMessageIndex(state, requestedIdx) {
+  let candidate = normalizeOutputIndex(requestedIdx);
+  const allocatedToolIndexes = state.funcAllocatedOutputIndexes || {};
+  const claimed = (i) =>
+    state.msgItemAdded[i] ||
+    allocatedToolIndexes[i] !== undefined ||
+    (state.reasoningId && i === normalizeOutputIndex(state.reasoningIndex));
+  while (claimed(candidate)) candidate += 1;
+  return candidate;
+}
+
 function emitTextContent(state, emit, idx, content) {
+  if (state.msgItemDone[idx]) {
+    idx = nextFreeMessageIndex(state, idx);
+  }
   if (!state.msgItemAdded[idx]) {
     state.msgItemAdded[idx] = true;
     const msgId = `msg_${state.responseId}_${idx}`;
@@ -560,6 +584,10 @@ function toolCallOutputIndexBase(state) {
 function emitToolCall(state, emit, tc) {
   const tcIdx = tc.index ?? 0;
   const outputIndex = toolCallOutputIndexBase(state) + resolveLocalToolCallIndex(state, tcIdx);
+  // Record every allocated tool-call output_index so a post-close text
+  // relocation (nextFreeMessageIndex) can never collide with it.
+  if (!state.funcAllocatedOutputIndexes) state.funcAllocatedOutputIndexes = {};
+  state.funcAllocatedOutputIndexes[outputIndex] = true;
   const newCallId = tc.id;
   const funcName = tc.function?.name;
 
@@ -741,18 +769,8 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         status: "completed",
       };
 
-      // #7936 identity closure: rewrite the function_call item's `name` back to
-      // its bare leaf and stamp the original `namespace` alongside it, matching
-      // the codex ResponseItem::FunctionCall schema (independent `namespace`
-      // field, NOT a `__` split on `name`).
-      const fnIdentity = resolveRequestToolIdentity(
-        state.requestToolIdentityMap,
-        state.funcNames[idx] || ""
-      );
-      if (fnIdentity) {
-        funcItem.namespace = fnIdentity.namespace;
-        funcItem.name = fnIdentity.name;
-      }
+      // #7936/#14154 identity closure + collaboration plaintext marker.
+      applyFunctionCallIdentity(funcItem, state.requestToolIdentityMap, state.funcNames[idx] || "");
 
       emit("response.output_item.done", {
         type: "response.output_item.done",

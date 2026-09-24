@@ -234,6 +234,21 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create an LLM Gateway API key, then use https://api.llmgateway.io/v1 as the OpenAI-compatible base URL.",
   },
+  lyceum: {
+    id: "lyceum",
+    serviceKinds: ["llm"],
+    alias: "lyceum",
+    name: "Lyceum",
+    icon: "router",
+    color: "#4F46E5",
+    textIcon: "LY",
+    passthroughModels: true,
+    website: "https://lyceum.technology",
+    hasFree: true,
+    freeNote: "Includes monthly free credits toward serverless inference usage.",
+    apiHint:
+      "Create a Lyceum API key (lk_…), then use https://api.lyceum.technology/openai/v1 as the OpenAI-compatible base URL.",
+  },
   "llm-kiwi": {
     id: "llm-kiwi",
     serviceKinds: ["llm"],
@@ -724,6 +739,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/zen",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   "opencode-go": {
     id: "opencode-go",
@@ -734,6 +754,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/go",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   dahl: {
     id: "dahl",

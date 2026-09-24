@@ -103,13 +103,14 @@ test("BreakerTimeline does NOT fetch independently (single-provider invariant)",
   assert.doesNotMatch(src, /fetch\s*\(/, "BreakerTimeline must not self-fetch");
 });
 
-test("/dashboard/resilience/connections in LOCAL_ONLY_API_PREFIXES", () => {
+test("/dashboard/resilience/connections is not in LOCAL_ONLY_API_PREFIXES", () => {
   const src = read("src/server/authz/routeGuard.ts");
-  assert.match(
+  assert.doesNotMatch(
     src,
     /"\/dashboard\/resilience\/connections"/,
-    "dashboard path missing from LOCAL_ONLY"
+    "dashboard HTML must not be LOCAL_ONLY (that clears the session behind a proxy)"
   );
+  assert.match(src, /"\/api\/resilience\/connections"/, "api path must stay LOCAL_ONLY");
 });
 
 test("/api/resilience/connections in LOCAL_ONLY_API_PREFIXES", () => {

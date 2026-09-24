@@ -548,6 +548,23 @@ export async function attachPreparedCapabilityValues(
   return prepared;
 }
 
+// Endpoints that can serve a chat turn. A synced/custom model that declares only other
+// surfaces (images, videos, audio, embeddings, rerank) can never answer an auto/* chat
+// request, so it must not enter the candidate pool (the no-auth path already gates on
+// `serviceKinds`; this is the credentialed-provider equivalent).
+const CHAT_CAPABLE_ENDPOINTS = new Set(["chat", "responses"]);
+
+export function isDeclaredNonChatModel(model: {
+  modelType?: unknown;
+  supportedEndpoints?: unknown;
+}): boolean {
+  if (typeof model.modelType === "string" && model.modelType !== "chat") return true;
+  const endpoints = Array.isArray(model.supportedEndpoints)
+    ? model.supportedEndpoints.filter((e): e is string => typeof e === "string")
+    : [];
+  return endpoints.length > 0 && !endpoints.some((e) => CHAT_CAPABLE_ENDPOINTS.has(e));
+}
+
 export async function prepareVirtualAutoComboInputs(
   options: {
     includeResolvedCapabilities?: boolean;
@@ -634,17 +651,27 @@ export async function prepareVirtualAutoComboInputs(
     // already filters those out (catalog.ts, "Add custom models"); without the same
     // filter here every read below null-derefs and the whole auto/* pool fails to
     // materialize ("Could not materialize built-in auto model auto/<id>").
-    const customModels: Array<{ id?: string }> = (
-      Array.isArray(rawCustomModels) ? rawCustomModels : []
-    ).filter(
-      (model: unknown): model is { id?: string } =>
-        !!model && typeof model === "object" && !Array.isArray(model)
-    );
+    const customModels: Array<{ id?: string; modelType?: unknown; supportedEndpoints?: unknown }> =
+      (Array.isArray(rawCustomModels) ? rawCustomModels : []).filter(
+        (model: unknown): model is { id?: string } =>
+          !!model && typeof model === "object" && !Array.isArray(model)
+      );
     const userVisibleIds = new Set<string>();
+    const nonChatIds = new Set<string>();
     for (const models of Object.values(syncedByConnection)) {
-      for (const m of models) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
+      for (const m of models) {
+        if (!m.id || hiddenModels?.has(m.id)) continue;
+        userVisibleIds.add(m.id);
+        if (isDeclaredNonChatModel(m)) nonChatIds.add(m.id);
+      }
     }
-    for (const m of customModels) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
+    for (const m of customModels) {
+      if (!m.id || hiddenModels?.has(m.id)) continue;
+      userVisibleIds.add(m.id);
+      if (isDeclaredNonChatModel(m)) nonChatIds.add(m.id);
+    }
+    // Decided before dropping non-chat ids: an image-only sync must not fall back to
+    // the provider's static catalog.
     const hasUserModels = userVisibleIds.size > 0;
     const modelIds = hasUserModels
       ? Array.from(userVisibleIds)
@@ -657,6 +684,7 @@ export async function prepareVirtualAutoComboInputs(
         await yieldVirtualAutoPreparationTurn();
       }
       if (hiddenModels?.has(modelId)) continue;
+      if (nonChatIds.has(modelId)) continue;
 
       const allowedConnectionIds = providerConnections
         .filter((conn) => {
@@ -729,7 +757,13 @@ export async function prepareVirtualAutoComboInputs(
     const lockout = skip ? null : filterLockoutCandidates(pool); // dispatch only (#9133)
     warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
     if (lockout) {
-      recordAutoDroppedCandidates(traceInvocationId, pool, lockout.pool, "model_lockout", "model-lockout");
+      recordAutoDroppedCandidates(
+        traceInvocationId,
+        pool,
+        lockout.pool,
+        "model_lockout",
+        "model-lockout"
+      );
       pool = lockout.pool;
     }
 
@@ -737,7 +771,13 @@ export async function prepareVirtualAutoComboInputs(
     // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
     const exposureFilteredPool = filterModelExposureCandidates(pool, settings);
     if (exposureFilteredPool !== pool) {
-      recordAutoDroppedCandidates(traceInvocationId, pool, exposureFilteredPool, "model_exposure", "model-exposure");
+      recordAutoDroppedCandidates(
+        traceInvocationId,
+        pool,
+        exposureFilteredPool,
+        "model_exposure",
+        "model-exposure"
+      );
       pool = exposureFilteredPool;
     }
 

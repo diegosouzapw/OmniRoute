@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (فارسی)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -187,14 +187,13 @@ range    = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
 به `Dashboard → Context & Cache` بروید:
 
 - **Caveman** — انتخاب حالت، بستههای زبان، پیشنمایش و پیشفرضهای سراسری
-- **RTK** — پیشنمایش فیلتر فرمان، تنظیمات ایمنی RTK و فهرست فیلترها
-- **ترکیبهای فشردهسازی** — خطلولههای نامگذاریشدهٔ موتور که به ترکیبهای مسیریابی اختصاص داده شدهاند
-- **آستانهٔ فعالسازی خودکار** — هنگامی که تعداد توکنها از آستانه عبور کند، فشردهسازی را بهصورت خودکار فعال میکند
+- **RTK** — پیشنمایش فیلتر دستور، تنظیمات ایمنی RTK و کاتالوگ فیلتر
+- **Compression Combos** — خطوط لوله موتور نامگذاری شده اختصاص داده شده به ترکیبهای مسیریابی
+- **Auto-Trigger Threshold** — فشردهسازی را به طور خودکار زمانی که تعداد توکن از آستانه فراتر رود، فعال میکند
 
-### بازنویسی برای هر ترکیب
+### بازنویسی به ازای هر ترکیب
 
-در `Dashboard → Context & Cache → Compression Combos`، یک ترکیب فشردهسازی را به یک ترکیب
-مسیریابی اختصاص دهید:
+در `Dashboard → Context & Cache → Compression Combos`، یک ترکیب فشردهسازی را به یک ترکیب مسیریابی اختصاص دهید:
 
 ```txt
 Combo: "free-tier-fallback"
@@ -205,56 +204,47 @@ Combo: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-این کار به شما اجازه میدهد از فشردهسازی پشتهای برای ارائهدهندگان رایگان/کدنویسی استفاده کنید، درحالیکه حالت سبک را برای
-اشتراکهای پولی حفظ میکنید.
+این به شما امکان میدهد از فشردهسازی پشتهای در ارائهدهندگان رایگان/کدنویسی استفاده کنید در حالی که حالت لایت را در اشتراکهای پولی حفظ میکنید.
 
-این تخصیص «بازنویسی برای هر ترکیب» کنترلی متفاوت از بازنویسی **حالت فشردهسازی ترکیب
-مسیریابی** (Default/Off/Lite/Standard/Aggressive/Ultra) است — آن بازنویسی یک خطلولهٔ نامگذاریشدهٔ
-ترکیب فشردهسازی را انتخاب نمیکند؛ بلکه فقط فیلد `compressionMode` را تنظیم میکند که
-`resolveCompressionPlan` به آن رجوع میکند. این مقدار را میتوان روی کارت ترکیب (`Dashboard → Combos`) یا، از
-#6760 به بعد، برای هر ترکیب مسیریابی در فهرست «Assign to routing» در
-`Dashboard → Context & Cache → Compression Combos`، درست کنار کادر انتخاب تخصیص خطلوله که
-در بالا مستند شده است، تنظیم کرد. هر دو رابط از طریق همان نقطهٔ پایانی `PUT /api/combos/{id}` ذخیره میشوند.
+این تخصیص "بازنویسی به ازای هر ترکیب" یک کنترل متفاوت از بازنویسی **حالت فشردهسازی ترکیب مسیریابی** (Default/Off/Lite/Standard/Aggressive/Ultra) است — آن بازنویسی یک خط لوله ترکیب فشردهسازی نامگذاری شده را انتخاب نمیکند؛ فقط فیلد `compressionMode` را که توسط `resolveCompressionPlan` بررسی میشود، تنظیم میکند. این میتواند هم در کارت ترکیب (`Dashboard → Combos`) و هم، از زمان #6760، به ازای هر ترکیب مسیریابی در لیست "Assign to routing" در `Dashboard → Context & Cache → Compression Combos`، درست در کنار کادر انتخاب تخصیص خط لوله که در بالا مستند شده است، تنظیم شود. هر دو سطح از طریق همان نقطه پایانی `PUT /api/combos/{id}` پایدار میمانند.
 
-### بازنویسی برای هر درخواست
+### بازنویسی به ازای هر درخواست
 
-برای بازنویسی طرح فشردهسازی یک درخواست، هدر درخواست `x-omniroute-compression` را ارسال کنید.
-این هدر بالاترین اولویت را دارد — بر بازنویسی ترکیب مسیریابی، پروفایل فعال،
-فعالسازی خودکار و مقدار Default پنل مقدم است. مقادیر ناشناخته نادیده گرفته میشوند (درخواست هرگز رد نمیشود) و
-کلید اصلی سراسری همچنان همهچیز را کنترل میکند: وقتی فشردهسازی بهصورت سراسری خاموش باشد، هدر نمیتواند
-آن را روشن کند. مقادیر:
+هدر درخواست `x-omniroute-compression` را برای بازنویسی طرح فشردهسازی برای یک درخواست واحد ارسال کنید. این بالاترین اولویت را دارد — بازنویسی ترکیب مسیریابی، پروفایل فعال، فعالسازی خودکار و پیشفرض پنل را نادیده میگیرد. مقادیر ناشناخته نادیده گرفته میشوند (درخواست هرگز رد نمیشود) و سوئیچ اصلی سراسری هنوز همه چیز را کنترل میکند: وقتی فشردهسازی به صورت سراسری خاموش است، هدر نمیتواند آن را روشن کند. مقادیر:
 
-| مقدار         | اثر                                                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `off`         | برای این درخواست فشردهسازی انجام نمیشود.                                                                            |
-| `default`     | پروفایل Default برگرفته از پنل (پروفایل فعال را نادیده میگیرد).                                                     |
-| `engine:<id>` | در صورت فعال بودن، یک موتور منفرد؛ برای مثال `engine:rtk`.                                                          |
-| `<combo>`     | یک ترکیب نامگذاریشده که ابتدا بر اساس نام (بدون حساسیت به بزرگی و کوچکی حروف) و سپس بر اساس شناسه تطبیق داده میشود. |
+| مقدار         | اثر                                                                                                               |
+| ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `off`         | بدون فشردهسازی برای این درخواست.                                                                                  |
+| `default`     | پروفایل پیشفرض مشتق شده از پنل (پروفایل فعال را نادیده میگیرد). موتورهای از دست دهنده خاموش میمانند.              |
+| `safe`        | مشابه حذف هدر: فقط حذف تکرار و تاشو فضای خالی.                                                                    |
+| `allow-lossy` | طرح اپراتور این درخواست را حفظ کنید، از جمله خلاصهها، فیلترهای مرتبط و بازنویسیهای سبک.                           |
+| `engine:<id>` | یک موتور واحد در صورت فعال بودن، به عنوان مثال `engine:rtk`. این انتخاب به ازای هر درخواست برای آن موتور است.     |
+| `<combo>`     | یک ترکیب نامگذاری شده، ابتدا بر اساس نام (بدون حساسیت به حروف بزرگ و کوچک) و سپس بر اساس شناسه مطابقت داده میشود. |
 
-طرح اعمالشده در هدر پاسخ `X-OmniRoute-Compression: <mode>; source=<source>` بازتاب داده میشود،
-که در آن `<source>` یکی از مقادیر `request-header`، `routing-override`، `active-profile`،
-`auto-trigger`، `default` یا `off` است.
+بدون `allow-lossy`، `engine:<id>` یا یک ترکیب نامگذاری شده، موتورهای از دست دهنده اعمال نمیشوند. درخواست همچنان حذف تکرار جلسه و تاشو فضای خالی را دریافت میکند زمانی که فشردهسازی روشن است.
+
+طرح اعمال شده در هدر پاسخ `X-OmniRoute-Compression: <mode>; source=<source>` بازتاب داده میشود، که در آن `<source>` یکی از `request-header`، `routing-override`، `active-profile`، `auto-trigger`، `default` یا `off` است.
 
 ### API
 
 ```bash
-# دریافت تنظیمات فشردهسازی
+# Get compression settings
 curl http://localhost:20128/api/settings/compression
 
-# بهروزرسانی تنظیمات فشردهسازی
+# Update compression settings
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# پیشنمایش یک بار RTK/پشتهای مشخص
+# Preview a specific RTK/stacked payload
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# فهرستکردن بستههای فیلتر RTK
+# List RTK filter packs
 curl http://localhost:20128/api/context/rtk/filters
 
-# آزمایش مستقیم RTK با فرادادهٔ اختیاری فرمان
+# Test RTK directly with optional command metadata
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -281,7 +271,7 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ## آمار فشردهسازی
 
-هر درخواست فشردهشده شامل آمار زیر در گزارشهای سرور است:
+هر درخواست فشردهشده شامل آماری در لاگهای سرور است:
 
 ```json
 {
@@ -301,13 +291,13 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ## نقشه راه فازها
 
-| فاز    | حالتها                                                                                                                                | وضعیت        |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| فاز 1  | Off, Lite                                                                                                                             | ✅ منتشر شده |
-| فاز 2  | Standard, Aggressive, Ultra                                                                                                           | ✅ منتشر شده |
-| فاز 3  | RTK, Stacked, Compression Combos                                                                                                      | ✅ منتشر شده |
-| فاز 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                           | ✅ منتشر شده |
-| فاز 4C | بودجه تطبیقی زمینه ("dial") — موتور محاسباتی + API (`contextBudget` در `PUT /api/settings/compression`) + کنترلهای حالت/سیاست داشبورد | ✅ منتشر شده |
+| فاز    | حالتها                                                                                                                                        | وضعیت        |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| فاز 1  | Off, Lite                                                                                                                                     | ✅ ارسال شده |
+| فاز 2  | Standard, Aggressive, Ultra                                                                                                                   | ✅ ارسال شده |
+| فاز 3  | RTK, Stacked, Compression Combos                                                                                                              | ✅ ارسال شده |
+| فاز 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                   | ✅ ارسال شده |
+| فاز 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) + dashboard mode/policy controls | ✅ ارسال شده |
 
 ---
 
@@ -319,30 +309,25 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ---
 
-## سامانههای پیشرفته فشردهسازی
+## سیستمهای فشردهسازی پیشرفته
 
-فراتر از 7 حالت استاندارد، OmniRoute شامل چندین سامانه پیشرفته فشردهسازی
-است که بر اساس زمینه، بهطور خودکار عمل میکنند.
+فراتر از ۷ حالت استاندارد، OmniRoute شامل چندین سیستم فشردهسازی پیشرفته است که به طور خودکار بر اساس زمینه عمل میکنند.
 
-### فشردهسازی آگاه از کش
+### فشردهسازی آگاه به کش (Cache-Aware)
 
-برخی ارائهدهندگان (مانند Anthropic با کشکردن پرامپت) از **کشکردن پرامپت**
-پشتیبانی میکنند که به آنها اجازه میدهد بخشهایی از پرامپت را برای کاهش هزینه و تأخیر کش کنند. وقتی
-کش فعال است، فشردهسازی تهاجمی در واقع میتواند به عملکرد **آسیب بزند**،
-زیرا توکنهای کششده را تغییر میدهد و کش را نامعتبر میکند.
+برخی از ارائهدهندگان (مانند Anthropic با کش کردن پرامپت) از **کش کردن پرامپت** پشتیبانی میکنند، که به آنها امکان میدهد بخشهایی از پرامپت را کش کنند تا هزینهها و تأخیر را کاهش دهند. هنگامی که کش فعال است، فشردهسازی تهاجمی در واقع میتواند به عملکرد **آسیب برساند** زیرا توکنهای کش شده را تغییر داده و کش را نامعتبر میکند.
 
-ماژول `cachingAware.ts` این مشکل را با **تشخیص زمینه کش** و
-**تنظیم راهبرد فشردهسازی** بر همان اساس حل میکند.
+ماژول `cachingAware.ts` این مشکل را با **تشخیص زمینه کش** و **تنظیم استراتژی فشردهسازی** بر این اساس حل میکند.
 
 #### نحوه عملکرد
 
-1. **تشخیص زمینه کش** — بدنه درخواست را برای نشانگرهای `cache_control` اسکن میکند
-2. **شناسایی ارائهدهندگان دارای کش** — بررسی میکند آیا ارائهدهنده مقصد از کش پشتیبانی میکند
-3. **تنظیم راهبرد** — برای ارائهدهندگان دارای کش، `aggressive`/`ultra` را به `standard` تنزل میدهد
-4. **نادیدهگرفتن پرامپت سیستم** — پرامپتهای سیستم معمولاً کش میشوند، بنابراین آنها را فشرده نمیکند
-5. **استفاده از تبدیلهای قطعی** — فقط از تبدیلهایی استفاده میکند که خروجی سازگار تولید میکنند
+1.  **تشخیص زمینه کش** — بدنه درخواست را برای نشانگرهای `cache_control` اسکن میکند.
+2.  **شناسایی ارائهدهندگان کش** — بررسی میکند که آیا ارائهدهنده هدف از کش پشتیبانی میکند یا خیر.
+3.  **تنظیم استراتژی** — برای ارائهدهندگان کش، حالتهای `aggressive`/`ultra` را به `standard` کاهش میدهد.
+4.  **رد کردن پرامپت سیستمی** — پرامپتهای سیستمی معمولاً کش میشوند، بنابراین آنها را فشرده نمیکند.
+5.  **استفاده از تبدیلهای قطعی** — فقط از تبدیلهایی استفاده میکند که خروجی سازگار تولید میکنند.
 
-#### نمونه کد
+#### مثال کد
 
 ```ts
 import {
@@ -365,23 +350,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### زمان استفاده
 
-فشردهسازی آگاه از کش **همیشه فعال است** — به هیچ پیکربندیای نیاز نیست. این قابلیت فقط زمانی وارد عمل میشود
-که:
+فشردهسازی آگاه به کش **همیشه فعال است** — نیازی به پیکربندی نیست. این قابلیت فقط زمانی فعال میشود که:
 
-- درخواست دارای نشانگرهای `cache_control` باشد
-- ارائهدهنده مقصد از کشکردن پرامپت پشتیبانی کند (Anthropic، OpenAI و غیره)
+- درخواست دارای نشانگرهای `cache_control` باشد.
+- ارائهدهنده هدف از کش کردن پرامپت پشتیبانی کند (Anthropic, OpenAI و غیره).
 
-### فرسودگی تدریجی
+### کهنسازی تدریجی (Progressive Aging)
 
-گفتوگوهای طولانی نوبتهای پیام زیادی انباشته میکنند، اما نوبتهای قدیمیتر بهتدریج
-ارتباط کمتری پیدا میکنند. ماژول `progressiveAging.ts` **پیامها را بر اساس فاصله نوبت تنزل میدهد**:
+مکالمات طولانی، نوبتهای پیام زیادی را انباشته میکنند، اما نوبتهای قدیمیتر کمتر مرتبط میشوند. ماژول `progressiveAging.ts` **پیامها را بر اساس فاصله نوبت کاهش میدهد**:
 
-- **نوبتهای اخیر (0-3)**: بدون تغییر نگه داشته میشوند (جزئیات کامل)
-- **نوبتهای میانی (4-8)**: فشردهسازی Lite (پاکسازی فاصلههای خالی و قالببندی)
-- **نوبتهای قدیمی (9+)**: فشردهسازی Caveman (حذف عبارتهای زائد و خلاصهسازی)
-- **نوبتهای بسیار قدیمی (20+)**: بهشدت خلاصه یا حذف میشوند
+- **نوبتهای اخیر (۰-۳)**: به صورت کلمهبهکلمه حفظ میشوند (جزئیات کامل).
+- **نوبتهای میانی (۴-۸)**: فشردهسازی سبک (فضاهای خالی، پاکسازی قالببندی).
+- **نوبتهای قدیمی (۹+)**: فشردهسازی غارنشینی (حذف کلمات پرکننده، خلاصهسازی).
+- **نوبتهای بسیار قدیمی (۲۰+)**: به شدت خلاصهسازی یا حذف میشوند.
 
-#### نمونه کد
+#### مثال کد
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
@@ -394,44 +377,42 @@ const messages = [
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // 3 نوبت اول: بدون تغییر
-  light: 8, // نوبتهای 4 تا 8: فشردهسازی lite
-  moderate: 20, // نوبتهای 9 تا 20: فشردهسازی caveman
-  // نوبتهای 21 به بعد: خلاصهسازی شدید
+  verbatim: 3, // 3 نوبت اول: کلمهبهکلمه
+  light: 8, // نوبتهای 4-8: فشردهسازی سبک
+  moderate: 20, // نوبتهای 9-20: فشردهسازی غارنشینی
+  // نوبتهای 21+: خلاصهسازی سنگین
 });
 
-// saved = تعداد توکنهای صرفهجوییشده
+// saved = تعداد توکنهای ذخیره شده
 ```
 
 #### زمان استفاده
 
-پیرسازی تدریجی برای حالتهای `aggressive` و `ultra` **همیشه فعال است**. این قابلیت
-بهویژه برای موارد زیر مؤثر است:
+کهنسازی تدریجی برای حالتهای `aggressive` و `ultra` **همیشه فعال است**. این قابلیت به ویژه برای موارد زیر مؤثر است:
 
-- نشستهای طولانی کدنویسی
-- گفتوگوهای چندروزه
-- گردشکارهای عاملی با فراخوانیهای متعدد ابزار
+- جلسات کدنویسی طولانیمدت
+- مکالمات چند روزه
+- جریانهای کاری عاملمحور با فراخوانیهای ابزاری زیاد
 
-### حالت خروجی غارنشینی
+### حالت خروجی غارنشینی (Caveman Output Mode)
 
-ماژول `outputMode.ts`، **دستورالعملهای اعلان سیستم** را تزریق میکند تا خود
-مدل خروجی فشرده و مختصر تولید کند (سبک «غارنشینی»).
+ماژول `outputMode.ts` **دستورالعملهای پرامپت سیستمی** را تزریق میکند تا خود مدل خروجی فشرده و مختصر (به سبک "غارنشینی") تولید کند.
 
-#### نحوه کار
+#### نحوه عملکرد
 
-این حالت بهجای فشردهسازی ورودی، یک اعلان سیستم مانند زیر اضافه میکند:
+به جای فشردهسازی ورودی، این حالت یک پرامپت سیستمی مانند زیر اضافه میکند:
 
-> «با حداقل کلمات پاسخ بده. تعارفات را حذف کن. از جملههای کوتاه استفاده کن.»
+> "با کمترین کلمات پاسخ دهید. از تعارفات بپرهیزید. از جملات کوتاه استفاده کنید."
 
-این روش بهویژه برای موارد زیر مناسب است:
+این روش به ویژه برای موارد زیر خوب عمل میکند:
 
 - تولید کد (خروجی مختصرتر = توکنهای کمتر)
-- پرسشوپاسخ سریع (نیازی به توضیحات مفصل نیست)
-- پردازش دستهای (بیشینهسازی توان عملیاتی)
+- پرسش و پاسخ سریع (نیازی به توضیحات مفصل نیست)
+- پردازش دستهای (به حداکثر رساندن توان عملیاتی)
 
 #### زمان استفاده
 
-حالت خروجی غارنشینی **اختیاری** است — آن را از طریق پیکربندی ترکیبی تنظیم کنید:
+حالت خروجی غارنشینی **اختیاری است** — آن را از طریق پیکربندی ترکیبی تنظیم کنید:
 
 ```json
 {
@@ -446,39 +427,33 @@ const { messages: aged, saved } = applyAging(messages, {
 
 ### سبکهای خروجی (کاتالوگ)
 
-حالت خروجی غارنشینی بالا، **مسیر تکسبکی قدیمی** است. فاز 4 آن را
-به کاتالوگی از سبکهای خروجی قابلترکیب تعمیم داد: `OUTPUT_STYLE_CATALOG` در
-`open-sse/services/compression/outputStyles/catalog.ts`. هر سبک یک دستورالعمل اعلان سیستم
-است که باعث میشود خود مدل خروجی کمهزینهتری تولید کند؛ سبکها را میتوان همزمان فعال
-کرد و آنها به ترتیب کاتالوگ تزریق میشوند.
+حالت خروجی غارنشینی که در بالا ذکر شد، **مسیر تکسبکی قدیمی** است. فاز ۴ آن را به یک کاتالوگ از سبکهای خروجی قابل ترکیب تعمیم داد: `OUTPUT_STYLE_CATALOG` در `open-sse/services/compression/outputStyles/catalog.ts`. هر سبک یک دستورالعمل پرامپت سیستمی است که باعث میشود خود مدل خروجی ارزانتری تولید کند؛ سبکها میتوانند با هم فعال شوند و به ترتیب کاتالوگ تزریق میشوند.
 
-| سبک                           | `id`          | عملکرد                                                                                                                                                                                                   | زبانهای دستورالعمل                                                  |
-| ----------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| نثر مختصر                     | `terse-prose` | حذف حشو، حروف تعریف و دودلی؛ حفظ دقیق محتوای فنی. همان متن حالت خروجی غارنشینی قدیمی است (به آن ارجاع داده میشود، نه اینکه دوباره نوشته شود).                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| کد کمتر                       | `less-code`   | نردبان YAGNI: کوچکترین تغییر عملی، بدون انتزاعهای درخواستنشده.                                                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| دماسبی (توسعهدهنده ارشد تنبل) | `ponytail`    | «بهترین کد، کدی است که هرگز نوشته نشود»: استفاده مجدد > بازنویسی، علت ریشهای > نشانه، کوتاهترین تفاوت عملی.                                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| من ADHD دارم (اول عمل)        | `i-have-adhd` | ابتدا عمل (فرمان/مسیر/قطعهکد پیش از نثر)، گامهای شمارهدار و محدود، تنها یک گام بعدی مشخص، بدون مقدمه/جمعبندی/سخن پایانی. اقتباسشده از [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| CJK مختصر (文言)              | `terse-cjk`   | سبک فوقمختصر چینی کلاسیک.                                                                                                                                                                                | zh (محدود به locale: فقط زمانی ارائه میشود که زبان حلشده `zh` باشد) |
+| سبک | `id` | کاری که انجام میدهد bona.  
+Terse prose | `terse-prose` | Drop filler/articles/hedging; keep technical substance exact. Same text as the legacy caveman output mode (referenced, not re-typed). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Less code | `less-code` | YAGNI ladder: smallest working change, no unrequested abstractions. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Ponytail (lazy senior dev) | `ponytail` | "The best code is the code never written": reuse > rewrite, root cause > symptom, shortest working diff. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| I have ADHD (action-first) | `i-have-adhd` | Action first (command/path/snippet before prose), numbered bounded steps, ONE concrete next step, no preamble/recap/closers. Adapted from [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Terse CJK (文言) | `terse-cjk` | Classical-Chinese ultra-terse style. | zh (locale-gated: only offered when the resolved language is `zh`) |
 
-هر سبک دارای سه سطح شدت است — `lite`، `full` و `ultra` — و هر سطح
-با بند مرزهای مشترک پایان مییابد که بلوکهای کد، مسیرهای فایل، فرمانها،
-رشتههای خطا، URLها و شناسهها را عیناً حفظ میکند.
+هر سبک دارای سه سطح شدت است — `lite`، `full`، `ultra` — و هر سطح
+با بند مرزهای مشترک به پایان میرسد، که بلوکهای کد، مسیرهای فایل، دستورات،
+رشتههای خطا، URLها و شناسهها را بدون تغییر نگه میدارد.
 
-#### نحوه تزریق
+#### نحوه عملکرد تزریق
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`)
-انتخابها را با کاتالوگ تطبیق میدهد (شناسههای ناشناخته و سبکهای ناسازگار با locale
-حذف میشوند و هرگز خطا ایجاد نمیکنند)، دستورالعملهای انتخابشده را به ترتیب کاتالوگ
-به هم متصل میکند، بند مرزها را **یکبار** میافزاید و نتیجه را با یک نشانگر یکتای
-ایدِمپوتنسی (`[OmniRoute Output Styles]`) در ابتدای اعلان سیستم قرار میدهد — اعمال
-مجدد هیچ کاری انجام نمیدهد. وقتی زبان شناساییشده درخواست ترجمهای داشته باشد،
-دستورالعمل بومیسازیشده بهجای انگلیسی تزریق میشود.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) انتخاب را در برابر کاتالوگ حل میکند (شناسههای ناشناخته و سبکهای نامتناسب با زبان محلی
+نادیده گرفته میشوند، هرگز خطا نیستند)، دستورالعملهای انتخاب شده را به ترتیب کاتالوگ به هم متصل میکند،
+بند مرزها را **یک بار** اضافه میکند، و نتیجه را در ابتدای اعلان سیستم
+پشت یک نشانگر یکسانسازی (`[OmniRoute Output Styles]`) قرار میدهد — اعمال مجدد
+عملیاتی بیاثر است. هنگامی که زبان درخواست شناسایی شده دارای ترجمه باشد،
+دستورالعمل محلی به جای انگلیسی تزریق میشود.
 
 #### نحوه فعالسازی
 
-در داشبورد: **زمینه → تنظیمات → فشردهسازی** — برای هر سبک یک ردیف با کلید
-روشن/خاموش و انتخابگر سطح وجود دارد. از طریق برنامه، پیکربندی فشردهسازی
-انتخابها را بهشکل زیر ذخیره میکند:
+در داشبورد: **Context → Settings → Compression** — یک ردیف برای هر سبک با یک
+کلید روشن/خاموش و یک انتخابگر سطح. به صورت برنامهنویسی، پیکربندی فشردهسازی
+انتخاب را به صورت زیر حفظ میکند:
 
 ```json
 {
@@ -490,58 +465,58 @@ const { messages: aged, saved } = applyAging(messages, {
 ```
 
 سازگاری با نسخههای قبلی: تنظیم ترکیبی قدیمی `outputMode: "caveman"` همچنان کار میکند و به
-`terse-prose` نگاشت میشود؛ تزریق حاصل در همه زبانهای قدیمی، بایتبهبایت با نسخه قبلی یکسان است.
+`terse-prose` نگاشت میشود، که از نظر بایت با تزریق قدیمی در هر زبان قدیمی یکسان است.
 
-انتخاب زبان: وقتی `languageConfig.enabled` روشن باشد، `autoDetect` زبان
-آخرین پیام کاربر را انتخاب میکند (با همان آشکارساز موتورهای ورودی)؛
-خاموشکردن `autoDetect` زبان را روی `defaultLanguage` ثابت میکند. در حالت خاموش → انگلیسی.
+انتخاب زبان: با فعال بودن `languageConfig.enabled`، `autoDetect`
+زبان آخرین پیام کاربر را انتخاب میکند (همان آشکارساز موتورهای ورودی)؛
+غیرفعال کردن `autoDetect` زبان پیشفرض را ثابت میکند. غیرفعال → انگلیسی.
 
 ماتریس سبک × زبان توسط
-`tests/unit/compression/output-styles-i18n-matrix.test.ts` تثبیت شده است: یک سبک جدید نمیتواند
-بدون دستکم یک ترجمه pt-BR (یا یک استثنای صریح و رهگیریشده) منتشر شود و یک
-سبک موجود نمیتواند بیسروصدا یک locale را از دست بدهد. برای افزودن سبک، به
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` ثابت شده است: یک سبک جدید نمیتواند
+بدون حداقل یک ترجمه pt-BR (یا یک استثنای ردیابی شده صریح) منتشر شود، و یک
+سبک موجود نمیتواند بیصدا یک زبان محلی را از دست بدهد. برای افزودن یک سبک، به
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) مراجعه کنید.
 
-### فشردهسازی نتیجه ابزار
+### فشردهسازی نتایج ابزار
 
-ماژول `toolResultCompressor.ts`، **5 راهبرد تخصصی فشردهسازی**
-برای نتایج ابزار (فراخوانیهای تابع، خروجیهای عامل، نتایج جستوجو و غیره) فراهم میکند:
+ماژول `toolResultCompressor.ts` **5 استراتژی فشردهسازی تخصصی**
+برای نتایج ابزار (فراخوانی توابع، خروجیهای عامل، نتایج جستجو و غیره) ارائه میدهد:
 
-1. **فشردهسازی نتایج جستوجو** — نتایج تکراری را حذف میکند و N نتیجه برتر را نگه میدارد
-2. **فشردهسازی خواندن فایل** — فایلهای بزرگ را کوتاه میکند و سرآیندها/واردسازیها را حفظ میکند
-3. **فشردهسازی اجرای کد** — فقط stdout/stderr ضروری را نگه میدارد
-4. **فشردهسازی کوئری پایگاه داده** — تعداد ردیفها را محدود و فرادادههای طولانی را حذف میکند
-5. **فشردهسازی پاسخ API** — فیلدهای null را حذف و آرایهها را فشرده میکند
+1.  **فشردهسازی نتایج جستجو** — نتایج اضافی را حذف میکند، N-بالا را نگه میدارد
+2.  **فشردهسازی خواندن فایل** — فایلهای بزرگ را کوتاه میکند، سرصفحهها/واردات را حفظ میکند
+3.  **فشردهسازی اجرای کد** — فقط stdout/stderr ضروری را نگه میدارد
+4.  **فشردهسازی پرس و جوی پایگاه داده** — ردیفها را محدود میکند، فرادادههای پرحرف را حذف میکند
+5.  **فشردهسازی پاسخ API** — فیلدهای null را حذف میکند، آرایهها را فشرده میکند
 
 #### زمان استفاده
 
-فشردهسازی نتیجه ابزار هنگام وجود فراخوانی ابزار **همیشه فعال است**.
-به هیچ پیکربندیای نیاز نیست.
+فشردهسازی نتایج ابزار **همیشه روشن است** هنگامی که فراخوانی ابزار وجود دارد.
+نیازی به پیکربندی نیست.
 
 ### خط لوله پشتهای
 
-حالت پشتهای **چند موتور را بهترتیب** اجرا میکند — معمولاً ابتدا RTK
-(صرفهجویی 60-90٪ در خروجی ابزار)، سپس غارنشینی (30٪ صرفهجویی بیشتر در
-متن باقیمانده). این روش در مجموع **78-95٪ صرفهجویی** ایجاد میکند.
+حالت پشتهای **چندین موتور را به صورت متوالی** اجرا میکند — معمولاً RTK ابتدا
+(60-90% صرفهجویی در خروجی ابزار)، سپس Caveman (30% صرفهجویی اضافی در
+متن باقیمانده). این به **78-95% صرفهجویی کلی** دست مییابد.
 
-#### نحوه کار
+#### نحوه عملکرد
 
 ```
 ورودی (1000 توکن)
-  → RTK (فیلتر آگاه از فرمان) → 200 توکن
-    → غارنشینی (حذف حشو) → 140 توکن
-  → خروجی (140 توکن، 86٪ صرفهجویی)
+  → RTK (فیلتر آگاه به دستور) → 200 توکن
+    → Caveman (حذف پرکننده) → 140 توکن
+  → خروجی (140 توکن، 86% صرفهجویی)
 ```
 
 #### زمان استفاده
 
 از حالت پشتهای برای موارد زیر استفاده کنید:
 
-- گردشکارهای متکی بر ابزار (کدنویسی عاملی، پژوهش)
+- گردشهای کاری سنگین ابزار (کدنویسی عامل، تحقیق)
 - پردازش دستهای حساس به هزینه
-- زمانی که به بیشترین صرفهجویی در توکن نیاز دارید
+- هنگامی که به حداکثر صرفهجویی در توکن نیاز دارید
 
-از طریق پیکربندی ترکیبی تنظیم کنید:
+از طریق ترکیب پیکربندی کنید:
 
 ```json
 {

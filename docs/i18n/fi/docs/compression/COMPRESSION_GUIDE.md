@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Suomi)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
@@ -180,60 +180,50 @@ Stacked-tilassa:       lähetetään 10K-2.5K tokenia     (soveltuvan RTK+Cavema
 
 ---
 
-## Määritykset
+## Konfigurointi
 
 ### Hallintapaneeli
 
 Siirry kohtaan `Dashboard → Context & Cache`:
 
-- **Caveman** — tilan valinta, kielipaketit, esikatselu ja yleiset oletusasetukset
-- **RTK** — komentosuodattimen esikatselu, RTK:n turvallisuusasetukset ja suodatinluettelo
-- **Pakkausyhdistelmät** — nimetyt moottoriputket, jotka on määritetty reititysyhdistelmille
-- **Automaattisen käynnistyksen kynnysarvo** — pakkaus otetaan automaattisesti käyttöön, kun tokenien määrä ylittää kynnysarvon
+- **Caveman** – tilan valinta, kielipaketit, esikatselu ja globaalit oletusarvot
+- **RTK** – komentosuodattimen esikatselu, RTK-turvallisuusasetukset ja suodatinluettelo
+- **Compression Combos** – nimettyjä moottoriputkia, jotka on määritetty reititysyhdistelmille
+- **Auto-Trigger Threshold** – käynnistää pakkauksen automaattisesti, kun merkkimäärä ylittää kynnyksen
 
 ### Yhdistelmäkohtainen ohitus
 
-Määritä kohdassa `Dashboard → Context & Cache → Compression Combos` pakkausyhdistelmä
-reititysyhdistelmälle:
+Määritä `Dashboard → Context & Cache → Compression Combos` -kohdassa pakkausyhdistelmä reititysyhdistelmälle:
 
 ```txt
-Yhdistelmä: "free-tier-fallback"
-  Pakkausyhdistelmä: "coding-agent-stack"
-  Putki: RTK -> Caveman
-  Kohteet:
+Combo: "free-tier-fallback"
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
+  Targets:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Näin voit käyttää pinottua pakkausta ilmaisilla ja ohjelmointiin tarkoitetuilla palveluntarjoajilla
-samalla, kun maksullisissa tilauksissa käytetään kevyttä tilaa.
+Tämän avulla voit käyttää pinottua pakkausta ilmaisilla/koodaustoimittajilla pitäen samalla lite-tilan maksullisissa tilauksissa.
 
-Tämä yhdistelmäkohtainen ohitus on eri asetus kuin **reititysyhdistelmän pakkaustilan**
-ohitus (Default/Off/Lite/Standard/Aggressive/Ultra) — kyseinen ohitus ei valitse nimettyä
-pakkausyhdistelmän putkea, vaan ainoastaan määrittää `compressionMode`-kentän, jota
-`resolveCompressionPlan` käyttää. Sen voi määrittää joko yhdistelmäkortissa (`Dashboard → Combos`)
-tai versiosta #6760 alkaen reititysyhdistelmäkohtaisesti `Assign to routing` -luettelossa kohdassa
-`Dashboard → Context & Cache → Compression Combos`, aivan edellä kuvatun putken määritysvalintaruudun
-vieressä. Molempien käyttöliittymien muutokset tallennetaan saman `PUT /api/combos/{id}`-päätepisteen kautta.
+Tämä "Per-Combo Override" -määritys on eri ohjaus kuin **reititysyhdistelmän pakkaustilan** ohitus (Default/Off/Lite/Standard/Aggressive/Ultra) – tämä ohitus ei valitse nimettyä pakkausyhdistelmäputkea; se vain asettaa `compressionMode`-kentän, jota `resolveCompressionPlan` käyttää. Se voidaan asettaa joko yhdistelmäkortille (`Dashboard → Combos`) tai, #6760:n jälkeen, reititysyhdistelmäkohtaisesti "Assign to routing" -luettelossa `Dashboard → Context & Cache → Compression Combos` -kohdassa, aivan yllä dokumentoidun putkenmäärityksen valintaruudun vieressä. Molemmat käyttöliittymät säilyttävät tiedot saman `PUT /api/combos/{id}` -päätepisteen kautta.
 
 ### Pyyntökohtainen ohitus
 
-Lähetä `x-omniroute-compression`-pyyntöotsake ohittaaksesi yksittäisen pyynnön pakkaussuunnitelman.
-Sillä on korkein prioriteetti — se ohittaa reititysyhdistelmän ohituksen, aktiivisen profiilin,
-automaattisen käynnistyksen ja paneelin Default-asetuksen. Tuntemattomat arvot ohitetaan (pyyntöä ei
-koskaan hylätä), ja yleinen pääkytkin hallitsee edelleen kaikkea: kun pakkaus on poistettu yleisesti
-käytöstä, otsake ei voi ottaa sitä käyttöön. Arvot:
+Lähetä `x-omniroute-compression`-pyyntöotsake ohittaaksesi pakkaussuunnitelman yksittäiselle pyynnölle. Sillä on korkein prioriteetti – se ohittaa reititysyhdistelmän ohituksen, aktiivisen profiilin, automaattisen käynnistyksen ja paneelin oletusarvon. Tuntemattomat arvot ohitetaan (pyyntöä ei koskaan hylätä) ja globaali pääkytkin ohjaa edelleen kaikkea: kun pakkaus on pois päältä globaalisti, otsake ei voi kytkeä sitä päälle. Arvot:
 
-| Arvo          | Vaikutus                                                                                                                  |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Tätä pyyntöä ei pakata.                                                                                                   |
-| `default`     | Paneelista johdettu Default-profiili (aktiivinen profiili ohitetaan).                                                     |
-| `engine:<id>` | Yksittäinen moottori, kun se on käytössä, esim. `engine:rtk`.                                                             |
-| `<combo>`     | Nimetty yhdistelmä, joka täsmäytetään ensin nimen perusteella kirjainkoosta riippumatta ja sitten tunnisteen perusteella. |
+| Arvo          | Vaikutus                                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Ei pakkausta tälle pyynnölle.                                                                                                   |
+| `default`     | Paneelista johdettu oletusprofiili (ohittaa aktiivisen profiilin). Häviölliset moottorit jätetään pois päältä.                  |
+| `safe`        | Sama kuin otsakkeen jättäminen pois: vain duplikaattien poisto ja välilyöntien tiivistys.                                       |
+| `allow-lossy` | Säilytä tämän pyynnön operaattorisuunnitelma, mukaan lukien yhteenvedot, relevanssisuodattimet ja tyylin uudelleenkirjoitukset. |
+| `engine:<id>` | Yksittäinen moottori, kun se on käytössä, esim. `engine:rtk`. Tämä on pyyntökohtainen opt-in kyseiselle moottorille.            |
+| `<combo>`     | Nimetty yhdistelmä, joka vastaa ensin nimen (kirjainkoosta riippumatta) ja sitten tunnuksen perusteella.                        |
 
-Käytetty suunnitelma palautetaan `X-OmniRoute-Compression: <mode>; source=<source>`-vastausotsakkeessa,
-jossa `<source>` on jokin seuraavista: `request-header`, `routing-override`, `active-profile`,
-`auto-trigger`, `default` tai `off`.
+Ilman `allow-lossy`, `engine:<id>` tai nimettyä yhdistelmää häviöllisiä moottoreita ei käytetä. Pyyntö saa silti istunnon duplikaattien poiston ja välilyöntien tiivistyksen, kun pakkaus on päällä.
+
+Käytetty suunnitelma toistetaan `X-OmniRoute-Compression: <mode>; source=<source>` -vastausotsakkeessa, jossa `<source>` on jokin seuraavista: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` tai `off`.
 
 ### API
 
@@ -246,15 +236,15 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Esikatsele tietty RTK-/pinottu hyötykuorma
+# Esikatsele tiettyä RTK/pinottua hyötykuormaa
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# Luettele RTK-suodatinpaketit
+# Listaa RTK-suodatinpaketit
 curl http://localhost:20128/api/context/rtk/filters
 
-# Testaa RTK:ta suoraan valinnaisilla komentometatiedoilla
+# Testaa RTK:ta suoraan valinnaisilla komennon metatiedoilla
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -281,7 +271,7 @@ salasanat, tunnukset ja salaisuudet ennen minkään tiedon tallentamista.
 
 ## Pakkaustilastot
 
-Jokaisen pakatun pyynnön tilastot sisällytetään palvelinlokeihin:
+Jokainen pakattu pyyntö sisältää tilastoja palvelinlogeissa:
 
 ```json
 {
@@ -301,13 +291,13 @@ Jokaisen pakatun pyynnön tilastot sisällytetään palvelinlokeihin:
 
 ## Vaiheiden etenemissuunnitelma
 
-| Vaihe    | Tilat                                                                                                                                                                    | Tila         |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
-| Vaihe 1  | Off, Lite                                                                                                                                                                | ✅ Julkaistu |
-| Vaihe 2  | Standard, Aggressive, Ultra                                                                                                                                              | ✅ Julkaistu |
-| Vaihe 3  | RTK, Stacked, Compression Combos                                                                                                                                         | ✅ Julkaistu |
-| Vaihe 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                                              | ✅ Julkaistu |
-| Vaihe 4C | Mukautuva kontekstibudjetti ("säädin") — laskentamoottori + API (`contextBudget` kohteessa `PUT /api/settings/compression`) + hallintapaneelin tila- ja käytäntösäätimet | ✅ Julkaistu |
+| Vaihe    | Tilamoodit                                                                                                                                                      | Tila          |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Vaihe 1  | Off, Lite                                                                                                                                                       | ✅ Toimitettu |
+| Vaihe 2  | Standard, Aggressive, Ultra                                                                                                                                     | ✅ Toimitettu |
+| Vaihe 3  | RTK, Stacked, Compression Combos                                                                                                                                | ✅ Toimitettu |
+| Vaihe 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                                     | ✅ Toimitettu |
+| Vaihe 4C | Mukautuva kontekstibudjetti ("säädin") — laskentamoottori + API (`contextBudget` on `PUT /api/settings/compression`) + hallintapaneelin tila-/käytäntöohjaukset | ✅ Toimitettu |
 
 ---
 
@@ -319,28 +309,23 @@ RTK-tila on saanut inspiraationsa **[RTK AI:n](https://github.com/rtk-ai)** **[R
 
 ---
 
-## Edistyneet pakkausjärjestelmät
+## Edistykselliset pakkausjärjestelmät
 
-Seitsemän vakiotilan lisäksi OmniRoute sisältää useita edistyneitä pakkausjärjestelmiä,
-jotka toimivat automaattisesti kontekstin perusteella.
+7 vakiotilan lisäksi OmniRoute sisältää useita edistyksellisiä pakkausjärjestelmiä, jotka toimivat automaattisesti kontekstin perusteella.
 
 ### Välimuistitietoinen pakkaus
 
-Jotkin palveluntarjoajat (kuten Anthropic kehotteiden välimuistitallennuksella) tukevat **kehotteiden välimuistitallennusta**,
-jonka avulla ne voivat tallentaa kehotteen osia välimuistiin kustannusten ja viiveen vähentämiseksi. Kun
-välimuistitallennus on käytössä, aggressiivinen pakkaus voi itse asiassa **heikentää** suorituskykyä,
-koska se muuttaa välimuistiin tallennettuja tunnuksia ja mitätöi välimuistin.
+Jotkut palveluntarjoajat (kuten Anthropic kehotteiden välimuistitallennuksella) tukevat **kehotteiden välimuistitallennusta**, jonka avulla ne voivat tallentaa osia kehotteesta kustannusten ja viiveen vähentämiseksi. Kun välimuistitallennus on käytössä, aggressiivinen pakkaus voi itse asiassa **heikentää** suorituskykyä, koska se muuttaa välimuistiin tallennettuja tunnuksia, mikä mitätöi välimuistin.
 
-`cachingAware.ts`-moduuli ratkaisee tämän **tunnistamalla välimuistikontekstin** ja
-**säätämällä pakkausstrategiaa** sen mukaisesti.
+`cachingAware.ts`-moduuli ratkaisee tämän **tunnistamalla välimuistitallennuskontekstin** ja **säätämällä pakkausstrategiaa** sen mukaisesti.
 
-#### Toimintaperiaate
+#### Miten se toimii
 
-1. **Tunnista välimuistikonteksti** — Etsii pyynnön rungosta `cache_control`-merkintöjä
-2. **Tunnista välimuistitallennusta tukevat palveluntarjoajat** — Tarkistaa, tukeeko kohdepalveluntarjoaja välimuistitallennusta
-3. **Säädä strategiaa** — Laskee `aggressive`-/`ultra`-tilan `standard`-tilaan välimuistitallennusta tukevilla palveluntarjoajilla
-4. **Ohita järjestelmäkehote** — Järjestelmäkehotteet tallennetaan yleensä välimuistiin, joten niitä ei pakata
-5. **Käytä deterministisiä muunnoksia** — Käyttää vain yhdenmukaisia tuloksia tuottavia muunnoksia
+1. **Tunnista välimuistitallennuskonteksti** – Tarkistaa pyynnön rungosta `cache_control`-merkkejä
+2. **Tunnista välimuistitallennusta tukevat palveluntarjoajat** – Tarkistaa, tukeeko kohdepalveluntarjoaja välimuistitallennusta
+3. **Säädä strategiaa** – Alentaa `aggressive`/`ultra`-tilan `standard`-tilaan välimuistitallennusta tukeville palveluntarjoajille
+4. **Ohita järjestelmäkehote** – Järjestelmäkehotteet ovat yleensä välimuistissa, joten älä pakkaa niitä
+5. **Käytä deterministisiä muunnoksia** – Käytä vain muunnoksia, jotka tuottavat johdonmukaisen tuloksen
 
 #### Koodiesimerkki
 
@@ -353,7 +338,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Välimuistimerkintä
+  cache_control: { type: "ephemeral" }, // ← Välimuistimerkki
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -363,23 +348,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Milloin käytetään
+#### Milloin käyttää
 
-Välimuistitietoinen pakkaus on **aina käytössä** — määrityksiä ei tarvita. Se aktivoituu vain,
-kun:
+Välimuistitietoinen pakkaus on **aina päällä** – ei vaadi konfigurointia. Se aktivoituu vain, kun:
 
-- Pyynnössä on `cache_control`-merkintöjä
+- Pyynnössä on `cache_control`-merkkejä
 - Kohdepalveluntarjoaja tukee kehotteiden välimuistitallennusta (Anthropic, OpenAI jne.)
 
-### Asteittainen vanheneminen
+### Progressiivinen ikääntyminen
 
-Pitkiin keskusteluihin kertyy paljon viestikierroksia, mutta vanhemmista kierroksista tulee vähemmän
-merkityksellisiä. `progressiveAging.ts`-moduuli **heikentää viestejä kierrosetäisyyden perusteella**:
+Pitkät keskustelut keräävät monia viestivuoroja, mutta vanhemmat vuorot muuttuvat vähemmän relevantiksi. `progressiveAging.ts`-moduuli **heikentää viestejä vuorojen etäisyyden mukaan**:
 
-- **Viimeisimmät kierrokset (0-3)**: Säilytetään sanatarkasti (kaikki yksityiskohdat)
-- **Keskitason kierrokset (4-8)**: Lite-pakkaus (välilyöntien ja muotoilun siistiminen)
-- **Vanhat kierrokset (9+)**: Caveman-pakkaus (täytesanojen poisto ja tiivistäminen)
-- **Erittäin vanhat kierrokset (20+)**: Tiivistetään voimakkaasti tai poistetaan
+- **Viimeisimmät vuorot (0-3)**: Säilytetään sanasta sanaan (täydelliset yksityiskohdat)
+- **Keskimmäiset vuorot (4-8)**: Kevyt pakkaus (välilyönnit, muotoilun siistiminen)
+- **Vanhat vuorot (9+)**: Luolamiespakkaus (täytesanojen poisto, tiivistäminen)
+- **Erittäin vanhat vuorot (20+)**: Voimakkaasti tiivistetty tai poistettu
 
 #### Koodiesimerkki
 
@@ -390,48 +373,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... vielä 50 kierrosta ...
+  // ... 50 more turns ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Ensimmäiset 3 kierrosta: sanatarkasti
-  light: 8, // Kierrokset 4–8: lite-pakkaus
-  moderate: 20, // Kierrokset 9–20: caveman-pakkaus
-  // Kierrokset 21+: voimakas tiivistäminen
+  verbatim: 3, // Ensimmäiset 3 vuoroa: sanasta sanaan
+  light: 8, // Vuorot 4-8: kevyt pakkaus
+  moderate: 20, // Vuorot 9-20: luolamiespakkaus
+  // Vuorot 21+: voimakas tiivistäminen
 });
 
 // saved = säästettyjen tunnusten määrä
 ```
 
-#### Milloin käytetään
+#### Milloin käyttää
 
-Progressiivinen vanhentaminen on **aina käytössä** `aggressive`- ja `ultra`-tiloissa. Se on
-erityisen tehokas seuraavissa tilanteissa:
+Progressiivinen ikääntyminen on **aina päällä** `aggressive`- ja `ultra`-tiloissa. Se on erityisen tehokas:
 
-- Pitkäkestoiset ohjelmointi-istunnot
-- Useita päiviä kestävät keskustelut
-- Agenttipohjaiset työnkulut, joissa on paljon työkalukutsuja
+- Pitkäkestoisissa koodaussessioissa
+- Monipäiväisissä keskusteluissa
+- Agenttipohjaisissa työnkuluissa, joissa on paljon työkalukutsuja
 
-### Luolamies-tulostustila
+### Luolamiehen tulostustila
 
-`outputMode.ts`-moduuli lisää **järjestelmäkehotteen ohjeita**, jotka saavat
-mallin itsensä tuottamaan tiivistettyä ja niukkasanaista tulostetta ("luolamiestyyliin").
+`outputMode.ts`-moduuli lisää **järjestelmäkehotteen ohjeita**, jotta malli itse tuottaa pakattua, ytimekästä tulostetta ("luolamies"-tyyliin).
 
-#### Toimintaperiaate
+#### Miten se toimii
 
-Syötteen pakkaamisen sijaan tämä tila lisää seuraavan kaltaisen järjestelmäkehotteen:
+Sen sijaan, että tämä tila pakkaa syötteen, se lisää järjestelmäkehotteen, kuten:
 
-> "Vastaa mahdollisimman vähin sanoin. Ohita kohteliaisuudet. Käytä lyhyitä lauseita."
+> "Vastaa mahdollisimman vähillä sanoilla. Ohita kohteliaisuudet. Käytä lyhyitä lauseita."
 
-Tämä toimii erityisen hyvin seuraavissa käyttötapauksissa:
+Tämä toimii erityisen hyvin:
 
-- Koodin generointi (niukkasanaisempi tuloste = vähemmän tokeneita)
-- Nopeat kysymykset ja vastaukset (perusteellisia selityksiä ei tarvita)
-- Eräkäsittely (maksimoi läpimeno)
+- Koodin generoinnissa (ytimekkäämpi tuloste = vähemmän tunnuksia)
+- Nopeissa kysymys-vastaus-tilanteissa (ei tarvetta yksityiskohtaisille selityksille)
+- Eräkäsittelyssä (maksimoi läpimenon)
 
-#### Milloin sitä kannattaa käyttää
+#### Milloin käyttää
 
-Luolamies-tulostustila on **valinnainen** — ota se käyttöön yhdistelmäasetuksella:
+Luolamiehen tulostustila on **valinnainen** – aseta se yhdistelmäkonfiguraation kautta:
 
 ```json
 {
@@ -444,41 +425,38 @@ Luolamies-tulostustila on **valinnainen** — ota se käyttöön yhdistelmäaset
 }
 ```
 
-### Tulostetyylit (luettelo)
+### Tulostustyylit (luettelo)
 
-Edellä kuvattu luolamies-tulostustila on **vanha yhden tyylin toteutuspolku**. Vaiheessa 4 se
-yleistettiin yhdisteltävien tulostetyylien luetteloksi: `OUTPUT_STYLE_CATALOG` tiedostossa
-`open-sse/services/compression/outputStyles/catalog.ts`. Jokainen tyyli on järjestelmäkehotteen
-ohje, joka saa mallin itsensä tuottamaan edullisempaa tulostetta. Tyylejä voidaan ottaa käyttöön
-yhdessä, ja ne lisätään luettelon mukaisessa järjestyksessä.
+Yllä oleva luolamiehen tulostustila on **perinteinen yhden tyylin polku**. Vaihe 4 yleisti sen luetteloksi yhdisteltäviä tulostustyylejä: `OUTPUT_STYLE_CATALOG` tiedostossa
+`open-sse/services/compression/outputStyles/catalog.ts`. Jokainen tyyli on järjestelmäkehotteen ohje, joka saa mallin itse tuottamaan edullisempaa tulostetta; tyylejä voidaan ottaa käyttöön yhdessä ja ne lisätään luettelojärjestyksessä.
 
-| Tyyli                                  | `id`          | Toiminta                                                                                                                                                                                                                                                   | Ohjekielet                                                                          |
-| -------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Niukkasanainen proosa                  | `terse-prose` | Poistaa täytesanat, artikkelit ja varaukset; säilyttää teknisen sisällön täsmällisenä. Sama teksti kuin vanhassa luolamies-tulostustilassa (siihen viitataan, eikä tekstiä kirjoiteta uudelleen).                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
-| Vähemmän koodia                        | `less-code`   | YAGNI-portaat: pienin toimiva muutos, ei pyytämättömiä abstraktioita.                                                                                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
-| Poninhäntä (laiska vanhempi kehittäjä) | `ponytail`    | "Paras koodi on koodi, jota ei koskaan kirjoitettu": uudelleenkäyttö > uudelleenkirjoitus, juurisyy > oire, lyhin toimiva muutosjoukko.                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
-| Minulla on ADHD (toiminta ensin)       | `i-have-adhd` | Toiminta ensin (komento/polku/katkelma ennen selostusta), numeroidut ja rajatut vaiheet, YKSI konkreettinen seuraava vaihe, ei johdantoa/yhteenvetoa/lopetuksia. Mukautettu projektista [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
-| Niukkasanainen CJK (文言)              | `terse-cjk`   | Klassisen kiinan äärimmäisen niukkasanainen tyyli.                                                                                                                                                                                                         | zh (aluekohtaista saatavuutta rajattu: tarjotaan vain, kun ratkaistu kieli on `zh`) |
+| Tyyli                                | `id`          | Mitä se tekee                                                                                                                                                                                                                                          | Ohjekielet                                                             |
+| :----------------------------------- | :------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
+| Tiivis proosa                        | `terse-prose` | Poistaa täytesanat/artikkelit/varovaisuuden; pitää teknisen sisällön täsmällisenä. Sama teksti kuin vanha caveman-tulostustila (viitattu, ei uudelleenkirjoitettu).                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Vähemmän koodia                      | `less-code`   | YAGNI-tikkaat: pienin toimiva muutos, ei pyytämättömiä abstraktioita.                                                                                                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Ponytail (laiska vanhempi kehittäjä) | `ponytail`    | "Paras koodi on koodi, jota ei koskaan kirjoiteta": uudelleenkäyttö > uudelleenkirjoitus, perussyy > oire, lyhin toimiva ero.                                                                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Minulla on ADHD (toiminta ensin)     | `i-have-adhd` | Toiminta ensin (komento/polku/katkelma ennen proosaa), numeroidut rajatut vaiheet, YKSI konkreettinen seuraava vaihe, ei esipuhetta/yhteenvetoa/lopetuksia. Mukautettu [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) -projektista. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
+| Tiivis CJK (文言)                    | `terse-cjk`   | Klassisen kiinan erittäin tiivis tyyli.                                                                                                                                                                                                                | zh (paikallisesti rajattu: tarjolla vain, kun ratkaistu kieli on `zh`) |
 
-Jokaisessa tyylissä on kolme voimakkuustasoa — `lite`, `full`, `ultra` — ja jokainen taso
-päättyy yhteiseen rajausehtoon, joka säilyttää koodilohkot, tiedostopolut, komennot,
-virhetekstit, URL-osoitteet ja tunnisteet muuttamattomina.
+Jokaisessa tyylissä on kolme intensiteettitasoa – `lite`, `full`, `ultra` – ja jokainen taso
+päättyy jaettuun rajausehtoon, joka pitää koodilohkot, tiedostopolut, komennot,
+virheketjut, URL-osoitteet ja tunnisteet muuttumattomina.
 
-#### Ohjeiden lisäämisen toimintaperiaate
+#### Miten injektio toimii
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) sovittaa
-valinnan luetteloon (tuntemattomat tunnukset ja alueasetukseen sopimattomat tyylit
-ohitetaan, eivätkä ne koskaan aiheuta virhettä), yhdistää valitut ohjeet luettelon mukaisessa järjestyksessä,
-lisää rajausehdon **kerran** ja sijoittaa tuloksen järjestelmäkehotteen alkuun yhden
-idempotenssimerkinnän (`[OmniRoute Output Styles]`) jälkeen — uudelleensoveltaminen
-ei tee mitään. Kun havaitulle pyynnön kielelle on olemassa käännös, järjestelmäkehotteeseen
-lisätään englannin sijasta lokalisoitu ohje.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ratkaisee
+valinnan luetteloa vasten (tuntemattomat tunnukset ja paikallisesti yhteensopimattomat tyylit
+poistetaan, ei koskaan virhettä), yhdistää valitut ohjeet luettelojärjestyksessä,
+lisää rajausehdon **kerran** ja sijoittaa tuloksen järjestelmän
+kehotteen eteen yhden idempotenttimerkin (`[OmniRoute Output Styles]`) taakse – uudelleen
+soveltaminen ei tee mitään. Kun havaittu pyyntökieli sisältää käännöksen,
+lokalisoitu ohje injektoidaan englannin sijaan.
 
-#### Käyttöönotto
+#### Miten otetaan käyttöön
 
-Hallintapaneelissa: **Konteksti → Asetukset → Pakkaus** — jokaiselle tyylille on oma rivi,
-jolla on käyttöön-/poiskytkin ja tason valitsin. Ohjelmallisesti pakkausmääritykseen
-tallennetaan valinta seuraavasti:
+Hallintapaneelissa: **Context → Settings → Compression** – yksi rivi tyyliä kohden
+on/off-kytkimellä ja tason valitsimella. Ohjelmallisesti pakkausasetukset säilyttävät
+valinnan seuraavasti:
 
 ```json
 {
@@ -489,59 +467,59 @@ tallennetaan valinta seuraavasti:
 }
 ```
 
-Taaksepäin yhteensopivuus: vanha yhdistelmäasetus `outputMode: "caveman"` toimii edelleen ja vastaa
-`terse-prose`-tyyliä tavutasolla identtisesti vanhan lisäyksen kanssa kaikilla vanhoilla kielillä.
+Taaksepäin yhteensopivuus: vanha `outputMode: "caveman"` -yhdistelmäasetus toimii edelleen ja vastaa
+`terse-prose`-tyyliä, joka on tavu-identtinen vanhan injektion kanssa kaikilla vanhoilla kielillä.
 
-Kielen valinta: kun `languageConfig.enabled` on käytössä, `autoDetect` valitsee
-uusimman käyttäjäviestin kielen (sama tunnistin kuin syötemoottoreissa);
-`autoDetect`-toiminnon poistaminen käytöstä lukitsee kieleksi `defaultLanguage`-arvon. Pois käytöstä → englanti.
+Kielen valinta: kun `languageConfig.enabled` on päällä, `autoDetect` valitsee
+uusimman käyttäjäviestin kielen (sama tunnistin kuin syöttömoottoreissa);
+`autoDetect`-toiminnon poiskytkeminen kiinnittää `defaultLanguage`-asetuksen. Pois päältä → englanti.
 
-Tyyli × kieli -matriisi on kiinnitetty testillä
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: uutta tyyliä ei voi julkaista
-ilman vähintään pt-BR-käännöstä (tai nimenomaisesti seurattua poikkeusta), eikä
-olemassa oleva tyyli voi huomaamatta menettää kielialuetta. Lisätietoja tyylin lisäämisestä on kohdassa
+Tyyli × kieli -matriisi on kiinnitetty tiedostoon
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: uusi tyyli ei voi tulla käyttöön
+ilman vähintään pt-BR-käännöstä (tai nimenomaista seurattua poikkeusta), eikä
+olemassa oleva tyyli voi hiljaisesti menettää lokalisointia. Tyylin lisäämiseksi katso
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Työkalutulosten pakkaus
+### Työkalun tulosten pakkaus
 
 `toolResultCompressor.ts`-moduuli tarjoaa **5 erikoistunutta pakkausstrategiaa**
-työkalutuloksille (funktiokutsut, agenttien tulosteet, hakutulokset jne.):
+työkalujen tuloksille (funktiokutsut, agentin tulosteet, hakutulokset jne.):
 
-1. **Hakutulosten pakkaus** — Poistaa tarpeettomasti toistuvat tulokset ja säilyttää parhaat N tulosta
-2. **Tiedostojen lukutulosten pakkaus** — Katkaisee suuret tiedostot ja säilyttää otsakkeet/tuonnit
-3. **Koodin suoritustulosten pakkaus** — Säilyttää vain olennaisen stdout/stderr-tulosteen
-4. **Tietokantakyselyiden pakkaus** — Rajoittaa rivejä ja poistaa monisanaiset metatiedot
-5. **API-vastausten pakkaus** — Poistaa null-kentät ja tiivistää taulukot
+1. **Hakutulosten pakkaus** – Poistaa redundantit tulokset, säilyttää N parasta
+2. **Tiedoston lukemisen pakkaus** – Katkaisee suuret tiedostot, säilyttää otsikot/tuonnit
+3. **Koodin suorituksen pakkaus** – Säilyttää vain olennaiset stdout/stderr-tulosteet
+4. **Tietokantakyselyjen pakkaus** – Rajoittaa rivejä, poistaa yksityiskohtaiset metatiedot
+5. **API-vastausten pakkaus** – Poistaa null-kentät, tiivistää taulukot
 
-#### Milloin sitä kannattaa käyttää
+#### Milloin käyttää
 
-Työkalutulosten pakkaus on **aina käytössä**, kun työkalukutsuja esiintyy.
-Määrityksiä ei tarvita.
+Työkalun tulosten pakkaus on **aina päällä**, kun työkalukutsuja on. Ei
+konfigurointia tarvita.
 
-### Pinottu käsittelyputki
+### Pinottu putki
 
-Pinottu tila suorittaa **useita moottoreita peräkkäin** — yleensä ensin RTK:n
-(60–90 %:n säästö työkalutulosteessa) ja sitten Cavemanin (30 %:n lisäsäästö
-jäljellä olevasta tekstistä). Näin saavutetaan **yhteensä 78–95 %:n säästö**.
+Pinottu tila suorittaa **useita moottoreita peräkkäin** – yleensä ensin RTK
+(60-90 % säästöjä työkalun tulosteissa), sitten Caveman (30 % lisäsäästöjä
+jäljellä olevasta tekstistä). Tämä saavuttaa **78-95 % kokonaissäästöt**.
 
-#### Toimintaperiaate
+#### Miten se toimii
 
 ```
-Syöte (1000 tokenia)
-  → RTK (komennot huomioiva suodatin) → 200 tokenia
-    → Caveman (täytesanojen poisto) → 140 tokenia
-  → Tuloste (140 tokenia, 86 %:n säästö)
+Syöte (1000 merkkiä)
+  → RTK (komentotietoinen suodatin) → 200 merkkiä
+    → Caveman (täytesanojen poisto) → 140 merkkiä
+  → Tuloste (140 merkkiä, 86 % säästö)
 ```
 
-#### Milloin sitä kannattaa käyttää
+#### Milloin käyttää
 
-Käytä pinottua tilaa seuraavissa tilanteissa:
+Käytä pinottua tilaa seuraavissa tapauksissa:
 
-- Työkalupainotteiset työnkulut (agenttipohjainen ohjelmointi, tutkimus)
+- Työkalupainotteiset työnkulut (agenttipohjainen koodaus, tutkimus)
 - Kustannusherkkä eräkäsittely
-- Kun tarvitset mahdollisimman suuren token-säästön
+- Kun tarvitset maksimaalisia merkkisäästöjä
 
-Määritä yhdistelmäasetuksella:
+Määritä yhdistelmän avulla:
 
 ```json
 {

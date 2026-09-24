@@ -1,6 +1,6 @@
 # README (ไทย)
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [or](../or/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇧🇦 [bs](../bs/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [or](../or/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — เกตเวย์ AI ฟรี
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — เขียนโค้ดได้อย่างต่อเนื่องไม่มีสะดุด เครื่องมือ AI ทุกชนิด → ผู้ให้บริการ 359 ราย — ฟรีกว่า 150 รายการ — ผ่านเอนด์พอยต์เดียว เชื่อมต่อ Claude Code, Codex, Cursor, Cline, Copilot และ Antigravity เข้ากับ Claude / GPT / Gemini ฟรี พร้อมระบบสลับสำรองอัตโนมัติ การบีบอัดแบบซ้อน RTK + Caveman ช่วยประหยัดโทเค็น 15–95% (เฉลี่ยประมาณ 89%) — ไม่ต้องเจอขีดจำกัด ผู้ให้บริการ AI 359 ราย · ระดับใช้งานฟรีกว่า 150 รายการ · โทเค็นฟรีประมาณ 1.62B โทเค็น/เดือน · กลยุทธ์การกำหนดเส้นทาง 19 แบบ · เริ่มต้นที่ $0"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — ไม่หยุดเขียนโค้ด เครื่องมือ AI ทุกชนิด → ผู้ให้บริการ 358 ราย — ฟรี 150+ ราย — ผ่านปลายทางเดียว Claude Code, Codex, Cursor, Cline, Copilot & Antigravity สู่ Claude / GPT / Gemini ฟรี พร้อมการสำรองข้อมูลอัตโนมัติ การบีบอัดแบบซ้อน RTK + Caveman ช่วยประหยัดโทเค็นได้ 15–95% (เฉลี่ย ~89%) — ไม่เคยชนขีดจำกัด ผู้ให้บริการ AI 358 ราย · ระดับฟรี 150+ ราย · โทเค็นฟรี ~1.62 พันล้าน/เดือน · กลยุทธ์การกำหนดเส้นทาง 19 แบบ · เริ่มต้น $0"/>
 
 </div>
 
@@ -23,13 +23,13 @@
 
 </div>
 
-> การรวมโควตาฟรีหลายรายการด้วยตนเองเป็นเรื่องยุ่งยาก — SDK หลายสิบตัว ขีดจำกัดอัตราการใช้งานหลายสิบแบบ และไม่รู้เลยว่าจริง ๆ แล้วคุณมีโควตาเท่าใด OmniRoute รวบรวม **รายการโควตาฟรี 491 รายการจากคีย์พูลแบบเกิดซ้ำ 35 คีย์** และคำนวณยอดโทเค็นพาดหัวจาก **17 พูลที่เผยแพร่งบประมาณรายเดือนเป็นค่าบวก รวมถึงเพดาน Groq แยกตามโมเดลอีกห้ารายการ** โดยขจัดการนับซ้ำตามพูลที่ใช้ร่วมกัน โควตาที่เปิดให้ใช้ได้หลังผ่านการตรวจสอบตัวตนตามภูมิภาคเท่านั้น (ปัจจุบันคือ ModelScope) จะแสดงแยกต่างหาก โดยมีอีก +~6M ที่ต้องผ่านการยืนยันตัวตนตามภูมิภาค และจะไม่ถูกนำไปรวมในยอดพาดหัว ผลลัพธ์จะแสดงอยู่บนแดชบอร์ด (`/dashboard/free-tiers`) เสมอ
+> การรวมแพ็กเกจฟรีด้วยตนเองเป็นเรื่องยุ่งยาก — มี SDK หลายสิบรายการ ขีดจำกัดอัตราการใช้งานหลายสิบแบบ และคุณก็ไม่รู้เลยว่าจริง ๆ แล้วมีโควตาอยู่เท่าใด OmniRoute รวบรวม **รายการแพ็กเกจฟรี 489 รายการจากคีย์พูลแบบหมุนเวียน 35 คีย์** และคำนวณตัวเลขโทเค็นหลักจาก **17 พูลที่มีการประกาศงบประมาณรายเดือนเป็นจำนวนบวก รวมถึงเพดานแยกตามโมเดลของ Groq อีก 5 รายการ** โดยตัดรายการซ้ำตามพูลที่ใช้ร่วมกัน โควตาที่เปิดให้ใช้ได้หลังผ่านการตรวจสอบตัวตนตามภูมิภาคเท่านั้น (ปัจจุบันคือ ModelScope) จะแสดงแยกต่างหาก โดยมีอีก +~6M ที่ต้องผ่านการยืนยันตัวตนตามภูมิภาค และจะไม่ถูกนำไปรวมในตัวเลขหลัก ผลลัพธ์จะแสดงอยู่บนแดชบอร์ด (`/dashboard/free-tiers`) เสมอ
 
-<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="การ์ดงบประมาณโควตาฟรีของ OmniRoute: โทเค็นฟรีคงที่ ~1.62B ต่อเดือน และสูงสุด ~2.22B ในเดือนแรกเมื่อรวมเครดิตสมัครใช้งาน จากคีย์พูลแบบเกิดซ้ำที่มีเอกสารกำกับ 35 คีย์ ครอบคลุมรายการโควตาฟรีที่รวบรวมไว้ 491 รายการภายใต้เอนด์พอยต์เดียว การคำนวณที่โปร่งใสและขจัดการนับพูลซ้ำ — แต่ละพูลที่ใช้ร่วมกันจะถูกนับเพียงครั้งเดียว รวมถึงพูลแบบเกิดซ้ำ 17 พูลที่เผยแพร่งบประมาณโทเค็นรายเดือนเป็นค่าบวก และเพดาน Groq แยกตามโมเดลอีกห้ารายการ ผู้ให้บริการ 13 รายถูกทำเครื่องหมายว่าควรหลีกเลี่ยงในแค็ตตาล็อกความเสี่ยงด้านข้อกำหนด เพื่อให้คุณเป็นผู้ตัดสินใจ แถบงบประมาณประกอบด้วย Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (เพดานแยกตามโมเดลห้ารายการ) และพูลขนาดเล็กอื่น ๆ รวมถึงเครดิตสมัครใช้งานสำหรับเดือนแรกและผู้ให้บริการที่ให้ใช้ฟรีถาวรโดยไม่มีเพดานโทเค็น ซึ่งแสดงแยกต่างหากเพื่อไม่ให้ยอดพาดหัวสูงเกินจริง ดูปริมาณที่ใช้/คงเหลือแบบสดได้ที่ /dashboard/free-tiers."/>
+<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="การ์ดงบประมาณแพ็กเกจฟรีของ OmniRoute: โทเค็นฟรีคงที่ ~1.62B ต่อเดือน และสูงสุด ~2.22B ในเดือนแรกเมื่อรวมเครดิตสมัครใช้งาน จากคีย์พูลแบบหมุนเวียนที่มีเอกสารกำกับ 35 คีย์ ซึ่งครอบคลุมรายการแพ็กเกจฟรีในแค็ตตาล็อก 489 รายการภายใต้เอนด์พอยต์เดียว การคำนวณที่โปร่งใสและตัดรายการซ้ำตามพูล — แต่ละพูลที่ใช้ร่วมกันจะถูกนับเพียงครั้งเดียว รวมถึงพูลแบบหมุนเวียน 17 พูลที่มีการประกาศงบประมาณโทเค็นรายเดือนเป็นจำนวนบวก และเพดานแยกตามโมเดลของ Groq อีก 5 รายการ ผู้ให้บริการ 13 รายถูกทำเครื่องหมายว่าควรหลีกเลี่ยงในแค็ตตาล็อกความเสี่ยงด้านข้อกำหนด เพื่อให้คุณเป็นผู้ตัดสินใจเอง แถบงบประมาณประกอบด้วย Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (เพดานแยกตามโมเดล 5 รายการ) และพูลขนาดเล็กอื่น ๆ รวมทั้งเครดิตสมัครใช้งานสำหรับเดือนแรกและผู้ให้บริการที่ให้ใช้ฟรีถาวรโดยไม่มีเพดานโทเค็น ซึ่งจะแสดงแยกต่างหากเพื่อไม่ให้ตัวเลขหลักสูงเกินจริง ดูปริมาณที่ใช้ไป/คงเหลือแบบเรียลไทม์ได้ที่ /dashboard/free-tiers."/>
 
-> สรุปแบบเคลื่อนไหวของหน้า `/dashboard/free-tiers` แบบสด ระเบียบวิธีฉบับเต็ม (การขจัดการนับพูลซ้ำ ระดับเครดิต ข้อกำหนดของผู้ให้บริการ): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+> ภาพเคลื่อนไหวสรุปหน้า `/dashboard/free-tiers` แบบเรียลไทม์ ดูวิธีการทั้งหมด (การตัดรายการซ้ำตามพูล ระดับเครดิต และข้อกำหนดของผู้ให้บริการ) ได้ที่: **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
 >
-> <sub>ตัวเลขเหล่านี้ได้รับการตรวจสอบซ้ำทุกสองสัปดาห์เทียบกับแค็ตตาล็อกที่ใช้งานจริง และ **เปลี่ยนแปลงได้ทั้งสองทิศทาง** — หากผู้ให้บริการยุติโควตาฟรี ตัวเลขก็จะลดลง หากมีรายใหม่เพิ่มเข้ามา ตัวเลขก็จะสูงขึ้น เราเผยแพร่ตามค่าที่แค็ตตาล็อกคำนวณได้จริง โดยไม่ใช้กรณีดีที่สุดที่ปัดตัวเลขขึ้น</sub>
+> <sub>ตัวเลขเหล่านี้ได้รับการตรวจสอบซ้ำทุกสองสัปดาห์เทียบกับแค็ตตาล็อกปัจจุบัน และสามารถ **เปลี่ยนแปลงได้ทั้งสองทิศทาง** — เมื่อผู้ให้บริการยกเลิกแพ็กเกจฟรี ตัวเลขก็จะลดลง และเมื่อมีแพ็กเกจใหม่เพิ่มเข้ามา ตัวเลขก็จะสูงขึ้น เราเผยแพร่ตัวเลขที่แค็ตตาล็อกคำนวณได้จริงเท่านั้น ไม่ใช่กรณีดีที่สุดที่ปัดเศษขึ้น</sub>
 
 <br/>
 
@@ -37,18 +37,18 @@
 
 <h3>
 
-⭐ ให้ดาว repo นี้หาก OMNIROUTE ช่วยให้คุณประหยัดเงินและทำงานได้ง่ายขึ้น
+⭐ กดดาวให้รีโพนี้ หาก OMNIROUTE ช่วยให้คุณประหยัดเงินและทำงานได้ง่ายขึ้น
 
 </h3>
 
 [![ดาว](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
 <a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FOmniRoute | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-[![อันดับประวัติการให้ดาว](https://api.star-history.com/badge?repo=diegosouzapw/OmniRoute&theme=dark)](https://www.star-history.com/diegosouzapw/omniroute)
+[![อันดับประวัติการกดดาว](https://api.star-history.com/badge?repo=diegosouzapw/OmniRoute&theme=dark)](https://www.star-history.com/diegosouzapw/omniroute)
 [![olud.ai](https://olud.ai/badge.php?tool=diegosouzapw-omniroute)](https://olud.ai/project/diegosouzapw-omniroute.html)
 
 ### 💬 เข้าร่วมชุมชน
 
-**👋 ติดตามผู้ดูแลโครงการ — รับข่าวสารผู้ให้บริการรายใหม่ รุ่นที่เผยแพร่ และเคล็ดลับก่อนใคร:**
+**👋 ติดตามผู้ดูแลโปรเจกต์ — รับข่าวสารผู้ให้บริการใหม่ รุ่นใหม่ และเคล็ดลับก่อนใคร:**
 
 [![ติดตาม Diego บน LinkedIn](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
 [![ติดตาม @diegosouzapw บน GitHub](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
@@ -218,18 +218,18 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ใช้งานได้ทันทีที่ติดตั้ง — ไม่ต้องตั้งค่า มีสามขั้นตอน: 1. ติดตั้ง — npm i -g omniroute แล้วเซิร์ฟเวอร์จะเริ่มทำงานบน localhost:20128 2. เชื่อมต่อเครื่องมือของคุณไปยัง http://localhost:20128/v1 — ใช้ได้กับทุกเครื่องมือที่รองรับ OpenAI (Claude Code, Cursor, Cline) 3. รับคำตอบ — เรียกใช้โมเดล auto เพื่อรับคำตอบทันที โดยไม่ต้องมี API key ไม่ต้องสมัคร และไม่ต้องกำหนดค่า ผู้ให้บริการแบบไม่ใช้คีย์ OpenCode Free ได้รับการเชื่อมต่อไว้ล่วงหน้าในชุด auto ดังนั้นการติดตั้งใหม่จึงพร้อมตอบสนองได้ทันที"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ใช้งานได้ทันทีที่ติดตั้ง — ไม่ต้องตั้งค่าใดๆ สามขั้นตอน: 1. ติดตั้ง — npm i -g omniroute, เซิร์ฟเวอร์จะเริ่มทำงานที่ localhost:20128 2. ชี้เครื่องมือของคุณไปที่ http://localhost:20128/v1 — เครื่องมือใดๆ ที่เข้ากันได้กับ OpenAI (Claude Code, Cursor, Cline) 3. มันจะตอบกลับ — เรียกใช้โมเดล auto เพื่อรับการตอบกลับทันที โดยไม่ต้องใช้ API key, ไม่ต้องลงทะเบียน, ไม่ต้องตั้งค่า ผู้ให้บริการแบบไม่ต้องใช้คีย์ OpenCode Free ถูกตั้งค่าไว้ล่วงหน้าในชุด auto ดังนั้นการติดตั้งใหม่จึงสามารถตอบกลับได้ทันที"/>
 
 ```bash
-# ติดตั้งใหม่โดยไม่ต้องมีข้อมูลรับรอง — `auto` ใช้งานได้ทันที:
+# Fresh install, zero credentials — `auto` already works:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>ต้องการแบ็กเอนด์ฟรีที่เฉพาะเจาะจงใช่ไหม? เรียก `oc/…` (OpenCode Free) ได้โดยตรง จากนั้นขยับไปใช้ `auto` แล้วปล่อยให้ OmniRoute เป็นผู้เลือก</sub>
+<sub>ต้องการแบ็กเอนด์ฟรีที่เฉพาะเจาะจงหรือไม่? เรียกใช้ `oc/…` (OpenCode Free) โดยตรง จากนั้นอัปเกรดเป็น `auto` และให้ OmniRoute เลือก</sub>
 
-<sub>📦 สคริปต์เริ่มต้นฉบับด่วนที่คัดลอกแล้ววางได้สำหรับ **Python, Node.js, PHP และ cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 สคริปต์เริ่มต้นอย่างรวดเร็วแบบคัดลอกและวางสำหรับ **Python, Node.js, PHP และ cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="คำมั่นสัญญา — หนึ่งปลายทางและผู้ให้บริการ 359 ราย ระบบสำรองอัตโนมัติจะกำหนดเส้นทางต่อไปตราบใดที่ยังมีเป้าหมายอื่นที่พร้อมใช้งาน เสาหลักหกประการ: ระบบสำรองที่ยืดหยุ่นครอบคลุมผู้ให้บริการ 359 ราย · ประหยัดโทเค็นได้สูงสุด 95% สำหรับเวิร์กโหลดที่เข้าเกณฑ์ · เริ่มต้นที่ $0 ด้วยแพ็กเกจฟรีกว่า 150 รายการและผู้ให้บริการฟรีถาวรแบบหมุนเวียน/ไม่ใช้คีย์ 54 ราย · การผสานรวม CLI/เอเจนต์ 36 รายการผ่านการกำหนดค่าเพียงชุดเดียว · รองรับ OpenAI, Claude, Gemini และ Responses API ที่ /v1 · การควบคุมระดับโปรดักชัน ซึ่งรวมถึงเซอร์กิตเบรกเกอร์, TLS stealth, เครื่องมือ MCP 110 รายการ, A2A, หน่วยความจำ, กลไกป้องกัน, การประเมินผล และประกาศการทดสอบแบบคงที่กว่า 39,000 รายการในไฟล์ทดสอบที่ติดตามมากกว่า 5,100 ไฟล์"/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="คำมั่นสัญญา — ปลายทางเดียวและผู้ให้บริการ 358 ราย การสำรองข้อมูลอัตโนมัติช่วยให้การกำหนดเส้นทางดำเนินต่อไปได้ตราบเท่าที่มีเป้าหมายที่ใช้งานได้อื่นอยู่ หกเสาหลัก: การสำรองข้อมูลที่ยืดหยุ่นจากผู้ให้บริการ 358 ราย · ประหยัดโทเค็นได้สูงสุด 95% สำหรับปริมาณงานที่เข้าเกณฑ์ · เริ่มต้นที่ $0 ด้วย 150+ ระดับฟรี และผู้ให้บริการฟรีตลอดชีพแบบไม่ต้องใช้คีย์/แบบประจำ 54 ราย · การผสานรวม CLI/เอเจนต์ 36 รายการผ่านการตั้งค่าเดียว · ความเข้ากันได้กับ OpenAI, Claude, Gemini และ Responses API ที่ /v1 · การควบคุมการผลิต รวมถึง circuit breakers, TLS stealth, เครื่องมือ MCP 110, A2A, หน่วยความจำ, guardrails, evals และการประกาศการทดสอบแบบคงที่กว่า 39,000 รายการในไฟล์ทดสอบที่ติดตามกว่า 5,100 ไฟล์"/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="ทำไมต้อง OmniRoute — เลิกวุ่นวายกับแดชบอร์ด 10 แห่ง API key ที่ใช้ไม่ได้ และใบเรียกเก็บเงินที่ไม่คาดคิด ปัญหาประจำวันสิบประการเทียบกับแนวทางแก้ไข: โควตาหมดอายุโดยไม่ได้ใช้ → ใช้การสมัครสมาชิกให้คุ้มค่าสูงสุด; ติดข้อจำกัดอัตราระหว่างเขียนโค้ด → ระบบสำรองอัตโนมัติ 4 ระดับ (Subscription → API → Cheap → Free); ผลลัพธ์จากเครื่องมือใช้โทเค็นสิ้นเปลือง → การบีบอัดด้วย RTK + Caveman (15–95%); API ราคาแพง → การกำหนดเส้นทางที่ปรับให้เหมาะกับต้นทุน; ทุกเครื่องมือต้องตั้งค่าแยกกัน → หนึ่งปลายทาง หนึ่งแดชบอร์ด; AI ถูกบล็อก → พร็อกซี 3 ระดับ + TLS stealth; คีย์ใช้ไม่ได้ → ความยืดหยุ่น 3 ชั้น (เซอร์กิตเบรกเกอร์, ช่วงพักคีย์, การล็อกโมเดล); ทีมใช้การสมัครสมาชิกเดียวกัน → พูลคีย์พร้อมโควตาที่แบ่งอย่างเป็นธรรม; พรอมต์ส่งผ่านคลาวด์ของบุคคลอื่น → เน้นการทำงานภายในเครื่อง พร้อมคีย์ที่เข้ารหัสด้วย AES-256-GCM; มองไม่เห็นค่าใช้จ่าย → การวิเคราะห์แบบสด (การใช้งาน, โควตา, การประหยัด, เวลาแฝง p95)"/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="ทำไมต้อง OmniRoute — หยุดจัดการ 10 แดชบอร์ด, API key ที่หมดอายุ และค่าใช้จ่ายที่ไม่คาดคิด สิบปัญหาประจำวันเทียบกับวิธีแก้ไข: โควต้าหมดอายุโดยไม่ได้ใช้ → เพิ่มประสิทธิภาพการสมัครสมาชิก; อัตราการจำกัดระหว่างการเขียนโค้ด → การสำรองข้อมูลอัตโนมัติ 4 ระดับ (Subscription → API → Cheap → Free); ผลลัพธ์ของเครื่องมือใช้โทเค็นมากเกินไป → การบีบอัด RTK + Caveman (15–95%); API ราคาแพง → การกำหนดเส้นทางที่ปรับให้เหมาะสมกับต้นทุน; ทุกเครื่องมือมีการตั้งค่าของตัวเอง → ปลายทางเดียว, แดชบอร์ดเดียว; AI ถูกบล็อก → พร็อกซี 3 ระดับ + TLS stealth; คีย์หมดอายุ → ความยืดหยุ่น 3 ชั้น (circuit breakers, key cooldown, model lockout); ทีมใช้การสมัครสมาชิกเดียว → key pools พร้อมโควต้าการแบ่งปันที่เป็นธรรม; พรอมต์ผ่านคลาวด์ของผู้อื่น → เน้นการทำงานในเครื่องด้วยคีย์ที่เข้ารหัส AES-256-GCM; ไม่มีการมองเห็นค่าใช้จ่าย → การวิเคราะห์แบบเรียลไทม์ (การใช้งาน, โควต้า, การประหยัด, p95 latency)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="ลำดับการไหลของคำขอ OmniRoute: IDE หรือ CLI ของคุณ (Claude Code, Cursor, Cline…) เรียกใช้ปลายทางภายในเครื่องเพียงจุดเดียว (http://localhost:20128/v1); OmniRoute Smart Router (การบีบอัดด้วย RTK + Caveman, กลยุทธ์การกำหนดเส้นทาง 19 แบบ, เซอร์กิตเบรกเกอร์, TLS stealth, MCP, A2A, กลไกป้องกัน) สามารถสลับไปใช้ผู้ให้บริการสำรองได้ใน 4 ระดับ ตราบใดที่ยังมีเป้าหมายที่เข้าเกณฑ์และพร้อมใช้งาน — ระดับ 1 Subscription, ระดับ 2 API Key, ระดับ 3 Cheap และระดับ 4 Free"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="ขั้นตอนการร้องขอของ OmniRoute: IDE หรือ CLI ของคุณ (Claude Code, Cursor, Cline…) เรียกใช้ปลายทางในเครื่องเดียว (http://localhost:20128/v1); OmniRoute Smart Router (การบีบอัด RTK + Caveman, กลยุทธ์การกำหนดเส้นทาง 19 แบบ, circuit breakers, TLS stealth, MCP, A2A, guardrails) สามารถสำรองข้อมูลข้าม 4 ระดับผู้ให้บริการได้ตราบเท่าที่ยังมีเป้าหมายที่ใช้งานได้และมีสิทธิ์ — ระดับ 1 Subscription, ระดับ 2 API Key, ระดับ 3 Cheap และระดับ 4 Free."/>
 
 </div>
 
@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 สนับสนุนโดยมิตรโอเพนซอร์สของเรา
+## 🤝 ได้รับการสนับสนุนจากเพื่อนโอเพนซอร์สของเรา
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — ปัญญาระดับแนวหน้าแบบเปิด · 2.8T พารามิเตอร์ · บริบท 1M โทเค็น"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — ปัญญาประดิษฐ์แนวหน้าแบบเปิด · พารามิเตอร์ 2.8T · บริบท 1M-โทเค็น"/>
   </a>
 </p>
 
-> **ต้องการเข้าร่วมเป็นมิตรโอเพนซอร์สหรือไม่?** บริษัทเหล่านี้คือผู้สนับสนุนโอเพนซอร์สและช่วยให้ OmniRoute เดินหน้าต่อไปได้ — และเราเปิดเผยต่อสาธารณะว่าโทเค็นทุกโทเค็นที่พวกเขามอบให้เราถูกนำไปใช้อย่างไร ติดต่อเราได้ที่: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **ต้องการเข้าร่วมเป็นเพื่อนโอเพนซอร์สหรือไม่?** บริษัทเหล่านี้สนับสนุนโอเพนซอร์สและช่วยให้ OmniRoute ดำเนินต่อไปได้ — และเราจะเปิดเผยต่อสาธารณะว่าโทเค็นทุกโทเค็นที่พวกเขาให้เราไปใช้ทำอะไร ติดต่อเราได้ที่: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="มิตรโอเพนซอร์สผู้ร่วมก่อตั้ง"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="เพื่อนโอเพนซอร์สผู้ก่อตั้ง"/>
     </td>
     <td>
-      ขอขอบคุณ <b>Kimi (Moonshot AI)</b> มิตรโอเพนซอร์สผู้ร่วมก่อตั้งของเรา ที่ให้การสนับสนุนโปรเจกต์นี้! Kimi คือห้องปฏิบัติการ AI เบื้องหลังตระกูลโมเดลแบบเปิดน้ำหนัก K2 และ K3 — <b>Kimi K3</b> มอบหน้าต่างบริบทขนาด 1M โทเค็น ความสามารถด้านภาพในตัว และการเขียนโค้ดระดับแนวหน้า ในราคาเพียงเศษเสี้ยวของโมเดลแบบปิด อีกทั้งยังพร้อมใช้งานได้ทันทีร่วมกับ Claude Code, Codex และเครื่องมือเขียนโค้ดทุกตัวที่ OmniRoute รองรับ
+      ขอขอบคุณ <b>Kimi (Moonshot AI)</b> เพื่อนโอเพนซอร์สผู้ก่อตั้งของเราที่สนับสนุนโปรเจกต์นี้! Kimi คือห้องปฏิบัติการ AI ที่อยู่เบื้องหลังตระกูลโมเดล K2 และ K3 แบบโอเพนเวท — <b>Kimi K3</b> มอบหน้าต่างบริบท 1M-โทเค็น, การมองเห็นแบบเนทีฟ และการเขียนโค้ดระดับแนวหน้าในราคาเพียงเศษเสี้ยวของโมเดลแบบปิด และทำงานได้ทันทีกับ Claude Code, Codex และเครื่องมือเขียนโค้ดทุกชนิดที่ OmniRoute ให้บริการ
       <br/><br/>
-      <b>การสนับสนุนของ Kimi ช่วยขับเคลื่อนอะไรบ้าง:</b> เครดิต API ของ Kimi ขับเคลื่อนไปป์ไลน์การเผยแพร่ที่ผ่านการตรวจสอบด้วย AI ของ OmniRoute — ขั้นตอน <i>การตรวจสอบการผสานโค้ดที่ขับเคลื่อนโดย Kimi K3</i> ซึ่งตรวจสอบทุก pull request ก่อนเผยแพร่ — รวมถึงการพัฒนาฟีเจอร์ในแต่ละวัน การรองรับ Kimi ระดับเฟิร์สต์คลาสพร้อมใช้งานผ่านทั้งสองช่องทาง ได้แก่ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> โดยตรง (<code>kimi-k3</code>) และ<a href="https://www.kimi.com/code?aff=omniroute">แพ็กเกจเขียนโค้ด Kimi Code</a> (OAuth และคีย์ API) นอกจากนี้ OmniRoute ยังเป็นโปรเจกต์โอเพนซอร์สจากบราซิลโปรเจกต์แรกในโปรแกรมสนับสนุนของ Kimi อีกด้วย <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>รับคีย์ Kimi API พร้อมเครดิตเพิ่มอีก 15% →</b></a>
+      <b>สิ่งที่การสนับสนุนของ Kimi ช่วยขับเคลื่อน:</b> เครดิต API ของ Kimi ขับเคลื่อนไปป์ไลน์การเผยแพร่ที่ผ่านการตรวจสอบโดย AI ของ OmniRoute — ขั้นตอน <i>การตรวจสอบการรวมโค้ดที่ขับเคลื่อนโดย Kimi K3</i> ซึ่งตรวจสอบทุก pull request ก่อนที่จะเผยแพร่ — รวมถึงการพัฒนาฟีเจอร์ในแต่ละวัน การสนับสนุน Kimi ระดับเฟิร์สคลาสมีให้เลือกทั้งสองช่องทาง: <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> โดยตรง (<code>kimi-k3</code>) และ <a href="https://www.kimi.ai/code?aff=omniroute">แผนการเขียนโค้ด Kimi Code</a> (OAuth และ API key) OmniRoute ยังเป็นโปรเจกต์โอเพนซอร์สแรกของบราซิลที่อยู่ในโปรแกรมสนับสนุนของ Kimi <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>รับ Kimi API key พร้อมเครดิตเพิ่ม 15% →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="มิตรโอเพนซอร์ส"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="เพื่อนโอเพนซอร์ส"/>
     </td>
     <td>
-      ขอขอบคุณ <b>Cheaper Inference</b> มิตรโอเพนซอร์สของ OmniRoute ที่ให้การสนับสนุนโปรเจกต์นี้! Cheaper Inference คือเกตเวย์ที่จัดอันดับตามต้นทุนและจำหน่ายโมเดลระดับแนวหน้าจำนวน 42 รุ่น — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok และ MiniMax — ผ่านเอนด์พอยต์เดียวที่เข้ากันได้กับ OpenAI โดยกำหนดเส้นทางแต่ละคำขอไปยังผู้ให้บริการที่เข้าเกณฑ์และมีราคาถูกที่สุด ทั้งยังไม่เรียกเก็บเงินเกินราคาปลีกที่ผู้สร้างโมเดลกำหนดไว้
+      ขอขอบคุณ <b>Cheaper Inference</b> เพื่อนโอเพนซอร์สของ OmniRoute ที่สนับสนุนโปรเจกต์นี้! Cheaper Inference คือเกตเวย์จัดอันดับตามราคาที่จำหน่ายโมเดลแนวหน้า 42 โมเดล — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok และ MiniMax — ผ่านปลายทางที่เข้ากันได้กับ OpenAI เพียงจุดเดียว โดยจะส่งคำขอแต่ละรายการไปยังผู้ให้บริการที่มีสิทธิ์ที่ถูกที่สุดโดยไม่คิดค่าบริการเกินราคาที่ผู้สร้างโมเดลกำหนด
       <br/><br/>
-      <b>การรองรับระดับเฟิร์สต์คลาสใน OmniRoute:</b> Chat Completions, เอนด์พอยต์เนทีฟ <code>/v1/responses</code>, การประมวลผลภาพ, การเรียกใช้เครื่องมือ และโมเดลภาพ 3 รุ่น (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code> ซึ่งเข้าถึงได้ในรูปแบบ <code>cheaperinference/&lt;model&gt;</code>) <a href="https://cheaperinference.com/?utm_source=omniroute"><b>รับคีย์ API →</b></a>
+      <b>การสนับสนุนระดับเฟิร์สคลาสใน OmniRoute:</b> Chat Completions, ปลายทางเนทีฟ <code>/v1/responses</code>, การมองเห็น, การเรียกใช้เครื่องมือ และโมเดลรูปภาพ 3 โมเดล (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, เข้าถึงได้ในชื่อ <code>cheaperinference/&lt;model&gt;</code>) <a href="https://cheaperinference.com/?utm_source=omniroute"><b>รับ API key →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>ลิงก์ที่ติดแท็ก <code>aff=omniroute</code> คือลิงก์พาร์ทเนอร์ ซึ่งช่วยสนับสนุนเงินทุนแก่โปรเจกต์โดยที่คุณไม่มีค่าใช้จ่ายเพิ่มเติม</sub>
+<sub>ลิงก์ที่ติดแท็ก <code>aff=omniroute</code> เป็นลิงก์พันธมิตร ซึ่งช่วยสนับสนุนโครงการโดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับคุณ</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ โปรโมชันพันธมิตร</b> — คูปองสมัครใช้งานฟรีจากผู้ให้บริการที่เราไม่ได้ให้การสนับสนุน (คลิกเพื่อขยาย)</sub></summary>
+<summary><sub><b>🎟️ โปรโมชันพันธมิตร</b> — คูปองสมัครฟรีจากผู้ให้บริการที่เราไม่ได้สนับสนุน (คลิกเพื่อขยาย)</sub></summary>
 
-<sub><i>ส่วนนี้มีไว้สำหรับรหัสแนะนำ/คูปองเท่านั้น ความร่วมมือแบบผู้สนับสนุนอยู่ในส่วน <b>🤝 สนับสนุนโดยมิตรโอเพนซอร์สของเรา</b> ด้านบน OmniRoute ไม่มีความสัมพันธ์ด้านการสนับสนุนหรือการเป็นพาร์ทเนอร์กับผู้ให้บริการที่ระบุไว้ที่นี่ — ทั้งหมดนี้เป็นคูปองสาธารณะที่ทุกคนสามารถใช้ได้</i></sub>
+<sub><i>ส่วนนี้มีไว้สำหรับรหัสอ้างอิง/คูปองเท่านั้น การเป็นพันธมิตรที่ได้รับการสนับสนุนจะอยู่ในส่วน <b>🤝 ได้รับการสนับสนุนจากเพื่อนโอเพนซอร์สของเรา</b> ด้านบน OmniRoute ไม่มีการสนับสนุนหรือเป็นพันธมิตรกับผู้ให้บริการที่ระบุไว้ที่นี่ — นี่คือคูปองสาธารณะที่ใครก็สามารถใช้ได้</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — สมัครผ่านลิงก์พันธมิตร · <b>รับเครดิตฟรี $100</b> เมื่อสมัครใช้งาน (เซิร์ฟเวอร์ฟรี จึงอาจมีเวลาแฝงสูงกว่า — เหมาะสำหรับการทดสอบ ไม่ใช่การใช้งานจริง) รองรับระดับเฟิร์สต์คลาสใน OmniRoute ตั้งแต่ <b>v3.8.50</b>: Chat Completions, รูปแบบการสื่อสารที่เข้ากันได้กับ Anthropic และพาธที่เข้ากันได้กับ OpenAI โมเดลที่พร้อมใช้งานประกอบด้วย <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> และอื่นๆ <b><a href="https://agentrouter.org/register?aff=70LM">รับเครดิตฟรี $100 ของคุณ →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — การสมัครพันธมิตร · <b>เครดิตฟรี $100</b> เมื่อสมัคร (เซิร์ฟเวอร์ฟรี คาดว่าจะมีเวลาแฝงสูงขึ้น — เหมาะสำหรับการทดสอบ ไม่ใช่สำหรับการใช้งานจริง) การสนับสนุนระดับเฟิร์สคลาสใน OmniRoute ตั้งแต่ <b>v3.8.50</b>: Chat Completions, รูปแบบสายที่เข้ากันได้กับ Anthropic และเส้นทางที่เข้ากันได้กับ OpenAI โมเดลที่มีให้เลือก ได้แก่ <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> และอื่นๆ <b><a href="https://agentrouter.org/register?aff=70LM">รับ $100 ของคุณ →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>ลิงก์พันธมิตร — OmniRoute ไม่มีความสัมพันธ์ด้านการสนับสนุนหรือการเป็นพาร์ทเนอร์กับผู้ให้บริการรายนี้</i></sub>
+      <sub>⚠️ <i>ลิงก์พันธมิตร — OmniRoute ไม่มีการสนับสนุนหรือเป็นพันธมิตรกับผู้ให้บริการรายนี้</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>รู้จักผู้ให้บริการรายอื่นที่มีคูปองสมัครใช้งานฟรีสุดคุ้มและเป็นประโยชน์ต่อผู้ใช้ OmniRoute หรือไม่? เปิด issue แล้วเราจะเพิ่มไว้ที่นี่</sub>
+<sub>รู้จักผู้ให้บริการรายอื่นที่มีคูปองสมัครฟรีที่เอื้อประโยชน์ต่อผู้ใช้ OmniRoute หรือไม่? เปิด issue แล้วเราจะเพิ่มที่นี่</sub>
 
 </details>
 
@@ -492,9 +492,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="สิ่งที่ทำให้ OmniRoute แตกต่าง — ภาพรวมฟีเจอร์ตามช่วงเวลาที่เปรียบเทียบกับ 9router, OpenRouter, CLIProxyAPI และ LiteLLM ใน 13 ความสามารถ OmniRoute: ผู้ให้บริการ 359 ราย, แพ็กเกจฟรีในตัวกว่า 150 รายการ, กลยุทธ์การกำหนดเส้นทาง 19 แบบ, การบีบอัดโทเค็นด้วยเอนจิน 12 ตัว, เซิร์ฟเวอร์ MCP ในตัวพร้อมเครื่องมือ 110 รายการ, โปรโตคอลเอเจนต์ A2A, หน่วยความจำถาวร, กลไกป้องกัน, เอเจนต์บนคลาวด์, การพรางลายนิ้วมือ TLS, Desktop/Termux/PWA และภาษาสำหรับ UI ตามระบบ i18n จำนวน 42 ภาษา OmniRoute ใช้สัญญาอนุญาต MIT และสามารถโฮสต์ได้ด้วยตนเอง ความสามารถและจำนวนของคู่แข่งอาจเปลี่ยนแปลงได้ โปรดดูระเบียบวิธีตามลิงก์"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="สิ่งที่ทำให้ OmniRoute แตกต่าง — ภาพรวมคุณสมบัติที่อัปเดตเทียบกับ 9router, OpenRouter, CLIProxyAPI และ LiteLLM ใน 13 ความสามารถ OmniRoute: ผู้ให้บริการ 358 ราย, ระดับฟรีในตัวกว่า 150 รายการ, กลยุทธ์การกำหนดเส้นทาง 19 แบบ, การบีบอัดโทเค็น 12 เอ็นจิ้น, เซิร์ฟเวอร์ MCP ในตัวพร้อมเครื่องมือ 110 รายการ, โปรโตคอลเอเจนต์ A2A, หน่วยความจำถาวร, การป้องกัน, เอเจนต์คลาวด์, การซ่อนตัวด้วย TLS fingerprint, Desktop/Termux/PWA และ 42 ภาษาสำหรับ UI OmniRoute เป็นลิขสิทธิ์ MIT และสามารถโฮสต์เองได้ ความสามารถและจำนวนของคู่แข่งอาจมีการเปลี่ยนแปลง โปรดดูระเบียบวิธีที่เชื่อมโยงไว้"/>
 
-<sub>📊 ระเบียบวิธีฉบับเต็ม &amp; รายละเอียดแต่ละฟีเจอร์เมื่อเทียบกับ 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 ระเบียบวิธีฉบับเต็มและรายละเอียดคุณสมบัติแต่ละรายการ เทียบกับ 9router, OpenRouter, CLIProxyAPI และ LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -592,7 +592,7 @@ Radar เป็นฟีเจอร์ที่ต้องเลือกเ�
 
 ## 🤖 CLI และเอเจนต์เขียนโค้ดที่รองรับ
 
-> ใช้การกำหนดค่าเดียว — `http://localhost:20128/v1` — แล้ว AI IDE หรือ CLI **ทุกตัว** ก็ทำงานบนโมเดลฟรีและราคาประหยัดได้
+> การตั้งค่าเดียว — `http://localhost:20128/v1` — ทำให้ IDE หรือ CLI ที่ใช้ AI **ทุกตัว** ทำงานบนโมเดลฟรีและราคาประหยัดได้
 
 <div align="center">
 <table>
@@ -626,23 +626,23 @@ Radar เป็นฟีเจอร์ที่ต้องเลือกเ�
     <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/goose.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/goose.svg" width="40" alt="Goose"/></picture><br/><sub><b>Goose</b></sub><br/><sub>                           </sub></td>
     <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Open Interpreter"/><br/><sub><b>Open Interpreter</b></sub><br/><sub>                           </sub></td>
     <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Warp AI"/><br/><sub><b>Warp AI</b></sub><br/><sub>                           </sub></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Agent Deck"/><br/><sub><b>Agent Deck</b></sub><br/><sub>                           </sub></td>
+    <td align="center" width="76"><a href="https://deyin.ai"><img src="./public/deyin.svg" width="40" alt="deyin.ai"/><br/><sub><b>deyin.ai</b></sub><br/><sub>                           </sub></a></td>
   </tr>
 </table>
 </div>
 
 <div align="center">
-<b>＋ ยังใช้งานร่วมกับ</b> · Kiro · Command Code · Antigravity · Windsurf · AMP · <b>เครื่องมือใดๆ ที่เข้ากันได้กับ OpenAI</b>
+<b>＋ ใช้งานร่วมกับเครื่องมือเหล่านี้ได้ด้วย</b> · Agent Deck · Kiro · Command Code · Antigravity · Windsurf · AMP · <b>เครื่องมือใด ๆ ที่เข้ากันได้กับ OpenAI</b>
 </div>
 
-<sub>📖 การตั้งค่าแยกตามเครื่องมือสำหรับเครื่องมือทั้ง 36 รายการ (CLI Code 26 รายการ + CLI Agents 10 รายการ) → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · 🧩 ปลั๊กอิน OpenCode → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
+<sub>📖 การตั้งค่าเฉพาะเครื่องมือสำหรับเครื่องมือทั้ง 36 รายการ (CLI Code 26 รายการ + CLI Agents 10 รายการ) → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · 🧩 ปลั๊กอิน OpenCode → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
 
 </div>
 
 <br/>
 
-**เรียกใช้ CLI ที่รองรับผ่าน OmniRoute ได้ด้วยคำสั่งเดียว** — ไม่มีการเขียนไฟล์กำหนดค่า,
-ข้อมูลประจำตัวจะถูกส่งให้แต่ละโปรเซส และ Qwen/Gemini จะใช้โฮมแบบแยกชั่วคราว:
+**เรียกใช้ CLI ที่รองรับผ่าน OmniRoute ได้ด้วยคำสั่งเดียว** — ไม่มีการเขียนไฟล์กำหนดค่า
+ข้อมูลประจำตัวจะถูกแทรกแยกในแต่ละโปรเซส และ Qwen/Gemini จะใช้โฮมแบบแยกชั่วคราว:
 
 ```bash
 omniroute run claude   --model openai/gpt-5.4          # Claude Code
@@ -653,7 +653,7 @@ omniroute run opencode --model glm/glm-5.2 -- run "reply OK"
 omniroute run qwen     --model glm/glm-5.2 -- -p "reply OK"
 omniroute run gemini   --model glm/glm-5.2 -- --skip-trust -p "reply OK"
 
-# หรือเลือกผู้ให้บริการและโมเดลแบบโต้ตอบ แล้วเขียนการกำหนดค่าของเครื่องมือนั้น:
+# หรือเลือกผู้ให้บริการ+โมเดลแบบโต้ตอบ และเขียนการกำหนดค่าของเครื่องมือนั้นเอง:
 omniroute configure codex          # รองรับด้วย: claude opencode qwen aider goose gemini cline continue kilo
 ```
 
@@ -1256,28 +1256,28 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 จะข้า�
 <br/>
 <div align="center">
 
-## 🛠️ ชุดเทคโนโลยี
+## 🛠️ เทคโนโลยีที่ใช้
 
 </div>
 
 <table>
   <tr><th align="left">เลเยอร์</th><th align="left">เทคโนโลยี</th></tr>
   <tr><td nowrap><b>รันไทม์</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ภาษา</b></td><td>TypeScript 6.0 — ใช้ <b>TypeScript 100%</b> ใน <code>src/</code> และ <code>open-sse/</code> (ไม่มี <code>any</code> ในส่วนแกนหลักตั้งแต่ v2.0)</td></tr>
+  <tr><td nowrap><b>ภาษา</b></td><td>TypeScript 6.0 — <b>TypeScript 100%</b> ทั่วทั้ง <code>src/</code> และ <code>open-sse/</code> (ไม่มี <code>any</code> ในแกนหลักตั้งแต่ v2.0)</td></tr>
   <tr><td nowrap><b>เฟรมเวิร์ก</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ฐานข้อมูล</b></td><td>better-sqlite3 (SQLite, การบันทึกแบบ WAL) + LowDB (JSON รุ่นเก่า) — โมดูลโดเมน 122 รายการ, การย้ายข้อมูล 176 รายการ</td></tr>
-  <tr><td nowrap><b>หน่วยความจำ</b></td><td>การค้นหาข้อความแบบเต็มด้วย SQLite FTS5 + เวกเตอร์เอ็มเบดดิงที่ควอนไทซ์เป็น int8, การลดทอนแบบมีชนิดข้อมูล</td></tr>
-  <tr><td nowrap><b>สคีมา</b></td><td>Zod 4 — การตรวจสอบ I/O ของเครื่องมือ MCP + ข้อตกลง API</td></tr>
+  <tr><td nowrap><b>ฐานข้อมูล</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 โมดูลโดเมน, 183 การย้ายข้อมูล</td></tr>
+  <tr><td nowrap><b>หน่วยความจำ</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>สคีมา</b></td><td>Zod 4 — การตรวจสอบความถูกต้องของ I/O เครื่องมือ MCP + สัญญา API</td></tr>
   <tr><td nowrap><b>โปรโตคอล</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>การสตรีม</b></td><td>Server-Sent Events (SSE) + บริดจ์ WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>การบีบอัด</b></td><td>ไปป์ไลน์ 12 เอนจิน — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>การยืนยันตัวตนและความปลอดภัย</b></td><td>OAuth 2.0 (PKCE) + JWT + คีย์ API + การยืนยันตัวตน MCP แบบกำหนดขอบเขต · AES-256-GCM สำหรับข้อมูลที่จัดเก็บ · DOMPurify</td></tr>
-  <tr><td nowrap><b>การพรางตัว</b></td><td>wreq-js — การเลียนแบบลายนิ้วมือ TLS แบบ JA3 / JA4, พร็อกซี 3 ระดับ</td></tr>
-  <tr><td nowrap><b>ความยืดหยุ่น</b></td><td>เซอร์กิตเบรกเกอร์, การหน่วงเวลาแบบทวีคูณ, การป้องกันคำขอถาโถมพร้อมกัน, การซ่อมแซมตัวเองด้วย auto-combo</td></tr>
-  <tr><td nowrap><b>การบันทึกล็อก</b></td><td>pino — ล็อก JSON แบบมีโครงสร้างพร้อมบริบทของคำขอ</td></tr>
-  <tr><td nowrap><b>การทดสอบ</b></td><td>ตัวรันการทดสอบของ Node.js + Vitest — <b>ประกาศการทดสอบแบบสแตติกมากกว่า 39,000 รายการ</b> ในไฟล์ทดสอบที่ติดตามมากกว่า 5,100 ไฟล์ (ยูนิต, การผสานรวม, E2E, ความปลอดภัย, ระบบนิเวศ)</td></tr>
-  <tr><td nowrap><b>แพลตฟอร์ม</b></td><td>เดสก์ท็อป (Electron) · Android (Termux) · PWA (ทุกเบราว์เซอร์)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — เผยแพร่ไปยัง npm และ Docker Hub โดยอัตโนมัติเมื่อออกรุ่น</td></tr>
+  <tr><td nowrap><b>การสตรีม</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>การบีบอัด</b></td><td>12-engine pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>การยืนยันตัวตนและความปลอดภัย</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + การยืนยันตัวตนแบบจำกัดขอบเขต MCP · AES-256-GCM ขณะพัก · DOMPurify</td></tr>
+  <tr><td nowrap><b>การซ่อนตัว</b></td><td>wreq-js — การปลอมแปลงลายนิ้วมือ JA3 / JA4 TLS, พร็อกซี 3 ระดับ</td></tr>
+  <tr><td nowrap><b>ความยืดหยุ่น</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
+  <tr><td nowrap><b>การบันทึก</b></td><td>pino — บันทึก JSON แบบมีโครงสร้างพร้อมบริบทคำขอ</td></tr>
+  <tr><td nowrap><b>การทดสอบ</b></td><td>Node.js test runner + Vitest — <b>การประกาศการทดสอบแบบคงที่กว่า 39,000 รายการ</b> ในไฟล์ทดสอบที่ติดตามกว่า 5,100 ไฟล์ (unit, integration, E2E, security, ecosystem)</td></tr>
+  <tr><td nowrap><b>แพลตฟอร์ม</b></td><td>เดสก์ท็อป (Electron) · Android (Termux) · PWA (เบราว์เซอร์ใดก็ได้)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — เผยแพร่ npm อัตโนมัติ + Docker Hub เมื่อออกเวอร์ชัน</td></tr>
   <tr><td nowrap><b>ลิงก์</b></td><td><a href="https://omniroute.online">เว็บไซต์</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1294,43 +1294,43 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 จะข้า�
 <table>
   <tr><th align="left">เอกสาร</th><th align="left">คำอธิบาย</th></tr>
   <tr><td nowrap><b><a href="docs/guides/USER_GUIDE.md">คู่มือผู้ใช้</a></b></td><td>ผู้ให้บริการ คอมโบ การผสานรวม CLI และการปรับใช้</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/SETUP_GUIDE.md">คู่มือการตั้งค่า</a></b></td><td>วิธีติดตั้งทั้งหมด การกำหนดค่าเครื่องมือ CLI การตั้งค่าโปรโตคอล และการปรับแต่งระยะหมดเวลา</td></tr>
-  <tr><td nowrap><b><a href="docs/reference/CLI-TOOLS.md">คู่มือเครื่องมือ CLI</a></b></td><td>การตั้งค่าแยกตามเครื่องมือสำหรับ Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo และ Copilot</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/REMOTE-MODE.md">โหมดระยะไกล</a></b></td><td>ควบคุม OmniRoute ระยะไกล (VPS) จาก CLI บนแล็ปท็อปของคุณผ่านโทเค็นการเข้าถึงแบบจำกัดขอบเขต</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/CLAUDE-CODE-CONFIGURATION.md">การกำหนดค่า Claude Code</a></b></td><td>เชื่อม Claude Code เข้ากับ OmniRoute (ภายในเครื่อง/ระยะไกล) ด้วย <code>launch</code> พร้อมโปรไฟล์แยกตามโมเดล</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/SETUP_GUIDE.md">คู่มือการตั้งค่า</a></b></td><td>วิธีติดตั้งทั้งหมด การกำหนดค่าเครื่องมือ CLI การตั้งค่าโปรโตคอล และการปรับแต่งเวลาหมดเวลา</td></tr>
+  <tr><td nowrap><b><a href="docs/reference/CLI-TOOLS.md">คู่มือเครื่องมือ CLI</a></b></td><td>การตั้งค่าเฉพาะสำหรับแต่ละเครื่องมือ ได้แก่ Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo และ Copilot</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/REMOTE-MODE.md">โหมดระยะไกล</a></b></td><td>ควบคุม OmniRoute ระยะไกล (VPS) จาก CLI บนแล็ปท็อปผ่านโทเค็นการเข้าถึงแบบจำกัดขอบเขต</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/CLAUDE-CODE-CONFIGURATION.md">การกำหนดค่า Claude Code</a></b></td><td>เชื่อมต่อ Claude Code ไปยัง OmniRoute (ภายในเครื่อง/ระยะไกล) ด้วย <code>launch</code> และโปรไฟล์แยกตามโมเดล</td></tr>
   <tr><td nowrap><b><a href="README.md#-quick-start">เริ่มต้นอย่างรวดเร็ว</a></b></td><td>ติดตั้ง → เชื่อมต่อ → กำหนดค่า ใน 3 ขั้นตอน</td></tr>
 </table>
 
-### 🔧 การปฏิบัติการและการปรับใช้
+### 🔧 การดำเนินงานและการปรับใช้
 
 <table>
   <tr><th align="left">เอกสาร</th><th align="left">คำอธิบาย</th></tr>
   <tr><td nowrap><b><a href="docs/guides/DOCKER_GUIDE.md">คู่มือ Docker</a></b></td><td>Docker run, โปรไฟล์ Compose, Caddy HTTPS, ทันเนล และแท็กอิมเมจ</td></tr>
   <tr><td nowrap><b><a href="contrib/podman/README.md">คู่มือ Podman</a></b></td><td>การผสานรวม Quadlet systemd, podman-compose และ SELinux</td></tr>
   <tr><td nowrap><b><a href="docs/ops/VM_DEPLOYMENT_GUIDE.md">การปรับใช้ VM</a></b></td><td>คู่มือฉบับสมบูรณ์: การตั้งค่า VM + nginx + Cloudflare</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md">การปรับใช้บน Fly.io</a></b></td><td>ปรับใช้บน Fly.io พร้อมพื้นที่จัดเก็บถาวร</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md">การปรับใช้บน Fly.io</a></b></td><td>ปรับใช้บน Fly.io พร้อมพื้นที่จัดเก็บข้อมูลถาวร</td></tr>
   <tr><td nowrap><b><a href="docs/guides/TERMUX_GUIDE.md">คู่มือ Termux</a></b></td><td>เรียกใช้ OmniRoute บน Android ผ่าน Termux</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/PWA_GUIDE.md">คู่มือ PWA</a></b></td><td>การติดตั้ง Progressive Web App การแคช และสถาปัตยกรรม</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/UNINSTALL.md">คู่มือการถอนการติดตั้ง</a></b></td><td>ถอนออกอย่างหมดจดสำหรับทุกวิธีการติดตั้ง</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/PWA_GUIDE.md">คู่มือ PWA</a></b></td><td>การติดตั้ง Progressive Web App, การแคช และสถาปัตยกรรม</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/UNINSTALL.md">คู่มือการถอนการติดตั้ง</a></b></td><td>ลบอย่างหมดจดสำหรับวิธีติดตั้งทั้งหมด</td></tr>
   <tr><td nowrap><b><a href="docs/reference/ENVIRONMENT.md">การกำหนดค่าสภาพแวดล้อม</a></b></td><td>ตัวแปร <code>.env</code> และข้อมูลอ้างอิงทั้งหมด</td></tr>
 </table>
 
-### 🧠 ฟีเจอร์และสถาปัตยกรรม
+### 🧠 คุณสมบัติและสถาปัตยกรรม
 
 <table>
   <tr><th align="left">เอกสาร</th><th align="left">คำอธิบาย</th></tr>
-  <tr><td nowrap><b><a href="docs/architecture/ARCHITECTURE.md">สถาปัตยกรรม</a></b></td><td>สถาปัตยกรรมระบบ การไหลของข้อมูล และกลไกภายใน</td></tr>
-  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_GUIDE.md">คู่มือการบีบอัด</a></b></td><td>ไปป์ไลน์ 7 ตัวเลือก: ปิด / เบา / มาตรฐาน / เข้มข้น / สูงสุด / RTK / ซ้อนกัน</td></tr>
+  <tr><td nowrap><b><a href="docs/architecture/ARCHITECTURE.md">สถาปัตยกรรม</a></b></td><td>สถาปัตยกรรมระบบ การไหลของข้อมูล และการทำงานภายใน</td></tr>
+  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_GUIDE.md">คู่มือการบีบอัด</a></b></td><td>ไปป์ไลน์ 7 ตัวเลือก: off / lite / standard / aggressive / ultra / RTK / stacked</td></tr>
   <tr><td nowrap><b><a href="docs/compression/RTK_COMPRESSION.md">การบีบอัด RTK</a></b></td><td>การบีบอัดเอาต์พุตคำสั่ง ตัวกรอง ความน่าเชื่อถือ การตรวจสอบ และการกู้คืนเอาต์พุตดิบ</td></tr>
-  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_ENGINES.md">เอนจินการบีบอัด</a></b></td><td>Caveman, RTK, ไปป์ไลน์แบบซ้อนกัน และส่วนเชื่อมต่อแดชบอร์ด/API/MCP</td></tr>
+  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_ENGINES.md">เอนจินการบีบอัด</a></b></td><td>Caveman, RTK, ไปป์ไลน์แบบซ้อน และส่วนติดต่อ dashboard/API/MCP</td></tr>
   <tr><td nowrap><b><a href="docs/compression/COMPRESSION_RULES_FORMAT.md">รูปแบบกฎการบีบอัด</a></b></td><td>สคีมาแพ็กกฎ JSON สำหรับตัวกรอง Caveman และ RTK</td></tr>
   <tr><td nowrap><b><a href="docs/compression/COMPRESSION_LANGUAGE_PACKS.md">แพ็กภาษาสำหรับการบีบอัด</a></b></td><td>การตรวจจับภาษาและการสร้างแพ็กกฎ Caveman</td></tr>
-  <tr><td nowrap><b><a href="docs/architecture/RESILIENCE_GUIDE.md">คู่มือความยืดหยุ่นของระบบ</a></b></td><td>Circuit breaker, ช่วงพัก, คิว, การป้องกันคำขอถาโถม และการปลอมแปลง TLS</td></tr>
-  <tr><td nowrap><b><a href="docs/routing/AUTO-COMBO.md">เอนจิน Auto-Combo</a></b></td><td>การให้คะแนน 16 ปัจจัย แพ็กโหมด และการซ่อมแซมตัวเอง</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/PROXY_GUIDE.md">คู่มือพร็อกซี</a></b></td><td>ระบบพร็อกซี 3 ระดับ มาร์เก็ตเพลส 1proxy และ CRUD ของรีจิสทรี</td></tr>
-  <tr><td nowrap><b><a href="docs/reference/FREE_TIERS.md">ระดับใช้งานฟรี</a></b></td><td>ไดเรกทอรีรวม: พูลแบบเกิดซ้ำที่มีเอกสารกำกับ 35 รายการ / รายการระดับใช้งานฟรีในแค็ตตาล็อก 491 รายการ</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/FEATURES.md">แกลเลอรีฟีเจอร์</a></b></td><td>ทัวร์แดชบอร์ดแบบภาพพร้อมภาพหน้าจอ</td></tr>
-  <tr><td nowrap><b><a href="docs/architecture/CODEBASE_DOCUMENTATION.md">เอกสารประกอบโค้ดเบส</a></b></td><td>แนะนำโค้ดเบสทีละขั้นตอนสำหรับผู้เริ่มต้น</td></tr>
+  <tr><td nowrap><b><a href="docs/architecture/RESILIENCE_GUIDE.md">คู่มือความทนทานของระบบ</a></b></td><td>Circuit breaker, ช่วงพัก, คิว, การป้องกัน thundering herd และการปลอมแปลง TLS</td></tr>
+  <tr><td nowrap><b><a href="docs/routing/AUTO-COMBO.md">เอนจิน Auto-Combo</a></b></td><td>การให้คะแนนด้วย 16 ปัจจัย แพ็กโหมด และการซ่อมแซมตัวเอง</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/PROXY_GUIDE.md">คู่มือพร็อกซี</a></b></td><td>ระบบพร็อกซี 3 ระดับ มาร์เก็ตเพลส 1proxy และ CRUD สำหรับรีจิสทรี</td></tr>
+  <tr><td nowrap><b><a href="docs/reference/FREE_TIERS.md">ระดับใช้งานฟรี</a></b></td><td>ไดเรกทอรีรวม: พูลแบบเกิดซ้ำที่มีเอกสารกำกับ 35 รายการ / รายการระดับใช้งานฟรีในแค็ตตาล็อก 489 รายการ</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/FEATURES.md">แกลเลอรีคุณสมบัติ</a></b></td><td>เยี่ยมชมแดชบอร์ดด้วยภาพพร้อมภาพหน้าจอ</td></tr>
+  <tr><td nowrap><b><a href="docs/architecture/CODEBASE_DOCUMENTATION.md">เอกสารประกอบโค้ดเบส</a></b></td><td>คำแนะนำการสำรวจโค้ดเบสที่เป็นมิตรกับผู้เริ่มต้น</td></tr>
 </table>
 
 ### 🤖 โปรโตคอลและ API
@@ -1340,22 +1340,22 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 จะข้า�
   <tr><td nowrap><b><a href="docs/reference/API_REFERENCE.md">เอกสารอ้างอิง API</a></b></td><td>เอนด์พอยต์ทั้งหมดพร้อมตัวอย่าง</td></tr>
   <tr><td nowrap><b><a href="docs/openapi.yaml">ข้อกำหนด OpenAPI</a></b></td><td>ข้อกำหนด OpenAPI 3.0</td></tr>
   <tr><td nowrap><b><a href="open-sse/mcp-server/README.md">เซิร์ฟเวอร์ MCP</a></b></td><td>เครื่องมือ MCP 110 รายการ การกำหนดค่า IDE และไคลเอนต์ Python/TS/Go</td></tr>
-  <tr><td nowrap><b><a href="docs/frameworks/MCP-SERVER.md">คู่มือเซิร์ฟเวอร์ MCP</a></b></td><td>การติดตั้ง MCP การรับส่งข้อมูล และข้อมูลอ้างอิงเครื่องมือ</td></tr>
-  <tr><td nowrap><b><a href="src/lib/a2a/README.md">เซิร์ฟเวอร์ A2A</a></b></td><td>โปรโตคอล JSON-RPC 2.0 ทักษะ การสตรีม และการจัดการงาน</td></tr>
-  <tr><td nowrap><b><a href="docs/frameworks/A2A-SERVER.md">คู่มือเซิร์ฟเวอร์ A2A</a></b></td><td>การ์ดเอเจนต์ A2A งาน ทักษะ และการสตรีม</td></tr>
+  <tr><td nowrap><b><a href="docs/frameworks/MCP-SERVER.md">คู่มือเซิร์ฟเวอร์ MCP</a></b></td><td>การติดตั้ง MCP, รูปแบบการรับส่งข้อมูล และเอกสารอ้างอิงเครื่องมือ</td></tr>
+  <tr><td nowrap><b><a href="src/lib/a2a/README.md">เซิร์ฟเวอร์ A2A</a></b></td><td>โปรโตคอล JSON-RPC 2.0, ทักษะ, การสตรีม และการจัดการงาน</td></tr>
+  <tr><td nowrap><b><a href="docs/frameworks/A2A-SERVER.md">คู่มือเซิร์ฟเวอร์ A2A</a></b></td><td>การ์ดเอเจนต์ A2A, งาน, ทักษะ และการสตรีม</td></tr>
 </table>
 
 ### 📋 โปรเจกต์และคุณภาพ
 
 <table>
   <tr><th align="left">เอกสาร</th><th align="left">คำอธิบาย</th></tr>
-  <tr><td nowrap><b><a href="CONTRIBUTING.md">การมีส่วนร่วม</a></b></td><td>การตั้งค่าสภาพแวดล้อมสำหรับการพัฒนาและแนวทางปฏิบัติ</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/BRANCHING_MODEL.md">โมเดลการแตกแขนงและการเผยแพร่</a></b></td><td>PR ควรมุ่งไปที่ใด (<code>release/*</code>) และความหมายของ <code>main</code> กับแท็ก</td></tr>
+  <tr><td nowrap><b><a href="CONTRIBUTING.md">การมีส่วนร่วม</a></b></td><td>การตั้งค่าสภาพแวดล้อมการพัฒนาและแนวทางปฏิบัติ</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/BRANCHING_MODEL.md">โมเดลการแตกแขนงและการเผยแพร่</a></b></td><td>PR ควรมุ่งไปที่ใด (<code>release/*</code>) รวมถึงความหมายของ <code>main</code> และแท็ก</td></tr>
   <tr><td nowrap><b><a href="CHANGELOG.md">บันทึกการเปลี่ยนแปลง</a></b></td><td>ประวัติการเผยแพร่ฉบับเต็มแยกตามเวอร์ชัน</td></tr>
   <tr><td nowrap><b><a href="SECURITY.md">นโยบายความปลอดภัย</a></b></td><td>การรายงานช่องโหว่และแนวทางปฏิบัติด้านความปลอดภัย</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/I18N.md">คู่มือ i18n</a></b></td><td>การรองรับ 42 ภาษา เวิร์กโฟลว์การแปล และ RTL</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/I18N.md">คู่มือ i18n</a></b></td><td>การรองรับ 42 ภาษา ขั้นตอนการแปล และ RTL</td></tr>
   <tr><td nowrap><b><a href="docs/ops/RELEASE_CHECKLIST.md">รายการตรวจสอบการเผยแพร่</a></b></td><td>ขั้นตอนการตรวจสอบความถูกต้องก่อนเผยแพร่</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/COVERAGE_PLAN.md">แผนความครอบคลุม</a></b></td><td>กลยุทธ์ความครอบคลุมของการทดสอบสำหรับการประกาศการทดสอบแบบคงที่กว่า 39,000 รายการ ในไฟล์ทดสอบที่ติดตามกว่า 5,100 ไฟล์</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/COVERAGE_PLAN.md">แผนความครอบคลุม</a></b></td><td>กลยุทธ์ความครอบคลุมของการทดสอบสำหรับการประกาศการทดสอบแบบสแตติกมากกว่า 39,000 รายการ ในไฟล์ทดสอบที่ติดตามมากกว่า 5,100 ไฟล์</td></tr>
 </table>
 
 <br/>
@@ -1364,12 +1364,12 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 จะข้า�
 
 # ⭐ ผู้มีส่วนร่วมอันดับต้น ๆ
 
-> OmniRoute ถูกหล่อหลอมโดยชุมชนโอเพนซอร์สที่เปี่ยมด้วยความมุ่งมั่น บุคคลเหล่านี้ได้สร้างผลงานอันโดดเด่นซึ่งส่งผลโดยตรงต่อคุณภาพ เสถียรภาพ และการเข้าถึงของโครงการ **ขอขอบคุณ**
+> OmniRoute ได้รับการหล่อหลอมจากชุมชนโอเพนซอร์สที่เปี่ยมด้วยความมุ่งมั่น บุคคลเหล่านี้ได้สร้างผลงานอันโดดเด่นที่ส่งผลโดยตรงต่อคุณภาพ ความเสถียร และการเข้าถึงของโครงการ **ขอขอบคุณ**
 
-### ผู้มีส่วนร่วมภายนอกเรียงตามจำนวน pull request ที่ merge แล้ว
+### ผู้มีส่วนร่วมภายนอกตามจำนวน pull request ที่ผสานแล้ว
 
 <table>
-  <tr><th align="center">อันดับ</th><th align="left">ผู้มีส่วนร่วม</th><th align="center">PR ที่ merge แล้ว</th><th align="right">~บรรทัดที่เปลี่ยนแปลง</th></tr>
+  <tr><th align="center">อันดับ</th><th align="left">ผู้มีส่วนร่วม</th><th align="center">PR ที่ผสานแล้ว</th><th align="right">~บรรทัดที่เปลี่ยนแปลง</th></tr>
   <tr><td align="center">1</td><td align="left"><a href="https://github.com/backryun"><b>backryun</b></a></td><td align="center">190</td><td align="right">227,977</td></tr>
   <tr><td align="center">2</td><td align="left"><a href="https://github.com/oyi77"><b>oyi77</b></a></td><td align="center">180</td><td align="right">407,678</td></tr>
   <tr><td align="center">3</td><td align="left"><a href="https://github.com/rdself"><b>rdself</b></a></td><td align="center">145</td><td align="right">80,663</td></tr>
@@ -1393,9 +1393,9 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 จะข้า�
   <tr><td align="center">20</td><td align="left"><a href="https://github.com/Prudhvivuda"><b>Prudhvivuda</b></a></td><td align="center">24</td><td align="right">6,312</td></tr>
 </table>
 
-<sub>ตรึงข้อมูล ณ ปลายล่าสุดของ <code>release/v3.8.50</code> ที่ <code>dafb4ae808</code> โดยรวมการ merge จนถึง 2026-08-24 05:26:03 UTC การสำรวจสำมะโนผ่าน GitHub GraphQL แบบแบ่งหน้าประกอบด้วย PR ที่ merge แล้ว 5,911 รายการ: 2,707 รายการโดยเจ้าของ repository, 179 รายการโดย Dependabot และ <b>PR ภายนอก 3,025 รายการจากผู้มีส่วนร่วมที่ไม่ซ้ำกัน 535 คน</b> “บรรทัดที่เปลี่ยนแปลง” คือจำนวนบรรทัดที่เพิ่ม + ลบตาม GitHub และรวมถึงไฟล์ที่สร้างขึ้นอัตโนมัติ, lockfile, แค็ตตาล็อก, คำแปล และเอกสารประกอบ ตัวเลขนี้แสดงปริมาณการเปลี่ยนแปลง ไม่ใช่ LOC ที่เขียนขึ้นเอง ผู้ที่มีอันดับเสมอกัน ณ จุดตัดจะยังคงถูกรวมไว้</sub>
+<sub>ตรึงข้อมูลไว้ที่ปลายล่าสุดของ <code>release/v3.8.50</code> ซึ่งคือ <code>dafb4ae808</code> โดยรวมการผสานจนถึง 2026-08-24 05:26:03 UTC การสำรวจสำมะโนผ่าน GitHub GraphQL แบบแบ่งหน้าประกอบด้วย PR ที่ผสานแล้ว 5,911 รายการ ได้แก่ 2,707 รายการโดยเจ้าของ repository, 179 รายการโดย Dependabot และ <b>PR ภายนอก 3,025 รายการจากผู้มีส่วนร่วมที่ไม่ซ้ำกัน 535 คน</b> “บรรทัดที่เปลี่ยนแปลง” คือจำนวนบรรทัดที่เพิ่มและลบตามข้อมูลของ GitHub ซึ่งรวมไฟล์ที่สร้างขึ้นอัตโนมัติ, lockfile, แค็ตตาล็อก, คำแปล และเอกสารประกอบ โดยเป็นปริมาณการเปลี่ยนแปลง ไม่ใช่ LOC ที่เขียนขึ้น กรณีอันดับเสมอกันตรงเกณฑ์ตัดจะยังคงรวมไว้</sub>
 
-### commit ที่ระบุแหล่งที่มาบน GitHub
+### คอมมิตที่ระบุแหล่งที่มาโดย GitHub
 
 <table>
   <tr>
@@ -1481,9 +1481,9 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 จะข้า�
   </tr>
 </table>
 
-<sub>ตรวจสอบซ้ำเมื่อ 2026-08-24 06:14:31 UTC: คอมมิตที่ระบุแหล่งที่มาจาก GitHub ตามที่ Contributors API ของรีพอสิทอรีรายงานสำหรับบรานช์เริ่มต้น <code>release/v3.8.50</code> โดย API ส่งคืนข้อมูลประจำตัว 525 รายการ (ผู้ใช้ 415 ราย บอต 2 ราย และผู้ไม่ระบุตัวตน 108 ราย) ตารางนี้ไม่รวมผู้ดูแล บอต และผู้ไม่ระบุตัวตน และยังคงแสดงอันดับร่วม ตารางนี้แยกต่างหากจากทั้งการจัดอันดับ PR ที่ผสานแล้วด้านบนและการสำรวจสำมะโนเมทาดาทา Git จำนวน 639 คนด้านล่าง</sub>
+<sub>ตรวจสอบอีกครั้งเมื่อ 2026-08-24 06:14:31 UTC: คอมมิตที่ระบุแหล่งที่มาจาก GitHub ตามที่รายงานโดย API ผู้มีส่วนร่วมของรีพอซิทอรีสำหรับบรันช์เริ่มต้น <code>release/v3.8.50</code> โดย API ส่งคืนข้อมูลประจำตัว 525 รายการ (ผู้ใช้ 415 ราย บอต 2 ราย และผู้ไม่ระบุตัวตน 108 ราย) ตารางนี้ไม่รวมผู้ดูแล บอต และข้อมูลประจำตัวที่ไม่ระบุตัวตน และยังคงแสดงอันดับร่วมไว้ ตารางนี้แตกต่างจากทั้งการจัดอันดับตาม PR ที่ผสานแล้วด้านบน และการสำรวจสำมะโนจากเมทาดาทา Git จำนวน 639 คนด้านล่าง</sub>
 
-> 🙏 ฟีเจอร์ การแก้ไขข้อบกพร่อง และการปรับปรุงโครงสร้างพื้นฐานจากผู้มีส่วนร่วมเหล่านี้เป็น **ส่วนสำคัญ** ที่ทำให้ OmniRoute เชื่อถือได้และมีฟีเจอร์ครบครัน ทุก pull request ทุกกรณีทดสอบ และทุกไฟล์คำแปล i18n ล้วนมีความสำคัญ โอเพนซอร์สเกิดขึ้นได้จากผู้คนเช่นพวกเขา
+> 🙏 ฟีเจอร์ การแก้ไขข้อบกพร่อง และการปรับปรุงโครงสร้างพื้นฐานของผู้มีส่วนร่วมเหล่านี้เป็น **ส่วนสำคัญ** ที่ทำให้ OmniRoute เชื่อถือได้และเปี่ยมด้วยฟีเจอร์ ทุก pull request ทุกกรณีทดสอบ และทุกไฟล์แปล i18n ล้วนมีความสำคัญ โอเพนซอร์สสร้างขึ้นโดยผู้คนเช่นพวกเขา
 
 </div>
 

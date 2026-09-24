@@ -147,9 +147,6 @@ export async function handleMusicGeneration({ body, credentials, log }) {
     return handleKieMusicGeneration({ model, provider, providerConfig, body, credentials, log });
   }
 
-  if (providerConfig.format === "suno-music") {
-    return handleSunoMusicGeneration({ model, provider, providerConfig, body, credentials, log });
-  }
   if (providerConfig.format === "udio-music") {
     return handleUdioMusicGeneration({ model, provider, providerConfig, body, credentials, log });
   }
@@ -430,127 +427,6 @@ async function handleKieMusicGeneration({
     return {
       success: false,
       status: isJsonObject(err) && Number.isFinite(Number(err.status)) ? Number(err.status) : 502,
-      error: sanitizeErrorMessage(err) || "Music provider error",
-    };
-  }
-}
-
-async function handleSunoMusicGeneration({
-  model,
-  provider,
-  providerConfig,
-  body,
-  credentials,
-  log,
-}) {
-  const startTime = Date.now();
-  const cookie = credentials?.apiKey || credentials?.providerSpecificData?.cookie || "";
-  if (!cookie) {
-    return { success: false, status: 401, error: "Suno session cookie is required" };
-  }
-  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
-  if (log) {
-    log.info("MUSIC", `${provider}/${model} (suno) | prompt: "${prompt.slice(0, 60)}..."`);
-  }
-  try {
-    const res = await fetch(providerConfig.baseUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Cookie: cookie },
-      body: JSON.stringify({
-        gpt_description_prompt: prompt,
-        mv: model || "chirp-v3-5",
-        prompt: body.lyrics || "",
-        title: body.title || "",
-        tags: body.tags || "",
-        make_instrumental: body.instrumental || false,
-      }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      saveCallLog({
-        method: "POST",
-        path: "/v1/music/generations",
-        status: res.status,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
-      }).catch(() => {});
-      return { success: false, status: res.status, error: errorText };
-    }
-    const clips = await res.json();
-    const ids = clips.map((c) => c.id).filter(Boolean);
-    if (ids.length === 0) {
-      saveCallLog({
-        method: "POST",
-        path: "/v1/music/generations",
-        status: 502,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: "No clips returned from Suno",
-      }).catch(() => {});
-      return { success: false, status: 502, error: "No clips returned from Suno" };
-    }
-    const deadline = Date.now() + 300000;
-    while (Date.now() < deadline) {
-      await new Promise((r) => setTimeout(r, 5000));
-      const feedRes = await fetch(`${providerConfig.statusUrl}?ids=${ids.join(",")}`, {
-        headers: { Cookie: cookie },
-      });
-      const songs = await feedRes.json();
-      const ready = songs.filter((s) => s.audio_url);
-      if (ready.length > 0) {
-        const audioRes = await fetch(ready[0].audio_url);
-        if (!audioRes.ok) {
-          return {
-            success: false,
-            status: audioRes.status,
-            error: `Failed to download audio: ${audioRes.status}`,
-          };
-        }
-        const buf = await audioRes.arrayBuffer();
-        saveCallLog({
-          method: "POST",
-          path: "/v1/music/generations",
-          status: 200,
-          model: `${provider}/${model}`,
-          provider,
-          duration: Date.now() - startTime,
-        }).catch(() => {});
-        return {
-          success: true,
-          data: {
-            created: Math.floor(Date.now() / 1000),
-            data: [{ b64_json: Buffer.from(buf).toString("base64"), format: "mp3" }],
-          },
-        };
-      }
-    }
-    saveCallLog({
-      method: "POST",
-      path: "/v1/music/generations",
-      status: 504,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: "Suno music generation timed out",
-    }).catch(() => {});
-    return { success: false, status: 504, error: "Suno music generation timed out" };
-  } catch (err) {
-    if (log) log.error("MUSIC", `${provider} suno error: ${err.message}`);
-    saveCallLog({
-      method: "POST",
-      path: "/v1/music/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: err.message,
-    }).catch(() => {});
-    return {
-      success: false,
-      status: 502,
       error: sanitizeErrorMessage(err) || "Music provider error",
     };
   }

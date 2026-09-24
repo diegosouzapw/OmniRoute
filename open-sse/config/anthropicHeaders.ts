@@ -54,6 +54,20 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
  * credit gate); forwarding it when the CLIENT negotiated it matches what real
  * Claude Code sends for `/model <id>[1m]` and is required for >200K-context
  * requests on models/accounts where the beta is enforced.
+ *
+ * dangerous-tool-use-2026-09-03 is the auto-mode classifier pair: Claude Code
+ * v2.1.278+ sends it together with the top-level `safeguards` request field and
+ * reads the answer back from `message_delta.delta.safeguard_results`. The body
+ * field already survives the claude to claude passthrough, so dropping only the
+ * beta left the upstream with a field it was not asked to act on: no results
+ * come back, the client latches "something on the path to the API dropped it"
+ * and falls back to its own billed classifier requests for the rest of the
+ * session. Forwarding the pair intact is what makes a gateway session eligible
+ * (https://code.claude.com/docs/en/auto-mode-classifier-billing).
+ *
+ * afk-mode-2026-01-31 is the second beta Claude Code attaches while auto mode is
+ * active (captured on the wire in #14186). Dropping it strips the auto-mode
+ * negotiation the upstream expects next to the classifier pair.
  */
 export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "tool-search-tool-2025-10-19",
@@ -69,6 +83,8 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   // upstream rejects `thinking.block_binding` / `thinking.display` with 400.
   "thinking-binding-controls-2026-08-01",
   "thinking-display-updates-2026-08-18",
+  "dangerous-tool-use-2026-09-03",
+  "afk-mode-2026-01-31",
 ]);
 
 /**
@@ -118,6 +134,30 @@ export function mergeClientAnthropicBeta(
     }
   }
   return baseList.join(",");
+}
+
+/**
+ * Apply the client's negotiated `anthropic-beta` to an outbound header set.
+ *
+ * `seedWhenAbsent` is for Anthropic-format upstreams that carry no static beta
+ * set of their own (`anthropic-compatible-*`): without it the caller had no
+ * `anthropic-beta` key to merge into, skipped the merge entirely, and forwarded
+ * no client beta at all rather than a filtered one. The seeded base is empty, so
+ * the allowlist still decides what travels and the gateway never invents betas a
+ * third-party upstream did not advertise. A merge that survives to nothing leaves
+ * the header unset instead of emitting an empty one.
+ */
+export function applyClientAnthropicBeta(
+  headers: Record<string, string>,
+  clientBeta: string | null | undefined,
+  options: { seedWhenAbsent?: boolean; model?: string | null } = {}
+): void {
+  if (typeof clientBeta !== "string" || !clientBeta.trim()) return;
+  const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+  const key = existingKey ?? (options.seedWhenAbsent ? "anthropic-beta" : null);
+  if (!key) return;
+  const merged = mergeClientAnthropicBeta(headers[key] ?? "", clientBeta, undefined, options.model);
+  if (merged) headers[key] = merged;
 }
 
 /**

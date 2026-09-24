@@ -28,6 +28,8 @@ export const kiroProvider: RegistryEntry = {
       name: "Claude Sonnet 5",
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
     {
       id: "claude-sonnet-4.5",

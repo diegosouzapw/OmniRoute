@@ -14,15 +14,23 @@
  *  - Auto-route = header override -> model-prefix match -> deterministic strategy
  *    (`routingStrategies.ts`, M2/RIC-740). Every decision is explainable via the
  *    `x-omniroute-route-decision` response header — no predictive model.
- *  - The API-key check is a scaffold reserved for the D5 quota-key system: when
- *    `OMNIROUTE_SELF_HOSTED_API_KEY` is unset the route is open (loopback /
- *    trusted-network deployment), exactly like the existing self-hosted local
- *    providers.
+ *  - The optional `OMNIROUTE_SELF_HOSTED_API_KEY` shared-secret check here is a
+ *    scaffold reserved for the D5 quota-key system: when unset the route is open
+ *    (loopback / trusted-network deployment), exactly like the existing
+ *    self-hosted local providers; when set, it is compared with a constant-time
+ *    comparison (`timingSafeCompare`), never `===` (#14485, CWE-208).
+ *  - Every request through the unified `/v1/chat/completions` entry — including
+ *    this self-hosted divert — is gated by `enforceApiKeyPolicy()` (schedule,
+ *    rate limit, quota, allowedModels) exactly once: the route runs it right
+ *    before this divert only when `isSelfHostedEntryConfigured()`, and the cloud
+ *    path runs it inside handleChat() (#14485). This module's own optional shared-key check is a *separate*,
+ *    additive gate for the self-hosted config itself, not a substitute for it.
  */
 
 import * as yaml from "js-yaml";
 import { readFile } from "node:fs/promises";
 import { errorResponse, buildErrorBody, parseUpstreamError } from "../utils/error.ts";
+import { timingSafeCompare } from "@/shared/utils/timingSafeCompare";
 import { stripSensitiveResponseHeaders } from "../utils/upstreamResponseHeaders.ts";
 import type { ChatRequest, ProviderConfig } from "./providerAdapters.ts";
 import { ProviderRouter } from "./providerAdapters.ts";
@@ -397,18 +405,27 @@ export async function completeViaSelfHostedRouter(
  * failed to load/parse, returns a 500 error instead — a misconfigured entry
  * must never silently fall through to cloud routing.
  */
-export async function handleSelfHostedCompletions(
-  request: Request,
-  body: Record<string, unknown> | null,
-  options: SelfHostedOptions = {}
-): Promise<Response | null> {
-  const isConfigured = Boolean(
+/**
+ * True when a self-hosted provider config is present (inline, file, or env).
+ * `handleSelfHostedCompletions()` answers EVERY request once this is true, so
+ * the route uses it to scope work that must run only on the divert path (e.g.
+ * the #14485 key-policy gate, which the cloud path runs inside handleChat()).
+ */
+export function isSelfHostedEntryConfigured(options: SelfHostedOptions = {}): boolean {
+  return Boolean(
     options.providers ??
     options.providersFile ??
     process.env[CONFIG_ENV] ??
     process.env[CONFIG_FILE_ENV]
   );
-  if (!isConfigured) return null;
+}
+
+export async function handleSelfHostedCompletions(
+  request: Request,
+  body: Record<string, unknown> | null,
+  options: SelfHostedOptions = {}
+): Promise<Response | null> {
+  if (!isSelfHostedEntryConfigured(options)) return null;
 
   const runtime = await loadSelfHostedRuntime(options);
   if (!runtime) {
@@ -423,7 +440,7 @@ export async function handleSelfHostedCompletions(
   if (apiKey) {
     const authHeader = request.headers.get("authorization") ?? "";
     const expected = `Bearer ${apiKey}`;
-    if (authHeader !== expected) {
+    if (!timingSafeCompare(authHeader, expected)) {
       return errorResponse(401, "Invalid API key", { type: "authentication_error" });
     }
   }

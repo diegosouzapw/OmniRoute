@@ -5,10 +5,27 @@ import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import { CORS_HEADERS } from "@/shared/utils/cors";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
+/**
+ * Why `apiKeyId` is null — the lifecycle outcome `getApiKeyRequestScope` already
+ * computed, surfaced so a route can name it in an audit line WITHOUT re-running
+ * the gate (omni-code-review LEDGER-3/9):
+ *
+ *   - `none`       — no key presented (anonymous or session-only caller);
+ *   - `unresolved` — a key was presented but no row matches (deleted, rotated, mistyped);
+ *   - `invalid`    — the row exists but failed `validateApiKey`
+ *                    (is_active / revoked_at / is_banned / expires_at);
+ *   - `valid`      — passed the gate; `apiKeyId` and `apiKeyMetadata` are set.
+ *
+ * `apiKeyId !== null` ⟺ `keyState === "valid"`. Additive field: every consumer
+ * that only reads `apiKeyId` keeps working unchanged.
+ */
+export type ApiKeyState = "none" | "unresolved" | "invalid" | "valid";
+
 export interface ApiKeyRequestScope {
   apiKey: string | null;
   apiKeyId: string | null;
   apiKeyMetadata: Awaited<ReturnType<typeof getApiKeyMetadata>>;
+  keyState: ApiKeyState;
   rejection: Response | null;
   isSessionAuth: boolean;
 }
@@ -17,7 +34,14 @@ export async function getApiKeyRequestScope(request: Request): Promise<ApiKeyReq
   const isSessionAuth = await isDashboardSessionAuthenticated(request);
   const apiKey = extractApiKey(request);
   if (!apiKey) {
-    return { apiKey: null, apiKeyId: null, apiKeyMetadata: null, rejection: null, isSessionAuth };
+    return {
+      apiKey: null,
+      apiKeyId: null,
+      apiKeyMetadata: null,
+      keyState: "none",
+      rejection: null,
+      isSessionAuth,
+    };
   }
 
   const apiKeyMetadata = await getApiKeyMetadata(apiKey);
@@ -27,13 +51,26 @@ export async function getApiKeyRequestScope(request: Request): Promise<ApiKeyReq
   // checks is_active/revoked_at/is_banned/expires_at (CWE-613). A key that
   // fails that gate is folded into the same `{ apiKeyId: null }` shape as an
   // unresolved/anonymous caller, so every consumer of this scope (list reads,
-  // per-record ownership checks) treats a revoked/expired/banned key as
-  // invalid without each route re-implementing the check.
-  const isValid = apiKeyMetadata ? await validateApiKey(apiKey) : false;
+  // per-record ownership checks, the delete-completed sweep) treats a
+  // revoked/expired/banned key as invalid without each route re-implementing
+  // the check — this is the single lifecycle gate; routes must not re-run it.
+  let keyState: ApiKeyState = "unresolved";
+  if (apiKeyMetadata) keyState = (await validateApiKey(apiKey)) ? "valid" : "invalid";
+  if (keyState !== "valid") {
+    return {
+      apiKey,
+      apiKeyId: null,
+      apiKeyMetadata: null,
+      keyState,
+      rejection: null,
+      isSessionAuth,
+    };
+  }
   return {
     apiKey,
-    apiKeyId: isValid ? apiKeyMetadata?.id || null : null,
-    apiKeyMetadata: isValid ? apiKeyMetadata : null,
+    apiKeyId: apiKeyMetadata.id,
+    apiKeyMetadata,
+    keyState,
     rejection: null,
     isSessionAuth,
   };
@@ -69,6 +106,29 @@ export function canAccessOwnedRecord(
   if (scope.isSessionAuth) return true;
   if (recordApiKeyId === null || recordApiKeyId === undefined) return false;
   return recordApiKeyId === scope.apiKeyId;
+}
+
+/**
+ * The id of the key that should own a record created (or looked up) in this
+ * request — LEDGER-27, omni-code-sec round 3. A valid key resolved ONLY via
+ * the ungated `x-api-key`/`x-goog-api-key` transport (no anthropic-version,
+ * non-Claude UA) is invisible to `extractApiKey()`/`getApiKeyRequestScope()`
+ * (`scope.apiKeyId` stays null for it, #13881/round-2), but
+ * `enforceApiKeyPolicy()` resolves and validates that same key independently
+ * via `extractUngatedClientApiKey()` and hands back a non-null `apiKeyInfo`
+ * once the key clears every lifecycle/policy gate (`policy.rejection ===
+ * null`). Without this fallback, a write handler persisted `apiKeyId: null`
+ * for that transport — an unreadable, undeletable, unaccounted-for row — and
+ * an ownership check on that same transport denied the key its own record.
+ * `scope.apiKeyId` always wins when set (the ordinary Authorization/anthropic
+ * transports already resolved it); a session-only caller (no key at all)
+ * passes through unchanged, since `policyApiKeyInfo` is null in that case too.
+ */
+export function resolveEffectiveApiKeyId(
+  scope: Pick<ApiKeyRequestScope, "apiKeyId">,
+  policyApiKeyInfo: { id: string } | null
+): string | null {
+  return scope.apiKeyId ?? policyApiKeyInfo?.id ?? null;
 }
 
 /**

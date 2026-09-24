@@ -15,6 +15,7 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
+import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
@@ -188,8 +189,20 @@ type TlsFingerprintStore = {
  * the egress logger read the innermost applied proxy (the last writer wins, which
  * is the executor's per-account proxy).
  */
-export type AppliedProxySink = { proxy: unknown; upstreamStatus?: number };
-const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
+export type AppliedProxySink = {
+  proxy: unknown;
+  upstreamStatus?: number;
+  /** Masked serving-account id (N112) — set by the rotation executor at dispatch. */
+  rotationAccount?: string | null;
+};
+const APPLIED_PROXY_CONTEXT_KEY = Symbol.for("omniroute.proxyFetch.applied-context");
+type AppliedProxyStore = typeof globalThis & {
+  [APPLIED_PROXY_CONTEXT_KEY]?: AsyncLocalStorage<AppliedProxySink>;
+};
+function getAppliedProxyContext(): AsyncLocalStorage<AppliedProxySink> {
+  return ((globalThis as AppliedProxyStore)[APPLIED_PROXY_CONTEXT_KEY] ??=
+    new AsyncLocalStorage<AppliedProxySink>());
+}
 
 /**
  * Run `fn` with an applied-proxy capture sink in context. Any
@@ -199,7 +212,21 @@ const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
  * resolves. Pure plumbing — no behavioral change to the request itself.
  */
 export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
-  return appliedProxyContext.run(sink, fn);
+  return getAppliedProxyContext().run(sink, fn);
+}
+
+/**
+ * Record the masked id of the rotation account serving this request on the
+ * current capture sink (no-op outside a capture — the sink stays null and the
+ * call-site forwards null). Only an already-masked id may be passed in.
+ */
+export function noteRotationAccount(masked: string): void {
+  try {
+    const sink = getAppliedProxyContext().getStore();
+    if (sink) sink.rotationAccount = masked;
+  } catch {
+    /* attribution is best-effort; never break the request path */
+  }
 }
 
 type FetchWithDispatcherOptions = RequestInit & { dispatcher?: unknown };
@@ -340,20 +367,6 @@ function isWreqProxySupported(proxyUrl: string): boolean {
   }
 }
 
-/**
- * Redact proxy URLs (and any bare `user:pass@host` credential tokens) from an
- * upstream transport-error message before it is surfaced. #10032 keeps the
- * underlying failure reason in the propagated error for diagnosability, but
- * the raw message can embed the full proxy URL — including userinfo
- * credentials — which must never bubble into response bodies (#9837, Hard
- * Rule #12).
- */
-function redactProxyDetailsInMessage(message: string): string {
-  return message
-    .replace(/\b(?:https?|socks[45][ah]?|socks):\/\/\S+/gi, "[redacted-proxy]")
-    .replace(/\b[^\s:@/]+:[^\s@/]*@\S+/g, "[redacted-proxy]");
-}
-
 function sanitizeTransportError(
   error: unknown,
   message: string,
@@ -475,6 +488,21 @@ function noProxyMatch(targetUrl) {
     }
     return hostname === patternHost || hostname.endsWith(`.${patternHost}`);
   });
+}
+
+/**
+ * True loopback only — NOT the broader private-network set `isLocalAddress`
+ * covers. A LAN peer (192.168.x, a local Ollama box) is still reached over a
+ * real network and keeps the outbound bound-and-replay policy; a loopback
+ * target is this very process.
+ */
+function isLoopbackHost(hostname: string): boolean {
+  const host = hostname
+    .replace(/^\[/, "")
+    .replace(/\]$/, "")
+    .replace(/^::ffff:/i, "")
+    .toLowerCase();
+  return host === "localhost" || host === "::1" || host === "127.0.0.1" || host.startsWith("127.");
 }
 
 function isLocalAddress(hostname: string): boolean {
@@ -678,7 +706,7 @@ export async function runWithProxyContext(
     // otherwise leave proxyInfo reading "direct"). Innermost runWithProxyContext
     // wins, which is exactly the per-account proxy the executor selected.
     if (effectiveProxyConfig) {
-      const sink = appliedProxyContext.getStore();
+      const sink = getAppliedProxyContext().getStore();
       if (sink) sink.proxy = effectiveProxyConfig;
     }
 
@@ -846,6 +874,27 @@ async function patchedFetchUnrecorded(
       deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
+
+    // A loopback self-request (model sync, auto-discovery, internal routes) must
+    // NOT inherit the outbound-egress policy below. That policy bounds
+    // response-start and then REPLAYS the request on a fresh no-keep-alive
+    // dispatcher, which is designed for a dead keep-alive socket to a remote
+    // host (#10214). Against our own listener there is no such socket to
+    // detect: the replay just doubles how long a slow internal request occupies
+    // one of our OWN inbound slots (30s bound + 30s replay). When a provider
+    // stalls, those self-requests pile up against the chat admission limit and
+    // starve live traffic until Cloudflare cuts the client at its 120s proxy
+    // read timeout (HTTP 524). Send loopback straight through the native fetch.
+    let isLoopbackTarget = false;
+    try {
+      isLoopbackTarget = isLoopbackHost(new URL(targetUrl).hostname);
+    } catch {
+      // ignore — a non-parseable target keeps the default egress policy
+    }
+    if (isLoopbackTarget) {
+      return _nativeFallback(input, options);
+    }
+
     let lastDispatcherError: unknown = null;
     const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
     const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);
@@ -908,7 +957,10 @@ async function patchedFetchUnrecorded(
             continue;
           }
           if (hasNonReplayableBody) {
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[skipped: non-replayable request body]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              "skipped: non-replayable request body"
+            );
             console.warn(
               `[ProxyFetch] skipping native fetch fallback for non-replayable body: ${detail}`
             );
@@ -952,7 +1004,10 @@ async function patchedFetchUnrecorded(
             return await _nativeFallback(input, options);
           } catch (nativeError) {
             // Surface both dispatcher and native causes immediately.
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[${describeFetchCause(nativeError)}]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              describeFetchCause(nativeError)
+            );
             console.warn(`[ProxyFetch] native fetch fallback ALSO failed: ${detail}`);
             if (nativeError instanceof Error) {
               (nativeError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
@@ -1180,7 +1235,7 @@ async function patchedFetchUnrecorded(
   throw lastProxyError;
 }
 
-const getAppliedProxySink = () => appliedProxyContext.getStore();
+const getAppliedProxySink = () => getAppliedProxyContext().getStore();
 const patchedFetch = withUpstreamStatusCapture(patchedFetchUnrecorded, getAppliedProxySink);
 
 /**

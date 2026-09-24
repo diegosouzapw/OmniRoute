@@ -1,0 +1,1 @@
+- **fix(api):** API keys with `disableNonPublicModels` now accept the synced reasoning-effort variants (`<model>-<tier>`) that `/v1/models` and the combo builder advertise, instead of silently skipping those combo targets ([#14597](https://github.com/diegosouzapw/OmniRoute/pull/14597)) — thanks @QuangBlue

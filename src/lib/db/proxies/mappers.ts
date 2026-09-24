@@ -166,6 +166,13 @@ export function normalizeAssignmentScopeId(scope: ProxyScope, scopeId?: string |
   return scope === "global" ? "__global__" : scopeId || null;
 }
 
+// Shared guard: a non-global scope requires a non-blank scopeId. Takes the
+// scope RAW (no normalizeScope inside): unknown scopes are never "global".
+// DB call-sites pass an already-normalized scope — see their 1-line contract.
+export function isScopeIdMissing(scope: string, scopeId: string | null | undefined): boolean {
+  return scope !== "global" && !scopeId?.trim();
+}
+
 export function toLegacyProxyLevel(scope: ProxyScope) {
   return scope === "account" ? "key" : scope;
 }
