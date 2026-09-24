@@ -1084,6 +1084,48 @@ test("sanitizeStreamingChunk strips zero-width joiners from OpenAI chat tool-cal
   assert.equal(output.includes("\u200d"), false);
 });
 
+test("sanitizeStreamingChunk stringifies object-form OpenAI tool-call arguments", () => {
+  const inputArguments = { command: "echo hello" };
+  const sanitized = sanitizeStreamingChunk({
+    object: "chat.completion.chunk",
+    choices: [
+      {
+        index: 0,
+        delta: {
+          tool_calls: [
+            {
+              index: 0,
+              id: "call_1",
+              type: "function",
+              function: { name: "run", arguments: inputArguments },
+            },
+          ],
+        },
+      },
+    ],
+  }) as unknown as {
+    choices: {
+      delta: {
+        tool_calls: {
+          id: string;
+          index: number;
+          type: string;
+          function: { name: string; arguments: unknown };
+        }[];
+      };
+    }[];
+  };
+
+  const toolCall = sanitized.choices[0].delta.tool_calls[0];
+  assert.equal(typeof toolCall.function.arguments, "string");
+  assert.equal(toolCall.function.arguments, '{"command":"echo hello"}');
+  assert.deepEqual(toolCall.function, { name: "run", arguments: '{"command":"echo hello"}' });
+  assert.equal(toolCall.id, "call_1");
+  assert.equal(toolCall.index, 0);
+  assert.equal(toolCall.type, "function");
+  assert.deepEqual(inputArguments, { command: "echo hello" });
+});
+
 test("sanitizeOpenAIResponse strips zero-width joiners from non-stream tool-call arguments", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_zwj",
