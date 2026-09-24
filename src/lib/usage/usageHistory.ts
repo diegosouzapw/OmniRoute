@@ -32,6 +32,7 @@ import {
   maybeEnrichCompletedDetail,
   scheduleCompletedDetailCleanup,
   storeCompletedDetail,
+  getCompletedDetails,
 } from "./completedRequestDetails";
 import { shouldPersistToDisk } from "./migrations";
 import { emitUsageRecorded } from "./usageEvents";
@@ -59,6 +60,14 @@ export type PendingRequestMetadata = {
   sessionTag?: string | null;
 };
 export type PendingRequestDetail = {
+  tokens?: {
+    in: number;
+    out: number;
+    cacheRead: number | null;
+    cacheCreation: number | null;
+    reasoning: number | null;
+    compressed: number | null;
+  };
   id: string;
   model: string;
   provider: string;
@@ -419,6 +428,18 @@ export function updatePendingRequestById(id: string | null, metadata: PendingReq
   if (!detail) return false;
   Object.assign(detail, normalizePendingMetadata(metadata));
   return true;
+}
+
+/** Attach scalar usage to the exact attempt, even if its stream already finalized. */
+export function updateRequestTokensById(id: unknown, tokens: PendingRequestDetail["tokens"]) {
+  if (typeof id !== "string") return;
+  const pending = pendingById.get(id);
+  if (pending) {
+    pending.tokens = tokens;
+    return;
+  }
+  const completed = getCompletedDetails().get(id);
+  if (completed) storeCompletedDetail({ ...completed, tokens });
 }
 
 /**

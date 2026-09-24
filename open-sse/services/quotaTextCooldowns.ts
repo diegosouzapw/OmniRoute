@@ -65,12 +65,12 @@ export const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 export function buildSubscriptionQuotaFallback(
   errorStr: string,
   getUpstreamRetryHintMs: () => number | null,
-  parseRetryFromErrorText: (text: string) => number | null,
+  parseRetryFromErrorText: (text: string, provider?: string | null) => number | null,
   provider?: string | null
 ): QuotaTextFallback | null {
   if (!isSubscriptionQuotaText(errorStr.toLowerCase(), provider)) return null;
   const hintMs = getUpstreamRetryHintMs();
-  const bodyHint = parseRetryFromErrorText(errorStr);
+  const bodyHint = parseRetryFromErrorText(errorStr, provider);
   return {
     shouldFallback: true,
     cooldownMs: hintMs ?? SUBSCRIPTION_QUOTA_COOLDOWN_MS,
@@ -114,10 +114,11 @@ const MAX_WEEKLY_QUOTA_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
 
 export function buildWeeklyQuotaFallback(
   errorStr: string,
-  nowMs: number = Date.now()
+  nowMs: number = Date.now(),
+  provider?: string | null
 ): QuotaTextFallback | null {
   if (!isWeeklyUsageLimitText(errorStr.toLowerCase())) return null;
-  const parsedResetMs = parseDayGranularityResetMs(errorStr, MAX_WEEKLY_QUOTA_COOLDOWN_MS, nowMs);
+  const parsedResetMs = parseDayGranularityResetMs(errorStr, MAX_WEEKLY_QUOTA_COOLDOWN_MS, nowMs, provider);
   const cooldownMs =
     typeof parsedResetMs === "number" && parsedResetMs > 0
       ? parsedResetMs

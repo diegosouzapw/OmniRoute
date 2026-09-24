@@ -346,66 +346,65 @@ opencode -m omniroute/glm/glm-5.2 "..."          # પહેલાં OMNIROUTE_
 
 ---
 
-## કૉન્ટેક્સ્ટનું સંચાલન (સર્વરો વચ્ચે સ્વિચ કરવું)
+## સંદર્ભોનું સંચાલન (સર્વર વચ્ચે સ્વિચ કરો)
 
-**કૉન્ટેક્સ્ટ** એ સાચવેલો સર્વર છે (baseUrl + credential + scope). `omniroute connect`
-એક કૉન્ટેક્સ્ટ બનાવે છે અને તેને સક્રિય કરે છે; ત્યાર પછી દરેક કમાન્ડ તેને લક્ષ્ય બનાવે છે. `omniroute contexts` વડે
+એક **સંદર્ભ** એ સાચવેલ સર્વર છે (baseUrl + ઓળખપત્ર + સ્કોપ). `omniroute connect`
+એક બનાવે છે અને તેને સક્રિય કરે છે; ત્યારથી દરેક કમાન્ડ તેને લક્ષ્ય બનાવે છે. `omniroute contexts` વડે
 તેમનું સંચાલન કરો અને તેમની વચ્ચે સ્વિચ કરો:
 
 ```bash
-omniroute contexts list            # બધા કૉન્ટેક્સ્ટ; સક્રિય કૉન્ટેક્સ્ટ ● વડે ચિહ્નિત છે
-omniroute contexts current         # સક્રિય સર્વર, પ્રમાણીકરણની સ્થિતિ, સ્કોપ
+omniroute contexts list            # બધા સંદર્ભો; સક્રિય એક ● વડે ચિહ્નિત થયેલ છે
+omniroute contexts current         # સક્રિય સર્વર, પ્રમાણીકરણ સ્થિતિ, સ્કોપ
 ```
 
 ```text
-  | નામ     | મૂળ URL                   | પ્રમાણીકરણ | સ્કોપ | વર્ણન
-● | vps     | http://100.67.86.91:20128 | token       | admin | રિમોટ OmniRoute (…)
-  | default | http://localhost:20128    | ✗           |       |
+  | નામ    | બેઝ URL                  | પ્રમાણીકરણ  | સ્કોપ | વર્ણન
+● | vps     | http://100.67.86.91:20128 | token | admin | રીમોટ ઓમ્નીરૂટ (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**સર્વરો સ્વિચ કરો** — ત્યાર પછીની દરેક કમાન્ડ સક્રિય કૉન્ટેક્સ્ટને અનુસરે છે:
+**સર્વર સ્વિચ કરો** — દરેક અનુગામી કમાન્ડ સક્રિય સંદર્ભને અનુસરે છે:
 
 ```bash
-omniroute contexts use vps         # → હવે બધી કમાન્ડ રિમોટ VPSને મોકલાય છે
+omniroute contexts use vps         # → હવે બધા કમાન્ડ રીમોટ VPS પર લાગુ પડશે
 omniroute tokens list              #   (VPS સામે ચાલે છે)
 
-omniroute contexts use default     # → ફરી localhost પર
-omniroute tokens list              #   (લોકલ સર્વર સામે ચાલે છે)
+omniroute contexts use default     # → લોકલહોસ્ટ પર પાછા
+omniroute tokens list              #   (સ્થાનિક સર્વર સામે ચાલે છે)
 ```
 
-**મેન્યુઅલી કૉન્ટેક્સ્ટ ઉમેરો** (`connect`ને બદલે), તેનું નિરીક્ષણ કરો અથવા તેનું નામ બદલો:
+**મેન્યુઅલી સંદર્ભ ઉમેરો** (`connect` ને બદલે), તપાસો, અથવા નામ બદલો:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "સ્ટેજિંગ બૉક્સ"
-omniroute contexts show staging    # એક કૉન્ટેક્સ્ટની સંપૂર્ણ વિગતો
+  --access-token oma_live_xxxx --scope write --description "સ્ટેજીંગ બોક્સ"
+omniroute contexts show staging    # એક સંદર્ભ માટે સંપૂર્ણ વિગતો
 omniroute contexts rename staging stg
 ```
 
-**કૉન્ટેક્સ્ટ દૂર કરો** — પુષ્ટિ માટે પૂછે છે; તેને ટાળવા માટે `--yes` આપો
-(સ્ક્રિપ્ટ્સ / નૉન-ઇન્ટરેક્ટિવ શેલ્સ માટે આવશ્યક છે, જે અન્યથા સુરક્ષિત રીતે ઇનકાર કરે છે):
+**સંદર્ભ દૂર કરો** — પુષ્ટિ માટે પૂછે છે; તેને છોડવા માટે `--yes` પાસ કરો
+(સ્ક્રિપ્ટ્સ / નોન-ઇન્ટરેક્ટિવ શેલ્સ માટે જરૂરી છે, જે અન્યથા સુરક્ષિત રીતે ના પાડે છે):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost)ને દૂર કરી શકાતું નથી. સક્રિય કૉન્ટેક્સ્ટ દૂર કરવાથી
-> `default` પર પાછા ફરાય છે. સૂચન: કૉન્ટેક્સ્ટ દૂર કરવાથી માત્ર **લોકલ** સાચવેલું credential દૂર થાય છે —
-> ઍક્સેસ ખરેખર સમાપ્ત કરવા માટે સર્વર પર `omniroute tokens revoke <id>` વડે token રદ કરો.
+> `default` (લોકલહોસ્ટ) ને દૂર કરી શકાતું નથી. સક્રિય સંદર્ભને દૂર કરવાથી
+> `default` પર પાછા ફરે છે. ટીપ: સંદર્ભને દૂર કરવાથી ફક્ત **સ્થાનિક** સાચવેલ ઓળખપત્ર જ દૂર થાય છે —
+> ઍક્સેસને ખરેખર સમાપ્ત કરવા માટે સર્વર પર `omniroute tokens revoke <id>` વડે ટોકનને રદ કરો.
 
-કૉન્ટેક્સ્ટને **એક્સપોર્ટ / ઇમ્પોર્ટ** કરો (દા.ત. તેમને મશીનો વચ્ચે ખસેડવા માટે). જ્યારે OS
-keychain ઉપલબ્ધ હોય ત્યારે નવા કૉન્ટેક્સ્ટમાં માત્ર keychain સંદર્ભ જ કાયમી રીતે સચવાય છે; credentialsને
-એક્સપોર્ટમાં કૉપિ કરવામાં આવતા નથી:
+**સંદર્ભો નિકાસ / આયાત કરો** (દા.ત. તેમને મશીનો વચ્ચે ખસેડવા માટે). નિકાસો
+ડિફોલ્ટ રૂપે ઓળખપત્રોને છોડી દે છે, જેમાં ફાઇલ ફોલબેક દ્વારા સંગ્રહિત ઓળખપત્રોનો સમાવેશ થાય છે.
+જ્યારે પોર્ટેબલ ઓળખપત્ર-ધારક બેકઅપની જરૂર હોય ત્યારે સ્પષ્ટપણે `--include-secrets` નો ઉપયોગ કરો:
 
 ```bash
-omniroute contexts export --out contexts.json     # ડિફૉલ્ટ: stdout
-omniroute contexts import contexts.json            # ઓવરરાઇટ; હાલના રાખવા માટે --merge
-omniroute contexts migrate --yes                  # લેગસી પ્લેનટેક્સ્ટ tokensને keychainમાં ખસેડો
+omniroute contexts export --out contexts.json     # સંપાદિત; ડિફોલ્ટ ગંતવ્ય: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # ઓવરરાઇટ કરો; હાલનાને રાખવા માટે --merge
+omniroute contexts migrate --yes                  # જૂના પ્લેનટેક્સ્ટ ટોકન્સને કીચેનમાં ખસેડો
 ```
 
-ઉપયોગ કરી શકાય તેવી OS keychain વિનાની headless સિસ્ટમ્સ પર, CLI
-`0600` મોડ સાથે `config.json`નો ઉપયોગ કરે છે અને એક વખતની ચેતવણી પ્રિન્ટ કરે છે. આ fallbackમાંથી થયેલા
-એક્સપોર્ટ્સ (અને migration પહેલાંના કોઈપણ લેગસી config)ને ગુપ્ત સામગ્રી તરીકે ગણો.
+`--include-secrets` નિકાસ કરતા પહેલા કીચેન સંદર્ભોને ઉકેલે છે અને જો કોઈ સંદર્ભિત ઓળખપત્ર વાંચી શકાતું નથી તો નિષ્ફળ જાય છે. `--no-secrets` હંમેશા પ્રાધાન્ય લે છે. નિકાસ ફાઇલો `0600` મોડ સાથે અણુરૂપે લખાય છે. સ્પષ્ટ ગુપ્ત-ધારક નિકાસને ગુપ્ત સામગ્રી તરીકે ગણો. ઉપયોગી OS કીચેન વિનાના હેડલેસ સિસ્ટમ્સ પર, CLI `0600` મોડ સાથે `config.json` પર પાછા ફરે છે અને એક-વખતની ચેતવણી છાપે છે; આ મોડમાં ડિફોલ્ટ નિકાસ સંપાદિત રહે છે.
 
 ---
 

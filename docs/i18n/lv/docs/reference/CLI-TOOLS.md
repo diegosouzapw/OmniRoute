@@ -45,9 +45,9 @@ ACP Agents (apgrieztā izveidošanas plūsma):
 
 ## Automātiskā konfigurēšana ar `setup-*`
 
-Jums nav jāraksta katra rīka konfigurācija ar roku. OmniRoute piegādā `setup-*`
-komandu katrai atbalstītai CLI, kas nolasa **dzīvo** modeļu katalogu no darbojošās
-OmniRoute (vietējās vai attālās) un raksta rīka paša konfigurāciju jūsu datorā:
+Jums nav jāraksta katra rīka konfigurācija ar roku. OmniRoute nodrošina `setup-*`
+komandu katram atbalstītajam CLI, kas nolasa **tiešraides** modeļu katalogu no darbojošās
+OmniRoute (lokālas vai attālinātas) un uzraksta rīka paša konfigurāciju jūsu mašīnā:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,47 +57,53 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Katra pieņem `--remote <url> --api-key <key>` (konfigurēt vietēju rīku pret
-attālu OmniRoute), `--dry-run` (priekšskatījums bez rakstīšanas) un `--port`. Rīki
-bez modeļa automātiskās noteikšanas (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) pieņem
-`--model <id>` (un `--yes` neinteraktīviem braucieniem). `setup-5dive` ir vienīgais
-recepšu risinājums, kas neraksta zem `$HOME`: tas konfigurē 5dive aģenta floti, rakstot
-root-owned autentifikācijas profilu flozes saimniekdatorā, tāpēc tas atkārtoti izpilda caur `sudo`
-un tam pašam nav attālā režīma. Lai palaiž CLI ar
-pareizo injicēto vidi un vispār bez rakstītas konfigurācijas, izmantojiet vispārējo
-`omniroute run <mērķis>` startētāju (claude, codex, aider, goose, opencode, qwen,
-gemini — mērķi un aliāši nāk no `bin/cli/cli-manifest.mjs`); vecie
-par instrumentiem startētāji `omniroute launch` (Claude Code) un `omniroute launch-codex`
-(Codex) paliek pieejami. Gemini CLI ir tikai palaižams: tas ir `omniroute run`
+Katrs pieņem `--remote <url> --api-key <key>` (konfigurē lokālu rīku pret
+attālinātu OmniRoute), `--dry-run` (priekšskatījums bez rakstīšanas) un `--port`.
+Rīki bez modeļa automātiskās atklāšanas (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive)
+pieņem `--model <id>` (un `--yes` neinteraktīvām palaišanām). `setup-5dive` ir vienīgā
+recepte, kas neraksta zem `$HOME`: tā konfigurē 5dive aģentu floti, uzrakstot saknes
+īpašumā esošu autentifikācijas profilu flotes resursdatorā, tāpēc tā atkārtoti izpildās
+caur `sudo` un tai nav sava attālā režīma. Lai palaistu CLI ar
+pareizi injicētu vidi un bez konfigurācijas rakstīšanas, izmantojiet vispārīgo
+`omniroute run <target>` palaidēju (claude, codex, aider, goose, opencode, qwen,
+gemini — mērķi un aizstājvārdi nāk no `bin/cli/cli-manifest.mjs`); mantotie
+rīku palaidēji `omniroute launch` (Claude Code) un `omniroute launch-codex`
+(Codex) joprojām ir pieejami. Gemini CLI ir tikai palaižams: tas ir `omniroute run`
 mērķis, bet tam nav `setup-*`/`configure` receptes.
 
-> **Pilna atsauce:** galvenā tabula — ko raksta katra komanda, katra karodziņa,
-> vietējais pret attālo, un kuri rīki vēlas `/v1` pēcdēli — atrodas
-> **[CLI integrācijas](../guides/CLI-INTEGRATIONS.md)**.
+> **Pilna atsauce:** galvenā tabula — ko katra komanda raksta, katrs karogs,
+> lokāls pret attālinātu, un kuri rīki vēlas `/v1` sufiksu — atrodas
+> **[CLI Integrācijas](../guides/CLI-INTEGRATIONS.md)**.
 
-### Šo komandu palaišana konteinerī
+### To palaišana konteinerā
 
-`setup-*` komanda, kas izpildīta OmniRoute konteinerī, raksta konteinera
-paša mājas direktorijā, kuru neviens saimniekdatora CLI nelasa un kas pazūd līdz ar
-konteineri. OmniRoute to atklāj un iziet ar kodu `2` ar instrukcijām, nevis
-rakstot. Divas atbalstītas iespējas — instalēt CLI saimniekdatorā un
-`omniroute connect` uz konteineri, vai bin-montēt konfigurācijas direktorijus un iestatīt
-`CLI_CONFIG_HOME` (compose `host` profils). Katra `setup-*` komanda, plus
-`omniroute configure` un `omniroute config set`, pieņem
-`--allow-container-write`, kad faktiski bija domāts konfigurēt konteinera paša CLI; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` nodrošina to pašu serverim. Skat.
-[Docker rokasgrāmata → Host CLI rīku konfigurēšana](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+`setup-*` komanda, kas izpildīta OmniRoute konteinerā, raksta konteinera paša
+mājas direktorijā, ko neviens resursdatora CLI nelasa un kas pazūd kopā ar
+konteineru. OmniRoute to atklāj un iziet ar kodu `2` ar instrukcijām, nevis
+raksta. Divi atbalstīti veidi, kā rīkoties — instalējiet CLI resursdatorā un
+`omniroute connect` uz konteineru, vai piesaistiet konfigurācijas direktorijus un
+iestatiet `CLI_CONFIG_HOME` (compose `host` profils). Katra `setup-*` komanda,
+plus `omniroute configure` un `omniroute config set`, pieņem
+`--allow-container-write`, ja konteinera pašu CLI konfigurēšana ir tas, ko jūs
+patiešām domājāt; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` dara to pašu
+serverim. Skatīt
+[Docker ceļvedis → Resursdatora CLI rīku konfigurēšana](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-Informācijas paneļa **pielietojuma galapunkts** (`POST /api/cli-tools/apply`) ievieš
-tādu pašu sargu: konteinerī, rakstīšana, kuras mērķis nav bin-montēts no
-saimniekdatora, atbild ar **`422`** ar `containerEphemeralTarget: true`, drošo
-kļūdas tekstun — rīkiem ar saimniekdatora recepti (claude, codex, opencode, cline,
-kilo, continue) — ar `hostSetupCommand` (piem., `omniroute setup-opencode`), ko palaist
-saimniekdatorā tā vietā; nekas netiek rakstīts. `dryRun: true` turpina strādāt konteinera
-režīmā un atgriež ģenerēto saturu + mērķa ceļu, nesaskaroties ar disku, tāpēc
-jūs varat priekšskatīt no informācijas paneļa un pielietot saimniekdatorā. Šāda uzvedība ir
-apsvērta un regresijas aizsargāta ar
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nekad "neizlabojiet" 422
-noņemot sargu.
+Informācijas paneļa **piemērošanas galapunkts** (`POST /api/cli-tools/apply`)
+piemēro to pašu aizsardzību: konteinerā rakstīšana, kuras mērķis nav piesaistīts
+no resursdatora, atbild ar **`422`** ar `containerEphemeralTarget: true`, drošu
+kļūdas tekstu un — rīkiem ar resursdatora recepti (claude, codex, opencode,
+cline, kilo, continue) — `hostSetupCommand` (piemēram, `omniroute setup-opencode`),
+kas jāpalaiž resursdatorā; nekas netiek rakstīts. `dryRun: true` turpina darboties
+konteinera režīmā un atgriež rediģētu priekšskatījumu + mērķa ceļu, nepieskaroties
+diskam. Priekšskatījuma saturs nav akreditācijas datus saturoša konfigurācija, ko
+kopēt vai importēt. Lietojiet ar oriģinālo rīku/bāzes URL/API atslēgu/modeļa
+ievadēm resursdatorā, vai izmantojiet norādīto resursdatora puses iestatīšanas
+komandu. Skatīt [CLI konfigurācijas drošība](../security/CLI-CONFIGURATION.md)
+priekšskatījuma galvenei un pieprasījuma līgumam. Šī uzvedība ir
+apzināta un regresijas aizsargāta ar
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nekad "nelabojiet" 422
+ar aizsardzības noņemšanu.
 
 ---
 

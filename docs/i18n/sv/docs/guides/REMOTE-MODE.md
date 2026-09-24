@@ -352,65 +352,56 @@ opencode -m omniroute/glm/glm-5.2 "..."          # exportera OMNIROUTE_API_KEY f
 
 ## Hantera kontexter (växla mellan servrar)
 
-En **kontext** är en sparad server (baseUrl + autentiseringsuppgift + omfattning). `omniroute connect`
-skapar en och gör den aktiv; därefter riktas varje kommando mot den. Hantera och
-växla mellan dem med `omniroute contexts`:
+En **kontext** är en sparad server (baseUrl + autentiseringsuppgifter + scope). `omniroute connect` skapar en och gör den aktiv; från och med då riktas varje kommando mot den. Hantera och växla mellan dem med `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # alla kontexter; den aktiva är markerad med ●
-omniroute contexts current         # den aktiva servern, autentiseringsstatus, omfattning
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
 ```
 
 ```text
-  | Namn    | Bas-URL                   | Autentisering | Omfattning | Beskrivning
-● | vps     | http://100.67.86.91:20128 | token         | admin      | OmniRoute på fjärrserver (…)
-  | default | http://localhost:20128    | ✗             |            |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Växla server** — varje efterföljande kommando använder den aktiva kontexten:
+**Växla servrar** — varje efterföljande kommando följer den aktiva kontexten:
 
 ```bash
-omniroute contexts use vps         # → alla kommandon riktas nu mot fjärr-VPS:en
-omniroute tokens list              #   (körs mot VPS:en)
+omniroute contexts use vps         # → all commands now hit the remote VPS
+omniroute tokens list              #   (runs against the VPS)
 
-omniroute contexts use default     # → tillbaka till localhost
-omniroute tokens list              #   (körs mot den lokala servern)
+omniroute contexts use default     # → back to localhost
+omniroute tokens list              #   (runs against the local server)
 ```
 
-**Lägg till en kontext manuellt** (i stället för `connect`), inspektera den eller byt namn på den:
+**Lägg till en kontext manuellt** (istället för `connect`), inspektera eller byt namn:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "testserver"
-omniroute contexts show staging    # fullständig information om en kontext
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # full details for one context
 omniroute contexts rename staging stg
 ```
 
-**Ta bort en kontext** — frågar efter bekräftelse; ange `--yes` för att hoppa över den
-(krävs för skript/icke-interaktiva skal, som annars avböjer på ett säkert sätt):
+**Ta bort en kontext** — frågar om bekräftelse; skicka med `--yes` för att hoppa över den (krävs för skript / icke-interaktiva skal, som annars säkert nekar):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) kan inte tas bort. Om den aktiva kontexten tas bort sker en återgång
-> till `default`. Tips: att ta bort en kontext raderar endast den **lokalt** sparade autentiseringsuppgiften —
-> återkalla token på servern med `omniroute tokens revoke <id>` för att faktiskt
-> stänga av åtkomsten.
+> `default` (localhost) kan inte tas bort. Att ta bort den aktiva kontexten återgår till `default`. Tips: att ta bort en kontext tar bara bort de **lokalt** sparade autentiseringsuppgifterna — återkalla token på servern med `omniroute tokens revoke <id>` för att faktiskt avsluta åtkomsten.
 
-**Exportera/importera** kontexter (t.ex. för att flytta dem mellan datorer). Nya kontexter sparar
-endast en nyckelringsreferens; autentiseringsuppgifterna kopieras inte till exporten när operativsystemets
-nyckelring är tillgänglig:
+**Exportera / importera** kontexter (t.ex. för att flytta dem mellan maskiner). Exporter utelämnar autentiseringsuppgifter som standard, inklusive autentiseringsuppgifter som lagras via fil-fallback. Använd `--include-secrets` explicit när en portabel säkerhetskopia med autentiseringsuppgifter behövs:
 
 ```bash
-omniroute contexts export --out contexts.json     # standard: stdout
-omniroute contexts import contexts.json            # skriv över; använd --merge för att behålla befintliga
-omniroute contexts migrate --yes                  # flytta äldre token i klartext till nyckelringen
+omniroute contexts export --out contexts.json     # redacted; default destination: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
 
-På headless-system utan en användbar nyckelring i operativsystemet faller CLI-verktyget tillbaka på
-`config.json` med läget `0600` och visar en engångsvarning. Behandla exporter från
-den reservlösningen (och alla äldre konfigurationer före migrering) som hemligt material.
+`--include-secrets` löser nyckelringsreferenser före export och misslyckas om någon refererad autentiseringsuppgift inte kan läsas. `--no-secrets` har alltid företräde. Exportfiler skrivs atomärt med läge `0600`. Behandla en explicit hemlighetsbärande export som hemligt material. På huvudlösa system utan en användbar OS-nyckelring, faller CLI tillbaka till `config.json` med läge `0600` och skriver ut en engångsvarning; en standardexport förblir redigerad i detta läge.
 
 ---
 

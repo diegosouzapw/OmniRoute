@@ -1,0 +1,1 @@
+- **fix(sse):** the rotation wave no longer replays a proxy that already returned 429 within the same request ([#14588](https://github.com/diegosouzapw/OmniRoute/pull/14588)) — thanks @maxmad64bis

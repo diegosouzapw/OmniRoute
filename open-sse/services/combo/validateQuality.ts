@@ -295,7 +295,8 @@ export async function validateResponseQuality(
   response: Response,
   isStreaming: boolean,
   log: { warn?: (...args: unknown[]) => void },
-  responseValidation?: ResponseValidationConfig | null
+  responseValidation?: ResponseValidationConfig | null,
+  signal?: AbortSignal | null
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
   // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
   // detect the empty-content-block pattern (content_filter stop_reason with
@@ -323,6 +324,13 @@ export async function validateResponseQuality(
     // Raw Uint8Array chunks accumulated so far — used to replay the prefix
     // in the returned clonedResponse.
     const bufferedChunks: Uint8Array[] = [];
+    // #11804 / #7849: a combo peek that never sees a content verdict used to
+    // retain every chunk until the upstream closed. A long stream then grew
+    // the V8 heap without bound. Stop retaining once this many bytes are held
+    // and forward the rest. Empty-lifecycle failover still runs for streams
+    // that end under the cap.
+    const PEEK_BYTE_CAP = 1_048_576;
+    let bufferedBytes = 0;
     // Decoded text accumulated across chunks for incremental SSE parsing.
     // Only the tail of the most-recently-processed line window remains here
     // between iterations (incomplete lines are deferred to the next chunk).
@@ -497,10 +505,33 @@ export async function validateResponseQuality(
       });
     }
 
+    // Client-abort awareness for the peek: a read() on a stalled upstream (long
+    // prefill) otherwise stays pending until the first byte, long after the
+    // client is gone.
+    let onAbort: (() => void) | null = null;
+    const abortedPromise = signal
+      ? new Promise<"aborted">((resolve) => {
+          onAbort = () => resolve("aborted");
+          if (signal.aborted) onAbort();
+          else signal.addEventListener("abort", onAbort, { once: true });
+        })
+      : null;
+    const readOrAbort = async () => {
+      if (!abortedPromise) return reader.read();
+      const r = await Promise.race([reader.read(), abortedPromise]);
+      return r === "aborted" ? null : r;
+    };
+
     // Main bounded-peek loop.
     try {
       while (true) {
-        const { done, value } = await reader.read();
+        const next = await readOrAbort();
+        if (next === null) {
+          // Same as the error path: never await cancel() on a tee branch.
+          reader.cancel(signal?.reason).catch(() => {});
+          return { valid: true };
+        }
+        const { done, value } = next;
 
         if (done) {
           // Stream finished — flush the TextDecoder and parse any remaining text.
@@ -598,6 +629,7 @@ export async function validateResponseQuality(
 
         // Accumulate raw bytes for potential replay.
         bufferedChunks.push(value);
+        bufferedBytes += value.byteLength;
 
         // Decode incrementally (stream:true keeps multi-byte char state).
         decodedSoFar += decoder.decode(value, { stream: true });
@@ -623,6 +655,15 @@ export async function validateResponseQuality(
           const clonedResponse = buildReplayResponse(reader);
           return { valid: true, clonedResponse };
         }
+
+        if (bufferedBytes >= PEEK_BYTE_CAP) {
+          log.warn?.(
+            "COMBO",
+            `Streaming peek reached ${PEEK_BYTE_CAP} bytes before a content verdict — forwarding the rest without further buffering`
+          );
+          const clonedResponse = buildReplayResponse(reader);
+          return { valid: true, clonedResponse };
+        }
       }
     } catch (streamErr) {
       // If reading the stream fails due to a locked stream or pipe error,
@@ -642,6 +683,8 @@ export async function validateResponseQuality(
       }
       // Other read errors — pass through (stream readiness timeout will catch truly broken streams)
       return { valid: true };
+    } finally {
+      if (signal && onAbort) signal.removeEventListener("abort", onAbort);
     }
   }
 

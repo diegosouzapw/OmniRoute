@@ -352,65 +352,56 @@ opencode -m omniroute/glm/glm-5.2 "..."          # i-export muna ang OMNIROUTE_A
 
 ## Pamamahala ng mga context (paglipat sa pagitan ng mga server)
 
-Ang **context** ay isang naka-save na server (baseUrl + credential + scope). Gumagawa ang `omniroute connect`
-ng isa at ginagawa itong aktibo; mula noon, dito nakatuon ang bawat command. Pamahalaan at
-lumipat sa pagitan ng mga ito gamit ang `omniroute contexts`:
+Ang isang **context** ay isang naka-save na server (baseUrl + credential + scope). Ang `omniroute connect` ay lumilikha ng isa at ginagawa itong aktibo; mula noon, bawat command ay dito nakatutok. Pamahalaan at lumipat sa pagitan ng mga ito gamit ang `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # lahat ng context; minamarkahan ng ● ang aktibo
+omniroute contexts list            # lahat ng context; ang aktibo ay minarkahan ng ●
 omniroute contexts current         # ang aktibong server, status ng auth, scope
 ```
 
 ```text
-  | Pangalan | Base URL                  | Auth  | Scope | Paglalarawan
-● | vps      | http://100.67.86.91:20128 | token | admin | Malayuang OmniRoute (…)
-  | default  | http://localhost:20128    | ✗     |       |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote na OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Lumipat ng mga server** — sinusunod ng bawat susunod na command ang aktibong context:
+**Lumipat ng mga server** — bawat susunod na command ay susunod sa aktibong context:
 
 ```bash
-omniroute contexts use vps         # → lahat ng command ay ipinapadala na ngayon sa malayuang VPS
+omniroute contexts use vps         # → lahat ng command ay tatama na ngayon sa remote na VPS
 omniroute tokens list              #   (tumatakbo laban sa VPS)
 
-omniroute contexts use default     # → bumalik sa localhost
+omniroute contexts use default     # → pabalik sa localhost
 omniroute tokens list              #   (tumatakbo laban sa lokal na server)
 ```
 
-**Manu-manong magdagdag ng context** (sa halip na `connect`), siyasatin, o palitan ang pangalan:
+**Magdagdag ng context nang manu-mano** (sa halip na `connect`), suriin, o palitan ang pangalan:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "staging na makina"
-omniroute contexts show staging    # kumpletong detalye para sa isang context
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # buong detalye para sa isang context
 omniroute contexts rename staging stg
 ```
 
-**Mag-alis ng context** — hihingi ng kumpirmasyon; ipasa ang `--yes` upang laktawan ito
-(kinakailangan para sa mga script / non-interactive shell, na kung hindi ay ligtas na tatanggi):
+**Mag-alis ng context** — humihingi ng kumpirmasyon; ipasa ang `--yes` upang laktawan ito (kinakailangan para sa mga script / non-interactive shell, na kung hindi ay ligtas na tatanggi):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> Hindi maaaring alisin ang `default` (localhost). Kapag inalis ang aktibong context, babalik
-> ito sa `default`. Tip: ang pag-aalis ng context ay nagtatanggal lamang ng **lokal** na naka-save na credential —
-> i-revoke ang token sa server gamit ang `omniroute tokens revoke <id>` upang talagang
-> alisin ang access.
+> Hindi maaaring alisin ang `default` (localhost). Ang pag-alis ng aktibong context ay babalik sa `default`. Tip: ang pag-alis ng context ay nagtatanggal lamang ng **lokal** na naka-save na credential — bawiin ang token sa server gamit ang `omniroute tokens revoke <id>` upang tuluyang patayin ang access.
 
-**I-export / i-import** ang mga context (hal. upang ilipat ang mga ito sa pagitan ng mga makina). Ang mga bagong context ay
-nagpapanatili lamang ng keychain reference; hindi kinokopya ang mga credential sa export kapag available
-ang keychain ng OS:
+**I-export / i-import ang mga context** (hal. upang ilipat ang mga ito sa pagitan ng mga makina). Ang mga export ay hindi kasama ang mga credential bilang default, kabilang ang mga credential na naka-imbak ng file fallback. Gamitin ang `--include-secrets` nang tahasan kapag kailangan ang isang portable na backup na may dalang credential:
 
 ```bash
-omniroute contexts export --out contexts.json     # default: stdout
-omniroute contexts import contexts.json            # i-overwrite; --merge upang panatilihin ang mga kasalukuyan
-omniroute contexts migrate --yes                  # ilipat ang mga legacy plaintext token sa keychain
+omniroute contexts export --out contexts.json     # binawasan; default na destinasyon: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # i-overwrite; --merge upang panatilihin ang kasalukuyan
+omniroute contexts migrate --yes                  # ilipat ang mga lumang plaintext token sa keychain
 ```
 
-Sa mga headless system na walang magagamit na keychain ng OS, babalik ang CLI sa
-`config.json` na may mode na `0600` at magpi-print ng isang beses na babala. Ituring ang mga export mula
-sa fallback na iyon (at anumang legacy config bago ang migration) bilang lihim na materyal.
+Ang `--include-secrets` ay nagre-resolve ng mga reference ng keychain bago i-export at mabibigo kung hindi mabasa ang anumang reference na credential. Ang `--no-secrets` ay laging mas nangingibabaw. Ang mga export file ay isinusulat nang atomically na may mode na `0600`. Ituring ang isang tahasang export na may dalang sikreto bilang sikretong materyal. Sa mga headless system na walang magagamit na OS keychain, ang CLI ay babalik sa `config.json` na may mode na `0600` at magpi-print ng isang beses na babala; ang isang default na export ay mananatiling binawasan sa mode na ito.
 
 ---
 

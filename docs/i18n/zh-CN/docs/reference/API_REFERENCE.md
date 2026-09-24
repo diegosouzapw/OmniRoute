@@ -403,40 +403,40 @@ GET /api/v1/provider-plugin-manifest
 
 ## 兼容性端点
 
-| 方法 | 路径                                      | 格式                             |
-| ---- | ----------------------------------------- | -------------------------------- |
-| POST | `/v1/chat/completions`                    | OpenAI                           |
-| POST | `/v1/messages`                            | Anthropic                        |
-| POST | `/v1/responses`                           | OpenAI Responses                 |
-| POST | `/v1/embeddings`                          | OpenAI                           |
-| POST | `/v1/images/generations`                  | OpenAI Images                    |
-| POST | `/v1/images/edits`                        | OpenAI Images（编辑/局部重绘）   |
-| POST | `/v1/videos/generations`                  | OpenAI 风格的视频生成            |
-| POST | `/v1/music/generations`                   | OpenAI 风格的音乐生成            |
-| POST | `/v1/audio/transcriptions`                | OpenAI Audio（STT）              |
-| POST | `/v1/audio/speech`                        | OpenAI TTS（返回音频正文）       |
-| POST | `/v1/rerank`                              | Cohere/Voyage 风格的重排序       |
-| POST | `/v1/classify`                            | Jina 分类（`api.jina.ai`）       |
-| POST | `/v1/segment`                             | Jina 分段器（`segment.jina.ai`） |
-| POST | `/v1/moderations`                         | OpenAI 内容审核                  |
-| GET  | `/v1/models`                              | OpenAI                           |
-| POST | `/v1/messages/count_tokens`               | Anthropic                        |
-| GET  | `/v1beta/models`                          | Gemini                           |
-| POST | `/v1beta/models/{...path}`                | Gemini generateContent           |
-| POST | `/v1/api/chat`                            | Ollama                           |
-| GET  | `/api/v1/vscode/{token}/`                 | OpenAI 目录别名                  |
-| GET  | `/api/v1/vscode/{token}/models`           | OpenAI 模型别名                  |
-| POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI 令牌化别名                |
-| POST | `/api/v1/vscode/{token}/responses`        | OpenAI Responses 令牌化别名      |
-| POST | `/api/v1/vscode/{token}/api/chat`         | Ollama 令牌化别名                |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama 标签令牌化别名            |
+| 方法 | 路径                                      | 格式                            |
+| ---- | ----------------------------------------- | ------------------------------- |
+| POST | `/v1/chat/completions`                    | OpenAI                          |
+| POST | `/v1/messages`                            | Anthropic                       |
+| POST | `/v1/responses`                           | OpenAI 响应                     |
+| POST | `/v1/embeddings`                          | OpenAI                          |
+| POST | `/v1/images/generations`                  | OpenAI 图像                     |
+| POST | `/v1/images/edits`                        | OpenAI 图像 (编辑/修复)         |
+| POST | `/v1/videos/generations`                  | OpenAI 风格的视频生成           |
+| POST | `/v1/music/generations`                   | OpenAI 风格的音乐生成           |
+| POST | `/v1/audio/transcriptions`                | OpenAI 音频 (语音转文本)        |
+| POST | `/v1/audio/speech`                        | OpenAI TTS (返回音频主体)       |
+| POST | `/v1/rerank`                              | Cohere/Voyage 风格的重排序      |
+| POST | `/v1/classify`                            | Jina 分类 (`api.jina.ai`)       |
+| POST | `/v1/segment`                             | Jina 分段器 (`segment.jina.ai`) |
+| POST | `/v1/moderations`                         | OpenAI 内容审核                 |
+| GET  | `/v1/models`                              | OpenAI                          |
+| POST | `/v1/messages/count_tokens`               | Anthropic                       |
+| GET  | `/v1beta/models`                          | Gemini                          |
+| POST | `/v1beta/models/{...path}`                | Gemini generateContent          |
+| POST | `/v1/api/chat`                            | Ollama                          |
+| GET  | `/api/v1/vscode/{token}/`                 | OpenAI 目录别名                 |
+| GET  | `/api/v1/vscode/{token}/models`           | OpenAI 模型别名                 |
+| POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI 令牌化别名               |
+| POST | `/api/v1/vscode/{token}/responses`        | OpenAI 响应令牌化别名           |
+| POST | `/api/v1/vscode/{token}/api/chat`         | Ollama 令牌化别名               |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama 标签令牌化别名           |
 
-所有 POST 路由都遵循相同的形式：`Bearer your-api-key` + 经 Zod 验证的 JSON 正文（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema` 等，参见 `src/shared/validation/schemas.ts`）。如果模式验证失败，则返回 4xx。
+所有 POST 路由都遵循相同的格式：`Bearer your-api-key` + 经过 Zod 验证的 JSON 主体（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema` 等，详见 `src/shared/validation/schemas.ts`）。如果模式验证失败，将返回 4xx 错误。
 
-对于无法附加 `Authorization: Bearer ...` 的客户端，OmniRoute 还支持通过 URL 传递 API 密钥，可使用查询字符串兼容形式（`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`），或使用下文所述的专用 `/api/v1/vscode/{token}/...` 端点。
+对于无法附加 `Authorization: Bearer ...` 的客户端，OmniRoute 也支持通过查询字符串兼容性（`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`）或通过下方文档中列出的专用 `/api/v1/vscode/{token}/...` 端点在 URL 中接受 API 密钥。
 
 ```bash
-# 重排序（云注册表提供者，或指定为 "<prefix>/<model>" 的 OpenAI 兼容提供者节点）
+# 重排序（云注册表提供者，或 OpenAI 兼容的提供者节点，格式为 "<prefix>/<model>"）
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina 分类（Foundation API 凭据）
@@ -445,44 +445,28 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # Jina 分段器
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina 搜索（s.jina.ai；提供者别名：jina-search、jina-ai、jina）
+# Jina 搜索 (s.jina.ai; 提供者别名: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # 内容审核
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — 返回 audio/mpeg（或所请求格式）的正文
+# TTS — 返回 audio/mpeg (或请求的格式) 主体
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# 图像编辑（multipart）
+# 图像编辑 (多部分)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# 视频/音乐生成（带提供者前缀的模型 ID）
+# 视频/音乐生成 (带提供者前缀的模型 ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **重排序提供者节点：**`POST /v1/rerank` 还会将请求路由到以 `<node-prefix>/<model>` 寻址的 OpenAI 兼容提供者节点
-> （oMLX、vLLM、Infinity、网关后的 TEI 等）。环回
-> 节点（`localhost`、`127.0.0.1`、`172.16.0.0/12`）始终可用。位于任何其他
-> 主机上的节点（无论是局域网设备还是 Tailscale 对等节点）仅在运维人员启用
-> `RERANK_REMOTE_PROVIDER_NODES` 功能标志，**并且**节点的基础 URL 通过提供者
-> 出站 URL 策略（`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`）时才可用；
-> 云元数据主机永远不会成为路由目标。内存引擎的重排序步骤通过
-> 环回地址调用此路由，因此同一规则也适用于内存设置中的 `rerankProviderModel`。
+> **重排序提供者节点：** `POST /v1/rerank` 也路由到 OpenAI 兼容的提供者节点 (oMLX, vLLM, Infinity, TEI 在网关后, …)，地址格式为 `<node-prefix>/<model>`。回环节点 (`localhost`, `127.0.0.1`, `172.16.0.0/12`) 始终符合条件。任何其他主机上的节点（局域网设备或 Tailscale 对等节点）仅在操作员启用 `RERANK_REMOTE_PROVIDER_NODES` 功能标志**并且**节点的基 URL 通过提供者出站 URL 策略 (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) 时才符合条件；云元数据主机永远不会被路由。内存引擎的重排序步骤通过回环调用此路由，因此相同的规则也适用于内存设置中的 `rerankProviderModel`。
 >
-> **本地服务器形式：**节点首先通过 `<base>/v1/rerank` 调用；如果返回 404，则通过 `<base>/rerank`
-> 调用（Infinity、TEI）。上游正文会同时携带 Cohere/OpenAI 拼写形式（`documents`、
-> `return_documents`）和 TEI 拼写形式（`texts`、`return_text`），并且上游响应会被
-> 规范化为 Cohere 信封格式：TEI 的裸 `[{index, score, text}]`、精简网关返回的
-> `{results: [{index, score}]}`，以及 Voyage 风格的 `{data: [...]}`，最终都会以
-> `{results: [{index, relevance_score, document?}]}` 的形式返回给客户端，按分数排序，并限制为 `top_n` 条。
+> **本地服务器形态：** 节点在 `<base>/v1/rerank` 被调用，如果返回 404，则在 `<base>/rerank` 被调用 (Infinity, TEI)。上游请求主体同时包含 Cohere/OpenAI 的拼写 (`documents`, `return_documents`) 和 TEI 的拼写 (`texts`, `return_text`)，并且上游响应被规范化为 Cohere 格式：TEI 的裸 `[{index, score, text}]`、来自轻量级网关的 `{results: [{index, score}]}` 以及 Voyage 风格的 `{data: [...]}` 都会以 `{results: [{index, relevance_score, document?}]}` 的形式返回给客户端，并按分数排序，上限为 `top_n`。
 
-> **提供者节点发现：**OpenAI 兼容提供者节点上的模型会以节点前缀显示在 `GET /v1/models`
-> 中。未携带端点元数据的条目（常见于本地 `/v1/models` 列表）
-> 会继承节点的 `apiType`，因此 `embeddings` 节点的模型为 `type: "embedding"`，
-> `rerank` 节点的模型为 `type: "rerank"`，而不是默认归类为聊天模型；对于同步或手动添加的条目，
-> 显式设置的 `supportedEndpoints` 仍然具有更高优先级。
+> **提供者节点发现：** OpenAI 兼容提供者节点上的模型会出现在 `GET /v1/models` 中，位于节点前缀下。不带端点元数据（本地 `/v1/models` 列表的典型情况）的行会继承节点的 `apiType`，因此 `embeddings` 节点的模型类型为 `type: "embedding"`，`rerank` 节点的模型类型为 `type: "rerank"`，而不是默认为聊天类型；同步或手动添加的行上的显式 `supportedEndpoints` 仍然具有优先权。
 
 ### 专用提供者路由
 
@@ -492,7 +476,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-如果缺少提供者前缀，系统会自动添加。模型不匹配时返回 `400`。
+如果缺少提供者前缀，则会自动添加。模型不匹配会返回 `400`。
 
 ---
 
@@ -1123,7 +1107,7 @@ Content-Type: application/json
 }
 ```
 
-> **Schema 说明** (`setBudgetSchema`): `apiKeyId` 是必需的；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少有一个必须大于零。可选字段：`warningThreshold` (0–1)、`resetInterval` (`daily` | `weekly` | `monthly`)、`resetTime` (`HH:MM`)。旧版 `{keyId, limit, period}` 格式将返回 `400 Bad Request`。
+> **Schema 说明** (`setBudgetSchema`): `apiKeyId` 是必填项；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少一个必须大于零。可选字段：`warningThreshold` (0–1)，`resetInterval` (`daily` | `weekly` | `monthly`)，`resetTime` (`HH:MM`)。旧版 `{keyId, limit, period}` 格式将返回 `400 Bad Request`。
 
 ## Token 限制
 

@@ -13,12 +13,54 @@
 import { COOLDOWN_MS } from "../config/errorConfig.ts";
 import { stripIpv6Brackets } from "./proxyFamily.ts";
 
-export const REFUSAL_POLICIES = {
+const DEFAULT_QUOTA_429_BASE_MS = COOLDOWN_MS.rateLimit;
+const DEFAULT_QUOTA_429_MAX_MS = 3_600_000;
+const MIN_QUOTA_429_MS = 1_000;
+const MAX_QUOTA_429_MS = 3_600_000;
+
+// Number() idiom (cf. readTimeoutMs): accepts hex/exponents/whitespace, then floored and bounded.
+function readBoundedMs(name: string, def: number, min: number, max: number): number {
+  const raw = process.env[name];
+  if (raw == null || raw.trim() === "") return def;
+  const parsed = Math.floor(Number(raw));
+  if (!Number.isFinite(parsed) || parsed < min || parsed > max) {
+    console.warn(`[ProxyRefusalMemory] Invalid ${name}="${raw}". Using default ${def}ms.`);
+    return def;
+  }
+  return parsed;
+}
+
+type RefusalPolicy = { baseMs: number; maxMs: number };
+
+const quota429BaseMs = readBoundedMs(
+  "PROXY_QUOTA_429_BASE_MS",
+  DEFAULT_QUOTA_429_BASE_MS,
+  MIN_QUOTA_429_MS,
+  MAX_QUOTA_429_MS
+);
+let quota429MaxMs = readBoundedMs(
+  "PROXY_QUOTA_429_MAX_MS",
+  DEFAULT_QUOTA_429_MAX_MS,
+  MIN_QUOTA_429_MS,
+  MAX_QUOTA_429_MS
+);
+// When max < base the curve would start at max, so fall back to the default cap instead.
+if (quota429MaxMs < quota429BaseMs) {
+  console.warn(
+    `[ProxyRefusalMemory] Invalid PROXY_QUOTA_429_MAX_MS="${process.env.PROXY_QUOTA_429_MAX_MS}": below PROXY_QUOTA_429_BASE_MS. Using default ${DEFAULT_QUOTA_429_MAX_MS}ms.`
+  );
+  quota429MaxMs = DEFAULT_QUOTA_429_MAX_MS;
+}
+
+export const REFUSAL_POLICIES: {
+  proxy_unreachable: { baseMs: 60_000; maxMs: 600_000 };
+  ip_quota_429: RefusalPolicy;
+} = {
   /** The TCP probe could not open a connection to the proxy. */
   proxy_unreachable: { baseMs: 60_000, maxMs: 600_000 },
   /** The provider refused through this proxy; the member is set aside for a cooldown. */
-  ip_quota_429: { baseMs: COOLDOWN_MS.rateLimit, maxMs: 3_600_000 },
-} as const;
+  ip_quota_429: { baseMs: quota429BaseMs, maxMs: quota429MaxMs },
+};
 
 export type ProxyRefusalKind = keyof typeof REFUSAL_POLICIES;
 
