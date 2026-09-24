@@ -44,6 +44,17 @@ endpoint with environment variables (it has no `--base-url` flag):
 
 > Env vars are read **once at startup** — restart Claude Code after changing them.
 
+For a credential that rotates instead of a fixed string, set `apiKeyHelper` in
+`~/.claude/settings.json` to a command that prints the current credential to
+stdout. Claude Code caches its output for five minutes by default
+(`CLAUDE_CODE_API_KEY_HELPER_TTL_MS` overrides that) and sends the value in both
+`Authorization: Bearer` and `x-api-key`. The script must print the credential
+and nothing else — a banner alongside it fails the helper on v2.1.227+.
+
+This is how Entra ID SSO works: `scripts/cli/omniroute-sso.mjs token` prints a
+short-lived Entra access token that OmniRoute verifies instead of an API key.
+See [`docs/security/ENTRA_SSO.md`](../security/ENTRA_SSO.md).
+
 `omniroute launch` sets all of these for you: it resolves the base URL + token
 from the active context (so `omniroute connect <vps>` then `omniroute launch`
 just works), health-checks the server, and execs `claude`.

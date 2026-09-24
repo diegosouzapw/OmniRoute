@@ -124,6 +124,12 @@ const SECURITY_IMPACTING_KEYS = [
   "oidcEnabled",
   "oidcDisablePasswordLogin",
   "oidcClientSecret",
+  "entraSsoEnabled",
+  "entraTenantId",
+  "entraApiAudience",
+  "entraGroupMappings",
+  "entraDefaultKeyGroupId",
+  "entraGraphClientSecret",
 ] as const;
 
 /**
@@ -337,6 +343,49 @@ export async function PATCH(request: Request) {
               code: "OIDC_ALLOWED_SUBJECTS_REQUIRED",
               message:
                 "oidcAllowedSubjects must contain at least one subject or email when oidcEnabled is true",
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Refuse an Entra config that cannot authenticate anyone: without tenant +
+    // audience no token verifies, and with neither a group mapping nor a
+    // default key group every user resolves to no group and gets a 403. Both
+    // present as "SSO is broken" rather than "SSO is misconfigured".
+    if (body.entraSsoEnabled === true) {
+      const current = await getSettings();
+      const pick = <T>(key: string): T => (key in body ? body[key] : current[key]) as T;
+
+      const tenantId = String(pick<string>("entraTenantId") ?? "").trim();
+      const audience = String(pick<string>("entraApiAudience") ?? "").trim();
+      if (!tenantId || !audience) {
+        emitSettingsFailureAudit(request, actor, "ENTRA_SSO_INCOMPLETE", attemptedKeys);
+        return NextResponse.json(
+          {
+            error: {
+              code: "ENTRA_SSO_INCOMPLETE",
+              message:
+                "entraTenantId and entraApiAudience are required when entraSsoEnabled is true",
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      const mappings = pick<unknown[]>("entraGroupMappings");
+      const defaultKeyGroupId = String(pick<string>("entraDefaultKeyGroupId") ?? "").trim();
+      const hasMapping = Array.isArray(mappings) && mappings.length > 0;
+      if (!hasMapping && !defaultKeyGroupId) {
+        emitSettingsFailureAudit(request, actor, "ENTRA_SSO_NO_GROUP_POLICY", attemptedKeys);
+        return NextResponse.json(
+          {
+            error: {
+              code: "ENTRA_SSO_NO_GROUP_POLICY",
+              message:
+                "Configure at least one entraGroupMappings entry or an entraDefaultKeyGroupId " +
+                "when entraSsoEnabled is true, otherwise every SSO user is denied",
             },
           },
           { status: 400 }

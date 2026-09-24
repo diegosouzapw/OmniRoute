@@ -23,6 +23,8 @@ import {
 } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
+import { getSsoShadowSecret } from "@/lib/db/ssoIdentities";
+import { AUTHZ_HEADER_AUTH_ID, AUTHZ_HEADER_AUTH_KIND } from "@/server/authz/headers";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 import {
   resolveCanonicalEndpointPath,
@@ -756,15 +758,43 @@ function extractUngatedClientApiKey(request: Request): string | null {
   return null;
 }
 
+/**
+ * Resolve an SSO-authenticated request onto its shadow API key, using the
+ * subject the auth layer already verified and stamped. The stamps are
+ * trustworthy because the pipeline strips any client-supplied copy before
+ * classification (src/server/authz/pipeline.ts).
+ *
+ * MUST be consulted before extractApiKey()/extractUngatedClientApiKey(): Claude
+ * Code sends an apiKeyHelper credential in BOTH `Authorization: Bearer` and
+ * `x-api-key`, so both extractors would return the raw Entra JWT, which hashes
+ * to no key and silently drops the user's entire policy — the same
+ * auth-vs-policy divergence as GHSA-2phc-xp22-9f56 above.
+ */
+function resolveSsoApiKeySecret(request: Request): string | null {
+  const kind = request.headers.get(AUTHZ_HEADER_AUTH_KIND);
+  if (kind !== "sso_user") return null;
+
+  const oid = request.headers.get(AUTHZ_HEADER_AUTH_ID);
+  if (!oid || !oid.trim()) return null;
+
+  try {
+    return getSsoShadowSecret(oid.trim());
+  } catch (error) {
+    log.error("API_POLICY", "Failed to resolve SSO shadow key", { error });
+    return null;
+  }
+}
+
 export async function enforceApiKeyPolicy(
   request: Request,
   modelStr: string | null
 ): Promise<ApiKeyPolicyResult> {
-  // A real bearer key wins; then a bare x-api-key/x-goog-api-key that auth
-  // accepted but extractApiKey() gates out; otherwise an authenticated dashboard
-  // playground may test a specific key's policy by id (resolved server-side,
-  // secret never sent).
+  // SSO first (its bearer is a JWT, not a key); then a real bearer key; then a
+  // bare x-api-key/x-goog-api-key that auth accepted but extractApiKey() gates
+  // out; otherwise an authenticated dashboard playground may test a specific
+  // key's policy by id (resolved server-side, secret never sent).
   const apiKey =
+    resolveSsoApiKeySecret(request) ||
     extractApiKey(request) ||
     extractUngatedClientApiKey(request) ||
     (await resolvePlaygroundTestKey(request));

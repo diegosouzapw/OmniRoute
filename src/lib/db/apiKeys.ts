@@ -489,6 +489,20 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
   };
 }
 
+/**
+ * Blank the secret of an SSO-provisioned shadow key before it leaves the DB
+ * layer. Its holder authenticates with an Entra token; the row's `key` is an
+ * internal implementation detail. Surfacing it would mint a permanent static
+ * credential that bypasses SSO — usable after the user is offboarded in Entra,
+ * and invisible to the group policy that is supposed to govern them.
+ */
+function redactSsoSecret(view: ApiKeyView): ApiKeyView {
+  if ((view as JsonRecord).source === "sso") {
+    (view as JsonRecord).key = "";
+  }
+  return view;
+}
+
 export async function getApiKeys(limit?: number, offset?: number) {
   const db = getDbInstance() as ApiKeysDbLike;
   let rows: ApiKeyRow[];
@@ -534,7 +548,7 @@ export async function getApiKeys(limit?: number, offset?: number) {
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
-    return camelRow;
+    return redactSsoSecret(camelRow);
   });
 }
 
@@ -673,7 +687,7 @@ export async function getApiKeyById(id: string) {
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
-  return camelRow;
+  return redactSsoSecret(camelRow);
 }
 
 async function hashKey(key: string): Promise<string> {

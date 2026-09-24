@@ -40,6 +40,13 @@ const PUBLIC_API_ROUTES_EXACT = new Set([
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/status",
+  // Entra SSO discovery for CLI sign-in helpers: tenant id, public client id
+  // and API audience. All three are already public (they appear in the
+  // authorization URL the user's browser visits); the Graph client secret is
+  // never included. Must be reachable before the caller has any credential —
+  // it is what tells them how to obtain one.
+  // EXACT, not a prefix: nothing else under /api/auth/sso/ is public.
+  "/api/auth/sso/config",
   "/api/init",
   "/api/sync/bundle",
   // Remote-mode bootstrap: exchange the management password for a scoped CLI

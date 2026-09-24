@@ -23,6 +23,17 @@ import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import { type JsonRecord, toRecord } from "./settings/shared";
 import { resolveNoAuthSharedProviderProxy } from "./settings/noAuthProxyFallback";
 
+/**
+ * Settings values stored encrypted at rest (AES-256-GCM via ./encryption).
+ * Read and write must stay in sync — a key that is encrypted on write but not
+ * decrypted on read hands ciphertext to the consumer, which fails as a silent
+ * auth error rather than a visible one. Both paths derive from this set.
+ */
+const ENCRYPTED_SETTING_KEYS: ReadonlySet<string> = new Set([
+  "oidcClientSecret",
+  "entraGraphClientSecret",
+]);
+
 type ProxyValue = JsonRecord | string | null;
 type ProxyResolutionResult = {
   proxy: ProxyValue;
@@ -182,6 +193,17 @@ export async function getSettings() {
     oidcScopes: ["openid", "profile", "email"],
     oidcRedirectPath: "/api/auth/oidc/callback",
     oidcAllowedSubjects: [], // optional sub or email whitelist
+    // Entra ID SSO for /v1/* (see docs/security/ENTRA_SSO.md). Off by default:
+    // enabling it only ADDS a way to authenticate — static API keys keep working.
+    entraSsoEnabled: false,
+    entraAuthorityHost: "",
+    entraTenantId: "",
+    entraClientId: "",
+    entraApiAudience: "",
+    entraGroupMappings: [],
+    entraDefaultKeyGroupId: null, // null = users matching no mapping are denied
+    entraGraphFallbackEnabled: false,
+    entraGraphClientSecret: "",
     mcpEnabled: false,
     a2aEnabled: false,
     hiddenSidebarItems: [],
@@ -292,8 +314,10 @@ export async function getSettings() {
     }
   }
 
-  if (typeof settings.oidcClientSecret === "string") {
-    settings.oidcClientSecret = decrypt(settings.oidcClientSecret) ?? "";
+  for (const encryptedKey of ENCRYPTED_SETTING_KEYS) {
+    if (typeof settings[encryptedKey] === "string") {
+      settings[encryptedKey] = decrypt(settings[encryptedKey] as string) ?? "";
+    }
   }
   applySessionAffinityLegacyFallback(settings);
 
@@ -338,7 +362,7 @@ export async function updateSettings(
       throw new SettingsRevisionConflictError(currentRevision);
     }
     for (const [key, value] of Object.entries(updates)) {
-      const toStore = key === "oidcClientSecret" ? encrypt(value as string) : value;
+      const toStore = ENCRYPTED_SETTING_KEYS.has(key) ? encrypt(value as string) : value;
       insert.run(key, JSON.stringify(toStore));
     }
     insert.run(SETTINGS_REVISION_KEY, JSON.stringify(currentRevision + 1));
