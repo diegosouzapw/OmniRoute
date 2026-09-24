@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "غیرفعال‌سازی چسبندگی نشست",
     "sessionStickinessEnabled": "چسبندگی روشن",
     "sessionStickinessDisabled": "چسبندگی خاموش",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "پیش‌تنظیم Kimi Coding",
     "kimiPresetDescription": "مدل Kimi K3 به عنوان مدل اصلی (Moonshot API)، با انتقال خودکار به اتصالات Kimi Code شما (kimi-coding، kimi-web) در صورت پیکربندی.",
     "kimiPresetCta": "افزودن پیش‌تنظیم",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "این ارائه‌دهندگان/مدل‌های متصل فعلی که با این قالب مطابقت دارند را در یک ترکیب قابل ویرایش ذخیره می‌کند.",
     "duplicateAutoComboFailedPrefix": "تکرار ترکیب خودکار ناموفق بود:",
     "duplicateAutoComboUnknownError": "خطای ناشناخته",
-    "duplicateAutoComboTitle": "ایجاد یک ترکیب ثابت از {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "ایجاد یک ترکیب ثابت از {name}"
   },
   "costs": {
     "title": "هزینهها",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "افزودن",
     "poolAddFailed": "افزودن پروکسی به استخر ناموفق بود",
     "poolSelectProxy": "انتخاب یک پروکسی…",
-    "poolSaveFailed": "ذخیره تخصیص استخر ناموفق بود"
+    "poolSaveFailed": "ذخیره تخصیص استخر ناموفق بود",
+    "poolPreferenceOrder": "ترتیب ترجیح",
+    "poolSetAsideReason": "کنار گذاشته شده: {kind}",
+    "poolSetAsideUntil": "بازگشت به چرخه {endsAt}",
+    "poolSetAsideRepeat": "کنار گذاشته شده {count, plural, one {# بار} other {# بار}}",
+    "poolUnknownAddress": "نشانی ناشناس",
+    "poolSinceRestart": "از آخرین راه‌اندازی مجدد",
+    "poolSignalSetAside": "کنار گذاشتن",
+    "poolSignalPosition": "ترتیب موقعیت",
+    "poolHealthRankingOff": "رتبه‌بندی سلامت خاموش"
   },
   "playground": {
     "title": "محیط آزمایش مدل",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "ایجاد توکن دال ناموفق بود",
     "providerProxy": "پراکسی",
     "providerProxyConfigureHint": "تنظیم پروکسی",
-    "providerProxyTitleConfigured": "پروکسی پیکربندی شده: {host}"
+    "providerProxyTitleConfigured": "پروکسی پیکربندی شده: {host}",
+    "proxySetAside": "پروکسی کنار گذاشته شد"
   },
   "gamification": {
     "leaderboardScopes": {

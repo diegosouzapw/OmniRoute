@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "I-disable ang session stickiness",
     "sessionStickinessEnabled": "Naka-on ang stickiness",
     "sessionStickinessDisabled": "Naka-off ang stickiness",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preset ng Kimi Coding",
     "kimiPresetDescription": "Kimi K3 bilang pangunahing modelo (Moonshot API), na may awtomatikong fallback sa iyong mga koneksyon sa Kimi Code (kimi-coding, kimi-web) kapag naka-configure.",
     "kimiPresetCta": "Magdagdag ng preset",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Ito ay kukuha ng snapshot ng kasalukuyang nakakonektang mga provider/model na tugma sa template na ito sa isang editable na combo.",
     "duplicateAutoComboFailedPrefix": "Nabigo ang pag-duplicate ng auto-combo:",
     "duplicateAutoComboUnknownError": "Hindi alam na error",
-    "duplicateAutoComboTitle": "Gumawa ng static combo mula sa {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Gumawa ng static combo mula sa {name}"
   },
   "costs": {
     "title": "Mga gastos",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Idagdag",
     "poolAddFailed": "Hindi naidagdag ang proxy sa pool",
     "poolSelectProxy": "Pumili ng proxy…",
-    "poolSaveFailed": "Hindi na-save ang pool assignment"
+    "poolSaveFailed": "Hindi na-save ang pool assignment",
+    "poolPreferenceOrder": "Ayos ng kagustuhan",
+    "poolSetAsideReason": "Isinantabi: {kind}",
+    "poolSetAsideUntil": "Balik sa pag-ikot {endsAt}",
+    "poolSetAsideRepeat": "Isinantabi {count, plural, one {# beses} other {# beses}}",
+    "poolUnknownAddress": "Hindi kilalang address",
+    "poolSinceRestart": "Mula noong huling restart",
+    "poolSignalSetAside": "Isantabi",
+    "poolSignalPosition": "Ayos ng posisyon",
+    "poolHealthRankingOff": "Naka-off ang ranggo ng kalusugan"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Nabigong lumikha ng Dahl token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "I-configure ang proxy",
-    "providerProxyTitleConfigured": "Naka-configure ang Proxy: {host}"
+    "providerProxyTitleConfigured": "Naka-configure ang Proxy: {host}",
+    "proxySetAside": "Isinantabi ang proxy"
   },
   "gamification": {
     "leaderboardScopes": {

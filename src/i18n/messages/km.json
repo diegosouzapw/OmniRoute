@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "បិទភាពជាប់លាប់នៃសម័យ",
     "sessionStickinessEnabled": "បើកភាពជាប់លាប់នៃសម័យ",
     "sessionStickinessDisabled": "បិទភាពជាប់លាប់នៃសម័យ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "ការកំណត់ជាមុន Kimi Coding",
     "kimiPresetDescription": "Kimi K3 ជាម៉ូដែលចម្បង (Moonshot API) ជាមួយនឹងការប្តូរដោយស្វ័យប្រវត្តិទៅការតភ្ជាប់ Kimi Code របស់អ្នក (kimi-coding, kimi-web) នៅពេលបានកំណត់រចនាសម្ព័ន្ធ។",
     "kimiPresetCta": "បន្ថែមការកំណត់ជាមុន",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "វានឹងថតស្ថានភាពបច្ចុប្បន្ននៃអ្នកផ្តល់សេវា/ម៉ូដែលដែលបានតភ្ជាប់ និងត្រូវគ្នានឹងគំរូនេះ ទៅជាបន្សំដែលអាចកែសម្រួលបាន។",
     "duplicateAutoComboFailedPrefix": "មិនអាចចម្លងបន្សំស្វ័យប្រវត្តិបានទេ៖",
     "duplicateAutoComboUnknownError": "កំហុសដែលមិនស្គាល់",
-    "duplicateAutoComboTitle": "បង្កើតបន្សំថេរពី {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "បង្កើតបន្សំថេរពី {name}"
   },
   "costs": {
     "title": "ការចំណាយ",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "បន្ថែម",
     "poolAddFailed": "បានបរាជ័យក្នុងការបន្ថែមប្រូកស៊ីទៅក្រុម",
     "poolSelectProxy": "ជ្រើសរើសប្រូកស៊ី…",
-    "poolSaveFailed": "បានបរាជ័យក្នុងការរក្សាទុកការចាត់តាំងទៅក្រុម"
+    "poolSaveFailed": "បានបរាជ័យក្នុងការរក្សាទុកការចាត់តាំងទៅក្រុម",
+    "poolPreferenceOrder": "លំដាប់អាទិភាព",
+    "poolSetAsideReason": "ដាក់ឡែក: {kind}",
+    "poolSetAsideUntil": "ត្រឡប់ទៅការបង្វិល {endsAt}",
+    "poolSetAsideRepeat": "ដាក់ឡែក {count, plural, one {# ដង} other {# ដង}}",
+    "poolUnknownAddress": "អាសយដ្ឋានមិនស្គាល់",
+    "poolSinceRestart": "ចាប់តាំងពីការចាប់ផ្តើមឡើងវិញចុងក្រោយ",
+    "poolSignalSetAside": "ដាក់ឡែក",
+    "poolSignalPosition": "លំដាប់ទីតាំង",
+    "poolHealthRankingOff": "ចំណាត់ថ្នាក់សុខភាពបិទ"
   },
   "playground": {
     "title": "កន្លែងសាកល្បងម៉ូដែល",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "បរាជ័យក្នុងការបង្កើតថូខឹន Dahl",
     "providerProxy": "ប្រូកស៊ី",
     "providerProxyConfigureHint": "កំណត់រចនាសម្ព័ន្ធប្រូកស៊ី",
-    "providerProxyTitleConfigured": "បានកំណត់រចនាសម្ព័ន្ធប្រូកស៊ី៖ {host}"
+    "providerProxyTitleConfigured": "បានកំណត់រចនាសម្ព័ន្ធប្រូកស៊ី៖ {host}",
+    "proxySetAside": "ប្រូកស៊ីបានដាក់ឡែក"
   },
   "gamification": {
     "leaderboardScopes": {

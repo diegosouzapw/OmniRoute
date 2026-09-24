@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "सेशन स्टिकिनेस अक्षम करें",
     "sessionStickinessEnabled": "स्टिकिनेस चालू",
     "sessionStickinessDisabled": "स्टिकिनेस बंद",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding प्रीसेट",
     "kimiPresetDescription": "मुख्य मॉडल के रूप में Kimi K3 (Moonshot API), कॉन्फ़िगर होने पर आपके Kimi Code कनेक्शन (kimi-coding, kimi-web) पर स्वचालित फ़ॉलबैक के साथ।",
     "kimiPresetCta": "प्रीसेट जोड़ें",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "यह इस टेम्पलेट से मेल खाने वाले वर्तमान जुड़े प्रदाताओं/मॉडल को संपादन योग्य कॉम्बो में स्नैपशॉट लेगा।",
     "duplicateAutoComboFailedPrefix": "ऑटोकॉम्बो डुप्लिकेट करने में विफल:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटि",
-    "duplicateAutoComboTitle": "{name} से एक स्थैतिक कॉम्बो बनाएं",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} से एक स्थैतिक कॉम्बो बनाएं"
   },
   "costs": {
     "title": "लागत",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "जोड़ें",
     "poolAddFailed": "पूल में प्रॉक्सी जोड़ने में विफल",
     "poolSelectProxy": "एक प्रॉक्सी चुनें…",
-    "poolSaveFailed": "पूल असाइनमेंट सहेजने में विफल"
+    "poolSaveFailed": "पूल असाइनमेंट सहेजने में विफल",
+    "poolPreferenceOrder": "वरीयता क्रम",
+    "poolSetAsideReason": "अलग रखा गया: {kind}",
+    "poolSetAsideUntil": "रोटेशन में वापस {endsAt}",
+    "poolSetAsideRepeat": "अलग रखा गया {count, plural, one {# बार} other {# बार}}",
+    "poolUnknownAddress": "अज्ञात पता",
+    "poolSinceRestart": "अंतिम पुनरारंभ के बाद से",
+    "poolSignalSetAside": "अलग रखें",
+    "poolSignalPosition": "स्थिति क्रम",
+    "poolHealthRankingOff": "स्वास्थ्य रैंकिंग बंद"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl टोकन बनाने में विफल",
     "providerProxy": "प्रॉक्सी",
     "providerProxyConfigureHint": "प्रॉक्सी कॉन्फ़िगर करें",
-    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फ़िगर की गई: {host}"
+    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फ़िगर की गई: {host}",
+    "proxySetAside": "प्रॉक्सी अलग रखा गया"
   },
   "gamification": {
     "leaderboardScopes": {

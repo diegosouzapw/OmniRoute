@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Sessiya yapışqanlığını söndürün",
     "sessionStickinessEnabled": "Yapışqanlıq aktivdir",
     "sessionStickinessDisabled": "Yapışqanlıq qapalıdır",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding hazır ayarı",
     "kimiPresetDescription": "Əsas model olaraq Kimi K3 (Moonshot API), konfiqurasiya edildikdə Kimi Code bağlantılarınıza (kimi-coding, kimi-web) avtomatik keçid ilə.",
     "kimiPresetCta": "Hazır ayarı əlavə et",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Bu, bu şablona uyğun olan hazırkı qoşulmuş provayderləri/modeləri redaktə oluna bilən kombo kimi saxlayacaq.",
     "duplicateAutoComboFailedPrefix": "Avtokombo kopyalanması uğursuz oldu:",
     "duplicateAutoComboUnknownError": "Naməlum xəta",
-    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat"
   },
   "costs": {
     "title": "Xərclər",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Əlavə et",
     "poolAddFailed": "Proksini hovuza əlavə etmək mümkün olmadı",
     "poolSelectProxy": "Proksi seçin…",
-    "poolSaveFailed": "Hovuz təyinatını yadda saxlamaq mümkün olmadı"
+    "poolSaveFailed": "Hovuz təyinatını yadda saxlamaq mümkün olmadı",
+    "poolPreferenceOrder": "Üstünlük sırası",
+    "poolSetAsideReason": "Kənara qoyuldu: {kind}",
+    "poolSetAsideUntil": "Rotasiyaya qayıtdı {endsAt}",
+    "poolSetAsideRepeat": "Kənara qoyuldu {count, plural, one {# dəfə} other {# dəfə}}",
+    "poolUnknownAddress": "Naməlum ünvan",
+    "poolSinceRestart": "Sonuncu yenidən başlatmadan bəri",
+    "poolSignalSetAside": "Kənara qoy",
+    "poolSignalPosition": "Mövqe sırası",
+    "poolHealthRankingOff": "Sağlamlıq reytinqi kapalı"
   },
   "playground": {
     "title": "Model sınaq meydanı",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl token yaratmaq mümkün olmadı",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Proksi konfiqurasiya et",
-    "providerProxyTitleConfigured": "Proxy konfiqurasiya edilib: {host}"
+    "providerProxyTitleConfigured": "Proxy konfiqurasiya edilib: {host}",
+    "proxySetAside": "Proksi kənara qoyuldu"
   },
   "gamification": {
     "leaderboardScopes": {

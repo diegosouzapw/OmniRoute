@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Atspējot sesijas piesaisti",
     "sessionStickinessEnabled": "Piesaiste ieslēgta",
     "sessionStickinessDisabled": "Piesaiste izslēgta",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding sagatave",
     "kimiPresetDescription": "Kimi K3 kā primārais modelis (Moonshot API) ar automātisku pārslēgšanos uz jūsu Kimi Code savienojumiem (kimi-coding, kimi-web), ja tie ir konfigurēti.",
     "kimiPresetCta": "Pievienot sagatavi",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Tādējādi pašlaik pievienotie nodrošinātāji/modeļi, kas atbilst šai veidnei, tiks saglabāti rediģējamā kombinācijā.",
     "duplicateAutoComboFailedPrefix": "Neizdevās dublēt automātisko kombināciju:",
     "duplicateAutoComboUnknownError": "Nezināma kļūda",
-    "duplicateAutoComboTitle": "Izveidot statisku kombināciju no {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Izveidot statisku kombināciju no {name}"
   },
   "costs": {
     "title": "Izmaksas",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Pievienot",
     "poolAddFailed": "Neizdevās pievienot starpniekserveri kopai",
     "poolSelectProxy": "Izvēlieties starpniekserveri…",
-    "poolSaveFailed": "Neizdevās saglabāt kopas piešķīrumu"
+    "poolSaveFailed": "Neizdevās saglabāt kopas piešķīrumu",
+    "poolPreferenceOrder": "Priekšrocību secība",
+    "poolSetAsideReason": "Nolikts malā: {kind}",
+    "poolSetAsideUntil": "Atpakaļ rotācijā {endsAt}",
+    "poolSetAsideRepeat": "Nolikts malā {count, plural, one {# reizi} other {# reizes}}",
+    "poolUnknownAddress": "Nezināma adrese",
+    "poolSinceRestart": "Kopš pēdējās restartēšanas",
+    "poolSignalSetAside": "Nolikt malā",
+    "poolSignalPosition": "Pozīciju secība",
+    "poolHealthRankingOff": "Veselības ranžēšana izslēgta"
   },
   "playground": {
     "title": "Modeļu testēšanas vide",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Neizdevās izveidot Dahl marķieri",
     "providerProxy": "Starpniekserveris",
     "providerProxyConfigureHint": "Konfigurēt starpniekserveri",
-    "providerProxyTitleConfigured": "Starpniekserveris konfigurēts: {host}"
+    "providerProxyTitleConfigured": "Starpniekserveris konfigurēts: {host}",
+    "proxySetAside": "Starpniekserveris nolikts malā"
   },
   "gamification": {
     "leaderboardScopes": {

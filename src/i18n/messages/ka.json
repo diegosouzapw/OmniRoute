@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "სესიის მიბმის გამორთვა",
     "sessionStickinessEnabled": "მიბმა ჩართულია",
     "sessionStickinessDisabled": "მიბმა გამორთულია",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-ის წინასწარი პარამეტრი",
     "kimiPresetDescription": "Kimi K3, როგორც ძირითადი მოდელი (Moonshot API), ავტომატური გადართვით თქვენს Kimi Code კავშირებზე (kimi-coding, kimi-web), როდესაც ისინი კონფიგურირებულია.",
     "kimiPresetCta": "წინასწარი პარამეტრის დამატება",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ამჟამად დაკავშირებული პროვაიდერებისა და მოდელების, რომლებიც ამ შაბლონს შეესაბამება, მიმდინარე მდგომარეობა დაფიქსირდება რედაქტირებად კომბოდ.",
     "duplicateAutoComboFailedPrefix": "ავტოკომბოს დუბლირება ვერ მოხერხდა:",
     "duplicateAutoComboUnknownError": "უცნობი შეცდომა",
-    "duplicateAutoComboTitle": "სტატიკური კომბოს შექმნა {name}-დან",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "სტატიკური კომბოს შექმნა {name}-დან"
   },
   "costs": {
     "title": "ხარჯები",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "დამატება",
     "poolAddFailed": "პროქსის პულში დამატება ვერ მოხერხდა",
     "poolSelectProxy": "აირჩიეთ პროქსი…",
-    "poolSaveFailed": "პულზე მინიჭების შენახვა ვერ მოხერხდა"
+    "poolSaveFailed": "პულზე მინიჭების შენახვა ვერ მოხერხდა",
+    "poolPreferenceOrder": "უპირატესობის თანმიმდევრობა",
+    "poolSetAsideReason": "გვერდზე გადადებული: {kind}",
+    "poolSetAsideUntil": "როტაციაში დაბრუნება {endsAt}",
+    "poolSetAsideRepeat": "გვერდზე გადადებული {count, plural, one {# ჯერ} other {# ჯერ}}",
+    "poolUnknownAddress": "უცნობი მისამართი",
+    "poolSinceRestart": "ბოლო გადატვირთვის შემდეგ",
+    "poolSignalSetAside": "გვერდზე გადადება",
+    "poolSignalPosition": "პოზიციის თანმიმდევრობა",
+    "poolHealthRankingOff": "ჯანმრთელობის რეიტინგი გამორთულია"
   },
   "playground": {
     "title": "მოდელების სატესტო გარემო",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl ტოკენის შექმნა ვერ მოხერხდა",
     "providerProxy": "პროქსი",
     "providerProxyConfigureHint": "პროქსის კონფიგურაცია",
-    "providerProxyTitleConfigured": "პროქსი კონფიგურირებულია: {host}"
+    "providerProxyTitleConfigured": "პროქსი კონფიგურირებულია: {host}",
+    "proxySetAside": "პროქსი გვერდზე გადადებულია"
   },
   "gamification": {
     "leaderboardScopes": {

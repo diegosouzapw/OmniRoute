@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "세션 고정 비활성화",
     "sessionStickinessEnabled": "세션 고정 켬",
     "sessionStickinessDisabled": "세션 고정 끔",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding 프리셋",
     "kimiPresetDescription": "Kimi K3를 기본 모델(Moonshot API)로 사용하며, 설정 시 Kimi Code 연결(kimi-coding, kimi-web)로 자동 폴백됩니다.",
     "kimiPresetCta": "프리셋 추가",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "이 템플릿과 일치하는 현재 연결된 제공자/모델을 편집 가능한 콤보로 스냅샷합니다.",
     "duplicateAutoComboFailedPrefix": "자동 콤보 복제 실패:",
     "duplicateAutoComboUnknownError": "알 수 없는 오류",
-    "duplicateAutoComboTitle": "{name}에서 정적 콤보 만들기",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}에서 정적 콤보 만들기"
   },
   "costs": {
     "title": "비용",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "추가",
     "poolAddFailed": "풀에 프록시를 추가하지 못했습니다",
     "poolSelectProxy": "프록시 선택…",
-    "poolSaveFailed": "풀 할당을 저장하지 못했습니다"
+    "poolSaveFailed": "풀 할당을 저장하지 못했습니다",
+    "poolPreferenceOrder": "선호 순서",
+    "poolSetAsideReason": "제외됨: {kind}",
+    "poolSetAsideUntil": "{endsAt}에 로테이션 복귀",
+    "poolSetAsideRepeat": "제외됨 {count, plural, one {#번} other {#번}}",
+    "poolUnknownAddress": "알 수 없는 주소",
+    "poolSinceRestart": "마지막 재시작 이후",
+    "poolSignalSetAside": "제외",
+    "poolSignalPosition": "위치 순서",
+    "poolHealthRankingOff": "상태 순위 꺼짐"
   },
   "playground": {
     "title": "모델 플레이그라운드",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl 토큰을 생성하지 못했습니다.",
     "providerProxy": "프록시",
     "providerProxyConfigureHint": "프록시 구성",
-    "providerProxyTitleConfigured": "프록시가 구성되었습니다: {host}"
+    "providerProxyTitleConfigured": "프록시가 구성되었습니다: {host}",
+    "proxySetAside": "프록시 제외됨"
   },
   "gamification": {
     "leaderboardScopes": {

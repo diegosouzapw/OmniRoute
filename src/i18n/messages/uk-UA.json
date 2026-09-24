@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Вимкнути закріплення сесій",
     "sessionStickinessEnabled": "Закріплення увімкнено",
     "sessionStickinessDisabled": "Закріплення вимкнено",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Пресет Kimi Coding",
     "kimiPresetDescription": "Kimi K3 як основна модель (Moonshot API) з автоматичним переходом на ваші підключення Kimi Code (kimi-coding, kimi-web) після налаштування.",
     "kimiPresetCta": "Додати пресет",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Це зробить знімок поточно підключених постачальників/моделей, які відповідають цьому шаблону, у редаговане комбо.",
     "duplicateAutoComboFailedPrefix": "Не вдалося дублювати автоматичне комбо:",
     "duplicateAutoComboUnknownError": "Невідома помилка",
-    "duplicateAutoComboTitle": "Створити статичне комбо з {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Створити статичне комбо з {name}"
   },
   "costs": {
     "title": "Витрати",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Додати",
     "poolAddFailed": "Не вдалося додати проксі до пулу",
     "poolSelectProxy": "Виберіть проксі…",
-    "poolSaveFailed": "Не вдалося зберегти призначення пулу"
+    "poolSaveFailed": "Не вдалося зберегти призначення пулу",
+    "poolPreferenceOrder": "Порядок переваг",
+    "poolSetAsideReason": "Відкладено: {kind}",
+    "poolSetAsideUntil": "Знову в ротації {endsAt}",
+    "poolSetAsideRepeat": "Відкладено {count, plural, one {# раз} other {# разів}}",
+    "poolUnknownAddress": "Невідома адреса",
+    "poolSinceRestart": "З останнього перезапуску",
+    "poolSignalSetAside": "Відкласти",
+    "poolSignalPosition": "Порядок позицій",
+    "poolHealthRankingOff": "Рейтинг здоровʼя вимкнено"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Не вдалося створити токен Dahl",
     "providerProxy": "Проксі",
     "providerProxyConfigureHint": "Налаштувати проксі",
-    "providerProxyTitleConfigured": "Проксі налаштовано: {host}"
+    "providerProxyTitleConfigured": "Проксі налаштовано: {host}",
+    "proxySetAside": "Проксі відкладено"
   },
   "gamification": {
     "leaderboardScopes": {

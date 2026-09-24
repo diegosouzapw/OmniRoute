@@ -3449,7 +3449,9 @@
       "setRetryDelayMs": "Kašnjenje između pokušaja ponovnog slanja na nivou seta, dajući vremena za rješavanje prolaznih problema.",
       "targetTimeoutMs": "Opcionalni timeout po meti. Prazno nasljeđuje trenutni timeout zahtjeva; veće vrijednosti su ograničene tim timeout-om.",
       "comboTimeoutMs": "Opcionalni ukupni vremenski budžet za cijeli combo kroz sve failover mete. Prazno zadržava 10-minutno zaustavljanje; pozitivna vrijednost ga zamjenjuje. Postavite ovo duže od Target timeout-a kako bi failover i dalje imao vremena.",
-      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova."
+      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova.",
+      "connectionAwareExpansion": "__MISSING__:When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "__MISSING__:Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Brzi šabloni",
     "templatesDescription": "Primijenite početni profil, zatim prilagodite modele i konfiguraciju.",
@@ -3788,6 +3790,15 @@
     "disableSessionStickiness": "Onemogući session stickiness",
     "sessionStickinessEnabled": "Stickiness uključeno",
     "sessionStickinessDisabled": "Stickiness isključeno",
+    "stickyLimitEffective": "__MISSING__:Effective {value} ({source})",
+    "stickyLimitSourceCombo": "__MISSING__:combo",
+    "stickyLimitSourceComboDefaults": "__MISSING__:combo defaults",
+    "stickyLimitSourceGlobal": "__MISSING__:global default",
+    "connectionAwareExpansion": "__MISSING__:Connection-aware expansion",
+    "triStateInherit": "__MISSING__:inherit",
+    "connectionAwareExpansionOn": "__MISSING__:On",
+    "connectionAwareExpansionOff": "__MISSING__:Off",
+    "promptCacheAffinityHint": "__MISSING__:Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding unaprijed postavljena konfiguracija",
     "kimiPresetDescription": "Kimi K3 kao primarni model (Moonshot API), sa automatskim povratkom na vaše Kimi Code veze (kimi-coding, kimi-web) kada su konfigurisane.",
     "kimiPresetCta": "Dodaj preset",
@@ -11036,7 +11047,16 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Neuspješno dodavanje proxy-ja u pool",
     "poolSelectProxy": "Odaberite proxy…",
-    "poolSaveFailed": "Neuspješno spremanje dodjele pool-a"
+    "poolSaveFailed": "Neuspješno spremanje dodjele pool-a",
+    "poolPreferenceOrder": "Redoslijed preferencija",
+    "poolSetAsideReason": "Sklonjeno: {kind}",
+    "poolSetAsideUntil": "Nazad u rotaciji {endsAt}",
+    "poolSetAsideRepeat": "Sklonjeno {count, plural, one {# put} other {# puta}}",
+    "poolUnknownAddress": "Nepoznata adresa",
+    "poolSinceRestart": "Od posljednjeg restarta",
+    "poolSignalSetAside": "Skloni",
+    "poolSignalPosition": "Redoslijed pozicija",
+    "poolHealthRankingOff": "Rangiranje zdravlja isključeno"
   },
   "playground": {
     "title": "Testno okruženje za modele",
@@ -12779,7 +12799,8 @@
     "createDahlTokenFailed": "Neuspjelo kreiranje Dahl tokena",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurišite proxy",
-    "providerProxyTitleConfigured": "Proxy konfigurisan: {host}"
+    "providerProxyTitleConfigured": "Proxy konfigurisan: {host}",
+    "proxySetAside": "Proxy sklonjen"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14133,7 +14154,12 @@
     "hour": "sat",
     "day": "dan",
     "unknownModel": "nepoznato",
-    "pending": "na čekanju"
+    "pending": "na čekanju",
+    "allApiKeys": "__MISSING__:All API keys",
+    "mcp": "__MISSING__:MCP",
+    "mcpTool": "__MISSING__:MCP tool",
+    "scope": "__MISSING__:Scope",
+    "apiKey": "__MISSING__:API key"
   },
   "metadata": {
     "compressionTitle": "Kompresija",

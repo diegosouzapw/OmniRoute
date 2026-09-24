@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "停用連線黏性",
     "sessionStickinessEnabled": "黏性已啟用",
     "sessionStickinessDisabled": "黏性關閉",
+    "stickyLimitEffective": "生效 {value}（{source}）",
+    "stickyLimitSourceCombo": "本組合",
+    "stickyLimitSourceComboDefaults": "組合預設",
+    "stickyLimitSourceGlobal": "全域預設",
+    "connectionAwareExpansion": "依帳號展開",
+    "triStateInherit": "繼承",
+    "connectionAwareExpansionOn": "開",
+    "connectionAwareExpansionOff": "關",
+    "promptCacheAffinityHint": "提示快取親和會優先於輪詢/加權在已釘帳號之間的輪轉。若需要嚴格輪轉，請到設定 → 組合預設關閉該選項。",
     "kimiPresetTitle": "Kimi Coding 預設組合",
     "kimiPresetDescription": "以 Kimi K3 作為主要模型（Moonshot API），設定完成後會自動備援至您的 Kimi Code 連線（kimi-coding、kimi-web）。",
     "kimiPresetCta": "新增預設組合",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "這將把與此模板匹配的目前連線提供者/模型快照到可編輯的組合中。",
     "duplicateAutoComboFailedPrefix": "複製自動組合失敗：",
     "duplicateAutoComboUnknownError": "未知錯誤",
-    "duplicateAutoComboTitle": "從{name}建立靜態組合",
-    "stickyLimitEffective": "生效 {value}（{source}）",
-    "stickyLimitSourceCombo": "本組合",
-    "stickyLimitSourceComboDefaults": "組合預設",
-    "stickyLimitSourceGlobal": "全域預設",
-    "connectionAwareExpansion": "依帳號展開",
-    "triStateInherit": "繼承",
-    "connectionAwareExpansionOn": "開",
-    "connectionAwareExpansionOff": "關",
-    "promptCacheAffinityHint": "提示快取親和會優先於輪詢/加權在已釘帳號之間的輪轉。若需要嚴格輪轉，請到設定 → 組合預設關閉該選項。"
+    "duplicateAutoComboTitle": "從{name}建立靜態組合"
   },
   "costs": {
     "title": "成本",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "新增",
     "poolAddFailed": "將代理新增至池失敗",
     "poolSelectProxy": "選取代理…",
-    "poolSaveFailed": "儲存池指派失敗"
+    "poolSaveFailed": "儲存池指派失敗",
+    "poolPreferenceOrder": "偏好順序",
+    "poolSetAsideReason": "已擱置:{kind}",
+    "poolSetAsideUntil": "{endsAt}恢復輪換",
+    "poolSetAsideRepeat": "已擱置{count, plural, one {#次} other {#次}}",
+    "poolUnknownAddress": "未知位址",
+    "poolSinceRestart": "自上次重新啟動以來",
+    "poolSignalSetAside": "擱置",
+    "poolSignalPosition": "位置順序",
+    "poolHealthRankingOff": "健康排名已關閉"
   },
   "playground": {
     "title": "模型演練場",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "無法創建 Dahl 令牌",
     "providerProxy": "代理伺服器",
     "providerProxyConfigureHint": "配置代理",
-    "providerProxyTitleConfigured": "代理已配置：{host}"
+    "providerProxyTitleConfigured": "代理已配置：{host}",
+    "proxySetAside": "代理已擱置"
   },
   "gamification": {
     "leaderboardScopes": {

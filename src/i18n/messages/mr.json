@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "सेशन स्टिकिनेस अक्षम करा",
     "sessionStickinessEnabled": "स्टिकिनेस सुरू",
     "sessionStickinessDisabled": "स्टिकिनेस बंद",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding प्रीसेट",
     "kimiPresetDescription": "प्राथमिक मॉडेल म्हणून Kimi K3 (Moonshot API), कॉन्फिगर केलेले असल्यास तुमच्या Kimi Code कनेक्शन्सवर (kimi-coding, kimi-web) स्वयंचलित फॉलबॅकसह.",
     "kimiPresetCta": "प्रीसेट जोडा",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "या टेम्पलेटशी जुळणारे सध्या कनेक्ट केलेले प्रदाता/मॉडेल्स संपादनयोग्य कॉम्बोमध्ये स्नॅपशॉट घेईल.",
     "duplicateAutoComboFailedPrefix": "ऑटोकॉम्बो डुप्लिकेट करण्यात अपयश:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटी",
-    "duplicateAutoComboTitle": "{name} मधून स्थिर कॉम्बो तयार करा",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} मधून स्थिर कॉम्बो तयार करा"
   },
   "costs": {
     "title": "खर्च",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "जोडा",
     "poolAddFailed": "पूलमध्ये प्रॉक्सी जोडण्यात अयशस्वी",
     "poolSelectProxy": "प्रॉक्सी निवडा…",
-    "poolSaveFailed": "पूल असाइनमेंट सेव्ह करण्यात अयशस्वी"
+    "poolSaveFailed": "पूल असाइनमेंट सेव्ह करण्यात अयशस्वी",
+    "poolPreferenceOrder": "प्राधान्य क्रम",
+    "poolSetAsideReason": "बाजूला ठेवले: {kind}",
+    "poolSetAsideUntil": "रोटेशनमध्ये परत {endsAt}",
+    "poolSetAsideRepeat": "बाजूला ठेवले {count, plural, one {# वेळा} other {# वेळा}}",
+    "poolUnknownAddress": "अज्ञात पत्ता",
+    "poolSinceRestart": "शेवटच्या रीस्टार्टपासून",
+    "poolSignalSetAside": "बाजूला ठेवा",
+    "poolSignalPosition": "स्थान क्रम",
+    "poolHealthRankingOff": "आरोग्य क्रमवारी बंद"
   },
   "playground": {
     "title": "मॉडेल प्लेग्राउंड",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl टोकन तयार करण्यात अयशस्वी झाले",
     "providerProxy": "प्रॉक्सी",
     "providerProxyConfigureHint": "प्रॉक्सी कॉन्फिगर करा",
-    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फिगर केले: {host}"
+    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फिगर केले: {host}",
+    "proxySetAside": "प्रॉक्सी बाजूला ठेवली"
   },
   "gamification": {
     "leaderboardScopes": {

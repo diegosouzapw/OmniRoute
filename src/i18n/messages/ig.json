@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Gbanyụọ njikọgide nnọkọ",
     "sessionStickinessEnabled": "Njikọgide agbanwuru",
     "sessionStickinessDisabled": "Njikọgide agbanyụrụ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Nhazi Kimi Coding",
     "kimiPresetDescription": "Kimi K3 dị ka model bụ isi (Moonshot API), yana ịlaghachi na njikọ Kimi Code gị (kimi-coding, kimi-web) na-akpaghị aka mgbe ahaziri ha.",
     "kimiPresetCta": "Tinye nhazi",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Nke a ga-echekwa ọnọdụ ndị na-eweta ọrụ/model ejikọrọ ugbu a dabara na ndebiri a n'ime ngwakọta a pụrụ idezi.",
     "duplicateAutoComboFailedPrefix": "Ime oyiri nke ngwakọta akpaka dara:",
     "duplicateAutoComboUnknownError": "Njehie amaghị ama",
-    "duplicateAutoComboTitle": "Mepụta ngwakọta anaghị agbanwe agbanwe site na {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Mepụta ngwakọta anaghị agbanwe agbanwe site na {name}"
   },
   "costs": {
     "title": "Ọnụ ahịa",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Tinye",
     "poolAddFailed": "Enweghị ike ịtinye proksi ahụ na pool",
     "poolSelectProxy": "Họrọ proxy…",
-    "poolSaveFailed": "Enweghị ike ichekwa nkesa pool"
+    "poolSaveFailed": "Enweghị ike ichekwa nkesa pool",
+    "poolPreferenceOrder": "Usoro mmasị",
+    "poolSetAsideReason": "E wepụrụ: {kind}",
+    "poolSetAsideUntil": "Laghachi na ntụgharị {endsAt}",
+    "poolSetAsideRepeat": "E wepụrụ {count, plural, one {# ugboro} other {# ugboro}}",
+    "poolUnknownAddress": "Adreesị amaghị",
+    "poolSinceRestart": "Kemgbe mmalite ikpeazụ",
+    "poolSignalSetAside": "Wepụ",
+    "poolSignalPosition": "Usoro ọnọdụ",
+    "poolHealthRankingOff": "Ogo ahụike agbanyụrụ"
   },
   "playground": {
     "title": "Ebe Nnwale Model",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Ịmepụta token Dahl dara",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Hazie proxy",
-    "providerProxyTitleConfigured": "Ahaziela proxy: {host}"
+    "providerProxyTitleConfigured": "Ahaziela proxy: {host}",
+    "proxySetAside": "E wepụrụ proxy"
   },
   "gamification": {
     "leaderboardScopes": {

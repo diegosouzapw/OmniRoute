@@ -153,9 +153,14 @@ function eligibleMemberIndexes(candidates: unknown[]): number[] | null {
 // True once the sticky window elapsed (or never started): the held member is due
 // for rotation. Shared by the pre-rank bypass (held member served untouched) and
 // the sticky branch below (advance on expiry) — same `state`, no extra DB read.
-function isStickyExpired(state: { stickyWindowMinutes: number; rotatedAt: string | null }): boolean {
+function isStickyExpired(state: {
+  stickyWindowMinutes: number;
+  rotatedAt: string | null;
+}): boolean {
   const lastRotated = state.rotatedAt ? Date.parse(state.rotatedAt) : NaN;
-  return !Number.isFinite(lastRotated) || Date.now() - lastRotated >= state.stickyWindowMinutes * 60_000;
+  return (
+    !Number.isFinite(lastRotated) || Date.now() - lastRotated >= state.stickyWindowMinutes * 60_000
+  );
 }
 
 // First eligible index at or after `start`, going round the pool.
@@ -343,6 +348,15 @@ function fetchAlivePoolRows(
   return db
     .prepare(`${baseSelect}AND a.scope_id IS ? AND ${PROXY_ALIVE_PREDICATE}${order}`)
     .all(scope, scopeIdFilter) as JsonRecord[];
+}
+
+// Read-only view of a scope pool's alive candidate rows (same joined source as the
+// selection path above): registry fields joined to assignments, alive-predicate
+// applied, position order. Lets a read-only status screen rank the same rows the
+// selector ranks, without embedding SQL in a route (Hard Rule #5).
+export function getScopePoolEgressRows(scope: string, scopeIdFilter: string | null): JsonRecord[] {
+  const db = getDbInstance();
+  return fetchAlivePoolRows(db, scope, scopeIdFilter, scopeIdFilter === null);
 }
 
 // A proxy is "alive" for resolution unless it has been explicitly marked dead

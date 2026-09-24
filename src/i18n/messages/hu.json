@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Munkamenet-rögzítés letiltása",
     "sessionStickinessEnabled": "Rögzítés bekapcsolva",
     "sessionStickinessDisabled": "Rögzítés kikapcsolva",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding előbeállítás",
     "kimiPresetDescription": "Kimi K3 mint elsődleges modell (Moonshot API), automatikus tartalék útvonallal a Kimi Code kapcsolatokhoz (kimi-coding, kimi-web), ha be van állítva.",
     "kimiPresetCta": "Előbeállítás hozzáadása",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Ez rögzíti az éppen csatlakoztatott szolgáltatókat/modelleket, amelyek megfelelnek ennek a sablonnak, egy szerkeszthető kombinációba.",
     "duplicateAutoComboFailedPrefix": "Az automatikus kombináció duplikálása sikertelen:",
     "duplicateAutoComboUnknownError": "Ismeretlen hiba",
-    "duplicateAutoComboTitle": "Hozzon létre statikus kombinációt a(z) {name}-ból",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Hozzon létre statikus kombinációt a(z) {name}-ból"
   },
   "costs": {
     "title": "Költségek",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Hozzáadás",
     "poolAddFailed": "Nem sikerült hozzáadni a proxyt a készlethez",
     "poolSelectProxy": "Válasszon egy proxyt…",
-    "poolSaveFailed": "Nem sikerült menteni a készlet-hozzárendelést"
+    "poolSaveFailed": "Nem sikerült menteni a készlet-hozzárendelést",
+    "poolPreferenceOrder": "Preferenciasorrend",
+    "poolSetAsideReason": "Félretéve: {kind}",
+    "poolSetAsideUntil": "Vissza a rotációba {endsAt}",
+    "poolSetAsideRepeat": "Félretéve {count, plural, one {# alkalommal} other {# alkalommal}}",
+    "poolUnknownAddress": "Ismeretlen cím",
+    "poolSinceRestart": "Az utolsó újraindítás óta",
+    "poolSignalSetAside": "Félretesz",
+    "poolSignalPosition": "Pozíciósorrend",
+    "poolHealthRankingOff": "Állapot-rangsorolás kikapcsolva"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Sikertelen a Dahl token létrehozása",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Proxy beállítása",
-    "providerProxyTitleConfigured": "Proxy beállítva: {host}"
+    "providerProxyTitleConfigured": "Proxy beállítva: {host}",
+    "proxySetAside": "Proxy félretéve"
   },
   "gamification": {
     "leaderboardScopes": {

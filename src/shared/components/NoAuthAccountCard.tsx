@@ -122,6 +122,8 @@ export default function NoAuthAccountCard({
   const [manualApiKey, setManualApiKey] = useState("");
   const [addingManualKey, setAddingManualKey] = useState(false);
   const [showManualKeyInput, setShowManualKeyInput] = useState(false);
+  const [setAsideProxyIds, setSetAsideProxyIds] = useState<Record<string, string | null>>({});
+  const setAsideInflight = useRef<Set<string>>(new Set());
   const popoverRef = useRef<HTMLDivElement>(null);
 
   const fetchConnections = useCallback(async () => {
@@ -174,10 +176,47 @@ export default function NoAuthAccountCard({
     }
   }, [proxyAccountId]);
 
+  const checkSetAside = useCallback(async (proxyId: string) => {
+    if (!proxyId || setAsideInflight.current.has(proxyId)) return;
+    setAsideInflight.current.add(proxyId);
+    try {
+      const res = await fetch(
+        `/api/admin/proxy-pool-visibility?proxyId=${encodeURIComponent(proxyId)}`
+      );
+      const payload = await res.json().catch(() => ({}));
+      const member = Array.isArray(payload?.members) ? payload.members[0] : null;
+      setSetAsideProxyIds((prev) =>
+        prev[proxyId] !== undefined
+          ? prev
+          : { ...prev, [proxyId]: member?.setAside ? (member.setAside.endsAt ?? "") : null }
+      );
+    } catch {
+      setSetAsideProxyIds((prev) =>
+        prev[proxyId] !== undefined ? prev : { ...prev, [proxyId]: null }
+      );
+    }
+  }, []);
+
   const allAccountIds = connections.flatMap((c) => c.providerSpecificData?.[dataKey] || []);
 
   const conn = connections[0];
   const accountProxies = getAccountProxies(conn);
+
+  // One read per unknown bound proxy id; the in-flight set above dedupes repeats.
+  // Reads run on a microtask (not synchronously in the effect body) so no
+  // setState fires during the effect pass itself.
+  useEffect(() => {
+    const ids = new Set<string>();
+    for (const id of allAccountIds) {
+      const boundProxyId = getEntryForFingerprint(accountProxies, id)?.proxyId ?? null;
+      if (boundProxyId) ids.add(boundProxyId);
+    }
+    if (ids.size === 0) return;
+    const timer = window.setTimeout(() => {
+      for (const proxyId of ids) void checkSetAside(proxyId);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [allAccountIds, accountProxies, checkSetAside]);
 
   const handleAddAccount = async () => {
     setAdding(true);
@@ -462,6 +501,9 @@ export default function NoAuthAccountCard({
                 getEntryForFingerprint(accountProxies, id),
                 savedProxies
               );
+              const entry = getEntryForFingerprint(accountProxies, id);
+              const boundProxyId = entry?.proxyId ?? null;
+              const setAsideEndsAt = boundProxyId ? setAsideProxyIds[boundProxyId] : null;
               return (
                 <div
                   key={id}
@@ -480,7 +522,7 @@ export default function NoAuthAccountCard({
                     className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors hover:bg-black/5 dark:hover:bg-white/5 ${proxy ? "text-blue-400" : "text-text-muted"}`}
                     title={
                       proxy
-                        ? `Proxy: ${proxy.type}://${proxy.host}:${proxy.port}`
+                        ? `Proxy: ${proxy.type}://${proxy.host}:${proxy.port}${setAsideEndsAt ? ` — ${t("proxySetAside")}` : ""}`
                         : t("configureProxy")
                     }
                     aria-label={

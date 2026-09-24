@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ปิดใช้งานการยึดติดเซสชัน",
     "sessionStickinessEnabled": "เปิดการยึดติดเซสชัน",
     "sessionStickinessDisabled": "ปิดการยึดติดเซสชัน",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "ค่าที่ตั้งไว้ล่วงหน้า Kimi Coding",
     "kimiPresetDescription": "Kimi K3 เป็นโมเดลหลัก (Moonshot API) พร้อมการสลับสายอัตโนมัติไปยังการเชื่อมต่อ Kimi Code ของคุณ (kimi-coding, kimi-web) เมื่อกำหนดค่าไว้",
     "kimiPresetCta": "เพิ่มค่าที่ตั้งไว้ล่วงหน้า",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "สิ่งนี้จะจับภาพผู้ให้บริการ/โมเดลที่เชื่อมต่ออยู่ในปัจจุบันซึ่งตรงกับเทมเพลตนี้ลงในคอมโบที่แก้ไขได้",
     "duplicateAutoComboFailedPrefix": "ล้มเหลวในการทำสำเนาคอมโบอัตโนมัติ:",
     "duplicateAutoComboUnknownError": "ข้อผิดพลาดที่ไม่ทราบสาเหตุ",
-    "duplicateAutoComboTitle": "สร้างคอมโบคงที่จาก {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "สร้างคอมโบคงที่จาก {name}"
   },
   "costs": {
     "title": "ค่าใช้จ่าย",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "เพิ่ม",
     "poolAddFailed": "เพิ่มพร็อกซีลงในพูลไม่สำเร็จ",
     "poolSelectProxy": "เลือกพร็อกซี…",
-    "poolSaveFailed": "บันทึกการกำหนดพูลไม่สำเร็จ"
+    "poolSaveFailed": "บันทึกการกำหนดพูลไม่สำเร็จ",
+    "poolPreferenceOrder": "ลำดับความชอบ",
+    "poolSetAsideReason": "กันไว้: {kind}",
+    "poolSetAsideUntil": "กลับเข้าหมุนเวียน {endsAt}",
+    "poolSetAsideRepeat": "กันไว้ {count, plural, one {# ครั้ง} other {# ครั้ง}}",
+    "poolUnknownAddress": "ที่อยู่ไม่ทราบ",
+    "poolSinceRestart": "ตั้งแต่รีสตาร์ตครั้งล่าสุด",
+    "poolSignalSetAside": "กันไว้",
+    "poolSignalPosition": "ลำดับตำแหน่ง",
+    "poolHealthRankingOff": "ปิดการจัดอันดับสุขภาพ"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "ไม่สามารถสร้างโทเค็น Dahl ได้",
     "providerProxy": "พร็อกซี",
     "providerProxyConfigureHint": "กำหนดค่าพร็อกซี",
-    "providerProxyTitleConfigured": "กำหนดพร็อกซีแล้ว: {host}"
+    "providerProxyTitleConfigured": "กำหนดพร็อกซีแล้ว: {host}",
+    "proxySetAside": "พร็อกซีถูกกันไว้"
   },
   "gamification": {
     "leaderboardScopes": {

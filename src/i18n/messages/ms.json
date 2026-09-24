@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Nyahdayakan kelekatan sesi",
     "sessionStickinessEnabled": "Kelekatan aktif",
     "sessionStickinessDisabled": "Kelekatan tidak aktif",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preset Kimi Coding",
     "kimiPresetDescription": "Kimi K3 sebagai model utama (Moonshot API), dengan sandaran automatik ke sambungan Kimi Code anda (kimi-coding, kimi-web) apabila dikonfigurasikan.",
     "kimiPresetCta": "Tambah preset",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Ini akan mengambil snapshot penyedia/model yang disambungkan semasa yang sepadan dengan templat ini ke dalam kombo yang boleh diedit.",
     "duplicateAutoComboFailedPrefix": "Gagal menduplikasi kombo automatik:",
     "duplicateAutoComboUnknownError": "Ralat tidak diketahui",
-    "duplicateAutoComboTitle": "Cipta kombo statik dari {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Cipta kombo statik dari {name}"
   },
   "costs": {
     "title": "Kos",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Tambah",
     "poolAddFailed": "Gagal menambah proksi ke dalam kolam",
     "poolSelectProxy": "Pilih proksi…",
-    "poolSaveFailed": "Gagal menyimpan tugasan kolam"
+    "poolSaveFailed": "Gagal menyimpan tugasan kolam",
+    "poolPreferenceOrder": "Susunan keutamaan",
+    "poolSetAsideReason": "Diketepikan: {kind}",
+    "poolSetAsideUntil": "Kembali dalam putaran {endsAt}",
+    "poolSetAsideRepeat": "Diketepikan {count, plural, one {# kali} other {# kali}}",
+    "poolUnknownAddress": "Alamat tidak diketahui",
+    "poolSinceRestart": "Sejak mula semula terakhir",
+    "poolSignalSetAside": "Ketepikan",
+    "poolSignalPosition": "Susunan kedudukan",
+    "poolHealthRankingOff": "Penarafan kesihatan dimatikan"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Gagal untuk mencipta token Dahl",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Konfigurasikan proksi",
-    "providerProxyTitleConfigured": "Proksi dikonfigurasikan: {host}"
+    "providerProxyTitleConfigured": "Proksi dikonfigurasikan: {host}",
+    "proxySetAside": "Proksi diketepikan"
   },
   "gamification": {
     "leaderboardScopes": {

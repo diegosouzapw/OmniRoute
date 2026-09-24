@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Inaktivera sessionslåsning",
     "sessionStickinessEnabled": "Sessionslåsning på",
     "sessionStickinessDisabled": "Sessionslåsning av",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-förinställning",
     "kimiPresetDescription": "Kimi K3 som primär modell (Moonshot API), med automatisk reservlösning till dina Kimi Code-anslutningar (kimi-coding, kimi-web) när de är konfigurerade.",
     "kimiPresetCta": "Lägg till förinställning",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Detta kommer att ta en ögonblicksbild av de för närvarande anslutna leverantörerna/modellerna som matchar denna mall i en redigerbar kombination.",
     "duplicateAutoComboFailedPrefix": "Kopiering av automatisk kombination misslyckades:",
     "duplicateAutoComboUnknownError": "Okänt fel",
-    "duplicateAutoComboTitle": "Skapa en statisk kombination från {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Skapa en statisk kombination från {name}"
   },
   "costs": {
     "title": "Kostnader",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Lägg till",
     "poolAddFailed": "Misslyckades med att lägga till proxyn i poolen",
     "poolSelectProxy": "Välj en proxy…",
-    "poolSaveFailed": "Misslyckades med att spara pooltilldelning"
+    "poolSaveFailed": "Misslyckades med att spara pooltilldelning",
+    "poolPreferenceOrder": "Preferensordning",
+    "poolSetAsideReason": "Åsidosatt: {kind}",
+    "poolSetAsideUntil": "Tillbaka i rotation {endsAt}",
+    "poolSetAsideRepeat": "Åsidosatt {count, plural, one {# gång} other {# gånger}}",
+    "poolUnknownAddress": "Okänd adress",
+    "poolSinceRestart": "Sedan senaste omstarten",
+    "poolSignalSetAside": "Sätt åt sidan",
+    "poolSignalPosition": "Positionsordning",
+    "poolHealthRankingOff": "Hälsorankning av"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Misslyckades med att skapa Dahl-token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurera proxy",
-    "providerProxyTitleConfigured": "Proxy konfigurerad: {host}"
+    "providerProxyTitleConfigured": "Proxy konfigurerad: {host}",
+    "proxySetAside": "Proxy åsidosatt"
   },
   "gamification": {
     "leaderboardScopes": {

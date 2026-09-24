@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "সেশন স্টিকিনেস নিষ্ক্রিয় করুন",
     "sessionStickinessEnabled": "স্টিকিনেস চালু",
     "sessionStickinessDisabled": "স্টিকিনেস বন্ধ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding প্রিসেট",
     "kimiPresetDescription": "প্রধান মডেল হিসেবে Kimi K3 (Moonshot API), কনফিগার করা থাকলে আপনার Kimi Code কানেকশনগুলোতে (kimi-coding, kimi-web) অটোমেটিক ফলব্যাক সহ।",
     "kimiPresetCta": "প্রিসেট যোগ করুন",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "এটি এই টেমপ্লেটের সাথে মিলে যায় এমন বর্তমান সংযুক্ত প্রদানকারী/মডেলগুলিকে একটি সম্পাদনযোগ্য কম্বোতে স্ন্যাপশট নেবে।",
     "duplicateAutoComboFailedPrefix": "অটোকম্বো ডুপ্লিকেশন ব্যর্থ:",
     "duplicateAutoComboUnknownError": "অজানা ত্রুটি",
-    "duplicateAutoComboTitle": "{name} থেকে একটি স্ট্যাটিক কম্বো তৈরি করুন",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} থেকে একটি স্ট্যাটিক কম্বো তৈরি করুন"
   },
   "costs": {
     "title": "খরচ",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "যোগ করুন",
     "poolAddFailed": "পুলে প্রক্সি যোগ করতে ব্যর্থ হয়েছে",
     "poolSelectProxy": "একটি প্রক্সি নির্বাচন করুন…",
-    "poolSaveFailed": "পুল অ্যাসাইনমেন্ট সংরক্ষণ করতে ব্যর্থ হয়েছে"
+    "poolSaveFailed": "পুল অ্যাসাইনমেন্ট সংরক্ষণ করতে ব্যর্থ হয়েছে",
+    "poolPreferenceOrder": "পছন্দের ক্রম",
+    "poolSetAsideReason": "সরিয়ে রাখা হয়েছে: {kind}",
+    "poolSetAsideUntil": "রোটেশনে ফিরেছে {endsAt}",
+    "poolSetAsideRepeat": "সরিয়ে রাখা হয়েছে {count, plural, one {# বার} other {# বার}}",
+    "poolUnknownAddress": "অজানা ঠিকানা",
+    "poolSinceRestart": "শেষ পুনরারম্ভের পর থেকে",
+    "poolSignalSetAside": "সরিয়ে রাখুন",
+    "poolSignalPosition": "অবস্থান ক্রম",
+    "poolHealthRankingOff": "স্বাস্থ্য র‍্যাঙ্কিং বন্ধ"
   },
   "playground": {
     "title": "মডেল প্লেগ্রাউন্ড",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl টোকেন তৈরি করতে ব্যর্থ হয়েছে",
     "providerProxy": "প্রক্সি",
     "providerProxyConfigureHint": "প্রক্সি কনফিগার করুন",
-    "providerProxyTitleConfigured": "প্রক্সি কনফিগার করা হয়েছে: {host}"
+    "providerProxyTitleConfigured": "প্রক্সি কনফিগার করা হয়েছে: {host}",
+    "proxySetAside": "প্রক্সি সরিয়ে রাখা হয়েছে"
   },
   "gamification": {
     "leaderboardScopes": {

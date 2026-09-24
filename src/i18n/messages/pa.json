@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ਸੈਸ਼ਨ ਸਟਿਕੀਨੈੱਸ ਅਸਮਰੱਥ ਕਰੋ",
     "sessionStickinessEnabled": "ਸਟਿਕੀਨੈੱਸ ਚਾਲੂ",
     "sessionStickinessDisabled": "ਸਟਿਕੀਨੈੱਸ ਬੰਦ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ਪ੍ਰੀਸੈੱਟ",
     "kimiPresetDescription": "Kimi K3 ਨੂੰ ਮੁੱਖ ਮਾਡਲ (Moonshot API) ਵਜੋਂ ਵਰਤਦਾ ਹੈ ਅਤੇ ਕੌਂਫਿਗਰ ਕੀਤੇ ਹੋਣ 'ਤੇ ਤੁਹਾਡੇ Kimi Code ਕਨੈਕਸ਼ਨਾਂ (kimi-coding, kimi-web) 'ਤੇ ਆਪਣੇ-ਆਪ ਫਾਲਬੈਕ ਕਰਦਾ ਹੈ।",
     "kimiPresetCta": "ਪ੍ਰੀਸੈੱਟ ਸ਼ਾਮਲ ਕਰੋ",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ਇਹ ਇਸ ਟੈਂਪਲੇਟ ਨਾਲ ਮੇਲ ਖਾਂਦੇ ਮੌਜੂਦਾ ਕਨੈਕਟ ਕੀਤੇ ਪ੍ਰਦਾਤਾਵਾਂ/ਮਾਡਲਾਂ ਦਾ ਸਨੈਪਸ਼ਾਟ ਲੈ ਕੇ ਇੱਕ ਸੰਪਾਦਨਯੋਗ ਕੌਂਬੋ ਬਣਾਏਗਾ।",
     "duplicateAutoComboFailedPrefix": "ਆਟੋ-ਕੌਂਬੋ ਦੀ ਨਕਲ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ:",
     "duplicateAutoComboUnknownError": "ਅਣਜਾਣ ਗਲਤੀ",
-    "duplicateAutoComboTitle": "{name} ਤੋਂ ਇੱਕ ਸਥਿਰ ਕੌਂਬੋ ਬਣਾਓ",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} ਤੋਂ ਇੱਕ ਸਥਿਰ ਕੌਂਬੋ ਬਣਾਓ"
   },
   "costs": {
     "title": "ਲਾਗਤਾਂ",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "ਜੋੜੋ",
     "poolAddFailed": "ਪੂਲ ਵਿੱਚ ਪ੍ਰੌਕਸੀ ਜੋੜਨ ਵਿੱਚ ਅਸਫਲ",
     "poolSelectProxy": "ਇੱਕ ਪ੍ਰੌਕਸੀ ਚੁਣੋ…",
-    "poolSaveFailed": "ਪੂਲ ਅਸਾਈਨਮੈਂਟ ਸੰਭਾਲਣ ਵਿੱਚ ਅਸਫਲ"
+    "poolSaveFailed": "ਪੂਲ ਅਸਾਈਨਮੈਂਟ ਸੰਭਾਲਣ ਵਿੱਚ ਅਸਫਲ",
+    "poolPreferenceOrder": "ਤਰਜੀਹ ਕ੍ਰਮ",
+    "poolSetAsideReason": "ਪਾਸੇ ਰੱਖਿਆ: {kind}",
+    "poolSetAsideUntil": "ਰੋਟੇਸ਼ਨ ਵਿੱਚ ਵਾਪਸ {endsAt}",
+    "poolSetAsideRepeat": "ਪਾਸੇ ਰੱਖਿਆ {count, plural, one {# ਵਾਰ} other {# ਵਾਰ}}",
+    "poolUnknownAddress": "ਅਣਜਾਣ ਪਤਾ",
+    "poolSinceRestart": "ਆਖਰੀ ਰੀਸਟਾਰਟ ਤੋਂ",
+    "poolSignalSetAside": "ਪਾਸੇ ਰੱਖੋ",
+    "poolSignalPosition": "ਸਥਿਤੀ ਕ੍ਰਮ",
+    "poolHealthRankingOff": "ਸਿਹਤ ਦਰਜਾਬੰਦੀ ਬੰਦ"
   },
   "playground": {
     "title": "ਮਾਡਲ ਪਲੇਗ੍ਰਾਊਂਡ",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl ਟੋਕਨ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ",
     "providerProxy": "ਪ੍ਰੌਕਸੀ",
     "providerProxyConfigureHint": "ਪ੍ਰੌਕਸੀ ਸੰਰਚਿਤ ਕਰੋ",
-    "providerProxyTitleConfigured": "ਪ੍ਰੌਕਸੀ ਸੰਰਚਿਤ ਹੈ: {host}"
+    "providerProxyTitleConfigured": "ਪ੍ਰੌਕਸੀ ਸੰਰਚਿਤ ਹੈ: {host}",
+    "proxySetAside": "ਪ੍ਰੌਕਸੀ ਪਾਸੇ ਰੱਖੀ"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Deaktiver øktlåsing",
     "sessionStickinessEnabled": "Øktlåsing på",
     "sessionStickinessDisabled": "Øktlåsing av",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-forhåndsinnstilling",
     "kimiPresetDescription": "Kimi K3 som primærmodell (Moonshot API), med automatisk tilbakefall til dine Kimi Code-tilkoblinger (kimi-coding, kimi-web) når konfigurert.",
     "kimiPresetCta": "Legg til forhåndsinnstilling",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dette vil ta et øyeblikksbilde av de nåvørende tilkoblede leverandørene/modellene som matcher denne malen i en redigerbar kombinasjon.",
     "duplicateAutoComboFailedPrefix": "Duplisering av auto-kombinasjon mislyktes:",
     "duplicateAutoComboUnknownError": "Ukjent feil",
-    "duplicateAutoComboTitle": "Opprett en statisk kombinasjon fra {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Opprett en statisk kombinasjon fra {name}"
   },
   "costs": {
     "title": "Kostnader",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Legg til",
     "poolAddFailed": "Kunne ikke legge proxyen til i poolen",
     "poolSelectProxy": "Velg en proxy…",
-    "poolSaveFailed": "Kunne ikke lagre pool-tildeling"
+    "poolSaveFailed": "Kunne ikke lagre pool-tildeling",
+    "poolPreferenceOrder": "Preferanserekkefølge",
+    "poolSetAsideReason": "Satt til side: {kind}",
+    "poolSetAsideUntil": "Tilbake i rotasjon {endsAt}",
+    "poolSetAsideRepeat": "Satt til side {count, plural, one {# gang} other {# ganger}}",
+    "poolUnknownAddress": "Ukjent adresse",
+    "poolSinceRestart": "Siden siste omstart",
+    "poolSignalSetAside": "Sett til side",
+    "poolSignalPosition": "Posisjonsrekkefølge",
+    "poolHealthRankingOff": "Helserangering av"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Kunne ikke opprette Dahl-token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurer proxy",
-    "providerProxyTitleConfigured": "Proxy konfigurert: {host}"
+    "providerProxyTitleConfigured": "Proxy konfigurert: {host}",
+    "proxySetAside": "Proxy satt til side"
   },
   "gamification": {
     "leaderboardScopes": {

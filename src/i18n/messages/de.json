@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Session-Stickiness deaktivieren",
     "sessionStickinessEnabled": "Stickiness ein",
     "sessionStickinessDisabled": "Stickiness aus",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-Preset",
     "kimiPresetDescription": "Kimi K3 als primäres Modell (Moonshot API), mit automatischem Fallback auf Ihre Kimi Code-Verbindungen (kimi-coding, kimi-web), sofern konfiguriert.",
     "kimiPresetCta": "Preset hinzufügen",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dadurch werden die aktuell verbundenen Anbieter/Modelle, die dieser Vorlage entsprechen, in einer bearbeitbaren Kombination gespeichert.",
     "duplicateAutoComboFailedPrefix": "Automatische Kombination konnte nicht dupliziert werden:",
     "duplicateAutoComboUnknownError": "Unbekannter Fehler",
-    "duplicateAutoComboTitle": "Erstelle eine statische Kombination aus {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Erstelle eine statische Kombination aus {name}"
   },
   "costs": {
     "title": "Kosten",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Hinzufügen",
     "poolAddFailed": "Fehler beim Hinzufügen des Proxys zum Pool",
     "poolSelectProxy": "Proxy auswählen…",
-    "poolSaveFailed": "Fehler beim Speichern der Pool-Zuweisung"
+    "poolSaveFailed": "Fehler beim Speichern der Pool-Zuweisung",
+    "poolPreferenceOrder": "Präferenzreihenfolge",
+    "poolSetAsideReason": "Zurückgestellt: {kind}",
+    "poolSetAsideUntil": "Zurück in Rotation {endsAt}",
+    "poolSetAsideRepeat": "Zurückgestellt {count, plural, one {# Mal} other {# Mal}}",
+    "poolUnknownAddress": "Unbekannte Adresse",
+    "poolSinceRestart": "Seit dem letzten Neustart",
+    "poolSignalSetAside": "Zurückstellen",
+    "poolSignalPosition": "Positionsreihenfolge",
+    "poolHealthRankingOff": "Health-Ranking aus"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Fehler beim Erstellen des Dahl-Tokens",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Proxy konfigurieren",
-    "providerProxyTitleConfigured": "Proxy konfiguriert: {host}"
+    "providerProxyTitleConfigured": "Proxy konfiguriert: {host}",
+    "proxySetAside": "Proxy zurückgestellt"
   },
   "gamification": {
     "leaderboardScopes": {

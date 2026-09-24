@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "அமர்வு ஒட்டும் தன்மையை முடக்கு",
     "sessionStickinessEnabled": "ஒட்டும் தன்மை ஆன்",
     "sessionStickinessDisabled": "ஒட்டும் தன்மை ஆஃப்",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding முன்னமைப்பு",
     "kimiPresetDescription": "முதன் மாதிரி அமைப்பாக Kimi K3 (Moonshot API), கட்டமைக்கப்படும் போது உங்கள் Kimi Code இணைப்புகளுக்கு (kimi-coding, kimi-web) தானியங்கி மாற்று வழியமைப்புடன்.",
     "kimiPresetCta": "முன்னமைப்பைச் சேர்",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "இந்த டெம்ப்ளேட்டுடன் பொருந்தும் தற்போதைய இணைக்கப்பட்ட வழங்குநர்கள்/மாதிரிகளை திருத்தக்கூடிய கம்போவில் எடுக்கும்.",
     "duplicateAutoComboFailedPrefix": "ஆட்டோகம்போ நகலெடுத்தல் தோல்வியடைந்தது:",
     "duplicateAutoComboUnknownError": "அறியப்படாத பிழை",
-    "duplicateAutoComboTitle": "{name} இலிருந்து நிலையான கம்போ உருவாக்கவும்",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} இலிருந்து நிலையான கம்போ உருவாக்கவும்"
   },
   "costs": {
     "title": "செலவுகள்",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "சேர்",
     "poolAddFailed": "தொகுப்பில் proxy-ஐச் சேர்ப்பது தோல்வியடைந்தது",
     "poolSelectProxy": "ஒரு proxy-ஐத் தேர்ந்தெடு…",
-    "poolSaveFailed": "தொகுப்பு ஒதுக்கீட்டைச் சேமிப்பது தோல்வியடைந்தது"
+    "poolSaveFailed": "தொகுப்பு ஒதுக்கீட்டைச் சேமிப்பது தோல்வியடைந்தது",
+    "poolPreferenceOrder": "விருப்ப வரிசை",
+    "poolSetAsideReason": "ஒதுக்கி வைக்கப்பட்டது: {kind}",
+    "poolSetAsideUntil": "சுழற்சிக்கு திரும்பு {endsAt}",
+    "poolSetAsideRepeat": "ஒதுக்கி வைக்கப்பட்டது {count, plural, one {# முறை} other {# முறை}}",
+    "poolUnknownAddress": "தெரியாத முகவரி",
+    "poolSinceRestart": "கடைசி மறுதொடக்கத்திலிருந்து",
+    "poolSignalSetAside": "ஒதுக்கி வை",
+    "poolSignalPosition": "நிலை வரிசை",
+    "poolHealthRankingOff": "சுகாதார தரவரிசை நிறுத்தம்"
   },
   "playground": {
     "title": "மாதிரி சோதனைக்களம்",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl டோக்கன் உருவாக்குவதில் தோல்வி அடைந்தது",
     "providerProxy": "பிராக்சி",
     "providerProxyConfigureHint": "பிராக்ஸியை கட்டமைக்கவும்",
-    "providerProxyTitleConfigured": "பிராக்ஸி அமைக்கப்பட்டுள்ளது: {host}"
+    "providerProxyTitleConfigured": "பிராக்ஸி அமைக்கப்பட்டுள்ளது: {host}",
+    "proxySetAside": "ப்ராக்ஸி ஒதுக்கி வைக்கப்பட்டது"
   },
   "gamification": {
     "leaderboardScopes": {

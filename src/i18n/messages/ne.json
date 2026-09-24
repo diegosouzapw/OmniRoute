@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "सेसन स्टिकिनेस असक्षम गर्नुहोस्",
     "sessionStickinessEnabled": "स्टिकिनेस सक्रिय",
     "sessionStickinessDisabled": "स्टिकिनेस निष्क्रिय",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding प्रिसेट",
     "kimiPresetDescription": "Kimi K3 लाई प्राथमिक मोडेलका रूपमा (Moonshot API) प्रयोग गर्छ, र कन्फिगर गरिएको अवस्थामा तपाईंका Kimi Code जडानहरू (kimi-coding, kimi-web) मा स्वचालित रूपमा फलब्याक गर्छ।",
     "kimiPresetCta": "प्रिसेट थप्नुहोस्",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "यसले यो टेम्प्लेटसँग मेल खाने हाल जडान भएका प्रदायक/मोडेलहरूको स्न्यापसट लिएर सम्पादनयोग्य कम्बो बनाउनेछ।",
     "duplicateAutoComboFailedPrefix": "स्वचालित कम्बो डुप्लिकेट गर्न असफल भयो:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटि",
-    "duplicateAutoComboTitle": "{name} बाट स्थिर कम्बो सिर्जना गर्नुहोस्",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} बाट स्थिर कम्बो सिर्जना गर्नुहोस्"
   },
   "costs": {
     "title": "लागत",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "थप्नुहोस्",
     "poolAddFailed": "पुलमा प्रोक्सी थप्न असफल भयो",
     "poolSelectProxy": "प्रोक्सी चयन गर्नुहोस्…",
-    "poolSaveFailed": "पुल असाइनमेन्ट सुरक्षित गर्न असफल भयो"
+    "poolSaveFailed": "पुल असाइनमेन्ट सुरक्षित गर्न असफल भयो",
+    "poolPreferenceOrder": "प्राथमिकता क्रम",
+    "poolSetAsideReason": "छेउमा राखियो: {kind}",
+    "poolSetAsideUntil": "रोटेसनमा फर्कियो {endsAt}",
+    "poolSetAsideRepeat": "छेउमा राखियो {count, plural, one {# पटक} other {# पटक}}",
+    "poolUnknownAddress": "अज्ञात ठेगाना",
+    "poolSinceRestart": "अन्तिम पुनःसुरु भएदेखि",
+    "poolSignalSetAside": "छेउमा राख्नुहोस्",
+    "poolSignalPosition": "स्थिति क्रम",
+    "poolHealthRankingOff": "स्वास्थ्य श्रेणी बन्द"
   },
   "playground": {
     "title": "मोडेल प्लेग्राउन्ड",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl टोकन सिर्जना गर्न असफल भयो",
     "providerProxy": "प्रोक्सी",
     "providerProxyConfigureHint": "प्रोक्सी कन्फिगर गर्नुहोस्",
-    "providerProxyTitleConfigured": "प्रोक्सी कन्फिगर गरियो: {host}"
+    "providerProxyTitleConfigured": "प्रोक्सी कन्फिगर गरियो: {host}",
+    "proxySetAside": "प्रोक्सी छेउमा राखियो"
   },
   "gamification": {
     "leaderboardScopes": {

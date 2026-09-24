@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Zima ushikamano wa kipindi",
     "sessionStickinessEnabled": "Ushikamano umewashwa",
     "sessionStickinessDisabled": "Ushikamano umezimwa",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Seti ya awali ya Kimi Coding",
     "kimiPresetDescription": "Kimi K3 kama modeli kuu (Moonshot API), yenye urejesho wa kiotomatiki kwenye miunganisho yako ya Kimi Code (kimi-coding, kimi-web) inaposanidiwa.",
     "kimiPresetCta": "Ongeza seti ya awali",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Hii itachukua picha ya watoa huduma/watolei sambazwa sasa yanayolingana na kioo hiki katika combo inayoedit.",
     "duplicateAutoComboFailedPrefix": "Imeshindwa kuiga combo ya otomatiki:",
     "duplicateAutoComboUnknownError": "Hitilafai isiyojulikana",
-    "duplicateAutoComboTitle": "Tengeneza combo thabiti kutoka {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Tengeneza combo thabiti kutoka {name}"
   },
   "costs": {
     "title": "Gharama",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Ongeza",
     "poolAddFailed": "Imeshindwa kuongeza proksi kwenye dimbwi",
     "poolSelectProxy": "Chagua proksi…",
-    "poolSaveFailed": "Imeshindwa kuhifadhi ugawaji wa dimbwi"
+    "poolSaveFailed": "Imeshindwa kuhifadhi ugawaji wa dimbwi",
+    "poolPreferenceOrder": "Mpangilio wa upendeleo",
+    "poolSetAsideReason": "Imewekwa kando: {kind}",
+    "poolSetAsideUntil": "Kurudi kwenye mzunguko {endsAt}",
+    "poolSetAsideRepeat": "Imewekwa kando {count, plural, one {# mara} other {# mara}}",
+    "poolUnknownAddress": "Anwani isiyojulikana",
+    "poolSinceRestart": "Tangu kuanzishwa upya kwa mwisho",
+    "poolSignalSetAside": "Weka kando",
+    "poolSignalPosition": "Mpangilio wa nafasi",
+    "poolHealthRankingOff": "Kiwango cha afya kimezimwa"
   },
   "playground": {
     "title": "Mazingira ya Majaribio ya Modeli",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Imeshindikana kuunda token ya Dahl",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Sanidi proxy",
-    "providerProxyTitleConfigured": "Proxy imewekwa: {host}"
+    "providerProxyTitleConfigured": "Proxy imewekwa: {host}",
+    "proxySetAside": "Proksi imewekwa kando"
   },
   "gamification": {
     "leaderboardScopes": {

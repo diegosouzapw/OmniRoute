@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Kashe mannewar zama",
     "sessionStickinessEnabled": "Mannewar zama tana kunne",
     "sessionStickinessDisabled": "Mannewar zama tana kashe",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Saitin Kimi Coding",
     "kimiPresetDescription": "Kimi K3 a matsayin babban samfurin (Moonshot API), tare da komawa ta atomatik zuwa haɗin Kimi Code ɗinka (kimi-coding, kimi-web) idan an saita su.",
     "kimiPresetCta": "Ƙara saitin",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Wannan zai adana kwafin masu samarwa/samfura da aka haɗa a yanzu waɗanda suka dace da wannan samfuri na tsari a matsayin haɗin da za a iya gyarawa.",
     "duplicateAutoComboFailedPrefix": "An kasa yin kwafin haɗin atomatik:",
     "duplicateAutoComboUnknownError": "Kuskuren da ba a sani ba",
-    "duplicateAutoComboTitle": "Ƙirƙiri tsayayyen haɗi daga {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ƙirƙiri tsayayyen haɗi daga {name}"
   },
   "costs": {
     "title": "Kuɗaɗen kashewa",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Ƙara",
     "poolAddFailed": "An kasa ƙara proxy ɗin zuwa pool",
     "poolSelectProxy": "Zaɓi proxy…",
-    "poolSaveFailed": "An kasa adana rabon pool"
+    "poolSaveFailed": "An kasa adana rabon pool",
+    "poolPreferenceOrder": "Tsarin fifiko",
+    "poolSetAsideReason": "An ajiye a gefe: {kind}",
+    "poolSetAsideUntil": "Komawa cikin juyawa {endsAt}",
+    "poolSetAsideRepeat": "An ajiye a gefe {count, plural, one {# sau} other {# sau}}",
+    "poolUnknownAddress": "Adireshi mara sani",
+    "poolSinceRestart": "Tun sake farawa na ƙarshe",
+    "poolSignalSetAside": "Ajiye a gefe",
+    "poolSignalPosition": "Tsarin matsayi",
+    "poolHealthRankingOff": "Matsayin lafiya a kashe"
   },
   "playground": {
     "title": "Filin Gwajin Model",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "An kasa ƙirƙirar Dahl token",
     "providerProxy": "Wakili",
     "providerProxyConfigureHint": "Saita proxy",
-    "providerProxyTitleConfigured": "An saita proxy: {host}"
+    "providerProxyTitleConfigured": "An saita proxy: {host}",
+    "proxySetAside": "Proxy an ajiye a gefe"
   },
   "gamification": {
     "leaderboardScopes": {

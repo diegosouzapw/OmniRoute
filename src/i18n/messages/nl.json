@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Sessievastheid uitschakelen",
     "sessionStickinessEnabled": "Sessievastheid aan",
     "sessionStickinessDisabled": "Sessievastheid uit",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-preset",
     "kimiPresetDescription": "Kimi K3 als het primaire model (Moonshot API), met automatische terugval naar uw Kimi Code-verbindingen (kimi-coding, kimi-web) indien geconfigureerd.",
     "kimiPresetCta": "Preset toevoegen",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dit maakt een momentopname van de momenteel verbonden providers/modellen die overeenkomen met dit sjabloon in een bewerkbare combinatie.",
     "duplicateAutoComboFailedPrefix": "Automatische combinatie dupliceren mislukt:",
     "duplicateAutoComboUnknownError": "Onbekende fout",
-    "duplicateAutoComboTitle": "Maak een statische combinatie van {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Maak een statische combinatie van {name}"
   },
   "costs": {
     "title": "Kosten",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Toevoegen",
     "poolAddFailed": "Kan de proxy niet aan de pool toevoegen",
     "poolSelectProxy": "Selecteer een proxy…",
-    "poolSaveFailed": "Kan pooltoewijzing niet opslaan"
+    "poolSaveFailed": "Kan pooltoewijzing niet opslaan",
+    "poolPreferenceOrder": "Voorkeursvolgorde",
+    "poolSetAsideReason": "Terzijde gesteld: {kind}",
+    "poolSetAsideUntil": "Terug in rotatie {endsAt}",
+    "poolSetAsideRepeat": "Terzijde gesteld {count, plural, one {# keer} other {# keer}}",
+    "poolUnknownAddress": "Onbekend adres",
+    "poolSinceRestart": "Sinds de laatste herstart",
+    "poolSignalSetAside": "Terzijde stellen",
+    "poolSignalPosition": "Positievolgorde",
+    "poolHealthRankingOff": "Gezondheidsrangschikking uit"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Mislukt om Dahl-token te maken",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configureer proxy",
-    "providerProxyTitleConfigured": "Proxy geconfigureerd: {host}"
+    "providerProxyTitleConfigured": "Proxy geconfigureerd: {host}",
+    "proxySetAside": "Proxy terzijde gesteld"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Onemogoči vezanost seje",
     "sessionStickinessEnabled": "Vezanost vklopljena",
     "sessionStickinessDisabled": "Vezanost izklopljena",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Prednastavitev Kimi Coding",
     "kimiPresetDescription": "Kimi K3 kot primarni model (Moonshot API) s samodejnim preklopom na vaše povezave Kimi Code (kimi-coding, kimi-web), ko so konfigurirane.",
     "kimiPresetCta": "Dodaj prednastavitev",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "S tem boste trenutno povezane ponudnike/modele, ki se ujemajo s to predlogo, zajeli v kombinacijo, ki jo je mogoče urejati.",
     "duplicateAutoComboFailedPrefix": "Podvajanje samodejne kombinacije ni uspelo:",
     "duplicateAutoComboUnknownError": "Neznana napaka",
-    "duplicateAutoComboTitle": "Ustvari statično kombinacijo iz {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ustvari statično kombinacijo iz {name}"
   },
   "costs": {
     "title": "Stroški",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Posredniškega strežnika ni bilo mogoče dodati v skupino",
     "poolSelectProxy": "Izberite posredniški strežnik…",
-    "poolSaveFailed": "Dodelitve skupini ni bilo mogoče shraniti"
+    "poolSaveFailed": "Dodelitve skupini ni bilo mogoče shraniti",
+    "poolPreferenceOrder": "Prednostni vrstni red",
+    "poolSetAsideReason": "Odloženo: {kind}",
+    "poolSetAsideUntil": "Nazaj v rotaciji {endsAt}",
+    "poolSetAsideRepeat": "Odloženo {count, plural, one {#krat} other {#krat}}",
+    "poolUnknownAddress": "Neznan naslov",
+    "poolSinceRestart": "Od zadnjega ponovnega zagona",
+    "poolSignalSetAside": "Odloži",
+    "poolSignalPosition": "Vrstni red položajev",
+    "poolHealthRankingOff": "Razvrščanje zdravja izklopljeno"
   },
   "playground": {
     "title": "Preizkusno okolje za modele",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Žetona Dahl ni bilo mogoče ustvariti",
     "providerProxy": "Posredniški strežnik",
     "providerProxyConfigureHint": "Nastavi posredniški strežnik",
-    "providerProxyTitleConfigured": "Posredniški strežnik je nastavljen: {host}"
+    "providerProxyTitleConfigured": "Posredniški strežnik je nastavljen: {host}",
+    "proxySetAside": "Proxy odložen"
   },
   "gamification": {
     "leaderboardScopes": {

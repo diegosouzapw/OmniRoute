@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Seans biriktirilishini o‘chirish",
     "sessionStickinessEnabled": "Biriktirish yoqilgan",
     "sessionStickinessDisabled": "Biriktirish o‘chirilgan",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding tayyor sozlamasi",
     "kimiPresetDescription": "Kimi K3 asosiy model sifatida (Moonshot API), sozlanganda Kimi Code ulanishlaringizga (kimi-coding, kimi-web) avtomatik zaxira o‘tish bilan.",
     "kimiPresetCta": "Tayyor sozlama qo‘shish",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Bu shablonga mos keladigan, hozir ulangan provayderlar/modellarning joriy holatini tahrirlanadigan kombinatsiya sifatida saqlaydi.",
     "duplicateAutoComboFailedPrefix": "Avtomatik kombinatsiyani nusxalab bo‘lmadi:",
     "duplicateAutoComboUnknownError": "Noma’lum xato",
-    "duplicateAutoComboTitle": "{name} asosida statik kombinatsiya yaratish",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} asosida statik kombinatsiya yaratish"
   },
   "costs": {
     "title": "Xarajatlar",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Qo‘shish",
     "poolAddFailed": "Proksini pulga qo‘shib bo‘lmadi",
     "poolSelectProxy": "Proksini tanlang…",
-    "poolSaveFailed": "Pulga biriktirishni saqlab bo‘lmadi"
+    "poolSaveFailed": "Pulga biriktirishni saqlab bo‘lmadi",
+    "poolPreferenceOrder": "Afzallik tartibi",
+    "poolSetAsideReason": "Chetga qo‘yilgan: {kind}",
+    "poolSetAsideUntil": "Rotatsiyaga qaytish {endsAt}",
+    "poolSetAsideRepeat": "Chetga qo‘yilgan {count, plural, one {# marta} other {# marta}}",
+    "poolUnknownAddress": "Noma’lum manzil",
+    "poolSinceRestart": "Oxirgi qayta ishga tushirishdan beri",
+    "poolSignalSetAside": "Chetga qo‘yish",
+    "poolSignalPosition": "Pozitsiya tartibi",
+    "poolHealthRankingOff": "Salomatlik reytingi o‘chiq"
   },
   "playground": {
     "title": "Model sinov maydoni",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl tokenini yaratib boʻlmadi",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Proksini sozlash",
-    "providerProxyTitleConfigured": "Proksi sozlangan: {host}"
+    "providerProxyTitleConfigured": "Proksi sozlangan: {host}",
+    "proxySetAside": "Proksi chetga qo‘yilgan"
   },
   "gamification": {
     "leaderboardScopes": {

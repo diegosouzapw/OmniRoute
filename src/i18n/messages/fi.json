@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Poista istuntotarttuvuus käytöstä",
     "sessionStickinessEnabled": "Tarttuvuus päällä",
     "sessionStickinessDisabled": "Tarttuvuus pois päältä",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding -esiasetus",
     "kimiPresetDescription": "Kimi K3 ensisijaisena mallina (Moonshot API), automaattisella varayhteydellä Kimi Code -yhteyksiisi (kimi-coding, kimi-web), kun ne on määritetty.",
     "kimiPresetCta": "Lisää esiasetus",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Tämä tallentaa tämän mallin mukaiset tällä hetkellä yhdistetyt tarjoajat/mallit muokattavaan yhdistelmään.",
     "duplicateAutoComboFailedPrefix": "Automaattisen yhdistelmän kaksoiskappaleen luonti epäonnistui:",
     "duplicateAutoComboUnknownError": "Tuntematon virhe",
-    "duplicateAutoComboTitle": "Luo staattinen yhdistelmä kohteesta {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Luo staattinen yhdistelmä kohteesta {name}"
   },
   "costs": {
     "title": "Kustannukset",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Lisää",
     "poolAddFailed": "Proxyn lisääminen pooliin epäonnistui",
     "poolSelectProxy": "Valitse proxy…",
-    "poolSaveFailed": "Poolimäärityksen tallentaminen epäonnistui"
+    "poolSaveFailed": "Poolimäärityksen tallentaminen epäonnistui",
+    "poolPreferenceOrder": "Ensisijaisuusjärjestys",
+    "poolSetAsideReason": "Syrjään: {kind}",
+    "poolSetAsideUntil": "Takaisin kierrossa {endsAt}",
+    "poolSetAsideRepeat": "Syrjään {count, plural, one {# kerran} other {# kertaa}}",
+    "poolUnknownAddress": "Tuntematon osoite",
+    "poolSinceRestart": "Viimeisimmän uudelleenkäynnistyksen jälkeen",
+    "poolSignalSetAside": "Laita syrjään",
+    "poolSignalPosition": "Sijaintijärjestys",
+    "poolHealthRankingOff": "Terveysjärjestys pois päältä"
   },
   "playground": {
     "title": "Title",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl-tokenin luominen epäonnistui",
     "providerProxy": "Välimuisti",
     "providerProxyConfigureHint": "Määritä välityspalvelin",
-    "providerProxyTitleConfigured": "Proxy on määritetty: {host}"
+    "providerProxyTitleConfigured": "Proxy on määritetty: {host}",
+    "proxySetAside": "Välityspalvelin syrjässä"
   },
   "gamification": {
     "leaderboardScopes": {

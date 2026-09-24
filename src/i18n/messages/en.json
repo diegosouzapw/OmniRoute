@@ -11047,7 +11047,16 @@
     "poolAddMember": "Add",
     "poolAddFailed": "Failed to add the proxy to the pool",
     "poolSelectProxy": "Select a proxy…",
-    "poolSaveFailed": "Failed to save pool assignment"
+    "poolSaveFailed": "Failed to save pool assignment",
+    "poolPreferenceOrder": "Preference order",
+    "poolSetAsideReason": "Set aside: {kind}",
+    "poolSetAsideUntil": "Back in rotation {endsAt}",
+    "poolSetAsideRepeat": "Set aside {count, plural, one {# time} other {# times}}",
+    "poolUnknownAddress": "Unknown address",
+    "poolSinceRestart": "Since the last restart",
+    "poolSignalSetAside": "Set aside",
+    "poolSignalPosition": "Position order",
+    "poolHealthRankingOff": "Health ranking off"
   },
   "playground": {
     "title": "Model Playground",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Failed to create Dahl token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configure proxy",
-    "providerProxyTitleConfigured": "Proxy configured: {host}"
+    "providerProxyTitleConfigured": "Proxy configured: {host}",
+    "proxySetAside": "Proxy set aside"
   },
   "gamification": {
     "leaderboardScopes": {

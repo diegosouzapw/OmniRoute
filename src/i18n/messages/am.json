@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "የክፍለ ጊዜ ተጣባቂነትን አሰናክል",
     "sessionStickinessEnabled": "ተጣባቂነት በርቷል",
     "sessionStickinessDisabled": "ተጣባቂነት ጠፍቷል",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "የKimi Coding ቅድመ-ቅንብር",
     "kimiPresetDescription": "Kimi K3 እንደ ዋና ሞዴል (Moonshot API)፣ ሲዋቀሩ ደግሞ ወደ Kimi Code ግንኙነቶችዎ (kimi-coding, kimi-web) በራስ-ሰር የሚቀየር ምትኬ ያለው።",
     "kimiPresetCta": "ቅድመ-ቅንብር አክል",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ይህ ከዚህ አብነት ጋር የሚዛመዱትን በአሁኑ ጊዜ የተገናኙ አቅራቢዎች/ሞዴሎች ቅጽበታዊ ቅጂ ወደሚስተካከል ጥምረት ይቀይራል።",
     "duplicateAutoComboFailedPrefix": "ራስ-ሰር ጥምረቱን ማባዛት አልተሳካም፦",
     "duplicateAutoComboUnknownError": "ያልታወቀ ስህተት",
-    "duplicateAutoComboTitle": "ከ{name} የማይለወጥ ጥምረት ፍጠር",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "ከ{name} የማይለወጥ ጥምረት ፍጠር"
   },
   "costs": {
     "title": "ወጪዎች",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "ጨምር",
     "poolAddFailed": "ፕሮክሲውን ወደ ፑሉ ማከል አልተሳካም",
     "poolSelectProxy": "ፕሮክሲ ይምረጡ…",
-    "poolSaveFailed": "የፑል ምደባውን ማስቀመጥ አልተሳካም"
+    "poolSaveFailed": "የፑል ምደባውን ማስቀመጥ አልተሳካም",
+    "poolPreferenceOrder": "የምርጫ ቅደም ተከተል",
+    "poolSetAsideReason": "ወደ ጎን ተቀምጧል: {kind}",
+    "poolSetAsideUntil": "ወደ ሽክርክር ተመልሷል {endsAt}",
+    "poolSetAsideRepeat": "ወደ ጎን ተቀምጧል {count, plural, one {# ጊዜ} other {# ጊዜ}}",
+    "poolUnknownAddress": "ያልታወቀ አድራሻ",
+    "poolSinceRestart": "ከመጨረሻው እንደገና ማስጀመር ጀምሮ",
+    "poolSignalSetAside": "ወደ ጎን አስቀምጥ",
+    "poolSignalPosition": "የአቀማመጥ ቅደም ተከተል",
+    "poolHealthRankingOff": "የጤና ደረጃ አሰጣጥ ጠፍቷል"
   },
   "playground": {
     "title": "የሞዴል መሞከሪያ",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "የDahl ቶከን መፍጠር አልተሳካም",
     "providerProxy": "ፕሮክሲ",
     "providerProxyConfigureHint": "ፕሮክሲ አዋቅር",
-    "providerProxyTitleConfigured": "ፕሮክሲ ተዋቅሯል፦ {host}"
+    "providerProxyTitleConfigured": "ፕሮክሲ ተዋቅሯል፦ {host}",
+    "proxySetAside": "ፕሮክሲ ወደ ጎን ተቀምጧል"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Keela seansi püsivus",
     "sessionStickinessEnabled": "Püsivus sees",
     "sessionStickinessDisabled": "Püsivus väljas",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding eelseadistus",
     "kimiPresetDescription": "Kimi K3 põhimudelina (Moonshot API) koos automaatse ümberlülitumisega teie Kimi Code ühendustele (kimi-coding, kimi-web), kui need on seadistatud.",
     "kimiPresetCta": "Lisa eelseadistus",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "See salvestab hetkel ühendatud ja sellele mallile vastavad teenusepakkujad/mudelid redigeeritavasse kombinatsiooni.",
     "duplicateAutoComboFailedPrefix": "Automaatse kombinatsiooni dubleerimine ebaõnnestus:",
     "duplicateAutoComboUnknownError": "Tundmatu viga",
-    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon"
   },
   "costs": {
     "title": "Kulud",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Lisa",
     "poolAddFailed": "Puhverserveri lisamine kogumisse ebaõnnestus",
     "poolSelectProxy": "Vali puhverserver…",
-    "poolSaveFailed": "Kogumi määrangu salvestamine ebaõnnestus"
+    "poolSaveFailed": "Kogumi määrangu salvestamine ebaõnnestus",
+    "poolPreferenceOrder": "Eelistusjärjekord",
+    "poolSetAsideReason": "Kõrvale pandud: {kind}",
+    "poolSetAsideUntil": "Tagasi rotatsioonis {endsAt}",
+    "poolSetAsideRepeat": "Kõrvale pandud {count, plural, one {# kord} other {# korda}}",
+    "poolUnknownAddress": "Tundmatu aadress",
+    "poolSinceRestart": "Viimasest taaskäivitusest",
+    "poolSignalSetAside": "Pane kõrvale",
+    "poolSignalPosition": "Positsioonijärjekord",
+    "poolHealthRankingOff": "Tervise järjestus väljas"
   },
   "playground": {
     "title": "Mudelite testkeskkond",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl-tokeni loomine ebaõnnestus",
     "providerProxy": "Puhverserver",
     "providerProxyConfigureHint": "Seadista puhverserver",
-    "providerProxyTitleConfigured": "Puhverserver on seadistatud: {host}"
+    "providerProxyTitleConfigured": "Puhverserver on seadistatud: {host}",
+    "proxySetAside": "Puhverserver kõrvale pandud"
   },
   "gamification": {
     "leaderboardScopes": {

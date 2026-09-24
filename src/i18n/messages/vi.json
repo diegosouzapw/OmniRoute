@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Tắt tính năng liên kết phiên",
     "sessionStickinessEnabled": "Bật liên kết phiên",
     "sessionStickinessDisabled": "Tắt liên kết phiên",
+    "stickyLimitEffective": "Hiệu lực {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "mặc định combo",
+    "stickyLimitSourceGlobal": "mặc định toàn cục",
+    "connectionAwareExpansion": "Mở rộng theo tài khoản",
+    "triStateInherit": "kế thừa",
+    "connectionAwareExpansionOn": "Bật",
+    "connectionAwareExpansionOff": "Tắt",
+    "promptCacheAffinityHint": "Định tuyến theo cache prompt được ưu tiên hơn round-robin/weighted giữa các tài khoản đã ghim. Tắt trong Settings → Combo defaults nếu cần xoay vòng nghiêm ngặt.",
     "kimiPresetTitle": "Cấu hình sẵn Kimi Coding",
     "kimiPresetDescription": "Kimi K3 làm model chính (Moonshot API), với khả năng tự động chuyển sang các kết nối Kimi Code dự phòng của bạn (kimi-coding, kimi-web) khi được cấu hình.",
     "kimiPresetCta": "Thêm cấu hình sẵn",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Điều này sẽ chụp lại các nhà cung cấp/mô hình đang kết nối hiện tại phù hợp với mẫu này vào một tổ hợp có thể chỉnh sửa.",
     "duplicateAutoComboFailedPrefix": "Không thể sao chép tổ hợp tự động:",
     "duplicateAutoComboUnknownError": "Lỗi không xác định",
-    "duplicateAutoComboTitle": "Tạo tổ hợp tĩnh từ {name}",
-    "stickyLimitEffective": "Hiệu lực {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "mặc định combo",
-    "stickyLimitSourceGlobal": "mặc định toàn cục",
-    "connectionAwareExpansion": "Mở rộng theo tài khoản",
-    "triStateInherit": "kế thừa",
-    "connectionAwareExpansionOn": "Bật",
-    "connectionAwareExpansionOff": "Tắt",
-    "promptCacheAffinityHint": "Định tuyến theo cache prompt được ưu tiên hơn round-robin/weighted giữa các tài khoản đã ghim. Tắt trong Settings → Combo defaults nếu cần xoay vòng nghiêm ngặt."
+    "duplicateAutoComboTitle": "Tạo tổ hợp tĩnh từ {name}"
   },
   "costs": {
     "title": "Chi phí",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "Thêm",
     "poolAddFailed": "Không thể thêm proxy vào nhóm",
     "poolSelectProxy": "Chọn một proxy…",
-    "poolSaveFailed": "Không thể lưu mục gán nhóm proxy"
+    "poolSaveFailed": "Không thể lưu mục gán nhóm proxy",
+    "poolPreferenceOrder": "Thứ tự ưu tiên",
+    "poolSetAsideReason": "Tạm ngưng: {kind}",
+    "poolSetAsideUntil": "Trở lại {endsAt}",
+    "poolSetAsideRepeat": "Đã tạm ngưng {count} lần",
+    "poolUnknownAddress": "Địa chỉ không xác định",
+    "poolSinceRestart": "Kể từ lần khởi động gần nhất",
+    "poolSignalSetAside": "Tạm ngưng",
+    "poolSignalPosition": "Thứ tự vị trí",
+    "poolHealthRankingOff": "Xếp hạng tình trạng tắt"
   },
   "playground": {
     "title": "Khu thử nghiệm mô hình",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Không thể tạo token Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Cấu hình proxy",
-    "providerProxyTitleConfigured": "Đã cấu hình proxy: {host}"
+    "providerProxyTitleConfigured": "Đã cấu hình proxy: {host}",
+    "proxySetAside": "Proxy tạm ngưng"
   },
   "gamification": {
     "leaderboardScopes": {

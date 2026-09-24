@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ಸೆಷನ್ ಸ್ಥಿರತೆಯನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
     "sessionStickinessEnabled": "ಸ್ಥಿರತೆ ಆನ್",
     "sessionStickinessDisabled": "ಸ್ಥಿರತೆ ಆಫ್",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ಪೂರ್ವನಿಗದಿ",
     "kimiPresetDescription": "Kimi K3 ಅನ್ನು ಪ್ರಾಥಮಿಕ ಮಾಡೆಲ್ ಆಗಿ (Moonshot API) ಬಳಸಲಾಗುತ್ತದೆ; ಕಾನ್ಫಿಗರ್ ಮಾಡಿದಾಗ ನಿಮ್ಮ Kimi Code ಸಂಪರ್ಕಗಳಿಗೆ (kimi-coding, kimi-web) ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಫಾಲ್ಬ್ಯಾಕ್ ಆಗುತ್ತದೆ.",
     "kimiPresetCta": "ಪೂರ್ವನಿಗದಿಯನ್ನು ಸೇರಿಸಿ",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ಈ ಟೆಂಪ್ಲೇಟ್ಗೆ ಹೊಂದಿಕೆಯಾಗುವ ಪ್ರಸ್ತುತ ಸಂಪರ್ಕಿತ ಪೂರೈಕೆದಾರರು/ಮಾಡೆಲ್ಗಳ ಸ್ನ್ಯಾಪ್ಶಾಟ್ ತೆಗೆದು, ಅದನ್ನು ಸಂಪಾದಿಸಬಹುದಾದ ಕಾಂಬೊ ಆಗಿ ರಚಿಸಲಾಗುತ್ತದೆ.",
     "duplicateAutoComboFailedPrefix": "ಸ್ವಯಂ-ಕಾಂಬೊವನ್ನು ನಕಲಿಸಲು ವಿಫಲವಾಗಿದೆ:",
     "duplicateAutoComboUnknownError": "ಅಜ್ಞಾತ ದೋಷ",
-    "duplicateAutoComboTitle": "{name} ನಿಂದ ಸ್ಥಿರ ಕಾಂಬೊವನ್ನು ರಚಿಸಿ",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} ನಿಂದ ಸ್ಥಿರ ಕಾಂಬೊವನ್ನು ರಚಿಸಿ"
   },
   "costs": {
     "title": "ವೆಚ್ಚಗಳು",
@@ -11047,7 +11047,16 @@
     "poolAddMember": "ಸೇರಿಸಿ",
     "poolAddFailed": "ಪೂಲ್ಗೆ ಪ್ರಾಕ್ಸಿಯನ್ನು ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ",
     "poolSelectProxy": "ಪ್ರಾಕ್ಸಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ…",
-    "poolSaveFailed": "ಪೂಲ್ ನಿಯೋಜನೆಯನ್ನು ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ"
+    "poolSaveFailed": "ಪೂಲ್ ನಿಯೋಜನೆಯನ್ನು ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
+    "poolPreferenceOrder": "ಆದ್ಯತಾ ಕ್ರಮ",
+    "poolSetAsideReason": "ಪಕ್ಕಕ್ಕೆ ಇರಿಸಲಾಗಿದೆ: {kind}",
+    "poolSetAsideUntil": "ತಿರುಗುವಿಕೆಗೆ ಹಿಂತಿರುಗಿ {endsAt}",
+    "poolSetAsideRepeat": "ಪಕ್ಕಕ್ಕೆ ಇರಿಸಲಾಗಿದೆ {count, plural, one {# ಬಾರಿ} other {# ಬಾರಿ}}",
+    "poolUnknownAddress": "ಅಜ್ಞಾತ ವಿಳಾಸ",
+    "poolSinceRestart": "ಕೊನೆಯ ಪುನರಾರಂಭದಿಂದ",
+    "poolSignalSetAside": "ಪಕ್ಕಕ್ಕೆ ಇರಿಸಿ",
+    "poolSignalPosition": "ಸ್ಥಾನ ಕ್ರಮ",
+    "poolHealthRankingOff": "ಆರೋಗ್ಯ ಶ್ರೇಯಾಂಕ ಆಫ್"
   },
   "playground": {
     "title": "ಮಾದರಿ ಪ್ರಯೋಗಾಂಗಣ",
@@ -12790,7 +12799,8 @@
     "createDahlTokenFailed": "Dahl ಟೋಕನ್ ರಚಿಸಲು ವಿಫಲವಾಗಿದೆ",
     "providerProxy": "ಪ್ರಾಕ್ಸಿ",
     "providerProxyConfigureHint": "ಪ್ರಾಕ್ಸಿಯನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡಿ",
-    "providerProxyTitleConfigured": "ಪ್ರಾಕ್ಸಿ ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾಗಿದೆ: {host}"
+    "providerProxyTitleConfigured": "ಪ್ರಾಕ್ಸಿ ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾಗಿದೆ: {host}",
+    "proxySetAside": "ಪ್ರಾಕ್ಸಿ ಪಕ್ಕಕ್ಕೆ ಇರಿಸಲಾಗಿದೆ"
   },
   "gamification": {
     "leaderboardScopes": {
