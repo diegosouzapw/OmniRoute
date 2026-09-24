@@ -522,7 +522,7 @@
     "src/lib/tailscaleTunnel.ts": 1208,
     "src/lib/tokenHealthCheck.ts": 1254,
     "src/shared/components/RequestLoggerV2.tsx": 1748,
-    "src/shared/constants/providers/apikey/gateways.ts": 1535,
+    "src/shared/constants/providers/apikey/gateways.ts": 1554,
     "src/shared/services/cliRuntime.ts": 1296,
     "src/sse/handlers/chat.ts": 2560,
     "src/sse/services/auth.ts": 3592,
