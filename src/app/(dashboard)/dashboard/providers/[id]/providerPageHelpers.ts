@@ -265,7 +265,7 @@ export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "azure-openai": "https://example-resource.openai.azure.com",
   "azure-ai": "https://example-resource.services.ai.azure.com/openai/v1",
   "bailian-coding-plan": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
-  "xiaomi-mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
+  "xiaomi-mimo": "https://api.xiaomimimo.com/v1",
   siliconflow: "https://api.siliconflow.com/v1",
   "searxng-search": "http://localhost:8888/search",
   firecrawl: "https://api.firecrawl.dev",
