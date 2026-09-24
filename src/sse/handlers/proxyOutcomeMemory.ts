@@ -1,6 +1,7 @@
 import { isEgressBucketedLockScope } from "@omniroute/open-sse/config/providerErrorRules.ts";
 import {
   hasProxyRefusals,
+  hasTransportCrossEvidence,
   noteProxyRecovered,
   noteProxyRefusal,
   noteProxyServed,
@@ -39,4 +40,28 @@ export function noteProxyOutcome(
   const key = proxyEgressKey(proxyInfo?.proxy);
   if (inRefusalScope) noteProxyServed(key);
   else noteProxyRecovered(key, "proxy_unreachable");
+}
+
+/**
+ * Decide a tagged final transport failure (errorCode "proxy_unreachable" on the
+ * thrown sanitized error). Opt-in: only with PROXY_SKIP_RECENTLY_FAILED on,
+ * and only with cross-evidence (repeated tagged failures through this egress
+ * plus a real success to the same destination through a different egress),
+ * does the member get set aside under the "transport" kind. A null key (direct
+ * egress, edge relay), a single-member pool, or missing evidence writes
+ * nothing. The failure itself must already be recorded via
+ * recordTransportFailure before calling; a retried-then-recovered attempt is
+ * never recorded, so only final failures count.
+ */
+export function noteTransportOutcome(args: {
+  key: string | null;
+  destination: string | null;
+  poolSize?: number;
+  nowMs?: number;
+}): void {
+  const { key, destination, poolSize, nowMs = Date.now() } = args;
+  if (key === null) return;
+  if (typeof poolSize === "number" && poolSize <= 1) return;
+  if (!isProxySkipRecentlyFailedEnabled()) return;
+  if (hasTransportCrossEvidence(key, destination, nowMs)) noteProxyRefusal(key, "transport", nowMs);
 }
