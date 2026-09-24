@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **快取命中的成本語意：**語意快取命中時（`X-OmniRoute-Cache-Hit: true`），不會進行上游呼叫，因此 `X-OmniRoute-Response-Cost` 為 `0.0000000000`（提供該命中結果的**增量**成本）。原始成本／若未命中原本會產生的成本會另外記錄於 `X-OmniRoute-Cost-Saved`。帳務處理端應加總 `X-OmniRoute-Response-Cost`（快取命中不產生成本）；快取分析則可彙總 `X-OmniRoute-Cost-Saved`。
 
-## 獨佔受管理工作階段租約
+## 獨佔式託管會話租賃
 
-獨佔受管理工作階段租用是一種選擇加入、與用戶端無關的路由合約：一個作用中的擁有者持有一個符合資格的 OmniRoute 連線。它不會租用模型、不要求 OAuth、不識別特定用戶端，也不要求特定提供者。
+獨佔式託管會話租賃是一種選擇加入、客戶端中立的路由合約：一個活躍的所有者持有一個符合條件的 OmniRoute 連線。它不租賃模型、不要求 OAuth、不識別特定客戶端，也不要求特定提供者。
 
-用於驗證的 API 金鑰必須具有 `lease:exclusive` 權限範圍，以及明確且非空的 `allowedConnections` 清單。資料庫異動邊界會在建立金鑰和部分更新時，同時強制執行這兩個欄位的要求。
+用於身份驗證的 API 金鑰必須具有 `lease:exclusive` 範圍和一個明確的非空 `allowedConnections` 列表。資料庫變更邊界在金鑰建立和部分更新時會同時強制執行這兩個欄位。
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-成功的取得、續約和釋放回應會公開時間戳記、`state` 和確切的正整數 `generation`，但絕不會公開所選連線或憑證。續約和釋放會在 JSON 主體中提供 generation：
+成功的取得、續約和釋放回應會公開時間戳記、`state` 和確切的正 `generation`，但絕不會公開所選的連線或憑證。續約和釋放會在 JSON 主體中提供 `generation`：
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-作用中的租約擁有者可以明確要求其目前繫結的隱私安全顯示中繼資料：
+活躍的租賃所有者可以明確請求其當前綁定的隱私安全顯示元資料：
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-這項選擇加入的狀態動作，會在單一資料庫交易中受到不透明的擁有者、已驗證的受管理 API 金鑰，以及確切作用中 generation 的防護。`displayName` 僅為經修整的已設定連線名稱；若不存在安全的已設定名稱，則為 `null`。OmniRoute 絕不會以電子郵件或產生的帳戶身分取代它。提供者值是非敏感的顯示標籤，絕不會是產生的相容提供者識別碼。憑證、權杖、Cookie、原始連線或 API 金鑰 ID、擁有者雜湊、防護機密及內部路由資料均不包含在內。
+此選擇加入的狀態操作由不透明的所有者、經過身份驗證的託管 API 金鑰以及資料庫交易中確切的活躍世代進行圍欄。`displayName` 僅是修剪過的配置連線名稱；當沒有安全的配置名稱時，它為 `null`。OmniRoute 絕不會替換電子郵件或生成的帳戶身份。提供者值是一個非敏感的顯示標籤，絕不是生成的相容提供者識別碼。憑證、令牌、cookie、原始連線或 API 金鑰 ID、所有者雜湊、圍欄密鑰和內部路由資料均被排除。
 
-使用錯誤金鑰、錯誤擁有者、過時 generation，或查詢不存在、已過期、已釋放及已失效的租約，都會傳回相同的 `409 LEASE_FENCE_STALE` 錯誤，且不含連線中繼資料。收到容量等待回應的用戶端沒有可供檢查的作用中繫結。當路由轉換作用中的租約時，相同的 generation 仍然有效，而狀態會以不可分割方式傳回新繫結，絕不傳回舊繫結。現有用戶端維持不變，因為取得、續約、釋放及等待回應會保留先前的格式。
+錯誤金鑰、錯誤所有者、過時世代、遺失、過期、已釋放和已失效的查詢都會返回相同的 `409 LEASE_FENCE_STALE` 錯誤，且不帶連線元資料。收到容量等待回應的客戶端沒有可檢查的活躍綁定。當路由轉換活躍租賃時，相同的世代仍然有效，並且狀態會原子性地返回新的綁定，而不是舊的。現有客戶端保持不變，因為取得、續約、釋放和等待回應保留了其先前的形狀。
 
-此伺服器合約不會變更原版 OpenAI Codex `/status`。原版 Codex 目前會回報其模型提供者以及內建的驗證／帳戶狀態，但不會呈現任意自訂提供者的帳戶中繼資料；未來的用戶端整合必須呼叫此動作，並決定如何顯示 `connection.displayName`。
+此伺服器合約不會改變標準 OpenAI Codex `/status`。標準 Codex 目前報告其模型提供者和內建的身份驗證/帳戶狀態，但不會呈現任意自訂提供者帳戶元資料；後續的客戶端整合必須呼叫此操作並決定如何顯示 `connection.displayName`。
 
-之後，每個受管理的推論請求都會提供這兩個控制標頭：
+每個託管推斷請求隨後都會提供兩個控制標頭：
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-在每次受支援的上游嘗試之前，系統會立即防護確切的擁有者、generation、作用中連線及已驗證的 API 金鑰。即使另一個金鑰允許相同連線，使用該金鑰重播擁有者和 generation 仍會失敗。原始擁有者資訊不會被持久儲存、記錄、保留於請求快照中，或轉送至上游。
+確切的所有者、世代、活躍連線和經過身份驗證的 API 金鑰在每次支援的上游嘗試之前都會立即進行圍欄。即使另一個金鑰允許相同的連線，使用該金鑰重播所有者和世代也會失敗。原始所有者不會被持久化、記錄、保留在請求快照中或轉發到上游。
 
-暫時性競用會傳回 HTTP `429`、`Retry-After`，以及：
+暫時性爭用會返回帶有 `Retry-After` 的 HTTP `429` 和：
 
 ```json
 {
@@ -157,27 +157,29 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-此回應僅表示一般的符合資格集合不是空的，而且每個可用候選項目都由其他擁有者的作用中租約持有。不受支援的模型／提供者、原則不符、冷卻期、配額、健康狀態，以及其他一般資格判定失敗，會保留其現有的 OmniRoute 回應。
+此回應僅表示普通的合格集合非空，並且每個空閒候選者都被外部活躍租賃持有。不支援的模型/提供者、策略不匹配、冷卻、配額、健康狀況以及其他普通的資格失敗會保留其現有的 OmniRoute 回應。
 
 ### `x-omniroute-compression`
 
-逐一請求覆寫壓縮計畫。優先順序最高——高於路由組合覆寫、作用中設定檔、自動觸發條件，以及面板的「預設」設定。值：
+每個請求的壓縮計畫覆寫。最高優先級 — 優於路由組合覆寫、活躍設定檔、自動觸發和面板預設值。值：
 
-| 值            | 效果                                                   |
-| ------------- | ------------------------------------------------------ |
-| `off`         | 此請求不進行壓縮。                                     |
-| `default`     | 面板衍生的「預設」設定檔（忽略作用中設定檔）。         |
-| `engine:<id>` | 啟用時使用單一引擎，例如 `engine:rtk`。                |
-| `<combo>`     | 具名組合，先依名稱比對（不區分大小寫），再依 ID 比對。 |
+| 值            | 效果                                                                |
+| ------------- | ------------------------------------------------------------------- |
+| `off`         | 此請求不進行壓縮。                                                  |
+| `default`     | 面板派生的預設設定檔（忽略活躍設定檔）。有損引擎保持關閉。          |
+| `safe`        | 僅進行重複資料刪除和空白字元摺疊。                                  |
+| `allow-lossy` | 保留此請求的操作員計畫，包括摘要和樣式重寫。                        |
+| `engine:<id>` | 啟用時的單一引擎，例如 `engine:rtk`。針對該引擎的每個請求選擇加入。 |
+| `<combo>`     | 具名組合，首先按名稱（不區分大小寫）匹配，然後按 ID 匹配。          |
 
-注意：
+備註：
 
-- 未知值會被忽略（絕不會拒絕請求）；解析會回退至正常的運算子優先順序。
-- 如果多個組合共用同一名稱，請傳遞組合的 **id** 以確保比對結果可預測。
-- 名稱為 `off` 或 `default` 的組合無法依名稱選取（系統會先解譯這些關鍵字）；請透過其 ID 參照此類組合。
-- 壓縮總開關是硬性閘門：全域停用壓縮時，此標頭無法啟用壓縮。
+- 未知值會被忽略（請求絕不會被拒絕）；解析會依循正常的運算子優先順序。
+- 如果多個組合共用一個名稱，請傳遞組合的 **ID** 以進行確定性匹配。
+- 名稱為 `off` 或 `default` 的組合不能按名稱選擇（這些關鍵字會優先解釋）；請透過其 ID 引用此類組合。
+- 主壓縮開關是一個硬性門檻：當全域禁用壓縮時，此標頭無法啟用它。
 
-套用的計畫會在回應標頭中回傳：
+應用計畫會在回應標頭中回傳：
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
@@ -1123,7 +1125,7 @@ Content-Type: application/json
 }
 ```
 
-> **結構描述說明** (`setBudgetSchema`)：`apiKeyId` 為必填；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少一項必須大於零。選填欄位：`warningThreshold`（0–1）、`resetInterval`（`daily` | `weekly` | `monthly`）、`resetTime`（`HH:MM`）。舊版的 `{keyId, limit, period}` 格式會傳回 `400 Bad Request`。
+> **Schema notes** (`setBudgetSchema`): `apiKeyId` 為必填；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少一個必須大於零。選填欄位：`warningThreshold` (0–1)、`resetInterval` (`daily` | `weekly` | `monthly`)、`resetTime` (`HH:MM`)。舊版 `{keyId, limit, period}` 格式會回傳 `400 Bad Request`。
 
 ## Token 限制
 

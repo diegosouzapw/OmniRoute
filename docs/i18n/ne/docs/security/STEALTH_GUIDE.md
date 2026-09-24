@@ -220,17 +220,17 @@ env मार्फत प्रत्येक प्रदायकका ल�
 
 ## User-Agent ओभरराइडहरू — env vars (`.env.example` खण्ड 12)
 
-| चर                       | पूर्वनिर्धारित                                                  |
+| भेरिएबल                  | पूर्वनिर्धारित                                                  |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-डायनामिक लुकअपमार्फत `open-sse/executors/base.ts::buildHeaders()` द्वारा प्रयोग गरिन्छ। **प्रदायकहरूले नयाँ CLI संस्करण जारी गर्दा यिनलाई अद्यावधिक गर्नुहोस्** — पुराना UA स्ट्रिङहरूलाई पुराना क्लाइन्टका रूपमा अस्वीकार गर्न थालिन्छ।
+डायनामिक लुकअपमार्फत `open-sse/executors/base.ts::buildHeaders()` द्वारा प्रयोग गरिन्छ। **प्रदायकहरूले नयाँ CLI संस्करणहरू जारी गर्दा यिनलाई अद्यावधिक गर्नुहोस्** — पुराना UA स्ट्रिङहरूलाई म्याद गुज्रिएका क्लाइन्टका रूपमा अस्वीकार गर्न थालिन्छ।
 
 ## CLI अनुकूलता मोड टगलहरू (`.env.example` खण्ड 13)
 

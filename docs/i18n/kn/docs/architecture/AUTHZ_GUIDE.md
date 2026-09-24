@@ -5,9 +5,9 @@
 ---
 
 > **ಸತ್ಯದ ಮೂಲ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **ಕೊನೆಯದಾಗಿ ನವೀಕರಿಸಿದ್ದು:** 2026-06-28 — v3.8.40
+> **ಕೊನೆಯದಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ:** 2026-09-22 — ಸ್ಕೋಪ್ ನೇಮ್ಸ್ಪೇಸ್ಗಳು MCP-SERVER.md ಅನ್ನು ಸೂಚಿಸುತ್ತವೆ
 
-OmniRoute ಪ್ರತಿ API ವಿನಂತಿಯನ್ನೂ ನಿಯಂತ್ರಿಸುವ, ರೂಟ್-ಅರಿವುಳ್ಳ ಅಧಿಕಾರ ನಿರ್ಣಯ ಪೈಪ್ಲೈನ್ ಅನ್ನು ಹೊಂದಿದೆ. ವರ್ಗೀಕರಣವು **ನಿರ್ಣಾಯಕ** ಮತ್ತು **ವಿಫಲವಾದಾಗ-ಮುಚ್ಚುವ** ಸ್ವರೂಪದ್ದಾಗಿದೆ — ವರ್ಗೀಕರಿಸಲಾಗದ ಯಾವುದೂ ಅಂತಿಮವಾಗಿ `MANAGEMENT` ಆಗಿ ಪರಿಗಣಿಸಲ್ಪಟ್ಟು, ಸೆಷನ್ ಅಥವಾ ನಿರ್ವಹಣಾ-ದರ್ಜೆಯ ಟೋಕನ್ ಅನ್ನು ಕಡ್ಡಾಯಗೊಳಿಸುತ್ತದೆ. ರೂಟ್ಗಳನ್ನು ನಿರ್ವಹಿಸುವ ಅಥವಾ ಹೊಸ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳನ್ನು ವಿನ್ಯಾಸಗೊಳಿಸುವ ಎಂಜಿನಿಯರ್ಗಳಿಗಾಗಿ ಈ ಪುಟವು ಮಾದರಿಯನ್ನು ವಿವರಿಸುತ್ತದೆ.
+ಓಮ್ನಿರೂಟ್ ಪ್ರತಿ API ವಿನಂತಿಯನ್ನು ನಿಯಂತ್ರಿಸುವ ರೂಟ್-ಅರಿವಿನ ದೃಢೀಕರಣ ಪೈಪ್ಲೈನ್ ಅನ್ನು ಹೊಂದಿದೆ. ವರ್ಗೀಕರಣವು **ನಿರ್ಣಾಯಕ** ಮತ್ತು **ಫೇಲ್-ಕ್ಲೋಸ್ಡ್** ಆಗಿದೆ — ವರ್ಗೀಕರಿಸಲಾಗದ ಯಾವುದೇ ವಿಷಯವು `MANAGEMENT` ಆಗಿ ಕೊನೆಗೊಳ್ಳುತ್ತದೆ ಮತ್ತು ಸೆಷನ್ ಅಥವಾ ಮ್ಯಾನೇಜ್ಮೆಂಟ್-ಗ್ರೇಡ್ ಟೋಕನ್ ಅನ್ನು ಬೇಡುತ್ತದೆ. ಈ ಪುಟವು ರೂಟ್ಗಳನ್ನು ನಿರ್ವಹಿಸುವ ಅಥವಾ ಹೊಸ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳನ್ನು ವಿನ್ಯಾಸಗೊಳಿಸುವ ಎಂಜಿನಿಯರ್ಗಳಿಗೆ ಮಾದರಿಯನ್ನು ವಿವರಿಸುತ್ತದೆ.
 
 ![AuthZ ಪೈಪ್ಲೈನ್ (3 ರೂಟ್ ವರ್ಗಗಳು + ನೀತಿ ಮೌಲ್ಯಮಾಪನ)](../diagrams/exported/authz-pipeline.svg)
 
@@ -200,25 +200,35 @@ export async function POST(request: Request) {
 
 ## ಸ್ಕೋಪ್ಗಳು
 
-API ಕೀಗಳು `scopes` ಅರೆ ಅನ್ನು ಹೊಂದಿರುತ್ತವೆ (`api_keys.scopes` ನಲ್ಲಿ JSON ಆಗಿ ಸಂಗ್ರಹಿಸಲಾಗಿದೆ, `src/lib/db/apiKeys.ts` ನೋಡಿ).
+ಮೂರು ನೇಮ್ಸ್ಪೇಸ್ಗಳು. ಪ್ರತಿ ಚೆಕರ್ ತನ್ನದೇ ಆದ ಸ್ಟ್ರಿಂಗ್ಗಳನ್ನು ಮಾತ್ರ ಓದುತ್ತದೆ. ಪಕ್ಕಪಕ್ಕದಲ್ಲಿ,
+`read:compression` ಗಾಗಿ `manage` ಏಕೆ `scopeMatches` ಅನ್ನು ವಿಫಲಗೊಳಿಸುತ್ತದೆ ಮತ್ತು `read` ಪ್ರವೇಶ ಟೋಕನ್ ಏಕೆ `PATCH /api/keys/{id}` ಅನ್ನು ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ ಎಂಬುದನ್ನು ಒಳಗೊಂಡಂತೆ,
+[ಮೂರು ಸ್ಕೋಪ್ ನೇಮ್ಸ್ಪೇಸ್ಗಳು](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+API ಕೀಗಳು `scopes` ಅರೇ ಅನ್ನು ಹೊಂದಿರುತ್ತವೆ (`api_keys.scopes` ನಲ್ಲಿ JSON ಆಗಿ ಸಂಗ್ರಹಿಸಲಾಗಿದೆ, `src/lib/db/apiKeys.ts` ನೋಡಿ).
 
 ### ನಿರ್ವಹಣಾ ಸ್ಕೋಪ್
 
-- `manage` / `admin` — Bearer ಆಗಿ ಕಳುಹಿಸಿದಾಗ ನಿರ್ವಹಣಾ API ಎಂಡ್ಪಾಯಿಂಟ್ಗಳಿಗೆ ಕೀಗೆ ಪ್ರವೇಶವನ್ನು ನೀಡುತ್ತದೆ.
+- `manage` / `admin` — `hasManageScope`. ನಿರ್ವಹಣಾ API ಮಾರ್ಗಗಳಿಗೆ ಬೇರರ್ ಪ್ರವೇಶ.
+- `mcp:connect`, `self:usage`, `self:account-quota`, ಮತ್ತು
+  `policy:bypass-provider-quota` ಇವುಗಳು ಸಂಯೋಜಕ ನಿಖರ-ಹೊಂದಾಣಿಕೆಯ ಸ್ಕೋಪ್ಗಳು. ಅವು
+  `MANAGEMENT_API_KEY_SCOPES` ಹೊರಗಿವೆ. `mcp:connect` ಕೇವಲ
+  `/api/mcp/` ನಾನ್-ಲೂಪ್ಬ್ಯಾಕ್ ಕಾರ್ವ್-ಔಟ್ ಅನ್ನು ತೆರೆಯುತ್ತದೆ.
 
-### MCP ಸ್ಕೋಪ್ಗಳು (`src/shared/constants/mcpScopes.ts`)
+### MCP ಟೂಲ್ ಸ್ಕೋಪ್ಗಳು
 
-ಪ್ರತಿಯೊಂದು MCP ಪರಿಕರಕ್ಕೂ `MCP_TOOL_SCOPES` ಮೂಲಕ ನಿರ್ದಿಷ್ಟ ಸ್ಕೋಪ್ಗಳು ಅಗತ್ಯವಿರುತ್ತವೆ. ಸಂಪೂರ್ಣ ಪಟ್ಟಿ (`MCP_SCOPE_LIST`):
+ಕ್ಯಾಟಲಾಗ್ ಮತ್ತು ಹೊಂದಾಣಿಕೆಯ ನಿಯಮಗಳು (ಒಂದೇ ಸ್ಟ್ರಿಂಗ್, ಅಥವಾ `*` ನಲ್ಲಿ ಕೊನೆಗೊಳ್ಳುವ ಅನುಮತಿಸಲಾದ ಸ್ಕೋಪ್):
+[MCP ಟೂಲ್ ಸ್ಕೋಪ್ಗಳು](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`src/shared/constants/mcpScopes.ts` ನಲ್ಲಿರುವ `MCP_SCOPE_LIST` ಮೂಲ ಟೈಪ್ ಮಾಡಿದ
+ಉಪವಿಭಾಗವಾಗಿದೆ, ಆ ಪೂರ್ಣ ಕ್ಯಾಟಲಾಗ್ ಅಲ್ಲ. ಜಾರಿಗೊಳಿಸುವಿಕೆಯು
+`open-sse/mcp-server/scopeEnforcement.ts` ನಲ್ಲಿ `resolveCallerScopeContext()`
+MCP ದೃಢೀಕರಣ ಮಾಹಿತಿ, ವಿನಂತಿ ಮೆಟಾಡೇಟಾ, ಅಥವಾ `OMNIROUTE_MCP_SCOPES` ನಿಂದ ಸ್ಕೋಪ್ಗಳನ್ನು ಪರಿಹರಿಸಿದ ನಂತರ ನಡೆಯುತ್ತದೆ.
+`OMNIROUTE_MCP_ENFORCE_SCOPES=true` ಆಗುವವರೆಗೆ ಇದು ಆಫ್ ಆಗಿರುತ್ತದೆ.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### ಪ್ರವೇಶ-ಟೋಕನ್ ಸ್ಕೋಪ್ಗಳು
 
-`open-sse/mcp-server/server.ts` ನಲ್ಲಿನ ಸ್ಕೋಪ್ ಜಾರಿಗೊಳಿಸುವಿಕೆಯು, `resolveCallerScopeContext()` MCP ದೃಢೀಕರಣ ಮಾಹಿತಿ, ವಿನಂತಿಯ ಮೆಟಾಡೇಟಾ ಅಥವಾ `OMNIROUTE_MCP_SCOPES` ನಿಂದ ಸ್ಕೋಪ್ಗಳನ್ನು ನಿರ್ಧರಿಸಿದ ನಂತರ, ಪ್ರತಿ ಪರಿಕರದ ಸ್ಕೋಪ್ ಪಟ್ಟಿಯನ್ನು
-`evaluateToolScopes()` ಗೆ ರವಾನಿಸುತ್ತದೆ.
+`oma_live_…` ಟೋಕನ್ಗಳಲ್ಲಿ `read` / `write` / `admin`, `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) ಮೂಲಕ ಶ್ರೇಣೀಕರಿಸಲಾಗಿದೆ. ಈ ಶ್ರೇಣಿಯು ಪ್ರವೇಶ-ಟೋಕನ್
+ಪ್ರಮಾಣಪತ್ರಕ್ಕೆ ಮಾತ್ರ ಅನ್ವಯಿಸುತ್ತದೆ. [ನಿರ್ವಹಣಾ ದೃಢೀಕರಣ](../guides/MANAGEMENT-AUTH.md) ನೋಡಿ.
 
 ## ದೃಢೀಕರಣ ಅಗತ್ಯವಿರುವುದೇ ಎಂಬ ಟಾಗಲ್
 
@@ -264,9 +274,9 @@ x-omniroute-auth-scopes:    ಅಲ್ಪವಿರಾಮದಿಂದ-ಬೇರ್
 
 ಹ್ಯಾಂಡ್ಲರ್ಗಳ ಒಳಗೆ `assertAuth(req, expectedClass)` ಬಳಸಿ — ಮಿಡಲ್ವೇರ್ ಅನ್ನು ಬದಿಗೊತ್ತಿದ್ದರೆ, ಇದು `AUTHZ_NOT_INITIALIZED` ಕೋಡ್ನೊಂದಿಗೆ `AuthzAssertionError` ಅನ್ನು ಎಸೆಯುತ್ತದೆ (ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಕಾನ್ಫಿಗರೇಶನ್ ರಿಗ್ರೆಷನ್ಗಳನ್ನು ಪತ್ತೆಹಚ್ಚಲು ಸಹಾಯಕವಾಗಿದೆ).
 
-## ಇದನ್ನೂ ನೋಡಿ
+## ಸಹ ನೋಡಿ
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — ಪ್ರತಿ ಎಂಡ್ಪಾಯಿಂಟ್ಗೆ ದೃಢೀಕರಣ ಮಾರ್ಕರ್
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — ದೃಢೀಕರಣ ಘಟನೆಗಳಿಗಾಗಿ ಆಡಿಟ್ ಲಾಗ್
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP ಸ್ಕೋಪ್ ಜಾರಿಯ ವಿವರಗಳು
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ಮೂರು ಸ್ಕೋಪ್ ನೇಮ್ಸ್ಪೇಸ್ಗಳು ಮತ್ತು MCP ಟೂಲ್-ಸ್ಕೋಪ್ ಕ್ಯಾಟಲಾಗ್
 - ಮೂಲ: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

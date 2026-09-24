@@ -828,11 +828,6 @@
       "count": 2
     }
   },
-  "src/app/(dashboard)/dashboard/onboarding/page.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/playground/components/tabs/CompareTab.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1354,11 +1349,6 @@
   "src/lib/cli-helper/config-generator/hermes.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "src/lib/cli-helper/config-generator/index.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "src/lib/cli-helper/config-generator/kilocode.ts": {
@@ -3413,11 +3403,6 @@
   "tests/unit/copilot-free-quota-not-inverted.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
-    }
-  },
-  "tests/unit/correctness/goldenSnapshot.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/unit/cursor-agent-session.test.ts": {

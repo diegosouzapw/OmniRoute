@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Omkostningssemantik for cache-hit:** Ved et HIT i den semantiske cache (`X-OmniRoute-Cache-Hit: true`) foretages der intet upstream-kald, så `X-OmniRoute-Response-Cost` er `0.0000000000` (den **inkrementelle** omkostning ved at levere cache-hittet). Den oprindelige/forventede omkostning rapporteres separat i `X-OmniRoute-Cost-Saved`. Faktureringssystemer bør summere `X-OmniRoute-Response-Cost` (cache-hits koster intet); cacheanalyse kan aggregere `X-OmniRoute-Cost-Saved`.
 
-## Eksklusive administrerede sessionslejemål
+## Eksklusive administrerede sessions-leases
 
-Eksklusiv leasing af administrerede sessioner er en valgfri, klientneutral routingkontrakt: Én aktiv ejer
-besidder én kvalificeret OmniRoute-forbindelse. Den udlejer ikke en model, kræver ikke OAuth, identificerer
-ikke en bestemt klient og kræver ikke en bestemt udbyder.
+Eksklusiv leasing af administrerede sessioner er en valgfri, klientneutral routingkontrakt: Én aktiv ejer har én kvalificeret OmniRoute-forbindelse. Den leaser ikke en model, kræver ikke OAuth, identificerer ikke en bestemt klient og kræver ikke en bestemt udbyder.
 
-Den API-nøgle, der bruges til godkendelse, skal have rettigheden `lease:exclusive` og en eksplicit ikke-tom
-`allowedConnections`-liste. Databasens mutationsgrænse håndhæver begge felter samlet ved oprettelse af nøgler
-og delvise opdateringer.
+Den API-nøgle, der bruges til godkendelse, skal have rettigheden `lease:exclusive` og en eksplicit, ikke-tom `allowedConnections`-liste. Databasens mutationsgrænse håndhæver begge felter samlet ved oprettelse af nøgler og delvise opdateringer.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Vellykkede svar på hentning, fornyelse og frigivelse viser tidsstempler, `state` og den nøjagtige positive
-`generation`, men aldrig den valgte forbindelse eller legitimationsoplysninger. Ved fornyelse og frigivelse
-angives generationen i JSON-indholdet:
+Vellykkede svar på erhvervelse, fornyelse og frigivelse indeholder tidsstempler, `state` og den nøjagtige positive `generation`, men aldrig den valgte forbindelse eller legitimationsoplysninger. Ved fornyelse og frigivelse angives generationen i JSON-indholdet:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ angives generationen i JSON-indholdet:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-En aktiv lejemålsejer kan eksplicit anmode om privatlivssikre visningsmetadata for sin aktuelle tilknytning:
+En aktiv lease-ejer kan eksplicit anmode om visningsmetadata, der beskytter privatlivet, for sin aktuelle binding:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,23 +131,11 @@ En aktiv lejemålsejer kan eksplicit anmode om privatlivssikre visningsmetadata 
 }
 ```
 
-Denne valgfrie statushandling afgrænses af den uigennemsigtige ejer, den godkendte administrerede API-nøgle og den
-nøjagtige aktive generation i én databasetransaktion. `displayName` er kun det beskårne konfigurerede
-forbindelsesnavn; det er `null`, når der ikke findes et sikkert konfigureret navn. OmniRoute erstatter det aldrig med en
-e-mailadresse eller en genereret kontoidentitet. Udbyderværdien er en ikke-følsom visningsetiket og aldrig
-en genereret identifikator for en kompatibel udbyder. Legitimationsoplysninger, tokens, cookies, rå id'er for forbindelser eller
-API-nøgler, ejerhashes, afgrænsningshemmeligheder og interne routingdata er udeladt.
+Denne valgfrie statushandling afgrænses af den uigennemsigtige ejer, den godkendte administrerede API-nøgle og den nøjagtige aktive generation i én databasetransaktion. `displayName` er kun det beskårne, konfigurerede forbindelsesnavn; værdien er `null`, når der ikke findes et sikkert konfigureret navn. OmniRoute erstatter aldrig værdien med en e-mailadresse eller genereret kontoidentitet. Udbyderværdien er en ikke-følsom visningsetiket og aldrig en genereret identifikator for en kompatibel udbyder. Legitimationsoplysninger, tokens, cookies, rå forbindelses- eller API-nøgle-id'er, ejerhashes, afgrænsningshemmeligheder og interne routingdata er udeladt.
 
-Opslag med forkert nøgle, forkert ejer, forældet generation, manglende, udløbet, frigivet eller ugyldiggjort lejemål
-returnerer alle den samme `409 LEASE_FENCE_STALE`-fejl uden forbindelsesmetadata. En klient, der modtog svaret om kapacitetsventetid, har ingen aktiv tilknytning at inspicere. Når routing flytter et aktivt lejemål,
-forbliver den samme generation gyldig, og status returnerer atomisk den nye tilknytning, aldrig den gamle.
-Eksisterende klienter forbliver uændrede, fordi svar på hentning, fornyelse, frigivelse og ventetid bevarer
-deres tidligere strukturer.
+Opslag med forkert nøgle, forkert ejer, forældet generation samt manglende, udløbne, frigivne og ugyldiggjorte opslag returnerer alle den samme `409 LEASE_FENCE_STALE`-fejl uden forbindelsesmetadata. En klient, der har modtaget svaret om ventetid på kapacitet, har ingen aktiv binding at inspicere. Når routing flytter en aktiv lease, forbliver den samme generation gyldig, og status returnerer atomisk den nye binding, aldrig den gamle. Eksisterende klienter forbliver uændrede, fordi svar på erhvervelse, fornyelse, frigivelse og ventetid bevarer deres tidligere strukturer.
 
-Denne serverkontrakt ændrer ikke standardfunktionen `/status` i OpenAI Codex. Standard-Codex rapporterer i øjeblikket sin
-modeludbyder og indbyggede godkendelses-/kontostatus, men viser ikke vilkårlige brugerdefinerede
-kontometadata for udbydere. En senere klientintegration skal kalde denne handling og beslutte, hvordan
-`connection.displayName` skal vises.
+Denne serverkontrakt ændrer ikke standardimplementeringen af OpenAI Codex `/status`. Standard-Codex rapporterer i øjeblikket sin modeludbyder og indbyggede godkendelses-/kontostatus, men gengiver ikke vilkårlige kontometadata for brugerdefinerede udbydere; en senere klientintegration skal kalde denne handling og beslutte, hvordan `connection.displayName` skal vises.
 
 Hver administreret inferensanmodning angiver derefter begge kontrolheadere:
 
@@ -162,10 +144,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Den nøjagtige ejer, generation, aktive forbindelse og godkendte API-nøgle afgrænses umiddelbart
-før hvert understøttet upstream-forsøg. Genafspilning af ejer og generation med en anden nøgle mislykkes, selv
-når denne nøgle tillader den samme forbindelse. Rå ejerværdier gemmes, logføres eller opbevares ikke i
-anmodningssnapshotshottet og videresendes ikke upstream.
+Den nøjagtige ejer, generation, aktive forbindelse og godkendte API-nøgle afgrænses umiddelbart før hvert understøttet upstream-forsøg. Genafspilning af ejer og generation med en anden nøgle mislykkes, selv når denne nøgle tillader den samme forbindelse. Rå ejere gemmes ikke permanent, logges ikke, bevares ikke i anmodningssnapshotshottet og videresendes ikke upstream.
 
 Midlertidig kapacitetskonflikt returnerer HTTP `429` med `Retry-After` og:
 
@@ -178,28 +157,27 @@ Midlertidig kapacitetskonflikt returnerer HTTP `429` med `Retry-After` og:
 }
 ```
 
-Dette svar betyder kun, at det almindelige kvalificerede sæt ikke var tomt, og at alle ledige kandidater var
-besat af et fremmed aktivt lejemål. Ikke-understøttede modeller/udbydere, uoverensstemmelse med politikker, nedkøling, kvote,
-tilstand og andre almindelige kvalifikationsfejl bevarer deres eksisterende OmniRoute-svar.
+Dette svar betyder kun, at det almindelige sæt af kvalificerede forbindelser ikke var tomt, og at hver ledig kandidat var optaget af en fremmed aktiv lease. Ikke-understøttede modeller/udbydere, uoverensstemmelse med politik, nedkølingsperiode, kvote, tilstand og andre almindelige kvalificeringsfejl bevarer deres eksisterende OmniRoute-svar.
 
 ### `x-omniroute-compression`
 
-Tilsidesættelse af komprimeringsplanen pr. anmodning. Højeste prioritet — har forrang for tilsidesættelsen af routingkombinationen,
-den aktive profil, automatisk udløsning og panelets standardindstilling. Værdier:
+Tilsidesættelse af komprimeringsplanen pr. anmodning. Højeste prioritet — har forrang over tilsidesættelsen fra routingkombinationen, den aktive profil, automatisk udløsning og panelets standardindstilling. Værdier:
 
-| Værdi         | Effekt                                                                                                                |
-| ------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Ingen komprimering for denne anmodning.                                                                               |
-| `default`     | Panelets afledte standardprofil (ignorerer den aktive profil).                                                        |
-| `engine:<id>` | En enkelt motor, når den er aktiveret, f.eks. `engine:rtk`.                                                           |
-| `<combo>`     | En navngivet kombination, der først matches efter navn (uden forskel på store og små bogstaver) og derefter efter id. |
+| Værdi         | Effekt                                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Ingen komprimering for denne anmodning.                                                                                   |
+| `default`     | Standardprofilen afledt af panelet (ignorerer den aktive profil). Komprimeringsmotorer med tab forbliver slået fra.       |
+| `safe`        | Kun deduplikering og sammenfoldning af blanktegn.                                                                         |
+| `allow-lossy` | Behold operatørplanen for denne anmodning, inklusive opsummeringer og stilomskrivninger.                                  |
+| `engine:<id>` | En enkelt komprimeringsmotor, når den er aktiveret, f.eks. `engine:rtk`. Valgfri aktivering af denne motor pr. anmodning. |
+| `<combo>`     | En navngivet kombination, som først matches efter navn (uden forskel på store og små bogstaver) og derefter efter id.     |
 
 Bemærkninger:
 
-- Ukendte værdier ignoreres (anmodningen afvises aldrig); fortolkningen fortsætter med den normale prioritetsrækkefølge for operatorer.
+- Ukendte værdier ignoreres (anmodningen afvises aldrig); evalueringen fortsætter med den normale operatørprioritet.
 - Hvis flere kombinationer har samme navn, skal kombinationens **id** angives for at få et deterministisk match.
-- En kombination med navnet `off` eller `default` kan ikke vælges efter navn (disse nøgleord fortolkes først); henvis til en sådan kombination via dens id.
-- Hovedkontakten for komprimering er en ufravigelig spærring: Når komprimering er deaktiveret globalt, kan denne header ikke aktivere den.
+- En kombination med navnet `off` eller `default` kan ikke vælges efter navn (disse nøgleord fortolkes først); referér til en sådan kombination via dens id.
+- Hovedafbryderen for komprimering er en ufravigelig spærring: Når komprimering er deaktiveret globalt, kan denne header ikke aktivere den.
 
 Den anvendte plan returneres i responsheaderen:
 
@@ -207,7 +185,7 @@ Den anvendte plan returneres i responsheaderen:
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-hvor `<source>` er enten `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` eller `off`.
+hvor `<source>` er én af `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` eller `off`.
 
 ---
 

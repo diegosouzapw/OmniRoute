@@ -218,19 +218,19 @@ interface CliFingerprint {
 
 ---
 
-## Замяна на User-Agent — променливи на средата (`.env.example`, раздел 12)
+## Презаписване на User-Agent — променливи на средата (`.env.example`, раздел 12)
 
 | Променлива               | Стойност по подразбиране                                        |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-Използват се от `open-sse/executors/base.ts::buildHeaders()` чрез динамично търсене. **Актуализирайте ги, когато доставчиците издадат нови версии на CLI** — остарелите UA низове започват да бъдат отхвърляни като клиенти с остаряла версия.
+Използват се от `open-sse/executors/base.ts::buildHeaders()` чрез динамично търсене. **Актуализирайте ги, когато доставчиците пуснат нови версии на CLI** — остарелите UA низове започват да бъдат отхвърляни като неактуални клиенти.
 
 ## Превключватели за режим на съвместимост с CLI (`.env.example`, раздел 13)
 

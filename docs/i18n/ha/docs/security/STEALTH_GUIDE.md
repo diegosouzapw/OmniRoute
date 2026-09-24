@@ -239,19 +239,19 @@ Bugu da ƙari, `updateNssDatabases()` yana shigarwa cikin NSS DBs na kowane mai 
 
 Duk MITM endpoints suna buƙatar management auth (`requireCliToolsAuth`). Ana cache ɗin kalmar sirrin sudo a module scope (ba a taɓa amfani da `globalThis` ba) kuma ana share ta a `stopMitm()`.
 
-## Sauya User-Agent — masu canjin muhalli (`.env.example` sashe na 12)
+## Sauya User-Agent — env vars (`.env.example` sashe na 12)
 
-| Mai canji                | Tsoho                                                           |
+| Variable                 | Tsoho                                                           |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-`open-sse/executors/base.ts::buildHeaders()` yana amfani da su ta hanyar nema mai sauyawa. **Ƙara waɗannan idan masu samarwa suka fitar da sabbin nau'ikan CLI** — tsofaffin kirtanin UA kan fara fuskantar ƙin karɓuwa a matsayin tsofaffin abokan hulɗa.
+Ana amfani da su ta `open-sse/executors/base.ts::buildHeaders()` ta hanyar nema mai sauyawa. **A sabunta waɗannan idan masu samarwa suka fitar da sabbin nau'ikan CLI** — tsofaffin kirtanin UA kan fara fuskantar ƙin karɓuwa saboda ana ɗaukar su a matsayin tsofaffin clients.
 
 ## Maɓallan Kunna/Kashe Yanayin Dacewar CLI (`.env.example` sashe na 13)
 

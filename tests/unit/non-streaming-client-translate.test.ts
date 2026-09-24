@@ -173,6 +173,40 @@ test("reasoning replay: no-tool history comes from historyMessages, not requestB
   );
 });
 
+test("transcript-observed non-streaming replies bypass reasoning cache without changing the client reply", () => {
+  clearReasoningCacheAll();
+  const sentinel = "PRIVATE_NONSTREAM_REASONING_TRANSCRIPT_SENTINEL";
+  const observed = { videoTranscriptSensitive: true };
+  const input = baseInput({
+    provider: "deepseek",
+    model: "deepseek-v4-pro",
+    responseBody: {
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: "visible client reply",
+            reasoning_content: sentinel,
+            tool_calls: [
+              {
+                id: "call_video_nonstream",
+                type: "function",
+                function: { name: "f", arguments: "{}" },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+    },
+    ...observed,
+  });
+  const result = translateNonStreamingClientResponse(input);
+  assert.equal(result.response.choices[0].message.reasoning_content, sentinel);
+  assert.equal(lookupReasoning("call_video_nonstream"), null);
+});
+
 test("phase=final applies client usage buffer", () => {
   // Gemini format skips OpenAI/Responses sanitize, so extra usage fields
   // only disappear if applyClientUsageBuffer → filterUsageForFormat runs.

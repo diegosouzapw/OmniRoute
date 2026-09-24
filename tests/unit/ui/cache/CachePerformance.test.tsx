@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { render, screen, within } from "@testing-library/react";
 import React from "react";
-import CachePerformance from "../components/CachePerformance";
+import CachePerformance from "@/app/(dashboard)/dashboard/cache/components/CachePerformance";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
@@ -31,7 +32,9 @@ describe("CachePerformance", () => {
 
     it("renders hit rate percentage", () => {
       render(<CachePerformance {...defaultProps} />);
-      expect(screen.getByText("85.0%")).toBeInTheDocument();
+      const meter = screen.getByRole("progressbar", { name: "cachePerformanceHitRate" });
+      expect(meter).toHaveAttribute("aria-valuenow", "85");
+      expect(within(meter).getByText("85.0%")).toBeInTheDocument();
     });
 
     it("renders total requests", () => {

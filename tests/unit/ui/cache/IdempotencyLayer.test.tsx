@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { render, screen, within } from "@testing-library/react";
 import React from "react";
-import IdempotencyLayer from "../components/IdempotencyLayer";
+import IdempotencyLayer from "@/app/(dashboard)/dashboard/cache/components/IdempotencyLayer";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
@@ -20,7 +21,8 @@ describe("IdempotencyLayer", () => {
   describe("renders with data", () => {
     it("renders deduplicated request count", () => {
       render(<IdempotencyLayer {...defaultProps} />);
-      expect(screen.getByText("47")).toBeInTheDocument();
+      const metric = screen.getByText("deduplicatedRequests").parentElement!;
+      expect(within(metric).getByText("47")).toBeInTheDocument();
     });
 
     it("renders deduplication window duration", () => {
@@ -53,7 +55,8 @@ describe("IdempotencyLayer", () => {
 
     it("displays values once loading is complete", () => {
       render(<IdempotencyLayer {...defaultProps} loading={false} />);
-      expect(screen.getByText("47")).toBeInTheDocument();
+      const metric = screen.getByText("deduplicatedRequests").parentElement!;
+      expect(within(metric).getByText("47")).toBeInTheDocument();
     });
   });
 

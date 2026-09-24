@@ -1,7 +1,7 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { deleteCompletedBatches, type DeleteCompletedBatchesScope } from "@/lib/db/batches";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
+import { getApiKeyRequestScope, resolveEffectiveApiKeyId } from "@/app/api/v1/_helpers/apiKeyScope";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import * as log from "@/sse/utils/logger";
@@ -51,6 +51,12 @@ export async function DELETE(request: Request) {
   const policy = await enforceApiKeyPolicy(request, null);
   if (policy.rejection) return policy.rejection;
 
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId — fall back to the id enforceApiKeyPolicy()
+  // independently resolved, so that key sweeps its OWN completed batches
+  // instead of falling through to 401 (LEDGER-27, omni-code-sec round 3).
+  const effectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
+
   // A presented API key always scopes the sweep to that key — even when the
   // request also carries a dashboard session cookie — the same rule the list
   // siblings apply through `resolveListScope()`, so a leaked or over-shared
@@ -61,8 +67,8 @@ export async function DELETE(request: Request) {
   // fallback that silently widens the sweep.
   let sweepScope: DeleteCompletedBatchesScope;
   let mode: "instance" | "api_key";
-  if (scope.apiKeyId) {
-    sweepScope = { apiKeyId: scope.apiKeyId };
+  if (effectiveApiKeyId) {
+    sweepScope = { apiKeyId: effectiveApiKeyId };
     mode = "api_key";
   } else if (scope.isSessionAuth) {
     sweepScope = { allTenants: true };
@@ -81,7 +87,7 @@ export async function DELETE(request: Request) {
     log.error("BATCHES", "delete-completed sweep failed", {
       route: LOG_ROUTE,
       mode,
-      apiKeyId: scope.apiKeyId,
+      apiKeyId: effectiveApiKeyId,
       error: err instanceof Error ? { message: err.message, stack: err.stack } : String(err),
     });
     return NextResponse.json(buildErrorBody(500, "Failed to delete completed batches"), {
@@ -93,7 +99,7 @@ export async function DELETE(request: Request) {
   const audit = {
     route: LOG_ROUTE,
     mode,
-    apiKeyId: scope.apiKeyId,
+    apiKeyId: effectiveApiKeyId,
     deletedBatches: result.deletedBatches,
     deletedFiles: result.deletedFiles,
     hasMore: result.hasMore,

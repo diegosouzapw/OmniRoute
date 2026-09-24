@@ -86,15 +86,15 @@ Content-Type: application/json
 
 > **Kostnadssemantik vid cacheträff:** vid en TRÄFF i den semantiska cachen (`X-OmniRoute-Cache-Hit: true`) görs inget anrop till uppströmsleverantören, så `X-OmniRoute-Response-Cost` är `0.0000000000` (den **inkrementella** kostnaden för att leverera träffen). Den ursprungliga kostnaden/kostnaden som annars skulle ha uppstått rapporteras separat i `X-OmniRoute-Cost-Saved`. Faktureringssystem bör summera `X-OmniRoute-Response-Cost` (träffar kostar ingenting); cacheanalyser kan aggregera `X-OmniRoute-Cost-Saved`.
 
-## Exklusiva hanterade sessionslån
+## Exklusiva hanterade sessionsleasingavtal
 
-Exklusiv utlåning av hanterade sessioner är ett valfritt, klientneutralt routningsavtal: en aktiv ägare
-innehar en behörig OmniRoute-anslutning. Det innebär inte att en modell lånas, kräver inte OAuth,
-identifierar inte en specifik klient och kräver inte en specifik leverantör.
+Exklusiv hanterad sessionsleasing är ett frivilligt, klientneutralt routingkontrakt: en aktiv ägare
+innehar en kvalificerad OmniRoute-anslutning. Det leasar inte en modell, kräver OAuth, identifierar en
+specifik klient eller kräver en specifik leverantör.
 
-API-nyckeln som används för autentisering måste ha omfånget `lease:exclusive` och en uttrycklig,
-icke-tom lista `allowedConnections`. Databasens mutationsgräns framtvingar båda fälten tillsammans
-när nycklar skapas och vid partiella uppdateringar.
+Den autentiserande API-nyckeln måste ha scope `lease:exclusive` och en explicit icke-tom
+`allowedConnections`-lista. Databasens mutationsgräns upprätthåller båda fälten tillsammans vid nyckel-
+skapande och partiella uppdateringar.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Lyckade svar för anskaffning, förnyelse och frigöring visar tidsstämplar, `state` och det exakta
-positiva värdet för `generation`, men aldrig den valda anslutningen eller autentiseringsuppgifterna.
-Vid förnyelse och frigöring anges generationen i JSON-kroppen:
+Framgångsrika svar för förvärv, förnyelse och frigörelse exponerar tidsstämplar, `state` och den exakta positiva
+`generation`, men aldrig den valda anslutningen eller autentiseringsuppgifterna. Förnyelse och frigörelse tillhandahåller
+generationen i JSON-kroppen:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ Vid förnyelse och frigöring anges generationen i JSON-kroppen:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-En aktiv låneägare kan uttryckligen begära integritetssäkra visningsmetadata för sin aktuella bindning:
+En aktiv leasingägare kan uttryckligen begära integritetssäker visningsmetadata för sin nuvarande bindning:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,40 +137,37 @@ En aktiv låneägare kan uttryckligen begära integritetssäkra visningsmetadata
 }
 ```
 
-Den här valfria statusåtgärden skyddas av den ogenomskinliga ägaren, den autentiserade hanterade
-API-nyckeln och den exakta aktiva generationen i en enda databastransaktion. `displayName` är endast
-det trimmade konfigurerade anslutningsnamnet; det är `null` när det inte finns något säkert
-konfigurerat namn. OmniRoute ersätter det aldrig med en e-postadress eller genererad kontoidentitet.
-Leverantörsvärdet är en icke-känslig visningsetikett och aldrig en genererad identifierare för en
-kompatibel leverantör. Autentiseringsuppgifter, tokens, cookies, råa anslutnings- eller
-API-nyckel-id:n, ägarhashar, avgränsningshemligheter och interna routningsdata undantas.
+Denna frivilliga statusåtgärd är avgränsad av den opaka ägaren, autentiserad hanterad API-nyckel och exakt
+aktiv generation i en databastransaktion. `displayName` är endast det trimmade konfigurerade
+anslutningsnamnet; det är `null` när inget säkert konfigurerat namn finns. OmniRoute ersätter aldrig en
+e-postadress eller genererad kontoidentitet. Leverantörsvärdet är en icke-känslig visningsetikett och aldrig
+en genererad kompatibel-leverantörsidentifierare. Autentiseringsuppgifter, tokens, cookies, råa anslutnings- eller API-
+nyckel-ID, ägarhashar, avgränsningshemligheter och interna routingdata är exkluderade.
 
-Uppslagningar med fel nyckel, fel ägare, inaktuell generation eller en bindning som saknas, har
-upphört, har frigjorts eller har ogiltigförklarats returnerar alla samma fel `409 LEASE_FENCE_STALE`
-utan anslutningsmetadata. En klient som har fått svaret om väntan på kapacitet har ingen aktiv
-bindning att inspektera. När routningen flyttar ett aktivt lån förblir samma generation giltig och
-status returnerar atomärt den nya bindningen, aldrig den gamla. Befintliga klienter förblir
-oförändrade eftersom svaren för anskaffning, förnyelse, frigöring och väntan behåller sina tidigare
-format.
+Felaktig nyckel, felaktig ägare, föråldrad generation, saknade, utgångna, frigivna och ogiltigförklarade uppslagningar
+returnerar alla samma `409 LEASE_FENCE_STALE`-fel utan anslutningsmetadata. En klient som fick kapacitetsväntesvaret har ingen aktiv bindning att inspektera. När routing övergår en aktiv leasing,
+förblir samma generation giltig och status returnerar atomärt den nya bindningen, aldrig den gamla.
+Befintliga klienter förblir oförändrade eftersom förvärv, förnyelse, frigörelse och väntande svar behåller
+sina tidigare former.
 
-Det här serveravtalet ändrar inte vanliga OpenAI Codex `/status`. Vanliga Codex rapporterar för
-närvarande sin modellleverantör och sitt inbyggda autentiserings-/kontotillstånd, men återger inte
-godtyckliga kontometadata för anpassade leverantörer. En framtida klientintegration måste anropa
-den här åtgärden och avgöra hur `connection.displayName` ska visas.
+Detta serverkontrakt ändrar inte standard OpenAI Codex `/status`. Standard Codex rapporterar för närvarande sin
+modellleverantör och inbyggda autentiserings-/kontostatus men återger inte godtycklig anpassad
+leverantörskontometadata; en senare klientintegration måste anropa denna åtgärd och bestämma hur man
+visar `connection.displayName`.
 
-Varje hanterad inferensbegäran skickar därefter båda kontrollhuvudena:
+Varje hanterad inferensförfrågan tillhandahåller sedan båda kontrollhuvudena:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Den exakta ägaren, generationen, aktiva anslutningen och autentiserade API-nyckeln avgränsas
-omedelbart före varje uppströmsförsök som stöds. Återanvändning av ägare och generation med en annan
-nyckel misslyckas även när den nyckeln tillåter samma anslutning. Råa ägarvärden sparas inte,
-loggas inte, behålls inte i ögonblicksbilden av begäran och vidarebefordras inte uppströms.
+Den exakta ägaren, generationen, aktiva anslutningen och autentiserade API-nyckeln avgränsas omedelbart
+före varje stödd uppströmsförsök. Att spela upp ägare och generation med en annan nyckel misslyckas även
+när den nyckeln tillåter samma anslutning. Råa ägare sparas inte, loggas, behålls i
+förfrågningsögonblicksbilden eller vidarebefordras uppströms.
 
-Tillfällig konkurrens om resurser returnerar HTTP `429` med `Retry-After` och:
+Tillfällig konkurrens returnerar HTTP `429` med `Retry-After` och:
 
 ```json
 {
@@ -181,29 +178,28 @@ Tillfällig konkurrens om resurser returnerar HTTP `429` med `Retry-After` och:
 }
 ```
 
-Det här svaret innebär endast att den ordinarie uppsättningen behöriga anslutningar inte var tom och
-att varje ledig kandidat innehades av ett främmande aktivt lån. Modeller/leverantörer som inte stöds,
-policyavvikelser, väntetid, kvot, hälsa och andra vanliga behörighetsfel behåller sina befintliga
-OmniRoute-svar.
+Detta svar betyder endast att den vanliga kvalificerade uppsättningen var icke-tom och varje ledig kandidat hölls av en främmande aktiv leasing. Ej stödda modeller/leverantörer, policyavvikelser, nedkylning, kvot, hälsa och andra vanliga kvalificeringsfel behåller sina befintliga OmniRoute-svar.
 
 ### `x-omniroute-compression`
 
-Åsidosättning av komprimeringsplanen per begäran. Högsta prioritet — åsidosätter routningskombinationens
-åsidosättning, den aktiva profilen, automatisk utlösning och panelens standardvärde. Värden:
+Åsidosättning per begäran av komprimeringsplanen. Högsta prioritet – slår routing-combo-
+åsidosättningen, den aktiva profilen, auto-trigger och panelens standard. Värden:
 
-| Värde         | Effekt                                                                                              |
-| ------------- | --------------------------------------------------------------------------------------------------- |
-| `off`         | Ingen komprimering för den här begäran.                                                             |
-| `default`     | Standardprofilen som härleds från panelen (ignorerar den aktiva profilen).                          |
-| `engine:<id>` | En enskild motor när den är aktiverad, t.ex. `engine:rtk`.                                          |
-| `<combo>`     | En namngiven kombination, som först matchas efter namn (skiftlägesokänsligt) och därefter efter id. |
+| Värde         | Effekt                                                                                                    |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| `off`         | Ingen komprimering för denna begäran.                                                                     |
+| `default`     | Den panelhärledda standardprofilen (ignorerar den aktiva profilen). Förlustfria motorer lämnas avstängda. |
+| `safe`        | Endast deduplicering och hopfällning av blanksteg.                                                        |
+| `allow-lossy` | Behåll operatörsplanen för denna begäran, inklusive sammanfattningar och stilomskrivningar.               |
+| `engine:<id>` | En enda motor när den är aktiverad, t.ex. `engine:rtk`. Frivillig per begäran för den motorn.             |
+| `<combo>`     | En namngiven kombination, matchas först efter namn (skiftlägesokänsligt), sedan efter ID.                 |
 
 Anmärkningar:
 
-- Okända värden ignoreras (begäran avvisas aldrig); matchningen fortsätter enligt den normala prioritetsordningen.
-- Om flera kombinationer har samma namn anger du kombinationens **id** för en deterministisk matchning.
-- En kombination vars namn är `off` eller `default` kan inte väljas efter namn (dessa nyckelord tolkas först); referera till en sådan kombination med dess id.
-- Huvudreglaget för komprimering är en absolut spärr: när komprimering är globalt inaktiverad kan det här huvudet inte aktivera den.
+- Okända värden ignoreras (begäran avvisas aldrig); upplösningen faller igenom till den normala operatörsprioriteten.
+- Om flera kombinationer delar ett namn, skicka kombinations-**ID** för en deterministisk matchning.
+- En kombination vars namn är `off` eller `default` kan inte väljas med namn (dessa nyckelord tolkas först); referera till en sådan kombination med dess ID.
+- Huvudkomprimeringsomkopplaren är en hård grind: när komprimering är globalt inaktiverad kan denna rubrik inte aktivera den.
 
 Den tillämpade planen återges i svarshuvudet:
 
@@ -211,7 +207,7 @@ Den tillämpade planen återges i svarshuvudet:
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-där `<source>` är något av `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` eller `off`.
+där `<source>` är en av `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` eller `off`.
 
 ---
 

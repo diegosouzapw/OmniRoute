@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **Semantika troška kod pogotka u predmemoriji (cache-hit):** kod pogotka u semantičkoj predmemoriji (`X-OmniRoute-Cache-Hit: true`) ne poziva se uzvodni (upstream) servis, pa je `X-OmniRoute-Response-Cost` jednak `0.0000000000` (**inkrementalni** trošak posluživanja pogotka). Izvorni trošak, odnosno trošak koji bi inače bio nastao, prijavljuje se posebno u `X-OmniRoute-Cost-Saved`. Sustavi za naplatu trebaju zbrajati `X-OmniRoute-Response-Cost` (pogotci ne stvaraju trošak); analitika predmemorije može agregirati `X-OmniRoute-Cost-Saved`.
 
-## Ekskluzivni upravljani zakupi sesija (Exclusive Managed Session Leases)
+## Ekskluzivni zakupi upravljanih sesija
 
-Ekskluzivno upravljano zakupljivanje sesija je ugovor za rutiranje koji se aktivira po izboru (opt-in) i neovisan je o klijentu: jedan aktivni vlasnik posjeduje jednu prihvatljivu OmniRoute vezu. On ne zakupljuje model, ne zahtijeva OAuth, ne identificira određenog klijenta niti zahtijeva određenog pružatelja usluge.
+Ekskluzivno upravljano zakupljivanje sesija je ugovorni ugovor o usmjeravanju neovisan o klijentu, koji se može uključiti: jedan aktivni vlasnik drži jednu prihvatljivu OmniRoute vezu. Ne zakupljuje model, ne zahtijeva OAuth, ne identificira određenog klijenta niti zahtijeva određenog pružatelja usluga.
 
-API ključ koji se autentificira mora imati opseg `lease:exclusive` i explicitnu, nepraznu listu `allowedConnections`. Granica mutacije baze podataka provodi oba polja zajedno prilikom kreiranja ključa i djelomičnih ažuriranja.
+Autentifikacijski API ključ mora imati opseg `lease:exclusive` i eksplicitni neprazan popis `allowedConnections`. Granica mutacije baze podataka provodi oba polja zajedno pri stvaranju ključa i djelomičnim ažuriranjima.
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Uspješni odgovori za akvizicijom (acquire), obnovom (renew) i otpuštanjem (release) izlažu vremenske oznake, `state` i točnu pozitivnu vrijednost `generation`, ali nikada odabranu vezu ili vjerodajnice. Obnova i otpuštanje isporučuju generaciju u JSON tijelu:
+Uspješni odgovori za stjecanje, obnavljanje i otpuštanje izlažu vremenske oznake, `state` i točnu pozitivnu `generation`, ali nikada odabranu vezu ili vjerodajnice. Obnavljanje i otpuštanje daju generaciju u JSON tijelu:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ Uspješni odgovori za akvizicijom (acquire), obnovom (renew) i otpuštanjem (rel
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Aktivni vlasnik zakupa može explicitno zatražiti privatnosno sigurne metapodatke prikaza za svoje trenutno vezivanje:
+Aktivni vlasnik zakupa može eksplicitno zatražiti metapodatke za prikaz sigurne privatnosti za svoje trenutno vezanje:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ Aktivni vlasnik zakupa može explicitno zatražiti privatnosno sigurne metapodat
 }
 ```
 
-Ova opt-in radnja statusa je ograđena neprozirnim vlasnikom, autentificiranim upravljanim API ključem i točnom aktivnom generacijom u jednoj transakciji baze podataka. `displayName` je samo obrezano konfigurirano ime veze; vrijednost je `null` kada ne postoji sigurno konfigurirano ime. OmniRoute nikada ne zamjenjuje e-poštu ili generirani identitet računa. Vrijednost provider je nesenzitivna oznaka za prikaz i nikada nije generirani identifikator kompatibilnog pružatelja usluge. Vjerodajnice, tokeni, kolačići, sirovi id-ovi veze ili API ključa, hashevi vlasnika, tajni podaci za ograđivanje i interni podaci rutiranja su isključeni.
+Ova akcija statusa koja se može uključiti ograđena je neprozirnim vlasnikom, autentificiranim upravljanim API ključem i točnom aktivnom generacijom u jednoj transakciji baze podataka. `displayName` je samo skraćeni konfigurirani naziv veze; `null` je kada ne postoji siguran konfigurirani naziv. OmniRoute nikada ne zamjenjuje e-poštu ili generirani identitet računa. Vrijednost pružatelja usluga je neosjetljiva oznaka prikaza i nikada generirani kompatibilni identifikator pružatelja usluga. Vjerodajnice, tokeni, kolačići, sirovi ID-ovi veze ili API ključeva, hashovi vlasnika, tajne ograde i interni podaci o usmjeravanju su isključeni.
 
-Pretrage s pogrešnim ključem, pogrešnim vlasnikom, zastarjelom generacijom, nedostajuće, istekle, otpuštene i nevažeće sve vraćaju istu grešku `409 LEASE_FENCE_STALE` bez metapodataka veze. Klijent koji je primio odgovor o čekanju kapaciteta nema aktivno vezivanje za pregled. Kada rutiranje prijeđe aktivni zakup, ista generacija ostaje važeća i status atomski vraća novo vezivanje, nikada staro. Postojeći klijenti ostaju nepromijenjeni jer akvizicija, obnova, otpuštanje i odgovori čekanja zadržavaju svoje prethodne oblike.
+Pogrešan ključ, pogrešan vlasnik, zastarjela generacija, nedostajući, istekli, otpušteni i poništeni upiti svi vraćaju istu pogrešku `409 LEASE_FENCE_STALE` bez metapodataka veze. Klijent koji je primio odgovor o čekanju kapaciteta nema aktivno vezanje za pregled. Kada usmjeravanje prebacuje aktivni zakup, ista generacija ostaje valjana i status atomski vraća novo vezanje, nikada staro. Postojeći klijenti ostaju nepromijenjeni jer odgovori za stjecanje, obnavljanje, otpuštanje i čekanje zadržavaju svoje prethodne oblike.
 
-Ovaj ugovor na razini poslužitelja ne mijenja standardni OpenAI Codex `/status`. Standardni Codex trenutno prikazuje svog pružatelja modela i ugrađeno stanje autentifikacije/računa, ali ne prikazuje arbitrarne metapodatke računa prilagođenog pružatelja usluge; kasnija integracija klijenta mora pozvati ovu radnju i odlučiti kako prikazati `connection.displayName`.
+Ovaj poslužiteljski ugovor ne mijenja standardni OpenAI Codex `/status`. Standardni Codex trenutno izvještava o svom pružatelju modela i ugrađenom stanju autentifikacije/računa, ali ne prikazuje proizvoljne prilagođene metapodatke računa pružatelja usluga; kasnija integracija klijenta mora pozvati ovu akciju i odlučiti kako prikazati `connection.displayName`.
 
-Svaki upravljani zahtjev za inferencijom tada isporučuje oba kontrolna zaglavlja:
+Svaki upravljani zahtjev za zaključivanje tada daje oba kontrolna zaglavlja:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Točan vlasnik, generacija, aktivna veza i autentificirani API ključ ograđeni su neposredno prije svakog podržanog pokušaja s uzvodnim izvorom (upstream). Ponovno slanje (replaying) vlasnika i generacije s drugim ključem ne uspijeva čak i kada taj ključ dopušta istu vezu. Sirovi vlasnici se ne pohranjuju, ne bilježe, ne zadržavaju u snimci zahtjeva niti se prosljeđuju uzvodno.
+Točan vlasnik, generacija, aktivna veza i autentificirani API ključ ograđeni su neposredno prije svakog podržanog pokušaja uzvodno. Ponovno reproduciranje vlasnika i generacije s drugim ključem ne uspijeva čak i kada taj ključ dopušta istu vezu. Sirovi vlasnici se ne pohranjuju, ne bilježe, ne zadržavaju u snimci zahtjeva niti prosljeđuju uzvodno.
 
-Privremeno natjecanje za resurse vraća HTTP `429` s `Retry-After` i:
+Privremena konkurencija vraća HTTP `429` s `Retry-After` i:
 
 ```json
 {
@@ -157,33 +157,35 @@ Privremeno natjecanje za resurse vraća HTTP `429` s `Retry-After` i:
 }
 ```
 
-Ovaj odgovor znači samo da je obični prihvatljivi skup bio nepraznog te da je svaki slobodan kandidat bio u posjedu tuđeg aktivnog zakupa. Nepodržani modeli/pružatelji usluga, nepodudaranje politike, razdoblje odgode (cooldown), kvota, zdravstveno stanje i drugi obični neuspjesi prihvatljivosti zadržavaju svoje postojeće OmniRoute odgovore.
+Ovaj odgovor znači samo da je uobičajeni prihvatljivi skup bio neprazan i da je svaki slobodni kandidat bio zauzet stranim aktivnim zakupom. Nepodržani modeli/pružatelji usluga, neusklađenost pravila, hlađenje, kvota, zdravlje i drugi uobičajeni kvarovi prihvatljivosti zadržavaju svoje postojeće OmniRoute odgovore.
 
 ### `x-omniroute-compression`
 
-Nadjačavanje plana kompresije po zahtjevu. Ima najveći prioritet — nadjačava nadjačavanje kombinacije rutiranja, aktivni profil, automatsko okidanje i Zadano (Default) na ploči. Vrijednosti:
+Nadjačavanje plana kompresije po zahtjevu. Najveći prioritet — nadjačava nadjačavanje kombinacije usmjeravanja, aktivni profil, automatsko pokretanje i zadano na ploči. Vrijednosti:
 
-| Vrijednost    | Učinak                                                                                            |
-| ------------- | ------------------------------------------------------------------------------------------------- |
-| `off`         | Nema kompresije za ovaj zahtjev.                                                                  |
-| `default`     | Zadani profil izveden iz ploče (zanemaruje aktivni profil).                                       |
-| `engine:<id>` | Jedan mehanizam kada je omogućen, npr. `engine:rtk`.                                              |
-| `<combo>`     | Imenovana kombinacija, podudarana prvo po imenu (bez razlike velikih/malih slova), zatim po id-u. |
+| Vrijednost    | Učinak                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| `off`         | Nema kompresije za ovaj zahtjev.                                                                       |
+| `default`     | Profil zadane vrijednosti izveden iz panela (zanemaruje aktivni profil). Gubitni motori su isključeni. |
+| `safe`        | Samo deduplikacija i spajanje razmaka.                                                                 |
+| `allow-lossy` | Zadržite plan operatora za ovaj zahtjev, uključujući sažetke i prepisivanje stila.                     |
+| `engine:<id>` | Jedan motor kada je omogućen, npr. `engine:rtk`. Uključivanje po zahtjevu za taj motor.                |
+| `<combo>`     | Imenovana kombinacija, prvo se podudara po imenu (neovisno o velikim i malim slovima), zatim po ID-u.  |
 
-Napomene:
+Bilješke:
 
-- Nepoznate vrijednosti se zanemaruju (zahtjev se nikada ne odbija); razrješenje se vraća na normalni prioritet operatora.
-- Ako više kombinacija ima isto ime, proslijedite **id** kombinacije za determinističko podudaranje.
-- Kombinacija čije je ime `off` ili `default` ne može se odabrati po imenu (te ključne riječi se prvo interpretiraju); na takvu kombinaciju treba se referirati putem njenog id-a.
-- Glavna sklopka kompresije predstavlja tvrdu barijeru: kada je kompresija globalno onemogućena, ovo zaglavlje ne može je omogućiti.
+- Nepoznate vrijednosti se zanemaruju (zahtjev se nikada ne odbija); razlučivanje se nastavlja na uobičajeni prioritet operatora.
+- Ako više kombinacija dijeli ime, proslijedite **ID** kombinacije za determinističko podudaranje.
+- Kombinacija čije je ime `off` ili `default` ne može se odabrati po imenu (te se ključne riječi prvo interpretiraju); referencirajte takvu kombinaciju po njenom ID-u.
+- Glavni prekidač kompresije je tvrda prepreka: kada je kompresija globalno onemogućena, ovo zaglavlje je ne može omogućiti.
 
-Primijenjeni plan se odražava natrag u zaglavlju odgovora:
+Primijenjeni plan se vraća u zaglavlju odgovora:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-gdje je `<source>` jedan od `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, ili `off`.
+gdje je `<source>` jedan od `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ili `off`.
 
 ---
 

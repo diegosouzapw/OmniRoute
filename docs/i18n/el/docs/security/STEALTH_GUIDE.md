@@ -218,19 +218,19 @@ interface CliFingerprint {
 
 ---
 
-## Παρακάμψεις User-Agent — μεταβλητές περιβάλλοντος (`.env.example` ενότητα 12)
+## Παρακάμψεις User-Agent — μεταβλητές περιβάλλοντος (ενότητα 12 του `.env.example`)
 
 | Μεταβλητή                | Προεπιλογή                                                      |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-Χρησιμοποιούνται από το `open-sse/executors/base.ts::buildHeaders()` μέσω δυναμικής αναζήτησης. **Αυξάνετε αυτές τις εκδόσεις όταν οι πάροχοι κυκλοφορούν νέες εκδόσεις CLI** — οι παρωχημένες συμβολοσειρές UA αρχίζουν να απορρίπτονται ως μη ενημερωμένοι πελάτες.
+Χρησιμοποιούνται από τη `open-sse/executors/base.ts::buildHeaders()` μέσω δυναμικής αναζήτησης. **Ενημερώνετέ τα όταν οι πάροχοι κυκλοφορούν νέες εκδόσεις CLI** — οι παρωχημένες συμβολοσειρές UA αρχίζουν να απορρίπτονται ως μη ενημερωμένοι πελάτες.
 
 ## Διακόπτες λειτουργίας συμβατότητας CLI (`.env.example` ενότητα 13)
 

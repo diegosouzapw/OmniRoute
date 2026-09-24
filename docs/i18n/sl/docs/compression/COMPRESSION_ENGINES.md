@@ -9,43 +9,43 @@ Stiskanje v OmniRoute temelji na pogodbah pogonov. Način lahko neposredno izvaj
 
 ## Načini
 
-| Način        | Pot pogona                              | Predvideni vhod                                        |
-| ------------ | --------------------------------------- | ------------------------------------------------------ |
-| `off`        | brez                                    | Natančna ohranitev poziva                              |
-| `lite`       | Lahka pomožna orodja Caveman            | Vedno vklopljeno čiščenje z nizkim tveganjem           |
-| `standard`   | Caveman                                 | Strnjevanje pozivov v naravnem jeziku                  |
-| `aggressive` | Caveman + povzemalniki zgodovine/orodij | Dolge seje klepeta                                     |
-| `ultra`      | Caveman + pomožna orodja za obrezovanje | Obnova ob doseženi omejitvi konteksta                  |
-| `rtk`        | RTK                                     | Izhod terminala, lupine, gradnje, testov in git        |
-| `omniglyph`  | OmniGlyph                               | Kontekst kot slika na izvornem kanalu ponudnika        |
-| `stacked`    | Cevovod, privzeto `rtk -> caveman`      | Mešani dnevniki orodij in besedilo, največji prihranki |
+| Način        | Pot motorja                                                                        | Predviden vnos                                       |
+| ------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `off`        | noben                                                                              | Natančno ohranjanje poziva                           |
+| `lite`       | Caveman lite pomočniki                                                             | Nizko tveganje, vedno vklopljeno čiščenje            |
+| `standard`   | Caveman                                                                            | Kondenzacija poziva v naravnem jeziku                |
+| `aggressive` | Caveman + povzemalci zgodovine/orodij                                              | Dolge klepetalne seje                                |
+| `ultra`      | Caveman + pomočniki za obrezovanje                                                 | Obnovitev omejitve konteksta                         |
+| `rtk`        | RTK                                                                                | Izhod terminala, lupine, gradnje, testiranja in gita |
+| `omniglyph`  | OmniGlyph                                                                          | Kontekst kot slika na žici izvornega ponudnika       |
+| `stacked`    | Cevovod. Privzeta zahteva je `session-dedup -> lite`. `rtk -> caveman` je izbirno. | Mešani dnevniki orodij in proza, največji prihranki  |
 
 ### Profili stiskanja OmniGlyph
 
-Pogon `omniglyph` (paket `omniglyph`, 1.4.0+) sprejema poimenovan semantični profil, nastavljen
-globalno prek `omniglyph.profile` v nastavitvah stiskanja ali za posamezni korak prek konfiguracije
-koraka skladovnega cevovoda:
+Motor `omniglyph` (paket `omniglyph`, 1.4.0+) sprejema poimenovan semantični profil, nastavljen
+globalno preko `omniglyph.profile` v nastavitvah stiskanja ali na korak preko
+konfiguracije koraka zložene cevi:
 
-| Profil        | Meja                                                                                                                           |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `aggressive`  | Privzeto. Pravilnik, uporabljen pri objavljenih meritvah — kot slike obravnava sistem, dokumentacijo orodij in gosto zgodovino |
-| `balanced`    | Ohrani aktivno stanje v izvorni obliki, zaščiti zadnjih 8 izmenjav in strne starejšo zaključeno zgodovino                      |
-| `coding-safe` | Ohrani pooblastila, sheme orodij in aktivni izhod orodij v izvorni obliki ter zaščiti zadnjih 12 izmenjav                      |
-| `passthrough` | Usmerja brez preoblikovanja; pogon je preskočen                                                                                |
+| Profil        | Meja                                                                                                             |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Privzeto. Politika, ki so jo merili objavljeni računi — slikovni sistem, dokumentacija orodij in gosta zgodovina |
+| `balanced`    | Ohranja živo stanje izvorno, ščiti zadnjih 8 obratov, strne starejšo zaprto zgodovino                            |
+| `coding-safe` | Ohranja avtoriteto, sheme orodij in izhod orodij izvorno, ščiti zadnjih 12 obratov                               |
+| `passthrough` | Usmerja brez transformacije; motor je preskočen                                                                  |
 
 Profil je **zgornja meja, ne spodnja**: `mergeCompressionProfileOptions` v paketu
-prepreči, da bi preglasitev klicatelja znova odprla izgubni kanal, ki ga je profil zaprl, zato nastavitev
-`preserveSystemPrompt: false` za posamezni korak ne more znova omogočiti stiskanja sistemskega poziva pri profilu `coding-safe`.
+zavrne, da bi klicatelj preglasil in ponovno odprl izgubno pot, ki jo je profil zaprl, tako da per-step
+`preserveSystemPrompt: false` ne more ponovno omogočiti sistemskega stiskanja pod `coding-safe`.
 
-Merjeno na tej kodni zbirki: `coding-safe` in `balanced` zvišata `minCompressChars` na njegovo
-najvišjo vrednost ter ohranita sistem, sheme orodij in rezultate orodij v izvorni obliki, zato se seja, v kateri
-se zgodovina še ni nakopičila, ustavi pri `below_min_chars`, pogon pa ne preoblikuje ničesar. Zato je
-privzeti profil `aggressive` in ne najvarnejši profil.
+Merjeno na tej kodi: `coding-safe` in `balanced` dvigneta `minCompressChars` na svoj
+maksimum in ohranjata sistem, sheme orodij in rezultate orodij izvorne, tako da se seja, ki še ni
+nabrala zgodovine, ustavi pri `below_min_chars` in motor ne transformira ničesar. Zato
+je privzeto `aggressive` namesto najvarnejšega profila.
 
-Paket določi lasten obseg modelov in profil iz svoje okoljske konfiguracije.
-OmniRoute odločitve nikoli ne prenese nanj: vmesnik omeji vrata modelov na najstrožji obseg paketa,
-zato lahko nastavitve gostiteljskega okolja seznam dovoljenih možnosti le zožijo, nikoli pa ga ne morejo
-razširiti prek obsega, potrjenega z meritvami OmniRoute.
+Paket razreši svoj lastni obseg modela in profil iz svoje okoljske konfiguracije.
+OmniRoute nikoli ne delegira odločitve: adapter pripne modelna vrata na najbolj restriktiven obseg paketa,
+tako da lahko nastavitve gostiteljskega okolja le zožijo seznam dovoljenih, nikoli
+ga ne razširijo preko merjenih računov OmniRoute.
 
 ## Register mehanizmov
 
@@ -386,9 +386,9 @@ predpomnilnik občutljive predpone itd.).
   `engineBreakdown` — ni ga mogoče razlikovati od preskočenega koraka. Razlikovanje med
   »izvedeno, 0 %« in »preskočeno« bi zahtevalo spremembo modela razčlenitve in je odloženo.
 
-## Preverjanje
+## Validacija
 
-Ciljno usmerjena preverjanja za to področje so:
+Osredotočena vrata za to področje so:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

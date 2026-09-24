@@ -247,14 +247,14 @@ Alle MITM-Endpunkte erfordern eine Verwaltungs-Authentifizierung (`requireCliToo
 | Variable                 | Standardwert                                                    |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
-Wird von `open-sse/executors/base.ts::buildHeaders()` über dynamische Suche verwendet. **Aktualisieren Sie diese Werte, wenn Anbieter neue CLI-Versionen veröffentlichen** — veraltete UA-Zeichenfolgen werden zunehmend als nicht mehr aktuelle Clients abgelehnt.
+Wird von `open-sse/executors/base.ts::buildHeaders()` über eine dynamische Suche verwendet. **Aktualisieren Sie diese Werte, wenn Anbieter neue CLI-Versionen veröffentlichen** — veraltete UA-Zeichenfolgen werden zunehmend mit der Begründung abgelehnt, dass die Clients nicht mehr aktuell sind.
 
 ## Umschalter für den CLI-Kompatibilitätsmodus (`.env.example` Abschnitt 13)
 

@@ -62,14 +62,17 @@ docker run -d \
 ## Docker Compose
 
 ```bash
-# Base profile (walang mga CLI tool)
+# Batayang profile (walang mga CLI tool)
 docker compose --profile base up -d
 
-# CLI profile (naka-built-in ang Claude Code, Codex, OpenClaw)
+# CLI profile (built-in ang Claude Code, Codex, OpenClaw)
 docker compose --profile cli up -d
 
-# Host profile (pangunahing para sa Linux; mina-mount nang read-only ang mga host CLI binary)
+# Host profile (pangunahing para sa Linux; mina-mount ang mga CLI binary ng host bilang read-only)
 docker compose --profile host up -d
+
+# Web profile (Chromium/Playwright para sa mga provider ng web session)
+docker compose --profile web up -d
 
 # Pagsamahin ang CLI + CLIProxyAPI sidecar
 docker compose --profile cli --profile cliproxyapi up -d
@@ -77,14 +80,15 @@ docker compose --profile cli --profile cliproxyapi up -d
 
 ## Mga Available na Profile
 
-May kasamang apat na Compose profile ang OmniRoute. Piliin ang tumutugma sa iyong environment.
+May kasamang mga Compose profile ang OmniRoute para sa mga pangunahing uri ng deployment. Piliin ang tumutugma sa iyong environment.
 
-| Profile          | Service          | Kailan gagamitin                                                                                                                                                                        | Command                                      |
-| ---------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (default) | `omniroute-base` | Headless server / minimal na runtime, walang kasamang provider CLI                                                                                                                      | `docker compose --profile base up -d`        |
-| `cli`            | `omniroute-cli`  | Mga agentic workflow na tumatawag sa `omniroute providers/setup/doctor` at mga kasamang CLI (Codex, Claude Code, Droid, OpenClaw)                                                       | `docker compose --profile cli up -d`         |
-| `host`           | `omniroute-host` | Mga Linux host na gustong magkaroon ng access na tulad ng `network_mode` sa mga host CLI sa pamamagitan ng pag-mount ng `~/.local/bin`, `~/.codex`, `~/.claude`, atbp. bilang read-only | `docker compose --profile host up -d`        |
-| `cliproxyapi`    | `cliproxyapi`    | Patakbuhin ang [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sidecar sa port `8317` para sa upstream na pag-proxy ng CLI                                                  | `docker compose --profile cliproxyapi up -d` |
+| Profile          | Serbisyo         | Kailan gagamitin                                                                                                                                                                  | Command                                      |
+| ---------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (default) | `omniroute-base` | Headless server / minimal na runtime, walang kasamang mga provider CLI                                                                                                            | `docker compose --profile base up -d`        |
+| `cli`            | `omniroute-cli`  | Mga agentic workflow na tumatawag sa `omniroute providers/setup/doctor` at mga kasamang CLI (Codex, Claude Code, Droid, OpenClaw)                                                 | `docker compose --profile cli up -d`         |
+| `host`           | `omniroute-host` | Mga Linux host na nangangailangan ng access na tulad ng `network_mode` sa mga host CLI sa pamamagitan ng read-only na pag-mount sa `~/.local/bin`, `~/.codex`, `~/.claude`, atbp. | `docker compose --profile host up -d`        |
+| `cliproxyapi`    | `cliproxyapi`    | Patakbuhin ang [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sidecar sa port `8317` para sa upstream na CLI proxying                                                | `docker compose --profile cliproxyapi up -d` |
+| `web`            | `omniroute-web`  | Mga web-session provider na nangangailangan ng browser: `gemini-web`, `claude-web`, `claude-turnstile` (bumubuo ng `runner-web`, kasama ang Chromium)                             | `docker compose --profile web up -d`         |
 
 > Maaaring pagsamahin ang maraming profile: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -233,50 +237,52 @@ Tumatakbo ang prod stack nang parallel sa dev compose (magkakaiba ang mga pangal
 
 ## Mga Stage ng Dockerfile
 
-Naglalaman ang repository ng multi-stage na Dockerfile (`Dockerfile`). Tatlong stage ang inilalantad; piliin ang tamang `target` para sa iyong use case.
+May kasamang multi-stage na Dockerfile (`Dockerfile`) ang repository. Apat na stage ang available; piliin ang tamang `target` para sa iyong use case.
 
-| Stage         | Base image            | Layunin                                                                                                                                                                                 |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Ini-install ang mga dependency (`npm ci --legacy-peer-deps`) at pinapatakbo ang `npm run build` (Turbopack bilang default — tingnan ang Mga resource sa build-time sa ibaba)            |
-| `runner-base` | `node:26-trixie-slim` | Production runtime na may standalone output ng Next.js. **Walang kasamang mga provider CLI.**                                                                                           |
-| `runner-cli`  | `runner-base`         | Idinaragdag ang `git`, `docker.io`, `docker-compose` at mga global CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Piliin ito para sa mga agentic workflow.** |
+| Stage         | Base image            | Layunin                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Ini-install ang mga dependency (`npm ci --legacy-peer-deps`) at pinapatakbo ang `npm run build` (Turbopack bilang default — tingnan ang Mga resource sa build-time sa ibaba)                                                                                                                                                                                            |
+| `runner-base` | `node:26-trixie-slim` | Production runtime na may standalone output ng Next.js. **Walang kasamang mga CLI ng provider.**                                                                                                                                                                                                                                                                        |
+| `runner-cli`  | `runner-base`         | Idinaragdag ang `git`, `docker.io`, `docker-compose` at mga global CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Piliin ito para sa mga agentic workflow.**                                                                                                                                                                                 |
+| `runner-web`  | `runner-base`         | Idinaragdag ang Playwright + isang Chromium browser (`--with-deps`) para sa mga provider ng web session: `gemini-web`, `claude-web`, `claude-turnstile`. **Piliin ito kapag ginagamit mo ang mga provider na iyon** — nagkakaroon ng error ang karaniwang image sa oras ng request kung wala ito (tingnan ang tala tungkol sa `-web` sa ilalim ng Mga Release Channel). |
 
 Manu-manong bumuo ng partikular na target:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
 ### Mga resource sa build-time
 
-Tatlong build arg ang kumokontrol sa resource cost ng stage na `builder`. Para lamang ang mga ito sa build-time —
-ang `OMNIROUTE_MEMORY_MB` (sa ibaba) ay hiwalay na setting para sa runtime.
+Tatlong build arg ang kumokontrol sa resource cost ng `builder` stage. Para lamang ang mga ito sa build-time —
+ang `OMNIROUTE_MEMORY_MB` (sa ibaba) ay isang hiwalay na runtime setting.
 
-| Build arg                   | Default | Epekto                                                                                                       |
-| --------------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`     | Gumagamit ng webpack sa pag-build kapag `0`. Mas mababang peak memory, ngunit mas mabagal.                   |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`  | Limitasyon ng V8 heap (`--max-old-space-size`) para sa inilulunsad na `next build`.                          |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`     | Ipinapasa sa `CIRCLE_NODE_TOTAL`; kinukuha ng Next ang `workers = N - 1` para sa pangongolekta ng page data. |
+| Build arg                   | Default | Epekto                                                                                                                    |
+| --------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`     | Kapag `0`, gumagamit ng webpack sa pag-build. Mas mababang peak memory, ngunit mas mabagal.                               |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`  | Limitasyon ng V8 heap (`--max-old-space-size`) para sa inilulunsad na `next build`.                                       |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`     | Nagbibigay ng value sa `CIRCLE_NODE_TOTAL`; kinakalkula ng Next ang `workers = N - 1` para sa pangongolekta ng page data. |
 
 Ang `OMNIROUTE_BUILD_WORKERS` ang dapat taasan sa isang malaking builder at ang
 dapat paghinalaan kapag namatay ang isang build na limitado ang resource **pagkatapos** ng `✓ Compiled successfully`. Ang bawat
 page-data worker ay sarili nitong process, at gayundin ang parent na `next build`;
-sa isang live na reproduksiyon sa VPS (issue #7518), nasukat ang peak RSS ng bawat process sa
-~4.5 GB anuman ang `NODE_OPTIONS` heap flag (nagko-compile ang Turbopack sa
-native/Rust memory sa labas ng V8 heap). Ang default na `2` (→ 1 worker, 2
-process sa kabuuan) ay itinakda para sa mga GitHub-hosted runner na may 16 GB / 4 vCPU na
+sa isang aktuwal na reproduksiyon sa VPS (issue #7518), nasukat ang peak RSS ng bawat process sa
+~4.5 GB na hiwalay sa `NODE_OPTIONS` heap flag (nagko-compile ang Turbopack sa
+native/Rust memory sa labas ng V8 heap). Ang default na `2` (→ 1 worker, kabuuang 2
+process) ay itinakda para sa mga GitHub-hosted runner na may 16 GB / 4 vCPU na
 ginagamit ng publish pipeline. Sa `8` (→ 7 worker), naubusan ng memory ang runner na iyon at
-nabigo ang hakbang ng buildkit nang may `ResourceExhausted: ... cannot allocate memory`;
-hindi pa rin nagkasya ang `3` (→ 2 worker) nang direktang masukat ang RSS ng bawat process
-sa halip na tantiyahin. Isinasagawa ng `tests/unit/docker-build-memory-budget.test.ts`
-ang pagkalkula batay sa nasukat na halaga at nabibigo ito kung lumampas ang alinmang setting
+nabigo ang buildkit sa step na may `ResourceExhausted: ... cannot allocate memory`;
+hindi pa rin nagkasya ang `3` (→ 2 worker) nang direktang sukatin ang RSS ng bawat process
+sa halip na tantiyahin. Ginagawa ng `tests/unit/docker-build-memory-budget.test.ts`
+ang pagkalkula batay sa nasukat na bilang at nabibigo ito kung lumampas ang alinmang setting
 sa kapasidad ng runner.
 
 Nagko-compile ang Turbopack sa native Rust memory na nasa **labas** ng V8 heap, kaya
-hindi ito nililimitahan ng `OMNIROUTE_BUILD_MEMORY_MB`. Sa host na may limitasyon sa memory,
+hindi ito nililimitahan ng `OMNIROUTE_BUILD_MEMORY_MB`. Sa isang host na may limitasyon sa memory,
 isi-SIGKILL ng OOM killer ang build nang walang anumang error text — basta na lamang itong
-hihinto sa gitna ng `Creating an optimized production build`, na tila nag-hang sa halip
+hihinto sa kalagitnaan ng `Creating an optimized production build`, kaya mukhang nag-hang ito sa halip
 na naubusan ng memory. Kung limitado ang build host, lumipat ng bundler:
 
 ```bash
@@ -286,42 +292,42 @@ docker build --target runner-base \
 ```
 
 Naka-enable ang `webpackBuildWorker`, kaya nagpapatakbo ang `next build` ng parent **at** worker
-process at magkahiwalay na sinusunod ng bawat isa ang `OMNIROUTE_BUILD_MEMORY_MB`. Itakda ang limitasyon
-ng container nang humigit-kumulang na higit sa doble ng halagang iyon, hindi isang beses lamang.
+process at hiwalay na sinusunod ng bawat isa ang `OMNIROUTE_BUILD_MEMORY_MB`. Itakda ang container
+ceiling nang higit sa humigit-kumulang dalawang beses ng value na iyon, hindi isang beses lamang.
 
 Sinukat sa tree na ito (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Limitasyon ng container | Resulta                                      |
-| --------- | ----------------------- | -------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB          | Parehong pinatay ng OOM, nang walang mensahe |
-| webpack   | 8 GiB                   | Na-SIGKILL ang build worker                  |
-| webpack   | 12 GiB                  | Nagtagumpay, umabot sa peak na 11.1 GiB      |
+| Bundler   | Container ceiling | Resulta                                    |
+| --------- | ----------------- | ------------------------------------------ |
+| Turbopack | 8 GiB / 16 GiB    | Na-OOM-kill sa pareho, nang walang mensahe |
+| webpack   | 8 GiB             | Na-SIGKILL ang build worker                |
+| webpack   | 12 GiB            | Nagtagumpay, umabot sa peak na 11.1 GiB    |
 
 ### Mga default sa runtime
 
-Mga default na ine-export ng `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+Mga default na ini-export ng `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Pag-uugali ng memory sa Docker:
 
-- Itinatakda ng image ang `OMNIROUTE_MEMORY_MB=1024` at kinukuha mula rito ang `NODE_OPTIONS=--max-old-space-size=1024`.
-- Sinisimulan ng standalone launcher ang aktuwal na server process; binabasa nito ang `OMNIROUTE_MEMORY_MB` at idinaragdag ang `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Ginagamit ng Node ang huling naulit na halaga ng `--max-old-space-size`, kaya kinokontrol ng pagtatakda sa `OMNIROUTE_MEMORY_MB` ang epektibong limitasyon ng Docker heap.
-- Dahil palaging itinatakda ito ng image, hindi kailanman ginagamit sa Docker ang sariling fallback ng launcher na nakakalibrate ayon sa RAM. Tahasang taasan ito para sa workload (talahanayan sa ibaba). Napakaliit pa rin ng `2048` para sa `/v1/responses` ng coding agent.
+- Itinatakda ng image ang `OMNIROUTE_MEMORY_MB=1024` at mula rito ay tinutukoy ang `NODE_OPTIONS=--max-old-space-size=1024`.
+- Sinisimulan ng standalone launcher ang aktuwal na proseso ng server; binabasa nito ang `OMNIROUTE_MEMORY_MB` at idinaragdag ang `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Ginagamit ng Node ang huling umuulit na value ng `--max-old-space-size`, kaya kinokontrol ng pagtatakda sa `OMNIROUTE_MEMORY_MB` ang epektibong limitasyon ng Docker heap.
+- Dahil palaging itinatakda ito ng image, hindi kailanman nailalapat sa Docker ang sariling fallback ng launcher na naka-calibrate batay sa RAM. Tahasang taasan ito ayon sa workload (talahanayan sa ibaba). Masyado pa ring maliit ang `2048` para sa `/v1/responses` ng coding agent.
 
 ### Runtime RAM para sa mga coding agent
 
-Ang 1 GiB na default ng Docker ay minimum para sa dashboard/light chat, hindi sukat para sa production. Ang mahahabang body ng `POST /v1/responses` (daan-daang mensahe, sampu-sampung tool) ay nagpapanatili ng maraming in-memory graph habang nagko-compress. Dalawang magkapatong na request na ~3 MiB / ~750k-token ang nagpa-abort sa V8 sa **12 GiB** na old-space (`FATAL ERROR: Reached heap limit`) at umabot din sa cgroup OOM na 16 GiB. Tingnan ang [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Ang default na 1 GiB ng Docker ay minimum lamang para sa dashboard/magaan na chat, hindi sukat para sa production. Ang mahahabang body ng `POST /v1/responses` (daan-daang mensahe, sampu-sampung tool) ay nagpapanatili ng maraming in-memory graph habang nagsasagawa ng compression. Dalawang nag-o-overlap na request na ~3 MiB / ~750k-token ang nagpa-abort sa V8 sa **12 GiB** na old-space (`FATAL ERROR: Reached heap limit`) at umabot din sa cgroup OOM na 16 GiB. Tingnan ang [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Itakda ang **cgroup `--memory` nang mas mataas kaysa sa heap** — nasa labas ng V8 ang mga native buffer, SQLite, at mga intermediate ng compression.
+Itakda ang laki ng **cgroup `--memory` nang mas mataas kaysa sa heap** — nasa labas ng V8 ang mga native buffer, SQLite, at mga intermediate ng compression.
 
-| Workload                                   | `OMNIROUTE_MEMORY_MB`     | Container / cgroup          | Mga Tala                                                                                                                  |
-| ------------------------------------------ | ------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard, isang magaan na chat            | `1024` (default ng image) | ≥2 GiB                      |                                                                                                                           |
-| Isang coding agent (Claude/Codex/Grok)     | `8192`                    | ≥10 GiB                     | Karaniwang single-session na `/v1/responses`                                                                              |
-| Dalawang sabay na mahabang `/v1/responses` | `10240`–`12288`           | ≥12–16 GiB                  | Nasukat na pag-abort ng V8 sa ~12 GiB na heap                                                                             |
-| Tatlo+ na sabay na mahahabang context      | huwag sa iisang process   | i-serialize / dagdagang RAM | Ang default na heavyweight admission ay 1 in-flight; ang pagtataas nito nang walang RAM ay muling nagdudulot ng pag-abort |
+| Workload                                            | `OMNIROUTE_MEMORY_MB`         | Container / cgroup                          | Mga tala                                                                                                                                           |
+| --------------------------------------------------- | ----------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard, isang magaang chat                       | `1024` (default ng image)     | ≥2 GiB                                      |                                                                                                                                                    |
+| Isang coding agent (Claude/Codex/Grok)              | `8192`                        | ≥10 GiB                                     | Karaniwang `/v1/responses` na may iisang session                                                                                                   |
+| Dalawang magkasabay na mahabang `/v1/responses`     | `10240`–`12288`               | ≥12–16 GiB                                  | Nasukat na pag-abort ng V8 sa ~12 GiB na heap                                                                                                      |
+| Tatlo o higit pang magkakasabay na mahabang context | huwag gawin sa iisang proseso | isagawa nang sunod-sunod / mas maraming RAM | Bilang default, 1 in-flight ang tinatanggap na heavyweight request; ang pagtataas nito nang walang dagdag na RAM ay muling magdudulot ng pag-abort |
 
-Kapag **hindi nakatakda** ang `OMNIROUTE_MEMORY_MB`, ang `omniroute serve` sa bare metal ay nagkakalibrate sa ~35% ng RAM (nililimitahan sa `[512, 4096]`). Palaging itinatakda ng Docker ang `1024`, kaya hindi kailanman tumatakbo ang calibration na iyon sa opisyal na image.
+Kino-calibrate ng `omniroute serve` sa bare metal ang ~35% ng RAM (nililimitahan sa `[512, 4096]`) kapag **hindi nakatakda** ang `OMNIROUTE_MEMORY_MB`. Palaging itinatakda ng Docker ang `1024`, kaya hindi kailanman tumatakbo ang calibration na iyon sa opisyal na image.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -331,24 +337,24 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Mga Kritikal na Environment Variable
 
-Bukod sa mga default na nakadokumento sa [ENVIRONMENT.md](../reference/ENVIRONMENT.md), ang mga sumusunod na variable ang pinakamahalaga kapag pinapatakbo sa ilalim ng Docker:
+Bukod sa mga default na nakadokumento sa [ENVIRONMENT.md](../reference/ENVIRONMENT.md), ang mga sumusunod na variable ang pinakamahalaga kapag tumatakbo sa Docker:
 
-| Variable                      | Layunin                                                                                                                                                                                                                                                                                         | Default                             |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Pinagsasaluhang lihim para sa WebSocket bridge. **Kinakailangan sa production** — itakda sa isang malakas na random na string.                                                                                                                                                                  | hindi nakatakda (kailangang ibigay) |
-| `REDIS_URL`                   | Connection string para sa rate limiter / cache backend                                                                                                                                                                                                                                          | `redis://redis:6379`                |
-| `REDIS_PORT`                  | Port sa panig ng host para sa kasamang Redis container                                                                                                                                                                                                                                          | `6379`                              |
-| `REDIS_BIND_HOST`             | Host interface kung saan inilalathala ang kasamang Redis port (loopback maliban kung magdaragdag ka ng AUTH)                                                                                                                                                                                    | `127.0.0.1`                         |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Host path na naka-mount sa `cli` profile sa `/workspace/omniroute` para sa mga self-update workflow                                                                                                                                                                                             | `.` (kasalukuyang directory)        |
-| `OMNIROUTE_MEMORY_MB`         | Pinakamataas na Node heap sa runtime para sa Docker standalone server; ino-override nito ang default ng image sa itaas. Mga coding agent: `8192`+ (tingnan ang [runtime RAM](#runtime-ram-for-coding-agents)).                                                                                  | `1024`                              |
-| `DASHBOARD_PORT` / `API_PORT` | I-override ang mga inilalantad na port para sa dashboard (20128) at API (20129)                                                                                                                                                                                                                 | `20128` / `20129`                   |
-| `APP_BIND_HOST`               | Host interface kung saan inilalathala ng docker-compose ang mga port ng dashboard/API/live-WS. Kapag `REQUIRE_API_KEY=false` (ang default), inilalantad ng `0.0.0.0` ang anonymous na `/v1` proxy sa LAN — palawakin lamang gamit ang `REQUIRE_API_KEY=true` o kung may reverse proxy sa harap. | `127.0.0.1`                         |
-| `CLIPROXY_BIND_HOST`          | Host interface kung saan inilalathala ng docker-compose ang `cliproxyapi` sidecar — naglalaman ang data volume nito ng mga credential ng provider.                                                                                                                                              | `127.0.0.1`                         |
-| `OMNIROUTE_PLUGINS_DIR`       | Directory na binabasa at ini-install-an ng runtime plugin scanner. Itakda ito kapag bind-mounted ang mga plugin: sinusunod ng default ang `HOME`, na maaaring hindi i-export ng isang image.                                                                                                    | `~/.omniroute/plugins`              |
-| `OMNIROUTE_BASE_PATH`         | URL subpath kapag inilathala ang app sa likod ng reverse proxy (hal. `/omniroute`)                                                                                                                                                                                                              | _(walang laman = root)_             |
-| `NEXT_PUBLIC_BASE_URL`        | Pampublikong browser origin kasama ang subpath (hal. `https://host/omniroute`)                                                                                                                                                                                                                  | hindi nakatakda                     |
-| `PROD_DASHBOARD_PORT`         | Dashboard port sa panig ng host para sa `docker-compose.prod.yml`                                                                                                                                                                                                                               | `20130`                             |
-| `CLIPROXYAPI_PORT`            | Port sa panig ng host para sa `cliproxyapi` sidecar                                                                                                                                                                                                                                             | `8317`                              |
+| Variable                      | Layunin                                                                                                                                                                                                                                                                             | Default                        |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Nakabahaging secret para sa WebSocket bridge. **Kinakailangan sa production** — itakda sa isang malakas at random na string.                                                                                                                                                        | hindi nakatakda (dapat ibigay) |
+| `REDIS_URL`                   | Connection string para sa rate limiter / cache backend                                                                                                                                                                                                                              | `redis://redis:6379`           |
+| `REDIS_PORT`                  | Host-side port para sa kasamang Redis container                                                                                                                                                                                                                                     | `6379`                         |
+| `REDIS_BIND_HOST`             | Host interface kung saan inilalathala ang kasamang Redis port (loopback maliban kung magdaragdag ka ng AUTH)                                                                                                                                                                        | `127.0.0.1`                    |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Host path na naka-mount sa `cli` profile sa `/workspace/omniroute` para sa mga self-update workflow                                                                                                                                                                                 | `.` (kasalukuyang directory)   |
+| `OMNIROUTE_MEMORY_MB`         | Limitasyon ng Node heap sa runtime para sa Docker standalone server; ino-override nito ang default ng image sa itaas. Mga coding agent: `8192`+ (tingnan ang [runtime RAM](#runtime-ram-for-coding-agents)).                                                                        | `1024`                         |
+| `DASHBOARD_PORT` / `API_PORT` | I-override ang mga inilalantad na port para sa dashboard (20128) at API (20129)                                                                                                                                                                                                     | `20128` / `20129`              |
+| `APP_BIND_HOST`               | Host interface kung saan inilalathala ng docker-compose ang mga dashboard/API/live-WS port. Kapag `REQUIRE_API_KEY=false` (ang default), inilalantad ng `0.0.0.0` ang anonymous na `/v1` proxy sa LAN — palawakin lamang kapag `REQUIRE_API_KEY=true` o may reverse proxy sa harap. | `127.0.0.1`                    |
+| `CLIPROXY_BIND_HOST`          | Host interface kung saan inilalathala ng docker-compose ang `cliproxyapi` sidecar — naglalaman ang data volume nito ng mga credential ng provider.                                                                                                                                  | `127.0.0.1`                    |
+| `OMNIROUTE_PLUGINS_DIR`       | Directory na binabasa at pinag-i-install-an ng runtime plugin scanner. Itakda ito kapag bind-mounted ang mga plugin: sinusunod ng default ang `HOME`, na hindi kinakailangang i-export ng isang image.                                                                              | `~/.omniroute/plugins`         |
+| `OMNIROUTE_BASE_PATH`         | URL subpath kapag inilalathala ang app sa likod ng reverse proxy (hal. `/omniroute`)                                                                                                                                                                                                | _(walang laman = root)_        |
+| `NEXT_PUBLIC_BASE_URL`        | Pampublikong browser origin kasama ang subpath (hal. `https://host/omniroute`)                                                                                                                                                                                                      | hindi nakatakda                |
+| `PROD_DASHBOARD_PORT`         | Host-side dashboard port para sa `docker-compose.prod.yml`                                                                                                                                                                                                                          | `20130`                        |
+| `CLIPROXYAPI_PORT`            | Host-side port para sa `cliproxyapi` sidecar                                                                                                                                                                                                                                        | `8317`                         |
 
 ## Reverse Proxy sa isang Subpath (Traefik / nginx)
 
@@ -477,29 +483,42 @@ Maaaring ipakita o itago ang mga endpoint tunnel panel (Cloudflare, Tailscale, n
 - Kasama sa mga Docker image ang mga system CA root at ipinapasa ang mga ito sa managed na `cloudflared`, na umiiwas sa mga TLS trust failure kapag nag-bootstrap ang tunnel sa loob ng container.
 - Itakda ang `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` kung nais mong gumamit ang OmniRoute ng umiiral na binary sa halip na mag-download nito.
 
-## Mga Image Tag
+## Mga Tag ng Image
 
-| Image                    | Tag      | Laki   | Paglalarawan                                                           |
-| ------------------------ | -------- | ------ | ---------------------------------------------------------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | Pinakamataas na **na-publish** na stable SemVer (hindi ang git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | I-pin ang ganitong uri ng tag para sa GitOps                           |
+| Image                    | Tag      | Laki   | Paglalarawan                                                       |
+| ------------------------ | -------- | ------ | ------------------------------------------------------------------ |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | Pinakamataas na **na-publish** na stable SemVer (hindi git `main`) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | I-pin ang ganitong uri ng tag para sa GitOps                       |
 
-Multi-platform manifest: native na `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Awtomatikong pinipili ng Docker ang katugmang architecture; ipasa ang `--platform linux/amd64` kung kailangan mong pilitin ang AMD64 emulation sa mga ARM host.
+Multi-platform na manifest: native na `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Awtomatikong pinipili ng Docker ang tumutugmang architecture; ipasa ang `--platform linux/amd64` kung kailangan mong puwersahin ang AMD64 emulation sa mga ARM host.
 
-### Mga Release Channel
+### Mga Channel ng Release
 
-Nagpa-publish ang OmniRoute ng magkakahiwalay na Docker channel para sa mga stable release, aktibong release-branch testing, at mga development build.
+Nagpa-publish ang OmniRoute ng magkakahiwalay na Docker channel para sa mga stable release, aktibong pagsubok sa release branch, at mga development build.
 
-| Channel                         | Pinagmulan                                      | Pagbabago                      | Inirerekomendang paggamit                                                                                                                                           |
-| ------------------------------- | ----------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Nilagdaan/bersiyonadong release                 | Hindi nababago                 | Mga production deployment na naka-pin sa eksaktong release                                                                                                          |
-| `:latest` / `:latest-web`       | Pinakamataas na **na-publish** na stable SemVer | Nababagong stable pointer      | Sinusundan ang mga stable release **pagkatapos** ng isang SemVer publish job — **hindi** sinusubaybayan ang `main` o mga hindi pa na-release na `release/v*` commit |
-| `:next` / `:next-web`           | Kasalukuyang default na `release/v*` branch     | Nababagong pre-release pointer | Pagsubok sa mga pag-aayos na nasa aktibong release branch na ngunit wala pa sa isang stable release                                                                 |
-| `:main` / `:main-web`           | `main` branch                                   | Nababagong development pointer | Para lamang sa development at integration testing                                                                                                                   |
+| Channel                         | Pinagmulan                                      | Pagiging nababago              | Inirerekomendang paggamit                                                                                                                                        |
+| ------------------------------- | ----------------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Nilagdaan/bersyonadong release                  | Hindi nababago                 | Mga production deployment na naka-pin sa eksaktong release                                                                                                       |
+| `:latest` / `:latest-web`       | Pinakamataas na **na-publish** na stable SemVer | Nababagong stable pointer      | Sinusundan ang mga stable release **pagkatapos** ng SemVer publish job — **hindi** sinusubaybayan ang `main` o mga hindi pa nailalabas na commit ng `release/v*` |
+| `:next` / `:next-web`           | Kasalukuyang default na branch na `release/v*`  | Nababagong pre-release pointer | Pagsubok sa mga pag-aayos na naisama na sa aktibong release branch ngunit wala pa sa isang stable release                                                        |
+| `:main` / `:main-web`           | Branch na `main`                                | Nababagong development pointer | Para lamang sa development at integration testing                                                                                                                |
 
-#### Paggamit ng pre-release channel
+#### Mga provider ng web session: ang mga `-web` image
 
-Muling binubuo ang `next` channel sa bawat push sa kasalukuyang default na `release/v*` branch at inilalathala ito para sa AMD64 at ARM64. Hindi ito maaaring ma-overwrite ng mga mas lumang maintenance branch. Nagbibigay ang channel ng pullable na image para sa mga pag-aayos na na-merge na sa aktibong release branch bago gawin ang susunod na stable tag.
+Ang bawat channel sa itaas ay mayroon ding katumbas na `-web` tag (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), na binuo mula sa stage na `runner-web` — ang parehong image kasama ang Playwright at isang Chromium browser. Ipinapadala ang karaniwang image nang **walang** Chromium; kailangan ito ng `gemini-web`, `claude-web`, at `claude-turnstile`.
+
+Naantala ang pagkabigo at hindi ito nangyayari sa startup: inililista ng mga provider na iyon ang kanilang mga model at ipinapakitang nakakonekta sa dashboard, at sa unang request lamang ito nabibigo nang may
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Kung ginagamit mo ang mga provider na iyon, i-pull ang `-web` tag ng channel na ginagamit mo na — wala nang ibang magbabago. Sa isang npm/CLI install (walang Docker image), ang katumbas na nawawalang bahagi ay ang browser binary: patakbuhin ang `npx playwright install chromium` sa host.
+
+#### Paggamit sa pre-release channel
+
+Muling binubuo ang `next` channel sa bawat push sa kasalukuyang default na branch na `release/v*` at inilalathala ito para sa parehong AMD64 at ARM64. Hindi ito maaaring ma-overwrite ng mas lumang mga maintenance branch. Nagbibigay ang channel ng image na maaaring i-pull para sa mga pag-aayos na na-merge na sa aktibong release branch bago malikha ang susunod na stable tag.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
@@ -521,30 +540,30 @@ docker compose up -d
 
 #### Kaligtasan at rollback
 
-Ang `next` ay isang floating pre-release channel. Maaari itong magbago sa anumang push sa aktibong release branch at **hindi sinusuportahan para sa paggamit sa production**. I-pin ang image digest habang sinusuri ang isang partikular na build:
+Ang `next` ay isang floating na pre-release channel. Maaari itong magbago sa anumang push sa aktibong release branch at **hindi sinusuportahan para sa paggamit sa production**. I-pin ang image digest habang sinusuri ang isang partikular na build:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Bago magsubok, i-back up ang data volume ng OmniRoute o ang bind-mounted na direktoryo ng data. Upang mag-roll back, ibalik ang dating ginagamit na stable na bersyon o digest at muling likhain ang container:
+Bago magsagawa ng pagsubok, i-back up ang data volume ng OmniRoute o ang bind-mounted na data directory. Para mag-rollback, ibalik ang dating ginamit na stable version o digest at muling likhain ang container:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Hindi kailanman maaaring ilipat ng isang release-branch build ang `latest`; tanging isang kwalipikadong stable na semantic version ang maaaring mag-promote sa stable pointer. Pinananatili ng mga image na `next` ang inspeksyon sa release image at ang gate na humaharang kapag may CRITICAL na kahinaan.
+Hindi kailanman maililipat ng isang release-branch build ang `latest`; tanging isang kwalipikadong stable semantic version lamang ang maaaring mag-promote sa stable pointer. Pinananatili ng mga `next` image ang inspeksyon sa release image at ang gate na humaharang sa mga CRITICAL na vulnerability.
 
-**Ang `latest` ay hindi garantiya na napapanahon ito sa git.** Ang mga na-merge na pag-aayos sa `main` o sa aktibong branch na `release/v*` ay **hindi** mapapasama sa `:latest` hangga't hindi napa-publish ang isang stable na SemVer image at hindi pino-promote ng publish job ang `:latest` (kaparehong digest ng SemVer na iyon). Kung mukhang hindi nagbabago ang `latest` kahit ipinapakita na ng GitHub ang pag-aayos, i-pull ang `:next` upang subukan ang release branch o hintayin ang SemVer tag.
+**Ang `latest` ay hindi garantiya na napapanahon ito sa git.** Ang mga na-merge na pag-aayos sa `main` o sa aktibong branch na `release/v*` ay **wala** sa `:latest` hanggang sa ma-publish ang isang stable SemVer image at i-promote ng publish job ang `:latest` (parehong digest ng SemVer na iyon). Kung mukhang hindi gumagalaw ang `latest` habang ipinapakita na ng GitHub ang pag-aayos, i-pull ang `:next` upang subukan ang release branch o hintayin ang SemVer tag.
 
-| Ang gusto mo                                                                          | Gamitin                                 |
-| ------------------------------------------------------------------------------------- | --------------------------------------- |
-| GitOps / production na hindi dapat kusang magbago                                     | I-pin ang `:X.Y.Z` (o ang image digest) |
-| Sundan ang mga na-publish na stable at tanggapin ang muling paglikha sa bawat release | `:latest`                               |
-| Subukan ang mga hindi pa nailalabas na commit ng `release/v*`                         | `:next` (hindi para sa production)      |
-| Subukan ang `main`                                                                    | `:main` (hindi para sa production)      |
+| Ang gusto mo                                                                                      | Gamitin                                 |
+| ------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| GitOps / production na hindi dapat kusang magbago                                                 | I-pin ang `:X.Y.Z` (o ang image digest) |
+| Subaybayan ang mga na-publish na stable release at tanggapin ang muling paglikha sa bawat release | `:latest`                               |
+| Subukan ang mga hindi pa nailalabas na commit ng `release/v*`                                     | `:next` (hindi para sa production)      |
+| Subukan ang `main`                                                                                | `:main` (hindi para sa production)      |
 
 ## Availability: iisang replica ang default na SQLite
 

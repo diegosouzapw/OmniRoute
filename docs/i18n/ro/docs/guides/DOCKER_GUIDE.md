@@ -65,26 +65,30 @@ docker run -d \
 # Profil de bază (fără instrumente CLI)
 docker compose --profile base up -d
 
-# Profil CLI (Claude Code, Codex și OpenClaw incluse)
+# Profil CLI (Claude Code, Codex, OpenClaw integrate)
 docker compose --profile cli up -d
 
-# Profil pentru gazdă (destinat în principal sistemelor Linux; montează binarele CLI ale gazdei doar în citire)
+# Profil gazdă (conceput în primul rând pentru Linux; montează binarele CLI ale gazdei doar în citire)
 docker compose --profile host up -d
 
-# Combină CLI cu containerul auxiliar CLIProxyAPI
+# Profil web (Chromium/Playwright pentru furnizorii de sesiuni web)
+docker compose --profile web up -d
+
+# Combină CLI + sidecar-ul CLIProxyAPI
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Profiluri disponibile
 
-OmniRoute include patru profiluri Compose. Alegeți-l pe cel care corespunde mediului dumneavoastră.
+OmniRoute include profiluri Compose pentru principalele tipuri de implementare. Alegeți-l pe cel care corespunde mediului dvs.
 
-| Profil            | Serviciu         | Când se utilizează                                                                                                                                                  | Comandă                                      |
-| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (implicit) | `omniroute-base` | Server fără interfață grafică / mediu de execuție minimal, fără instrumente CLI ale furnizorilor incluse                                                            | `docker compose --profile base up -d`        |
-| `cli`             | `omniroute-cli`  | Fluxuri de lucru agentice care apelează `omniroute providers/setup/doctor` și instrumentele CLI incluse (Codex, Claude Code, Droid, OpenClaw)                       | `docker compose --profile cli up -d`         |
-| `host`            | `omniroute-host` | Gazde Linux care necesită acces similar cu `network_mode` la instrumentele CLI ale gazdei prin montarea `~/.local/bin`, `~/.codex`, `~/.claude` etc. doar în citire | `docker compose --profile host up -d`        |
-| `cliproxyapi`     | `cliproxyapi`    | Rulează containerul auxiliar [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) pe portul `8317` pentru proxy-ul CLI din amonte                            | `docker compose --profile cliproxyapi up -d` |
+| Profil            | Serviciu         | Când se utilizează                                                                                                                                               | Comandă                                      |
+| ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (implicit) | `omniroute-base` | Server fără interfață grafică / mediu de execuție minimal, fără CLI-uri ale furnizorilor incluse                                                                 | `docker compose --profile base up -d`        |
+| `cli`             | `omniroute-cli`  | Fluxuri de lucru bazate pe agenți care apelează `omniroute providers/setup/doctor` și CLI-urile incluse (Codex, Claude Code, Droid, OpenClaw)                    | `docker compose --profile cli up -d`         |
+| `host`            | `omniroute-host` | Gazde Linux care necesită acces similar cu `network_mode` la CLI-urile gazdei prin montarea în mod doar în citire a `~/.local/bin`, `~/.codex`, `~/.claude` etc. | `docker compose --profile host up -d`        |
+| `cliproxyapi`     | `cliproxyapi`    | Rulează serviciul auxiliar [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) pe portul `8317` pentru proxy-ul CLI din amonte                           | `docker compose --profile cliproxyapi up -d` |
+| `web`             | `omniroute-web`  | Furnizori bazați pe sesiuni web care necesită un browser: `gemini-web`, `claude-web`, `claude-turnstile` (construiește `runner-web`, Chromium inclus)            | `docker compose --profile web up -d`         |
 
 > Pot fi combinate mai multe profiluri: `docker compose --profile cli --profile cliproxyapi up -d`.
 
@@ -233,51 +237,53 @@ Stiva de producție rulează în paralel cu configurația compose de dezvoltare 
 
 ## Etapele Dockerfile
 
-Repository-ul include un Dockerfile cu mai multe etape (`Dockerfile`). Sunt expuse trei etape; alegeți valoarea `target` potrivită pentru cazul vostru de utilizare.
+Depozitul include un Dockerfile în mai multe etape (`Dockerfile`). Sunt expuse patru etape; alegeți `target` potrivit pentru cazul dvs. de utilizare.
 
-| Etapă         | Imagine de bază       | Scop                                                                                                                                                                                                 |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Instalează dependențele (`npm ci --legacy-peer-deps`) și rulează `npm run build` (implicit cu Turbopack — consultați mai jos Resurse pentru build)                                                   |
-| `runner-base` | `node:26-trixie-slim` | Mediu de execuție pentru producție, cu rezultatul standalone Next.js. **Nu include CLI-uri ale furnizorilor.**                                                                                       |
-| `runner-cli`  | `runner-base`         | Adaugă `git`, `docker.io`, `docker-compose` și CLI-urile globale: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Alegeți această variantă pentru fluxuri de lucru cu agenți.** |
+| Etapă         | Imagine de bază       | Scop                                                                                                                                                                                                                                                                                                                                                 |
+| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Instalează dependențele (`npm ci --legacy-peer-deps`) și rulează `npm run build` (Turbopack în mod implicit — consultați mai jos Resurse la compilare)                                                                                                                                                                                               |
+| `runner-base` | `node:26-trixie-slim` | Mediu de execuție pentru producție cu rezultatul standalone Next.js. **Nu include CLI-uri ale furnizorilor.**                                                                                                                                                                                                                                        |
+| `runner-cli`  | `runner-base`         | Adaugă `git`, `docker.io`, `docker-compose` și CLI-urile globale: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Alegeți această variantă pentru fluxuri de lucru cu agenți.**                                                                                                                                                 |
+| `runner-web`  | `runner-base`         | Adaugă Playwright și un browser Chromium (`--with-deps`) pentru furnizorii bazați pe sesiuni web: `gemini-web`, `claude-web`, `claude-turnstile`. **Alegeți această variantă atunci când utilizați furnizorii respectivi** — imaginea simplă eșuează la procesarea solicitărilor fără aceasta (consultați nota despre `-web` din Canale de lansare). |
 
-Construiți manual o anumită țintă:
+Compilați manual o anumită țintă:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
 docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Resurse pentru build
+### Resurse la compilare
 
-Trei argumente de build controlează resursele consumate de etapa `builder`. Acestea se aplică numai la build —
-`OMNIROUTE_MEMORY_MB` (de mai jos) este un parametru separat, pentru execuție.
+Trei argumente de compilare controlează consumul etapei `builder`. Acestea se aplică numai în timpul compilării —
+`OMNIROUTE_MEMORY_MB` (mai jos) este un parametru separat pentru execuție.
 
-| Argument de build           | Valoare implicită | Efect                                                                                                              |
-| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`               | Valoarea `0` construiește folosind webpack. Consum maxim de memorie mai mic, dar mai lent.                         |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`            | Limita heap-ului V8 (`--max-old-space-size`) pentru procesul `next build` lansat.                                  |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`               | Furnizează valoarea pentru `CIRCLE_NODE_TOTAL`; Next deduce `workers = N - 1` pentru colectarea datelor paginilor. |
+| Argument de compilare       | Valoare implicită | Efect                                                                                                                 |
+| --------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `1`               | `0` compilează folosind webpack. Consum maxim de memorie mai redus, dar mai lent.                                     |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`            | Limita heap-ului V8 (`--max-old-space-size`) pentru procesul `next build` lansat.                                     |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`               | Furnizează valoarea pentru `CIRCLE_NODE_TOTAL`; Next determină `workers = N - 1` pentru colectarea datelor paginilor. |
 
-`OMNIROUTE_BUILD_WORKERS` este parametrul care trebuie mărit pe un sistem de build puternic și cel care
-trebuie suspectat atunci când un build cu resurse limitate eșuează **după** `✓ Compiled successfully`. Fiecare
-worker pentru datele paginilor este un proces separat, la fel ca procesul părinte `next build`;
-o reproducere pe un VPS activ (problema #7518) a măsurat pentru fiecare proces un vârf RSS de
-~4.5 GB, independent de opțiunea de heap `NODE_OPTIONS` (Turbopack compilează folosind
-memorie nativă/Rust din afara heap-ului V8). Valoarea implicită `2` (→ 1 worker, 2
-procese în total) este dimensionată pentru runner-ele găzduite de GitHub, cu 16 GB / 4 vCPU, pe care le
-folosește pipeline-ul de publicare. La `8` (→ 7 workeri), runner-ul a rămas fără memorie, iar
+`OMNIROUTE_BUILD_WORKERS` este parametrul care trebuie mărit pe un sistem de compilare puternic și primul care trebuie
+verificat atunci când o compilare cu resurse limitate eșuează **după** `✓ Compiled successfully`. Fiecare
+proces de lucru pentru datele paginilor este un proces separat, la fel ca procesul părinte `next build`;
+o reproducere pe un VPS activ (problema #7518) a măsurat valoarea RSS maximă a fiecărui proces la
+~4,5 GB, independent de opțiunea pentru heap `NODE_OPTIONS` (Turbopack compilează folosind
+memorie nativă/Rust din afara heap-ului V8). Valoarea implicită `2` (→ 1 proces de lucru, 2
+procese în total) este dimensionată pentru sistemele de execuție găzduite de GitHub cu 16 GB / 4 vCPU pe care le
+utilizează conducta de publicare. Cu `8` (→ 7 procese de lucru), sistemul de execuție a rămas fără memorie, iar
 buildkit a oprit etapa cu eroarea `ResourceExhausted: ... cannot allocate memory`;
-nici `3` (→ 2 workeri) nu a încăput după ce RSS-ul per proces a fost măsurat
+nici `3` (→ 2 procese de lucru) nu a încăput după ce RSS-ul per proces a fost măsurat
 direct, în loc să fie dedus. `tests/unit/docker-build-memory-budget.test.ts`
-efectuează calculele pe baza valorii măsurate și eșuează dacă oricare dintre parametri
-depășește capacitatea runner-ului.
+efectuează calculele folosind valoarea măsurată și eșuează dacă oricare dintre parametri
+depășește capacitatea sistemului de execuție.
 
-Turbopack compilează folosind memorie nativă Rust aflată **în afara** heap-ului V8, prin urmare
+Turbopack compilează folosind memorie Rust nativă care se află **în afara** heap-ului V8, astfel încât
 `OMNIROUTE_BUILD_MEMORY_MB` nu o limitează. Pe o gazdă cu o limită de memorie,
-build-ul este apoi oprit prin SIGKILL de OOM killer, fără niciun mesaj de eroare — pur și simplu
+compilarea este apoi oprită prin SIGKILL de mecanismul OOM fără niciun mesaj de eroare — pur și simplu
 se oprește în timpul etapei `Creating an optimized production build`, ceea ce pare mai degrabă
-o blocare decât o epuizare a memoriei. Dacă gazda de build are resurse limitate, schimbați bundler-ul:
+un blocaj decât o epuizare a memoriei. Dacă gazda de compilare are resurse limitate, schimbați bundlerul:
 
 ```bash
 docker build --target runner-base \
@@ -285,17 +291,17 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` este activat, astfel încât `next build` rulează un proces părinte **și** un proces
-worker, iar fiecare respectă separat `OMNIROUTE_BUILD_MEMORY_MB`. Dimensionați limita containerului
+`webpackBuildWorker` este activat, astfel încât `next build` rulează un proces părinte **și** un proces de lucru,
+iar fiecare respectă separat `OMNIROUTE_BUILD_MEMORY_MB`. Configurați limita containerului
 la aproximativ de două ori această valoare, nu o singură dată.
 
-Măsurători pe acest arbore (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Măsurători efectuate pe acest arbore (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Limita containerului | Rezultat                            |
-| --------- | -------------------- | ----------------------------------- |
-| Turbopack | 8 GiB / 16 GiB       | Oprit de OOM la ambele, fără mesaj  |
-| webpack   | 8 GiB                | Worker-ul de build a primit SIGKILL |
-| webpack   | 12 GiB               | Reușit, cu un vârf de 11.1 GiB      |
+| Bundler   | Limita containerului | Rezultat                                 |
+| --------- | -------------------- | ---------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB       | oprit de OOM în ambele cazuri, silențios |
+| webpack   | 8 GiB                | procesul de compilare oprit prin SIGKILL |
+| webpack   | 12 GiB               | reușit, cu un vârf de 11,1 GiB           |
 
 ### Valori implicite la execuție
 
@@ -304,24 +310,24 @@ Valori implicite exportate de `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `
 Comportamentul memoriei în Docker:
 
 - Imaginea setează `OMNIROUTE_MEMORY_MB=1024` și derivă din aceasta `NODE_OPTIONS=--max-old-space-size=1024`.
-- Procesul server propriu-zis este pornit de lansatorul standalone, care citește `OMNIROUTE_MEMORY_MB` și adaugă `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node utilizează ultima valoare `--max-old-space-size` repetată, astfel încât setarea `OMNIROUTE_MEMORY_MB` controlează limita efectivă a heap-ului Docker.
-- Deoarece imaginea o setează întotdeauna, valoarea de rezervă a lansatorului, calibrată în funcție de RAM, nu se aplică niciodată în Docker. Măriți-o explicit pentru volumul de lucru (tabelul de mai jos). `2048` este în continuare prea puțin pentru `/v1/responses` utilizat de agenții de programare.
+- Procesul efectiv al serverului este pornit de lansatorul independent, care citește `OMNIROUTE_MEMORY_MB` și adaugă `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node utilizează ultima valoare repetată pentru `--max-old-space-size`, astfel încât setarea `OMNIROUTE_MEMORY_MB` controlează limita efectivă a heap-ului în Docker.
+- Deoarece imaginea o setează întotdeauna, valoarea de rezervă a lansatorului, calibrată în funcție de RAM, nu se aplică niciodată în Docker. Măriți-o explicit pentru volumul de lucru (tabelul de mai jos). `2048` este în continuare prea puțin pentru `/v1/responses` al agenților de programare.
 
-### RAM la execuție pentru agenții de programare
+### Memorie RAM la rulare pentru agenții de programare
 
-Valoarea implicită Docker de 1 GiB este un minim pentru dashboard/conversații ușoare, nu o dimensiune pentru producție. Corpurile lungi ale cererilor `POST /v1/responses` (sute de mesaje, zeci de instrumente) păstrează în memorie mai multe grafuri în timpul compresiei. Două cereri suprapuse de ~3 MiB / ~750k tokenuri au oprit V8 cu un old-space de **12 GiB** (`FATAL ERROR: Reached heap limit`) și au atins, de asemenea, limita OOM a unui cgroup de 16 GiB. Consultați [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Valoarea implicită Docker de 1 GiB reprezintă un nivel minim pentru panoul de control și conversații ușoare, nu o dimensiune pentru producție. Corpurile lungi ale solicitărilor `POST /v1/responses` (sute de mesaje, zeci de instrumente) păstrează în memorie mai multe grafuri în timpul compresiei. Două solicitări suprapuse de aproximativ 3 MiB / 750k tokenuri au provocat oprirea V8 cu un spațiu vechi de **12 GiB** (`FATAL ERROR: Reached heap limit`) și au atins, de asemenea, limita OOM a unui cgroup de 16 GiB. Consultați [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
 Dimensionați **valoarea cgroup `--memory` peste dimensiunea heap-ului** — bufferele native, SQLite și datele intermediare de compresie se află în afara V8.
 
-| Sarcină de lucru                                   | `OMNIROUTE_MEMORY_MB`                  | Container / cgroup                  | Observații                                                                                                                                             |
-| -------------------------------------------------- | -------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Panou de control, un chat simplu                   | `1024` (valoarea implicită a imaginii) | ≥2 GiB                              |                                                                                                                                                        |
-| Un agent de programare (Claude/Codex/Grok)         | `8192`                                 | ≥10 GiB                             | Sesiune unică `/v1/responses` tipică                                                                                                                   |
-| Două solicitări `/v1/responses` lungi și simultane | `10240`–`12288`                        | ≥12–16 GiB                          | Întrerupere V8 măsurată la o dimensiune a heap-ului de ~12 GiB                                                                                         |
-| Peste trei contexte lungi simultane                | nu utilizați un singur proces          | serializare / mai multă memorie RAM | Limita implicită pentru sarcini intensive este de 1 solicitare în curs; creșterea acesteia fără memorie RAM suplimentară provoacă din nou întreruperea |
+| Volum de lucru                                  | `OMNIROUTE_MEMORY_MB`                  | Container / cgroup                  | Observații                                                                                                  |
+| ----------------------------------------------- | -------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Panou de control, o conversație ușoară          | `1024` (valoarea implicită a imaginii) | ≥2 GiB                              |                                                                                                             |
+| Un agent de programare (Claude/Codex/Grok)      | `8192`                                 | ≥10 GiB                             | Sesiune individuală tipică `/v1/responses`                                                                  |
+| Două solicitări lungi `/v1/responses` simultane | `10240`–`12288`                        | ≥12–16 GiB                          | Oprire V8 măsurată la un heap de aproximativ 12 GiB                                                         |
+| Trei sau mai multe contexte lungi simultane     | nu pe un singur proces                 | serializare / mai multă memorie RAM | Limita implicită pentru solicitările intensive este de 1 în curs; mărirea acesteia fără RAM readuce oprirea |
 
-Când `OMNIROUTE_MEMORY_MB` **nu este setată**, `omniroute serve` pe hardware fizic calibrează valoarea la ~35% din memoria RAM (limitată la intervalul `[512, 4096]`). Docker setează întotdeauna valoarea la `1024`, astfel încât această calibrare nu rulează niciodată în imaginea oficială.
+`omniroute serve` pe sistem fizic calibrează aproximativ 35% din RAM (limitat la `[512, 4096]`) atunci când `OMNIROUTE_MEMORY_MB` este **nesetat**. Docker setează întotdeauna `1024`, astfel încât această calibrare nu este executată niciodată în imaginea oficială.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -333,22 +339,22 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 Pe lângă valorile implicite documentate în [ENVIRONMENT.md](../reference/ENVIRONMENT.md), următoarele variabile sunt cele mai importante atunci când aplicația rulează în Docker:
 
-| Variabilă                     | Scop                                                                                                                                                                                                                                                                                              | Valoare implicită          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Secret partajat pentru puntea WebSocket. **Obligatoriu în producție** — setați-l la un șir aleatoriu puternic.                                                                                                                                                                                    | nesetat (trebuie furnizat) |
-| `REDIS_URL`                   | Șir de conexiune pentru backendul limitatorului de rată / cache-ului                                                                                                                                                                                                                              | `redis://redis:6379`       |
-| `REDIS_PORT`                  | Portul de pe gazdă pentru containerul Redis inclus                                                                                                                                                                                                                                                | `6379`                     |
-| `REDIS_BIND_HOST`             | Interfața gazdei pe care este publicat portul Redis inclus (loopback, cu excepția cazului în care adăugați AUTH)                                                                                                                                                                                  | `127.0.0.1`                |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Calea de pe gazdă montată în profilul `cli` la `/workspace/omniroute` pentru fluxurile de lucru de autoactualizare                                                                                                                                                                                | `.` (directorul curent)    |
-| `OMNIROUTE_MEMORY_MB`         | Limita memoriei heap Node în timpul rulării pentru serverul Docker autonom; suprascrie valoarea implicită a imaginii menționată mai sus. Agenți de programare: `8192`+ (consultați [memoria RAM în timpul rulării](#runtime-ram-for-coding-agents)).                                              | `1024`                     |
-| `DASHBOARD_PORT` / `API_PORT` | Suprascrie porturile expuse pentru panoul de control (20128) și API (20129)                                                                                                                                                                                                                       | `20128` / `20129`          |
-| `APP_BIND_HOST`               | Interfața gazdei pe care docker-compose publică porturile pentru panoul de control/API/WS în timp real. Cu `REQUIRE_API_KEY=false` (valoarea implicită), `0.0.0.0` expune proxy-ul anonim `/v1` în LAN — extindeți accesul numai cu `REQUIRE_API_KEY=true` sau cu un proxy invers plasat în față. | `127.0.0.1`                |
-| `CLIPROXY_BIND_HOST`          | Interfața gazdei pe care docker-compose publică serviciul auxiliar `cliproxyapi` — volumul său de date conține acreditările furnizorului.                                                                                                                                                         | `127.0.0.1`                |
-| `OMNIROUTE_PLUGINS_DIR`       | Directorul pe care scanerul de pluginuri din timpul rulării îl citește și în care instalează. Setați-l când pluginurile sunt montate prin bind mount: valoarea implicită urmează `HOME`, pe care o imagine nu este obligată să o exporte.                                                         | `~/.omniroute/plugins`     |
-| `OMNIROUTE_BASE_PATH`         | Subcalea URL atunci când aplicația este publicată în spatele unui proxy invers (de exemplu, `/omniroute`)                                                                                                                                                                                         | _(gol = rădăcină)_         |
-| `NEXT_PUBLIC_BASE_URL`        | Originea publică pentru browser, inclusiv subcalea (de exemplu, `https://host/omniroute`)                                                                                                                                                                                                         | nesetat                    |
-| `PROD_DASHBOARD_PORT`         | Portul panoului de control de pe gazdă pentru `docker-compose.prod.yml`                                                                                                                                                                                                                           | `20130`                    |
-| `CLIPROXYAPI_PORT`            | Portul de pe gazdă pentru serviciul auxiliar `cliproxyapi`                                                                                                                                                                                                                                        | `8317`                     |
+| Variabilă                     | Scop                                                                                                                                                                                                                                                                               | Valoare implicită          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Secret partajat pentru puntea WebSocket. **Obligatoriu în producție** — setați-l la un șir aleatoriu puternic.                                                                                                                                                                     | nesetat (trebuie furnizat) |
+| `REDIS_URL`                   | Șir de conexiune pentru limitatorul de rată / backendul de cache                                                                                                                                                                                                                   | `redis://redis:6379`       |
+| `REDIS_PORT`                  | Portul de pe gazdă pentru containerul Redis inclus                                                                                                                                                                                                                                 | `6379`                     |
+| `REDIS_BIND_HOST`             | Interfața gazdei pe care este publicat portul containerului Redis inclus (interfața loopback, cu excepția cazului în care adăugați AUTH)                                                                                                                                           | `127.0.0.1`                |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Calea de pe gazdă montată în profilul `cli` la `/workspace/omniroute` pentru fluxurile de lucru de autoactualizare                                                                                                                                                                 | `.` (directorul curent)    |
+| `OMNIROUTE_MEMORY_MB`         | Limita heap-ului Node la rulare pentru serverul Docker autonom; suprascrie valoarea implicită a imaginii menționată mai sus. Agenți de programare: `8192`+ (consultați [memoria RAM la rulare](#runtime-ram-for-coding-agents)).                                                   | `1024`                     |
+| `DASHBOARD_PORT` / `API_PORT` | Suprascriu porturile expuse pentru panoul de control (20128) și API (20129)                                                                                                                                                                                                        | `20128` / `20129`          |
+| `APP_BIND_HOST`               | Interfața gazdei pe care docker-compose publică porturile pentru panoul de control/API/WS live. Cu `REQUIRE_API_KEY=false` (valoarea implicită), `0.0.0.0` expune proxy-ul anonim `/v1` în LAN — extindeți accesul numai cu `REQUIRE_API_KEY=true` sau cu un proxy invers în față. | `127.0.0.1`                |
+| `CLIPROXY_BIND_HOST`          | Interfața gazdei pe care docker-compose publică sidecar-ul `cliproxyapi` — volumul său de date conține datele de autentificare ale furnizorilor.                                                                                                                                   | `127.0.0.1`                |
+| `OMNIROUTE_PLUGINS_DIR`       | Directorul pe care scanerul de pluginuri al runtime-ului îl citește și în care instalează. Setați-l când pluginurile sunt montate prin bind mount: valoarea implicită urmează `HOME`, pe care o imagine nu îl exportă neapărat.                                                    | `~/.omniroute/plugins`     |
+| `OMNIROUTE_BASE_PATH`         | Subcalea URL atunci când aplicația este publicată în spatele unui proxy invers (de exemplu, `/omniroute`)                                                                                                                                                                          | _(gol = rădăcină)_         |
+| `NEXT_PUBLIC_BASE_URL`        | Originea publică din browser, inclusiv subcalea (de exemplu, `https://host/omniroute`)                                                                                                                                                                                             | nesetat                    |
+| `PROD_DASHBOARD_PORT`         | Portul de pe gazdă pentru panoul de control din `docker-compose.prod.yml`                                                                                                                                                                                                          | `20130`                    |
+| `CLIPROXYAPI_PORT`            | Portul de pe gazdă pentru sidecar-ul `cliproxyapi`                                                                                                                                                                                                                                 | `8317`                     |
 
 ## Proxy invers pe o subcale (Traefik / nginx)
 
@@ -478,36 +484,49 @@ Panourile pentru tunelurile endpointurilor (Cloudflare, Tailscale, ngrok) pot fi
 - Imaginile Docker includ certificatele CA rădăcină ale sistemului și le transmit către instanța `cloudflared` gestionată, ceea ce evită erorile de încredere TLS atunci când tunelul este inițializat în interiorul containerului.
 - Setați `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` dacă doriți ca OmniRoute să utilizeze un binar existent în loc să descarce unul.
 
-## Etichetele imaginilor
+## Etichete de imagine
 
 | Imagine                  | Etichetă | Dimensiune | Descriere                                                                    |
 | ------------------------ | -------- | ---------- | ---------------------------------------------------------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB     | Cea mai recentă versiune SemVer stabilă **publicată** (nu ramura git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB     | Fixați această clasă de etichetă pentru GitOps                               |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB     | Fixați această clasă de etichete pentru GitOps                               |
 
-Manifest pentru mai multe platforme: `linux/amd64` + `linux/arm64` nativ (Apple Silicon, AWS Graviton, Raspberry Pi). Docker selectează automat arhitectura corespunzătoare; transmiteți `--platform linux/amd64` dacă trebuie să forțați emularea AMD64 pe gazde ARM.
+Manifest multi-platformă: suport nativ pentru `linux/amd64` + `linux/arm64` (Apple Silicon, AWS Graviton, Raspberry Pi). Docker selectează automat arhitectura corespunzătoare; transmiteți `--platform linux/amd64` dacă trebuie să forțați emularea AMD64 pe gazde ARM.
 
 ### Canale de lansare
 
-OmniRoute publică separat canale Docker pentru versiunile stabile, testarea ramurii de lansare active și compilările de dezvoltare.
+OmniRoute publică separat canale Docker pentru versiuni stabile, testarea ramurii active de lansare și compilări de dezvoltare.
 
-| Canal                           | Sursă                                                 | Caracter modificabil                | Utilizare recomandată                                                                                                                  |
-| ------------------------------- | ----------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `:<version>` / `:<version>-web` | Versiune semnată/cu număr de versiune                 | Imuabil                             | Implementări în producție care fixează o versiune exactă                                                                               |
-| `:latest` / `:latest-web`       | Cea mai recentă versiune SemVer stabilă **publicată** | Indicator stabil modificabil        | Urmează versiunile stabile **după** o sarcină de publicare SemVer — **nu** urmărește `main` sau commiturile nelansate din `release/v*` |
-| `:next` / `:next-web`           | Ramura `release/v*` implicită curentă                 | Indicator pre-lansare modificabil   | Testarea remedierilor care au ajuns în ramura de lansare activă, dar nu sunt încă incluse într-o versiune stabilă                      |
-| `:main` / `:main-web`           | Ramura `main`                                         | Indicator de dezvoltare modificabil | Numai pentru dezvoltare și teste de integrare                                                                                          |
+| Canal                           | Sursă                                                 | Mutabilitate                     | Utilizare recomandată                                                                                                                       |
+| ------------------------------- | ----------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Versiune semnată/cu număr de versiune                 | Imuabil                          | Implementări în producție care fixează o versiune exactă                                                                                    |
+| `:latest` / `:latest-web`       | Cea mai recentă versiune SemVer stabilă **publicată** | Indicator stabil mutabil         | Urmărește versiunile stabile **după** o operațiune de publicare SemVer — **nu** urmărește `main` sau commiturile nelansate din `release/v*` |
+| `:next` / `:next-web`           | Ramura implicită curentă `release/v*`                 | Indicator de pre-lansare mutabil | Testarea corecțiilor care au ajuns în ramura activă de lansare, dar nu sunt încă incluse într-o versiune stabilă                            |
+| `:main` / `:main-web`           | Ramura `main`                                         | Indicator de dezvoltare mutabil  | Numai pentru dezvoltare și testare de integrare                                                                                             |
+
+#### Furnizori de sesiuni web: imaginile `-web`
+
+Fiecare canal de mai sus are și o etichetă `-web` (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), construită din etapa `runner-web` — aceeași imagine, plus Playwright și un browser Chromium. Imaginea obișnuită este livrată **fără** Chromium; `gemini-web`, `claude-web` și `claude-turnstile` au nevoie de acesta.
+
+Eroarea este amânată, nu apare la pornire: acești furnizori își afișează modelele și apar drept conectați în panoul de control, iar numai prima solicitare eșuează cu
+
+```
+[500]: Failed to load external module playwright: Error: Cannot find module
+'/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
+```
+
+Dacă utilizați acești furnizori, descărcați eticheta `-web` a canalului pe care îl utilizați deja — nimic altceva nu se schimbă. Pentru o instalare npm/CLI (fără imagine Docker), componenta echivalentă care lipsește este binarul browserului: rulați `npx playwright install chromium` pe gazdă.
 
 #### Utilizarea canalului de pre-lansare
 
-Canalul `next` este recompilat la fiecare push către ramura `release/v*` implicită curentă și este publicat atât pentru AMD64, cât și pentru ARM64. Ramurile de mentenanță mai vechi nu îl pot suprascrie. Canalul oferă o imagine care poate fi descărcată pentru remedierile integrate în ramura de lansare activă înainte de crearea următoarei etichete stabile.
+Canalul `next` este reconstruit la fiecare push către ramura implicită curentă `release/v*` și este publicat atât pentru AMD64, cât și pentru ARM64. Ramurile de mentenanță mai vechi nu îl pot suprascrie. Canalul oferă o imagine care poate fi descărcată pentru corecțiile care au fost îmbinate în ramura activă de lansare înainte de crearea următoarei etichete stabile.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Pentru Docker Compose, suprascrieți eticheta imaginii utilizate de profilul selectat, apoi descărcați imaginea și recreați serviciul:
+Pentru Docker Compose, suprascrieți eticheta imaginii utilizată de profilul selectat, apoi descărcați imaginea și recreați serviciul:
 
 ```yaml
 services:
@@ -522,30 +541,30 @@ docker compose up -d
 
 #### Siguranță și revenire
 
-`next` este un canal de pre-lansare flotant. Acesta se poate modifica la orice push către ramura de lansare activă și **nu este acceptat pentru utilizare în producție**. Fixați digestul imaginii atunci când evaluați o anumită compilare:
+`next` este un canal de pre-lansare dinamic. Se poate schimba la orice push către ramura activă de lansare și **nu este acceptat pentru utilizare în producție**. Fixați digestul imaginii atunci când evaluați o anumită compilare:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Înainte de testare, faceți o copie de siguranță a volumului de date OmniRoute sau a directorului de date montat prin bind. Pentru a reveni la versiunea anterioară, restaurați versiunea stabilă sau digestul utilizat anterior și recreați containerul:
+Înainte de testare, creați o copie de siguranță a volumului de date OmniRoute sau a directorului de date montat prin bind. Pentru a reveni, restaurați versiunea stabilă sau digestul utilizat anterior și recreați containerul:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Un build al ramurii de release nu poate muta niciodată `latest`; numai o versiune semantică stabilă eligibilă poate actualiza indicatorul versiunii stabile. Imaginile `next` păstrează inspectarea imaginii de release și verificarea blocantă pentru vulnerabilități CRITICAL.
+O compilare a ramurii de lansare nu poate muta niciodată `latest`; numai o versiune semantică stabilă eligibilă poate promova indicatorul stabil. Imaginile `next` păstrează inspecția imaginii de lansare și pragul de blocare pentru vulnerabilități CRITICAL.
 
-**`latest` nu reprezintă o garanție de actualitate pentru git.** Remedierile fuzionate în `main` sau în ramura activă `release/v*` **nu** sunt incluse în `:latest` până când nu este publicată o imagine SemVer stabilă, iar jobul de publicare nu actualizează `:latest` (același digest ca versiunea SemVer respectivă). Dacă `latest` pare neschimbat, deși remedierea este deja vizibilă pe GitHub, descărcați `:next` pentru a testa ramura de release sau așteptați tagul SemVer.
+**`latest` nu garantează actualitatea față de git.** Corecțiile îmbinate în `main` sau în ramura activă `release/v*` **nu** sunt incluse în `:latest` până când nu este publicată o imagine SemVer stabilă, iar operațiunea de publicare nu promovează `:latest` (același digest ca versiunea SemVer respectivă). Dacă `latest` pare nemodificat, deși GitHub afișează deja corecția, descărcați `:next` pentru a testa ramura de lansare sau așteptați eticheta SemVer.
 
-| Ce doriți                                                                          | Utilizați                               |
-| ---------------------------------------------------------------------------------- | --------------------------------------- |
-| GitOps / producție care nu trebuie să devieze                                      | Fixați `:X.Y.Z` (sau digestul imaginii) |
-| Urmărirea versiunilor stabile publicate și acceptarea recreării la fiecare release | `:latest`                               |
-| Testarea commiturilor nepublicate din `release/v*`                                 | `:next` (nu pentru producție)           |
-| Testarea ramurii `main`                                                            | `:main` (nu pentru producție)           |
+| Doriți                                                                                | Utilizați                               |
+| ------------------------------------------------------------------------------------- | --------------------------------------- |
+| GitOps / producție care nu trebuie să devieze                                         | Fixați `:X.Y.Z` (sau digestul imaginii) |
+| Să urmăriți versiunile stabile publicate și să acceptați recrearea la fiecare lansare | `:latest`                               |
+| Să testați commiturile nelansate din `release/v*`                                     | `:next` (nu pentru producție)           |
+| Să testați `main`                                                                     | `:main` (nu pentru producție)           |
 
 ## Disponibilitate: SQLite implicit acceptă o singură replică
 

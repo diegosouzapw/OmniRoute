@@ -589,74 +589,74 @@ under `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. Intern OmniRoute CLI
+## 10. Intern OmniRoute-CLI
 
-Den `omniroute` binære fil giver kommandoer til serverlivscyklus, opsætning, diagnostik og leverandørstyring. Indgangspunkt: `bin/omniroute.mjs`.
+Den binære fil `omniroute` indeholder kommandoer til serverens livscyklus, opsætning, diagnosticering og administration af udbydere. Indgangspunkt: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Start server (standard port 20128)
+omniroute                              # Start serveren (standardport 20128)
 omniroute setup                        # Interaktiv opsætningsguide
-omniroute doctor                       # Tjek konfiguration, DB, porte, runtime
-omniroute providers list               # Konfigurerede leverandørforbindelser
-omniroute providers test-all           # Test hver aktiv forbindelse
-omniroute reset-password               # Nulstil adminadgangskode
-omniroute logs                         # Stream anmodningslogs
-omniroute health                       # Detaljeret sundhed (afbrydere, cache, hukommelse)
-omniroute --version                    # Udskriv version
+omniroute doctor                       # Kontrollér konfiguration, database, porte og kørselstid
+omniroute providers list               # Konfigurerede udbyderforbindelser
+omniroute providers test-all           # Test alle aktive forbindelser
+omniroute reset-password               # Nulstil administratoradgangskoden
+omniroute logs                         # Stream anmodningslogfiler
+omniroute health                       # Detaljeret sundhedsstatus (afbrydere, cache, hukommelse)
+omniroute --version                    # Vis version
 omniroute --help                       # Vis alle kommandoer
 ```
 
-### Opsætning & Initialisering
+### Opsætning og initialisering
 
 ```bash
 omniroute setup                        # Interaktiv opsætningsguide
-omniroute setup --non-interactive      # CI/automatiseringsmode (læser miljøvariabler + flags)
-omniroute setup --password '<value>'   # Indstil adminadgangskode direkte
+omniroute setup --non-interactive      # CI-/automatiseringstilstand (læser miljøvariabler + flag)
+omniroute setup --password '<value>'   # Angiv administratoradgangskoden direkte
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Tilføj og test en leverandør i ét hug
+  --test-provider                      # Tilføj og test en udbyder i én arbejdsgang
 ```
 
-Anerkendte miljøvariabler til ikke-interaktiv opsætning:
+Genkendte miljøvariabler til ikke-interaktiv opsætning:
 
-| Var                 | Formål                                                               |
+| Variabel            | Formål                                                               |
 | ------------------- | -------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Leverandør API-nøgle (bundet til `--api-key` via Commander `.env()`) |
-| `DATA_DIR`          | Overskriv OmniRoute data katalog                                     |
+| `OMNIROUTE_API_KEY` | Udbyderens API-nøgle (bundet til `--api-key` via Commander `.env()`) |
+| `DATA_DIR`          | Tilsidesæt OmniRoutes datamappe                                      |
 
-Alle andre ikke-interaktive input gives som flags, ikke miljøvariabler:
+Alle andre ikke-interaktive input overføres som flag, ikke som miljøvariabler:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(se `omniroute setup` mulighederne ovenfor).
+(se indstillingerne for `omniroute setup` ovenfor).
 
-### Diagnostik
+### Diagnosticering
 
 ```bash
-omniroute doctor                       # Tjek konfiguration, DB, porte, runtime, hukommelse, livlighed
-omniroute doctor --json                # Maskinlæsbart JSON
-omniroute doctor --no-liveness         # Spring HTTP sundhedsprobe over
-omniroute doctor --host 0.0.0.0        # Overskriv livlighedsvært
-omniroute doctor --liveness-url <url>  # Fuldt sundhedsendepunkt URL-overskrivning
+omniroute doctor                       # Kontrollér konfiguration, database, porte, kørselstid, hukommelse og tilgængelighed
+omniroute doctor --json                # Maskinlæsbar JSON
+omniroute doctor --no-liveness         # Spring HTTP-sundhedskontrollen over
+omniroute doctor --host 0.0.0.0        # Tilsidesæt værten til tilgængelighedskontrollen
+omniroute doctor --liveness-url <url>  # Tilsidesæt med den fulde URL til sundhedsslutpunktet
 ```
 
-Doktoren kører disse tjek: `Konfiguration`, `Database`, `Lagring/kryptering`,
-`Porttilgængelighed`, `Node runtime`, `Native binær` (better-sqlite3),
-`Hukommelse`, og `Serverlivlighed`. Den afslutter ikke-nul, hvis nogen tjek er `fejl`.
+Doctor kører disse kontroller: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory` og `Server liveness`. Den afsluttes med en kode forskellig fra nul, hvis en kontrol har status `fail`.
 
-### Leverandørstyring
+### Administration af udbydere
 
 ```bash
-omniroute providers available                       # OmniRoute leverandørkatalog
-omniroute providers available --search openai       # Filtrer katalog efter id/navn/alias/kategori
-omniroute providers available --category api-key    # Filtrer efter kategori (api-key, oauth, gratis, ...)
-omniroute providers available --json                # Maskinlæsbart JSON
+omniroute providers available                       # OmniRoutes udbyderkatalog
+omniroute providers available --search openai       # Filtrér kataloget efter id/navn/alias/kategori
+omniroute providers available --category api-key    # Filtrér efter kategori (api-key, oauth, free, ...)
+omniroute providers available --json                # Maskinlæsbar JSON
 
-omniroute providers list                            # Konfigurerede leverandørforbindelser
+omniroute providers list                            # Konfigurerede udbyderforbindelser
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Test én konfigureret forbindelse
-omniroute providers test-all                        # Test hver aktiv forbindelse
-omniroute providers validate                        # Lokalt strukturel validering
+omniroute providers test-all                        # Test alle aktive forbindelser
+omniroute providers validate                        # Lokal strukturel validering
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Eksisterende OAuth-flow
@@ -664,83 +664,85 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` er API-først og fungerer derfor mod
-den aktive lokale eller fjerntliggende kontekst. Credential input bør bruge
+`providers add/import/auth/edit/remove` bruger primært API'et og fungerer derfor med
+den aktive lokale eller eksterne kontekst. Legitimationsoplysninger bør angives med
 `--credential-stdin` eller `--credential-env`; `--dry-run --json` rapporterer kun
-redigeret tilstedeværelse/form. `providers available` læser OmniRoute kataloget;
-`providers list/test/test-all/validate` bevarer deres lokale SQLite adfærd og
+maskeret tilstedeværelse/struktur. `providers available` læser OmniRoutes katalog;
+`providers list/test/test-all/validate` bevarer deres lokale SQLite-funktionalitet og
 kræver ikke, at serveren kører.
 
-### Gendannelse & Nulstilling
+### Gendannelse og nulstilling
 
 ```bash
-omniroute reset-password                # Nulstil adminadgangskode (også: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Vis advarsel + tørkørsel for nulstilling af krypterede legitimationsoplysninger
-omniroute reset-encrypted-columns --force  # Faktisk nulstil krypterede legitimationsoplysninger i SQLite
+omniroute reset-password                # Nulstil administratoradgangskoden (også: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Vis advarsel + prøvekørsel til nulstilling af krypterede legitimationsoplysninger
+omniroute reset-encrypted-columns --force  # Nulstil faktisk krypterede legitimationsoplysninger til null i SQLite
 ```
 
-### Eksport af legitimationsoplysninger (⚠ håndter med omhu)
+### Eksport af legitimationsoplysninger (⚠ håndter med forsigtighed)
 
 ```bash
-omniroute auth export                                 # Vis advarsel + bekræftelsesport — ingen DB-adgang
-omniroute auth export --force                          # Eksporter ALLE forbindelsers DEKRYPPERET legitimationsoplysninger til stdout som JSON
-omniroute auth export --force --id <id>                 # Eksporter kun den matchende forbindelse
-omniroute auth export --force --format env               # Udsend OMNIROUTE_<PROVIDER>_<FIELD>=<value> linjer
-omniroute auth export --force --out creds.json           # Skriv til en fil (oprettet med 0600 tilladelser)
+omniroute auth export                                 # Vis advarsel + bekræftelsesport — ingen databaseadgang
+omniroute auth export --force                          # Eksportér ALLE forbindelsers DEKRYPTEREDE legitimationsoplysninger til stdout som JSON
+omniroute auth export --force --id <id>                 # Eksportér kun den matchende forbindelse
+omniroute auth export --force --format env               # Udskriv linjer i formatet OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Skriv til en fil (oprettet med 0600-tilladelser)
 ```
 
-`auth export` er **lokal-only** (direkte SQLite læsning, ingen HTTP rute) og udskriver/skriver
-**ukrypteret** `apiKey`/`accessToken`/`refreshToken`/`idToken` værdier — det er funktionen, ikke en
-fejl. Intet læses fra databasen, og intet dekrypteres, uden `--force`. En stderr
-advarselsbanner udskrives altid før nogen ukrypteret data udsendes. Kræver `STORAGE_ENCRYPTION_KEY` at
-være indstillet. Et felt, der ikke kan dekrypteres (gammel nøgle, beskadiget ciphertext) rapporteres som
-`<field>DecryptFailed: true` i stedet for at abortere hele eksporten eller lække den underliggende fejl.
+`auth export` er **kun lokal** (direkte SQLite-læsning, ingen HTTP-rute) og udskriver/skriver med vilje
+`apiKey`-/`accessToken`-/`refreshToken`-/`idToken`-værdier i **klartekst** — det er funktionen, ikke en
+fejl. Intet læses fra databasen, og intet dekrypteres, uden `--force`. Et advarselsbanner udskrives
+altid til stderr, før klartekst udsendes. Kræver, at `STORAGE_ENCRYPTION_KEY` er angivet. Et felt, som
+ikke kan dekrypteres (forældet nøgle, beskadiget chiffertekst), rapporteres som
+`<field>DecryptFailed: true` i stedet for at afbryde hele eksporten eller afsløre den underliggende fejl.
 
 ### Andre underkommandoer
 
-Disse antager en kørende OmniRoute server, medmindre andet er angivet:
+Disse forudsætter en kørende OmniRoute-server, medmindre andet er angivet:
 
 ```bash
-omniroute status                       # Omfattende runtime status
-omniroute logs                         # Stream anmodningslogs (--json, --search, --follow)
-omniroute config show                  # Vis nuværende konfiguration
+omniroute status                       # Omfattende kørselsstatus
+omniroute logs                         # Stream anmodningslogfiler (--json, --search, --follow)
+omniroute config list                  # Vis konfigurerede CLI-værktøjer
 
-omniroute provider list                # Liste over tilgængelige leverandører (alias af providers list)
-omniroute provider add                 # Registrer OmniRoute som en leverandør på et værktøj
+omniroute provider list                # Vis tilgængelige udbydere (alias for providers list)
+omniroute provider add                 # Registrer OmniRoute som udbyder i et værktøj
 omniroute keys add | list | remove     # Administrer API-nøgler
-omniroute models [provider]            # Liste over modeller (--json, --search)
+omniroute models [provider]            # Vis modeller (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Snapshot konfiguration + DB
-omniroute restore                      # Gendan fra et tidligere snapshot
+omniroute backup                       # Opret et øjebliksbillede af konfigurationen og databasen
+omniroute restore                      # Gendan fra et tidligere øjebliksbillede
 
-omniroute health                       # Detaljeret sundhed (afbrydere, cache, hukommelse)
-omniroute quota                        # Leverandør kvote brug
-omniroute cache                        # Cache status
-omniroute cache clear                  # Ryd semantiske + signatur caches
+omniroute health                       # Detaljeret tilstand (afbrydere, cache, hukommelse)
+omniroute quota                        # Brug af udbyderkvote
+omniroute cache                        # Cachestatus
+omniroute cache clear                  # Ryd semantiske cachelagre og signaturcachelagre
 
-omniroute mcp status | restart         # MCP server status / genstart
-omniroute a2a status | card            # A2A server status / agentkort
+omniroute mcp status | restart         # MCP-serverstatus/genstart
+omniroute a2a status | card            # A2A-serverstatus/agentkort
 
 omniroute tunnel list | create | stop  # Administrer tunneler (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Inspicer / indstil miljøvariabler (midlertidige)
+omniroute env show | get <k> | set <k> <v>  # Inspicer/angiv miljøvariabler (midlertidigt)
 
-omniroute test                         # Leverandør tilslutning røgtest
-omniroute update                       # Tjek for opdateringer
-omniroute completion                   # Generer shell completion
+omniroute test                         # Hurtig test af forbindelsen til udbyderen
+omniroute update                       # Søg efter opdateringer
+omniroute completion                   # Generer shell-fuldførelse
 ```
 
-### Almindelige flags
+### Almindelige flag
 
-| Flag                | Beskrivelse                                         |
-| ------------------- | --------------------------------------------------- |
-| `--no-open`         | Åbn ikke automatisk browseren ved start             |
-| `--port <n>`        | Overskriv API-porten (standard 20128)               |
-| `--mcp`             | Kør som MCP-server over stdio (til IDE'er)          |
-| `--non-interactive` | CI-mode (ingen prompts; læser fra env/flags)        |
-| `--json`            | Maskinlæsbart JSON-output (doctor, providers, osv.) |
-| `--help`, `-h`      | Vis kommando-specifik hjælp                         |
-| `--version`, `-v`   | Udskriv den installerede version                    |
+| Flag                | Beskrivelse                                        |
+| ------------------- | -------------------------------------------------- |
+| `--no-open`         | Åbn ikke automatisk browseren ved start            |
+| `--port <n>`        | Tilsidesæt API-porten (standard er 20128)          |
+| `--mcp`             | Kør som MCP-server via stdio (til IDE'er)          |
+| `--non-interactive` | CI-tilstand (ingen prompter; læser fra miljø/flag) |
+| `--json`            | Maskinlæsbart JSON-output (doctor, providers osv.) |
+| `--help`, `-h`      | Vis kommandospecifik hjælp                         |
+| `--version`, `-v`   | Udskriv den installerede version                   |
+
+---
 
 ## Tilgængelige API Endpoints
 
