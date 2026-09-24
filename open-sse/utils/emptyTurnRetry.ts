@@ -238,6 +238,38 @@ export async function readBoundedResponseOutcome(
 export type BufferedTurnVerdict =
   { kind: "retry"; reason: string } | { kind: "pass"; why: string; idlePass?: true };
 
+/** Max chars of the free-text verdict reason kept in the one-line verdict log. */
+export const BUFFERED_VERDICT_LOG_REASON_MAX = 180;
+
+export type BufferedVerdictLogLevel = "info" | "warn";
+
+/**
+ * Presentation-only verdict log line (no I/O, no mutation): one bounded line
+ * per verdict with correlation identifiers. `warn` only for an anomalous
+ * pass on a stalled turn (`idlePass`); everything else is `info`. Never
+ * receives turn content — only the short verdict reason, truncated.
+ */
+export function formatBufferedVerdictLog(
+  verdict: BufferedTurnVerdict,
+  correlationId: string | null,
+  traceId: string
+): { level: BufferedVerdictLogLevel; line: string } {
+  const idle = verdict.kind === "pass" && verdict.idlePass === true;
+  const reason = verdict.kind === "pass" ? verdict.why : verdict.reason;
+  // Collapse newlines first so the line guarantee is structural, not hostage
+  // to future reason literals: the verdict log is always exactly one line.
+  const flattened = reason.replace(/\s*\n\s*/g, " ");
+  const clipped =
+    flattened.length > BUFFERED_VERDICT_LOG_REASON_MAX
+      ? `${flattened.slice(0, BUFFERED_VERDICT_LOG_REASON_MAX)}…`
+      : flattened;
+  const cid = correlationId && correlationId.length > 0 ? correlationId : "none";
+  return {
+    level: idle ? "warn" : "info",
+    line: `verdict=${verdict.kind} idle=${idle ? "yes" : "no"} correlationId=${cid} trace=${traceId} ${clipped}`,
+  };
+}
+
 /**
  * Decide from a bounded read whether the buffered turn deserves a retry: an
  * empty turn, or a stream that dropped before anything reached the client

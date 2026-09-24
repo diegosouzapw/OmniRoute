@@ -173,11 +173,6 @@ function isLaneFlagOn(value: unknown): boolean {
   return value === true || value === "1" || value === "true";
 }
 
-function toStringArray(value: unknown, fallback: string[] = []): string[] {
-  const values = toArray(value).filter((entry): entry is string => typeof entry === "string");
-  return values.length > 0 ? values : fallback;
-}
-
 function normalizeComboModels(
   rawModels: unknown
 ): Array<{ provider: string; model: string; priority: number }> {

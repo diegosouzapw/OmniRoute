@@ -40,7 +40,6 @@ import {
   normalizeWatsonxChatUrl,
   normalizeOciChatUrl,
   normalizeSapChatUrl,
-  normalizeXiaomiMimoChatUrl,
   normalizeOpenAIChatUrl,
   getOpenRouterConnectionPreset,
 } from "./default/urlNormalizers.ts";
@@ -64,6 +63,7 @@ import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 import { normalizePoolConfig } from "./default/poolConfig.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
+import { xiaomiAlternateUrl, xiaomiMimoChatUrl } from "./default/xiaomiTokenPlan.ts";
 import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 
 const NVIDIA_TOOL_CALL_ID_PATTERN = /^[A-Za-z0-9]{9}$/;
@@ -266,7 +266,7 @@ export class DefaultExecutor extends BaseExecutor {
       if (alternate?.baseUrl && !hasManualBaseUrl) {
         // Operator's manual override (#6147) keeps its own semantics and falls
         // through to the provider-specific handling below.
-        const normalized = alternate.baseUrl.replace(/\/$/, "");
+        const normalized = xiaomiAlternateUrl(this.provider, alternate.baseUrl, credentials);
         // A model-scoped alternate (the Gemini protocol: `{base}/{model}:generateContent`)
         // builds its own URL — chatPath/urlSuffix are constants and cannot carry the model.
         if (alternate.urlBuilder) return alternate.urlBuilder(normalized, model, stream);
@@ -359,10 +359,10 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeSapChatUrl(baseUrl);
       }
       case "xiaomi-mimo":
-      case "xiaomi-mimo-token-plan": {
-        const baseUrl = this.resolveBaseUrl(credentials);
-        return normalizeXiaomiMimoChatUrl(baseUrl);
-      }
+      case "xiaomi-mimo-token-plan":
+        return xiaomiMimoChatUrl(this.provider, credentials, () =>
+          this.resolveBaseUrl(credentials)
+        );
       case "snowflake": {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSnowflakeChatUrl(baseUrl);

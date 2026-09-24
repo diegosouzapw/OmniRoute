@@ -78,6 +78,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "hyperagent",
   "ha",
   "firecrawl",
+  // Context7 rate limit quota (ratelimit-* headers of GET https://context7.com/api/v1/search)
+  "context7",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",
