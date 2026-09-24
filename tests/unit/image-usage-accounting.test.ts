@@ -287,6 +287,20 @@ test("an image call whose upstream reports no usage does not lock a limited key 
   assert.equal(logs[0].connection_id, connection.id);
 });
 
+test("an image call that reports usage for an unpriced model does not lock the key out of priced chat models", async () => {
+  await updatePricing({ openai: { "gpt-4o-mini": { input: 0.15, output: 0.6, cached: 0.075 } } });
+  await seedConnection("openai");
+  const key = await createLimitedKey(100);
+  mockOpenAiCompatibleImageUpstream("https://api.openai.com/v1/images/generations");
+
+  const response = await imageRoute.POST(generationRequest(key.key, "openai/gpt-image-1"));
+  assert.equal(response.status, 200);
+  assert.deepEqual(usageRows(), []);
+  const status = await spendOf(key.key);
+  assert.equal(status.weeklyExceeded, false);
+  assert.equal(status.weeklyHasUnpricedUsage, false);
+});
+
 test("a failed image call records no successful usage and leaves the key's spend untouched", async () => {
   await updatePricing({ openai: { "gpt-image-2": IMAGE_PRICE } });
   await seedConnection("openai");

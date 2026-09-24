@@ -21,10 +21,13 @@
  * fail-closed budget guard (#12341) and lock a usage-limited key for the whole
  * window, and most image models ship without a token price. How to charge
  * those calls (per-image price, a cost column, or zero-cost rows) is left to a
- * follow-up decision.
+ * follow-up decision. The same holds for a call that reports usage for a model
+ * with no pricing row: the token row would be repriced as unpriced $0 and lock
+ * the key out of every model, so it is skipped too.
  */
 
 import { runWithCallLogApiKeyContext } from "./callLogApiKeyContext";
+import { calculateCostDetailed } from "./costCalculator";
 import { saveRequestUsage } from "./usageHistory";
 
 export interface ImageRequestAccounting {
@@ -53,6 +56,14 @@ function upstreamUsageOf(result: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function usageTokensOf(usage: Record<string, unknown>): Record<string, number | undefined> {
+  const num = (value: unknown) => (typeof value === "number" ? value : undefined);
+  return {
+    input: num(usage.input_tokens ?? usage.prompt_tokens),
+    output: num(usage.output_tokens ?? usage.completion_tokens),
+  };
+}
+
 function toProviderLocalModel(provider: string, model: string | null | undefined): string {
   const value = typeof model === "string" ? model : "";
   return value.startsWith(`${provider}/`) ? value.slice(provider.length + 1) : value;
@@ -70,11 +81,28 @@ export async function runImageRequestWithAccounting<T>(
 
   const usage = upstreamUsageOf(result);
   if ((result as { success?: unknown } | null)?.success === true && usage) {
+    const model = toProviderLocalModel(accounting.provider, accounting.model);
+    const { priced } = await calculateCostDetailed(
+      accounting.provider,
+      model,
+      usageTokensOf(usage),
+      {
+        provider: accounting.provider,
+        model,
+      }
+    );
+    if (!priced) {
+      console.warn(
+        `[imageRequestAccounting] no pricing found for ${accounting.provider}/${model} — ` +
+          "usage_history row skipped so the key is not locked by fail-closed budget enforcement (#12341)"
+      );
+      return result;
+    }
     const latencyMs = Date.now() - accounting.startTime;
     // saveRequestUsage never throws (it logs and swallows DB errors).
     await saveRequestUsage({
       provider: accounting.provider,
-      model: toProviderLocalModel(accounting.provider, accounting.model),
+      model,
       tokens: usage,
       status: "200",
       success: true,
