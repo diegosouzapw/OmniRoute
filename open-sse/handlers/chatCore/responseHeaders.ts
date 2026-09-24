@@ -110,6 +110,18 @@ function isOmniRouteInternalHeader(headerName: string): boolean {
   return headerName.toLowerCase().startsWith("x-omniroute-");
 }
 
+export function isCodexQuotaHeader(normalized: string): boolean {
+  return (
+    normalized.startsWith("x-codex-") &&
+    (normalized.includes("used-percent") ||
+      normalized.includes("reset") ||
+      normalized.includes("window") ||
+      normalized.includes("credits") ||
+      normalized.includes("over-secondary") ||
+      normalized.includes("plan-type"))
+  );
+}
+
 function getForwardingPriority(headerName: string): number {
   const normalized = headerName.toLowerCase();
   if (
@@ -125,15 +137,7 @@ function getForwardingPriority(headerName: string): number {
   if (normalized.includes("ratelimit") || normalized.includes("rate-limit")) return 2;
   // Codex quota / reset / credits do not contain "ratelimit" in the name,
   // so they used to fall through to priority 3 and lose to date/csp/cf-ray.
-  if (
-    normalized.startsWith("x-codex-") &&
-    (normalized.includes("used-percent") ||
-      normalized.includes("reset") ||
-      normalized.includes("window") ||
-      normalized.includes("credits") ||
-      normalized.includes("over-secondary") ||
-      normalized.includes("plan-type"))
-  ) {
+  if (isCodexQuotaHeader(normalized)) {
     return 2;
   }
   if (
@@ -195,10 +199,35 @@ export function stripNextMiddlewareControlHeaders(headers: Headers): void {
   }
 }
 
+/**
+ * True when `normalized` must never reach `buildStreamingResponseHeaders`'s candidate list —
+ * either it is always excluded (denylisted, connection-scoped, middleware/internal, or the
+ * turn-state header forwarded separately below), or it is a Codex quota header on a response
+ * that a `isForeignAccount` pool/combo selection served from an account other than the
+ * caller's own (#13638/#14116). Extracted so the candidate-building loop stays a single
+ * cyclomatic branch per header.
+ */
+function shouldDropStreamingHeader(
+  normalized: string,
+  connectionScopedHeaders: Set<string>,
+  options: { isForeignAccount?: boolean } | undefined
+): boolean {
+  return (
+    STREAMING_RESPONSE_HEADER_DENYLIST.has(normalized) ||
+    connectionScopedHeaders.has(normalized) ||
+    isNextMiddlewareControlHeader(normalized) ||
+    isOmniRouteInternalHeader(normalized) ||
+    (options?.isForeignAccount === true && isCodexQuotaHeader(normalized)) ||
+    // Forwarded separately below, outside the byte budget.
+    normalized === CODEX_TURN_STATE_RESPONSE_HEADER
+  );
+}
+
 export function buildStreamingResponseHeaders(
   providerHeaders: Headers,
   meta: Parameters<typeof buildOmniRouteResponseMetaHeaders>[0],
-  log: ResponseHeaderLogger = defaultLogger
+  log: ResponseHeaderLogger = defaultLogger,
+  options?: { isForeignAccount?: boolean }
 ): Record<string, string> {
   const connectionScopedHeaders = new Set(
     (providerHeaders.get("connection") || "")
@@ -217,14 +246,7 @@ export function buildStreamingResponseHeaders(
 
   providerHeaders.forEach((value, key) => {
     const normalized = key.toLowerCase();
-    if (
-      STREAMING_RESPONSE_HEADER_DENYLIST.has(normalized) ||
-      connectionScopedHeaders.has(normalized) ||
-      isNextMiddlewareControlHeader(normalized) ||
-      isOmniRouteInternalHeader(normalized) ||
-      // Forwarded separately below, outside the byte budget.
-      normalized === CODEX_TURN_STATE_RESPONSE_HEADER
-    ) {
+    if (shouldDropStreamingHeader(normalized, connectionScopedHeaders, options)) {
       return;
     }
     candidates.push({

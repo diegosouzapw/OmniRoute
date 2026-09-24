@@ -171,3 +171,35 @@ test("non-streaming JSON path: stripNextMiddlewareControlHeaders removes the fam
   assert.equal(headers.get("x-request-id"), "req-456");
   assert.equal(headers.get("content-type"), "application/json");
 });
+
+test("Pool/Combo Routing Quota Header Leak (#13638): forwards quota headers when selected account is the caller", () => {
+  const upstream = new Headers();
+  upstream.set("x-codex-text-used-percent", "90");
+  upstream.set("x-codex-text-reset", "1700000000");
+
+  const out = buildStreamingResponseHeaders(upstream, {}, null, { isForeignAccount: false });
+  const lowerKeys = Object.keys(out).map((k) => k.toLowerCase());
+
+  assert.ok(lowerKeys.includes("x-codex-text-used-percent"));
+  assert.ok(lowerKeys.includes("x-codex-text-reset"));
+});
+
+test("Pool/Combo Routing Quota Header Leak (#13638): strips quota headers when selected account is foreign", () => {
+  const upstream = new Headers();
+  upstream.set("x-codex-text-used-percent", "90");
+  upstream.set("x-codex-text-reset", "1700000000");
+  upstream.set("x-request-id", "req-123"); // To ensure safe headers still pass through
+
+  const out = buildStreamingResponseHeaders(upstream, {}, null, { isForeignAccount: true });
+  const lowerKeys = Object.keys(out).map((k) => k.toLowerCase());
+
+  assert.ok(
+    !lowerKeys.includes("x-codex-text-used-percent"),
+    "foreign account quota headers must be stripped"
+  );
+  assert.ok(
+    !lowerKeys.includes("x-codex-text-reset"),
+    "foreign account quota headers must be stripped"
+  );
+  assert.ok(lowerKeys.includes("x-request-id"), "safe headers must still pass through");
+});

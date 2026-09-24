@@ -5947,6 +5947,14 @@ export async function handleChatCore({
     compressionResponseMeta,
     comboStrategy,
     fallbackAttempts,
+    // #13638/#14116: pool/combo routing can serve this response from an account
+    // other than the one a direct request would have used — the upstream
+    // x-codex-*-used-percent/-reset/-credits headers then describe a quota that
+    // is not the caller's own. `isCombo` is exactly the signal chatCore already
+    // has for "this account was chosen by pool/combo routing, not requested
+    // directly" (see resolveComboTargets()/handleSingleModel in combo.ts) — the
+    // direct path always has isCombo=false so its headers are unaffected.
+    isForeignAccount: isCombo === true,
   });
 
   // The streaming headers (turn-state included, when present) are committed to
