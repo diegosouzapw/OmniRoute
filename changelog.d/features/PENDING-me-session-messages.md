@@ -1,1 +1,0 @@
-- **feat(api):** add `GET /v1/me/sessions/{id}/messages` endpoint for API key holders to retrieve simplified conversation turns (user prompt, assistant response, called tools), opt-in via `AGENT_SESSION_MESSAGES_ENABLED`
