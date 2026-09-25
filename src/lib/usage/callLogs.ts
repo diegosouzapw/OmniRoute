@@ -711,6 +711,12 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
       correlationId: entry.correlationId || null,
+      // Ms of pacing/park wait imposed before dispatch (null = none).
+      addedWaitMs:
+        typeof entry.addedWaitMs === "number" && Number.isFinite(entry.addedWaitMs)
+          ? entry.addedWaitMs
+          : null,
+      addedWaitCause: toStringOrNull(entry.addedWaitCause),
       modelPinned: entry.modelPinned ? 1 : 0,
       sessionTag: entry.sessionTag || null,
       // OpenAI Responses API response id, when this attempt produced one --
@@ -778,7 +784,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
         correlation_id, model_pinned, session_tag, response_id, error_type,
-        video_content_removed, has_content, usage_provenance${resilienceCol}
+        video_content_removed, has_content, usage_provenance,
+        added_wait_ms, added_wait_cause${resilienceCol}
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -792,7 +799,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
         @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
-        @videoContentRemoved, @hasContent, @usageProvenance${resilienceParam}
+        @videoContentRemoved, @hasContent, @usageProvenance,
+        @addedWaitMs, @addedWaitCause${resilienceParam}
       )
     `
     );

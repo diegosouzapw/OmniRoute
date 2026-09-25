@@ -595,6 +595,15 @@ function fetchAlivePoolRows(
     .all(scope, scopeIdFilter) as JsonRecord[];
 }
 
+// Read-only view of a scope pool's alive candidate rows (same joined source as the
+// selection path above): registry fields joined to assignments, alive-predicate
+// applied, position order. Lets a read-only status screen rank the same rows the
+// selector ranks, without embedding SQL in a route (Hard Rule #5).
+export function getScopePoolEgressRows(scope: string, scopeIdFilter: string | null): JsonRecord[] {
+  const db = getDbInstance();
+  return fetchAlivePoolRows(db, scope, scopeIdFilter, scopeIdFilter === null);
+}
+
 // A proxy is "alive" for resolution unless it has been explicitly marked dead
 // (by an operator or a health check). Conservative: active/null/unknown stay
 // usable so a working proxy is never stranded; only known-dead states are
