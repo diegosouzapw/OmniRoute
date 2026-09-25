@@ -32,6 +32,13 @@ test("GPT-5.4 (non-5.6) stays on Chat Completions", () => {
   assert.equal(getModelTargetFormat("openai", "gpt-5.4"), null);
 });
 
+test("gpt-6-astra and its effort suffix stay on Responses", () => {
+  assert.equal(getModelTargetFormat("openai", "gpt-6-astra"), "openai-responses");
+  assert.equal(getModelTargetFormat("openai", "openai/gpt-6-astra"), "openai-responses");
+  assert.equal(getModelTargetFormat("openai", "gpt-6-astra-high"), "openai-responses");
+  assert.equal(getModelTargetFormat("openai", "gpt-5.6-sol-xhigh"), "openai-responses");
+});
+
 test("DefaultExecutor builds the /v1/responses URL for gpt-5.6-sol", () => {
   const executor = new DefaultExecutor("openai");
   const url = executor.buildUrl("gpt-5.6-sol", true, 0, null);

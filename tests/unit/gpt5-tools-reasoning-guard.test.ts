@@ -161,6 +161,17 @@ test("gpt-5.4/gpt-5.5 stay on /chat/completions (targetFormat openai) and keep s
   }
 });
 
+test("gpt-6-astra on chat completions strips reasoning when function tools are present", () => {
+  const body = {
+    model: "gpt-6-astra",
+    tools: [{ type: "function", function: { name: "ping" } }],
+    reasoning_effort: "high",
+  };
+  const result = stripGpt5ReasoningWhenTools(body, "openai", "gpt-6-astra", "openai");
+  assert.equal(result.reasoning_effort, undefined);
+  assert.equal(result.tools.length, 1);
+});
+
 test("if gpt-5.6 were ever NOT routed to /v1/responses, the strip would still apply (defense in depth)", () => {
   const body = {
     model: "gpt-5.6-sol",

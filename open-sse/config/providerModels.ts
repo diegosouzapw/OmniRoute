@@ -222,6 +222,15 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   const bareModelId = prefix ? modelId.slice(prefix.length) : modelId;
   const found = PROVIDER_MODELS[alias]?.find((m) => m.id === bareModelId);
   if (found?.targetFormat) return found.targetFormat;
+  // Effort suffixes (gpt-6-astra-high, gpt-5.6-sol-xhigh) are not separate
+  // catalog rows on the public OpenAI provider. They must keep the base
+  // model's endpoint, or tools+reasoning land on /v1/chat/completions and
+  // OpenAI returns a 400 that the Responses API would have accepted.
+  const effortStripped = bareModelId.replace(/-(?:ultra|max|xhigh|high|medium|low|none)$/i, "");
+  if (effortStripped !== bareModelId) {
+    const base = PROVIDER_MODELS[alias]?.find((m) => m.id === effortStripped);
+    if (base?.targetFormat) return base.targetFormat;
+  }
   // #5842: OpenAI "*-pro" reasoning models (o1-pro, gpt-5.x-pro) are only served by
   // the native /v1/responses endpoint — /v1/chat/completions 404s ("only supported
   // in v1/responses"). Curated catalog entries are tagged explicitly; this heuristic
