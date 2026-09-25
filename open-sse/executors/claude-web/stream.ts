@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 
 import { buildErrorBody } from "../../utils/error.ts";
+import { sanitizeErrorMessage } from "../../utils/errorSanitization.ts";
 import type { ExecutorLog } from "../base.ts";
 
 export interface ClaudeWebStreamOptions {
@@ -10,7 +11,21 @@ export interface ClaudeWebStreamOptions {
   onComplete(result: { assistantText: string; stopReason: string }): void;
   onFailure(): void;
   log?: ExecutorLog | null;
+  /**
+   * How long (ms) to wait for further upstream activity after a `tool_use` content block
+   * closes with no other block still open before synthesizing a turn finish. claude.ai's
+   * custom (non-native) tool flow can hold the assistant message open and send only
+   * keepalive `ping`/metadata events while it waits for the client to execute the tool and
+   * reply, never sending `message_delta`/`message_stop` on that same stream (#14711). The
+   * timer resets on every received upstream event (including keepalives), so it only fires
+   * once the connection has gone genuinely idle. Overridable for tests; defaults to
+   * `DEFAULT_TOOL_USE_IDLE_FINISH_MS`.
+   */
+  toolUseIdleFinishMs?: number;
 }
+
+/** Default idle window (ms) — see `ClaudeWebStreamOptions.toolUseIdleFinishMs`. */
+export const DEFAULT_TOOL_USE_IDLE_FINISH_MS = 3000;
 
 type StreamPhase = "awaiting_message" | "in_message" | "stopped" | "failed";
 type BlockKind = "thinking" | "text" | "tool_use" | "other";
@@ -386,9 +401,85 @@ function dispatchProtocolEvent(
   }
 }
 
+const IDLE_TIMEOUT = Symbol("claude-web-idle-timeout");
+
+/**
+ * Races the next upstream SSE frame against an idle timer. Resolves to the timeout sentinel
+ * when no frame arrives within `ms`; otherwise resolves to the iterator result. Used only
+ * while a synthetic tool_use finish is pending (see `ClaudeWebStreamOptions.toolUseIdleFinishMs`).
+ */
+function raceNextFrame(
+  sseIterator: AsyncIterator<string, void, void>,
+  ms: number
+): Promise<IteratorResult<string, void> | typeof IDLE_TIMEOUT> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resolve(IDLE_TIMEOUT), ms);
+    sseIterator.next().then(
+      (result) => {
+        clearTimeout(timer);
+        resolve(result);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error as Error);
+      }
+    );
+  });
+}
+
+/**
+ * Updates whether a synthetic tool_use finish is owed: armed when a `tool_call` semantic
+ * event closes with no other content block still open, and disarmed the moment real
+ * follow-up activity (a new block, or an upstream `message_delta`/`message_stop`) arrives.
+ */
+function updateToolFinishArmed(
+  armed: boolean,
+  eventType: string,
+  semanticEvent: SemanticEvent | null,
+  state: ProtocolState
+): boolean {
+  if (eventType === "content_block_start" || eventType === "message_delta") return false;
+  if (semanticEvent?.kind === "tool_call") return state.openBlocks.size === 0;
+  return armed;
+}
+
+type NextFrameOutcome = { kind: "data"; value: string } | { kind: "idle-finish" } | { kind: "eof" };
+
+/**
+ * Pulls the next upstream SSE frame, racing it against the idle-finish timer only while one
+ * is armed. On an idle timeout it also cancels the now-useless upstream reader directly (see
+ * `parseClaudeWebEvents`'s own `finally` for why: a generator-close alone can hang forever
+ * against a reader that never resolves).
+ */
+async function readNextFrame(
+  control: StreamControl,
+  sseIterator: AsyncIterator<string, void, void>,
+  toolFinishArmed: boolean,
+  toolUseIdleFinishMs: number
+): Promise<NextFrameOutcome> {
+  const next = toolFinishArmed
+    ? await raceNextFrame(sseIterator, toolUseIdleFinishMs)
+    : await sseIterator.next();
+
+  if (next === IDLE_TIMEOUT) {
+    // The upstream connection is still open with no `message_stop` coming (claude.ai's
+    // tool_use hold-open, #14711) — cancel it directly so decodeSseData's pending
+    // `reader.read()` settles promptly instead of leaving the generator blocked on a read
+    // that would otherwise never resolve.
+    if (control.reader) await control.reader.cancel().catch(() => {});
+    return { kind: "idle-finish" };
+  }
+  // `IteratorResult<string, void>`'s `value` widens to `string | void` (the `TReturn = void`
+  // arm), even though `next.done` being falsy already rules that arm out at runtime — narrow
+  // it explicitly rather than casting.
+  if (next.done || typeof next.value !== "string") return { kind: "eof" };
+  return { kind: "data", value: next.value };
+}
+
 async function* parseClaudeWebEvents(
   source: ReadableStream<Uint8Array>,
-  control: StreamControl
+  control: StreamControl,
+  toolUseIdleFinishMs: number = DEFAULT_TOOL_USE_IDLE_FINISH_MS
 ): AsyncGenerator<SemanticEvent, void, void> {
   const state: ProtocolState = {
     phase: "awaiting_message",
@@ -396,26 +487,48 @@ async function* parseClaudeWebEvents(
     toolBlocks: new Map(),
     stopReason: "end_turn",
   };
+  // Manually driven (not `for await`) so a tool_use idle finish can race the next upstream
+  // frame against a timer. That gives up the language's automatic IteratorClose-on-exit, so
+  // every exit path below (return, throw, or the caller cancelling us mid-`yield`) must close
+  // `sseIterator` itself in `finally` — otherwise the underlying reader's pending `read()` is
+  // never cancelled/released (leaked lock, and a dangling unsettled promise in tests).
+  const sseIterator = decodeSseData(source, control)[Symbol.asyncIterator]();
+  let toolFinishArmed = false;
 
-  for await (const data of decodeSseData(source, control)) {
-    if (data === "[DONE]") {
-      protocolFailure(state, "DONE arrived before message_stop");
+  try {
+    while (true) {
+      const frame = await readNextFrame(control, sseIterator, toolFinishArmed, toolUseIdleFinishMs);
+      if (frame.kind === "idle-finish") {
+        state.phase = "stopped";
+        yield { kind: "finish", stopReason: "tool_use" };
+        return;
+      }
+      if (frame.kind === "eof") break;
+
+      const data = frame.value;
+      if (data === "[DONE]") {
+        protocolFailure(state, "DONE arrived before message_stop");
+      }
+
+      const { event, eventType } = parseProtocolEvent(data, state);
+      if (KNOWN_METADATA_EVENTS.has(eventType)) {
+        toolFinishArmed = updateToolFinishArmed(toolFinishArmed, eventType, null, state);
+        yield { kind: "metadata", eventType, data: projectMetadataEvent(eventType, event) };
+        continue;
+      }
+
+      const semanticEvent = dispatchProtocolEvent(eventType, event, state);
+      toolFinishArmed = updateToolFinishArmed(toolFinishArmed, eventType, semanticEvent, state);
+      if (!semanticEvent) continue;
+      yield semanticEvent;
+      if (semanticEvent.kind === "finish") return;
     }
 
-    const { event, eventType } = parseProtocolEvent(data, state);
-    if (KNOWN_METADATA_EVENTS.has(eventType)) {
-      yield { kind: "metadata", eventType, data: projectMetadataEvent(eventType, event) };
-      continue;
-    }
-
-    const semanticEvent = dispatchProtocolEvent(eventType, event, state);
-    if (!semanticEvent) continue;
-    yield semanticEvent;
-    if (semanticEvent.kind === "finish") return;
+    if (control.cancelled) return;
+    throw new ClaudeWebProtocolError("Claude Web stream ended before message_stop");
+  } finally {
+    await sseIterator.return?.().catch(() => {});
   }
-
-  if (control.cancelled) return;
-  throw new ClaudeWebProtocolError("Claude Web stream ended before message_stop");
 }
 
 function openAiFinishReason(stopReason: string): string {
@@ -514,7 +627,7 @@ async function createBufferedResponse(
   const control: StreamControl = { reader: null, cancelled: false };
 
   try {
-    for await (const event of parseClaudeWebEvents(source, control)) {
+    for await (const event of parseClaudeWebEvents(source, control, options.toolUseIdleFinishMs)) {
       if (event.kind === "content") assistantText += event.text;
       if (event.kind === "reasoning") reasoningText += event.text;
       if (event.kind === "tool_call") {
@@ -565,8 +678,11 @@ async function createBufferedResponse(
         headers: responseHeaders("application/json", options.responseMetadata),
       }
     );
-  } catch {
-    options.log?.error?.("CLAUDE-WEB-STREAM", "Claude Web stream protocol validation failed");
+  } catch (error) {
+    options.log?.error?.(
+      "CLAUDE-WEB-STREAM",
+      `Claude Web stream protocol validation failed: ${sanitizeErrorMessage(error)}`
+    );
     notifyFailure(options);
     return new Response(JSON.stringify(protocolErrorBody()), {
       status: 502,
@@ -697,8 +813,15 @@ async function queueSemanticEvent(
   state.terminal = true;
 }
 
-function queueStreamFailure(state: StreamingState, options: ClaudeWebStreamOptions): void {
-  options.log?.error?.("CLAUDE-WEB-STREAM", "Claude Web stream protocol validation failed");
+function queueStreamFailure(
+  state: StreamingState,
+  options: ClaudeWebStreamOptions,
+  error: unknown
+): void {
+  options.log?.error?.(
+    "CLAUDE-WEB-STREAM",
+    `Claude Web stream protocol validation failed: ${sanitizeErrorMessage(error)}`
+  );
   failStreamOnce(state, options);
   state.pendingChunks.push(encodeStreamEvent(state, protocolErrorBody()));
   state.pendingChunks.push(state.encoder.encode("data: [DONE]\n\n"));
@@ -729,9 +852,9 @@ async function pullStreamingChunk(
         return;
       }
     }
-  } catch {
+  } catch (error) {
     if (state.control.cancelled) return;
-    queueStreamFailure(state, options);
+    queueStreamFailure(state, options, error);
     flushStreamChunk(state, controller);
   }
 }
@@ -764,7 +887,9 @@ function createStreamingResponse(
     id: `chatcmpl-${randomUUID()}`,
     created: Math.floor(Date.now() / 1000),
     control,
-    iterator: parseClaudeWebEvents(source, control)[Symbol.asyncIterator](),
+    iterator: parseClaudeWebEvents(source, control, options.toolUseIdleFinishMs)[
+      Symbol.asyncIterator
+    ](),
     pendingChunks: [],
     assistantText: "",
     outcome: "pending",
