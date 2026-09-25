@@ -538,27 +538,31 @@ function bedrockToolArgumentFragment(current, incoming) {
   return { next, fragment };
 }
 
+function emitBedrockToolHeader(model, tool, enqueue) {
+  if (tool.emitted) return;
+  tool.emitted = true;
+  enqueue(
+    openAIChunk(model, {
+      tool_calls: [
+        {
+          index: tool.index,
+          id: tool.id,
+          type: "function",
+          function: { name: tool.name, arguments: "" },
+        },
+      ],
+    })
+  );
+}
+
 function enqueueBedrockToolArgument(model, tool, incoming, enqueue) {
   if (incoming == null) return;
   const { next, fragment } = bedrockToolArgumentFragment(tool.args, incoming);
   tool.args = next;
   if (!fragment) return;
 
-  if (!tool.emitted) {
-    enqueue(
-      openAIChunk(model, {
-        tool_calls: [
-          {
-            index: tool.index,
-            id: tool.id,
-            type: "function",
-            function: { name: tool.name, arguments: "" },
-          },
-        ],
-      })
-    );
-    tool.emitted = true;
-  }
+  // A delta can arrive without contentBlockStart. Still surface the call.
+  emitBedrockToolHeader(model, tool, enqueue);
 
   enqueue(
     openAIChunk(model, {
@@ -567,27 +571,10 @@ function enqueueBedrockToolArgument(model, tool, incoming, enqueue) {
   );
 }
 
-function bedrockStreamHasBlankToolCall(state) {
-  const tools = [...state.byBlock.values()];
-  // `{}` becomes "{}" and is emitted. Only a tool that never produced a fragment
-  // (dropped object deltas, or no input at all) stays blank.
-  return tools.length > 0 && tools.every((tool) => !tool.emitted);
-}
-
-function bedrockEmptyToolArgumentsError() {
-  return errorBody({
-    name: "bedrock_empty_tool_arguments",
-    message: "Bedrock tool call finished without arguments",
-    status: 502,
-    $metadata: { httpStatusCode: 502 },
-  });
-}
-
 function createOpenAIStreamFromBedrock(stream, model) {
   const toolState = createBedrockToolStreamState();
   let finishReason = "stop";
   let finalUsage = null;
-  let sawStreamException = false;
 
   return new ReadableStream({
     async start(controller) {
@@ -597,7 +584,6 @@ function createOpenAIStreamFromBedrock(stream, model) {
         for await (const event of stream || []) {
           const exception = streamExceptionPayload(event);
           if (exception) {
-            sawStreamException = true;
             const status = statusFromStreamException(exception);
             enqueue({
               error: {
@@ -615,6 +601,10 @@ function createOpenAIStreamFromBedrock(stream, model) {
             const tool = bedrockToolForBlock(toolState, blockStart.contentBlockIndex);
             tool.id = blockStart.start.toolUse.toolUseId;
             tool.name = blockStart.start.toolUse.name;
+            // Zero-parameter tools send "" or no input delta. Emit the header
+            // on contentBlockStart, as the release tip does, so a blank call
+            // is kept instead of dropped or failed as an empty-arguments 502.
+            emitBedrockToolHeader(model, tool, enqueue);
             if (blockStart.start.toolUse.input != null) {
               enqueueBedrockToolArgument(model, tool, blockStart.start.toolUse.input, enqueue);
             }
@@ -647,11 +637,6 @@ function createOpenAIStreamFromBedrock(stream, model) {
           if (event.metadata?.usage) {
             finalUsage = usageFromBedrock(event.metadata.usage);
           }
-        }
-
-        if (!sawStreamException && bedrockStreamHasBlankToolCall(toolState)) {
-          enqueue(bedrockEmptyToolArgumentsError());
-          finishReason = null;
         }
 
         enqueue(openAIChunk(model, {}, finishReason, finalUsage || undefined));

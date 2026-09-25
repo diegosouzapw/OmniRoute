@@ -398,6 +398,16 @@ function toolArgumentsByIndex(events) {
   return byIndex;
 }
 
+function toolCallHeader(events, id) {
+  for (const event of events) {
+    const calls = event.choices?.[0]?.delta?.tool_calls;
+    if (!Array.isArray(calls)) continue;
+    const call = calls.find((item) => item.id === id);
+    if (call) return call;
+  }
+  return undefined;
+}
+
 async function executeFakeBedrockStream(events) {
   const executor = new BedrockExecutor(() => ({
     send: async () => ({
@@ -552,23 +562,106 @@ test("Bedrock ConverseStream keeps a legitimate empty-object tool call", async (
   assert.equal(events.at(-1).choices[0].finish_reason, "tool_calls");
 });
 
-test("Bedrock ConverseStream fails closed when a tool call never receives arguments (#14668)", async () => {
-  const { status, text, events } = await executeFakeBedrockStream([
+test("Bedrock ConverseStream keeps a zero-parameter tool when the input delta is empty", async () => {
+  const { status, events } = await executeFakeBedrockStream([
     {
       contentBlockStart: {
         contentBlockIndex: 0,
-        start: { toolUse: { toolUseId: "toolu_blank", name: "Bash" } },
+        start: { toolUse: { toolUseId: "toolu_noparam", name: "noop" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 0,
+        delta: { toolUse: { input: "" } },
       },
     },
     { messageStop: { stopReason: "tool_use" } },
   ]);
 
   assert.equal(status, 200);
-  assert.equal(toolArgumentsByIndex(events).size, 0);
-  assert.equal(text.includes('"tool_calls"'), false);
-  const error = events.find((event) => event.error);
-  assert.equal(error.error.code, "bedrock_empty_tool_arguments");
-  assert.equal(error.error.status, 502);
-  assert.equal(String(error.error.message).includes("at /"), false);
-  assert.equal(events.at(-1).choices[0].finish_reason, null);
+  assert.equal(
+    events.some((event) => event.error?.code === "bedrock_empty_tool_arguments"),
+    false
+  );
+  const header = toolCallHeader(events, "toolu_noparam");
+  assert.equal(header?.index, 0);
+  assert.equal(header?.type, "function");
+  assert.equal(header?.function?.name, "noop");
+  assert.equal(header?.function?.arguments, "");
+  assert.equal(toolArgumentsByIndex(events).get(0), "");
+  assert.equal(events.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
+test("Bedrock ConverseStream emits a tool call that never receives an input delta", async () => {
+  const { status, events } = await executeFakeBedrockStream([
+    {
+      contentBlockStart: {
+        contentBlockIndex: 0,
+        start: { toolUse: { toolUseId: "toolu_nodelta", name: "noop" } },
+      },
+    },
+    { messageStop: { stopReason: "tool_use" } },
+  ]);
+
+  assert.equal(status, 200);
+  assert.equal(
+    events.some((event) => event.error?.code === "bedrock_empty_tool_arguments"),
+    false
+  );
+  const header = toolCallHeader(events, "toolu_nodelta");
+  assert.equal(header?.index, 0);
+  assert.equal(header?.type, "function");
+  assert.equal(header?.function?.name, "noop");
+  assert.equal(header?.function?.arguments, "");
+  assert.equal(toolArgumentsByIndex(events).get(0), "");
+  assert.equal(events.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
+test("Bedrock ConverseStream keeps a blank tool call in a parallel batch", async () => {
+  const { status, events } = await executeFakeBedrockStream([
+    {
+      contentBlockStart: {
+        contentBlockIndex: 0,
+        start: { toolUse: { toolUseId: "toolu_bash", name: "Bash" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 0,
+        delta: { toolUse: { input: '{"command":"pwd"}' } },
+      },
+    },
+    {
+      contentBlockStart: {
+        contentBlockIndex: 1,
+        start: { toolUse: { toolUseId: "toolu_noop", name: "noop" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 1,
+        delta: { toolUse: { input: "" } },
+      },
+    },
+    { messageStop: { stopReason: "tool_use" } },
+  ]);
+
+  assert.equal(status, 200);
+  assert.equal(
+    events.some((event) => event.error?.code === "bedrock_empty_tool_arguments"),
+    false
+  );
+  const bash = toolCallHeader(events, "toolu_bash");
+  const noop = toolCallHeader(events, "toolu_noop");
+  assert.equal(bash?.index, 0);
+  assert.equal(bash?.function?.name, "Bash");
+  assert.equal(noop?.index, 1);
+  assert.equal(noop?.type, "function");
+  assert.equal(noop?.function?.name, "noop");
+  assert.equal(noop?.function?.arguments, "");
+  const args = toolArgumentsByIndex(events);
+  assert.equal(args.get(0), '{"command":"pwd"}');
+  assert.equal(args.get(1), "");
+  assert.equal(events.at(-1).choices[0].finish_reason, "tool_calls");
 });
