@@ -71,8 +71,10 @@ test("stripUnsupportedParams: codex strips temperature and top_p (Responses 400)
 });
 
 test("stripUnsupportedParams: non-codex provider keeps temperature for gpt-5.6-luna-max", () => {
+  // `openai` has its own gpt-5 sampling rule now, so use a provider with no rule
+  // to prove the codex strip itself is provider-scoped.
   const body: Record<string, unknown> = { temperature: 0.7 };
-  stripUnsupportedParams("openai", "gpt-5.6-luna-max", body);
+  stripUnsupportedParams("openrouter", "gpt-5.6-luna-max", body);
   assert.equal(body.temperature, 0.7, "codex sampling strip is provider-scoped");
 });
 
@@ -234,4 +236,31 @@ test("stripUnsupportedParams: kimi rule is provider-scoped (no-op for non-volcen
     65536,
     "the Ark-specific cap must not leak to other kimi-hosting providers"
   );
+});
+
+// OpenAI gpt-5.x reasoning models: temperature / top_p rejected with 400
+// "Unsupported parameter: 'temperature' is not supported with this model".
+test("stripUnsupportedParams: openai gpt-5.x drops temperature and top_p", () => {
+  for (const model of ["gpt-5.6-luna", "gpt-5.6-luna-high", "gpt-5", "gpt-5-mini", "GPT-5.4"]) {
+    const body: Record<string, unknown> = { temperature: 0.7, top_p: 0.9, max_tokens: 64 };
+    stripUnsupportedParams("openai", model, body);
+    assert.equal(body.temperature, undefined, `${model}: temperature`);
+    assert.equal(body.top_p, undefined, `${model}: top_p`);
+    assert.equal(body.max_tokens, 64, `${model}: other params survive`);
+  }
+});
+
+test("stripUnsupportedParams: openai gpt-5-chat variants and non-gpt-5 models keep sampling params", () => {
+  for (const model of ["gpt-5-chat-latest", "gpt-4o", "gpt-4.1-mini", "o3"]) {
+    const body: Record<string, unknown> = { temperature: 0.7, top_p: 0.9 };
+    stripUnsupportedParams("openai", model, body);
+    assert.equal(body.temperature, 0.7, model);
+    assert.equal(body.top_p, 0.9, model);
+  }
+});
+
+test("stripUnsupportedParams: the gpt-5 sampling rule is scoped to provider openai", () => {
+  const body: Record<string, unknown> = { temperature: 0.7 };
+  stripUnsupportedParams("azure-openai", "gpt-5.6-luna", body);
+  assert.equal(body.temperature, 0.7);
 });
