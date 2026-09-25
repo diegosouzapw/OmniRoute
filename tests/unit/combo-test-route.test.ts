@@ -14,6 +14,7 @@ type ComboTestResult = {
   executionKey?: string | null;
 };
 type ComboTestBody = {
+  testMode?: string;
   model?: string;
   resolvedBy?: string | null;
   resolvedByExecutionKey?: string | null;
@@ -148,6 +149,9 @@ test("combo test route marks a model healthy only when it returns assistant text
   assert.equal(forwardedBody.model, "openrouter/openai/gpt-5.4");
   assert.equal(forwardedBody.messages[0].content, "Reply with exactly: pong");
   assert.equal(forwardedBody.max_tokens, 64);
+  assert.equal(forwardedBody.stream, true);
+  assert.equal(fetchCalls[0].init.headers["X-OmniRoute-Compression"], "off");
+  assert.equal(body.testMode, "target-health-check");
   assert.equal("temperature" in forwardedBody, false);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
   assert.equal(body.results[0].status, "ok");
@@ -437,7 +441,7 @@ test("combo test route handles upstream timeouts and non-JSON error bodies", asy
       {
         model: "provider/timeout",
         status: "error",
-        error: "Timeout (60s)",
+        error: "Model test aborted",
         statusCode: null,
       },
       {
@@ -570,4 +574,76 @@ test("combo test route stops probing once the total budget is spent", async () =
   } finally {
     Date.now = realNow;
   }
+});
+
+test("combo probes consume SSE text and preserve errors inside HTTP 200 streams", async () => {
+  await createTestCombo(["vertex/gemini-3.8-flash", "provider/error"]);
+  globalThis.fetch = async (_url, init) => {
+    const model = JSON.parse(String(init?.body)).model;
+    const event = model.startsWith("vertex/")
+      ? { choices: [{ delta: { content: "OK" } }] }
+      : { error: { message: "Local execution deadline exceeded (18000ms)", code: 504 } };
+    return new Response(`data: ${JSON.stringify(event)}\n\ndata: [DONE]\n\n`, {
+      headers: { "content-type": "text/event-stream" },
+    });
+  };
+  const response = await route.POST(makeRequest());
+  const body = await response.json();
+  assert.equal(body.results[0].responseText, "OK");
+  assert.equal(body.results[0].status, "ok");
+  assert.equal(body.results[1].status, "error");
+  assert.equal(body.results[1].statusCode, 504);
+  assert.match(body.results[1].error, /18000ms/);
+});
+
+test("combo test deadline covers stream consumption and rejects timed-out partial output", async (t) => {
+  await createTestCombo(["vertex/gemini-3.8-flash"]);
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let signal: AbortSignal | undefined;
+  globalThis.fetch = async (_url, init) => {
+    signal = init?.signal ?? undefined;
+    return new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            new TextEncoder().encode('data: {"choices":[{"delta":{"content":"partial"}}]}\n\n')
+          );
+          signal?.addEventListener("abort", () => controller.error(signal?.reason), { once: true });
+        },
+      }),
+      { headers: { "content-type": "text/event-stream" } }
+    );
+  };
+  const pending = route.POST(makeRequest());
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.ok(signal);
+  t.mock.timers.tick(route.COMBO_TEST_TIMEOUT_MS - 1);
+  assert.equal(signal.aborted, false);
+  t.mock.timers.tick(1);
+  const body = await (await pending).json();
+  assert.equal(body.results[0].status, "error");
+  assert.equal(body.results[0].statusCode, 504);
+  assert.equal(body.results[0].isTimeout, true);
+  assert.equal(body.results[0].error, "No model output within 60s");
+  assert.equal(body.resolvedBy, null);
+});
+
+test("combo probes retain JSON embeddings and sanitize upstream error details", async () => {
+  await createTestCombo(["openai/text-embedding-3-small", "provider/failure"]);
+  globalThis.fetch = async (_url, init) => {
+    const payload = JSON.parse(String(init?.body));
+    if (payload.model.includes("embedding")) {
+      assert.equal(payload.input, "Hello World");
+      assert.equal(payload.stream, undefined);
+      return Response.json({ data: [{ embedding: [0.1, 0.2] }] });
+    }
+    return Response.json(
+      { error: { message: "Failed\n    at /private/server/credentials.ts:42:1" } },
+      { status: 502 }
+    );
+  };
+  const body = await (await route.POST(makeRequest())).json();
+  assert.equal(body.results[0].status, "ok");
+  assert.equal(body.results[1].statusCode, 502);
+  assert.equal(body.results[1].error.includes("at /"), false);
 });

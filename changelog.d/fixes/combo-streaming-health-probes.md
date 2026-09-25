@@ -1,0 +1,1 @@
+- **fix(combos):** align combo health probes with small streaming model tests and shared response parsing. Keep provider-aware test deadlines active through response consumption, show errors inline, and clarify that target health checks do not exercise the combo routing strategy. Existing runtime rate limits remain unchanged.

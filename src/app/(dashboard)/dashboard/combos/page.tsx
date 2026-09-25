@@ -705,7 +705,6 @@ function computeAllowedRestrictionSync(
   return result;
 }
 
-
 function getModelString(entry) {
   if (typeof entry === "string") return entry;
   if (entry?.kind === "combo-ref") return entry.comboName;
@@ -2026,6 +2025,10 @@ function TestResultsView({ results }) {
 
   return (
     <div className="flex flex-col gap-2">
+      <p className="text-xs text-text-muted">
+        Targets are tested independently. This checks model health, not the combo’s routing strategy
+        or fallback order.
+      </p>
       {results.resolvedBy && (
         <div className="flex items-center gap-2 text-sm">
           <span className="material-symbols-outlined text-emerald-500 text-[18px]">
@@ -2033,7 +2036,7 @@ function TestResultsView({ results }) {
           </span>
           <div className="min-w-0">
             <div>
-              Resolved by:{" "}
+              First healthy target in combo order:{" "}
               <code className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded">
                 {results.resolvedBy}
               </code>
@@ -2078,6 +2081,12 @@ function TestResultsView({ results }) {
                 {r.stepId ? ` · ${r.stepId}` : ""}
               </div>
             ) : null}
+            {r.error && (
+              <p className="mt-2 whitespace-pre-wrap break-words text-red-500">
+                {r.statusCode ? `HTTP ${r.statusCode}: ` : ""}
+                {r.error}
+              </p>
+            )}
           </div>
           {r.latencyMs !== undefined && <span className="text-text-muted">{r.latencyMs}ms</span>}
           <span
