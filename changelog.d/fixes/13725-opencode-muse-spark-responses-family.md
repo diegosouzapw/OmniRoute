@@ -1,0 +1,1 @@
+- **fix(providers):** route the OpenCode Muse Spark model family through the Responses API so newly released `muse-spark-*` variants do not require individual routing patches ([#13725](https://github.com/diegosouzapw/OmniRoute/pull/13725))
