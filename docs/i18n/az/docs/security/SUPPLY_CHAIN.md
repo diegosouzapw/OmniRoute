@@ -4,57 +4,53 @@
 
 ---
 
-OmniRoute npm + Docker artefaktlarını yayımlayır. Bu nəzarət mərhələləri mənşə sübutunu,
-inventarı (SBOM) və CVE skanını təmin edir; hamısı açıq mənbəlidir və buraxılış iş axınlarına inteqrasiya olunub.
-**Əvvəlcə xəbərdarlıq** yanaşması — hazırda yalnız hesabat verirlər, ilk
-uğurlu buraxılışdan sonra bloklayıcı rejimə keçirilirlər.
+OmniRoute npm + Docker artefaktlarını dərc edir. Bu qapılar mənşə, inventar (SBOM) və CVE skanlamasını təmin edir, hamısı Açıq Mənbədir (OSS), buraxılış iş axınlarına inteqrasiya olunmuşdur. **Məsləhət-əsaslı** yanaşma — onlar indi hesabat verir, ilk uğurlu buraxılışdan sonra bloklama səviyyəsinə yüksəldilir.
 
-| Nəzarət mərhələsi          | Alət                                           | Harada                             | Bloklayır?                    | Nəticə                                                                                |
-| -------------------------- | ---------------------------------------------- | ---------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------- |
-| SLSA mənşə sübutu (npm)    | `npm --provenance` (OIDC)                      | `npm-publish.yml`                  | yalnız dərc uğursuz olarsa    | npmjs nişanı / `npm audit signatures`                                                 |
-| npm SBOM-u                 | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`                  | yalnız yaratma uğursuz olarsa | Buraxılış resursu + artefakt                                                          |
-| Konteyner obrazının SBOM-u | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (birləşdirmə) | xəbərdarlıq xarakterli        | CycloneDX artefaktı                                                                   |
-| Trivy CVE (SARIF)          | `aquasecurity/trivy-action`                    | `docker-publish.yml` (birləşdirmə) | xəbərdarlıq xarakterli        | SARIF (HIGH+CRITICAL) → Təhlükəsizlik bölməsi                                         |
-| Trivy CRITICAL nəzarəti    | `aquasecurity/trivy-action`                    | `docker-publish.yml` (birləşdirmə) | **bloklayıcı**                | düzəldilə bilən CRITICAL üçün `exit-code: '1'`                                        |
-| osv vulnCount              | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`)      | **bloklayıcı**                | `metrics.vulnCount` göstəricisini aşağı istiqamətdə məhdudlaşdırır (`direction:down`) |
-| OpenSSF Scorecard          | `ossf/scorecard-action`                        | `scorecard.yml` (cron)             | xəbərdarlıq xarakterli        | SARIF → Təhlükəsizlik + nişan                                                         |
+| Qapı                | Alət                                           | Harada                        | Bloklayır?                       | Çıxış                                         |
+| ------------------- | ---------------------------------------------- | ----------------------------- | -------------------------------- | --------------------------------------------- |
+| SLSA mənşəyi (npm)  | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | yalnız dərc uğursuz olarsa       | badge npmjs / `npm audit signatures`          |
+| SBOM npm            | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | yalnız generasiya uğursuz olarsa | Release asset + artifact                      |
+| SBOM image          | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | məsləhət xarakterli              | CycloneDX artifact                            |
+| Trivy CVE (SARIF)   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | məsləhət xarakterli              | SARIF (HIGH+CRITICAL) → Security tab          |
+| Trivy CRITICAL qapı | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **bloklayıcı**                   | `exit-code: '1'` on fixable CRITICAL          |
+| osv vulnCount       | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **bloklayıcı**                   | ratchets `metrics.vulnCount` (direction:down) |
+| OpenSSF Scorecard   | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | məsləhət xarakterli              | SARIF → Security + badge                      |
 
-Konteyner obrazının CVE məhdudlaşdırıcısı `docker-publish.yml` daxilində **iki addımdan** istifadə edir: SARIF addımı
-(`HIGH,CRITICAL`, `exit-code: 0`) bloklamadan HIGH+CRITICAL nəticələrini Təhlükəsizlik bölməsində
-görünən saxlayır; _CRITICAL nəzarəti_ addımı (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) isə **düzəlişi mövcud olan** CRITICAL CVE aşkarlandıqda buraxılışı uğursuz edir. `ignore-unfixed`
-yuxarı axında yaması olmayan baza obrazı CVE-si səbəbindən buraxılışın bloklanmasının qarşısını alır.
+Şəkil CVE ratçeti `docker-publish.yml` faylında **iki addımdan** istifadə edir: SARIF addımı (`HIGH,CRITICAL`, `exit-code: 0`) HIGH+CRITICAL səviyyələrini Təhlükəsizlik tabında bloklamadan görünən saxlayır; _KRİTİK qapı_ addımı (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) **mövcud düzəlişi olan** KRİTİK CVE-də buraxılışı uğursuz edir. `ignore-unfixed` yuxarı axın yaması olmayan əsas şəkil CVE-si üçün buraxılışın bloklanmasının qarşısını alır.
 
-## ⚠️ CVE Dəyişkənliyi (bloklayıcı osv/Trivy nəzarətləri)
+## ⚠️ CVE Fərqliliyi (osv/Trivy qapılarını bloklayır)
 
-osv və Trivy asılılıqları **davamlı olaraq böyüyən** CVE verilənlər bazaları ilə müqayisə edir. Heç bir
-asılılığa **toxunmayan** PR mövcud asılılıqda yeni CVE açıqlandığı üçün qəfil qırmızı ola bilər
-(osv: ölçülmüş `vulnCount` > baza göstəricisi; Trivy: obrazda düzəldilə bilən yeni
-CRITICAL). **Bu, bloklayıcı CVE nəzarətinin GÖZLƏNİLƏN əməliyyat davranışıdır,
-məhsul reqressiyası deyil.**
+osv və Trivy asılılıqları **davamlı olaraq böyüyən** CVE verilənlər bazaları ilə müqayisə edir. **Heç bir asılılığa toxunmayan** bir PR, mövcud bir asılılıqda yeni bir CVE aşkar edildiyi üçün qəfildən qırmızıya çevrilə bilər (osv: ölçülmüş `vulnCount` > baza; Trivy: şəkildə yeni düzəldilə bilən KRİTİK). **Bu, bloklayıcı CVE qapısının GÖZLƏNİLƏN əməliyyat davranışıdır, məhsul reqressiyası deyil.**
 
-Yeni açıqlanmış CVE səbəbindən osv və ya Trivy qırmızı olduqda həll yolu:
+osv və ya Trivy yeni aşkar edilmiş CVE səbəbindən qırmızıya çevrildikdə, çarəsi budur:
 
-1. **Təsirə məruz qalan asılılığın versiyasını yüksəldin** (üstünlük verilən üsul) — `package.json`
-   daxilindəki `overrides` vasitəsilə (tranzitiv asılılıqlar üçün) yama tətbiq edilmiş versiyaya yüksəldin
-   və ya yama tətbiq edilmiş baza üzərində obrazı yenidən qurun.
-2. **Yuxarı axında düzəliş yoxdursa:**
-   - **osv:** `config/quality/quality-baseline.json` daxilində `metrics.vulnCount` üçün baza göstəricisini
-     yenidən müəyyənləşdirin (`npm run quality:ratchet -- --update` xüsusi nəzarətləri əhatə etmir — dəyəri
-     əsaslandırma qeydi + izləmə məsələsi ilə birlikdə əl ilə redaktə edin, `direction:down`).
-   - **Trivy:** `.trivyignore` faylına əsaslandırma şərhi + izləmə məsələsi ilə birlikdə
-     qeyd əlavə edin (hər sətirdə bir CVE-ID). `ignore-unfixed: true` artıq yaması olmayan
-     CVE-ləri avtomatik əhatə edir.
+1.  **Təsirlənmiş asılılığı yeniləyin** (üstünlük verilən) — `package.json` `overrides` (tranzitiv asılılıqlar) vasitəsilə yamalanmış versiyaya yüksəldin və ya yamalanmış baza üzərində şəkli yenidən qurun.
+2.  **Əgər yuxarı axın düzəlişi yoxdursa:**
+    - **osv:** `metrics.vulnCount` göstəricisini `config/quality/quality-baseline.json` faylında yenidən baza səviyyəsinə gətirin (`npm run quality:ratchet -- --update` xüsusi qapıları əhatə etmir — dəyəri əl ilə dəyişdirin, `direction:down`) əsaslandırma qeydi + izləmə problemi ilə.
+    - **Trivy:** `.trivyignore` faylına (hər sətirdə CVE-ID) əsaslandırma şərhi + izləmə problemi ilə bir giriş əlavə edin. `ignore-unfixed: true` artıq yaması olmayan CVE-ləri avtomatik olaraq əhatə edir.
 
-Alət mövcud olmadıqda və ya ölçmə uğursuz olduqda hər iki nəzarət mərhələsi
-**problemsiz şəkildə KEÇİLİR** (çıxış kodu 0) (osv-scanner PATH daxilində deyil, osv.dev/şəbəkə əlçatan deyil,
-JSON etibarsızdır) — **ölçmə** xətası heç vaxt bloklamır, yalnız **ölçülmüş** reqressiya bloklayır.
+Hər iki qapı, alət olmadıqda və ya ölçmə uğursuz olduqda (osv-scanner PATH-da yoxdur, osv.dev/şəbəkə əlçatmazdır, etibarsız JSON) **zərif şəkildə ÖTÜRÜLÜR** (exit 0) — **ölçmə** uğursuzluğu heç vaxt bloklamır, yalnız **ölçülmüş** reqressiya bloklayır.
 
-## Gözləyən işlər: Scorecard xəbərdarlıq rejimindən bloklayıcı rejimə
+## Məlum Qəbul Edilmiş Risklər
+
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
+
+`extract-zip@2.0.1` iki yamalanmamış yüksək təhlükəli simlink-traversal məsləhəti daşıyır.
+Yuxarıdakı CVE Variance həllinin "upstream fix yoxdur" qoluna əsasən, bu, bir **qəbul edilmiş riskdir**, yeniləmə deyil:
+
+- **Zəncir:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  `package-lock.json` vasitəsilə təsdiqləndi — bütün asılılıq ağacında yalnız bir paket (`@openai/codex-security`) `extract-zip` elan edir və yalnız bir paket (`promptfoo`) `@openai/codex-security` elan edir.
+- **Zəncirdə heç bir sabit buraxılış mövcud deyil.** `extract-zip@2.0.1` (2020-ci ildə nəşr olunub) paketin son buraxılışıdır — o, dəstəklənmir. `@openai/codex-security`'nin cari npm-latest (`0.1.29`) hələ də `extract-zip@2.0.1` çəkir.
+- **İstehsaldan əlçatmazdır.** `promptfoo` yalnız devDependency-dir (`dependencies` altında heç vaxt siyahıya alınmayıb) və `src/`, `open-sse/` və ya `bin/` altında heç bir fayl `extract-zip` npm paketini idxal etmir — OmniRoute-un öz `extractZip()` köməkçisi (`src/lib/versionManager/binaryManager.ts:93`) yerli `unzip`/`tar` proqramlarına müraciət edir və əlaqəli deyil. `@openai/codex-security` həmçinin extract-zip-in onEntry callback-inin üzərində öz simlink-traversal mühafizəsini təmin edir.
+- `package.json` `overrides` vasitəsilə `extract-zip` **təxəllüs etməyin** — yeganə əlverişli əvəzedici Electron-org-internal-dır və `@openai/codex-security`'nin öz onEntry/defaultDirMode/defaultFileMode yoxlamaları ilə API-uyğunsuzluq təşkil edir; onu ləğv etmək həmin paketin təhlükəsizlik yoxlamalarını səssizcə pozacaq.
+- **Baza xətti:** ölçülmüş osv `vulnCount` (3) dondurulmuş `config/quality/quality-baseline.json` baza xəttindən (27) xeyli aşağıdır — heç bir tənzimləmə dəyişikliyinə ehtiyac yoxdur.
+- **Reqressiya mühafizəsi:** `tests/unit/extract-zip-14482-exposure.test.ts` yuxarıdakı zənciri və istehsalda idxal olunmama invariantını təsdiqləyir; əgər bunlardan hər hansı biri pozularsa (məsələn, gələcək bir PR `extract-zip`-i istehsaldan əlçatan edərsə), CI uğursuz olur.
+- **İzləmə:** #14482 nömrəli məsələ.
+
+## Backlog: Scorecard məsləhəti → bloklama
 
 Scorecard hesabatı ilə ilk uğurlu buraxılışdan sonra:
 
-- Scorecard: bal məhdudlaşdırıcısı (ölçülmüş balı sabitləyir; bal azala bilməz).
+- Scorecard: xal tənzimləməsi (ölçülmüş xalı dondurur; azala bilməz).
 
-Phase 7 nəzarətlərini (osv-scanner, gitleaks, actionlint+zizmor) tamamlayır: zizmor
-iş axınlarının özünü audit edir; Scorecard isə repozitoriyanın ümumi vəziyyətini ölçür.
+Faza 7 qapılarını (osv-scanner, gitleaks, actionlint+zizmor) tamamlayır: zizmor iş axınlarını özləri yoxlayır; Scorecard repozitoriyanın ümumi vəziyyətini ölçür.

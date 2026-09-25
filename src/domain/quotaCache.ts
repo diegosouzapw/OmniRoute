@@ -90,6 +90,9 @@ const EXHAUSTED_REFRESH_MS = 5 * 60 * 1000; // 5 minutes: recheck exhausted acco
 const REFRESH_INTERVAL_MS = 60 * 1000; // Background tick every 1 minute
 export const DEFAULT_QUOTA_THRESHOLD_PERCENT = 99;
 
+// #14359 — a park is trusted at most EXHAUSTED_MAX_PARK_MS past its observation; a far weekly-window reset must not block for days.
+export const EXHAUSTED_MAX_PARK_MS = 30 * 60 * 1000;
+
 // ─── State ──────────────────────────────────────────────────────────────────
 //
 // #8065 — Next.js `output: "standalone"` builds can load this module from
@@ -105,6 +108,8 @@ export const DEFAULT_QUOTA_THRESHOLD_PERCENT = 99;
 interface QuotaCacheState {
   cache: Map<string, QuotaCacheEntry>;
   refreshingSet: Set<string>;
+  // #14359 — connectionId → epoch ms the healthy override stands the predicates down; shared state per #8065.
+  healthyUntil: Map<string, number>;
   refreshTimer: ReturnType<typeof setInterval> | null;
   tickRunning: boolean;
 }
@@ -118,6 +123,7 @@ function getState(): QuotaCacheState {
     globalThis.__omnirouteQuotaCacheState = {
       cache: new Map(),
       refreshingSet: new Set(),
+      healthyUntil: new Map(),
       refreshTimer: null,
       tickRunning: false,
     };
@@ -126,6 +132,47 @@ function getState(): QuotaCacheState {
 }
 
 const MAX_CONCURRENT_REFRESHES = 5;
+
+// ─── #14359 park window + healthy override ──────────────────────────────────
+
+// #14359 — cap the park deadline at `anchorMs + EXHAUSTED_MAX_PARK_MS`; unparseable passes through (fixed EXHAUSTED_TTL applies).
+function capParkWindow(resetAt: string | null, anchorMs: number): string | null {
+  if (!resetAt) return resetAt;
+  const ms = parseDate(resetAt);
+  if (ms === null) return resetAt;
+  if (ms > anchorMs + EXHAUSTED_MAX_PARK_MS) {
+    return new Date(anchorMs + EXHAUSTED_MAX_PARK_MS).toISOString();
+  }
+  return resetAt;
+}
+
+// #14359 — keep the prior deadline while the exhausted streak continues, so the quota monitor's rewrites cannot re-anchor the park.
+function preserveParkDeadline(
+  resetAt: string | null,
+  prior: QuotaCacheEntry | null | undefined
+): string | null {
+  if (prior?.exhausted && prior.nextResetAt) {
+    const priorMs = parseDate(prior.nextResetAt);
+    if (priorMs !== null && priorMs > Date.now()) return prior.nextResetAt;
+  }
+  return capParkWindow(resetAt, Date.now());
+}
+
+// #14359 — arm the healthy override for one park window (chat success hook).
+export function markQuotaHealthy(connectionId: string): void {
+  getState().healthyUntil.set(connectionId, Date.now() + EXHAUSTED_MAX_PARK_MS);
+}
+
+// #14359 — clear the healthy override (a genuine 429 re-parks immediately).
+export function unmarkQuotaHealthy(connectionId: string): void {
+  getState().healthyUntil.delete(connectionId);
+}
+
+// #14359 — true while the healthy override for this connection is armed.
+export function isQuotaHealthy(connectionId: string): boolean {
+  const until = getState().healthyUntil.get(connectionId);
+  return until !== undefined && until > Date.now();
+}
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -394,7 +441,7 @@ export function hydrateCodexQuotaCacheForRequest(
     }
   }
   entry.exhausted = isExhausted(entry.quotas);
-  if (exhaustedResetAt) entry.nextResetAt = exhaustedResetAt;
+  if (exhaustedResetAt) entry.nextResetAt = capParkWindow(exhaustedResetAt, Date.now());
   cache.set(connection.id, entry);
 }
 
@@ -431,6 +478,8 @@ export function isQuotaExhaustedForRequest(
   requestedModel: string | null = null,
   providerSpecificData?: unknown
 ): boolean {
+  // #14359 — a recent successful dispatch stands the predicates down for a park window.
+  if (isQuotaHealthy(connectionId)) return false;
   if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
@@ -486,7 +535,8 @@ export function setQuotaCache(
     quotas,
     fetchedAt: Date.now(),
     exhausted,
-    nextResetAt: exhausted ? earliestResetAt(quotas) : null,
+    // #14359 — cap the park; keep the prior deadline while the streak continues (monitor rewrites must not extend it).
+    nextResetAt: exhausted ? preserveParkDeadline(earliestResetAt(quotas), prior) : null,
   };
   getState().cache.set(connectionId, entry);
 
@@ -618,7 +668,8 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
     quotas,
     fetchedAt: fetchedAt || Date.now(),
     exhausted,
-    nextResetAt: exhausted ? earliestResetAt(quotas) : null,
+    // #14359 — cap the hydrated park relative to the snapshot's observation time.
+    nextResetAt: exhausted ? capParkWindow(earliestResetAt(quotas), fetchedAt || Date.now()) : null,
     windowDurationMs,
   };
   cache.set(connectionId, entry);
@@ -630,6 +681,8 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
  * Returns false if no cache entry exists (unknown = assume available).
  */
 export function isAccountQuotaExhausted(connectionId: string): boolean {
+  // #14359 — mirror of the request-time predicate: honour the healthy override.
+  if (isQuotaHealthy(connectionId)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
   if (!entry.exhausted) return false;
@@ -767,6 +820,8 @@ export function getQuotaSnapshotFetchedAt(connectionId: string): number | null {
  * Uses 5-minute fixed TTL since we don't know the actual resetAt.
  */
 export function markAccountExhaustedFrom429(connectionId: string, provider: string) {
+  // #14359 — a real upstream 429 is authoritative: drop any healthy override.
+  unmarkQuotaHealthy(connectionId);
   getState().cache.set(connectionId, {
     connectionId,
     provider,

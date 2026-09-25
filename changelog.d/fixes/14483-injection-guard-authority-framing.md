@@ -1,0 +1,1 @@
+- fix(guardrails): flag authority/educational-framing jailbreak attempts in the injection guard (#14483)

@@ -1,4 +1,5 @@
 import { normalizeComboStep } from "@/lib/combos/steps";
+import { getSyntheticApiKeyIds } from "@/shared/constants/apiKeyIdentities";
 
 import type { PreparedStatement, SqliteAdapter } from "./adapters/types";
 type SqliteDatabase = SqliteAdapter;
@@ -375,6 +376,24 @@ function scanQuotaSnapshots(
   return { issueCount, repairedCount };
 }
 
+/**
+ * `api_keys` is NOT the complete set of budget / cost-history owners. The
+ * deployment-time environment key authenticates without ever being persisted,
+ * so every row it owns looks like a broken reference while being live state —
+ * see `@/shared/constants/apiKeyIdentities`.
+ *
+ * Deleting those rows removes the active spend policy, and `checkBudget()` is
+ * fail-open when no budget row exists: the "repair" silently lifts the spend
+ * ceiling instead of degrading it. Genuinely unowned rows are still removed.
+ */
+const SYNTHETIC_OWNER_IDS = getSyntheticApiKeyIds();
+
+function orphanDomainRowsPredicate(): string {
+  const placeholders = SYNTHETIC_OWNER_IDS.map(() => "?").join(", ");
+  const syntheticGuard = placeholders ? ` AND api_key_id NOT IN (${placeholders})` : "";
+  return `api_key_id NOT IN (SELECT id FROM api_keys)${syntheticGuard}`;
+}
+
 function countOrphanDomainRows(
   db: SqliteDatabase,
   table: "domain_budgets" | "domain_cost_history"
@@ -384,9 +403,9 @@ function countOrphanDomainRows(
     .prepare(
       `SELECT COUNT(*) AS count
        FROM ${table}
-       WHERE api_key_id NOT IN (SELECT id FROM api_keys)`
+       WHERE ${orphanDomainRowsPredicate()}`
     )
-    .get() as { count?: number } | undefined;
+    .get(...SYNTHETIC_OWNER_IDS) as { count?: number } | undefined;
   return row?.count || 0;
 }
 
@@ -395,8 +414,9 @@ function repairOrphanDomainRows(
   table: "domain_budgets" | "domain_cost_history"
 ): number {
   if (!hasRows(db, table)) return 0;
-  return db.prepare(`DELETE FROM ${table} WHERE api_key_id NOT IN (SELECT id FROM api_keys)`).run()
-    .changes;
+  return db
+    .prepare(`DELETE FROM ${table} WHERE ${orphanDomainRowsPredicate()}`)
+    .run(...SYNTHETIC_OWNER_IDS).changes;
 }
 
 function countInvalidJsonRows(

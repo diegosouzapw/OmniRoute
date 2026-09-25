@@ -4,12 +4,12 @@
 
 ---
 
-> **ዋና የእውነት ምንጭ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **ለመጨረሻ ጊዜ የተዘመነው:** 2026-06-28 — v3.8.40
+> **የእውነት ምንጭ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **መጨረሻ የተዘመነው:** 2026-09-22 — የወሰን ስም-ክልሎች ወደ MCP-SERVER.md ያመለክታሉ
 
-OmniRoute እያንዳንዱን የAPI ጥያቄ የሚቆጣጠር፣ መስመርን የሚያውቅ የፈቃድ መስጫ ቧንቧ መስመር አለው። ምደባው **ቆራጥ** እና **በስህተት ጊዜ ዝግ** ነው — ሊመደብ የማይችል ማንኛውም ነገር `MANAGEMENT` ሆኖ ያበቃል፣ እንዲሁም ክፍለ-ጊዜ ወይም የአስተዳደር ደረጃ ያለው ቶከን ይጠይቃል። ይህ ገጽ መስመሮችን ለሚንከባከቡ ወይም አዳዲስ መዳረሻዎችን ለሚነድፉ መሐንዲሶች ሞዴሉን ያብራራል።
+OmniRoute እያንዳንዱን የAPI ጥያቄ የሚቆጣጠር፣ መንገድን የሚያውቅ የፈቃድ መስጫ ሂደት አለው። ምደባው **ቁርጥ ያለ** እና **ሲሳነው-ዝግ** ነው — ሊመደብ የማይችል ማንኛውም ነገር `MANAGEMENT` ሆኖ ይመደባል፣ እንዲሁም ክፍለ-ጊዜ ወይም የአስተዳደር-ደረጃ ቶከን ይጠይቃል። ይህ ገጽ መንገዶችን ለሚንከባከቡ ወይም አዳዲስ የመዳረሻ ነጥቦችን ለሚነድፉ መሐንዲሶች ሞዴሉን ያብራራል።
 
-![የAuthZ ቧንቧ መስመር (3 የመስመር ክፍሎች + የፖሊሲ ግምገማ)](../diagrams/exported/authz-pipeline.svg)
+![የAuthZ ሂደት (3 የመንገድ ምድቦች + የፖሊሲ ግምገማ)](../diagrams/exported/authz-pipeline.svg)
 
 > ምንጭ፦ [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -198,28 +198,35 @@ export async function POST(request: Request) {
 
 setን በቅርጹ መሠረት ይምረጡ፣ በአመቺነት መሠረት አይደለም። አንድ መስመር ወደ `PUBLIC_API_ROUTES_EXACT` ይገባል (ወይም GET-only ከሆነ ወደ `PUBLIC_READONLY_CORS_API_ROUTES`)፤ ወደ `PUBLIC_API_ROUTE_PREFIXES` የሚገባው እውነተኛ ንዑስ ዛፍ ብቻ ነው፣ እና **በ`/` መጨረስ አለበት**። ነጠላ መስመርን በprefix ዝርዝሩ ውስጥ ማስቀመጥ፣ ተመሳሳይ መሪ ቁምፊዎችን የሚጋሩ ሁሉንም አጎራባች paths ይፋዊ ያደርጋል — ይህም በኋላ የሚታከሉ dynamic-segment siblingsን ይጨምራል (GHSA-74g9-q8f6-793h)። በ`tests/unit/public-api-routes.test.ts`፣ `tests/unit/authz/public-route-exact-match.test.ts` እና `tests/unit/authz/classify.test.ts` ያሉ unit testsን ያዘምኑ።
 
-## የተደራሽነት ወሰኖች
+## የፈቃድ ወሰኖች
 
-የAPI ቁልፎች የ`scopes` ድርድር ይይዛሉ (እንደ JSON በ`api_keys.scopes` ውስጥ ይቀመጣል፤ `src/lib/db/apiKeys.ts`ን ይመልከቱ)።
+ሦስት namespace-ዎች አሉ። እያንዳንዱ checker የሚያነበው የራሱን string-ዎች ብቻ ነው። `manage` ለ`read:compression` በ`scopeMatches` ለምን እንደማይዛመድ እና የ`read` access token ለምን `PATCH /api/keys/{id}` ማድረግ እንደማይችል ጨምሮ፣ የጎን-ለጎን ንጽጽሩ
+[ሦስቱ የፈቃድ ወሰን namespace-ዎች](../frameworks/MCP-SERVER.md#three-scope-namespaces) ላይ ይገኛል።
 
-### የአስተዳደር ወሰን
+API key-ዎች የ`scopes` array ይይዛሉ (በ`api_keys.scopes` ውስጥ እንደ JSON ይከማቻል፤ `src/lib/db/apiKeys.ts`ን ይመልከቱ)።
 
-- `manage` / `admin` — ቁልፉ እንደ Bearer ሲላክ የአስተዳደር API መጨረሻ ነጥቦችን እንዲደርስ ፈቃድ ይሰጠዋል።
+### የአስተዳደር ፈቃድ ወሰን
 
-### MCP ወሰኖች (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`። ወደ የአስተዳደር API route-ዎች የBearer መዳረሻ።
+- `mcp:connect`፣ `self:usage`፣ `self:account-quota` እና
+  `policy:bypass-provider-quota` በትክክል የሚዛመዱ ተጨማሪ የፈቃድ ወሰኖች ናቸው። እነዚህ
+  ከ`MANAGEMENT_API_KEY_SCOPES` ውጭ ይገኛሉ። `mcp:connect` የሚከፍተው
+  የ`/api/mcp/` non-loopback ልዩ ፈቃድን ብቻ ነው።
 
-እያንዳንዱ MCP መሣሪያ በ`MCP_TOOL_SCOPES` በኩል የተወሰኑ ወሰኖችን ይፈልጋል። ሙሉ ዝርዝሩ (`MCP_SCOPE_LIST`)፦
+### የMCP tool ፈቃድ ወሰኖች
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Catalog እና የማዛመድ ደንቦች (ተመሳሳይ string፣ ወይም በ`*` የሚያበቃ የተፈቀደ ወሰን)፦
+[የMCP tool ፈቃድ ወሰኖች](../frameworks/MCP-SERVER.md#mcp-tool-scopes)።
+በ`src/shared/constants/mcpScopes.ts` ውስጥ ያለው `MCP_SCOPE_LIST` ያ ሙሉ catalog ሳይሆን የመጀመሪያው typed
+subset ነው። `resolveCallerScopeContext()` ከMCP auth info፣ ከrequest metadata ወይም ከ`OMNIROUTE_MCP_SCOPES`
+የፈቃድ ወሰኖችን ከወሰነ በኋላ፣ ማስፈጸሙ በ`open-sse/mcp-server/scopeEnforcement.ts`
+ውስጥ ይከናወናል። `OMNIROUTE_MCP_ENFORCE_SCOPES=true` ካልሆነ በስተቀር እንደጠፋ ይቆያል።
 
-በ`open-sse/mcp-server/server.ts` ውስጥ ያለው የወሰን ማስፈጸሚያ፣ `resolveCallerScopeContext()` ወሰኖችን ከMCP የማረጋገጫ መረጃ፣
-ከጥያቄ ሜታዳታ ወይም ከ`OMNIROUTE_MCP_SCOPES` ከፈታ በኋላ የእያንዳንዱን መሣሪያ የወሰን ዝርዝር ወደ
-`evaluateToolScopes()` ያስተላልፋል።
+### የAccess-token ፈቃድ ወሰኖች
+
+በ`oma_live_…` token-ዎች ላይ `read` / `write` / `admin`፣ በ`scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) ደረጃ የተሰጣቸው። ይህ ደረጃ የሚሠራው ለaccess-token
+credential ብቻ ነው። [የአስተዳደር ማረጋገጫ](../guides/MANAGEMENT-AUTH.md)ን ይመልከቱ።
 
 ## ማረጋገጫ ያስፈልጋል መቀያየሪያ
 
@@ -265,9 +272,9 @@ x-omniroute-auth-scopes:    comma-separated list
 
 በhandler ውስጥ `assertAuth(req, expectedClass)`ን ይጠቀሙ — middlewareው ከተዘለለ፣ `AUTHZ_NOT_INITIALIZED` ኮድ ያለውን `AuthzAssertionError` ይጥላል (ይህም በሙከራዎች ውስጥ የውቅር ወደኋላ መመለሶችን ለመለየት ጠቃሚ ነው)።
 
-## ተጨማሪ ይመልከቱ
+## በተጨማሪ ይመልከቱ
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ለእያንዳንዱ endpoint የማንነት ማረጋገጫ ምልክት
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ለማንነት ማረጋገጫ ክስተቶች የኦዲት መዝገብ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — የMCP scope ማስፈጸሚያ ዝርዝሮች
-- ምንጭ፦ `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ለእያንዳንዱ endpoint የauth ምልክት
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — ለauth ክስተቶች የኦዲት መዝገብ
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ሦስት የscope namespace እና የMCP tool-scope ካታሎግ
+- ምንጭ፦ `src/server/authz/`፣ `src/lib/api/requireManagementAuth.ts`

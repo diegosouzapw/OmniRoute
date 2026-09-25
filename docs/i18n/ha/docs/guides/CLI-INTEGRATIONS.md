@@ -4,27 +4,11 @@
 
 ---
 
-OmniRoute na zuwa da jerin umarnin `setup-*` waɗanda ke saita CLI na rubuta lamba
-(Codex, Claude Code, OpenCode, Cline, …) don amfani da OmniRoute a matsayin backend ɗinsa — ta yadda
-kayan aikin zai yi magana da endpoint **ɗaya** kawai, sannan OmniRoute ya tura buƙatar zuwa provider da ya dace tare da
-sauyawa ta atomatik idan ya gaza. Kowane umarni yana karanta kundin model na **kai tsaye** daga OmniRoute da ke aiki
-(na gida ko na nesa), sannan ya rubuta fayil ɗin saitin kayan aikin a kan na'urar **ka**.
-Ana nuni da API key ta hanyar environment variable a duk inda kayan aikin yake goyon bayansa.
-An nuna a ƙasa umarnin da ke adana fayil ɗin environment na cikin kayan aikin.
+OmniRoute yana samar da jerin umarni na `setup-*` waɗanda ke daidaita CLI na coding (Codex, Claude Code, OpenCode, Cline, …) don amfani da OmniRoute a matsayin tushensa — don haka kayan aikin yana magana da **mafita guda ɗaya** kuma OmniRoute yana tura zuwa mai bayarwa da ya dace tare da koma-baya ta atomatik. Kowanne umarni yana karanta kundin samfurin **kai tsaye** daga OmniRoute mai gudana (na gida ko na nesa) kuma yana rubuta fayil ɗin daidaitawa na kayan aikin a kan injin **ka**. Maɓallin API yana nuni da shi ta hanyar canjin yanayi duk inda kayan aikin ke tallafawa. Umarnin da ke adana fayil ɗin yanayi na gida na kayan aiki an lura da su a ƙasa.
 
-Akwai kuma launcher na gama-gari — `omniroute run <target>` — wanda ke ƙaddamar da
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ko `gemini` tare da
-shigar da env da ya dace, ba tare da rubuta wani saitin ba kwata-kwata. Targets da
-aliases ɗinsu suna fitowa daga manifest na asali `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), kuma `omniroute completion` yana bayar da
-kalmomin target iri ɗaya waɗanda aka samo daga manifest. Tsoffin launchers na kowane kayan aiki —
-`omniroute launch` (Claude Code) da `omniroute launch-codex` (Codex) — har yanzu suna
-nan.
+Akwai kuma mai ƙaddamarwa na gaba ɗaya — `omniroute run <target>` — wanda ke ƙaddamar da `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ko `gemini` tare da yanayin da ya dace an saka shi, ba tare da rubuta kowane daidaitawa ba. Maƙasudai da sunayensu na laƙabi sun fito daga babban bayanin `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), kuma `omniroute completion` yana ba da kalmomin maƙasudi iri ɗaya da aka samo daga bayanin. Masu ƙaddamarwa na kayan aiki na gargajiya — `omniroute launch` (Claude Code) da `omniroute launch-codex` (Codex) — suna nan a shirye.
 
-Ana iya fara haɗa provider daga wannan yanayin na gida/nesa. Umarnin da ke ƙasa, waɗanda
-suka fara da API, suna ware tabbatar da izinin gudanarwa daga bayanan shaidar provider
-kuma ba sa taɓa buga bayanin shaida a cikin structured output:
+Ana samun shigar da mai bayarwa daga mahallin gida/nesa ɗaya. Umarnin API-farko da ke ƙasa suna raba tantancewar gudanarwa daga takardun shaidar mai bayarwa kuma ba sa taɓa buga takardar shaidar a cikin fitarwa mai tsari:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,19 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Don scripts, fi son `--credential-stdin` ko `--credential-env`; an ci gaba da riƙe `--credential`
-don amfani na gida da ake sarrafawa. `providers remove` yana buƙatar `--yes` a kan
-terminal marar hulɗa, kuma duk umarnin biyar suna bin active context ko kuma
-zaɓuɓɓukan global `--base-url`/`--api-key`.
+Don rubutun, gwammace `--credential-stdin` ko `--credential-env`; an ajiye `--credential` don amfani da shi a cikin gida. `providers remove` yana buƙatar `--yes` a kan tashar da ba ta mu'amala ba, kuma dukkanin umarni biyar suna mutunta mahallin aiki ko zaɓuɓɓukan duniya na `--base-url`/`--api-key`.
 
-Don saitin tushe na sau ɗaya da ake rubutawa da hannu ga integrations biyu mafi cikakken fasali, duba
-cikakken bayani na kowane kayan aiki:
+Masu zaɓin mai bayarwa suna ƙin prefixes na ID marasa tabbas, sunaye ko sunayen masu bayarwa; yi amfani da cikakken ID na haɗi lokacin da haɗi da yawa suka dace. Umarnin ƙirƙira da gyarawa suna karanta haɗin da aka ajiye, kuma cirewa yana tabbatar da cewa ba za a iya karanta shi ba. Shigo da kaya yana tsallake wani ma'aurata mai bayarwa/suna da ke akwai. Abubuwan da aka shigo da su ba za su iya soke wurin gudanarwa, mahallin ko takardun shaidar gudanarwa da aka ba CLI ba.
 
-- [Saitin Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
-- [Saitin Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Yanayin Nesa](./REMOTE-MODE.md) — sarrafa OmniRoute na nesa (VPS / Tailnet) daga kwamfutar tafi-da-gidanka
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — extension na OmniCopilot; yana kuma iya gudanar da waɗannan
-  umarnin `setup-*` a madadinka daga cikin editor
+Don saitin tushe na hannu, na lokaci ɗaya na haɗin gwiwa biyu mafi wadata, duba zurfin bincike na kowane kayan aiki:
+
+- [Daidaitawar Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
+- [Daidaitawar Codex CLI](./CODEX-CLI-CONFIGURATION.md)
+- [Yanayin Nesa](./REMOTE-MODE.md) — sarrafa OmniRoute na nesa (VPS / Tailnet) daga kwamfutarka
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — tsawo na OmniCopilot; yana iya kuma gudanar da waɗannan umarnin `setup-*` a gare ku daga cikin edita
 
 ---
 

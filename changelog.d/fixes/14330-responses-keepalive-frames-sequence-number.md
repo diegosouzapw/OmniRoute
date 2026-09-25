@@ -1,0 +1,1 @@
+- fix(sse): give synthesized Responses API keepalive and failure frames a real `sequence_number` (#14330)

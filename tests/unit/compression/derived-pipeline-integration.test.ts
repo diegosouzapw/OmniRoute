@@ -62,18 +62,24 @@ describe("compression derived-pipeline integration (Task 12)", () => {
     const config = deriveConfig();
     // Enough tokens that auto-trigger is irrelevant (autoTriggerTokens is 0 by default,
     // so the derived default path is what we want — pass a real estimate anyway).
-    const plan = selectCompressionPlan(config, null, 5000);
+    // rtk and caveman are lossy, so since #14529 they run only when the request opts in;
+    // header-less requests get the safe pair (asserted last).
+    const plan = selectCompressionPlan(config, null, 5000, undefined, undefined, {}, "allow-lossy");
 
     assert.equal(plan.mode, "stacked");
     assert.deepEqual(plan.stackedPipeline, [
       { engine: "rtk" },
       { engine: "caveman", intensity: "full" },
     ]);
+    assert.deepEqual(selectCompressionPlan(config, null, 5000).stackedPipeline, [
+      { engine: "session-dedup" },
+      { engine: "lite" },
+    ]);
   });
 
   it("runs BOTH rtk and caveman when applying the derived pipeline", async () => {
     const config = deriveConfig();
-    const plan = selectCompressionPlan(config, null, 5000);
+    const plan = selectCompressionPlan(config, null, 5000, undefined, undefined, {}, "allow-lossy");
     assert.equal(plan.mode, "stacked");
 
     // Feed the derived pipeline back through the real async apply path.
@@ -90,7 +96,15 @@ describe("compression derived-pipeline integration (Task 12)", () => {
 
   it("derived pipeline is equivalent to an explicit stackedPipeline (derived == explicit)", async () => {
     const derivedConfig = deriveConfig();
-    const derivedPlan = selectCompressionPlan(derivedConfig, null, 5000);
+    const derivedPlan = selectCompressionPlan(
+      derivedConfig,
+      null,
+      5000,
+      undefined,
+      undefined,
+      {},
+      "allow-lossy"
+    );
     assert.deepEqual(derivedPlan.stackedPipeline, EXPLICIT_PIPELINE);
 
     const derivedResult = await applyCompressionAsync(makeBody(), "stacked", {

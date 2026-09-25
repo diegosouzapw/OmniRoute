@@ -681,3 +681,24 @@ test("runAuthzPipeline clears stale dashboard JWTs without error-stack noise", a
     console.warn = originalWarn;
   }
 });
+
+test("authenticated remote dashboard page is not a login redirect that clears the session", async () => {
+  await forceAuthRequired();
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = "pipeline-test-peer-stamp-token";
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://gateway.example.test/dashboard/resilience/connections", {
+      headers: {
+        cookie: await dashboardCookie(),
+        "x-omniroute-peer-ip": "pipeline-test-peer-stamp-token|203.0.113.8",
+        "x-omniroute-via-proxy": "pipeline-test-peer-stamp-token|1",
+      },
+    }),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 200);
+  const setCookie = response.headers.get("set-cookie") || "";
+  assert.doesNotMatch(setCookie, /Max-Age=0|Expires=Thu, 01 Jan 1970/i);
+  assert.equal(response.headers.get("location"), null);
+});

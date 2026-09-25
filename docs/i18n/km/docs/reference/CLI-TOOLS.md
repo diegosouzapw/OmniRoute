@@ -45,9 +45,7 @@ ACP Agents (លំហូរបង្កើតបញ្ច្រាស):
 
 ## កំណត់រចនាសម្ព័ន្ធដោយស្វ័យប្រវត្តិជាមួយ `setup-*`
 
-អ្នកមិនចាំបាច់សរសេរឯកសារកំណត់រចនាសម្ព័ន្ធរបស់ឧបករណ៍នីមួយៗដោយដៃទេ។ OmniRoute ភ្ជាប់មកជាមួយពាក្យបញ្ជា `setup-*`
-មួយសម្រាប់ CLI នីមួយៗដែលគាំទ្រ ដែលអានកាតាឡុកម៉ូដែល **កំពុងដំណើរការផ្ទាល់** ពី
-OmniRoute ដែលកំពុងដំណើរការ (ក្នុងម៉ាស៊ីនមូលដ្ឋាន ឬពីចម្ងាយ) ហើយសរសេរឯកសារកំណត់រចនាសម្ព័ន្ធផ្ទាល់របស់ឧបករណ៍នៅលើម៉ាស៊ីនរបស់អ្នក៖
+អ្នកមិនចាំបាច់សរសេរការកំណត់រចនាសម្ព័ន្ធរបស់ឧបករណ៍នីមួយៗដោយដៃនោះទេ។ OmniRoute ភ្ជាប់មកជាមួយពាក្យបញ្ជា `setup-*` សម្រាប់ CLI ដែលគាំទ្រនីមួយៗ ដែលអានកាតាឡុកម៉ូដែល **ផ្ទាល់** ពី OmniRoute ដែលកំពុងដំណើរការ (ក្នុងស្រុក ឬពីចម្ងាយ) ហើយសរសេរការកំណត់រចនាសម្ព័ន្ធផ្ទាល់ខ្លួនរបស់ឧបករណ៍នោះនៅលើម៉ាស៊ីនរបស់អ្នក៖
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,49 +55,15 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-ពាក្យបញ្ជានីមួយៗទទួលយក `--remote <url> --api-key <key>` (កំណត់រចនាសម្ព័ន្ធឧបករណ៍ក្នុងម៉ាស៊ីនមូលដ្ឋានឱ្យប្រើជាមួយ
-OmniRoute ពីចម្ងាយ), `--dry-run` (មើលជាមុនដោយមិនសរសេរ) និង `--port`។ ឧបករណ៍
-ដែលមិនមានការរកឃើញម៉ូដែលដោយស្វ័យប្រវត្តិ (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) ទទួលយក
-`--model <id>` (និង `--yes` សម្រាប់ការដំណើរការដែលមិនមានអន្តរកម្ម)។ `setup-5dive` គឺជា
-រូបមន្តតែមួយគត់ដែលមិនសរសេរក្រោម `$HOME`៖ វាកំណត់រចនាសម្ព័ន្ធក្រុម agent របស់ 5dive ដោយ
-សរសេរប្រូហ្វាល់ផ្ទៀងផ្ទាត់ដែលគ្រប់គ្រងដោយ root នៅលើម៉ាស៊ីនមេរបស់ក្រុម ដូច្នេះវាដំណើរការខ្លួនឯងឡើងវិញតាម `sudo`
-ហើយមិនមានរបៀបពីចម្ងាយផ្ទាល់ខ្លួនទេ។ ដើម្បីបើកដំណើរការ CLI ដោយបញ្ចូល env
-ដែលត្រឹមត្រូវ និងមិនសរសេរឯកសារកំណត់រចនាសម្ព័ន្ធអ្វីទាំងអស់ សូមប្រើកម្មវិធីបើកដំណើរការទូទៅ
-`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — target និង alias មកពី `bin/cli/cli-manifest.mjs`)។ កម្មវិធីបើកដំណើរការចាស់
-សម្រាប់ឧបករណ៍នីមួយៗ `omniroute launch` (Claude Code) និង `omniroute launch-codex`
-(Codex) នៅតែអាចប្រើបាន។ Gemini CLI អាចបើកដំណើរការបានតែប៉ុណ្ណោះ៖ វាជា target របស់ `omniroute run`
-ប៉ុន្តែមិនមានរូបមន្ត `setup-*`/`configure` ទេ។
+នីមួយៗទទួលយក `--remote <url> --api-key <key>` (កំណត់រចនាសម្ព័ន្ធឧបករណ៍ក្នុងស្រុកប្រឆាំងនឹង OmniRoute ពីចម្ងាយ), `--dry-run` (មើលជាមុនដោយមិនសរសេរ), និង `--port`។ ឧបករណ៍ដែលគ្មានការរកឃើញម៉ូដែលដោយស្វ័យប្រវត្តិ (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) យក `--model <id>` (និង `--yes` សម្រាប់ការដំណើរការដែលមិនអន្តរកម្ម)។ `setup-5dive` គឺជាវិធីសាស្ត្រតែមួយគត់ដែលមិនសរសេរនៅក្រោម `$HOME`: វាកំណត់រចនាសម្ព័ន្ធកងភ្នាក់ងារ 5dive ដោយសរសេរទម្រង់ការផ្ទៀងផ្ទាត់ដែលគ្រប់គ្រងដោយ root នៅលើម៉ាស៊ីនកងភ្នាក់ងារ ដូច្នេះវាដំណើរការឡើងវិញតាមរយៈ `sudo` ហើយមិនមានរបៀបពីចម្ងាយផ្ទាល់ខ្លួនរបស់វាទេ។ ដើម្បីចាប់ផ្តើម CLI ជាមួយនឹង env ដែលបានបញ្ចូលត្រឹមត្រូវ ហើយគ្មានការកំណត់រចនាសម្ព័ន្ធត្រូវបានសរសេរទាល់តែសោះ សូមប្រើកម្មវិធីចាប់ផ្តើមទូទៅ `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — គោលដៅ និងឈ្មោះហៅក្រៅបានមកពី `bin/cli/cli-manifest.mjs`); កម្មវិធីចាប់ផ្តើមចាស់សម្រាប់ឧបករណ៍នីមួយៗ `omniroute launch` (Claude Code) និង `omniroute launch-codex` (Codex) នៅតែមាន។ Gemini CLI គឺសម្រាប់តែការចាប់ផ្តើមប៉ុណ្ណោះ៖ វាគឺជាគោលដៅ `omniroute run` ប៉ុន្តែមិនមានរូបមន្ត `setup-*`/`configure` ទេ។
 
-> **ឯកសារយោងពេញលេញ៖** តារាងមេ — អ្វីដែលពាក្យបញ្ជានីមួយៗសរសេរ flag ទាំងអស់
-> ការប្រើក្នុងម៉ាស៊ីនមូលដ្ឋានធៀបនឹងពីចម្ងាយ និងឧបករណ៍ណាខ្លះដែលត្រូវការបច្ច័យ `/v1` — មាននៅក្នុង
-> **[ការរួមបញ្ចូល CLI](../guides/CLI-INTEGRATIONS.md)**។
+> **ឯកសារយោងពេញលេញ:** តារាងមេ — អ្វីដែលពាក្យបញ្ជានីមួយៗសរសេរ, ទង់នីមួយៗ, ក្នុងស្រុកធៀបនឹងពីចម្ងាយ, និងឧបករណ៍ណាដែលត្រូវការបច្ច័យ `/v1` — មាននៅក្នុង **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**។
 
-### ការដំណើរការពាក្យបញ្ជាទាំងនេះនៅក្នុង container
+### ការដំណើរការទាំងនេះនៅក្នុង container
 
-ពាក្យបញ្ជា `setup-*` ដែលត្រូវបានប្រតិបត្តិនៅក្នុង container របស់ OmniRoute នឹងសរសេរទៅក្នុង
-home ផ្ទាល់របស់ container ដែល CLI ណាមួយនៅលើ host មិនអាន ហើយវានឹងបាត់នៅពេល
-container បាត់។ OmniRoute រកឃើញស្ថានភាពនេះ ហើយបិទដំណើរការជាមួយលេខកូដ `2` ព្រមទាំងបង្ហាញការណែនាំ ជំនួសឱ្យ
-ការសរសេរ។ មានវិធីដែលគាំទ្រចំនួនពីរដើម្បីបន្ត — ដំឡើង CLI នៅលើ host ហើយ
-ប្រើ `omniroute connect` ដើម្បីភ្ជាប់ទៅ container ឬ bind-mount ថតឯកសារកំណត់រចនាសម្ព័ន្ធ ហើយកំណត់
-`CLI_CONFIG_HOME` (ប្រូហ្វាល់ `host` របស់ compose)។ រាល់ពាក្យបញ្ជា `setup-*` រួមទាំង
-`omniroute configure` និង `omniroute config set` ទទួលយក
-`--allow-container-write` នៅពេលការកំណត់រចនាសម្ព័ន្ធ CLI ផ្ទាល់របស់ container គឺជាអ្វីដែលអ្នក
-ពិតជាចង់ធ្វើ។ `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ក៏ធ្វើដូចគ្នាសម្រាប់
-ម៉ាស៊ីនមេផងដែរ។ សូមមើល
-[មគ្គុទ្ទេសក៍ Docker → ការកំណត់រចនាសម្ព័ន្ធឧបករណ៍ CLI របស់ host](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)។
+ពាក្យបញ្ជា `setup-*` ដែលត្រូវបានប្រតិបត្តិនៅក្នុង container របស់ OmniRoute សរសេរទៅកាន់ home ផ្ទាល់ខ្លួនរបស់ container ដែលគ្មាន CLI របស់ host ណាមួយអាន ហើយដែលបាត់ទៅវិញជាមួយ container។ OmniRoute រកឃើញរឿងនោះ ហើយចេញ `2` ជាមួយនឹងការណែនាំជាជាងការសរសេរ។ វិធីសាស្រ្តពីរដែលគាំទ្រ — ដំឡើង CLI នៅលើ host ហើយ `omniroute connect` ទៅកាន់ container, ឬ bind-mount ថត config ហើយកំណត់ `CLI_CONFIG_HOME` (ទម្រង់ `host` របស់ compose)។ រាល់ពាក្យបញ្ជា `setup-*` បូកនឹង `omniroute configure` និង `omniroute config set` ទទួលយក `--allow-container-write` នៅពេលដែលការកំណត់រចនាសម្ព័ន្ធ CLIs ផ្ទាល់ខ្លួនរបស់ container គឺជាអ្វីដែលអ្នកចង់បានពិតប្រាកដ; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ធ្វើដូចគ្នាសម្រាប់ server។ សូមមើល [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)។
 
-**apply endpoint** របស់ផ្ទាំងគ្រប់គ្រង (`POST /api/cli-tools/apply`) អនុវត្ត
-ការការពារដូចគ្នា៖ នៅក្នុង container ប្រតិបត្តិការសរសេរដែល target របស់វាមិនត្រូវបាន bind-mount ពី
-host នឹងឆ្លើយតបដោយ **`422`** ជាមួយ `containerEphemeralTarget: true` អត្ថបទកំហុស
-ដែលមានសុវត្ថិភាព និង — សម្រាប់ឧបករណ៍ដែលមានរូបមន្តសម្រាប់ host (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` មួយ (ឧ. `omniroute setup-opencode`) ដើម្បីដំណើរការ
-នៅលើ host ជំនួសវិញ។ គ្មានអ្វីត្រូវបានសរសេរទេ។ `dryRun: true` នៅតែដំណើរការនៅក្នុងរបៀប container
-ហើយត្រឡប់មាតិកាដែលបានបង្កើត + ផ្លូវ target ដោយមិនប៉ះពាល់ដល់ថាស ដូច្នេះ
-អ្នកអាចមើលជាមុនពីផ្ទាំងគ្រប់គ្រង ហើយអនុវត្តនៅលើ host។ ឥរិយាបថនេះត្រូវបាន
-បង្កើតឡើងដោយចេតនា និងត្រូវបានការពារពី regression ដោយ
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — កុំ "ជួសជុល" 422
-ដោយដកការការពារចេញ។
+**endpoint សម្រាប់អនុវត្ត** របស់ dashboard (`POST /api/cli-tools/apply`) អនុវត្តការការពារដូចគ្នា៖ នៅក្នុង container ការសរសេរដែលគោលដៅមិនត្រូវបាន bind-mounted ពី host ឆ្លើយតប **`422`** ជាមួយនឹង `containerEphemeralTarget: true`, អត្ថបទកំហុសសុវត្ថិភាព និង — សម្រាប់ឧបករណ៍ដែលមានរូបមន្ត host (claude, codex, opencode, cline, kilo, continue) — `hostSetupCommand` (ឧទាហរណ៍ `omniroute setup-opencode`) ដើម្បីដំណើរការនៅលើ host ជំនួសវិញ; គ្មានអ្វីត្រូវបានសរសេរទេ។ `dryRun: true` នៅតែដំណើរការក្នុងរបៀប container ហើយប្រគល់ការមើលជាមុនដែលបានកែសម្រួល + ផ្លូវគោលដៅដោយមិនប៉ះថាស។ ខ្លឹមសារមើលជាមុនមិនមែនជាការកំណត់រចនាសម្ព័ន្ធដែលមានព័ត៌មានសម្ងាត់ដើម្បីចម្លង ឬនាំចូលនោះទេ។ អនុវត្តជាមួយឧបករណ៍ដើម/URL មូលដ្ឋាន/API key/model inputs នៅលើ host, ឬប្រើពាក្យបញ្ជា setup ខាង host ដែលបានបង្ហាញ។ សូមមើល [CLI configuration security](../security/CLI-CONFIGURATION.md) សម្រាប់ header មើលជាមុន និងកិច្ចសន្យាសំណើ។ អាកប្បកិរិយានេះគឺមានចេតនា ហើយត្រូវបានការពារដោយ `tests/unit/api/cli-tools/apply-container-guard.test.ts` — កុំ "ជួសជុល" 422 ដោយការដកការការពារចេញ។
 
 ---
 

@@ -15,8 +15,17 @@ function credentialShape(value) {
   return { present: true, length: String(value).length };
 }
 
-const SENSITIVE_FIELD_RE =
-  /^(?:api[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|token|password|secret|client[_-]?secret|credential|authorization)$/i;
+const SENSITIVE_FIELD_SUFFIX_RE =
+  /(?:^|_)(?:api_?key|access_key|secret_access_key|access_?token|refresh_?token|id_?token|auth_token|token|password|passphrase|secret|secret_key|secret_value|client_?secret|credential|authorization|private_key)$/;
+
+function isSensitiveFieldName(key) {
+  const normalized = String(key || "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/[^A-Za-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase();
+  return SENSITIVE_FIELD_SUFFIX_RE.test(normalized);
+}
 
 /**
  * Redact provider responses before they reach human or JSON output.
@@ -27,7 +36,7 @@ const SENSITIVE_FIELD_RE =
  * for diagnostics; the value itself must never be printed.
  */
 export function redactProviderResponse(value, key = "") {
-  if (SENSITIVE_FIELD_RE.test(key)) {
+  if (isSensitiveFieldName(key)) {
     if (value === null || value === undefined || value === "") return null;
     return typeof value === "string" ? credentialShape(value) : "[redacted]";
   }
@@ -58,17 +67,31 @@ export function findConnectionFromResponse(body, selector) {
     .trim()
     .toLowerCase();
   if (!needle) return null;
-  return (
-    rows.find((row) => String(row?.id || "").toLowerCase() === needle) ||
-    rows.find((row) =>
+
+  const selectUnique = (matches) => {
+    if (matches.length === 0) return null;
+    if (matches.length === 1) return matches[0];
+    const candidates = matches.map((row) => String(row?.id || "<missing-id>")).join(", ");
+    throw new Error(`Provider connection selector '${selector}' is ambiguous: ${candidates}`);
+  };
+
+  const exactId = selectUnique(
+    rows.filter((row) => String(row?.id || "").toLowerCase() === needle)
+  );
+  if (exactId) return exactId;
+  const idPrefix = selectUnique(
+    rows.filter((row) =>
       String(row?.id || "")
         .toLowerCase()
         .startsWith(needle)
-    ) ||
-    rows.find((row) => String(row?.name || "").toLowerCase() === needle) ||
-    rows.find((row) => String(row?.provider || "").toLowerCase() === needle) ||
-    null
+    )
   );
+  if (idPrefix) return idPrefix;
+  const exactName = selectUnique(
+    rows.filter((row) => String(row?.name || "").toLowerCase() === needle)
+  );
+  if (exactName) return exactName;
+  return selectUnique(rows.filter((row) => String(row?.provider || "").toLowerCase() === needle));
 }
 
 /** Build the API body without accepting management auth as a provider secret. */
@@ -179,6 +202,48 @@ async function resolveRemoteConnection(selector, opts) {
   return connection;
 }
 
+async function readRemoteConnectionById(id, opts) {
+  const response = await apiFetch(`/api/providers/${encodeURIComponent(id)}`, {
+    ...targetOptions(opts),
+    acceptNotOk: true,
+    retry: false,
+  });
+  if (!response.ok)
+    throw new Error(`Provider mutation read-back failed: ${await readApiError(response)}`);
+  const body = await response.json().catch(() => ({}));
+  const connection = body?.connection;
+  if (!connection || String(connection.id || "") !== String(id)) {
+    throw new Error("Provider mutation read-back returned an unexpected connection.");
+  }
+  return connection;
+}
+
+async function confirmRemoteConnectionRemoved(id, opts) {
+  const response = await apiFetch(`/api/providers/${encodeURIComponent(id)}`, {
+    ...targetOptions(opts),
+    acceptNotOk: true,
+    retry: false,
+  });
+  if (response.status === 404) return;
+  if (!response.ok) {
+    throw new Error(`Provider removal read-back failed: ${await readApiError(response)}`);
+  }
+  const body = await response.json().catch(() => ({}));
+  if (body?.connection) {
+    throw new Error("Provider removal read-back found the connection still present.");
+  }
+  throw new Error("Provider removal read-back returned an unexpected success response.");
+}
+
+function verifyConnectionFields(connection, expected) {
+  for (const [field, value] of Object.entries(expected)) {
+    if (value !== undefined && connection?.[field] !== value) {
+      throw new Error(`Provider mutation read-back did not persist field '${field}'.`);
+    }
+  }
+  return connection;
+}
+
 export async function runProviderAddCommand(provider, opts = {}) {
   const normalized = String(provider || "").trim();
   if (!normalized) {
@@ -241,9 +306,18 @@ export async function runProviderAddCommand(provider, opts = {}) {
       return statusToExitCode(response.status);
     }
     const body = await response.json().catch(() => ({}));
+    const created = body?.connection;
+    if (!created?.id) throw new Error("Provider create response did not include a connection id.");
+    const verified = verifyConnectionFields(await readRemoteConnectionById(created.id, opts), {
+      provider: payload.provider,
+      name: payload.name,
+      defaultModel: payload.defaultModel,
+      priority: payload.priority,
+    });
     if (!opts.silent) {
-      if (opts.json) console.log(JSON.stringify(redactProviderResponse(body), null, 2));
-      else printSuccess(`Added provider connection '${body?.connection?.name || payload.name}'.`);
+      if (opts.json) {
+        console.log(JSON.stringify(redactProviderResponse({ connection: verified }), null, 2));
+      } else printSuccess(`Added provider connection '${verified.name || payload.name}'.`);
     }
     return 0;
   } catch (error) {
@@ -271,6 +345,29 @@ export async function runProviderImportCommand(file, opts = {}) {
     printError("Provider import file contains no entries.");
     return 2;
   }
+  const existingByProviderAndName = new Map();
+  if (!opts.dryRun) {
+    try {
+      const response = await listRemoteConnections(opts);
+      if (!response.ok) {
+        printError(await readApiError(response));
+        return statusToExitCode(response.status);
+      }
+      const body = await response.json().catch(() => ({}));
+      const connections = Array.isArray(body?.connections) ? body.connections : [];
+      for (const connection of connections) {
+        const key = `${String(connection?.provider || "").toLowerCase()}\0${String(
+          connection?.name || connection?.provider || ""
+        ).toLowerCase()}`;
+        if (!existingByProviderAndName.has(key)) {
+          existingByProviderAndName.set(key, connection);
+        }
+      }
+    } catch (error) {
+      printError(error instanceof Error ? error.message : String(error));
+      return 1;
+    }
+  }
   const results = [];
   for (const entry of entries) {
     if (!entry || typeof entry !== "object" || !entry.provider) {
@@ -278,16 +375,48 @@ export async function runProviderImportCommand(file, opts = {}) {
       if (!opts.continueOnError) break;
       continue;
     }
-    const code = await runProviderAddCommand(entry.provider, {
-      ...opts,
-      ...entry,
+    const provider = String(entry.provider).trim();
+    const name = String(entry.name || provider).trim();
+    const identityKey = `${provider.toLowerCase()}\0${name.toLowerCase()}`;
+    const existing = existingByProviderAndName.get(identityKey);
+    if (existing) {
+      const result = {
+        provider,
+        name,
+        ok: true,
+        status: "skipped_existing",
+        connectionId: existing.id,
+      };
+      results.push(result);
+      if (!opts.json) printInfo(`Skipped existing provider connection '${name}'.`);
+      continue;
+    }
+    // Import files contain provider data, never command/control-plane options.
+    // Keep the management target, context and authentication exclusively from
+    // the CLI invocation so an imported document cannot redirect credentials.
+    const importedProviderOptions = {
+      name: entry.name,
+      defaultModel: entry.defaultModel,
+      priority: entry.priority,
+      providerSpecificData: entry.providerSpecificData,
       credential: entry.apiKey ?? entry.credential,
+      allowNoCredential: entry.allowNoCredential ?? opts.allowNoCredential,
+    };
+    const code = await runProviderAddCommand(provider, {
+      ...opts,
+      ...importedProviderOptions,
       dryRun: opts.dryRun,
       yes: true,
       silent: true,
-      allowNoCredential: entry.allowNoCredential ?? opts.allowNoCredential,
     });
-    results.push({ provider: entry.provider, ok: code === 0, code });
+    results.push({
+      provider,
+      name,
+      ok: code === 0,
+      code,
+      status: code === 0 ? "created" : "error",
+    });
+    if (code === 0) existingByProviderAndName.set(identityKey, { provider, name });
     if (code !== 0 && !opts.continueOnError) break;
   }
   if (opts.json) console.log(JSON.stringify({ file, results }, null, 2));
@@ -340,6 +469,7 @@ export async function runProviderRemoveCommand(selector, opts = {}) {
       printError(await readApiError(response));
       return statusToExitCode(response.status);
     }
+    await confirmRemoteConnectionRemoved(connection.id, opts);
     if (opts.json)
       console.log(JSON.stringify(redactProviderResponse({ removed: connection }), null, 2));
     else printSuccess(`Removed provider connection '${connection.name || connection.id}'.`);
@@ -351,12 +481,24 @@ export async function runProviderRemoveCommand(selector, opts = {}) {
 }
 
 export async function runProviderEditCommand(selector, opts = {}) {
+  if (opts.active === true && opts.inactive === true) {
+    printError("--active and --inactive cannot be used together.");
+    return 2;
+  }
+  let parsedPriority;
+  if (opts.priority !== undefined) {
+    parsedPriority = Number(opts.priority);
+    if (!Number.isInteger(parsedPriority) || parsedPriority < 1) {
+      printError("--priority must be a positive integer.");
+      return 2;
+    }
+  }
   try {
     const connection = await resolveRemoteConnection(selector, opts);
     const body = {};
     if (opts.name !== undefined) body.name = opts.name;
     if (opts.defaultModel !== undefined) body.defaultModel = opts.defaultModel || null;
-    if (opts.priority !== undefined) body.priority = Number(opts.priority);
+    if (parsedPriority !== undefined) body.priority = parsedPriority;
     if (opts.active !== undefined) body.isActive = Boolean(opts.active);
     if (opts.inactive !== undefined) body.isActive = false;
     const credential = await resolveProviderCredential(opts, { prompt: false });
@@ -388,9 +530,16 @@ export async function runProviderEditCommand(selector, opts = {}) {
       printError(await readApiError(response));
       return statusToExitCode(response.status);
     }
-    const result = await response.json().catch(() => ({}));
-    if (opts.json) console.log(JSON.stringify(redactProviderResponse(result), null, 2));
-    else printSuccess(`Updated provider connection '${connection.name || connection.id}'.`);
+    await response.json().catch(() => ({}));
+    const expected = { ...body };
+    delete expected.apiKey;
+    const verified = verifyConnectionFields(
+      await readRemoteConnectionById(connection.id, opts),
+      expected
+    );
+    if (opts.json) {
+      console.log(JSON.stringify(redactProviderResponse({ connection: verified }), null, 2));
+    } else printSuccess(`Updated provider connection '${connection.name || connection.id}'.`);
     return 0;
   } catch (error) {
     printError(error instanceof Error ? error.message : String(error));

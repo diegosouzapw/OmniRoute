@@ -1,0 +1,1 @@
+- **fix(compression):** session-dedup now counts repeated large memory blocks with literal scanning instead of compiling them as regular expressions, avoiding the `Regular expression too large` failure reported in #6467. ([#14633](https://github.com/diegosouzapw/OmniRoute/pull/14633)) — thanks @Jehu

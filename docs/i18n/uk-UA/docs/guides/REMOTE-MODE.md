@@ -354,65 +354,56 @@ opencode -m omniroute/glm/glm-5.2 "..."          # спочатку експор
 
 ## Керування контекстами (перемикання між серверами)
 
-**Контекст** — це збережений сервер (baseUrl + облікові дані + область доступу). `omniroute connect`
-створює контекст і робить його активним; відтоді кожна команда спрямовується до нього. Керуйте
-контекстами та перемикайтеся між ними за допомогою `omniroute contexts`:
+**Контекст** — це збережений сервер (baseUrl + облікові дані + область дії). `omniroute connect` створює його та робить активним; після цього кожна команда націлюється на нього. Керуйте та перемикайтеся між ними за допомогою `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # усі контексти; активний позначено символом ●
-omniroute contexts current         # активний сервер, стан автентифікації, область доступу
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
 ```
 
 ```text
-  | Назва   | Базова URL-адреса          | Автентифікація | Область доступу | Опис
-● | vps     | http://100.67.86.91:20128 | token          | admin           | Віддалений OmniRoute (…)
-  | default | http://localhost:20128    | ✗              |                 |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Перемикання між серверами** — кожна наступна команда використовує активний контекст:
+**Перемикання серверів** — кожна наступна команда використовує активний контекст:
 
 ```bash
-omniroute contexts use vps         # → тепер усі команди спрямовуються до віддаленого VPS
-omniroute tokens list              #   (виконується на VPS)
+omniroute contexts use vps         # → all commands now hit the remote VPS
+omniroute tokens list              #   (runs against the VPS)
 
-omniroute contexts use default     # → назад до localhost
-omniroute tokens list              #   (виконується на локальному сервері)
+omniroute contexts use default     # → back to localhost
+omniroute tokens list              #   (runs against the local server)
 ```
 
-**Додайте контекст вручну** (замість `connect`), перегляньте його або перейменуйте:
+**Додати контекст вручну** (замість `connect`), переглянути або перейменувати:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # повні відомості про один контекст
+omniroute contexts show staging    # full details for one context
 omniroute contexts rename staging stg
 ```
 
-**Видаліть контекст** — з’явиться запит на підтвердження; передайте `--yes`, щоб пропустити його
-(це обов’язково для скриптів і неінтерактивних оболонок, які інакше безпечно відхиляють операцію):
+**Видалити контекст** — запитує підтвердження; передайте `--yes`, щоб пропустити його (необхідно для скриптів / неінтерактивних оболонок, які інакше безпечно відхиляють дію):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) неможливо видалити. Після видалення активного контексту виконується повернення
-> до `default`. Порада: видалення контексту вилучає лише **локально** збережені облікові дані —
-> відкличте токен на сервері за допомогою `omniroute tokens revoke <id>`, щоб фактично
-> скасувати доступ.
+> `default` (localhost) не може бути видалений. Видалення активного контексту повертає до `default`. Порада: видалення контексту лише видаляє **локально** збережені облікові дані — відкличте токен на сервері за допомогою `omniroute tokens revoke <id>`, щоб фактично припинити доступ.
 
-**Експорт та імпорт** контекстів (наприклад, для перенесення між комп’ютерами). Нові контексти зберігають
-лише посилання на сховище ключів; облікові дані не копіюються до експорту, якщо доступне системне
-сховище ключів:
+**Експорт / імпорт контекстів** (наприклад, для переміщення між машинами). Експорт за замовчуванням опускає облікові дані, включаючи облікові дані, збережені за допомогою файлового резервування. Використовуйте `--include-secrets` явно, коли потрібна портативна резервна копія, що містить облікові дані:
 
 ```bash
-omniroute contexts export --out contexts.json     # типово: stdout
-omniroute contexts import contexts.json            # перезаписати; --merge, щоб зберегти наявні
-omniroute contexts migrate --yes                  # перемістити застарілі токени у відкритому тексті до сховища ключів
+omniroute contexts export --out contexts.json     # redacted; default destination: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
 
-У системах без графічного інтерфейсу, де немає придатного системного сховища ключів, CLI використовує
-`config.json` із режимом `0600` і показує одноразове попередження. Вважайте експорти з
-такого резервного сховища (і будь-яку застарілу конфігурацію до міграції) конфіденційними даними.
+`--include-secrets` розв'язує посилання на сховище ключів перед експортом і завершується помилкою, якщо будь-які посилані облікові дані не можуть бути прочитані. `--no-secrets` завжди має пріоритет. Файли експорту записуються атомарно з режимом `0600`. Розглядайте явний експорт, що містить секрети, як секретний матеріал. На безголових системах без придатного сховища ключів ОС, CLI повертається до `config.json` з режимом `0600` і виводить одноразове попередження; експорт за замовчуванням залишається відредагованим у цьому режимі.
 
 ---
 

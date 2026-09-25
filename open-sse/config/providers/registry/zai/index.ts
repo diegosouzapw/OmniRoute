@@ -6,6 +6,7 @@ export const zaiProvider: RegistryEntry = {
   alias: "zai",
   format: "claude",
   executor: "default",
+  naiveResetTimezone: "+08:00",
   baseUrl: "https://api.z.ai/api/anthropic/v1/messages",
   urlSuffix: "?beta=true",
   authType: "apikey",

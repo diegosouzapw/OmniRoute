@@ -59,6 +59,10 @@ export const DEFAULT_TLS_FIRST_BYTE_WATCHDOG_MS = 10_000;
 // thinking. Executors that can rotate accounts use it to move on instead of waiting for the
 // readiness timeout. Set to 0 to disable.
 export const DEFAULT_RESPONSES_FIRST_BYTE_TIMEOUT_MS = 15_000;
+// Suggested operator value when enabling the Responses headers-wait bound below.
+// Not an active default: the getters read 0 (off) unless the operator sets the env var.
+export const SUGGESTED_OPENCODE_RESPONSES_HEADERS_WAIT_MS = 30_000;
+export const DEFAULT_OPENCODE_RESPONSES_HEADERS_WAIT_MAX_ROTATIONS = 2;
 
 function hasEnvValue(env: EnvSource, name: string): boolean {
   const raw = env[name];
@@ -265,6 +269,31 @@ export function getResponsesFirstByteTimeoutMs(
     env,
     "RESPONSES_FIRST_BYTE_TIMEOUT_MS",
     DEFAULT_RESPONSES_FIRST_BYTE_TIMEOUT_MS,
+    { allowZero: true, logger }
+  );
+}
+
+// Bound on waiting for upstream response headers on streamed Responses calls
+// before moving to the next account. Off by default: the read default is 0
+// (unchanged behavior) — SUGGESTED_… is only the documented starting value.
+export function getOpencodeResponsesHeadersWaitMs(
+  env: EnvSource = process.env,
+  logger?: TimeoutLogger
+): number {
+  return readTimeoutMs(env, "OPENCODE_RESPONSES_HEADERS_WAIT_MS", 0, {
+    allowZero: true,
+    logger,
+  });
+}
+
+export function getOpencodeResponsesHeadersWaitMaxRotations(
+  env: EnvSource = process.env,
+  logger?: TimeoutLogger
+): number {
+  return readTimeoutMs(
+    env,
+    "OPENCODE_RESPONSES_HEADERS_WAIT_MAX_ROTATIONS",
+    DEFAULT_OPENCODE_RESPONSES_HEADERS_WAIT_MAX_ROTATIONS,
     { allowZero: true, logger }
   );
 }

@@ -43,165 +43,163 @@
 
 ## 旗標目錄
 
-共有 6 個類別、76 個旗標。**預設值**是定義中的預設值——當資料庫覆寫值與環境變數皆不存在時所使用的值。
+6 個類別共 77 個旗標。**預設值**是定義的預設值 — 當資料庫覆寫和環境變數皆不存在時所使用的值。
 
-### 安全性（10）
+### 安全性 (10)
 
-| 鍵                                      | 類型   | 預設值   | 說明                                                                                                                                                                                        |
-| --------------------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `REQUIRE_API_KEY`                       | 布林值 | `false`  | 要求所有傳入的請求皆提供 API 金鑰。                                                                                                                                                         |
-| `INPUT_SANITIZER_ENABLED`               | 布林值 | `true`   | 為所有請求啟用輸入清理。                                                                                                                                                                    |
-| `INJECTION_GUARD_MODE`                  | 列舉   | `off`    | 提示詞注入防護模式。可用值：`off`、`warn`、`block`、`redact`。                                                                                                                              |
-| `PII_REDACTION_ENABLED`                 | 布林值 | `false`  | 從請求中遮蔽個人識別資訊（獨立於 `INPUT_SANITIZER_MODE`）。                                                                                                                                 |
-| `PII_RESPONSE_SANITIZATION`             | 布林值 | `false`  | 清理提供者回應中的個人識別資訊。                                                                                                                                                            |
-| `PII_RESPONSE_SANITIZATION_MODE`        | 列舉   | `redact` | 個人識別資訊回應清理模式。可用值：`redact`、`warn`、`block`、`off`。                                                                                                                        |
-| `OUTBOUND_SSRF_GUARD_ENABLED`           | 布林值 | `true`   | 封鎖傳送至私有／內部 IP 範圍的出站請求。                                                                                                                                                    |
-| `ALLOW_API_KEY_REVEAL`                  | 布林值 | `false`  | 允許已驗證身分的儀表板使用者顯示已儲存的 API 金鑰，而非只能查看遮罩後的值。                                                                                                                 |
-| `AUTH_LOG_INCLUDE_ACCOUNT_ID`           | 布林值 | `false`  | 在 AUTH 記錄行中包含帳戶前綴（例如「正在使用 <provider> 帳戶：abc12345...」）。預設為停用，因此帳戶識別碼會從共用／多租戶程序記錄中遮蔽。此設定獨立於偵錯模式；切換偵錯模式不會顯示此資訊。 |
-| `OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN` | 布林值 | `false`  | 啟用 OIDC 時，停用密碼登入，讓使用者只能透過 OIDC 單一登入進行驗證。停用時（預設），密碼登入與 OIDC 皆可使用。                                                                              |
+| Key                                     | Type    | Default  | Description                                                                                                                                                                        |
+| --------------------------------------- | ------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REQUIRE_API_KEY`                       | boolean | `false`  | 要求所有傳入請求都必須有 API 金鑰。                                                                                                                                                |
+| `INPUT_SANITIZER_ENABLED`               | boolean | `true`   | 為所有請求啟用輸入淨化。                                                                                                                                                           |
+| `INJECTION_GUARD_MODE`                  | enum    | `off`    | 提示注入防護模式。值：`off`、`warn`、`block`、`redact`。                                                                                                                           |
+| `PII_REDACTION_ENABLED`                 | boolean | `false`  | 從請求中編輯個人身份資訊 (PII)（獨立於 `INPUT_SANITIZER_MODE`）。                                                                                                                  |
+| `PII_RESPONSE_SANITIZATION`             | boolean | `false`  | 從提供者回應中淨化個人身份資訊 (PII)。                                                                                                                                             |
+| `PII_RESPONSE_SANITIZATION_MODE`        | enum    | `redact` | 個人身份資訊 (PII) 回應淨化模式。值：`redact`、`warn`、`block`、`off`。                                                                                                            |
+| `OUTBOUND_SSRF_GUARD_ENABLED`           | boolean | `true`   | 阻止對私人/內部 IP 範圍的對外請求。                                                                                                                                                |
+| `ALLOW_API_KEY_REVEAL`                  | boolean | `false`  | 允許已驗證的儀表板使用者顯示儲存的 API 金鑰，而不僅僅是看到遮罩值。                                                                                                                |
+| `AUTH_LOG_INCLUDE_ACCOUNT_ID`           | boolean | `false`  | 在 AUTH 記錄行中包含帳戶前綴（例如「Using <provider> account: abc12345...」）。預設為禁用，以便從共享/多租戶處理記錄中編輯帳戶識別碼。獨立於偵錯模式；切換偵錯模式不會顯示此資訊。 |
+| `OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN` | boolean | `false`  | 當 OIDC 啟用時，禁用密碼登入，以便使用者只能透過 OIDC 單一登入進行驗證。當禁用時（預設），密碼登入和 OIDC 都可用。                                                                 |
 
-### 網路（18）
+### 網路 (19)
 
-| 鍵                                              | 類型    | 預設值  | 重新啟動 | 說明                                                                                                                                                                                                                                                                                                                          |
-| ----------------------------------------------- | ------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ENABLE_TLS_FINGERPRINT`                        | boolean | `false` | ✓        | 啟用 TLS 指紋隱匿模式。                                                                                                                                                                                                                                                                                                       |
-| `AUDIO_REMOTE_PROVIDER_NODES`                   | boolean | `false` |          | 允許 /v1/audio/* 路由使用託管於 localhost 之外、與 OpenAI 相容的提供者節點。預設為關閉——將音訊路由至遠端主機會變更出口身分，因此必須由操作人員明確決定。永遠允許迴送節點，且不受此設定影響。                                                                                                                                  |
-| `RERANK_REMOTE_PROVIDER_NODES`                  | boolean | `false` |          | 允許 POST /v1/rerank（以及記憶體引擎的迴送重新排序步驟）使用託管於 localhost 之外、與 OpenAI 相容的提供者節點。預設為關閉——路由至遠端主機會變更出口身分，因此必須由操作人員明確決定。永遠允許迴送節點；遠端節點還必須通過提供者的對外 URL 政策。                                                                              |
-| `PROXY_AUTO_SELECT_ENABLED`                     | boolean | `false` |          | 未為連線指派代理時，自動從登錄檔中選取第一個可用的代理。預設為關閉（否則登錄檔中的任何代理都會成為全域備援——#3332）。                                                                                                                                                                                                         |
-| `OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK` | boolean | `false` |          | 當代理可達性的預先檢查失敗時，允許 OAuth 與提供者驗證流程略過固定代理並直接連線。預設為關閉，因為這可能會變更出口 IP。                                                                                                                                                                                                        |
-| `NETWORK_ROTATION_SHARED_EGRESS_GUARD`          | boolean | `true`  |          | 對於多帳戶輪替執行器，發生網路例外（逾時、連線遭拒或重設）時，若失敗的帳戶沒有專用代理，則套用短暫的冷卻時間，並在該請求的剩餘期間略過其他沒有代理的帳戶，而不是逐一重試。預設為開啟（安全：不會變更出口 IP，只會降低共用出口帳戶的延遲與冷卻風險）。停用後，會恢復在第一個無代理的例外擲出時立即傳播。                       |
-| `PROXY_SKIP_RECENTLY_FAILED`                    | boolean | `false` |          | 代理集區與 opencode 的個別帳戶輪替會停止再次提供剛失敗的代理（TCP 探測遭拒，或透過該代理收到 429），停用期間以每個處理程序為單位，且每次重複失敗時加倍，直至上限。不會寫入代理狀態；若所有候選代理都被暫時擱置，選擇結果將保持不變。預設為關閉。                                                                              |
-| `PROXY_POOL_EGRESS_OBSERVATION`                 | boolean | `false` |          | 在儀表板的代理集區下方顯示過去 24 小時內有多少個觀察到的出口 IP 為其成員提供服務，以及有多少連線使用了這些 IP。此資訊為唯讀，由代理記錄計算得出，絕不會用於路由。預設為關閉。                                                                                                                                                 |
-| `OPENCODE_RESPONSES_STALL_ROTATION`             | boolean | `false` |          | 對於 OpenCode 執行器，監看串流 Responses 回覆的第一個本文位元組（時間範圍：`RESPONSES_FIRST_BYTE_TIMEOUT_MS`，預設為 `15000`）。若 2xx Responses 串流超過此時間範圍仍無資料，則視為停滯：帳戶會進入冷卻，且請求會輪替至下一個帳戶一次；若再次停滯，則立即失敗。預設為關閉：停滯的串流會依現行行為持續等待，直到串流就緒逾時。 |
-| `OPENCODE_USER_BLOCKED_ROTATION`                | boolean | `false` |          | OpenCode 執行器：遇到帶有 `user_blocked` 拒絕的 403/451（非地理位置限制，亦非 Cloudflare 指紋拒絕）時，將被拒絕的帳戶設為冷卻狀態，並針對每個請求最多輪替至下一個帳戶一次；第二次拒絕將原樣回傳，且不會標記為成功。預設關閉：繞過上游使用者封鎖可能看似規避限制，並將標記擴散至整個帳戶群組。                                 |
-| `OPENCODE_TRANSIENT_FAILOVER_BACKOFF`           | boolean | `false` |          | OpenCode 輪替：連續發生兩次暫時性上游失敗（5xx 或空白的 400）後，在切換至下一個帳戶前暫停——從 1.5 秒開始，之後每次失敗加倍；每次暫停最多 6 秒，每個請求合計最多 10 秒；若用戶端中斷連線則跳過。失敗的回應本文會在等待前釋放。預設關閉：容錯移轉會維持立即執行。                                                               |
-| `OPENCODE_PARK_AND_RESUME`                      | boolean | `false` |          | OpenCode 輪替：重複出現暫時性 429（或新的資源池壓力標記）後，以心跳訊號暫停請求，接著僅重放一輪受限流程，依序嘗試最多 3 個帳戶，而非向整個帳戶群組扇出。預設關閉：每次 429 都會一如以往輪替至下一個帳戶。                                                                                                                     |
-| `FLUSH_EMPTY_RETRY_ENABLED`                     | boolean | `false` |          | 對於經轉換的串流輪次，當上游輪次未帶有任何可用內容（僅推理的完成結果或沒有任何有價值的區塊）時，在向用戶端公開任何內容前，透過一般憑證路徑進行有限次數的重試（最多 `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX` 次）。預設關閉：空白輪次會維持目前的行為（空白 200 或空內容 502）。                                                 |
-| `OPENCODE_RATE_LIMITED_429_EARLY_STOP`          | boolean | `false` |          | OpenCode 輪替：遇到第一個被分類為真正速率限制的 429（可解析的 `Retry-After`，或本文中指明速率／用量限制）時，停止該輪帳戶嘗試，並原樣回傳該上游 429。未分類的 429 會繼續輪替。預設關閉：免費方案依出口 IP 限制（#9611），因此每次 429 都會進行輪替，而當該輪帳戶全數用盡時，則回傳最後一個上游 429。                          |
-| `MITM_DISABLE_TLS_VERIFY`                       | boolean | `false` | ✓        | 停用 MITM Proxy 的 TLS 憑證驗證。**危險。**                                                                                                                                                                                                                                                                                   |
-| `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`         | boolean | `false` |          | 允許指向私人／內部網路的提供者 URL。                                                                                                                                                                                                                                                                                          |
-| `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`           | boolean | `true`  |          | 允許在本機／私人位址（127.0.0.1、localhost、LAN）新增／驗證提供者。預設開啟（本機優先）；若要嚴格封鎖所有非公開位址，請停用此選項。雲端中繼資料仍會被封鎖。                                                                                                                                                                   |
-| `ENABLE_CC_COMPATIBLE_PROVIDER`                 | boolean | `false` | ✓        | 啟用 Claude Code 相容提供者模式。                                                                                                                                                                                                                                                                                             |
+| Key                                             | Type    | Default | Restart | Description                                                                                                                                                                                                                                                                                                       |
+| :---------------------------------------------- | :------ | :------ | :------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ENABLE_TLS_FINGERPRINT`                        | boolean | `false` | ✓       | 啟用 TLS 指紋隱身模式。                                                                                                                                                                                                                                                                                           |
+| `AUDIO_REMOTE_PROVIDER_NODES`                   | boolean | `false` |         | 允許 `/v1/audio/*` 路由使用託管在 localhost 之外的 OpenAI 相容提供者節點。預設為關閉 — 將音訊路由到遠端主機將改變出口身份，必須是明確的操作員決定。迴路節點始終允許且不受影響。                                                                                                                                   |
+| `RERANK_REMOTE_PROVIDER_NODES`                  | boolean | `false` |         | 允許 POST `/v1/rerank`（以及記憶體引擎的迴路重排步驟）使用託管在 localhost 之外的 OpenAI 相容提供者節點。預設為關閉 — 路由到遠端主機將改變出口身份，必須是明確的操作員決定。迴路節點始終允許；遠端節點也必須通過提供者出站 URL 策略。                                                                             |
+| `PROXY_AUTO_SELECT_ENABLED`                     | boolean | `false` |         | 當沒有代理分配給連線時，自動從註冊表中選擇第一個可用的代理。預設為關閉（否則任何註冊表代理都將成為全域備用 — #3332）。                                                                                                                                                                                            |
+| `OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK` | boolean | `false` |         | 當代理可達性預檢查失敗時，允許 OAuth 和提供者驗證流程繞過固定的代理並直接連線。預設為關閉，因為這可能會改變出口 IP。                                                                                                                                                                                              |
+| `NETWORK_ROTATION_SHARED_EGRESS_GUARD`          | boolean | `true`  |         | 對於多帳戶輪換執行器，在發生網路異常（逾時、連線被拒絕/重置）時，如果失敗的帳戶沒有專用代理，則應用短暫的冷卻時間並跳過請求中其餘沒有代理的帳戶，而不是重試每一個。預設為開啟（安全：沒有出口 IP 變更，只減少共享出口帳戶的延遲/冷卻風險）。禁用此選項可在第一次無代理拋出時恢復立即傳播。                        |
+| `ROTATION_ATTRIBUTION`                          | boolean | `false` |         | Opencode 輪換記錄哪個帳戶提供了服務或被跳過（僅限遮罩 ID，從不記錄完整帳戶 ID），並將代理日誌條目連結到其請求，以便操作員可以區分被跳過的帳戶和未使用的帳戶。預設為關閉。                                                                                                                                         |
+| `PROXY_SKIP_RECENTLY_FAILED`                    | boolean | `false` |         | 代理池和 opencode 的每個帳戶輪換會停止重新服務剛失敗的代理（拒絕 TCP 探測，或透過它收到 429 錯誤），持續時間為每個程序週期，每次重複都會加倍，直到達到上限。不寫入代理狀態；每次將候選者擱置時，選擇保持不變。預設為關閉。                                                                                        |
+| `PROXY_POOL_EGRESS_OBSERVATION`                 | boolean | `false` |         | 在儀表板的代理池下顯示，在過去 24 小時內有多少觀察到的出口 IP 為其成員提供服務，以及有多少連線使用了它們。唯讀，從代理日誌計算，從不用於路由。預設為關閉。                                                                                                                                                        |
+| `OPENCODE_RESPONSES_STALL_ROTATION`             | boolean | `false` |         | 對於 OpenCode 執行器，監控串流 Responses 回覆的第一個主體位元組（視窗：`RESPONSES_FIRST_BYTE_TIMEOUT_MS`，預設 `15000`）。一個在視窗期過後保持靜默的 2xx Responses 串流會被視為停滯：該帳戶會被冷卻，請求會輪換到下一個帳戶一次；第二次停滯會快速失敗。預設為關閉：停滯的串流會保持目前的等待，直到串流就緒逾時。 |
+| `OPENCODE_USER_BLOCKED_ROTATION`                | boolean | `false` |         | OpenCode 執行器：當遇到帶有 `user_blocked` 拒絕（非地理位置，非 Cloudflare 指紋拒絕）的 403/451 時，冷卻被拒絕的帳戶，並在每個請求中最多輪換到下一個帳戶一次；第二次拒絕會原樣返回，不帶成功標記。預設為關閉：繞過上游使用者封鎖可能看起來像規避行為，並將標記傳播到整個機群。                                    |
+| `OPENCODE_TRANSIENT_FAILOVER_BACKOFF`           | boolean | `false` |         | OpenCode 輪換：在連續兩次暫時性上游失敗（5xx 或空的 400）後，在切換到下一個帳戶之前暫停 — 每次進一步失敗會使暫停時間加倍 1.5 秒，每次暫停上限為 6 秒，每個請求上限為 10 秒，客戶端斷開連接時跳過；失敗的主體會在等待前釋放。預設為關閉：故障轉移保持即時。                                                        |
+| `OPENCODE_PARK_AND_RESUME`                      | boolean | `false` |         | OpenCode 輪換：在重複的暫時性 429 錯誤（或新的池壓力標記）後，帶心跳地暫停請求，然後重播最多 3 個連續帳戶的一個受限階段，而不是將請求分散到整個機群。預設為關閉：每個 429 錯誤都會像以前一樣輪換到下一個帳戶。                                                                                                    |
+| `FLUSH_EMPTY_RETRY_ENABLED`                     | boolean | `false` |         | 在翻譯的串流回合中，當上游回合不包含任何可用內容（僅推理完成或零有價值區塊）時，在向客戶端公開任何內容之前，透過正常憑證路徑發出有限的重試（最多 `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX`）。預設為關閉：空回合保持目前的行為（空的 200 或內容為空的 502）。                                                        |
+| `OPENCODE_RATE_LIMITED_429_EARLY_STOP`          | boolean | `false` |         | OpenCode 輪換：在第一個被歸類為真實速率限制（可解析的 `Retry-After`，或指定速率/使用限制的主體）的 429 錯誤時停止帳戶波次，並原樣返回該上游 429。未分類的 429 錯誤會繼續輪換。預設為關閉：免費層級每個出口 IP 受到限制（#9611），因此每個 429 都會輪換，並且耗盡的波次會返回最後一個上游 429。                    |
+| `MITM_DISABLE_TLS_VERIFY`                       | boolean | `false` | ✓       | 禁用 MITM 代理的 TLS 憑證驗證。**危險。**                                                                                                                                                                                                                                                                         |
+| `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`         | boolean | `false` |         | 允許指向私有/內部網路的提供者 URL。                                                                                                                                                                                                                                                                               |
+| `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`           | boolean | `true`  |         | 允許在本地/私有位址（127.0.0.1、localhost、LAN）上新增/驗證提供者。預設為開啟（本地優先）；若要嚴格僅限公共網路，請禁用。雲端中繼資料保持被封鎖。                                                                                                                                                                 |
+| `ENABLE_CC_COMPATIBLE_PROVIDER`                 | boolean | `false` | ✓       | 啟用 Claude Code 相容提供者模式。                                                                                                                                                                                                                                                                                 |
 
-### 原則 (5)
+### 策略 (5)
 
-| 鍵                              | 類型    | 預設值     | 說明                                                                                                                                         |
-| ------------------------------- | ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TOOL_POLICY_MODE`              | enum    | `disabled` | 工具使用政策的強制執行模式。可用值：`disabled`、`warn`、`block`。                                                                            |
-| `RATE_LIMIT_AUTO_ENABLE`        | boolean | `false`    | 根據使用模式自動啟用速率限制。                                                                                                               |
-| `DISABLE_CONTEXT_WINDOW_CHECKS` | boolean | `false`    | 針對直接的單一模型請求，略過 OmniRoute 本機的上下文視窗／最大輸入權杖檢查。上游限制仍然適用。                                                |
-| `CAPABILITY_FILTER_ENABLED`     | boolean | `false`    | 當目標模型缺少必要功能（視覺、工具、結構化輸出、上下文視窗）時，在分派前拒絕請求。可保護繞過組合層相容性篩選器、直接傳送至單一提供者的請求。 |
-| `RADAR_ENABLED`                 | boolean | `false`    | 啟用 OmniRoute Radar 模組（目錄動態牆畫面與同步）。預設為關閉；啟用後僅會解鎖使用者介面，資料同步仍需另行選擇加入。                          |
+| Key                             | Type    | Default    | Description                                                                                                                      |
+| ------------------------------- | ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `TOOL_POLICY_MODE`              | enum    | `disabled` | 工具使用策略強制模式。值：`disabled`（禁用）、`warn`（警告）、`block`（阻擋）。                                                  |
+| `RATE_LIMIT_AUTO_ENABLE`        | boolean | `false`    | 根據使用模式自動啟用速率限制。                                                                                                   |
+| `DISABLE_CONTEXT_WINDOW_CHECKS` | boolean | `false`    | 對於直接的單模型請求，跳過 OmniRoute 的本地上下文視窗/最大輸入令牌檢查。上游限制仍然適用。                                       |
+| `CAPABILITY_FILTER_ENABLED`     | boolean | `false`    | 當目標模型缺乏所需功能（視覺、工具、結構化輸出、上下文視窗）時，在分派前拒絕請求。保護繞過組合層兼容性過濾器的直接單提供者請求。 |
+| `RADAR_ENABLED`                 | boolean | `false`    | 啟用 OmniRoute Radar 模組（目錄饋送畫面和同步）。預設為關閉；啟用僅解鎖使用者介面 — 資料同步仍需單獨選擇加入。                   |
 
-### 執行階段 (33)
+### 執行時 (33)
 
-| 鍵                                          | 類型    | 預設值  | 重新啟動 | 說明                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------------------------------- | ------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `UNIVERSAL_CONTEXT_HANDOFF_ENABLED`         | boolean | `true`  |          | 當組合路由切換模型時，產生並注入對話摘要。停用後會獨立處理模型切換，並防止所有現有及未來的組合發出背景交接請求。                                                                                                                                                                                                                                                                                                  |
-| `RESPONSES_PASSTHROUGH_DROP_COMMENTARY`     | boolean | `true`  |          | 在轉送給用戶端之前，從 Responses API 直通串流中捨棄內部評論階段的輸出項目。停用後可接收原始上游評論。                                                                                                                                                                                                                                                                                                             |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`              | boolean | `true`  |          | 對 MCP 工具存取強制執行範圍限制。                                                                                                                                                                                                                                                                                                                                                                                 |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`       | boolean | `false` |          | 壓縮 MCP 工具說明以減少權杖用量。                                                                                                                                                                                                                                                                                                                                                                                 |
-| `OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS` | boolean | `false` |          | 在執行階段啟用背景工作處理。                                                                                                                                                                                                                                                                                                                                                                                      |
-| `OMNIROUTE_DISABLE_BACKGROUND_SERVICES`     | boolean | `false` | ✓        | 停用所有背景服務（配額重新整理、同步等）。                                                                                                                                                                                                                                                                                                                                                                        |
-| `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS`       | boolean | `false` |          | 信任專案層級的 RTK 篩選器，不進行驗證。                                                                                                                                                                                                                                                                                                                                                                           |
-| `OMNIROUTE_ENABLE_LIVE_WS`                  | boolean | `true`  | ✓        | 匯入時啟動即時儀表板 WebSocket 伺服器（預設連接埠為 20132）。                                                                                                                                                                                                                                                                                                                                                     |
-| `OMNIROUTE_CODEX_WS_ENABLED`                | boolean | `true`  |          | 允許 Codex 使用 Responses-over-WebSocket 傳輸。停用時，Codex 會回退至 HTTP Responses。                                                                                                                                                                                                                                                                                                                            |
-| `OMNIROUTE_CODEX_APP_SERVER_ENABLED`        | boolean | `true`  |          | 允許 Codex 使用本機 app-server WebSocket JSON-RPC 傳輸（codexTransport=app-server）。停用時，已選擇使用 app-server 的連線會回退至 Codex 的其他傳輸方式。                                                                                                                                                                                                                                                          |
-| `OMNIROUTE_EMERGENCY_FALLBACK`              | boolean | `true`  |          | 將預算已耗盡的請求路由至緊急免費備援提供者／模型。（請參閱下方的[緊急預算備援](#emergency-budget-fallback)。）                                                                                                                                                                                                                                                                                                    |
-| `STREAM_RECOVERY_ENABLED`                   | boolean | `false` |          | 啟用透明的提早重試，以便在任何回應位元組到達用戶端之前，重試遭截斷的上游 SSE 串流。                                                                                                                                                                                                                                                                                                                               |
-| `STREAM_RECOVERY_MIDSTREAM_ENABLED`         | boolean | `false` |          | 允許串流復原在位元組已到達用戶端後，重新發出請求並拼接回應。                                                                                                                                                                                                                                                                                                                                                      |
-| `STREAM_RECOVERY_TOOLCALL_ORDER_FIX`        | boolean | `false` |          | 確保串流中途接續對工具呼叫安全：一旦已發出工具呼叫（仍在進行中，或已以 finish_reason tool_calls 完成），絕不恢復遭中斷的串流；若接續內容為空，則在一次後關閉，而非耗盡全部預算。停用時：維持發行版本的行為。                                                                                                                                                                                                      |
-| `STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED` | boolean | `false` |          | 當 SSE 串流在發出任何有效 frame 前關閉，且同一連線的有限重試次數已用盡時，容錯移轉一次至同層級連線；若沒有可用的同層級連線，則傳回原始的 `STREAM_EARLY_EOF` 502。預設為關閉：同一連線重試後，early-EOF 仍會直接終止。                                                                                                                                                                                             |
-| `MODEL_CATALOG_INCLUDE_NAMES`               | boolean | `true`  |          | 在 `/v1/models` 回應中包含易於顯示的名稱欄位。對於僅預期模型 ID 的用戶端，請停用此功能。                                                                                                                                                                                                                                                                                                                          |
-| `MODELS_CATALOG_PREFIX_MODE`                | enum    | `dual`  |          | 控制 `/v1/models` 中模型 ID 的前綴方式。`dual`（預設）會同時輸出別名前綴與標準提供者 ID 前綴，以維持向後相容性。`alias` 僅輸出簡短的別名前綴（例如 ds-web/model，而非 deepseek-web/model）。`canonical` 僅輸出完整的提供者 ID 前綴。可用值：`dual`、`alias`、`canonical`。                                                                                                                                        |
-| `ARENA_ELO_SYNC_ENABLED`                    | boolean | `true`  |          | 啟用定期同步 Arena AI 排行榜的 ELO，以用於模型智慧能力排名。                                                                                                                                                                                                                                                                                                                                                      |
-| `EXPOSE_CC_DISCOVERY_ALIASES`               | boolean | `false` |          | 在 `/v1/models` 上公布 `claude/<provider>/<model>` 鏡像 ID，讓 Claude Code 閘道模型探索功能列出非 Claude 模型。這是三級閘門中的全域層級（env 優先於儀表板覆寫設定）。請參閱 [Claude Code 設定](../guides/CLAUDE-CODE-CONFIGURATION.md#discovery-aliases--surface-non-claude-models-in-the-model-picker)。                                                                                                         |
-| `NO_THINKING_ALIAS_ENABLED`                 | boolean | `true`  |          | no-think/<provider>/<model> 閘道別名的主開關。開啟（預設）：`/v1/models` 會為每個符合條件且支援思考的 Claude 模型公布一個不思考變體，而請求中傳送的 no-think/ ID 會解析回實際模型，並停用推理。關閉：不公布任何變體，且 no-think/ ID 會被視為與其他未知模型 ID 相同。啟用此功能時，每個模型的 ModelSpec.noThinkingAlias 選擇啟用／停用設定仍然適用。                                                              |
-| `OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS` | boolean | `false` |          | 停止在 `/v1/models` 目錄中產生思考層級變體（例如 -low、-medium、-high）。                                                                                                                                                                                                                                                                                                                                         |
-| `OMNIROUTE_CHAT_VIRTUAL_LANES`              | boolean | `false` | ✓        | 啟用依租戶區分的自適應虛擬准入通道，以進行提供者派送（#9654）：單一租戶的突發流量不再導致其他租戶收到 503。`OMNIROUTE_CHAT_VIRTUAL_LANES` env var 優先於此儀表板覆寫設定；變更會在伺服器重新啟動時生效。                                                                                                                                                                                                          |
-| `EXPOSE_FUNCTIONAL_GATEWAY_MIRRORS`         | boolean | `false` |          | 對於標準擁有者沒有有效憑證，但由具有有效憑證的直通閘道進行路由的模型，在 /v1/models 上公布 <gateway-alias>/<model> 鏡像 ID。警告：全域啟用時，會為所有用戶端新增目錄項目。                                                                                                                                                                                                                                        |
-| `NEWAPI_AGGREGATOR_BALANCE`                 | boolean | `false` |          | 為與 New-API / One-API / Sub2API 聚合器相容的節點啟用餘額偵測。啟用後，已設定聚合器旗標的相容節點會在儀表板和配額預檢路由中回報其餘額。                                                                                                                                                                                                                                                                           |
-| `SERVER_OWNED_TOOL_LOOP_ENABLED`            | boolean | `false` |          | 持續執行伺服器擁有的非串流工具呼叫，直到模型傳回用戶端可用的回應。                                                                                                                                                                                                                                                                                                                                                |
-| `SEARCH_STATS_HIDE_DELETED_CONNECTIONS`     | boolean | `false` |          | 搜尋統計資料和最近搜尋僅計入仍有有效連線的提供者（無需金鑰的提供者，例如 duckduckgo-free，一律計入）。關閉時，會保留每筆具有提供者 ID 的搜尋記錄。                                                                                                                                                                                                                                                                |
-| `FREE_BADGE_REQUIRES_PROVIDER_FREE_TIER`    | boolean | `false` |          | 儀表板提供者頁面：僅根據提供者明確支援的訊號顯示「免費」徽章——不再使用顯示名稱啟發式判斷、非布林值的免費欄位，以及沒有已記錄免費方案之已註冊提供者的 :free 後綴。關閉時，會保留歷史徽章規則。                                                                                                                                                                                                                     |
-| `RETRY_AFTER_PROVENANCE_ENABLED`            | boolean | `false` |          | 對於彙總後的 429/503 不可用回應，當沒有已知的具體未來重試時間時，省略 `Retry-After`（而不是使用虛構的 1 秒），新增 `error.retry_after_provenance`（`signal` \| `none`），並允許組合耗盡路徑從 JSON 和純文字上游主體中讀取文字形式的重試提示。此欄位僅出現在由 `unavailableResponse()` 建立的回應中；其他 429/503 主體維持不變。                                                                                   |
-| `PROTECTED_PRIORITY_INFRA_502_ENABLED`      | boolean | `false` |          | 當標記為僅在配額耗盡時才後備的 `priority` 組合目標，因可證明並非配額問題的原因（提供者斷路器開啟、預測性延遲略過）而停止組合時，回應 502，而非看似配額問題的 503。因鎖定、冷卻、不可用、耗盡及並行上限而停止時，仍回應 503。                                                                                                                                                                                      |
-| `MISTRAL_AMBIGUOUS_401_SOFT_LOCKOUT`        | boolean | `false` |          | 單純的 Mistral 401（`{"detail":"Unauthorized"}`，沒有明確的驗證訊號）對於已撤銷的金鑰和已耗盡的配額而言完全相同。啟用時，系統會讓連線進入冷卻狀態，而非將其停放為 `expired`；每個連線每小時最多 3 次，下一次則會將其停放，因此已撤銷的金鑰最終仍會收斂至停放狀態。預設關閉：每次單純的 Mistral 401 都會像以前一樣停放該連線。                                                                                     |
-| `XAI_OAUTH_LIVE_MODEL_DISCOVERY`            | boolean | `false` |          | 使用 OAuth bearer token，從 `https://api.x.ai/v1/models` 擷取 `xai-oauth` 連線的即時 xAI 模型目錄，而非使用固定的靜態種子。預設關閉：`xai-oauth` 會繼續原封不動地提供靜態種子。若解析時發生任何錯誤，探索機制會回退至種子（尚未驗證 x.ai 是否接受在此端點使用 OAuth bearer）。                                                                                                                                    |
-| `BATCH_AND_FILE_AUTO_CLEANUP_ENABLED`       | boolean | `false` |          | 允許自動清理掃描刪除早於 `OMNIROUTE_BATCH_RETENTION_DAYS` 的終止狀態（已完成／失敗／已取消／已過期）Batch API 工作及其逐行檢查點，並清除已超過其自身 `expires_at` 的上傳檔案之 BLOB 內容。預設關閉：在操作員選擇啟用前，所有現有安裝都會如以往一樣保留這些資料。無論是否啟用，操作員觸發的 `DELETE /api/v1/batches/delete-completed` 路由均不受影響——它是獨立且無條件的公開 API 合約。                            |
-| `ANTIGRAVITY_ACCOUNT_LEASE_ENABLED`         | boolean | `false` |          | 在選取 Antigravity 帳戶的請求之串流生命週期內保留該帳戶，使並行重試或憑證交接無法重新選取已指派給進行中串流的帳戶。保留範圍限定為（連線、可呼叫的上游模型），因此一個帳戶仍可同時為兩個不同模型提供服務。當該模型的所有合格帳戶均已租用時，請求會傳回結構化的 503 `antigravity_pool_busy`，並附上有界限的 `Retry-After`，而不是將更多工作堆到忙碌的帳戶上。預設關閉：帳戶選取方式會維持原樣，且不會進行任何保留。 |
+| 鍵值                                        | 類型    | 預設值  | 重啟 | 描述                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------- | ------- | ------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `UNIVERSAL_CONTEXT_HANDOFF_ENABLED`         | boolean | `true`  |      | 當組合路由（combo routing）切換模型時，生成並注入對話摘要。禁用此項可將模型切換視為獨立行為，並防止所有現有及未來的組合產生背景轉接請求。                                                                                                                                                                                                                                                                                     |
+| `RESPONSES_PASSTHROUGH_DROP_COMMENTARY`     | boolean | `true`  |      | 在轉發給用戶端之前，從 `Responses API` 穿透串流中捨棄內部的評論階段（commentary-phase）輸出項目。禁用此項可接收原始的上游評論。                                                                                                                                                                                                                                                                                               |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`              | boolean | `true`  |      | 對 `MCP` 工具存取強制執行範圍（scope）限制。                                                                                                                                                                                                                                                                                                                                                                                  |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`       | boolean | `false` |      | 壓縮 `MCP` 工具描述以減少 token 使用量。                                                                                                                                                                                                                                                                                                                                                                                      |
+| `OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS` | boolean | `false` |      | 在執行階段啟用背景任務處理。                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `OMNIROUTE_DISABLE_BACKGROUND_SERVICES`     | boolean | `false` | ✓    | 停用所有背景服務（配額重新整理、同步等）。                                                                                                                                                                                                                                                                                                                                                                                    |
+| `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS`       | boolean | `false` |      | 信任專案層級的 RTK 篩選器，無需驗證。                                                                                                                                                                                                                                                                                                                                                                                         |
+| `OMNIROUTE_ENABLE_LIVE_WS`                  | boolean | `true`  | ✓    | 在匯入時啟動即時儀表板 WebSocket 伺服器（預設埠為 20132）。                                                                                                                                                                                                                                                                                                                                                                   |
+| `OMNIROUTE_CODEX_WS_ENABLED`                | boolean | `true`  |      | 允許 Codex 使用 Responses-over-WebSocket 傳輸。關閉時，Codex 會回退到 HTTP Responses。                                                                                                                                                                                                                                                                                                                                        |
+| `OMNIROUTE_CODEX_APP_SERVER_ENABLED`        | boolean | `true`  |      | 允許 Codex 使用本地應用程式伺服器 WebSocket JSON-RPC 傳輸 (codexTransport=app-server)。關閉時，選擇應用程式伺服器的連線會回退到 Codex 的其他傳輸方式。                                                                                                                                                                                                                                                                        |
+| `OMNIROUTE_EMERGENCY_FALLBACK`              | boolean | `true`  |      | 將預算耗盡的請求路由到緊急免費備用提供者/模型。（請參閱下面的[緊急預算備用](#emergency-budget-fallback)。）                                                                                                                                                                                                                                                                                                                   |
+| `STREAM_RECOVERY_ENABLED`                   | boolean | `false` |      | 在任何回應位元組到達客戶端之前，啟用對截斷的上游 SSE 串流的透明早期重試。                                                                                                                                                                                                                                                                                                                                                     |
+| `STREAM_RECOVERY_MIDSTREAM_ENABLED`         | boolean | `false` |      | 允許串流恢復在位元組已到達客戶端後重新請求並拼接回應。                                                                                                                                                                                                                                                                                                                                                                        |
+| `STREAM_RECOVERY_TOOLCALL_ORDER_FIX`        | boolean | `false` |      | 使中途續傳工具呼叫安全：一旦發出工具呼叫（正在進行中或已完成，完成原因為 tool_calls），切勿恢復已切斷的串流，並在一次空續傳後關閉，而不是耗盡所有預算。關閉：釋放行為。                                                                                                                                                                                                                                                       |
+| `STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED` | boolean | `false` |      | 當 SSE 串流在發出任何有用訊框之前關閉，且同連線重試次數已用盡時，會故障轉移到同級連線一次；如果沒有可用的同級連線，則會傳回原始的 `STREAM_EARLY_EOF` 502 錯誤。預設為關閉：在同連線重試後，早期 EOF 仍會終止。                                                                                                                                                                                                                |
+| `MODEL_CATALOG_INCLUDE_NAMES`               | boolean | `true`  |      | 在 `/v1/models` 回應中包含易於顯示的名稱欄位。對於只期望模型 ID 的客戶端，請停用此功能。                                                                                                                                                                                                                                                                                                                                      |
+| `MODELS_CATALOG_PREFIX_MODE`                | enum    | `dual`  |      | 控制 `/v1/models` 中模型 ID 的前綴方式。「dual」（預設）會同時發出別名和規範的提供者 ID 前綴，以實現向後相容性。「alias」僅發出簡短的別名前綴（例如 ds-web/model，而非 deepseek-web/model）。「canonical」僅發出完整的提供者 ID 前綴。值：`dual`、`alias`、`canonical`。                                                                                                                                                      |
+| `ARENA_ELO_SYNC_ENABLED`                    | boolean | `true`  |      | 啟用模型智慧排名的定期 Arena AI 排行榜 ELO 同步。                                                                                                                                                                                                                                                                                                                                                                             |
+| `EXPOSE_CC_DISCOVERY_ALIASES`               | boolean | `false` |      | 在 `/v1/models` 上宣傳 `claude/<provider>/<model>` 鏡像 ID，以便 Claude Code 閘道模型探索列出非 Claude 模型。這是三層閘道中的全域層級（環境變數會覆蓋儀表板設定）。請參閱 [Claude Code configuration](../guides/CLAUDE-CODE-CONFIGURATION.md#discovery-aliases--surface-non-claude-models-in-the-model-picker)。                                                                                                              |
+| `NO_THINKING_ALIAS_ENABLED`                 | boolean | `true`  |      | no-think/<provider>/<model> 閘道別名的主開關。開啟（預設）：/v1/models 會為每個符合條件的具思考能力的 Claude 模型宣傳一個 no-thinking 變體，並且在請求中發送的 no-think/ ID 會解析回真實模型，並抑制推理。關閉：不宣傳任何變體，並且 no-think/ ID 會被視為任何其他未知模型 ID。當此功能開啟時，每個模型的 ModelSpec.noThinkingAlias 選項（選擇加入/選擇退出）仍然適用。                                                       |
+| `OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS` | boolean | `false` |      | 停用在 /v1/models 目錄中生成思考層級變體（例如 -low、-medium、-high）的功能。                                                                                                                                                                                                                                                                                                                                                 |
+| `OMNIROUTE_CHAT_VIRTUAL_LANES`              | boolean | `false` | ✓    | 啟用每個租戶的自適應虛擬准入通道，用於提供者調度 (#9654)：一個租戶的突發流量不再導致另一個租戶出現 503 錯誤。`OMNIROUTE_CHAT_VIRTUAL_LANES` 環境變數會覆蓋此儀表板設定；更改在伺服器重啟後生效。                                                                                                                                                                                                                              |
+| `EXPOSE_FUNCTIONAL_GATEWAY_MIRRORS`         | boolean | `false` |      | 在 `/v1/models` 上宣傳 `<gateway-alias>/<model>` 鏡像 ID，適用於其規範擁有者沒有活動憑證，但具有活動憑證的直通閘道路由它們的模型。警告：當全域啟用時，會為所有客戶端添加目錄條目。                                                                                                                                                                                                                                            |
+| `NEWAPI_AGGREGATOR_BALANCE`                 | boolean | `false` |      | 為 New-API / One-API / Sub2API 聚合器兼容節點啟用餘額檢測。啟用後，設置了聚合器標誌的兼容節點將在儀表板和配額預檢路由中報告其餘額。                                                                                                                                                                                                                                                                                           |
+| `SERVER_OWNED_TOOL_LOOP_ENABLED`            | boolean | `false` |      | 繼續執行非串流的伺服器自有工具呼叫，直到模型返回客戶端可用的回應。                                                                                                                                                                                                                                                                                                                                                            |
+| `SEARCH_STATS_HIDE_DELETED_CONNECTIONS`     | boolean | `false` |      | 搜尋統計和最近搜尋只計算仍有活動連線的提供者（無密鑰提供者，例如 duckduckgo-free 始終計算在內）。關閉時，會保留每個帶有提供者 ID 的搜尋行。                                                                                                                                                                                                                                                                                   |
+| `FREE_BADGE_REQUIRES_PROVIDER_FREE_TIER`    | boolean | `false` |      | 儀表板提供者頁面：僅在提供者遵守的信號上顯示「免費」徽章 — 捨棄顯示名稱啟發式、非布林免費欄位以及未記錄免費層級的註冊提供者上的 `:free` 後綴。關閉時，會保留歷史徽章規則。                                                                                                                                                                                                                                                    |
+| `RETRY_AFTER_PROVENANCE_ENABLED`            | boolean | `false` |      | 在聚合的 429/503 不可用回應中，當沒有已知的具體未來重試時間時（而不是合成的 1 秒），省略 `Retry-After`，添加 `error.retry_after_provenance` (`signal` \| `none`)，並讓組合耗盡路徑從 JSON 和純文本上游主體中讀取散文重試提示。該欄位僅出現在由 `unavailableResponse()` 構建的回應中；其他 429/503 主體保持不變。                                                                                                              |
+| `PROTECTED_PRIORITY_INFRA_502_ENABLED`      | boolean | `false` |      | 當標記為「僅在配額耗盡時回退」的 `priority` 組合目標因可證明非配額原因（提供者斷路器開啟、預測延遲跳過）停止組合時，回應 502 而不是看起來像配額的 503。鎖定、冷卻、不可用、耗盡和並發上限停止仍保持 503。                                                                                                                                                                                                                     |
+| `MISTRAL_AMBIGUOUS_401_SOFT_LOCKOUT`        | boolean | `false` |      | 一個裸的 Mistral 401 (`{"detail":"Unauthorized"}`，沒有明確的身份驗證信號) 對於已撤銷的密鑰和已耗盡的配額來說是相同的。啟用時，它會冷卻連線而不是將其停放為 `expired`，每個連線每小時最多 3 次；下一次會將其停放，因此已撤銷的密鑰仍然會收斂。預設為關閉：每個裸的 Mistral 401 仍像以前一樣停放連線。                                                                                                                         |
+| `XAI_OAUTH_LIVE_MODEL_DISCOVERY`            | boolean | `false` |      | 使用 OAuth 承載權杖從 `https://api.x.ai/v1/models` 獲取 `xai-oauth` 連線的即時 xAI 模型目錄，而不是使用凍結的靜態種子。預設為關閉：`xai-oauth` 會保持提供未更改的靜態種子。在任何解析錯誤時，發現會回退到種子（未驗證 x.ai 是否在此端點接受 OAuth 承載）。                                                                                                                                                                    |
+| `BATCH_AND_FILE_AUTO_CLEANUP_ENABLED`       | boolean | `false` |      | 讓自動清理掃描刪除早於 `OMNIROUTE_BATCH_RETENTION_DAYS` 的終端（已完成/失敗/已取消/已過期）批次 API 工作，以及它們的逐行檢查點，並清除已上傳檔案中超過其 `expires_at` 的 BLOB 內容。預設為關閉：每個現有安裝都會保持此資料不變，直到操作員選擇啟用。操作員觸發的 `DELETE /api/v1/batches/delete-completed` 路由不受影響 — 它是一個獨立的、無條件的公共 API 合約。                                                             |
+| `ANTIGRAVITY_ACCOUNT_LEASE_ENABLED`         | boolean | `false` |      | 為選定的 Antigravity 帳戶保留其被選取請求的串流生命週期，這樣並發重試或憑證交接就無法重新選擇已提交給進行中串流的帳戶。此保留範圍限定為（連線、可呼叫的上游模型），因此一個帳戶仍然可以同時服務兩個不同的模型。當所有符合條件的帳戶都已為該模型租用時，請求會返回一個結構化的 503 `antigravity_pool_busy`，並帶有受限的 `Retry-After`，而不是堆積到繁忙的帳戶上。預設為關閉：帳戶選擇保持與以前完全相同，並且不進行任何保留。 |
 
-### CLI（5）
+### CLI (5)
 
-| 鍵                                    | 類型    | 預設值  | 重新啟動 | 說明                                                                                                                                                            |
-| ------------------------------------- | ------- | ------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CLI_COMPAT_ALL`                      | boolean | `false` | ✓        | 為所有 CLI 用戶端啟用相容模式。                                                                                                                                 |
-| `MODEL_ALIAS_COMPAT_ENABLED`          | boolean | `false` |          | 啟用模型別名相容層。                                                                                                                                            |
-| `PRICING_SYNC_ENABLED`                | boolean | `false` |          | 啟用定價資料自動同步（也需要 `PRICING_SYNC_ENABLED` 環境變數）。                                                                                                |
-| `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES`  | boolean | `false` |          | 在提供者模型同步後，根據即時目錄自動（重新）寫入 ~/.codex/*.config.toml 設定檔。絕不變更目前使用中／預設的 Codex 設定。預設關閉。                               |
-| `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES` | boolean | `false` |          | 在提供者模型同步後，根據即時目錄自動（重新）寫入 ~/.claude/profiles/<name>/settings.json Claude Code 設定檔。絕不變更目前使用中／預設的 Claude 設定。預設關閉。 |
+| Key                                   | Type    | Default | Restart | Description                                                                                                                                              |
+| ------------------------------------- | ------- | ------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLI_COMPAT_ALL`                      | boolean | `false` | ✓       | 為所有 CLI 用戶端啟用相容模式。                                                                                                                          |
+| `MODEL_ALIAS_COMPAT_ENABLED`          | boolean | `false` |         | 啟用模型別名相容層。                                                                                                                                     |
+| `PRICING_SYNC_ENABLED`                | boolean | `false` |         | 啟用自動定價資料同步（也需要 `PRICING_SYNC_ENABLED` 環境變數）。                                                                                         |
+| `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES`  | boolean | `false` |         | 在提供者模型同步後，自動從即時目錄（重新）寫入 ~/.codex/*.config.toml 設定檔。絕不更改活動/預設的 Codex 設定。預設為關閉。                               |
+| `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES` | boolean | `false` |         | 在提供者模型同步後，自動從即時目錄（重新）寫入 ~/.claude/profiles/<name>/settings.json Claude Code 設定檔。絕不更改活動/預設的 Claude 設定。預設為關閉。 |
 
-### 健康狀態（5）
+### 健康 (5)
 
-| 鍵                                        | 類型   | 預設值  | 說明                                                                                                                                                                                                  |
-| ----------------------------------------- | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK`     | 布林值 | `false` | 停用本機執行個體的健康檢查端點。                                                                                                                                                                      |
-| `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK`     | 布林值 | `false` | 停用權杖驗證健康檢查。                                                                                                                                                                                |
-| `SKILLS_SANDBOX_NETWORK_ENABLED`          | 布林值 | `false` | 啟用技能沙箱環境中的網路存取。                                                                                                                                                                        |
-| `PROXY_HEALTH_BLOCKED_RESETS_STREAK`      | 布林值 | `false` | 在代理健康狀態掃描中，若探測遭目標拒絕（401/403/429），則重設代理的連續失敗次數。預設為關閉：拒絕會維持中立狀態（#10654）。無論如何，5xx 都會維持無法判定的狀態；拒絕絕不會移除、停用或重新啟用代理。 |
-| `DB_HEALTHCHECK_STARTUP_DEFERRED_ENABLED` | 布林值 | `false` | 在伺服器開始接受請求後（透過 `setImmediate`）執行啟動時的資料庫完整性／健康檢查，而非封鎖啟動程序直到檢查完成（#13717）。預設為關閉：啟動程序會與此 PR 之前完全相同地受到封鎖。                       |
+| 鍵                                        | 類型    | 預設值  | 描述                                                                                                                                                                              |
+| :---------------------------------------- | :------ | :------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK`     | boolean | `false` | 停用本地實例的健康檢查端點。                                                                                                                                                      |
+| `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK`     | boolean | `false` | 停用令牌驗證的健康檢查。                                                                                                                                                          |
+| `SKILLS_SANDBOX_NETWORK_ENABLED`          | boolean | `false` | 在技能沙盒環境中啟用網路存取。                                                                                                                                                    |
+| `PROXY_HEALTH_BLOCKED_RESETS_STREAK`      | boolean | `false` | 在代理健康掃描中，目標拒絕的探測（401/403/429）會重置代理的連續失敗次數。預設為關閉：拒絕保持中立（#10654）。5xx 錯誤無論如何都保持不確定；拒絕永遠不會移除、停用或重新啟用代理。 |
+| `DB_HEALTHCHECK_STARTUP_DEFERRED_ENABLED` | boolean | `false` | 在伺服器開始接受請求後（透過 `setImmediate`）執行啟動資料庫完整性/健康檢查，而不是阻塞啟動直到其完成（#13717）。預設為關閉：啟動阻塞方式與此 PR 之前完全相同。                    |
 
-> [!NOTE]
+> [!注意]
 > `INPUT_SANITIZER_BLOCK_THRESHOLD` 及其舊版別名
-> `INJECTION_GUARD_BLOCK_THRESHOLD` 會調整 `INJECTION_GUARD_MODE` 的
-> `block` 模式，但它們是由
+> `INJECTION_GUARD_BLOCK_THRESHOLD` 調整
+> `INJECTION_GUARD_MODE` 的 `block` 模式，
+> 但它們是由
 > [`src/shared/utils/injectionSeverity.ts`](../../src/shared/utils/injectionSeverity.ts)
-> 讀取的一般環境變數，而非功能旗標：它們沒有資料庫覆寫，也沒有儀表板切換開關。請參閱
+> 讀取的普通環境變數，
+> 而不是功能標誌：它們沒有資料庫覆寫，也沒有儀表板開關。請參閱
 > [`ENVIRONMENT.md`](./ENVIRONMENT.md#4-security--authentication)。
 
-> [!NOTE]
-> `Restart` 欄會標示具有 `requiresRestart: true` 的旗標——值會立即
-> 持久保存，但只會在程序重新載入後生效。列舉旗標會拒絕其允許集合以外的任何值（伺服器端會在
-> `setFeatureFlagOverride()` 和 REST `PUT` 處理常式中進行驗證）。
+> [!注意]
+> 「重新啟動」欄位標記了 `requiresRestart: true` 的標誌 — 該值會立即持久化，但僅在程序重新載入後才會生效。列舉標誌會拒絕其允許集合之外的任何值（在 `setFeatureFlagOverride()` 和 REST `PUT` 處理器中均進行伺服器端驗證）。
 
 ---
 
-## 切換旗標
+## 切換功能旗標
 
 ### 儀表板
 
-前往 **儀表板 → 設定 → 功能旗標**
-(`/dashboard/settings/feature-flags`)。此網格
+導覽至 **儀表板 → 設定 → 功能旗標**
+(`/dashboard/settings/feature-flags`)。該網格
 (`src/app/(dashboard)/dashboard/settings/components/FeatureFlagsGrid.tsx`)
 支援：
 
-- 依鍵或描述進行**搜尋**，以及依類別進行**篩選**（另有一個合成的
-  **需要重新啟動**檢視）。
-- 布林旗標使用**切換開關**，列舉旗標則使用**下拉式選單**
+- 依據鍵或描述進行**搜尋**，並依類別進行**篩選**（加上一個合成的**需要重新啟動**視圖）。
+- 布林旗標的**切換開關**和列舉旗標的**下拉式選單**
   (`src/app/(dashboard)/dashboard/settings/components/FeatureFlagCard.tsx`)。
-- 每個旗標都有一個**來源徽章** — `DB`、`ENV` 或 `DEF` — 顯示有效值的
-  來源。
-- **重設**按鈕（僅針對來源為 `DB` 的旗標顯示），用於移除覆寫值；
-  底部另有一個**重設所有覆寫值**按鈕。
+- 每個旗標的**來源標籤** — `DB`、`ENV` 或 `DEF` — 顯示有效值來自何處。
+- **重設**按鈕（僅針對 `DB` 來源的旗標顯示）以取消覆寫，以及底部的**重設所有覆寫**按鈕。
 - 當 `requiresRestart` 旗標變更時，會顯示**重新啟動伺服器**橫幅。
 
 ### REST API
 
-所有操作皆透過單一路由執行：
+所有操作都透過單一路徑進行：
 [`src/app/api/settings/feature-flags/route.ts`](../../src/app/api/settings/feature-flags/route.ts)。
-每種方法都需要已驗證的儀表板工作階段（否則傳回 `401`）。
+每個方法都需要經過驗證的儀表板會話（否則為 `401`）。
 
 #### `GET /api/settings/feature-flags`
 
-傳回所有旗標及其有效值、來源和摘要。
+返回每個旗標及其有效值、來源和摘要。
 
 ```jsonc
 {
   "flags": [
     {
       "key": "REQUIRE_API_KEY",
-      "label": "要求 API 金鑰",
-      "description": "要求所有傳入請求皆提供 API 金鑰",
+      "label": "Require API Key",
+      "description": "Require an API key for all incoming requests",
       "category": "security",
       "type": "boolean",
       "enumValues": null,
@@ -211,7 +209,7 @@
       "requiresRestart": false,
       "warningLevel": "caution",
     },
-    // ... 全部 75 個旗標
+    // ... 所有 77 個旗標
   ],
   "summary": {
     "total": 56,
@@ -225,34 +223,32 @@
 
 #### `PUT /api/settings/feature-flags`
 
-設定或移除單一覆寫值。請求本文：`{ key: string; value?: string }`。
-省略 `value` 會移除覆寫值（還原為環境變數／預設值）。
+設定或移除單一覆寫。請求主體：`{ key: string; value?: string }`。
+省略 `value` 會移除覆寫（恢復環境變數 / 預設值）。
 
 ```bash
-# 設定 DB 覆寫值
+# 設定一個 DB 覆寫
 curl -X PUT http://localhost:20128/api/settings/feature-flags \
   -H "Content-Type: application/json" \
   -d '{"key":"REQUIRE_API_KEY","value":"true"}'
 
-# 移除覆寫值（不含 "value"）
+# 移除覆寫（無 "value"）
 curl -X PUT http://localhost:20128/api/settings/feature-flags \
   -H "Content-Type: application/json" \
   -d '{"key":"REQUIRE_API_KEY"}'
 ```
 
-回應會傳回新的 `effectiveValue`／`source`、`previousValue`／
-`previousSource`，以及 `requiresRestart`。未知的鍵和超出範圍的列舉
-值會遭到拒絕，並傳回 `400`。
+回應會回顯新的 `effectiveValue`/`source`、`previousValue`/
+`previousSource` 和 `requiresRestart`。未知鍵和超出範圍的列舉值將被 `400` 拒絕。
 
 #### `DELETE /api/settings/feature-flags`
 
-一次清除**所有** DB 覆寫值，將每個旗標還原為其環境變數／預設
-值。傳回 `{ cleared: <count>, message: "..." }`。
+一次清除**所有** DB 覆寫，將每個旗標恢復為其環境變數 / 預設值。返回 `{ cleared: <count>, message: "..." }`。
 
-> [!NOTE]
-> 具有 `requiresRestart: true` 的旗標只會在程序重新載入後生效。
-> 儀表板的重新啟動流程會呼叫 `POST /api/restart`，接著輪詢
-> `GET /api/health/ping`，直到伺服器恢復運作。
+> [!注意]
+> 帶有 `requiresRestart: true` 的旗標僅在程序重新載入後生效。
+> 儀表板的重新啟動流程會呼叫 `POST /api/restart`，然後輪詢
+> `GET /api/health/ping` 直到伺服器恢復運作。
 
 ---
 
