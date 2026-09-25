@@ -60,6 +60,7 @@ import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmin
 import { handleUcImageGeneration } from "./imageGeneration/providers/ucImage.ts";
 import { handleCursorAgentImageGeneration } from "./imageGeneration/providers/cursorAgentImage.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
+import { handleCloudflareAiImageGeneration } from "./imageGeneration/providers/cloudflareAi.ts";
 import { handleMaxaiImageGeneration } from "./imageGeneration/providers/maxaiImage.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
 import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
@@ -328,12 +329,6 @@ const BFL_EDIT_MODELS = new Set([
 ]);
 
 const BFL_FAILURE_STATUSES = new Set(["Error", "Failed", "Content Moderated", "Request Moderated"]);
-
-function formatImageProviderError(err) {
-  const sanitized = sanitizeErrorMessage(err);
-  const message = (sanitized || "").replace(/^Error:\s*/i, "").trim();
-  return message ? `Image provider error: ${message}` : "Image provider error";
-}
 
 const STABILITY_GENERATION_ENDPOINTS = {
   "sd3.5-large": "/v2beta/stable-image/generate/sd3",
@@ -756,6 +751,17 @@ export async function handleImageGeneration({
 
   if (providerConfig.format === "nvidia-nim") {
     return handleNvidiaNimImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "cloudflare-ai-image") {
+    return handleCloudflareAiImageGeneration({
       model,
       provider,
       providerConfig,

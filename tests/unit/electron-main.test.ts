@@ -13,7 +13,7 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
@@ -514,5 +514,68 @@ describe("Electron SQLite credential inspection", () => {
 
   it("should return false when the database file does not exist", () => {
     assert.equal(hasEncryptedCredentials(join(tmpdir(), "missing-omniroute.sqlite")), false);
+  });
+});
+
+// ─── Electron web-cookie login removal (#14705 regression guard) ──────
+//
+// The Electron web-cookie login path (login:start IPC, loginManager.js) was
+// removed on 2026-09-24: its only persist step required ../src/lib/db/secrets
+// (a TypeScript path, unresolvable from plain CJS), so every successful
+// extraction reported failure — and no renderer code ever called the
+// exposed preload API. The server-side inAppLoginService is the login
+// surface for cookie providers. This guard keeps the removal permanent:
+// if the login path is ever re-introduced, it must come back deliberately,
+// with a working persistence story — not via a silent resurrect.
+
+describe("Electron web-cookie login removal (#14705)", () => {
+  const electronDir = join(import.meta.dirname, "../../electron");
+
+  it("no longer ships loginManager.js or lib/loginHeaderCapture.js", () => {
+    for (const gone of ["loginManager.js", join("lib", "loginHeaderCapture.js")]) {
+      assert.equal(
+        existsSync(join(electronDir, gone)),
+        false,
+        `electron/${gone} must not be re-introduced`
+      );
+    }
+  });
+
+  it("main.js has no login:* IPC handlers or loginManager wiring", () => {
+    const main = readFileSync(join(electronDir, "main.js"), "utf8");
+    for (const forbidden of [
+      '"login:start"',
+      '"login:cancel"',
+      '"login:status"',
+      "./loginManager",
+    ]) {
+      assert.ok(!main.includes(forbidden), `electron/main.js must not reference ${forbidden}`);
+    }
+  });
+
+  it("preload.js no longer exposes the login API or channels", () => {
+    const preload = readFileSync(join(electronDir, "preload.js"), "utf8");
+    for (const forbidden of [
+      "login:start",
+      "login:cancel",
+      "login:status",
+      "startLogin",
+      "cancelLogin",
+      "getLoginStatus",
+      "onLoginStatus",
+    ]) {
+      assert.ok(
+        !preload.includes(forbidden),
+        `electron/preload.js must not reference ${forbidden}`
+      );
+    }
+  });
+
+  it("build.files no longer lists the removed login modules", () => {
+    const pkg = JSON.parse(readFileSync(join(electronDir, "package.json"), "utf8"));
+    const files: string[] = pkg.build?.files ?? [];
+    for (const gone of ["loginManager.js", "lib/loginHeaderCapture.js"]) {
+      assert.ok(!files.includes(gone), `electron/package.json build.files must not list ${gone}`);
+    }
   });
 });

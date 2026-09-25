@@ -1,3 +1,5 @@
+import { parseEnvBoolean } from "@/shared/utils/envBoolean";
+
 type EnvSource = Record<string, string | undefined>;
 type HeaderLike = Headers | Record<string, string | string[] | undefined> | null | undefined;
 
@@ -25,14 +27,6 @@ function readHeader(headers: HeaderLike, name: string): string | null {
     return typeof value === "string" ? value : null;
   }
   return null;
-}
-
-function parseBoolean(value: string | undefined | null, fallback: boolean): boolean {
-  if (value == null || value.trim() === "") return fallback;
-  const normalized = value.trim().toLowerCase();
-  if (["true", "1", "yes", "on"].includes(normalized)) return true;
-  if (["false", "0", "no", "off"].includes(normalized)) return false;
-  return fallback;
 }
 
 function readPositiveMs(env: EnvSource, name: string, fallback: number): number {
@@ -85,7 +79,7 @@ export function resolveAgentGoalPolicy(
   // timeouts or stream recovery, regardless of request body/headers. This
   // mitigates client-controlled timeout amplification when an operator does
   // not want request bodies/headers to influence upstream timeout budgets.
-  const policyEnabled = parseBoolean(env.OMNIROUTE_AGENT_GOAL_POLICY_ENABLED, true);
+  const policyEnabled = parseEnvBoolean(env.OMNIROUTE_AGENT_GOAL_POLICY_ENABLED, true);
   if (!policyEnabled) {
     return {
       detected: false,
@@ -94,7 +88,7 @@ export function resolveAgentGoalPolicy(
     };
   }
 
-  const forcedByHeader = parseBoolean(readHeader(headers, "x-omniroute-agent-goal"), false);
+  const forcedByHeader = parseEnvBoolean(readHeader(headers, "x-omniroute-agent-goal"), false);
   const detected = forcedByHeader || isAgentGoalRequestBody(body);
   const readinessMaxTimeoutMs = readPositiveMs(
     env,
@@ -102,7 +96,7 @@ export function resolveAgentGoalPolicy(
     DEFAULT_AGENT_GOAL_READINESS_MAX_TIMEOUT_MS
   );
   const streamRecoveryEnabled =
-    detected && parseBoolean(env.OMNIROUTE_AGENT_GOAL_STREAM_RECOVERY, true);
+    detected && parseEnvBoolean(env.OMNIROUTE_AGENT_GOAL_STREAM_RECOVERY, true);
 
   return {
     detected,

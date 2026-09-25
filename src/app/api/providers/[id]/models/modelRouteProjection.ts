@@ -108,5 +108,14 @@ export async function buildNoAuthModelsResponse(
     connectionId,
     models: visible,
     source: "local_catalog",
+    // A no-auth provider with no `modelsUrl` has no remote model
+    // endpoint at all, so this catalog is its INTENDED and only discovery
+    // source (same as reka/lmarena), not a degraded remote fetch. Without the
+    // tag, model-sync's isDegradedDiscovery guard 502s before importing and the
+    // provider can never persist a model while /models keeps returning 200.
+    // Providers that DO declare `modelsUrl` return above with source:"upstream",
+    // and a failed live fetch still falls through here untagged only when the
+    // URL exists — that case stays a genuine degradation.
+    ...(modelsUrl ? {} : { intentional: true }),
   });
 }

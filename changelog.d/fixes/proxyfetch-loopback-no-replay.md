@@ -1,0 +1,1 @@
+- fix(sse): stop applying the outbound bound-and-replay egress policy to loopback self-requests — a slow internal model-sync/auto-discovery call is no longer cut at 30s and replayed for another 30s, so internal requests stop occupying inbound slots long enough to starve live traffic past Cloudflare's 120s proxy read timeout (HTTP 524)

@@ -13,7 +13,7 @@ import type { RegistryEntry } from "../../shared.ts";
 // Dashboard connection credential. Factory has not (yet)
 // published a public OAuth/refresh-token endpoint, so this entry ships with
 // `authType: "apikey"`. An OAuth variant can be layered in later by adding
-// `src/lib/oauth/providers/factory.ts` and switching `authType` here once
+// an OAuth provider module under `src/lib/oauth/` and switching `authType` here once
 // Factory exposes token endpoints — the auth type toggle is the only change
 // required (registry lookups are by-id and the executor is the same).
 export const factoryProvider: RegistryEntry = {

@@ -46,6 +46,7 @@ import { maybeWrapForcedNonStreamingResponsesJson } from "./chatCore/responsesJs
 import { enforceOutputTokenBudget } from "./chatCore/outputTokenBudget.ts";
 import { maybeConvertJsonBodyToSse } from "./chatCore/jsonBodyToSse.ts";
 import {
+  formatBufferedVerdictLog,
   judgeBufferedTurn,
   readBoundedResponseOutcome,
   FLUSH_EMPTY_RETRY_MAX_BYTES,
@@ -95,9 +96,11 @@ import {
   shouldUseNativeOpenAICompatibleResponsesPassthrough,
   stampNativeResponsesPassthroughBody,
   redactPassthroughThinkingSignatures,
+  stripClaudeRejectedTopLevelFields,
   isClaudeCodeSemanticPassthroughRequest,
 } from "./chatCore/passthroughHelpers.ts";
 import { recoverAnthropicThinkingSignature } from "./chatCore/thinkingSignatureRecovery.ts";
+import { maybeFallbackAfterReadiness } from "./chatCore/streamReadinessFallback.ts";
 import { runProviderExecutionPipeline } from "./chatCore/providerExecutionPipeline.ts";
 import { runNonStreamingProviderLeg } from "./chatCore/nonStreamingProviderLeg.ts";
 import type { NonStreamingProviderLegResult } from "@/lib/skills/toolLoopTypes.ts";
@@ -294,6 +297,7 @@ import {
   updatePendingScope,
 } from "@/lib/usage/pendingRequestScope";
 import { recordCost, recordChatCallCost, buildCostCtx } from "@/domain/costRules";
+import { meteredBudgetCost } from "@/lib/usage/meteredBudgetPolicy";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import {
   buildClaudePassthroughToolNameMap,
@@ -2450,11 +2454,7 @@ export async function handleChatCore({
           DEFAULT_THINKING_CLAUDE_SIGNATURE
         ) as typeof translatedBody.messages;
 
-        // Anthropic API rejects requests with both temperature and top_p.
-        // VS Code Claude extension and similar clients send both; strip top_p.
-        if (translatedBody.temperature !== undefined && translatedBody.top_p !== undefined) {
-          delete translatedBody.top_p;
-        }
+        stripClaudeRejectedTopLevelFields(translatedBody, clientRawRequest?.headers);
       }
 
       // Legacy models reject role:"system" messages. Supported models accept
@@ -5493,7 +5493,7 @@ export async function handleChatCore({
           claudeCacheUsageMeta: cacheUsageLogMeta,
           cacheSource: "upstream",
         });
-        recordChatCallCost(apiKeyInfo, estimatedCost, chatCostCtx, false);
+        recordChatCallCost(apiKeyInfo, meteredBudgetCost(provider, estimatedCost), chatCostCtx, false);
         log?.warn?.(
           "GUARDRAIL",
           `Response blocked by ${postCallGuardrails.guardrail || "guardrail"}: ${guardrailMessage}`
@@ -5632,7 +5632,7 @@ export async function handleChatCore({
         claudeCacheUsageMeta: cacheUsageLogMeta,
         cacheSource: "upstream",
       });
-      recordChatCallCost(apiKeyInfo, estimatedCost, chatCostCtx, true);
+      recordChatCallCost(apiKeyInfo, meteredBudgetCost(provider, estimatedCost), chatCostCtx, true);
 
       // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
       await scheduleQuotaShareConsumption({
@@ -5794,13 +5794,36 @@ export async function handleChatCore({
     );
   }
 
-  const streamReadiness = await ensureStreamReadiness(providerResponse, {
+  let streamReadiness = await ensureStreamReadiness(providerResponse, {
     timeoutMs: streamReadinessPolicy.timeoutMs,
     maxTimeoutMs: streamReadinessPolicy.maxTimeoutMs,
     provider,
     model,
     log,
   });
+  // A stall is an upstream issue, not an account fault — the executor loop
+  // already ended at headers, so this bounded retry is the only recovery left.
+  const fallback = await maybeFallbackAfterReadiness({
+    streamReadiness,
+    clientAborted: streamController.signal.aborted,
+    failedConnectionId: getCurrentConnectionId(),
+    failedBody: providerResponse,
+    currentModel,
+    streamReadinessPolicy,
+    provider,
+    model,
+    log,
+    reqLogger,
+    providerUrl,
+    providerHeaders,
+    finalBody,
+    translatedBody,
+    executeProviderRequest,
+    providerRequestCapture,
+  });
+  streamReadiness = fallback.readiness;
+  providerResponse = fallback.providerResponse;
+  finalBody = fallback.finalBody;
   if (streamReadiness.ok === false) {
     const { response: failureResponse, reason } = streamReadiness;
     const { classificationReason, upstreamDiagnostic } = streamReadiness;
@@ -5882,7 +5905,8 @@ export async function handleChatCore({
           clientRawRequest?.signal?.aborted === true
         );
         if (verdict.kind === "pass") {
-          log?.debug?.("FLUSH_EMPTY_RETRY", `passing the turn through: ${verdict.why}`);
+          const v = formatBufferedVerdictLog(verdict, correlationId, traceId);
+          log?.[v.level]?.("FLUSH_EMPTY_RETRY", v.line);
           break;
         }
         if (emptyTurnRetries >= STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX) {
@@ -5993,6 +6017,7 @@ export async function handleChatCore({
     responseBody: streamResponseBody,
     providerPayload,
     clientPayload,
+    reasoningMeta: streamReasoningMeta,
     error: streamError,
     errorCode: streamErrorCode,
     ttft,
@@ -6145,6 +6170,7 @@ export async function handleChatCore({
       claudeCacheMeta: claudePromptCacheLogMeta,
       claudeCacheUsageMeta: cacheUsageLogMeta,
       cacheSource: "upstream",
+      reasoningMeta: streamReasoningMeta ?? null,
     });
 
     recordStreamingCost({
@@ -6154,7 +6180,11 @@ export async function handleChatCore({
       streamUsage,
       serviceTier: effectiveServiceTier,
       calculateCost,
-      recordCost,
+      // Only the budget-consumable share may draw down the allowance.
+      recordCost: (apiKeyId, cost, details) => {
+        const budgetCost = meteredBudgetCost(provider, cost);
+        if (budgetCost > 0) recordCost(apiKeyId, budgetCost, details);
+      },
       ledger: buildStreamLedgerDetails(effectiveServiceTier, normalizedStreamStatus < 400, traceId),
     });
 

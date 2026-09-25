@@ -1,0 +1,1 @@
+- **fix(models):** search providers no longer leak their imported `searchTypes` (`web`, `news`, `x`) into `/v1/models` as chat models; the active synced-catalog projection excludes search provider IDs, and `sync-models` now skips them while cleaning previously imported search rows.
