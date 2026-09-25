@@ -44,7 +44,5 @@ export function deriveEffectivePreviewPlan(
     });
   }
 
-  return downgradeUnrequestedLossy(
-    deriveDefaultPlanFromConfig(config, /* comboId */ null, combos)
-  );
+  return downgradeUnrequestedLossy(deriveDefaultPlanFromConfig(config, /* comboId */ null, combos));
 }
