@@ -35,6 +35,13 @@ describe("xiaomi-mimo leaf self-tracked quota", () => {
   before(() => {
     core.getDbInstance(); // trigger migrations
     insertUsage("conn-leaf", "xiaomi-mimo", 1_000_000, 500_000, new Date().toISOString());
+    insertUsage(
+      "conn-plan",
+      "xiaomi-mimo-token-plan",
+      2_000_000,
+      1_000_000,
+      new Date().toISOString()
+    );
   });
 
   after(() => {
@@ -75,5 +82,18 @@ describe("xiaomi-mimo leaf self-tracked quota", () => {
     assert.equal(m.total, 4_100_000_000);
     assert.equal(m.used, 1_500_000);
     assert.ok(m.resetAt && m.resetAt.endsWith("T00:00:00.000Z"), "reset = first of next month UTC");
+  });
+
+  it("xiaomi-mimo-token-plan connections self-track separately from xiaomi-mimo (no cross-bleed)", async () => {
+    const r = (await X.getXiaomiMimoUsage("conn-plan", "xiaomi-mimo-token-plan")) as {
+      quotas?: Record<string, { used: number }>;
+      message?: string;
+    };
+    assert.ok(r.quotas, `expected quotas, got message: ${r.message}`);
+    assert.equal(
+      r.quotas!.monthly.used,
+      3_000_000,
+      "only conn-plan's xiaomi-mimo-token-plan tokens, not conn-leaf's xiaomi-mimo tokens"
+    );
   });
 });

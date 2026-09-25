@@ -651,8 +651,11 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
   // index 0 is accepted by every provider (same slot the old splice used when
   // system[] was empty).
   if (keep < nonSystem.length) {
-    const dropped = nonSystem.length - keep;
-    const droppedNotice = `[Context compressed: ${dropped} earlier messages removed to fit context window]`;
+    // Byte-stable: no interpolated drop count. A per-request count here
+    // changes messages[0] on nearly every request over a growing
+    // conversation, busting the upstream provider's prefix cache anchored
+    // at index 0 (issue #14600).
+    const droppedNotice = "[Context compressed: earlier messages removed to fit context window]";
     const first = result[0];
     if (first && (first.role === "system" || first.role === "developer")) {
       if (typeof first.content === "string") {
