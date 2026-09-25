@@ -64,6 +64,10 @@ import {
 } from "../services/tokenRefresh.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { signRequestBody } from "../services/claudeCodeCCH.ts";
+import {
+  applyFinalClaudeRawPassthroughHeaders,
+  isConnectionRawPassthrough,
+} from "../utils/cacheControlPolicy.ts";
 import { normalizeCacheControlTtl } from "../services/claudeCodeConstraints.ts";
 import {
   appendAnthropicBetaHeader,
@@ -226,6 +230,10 @@ export type ExecuteInput = {
    * `context_management.clear_tool_uses` strategy so the provider clears stale
    * tool-use blocks server-side. Honored only on the genuine `claude` path. */
   contextEditing?: { enabled: boolean } | null;
+  /** chatCore-computed marker: client spoke and expects the native Claude
+   * Messages format (no translation). Combined with the per-connection
+   * `rawPassthrough` switch to decide whether the CLI cloak is skipped. */
+  isClaudePassthrough?: boolean;
 };
 
 export type CountTokensInput = {
@@ -708,6 +716,7 @@ export class BaseExecutor {
       skipUpstreamRetry = false,
       onCredentialsRefreshed,
       contextEditing,
+      isClaudePassthrough,
     } = input;
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
@@ -961,7 +970,18 @@ export class BaseExecutor {
           activeCredentials.accessToken.startsWith("sk-ant-oat") &&
           !activeCredentials?.apiKey;
 
+        // #13893 raw passthrough: four-condition AND gate (spec §3.3). All of
+        // native-format client, genuine `claude` provider, official OAuth token
+        // and the per-connection opt-in flag must hold; otherwise the standard
+        // CLI cloak pipeline below runs unchanged.
+        const isRawPassthrough =
+          isClaudePassthrough === true &&
+          this.provider === "claude" &&
+          hasClaudeOAuthToken &&
+          isConnectionRawPassthrough(requestCredentials?.providerSpecificData);
+
         if (
+          !isRawPassthrough &&
           ((this.provider === "claude" && (isClaudeCodeClient || hasClaudeOAuthToken)) ||
             usesClaudeCodeProtocol) &&
           typeof transformedBody === "object" &&
@@ -1366,8 +1386,9 @@ export class BaseExecutor {
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
-          isCliCompatEnabled(fingerprintProvider) ||
-          (this.provider === "claude" && (isClaudeCodeClient || hasClaudeOAuthToken));
+          !isRawPassthrough &&
+          (isCliCompatEnabled(fingerprintProvider) ||
+            (this.provider === "claude" && (isClaudeCodeClient || hasClaudeOAuthToken)));
         if (shouldFingerprint) {
           const fingerprinted = applyFingerprint(fingerprintProvider, headers, transformedBody);
           finalHeaders = fingerprinted.headers;
@@ -1376,11 +1397,17 @@ export class BaseExecutor {
 
         // CCH signing — replaces the cch=00000 placeholder in the billing
         // header with an xxHash64 integrity token over the serialized body.
-        if (usesClaudeCodeProtocol || this.provider === "claude") {
+        // #13893: skipped entirely in raw passthrough mode (spec §3.3 rule 4).
+        const shouldSignBody =
+          !isRawPassthrough && (usesClaudeCodeProtocol || this.provider === "claude");
+        if (shouldSignBody) {
           bodyString = await signRequestBody(bodyString);
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
+        if (isRawPassthrough) {
+          applyFinalClaudeRawPassthroughHeaders(finalHeaders, clientHeaders);
+        }
         if (this.provider === "cline" || this.provider === "clinepass") {
           applyClineProtocolHeaders(finalHeaders, {
             taskId: headers["X-Task-ID"],
@@ -1476,7 +1503,7 @@ export class BaseExecutor {
             contextEditingDisabled = true;
             delete (transformedBody as Record<string, unknown>).context_management;
             let retryBody = JSON.stringify(transformedBody);
-            if (usesClaudeCodeProtocol || this.provider === "claude") {
+            if (shouldSignBody) {
               retryBody = await signRequestBody(retryBody);
             }
             log?.debug?.(
@@ -1515,7 +1542,7 @@ export class BaseExecutor {
             thinkingBudgetClampedMax = upstreamMax;
             if (clampNestedThinkingBudget(transformedBody, upstreamMax)) {
               let retryBody = JSON.stringify(transformedBody);
-              if (usesClaudeCodeProtocol || this.provider === "claude") {
+              if (shouldSignBody) {
                 retryBody = await signRequestBody(retryBody);
               }
               log?.info?.(
@@ -1566,7 +1593,7 @@ export class BaseExecutor {
                 );
               } else {
                 let retryBody = JSON.stringify(transformedBody);
-                if (usesClaudeCodeProtocol || this.provider === "claude") {
+                if (shouldSignBody) {
                   retryBody = await signRequestBody(retryBody);
                 }
                 log?.info?.(
@@ -1598,7 +1625,7 @@ export class BaseExecutor {
             strippedFields.add(offending);
             delete (transformedBody as Record<string, unknown>)[offending];
             let retryBody = JSON.stringify(transformedBody);
-            if (usesClaudeCodeProtocol || this.provider === "claude") {
+            if (shouldSignBody) {
               retryBody = await signRequestBody(retryBody);
             }
             log?.debug?.(
@@ -1623,7 +1650,7 @@ export class BaseExecutor {
                   addParamToBlocklist(this.provider, autoLearned, model);
                   delete (transformedBody as Record<string, unknown>)[autoLearned];
                   let retryBody = JSON.stringify(transformedBody);
-                  if (usesClaudeCodeProtocol || this.provider === "claude") {
+                  if (shouldSignBody) {
                     retryBody = await signRequestBody(retryBody);
                   }
                   log?.info?.(

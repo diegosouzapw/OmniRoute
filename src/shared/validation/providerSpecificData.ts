@@ -250,6 +250,16 @@ export function validateProviderSpecificData(
     });
   }
 
+  // #13893 — Claude OAuth raw passthrough escape hatch (default off).
+  const rawPassthrough = data.rawPassthrough;
+  if (rawPassthrough !== undefined && typeof rawPassthrough !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.rawPassthrough must be a boolean",
+      path: ["rawPassthrough"],
+    });
+  }
+
   const blockExtraUsage = data.blockExtraUsage;
   if (blockExtraUsage !== undefined && typeof blockExtraUsage !== "boolean") {
     ctx.addIssue({

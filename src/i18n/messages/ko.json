@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "저장된 모델 엔드포인트 설정",
     "searchByModelAria": "모델로 검색",
     "selectSupportedEndpoint": "지원되는 엔드포인트를 최소한 하나 선택하세요.",
-    "antigravityClientProfileHarness": "하네스 / CLI"
+    "antigravityClientProfileHarness": "하네스 / CLI",
+    "rawClaudePassthroughLabel": "Raw Request Passthrough",
+    "rawClaudePassthroughDescription": "Forward client requests directly without CLI emulation or cache header modification.",
+    "rawClaudePassthroughWarning": "Notice: This mode disables request rewriting. It does not alter credential permissions, terms of service, or billing policies. Requests may be rejected by the provider, and any additional usage fees depend on your account plan. Third-party integrations should use authorized API credentials."
   },
   "settings": {
     "title": "설정",

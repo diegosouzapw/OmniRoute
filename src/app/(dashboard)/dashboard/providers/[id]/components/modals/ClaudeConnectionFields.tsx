@@ -8,6 +8,7 @@ type ClaudeConnectionFieldsProps = {
     blockExtraUsage: boolean;
     lowPriorityMode: boolean;
     autoLimitReset: boolean;
+    rawPassthrough?: boolean;
   };
   /** The usage-wall options only exist for subscription (OAuth) connections. */
   showUsageWallOptions: boolean;
@@ -44,6 +45,19 @@ export default function ClaudeConnectionFields(props: ClaudeConnectionFieldsProp
             label={t("claudeAutoLimitResetLabel")}
             description={t("claudeAutoLimitResetDescription")}
           />
+          <div className="flex flex-col gap-2">
+            <Toggle
+              checked={props.values.rawPassthrough === true}
+              onChange={(checked) => props.onChange({ rawPassthrough: checked })}
+              label={t("rawClaudePassthroughLabel")}
+              description={t("rawClaudePassthroughDescription")}
+            />
+            {props.values.rawPassthrough && (
+              <p className="text-xs text-amber-500/90 dark:text-amber-400/90">
+                {t("rawClaudePassthroughWarning")}
+              </p>
+            )}
+          </div>
         </>
       )}
     </div>

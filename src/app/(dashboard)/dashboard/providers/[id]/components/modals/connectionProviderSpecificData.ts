@@ -31,6 +31,7 @@ type FormData = QuotaScrapingFieldValues &
     newApiAggregatorBalance: boolean;
     newApiUserId: string;
     passthroughModels: boolean;
+    rawPassthrough?: boolean;
     quotaPerUnit: string;
     region: string;
     routingTags: string;

@@ -3226,6 +3226,7 @@ export async function handleChatCore({
                           onCredentialsRefreshed,
                           skipUpstreamRetry,
                           contextEditing: { enabled: contextEditingEnabled },
+                          isClaudePassthrough,
                           correlationId,
                         })
                       ),
@@ -3410,6 +3411,7 @@ export async function handleChatCore({
                               onCredentialsRefreshed,
                               skipUpstreamRetry,
                               contextEditing: { enabled: contextEditingEnabled },
+                              isClaudePassthrough,
                               correlationId,
                             })
                           ),
@@ -4529,6 +4531,7 @@ export async function handleChatCore({
                 onCredentialsRefreshed,
                 skipUpstreamRetry: isCombo,
                 contextEditing: { enabled: contextEditingEnabled },
+                isClaudePassthrough,
                 correlationId,
               })
             )

@@ -171,6 +171,25 @@ export function resolveConnectionCacheOverride(
 }
 
 /**
+ * Per-connection Claude OAuth raw-passthrough hatch (#13893).
+ *
+ * Same bag as `resolveConnectionCacheOverride`: `providerSpecificData`.
+ * Default off. Only an own-property top-level boolean counts; nested
+ * `passthrough.raw` aliases never arm the hatch.
+ */
+export function isConnectionRawPassthrough(providerSpecificData: unknown): boolean {
+  if (
+    !providerSpecificData ||
+    typeof providerSpecificData !== "object" ||
+    Array.isArray(providerSpecificData)
+  ) {
+    return false;
+  }
+  const record = providerSpecificData as Record<string, unknown>;
+  return Object.hasOwn(record, "rawPassthrough") && record.rawPassthrough === true;
+}
+
+/**
  * Whether `cache_control` markers should be PASSED THROUGH the OpenAI-format
  * translation for this provider (vs. stripped). Used to gate the request-side
  * passthrough so generic / implicit-cache OpenAI providers keep getting cleaned.
@@ -433,4 +452,135 @@ export function updateCacheTokenMetrics({
 
   metrics.lastUpdated = new Date().toISOString();
   return metrics;
+}
+
+/**
+ * Persist the dashboard toggle as a top-level boolean (#13893).
+ * Nested `passthrough.raw` aliases are stripped on save so an import cannot
+ * re-arm the hatch after the operator turns it off.
+ */
+export function applyClaudeRawPassthroughSave(
+  providerSpecificData: Record<string, unknown>,
+  rawPassthrough: boolean
+): void {
+  providerSpecificData.rawPassthrough = rawPassthrough;
+  if (
+    providerSpecificData.passthrough &&
+    typeof providerSpecificData.passthrough === "object" &&
+    !Array.isArray(providerSpecificData.passthrough)
+  ) {
+    const pt = { ...(providerSpecificData.passthrough as Record<string, unknown>) };
+    delete pt.raw;
+    delete pt.rawPassthrough;
+    if (Object.keys(pt).length === 0) {
+      delete providerSpecificData.passthrough;
+    } else {
+      providerSpecificData.passthrough = pt;
+    }
+  }
+}
+
+/**
+ * Final outgoing-header sanitization for raw passthrough mode (spec §3.3 rule 1).
+ *
+ * Strips CLI-emulation leftovers (x-app, anthropic-dangerous-direct-browser-access,
+ * x-stainless-*), RFC 9110 hop-by-hop fields (static list + the client's dynamic
+ * Connection header nominations), and merges lawful client business headers with
+ * case-variant deduplication.
+ *
+ * Gateway auth headers (authorization, x-api-key, cookie, etc.) cannot be
+ * nominated off the Connection list (spec §3.3 rule 1, R5 hardening D-01).
+ */
+export function applyFinalClaudeRawPassthroughHeaders(
+  headers: Record<string, string>,
+  clientHeaders?: Record<string, string> | null
+): void {
+  // 0. Gateway-owned credential/sensitive headers: a client Connection nomination
+  //    must never strip these.
+  const gatewayAuthHeaders = new Set([
+    "authorization",
+    "x-api-key",
+    "x-goog-api-key",
+    "api-key",
+    "cookie",
+  ]);
+
+  // 1. Parse the client Connection header for dynamic hop-by-hop fields (RFC 9110 §7.6.1).
+  const dynamicHopTokens = new Set<string>();
+  if (clientHeaders && typeof clientHeaders === "object") {
+    for (const [k, v] of Object.entries(clientHeaders)) {
+      if (k.toLowerCase() === "connection" && typeof v === "string") {
+        for (const token of v.split(",")) {
+          const trimmed = token.trim().toLowerCase();
+          if (trimmed && !gatewayAuthHeaders.has(trimmed)) {
+            dynamicHopTokens.add(trimmed);
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Static hop-by-hop and transport-framing headers (RFC 9110 / RFC 7230).
+  const staticHopByHop = new Set([
+    "connection",
+    "proxy-connection",
+    "keep-alive",
+    "transfer-encoding",
+    "te",
+    "trailer",
+    "upgrade",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "host",
+    "content-length",
+    "content-encoding",
+  ]);
+
+  // 3. Strip CLI-emulation markers and hop-by-hop fields from the existing header set.
+  for (const key of Object.keys(headers)) {
+    const lower = key.toLowerCase();
+    if (
+      lower === "x-app" ||
+      lower === "anthropic-dangerous-direct-browser-access" ||
+      lower.startsWith("x-stainless-") ||
+      dynamicHopTokens.has(lower) ||
+      staticHopByHop.has(lower)
+    ) {
+      delete headers[key];
+    }
+  }
+
+  // 4. Merge client business headers (exclusive overwrite with case-variant dedupe).
+  if (clientHeaders && typeof clientHeaders === "object") {
+    for (const [k, v] of Object.entries(clientHeaders)) {
+      if (typeof v !== "string") continue;
+      const lower = k.toLowerCase();
+
+      // Never forward client local auth, hop-by-hop fields, or gateway-internal prefixes.
+      if (
+        dynamicHopTokens.has(lower) ||
+        staticHopByHop.has(lower) ||
+        gatewayAuthHeaders.has(lower) ||
+        lower.startsWith("x-omniroute-")
+      ) {
+        continue;
+      }
+
+      // Remove existing case-variant keys so the underlying runtime cannot comma-splice duplicates (#1454).
+      for (const existingKey of Object.keys(headers)) {
+        if (existingKey.toLowerCase() === lower) {
+          delete headers[existingKey];
+        }
+      }
+
+      headers[k] = v;
+    }
+  }
+
+  // 5. Anthropic requires anthropic-version on /v1/messages. If client didn't supply one,
+  //    default to 2023-06-01 so the request doesn't 400 upstream.
+  const hasVersion = Object.keys(headers).some((k) => k.toLowerCase() === "anthropic-version");
+  if (!hasVersion) {
+    headers["anthropic-version"] = "2023-06-01";
+  }
 }

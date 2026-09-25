@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "Đã lưu cài đặt endpoint mô hình",
     "searchByModelAria": "Tìm kiếm theo mô hình",
     "selectSupportedEndpoint": "Chọn ít nhất một endpoint được hỗ trợ",
-    "antigravityClientProfileHarness": "Bộ điều khiển / CLI"
+    "antigravityClientProfileHarness": "Bộ điều khiển / CLI",
+    "rawClaudePassthroughLabel": "Raw Request Passthrough",
+    "rawClaudePassthroughDescription": "Forward client requests directly without CLI emulation or cache header modification.",
+    "rawClaudePassthroughWarning": "Notice: This mode disables request rewriting. It does not alter credential permissions, terms of service, or billing policies. Requests may be rejected by the provider, and any additional usage fees depend on your account plan. Third-party integrations should use authorized API credentials."
   },
   "settings": {
     "title": "Cài đặt",

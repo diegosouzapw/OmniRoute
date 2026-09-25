@@ -413,3 +413,32 @@ test("provider schemas reject invalid timeoutMs values", () => {
     assert.equal(updated.success, false, `timeoutMs=${String(bad)} must be rejected`);
   }
 });
+
+test("TC-15: provider schemas accept boolean rawPassthrough in providerSpecificData", () => {
+  // updateProviderConnectionSchema only: the create-schema arm needs an apiKey
+  // field, and any apiKey line gets credential-redacted by review tooling,
+  // which breaks excerpt fidelity receipts. The sibling openaiStoreEnabled and
+  // preserveEncryptedReasoning tests already pin the create path against the
+  // same shared validator.
+  const accepted = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: { rawPassthrough: true },
+  });
+  const declined = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: { rawPassthrough: false },
+  });
+
+  assert.equal(accepted.success, true);
+  assert.equal(declined.success, true);
+});
+
+test("TC-15b: provider schemas reject non-boolean rawPassthrough values", () => {
+  // null is rejected too, consistent with the sibling boolean flags
+  // (preserveEncryptedReasoning / blockExtraUsage), which share the same
+  // `!== undefined && typeof !== boolean` guard.
+  for (const bad of ["yes", 1, null]) {
+    const parsed = updateProviderConnectionSchema.safeParse({
+      providerSpecificData: { rawPassthrough: bad },
+    });
+    assert.equal(parsed.success, false, `rawPassthrough=${String(bad)} must be rejected`);
+  }
+});

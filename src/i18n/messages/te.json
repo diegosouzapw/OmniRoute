@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "సేవ్ చేసిన మోడల్ ఎండ్‌పాయింట్ సెట్టింగ్స్",
     "searchByModelAria": "మోడల్ ద్వారా శోధించండి",
     "selectSupportedEndpoint": "కమిషన్ చేయబడిన కనెక్ట్ చేయబడిన ఎండ్‌పాయింట్‌లలో కనీసం ఒకటి ఎంచుకోండి",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rawClaudePassthroughLabel": "Raw Request Passthrough",
+    "rawClaudePassthroughDescription": "Forward client requests directly without CLI emulation or cache header modification.",
+    "rawClaudePassthroughWarning": "Notice: This mode disables request rewriting. It does not alter credential permissions, terms of service, or billing policies. Requests may be rejected by the provider, and any additional usage fees depend on your account plan. Third-party integrations should use authorized API credentials."
   },
   "settings": {
     "title": "సెట్టింగ్లు",
