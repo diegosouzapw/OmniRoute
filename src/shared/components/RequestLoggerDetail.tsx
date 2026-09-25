@@ -16,6 +16,7 @@ import {
   timestampMarkerCustomizeNode,
 } from "@/shared/hooks/useTimestampTitles";
 import { JsonTreeExpandControls } from "@/shared/components/JsonTreeExpandControls";
+import { CallContentProvenanceBadges } from "@/shared/components/CallContentProvenanceBadges";
 import { useJsonTreeExpandLevel } from "@/store/jsonTreeExpandStore";
 import {
   PayloadSection,
@@ -23,6 +24,7 @@ import {
   buildPipelinePayloadSections,
   isBodySizeLimitOmission,
 } from "@/shared/components/RequestLoggerDetail.sections";
+import { getResilienceBadges } from "@/shared/components/requestLoggerResilience";
 
 // ─── Copy-all composition ────────────────────────────────────────────────────
 // Compose every visible payload section + stream chunk into a single block so
@@ -545,6 +547,11 @@ export default function RequestLoggerDetail({
     cacheSource === "semantic"
       ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
       : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
+  // resilience badges (flag alone decides, whatever the status).
+  const resilienceBadges = getResilienceBadges(
+    log.resilienceActions || detail?.resilienceActions || null,
+    (key, values) => t(key as never, values as never)
+  );
   const accountLabel = maskAccount(detail?.account || log.account, emailsVisible);
   const codexAccountRotation = getCodexAccountRotation(detail);
   return (
@@ -674,6 +681,16 @@ export default function RequestLoggerDetail({
                   {t("duration")}
                 </div>
                 <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
+              </div>
+              <div className="min-w-[100px] flex-1">
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  {t("addedWait")}
+                </div>
+                <div className="text-sm font-medium">
+                  {typeof log.addedWaitMs === "number" && log.addedWaitMs > 0
+                    ? `${formatDuration(log.addedWaitMs)}${log.addedWaitCause ? ` (${log.addedWaitCause})` : ""}`
+                    : "—"}
+                </div>
               </div>
               <div className="min-w-[140px] flex-1">
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
@@ -838,7 +855,16 @@ export default function RequestLoggerDetail({
                 >
                   {cacheSourceLabel}
                 </span>
+                {resilienceBadges.map((badge) => (
+                  <span key={badge.key} title={badge.title}>
+                    {badge.label}
+                  </span>
+                ))}
               </div>
+              <CallContentProvenanceBadges
+                hasContent={detail?.hasContent ?? log.hasContent}
+                usageProvenance={detail?.usageProvenance ?? log.usageProvenance}
+              />
               {(detail?.modelPinned || log.modelPinned) && (
                 <div>
                   <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">

@@ -1,0 +1,1 @@
+- **fix(sse):** pool-served accounts without their own proxy use the egress key actually applied to the attempt for pacing and refusal memory, instead of the shared direct sentinel ([#14750](https://github.com/diegosouzapw/OmniRoute/pull/14750)) — thanks @maxmad64bis

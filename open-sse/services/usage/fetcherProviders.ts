@@ -80,6 +80,9 @@ export const USAGE_FETCHER_PROVIDERS = [
   // Firecrawl team credits (GET /v2/team/credit-usage)
   "firecrawl",
   "context7",
+  // Tavily monthly credits & quota (GET /usage)
+  "tavily-search",
+  "tavily",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",

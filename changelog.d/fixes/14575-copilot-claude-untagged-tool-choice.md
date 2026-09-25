@@ -1,0 +1,1 @@
+- fix(providers): resolve untagged claude-* ids on GitHub/GHE Copilot to native targetFormat (#14575)

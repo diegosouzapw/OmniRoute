@@ -14,6 +14,7 @@ import {
   isProxyAvoided,
   proxyEgressKey,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
+import { maybeEmitPoolExhausted } from "@/lib/proxyEvents/proxyTransitionBridge";
 import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
 import { getCachedProxyHealth } from "@/lib/proxyHealth";
 import type { JsonRecord, ProxyScope, ProxyRotationStrategy } from "./types";
@@ -153,9 +154,14 @@ function eligibleMemberIndexes(candidates: unknown[]): number[] | null {
 // True once the sticky window elapsed (or never started): the held member is due
 // for rotation. Shared by the pre-rank bypass (held member served untouched) and
 // the sticky branch below (advance on expiry) — same `state`, no extra DB read.
-function isStickyExpired(state: { stickyWindowMinutes: number; rotatedAt: string | null }): boolean {
+function isStickyExpired(state: {
+  stickyWindowMinutes: number;
+  rotatedAt: string | null;
+}): boolean {
   const lastRotated = state.rotatedAt ? Date.parse(state.rotatedAt) : NaN;
-  return !Number.isFinite(lastRotated) || Date.now() - lastRotated >= state.stickyWindowMinutes * 60_000;
+  return (
+    !Number.isFinite(lastRotated) || Date.now() - lastRotated >= state.stickyWindowMinutes * 60_000
+  );
 }
 
 // First eligible index at or after `start`, going round the pool.
@@ -248,6 +254,15 @@ function pickFromCandidates<T>(
   rotationScopeId: string,
   candidates: T[]
 ): T {
+  // Pool-exhausted check first: a single-member pool set aside is exhausted
+  // too, and this runs before the length-1 early return below. Flag-gated
+  // inside (zero cost when off), rebound window shared with the bridge.
+  maybeEmitPoolExhausted(
+    normalizedScope,
+    candidates,
+    (row) => proxyEgressKey(row),
+    (key) => isProxyAvoided(key)
+  );
   if (candidates.length === 1) return candidates[0];
 
   const state = getOrCreateRotationRow(db, normalizedScope, rotationScopeId);
@@ -261,7 +276,7 @@ function pickFromCandidates<T>(
     }
   }
 
-  // Order by crossed short-memory health signals (opt-in, PROXY_SKIP_RECENTLY_FAILED):
+  // Order by crossed short-memory health signals (PROXY_SKIP_RECENTLY_FAILED, default on):
   // stops re-serving at the head a proxy that just failed, without removing anyone.
   // Sticky past its window and every other strategy rank normally; a held sticky
   // member returns above, untouched. The eligible-skip below still applies on the
@@ -343,6 +358,15 @@ function fetchAlivePoolRows(
   return db
     .prepare(`${baseSelect}AND a.scope_id IS ? AND ${PROXY_ALIVE_PREDICATE}${order}`)
     .all(scope, scopeIdFilter) as JsonRecord[];
+}
+
+// Read-only view of a scope pool's alive candidate rows (same joined source as the
+// selection path above): registry fields joined to assignments, alive-predicate
+// applied, position order. Lets a read-only status screen rank the same rows the
+// selector ranks, without embedding SQL in a route (Hard Rule #5).
+export function getScopePoolEgressRows(scope: string, scopeIdFilter: string | null): JsonRecord[] {
+  const db = getDbInstance();
+  return fetchAlivePoolRows(db, scope, scopeIdFilter, scopeIdFilter === null);
 }
 
 // A proxy is "alive" for resolution unless it has been explicitly marked dead

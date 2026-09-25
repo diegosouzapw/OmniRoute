@@ -4,7 +4,6 @@ import assert from "node:assert/strict";
 import {
   GITHUB_COPILOT_API_VERSION,
   GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
-  GITHUB_COPILOT_CLI_USER_AGENT,
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
   GITHUB_COPILOT_CLI_INTEGRATION_ID,
@@ -30,9 +29,9 @@ import {
 
 test("provider header profiles expose current GitHub chat and internal headers", () => {
   const chatHeaders = getGitHubCopilotChatHeaders("text/event-stream", "agent");
-  // Chat/inference path matches the @github/copilot CLI 1.0.81-6 wire identity.
+  // Chat/inference path matches the @github/copilot CLI 1.0.88 wire identity.
   assert.equal(chatHeaders["editor-version"], GITHUB_COPILOT_EDITOR_VERSION);
-  assert.equal(chatHeaders["user-agent"], GITHUB_COPILOT_CLI_USER_AGENT);
+  assert.equal(chatHeaders["user-agent"], `copilot/1.0.88 (${process.platform}) term/unknown`);
   assert.equal(chatHeaders["x-github-api-version"], GITHUB_COPILOT_API_VERSION);
   assert.equal(chatHeaders["copilot-integration-id"], GITHUB_COPILOT_INTEGRATION_ID);
   assert.equal(chatHeaders["x-interaction-type"], GITHUB_COPILOT_INTERACTION_TYPE);

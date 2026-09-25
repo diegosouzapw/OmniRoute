@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Controle principal dos aliases de gateway no-think/&lt;provider&gt;/&lt;model&gt;. Ativado (padrão): /v1/models anuncia uma variante sem raciocínio para cada modelo Claude qualificado com capacidade de raciocínio, e um ID no-think/ enviado em uma solicitação é resolvido para o modelo real com o raciocínio suprimido. Desativado: nenhuma variante é anunciada, e um ID no-think/ é tratado como qualquer outro ID de modelo desconhecido. A configuração de ativação/desativação ModelSpec.noThinkingAlias por modelo continua válida enquanto esta opção estiver ativada.",
   "featureFlagChatVirtualLanesEnabledDescription": "Ative faixas de admissão virtuais adaptativas por tenant para o despacho de provedores (#9654): o pico de um tenant não gera mais 503 para outro. A variável de ambiente OMNIROUTE_CHAT_VIRTUAL_LANES tem precedência sobre esta configuração do painel; as alterações entram em vigor ao reiniciar o servidor.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Páginas de provedores no painel: exibe o selo Grátis apenas quando houver sinais reconhecidos pelo provedor — descarta a heurística de nome de exibição, campos de gratuidade não booleanos e sufixos :free em provedores registrados sem uma modalidade gratuita documentada. Quando desativado, mantém a regra histórica do selo.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Pools de proxy e a rotação por conta do opencode deixam de reutilizar um proxy que acabou de falhar (sonda TCP recusada, ou um 429 recebido por ele) por um período por processo que dobra a cada repetição, até um limite. Nenhum status de proxy é gravado; com todos os candidatos deixados de lado, a escolha não muda. Desligado por padrão: a ordem de seleção é exatamente a rotação simples.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Pools de proxy e a rotação por conta do opencode deixam de reutilizar um proxy que acabou de falhar (sonda TCP recusada, ou um 429 recebido por ele) por um período por processo que dobra a cada repetição, até um limite. Nenhum status de proxy é gravado; com todos os candidatos deixados de lado, a escolha não muda. Ligado por padrão; `false` restaura a seleção simples.",
   "featureFlagProxyPoolEgressObservationDescription": "Mostra, abaixo de um pool de proxy no painel, quantos IPs de saída observados atenderam seus membros nas últimas 24 h, quantas conexões os usaram e o máximo visto atrás de um mesmo IP. Somente leitura, calculado a partir do log de proxy, nunca usado para roteamento. Desligado por padrão: o editor de pool não muda e a rota de observação responde null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Na varredura de saúde de proxy, permite que uma sonda recusada pelo destino (401/403/429: o proxy retransmitiu, o destino recusou este IP de saída) zere a sequência de falhas consecutivas do proxy, como uma sonda atendida. Desligado por padrão: a recusa continua neutra e mantém a sequência. Um 5xx continua inconclusivo em qualquer caso, e uma recusa nunca remove, desativa ou reativa um proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Permite que a varredura automática de limpeza exclua jobs terminais (completed/failed/cancelled/expired) da Batch API mais antigos que OMNIROUTE_BATCH_RETENTION_DAYS, junto com seus checkpoints por linha, e limpe o conteúdo BLOB de arquivos enviados que já passaram do próprio expires_at. Desligado por padrão: toda instalação existente mantém esses dados exatamente como estão até um operador ativar. A rota DELETE /api/v1/batches/delete-completed, acionada pelo operador, não é afetada de nenhuma forma -- é um contrato de API pública separado e incondicional.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Desabilitar fixação de sessão",
     "sessionStickinessEnabled": "Fixação ativada",
     "sessionStickinessDisabled": "Fixação desativada",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preset Kimi Coding",
     "kimiPresetDescription": "Kimi K3 como modelo primário (Moonshot API), com fallback automático para suas conexões Kimi Code (kimi-coding, kimi-web) quando configuradas.",
     "kimiPresetCta": "Adicionar preset",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Isso irá capturar os provedores/modelos atualmente conectados que correspondem a este modelo em uma combinação editável.",
     "duplicateAutoComboFailedPrefix": "Falha ao duplicar a combinação automática:",
     "duplicateAutoComboUnknownError": "Erro desconhecido",
-    "duplicateAutoComboTitle": "Criar uma combinação estática de {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Criar uma combinação estática de {name}"
   },
   "costs": {
     "title": "Custos",
@@ -11031,6 +11031,16 @@
     "batchDeleteSelected": "Excluir {count} selecionado(s)",
     "batchActivateSelected": "Habilitar {count} selecionado(s)",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Última varredura: {cause} ({code}) {age}",
+    "sweepNoData": "Nenhuma varredura desde a inicialização",
+    "sweepLabel": {
+      "unproven": "destino recusado",
+      "unclassified": "verificação inconclusiva",
+      "ok": "atendido",
+      "fail": "conexão falhou",
+      "hang": "handshake travado",
+      "inconclusive": "inconclusivo"
+    },
     "close": "Fechar",
     "managePool": "Gerenciar pool",
     "poolTitle": "Pool e rotação de proxies",
@@ -11052,6 +11062,8 @@
     "poolEgressObservation": "Uso de {exits, plural, one {# saída} other {# saídas}} por {connections, plural, one {# conexão} other {# conexões}} · até {max} em uma única saída · últimas {hours} h",
     "poolEgressObservationEmpty": "Nenhum tráfego observado nas últimas {hours} h",
     "poolEgressObservationHint": "Contabilizado com base no log do proxy durante o período: IPs de saída distintos observados para os membros deste pool e as conexões do OmniRoute que os utilizaram. \"Em uma saída\" significa ao longo do período, não ao mesmo tempo. O bloqueio por IP após um erro 429 pausa apenas as conexões da mesma família de provedores.",
+    "poolEgressFailuresByExit": "Falhas via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Falhas sem saída atribuída: {count}",
     "poolMemberEgress": "{host}:{port} saiu por {egressIp} · últimas {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: nenhum tráfego observado nas últimas {hours} h",
     "poolMemberEgressHint": "Último IP de saída observado por meio deste membro do pool durante o período, lido do log do proxy. Um membro sem tráfego no período exibe a linha de ausência de tráfego.",
@@ -11061,7 +11073,23 @@
     "poolAddMember": "Adicionar",
     "poolAddFailed": "Falha ao adicionar o proxy ao pool",
     "poolSelectProxy": "Selecionar um proxy…",
-    "poolSaveFailed": "Falha ao salvar a atribuição do pool"
+    "poolSaveFailed": "Falha ao salvar a atribuição do pool",
+    "poolPreferenceOrder": "Ordem de preferência",
+    "poolSetAsideReason": "Afastado: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy inacessível",
+    "poolSetAsideKindIpQuota429": "limite de taxa por IP (429)",
+    "poolSetAsideUntil": "De volta à rotação {endsAt}",
+    "poolSetAsideRepeat": "Afastado {count, plural, one {# vez} other {# vezes}}",
+    "poolUnknownAddress": "Endereço desconhecido",
+    "poolSinceRestart": "Desde a última reinicialização",
+    "poolSignalSetAside": "Afastar",
+    "poolSignalPosition": "Ordem de posição",
+    "poolHealthRankingOff": "Classificação de integridade desativada",
+    "transportRate": "{rate} % transporte",
+    "previousSuccessRate": "Anteriormente {rate} % de êxito",
+    "upstreamRefusals": "{count} recusas upstream",
+    "connectionTestsCount": "{count} testes de conexão",
+    "notMeasured": "Não medido"
   },
   "playground": {
     "title": "Title",
@@ -11400,6 +11428,7 @@
       "compressed": "Compressão",
       "tps": "TPS",
       "duration": "Duração",
+      "addedWait": "Espera adicionada",
       "time": "Horário",
       "conversation": "Conversa",
       "ttft": "TTFT"
@@ -11474,6 +11503,7 @@
       "startedAt": "Iniciado Em",
       "endedAt": "Encerrado Em",
       "duration": "Duração",
+      "addedWait": "Espera adicionada",
       "model": "Modelo",
       "provider": "Provedor",
       "account": "Conta",
@@ -11488,6 +11518,10 @@
       "requestedModel": "Modelo Solicitado",
       "requestProtocol": "Protocolo Req",
       "cacheSource": "Fonte de Cache",
+      "contentProvenance": "Resposta",
+      "contentEmpty": "Resposta vazia",
+      "usageAbsent": "Contagem de tokens não informada",
+      "usageEstimated": "Contagem de tokens estimada",
       "modelPinning": "Fixação de Modelo",
       "activeModelPinning": "Ativo — modelo selecionado via fixação de sessão",
       "rotated": "Rotacionado: {initial} -> {final}",
@@ -11512,7 +11546,13 @@
       "correlationIdValue": "ID de Correlação: {id}",
       "detailedPayloadInfo": "Ative o registro detalhado primeiro se você quiser a visualização de carga útil de cliente/provedor em quatro etapas para novas solicitações.",
       "copyAll": "Copiar tudo",
-      "copiedAll": "Tudo copiado"
+      "copiedAll": "Tudo copiado",
+      "resilienceStoredError": "Servido a partir do erro salvo",
+      "resilienceParked": "Aguardou {ms} antes do envio",
+      "resilienceRotations": "{count} rotações de conta",
+      "resilienceRetried": "Turno vazio repetido",
+      "resilienceContinued": "Retomado no meio do fluxo",
+      "resilienceRecovered": "Recuperado por uma ação de resiliência"
     }
   },
   "proxyLogger": {
@@ -11551,7 +11591,14 @@
     "noProxyLogs": "Ainda não há logs de proxy. Configure proxies e faça chamadas de API para vê-los aqui.",
     "noMatchingLogs": "Nenhum log corresponde aos filtros atuais.",
     "tlsFingerprint": "Impressão digital TLS do Chrome 124",
-    "colPublicIp": "IP público"
+    "colPublicIp": "IP público",
+    "colUpstream": "Ascendente",
+    "colEgress": "IP de Egressão",
+    "colCorrelation": "Correlação",
+    "colServedBy": "Atendido por",
+    "filterTraffic": "Tráfego",
+    "filterTests": "Testes",
+    "filterSource": "Fonte"
   },
   "endpointOptions": {
     "speech": "Fala",
@@ -12808,7 +12855,13 @@
     "createDahlTokenFailed": "Falha ao criar o token Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configurar proxy",
-    "providerProxyTitleConfigured": "Proxy configurado: {host}"
+    "providerProxyTitleConfigured": "Proxy configurado: {host}",
+    "proxySetAside": "Proxy afastado",
+    "inheritConnectionOption": "Sem proxy próprio (herda a conexão)",
+    "inheritedProxy": "Herda a conexão: {host}",
+    "inheritedPool": "Herda o pool de conexões ({count})",
+    "poolEmptyBlocked": "Pool vazio — as solicitações falham (não direto)",
+    "directEgress": "Direto (sem proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14137,7 +14190,12 @@
     "directNative": "Direto",
     "targetUrl": "URL de Destino",
     "error": "Erro",
-    "configuration": "Configuração de Proxy"
+    "configuration": "Configuração de Proxy",
+    "upstreamStatus": "Status ascendente",
+    "noResponse": "Sem resposta",
+    "egressIp": "IP de Egressão",
+    "servedBy": "Atendido por",
+    "correlationId": "ID de Correlação"
   },
   "requestTimeline": {
     "title": "Linha do Tempo do Pedido",

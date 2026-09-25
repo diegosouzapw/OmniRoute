@@ -680,6 +680,15 @@ async function validateComboAccess(
   }
 }
 
+/** "Resets in Xh Ym."-style suffix for a known future epoch-ms reset instant. */
+function formatResetDurationSuffix(untilMs: unknown, nowMs = Date.now()): string {
+  if (typeof untilMs !== "number" || !Number.isFinite(untilMs) || untilMs <= nowMs) return "";
+  const totalMinutes = Math.max(1, Math.ceil((untilMs - nowMs) / 60_000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `Resets in ${hours}h ${minutes}m.` : `Resets in ${minutes}m.`;
+}
+
 /**
  * The metered dollar budget check, skipped when the caller defers it to the
  * resolved candidate (see {@link EnforceApiKeyPolicyOptions.meteredBudget}).
@@ -697,9 +706,17 @@ function validateBudget(context: PolicyContext): Response | null {
   if (!apiKeyInfo.id) return null;
   try {
     const budgetOk = checkBudget(apiKeyInfo.id);
-    return budgetOk.allowed
-      ? null
-      : errorResponse(HTTP_STATUS.RATE_LIMITED, budgetOk.reason || "Budget limit exceeded");
+    if (budgetOk.allowed) return null;
+    const resetSuffix = formatResetDurationSuffix(budgetOk.budgetResetAt);
+    const reason = budgetOk.reason || "Budget limit exceeded";
+    return errorResponse(
+      HTTP_STATUS.RATE_LIMITED,
+      resetSuffix ? `${reason} ${resetSuffix}` : reason,
+      {
+        code: "budget_exceeded",
+        retryAfter: budgetOk.budgetResetAt,
+      }
+    );
   } catch (error) {
     log.error("API_POLICY", "Budget check failed. Request blocked.", { error });
     return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Budget policy unavailable");
@@ -714,9 +731,11 @@ function validateTokenLimit(context: PolicyContext): Response | null {
     if (!breach) return null;
     const scopeLabel =
       breach.scopeType === "global" ? "account" : `${breach.scopeType} "${breach.scopeValue}"`;
+    const resetSuffix = formatResetDurationSuffix(breach.nextResetAt) || "Please try again later.";
     return errorResponse(
       HTTP_STATUS.RATE_LIMITED,
-      `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. Please try again later.`
+      `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. ${resetSuffix}`,
+      { code: "token_limit_exceeded", retryAfter: breach.nextResetAt }
     );
   } catch (error) {
     log.error("API_POLICY", "Token limit check failed. Request blocked.", { error });
@@ -759,9 +778,11 @@ async function validateRateLimitAndThrottle(context: PolicyContext): Promise<Res
     const result = await checkRateLimit(apiKeyInfo.id, rules);
     if (!result.allowed) {
       const window = result.failedWindow ? ` (${result.failedWindow}s window)` : "";
+      const resetSuffix = formatResetDurationSuffix(result.resetAt) || "Please try again later.";
       return errorResponse(
         HTTP_STATUS.RATE_LIMITED,
-        `Request limit exceeded${window}. Please try again later.`
+        `Request limit exceeded${window}. ${resetSuffix}`,
+        { code: "rate_limit_exceeded", retryAfter: result.resetAt }
       );
     }
   }

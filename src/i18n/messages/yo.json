@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Àkóso àkọ́kọ́ fún àwọn gateway aliases no-think/&lt;provider&gt;/&lt;model&gt;. Títàn (àìyípadà): /v1/models máa ń ṣàfihàn ẹ̀dà tí kò ronú fún gbogbo àwòṣe Claude tó lè ronú tí ó sì yẹ, no-think/ id tí a bá sì fi ránṣẹ́ pẹ̀lú ìbéèrè máa yanjú padà sí àwòṣe gidi pẹ̀lú reasoning tí a tẹ̀ mọ́lẹ̀. Pípa: a kì yóò ṣàfihàn àwọn ẹ̀dà kankan, a ó sì ṣe no-think/ id bí model id àìmọ̀ mìíràn. Àṣàyàn láti tan tàbí pa ModelSpec.noThinkingAlias fún àwòṣe kọ̀ọ̀kan ṣì wúlò nígbà tí èyí bá tàn.",
   "featureFlagChatVirtualLanesEnabledDescription": "Mú àwọn ọ̀nà ìgbàwọlé aláfojúṣe tí ń mú ara wọn bá ipò mu fún tenant kọ̀ọ̀kan ṣiṣẹ́ fún provider dispatch (#9654): ìrujáde tenant kan kò ní fa 503 fún tenant mìíràn mọ́. env var OMNIROUTE_CHAT_VIRTUAL_LANES ni ó ṣáájú àtúnṣe dashboard yìí; àwọn ìyípadà yóò bẹ̀rẹ̀ sí í ṣiṣẹ́ nígbà tí server bá tún bẹ̀rẹ̀.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Àwọn ojú-ìwé olùpèsè lórí Dashboard: fi báàjì Ọ̀fẹ́ hàn lórí àwọn àmì tí olùpèsè náà fọwọ́ sí nìkan — èyí yọ ọ̀nà ìfojúrí orúkọ ìfihàn, àwọn ààyè ọ̀fẹ́ tí kì í ṣe Boolean àti àwọn ìparí :free kúrò lórí àwọn olùpèsè tí a forúkọsílẹ̀ tí kò ní ipele ọ̀fẹ́ tí a ṣàkọsílẹ̀. Pípa rẹ̀ yóò pa òfin báàjì ìṣáájú mọ́.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Àwọn àkójọpọ̀ proxy àti yíyí opencode fún àkọọ́lẹ̀ kọ̀ọ̀kan máa ń dáwọ́ lílo proxy kan tí ó ṣẹ̀ṣẹ̀ kùnà dúró (ìdánwò TCP tí a kọ̀, tàbí 429 tí a gbà nípasẹ̀ rẹ̀) fún àkókò kan nínú process kọ̀ọ̀kan, èyí tí yóò di ìlọ́po méjì ní gbogbo ìgbà tí ó tún ṣẹlẹ̀, títí dé òpin tí a yàn. A kì í kọ ipò proxy sílẹ̀; bí a bá fi gbogbo olùdíje sí ẹ̀gbẹ́ kan, yíyan náà kì í yí padà. Ó wà ní pípa ní àkọ́kọ́: bí a ṣe ń yan tẹ̀ lé yíyí lasán náà gan-an.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Àwọn àkójọpọ̀ proxy àti yíyí opencode fún àkọọ́lẹ̀ kọ̀ọ̀kan máa ń dáwọ́ lílo proxy kan tí ó ṣẹ̀ṣẹ̀ kùnà dúró (ìdánwò TCP tí a kọ̀, tàbí 429 tí a gbà nípasẹ̀ rẹ̀) fún àkókò kan nínú process kọ̀ọ̀kan, èyí tí yóò di ìlọ́po méjì ní gbogbo ìgbà tí ó tún ṣẹlẹ̀, títí dé òpin tí a yàn. A kì í kọ ipò proxy sílẹ̀; bí a bá fi gbogbo olùdíje sí ẹ̀gbẹ́ kan, yíyan náà kì í yí padà. Ó wà ní títàn ní àkọ́kọ́; `false` máa ń dá yíyan lasán padà.",
   "featureFlagProxyPoolEgressObservationDescription": "Ṣàfihàn, lábẹ́ àkójọpọ̀ proxy kan nínú dashboard, iye àwọn IP egress tí a ṣàkíyèsí tí ó ṣiṣẹ́ fún àwọn ọmọ ẹgbẹ́ rẹ̀ láàárín wákàtí 24 tó kọjá, iye àwọn ìsopọ̀ tí ó lò wọ́n àti iye tó pọ̀ jù tí a rí lẹ́yìn IP kan. Fún kíkà nìkan, a ṣírò rẹ̀ láti inú àkọsílẹ̀ proxy, a kò sì lò ó fún routing láé. Ó wà ní pípa ní àkọ́kọ́: olóòtú àkójọpọ̀ náà kò yí padà, ipa-ọ̀nà àkíyèsí sì ń dá null padà.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Nínú àyẹ̀wò ìlera proxy, jẹ́ kí ìdánwò kan tí ibi àfojúsùn kọ̀ (401/403/429: proxy náà gbé e dé, ibi àfojúsùn sì kọ IP egress yìí) tún iye àwọn ìkùnà tẹ̀léra ti proxy náà bẹ̀rẹ̀, bí ìdánwò tí a dáhùn sí. Ó wà ní pípa ní àkọ́kọ́: ìkọ̀ kan ṣì jẹ́ aláìdásí, ó sì ń pa iye tẹ̀léra náà mọ́. 5xx ṣì jẹ́ aláìdánilójú lọ́nà méjèèjì, ìkọ̀ kò sì lè yọ proxy kan kúrò, mú un má ṣiṣẹ́, tàbí tún mú un ṣiṣẹ́ láé.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Jẹ́ kí ìfọ̀mọ́ aládàáṣe pa àwọn iṣẹ́ Batch API tó ti dé òpin (tó parí/tó kùnà/tí a fagilé/tó kọjá àkókò) tí ọjọ́ orí wọn ti ju OMNIROUTE_BATCH_RETENTION_DAYS lọ, pẹ̀lú àwọn ibi ìṣàyẹ̀wò wọn fún ìlà kọ̀ọ̀kan, kí ó sì pa àkóónú BLOB àwọn fáìlì tí a ti rù sókè tí wọ́n ti kọjá expires_at tiwọn. A pa á ní àkọ́kọ́: gbogbo ìfìdásílẹ̀ tó wà tẹ́lẹ̀ yóò pa dátà yìí mọ́ gẹ́gẹ́ bí ó ti rí tẹ́lẹ̀ títí olùṣàkóso yóò fi yàn láti tan án. Ọ̀nà DELETE /api/v1/batches/delete-completed tí olùṣàkóso ń ṣiṣẹ́ kò ní ipa lọ́nàkọnà — ó jẹ́ àdéhùn API gbogbogbò tó yàtọ̀, tí kò gbára lé ipò kankan.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Mú ìdúróṣinṣin sáà kúrò",
     "sessionStickinessEnabled": "Ìdúróṣinṣin ti ṣiṣẹ́",
     "sessionStickinessDisabled": "Ìdúróṣinṣin ti dáwọ́ dúró",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Ètò àsàyàn-tẹ́lẹ̀ Kimi Coding",
     "kimiPresetDescription": "Kimi K3 gẹ́gẹ́ bí awoṣe àkọ́kọ́ (Moonshot API), pẹ̀lú ìpadà sẹ́yìn aládàáṣe sí àwọn àsopọ̀ Kimi Code rẹ (kimi-coding, kimi-web) nígbà tí a bá ti ṣètò wọn.",
     "kimiPresetCta": "Ṣàfikún ètò àsàyàn-tẹ́lẹ̀",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Èyí yóò ṣe ẹ̀dà àwọn olùpèsè/àwọn awoṣe tó sopọ̀ lọ́wọ́lọ́wọ́ tí ó bá àdàkọ yìí mu, yóò sì fi wọ́n sínú àkójọpọ̀ tí a lè ṣàtúnṣe.",
     "duplicateAutoComboFailedPrefix": "Kò ṣeé ṣe láti ṣe ẹ̀dà àkójọpọ̀ aládàáṣiṣẹ́:",
     "duplicateAutoComboUnknownError": "Àṣìṣe àìmọ̀",
-    "duplicateAutoComboTitle": "Ṣẹ̀dá àkójọpọ̀ àìyípadà láti inú {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ṣẹ̀dá àkójọpọ̀ àìyípadà láti inú {name}"
   },
   "costs": {
     "title": "Àwọn ìnáwó",
@@ -11031,6 +11031,16 @@
     "batchDeleteSelected": "Pa àwọn {count} tí a yàn rẹ́",
     "batchActivateSelected": "Mú àwọn {count} tí a yàn ṣiṣẹ́",
     "testPassed": "✓ Ó DÁRA",
+    "sweepVerdict": "Ọlọjẹ ikẹhin: {cause} ({code}) {age}",
+    "sweepNoData": "Ko si ọlọjẹ sibẹsibe lati ibẹrẹ",
+    "sweepLabel": {
+      "unproven": "àfojúsùn kọ",
+      "unclassified": "àyẹ̀wò aláìparí",
+      "ok": "a ṣe ìránṣẹ́",
+      "fail": "asopọ̀ kuna",
+      "hang": "ìbọwọ́ dẹkun",
+      "inconclusive": "aláìparí"
+    },
     "close": "Pa á",
     "managePool": "Ṣàkóso Àkójọpọ̀",
     "poolTitle": "Àkójọpọ̀ Prọ́ṣì àti Yíyípadà",
@@ -11052,6 +11062,8 @@
     "poolEgressObservation": "{exits, plural, one {# àbájáde} other {# àwọn àbájáde}} ni {connections, plural, one {# àsopọ̀} other {# àwọn àsopọ̀}} lò · tó {max} lórí àbájáde kan · láàárín wákàtí {hours} tó kọjá",
     "poolEgressObservationEmpty": "A kò rí ìrìnàjò dátà kankan láàárín wákàtí {hours} tó kọjá",
     "poolEgressObservationHint": "A kà á láti inú àkọsílẹ̀ prọ́ṣì láàárín àkókò náà: àwọn IP àbájáde ọ̀tọ̀ọ̀tọ̀ tí a rí fún àwọn ọmọ ẹgbẹ́ àkójọpọ̀ yìí, àti àwọn àsopọ̀ OmniRoute tí ó lò wọ́n. \"Lórí àbájáde kan\" túmọ̀ sí láàárín àkókò náà, kì í ṣe ní àkókò kan náà. Ìdènà 429 fún IP kọ̀ọ̀kan máa ń dá àwọn àsopọ̀ ti ìdílé olùpèsè kan náà dúró fún ìgbà díẹ̀ nìkan.",
+    "poolEgressFailuresByExit": "Àwọn ìkùnà nípasẹ̀ {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Àwọn ìkùnà láìsí ọ̀nà àbájáde tí a yàn: {count}",
     "poolMemberEgress": "{host}:{port} jáde nípasẹ̀ {egressIp} · ní wákàtí {hours} tó kọjá",
     "poolMemberEgressEmpty": "{host}:{port}: kò sí ìṣàn data tí a ṣàkíyèsí ní wákàtí {hours} tó kọjá",
     "poolMemberEgressHint": "Àdírẹ́sì IP àbájáde tó kẹ́yìn tí a ṣàkíyèsí nípasẹ̀ ọmọ ẹgbẹ́ pool yìí láàárín àkókò náà, tí a kà láti inú àkọsílẹ̀ proxy. Ọmọ ẹgbẹ́ tí kò ní ìṣàn data láàárín àkókò náà yóò fi ìlà àìsí-ìṣàn data hàn.",
@@ -11061,7 +11073,23 @@
     "poolAddMember": "Ṣàfikún",
     "poolAddFailed": "Kùnà láti ṣàfikún prọ́ṣì náà sí àkójọpọ̀ náà",
     "poolSelectProxy": "Yan prọ́ṣì kan…",
-    "poolSaveFailed": "Kùnà láti fi ìpín àkójọpọ̀ pamọ́"
+    "poolSaveFailed": "Kùnà láti fi ìpín àkójọpọ̀ pamọ́",
+    "poolPreferenceOrder": "Ilana ayanfẹ",
+    "poolSetAsideReason": "A ya sọtọ: {kind}",
+    "poolSetAsideKindProxyUnreachable": "kò lè dé proxy",
+    "poolSetAsideKindIpQuota429": "ìdíwọ̀n ìyára IP (429)",
+    "poolSetAsideUntil": "Pada si yiyi {endsAt}",
+    "poolSetAsideRepeat": "A ya sọtọ {count, plural, one {# igba} other {# igba}}",
+    "poolUnknownAddress": "Adirẹsi aimọ",
+    "poolSinceRestart": "Lati atunbẹrẹ to kẹhin",
+    "poolSignalSetAside": "Ya sọtọ",
+    "poolSignalPosition": "Ilana ipo",
+    "poolHealthRankingOff": "Ipo ilera pa",
+    "transportRate": "{rate}% gbigbe",
+    "previousSuccessRate": "Ni iṣaaju {rate}% aṣeyọri",
+    "upstreamRefusals": "{count} kikọ upstream",
+    "connectionTestsCount": "{count} idanwo asopọ",
+    "notMeasured": "A ko wọn"
   },
   "playground": {
     "title": "Pápá Ìdánwò Àwòṣe",
@@ -11400,6 +11428,7 @@
       "compressed": "Ìfúnpọ̀",
       "tps": "TPS",
       "duration": "Iye àkókò",
+      "addedWait": "Idaduro Afikun",
       "time": "Àkókò",
       "conversation": "Ìjíròrò",
       "ttft": "TTFT"
@@ -11474,6 +11503,7 @@
       "startedAt": "Àkókò Tí Ó Bẹ̀rẹ̀",
       "endedAt": "Àkókò Tí Ó Parí",
       "duration": "Iye Àkókò",
+      "addedWait": "Idaduro Afikun",
       "model": "Mọ́dẹ́lì",
       "provider": "Olùpèsè",
       "account": "Àkọọ́lẹ̀",
@@ -11488,6 +11518,10 @@
       "requestedModel": "Mọ́dẹ́lì Tí A Béèrè",
       "requestProtocol": "Ìlànà Ìbéèrè",
       "cacheSource": "Orísun Cache",
+      "contentProvenance": "Ìdáhùn",
+      "contentEmpty": "Ìdáhùn òfo",
+      "usageAbsent": "A kò jábọ̀ iye token",
+      "usageEstimated": "Iye token jẹ́ àfojúsùn",
       "modelPinning": "Ìdìmọ́ Mọ́dẹ́lì",
       "activeModelPinning": "Ń ṣiṣẹ́ — a yan mọ́dẹ́lì nípasẹ̀ ìdìmọ́ session",
       "rotated": "A yí padà: {initial} -> {final}",
@@ -11512,7 +11546,13 @@
       "correlationIdValue": "ID Ìbámu: {id}",
       "detailedPayloadInfo": "Kọ́kọ́ mú ìforúkọsílẹ̀ alálàyé ṣiṣẹ́ bí o bá fẹ́ àfihàn àkóónú client/provider onípele mẹ́rin fún àwọn ìbéèrè tuntun.",
       "copyAll": "Ṣe àdàkọ gbogbo rẹ̀",
-      "copiedAll": "A ti ṣe àdàkọ gbogbo rẹ̀"
+      "copiedAll": "A ti ṣe àdàkọ gbogbo rẹ̀",
+      "resilienceStoredError": "A pèsè láti inú àṣìṣe tí a fipamọ́",
+      "resilienceParked": "A dá dúró {ms} ṣáájú fífiránṣẹ́",
+      "resilienceRotations": "Ìyípo àkáǹtì {count}",
+      "resilienceRetried": "A tún gbìyànjú àyípo òfo",
+      "resilienceContinued": "A tẹ̀síwájú láàrin ìṣàn",
+      "resilienceRecovered": "A gbà padà nípasẹ̀ ìgbésẹ̀ ìfaradà"
     }
   },
   "proxyLogger": {
@@ -11551,7 +11591,14 @@
     "noProxyLogs": "Kò sí àkọsílẹ̀ aṣojú síbẹ̀. Ṣètò àwọn aṣojú kí o sì ṣe àwọn ìpè API láti rí wọn níbí.",
     "noMatchingLogs": "Kò sí àkọsílẹ̀ tó bá àwọn asẹ́ lọ́wọ́lọ́wọ́ mu.",
     "tlsFingerprint": "Àmì ìka ọwọ́ TLS Chrome 124",
-    "colPublicIp": "IP Gbogbogbò"
+    "colPublicIp": "IP Gbogbogbò",
+    "colUpstream": "Ibi isalẹ",
+    "colEgress": "IP Egress",
+    "colCorrelation": "Iṣọkan",
+    "colServedBy": "Ti a ṣe nipasẹ",
+    "filterTraffic": "Iṣan omi",
+    "filterTests": "Awọn idanwo",
+    "filterSource": "Orisun"
   },
   "endpointOptions": {
     "speech": "Ọ̀rọ̀",
@@ -12808,7 +12855,13 @@
     "createDahlTokenFailed": "Ṣíṣẹ̀dá àmì Dahl kùnà",
     "providerProxy": "Aṣojú",
     "providerProxyConfigureHint": "Ṣètò proxy",
-    "providerProxyTitleConfigured": "A ti ṣètò proxy: {host}"
+    "providerProxyTitleConfigured": "A ti ṣètò proxy: {host}",
+    "proxySetAside": "A ya proxy sọtọ",
+    "inheritConnectionOption": "Ko si proxy tirẹ (jogun asopọ)",
+    "inheritedProxy": "Jogun asopọ: {host}",
+    "inheritedPool": "Jogun adagun asopọ ({count})",
+    "poolEmptyBlocked": "Adagun ṣofo — awọn ibeere kuna (kii ṣe taara)",
+    "directEgress": "Taara (laisi proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14137,7 +14190,12 @@
     "directNative": "Taara (ìbílẹ̀)",
     "targetUrl": "URL àfojúsùn",
     "error": "Àṣìṣe",
-    "configuration": "Àtòjọ ètò próósì"
+    "configuration": "Àtòjọ ètò próósì",
+    "upstreamStatus": "Ipo isalẹ",
+    "noResponse": "Ko si idahun",
+    "egressIp": "IP Egress",
+    "servedBy": "Ti a ṣe nipasẹ",
+    "correlationId": "ID Iṣọkan"
   },
   "requestTimeline": {
     "title": "Ìlà àkókò ìbéèrè",

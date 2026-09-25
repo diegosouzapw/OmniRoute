@@ -207,10 +207,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: "PROXY_SKIP_RECENTLY_FAILED",
     label: "Skip Recently Failed Proxies",
     description:
-      "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. Off by default: selection order is exactly the plain rotation.",
+      "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. On by default: selection order is exactly the plain rotation only with PROXY_SKIP_RECENTLY_FAILED=false.",
     descriptionI18nKey: "featureFlagProxySkipRecentlyFailedDescription",
     category: "network",
-    defaultValue: "false",
+    defaultValue: "true",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",
@@ -317,6 +317,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description:
       "For streaming chat requests, when the first upstream body stalls before producing a usable event, issue one bounded second attempt through the same routing path with the same readiness budget and no account penalty. Off by default: a stalled first body fails the request without a retry.",
     descriptionI18nKey: "featureFlagStreamReadinessStallRetryDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "OPENCODE_POOL_RESELECT",
+    label: "OpenCode 429 Pool Reselect",
+    description:
+      "For the OpenCode multi-account rotation, after a 429 from an egress-bucketed provider on a proxy-less account under an ambient pool context, ask the connection pool for another member for the next attempt instead of retrying the same egress address. Orders, never excludes: an exhausted pool keeps the current behavior. Off by default: every 429 rotates to the next account exactly as before.",
+    descriptionI18nKey: "featureFlagOpencodePoolReselectDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",
