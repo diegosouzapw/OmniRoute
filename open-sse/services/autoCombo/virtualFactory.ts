@@ -44,6 +44,7 @@ import {
 import {
   classifyStrictZeroCostCandidate,
   countStrictExclusions,
+  describeStrictExclusions,
   filterStrictZeroCostCandidates,
   filterTosAvoidCandidates,
   findBudgetEntry,
@@ -802,7 +803,7 @@ export async function prepareVirtualAutoComboInputs(
     );
     if (strictFilteredPool !== pool) {
       const s = countStrictExclusions(pool, strictOptions);
-      warnPoolDrop(log, "STRICT", s.excluded, pool.length, ` (no-hard-stop ${s.noHardStop})`);
+      warnPoolDrop(log, "STRICT", s.excluded, pool.length, describeStrictExclusions(s));
       pool = strictFilteredPool;
     }
 

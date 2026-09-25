@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# jalur keluar} other {# jalur keluar}} digunakan oleh {connections, plural, one {# koneksi} other {# koneksi}} · hingga {max} pada satu jalur keluar · {hours} jam terakhir",
     "poolEgressObservationEmpty": "Tidak ada lalu lintas yang teramati dalam {hours} jam terakhir",
     "poolEgressObservationHint": "Dihitung dari log proksi selama rentang waktu tersebut: IP keluar unik yang teramati untuk anggota kumpulan ini, serta koneksi OmniRoute yang menggunakannya. \"Pada satu jalur keluar\" berarti selama rentang waktu tersebut, bukan pada saat yang sama. Penguncian 429 per IP hanya menjeda koneksi dari keluarga penyedia yang sama.",
+    "poolEgressFailuresByExit": "Kegagalan melalui {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Kegagalan tanpa exit yang teratribusi: {count}",
     "poolMemberEgress": "{host}:{port} keluar melalui {egressIp} · {hours} jam terakhir",
     "poolMemberEgressEmpty": "{host}:{port}: tidak ada lalu lintas yang teramati dalam {hours} jam terakhir",
     "poolMemberEgressHint": "IP egress terakhir yang teramati melalui anggota pool ini selama rentang waktu tersebut, dibaca dari log proxy. Anggota tanpa lalu lintas dalam rentang waktu tersebut menampilkan baris tanpa lalu lintas.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Tambah",
     "poolAddFailed": "Gagal menambahkan proksi ke pool",
     "poolSelectProxy": "Pilih proksi…",
-    "poolSaveFailed": "Gagal menyimpan penetapan pool"
+    "poolSaveFailed": "Gagal menyimpan penetapan pool",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Sebelumnya {rate}% berhasil",
+    "upstreamRefusals": "{count} penolakan upstream",
+    "connectionTestsCount": "{count} uji koneksi",
+    "notMeasured": "Belum diukur"
   },
   "playground": {
     "title": "Title",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Model yang Diminta",
       "requestProtocol": "Protokol Req",
       "cacheSource": "Sumber Cache",
+      "contentProvenance": "Balasan",
+      "contentEmpty": "Balasan kosong",
+      "usageAbsent": "Jumlah token tidak dilaporkan",
+      "usageEstimated": "Jumlah token diperkirakan",
       "modelPinning": "Penetapan Model",
       "activeModelPinning": "Aktif — model dipilih melalui penetapan sesi",
       "rotated": "Diputar: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Belum ada log proksi. Konfigurasikan proksi dan lakukan panggilan API untuk melihatnya di sini.",
     "noMatchingLogs": "Tidak ada log yang cocok dengan filter saat ini.",
     "tlsFingerprint": "Sidik Jari TLS Chrome 124",
-    "colPublicIp": "IP Publik"
+    "colPublicIp": "IP Publik",
+    "colUpstream": "Hulu",
+    "colEgress": "IP Egress",
+    "colCorrelation": "Korelasi",
+    "colServedBy": "Dilayani oleh",
+    "filterTraffic": "Lalu lintas",
+    "filterTests": "Uji coba",
+    "filterSource": "Sumber"
   },
   "endpointOptions": {
     "speech": "Ucapan",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Gagal membuat token Dahl",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Konfigurasi proxy",
-    "providerProxyTitleConfigured": "Proxy dikonfigurasi: {host}"
+    "providerProxyTitleConfigured": "Proxy dikonfigurasi: {host}",
+    "inheritConnectionOption": "Tanpa proxy sendiri (mewarisi koneksi)",
+    "inheritedProxy": "Mewarisi koneksi: {host}",
+    "inheritedPool": "Mewarisi pool koneksi ({count})",
+    "poolEmptyBlocked": "Pool kosong — permintaan gagal (bukan langsung)",
+    "directEgress": "Langsung (tanpa proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Langsung",
     "targetUrl": "URL Target",
     "error": "Kesalahan",
-    "configuration": "Konfigurasi Proxy"
+    "configuration": "Konfigurasi Proxy",
+    "upstreamStatus": "Status hulu",
+    "noResponse": "Tidak ada respons",
+    "egressIp": "IP Egress",
+    "servedBy": "Dilayani oleh",
+    "correlationId": "ID Korelasi"
   },
   "requestTimeline": {
     "title": "Garis Waktu Permintaan",

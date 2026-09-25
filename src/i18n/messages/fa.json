@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# خروجی} other {# خروجی}} استفادهشده توسط {connections, plural, one {# اتصال} other {# اتصال}} · حداکثر {max} روی یک خروجی · در {hours} ساعت گذشته",
     "poolEgressObservationEmpty": "در {hours} ساعت گذشته هیچ ترافیکی مشاهده نشد",
     "poolEgressObservationHint": "محاسبهشده از گزارش پراکسی در بازهٔ زمانی: آدرسهای IP خروجی متمایز مشاهدهشده برای اعضای این مخزن و اتصالهای OmniRoute که از آنها استفاده کردهاند. «روی یک خروجی» به معنای کل بازهٔ زمانی است، نه بهطور همزمان. قفل موقت 429 برای هر IP فقط اتصالهای همان خانوادهٔ ارائهدهنده را متوقف میکند.",
+    "poolEgressFailuresByExit": "خطاها از طریق {exit}: {count}",
+    "poolEgressFailuresUnattributed": "خطاهای بدون خروجی مشخص: {count}",
     "poolMemberEgress": "{host}:{port} از طریق {egressIp} خارج شد · {hours} ساعت گذشته",
     "poolMemberEgressEmpty": "{host}:{port}: در {hours} ساعت گذشته هیچ ترافیکی مشاهده نشد",
     "poolMemberEgressHint": "آخرین IP خروجی مشاهدهشده از طریق این عضو استخر در بازه زمانی، که از گزارش پراکسی خوانده شده است. برای عضوی که در این بازه هیچ ترافیکی نداشته باشد، خط «بدون ترافیک» نمایش داده میشود.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "افزودن",
     "poolAddFailed": "افزودن پروکسی به استخر ناموفق بود",
     "poolSelectProxy": "انتخاب یک پروکسی…",
-    "poolSaveFailed": "ذخیره تخصیص استخر ناموفق بود"
+    "poolSaveFailed": "ذخیره تخصیص استخر ناموفق بود",
+    "transportRate": "{rate}٪ انتقال",
+    "previousSuccessRate": "قبلاً {rate}٪ موفقیت",
+    "upstreamRefusals": "{count} رد بالادستی",
+    "connectionTestsCount": "{count} آزمون اتصال",
+    "notMeasured": "اندازه‌گیری نشده"
   },
   "playground": {
     "title": "محیط آزمایش مدل",
@@ -11477,6 +11484,10 @@
       "requestedModel": "مدل درخواست شده",
       "requestProtocol": "پروتکل Req",
       "cacheSource": "کش منبع",
+      "contentProvenance": "پاسخ",
+      "contentEmpty": "پاسخ خالی",
+      "usageAbsent": "تعداد توکن گزارش نشده است",
+      "usageEstimated": "تعداد توکن تخمینی است",
       "modelPinning": "پین کردن مدل",
       "activeModelPinning": "فعال — مدل انتخاب شده از طریق پین کردن جلسه",
       "rotated": "چرخش: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "هنوز هیچ گزارش پروکسیای وجود ندارد. پروکسیها را پیکربندی کنید و فراخوانیهای API را انجام دهید تا گزارشها را اینجا ببینید.",
     "noMatchingLogs": "هیچ گزارشی با فیلترهای فعلی مطابقت ندارد.",
     "tlsFingerprint": "اثر انگشت TLS مربوط به Chrome 124",
-    "colPublicIp": "IP عمومی"
+    "colPublicIp": "IP عمومی",
+    "colUpstream": "بالا دستی",
+    "colEgress": "IP خروجی",
+    "colCorrelation": "همبستگی",
+    "colServedBy": "توسط ارائه شده",
+    "filterTraffic": "ترافیک",
+    "filterTests": "آزمایش‌ها",
+    "filterSource": "منبع"
   },
   "endpointOptions": {
     "speech": "گفتار",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "ایجاد توکن دال ناموفق بود",
     "providerProxy": "پراکسی",
     "providerProxyConfigureHint": "تنظیم پروکسی",
-    "providerProxyTitleConfigured": "پروکسی پیکربندی شده: {host}"
+    "providerProxyTitleConfigured": "پروکسی پیکربندی شده: {host}",
+    "inheritConnectionOption": "بدون پروکسی اختصاصی (اتصال را به ارث می‌برد)",
+    "inheritedProxy": "اتصال را به ارث می‌برد: {host}",
+    "inheritedPool": "استخر اتصال را به ارث می‌برد ({count})",
+    "poolEmptyBlocked": "استخر خالی است — درخواست‌ها ناموفق می‌شوند (نه مستقیم)",
+    "directEgress": "مستقیم (بدون پروکسی)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "مستقیم",
     "targetUrl": "آدرس هدف",
     "error": "خطا",
-    "configuration": "پیکربندی پروکسی"
+    "configuration": "پیکربندی پروکسی",
+    "upstreamStatus": "وضعیت بالا دستی",
+    "noResponse": "هیچ پاسخی",
+    "egressIp": "IP خروجی",
+    "servedBy": "توسط ارائه شده",
+    "correlationId": "شناسه همبستگی"
   },
   "requestTimeline": {
     "title": "زمان‌بندی درخواست",

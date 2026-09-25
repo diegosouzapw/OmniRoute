@@ -8,10 +8,15 @@ export const GROK_BUILD_OAUTH_ISSUER = "https://auth.x.ai";
 export const GROK_BUILD_DEVICE_CODE_URL = `${GROK_BUILD_OAUTH_ISSUER}/oauth2/device/code`;
 export const GROK_BUILD_TOKEN_URL = `${GROK_BUILD_OAUTH_ISSUER}/oauth2/token`;
 
-export const GROK_BUILD_DEFAULT_CLIENT_VERSION = "0.2.106";
+export const GROK_BUILD_DEFAULT_CLIENT_VERSION = "1.0.41";
 export const GROK_BUILD_DEFAULT_CONTEXT_WINDOW = 256_000;
 export const GROK_BUILD_DEFAULT_REASONING_EFFORT = "high";
-export const GROK_BUILD_SUPPORTED_REASONING_EFFORTS = Object.freeze(["low", "medium", "high"]);
+export const GROK_BUILD_SUPPORTED_REASONING_EFFORTS = Object.freeze([
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+]);
 export const GROK_BUILD_CLIENT_IDENTIFIER = "grok-shell";
 export const GROK_BUILD_TOKEN_AUTH = "xai-grok-cli";
 export const GROK_BUILD_REASONING_INCLUDE = "reasoning.encrypted_content";

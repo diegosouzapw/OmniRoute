@@ -565,11 +565,6 @@
       "count": 3
     }
   },
-  "open-sse/services/tierResolver.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/services/tokenLimitCounter.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1

@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{connections, plural, one {#টি সংযোগ} other {#টি সংযোগ}} দ্বারা {exits, plural, one {#টি এক্সিট} other {#টি এক্সিট}} ব্যবহৃত · একটি এক্সিটে সর্বোচ্চ {max}টি · গত {hours} ঘণ্টা",
     "poolEgressObservationEmpty": "গত {hours} ঘণ্টায় কোনো ট্রাফিক দেখা যায়নি",
     "poolEgressObservationHint": "নির্ধারিত সময়সীমায় প্রক্সি লগ থেকে গণনা করা হয়েছে: এই পুলের সদস্যদের জন্য পর্যবেক্ষণ করা স্বতন্ত্র ইগ্রেস IP এবং সেগুলো ব্যবহার করা OmniRoute সংযোগ। \"একটি এক্সিটে\" বলতে নির্ধারিত সময়সীমার মধ্যে বোঝায়, একই সময়ে নয়। প্রতি-IP 429 লকআউট শুধু একই প্রোভাইডার পরিবারের সংযোগগুলোকে বিরতি দেয়।",
+    "poolEgressFailuresByExit": "{exit} এর মাধ্যমে ব্যর্থতা: {count}",
+    "poolEgressFailuresUnattributed": "নির্ধারিত এক্সিট ছাড়া ব্যর্থতা: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} দিয়ে নির্গত হয়েছে · গত {hours} ঘণ্টা",
     "poolMemberEgressEmpty": "{host}:{port}: গত {hours} ঘণ্টায় কোনো ট্রাফিক দেখা যায়নি",
     "poolMemberEgressHint": "সময়সীমার মধ্যে এই পুল সদস্যের মাধ্যমে সর্বশেষ পর্যবেক্ষিত নির্গমন IP, যা প্রক্সি লগ থেকে পড়া হয়েছে। সময়সীমার মধ্যে কোনো ট্রাফিক না থাকা সদস্যের জন্য ‘কোনো ট্রাফিক নেই’ লাইনটি দেখানো হয়।",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "যোগ করুন",
     "poolAddFailed": "পুলে প্রক্সি যোগ করতে ব্যর্থ হয়েছে",
     "poolSelectProxy": "একটি প্রক্সি নির্বাচন করুন…",
-    "poolSaveFailed": "পুল অ্যাসাইনমেন্ট সংরক্ষণ করতে ব্যর্থ হয়েছে"
+    "poolSaveFailed": "পুল অ্যাসাইনমেন্ট সংরক্ষণ করতে ব্যর্থ হয়েছে",
+    "transportRate": "{rate}% ট্রান্সপোর্ট",
+    "previousSuccessRate": "পূর্বে {rate}% সাফল্য",
+    "upstreamRefusals": "{count} আপস্ট্রিম প্রত্যাখ্যান",
+    "connectionTestsCount": "{count} সংযোগ পরীক্ষা",
+    "notMeasured": "পরিমাপ করা হয়নি"
   },
   "playground": {
     "title": "মডেল প্লেগ্রাউন্ড",
@@ -11477,6 +11484,10 @@
       "requestedModel": "অনুরোধ করা মডেল",
       "requestProtocol": "রেক প্রোটোকল",
       "cacheSource": "ক্যাশ সোর্স",
+      "contentProvenance": "উত্তর",
+      "contentEmpty": "খালি উত্তর",
+      "usageAbsent": "টোকেন সংখ্যা জানানো হয়নি",
+      "usageEstimated": "টোকেন সংখ্যা আনুমানিক",
       "modelPinning": "মডেল পিনিং",
       "activeModelPinning": "সক্রিয় — সেশন পিনিংয়ের মাধ্যমে মডেল নির্বাচিত",
       "rotated": "ঘুরানো: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "এখনও কোনো প্রক্সি লগ নেই। প্রক্সি কনফিগার করুন এবং এখানে সেগুলো দেখতে API কল করুন।",
     "noMatchingLogs": "বর্তমান ফিল্টারের সঙ্গে কোনো লগ মেলে না।",
     "tlsFingerprint": "Chrome 124 TLS ফিঙ্গারপ্রিন্ট",
-    "colPublicIp": "পাবলিক আইপি"
+    "colPublicIp": "পাবলিক আইপি",
+    "colUpstream": "আপস্ট্রিম",
+    "colEgress": "এগ্রেস আইপি",
+    "colCorrelation": "সংশ্লেষণ",
+    "colServedBy": "দ্বারা পরিবেশন করা হয়েছে",
+    "filterTraffic": "ট্রাফিক",
+    "filterTests": "পরীক্ষা",
+    "filterSource": "সূত্র"
   },
   "endpointOptions": {
     "speech": "স্পিচ",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Dahl টোকেন তৈরি করতে ব্যর্থ হয়েছে",
     "providerProxy": "প্রক্সি",
     "providerProxyConfigureHint": "প্রক্সি কনফিগার করুন",
-    "providerProxyTitleConfigured": "প্রক্সি কনফিগার করা হয়েছে: {host}"
+    "providerProxyTitleConfigured": "প্রক্সি কনফিগার করা হয়েছে: {host}",
+    "inheritConnectionOption": "নিজস্ব প্রক্সি নেই (সংযোগ থেকে উত্তরাধিকার)",
+    "inheritedProxy": "সংযোগ থেকে উত্তরাধিকার: {host}",
+    "inheritedPool": "সংযোগ পুল থেকে উত্তরাধিকার ({count})",
+    "poolEmptyBlocked": "পুল খালি — অনুরোধ ব্যর্থ হয় (সরাসরি নয়)",
+    "directEgress": "সরাসরি (প্রক্সি ছাড়া)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "সরাসরি",
     "targetUrl": "লক্ষ্য URL",
     "error": "ত্রুটি",
-    "configuration": "প্রক্সি কনফিগারেশন"
+    "configuration": "প্রক্সি কনফিগারেশন",
+    "upstreamStatus": "আপস্ট্রিম স্থিতি",
+    "noResponse": "কোনো প্রতিক্রিয়া নেই",
+    "egressIp": "এগ্রেস আইপি",
+    "servedBy": "দ্বারা পরিবেশন করা হয়েছে",
+    "correlationId": "সংশ্লেষণ আইডি"
   },
   "requestTimeline": {
     "title": "অনুরোধের সময়রেখা",

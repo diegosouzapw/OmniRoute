@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# Ausgang} other {# Ausgänge}} verwendet von {connections, plural, one {# Verbindung} other {# Verbindungen}} · bis zu {max} an einem Ausgang · letzte {hours} Std.",
     "poolEgressObservationEmpty": "In den letzten {hours} Std. wurde kein Datenverkehr beobachtet",
     "poolEgressObservationHint": "Ermittelt aus dem Proxy-Protokoll innerhalb des Zeitfensters: unterschiedliche ausgehende IP-Adressen, die für die Mitglieder dieses Pools beobachtet wurden, sowie die OmniRoute-Verbindungen, die sie verwendet haben. „An einem Ausgang“ bezieht sich auf das Zeitfenster, nicht auf eine gleichzeitige Nutzung. Die 429-Sperre pro IP pausiert nur Verbindungen derselben Anbieterfamilie.",
+    "poolEgressFailuresByExit": "Fehler über {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Fehler ohne zugeordneten Ausgang: {count}",
     "poolMemberEgress": "{host}:{port} ging über {egressIp} aus · letzte {hours} Std.",
     "poolMemberEgressEmpty": "{host}:{port}: in den letzten {hours} Std. kein Datenverkehr beobachtet",
     "poolMemberEgressHint": "Die letzte über dieses Pool-Mitglied im Zeitraum beobachtete Egress-IP, aus dem Proxy-Protokoll ausgelesen. Für ein Mitglied ohne Datenverkehr im Zeitraum wird die Zeile „Kein Datenverkehr“ angezeigt.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Hinzufügen",
     "poolAddFailed": "Fehler beim Hinzufügen des Proxys zum Pool",
     "poolSelectProxy": "Proxy auswählen…",
-    "poolSaveFailed": "Fehler beim Speichern der Pool-Zuweisung"
+    "poolSaveFailed": "Fehler beim Speichern der Pool-Zuweisung",
+    "transportRate": "{rate} % Transport",
+    "previousSuccessRate": "Zuvor {rate} % Erfolg",
+    "upstreamRefusals": "{count} Upstream-Ablehnungen",
+    "connectionTestsCount": "{count} Verbindungstests",
+    "notMeasured": "Nicht gemessen"
   },
   "playground": {
     "title": "Title",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Angefordertes Modell",
       "requestProtocol": "Req-Protokoll",
       "cacheSource": "Cache-Quelle",
+      "contentProvenance": "Antwort",
+      "contentEmpty": "Leere Antwort",
+      "usageAbsent": "Token-Anzahl nicht gemeldet",
+      "usageEstimated": "Token-Anzahl geschätzt",
       "modelPinning": "Modell-Pinning",
       "activeModelPinning": "Aktiv — Modell über Sitzungs-Pinning ausgewählt",
       "rotated": "Rotiert: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Noch keine Proxy-Protokolle. Konfigurieren Sie Proxys und führen Sie API-Aufrufe durch, um sie hier anzuzeigen.",
     "noMatchingLogs": "Keine Protokolle entsprechen den aktuellen Filtern.",
     "tlsFingerprint": "Chrome 124 TLS-Fingerabdruck",
-    "colPublicIp": "Öffentliche IP"
+    "colPublicIp": "Öffentliche IP",
+    "colUpstream": "Upstream",
+    "colEgress": "Egress-IP",
+    "colCorrelation": "Korrelation",
+    "colServedBy": "Bedient durch",
+    "filterTraffic": "Verkehr",
+    "filterTests": "Tests",
+    "filterSource": "Quelle"
   },
   "endpointOptions": {
     "speech": "Sprachausgabe",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Fehler beim Erstellen des Dahl-Tokens",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Proxy konfigurieren",
-    "providerProxyTitleConfigured": "Proxy konfiguriert: {host}"
+    "providerProxyTitleConfigured": "Proxy konfiguriert: {host}",
+    "inheritConnectionOption": "Kein eigener Proxy (erbt Verbindung)",
+    "inheritedProxy": "Erbt Verbindung: {host}",
+    "inheritedPool": "Erbt Verbindungspool ({count})",
+    "poolEmptyBlocked": "Pool leer — Anfragen scheitern (nicht direkt)",
+    "directEgress": "Direkt (kein Proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Direkt",
     "targetUrl": "Ziel-URL",
     "error": "Fehler",
-    "configuration": "Proxy-Konfiguration"
+    "configuration": "Proxy-Konfiguration",
+    "upstreamStatus": "Upstream-Status",
+    "noResponse": "Keine Antwort",
+    "egressIp": "Egress-IP",
+    "servedBy": "Bedient durch",
+    "correlationId": "Korrelation-ID"
   },
   "requestTimeline": {
     "title": "Anforderungszeitraum",

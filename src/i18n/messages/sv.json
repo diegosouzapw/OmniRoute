@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# utgång} other {# utgångar}} används av {connections, plural, one {# anslutning} other {# anslutningar}} · upp till {max} på en utgång · senaste {hours} h",
     "poolEgressObservationEmpty": "Ingen trafik observerades under de senaste {hours} h",
     "poolEgressObservationHint": "Räknat från proxyloggen under tidsfönstret: unika utgående IP-adresser som observerats för medlemmarna i denna pool samt de OmniRoute-anslutningar som använde dem. ”På en utgång” avser hela tidsfönstret, inte samma tidpunkt. 429-spärren per IP pausar endast anslutningar inom samma leverantörsfamilj.",
+    "poolEgressFailuresByExit": "Fel via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Fel utan tillskriven utgång: {count}",
     "poolMemberEgress": "{host}:{port} gick ut via {egressIp} · senaste {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: ingen trafik observerad under de senaste {hours} h",
     "poolMemberEgressHint": "Senaste utgående IP-adress som observerats via den här poolmedlemmen under tidsintervallet, hämtad från proxyloggen. En medlem utan trafik under tidsintervallet visar raden för ingen trafik.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Lägg till",
     "poolAddFailed": "Misslyckades med att lägga till proxyn i poolen",
     "poolSelectProxy": "Välj en proxy…",
-    "poolSaveFailed": "Misslyckades med att spara pooltilldelning"
+    "poolSaveFailed": "Misslyckades med att spara pooltilldelning",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Tidigare {rate} % lyckade",
+    "upstreamRefusals": "{count} upstream-avvisningar",
+    "connectionTestsCount": "{count} anslutningstester",
+    "notMeasured": "Inte mätt"
   },
   "playground": {
     "title": "Title",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Begärd Modell",
       "requestProtocol": "Req Protokoll",
       "cacheSource": "Cache Källa",
+      "contentProvenance": "Svar",
+      "contentEmpty": "Tomt svar",
+      "usageAbsent": "Antal tokens har inte rapporterats",
+      "usageEstimated": "Antal tokens uppskattat",
       "modelPinning": "Modellpinning",
       "activeModelPinning": "Aktiv — modell vald via sessionsfästning",
       "rotated": "Roterad: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Inga proxyloggar ännu. Konfigurera proxyservrar och gör API-anrop för att se dem här.",
     "noMatchingLogs": "Inga loggar matchar de aktuella filtren.",
     "tlsFingerprint": "TLS-fingeravtryck för Chrome 124",
-    "colPublicIp": "Publik IP"
+    "colPublicIp": "Publik IP",
+    "colUpstream": "Uppströms",
+    "colEgress": "Utgående IP",
+    "colCorrelation": "Korrelation",
+    "colServedBy": "Serverad av",
+    "filterTraffic": "Trafik",
+    "filterTests": "Tester",
+    "filterSource": "Källa"
   },
   "endpointOptions": {
     "speech": "Tal",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Misslyckades med att skapa Dahl-token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurera proxy",
-    "providerProxyTitleConfigured": "Proxy konfigurerad: {host}"
+    "providerProxyTitleConfigured": "Proxy konfigurerad: {host}",
+    "inheritConnectionOption": "Ingen egen proxy (ärver anslutning)",
+    "inheritedProxy": "Ärver anslutning: {host}",
+    "inheritedPool": "Ärver anslutningspool ({count})",
+    "poolEmptyBlocked": "Poolen tom — förfrågningar misslyckas (inte direkt)",
+    "directEgress": "Direkt (ingen proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Direkt",
     "targetUrl": "Måladress",
     "error": "Fel",
-    "configuration": "Proxykonfiguration"
+    "configuration": "Proxykonfiguration",
+    "upstreamStatus": "Uppströmsstatus",
+    "noResponse": "Ingen respons",
+    "egressIp": "Utgående IP",
+    "servedBy": "Serverad av",
+    "correlationId": "Korrelerings-ID"
   },
   "requestTimeline": {
     "title": "Begärningens Tidslinje",

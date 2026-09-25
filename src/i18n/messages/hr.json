@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# izlaz} few {# izlaza} other {# izlaza}} za {connections, plural, one {# vezu} few {# veze} other {# veza}} · do {max} na jednom izlazu · posljednjih {hours} h",
     "poolEgressObservationEmpty": "U posljednjih {hours} h nije zabilježen promet",
     "poolEgressObservationHint": "Izračunato iz zapisnika proxyja tijekom razdoblja: različite izlazne IP adrese zabilježene za članove ovog skupa i OmniRoute veze koje su ih koristile. „Na jednom izlazu” odnosi se na cijelo razdoblje, a ne na isti trenutak. Blokada 429 po IP adresi pauzira samo veze iz iste obitelji pružatelja.",
+    "poolEgressFailuresByExit": "Neuspjesi preko {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Neuspjesi bez pripisanog izlaza: {count}",
     "poolMemberEgress": "{host}:{port} izlazio je putem {egressIp} · posljednjih {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: u posljednjih {hours} h nije zabilježen promet",
     "poolMemberEgressHint": "Posljednja izlazna IP adresa zabilježena putem ovog člana skupa tijekom tog razdoblja, očitana iz zapisnika proxyja. Za člana bez prometa u tom razdoblju prikazuje se redak o nepostojanju prometa.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Dodavanje proxyja u skup nije uspjelo",
     "poolSelectProxy": "Odaberi proxy…",
-    "poolSaveFailed": "Spremanje dodjele skupa nije uspjelo"
+    "poolSaveFailed": "Spremanje dodjele skupa nije uspjelo",
+    "transportRate": "{rate} % prijenosa",
+    "previousSuccessRate": "Prije {rate} % uspjeha",
+    "upstreamRefusals": "{count} upstream odbijanja",
+    "connectionTestsCount": "{count} testova veze",
+    "notMeasured": "Nije mjereno"
   },
   "playground": {
     "title": "Okruženje za isprobavanje modela",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Zatraženi model",
       "requestProtocol": "Protokol zahtjeva",
       "cacheSource": "Izvor predmemorije",
+      "contentProvenance": "Odgovor",
+      "contentEmpty": "Prazan odgovor",
+      "usageAbsent": "Broj tokena nije prijavljen",
+      "usageEstimated": "Broj tokena je procijenjen",
       "modelPinning": "Prikvačivanje modela",
       "activeModelPinning": "Aktivno — model odabran putem prikvačivanja sesije",
       "rotated": "Rotirano: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Još nema proxy zapisnika. Konfigurirajte proxyje i uputite API pozive kako biste ih ovdje vidjeli.",
     "noMatchingLogs": "Nijedan zapis ne odgovara trenutnim filterima.",
     "tlsFingerprint": "TLS otisak preglednika Chrome 124",
-    "colPublicIp": "Javna IP adresa"
+    "colPublicIp": "Javna IP adresa",
+    "colUpstream": "Uzvodno",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korelacija",
+    "colServedBy": "Poslužuje",
+    "filterTraffic": "Promet",
+    "filterTests": "Testovi",
+    "filterSource": "Izvor"
   },
   "endpointOptions": {
     "speech": "Govor",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Stvaranje Dahl tokena nije uspjelo",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfiguriraj proxy",
-    "providerProxyTitleConfigured": "Proxy konfiguriran: {host}"
+    "providerProxyTitleConfigured": "Proxy konfiguriran: {host}",
+    "inheritConnectionOption": "Bez vlastitog proxyja (nasljeđuje vezu)",
+    "inheritedProxy": "Nasljeđuje vezu: {host}",
+    "inheritedPool": "Nasljeđuje bazen veza ({count})",
+    "poolEmptyBlocked": "Bazen prazan — zahtjevi ne uspijevaju (ne izravno)",
+    "directEgress": "Izravno (bez proxyja)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Izravno (nativno)",
     "targetUrl": "Ciljni URL",
     "error": "Pogreška",
-    "configuration": "Konfiguracija proxyja"
+    "configuration": "Konfiguracija proxyja",
+    "upstreamStatus": "Uzvodni status",
+    "noResponse": "Nema odgovora",
+    "egressIp": "Egress IP",
+    "servedBy": "Poslužuje",
+    "correlationId": "ID korelacije"
   },
   "requestTimeline": {
     "title": "Vremenska crta zahtjeva",

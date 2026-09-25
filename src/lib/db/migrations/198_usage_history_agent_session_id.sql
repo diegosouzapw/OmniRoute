@@ -1,4 +1,4 @@
--- Links each usage row to its agent session (190_agent_sessions) so reports can filter requests
+-- Links each usage row to its agent session (197_agent_sessions) so reports can filter requests
 -- by project or session over any date-time range. NULL for traffic without an agent identity.
 -- Kept as its own migration: the runner records a file as applied when an ALTER hits
 -- "duplicate column name", which would otherwise roll back the agent_sessions table with it.

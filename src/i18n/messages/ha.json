@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "An yi amfani da {exits, plural, one {hanyar fita #} other {hanyoyin fita #}} ta hanyar {connections, plural, one {haɗi #} other {haɗe-haɗe #}} · har zuwa {max} a kan hanyar fita guda · sa'o'i {hours} da suka gabata",
     "poolEgressObservationEmpty": "Ba a ga zirga-zirga ba cikin sa'o'i {hours} da suka gabata",
     "poolEgressObservationHint": "An ƙidaya daga rajistar proxy a tsawon wannan lokacin: adiresoshin IP na fita daban-daban da aka gani ga mambobin wannan rukuni, da kuma haɗe-haɗen OmniRoute da suka yi amfani da su. \"A kan hanyar fita guda\" yana nufin a tsawon wannan lokacin, ba a lokaci guda ba. Kullewar 429 ta kowane IP tana dakatar da haɗe-haɗen iyalin mai samarwa iri ɗaya ne kawai.",
+    "poolEgressFailuresByExit": "Gazawa ta hanyar {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Gazawa ba tare da hanyar fita da aka danganta ba: {count}",
     "poolMemberEgress": "{host}:{port} ya fita ta {egressIp} · awanni {hours} da suka gabata",
     "poolMemberEgressEmpty": "{host}:{port}: ba a ga zirga-zirga ba a cikin awanni {hours} da suka gabata",
     "poolMemberEgressHint": "Adireshin IP na fita na ƙarshe da aka gani ta wannan mamban pool a cikin lokacin dubawa, wanda aka karanta daga rajistar proxy. Mamban da ba shi da zirga-zirga a cikin wannan lokacin zai nuna layin babu-zirga-zirga.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Ƙara",
     "poolAddFailed": "An kasa ƙara proxy ɗin zuwa pool",
     "poolSelectProxy": "Zaɓi proxy…",
-    "poolSaveFailed": "An kasa adana rabon pool"
+    "poolSaveFailed": "An kasa adana rabon pool",
+    "transportRate": "{rate}% sufuri",
+    "previousSuccessRate": "A baya {rate}% nasara",
+    "upstreamRefusals": "{count} kin amincewa daga sama",
+    "connectionTestsCount": "{count} gwaje-gwajen haɗi",
+    "notMeasured": "Ba a auna ba"
   },
   "playground": {
     "title": "Filin Gwajin Model",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Samfurin da Aka Buƙata",
       "requestProtocol": "Ka’idar Buƙata",
       "cacheSource": "Tushen Ma’ajiya",
+      "contentProvenance": "Amsa",
+      "contentEmpty": "Amsa mara komai",
+      "usageAbsent": "Ba a bayar da adadin token ba",
+      "usageEstimated": "An kiyasta adadin token",
       "modelPinning": "Kafewar Samfuri",
       "activeModelPinning": "Yana aiki — an zaɓi samfurin ta hanyar kafewar zaman",
       "rotated": "An sauya: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Babu rajistan ayyukan proxy tukuna. Saita proxies sannan ka yi kiran API don ganin su a nan.",
     "noMatchingLogs": "Babu rajistan ayyuka da suka dace da matatun yanzu.",
     "tlsFingerprint": "Sawun yatsan TLS na Chrome 124",
-    "colPublicIp": "IP na jama'a"
+    "colPublicIp": "IP na jama'a",
+    "colUpstream": "Tushen",
+    "colEgress": "IP na fita",
+    "colCorrelation": "Haɗin kai",
+    "colServedBy": "An bayar da",
+    "filterTraffic": "Tafiya",
+    "filterTests": "Gwaje-gwaje",
+    "filterSource": "Tushen"
   },
   "endpointOptions": {
     "speech": "Magana",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "An kasa ƙirƙirar Dahl token",
     "providerProxy": "Wakili",
     "providerProxyConfigureHint": "Saita proxy",
-    "providerProxyTitleConfigured": "An saita proxy: {host}"
+    "providerProxyTitleConfigured": "An saita proxy: {host}",
+    "inheritConnectionOption": "Babu proxy na kansa (yana gadon haɗi)",
+    "inheritedProxy": "Yana gadon haɗi: {host}",
+    "inheritedPool": "Yana gadon tafkin haɗi ({count})",
+    "poolEmptyBlocked": "Tafkin babu kowa — buƙatun suna faduwa (ba kai tsaye ba)",
+    "directEgress": "Kai tsaye (babu proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Kai tsaye (na asali)",
     "targetUrl": "URL ɗin da ake nufi",
     "error": "Kuskure",
-    "configuration": "Saitunan Proksi"
+    "configuration": "Saitunan Proksi",
+    "upstreamStatus": "Matsayin tushen",
+    "noResponse": "Babu amsa",
+    "egressIp": "IP na fita",
+    "servedBy": "An bayar da",
+    "correlationId": "ID na haɗin kai"
   },
   "requestTimeline": {
     "title": "Jadawalin Lokacin Buƙata",

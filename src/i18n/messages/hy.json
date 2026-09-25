@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "Օգտագործվել է {exits, plural, one {# ելք} other {# ելք}}՝ {connections, plural, one {# կապի} other {# կապերի}} կողմից · մինչև {max}՝ մեկ ելքի վրա · վերջին {hours} ժ",
     "poolEgressObservationEmpty": "Վերջին {hours} ժ ընթացքում տրաֆիկ չի դիտարկվել",
     "poolEgressObservationHint": "Հաշվարկված է պրոքսիի մատյանից տվյալ ժամանակահատվածի համար՝ այս պուլի անդամների համար դիտարկված տարբեր ելքային IP-ները և դրանք օգտագործած OmniRoute կապերը։ «Մեկ ելքի վրա» նշանակում է տվյալ ժամանակահատվածի ընթացքում, ոչ թե միաժամանակ։ Յուրաքանչյուր IP-ի համար 429 արգելափակումը դադարեցնում է միայն նույն մատակարարի ընտանիքի կապերը։",
+    "poolEgressFailuresByExit": "Ձախողումներ {exit}-ի միջոցով՝ {count}",
+    "poolEgressFailuresUnattributed": "Ձախողումներ առանց վերագրված ելքի՝ {count}",
     "poolMemberEgress": "{host}:{port}՝ ելք {egressIp}-ի միջոցով · վերջին {hours} ժ",
     "poolMemberEgressEmpty": "{host}:{port}՝ վերջին {hours} ժ ընթացքում երթևեկություն չի դիտարկվել",
     "poolMemberEgressHint": "Պրոքսիի մատյանից վերցված՝ տվյալ ժամանակային միջակայքում պուլի այս անդամի միջոցով դիտարկված վերջին ելքային IP հասցեն։ Եթե անդամի համար այդ միջակայքում երթևեկություն չի եղել, ցուցադրվում է երթևեկության բացակայության տողը։",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Ավելացնել",
     "poolAddFailed": "Չհաջողվեց պրոքսին ավելացնել պուլին",
     "poolSelectProxy": "Ընտրեք պրոքսի…",
-    "poolSaveFailed": "Չհաջողվեց պահպանել պուլին վերագրումը"
+    "poolSaveFailed": "Չհաջողվեց պահպանել պուլին վերագրումը",
+    "transportRate": "{rate}% փոխադրում",
+    "previousSuccessRate": "Նախկինում {rate}% հաջողություն",
+    "upstreamRefusals": "{count} upstream մերժում",
+    "connectionTestsCount": "{count} կապի թեստ",
+    "notMeasured": "Չի չափվել"
   },
   "playground": {
     "title": "Մոդելների փորձարկման հարթակ",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Պահանջված մոդել",
       "requestProtocol": "Հարցման արձանագրություն",
       "cacheSource": "Քեշի աղբյուր",
+      "contentProvenance": "Պատասխան",
+      "contentEmpty": "Դատարկ պատասխան",
+      "usageAbsent": "Թոքենների քանակը չի հաղորդվել",
+      "usageEstimated": "Թոքենների քանակը գնահատված է",
       "modelPinning": "Մոդելի ամրագրում",
       "activeModelPinning": "Ակտիվ — մոդելն ընտրվել է սեսիայի ամրագրման միջոցով",
       "rotated": "Փոխարկվել է՝ {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Պրոքսիի մատյաններ դեռ չկան։ Կարգավորեք պրոքսիները և կատարեք API կանչեր՝ դրանք այստեղ տեսնելու համար։",
     "noMatchingLogs": "Ընթացիկ զտիչներին համապատասխանող մատյաններ չկան։",
     "tlsFingerprint": "Chrome 124 TLS մատնահետք",
-    "colPublicIp": "Հանրային IP"
+    "colPublicIp": "Հանրային IP",
+    "colUpstream": "Վերին հոսք",
+    "colEgress": "Ելքային IP",
+    "colCorrelation": "Համապատասխանություն",
+    "colServedBy": "Մատակարարող",
+    "filterTraffic": "Հոսք",
+    "filterTests": "Թեստեր",
+    "filterSource": "Աղբյուր"
   },
   "endpointOptions": {
     "speech": "Խոսք",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Չհաջողվեց ստեղծել Dahl թոքենը",
     "providerProxy": "Պրոքսի",
     "providerProxyConfigureHint": "Կարգավորել պրոքսին",
-    "providerProxyTitleConfigured": "Պրոքսին կարգավորված է՝ {host}"
+    "providerProxyTitleConfigured": "Պրոքսին կարգավորված է՝ {host}",
+    "inheritConnectionOption": "Սեփական պրոքսի չկա (ժառանգում է կապը)",
+    "inheritedProxy": "Ժառանգում է կապը՝ {host}",
+    "inheritedPool": "Ժառանգում է կապերի խումբը ({count})",
+    "poolEmptyBlocked": "Խումբը դատարկ է — հարցումները ձախողվում են (ոչ ուղիղ)",
+    "directEgress": "Ուղիղ (առանց պրոքսիի)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Ուղիղ (նատիվ)",
     "targetUrl": "Թիրախային URL",
     "error": "Սխալ",
-    "configuration": "Պրոքսիի կազմաձևում"
+    "configuration": "Պրոքսիի կազմաձևում",
+    "upstreamStatus": "Վերին հոսքի կարգավիճակ",
+    "noResponse": "Պատասխան չկա",
+    "egressIp": "Ելքային IP",
+    "servedBy": "Մատակարարող",
+    "correlationId": "Համապատասխանության ID"
   },
   "requestTimeline": {
     "title": "Հարցումների ժամանակագիծ",

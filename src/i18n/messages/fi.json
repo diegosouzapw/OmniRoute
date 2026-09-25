@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# ulosmeno-IP} other {# ulosmeno-IP-osoitetta}} käytössä {connections, plural, one {# yhteydellä} other {# yhteydellä}} · enintään {max} yhdellä ulosmeno-IP:llä · viimeiset {hours} h",
     "poolEgressObservationEmpty": "Liikennettä ei havaittu viimeisten {hours} tunnin aikana",
     "poolEgressObservationHint": "Laskettu välityspalvelimen lokista tarkastelujakson ajalta: tämän poolin jäsenillä havaitut yksilölliset ulosmeno-IP-osoitteet sekä niitä käyttäneet OmniRoute-yhteydet. ”Yhdellä ulosmeno-IP:llä” tarkoittaa koko tarkastelujaksoa, ei samanaikaista käyttöä. IP-kohtainen 429-lukitus keskeyttää vain saman palveluntarjoajaperheen yhteydet.",
+    "poolEgressFailuresByExit": "Virheet kautta {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Virheet ilman kohdistettua ulostuloa: {count}",
     "poolMemberEgress": "{host}:{port} poistui osoitteen {egressIp} kautta · viimeiset {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: liikennettä ei havaittu viimeisten {hours} tunnin aikana",
     "poolMemberEgressHint": "Viimeisin tämän poolin jäsenen kautta havaittu ulostulo-IP valitulla aikavälillä välityspalvelimen lokin perusteella. Jos jäsenellä ei ole ollut liikennettä aikavälillä, näytetään Ei liikennettä -rivi.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Lisää",
     "poolAddFailed": "Proxyn lisääminen pooliin epäonnistui",
     "poolSelectProxy": "Valitse proxy…",
-    "poolSaveFailed": "Poolimäärityksen tallentaminen epäonnistui"
+    "poolSaveFailed": "Poolimäärityksen tallentaminen epäonnistui",
+    "transportRate": "{rate} % siirtoa",
+    "previousSuccessRate": "Aiemmin {rate} % onnistumisia",
+    "upstreamRefusals": "{count} upstream-hylkäystä",
+    "connectionTestsCount": "{count} yhteystestiä",
+    "notMeasured": "Ei mitattu"
   },
   "playground": {
     "title": "Title",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Pyydetty Malli",
       "requestProtocol": "Req-protokolla",
       "cacheSource": "Välimuisti Lähde",
+      "contentProvenance": "Vastaus",
+      "contentEmpty": "Tyhjä vastaus",
+      "usageAbsent": "Tokenien määrää ei raportoitu",
+      "usageEstimated": "Tokenien määrä on arvio",
       "modelPinning": "Mallin Kiinnitys",
       "activeModelPinning": "Aktiivinen — malli valittu istunnon kiinnittämisen kautta",
       "rotated": "Käännetty: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Välityspalvelinlokeja ei vielä ole. Määritä välityspalvelimet ja tee API-kutsuja, niin lokit näkyvät täällä.",
     "noMatchingLogs": "Yksikään loki ei vastaa nykyisiä suodattimia.",
     "tlsFingerprint": "Chrome 124 TLS-sormenjälki",
-    "colPublicIp": "Julkinen IP"
+    "colPublicIp": "Julkinen IP",
+    "colUpstream": "Ylävirta",
+    "colEgress": "Lähtö-IP",
+    "colCorrelation": "Korrelaatio",
+    "colServedBy": "Palvelija",
+    "filterTraffic": "Liikenne",
+    "filterTests": "Testit",
+    "filterSource": "Lähde"
   },
   "endpointOptions": {
     "speech": "Puhe",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Dahl-tokenin luominen epäonnistui",
     "providerProxy": "Välimuisti",
     "providerProxyConfigureHint": "Määritä välityspalvelin",
-    "providerProxyTitleConfigured": "Proxy on määritetty: {host}"
+    "providerProxyTitleConfigured": "Proxy on määritetty: {host}",
+    "inheritConnectionOption": "Ei omaa välityspalvelinta (perii yhteyden)",
+    "inheritedProxy": "Perii yhteyden: {host}",
+    "inheritedPool": "Perii yhteyspoolin ({count})",
+    "poolEmptyBlocked": "Pooli tyhjä — pyynnöt epäonnistuvat (ei suoraan)",
+    "directEgress": "Suora (ei välityspalvelinta)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Suora",
     "targetUrl": "Kohde-URL",
     "error": "Virhe",
-    "configuration": "Välityspalvelimen asetukset"
+    "configuration": "Välityspalvelimen asetukset",
+    "upstreamStatus": "Ylävirran tila",
+    "noResponse": "Ei vastausta",
+    "egressIp": "Lähtö-IP",
+    "servedBy": "Palvelija",
+    "correlationId": "Korrelaatio-ID"
   },
   "requestTimeline": {
     "title": "Pyyntö Aikajana",

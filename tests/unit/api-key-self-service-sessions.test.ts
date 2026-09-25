@@ -254,3 +254,20 @@ test("route GET /v1/me/sessions/[id] returns detail or 404 for foreign session",
   );
   assert.equal(resForeign.status, 404);
 });
+
+test("GET /v1/me/sessions normalizes timezone offset in from/to query params to UTC", async () => {
+  // Alice has sessions at 10:00Z and 11:00Z.
+  // 13:30+03:00 is 10:30Z, so it should exclude 10:00Z and include 11:00Z.
+  const req = new Request(
+    "http://localhost:20128/v1/me/sessions?from=" + encodeURIComponent("2026-09-25T13:30:00+03:00"),
+    { headers: { Authorization: "Bearer " + keyAliceToken } }
+  );
+  const res = await getSessionsRoute(req);
+  assert.equal(res.status, 200);
+  const data = (await res.json()) as {
+    total: number;
+    sessions: Array<{ clientSessionId: string }>;
+  };
+  assert.equal(data.total, 1);
+  assert.equal(data.sessions[0].clientSessionId, "alice-sess-2");
+});

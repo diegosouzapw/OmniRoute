@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# kilépési pontot} other {# kilépési pontot}} használt {connections, plural, one {# kapcsolat} other {# kapcsolat}} · egy kilépési ponton legfeljebb {max} · az elmúlt {hours} órában",
     "poolEgressObservationEmpty": "Nem észlelhető forgalom az elmúlt {hours} órában",
     "poolEgressObservationHint": "A proxynapló alapján, az időablakban számítva: a készlet tagjainál megfigyelt különböző kimenő IP-címek, valamint az ezeket használó OmniRoute-kapcsolatok. Az „egy kilépési ponton” az időablak egészére vonatkozik, nem egyidejű használatra. Az IP-címenkénti 429-es zárolás csak az azonos szolgáltatócsalád kapcsolatait szünetelteti.",
+    "poolEgressFailuresByExit": "Hibák a(z) {exit} kilépési ponton keresztül: {count}",
+    "poolEgressFailuresUnattributed": "Hibák hozzárendelt kilépési pont nélkül: {count}",
     "poolMemberEgress": "{host}:{port} kimenő forgalma a(z) {egressIp} címen keresztül haladt · elmúlt {hours} óra",
     "poolMemberEgressEmpty": "{host}:{port}: az elmúlt {hours} órában nem volt észlelhető forgalom",
     "poolMemberEgressHint": "Az időablakban a készlet ezen tagján keresztül legutóbb észlelt kimenő IP-cím, a proxy naplójából kiolvasva. Ha egy tagnál nem volt forgalom az időablakban, a forgalom hiányát jelző sor jelenik meg.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Hozzáadás",
     "poolAddFailed": "Nem sikerült hozzáadni a proxyt a készlethez",
     "poolSelectProxy": "Válasszon egy proxyt…",
-    "poolSaveFailed": "Nem sikerült menteni a készlet-hozzárendelést"
+    "poolSaveFailed": "Nem sikerült menteni a készlet-hozzárendelést",
+    "transportRate": "{rate}% átvitel",
+    "previousSuccessRate": "Korábban {rate}% siker",
+    "upstreamRefusals": "{count} upstream-elutasítás",
+    "connectionTestsCount": "{count} kapcsolati teszt",
+    "notMeasured": "Nem mért"
   },
   "playground": {
     "title": "Title",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Kért Modell",
       "requestProtocol": "Követelmény Protokoll",
       "cacheSource": "Gyorsítótár Forrás",
+      "contentProvenance": "Válasz",
+      "contentEmpty": "Üres válasz",
+      "usageAbsent": "A tokenszám nem lett jelentve",
+      "usageEstimated": "A tokenszám becsült",
       "modelPinning": "Modell Rögzítése",
       "activeModelPinning": "Aktív — a modell kiválasztva a munkamenet rögzítésével",
       "rotated": "Elforgatva: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Még nincsenek proxynaplók. Állítson be proxykat, és indítson API-hívásokat, hogy itt megjelenjenek.",
     "noMatchingLogs": "Egyetlen napló sem felel meg a jelenlegi szűrőknek.",
     "tlsFingerprint": "Chrome 124 TLS-ujjlenyomat",
-    "colPublicIp": "Publikus IP"
+    "colPublicIp": "Publikus IP",
+    "colUpstream": "Felfelé",
+    "colEgress": "Kimeneti IP",
+    "colCorrelation": "Koreláció",
+    "colServedBy": "Szolgáltatva általa",
+    "filterTraffic": "Forgalom",
+    "filterTests": "Tesztelés",
+    "filterSource": "Forrás"
   },
   "endpointOptions": {
     "speech": "Beszéd",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Sikertelen a Dahl token létrehozása",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Proxy beállítása",
-    "providerProxyTitleConfigured": "Proxy beállítva: {host}"
+    "providerProxyTitleConfigured": "Proxy beállítva: {host}",
+    "inheritConnectionOption": "Nincs saját proxy (a kapcsolatot örökli)",
+    "inheritedProxy": "Örökölt kapcsolat: {host}",
+    "inheritedPool": "Örökölt kapcsolati készlet ({count})",
+    "poolEmptyBlocked": "A készlet üres — a kérések meghiúsulnak (nem közvetlen)",
+    "directEgress": "Közvetlen (proxy nélkül)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Közvetlen",
     "targetUrl": "Cél URL",
     "error": "Hiba",
-    "configuration": "Proxy Beállítások"
+    "configuration": "Proxy Beállítások",
+    "upstreamStatus": "Felfelé állapot",
+    "noResponse": "Nincs válasz",
+    "egressIp": "Kimeneti IP",
+    "servedBy": "Szolgáltatva általa",
+    "correlationId": "Korelációs azonosító"
   },
   "requestTimeline": {
     "title": "Kérelem Idővonal",

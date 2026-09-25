@@ -79,6 +79,15 @@ test("parseReasoningEffortEnum returns null when the list has no recognized toke
   assert.equal(parseReasoningEffortEnum("expected one of `foo`, `bar`"), null);
 });
 
+// #14629: Command Code's live validation error joins its enum with `|`
+// (`"low"|"medium"|"high"|"xhigh"|"max"`), which the comma/and/or splitter
+// did not recognize as a separator, so the whole match collapsed to a single
+// unrecognized token and parseReasoningEffortEnum returned null.
+test("parseReasoningEffortEnum extracts a pipe-joined quoted enum (#14629 command-code)", () => {
+  const err = 'Invalid option: expected one of "low"|"medium"|"high"|"xhigh"|"max"';
+  assert.deepEqual(parseReasoningEffortEnum(err), ["low", "medium", "high", "xhigh", "max"]);
+});
+
 // ── recordLearnedReasoningEffort / getLearnedReasoningEffort ───────────────
 
 test("records the highest recognized value from the accepted list", () => {

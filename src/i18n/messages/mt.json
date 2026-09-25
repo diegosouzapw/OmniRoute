@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# ħruġ użat} other {# ħruġ użati}} minn {connections, plural, one {# konnessjoni} other {# konnessjonijiet}} · sa {max} fuq ħruġ wieħed · fl-aħħar {hours} h",
     "poolEgressObservationEmpty": "Ma ġie osservat l-ebda traffiku fl-aħħar {hours} h",
     "poolEgressObservationHint": "Magħduda mir-reġistru tal-proxy tul il-perjodu: l-indirizzi IP distinti tal-ħruġ osservati għall-membri ta’ dan il-pool, u l-konnessjonijiet OmniRoute li użawhom. \"Fuq ħruġ wieħed\" tfisser tul il-perjodu, mhux fl-istess ħin. L-imblukkar 429 għal kull indirizz IP iwaqqaf temporanjament biss il-konnessjonijiet tal-istess familja ta’ fornituri.",
+    "poolEgressFailuresByExit": "Fallimenti permezz ta' {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Fallimenti mingħajr ħruġ attribwit: {count}",
     "poolMemberEgress": "{host}:{port} ħareġ permezz ta’ {egressIp} · l-aħħar {hours} sigħat",
     "poolMemberEgressEmpty": "{host}:{port}: ma ġie osservat ebda traffiku fl-aħħar {hours} sigħat",
     "poolMemberEgressHint": "L-aħħar indirizz IP tal-ħruġ osservat permezz ta’ dan il-membru tal-pool matul il-perjodu, moqri mir-reġistru tal-proxy. Membru mingħajr traffiku matul il-perjodu juri l-linja ta’ ebda traffiku.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Żid",
     "poolAddFailed": "Ma rnexxiex iż-żieda tal-proxy mal-pool",
     "poolSelectProxy": "Agħżel proxy…",
-    "poolSaveFailed": "Ma rnexxiex l-issejvjar tal-assenjazzjoni tal-pool"
+    "poolSaveFailed": "Ma rnexxiex l-issejvjar tal-assenjazzjoni tal-pool",
+    "transportRate": "{rate}% trasport",
+    "previousSuccessRate": "Qabel {rate}% suċċess",
+    "upstreamRefusals": "{count} rifjuti upstream",
+    "connectionTestsCount": "{count} testijiet tal-konnessjoni",
+    "notMeasured": "Mhux imkejjel"
   },
   "playground": {
     "title": "Żona tal-Ittestjar tal-Mudelli",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Mudell mitlub",
       "requestProtocol": "Protokoll tat-talba",
       "cacheSource": "Sors tal-cache",
+      "contentProvenance": "Tweġiba",
+      "contentEmpty": "Tweġiba vojta",
+      "usageAbsent": "L-għadd tat-tokens ma ġiex irrappurtat",
+      "usageEstimated": "L-għadd tat-tokens huwa stmat",
       "modelPinning": "Iffissar tal-Mudell",
       "activeModelPinning": "Attiv — il-mudell intgħażel permezz tal-iffissar tas-sessjoni",
       "rotated": "Rotazzjoni: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Għad m'hemmx reġistri tal-proxy. Ikkonfigura l-proxies u agħmel sejħiet API biex tarahom hawnhekk.",
     "noMatchingLogs": "L-ebda reġistru ma jaqbel mal-filtri attwali.",
     "tlsFingerprint": "Marka tas-swaba' TLS ta' Chrome 124",
-    "colPublicIp": "IP Pubbliku"
+    "colPublicIp": "IP Pubbliku",
+    "colUpstream": "Sors",
+    "colEgress": "IP Egress",
+    "colCorrelation": "Korrelazzjoni",
+    "colServedBy": "Servut minn",
+    "filterTraffic": "Traffiku",
+    "filterTests": "Testijiet",
+    "filterSource": "Sors"
   },
   "endpointOptions": {
     "speech": "Diskors",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Ma rnexxiex jinħoloq it-token ta’ Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Ikkonfigura l-proxy",
-    "providerProxyTitleConfigured": "Proxy kkonfigurat: {host}"
+    "providerProxyTitleConfigured": "Proxy kkonfigurat: {host}",
+    "inheritConnectionOption": "L-ebda proxy proprju (jiret il-konnessjoni)",
+    "inheritedProxy": "Jiret il-konnessjoni: {host}",
+    "inheritedPool": "Jiret il-pool tal-konnessjonijiet ({count})",
+    "poolEmptyBlocked": "Pool vojt — it-talbiet ifallu (mhux dirett)",
+    "directEgress": "Dirett (bla proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Dirett (nattiv)",
     "targetUrl": "URL fil-mira",
     "error": "Żball",
-    "configuration": "Konfigurazzjoni tal-proxy"
+    "configuration": "Konfigurazzjoni tal-proxy",
+    "upstreamStatus": "Stat tas-sors",
+    "noResponse": "Ebda risposta",
+    "egressIp": "IP Egress",
+    "servedBy": "Servut minn",
+    "correlationId": "ID tal-Korrelazzjoni"
   },
   "requestTimeline": {
     "title": "Kronoloġija tat-talba",

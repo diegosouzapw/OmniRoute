@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# வெளியேற்றம்} other {# வெளியேற்றங்கள்}} — {connections, plural, one {# இணைப்பு} other {# இணைப்புகள்}} பயன்படுத்தியவை · ஒரு வெளியேற்றத்தில் அதிகபட்சம் {max} · கடந்த {hours} மணிநேரம்",
     "poolEgressObservationEmpty": "கடந்த {hours} மணிநேரத்தில் போக்குவரத்து எதுவும் காணப்படவில்லை",
     "poolEgressObservationHint": "இந்தக் காலச் சாளரத்திற்கான ப்ராக்ஸி பதிவிலிருந்து கணக்கிடப்பட்டது: இந்தத் தொகுப்பின் உறுப்பினர்களுக்காகக் காணப்பட்ட தனித்துவமான வெளியேற்ற IP-களும், அவற்றைப் பயன்படுத்திய OmniRoute இணைப்புகளும். \"ஒரு வெளியேற்றத்தில்\" என்பது ஒரே நேரத்தில் என்பதல்ல; இந்தக் காலச் சாளரத்தின் போது என்பதாகும். ஒவ்வொரு IP-க்குமான 429 பூட்டல், அதே வழங்குநர் குடும்பத்தைச் சேர்ந்த இணைப்புகளை மட்டுமே இடைநிறுத்தும்.",
+    "poolEgressFailuresByExit": "{exit} வழியான தோல்விகள்: {count}",
+    "poolEgressFailuresUnattributed": "ஒதுக்கப்பட்ட வெளியேற்றம் இல்லாத தோல்விகள்: {count}",
     "poolMemberEgress": "{host}:{port} இலிருந்து {egressIp} வழியாக வெளியேறியது · கடந்த {hours} மணி",
     "poolMemberEgressEmpty": "{host}:{port}: கடந்த {hours} மணிநேரத்தில் போக்குவரத்து எதுவும் காணப்படவில்லை",
     "poolMemberEgressHint": "இந்தக் கால இடைவெளியில் இந்தப் பூல் உறுப்பினர் வழியாகக் கடைசியாகக் காணப்பட்ட வெளியேற்ற IP, ப்ராக்ஸி பதிவிலிருந்து வாசிக்கப்பட்டது. இந்த இடைவெளியில் போக்குவரத்து இல்லாத உறுப்பினருக்கு போக்குவரத்து இல்லை என்ற வரி காட்டப்படும்.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "சேர்",
     "poolAddFailed": "தொகுப்பில் proxy-ஐச் சேர்ப்பது தோல்வியடைந்தது",
     "poolSelectProxy": "ஒரு proxy-ஐத் தேர்ந்தெடு…",
-    "poolSaveFailed": "தொகுப்பு ஒதுக்கீட்டைச் சேமிப்பது தோல்வியடைந்தது"
+    "poolSaveFailed": "தொகுப்பு ஒதுக்கீட்டைச் சேமிப்பது தோல்வியடைந்தது",
+    "transportRate": "{rate}% போக்குவரத்து",
+    "previousSuccessRate": "முன்பு {rate}% வெற்றி",
+    "upstreamRefusals": "{count} அப்ஸ்ட்ரீம் மறுப்புகள்",
+    "connectionTestsCount": "{count} இணைப்பு சோதனைகள்",
+    "notMeasured": "அளவிடப்படவில்லை"
   },
   "playground": {
     "title": "மாதிரி சோதனைக்களம்",
@@ -11477,6 +11484,10 @@
       "requestedModel": "கோரிய மாடல்",
       "requestProtocol": "அவசியம் நெறிமுறை",
       "cacheSource": "கேஷ் மூலத்திடம்",
+      "contentProvenance": "பதில்",
+      "contentEmpty": "வெற்று பதில்",
+      "usageAbsent": "டோக்கன் எண்ணிக்கை தெரிவிக்கப்படவில்லை",
+      "usageEstimated": "டோக்கன் எண்ணிக்கை மதிப்பிடப்பட்டது",
       "modelPinning": "மாதிரி பின்வாங்குதல்",
       "activeModelPinning": "செயலில் — அமர்வு பின்வட்டம் மூலம் தேர்ந்தெடுக்கப்பட்ட மாதிரி",
       "rotated": "மாற்றப்பட்டது: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "இதுவரை ப்ராக்ஸி பதிவுகள் எதுவுமில்லை. ப்ராக்ஸிகளை உள்ளமைத்து API அழைப்புகளை மேற்கொண்டால் அவற்றை இங்கே காணலாம்.",
     "noMatchingLogs": "தற்போதைய வடிப்பான்களுடன் எந்தப் பதிவுகளும் பொருந்தவில்லை.",
     "tlsFingerprint": "Chrome 124 TLS கைரேகை",
-    "colPublicIp": "பொது IP"
+    "colPublicIp": "பொது IP",
+    "colUpstream": "மேல்நிலை",
+    "colEgress": "வெளியேற்ற IP",
+    "colCorrelation": "இணைப்பு",
+    "colServedBy": "சேவையளிக்கப்படுகிறது",
+    "filterTraffic": "போக்குவரத்து",
+    "filterTests": "சோதனைகள்",
+    "filterSource": "மூலம்"
   },
   "endpointOptions": {
     "speech": "பேச்சு",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Dahl டோக்கன் உருவாக்குவதில் தோல்வி அடைந்தது",
     "providerProxy": "பிராக்சி",
     "providerProxyConfigureHint": "பிராக்ஸியை கட்டமைக்கவும்",
-    "providerProxyTitleConfigured": "பிராக்ஸி அமைக்கப்பட்டுள்ளது: {host}"
+    "providerProxyTitleConfigured": "பிராக்ஸி அமைக்கப்பட்டுள்ளது: {host}",
+    "inheritConnectionOption": "சொந்த ப்ராக்ஸி இல்லை (இணைப்பை மரபுரிமை)",
+    "inheritedProxy": "இணைப்பு மரபுரிமை: {host}",
+    "inheritedPool": "இணைப்பு தொகுப்பு மரபுரிமை ({count})",
+    "poolEmptyBlocked": "தொகுப்பு காலி — கோரிக்கைகள் தோல்வி (நேரடி அல்ல)",
+    "directEgress": "நேரடி (ப்ராக்ஸி இல்லை)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "நேரடி (native)",
     "targetUrl": "இலக்கு URL",
     "error": "பிழை",
-    "configuration": "பிராக்சி கட்டமைப்பு"
+    "configuration": "பிராக்சி கட்டமைப்பு",
+    "upstreamStatus": "மேல்நிலை நிலை",
+    "noResponse": "எந்த பதிலும் இல்லை",
+    "egressIp": "வெளியேற்ற IP",
+    "servedBy": "சேவையளிக்கப்படுகிறது",
+    "correlationId": "இணைப்பு ஐடி"
   },
   "requestTimeline": {
     "title": "கோரிக்கை காலக்கெடு",

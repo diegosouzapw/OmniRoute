@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {njia # ya kutoka} other {njia # za kutoka}} zilitumiwa na {connections, plural, one {muunganisho #} other {miunganisho #}} · hadi {max} kwenye njia moja ya kutoka · saa {hours} zilizopita",
     "poolEgressObservationEmpty": "Hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
     "poolEgressObservationHint": "Imehesabiwa kutoka kwenye kumbukumbu ya proksi katika kipindi hiki: IP tofauti za kutoka zilizoonekana kwa wanachama wa kundi hili, na miunganisho ya OmniRoute iliyozitumia. \"Kwenye njia moja ya kutoka\" humaanisha katika kipindi hicho, si kwa wakati mmoja. Uzuiaji wa 429 kwa kila IP husitisha tu miunganisho ya familia moja ya watoa huduma.",
+    "poolEgressFailuresByExit": "Hitilafu kupitia {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Hitilafu bila njia ya kutoka iliyohusishwa: {count}",
     "poolMemberEgress": "{host}:{port} ilitoka kupitia {egressIp} · saa {hours} zilizopita",
     "poolMemberEgressEmpty": "{host}:{port}: hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
     "poolMemberEgressHint": "IP ya mwisho ya kutoka iliyoonekana kupitia mshiriki huyu wa kundi katika kipindi hiki, ikisomwa kutoka kwenye logi ya proksi. Mshiriki asiye na trafiki katika kipindi hicho huonyesha mstari wa kutokuwepo kwa trafiki.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Ongeza",
     "poolAddFailed": "Imeshindwa kuongeza proksi kwenye dimbwi",
     "poolSelectProxy": "Chagua proksi…",
-    "poolSaveFailed": "Imeshindwa kuhifadhi ugawaji wa dimbwi"
+    "poolSaveFailed": "Imeshindwa kuhifadhi ugawaji wa dimbwi",
+    "transportRate": "{rate}% usafiri",
+    "previousSuccessRate": "Awali {rate}% mafanikio",
+    "upstreamRefusals": "{count} kukataliwa kwa upstream",
+    "connectionTestsCount": "{count} majaribio ya muunganisho",
+    "notMeasured": "Haijapimwa"
   },
   "playground": {
     "title": "Mazingira ya Majaribio ya Modeli",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Mfano Uliyoombwa",
       "requestProtocol": "Itifaki ya Req",
       "cacheSource": "Chanzo cha Kumbukumbu",
+      "contentProvenance": "Jibu",
+      "contentEmpty": "Jibu tupu",
+      "usageAbsent": "Idadi ya tokeni haikuripotiwa",
+      "usageEstimated": "Idadi ya tokeni imekadiriwa",
       "modelPinning": "Kufunga Mfano",
       "activeModelPinning": "Hai — mfano umechaguliwa kupitia pini ya kikao",
       "rotated": "Imepinduliwa: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Bado hakuna kumbukumbu za proksi. Sanidi proksi na ufanye miito ya API ili uzione hapa.",
     "noMatchingLogs": "Hakuna kumbukumbu zinazolingana na vichujio vya sasa.",
     "tlsFingerprint": "Alama ya kidijitali ya TLS ya Chrome 124",
-    "colPublicIp": "IP ya Umma"
+    "colPublicIp": "IP ya Umma",
+    "colUpstream": "Mwelekeo",
+    "colEgress": "IP ya Kutoka",
+    "colCorrelation": "Uhusiano",
+    "colServedBy": "Inatolewa na",
+    "filterTraffic": "Mzunguko",
+    "filterTests": "Majaribio",
+    "filterSource": "Chanzo"
   },
   "endpointOptions": {
     "speech": "Usemi",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Imeshindikana kuunda token ya Dahl",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Sanidi proxy",
-    "providerProxyTitleConfigured": "Proxy imewekwa: {host}"
+    "providerProxyTitleConfigured": "Proxy imewekwa: {host}",
+    "inheritConnectionOption": "Hakuna proksi binafsi (inarithi muunganisho)",
+    "inheritedProxy": "Inarithi muunganisho: {host}",
+    "inheritedPool": "Inarithi dimbwi la miunganisho ({count})",
+    "poolEmptyBlocked": "Dimbwi tupu — maombi yanashindwa (siyo moja kwa moja)",
+    "directEgress": "Moja kwa moja (bila proksi)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Moja kwa moja",
     "targetUrl": "URL ya Malengo",
     "error": "Kosa",
-    "configuration": "Mipangilio ya Proxy"
+    "configuration": "Mipangilio ya Proxy",
+    "upstreamStatus": "Hali ya mwelekeo",
+    "noResponse": "Hakuna jibu",
+    "egressIp": "IP ya Kutoka",
+    "servedBy": "Inatolewa na",
+    "correlationId": "Kitambulisho cha Uhusiano"
   },
   "requestTimeline": {
     "title": "Muda wa Ombi",

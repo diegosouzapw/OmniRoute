@@ -1,0 +1,1 @@
+- **feat(calls):** record rendered-content presence and usage provenance per request in the call log ([#14795](https://github.com/diegosouzapw/OmniRoute/pull/14795)) — thanks @maxmad64bis

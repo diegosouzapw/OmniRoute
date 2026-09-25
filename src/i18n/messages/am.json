@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{connections, plural, one {# ግንኙነት} other {# ግንኙነቶች}} {exits, plural, one {# መውጫን} other {# መውጫዎችን}} ተጠቅመዋል · በአንድ መውጫ ላይ እስከ {max} · የመጨረሻዎቹ {hours} ሰዓታት",
     "poolEgressObservationEmpty": "ባለፉት {hours} ሰዓታት ውስጥ ምንም ትራፊክ አልታየም",
     "poolEgressObservationHint": "በተወሰነው የጊዜ ክልል ውስጥ ከፕሮክሲ ምዝግብ የተቆጠሩት፦ ለዚህ ፑል አባላት የታዩ የተለያዩ የወጪ IPዎች እና እነሱን የተጠቀሙ OmniRoute ግንኙነቶች። \"በአንድ መውጫ ላይ\" ማለት በተወሰነው የጊዜ ክልል ውስጥ ማለት ነው፤ በተመሳሳይ ጊዜ ማለት አይደለም። የእያንዳንዱ IP የ429 እገዳ የሚያቆመው የተመሳሳይ የአቅራቢ ቤተሰብ ግንኙነቶችን ብቻ ነው።",
+    "poolEgressFailuresByExit": "በ{exit} በኩል የተከሰቱ ውድቀቶች፦ {count}",
+    "poolEgressFailuresUnattributed": "መውጫ ያልተመደበላቸው ውድቀቶች፦ {count}",
     "poolMemberEgress": "{host}:{port} በ{egressIp} በኩል ወጥቷል · ያለፉት {hours} ሰዓታት",
     "poolMemberEgressEmpty": "{host}:{port}፦ ባለፉት {hours} ሰዓታት ምንም ትራፊክ አልታየም",
     "poolMemberEgressHint": "በዚህ የፑል አባል በኩል በጊዜ መስኮቱ ውስጥ የታየው የመጨረሻው የመውጫ IP፣ ከፕሮክሲ ምዝግብ ማስታወሻው የተነበበ። በጊዜ መስኮቱ ውስጥ ምንም ትራፊክ የሌለው አባል ትራፊክ-የለም መስመሩን ያሳያል።",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "ጨምር",
     "poolAddFailed": "ፕሮክሲውን ወደ ፑሉ ማከል አልተሳካም",
     "poolSelectProxy": "ፕሮክሲ ይምረጡ…",
-    "poolSaveFailed": "የፑል ምደባውን ማስቀመጥ አልተሳካም"
+    "poolSaveFailed": "የፑል ምደባውን ማስቀመጥ አልተሳካም",
+    "transportRate": "{rate}% ትራንስፖርት",
+    "previousSuccessRate": "ከዚህ በፊት {rate}% ስኬት",
+    "upstreamRefusals": "{count} upstream ውድቅዎች",
+    "connectionTestsCount": "{count} የግንኙነት ሙከራዎች",
+    "notMeasured": "አልተለካም"
   },
   "playground": {
     "title": "የሞዴል መሞከሪያ",
@@ -11477,6 +11484,10 @@
       "requestedModel": "የተጠየቀው ሞዴል",
       "requestProtocol": "የጥያቄ ፕሮቶኮል",
       "cacheSource": "የመሸጎጫ ምንጭ",
+      "contentProvenance": "ምላሽ",
+      "contentEmpty": "ባዶ ምላሽ",
+      "usageAbsent": "የቶከን ብዛት አልተዘገበም",
+      "usageEstimated": "የቶከን ብዛት ተገምቷል",
       "modelPinning": "ሞዴልን መቆለፍ",
       "activeModelPinning": "ንቁ — ሞዴሉ በክፍለ ጊዜ መቆለፍ ተመርጧል",
       "rotated": "ተዘዋውሯል፦ {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "እስካሁን ምንም የፕሮክሲ ምዝግብ ማስታወሻዎች የሉም። ፕሮክሲዎችን ያዋቅሩ እና እዚህ ለማየት የAPI ጥሪዎችን ያድርጉ።",
     "noMatchingLogs": "ከአሁኑ ማጣሪያዎች ጋር የሚዛመዱ ምዝግብ ማስታወሻዎች የሉም።",
     "tlsFingerprint": "Chrome 124 TLS አሻራ",
-    "colPublicIp": "ይፋዊ IP"
+    "colPublicIp": "ይፋዊ IP",
+    "colUpstream": "ከላይ ያለው",
+    "colEgress": "ወጣት አይፒ",
+    "colCorrelation": "የተያያዘ",
+    "colServedBy": "የተሰጠ በ",
+    "filterTraffic": "ትራፊክ",
+    "filterTests": "ፈተናዎች",
+    "filterSource": "ምንጭ"
   },
   "endpointOptions": {
     "speech": "ንግግር",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "የDahl ቶከን መፍጠር አልተሳካም",
     "providerProxy": "ፕሮክሲ",
     "providerProxyConfigureHint": "ፕሮክሲ አዋቅር",
-    "providerProxyTitleConfigured": "ፕሮክሲ ተዋቅሯል፦ {host}"
+    "providerProxyTitleConfigured": "ፕሮክሲ ተዋቅሯል፦ {host}",
+    "inheritConnectionOption": "የራሱ ፕሮክሲ የለም (ግንኙነት ይወርሳል)",
+    "inheritedProxy": "ግንኙነት ይወርሳል: {host}",
+    "inheritedPool": "የግንኙነት ፑል ይወርሳል ({count})",
+    "poolEmptyBlocked": "ፑል ባዶ — ጥያቄዎች ይሳናሉ (ቀጥተኛ አይደለም)",
+    "directEgress": "ቀጥተኛ (ፕሮክሲ የሌለው)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "ቀጥታ (ቤተኛ)",
     "targetUrl": "ዒላማ URL",
     "error": "ስህተት",
-    "configuration": "የፕሮክሲ ውቅር"
+    "configuration": "የፕሮክሲ ውቅር",
+    "upstreamStatus": "ከላይ የሚገኝ ሁኔታ",
+    "noResponse": "አንድ እንደማይመልስ",
+    "egressIp": "ወጣት አይፒ",
+    "servedBy": "የተሰጠ በ",
+    "correlationId": "የተያያዘ መለያ"
   },
   "requestTimeline": {
     "title": "የጥያቄ ጊዜ መስመር",

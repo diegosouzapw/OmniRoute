@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# salida usada} other {# salidas usadas}} por {connections, plural, one {# conexión} other {# conexiones}} · hasta {max} en una salida · últimas {hours} h",
     "poolEgressObservationEmpty": "No se observó tráfico en las últimas {hours} h",
     "poolEgressObservationHint": "Calculado a partir del registro del proxy durante el intervalo: las direcciones IP de salida distintas observadas para los miembros de este grupo y las conexiones de OmniRoute que las utilizaron. «En una salida» se refiere al intervalo, no al mismo tiempo. El bloqueo 429 por IP solo pausa las conexiones de la misma familia de proveedores.",
+    "poolEgressFailuresByExit": "Fallos a través de {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Fallos sin salida atribuida: {count}",
     "poolMemberEgress": "{host}:{port} salió a través de {egressIp} · últimas {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: no se observó tráfico en las últimas {hours} h",
     "poolMemberEgressHint": "Última IP de salida observada a través de este miembro del grupo durante el intervalo, obtenida del registro del proxy. Si un miembro no tuvo tráfico en el intervalo, se muestra la línea de ausencia de tráfico.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Añadir",
     "poolAddFailed": "No se pudo añadir el proxy al grupo",
     "poolSelectProxy": "Selecciona un proxy…",
-    "poolSaveFailed": "No se pudo guardar la asignación del grupo"
+    "poolSaveFailed": "No se pudo guardar la asignación del grupo",
+    "transportRate": "{rate} % transporte",
+    "previousSuccessRate": "Anteriormente {rate} % de éxito",
+    "upstreamRefusals": "{count} rechazos aguas arriba",
+    "connectionTestsCount": "{count} pruebas de conexión",
+    "notMeasured": "No medido"
   },
   "playground": {
     "title": "Title",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Modelo Solicitado",
       "requestProtocol": "Protocolo Req",
       "cacheSource": "Fuente de Caché",
+      "contentProvenance": "Respuesta",
+      "contentEmpty": "Respuesta vacía",
+      "usageAbsent": "Recuento de tokens no informado",
+      "usageEstimated": "Recuento de tokens estimado",
       "modelPinning": "Fijación de Modelo",
       "activeModelPinning": "Activo — modelo seleccionado a través de la fijación de sesión",
       "rotated": "Rotado: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Aún no hay registros del proxy. Configura proxies y realiza llamadas a la API para verlos aquí.",
     "noMatchingLogs": "Ningún registro coincide con los filtros actuales.",
     "tlsFingerprint": "Huella digital TLS de Chrome 124",
-    "colPublicIp": "IP pública"
+    "colPublicIp": "IP pública",
+    "colUpstream": "Río arriba",
+    "colEgress": "IP de salida",
+    "colCorrelation": "Correlación",
+    "colServedBy": "Servido por",
+    "filterTraffic": "Tráfico",
+    "filterTests": "Pruebas",
+    "filterSource": "Fuente"
   },
   "endpointOptions": {
     "speech": "Voz",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Error al crear el token Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configurar proxy",
-    "providerProxyTitleConfigured": "Proxy configurado: {host}"
+    "providerProxyTitleConfigured": "Proxy configurado: {host}",
+    "inheritConnectionOption": "Sin proxy propio (hereda la conexión)",
+    "inheritedProxy": "Hereda la conexión: {host}",
+    "inheritedPool": "Hereda el grupo de conexiones ({count})",
+    "poolEmptyBlocked": "Grupo vacío — las solicitudes fallan (no directo)",
+    "directEgress": "Directo (sin proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Directo",
     "targetUrl": "URL de destino",
     "error": "Error",
-    "configuration": "Configuración del Proxy"
+    "configuration": "Configuración del Proxy",
+    "upstreamStatus": "Estado de río arriba",
+    "noResponse": "Sin respuesta",
+    "egressIp": "IP de salida",
+    "servedBy": "Servido por",
+    "correlationId": "ID de correlación"
   },
   "requestTimeline": {
     "title": "Cronograma de Solicitudes",

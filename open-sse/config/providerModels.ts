@@ -238,6 +238,17 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   // and OpenAI-shaped Mistral/Open-MaaS requests. Resource names retain enough publisher data to
   // route future dynamically-synced models without adding another pinned prefix here.
   if (alias === "vertex" || alias === "vp") return getVertexModelTargetFormat(bareModelId);
+  // #14575: GitHub/GHE Copilot's own executors (github.ts, ghe-copilot.ts) route ANY
+  // claude-named model to Copilot's Anthropic-native /v1/messages endpoint via an
+  // unconditional /claude/i name match, regardless of curated-catalog coverage. When
+  // Copilot ships a new Claude id before the catalog is updated (e.g. claude-opus-5.5),
+  // the curated lookup above misses and previously fell through to the provider's base
+  // "openai" format, leaving the request body OpenAI-shaped while it is dispatched to the
+  // Anthropic-native endpoint — which rejects it (tool_choice/tools shape mismatch).
+  // Mirror the routing heuristic here so body translation stays consistent with where the
+  // executor actually sends the request (same pattern as the openai "-pro" heuristic above,
+  // #5842).
+  if ((alias === "gh" || alias === "ghe-copilot") && /claude/i.test(bareModelId)) return "claude";
   // Model-level targetFormat is provider-scoped: a catalog entry declares how THIS
   // provider's endpoint serves the model — do NOT import another provider's tag.
   // #9994 scoped this for providers WITH a catalog; #10072 extends it to catalogless

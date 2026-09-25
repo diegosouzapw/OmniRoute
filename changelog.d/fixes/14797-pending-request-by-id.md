@@ -1,0 +1,1 @@
+- **fix(usage):** remove finished pending request by id instead of oldest-first ([#14797](https://github.com/diegosouzapw/OmniRoute/pull/14797)) — thanks @maxmad64bis

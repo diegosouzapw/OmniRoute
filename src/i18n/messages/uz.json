@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# ta chiqishdan} other {# ta chiqishdan}} {connections, plural, one {# ta ulanish} other {# ta ulanish}} foydalangan · bitta chiqishda ko‘pi bilan {max} ta · oxirgi {hours} soat",
     "poolEgressObservationEmpty": "Oxirgi {hours} soat ichida trafik kuzatilmadi",
     "poolEgressObservationHint": "Proksi jurnalidan ushbu vaqt oralig‘i bo‘yicha hisoblangan: bu pul a’zolari uchun kuzatilgan noyob chiquvchi IP manzillar va ulardan foydalangan OmniRoute ulanishlari. «Bitta chiqishda» ayni bir vaqtda emas, balki ushbu vaqt oralig‘ini anglatadi. Har bir IP uchun 429 blokirovkasi faqat bir xil provayder oilasiga mansub ulanishlarni vaqtincha to‘xtatadi.",
+    "poolEgressFailuresByExit": "{exit} orqali nosozliklar: {count}",
+    "poolEgressFailuresUnattributed": "Chiqishi aniqlanmagan nosozliklar: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} orqali chiqdi · so‘nggi {hours} soat",
     "poolMemberEgressEmpty": "{host}:{port}: so‘nggi {hours} soat ichida trafik kuzatilmadi",
     "poolMemberEgressHint": "Belgilangan vaqt oralig‘ida ushbu pul a’zosi orqali kuzatilgan oxirgi chiquvchi IP manzil, proksi jurnalidan o‘qilgan. Bu vaqt oralig‘ida trafik bo‘lmagan a’zo uchun trafik yo‘qligi haqidagi qator ko‘rsatiladi.",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "Qo‘shish",
     "poolAddFailed": "Proksini pulga qo‘shib bo‘lmadi",
     "poolSelectProxy": "Proksini tanlang…",
-    "poolSaveFailed": "Pulga biriktirishni saqlab bo‘lmadi"
+    "poolSaveFailed": "Pulga biriktirishni saqlab bo‘lmadi",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Oldin {rate}% muvaffaqiyat",
+    "upstreamRefusals": "{count} ta yuqori rad etish",
+    "connectionTestsCount": "{count} ulanish testi",
+    "notMeasured": "O‘lchanmagan"
   },
   "playground": {
     "title": "Model sinov maydoni",
@@ -11477,6 +11484,10 @@
       "requestedModel": "Soʻralgan model",
       "requestProtocol": "Soʻrov protokoli",
       "cacheSource": "Kesh manbasi",
+      "contentProvenance": "Javob",
+      "contentEmpty": "Boʻsh javob",
+      "usageAbsent": "Tokenlar soni xabar qilinmadi",
+      "usageEstimated": "Tokenlar soni taxminiy",
       "modelPinning": "Modelni mahkamlash",
       "activeModelPinning": "Faol — model sessiyaga mahkamlash orqali tanlangan",
       "rotated": "Almashtirildi: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "Hali proksi jurnallari yo‘q. Proksilarni sozlang va ularni shu yerda ko‘rish uchun API chaqiruvlarini amalga oshiring.",
     "noMatchingLogs": "Joriy filtrlarga mos jurnallar topilmadi.",
     "tlsFingerprint": "Chrome 124 TLS barmoq izi",
-    "colPublicIp": "Ochiq IP"
+    "colPublicIp": "Ochiq IP",
+    "colUpstream": "Oqim",
+    "colEgress": "Chiqish IP",
+    "colCorrelation": "Korelatsiya",
+    "colServedBy": "Ta'minlovchi",
+    "filterTraffic": "Trafik",
+    "filterTests": "Sinovlar",
+    "filterSource": "Manba"
   },
   "endpointOptions": {
     "speech": "Nutq",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "Dahl tokenini yaratib boʻlmadi",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Proksini sozlash",
-    "providerProxyTitleConfigured": "Proksi sozlangan: {host}"
+    "providerProxyTitleConfigured": "Proksi sozlangan: {host}",
+    "inheritConnectionOption": "Shaxsiy proksi yo‘q (ulanishni meros oladi)",
+    "inheritedProxy": "Ulanishni meros oladi: {host}",
+    "inheritedPool": "Ulanishlar hovuzini meros oladi ({count})",
+    "poolEmptyBlocked": "Hovuz bo‘sh — so‘rovlar muvaffaqiyatsiz (to‘g‘ridan-to‘g‘ri emas)",
+    "directEgress": "To‘g‘ridan-to‘g‘ri (proksisiz)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "Bevosita (nativ)",
     "targetUrl": "Maqsad URL",
     "error": "Xato",
-    "configuration": "Proksi konfiguratsiyasi"
+    "configuration": "Proksi konfiguratsiyasi",
+    "upstreamStatus": "Oqim holati",
+    "noResponse": "Javob yo'q",
+    "egressIp": "Chiqish IP",
+    "servedBy": "Ta'minlovchi",
+    "correlationId": "Korelatsiya ID"
   },
   "requestTimeline": {
     "title": "So‘rov vaqt jadvali",

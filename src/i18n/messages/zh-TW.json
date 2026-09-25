@@ -11041,6 +11041,8 @@
     "poolEgressObservation": "{exits, plural, one {# 個出口} other {# 個出口}}由 {connections, plural, one {# 個連線} other {# 個連線}}使用 · 單一出口最多 {max} 個 · 過去 {hours} 小時",
     "poolEgressObservationEmpty": "過去 {hours} 小時內未觀察到流量",
     "poolEgressObservationHint": "根據代理伺服器記錄在此時間範圍內計算：觀察到此集區成員使用的不同出口 IP，以及使用這些 IP 的 OmniRoute 連線。「單一出口」是指整個時間範圍內，而非同一時間。每個 IP 的 429 鎖定只會暫停同一提供者系列的連線。",
+    "poolEgressFailuresByExit": "經由 {exit} 的失敗：{count}",
+    "poolEgressFailuresUnattributed": "未歸屬出口的失敗：{count}",
     "poolMemberEgress": "{host}:{port} 經由 {egressIp} 對外連線 · 過去 {hours} 小時",
     "poolMemberEgressEmpty": "{host}:{port}：過去 {hours} 小時內未觀察到流量",
     "poolMemberEgressHint": "在此時間範圍內，透過此集區成員觀察到的最新出口 IP（讀取自 Proxy 日誌）。若成員在此時間範圍內沒有流量，則會顯示無流量訊息。",
@@ -11050,7 +11052,12 @@
     "poolAddMember": "新增",
     "poolAddFailed": "將代理新增至池失敗",
     "poolSelectProxy": "選取代理…",
-    "poolSaveFailed": "儲存池指派失敗"
+    "poolSaveFailed": "儲存池指派失敗",
+    "transportRate": "{rate}%傳輸",
+    "previousSuccessRate": "此前{rate}%成功",
+    "upstreamRefusals": "{count}次上游拒絕",
+    "connectionTestsCount": "{count}次連線測試",
+    "notMeasured": "未測量"
   },
   "playground": {
     "title": "模型演練場",
@@ -11477,6 +11484,10 @@
       "requestedModel": "請求的模型",
       "requestProtocol": "需求協議",
       "cacheSource": "快取來源",
+      "contentProvenance": "回覆",
+      "contentEmpty": "空回覆",
+      "usageAbsent": "未回報 token 數量",
+      "usageEstimated": "token 數量為估算值",
       "modelPinning": "模型固定",
       "activeModelPinning": "活動 — 通過會話固定選擇的模型",
       "rotated": "旋轉: {initial} -> {final}",
@@ -11540,7 +11551,14 @@
     "noProxyLogs": "尚無代理日誌。設定代理併發起 API 呼叫後會顯示在這裡。",
     "noMatchingLogs": "沒有日誌匹配當前篩選條件。",
     "tlsFingerprint": "Chrome 124 TLS 指紋",
-    "colPublicIp": "公共IP"
+    "colPublicIp": "公共IP",
+    "colUpstream": "上游",
+    "colEgress": "出口 IP",
+    "colCorrelation": "關聯",
+    "colServedBy": "由...提供",
+    "filterTraffic": "流量",
+    "filterTests": "測試",
+    "filterSource": "來源"
   },
   "endpointOptions": {
     "speech": "語音",
@@ -12797,7 +12815,12 @@
     "createDahlTokenFailed": "無法創建 Dahl 令牌",
     "providerProxy": "代理伺服器",
     "providerProxyConfigureHint": "配置代理",
-    "providerProxyTitleConfigured": "代理已配置：{host}"
+    "providerProxyTitleConfigured": "代理已配置：{host}",
+    "inheritConnectionOption": "無自有代理(繼承連線)",
+    "inheritedProxy": "繼承連線:{host}",
+    "inheritedPool": "繼承連線集區({count})",
+    "poolEmptyBlocked": "集區為空——請求將失敗(非直連)",
+    "directEgress": "直連(無代理)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14126,7 +14149,12 @@
     "directNative": "直接",
     "targetUrl": "目標 URL",
     "error": "錯誤",
-    "configuration": "代理設定"
+    "configuration": "代理設定",
+    "upstreamStatus": "上游狀態",
+    "noResponse": "無回應",
+    "egressIp": "出口 IP",
+    "servedBy": "由...提供",
+    "correlationId": "關聯 ID"
   },
   "requestTimeline": {
     "title": "請求時間線",

@@ -1,0 +1,1 @@
+- **fix(sse):** Strict zero-cost tally separates proven-exhausted quota from unknown-state exclusions ([#14707](https://github.com/diegosouzapw/OmniRoute/pull/14707)) — thanks @maxmad64bis
