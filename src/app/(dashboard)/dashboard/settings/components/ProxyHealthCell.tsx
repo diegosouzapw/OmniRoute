@@ -10,8 +10,16 @@ interface TestResult {
 }
 
 interface HealthInfo {
-  successRate?: number;
-  avgLatencyMs?: number;
+  successRate?: number | null;
+  avgLatencyMs?: number | null;
+  transportRate?: number | null;
+  measured?: boolean;
+  transportOk?: number;
+  transportFailures?: number;
+  upstream4xx?: number;
+  upstream5xx?: number;
+  connectionTests?: number;
+  connectionTestSuccess?: number;
 }
 
 interface ProxyHealthCellProps {
@@ -43,15 +51,20 @@ export function ProxyHealthCell({ testResult, health }: ProxyHealthCellProps) {
         </div>
       );
     }
-    return (
-      <span className="text-red-400">✗ {testResult.error || t("failed")}</span>
-    );
+    return <span className="text-red-400">✗ {testResult.error || t("failed")}</span>;
   }
 
   if (health) {
+    const upstreamRefusals = (health.upstream4xx ?? 0) + (health.upstream5xx ?? 0);
     return (
       <div className="flex flex-col gap-0.5">
-        <span>{t("successRate", { rate: health.successRate ?? 0 })}</span>
+        <span title={t("previousSuccessRate", { rate: health.successRate ?? 0 })}>
+          {health.measured === false
+            ? t("notMeasured")
+            : t("transportRate", { rate: health.transportRate ?? 0 })}
+        </span>
+        <span>{t("upstreamRefusals", { count: upstreamRefusals })}</span>
+        <span>{t("connectionTestsCount", { count: health.connectionTests ?? 0 })}</span>
         <span>{t("avgLatency", { latency: health.avgLatencyMs ?? "-" })}</span>
       </div>
     );

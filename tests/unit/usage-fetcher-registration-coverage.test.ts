@@ -98,9 +98,6 @@ const ACCEPTED_DIVERGENCE: Record<string, string> = {
   opencode: "aggregator — fetcher exists, not surfaced as a usage-reporting connection",
   "opencode-zen": "aggregator — same as opencode",
   xai: "reached through xai-oauth for connection purposes",
-  // Declared supported, no fetcher: a real gap, left alone here on purpose so
-  // this PR stays about the two providers whose fetcher already exists.
-  "xiaomi-mimo-token-plan": "declared supported with no fetcher — open question, not fixed here",
 };
 
 test("every difference between the two lists is one we have written down", () => {
