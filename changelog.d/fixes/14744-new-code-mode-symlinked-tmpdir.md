@@ -1,0 +1,1 @@
+- **quality:** normalize symlinked worktree directories and report paths in new-code mode gates so macOS base violations match accurately (#14744).

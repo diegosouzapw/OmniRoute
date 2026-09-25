@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import {
@@ -126,4 +129,44 @@ test("newDeadSymbols reports only symbols that are new on HEAD, in touched files
     "src/other.ts:orphaned",
   ]);
   assert.deepEqual(newDeadSymbols(base, head, ["src/a.ts"]), []);
+});
+
+test("perFileRuleCounts normalizes symlinked cwd so canonical paths match (#14744)", () => {
+  const realBase = fs.realpathSync(os.tmpdir());
+  const realDir = fs.mkdtempSync(path.join(realBase, "omni-test-real-"));
+  const symDir = path.join(realBase, `omni-test-symlink-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  fs.symlinkSync(realDir, symDir, "dir");
+
+  const report = [
+    {
+      filePath: path.join(realDir, "open-sse/executors/commandCode.ts"),
+      messages: [{ ruleId: "complexity" }, { ruleId: "max-lines-per-function" }],
+    },
+    {
+      filePath: "src/relative.ts",
+      messages: [{ ruleId: "complexity" }],
+    },
+  ];
+
+  try {
+    const counts = perFileRuleCounts(report, new Set(["complexity", "max-lines-per-function"]), symDir);
+    assert.equal(counts.size, 2);
+    assert.equal(counts.get("open-sse/executors/commandCode.ts"), 2);
+    assert.equal(counts.get("src/relative.ts"), 1);
+
+    // Fallback when cwd does not exist on disk
+    const fallbackCounts = perFileRuleCounts(
+      [{ filePath: "/nonexistent/repo/src/a.ts", messages: [{ ruleId: "complexity" }] }],
+      new Set(["complexity"]),
+      "/nonexistent/repo"
+    );
+    assert.equal(fallbackCounts.get("src/a.ts"), 1);
+  } finally {
+    try {
+      fs.unlinkSync(symDir);
+    } catch {}
+    try {
+      fs.rmSync(realDir, { recursive: true, force: true });
+    } catch {}
+  }
 });

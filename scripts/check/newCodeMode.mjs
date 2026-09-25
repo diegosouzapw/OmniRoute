@@ -97,11 +97,25 @@ export function withBaseWorktree(sha, fn) {
  * `filePath` is made relative to `cwd` so HEAD and base reports share keys.
  */
 export function perFileRuleCounts(report, rules, cwd) {
+  let realCwd = cwd;
+  try {
+    realCwd = fs.realpathSync(cwd);
+  } catch {
+    /* fallback to cwd */
+  }
   const counts = new Map();
   for (const entry of report || []) {
-    const rel = path.isAbsolute(entry.filePath)
-      ? path.relative(cwd, entry.filePath).split(path.sep).join("/")
-      : entry.filePath;
+    let filePath = entry.filePath;
+    if (path.isAbsolute(filePath)) {
+      try {
+        filePath = fs.realpathSync(filePath);
+      } catch {
+        /* fallback */
+      }
+    }
+    const rel = path.isAbsolute(filePath)
+      ? path.relative(realCwd, filePath).split(path.sep).join("/")
+      : filePath;
     let n = 0;
     for (const m of entry.messages || []) if (rules.has(m.ruleId)) n++;
     counts.set(rel, (counts.get(rel) || 0) + n);
