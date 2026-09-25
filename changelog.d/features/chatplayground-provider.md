@@ -1,0 +1,5 @@
+- **feat(providers):** add ChatPlayground (`chatplayground`, alias `cpl`) web provider routing models across Azure, LMSYS, and Perplexity endpoints with dynamic model discovery from `https://app.chatplayground.ai/api/models` — thanks @james-martinez
+- **feat(providers):** auto-minting Clerk session JWT authentication via `https://clerk.chatplayground.ai/v1/client/sessions/{sid}/tokens` using the `__client` cookie and `sid` (derived from the `__session` JWT cookie), with in-memory caching and expiry skew — thanks @james-martinez
+- **feat(providers):** support multi-account rotation and failover natively via OmniRoute's Combo Router and account fallback engine — thanks @james-martinez
+- **feat(providers):** OpenAI-compatible streaming translation for ChatPlayground via `TransformStream`, stripping internal `CHAT_ID:[a-zA-Z0-9_-]+` tokens — thanks @james-martinez
+- **feat(usage):** add ChatPlayground quota & limits monitoring via `GET /api/user` tracking daily query allowances (including 300 credits/day for Lifetime subscription accounts) and midnight UTC resets — thanks @james-martinez
