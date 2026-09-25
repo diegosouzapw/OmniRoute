@@ -54,6 +54,7 @@ import { recordStickyBinding } from "./sessionStickiness.ts";
 import { recordStickyWeightedSuccess } from "./rrState.ts";
 import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "../reasoningTokenBuffer.ts";
 import { parseModel } from "../model.ts";
+import { getNextFamilyFallback } from "../modelFamilyFallback.ts";
 import type { ProviderProfile } from "../accountFallback.ts";
 import {
   MAX_FALLBACK_WAIT_MS,
@@ -113,8 +114,8 @@ export async function executeTargetAttempt(opts: {
   const { index: i, state, deps, targetForAttempt, protectedPriorityTarget } = opts;
   const profile = opts.profile as ProviderProfile | undefined;
   const target = state.orderedTargets[i];
-  const modelStr = target.modelStr;
-  const rawModel = parseModel(modelStr).model || modelStr;
+  let modelStr = target.modelStr;
+  let rawModel = parseModel(modelStr).model || modelStr;
   const provider = target.provider;
   const allowRateLimitedConnection =
     Boolean(provider && provider !== "unknown") &&
@@ -155,6 +156,7 @@ export async function executeTargetAttempt(opts: {
     recovery: buildRecoveryHint(terminalReason, retryAfterSeconds),
   });
 
+  const familyTried = new Set<string>();
   // Retry loop for transient errors
   for (let retry = 0; retry <= deps.maxRetries; retry++) {
     // Fix #1681: Bail out immediately if the client has disconnected
@@ -465,6 +467,18 @@ export async function executeTargetAttempt(opts: {
         });
         state.observeFailure(false, target.executionKey);
         if (handlePreContentStreamRetry(quality, retry, deps, modelStr)) continue;
+        familyTried.add(modelStr);
+        const familyNext =
+          provider && provider !== "unknown"
+            ? getNextFamilyFallback(modelStr, familyTried, provider)
+            : null;
+        if (familyNext && familyNext !== modelStr) {
+          deps.log.info("COMBO", `Quality fail ${modelStr} -> family sibling ${familyNext}`);
+          modelStr = familyNext;
+          rawModel = parseModel(modelStr).model || modelStr;
+          retry--;
+          continue;
+        }
         return protectedPriorityTarget ? qualityValidationFailure() : null;
       }
 
