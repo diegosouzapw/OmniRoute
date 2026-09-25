@@ -154,6 +154,27 @@ test("combo test route marks a model healthy only when it returns assistant text
   assert.equal(body.results[0].responseText, "OK");
 });
 
+test("combo test route skips web-session providers without sending a chat probe", async () => {
+  await createTestCombo(["deepseek-web/deepseek-v4-pro-think"]);
+
+  const fetchCalls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({ url: String(url), init });
+    return new Response(
+      JSON.stringify({ choices: [{ message: { role: "assistant", content: "PONG" } }] }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await route.POST(makeRequest());
+  const body = (await response.json()) as ComboTestBody;
+
+  assert.equal(response.status, 200);
+  assert.equal(fetchCalls.length, 0, "web-session probes must not send a chat request");
+  assert.equal(body.results[0].status, "error");
+  assert.match(body.results[0].error ?? "", /Skipped:.*web-session/i);
+});
+
 test("combo test route treats empty successful responses as failures", async () => {
   await createTestCombo();
 

@@ -1,0 +1,1 @@
+- **fix(providers):** model and combo health checks now skip providers requiring web-session credentials instead of sending chat prompts ([#14780](https://github.com/diegosouzapw/OmniRoute/issues/14780)).
