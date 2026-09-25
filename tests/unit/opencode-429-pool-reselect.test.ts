@@ -15,6 +15,7 @@ import {
   runWithProxyContext,
 } from "../../open-sse/utils/proxyFetch.ts";
 import { runInRequestContext } from "../../open-sse/executors/opencodeRequestContext.ts";
+import { __resetProxyRefusalMemoryForTesting } from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 const FLAG = "OPENCODE_POOL_RESELECT";
 
@@ -51,6 +52,9 @@ beforeEach(() => {
   priorFlag = process.env[FLAG];
   process.env[FLAG] = "true";
   observed = [];
+  // PROXY_SKIP_RECENTLY_FAILED is on by default (#14688): a 429 from one case
+  // would otherwise set its proxy aside for the next case.
+  __resetProxyRefusalMemoryForTesting();
 });
 
 afterEach(() => {

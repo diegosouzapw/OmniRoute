@@ -674,6 +674,11 @@ export class OpencodeExecutor extends BaseExecutor {
       let burstStreak = 0,
         parked = false;
       const requestPacing = egressPacing.initEgressPacingForRequest(); // Off by default.
+      // Pool re-selection cell: a member the 429 arm asked the pool for, served
+      // at the next dispatch instead of the account's own proxy (or, for a
+      // proxy-less account, instead of inheriting the ambient member). Written
+      // once per 429 on the plain-rotation path, read at every dispatch below.
+      let reselectedProxy: ScopedAccount["proxy"] | undefined;
       // served-account changes (effective-change counting) live in the leaf tracker.
       const noteServedAccount = createServedAccountTracker();
       const appliedEgress = egressPacing.createAppliedEgressTracker(
