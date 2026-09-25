@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 // cross-evidence: repeated tagged failures through one egress plus a real
 // success to the same destination through a different egress. An isolated
 // failure, a globally unreachable destination, a single-member pool, an edge
-// relay (null key), an expired window, or a disabled opt-in flag never write.
+// relay (null key), an expired window, or the flag set to false never write.
 
 const memory = await import("../../open-sse/utils/proxyRefusalMemory.ts");
 const { noteTransportOutcome } = await import("../../src/sse/handlers/proxyOutcomeMemory.ts");
@@ -82,7 +82,7 @@ test("an expired window is not evidence", () => {
 });
 
 test("a disabled opt-in flag writes nothing", () => {
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   fail(KEY_A, DEST, START);
   fail(KEY_A, DEST, START + 1_000);
   memory.recordTransportSuccess(DEST, KEY_B, START + 1_500);
@@ -136,7 +136,7 @@ test("evidence stores stay bounded", () => {
 test("with the opt-in flag off the dispatcher hooks record no evidence", async () => {
   const { recordFinalTransportOutcome, recordProxiedSuccess } =
     await import("../../open-sse/utils/proxyTransportOutcome.ts");
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   recordProxiedSuccess("http://10.9.0.2:8080", "https://api.example.com/v1/chat");
   await recordFinalTransportOutcome("http://10.9.0.1:8080", "https://api.example.com/v1/chat");
   assert.deepEqual(memory.__transportEvidenceSizeForTesting(), { failures: 0, successes: 0 });

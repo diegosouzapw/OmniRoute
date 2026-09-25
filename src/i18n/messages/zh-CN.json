@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; 网关别名的总开关。开启（默认）：/v1/models 会为每个符合条件且支持思考的 Claude 模型公布一个无思考变体，请求中发送的 no-think/ ID 会解析回实际模型，并抑制推理。关闭：不会公布任何变体，no-think/ ID 会像其他未知模型 ID 一样处理。开启此开关时，每个模型的 ModelSpec.noThinkingAlias 选择启用/停用设置仍然适用。",
   "featureFlagChatVirtualLanesEnabledDescription": "为提供者调度启用按租户的自适应虚拟准入通道（#9654）：一个租户的突发流量不再导致另一个租户收到 503。OMNIROUTE_CHAT_VIRTUAL_LANES 环境变量优先于此仪表板设置；更改在服务器重启后生效。",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "控制面板提供者页面：仅根据提供者认可的信号显示“免费”徽章——对于没有文档说明免费层级的已注册提供者，不再使用显示名称启发式规则、非布尔型免费字段和 :free 后缀。关闭时沿用旧版徽章规则。",
-  "featureFlagProxySkipRecentlyFailedDescription": "代理池和 opencode 的按账户轮换会在每个进程的一段时间内，停止再次提供刚刚失败的代理（TCP 探测被拒绝，或通过该代理收到 429）。每次重复失败时，该时段都会翻倍，直至达到上限。不会写入代理状态；当所有候选代理都被暂时搁置时，选择保持不变。默认关闭：选择顺序与普通轮换完全相同。",
+  "featureFlagProxySkipRecentlyFailedDescription": "代理池和 opencode 的按账户轮换会在每个进程的一段时间内，停止再次提供刚刚失败的代理（TCP 探测被拒绝，或通过该代理收到 429）。每次重复失败时，该时段都会翻倍，直至达到上限。不会写入代理状态；当所有候选代理都被暂时搁置时，选择保持不变。默认开启；设为 `false` 可恢复普通选择。",
   "featureFlagProxyPoolEgressObservationDescription": "在仪表板的代理池下显示：过去 24 小时内观察到多少个出口 IP 为其成员提供服务、使用这些 IP 的连接数，以及单个 IP 对应的最大连接数。此信息为只读，根据代理日志计算，绝不用于路由。默认关闭：代理池编辑器保持不变，观测路由返回 null。",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "在代理健康检查中，如果探测被目标拒绝（401/403/429：代理已转发，但目标拒绝了此出口 IP），则像探测成功一样重置代理的连续失败计数。默认关闭：拒绝保持中性，并保留当前连续失败计数。无论如何，5xx 均保持结果不确定，而且拒绝绝不会导致代理被移除、禁用或重新激活。",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "允许自动清理任务删除早于 OMNIROUTE_BATCH_RETENTION_DAYS 的终态（已完成/失败/已取消/已过期）Batch API 作业及其逐行检查点，并清除超过各自 expires_at 的已上传文件的 BLOB 内容。默认关闭：在运维人员选择启用之前，所有现有安装都将继续像以前一样保留这些数据。无论是否启用，运维人员触发的 DELETE /api/v1/batches/delete-completed 路由均不受影响——它是一个独立且无条件执行的公共 API 契约。",

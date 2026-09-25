@@ -636,8 +636,8 @@ export class OpencodeExecutor extends BaseExecutor {
       const geoTriedProxyKeys = new Set<string>(),
         rateLimitedProxyKeys = new Set<string>(),
         spare = egressPacing.lastResort429(accounts, this, geoTriedProxyKeys, rateLimitedProxyKeys);
-      // Opt-in (PROXY_SKIP_RECENTLY_FAILED, default off): members the provider just refused
-      // (received refusal or refused TCP probe) are skipped. Off = plain rotation.
+      // (PROXY_SKIP_RECENTLY_FAILED, default on): members the provider just refused
+      // (received refusal or refused TCP probe) are skipped. =false = plain rotation.
       const skipRecentlyFailed = isProxySkipRecentlyFailedEnabled();
       let directTried = false;
       const stallCounter = { attempts: 0 }; // first-byte stalls: one rotation, then fail fast
