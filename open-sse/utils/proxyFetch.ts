@@ -4,10 +4,12 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { fetch as undiciFetch, Agent } from "undici";
 import {
   buildVercelRelayHeaders,
+  clearDispatcherCache,
   createProxyDispatcher,
   getDefaultDispatcher,
   getProxyRetryDispatcher,
   getRetryDispatcher,
+  isLocalEgressHostname,
   isRelayType,
   normalizeProxyUrl,
   proxyConfigToUrl,
@@ -114,6 +116,7 @@ const TLS_PROVIDER_PROFILE: Record<string, { browser: string; os: string }> = {
 
 type TlsProfileResult = { browserProfile?: string; os?: string };
 function tlsProfileForProvider(provider: string | null | undefined): TlsProfileResult {
+
   if (!provider) return {};
   const p = TLS_PROVIDER_PROFILE[provider.trim().toLowerCase()];
   return p ? { browserProfile: p.browser, os: p.os } : {};
@@ -910,11 +913,18 @@ async function patchedFetchUnrecorded(
     }
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
+        let hostnameForDispatcher: string | undefined;
+        try {
+          hostnameForDispatcher = new URL(targetUrl).hostname;
+        } catch {}
         return await directFetchWithBoundedResponseStart(
           input,
           {
             ...options,
-            dispatcher: attempt === 0 ? getDefaultDispatcher() : getRetryDispatcher(),
+            dispatcher:
+              attempt === 0
+                ? getDefaultDispatcher(hostnameForDispatcher)
+                : getRetryDispatcher(hostnameForDispatcher),
           },
           _undiciDirect,
           resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout, attempt, !!options.signal)
@@ -1004,6 +1014,18 @@ async function patchedFetchUnrecorded(
           console.warn(
             `[ProxyFetch] Undici dispatcher failed, falling back to native fetch (after retry): ${describeFetchCause(dispatcherError)}`
           );
+          // On PROXY_UNREACHABLE for local-egress hostnames (host.docker.internal,
+          // *.internal, *.local), drop the cached dispatcher pool: Docker
+          // Desktop's NAT silently drops idle keep-alive sockets inside the
+          // round-robin pool's keepAliveMaxTimeout window, and the pool never
+          // reaps them on PROXY_UNREACHABLE, so the next request must rebuild
+          // with fresh sockets (#4252-style stale-socket burst mitigation).
+          if (
+            isLocalEgressHostname(targetHostForLogs) &&
+            isProxyUnreachableError(dispatcherError)
+          ) {
+            clearDispatcherCache();
+          }
           try {
             return await _nativeFallback(input, options);
           } catch (nativeError) {

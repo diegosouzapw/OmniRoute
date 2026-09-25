@@ -3,6 +3,13 @@ import type { Dispatcher } from "undici";
 const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
 const RETRY_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.retry");
+// Local-egress dispatchers: separate cache for hostnames like
+// host.docker.internal / *.internal / *.local, where Docker Desktop's NAT
+// silently drops idle keep-alive sockets within the global pool's
+// keepAliveMaxTimeout window. Kept on their own cache so a wider keep-alive
+// for cloud upstreams cannot pull the .internal sockets down with it.
+const LOCAL_DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.localDefault");
+const LOCAL_RETRY_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.localRetry");
 
 /** Upper bound on cached per-URL proxy dispatchers; oldest entries are evicted first. */
 const MAX_DISPATCHER_CACHE_ENTRIES = 512;
@@ -12,6 +19,8 @@ type GlobalWithDispatcherCache = typeof globalThis & {
   [DISPATCHER_CACHE_KEY]?: DispatcherCache;
   [DEFAULT_DISPATCHER_KEY]?: Dispatcher;
   [RETRY_DISPATCHER_KEY]?: Dispatcher;
+  [LOCAL_DEFAULT_DISPATCHER_KEY]?: Dispatcher;
+  [LOCAL_RETRY_DISPATCHER_KEY]?: Dispatcher;
 };
 
 /**
@@ -94,6 +103,22 @@ export function setRetryCachedDispatcher(dispatcher: Dispatcher): void {
   (globalThis as GlobalWithDispatcherCache)[RETRY_DISPATCHER_KEY] = dispatcher;
 }
 
+export function getLocalDefaultCachedDispatcher(): Dispatcher | undefined {
+  return (globalThis as GlobalWithDispatcherCache)[LOCAL_DEFAULT_DISPATCHER_KEY];
+}
+
+export function setLocalDefaultCachedDispatcher(dispatcher: Dispatcher): void {
+  (globalThis as GlobalWithDispatcherCache)[LOCAL_DEFAULT_DISPATCHER_KEY] = dispatcher;
+}
+
+export function getLocalRetryCachedDispatcher(): Dispatcher | undefined {
+  return (globalThis as GlobalWithDispatcherCache)[LOCAL_RETRY_DISPATCHER_KEY];
+}
+
+export function setLocalRetryCachedDispatcher(dispatcher: Dispatcher): void {
+  (globalThis as GlobalWithDispatcherCache)[LOCAL_RETRY_DISPATCHER_KEY] = dispatcher;
+}
+
 function closeDispatcher(dispatcher: Dispatcher | undefined): void {
   if (!dispatcher) return;
   try {
@@ -118,8 +143,12 @@ export function clearDispatcherCache(): void {
   const globalWithCache = globalThis as GlobalWithDispatcherCache;
   closeDispatcher(globalWithCache[DEFAULT_DISPATCHER_KEY]);
   closeDispatcher(globalWithCache[RETRY_DISPATCHER_KEY]);
+  closeDispatcher(globalWithCache[LOCAL_DEFAULT_DISPATCHER_KEY]);
+  closeDispatcher(globalWithCache[LOCAL_RETRY_DISPATCHER_KEY]);
   delete globalWithCache[DEFAULT_DISPATCHER_KEY];
   delete globalWithCache[RETRY_DISPATCHER_KEY];
+  delete globalWithCache[LOCAL_DEFAULT_DISPATCHER_KEY];
+  delete globalWithCache[LOCAL_RETRY_DISPATCHER_KEY];
 }
 
 export function __cacheProxyDispatcherForTest(key: string, dispatcher: Dispatcher): void {

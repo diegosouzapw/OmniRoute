@@ -698,11 +698,6 @@
       "count": 2
     }
   },
-  "open-sse/utils/proxyDispatcher.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/utils/setupPolyfill.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
