@@ -9,6 +9,7 @@ import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
 import { BURST_PARK_THRESHOLD } from "../../open-sse/executors/opencodeParkResume.ts";
 import * as throttle from "../../open-sse/executors/opencodeEgressThrottle.ts";
+import { __resetProxyRefusalMemoryForTesting } from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 const FLAG = "OPENCODE_PARK_AND_RESUME";
 const MARKER_ENV = "OPENCODE_POOL_STRAIN_MARKER_PATH";
@@ -63,6 +64,9 @@ describe("opencode 429 park-and-resume", () => {
   let markerDir: string;
 
   beforeEach(() => {
+    // PROXY_SKIP_RECENTLY_FAILED is on by default (#14688): a refusal recorded by one
+    // case would otherwise set its proxy aside for the next case.
+    __resetProxyRefusalMemoryForTesting();
     originalFetch = globalThis.fetch;
     priorFlag = process.env[FLAG];
     priorMarker = process.env[MARKER_ENV];
