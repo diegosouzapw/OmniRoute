@@ -693,21 +693,19 @@ async function startMitmServer() {
 
     const agentId = TARGET_HOST_AGENT.get(host) || "antigravity";
     const routeConfig = standaloneRoutingShim.getAgentRouteConfig(agentId);
-    const isChatRequest = routeConfig.chatUrlPatterns.some((p) => req.url.includes(p));
-
-    if (!isChatRequest) {
-      vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
-      return passthrough(req, res, bodyBuffer);
-    }
 
     // FIX #8656: Capture ALL agent traffic (even passthrough) so Traffic Inspector
     // and model auto-detection work WITHOUT requiring mappings first.
     // This fixes the circular dependency: need mappings to see traffic, but need
     // to see traffic to create mappings.
     //
-    // Capture happens BEFORE checking for mappings, so requests appear in Traffic
-    // Inspector even when no mappings exist yet. Status is set to "in-flight"
-    // initially; will be updated to the actual status code if intercepted.
+    // Capture happens BEFORE both the chat-pattern check AND the mappings lookup,
+    // so requests appear in Traffic Inspector even when the URL doesn't match
+    // the agent's chatUrlPatterns (agent telemetry, gRPC-web service paths like
+    // aiserver.v1.GrokBotService/*, /extensions-control, etc.) and even when no
+    // mappings exist yet. Status is set to "in-flight" initially; for
+    // chat-matched requests it gets updated to the actual status code by the
+    // post-intercept capture inside intercept().
     const startedAt = Date.now();
     captureToInspector({
       req,
@@ -723,6 +721,13 @@ async function startMitmServer() {
       proxyLatencyMs: 0,
       upstreamLatencyMs: 0,
     });
+
+    const isChatRequest = routeConfig.chatUrlPatterns.some((p) => req.url.includes(p));
+
+    if (!isChatRequest) {
+      vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
+      return passthrough(req, res, bodyBuffer);
+    }
 
     const mappedOverride = getMappedOverride(model, agentId);
 
