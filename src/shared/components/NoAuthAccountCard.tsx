@@ -208,7 +208,10 @@ export default function NoAuthAccountCard({
             providerSpecificData: { [dataKey]: updated },
           }),
         });
-        if (!res.ok) throw new Error(t("updateConnectionFailed"));
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error || t("updateConnectionFailed"));
+        }
       }
       await fetchConnections();
     } catch (err) {
@@ -218,7 +221,7 @@ export default function NoAuthAccountCard({
     }
   };
 
-   const handleAddManualApiKey = async () => {
+  const handleAddManualApiKey = async () => {
     if (!manualApiKey.trim()) return;
     setAddingManualKey(true);
     try {
@@ -354,7 +357,10 @@ export default function NoAuthAccountCard({
         providerSpecificData: { accountProxies: updatedProxies },
       }),
     });
-    if (!res.ok) throw new Error(t("updateConnectionFailed"));
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData?.error || t("updateConnectionFailed"));
+    }
 
     await fetchConnections();
   };

@@ -71,6 +71,12 @@ export type ResourcePressureThresholds = {
   heapAbsoluteThresholdMb: number | null;
 };
 
+/** #13124: host-wide PSI is not this process. Operators can ignore it. */
+export function psiPressureDisabled(): boolean {
+  const raw = process.env.OMNIROUTE_PRESSURE_PSI_DISABLED?.trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
+
 export const DEFAULT_RESOURCE_PRESSURE_THRESHOLDS: ResourcePressureThresholds = {
   highRatio: 0.85,
   criticalRatio: 0.92,
@@ -105,16 +111,6 @@ export const DEFAULT_RESOURCE_PRESSURE_THRESHOLDS: ResourcePressureThresholds = 
 type RawLevel = { severity: PressureSeverity; reason: PressureReason };
 type OomCounters = { oom: number | null; oomKill: number | null };
 type ThrottleCounters = { high: number | null; max: number | null };
-
-// Reads the operator opt-out for host-wide PSI pressure. Declared locally so
-// the throttle proof stays coherent when the operator ignores PSI everywhere:
-// with the opt-out set, the PSI safety net is disabled and only a memory.events
-// delta counts as proof. Kept separate from the third-party patch revisiting
-// the same variable so this branch merges without depending on it.
-function psiPressureDisabled(): boolean {
-  const raw = process.env.OMNIROUTE_PRESSURE_PSI_DISABLED?.trim().toLowerCase();
-  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
-}
 
 function requireFiniteRange(name: string, value: number, minimum: number, maximum: number): void {
   if (!Number.isFinite(value) || value < minimum || value > maximum) {
@@ -269,6 +265,7 @@ export function classifyAdaptiveResourcePressure(
     ratioLevel(cgroupWorkingSetBytes, signals.cgroup.maxBytes, thresholds, "cgroup_ratio")
   );
   best = maxLevel(best, cgroupHighLevel(signals, thresholds));
+  if (psiPressureDisabled()) return best;
   best = maxLevel(best, psiLevel(signals.psi?.someAvg10 ?? null, thresholds, "psi_some"));
   return maxLevel(best, psiLevel(signals.psi?.fullAvg10 ?? null, thresholds, "psi_full"));
 }
@@ -310,6 +307,7 @@ export function classifyAdaptiveResourcePressureWithHistory(
   } else {
     best = maxLevel(best, highRatio);
   }
+  if (psiPressureDisabled()) return best;
   best = maxLevel(best, psiLevel(signals.psi?.someAvg10 ?? null, thresholds, "psi_some"));
   return maxLevel(best, psiLevel(signals.psi?.fullAvg10 ?? null, thresholds, "psi_full"));
 }
@@ -364,6 +362,7 @@ function isRecovered(signals: ResourceSignals, thresholds: ResourcePressureThres
   ) {
     return false;
   }
+  if (psiPressureDisabled()) return true;
   return ![signals.psi?.someAvg10, signals.psi?.fullAvg10].some(
     (value) => value != null && value > thresholds.recoveryPsiAvg10
   );

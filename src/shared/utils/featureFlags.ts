@@ -100,6 +100,27 @@ export function isApiKeyRevealEnabledFlag(): boolean {
   }
 }
 
+let lastResolvedMcpScopeEnforcement: boolean | undefined;
+
+/**
+ * MCP tool-call scope enforcement. Resolved per call so the Feature Flags toggle
+ * (requiresRestart: false) applies without a restart. An unavailable flag store must never
+ * silently drop the gate, so a failed read keeps the last value that did resolve, and falls
+ * back to the environment variable the gate used before only if none ever did.
+ */
+export function isMcpScopeEnforcementEnabled(): boolean {
+  try {
+    lastResolvedMcpScopeEnforcement = isFeatureFlagEnabled("OMNIROUTE_MCP_ENFORCE_SCOPES");
+    return lastResolvedMcpScopeEnforcement;
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve OMNIROUTE_MCP_ENFORCE_SCOPES, keeping the last known value:",
+      error instanceof Error ? error.message : error
+    );
+    return lastResolvedMcpScopeEnforcement ?? process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
+  }
+}
+
 export function isModelCatalogNamesEnabled(): boolean {
   return isFeatureFlagEnabled("MODEL_CATALOG_INCLUDE_NAMES");
 }

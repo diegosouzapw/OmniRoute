@@ -322,6 +322,31 @@ OmniRoute's combo engine supports **19 routing strategies** (declared in `src/sh
 For strict rotation use `round-robin`; equal weights on `weighted` give statistical — not
 strict — balance.
 
+### Agentic pipeline mode
+
+A two-step `pipeline` combo can opt into planner/executor routing with
+`config.agenticOrchestration.enabled`. The first target owns planning and final answers;
+the second target emits client-native tool calls. OmniRoute detects tool-result
+continuations from the request protocol, asks the planner whether another tool round is
+needed, and dynamically makes either the executor or planner the client-facing final
+step.
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+The executor may emit multiple independent calls in one response. Dependent calls are
+handled in later client tool-result turns, with the planner reviewing every result.
+`maxToolRounds` defaults to `8` and accepts `1`–`32`; once reached, the planner must
+produce the best available final answer. Internal planner decisions are buffered, while
+the selected client-facing response preserves the original streaming preference.
+
 ### `round-robin` sticky batch and account expansion
 
 Round-robin is batched, not one-request-per-step:
