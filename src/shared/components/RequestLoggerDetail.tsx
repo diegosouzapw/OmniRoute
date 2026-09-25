@@ -682,6 +682,16 @@ export default function RequestLoggerDetail({
                 </div>
                 <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
               </div>
+              <div className="min-w-[100px] flex-1">
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  {t("addedWait")}
+                </div>
+                <div className="text-sm font-medium">
+                  {typeof log.addedWaitMs === "number" && log.addedWaitMs > 0
+                    ? `${formatDuration(log.addedWaitMs)}${log.addedWaitCause ? ` (${log.addedWaitCause})` : ""}`
+                    : "—"}
+                </div>
+              </div>
               <div className="min-w-[140px] flex-1">
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
                   {t("model")}

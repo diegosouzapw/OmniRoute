@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokalna krajnja točka za proxy-core nije valjana; SS/VMess/Trojan/VLESS čvorovi su zanemareni.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ova pretplata ima čvorove koji zahtijevaju lokalni proxy core (SS/VMess/Trojan/VLESS); neće se usmjeravati dok ne konfigurirate lokalnu SOCKS5 krajnju točku za local-core.",
-        "NO_USABLE_NODES": "Pretplata nije dala nijedan upotrebljiv čvor (http/https/socks5 ili čvorove s lokalnom krajnjom točkom za core)."
+        "NO_USABLE_NODES": "Pretplata nije dala nijedan upotrebljiv čvor (http/https/socks5 ili čvorove s lokalnom krajnjom točkom za core).",
+        "SELECTOR_SWITCH_FAILED": "Upravljački poziv proxy-corea nije uspio; prethodna ruta ostaje aktivna. Provjerite upravljački URL i tajnu, a zatim osvježite."
       },
       "description": "Zalijepite vezu pretplate za proxy. Nakon omogućavanja promet se usmjerava kroz skup proxyja u globalnom načinu ili načinu pravila (određeni Pružatelj). Čvorovi pretplate automatski se sinkroniziraju sa skupom proxyja i koriste postojeće mehanizme periodičkog dohvaćanja, provjere stanja i sprječavanja curenja.",
       "addSubscription": "Dodaj pretplatu",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Usmjeravanje za Provider",
       "refresh": "Osvježi",
       "refreshInterval": "Interval osvježavanja",
-      "ruleModeDescription": "Opis načina rada pravila"
+      "ruleModeDescription": "Opis načina rada pravila",
+      "controlUrl": "URL upravljačkog API-ja",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Tajna upravljačkog API-ja",
+      "controlSecretPlaceholder": "Ostavite prazno za zadržavanje spremljene tajne",
+      "controlSecretSaved": "Tajna spremljena",
+      "controlSecretNotSet": "Nema spremljene tajne",
+      "selectorMinGap": "Najmanje vrijeme između prebacivanja (sekunde)",
+      "selectorHelp": "Dodajte « selector='<name>' » u redak local-core kako biste ga vezali za grupu selector.",
+      "lastSwitch": "Zadnje prebacivanje",
+      "lastSwitchNever": "Još nema zabilježenog prebacivanja",
+      "lastSwitchMember": "Član koji poslužuje",
+      "nextSwitch": "Sljedeće moguće prebacivanje",
+      "nextSwitchNow": "Sada"
     },
     "bulkHealthcheck": "Skupna provjera stanja",
     "bulkHealthcheckDesc": "Testirajte sve konfigurirane proxyje na ciljnom URL-u kako biste utvrdili koji rade.",
@@ -11414,6 +11428,7 @@
       "compressed": "Kompresija",
       "tps": "TPS",
       "duration": "Trajanje",
+      "addedWait": "Dodatno čekanje",
       "time": "Vrijeme",
       "conversation": "Razgovor",
       "ttft": "TTFT"
@@ -11488,6 +11503,7 @@
       "startedAt": "Započeto u",
       "endedAt": "Završeno u",
       "duration": "Trajanje",
+      "addedWait": "Dodatno čekanje",
       "model": "Model",
       "provider": "Pružatelj",
       "account": "Račun",

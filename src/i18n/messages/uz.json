@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Mahalliy proxy-core endpoint noto‘g‘ri; SS/VMess/Trojan/VLESS tugunlari e’tiborga olinmadi.",
         "NEEDS_CORE_NOT_CONFIGURED": "Bu obunada mahalliy proksi yadrosini talab qiladigan tugunlar mavjud (SS/VMess/Trojan/VLESS); mahalliy yadro uchun SOCKS5 endpoint sozlanmaguncha ular orqali trafik yo‘naltirilmaydi.",
-        "NO_USABLE_NODES": "Obunada foydalanish mumkin bo‘lgan tugunlar topilmadi (http/https/socks5 yoki mahalliy yadro endpointiga ega tugunlar)."
+        "NO_USABLE_NODES": "Obunada foydalanish mumkin bo‘lgan tugunlar topilmadi (http/https/socks5 yoki mahalliy yadro endpointiga ega tugunlar).",
+        "SELECTOR_SWITCH_FAILED": "Proxy-core boshqaruv chaqiruvi bajarilmadi; avvalgi marshrut faol qoladi. Boshqaruv URL va sirrini tekshirib, yangilang."
       },
       "description": "Proksi obunangiz havolasini kiriting. Yoqilgach, trafik global yoki qoida (belgilangan Provider) rejimida proksi havzasi orqali yo‘naltiriladi. Obuna tugunlari avtomatik ravishda proksi havzasiga sinxronlanadi hamda mavjud davriy so‘rov, ishlash holatini tekshirish va sizib chiqishga qarshi mexanizmlardan foydalanadi.",
       "addSubscription": "Obuna qo‘shish",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Provider asosida marshrutlash",
       "refresh": "Yangilash",
       "refreshInterval": "Yangilash oraligʻi",
-      "ruleModeDescription": "Qoida rejimi tavsifi"
+      "ruleModeDescription": "Qoida rejimi tavsifi",
+      "controlUrl": "Boshqaruv API URL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Boshqaruv API sirri",
+      "controlSecretPlaceholder": "Saqlangan sirrni saqlash uchun bo'sh qoldiring",
+      "controlSecretSaved": "Sirr saqlandi",
+      "controlSecretNotSet": "Saqlangan sirr yo'q",
+      "selectorMinGap": "O'tishlar orasidagi eng kam vaqt (soniya)",
+      "selectorHelp": "local-core qatoriga « selector='<name>' » qo'shib selector guruhiga bog'lang.",
+      "lastSwitch": "So'nggi o'tish",
+      "lastSwitchNever": "Hali qayd etilgan o'tish yo'q",
+      "lastSwitchMember": "Xizmat ko'rsatuvchi a'zo",
+      "nextSwitch": "Keyingi mumkin bo'lgan o'tish",
+      "nextSwitchNow": "Hozir"
     },
     "bulkHealthcheck": "Holatni ommaviy tekshirish",
     "bulkHealthcheckDesc": "Ishlaydiganlarini aniqlash uchun barcha sozlangan proksilarni maqsadli URL orqali sinab koʻring.",
@@ -11414,6 +11428,7 @@
       "compressed": "Siqish",
       "tps": "TPS",
       "duration": "Davomiylik",
+      "addedWait": "Qo'shilgan kutish",
       "time": "Vaqt",
       "conversation": "Suhbat",
       "ttft": "TTFT"
@@ -11488,6 +11503,7 @@
       "startedAt": "Boshlangan vaqt",
       "endedAt": "Tugagan vaqt",
       "duration": "Davomiylik",
+      "addedWait": "Qo'shilgan kutish",
       "model": "Model",
       "provider": "Provayder",
       "account": "Hisob",

@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Điểm cuối proxy-core cục bộ không hợp lệ; các nút SS/VMess/Trojan/VLESS đã bị bỏ qua.",
         "NEEDS_CORE_NOT_CONFIGURED": "Gói đăng ký này có các nút cần một proxy core cục bộ (SS/VMess/Trojan/VLESS); chúng sẽ không được định tuyến cho đến khi bạn cấu hình điểm cuối SOCKS5 của core cục bộ.",
-        "NO_USABLE_NODES": "Gói đăng ký không tạo ra nút nào có thể sử dụng (http/https/socks5 hoặc các nút có điểm cuối core cục bộ)."
+        "NO_USABLE_NODES": "Gói đăng ký không tạo ra nút nào có thể sử dụng (http/https/socks5 hoặc các nút có điểm cuối core cục bộ).",
+        "SELECTOR_SWITCH_FAILED": "Lệnh gọi điều khiển proxy-core thất bại; tuyến hiện tại vẫn được giữ. Kiểm tra URL và secret điều khiển, rồi làm mới."
       },
       "description": "Dán liên kết đăng ký proxy của bạn. Sau khi được bật, lưu lượng truy cập sẽ được định tuyến qua nhóm proxy ở chế độ chung hoặc quy tắc (Nhà cung cấp được chỉ định). Các nút đăng ký được tự động đồng bộ hóa vào nhóm proxy và sử dụng lại các cơ chế bỏ phiếu, kiểm tra tình trạng và chống rò rỉ hiện có.",
       "addSubscription": "Thêm đăng ký",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Định tuyến provider",
       "refresh": "Làm mới",
       "refreshInterval": "Khoảng thời gian làm mới",
-      "ruleModeDescription": "Mô tả chế độ quy tắc"
+      "ruleModeDescription": "Mô tả chế độ quy tắc",
+      "controlUrl": "URL API điều khiển",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Secret API điều khiển",
+      "controlSecretPlaceholder": "Để trống nhằm giữ secret đã lưu",
+      "controlSecretSaved": "Đã lưu secret",
+      "controlSecretNotSet": "Chưa lưu secret",
+      "selectorMinGap": "Thời gian tối thiểu giữa các lần chuyển (giây)",
+      "selectorHelp": "Thêm \" selector='<name>'\" vào một dòng local-core để gán nó vào một nhóm selector.",
+      "lastSwitch": "Lần chuyển gần nhất",
+      "lastSwitchNever": "Chưa ghi nhận lần chuyển nào",
+      "lastSwitchMember": "Thành viên đang phục vụ",
+      "nextSwitch": "Lần chuyển kế tiếp có thể",
+      "nextSwitchNow": "Ngay bây giờ"
     },
     "bulkHealthcheck": "Kiểm tra tình trạng hàng loạt",
     "bulkHealthcheckDesc": "Kiểm tra tất cả proxy đã cấu hình với một URL đích để xác định proxy nào hoạt động.",
@@ -11416,7 +11430,8 @@
       "duration": "Thời lượng",
       "time": "Thời gian",
       "conversation": "Cuộc trò chuyện",
-      "ttft": "TTFT"
+      "ttft": "TTFT",
+      "addedWait": "Thời gian chờ thêm"
     },
     "loadingLogs": "Đang tải nhật ký...",
     "noLogs": "Chưa có nhật ký nào. Hãy thực hiện một số cuộc gọi API để xem chúng ở đây.",
@@ -11488,6 +11503,7 @@
       "startedAt": "Bắt đầu lúc",
       "endedAt": "Kết thúc lúc",
       "duration": "Thời lượng",
+      "addedWait": "Thời gian chờ thêm",
       "model": "Mô hình",
       "provider": "Nhà cung cấp",
       "account": "Tài khoản",
