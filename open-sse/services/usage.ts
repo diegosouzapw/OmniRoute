@@ -208,6 +208,8 @@ export async function getUsageForProvider(
       return await getOpencodeUsage(id || "", apiKey || "");
     case "xiaomi-mimo":
       return await getXiaomiMimoUsage(id || "");
+    case "xiaomi-mimo-token-plan":
+      return await getXiaomiMimoUsage(id || "", "xiaomi-mimo-token-plan");
     case "xai":
       return await getXaiUsage(id || "");
     case "xai-oauth":
