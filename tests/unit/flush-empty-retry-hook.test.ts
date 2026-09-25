@@ -23,6 +23,10 @@ process.env.STREAM_READINESS_TIMEOUT_MS = "1000";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const leaseDb = await import("../../src/lib/db/exclusiveConnectionLeases.ts");
+const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const { handleChat } = await import("../../src/sse/handlers/chat.ts");
 const { initTranslators } = await import("../../open-sse/translator/index.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
@@ -115,11 +119,15 @@ function contentStreamResponse(text: string): Response {
   );
 }
 
-function streamRequest() {
+function streamRequest(extraHeaders: Record<string, string> = {}) {
   const nonce = `flush-empty-retry-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return new Request("http://localhost/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+      ...extraHeaders,
+    },
     body: JSON.stringify({
       model: "gemini/gemini-2.5-flash",
       messages: [{ role: "user", content: `Reply with OK only. ${nonce}` }],
@@ -263,4 +271,105 @@ test("flag off: a dropped stream is not retried", async () => {
     1,
     `flag off must issue exactly 1 dispatch, got ${dispatches.length}`
   );
+});
+
+test("the retry moves off the connection that returned the empty turn", async () => {
+  await seedGemini("gemini-move-a", "sk-flush-move-a");
+  await seedGemini("gemini-move-b", "sk-flush-move-b");
+  const dispatches: string[] = [];
+  stubFetch(dispatches, (_auth, callIndex) =>
+    callIndex === 0 ? reasoningOnlyStreamResponse() : contentStreamResponse("served-after-retry")
+  );
+  const response = await handleChat(streamRequest());
+  const bodyText = await drainText(response);
+  assert.equal(dispatches.length, 2, `expected initial + 1 retry, got ${dispatches.length}`);
+  assert.notEqual(dispatches[1], dispatches[0], "the retry must not replay the empty connection");
+  assert.match(bodyText, /served-after-retry/, "client must receive the retry content");
+});
+
+test("a failed retry logs the call against the connection that served it", async () => {
+  // Round-robin with a sticky limit of 1 rotates on every pick, so the retry
+  // lands on the other account even without an explicit exclusion.
+  await settingsDb.updateSettings({ fallbackStrategy: "round-robin", stickyRoundRobinLimit: 1 });
+  const served = await seedGemini("gemini-kept-a", "sk-flush-kept-a");
+  const other = await seedGemini("gemini-kept-b", "sk-flush-kept-b");
+  const dispatches: string[] = [];
+  stubFetch(dispatches, (_auth, callIndex) =>
+    callIndex === 0
+      ? reasoningOnlyStreamResponse()
+      : new Response(JSON.stringify({ error: { message: "upstream down" } }), { status: 500 })
+  );
+  const response = await handleChat(streamRequest());
+  await drainText(response);
+  assert.deepEqual(dispatches, [served.apiKey, other.apiKey]);
+  await callLogs.waitForCallLogSaves(2000);
+  const logged = (await callLogs.getCallLogs({})) as Array<{ connectionId?: string | null }>;
+  assert.equal(logged.length, 1, `expected one call log, got ${logged.length}`);
+  assert.equal(
+    logged[0].connectionId,
+    served.id,
+    "the kept response came from the first account, not the failed retry"
+  );
+});
+
+test("the retry stays inside the key's connection allowlist", async () => {
+  // Seeded first, so fill-first would pick it for an unrestricted selection.
+  await seedGemini("gemini-outside", "sk-flush-outside");
+  const first = await seedGemini("gemini-allowed-a", "sk-flush-allowed-a");
+  const second = await seedGemini("gemini-allowed-b", "sk-flush-allowed-b");
+  const key = await apiKeysDb.createApiKey("allowlisted-flush", "test", [], {
+    allowedConnections: [first.id, second.id],
+  });
+  const dispatches: string[] = [];
+  stubFetch(dispatches, (_auth, callIndex) =>
+    callIndex === 0 ? reasoningOnlyStreamResponse() : contentStreamResponse("served-after-retry")
+  );
+  const response = await handleChat(streamRequest({ Authorization: `Bearer ${key.key}` }));
+  const bodyText = await drainText(response);
+  assert.deepEqual(dispatches, [first.apiKey, second.apiKey]);
+  assert.match(bodyText, /served-after-retry/, "client must receive the retry content");
+});
+
+test("a pinned connection replays itself instead of rotating", async () => {
+  await seedGemini("gemini-pin-a", "sk-flush-pin-a");
+  const pinned = await seedGemini("gemini-pin-b", "sk-flush-pin-b");
+  const dispatches: string[] = [];
+  stubFetch(dispatches, (_auth, callIndex) =>
+    callIndex === 0 ? reasoningOnlyStreamResponse() : contentStreamResponse("served-after-retry")
+  );
+  const response = await handleChat(streamRequest({ "x-omniroute-connection": pinned.id }));
+  const bodyText = await drainText(response);
+  assert.deepEqual(dispatches, [pinned.apiKey, pinned.apiKey]);
+  assert.match(bodyText, /served-after-retry/, "client must receive the retry content");
+});
+
+test("a managed lease replays the leased connection instead of rotating", async () => {
+  const owner = `vlo_${"E".repeat(43)}`;
+  await seedGemini("gemini-lease-a", "sk-flush-lease-a");
+  const leased = await seedGemini("gemini-lease-b", "sk-flush-lease-b");
+  const key = await apiKeysDb.createApiKey("managed-flush", "test", ["lease:exclusive"], {
+    allowedConnections: [leased.id],
+  });
+  const acquired = leaseDb.acquireExclusiveConnectionLease({
+    leaseOwnerId: owner,
+    apiKeyId: key.id,
+    provider: "gemini",
+    connectionId: leased.id,
+  });
+  assert.equal(acquired.kind, "ACQUIRED");
+  if (acquired.kind !== "ACQUIRED") return;
+  const dispatches: string[] = [];
+  stubFetch(dispatches, (_auth, callIndex) =>
+    callIndex === 0 ? reasoningOnlyStreamResponse() : contentStreamResponse("served-after-retry")
+  );
+  const response = await handleChat(
+    streamRequest({
+      Authorization: `Bearer ${key.key}`,
+      "X-OmniRoute-Lease-Owner": owner,
+      "X-OmniRoute-Lease-Generation": String(acquired.lease.generation),
+    })
+  );
+  const bodyText = await drainText(response);
+  assert.deepEqual(dispatches, [leased.apiKey, leased.apiKey]);
+  assert.match(bodyText, /served-after-retry/, "client must receive the retry content");
 });

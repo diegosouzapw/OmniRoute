@@ -395,6 +395,80 @@ export async function readBoundedResponseText(
   return outcome.kind === "text" ? outcome.text : null;
 }
 
+/** The `getProviderCredentials` positional signature, as far as the retry uses it. */
+type RetryCredentialSelector = (
+  provider: string,
+  excludeConnectionId: string | null,
+  allowedConnections: string[] | null,
+  requestedModel: string | null
+) => Promise<unknown>;
+
+/** The routing constraints of the original selection that the retry has to keep. */
+type RetryRouting = {
+  leased: boolean;
+  forcedConnectionId: string | null;
+  apiKey: { allowedConnections?: unknown; allowedQuotas?: unknown } | null;
+};
+
+function nonEmptyIds(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+  const ids = value.filter((id): id is string => typeof id === "string" && id.trim().length > 0);
+  return ids.length > 0 ? ids : null;
+}
+
+/**
+ * Credentials for the next empty-turn retry, or null when no connection can take
+ * it. A managed lease, a pinned connection (`x-omniroute-connection` or a combo
+ * step pin) and a quota-scoped key (whose pool is not known here) replay the
+ * connection that served the turn: the lease fence refuses any other connection,
+ * and the others are routing constraints the retry must not escape. Otherwise
+ * the connection that just returned the empty turn is excluded first, inside the
+ * key's connection allowlist; when nothing else is eligible the normal selection
+ * runs again, so a single slot still replays itself.
+ */
+export async function pickEmptyTurnRetryCredentials(
+  select: RetryCredentialSelector,
+  input: RetryRouting & {
+    provider: string;
+    model: string | null;
+    current: Record<string, unknown>;
+  }
+): Promise<Record<string, unknown> | null> {
+  if (input.leased || input.forcedConnectionId || nonEmptyIds(input.apiKey?.allowedQuotas)) {
+    return input.current;
+  }
+  const allowed = nonEmptyIds(input.apiKey?.allowedConnections);
+  const pick = async (excludeConnectionId: string | null) => {
+    const creds = asRecord(
+      await select(input.provider, excludeConnectionId, allowed, input.model).catch(() => null)
+    );
+    return creds?.connectionId ? creds : null;
+  };
+  const currentId =
+    typeof input.current.connectionId === "string" ? input.current.connectionId : null;
+  return (await pick(currentId)) ?? (currentId ? pick(null) : null);
+}
+
+/**
+ * Point `target` at `next` in place and return the undo. The retry has to run on
+ * the new credentials, but every fallback keeps the original response, and
+ * `target` must keep describing the connection that served it.
+ */
+export function swapCredentialsInPlace(
+  target: Record<string, unknown>,
+  next: Record<string, unknown>
+): () => void {
+  if (next === target) return () => undefined;
+  const previous = { ...target };
+  Object.assign(target, next);
+  return () => {
+    for (const key of Object.keys(target)) {
+      if (!Object.hasOwn(previous, key)) delete target[key];
+    }
+    Object.assign(target, previous);
+  };
+}
+
 type ProbeAccum = {
   state: Record<string, unknown>;
   forwardedValuableChunk: boolean;

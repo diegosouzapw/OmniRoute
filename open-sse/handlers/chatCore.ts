@@ -50,6 +50,8 @@ import {
   judgeBufferedTurn,
   readBoundedResponseOutcome,
   FLUSH_EMPTY_RETRY_MAX_BYTES,
+  pickEmptyTurnRetryCredentials,
+  swapCredentialsInPlace,
 } from "../utils/emptyTurnRetry.ts";
 import { assembleStreamingResponseHeaders } from "./chatCore/streamingResponseHeaders.ts";
 import { storeStreamingSemanticCacheResponse } from "./chatCore/streamingSemanticCacheStore.ts";
@@ -5868,9 +5870,9 @@ export async function handleChatCore({
   // issue bounded retries through the normal credential path BEFORE anything is
   // exposed to the client — in particular before `onRequestSuccess` below.
   // Empty turns are stochastic upstream misses, not account faults, so no
-  // cooldown and no forced exclusion: the round-robin picker may rotate
-  // fingerprint slots opportunistically, a single slot simply replays the same
-  // account. Budget: `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX` retries, then fall
+  // cooldown: the retry prefers another allowed connection, a single slot
+  // replays itself, and a leased or pinned connection never rotates (#14715).
+  // Budget: `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX` retries, then fall
   // back to the current behavior. Translate-path streams only (mirror of the
   // empty-stream guard); flag off = byte-for-byte unchanged. Bounded reader
   // (abandon past the cap, never a full `text()` read); the original
@@ -5920,26 +5922,29 @@ export async function handleChatCore({
           "FLUSH_EMPTY_RETRY",
           `${verdict.reason}, bounded retry through the normal credential path`
         );
-        const nextCreds = await getProviderCredentials(
+        const nextCreds = await pickEmptyTurnRetryCredentials(getProviderCredentials, {
           provider,
-          null,
-          null,
-          currentModel
-        ).catch(() => null);
-        if (!nextCreds?.connectionId) break;
-        const retryConnectionId = String(nextCreds.connectionId);
-        Object.assign(credentials, nextCreds);
-        log?.info?.("FLUSH_EMPTY_RETRY", `retrying on ${retryConnectionId}`);
+          model: currentModel,
+          current: credentials,
+          leased: Boolean(managedLease),
+          forcedConnectionId,
+          apiKey: apiKeyInfo,
+        });
+        if (!nextCreds) break;
+        const restoreCredentials = swapCredentialsInPlace(credentials, nextCreds);
+        log?.info?.("FLUSH_EMPTY_RETRY", `retrying on ${String(nextCreds.connectionId)}`);
         await providerResponse.body?.cancel().catch(() => {});
         let retryResult: unknown = null;
         try {
           retryResult = await executeProviderRequest(currentModel, false);
         } catch {
+          restoreCredentials();
           break;
         }
         const retryResponse = (retryResult as { response?: Response })?.response;
         if (!retryResponse?.ok || !retryResponse.body) {
           if (retryResponse) await retryResponse.body?.cancel().catch(() => {});
+          restoreCredentials();
           break;
         }
         const prepared = await maybeConvertJsonBodyToSse(retryResponse, {
@@ -5959,6 +5964,7 @@ export async function handleChatCore({
         const preparedStream = ready && ready.ok ? ready.response : null;
         if (!preparedStream) {
           await retryResponse.body?.cancel().catch(() => {});
+          restoreCredentials();
           break;
         }
         // Swap BEFORE re-classifying so the next loop iteration reads the retry.

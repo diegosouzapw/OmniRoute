@@ -1,0 +1,1 @@
+- **fix(sse):** The opt-in empty-turn retry (`FLUSH_EMPTY_RETRY_ENABLED`) keeps the request's credentials on the connection that served the turn when a retry fails, prefers another connection inside the key's allowlist, and replays a leased or pinned connection instead of rotating it ([#14729](https://github.com/diegosouzapw/OmniRoute/pull/14729)) — thanks @L4XB
