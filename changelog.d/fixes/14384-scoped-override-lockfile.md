@@ -1,0 +1,1 @@
+- **fix(deps):** Reconcile the nested undici and brace-expansion lockfile entries with npm's scoped-override resolution while preserving dependency declarations and security overrides ([#14384](https://github.com/diegosouzapw/OmniRoute/pull/14384)).
