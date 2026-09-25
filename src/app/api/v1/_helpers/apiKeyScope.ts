@@ -4,6 +4,7 @@ import { extractApiKey } from "@/sse/services/auth";
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import { CORS_HEADERS } from "@/shared/utils/cors";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { ANONYMOUS_OWNER_ID } from "@/shared/constants/anonymousOwner";
 
 /**
  * Why `apiKeyId` is null — the lifecycle outcome `getApiKeyRequestScope` already
@@ -121,14 +122,30 @@ export function canAccessOwnedRecord(
  * for that transport — an unreadable, undeletable, unaccounted-for row — and
  * an ownership check on that same transport denied the key its own record.
  * `scope.apiKeyId` always wins when set (the ordinary Authorization/anthropic
- * transports already resolved it); a session-only caller (no key at all)
- * passes through unchanged, since `policyApiKeyInfo` is null in that case too.
+ * transports already resolved it).
+ *
+ * A genuinely anonymous, non-session caller (no key resolved by either path,
+ * no dashboard session either — `REQUIRE_API_KEY=false`) resolves to the
+ * shared {@link ANONYMOUS_OWNER_ID} sentinel instead of `null` — #14332
+ * option (b): the row it creates is then readable/deletable/usable by that
+ * SAME anonymous caller later, because `canAccessOwnedRecord()`'s
+ * `recordApiKeyId === scope.apiKeyId` comparison succeeds against the
+ * sentinel. See the doc comment on {@link ANONYMOUS_OWNER_ID} for the
+ * (shared-across-anonymous-callers, not per-caller) threat model this
+ * implies. A dashboard-session caller with no key still resolves to `null`
+ * unchanged — it does not need an owner id, since `canAccessOwnedRecord()`
+ * already grants a session every record unconditionally, and folding it
+ * into the anonymous sentinel would make a session-created row readable by
+ * any anonymous caller too.
  */
 export function resolveEffectiveApiKeyId(
-  scope: Pick<ApiKeyRequestScope, "apiKeyId">,
+  scope: Pick<ApiKeyRequestScope, "apiKeyId" | "isSessionAuth">,
   policyApiKeyInfo: { id: string } | null
 ): string | null {
-  return scope.apiKeyId ?? policyApiKeyInfo?.id ?? null;
+  if (scope.apiKeyId) return scope.apiKeyId;
+  if (policyApiKeyInfo?.id) return policyApiKeyInfo.id;
+  if (scope.isSessionAuth) return null;
+  return ANONYMOUS_OWNER_ID;
 }
 
 /**
