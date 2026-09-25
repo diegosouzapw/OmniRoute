@@ -9,6 +9,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  __getDeadlineTokenRegistrySizeForTests,
+  getDeadlineController,
   withDeadlineSignal,
   withEarlyStreamKeepalive,
   ANTHROPIC_PING_FRAME,
@@ -565,5 +567,91 @@ test("client abort before the deadline emits no error frame and no deadline warn
     deadlineController.signal.aborted,
     false,
     "client abort must not trip the deadline controller"
+  );
+});
+
+// The rebuild-fallback token map is keyed by strings, so without an explicit
+// release every streamed request left one entry behind forever. After N requests
+// through the wrapper — fast path, slow path, deadline expiry and client abort —
+// the map must be back to its original size, and the released token must no
+// longer resolve through a header-only lookup.
+test("deadline token registry returns to its original size after N requests", async () => {
+  const baseline = __getDeadlineTokenRegistrySizeForTests();
+  const makeReq = (signal?: AbortSignal) =>
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+      signal,
+    });
+  const N = 20;
+  let lastHeaders: Headers | null = null;
+  for (let i = 0; i < N; i += 1) {
+    // fast path
+    {
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq());
+      lastHeaders = wrappedReq.headers;
+      const r = await withEarlyStreamKeepalive(Promise.resolve(sseResponse("data: [DONE]\n\n")), {
+        thresholdMs: 50,
+        signal: wrappedReq.signal,
+        deadlineController,
+      });
+      await readAll(r);
+    }
+    // slow path, handler resolves
+    {
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq());
+      const slow = new Promise<Response>((resolve) =>
+        setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 20)
+      );
+      const r = await withEarlyStreamKeepalive(slow, {
+        thresholdMs: 5,
+        intervalMs: 50,
+        signal: wrappedReq.signal,
+        deadlineController,
+      });
+      await readAll(r);
+    }
+    // deadline expiry
+    {
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq());
+      const r = await withEarlyStreamKeepalive(new Promise<Response>(() => {}), {
+        thresholdMs: 5,
+        intervalMs: 50,
+        signal: wrappedReq.signal,
+        slowPathDeadlineMs: 15,
+        deadlineController,
+        errorFrame: OPENAI_CHAT_ERROR_FRAME,
+      });
+      await readAll(r);
+    }
+    // client abort
+    {
+      const client = new AbortController();
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq(client.signal));
+      const r = await withEarlyStreamKeepalive(new Promise<Response>(() => {}), {
+        thresholdMs: 5,
+        intervalMs: 50,
+        signal: wrappedReq.signal,
+        slowPathDeadlineMs: 5000,
+        deadlineController,
+      });
+      const reader = r.body!.getReader();
+      await reader.read();
+      client.abort();
+      while (!(await reader.read()).done) {
+        /* drain */
+      }
+    }
+  }
+  assert.equal(
+    __getDeadlineTokenRegistrySizeForTests(),
+    baseline,
+    "every request must release its deadline token entry"
+  );
+  assert.equal(
+    getDeadlineController({ headers: lastHeaders! }),
+    null,
+    "a released token must not resolve through the header fallback"
   );
 });

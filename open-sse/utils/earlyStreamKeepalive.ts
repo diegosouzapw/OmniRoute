@@ -265,7 +265,44 @@ const deadlineControllers = new WeakMap<object, AbortController>();
 // internal token header and registers the controller under that token too.
 const DEADLINE_TOKEN_HEADER = "x-deadline-token";
 const deadlineControllersByToken = new Map<string, WeakRef<AbortController>>();
+const deadlineTokenByController = new WeakMap<AbortController, string>();
 let deadlineTokenSeq = 0;
+// The token map is keyed by strings, so its entries would otherwise outlive the
+// request forever (one per streamed request → unbounded growth). Three layers keep
+// it bounded: an explicit release when the keepalive wrapper finishes (settle,
+// abort, cancel or expiry), a FinalizationRegistry backstop for requests that never
+// reach the wrapper (non-streaming paths), and a hard size cap as a last resort.
+const MAX_DEADLINE_TOKENS = 10_000;
+const deadlineTokenFinalizer =
+  typeof FinalizationRegistry === "function"
+    ? new FinalizationRegistry<string>((token) => {
+        const ref = deadlineControllersByToken.get(token);
+        if (!ref || !ref.deref()) deadlineControllersByToken.delete(token);
+      })
+    : null;
+
+/**
+ * Drops the rebuild-fallback token entry for a deadline controller. Idempotent;
+ * safe to call with null. The controller itself stays usable (abort still works).
+ */
+export function releaseDeadlineController(controller: AbortController | null | undefined): void {
+  if (!controller) return;
+  const token = deadlineTokenByController.get(controller);
+  if (!token) return;
+  deadlineTokenByController.delete(controller);
+  const ref = deadlineControllersByToken.get(token);
+  if (ref && ref.deref() === controller) deadlineControllersByToken.delete(token);
+  try {
+    deadlineTokenFinalizer?.unregister(controller);
+  } catch {
+    /* never throw from cleanup */
+  }
+}
+
+/** Test-only: live size of the token fallback map. */
+export function __getDeadlineTokenRegistrySizeForTests(): number {
+  return deadlineControllersByToken.size;
+}
 
 /**
  * Route-side half of the slow-path deadline contract. Creates the internal
@@ -304,6 +341,13 @@ export function withDeadlineSignal(request: Request): {
   const wrappedReq = new Request(request, { signal: combined, headers });
   deadlineControllers.set(combined, deadlineController);
   deadlineControllersByToken.set(token, new WeakRef(deadlineController));
+  deadlineTokenByController.set(deadlineController, token);
+  deadlineTokenFinalizer?.register(deadlineController, token, deadlineController);
+  while (deadlineControllersByToken.size > MAX_DEADLINE_TOKENS) {
+    const oldest = deadlineControllersByToken.keys().next().value;
+    if (oldest === undefined) break;
+    deadlineControllersByToken.delete(oldest);
+  }
   return { wrappedReq, deadlineController };
 }
 
@@ -334,6 +378,7 @@ export function getDeadlineController(request: {
 
 /**
  * Tagged with a string rather than an `ok: true | false` boolean: this workspace compiles
+ * with `strictNullChecks: false`, where a boolean-literal discriminant narrows the positive
  * branch but not the negative one — so reading `.error` off the rejected arm did not
  * type-check. A string discriminant narrows both branches under the same settings.
  */
@@ -437,6 +482,7 @@ export async function withEarlyStreamKeepalive(
   if (raced.kind === "settled") {
     // Fast path — return verbatim, or rethrow so the route's normal error handling runs.
     if (deadlineTimer) clearTimeout(deadlineTimer);
+    releaseDeadlineController(deadlineController);
     const result = raced.result;
     if (result.status === "fulfilled") return result.response;
     throw result.error;
@@ -453,6 +499,7 @@ export async function withEarlyStreamKeepalive(
       clearTimeout(deadlineTimer);
       deadlineTimer = undefined;
     }
+    releaseDeadlineController(deadlineController);
   };
 
   const stream = new ReadableStream<Uint8Array>({
@@ -515,6 +562,7 @@ export async function withEarlyStreamKeepalive(
         // Never the raw error — same generic frame as a handler failure.
         if (aborted) return;
         aborted = true;
+        stopDeadline();
         stopKeepalive();
         try {
           deadlineController?.abort();
