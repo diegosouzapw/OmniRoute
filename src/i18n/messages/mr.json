@@ -6362,7 +6362,8 @@
       "kiro": "मोफत स्तर: 50 क्रेडिट्स/महिना (~25K–100K टोकन्स). ⚠️ Kiro ToS तृतीय-पक्ष प्रॉक्सी/हार्नेसच्या वापरावर बंदी घालते.",
       "codex": "सध्याच्या OAuth फ्लोसह OpenAI Codex कनेक्ट करा.",
       "qwen": "सध्याच्या OAuth फ्लोसह Qwen Code कनेक्ट करा.",
-      "github-models": "github.com/settings/tokens वर 'models: read' स्कोपसह GitHub PAT तयार करा"
+      "github-models": "github.com/settings/tokens वर 'models: read' स्कोपसह GitHub PAT तयार करा",
+      "apmix": "apmix.ai/dashboard वरून API की सह Apmix कनेक्ट करा — एक सदस्यता, अनेक मॉडेल्स."
     },
     "passthroughModelsDescription": "{provider} प्रदाता-नेटिव्ह मॉडेल आयडी स्वीकारते. /मॉडेलमधून आयात करा किंवा राउटिंगसाठी सानुकूल आयडी जोडा.",
     "bedrockModelsDescription": "Amazon बेडरॉक मॉडेल्स AWS क्षेत्राद्वारे व्यापलेले आहेत. /मॉडेल्समधून आयात करा किंवा निवडलेल्या प्रदेशात सक्षम केलेले बेडरॉक मॉडेल आयडी जोडा.",

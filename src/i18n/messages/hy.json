@@ -6362,7 +6362,8 @@
       "kiro": "Անվճար մակարդակ՝ ամսական 50 կրեդիտ (~25K–100K թոքեն)։ ⚠️ Kiro-ի ToS-ն արգելում է երրորդ կողմի պրոքսիի/գործիքակազմի օգտագործումը։",
       "codex": "Միացրեք OpenAI Codex-ը առկա OAuth հոսքով։",
       "qwen": "Միացրեք Qwen Code-ը առկա OAuth հոսքով։",
-      "github-models": "Ստեղծեք GitHub PAT՝ 'models: read' տիրույթով, github.com/settings/tokens հասցեում"
+      "github-models": "Ստեղծեք GitHub PAT՝ 'models: read' տիրույթով, github.com/settings/tokens հասցեում",
+      "apmix": "Միացրեք Apmix-ը apmix.ai/dashboard-ից API բանալիով — մեկ բաժանորդագրություն, շատ մոդելներ:"
     },
     "passthroughModelsDescription": "{provider}-ն ընդունում է մատակարարին բնորոշ մոդելների ID-ներ։ Ներմուծեք /models-ից կամ երթուղավորման համար ավելացրեք հատուկ ID-ներ։",
     "bedrockModelsDescription": "Amazon Bedrock մոդելները սահմանափակված են ըստ AWS տարածաշրջանի։ Ներմուծեք /models-ից կամ ավելացրեք ընտրված տարածաշրջանում միացված Bedrock մոդելների ID-ները։",

@@ -6362,7 +6362,8 @@
       "kiro": "Pulsuz səviyyə: ayda 50 kredit (~25K–100K token). ⚠️ Kiro istifadə şərtləri üçüncü tərəf proksi və ya harness istifadəsini qadağan edir.",
       "codex": "OpenAI Codex-i mövcud OAuth axını ilə qoşun.",
       "qwen": "Qwen Code-u mövcud OAuth axını ilə qoşun.",
-      "github-models": "github.com/settings/tokens ünvanında 'models: read' əhatə dairəsi ilə GitHub PAT yaradın"
+      "github-models": "github.com/settings/tokens ünvanında 'models: read' əhatə dairəsi ilə GitHub PAT yaradın",
+      "apmix": "Apmix-i apmix.ai/dashboard-da olan API açarı ilə qoş — bir abunəlik, çox model."
     },
     "passthroughModelsDescription": "{provider} provayderin yerli model identifikatorlarını qəbul edir. /modellərdən idxal edin və ya marşrutlaşdırma üçün fərdi identifikatorlar əlavə edin.",
     "bedrockModelsDescription": "Amazon Bedrock modelləri AWS bölgəsi tərəfindən əhatə olunur. /modellərdən idxal edin və ya seçilmiş regionda aktivləşdirilmiş Bedrock model ID-lərini əlavə edin.",

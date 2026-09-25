@@ -6362,7 +6362,8 @@
       "kiro": "უფასო ტარიფი: 50 კრედიტი/თვე (~25K–100K ტოკენი). ⚠️ Kiro-ს მომსახურების პირობები კრძალავს მესამე მხარის პროქსის/ჰარნესის გამოყენებას.",
       "codex": "დააკავშირეთ OpenAI Codex არსებული OAuth პროცესით.",
       "qwen": "დააკავშირეთ Qwen Code არსებული OAuth პროცესით.",
-      "github-models": "შექმენით GitHub PAT 'models: read' წვდომის სფეროთი მისამართზე github.com/settings/tokens"
+      "github-models": "შექმენით GitHub PAT 'models: read' წვდომის სფეროთი მისამართზე github.com/settings/tokens",
+      "apmix": "დააკავშირეთ Apmix API გასაღებით apmix.ai/dashboard-დან — ერთი გამოწერა, მრავალი მოდელი."
     },
     "passthroughModelsDescription": "{provider} იღებს პროვაიდერის ნატიურ მოდელის ID-ებს. შემოიტანეთ ისინი /models განყოფილებიდან ან მარშრუტიზაციისთვის დაამატეთ მორგებული ID-ები.",
     "bedrockModelsDescription": "Amazon Bedrock-ის მოდელები შეზღუდულია AWS-ის რეგიონის მიხედვით. შემოიტანეთ ისინი /models განყოფილებიდან ან დაამატეთ არჩეულ რეგიონში ჩართული Bedrock მოდელების ID-ები.",

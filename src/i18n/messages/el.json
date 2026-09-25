@@ -6362,7 +6362,8 @@
       "kiro": "Δωρεάν επίπεδο: 50 πιστώσεις/μήνα (~25K–100K tokens). ⚠️ Οι Όροι Χρήσης του Kiro απαγορεύουν τη χρήση proxy/harness τρίτων.",
       "codex": "Συνδέστε το OpenAI Codex με την υπάρχουσα ροή OAuth.",
       "qwen": "Συνδέστε το Qwen Code με την υπάρχουσα ροή OAuth.",
-      "github-models": "Δημιουργήστε ένα GitHub PAT με εμβέλεια 'models: read' στο github.com/settings/tokens"
+      "github-models": "Δημιουργήστε ένα GitHub PAT με εμβέλεια 'models: read' στο github.com/settings/tokens",
+      "apmix": "Συνδέστε το Apmix με κλειδί API από το apmix.ai/dashboard — μία συνδρομή, πολλά μοντέλα."
     },
     "passthroughModelsDescription": "Το {provider} δέχεται εγγενή αναγνωριστικά μοντέλων του παρόχου. Εισαγάγετε τα από το /models ή προσθέστε προσαρμοσμένα αναγνωριστικά για δρομολόγηση.",
     "bedrockModelsDescription": "Τα μοντέλα Amazon Bedrock ορίζονται ανά περιοχή AWS. Εισαγάγετε από το /models ή προσθέστε αναγνωριστικά μοντέλων Bedrock που είναι ενεργοποιημένα στην επιλεγμένη περιοχή.",

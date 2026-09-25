@@ -6362,7 +6362,8 @@
       "kiro": "ফ্রি টিয়ার: 50 ক্রেডিট/মাস (~25K–100K টোকেন)। ⚠️ Kiro ToS তৃতীয় পক্ষের প্রক্সি/হারনেস ব্যবহার নিষিদ্ধ করে।",
       "codex": "বিদ্যমান OAuth ফ্লো-এর সাথে OpenAI Codex সংযুক্ত করুন।",
       "qwen": "বিদ্যমান OAuth ফ্লো-এর সাথে Qwen Code সংযুক্ত করুন।",
-      "github-models": "github.com/settings/tokens-এ 'models: read' স্কোপ সহ একটি GitHub PAT তৈরি করুন"
+      "github-models": "github.com/settings/tokens-এ 'models: read' স্কোপ সহ একটি GitHub PAT তৈরি করুন",
+      "apmix": "apmix.ai/dashboard থেকে API কী দিয়ে Apmix সংযোগ করুন — একটি সাবস্ক্রিপশন, অনেক মডেল।"
     },
     "passthroughModelsDescription": "{provider} প্রদানকারী-নেটিভ মডেল আইডি গ্রহণ করে। /মডেল থেকে আমদানি করুন বা রাউটিং এর জন্য কাস্টম আইডি যোগ করুন।",
     "bedrockModelsDescription": "অ্যামাজন বেডরক মডেলগুলি AWS অঞ্চল দ্বারা স্কোপ করা হয়েছে৷ /মডেল থেকে আমদানি করুন বা নির্বাচিত অঞ্চলে সক্ষম বেডরক মডেল আইডি যোগ করুন।",

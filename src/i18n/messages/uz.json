@@ -6362,7 +6362,8 @@
       "kiro": "Bepul tarif: oyiga 50 kredit (~25K–100K token). ⚠️ Kiro ToS uchinchi tomon proksi yoki harness vositalaridan foydalanishni taqiqlaydi.",
       "codex": "OpenAI Codexʼni mavjud OAuth jarayoni orqali ulang.",
       "qwen": "Qwen Codeʼni mavjud OAuth jarayoni orqali ulang.",
-      "github-models": "github.com/settings/tokens manzilida 'models: read' vakolat doirasiga ega GitHub PAT yarating"
+      "github-models": "github.com/settings/tokens manzilida 'models: read' vakolat doirasiga ega GitHub PAT yarating",
+      "apmix": "Apmix'ni apmix.ai/dashboard dagi API kaliti bilan ulang — bitta obuna, ko'plab modellar."
     },
     "passthroughModelsDescription": "{provider} provayderga xos model IDʼlarini qabul qiladi. /models orqali import qiling yoki marshrutlash uchun maxsus IDʼlarni qoʻshing.",
     "bedrockModelsDescription": "Amazon Bedrock modellari AWS mintaqasi boʻyicha cheklangan. /models orqali import qiling yoki tanlangan mintaqada yoqilgan Bedrock model IDʼlarini qoʻshing.",

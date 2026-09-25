@@ -6362,7 +6362,8 @@
       "kiro": "免费层：50 积分/月（约 25K–100K 令牌）。⚠️ Kiro 服务条款禁止使用第三方代理/测试框架。",
       "codex": "使用现有的 OAuth 流程连接 OpenAI Codex。",
       "qwen": "使用现有的 OAuth 流程连接 Qwen Code。",
-      "github-models": "在 github.com/settings/tokens 创建具有 'models: read' 作用域的 GitHub PAT"
+      "github-models": "在 github.com/settings/tokens 创建具有 'models: read' 作用域的 GitHub PAT",
+      "apmix": "使用来自 apmix.ai/dashboard 的 API 密钥连接 Apmix — 一份订阅，多个模型。"
     },
     "passthroughModelsDescription": "{provider} 接受供应商本机模型 ID。从 /models 导入或添加用于路由的自定义 ID。",
     "bedrockModelsDescription": "Amazon Bedrock 模型的范围按 AWS 区域划分。从 /models 导入或添加在所选区域中启用的基岩模型 ID。",

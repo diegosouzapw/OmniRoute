@@ -6362,7 +6362,8 @@
       "kiro": "Ücretsiz katman: ayda 50 kredi (~25 bin–100 bin jeton). ⚠️ Kiro Kullanım Koşulları, üçüncü taraf proxy/çalıştırma düzeneği kullanımını yasaklar.",
       "codex": "Mevcut OAuth akışı ile OpenAI Codex'i bağlayın.",
       "qwen": "Mevcut OAuth akışı ile Qwen Code'u bağlayın.",
-      "github-models": "github.com/settings/tokens adresinde 'models: read' kapsamına sahip bir GitHub PAT oluşturun"
+      "github-models": "github.com/settings/tokens adresinde 'models: read' kapsamına sahip bir GitHub PAT oluşturun",
+      "apmix": "apmix.ai/dashboard'tan bir API anahtarıyla Apmix'i bağlayın — tek abonelik, çok sayıda model."
     },
     "passthroughModelsDescription": "{provider} sağlayıcıya özgü model kimliklerini kabul eder. /models'den içe aktarın veya yönlendirme için özel kimlikler ekleyin.",
     "bedrockModelsDescription": "Amazon Bedrock modelleri AWS bölgesi kapsamındadır. /models'den içe aktarın veya seçilen bölgede etkin olan Bedrock model kimliklerini ekleyin.",

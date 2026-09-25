@@ -6362,7 +6362,8 @@
       "kiro": "Gratis tier: 50 credits/maand (~25K–100K tokens). ⚠️ Kiro ToS verbiedt het gebruik van externe proxy/harness.",
       "codex": "Verbind OpenAI Codex met de bestaande OAuth-flow.",
       "qwen": "Verbind Qwen Code met de bestaande OAuth-flow.",
-      "github-models": "Maak een GitHub PAT aan met de scope 'models: read' op github.com/settings/tokens"
+      "github-models": "Maak een GitHub PAT aan met de scope 'models: read' op github.com/settings/tokens",
+      "apmix": "Verbind Apmix met een API-sleutel van apmix.ai/dashboard — één abonnement, veel modellen."
     },
     "passthroughModelsDescription": "{provider} accepteert provider-native model-ID's. Importeer uit /models of voeg aangepaste ID's toe voor routering.",
     "bedrockModelsDescription": "Amazon Bedrock-modellen zijn afgestemd op de AWS-regio. Importeer uit /models of voeg Bedrock-model-ID's toe die zijn ingeschakeld in de geselecteerde regio.",

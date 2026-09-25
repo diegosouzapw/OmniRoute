@@ -6362,7 +6362,8 @@
       "kiro": "Gói miễn phí: 50 tín dụng/tháng (khoảng 25–100 nghìn token). ⚠️ Điều khoản Kiro cấm sử dụng proxy/harness của bên thứ ba.",
       "codex": "Kết nối OpenAI Codex bằng luồng OAuth hiện có.",
       "qwen": "Kết nối Qwen Code bằng luồng OAuth hiện có.",
-      "github-models": "Tạo GitHub PAT với phạm vi 'models: read' tại github.com/settings/tokens"
+      "github-models": "Tạo GitHub PAT với phạm vi 'models: read' tại github.com/settings/tokens",
+      "apmix": "Kết nối Apmix bằng khóa API từ apmix.ai/dashboard — một gói đăng ký, nhiều mô hình."
     },
     "passthroughModelsDescription": "{provider} chấp nhận ID mô hình gốc của nhà cung cấp. Nhập từ /models hoặc thêm ID tùy chỉnh để định tuyến.",
     "bedrockModelsDescription": "Các mô hình Amazon Bedrock được giới hạn theo vùng AWS. Nhập từ /models hoặc thêm ID mô hình Bedrock được bật trong vùng đã chọn.",

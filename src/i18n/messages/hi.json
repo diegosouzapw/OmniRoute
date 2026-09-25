@@ -6362,7 +6362,8 @@
       "kiro": "फ्री टियर: 50 क्रेडिट/महीना (~25K–100K टोकन)। ⚠️ Kiro ToS तृतीय-पक्ष प्रॉक्सी/हार्नेस के उपयोग को प्रतिबंधित करता है।",
       "codex": "OpenAI Codex को मौजूदा OAuth फ़्लो से कनेक्ट करें।",
       "qwen": "Qwen Code को मौजूदा OAuth फ़्लो से कनेक्ट करें।",
-      "github-models": "github.com/settings/tokens पर 'models: read' स्कोप के साथ एक GitHub PAT बनाएं"
+      "github-models": "github.com/settings/tokens पर 'models: read' स्कोप के साथ एक GitHub PAT बनाएं",
+      "apmix": "apmix.ai/dashboard से API की के साथ Apmix कनेक्ट करें — एक सब्सक्रिप्शन, कई मॉडल।"
     },
     "passthroughModelsDescription": "{provider} प्रदाता-मूल मॉडल आईडी स्वीकार करता है। /मॉडल से आयात करें या रूटिंग के लिए कस्टम आईडी जोड़ें।",
     "bedrockModelsDescription": "अमेज़ॅन बेडरॉक मॉडल का दायरा AWS क्षेत्र द्वारा तय किया गया है। /मॉडल से आयात करें या चयनित क्षेत्र में सक्षम बेडरॉक मॉडल आईडी जोड़ें।",

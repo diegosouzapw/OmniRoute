@@ -970,6 +970,17 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "NG",
     website: "https://nano-gpt.com",
   },
+  apmix: {
+    id: "apmix",
+    serviceKinds: ["llm"],
+    alias: "apmix",
+    name: "Apmix",
+    icon: "hub",
+    color: "#7C3AED",
+    textIcon: "AP",
+    website: "https://apmix.ai",
+    apiHint: "Get your API key from the Apmix dashboard (apmix.ai/dashboard).",
+  },
   aimlapi: {
     id: "aimlapi",
     serviceKinds: ["llm"],

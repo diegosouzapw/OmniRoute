@@ -6362,7 +6362,8 @@
       "kiro": "Безкоштовний рівень: 50 кредитів на місяць (~25K–100K токенів). ⚠️ Умови використання Kiro забороняють використання через сторонні проксі або оболонки.",
       "codex": "Підключіть OpenAI Codex за допомогою наявного процесу OAuth.",
       "qwen": "Підключіть Qwen Code за допомогою наявного процесу OAuth.",
-      "github-models": "Створіть GitHub PAT з областю видимості 'models: read' на github.com/settings/tokens"
+      "github-models": "Створіть GitHub PAT з областю видимості 'models: read' на github.com/settings/tokens",
+      "apmix": "Підключіть Apmix із API-ключем від apmix.ai/dashboard — одна підписка, багато моделей."
     },
     "passthroughModelsDescription": "{provider} приймає власні ідентифікатори моделі постачальника. Імпортуйте з /models або додайте власні ідентифікатори для маршрутизації.",
     "bedrockModelsDescription": "Моделі Amazon Bedrock залежать від регіону AWS. Імпортуйте з /models або додайте ідентифікатори моделі Bedrock, активовані у вибраному регіоні.",

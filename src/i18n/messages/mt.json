@@ -6362,7 +6362,8 @@
       "kiro": "Livell bla ħlas: 50 kreditu/xahar (~25K–100K token). ⚠️ It-Termini tas-Servizz ta’ Kiro jipprojbixxu l-użu ta’ proxy/harness ta’ parti terza.",
       "codex": "Qabbad OpenAI Codex mal-fluss OAuth eżistenti.",
       "qwen": "Qabbad Qwen Code mal-fluss OAuth eżistenti.",
-      "github-models": "Oħloq GitHub PAT bl-ambitu 'models: read' fuq github.com/settings/tokens"
+      "github-models": "Oħloq GitHub PAT bl-ambitu 'models: read' fuq github.com/settings/tokens",
+      "apmix": "Qabbad Apmix bi ċavetta API minn apmix.ai/dashboard — abbonament wieħed, bosta mudelli."
     },
     "passthroughModelsDescription": "{provider} jaċċetta IDs tal-mudelli nattivi għall-fornitur. Importa minn /models jew żid IDs personalizzati għar-routing.",
     "bedrockModelsDescription": "Il-mudelli ta’ Amazon Bedrock huma limitati skont ir-reġjun AWS. Importa minn /models jew żid IDs tal-mudelli Bedrock attivati fir-reġjun magħżul.",

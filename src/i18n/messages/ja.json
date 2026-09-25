@@ -6362,7 +6362,8 @@
       "kiro": "無料枠: 50クレジット/月（約25K〜100Kトークン）。⚠️ Kiroの利用規約（ToS）は、サードパーティのプロキシやハーネスの使用を禁止しています。",
       "codex": "既存のOAuthフローを使用してOpenAI Codexに接続します。",
       "qwen": "既存のOAuthフローを使用してQwen Codeに接続します。",
-      "github-models": "github.com/settings/tokens で 'models: read' スコープを持つGitHub PATを作成"
+      "github-models": "github.com/settings/tokens で 'models: read' スコープを持つGitHub PATを作成",
+      "apmix": "apmix.ai/dashboard のAPIキーでApmixに接続 — 1つのサブスクリプションで多数のモデル。"
     },
     "passthroughModelsDescription": "{provider} は、プロバイダーネイティブのモデル ID を受け入れます。 /models からインポートするか、ルーティング用のカスタム ID を追加します。",
     "bedrockModelsDescription": "Amazon Bedrock モデルは、AWS リージョンによって範囲が定められています。 /models からインポートするか、選択したリージョンで有効になっている Bedrock モデル ID を追加します。",

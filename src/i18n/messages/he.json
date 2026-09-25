@@ -6362,7 +6362,8 @@
       "kiro": "מסלול חינמי: 50 קרדיטים לחודש (~25K–100K טוקנים). ⚠️ תנאי השימוש של Kiro אוסרים על שימוש בפרוקסי/harness של צד שלישי.",
       "codex": "חבר את OpenAI Codex באמצעות תהליך ה-OAuth הקיים.",
       "qwen": "חבר את Qwen Code באמצעות תהליך ה-OAuth הקיים.",
-      "github-models": "צור GitHub PAT עם הרשאת 'models: read' ב-github.com/settings/tokens"
+      "github-models": "צור GitHub PAT עם הרשאת 'models: read' ב-github.com/settings/tokens",
+      "apmix": "חבר את Apmix עם מפתח API מ־apmix.ai/dashboard — מינוי אחד, הרבה מודלים."
     },
     "passthroughModelsDescription": "{provider} מקבל מזהי מודל מקוריים של ספק. ייבא מ /models או הוסף מזהים מותאמים אישית לניתוב.",
     "bedrockModelsDescription": "הדגמים של Amazon Bedrock נמצאים לפי אזור AWS. ייבא מ-/models או הוסף מזהי דגמי Bedrock המופעלים באזור הנבחר.",

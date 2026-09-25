@@ -6362,7 +6362,8 @@
       "kiro": "Offre gratuite : 50 crédits/mois (~25K–100K tokens). ⚠️ Les conditions d'utilisation de Kiro interdisent l'utilisation de proxys/harness tiers.",
       "codex": "Connecter OpenAI Codex avec le flux OAuth existant.",
       "qwen": "Connecter Qwen Code avec le flux OAuth existant.",
-      "github-models": "Créez un PAT GitHub avec la portée 'models: read' sur github.com/settings/tokens"
+      "github-models": "Créez un PAT GitHub avec la portée 'models: read' sur github.com/settings/tokens",
+      "apmix": "Connectez Apmix avec une clé API de apmix.ai/dashboard — un abonnement, de nombreux modèles."
     },
     "passthroughModelsDescription": "{provider} accepte les ID de modèle natifs du fournisseur. Importez depuis /models ou ajoutez des ID personnalisés pour le routage.",
     "bedrockModelsDescription": "Les modèles Amazon Bedrock sont définis par région AWS. Importez depuis /models ou ajoutez les ID de modèle Bedrock activés dans la région sélectionnée.",

@@ -6266,6 +6266,7 @@
       "monsterapi": "Preuzmite API ključ na monsterapi.ai",
       "moonshot": "Povežite Kimi pomoću API ključa.",
       "morph": "Besplatni nivo: 250K kredita/mjesečno, $0",
+      "apmix": "Povežite Apmix s API ključem sa apmix.ai/dashboard — jedna pretplata, mnogo modela.",
       "nanogpt": "Povežite NanoGPT pomoću API ključa.",
       "nebius": "~1$ probnih kredita pri registraciji za testiranje API-ja",
       "nlpcloud": "NLP Cloud koristi vlasnički chatbot API umjesto OpenAI chat/completions. OmniRoute prilagođava OpenAI poruke za input/context/history i izlaže lokalni katalog podržanih chatbot modela.",
@@ -14170,7 +14171,12 @@
     "hour": "sat",
     "day": "dan",
     "unknownModel": "nepoznato",
-    "pending": "na čekanju"
+    "pending": "na čekanju",
+    "allApiKeys": "Svi API ključevi",
+    "apiKey": "API ključ",
+    "mcp": "MCP",
+    "mcpTool": "MCP alat",
+    "scope": "Opseg"
   },
   "metadata": {
     "compressionTitle": "Kompresija",

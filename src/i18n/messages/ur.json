@@ -6362,7 +6362,8 @@
       "kiro": "مفت پلان: 50 کریڈٹس/مہینہ (~25K–100K ٹوکنز)۔ ⚠️ Kiro ToS فریقِ ثالث کے پراکسی/ہارنس کے استعمال سے منع کرتا ہے۔",
       "codex": "OpenAI Codex کو موجودہ OAuth فلو سے منسلک کریں۔",
       "qwen": "Qwen Code کو موجودہ OAuth فلو سے منسلک کریں۔",
-      "github-models": "github.com/settings/tokens پر 'models: read' اسکوپ کے ساتھ ایک GitHub PAT بنائیں"
+      "github-models": "github.com/settings/tokens پر 'models: read' اسکوپ کے ساتھ ایک GitHub PAT بنائیں",
+      "apmix": "apmix.ai/dashboard سے API کی کے ساتھ Apmix جوڑیں — ایک سبسکرپشن، کئی ماڈلز۔"
     },
     "passthroughModelsDescription": "{provider} فراہم کنندہ کے مقامی ماڈل IDs کو قبول کرتا ہے۔ /ماڈلز سے درآمد کریں یا روٹنگ کے لیے حسب ضرورت IDs شامل کریں۔",
     "bedrockModelsDescription": "ایمیزون بیڈرک ماڈلز کا دائرہ AWS ریجن کے ذریعہ کیا گیا ہے۔ /ماڈلز سے درآمد کریں یا منتخب علاقے میں فعال کردہ Bedrock ماڈل IDs شامل کریں۔",

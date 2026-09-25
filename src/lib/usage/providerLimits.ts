@@ -60,6 +60,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "minimax-cn",
   "crof",
   "nanogpt",
+  "apmix",
   "deepseek",
   "xiaomi-mimo",
   "vertex",

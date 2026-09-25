@@ -6362,7 +6362,8 @@
       "kiro": "സൗജന്യ ടിയർ: പ്രതിമാസം 50 ക്രെഡിറ്റുകൾ (~25K–100K tokens). ⚠️ Kiro ToS മൂന്നാം കക്ഷി proxy/harness ഉപയോഗം നിരോധിക്കുന്നു.",
       "codex": "നിലവിലുള്ള OAuth പ്രവാഹം ഉപയോഗിച്ച് OpenAI Codex കണക്റ്റ് ചെയ്യുക.",
       "qwen": "നിലവിലുള്ള OAuth പ്രവാഹം ഉപയോഗിച്ച് Qwen Code കണക്റ്റ് ചെയ്യുക.",
-      "github-models": "github.com/settings/tokens-ൽ 'models: read' സ്കോപ്പുള്ള ഒരു GitHub PAT സൃഷ്ടിക്കുക"
+      "github-models": "github.com/settings/tokens-ൽ 'models: read' സ്കോപ്പുള്ള ഒരു GitHub PAT സൃഷ്ടിക്കുക",
+      "apmix": "apmix.ai/dashboard-ൽ നിന്നുള്ള API കീ ഉപയോഗിച്ച് Apmix ബന്ധിപ്പിക്കുക — ഒരു സബ്സ്ക്രിപ്ഷൻ, ധാരാളം മോഡലുകൾ."
     },
     "passthroughModelsDescription": "{provider} പ്രൊവൈഡർ-നേറ്റീവ് മോഡൽ ID-കൾ സ്വീകരിക്കുന്നു. /models-ൽ നിന്ന് ഇമ്പോർട്ട് ചെയ്യുക അല്ലെങ്കിൽ റൂട്ടിംഗിനായി ഇഷ്ടാനുസൃത ID-കൾ ചേർക്കുക.",
     "bedrockModelsDescription": "Amazon Bedrock മോഡലുകൾ AWS മേഖല അനുസരിച്ചാണ് പരിധിനിർണ്ണയിച്ചിരിക്കുന്നത്. /models-ൽ നിന്ന് ഇമ്പോർട്ട് ചെയ്യുക അല്ലെങ്കിൽ തിരഞ്ഞെടുത്ത മേഖലയിൽ പ്രവർത്തനക്ഷമമാക്കിയ Bedrock മോഡൽ ID-കൾ ചേർക്കുക.",

@@ -6362,7 +6362,8 @@
       "kiro": "Brezplačna raven: 50 dobroimetij/mesec (~25.000–100.000 žetonov). ⚠️ Pogoji uporabe storitve Kiro prepovedujejo uporabo posrednikov ali ogrodij tretjih oseb.",
       "codex": "Povežite OpenAI Codex z obstoječim postopkom OAuth.",
       "qwen": "Povežite Qwen Code z obstoječim postopkom OAuth.",
-      "github-models": "Ustvarite GitHub PAT z obsegom »models: read« na github.com/settings/tokens"
+      "github-models": "Ustvarite GitHub PAT z obsegom »models: read« na github.com/settings/tokens",
+      "apmix": "Povežite Apmix z API ključem iz apmix.ai/dashboard — ena naročnina, veliko modelov."
     },
     "passthroughModelsDescription": "{provider} sprejema izvorne ID-je modelov ponudnika. Uvozite jih iz /models ali dodajte ID-je po meri za usmerjanje.",
     "bedrockModelsDescription": "Modeli Amazon Bedrock so omejeni na regijo AWS. Uvozite jih iz /models ali dodajte ID-je modelov Bedrock, omogočene v izbrani regiji.",

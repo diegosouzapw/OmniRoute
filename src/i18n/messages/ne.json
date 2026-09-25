@@ -6362,7 +6362,8 @@
       "kiro": "निःशुल्क तह: 50 क्रेडिट/महिना (~25K–100K टोकन)। ⚠️ Kiro ToS ले तेस्रो-पक्ष प्रोक्सी/हार्नेसको प्रयोग निषेध गर्छ।",
       "codex": "विद्यमान OAuth प्रवाहमार्फत OpenAI Codex जडान गर्नुहोस्।",
       "qwen": "विद्यमान OAuth प्रवाहमार्फत Qwen Code जडान गर्नुहोस्।",
-      "github-models": "github.com/settings/tokens मा 'models: read' स्कोपसहित GitHub PAT सिर्जना गर्नुहोस्"
+      "github-models": "github.com/settings/tokens मा 'models: read' स्कोपसहित GitHub PAT सिर्जना गर्नुहोस्",
+      "apmix": "apmix.ai/dashboard बाट API किसहित Apmix जोड्नुहोस् — एउटा सदस्यता, धेरै मोडेलहरू।"
     },
     "passthroughModelsDescription": "{provider} ले प्रदायक-मूल मोडेल ID हरू स्वीकार गर्छ। /models बाट आयात गर्नुहोस् वा राउटिङका लागि अनुकूलन ID हरू थप्नुहोस्।",
     "bedrockModelsDescription": "Amazon Bedrock मोडेलहरू AWS क्षेत्रअनुसार सीमित हुन्छन्। /models बाट आयात गर्नुहोस् वा चयन गरिएको क्षेत्रमा सक्षम गरिएका Bedrock मोडेल ID हरू थप्नुहोस्।",

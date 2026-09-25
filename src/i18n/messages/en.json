@@ -6266,6 +6266,7 @@
       "monsterapi": "Get API key at monsterapi.ai",
       "moonshot": "Connect Kimi with an API key.",
       "morph": "Free tier: 250K credits/month, $0",
+      "apmix": "Connect Apmix with an API key from apmix.ai/dashboard — one subscription, many models.",
       "nanogpt": "Connect NanoGPT with an API key.",
       "nebius": "~$1 trial credits on signup for API testing",
       "nlpcloud": "NLP Cloud uses a proprietary chatbot API instead of OpenAI chat/completions. OmniRoute adapts OpenAI messages to input/context/history and exposes a local catalog of supported chatbot models.",

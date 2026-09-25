@@ -6362,7 +6362,8 @@
       "kiro": "Kiwango cha bure: mikopo 50/mwezi (~tokeni 25K–100K). ⚠️ Kiro ToS inakataza matumizi ya proksi/harness ya wahusika wengine.",
       "codex": "Unganisha OpenAI Codex na mtiririko uliopo wa OAuth.",
       "qwen": "Unganisha Qwen Code na mtiririko uliopo wa OAuth.",
-      "github-models": "Unda PAT ya GitHub yenye upeo wa 'models: read' kwenye github.com/settings/tokens"
+      "github-models": "Unda PAT ya GitHub yenye upeo wa 'models: read' kwenye github.com/settings/tokens",
+      "apmix": "Unganisha Apmix kwa funguo ya API kutoka apmix.ai/dashboard — usajili mmoja, modeli nyingi."
     },
     "passthroughModelsDescription": "{provider} inakubali vitambulisho vya asili vya mtoa huduma. Ingiza kutoka /miundo au ongeza vitambulisho maalum vya kuelekeza.",
     "bedrockModelsDescription": "Mitindo ya Amazon Bedrock inatolewa na eneo la AWS. Ingiza kutoka /miundo au ongeza vitambulisho vya muundo wa Bedrock vilivyowezeshwa katika eneo lililochaguliwa.",

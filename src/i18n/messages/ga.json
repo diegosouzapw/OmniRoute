@@ -6362,7 +6362,8 @@
       "kiro": "Sraith saor in aisce: 50 creidmheas/mí (~25K–100K comharthaí). ⚠️ Cuireann ToS Kiro cosc ar úsáid proxy/harness tríú páirtí.",
       "codex": "Ceangail OpenAI Codex leis an sreabhadh OAuth atá ann cheana.",
       "qwen": "Ceangail Qwen Code leis an sreabhadh OAuth atá ann cheana.",
-      "github-models": "Cruthaigh PAT GitHub le scóip 'models: read' ag github.com/settings/tokens"
+      "github-models": "Cruthaigh PAT GitHub le scóip 'models: read' ag github.com/settings/tokens",
+      "apmix": "Ceangail Apmix le eochair API ó apmix.ai/dashboard — síntiús amháin, go leor samhlacha."
     },
     "passthroughModelsDescription": "Glacann {provider} le haitheantais samhlacha atá dúchasach don soláthraí. Iompórtáil ó /models nó cuir aitheantais shaincheaptha leis le haghaidh ródaithe.",
     "bedrockModelsDescription": "Tá samhlacha Amazon Bedrock teoranta de réir réigiún AWS. Iompórtáil ó /models nó cuir aitheantais samhlacha Bedrock atá cumasaithe sa réigiún roghnaithe leis.",

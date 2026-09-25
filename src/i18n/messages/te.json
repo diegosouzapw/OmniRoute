@@ -6362,7 +6362,8 @@
       "kiro": "ఉచిత శ్రేణి: 50 క్రెడిట్‌లు/నెల (~25K–100K టోకెన్‌లు). ⚠️ Kiro ToS థర్డ్-పార్టీ ప్రాక్సీ/హార్నెస్ వినియోగాన్ని నిషేధిస్తుంది.",
       "codex": "ప్రస్తుత OAuth flowతో OpenAI Codexని కనెక్ట్ చేయండి.",
       "qwen": "ప్రస్తుత OAuth flowతో Qwen Codeని కనెక్ట్ చేయండి.",
-      "github-models": "github.com/settings/tokens వద్ద 'models: read' స్కోప్‌తో GitHub PATని సృష్టించండి"
+      "github-models": "github.com/settings/tokens వద్ద 'models: read' స్కోప్‌తో GitHub PATని సృష్టించండి",
+      "apmix": "apmix.ai/dashboard నుండి API కీతో Apmix ని కనెక్ట్ చేయండి — ఒక సభ్యతా, చాలా మోడల్స్."
     },
     "passthroughModelsDescription": "{provider} ప్రొవైడర్-స్థానిక మోడల్ IDలను అంగీకరిస్తుంది. /మోడల్స్ నుండి దిగుమతి చేయండి లేదా రూటింగ్ కోసం అనుకూల IDలను జోడించండి.",
     "bedrockModelsDescription": "అమెజాన్ బెడ్‌రాక్ మోడల్‌లు AWS ప్రాంతం ద్వారా స్కోప్ చేయబడ్డాయి. /మోడల్స్ నుండి దిగుమతి చేయండి లేదా ఎంచుకున్న ప్రాంతంలో ప్రారంభించబడిన బెడ్‌రాక్ మోడల్ IDలను జోడించండి.",

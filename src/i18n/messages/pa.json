@@ -6362,7 +6362,8 @@
       "kiro": "ਮੁਫ਼ਤ ਟੀਅਰ: 50 ਕ੍ਰੈਡਿਟ/ਮਹੀਨਾ (~25K–100K ਟੋਕਨ)। ⚠️ Kiro ToS ਵਿੱਚ ਤੀਜੀ-ਧਿਰ ਪ੍ਰਾਕਸੀ/ਹਾਰਨੈੱਸ ਦੀ ਵਰਤੋਂ ਦੀ ਮਨਾਹੀ ਹੈ।",
       "codex": "ਮੌਜੂਦਾ OAuth ਫ਼ਲੋ ਨਾਲ OpenAI Codex ਨੂੰ ਕਨੈਕਟ ਕਰੋ।",
       "qwen": "ਮੌਜੂਦਾ OAuth ਫ਼ਲੋ ਨਾਲ Qwen Code ਨੂੰ ਕਨੈਕਟ ਕਰੋ।",
-      "github-models": "github.com/settings/tokens ਉੱਤੇ 'models: read' ਸਕੋਪ ਵਾਲਾ GitHub PAT ਬਣਾਓ"
+      "github-models": "github.com/settings/tokens ਉੱਤੇ 'models: read' ਸਕੋਪ ਵਾਲਾ GitHub PAT ਬਣਾਓ",
+      "apmix": "apmix.ai/dashboard ਤੋਂ API ਕੁੰਜੀ ਨਾਲ Apmix ਕਨੈਕਟ ਕਰੋ — ਇੱਕ ਮੈਂਬਰਸ਼ਿਪ, ਕਈ ਮਾਡਲ।"
     },
     "passthroughModelsDescription": "{provider} ਪ੍ਰਦਾਤਾ-ਮੂਲ ਮਾਡਲ IDs ਸਵੀਕਾਰ ਕਰਦਾ ਹੈ। /models ਤੋਂ ਇੰਪੋਰਟ ਕਰੋ ਜਾਂ ਰੂਟਿੰਗ ਲਈ ਕਸਟਮ IDs ਸ਼ਾਮਲ ਕਰੋ।",
     "bedrockModelsDescription": "Amazon Bedrock ਮਾਡਲਾਂ ਦਾ ਦਾਇਰਾ AWS ਖੇਤਰ ਅਨੁਸਾਰ ਹੁੰਦਾ ਹੈ। /models ਤੋਂ ਇੰਪੋਰਟ ਕਰੋ ਜਾਂ ਚੁਣੇ ਹੋਏ ਖੇਤਰ ਵਿੱਚ ਸਮਰੱਥ ਕੀਤੀਆਂ Bedrock ਮਾਡਲ IDs ਸ਼ਾਮਲ ਕਰੋ।",

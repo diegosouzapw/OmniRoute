@@ -6362,7 +6362,8 @@
       "kiro": "အခမဲ့အဆင့်- တစ်လလျှင် credit 50 (~25K–100K tokens)။ ⚠️ Kiro ToS သည် ပြင်ပ proxy/harness အသုံးပြုမှုကို တားမြစ်ထားသည်။",
       "codex": "လက်ရှိ OAuth လုပ်ငန်းစဉ်ဖြင့် OpenAI Codex ကို ချိတ်ဆက်ပါ။",
       "qwen": "လက်ရှိ OAuth လုပ်ငန်းစဉ်ဖြင့် Qwen Code ကို ချိတ်ဆက်ပါ။",
-      "github-models": "github.com/settings/tokens တွင် 'models: read' scope ပါဝင်သည့် GitHub PAT တစ်ခု ဖန်တီးပါ"
+      "github-models": "github.com/settings/tokens တွင် 'models: read' scope ပါဝင်သည့် GitHub PAT တစ်ခု ဖန်တီးပါ",
+      "apmix": "apmix.ai/dashboard မှ API key ဖြင့် Apmix ကို ချိတ်ဆက်ပါ — စာရင်းသွင်းမှုတစ်ခု၊ မော်ဒယ်များစွာ။"
     },
     "passthroughModelsDescription": "{provider} သည် provider-native model IDs များကို လက်ခံသည်။ /models မှ ထည့်သွင်းပါ သို့မဟုတ် routing အတွက် စိတ်ကြိုက် IDs များ ထည့်ပါ။",
     "bedrockModelsDescription": "Amazon Bedrock မော်ဒယ်များကို AWS region အလိုက် ကန့်သတ်ထားသည်။ /models မှ ထည့်သွင်းပါ သို့မဟုတ် ရွေးချယ်ထားသည့် region တွင် ဖွင့်ထားသော Bedrock model IDs များ ထည့်ပါ။",

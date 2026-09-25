@@ -6362,7 +6362,8 @@
       "kiro": "Ingyenes csomag: havi 50 kredit (~25K–100K token). ⚠️ A Kiro felhasználási feltételei tiltják a külső proxykkal és futtatókeretekkel való használatot.",
       "codex": "Csatlakoztasd az OpenAI Codex szolgáltatást a meglévő OAuth-folyamattal.",
       "qwen": "Csatlakoztasd a Qwen Code szolgáltatást a meglévő OAuth-folyamattal.",
-      "github-models": "Hozzon létre egy GitHub PAT-ot 'models: read' hatókörrel a github.com/settings/tokens oldalon"
+      "github-models": "Hozzon létre egy GitHub PAT-ot 'models: read' hatókörrel a github.com/settings/tokens oldalon",
+      "apmix": "Kapcsold össze az Apmixet egy apmix.ai/dashboard-ról származó API-kulccsal — egy előfizetés, sok modell."
     },
     "passthroughModelsDescription": "Az {provider} elfogadja a szolgáltató natív modellazonosítóit. Importáljon a /models-ból, vagy adjon hozzá egyéni azonosítókat az útválasztáshoz.",
     "bedrockModelsDescription": "Az Amazon Bedrock modellek hatóköre az AWS régió szerint történik. Importáljon a /models mappából, vagy adja hozzá a kiválasztott régióban engedélyezett Bedrock modellazonosítókat.",

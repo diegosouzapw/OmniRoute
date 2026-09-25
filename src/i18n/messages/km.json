@@ -6362,7 +6362,8 @@
       "kiro": "កម្រិតឥតគិតថ្លៃ៖ 50 ក្រេឌីត/ខែ (~25K–100K tokens)។ ⚠️ លក្ខខណ្ឌប្រើប្រាស់ Kiro ហាមឃាត់ការប្រើប្រាស់ proxy/harness របស់ភាគីទីបី។",
       "codex": "ភ្ជាប់ OpenAI Codex ដោយប្រើលំហូរ OAuth ដែលមានស្រាប់។",
       "qwen": "ភ្ជាប់ Qwen Code ដោយប្រើលំហូរ OAuth ដែលមានស្រាប់។",
-      "github-models": "បង្កើត GitHub PAT ដែលមាន scope 'models: read' នៅ github.com/settings/tokens"
+      "github-models": "បង្កើត GitHub PAT ដែលមាន scope 'models: read' នៅ github.com/settings/tokens",
+      "apmix": "ភ្ជាប់ Apmix ជាមួយកូនសោ API ពី apmix.ai/dashboard — ជាវជាប់តែមួយ ម៉ូដែលច្រើន។"
     },
     "passthroughModelsDescription": "{provider} ទទួលយក ID ម៉ូដែលដើមរបស់ provider។ នាំចូលពី /models ឬបន្ថែម ID ផ្ទាល់ខ្លួនសម្រាប់ការកំណត់ផ្លូវ។",
     "bedrockModelsDescription": "ម៉ូដែល Amazon Bedrock ត្រូវបានកំណត់តាមតំបន់ AWS។ នាំចូលពី /models ឬបន្ថែម ID ម៉ូដែល Bedrock ដែលបានបើកប្រើក្នុងតំបន់ដែលបានជ្រើសរើស។",

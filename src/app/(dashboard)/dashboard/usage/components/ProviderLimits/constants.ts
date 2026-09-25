@@ -14,6 +14,7 @@ export const PROVIDER_LABEL: Record<string, string> = {
   minimax: "MiniMax",
   "minimax-cn": "MiniMax CN",
   nanogpt: "NanoGPT",
+  apmix: "Apmix",
   deepseek: "DeepSeek",
   "xai-oauth": "xAI OAuth (Grok)",
   xao: "xAI OAuth (Grok)",

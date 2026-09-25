@@ -40,6 +40,9 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "minimax-cn",
   "crof",
   "nanogpt",
+  // Apmix (apmix.ai) — monthly weighted-token allowance + self-set daily/weekly caps
+  // + top-up credits (GET https://api.apmix.ai/v1/usage, Bearer key)
+  "apmix",
   "deepseek",
   "moonshot",
   "kimi",

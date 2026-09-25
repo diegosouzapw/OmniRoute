@@ -6362,7 +6362,8 @@
       "kiro": "ነፃ ደረጃ፦ በወር 50 ክሬዲቶች (~25K–100K ቶከኖች)። ⚠️ የKiro ToS በሦስተኛ ወገን ፕሮክሲ/ሃርነስ መጠቀምን ይከለክላል።",
       "codex": "OpenAI Codexን በነባሩ OAuth ፍሰት ያገናኙ።",
       "qwen": "Qwen Codeን በነባሩ OAuth ፍሰት ያገናኙ።",
-      "github-models": "በgithub.com/settings/tokens ላይ 'models: read' ወሰን ያለው GitHub PAT ይፍጠሩ"
+      "github-models": "በgithub.com/settings/tokens ላይ 'models: read' ወሰን ያለው GitHub PAT ይፍጠሩ",
+      "apmix": "Apmixን በapmix.ai/dashboard የሚገኝ የAPI ቁልፍ ያገናኙ — አንድ ደረሳ ብዙ ሞዴሎች።"
     },
     "passthroughModelsDescription": "{provider} የአቅራቢውን ቤተኛ የሞዴል መለያዎች ይቀበላል። ከ/models ያስመጡ ወይም ለማስተላለፍ ብጁ መለያዎችን ያክሉ።",
     "bedrockModelsDescription": "የAmazon Bedrock ሞዴሎች በAWS ክልል የተገደቡ ናቸው። ከ/models ያስመጡ ወይም በተመረጠው ክልል የነቁ የBedrock ሞዴል መለያዎችን ያክሉ።",

@@ -6362,7 +6362,8 @@
       "kiro": "طرح رایگان: ۵۰ اعتبار/ماه (~۲۵ هزار–۱۰۰ هزار توکن). ⚠️ شرایط خدمات Kiro استفاده از پروکسی/هارنس شخص ثالث را ممنوع می‌کند.",
       "codex": "اتصال OpenAI Codex با جریان OAuth موجود.",
       "qwen": "اتصال Qwen Code با جریان OAuth موجود.",
-      "github-models": "یک GitHub PAT با محدوده (scope) 'models: read' در github.com/settings/tokens ایجاد کنید"
+      "github-models": "یک GitHub PAT با محدوده (scope) 'models: read' در github.com/settings/tokens ایجاد کنید",
+      "apmix": "Apmix را با یک کلید API از apmix.ai/dashboard متصل کنید — یک اشتراک، مدل‌های زیاد."
     },
     "passthroughModelsDescription": "{provider} شناسه های مدل بومی ارائه دهنده را می پذیرد. از /models وارد کنید یا شناسه های سفارشی را برای مسیریابی اضافه کنید.",
     "bedrockModelsDescription": "مدل‌های بستر آمازون بر اساس منطقه AWS تعیین می‌شوند. از /models وارد کنید یا شناسه‌های مدل Bedrock را که در منطقه انتخابی فعال شده است اضافه کنید.",

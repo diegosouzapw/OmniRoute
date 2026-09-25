@@ -6362,7 +6362,8 @@
       "kiro": "Bezmaksas plāns: 50 kredīti mēnesī (~25K–100K tokenu). ⚠️ Kiro pakalpojuma sniegšanas noteikumi aizliedz trešo pušu proxy/harness izmantošanu.",
       "codex": "Savienojiet OpenAI Codex, izmantojot esošo OAuth plūsmu.",
       "qwen": "Savienojiet Qwen Code, izmantojot esošo OAuth plūsmu.",
-      "github-models": "Izveidojiet GitHub PAT ar 'models: read' tvērumu vietnē github.com/settings/tokens"
+      "github-models": "Izveidojiet GitHub PAT ar 'models: read' tvērumu vietnē github.com/settings/tokens",
+      "apmix": "Savienojiet Apmix ar API atslēgu no apmix.ai/dashboard — viens abonements, daudzi modeļi."
     },
     "passthroughModelsDescription": "{provider} pieņem sniedzēja formāta modeļu ID. Importējiet tos no /models vai pievienojiet pielāgotus ID maršrutēšanai.",
     "bedrockModelsDescription": "Amazon Bedrock modeļi ir piesaistīti AWS reģionam. Importējiet tos no /models vai pievienojiet izvēlētajā reģionā iespējoto Bedrock modeļu ID.",

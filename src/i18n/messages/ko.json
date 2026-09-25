@@ -6362,7 +6362,8 @@
       "kiro": "무료 티어: 월 50 크레딧(~25K–100K 토큰). ⚠️ Kiro ToS는 서드파티 프록시/하네스 사용을 금지합니다.",
       "codex": "기존 OAuth 흐름으로 OpenAI Codex를 연결합니다.",
       "qwen": "기존 OAuth 흐름으로 Qwen Code를 연결합니다.",
-      "github-models": "github.com/settings/tokens 에서 'models: read' 범위(scope)를 가진 GitHub PAT를 생성하세요."
+      "github-models": "github.com/settings/tokens 에서 'models: read' 범위(scope)를 가진 GitHub PAT를 생성하세요.",
+      "apmix": "apmix.ai/dashboard에서 API 키로 Apmix를 연결하세요 — 하나의 구독으로 다양한 모델."
     },
     "passthroughModelsDescription": "{provider}은 공급자 기본 모델 ID를 허용합니다. /models에서 가져오거나 라우팅을 위한 사용자 정의 ID를 추가하세요.",
     "bedrockModelsDescription": "Amazon Bedrock 모델은 AWS 지역별로 범위가 지정됩니다. /models에서 가져오거나 선택한 지역에서 활성화된 Bedrock 모델 ID를 추가하세요.",

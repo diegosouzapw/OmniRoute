@@ -6362,7 +6362,8 @@
       "kiro": "ระดับฟรี: 50 เครดิต/เดือน (~25K–100K โทเค็น) ⚠️ ToS ของ Kiro ห้ามใช้พร็อกซี/harness ของบุคคลที่สาม",
       "codex": "เชื่อมต่อ OpenAI Codex ด้วยโฟลว์ OAuth ที่มีอยู่",
       "qwen": "เชื่อมต่อ Qwen Code ด้วยโฟลว์ OAuth ที่มีอยู่",
-      "github-models": "สร้าง GitHub PAT ที่มีขอบเขต 'models: read' ที่ github.com/settings/tokens"
+      "github-models": "สร้าง GitHub PAT ที่มีขอบเขต 'models: read' ที่ github.com/settings/tokens",
+      "apmix": "เชื่อมต่อ Apmix ด้วยคีย์ API จาก apmix.ai/dashboard — สมาชิกเดียว หลายโมเดล"
     },
     "passthroughModelsDescription": "{provider} ยอมรับ ID โมเดลดั้งเดิมของผู้ให้บริการ นำเข้าจาก /models หรือเพิ่ม ID ที่กำหนดเองสำหรับการกำหนดเส้นทาง",
     "bedrockModelsDescription": "โมเดล Amazon Bedrock มีการกำหนดขอบเขตตามภูมิภาค AWS นำเข้าจาก /models หรือเพิ่มรหัสรุ่น Bedrock ที่เปิดใช้งานในภูมิภาคที่เลือก",

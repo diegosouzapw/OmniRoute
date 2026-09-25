@@ -6362,7 +6362,8 @@
       "kiro": "Libreng tier: 50 credits/buwan (~25K–100K tokens). ⚠️ Ipinagbabawal ng Kiro ToS ang paggamit ng third-party proxy/harness.",
       "codex": "Ikonekta ang OpenAI Codex gamit ang umiiral na OAuth flow.",
       "qwen": "Ikonekta ang Qwen Code gamit ang umiiral na OAuth flow.",
-      "github-models": "Gumawa ng GitHub PAT na may 'models: read' na scope sa github.com/settings/tokens"
+      "github-models": "Gumawa ng GitHub PAT na may 'models: read' na scope sa github.com/settings/tokens",
+      "apmix": "Ikonekta ang Apmix gamit ang API key mula sa apmix.ai/dashboard — isang subscription, maraming modelo."
     },
     "passthroughModelsDescription": "Tumatanggap ang {provider} ng mga provider-native na model ID. Mag-import mula sa /models o magdagdag ng mga custom na ID para sa pagruruta.",
     "bedrockModelsDescription": "Ang mga modelo ng Amazon Bedrock ay saklaw ng rehiyon ng AWS. Mag-import mula sa /models o magdagdag ng mga Bedrock model ID na pinagana sa napiling rehiyon.",

@@ -6362,7 +6362,8 @@
       "kiro": "Gratisnivå: 50 kreditter/måned (~25K–100K tokens). ⚠️ Kiros brukervilkår forbyr bruk av tredjeparts proxy/harness.",
       "codex": "Koble til OpenAI Codex med den eksisterende OAuth-flyten.",
       "qwen": "Koble til Qwen Code med den eksisterende OAuth-flyten.",
-      "github-models": "Opprett et GitHub PAT med 'models: read'-omfang på github.com/settings/tokens"
+      "github-models": "Opprett et GitHub PAT med 'models: read'-omfang på github.com/settings/tokens",
+      "apmix": "Koble Apmix med en API-nøkkel fra apmix.ai/dashboard — ett abonnement, mange modeller."
     },
     "passthroughModelsDescription": "{provider} godtar leverandør-native modell-ID-er. Importer fra /models eller legg til egendefinerte ID-er for ruting.",
     "bedrockModelsDescription": "Amazon Bedrock-modeller er omfattet av AWS-regionen. Importer fra /models eller legg til berggrunnsmodell-IDer aktivert i den valgte regionen.",

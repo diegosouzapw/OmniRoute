@@ -6362,7 +6362,8 @@
       "kiro": "Ìpele ọ̀fẹ́: kírẹ́díìtì 50/oṣù (~25K–100K tokens). ⚠️ Àwọn ToS Kiro kọ lílo proxy/harness ẹni-kẹta.",
       "codex": "So OpenAI Codex pọ̀ pẹ̀lú ìṣàn OAuth tó wà tẹ́lẹ̀.",
       "qwen": "So Qwen Code pọ̀ pẹ̀lú ìṣàn OAuth tó wà tẹ́lẹ̀.",
-      "github-models": "Ṣẹ̀dá GitHub PAT kan pẹ̀lú àyè 'models: read' ní github.com/settings/tokens"
+      "github-models": "Ṣẹ̀dá GitHub PAT kan pẹ̀lú àyè 'models: read' ní github.com/settings/tokens",
+      "apmix": "So Apmix pọ mọ API key kan láti apmix.ai/dashboard — ìfọwọ́sí kan, ọ̀pọ̀ àwọn módéèlù."
     },
     "passthroughModelsDescription": "{provider} ń gba àwọn ID model abinibi-provider. Gbé wọlé láti /models tàbí fi àwọn ID àdáni kún un fún ìdarí ipa-ọ̀nà.",
     "bedrockModelsDescription": "Àwọn model Amazon Bedrock jẹ́ dídín mọ́ agbègbè AWS. Gbé wọlé láti /models tàbí fi àwọn ID model Bedrock tí a ti mú ṣiṣẹ́ ní agbègbè tí a yàn kún un.",

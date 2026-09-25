@@ -158,6 +158,7 @@ import { devin_desktopProvider } from "./registry/devin-desktop/index.ts";
 import { zcodeProvider } from "./registry/zcode/index.ts";
 import { zed_hostedProvider } from "./registry/zed-hosted/index.ts";
 import { nanogptProvider } from "./registry/nanogpt/index.ts";
+import { apmixProvider } from "./registry/apmix/index.ts";
 import { scalewayProvider } from "./registry/scaleway/index.ts";
 import { agentrouterProvider } from "./registry/agentrouter/index.ts";
 import { zaiProvider } from "./registry/zai/index.ts";
@@ -433,6 +434,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   zcode: zcodeProvider,
   "zed-hosted": zed_hostedProvider,
   nanogpt: nanogptProvider,
+  apmix: apmixProvider,
   scaleway: scalewayProvider,
   agentrouter: agentrouterProvider,
   zai: zaiProvider,

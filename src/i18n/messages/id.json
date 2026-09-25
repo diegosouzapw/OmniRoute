@@ -6362,7 +6362,8 @@
       "kiro": "Tingkat gratis: 50 kredit/bulan (~25K–100K token). ⚠️ ToS Kiro melarang penggunaan proksi/harness pihak ketiga.",
       "codex": "Hubungkan OpenAI Codex dengan alur OAuth yang ada.",
       "qwen": "Hubungkan Qwen Code dengan alur OAuth yang ada.",
-      "github-models": "Buat GitHub PAT dengan cakupan 'models: read' di github.com/settings/tokens"
+      "github-models": "Buat GitHub PAT dengan cakupan 'models: read' di github.com/settings/tokens",
+      "apmix": "Hubungkan Apmix dengan kunci API dari apmix.ai/dashboard — satu langganan, banyak model."
     },
     "passthroughModelsDescription": "{provider} menerima ID model asli penyedia. Impor dari /models atau tambahkan ID khusus untuk perutean.",
     "bedrockModelsDescription": "Model Amazon Bedrock dicakup berdasarkan wilayah AWS. Impor dari /models atau tambahkan ID model Batuan Dasar yang diaktifkan di wilayah yang dipilih.",

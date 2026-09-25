@@ -6362,7 +6362,8 @@
       "kiro": "Tasuta pakett: 50 krediiti kuus (~25K–100K tokenit). ⚠️ Kiro kasutustingimused keelavad kolmanda osapoole puhverserveri või rakenduskesta kasutamise.",
       "codex": "Ühenda OpenAI Codex olemasoleva OAuth-vooga.",
       "qwen": "Ühenda Qwen Code olemasoleva OAuth-vooga.",
-      "github-models": "Loo aadressil github.com/settings/tokens GitHub PAT õigusega „models: read”"
+      "github-models": "Loo aadressil github.com/settings/tokens GitHub PAT õigusega „models: read”",
+      "apmix": "Ühenda Apmix API võtmega saidilt apmix.ai/dashboard — üks tellimus, palju mudeleid."
     },
     "passthroughModelsDescription": "{provider} aktsepteerib teenusepakkuja omavormingus mudeli-ID-sid. Impordi need lehelt /models või lisa marsruutimiseks kohandatud ID-d.",
     "bedrockModelsDescription": "Amazon Bedrocki mudelid on seotud AWS-i piirkonnaga. Impordi need lehelt /models või lisa valitud piirkonnas lubatud Bedrocki mudelite ID-d.",

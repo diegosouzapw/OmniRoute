@@ -6362,7 +6362,8 @@
       "kiro": "Maksuton taso: 50 krediittiä kuukaudessa (~25K–100K tokenia). ⚠️ Kiro ToS kieltää kolmannen osapuolen välityspalvelujen ja harness-työkalujen käytön.",
       "codex": "Yhdistä OpenAI Codex olemassa olevalla OAuth-työnkululla.",
       "qwen": "Yhdistä Qwen Code olemassa olevalla OAuth-työnkululla.",
-      "github-models": "Luo GitHub PAT -tunniste 'models: read' -käyttöoikeudella osoitteessa github.com/settings/tokens"
+      "github-models": "Luo GitHub PAT -tunniste 'models: read' -käyttöoikeudella osoitteessa github.com/settings/tokens",
+      "apmix": "Yhdistä Apmix API-avaimella osoitteesta apmix.ai/dashboard — yksi tilaus, monta mallia."
     },
     "passthroughModelsDescription": "{provider} hyväksyy palveluntarjoajan alkuperäiset mallitunnukset. Tuo /modelsista tai lisää mukautettuja tunnuksia reititystä varten.",
     "bedrockModelsDescription": "Amazon Bedrock -mallit on luokiteltu AWS-alueen mukaan. Tuo osoitteesta /models tai lisää valitulla alueella käytössä olevat kallioperän mallitunnukset.",

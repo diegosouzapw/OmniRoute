@@ -6362,7 +6362,8 @@
       "kiro": "Nivel gratuit: 50 de credite/lună (~25K–100K tokenuri). ⚠️ Kiro ToS interzice utilizarea de proxy/harness terțe.",
       "codex": "Conectați OpenAI Codex cu fluxul OAuth existent.",
       "qwen": "Conectați Qwen Code cu fluxul OAuth existent.",
-      "github-models": "Creați un GitHub PAT cu scope-ul 'models: read' la github.com/settings/tokens"
+      "github-models": "Creați un GitHub PAT cu scope-ul 'models: read' la github.com/settings/tokens",
+      "apmix": "Conectează Apmix cu o cheie API de pe apmix.ai/dashboard — un abonament, multe modele."
     },
     "passthroughModelsDescription": "{provider} acceptă ID-uri de model native ale furnizorului. Importați din /modele sau adăugați ID-uri personalizate pentru rutare.",
     "bedrockModelsDescription": "Modelele Amazon Bedrock sunt acoperite de regiunea AWS. Importați din /modele sau adăugați ID-uri de model Bedrock activate în regiunea selectată.",

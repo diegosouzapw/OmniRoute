@@ -6362,7 +6362,8 @@
       "kiro": "Nemokamas planas: 50 kreditų per mėnesį (~25K–100K žetonų). ⚠️ Kiro ToS draudžia naudoti trečiųjų šalių tarpinius serverius ar valdymo įrankius.",
       "codex": "Prijunkite OpenAI Codex naudodami esamą OAuth procesą.",
       "qwen": "Prijunkite Qwen Code naudodami esamą OAuth procesą.",
-      "github-models": "Sukurkite GitHub PAT su „models: read“ aprėptimi adresu github.com/settings/tokens"
+      "github-models": "Sukurkite GitHub PAT su „models: read“ aprėptimi adresu github.com/settings/tokens",
+      "apmix": "Prijunkite Apmix su API raktu iš apmix.ai/dashboard — vienas prenumeratos planas, daug modelių."
     },
     "passthroughModelsDescription": "{provider} priima teikėjui būdingus modelių ID. Importuokite juos iš /models arba pridėkite pasirinktinius ID maršrutizavimui.",
     "bedrockModelsDescription": "Amazon Bedrock modeliai susieti su AWS regionu. Importuokite juos iš /models arba pridėkite pasirinktame regione įgalintų Bedrock modelių ID.",

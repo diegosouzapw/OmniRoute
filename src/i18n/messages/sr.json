@@ -6362,7 +6362,8 @@
       "kiro": "Бесплатни ниво: 50 кредита месечно (~25К–100К токена). ⚠️ Услови коришћења за Kiro забрањују употребу проксија или алата за оркестрацију трећих страна.",
       "codex": "Повежите OpenAI Codex помоћу постојећег OAuth тока.",
       "qwen": "Повежите Qwen Code помоћу постојећег OAuth тока.",
-      "github-models": "Направите GitHub PAT са обимом 'models: read' на github.com/settings/tokens"
+      "github-models": "Направите GitHub PAT са обимом 'models: read' на github.com/settings/tokens",
+      "apmix": "Повежите Apmix са API кључем са apmix.ai/dashboard — једна претплата, много модела."
     },
     "passthroughModelsDescription": "{provider} прихвата ID-ове модела нативне за добавача. Увезите из /models или додајте прилагођене ID-ове за рутирање.",
     "bedrockModelsDescription": "Amazon Bedrock модели су ограничени по AWS региону. Увезите из /models или додајте ID-ове Bedrock модела омогућене у изабраном региону.",

@@ -6362,7 +6362,8 @@
       "kiro": "Bezplatná úroveň: 50 kreditov/mesiac (~25k – 100k tokenov). ⚠️ Podmienky používania (ToS) Kiro zakazujú používanie proxy/harness tretích strán.",
       "codex": "Pripojte OpenAI Codex pomocou existujúceho toku OAuth.",
       "qwen": "Pripojte Qwen Code pomocou existujúceho toku OAuth.",
-      "github-models": "Vytvorte si GitHub PAT s rozsahom 'models: read' na adrese github.com/settings/tokens"
+      "github-models": "Vytvorte si GitHub PAT s rozsahom 'models: read' na adrese github.com/settings/tokens",
+      "apmix": "Pripojte Apmix pomocou API kľúča z apmix.ai/dashboard — jedno predplatné, mnoho modelov."
     },
     "passthroughModelsDescription": "{provider} akceptuje ID modelu natívneho poskytovateľa. Importujte z /models alebo pridajte vlastné ID pre smerovanie.",
     "bedrockModelsDescription": "Modely Amazon Bedrock sú vymedzené podľa regiónu AWS. Importovať z /models alebo pridať ID modelu Bedrock povolené vo vybranom regióne.",
