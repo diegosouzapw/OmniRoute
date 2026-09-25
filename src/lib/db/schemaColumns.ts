@@ -279,6 +279,17 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE call_logs ADD COLUMN reasoning_encrypted INTEGER DEFAULT NULL");
       console.log("[DB] Added call_logs.reasoning_encrypted column");
     }
+    // added by 190_call_logs_content_provenance; back-filled here for
+    // lineages that skipped the migration file — the call-log write path
+    // references these columns on every insert.
+    if (!columnNames.has("has_content")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN has_content INTEGER DEFAULT NULL");
+      console.log("[DB] Added call_logs.has_content column");
+    }
+    if (!columnNames.has("usage_provenance")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN usage_provenance TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.usage_provenance column");
+    }
 
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model)"
