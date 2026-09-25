@@ -1,0 +1,1 @@
+- **fix(providers):** advertise the Kimi Code CLI version 2.1.1. The pinned constant was still 0.26.0, so the `X-Msh-Version` and `User-Agent` headers OmniRoute sends to api.kimi.com trailed the real CLI by two major versions. `KIMI_CLI_VERSION` still overrides the pin per deployment.
