@@ -64,7 +64,7 @@ async function loadAgentBridgeHook(): Promise<{
       responseSize: number;
       proxyLatencyMs: number;
       upstreamLatencyMs: number;
-    },
+    }
   ) => void;
   recordRequestError?: (intercepted: InterceptedRequest, err: unknown) => void;
 } | null> {
@@ -85,6 +85,22 @@ async function loadAgentBridgeHook(): Promise<{
  * Aligned with the inspector default so the bound never hides data the UI shows.
  */
 export const MITM_PIPE_MAX_COLLECT_BYTES = 1 * 1024 * 1024;
+
+/**
+ * Resolve once the response emits "drain" or "close", removing both listeners.
+ * A close during the wait is caught by the caller's downstreamClosed check.
+ */
+function waitForDrainOrClose(res: ServerResponse): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const done = () => {
+      res.off("drain", done);
+      res.off("close", done);
+      resolve();
+    };
+    res.once("drain", done);
+    res.once("close", done);
+  });
+}
 
 /**
  * Bounded string accumulator for piped SSE transcripts. Stops retaining past
@@ -138,7 +154,7 @@ export abstract class MitmHandlerBase {
     req: IncomingMessage,
     res: ServerResponse,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<void>;
 
   /**
@@ -177,7 +193,7 @@ export abstract class MitmHandlerBase {
   protected async fetchRouter(
     body: unknown,
     path: string,
-    headers: IncomingHttpHeaders,
+    headers: IncomingHttpHeaders
   ): Promise<Response> {
     const port = process.env.API_PORT || process.env.PORT || 20128;
     const base =
@@ -201,7 +217,7 @@ export abstract class MitmHandlerBase {
   protected async pipeSSE(
     upstream: Response,
     res: ServerResponse,
-    onChunk?: (c: Buffer) => void,
+    onChunk?: (c: Buffer) => void
   ): Promise<void> {
     if (!upstream.body) {
       if (!res.headersSent) res.writeHead(upstream.status, { "Content-Type": "application/json" });
@@ -242,7 +258,10 @@ export abstract class MitmHandlerBase {
           }
         }
         if (downstreamClosed || res.closed || res.destroyed) break;
-        res.write(buf);
+        // A slow client must be allowed to drain before we read another upstream
+        // chunk, otherwise Node queues the whole stream in memory. A close during
+        // the wait is caught by the downstreamClosed check at the top of the loop.
+        if (!res.write(buf)) await waitForDrainOrClose(res);
       }
     } finally {
       res.off("close", onClose);
@@ -267,7 +286,7 @@ export abstract class MitmHandlerBase {
   protected async hookBufferStart(
     req: IncomingMessage,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<InterceptedRequest> {
     const hook = await loadAgentBridgeHook();
     if (hook?.recordRequestStart) {
@@ -325,7 +344,7 @@ export abstract class MitmHandlerBase {
       responseSize: number;
       proxyLatencyMs: number;
       upstreamLatencyMs: number;
-    },
+    }
   ): void {
     const finalOpts = opts ?? {
       status: typeof intercepted.status === "number" ? intercepted.status : 0,
@@ -350,10 +369,7 @@ export abstract class MitmHandlerBase {
    * Report a failed request to the Traffic Inspector.
    * No-op when the inspector module is not present.
    */
-  protected async hookBufferError(
-    intercepted: InterceptedRequest,
-    err: unknown,
-  ): Promise<void> {
+  protected async hookBufferError(intercepted: InterceptedRequest, err: unknown): Promise<void> {
     const hook = await loadAgentBridgeHook();
     if (hook?.recordRequestError) {
       try {
@@ -368,11 +384,7 @@ export abstract class MitmHandlerBase {
    * Render a Hard-Rule-#12-compliant error JSON body and send via `res`.
    * Returns the sanitized error string so callers may also log it.
    */
-  protected async writeError(
-    res: ServerResponse,
-    err: unknown,
-    statusCode = 500,
-  ): Promise<string> {
+  protected async writeError(res: ServerResponse, err: unknown, statusCode = 500): Promise<string> {
     const safe = await safeErrorMessage(err);
     if (!res.headersSent) {
       res.writeHead(statusCode, { "Content-Type": "application/json" });

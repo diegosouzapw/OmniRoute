@@ -597,7 +597,9 @@ async function intercept(req, res, bodyBuffer, override, sourceModel) {
           break;
         }
         const text = decoder.decode(value, { stream: true });
-        if (respBody.length < INGEST_MAX_BODY) respBody += text;
+        if (respBody.length < INGEST_MAX_BODY) {
+          respBody += text.slice(0, INGEST_MAX_BODY - respBody.length);
+        }
         respSize += value ? value.length : 0;
         if (downstreamClosed || res.closed || res.destroyed) break;
         res.write(text);
