@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Enweghị ike ichekwa nkesa pool",
     "poolPreferenceOrder": "Usoro mmasị",
     "poolSetAsideReason": "E wepụrụ: {kind}",
+    "poolSetAsideKindProxyUnreachable": "enweghị ike iru proxy",
+    "poolSetAsideKindIpQuota429": "oke ọsọ IP (429)",
     "poolSetAsideUntil": "Laghachi na ntụgharị {endsAt}",
     "poolSetAsideRepeat": "E wepụrụ {count, plural, one {# ugboro} other {# ugboro}}",
     "poolUnknownAddress": "Adreesị amaghị",

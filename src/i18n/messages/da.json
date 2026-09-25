@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Kunne ikke gemme pool-tildeling",
     "poolPreferenceOrder": "Præferencerækkefølge",
     "poolSetAsideReason": "Sat til side: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy kan ikke nås",
+    "poolSetAsideKindIpQuota429": "IP-hastighedsbegrænsning (429)",
     "poolSetAsideUntil": "Tilbage i rotation {endsAt}",
     "poolSetAsideRepeat": "Sat til side {count, plural, one {# gang} other {# gange}}",
     "poolUnknownAddress": "Ukendt adresse",

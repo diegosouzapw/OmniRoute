@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Imeshindwa kuhifadhi ugawaji wa dimbwi",
     "poolPreferenceOrder": "Mpangilio wa upendeleo",
     "poolSetAsideReason": "Imewekwa kando: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proksi haifikiki",
+    "poolSetAsideKindIpQuota429": "kikomo cha kasi cha IP (429)",
     "poolSetAsideUntil": "Kurudi kwenye mzunguko {endsAt}",
     "poolSetAsideRepeat": "Imewekwa kando {count, plural, one {# mara} other {# mara}}",
     "poolUnknownAddress": "Anwani isiyojulikana",

@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Чување припадности групи није успело",
     "poolPreferenceOrder": "Редослед предности",
     "poolSetAsideReason": "По страни: {kind}",
+    "poolSetAsideKindProxyUnreachable": "прокси недоступан",
+    "poolSetAsideKindIpQuota429": "ограничење брзине по IP адреси (429)",
     "poolSetAsideUntil": "Назад у ротацији {endsAt}",
     "poolSetAsideRepeat": "По страни {count, plural, one {# пут} other {# пута}}",
     "poolUnknownAddress": "Непозната адреса",

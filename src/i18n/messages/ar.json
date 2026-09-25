@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "فشل حفظ تعيين التجمع",
     "poolPreferenceOrder": "ترتيب التفضيل",
     "poolSetAsideReason": "مستبعد: {kind}",
+    "poolSetAsideKindProxyUnreachable": "تعذّر الوصول إلى الوكيل",
+    "poolSetAsideKindIpQuota429": "تقييد معدل عنوان IP ‏(429)",
     "poolSetAsideUntil": "يعود إلى التناوب {endsAt}",
     "poolSetAsideRepeat": "مستبعد {count, plural, one {# مرة} other {# مرات}}",
     "poolUnknownAddress": "عنوان غير معروف",

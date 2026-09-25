@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Չհաջողվեց պահպանել պուլին վերագրումը",
     "poolPreferenceOrder": "Նախապատվության կարգ",
     "poolSetAsideReason": "Մի կողմ դրված՝ {kind}",
+    "poolSetAsideKindProxyUnreachable": "պրոքսին անհասանելի է",
+    "poolSetAsideKindIpQuota429": "IP արագության սահմանափակում (429)",
     "poolSetAsideUntil": "Վերադարձ ռոտացիայի {endsAt}",
     "poolSetAsideRepeat": "Մի կողմ դրված {count, plural, one {# անգամ} other {# անգամ}}",
     "poolUnknownAddress": "Անհայտ հասցե",

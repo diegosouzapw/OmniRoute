@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "పూల్ అసైన్‌మెంట్‌ను సేవ్ చేయడం విఫలమైంది",
     "poolPreferenceOrder": "ప్రాధాన్యతా క్రమం",
     "poolSetAsideReason": "పక్కన పెట్టబడింది: {kind}",
+    "poolSetAsideKindProxyUnreachable": "ప్రాక్సీని చేరుకోలేకపోయింది",
+    "poolSetAsideKindIpQuota429": "IP రేట్ పరిమితి (429)",
     "poolSetAsideUntil": "రొటేషన్‌లోకి తిరిగి {endsAt}",
     "poolSetAsideRepeat": "పక్కన పెట్టబడింది {count, plural, one {# సారి} other {# సార్లు}}",
     "poolUnknownAddress": "తెలియని చిరునామా",

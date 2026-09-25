@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Misslyckades med att spara pooltilldelning",
     "poolPreferenceOrder": "Preferensordning",
     "poolSetAsideReason": "Åsidosatt: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxyn går inte att nå",
+    "poolSetAsideKindIpQuota429": "IP-hastighetsbegränsning (429)",
     "poolSetAsideUntil": "Tillbaka i rotation {endsAt}",
     "poolSetAsideRepeat": "Åsidosatt {count, plural, one {# gång} other {# gånger}}",
     "poolUnknownAddress": "Okänd adress",

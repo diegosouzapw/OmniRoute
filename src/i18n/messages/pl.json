@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Nie udało się zapisać przypisania puli",
     "poolPreferenceOrder": "Kolejność preferencji",
     "poolSetAsideReason": "Odłożony: {kind}",
+    "poolSetAsideKindProxyUnreachable": "serwer proxy nieosiągalny",
+    "poolSetAsideKindIpQuota429": "limit szybkości dla IP (429)",
     "poolSetAsideUntil": "Z powrotem w rotacji {endsAt}",
     "poolSetAsideRepeat": "Odłożony {count, plural, one {# raz} other {# razy}}",
     "poolUnknownAddress": "Nieznany adres",

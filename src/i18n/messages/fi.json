@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Poolimäärityksen tallentaminen epäonnistui",
     "poolPreferenceOrder": "Ensisijaisuusjärjestys",
     "poolSetAsideReason": "Syrjään: {kind}",
+    "poolSetAsideKindProxyUnreachable": "välityspalvelin ei tavoitettavissa",
+    "poolSetAsideKindIpQuota429": "IP-nopeusrajoitus (429)",
     "poolSetAsideUntil": "Takaisin kierrossa {endsAt}",
     "poolSetAsideRepeat": "Syrjään {count, plural, one {# kerran} other {# kertaa}}",
     "poolUnknownAddress": "Tuntematon osoite",

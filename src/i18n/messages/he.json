@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "שמירת הקצאת המאגר נכשלה",
     "poolPreferenceOrder": "סדר עדיפויות",
     "poolSetAsideReason": "הושם בצד: {kind}",
+    "poolSetAsideKindProxyUnreachable": "לא ניתן להגיע לפרוקסי",
+    "poolSetAsideKindIpQuota429": "הגבלת קצב לפי IP ‏(429)",
     "poolSetAsideUntil": "חוזר לרוטציה {endsAt}",
     "poolSetAsideRepeat": "הושם בצד {count, plural, one {# פעם} other {# פעמים}}",
     "poolUnknownAddress": "כתובת לא ידועה",

@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Nepavyko išsaugoti priskyrimo telkiniui",
     "poolPreferenceOrder": "Pirmenybės tvarka",
     "poolSetAsideReason": "Atidėta: {kind}",
+    "poolSetAsideKindProxyUnreachable": "tarpinis serveris nepasiekiamas",
+    "poolSetAsideKindIpQuota429": "IP užklausų ribojimas (429)",
     "poolSetAsideUntil": "Grįžta į rotaciją {endsAt}",
     "poolSetAsideRepeat": "Atidėta {count, plural, one {# kartą} other {# kartus}}",
     "poolUnknownAddress": "Nežinomas adresas",

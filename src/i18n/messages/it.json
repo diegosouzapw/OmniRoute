@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Impossibile salvare l'assegnazione del pool",
     "poolPreferenceOrder": "Ordine di preferenza",
     "poolSetAsideReason": "Accantonato: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy non raggiungibile",
+    "poolSetAsideKindIpQuota429": "limite di frequenza per IP (429)",
     "poolSetAsideUntil": "Di nuovo in rotazione {endsAt}",
     "poolSetAsideRepeat": "Accantonato {count, plural, one {# volta} other {# volte}}",
     "poolUnknownAddress": "Indirizzo sconosciuto",

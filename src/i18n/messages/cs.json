@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Nepodařilo se uložit přiřazení poolu",
     "poolPreferenceOrder": "Pořadí preferencí",
     "poolSetAsideReason": "Odloženo: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy je nedostupná",
+    "poolSetAsideKindIpQuota429": "omezení rychlosti podle IP (429)",
     "poolSetAsideUntil": "Zpět v rotaci {endsAt}",
     "poolSetAsideRepeat": "Odloženo {count, plural, one {#krát} other {#krát}}",
     "poolUnknownAddress": "Neznámá adresa",

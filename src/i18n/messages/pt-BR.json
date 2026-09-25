@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Falha ao salvar a atribuição do pool",
     "poolPreferenceOrder": "Ordem de preferência",
     "poolSetAsideReason": "Afastado: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy inacessível",
+    "poolSetAsideKindIpQuota429": "limite de taxa por IP (429)",
     "poolSetAsideUntil": "De volta à rotação {endsAt}",
     "poolSetAsideRepeat": "Afastado {count, plural, one {# vez} other {# vezes}}",
     "poolUnknownAddress": "Endereço desconhecido",

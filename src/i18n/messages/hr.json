@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Spremanje dodjele skupa nije uspjelo",
     "poolPreferenceOrder": "Redoslijed prioriteta",
     "poolSetAsideReason": "Po strani: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy nedostupan",
+    "poolSetAsideKindIpQuota429": "ograničenje brzine po IP-u (429)",
     "poolSetAsideUntil": "Natrag u rotaciji {endsAt}",
     "poolSetAsideRepeat": "Po strani {count, plural, one {# put} other {# puta}}",
     "poolUnknownAddress": "Nepoznata adresa",

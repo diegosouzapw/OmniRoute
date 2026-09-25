@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "ಪೂಲ್ ನಿಯೋಜನೆಯನ್ನು ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
     "poolPreferenceOrder": "ಆದ್ಯತಾ ಕ್ರಮ",
     "poolSetAsideReason": "ಪಕ್ಕಕ್ಕೆ ಇರಿಸಲಾಗಿದೆ: {kind}",
+    "poolSetAsideKindProxyUnreachable": "ಪ್ರಾಕ್ಸಿ ತಲುಪಲಾಗುತ್ತಿಲ್ಲ",
+    "poolSetAsideKindIpQuota429": "IP ದರ ಮಿತಿ (429)",
     "poolSetAsideUntil": "ತಿರುಗುವಿಕೆಗೆ ಹಿಂತಿರುಗಿ {endsAt}",
     "poolSetAsideRepeat": "ಪಕ್ಕಕ್ಕೆ ಇರಿಸಲಾಗಿದೆ {count, plural, one {# ಬಾರಿ} other {# ಬಾರಿ}}",
     "poolUnknownAddress": "ಅಜ್ಞಾತ ವಿಳಾಸ",

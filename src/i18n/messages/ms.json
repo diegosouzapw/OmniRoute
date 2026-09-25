@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Gagal menyimpan tugasan kolam",
     "poolPreferenceOrder": "Susunan keutamaan",
     "poolSetAsideReason": "Diketepikan: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proksi tidak dapat dicapai",
+    "poolSetAsideKindIpQuota429": "had kadar IP (429)",
     "poolSetAsideUntil": "Kembali dalam putaran {endsAt}",
     "poolSetAsideRepeat": "Diketepikan {count, plural, one {# kali} other {# kali}}",
     "poolUnknownAddress": "Alamat tidak diketahui",

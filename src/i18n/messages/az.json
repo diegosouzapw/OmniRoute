@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Hovuz təyinatını yadda saxlamaq mümkün olmadı",
     "poolPreferenceOrder": "Üstünlük sırası",
     "poolSetAsideReason": "Kənara qoyuldu: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proksiyə çatmaq mümkün deyil",
+    "poolSetAsideKindIpQuota429": "IP sürət limiti (429)",
     "poolSetAsideUntil": "Rotasiyaya qayıtdı {endsAt}",
     "poolSetAsideRepeat": "Kənara qoyuldu {count, plural, one {# dəfə} other {# dəfə}}",
     "poolUnknownAddress": "Naməlum ünvan",

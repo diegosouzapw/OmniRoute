@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "पूल असाइनमेंट सहेजने में विफल",
     "poolPreferenceOrder": "वरीयता क्रम",
     "poolSetAsideReason": "अलग रखा गया: {kind}",
+    "poolSetAsideKindProxyUnreachable": "प्रॉक्सी तक पहुँचा नहीं जा सका",
+    "poolSetAsideKindIpQuota429": "IP दर सीमा (429)",
     "poolSetAsideUntil": "रोटेशन में वापस {endsAt}",
     "poolSetAsideRepeat": "अलग रखा गया {count, plural, one {# बार} other {# बार}}",
     "poolUnknownAddress": "अज्ञात पता",

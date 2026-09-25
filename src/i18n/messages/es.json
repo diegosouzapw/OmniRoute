@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "No se pudo guardar la asignación del grupo",
     "poolPreferenceOrder": "Orden de preferencia",
     "poolSetAsideReason": "Apartado: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy inaccesible",
+    "poolSetAsideKindIpQuota429": "límite de tasa por IP (429)",
     "poolSetAsideUntil": "De vuelta en rotación {endsAt}",
     "poolSetAsideRepeat": "Apartado {count, plural, one {# vez} other {# veces}}",
     "poolUnknownAddress": "Dirección desconocida",

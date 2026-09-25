@@ -48,9 +48,19 @@ function loadPoolVisibility(
     });
 }
 
+function isVisibilityMember(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.rank === "number" && typeof record.signal === "string";
+}
+
+// Only accept the visibility route's own shape: a members array alone also matches the
+// member-egress body, which would otherwise render every member twice.
 function parseVisibilityPayload(payload: unknown): PoolVisibilityPayload | null {
   const record = payload as { members?: unknown };
-  if (record && Array.isArray(record.members)) return payload as PoolVisibilityPayload;
+  if (record && Array.isArray(record.members) && record.members.every(isVisibilityMember)) {
+    return payload as PoolVisibilityPayload;
+  }
   return null;
 }
 
@@ -62,13 +72,32 @@ function findVisibleMember(
   return visibility?.members.find((m) => m.id === proxyId);
 }
 
+// Refusal kinds come from REFUSAL_POLICIES in open-sse/utils/proxyRefusalMemory.ts.
+const SET_ASIDE_KIND_KEYS: Record<string, string> = {
+  proxy_unreachable: "poolSetAsideKindProxyUnreachable",
+  ip_quota_429: "poolSetAsideKindIpQuota429",
+};
+
+function setAsideKindLabel(
+  t: (key: string, params?: Record<string, string | number>) => string,
+  kind: string
+): string {
+  const key = SET_ASIDE_KIND_KEYS[kind];
+  return key ? t(key) : kind;
+}
+
+function formatSetAsideTime(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
+}
+
 function formatSetAsideNote(
   t: (key: string, params?: Record<string, string | number>) => string,
   member: PoolVisibilityMember
 ): string {
   if (member.signal !== "set-aside" || !member.setAside) return "";
-  const reason = t("poolSetAsideReason", { kind: member.setAside.kind });
-  const until = t("poolSetAsideUntil", { endsAt: member.setAside.endsAt });
+  const reason = t("poolSetAsideReason", { kind: setAsideKindLabel(t, member.setAside.kind) });
+  const until = t("poolSetAsideUntil", { endsAt: formatSetAsideTime(member.setAside.endsAt) });
   const repeat = t("poolSetAsideRepeat", { count: member.setAside.streak });
   return ` · ${reason} ${until} ${repeat}`;
 }

@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "পুল অ্যাসাইনমেন্ট সংরক্ষণ করতে ব্যর্থ হয়েছে",
     "poolPreferenceOrder": "পছন্দের ক্রম",
     "poolSetAsideReason": "সরিয়ে রাখা হয়েছে: {kind}",
+    "poolSetAsideKindProxyUnreachable": "প্রক্সিতে পৌঁছানো যাচ্ছে না",
+    "poolSetAsideKindIpQuota429": "IP রেট সীমা (429)",
     "poolSetAsideUntil": "রোটেশনে ফিরেছে {endsAt}",
     "poolSetAsideRepeat": "সরিয়ে রাখা হয়েছে {count, plural, one {# বার} other {# বার}}",
     "poolUnknownAddress": "অজানা ঠিকানা",

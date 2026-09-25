@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Neizdevās saglabāt kopas piešķīrumu",
     "poolPreferenceOrder": "Priekšrocību secība",
     "poolSetAsideReason": "Nolikts malā: {kind}",
+    "poolSetAsideKindProxyUnreachable": "starpniekserveris nav sasniedzams",
+    "poolSetAsideKindIpQuota429": "IP pieprasījumu ierobežojums (429)",
     "poolSetAsideUntil": "Atpakaļ rotācijā {endsAt}",
     "poolSetAsideRepeat": "Nolikts malā {count, plural, one {# reizi} other {# reizes}}",
     "poolUnknownAddress": "Nezināma adrese",

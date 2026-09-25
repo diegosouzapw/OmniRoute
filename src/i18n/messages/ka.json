@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "პულზე მინიჭების შენახვა ვერ მოხერხდა",
     "poolPreferenceOrder": "უპირატესობის თანმიმდევრობა",
     "poolSetAsideReason": "გვერდზე გადადებული: {kind}",
+    "poolSetAsideKindProxyUnreachable": "პროქსი მიუწვდომელია",
+    "poolSetAsideKindIpQuota429": "IP სიჩქარის ლიმიტი (429)",
     "poolSetAsideUntil": "როტაციაში დაბრუნება {endsAt}",
     "poolSetAsideRepeat": "გვერდზე გადადებული {count, plural, one {# ჯერ} other {# ჯერ}}",
     "poolUnknownAddress": "უცნობი მისამართი",

@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "ပူးလ်သတ်မှတ်မှုကို သိမ်းဆည်း၍ မရပါ",
     "poolPreferenceOrder": "ဦးစားပေးအစီအစဉ်",
     "poolSetAsideReason": "ဖယ်ထားသည်: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy သို့ မရောက်နိုင်ပါ",
+    "poolSetAsideKindIpQuota429": "IP နှုန်းကန့်သတ်ချက် (429)",
     "poolSetAsideUntil": "အလှည့်သို့ ပြန်ရောက်မည် {endsAt}",
     "poolSetAsideRepeat": "ဖယ်ထားသည် {count, plural, one {# ကြိမ်} other {# ကြိမ်}}",
     "poolUnknownAddress": "မသိသောလိပ်စာ",

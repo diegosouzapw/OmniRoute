@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Fehler beim Speichern der Pool-Zuweisung",
     "poolPreferenceOrder": "Präferenzreihenfolge",
     "poolSetAsideReason": "Zurückgestellt: {kind}",
+    "poolSetAsideKindProxyUnreachable": "Proxy nicht erreichbar",
+    "poolSetAsideKindIpQuota429": "IP-Ratenlimit (429)",
     "poolSetAsideUntil": "Zurück in Rotation {endsAt}",
     "poolSetAsideRepeat": "Zurückgestellt {count, plural, one {# Mal} other {# Mal}}",
     "poolUnknownAddress": "Unbekannte Adresse",

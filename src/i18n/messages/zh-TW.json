@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "儲存池指派失敗",
     "poolPreferenceOrder": "偏好順序",
     "poolSetAsideReason": "已擱置:{kind}",
+    "poolSetAsideKindProxyUnreachable": "代理無法連線",
+    "poolSetAsideKindIpQuota429": "IP 速率限制 (429)",
     "poolSetAsideUntil": "{endsAt}恢復輪換",
     "poolSetAsideRepeat": "已擱置{count, plural, one {#次} other {#次}}",
     "poolUnknownAddress": "未知位址",

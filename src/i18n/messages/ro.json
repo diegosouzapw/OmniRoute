@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Nu s-a putut salva atribuirea pool-ului",
     "poolPreferenceOrder": "Ordine de preferință",
     "poolSetAsideReason": "Pus deoparte: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy inaccesibil",
+    "poolSetAsideKindIpQuota429": "limită de rată pe IP (429)",
     "poolSetAsideUntil": "Înapoi în rotație {endsAt}",
     "poolSetAsideRepeat": "Pus deoparte {count, plural, one {# dată} other {# ori}}",
     "poolUnknownAddress": "Adresă necunoscută",

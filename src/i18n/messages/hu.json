@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Nem sikerült menteni a készlet-hozzárendelést",
     "poolPreferenceOrder": "Preferenciasorrend",
     "poolSetAsideReason": "Félretéve: {kind}",
+    "poolSetAsideKindProxyUnreachable": "a proxy nem érhető el",
+    "poolSetAsideKindIpQuota429": "IP-alapú sebességkorlát (429)",
     "poolSetAsideUntil": "Vissza a rotációba {endsAt}",
     "poolSetAsideRepeat": "Félretéve {count, plural, one {# alkalommal} other {# alkalommal}}",
     "poolUnknownAddress": "Ismeretlen cím",

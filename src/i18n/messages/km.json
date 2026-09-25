@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "បានបរាជ័យក្នុងការរក្សាទុកការចាត់តាំងទៅក្រុម",
     "poolPreferenceOrder": "លំដាប់អាទិភាព",
     "poolSetAsideReason": "ដាក់ឡែក: {kind}",
+    "poolSetAsideKindProxyUnreachable": "មិនអាចភ្ជាប់ទៅប្រូកស៊ីបាន",
+    "poolSetAsideKindIpQuota429": "ដែនកំណត់អត្រា IP (429)",
     "poolSetAsideUntil": "ត្រឡប់ទៅការបង្វិល {endsAt}",
     "poolSetAsideRepeat": "ដាក់ឡែក {count, plural, one {# ដង} other {# ដង}}",
     "poolUnknownAddress": "អាសយដ្ឋានមិនស្គាល់",

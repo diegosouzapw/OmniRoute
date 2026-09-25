@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Ma rnexxiex l-issejvjar tal-assenjazzjoni tal-pool",
     "poolPreferenceOrder": "Ordni ta’ preferenza",
     "poolSetAsideReason": "Imwarrab: {kind}",
+    "poolSetAsideKindProxyUnreachable": "il-proxy mhux raġġungibbli",
+    "poolSetAsideKindIpQuota429": "limitu tar-rata tal-IP (429)",
     "poolSetAsideUntil": "Lura fir-rotazzjoni {endsAt}",
     "poolSetAsideRepeat": "Imwarrab {count, plural, one {# darba} other {# darbiet}}",
     "poolUnknownAddress": "Indirizz mhux magħruf",

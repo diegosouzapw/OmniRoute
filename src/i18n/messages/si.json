@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "සංචිත පැවරීම සුරැකීමට අසමත් විය",
     "poolPreferenceOrder": "කැමැත්ත අනුපිළිවෙල",
     "poolSetAsideReason": "වෙන්කර ඇත: {kind}",
+    "poolSetAsideKindProxyUnreachable": "ප්‍රොක්සියට ළඟා විය නොහැක",
+    "poolSetAsideKindIpQuota429": "IP අනුපාත සීමාව (429)",
     "poolSetAsideUntil": "භ්‍රමණයට ආපසු {endsAt}",
     "poolSetAsideRepeat": "වෙන්කර ඇත {count, plural, one {# වතාවක්} other {# වතාවක්}}",
     "poolUnknownAddress": "නොදන්නා ලිපිනය",

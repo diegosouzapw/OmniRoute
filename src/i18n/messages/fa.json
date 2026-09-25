@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "ذخیره تخصیص استخر ناموفق بود",
     "poolPreferenceOrder": "ترتیب ترجیح",
     "poolSetAsideReason": "کنار گذاشته شده: {kind}",
+    "poolSetAsideKindProxyUnreachable": "پروکسی در دسترس نیست",
+    "poolSetAsideKindIpQuota429": "محدودیت نرخ IP ‏(429)",
     "poolSetAsideUntil": "بازگشت به چرخه {endsAt}",
     "poolSetAsideRepeat": "کنار گذاشته شده {count, plural, one {# بار} other {# بار}}",
     "poolUnknownAddress": "نشانی ناشناس",

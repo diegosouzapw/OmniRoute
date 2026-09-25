@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "プールの割り当ての保存に失敗しました",
     "poolPreferenceOrder": "優先順位",
     "poolSetAsideReason": "除外中:{kind}",
+    "poolSetAsideKindProxyUnreachable": "プロキシに到達できません",
+    "poolSetAsideKindIpQuota429": "IP レート制限 (429)",
     "poolSetAsideUntil": "{endsAt}にローテーション復帰",
     "poolSetAsideRepeat": "除外{count, plural, one {#回} other {#回}}",
     "poolUnknownAddress": "不明なアドレス",

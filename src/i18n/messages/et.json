@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Kogumi määrangu salvestamine ebaõnnestus",
     "poolPreferenceOrder": "Eelistusjärjekord",
     "poolSetAsideReason": "Kõrvale pandud: {kind}",
+    "poolSetAsideKindProxyUnreachable": "puhverserver pole kättesaadav",
+    "poolSetAsideKindIpQuota429": "IP päringupiirang (429)",
     "poolSetAsideUntil": "Tagasi rotatsioonis {endsAt}",
     "poolSetAsideRepeat": "Kõrvale pandud {count, plural, one {# kord} other {# korda}}",
     "poolUnknownAddress": "Tundmatu aadress",

@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "ਪੂਲ ਅਸਾਈਨਮੈਂਟ ਸੰਭਾਲਣ ਵਿੱਚ ਅਸਫਲ",
     "poolPreferenceOrder": "ਤਰਜੀਹ ਕ੍ਰਮ",
     "poolSetAsideReason": "ਪਾਸੇ ਰੱਖਿਆ: {kind}",
+    "poolSetAsideKindProxyUnreachable": "ਪ੍ਰੌਕਸੀ ਤੱਕ ਪਹੁੰਚ ਨਹੀਂ ਹੋ ਸਕੀ",
+    "poolSetAsideKindIpQuota429": "IP ਦਰ ਸੀਮਾ (429)",
     "poolSetAsideUntil": "ਰੋਟੇਸ਼ਨ ਵਿੱਚ ਵਾਪਸ {endsAt}",
     "poolSetAsideRepeat": "ਪਾਸੇ ਰੱਖਿਆ {count, plural, one {# ਵਾਰ} other {# ਵਾਰ}}",
     "poolUnknownAddress": "ਅਣਜਾਣ ਪਤਾ",

@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "पुल असाइनमेन्ट सुरक्षित गर्न असफल भयो",
     "poolPreferenceOrder": "प्राथमिकता क्रम",
     "poolSetAsideReason": "छेउमा राखियो: {kind}",
+    "poolSetAsideKindProxyUnreachable": "प्रोक्सीमा पुग्न सकिएन",
+    "poolSetAsideKindIpQuota429": "IP दर सीमा (429)",
     "poolSetAsideUntil": "रोटेसनमा फर्कियो {endsAt}",
     "poolSetAsideRepeat": "छेउमा राखियो {count, plural, one {# पटक} other {# पटक}}",
     "poolUnknownAddress": "अज्ञात ठेगाना",

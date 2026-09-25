@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Failed to save pool assignment",
     "poolPreferenceOrder": "Preference order",
     "poolSetAsideReason": "Set aside: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy unreachable",
+    "poolSetAsideKindIpQuota429": "IP rate-limited (429)",
     "poolSetAsideUntil": "Back in rotation {endsAt}",
     "poolSetAsideRepeat": "Set aside {count, plural, one {# time} other {# times}}",
     "poolUnknownAddress": "Unknown address",

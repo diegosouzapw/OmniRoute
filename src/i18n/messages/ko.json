@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "풀 할당을 저장하지 못했습니다",
     "poolPreferenceOrder": "선호 순서",
     "poolSetAsideReason": "제외됨: {kind}",
+    "poolSetAsideKindProxyUnreachable": "프록시에 연결할 수 없음",
+    "poolSetAsideKindIpQuota429": "IP 속도 제한 (429)",
     "poolSetAsideUntil": "{endsAt}에 로테이션 복귀",
     "poolSetAsideRepeat": "제외됨 {count, plural, one {#번} other {#번}}",
     "poolUnknownAddress": "알 수 없는 주소",

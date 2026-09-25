@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Gagal menyimpan penetapan pool",
     "poolPreferenceOrder": "Urutan preferensi",
     "poolSetAsideReason": "Disisihkan: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy tidak dapat dijangkau",
+    "poolSetAsideKindIpQuota429": "batas laju IP (429)",
     "poolSetAsideUntil": "Kembali ke rotasi {endsAt}",
     "poolSetAsideRepeat": "Disisihkan {count, plural, one {# kali} other {# kali}}",
     "poolUnknownAddress": "Alamat tidak dikenal",

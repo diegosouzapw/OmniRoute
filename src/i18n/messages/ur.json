@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "پول اسائنمنٹ کو محفوظ کرنے میں ناکامی",
     "poolPreferenceOrder": "ترجیحی ترتیب",
     "poolSetAsideReason": "الگ رکھا گیا: {kind}",
+    "poolSetAsideKindProxyUnreachable": "پراکسی تک رسائی نہیں ہو سکی",
+    "poolSetAsideKindIpQuota429": "IP شرح کی حد (429)",
     "poolSetAsideUntil": "روٹیشن میں واپس {endsAt}",
     "poolSetAsideRepeat": "الگ رکھا گیا {count, plural, one {# بار} other {# بار}}",
     "poolUnknownAddress": "نامعلوم پتہ",

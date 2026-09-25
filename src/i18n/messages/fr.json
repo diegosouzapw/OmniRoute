@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Échec de l'enregistrement de l'attribution du pool",
     "poolPreferenceOrder": "Ordre de préférence",
     "poolSetAsideReason": "Écarté : {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy injoignable",
+    "poolSetAsideKindIpQuota429": "limite de débit par IP (429)",
     "poolSetAsideUntil": "De retour en rotation {endsAt}",
     "poolSetAsideRepeat": "Écarté {count, plural, one {# fois} other {# fois}}",
     "poolUnknownAddress": "Adresse inconnue",

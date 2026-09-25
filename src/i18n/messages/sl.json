@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Dodelitve skupini ni bilo mogoče shraniti",
     "poolPreferenceOrder": "Prednostni vrstni red",
     "poolSetAsideReason": "Odloženo: {kind}",
+    "poolSetAsideKindProxyUnreachable": "posredniški strežnik ni dosegljiv",
+    "poolSetAsideKindIpQuota429": "omejitev hitrosti po IP (429)",
     "poolSetAsideUntil": "Nazaj v rotaciji {endsAt}",
     "poolSetAsideRepeat": "Odloženo {count, plural, one {#krat} other {#krat}}",
     "poolUnknownAddress": "Neznan naslov",

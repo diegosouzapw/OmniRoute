@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Kùnà láti fi ìpín àkójọpọ̀ pamọ́",
     "poolPreferenceOrder": "Ilana ayanfẹ",
     "poolSetAsideReason": "A ya sọtọ: {kind}",
+    "poolSetAsideKindProxyUnreachable": "kò lè dé proxy",
+    "poolSetAsideKindIpQuota429": "ìdíwọ̀n ìyára IP (429)",
     "poolSetAsideUntil": "Pada si yiyi {endsAt}",
     "poolSetAsideRepeat": "A ya sọtọ {count, plural, one {# igba} other {# igba}}",
     "poolUnknownAddress": "Adirẹsi aimọ",

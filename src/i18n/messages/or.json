@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "ପୁଲ୍ ନିୟୋଜନ ସଞ୍ଚୟ କରିବାରେ ବିଫଳ",
     "poolPreferenceOrder": "ପସନ୍ଦ କ୍ରମ",
     "poolSetAsideReason": "ଅଲଗା ରଖାଯାଇଛି: {kind}",
+    "poolSetAsideKindProxyUnreachable": "ପ୍ରକ୍ସିରେ ପହଞ୍ଚିହେଉନାହିଁ",
+    "poolSetAsideKindIpQuota429": "IP ହାର ସୀମା (429)",
     "poolSetAsideUntil": "ଘୂର୍ଣ୍ଣନକୁ ଫେରନ୍ତୁ {endsAt}",
     "poolSetAsideRepeat": "ଅଲଗା ରଖାଯାଇଛି {count, plural, one {# ଥର} other {# ଥର}}",
     "poolUnknownAddress": "ଅଜଣା ଠିକଣା",

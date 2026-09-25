@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Не вдалося зберегти призначення пулу",
     "poolPreferenceOrder": "Порядок переваг",
     "poolSetAsideReason": "Відкладено: {kind}",
+    "poolSetAsideKindProxyUnreachable": "проксі недоступний",
+    "poolSetAsideKindIpQuota429": "обмеження частоти за IP (429)",
     "poolSetAsideUntil": "Знову в ротації {endsAt}",
     "poolSetAsideRepeat": "Відкладено {count, plural, one {# раз} other {# разів}}",
     "poolUnknownAddress": "Невідома адреса",

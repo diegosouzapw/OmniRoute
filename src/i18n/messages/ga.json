@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Theip ar shannadh na linne a shábháil",
     "poolPreferenceOrder": "Ord tosaíochta",
     "poolSetAsideReason": "Curtha ar leataobh: {kind}",
+    "poolSetAsideKindProxyUnreachable": "níl teacht ar an seachfhreastalaí",
+    "poolSetAsideKindIpQuota429": "teorainn ráta IP (429)",
     "poolSetAsideUntil": "Ar ais sa rothlú {endsAt}",
     "poolSetAsideRepeat": "Curtha ar leataobh {count, plural, one {# uair} other {# uair}}",
     "poolUnknownAddress": "Seoladh anaithnid",

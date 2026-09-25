@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "പൂൾ അസൈൻമെന്റ് സംരക്ഷിക്കുന്നതിൽ പരാജയപ്പെട്ടു",
     "poolPreferenceOrder": "മുൻഗണനാ ക്രമം",
     "poolSetAsideReason": "മാറ്റിവച്ചു: {kind}",
+    "poolSetAsideKindProxyUnreachable": "പ്രോക്സിയിൽ എത്താനാകുന്നില്ല",
+    "poolSetAsideKindIpQuota429": "IP നിരക്ക് പരിധി (429)",
     "poolSetAsideUntil": "റൊട്ടേഷനിലേക്ക് തിരികെ {endsAt}",
     "poolSetAsideRepeat": "മാറ്റിവച്ചു {count, plural, one {# തവണ} other {# തവണ}}",
     "poolUnknownAddress": "അജ്ഞാത വിലാസം",

@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "પૂલ અસાઇનમેન્ટ સાચવવામાં નિષ્ફળ",
     "poolPreferenceOrder": "પસંદગી ક્રમ",
     "poolSetAsideReason": "બાજુએ રાખેલ: {kind}",
+    "poolSetAsideKindProxyUnreachable": "પ્રોક્સી સુધી પહોંચી શકાતું નથી",
+    "poolSetAsideKindIpQuota429": "IP દર મર્યાદા (429)",
     "poolSetAsideUntil": "રોટેશનમાં પાછા {endsAt}",
     "poolSetAsideRepeat": "બાજુએ રાખેલ {count, plural, one {# વખત} other {# વખત}}",
     "poolUnknownAddress": "અજ્ઞાત સરનામું",

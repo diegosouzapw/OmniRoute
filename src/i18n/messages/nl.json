@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "Kan pooltoewijzing niet opslaan",
     "poolPreferenceOrder": "Voorkeursvolgorde",
     "poolSetAsideReason": "Terzijde gesteld: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy onbereikbaar",
+    "poolSetAsideKindIpQuota429": "IP-snelheidslimiet (429)",
     "poolSetAsideUntil": "Terug in rotatie {endsAt}",
     "poolSetAsideRepeat": "Terzijde gesteld {count, plural, one {# keer} other {# keer}}",
     "poolUnknownAddress": "Onbekend adres",

@@ -11050,6 +11050,8 @@
     "poolSaveFailed": "An kasa adana rabon pool",
     "poolPreferenceOrder": "Tsarin fifiko",
     "poolSetAsideReason": "An ajiye a gefe: {kind}",
+    "poolSetAsideKindProxyUnreachable": "ba a iya isa ga proxy ba",
+    "poolSetAsideKindIpQuota429": "iyakar saurin IP (429)",
     "poolSetAsideUntil": "Komawa cikin juyawa {endsAt}",
     "poolSetAsideRepeat": "An ajiye a gefe {count, plural, one {# sau} other {# sau}}",
     "poolUnknownAddress": "Adireshi mara sani",
