@@ -134,6 +134,39 @@ export function normalizeChatGptWebStorageState(value: unknown): ChatGptWebStora
   return structuredClone(value) as unknown as ChatGptWebStorageState;
 }
 
+export function chatGptWebStorageStateFromCookieHeader(raw: string): ChatGptWebStorageState {
+  const header = raw.trim().replace(/^Cookie:\s*/i, "");
+  if (!header) throw new Error("ChatGPT Web Cookie header is empty");
+
+  const parts = header.split(/;\s*/);
+  const cookies = parts.map((part) => {
+    const separator = part.indexOf("=");
+    if (separator <= 0) throw new Error("ChatGPT Web Cookie header contains an invalid cookie");
+    return [part.slice(0, separator).trim(), part.slice(separator + 1)] as const;
+  });
+
+  if (!cookies.some(([name]) => /^__Secure-next-auth\.session-token(?:\.\d+)?$/.test(name))) {
+    if (header.includes(";") || header.includes("=")) {
+      throw new Error("ChatGPT Web Cookie header is missing __Secure-next-auth.session-token");
+    }
+    cookies.splice(0, cookies.length, ["__Secure-next-auth.session-token", header]);
+  }
+
+  return normalizeChatGptWebStorageState({
+    cookies: cookies.map(([name, value]) => ({
+      name,
+      value,
+      domain: ".chatgpt.com",
+      path: "/",
+      expires: -1,
+      httpOnly: name.startsWith("__Secure-") || name.startsWith("__Host-"),
+      secure: true,
+      sameSite: "Lax",
+    })),
+    origins: [],
+  });
+}
+
 function contentText(value: unknown): string {
   if (typeof value === "string") return value;
   if (!Array.isArray(value)) {

@@ -60,6 +60,10 @@ import {
 import { isAutoFetchModelsEnabled } from "@/lib/providerModels/modelDiscovery";
 import { testSingleConnection } from "./[id]/test/route";
 import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
+import {
+  chatGptWebStorageStateFromCookieHeader,
+  normalizeChatGptWebStorageState,
+} from "@omniroute/open-sse/utils/chatgptWebExecutorAdapter.ts";
 
 function projectCodexAccountPoolWithRoutingQuota(
   connection: Parameters<typeof projectCodexAccountPool>[0],
@@ -211,6 +215,27 @@ export async function POST(request: Request) {
 
     if (provider === "qoder") {
       providerSpecificData = normalizeQoderPatProviderData(providerSpecificData || {});
+    }
+
+    if (provider === "chatgpt-web" && typeof apiKey === "string") {
+      try {
+        persistedApiKey = JSON.stringify(normalizeChatGptWebStorageState(JSON.parse(apiKey)));
+      } catch (error) {
+        if (!(error instanceof SyntaxError)) {
+          return NextResponse.json(
+            { error: "ChatGPT Web storage state JSON is invalid or contains foreign origins" },
+            { status: 400 }
+          );
+        }
+        try {
+          persistedApiKey = JSON.stringify(chatGptWebStorageStateFromCookieHeader(apiKey));
+        } catch {
+          return NextResponse.json(
+            { error: "ChatGPT Web storage state JSON or Cookie header is invalid" },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     if (provider === "chatgpt-web-codex") {

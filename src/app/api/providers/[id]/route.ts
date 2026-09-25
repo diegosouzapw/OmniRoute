@@ -41,6 +41,7 @@ import {
 // on a plain openai-compatible connection's rename failed with "Missing
 // tiktoken_bg.wasm" after 17-50s, never touching chatgpt-web-codex at all).
 import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
+import { chatGptWebStorageStateFromCookieHeader } from "@omniroute/open-sse/utils/chatgptWebExecutorAdapter.ts";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -209,6 +210,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             },
             { status: 400 }
           );
+        }
+      } else if (existing.provider === "chatgpt-web") {
+        try {
+          JSON.parse(apiKey);
+          updateData.apiKey = apiKey;
+        } catch {
+          try {
+            updateData.apiKey = JSON.stringify(chatGptWebStorageStateFromCookieHeader(apiKey));
+          } catch {
+            return NextResponse.json(
+              { error: "ChatGPT Web storage state JSON or Cookie header is invalid" },
+              { status: 400 }
+            );
+          }
         }
       } else {
         updateData.apiKey = apiKey;
