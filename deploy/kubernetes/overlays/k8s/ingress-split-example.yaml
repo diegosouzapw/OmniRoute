@@ -1,0 +1,80 @@
+# OPTIONAL — not wired into kustomization.yaml.
+#
+# The default single Ingress exposes the dashboard on the same host, with the
+# same authentication, as `/v1`. That is fine on a private cluster. On a
+# reachable one it means the dashboard is only as protected as whatever you set
+# `INITIAL_PASSWORD` to — and the published image defaults it to `CHANGEME`.
+#
+# Splitting the API from the dashboard cannot be expressed in one Ingress
+# resource, because the two need different authentication. Reported from a
+# production deployment in #12400.
+#
+# To use this, replace ingress.yaml in the overlay's `resources:` with this file
+# and set both hosts. The dashboard Ingress below assumes an external auth
+# provider (oauth2-proxy shown); drop those annotations if you front it another
+# way.
+---
+# API — no browser auth. Protect it with REQUIRE_API_KEY=true and the /v1 key.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omniroute-api
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/part-of: omniroute
+  annotations:
+    # SSE must not be buffered, and the body limit must not sit below the app's
+    # own cap — see ingress.yaml for why.
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.omniroute.example.com
+      http:
+        paths:
+          - path: /v1
+            pathType: Prefix
+            backend:
+              service:
+                name: omniroute
+                port:
+                  name: http
+          - path: /api/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: omniroute
+                port:
+                  name: http
+---
+# Dashboard — behind an external identity provider.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omniroute-dashboard
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/part-of: omniroute
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    # Point these at your own oauth2-proxy (or equivalent) deployment.
+    nginx.ingress.kubernetes.io/auth-url: "https://oauth.example.com/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://oauth.example.com/oauth2/start?rd=$escaped_request_uri"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: omniroute.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: omniroute
+                port:
+                  name: http

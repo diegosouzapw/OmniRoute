@@ -1,0 +1,13 @@
+# The heap ceiling has to be trimmed with the memory limit, not after it.
+#
+# resources.yaml drops the limit to 2Gi so the pod fits a 2-core k3s box, but
+# the base ConfigMap sets a 3072 MB V8 ceiling. A ceiling at or above the cgroup
+# limit is the one combination the deploy spec refuses: the kernel OOM-kills the
+# pod instead of Node raising a recoverable heap error (#7849), so the process
+# dies with every in-flight stream and no useful log.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: omniroute-config
+data:
+  NODE_OPTIONS: --max-old-space-size=1536

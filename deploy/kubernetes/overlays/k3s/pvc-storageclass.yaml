@@ -1,0 +1,10 @@
+# k3s ships `local-path` as the default StorageClass. It is node-local: the pod
+# is pinned to whichever node first bound the volume, and the data does NOT
+# survive that node being lost. Back it up (see the deployment guide) or swap
+# for Longhorn on multi-node k3s.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: omniroute-data
+spec:
+  storageClassName: local-path
