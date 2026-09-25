@@ -444,7 +444,7 @@ function pickHeldStickyMember<T>(state: RotationPickState, candidates: T[]): T |
   return candidates[eligible ? firstEligibleFrom(idx, eligible, candidates.length) : idx];
 }
 
-// Order by crossed short-memory health signals (opt-in, PROXY_SKIP_RECENTLY_FAILED):
+// Order by crossed short-memory health signals (PROXY_SKIP_RECENTLY_FAILED, default on):
 // stops re-serving at the head a proxy that just failed, without removing anyone.
 // For providers whose quota is bucketed by egress address, a member sharing the
 // refused member's observed address ranks just below healthy members (order only,

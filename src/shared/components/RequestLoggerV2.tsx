@@ -34,6 +34,7 @@ import {
   shouldAutoRefresh,
   shouldTriggerInfiniteScroll,
 } from "./requestLoggerSignature";
+import { getResilienceBadges } from "./requestLoggerResilience";
 import {
   DEFAULT_REFRESH_INTERVAL_SEC,
   clampRefreshIntervalSec,
@@ -90,7 +91,6 @@ function getCacheSourceMeta(cacheSource: unknown) {
         "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30",
     };
   }
-
   return {
     key: "upstream",
     className: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30",
@@ -1405,14 +1405,25 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
                             {isActive ? (
                               <span className="text-text-muted text-[10px]">—</span>
                             ) : (
-                              <span
-                                className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${cacheSourceMeta?.className || ""}`}
-                                title={
-                                  isSemanticCache ? t("semanticCacheHit") : t("upstreamResponse")
-                                }
-                              >
-                                {isSemanticCache ? t("semantic") : t("upstream")}
-                              </span>
+                              <>
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${cacheSourceMeta?.className || ""}`}
+                                  title={
+                                    isSemanticCache ? t("semanticCacheHit") : t("upstreamResponse")
+                                  }
+                                >
+                                  {isSemanticCache ? t("semantic") : t("upstream")}
+                                </span>
+                                {getResilienceBadges(log.resilienceActions, (key, values) =>
+                                  t(`detail.${key}`, values)
+                                ).map((badge) => (
+                                  // Unstyled span: inherits the cache-source
+                                  // badge line; the title carries the detail.
+                                  <span key={badge.key} title={badge.title}>
+                                    [{badge.label}]
+                                  </span>
+                                ))}
+                              </>
                             )}
                           </td>
                         )}

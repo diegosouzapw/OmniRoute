@@ -236,7 +236,7 @@ test("functional: with the flag off the pool serves the head even when egress is
   logEgress(a, "203.0.113.7");
   logEgress(b, "203.0.113.7");
   flush();
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   delete process.env.PROXY_POOL_SHARED_EGRESS_ORDER;
   try {
     assert.equal(await pick(), a.host);

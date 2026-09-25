@@ -72,10 +72,10 @@ export function isAccountReady(account: RotatableAccount): boolean {
  * `isReady` defaults to the plain cooldown check (`isAccountReady`); pass a
  * custom predicate when readiness depends on more than cooldown.
  *
- * Sticky/drain head (opt-in via PROXY_SKIP_RECENTLY_FAILED, default off): when
+ * Sticky/drain head (PROXY_SKIP_RECENTLY_FAILED, default on): when
  * the flag is on, the last served member (`state.lastHealthyFingerprint`) is
  * preferred while still `isReady`, and store-refused members (`isProxyAvoided`,
- * direct/null-key never) are skipped when a healthy member exists. Flag off =
+ * direct/null-key never) are skipped when a healthy member exists. =false =
  * the plain rotation below, byte-identical. Precedence: `isReady` false is
  * never served, never overridden.
  *
@@ -120,7 +120,7 @@ export type RotationEgressKeyOf = (account: RotatableAccount) => string | null;
 /** Default derivation: the account's own egress key (direct never). */
 const defaultRotationEgressKeyOf: RotationEgressKeyOf = (account) => proxyEgressKey(account.proxy);
 
-/** Flag gate, isolated for tests: default-off keeps the plain rotation. */
+/** Flag gate, isolated for tests: =false keeps the plain rotation. */
 function isStickyDrainEnabled(): boolean {
   try {
     return isProxySkipRecentlyFailedEnabled();

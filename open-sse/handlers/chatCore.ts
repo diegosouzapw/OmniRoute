@@ -51,6 +51,9 @@ import {
   readBoundedResponseOutcome,
   FLUSH_EMPTY_RETRY_MAX_BYTES,
 } from "../utils/emptyTurnRetry.ts";
+import { withResilienceActionsContext } from "./chatCore/resilienceAttemptContext.ts";
+import { noteBufferedVerdictOutcome } from "./chatCore/emptyTurnResilienceNotes.ts";
+import { notePreviousResponseResumed } from "./chatCore/resumedResilienceNotes.ts";
 import { assembleStreamingResponseHeaders } from "./chatCore/streamingResponseHeaders.ts";
 import { storeStreamingSemanticCacheResponse } from "./chatCore/streamingSemanticCacheStore.ts";
 import { captureStreamReasoningForReplay } from "./chatCore/streamReasoningCapture.ts";
@@ -474,7 +477,13 @@ type VideoBridgeLogParam = { observed: boolean; redaction: VideoBridgeLogRedacti
  */
 // extractSystemRoleMessages extracted to chatCore/claudeSystemRole.ts (#3501); re-exported above so
 // existing importers (e.g. tests/unit/system-role-extraction.test.ts) keep resolving it from here.
-export async function handleChatCore({
+export async function handleChatCore(args: Parameters<typeof handleChatCoreInner>[0]) {
+  // one implicit resilience store per attempt (combo legs each run
+  // handleChatCore, so each leg gets its own isolated store).
+  return withResilienceActionsContext([args], (forwarded) => handleChatCoreInner(forwarded));
+}
+
+async function handleChatCoreInner({
   body,
   modelInfo,
   credentials,
@@ -514,7 +523,9 @@ export async function handleChatCore({
   videoBridgeLog = undefined,
   fallbackAttempts = undefined,
   forcedConnectionId = null, // #14116: caller's pinned/requested connection, vs credentials.connectionId below
+  previousResponseResumed = undefined, // rehydrated-continuation flag from chat.ts; noted below, no semantics.
 }) {
+  delete (body as Record<string, unknown>)._omniroutePreviousResponseResumed;
   const {
     model: originModel,
     resolvedThinkingEffort,
@@ -540,6 +551,8 @@ export async function handleChatCore({
   // (chatCore/memoryExtraction.ts::runMemoryExtractionGate).
   const videoBridgeObserved: boolean =
     (videoBridgeLog as VideoBridgeLogParam | undefined)?.observed === true;
+  // resume flag from chat.ts, noted under the attempt store opened above.
+  notePreviousResponseResumed(previousResponseResumed);
   const resilienceSettings = resolveResilienceSettings(cachedSettings);
   if (!skipResourcePressureGuard) {
     try {
@@ -5905,6 +5918,7 @@ export async function handleChatCore({
         if (verdict.kind === "pass") {
           const v = formatBufferedVerdictLog(verdict, correlationId, traceId);
           log?.[v.level]?.("FLUSH_EMPTY_RETRY", v.line);
+          noteBufferedVerdictOutcome(verdict, null, false);
           break;
         }
         if (emptyTurnRetries >= STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX) {
@@ -5912,12 +5926,14 @@ export async function handleChatCore({
             "FLUSH_EMPTY_RETRY",
             "retry budget exhausted, falling back to current behavior"
           );
+          noteBufferedVerdictOutcome(verdict, null, true);
           break;
         }
         log?.warn?.(
           "FLUSH_EMPTY_RETRY",
           `${verdict.reason}, bounded retry through the normal credential path`
         );
+        noteBufferedVerdictOutcome(verdict, { level: "warn", line: verdict.reason }, false);
         const nextCreds = await getProviderCredentials(
           provider,
           null,

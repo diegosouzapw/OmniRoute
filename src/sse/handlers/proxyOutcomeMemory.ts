@@ -40,3 +40,8 @@ export function noteProxyOutcome(
   if (inRefusalScope) noteProxyServed(key);
   else noteProxyRecovered(key, "proxy_unreachable");
 }
+
+// The transport cross-evidence decision lives next to its store in open-sse (the
+// proxy dispatcher calls it without reaching into src/sse); re-exported here so
+// the outcome feedback for proxies stays discoverable from one place.
+export { noteTransportOutcome } from "@omniroute/open-sse/utils/proxyTransportOutcome.ts";

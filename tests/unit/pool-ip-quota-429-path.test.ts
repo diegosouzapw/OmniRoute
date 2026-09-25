@@ -129,9 +129,9 @@ test("the member is set aside as soon as the log call returns, not when the log 
   assert.deepEqual([await pickPort(), await pickPort()], [second.port, second.port]);
 });
 
-test("with the flag at its default (off) a received refusal leaves the member in rotation", async () => {
+test("with the flag opted out a received refusal leaves the member in rotation", async () => {
   const [first, second] = await twoMemberPool();
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   await chatRequest("opencode", first, 429);
   assert.equal(proxyLogger.getProxyLogs()[0].upstreamStatus, 429);
   assert.equal(memory.__proxyRefusalMemorySizeForTesting(), 0);
