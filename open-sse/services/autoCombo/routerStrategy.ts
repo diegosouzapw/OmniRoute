@@ -9,6 +9,7 @@
  *   - LatencyStrategy: prioritizes low p95 latency with reliability weighting
  *   - SLAStrategy: prefers candidates that satisfy latency/error/cost SLOs
  *   - LKGPStrategy: tries last known good provider first
+ *   - NadirStrategy: asks Nadir's decision API which model the prompt needs (nadirStrategy.ts)
  */
 
 import type { ProviderCandidate, ScoredProvider, ScoringWeights } from "./scoring.ts";
@@ -17,6 +18,7 @@ import { getTaskFitness } from "./taskFitness.ts";
 import { clamp01 } from "../../utils/number.ts";
 import { rankBySpeed } from "./speedRanking.ts";
 import type { SpeedCandidate } from "./speedRanking.ts";
+import { NadirStrategyImpl, type NadirRoutingConfig } from "./nadirStrategy.ts";
 
 export interface SlaRoutingPolicy {
   targetP95Ms?: number;
@@ -35,6 +37,10 @@ export interface RoutingContext {
   sla?: SlaRoutingPolicy;
   weights?: ScoringWeights;
   explorationRate?: number;
+  /** Raw request `messages`, for request-aware strategies (`nadir`). Untouched by the others. */
+  messages?: unknown;
+  /** The combo's `config.nadir` block; see nadirStrategy.ts. */
+  nadir?: NadirRoutingConfig;
 }
 
 export interface RoutingDecision {
@@ -51,6 +57,12 @@ export interface RouterStrategy {
   readonly name: string;
   readonly description: string;
   select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision;
+  /**
+   * Optional async twin of `select` for strategies whose decision needs I/O.
+   * `selectWithStrategyAsync` prefers it; `select` must still return a valid
+   * (typically fallback) decision for sync callers.
+   */
+  selectAsync?(pool: ProviderCandidate[], context: RoutingContext): Promise<RoutingDecision>;
 }
 
 // ── RulesStrategy: wraps 16-factor scoring engine ───────────────────────────
@@ -387,6 +399,7 @@ strategyRegistry.set("fast", latencyStrategy); // alias
 strategyRegistry.set("sla-aware", slaStrategy);
 strategyRegistry.set("sla", slaStrategy); // alias
 strategyRegistry.set("lkgp", lkgpStrategy);
+strategyRegistry.set("nadir", new NadirStrategyImpl({ fallback: rulesStrategy }));
 
 export function getStrategy(name: string): RouterStrategy {
   const strategy = strategyRegistry.get(name);
@@ -414,4 +427,19 @@ export function selectWithStrategy(
   strategyName = "rules"
 ): RoutingDecision {
   return getStrategy(strategyName).select(pool, context);
+}
+
+/**
+ * Async twin of `selectWithStrategy`: strategies that implement `selectAsync`
+ * (I/O-backed, e.g. `nadir`) get it; every other strategy runs its sync `select`.
+ */
+export async function selectWithStrategyAsync(
+  pool: ProviderCandidate[],
+  context: RoutingContext,
+  strategyName = "rules"
+): Promise<RoutingDecision> {
+  const strategy = getStrategy(strategyName);
+  return strategy.selectAsync
+    ? strategy.selectAsync(pool, context)
+    : strategy.select(pool, context);
 }
