@@ -56,11 +56,18 @@ if (quota429MaxMs < quota429BaseMs) {
 export const REFUSAL_POLICIES: {
   proxy_unreachable: { baseMs: 60_000; maxMs: 600_000 };
   ip_quota_429: RefusalPolicy;
+  transport: { baseMs: 60_000; maxMs: 600_000 };
 } = {
   /** The TCP probe could not open a connection to the proxy. */
   proxy_unreachable: { baseMs: 60_000, maxMs: 600_000 },
   /** The provider refused through this proxy; the member is set aside for a cooldown. */
   ip_quota_429: { baseMs: quota429BaseMs, maxMs: quota429MaxMs },
+  /**
+   * Repeated tagged transport failures through this egress with cross-evidence:
+   * the same destination answers through a different egress, so the member —
+   * not the destination — is at fault. Same curve as a refused probe.
+   */
+  transport: { baseMs: 60_000, maxMs: 600_000 },
 };
 
 export type ProxyRefusalKind = keyof typeof REFUSAL_POLICIES;
@@ -234,6 +241,113 @@ export function hasProxyRefusals(): boolean {
 /** Test-only: forget everything. */
 export function __resetProxyRefusalMemoryForTesting(): void {
   memory.clear();
+}
+
+/**
+ * The destination a transport outcome is attributed to: the lower-cased host of
+ * the requested target URL, without IPv6 brackets. Shared by the failure and
+ * success hooks so cross-evidence always matches on the same normalization.
+ * Null when the target is not a parseable URL.
+ */
+export function transportDestinationKey(targetUrl: string): string | null {
+  try {
+    const host = new URL(targetUrl).hostname;
+    if (!host) return null;
+    return stripIpv6Brackets(host).toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cross-evidence for the `transport` refusal kind. A tagged transport failure
+ * alone never sets a member aside: it is only evidence, kept per (egress key,
+ * destination host). A later success to the same destination through a
+ * *different* egress proves the destination answers and the failing member —
+ * not the destination — is at fault.
+ */
+export const TRANSPORT_EVIDENCE_WINDOW_MS = 300_000;
+export const TRANSPORT_EVIDENCE_THRESHOLD = 3;
+const MAX_TRANSPORT_EVIDENCE = 1000;
+
+type TransportFailure = { key: string; destination: string; at: number };
+type TransportSuccess = { destination: string; key: string; at: number };
+
+const transportFailures: TransportFailure[] = [];
+const transportSuccesses: TransportSuccess[] = [];
+
+// Lazy purge mirrors readState: entries older than the evidence window plus
+// twice the transport cap can no longer contribute, so drop them on read.
+function purgeTransportEvidence(nowMs: number): void {
+  const cutoff = nowMs - TRANSPORT_EVIDENCE_WINDOW_MS - 2 * REFUSAL_POLICIES.transport.maxMs;
+  while (transportFailures.length > 0 && transportFailures[0].at < cutoff) {
+    transportFailures.shift();
+  }
+  while (transportSuccesses.length > 0 && transportSuccesses[0].at < cutoff) {
+    transportSuccesses.shift();
+  }
+}
+
+/** Record one final tagged transport failure. Never throws, never writes refusal memory. */
+export function recordTransportFailure(
+  key: string | null,
+  destination: string | null,
+  nowMs: number = Date.now()
+): void {
+  if (key === null || destination === null || destination === "") return;
+  purgeTransportEvidence(nowMs);
+  transportFailures.push({ key, destination, at: nowMs });
+  while (transportFailures.length > MAX_TRANSPORT_EVIDENCE) transportFailures.shift();
+}
+
+/** Record one success to a destination through an egress. Never throws. */
+export function recordTransportSuccess(
+  destination: string | null,
+  key: string | null,
+  nowMs: number = Date.now()
+): void {
+  if (key === null || destination === null || destination === "") return;
+  purgeTransportEvidence(nowMs);
+  transportSuccesses.push({ destination, key, at: nowMs });
+  while (transportSuccesses.length > MAX_TRANSPORT_EVIDENCE) transportSuccesses.shift();
+}
+
+/**
+ * True when the evidence condemns this egress for this destination: at least
+ * TRANSPORT_EVIDENCE_THRESHOLD tagged failures through it inside the window
+ * AND at least one success to the same destination through a different egress
+ * inside the window. A success through the egress itself is not evidence.
+ */
+export function hasTransportCrossEvidence(
+  key: string | null,
+  destination: string | null,
+  nowMs: number = Date.now()
+): boolean {
+  if (key === null || destination === null || destination === "") return false;
+  purgeTransportEvidence(nowMs);
+  const from = nowMs - TRANSPORT_EVIDENCE_WINDOW_MS;
+  let failures = 0;
+  for (const f of transportFailures) {
+    if (f.key === key && f.destination === destination && f.at >= from) {
+      failures++;
+      if (failures >= TRANSPORT_EVIDENCE_THRESHOLD) break;
+    }
+  }
+  if (failures < TRANSPORT_EVIDENCE_THRESHOLD) return false;
+  return transportSuccesses.some(
+    (s) => s.destination === destination && s.key !== key && s.at >= from
+  );
+}
+
+/** Test-only: forget transport evidence (refusal memory is separate). */
+export function __resetTransportEvidenceForTesting(): void {
+  transportFailures.length = 0;
+  transportSuccesses.length = 0;
+}
+
+/** Test-only: current evidence store sizes. */
+export function __transportEvidenceSizeForTesting(): { failures: number; successes: number } {
+  return { failures: transportFailures.length, successes: transportSuccesses.length };
 }
 
 /** Test-only: number of (key, kind) entries held. */

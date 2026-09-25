@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_09_24_14802_transport_setaside": "PR #14802 own growth: open-sse/utils/proxyFetch.ts 1334->1341 (+7 = two-symbol import + proxied-success hook at the single dispatch return + tagged-failure guard at the single final throw; full evidence helpers live in open-sse/utils/proxyRefusalMemory.ts (not frozen), irreducible call-site wiring at the two existing chokepoints). Covered by tests/unit/proxy-transport-setaside-cross-evidence.test.ts (10/10) + tests/unit/proxy-transport-traffic-simulation.test.ts (4/4).",
   "_rebaseline_2026_09_24_14708_persisted_cooldown_precedence": "PR #14708 own growth: open-sse/services/combo/roundRobinCombo.ts 1263->1285 (+22 = the persisted-cooldown pre-check at the only round-robin dispatch point with no persisted check (import + async pre-check + skip/continue), plus the sticky-target reflow). Irreducible: the check must live at the dispatch site that bypasses executeTargetAttempt. Covered by tests/unit/combo-transient-persisted-precedence.test.ts.",
   "_rebaseline_2026_09_24_14367_synthetic_key_budget_orphan": "PR #14367 (original fix; #14661 re-landed the same diff): src/lib/db/apiKeys.ts 1718->1719 (+1 = the single import of SYNTHETIC_ENV_API_KEY_ID threading the canonical synthetic-identity constant into getApiKeyMetadata; the exclusion list lives in src/shared/constants/apiKeyIdentities.ts). Irreducible. Covered by tests/unit/db/health-check-orphan-budgets.test.ts.",
   "_rebaseline_2026_09_23_13593_self_hop": "PR for #13593 own growth: open-sse/utils/proxyFetch.ts +4 (one import, a two-line comment, and one call stamp the process self-hop token onto fetches aimed at this listener). Re-measured with split(\"\\n\").length on the tree reconciled with release/v3.8.51 @ce11dda6: merge-base e693a7e4 1287 -> tip 1330 (tip-only growth: +7 #14620 applied-proxy shared context, frozen at 1294; +36 #14311 loopback no-replay 34cff242, whose ceiling the 2026-09-24 merge wave deferred to its follow-up rebaseline PR) -> 1334 with this PR (+4). The URL match and header live in open-sse/utils/selfHop.ts (under cap); admission already skips the public pressure shed for isInternalAdmissionBypass, which now accepts the token. Irreducible call-site wiring at the single fetch chokepoint. Covered by tests/unit/own-listener-self-hop.test.ts.",
@@ -510,7 +511,7 @@
     "open-sse/services/combo/executeTargetAttempt.ts": 1273,
     "open-sse/translator/response/openai-responses.ts": 1536,
     "open-sse/utils/cursorAgentProtobuf.ts": 1588,
-    "open-sse/utils/proxyFetch.ts": 1334,
+    "open-sse/utils/proxyFetch.ts": 1341,
     "open-sse/utils/stream.ts": 3296,
     "open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/browser-worker.ts": 4398,
     "open-sse/vendor/codex-chatgpt-web/bridge.ts": 1335,
