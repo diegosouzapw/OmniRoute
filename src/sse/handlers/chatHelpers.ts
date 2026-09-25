@@ -59,7 +59,7 @@ import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountF
 // a caller writes `codex/deepseek-v4-pro` we transparently reroute to the
 // canonical provider whose API key is configured. Saves callers from having
 // to know about the OAuth-vs-API-key split.
-const NON_OAUTH_MODEL_PREFIX = /^(deepseek|qwen|kimi|glm|minimax|mimo)/i;
+export const NON_OAUTH_MODEL_PREFIX = /^(deepseek|qwen|kimi|glm|minimax|mimo)/i;
 const PREFERRED_BY_FAMILY: Record<string, string> = {
   deepseek: "deepseek",
   qwen: "bailian",

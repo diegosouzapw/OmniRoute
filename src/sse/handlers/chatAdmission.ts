@@ -13,6 +13,10 @@ import {
   type AdaptiveAdmissionRuntime,
 } from "@omniroute/open-sse/services/admission/runtime.ts";
 import type { PerTargetAdmissionHook } from "@omniroute/open-sse/services/admission/types.ts";
+import {
+  releaseChatAdmissionWhenDone,
+  type ChatAdmissionLease,
+} from "@/shared/middleware/chatBodyAdmission";
 
 /** Single fairness bucket for unauthenticated / keyless traffic. Opaque; never a raw key. */
 export const ANONYMOUS_ADMISSION_TENANT_KEY = "anonymous";
@@ -37,6 +41,7 @@ export type ChatAdmissionContext = {
     apiKeyId: string | null | undefined,
     request: { signal?: AbortSignal | null }
   ): PerTargetAdmissionHook;
+  attachFlightLease(lease: ChatAdmissionLease): void;
 };
 
 /**
@@ -240,12 +245,22 @@ export function resolveClientRawAfterAdmission(
 
 export function createChatAdmissionContext(
   getRuntime: () => AdaptiveAdmissionRuntime = getAdaptiveAdmissionRuntime
-): ChatAdmissionContext & { getAdmittedState(): AdmittedState | null } {
+): ChatAdmissionContext & {
+  getAdmittedState(): AdmittedState | null;
+  getFlightLease(): ChatAdmissionLease | null;
+} {
   let state: AdmittedState | null = null;
   let acquireStarted = false;
+  let flightLease: ChatAdmissionLease | null = null;
 
   return {
     getAdmittedState: () => state,
+    getFlightLease: () => flightLease,
+    attachFlightLease(lease) {
+      if (flightLease === lease) return;
+      flightLease?.release();
+      flightLease = lease;
+    },
     async acquire(apiKeyId, request, body) {
       // Exactly once per logical request — never re-enter the runtime.
       if (state || acquireStarted) return null;
@@ -317,14 +332,19 @@ export function withChatAdmission(
         admissionContext
       );
       const admittedState = admissionContext.getAdmittedState();
-      if (!admittedState) return response;
+      const withFlight = releaseChatAdmissionWhenDone(
+        response,
+        admissionContext.getFlightLease()
+      );
+      if (!admittedState) return withFlight;
 
       const { runtime, admitted } = admittedState;
-      return runtime.attachResponseLifecycle(response, admitted.lease, {
+      return runtime.attachResponseLifecycle(withFlight, admitted.lease, {
         admittedAtMs: admitted.admittedAtMs,
         signal: request?.signal ?? undefined,
       });
     } catch (err) {
+      admissionContext.getFlightLease()?.release();
       const admittedState = admissionContext.getAdmittedState();
       if (admittedState) {
         const { runtime, admitted } = admittedState;

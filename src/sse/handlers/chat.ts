@@ -30,7 +30,7 @@ import { stripContextWindowSuffix } from "@omniroute/open-sse/services/model.ts"
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
+import { applyAcceptStreamAndChargeFlight } from "@/shared/middleware/chargeFlightForChat";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { resolveCcDiscoveryAliasStrip } from "@/lib/ccDiscoveryAliasResolve";
 import {
@@ -563,19 +563,9 @@ async function handleChatImplementation(
 
   const deferredClientRawBody = chatAdmission.captureDeferredClientRawBody(body);
 
-  // T01 — Accept-header streaming opt-in (#302 / #5305). A bare `Accept:
-  // text/event-stream` with `stream` omitted opts a curl/httpx-style client into
-  // SSE; a client that ALSO lists application/json (OpenAI / Vercel AI SDK
-  // non-stream signature) does NOT — it expects a JSON object. An explicit body
-  // `stream` value (true or false) always wins. See acceptHeaderForcesStream.
-  const acceptHeader = request.headers.get("accept") || "";
-  if (acceptHeaderForcesStream(acceptHeader, body.stream)) {
-    body = { ...body, stream: true };
-    log.debug(
-      "STREAM",
-      "Accept: text/event-stream header → overriding stream=true (body had no stream field)"
-    );
-  }
+  const charged = await applyAcceptStreamAndChargeFlight(request, body, admissionContext, log);
+  body = charged.body;
+  if (charged.rejection) return charged.rejection;
 
   // Log request endpoint and model
   const url = new URL(request.url);

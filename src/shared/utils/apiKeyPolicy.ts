@@ -782,7 +782,7 @@ async function validateRateLimitAndThrottle(context: PolicyContext): Promise<Res
  * covered by `extractApiKey()`; unknown keys still fail open downstream, so this
  * only tightens enforcement for real keys.
  */
-function extractUngatedClientApiKey(request: Request): string | null {
+export function extractUngatedClientApiKey(request: Request): string | null {
   const xApiKey = request.headers.get("x-api-key") ?? request.headers.get("X-Api-Key");
   if (xApiKey && xApiKey.trim()) return xApiKey.trim();
   const xGoog = request.headers.get("x-goog-api-key") ?? request.headers.get("X-Goog-Api-Key");

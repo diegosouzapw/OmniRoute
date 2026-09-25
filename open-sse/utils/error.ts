@@ -123,6 +123,8 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "extract_failed",
   "feature_disabled",
   "file_too_large",
+  "flight_bytes_budget",
+  "flight_ceiling",
   "gateway_timeout",
   "gcp_project_required",
   "gemini_tpm_exhausted",

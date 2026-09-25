@@ -26,11 +26,18 @@ export type IngestBudgetAcquireResult =
   | { status: "body_exceeds_budget" }
   | { status: "unavailable" };
 
+export type IngestBudgetShedReason =
+  | "body_exceeds_budget"
+  | "inflight_bytes_budget"
+  | "flight_bytes_budget";
+
 export interface IngestByteAdmissionOptions {
   maxInflightBytes?: number;
   budgetSource?: IngestBudgetSource;
   checkPressureSeverity?: () => PressureSeverity;
-  onShed: (reason: "body_exceeds_budget" | "inflight_bytes_budget", lane: string) => void;
+  timeoutShedReason?: Exclude<IngestBudgetShedReason, "body_exceeds_budget">;
+  maxWaiters?: number;
+  onShed: (reason: IngestBudgetShedReason, lane: string) => void;
 }
 
 interface BudgetWaiter {
@@ -43,6 +50,8 @@ export class IngestByteAdmissionController {
   readonly budgetSource: IngestBudgetSource;
   readonly #checkPressureSeverity: () => PressureSeverity;
   readonly #onShed: IngestByteAdmissionOptions["onShed"];
+  readonly #timeoutShedReason: Exclude<IngestBudgetShedReason, "body_exceeds_budget">;
+  readonly #maxWaiters: number | undefined;
   #queues = new Map<string, BudgetWaiter[]>();
   #fairKeys: string[] = [];
   #fairCursor = 0;
@@ -52,10 +61,21 @@ export class IngestByteAdmissionController {
     this.budgetSource = options.budgetSource ?? "v8_heap";
     this.#checkPressureSeverity = options.checkPressureSeverity ?? (() => "normal");
     this.#onShed = options.onShed;
+    this.#timeoutShedReason = options.timeoutShedReason ?? "inflight_bytes_budget";
+    this.#maxWaiters =
+      typeof options.maxWaiters === "number" && Number.isFinite(options.maxWaiters)
+        ? Math.max(0, Math.floor(options.maxWaiters))
+        : undefined;
   }
 
   get inflightBytes(): number {
     return this.#inflightBytes;
+  }
+
+  get waitingCount(): number {
+    let n = 0;
+    for (const queue of this.#queues.values()) n += queue.length;
+    return n;
   }
 
   pressureSeverity(): PressureSeverity {
@@ -101,6 +121,9 @@ export class IngestByteAdmissionController {
       if (lease) return { status: "acquired", lease };
       const remaining = deadline - Date.now();
       if (remaining <= 0) return this.#timeout(sessionKey);
+      if (this.#maxWaiters !== undefined && this.waitingCount >= this.#maxWaiters) {
+        return this.#timeout(sessionKey);
+      }
 
       let queue = this.#queues.get(sessionKey);
       if (!queue) {
@@ -143,7 +166,7 @@ export class IngestByteAdmissionController {
   }
 
   #timeout(sessionKey: string): IngestBudgetAcquireResult {
-    this.#onShed("inflight_bytes_budget", sessionKey);
+    this.#onShed(this.#timeoutShedReason, sessionKey);
     return { status: "unavailable" };
   }
 

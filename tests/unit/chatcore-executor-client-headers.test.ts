@@ -50,3 +50,13 @@ test("internal hard-lease control headers never reach an executor", () => {
 
   assert.deepEqual(out, { "x-session-id": "routing-session-remains-independent" });
 });
+
+test("x-omniroute-recorded-body-bytes is stripped in both casings", () => {
+  const out = buildExecutorClientHeaders({
+    "x-omniroute-recorded-body-bytes": "123",
+    "X-OmniRoute-Recorded-Body-Bytes": "456",
+    "x-keep-this": "ok",
+  });
+
+  assert.deepEqual(out, { "x-keep-this": "ok" });
+});

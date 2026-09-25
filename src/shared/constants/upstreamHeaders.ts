@@ -42,6 +42,7 @@ const FORBIDDEN = new Set(
     "client-ip",
     "forwarded",
     "via",
+    "x-omniroute-recorded-body-bytes",
   ].map((s) => s.toLowerCase())
 );
 
