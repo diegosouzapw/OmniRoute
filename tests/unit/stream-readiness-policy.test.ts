@@ -37,6 +37,29 @@ test("increases timeout for large conversation history", () => {
   assert.ok(result.reasons.includes("large_history"));
 });
 
+test("Cursor keeps the bounded max readiness window for a flattened long Responses history", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    maxTimeoutMs: 180_000,
+    provider: "cursor",
+    model: "grok-4.7",
+    body: { messages: items(1), tools: tools(11) },
+    sourceBody: { input: items(156), tools: tools(11) },
+  });
+  assert.equal(result.timeoutMs, 180_000);
+  assert.ok(result.reasons.includes("cursor_long_history"));
+
+  const short = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    maxTimeoutMs: 180_000,
+    provider: "cursor",
+    model: "grok-4.7",
+    body: { messages: items(1) },
+    sourceBody: { input: items(10) },
+  });
+  assert.equal(short.timeoutMs, 80_000);
+});
+
 test("increases timeout for tool-heavy requests", () => {
   const result = resolveStreamReadinessTimeout({
     baseTimeoutMs: 30_000,

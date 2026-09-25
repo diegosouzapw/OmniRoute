@@ -8,6 +8,7 @@ export type StreamReadinessPolicyInput = {
   provider?: string | null;
   model?: string | null;
   body?: StreamReadinessBody;
+  sourceBody?: StreamReadinessBody;
   maxTimeoutMs?: number;
 };
 
@@ -122,7 +123,12 @@ export function resolveStreamReadinessTimeout(
 ): StreamReadinessPolicyResult {
   const baseTimeoutMs = Math.max(0, Math.floor(input.baseTimeoutMs || 0));
   if (baseTimeoutMs <= 0) {
-    return { timeoutMs: baseTimeoutMs, baseTimeoutMs, maxTimeoutMs: baseTimeoutMs, reasons: ["disabled"] };
+    return {
+      timeoutMs: baseTimeoutMs,
+      baseTimeoutMs,
+      maxTimeoutMs: baseTimeoutMs,
+      reasons: ["disabled"],
+    };
   }
 
   const maxTimeoutMs = Math.max(baseTimeoutMs, input.maxTimeoutMs ?? DEFAULT_MAX_TIMEOUT_MS);
@@ -134,6 +140,12 @@ export function resolveStreamReadinessTimeout(
   const itemCount = Math.max(inputCount, messageCount);
   const toolCount = countArrayField(input.body, "tools");
   const estimatedChars = estimateBodyChars(input.body);
+  const cursorSourceItems = ["cursor", "cursor-api"].includes((input.provider || "").toLowerCase())
+    ? Math.max(
+        countArrayField(input.sourceBody, "input"),
+        countArrayField(input.sourceBody, "messages")
+      )
+    : 0;
   const codexGpt5x = isCodexGpt5x(input.provider, input.model);
   const codexHighReasoning = codexGpt5x && isHighReasoningEffort(input.model, input.body);
   const extendedThinking = isExtendedThinkingModel(input.model);
@@ -193,6 +205,14 @@ export function resolveStreamReadinessTimeout(
   if (isClaudeFormatReasoningProvider(input.provider) && !codexHighReasoning && !extendedThinking) {
     timeoutMs += 30_000;
     reasons.push("claude_format_heavy_reasoning");
+  }
+
+  // Cursor flattens Responses history into one wire message before dispatch;
+  // use the original item count so long agent conversations get the existing
+  // hard ceiling instead of failing at the 80s first-event budget.
+  if (cursorSourceItems > LARGE_ITEM_THRESHOLD) {
+    timeoutMs = maxTimeoutMs;
+    reasons.push("cursor_long_history");
   }
 
   timeoutMs = Math.min(timeoutMs, maxTimeoutMs);

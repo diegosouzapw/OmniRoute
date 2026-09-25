@@ -160,3 +160,8 @@ test("#2348 .dockerignore still excludes the heavy i18n tree", () => {
     `${heavy} should be excluded from Docker context but is not — image size will balloon`
   );
 });
+
+test("local dev data is excluded from Docker build contexts", () => {
+  const parsed = parseDockerignore(fs.readFileSync(DOCKERIGNORE, "utf8"));
+  assert.ok(isIgnored(".devdata", parsed), "Docker must not copy local credentials or call logs");
+});

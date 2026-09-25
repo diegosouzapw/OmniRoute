@@ -5,6 +5,7 @@ import {
   normalizeCursorAvailableModelsPayload,
 } from "../../src/lib/providerModels/cursorAvailableModels.ts";
 import { resolveRequestedModel } from "../../open-sse/utils/cursorAgentProtobuf.ts";
+import { normalizeDiscoveredModels } from "../../src/lib/providerModels/modelDiscovery.ts";
 
 describe("normalizeCursorAvailableModelsPayload", () => {
   it("extracts models from models[] with name ids", () => {
@@ -76,6 +77,73 @@ describe("normalizeCursorAvailableModelsPayload", () => {
         `missing ${id}`
       );
     }
+  });
+
+  it("keeps CLI context_token_limit and declared effort values through discovery", () => {
+    const models = normalizeCursorAvailableModelsPayload({
+      models: [
+        {
+          name: "grok-4.7",
+          contextTokenLimit: 262_144,
+          parameterDefinitions: [
+            {
+              id: "effort",
+              parameterType: {
+                enumParameter: {
+                  values: [{ value: "low" }, { value: "medium" }, { value: "high" }],
+                },
+              },
+            },
+          ],
+        },
+        { name: "claude-opus-5-high", contextTokenLimit: 300_000 },
+        { name: "unknown-cap", contextTokenLimit: -1 },
+      ],
+    });
+    const grok = models.find((model) => model.id === "grok-4.7");
+    assert.equal(grok?.contextLength, 262_144);
+    assert.deepEqual(grok?.supportedThinkingEfforts, ["low", "medium", "high"]);
+    assert.equal(models.find((model) => model.id === "unknown-cap")?.contextLength, undefined);
+    assert.equal(
+      models.find((model) => model.id === "claude-opus-5-high-1m")?.contextLength,
+      1_000_000
+    );
+
+    const stored = normalizeDiscoveredModels(models, "cursor");
+    assert.equal(stored.find((model) => model.id === "grok-4.7")?.inputTokenLimit, 262_144);
+    assert.deepEqual(stored.find((model) => model.id === "grok-4.7")?.supportedThinkingEfforts, [
+      "low",
+      "medium",
+      "high",
+    ]);
+    assert.equal(
+      stored.find((model) => model.id === "claude-opus-5-high-1m")?.inputTokenLimit,
+      1_000_000
+    );
+  });
+
+  it("accepts protobuf-json snake_case limits and excludes admin-blocked effort tiers", () => {
+    const models = normalizeCursorAvailableModelsPayload({
+      models: [
+        {
+          name: "grok-4.7",
+          context_token_limit: 131_072,
+          parameter_definitions: [
+            {
+              id: "effort",
+              parameter_type: {
+                enum_parameter: {
+                  values: [{ value: "low" }, { value: "max", blocked_by_admin_allowlist: true }],
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
+    const model = models.find((item) => item.id === "grok-4.7");
+    assert.equal(model?.contextLength, 131_072);
+    assert.deepEqual(model?.supportedThinkingEfforts, ["low"]);
   });
 });
 

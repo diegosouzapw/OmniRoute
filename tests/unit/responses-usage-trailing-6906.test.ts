@@ -143,3 +143,55 @@ test("BUG #6906: legacy transformer — response.completed carries usage when th
     "legacy transformer response.completed must carry usage even when the usage-only chunk trails finish_reason"
   );
 });
+
+test("legacy Responses stream keeps Cursor cache writes through the call-log usage extractor", async () => {
+  const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");
+  const frames = [
+    {
+      id: "chatcmpl-cursor",
+      model: "grok-4.7",
+      choices: [{ index: 0, delta: { content: "OK" }, finish_reason: null }],
+    },
+    {
+      id: "chatcmpl-cursor",
+      model: "grok-4.7",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+    },
+    {
+      id: "chatcmpl-cursor",
+      model: "grok-4.7",
+      choices: [],
+      usage: {
+        prompt_tokens: 5000,
+        completion_tokens: 10,
+        prompt_tokens_details: { cached_tokens: 1200, cache_creation_tokens: 800 },
+        completion_tokens_details: { reasoning_tokens: 3 },
+      },
+    },
+  ];
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    start(controller) {
+      for (const frame of frames)
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(frame)}\n\n`));
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+  const transformed = readable.pipeThrough(createResponsesApiTransformStream(null, 60000));
+  const full = await new Response(transformed).text();
+  const block = full.split("\n\n").find((item) => item.includes("event: response.completed"));
+  assert.ok(block);
+  const payload = JSON.parse(
+    block
+      .split("\n")
+      .find((line) => line.startsWith("data:"))!
+      .slice(5)
+  );
+  const usage = payload.response.usage;
+  assert.equal(usage.input_tokens_details.cached_tokens, 1200);
+  assert.equal(usage.input_tokens_details.cache_creation_tokens, 800);
+  const logged = extractUsageFromResponse(payload.response, "cursor");
+  assert.equal(logged.cache_read_input_tokens ?? logged.cached_tokens, 1200);
+  assert.equal(logged.cache_creation_input_tokens, 800);
+});

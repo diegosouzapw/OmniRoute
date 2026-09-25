@@ -5,6 +5,8 @@ import {
   type ExecServerEvent,
   type McpToolDefinition,
 } from "../../utils/cursorAgentProtobuf.ts";
+import type { PiExecEvent } from "../../utils/cursorAgentProtobuf/pi.ts";
+import type { ExtraExecEvent } from "../../utils/cursorAgentProtobuf/extraExec.ts";
 
 export type CursorBuiltinToolBridge = {
   toolName: string;
@@ -32,6 +34,10 @@ type JsonSchema = {
 
 const DIRECT_SHELL_TOOL_NAMES = ["bash", "shell", "run_terminal_cmd"];
 const TODO_WRITE_TOOL_NAMES = ["todowrite", "todo_write"];
+const GREP_TOOL_NAMES = ["grep", "search", "ripgrep", "grep_search"];
+const LS_TOOL_NAMES = ["glob", "ls", "list", "list_dir", "list_directory"];
+const WRITE_TOOL_NAMES = ["write", "write_file", "create_file"];
+const FETCH_TOOL_NAMES = ["webfetch", "web_fetch", "fetch"];
 const BRIDGE_DESCRIPTION = "Run Cursor-requested shell command";
 const ROOT_SCHEMA_KEYS = new Set([
   "$schema",
@@ -135,12 +141,19 @@ function hasAllRequired(schema: JsonSchema, args: Record<string, unknown>): bool
  * valid. Any validation keyword we do not implement (pattern, format, length,
  * conditionals, refs, dependentRequired, and so on) fails closed.
  */
-function propertySupports(value: unknown, expected: "string" | "boolean" | "string[]"): boolean {
+type SupportedPropertyType = "string" | "boolean" | "string[]" | "number";
+
+function propertySupports(value: unknown, expected: SupportedPropertyType): boolean {
   if (!isRecord(value)) return false;
   if (expected === "string[]") {
     if (!hasOnlyKeys(value, ARRAY_PROPERTY_KEYS)) return false;
     if (value.type !== "array" || !isRecord(value.items)) return false;
     return hasOnlyKeys(value.items, SCALAR_PROPERTY_KEYS) && value.items.type === "string";
+  }
+  if (expected === "number") {
+    // JSON Schema spells a millisecond field either way; both accept an integer.
+    if (!hasOnlyKeys(value, SCALAR_PROPERTY_KEYS)) return false;
+    return value.type === "integer" || value.type === "number";
   }
   return hasOnlyKeys(value, SCALAR_PROPERTY_KEYS) && value.type === expected;
 }
@@ -168,7 +181,7 @@ function selectProperty(
   schema: JsonSchema,
   properties: Record<string, unknown>,
   names: string[],
-  expected: "string" | "boolean" | "string[]"
+  expected: SupportedPropertyType
 ): string | undefined {
   const required = new Set(requiredKeys(schema));
   return (
@@ -178,7 +191,10 @@ function selectProperty(
 }
 
 function directShellBridge(
-  event: Extract<ExecServerEvent, { kind: "exec_shell" | "exec_shell_stream" }>,
+  event: Extract<
+    ExecServerEvent,
+    { kind: "exec_shell" | "exec_shell_stream" | "exec_mini_swe_bash" }
+  >,
   tools: McpToolDefinition[]
 ): CursorBuiltinToolBridge | null {
   for (const tool of namedTools(tools, DIRECT_SHELL_TOOL_NAMES)) {
@@ -196,6 +212,17 @@ function directShellBridge(
       "string"
     );
     if (cwdKey && event.workingDir) args[cwdKey] = event.workingDir;
+    // Cursor stamps a timeout (and a 24h hard timeout) on every shell exec it
+    // emits. Refusing to bridge whenever either was set made this path
+    // unreachable in practice — the harness got narration and no tool call.
+    // Dropping them does not broaden execution: the command runs on the CLIENT
+    // under its own limits, exactly like a tool_call from any other provider,
+    // which carries no server-side timeout either. Map the value when the
+    // declared tool can express it so the intent survives; otherwise the
+    // client's own default applies.
+    const timeoutKey = selectProperty(schema, properties, ["timeout"], "number");
+    const timeoutMs = event.timeout > 0 ? event.timeout : 0;
+    if (timeoutKey && timeoutMs > 0) args[timeoutKey] = timeoutMs;
     if (propertySupports(properties.description, "string")) {
       args.description = BRIDGE_DESCRIPTION;
     }
@@ -205,7 +232,10 @@ function directShellBridge(
 }
 
 function ptySpawnBridge(
-  event: Extract<ExecServerEvent, { kind: "exec_shell" | "exec_shell_stream" | "exec_bg_shell" }>,
+  event: Extract<
+    ExecServerEvent,
+    { kind: "exec_shell" | "exec_shell_stream" | "exec_bg_shell" | "exec_mini_swe_bash" }
+  >,
   tools: McpToolDefinition[],
   platform: CursorClientPlatform | undefined
 ): CursorBuiltinToolBridge | null {
@@ -254,6 +284,281 @@ function readBridge(
     const pathKey = selectProperty(schema, properties, ["filePath", "path", "file_path"], "string");
     if (!pathKey) continue;
     const args: Record<string, unknown> = { [pathKey]: event.path };
+    if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  }
+  return null;
+}
+
+/**
+ * Cursor routes work onto its own built-in tools (Grep, Ls, Write, Fetch) even
+ * when the client declared equivalents. Each unbridged variant used to end the
+ * turn with a typed rejection and no tool call, so a harness like opencode saw
+ * an empty answer and retried the same step forever.
+ *
+ * Every bridge below fails closed: it emits a call only when a declared tool
+ * can express the request, and never invents arguments Cursor did not send.
+ */
+function grepBridge(
+  event: Extract<ExecServerEvent, { kind: "exec_grep" }>,
+  tools: McpToolDefinition[]
+): CursorBuiltinToolBridge | null {
+  if (event.outputMode && !["content", "files_with_matches", "count"].includes(event.outputMode))
+    return null;
+  // Cursor reuses the grep channel for FILE SEARCH: an empty pattern with a
+  // glob ("", "**/*") means "list matching files", not "search contents".
+  // Requiring a pattern left those execs unbridged, so the agent could never
+  // discover files and stalled on its very first exploration step.
+  if (!event.pattern.trim()) {
+    if (!event.glob.trim()) return null;
+    for (const tool of namedTools(tools, LS_TOOL_NAMES)) {
+      const schema = schemaFor(tool);
+      if (!schema) continue;
+      const properties = schemaProperties(schema);
+      const patternKey = selectProperty(schema, properties, ["pattern", "glob"], "string");
+      if (!patternKey) continue;
+
+      const args: Record<string, unknown> = { [patternKey]: event.glob };
+      const pathKey = selectProperty(schema, properties, ["path", "dir", "directory"], "string");
+      if (pathKey && event.path) args[pathKey] = event.path;
+      if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+    }
+    return null;
+  }
+  for (const tool of namedTools(tools, GREP_TOOL_NAMES)) {
+    const schema = schemaFor(tool);
+    if (!schema) continue;
+    const properties = schemaProperties(schema);
+    const patternKey = selectProperty(schema, properties, ["pattern", "query", "regex"], "string");
+    if (!patternKey) continue;
+
+    const args: Record<string, unknown> = { [patternKey]: event.pattern };
+    const pathKey = selectProperty(schema, properties, ["path", "dir", "directory"], "string");
+    if (pathKey && event.path) args[pathKey] = event.path;
+    const globKey = selectProperty(
+      schema,
+      properties,
+      ["include", "glob", "filePattern"],
+      "string"
+    );
+    if (globKey && event.glob) args[globKey] = event.glob;
+    if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  }
+  return null;
+}
+
+function lsBridge(
+  event: Extract<ExecServerEvent, { kind: "exec_ls" }>,
+  tools: McpToolDefinition[]
+): CursorBuiltinToolBridge | null {
+  if (!event.path.trim()) return null;
+  for (const tool of namedTools(tools, LS_TOOL_NAMES)) {
+    const schema = schemaFor(tool);
+    if (!schema) continue;
+    const properties = schemaProperties(schema);
+    const pathKey = selectProperty(schema, properties, ["path", "dir", "directory"], "string");
+    if (!pathKey) continue;
+
+    const args: Record<string, unknown> = { [pathKey]: event.path };
+    // opencode's `glob` requires a pattern; list everything under the path.
+    const patternKey = selectProperty(schema, properties, ["pattern", "glob"], "string");
+    if (patternKey) args[patternKey] = "*";
+    if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  }
+  return null;
+}
+
+function writeBridge(
+  event: Extract<ExecServerEvent, { kind: "exec_write" }>,
+  tools: McpToolDefinition[]
+): CursorBuiltinToolBridge | null {
+  if (
+    !event.path.trim() ||
+    event.hasFileBytes ||
+    (event.encodingHint && !["utf8", "utf-8"].includes(event.encodingHint.toLowerCase()))
+  )
+    return null;
+  for (const tool of namedTools(tools, WRITE_TOOL_NAMES)) {
+    const schema = schemaFor(tool);
+    if (!schema) continue;
+    const properties = schemaProperties(schema);
+    const pathKey = selectProperty(schema, properties, ["filePath", "path", "file_path"], "string");
+    const contentKey = selectProperty(
+      schema,
+      properties,
+      ["content", "contents", "text", "file_text"],
+      "string"
+    );
+    if (!pathKey || !contentKey) continue;
+
+    const args: Record<string, unknown> = { [pathKey]: event.path, [contentKey]: event.fileText };
+    if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  }
+  return null;
+}
+
+function fetchBridge(
+  event: Extract<ExecServerEvent, { kind: "exec_fetch" }>,
+  tools: McpToolDefinition[]
+): CursorBuiltinToolBridge | null {
+  if (!event.url.trim()) return null;
+  for (const tool of namedTools(tools, FETCH_TOOL_NAMES)) {
+    const schema = schemaFor(tool);
+    if (!schema) continue;
+    const properties = schemaProperties(schema);
+    const urlKey = selectProperty(schema, properties, ["url", "uri", "link"], "string");
+    if (!urlKey) continue;
+
+    const args: Record<string, unknown> = { [urlKey]: event.url };
+    if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  }
+  return null;
+}
+
+/** Bridge PI built-ins only when the declared client schema preserves their arguments. */
+export function bridgeCursorPiTool(
+  event: PiExecEvent,
+  tools: McpToolDefinition[]
+): CursorBuiltinToolBridge | null {
+  const base = { execMsgId: event.execMsgId, execId: event.execId };
+  switch (event.kind) {
+    case "exec_pi_read": {
+      if (!event.path.trim()) return null;
+      for (const tool of namedTools(tools, ["read", "read_file"])) {
+        const schema = schemaFor(tool);
+        if (!schema) continue;
+        const properties = schemaProperties(schema);
+        const pathKey = selectProperty(
+          schema,
+          properties,
+          ["filePath", "path", "file_path"],
+          "string"
+        );
+        if (!pathKey) continue;
+        const args: Record<string, unknown> = { [pathKey]: event.path };
+        let compatible = true;
+        for (const key of ["offset", "limit"] as const) {
+          if (event[key] <= 0) continue;
+          if (!propertySupports(properties[key], "number")) {
+            compatible = false;
+            break;
+          }
+          args[key] = event[key];
+        }
+        if (compatible && hasAllRequired(schema, args))
+          return { toolName: tool.name, arguments: args };
+      }
+      return null;
+    }
+    case "exec_pi_bash": {
+      const bridge = bridgeCursorBuiltinTool(
+        {
+          ...base,
+          kind: "exec_shell",
+          command: event.command,
+          workingDir: "",
+          timeout: event.timeout,
+          isBackground: false,
+          hardTimeout: 0,
+        },
+        tools
+      );
+      return event.timeout > 0 && bridge?.arguments.timeout === undefined ? null : bridge;
+    }
+    case "exec_pi_edit": {
+      if (!event.path.trim() || event.edits.length !== 1 || !event.edits[0].oldText) return null;
+      for (const tool of namedTools(tools, ["edit"])) {
+        const schema = schemaFor(tool);
+        if (!schema) continue;
+        const properties = schemaProperties(schema);
+        const pathKey = selectProperty(schema, properties, ["filePath", "path"], "string");
+        const oldKey = selectProperty(schema, properties, ["oldString", "old_text"], "string");
+        const newKey = selectProperty(schema, properties, ["newString", "new_text"], "string");
+        if (!pathKey || !oldKey || !newKey) continue;
+        const args = {
+          [pathKey]: event.path,
+          [oldKey]: event.edits[0].oldText,
+          [newKey]: event.edits[0].newText,
+        };
+        if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+      }
+      return null;
+    }
+    case "exec_pi_write":
+      return bridgeCursorBuiltinTool(
+        { ...base, kind: "exec_write", path: event.path, fileText: event.content },
+        tools
+      );
+    case "exec_pi_grep": {
+      if (event.ignoreCase || event.literal || event.context || event.limit) return null;
+      const bridge = bridgeCursorBuiltinTool(
+        {
+          ...base,
+          kind: "exec_grep",
+          pattern: event.pattern,
+          path: event.path,
+          glob: event.glob,
+          outputMode: "content",
+        },
+        tools
+      );
+      if (
+        event.glob &&
+        !["include", "glob", "filePattern"].some((key) => bridge?.arguments[key] === event.glob)
+      ) {
+        return null;
+      }
+      return bridge;
+    }
+    case "exec_pi_find":
+      return event.limit
+        ? null
+        : bridgeCursorBuiltinTool(
+            { ...base, kind: "exec_grep", pattern: "", path: event.path, glob: event.pattern },
+            tools
+          );
+    case "exec_pi_ls":
+      return event.limit
+        ? null
+        : bridgeCursorBuiltinTool({ ...base, kind: "exec_ls", path: event.path || "." }, tools);
+  }
+}
+
+/** Only the plain working-tree patch has a lossless client-side git equivalent. */
+export function bridgeCursorGitDiff(
+  event: Extract<ExtraExecEvent, { kind: "exec_git_diff" }>,
+  tools: McpToolDefinition[]
+): CursorBuiltinToolBridge | null {
+  if (
+    !event.cwd ||
+    event.ref ||
+    event.baseRef ||
+    event.outputFormat !== 3 ||
+    event.targetPaths.length ||
+    event.mergeBase ||
+    event.maxUntrackedFiles ||
+    event.submoduleRecurseDepth ||
+    event.includeSpaceChanges ||
+    event.committedOnly ||
+    event.computePatchId ||
+    event.returnHeadSha ||
+    event.hasAdvancedLimits
+  )
+    return null;
+  for (const tool of namedTools(tools, DIRECT_SHELL_TOOL_NAMES)) {
+    const schema = schemaFor(tool);
+    if (!schema) continue;
+    const properties = schemaProperties(schema);
+    const commandKey = selectProperty(schema, properties, ["command", "cmd"], "string");
+    const cwdKey = selectProperty(
+      schema,
+      properties,
+      ["workdir", "cwd", "workingDirectory", "working_directory"],
+      "string"
+    );
+    if (!commandKey || !cwdKey) continue;
+    const args: Record<string, unknown> = { [commandKey]: "git diff HEAD --", [cwdKey]: event.cwd };
+    if (propertySupports(properties.description, "string"))
+      args.description = "Inspect Cursor working-tree diff";
     if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
   }
   return null;
@@ -407,18 +712,19 @@ export function bridgeCursorBuiltinTool(
   platform?: CursorClientPlatform
 ): CursorBuiltinToolBridge | null {
   if (event.kind === "exec_read") return readBridge(event, tools);
+  if (event.kind === "exec_grep") return grepBridge(event, tools);
+  if (event.kind === "exec_ls") return lsBridge(event, tools);
+  if (event.kind === "exec_write") return writeBridge(event, tools);
+  if (event.kind === "exec_fetch") return fetchBridge(event, tools);
   if (
     event.kind !== "exec_shell" &&
     event.kind !== "exec_shell_stream" &&
+    event.kind !== "exec_mini_swe_bash" &&
     event.kind !== "exec_bg_shell"
   ) {
     return null;
   }
   if (!event.command.trim()) return null;
-  // The external schemas supported here do not expose Cursor's timeout or
-  // hard-timeout semantics. Dropping either limit could broaden execution, so
-  // preserve the native typed rejection instead of emitting an unsafe call.
-  if (event.timeout > 0 || event.hardTimeout > 0) return null;
   const background = event.kind === "exec_bg_shell" || event.isBackground;
   if (background) return ptySpawnBridge(event, tools, platform);
   return directShellBridge(event, tools) ?? ptySpawnBridge(event, tools, platform);

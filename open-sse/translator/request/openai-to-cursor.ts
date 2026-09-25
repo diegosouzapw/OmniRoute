@@ -2,9 +2,9 @@
  * OpenAI to Cursor Request Translator
  * Converts OpenAI messages to Cursor ask/agent format.
  *
- * Important: Cursor can loop when tool outputs are sent via protobuf tool_results
- * with partial schema mismatches. For stability, tool outputs are represented as
- * structured text blocks in user messages.
+ * Native Cursor Agent sessions answer pending execs with role:tool messages on
+ * the live h2 stream. Keep those results structured so the executor can match
+ * their tool_call_id; other Cursor-shaped consumers keep the text-block path.
  */
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
@@ -65,7 +65,7 @@ function buildToolResultBlock(toolName: string, toolCallId: string, resultText: 
   ].join("\n");
 }
 
-function convertMessages(messages) {
+function convertMessages(messages, preserveToolResults = false) {
   const result = [];
   // Build a map of tool_call_id -> tool name from assistant tool calls.
   const toolCallMetaMap = new Map();
@@ -107,6 +107,14 @@ function convertMessages(messages) {
     if (msg.role === "tool") {
       const toolContent = extractContent(msg.content);
       const toolCallId = msg.tool_call_id || "";
+      if (preserveToolResults && normalizeToolCallId(toolCallId)) {
+        result.push({
+          role: "tool",
+          tool_call_id: normalizeToolCallId(toolCallId),
+          content: sanitizeToolResultText(toolContent),
+        });
+        continue;
+      }
       const toolMeta = toolCallMetaMap.get(toolCallId) || {};
       const toolName = msg.name || toolMeta.name || "tool";
       result.push({
@@ -214,8 +222,10 @@ function convertMessages(messages) {
  * Transform OpenAI request to Cursor format
  * Returns modified body with converted messages
  */
-export function buildCursorRequest(model, body, stream, credentials) {
-  const messages = convertMessages(body.messages || []);
+export function buildCursorRequest(_model, body, _stream, credentials) {
+  const preserveToolResults =
+    credentials?._provider === "cursor" || credentials?._provider === "cursor-api";
+  const messages = convertMessages(body.messages || [], preserveToolResults);
 
   return {
     ...body,

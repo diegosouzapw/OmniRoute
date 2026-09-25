@@ -19,21 +19,16 @@ import {
   decodeExecServerEvent,
   decodeKvServerEvent,
   encodeRequestContextResponse,
+  encodeMcpStateResponse,
+  OMNIROUTE_MCP_SERVER_IDENTIFIER,
   encodeKvGetBlobResult,
   encodeKvSetBlobResult,
-  encodeExecReadRejected,
-  encodeExecWriteRejected,
-  encodeExecDeleteRejected,
-  encodeExecLsRejected,
-  encodeExecShellRejected,
-  encodeExecBackgroundShellSpawnRejected,
-  encodeExecGrepError,
-  encodeExecFetchError,
-  encodeExecWriteShellStdinError,
-  encodeExecDiagnosticsResult,
+  encodeExecListMcpResourcesResult,
   flattenMessages,
+  messageContentToText,
   openAIToolsToMcpDefs,
   type ChatMessage,
+  type CursorTurnUsage,
   type EncodedImage,
   type ExecServerEvent,
   type McpToolDefinition,
@@ -58,6 +53,7 @@ import {
   type StreamingState as ComposerStreamingState,
 } from "../utils/composerToolCalls.ts";
 import { cursorSessionManager, type CursorSession } from "../services/cursorSessionManager.ts";
+import { isPiExecEvent, type PiExecEvent } from "../utils/cursorAgentProtobuf/pi.ts";
 import {
   CursorApiKeyExchangeError,
   invalidateCursorSessionToken,
@@ -66,12 +62,11 @@ import {
   stripCursorOAuthTokenPrefix,
 } from "../services/cursorApiKeyAuth.ts";
 import crypto from "crypto";
-import * as fs from "node:fs";
-import * as zlib from "node:zlib";
-import { promisify } from "node:util";
 import { toolChoiceDirectiveLine, buildCursorOutputConstraints } from "./cursor/prompt.ts";
 import {
   bridgeCursorBuiltinTool,
+  bridgeCursorGitDiff,
+  bridgeCursorPiTool,
   bridgeCursorNativeTodoWrite,
   extractLatestTodoHistory,
   selectCursorBridgeTools,
@@ -84,6 +79,8 @@ import {
   composerReasoningRemainder,
 } from "./cursor/composer.ts";
 import { CursorServerConfigError, resolveCursorAgentUrl } from "./cursor/agentEndpoint.ts";
+import { driveCursorH2 } from "./cursor/streamDriver.ts";
+import { buildExecRejection } from "./cursor/execRejections.ts";
 import {
   classifyCursorError,
   isCursorBenignCancelError,
@@ -102,13 +99,6 @@ export {
   visibleComposerContentFromThinking,
   composerReasoningRemainder,
 } from "./cursor/composer.ts";
-
-// Reject reason text aligned with kaitranntt/CLIProxyAPIPlus — proven to
-// keep cursor's model from retrying the same built-in tool indefinitely.
-// The model adapts and either answers from context or uses declared MCP tools.
-const BUILTIN_TOOL_REJECT_REASON =
-  "Tool not available in this environment. Use the MCP tools provided instead.";
-const gunzipAsync = promisify(zlib.gunzip);
 
 // Tool-commit directive — adapted from composer-api's TOOL_SYSTEM_DIRECTIVE.
 // composer-2.5 otherwise narrates intent ("Checking the weather...") and ends
@@ -135,75 +125,22 @@ const TOOL_COMMIT_DIRECTIVE = [
  * to inject MCP tools in Phase 3) and for exec_mcp (model is invoking a
  * declared MCP tool — Phase 5 surfaces this as an OpenAI tool_calls delta).
  */
-function buildExecRejection(event: ExecServerEvent): Buffer | null {
-  switch (event.kind) {
-    case "exec_request_context":
-    case "exec_mcp":
-      return null;
-    case "exec_read":
-      return encodeExecReadRejected(
-        event.execMsgId,
-        event.execId,
-        event.path,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_write":
-      return encodeExecWriteRejected(
-        event.execMsgId,
-        event.execId,
-        event.path,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_delete":
-      return encodeExecDeleteRejected(
-        event.execMsgId,
-        event.execId,
-        event.path,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_ls":
-      return encodeExecLsRejected(
-        event.execMsgId,
-        event.execId,
-        event.path,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_grep":
-      return encodeExecGrepError(event.execMsgId, event.execId, BUILTIN_TOOL_REJECT_REASON);
-    case "exec_diagnostics":
-      // Diagnostics has no rejection variant — return an empty success.
-      return encodeExecDiagnosticsResult(event.execMsgId, event.execId);
-    case "exec_shell":
-    case "exec_shell_stream":
-      return encodeExecShellRejected(
-        event.execMsgId,
-        event.execId,
-        event.command,
-        event.workingDir,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_bg_shell":
-      return encodeExecBackgroundShellSpawnRejected(
-        event.execMsgId,
-        event.execId,
-        event.command,
-        event.workingDir,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_fetch":
-      return encodeExecFetchError(
-        event.execMsgId,
-        event.execId,
-        event.url,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_write_shell_stdin":
-      return encodeExecWriteShellStdinError(
-        event.execMsgId,
-        event.execId,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-  }
+/**
+ * Built-in execs whose result can be expressed as a typed success once the
+ * client answers. Everything else keeps the fail-closed rejection.
+ */
+function heldExecKind(
+  kind: ExecServerEvent["kind"]
+): "read" | "shell" | "shell_stream" | "mini_swe_bash" | "write" | "grep" | "ls" | "fetch" | null {
+  if (kind === "exec_read") return "read";
+  if (kind === "exec_write") return "write";
+  if (kind === "exec_grep") return "grep";
+  if (kind === "exec_ls") return "ls";
+  if (kind === "exec_fetch") return "fetch";
+  if (kind === "exec_shell") return "shell";
+  if (kind === "exec_shell_stream") return "shell_stream";
+  if (kind === "exec_mini_swe_bash") return "mini_swe_bash";
+  return null;
 }
 
 // Detect cloud environment (Edge runtime, Cloudflare Workers, etc.)
@@ -230,33 +167,6 @@ const CURSOR_DEBUG = process.env.CURSOR_DEBUG === "1" || process.env.CURSOR_STRE
 const debugLog = (...args: unknown[]) => {
   if (CURSOR_DEBUG) console.log(...args);
 };
-
-// Phase 8: max wall-clock time before we give up on the upstream and abort
-// the stream. Cursor's longest-observed plain chat takes ~90s; tool-using
-// turns can be longer. Five minutes is generous but bounded. A malformed env
-// value (NaN / non-positive) falls back to the default rather than breaking
-// setTimeout.
-const CURSOR_STREAM_TIMEOUT_MS = (() => {
-  const parsed = parseInt(process.env.CURSOR_STREAM_TIMEOUT_MS || "300000", 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : 300000;
-})();
-
-// Grace window after a composer kv_after_text soft terminator when bytes
-// remain buffered: gives a trailing exec_mcp tool call time to complete its
-// frame without letting plain-chat latency regress to the full stream
-// timeout. 2s covers every exec_mcp-behind-kv ordering observed live.
-const KV_GRACE_MS = (() => {
-  const parsed = parseInt(process.env.CURSOR_KV_GRACE_MS || "2000", 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : 2000;
-})();
-
-// Upper bound on a single Connect-RPC frame. The 4-byte length prefix can
-// declare up to 4 GiB; a corrupt or hostile upstream could send a huge length
-// that forces driveH2's rolling buffer to grow unbounded (OOM) while it waits
-// for bytes that never arrive. Real cursor frames are well under 1 MiB
-// (largest observed: a ~13 KB KV blob), so 16 MiB is a generous ceiling that
-// turns the failure into a clean stream error instead of memory exhaustion.
-const CURSOR_MAX_FRAME_BYTES = 16 * 1024 * 1024;
 
 function tryParseJsonError(payload: Buffer): { message: string; status: number } | null {
   if (payload.length < 2 || payload[0] !== 0x7b) return null;
@@ -309,6 +219,7 @@ export type StreamCtx = {
   totalText: string;
   thinkingText: string;
   tokenDelta: number;
+  turnUsage?: CursorTurnUsage;
   // End-signal tracking (Phase 8 hardens this further).
   receivedText: boolean;
   kvAfterTextSeen: boolean;
@@ -331,6 +242,43 @@ export type StreamCtx = {
   // role:"tool" message can be answered on the open h2 stream via
   // encodeExecMcpResult.
   pendingToolCalls: Map<string, { execMsgId: number; execId: string; toolName: string }>;
+  /**
+   * Bytes received but not yet consumed when the turn settled. Cursor often
+   * puts the start of the next frame in the same TCP segment as the frame that
+   * ends the turn; dropping them made the NEXT run read the stream from the
+   * middle of a frame, so nothing decoded and it stalled until the safety
+   * timeout. Carried into the session and replayed as the next run's prefix.
+   */
+  leftoverBytes: Buffer;
+  /** Field number of the most recent exec variant this build cannot handle. */
+  unknownExecField: number | null;
+  lastUnknownUpdateField: number | null;
+  pendingBuiltinExecs: Map<
+    string,
+    {
+      execMsgId: number;
+      execId: string;
+      kind:
+        | "read"
+        | "shell"
+        | "shell_stream"
+        | "mini_swe_bash"
+        | "git_diff"
+        | "write"
+        | "grep"
+        | "ls"
+        | "fetch"
+        | PiExecEvent["kind"];
+      path: string;
+      command: string;
+      workingDir: string;
+      fileText: string;
+      returnFileContentAfterWrite?: boolean;
+      pattern: string;
+      outputMode?: string;
+      url?: string;
+    }
+  >;
   // Built-in Cursor tools are bridged to external OpenAI tool calls by first
   // rejecting the native request. Their result therefore cannot resume on the
   // same h2 stream and must use the existing full-history cold-resume path.
@@ -372,6 +320,10 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     emittedToolCallIndex: 0,
     toolCalls: [],
     pendingToolCalls: new Map(),
+    leftoverBytes: Buffer.alloc(0),
+    unknownExecField: null,
+    lastUnknownUpdateField: null,
+    pendingBuiltinExecs: new Map(),
     requiresColdResume: false,
     composerVisibleEmittedLength: 0,
     composerToolParserState: isComposerModel(model) ? createStreamingState() : null,
@@ -433,20 +385,38 @@ export function emitCursorSseError(ctx: StreamCtx, classified: ClassifiedCursorE
 }
 
 export function buildCursorUsage(ctx: StreamCtx, body: { messages?: ChatMessage[] }) {
-  const promptTokens = estimateInputTokens(body);
+  const reported = ctx.turnUsage;
+  const promptTokens =
+    reported?.inputTokens !== undefined
+      ? reported.inputTokens + (reported.cacheReadTokens ?? 0) + (reported.cacheWriteTokens ?? 0)
+      : estimateInputTokens(body);
   const completionTokens =
-    ctx.tokenDelta > 0
-      ? ctx.tokenDelta
-      : estimateOutputTokens(ctx.totalText.length + ctx.thinkingText.length);
+    reported?.outputTokens !== undefined
+      ? reported.outputTokens
+      : ctx.tokenDelta > 0
+        ? ctx.tokenDelta
+        : estimateOutputTokens(ctx.totalText.length + ctx.thinkingText.length);
   const usage: Record<string, unknown> = {
     prompt_tokens: promptTokens,
     completion_tokens: completionTokens,
     total_tokens: promptTokens + completionTokens,
-    estimated: true,
+    ...(reported?.inputTokens === undefined || reported.outputTokens === undefined
+      ? { estimated: true }
+      : {}),
   };
-  if (ctx.thinkingText.length > 0) {
+  if (reported?.cacheReadTokens !== undefined || reported?.cacheWriteTokens !== undefined) {
+    usage.prompt_tokens_details = {
+      ...(reported.cacheReadTokens !== undefined
+        ? { cached_tokens: reported.cacheReadTokens }
+        : {}),
+      ...(reported.cacheWriteTokens !== undefined
+        ? { cache_creation_tokens: reported.cacheWriteTokens }
+        : {}),
+    };
+  }
+  if (reported?.reasoningTokens !== undefined || ctx.thinkingText.length > 0) {
     usage.completion_tokens_details = {
-      reasoning_tokens: estimateOutputTokens(ctx.thinkingText.length),
+      reasoning_tokens: reported?.reasoningTokens ?? estimateOutputTokens(ctx.thinkingText.length),
     };
   }
   return addBufferToUsage(usage);
@@ -603,15 +573,61 @@ export function processFrame(
     // "already ended". Under load the exec_mcp can arrive in the same TCP
     // segment as the KV checkpoint — the tool call must still be surfaced.
     const reopensTurn = !!ctx.endReason;
+    debugLog(`[cursor-agent] exec kind=${event.kind} end=${ctx.endReason ?? "none"}`);
     if (event.kind === "exec_request_context") {
       if (opts.h2Req) {
         try {
-          // Cursor receives tools via AgentRunRequest.mcp_tools (request body)
-          // — sending them again in the request_context ack causes the
-          // server to stall silently. Empty ack only.
-          opts.h2Req.write(encodeRequestContextResponse(event.execMsgId, event.execId));
+          // The ack carries the tool set on RequestContext.tools (field 7) plus
+          // the McpMetaToolOptions descriptors that make it discoverable through
+          // Cursor's GetDynamicTools meta tool. An empty ack was previously
+          // required only because the tools were being written to field 2
+          // (`rules`), which the server silently stalled on.
+          opts.h2Req.write(
+            encodeRequestContextResponse(event.execMsgId, event.execId, opts.mcpTools ?? [])
+          );
         } catch (e) {
           console.debug(`[CURSOR] request_context ack write failed:`, e);
+        }
+      }
+    } else if (event.kind === "exec_unknown") {
+      // Name the field so a new Cursor variant shows up as a clear log line
+      // (and, via the idle watchdog below, a 502 that names it) instead of a
+      // five-minute silent hang. Suggested by @QuangBlue on #14737.
+      ctx.unknownExecField = event.variantField;
+      debugLog(
+        `[cursor-agent] unhandled exec variant field=${event.variantField} — no handler in this build`
+      );
+    } else if (event.kind === "exec_list_mcp_resources") {
+      // Blocking exec: answer with an empty success (OmniRoute exposes tools,
+      // not MCP resources) so the turn can finish.
+      if (opts.h2Req) {
+        try {
+          opts.h2Req.write(encodeExecListMcpResourcesResult(event.execMsgId, event.execId));
+        } catch (e) {
+          console.debug(`[CURSOR] list_mcp_resources ack write failed:`, e);
+        }
+      }
+    } else if (event.kind === "exec_mcp_state") {
+      // mcp_state_exec_args (field 36) is a blocking request: the server asks
+      // which MCP servers exist and emits only heartbeats until it is answered.
+      if (opts.h2Req) {
+        try {
+          const serverIdentifier =
+            event.serverIdentifiers.find((id) => id.trim().length > 0) ??
+            OMNIROUTE_MCP_SERVER_IDENTIFIER;
+          opts.h2Req.write(
+            encodeMcpStateResponse(
+              event.execMsgId,
+              event.execId,
+              serverIdentifier,
+              opts.mcpTools ?? []
+            )
+          );
+          debugLog(
+            `[cursor-agent] answered mcp_state server=${serverIdentifier} tools=[${(opts.mcpTools ?? []).map((t) => t.name).join(",")}]`
+          );
+        } catch (e) {
+          console.debug(`[CURSOR] mcp_state ack write failed:`, e);
         }
       }
     } else if (event.kind === "exec_mcp") {
@@ -642,10 +658,36 @@ export function processFrame(
       // Cursor/Fable frequently chooses its native Shell tool even when the
       // OpenAI client declared external tools. If a schema-compatible shell
       // tool exists, surface the native request as a structured OpenAI call.
-      // We still send the typed rejection upstream, then close this h2 stream;
-      // the role:"tool" follow-up is resumed cold from the full history.
-      const bridge = bridgeCursorBuiltinTool(event, opts.mcpTools ?? [], opts.clientPlatform);
-      const rejection = buildExecRejection(event);
+      // Held execs receive the client tool's result on this h2 stream; tools
+      // without a compatible result use a rejection and cold resume.
+      const bridge =
+        event.kind === "exec_git_diff"
+          ? bridgeCursorGitDiff(event, opts.mcpTools ?? [])
+          : isPiExecEvent(event)
+            ? bridgeCursorPiTool(event, opts.mcpTools ?? [])
+            : bridgeCursorBuiltinTool(event, opts.mcpTools ?? [], opts.clientPlatform);
+      const heldKind = bridge
+        ? event.kind === "exec_git_diff"
+          ? "git_diff"
+          : isPiExecEvent(event)
+            ? event.kind
+            : heldExecKind(event.kind)
+        : null;
+      if (
+        (event.kind === "exec_git_diff" && !bridge) ||
+        (event.kind === "exec_execute_hook" && !event.hookField)
+      ) {
+        ctx.unknownExecField = event.kind === "exec_git_diff" ? 44 : 27;
+      }
+      debugLog(
+        `[cursor-agent] builtin kind=${event.kind} bridge=${bridge?.toolName ?? "none"} held=${heldKind ?? "no"}`
+      );
+      if (event.kind === "exec_grep") {
+        debugLog(
+          `[cursor-agent] grep mode=${event.outputMode || "unspecified"} patternLength=${event.pattern.length} pathPresent=${!!event.path}`
+        );
+      }
+      const rejection = heldKind ? null : buildExecRejection(event);
       if (rejection && opts.h2Req) {
         try {
           opts.h2Req.write(rejection);
@@ -654,8 +696,30 @@ export function processFrame(
         }
       }
       if (bridge) {
-        emitStructuredToolCall(ctx, bridge.toolName, bridge.arguments);
-        ctx.requiresColdResume = true;
+        const openAIToolCallId = emitStructuredToolCall(ctx, bridge.toolName, bridge.arguments);
+        if (heldKind) {
+          // Hold the exec open: the client's output comes back as a
+          // role:"tool" message and is returned to Cursor as this exec's
+          // SUCCESS. Telling Cursor the exec was rejected instead makes the
+          // model believe its own tool never ran, so it retries the same step
+          // forever (observed: an agent re-reading a missing file in a loop).
+          ctx.pendingBuiltinExecs.set(openAIToolCallId, {
+            execMsgId: event.execMsgId,
+            execId: event.execId,
+            kind: heldKind,
+            path: "path" in event ? event.path : "",
+            command: "command" in event ? event.command : "",
+            workingDir: "workingDir" in event ? event.workingDir : "",
+            fileText: "fileText" in event ? event.fileText : "",
+            returnFileContentAfterWrite:
+              event.kind === "exec_write" ? event.returnFileContentAfterWrite : undefined,
+            pattern: "pattern" in event ? event.pattern : "",
+            outputMode: event.kind === "exec_grep" ? event.outputMode : undefined,
+            url: event.kind === "exec_fetch" ? event.url : undefined,
+          });
+        } else {
+          ctx.requiresColdResume = true;
+        }
         ctx.endReason = "tool_calls";
       }
     }
@@ -667,7 +731,7 @@ export function processFrame(
     deltas = decodeAgentServerMessage(payload);
   } catch (err) {
     debugLog("[cursor-agent] decode failed:", (err as Error).message);
-    return;
+    throw err;
   }
   for (const d of deltas) {
     if (d.kind === "native_todo_write") {
@@ -767,7 +831,13 @@ export function processFrame(
     } else if (d.kind === "token_delta") {
       ctx.tokenDelta += d.tokens;
     } else if (d.kind === "turn_ended") {
+      if (d.usage) ctx.turnUsage = d.usage;
       if (ctx.endReason !== "tool_calls") ctx.endReason = "turn_ended";
+    } else if (d.kind === "unknown") {
+      if (ctx.lastUnknownUpdateField !== d.field) {
+        debugLog(`[cursor-agent] unhandled interaction update field=${d.field}`);
+      }
+      ctx.lastUnknownUpdateField = d.field;
     } else if (d.kind === "tool_call_completed" && ctx.toolCalls.length > 0) {
       // Phase 6: model paused awaiting tool result. driveH2 returns but the
       // h2 stream stays open — the session manager keeps it alive for the
@@ -803,6 +873,22 @@ export function processFrame(
         ctx.endReason = "kv_after_text";
       }
     }
+  }
+}
+
+/** Custom aliases are routing names, not exact wire ids reported by Cursor. */
+export async function loadCursorWireModelIds(
+  provider: string,
+  loadCatalog: (
+    id: string,
+    includeCustomModels: boolean
+  ) => Promise<{ models: Array<{ id: string }> }> = getActiveSyncedCatalog
+): Promise<ReadonlySet<string> | undefined> {
+  try {
+    const catalog = await loadCatalog(provider, false);
+    return catalog.models.length ? new Set(catalog.models.map((model) => model.id)) : undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -894,7 +980,10 @@ export class CursorExecutor extends BaseExecutor {
     max_completion_tokens?: unknown;
     stop?: unknown;
     response_format?: unknown;
-  }): { userText: string; tools: OpenAITool[] | undefined } {
+    reasoning_effort?: unknown;
+    reasoning?: { effort?: unknown };
+    output_config?: { effort?: unknown };
+  }): { userText: string; tools: OpenAITool[] | undefined; reasoningEffort?: string } {
     const messages: ChatMessage[] = body.messages || [];
     const declaredTools: OpenAITool[] | undefined = Array.isArray(body.tools)
       ? (body.tools as OpenAITool[])
@@ -921,7 +1010,12 @@ export class CursorExecutor extends BaseExecutor {
     // max_tokens / stop) as trailing prompt constraints.
     userText += buildCursorOutputConstraints(body);
 
-    return { userText, tools };
+    const effort = body.reasoning_effort ?? body.reasoning?.effort ?? body.output_config?.effort;
+    return {
+      userText,
+      tools,
+      reasoningEffort: typeof effort === "string" ? effort : undefined,
+    };
   }
 
   /**
@@ -951,13 +1045,7 @@ export class CursorExecutor extends BaseExecutor {
    * undefined so resolveRequestedModel keeps #7289 offline splitting.
    */
   private async loadLiveCatalogIds(): Promise<ReadonlySet<string> | undefined> {
-    try {
-      const catalog = await getActiveSyncedCatalog(this.provider);
-      if (!catalog.models.length) return undefined;
-      return new Set(catalog.models.map((model) => model.id));
-    } catch {
-      return undefined;
-    }
+    return loadCursorWireModelIds(this.provider);
   }
 
   private async buildRequest(
@@ -971,9 +1059,12 @@ export class CursorExecutor extends BaseExecutor {
       max_completion_tokens?: unknown;
       stop?: unknown;
       response_format?: unknown;
+      reasoning_effort?: unknown;
+      reasoning?: { effort?: unknown };
+      output_config?: { effort?: unknown };
     }
   ): Promise<{ body: Uint8Array; blobStore: Map<string, Buffer> }> {
-    const { userText, tools } = this.assembleTextAndTools(body);
+    const { userText, tools, reasoningEffort } = this.assembleTextAndTools(body);
     const [images, liveCatalogIds] = await Promise.all([
       this.resolveRequestImages(body),
       this.loadLiveCatalogIds(),
@@ -982,6 +1073,7 @@ export class CursorExecutor extends BaseExecutor {
     const blobStore = new Map<string, Buffer>();
     const requestBody = buildAgentRequestBody({
       modelId: model,
+      reasoningEffort,
       userText,
       conversationId: body.conversation_id,
       tools,
@@ -995,10 +1087,11 @@ export class CursorExecutor extends BaseExecutor {
   transformRequest(model, body, _stream, _credentials) {
     // Sync interface method (not used by cursor's own execute() path, which
     // uses the async buildRequest). Text-only — image resolution is async.
-    const { userText, tools } = this.assembleTextAndTools(body);
+    const { userText, tools, reasoningEffort } = this.assembleTextAndTools(body);
     const blobStore = new Map<string, Buffer>();
     return buildAgentRequestBody({
       modelId: model,
+      reasoningEffort,
       userText,
       conversationId: body.conversation_id,
       tools,
@@ -1144,13 +1237,7 @@ export class CursorExecutor extends BaseExecutor {
     });
   }
 
-  /**
-   * Drive an open h2 stream to completion. processFrame populates ctx as
-   * each Connect-RPC frame is decoded; the loop closes when ctx.endReason
-   * is set (turn_ended, kv_after_text, server_end) or the stream errors.
-   *
-   * Phase 8 will add a max-stream safety timeout here.
-   */
+  /** Drive one Cursor turn while retaining the h2 stream for tool-result follow-ups. */
   private driveH2(
     h2: {
       req: import("http2").ClientHttp2Stream;
@@ -1164,172 +1251,15 @@ export class CursorExecutor extends BaseExecutor {
     todoHistory: CursorTodoHistoryItem[] | undefined,
     signal?: AbortSignal
   ): Promise<void> {
-    const ackedExecIds = new Set<string>();
-    // Rolling buffer: chunks arrive on `data`, get appended, and consumed
-    // frames are sliced off so we don't re-scan + re-concat on every event
-    // (avoids O(N²) for long-running streams).
-    let buf: Buffer = h2.initialBytes.length > 0 ? h2.initialBytes : Buffer.alloc(0);
-
-    return new Promise((resolve, reject) => {
-      let scanning = false;
-      let settled = false;
-      // Grace window after a soft kv_after_text terminator with buffered
-      // bytes still pending: if no further frame completes in this window,
-      // the turn ends anyway — bounded latency, no dependence on the full
-      // safety timeout.
-      let kvGraceTimer: NodeJS.Timeout | null = null;
-      // Phase 8: safety timeout. If neither turn_ended, kv_after_text, nor
-      // server-end fires within CURSOR_STREAM_TIMEOUT_MS, abort the stream
-      // so a stuck upstream doesn't keep the response open indefinitely.
-      const safetyTimer = setTimeout(() => {
-        if (ctx.endReason) return;
-        debugLog("[cursor-agent] stream safety timeout fired");
-        teardown();
-        reject(new Error("cursor-agent stream timed out"));
-      }, CURSOR_STREAM_TIMEOUT_MS);
-
-      const onData = (chunk: Buffer) => {
-        if (CURSOR_DEBUG && process.env.CURSOR_DUMP_FILE) {
-          fs.appendFileSync(process.env.CURSOR_DUMP_FILE, chunk);
-        }
-        buf = buf.length === 0 ? Buffer.from(chunk) : Buffer.concat([buf, chunk]);
-        void tryScan();
-      };
-      const onEnd = () => {
-        if (settled) return;
-        settled = true;
-        if (!ctx.endReason) ctx.endReason = "server_end";
-        detachListeners();
-        resolve();
-      };
-      const onErr = (err: Error) => {
-        if (settled) return;
-        settled = true;
-        teardown();
-        reject(err);
-      };
-      const onAbort = () => {
-        if (settled) return;
-        settled = true;
-        teardown();
-        reject(new Error("aborted"));
-      };
-
-      // detachListeners removes data/end/error/abort handlers and clears the
-      // safety timer. Called on successful resolve when the caller keeps the
-      // h2 alive (Phase 6 session reuse).
-      const detachListeners = () => {
-        clearTimeout(safetyTimer);
-        if (kvGraceTimer) clearTimeout(kvGraceTimer);
-        h2.req.off("data", onData);
-        h2.req.off("end", onEnd);
-        h2.req.off("error", onErr);
-        if (signal) signal.removeEventListener("abort", onAbort);
-      };
-      // teardown additionally closes the h2 stream. Used on error / abort /
-      // safety-timeout — the connection isn't worth keeping at that point.
-      const teardown = () => {
-        detachListeners();
-        try {
-          h2.req.close();
-          h2.client.close();
-        } catch {
-          // Expected: connection may already be closed during teardown
-        }
-      };
-
-      if (signal) signal.addEventListener("abort", onAbort);
-
-      const hasCompleteFrame = () => buf.length >= 5 && buf.length >= 5 + buf.readUInt32BE(1);
-
-      const tryScan = async () => {
-        if (scanning || settled) return;
-        scanning = true;
-        try {
-          let pos = 0;
-          while (!settled && pos + 5 <= buf.length) {
-            const length = buf.readUInt32BE(pos + 1);
-            if (length > CURSOR_MAX_FRAME_BYTES) {
-              // Refuse to buffer an implausibly large frame — fail fast instead
-              // of letting the rolling buffer grow toward OOM.
-              settled = true;
-              teardown();
-              reject(new Error(`cursor-agent frame too large (${length} bytes)`));
-              return;
-            }
-            if (pos + 5 + length > buf.length) break; // partial frame; wait
-            const flag = buf[pos];
-            const raw = buf.subarray(pos + 5, pos + 5 + length);
-            // Per-frame error isolation: if gunzip or processFrame throws on
-            // one frame, log and skip past it instead of getting stuck on
-            // the same offset and hanging until the safety timer fires.
-            try {
-              const payload = flag & 0x1 ? await gunzipAsync(raw) : raw;
-              if (settled) return;
-              processFrame(payload, ctx, ackedExecIds, {
-                h2Req: h2.req,
-                mcpTools,
-                blobStore,
-                clientPlatform,
-                todoHistory,
-              });
-            } catch (err) {
-              debugLog(
-                "[cursor-agent] frame decode failed at pos",
-                pos,
-                ":",
-                (err as Error).message
-              );
-            }
-            pos += 5 + length;
-            if (ctx.endReason) {
-              // kv_after_text is a speculative terminator (Phase 8): under
-              // load the exec_mcp tool call shares the TCP segment with — or
-              // trails by a partial frame — the KV checkpoint. Settling here
-              // would splice it off as leftover and drop the tool call
-              // (#10215 follow-up: empty content, zero tool_calls). Only
-              // settle when the buffer ends at a clean frame boundary; bytes
-              // already in flight belong to this run and are processed by
-              // the next scan pass. A bounded grace window (not the full
-              // safety timeout) still ends the work if no further frame
-              // completes, so plain-chat latency can't regress.
-              const softKv = ctx.endReason === "kv_after_text";
-              const nextFrameStarted = pos < buf.length;
-              if (softKv && nextFrameStarted) {
-                if (!kvGraceTimer) {
-                  kvGraceTimer = setTimeout(() => {
-                    if (settled || !ctx.endReason) return;
-                    settled = true;
-                    detachListeners();
-                    resolve();
-                  }, KV_GRACE_MS);
-                }
-              } else {
-                buf = buf.subarray(pos);
-                settled = true;
-                detachListeners();
-                resolve();
-                return;
-              }
-            }
-          }
-          // Splice off processed bytes so the buffer stays bounded.
-          if (pos > 0) buf = buf.subarray(pos);
-        } finally {
-          scanning = false;
-        }
-
-        if (!settled && hasCompleteFrame()) {
-          void tryScan();
-        }
-      };
-
-      h2.req.on("data", onData);
-      h2.req.on("end", onEnd);
-      h2.req.on("error", onErr);
-
-      // Process any bytes already buffered from openH2.
-      void tryScan();
+    return driveCursorH2(h2, ctx, {
+      mcpTools,
+      blobStore,
+      clientPlatform,
+      todoHistory,
+      signal,
+      debugEnabled: CURSOR_DEBUG,
+      debugLog,
+      onFrame: (payload, ids, opts) => processFrame(payload, ctx, ids, opts),
     });
   }
 
@@ -1378,7 +1308,29 @@ export class CursorExecutor extends BaseExecutor {
         ? body.conversation_id
         : crypto.randomUUID();
     const lastMessage = messages[messages.length - 1];
-    const isToolFollowUp = lastMessage?.role === "tool";
+    // A tool follow-up is "this request carries tool results we may still owe
+    // Cursor", not "the last message happens to be role:tool". The Responses
+    // API path translates function_call_output into a role:"tool" message that
+    // is NOT last (a user turn follows it), so keying off the last message
+    // alone skipped session lookup entirely: every follow-up fell back to a
+    // cold resume, the held exec was never answered, and the model kept
+    // retrying the same built-in tool.
+    const isToolFollowUp =
+      lastMessage?.role === "tool" ||
+      messages.some(
+        (m) => m.role === "tool" && typeof m.tool_call_id === "string" && m.tool_call_id
+      );
+    if (isToolFollowUp) {
+      debugLog(
+        `[cursor-agent] history tail=${messages
+          .slice(-8)
+          .map(
+            (m) =>
+              `${m.role}:${messageContentToText(m.content).length}:${m.tool_call_id ? "tool-id" : "no-id"}`
+          )
+          .join(" ")}`
+      );
+    }
 
     // Tools embedded in the RequestContext ack throughout the turn —
     // synced with mcp_tools in the encoded request body.
@@ -1462,15 +1414,18 @@ export class CursorExecutor extends BaseExecutor {
       for (const msg of messages) {
         if (msg.role !== "tool") continue;
         const id = msg.tool_call_id ?? "";
-        if (!session.pendingToolCalls.has(id)) continue;
-        const content = typeof msg.content === "string" ? msg.content : "";
-        if (cursorSessionManager.sendToolResult(session, id, content, false)) {
+        if (!session.pendingToolCalls.has(id) && !session.pendingBuiltinExecs.has(id)) continue;
+        debugLog(
+          `[cursor-agent] tool result kind=${session.pendingBuiltinExecs.get(id)?.kind ?? "mcp"} contentType=${Array.isArray(msg.content) ? "parts" : typeof msg.content} textLength=${messageContentToText(msg.content).length}`
+        );
+        if (cursorSessionManager.sendToolResult(session, id, msg.content, false)) {
           matched++;
         } else {
           hadFailure = true;
           break;
         }
       }
+      debugLog(`[cursor-agent] resume matched=${matched} failed=${hadFailure}`);
       if (matched === 0 || hadFailure) {
         cursorSessionManager.close(session);
         session = undefined;
@@ -1478,8 +1433,9 @@ export class CursorExecutor extends BaseExecutor {
         h2 = {
           client: session.h2Client,
           req: session.h2Req,
-          initialBytes: Buffer.alloc(0),
+          initialBytes: session.leftoverBytes,
         };
+        session.leftoverBytes = Buffer.alloc(0);
       }
     }
 
@@ -1547,6 +1503,15 @@ export class CursorExecutor extends BaseExecutor {
       for (const [id, info] of ctx.pendingToolCalls) {
         sessionToUse.pendingToolCalls.set(id, info);
       }
+      // Held built-in execs must survive into the session too, or the client's
+      // role:"tool" follow-up has nothing to answer and the exec stays open.
+      for (const [id, info] of ctx.pendingBuiltinExecs) {
+        sessionToUse.pendingBuiltinExecs.set(id, info);
+      }
+      sessionToUse.leftoverBytes = ctx.leftoverBytes;
+      debugLog(
+        `[cursor-agent] finish error=${errored} end=${ctx.endReason ?? "none"} cold=${ctx.requiresColdResume} held=${ctx.pendingBuiltinExecs.size} mcp=${ctx.pendingToolCalls.size}`
+      );
       if (errored || ctx.endReason !== "tool_calls" || ctx.requiresColdResume) {
         cursorSessionManager.close(sessionToUse);
       } else {

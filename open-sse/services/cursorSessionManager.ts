@@ -31,7 +31,29 @@
  */
 
 import type { ClientHttp2Session, ClientHttp2Stream } from "node:http2";
-import { encodeExecMcpResult } from "../utils/cursorAgentProtobuf.ts";
+import {
+  encodePiExecResult,
+  isPiExecEvent,
+  type PiExecEvent,
+} from "../utils/cursorAgentProtobuf/pi.ts";
+import { encodeGitDiffResult } from "../utils/cursorAgentProtobuf/gitDiff.ts";
+import { encodeCursorExecThrow } from "../utils/cursorAgentProtobuf/extraExec.ts";
+import {
+  ECM_MINI_SWE_BASH_RESULT,
+  encodeExecMcpResult,
+  encodeExecFetchSuccess,
+  encodeExecGrepSuccess,
+  encodeExecLsSuccess,
+  encodeExecReadFileNotFound,
+  encodeExecReadSuccess,
+  encodeExecShellStreamResult,
+  encodeExecShellSuccess,
+  encodeExecWriteSuccess,
+  encodeExecWriteError,
+  looksLikeFileNotFound,
+  messageContentToText,
+  type ChatMessage,
+} from "../utils/cursorAgentProtobuf.ts";
 
 const DEFAULT_IDLE_TTL_MS = 5 * 60 * 1000;
 
@@ -41,6 +63,43 @@ export type CursorSession = {
   h2Req: ClientHttp2Stream;
   blobStore: Map<string, Buffer>;
   pendingToolCalls: Map<string, { execMsgId: number; execId: string; toolName: string }>;
+  /**
+   * Built-in Cursor execs (Read / Shell / Write) that were bridged to a declared
+   * client tool and are still awaiting that client's output. They are answered
+   * with a typed SUCCESS carrying the client's result — answering with a
+   * rejection instead makes the model believe its own tool never ran and retry
+   * the same step forever.
+   */
+  /** Unconsumed bytes from the previous run, replayed as the next run's prefix. */
+  leftoverBytes: Buffer;
+  pendingBuiltinExecs: Map<
+    string,
+    {
+      execMsgId: number;
+      execId: string;
+      kind:
+        | "read"
+        | "shell"
+        | "shell_stream"
+        | "mini_swe_bash"
+        | "git_diff"
+        | "write"
+        | "grep"
+        | "ls"
+        | "fetch"
+        | PiExecEvent["kind"];
+      path: string;
+      command: string;
+      workingDir: string;
+      /** Exact text Cursor asked to write, echoed back in WriteSuccess. */
+      fileText: string;
+      returnFileContentAfterWrite?: boolean;
+      /** Pattern Cursor searched for, echoed back in GrepSuccess. */
+      pattern: string;
+      outputMode?: string;
+      url?: string;
+    }
+  >;
   state: "running" | "awaiting_tool_result" | "closed";
   lastActivityTs: number;
   idleTimer?: ReturnType<typeof setTimeout>;
@@ -90,6 +149,8 @@ export class CursorSessionManager {
       h2Req,
       blobStore,
       pendingToolCalls: new Map(),
+      leftoverBytes: Buffer.alloc(0),
+      pendingBuiltinExecs: new Map(),
       state: "running",
       lastActivityTs: Date.now(),
     };
@@ -128,6 +189,7 @@ export class CursorSessionManager {
     // Drop any unanswered tool-call mappings so a closed session doesn't pin
     // their (small) entries for the lifetime of the lingering object.
     session.pendingToolCalls.clear();
+    session.pendingBuiltinExecs.clear();
     this.sessions.delete(session.conversationId);
   }
 
@@ -139,13 +201,91 @@ export class CursorSessionManager {
   sendToolResult(
     session: CursorSession,
     openAIToolCallId: string,
-    content: string,
+    content: ChatMessage["content"],
     isError: boolean
   ): boolean {
+    const text = messageContentToText(content);
+    const builtin = session.pendingBuiltinExecs.get(openAIToolCallId);
+    if (builtin) {
+      try {
+        // Chat Completions tool messages carry only text, not MCP's isError bit.
+        const writeFailed =
+          isError ||
+          (builtin.kind === "write" && text.trimStart().slice(0, 6).toLowerCase() === "error:");
+        const frame =
+          builtin.kind === "git_diff"
+            ? isError
+              ? encodeCursorExecThrow(builtin.execMsgId, "Client git diff command failed")
+              : encodeGitDiffResult(builtin.execMsgId, builtin.execId, text)
+            : isPiExecEvent(builtin)
+              ? encodePiExecResult(builtin, text, isError)
+              : builtin.kind === "fetch"
+                ? encodeExecFetchSuccess(builtin.execMsgId, builtin.execId, builtin.url ?? "", text)
+                : builtin.kind === "grep"
+                  ? encodeExecGrepSuccess(
+                      builtin.execMsgId,
+                      builtin.execId,
+                      builtin.pattern,
+                      builtin.path,
+                      text,
+                      builtin.outputMode
+                    )
+                  : builtin.kind === "ls"
+                    ? encodeExecLsSuccess(builtin.execMsgId, builtin.execId, builtin.path, text)
+                    : builtin.kind === "read"
+                      ? looksLikeFileNotFound(text)
+                        ? encodeExecReadFileNotFound(
+                            builtin.execMsgId,
+                            builtin.execId,
+                            builtin.path
+                          )
+                        : encodeExecReadSuccess(
+                            builtin.execMsgId,
+                            builtin.execId,
+                            builtin.path,
+                            text
+                          )
+                      : builtin.kind === "write"
+                        ? writeFailed
+                          ? encodeExecWriteError(builtin.execMsgId, builtin.execId, builtin.path)
+                          : encodeExecWriteSuccess(
+                              builtin.execMsgId,
+                              builtin.execId,
+                              builtin.path,
+                              builtin.fileText,
+                              builtin.returnFileContentAfterWrite
+                            )
+                        : builtin.kind === "shell_stream"
+                          ? encodeExecShellStreamResult(
+                              builtin.execMsgId,
+                              builtin.execId,
+                              text,
+                              builtin.workingDir
+                            )
+                          : encodeExecShellSuccess(
+                              builtin.execMsgId,
+                              builtin.execId,
+                              builtin.command,
+                              builtin.workingDir,
+                              text,
+                              0,
+                              builtin.kind === "mini_swe_bash"
+                                ? ECM_MINI_SWE_BASH_RESULT
+                                : undefined
+                            );
+        session.h2Req.write(frame);
+        session.pendingBuiltinExecs.delete(openAIToolCallId);
+        session.lastActivityTs = Date.now();
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
     const pending = session.pendingToolCalls.get(openAIToolCallId);
     if (!pending) return false;
     try {
-      session.h2Req.write(encodeExecMcpResult(pending.execMsgId, pending.execId, content, isError));
+      session.h2Req.write(encodeExecMcpResult(pending.execMsgId, pending.execId, text, isError));
       session.pendingToolCalls.delete(openAIToolCallId);
       session.lastActivityTs = Date.now();
       return true;
@@ -204,7 +344,10 @@ export class CursorSessionManager {
     this.evictExpired();
     for (const id of toolCallIds) {
       for (const session of this.sessions.values()) {
-        if (session.state === "awaiting_tool_result" && session.pendingToolCalls.has(id)) {
+        if (
+          session.state === "awaiting_tool_result" &&
+          (session.pendingToolCalls.has(id) || session.pendingBuiltinExecs.has(id))
+        ) {
           this.clearIdleTimer(session);
           session.state = "running";
           session.lastActivityTs = Date.now();

@@ -1,10 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  CursorSessionManager,
-  type CursorSession,
-} from "../../open-sse/services/cursorSessionManager";
+import { CursorSessionManager } from "../../open-sse/services/cursorSessionManager";
 import { flattenMessages } from "../../open-sse/utils/cursorAgentProtobuf";
+import { decodeFields } from "../../open-sse/utils/cursorAgentProtobuf/wire.ts";
 
 // ─── Test doubles for h2 ───────────────────────────────────────────────────
 //
@@ -41,6 +39,73 @@ function mockClient() {
     closed,
   };
 }
+
+test("a failed client write must not tell Cursor that the existing file was overwritten", () => {
+  const { req, calls } = mockReq();
+  const { client } = mockClient();
+  const manager = new CursorSessionManager();
+  const session = manager.open("write-error", client, req, new Map());
+  session.pendingBuiltinExecs.set("write-1", {
+    kind: "write",
+    execMsgId: 4,
+    execId: "exec-w",
+    path: "/tmp/existing.txt",
+    fileText: "replacement",
+    command: "",
+    workingDir: "",
+    pattern: "",
+  });
+  assert.equal(manager.sendToolResult(session, "write-1", "File already exists", true), true);
+  const frame = (calls.find((call) => call.kind === "write") as { data: Buffer }).data;
+  const envelope = decodeFields(frame.subarray(5)).find((field) => field.fieldNumber === 2);
+  assert.ok(envelope);
+  const result = decodeFields(envelope.bytes).find((field) => field.fieldNumber === 3);
+  assert.ok(result, "ExecClientMessage.write_result");
+  const reply = decodeFields(result.bytes);
+  assert.ok(
+    reply.some((field) => field.fieldNumber === 5),
+    "WriteResult.error"
+  );
+  assert.equal(
+    reply.some((field) => field.fieldNumber === 1),
+    false,
+    "never report success"
+  );
+  manager.close(session);
+});
+
+test("OpenAI tool errors without an isError flag do not become WriteResult.success", () => {
+  const { req, calls } = mockReq();
+  const { client } = mockClient();
+  const manager = new CursorSessionManager();
+  const session = manager.open("write-error-text", client, req, new Map());
+  session.pendingBuiltinExecs.set("write-2", {
+    kind: "write",
+    execMsgId: 5,
+    execId: "exec-write",
+    path: "/tmp/existing.txt",
+    fileText: "replacement",
+    command: "",
+    workingDir: "",
+    pattern: "",
+  });
+  assert.equal(
+    manager.sendToolResult(
+      session,
+      "write-2",
+      "Error: You must read the file before writing it.",
+      false
+    ),
+    true
+  );
+  const frame = (calls.find((call) => call.kind === "write") as { data: Buffer }).data;
+  const envelope = decodeFields(frame.subarray(5)).find((field) => field.fieldNumber === 2);
+  assert.ok(envelope);
+  const result = decodeFields(envelope.bytes).find((field) => field.fieldNumber === 3);
+  assert.ok(result);
+  assert.ok(decodeFields(result.bytes).some((field) => field.fieldNumber === 5));
+  manager.close(session);
+});
 
 // ─── flattenMessages: Phase 6 cold-resume support ──────────────────────────
 
@@ -226,6 +291,126 @@ test("CursorSessionManager.sendToolResult writes ExecMcpResult on the session's 
   assert.ok(data.includes(Buffer.from("exec-1", "utf8")));
   // Pending tool call was consumed
   assert.equal(session.pendingToolCalls.has("call_x"), false);
+});
+
+test("shell_stream follow-up sends stream events and closes the exec stream", () => {
+  const manager = new CursorSessionManager();
+  const { req, calls } = mockReq();
+  const { client } = mockClient();
+  const session = manager.open("conv-shell-stream", client, req, new Map());
+  session.pendingBuiltinExecs.set("call_shell", {
+    execMsgId: 9,
+    execId: "exec-shell",
+    kind: "shell_stream",
+    path: "",
+    command: "pwd",
+    workingDir: "/tmp",
+    fileText: "",
+    pattern: "",
+  });
+
+  assert.equal(manager.sendToolResult(session, "call_shell", "/tmp\n", false), true);
+  const written = calls.filter(
+    (call): call is Extract<WriteCall, { kind: "write" }> => call.kind === "write"
+  );
+  assert.equal(written.length, 1);
+  const data = written[0].data;
+  const messages: Buffer[] = [];
+  for (let offset = 0; offset < data.length;) {
+    const length = data.readUInt32BE(offset + 1);
+    messages.push(data.subarray(offset + 5, offset + 5 + length));
+    offset += 5 + length;
+  }
+  assert.equal(messages.length, 4, "start, stdout, exit, stream_close");
+  for (const [index, variant] of [4, 1, 3].entries()) {
+    const exec = decodeFields(messages[index]).find((field) => field.fieldNumber === 2);
+    assert.ok(exec, "AgentClientMessage.exec_client_message");
+    const fields = decodeFields(exec.bytes);
+    assert.equal(fields.find((field) => field.fieldNumber === 1)?.varint, 9n);
+    assert.equal(fields.find((field) => field.fieldNumber === 15)?.bytes.toString(), "exec-shell");
+    assert.equal(
+      fields.some((field) => field.fieldNumber === 2),
+      false,
+      "not shell_result"
+    );
+    const shellStream = fields.find((field) => field.fieldNumber === 14);
+    assert.ok(shellStream, "ExecClientMessage.shell_stream");
+    assert.ok(decodeFields(shellStream.bytes).some((field) => field.fieldNumber === variant));
+  }
+  assert.ok(messages[1].includes(Buffer.from("/tmp\n")));
+  const control = decodeFields(messages[3]).find((field) => field.fieldNumber === 5);
+  assert.ok(control, "AgentClientMessage.exec_client_control_message");
+  assert.equal(session.pendingBuiltinExecs.has("call_shell"), false);
+  manager.close(session);
+});
+
+test("a multipart tool result is forwarded as file contents instead of an empty read", () => {
+  const manager = new CursorSessionManager();
+  const { req, calls } = mockReq();
+  const { client } = mockClient();
+  const session = manager.open("conv-multipart", client, req, new Map());
+  session.pendingBuiltinExecs.set("call_read", {
+    execMsgId: 3,
+    execId: "exec-read",
+    kind: "read",
+    path: "/tmp/snake.c",
+    command: "",
+    workingDir: "",
+    fileText: "",
+    pattern: "",
+  });
+  assert.equal(
+    manager.sendToolResult(
+      session,
+      "call_read",
+      [{ type: "text", text: "int main(void) {}" }],
+      false
+    ),
+    true
+  );
+  const sent = calls.find(
+    (call): call is Extract<WriteCall, { kind: "write" }> => call.kind === "write"
+  );
+  assert.ok(sent);
+  assert.ok(sent.data.includes(Buffer.from("int main(void) {}")));
+  manager.close(session);
+});
+
+test("a bridged web fetch returns FetchResult.success rather than a shell result", () => {
+  const manager = new CursorSessionManager();
+  const { req, calls } = mockReq();
+  const { client } = mockClient();
+  const session = manager.open("conv-fetch", client, req, new Map());
+  session.pendingBuiltinExecs.set("call_fetch", {
+    execMsgId: 5,
+    execId: "exec-fetch",
+    kind: "fetch",
+    path: "",
+    command: "",
+    workingDir: "",
+    fileText: "",
+    pattern: "",
+    url: "https://example.com/docs",
+  });
+  assert.equal(manager.sendToolResult(session, "call_fetch", "Article text", false), true);
+  const written = calls.find(
+    (call): call is Extract<WriteCall, { kind: "write" }> => call.kind === "write"
+  );
+  assert.ok(written);
+  const ecm = decodeFields(
+    decodeFields(written.data.subarray(5)).find((field) => field.fieldNumber === 2)!.bytes
+  );
+  const result = ecm.find((field) => field.fieldNumber === 20);
+  assert.ok(result, "ExecClientMessage.fetch_result");
+  const success = decodeFields(result.bytes).find((field) => field.fieldNumber === 1);
+  assert.ok(success, "FetchResult.success");
+  const fields = decodeFields(success.bytes);
+  assert.equal(
+    fields.find((field) => field.fieldNumber === 1)?.bytes.toString(),
+    "https://example.com/docs"
+  );
+  assert.equal(fields.find((field) => field.fieldNumber === 2)?.bytes.toString(), "Article text");
+  manager.close(session);
 });
 
 test("CursorSessionManager.sendToolResult returns false when openAIToolCallId not pending", () => {
