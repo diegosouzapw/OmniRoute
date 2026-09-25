@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Անջատել աշխատաշրջանի ամրագրումը",
     "sessionStickinessEnabled": "Ամրագրումը միացված է",
     "sessionStickinessDisabled": "Ամրագրումն անջատված է",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-ի նախակարգավորում",
     "kimiPresetDescription": "Kimi K3-ը՝ որպես հիմնական մոդել (Moonshot API), իսկ անհասանելիության դեպքում՝ ավտոմատ անցում ձեր Kimi Code կապերին (kimi-coding, kimi-web), եթե դրանք կազմաձևված են։",
     "kimiPresetCta": "Ավելացնել նախակարգավորում",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Այս ձևանմուշին համապատասխանող՝ ներկայումս միացված մատակարարների/մոդելների պատճենը կպահվի որպես խմբագրվող կոմբինացիա։",
     "duplicateAutoComboFailedPrefix": "Չհաջողվեց կրկնօրինակել ավտոմատ կոմբինացիան՝",
     "duplicateAutoComboUnknownError": "Անհայտ սխալ",
-    "duplicateAutoComboTitle": "Ստեղծել ստատիկ կոմբինացիա {name}-ից",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ստեղծել ստատիկ կոմբինացիա {name}-ից"
   },
   "costs": {
     "title": "Ծախսեր",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "Ավելացնել",
     "poolAddFailed": "Չհաջողվեց պրոքսին ավելացնել պուլին",
     "poolSelectProxy": "Ընտրեք պրոքսի…",
-    "poolSaveFailed": "Չհաջողվեց պահպանել պուլին վերագրումը"
+    "poolSaveFailed": "Չհաջողվեց պահպանել պուլին վերագրումը",
+    "transportRate": "{rate}% փոխադրում",
+    "previousSuccessRate": "Նախկինում {rate}% հաջողություն",
+    "upstreamRefusals": "{count} upstream մերժում",
+    "connectionTestsCount": "{count} կապի թեստ",
+    "notMeasured": "Չի չափվել"
   },
   "playground": {
     "title": "Մոդելների փորձարկման հարթակ",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "Պրոքսիի մատյաններ դեռ չկան։ Կարգավորեք պրոքսիները և կատարեք API կանչեր՝ դրանք այստեղ տեսնելու համար։",
     "noMatchingLogs": "Ընթացիկ զտիչներին համապատասխանող մատյաններ չկան։",
     "tlsFingerprint": "Chrome 124 TLS մատնահետք",
-    "colPublicIp": "Հանրային IP"
+    "colPublicIp": "Հանրային IP",
+    "colUpstream": "Վերին հոսք",
+    "colEgress": "Ելքային IP",
+    "colCorrelation": "Համապատասխանություն",
+    "colServedBy": "Մատակարարող",
+    "filterTraffic": "Հոսք",
+    "filterTests": "Թեստեր",
+    "filterSource": "Աղբյուր"
   },
   "endpointOptions": {
     "speech": "Խոսք",
@@ -12012,6 +12024,10 @@
     "stopDns": "Դադարեցնել DNS-ը",
     "toggling": "Փոխարկվում է…",
     "viewTraffic": "Դիտել թրաֆիկը",
+    "resetAgent": "Վերականգնել լռելյայնը",
+    "resetAgentConfirm": "Վերականգնե՞լ լռելյայնը",
+    "resetting": "Վերականգնվում է…",
+    "resetDone": "{agent}-ի լռելյայն DNS-ը վերականգնվեց։ Որպեսզի փոփոխությունն ուժի մեջ մտնի, ամբողջությամբ փակեք հավելվածը (ոչ միայն փոքրացրեք) և նորից բացեք այն։",
     "emptyNoProvidersTitle": "Դեռևս ոչ մի մատակարար կարգավորված չէ",
     "emptyNoProvidersBody": "AgentBridge-ն օգտագործելու համար նախ միացրեք առնվազն մեկ մատակարար։ Այն կլինի այն նպատակակետը, ուր կուղղորդվեն IDE-ի հարցումները։",
     "emptyGoToProviders": "Անցնել «Մատակարարներ» բաժին",
@@ -12790,7 +12806,12 @@
     "createDahlTokenFailed": "Չհաջողվեց ստեղծել Dahl թոքենը",
     "providerProxy": "Պրոքսի",
     "providerProxyConfigureHint": "Կարգավորել պրոքսին",
-    "providerProxyTitleConfigured": "Պրոքսին կարգավորված է՝ {host}"
+    "providerProxyTitleConfigured": "Պրոքսին կարգավորված է՝ {host}",
+    "inheritConnectionOption": "Սեփական պրոքսի չկա (ժառանգում է կապը)",
+    "inheritedProxy": "Ժառանգում է կապը՝ {host}",
+    "inheritedPool": "Ժառանգում է կապերի խումբը ({count})",
+    "poolEmptyBlocked": "Խումբը դատարկ է — հարցումները ձախողվում են (ոչ ուղիղ)",
+    "directEgress": "Ուղիղ (առանց պրոքսիի)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14140,12 @@
     "directNative": "Ուղիղ (նատիվ)",
     "targetUrl": "Թիրախային URL",
     "error": "Սխալ",
-    "configuration": "Պրոքսիի կազմաձևում"
+    "configuration": "Պրոքսիի կազմաձևում",
+    "upstreamStatus": "Վերին հոսքի կարգավիճակ",
+    "noResponse": "Պատասխան չկա",
+    "egressIp": "Ելքային IP",
+    "servedBy": "Մատակարարող",
+    "correlationId": "Համապատասխանության ID"
   },
   "requestTimeline": {
     "title": "Հարցումների ժամանակագիծ",

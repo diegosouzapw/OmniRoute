@@ -295,7 +295,16 @@ function getGrokBuildReasoningEfforts(
   const hasExplicitEffortList = effortLists.some((value) => Array.isArray(value));
   const discovered = effortLists
     .flatMap((value) => (Array.isArray(value) ? value : []))
-    .filter((value): value is string => typeof value === "string")
+    .map((value) => {
+      if (typeof value === "string") return value;
+      if (value && typeof value === "object") {
+        const record = value as { value?: unknown; id?: unknown };
+        const named = typeof record.value === "string" ? record.value.trim() : "";
+        if (named) return named;
+        return typeof record.id === "string" ? record.id : "";
+      }
+      return "";
+    })
     .map((value) => value.trim().toLowerCase())
     .filter((value) => supported.has(value));
   if (hasExplicitEffortList) return [...new Set(discovered)];
@@ -307,7 +316,9 @@ function getGrokBuildReasoningEfforts(
     metadata.reasoning_effort
   )?.toLowerCase();
   if (singleEffort && supported.has(singleEffort)) return [singleEffort];
-  return hasGrokBuildReasoning(model, metadata) ? [...GROK_BUILD_SUPPORTED_REASONING_EFFORTS] : [];
+  // No list in the payload. The boolean only proves reasoning exists.
+  // grok-4.5 advertises low/medium/high. xhigh is kept only when named.
+  return hasGrokBuildReasoning(model, metadata) ? ["low", "medium", "high"] : [];
 }
 
 function normalizeGrokBuildModel(value: unknown): GrokBuildModelRecord | null {

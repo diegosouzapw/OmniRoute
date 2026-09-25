@@ -27,6 +27,7 @@ interface Connection {
   id: string;
   provider: string;
   apiKey?: string;
+  proxyEnabled?: boolean;
   providerSpecificData?: Record<string, any>;
   isActive?: boolean;
 }
@@ -89,6 +90,157 @@ function getDisplayProxy(
   return entry.proxy ?? null;
 }
 
+// Alive for display mirrors the server predicate
+// (`src/lib/db/proxies/guards.ts`, `rotation.ts` PROXY_ALIVE_PREDICATE):
+// `(p.status IS NULL OR LOWER(p.status) NOT IN
+// ('inactive','error','disabled','dead','down'))` — compared case-insensitively.
+const DEAD_PROXY_STATUSES = new Set(["inactive", "error", "disabled", "dead", "down"]);
+
+function isProxyAliveForDisplay(proxy: SavedProxy): boolean {
+  return !DEAD_PROXY_STATUSES.has(String(proxy.status ?? "").toLowerCase());
+}
+
+export interface EffectiveEgressAssignment {
+  scope: string;
+  scopeId: string | null;
+  proxyId: string;
+}
+
+export type EffectiveEgressKind =
+  "own" | "inherited-proxy" | "inherited-pool" | "pool-empty" | "direct";
+
+export interface EffectiveEgress {
+  kind: EffectiveEgressKind;
+  proxy?: InlineProxy;
+  scope?: "account" | "provider" | "global";
+  count?: number;
+}
+
+/**
+ * Effective egress to DISPLAY for an account (read-only derivation for the UI;
+ * execution resolution is unchanged). Mirrors the full `resolveProxyForConnection`
+ * cascade (`src/lib/db/settings.ts` + `noAuthProxyFallback.ts`): proxy-off →
+ * account pool rows → legacy per-account proxy → provider (registry via the
+ * no-auth shared fallback, else legacy) → global (registry, else legacy) →
+ * direct. Legacy config is invisible to this card's list-mode fetches
+ * (registry rows only), so a level with no rows here falls through locally and
+ * the caller qualifies the direct label itself. `pool-empty` mirrors the
+ * server fail-closed guards (`hasBlockingProxyAssignment*`, `guards.ts`):
+ * rows exist at an applicable level but no member is alive — never direct.
+ * Unknown assignments (`null`: still loading or fetch failed) are not
+ * affirmable — the caller keeps the legacy rendering, so this returns null.
+ * `combo` rows are names, never ids (server `scope_id` = combo name), and only
+ * apply to requests routed through that combo, so their mere existence says
+ * nothing about this connection: when no account/provider/global level decides,
+ * a combo row makes the egress not affirmable (`null` → neutral legacy
+ * rendering) — neither "direct" nor "pool empty / requests fail".
+ */
+const EGRESS_LABEL_KEYS = {
+  "inherited-proxy": "inheritedProxy",
+  "inherited-pool": "inheritedPool",
+  "pool-empty": "poolEmptyBlocked",
+  direct: "directEgress",
+} as const;
+
+export type EgressLabelKind = keyof typeof EGRESS_LABEL_KEYS;
+
+export function getEgressLabelKey(kind: EgressLabelKind): string {
+  return EGRESS_LABEL_KEYS[kind];
+}
+
+function toLiveProxy(id: string, savedProxies: SavedProxy[]): InlineProxy | null {
+  const found = savedProxies.filter(isProxyAliveForDisplay).find((p) => p.id === id);
+  if (!found || !found.host) return null;
+  return { type: found.type || "socks5", host: found.host, port: Number(found.port) || 0 };
+}
+
+function resolveLevelEgress(
+  rows: EffectiveEgressAssignment[],
+  scope: "account" | "provider" | "global",
+  savedProxies: SavedProxy[]
+): EffectiveEgress | null {
+  if (rows.length === 0) return null;
+  const live = rows
+    .map((row) => toLiveProxy(row.proxyId, savedProxies))
+    .filter((proxy): proxy is InlineProxy => proxy !== null);
+  if (live.length === 0) return { kind: "pool-empty" };
+  if (live.length === 1) return { kind: "inherited-proxy", proxy: live[0], scope };
+  return { kind: "inherited-pool", scope, count: live.length };
+}
+
+function selectScopeOf(row: EffectiveEgressAssignment): string {
+  return String(row.scope || "").toLowerCase();
+}
+
+function selectScopeRows(
+  assignments: EffectiveEgressAssignment[],
+  scopes: string[],
+  scopeId: string | null | undefined
+): EffectiveEgressAssignment[] {
+  if (scopeId === undefined) return [];
+  return assignments.filter(
+    (row) => scopes.includes(selectScopeOf(row)) && (scopeId === null || row.scopeId === scopeId)
+  );
+}
+
+function egressShieldText(
+  t: (key: string, values?: Record<string, unknown>) => string,
+  egress: EffectiveEgress | null,
+  proxy: InlineProxy | null,
+  field: "title" | "aria"
+): string {
+  if (egress === null) {
+    if (!proxy) return t("configureProxy");
+    return field === "title"
+      ? `Proxy: ${proxy.type}://${proxy.host}:${proxy.port}`
+      : t("proxyConfigured", { host: proxy.host });
+  }
+  if (egress.kind === "own" && egress.proxy) {
+    return field === "title"
+      ? `Proxy: ${egress.proxy.type}://${egress.proxy.host}:${egress.proxy.port}`
+      : t("proxyConfigured", { host: egress.proxy.host });
+  }
+  if (egress.kind === "inherited-proxy" && egress.proxy) {
+    return t(getEgressLabelKey(egress.kind), { host: egress.proxy.host });
+  }
+  if (egress.kind === "inherited-pool") {
+    return t(getEgressLabelKey(egress.kind), { count: egress.count ?? 0 });
+  }
+  return t(getEgressLabelKey(egress.kind));
+}
+
+function isEgressConfigured(egress: EffectiveEgress | null, proxy: InlineProxy | null): boolean {
+  if (egress === null) return proxy !== null;
+  return (
+    egress.kind === "own" || egress.kind === "inherited-proxy" || egress.kind === "inherited-pool"
+  );
+}
+
+export function getEffectiveEgress(
+  entry: AccountProxyConfig | null,
+  ctx: { provider: string; proxyEnabled?: boolean; connectionId?: string },
+  savedProxies: SavedProxy[],
+  assignments: EffectiveEgressAssignment[] | null
+): EffectiveEgress | null {
+  if (ctx.proxyEnabled === false) return { kind: "direct" };
+  if (assignments === null) return null;
+  const accountRows = selectScopeRows(assignments, ["account", "key"], ctx.connectionId);
+  const accountEgress = resolveLevelEgress(accountRows, "account", savedProxies);
+  if (accountEgress && accountEgress.kind !== "pool-empty") return accountEgress;
+  const own = getDisplayProxy(entry, savedProxies);
+  if (own) return { kind: "own", proxy: own };
+  if (entry?.proxyId) return { kind: "pool-empty" };
+  if (accountRows.length > 0) return { kind: "pool-empty" };
+  const providerRows = selectScopeRows(assignments, ["provider"], ctx.provider);
+  const providerEgress = resolveLevelEgress(providerRows, "provider", savedProxies);
+  if (providerEgress) return providerEgress;
+  const globalRows = selectScopeRows(assignments, ["global"], null);
+  const globalEgress = resolveLevelEgress(globalRows, "global", savedProxies);
+  if (globalEgress) return globalEgress;
+  if (assignments.some((row) => selectScopeOf(row) === "combo")) return null;
+  return { kind: "direct" };
+}
+
 export default function NoAuthAccountCard({
   providerId,
   providerName,
@@ -122,6 +274,7 @@ export default function NoAuthAccountCard({
   const [manualApiKey, setManualApiKey] = useState("");
   const [addingManualKey, setAddingManualKey] = useState(false);
   const [showManualKeyInput, setShowManualKeyInput] = useState(false);
+  const [assignments, setAssignments] = useState<EffectiveEgressAssignment[] | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   const fetchConnections = useCallback(async () => {
@@ -153,14 +306,38 @@ export default function NoAuthAccountCard({
     }
   }, []);
 
+  // List-mode assignments only (never `resolveConnectionId`/`?resolve=`: those
+  // run the rotation strategy and persist cursor advances — a read that would
+  // mutate serving order). Assignment rows are joined with pool items by the
+  // pure `getEffectiveEgress` below. Unknown (`null`) means not affirmable.
+  const fetchAssignments = useCallback(async () => {
+    try {
+      const res = await fetch("/api/settings/proxies/assignments");
+      if (res.ok) {
+        const data = await res.json();
+        const items = Array.isArray(data?.items) ? data.items : data;
+        setAssignments(
+          (Array.isArray(items) ? items : []).map((row: any) => ({
+            scope: String(row?.scope ?? ""),
+            scopeId: typeof row?.scopeId === "string" ? row.scopeId : null,
+            proxyId: typeof row?.proxyId === "string" ? row.proxyId : "",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to fetch proxy assignments:", err);
+    }
+  }, []);
+
   useEffect(() => {
     const loadTimer = window.setTimeout(() => {
       void fetchConnections();
       void fetchSavedProxies();
+      void fetchAssignments();
     }, 0);
 
     return () => window.clearTimeout(loadTimer);
-  }, [fetchConnections, fetchSavedProxies]);
+  }, [fetchConnections, fetchSavedProxies, fetchAssignments]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -458,10 +635,27 @@ export default function NoAuthAccountCard({
             className="grid max-h-72 grid-cols-1 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3"
           >
             {allAccountIds.map((id, i) => {
-              const proxy = getDisplayProxy(
-                getEntryForFingerprint(accountProxies, id),
-                savedProxies
+              const entry = getEntryForFingerprint(accountProxies, id);
+              // Effective egress for display (read-only; execution unchanged).
+              // `null` = assignments unknown: keep the legacy rendering, never
+              // affirm direct on ignorance.
+              const egress = getEffectiveEgress(
+                entry,
+                {
+                  provider: providerId,
+                  proxyEnabled: conn?.proxyEnabled,
+                  connectionId: conn?.id,
+                },
+                savedProxies,
+                assignments
               );
+              const proxy =
+                egress?.kind === "own" || egress?.kind === "inherited-proxy"
+                  ? (egress.proxy ?? null)
+                  : getDisplayProxy(entry, savedProxies);
+              const configured = isEgressConfigured(egress, proxy);
+              const title = egressShieldText(t, egress, proxy, "title");
+              const ariaLabel = egressShieldText(t, egress, proxy, "aria");
               return (
                 <div
                   key={id}
@@ -477,19 +671,13 @@ export default function NoAuthAccountCard({
                   <button
                     type="button"
                     onClick={() => openProxyConfig(id)}
-                    className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors hover:bg-black/5 dark:hover:bg-white/5 ${proxy ? "text-blue-400" : "text-text-muted"}`}
-                    title={
-                      proxy
-                        ? `Proxy: ${proxy.type}://${proxy.host}:${proxy.port}`
-                        : t("configureProxy")
-                    }
-                    aria-label={
-                      proxy ? t("proxyConfigured", { host: proxy.host }) : t("configureProxy")
-                    }
+                    className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors hover:bg-black/5 dark:hover:bg-white/5 ${configured ? "text-blue-400" : egress?.kind === "pool-empty" ? "text-red-400" : "text-text-muted"}`}
+                    title={title}
+                    aria-label={ariaLabel}
                   >
                     <span
                       className="material-symbols-outlined text-[16px]"
-                      style={proxy ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                      style={configured ? { fontVariationSettings: "'FILL' 1" } : undefined}
                     >
                       shield
                     </span>
@@ -554,7 +742,9 @@ export default function NoAuthAccountCard({
                     className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
                   >
                     <option value="">
-                      {savedProxies.length === 0 ? t("noSavedProxies") : t("directConnection")}
+                      {savedProxies.length === 0
+                        ? t("noSavedProxies")
+                        : t("inheritConnectionOption")}
                     </option>
                     {savedProxies.map((p) => (
                       <option key={p.id} value={p.id}>

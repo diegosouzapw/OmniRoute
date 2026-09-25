@@ -132,3 +132,23 @@ test("evidence stores stay bounded", () => {
   }
   assert.ok(memory.__transportEvidenceSizeForTesting().successes <= 1000);
 });
+
+test("with the opt-in flag off the dispatcher hooks record no evidence", async () => {
+  const { recordFinalTransportOutcome, recordProxiedSuccess } =
+    await import("../../open-sse/utils/proxyTransportOutcome.ts");
+  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  recordProxiedSuccess("http://10.9.0.2:8080", "https://api.example.com/v1/chat");
+  await recordFinalTransportOutcome("http://10.9.0.1:8080", "https://api.example.com/v1/chat");
+  assert.deepEqual(memory.__transportEvidenceSizeForTesting(), { failures: 0, successes: 0 });
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "true";
+  recordProxiedSuccess("http://10.9.0.2:8080", "https://api.example.com/v1/chat");
+  assert.deepEqual(memory.__transportEvidenceSizeForTesting(), { failures: 0, successes: 1 });
+});
+
+test("the open-sse evidence store never reaches into src/sse", async () => {
+  const { readFile } = await import("node:fs/promises");
+  for (const rel of ["proxyRefusalMemory.ts", "proxyTransportOutcome.ts"]) {
+    const src = await readFile(new URL(`../../open-sse/utils/${rel}`, import.meta.url), "utf8");
+    assert.equal(/["']@\/sse\//.test(src), false, `${rel} must not import @/sse/*`);
+  }
+});

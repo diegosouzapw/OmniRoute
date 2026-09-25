@@ -11,6 +11,7 @@
  * the DB layer can consult it without loading undici or the SOCKS connector.
  */
 import { COOLDOWN_MS } from "../config/errorConfig.ts";
+import { notifyProxyTransition } from "./proxyTransitionListeners.ts";
 import { stripIpv6Brackets } from "./proxyFamily.ts";
 
 const DEFAULT_QUOTA_429_BASE_MS = COOLDOWN_MS.rateLimit;
@@ -181,6 +182,7 @@ export function noteProxyRefusal(
   const id = entryId(key, kind);
   memory.delete(id);
   memory.set(id, { streak, until: nowMs + periodMs, seq: ++refusalSeq });
+  notifyProxyTransition({ key, kind, periodMs, until: nowMs + periodMs });
   if (memory.size > MAX_ENTRIES) {
     const oldest = memory.keys().next().value;
     if (oldest !== undefined) memory.delete(oldest);
@@ -346,39 +348,6 @@ export function __resetTransportEvidenceForTesting(): void {
 /** Test-only: current evidence store sizes. */
 export function __transportEvidenceSizeForTesting(): { failures: number; successes: number } {
   return { failures: transportFailures.length, successes: transportSuccesses.length };
-}
-
-/**
- * Record a final tagged transport failure as cross-evidence, then let the
- * outcome module decide whether the evidence condemns this egress. Best
- * effort: evidence must never break the request path. The caller never calls
- * noteProxyRefusal itself — src/sse/handlers/proxyOutcomeMemory.ts is the
- * only writer, gated on PROXY_SKIP_RECENTLY_FAILED (lazy import: that module
- * already imports this one, so the link stays runtime-only).
- */
-export async function recordFinalTransportOutcome(
-  proxyUrl: string | null,
-  targetUrl: string,
-  poolSize?: number
-): Promise<void> {
-  try {
-    const key = proxyEgressKey(proxyUrl);
-    const destination = transportDestinationKey(targetUrl);
-    recordTransportFailure(key, destination);
-    const { noteTransportOutcome } = await import("@/sse/handlers/proxyOutcomeMemory");
-    noteTransportOutcome({ key, destination, poolSize });
-  } catch {
-    /* evidence is best-effort; never break the request path */
-  }
-}
-
-/** Record a proxied success as cross-evidence. Best effort, never throws. */
-export function recordProxiedSuccess(proxyUrl: string | null, targetUrl: string): void {
-  try {
-    recordTransportSuccess(transportDestinationKey(targetUrl), proxyEgressKey(proxyUrl));
-  } catch {
-    /* evidence is best-effort; never break the request path */
-  }
 }
 
 /** Test-only: number of (key, kind) entries held. */

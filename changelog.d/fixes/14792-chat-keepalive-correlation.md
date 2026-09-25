@@ -1,0 +1,1 @@
+- **fix(api):** chat completions keepalive bytes merge into the request journal ([#14792](https://github.com/diegosouzapw/OmniRoute/pull/14792)) — thanks @maxmad64bis

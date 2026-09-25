@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Deaktiver sessionsklæbenhed",
     "sessionStickinessEnabled": "Stickiness aktiv",
     "sessionStickinessDisabled": "Stickiness inaktiv",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-forudindstilling",
     "kimiPresetDescription": "Kimi K3 som den primære model (Moonshot API), med automatisk fallback til dine Kimi Code-forbindelser (kimi-coding, kimi-web), når de er konfigureret.",
     "kimiPresetCta": "Tilføj forudindstilling",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dette vil tage et øjebliksbillede af de aktuelt tilsluttede udbydere/modeller, der matcher denne skabelon, i en redigerbar kombination.",
     "duplicateAutoComboFailedPrefix": "Kopiering af auto-kombination mislykkedes:",
     "duplicateAutoComboUnknownError": "Ukendt fejl",
-    "duplicateAutoComboTitle": "Opret en statisk kombination fra {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Opret en statisk kombination fra {name}"
   },
   "costs": {
     "title": "Omkostninger",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "Tilføj",
     "poolAddFailed": "Kunne ikke føje proxyen til poolen",
     "poolSelectProxy": "Vælg en proxy…",
-    "poolSaveFailed": "Kunne ikke gemme pool-tildeling"
+    "poolSaveFailed": "Kunne ikke gemme pool-tildeling",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Tidligere {rate} % succes",
+    "upstreamRefusals": "{count} upstream-afvisninger",
+    "connectionTestsCount": "{count} forbindelsestests",
+    "notMeasured": "Ikke målt"
   },
   "playground": {
     "title": "Title",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "Ingen proxylogfiler endnu. Konfigurer proxyer, og foretag API-kald for at se dem her.",
     "noMatchingLogs": "Ingen logfiler matcher de aktuelle filtre.",
     "tlsFingerprint": "Chrome 124 TLS-fingeraftryk",
-    "colPublicIp": "Offentlig IP"
+    "colPublicIp": "Offentlig IP",
+    "colUpstream": "Opstrøm",
+    "colEgress": "Udgående IP",
+    "colCorrelation": "Korrelation",
+    "colServedBy": "Betjent af",
+    "filterTraffic": "Traffic",
+    "filterTests": "Tests",
+    "filterSource": "Kilde"
   },
   "endpointOptions": {
     "speech": "Tale",
@@ -12012,6 +12024,10 @@
     "stopDns": "Stop DNS",
     "toggling": "Skifter…",
     "viewTraffic": "Vis trafik",
+    "resetAgent": "Gendan standard",
+    "resetAgentConfirm": "Gendan standard?",
+    "resetting": "Gendanner…",
+    "resetDone": "Standard-DNS er gendannet for {agent}. Luk appen helt (ikke bare minimer den), og åbn den igen, for at ændringen træder i kraft.",
     "emptyNoProvidersTitle": "Ingen udbydere konfigureret endnu",
     "emptyNoProvidersBody": "For at bruge AgentBridge skal du først tilslutte mindst én udbyder. Det vil være destinationen, som IDE-anmodninger dirigeres til.",
     "emptyGoToProviders": "Gå til udbydere",
@@ -12790,7 +12806,12 @@
     "createDahlTokenFailed": "Fejl ved oprettelse af Dahl-token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurer proxy",
-    "providerProxyTitleConfigured": "Proxy konfigureret: {host}"
+    "providerProxyTitleConfigured": "Proxy konfigureret: {host}",
+    "inheritConnectionOption": "Ingen egen proxy (arver forbindelse)",
+    "inheritedProxy": "Arver forbindelse: {host}",
+    "inheritedPool": "Arver forbindelsespulje ({count})",
+    "poolEmptyBlocked": "Pulje tom — anmodninger mislykkes (ikke direkte)",
+    "directEgress": "Direkte (ingen proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14140,12 @@
     "directNative": "Direkte",
     "targetUrl": "Mål-URL",
     "error": "Fejl",
-    "configuration": "Proxykonfiguration"
+    "configuration": "Proxykonfiguration",
+    "upstreamStatus": "Opstrøm status",
+    "noResponse": "Ingen respons",
+    "egressIp": "Udgående IP",
+    "servedBy": "Betjent af",
+    "correlationId": "Korrelation ID"
   },
   "requestTimeline": {
     "title": "Anmodnings Tidslinje",

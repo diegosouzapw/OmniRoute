@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Nonaktifkan stickiness sesi",
     "sessionStickinessEnabled": "Stickiness aktif",
     "sessionStickinessDisabled": "Stickiness nonaktif",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preset Kimi Coding",
     "kimiPresetDescription": "Kimi K3 sebagai model utama (Moonshot API), dengan pengalihan otomatis (fallback) ke koneksi Kimi Code Anda (kimi-coding, kimi-web) saat dikonfigurasi.",
     "kimiPresetCta": "Tambah preset",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Ini akan mengambil snapshot penyedia/model yang terhubung saat ini yang cocok dengan templat ini ke dalam kombo yang dapat diedit.",
     "duplicateAutoComboFailedPrefix": "Gagal menduplikasi kombo otomatis:",
     "duplicateAutoComboUnknownError": "Kesalahan tidak diketahui",
-    "duplicateAutoComboTitle": "Buat kombo statis dari {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Buat kombo statis dari {name}"
   },
   "costs": {
     "title": "Biaya",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "Tambah",
     "poolAddFailed": "Gagal menambahkan proksi ke pool",
     "poolSelectProxy": "Pilih proksi…",
-    "poolSaveFailed": "Gagal menyimpan penetapan pool"
+    "poolSaveFailed": "Gagal menyimpan penetapan pool",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Sebelumnya {rate}% berhasil",
+    "upstreamRefusals": "{count} penolakan upstream",
+    "connectionTestsCount": "{count} uji koneksi",
+    "notMeasured": "Belum diukur"
   },
   "playground": {
     "title": "Title",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "Belum ada log proksi. Konfigurasikan proksi dan lakukan panggilan API untuk melihatnya di sini.",
     "noMatchingLogs": "Tidak ada log yang cocok dengan filter saat ini.",
     "tlsFingerprint": "Sidik Jari TLS Chrome 124",
-    "colPublicIp": "IP Publik"
+    "colPublicIp": "IP Publik",
+    "colUpstream": "Hulu",
+    "colEgress": "IP Egress",
+    "colCorrelation": "Korelasi",
+    "colServedBy": "Dilayani oleh",
+    "filterTraffic": "Lalu lintas",
+    "filterTests": "Uji coba",
+    "filterSource": "Sumber"
   },
   "endpointOptions": {
     "speech": "Ucapan",
@@ -12012,6 +12024,10 @@
     "stopDns": "Hentikan DNS",
     "toggling": "Mengalihkan…",
     "viewTraffic": "Lihat lalu lintas",
+    "resetAgent": "Pulihkan default",
+    "resetAgentConfirm": "Pulihkan default?",
+    "resetting": "Memulihkan…",
+    "resetDone": "DNS default untuk {agent} telah dipulihkan. Tutup aplikasi sepenuhnya (bukan sekadar meminimalkan) lalu buka kembali agar perubahan berlaku.",
     "emptyNoProvidersTitle": "Belum ada penyedia yang dikonfigurasi",
     "emptyNoProvidersBody": "Untuk menggunakan AgentBridge, hubungkan setidaknya satu penyedia terlebih dahulu. Ini akan menjadi tujuan ke mana permintaan IDE dirutekan.",
     "emptyGoToProviders": "Buka Penyedia",
@@ -12790,7 +12806,12 @@
     "createDahlTokenFailed": "Gagal membuat token Dahl",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Konfigurasi proxy",
-    "providerProxyTitleConfigured": "Proxy dikonfigurasi: {host}"
+    "providerProxyTitleConfigured": "Proxy dikonfigurasi: {host}",
+    "inheritConnectionOption": "Tanpa proxy sendiri (mewarisi koneksi)",
+    "inheritedProxy": "Mewarisi koneksi: {host}",
+    "inheritedPool": "Mewarisi pool koneksi ({count})",
+    "poolEmptyBlocked": "Pool kosong — permintaan gagal (bukan langsung)",
+    "directEgress": "Langsung (tanpa proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14140,12 @@
     "directNative": "Langsung",
     "targetUrl": "URL Target",
     "error": "Kesalahan",
-    "configuration": "Konfigurasi Proxy"
+    "configuration": "Konfigurasi Proxy",
+    "upstreamStatus": "Status hulu",
+    "noResponse": "Tidak ada respons",
+    "egressIp": "IP Egress",
+    "servedBy": "Dilayani oleh",
+    "correlationId": "ID Korelasi"
   },
   "requestTimeline": {
     "title": "Garis Waktu Permintaan",

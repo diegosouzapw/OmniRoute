@@ -87,21 +87,21 @@ test("dropTrailingAssistantPrefill is null/empty safe", () => {
 
 test("GithubExecutor.transformRequest drops the trailing assistant prefill end-to-end", () => {
   const executor = new GithubExecutor();
-  // Use an unregistered claude-* id so getModelTargetFormat("gh", ...) resolves
-  // to null and this stays on the /chat/completions path this test targets.
-  // Registered claude-* ids (e.g. "claude-sonnet-4.6") now carry
-  // targetFormat:"claude" (native /v1/messages, which supports prefill — port
-  // of decolua/9router#2608, see github-copilot-claude-native-messages.test.ts)
-  // and intentionally skip this drop.
+  // Use a non-Claude id so getModelTargetFormat("gh", ...) resolves to null and
+  // this stays on the /chat/completions path this test targets. Since #14575 EVERY
+  // claude-* id on the gh alias (registered or not) carries targetFormat:"claude"
+  // (native /v1/messages, which supports prefill — port of decolua/9router#2608,
+  // see github-copilot-claude-native-messages.test.ts) and intentionally skips
+  // this drop, so a Claude id can no longer exercise it.
   const body = {
-    model: "claude-sonnet-4",
+    model: "gpt-4.1",
     messages: [
       { role: "user", content: "Hi" },
       { role: "assistant", content: "Here is the answer:" },
     ],
   };
 
-  const out = executor.transformRequest("claude-sonnet-4", body, false, {});
+  const out = executor.transformRequest("gpt-4.1", body, false, {});
 
   assert.equal(out.messages.length, 1);
   assert.equal(out.messages[0].role, "user");

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "सेशन स्टिकिनेस अक्षम करा",
     "sessionStickinessEnabled": "स्टिकिनेस सुरू",
     "sessionStickinessDisabled": "स्टिकिनेस बंद",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding प्रीसेट",
     "kimiPresetDescription": "प्राथमिक मॉडेल म्हणून Kimi K3 (Moonshot API), कॉन्फिगर केलेले असल्यास तुमच्या Kimi Code कनेक्शन्सवर (kimi-coding, kimi-web) स्वयंचलित फॉलबॅकसह.",
     "kimiPresetCta": "प्रीसेट जोडा",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "या टेम्पलेटशी जुळणारे सध्या कनेक्ट केलेले प्रदाता/मॉडेल्स संपादनयोग्य कॉम्बोमध्ये स्नॅपशॉट घेईल.",
     "duplicateAutoComboFailedPrefix": "ऑटोकॉम्बो डुप्लिकेट करण्यात अपयश:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटी",
-    "duplicateAutoComboTitle": "{name} मधून स्थिर कॉम्बो तयार करा",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} मधून स्थिर कॉम्बो तयार करा"
   },
   "costs": {
     "title": "खर्च",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "जोडा",
     "poolAddFailed": "पूलमध्ये प्रॉक्सी जोडण्यात अयशस्वी",
     "poolSelectProxy": "प्रॉक्सी निवडा…",
-    "poolSaveFailed": "पूल असाइनमेंट सेव्ह करण्यात अयशस्वी"
+    "poolSaveFailed": "पूल असाइनमेंट सेव्ह करण्यात अयशस्वी",
+    "transportRate": "{rate}% वाहतूक",
+    "previousSuccessRate": "यापूर्वी {rate}% यश",
+    "upstreamRefusals": "{count} अपस्ट्रीम नकार",
+    "connectionTestsCount": "{count} कनेक्शन चाचण्या",
+    "notMeasured": "मोजले नाही"
   },
   "playground": {
     "title": "मॉडेल प्लेग्राउंड",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "अद्याप कोणतेही प्रॉक्सी लॉग नाहीत. ते येथे पाहण्यासाठी प्रॉक्सी कॉन्फिगर करा आणि API कॉल करा.",
     "noMatchingLogs": "सध्याच्या फिल्टरशी कोणतेही लॉग जुळत नाहीत.",
     "tlsFingerprint": "Chrome 124 TLS फिंगरप्रिंट",
-    "colPublicIp": "सार्वजनिक IP"
+    "colPublicIp": "सार्वजनिक IP",
+    "colUpstream": "उपस्ट्रीम",
+    "colEgress": "इग्रेस IP",
+    "colCorrelation": "संबंधी",
+    "colServedBy": "द्वारे सेवा दिली",
+    "filterTraffic": "वाहतूक",
+    "filterTests": "चाचण्या",
+    "filterSource": "स्रोत"
   },
   "endpointOptions": {
     "speech": "वाणी",
@@ -12012,6 +12024,10 @@
     "stopDns": "DNS थांबवा",
     "toggling": "टॉगल करत आहे…",
     "viewTraffic": "ट्रॅफिक पहा",
+    "resetAgent": "डीफॉल्ट पुनर्संचयित करा",
+    "resetAgentConfirm": "डीफॉल्ट पुनर्संचयित करायचे?",
+    "resetting": "पुनर्संचयित करत आहे…",
+    "resetDone": "{agent} साठी डीफॉल्ट DNS पुनर्संचयित केले. बदल लागू होण्यासाठी अ‍ॅप पूर्णपणे बंद करा (फक्त मिनिमाइज करू नका) आणि पुन्हा उघडा.",
     "emptyNoProvidersTitle": "अद्याप कोणतेही प्रदाते कॉन्फिगर केलेले नाहीत",
     "emptyNoProvidersBody": "AgentBridge वापरण्यासाठी, प्रथम किमान एक प्रदाता कनेक्ट करा. हे ते गंतव्यस्थान असेल जिथे IDE विनंत्या पाठवल्या जातील.",
     "emptyGoToProviders": "प्रदात्यांवर जा",
@@ -12790,7 +12806,12 @@
     "createDahlTokenFailed": "Dahl टोकन तयार करण्यात अयशस्वी झाले",
     "providerProxy": "प्रॉक्सी",
     "providerProxyConfigureHint": "प्रॉक्सी कॉन्फिगर करा",
-    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फिगर केले: {host}"
+    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फिगर केले: {host}",
+    "inheritConnectionOption": "स्वतःची प्रॉक्सी नाही (कनेक्शन वारशाने)",
+    "inheritedProxy": "कनेक्शन वारशाने: {host}",
+    "inheritedPool": "कनेक्शन पूल वारशाने ({count})",
+    "poolEmptyBlocked": "पूल रिकामा — विनंत्या अयशस्वी होतात (थेट नाही)",
+    "directEgress": "थेट (प्रॉक्सीशिवाय)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14140,12 @@
     "directNative": "सिधा",
     "targetUrl": "लक्ष्य URL",
     "error": "त्रुटी",
-    "configuration": "प्रॉक्सी कॉन्फिगरेशन"
+    "configuration": "प्रॉक्सी कॉन्फिगरेशन",
+    "upstreamStatus": "उपस्ट्रीम स्थिती",
+    "noResponse": "कोणतीही प्रतिक्रिया नाही",
+    "egressIp": "इग्रेस IP",
+    "servedBy": "द्वारे सेवा दिली",
+    "correlationId": "संबंधी ID"
   },
   "requestTimeline": {
     "title": "अनुरोध कालावधी",

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "සැසි ස්ථායීතාව අක්රිය කරන්න",
     "sessionStickinessEnabled": "ස්ථායීතාව සක්රියයි",
     "sessionStickinessDisabled": "ස්ථායීතාව අක්රියයි",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding පෙරසැකසුම",
     "kimiPresetDescription": "Kimi K3 ප්රධාන ආකෘතිය ලෙස (Moonshot API), වින්යාස කර ඇති විට ඔබගේ Kimi Code සම්බන්ධතා (kimi-coding, kimi-web) වෙත ස්වයංක්රීයව මාරු වේ.",
     "kimiPresetCta": "පෙරසැකසුම එක් කරන්න",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "මෙමඟින් මෙම අච්චුවට ගැළපෙන, දැනට සම්බන්ධිත සැපයුම්කරුවන්/ආකෘතිවල වත්මන් තත්ත්වය සංස්කරණය කළ හැකි සංයෝජනයක් ලෙස සුරකිනු ඇත.",
     "duplicateAutoComboFailedPrefix": "ස්වයංක්රීය සංයෝජනය අනුපිටපත් කිරීමට අසමත් විය:",
     "duplicateAutoComboUnknownError": "නොදන්නා දෝෂයකි",
-    "duplicateAutoComboTitle": "{name} වෙතින් ස්ථිතික සංයෝජනයක් සාදන්න",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} වෙතින් ස්ථිතික සංයෝජනයක් සාදන්න"
   },
   "costs": {
     "title": "පිරිවැය",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "එක් කරන්න",
     "poolAddFailed": "ප්රොක්සිය සංචිතයට එක් කිරීමට අසමත් විය",
     "poolSelectProxy": "ප්රොක්සියක් තෝරන්න…",
-    "poolSaveFailed": "සංචිත පැවරීම සුරැකීමට අසමත් විය"
+    "poolSaveFailed": "සංචිත පැවරීම සුරැකීමට අසමත් විය",
+    "transportRate": "{rate}% ප්‍රවාහනය",
+    "previousSuccessRate": "පෙර {rate}% සාර්ථකත්වය",
+    "upstreamRefusals": "{count} upstream ප්‍රතික්ෂේප",
+    "connectionTestsCount": "{count} සම්බන්ධතා පරීක්ෂණ",
+    "notMeasured": "මනින ලද්දේ නැත"
   },
   "playground": {
     "title": "ආකෘති අත්හදා බැලීමේ පරිසරය",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "තවම ප්රොක්සි ලොග් නොමැත. ඒවා මෙහි බැලීමට ප්රොක්සි වින්යාස කර API ඇමතුම් සිදු කරන්න.",
     "noMatchingLogs": "වත්මන් පෙරහන්වලට ගැළපෙන ලොග් නොමැත.",
     "tlsFingerprint": "Chrome 124 TLS ඇඟිලි සලකුණ",
-    "colPublicIp": "පොදු IP"
+    "colPublicIp": "පොදු IP",
+    "colUpstream": "උඩුගතය",
+    "colEgress": "ඉවත් වීමේ IP",
+    "colCorrelation": "සම්බන්ධතා",
+    "colServedBy": "සැපයුම්කරු",
+    "filterTraffic": "ගමනාගමනය",
+    "filterTests": "පරීක්ෂණ",
+    "filterSource": "මූලාශ්‍රය"
   },
   "endpointOptions": {
     "speech": "කථනය",
@@ -12012,6 +12024,10 @@
     "stopDns": "DNS නවත්වන්න",
     "toggling": "මාරු කරමින්…",
     "viewTraffic": "ගමනාගමනය බලන්න",
+    "resetAgent": "පෙරනිමිය ප්‍රතිසාධනය කරන්න",
+    "resetAgentConfirm": "පෙරනිමිය ප්‍රතිසාධනය කරන්නද?",
+    "resetting": "ප්‍රතිසාධනය කරමින්…",
+    "resetDone": "{agent} සඳහා පෙරනිමි DNS ප්‍රතිසාධනය කරන ලදී. වෙනස බලපැවැත්වීමට යෙදුම සම්පූර්ණයෙන්ම වසා (අවම කිරීම පමණක් නොව) නැවත විවෘත කරන්න.",
     "emptyNoProvidersTitle": "තවමත් සැපයුම්කරුවන් වින්යාස කර නොමැත",
     "emptyNoProvidersBody": "AgentBridge භාවිත කිරීමට, පළමුව අවම වශයෙන් එක් සැපයුම්කරුවෙකු සම්බන්ධ කරන්න. IDE ඉල්ලීම් යොමු කරන ගමනාන්තය එය වනු ඇත.",
     "emptyGoToProviders": "සැපයුම්කරුවන් වෙත යන්න",
@@ -12790,7 +12806,12 @@
     "createDahlTokenFailed": "Dahl ටෝකනය සෑදීමට අසමත් විය",
     "providerProxy": "ප්රොක්සි",
     "providerProxyConfigureHint": "ප්රොක්සි වින්යාස කරන්න",
-    "providerProxyTitleConfigured": "ප්රොක්සි වින්යාස කර ඇත: {host}"
+    "providerProxyTitleConfigured": "ප්රොක්සි වින්යාස කර ඇත: {host}",
+    "inheritConnectionOption": "ස්වන්ත ප්‍රොක්සියක් නැත (සම්බන්ධතාව උරුම වේ)",
+    "inheritedProxy": "සම්බන්ධතාව උරුම වේ: {host}",
+    "inheritedPool": "සම්බන්ධතා තටාකය උරුම වේ ({count})",
+    "poolEmptyBlocked": "තටාකය හිස් — ඉල්ලීම් අසාර්ථකයි (සෘජු නොවේ)",
+    "directEgress": "සෘජු (ප්‍රොක්සි නැතිව)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14140,12 @@
     "directNative": "සෘජු (ස්වදේශීය)",
     "targetUrl": "ඉලක්ක URL",
     "error": "දෝෂය",
-    "configuration": "ප්රොක්සි වින්යාසය"
+    "configuration": "ප්රොක්සි වින්යාසය",
+    "upstreamStatus": "උඩුගත තත්වය",
+    "noResponse": "ප්‍රතිචාරයක් නැත",
+    "egressIp": "ඉවත් වීමේ IP",
+    "servedBy": "සැපයුම්කරු",
+    "correlationId": "සම්බන්ධතා ID"
   },
   "requestTimeline": {
     "title": "ඉල්ලීමේ කාලරේඛාව",

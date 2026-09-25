@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Oturum yapışkanlığını devre dışı bırak",
     "sessionStickinessEnabled": "Yapışkanlık açık",
     "sessionStickinessDisabled": "Yapışkanlık kapalı",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding hazır ayarı",
     "kimiPresetDescription": "Yapılandırıldığında Kimi Code bağlantılarınıza (kimi-coding, kimi-web) otomatik geri dönüş ile birincil model olarak Kimi K3 (Moonshot API).",
     "kimiPresetCta": "Hazır ayar ekle",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Bu, bu şablona uygun olarak şu anda bağlı olan sağlayıcıları/modelleri düzenlenebilir bir kombinasyonda yakalayacaktır.",
     "duplicateAutoComboFailedPrefix": "Otomatik kombinasyon kopyalanamadı:",
     "duplicateAutoComboUnknownError": "Bilinmeyen hata",
-    "duplicateAutoComboTitle": "{name}-den statik bir kombinasyon oluştur",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}-den statik bir kombinasyon oluştur"
   },
   "costs": {
     "title": "Maliyetler",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "Ekle",
     "poolAddFailed": "Proxy havuza eklenemedi",
     "poolSelectProxy": "Bir proxy seçin…",
-    "poolSaveFailed": "Havuz ataması kaydedilemedi"
+    "poolSaveFailed": "Havuz ataması kaydedilemedi",
+    "transportRate": "{rate}% taşıma",
+    "previousSuccessRate": "Önceden {rate}% başarı",
+    "upstreamRefusals": "{count} yukarı akış reddi",
+    "connectionTestsCount": "{count} bağlantı testi",
+    "notMeasured": "Ölçülmedi"
   },
   "playground": {
     "title": "Title",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "Henüz proxy günlüğü yok. Burada görüntülemek için proxy'leri yapılandırın ve API çağrıları yapın.",
     "noMatchingLogs": "Geçerli filtrelerle eşleşen günlük yok.",
     "tlsFingerprint": "Chrome 124 TLS parmak izi",
-    "colPublicIp": "Genel IP"
+    "colPublicIp": "Genel IP",
+    "colUpstream": "Yukarı Akış",
+    "colEgress": "Çıkış IP'si",
+    "colCorrelation": "Korelasyon",
+    "colServedBy": "Tarafından Sunuldu",
+    "filterTraffic": "Trafik",
+    "filterTests": "Testler",
+    "filterSource": "Kaynak"
   },
   "endpointOptions": {
     "speech": "Konuşma",
@@ -12012,6 +12024,10 @@
     "stopDns": "DNS'i Durdur",
     "toggling": "Geçiş yapılıyor…",
     "viewTraffic": "Trafiği görüntüle",
+    "resetAgent": "Varsayılana döndür",
+    "resetAgentConfirm": "Varsayılana döndürülsün mü?",
+    "resetting": "Geri yükleniyor…",
+    "resetDone": "{agent} için varsayılan DNS geri yüklendi. Değişikliğin geçerli olması için uygulamayı tamamen kapatın (yalnızca simge durumuna küçültmeyin) ve yeniden açın.",
     "emptyNoProvidersTitle": "Henüz yapılandırılmış sağlayıcı yok",
     "emptyNoProvidersBody": "AgentBridge'i kullanmak için önce en az bir sağlayıcı bağlayın. Bu, IDE isteklerinin yönlendirileceği hedef olacaktır.",
     "emptyGoToProviders": "Sağlayıcılara Git",
@@ -12790,7 +12806,12 @@
     "createDahlTokenFailed": "Dahl token oluşturulamadı",
     "providerProxy": "Vekil sunucu",
     "providerProxyConfigureHint": "Proxy'yi yapılandırın",
-    "providerProxyTitleConfigured": "Proxy yapılandırıldı: {host}"
+    "providerProxyTitleConfigured": "Proxy yapılandırıldı: {host}",
+    "inheritConnectionOption": "Kendi proxysi yok (bağlantıyı devralır)",
+    "inheritedProxy": "Bağlantıyı devralır: {host}",
+    "inheritedPool": "Bağlantı havuzunu devralır ({count})",
+    "poolEmptyBlocked": "Havuz boş — istekler başarısız olur (doğrudan değil)",
+    "directEgress": "Doğrudan (proxy yok)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14140,12 @@
     "directNative": "Doğrudan",
     "targetUrl": "Hedef URL",
     "error": "Hata",
-    "configuration": "Proxy Yapılandırması"
+    "configuration": "Proxy Yapılandırması",
+    "upstreamStatus": "Yukarı Akış Durumu",
+    "noResponse": "Yanıt Yok",
+    "egressIp": "Çıkış IP'si",
+    "servedBy": "Tarafından Sunuldu",
+    "correlationId": "Korelasyon ID"
   },
   "requestTimeline": {
     "title": "İstek Zaman Çizelgesi",

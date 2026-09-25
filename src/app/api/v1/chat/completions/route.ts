@@ -302,6 +302,7 @@ export async function POST(request) {
         keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
         startupFrame: OPENAI_STARTUP_FRAME,
         errorFrame: OPENAI_CHAT_ERROR_FRAME,
+        correlationId: reqId,
         extraHeaders: { "X-Correlation-Id": reqId },
       });
       return withCompressionHeaderEcho(streamedResponse, compressionRequestHeader);

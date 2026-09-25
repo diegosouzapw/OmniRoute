@@ -276,6 +276,43 @@ test("omitting correlationId leaves the buffer untouched (today's behavior, unch
   assert.deepEqual(takeEarlyKeepaliveBytes(correlationId), []);
 });
 
+// A correlation id records the chat-frames variant (startup plus keepalive
+// ticks) but not the forwarded body — mirrors the responses-frames variant above
+// for the exact frames the /v1/chat/completions route passes.
+test("a correlationId records the chat startup frame and keepalive ticks", async () => {
+  const correlationId = "corr-record-chat-frames-1";
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse('data: {"id":"chatcmpl-real"}\n\ndata: [DONE]\n\n')), 650);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 250,
+    keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
+    startupFrame: OPENAI_STARTUP_FRAME,
+    errorFrame: OPENAI_CHAT_ERROR_FRAME,
+    correlationId,
+  });
+  await readAll(result);
+
+  const recorded = takeEarlyKeepaliveBytes(correlationId).join("");
+  assert.match(
+    recorded,
+    /data: \{"id":"chatcmpl-keepalive","object":"chat\.completion\.chunk"/,
+    "startup frame must be recorded"
+  );
+  assert.equal(
+    (recorded.match(/chatcmpl-keepalive/g) || []).length >= 2,
+    true,
+    "startup frame plus at least one recurring keepalive tick must be recorded"
+  );
+  assert.doesNotMatch(
+    recorded,
+    /chatcmpl-real/,
+    "the verbatim-forwarded real body must NOT be recorded here — the handler's own reqLogger already captures it, and double-recording would duplicate it in the persisted artifact"
+  );
+});
+
 test("slow handler emits the custom keepaliveFrame (Anthropic ping) before the body", async () => {
   const slow = new Promise<Response>((resolve) => {
     setTimeout(
