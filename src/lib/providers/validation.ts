@@ -123,6 +123,7 @@ import {
   validateNvidiaProvider,
   validateZaiProvider,
   validateXiaomiMimoProvider,
+  validateXiaomiMimoTokenPlanProvider,
   buildGitlawbValidators,
 } from "./validation/specialtyInline";
 // validateCommandCodeProvider + validateClaudeCodeCompatibleProvider have external importers
@@ -355,6 +356,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     zai: validateZaiProvider,
     "xiaomi-mimo": ({ apiKey, providerSpecificData }: any) =>
       validateXiaomiMimoProvider({ apiKey, providerSpecificData, isLocal }),
+    "xiaomi-mimo-token-plan": ({ apiKey, providerSpecificData }: any) =>
+      validateXiaomiMimoTokenPlanProvider({ apiKey, providerSpecificData, isLocal }),
     // Gitlawb Opengateway — Xiaomi MiMo compatible, same /models endpoint limitation.
     // Bypass /models probe in favor of chat/completions, matching xiaomi-mimo's pattern.
     // Uses a factory to share validation logic across Opengateway provider variants.

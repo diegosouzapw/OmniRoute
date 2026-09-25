@@ -100,10 +100,35 @@ export function resolveCanonicalProviderId(
   );
 }
 
-/** True when `${prefix}/__omniroute_probe__` parses back to the given providerId. */
+/**
+ * True when `${prefix}/__omniroute_probe__` parses back to the given
+ * providerId EXACTLY. Kept strict on purpose: this is the anti-collision
+ * guard (catalog.ts, #11433/7db430a3) that stops the catalog from publishing
+ * a provider-prefixed model id that would actually route to a DIFFERENT
+ * provider at request time — loosening it here would let a self-aliased
+ * no-auth provider (e.g. "opencode" -> "opencode-zen") pass a check that was
+ * specifically built to fail for it (#13994).
+ */
 export function prefixRoutesToProvider(prefix: string, providerId: string): boolean {
   const parsed = parseModel(`${prefix}/__omniroute_probe__`);
   return parsed.provider === providerId;
+}
+
+/**
+ * Alias-aware variant of `prefixRoutesToProvider`, for the combo prefix-
+ * stripping path ONLY (`getProviderPrefixes` below). Also accepts a prefix
+ * that resolves to `providerId`'s CANONICAL routing target — e.g. an
+ * "opencode/" step canonically routes to "opencode-zen", so this recognizes
+ * "opencode" as a valid prefix for the "opencode-zen" provider even though
+ * `prefixRoutesToProvider("opencode", "opencode-zen")` is false. Never use
+ * this for the catalog.ts anti-collision guard: that check must stay strict.
+ */
+export function prefixRoutesToCanonicalProvider(prefix: string, providerId: string): boolean {
+  if (prefixRoutesToProvider(prefix, providerId)) return true;
+  const parsed = parseModel(`${prefix}/__omniroute_probe__`);
+  if (!parsed.provider) return false;
+  const canonicalTarget = resolveCanonicalProviderModel(providerId, "__omniroute_probe__");
+  return parsed.provider === canonicalTarget.provider;
 }
 
 /**
@@ -124,7 +149,9 @@ export function getProviderPrefixes(
   }
   return [...prefixes].filter(
     (prefix): prefix is string =>
-      typeof prefix === "string" && prefix.length > 0 && prefixRoutesToProvider(prefix, providerId)
+      typeof prefix === "string" &&
+      prefix.length > 0 &&
+      prefixRoutesToCanonicalProvider(prefix, providerId)
   );
 }
 

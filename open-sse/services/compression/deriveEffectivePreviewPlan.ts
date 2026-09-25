@@ -1,5 +1,6 @@
 import type { CompressionConfig, CompressionPipelineStep } from "./types.ts";
 import { deriveDefaultPlan, type DerivedPlan } from "./deriveDefaultPlan.ts";
+import { downgradeUnrequestedLossy } from "./lossyRequestPolicy.ts";
 
 /** Named-combo map: combo id -> its stacked pipeline (operator-defined profiles). */
 export type NamedCombos = Record<string, CompressionPipelineStep[]>;
@@ -18,6 +19,10 @@ export type NamedCombos = Record<string, CompressionPipelineStep[]>;
  *      operator choice, which resolveBasePlan gives precedence over the plain engines-derived
  *      default)
  *   3. otherwise                            -> deriveDefaultPlan(engines, enabled)
+ *
+ * The result then goes through the same lossy policy a header-less request gets (#14529):
+ * lossy steps are replaced by session-dedup + lite unless the request opts in, so the preview
+ * shows what an ordinary request actually runs instead of the configured-but-downgraded plan.
  */
 export function deriveEffectivePreviewPlan(
   config: Pick<CompressionConfig, "engines" | "enabled" | "activeComboId">,
@@ -26,8 +31,11 @@ export function deriveEffectivePreviewPlan(
   if (!config.enabled) return { mode: "off", stackedPipeline: [] };
 
   if (config.activeComboId && combos[config.activeComboId]) {
-    return { mode: "stacked", stackedPipeline: combos[config.activeComboId] };
+    return downgradeUnrequestedLossy({
+      mode: "stacked",
+      stackedPipeline: combos[config.activeComboId],
+    });
   }
 
-  return deriveDefaultPlan(config.engines, config.enabled);
+  return downgradeUnrequestedLossy(deriveDefaultPlan(config.engines, config.enabled));
 }

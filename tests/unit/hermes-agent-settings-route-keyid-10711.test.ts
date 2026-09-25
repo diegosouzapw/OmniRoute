@@ -11,7 +11,7 @@
  *
  * This test drives the real POST handler end-to-end (real DB-backed API key,
  * real JWT auth cookie, preview mode so nothing is written to disk) and
- * asserts the generated YAML carries the real resolved key.
+ * asserts the generated YAML references the env var without carrying the key.
  */
 
 import test from "node:test";
@@ -23,9 +23,9 @@ import { SignJWT } from "jose";
 import * as yaml from "js-yaml";
 
 interface HermesAgentParsedConfig {
-  providers: { omniroute: { api_key: string } };
-  delegation: { api_key: string };
-  auxiliary: Record<string, { api_key: string }>;
+  custom_providers: Array<{ name: string; key_env: string; api_key?: string }>;
+  delegation: { api_key?: string };
+  auxiliary: Record<string, { api_key?: string }>;
 }
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-hermes-agent-10711-"));
@@ -33,6 +33,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "hermes-agent-10711-api-secret";
 process.env.JWT_SECRET = "hermes-agent-10711-jwt-secret";
 process.env.CLI_ALLOW_CONFIG_WRITES = "true";
+process.env.HERMES_HOME = path.join(TEST_DATA_DIR, "hermes");
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
@@ -52,7 +53,7 @@ async function authCookie(): Promise<string> {
   return `auth_token=${jwt}`;
 }
 
-test("#10711: POST hermes-agent-settings resolves keyId server-side instead of writing the placeholder", async () => {
+test("POST hermes-agent-settings preview never serializes the resolved key", async () => {
   const created = await apiKeysDb.createApiKey(
     "hermes-agent-10711-key",
     "hermes-agent-10711-machine"
@@ -85,14 +86,91 @@ test("#10711: POST hermes-agent-settings resolves keyId server-side instead of w
   assert.equal(body.success, true);
 
   const parsed = yaml.load(body.yaml) as HermesAgentParsedConfig;
-  assert.notEqual(
-    parsed.providers.omniroute.api_key,
-    "YOUR_OMNIROUTE_API_KEY_HERE",
-    "providers.omniroute.api_key must not be the unresolved placeholder"
+  const provider = parsed.custom_providers.find((entry) => entry.name === "omniroute");
+  assert.equal(provider?.key_env, "OMNIROUTE_API_KEY");
+  assert.equal(provider?.api_key, undefined);
+  assert.ok(!body.yaml.includes(realKey));
+  assert.equal(parsed.delegation.api_key, undefined);
+  assert.equal(parsed.auxiliary.vision.api_key, undefined);
+});
+
+test("POST hermes-agent-settings stores the resolved key only in a mode-0600 Hermes .env", async () => {
+  const created = await apiKeysDb.createApiKey("hermes-agent-env-key", "hermes-agent-env-machine");
+
+  const response = await route.POST(
+    new Request("http://localhost/api/cli-tools/hermes-agent-settings", {
+      method: "POST",
+      headers: {
+        cookie: await authCookie(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        baseUrl: "http://localhost:20128",
+        keyId: created.id,
+        selections: [{ role: "default", model: "gpt-4o" }],
+      }),
+    })
   );
-  assert.equal(parsed.providers.omniroute.api_key, realKey);
-  assert.equal(parsed.delegation.api_key, realKey);
-  assert.equal(parsed.auxiliary.vision.api_key, realKey);
+
+  assert.equal(response.status, 200);
+  const envPath = path.join(process.env.HERMES_HOME!, ".env");
+  const configPath = path.join(process.env.HERMES_HOME!, "config.yaml");
+  const env = fs.readFileSync(envPath, "utf8");
+  const config = fs.readFileSync(configPath, "utf8");
+  assert.match(env, new RegExp(`^OMNIROUTE_API_KEY=${created.key}$`, "m"));
+  assert.ok(!config.includes(created.key));
+  assert.equal(fs.statSync(envPath).mode & 0o777, 0o600);
+});
+
+test("POST hermes-agent-settings refuses apply when neither keyId nor Hermes .env resolves a key", async () => {
+  const envPath = path.join(process.env.HERMES_HOME!, ".env");
+  const configPath = path.join(process.env.HERMES_HOME!, "config.yaml");
+  fs.rmSync(envPath, { force: true });
+  const configBefore = fs.readFileSync(configPath, "utf8");
+
+  const response = await route.POST(
+    new Request("http://localhost/api/cli-tools/hermes-agent-settings", {
+      method: "POST",
+      headers: {
+        cookie: await authCookie(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        baseUrl: "http://localhost:20128",
+        keyId: "does-not-exist-in-db",
+        selections: [{ role: "default", model: "must-not-be-written" }],
+      }),
+    })
+  );
+
+  assert.equal(response.status, 400);
+  assert.equal(fs.readFileSync(configPath, "utf8"), configBefore);
+  assert.equal(fs.existsSync(envPath), false);
+});
+
+test("POST hermes-agent-settings does not trust known placeholder values in Hermes .env", async () => {
+  const envPath = path.join(process.env.HERMES_HOME!, ".env");
+  const configPath = path.join(process.env.HERMES_HOME!, "config.yaml");
+  fs.writeFileSync(envPath, "OMNIROUTE_API_KEY=YOUR_OMNIROUTE_API_KEY_HERE\n", { mode: 0o600 });
+  const configBefore = fs.readFileSync(configPath, "utf8");
+
+  const response = await route.POST(
+    new Request("http://localhost/api/cli-tools/hermes-agent-settings", {
+      method: "POST",
+      headers: {
+        cookie: await authCookie(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        baseUrl: "http://localhost:20128",
+        keyId: "does-not-exist-in-db",
+        selections: [{ role: "default", model: "must-not-be-written" }],
+      }),
+    })
+  );
+
+  assert.equal(response.status, 400);
+  assert.equal(fs.readFileSync(configPath, "utf8"), configBefore);
 });
 
 test("#10711: POST hermes-agent-settings falls back gracefully when keyId does not resolve", async () => {

@@ -1,0 +1,1 @@
+- **fix(sse):** `/v1/responses` error frames sent after the early keepalive committed HTTP 200 now carry `status_code`, `error_type` and `retry_after_seconds`, so clients can tell permanent from transient failures ([#14632](https://github.com/diegosouzapw/OmniRoute/pull/14632)) — thanks @QuangBlue
