@@ -1,11 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Kimi K2.7 Code (released 2026-06-12) is Moonshot's coding-focused successor to
-// K2.6: 1T MoE, 256K context, thinking-only (preserve_thinking forced), with a
-// fixed sampling regime (temperature=1.0 / top_p=0.95). It must be advertised on
-// the Moonshot OpenAI endpoint (api.moonshot.ai/v1). Kimi Code's coding endpoint
-// publishes the public stable ids offline and refreshes account metadata from /coding/v1/models.
+// Kimi Coding now advertises Kimi K2.8 Preview on its stable wire ids. The
+// provider catalog is authoritative for the OAuth coding endpoint; the shared
+// model spec supplies the 1M context and vision/tool/thinking capabilities.
 const { getRegistryEntry, getUnsupportedParams } =
   await import("../../open-sse/config/providerRegistry.ts");
 const { getResolvedModelCapabilities, supportsReasoning } =
@@ -13,6 +11,8 @@ const { getResolvedModelCapabilities, supportsReasoning } =
 const { getModelSpec } = await import("../../src/shared/constants/modelSpecs.ts");
 
 const K27 = "kimi-k2.7-code";
+const K28 = "kimi-for-coding";
+const K28_HS = "kimi-for-coding-highspeed";
 const K27_HS = "kimi-k2.7-code-highspeed";
 
 function modelIds(provider: string): string[] {
@@ -47,9 +47,34 @@ test("Kimi Code k3 fallback leaves discovered capabilities unset", () => {
   assert.equal(k3.unsupportedParams, undefined);
 });
 
-test("Kimi Code stable ids do not inherit Moonshot API model capabilities", () => {
-  assert.equal(getModelSpec("kimi-for-coding"), undefined);
-  assert.equal(getModelSpec("kimi-for-coding-highspeed"), undefined);
+test("Kimi Coding K2.8 Preview resolves vision, tools, thinking, and 1M context", () => {
+  const spec = getModelSpec(K28);
+  assert.ok(spec);
+  assert.equal(spec.contextWindow, 1048576);
+  assert.equal(spec.supportsVision, true);
+  assert.equal(spec.supportsTools, true);
+  assert.equal(spec.supportsThinking, true);
+});
+
+test("Kimi Coding K2.8 Preview (highspeed variant) resolves vision, tools, thinking, and 1M context", () => {
+  // #14003: the highspeed sibling id must share the same spec as the base
+  // `kimi-for-coding` id, otherwise it silently falls back to the default
+  // caps (no vision) and the Vision-Bridge reroute bug reappears for it.
+  const spec = getModelSpec(K28_HS);
+  assert.ok(spec, `${K28_HS} must resolve to a model spec`);
+  assert.equal(spec.contextWindow, 1048576);
+  assert.equal(spec.supportsVision, true);
+  assert.equal(spec.supportsTools, true);
+  assert.equal(spec.supportsThinking, true);
+});
+
+test("Kimi Coding registry advertises K2.8 Preview", () => {
+  const models = getRegistryEntry("kimi-coding")?.models ?? [];
+  const model = models.find((entry) => entry.id === K28);
+  assert.ok(model);
+  assert.equal(model.name, "Kimi K2.8 Preview");
+  assert.equal(model.contextLength, 1048576);
+  assert.equal(getRegistryEntry("kimi-coding")?.defaultContextLength, 1048576);
 });
 
 test("moonshot (OpenAI endpoint) advertises kimi-k2.7-code + highspeed", () => {
