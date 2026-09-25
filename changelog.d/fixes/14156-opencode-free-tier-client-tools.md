@@ -1,0 +1,1 @@
+- **fix(opencode):** append configured placeholder tools alongside client-supplied tools on free-tier requests and prioritize configured tools over un-scoped generic observations, resolving 403 FreeTierError when using external tool-calling clients ([#14156](https://github.com/diegosouzapw/OmniRoute/pull/14156)) — thanks @adevwithpurpose

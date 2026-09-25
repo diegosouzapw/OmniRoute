@@ -153,7 +153,9 @@ export function resolvePlaceholderNames(
   configured: readonly string[]
 ): readonly string[] {
   const own = session ? getObservedToolNames(provider, model, session) : null;
-  return own ?? getObservedToolNames(provider, model) ?? configured;
+  if (own && own.length > 0) return own;
+  if (configured && configured.length > 0) return configured;
+  return getObservedToolNames(provider, model) ?? configured;
 }
 
 /** Reserved for tests. */
