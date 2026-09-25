@@ -1,0 +1,1 @@
+- **fix(compression):** ponytail and less-code output styles carry the safety carve-out the original port omitted, and the declared-but-unread `OutputStyle.boundaries` field is now honored (boundaries are appended after `SHARED_BOUNDARIES`, so no style loses the shared guarantee) ([#13938](https://github.com/diegosouzapw/OmniRoute/pull/13938)) — thanks @woodsonl
