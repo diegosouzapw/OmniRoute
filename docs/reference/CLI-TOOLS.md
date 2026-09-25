@@ -13,7 +13,7 @@ OmniRoute integrates with three categories of CLI tools spread across three dedi
 | Page           | Route                   | Concept                                                                   | Count        |
 | -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
 | **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 26           |
-| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 10           |
+| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 11           |
 | **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
 Legacy routes redirect via 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
@@ -56,19 +56,19 @@ omniroute setup-codex        omniroute setup-claude       omniroute setup-openco
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
-omniroute setup-5dive
+omniroute setup-5dive        omniroute setup-whycodes
 ```
 
 Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
 remote OmniRoute), `--dry-run` (preview without writing), and `--port`. Tools
-without model auto-discovery (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) take
+without model auto-discovery (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive, WhyCodes) take
 `--model <id>` (and `--yes` for non-interactive runs). `setup-5dive` is the one
 recipe that does not write under `$HOME`: it configures a 5dive agent fleet by
 writing a root-owned auth profile on the fleet host, so it re-execs through `sudo`
 and has no remote mode of its own. To launch a CLI with the
 right env injected and no config written at all, use the generic
 `omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
-gemini — targets and aliases come from `bin/cli/cli-manifest.mjs`); the legacy
+gemini, whycodes — targets and aliases come from `bin/cli/cli-manifest.mjs`); the legacy
 per-tool launchers `omniroute launch` (Claude Code) and `omniroute launch-codex`
 (Codex) remain available. Gemini CLI is launch-only: it is an `omniroute run`
 target but has no `setup-*`/`configure` recipe.
@@ -183,7 +183,7 @@ All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none
 Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in the dashboard card.
 ---
 
-## 2. CLI Agents Catalog (10 tools)
+## 2. CLI Agents Catalog (11 tools)
 
 Autonomous agents that appear in `/dashboard/cli-agents`:
 
@@ -199,6 +199,7 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 | letta        | Letta CLI        | Letta                    | full           | false        |
 | prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
 | 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| whycodes     | WhyCodes         | Why Corporation          | full           | false        |
 
 ---
 

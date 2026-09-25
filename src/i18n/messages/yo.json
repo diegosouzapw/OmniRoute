@@ -2920,6 +2920,7 @@
       "amp": "Lò ó nígbà tí o bá fẹ́ àwọn ìṣàn iṣẹ́ kúkúrú Amp, ṣùgbọ́n tí o ṣì nílò ìfipámúṣe àwọn orúkọ àfidípò àti ìlànà ìdarí OmniRoute.",
       "hermes": "Lò ó nígbà tí o bá nílò olùrànlọ́wọ́ AI inú terminal tó fẹ́ẹ́rẹ́ fún àwọn iṣẹ́ kíákíá.",
       "hermes-agent": "Lò ó nígbà tí o bá nílò Hermes Agent (láti ọwọ́ Nousresearch), tí àwọn módẹ́lì àkọ́kọ́, fífi iṣẹ́ lé aṣojú, ìríran àti olùrànlọ́wọ́ rẹ̀ sì ń gba OmniRoute kọjá.",
+      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
       "custom": "Lò ó fún àwọn ìmúlò irinṣẹ́ àdáni tàbí àwọn ìṣètò gbogbogbò tí ó bá OpenAI mu."
     },
     "toolDescriptions": {
@@ -2959,7 +2960,8 @@
       "prime-agent": "Prime Agent — ètò ìdarí kíkó kóòdù RLM tó ń mú ara rẹ̀ sunwọ̀n sí i, pẹ̀lú àtìlẹ́yìn fún olùpèsè tó bá OpenAI mu",
       "warp": "Terminal AI Warp pẹ̀lú àtìlẹ́yìn olùpèsè àdáni",
       "agent-deck": "Olùṣètò ọ̀pọ̀ aṣojú Agent Deck",
-      "5dive": "5dive — agbo àwọn aṣojú kíkó kóòdù tí o ń gbàlejò fúnra rẹ; prófáìlì ìfàṣẹsí kan ń darí gbogbo wọn sí OmniRoute"
+      "5dive": "5dive — agbo àwọn aṣojú kíkó kóòdù tí o ń gbàlejò fúnra rẹ; prófáìlì ìfàṣẹsí kan ń darí gbogbo wọn sí OmniRoute",
+      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
     },
     "guides": {
       "cursor": {

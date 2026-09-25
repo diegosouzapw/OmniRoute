@@ -40,6 +40,7 @@ export const SETUP_MODULES = {
   continue: { module: "./setup-continue.mjs", exportName: "runSetupContinueCommand" },
   kilo: { module: "./setup-kilo.mjs", exportName: "runSetupKiloCommand" },
   "5dive": { module: "./setup-5dive.mjs", exportName: "runSetup5diveCommand" },
+  whycodes: { module: "./setup-whycodes.mjs", exportName: "runSetupWhyCodesCommand" },
 };
 
 /**

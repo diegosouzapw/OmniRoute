@@ -2920,6 +2920,7 @@
       "amp": "ਜਦੋਂ ਤੁਸੀਂ Amp ਦੇ ਸੰਖੇਪ ਵਰਕਫ਼ਲੋ ਚਾਹੁੰਦੇ ਹੋ, ਪਰ ਫਿਰ ਵੀ OmniRoute ਉਪਨਾਮ ਅਤੇ ਰੂਟਿੰਗ ਨਿਯਮ ਲਾਗੂ ਕਰਨ ਦੀ ਲੋੜ ਹੋਵੇ, ਤਾਂ ਵਰਤੋ।",
       "hermes": "ਜਦੋਂ ਤੁਹਾਨੂੰ ਤੇਜ਼ ਕੰਮਾਂ ਲਈ ਹਲਕੇ, ਟਰਮੀਨਲ-ਮੂਲ AI ਸਹਾਇਕ ਦੀ ਲੋੜ ਹੋਵੇ, ਤਾਂ ਵਰਤੋ।",
       "hermes-agent": "ਜਦੋਂ ਤੁਹਾਨੂੰ OmniRoute ਰਾਹੀਂ ਰੂਟ ਕੀਤੇ ਡਿਫੌਲਟ, ਡੈਲੀਗੇਸ਼ਨ, ਵਿਜ਼ਨ ਅਤੇ ਸਹਾਇਕ ਮਾਡਲਾਂ ਸਮੇਤ Hermes Agent (by Nousresearch) ਦੀ ਲੋੜ ਹੋਵੇ, ਤਾਂ ਵਰਤੋ।",
+      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
       "custom": "ਕਸਟਮ ਟੂਲ ਲਾਗੂਕਰਨਾਂ ਜਾਂ ਆਮ OpenAI-ਅਨੁਕੂਲ ਸੰਰਚਨਾਵਾਂ ਲਈ ਵਰਤੋ।"
     },
     "toolDescriptions": {
@@ -2959,7 +2960,8 @@
       "prime-agent": "Prime Agent — OpenAI-ਅਨੁਕੂਲ ਪ੍ਰੋਵਾਈਡਰ ਸਹਾਇਤਾ ਵਾਲਾ ਸਵੈ-ਸੁਧਾਰਸ਼ੀਲ RLM ਕੋਡਿੰਗ ਹਾਰਨੈੱਸ",
       "warp": "ਕਸਟਮ ਪ੍ਰੋਵਾਈਡਰ ਸਹਾਇਤਾ ਵਾਲਾ Warp AI ਟਰਮੀਨਲ",
       "agent-deck": "Agent Deck ਮਲਟੀ-ਏਜੰਟ ਆਰਕੈਸਟਰੇਟਰ",
-      "5dive": "5dive — ਕੋਡਿੰਗ ਏਜੰਟਾਂ ਦਾ ਸਵੈ-ਹੋਸਟ ਕੀਤਾ ਫਲੀਟ; ਇੱਕ ਪ੍ਰਮਾਣੀਕਰਨ ਪ੍ਰੋਫ਼ਾਈਲ ਉਹਨਾਂ ਸਭ ਨੂੰ OmniRoute ਵੱਲ ਨਿਰਦੇਸ਼ਿਤ ਕਰਦਾ ਹੈ"
+      "5dive": "5dive — ਕੋਡਿੰਗ ਏਜੰਟਾਂ ਦਾ ਸਵੈ-ਹੋਸਟ ਕੀਤਾ ਫਲੀਟ; ਇੱਕ ਪ੍ਰਮਾਣੀਕਰਨ ਪ੍ਰੋਫ਼ਾਈਲ ਉਹਨਾਂ ਸਭ ਨੂੰ OmniRoute ਵੱਲ ਨਿਰਦੇਸ਼ਿਤ ਕਰਦਾ ਹੈ",
+      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
     },
     "guides": {
       "cursor": {

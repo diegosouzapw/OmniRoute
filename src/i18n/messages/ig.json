@@ -2920,6 +2920,7 @@
       "amp": "Jiri ya mgbe ịchọrọ usoro ọrụ mkpirisi nke Amp mana ka chọrọ mmanye iwu aha utu aha na nhazi ụzọ nke OmniRoute.",
       "hermes": "Jiri ya mgbe ịchọrọ onye enyemaka AI dị fechaa nke na-arụ ọrụ ozugbo na teminal maka ọrụ ngwa ngwa.",
       "hermes-agent": "Jiri ya mgbe ịchọrọ Hermes Agent (nke Nousresearch) nwere ụdịdị ndabara, nkesa ọrụ, ọhụụ na ụdịdị enyemaka ndị a na-ahazi ụzọ ha site na OmniRoute.",
+      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
       "custom": "Jiri ya maka mmejuputa ngwaọrụ ahaziri iche ma ọ bụ nhazi izugbe dakọtara na OpenAI."
     },
     "toolDescriptions": {
@@ -2959,7 +2960,8 @@
       "prime-agent": "Prime Agent — usoro RLM maka ide koodu nke na-emeziwanye onwe ya ma nwee nkwado maka ndị na-eweta ọrụ dakọtara na OpenAI",
       "warp": "Warp AI terminal nwere nkwado maka onye na-eweta ọrụ ahaziri iche",
       "agent-deck": "Agent Deck, onye nhazi ọtụtụ ndị nnọchi anya",
-      "5dive": "5dive — ìgwè ndị nnọchi anya ide koodu a na-akwado n'onwe gị; otu profaịlụ nkwenye na-ejikọ ha niile na OmniRoute"
+      "5dive": "5dive — ìgwè ndị nnọchi anya ide koodu a na-akwado n'onwe gị; otu profaịlụ nkwenye na-ejikọ ha niile na OmniRoute",
+      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
     },
     "guides": {
       "cursor": {

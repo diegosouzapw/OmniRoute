@@ -120,6 +120,7 @@ test("model-flag wiring stays declared in the manifest", () => {
     "omniroute/glm/glm-5.2",
   ]);
   assert.deepEqual(manifestModelArgs("qwen", "glm/glm-5.2"), ["--model", "glm/glm-5.2"]);
+  assert.deepEqual(manifestModelArgs("whycodes", "glm/glm-5.2"), ["-m", "glm/glm-5.2"]);
   assert.deepEqual(manifestModelArgs("claude", "glm/glm-5.2"), []);
   assert.deepEqual(manifestModelArgs("codex", "glm/glm-5.2"), []);
   assert.equal(manifestRequiresModel("qwen"), true);

@@ -280,7 +280,9 @@ export default function DefaultToolCard({
       const saveEndpoint =
         toolId === "qwen"
           ? "/api/cli-tools/qwen-settings"
-          : `/api/cli-tools/guide-settings/${toolId}`;
+          : toolId === "whycodes"
+            ? "/api/cli-tools/whycodes-settings"
+            : `/api/cli-tools/guide-settings/${toolId}`;
       const res = await fetch(saveEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -314,7 +316,7 @@ export default function DefaultToolCard({
   };
 
   // Check if this tool supports direct config file write
-  const supportsDirectSave = ["continue", "opencode", "qwen"].includes(toolId);
+  const supportsDirectSave = ["continue", "opencode", "qwen", "whycodes"].includes(toolId);
 
   const renderApiKeySelector = () => {
     return (

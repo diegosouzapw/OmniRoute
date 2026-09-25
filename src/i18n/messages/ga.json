@@ -2920,6 +2920,7 @@
       "amp": "Úsáid nuair a theastaíonn uait sreabha oibre giorraithe Amp ach nuair is gá fós rialacha ailiasanna agus ródaithe OmniRoute a fhorfheidhmiú.",
       "hermes": "Úsáid nuair a theastaíonn cúntóir AI éadrom atá dúchasach don teirminéal uait le haghaidh tascanna tapa.",
       "hermes-agent": "Úsáid nuair a theastaíonn Hermes Agent (ó Nousresearch) uait, agus na samhlacha réamhshocraithe, tarmligin, físe agus cúnta á ródú trí OmniRoute.",
+      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
       "custom": "Úsáid le haghaidh feidhmiúcháin saincheaptha uirlisí nó cumraíochtaí ginearálta atá comhoiriúnach le OpenAI."
     },
     "toolDescriptions": {
@@ -2959,7 +2960,8 @@
       "prime-agent": "Prime Agent — creat códaithe RLM a fhéinfheabhsaíonn, le tacaíocht do sholáthraithe atá comhoiriúnach le OpenAI",
       "warp": "teirminéal AI Warp le tacaíocht do sholáthraí saincheaptha",
       "agent-deck": "comhordaitheoir ilghníomhairí Agent Deck",
-      "5dive": "5dive — cabhlach féinóstáilte de ghníomhairí códaithe; díríonn próifíl fíordheimhnithe amháin iad go léir ar OmniRoute"
+      "5dive": "5dive — cabhlach féinóstáilte de ghníomhairí códaithe; díríonn próifíl fíordheimhnithe amháin iad go léir ar OmniRoute",
+      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
     },
     "guides": {
       "cursor": {

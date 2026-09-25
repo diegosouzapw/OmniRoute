@@ -2920,6 +2920,7 @@
       "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
       "hermes": "Použijte, když potřebujete lehkého terminálového nativního AI asistenta pro rychlé úkoly.",
       "hermes-agent": "Použijte, když potřebujete Hermes Agent (od Nousresearch) s výchozími, delegačními, vizuálními a pomocnými modely směrovanými přes OmniRoute.",
+      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
       "custom": "Použijte pro vlastní implementace nástrojů nebo obecné konfigurace kompatibilní s OpenAI."
     },
     "toolDescriptions": {
@@ -2959,7 +2960,8 @@
       "prime-agent": "Prime Agent — sebezdokonalující se programovací prostředí RLM s podporou poskytovatelů kompatibilních s OpenAI",
       "warp": "AI terminál Warp s podporou vlastních poskytovatelů",
       "agent-deck": "Multiagentní orchestrátor Agent Deck",
-      "5dive": "5dive — vlastní flotila kódovacích agentů; jeden auth profil nasměruje všechny na OmniRoute"
+      "5dive": "5dive — vlastní flotila kódovacích agentů; jeden auth profil nasměruje všechny na OmniRoute",
+      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
     },
     "guides": {
       "cursor": {

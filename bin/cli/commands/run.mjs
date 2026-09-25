@@ -221,6 +221,9 @@ function genericEnv(baseEnv, kind, baseUrl, authToken, model) {
       delete env[key];
     }
     if (kind === "opencode" && key === "OPENCODE_CONFIG_CONTENT") delete env[key];
+    if (kind === "whycodes" && /^(OPENAI_API_KEY|OPENAI_API_BASE|OPENAI_BASE_URL)$/.test(key)) {
+      delete env[key];
+    }
     if (kind === "qwen" && (key === "QWEN_HOME" || key === "OMNIROUTE_API_KEY")) {
       delete env[key];
     }
@@ -260,6 +263,9 @@ function genericEnv(baseEnv, kind, baseUrl, authToken, model) {
       },
     });
   } else if (kind === "qwen") {
+    env.OMNIROUTE_API_KEY = token;
+  } else if (kind === "whycodes") {
+    env.OPENAI_API_KEY = token;
     env.OMNIROUTE_API_KEY = token;
   } else if (kind === "gemini") {
     // Verified against @google/gemini-cli 0.50.0: the SDK appends
@@ -322,7 +328,8 @@ async function buildGenericPlan(target, rawOpts, args = []) {
     throw new Error("Qwen Code requires --model in non-interactive OmniRoute launches");
   }
   const modelArgs = modelArgsForTarget(target, model);
-  const fullArgs = [...modelArgs, ...args];
+  const providerArgs = target === "whycodes" ? ["-P", "omniroute"] : [];
+  const fullArgs = [...providerArgs, ...modelArgs, ...args];
   const env = genericEnv(process.env, target, baseUrl, authToken, model);
 
   return {
@@ -374,6 +381,7 @@ async function runGenericTarget(target, rawOpts, args) {
     return 2;
   }
   const modelArgs = modelArgsForTarget(target, model);
+  const providerArgs = target === "whycodes" ? ["-P", "omniroute"] : [];
   const commandSpec = resolveGenericSpawn(target);
   const childEnv = genericEnv(process.env, target, baseUrl, authToken, model);
   let overlayHome;
@@ -396,7 +404,7 @@ async function runGenericTarget(target, rawOpts, args) {
 
   const child = spawn(
     commandSpec.command,
-    quoteShellArgs([...modelArgs, ...args], process.platform),
+    quoteShellArgs([...providerArgs, ...modelArgs, ...args], process.platform),
     {
       env: childEnv,
       stdio: "inherit",

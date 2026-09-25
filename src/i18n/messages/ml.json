@@ -2920,6 +2920,7 @@
       "amp": "Amp ഷോർട്ട്ഹാൻഡ് വർക്ക്ഫ്ലോകൾ ആവശ്യമാണെങ്കിലും OmniRoute അപരനാമവും റൂട്ടിംഗ് നിയമങ്ങളും നിർബന്ധമാക്കേണ്ടപ്പോൾ ഇത് ഉപയോഗിക്കുക.",
       "hermes": "പെട്ടെന്നുള്ള ജോലികൾക്കായി ലളിതമായ ഒരു ടെർമിനൽ-നേറ്റീവ് AI അസിസ്റ്റന്റ് ആവശ്യമുള്ളപ്പോൾ ഇത് ഉപയോഗിക്കുക.",
       "hermes-agent": "OmniRoute വഴി റൂട്ട് ചെയ്യപ്പെടുന്ന ഡിഫോൾട്ട്, ഡെലിഗേഷൻ, വിഷൻ, ഓക്സിലറി മോഡലുകൾ സഹിതമുള്ള Hermes Agent (by Nousresearch) ആവശ്യമുള്ളപ്പോൾ ഇത് ഉപയോഗിക്കുക.",
+      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
       "custom": "ഇഷ്ടാനുസൃത ടൂൾ ഇംപ്ലിമെന്റേഷനുകൾക്കോ പൊതുവായ OpenAI-അനുയോജ്യ കോൺഫിഗറേഷനുകൾക്കോ ഉപയോഗിക്കുക."
     },
     "toolDescriptions": {
@@ -2959,7 +2960,8 @@
       "prime-agent": "Prime Agent — OpenAI-അനുയോജ്യമായ പ്രൊവൈഡർ പിന്തുണയുള്ള സ്വയം മെച്ചപ്പെടുന്ന RLM കോഡിംഗ് ഹാർനെസ്",
       "warp": "ഇഷ്ടാനുസൃത പ്രൊവൈഡർ പിന്തുണയുള്ള Warp AI ടെർമിനൽ",
       "agent-deck": "Agent Deck മൾട്ടി-ഏജന്റ് ഓർക്കസ്ട്രേറ്റർ",
-      "5dive": "5dive — സ്വയം ഹോസ്റ്റ് ചെയ്ത കോഡിംഗ് ഏജന്റുകളുടെ ഫ്ലീറ്റ്; ഒരൊറ്റ ഓത്ത് പ്രൊഫൈൽ അവയെല്ലാം OmniRoute-ലേക്ക് നയിക്കുന്നു"
+      "5dive": "5dive — സ്വയം ഹോസ്റ്റ് ചെയ്ത കോഡിംഗ് ഏജന്റുകളുടെ ഫ്ലീറ്റ്; ഒരൊറ്റ ഓത്ത് പ്രൊഫൈൽ അവയെല്ലാം OmniRoute-ലേക്ക് നയിക്കുന്നു",
+      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
     },
     "guides": {
       "cursor": {

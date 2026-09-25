@@ -909,6 +909,61 @@ OPENAI_API_KEY: "{{apiKey}}"`,
       },
     ],
   },
+
+  /** ★ WhyCodes CLI agent (diegosouzapw/OmniRoute#14096) — 2026-09-18 */
+  whycodes: {
+    id: "whycodes",
+    name: "WhyCodes",
+    icon: "terminal",
+    color: "#2563EB",
+    description:
+      "WhyCodes — broad-purpose autonomous CLI agent (TUI, named agents, tools, memory); OpenAI-compatible base URL points at OmniRoute",
+    docsUrl: "https://github.com/whycorporation/whycodes",
+    configType: "custom",
+    category: "agent",
+    vendor: "Why Corporation",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    defaultCommand: "whycodes",
+    settingsFile: "$WHYCODES_HOME/config.toml",
+    guideSteps: [
+      {
+        step: 1,
+        title: "Install WhyCodes",
+        desc: "Install WhyCodes following the vendor's official instructions: https://github.com/whycorporation/whycodes (we do not pipe third-party install scripts to a shell)",
+      },
+      { step: 2, title: "API Key", type: "apiKeySelector" },
+      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 4, title: "Select Model", type: "modelSelector" },
+      {
+        step: 5,
+        title: "Write the provider",
+        desc: "omniroute setup-whycodes --model <id>   (or: whycodes provider add omniroute --api-key <key> --base-url <origin>/v1)",
+      },
+    ],
+    codeBlock: {
+      language: "toml",
+      code: `[providers.omniroute]
+name = "omniroute"
+base_url = "{{baseUrl}}"
+api_key = "{{apiKey}}"
+
+[default_model]
+provider_id = "omniroute"
+model_id = "{{model}}"
+supports_tools = true`,
+    },
+    notes: [
+      {
+        type: "info",
+        text: "WhyCodes talks Chat Completions at /v1/chat/completions. Config lives at $WHYCODES_HOME/config.toml, or the platform project dir (whycodes debug --json prints the path; env names only, never values).",
+      },
+      {
+        type: "warning",
+        text: "whycodes acp is not implemented — this card is not ACP-spawnable.",
+      },
+    ],
+  },
 };
 
 // ─── Registry helpers ────────────────────────────────────────────────────────

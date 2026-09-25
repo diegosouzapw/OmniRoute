@@ -4,9 +4,11 @@ import os from "os";
 import path from "path";
 import { spawn } from "child_process";
 import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
+import { getWhyCodesConfigPath } from "@/lib/cli-helper/config-generator/whycodesHome";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";
 import { GROK_BUILD_RUNTIME_ENTRY, AMP_RUNTIME_ENTRY } from "./cliRuntimeGrokBuild";
+import { WHYCODES_RUNTIME_ENTRY } from "./cliRuntimeWhyCodes";
 import { isLocationTrusted, findKnownPathMatch } from "./cliRuntimeKnownPath";
 import { buildHealthcheckPath } from "./cliRuntimeHealthcheckPath";
 import { appendWindowsKnownBinPaths, mergeWindowsLookupPath } from "./cliRuntimeWindowsNode";
@@ -337,6 +339,7 @@ const CLI_TOOLS: Record<string, any> = {
       authProfiles: "auth-profiles",
     },
   },
+  whycodes: WHYCODES_RUNTIME_ENTRY,
 };
 
 /**
@@ -367,6 +370,8 @@ export const CLI_TOOL_ALIASES: Readonly<Record<string, string>> = {
   "codex-app-server": "codex",
   cn: "continue",
   qodercli: "qoder",
+  "why-codes": "whycodes",
+  why: "whycodes",
 };
 
 /** Resolve a user-facing or legacy id to the canonical runtime id. */
@@ -1164,6 +1169,14 @@ export const getCliConfigPaths = (toolId: string) => {
   if (toolId === "5dive") {
     return {
       authProfiles: path.join(getFivediveStateDir(), "auth-profiles"),
+    };
+  }
+
+  // WhyCodes: honour WHYCODES_HOME / platform project dirs instead of
+  // joining a relative path under CLI_CONFIG_HOME (#14096).
+  if (toolId === "whycodes") {
+    return {
+      config: getWhyCodesConfigPath(),
     };
   }
 

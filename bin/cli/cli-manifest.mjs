@@ -103,6 +103,13 @@ export const CLI_TARGET_MANIFEST = Object.freeze({
     configure: true,
     runModel: null, // travels as the profile's ANTHROPIC_DEFAULT_*_MODEL
   }),
+  whycodes: Object.freeze({
+    description: "WhyCodes",
+    aliases: Object.freeze(["why-codes", "why"]),
+    run: true,
+    configure: true,
+    runModel: Object.freeze({ flag: "-m", prefix: "" }),
+  }),
 });
 
 /**

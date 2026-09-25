@@ -2920,6 +2920,7 @@
       "amp": "當您想要 Amp 簡寫工作流，但仍需要 OmniRoute 別名和路由規則支援時使用。",
       "hermes": "當您需要輕量級終端原生 AI 助手來處理快速任務時使用。",
       "hermes-agent": "需要使用 Hermes Agent (by Nousresearch) 時使用,預設、委派、視覺與輔助模型均通過 OmniRoute 路由。",
+      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
       "custom": "用於自定義工具實現或通用 OpenAI 相容設定。"
     },
     "toolDescriptions": {
@@ -2959,7 +2960,8 @@
       "prime-agent": "Prime Agent — 支援 OpenAI 相容提供者、可自我改進的 RLM 程式設計框架",
       "warp": "Warp AI 終端機，支援自訂提供者",
       "agent-deck": "Agent Deck 多代理協調器",
-      "5dive": "5dive — 自架的編碼代理機群；一個認證設定檔即可將全部指向 OmniRoute"
+      "5dive": "5dive — 自架的編碼代理機群；一個認證設定檔即可將全部指向 OmniRoute",
+      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
     },
     "guides": {
       "cursor": {

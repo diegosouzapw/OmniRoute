@@ -2920,6 +2920,7 @@
       "amp": "Użah meta tkun trid flussi tax-xogħol bl-istruzzjonijiet imqassra ta’ Amp, iżda xorta jkollok bżonn l-infurzar tal-psewdonimi u r-regoli tar-rottaġġ ta’ OmniRoute.",
       "hermes": "Użah meta jkollok bżonn assistent tal-IA ħafif u nattiv għat-terminal għal kompiti ta’ malajr.",
       "hermes-agent": "Użah meta jkollok bżonn Hermes Agent (minn Nousresearch), bil-mudelli predefiniti, ta’ delega, tal-viżjoni u awżiljarji mgħoddija permezz ta’ OmniRoute.",
+      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
       "custom": "Użah għal implimentazzjonijiet personalizzati ta’ għodod jew konfigurazzjonijiet ġeneriċi kompatibbli ma’ OpenAI."
     },
     "toolDescriptions": {
@@ -2959,7 +2960,8 @@
       "prime-agent": "Prime Agent — qafas tal-kodifikazzjoni RLM li jtejjeb lilu nnifsu b’appoġġ għal fornituri kompatibbli ma’ OpenAI",
       "warp": "Terminal Warp AI b’appoġġ għal fornitur personalizzat",
       "agent-deck": "Orkestratur ta’ diversi aġenti Agent Deck",
-      "5dive": "5dive — flotta awtoospitata ta’ aġenti tal-kodifikazzjoni; profil wieħed tal-awtentikazzjoni jidderiġihom kollha lejn OmniRoute"
+      "5dive": "5dive — flotta awtoospitata ta’ aġenti tal-kodifikazzjoni; profil wieħed tal-awtentikazzjoni jidderiġihom kollha lejn OmniRoute",
+      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
     },
     "guides": {
       "cursor": {

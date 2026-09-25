@@ -2920,6 +2920,7 @@
       "amp": "Amp qısaldılmış iş axınlarından istifadə etmək istədikdə, lakin OmniRoute aliaslarının və yönləndirmə qaydalarının tətbiqinə də ehtiyacınız olduqda istifadə edin.",
       "hermes": "Sürətli tapşırıqlar üçün yüngül, terminalda işləyən süni intellekt köməkçisinə ehtiyacınız olduqda istifadə edin.",
       "hermes-agent": "OmniRoute vasitəsilə yönləndirilən standart, nümayəndəlik, görmə və köməkçi modelləri olan Hermes Agent (Nousresearch tərəfindən) lazım olduqda istifadə edin.",
+      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
       "custom": "Fərdi alət tətbiqləri və ya ümumi OpenAI-uyğun konfiqurasiyalar üçün istifadə edin."
     },
     "toolDescriptions": {
@@ -2959,7 +2960,8 @@
       "prime-agent": "Prime Agent — OpenAI-uyğun provayder dəstəyi ilə özünü təkmilləşdirən RLM kodlaşdırma mühiti",
       "warp": "Fərdi provayder dəstəyinə malik Warp AI terminalı",
       "agent-deck": "Agent Deck çoxagentli orkestratoru",
-      "5dive": "5dive — öz serverinizdə işləyən kodlaşdırma agentləri parkı; bir auth profili hamısını OmniRoute-a yönəldir"
+      "5dive": "5dive — öz serverinizdə işləyən kodlaşdırma agentləri parkı; bir auth profili hamısını OmniRoute-a yönəldir",
+      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
     },
     "guides": {
       "cursor": {
