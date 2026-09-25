@@ -1,4 +1,5 @@
 import { getFeatureFlagOverride } from "@/lib/db/featureFlags";
+import { parseEnvBoolean } from "@/shared/utils/envBoolean";
 import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
 import {
   OutboundUrlGuardError,
@@ -51,11 +52,7 @@ export function arePrivateProviderUrlsAllowed() {
 
   // 3) Legacy escape hatch — disabling the outbound guard implies allowing
   //    private URLs.
-  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
-  if (
-    typeof legacyValue === "string" &&
-    ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase())
-  ) {
+  if (!parseEnvBoolean(process.env["OUTBOUND_SSRF_GUARD_ENABLED"], true)) {
     return true;
   }
 

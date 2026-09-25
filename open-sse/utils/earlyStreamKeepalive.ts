@@ -94,6 +94,29 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
   })}\n\n`
 );
 
+const MAX_RETRY_AFTER_SECONDS = 3600;
+
+/**
+ * Seconds a client should wait before retrying, from the handler's error response:
+ * `Retry-After` (delta-seconds or HTTP-date) first, then OmniRoute's
+ * `x-omniroute-retry-after-seconds`. Clamped to 0..3600; null when neither is usable.
+ */
+function readRetryAfterSeconds(headers: Headers): number | null {
+  for (const name of ["retry-after", "x-omniroute-retry-after-seconds"]) {
+    const raw = headers.get(name)?.trim();
+    if (!raw) continue;
+    let seconds: number | null = null;
+    if (/^\d{1,10}$/.test(raw)) {
+      seconds = Number(raw);
+    } else {
+      const at = Date.parse(raw);
+      if (Number.isFinite(at)) seconds = Math.ceil((at - Date.now()) / 1000);
+    }
+    if (seconds !== null) return Math.min(Math.max(seconds, 0), MAX_RETRY_AFTER_SECONDS);
+  }
+  return null;
+}
+
 /**
  * Reshapes an already-sanitized upstream error body into the Responses API
  * convention (`{"type":"error",...}`) for the dynamic real-upstream-body branch
@@ -103,7 +126,10 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
  * must still produce a non-empty `message` so the client never sees an opaque
  * frame (never crash the stream on a malformed body).
  */
-function buildResponsesErrorDataLine(text: string): string {
+function buildResponsesErrorDataLine(
+  text: string,
+  meta: { status: number; retryAfterSeconds: number | null }
+): string {
   const trimmed = text.trim();
   let parsed: Record<string, unknown> | null = null;
   if (trimmed) {
@@ -125,6 +151,15 @@ function buildResponsesErrorDataLine(text: string): string {
     "Upstream stream failed before completion.";
   const code = (typeof errorObj?.code === "string" && errorObj.code) || null;
   const param = (typeof errorObj?.param === "string" && errorObj.param) || null;
+  // The HTTP status and retry hint are already lost once the stream committed to 200;
+  // carry them in-band so clients can still tell permanent from transient failures.
+  // `error_type` (not `type`): top-level `type` is the Responses event discriminator.
+  const errorType = typeof errorObj?.type === "string" && errorObj.type ? errorObj.type : null;
+  const statusFields = {
+    status_code: meta.status,
+    ...(errorType ? { error_type: errorType } : {}),
+    ...(meta.retryAfterSeconds !== null ? { retry_after_seconds: meta.retryAfterSeconds } : {}),
+  };
   const extras =
     parsed && typeof parsed.diagnostics === "object" && parsed.diagnostics !== null
       ? { diagnostics: parsed.diagnostics }
@@ -136,6 +171,7 @@ function buildResponsesErrorDataLine(text: string): string {
     param,
     // #14330: was hardcoded to 0 — see OPENAI_RESPONSES_ERROR_FRAME above.
     sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+    ...statusFields,
     ...extras,
   });
 }
@@ -396,7 +432,10 @@ export async function withEarlyStreamKeepalive(
             const text = response.body ? await response.text().catch(() => "") : "";
             const dataLine =
               errorFrameFormat === "responses"
-                ? buildResponsesErrorDataLine(text)
+                ? buildResponsesErrorDataLine(text, {
+                    status: response.status,
+                    retryAfterSeconds: readRetryAfterSeconds(response.headers),
+                  })
                 : text.trim() ||
                   JSON.stringify({ error: { message: "stream_error", type: "stream_error" } });
             const framed =

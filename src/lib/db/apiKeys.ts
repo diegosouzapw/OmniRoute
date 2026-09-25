@@ -10,6 +10,7 @@ import { registerDbStateResetter } from "./stateReset";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
 import { API_KEY_COLUMN_FALLBACKS } from "./apiKeyColumnFallbacks";
+import { SYNTHETIC_ENV_API_KEY_ID } from "@/shared/constants/apiKeyIdentities";
 import {
   appendUsageLimitUpdates,
   hasUsageLimitUpdate,
@@ -1395,7 +1396,7 @@ export async function getApiKeyMetadata(
     // / CI / first-boot scenarios. If you need to disable env-key access,
     // unset the env var instead.
     return {
-      id: "env-key",
+      id: SYNTHETIC_ENV_API_KEY_ID,
       name: "Environment Key",
       machineId: "server-env",
       modelAccessMode: "all",

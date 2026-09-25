@@ -60,6 +60,7 @@ import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmin
 import { handleUcImageGeneration } from "./imageGeneration/providers/ucImage.ts";
 import { handleCursorAgentImageGeneration } from "./imageGeneration/providers/cursorAgentImage.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
+import { handleCloudflareAiImageGeneration } from "./imageGeneration/providers/cloudflareAi.ts";
 import { handleMaxaiImageGeneration } from "./imageGeneration/providers/maxaiImage.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
 import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
@@ -750,6 +751,17 @@ export async function handleImageGeneration({
 
   if (providerConfig.format === "nvidia-nim") {
     return handleNvidiaNimImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "cloudflare-ai-image") {
+    return handleCloudflareAiImageGeneration({
       model,
       provider,
       providerConfig,

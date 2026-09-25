@@ -63,6 +63,7 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "grok-cli",
   // Firecrawl team credits (GET /v2/team/credit-usage)
   "firecrawl",
+  "context7",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",
