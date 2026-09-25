@@ -154,9 +154,14 @@ function eligibleMemberIndexes(candidates: unknown[]): number[] | null {
 // True once the sticky window elapsed (or never started): the held member is due
 // for rotation. Shared by the pre-rank bypass (held member served untouched) and
 // the sticky branch below (advance on expiry) — same `state`, no extra DB read.
-function isStickyExpired(state: { stickyWindowMinutes: number; rotatedAt: string | null }): boolean {
+function isStickyExpired(state: {
+  stickyWindowMinutes: number;
+  rotatedAt: string | null;
+}): boolean {
   const lastRotated = state.rotatedAt ? Date.parse(state.rotatedAt) : NaN;
-  return !Number.isFinite(lastRotated) || Date.now() - lastRotated >= state.stickyWindowMinutes * 60_000;
+  return (
+    !Number.isFinite(lastRotated) || Date.now() - lastRotated >= state.stickyWindowMinutes * 60_000
+  );
 }
 
 // First eligible index at or after `start`, going round the pool.
@@ -271,7 +276,7 @@ function pickFromCandidates<T>(
     }
   }
 
-  // Order by crossed short-memory health signals (opt-in, PROXY_SKIP_RECENTLY_FAILED):
+  // Order by crossed short-memory health signals (PROXY_SKIP_RECENTLY_FAILED, default on):
   // stops re-serving at the head a proxy that just failed, without removing anyone.
   // Sticky past its window and every other strategy rank normally; a held sticky
   // member returns above, untouched. The eligible-skip below still applies on the

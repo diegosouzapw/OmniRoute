@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Glavni prekidač za no-think/&lt;provider&gt;/&lt;model&gt; gateway aliase. Uključeno (podrazumijevano): /v1/models oglašava no-thinking varijantu za svaki kvalifikovani Claude model sa sposobnošću razmišljanja, a no-think/ ID poslan u zahtjevu se razrješava u stvarni model sa potisnutim razmišljanjem. Isključeno: varijante se ne oglašavaju, a no-think/ ID se tretira kao bilo koji drugi nepoznat ID modela. Opcija ModelSpec.noThinkingAlias po modelu i dalje vrijedi dok je ovo uključeno.",
   "featureFlagChatVirtualLanesEnabledDescription": "Omogući adaptivne virtualne trake prijema po tenantu za dispatch provajdera (#9654): burst jednog tenanta više ne uzrokuje 503 grešku drugom. Env varijabla OMNIROUTE_CHAT_VIRTUAL_LANES ima prednost nad ovim override-om na dashboardu; promjene stupaju na snagu nakon ponovnog pokretanja servera.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Stranice provajdera na dashboardu: prikaži Free bedž samo na signalima koje provajder priznaje — uklanja heuristiku display-name-a, ne-boolean free polja i :free sufikse na registrovanim provajderima bez dokumentiranog besplatnog nivoa. Isključeno zadržava historijsko pravilo za bedževe.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Proxy pool-ovi i rotacija po računu za opencode prestaju ponovo posluživati proxy koji je upravo zakazao (odbijena TCP proba ili primljeni 429 kroz njega) za period po procesu koji se udvostručuje pri svakom ponavljanju, do određenog limita. Status proxy-ja se ne zapisuje; sa svakim odloženim kandidatom izbor ostaje nepromijenjen. Podrazumijevano isključeno: redoslijed selekcije je tačno obična rotacija.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proxy pool-ovi i rotacija po računu za opencode prestaju ponovo posluživati proxy koji je upravo zakazao (odbijena TCP proba ili primljeni 429 kroz njega) za period po procesu koji se udvostručuje pri svakom ponavljanju, do određenog limita. Status proxy-ja se ne zapisuje; sa svakim odloženim kandidatom izbor ostaje nepromijenjen. Podrazumijevano uključeno; `false` vraća običnu selekciju.",
   "featureFlagProxyPoolEgressObservationDescription": "Prikaži, unutar proxy pool-a na dashboardu, koliko je opaženih egress IP-ova poslužilo njegove članove u posljednjih 24 h, koliko je konekcija ih koristilo i najviše viđenih iza jednog IP-a. Samo za čitanje, izračunato iz proxy log-a, nikada ne koristi se za rutiranje. Podrazumijevano isključeno: editor pool-a ostaje nepromijenjen, a ruta za opažanje vraća null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "U skeniranju zdravlja proxy-ja, dopusti da proba koju je cilj odbio (401/403/429: proxy je proslijedio, destinacija je odbila ovaj egress IP) resetuje niz uzastopnih neuspjeha proxy-ja, kao i poslužena proba. Podrazumijevano isključeno: odbijanje ostaje neutralno i zadržava niz. 5xx ostaje neodređen u oba slučaja, a odbijanje nikada ne uklanja, onemogućuje ili ponovo aktivira proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Dopusti automatskom skeniranju za čišćenje da obriše terminalne (završene/neuspjele/otkazane/istekle) Batch API poslove starije od OMNIROUTE_BATCH_RETENTION_DAYS, zajedno sa njihovim checkpointima po liniji, i očisti BLOB sadržaj uploadovanih datoteka nakon njihovog expires_at. Podrazumijevano isključeno: svaka postojeća instalacija čuva ove podatke tačno kao i ranije dok operator ne odobri. Ruta DELETE /api/v1/batches/delete-completed pokrenuta od strane operatora nije pogođena u oba slučaja -- to je zaseban, bezuvjetni javni API ugovor.",
@@ -11509,7 +11509,13 @@
       "correlationIdValue": "Korelacijski ID: {id}",
       "detailedPayloadInfo": "Prvo omogućite detaljno zapisivanje ako želite pregled payloada klijenta/providera u četiri faze za nove zahtjeve.",
       "copyAll": "Kopiraj sve",
-      "copiedAll": "Kopirano sve"
+      "copiedAll": "Kopirano sve",
+      "resilienceStoredError": "Posluženo iz sačuvane greške",
+      "resilienceParked": "Zadržano {ms} prije slanja",
+      "resilienceRotations": "{count} rotacija naloga",
+      "resilienceRetried": "Prazan krug ponovljen",
+      "resilienceContinued": "Nastavljeno usred streama",
+      "resilienceRecovered": "Oporavljeno akcijom otpornosti"
     }
   },
   "proxyLogger": {

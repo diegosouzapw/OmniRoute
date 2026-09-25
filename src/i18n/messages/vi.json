@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Công tắc chính cho các bí danh gateway no-think/&lt;provider&gt;/&lt;model&gt;. Bật (mặc định): /v1/models quảng bá biến thể không suy nghĩ cho mọi mô hình Claude có khả năng suy nghĩ đủ điều kiện, và id no-think/ được gửi trên một yêu cầu sẽ giải quyết lại về mô hình thực với phần lý luận bị triệt tiêu. Tắt: không có biến thể nào được quảng bá và id no-think/ được xử lý như bất kỳ id mô hình không xác định nào khác. Tùy chọn tham gia/từ chối ModelSpec.noThinkingAlias theo từng mô hình vẫn áp dụng khi tính năng này bật.",
   "featureFlagChatVirtualLanesEnabledDescription": "Bật làn tiếp nhận ảo thích ứng cho từng đối tượng thuê (tenant) để phân phối nhà cung cấp (#9654): một đợt bùng phát của tenant này không còn trả 503 cho tenant khác. Biến môi trường OMNIROUTE_CHAT_VIRTUAL_LANES được ưu tiên hơn cài đặt bảng điều khiển này; các thay đổi có hiệu lực khi khởi động lại máy chủ.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Các trang nhà cung cấp trên bảng điều khiển: chỉ hiển thị huy hiệu Miễn phí đối với các tín hiệu được nhà cung cấp công nhận — loại bỏ phương pháp suy đoán dựa trên tên hiển thị, các trường miễn phí không phải kiểu boolean và hậu tố :free trên các nhà cung cấp đã đăng ký nhưng không có gói miễn phí được ghi rõ trong tài liệu. Khi tắt, quy tắc huy hiệu trước đây vẫn được áp dụng.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Các pool proxy và cơ chế xoay vòng theo tài khoản của opencode ngừng dùng lại một proxy vừa thất bại (thăm dò TCP bị từ chối, hoặc nhận 429 qua proxy đó) trong một khoảng thời gian theo tiến trình, tăng gấp đôi sau mỗi lần lặp lại, tối đa đến một giới hạn. Không ghi trạng thái proxy nào; khi mọi ứng viên đều bị tạm gác, lựa chọn vẫn như cũ. Tắt theo mặc định: thứ tự chọn giữ nguyên xoay vòng thông thường.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Các pool proxy và cơ chế xoay vòng theo tài khoản của opencode ngừng dùng lại một proxy vừa thất bại (thăm dò TCP bị từ chối, hoặc nhận 429 qua proxy đó) trong một khoảng thời gian theo tiến trình, tăng gấp đôi sau mỗi lần lặp lại, tối đa đến một giới hạn. Không ghi trạng thái proxy nào; khi mọi ứng viên đều bị tạm gác, lựa chọn vẫn như cũ. Bật theo mặc định; `false` khôi phục lựa chọn thông thường.",
   "featureFlagProxyPoolEgressObservationDescription": "Hiển thị, bên dưới một nhóm proxy trong bảng điều khiển, số IP đầu ra quan sát được đã phục vụ các thành viên của nhóm trong 24 giờ qua, số kết nối đã sử dụng các IP đó và số thành viên nhiều nhất được ghi nhận phía sau một IP. Chỉ đọc, được tính từ nhật ký proxy và không bao giờ được dùng để định tuyến. Tắt theo mặc định: trình chỉnh sửa nhóm không thay đổi và tuyến quan sát trả về null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Trong lượt kiểm tra sức khỏe proxy, cho phép một lần thăm dò bị đích từ chối (401/403/429: proxy đã chuyển tiếp, đích từ chối IP đầu ra này) đặt lại chuỗi lỗi liên tiếp của proxy, giống như một lần thăm dò được phục vụ. Tắt theo mặc định: lần từ chối vẫn trung lập và giữ nguyên chuỗi. Lỗi 5xx vẫn không kết luận trong mọi trường hợp, và lần từ chối không bao giờ xóa, vô hiệu hóa hay kích hoạt lại proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Cho phép lượt dọn dẹp tự động xóa các batch job ở trạng thái cuối (completed/failed/cancelled/expired) của Batch API cũ hơn OMNIROUTE_BATCH_RETENTION_DAYS, cùng với các checkpoint theo từng dòng của chúng, và xóa nội dung BLOB của các tệp đã tải lên quá hạn expires_at riêng. Mặc định tắt: mọi bản cài đặt hiện có giữ nguyên dữ liệu này cho đến khi người vận hành bật tùy chọn này. Tuyến DELETE /api/v1/batches/delete-completed do người vận hành kích hoạt không bị ảnh hưởng theo bất kỳ cách nào -- đây là một hợp đồng API công khai riêng biệt và vô điều kiện.",
@@ -11509,7 +11509,13 @@
       "correlationIdValue": "ID tương quan: {id}",
       "detailedPayloadInfo": "Hãy bật ghi nhật ký chi tiết trước nếu bạn muốn xem giao diện payload client/nhà cung cấp gồm 4 giai đoạn cho các yêu cầu mới.",
       "copyAll": "Sao chép tất cả",
-      "copiedAll": "Đã sao chép tất cả"
+      "copiedAll": "Đã sao chép tất cả",
+      "resilienceStoredError": "Phục vụ từ lỗi đã lưu",
+      "resilienceParked": "Đã chờ {ms} trước khi gửi",
+      "resilienceRotations": "{count} lần chuyển tài khoản",
+      "resilienceRetried": "Đã thử lại lượt trống",
+      "resilienceContinued": "Đã tiếp tục giữa luồng",
+      "resilienceRecovered": "Đã khôi phục bằng hành động phục hồi"
     }
   },
   "proxyLogger": {

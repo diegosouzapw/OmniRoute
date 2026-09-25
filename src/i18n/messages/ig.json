@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Mgbanwe ukwu maka alias gateway no-think/&lt;provider&gt;/&lt;model&gt;. Agbanye (ndabara): /v1/models na-akpọsa ụdị na-adịghị eche echiche maka model Claude ọ bụla tozuru etozu nke nwere ike iche echiche, ma id no-think/ e zigara na arịrịọ ga-alaghachi na model n'ezie ebe a kwụsịrị reasoning. Agbanyụọ: a gaghị akpọsa ụdị ọ bụla, a ga-ewerekwa id no-think/ dịka id model ọ bụla ọzọ a na-amaghị. Nhọrọ ịbanye/ịpụ ModelSpec.noThinkingAlias nke model ọ bụla ka na-emetụta mgbe agbanyere nke a.",
   "featureFlagChatVirtualLanesEnabledDescription": "Gbanye lane nnabata virtual na-agbanwe onwe ya maka tenant ọ bụla maka iziga na provider (#9654): mgbawa arịrịọ nke otu tenant agaghịzi eme ka nke tenant ọzọ nweta 503. Env var OMNIROUTE_CHAT_VIRTUAL_LANES na-akarị mgbanwe dashboard a; mgbanwe ga-amalite ịrụ ọrụ mgbe e bidogharịrị server.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Ibe ndị na-enye ọrụ na dashboard: gosi akara Free naanị na signal ndị onye na-enye ọrụ na-akwado — nke a na-ewepụ usoro ntule dabere n’aha ngosi, oghere free ndị na-abụghị boolean, na mgbakwunye :free n’aha ndị na-enye ọrụ e debanyere aha nke na-enweghị ọkwa efu edepụtara. Mgbe agbanyụrụ ya, a ga-edobe iwu akara e ji eme ihe kemgbe.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Ọdọ proxy na ntụgharị opencode nke akaụntụ ọ bụla na-akwụsị iji proxy dara ugbu a ọzọ (nnyocha TCP a jụrụ, ma ọ bụ nzaghachi 429 e nwetara site na ya) ruo oge nke usoro ọ bụla nke na-amụba okpukpu abụọ mgbe ọdịda ahụ megharịrị, ruo n'ókè kachasị. A naghị ede ọkwa proxy ọ bụla; mgbe e wepụrụ ndị niile a ga-ahọrọ n'akụkụ, nhọrọ ahụ anaghị agbanwe. A gbanyụrụ ya na ndabara: usoro nhọrọ bụ kpọmkwem ntụgharị nkịtị.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Ọdọ proxy na ntụgharị opencode nke akaụntụ ọ bụla na-akwụsị iji proxy dara ugbu a ọzọ (nnyocha TCP a jụrụ, ma ọ bụ nzaghachi 429 e nwetara site na ya) ruo oge nke usoro ọ bụla nke na-amụba okpukpu abụọ mgbe ọdịda ahụ megharịrị, ruo n'ókè kachasị. A naghị ede ọkwa proxy ọ bụla; mgbe e wepụrụ ndị niile a ga-ahọrọ n'akụkụ, nhọrọ ahụ anaghị agbanwe. A gbanyere ya na ndabara; `false` na-eweghachi nhọrọ nkịtị.",
   "featureFlagProxyPoolEgressObservationDescription": "Gosi, n'okpuru ọdọ proxy na dashboard, IP ọpụpụ ole a hụrụ jere ndị otu ya ozi n'ime awa 24 gara aga, njikọ ole jiri ha, na ọnụ ọgụgụ kachasị a hụrụ n'azụ otu IP. Ọ bụ naanị maka ọgụgụ, a na-agbakọ ya site na ndekọ proxy, a naghị eji ya eme routing. A gbanyụrụ ya na ndabara: editọ ọdọ ahụ anaghị agbanwe, route nlele ahụ na-azaghachi null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "N'oge nyocha ahụike proxy, kwe ka nyocha ebumnuche jụrụ (401/403/429: proxy ahụ zigara ya, ebe njedebe ahụ jụrụ IP ọpụpụ a) tọgharịa usoro ọdịda na-aga n'ihu nke proxy ahụ, dịka nyocha e jere ozi. A gbanyụrụ ya na ndabara: ọjụjụ na-anọpụ iche ma na-edobe usoro ahụ. 5xx ka na-enweghị nkwubi okwu n'ọnọdụ ọ bụla, ọjụjụ anaghị ewepụ, gbanyụọ, ma ọ bụ mee ka proxy rụọ ọrụ ọzọ.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Kwe ka nhichapụ akpaka hichapụ ọrụ Batch API ndị nọ n’ọnọdụ njedebe (completed/failed/cancelled/expired) ma gafee OMNIROUTE_BATCH_RETENTION_DAYS, tinyere checkpoints nke ahịrị nke ọ bụla, ma kpochapụ ọdịnaya BLOB nke faịlụ ebugoro nke gafere expires_at nke ha. Agbanyụrụ ya na ndabara: nrụnye niile dị ugbu a ga-edobe data a kpọmkwem dịka ọ dị na mbụ ruo mgbe onye njikwa họrọ ịgbanye ya. Ụzọ DELETE /api/v1/batches/delete-completed nke onye njikwa na-akpalite agaghị emetụta n’ụzọ ọ bụla -- ọ bụ nkwekọrịta API ọha dị iche nke na-arụ ọrụ mgbe niile.",
@@ -11509,7 +11509,13 @@
       "correlationIdValue": "NJ Mmekọrịta: {id}",
       "detailedPayloadInfo": "Buru ụzọ gbanye ndekọ zuru ezu ma ọ bụrụ na ịchọrọ ịhụ payload client/provider nke nwere usoro anọ maka arịrịọ ọhụrụ.",
       "copyAll": "Detuo ha niile",
-      "copiedAll": "E detuochaala ha niile"
+      "copiedAll": "E detuochaala ha niile",
+      "resilienceStoredError": "Enyere site na njehie echekwara",
+      "resilienceParked": "Edobere {ms} tupu izipu",
+      "resilienceRotations": "Ntụgharị akaụntụ {count}",
+      "resilienceRetried": "Anwaghachiri ntụgharị efu",
+      "resilienceContinued": "Maliteghachiri n'etiti iyi",
+      "resilienceRecovered": "Eweghachiri site na omume nkwụsi ike"
     }
   },
   "proxyLogger": {

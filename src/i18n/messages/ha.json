@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Babban maɓalli na aliases na gateway na no-think/&lt;provider&gt;/&lt;model&gt;. Kunne (tsoho): /v1/models yana bayyana nau'in da ba ya yin tunani ga kowane samfurin Claude mai ikon tunani da ya cancanta, kuma ID na no-think/ da aka aika cikin buƙata yana komawa ga ainihin samfurin tare da hana yin nazari. Kashe: ba a bayyana kowane nau'i, kuma ana ɗaukar ID na no-think/ kamar kowane ID na samfurin da ba a sani ba. Zaɓin shiga/fita na ModelSpec.noThinkingAlias na kowane samfurin yana ci gaba da aiki yayin da wannan yake kunne.",
   "featureFlagChatVirtualLanesEnabledDescription": "Kunna layukan karɓa na kama-da-wane masu daidaitawa ga kowane tenant domin aika buƙatu zuwa provider (#9654): yawaitar buƙatun tenant ɗaya ba za ta sake jawo wa wani kuskuren 503 ba. Env var na OMNIROUTE_CHAT_VIRTUAL_LANES yana da fifiko kan wannan sauyin dashboard; sauye-sauye za su fara aiki bayan sake kunna server.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Shafukan masu samarwa na Dashboard: nuna alamar Kyauta kawai bisa alamomin da mai samarwar ya tabbatar — wannan yana watsi da dabarar hasashen sunan nuni, filayen kyauta marasa ƙimar boolean, da kari na :free a kan masu samarwa da aka yi wa rajista waɗanda ba su da matakin kyauta da aka rubuta. Idan an Kashe, ana ci gaba da amfani da tsohuwar ƙa’idar alamar.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Rukunin proxy da juyawar opencode ta kowane asusu suna daina sake amfani da proxy da ya gaza kwanan nan (ya ƙi gwajin TCP, ko aka karɓi 429 ta cikinsa) na wani lokaci na kowane tsari wanda ke ninkuwa a duk lokacin da gazawar ta sake faruwa, har zuwa iyaka. Ba a rubuta matsayin proxy; idan aka ware dukkan waɗanda za a iya zaɓa, zaɓin ba ya canzawa. A kashe yake ta tsohuwa: tsarin zaɓi daidai yake da juyawa na yau da kullum.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Rukunin proxy da juyawar opencode ta kowane asusu suna daina sake amfani da proxy da ya gaza kwanan nan (ya ƙi gwajin TCP, ko aka karɓi 429 ta cikinsa) na wani lokaci na kowane tsari wanda ke ninkuwa a duk lokacin da gazawar ta sake faruwa, har zuwa iyaka. Ba a rubuta matsayin proxy; idan aka ware dukkan waɗanda za a iya zaɓa, zaɓin ba ya canzawa. A kunne yake ta tsohuwa; `false` yana dawo da zaɓi na yau da kullum.",
   "featureFlagProxyPoolEgressObservationDescription": "A ƙarƙashin rukunin proxy a dashboard, nuna adadin IPs na fita da aka lura sun yi wa membobinsa hidima a cikin awanni 24 da suka gabata, adadin haɗin da suka yi amfani da su, da mafi yawan adadin da aka gani a bayan IP guda. Na karantawa kawai ne, ana lissafa shi daga kundin proxy, kuma ba a taɓa amfani da shi wajen routing. A kashe yake ta tsohuwa: editan rukuni ba ya canzawa kuma hanyar lura tana amsa null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "A yayin binciken lafiyar proxy, bari gwajin da manufa ta ƙi (401/403/429: proxy ya isar, amma wurin da ake nufi ya ƙi wannan IP na fita) ya sake saita jerin gazawar proxy masu jere, kamar gwajin da aka yi wa hidima. A kashe yake ta tsohuwa: ƙin amincewa yana kasancewa tsaka-tsaki kuma yana riƙe da jerin gazawar. 5xx yana kasancewa mara tabbas a kowane hali, kuma ƙin amincewa ba ya taɓa cirewa, kashewa ko sake kunna proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Bari aikin sharewa ta atomatik ya goge ayyukan Batch API da suka ƙare (an kammala/an gaza/an soke/lokaci ya ƙare) waɗanda suka girmi OMNIROUTE_BATCH_RETENTION_DAYS, tare da wuraren ci-gaban kowane layinsu, sannan ya share abun cikin BLOB na fayilolin da aka ɗora waɗanda lokacinsu na expires_at ya wuce. A kashe yake ta tsohuwa: duk shigarwar da ake da ita za ta ci gaba da riƙe wannan bayanin daidai kamar da har sai mai gudanarwa ya kunna shi. Hanyar DELETE /api/v1/batches/delete-completed da mai gudanarwa ke jawowa ba ta canzawa a kowane hali — wata yarjejeniyar API ta jama'a ce daban wadda ba ta da sharaɗi.",
@@ -11509,7 +11509,13 @@
       "correlationIdValue": "ID na Alaƙa: {id}",
       "detailedPayloadInfo": "Da farko, kunna yin cikakken log idan kana son ganin payload na matakai huɗu na abokin ciniki/mai bayarwa don sabbin buƙatu.",
       "copyAll": "Kwafi duka",
-      "copiedAll": "An kwafi duka"
+      "copiedAll": "An kwafi duka",
+      "resilienceStoredError": "An bayar daga kuskuren da aka adana",
+      "resilienceParked": "An ajiye {ms} kafin aikawa",
+      "resilienceRotations": "Juyawar asusu {count}",
+      "resilienceRetried": "An sake gwada zagaye mara komai",
+      "resilienceContinued": "An ci gaba a tsakiyar rafi",
+      "resilienceRecovered": "An dawo da shi ta matakin juriya"
     }
   },
   "proxyLogger": {

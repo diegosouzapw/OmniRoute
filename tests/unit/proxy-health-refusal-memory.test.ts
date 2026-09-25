@@ -51,8 +51,8 @@ test("a probe that answers again ends the period", async () => {
   assert.equal(memory.isProxyAvoided(KEY), false);
 });
 
-test("with the flag at its default (off) a refused probe writes nothing", async () => {
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+test("with the flag opted out a refused probe writes nothing", async () => {
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   health.__setProxyHealthTcpCheckForTesting(async () => false);
   assert.equal(await health.isProxyReachable(PROXY_URL), false);
   assert.equal(memory.__proxyRefusalMemorySizeForTesting(), 0);

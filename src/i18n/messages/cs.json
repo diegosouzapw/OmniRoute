@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Hlavní přepínač pro aliasy brány no-think/&lt;provider&gt;/&lt;model&gt;. Zapnuto (výchozí): /v1/models uvádí variantu bez přemýšlení pro každý způsobilý model Claude podporující přemýšlení a id no-think/ odeslané v požadavku se převede zpět na skutečný model s potlačeným uvažováním. Vypnuto: žádné varianty nejsou uváděny a id no-think/ se považuje za jakékoli jiné neznámé id modelu. Dokud je tato možnost zapnutá, nadále platí povolení či zakázání pro jednotlivé modely prostřednictvím ModelSpec.noThinkingAlias.",
   "featureFlagChatVirtualLanesEnabledDescription": "Povolte adaptivní virtuální vstupní pruhy pro každého tenanta při odesílání poskytovatelům (#9654): špička jednoho tenanta už nezpůsobí 503 u jiného. Proměnná prostředí OMNIROUTE_CHAT_VIRTUAL_LANES má přednost před tímto nastavením na řídicím panelu; změny se projeví po restartu serveru.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Stránky poskytovatelů na řídicím panelu: zobrazí odznak Zdarma pouze na základě příznaků, které poskytovatel podporuje — přestane používat heuristiku zobrazovaného názvu, nebooleovská pole free a přípony :free u registrovaných poskytovatelů bez zdokumentované bezplatné úrovně. Vypnutí zachová původní pravidlo pro odznak.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Fondy proxy serverů a rotace opencode pro jednotlivé účty dočasně přestanou znovu nabízet proxy server, který právě selhal (odmítnutá sonda TCP nebo odpověď 429 přijatá přes tento server), a to na dobu platnou pro daný proces, která se při každém opakování zdvojnásobí až do stanoveného maxima. Stav proxy serveru se nezapisuje; pokud jsou odloženi všichni kandidáti, volba se nemění. Ve výchozím nastavení vypnuto: pořadí výběru přesně odpovídá prosté rotaci.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Fondy proxy serverů a rotace opencode pro jednotlivé účty dočasně přestanou znovu nabízet proxy server, který právě selhal (odmítnutá sonda TCP nebo odpověď 429 přijatá přes tento server), a to na dobu platnou pro daný proces, která se při každém opakování zdvojnásobí až do stanoveného maxima. Stav proxy serveru se nezapisuje; pokud jsou odloženi všichni kandidáti, volba se nemění. Ve výchozím nastavení zapnuto; `false` obnoví prostý výběr.",
   "featureFlagProxyPoolEgressObservationDescription": "Zobrazit pod fondem proxy serverů na řídicím panelu, kolik pozorovaných odchozích IP adres obsluhovalo jeho členy za posledních 24 h, kolik připojení je použilo a jaký byl nejvyšší počet připojení zaznamenaný za jednou IP adresou. Pouze pro čtení, vypočítáváno z protokolu proxy serveru a nikdy nepoužíváno ke směrování. Ve výchozím nastavení vypnuto: editor fondu zůstává beze změny a trasa pozorování vrací null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Při kontrole stavu proxy serveru umožnit, aby sonda odmítnutá cílem (401/403/429: proxy server požadavek předal, ale cíl odmítl tuto odchozí IP adresu) vynulovala řadu po sobě jdoucích selhání proxy serveru stejně jako úspěšně obsloužená sonda. Ve výchozím nastavení vypnuto: odmítnutí zůstává neutrální a řadu zachovává. Odpověď 5xx zůstává v obou případech neprůkazná a odmítnutí nikdy neodebere, nezakáže ani znovu neaktivuje proxy server.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Povolit automatickému čištění odstraňovat úlohy Batch API v koncovém stavu (dokončené/neúspěšné/zrušené/expirované), které jsou starší než OMNIROUTE_BATCH_RETENTION_DAYS, spolu s jejich kontrolními body pro jednotlivé řádky a mazat obsah BLOB nahraných souborů po uplynutí jejich vlastního expires_at. Ve výchozím nastavení vypnuto: každá stávající instalace uchovává tato data přesně jako dříve, dokud správce tuto funkci nepovolí. Trasa DELETE /api/v1/batches/delete-completed spouštěná správcem zůstává v obou případech beze změny – jde o samostatný, nepodmíněný veřejný kontrakt API.",
@@ -11509,7 +11509,13 @@
       "correlationIdValue": "ID korelace: {id}",
       "detailedPayloadInfo": "Nejprve povolte podrobné protokolování, pokud chcete čtyřstupňový pohled na payload klienta/poskytovatele pro nové požadavky.",
       "copyAll": "Kopírovat vše",
-      "copiedAll": "Vše zkopírováno"
+      "copiedAll": "Vše zkopírováno",
+      "resilienceStoredError": "Obslouženo z uložené chyby",
+      "resilienceParked": "Odloženo o {ms} před odesláním",
+      "resilienceRotations": "{count} rotací účtů",
+      "resilienceRetried": "Prázdný tah zopakován",
+      "resilienceContinued": "Obnoveno uprostřed streamu",
+      "resilienceRecovered": "Obnoveno akcí odolnosti"
     }
   },
   "proxyLogger": {

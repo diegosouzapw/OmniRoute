@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; 閘道別名的主開關。開啟（預設）：/v1/models 會為每個符合資格且支援思考的 Claude 模型提供不思考變體，而請求中傳送的 no-think/ ID 會解析回實際模型並抑制推理。關閉：不會提供任何變體，且 no-think/ ID 會像其他未知模型 ID 一樣處理。開啟此選項時，每個模型的 ModelSpec.noThinkingAlias 選擇加入／退出設定仍然適用。",
   "featureFlagChatVirtualLanesEnabledDescription": "為提供者調度啟用按租戶的自適應虛擬准入通道（#9654）：一個租戶的突發流量不再導致另一個租戶收到 503。OMNIROUTE_CHAT_VIRTUAL_LANES 環境變數優先於此儀表板設定；變更在伺服器重新啟動後生效。",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "儀表板提供者頁面：僅根據提供者明確認可的訊號顯示「免費」徽章——不再對沒有文件說明免費方案的已註冊提供者使用顯示名稱啟發法、非布林值免費欄位及 :free 後綴。關閉時會沿用過往的徽章規則。",
-  "featureFlagProxySkipRecentlyFailedDescription": "Proxy 集區以及 opencode 的每帳戶輪替機制，會在每個處理程序的一段期間內，停止再次使用剛失敗的 Proxy（TCP 探測遭拒，或透過該 Proxy 收到 429）。每次重複失敗時，這段期間都會加倍，直到達到上限。不會寫入任何 Proxy 狀態；即使所有候選項目都被暫時擱置，選擇結果仍維持不變。預設關閉：選擇順序與一般輪替完全相同。",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proxy 集區以及 opencode 的每帳戶輪替機制，會在每個處理程序的一段期間內，停止再次使用剛失敗的 Proxy（TCP 探測遭拒，或透過該 Proxy 收到 429）。每次重複失敗時，這段期間都會加倍，直到達到上限。不會寫入任何 Proxy 狀態；即使所有候選項目都被暫時擱置，選擇結果仍維持不變。預設開啟；設為 `false` 可恢復一般選擇。",
   "featureFlagProxyPoolEgressObservationDescription": "在儀表板的 Proxy 集區下方，顯示過去 24 小時內觀察到多少個出口 IP 為其成員提供服務、使用這些 IP 的連線數，以及單一 IP 後方觀察到的最高數量。唯讀，根據 Proxy 記錄計算，絕不會用於路由。預設關閉：集區編輯器維持不變，觀察路由會回傳 null。",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "在 Proxy 健康狀態掃描中，讓遭目標拒絕的探測（401/403/429：Proxy 已轉送，但目的地拒絕此出口 IP）能像已提供服務的探測一樣，重設 Proxy 的連續失敗次數。預設關閉：拒絕仍視為中性，並保留目前的連續失敗次數。無論此設定為何，5xx 仍視為無法判定，而且拒絕絕不會移除、停用或重新啟用 Proxy。",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "允許自動清理程序刪除早於 OMNIROUTE_BATCH_RETENTION_DAYS 且處於最終狀態（已完成／失敗／已取消／已過期）的 Batch API 作業及其逐行檢查點，並清除已超過各自 expires_at 的上傳檔案 BLOB 內容。預設關閉：在操作員選擇啟用前，所有現有安裝都會完全比照以往保留這些資料。無論是否啟用，操作員觸發的 DELETE /api/v1/batches/delete-completed 路由都不受影響——它是獨立且無條件的公開 API 合約。",
@@ -11509,7 +11509,13 @@
       "correlationIdValue": "關聯 ID: {id}",
       "detailedPayloadInfo": "如果您想要新請求的四階段客戶端/提供者有效載荷視圖，請先啟用詳細日誌記錄。",
       "copyAll": "全部複製",
-      "copiedAll": "已全部複製"
+      "copiedAll": "已全部複製",
+      "resilienceStoredError": "根據已存錯誤提供服務",
+      "resilienceParked": "傳送前等待{ms}",
+      "resilienceRotations": "輪換帳戶{count}次",
+      "resilienceRetried": "重試空輪次",
+      "resilienceContinued": "在串流中途恢復",
+      "resilienceRecovered": "透過彈性操作恢復"
     }
   },
   "proxyLogger": {

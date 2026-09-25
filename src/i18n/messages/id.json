@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Sakelar utama untuk alias gateway no-think/&lt;provider&gt;/&lt;model&gt;. Aktif (bawaan): /v1/models menampilkan varian tanpa penalaran untuk setiap model Claude yang memenuhi syarat dan mendukung penalaran, serta id no-think/ yang dikirim dalam permintaan akan diarahkan kembali ke model sebenarnya dengan penalaran dinonaktifkan. Nonaktif: tidak ada varian yang ditampilkan dan id no-think/ diperlakukan seperti id model lain yang tidak dikenal. Opsi ikut serta/tidak ikut serta ModelSpec.noThinkingAlias per model tetap berlaku saat fitur ini aktif.",
   "featureFlagChatVirtualLanesEnabledDescription": "Aktifkan jalur penerimaan virtual adaptif per-tenant untuk pengiriman penyedia (#9654): lonjakan satu tenant tidak lagi mengembalikan 503 ke tenant lain. Variabel lingkungan OMNIROUTE_CHAT_VIRTUAL_LANES menang atas pengaturan dasbor ini; perubahan berlaku setelah server dimulai ulang.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Halaman penyedia di dasbor: tampilkan lencana Gratis hanya berdasarkan sinyal yang dipenuhi oleh penyedia — abaikan heuristik nama tampilan, kolom gratis non-boolean, dan akhiran :free pada penyedia terdaftar tanpa tingkat gratis yang terdokumentasi. Jika dinonaktifkan, aturan lencana lama tetap digunakan.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Pool proxy dan rotasi per akun opencode berhenti menyajikan kembali proxy yang baru saja gagal (probe TCP ditolak atau respons 429 diterima melaluinya) selama periode per proses yang berlipat ganda setiap kali kegagalan berulang, hingga batas maksimum. Status proxy tidak ditulis; jika setiap kandidat disisihkan, pilihannya tetap tidak berubah. Nonaktif secara default: urutan pemilihan sama persis dengan rotasi biasa.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Pool proxy dan rotasi per akun opencode berhenti menyajikan kembali proxy yang baru saja gagal (probe TCP ditolak atau respons 429 diterima melaluinya) selama periode per proses yang berlipat ganda setiap kali kegagalan berulang, hingga batas maksimum. Status proxy tidak ditulis; jika setiap kandidat disisihkan, pilihannya tetap tidak berubah. Aktif secara default; `false` memulihkan pemilihan biasa.",
   "featureFlagProxyPoolEgressObservationDescription": "Tampilkan, di bawah pool proxy pada dasbor, jumlah IP keluar yang teramati melayani anggotanya selama 24 jam terakhir, jumlah koneksi yang menggunakannya, dan jumlah koneksi terbanyak yang terlihat di balik satu IP. Hanya-baca, dihitung dari log proxy, dan tidak pernah digunakan untuk perutean. Nonaktif secara default: editor pool tidak berubah dan rute observasi memberikan jawaban null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Dalam pemeriksaan kesehatan proxy, izinkan probe yang ditolak oleh target (401/403/429: proxy meneruskan, tetapi tujuan menolak IP keluar ini) mereset rentetan kegagalan berturut-turut proxy, seperti probe yang berhasil dilayani. Nonaktif secara default: penolakan tetap netral dan mempertahankan rentetan tersebut. Respons 5xx tetap tidak meyakinkan dalam kedua kasus, dan penolakan tidak pernah menghapus, menonaktifkan, atau mengaktifkan kembali proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Izinkan pembersihan otomatis menghapus tugas Batch API berstatus akhir (selesai/gagal/dibatalkan/kedaluwarsa) yang lebih lama dari OMNIROUTE_BATCH_RETENTION_DAYS, beserta titik pemeriksaan per barisnya, serta menghapus konten BLOB dari file yang diunggah setelah melewati expires_at masing-masing. Nonaktif secara default: setiap instalasi yang ada tetap menyimpan data ini persis seperti sebelumnya hingga operator mengaktifkannya. Rute DELETE /api/v1/batches/delete-completed yang dipicu operator tidak terpengaruh dalam kondisi apa pun — rute tersebut merupakan kontrak API publik terpisah yang berlaku tanpa syarat.",
@@ -11509,7 +11509,13 @@
       "correlationIdValue": "ID Korelasi: {id}",
       "detailedPayloadInfo": "Aktifkan logging terperinci terlebih dahulu jika Anda ingin tampilan payload klien/penyedia empat tahap untuk permintaan baru.",
       "copyAll": "Salin semua",
-      "copiedAll": "Semua disalin"
+      "copiedAll": "Semua disalin",
+      "resilienceStoredError": "Dilayani dari galat tersimpan",
+      "resilienceParked": "Ditahan {ms} sebelum dikirim",
+      "resilienceRotations": "{count} rotasi akun",
+      "resilienceRetried": "Giliran kosong dicoba ulang",
+      "resilienceContinued": "Dilanjutkan di tengah stream",
+      "resilienceRecovered": "Dipulihkan oleh tindakan ketahanan"
     }
   },
   "proxyLogger": {

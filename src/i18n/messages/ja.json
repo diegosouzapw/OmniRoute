@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; ゲートウェイエイリアスのマスタースイッチです。オン（デフォルト）の場合、/v1/models は、対象となる思考機能対応の各 Claude モデルについて思考なしのバリアントを提示し、リクエストで送信された no-think/ ID は実際のモデルに解決され、推論が抑制されます。オフの場合、バリアントは提示されず、no-think/ ID は他の不明なモデル ID と同様に扱われます。オンの場合でも、モデルごとの ModelSpec.noThinkingAlias によるオプトイン／オプトアウトが適用されます。",
   "featureFlagChatVirtualLanesEnabledDescription": "プロバイダーへのディスパッチ用に、テナントごとの適応型仮想受付レーンを有効にします（#9654）：あるテナントのバーストが他のテナントに503を返さなくなります。OMNIROUTE_CHAT_VIRTUAL_LANES環境変数はこのダッシュボード設定より優先されます。変更はサーバー再起動時に反映されます。",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "ダッシュボードのプロバイダーページ：プロバイダーが正式に対応していることを示すシグナルに対してのみ「Free」バッジを表示します。表示名による推測、ブール値ではない無料フィールド、および無料枠が文書化されていない登録済みプロバイダーの「:free」サフィックスは使用しません。オフにすると、従来のバッジ判定ルールが適用されます。",
-  "featureFlagProxySkipRecentlyFailedDescription": "プロキシプールと、アカウントごとのopencodeローテーションで、直前に失敗したプロキシ（TCPプローブが拒否された、またはそのプロキシ経由で429を受信したもの）の再使用を、同一プロセス内で一定期間停止します。この期間は失敗を繰り返すたびに倍増し、上限があります。プロキシのステータスは書き込まれません。すべての候補が除外された場合、選択は変更されません。デフォルトではオフです。有効にしない限り、選択順序は通常のローテーションとまったく同じです。",
+  "featureFlagProxySkipRecentlyFailedDescription": "プロキシプールと、アカウントごとのopencodeローテーションで、直前に失敗したプロキシ（TCPプローブが拒否された、またはそのプロキシ経由で429を受信したもの）の再使用を、同一プロセス内で一定期間停止します。この期間は失敗を繰り返すたびに倍増し、上限があります。プロキシのステータスは書き込まれません。すべての候補が除外された場合、選択は変更されません。デフォルトではオンです。`false` にすると通常の選択に戻ります。",
   "featureFlagProxyPoolEgressObservationDescription": "ダッシュボードのプロキシプールの下に、過去24時間にそのメンバーに使用されたことが観測された送信元IPの数、それらを使用した接続数、および1つのIPの背後で観測された最多のメンバー数を表示します。読み取り専用で、プロキシログから算出され、ルーティングには使用されません。デフォルトではオフです。プールエディターは変更されず、観測ルートはnullを返します。",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "プロキシのヘルススイープで、ターゲットに拒否されたプローブ（401/403/429：プロキシは中継したが、宛先がこの送信元IPを拒否したもの）が、正常に処理されたプローブと同様に、プロキシの連続失敗回数をリセットできるようにします。デフォルトではオフです。拒否は中立のままで、連続失敗回数は維持されます。どちらの場合も5xxは判定不能のままであり、拒否によってプロキシが削除、無効化、または再有効化されることはありません。",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "自動クリーンアップ処理で、OMNIROUTE_BATCH_RETENTION_DAYS より古い終了済み（完了／失敗／キャンセル／期限切れ）の Batch API ジョブを行ごとのチェックポイントとともに削除し、それぞれの expires_at を過ぎたアップロード済みファイルの BLOB コンテンツを消去します。デフォルトではオフです。オペレーターが明示的に有効化するまで、既存のすべてのインストール環境では従来どおりデータが保持されます。オペレーターが実行する DELETE /api/v1/batches/delete-completed ルートは、設定の有効／無効にかかわらず影響を受けません。これは独立した無条件の公開 API 契約です。",
@@ -11509,7 +11509,13 @@
       "correlationIdValue": "相関ID: {id}",
       "detailedPayloadInfo": "新しいリクエストのために四段階のクライアント/プロバイダー ペイロードビューを表示したい場合は、まず詳細なログ記録を有効にしてください。",
       "copyAll": "すべてコピー",
-      "copiedAll": "すべてコピーしました"
+      "copiedAll": "すべてコピーしました",
+      "resilienceStoredError": "保存済みエラーから応答",
+      "resilienceParked": "送信前に{ms}待機",
+      "resilienceRotations": "アカウント切替{count}回",
+      "resilienceRetried": "空ターンを再試行",
+      "resilienceContinued": "ストリーム途中で再開",
+      "resilienceRecovered": "レジリエンス動作で回復"
     }
   },
   "proxyLogger": {

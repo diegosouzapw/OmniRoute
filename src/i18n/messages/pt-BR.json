@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Controle principal dos aliases de gateway no-think/&lt;provider&gt;/&lt;model&gt;. Ativado (padrão): /v1/models anuncia uma variante sem raciocínio para cada modelo Claude qualificado com capacidade de raciocínio, e um ID no-think/ enviado em uma solicitação é resolvido para o modelo real com o raciocínio suprimido. Desativado: nenhuma variante é anunciada, e um ID no-think/ é tratado como qualquer outro ID de modelo desconhecido. A configuração de ativação/desativação ModelSpec.noThinkingAlias por modelo continua válida enquanto esta opção estiver ativada.",
   "featureFlagChatVirtualLanesEnabledDescription": "Ative faixas de admissão virtuais adaptativas por tenant para o despacho de provedores (#9654): o pico de um tenant não gera mais 503 para outro. A variável de ambiente OMNIROUTE_CHAT_VIRTUAL_LANES tem precedência sobre esta configuração do painel; as alterações entram em vigor ao reiniciar o servidor.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Páginas de provedores no painel: exibe o selo Grátis apenas quando houver sinais reconhecidos pelo provedor — descarta a heurística de nome de exibição, campos de gratuidade não booleanos e sufixos :free em provedores registrados sem uma modalidade gratuita documentada. Quando desativado, mantém a regra histórica do selo.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Pools de proxy e a rotação por conta do opencode deixam de reutilizar um proxy que acabou de falhar (sonda TCP recusada, ou um 429 recebido por ele) por um período por processo que dobra a cada repetição, até um limite. Nenhum status de proxy é gravado; com todos os candidatos deixados de lado, a escolha não muda. Desligado por padrão: a ordem de seleção é exatamente a rotação simples.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Pools de proxy e a rotação por conta do opencode deixam de reutilizar um proxy que acabou de falhar (sonda TCP recusada, ou um 429 recebido por ele) por um período por processo que dobra a cada repetição, até um limite. Nenhum status de proxy é gravado; com todos os candidatos deixados de lado, a escolha não muda. Ligado por padrão; `false` restaura a seleção simples.",
   "featureFlagProxyPoolEgressObservationDescription": "Mostra, abaixo de um pool de proxy no painel, quantos IPs de saída observados atenderam seus membros nas últimas 24 h, quantas conexões os usaram e o máximo visto atrás de um mesmo IP. Somente leitura, calculado a partir do log de proxy, nunca usado para roteamento. Desligado por padrão: o editor de pool não muda e a rota de observação responde null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Na varredura de saúde de proxy, permite que uma sonda recusada pelo destino (401/403/429: o proxy retransmitiu, o destino recusou este IP de saída) zere a sequência de falhas consecutivas do proxy, como uma sonda atendida. Desligado por padrão: a recusa continua neutra e mantém a sequência. Um 5xx continua inconclusivo em qualquer caso, e uma recusa nunca remove, desativa ou reativa um proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Permite que a varredura automática de limpeza exclua jobs terminais (completed/failed/cancelled/expired) da Batch API mais antigos que OMNIROUTE_BATCH_RETENTION_DAYS, junto com seus checkpoints por linha, e limpe o conteúdo BLOB de arquivos enviados que já passaram do próprio expires_at. Desligado por padrão: toda instalação existente mantém esses dados exatamente como estão até um operador ativar. A rota DELETE /api/v1/batches/delete-completed, acionada pelo operador, não é afetada de nenhuma forma -- é um contrato de API pública separado e incondicional.",
@@ -11509,7 +11509,13 @@
       "correlationIdValue": "ID de Correlação: {id}",
       "detailedPayloadInfo": "Ative o registro detalhado primeiro se você quiser a visualização de carga útil de cliente/provedor em quatro etapas para novas solicitações.",
       "copyAll": "Copiar tudo",
-      "copiedAll": "Tudo copiado"
+      "copiedAll": "Tudo copiado",
+      "resilienceStoredError": "Servido a partir do erro salvo",
+      "resilienceParked": "Aguardou {ms} antes do envio",
+      "resilienceRotations": "{count} rotações de conta",
+      "resilienceRetried": "Turno vazio repetido",
+      "resilienceContinued": "Retomado no meio do fluxo",
+      "resilienceRecovered": "Recuperado por uma ação de resiliência"
     }
   },
   "proxyLogger": {
