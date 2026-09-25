@@ -1,4 +1,4 @@
-import { gateKey, sameKey } from "./types.mjs";
+import { gateKey, keyId, sameKey, STATUSES } from "./types.mjs";
 
 export function classifyDependent(prereqStatus, dependentKey, prereqKey) {
   if (prereqStatus === "FAIL") {
@@ -81,10 +81,7 @@ function statusOfGateId(gates, gateId) {
 function pushEvidenceError(evidence_errors, err) {
   if (!err) return;
   const already = evidence_errors.some(
-    (e) =>
-      e.code === err.code &&
-      e.detail === err.detail &&
-      e.gate?.gate_id === err.gate?.gate_id
+    (e) => e.code === err.code && e.detail === err.detail && e.gate?.gate_id === err.gate?.gate_id
   );
   if (!already) evidence_errors.push(err);
 }
@@ -163,17 +160,58 @@ export function reduce(plan, records) {
 
   const gates = [];
   const evidence_errors = [];
+  const identity = plan.identity ?? {};
+  const validIdentity =
+    /^[0-9a-f]{40}$/.test(identity.tested_sha ?? "") &&
+    typeof identity.run_id === "string" &&
+    identity.run_id.length > 0 &&
+    Number.isInteger(identity.run_attempt) &&
+    identity.run_attempt > 0;
+  const seen = new Set();
 
   for (const rec of records) {
     const k = gateKey(rec);
     const copy = { ...rec, cause: rec.cause ?? null };
+    const id = keyId(k);
+    if (seen.has(id)) {
+      pushEvidenceError(evidence_errors, {
+        code: "duplicate_record",
+        gate: k,
+        detail: `multiple records for ${JSON.stringify(k)}`,
+      });
+    }
+    seen.add(id);
+    let invalid;
+    if (
+      !validIdentity ||
+      ["tested_sha", "run_id", "run_attempt"].some((field) => copy[field] !== identity[field])
+    ) {
+      invalid = {
+        code: "identity_mismatch",
+        detail: "record does not belong to the planned SHA, run and attempt",
+      };
+    } else if (!STATUSES.includes(copy.status)) {
+      invalid = {
+        code: "invalid_status",
+        detail: "record has no recognized terminal execution status",
+      };
+    } else if (
+      (copy.status === "PASS" && copy.exit_code !== 0) ||
+      (copy.status === "FAIL" && (!Number.isInteger(copy.exit_code) || copy.exit_code <= 0))
+    ) {
+      invalid = { code: "exit_mismatch", detail: "execution exit and reported status disagree" };
+    }
+    if (invalid) {
+      pushEvidenceError(evidence_errors, { ...invalid, gate: k });
+      copy.status = "INFRA_ERROR";
+      copy.exit_code = 2;
+    }
     if (copy.status === "SKIPPED" && isRequired(plan, k) && !copy.reason) {
       copy.reason = "required skipped";
     }
     gates.push(copy);
   }
 
-  const identity = plan.identity ?? {};
   const edges = Object.entries(deps);
   let changed = true;
   let guard = edges.length + 1;
@@ -224,14 +262,13 @@ export function reduce(plan, records) {
 
   let verdict = "VERIFIED";
   const hasFail = gates.some(
-    (g) => g.status === "FAIL" && isRequired(plan, gateKey(g)) && statusOf(gates, gateKey(g)) === "FAIL"
+    (g) =>
+      g.status === "FAIL" && isRequired(plan, gateKey(g)) && statusOf(gates, gateKey(g)) === "FAIL"
   );
   const hasUnverified =
     evidence_errors.length > 0 ||
     gates.some(
-      (g) =>
-        isRequired(plan, gateKey(g)) &&
-        (g.status === "SKIPPED" || g.status === "INFRA_ERROR")
+      (g) => isRequired(plan, gateKey(g)) && (g.status === "SKIPPED" || g.status === "INFRA_ERROR")
     );
   if (hasFail) verdict = "FAILED";
   else if (hasUnverified) verdict = "UNVERIFIED";

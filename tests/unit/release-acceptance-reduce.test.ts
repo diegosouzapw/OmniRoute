@@ -21,7 +21,7 @@ function record(partial) {
     gate_type: "static",
     status: "PASS",
     cause: null,
-    exit_code: 0,
+    exit_code: partial.status === "FAIL" ? 1 : partial.status === "INFRA_ERROR" ? 2 : 0,
     duration_ms: 10,
     evidence: [],
     ...partial,
@@ -46,6 +46,45 @@ test("required SKIPPED never yields VERIFIED", () => {
   const out = reduce(planWithRequired("lint"), [
     record({ gate_id: "lint", status: "SKIPPED", reason: "optional-looking" }),
   ]);
+  assert.equal(out.verdict, "UNVERIFIED");
+});
+
+test("a complete matching required PASS is VERIFIED", () => {
+  assert.equal(reduce(planWithRequired("lint"), [record({})]).verdict, "VERIFIED");
+});
+
+for (const mismatch of [
+  { tested_sha: "a".repeat(40) },
+  { run_id: "older-run" },
+  { run_attempt: 2 },
+]) {
+  test(`PASS from a different validation identity is UNVERIFIED: ${JSON.stringify(mismatch)}`, () => {
+    const out = reduce(planWithRequired("lint"), [record(mismatch)]);
+    assert.equal(out.verdict, "UNVERIFIED");
+    assert.ok(out.evidence_errors.some((error) => error.code === "identity_mismatch"));
+  });
+}
+
+test("duplicate required PASS records cannot be counted as independent proof", () => {
+  const out = reduce(planWithRequired("lint"), [record({}), record({})]);
+  assert.equal(out.verdict, "UNVERIFIED");
+  assert.ok(out.evidence_errors.some((error) => error.code === "duplicate_record"));
+});
+
+for (const inconsistent of [
+  { status: "PASS", exit_code: 42 },
+  { status: "PASS", exit_code: null },
+  { status: "FAIL", exit_code: 0 },
+  { status: "PENDING", exit_code: 0 },
+]) {
+  test(`inconsistent or non-terminal command evidence is UNVERIFIED: ${JSON.stringify(inconsistent)}`, () => {
+    const out = reduce(planWithRequired("lint"), [record(inconsistent)]);
+    assert.equal(out.verdict, "UNVERIFIED");
+  });
+}
+
+test("missing plan identity cannot certify an otherwise passing record", () => {
+  const out = reduce(planWithRequired("lint", { identity: {} }), [record({})]);
   assert.equal(out.verdict, "UNVERIFIED");
 });
 
@@ -188,7 +227,11 @@ test("cyclic dependencies are rejected", () => {
     dependencies: { a: "b", b: "a" },
   };
   assert.throws(
-    () => reduce(cyclic, [record({ gate_id: "a", status: "INFRA_ERROR" }), record({ gate_id: "b", status: "FAIL" })]),
+    () =>
+      reduce(cyclic, [
+        record({ gate_id: "a", status: "INFRA_ERROR" }),
+        record({ gate_id: "b", status: "FAIL" }),
+      ]),
     /cyclic prerequisite/
   );
 });
@@ -203,10 +246,7 @@ test("missing prerequisite records one evidence error, not one per loop", () => 
     []
   );
   assert.equal(out.verdict, "UNVERIFIED");
-  assert.equal(
-    out.evidence_errors.filter((e) => e.code === "prerequisite_missing").length,
-    1
-  );
+  assert.equal(out.evidence_errors.filter((e) => e.code === "prerequisite_missing").length, 1);
 });
 
 test("missing prerequisite records one evidence error for all shards of a gate_id", () => {
@@ -221,10 +261,7 @@ test("missing prerequisite records one evidence error for all shards of a gate_i
     []
   );
   assert.equal(out.verdict, "UNVERIFIED");
-  assert.equal(
-    out.evidence_errors.filter((e) => e.code === "prerequisite_missing").length,
-    1
-  );
+  assert.equal(out.evidence_errors.filter((e) => e.code === "prerequisite_missing").length, 1);
 });
 
 test("two dependents of the same missing prerequisite keep one error per edge", () => {

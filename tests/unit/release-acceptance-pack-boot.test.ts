@@ -47,22 +47,22 @@ test("legacy computeVerdict still hard-fails pack-boot when pack-artifact times 
 });
 
 test("new reducer maps the same timeout to UNVERIFIED", () => {
-  const out = reduce(planPack, [
-    record({ gate_id: "pack-artifact", status: "INFRA_ERROR" }),
-  ]);
+  const out = reduce(planPack, [record({ gate_id: "pack-artifact", status: "INFRA_ERROR" })]);
   assert.equal(out.verdict, "UNVERIFIED");
 });
 
-test("synthesized pack-boot without identity.tested_sha keeps a 40-hex sha and FAILED", () => {
+test("synthesized pack-boot without a tested identity remains UNVERIFIED", () => {
   const plan = {
     required_gates: planPack.required_gates,
     identity: { run_id: "1", run_attempt: 1 },
     dependencies: { "pack-boot": "pack-artifact" },
   };
-  const out = reduce(plan, [record({ gate_id: "pack-artifact", status: "FAIL" })]);
+  const out = reduce(plan, [record({ gate_id: "pack-artifact", status: "FAIL", exit_code: 1 })]);
   const boot = out.gates.find((g) => g.gate_id === "pack-boot");
   assert.ok(boot);
   assert.notEqual(boot.tested_sha, null);
   assert.match(String(boot.tested_sha), /^[0-9a-f]{40}$/);
-  assert.equal(out.verdict, "FAILED");
+  assert.equal(boot.status, "INFRA_ERROR");
+  assert.equal(out.verdict, "UNVERIFIED");
+  assert.ok(out.evidence_errors.some((error) => error.code === "identity_mismatch"));
 });
