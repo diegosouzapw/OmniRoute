@@ -1,4 +1,4 @@
--- Migration 190: one token limit per (scope, reset interval) per API key.
+-- Migration 196: one token limit per (scope, reset interval) per API key.
 --
 -- 073 made (api_key_id, scope_type, scope_value) unique, so a key could hold only
 -- one limit per scope: adding a weekly global limit overwrote the daily one through
@@ -17,10 +17,10 @@
 -- to temp tables first and restored after the rename (INSERT OR IGNORE also covers a
 -- connection that runs with foreign keys off). Safe to re-run.
 
-DROP TABLE IF EXISTS temp.aktl190_counters;
-DROP TABLE IF EXISTS temp.aktl190_reset_logs;
-CREATE TEMP TABLE aktl190_counters AS SELECT * FROM api_key_token_counters;
-CREATE TEMP TABLE aktl190_reset_logs AS SELECT * FROM api_key_token_limit_reset_logs;
+DROP TABLE IF EXISTS temp.aktl196_counters;
+DROP TABLE IF EXISTS temp.aktl196_reset_logs;
+CREATE TEMP TABLE aktl196_counters AS SELECT * FROM api_key_token_counters;
+CREATE TEMP TABLE aktl196_reset_logs AS SELECT * FROM api_key_token_limit_reset_logs;
 
 CREATE TABLE IF NOT EXISTS api_key_token_limits_new (
   id              TEXT PRIMARY KEY,
@@ -50,10 +50,10 @@ ALTER TABLE api_key_token_limits_new RENAME TO api_key_token_limits;
 CREATE INDEX IF NOT EXISTS idx_aktl_api_key_id ON api_key_token_limits (api_key_id);
 
 INSERT OR IGNORE INTO api_key_token_counters (limit_id, window_start, tokens_used, updated_at)
-SELECT limit_id, window_start, tokens_used, updated_at FROM temp.aktl190_counters;
+SELECT limit_id, window_start, tokens_used, updated_at FROM temp.aktl196_counters;
 
 INSERT OR IGNORE INTO api_key_token_limit_reset_logs (id, limit_id, reset_at, prev_tokens, window_start)
-SELECT id, limit_id, reset_at, prev_tokens, window_start FROM temp.aktl190_reset_logs;
+SELECT id, limit_id, reset_at, prev_tokens, window_start FROM temp.aktl196_reset_logs;
 
-DROP TABLE temp.aktl190_counters;
-DROP TABLE temp.aktl190_reset_logs;
+DROP TABLE temp.aktl196_counters;
+DROP TABLE temp.aktl196_reset_logs;

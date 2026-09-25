@@ -132,10 +132,6 @@ function rowToTokenLimit(row: unknown): TokenLimit {
 
 // ──────────────── CRUD ────────────────
 
-/**
- * Insert or update a token limit. Upsert key is (api_key_id, scope_type, scope_value).
- * Returns the persisted row.
- */
 /** An id-targeted update that would take another limit's (scope, reset interval) slot. */
 export class TokenLimitConflictError extends Error {
   constructor(scopeType: TokenLimitScopeType, resetInterval: BudgetResetInterval) {
@@ -210,10 +206,11 @@ function insertOrMergeTokenLimit(row: ReturnType<typeof normalizeUpsertInput>): 
 }
 
 /**
- * Save a token limit. With `id`, that row is updated (it may change scope or window; taking
- * another limit's (scope, reset interval) slot throws TokenLimitConflictError, an unknown id
- * TokenLimitNotFoundError). Without `id`, a new limit is added — or the key's limit for the same
- * scope and reset interval is updated, never a limit of another window.
+ * Insert or update a token limit. Upsert key is (api_key_id, scope_type, scope_value, reset_interval).
+ * With `id`, that row is updated by id (taking another limit's (scope, reset interval) slot throws
+ * TokenLimitConflictError, an unknown id TokenLimitNotFoundError). Without `id`, inserts or updates
+ * the limit with the same scope and reset interval, never a limit of another window.
+ * Returns the persisted row.
  */
 export function upsertTokenLimit(input: UpsertTokenLimitInput): TokenLimit {
   ensureSchema();

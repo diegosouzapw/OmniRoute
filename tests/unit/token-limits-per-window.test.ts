@@ -174,7 +174,7 @@ test("route: updating an unknown id returns 404", async () => {
   assert.equal(res.status, 404);
 });
 
-test("migration 190 keeps existing rows, ids and counters, then allows a second window", async () => {
+test("migration 196 keeps existing rows, ids and counters, then allows a second window", async () => {
   const { default: Database } = await import("better-sqlite3");
   const dir = path.join(process.cwd(), "src/lib/db/migrations");
   const db = new Database(":memory:");
@@ -199,7 +199,7 @@ test("migration 190 keeps existing rows, ids and counters, then allows a second 
 
     // The runner applies each file inside one transaction.
     db.exec("BEGIN");
-    db.exec(fs.readFileSync(path.join(dir, "190_token_limits_unique_per_window.sql"), "utf8"));
+    db.exec(fs.readFileSync(path.join(dir, "196_token_limits_unique_per_window.sql"), "utf8"));
     db.exec("COMMIT");
 
     const rows = db.prepare("SELECT id, token_limit FROM api_key_token_limits").all();
@@ -224,7 +224,7 @@ test("migration 190 keeps existing rows, ids and counters, then allows a second 
       2
     );
 
-    db.exec(fs.readFileSync(path.join(dir, "190_token_limits_unique_per_window.sql"), "utf8"));
+    db.exec(fs.readFileSync(path.join(dir, "196_token_limits_unique_per_window.sql"), "utf8"));
     assert.equal(
       (db.prepare("SELECT COUNT(*) AS n FROM api_key_token_limits").get() as { n: number }).n,
       2,
