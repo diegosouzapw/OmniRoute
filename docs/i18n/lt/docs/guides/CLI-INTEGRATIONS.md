@@ -4,27 +4,11 @@
 
 ---
 
-„OmniRoute“ pateikia `setup-*` komandų rinkinį, kuris sukonfigūruoja programavimo
-CLI („Codex“, „Claude Code“, „OpenCode“, „Cline“, …), kad šis naudotų „OmniRoute“ kaip savo vidinę sistemą — taip
-įrankis kreipiasi į **vieną** galinį tašką, o „OmniRoute“ nukreipia užklausą tinkamam teikėjui ir
-automatiškai persijungia sutrikimo atveju. Kiekviena komanda nuskaito **aktyvų** modelių katalogą iš veikiančio
-„OmniRoute“ egzemplioriaus (vietinio arba nuotolinio) ir įrašo paties įrankio konfigūracijos failą **jūsų**
-kompiuteryje. Visur, kur įrankis tai palaiko, API raktas nurodomas per aplinkos kintamąjį.
-Komandos, kurios išsaugo įrankio vietinį aplinkos failą, pažymėtos toliau.
+OmniRoute pateikia `setup-*` komandų šeimą, kuri konfigūruoja kodavimo CLI (Codex, Claude Code, OpenCode, Cline, …) naudoti OmniRoute kaip savo pagrindinę sistemą (backend) – taip įrankis bendrauja su **vienu** galiniu tašku, o OmniRoute nukreipia į tinkamą teikėją su automatiniu atsarginiu variantu. Kiekviena komanda nuskaito **gyvą** modelių katalogą iš veikiančio OmniRoute (vietinio ar nuotolinio) ir įrašo įrankio konfigūracijos failą **jūsų** kompiuteryje. API raktas nurodomas aplinkos kintamuoju, jei įrankis tai palaiko. Komandos, kurios išsaugo įrankio vietinį aplinkos failą, nurodytos žemiau.
 
-Taip pat pateikiama universali paleidyklė — `omniroute run <target>` — kuri paleidžia
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` arba `gemini`, įterpdama
-reikiamus aplinkos kintamuosius ir visiškai neįrašydama jokios konfigūracijos. Tikslai ir jų
-alternatyvieji pavadinimai gaunami iš kanoninio manifesto `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), o `omniroute completion` siūlo tuos
-pačius iš manifesto gautus tikslų pavadinimus. Ankstesnės kiekvienam įrankiui skirtos paleidyklės —
-`omniroute launch` („Claude Code“) ir `omniroute launch-codex` („Codex“) — tebėra
-prieinamos.
+Taip pat yra bendras paleidiklis – `omniroute run <target>` – kuris paleidžia `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` arba `gemini` su tinkamai įterptomis aplinkos nuostatomis, visiškai nerašant jokios konfigūracijos. Tikslai ir jų pseudonimai gaunami iš kanoninio manifesto `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), o `omniroute completion` siūlo tuos pačius iš manifesto gautus tikslinius žodžius. Senesni, įrankiams skirti paleidikliai – `omniroute launch` (Claude Code) ir `omniroute launch-codex` (Codex) – išlieka prieinami.
 
-Teikėjus taip pat galima prijungti iš to paties vietinio arba nuotolinio konteksto. Toliau
-pateiktos komandos, pirmiausia naudojančios API, valdymo autentifikavimą atskiria nuo teikėjo
-prisijungimo duomenų ir niekada neišveda prisijungimo duomenų struktūrizuotoje išvestyje:
+Teikėjų įtraukimas galimas iš to paties vietinio/nuotolinio konteksto. Žemiau pateiktos API-pirminės komandos atskiria valdymo autentifikavimą nuo teikėjų kredencialų ir niekada nespausdina kredencialų struktūrizuotoje išvestyje:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,19 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Skriptuose pirmenybę teikite `--credential-stdin` arba `--credential-env`; `--credential`
-palikta kontroliuojamam vietiniam naudojimui. Neinteraktyviajame terminale komandai `providers remove`
-būtinas parametras `--yes`, o visos penkios komandos naudoja aktyvų kontekstą arba
-visuotines `--base-url`/`--api-key` parinktis.
+Skriptams teikite pirmenybę `--credential-stdin` arba `--credential-env`; `--credential` paliktas kontroliuojamam vietiniam naudojimui. `providers remove` reikalauja `--yes` neinteraktyviame terminale, ir visos penkios komandos atsižvelgia į aktyvų kontekstą arba globalias `--base-url`/`--api-key` parinktis.
 
-Informaciją apie vienkartinę, rankiniu būdu atliekamą dviejų išsamiausių integracijų bazinę sąranką rasite
-atskiriems įrankiams skirtuose išsamiuose vadovuose:
+Teikėjų selektoriai atmeta dviprasmiškus ID prefiksus, pavadinimus ar teikėjų pavadinimus; naudokite visą ryšio ID, kai atitinka keli ryšiai. Kūrimo ir redagavimo komandos nuskaito išsaugotą ryšį atgal, o pašalinimas patikrina, ar jis nebėra skaitomas. Importavimas praleidžia esamą teikėjo/pavadinimo porą. Importuoti įrašai negali perrašyti valdymo galinio taško, konteksto ar valdymo kredencialų, pateiktų CLI.
 
-- [„Claude Code“ konfigūracija](./CLAUDE-CODE-CONFIGURATION.md)
-- [„Codex CLI“ konfigūracija](./CODEX-CLI-CONFIGURATION.md)
-- [Nuotolinis režimas](./REMOTE-MODE.md) — valdykite nuotolinį „OmniRoute“ (VPS / Tailnet) iš savo nešiojamojo kompiuterio
-- [„VS Code Copilot Chat“](./VSCODE-COPILOT.md) — „OmniCopilot“ plėtinys; jis taip pat gali vykdyti šias
-  `setup-*` komandas už jus tiesiogiai redaktoriuje
+Norėdami atlikti vienkartinį, rankinį dviejų turtingiausių integracijų bazinį nustatymą, žr. išsamius įrankių aprašymus:
+
+- [Claude Code konfigūracija](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI konfigūracija](./CODEX-CLI-CONFIGURATION.md)
+- [Nuotolinis režimas](./REMOTE-MODE.md) – valdykite nuotolinį OmniRoute (VPS / Tailnet) iš savo nešiojamojo kompiuterio
+- [VS Code Copilot pokalbis](./VSCODE-COPILOT.md) – OmniCopilot plėtinys; jis taip pat gali paleisti šias `setup-*` komandas už jus redaktoriaus viduje
 
 ---
 

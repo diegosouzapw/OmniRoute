@@ -1,0 +1,1 @@
+- **fix(grok-cli):** Combo conversations can return to Grok Build after a turn served by another Responses provider: `encrypted_content` is dropped from replayed reasoning items without a Grok Build id instead of failing with `Could not decrypt the provided encrypted_content` ([#14650](https://github.com/diegosouzapw/OmniRoute/pull/14650)) — thanks @QuangBlue

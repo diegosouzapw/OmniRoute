@@ -36,7 +36,6 @@ const { handleComboChat } = await import("../../open-sse/services/combo.ts");
 const { updateCompressionSettings } = await import("../../src/lib/db/compression.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 
-
 test.after(() => {
   core.resetDbInstance();
   if (ORIGINAL_DATA_DIR === undefined) {
@@ -208,10 +207,6 @@ test("#10503 handleComboChat: native-codex-passthrough pool fails FAST locally, 
 // Uses an unregistered synthetic provider + CONTEXT_LENGTH_<PROVIDER> env override
 // (same technique as tests/unit/chatcore-combo-context-limit-8378.test.ts) so the
 // context limit is small and deterministic without depending on any real catalog entry.
-// The fetch stub below must swallow the best-effort local tray/event posts
-// (http://127.0.0.1:<port>/__omniroute_event) that fire during the request
-// lifecycle — counting them as dispatches false-positives the zero-dispatch
-// assertions.
 // Compression targets conversation HISTORY (older turns), not the current terminal
 // message — this is why the fixtures below build many small history turns plus one
 // short final turn (compressible case) vs one large, irreducible final turn
@@ -243,10 +238,11 @@ async function invokeChatCoreCapturingUpstream(body: Record<string, unknown>) {
   let dispatched = false;
   let sentBodyJson: string | null = null;
   globalThis.fetch = async (url: RequestInfo | URL, init: RequestInit = {}) => {
-    // Best-effort local tray/event posts (127.0.0.1:<port>/__omniroute_event) fire
-    // during the request lifecycle and must not read as an upstream dispatch.
-    if (String(url).includes("__omniroute_event")) {
-      return new Response("{}", { status: 200 });
+    // Stacked compression reports each engine step to the dashboard live feed through a
+    // loopback `/__omniroute_event` POST (#14529 made header-less requests stacked). That is
+    // internal telemetry, not upstream dispatch — only a provider request counts here.
+    if (String(url instanceof Request ? url.url : url).includes("/__omniroute_event")) {
+      return new Response(null, { status: 204 });
     }
     dispatched = true;
     sentBodyJson = init.body ? String(init.body) : null;

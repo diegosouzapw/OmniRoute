@@ -1,0 +1,1 @@
+- **fix(grok-cli):** Codex desktop requests no longer fail on Grok Build with `invalid_client_tool_schema`: root `anyOf`/`oneOf` tool schemas with `$ref` or nested-union branches are reshaped into a bare union of inline object branches ([#14649](https://github.com/diegosouzapw/OmniRoute/pull/14649)) — thanks @QuangBlue

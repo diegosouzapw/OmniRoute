@@ -83,14 +83,12 @@ test("Fix #1: normalizePipeline passes through new engine IDs (headroom, session
 });
 
 test("enabling headroom adds it to the pipeline sorted by stackPriority", () => {
-  // The default combo is seeded with the safe pipeline [session-dedup(3), lite(5)].
-  // headroom has stackPriority=15 so it is appended after both.
+  // Default pipeline is [session-dedup(3), lite(5)] since #14529 moved the seed off the lossy
+  // rtk + caveman pair. headroom has stackPriority=15, so it must land after both.
   const result = setEngineInDefaultCombo("headroom", true);
   assert.ok(result, "should return the updated combo");
 
   const engineIds = result.pipeline.map((s) => s.engine);
-  assert.ok(engineIds.includes("headroom"), "headroom should be in the pipeline");
-
   const dedupIdx = engineIds.indexOf("session-dedup");
   const liteIdx = engineIds.indexOf("lite");
   const headroomIdx = engineIds.indexOf("headroom");

@@ -23,7 +23,7 @@
  *   5. ~/.auggie/bin/auggie                  (alternate installer layout)
  */
 
-import { spawn } from "node:child_process";
+import { spawn, type StdioOptions } from "node:child_process";
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
@@ -213,7 +213,11 @@ function buildAuggieArgs(model: string): string[] {
  * elements to the shell, it does not concatenate them into a single
  * command line.
  */
-export function buildAuggieSpawnOptions<S extends readonly string[]>(
+// #14496: `S extends readonly string[]` does not satisfy any `spawn()` overload
+// (TS2769), and once the overload fails the returned ChildProcess is inferred
+// without its stdio streams, which is where the TS18047 "possibly null" pile came
+// from. Constraining to StdioOptions keeps the literal tuple AND matches spawn().
+export function buildAuggieSpawnOptions<S extends StdioOptions>(
   stdio: S
 ): {
   env: NodeJS.ProcessEnv;

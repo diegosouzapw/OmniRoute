@@ -350,29 +350,23 @@ test("quotaCache covers empty quotas, invalid dates and fallback percentage norm
     daily: { total: 0, used: 25 },
     "###": { remainingPercentage: 50 },
   });
-  // total=0 leaves the used/total fraction unreported: per #10095 an unreported
-  // fraction is "unknown", never "0% remaining", so it cannot reach the threshold.
+  // #10095, tightened by #14276: `total: 0` gives upstream no usable fraction, so the
+  // window is UNKNOWN, not "0% remaining". An unknown window must never single-handedly
+  // exhaust a connection — that is the whole point of the fractionReported signal.
+  // The normalized percentages stay 0/100; only the threshold verdict changes.
   assert.deepEqual(quotaCache.getQuotaWindowStatus("quota-zero-total", "daily", 10), {
     remainingPercentage: 0,
     usedPercentage: 100,
     resetAt: null,
     reachedThreshold: false,
   });
-  // A genuinely reported exhausted window does reach the threshold.
-  quotaCache.setQuotaCache("quota-reported-exhausted", "cursor", {
-    daily: { remainingPercentage: 0 },
-  });
-  assert.equal(
-    quotaCache.getQuotaWindowStatus("quota-reported-exhausted", "daily", 10)?.reachedThreshold,
-    true
-  );
   assert.equal(quotaCache.getQuotaWindowStatus("quota-zero-total", "unknown"), null);
 
   quotaCache.setQuotaCache("quota-invalid-reset", "cursor", {
     daily: { remainingPercentage: Number.POSITIVE_INFINITY, resetAt: "not-a-date" },
   });
-  // Infinity collapses to an unreported fraction (safePercentage), so per #10095
-  // the window is "unknown" and must not reach the exhaustion threshold.
+  // Same rule as quota-zero-total: an Infinity percentage is not a reportable fraction,
+  // so the window is unknown and must not reach the threshold (#14276).
   assert.deepEqual(quotaCache.getQuotaWindowStatus("quota-invalid-reset", "daily", 10), {
     remainingPercentage: 0,
     usedPercentage: 100,
@@ -384,6 +378,17 @@ test("quotaCache covers empty quotas, invalid dates and fallback percentage norm
     daily: { remainingPercentage: 0, resetAt: "still-not-a-date" },
   });
   assert.equal(quotaCache.isAccountQuotaExhausted("quota-invalid-exhausted"), true);
+
+  // Counterpart to the quota-zero-total case above: once upstream DOES report the
+  // fraction, 0% remaining still reaches the threshold. Without this the change
+  // that made unknown windows safe could silently disable exhaustion detection.
+  quotaCache.setQuotaCache("quota-reported-zero", "cursor", {
+    daily: { total: 100, used: 100 },
+  });
+  assert.equal(
+    quotaCache.getQuotaWindowStatus("quota-reported-zero", "daily", 10)?.reachedThreshold,
+    true
+  );
 });
 
 test("policyEngine evaluates lockout, budget, fallback chains and policy class actions", () => {

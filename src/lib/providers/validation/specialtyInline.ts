@@ -7,6 +7,7 @@ import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { KiroService } from "@/lib/oauth/services/kiro";
 import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
 import { normalizeBaseUrl } from "./urlHelpers";
+import { resolveXiaomiTokenPlanBaseUrl } from "@/shared/constants/xiaomiTokenPlanRegions";
 import { buildBearerHeaders, directHttpsRequest } from "./headers";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 import { validateKiroApiKeyRuntimeProbe } from "./kiro";
@@ -320,6 +321,41 @@ export async function validateZaiProvider({ apiKey, providerSpecificData }: any)
     }
     // Any non-auth response (200, 400, 422, 429, 502) means auth passed;
     // 502 "job timed out" is z.ai's own server-side queue limit, not an auth error.
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+export async function validateXiaomiMimoTokenPlanProvider({
+  apiKey,
+  providerSpecificData,
+  isLocal,
+}: any) {
+  try {
+    const baseUrl = normalizeBaseUrl(
+      resolveXiaomiTokenPlanBaseUrl(
+        providerSpecificData,
+        "https://token-plan-sgp.xiaomimimo.com/v1"
+      )
+    );
+    const chatUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/chat/completions`;
+    const res = await validationWrite(
+      chatUrl,
+      {
+        method: "POST",
+        headers: buildBearerHeaders(apiKey, providerSpecificData),
+        body: JSON.stringify({
+          model: "mimo-v2.5-pro",
+          messages: [{ role: "user", content: "test" }],
+          max_tokens: 1,
+        }),
+      },
+      isLocal
+    );
+    if (res.status === 401 || res.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
     return { valid: true, error: null };
   } catch (error: any) {
     return toValidationErrorResult(error);

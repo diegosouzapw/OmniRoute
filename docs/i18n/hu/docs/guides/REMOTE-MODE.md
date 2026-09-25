@@ -314,68 +314,61 @@ opencode -m omniroute/glm/glm-5.2 "..."          # előbb exportálja az OMNIROU
 
 ---
 
-## Kontextusok kezelése (váltás a kiszolgálók között)
+## Kontextusok kezelése (váltás szerverek között)
 
-A **kontextus** egy mentett kiszolgáló (baseUrl + hitelesítő adat + hatókör). Az `omniroute connect`
-létrehoz egyet, és aktívvá teszi; ettől kezdve minden parancs ezt célozza. A kontextusokat az
-`omniroute contexts` paranccsal kezelheti, és válthat közöttük:
+A **kontextus** egy elmentett szerver (baseUrl + hitelesítő adat + hatókör). Az `omniroute connect`
+létrehoz egyet és aktívvá teszi; ettől kezdve minden parancs azt célozza meg. Kezelje és
+váltson közöttük az `omniroute contexts` paranccsal:
 
 ```bash
-omniroute contexts list            # az összes kontextus; az aktívat ● jelöli
-omniroute contexts current         # az aktív kiszolgáló, hitelesítési állapot és hatókör
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
 ```
 
 ```text
-  | Név     | Alap URL                  | Hitelesítés | Hatókör | Leírás
-● | vps     | http://100.67.86.91:20128 | token       | admin   | Távoli OmniRoute (…)
-  | default | http://localhost:20128    | ✗           |         |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Váltás a kiszolgálók között** — minden ezt követő parancs az aktív kontextust használja:
+**Szerverek váltása** — minden további parancs az aktív kontextust követi:
 
 ```bash
-omniroute contexts use vps         # → mostantól minden parancs a távoli VPS-t célozza
-omniroute tokens list              #   (a VPS-en fut)
+omniroute contexts use vps         # → all commands now hit the remote VPS
+omniroute tokens list              #   (runs against the VPS)
 
-omniroute contexts use default     # → vissza a localhosthoz
-omniroute tokens list              #   (a helyi kiszolgálón fut)
+omniroute contexts use default     # → back to localhost
+omniroute tokens list              #   (runs against the local server)
 ```
 
-**Kontextus manuális hozzáadása** (a `connect` helyett), megtekintése vagy átnevezése:
+**Kontextus manuális hozzáadása** (a `connect` helyett), ellenőrzése vagy átnevezése:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "előkészítési kiszolgáló"
-omniroute contexts show staging    # egy kontextus teljes részletei
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # full details for one context
 omniroute contexts rename staging stg
 ```
 
-**Kontextus eltávolítása** — megerősítést kér; ennek kihagyásához adja meg a `--yes` kapcsolót
-(szkriptekhez / nem interaktív parancsértelmezőkhöz szükséges, amelyek enélkül biztonságosan elutasítják a műveletet):
+**Kontextus eltávolítása** — megerősítést kér; a `--yes` paraméterrel kihagyható
+(szükséges scriptek / nem interaktív shell-ek esetén, amelyek egyébként biztonságosan elutasítják):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> A `default` (localhost) nem távolítható el. Az aktív kontextus eltávolításakor a rendszer
-> visszavált a `default` kontextusra. Tipp: egy kontextus eltávolítása csak a **helyileg**
-> mentett hitelesítő adatot törli — a hozzáférés tényleges megszüntetéséhez vonja vissza
-> a tokent a kiszolgálón az `omniroute tokens revoke <id>` paranccsal.
+> A `default` (localhost) nem távolítható el. Az aktív kontextus eltávolítása esetén a rendszer visszavált a `default` kontextusra. Tipp: egy kontextus eltávolítása csak a **helyi** elmentett hitelesítő adatokat törli – a hozzáférés tényleges megszüntetéséhez vonja vissza a tokent a szerveren az `omniroute tokens revoke <id>` paranccsal.
 
-Kontextusok **exportálása / importálása** (például gépek közötti átvitelhez). Az új kontextusok
-csak egy kulcskarika-hivatkozást tárolnak tartósan; ha az operációs rendszer kulcskarikája
-elérhető, a hitelesítő adatok nem kerülnek bele az exportba:
+**Kontextusok exportálása / importálása** (pl. gépek közötti mozgatáshoz). Az exportálás alapértelmezetten kihagyja a hitelesítő adatokat, beleértve a fájl alapú tárolással mentett hitelesítő adatokat is. Használja az `--include-secrets` paramétert explicit módon, ha hordozható, hitelesítő adatokat tartalmazó biztonsági mentésre van szükség:
 
 ```bash
-omniroute contexts export --out contexts.json     # alapértelmezés: stdout
-omniroute contexts import contexts.json            # felülírás; a meglévők megtartásához: --merge
-omniroute contexts migrate --yes                  # régi egyszerű szöveges tokenek áthelyezése a kulcskarikába
+omniroute contexts export --out contexts.json     # redacted; default destination: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
 
-Használható operációsrendszer-kulcskarika nélküli, grafikus felület nélküli rendszereken a CLI
-a `0600` móddal rendelkező `config.json` fájlra áll vissza, és egyszeri figyelmeztetést jelenít
-meg. Az ebből a tartalék megoldásból származó exportokat (és az áttelepítés előtti összes régi
-konfigurációt) bizalmas anyagként kezelje.
+Az `--include-secrets` feloldja a kulcstartó hivatkozásokat exportálás előtt, és hibát jelez, ha bármely hivatkozott hitelesítő adat nem olvasható. A `--no-secrets` mindig elsőbbséget élvez. Az exportált fájlok atomikusan, `0600` módban íródnak. Kezeljen minden explicit, titkos adatokat tartalmazó exportálást titkos anyagként. Fej nélküli rendszereken, használható OS kulcstartó nélkül, a CLI visszavált a `config.json` fájlra `0600` módban, és egyszeri figyelmeztetést nyomtat; az alapértelmezett exportálás ebben a módban is cenzúrázott marad.
 
 ---
 

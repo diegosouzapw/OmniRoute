@@ -4,27 +4,11 @@
 
 ---
 
-OmniRoute כוללת משפחה של פקודות `setup-*` שמגדירות כלי CLI לכתיבת קוד
-(Codex, Claude Code, OpenCode, Cline, …) להשתמש ב-OmniRoute כתשתית האחורית שלו — כך
-שהכלי מתקשר עם נקודת קצה **אחת**, ו-OmniRoute מנתבת לספק המתאים עם
-מעבר אוטומטי לספק חלופי. כל פקודה קוראת את קטלוג המודלים **הפעיל** ממופע
-OmniRoute פועל (מקומי או מרוחק), וכותבת את קובץ התצורה של הכלי במחשב
-**שלכם**. מפתח ה-API מופנה באמצעות משתנה סביבה בכל מקום שבו הכלי
-תומך בכך. פקודות ששומרות קובץ סביבה מקומי של הכלי מצוינות להלן.
+OmniRoute מספקת משפחה של פקודות `setup-*` המגדירות CLI קידוד (Codex, Claude Code, OpenCode, Cline, …) להשתמש ב-OmniRoute כ-backend שלו — כך שהכלי מדבר לנקודת קצה **אחת** ו-OmniRoute מנתבת לספק הנכון עם גיבוי אוטומטי. כל פקודה קוראת את קטלוג המודלים ה**חי** מ-OmniRoute פועל (מקומי או מרוחק) וכותבת את קובץ התצורה של הכלי **שלך** במחשב. מפתח ה-API מפנה למשתנה סביבה בכל מקום שהכלי תומך בכך. פקודות ששומרות קובץ סביבה מקומי לכלי מצוינות להלן.
 
-קיים גם מפעיל כללי — `omniroute run <target>` — שמפעיל את
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` או `gemini` עם
-הסביבה המתאימה, מבלי לכתוב תצורה כלשהי. יעדים והכינויים שלהם
-מגיעים מהמניפסט הקנוני `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), ו-`omniroute completion` מציעה את
-אותן מילות יעד שמקורן במניפסט. המפעילים הישנים הייעודיים לכל כלי —
-`omniroute launch` (Claude Code) ו-`omniroute launch-codex` (Codex) — נותרים
-זמינים.
+קיימת גם מפעיל כללי — `omniroute run <target>` — שמפעיל את `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` או `gemini` עם הסביבה הנכונה מוזרקת, מבלי לכתוב שום תצורה כלל. יעדים והכינויים שלהם מגיעים מהמניפסט הקנוני `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), ו-`omniroute completion` מציע את אותן מילות יעד הנגזרות מהמניפסט. המפעילים הישנים לכל כלי — `omniroute launch` (Claude Code) ו-`omniroute launch-codex` (Codex) — נשארים זמינים.
 
-ניתן לצרף ספקים מאותו הקשר מקומי/מרוחק. הפקודות
-המבוססות על API שלהלן מפרידות בין אימות לניהול לבין פרטי הגישה של הספק,
-ולעולם אינן מדפיסות פרטי גישה בפלט מובנה:
+קליטת ספקים זמינה מאותו הקשר מקומי/מרוחק. הפקודות מבוססות ה-API שלהלן שומרות על אימות הניהול נפרד מפרטי הזיהוי של הספק ולעולם אינן מדפיסות פרטי זיהוי בפלט מובנה:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,19 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-עבור סקריפטים, העדיפו את `--credential-stdin` או `--credential-env`; האפשרות `--credential`
-נשמרה לשימוש מקומי מבוקר. `providers remove` דורשת את `--yes` במסוף
-שאינו אינטראקטיבי, וכל חמש הפקודות מכבדות את ההקשר הפעיל או את
-האפשרויות הגלובליות `--base-url`/`--api-key`.
+עבור סקריפטים, העדיפו `--credential-stdin` או `--credential-env`; `--credential` נשמר לשימוש מקומי מבוקר. `providers remove` דורש `--yes` במסוף לא אינטראקטיבי, וכל חמש הפקודות מכבדות את ההקשר הפעיל או את האפשרויות הגלובליות `--base-url`/`--api-key`.
 
-להגדרה הבסיסית החד-פעמית והידנית של שני השילובים העשירים ביותר, עיינו
-במדריכים המעמיקים לכל כלי:
+בוררי ספקים דוחים קידומות ID, שמות או שמות ספקים דו-משמעיים; השתמשו ב-ID חיבור מלא כאשר מספר חיבורים תואמים. פקודות יצירה ועריכה קוראות בחזרה את החיבור השמור, וההסרה מוודאת שהוא אינו ניתן לקריאה עוד. ייבוא מדלג על זוג ספק/שם קיים. רשומות מיובאות אינן יכולות לעקוף את נקודת הקצה של הניהול, ההקשר או פרטי הזיהוי של הניהול שסופקו ל-CLI.
+
+עבור ההגדרה הבסיסית החד-פעמית, הכתובה ידנית, של שתי האינטגרציות העשירות ביותר, ראו את הצלילות העמוקות לכל כלי:
 
 - [תצורת Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [תצורת Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [מצב מרוחק](./REMOTE-MODE.md) — הפעילו OmniRoute מרוחקת (VPS / Tailnet) מהמחשב הנייד שלכם
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — התוסף OmniCopilot; הוא יכול גם להריץ עבורכם את
-  פקודות `setup-*` האלה מתוך העורך
+- [מצב מרוחק](./REMOTE-MODE.md) — הפעילו OmniRoute מרוחק (VPS / Tailnet) מהמחשב הנייד שלכם
+- [צ'אט Copilot של VS Code](./VSCODE-COPILOT.md) — הרחבת OmniCopilot; היא יכולה גם להריץ עבורכם את פקודות ה-`setup-*` הללו מתוך העורך
 
 ---
 

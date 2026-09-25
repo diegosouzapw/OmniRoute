@@ -21,15 +21,14 @@ const namedCombos = {
   ],
 };
 
-test("issue #12063: preview matches the real runtime plan when a profile is active", () => {
-  const config: CompressionConfig = {
-    ...DEFAULT_COMPRESSION_CONFIG,
-    enabled: true,
-    activeComboId: "standard-savings",
-    // No individual engine toggled on the Settings page grid.
-  };
+// #14529 then kept lossy engines off the header-less path: the runtime replaces lossy steps with
+// session-dedup + lite unless the request opts in (`allow-lossy`, `engine:<id>`, a named combo).
+// The preview must follow — otherwise it shows rtk → caveman while requests run the safe pair,
+// which is #12063 again. Every case below pins preview == runtime, not just a literal plan.
+const SAFE_PIPELINE = [{ engine: "session-dedup" }, { engine: "lite" }];
 
-  const realRuntimePlan = selectCompressionPlan(
+function runtimePlan(config: CompressionConfig) {
+  return selectCompressionPlan(
     config,
     /* comboId */ null,
     /* estimatedTokens */ 50_000,
@@ -38,18 +37,35 @@ test("issue #12063: preview matches the real runtime plan when a profile is acti
     namedCombos,
     /* header */ null
   );
+}
+
+test("issue #12063: preview matches the real runtime plan when a profile is active", () => {
+  const config: CompressionConfig = {
+    ...DEFAULT_COMPRESSION_CONFIG,
+    enabled: true,
+    activeComboId: "standard-savings",
+    // No individual engine toggled on the Settings page grid.
+  };
+
+  const realRuntimePlan = runtimePlan(config);
   assert.equal(realRuntimePlan.mode, "stacked");
-  // The profile itself is lossy (rtk/caveman) and the runtime request carries no
-  // opt-in header, so the lossy-request policy downgrades BOTH the live plan and
-  // the preview to the safe dedup+whitespace pipeline (#12063 parity).
-  assert.deepEqual(realRuntimePlan.stackedPipeline, [
-    { engine: "session-dedup" },
-    { engine: "lite" },
-  ]);
+  assert.deepEqual(realRuntimePlan.stackedPipeline, SAFE_PIPELINE);
 
   const previewPlan = deriveEffectivePreviewPlan(config, namedCombos);
   assert.equal(previewPlan.mode, realRuntimePlan.mode);
   assert.deepEqual(previewPlan.stackedPipeline, realRuntimePlan.stackedPipeline);
+
+  // The profile itself still runs when the request opts in.
+  const optedIn = selectCompressionPlan(
+    config,
+    null,
+    50_000,
+    undefined,
+    undefined,
+    namedCombos,
+    "allow-lossy"
+  );
+  assert.deepEqual(optedIn.stackedPipeline, namedCombos["standard-savings"]);
 });
 
 test("master switch off => off, regardless of an active profile", () => {
@@ -68,62 +84,42 @@ test("activeComboId set but unresolved in combos => falls back to the engines ma
   const config: CompressionConfig = {
     ...DEFAULT_COMPRESSION_CONFIG,
     enabled: true,
-    activeComboId: "does-not-exist",
-    // Panel-saved engines map (enginesExplicit) so the engines map — not the
-    // legacy defaultMode — drives the default. session-dedup + lite are the
-    // lossless safe engines, so the derived stacked pipeline survives the
-    // lossy-request policy unchanged (matching what a live request runs).
     enginesExplicit: true,
-    engines: {
-      "session-dedup": { enabled: true },
-      lite: { enabled: true },
-    },
-  };
-  const preview = deriveEffectivePreviewPlan(config, namedCombos);
-  assert.equal(preview.mode, "stacked");
-  assert.deepEqual(preview.stackedPipeline, [
-    { engine: "session-dedup" },
-    { engine: "lite" },
-  ]);
-});
-
-test("lossy engines-derived default is downgraded like the live runtime plan", () => {
-  // resolveBasePlan ends with applyLossyRequestPolicy; the preview must agree.
-  const config: CompressionConfig = {
-    ...DEFAULT_COMPRESSION_CONFIG,
-    enabled: true,
     activeComboId: "does-not-exist",
-    enginesExplicit: true,
     engines: { rtk: { enabled: true, level: "standard" } },
   };
   const preview = deriveEffectivePreviewPlan(config, namedCombos);
-  assert.equal(preview.mode, "stacked");
-  assert.deepEqual(preview.stackedPipeline, [
-    { engine: "session-dedup" },
-    { engine: "lite" },
-  ]);
+  const runtime = runtimePlan(config);
+  // rtk is lossy, so the engines-derived plan is downgraded exactly as the runtime does it.
+  assert.equal(preview.mode, runtime.mode);
+  assert.deepEqual(preview.stackedPipeline, runtime.stackedPipeline);
+  assert.deepEqual(preview.stackedPipeline, SAFE_PIPELINE);
 });
 
-test("no active profile => matches what a live header-less request runs", () => {
+test("no active profile => the engines-derived plan after the lossy policy, same as runtime", () => {
   const config: CompressionConfig = {
     ...DEFAULT_COMPRESSION_CONFIG,
     enabled: true,
+    enginesExplicit: true,
     activeComboId: null,
     engines: { caveman: { enabled: true, level: "full" } },
   };
-  // The single lossy engine derives mode "standard" before the lossy-request
-  // policy downgrades it — the preview must show the downgraded plan, because
-  // that is what a header-less live request actually runs.
-  const livePlan = selectCompressionPlan(
-    config,
-    /* comboId */ null,
-    /* estimatedTokens */ 50_000,
-    undefined,
-    undefined,
-    namedCombos,
-    /* header */ null
-  );
   const preview = deriveEffectivePreviewPlan(config, namedCombos);
-  assert.equal(preview.mode, livePlan.mode);
-  assert.deepEqual(preview.stackedPipeline, livePlan.stackedPipeline);
+  const runtime = runtimePlan(config);
+  assert.equal(preview.mode, runtime.mode);
+  assert.deepEqual(preview.stackedPipeline, runtime.stackedPipeline);
+  assert.equal(preview.mode, "stacked");
+});
+
+test("a safe-only active profile is shown unchanged", () => {
+  const combos = { safe: [{ engine: "session-dedup" }, { engine: "lite" }] };
+  const config: CompressionConfig = {
+    ...DEFAULT_COMPRESSION_CONFIG,
+    enabled: true,
+    activeComboId: "safe",
+  };
+  assert.deepEqual(deriveEffectivePreviewPlan(config, combos as never), {
+    mode: "stacked",
+    stackedPipeline: combos.safe,
+  });
 });

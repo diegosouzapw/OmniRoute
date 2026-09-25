@@ -22,7 +22,12 @@ export function registerStop(program) {
     });
 }
 
-export async function runStopCommand(opts = {}) {
+/**
+ * @param {object} [opts]  CLI options (`port`).
+ * @param {object} [deps]  Forwarded to killByPort so tests can stub process discovery and
+ *                         signalling instead of touching real processes on a real port.
+ */
+export async function runStopCommand(opts = {}, deps = {}) {
   const pid = readPidFile("server");
   // #9455: when the server was started with a supervisor (the default), killing only
   // the child lets the supervisor respawn it immediately. The supervisor's PID is
@@ -73,7 +78,7 @@ export async function runStopCommand(opts = {}) {
         process.kill(supervisorPid, "SIGTERM");
       } catch {}
     }
-    const portFreed = await killByPort(port);
+    const portFreed = await killByPort(port, deps);
     killAllSubprocesses();
     cleanupPidFile("server");
     cleanupPidFile("supervisor");
@@ -92,7 +97,7 @@ export async function runStopCommand(opts = {}) {
 }
 
 /**
- * Kill the process listening on `port`. Returns true once the port is free
+ * Kill the processes listening on `port` (never its clients). Returns true once the port is free
  * (or no listener was found), false if it could not be freed.
  *
  * #9455: previously this was a no-op on win32 (`if (win32) return;`) yet the
@@ -116,7 +121,10 @@ export async function killByPort(port, deps = {}) {
 async function killByPortPosix(port, { exec, kill, running, wait }) {
   let pids = [];
   try {
-    const { stdout } = await exec("lsof", ["-ti", `:${port}`]);
+    // Listeners only, matching the win32 LISTENING filter. A bare `lsof -ti :PORT` also
+    // returns every client connected to the port (for example a browser tab on the
+    // dashboard), and stop would kill those too.
+    const { stdout } = await exec("lsof", ["-nP", "-t", `-iTCP:${port}`, "-sTCP:LISTEN"]);
     pids = stdout
       .trim()
       .split("\n")

@@ -37,18 +37,9 @@ test("an active named combo's pipeline is what selectCompressionPlan resolves, f
     combosDb.listCompressionCombos().map((c) => [c.id, c.pipeline])
   );
   const config = { ...DEFAULT_COMPRESSION_CONFIG, enabled: true, activeComboId: created.id };
-  const plan = selectCompressionPlan(config, null, 5000, undefined, undefined, combos);
-  assert.equal(plan.mode, "stacked");
-  assert.equal(plan.source, "active-profile");
-  // A header-less request does not opt into lossy engines, so the lossy-request
-  // policy downgrades the rtk-only profile to the safe dedup+whitespace pipeline.
-  assert.deepEqual(plan.stackedPipeline, [
-    { engine: "session-dedup" },
-    { engine: "lite" },
-  ]);
-
-  // An explicit allow-lossy opt-in keeps the operator's chosen pipeline intact.
-  const optedIn = selectCompressionPlan(
+  // #14529: a lossy profile only runs when the request opts in; header-less requests still
+  // resolve the ACTIVE profile (source) but get its lossy steps swapped for the safe pair.
+  const plan = selectCompressionPlan(
     config,
     null,
     5000,
@@ -57,8 +48,11 @@ test("an active named combo's pipeline is what selectCompressionPlan resolves, f
     combos,
     "allow-lossy"
   );
-  assert.equal(optedIn.source, "active-profile");
-  assert.deepEqual(optedIn.stackedPipeline, [{ engine: "rtk", intensity: "standard" }]);
+  assert.equal(plan.mode, "stacked");
+  assert.deepEqual(plan.stackedPipeline, [{ engine: "rtk", intensity: "standard" }]);
+  const headerless = selectCompressionPlan(config, null, 5000, undefined, undefined, combos);
+  assert.equal(headerless.source, "active-profile");
+  assert.deepEqual(headerless.stackedPipeline, [{ engine: "session-dedup" }, { engine: "lite" }]);
 
   // Setting activeComboId did NOT change which combo is is_default (legacy untouched).
   const def = combosDb.getDefaultCompressionCombo();
