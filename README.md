@@ -750,6 +750,7 @@ of your shell history. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Multi-arch <b>AMD64 + ARM64</b></td></tr>
   <tr><td align="left" nowrap>🖥️ <b>Desktop (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Native window + system tray — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>Menu-bar (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">Supervises &amp; auto-updates the server — <b>macOS</b></td></tr>
+  <tr><td align="left" nowrap>🐧 <b>Linux Tray &amp; Plasmoid</b></td><td align="left" nowrap><code>bash contrib/omniroute-tray-linux/install.sh</code></td><td align="left">Supervises daemon, live quotas, KDE Plasmoid &amp; Qt tray — <b>Linux</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>native <code>arm64</code></td><td align="left">Raspberry Pi, ARM servers, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Runs <b>on your phone</b>, 24/7, no root</td></tr>
   <tr><td align="left" nowrap>📲 <b>PWA</b></td><td align="left" nowrap>"Add to Home Screen"</td><td align="left">Fullscreen, offline, installable from browser</td></tr>
@@ -758,7 +759,7 @@ of your shell history. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
   <tr><td align="left" nowrap>🛠️ <b>From source</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Hack on it, contribute</td></tr>
 </table>
 
-<sub>📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) · [Desktop](electron/README.md) · [Menu-bar tray](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) · [Desktop](electron/README.md) · [Menu-bar tray](https://github.com/zoispag/omniroute-tray) · [Linux tray](contrib/omniroute-tray-linux/README.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -824,6 +825,35 @@ brew install --cask zoispag/tap/omniroute-tray
 <a href="https://github.com/zoispag/omniroute-tray/releases">Releases</a>. Source, issues and build
 docs live at <a href="https://github.com/zoispag/omniroute-tray">zoispag/omniroute-tray</a>.
 <br/>💛 A community project by <a href="https://github.com/zoispag">@zoispag</a> — not an official OmniRoute release.</sub>
+
+<br/>
+
+<div align="center">
+
+### 🐧 New: OmniRoute Tray for Linux — KDE Plasma Widget & System Tray
+
+</div>
+
+> A native supervisor, live quota monitor, and diagnostics panel for **Linux** in `contrib/omniroute-tray-linux`. Built with a native **KDE Plasma 6 Plasmoid** (QML) and a universal **Qt/PySide6 tray** for GNOME, XFCE, and Wayland/X11 compositors (Hyprland, Sway, i3).
+
+<table>
+  <tr><th align="left">What it does</th><th align="left">How</th></tr>
+  <tr><td align="left" nowrap>🟢 <b>Supervises the server</b></td><td align="left">Spawns <code>omniroute serve</code>, adopts an already-running instance on port 20128 instead of duplicating it</td></tr>
+  <tr><td align="left" nowrap>📊 <b>Live quotas &amp; spend</b></td><td align="left">Provider quotas, reset countdowns, 1d/7d/30d analytics and 30-day spend sparkline</td></tr>
+  <tr><td align="left" nowrap>🩺 <b>Doctor &amp; live logs</b></td><td align="left">Live diagnostics for Node runtime, CLI, SQLite DB, loopback auth, and streaming server logs</td></tr>
+  <tr><td align="left" nowrap>🚀 <b>KDE Plasma 6 + Universal Qt</b></td><td align="left">Native QML popover widget for Plasma panels, or PySide6 popover for GNOME / tiling Wayland</td></tr>
+</table>
+
+```sh
+# Install from repository
+bash contrib/omniroute-tray-linux/install.sh
+
+# Or install via one-liner
+curl -fsSL https://raw.githubusercontent.com/Susanthakuri92/omniroute-tray-linux/main/install.sh | bash
+```
+
+<sub>Documentation, features, and setup details live at <a href="contrib/omniroute-tray-linux/README.md">contrib/omniroute-tray-linux</a>.
+<br/>💛 Contributed by <a href="https://github.com/Susanthakuri92">@Susanthakuri92</a>.</sub>
 
 <br/>
 
