@@ -9775,7 +9775,11 @@
     "updatedShort": "Oppdatert",
     "lastRefreshed": "Sist oppdatert",
     "providerQuota": "Leverandørkvote",
-    "providerQuotaHomeHint": "Sanntidsstatus på tvers av tilkoblede kontoer"
+    "providerQuotaHomeHint": "Sanntidsstatus på tvers av tilkoblede kontoer",
+    "claudeResetCreditDefaultTitle": "Tilbakestilling av Claude-grense",
+    "confirmRedeemClaudeResetCredit": "Innløsing tilbakestiller umiddelbart de kvalifiserte Claude-bruksgrensene og forbruker denne kreditten permanent.",
+    "claudeResetCreditsModalTitle": "Claude-tilbakestillingskreditter",
+    "claudeResetCreditsModalExplainer": "Tilgjengelige Claude-tilbakestillingskreditter og ukentlige økttilbakestillinger for denne kontoen."
   },
   "modals": {
     "waitingAuth": "Venter på autorisasjon",

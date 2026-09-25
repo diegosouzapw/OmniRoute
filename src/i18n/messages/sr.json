@@ -9775,7 +9775,11 @@
     "updatedShort": "Ажурирано",
     "lastRefreshed": "Последње ажурирање",
     "providerQuota": "Квота провајдера",
-    "providerQuotaHomeHint": "Статус повезаних налога у реалном времену"
+    "providerQuotaHomeHint": "Статус повезаних налога у реалном времену",
+    "claudeResetCreditDefaultTitle": "Ресетовање Claude ограничења",
+    "confirmRedeemClaudeResetCredit": "Искоришћавање одмах ресетује одговарајућа Claude ограничења коришћења и трајно троши овај кредит.",
+    "claudeResetCreditsModalTitle": "Claude кредити за ресетовање",
+    "claudeResetCreditsModalExplainer": "Доступни Claude кредити за ресетовање и недељна ресетовања сесија за овај налог."
   },
   "modals": {
     "waitingAuth": "Чекање на овлашћење",

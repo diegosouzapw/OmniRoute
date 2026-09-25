@@ -9775,7 +9775,11 @@
     "updatedShort": "Aktualizované",
     "lastRefreshed": "Naposledy obnovené",
     "providerQuota": "Kvóta poskytovateľa",
-    "providerQuotaHomeHint": "Aktuálny stav naprieč pripojenými účtami"
+    "providerQuotaHomeHint": "Aktuálny stav naprieč pripojenými účtami",
+    "claudeResetCreditDefaultTitle": "Reset limitu Claude",
+    "confirmRedeemClaudeResetCredit": "Uplatnenie okamžite resetuje príslušné limity využitia Claude a natrvalo spotrebuje tento kredit.",
+    "claudeResetCreditsModalTitle": "Kredity na reset Claude",
+    "claudeResetCreditsModalExplainer": "Dostupné kredity na reset Claude a týždenné resety relácií pre tento účet."
   },
   "modals": {
     "waitingAuth": "Čaká sa na autorizáciu",

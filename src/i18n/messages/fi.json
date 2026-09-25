@@ -9775,7 +9775,11 @@
     "updatedShort": "Päivitetty",
     "lastRefreshed": "Viimeksi päivitetty",
     "providerQuota": "Tarjoajan kiintiö",
-    "providerQuotaHomeHint": "Reaaliaikainen tila yhdistetyissä tileissä"
+    "providerQuotaHomeHint": "Reaaliaikainen tila yhdistetyissä tileissä",
+    "claudeResetCreditDefaultTitle": "Claude-rajojen nollaus",
+    "confirmRedeemClaudeResetCredit": "Lunastaminen nollaa soveltuvat Claude-käyttörajat välittömästi ja kuluttaa tämän krediitin pysyvästi.",
+    "claudeResetCreditsModalTitle": "Claude-nollauskrediitit",
+    "claudeResetCreditsModalExplainer": "Käytettävissä olevat Claude-nollauskrediitit ja viikoittaiset istunnon nollaukset tälle tilille."
   },
   "modals": {
     "waitingAuth": "Odotetaan valtuutusta",

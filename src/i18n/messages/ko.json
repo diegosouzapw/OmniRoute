@@ -9775,7 +9775,11 @@
     "updatedShort": "업데이트됨",
     "lastRefreshed": "마지막 새로고침",
     "providerQuota": "제공자 할당량",
-    "providerQuotaHomeHint": "연결된 계정의 실시간 상태"
+    "providerQuotaHomeHint": "연결된 계정의 실시간 상태",
+    "claudeResetCreditDefaultTitle": "Claude 한도 초기화",
+    "confirmRedeemClaudeResetCredit": "사용 시 대상 Claude 사용 한도가 즉시 초기화되며 이 크레딧은 영구적으로 소진됩니다.",
+    "claudeResetCreditsModalTitle": "Claude 초기화 크레딧",
+    "claudeResetCreditsModalExplainer": "이 계정에서 사용 가능한 Claude 초기화 크레딧 및 주간 세션 초기화입니다."
   },
   "modals": {
     "waitingAuth": "승인을 기다리는 중",

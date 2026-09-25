@@ -9775,7 +9775,11 @@
     "updatedShort": "Updated",
     "lastRefreshed": "Last refreshed",
     "providerQuota": "Provider Quota",
-    "providerQuotaHomeHint": "Live status across connected accounts"
+    "providerQuotaHomeHint": "Live status across connected accounts",
+    "claudeResetCreditDefaultTitle": "Claude limit reset",
+    "confirmRedeemClaudeResetCredit": "Redeeming immediately resets the eligible Claude usage limits and permanently consumes this credit.",
+    "claudeResetCreditsModalTitle": "Claude reset credits",
+    "claudeResetCreditsModalExplainer": "Available Claude reset credits and weekly session resets for this account."
   },
   "modals": {
     "waitingAuth": "Waiting for Authorization",

@@ -9775,7 +9775,11 @@
     "updatedShort": "განახლებულია",
     "lastRefreshed": "ბოლო განახლება",
     "providerQuota": "პროვაიდერის კვოტა",
-    "providerQuotaHomeHint": "დაკავშირებული ანგარიშების მიმდინარე სტატუსი"
+    "providerQuotaHomeHint": "დაკავშირებული ანგარიშების მიმდინარე სტატუსი",
+    "claudeResetCreditDefaultTitle": "Claude-ის ლიმიტის განულება",
+    "confirmRedeemClaudeResetCredit": "გააქტიურება დაუყოვნებლივ ანულებს Claude-ის გამოყენების შესაბამის ლიმიტებს და სამუდამოდ ხარჯავს ამ კრედიტს.",
+    "claudeResetCreditsModalTitle": "Claude-ის განულების კრედიტები",
+    "claudeResetCreditsModalExplainer": "Claude-ის განულების ხელმისაწვდომი კრედიტები და სესიის ყოველკვირეული განულებები ამ ანგარიშისთვის."
   },
   "modals": {
     "waitingAuth": "ავტორიზაციის მოლოდინი",

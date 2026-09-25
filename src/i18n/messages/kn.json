@@ -9775,7 +9775,11 @@
     "updatedShort": "ನವೀಕರಿಸಲಾಗಿದೆ",
     "lastRefreshed": "ಕೊನೆಯದಾಗಿ ರಿಫ್ರೆಶ್ ಮಾಡಲಾಗಿದೆ",
     "providerQuota": "ಪೂರೈಕೆದಾರರ ಕೋಟಾ",
-    "providerQuotaHomeHint": "ಸಂಪರ್ಕಿತ ಖಾತೆಗಳಾದ್ಯಂತ ಲೈವ್ ಸ್ಥಿತಿ"
+    "providerQuotaHomeHint": "ಸಂಪರ್ಕಿತ ಖಾತೆಗಳಾದ್ಯಂತ ಲೈವ್ ಸ್ಥಿತಿ",
+    "claudeResetCreditDefaultTitle": "Claude ಮಿತಿ ಮರುಹೊಂದಿಕೆ",
+    "confirmRedeemClaudeResetCredit": "ರಿಡೀಮ್ ಮಾಡುವುದು ಅರ್ಹ Claude ಬಳಕೆಯ ಮಿತಿಗಳನ್ನು ತಕ್ಷಣವೇ ಮರುಹೊಂದಿಸುತ್ತದೆ ಮತ್ತು ಈ ಕ್ರೆಡಿಟ್ ಅನ್ನು ಶಾಶ್ವತವಾಗಿ ಬಳಸಿಕೊಳ್ಳುತ್ತದೆ.",
+    "claudeResetCreditsModalTitle": "Claude ಮರುಹೊಂದಿಕೆ ಕ್ರೆಡಿಟ್‌ಗಳು",
+    "claudeResetCreditsModalExplainer": "ಈ ಖಾತೆಗೆ ಲಭ್ಯವಿರುವ Claude ಮರುಹೊಂದಿಕೆ ಕ್ರೆಡಿಟ್‌ಗಳು ಮತ್ತು ಸಾಪ್ತಾಹಿಕ ಸೆಶನ್ ಮರುಹೊಂದಿಕೆಗಳು."
   },
   "modals": {
     "waitingAuth": "ದೃಢೀಕರಣಕ್ಕಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ",

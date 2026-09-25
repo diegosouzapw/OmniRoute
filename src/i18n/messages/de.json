@@ -9775,7 +9775,11 @@
     "updatedShort": "Aktualisiert",
     "lastRefreshed": "Zuletzt aktualisiert",
     "providerQuota": "Anbieter-Kontingent",
-    "providerQuotaHomeHint": "Live-Status über verbundene Konten hinweg"
+    "providerQuotaHomeHint": "Live-Status über verbundene Konten hinweg",
+    "claudeResetCreditDefaultTitle": "Claude-Limit-Reset",
+    "confirmRedeemClaudeResetCredit": "Das Einlösen setzt die berechtigten Claude-Nutzungslimits sofort zurück und verbraucht dieses Guthaben dauerhaft.",
+    "claudeResetCreditsModalTitle": "Claude-Reset-Guthaben",
+    "claudeResetCreditsModalExplainer": "Verfügbares Claude-Reset-Guthaben und wöchentliche Sitzungs-Resets für dieses Konto."
   },
   "modals": {
     "waitingAuth": "Warten auf Autorisierung",

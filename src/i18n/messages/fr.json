@@ -9775,7 +9775,11 @@
     "updatedShort": "Mis à jour",
     "lastRefreshed": "Dernière actualisation",
     "providerQuota": "Quota du fournisseur",
-    "providerQuotaHomeHint": "Statut en direct sur les comptes connectés"
+    "providerQuotaHomeHint": "Statut en direct sur les comptes connectés",
+    "claudeResetCreditDefaultTitle": "Réinitialisation des limites Claude",
+    "confirmRedeemClaudeResetCredit": "L'utilisation réinitialise immédiatement les limites d'utilisation Claude éligibles et consomme définitivement ce crédit.",
+    "claudeResetCreditsModalTitle": "Crédits de réinitialisation Claude",
+    "claudeResetCreditsModalExplainer": "Crédits de réinitialisation Claude disponibles et réinitialisations de session hebdomadaires pour ce compte."
   },
   "modals": {
     "waitingAuth": "En attente d'autorisation",

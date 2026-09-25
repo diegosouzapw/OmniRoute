@@ -9775,7 +9775,11 @@
     "updatedShort": "ਅੱਪਡੇਟ ਕੀਤਾ",
     "lastRefreshed": "ਆਖਰੀ ਵਾਰ ਰਿਫ੍ਰੈਸ਼ ਕੀਤਾ",
     "providerQuota": "ਪ੍ਰਦਾਤਾ ਕੋਟਾ",
-    "providerQuotaHomeHint": "ਕਨੈਕਟ ਕੀਤੇ ਖਾਤਿਆਂ ਦੀ ਲਾਈਵ ਸਥਿਤੀ"
+    "providerQuotaHomeHint": "ਕਨੈਕਟ ਕੀਤੇ ਖਾਤਿਆਂ ਦੀ ਲਾਈਵ ਸਥਿਤੀ",
+    "claudeResetCreditDefaultTitle": "Claude ਸੀਮਾ ਰੀਸੈੱਟ",
+    "confirmRedeemClaudeResetCredit": "ਰਿਡੀਮ ਕਰਨ ਨਾਲ ਯੋਗ Claude ਵਰਤੋਂ ਸੀਮਾਵਾਂ ਤੁਰੰਤ ਰੀਸੈੱਟ ਹੋ ਜਾਂਦੀਆਂ ਹਨ ਅਤੇ ਇਹ ਕ੍ਰੈਡਿਟ ਪੱਕੇ ਤੌਰ 'ਤੇ ਵਰਤਿਆ ਜਾਂਦਾ ਹੈ।",
+    "claudeResetCreditsModalTitle": "Claude ਰੀਸੈੱਟ ਕ੍ਰੈਡਿਟ",
+    "claudeResetCreditsModalExplainer": "ਇਸ ਖਾਤੇ ਲਈ ਉਪਲਬਧ Claude ਰੀਸੈੱਟ ਕ੍ਰੈਡਿਟ ਅਤੇ ਹਫ਼ਤਾਵਾਰੀ ਸੈਸ਼ਨ ਰੀਸੈੱਟ।"
   },
   "modals": {
     "waitingAuth": "ਅਧਿਕਾਰ ਦੀ ਉਡੀਕ",

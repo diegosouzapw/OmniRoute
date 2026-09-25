@@ -9775,7 +9775,11 @@
     "updatedShort": "Uppdaterad",
     "lastRefreshed": "Senast uppdaterad",
     "providerQuota": "Leverantörskvot",
-    "providerQuotaHomeHint": "Livestatus för anslutna konton"
+    "providerQuotaHomeHint": "Livestatus för anslutna konton",
+    "claudeResetCreditDefaultTitle": "Återställning av Claude-gräns",
+    "confirmRedeemClaudeResetCredit": "Inlösen återställer omedelbart de berättigade Claude-användningsgränserna och förbrukar denna kredit permanent.",
+    "claudeResetCreditsModalTitle": "Claude-återställningskrediter",
+    "claudeResetCreditsModalExplainer": "Tillgängliga Claude-återställningskrediter och veckovisa sessionsåterställningar för detta konto."
   },
   "modals": {
     "waitingAuth": "Väntar på auktorisering",

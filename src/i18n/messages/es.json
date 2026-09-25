@@ -9775,7 +9775,11 @@
     "updatedShort": "Actualizado",
     "lastRefreshed": "Última actualización",
     "providerQuota": "Cuota del proveedor",
-    "providerQuotaHomeHint": "Estado en tiempo real de las cuentas conectadas"
+    "providerQuotaHomeHint": "Estado en tiempo real de las cuentas conectadas",
+    "claudeResetCreditDefaultTitle": "Restablecimiento del límite de Claude",
+    "confirmRedeemClaudeResetCredit": "Canjear restablece de inmediato los límites de uso de Claude aplicables y consume este crédito de forma permanente.",
+    "claudeResetCreditsModalTitle": "Créditos de restablecimiento de Claude",
+    "claudeResetCreditsModalExplainer": "Créditos de restablecimiento de Claude disponibles y restablecimientos semanales de sesión para esta cuenta."
   },
   "modals": {
     "waitingAuth": "Esperando autorización",

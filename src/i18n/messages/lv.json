@@ -9775,7 +9775,11 @@
     "updatedShort": "Atjaunināts",
     "lastRefreshed": "Pēdējoreiz atsvaidzināts",
     "providerQuota": "Pakalpojuma sniedzēja kvota",
-    "providerQuotaHomeHint": "Pievienoto kontu statuss reāllaikā"
+    "providerQuotaHomeHint": "Pievienoto kontu statuss reāllaikā",
+    "claudeResetCreditDefaultTitle": "Claude limitu atiestatīšana",
+    "confirmRedeemClaudeResetCredit": "Izmantošana nekavējoties atiestata atbilstošos Claude lietojuma limitus un neatgriezeniski iztērē šo kredītu.",
+    "claudeResetCreditsModalTitle": "Claude atiestatīšanas kredīti",
+    "claudeResetCreditsModalExplainer": "Šim kontam pieejamie Claude atiestatīšanas kredīti un iknedēļas sesiju atiestatīšanas."
   },
   "modals": {
     "waitingAuth": "Tiek gaidīta autorizācija",

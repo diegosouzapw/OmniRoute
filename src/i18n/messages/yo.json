@@ -9775,7 +9775,11 @@
     "updatedShort": "Ti sọ di tuntun",
     "lastRefreshed": "Ìgbà tí a sọ di tuntun kẹ́yìn",
     "providerQuota": "Ìpín Olùpèsè",
-    "providerQuotaHomeHint": "Ipò lọ́wọ́lọ́wọ́ lórí gbogbo àwọn àkọọ́lẹ̀ tí a so pọ̀"
+    "providerQuotaHomeHint": "Ipò lọ́wọ́lọ́wọ́ lórí gbogbo àwọn àkọọ́lẹ̀ tí a so pọ̀",
+    "claudeResetCreditDefaultTitle": "Àtúntò ààlà Claude",
+    "confirmRedeemClaudeResetCredit": "Rírapadà lẹ́sẹ̀kẹsẹ̀ ń tún àwọn ààlà ìlò Claude tí ó yẹ ṣe, yóò sì lo kírẹ́dìtì yìí run pátápátá.",
+    "claudeResetCreditsModalTitle": "Àwọn kírẹ́dìtì àtúntò Claude",
+    "claudeResetCreditsModalExplainer": "Àwọn kírẹ́dìtì àtúntò Claude tí ó wà àti àwọn àtúntò àkókò ìlò ọ̀sọ̀ọ̀sẹ̀ fún àkọọ́lẹ̀ yìí."
   },
   "modals": {
     "waitingAuth": "Ń dúró de Àṣẹ",

@@ -9775,7 +9775,11 @@
     "updatedShort": "Atnaujinta",
     "lastRefreshed": "Paskutinį kartą atnaujinta",
     "providerQuota": "Teikėjo kvota",
-    "providerQuotaHomeHint": "Būsena realiuoju laiku visose prijungtose paskyrose"
+    "providerQuotaHomeHint": "Būsena realiuoju laiku visose prijungtose paskyrose",
+    "claudeResetCreditDefaultTitle": "Claude limito atstatymas",
+    "confirmRedeemClaudeResetCredit": "Panaudojus iš karto atstatomi atitinkami Claude naudojimo limitai ir visam laikui sunaudojamas šis kreditas.",
+    "claudeResetCreditsModalTitle": "Claude atstatymo kreditai",
+    "claudeResetCreditsModalExplainer": "Šiai paskyrai pasiekiami Claude atstatymo kreditai ir savaitiniai seansų atstatymai."
   },
   "modals": {
     "waitingAuth": "Laukiama autorizacijos",

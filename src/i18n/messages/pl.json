@@ -9775,7 +9775,11 @@
     "updatedShort": "Zaktualizowano",
     "lastRefreshed": "Ostatnio odświeżono",
     "providerQuota": "Limit dostawcy",
-    "providerQuotaHomeHint": "Status na żywo na połączonych kontach"
+    "providerQuotaHomeHint": "Status na żywo na połączonych kontach",
+    "claudeResetCreditDefaultTitle": "Reset limitu Claude",
+    "confirmRedeemClaudeResetCredit": "Wykorzystanie natychmiast resetuje kwalifikujące się limity użycia Claude i trwale zużywa ten kredyt.",
+    "claudeResetCreditsModalTitle": "Kredyty resetu Claude",
+    "claudeResetCreditsModalExplainer": "Dostępne kredyty resetu Claude i cotygodniowe resety sesji dla tego konta."
   },
   "modals": {
     "waitingAuth": "Oczekiwanie na autoryzację",

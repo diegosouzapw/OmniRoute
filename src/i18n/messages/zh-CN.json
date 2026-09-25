@@ -9775,7 +9775,11 @@
     "updatedShort": "更新于",
     "lastRefreshed": "上次刷新",
     "providerQuota": "提供者配额",
-    "providerQuotaHomeHint": "已连接账户的实时状态"
+    "providerQuotaHomeHint": "已连接账户的实时状态",
+    "claudeResetCreditDefaultTitle": "Claude 限额重置",
+    "confirmRedeemClaudeResetCredit": "兑换将立即重置符合条件的 Claude 使用限额，并永久消耗此点数。",
+    "claudeResetCreditsModalTitle": "Claude 重置点数",
+    "claudeResetCreditsModalExplainer": "此账户可用的 Claude 重置点数和每周会话重置次数。"
   },
   "modals": {
     "waitingAuth": "等待授权",

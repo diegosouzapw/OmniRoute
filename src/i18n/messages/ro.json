@@ -9775,7 +9775,11 @@
     "updatedShort": "Actualizat",
     "lastRefreshed": "Ultima reîmprospătare",
     "providerQuota": "Cotă furnizor",
-    "providerQuotaHomeHint": "Stare în timp real pentru conturile conectate"
+    "providerQuotaHomeHint": "Stare în timp real pentru conturile conectate",
+    "claudeResetCreditDefaultTitle": "Resetare limită Claude",
+    "confirmRedeemClaudeResetCredit": "Revendicarea resetează imediat limitele de utilizare Claude eligibile și consumă definitiv acest credit.",
+    "claudeResetCreditsModalTitle": "Credite de resetare Claude",
+    "claudeResetCreditsModalExplainer": "Credite de resetare Claude disponibile și resetări săptămânale ale sesiunilor pentru acest cont."
   },
   "modals": {
     "waitingAuth": "În așteptarea autorizației",

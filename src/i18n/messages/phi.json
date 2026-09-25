@@ -9775,7 +9775,11 @@
     "updatedShort": "Na-update",
     "lastRefreshed": "Huling na-refresh",
     "providerQuota": "Quota ng Provider",
-    "providerQuotaHomeHint": "Live na status sa lahat ng nakakonektang account"
+    "providerQuotaHomeHint": "Live na status sa lahat ng nakakonektang account",
+    "claudeResetCreditDefaultTitle": "Pag-reset ng limit ng Claude",
+    "confirmRedeemClaudeResetCredit": "Ang pag-redeem ay agad na nagre-reset ng mga kwalipikadong limitasyon sa paggamit ng Claude at permanenteng gagamitin ang credit na ito.",
+    "claudeResetCreditsModalTitle": "Mga credit sa pag-reset ng Claude",
+    "claudeResetCreditsModalExplainer": "Mga available na credit sa pag-reset ng Claude at lingguhang pag-reset ng session para sa account na ito."
   },
   "modals": {
     "waitingAuth": "Naghihintay ng Awtorisasyon",

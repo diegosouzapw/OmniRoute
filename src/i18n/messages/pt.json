@@ -9775,7 +9775,11 @@
     "updatedShort": "Atualizado",
     "lastRefreshed": "Última atualização",
     "providerQuota": "Quota do fornecedor",
-    "providerQuotaHomeHint": "Estado em tempo real em todas as contas associadas"
+    "providerQuotaHomeHint": "Estado em tempo real em todas as contas associadas",
+    "claudeResetCreditDefaultTitle": "Reposição do limite do Claude",
+    "confirmRedeemClaudeResetCredit": "O resgate repõe imediatamente os limites de utilização elegíveis do Claude e consome permanentemente este crédito.",
+    "claudeResetCreditsModalTitle": "Créditos de reposição do Claude",
+    "claudeResetCreditsModalExplainer": "Créditos de reposição do Claude disponíveis e reposições semanais de sessão para esta conta."
   },
   "modals": {
     "waitingAuth": "Aguardando autorização",

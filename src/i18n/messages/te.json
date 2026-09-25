@@ -9775,7 +9775,11 @@
     "updatedShort": "అప్‌డేట్ చేయబడింది",
     "lastRefreshed": "చివరిగా రిఫ్రెష్ చేయబడింది",
     "providerQuota": "ప్రొవైడర్ కోటా",
-    "providerQuotaHomeHint": "కనెక్ట్ చేయబడిన ఖాతాల ప్రత్యక్ష స్థితి"
+    "providerQuotaHomeHint": "కనెక్ట్ చేయబడిన ఖాతాల ప్రత్యక్ష స్థితి",
+    "claudeResetCreditDefaultTitle": "Claude పరిమితి రీసెట్",
+    "confirmRedeemClaudeResetCredit": "రీడీమ్ చేయడం వలన అర్హత ఉన్న Claude వినియోగ పరిమితులు తక్షణమే రీసెట్ చేయబడతాయి మరియు ఈ క్రెడిట్ శాశ్వతంగా వినియోగించబడుతుంది.",
+    "claudeResetCreditsModalTitle": "Claude రీసెట్ క్రెడిట్‌లు",
+    "claudeResetCreditsModalExplainer": "ఈ ఖాతా కోసం అందుబాటులో ఉన్న Claude రీసెట్ క్రెడిట్‌లు మరియు వారపు సెషన్ రీసెట్‌లు."
   },
   "modals": {
     "waitingAuth": "అనుమతి కోసం వేచి ఉంది",

@@ -9775,7 +9775,11 @@
     "updatedShort": "Imesasishwa",
     "lastRefreshed": "Ilihuishwa mara ya mwisho",
     "providerQuota": "Kiwango cha Mtoa Huduma",
-    "providerQuotaHomeHint": "Hali ya moja kwa moja kwenye akaunti zilizounganishwa"
+    "providerQuotaHomeHint": "Hali ya moja kwa moja kwenye akaunti zilizounganishwa",
+    "claudeResetCreditDefaultTitle": "Uwekaji upya wa kikomo cha Claude",
+    "confirmRedeemClaudeResetCredit": "Kukomboa kunaweka upya mara moja vikomo vinavyostahiki vya matumizi ya Claude na kutumia salio hili kabisa.",
+    "claudeResetCreditsModalTitle": "Masalio ya kuweka upya ya Claude",
+    "claudeResetCreditsModalExplainer": "Masalio ya kuweka upya ya Claude yanayopatikana na uwekaji upya wa vipindi vya kila wiki kwa akaunti hii."
   },
   "modals": {
     "waitingAuth": "Inasubiri Uidhinishaji",

@@ -9775,7 +9775,11 @@
     "updatedShort": "更新於",
     "lastRefreshed": "上次重新整理",
     "providerQuota": "提供者配額",
-    "providerQuotaHomeHint": "已連線帳戶的即時狀態"
+    "providerQuotaHomeHint": "已連線帳戶的即時狀態",
+    "claudeResetCreditDefaultTitle": "Claude 限額重設",
+    "confirmRedeemClaudeResetCredit": "兌換將立即重設符合條件的 Claude 使用限額，並永久消耗此點數。",
+    "claudeResetCreditsModalTitle": "Claude 重設點數",
+    "claudeResetCreditsModalExplainer": "此帳戶可用的 Claude 重設點數與每週工作階段重設次數。"
   },
   "modals": {
     "waitingAuth": "等待授權",

@@ -9775,7 +9775,11 @@
     "updatedShort": "Оновлено",
     "lastRefreshed": "Останнє оновлення",
     "providerQuota": "Квота провайдера",
-    "providerQuotaHomeHint": "Стан у реальному часі за підключеними акаунтами"
+    "providerQuotaHomeHint": "Стан у реальному часі за підключеними акаунтами",
+    "claudeResetCreditDefaultTitle": "Скидання лімітів Claude",
+    "confirmRedeemClaudeResetCredit": "Активація негайно скидає відповідні ліміти використання Claude та безповоротно витрачає цей кредит.",
+    "claudeResetCreditsModalTitle": "Кредити для скидання Claude",
+    "claudeResetCreditsModalExplainer": "Доступні кредити для скидання Claude та щотижневі скидання сесій для цього облікового запису."
   },
   "modals": {
     "waitingAuth": "Очікування авторизації",

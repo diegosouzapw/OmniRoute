@@ -9775,7 +9775,11 @@
     "updatedShort": "अद्यावधिक गरिएको",
     "lastRefreshed": "पछिल्लो पटक रिफ्रेस गरिएको",
     "providerQuota": "प्रदायक कोटा",
-    "providerQuotaHomeHint": "जडान गरिएका खाताहरूको प्रत्यक्ष स्थिति"
+    "providerQuotaHomeHint": "जडान गरिएका खाताहरूको प्रत्यक्ष स्थिति",
+    "claudeResetCreditDefaultTitle": "Claude सीमा रिसेट",
+    "confirmRedeemClaudeResetCredit": "रिडिम गर्नाले योग्य Claude उपयोग सीमाहरू तुरुन्तै रिसेट हुन्छ र यो क्रेडिट स्थायी रूपमा खपत हुन्छ।",
+    "claudeResetCreditsModalTitle": "Claude रिसेट क्रेडिटहरू",
+    "claudeResetCreditsModalExplainer": "यस खाताका लागि उपलब्ध Claude रिसेट क्रेडिटहरू र साप्ताहिक सत्र रिसेटहरू।"
   },
   "modals": {
     "waitingAuth": "प्राधिकरणको प्रतीक्षामा",

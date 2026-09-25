@@ -9775,7 +9775,11 @@
     "updatedShort": "अपडेट केले",
     "lastRefreshed": "शेवटचे रिफ्रेश केलेले",
     "providerQuota": "प्रदाता कोटा",
-    "providerQuotaHomeHint": "कनेक्ट केलेल्या खात्यांमधील थेट स्थिती"
+    "providerQuotaHomeHint": "कनेक्ट केलेल्या खात्यांमधील थेट स्थिती",
+    "claudeResetCreditDefaultTitle": "Claude मर्यादा रीसेट",
+    "confirmRedeemClaudeResetCredit": "रिडीम केल्याने पात्र Claude वापर मर्यादा त्वरित रीसेट होतात आणि हे क्रेडिट कायमस्वरूपी वापरले जाते.",
+    "claudeResetCreditsModalTitle": "Claude रीसेट क्रेडिट्स",
+    "claudeResetCreditsModalExplainer": "या खात्यासाठी उपलब्ध Claude रीसेट क्रेडिट्स आणि साप्ताहिक सत्र रीसेट."
   },
   "modals": {
     "waitingAuth": "अधिकृततेची प्रतीक्षा करत आहे",

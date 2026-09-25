@@ -9775,7 +9775,11 @@
     "updatedShort": "Güncellendi",
     "lastRefreshed": "Son yenileme",
     "providerQuota": "Sağlayıcı Kotası",
-    "providerQuotaHomeHint": "Bağlı hesaplar genelinde canlı durum"
+    "providerQuotaHomeHint": "Bağlı hesaplar genelinde canlı durum",
+    "claudeResetCreditDefaultTitle": "Claude limit sıfırlama",
+    "confirmRedeemClaudeResetCredit": "Kullanmak, uygun Claude kullanım limitlerini anında sıfırlar ve bu krediyi kalıcı olarak tüketir.",
+    "claudeResetCreditsModalTitle": "Claude sıfırlama kredileri",
+    "claudeResetCreditsModalExplainer": "Bu hesap için kullanılabilir Claude sıfırlama kredileri ve haftalık oturum sıfırlamaları."
   },
   "modals": {
     "waitingAuth": "Yetkilendirme bekleniyor",

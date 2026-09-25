@@ -9775,7 +9775,11 @@
     "updatedShort": "යාවත්කාලීන කළේ",
     "lastRefreshed": "අවසන් වරට නැවුම් කළේ",
     "providerQuota": "සපයන්නාගේ කෝටාව",
-    "providerQuotaHomeHint": "සම්බන්ධිත ගිණුම්වල සජීවී තත්ත්වය"
+    "providerQuotaHomeHint": "සම්බන්ධිත ගිණුම්වල සජීවී තත්ත්වය",
+    "claudeResetCreditDefaultTitle": "Claude සීමා යළි පිහිටුවීම",
+    "confirmRedeemClaudeResetCredit": "මුදවා ගැනීමෙන් සුදුසුකම් ලත් Claude භාවිත සීමාවන් වහාම යළි පිහිටුවන අතර මෙම ක්‍රෙඩිට් එක ස්ථිරවම වැය වේ.",
+    "claudeResetCreditsModalTitle": "Claude යළි පිහිටුවීමේ ක්‍රෙඩිට්",
+    "claudeResetCreditsModalExplainer": "මෙම ගිණුම සඳහා ලබා ගත හැකි Claude යළි පිහිටුවීමේ ක්‍රෙඩිට් සහ සතිපතා සැසි යළි පිහිටුවීම්."
   },
   "modals": {
     "waitingAuth": "අවසරය සඳහා රැඳී සිටී",
