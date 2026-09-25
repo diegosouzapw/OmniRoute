@@ -1,0 +1,1 @@
+- **fix(routing):** bare `gpt-6-astra` ids are Codex-native like the `gpt-5.6-*` tiers: with Codex and OpenAI both active, bare `gpt-6-astra` now reaches the Codex subscription instead of OpenAI, and `/v1/models` lists the bare Astra ids ([#14721](https://github.com/diegosouzapw/OmniRoute/pull/14721))

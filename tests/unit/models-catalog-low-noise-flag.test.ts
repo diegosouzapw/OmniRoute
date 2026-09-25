@@ -138,9 +138,9 @@ test("?prefix=canonical query param overrides flag to canonical-only mode", asyn
 // supposed to suppress, via the ?prefix= path AND the feature-flag path.
 //
 // Root `gpt-5.6-sol-ultra` is used for the id-set cases: it is a member of
-// CODEX_NATIVE_UNPREFIXED_MODELS (open-sse/services/model.ts:147-175). It is
-// also present in the static PROVIDER_MODELS catalog (as are 26 of the 27
-// roots), which is why the separate parent-rule test below deliberately uses
+// CODEX_NATIVE_UNPREFIXED_MODELS (open-sse/services/model.ts). It is
+// also present in the static PROVIDER_MODELS catalog (as are all roots but
+// one), which is why the separate parent-rule test below deliberately uses
 // `codex-auto-review` instead — see the comment on that test.
 // ---------------------------------------------------------------------------
 
@@ -194,7 +194,7 @@ async function seedCodexConnection(name: string) {
 // not part of this defect; they are asserted so a fix scoped to :1064-1093
 // cannot disturb a neighbouring, already-correct loop.
 //
-// PROVIDER_MODELS["cxa"] carries 26 of the 27 native roots — `codex-auto-review`
+// PROVIDER_MODELS["cxa"] carries every native root but one — `codex-auto-review`
 // is absent from it, which is why that root has no `cxa/` row.
 const CODEX_APP_SERVER_ALIAS_ROW: [string, string | null] = [`cxa/${CODEX_NATIVE_ROOT}`, null];
 
@@ -308,8 +308,8 @@ test("#11632 MODELS_CATALOG_PREFIX_MODE=canonical flag path gates Codex-native r
 test("#11632 canonical mode re-roots the surviving row instead of dangling at a suppressed parent", async () => {
   // Parent rule (frozen): no surviving row may point at a suppressed
   // predecessor. This needs a root the native loop emits FIRST, otherwise the
-  // rule is unobservable: 26 of the 27 CODEX_NATIVE_UNPREFIXED_MODELS entries
-  // are also in the static PROVIDER_MODELS catalog, so the static loop
+  // rule is unobservable: every CODEX_NATIVE_UNPREFIXED_MODELS entry but one
+  // is also in the static PROVIDER_MODELS catalog, so the static loop
   // (:1022/:1036/:1052) already emits a correctly re-rooted `codex/<root>` and
   // the native loop's first-wins dedupe at :1082 then skips its own entry —
   // masking a wrong parent there.
