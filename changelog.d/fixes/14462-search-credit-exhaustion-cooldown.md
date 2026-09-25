@@ -1,0 +1,1 @@
+- **fix(search):** Search connections that answer with "insufficient credits" / "out of credits" text (e.g. Exa's 400) now enter the quota cooldown instead of a short generic retry; the phrases are search-scoped so LLM chat fallback classification is unchanged ([#14462](https://github.com/diegosouzapw/OmniRoute/pull/14462)) — thanks @HouMinXi

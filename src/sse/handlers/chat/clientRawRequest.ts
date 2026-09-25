@@ -16,6 +16,9 @@ export function buildClientRawRequest(request: Request, body: unknown) {
   const headers = Object.fromEntries(request.headers.entries());
   delete headers["x-omniroute-lease-owner"];
   delete headers["x-omniroute-lease-generation"];
+  // Internal slow-keepalive deadline routing token (never client-sent, never
+  // upstream-bound): set by withDeadlineSignal, consumed by getDeadlineController.
+  delete headers["x-deadline-token"];
   return {
     endpoint: url.pathname,
     // #7847: bounded, not a full deep clone. Every consumer of clientRawRequest.body is

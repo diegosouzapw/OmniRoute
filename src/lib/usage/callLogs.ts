@@ -27,6 +27,11 @@ import {
   getReasoningTokensOrNull,
   getObservedReasoning,
 } from "./tokenAccounting";
+import {
+  hasRenderedContent,
+  isNonTextRequest,
+  resolveUsageProvenance,
+} from "./callContentProvenance";
 import { isNoLog } from "../compliance/noLog";
 import {
   parseStoredPayload,
@@ -122,6 +127,8 @@ type CallLogSummaryRow = {
   correlation_id?: string | null;
   model_pinned?: number | null;
   session_tag?: string | null;
+  has_content?: number | null;
+  usage_provenance?: string | null;
 };
 
 const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
@@ -447,6 +454,8 @@ function mapSummaryRow(row: CallLogSummaryRow) {
       compressed: row.tokens_compressed != null ? toNumber(row.tokens_compressed) : null,
     },
     cacheSource: row.cache_source || "upstream",
+    hasContent: row.has_content ?? null,
+    usageProvenance: row.usage_provenance ?? null,
     requestType: row.request_type,
     sourceFormat: row.source_format,
     targetFormat: row.target_format,
@@ -610,6 +619,27 @@ async function saveCallLogOperation(entry: any): Promise<void> {
     const errorType = toStoredErrorType(
       classifyCallLogError(entry.status, entry.error, entry.provider)
     );
+    // Rendered-content presence plus usage provenance: success-only, additive,
+    // nullable. A 2xx is a success even with token counts at zero, so the
+    // success bound is 200-299 (not <400).
+    const numericStatus = Number(entry.status);
+    const isSuccess = Number.isFinite(numericStatus) && numericStatus >= 200 && numericStatus < 300;
+    const clientVisibleBody =
+      entry.clientResponse ??
+      (entry.pipelinePayloads as { clientResponse?: unknown } | null | undefined)?.clientResponse ??
+      (entry.pipeline as { clientResponse?: unknown } | null | undefined)?.clientResponse ??
+      entry.responseBody;
+    const measurableContent =
+      isSuccess &&
+      !noLogEnabled &&
+      !isNonTextRequest(entry.requestType, entry.path ?? entry.method);
+    const renderedContent = measurableContent ? hasRenderedContent(clientVisibleBody) : null;
+    const hasContent = renderedContent === null ? null : renderedContent ? 1 : 0;
+    const usageProvenance = resolveUsageProvenance({
+      usageEstimated: entry.usageEstimated === true,
+      tokens: entry.tokens,
+      isSuccess,
+    });
     const logEntry = {
       id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
@@ -658,6 +688,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       // resolvePreviousResponseState refuses to rehydrate it as continuation
       // history. See src/lib/db/responsesContinuationStore.ts.
       videoContentRemoved: entry.videoContentRemoved ? 1 : 0,
+      hasContent,
+      usageProvenance,
     };
 
     const requestSummary = noLogEnabled
@@ -708,7 +740,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
         correlation_id, model_pinned, session_tag, response_id, error_type,
-        video_content_removed
+        video_content_removed, has_content, usage_provenance
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -722,7 +754,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
         @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
-        @videoContentRemoved
+        @videoContentRemoved, @hasContent, @usageProvenance
       )
     `
     );

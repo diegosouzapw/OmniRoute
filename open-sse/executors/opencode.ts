@@ -624,9 +624,10 @@ export class OpencodeExecutor extends BaseExecutor {
       // through the accounts is the retry). Avoids an unbounded loop on a
       // persistently malformed upstream.
       const emptyRejectionBudget = accounts.length === 1 ? 1 : 0;
-      // Tried sets, request-local only: geo/transient + 429 no-replay keys.
+      // Request-local: geo/transient + 429 no-replay keys, one last resort after a 429.
       const geoTriedProxyKeys = new Set<string>(),
-        rateLimitedProxyKeys = new Set<string>();
+        rateLimitedProxyKeys = new Set<string>(),
+        spare = egressPacing.lastResort429(accounts, this, geoTriedProxyKeys, rateLimitedProxyKeys);
       // Opt-in (PROXY_SKIP_RECENTLY_FAILED, default off): members the provider just refused
       // (received refusal or refused TCP probe) are skipped. Off = plain rotation.
       const skipRecentlyFailed = isProxySkipRecentlyFailedEnabled();
@@ -681,15 +682,14 @@ export class OpencodeExecutor extends BaseExecutor {
             this.snapshotEntries(accounts, nowMs)
           );
         }
-        // Last resort: a single direct attempt (distinct egress that may
-        // succeed) once no proxied account is a candidate — never before.
+        // Last resort: one direct attempt (distinct egress) once no proxied account is a candidate.
         if (!isProxiedCandidate(account) && !directTried && geoTriedProxyKeys.size > 0) {
           const direct = accounts.find((a) => a.proxy === null && a.cooldownUntil <= Date.now());
-          if (direct) {
-            account = direct;
-          }
+          if (direct) account = direct;
         }
         const lastStatus = lastResult !== null ? lastResult.response.status : null;
+        const lastResort = spare.take(lastStatus, account, isProxiedCandidate);
+        account = lastResort ?? account;
         const lastWasGeo = lastStatus === 403 || lastStatus === 451;
         const lastWasTransient = lastStatus !== null && lastStatus >= 500 && lastStatus < 600;
         const isMonoRetryOwed = accounts.length === 1 && lastWasTransient;
@@ -697,7 +697,7 @@ export class OpencodeExecutor extends BaseExecutor {
           !isMonoRetryOwed &&
           lastResult !== null &&
           geoTriedProxyKeys.size + rateLimitedProxyKeys.size > 0 &&
-          !isProxiedCandidate(account) &&
+          !(account === lastResort || isProxiedCandidate(account)) &&
           !(account.proxy === null && !directTried)
         ) {
           // Geo/transient exhaustion → surface as-is, no success mark.
