@@ -35,6 +35,16 @@ import {
   storeCompletedDetail,
   getCompletedDetails,
 } from "./completedRequestDetails";
+import {
+  hasAgentIdentity,
+  type AgentContext,
+} from "@omniroute/open-sse/handlers/chatCore/agentContext.ts";
+import {
+  recordAgentSessionUsage,
+  type AgentSessionTokens,
+  type AgentSessionUsage,
+} from "../db/agentSessions";
+import { calculateCostDetailed } from "./costCalculator";
 import { shouldPersistToDisk } from "./migrations";
 import { emitUsageRecorded } from "./usageEvents";
 import {
@@ -733,6 +743,38 @@ export interface UsageEntry {
   endpoint?: string | null;
   /** Opaque CLIProxyAPI auth_index. Never a label, path, token, or email. */
   cpaAuthIndex?: string | null;
+  /** Coding-agent session and project of the request; attributes the row to an agent session. */
+  agentContext?: AgentContext | null;
+}
+
+/** Session counters for this request, priced now so reports keep the price at request time. */
+async function buildAgentSessionUsage(
+  entry: UsageEntry,
+  tokens: AgentSessionTokens,
+  timestamp: string,
+  serviceTier: string
+): Promise<AgentSessionUsage | null> {
+  if (!hasAgentIdentity(entry.agentContext)) return null;
+  const provider = entry.provider ? resolveProviderId(entry.provider) : null;
+  const model = entry.model || null;
+  const { costUsd, priced } = await calculateCostDetailed(provider || "", model || "", tokens, {
+    provider,
+    model,
+    serviceTier,
+  });
+  return {
+    context: entry.agentContext,
+    apiKeyId: entry.apiKeyId || null,
+    apiKeyName: entry.apiKeyName || null,
+    timestamp,
+    success: entry.success !== false,
+    tokens,
+    costUsd,
+    priced,
+    provider,
+    model,
+    connectionId: entry.connectionId || null,
+  };
 }
 
 /**
@@ -748,6 +790,14 @@ export async function saveRequestUsage(entry: UsageEntry) {
 
     const tokensInput = getLoggedInputTokens(entry.tokens);
     const tokensOutput = getLoggedOutputTokens(entry.tokens);
+    const tokens: AgentSessionTokens = {
+      input: tokensInput,
+      output: tokensOutput,
+      cacheRead: getPromptCacheReadTokens(entry.tokens),
+      cacheCreation: getPromptCacheCreationTokens(entry.tokens),
+      reasoning: getReasoningTokens(entry.tokens),
+    };
+    const agentSessionUsage = await buildAgentSessionUsage(entry, tokens, timestamp, serviceTier);
     const connection = entry.connectionId
       ? (db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(entry.connectionId) as
           Record<string, unknown> | undefined)
@@ -806,13 +856,18 @@ export async function saveRequestUsage(entry: UsageEntry) {
         return; // duplicate — do not insert
       }
 
+      const agentSessionId = agentSessionUsage
+        ? recordAgentSessionUsage(db, agentSessionUsage)
+        : null;
+
       db.prepare(
         `
         INSERT INTO usage_history (provider, model, connection_id, account_key, account_label,
           account_label_priority, api_key_id, api_key_name, tokens_input, tokens_output,
           tokens_cache_read, tokens_cache_creation, tokens_reasoning, service_tier, status, success,
-          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, cpa_auth_index, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, cpa_auth_index,
+          agent_session_id, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
         entry.provider ? resolveProviderId(entry.provider) : null,
@@ -825,9 +880,9 @@ export async function saveRequestUsage(entry: UsageEntry) {
         entry.apiKeyName || null,
         tokensInput,
         tokensOutput,
-        getPromptCacheReadTokens(entry.tokens),
-        getPromptCacheCreationTokens(entry.tokens),
-        getReasoningTokens(entry.tokens),
+        tokens.cacheRead,
+        tokens.cacheCreation,
+        tokens.reasoning,
         serviceTier,
         entry.status || null,
         entry.success === false ? 0 : 1,
@@ -841,6 +896,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         entry.comboStrategy || entry.combo_strategy || null,
         entry.endpoint || null,
         entry.cpaAuthIndex || null,
+        agentSessionId,
         timestamp
       );
 
