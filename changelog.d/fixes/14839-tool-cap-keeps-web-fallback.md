@@ -1,0 +1,1 @@
+- **fix(sse):** the web_search / web_fetch fallback tool is no longer cut when a large tool list (for example Codex with several MCP servers) is capped to the provider limit, so the model can actually search ([#14839](https://github.com/diegosouzapw/OmniRoute/pull/14839))
