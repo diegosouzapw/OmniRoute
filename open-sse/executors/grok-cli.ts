@@ -159,7 +159,7 @@ function normalizeGrokBuildReasoning(
   }
   if (model === "grok-composer-2.5-fast") {
     delete reasoning.effort;
-  } else if ((model === "grok-4.5" || model === "grok-4.6") && !hasExplicitEffort) {
+  } else if (!hasExplicitEffort) {
     reasoning.effort = GROK_BUILD_DEFAULT_REASONING_EFFORT;
   }
   return Object.keys(reasoning).length > 0 ? reasoning : null;

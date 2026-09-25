@@ -11,6 +11,7 @@
  * the DB layer can consult it without loading undici or the SOCKS connector.
  */
 import { COOLDOWN_MS } from "../config/errorConfig.ts";
+import { notifyProxyTransition } from "./proxyTransitionListeners.ts";
 import { stripIpv6Brackets } from "./proxyFamily.ts";
 
 const DEFAULT_QUOTA_429_BASE_MS = COOLDOWN_MS.rateLimit;
@@ -174,6 +175,7 @@ export function noteProxyRefusal(
   const id = entryId(key, kind);
   memory.delete(id);
   memory.set(id, { streak, until: nowMs + periodMs, seq: ++refusalSeq });
+  notifyProxyTransition({ key, kind, periodMs, until: nowMs + periodMs });
   if (memory.size > MAX_ENTRIES) {
     const oldest = memory.keys().next().value;
     if (oldest !== undefined) memory.delete(oldest);

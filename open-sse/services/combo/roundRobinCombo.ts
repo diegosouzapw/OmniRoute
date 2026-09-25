@@ -97,6 +97,7 @@ import {
   toRecordedTarget,
   getExhaustedTargetSkipReason,
   requestScopedReplayKey,
+  resolvePersistedConnectionCooldownSkipReason,
 } from "./comboPredicates.ts";
 import { handlePreContentStreamRetry } from "./executeTargetClassify.ts";
 import { applyComboTargetExhaustion } from "./targetExhaustion.ts";
@@ -483,8 +484,29 @@ export async function handleRoundRobinCombo({
       const rrEvents = createRRDashboardEvents(combo.name, modelIndex, provider, modelStr);
       const profile = await getRuntimeProviderProfile(provider);
       const semaphoreKey = `combo:${combo.name}:${target.executionKey}`;
-      const allowRateLimitedConnection =
+      let allowRateLimitedConnection =
         Boolean(provider && provider !== "unknown") && transientRateLimitedProviders.has(provider);
+      if (allowRateLimitedConnection && target.connectionId) {
+        const persistedSkip = await resolvePersistedConnectionCooldownSkipReason(
+          target,
+          (id) => getCachedProviderConnectionById(id),
+          allowRateLimitedConnection
+        );
+        if (persistedSkip) {
+          log.info("COMBO-RR", persistedSkip);
+          clearStaleLKGP(
+            combo.name,
+            target.executionKey,
+            combo.id,
+            log,
+            "COMBO-RR",
+            undefined,
+            target
+          );
+          if (offset > 0) fallbackCount++;
+          continue;
+        }
+      }
       const targetForAttempt = allowRateLimitedConnection
         ? { ...target, allowRateLimitedConnection: true, fallbackAttempts: offset }
         : { ...target, fallbackAttempts: offset };
