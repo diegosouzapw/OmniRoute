@@ -869,6 +869,13 @@ async function main() {
     process.stdout.write(
       JSON.stringify(
         {
+          schemaVersion: 1,
+          candidateSha: execFileSync("git", ["rev-parse", "HEAD"], {
+            cwd: ROOT,
+            encoding: "utf8",
+          }).trim(),
+          profile: QUICK ? "quick" : WITH_BUILD && FULL_CI ? "full" : "standard",
+          completedAt: new Date().toISOString(),
           releaseGreen,
           hardFailures: hardFailures.map((r) => ({ id: r.id, label: r.label, detail: r.detail })),
           drift: drift.map((r) => ({ id: r.id, label: r.label, detail: r.detail })),
