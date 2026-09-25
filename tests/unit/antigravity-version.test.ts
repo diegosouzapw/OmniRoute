@@ -25,7 +25,7 @@ test("IDE and CLI start with independent captured fallback versions", () => {
   assert.equal(getCachedAntigravityIdeVersion(), ANTIGRAVITY_IDE_FALLBACK_VERSION);
   assert.equal(getCachedAntigravityCliVersion(), ANTIGRAVITY_CLI_FALLBACK_VERSION);
   assert.equal(ANTIGRAVITY_IDE_FALLBACK_VERSION, "2.1.1");
-  assert.equal(ANTIGRAVITY_CLI_FALLBACK_VERSION, "1.1.5");
+  assert.equal(ANTIGRAVITY_CLI_FALLBACK_VERSION, "1.2.3");
 });
 
 test("IDE resolver reads the official updater feed and caches only the IDE version", async () => {
@@ -46,7 +46,7 @@ test("IDE resolver reads the official updater feed and caches only the IDE versi
     "https://antigravity-auto-updater-974169037036.us-central1.run.app/releases"
   );
   assert.equal(getCachedAntigravityIdeVersion(), "2.2.0");
-  assert.equal(getCachedAntigravityCliVersion(), "1.1.5");
+  assert.equal(getCachedAntigravityCliVersion(), "1.2.3");
 });
 
 test("IDE resolver selects the newest feed entry and never falls below its version floor", async () => {
@@ -97,20 +97,20 @@ test("CLI resolver reads the official Google GitHub release and caches only the 
   const urls: string[] = [];
   const fetchMock = async (url: string | URL | Request) => {
     urls.push(String(url));
-    return new Response(JSON.stringify({ tag_name: "v1.2.0", name: "1.2.0" }), {
+    return new Response(JSON.stringify({ tag_name: "v1.2.3", name: "1.2.3" }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   };
 
-  assert.equal(await resolveAntigravityCliVersion(fetchMock as typeof fetch), "1.2.0");
-  assert.equal(await resolveAntigravityCliVersion(fetchMock as typeof fetch), "1.2.0");
+  assert.equal(await resolveAntigravityCliVersion(fetchMock as typeof fetch), "1.2.3");
+  assert.equal(await resolveAntigravityCliVersion(fetchMock as typeof fetch), "1.2.3");
   assert.equal(urls.length, 1);
   assert.equal(
     urls[0],
     "https://api.github.com/repos/google-antigravity/antigravity-cli/releases/latest"
   );
-  assert.equal(getCachedAntigravityCliVersion(), "1.2.0");
+  assert.equal(getCachedAntigravityCliVersion(), "1.2.3");
   assert.equal(getCachedAntigravityIdeVersion(), "2.1.1");
 });
 

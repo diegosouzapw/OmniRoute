@@ -261,7 +261,7 @@ test("usage service prefers Antigravity retrieveUserQuota over catalog quotaInfo
       return new Response(
         JSON.stringify({
           models: {
-            "gemini-3.7-flash-high": {
+            "gemini-3.8-flash-high": {
               quotaInfo: {
                 remainingFraction: 1,
                 resetTime: new Date(Date.now() + 60_000).toISOString(),
@@ -278,7 +278,7 @@ test("usage service prefers Antigravity retrieveUserQuota over catalog quotaInfo
         JSON.stringify({
           buckets: [
             {
-              modelId: "gemini-3.7-flash-high",
+              modelId: "gemini-3.8-flash-high",
               remainingFraction: 0.25,
               resetTime: new Date(Date.now() + 60_000).toISOString(),
             },
@@ -296,9 +296,9 @@ test("usage service prefers Antigravity retrieveUserQuota over catalog quotaInfo
     accessToken: `ag-token-live-quota-${Date.now()}`,
   });
 
-  assert.equal(usage.quotas["gemini-3.7-flash-high"].remainingPercentage, 25);
-  assert.equal(usage.quotas["gemini-3.7-flash-high"].used, 750);
-  assert.equal(usage.quotas["gemini-3.7-flash-high"].quotaSource, "retrieveUserQuota");
+  assert.equal(usage.quotas["gemini-3.8-flash-high"].remainingPercentage, 25);
+  assert.equal(usage.quotas["gemini-3.8-flash-high"].used, 750);
+  assert.equal(usage.quotas["gemini-3.8-flash-high"].quotaSource, "retrieveUserQuota");
 });
 
 test("usage service preserves Antigravity upstream quota bucket ids", async () => {
@@ -319,9 +319,9 @@ test("usage service preserves Antigravity upstream quota bucket ids", async () =
       return new Response(
         JSON.stringify({
           models: {
-            "gemini-3.7-flash-low": { quotaInfo: { remainingFraction: 1 } },
-            "gemini-3.7-flash-medium": { quotaInfo: { remainingFraction: 1 } },
-            "gemini-3.7-flash-high": { quotaInfo: { remainingFraction: 1 } },
+            "gemini-3.8-flash-low": { quotaInfo: { remainingFraction: 1 } },
+            "gemini-3.8-flash-medium": { quotaInfo: { remainingFraction: 1 } },
+            "gemini-3.8-flash-high": { quotaInfo: { remainingFraction: 1 } },
             "gemini-3-flash-agent": { quotaInfo: { remainingFraction: 1 } },
           },
         }),
@@ -333,8 +333,8 @@ test("usage service preserves Antigravity upstream quota bucket ids", async () =
       return new Response(
         JSON.stringify({
           buckets: [
-            { modelId: "gemini-3.7-flash-high", remainingFraction: 0.5 },
-            { modelId: "gemini-3.7-flash-low", remainingFraction: 0.25 },
+            { modelId: "gemini-3.8-flash-high", remainingFraction: 0.5 },
+            { modelId: "gemini-3.8-flash-low", remainingFraction: 0.25 },
           ],
         }),
         { status: 200 }
@@ -349,9 +349,9 @@ test("usage service preserves Antigravity upstream quota bucket ids", async () =
     accessToken: `ag-token-legacy-buckets-${Date.now()}`,
   });
 
-  assert.equal(usage.quotas["gemini-3.7-flash-high"].remainingPercentage, 50);
-  assert.equal(usage.quotas["gemini-3.7-flash-low"].remainingPercentage, 25);
-  assert.equal(usage.quotas["gemini-3.7-flash-medium"].remainingPercentage, 100);
+  assert.equal(usage.quotas["gemini-3.8-flash-high"].remainingPercentage, 50);
+  assert.equal(usage.quotas["gemini-3.8-flash-low"].remainingPercentage, 25);
+  assert.equal(usage.quotas["gemini-3.8-flash-medium"].remainingPercentage, 100);
   assert.equal(usage.quotas["gemini-3-flash-agent"], undefined);
 });
 
