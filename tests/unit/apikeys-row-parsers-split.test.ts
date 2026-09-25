@@ -39,6 +39,39 @@ test("parseAllowedModels keeps only string entries, tolerates junk", () => {
   assert.deepEqual(P.parseAllowedModels(null), []);
 });
 
+// #14500: a driver that decodes the column for us (a jsonb-style read, or any writer that
+// stored a real array) hands these parsers an Array, not a string. Every one of them tested
+// `typeof value !== "string"` first and returned [] — so a key's whole allow-list was dropped
+// before policy evaluation, and the request failed as if nothing were permitted.
+//
+// The direction matters and is asserted below: all of them failed CLOSED, so this discarded
+// legitimate access rather than granting any. The one branch that could have widened —
+// parseAllowedCombos treating legacy NULL as allow-all — is pinned separately, because an
+// already-decoded [] must stay deny-all rather than falling into it.
+test("list parsers keep string entries from an already-decoded array", () => {
+  assert.deepEqual(P.parseStringList(["x", 1, null, "y"]), ["x", "y"]);
+  assert.deepEqual(P.parseAllowedModels(["gpt-4", 1, null]), ["gpt-4"]);
+  // parseAllowedConnections is deliberately NOT asserted here: #14698 is already
+  // fixing that one, and duplicating the fix would conflict with it. Once both land,
+  // all four share this behaviour.
+  assert.deepEqual(P.parseAllowedCombos(["combo/x", 1, null]), ["combo/x"]);
+});
+
+test("a decoded array does not widen parseAllowedCombos to allow-all", () => {
+  // The legacy NULL row is allow-all; an explicit empty list is deny-all. Adding an Array
+  // branch must not let [] reach the NULL branch, which would turn a deny-all key into
+  // allow-all — the one way this fix could be worse than the bug.
+  assert.deepEqual(P.parseAllowedCombos([]), []);
+  assert.deepEqual(P.parseAllowedCombos(null), ["combo/*"]);
+  assert.deepEqual(P.parseAllowedCombos(undefined), ["combo/*"]);
+});
+
+test("decoded arrays containing no strings stay empty, not allow-all", () => {
+  assert.deepEqual(P.parseAllowedModels([1, null, {}]), []);
+  assert.deepEqual(P.parseAllowedCombos([1, null, {}]), []);
+  assert.deepEqual(P.parseAllowedConnections([1, null, {}]), []);
+});
+
 test("list parsers preserve already-decoded database arrays", () => {
   assert.deepEqual(P.parseAllowedConnections(["connection-a", 1, null]), ["connection-a"]);
 });

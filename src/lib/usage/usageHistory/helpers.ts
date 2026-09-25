@@ -179,33 +179,37 @@ export const MAX_PREVIEW_STRING = 1200;
 export const MAX_PREVIEW_ARRAY_ITEMS = 12;
 export const MAX_PREVIEW_OBJECT_KEYS = 24;
 
-export function truncatePendingPreview(value: unknown, depth = 0): unknown {
+function truncatePreviewString(value: string): string {
+  return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
+}
+
+function previewTree(value: unknown, depth: number, cutStrings: boolean): unknown {
   if (depth >= MAX_PREVIEW_DEPTH) {
     return "[TRUNCATED_DEPTH]";
   }
 
   if (typeof value === "string") {
-    return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
+    return cutStrings ? truncatePreviewString(value) : value;
   }
 
   if (Array.isArray(value)) {
     const preview = value
       .slice(0, MAX_PREVIEW_ARRAY_ITEMS)
-      .map((item) => truncatePendingPreview(item, depth + 1));
+      .map((item) => previewTree(item, depth + 1, cutStrings));
     if (value.length > MAX_PREVIEW_ARRAY_ITEMS) {
       preview.push({ _truncatedItems: value.length - MAX_PREVIEW_ARRAY_ITEMS });
     }
     return preview;
   }
 
-  if (!value || typeof value !== "object") {
+  if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) {
     return value;
   }
 
   const entries = Object.entries(value as JsonRecord);
   const truncatedEntries = entries
     .slice(0, MAX_PREVIEW_OBJECT_KEYS)
-    .map(([key, entryValue]) => [key, truncatePendingPreview(entryValue, depth + 1)]);
+    .map(([key, entryValue]) => [key, previewTree(entryValue, depth + 1, cutStrings)]);
   const preview = Object.fromEntries(truncatedEntries);
 
   if (entries.length > MAX_PREVIEW_OBJECT_KEYS) {
@@ -213,4 +217,24 @@ export function truncatePendingPreview(value: unknown, depth = 0): unknown {
   }
 
   return preview;
+}
+
+export function truncatePendingPreview(value: unknown): unknown {
+  return previewTree(value, 0, true);
+}
+
+export function prunePendingPreview(value: unknown): unknown {
+  return previewTree(value, 0, false);
+}
+
+export function truncatePendingPreviewStrings(value: unknown): unknown {
+  if (typeof value === "string") return truncatePreviewString(value);
+  if (Array.isArray(value)) return value.map(truncatePendingPreviewStrings);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as JsonRecord).map(([key, entryValue]) => [
+      key,
+      truncatePendingPreviewStrings(entryValue),
+    ])
+  );
 }

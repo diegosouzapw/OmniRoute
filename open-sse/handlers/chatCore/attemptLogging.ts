@@ -248,6 +248,14 @@ export type PersistAttemptLogsArgs = {
   claudeCacheMeta?: Record<string, unknown>;
   claudeCacheUsageMeta?: Record<string, unknown>;
   cacheSource?: "upstream" | "semantic";
+  /**
+   * Encrypted-reasoning observation from the stream loops (flag + wall-clock
+   * duration only). Efforts are read at the sink from the request bodies.
+   */
+  reasoningMeta?: {
+    encryptedSeen: boolean;
+    durationMs: number | null;
+  } | null;
 };
 
 export type PersistAttemptLogsContext = {
@@ -551,6 +559,12 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     connectionId: finalConnectionId || undefined,
     duration: Date.now() - startTime,
     tokens: tokens || {},
+    // Encrypted-reasoning observation: stream-side flag plus duration, and
+    // the two request bodies so the sink can read effort values
+    // (requested from the client body, upstream from the post-strip body).
+    reasoningMeta: args.reasoningMeta ?? null,
+    clientRequestBody: body ?? null,
+    upstreamRequestBody: providerRequest ?? null,
     requestBody: cloneBoundedChatLogPayload(
       attachLogMeta(truncateForLog(retainedRequest as Record<string, unknown>), {
         ...accountRotationMeta,

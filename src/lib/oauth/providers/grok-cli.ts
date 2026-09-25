@@ -414,6 +414,7 @@ function mapImportedToken(token: unknown) {
       principalId: identity.principalId,
       organizationId: identity.organizationId,
       rawAuthJson: extracted.rawAuthJson || undefined,
+      autoSync: true,
     },
   };
 }
