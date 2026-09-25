@@ -34,6 +34,8 @@ process.env.DATA_DIR = testDataDir;
 const coreDb = await import("../../src/lib/db/core.ts");
 const { getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
 const { persistAttemptLogs } = await import("../../open-sse/handlers/chatCore/attemptLogging.ts");
+const { recordEarlyKeepaliveBytes, takeEarlyKeepaliveBytes } =
+  await import("../../open-sse/utils/earlyKeepaliveByteBuffer.ts");
 
 const SECRET = "secret words";
 const FULL_TEXT = `[Video 1]: A person talks. transcript[00:00-00:02]: ${SECRET}`;
@@ -200,6 +202,187 @@ test("control: without a redaction map the persisted requestBody keeps the origi
   assert.ok(
     persistedText.includes(SECRET),
     "control call (no redaction map) must keep the raw transcript text"
+  );
+});
+
+test("observed requests never retain an echoed transcript in the response or detailed pipeline artifact", async () => {
+  const id = "video-response-retention-1";
+  const responseBody = { choices: [{ message: { content: SECRET } }] };
+  const detailedPayloads = {
+    providerResponse: responseBody,
+    streamChunks: { client: [SECRET], provider: [SECRET] },
+  };
+  persistAttemptLogs(
+    {
+      status: 200,
+      responseBody,
+      providerRequest: { messages: [{ role: "user", content: FULL_TEXT }] },
+      providerResponse: responseBody,
+      clientResponse: responseBody,
+    },
+    baseCtx({
+      pendingRequestId: id,
+      detailedLoggingEnabled: true,
+      reqLogger: { getPipelinePayloads: () => detailedPayloads },
+      videoContentRemoved: true,
+      videoBridgeLogRedaction: [
+        {
+          container: "messages",
+          messageIndex: 1,
+          partIndex: 1,
+          fullText: FULL_TEXT,
+          redactedText: PLACEHOLDER_TEXT,
+        },
+      ],
+    })
+  );
+
+  const row = await pollForCallLog(id);
+  assert.ok(row);
+  assert.equal(JSON.stringify(row).includes(SECRET), false);
+  assert.equal(JSON.stringify(row).includes(FULL_TEXT), false);
+  assert.equal(JSON.stringify(responseBody).includes(SECRET), true, "client response stays live");
+});
+
+test("non-video requests retain their response body as before", async () => {
+  const id = "video-response-retention-control-1";
+  persistAttemptLogs(
+    { status: 200, responseBody: { choices: [{ message: { content: SECRET } }] } },
+    baseCtx({ pendingRequestId: id })
+  );
+  const row = await pollForCallLog(id);
+  assert.ok(row);
+  assert.equal(JSON.stringify(row.responseBody).includes(SECRET), true);
+});
+
+test("observed video attempts discard early keepalive bytes instead of retaining them in memory", async () => {
+  const id = "video-early-keepalive-retention-1";
+  const correlationId = "video-early-keepalive-retention-corr-1";
+  recordEarlyKeepaliveBytes(correlationId, SECRET);
+
+  persistAttemptLogs(
+    { status: 200 },
+    baseCtx({
+      pendingRequestId: id,
+      correlationId,
+      detailedLoggingEnabled: true,
+      videoContentRemoved: true,
+      videoBridgeLogRedaction: [
+        {
+          container: "messages",
+          messageIndex: 1,
+          partIndex: 1,
+          fullText: FULL_TEXT,
+          redactedText: PLACEHOLDER_TEXT,
+        },
+      ],
+    })
+  );
+
+  assert.deepEqual(takeEarlyKeepaliveBytes(correlationId), []);
+  const row = await pollForCallLog(id);
+  assert.ok(row);
+  assert.equal(JSON.stringify(row).includes(SECRET), false);
+});
+
+test("observed video logs omit the request when the per-part redaction shadow cannot be applied", async () => {
+  const id = "video-missing-shadow-1";
+  persistAttemptLogs({ status: 200 }, baseCtx({ pendingRequestId: id, videoContentRemoved: true }));
+
+  const row = await pollForCallLog(id);
+  assert.ok(row);
+  assert.equal(JSON.stringify(row.requestBody).includes(SECRET), false);
+  assert.equal((row.requestBody as Record<string, unknown>)._omniroute_omitted, "video-transcript");
+});
+
+test("observed video logs omit the whole request when only some shadow entries match", async () => {
+  const id = "video-partial-shadow-1";
+  const secondSecret = "second private transcript";
+  const secondFullText = `[Video 2]: transcript[00:02-00:04]: ${secondSecret}`;
+  const body = videoBody();
+  const content = body.messages[1].content;
+  assert.ok(Array.isArray(content));
+  content.push({ type: "text", text: `${secondFullText} modified after preCall` });
+
+  persistAttemptLogs(
+    { status: 200 },
+    baseCtx({
+      pendingRequestId: id,
+      body,
+      videoContentRemoved: true,
+      videoBridgeLogRedaction: [
+        {
+          container: "messages",
+          messageIndex: 1,
+          partIndex: 1,
+          fullText: FULL_TEXT,
+          redactedText: PLACEHOLDER_TEXT,
+        },
+        {
+          container: "messages",
+          messageIndex: 1,
+          partIndex: 2,
+          fullText: secondFullText,
+          redactedText: "[redacted-video-transcript]",
+        },
+      ],
+    })
+  );
+
+  const row = await pollForCallLog(id);
+  assert.ok(row);
+  assert.equal((row.requestBody as Record<string, unknown>)._omniroute_omitted, "video-transcript");
+  assert.equal(JSON.stringify(row.requestBody).includes(secondSecret), false);
+  assert.equal(
+    JSON.stringify(body).includes(secondSecret),
+    true,
+    "live model request is unchanged"
+  );
+});
+
+test("observed video logs keep a redacted request when every video shadow matches", async () => {
+  const id = "video-complete-shadow-1";
+  const secondSecret = "another private transcript";
+  const secondFullText = `[Video 2]: transcript[00:02-00:04]: ${secondSecret}`;
+  const body = videoBody();
+  const content = body.messages[1].content;
+  assert.ok(Array.isArray(content));
+  content.push({ type: "text", text: secondFullText });
+
+  persistAttemptLogs(
+    { status: 200 },
+    baseCtx({
+      pendingRequestId: id,
+      body,
+      videoContentRemoved: true,
+      videoBridgeLogRedaction: [
+        {
+          container: "messages",
+          messageIndex: 1,
+          partIndex: 1,
+          fullText: FULL_TEXT,
+          redactedText: PLACEHOLDER_TEXT,
+        },
+        {
+          container: "messages",
+          messageIndex: 1,
+          partIndex: 2,
+          fullText: secondFullText,
+          redactedText: "[redacted-video-transcript]",
+        },
+      ],
+    })
+  );
+
+  const row = await pollForCallLog(id);
+  assert.ok(row);
+  assert.equal((row.requestBody as Record<string, unknown>)._omniroute_omitted, undefined);
+  assert.equal(persistedPartText(row.requestBody), PLACEHOLDER_TEXT);
+  assert.equal(JSON.stringify(row.requestBody).includes(secondSecret), false);
+  assert.equal(
+    JSON.stringify(body).includes(secondSecret),
+    true,
+    "live model request is unchanged"
   );
 });
 

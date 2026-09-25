@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute vezérlőpult" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Irányítópult" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Az ingyenes AI-átjáró
+# 🚀 OmniRoute — Az Ingyenes AI Átjáró
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Soha ne hagyd abba a kódolást. Minden AI-eszköz → 359 szolgáltató — több mint 150 ingyenes — egyetlen végponton keresztül. Claude Code, Codex, Cursor, Cline, Copilot és Antigravity INGYENES Claude / GPT / Gemini modellekhez automatikus tartalékra váltással. Az RTK + Caveman kombinált tömörítése 15–95%-kal csökkenti a tokenfelhasználást (átlagosan ~89%) — soha nem éred el a korlátokat. 359 AI-szolgáltató · több mint 150 ingyenes csomag · ~1,62 milliárd ingyenes token/hó · 19 útválasztási stratégia · indulás $0-ból."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Soha ne hagyd abba a kódolást. Minden AI eszköz → 358 szolgáltató — 150+ ingyenes — egyetlen végponton keresztül. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity INGYENES Claude / GPT / Gemini-ba automatikus tartalék opcióval. Az RTK + Caveman rétegzett tömörítés 15–95% tokent takarít meg (~89% átlag) — soha ne érd el a korlátokat. 358 AI szolgáltató · 150+ ingyenes szint · ~1,62 milliárd ingyenes token/hó · 19 útválasztási stratégia · 0 dollár a kezdéshez."/>
 
 </div>
 
@@ -214,47 +214,47 @@
 
 <div align="center">
 
-## 🆓 A telepítés pillanatától működik — kulcsok és konfiguráció nélkül
+## 🆓 Azonnal működik a telepítés után — nincs kulcs, nincs konfiguráció
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="A telepítés pillanatától működik — konfiguráció nélkül. Három lépés: 1. Telepítés — npm i -g omniroute, a szerver elindul a localhost:20128 címen. 2. Irányítsd az eszközödet a http://localhost:20128/v1 címre — bármely OpenAI-kompatibilis eszköz használható (Claude Code, Cursor, Cline). 3. Válaszol — az azonnali válaszhoz hívd meg az auto modellt API-kulcs, regisztráció és konfiguráció nélkül. A kulcsot nem igénylő OpenCode Free szolgáltató előre be van kötve az auto kombinációba, így a friss telepítés azonnal képes válaszolni."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Azonnal működik a telepítés után — nulla konfiguráció. Három lépés: 1. Telepítés — npm i -g omniroute, a szerver elindul a localhost:20128 címen. 2. Irányítsa eszközét a http://localhost:20128/v1 címre — bármely OpenAI-kompatibilis eszköz (Claude Code, Cursor, Cline). 3. Válaszol — hívja meg az auto modellt azonnali válaszért, API kulcs, regisztráció és konfiguráció nélkül. A kulcs nélküli OpenCode Free szolgáltató előre be van kötve az auto kombinációba, így egy friss telepítés azonnal válaszol."/>
 
 ```bash
-# Friss telepítés, hitelesítő adatok nélkül — az `auto` máris működik:
+# Friss telepítés, nulla hitelesítő adat — az `auto` már működik:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Inkább egy konkrét ingyenes háttérszolgáltatást használnál? Hívd meg közvetlenül az `oc/…` (OpenCode Free) szolgáltatót. Ezután válts az `auto` modellre, és hagyd, hogy az OmniRoute válasszon.</sub>
+<sub>Inkább egy specifikus ingyenes backendet szeretne? Hívja közvetlenül az `oc/…` (OpenCode Free) szolgáltatót. Ezután térjen át az `auto` módra, és hagyja, hogy az OmniRoute válasszon.</sub>
 
-<sub>📦 Másolható és beilleszthető gyorsindító szkriptek **Python, Node.js, PHP és cURL** használatához → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Másolható-beilleszthető gyorsindító szkriptek **Pythonhoz, Node.js-hez, PHP-hoz és cURL-hez** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 Az ígéret
+# 💥 Az Ígéret
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Az ígéret — egy végpont és 359 szolgáltató. Az automatikus tartalékútvonal mindaddig fenntartja a forgalomirányítást, amíg van másik működőképes célpont. Hat pillér: ellenálló tartalékútvonal 359 szolgáltatón keresztül · akár 95%-os tokenmegtakarítás a megfelelő munkaterheléseknél · 0 dolláros indulás több mint 150 ingyenes csomaggal és 54 rendszeresen megújuló vagy kulcsot nem igénylő, örökre ingyenes szolgáltatóval · 36 CLI-/ügynökintegráció egyetlen konfigurációval · OpenAI-, Claude-, Gemini- és Responses API-kompatibilitás a /v1 végponton · éles környezethez készült vezérlők, köztük megszakítók, TLS-rejtőzés, 110 MCP-eszköz, A2A, memória, védőkorlátok, kiértékelések, valamint több mint 39 000 statikus tesztdeklaráció több mint 5 100 nyomon követett tesztfájlban."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Az Ígéret — Egy végpont és 358 szolgáltató. Az automatikus visszaváltás fenntartja az útválasztást, amíg egy másik egészséges célpont elérhető. Hat pillér: rugalmas visszaváltás 358 szolgáltató között · akár 95% token megtakarítás a jogosult munkaterheléseken · 0 dolláros indulás 150+ ingyenes szinttel és 54 ismétlődő/kulcs nélküli örökké ingyenes szolgáltatóval · 36 CLI/ügynök integráció egyetlen konfiguráción keresztül · OpenAI, Claude, Gemini és Responses API kompatibilitás a /v1 címen · gyártási vezérlők, beleértve a megszakítókat, TLS lopakodást, MCP 110 eszközöket, A2A-t, memóriát, védőkorlátokat, értékeléseket és 39 000+ statikus tesztdeklarációt 5 100+ nyomon követett tesztfájlban."/>
 
 <br/>
 <br/>
 
 <div align="center">
 
-# 🤔 Miért az OmniRoute?
+# 🤔 Miért OmniRoute?
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Miért az OmniRoute — ne zsonglőrködj többé 10 irányítópulttal, érvénytelen API-kulcsokkal és váratlan számlákkal. Tíz mindennapos probléma és megoldás: felhasználatlanul lejáró kvóta → az előfizetések maximális kihasználása; kódolás közben elért sebességkorlátok → négyszintű automatikus tartalékútvonal (Előfizetés → API → Olcsó → Ingyenes); tokeneket felemésztő eszközkimenetek → RTK + Caveman-tömörítés (15–95%); drága API-k → költségoptimalizált útválasztás; minden eszközhöz külön beállítás → egy végpont, egy irányítópult; blokkolt AI → háromszintű proxy + TLS-rejtőzés; érvénytelen kulcsok → háromrétegű ellenálló képesség (megszakítók, kulcsok várakoztatása, modellek zárolása); egy előfizetésen osztozó csapat → kulcskészletek méltányos kvótákkal; valaki más felhőjén áthaladó promptok → helyi működés elsődlegesen, AES-256-GCM titkosítású kulcsokkal; nincs rálátás a kiadásokra → élő analitika (használat, kvóta, megtakarítás, p95 késleltetés)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Miért OmniRoute — ne zsonglőrködjön 10 irányítópulttal, halott API kulcsokkal és meglepetésszámlákkal. Tíz napi probléma vs megoldás: fel nem használt kvóta lejár → előfizetések maximalizálása; sebességkorlátok kódolás közben → 4-szintű automatikus visszaváltás (Előfizetés → API → Olcsó → Ingyenes); eszköz kimenetek tokeneket égetnek → RTK + Caveman tömörítés (15–95%); drága API-k → költségoptimalizált útválasztás; minden eszköz saját beállítás → egy végpont, egy irányítópult; AI blokkolva → 3-szintű proxy + TLS lopakodás; halott kulcsok → 3-rétegű rugalmasság (megszakítók, kulcs lehűlés, modell zárolás); csapat egy előfizetést használ → kulcskészletek méltányos kvótákkal; promptok valaki felhőjén keresztül → helyi-első AES-256-GCM titkosított kulcsokkal; nincs költési átláthatóság → élő analitika (használat, kvóta, megtakarítás, p95 késleltetés)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Az OmniRoute kérésfolyamata: az IDE vagy CLI (Claude Code, Cursor, Cline…) egyetlen helyi végpontot (http://localhost:20128/v1) hív meg; az OmniRoute Smart Router (RTK + Caveman-tömörítés, 19 útválasztási stratégia, megszakítók, TLS-rejtőzés, MCP, A2A, védőkorlátok) négy szolgáltatói szinten keresztül válthat tartalékútvonalra mindaddig, amíg van megfelelő, működőképes célpont — 1. szint: Előfizetés, 2. szint: API-kulcs, 3. szint: Olcsó és 4. szint: Ingyenes."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute kérésfolyamat: az IDE vagy CLI (Claude Code, Cursor, Cline…) egy helyi végpontot hív (http://localhost:20128/v1); az OmniRoute Smart Router (RTK + Caveman tömörítés, 19 útválasztási stratégia, megszakítók, TLS lopakodás, MCP, A2A, védőkorlátok) 4 szolgáltatói szint között tud visszaváltani, amíg egy jogosult, egészséges célpont elérhető marad — 1. szintű előfizetés, 2. szintű API kulcs, 3. szintű olcsó és 4. szintű ingyenes."/>
 
 </div>
 
@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Nyílt forráskódú barátaink támogatásával
+## 🤝 Támogatnak nyílt forráskódú barátaink
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Nyílt, élvonalbeli intelligencia · 2,8 billió paraméter · 1 millió tokenes kontextus"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Nyílt Határ Intelligencia · 2.8T paraméter · 1M-token kontextus"/>
   </a>
 </p>
 
-> **Szeretnél csatlakozni nyílt forráskódú barátként?** Ezek a vállalatok támogatják a nyílt forráskódot, és segítenek mozgásban tartani az OmniRoute-ot — mi pedig nyilvánosan közzétesszük, hogy az általuk biztosított minden egyes token mire megy el. Lépj kapcsolatba velünk: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Szeretnél csatlakozni nyílt forráskódú barátként?** Ezek azok a cégek, amelyek támogatják a nyílt forráskódot, és segítenek az OmniRoute működésében – és nyilvánosan elmondjuk, hogy minden tőlük kapott token mire megy. Keress minket: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Alapító nyílt forráskódú barát"/>
+      <img src="https://img.shields.io/badge/Alapító_Barát-1783FF?style=flat-square" alt="Alapító nyílt forráskódú barát"/>
     </td>
     <td>
-      Köszönjük a <b>Kiminek (Moonshot AI)</b>, alapító nyílt forráskódú barátunknak, hogy támogatja ezt a projektet! A Kimi a nyílt súlyozású K2 és K3 modellcsaládok mögött álló mesterségesintelligencia-laboratórium — a <b>Kimi K3</b> 1 millió tokenes kontextusablakot, natív képfeldolgozást és élvonalbeli kódolási képességeket kínál a zárt modellek árának töredékéért, továbbá azonnal használható a Claude Code-dal, a Codexszel és minden, az OmniRoute által kiszolgált kódolási eszközzel.
+      Köszönjük a <b>Kimi (Moonshot AI)</b>-nak, alapító nyílt forráskódú barátunknak, hogy támogatja ezt a projektet! A Kimi az AI labor a nyílt súlyú K2 és K3 modellcsaládok mögött — a <b>Kimi K3</b> 1M-token kontextusablakot, natív látást és határszintű kódolást biztosít a zárt modellek árának töredékéért, és azonnal működik a Claude Code, Codex és minden kódoló eszközzel, amit az OmniRoute kiszolgál.
       <br/><br/>
-      <b>Amit a Kimi támogatása lehetővé tesz:</b> A Kimi API-kreditjei működtetik az OmniRoute mesterséges intelligenciával ellenőrzött kiadási folyamatát — a <i>Kimi K3 által végzett egyesítés-ellenőrzési</i> szakaszt, amely minden pull requestet átvizsgál a kiadás előtt —, valamint a mindennapos funkciófejlesztést. A Kimi első osztályú támogatása mindkét útvonalon elérhető: a közvetlen <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API-n</a> (<code>kimi-k3</code>) és a <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code kódolási csomagon</a> (OAuth és API-kulcs) keresztül. Az OmniRoute egyben az első brazil nyílt forráskódú projekt a Kimi támogatási programjában. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Szerezz Kimi API-kulcsot 15%-kal több kredittel →</b></a>
+      <b>Mire használja a Kimi támogatását:</b> A Kimi API kreditek az OmniRoute AI-val validált kiadási folyamatát táplálják — a <i>Kimi K3 által működtetett egyesítési validálás</i> fázist, amely minden pull requestet áttekint, mielőtt kiadják — plusz a napi funkciófejlesztést. Az első osztályú Kimi támogatás mindkét sínen elérhető: a közvetlen <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) és a <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code kódolási terv</a> (OAuth és API kulcs). Az OmniRoute az első brazil nyílt forráskódú projekt a Kimi támogatási programjában. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Szerezzen Kimi API kulcsot 15% extra kredittel →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Nyílt forráskódú barát"/>
+      <img src="https://img.shields.io/badge/Nyílt_Forráskódú_Barát-31f889?style=flat-square&labelColor=04170d" alt="Nyílt Forráskódú Barát"/>
     </td>
     <td>
-      Köszönjük a <b>Cheaper Inference-nek</b>, az OmniRoute nyílt forráskódú barátjának, hogy támogatja ezt a projektet! A Cheaper Inference egy költség alapján rangsoroló átjáró, amely 42 élvonalbeli modellt — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok és MiniMax — értékesít tovább egyetlen OpenAI-kompatibilis végpont mögött, minden kérést a legolcsóbb megfelelő szolgáltatóhoz irányítva anélkül, hogy valaha is a modell gyártójának listaáránál többet számítana fel.
+      Köszönjük a <b>Cheaper Inference</b>-nek, az OmniRoute nyílt forráskódú barátjának, hogy támogatja ezt a projektet! A Cheaper Inference egy költség-rangsorolt átjáró, amely 42 határmodellt – Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok és MiniMax – értékesít egy OpenAI-kompatibilis végpont mögött, minden kérést a legolcsóbb jogosult szolgáltatóhoz irányítva anélkül, hogy valaha is többet számolna fel, mint a modellgyártó listaára.
       <br/><br/>
-      <b>Első osztályú támogatás az OmniRoute-ban:</b> Chat Completions, a natív <code>/v1/responses</code> végpont, képfeldolgozás, eszközhívás és 3 képmodell (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, amelyek <code>cheaperinference/&lt;model&gt;</code> formában érhetők el). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Szerezz API-kulcsot →</b></a>
+      <b>Első osztályú támogatás az OmniRoute-ban:</b> Chat Completions, a natív <code>/v1/responses</code> végpont, látás, eszközhívás és 3 képmodell (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, elérhető mint <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Szerezzen API kulcsot →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Az <code>aff=omniroute</code> címkével ellátott hivatkozások partnerlinkek. Ezek számodra többletköltség nélkül finanszírozzák a projektet.</sub>
+<sub>Az <code>aff=omniroute</code> címkével ellátott linkek partnerlinkek. Ezek a projektet finanszírozzák Önnek többletköltség nélkül.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Partneri promóciók</b> — ingyenes regisztrációs kuponok olyan szolgáltatóktól, amelyek nem szponzorálnak bennünket (kattints a kibontáshoz)</sub></summary>
+<summary><sub><b>🎟️ Partneri promóció</b> — ingyenes regisztrációs kuponok olyan szolgáltatóktól, amelyeket nem szponzorálunk (kattintson a kibontáshoz)</sub></summary>
 
-<sub><i>Ez a szakasz kizárólag ajánlói/kuponkódokat tartalmaz. A szponzorált partnerségek helye a fenti <b>🤝 Nyílt forráskódú barátaink támogatásával</b> szakasz. Az OmniRoute nem áll szponzori vagy partneri kapcsolatban az itt felsorolt szolgáltatókkal — ezek nyilvános kuponok, amelyeket bárki felhasználhat.</i></sub>
+<sub><i>Ez a szakasz csak ajánló/kuponkódokról szól. A szponzorált partnerségek a fenti <b>🤝 Támogatnak nyílt forráskódú barátaink</b> részben találhatók. Az OmniRoute-nak nincs szponzorálási vagy partnerségi kapcsolata az itt felsorolt szolgáltatókkal – ezek nyilvános kuponok, amelyeket bárki használhat.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partneri regisztráció · <b>$100 ingyenes kredit</b> regisztrációkor (ingyenes szerver, ezért nagyobb késleltetésre számíts — teszteléshez ideális, éles használatra nem). Első osztályú támogatás az OmniRoute-ban a <b>v3.8.50</b> verzió óta: Chat Completions, az Anthropic-kompatibilis adatátviteli formátum és az OpenAI-kompatibilis útvonal. Az elérhető modellek között szerepel a <code>claude-opus-4-8</code>, a <code>claude-opus-5</code>, a <code>gpt-5.6-sol</code> és számos további modell. <b><a href="https://agentrouter.org/register?aff=70LM">Szerezd meg a $100 kreditet →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — partneri regisztráció · <b>100 dollár ingyenes kredit</b> regisztrációkor (ingyenes szerver, magasabb késleltetésre számíthat – tesztelésre a legjobb, nem éles környezetbe). Első osztályú támogatás az OmniRoute-ban <b>v3.8.50</b> óta: Chat Completions, az Anthropic-kompatibilis vezetékes formátum és az OpenAI-kompatibilis útvonal. Elérhető modellek: <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> és még sok más. <b><a href="https://agentrouter.org/register?aff=70LM">Szerezze meg a 100 dollárját →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Partnerlink — az OmniRoute nem áll szponzori vagy partneri kapcsolatban ezzel a szolgáltatóval.</i></sub>
+      <sub>⚠️ <i>Partneri link – Az OmniRoute-nak nincs szponzorálási vagy partnerségi kapcsolata ezzel a szolgáltatóval.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Ismersz másik szolgáltatót, amely bőkezű, ingyenes regisztrációs kupont kínál az OmniRoute felhasználóinak? Nyiss egy hibajegyet, és hozzáadjuk ide.</sub>
+<sub>Ismer más szolgáltatót, amely nagylelkű ingyenes regisztrációs kupont kínál, ami az OmniRoute felhasználóinak előnyére válik? Nyisson egy hibajegyet, és hozzáadjuk ide.</sub>
 
 </details>
 
@@ -488,13 +488,13 @@ Mind a **19** stratégia — tetszőlegesen kombinálhatók a kombó egyes lép�
 
 <div align="center">
 
-## 🏆 Mi teszi különlegessé az OmniRoute-ot
+## 🏆 Mi különbözteti meg az OmniRoute-ot
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Mi teszi különlegessé az OmniRoute-ot — dátummal ellátott funkció-összehasonlítás a 9router, az OpenRouter, a CLIProxyAPI és a LiteLLM megoldásokkal 13 képesség alapján. OmniRoute: 359 szolgáltató, több mint 150 beépített ingyenes csomag, 19 útválasztási stratégia, 12 motoros tokenkompresszió, beépített MCP-szerver 110 eszközzel, A2A-ügynökprotokoll, tartós memória, védőkorlátok, felhőalapú ügynökök, rejtett TLS-ujjlenyomat, Desktop/Termux/PWA és 42 lokalizált felhasználói felület. Az OmniRoute MIT-licencű és saját infrastruktúrán üzemeltethető. A versenytársak képességei és számai változhatnak; lásd a hivatkozott módszertant."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Mi különbözteti meg az OmniRoute-ot — egy funkcióösszehasonlítás a 9router, OpenRouter, CLIProxyAPI és LiteLLM ellenében, 13 képesség mentén. OmniRoute: 358 szolgáltató, 150+ beépített ingyenes szint, 19 útválasztási stratégia, 12 motoros token tömörítés, beépített MCP szerver 110 eszközzel, A2A ügynök protokoll, tartós memória, védőkorlátok, felhőügynökök, TLS ujjlenyomat lopakodás, Desktop/Termux/PWA és 42 i18n UI nyelvi beállítás. Az OmniRoute MIT-licencelt és saját szerveren üzemeltethető. A versenytársak képességei és számai változhatnak; lásd a hivatkozott módszertant."/>
 
-<sub>📊 Teljes módszertan és funkciónkénti részletek a 9router, az OpenRouter, a CLIProxyAPI és a LiteLLM megoldásokkal összehasonlítva → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Teljes módszertan &amp; funkciónkénti részletek a 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM ellenében → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1256,29 +1256,29 @@ Kanonikus mérőszámok 2026-08-24-én: **1.029 egyedi videó** · **11.132.922 
 <br/>
 <div align="center">
 
-## 🛠️ Technológiai stack
+## 🛠️ Technológiai Verem
 
 </div>
 
 <table>
   <tr><th align="left">Réteg</th><th align="left">Technológia</th></tr>
   <tr><td nowrap><b>Futtatókörnyezet</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Nyelv</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> a <code>src/</code> és az <code>open-sse/</code> teljes területén (a v2.0 óta nulla <code>any</code> az alapkomponensekben)</td></tr>
+  <tr><td nowrap><b>Nyelv</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> a <code>src/</code> és <code>open-sse/</code> mappákban (v2.0 óta nulla <code>any</code> a magban)</td></tr>
   <tr><td nowrap><b>Keretrendszer</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Adatbázis</b></td><td>better-sqlite3 (SQLite, WAL-naplózás) + LowDB (örökölt JSON) — 122 tartományi modul, 178 migráció</td></tr>
-  <tr><td nowrap><b>Memória</b></td><td>SQLite FTS5 teljes szöveges keresés + int8-kvantált vektoros beágyazások, típusos lecsengés</td></tr>
-  <tr><td nowrap><b>Sémák</b></td><td>Zod 4 — MCP-eszközök bemeneti/kimeneti validálása + API-szerződések</td></tr>
+  <tr><td nowrap><b>Adatbázis</b></td><td>better-sqlite3 (SQLite, WAL naplózás) + LowDB (JSON örökölt) — 122 tartományi modul, 183 migráció</td></tr>
+  <tr><td nowrap><b>Memória</b></td><td>SQLite FTS5 teljes szöveges + int8-kvantált vektor beágyazások, típusos bomlás</td></tr>
+  <tr><td nowrap><b>Sémák</b></td><td>Zod 4 — MCP eszköz I/O validálás + API szerződések</td></tr>
   <tr><td nowrap><b>Protokollok</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Adatfolyam</b></td><td>Server-Sent Events (SSE) + WebSocket-híd (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Tömörítés</b></td><td>12 motoros feldolgozási lánc — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Hitelesítés és biztonság</b></td><td>OAuth 2.0 (PKCE) + JWT + API-kulcsok + hatóköralapú MCP-hitelesítés · AES-256-GCM a tárolt adatokhoz · DOMPurify</td></tr>
-  <tr><td nowrap><b>Rejtőzködés</b></td><td>wreq-js — JA3 / JA4 TLS-ujjlenyomat utánzása, 3 szintű proxy</td></tr>
-  <tr><td nowrap><b>Hibatűrés</b></td><td>Megszakító, exponenciális visszalépés, terhelési roham elleni védelem, automatikus kombinációs öngyógyítás</td></tr>
-  <tr><td nowrap><b>Naplózás</b></td><td>pino — strukturált JSON-naplók kéréskontextussal</td></tr>
-  <tr><td nowrap><b>Tesztelés</b></td><td>Node.js tesztfuttató + Vitest — <b>több mint 39 000 statikus tesztdeklaráció</b> több mint 5100 nyomon követett tesztfájlban (egység-, integrációs, E2E-, biztonsági és ökoszisztéma-tesztek)</td></tr>
+  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket híd (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Tömörítés</b></td><td>12-motoros pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Hitelesítés &amp; biztonság</b></td><td>OAuth 2.0 (PKCE) + JWT + API Kulcsok + MCP hatókörű hitelesítés · AES-256-GCM nyugalmi állapotban · DOMPurify</td></tr>
+  <tr><td nowrap><b>Lopakodás</b></td><td>wreq-js — JA3 / JA4 TLS ujjlenyomat-utánzás, 3-szintű proxy</td></tr>
+  <tr><td nowrap><b>Rugalmasság</b></td><td>Megszakító, exponenciális visszalépés, anti-thundering-herd, auto-combo öngyógyítás</td></tr>
+  <tr><td nowrap><b>Naplózás</b></td><td>pino — strukturált JSON naplók kéréskontextussal</td></tr>
+  <tr><td nowrap><b>Tesztelés</b></td><td>Node.js tesztfuttató + Vitest — <b>39 000+ statikus tesztdeklaráció</b> 5 100+ nyomon követett tesztfájlban (unit, integrációs, E2E, biztonsági, ökoszisztéma)</td></tr>
   <tr><td nowrap><b>Platformok</b></td><td>Asztali (Electron) · Android (Termux) · PWA (bármely böngésző)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatikus npm-közzététel + Docker Hub-frissítés kiadáskor</td></tr>
-  <tr><td nowrap><b>Hivatkozások</b></td><td><a href="https://omniroute.online">Webhely</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatikus npm közzététel + Docker Hub kiadáskor</td></tr>
+  <tr><td nowrap><b>Linkek</b></td><td><a href="https://omniroute.online">Weboldal</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

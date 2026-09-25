@@ -792,8 +792,8 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
   assert.equal(call.headers.Authorization, "Bearer codex-oauth-token");
   assert.equal(call.headers.Accept, "text/event-stream");
   assert.equal(call.headers.Version, getCodexClientVersion());
-  assert.equal(call.headers["Openai-Beta"], "responses=experimental");
-  assert.equal(call.headers["X-Codex-Beta-Features"], "responses_websockets");
+  assert.equal(call.headers["Openai-Beta"], "responses_websockets=2026-02-06");
+  assert.equal(call.headers["X-Codex-Beta-Features"], undefined);
   // Derive from the same source the code reads (see getCodexClientVersion() two
   // lines above) instead of pinning the literal — #9323's version bump to 0.146.0
   // broke this assertion while the rest of the test kept passing.

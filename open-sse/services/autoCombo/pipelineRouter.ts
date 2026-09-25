@@ -18,6 +18,7 @@ import {
 } from "../../../src/domain/pipeline.ts";
 import { renderPrompt } from "../../../src/domain/prompts.ts";
 import { getTaskFitness } from "./taskFitness.ts";
+import { mapIntentToTaskFitnessKey } from "./intentTaskFitnessMap.ts";
 
 // ---------------------------------------------------------------------------
 // Fitness tiers — map pipeline behavior to model fitness thresholds
@@ -84,16 +85,21 @@ export interface StageExecutorResult {
  * Resolve a fitness tier to a concrete model string using the available models
  * from the combo's candidate pool. Falls back to sensible defaults.
  */
-function resolveModelForTier(
+export function resolveModelForTier(
   tier: FitnessTier,
   availableModels: readonly string[],
   taskType: string
 ): string {
+  // `taskType` here is INTENT_TO_TASK[intent] — i.e. still IntentType's vocabulary
+  // ('code'|'math'|'reasoning'|'creative'|'simple'|'medium'), not taskFitness.ts's
+  // ('coding'|'review'|'planning'|'analysis'|'debugging'|'documentation'|'default').
+  // Bridge it the same way engine.ts::selectProvider does — see intentTaskFitnessMap.ts.
+  const fitnessTaskType = mapIntentToTaskFitnessKey(taskType as IntentType);
   // Score each available model for this task type and tier
   const scored = availableModels
     .map((model) => ({
       model,
-      fitness: getTaskFitness(model, taskType),
+      fitness: getTaskFitness(model, fitnessTaskType),
     }))
     .sort((a, b) => b.fitness - a.fitness);
 

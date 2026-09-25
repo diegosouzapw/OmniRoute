@@ -283,17 +283,17 @@ opencode -m omniroute/glm/glm-5.2 "..."          # prvo eksportujte OMNIROUTE_AP
 
 ## Upravljanje kontekstima (prebacivanje između servera)
 
-**Kontekst** je sačuvani server (baseUrl + akreditivi + opseg). `omniroute connect`
-kreira jedan i čini ga aktivnim; od tada svaka komanda cilja na njega. Upravljajte
-njima i prebacujte se između njih pomoću `omniroute contexts`:
+**Kontekst** je sačuvani server (baseUrl + akreditiv + opseg). `omniroute connect`
+kreira jedan i čini ga aktivnim; od tada svaka komanda cilja na njega. Upravljajte i
+prebacujte se između njih pomoću `omniroute contexts`:
 
 ```bash
 omniroute contexts list            # svi konteksti; aktivni je označen sa ●
-omniroute contexts current         # aktivni server, status autorizacije, opseg
+omniroute contexts current         # aktivni server, status autentifikacije, opseg
 ```
 
 ```text
-  | Naziv   | Bazni URL                 | Auth  | Opseg | Opis
+  | Name    | Base URL                  | Auth  | Scope | Description
 ● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
   | default | http://localhost:20128    | ✗     |       |
 ```
@@ -302,10 +302,10 @@ omniroute contexts current         # aktivni server, status autorizacije, opseg
 
 ```bash
 omniroute contexts use vps         # → sve komande sada pogađaju udaljeni VPS
-omniroute tokens list              #   (izvršava se na VPS-u)
+omniroute tokens list              #   (pokreće se na VPS-u)
 
 omniroute contexts use default     # → nazad na localhost
-omniroute tokens list              #   (izvršava se na lokalnom serveru)
+omniroute tokens list              #   (pokreće se na lokalnom serveru)
 ```
 
 **Ručno dodavanje konteksta** (umjesto `connect`), pregled ili preimenovanje:
@@ -313,36 +313,39 @@ omniroute tokens list              #   (izvršava se na lokalnom serveru)
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # puni detalji za jedan kontekst
+omniroute contexts show staging    # potpuni detalji za jedan kontekst
 omniroute contexts rename staging stg
 ```
 
-**Uklanjanje konteksta** — traži potvrdu; proslijedite `--yes` da je preskočite
-(potrebno za skripte / neinteraktivne ljuske, koje bi u suprotnom sigurno odbile):
+**Uklanjanje konteksta** — traži potvrdu; proslijedite `--yes` da biste je preskočili
+(potrebno za skripte / neinteraktivne shell-ove, koji bi inače sigurno odbili):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) se ne može ukloniti. Uklanjanje aktivnog konteksta vraća na
-> `default`. Savjet: uklanjanje konteksta samo briše **lokalno** sačuvane akreditive —
+> `default` (localhost) se ne može ukloniti. Uklanjanje aktivnog konteksta vraća
+> na `default`. Savjet: uklanjanje konteksta samo briše **lokalno** sačuvani akreditiv —
 > opozovite token na serveru pomoću `omniroute tokens revoke <id>` da biste zaista
 > prekinuli pristup.
 
-**Izvoz / uvoz** konteksta (npr. za premještanje između mašina). Novi konteksti čuvaju
-samo referencu na privjesak ključeva (keychain); akreditivi se ne kopiraju u izvoz
-kada je dostupan OS privjesak ključeva:
+**Izvoz / uvoz** konteksta (npr. za premještanje između mašina). Izvozi izostavljaju
+akreditive po defaultu, uključujući akreditive pohranjene putem rezervnog fajla. Koristite
+`--include-secrets` eksplicitno kada je potrebna prenosiva sigurnosna kopija koja sadrži akreditive:
 
 ```bash
-omniroute contexts export --out contexts.json     # podrazumijevano: stdout
-omniroute contexts import contexts.json            # prepiši; --merge da zadržite postojeće
-omniroute contexts migrate --yes                  # premjesti naslijeđene obične tekstualne tokene u privjesak ključeva
+omniroute contexts export --out contexts.json     # redigovano; podrazumevana destinacija: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # prepiši; --merge da zadrži postojeće
+omniroute contexts migrate --yes                  # premesti stare plaintext tokene u keychain
 ```
 
-Na sistemima bez grafičkog interfejsa (headless) bez upotrebljivog OS privjeska ključeva,
-CLI se vraća na `config.json` sa modom `0600` i ispisuje jednokratno upozorenje.
-Tretirajte izvoze iz tog rezervnog rješenja (i bilo koju naslijeđenu konfiguraciju
-prije migracije) kao povjerljivi materijal.
+`--include-secrets` rješava reference na keychain prije izvoza i ne uspijeva ako se
+bilo koji referencirani akreditiv ne može pročitati. `--no-secrets` uvijek ima prioritet.
+Izvozni fajlovi se pišu atomski sa modom `0600`. Tretirajte eksplicitni
+izvoz koji sadrži tajne kao tajni materijal. Na sistemima bez glave bez upotrebljivog OS
+keychaina, CLI se vraća na `config.json` sa modom `0600` i ispisuje
+jednokratno upozorenje; podrazumevani izvoz ostaje redigovan u ovom modu.
 
 ---
 

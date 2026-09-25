@@ -109,9 +109,24 @@ test("grok-cli renders the official Windows platform name in its user agent", ()
   assert.match(getGrokBuildUserAgent(), /\(windows; /);
 });
 
-test("grok-cli inherits BaseExecutor transport instead of buffering its own response", () => {
-  assert.equal(Object.hasOwn(GrokCliExecutor.prototype, "execute"), false);
-  assert.equal(new GrokCliExecutor().execute, BaseExecutor.prototype.execute);
+test("grok-cli inherits BaseExecutor transport instead of buffering its own response", async () => {
+  const originalExecute = BaseExecutor.prototype.execute;
+  const upstream = new Response("data: {}\n\n", {
+    headers: { "Content-Type": "text/event-stream" },
+  });
+  BaseExecutor.prototype.execute = async () => ({ response: upstream });
+  try {
+    const result = await new GrokCliExecutor().execute({
+      model: "grok-4.6",
+      body: { input: "hi" },
+      stream: true,
+      credentials: {},
+    });
+    // Without namespace tools the upstream Response is returned as-is.
+    assert.equal((result as { response: Response }).response, upstream);
+  } finally {
+    BaseExecutor.prototype.execute = originalExecute;
+  }
 });
 
 test("grok-cli live model discovery uses the authenticated session contract", () => {

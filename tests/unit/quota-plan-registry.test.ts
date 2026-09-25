@@ -64,8 +64,9 @@ test("getKnownPlan('') returns null", () => {
   assert.equal(getKnownPlan(""), null);
 });
 
-test("knownProviders() returns exactly 12 entries", () => {
-  assert.equal(knownProviders().length, 12);
+// 13th entry: muse-code (#14329, weekly subscription with no balance API).
+test("knownProviders() returns exactly 13 entries", () => {
+  assert.equal(knownProviders().length, 13);
 });
 
 test("knownProviders() includes the full registry set", () => {
@@ -82,6 +83,7 @@ test("knownProviders() includes the full registry set", () => {
     "xiaomi-mimo",
     "alibaba",
     "grok-cli",
+    "muse-code",
   ]) {
     assert.ok(list.includes(p), `missing ${p}`);
   }

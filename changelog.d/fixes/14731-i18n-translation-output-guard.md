@@ -1,0 +1,1 @@
+- **fix(i18n):** the docs translation pipeline now rejects model output that leaks `<think>` reasoning or English meta-prose, or that loses table rows or code fences. A rejected chunk is retried, and a doc that never validates fails instead of being written (#14731).

@@ -54,27 +54,27 @@ test("test 1: xai stays statically registered with the exact live-discovery shap
   assert.equal(apikey.authPrefix, "Bearer ");
 });
 
-test("test 2: getXaiOauthLiveModelsConfig — flag off keeps xai-oauth on the frozen seed (real code path)", () => {
-  delete process.env[FLAG_KEY];
-  assert.equal(
-    getXaiOauthLiveModelsConfig(),
-    undefined,
-    "with the flag unset (default false), xai-oauth must resolve to no live-discovery config"
-  );
-});
-
-test("test 2b: getXaiOauthLiveModelsConfig — flag on resolves the same live-discovery shape as xai (real code path)", () => {
-  process.env[FLAG_KEY] = "true";
+test("test 2: getXaiOauthLiveModelsConfig — flag explicitly off keeps xai-oauth on the frozen seed (real code path)", () => {
+  process.env[FLAG_KEY] = "false";
   try {
-    const live = getXaiOauthLiveModelsConfig();
-    assert.ok(live, "with the flag on, xai-oauth must resolve a live-discovery config");
-    assert.equal(live.url, XAI_MODELS_URL);
-    assert.equal(live.method, "GET");
-    assert.equal(live.authHeader, "Authorization");
-    assert.equal(live.authPrefix, "Bearer ");
+    assert.equal(
+      getXaiOauthLiveModelsConfig(),
+      undefined,
+      "with the flag explicitly false, xai-oauth must resolve to no live-discovery config"
+    );
   } finally {
     delete process.env[FLAG_KEY];
   }
+});
+
+test("test 2b: getXaiOauthLiveModelsConfig — default on resolves the same live-discovery shape as xai (real code path)", () => {
+  delete process.env[FLAG_KEY];
+  const live = getXaiOauthLiveModelsConfig();
+  assert.ok(live, "with the flag at its default, xai-oauth must resolve a live-discovery config");
+  assert.equal(live.url, XAI_MODELS_URL);
+  assert.equal(live.method, "GET");
+  assert.equal(live.authHeader, "Authorization");
+  assert.equal(live.authPrefix, "Bearer ");
 });
 
 test("test 3: xai-oauth is intentionally NOT in PROVIDER_MODELS_CONFIG / HARDCODED lockstep", () => {
@@ -85,10 +85,10 @@ test("test 3: xai-oauth is intentionally NOT in PROVIDER_MODELS_CONFIG / HARDCOD
   assert.deepEqual(fromModule, fromConfig);
 });
 
-test("test 4: getDiscoveryClass — xai is openai-compat; xai-oauth is static-only by default (flag off)", () => {
+test("test 4: getDiscoveryClass — xai is openai-compat; xai-oauth is static-only", () => {
   // xai-oauth is deliberately absent from HARDCODED_MODELS_CONFIG_IDS and has no
-  // registry modelsUrl, so with XAI_OAUTH_LIVE_MODEL_DISCOVERY off (default) it
-  // classifies as static-only — matching its pre-PR #13518 behavior.
+  // registry modelsUrl, so it classifies as static-only — matching its
+  // pre-PR #13518 behavior.
   assert.equal(getDiscoveryClass("xai-oauth"), "static-only");
   assert.equal(getDiscoveryClass("xai"), "openai-compat");
 });

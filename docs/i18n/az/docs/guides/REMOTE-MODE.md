@@ -313,67 +313,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # əvvəlcə OMNIROUTE_API_KEY 
 
 ---
 
-## Kontekstlərin idarə edilməsi (serverlər arasında keçid)
+## Kontekstləri idarə etmək (serverlər arasında keçid)
 
-**Kontekst** yadda saxlanılmış serverdir (baseUrl + giriş məlumatı + əhatə dairəsi). `omniroute connect`
-bir kontekst yaradır və onu aktiv edir; bundan sonra hər bir əmr həmin kontekstə yönəldilir. Kontekstləri
-`omniroute contexts` ilə idarə edin və onlar arasında keçid edin:
+**Kontekst** yadda saxlanmış serverdir (baseUrl + credential + scope). `omniroute connect` birini yaradır və onu aktiv edir; bundan sonra hər bir əmr onu hədəfləyir. Onları `omniroute contexts` ilə idarə edin və aralarında keçid edin:
 
 ```bash
-omniroute contexts list            # bütün kontekstlər; aktiv olan ● ilə işarələnir
-omniroute contexts current         # aktiv server, autentifikasiya vəziyyəti, əhatə dairəsi
+omniroute contexts list            # bütün kontekstlər; aktiv olan ● ilə işarələnib
+omniroute contexts current         # aktiv server, autentifikasiya statusu, əhatə dairəsi
 ```
 
 ```text
-  | Ad      | Əsas URL                  | Autentifikasiya | Əhatə dairəsi | Təsvir
-● | vps     | http://100.67.86.91:20128 | token           | admin         | Uzaq OmniRoute (…)
-  | default | http://localhost:20128    | ✗               |               |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Serverlər arasında keçid** — bütün sonrakı əmrlər aktiv kontekstdən istifadə edir:
+**Serverləri dəyişdirin** — hər sonrakı əmr aktiv konteksti izləyir:
 
 ```bash
-omniroute contexts use vps         # → indi bütün əmrlər uzaq VPS-ə yönəldilir
-omniroute tokens list              #   (VPS-də icra olunur)
+omniroute contexts use vps         # → bütün əmrlər indi uzaq VPS-ə yönəlir
+omniroute tokens list              #   (VPS-ə qarşı işləyir)
 
-omniroute contexts use default     # → yenidən localhost-a
-omniroute tokens list              #   (lokal serverdə icra olunur)
+omniroute contexts use default     # → localhost-a qayıdır
+omniroute tokens list              #   (yerli serverə qarşı işləyir)
 ```
 
-**Konteksti əl ilə əlavə edin** (`connect` əvəzinə), nəzərdən keçirin və ya adını dəyişin:
+**Konteksti əl ilə əlavə edin** (`connect` əvəzinə), yoxlayın və ya adını dəyişdirin:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "sınaq serveri"
-omniroute contexts show staging    # bir kontekst üçün tam təfərrüatlar
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # bir kontekst üçün tam detallar
 omniroute contexts rename staging stg
 ```
 
-**Konteksti silin** — təsdiq tələb olunur; bunu ötürmək üçün `--yes` parametrini verin
-(əks halda təhlükəsiz şəkildə imtina edən skriptlər / qeyri-interaktiv qabıqlar üçün tələb olunur):
+**Konteksti silin** — təsdiq üçün sorğu verir; onu atlamaq üçün `--yes` keçirin (skriptlər / interaktiv olmayan shell-lər üçün tələb olunur, əks halda təhlükəsiz şəkildə imtina edir):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) silinə bilməz. Aktiv kontekst silindikdə avtomatik olaraq
-> `default` kontekstinə keçilir. Məsləhət: konteksti silmək yalnız **lokal** saxlanmış giriş məlumatını silir —
-> girişi həqiqətən ləğv etmək üçün serverdə tokeni `omniroute tokens revoke <id>` ilə
-> ləğv edin.
+> `default` (localhost) silinə bilməz. Aktiv kontekstin silinməsi `default`a qayıdır. İpucu: kontekstin silinməsi yalnız **yerli** yadda saxlanmış etimadnaməni silir — girişi tamamilə dayandırmaq üçün serverdə `omniroute tokens revoke <id>` ilə tokeni ləğv edin.
 
-Kontekstləri **ixrac / idxal edin** (məsələn, onları maşınlar arasında köçürmək üçün). ƏS-in
-açar zənciri əlçatan olduqda yeni kontekstlərdə yalnız açar zəncirinə istinad saxlanılır;
-giriş məlumatları ixrac faylına köçürülmür:
+Kontekstləri **ixrac / idxal edin** (məsələn, onları maşınlar arasında köçürmək üçün). İxraclar, fayl ehtiyatı ilə saxlanılan etimadnamələr daxil olmaqla, etimadnamələri standart olaraq buraxır. Portativ etimadnamə daşıyan ehtiyat nüsxəsi lazım olduqda `--include-secrets` açıq şəkildə istifadə edin:
 
 ```bash
-omniroute contexts export --out contexts.json     # standart: stdout
-omniroute contexts import contexts.json            # üzərinə yazır; mövcud olanları saxlamaq üçün --merge
-omniroute contexts migrate --yes                  # köhnə açıq mətn tokenlərini açar zəncirinə köçürür
+omniroute contexts export --out contexts.json     # redaktə edilmiş; standart təyinat: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # üzərinə yaz; mövcud olanları saxlamaq üçün --merge
+omniroute contexts migrate --yes                  # köhnə düz mətn tokenlərini açar zəncirinə köçürün
 ```
 
-İstifadə edilə bilən ƏS açar zənciri olmayan başsız sistemlərdə CLI `0600` rejimli
-`config.json` faylından istifadə edir və birdəfəlik xəbərdarlıq göstərir. Bu alternativ üsulla
-yaradılan ixrac fayllarını (və miqrasiyadan əvvəlki hər hansı köhnə konfiqurasiyanı) məxfi material kimi qəbul edin.
+`--include-secrets` ixrac etməzdən əvvəl açar zənciri istinadlarını həll edir və istinad edilən hər hansı bir etimadnamə oxuna bilməzsə uğursuz olur. `--no-secrets` həmişə üstünlük təşkil edir. İxrac faylları `0600` rejimi ilə atomik şəkildə yazılır. Açıq şəkildə sirr daşıyan ixracı sirr materialı kimi qəbul edin. İstifadə edilə bilən OS açar zənciri olmayan başsız sistemlərdə, CLI `0600` rejimi ilə `config.json`a qayıdır və bir dəfəlik xəbərdarlıq çap edir; standart ixrac bu rejimdə redaktə edilmiş olaraq qalır.
 
 ---
 

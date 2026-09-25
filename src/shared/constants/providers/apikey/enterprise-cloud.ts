@@ -145,7 +145,7 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     website: "https://developers.cloudflare.com/workers-ai",
     hasFree: true,
     freeNote:
-      "Free 10K Neurons/day: ~150 LLM responses or 500s Whisper audio — edge inference globally",
+      "Free 10K Neurons/day: ~150 LLM responses, 500s Whisper audio, or ~500 FLUX.1 Schnell images at 1024x1024 (4.80 Neurons per 512x512 tile) — edge inference globally",
     authHint: "Requires API Token AND Account ID (found at dash.cloudflare.com)",
   },
   scaleway: {

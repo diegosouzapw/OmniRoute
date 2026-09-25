@@ -43,11 +43,9 @@ ACP Agents (ပြောင်းပြန် စတင်မှု စီးဆ
 
 ---
 
-## `setup-*` ဖြင့် အလိုအလျောက် ပြင်ဆင်သတ်မှတ်ခြင်း
+## `setup-*` ဖြင့် အလိုအလျောက် စီစဉ်သတ်မှတ်ခြင်း
 
-ကိရိယာတစ်ခုစီ၏ config ကို ကိုယ်တိုင်ရေးရန် မလိုပါ။ OmniRoute တွင် ပံ့ပိုးထားသော CLI တစ်ခုစီအတွက် `setup-*`
-command တစ်ခုစီ ပါဝင်ပြီး လည်ပတ်နေသော OmniRoute (local သို့မဟုတ် remote) ထံမှ **လက်ရှိအသုံးပြုနေသော**
-model catalog ကို ဖတ်ကာ သင့်စက်ပေါ်ရှိ ထိုကိရိယာ၏ ကိုယ်ပိုင် config ကို ရေးပေးသည်-
+ကိရိယာတစ်ခုစီ၏ config ကို ကိုယ်တိုင်ရေးသားရန် မလိုအပ်ပါ။ OmniRoute သည် ပံ့ပိုးထားသော CLI တစ်ခုစီအတွက် `setup-*` command တစ်ခုစီကို ထည့်သွင်းပေးထားပြီး ၎င်းသည် လည်ပတ်နေသော OmniRoute (local သို့မဟုတ် remote) မှ **live** model catalog ကို ဖတ်ကာ သင့်စက်ပေါ်တွင် ကိရိယာ၏ config ကို ရေးသားပေးသည်-
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,47 +55,15 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-တစ်ခုစီတွင် `--remote <url> --api-key <key>` (local ကိရိယာတစ်ခုကို remote
-OmniRoute နှင့် ချိတ်ဆက်အသုံးပြုရန် ပြင်ဆင်ခြင်း), `--dry-run` (မရေးသားဘဲ အစမ်းကြည့်ခြင်း) နှင့် `--port` တို့ကို အသုံးပြုနိုင်သည်။ Model
-ကို အလိုအလျောက်ရှာဖွေခြင်း မရှိသော ကိရိယာများ (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) တွင်
-`--model <id>` (နှင့် non-interactive run များအတွက် `--yes`) လိုအပ်သည်။ `setup-5dive` သည်
-`$HOME` အောက်တွင် မရေးသားသော တစ်ခုတည်းသော recipe ဖြစ်သည်- ၎င်းသည် fleet host ပေါ်တွင်
-root ပိုင် auth profile တစ်ခု ရေးသားခြင်းဖြင့် 5dive agent fleet ကို ပြင်ဆင်သတ်မှတ်သောကြောင့် `sudo`
-မှတစ်ဆင့် ပြန်လည် execute လုပ်ပြီး ၎င်းကိုယ်တိုင်အတွက် remote mode မရှိပါ။ မှန်ကန်သော env
-ကို ထည့်သွင်းပြီး config လုံးဝမရေးဘဲ CLI တစ်ခုကို စတင်ရန် ယေဘုယျ
-`omniroute run <target>` launcher ကို အသုံးပြုပါ (claude, codex, aider, goose, opencode, qwen,
-gemini — target နှင့် alias များကို `bin/cli/cli-manifest.mjs` မှ ရယူသည်)။ အဟောင်း
-ကိရိယာအလိုက် launcher များဖြစ်သော `omniroute launch` (Claude Code) နှင့် `omniroute launch-codex`
-(Codex) ကိုလည်း ဆက်လက်အသုံးပြုနိုင်သည်။ Gemini CLI သည် launch-only ဖြစ်သည်- ၎င်းသည် `omniroute run`
-target တစ်ခုဖြစ်သော်လည်း `setup-*`/`configure` recipe မရှိပါ။
+တစ်ခုစီသည် `--remote <url> --api-key <key>` (remote OmniRoute နှင့် local tool ကို စီစဉ်သတ်မှတ်ခြင်း)၊ `--dry-run` (မရေးသားဘဲ ကြိုတင်ကြည့်ရှုခြင်း) နှင့် `--port` တို့ကို လက်ခံသည်။ model auto-discovery မပါဝင်သော ကိရိယာများ (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) သည် `--model <id>` (နှင့် non-interactive runs များအတွက် `--yes`) ကို လက်ခံသည်။ `setup-5dive` သည် `$HOME` အောက်တွင် မရေးသားသော တစ်ခုတည်းသော recipe ဖြစ်သည်- ၎င်းသည် fleet host ပေါ်တွင် root-owned auth profile ကို ရေးသားခြင်းဖြင့် 5dive agent fleet ကို စီစဉ်သတ်မှတ်ပေးသည်၊ ထို့ကြောင့် ၎င်းသည် `sudo` မှတစ်ဆင့် re-execs လုပ်ပြီး ၎င်း၏ကိုယ်ပိုင် remote mode မရှိပါ။ မှန်ကန်သော env ကို ထည့်သွင်းပြီး config လုံးဝမရေးသားဘဲ CLI ကို စတင်ရန်အတွက် generic `omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen, gemini — targets နှင့် aliases များသည် `bin/cli/cli-manifest.mjs` မှ လာသည်) ကို အသုံးပြုပါ။ legacy per-tool launchers များဖြစ်သော `omniroute launch` (Claude Code) နှင့် `omniroute launch-codex` (Codex) တို့သည် ဆက်လက်ရရှိနိုင်ပါသည်။ Gemini CLI သည် launch-only ဖြစ်သည်- ၎င်းသည် `omniroute run` target ဖြစ်သော်လည်း `setup-*`/`configure` recipe မရှိပါ။
 
-> **အပြည့်အစုံ ကိုးကားချက်:** command တစ်ခုစီက ရေးသားသည့်အရာ၊ flag အားလုံး၊
-> local နှင့် remote ကွာခြားချက်၊ `/v1` suffix လိုအပ်သော ကိရိယာများကို ဖော်ပြထားသည့် အဓိကဇယားကို
-> **[CLI ပေါင်းစပ်ချိတ်ဆက်မှုများ](../guides/CLI-INTEGRATIONS.md)** တွင် ကြည့်နိုင်သည်။
+> **အပြည့်အစုံကို ကိုးကားရန်:** command တစ်ခုစီက ဘာတွေရေးသားတယ်၊ flag တိုင်း၊ local နှင့် remote၊ နှင့် ဘယ် tool တွေက `/v1` suffix လိုအပ်တယ်ဆိုတဲ့ master table ကို **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** မှာ တွေ့နိုင်ပါတယ်။
 
-### Container အတွင်း၌ ၎င်းတို့ကို အသုံးပြုခြင်း
+### ၎င်းတို့ကို container အတွင်း၌ လုပ်ဆောင်ခြင်း
 
-OmniRoute container အတွင်း execute လုပ်သော `setup-*` command သည်
-container ၏ ကိုယ်ပိုင် home ထဲသို့ ရေးသားသည်။ ၎င်းကို host CLI မည်သည့်တစ်ခုကမျှ မဖတ်သည့်အပြင်
-container နှင့်အတူ ပျောက်ကွယ်သွားမည်ဖြစ်သည်။ OmniRoute သည် ယင်းအခြေအနေကို ရှာဖွေသိရှိပြီး
-မရေးသားဘဲ ညွှန်ကြားချက်များနှင့်အတူ `2` ဖြင့် ထွက်သည်။ ပံ့ပိုးထားသော ဆက်လက်လုပ်ဆောင်နည်း နှစ်မျိုးမှာ —
-host ပေါ်တွင် CLI ကို install လုပ်ပြီး container သို့ `omniroute connect` ဖြင့် ချိတ်ဆက်ခြင်း၊ သို့မဟုတ် config directory များကို bind-mount လုပ်ကာ
-`CLI_CONFIG_HOME` (compose `host` profile) ကို သတ်မှတ်ခြင်းတို့ဖြစ်သည်။ `setup-*` command တိုင်းအပြင်
-`omniroute configure` နှင့် `omniroute config set` တို့တွင်လည်း container ၏ ကိုယ်ပိုင် CLI များကို
-အမှန်တကယ် ပြင်ဆင်သတ်မှတ်လိုသည့်အခါ `--allow-container-write` ကို အသုံးပြုနိုင်သည်။
-Server အတွက် `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` သည် အလားတူလုပ်ဆောင်သည်။
-[Docker လမ်းညွှန် → Host CLI ကိရိယာများကို ပြင်ဆင်သတ်မှတ်ခြင်း](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) ကို ကြည့်ပါ။
+OmniRoute container အတွင်း၌ လုပ်ဆောင်သော `setup-*` command သည် container ၏ ကိုယ်ပိုင် home ထဲသို့ ရေးသားပြီး ၎င်းကို host CLI က မဖတ်နိုင်သည့်အပြင် container နှင့်အတူ ပျောက်ကွယ်သွားသည်။ OmniRoute သည် ထိုအခြေအနေကို သိရှိပြီး ရေးသားခြင်းမပြုဘဲ ညွှန်ကြားချက်များနှင့်အတူ `2` ဖြင့် ထွက်ခွာသည်။ ရှေ့ဆက်ရန် ပံ့ပိုးထားသော နည်းလမ်းနှစ်ခုမှာ — host ပေါ်တွင် CLI ကို ထည့်သွင်းပြီး container သို့ `omniroute connect` လုပ်ခြင်း၊ သို့မဟုတ် config dirs များကို bind-mount လုပ်ပြီး `CLI_CONFIG_HOME` (compose `host` profile) ကို သတ်မှတ်ခြင်းတို့ဖြစ်သည်။ `setup-*` command တိုင်း၊ `omniroute configure` နှင့် `omniroute config set` တို့သည် container ၏ ကိုယ်ပိုင် CLIs များကို စီစဉ်သတ်မှတ်ခြင်းကို ဆိုလိုပါက `--allow-container-write` ကို လက်ခံသည်။ `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` သည် server အတွက်လည်း အလားတူ လုပ်ဆောင်သည်။ [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) ကို ကြည့်ပါ။
 
-Dashboard ၏ **apply endpoint** (`POST /api/cli-tools/apply`) သည်လည်း
-တူညီသော အကာအကွယ်ကို မဖြစ်မနေ အသုံးပြုသည်- container တစ်ခုအတွင်း host မှ bind-mount မလုပ်ထားသော
-target သို့ ရေးသားမှုတစ်ခုသည် **`422`** ကို `containerEphemeralTarget: true`၊ ဘေးကင်းသော error
-စာသားနှင့် — host recipe ရှိသည့် ကိရိယာများ (claude, codex, opencode, cline,
-kilo, continue) အတွက် — host ပေါ်တွင် အစားထိုး run ရမည့် `hostSetupCommand` (ဥပမာ `omniroute setup-opencode`) တို့နှင့်အတူ
-ပြန်ပေးပြီး မည်သည့်အရာကိုမျှ မရေးသားပါ။ `dryRun: true` သည် container
-mode တွင် ဆက်လက်အလုပ်လုပ်ပြီး disk ကို မထိဘဲ ထုတ်လုပ်ထားသော content + target path ကို ပြန်ပေးသောကြောင့်
-dashboard မှ အစမ်းကြည့်ပြီး host ပေါ်တွင် အသုံးချနိုင်သည်။ ဤအပြုအမူသည်
-ရည်ရွယ်ချက်ရှိရှိ ထည့်သွင်းထားခြင်းဖြစ်ပြီး
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` ဖြင့် regression မဖြစ်အောင် ကာကွယ်ထားသည် — guard ကို ဖယ်ရှားခြင်းဖြင့် 422 ကို မည်သည့်အခါမျှ "မပြင်ဆင်" ပါနှင့်။
+dashboard ၏ **apply endpoint** (`POST /api/cli-tools/apply`) သည် အလားတူ ကာကွယ်မှုကို အကောင်အထည်ဖော်သည်- container အတွင်း၌၊ host မှ bind-mount မလုပ်ထားသော target သို့ ရေးသားခြင်းသည် `containerEphemeralTarget: true`၊ safe error text နှင့် — host recipe ပါသော ကိရိယာများ (claude, codex, opencode, cline, kilo, continue) အတွက် — host ပေါ်တွင် လုပ်ဆောင်ရန် `hostSetupCommand` (ဥပမာ `omniroute setup-opencode`) ဖြင့် **`422`** ကို ပြန်လည်ဖြေကြားသည်။ ဘာမှ ရေးသားခြင်းမရှိပါ။ `dryRun: true` သည် container mode တွင် ဆက်လက်အလုပ်လုပ်ပြီး disk ကို မထိဘဲ redacted preview + target path ကို ပြန်ပေးသည်။ Preview content သည် ကူးယူရန် သို့မဟုတ် import လုပ်ရန် credential-bearing configuration မဟုတ်ပါ။ host ပေါ်ရှိ မူရင်း tool/base URL/API key/model inputs ဖြင့် apply လုပ်ပါ၊ သို့မဟုတ် ညွှန်ပြထားသော host-side setup command ကို အသုံးပြုပါ။ preview header နှင့် request contract အတွက် [CLI configuration security](../security/CLI-CONFIGURATION.md) ကို ကြည့်ပါ။ ဤအပြုအမူသည် ရည်ရွယ်ချက်ရှိရှိဖြစ်ပြီး `tests/unit/api/cli-tools/apply-container-guard.test.ts` ဖြင့် regression-guarded ဖြစ်သည် — guard ကို ဖယ်ရှားခြင်းဖြင့် 422 ကို ဘယ်တော့မှ "ပြင်" မလုပ်ပါနှင့်။
 
 ---
 

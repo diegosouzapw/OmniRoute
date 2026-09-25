@@ -43,26 +43,27 @@ ACP 에이전트 (역방향 생성 흐름):
 
 ---
 
-## `setup-*`로 자동 구성
+## `setup-*`를 사용한 자동 구성
 
-각 도구의 구성을 수동으로 작성할 필요가 없습니다. OmniRoute는 실행 중인 OmniRoute(로컬 또는 원격)에서 **실시간** 모델 카탈로그를 읽고 도구의 자체 구성을 귀하의 머신에 작성하는 `setup-*` 명령을 제공합니다:
+각 도구의 설정을 수동으로 작성할 필요가 없습니다. OmniRoute는 지원되는 CLI별로 `setup-*` 명령을 제공하여 실행 중인 OmniRoute(로컬 또는 원격)에서 **실시간** 모델 카탈로그를 읽어와 사용자 기기에 해당 도구의 설정을 작성합니다.
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-각 명령은 `--remote <url> --api-key <key>` (원격 OmniRoute에 대해 로컬 도구 구성), `--dry-run` (작성하지 않고 미리보기), 및 `--port`를 수용합니다. 모델 자동 검색이 없는 도구(Cline, Kilo, Roo, Goose, Aider, Qwen)는 `--model <id>` (비대화형 실행을 위한 `--yes`)를 사용합니다. 올바른 환경이 주입되고 전혀 구성되지 않은 CLI를 실행하려면 일반적인 `omniroute run <target>` 실행기를 사용하십시오 (claude, codex, aider, goose, opencode, qwen, gemini — 대상 및 별칭은 `bin/cli/cli-manifest.mjs`에서 가져옵니다); 레거시 도구별 실행기 `omniroute launch` (Claude Code) 및 `omniroute launch-codex` (Codex)도 사용할 수 있습니다. Gemini CLI는 실행 전용입니다: `omniroute run` 대상이지만 `setup-*`/`configure` 레시피가 없습니다.
+각 명령은 `--remote <url> --api-key <key>` (원격 OmniRoute에 대해 로컬 도구 구성), `--dry-run` (작성 없이 미리보기), `--port` 옵션을 허용합니다. 모델 자동 검색 기능이 없는 도구(Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive)는 `--model <id>` (및 비대화형 실행을 위한 `--yes`)를 사용합니다. `setup-5dive`는 `$HOME` 아래에 작성하지 않는 유일한 레시피입니다. 이 명령은 플릿 호스트에 루트 소유의 인증 프로필을 작성하여 5dive 에이전트 플릿을 구성하므로, `sudo`를 통해 다시 실행되며 자체 원격 모드가 없습니다. 올바른 환경이 주입되고 설정이 전혀 작성되지 않은 CLI를 시작하려면 일반 `omniroute run <target>` 런처(claude, codex, aider, goose, opencode, qwen, gemini — 대상 및 별칭은 `bin/cli/cli-manifest.mjs`에서 가져옴)를 사용하십시오. 레거시 도구별 런처인 `omniroute launch` (Claude Code) 및 `omniroute launch-codex` (Codex)는 계속 사용할 수 있습니다. Gemini CLI는 실행 전용입니다. `omniroute run` 대상이지만 `setup-*`/`configure` 레시피는 없습니다.
 
-> **전체 참조:** 마스터 테이블 — 각 명령이 작성하는 내용, 모든 플래그, 로컬 대 원격, `/v1` 접미사를 원하는 도구 — 는 **[CLI 통합](../guides/CLI-INTEGRATIONS.md)**에 있습니다.
+> **전체 참조:** 각 명령이 작성하는 내용, 모든 플래그, 로컬 대 원격, 그리고 어떤 도구가 `/v1` 접미사를 필요로 하는지에 대한 마스터 테이블은 **[CLI 통합](../guides/CLI-INTEGRATIONS.md)**에 있습니다.
 
 ### 컨테이너 내에서 실행하기
 
-OmniRoute 컨테이너 내에서 실행된 `setup-*` 명령은 컨테이너의 자체 홈에 작성되며, 이는 호스트 CLI가 읽지 않으며 컨테이너와 함께 사라집니다. OmniRoute는 이를 감지하고 작성하는 대신 지침과 함께 `2`로 종료합니다. 두 가지 지원되는 방법 — 호스트에 CLI를 설치하고 `omniroute connect`를 통해 컨테이너에 연결하거나, 구성 디렉토리를 바인드 마운트하고 `CLI_CONFIG_HOME`을 설정합니다 (compose `host` 프로필). 모든 `setup-*` 명령, plus `omniroute configure` 및 `omniroute config set`는 컨테이너의 자체 CLI를 구성하는 것이 실제로 의미하는 경우 `--allow-container-write`를 수용합니다; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true`는 서버에 대해 동일한 작업을 수행합니다. [Docker 가이드 → 호스트 CLI 도구 구성](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)을 참조하십시오.
+OmniRoute 컨테이너 내부에서 실행되는 `setup-*` 명령은 컨테이너 자체의 홈 디렉토리에 작성되며, 이는 호스트 CLI가 읽지 않고 컨테이너와 함께 사라집니다. OmniRoute는 이를 감지하고 작성하는 대신 지침과 함께 `2`로 종료합니다. 두 가지 지원되는 방법은 CLI를 호스트에 설치하고 컨테이너에 `omniroute connect`하는 것, 또는 설정 디렉토리를 바인드 마운트하고 `CLI_CONFIG_HOME` (compose `host` 프로필)을 설정하는 것입니다. 모든 `setup-*` 명령과 `omniroute configure`, `omniroute config set`는 컨테이너 자체의 CLI를 구성하는 것이 실제로 의도한 바일 때 `--allow-container-write`를 허용합니다. `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true`는 서버에 대해서도 동일하게 작동합니다. [Docker 가이드 → 호스트 CLI 도구 구성](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)을 참조하십시오.
 
-대시보드의 **적용 엔드포인트** (`POST /api/cli-tools/apply`)는 동일한 보호 장치를 시행합니다: 컨테이너 내에서 호스트에서 바인드 마운트되지 않은 대상을 대상으로 하는 쓰기는 **`422`**로 응답하며 `containerEphemeralTarget: true`, 안전한 오류 텍스트 및 — 호스트 레시피가 있는 도구(claude, codex, opencode, cline, kilo, continue)에 대해 — 호스트에서 실행할 `hostSetupCommand` (예: `omniroute setup-opencode`)를 제공합니다; 아무것도 작성되지 않습니다. `dryRun: true`는 컨테이너 모드에서도 작동하며 디스크를 건드리지 않고 생성된 콘텐츠 + 대상 경로를 반환하므로 대시보드에서 미리 보고 호스트에서 적용할 수 있습니다. 이 동작은 의도적이며 `tests/unit/api/cli-tools/apply-container-guard.test.ts`에 의해 회귀 방지됩니다 — 422를 "수정"하여 보호 장치를 제거하지 마십시오.
+대시보드의 **적용 엔드포인트** (`POST /api/cli-tools/apply`)도 동일한 보호 기능을 적용합니다. 컨테이너에서 호스트로부터 바인드 마운트되지 않은 대상을 대상으로 하는 쓰기 작업은 `containerEphemeralTarget: true`와 안전한 오류 텍스트, 그리고 호스트 레시피가 있는 도구(claude, codex, opencode, cline, kilo, continue)의 경우 호스트에서 대신 실행할 `hostSetupCommand` (예: `omniroute setup-opencode`)와 함께 **`422`** 응답을 반환합니다. 아무것도 작성되지 않습니다. `dryRun: true`는 컨테이너 모드에서 계속 작동하며 디스크를 건드리지 않고 수정된 미리보기 + 대상 경로를 반환합니다. 미리보기 내용은 복사하거나 가져올 수 있는 자격 증명 포함 설정이 아닙니다. 호스트에서 원래 도구/기본 URL/API 키/모델 입력을 사용하여 적용하거나, 표시된 호스트 측 설정 명령을 사용하십시오. 미리보기 헤더 및 요청 계약에 대해서는 [CLI 설정 보안](../security/CLI-CONFIGURATION.md)을 참조하십시오. 이 동작은 의도된 것이며 `tests/unit/api/cli-tools/apply-container-guard.test.ts`에 의해 회귀 방지됩니다. 보호 장치를 제거하여 422 오류를 "수정"하지 마십시오.
 
 ---
 
@@ -99,40 +100,40 @@ OmniRoute 컨테이너 내에서 실행된 `setup-*` 명령은 컨테이너의 �
 
 ---
 
-## 1. CLI Code 카탈로그(26개 도구)
+## 1. CLI 코드 카탈로그 (26가지 도구)
 
-`/dashboard/cli-code`에 표시되는 모든 도구입니다. `baseUrlSupport: none`인 도구는 사용자 지정 기본 URL 대신 MITM 또는 수동 가이드를 통해 연결됩니다.
+`/dashboard/cli-code`에 나타나는 모든 도구입니다. `baseUrlSupport: none`인 도구는 사용자 지정 기본 URL 대신 MITM 또는 수동 가이드를 통해 연결됩니다:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | 이름                   | 제공업체            | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ---------------------- | ------------------- | -------------- | -------------- | ------------ |
+| claude       | 클로드 코드            | Anthropic           | full           | env            | true         |
+| codex        | OpenAI 코덱스 CLI      | OpenAI              | full           | custom         | true         |
+| zcode        | Z코드 (GLM 코딩 플랜)  | Z.ai                | none           | custom         | false        |
+| cline        | 클라인                 | OSS (ex-Claude Dev) | full           | custom         | true         |
+| kilo         | 킬로 코드              | Kilo-Org            | full           | custom         | false        |
+| roo          | 루 코드                | Roo (OSS)           | full           | guide          | false        |
+| continue     | 컨티뉴                 | continue.dev        | full           | guide          | false        |
+| aider        | 에이더                 | OSS (P. Gauthier)   | full           | guide          | true         |
+| forge        | 포지코드               | Antinomy HQ         | full           | custom         | true         |
+| jcode        | j코드                  | 1jehuang (OSS)      | full           | custom         | false        |
+| deepseek-tui | 딥시크 TUI             | Hunter Bown (OSS)   | full           | custom         | false        |
+| codewhale    | 코드웨일               | Hmbown (OSS)        | full           | custom         | false        |
+| opencode     | 오픈코드               | Anomaly (ex-SST)    | full           | guide          | true         |
+| droid        | 팩토리 드로이드        | Factory AI          | partial        | guide          | false        |
+| copilot      | GitHub 코파일럿 CLI    | GitHub/MS           | full           | custom         | false        |
+| cursor-cli   | 커서 CLI               | Anysphere           | partial        | guide          | true         |
+| smelt        | 스멜트                 | leonardcser (OSS)   | full           | custom         | false        |
+| pi           | 파이 (pi-coding-agent) | M. Zechner (OSS)    | full           | custom         | false        |
+| grok-build   | 그록 빌드              | xAI                 | full           | custom         | false        |
+| crush        | 크러쉬                 | OSS (Charm)         | full           | custom         | false        |
+| qwen         | 취안 코드              | Alibaba             | full           | guide          | true         |
+| cursor       | 커서                   | Anysphere           | none           | guide          | false        |
+| antigravity  | 안티그래비티           | Google              | none           | mitm           | false        |
+| hermes       | 헤르메스               | Nous Research       | none           | guide          | false        |
+| kiro         | 키로 AI                | Amazon              | none           | mitm           | false        |
+| custom       | 사용자 지정 CLI        | —                   | full           | custom-builder | false        |
 
-`baseUrlSupport: "partial"`인 도구의 대시보드 카드에는 "⚠ 부분적 기본 URL" 배지가 표시됩니다.
+`baseUrlSupport: "partial"`인 도구는 대시보드 카드에 "⚠ Base URL parcial" 배지를 표시합니다.
 ---
 
 ## 2. CLI 에이전트 카탈로그(도구 10개)

@@ -2,10 +2,37 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  captureCurrentProviderRequest,
   runWithCapture,
   type Capture,
   type ProviderRequestPrepared,
 } from "../../open-sse/utils/providerRequestLogging.ts";
+
+for (const thrown of [new Error("__VIDEO_TRANSCRIPT_CANARY__"), "__VIDEO_TRANSCRIPT_CANARY__"]) {
+  test("capture hook failure never copies thrown content into the warning", async () => {
+    const warnings: Array<[string, string]> = [];
+    const capture: Capture = {
+      capture() {
+        throw thrown;
+      },
+      body(fallback) {
+        return fallback;
+      },
+    };
+
+    await runWithCapture(capture, () =>
+      captureCurrentProviderRequest(
+        "https://provider.example/v1/chat/completions",
+        {},
+        { messages: [{ role: "user", content: "__VIDEO_TRANSCRIPT_CANARY__" }] },
+        '{"messages":[{"role":"user","content":"__VIDEO_TRANSCRIPT_CANARY__"}]}',
+        { warn: (tag, message) => warnings.push([tag, message]) }
+      )
+    );
+
+    assert.deepEqual(warnings, [["REQUEST_LOG", "Provider request logging hook failed"]]);
+  });
+}
 
 test("runWithCapture captures the actual JSON provider fetch body", async () => {
   const originalFetch = globalThis.fetch;

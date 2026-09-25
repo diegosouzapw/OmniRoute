@@ -14,26 +14,46 @@
  */
 import { apiFetch } from "./api.mjs";
 
+// Required by MCP Streamable HTTP for every POST.
+export const MCP_ACCEPT = "application/json, text/event-stream";
+
 function mcpError(message, status) {
   const err = new Error(message);
   if (status) err.status = status;
   return err;
 }
 
-async function callMcpEndpoint(payload, { timeout, stream }) {
+export async function readJsonRpcResponse(res) {
+  if (!res.headers.get("content-type")?.toLowerCase().includes("text/event-stream")) {
+    return res.json();
+  }
+
+  for (const line of (await res.text()).split("\n")) {
+    if (!line.startsWith("data:")) continue;
+    const data = line.slice(5).trim();
+    if (!data || data === "[DONE]") continue;
+    return JSON.parse(data);
+  }
+  throw mcpError("MCP response contained no JSON-RPC data frame", 502);
+}
+
+async function callMcpEndpoint(payload, { timeout, sessionId }) {
   const res = await apiFetch("/api/mcp/stream", {
     method: "POST",
     body: payload,
     timeout,
     acceptNotOk: true,
-    headers: stream ? { Accept: "text/event-stream" } : {},
+    headers: {
+      Accept: MCP_ACCEPT,
+      ...(sessionId ? { "Mcp-Session-Id": sessionId } : {}),
+    },
   });
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw mcpError(
       `${payload.method} ${payload.id}: HTTP ${res.status}${text ? ` — ${text}` : ""}`,
-      res.status,
+      res.status
     );
   }
   return res;
@@ -60,7 +80,7 @@ export async function mcpCallTool(name, args = {}, options = {}) {
         clientInfo: { name: "omniroute-cli", version: "1.0" },
       },
     },
-    { timeout, stream: options.stream },
+    { timeout }
   );
 
   const sessionId = initRes.headers.get("mcp-session-id");
@@ -75,14 +95,14 @@ export async function mcpCallTool(name, args = {}, options = {}) {
       method: "tools/call",
       params: { name, arguments: args },
     },
-    { timeout, stream: options.stream },
+    { timeout, sessionId }
   );
 
   if (options.stream) {
     return consumeSse(callRes.body, options.onChunk);
   }
 
-  const data = await callRes.json();
+  const data = await readJsonRpcResponse(callRes);
   if (data.error) {
     const err = mcpError(`MCP error: ${data.error.message || JSON.stringify(data.error)}`);
     err.code = data.error.code;

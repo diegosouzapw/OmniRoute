@@ -1,7 +1,7 @@
 {
   "name": "omniroute",
   "version": "3.8.51",
-  "description": "Unified AI router with 360 providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
+  "description": "Unified AI router with 358 providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
     "omniroute": "bin/omniroute.mjs",
@@ -188,6 +188,7 @@
     "check:provider-asset-provenance": "node scripts/check/check-provider-asset-provenance.mjs",
     "check:radar-sentinels": "node scripts/check/check-radar-sentinels.mjs",
     "check:nvidia-catalog-drift": "node --import tsx/esm scripts/check/check-nvidia-catalog-drift.ts",
+    "check:cli-fingerprint-drift": "node --import tsx/esm scripts/check/check-cli-fingerprint-drift.ts",
     "check:fetch-targets": "node scripts/check/check-fetch-targets.mjs",
     "check:openapi-routes": "node scripts/check/check-openapi-routes.mjs",
     "check:api-docs-refs": "node scripts/check/check-api-docs-refs.mjs",
@@ -340,7 +341,7 @@
     "material-symbols": "^0.47.0",
     "mermaid": "^11.17.2",
     "monaco-editor": "^0.56.0",
-    "next": "16.3.3",
+    "next": "16.3.5",
     "next-intl": "^4.14.0",
     "next-themes": "^0.4.6",
     "node-machine-id": "^1.1.12",
@@ -387,7 +388,7 @@
     "better-sqlite3": "^13.0.3",
     "js-tiktoken": "^1.0.20",
     "keytar": "^7.9.0",
-    "onnxruntime-node": "1.24.3",
+    "onnxruntime-node": "1.30.0",
     "sqlite-vec": "^0.1.9",
     "wreq-js": "3.2.0"
   },
@@ -483,7 +484,7 @@
   "overrides": {
     "browserslist": "^4.28.8",
     "joi": "^18.2.8",
-    "onnxruntime-node": "1.24.3",
+    "onnxruntime-node": "1.30.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "fast-xml-parser": "^5.10.1",
     "sharp": "^0.35.4",
