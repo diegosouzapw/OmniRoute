@@ -1,0 +1,1 @@
+- **fix(sse):** report the real error when a stream fails before its first SSE event instead of claiming a readiness timeout; the error class and routing stay unchanged ([#14829](https://github.com/diegosouzapw/OmniRoute/pull/14829))

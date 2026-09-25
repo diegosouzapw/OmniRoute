@@ -516,12 +516,18 @@ function prependBufferedChunks(
   });
 }
 
+class StreamReadinessReadTimeout extends Error {
+  constructor() {
+    super("STREAM_READINESS_TIMEOUT");
+  }
+}
+
 function readWithTimeout(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   timeoutMs: number
 ): Promise<ReadableStreamReadResult<Uint8Array>> {
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error("STREAM_READINESS_TIMEOUT")), timeoutMs);
+    const timeout = setTimeout(() => reject(new StreamReadinessReadTimeout()), timeoutMs);
     reader.read().then(
       (value) => {
         clearTimeout(timeout);
@@ -625,7 +631,40 @@ export async function ensureStreamReadiness(
       const readStart = Date.now();
       try {
         readResult = await readWithTimeout(reader, remainingMs);
-      } catch {
+      } catch (error) {
+        // A source stream that errors before its first non-ping event (e.g. an
+        // executor watchdog giving up on a stalled upstream) must say so instead of
+        // claiming a readiness timeout. The code/type/status stay on the timeout class on
+        // purpose: STREAM_EARLY_EOF buys a same-connection retry (#3758), which would
+        // double the wait on a stream the executor already gave up on before the combo
+        // can fall back.
+        if (!(error instanceof StreamReadinessReadTimeout)) {
+          const classificationReason = "Stream failed before producing a non-ping SSE event";
+          const rawMessage = error instanceof Error ? error.message : String(error);
+          const upstreamDiagnostic = sanitizeErrorMessage(rawMessage).trim() || undefined;
+          const reason = upstreamDiagnostic
+            ? `${classificationReason}: ${upstreamDiagnostic}`
+            : classificationReason;
+          options.log?.warn?.(
+            "STREAM",
+            `${reason} (${options.provider || "provider"}/${options.model || "unknown"})`
+          );
+          return {
+            ok: false,
+            reason,
+            classificationReason,
+            ...(upstreamDiagnostic ? { upstreamDiagnostic } : {}),
+            code: "STREAM_READINESS_TIMEOUT",
+            type: "stream_timeout",
+            response: createErrorResponse(
+              HTTP_STATUS.GATEWAY_TIMEOUT,
+              classificationReason,
+              "STREAM_READINESS_TIMEOUT",
+              "stream_timeout",
+              upstreamDiagnostic
+            ),
+          };
+        }
         const reason = timeoutReason();
         options.log?.warn?.(
           "STREAM",
