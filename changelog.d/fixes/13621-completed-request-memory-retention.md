@@ -1,0 +1,1 @@
+- **fix(resilience):** Cap cached completed-request stream diagnostics at 64 chunks per stage (with a truncation marker) so long streams cannot bloat the completed-details bridge; byte budget and preview detachment come from the JON-562 cache (#13621).
