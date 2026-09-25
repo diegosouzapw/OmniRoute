@@ -67,8 +67,8 @@ test("a file: URL OBJECT spawns cleanly", async () => {
 test("worker.ts passes the URL object, not .href", () => {
   const code = fs.readFileSync(WORKER_SRC, "utf8");
   assert.ok(
-    /new Worker\(\s*pathToFileURL\([A-Za-z0-9_]+\)\s*,/.test(code),
-    "ensureWorker must pass the URL instance to new Worker()"
+    /workerFactory\(\s*llmlinguaWorkerSpecifier\([A-Za-z0-9_]+\)\s*,/.test(code),
+    "ensureWorker must spawn via llmlinguaWorkerSpecifier(), which returns a URL instance"
   );
   assert.ok(
     !/new Worker\(\s*pathToFileURL\([A-Za-z0-9_]+\)\.href/.test(code),
