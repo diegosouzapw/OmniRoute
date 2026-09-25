@@ -30,7 +30,7 @@ childEnv.NODE_OPTIONS = buildStandaloneNodeOptions(childEnv, maxOldSpaceMb);
 // rather than trusting the spoofable Host header.
 const entry = existsSync("server-ws.mjs") ? "server-ws.mjs" : "server.js";
 
-spawnWithForwardedSignals("node", [entry], {
+spawnWithForwardedSignals(process.execPath, [entry], {
   stdio: "inherit",
   env: childEnv,
 });

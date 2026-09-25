@@ -1,0 +1,1 @@
+- **fix(docker):** start the Bun standalone runtime via `process.execPath` in `run-standalone.mjs` instead of a literal `"node"`, since a Bun image has no binary named `node` on `PATH`.
