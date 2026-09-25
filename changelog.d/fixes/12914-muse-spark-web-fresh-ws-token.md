@@ -1,0 +1,1 @@
+- **fix(providers):** Meta AI (muse-spark-web) now fetches a fresh WS access token via the browser pool instead of reusing the stale page-embedded token, and preserves the nested `[1,1,5]` proto envelope when patching the conversation id, fixing WS timeouts after a few messages ([#12914](https://github.com/diegosouzapw/OmniRoute/pull/12914)) — thanks @wray-lee
