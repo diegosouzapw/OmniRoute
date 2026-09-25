@@ -122,7 +122,7 @@ test("grok-cli inherits BaseExecutor transport instead of buffering its own resp
       stream: true,
       credentials: {},
     });
-    // Without namespace tools the upstream Response is returned as-is.
+    // Without namespace or custom tools the upstream Response is returned as-is.
     assert.equal((result as { response: Response }).response, upstream);
   } finally {
     BaseExecutor.prototype.execute = originalExecute;
