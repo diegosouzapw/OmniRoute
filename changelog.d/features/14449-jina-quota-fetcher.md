@@ -1,0 +1,1 @@
+- **feat(sse):** Jina token balance in Provider Limits — `jina-search`, `jina`, `jina-ai` and `jina-reader` connections read the wallet `total_balance` from `GET https://dash.jina.ai/api/v1/api_key/fe_user` (60 s cache, fail-open) so rotation can skip exhausted keys ([#14449](https://github.com/diegosouzapw/OmniRoute/pull/14449)) — thanks @HouMinXi

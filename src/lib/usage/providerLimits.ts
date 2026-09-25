@@ -80,6 +80,11 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "firecrawl",
   // Context7 rate limit quota (ratelimit-* headers of GET https://context7.com/api/v1/search)
   "context7",
+  // Jina wallet balance (GET https://dash.jina.ai/api/v1/api_key/fe_user)
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",
