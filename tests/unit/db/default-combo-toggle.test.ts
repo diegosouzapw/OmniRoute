@@ -83,29 +83,27 @@ test("Fix #1: normalizePipeline passes through new engine IDs (headroom, session
 });
 
 test("enabling headroom adds it to the pipeline sorted by stackPriority", () => {
-  // Default pipeline is [rtk(10), caveman(20)].
-  // headroom has stackPriority=15 so it should be inserted between rtk and caveman.
+  // Default pipeline is [session-dedup(3), lite(5)] since #14529 moved the seed off the lossy
+  // rtk + caveman pair. headroom has stackPriority=15, so it must land after both.
   const result = setEngineInDefaultCombo("headroom", true);
   assert.ok(result, "should return the updated combo");
 
   const engineIds = result.pipeline.map((s) => s.engine);
-  assert.ok(engineIds.includes("headroom"), "headroom should be in the pipeline");
-
-  const rtkIdx = engineIds.indexOf("rtk");
+  const dedupIdx = engineIds.indexOf("session-dedup");
+  const liteIdx = engineIds.indexOf("lite");
   const headroomIdx = engineIds.indexOf("headroom");
-  const cavemanIdx = engineIds.indexOf("caveman");
 
-  assert.ok(rtkIdx >= 0, "rtk should be in the pipeline");
+  assert.ok(dedupIdx >= 0, "session-dedup should be in the pipeline");
+  assert.ok(liteIdx >= 0, "lite should be in the pipeline");
   assert.ok(headroomIdx >= 0, "headroom should be in the pipeline");
-  assert.ok(cavemanIdx >= 0, "caveman should be in the pipeline");
 
   assert.ok(
-    rtkIdx < headroomIdx,
-    `rtk(10) should come before headroom(15), got order: ${engineIds}`
+    dedupIdx < liteIdx,
+    `session-dedup(3) should come before lite(5), got order: ${engineIds}`
   );
   assert.ok(
-    headroomIdx < cavemanIdx,
-    `headroom(15) should come before caveman(20), got order: ${engineIds}`
+    liteIdx < headroomIdx,
+    `lite(5) should come before headroom(15), got order: ${engineIds}`
   );
 });
 

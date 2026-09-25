@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Semântica de custo em acertos de cache:** em um HIT do cache semântico (`X-OmniRoute-Cache-Hit: true`), nenhuma chamada upstream é feita, portanto, `X-OmniRoute-Response-Cost` é `0.0000000000` (o custo **incremental** de atender ao acerto). O custo original/que teria sido incorrido é informado separadamente em `X-OmniRoute-Cost-Saved`. Os consumidores de faturamento devem somar `X-OmniRoute-Response-Cost` (acertos não têm custo); as análises de cache podem agregar `X-OmniRoute-Cost-Saved`.
 
-## Concessões exclusivas de sessão gerenciada
+## Concessões de Sessão Gerenciadas Exclusivas
 
-A concessão exclusiva de sessão gerenciada é um contrato de roteamento opcional e neutro em relação ao cliente: um proprietário ativo
-mantém uma conexão OmniRoute elegível. Ela não concede um modelo, não exige OAuth, não identifica um
-cliente específico e não exige um provedor específico.
+O aluguel de sessão gerenciada exclusiva é um contrato de roteamento opcional e neutro para o cliente: um proprietário ativo detém uma conexão OmniRoute elegível. Ele não aluga um modelo, não exige OAuth, não identifica um cliente específico e não exige um provedor específico.
 
-A chave de API usada na autenticação deve ter o escopo `lease:exclusive` e uma lista
-`allowedConnections` explícita e não vazia. O limite de mutação do banco de dados exige ambos os campos em conjunto na
-criação da chave e em atualizações parciais.
+A chave de API de autenticação deve ter o escopo `lease:exclusive` e uma lista `allowedConnections` explícita e não vazia. O limite de mutação do banco de dados impõe ambos os campos juntos na criação da chave e em atualizações parciais.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-As respostas bem-sucedidas de aquisição, renovação e liberação expõem timestamps, `state` e o valor positivo exato de
-`generation`, mas nunca a conexão selecionada ou as credenciais. A renovação e a liberação fornecem a
-geração no corpo JSON:
+Respostas bem-sucedidas de aquisição, renovação e liberação expõem carimbos de data/hora, `state` e a `generation` positiva exata, mas nunca a conexão ou credenciais selecionadas. A renovação e a liberação fornecem a geração no corpo JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ geração no corpo JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-O proprietário de uma concessão ativa pode solicitar explicitamente metadados de exibição que preservam a privacidade para sua vinculação atual:
+Um proprietário de concessão ativo pode solicitar explicitamente metadados de exibição seguros para a privacidade de sua vinculação atual:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,23 +131,11 @@ O proprietário de uma concessão ativa pode solicitar explicitamente metadados 
 }
 ```
 
-Essa ação de status opcional é protegida pelo proprietário opaco, pela chave de API gerenciada autenticada e pela
-geração ativa exata em uma única transação de banco de dados. `displayName` é apenas o nome configurado da
-conexão após a remoção de espaços em branco nas extremidades; ele é `null` quando não existe um nome configurado seguro. O OmniRoute nunca substitui esse valor por um
-e-mail ou por uma identidade de conta gerada. O valor do provedor é um rótulo de exibição não confidencial e nunca
-um identificador gerado de provedor compatível. Credenciais, tokens, cookies, IDs brutos de conexão ou de chave de
-API, hashes de proprietário, segredos de fencing e dados internos de roteamento são excluídos.
+Esta ação de status opcional é protegida pelo proprietário opaco, pela chave de API gerenciada autenticada e pela geração ativa exata em uma única transação de banco de dados. `displayName` é apenas o nome da conexão configurada e truncado; é `null` quando não existe um nome configurado seguro. O OmniRoute nunca substitui um e-mail ou uma identidade de conta gerada. O valor do provedor é um rótulo de exibição não sensível e nunca um identificador de provedor compatível gerado. Credenciais, tokens, cookies, IDs de conexão bruta ou de chave de API, hashes de proprietário, segredos de proteção e dados de roteamento internos são excluídos.
 
-Consultas com chave incorreta, proprietário incorreto, geração obsoleta, ausente, expirada, liberada ou invalidada
-retornam o mesmo erro `409 LEASE_FENCE_STALE`, sem metadados da conexão. Um cliente que recebeu a resposta de espera por capacidade não tem nenhuma vinculação ativa para inspecionar. Quando o roteamento faz a transição de uma concessão ativa,
-a mesma geração permanece válida, e o status retorna atomicamente a nova vinculação, nunca a antiga.
-Os clientes existentes permanecem inalterados porque as respostas de aquisição, renovação, liberação e espera mantêm
-seus formatos anteriores.
+Consultas com chave errada, proprietário errado, geração obsoleta, ausentes, expiradas, liberadas e invalidadas retornam o mesmo erro `409 LEASE_FENCE_STALE` sem metadados de conexão. Um cliente que recebeu a resposta de espera de capacidade não tem nenhuma vinculação ativa para inspecionar. Quando o roteamento transiciona uma concessão ativa, a mesma geração permanece válida e o status retorna atomicamente a nova vinculação, nunca a antiga. Os clientes existentes permanecem inalterados porque as respostas de aquisição, renovação, liberação e espera mantêm suas formas anteriores.
 
-Este contrato do servidor não altera o `/status` padrão do OpenAI Codex. Atualmente, o Codex padrão informa seu
-provedor de modelo e o estado interno de autenticação/conta, mas não renderiza metadados arbitrários de
-contas de provedores personalizados; uma integração futura do cliente deverá chamar essa ação e decidir como
-exibir `connection.displayName`.
+Este contrato de servidor não altera o `/status` padrão do OpenAI Codex. O Codex padrão atualmente relata seu provedor de modelo e o estado de autenticação/conta integrado, mas não renderiza metadados arbitrários de conta de provedor personalizado; uma integração de cliente posterior deve chamar esta ação e decidir como exibir `connection.displayName`.
 
 Cada solicitação de inferência gerenciada fornece então ambos os cabeçalhos de controle:
 
@@ -162,10 +144,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-O proprietário exato, a geração, a conexão ativa e a chave de API autenticada são validados por fencing imediatamente
-antes de cada tentativa upstream compatível. Reutilizar o proprietário e a geração com outra chave falha mesmo
-quando essa chave permite a mesma conexão. Os proprietários brutos não são persistidos, registrados em logs, mantidos no
-snapshot da solicitação nem encaminhados ao upstream.
+O proprietário exato, a geração, a conexão ativa e a chave de API autenticada são protegidos imediatamente antes de cada tentativa upstream suportada. Repetir proprietário e geração com outra chave falha mesmo quando essa chave permite a mesma conexão. Proprietários brutos não são persistidos, registrados, retidos no snapshot da solicitação ou encaminhados upstream.
 
 A contenção temporária retorna HTTP `429` com `Retry-After` e:
 
@@ -178,28 +157,27 @@ A contenção temporária retorna HTTP `429` com `Retry-After` e:
 }
 ```
 
-Essa resposta significa apenas que o conjunto elegível comum não estava vazio e que todos os candidatos livres estavam
-mantidos por uma concessão ativa de outro proprietário. Modelos/provedores não compatíveis, incompatibilidade de política, cooldown, cota,
-integridade e outras falhas comuns de elegibilidade mantêm suas respostas OmniRoute existentes.
+Esta resposta significa apenas que o conjunto elegível comum não estava vazio e que cada candidato livre estava sendo mantido por uma concessão ativa estrangeira. Modelos/provedores não suportados, incompatibilidade de política, tempo de espera (cooldown), cota, saúde e outras falhas comuns de elegibilidade mantêm suas respostas OmniRoute existentes.
 
 ### `x-omniroute-compression`
 
-Substituição por solicitação do plano de compactação. Maior precedência — prevalece sobre a substituição da combinação de
-roteamento, o perfil ativo, o acionamento automático e o padrão do painel. Valores:
+Sobrescrita por solicitação do plano de compressão. Precedência mais alta — supera a sobrescrita do combo de roteamento, o perfil ativo, o gatilho automático e o Padrão do painel. Valores:
 
 | Valor         | Efeito                                                                                                            |
 | ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `off`         | Sem compactação para esta solicitação.                                                                            |
-| `default`     | O perfil padrão derivado do painel (ignora o perfil ativo).                                                       |
-| `engine:<id>` | Um único mecanismo quando habilitado, por exemplo, `engine:rtk`.                                                  |
-| `<combo>`     | Uma combinação nomeada, comparada primeiro pelo nome (sem diferenciar maiúsculas de minúsculas) e depois pelo ID. |
+| `off`         | Nenhuma compressão para esta solicitação.                                                                         |
+| `default`     | O perfil Padrão derivado do painel (ignora o perfil ativo). Motores com perda são desativados.                    |
+| `safe`        | Apenas deduplicação e dobramento de espaços em branco.                                                            |
+| `allow-lossy` | Mantém o plano do operador para esta solicitação, incluindo resumos e reescritas de estilo.                       |
+| `engine:<id>` | Um único motor quando ativado, por exemplo, `engine:rtk`. Ativação opcional por solicitação para esse motor.      |
+| `<combo>`     | Um combo nomeado, correspondido primeiro pelo nome (sem distinção entre maiúsculas e minúsculas), depois pelo ID. |
 
 Observações:
 
-- Valores desconhecidos são ignorados (a solicitação nunca é rejeitada); a resolução prossegue para a precedência normal dos operadores.
-- Se várias combinações compartilharem um nome, forneça o **id** da combinação para obter uma correspondência determinística.
-- Uma combinação cujo nome seja `off` ou `default` não pode ser selecionada pelo nome (essas palavras-chave são interpretadas primeiro); referencie essa combinação pelo seu ID.
-- O controle mestre de compactação é uma barreira rígida: quando a compactação está desabilitada globalmente, esse cabeçalho não pode habilitá-la.
+- Valores desconhecidos são ignorados (a solicitação nunca é rejeitada); a resolução segue a precedência normal do operador.
+- Se vários combos compartilharem um nome, passe o **ID** do combo para uma correspondência determinística.
+- Um combo cujo nome é `off` ou `default` não pode ser selecionado pelo nome (essas palavras-chave são interpretadas primeiro); referencie tal combo pelo seu ID.
+- O interruptor mestre de compressão é um portão rígido: quando a compressão é desativada globalmente, este cabeçalho não pode ativá-la.
 
 O plano aplicado é retornado no cabeçalho da resposta:
 
@@ -207,7 +185,7 @@ O plano aplicado é retornado no cabeçalho da resposta:
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-em que `<source>` é um dentre `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ou `off`.
+onde `<source>` é um de `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, ou `off`.
 
 ---
 
@@ -445,90 +423,90 @@ Use este endpoint quando um sidecar for executado fora do processo e não puder 
 
 ---
 
-## Endpoints de compatibilidade
+## Endpoints de Compatibilidade
 
 | Método | Caminho                                   | Formato                              |
 | ------ | ----------------------------------------- | ------------------------------------ |
 | POST   | `/v1/chat/completions`                    | OpenAI                               |
 | POST   | `/v1/messages`                            | Anthropic                            |
-| POST   | `/v1/responses`                           | OpenAI Responses                     |
+| POST   | `/v1/responses`                           | Respostas OpenAI                     |
 | POST   | `/v1/embeddings`                          | OpenAI                               |
-| POST   | `/v1/images/generations`                  | OpenAI Images                        |
-| POST   | `/v1/images/edits`                        | OpenAI Images (edição/inpainting)    |
-| POST   | `/v1/videos/generations`                  | Geração de vídeo no estilo OpenAI    |
-| POST   | `/v1/music/generations`                   | Geração de música no estilo OpenAI   |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                   |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (retorna corpo de áudio)  |
-| POST   | `/v1/rerank`                              | Rerank no estilo Cohere/Voyage       |
+| POST   | `/v1/images/generations`                  | Imagens OpenAI                       |
+| POST   | `/v1/images/edits`                        | Imagens OpenAI (edição/inpaint)      |
+| POST   | `/v1/videos/generations`                  | Geração de vídeo estilo OpenAI       |
+| POST   | `/v1/music/generations`                   | Geração de música estilo OpenAI      |
+| POST   | `/v1/audio/transcriptions`                | Áudio OpenAI (STT)                   |
+| POST   | `/v1/audio/speech`                        | TTS OpenAI (retorna corpo de áudio)  |
+| POST   | `/v1/rerank`                              | Rerank estilo Cohere/Voyage          |
 | POST   | `/v1/classify`                            | Classificação Jina (`api.jina.ai`)   |
 | POST   | `/v1/segment`                             | Segmentador Jina (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                   |
+| POST   | `/v1/moderations`                         | Moderações OpenAI                    |
 | GET    | `/v1/models`                              | OpenAI                               |
 | POST   | `/v1/messages/count_tokens`               | Anthropic                            |
 | GET    | `/v1beta/models`                          | Gemini                               |
 | POST   | `/v1beta/models/{...path}`                | Gemini generateContent               |
 | POST   | `/v1/api/chat`                            | Ollama                               |
-| GET    | `/api/v1/vscode/{token}/`                 | Alias do catálogo OpenAI             |
-| GET    | `/api/v1/vscode/{token}/models`           | Alias dos modelos OpenAI             |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias OpenAI com token               |
-| POST   | `/api/v1/vscode/{token}/responses`        | Alias OpenAI Responses com token     |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias Ollama com token               |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias de tags do Ollama com token    |
+| GET    | `/api/v1/vscode/{token}/`                 | Alias de catálogo OpenAI             |
+| GET    | `/api/v1/vscode/{token}/models`           | Alias de modelos OpenAI              |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias tokenizado OpenAI              |
+| POST   | `/api/v1/vscode/{token}/responses`        | Alias tokenizado de Respostas OpenAI |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias tokenizado Ollama              |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias tokenizado de tags Ollama      |
 
-Todas as rotas POST seguem o mesmo formato: `Bearer your-api-key` + corpo JSON validado pelo Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` etc.; consulte `src/shared/validation/schemas.ts`). Um erro 4xx é retornado quando há falha na validação do esquema.
+Todas as rotas POST seguem o mesmo formato: `Bearer your-api-key` + corpo JSON validado por Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, etc., veja `src/shared/validation/schemas.ts`). Um erro 4xx é retornado em caso de falha de esquema.
 
-Para clientes que não conseguem anexar `Authorization: Bearer ...`, o OmniRoute também aceita chaves de API na URL por meio da compatibilidade com parâmetros de consulta (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ou dos endpoints dedicados `/api/v1/vscode/{token}/...` documentados abaixo.
+Para clientes que não conseguem anexar `Authorization: Bearer ...`, o OmniRoute também aceita chaves de API na URL via compatibilidade de string de consulta (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ou pelos endpoints dedicados `/api/v1/vscode/{token}/...` documentados abaixo.
 
 ```bash
-# Rerank (provedor do registro em nuvem ou nó de provedor compatível com OpenAI como "<prefix>/<model>")
+# Rerank (cloud registry provider, or an OpenAI-compatible provider node as "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Classificação Jina (credenciais da Foundation API)
+# Jina classify (Foundation API credentials)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Segmentador Jina
+# Jina segmenter
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Pesquisa Jina (s.jina.ai; aliases de provedor: jina-search, jina-ai, jina)
+# Jina search (s.jina.ai; provider aliases: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderações
+# Moderations
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — retorna um corpo audio/mpeg (ou no formato solicitado)
+# TTS — returns audio/mpeg (or requested format) body
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Edição de imagem (multipart)
+# Image edit (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Geração de vídeo/música (ID do modelo com prefixo do provedor)
+# Video / music generation (provider-prefixed model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Nós de provedor de rerank:** `POST /v1/rerank` também encaminha solicitações para nós de provedores compatíveis com OpenAI
-> (oMLX, vLLM, Infinity, TEI atrás de um gateway, …) endereçados como `<node-prefix>/<model>`. Nós de loopback
+> **Nós provedores de Rerank:** `POST /v1/rerank` também roteia para nós provedores compatíveis com OpenAI
+> (oMLX, vLLM, Infinity, TEI por trás de um gateway, …) endereçados como `<node-prefix>/<model>`. Nós de loopback
 > (`localhost`, `127.0.0.1`, `172.16.0.0/12`) são sempre elegíveis. Nós em qualquer outro
-> host — uma máquina na LAN ou um par do Tailscale — são elegíveis somente quando o operador habilita a
-> flag de recurso `RERANK_REMOTE_PROVIDER_NODES` **e** a URL base do nó é aprovada pela política de URLs
-> de saída do provedor (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> hosts de metadados de nuvem nunca recebem solicitações. A etapa de rerank do mecanismo de memória chama essa rota por
-> loopback, portanto, a mesma regra rege `rerankProviderModel` nas configurações de Memória.
+> host — uma caixa LAN ou peer Tailscale — são elegíveis apenas quando o operador habilita a
+> flag de recurso `RERANK_REMOTE_PROVIDER_NODES` **e** a URL base do nó passa pela
+> política de URL de saída do provedor (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> hosts de metadados de nuvem nunca são roteados. A etapa de rerank do motor de memória chama esta rota via
+> loopback, então a mesma regra governa `rerankProviderModel` nas configurações de Memória.
 >
-> **Formatos de servidores locais:** o nó é chamado em `<base>/v1/rerank` e, em caso de 404, em `<base>/rerank`
-> (Infinity, TEI). O corpo enviado ao upstream inclui tanto a nomenclatura Cohere/OpenAI (`documents`,
-> `return_documents`) quanto a nomenclatura TEI (`texts`, `return_text`), e a resposta do upstream é
-> normalizada para o envelope Cohere: a matriz simples do TEI `[{index, score, text}]`, `{results: [{index, score}]}`
-> de gateways mínimos e o formato do Voyage `{data: [...]}` são todos retornados ao cliente como
+> **Formatos de servidor local:** o nó é chamado em `<base>/v1/rerank` e, em caso de 404, em `<base>/rerank`
+> (Infinity, TEI). O corpo upstream carrega tanto a grafia Cohere/OpenAI (`documents`,
+> `return_documents`) quanto a grafia TEI (`texts`, `return_text`), e a resposta upstream é
+> normalizada para o envelope Cohere: `[{index, score, text}]` puro do TEI, `{results: [{index, score}]}`
+> de gateways finos, e `{data: [...]}` estilo Voyage, todos retornam ao cliente como
 > `{results: [{index, relevance_score, document?}]}`, ordenados por pontuação e limitados a `top_n`.
 
-> **Descoberta de nós de provedor:** os modelos em um nó de provedor compatível com OpenAI aparecem em `GET /v1/models`
-> sob o prefixo do nó. As linhas que não contêm metadados de endpoint (comum em listagens locais de `/v1/models`)
-> herdam o `apiType` do nó; assim, os modelos de um nó `embeddings` têm `type: "embedding"` e os modelos de um
-> nó `rerank` têm `type: "rerank"` em vez de usarem chat como padrão; um
+> **Descoberta de nós provedores:** modelos em um nó provedor compatível com OpenAI aparecem em `GET /v1/models`
+> sob o prefixo do nó. Linhas que não contêm metadados de endpoint (típico para listagens locais de `/v1/models`)
+> herdam o `apiType` do nó, então os modelos de um nó de `embeddings` são `type: "embedding"` e os
+> modelos de um nó de `rerank` são `type: "rerank"` em vez de usar o padrão de chat; um
 > `supportedEndpoints` explícito em uma linha sincronizada ou adicionada manualmente ainda tem precedência.
 
-### Rotas dedicadas de provedores
+### Rotas Dedicadas do Provedor
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -536,7 +514,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-O prefixo do provedor é adicionado automaticamente caso esteja ausente. Modelos incompatíveis retornam `400`.
+O prefixo do provedor é adicionado automaticamente se estiver faltando. Modelos incompatíveis retornam `400`.
 
 ---
 

@@ -1,0 +1,1 @@
+- **fix(streaming):** mid-stream continuation now resumes truncated Responses-API streams (text deltas replayed as an assistant input item behind the same setting); a short complete Responses turn ending in `response.completed` is never re-requested ([#14639](https://github.com/diegosouzapw/OmniRoute/pull/14639)) — thanks @maxmad64bis

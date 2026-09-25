@@ -4,56 +4,58 @@
 
 ---
 
-OmniRoute ní **ìdílé ẹ̀rí ìfàṣẹsí mẹ́rin** tí ó lè fún àwọn ipa-ọ̀nà ìṣàkóso ní àṣẹ.
-Wọn kò ṣeé fi pààrọ̀ ara wọn. Àwọn kọ́kọ́rọ́ API ìtọ́kasí (`sk-…`) kò **lè** ṣàkóso
-asẹ́wọ̀n náà àyàfi tí a bá ti fún wọn ní ìwọ̀n `manage` tàbí `admin` ní kedere.
+OmniRoute ní **ẹbí ìdánimọ̀ mẹ́rin** tí ó lè fún àṣẹ láti ṣàkóso àwọn ọ̀nà ìṣàkóso (management routes).
+Wọn kì í ṣe ohun tí a lè fi pàṣípààrọ̀. Àwọn `sk-…
+` (Inference API keys) kì í ṣàkóso
+sẹ̀fà (server) àyàfi bí a bá fún wọn ní àṣẹ `manage` tàbí `admin` ní pàtó.
 
-Ìmúṣẹ àṣẹ: `src/lib/api/requireManagementAuth.ts`.
+Ìṣe àgbékalẹ̀ tó péye: `src/lib/api/requireManagementAuth.ts`.
 
-| Ẹ̀rí ìfàṣẹsí            | Ìrísí tí ó wọ́pọ̀                                 | Ibi tí a ti ṣẹ̀dá rẹ̀                                   | Ìlò tí a pète               | Agbára ìṣàkóso                                                                                    |
-| ---------------------- | ----------------------------------------------- | ----------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------- |
-| Ìgbà JWT Dashboard     | kúkì `auth_token`                               | Ìwọlé Dashboard                                       | UI aṣàwákiri                | Ìṣàkóso dashboard ní kíkún, lábẹ́ àwọn òfin CSRF, àdúgbò, àti ipa-ọ̀nà tí a ń dáàbò bo nígbà gbogbo |
-| Tókìnù machine-id CLI  | inú / àdúgbò                                    | Ìbẹ̀rẹ̀ CLI (`omniroute` lórí ẹ̀rọ kan náà)              | CLI àdúgbò                  | Ìṣàkóso àdúgbò nìkan                                                                              |
-| Tókìnù Ìráàyèsí Oníwọ̀n | `oma_live_…`                                    | **Settings → Access Tokens** tàbí `omniroute connect` | CLI jíjìnnà àti API ìṣàkóso | Ó gbọ́dọ̀ bá ìwọ̀n `read`, `write`, tàbí `admin` tí ipa-ọ̀nà náà nílò mu                              |
-| Kọ́kọ́rọ́ API ìtọ́kasí     | `sk-…` (àti àwọn ìpele ìbẹ̀rẹ̀ kọ́kọ́rọ́ API mìíràn) | **API Manager / API Keys**                            | Ìtọ́kasí `/v1/*`             | **Kò sí** àyàfi tí metadata kọ́kọ́rọ́ náà bá ní `manage` tàbí `admin`                                |
+| Ìdánimọ̀ (Credential)  | Ìrísí rẹ̀                                | Ibi tí a ti dá a sílẹ̀                                 | Lílò rẹ̀                       | Agbára ìṣàkóso                                                                                          |
+| --------------------- | --------------------------------------- | ----------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Dashboard JWT session | `auth_token` cookie                     | Ìwọlé Dashboard                                       | Browser UI                    | Ìṣàkóso dashboard ní kíkún, ó wà lábẹ́ àwọn òfin CSRF, locality, àti àwọn ọ̀nà tí a dáàbò bò nígbà gbogbo |
+| CLI machine-id token  | internal / local                        | CLI bootstrap (`omniroute` lórí ẹ̀rọ kan náà)          | Local CLI                     | Ìṣàkóso lórí ẹ̀rọ náà nìkan                                                                              |
+| Scoped Access Token   | `oma_live_…`                            | **Settings → Access Tokens** tàbí `omniroute connect` | Remote CLI àti management API | Ó gbọ́dọ̀ ní `read`, `write`, tàbí `admin` scope tí ọ̀nà náà béèrè                                         |
+| Inference API key     | `sk-…` (àti àwọn prefix API-key mìíràn) | **API Manager / API Keys**                            | `/v1/*` inference             | **Kò sí** àyàfi bí metadata kọ́kọ́rọ́ náà bá ní `manage` tàbí `admin`                                      |
 
-Àwọn ẹ̀rí ìfàṣẹsí `oma_` jẹ́ ẹ̀rí ìfàṣẹsí ìṣàkóso/CLI. Wọn **kì í ṣe** àwọn kọ́kọ́rọ́ API ìtọ́kasí.
+Àwọn ìdánimọ̀ `oma_` jẹ́ ìdánimọ̀ fún ìṣàkóso/CLI. Wọn kì í ṣe `sk-…` (Inference API keys).
 
-Tí a bá pa ìfàṣẹsí ìwọlé/kọ́kọ́rọ́-API fún asẹ́wọ̀n náà, àwọn ipa-ọ̀nà ìṣàkóso kan lè
-gba àwọn ìpè láìsí ìfàṣẹsí. Àwọn ipa-ọ̀nà àdúgbò-nìkan àti èyí tí a ń dáàbò bo nígbà gbogbo ṣì ń lo
-àwọn òfin tiwọn. Nítorí náà, fífi ọ̀kan lára àwọn ẹ̀rí ìfàṣẹsí wọ̀nyí hàn kò jẹ́ ohun tí ó pọn dandan
-ní gbogbo ipò, àti níní ọ̀kan kò tó ní gbogbo ipò láìsí ìwọ̀n àti àdúgbò ipa-ọ̀nà
-tí a nílò.
+Bí a bá pa ìwọlé/API-key auth fún sẹ̀fà náà, àwọn ọ̀nà ìṣàkóso kan lè
+gba àwọn ìpè tí kò ní ìdánimọ̀. Àwọn ọ̀nà tí ó jẹ́ local-only àti àwọn tí a dáàbò bò nígbà gbogbo ṣì ń lo àwọn òfin tiwọn. Nítorí náà, fífi ọ̀kan nínú àwọn ìdánimọ̀ wọ̀nyí hàn kì í ṣe dandan ní gbogbo ìgbà, àti pé níní ọ̀kan nínú wọn kì í ṣe ẹ̀rí pé ó tó láti wọlé láìní scope tí ó yẹ àti locality ọ̀nà náà.
 
-Ìbáṣepọ̀: [Ipo Jíjìnnà](./REMOTE-MODE.md) (bí a ṣe ń ṣẹ̀dá `oma_live_…` fún CLI jíjìnnà).
+Jẹ mọ́: [Remote Mode](./REMOTE-MODE.md) (bí a ṣe ń dá `oma_live_…` fún remote CLI).
 
 ---
 
-## Àwọn mátríìsì ìwọ̀n
+## Àwọn mátírísì ìwọ̀n-ìwọlé
 
-Àwọn àkójọpọ̀ ọ̀rọ̀ ìwọ̀n méjèèjì yìí **yàtọ̀**. Má ṣe dà wọ́n pọ̀.
+Àwọn ìwọ̀n-ìwọlé ìṣàkóso API-key àti àwọn ìwọ̀n-ìwọlé access-token jẹ́ àwọn ọ̀rọ̀-ìlò tó yàtọ̀.
+Àwọn ìwọ̀n-ìwọlé irinṣẹ́ MCP jẹ́ ọ̀rọ̀-ìlò kẹta, tí a fi `scopeMatches` yẹ̀wò dípò
+èyíkéyìí nínú àwọn iṣẹ́ tí ó wà nínú àwọn tábìlì ìsàlẹ̀. Lẹ́gbẹ̀ẹ́ ara wọn:
+[Àwọn orúkọ-ààyè ìwọ̀n-ìwọlé mẹ́ta](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Àwọn ìwọ̀n Tókìnù Ìráàyèsí (`oma_live_…`)
+### Àwọn ìwọ̀n-ìwọlé Access Token (`oma_live_…`)
 
-| Ìwọ̀n    | Àwọn iṣẹ́ tí ó wọ́pọ̀                                                                      |
-| ------- | --------------------------------------------------------------------------------------- |
-| `read`  | Àwọn GET àtòjọ/ipò tí a gba tókìnù náà láàyè láti rí                                    |
-| `write` | Àwọn ìyípadà (ṣẹ̀dá/ṣe ìmúdójúìwọ̀n/parẹ́) tí kò dé ipele admin                            |
-| `admin` | CLI jíjìnnà ní kíkún / tókìnù àsopọ̀ (ìbẹ̀rẹ̀ pẹ̀lú ọ̀rọ̀ aṣínà máa ń lo èyí gẹ́gẹ́ bí àtẹ̀jáde) |
+| Ìwọ̀n-ìwọlé | Àwọn iṣẹ́ tí ó wọ́pọ̀                                                                       |
+| ---------- | ---------------------------------------------------------------------------------------- |
+| `read`     | Àwọn àkójọ/ìwọ̀n-ìwọlé GETs tí àmì náà gbà láyè láti rí                                   |
+| `write`    | Àwọn ìyípadà (ìṣẹ̀dá/ìṣe-àtúnṣe/ìparẹ́) lábẹ́ admin                                         |
+| `admin`    | CLI ìṣàkóso latọ̀ọ̀na jijìn pátápátá / àmì ìsopọ̀ (àwọn àyè-ìpilẹ̀ṣẹ̀ ìbẹ̀rẹ̀ ọ̀rọ̀ìpamọ́ wà níbí) |
 
-Tókìnù tí ó ní `read` kò lè pe ipa-ọ̀nà `write`. Ìrísí ìránṣẹ́ ní àkókò ìṣiṣẹ́:
+Àmì kan pẹ̀lú `read` kò lè pe ọ̀nà `write`. Ìrísí ìránṣẹ́ ìgbà-ìṣiṣẹ́:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Àwọn ìwọ̀n ìṣàkóso kọ́kọ́rọ́-API
+### Àwọn ìwọ̀n-ìwọlé ìṣàkóso API-key
 
-| Ìwọ̀n     | Ìtumọ̀                                                                 |
-| -------- | --------------------------------------------------------------------- |
-| (kò sí)  | Ìtọ́kasí nìkan. Àwọn ipa-ọ̀nà ìṣàkóso dá 403 padà.                      |
-| `manage` | API ìṣàkóso (ibodè kan náà bí ẹ̀ka kọ́kọ́rọ́-API `requireManagementAuth`) |
-| `admin`  | Ó tún mú `hasManageScope` ṣẹ (a kà á sí èyí tí ó ní agbára ìṣàkóso)   |
+| Ìwọ̀n-ìwọlé | Ìtumọ̀                                                                |
+| ---------- | -------------------------------------------------------------------- |
+| (kò sí)    | Ìfìwéránṣẹ́ nìkan. Àwọn ọ̀nà ìṣàkóso padà 403.                         |
+| `manage`   | API Ìṣàkóso (ẹnu-ọ̀nà kan náà bí ẹ̀ka API-key `requireManagementAuth`) |
+| `admin`    | Ó tún tẹ́ `hasManageScope` lọ́rùn (tí a kà sí pé ó lè ṣe ìṣàkóso)      |
 
-Mú `manage` ṣiṣẹ́ lórí kọ́kọ́rọ́ náà nínú UI API Keys / API Manager. Má ṣe tún kọ́kọ́rọ́
-oníbàárà ìfọ̀rọ̀wérọ̀ lò fún adaṣiṣẹ́ àyàfi tí o bá mọ̀ọ́mọ̀ fún un ní ìwọ̀n yẹn.
+Mú `manage` ṣiṣẹ́ lórí kọ́kọ́rọ́ náà nínú API Keys / API Manager UI. Má ṣe tún
+kọ́kọ́rọ́ oníbàárà ìjùmọ̀sọ̀rọ̀ lò fún ìṣiṣẹ́-lẹ́yìn-ara-ẹni àyàfi tí o bá fún un
+ní ìwọ̀n-ìwọlé náà ní àyè.
 
 ---
 
@@ -129,29 +131,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Àwọn àṣìṣe runtime lọ́wọ́lọ́wọ́ (má ṣe tún àwọn àṣírí sọ)
+## Àwọn àṣìṣe ìṣiṣẹ́ lọ́wọ́lọ́wọ́ (má ṣe fi àwọn àṣírí hàn)
 
-| Ipò                                           | Ìpo àṣà | Ìfiránṣẹ́ (tí a ti yọ ohun àṣírí kúrò)                                |
-| --------------------------------------------- | ------- | -------------------------------------------------------------------- |
-| Kò sí ẹ̀rí ìdánimọ̀                             | 401     | `Authentication required`                                            |
-| `oma_live_…` kò fẹsẹ̀ mú/tí ó ti parí          | 401     | `Invalid or expired access token`                                    |
-| API key tó fẹsẹ̀ mú láìsí `manage`/`admin`     | 403     | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| API key déédéé tí kò fẹsẹ̀ mú lórí ipa ìṣàkóso | 403     | `Invalid management token`                                           |
-| Scope Access Token kéré jù                    | 403     | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Ipò                                       | Ìwọ̀n ipò tó wọ́pọ̀ | Ìránṣẹ́ (tí a ti fọ̀ mọ́)                                               |
+| ----------------------------------------- | ---------------- | -------------------------------------------------------------------- |
+| Kò sí ìdánimọ̀                             | 401              | `Authentication required`                                            |
+| `oma_live_…` tí kò tọ́/tí àkókò rẹ̀ ti kọjá | 401              | `Invalid or expired access token`                                    |
+| Kókó API tó tọ́ láìsí `manage`/`admin`     | 403              | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Kókó API lásán tí kò tọ́ lórí ọ̀nà ìṣàkóso  | 403              | `Invalid management token`                                           |
+| Ìwọ̀n àyè Àmì Ìwọlé kéré jù                | 403              | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token" túmọ̀ sí pé **a kò** gba bearer náà gẹ́gẹ́ bí
-ẹ̀rí ìṣàkóso. Kò sọ irú èwo ni o yẹ kí o ṣẹ̀dá. Lo tábìlì tó wà lókè:
-àwọn kọ́kọ́rọ́ ìṣírò àbájáde nílò scope `manage`; CLI jíjìnnà nílò `oma_live_…`;
-dashboard sì ń lo kúkì ìgbà ìṣiṣẹ́.
+"Àmì ìṣàkóso tí kò tọ́" túmọ̀ sí pé a **kò** gba ẹni tó gbé e wá gẹ́gẹ́ bí ìdánimọ̀ ìṣàkóso. Kò **sọ** fún ọ irú ìdílé wo ni o yẹ kí o ṣe. Lo tábìlì tó wà lókè: àwọn kókó ìpinnu nílò àyè `manage`; CLI latọ̀ọ̀na nílò `oma_live_…`; àtẹ ìdarí náà lo kuki ìgbà ìṣiṣẹ́.
 
 ---
 
-## Yíyan àṣẹ-kékeré-jù-lọ tí a dábàá
+## Àṣàyàn àwọn àǹfààní tó kéré jù lọ tí a dámọ̀ràn
 
-| Olùpè                                                  | Ohun tí a ó lò                                     |
-| ------------------------------------------------------ | -------------------------------------------------- |
-| Ẹ̀rọ aṣàwákiri                                          | Ìgbà ìṣiṣẹ́ dashboard                               |
-| CLI lórí ẹ̀rọ tó ń gbàlejò olupin                       | Tóókènì ẹ̀rọ                                        |
-| CLI lórí kọ̀ǹpútà alágbèéká tó ń bá olupin jíjìnnà sọ̀rọ̀ | `oma_live_…` láti `omniroute connect`              |
-| CI / àwọn script (ìṣàkóso nìkan)                       | `oma_live_…` pẹ̀lú scope tó kéré jù lọ tí ó lè ṣiṣẹ́ |
-| CI tó gbọ́dọ̀ pe `/v1` àti `/api` méjèèjì                | API key pẹ̀lú `manage` **tàbí** ẹ̀rí méjì            |
+| Ẹni tó pè                                                  | Ìlò                                              |
+| :--------------------------------------------------------- | :----------------------------------------------- |
+| Ẹrọ Ìṣàfihàn Ojú-òpó                                       | Ìgbà ìṣiṣẹ́ Dasíbọ́ọ̀dù                             |
+| CLI lórí agbalejo olùpèsè                                  | Àmì ẹ̀rọ                                          |
+| CLI lórí kọ̀ǹpútà alágbèéká tó ń bá olùpèsè jíjìn-rere sọ̀rọ̀ | `oma_live_…` láti `omniroute connect`            |
+| CI / àwọn àkọsílẹ̀ (ìṣàkóso nìkan)                          | `oma_live_…` pẹ̀lú ìwọ̀n tó kéré jù lọ tó ṣiṣẹ́     |
+| CI tí ó gbọ́dọ̀ pe méjèèjì `/v1` àti `/api`                  | API key pẹ̀lú `manage` **tàbí** àwọn ìdánimọ̀ méjì |

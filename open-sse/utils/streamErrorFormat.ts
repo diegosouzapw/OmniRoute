@@ -1,6 +1,7 @@
 import { FORMATS } from "../translator/formats.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "./error.ts";
 import { projectResponsesFailureOutput } from "./responsesFailureOutput.ts";
+import { SYNTHETIC_RESPONSES_SEQUENCE_NUMBER } from "./responsesSequence.ts";
 
 /**
  * Upstream stream-failure normalization + client-format error framing.
@@ -303,7 +304,9 @@ export function formatTranslatedStreamError(payload: unknown, sourceFormat?: str
         error: errorBody.error,
         output: [],
       },
-      sequence_number: 0,
+      // #14330: was hardcoded to 0 — see OPENAI_RESPONSES_ERROR_FRAME's comment in
+      // earlyStreamKeepalive.ts for why this collided with the real emitter's first event.
+      sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
     };
     return `event: response.failed\ndata: ${JSON.stringify(failed)}\n\n`;
   }

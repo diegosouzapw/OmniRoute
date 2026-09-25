@@ -1,0 +1,1 @@
+- **fix(dashboard):** stop treating `/dashboard/resilience/connections` as local-only so a reverse proxy no longer clears the session and redirects to login — thanks @HouMinXi

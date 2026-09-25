@@ -49,6 +49,37 @@ Both gates **gracefully SKIP** (exit 0) when the tool is absent or the measureme
 fails (osv-scanner not in PATH, osv.dev/network unreachable, invalid JSON) — a
 **measurement** failure never blocks, only a **measured** regression blocks.
 
+## Known Accepted Risks
+
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
+
+`extract-zip@2.0.1` carries two unpatched high-severity symlink-traversal advisories.
+Per the "no upstream fix" branch of the CVE Variance remedy above, this is an
+**accepted risk**, not a bump:
+
+- **Chain:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Confirmed via `package-lock.json` — exactly one package in the whole dependency
+  tree (`@openai/codex-security`) declares `extract-zip`, and exactly one package
+  (`promptfoo`) declares `@openai/codex-security`.
+- **No fixed release exists anywhere in the chain.** `extract-zip@2.0.1` (published 2020) is the package's final release — it is unmaintained. `@openai/codex-security`'s
+  current npm-latest (`0.1.29`) still pulls `extract-zip@2.0.1`.
+- **Unreachable from production.** `promptfoo` is devDependency-only (never listed
+  under `dependencies`), and no file under `src/`, `open-sse/`, or `bin/` imports the
+  `extract-zip` npm package — OmniRoute's own `extractZip()` helper
+  (`src/lib/versionManager/binaryManager.ts:93`) shells out to native `unzip`/`tar`
+  and is unrelated. `@openai/codex-security` also ships its own symlink-traversal
+  guard on top of extract-zip's onEntry callback.
+- **Do not** alias `extract-zip` via `package.json` `overrides` — the only viable
+  drop-in replacement is Electron-org-internal and API-incompatible with
+  `@openai/codex-security`'s own onEntry/defaultDirMode/defaultFileMode checks;
+  overriding it would silently break that package's security checks.
+- **Baseline:** measured osv `vulnCount` (3) is already well under the frozen
+  `config/quality/quality-baseline.json` baseline (27) — no ratchet change needed.
+- **Regression guard:** `tests/unit/extract-zip-14482-exposure.test.ts` asserts the
+  chain and the no-production-import invariant above; it fails CI if either ever
+  breaks (e.g. a future PR makes `extract-zip` reachable from production).
+- **Tracking:** issue #14482.
+
 ## Backlog: Scorecard advisory → blocking
 
 After the 1st green release with Scorecard reporting:

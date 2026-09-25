@@ -9,43 +9,46 @@ Compresia OmniRoute este construită în jurul contractelor motoarelor. Un mod p
 
 ## Moduri
 
-| Mod          | Traseul motorului                            | Intrare preconizată                                              |
-| ------------ | -------------------------------------------- | ---------------------------------------------------------------- |
-| `off`        | niciunul                                     | Păstrarea exactă a promptului                                    |
-| `lite`       | Utilitare Caveman lite                       | Curățare permanentă cu risc redus                                |
-| `standard`   | Caveman                                      | Condensarea prompturilor în limbaj natural                       |
-| `aggressive` | Caveman + rezumatoare de istoric/instrumente | Sesiuni lungi de chat                                            |
-| `ultra`      | Caveman + utilitare de eliminare             | Recuperarea după atingerea limitei de context                    |
-| `rtk`        | RTK                                          | Ieșiri de terminal, shell, compilare, testare și git             |
-| `omniglyph`  | OmniGlyph                                    | Context sub formă de imagine pe protocolul nativ al furnizorului |
-| `stacked`    | Conductă, implicit `rtk -> caveman`          | Jurnale mixte de instrumente și proză, economii maxime           |
+| Mod          | Cale motor                                                                                                                                            | Intrare intenționată                            |
+| :----------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------- |
+| `off`        | niciuna                                                                                                                                               | Păstrarea exactă a promptului                   |
+| `lite`       | Ajutoare Caveman lite                                                                                                                                 | Curățare permanentă cu risc scăzut              |
+| `standard`   | Caveman                                                                                                                                               | Condensarea promptului în limbaj natural        |
+| `aggressive` | Caveman + sumarizatoare istoric/instrumente                                                                                                           | Sesiuni lungi de chat                           |
+| `ultra`      | Caveman + ajutoare de tăiere                                                                                                                          | Recuperare limită de context                    |
+| `rtk`        | RTK                                                                                                                                                   | Ieșire terminal, shell, build, test și git      |
+| `omniglyph`  | OmniGlyph                                                                                                                                             | Context ca imagine pe cablul furnizorului nativ |
+| `stacked`    | Pipeline. Implicit pentru cerere este `session-dedup -> lite`. `rtk -> caveman` este opțional. Jurnale mixte de instrumente și proză, economii maxime |
 
-### Profiluri de compresie OmniGlyph
+### Profile de compresie OmniGlyph
 
-Motorul `omniglyph` (pachetul `omniglyph`, 1.4.0+) acceptă un profil semantic denumit, configurat
-global prin `omniglyph.profile` în setările de compresie sau pentru fiecare pas prin configurația
-pasului din conducta stivuită:
+Motorul `omniglyph` (pachetul `omniglyph`, 1.4.0+) acceptă un profil semantic numit, setat
+global prin `omniglyph.profile` în setările de compresie sau per pas prin
+configurația pasului pipeline-ului stivuit:
 
-| Profil        | Limită                                                                                                                               |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `aggressive`  | Implicit. Politica măsurată de rezultatele publicate — transformă în imagini sistemul, documentația instrumentelor și istoricul dens |
-| `balanced`    | Păstrează starea activă în format nativ, protejează ultimele 8 schimburi și restrânge istoricul închis mai vechi                     |
-| `coding-safe` | Păstrează în format nativ autoritatea, schemele instrumentelor și ieșirea activă a instrumentelor, protejând ultimele 12 schimburi   |
-| `passthrough` | Rutează fără transformare; motorul este omis                                                                                         |
+| Profil        | Limită                                                                                                                    |
+| :------------ | :------------------------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Implicit. Politica măsurată de chitanțele publicate — sistem de imagini, documente de instrumente și istoric dens         |
+| `balanced`    | Menține starea live nativă, protejează ultimele 8 interacțiuni, colapsează istoricul închis mai vechi                     |
+| `coding-safe` | Menține autoritatea, schemele de instrumente și ieșirea live a instrumentelor nativă, protejează ultimele 12 interacțiuni |
+| `passthrough` | Redirecționează fără transformare; motorul este omis                                                                      |
 
-Profilul este un **plafon, nu un prag minim**: `mergeCompressionProfileOptions` din pachet
-nu permite unei suprascrieri efectuate de apelant să redeschidă un canal cu pierderi pe care profilul l-a închis, astfel încât
-`preserveSystemPrompt: false` configurat pentru un anumit pas nu poate reactiva compresia sistemului în cadrul profilului `coding-safe`.
+Profilul este un **plafon, nu un prag**: `mergeCompressionProfileOptions` din pachet
+refuză să permită unui apelant să suprascrie redeschiderea unei căi cu pierderi pe care
+profilul a închis-o, astfel încât un `preserveSystemPrompt: false` per pas nu poate
+reactiva compresia sistemului sub `coding-safe`.
 
-Conform măsurătorilor efectuate pe această bază de cod: `coding-safe` și `balanced` ridică `minCompressChars` la valoarea sa
-maximă și păstrează sistemul, schemele instrumentelor și rezultatele instrumentelor în format nativ, astfel încât o sesiune care încă nu a
-acumulat istoric se oprește la `below_min_chars`, iar motorul nu transformă nimic. Acesta
-este motivul pentru care valoarea implicită este `aggressive`, nu profilul cel mai sigur.
+Măsurat pe această bază de cod: `coding-safe` și `balanced` ridică `minCompressChars` la
+maxim și mențin sistemul, schemele de instrumente și rezultatele instrumentelor native,
+astfel încât o sesiune care nu a acumulat încă istoric se oprește la `below_min_chars` și
+motorul nu transformă nimic. Acesta este motivul pentru care implicit este `aggressive` și
+nu cel mai sigur profil.
 
-Pachetul își determină propriul domeniu de modele și propriul profil din configurația sa de mediu.
-OmniRoute nu deleagă niciodată această decizie: adaptorul fixează filtrul pentru modele la domeniul cel mai
-restrictiv al pachetului, astfel încât setările mediului gazdă pot doar să restrângă lista de permisiuni, fără
-a o putea extinde vreodată dincolo de rezultatele măsurate de OmniRoute.
+Pachetul își rezolvă propriul domeniu de aplicare al modelului și profilul din
+configurația mediului său. OmniRoute nu deleagă niciodată decizia: adaptorul fixează
+poarta modelului la cel mai restrictiv domeniu de aplicare al pachetului, astfel încât
+setările mediului gazdă pot doar restrânge lista permisă, niciodată să o extindă dincolo
+de chitanțele măsurate de OmniRoute.
 
 ## Registrul motoarelor
 
@@ -382,7 +385,7 @@ sensibile la cache etc.).
 
 ## Validare
 
-Verificările specifice pentru această zonă sunt:
+Testele cheie pentru această zonă sunt:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

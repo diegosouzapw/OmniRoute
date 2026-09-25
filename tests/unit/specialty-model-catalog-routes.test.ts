@@ -67,7 +67,7 @@ test("image catalog GET uses the unified active-credential model list", async ()
 
   assert.deepEqual(
     ids.filter((id) => id.startsWith("codex/")),
-    ["codex/gpt-5.6-sol", "codex/gpt-5.6-terra", "codex/gpt-5.6-luna"]
+    ["codex/gpt-5.6-sol-image", "codex/gpt-5.6-terra-image", "codex/gpt-5.6-luna-image"]
   );
   assert.ok(!ids.includes("openai/gpt-image-2"));
 });

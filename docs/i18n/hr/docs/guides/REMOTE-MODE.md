@@ -351,65 +351,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # najprije izvezi OMNIROUTE_API
 ## Upravljanje kontekstima (prebacivanje između poslužitelja)
 
 **Kontekst** je spremljeni poslužitelj (baseUrl + vjerodajnica + opseg). `omniroute connect`
-stvara kontekst i čini ga aktivnim; od tada je svaka naredba usmjerena na njega. Upravljajte
-kontekstima i prebacujte se između njih pomoću `omniroute contexts`:
+stvara jedan i čini ga aktivnim; od tada svaka naredba cilja taj kontekst. Upravljajte i
+prebacujte se između njih pomoću `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # svi konteksti; aktivni je označen s ●
-omniroute contexts current         # aktivni poslužitelj, status autentifikacije, opseg
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
 ```
 
 ```text
-  | Naziv   | Osnovni URL               | Autent. | Opseg | Opis
-● | vps     | http://100.67.86.91:20128 | token   | admin | Udaljeni OmniRoute (…)
-  | default | http://localhost:20128    | ✗       |       |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Prebacivanje između poslužitelja** — svaka sljedeća naredba koristi aktivni kontekst:
+**Prebacivanje poslužitelja** — svaka sljedeća naredba slijedi aktivni kontekst:
 
 ```bash
-omniroute contexts use vps         # → sve naredbe sada pristupaju udaljenom VPS-u
+omniroute contexts use vps         # → sve naredbe sada ciljaju udaljeni VPS
 omniroute tokens list              #   (izvršava se na VPS-u)
 
-omniroute contexts use default     # → povratak na localhost
+omniroute contexts use default     # → natrag na localhost
 omniroute tokens list              #   (izvršava se na lokalnom poslužitelju)
 ```
 
-**Ručno dodavanje konteksta** (umjesto naredbe `connect`), pregledavanje ili preimenovanje:
+**Ručno dodavanje konteksta** (umjesto `connect`), pregled ili preimenovanje:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # potpuni detalji za jedan kontekst
+omniroute contexts show staging    # full details for one context
 omniroute contexts rename staging stg
 ```
 
-**Uklanjanje konteksta** — traži potvrdu; navedite `--yes` kako biste je preskočili
-(obavezno za skripte / neinteraktivne ljuske, koje inače sigurno odbijaju radnju):
+**Uklanjanje konteksta** — traži potvrdu; proslijedite `--yes` da biste je preskočili
+(potrebno za skripte / neinteraktivne ljuske, koje bi inače sigurno odbile):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) nije moguće ukloniti. Uklanjanjem aktivnog konteksta automatski
-> se prelazi na `default`. Savjet: uklanjanjem konteksta briše se samo **lokalno**
-> spremljena vjerodajnica — opozovite token na poslužitelju naredbom
-> `omniroute tokens revoke <id>` kako biste doista onemogućili pristup.
+> `default` (localhost) ne može se ukloniti. Uklanjanje aktivnog konteksta vraća na `default`. Savjet: uklanjanje konteksta samo briše **lokalno** spremljene vjerodajnice — opozovite token na poslužitelju s `omniroute tokens revoke <id>` kako biste stvarno prekinuli pristup.
 
-**Izvoz / uvoz** konteksta (npr. radi premještanja između računala). Za nove kontekste
-sprema se samo referenca na privjesak ključeva; vjerodajnice se ne kopiraju u izvoz kada
-je dostupan privjesak ključeva operacijskog sustava:
+**Izvoz / uvoz** konteksta (npr. za premještanje između strojeva). Izvozi izostavljaju vjerodajnice prema zadanim postavkama, uključujući vjerodajnice spremljene putem rezervnog mehanizma datoteka. Eksplicitno koristite `--include-secrets` kada je potrebna prenosiva sigurnosna kopija koja sadrži vjerodajnice:
 
 ```bash
-omniroute contexts export --out contexts.json     # zadano: stdout
-omniroute contexts import contexts.json            # prebrisivanje; --merge za zadržavanje postojećih
-omniroute contexts migrate --yes                  # premještanje naslijeđenih tokena u običnom tekstu u privjesak ključeva
+omniroute contexts export --out contexts.json     # redacted; default destination: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
 
-Na sustavima bez grafičkog sučelja i bez upotrebljivog privjeska ključeva operacijskog
-sustava, CLI kao pričuvnu mogućnost koristi `config.json` s načinom rada `0600` i
-prikazuje jednokratno upozorenje. Izvoze nastale tom pričuvnom metodom (kao i sve
-naslijeđene konfiguracije prije migracije) smatrajte tajnim materijalom.
+`--include-secrets` razrješava reference na privjesak ključeva prije izvoza i ne uspijeva ako se bilo koja referencirana vjerodajnica ne može pročitati. `--no-secrets` uvijek ima prednost. Izvozne datoteke se pišu atomično s načinom `0600`. Eksplicitni izvoz koji sadrži tajne tretirajte kao tajni materijal. Na sustavima bez glave bez upotrebljivog privjeska ključeva OS-a, CLI se vraća na `config.json` s načinom `0600` i ispisuje jednokratno upozorenje; zadani izvoz ostaje redigiran u ovom načinu rada.
 
 ---
 

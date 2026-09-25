@@ -16,7 +16,18 @@ import {
   GROK_BUILD_TOKEN_URL,
 } from "../config/grokBuild.ts";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
-import { BaseExecutor, type ExecutorLog, type ProviderCredentials } from "./base.ts";
+import {
+  BaseExecutor,
+  type ExecuteInput,
+  type ExecutorLog,
+  type ProviderCredentials,
+} from "./base.ts";
+import {
+  flattenGrokBuildNamespaceTools,
+  restoreGrokBuildNamespaceToolCalls,
+} from "./grokCliNamespaceTools.ts";
+import { stripForeignGrokBuildReasoning } from "./grokCliReasoningReplay.ts";
+import { normalizeGrokBuildToolSchemas } from "./grokCliToolSchema.ts";
 
 const GROK_BUILD_MAX_TOOLS = 200;
 const GROK_BUILD_REASONING_EFFORT_SET = new Set(GROK_BUILD_SUPPORTED_REASONING_EFFORTS);
@@ -33,6 +44,9 @@ const GROK_BUILD_UNSUPPORTED_PARAMS = [
   "top_logprobs",
   "reasoning_effort",
 ];
+// OpenAI-only `web_search` tool arguments that Grok Build rejects with
+// `400 Argument not supported: <name>`. Codex CLI sends `external_web_access` on every turn.
+const GROK_BUILD_UNSUPPORTED_WEB_SEARCH_ARGS = ["external_web_access", "search_context_size"];
 
 /**
  * Grok Build's cli-chat-proxy is stricter about Responses `function_call_output.output`
@@ -85,6 +99,13 @@ function sanitizeGrokBuildResponsesBody(body: Record<string, unknown>): Record<s
   const nextInput = input.map((item) => {
     if (!item || typeof item !== "object") return item;
     const rec = item as Record<string, unknown>;
+    // Codex CLI replays reasoning items with `content: null`; Grok Build then fails to decode
+    // the (unmodified) encrypted blob. Omitting the key is accepted.
+    if (rec.type === "reasoning" && rec.content === null) {
+      changed = true;
+      const { content: _content, ...rest } = rec;
+      return rest;
+    }
     if (rec.type !== "function_call_output") return item;
     const sanitized = sanitizeGrokBuildFunctionCallOutput(rec.output);
     if (sanitized === rec.output) return item;
@@ -148,6 +169,21 @@ function stripUnsupportedGrokBuildParams(request: Record<string, unknown>): void
   for (const param of GROK_BUILD_UNSUPPORTED_PARAMS) {
     delete request[param];
   }
+}
+
+function stripUnsupportedGrokBuildWebSearchArgs(tools: unknown[]): unknown[] {
+  return tools.map((tool) => {
+    if (!tool || typeof tool !== "object") return tool;
+    const rec = tool as Record<string, unknown>;
+    // Exact match on purpose: only the Responses `web_search` shape carries these args.
+    if (rec.type !== "web_search") return tool;
+    if (!GROK_BUILD_UNSUPPORTED_WEB_SEARCH_ARGS.some((arg) => arg in rec)) return tool;
+    const next = { ...rec };
+    for (const arg of GROK_BUILD_UNSUPPORTED_WEB_SEARCH_ARGS) {
+      delete next[arg];
+    }
+    return next;
+  });
 }
 
 async function refreshGrokBuildCredentialsOnce(
@@ -214,6 +250,26 @@ export class GrokCliExecutor extends BaseExecutor {
     _credentials: ProviderCredentials | null = null
   ) {
     return GROK_BUILD_RESPONSES_URL;
+  }
+
+  async execute(input: ExecuteInput) {
+    // Grok Build rejects Responses `namespace` tool groups (Codex CLI MCP tools).
+    const { body, identityMap } = flattenGrokBuildNamespaceTools(input.body);
+    const tools = (body as { tools?: unknown } | null)?.tools;
+    if (identityMap && Array.isArray(tools) && tools.length > GROK_BUILD_MAX_TOOLS) {
+      input.log?.warn?.(
+        "GROK_CLI",
+        `Flattened namespace tools exceed the Grok Build limit: sending ${GROK_BUILD_MAX_TOOLS} ` +
+          `of ${tools.length} tools`
+      );
+    }
+    const result = await super.execute(body === input.body ? input : { ...input, body });
+    if (!identityMap) return result;
+    if (result instanceof Response) return restoreGrokBuildNamespaceToolCalls(result, identityMap);
+    return {
+      ...result,
+      response: await restoreGrokBuildNamespaceToolCalls(result.response, identityMap),
+    };
   }
 
   async refreshCredentials(
@@ -300,6 +356,10 @@ export class GrokCliExecutor extends BaseExecutor {
 
     // OpenAI-compatible clients may carry fields the Grok Responses endpoint rejects.
     stripUnsupportedGrokBuildParams(transformed);
+    // Grok Build cannot decrypt reasoning another provider encrypted (e.g. a codex combo turn).
+    if (Array.isArray(transformed.input)) {
+      transformed.input = stripForeignGrokBuildReasoning(transformed.input);
+    }
 
     const reasoning = normalizeGrokBuildReasoning(transformed.reasoning, model);
     if (reasoning) {
@@ -308,12 +368,22 @@ export class GrokCliExecutor extends BaseExecutor {
       delete transformed.reasoning;
     }
 
+    if (Array.isArray(transformed.tools)) {
+      transformed.tools = stripUnsupportedGrokBuildWebSearchArgs(transformed.tools);
+    }
+
     // xAI's cli-chat-proxy rejects requests containing more than 200 tools.
     if (Array.isArray(transformed.tools) && transformed.tools.length > GROK_BUILD_MAX_TOOLS) {
       transformed.tools = transformed.tools.slice(0, GROK_BUILD_MAX_TOOLS);
     }
+    // Grok Build refuses a root anyOf/oneOf with a `$ref` or non-object branch
+    // (`invalid_client_tool_schema`), e.g. Codex desktop's `automation_update`.
+    if (Array.isArray(transformed.tools)) {
+      transformed.tools = normalizeGrokBuildToolSchemas(transformed.tools);
+    }
 
-    // Repair tool-result payloads that would fail Grok's strict JSON body parser (#7611).
+    // Repair tool-result payloads that would fail Grok's strict JSON body parser (#7611)
+    // and drop null reasoning content Grok cannot decode.
     return sanitizeGrokBuildResponsesBody(transformed);
   }
 }
