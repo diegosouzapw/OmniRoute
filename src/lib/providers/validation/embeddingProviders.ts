@@ -110,6 +110,54 @@ export async function validateEmbeddingApiProvider({
  * so Test exercises the Omni SKU, not a text-only stand-in. Always report
  * the endpoint and model that were hit.
  */
+export async function validateTypesafeProvider({
+  apiKey,
+  providerSpecificData = {},
+}: {
+  apiKey: string;
+  providerSpecificData?: { [key: string]: unknown };
+}) {
+  const modelsUrl = "https://api.typesafe.ai/v1/models";
+  try {
+    const modelsRes = await validationRead(modelsUrl, {
+      method: "GET",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+    });
+    if (modelsRes.ok) {
+      return {
+        valid: true,
+        error: null,
+        method: "typesafe_models",
+        testedEndpoint: "GET https://api.typesafe.ai/v1/models",
+      };
+    }
+    if (modelsRes.status === 401 || modelsRes.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid API key (GET https://api.typesafe.ai/v1/models)",
+        method: "typesafe_models",
+        testedEndpoint: "GET https://api.typesafe.ai/v1/models",
+      };
+    }
+    if (modelsRes.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "typesafe_models",
+        testedEndpoint: "GET https://api.typesafe.ai/v1/models",
+      };
+    }
+    return {
+      valid: false,
+      error: `Validation failed: ${modelsRes.status}`,
+      method: "typesafe_models",
+      testedEndpoint: "GET https://api.typesafe.ai/v1/models",
+    };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateJinaFoundationProvider({
   apiKey,
   providerSpecificData = {},
@@ -202,7 +250,12 @@ export async function validateJinaFoundationProvider({
   }
 }
 
-export async function validateRerankApiProvider({ apiKey, providerSpecificData = {}, url, modelId }: any) {
+export async function validateRerankApiProvider({
+  apiKey,
+  providerSpecificData = {},
+  url,
+  modelId,
+}: any) {
   if (!url) {
     return { valid: false, error: "Missing rerank endpoint" };
   }

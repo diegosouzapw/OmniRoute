@@ -23,6 +23,7 @@ import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
 import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry";
 import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry";
 import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
+import { getAllSystemoneModels } from "@omniroute/open-sse/config/systemoneRegistry";
 import {
   getRegistryModelThinkingEfforts,
   getRegistryThinkingEfforts,
@@ -133,6 +134,7 @@ import {
 } from "./catalogRequest";
 import { incrementCcDiscoveryHitCount } from "@/lib/db/ccDiscoveryMetrics";
 import { isUnifiedChatSourceModelSelectable } from "./catalogModelPolicy";
+import { isChatSelectableModel } from "@omniroute/open-sse/services/modelEndpointPolicy";
 import { decideHidePaid } from "./catalogPaidFilter";
 import { isModelExposureAllowed } from "@/shared/utils/modelExposureList";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
@@ -1091,6 +1093,7 @@ async function buildUnifiedModelsResponseCore(
         )
           continue;
         if (!isModelSelectable(canonicalProviderId, model.id)) continue;
+        if (!isChatSelectableModel(canonicalProviderId, model)) continue;
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
         if (isModelHiddenBulk(alias, model.id, canonicalProviderId)) continue;
@@ -1636,6 +1639,34 @@ async function buildUnifiedModelsResponseCore(
         ...(videoModel.mediaCapabilities
           ? { media_capabilities: videoModel.mediaCapabilities }
           : {}),
+      });
+    }
+
+    // Add TypeSafe System One / Jev models (non-chat evaluation).
+    for (const systemoneModel of getAllSystemoneModels()) {
+      if (!isProviderActive(systemoneModel.provider)) continue;
+      const rawModelId = getSpecialtyModelRelativeId(systemoneModel.id, systemoneModel.provider);
+      if (!providerSupportsModel(systemoneModel.provider, rawModelId)) continue;
+      if (isModelHiddenBulk(systemoneModel.provider, rawModelId, null, "systemone")) continue;
+      if (
+        hasEquivalentSpecialtyModel(
+          systemoneModel.provider,
+          rawModelId,
+          "systemone",
+          systemoneModel.id
+        )
+      ) {
+        continue;
+      }
+      models.push({
+        id: systemoneModel.id,
+        object: "model",
+        created: timestamp,
+        owned_by: systemoneModel.provider,
+        root: rawModelId,
+        type: "systemone",
+        api_format: "systemone",
+        supported_endpoints: ["systemone"],
       });
     }
 

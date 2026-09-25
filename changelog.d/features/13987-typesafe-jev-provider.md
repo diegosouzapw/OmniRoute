@@ -1,0 +1,1 @@
+- **feat(providers):** add TypeSafe AI (Jev) as a non-chat `typesafe` provider with `POST /v1/systemone` passthrough and an opt-in auto-routing classifier (`engine: "typesafe"`) ([#13987](https://github.com/diegosouzapw/OmniRoute/issues/13987)) — thanks @cryptiklemur

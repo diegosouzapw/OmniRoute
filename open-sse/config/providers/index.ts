@@ -274,6 +274,7 @@ import { helixmindProvider } from "./registry/helixmind/index.ts";
 import { tabitokenProvider } from "./registry/tabitoken/index.ts";
 import { logfareProvider } from "./registry/logfare/index.ts";
 import { seekaiProvider } from "./registry/seekai/index.ts";
+import { typesafeProvider } from "./registry/typesafe/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -552,4 +553,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   tabitoken: tabitokenProvider,
   logfare: logfareProvider,
   seekai: seekaiProvider,
+  typesafe: typesafeProvider,
 };

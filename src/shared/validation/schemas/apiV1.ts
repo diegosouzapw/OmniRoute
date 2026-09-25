@@ -514,6 +514,24 @@ export const v1ClassifySchema = z
   })
   .catchall(z.unknown());
 
+// POST /v1/systemone — TypeSafe System One / Jev passthrough (api.typesafe.ai).
+export const v1SystemoneSchema = z
+  .object({
+    state: z.union([
+      nonEmptyStringSchema,
+      z.record(z.string(), z.unknown()),
+      z.array(z.unknown()).min(1),
+    ]),
+    model: modelIdSchema,
+    questions: z
+      .record(z.string().trim().min(1), z.unknown())
+      .refine(
+        (value) => Object.keys(value).length > 0,
+        "questions must contain at least one question"
+      ),
+  })
+  .catchall(z.unknown());
+
 // POST /v1/segment — Jina segmenter (segment.jina.ai).
 export const v1SegmentSchema = z
   .object({

@@ -31,6 +31,7 @@
 
 import { wildcardMatch } from "../wildcardRouter.ts";
 import { getProviderModels } from "../../config/providerModels.ts";
+import { filterChatSelectableModels } from "../modelEndpointPolicy.ts";
 import { getActiveSyncedCatalog } from "../../../src/lib/db/models/activeSyncedCatalog.ts";
 import { filterAlibabaFreeTierModels, isAlibabaModelStudioProvider } from "../alibabaFreeTier.ts";
 import {
@@ -144,10 +145,12 @@ async function collectProviderModelIds(providerId: string): Promise<string[]> {
   const liveCatalog = await getActiveSyncedCatalog(providerId);
 
   if (liveCatalog.authoritative) {
-    return liveCatalog.models.map((model) => model.id);
+    return filterChatSelectableModels(providerId, liveCatalog.models).map((model) => model.id);
   }
 
-  return getProviderModels(providerId).map((model) => model.id);
+  return filterChatSelectableModels(providerId, getProviderModels(providerId)).map(
+    (model) => model.id
+  );
 }
 
 async function filterAlibabaFreeDrainedModelIds(

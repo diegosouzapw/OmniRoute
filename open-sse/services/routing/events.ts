@@ -27,6 +27,8 @@
  * credentials, or account ids.
  */
 
+import { getLastIntentClassificationMeta } from "../intentClassifier.ts";
+
 /**
  * Allowlisted routing outcomes. Keeping this an enum-like union prevents freeform
  * strings from leaking into telemetry/quality logic and keeps sinks exhaustive.
@@ -74,6 +76,12 @@ export interface RoutingEvent {
   finishReason: string | null;
   connectionId: string | null;
   ts: number;
+  /** Intent classifier engine that produced the routing intent (`keywords` | `typesafe`). */
+  intentEngine?: string | null;
+  /** Chosen auto-routing intent (`code` | `math` | `reasoning` | `creative` | `simple` | `medium`). */
+  intent?: string | null;
+  /** Classifier confidence in [0, 1]; null for the keyword engine. */
+  intentConfidence?: number | null;
 }
 
 /** A sink consumes routing events. Implementations must never do sync I/O. */
@@ -185,7 +193,29 @@ export function createRoutingEvent(input: {
   finishReason?: string | null;
   connectionId?: string | null;
   ts?: number;
+  intentEngine?: string | null;
+  intent?: string | null;
+  intentConfidence?: number | null;
 }): RoutingEvent {
+  let intentEngine = input.intentEngine ?? null;
+  let intent = input.intent ?? null;
+  let intentConfidence =
+    typeof input.intentConfidence === "number" && Number.isFinite(input.intentConfidence)
+      ? input.intentConfidence
+      : null;
+  if (
+    (input.strategy ?? "direct") === "auto" &&
+    intentEngine == null &&
+    intent == null &&
+    intentConfidence == null
+  ) {
+    const meta = getLastIntentClassificationMeta();
+    if (meta) {
+      intentEngine = meta.engine;
+      intent = meta.intent;
+      intentConfidence = meta.confidence;
+    }
+  }
   return {
     requestId: input.requestId,
     provider: input.provider || "unknown",
@@ -204,6 +234,9 @@ export function createRoutingEvent(input: {
     finishReason: input.finishReason ?? null,
     connectionId: input.connectionId ?? null,
     ts: input.ts ?? Date.now(),
+    intentEngine,
+    intent,
+    intentConfidence,
   };
 }
 

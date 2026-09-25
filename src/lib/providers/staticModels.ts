@@ -56,6 +56,20 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   ],
   "bailian-coding-plan": () => BAILIAN_CODING_PLAN_MODELS.map(({ id, name }) => ({ id, name })),
   gitlab: () => [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
+  typesafe: () => [
+    {
+      id: "jev-latest",
+      name: "Jev (latest stable)",
+      apiFormat: "systemone",
+      supportedEndpoints: ["systemone"],
+    },
+    {
+      id: "jev-preview",
+      name: "Jev (preview)",
+      apiFormat: "systemone",
+      supportedEndpoints: ["systemone"],
+    },
+  ],
   nlpcloud: () =>
     getModelsByProviderId("nlpcloud").map((model) => ({
       id: model.id,
