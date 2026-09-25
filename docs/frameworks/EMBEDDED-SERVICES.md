@@ -1,13 +1,13 @@
 ---
 title: "Embedded Services"
-description: "Reference for 9Router, CLIProxyAPI, Mux, Bifrost, and open-wa"
+description: "Reference for 9Router, CLIProxyAPI, Mux, Bifrost, open-wa, and LLMLingua"
 ---
 
 # Embedded Services
 
 > **Version:** v3.8.44
-> **Last updated:** 2026-09-09
-> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
+> **Last updated:** 2026-09-16
+> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost, open-wa, LLMLingua).
 
 Embedded services are locally-installed process sidecar tools that OmniRoute installs, supervises, and
 exposes as first-class routing targets. Unlike external providers (which are reached over the internet
@@ -32,7 +32,7 @@ via API keys), embedded services run on the same machine as OmniRoute and commun
 
 ### Why embedded services?
 
-Six services are embedded:
+Seven services are embedded:
 
 | Service         | npm package                        | Default port | Purpose                                                                                                                                                                                |
 | --------------- | ---------------------------------- | :----------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -42,8 +42,9 @@ Six services are embedded:
 | **Bifrost**     | `@maximhq/bifrost`                 |     8080     | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                                                                                             |
 | **Dario**       | `@askalf/dario`                    |     3456     | Claude-subscription proxy — alternative/failover to CLIProxyAPI for Claude-Code-shaped traffic; the injected key becomes `DARIO_ADMIN_TOKEN` gating its `/admin/*` OAuth control plane |
 | **open-wa**     | `@open-wa/wa-automate`             |     8323     | WhatsApp Web automation (headless Chromium via Puppeteer). Lifecycle-managed only — not a routing target.                                                                              |
+| **LLMLingua**   | `@atjsh/llmlingua-2`               |    20135     | Prompt-compression sidecar — real LLMLingua-2 ONNX model (JS/TS port of Microsoft's algorithm). `open-sse/services/compression/engines/llmlingua/index.ts` dispatches `/compress` over HTTP to it, falling back to the in-process worker-thread backend when the sidecar is down. Lifecycle-managed only — not a routing target. |
 
-All six follow the same supervisory model:
+All seven follow the same supervisory model:
 
 - OmniRoute installs them under `DATA_DIR/services/{name}/` (isolated from OmniRoute's own `package.json`)
 - OmniRoute spawns and monitors them as child processes
@@ -153,6 +154,7 @@ All six follow the same supervisory model:
 | `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall for CLIProxyAPI     |
 | `src/lib/services/installers/mux.ts`        | npm install/update/uninstall for Mux             |
 | `src/lib/services/installers/openwa.ts`     | npm install/update/uninstall for open-wa         |
+| `src/lib/services/installers/llmlingua.ts`   | npm install/update/uninstall for LLMLingua       |
 | `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` helper                   |
 | `src/app/api/services/[name]/logs/route.ts` | Shared SSE logs endpoint                         |
 | `open-sse/executors/ninerouter.ts`          | Provider executor (Layer 4)                      |
@@ -540,7 +542,39 @@ in this integration yet.
 
 ---
 
-### 4.7 Reverse proxy (9Router dashboard embed)
+### 4.7 LLMLingua endpoints (8 routes)
+
+LLMLingua is a prompt-compression sidecar wrapping `@atjsh/llmlingua-2` (real
+ONNX token-classification model, downloaded from Hugging Face on first
+`/compress` call). It uses the same endpoint shape as Bifrost (no API key —
+`needsApiKey: false`, it never handles credentials).
+
+| Method | Path                                           | Description                                                               |
+| ------ | ---------------------------------------------- | ------------------------------------------------------------------------- |
+| `POST` | `/api/services/llmlingua/install`              | npm-install `@atjsh/llmlingua-2` + peers, write the sidecar server script |
+| `POST` | `/api/services/llmlingua/start`                | Start the sidecar on port 20135 (default)                                 |
+| `POST` | `/api/services/llmlingua/stop`                 | Stop the sidecar                                                          |
+| `POST` | `/api/services/llmlingua/restart`              | Restart the sidecar                                                       |
+| `POST` | `/api/services/llmlingua/update`               | Update to the newer package version                                       |
+| `GET`  | `/api/services/llmlingua/status`               | Live + DB status                                                          |
+| `POST` | `/api/services/llmlingua/auto-start`           | Toggle auto-start                                                         |
+| `POST` | `/api/services/llmlingua/auto-restart-adopted` | Toggle auto-restart of an adopted (pre-existing) instance                 |
+| `GET`  | `/api/services/llmlingua/logs`                 | SSE log tail (via shared `[name]/logs` dynamic route)                     |
+
+**Sidecar contract:** the server script exposes `GET /health` (instant — does
+not wait on the model) and `POST /compress` (`{ text, rate }` →
+`{ text, compressed, ratio }`). The model loads lazily on the first
+`/compress` call.
+
+**Compression wiring:** `open-sse/services/compression/engines/llmlingua/index.ts`'s
+`httpSidecarBackend` calls `LLMLINGUA_BASE_URL` (default
+`http://127.0.0.1:20135`) and only accepts the sidecar's response when it is
+strictly shorter than the input; any failure (not running, timeout, no-op
+response) falls back to the in-process worker-thread backend (`./worker.ts`).
+
+---
+
+### 4.8 Reverse proxy (9Router dashboard embed)
 
 The dashboard embeds the 9Router web UI inside an iframe via an internal reverse
 proxy at:

@@ -5572,6 +5572,145 @@ paths:
         "500":
           description: Import failed
 
+  /api/services/llmlingua/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install LLMLingua
+      description: >-
+        Installs `@atjsh/llmlingua-2` (real LLMLingua-2 ONNX prompt-compression
+        package) plus its `@huggingface/transformers`/`js-tiktoken` peers under
+        DATA_DIR/services/llmlingua/, and writes the sidecar server script.
+        Accepts an optional `version` field (semver or `latest`).
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Installation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+                  installPath:
+                    type: string
+                  durationMs:
+                    type: number
+
+  /api/services/llmlingua/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start LLMLingua
+      description: Starts the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after start
+        "409":
+          description: LLMLingua is not installed
+
+  /api/services/llmlingua/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop LLMLingua
+      description: Stops the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after stop
+
+  /api/services/llmlingua/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart LLMLingua
+      description: Restarts the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after restart
+        "409":
+          description: LLMLingua is not installed
+
+  /api/services/llmlingua/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update LLMLingua
+      description: >-
+        Updates LLMLingua to the latest npm version. Stops the running process,
+        installs the new version, and restarts if it was previously running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Update result
+
+  /api/services/llmlingua/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get LLMLingua status
+      description: Returns live and DB status for the supervised LLMLingua service. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: LLMLingua service status
+
+  /api/services/llmlingua/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle LLMLingua auto-start
+      description: >-
+        When enabled, LLMLingua starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Auto-start flag updated
+        "400":
+          description: Invalid request body
+
+  /api/services/llmlingua/auto-restart-adopted:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle LLMLingua auto-restart-when-adopted
+      description: >-
+        When enabled, an externally-adopted (not OmniRoute-spawned) LLMLingua
+        process is restarted under OmniRoute's own supervisor on the next
+        health-check cycle instead of being left as adopted-only.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
   /api/services/{name}/logs:
     get:
       tags: [Embedded Services]
@@ -5587,7 +5726,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [9router, cliproxy]
+            enum: [9router, cliproxy, mux, bifrost, dario, openwa, llmlingua]
         - name: tail
           in: query
           schema:

@@ -86,8 +86,11 @@ export const COLLECTORS = [
       ".github/workflows/quality.yml": "test:unit:ci:shard",
     },
   },
-  // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
+  // Node native runner — test:integration (top-level only)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
+  // Node native runner — test:services:int (gated RUN_SERVICES_INT=1; embedded-service
+  // installer/lifecycle tests — slow, network-dependent, never runs unopted in CI)
+  { glob: "tests/integration/services/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:matrix / test:integration (combo strategy decision matrix, 17 strategies)
   { glob: "tests/integration/combo-matrix/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:live (gated real-upstream smoke; RUN_COMBO_LIVE=1 + VPS creds)
