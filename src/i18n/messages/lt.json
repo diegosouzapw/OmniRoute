@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Pagrindinis no-think/&lt;provider&gt;/&lt;model&gt; šliuzo alternatyviųjų vardų jungiklis. Įjungta (numatyta): /v1/models skelbia „no-thinking“ variantą kiekvienam tinkamam mąstymo funkciją turinčiam Claude modeliui, o užklausoje pateiktas no-think/ ID susiejamas su tikruoju modeliu išjungus samprotavimą. Išjungta: variantai neskelbiami, o no-think/ ID laikomas tokiu pačiu nežinomu modelio ID kaip ir bet kuris kitas. Kol ši funkcija įjungta, vis tiek taikoma kiekvieno modelio ModelSpec.noThinkingAlias įjungimo arba išjungimo nuostata.",
   "featureFlagChatVirtualLanesEnabledDescription": "Įjungti kiekvienam nuomotojui pritaikomas adaptyvias virtualias priėmimo juostas teikėjų siuntimui (#9654): vieno nuomotojo srautas nebesukelia 503 klaidos kitam. Aplinkos kintamasis OMNIROUTE_CHAT_VIRTUAL_LANES turi pirmenybę prieš šį skydelio nustatymą; pakeitimai įsigalioja po serverio paleidimo iš naujo.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Teikėjų puslapiuose valdymo skydelyje ženklelį „Nemokama“ rodyti tik pagal tuos požymius, kuriuos teikėjas palaiko — nebenaudojama rodomo pavadinimo euristika, ne loginio tipo nemokamumo laukai ir :free priesagos registruotiems teikėjams, neturintiems dokumentuoto nemokamo plano. Išjungus taikoma ankstesnė ženklelio taisyklė.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Tarpinių serverių telkiniai ir kiekvienai paskyrai taikoma opencode rotacija pakartotinai nebenaudoja ką tik nesuveikusio tarpinio serverio (atmestas TCP patikrinimas arba per jį gautas 429 atsakymas) konkrečiam procesui taikomą laikotarpį, kuris po kiekvieno pasikartojimo padvigubėja iki nustatytos ribos. Tarpinio serverio būsena neįrašoma; atidėjus visus kandidatus, pasirinkimas nesikeičia. Pagal numatytąsias nuostatas išjungta: pasirinkimo tvarka yra lygiai tokia pati kaip įprastos rotacijos.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Tarpinių serverių telkiniai ir kiekvienai paskyrai taikoma opencode rotacija pakartotinai nebenaudoja ką tik nesuveikusio tarpinio serverio (atmestas TCP patikrinimas arba per jį gautas 429 atsakymas) konkrečiam procesui taikomą laikotarpį, kuris po kiekvieno pasikartojimo padvigubėja iki nustatytos ribos. Tarpinio serverio būsena neįrašoma; atidėjus visus kandidatus, pasirinkimas nesikeičia. Pagal numatytąsias nuostatas įjungta; `false` atkuria įprastą pasirinkimą.",
   "featureFlagProxyPoolEgressObservationDescription": "Valdymo skydelyje po tarpinių serverių telkiniu rodyti, kiek stebėtų išeinančių IP adresų per pastarąsias 24 val. aptarnavo jo narius, kiek ryšių juos naudojo ir didžiausią ryšių skaičių, stebėtą už vieno IP adreso. Tik skaitymui, apskaičiuojama pagal tarpinių serverių žurnalą ir niekada nenaudojama maršrutizavimui. Pagal numatytąsias nuostatas išjungta: telkinio redagavimo priemonė nesikeičia, o stebėjimo maršrutas grąžina null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Atliekant tarpinių serverių būklės patikrą leisti paskirties vietos atmestam patikrinimui (401/403/429: tarpinis serveris persiuntė užklausą, o paskirties vieta atmetė šį išeinantį IP adresą) iš naujo nustatyti tarpinio serverio nuoseklių nesėkmių seką, kaip ir aptarnauto patikrinimo atveju. Pagal numatytąsias nuostatas išjungta: atmetimas lieka neutralus ir išsaugo seką. 5xx atsakymas abiem atvejais lieka neapibrėžtas, o atmetimas niekada nepašalina, neišjungia ir iš naujo nesuaktyvina tarpinio serverio.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Leisti automatiniam valymui pašalinti galutines būsenas pasiekusias (užbaigtas / nepavykusias / atšauktas / nebegaliojančias) Batch API užduotis, senesnes nei OMNIROUTE_BATCH_RETENTION_DAYS, kartu su kiekvienos jų eilutės kontroliniais taškais ir išvalyti įkeltų failų, kurių expires_at jau praėjo, BLOB turinį. Pagal numatytąsias nuostatas išjungta: visuose esamuose diegimuose šie duomenys išsaugomi lygiai taip pat kaip anksčiau, kol operatorius šios funkcijos neįjungia. Operatoriaus iškviečiamam maršrutui DELETE /api/v1/batches/delete-completed ši nuostata jokios įtakos neturi – tai atskira, besąlyginė viešosios API sutartis.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Išjungti sesijos susiejimą",
     "sessionStickinessEnabled": "Sesijos susiejimas įjungtas",
     "sessionStickinessDisabled": "Sesijos susiejimas išjungtas",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding išankstinė parinktis",
     "kimiPresetDescription": "Kimi K3 kaip pagrindinis modelis (Moonshot API), automatiškai pereinant prie atsarginių jūsų Kimi Code jungčių (kimi-coding, kimi-web), kai jos sukonfigūruotos.",
     "kimiPresetCta": "Pridėti išankstinę parinktį",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Taip šiuo metu prijungtų, šį šabloną atitinkančių teikėjų ir modelių momentinė kopija bus įrašyta į redaguojamą kombo.",
     "duplicateAutoComboFailedPrefix": "Nepavyko dubliuoti automatinio kombo:",
     "duplicateAutoComboUnknownError": "Nežinoma klaida",
-    "duplicateAutoComboTitle": "Sukurti statinį kombo iš {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Sukurti statinį kombo iš {name}"
   },
   "costs": {
     "title": "Išlaidos",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Ištrinti pasirinktus ({count})",
     "batchActivateSelected": "Įjungti pasirinktus ({count})",
     "testPassed": "✓ Gerai",
+    "sweepVerdict": "Paskutinis nuskaitymas: {cause} ({code}) {age}",
+    "sweepNoData": "Nuo paleidimo nuskaitymo nebuvo",
+    "sweepLabel": {
+      "unproven": "taikinys atsisakė",
+      "unclassified": "patikra neįtikinama",
+      "ok": "aptarnauta",
+      "fail": "ryšys nepavyko",
+      "hang": "sutarties sudarymas strigo",
+      "inconclusive": "neįtikinama"
+    },
     "close": "Uždaryti",
     "managePool": "Valdyti telkinį",
     "poolTitle": "Tarpinių serverių telkinys ir rotacija",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "Užfiksuotų išėjimo IP adresų: {exits, plural, one {#} few {#} other {#}} · juos naudojusių ryšių: {connections, plural, one {#} few {#} other {#}} · daugiausia {max} vienam išėjimo IP adresui · per pastarąsias {hours} val.",
     "poolEgressObservationEmpty": "Per pastarąsias {hours} val. srauto nepastebėta",
     "poolEgressObservationHint": "Apskaičiuota pagal tarpinio serverio žurnalą per nurodytą laikotarpį: atskiri šio telkinio nariams užfiksuoti išėjimo IP adresai ir juos naudoję OmniRoute ryšiai. „Viename išėjimo IP“ reiškia per visą laikotarpį, o ne tuo pačiu metu. Atskiro IP adreso blokavimas gavus 429 atsakymą pristabdo tik tos pačios teikėjų grupės ryšius.",
+    "poolEgressFailuresByExit": "Nesėkmės per {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Nesėkmės be priskirto išėjimo: {count}",
     "poolMemberEgress": "{host}:{port} srautas išėjo per {egressIp} · per paskutines {hours} val.",
     "poolMemberEgressEmpty": "{host}:{port}: per paskutines {hours} val. srauto nepastebėta",
     "poolMemberEgressHint": "Paskutinis per šį telkinio narį nurodytu laikotarpiu pastebėtas išorinis IP adresas, nuskaitytas iš įgaliotojo serverio žurnalo. Jei per šį laikotarpį narys neperdavė jokio srauto, rodoma eilutė apie srauto nebuvimą.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "Nuo paskutinio paleidimo iš naujo",
     "poolSignalSetAside": "Atidėti",
     "poolSignalPosition": "Pozicijų tvarka",
-    "poolHealthRankingOff": "Sveikatos reitingavimas išjungtas"
+    "poolHealthRankingOff": "Sveikatos reitingavimas išjungtas",
+    "transportRate": "{rate} % transporto",
+    "previousSuccessRate": "Anksčiau {rate} % sėkmės",
+    "upstreamRefusals": "{count} aukštesnio lygio atmetimų",
+    "connectionTestsCount": "{count} ryšio testus",
+    "notMeasured": "Neišmatuota"
   },
   "playground": {
     "title": "Modelių bandymų aplinka",
@@ -11485,6 +11502,10 @@
       "requestedModel": "Prašomas modelis",
       "requestProtocol": "Užklausos protokolas",
       "cacheSource": "Talpyklos šaltinis",
+      "contentProvenance": "Atsakymas",
+      "contentEmpty": "Tuščias atsakymas",
+      "usageAbsent": "Žetonų skaičius nepateiktas",
+      "usageEstimated": "Žetonų skaičius įvertintas",
       "modelPinning": "Modelio prisegimas",
       "activeModelPinning": "Aktyvus — modelis pasirinktas naudojant seanso prisegimą",
       "rotated": "Pakeista: {initial} → {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "Koreliacijos ID: {id}",
       "detailedPayloadInfo": "Jei norite naujoms užklausoms matyti keturių etapų kliento ir teikėjo turinio rodinį, pirmiausia įjunkite išsamų registravimą.",
       "copyAll": "Kopijuoti viską",
-      "copiedAll": "Viskas nukopijuota"
+      "copiedAll": "Viskas nukopijuota",
+      "resilienceStoredError": "Pateikta iš išsaugotos klaidos",
+      "resilienceParked": "Sulaikyta {ms} prieš siuntimą",
+      "resilienceRotations": "{count} paskyrų rotacijos",
+      "resilienceRetried": "Tuščias ėjimas pakartotas",
+      "resilienceContinued": "Tęsta srauto viduryje",
+      "resilienceRecovered": "Atkurta atsparumo veiksmu"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "Tarpinio serverio žurnalų dar nėra. Sukonfigūruokite tarpinius serverius ir atlikite API iškvietimus, kad juos čia pamatytumėte.",
     "noMatchingLogs": "Nė vienas žurnalo įrašas neatitinka dabartinių filtrų.",
     "tlsFingerprint": "Chrome 124 TLS atspaudas",
-    "colPublicIp": "Viešasis IP"
+    "colPublicIp": "Viešasis IP",
+    "colUpstream": "Aukštupio",
+    "colEgress": "Išėjimo IP",
+    "colCorrelation": "Korelacija",
+    "colServedBy": "Teikia",
+    "filterTraffic": "Srautas",
+    "filterTests": "Testai",
+    "filterSource": "Šaltinis"
   },
   "endpointOptions": {
     "speech": "Kalba",
@@ -12806,7 +12840,12 @@
     "providerProxy": "Tarpinis serveris",
     "providerProxyConfigureHint": "Konfigūruoti tarpinį serverį",
     "providerProxyTitleConfigured": "Tarpinis serveris sukonfigūruotas: {host}",
-    "proxySetAside": "Tarpinis serveris atidėtas"
+    "proxySetAside": "Tarpinis serveris atidėtas",
+    "inheritConnectionOption": "Be savo tarpinio serverio (paveldi ryšį)",
+    "inheritedProxy": "Paveldi ryšį: {host}",
+    "inheritedPool": "Paveldi ryšių telkinį ({count})",
+    "poolEmptyBlocked": "Telkinys tuščias — užklausos nepavyksta (ne tiesiogiai)",
+    "directEgress": "Tiesiogiai (be tarpinio serverio)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "Tiesioginis (vietinis)",
     "targetUrl": "Paskirties URL",
     "error": "Klaida",
-    "configuration": "Tarpinio serverio konfigūracija"
+    "configuration": "Tarpinio serverio konfigūracija",
+    "upstreamStatus": "Aukštupio būsena",
+    "noResponse": "Nėra atsakymo",
+    "egressIp": "Išėjimo IP",
+    "servedBy": "Teikia",
+    "correlationId": "Korelacijos ID"
   },
   "requestTimeline": {
     "title": "Užklausos laiko juosta",

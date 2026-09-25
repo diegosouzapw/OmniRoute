@@ -178,10 +178,10 @@ test("providerModelsConfig grok-cli.parseResponse preserves exact supported reas
     ],
   });
 
-  assert.deepEqual(parsed[0].supportedThinkingEfforts, ["high", "low", "medium"]);
+  assert.deepEqual(parsed[0].supportedThinkingEfforts, ["high", "low", "medium", "xhigh"]);
   assert.deepEqual(parsed[1].supportedThinkingEfforts, ["low", "medium", "high"]);
   assert.equal(parsed[2].supportsThinking, true);
-  assert.equal(parsed[2].supportedThinkingEfforts, undefined);
+  assert.deepEqual(parsed[2].supportedThinkingEfforts, ["xhigh"]);
 });
 
 test("providerModelsConfig openrouter.parseResponse keeps the full catalog (LLMs not filtered out)", () => {

@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Interrupteur principal pour les alias de passerelle no-think/&lt;provider&gt;/&lt;model&gt;. Activé (par défaut) : /v1/models annonce une variante sans raisonnement pour chaque modèle Claude compatible avec le raisonnement, et un identifiant no-think/ envoyé dans une requête est résolu vers le modèle réel avec le raisonnement désactivé. Désactivé : aucune variante n’est annoncée et un identifiant no-think/ est traité comme tout autre identifiant de modèle inconnu. L’activation ou la désactivation par modèle via ModelSpec.noThinkingAlias continue de s’appliquer lorsque cette option est activée.",
   "featureFlagChatVirtualLanesEnabledDescription": "Activez des voies d'admission virtuelles adaptatives par tenant pour la répartition des fournisseurs (#9654) : le pic d'un tenant ne renvoie plus 503 à un autre. La variable d'environnement OMNIROUTE_CHAT_VIRTUAL_LANES prime sur ce réglage du tableau de bord ; les modifications prennent effet au redémarrage du serveur.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Pages des fournisseurs du tableau de bord : affiche le badge Gratuit uniquement pour les indicateurs reconnus par le fournisseur — abandonne l’heuristique basée sur le nom d’affichage, les champs free non booléens et les suffixes :free pour les fournisseurs enregistrés ne disposant pas d’une offre gratuite documentée. Lorsque cette option est désactivée, la règle historique du badge est conservée.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Les pools de proxys et la rotation par compte d’opencode cessent de réutiliser un proxy qui vient d’échouer (sonde TCP refusée ou réponse 429 reçue par son intermédiaire) pendant une durée propre au processus qui double à chaque nouvel échec, jusqu’à une limite maximale. Aucun état de proxy n’est enregistré ; lorsque tous les candidats sont écartés, le choix reste inchangé. Désactivé par défaut : l’ordre de sélection correspond exactement à la rotation simple.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Les pools de proxys et la rotation par compte d’opencode cessent de réutiliser un proxy qui vient d’échouer (sonde TCP refusée ou réponse 429 reçue par son intermédiaire) pendant une durée propre au processus qui double à chaque nouvel échec, jusqu’à une limite maximale. Aucun état de proxy n’est enregistré ; lorsque tous les candidats sont écartés, le choix reste inchangé. Activé par défaut ; `false` rétablit la sélection simple.",
   "featureFlagProxyPoolEgressObservationDescription": "Afficher, sous un pool de proxys dans le tableau de bord, combien d’adresses IP de sortie observées ont servi ses membres au cours des dernières 24 h, combien de connexions les ont utilisées et le nombre maximal observé derrière une même adresse IP. En lecture seule, calculé à partir du journal du proxy, jamais utilisé pour le routage. Désactivé par défaut : l’éditeur de pool reste inchangé et la route d’observation renvoie null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Lors du contrôle d’intégrité des proxys, permettez à une sonde refusée par la cible (401/403/429 : le proxy a relayé la requête, mais la destination a refusé cette adresse IP de sortie) de réinitialiser la série d’échecs consécutifs du proxy, comme une sonde traitée. Désactivé par défaut : un refus reste neutre et maintient la série. Une réponse 5xx reste non concluante dans les deux cas, et un refus ne supprime, ne désactive ni ne réactive jamais un proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Autoriser le nettoyage automatique à supprimer les tâches Batch API dans un état terminal (terminées/échouées/annulées/expirées) datant de plus de OMNIROUTE_BATCH_RETENTION_DAYS, ainsi que leurs points de contrôle par ligne, et à effacer le contenu BLOB des fichiers téléversés dont la valeur expires_at est dépassée. Désactivé par défaut : chaque installation existante conserve ces données exactement comme auparavant jusqu’à ce qu’un opérateur active cette option. La route DELETE /api/v1/batches/delete-completed déclenchée par l’opérateur n’est affectée dans aucun des cas : il s’agit d’un contrat d’API publique distinct et inconditionnel.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Désactiver la persistance de session",
     "sessionStickinessEnabled": "Persistance activée",
     "sessionStickinessDisabled": "Persistance désactivée",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Préréglage Kimi Coding",
     "kimiPresetDescription": "Kimi K3 comme modèle principal (Moonshot API), avec repli automatique vers vos connexions Kimi Code (kimi-coding, kimi-web) lorsqu'elles sont configurées.",
     "kimiPresetCta": "Ajouter le préréglage",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Cela capturera les fournisseurs/modèles actuellement connectés qui correspondent à ce modèle dans une combinaison modifiable.",
     "duplicateAutoComboFailedPrefix": "Échec de la duplication de la combinaison automatique :",
     "duplicateAutoComboUnknownError": "Erreur inconnue",
-    "duplicateAutoComboTitle": "Créer une combinaison statique à partir de {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Créer une combinaison statique à partir de {name}"
   },
   "costs": {
     "title": "Coûts",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Supprimer {count} sélectionné(s)",
     "batchActivateSelected": "Activer {count} sélectionné(s)",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Dernier balayage : {cause} ({code}) {age}",
+    "sweepNoData": "Aucun balayage depuis le démarrage",
+    "sweepLabel": {
+      "unproven": "cible refusée",
+      "unclassified": "vérification non concluante",
+      "ok": "desservi",
+      "fail": "connexion échouée",
+      "hang": "poignée de main bloquée",
+      "inconclusive": "non concluant"
+    },
     "close": "Fermer",
     "managePool": "Gérer le pool",
     "poolTitle": "Pool de proxys et rotation",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "{exits, plural, one {# sortie} other {# sorties}} ayant servi à {connections, plural, one {# connexion} other {# connexions}} · jusqu’à {max} sur une même sortie · dernières {hours} h",
     "poolEgressObservationEmpty": "Aucun trafic observé au cours des dernières {hours} h",
     "poolEgressObservationHint": "Calculé à partir du journal du proxy sur la période : adresses IP de sortie distinctes observées pour les membres de ce pool et connexions OmniRoute qui les ont utilisées. « Sur une même sortie » signifie sur l’ensemble de la période, et non simultanément. Le blocage 429 par adresse IP ne suspend que les connexions d’une même famille de fournisseurs.",
+    "poolEgressFailuresByExit": "Échecs via {exit} : {count}",
+    "poolEgressFailuresUnattributed": "Échecs sans sortie attribuée : {count}",
     "poolMemberEgress": "{host}:{port} est sorti via {egressIp} · dernières {hours} h",
     "poolMemberEgressEmpty": "{host}:{port} : aucun trafic observé au cours des dernières {hours} h",
     "poolMemberEgressHint": "Dernière adresse IP de sortie observée via ce membre du pool sur la période, d’après le journal du proxy. Un membre sans trafic sur la période affiche la ligne indiquant l’absence de trafic.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "Depuis le dernier redémarrage",
     "poolSignalSetAside": "Écarter",
     "poolSignalPosition": "Ordre de position",
-    "poolHealthRankingOff": "Classement de santé désactivé"
+    "poolHealthRankingOff": "Classement de santé désactivé",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Précédemment {rate} % de réussite",
+    "upstreamRefusals": "{count} refus en amont",
+    "connectionTestsCount": "{count} tests de connexion",
+    "notMeasured": "Non mesuré"
   },
   "playground": {
     "title": "Title",
@@ -11485,6 +11502,10 @@
       "requestedModel": "Modèle demandé",
       "requestProtocol": "Protocole de requête",
       "cacheSource": "Source du cache",
+      "contentProvenance": "Réponse",
+      "contentEmpty": "Réponse vide",
+      "usageAbsent": "Nombre de tokens non transmis",
+      "usageEstimated": "Nombre de tokens estimé",
       "modelPinning": "Épinglage du modèle",
       "activeModelPinning": "Actif — modèle sélectionné via l’épinglage de session",
       "rotated": "Rotation : {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "ID de corrélation : {id}",
       "detailedPayloadInfo": "Activez d’abord la journalisation détaillée si vous voulez voir l’affichage en 4 étapes des payloads client/fournisseur pour les nouvelles requêtes.",
       "copyAll": "Tout copier",
-      "copiedAll": "Tout a été copié"
+      "copiedAll": "Tout a été copié",
+      "resilienceStoredError": "Servi depuis l’erreur stockée",
+      "resilienceParked": "En attente {ms} avant envoi",
+      "resilienceRotations": "{count} rotations de compte",
+      "resilienceRetried": "Tour vide réessayé",
+      "resilienceContinued": "Repris en cours de flux",
+      "resilienceRecovered": "Récupéré par une action de résilience"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "Aucun journal de proxy pour le moment. Configurez des proxys et effectuez des appels API pour les afficher ici.",
     "noMatchingLogs": "Aucun journal ne correspond aux filtres actuels.",
     "tlsFingerprint": "Empreinte TLS de Chrome 124",
-    "colPublicIp": "IP publique"
+    "colPublicIp": "IP publique",
+    "colUpstream": "Amont",
+    "colEgress": "IP de sortie",
+    "colCorrelation": "Corrélation",
+    "colServedBy": "Servi par",
+    "filterTraffic": "Trafic",
+    "filterTests": "Tests",
+    "filterSource": "Source"
   },
   "endpointOptions": {
     "speech": "Parole",
@@ -12806,7 +12840,12 @@
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configurer proxy",
     "providerProxyTitleConfigured": "Proxy configuré : {host}",
-    "proxySetAside": "Proxy écarté"
+    "proxySetAside": "Proxy écarté",
+    "inheritConnectionOption": "Aucun proxy propre (hérite de la connexion)",
+    "inheritedProxy": "Hérite de la connexion : {host}",
+    "inheritedPool": "Hérite du pool de connexions ({count})",
+    "poolEmptyBlocked": "Pool vide — les requêtes échouent (pas direct)",
+    "directEgress": "Direct (sans proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "Direct (natif)",
     "targetUrl": "URL cible",
     "error": "Erreur",
-    "configuration": "Configuration du proxy"
+    "configuration": "Configuration du proxy",
+    "upstreamStatus": "État amont",
+    "noResponse": "Aucune réponse",
+    "egressIp": "IP de sortie",
+    "servedBy": "Servi par",
+    "correlationId": "ID de corrélation"
   },
   "requestTimeline": {
     "title": "Chronologie des requêtes",

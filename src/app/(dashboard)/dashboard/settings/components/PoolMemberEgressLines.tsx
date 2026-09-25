@@ -101,6 +101,9 @@ function rankNoteByJoinKey(
 const SET_ASIDE_KIND_KEYS: Record<string, string> = {
   proxy_unreachable: "poolSetAsideKindProxyUnreachable",
   ip_quota_429: "poolSetAsideKindIpQuota429",
+  // Repeated transport failures with cross-egress evidence (#14802): the proxy
+  // path is what failed, so it reads as unreachable to the operator.
+  transport: "poolSetAsideKindProxyUnreachable",
 };
 
 function setAsideKindLabel(

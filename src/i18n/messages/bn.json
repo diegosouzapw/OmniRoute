@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; গেটওয়ে অ্যালিয়াসগুলোর প্রধান সুইচ। চালু (ডিফল্ট): /v1/models প্রতিটি যোগ্য চিন্তন-সক্ষম Claude মডেলের জন্য একটি চিন্তনবিহীন ভ্যারিয়েন্ট প্রদর্শন করে এবং কোনো অনুরোধে পাঠানো no-think/ আইডি রিজনিং দমন করে প্রকৃত মডেলে রিজলভ হয়। বন্ধ: কোনো ভ্যারিয়েন্ট প্রদর্শিত হয় না এবং no-think/ আইডিকে অন্য যেকোনো অজানা মডেল আইডির মতো বিবেচনা করা হয়। এটি চালু থাকা অবস্থায়ও প্রতি-মডেলের ModelSpec.noThinkingAlias অপ্ট-ইন/অপ্ট-আউট প্রযোজ্য থাকে।",
   "featureFlagChatVirtualLanesEnabledDescription": "প্রোভাইডার ডিসপ্যাচের জন্য প্রতি-টেন্যান্ট অ্যাডাপ্টিভ ভার্চুয়াল অ্যাডমিশন লেন সক্ষম করুন (#9654): এক টেন্যান্টের বিস্ফোরণ আর অন্য টেন্যান্টে 503 ফেরায় না। OMNIROUTE_CHAT_VIRTUAL_LANES এনভায়রনমেন্ট ভেরিয়েবল এই ড্যাশবোর্ড সেটিংয়ের উপরে প্রাধান্য পায়; পরিবর্তনগুলি সার্ভার পুনরায় চালু হলে কার্যকর হয়।",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "ড্যাশবোর্ডের প্রোভাইডার পেজগুলো: প্রোভাইডার যে সংকেতগুলোকে স্বীকৃতি দেয়, শুধু সেগুলোর ভিত্তিতেই Free ব্যাজ দেখান — নথিভুক্ত ফ্রি টিয়ার নেই এমন নিবন্ধিত প্রোভাইডারগুলোর ক্ষেত্রে ডিসপ্লে-নেম হিউরিস্টিক, নন-বুলিয়ান ফ্রি ফিল্ড এবং :free সাফিক্স বাদ দেওয়া হয়। বন্ধ রাখলে আগের ব্যাজের নিয়ম বজায় থাকে।",
-  "featureFlagProxySkipRecentlyFailedDescription": "প্রক্সি পুল এবং opencode-এর প্রতি-অ্যাকাউন্ট রোটেশন এমন কোনো প্রক্সিকে পুনরায় ব্যবহার করা বন্ধ রাখে, যা সদ্য ব্যর্থ হয়েছে (TCP প্রোব প্রত্যাখ্যাত হয়েছে অথবা সেটির মাধ্যমে 429 পাওয়া গেছে)। প্রতি-প্রসেসে এই বিরতির সময়কাল প্রতিবার পুনরাবৃত্তির সঙ্গে দ্বিগুণ হয়, সর্বোচ্চ সীমা পর্যন্ত। প্রক্সির কোনো স্ট্যাটাস লেখা হয় না; সব প্রার্থীকে সরিয়ে রাখলেও নির্বাচন অপরিবর্তিত থাকে। ডিফল্টভাবে বন্ধ: নির্বাচনের ক্রম হুবহু সাধারণ রোটেশনের মতো।",
+  "featureFlagProxySkipRecentlyFailedDescription": "প্রক্সি পুল এবং opencode-এর প্রতি-অ্যাকাউন্ট রোটেশন এমন কোনো প্রক্সিকে পুনরায় ব্যবহার করা বন্ধ রাখে, যা সদ্য ব্যর্থ হয়েছে (TCP প্রোব প্রত্যাখ্যাত হয়েছে অথবা সেটির মাধ্যমে 429 পাওয়া গেছে)। প্রতি-প্রসেসে এই বিরতির সময়কাল প্রতিবার পুনরাবৃত্তির সঙ্গে দ্বিগুণ হয়, সর্বোচ্চ সীমা পর্যন্ত। প্রক্সির কোনো স্ট্যাটাস লেখা হয় না; সব প্রার্থীকে সরিয়ে রাখলেও নির্বাচন অপরিবর্তিত থাকে। ডিফল্টভাবে চালু; `false` সাধারণ নির্বাচন ফিরিয়ে আনে।",
   "featureFlagProxyPoolEgressObservationDescription": "ড্যাশবোর্ডে একটি প্রক্সি পুলের অধীনে দেখান, গত ২৪ ঘণ্টায় পর্যবেক্ষিত কতটি egress IP তার সদস্যদের সেবা দিয়েছে, কতটি সংযোগ সেগুলো ব্যবহার করেছে এবং একটি IP-এর পেছনে সর্বাধিক কতজন সদস্য দেখা গেছে। এটি শুধু পাঠযোগ্য, প্রক্সি লগ থেকে গণনা করা হয় এবং রাউটিংয়ে কখনো ব্যবহার করা হয় না। ডিফল্টভাবে বন্ধ: পুল এডিটর অপরিবর্তিত থাকে এবং পর্যবেক্ষণ রুট null প্রদান করে।",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "প্রক্সি হেলথ সুইপে, টার্গেট প্রত্যাখ্যান করেছে এমন কোনো প্রোবকে (401/403/429: প্রক্সি রিলে করেছে, কিন্তু গন্তব্য এই egress IP প্রত্যাখ্যান করেছে) সফলভাবে পরিবেশিত প্রোবের মতো প্রক্সির ধারাবাহিক ব্যর্থতার ধারা রিসেট করতে দিন। ডিফল্টভাবে বন্ধ: প্রত্যাখ্যান নিরপেক্ষ থাকে এবং ধারাটি বজায় রাখে। উভয় ক্ষেত্রেই 5xx অনির্ণায়ক থাকে এবং কোনো প্রত্যাখ্যান কখনোই প্রক্সিকে সরায়, নিষ্ক্রিয় করে বা পুনরায় সক্রিয় করে না।",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "স্বয়ংক্রিয় ক্লিনআপ সুইপকে OMNIROUTE_BATCH_RETENTION_DAYS-এর চেয়ে পুরোনো টার্মিনাল (সম্পন্ন/ব্যর্থ/বাতিল/মেয়াদোত্তীর্ণ) Batch API জবগুলো তাদের প্রতি-লাইনের চেকপয়েন্টসহ মুছে ফেলতে এবং আপলোড করা ফাইলগুলোর নিজস্ব expires_at পেরিয়ে গেলে সেগুলোর BLOB কনটেন্ট মুছে দিতে দিন। ডিফল্টভাবে বন্ধ: কোনো অপারেটর এটি চালু না করা পর্যন্ত প্রতিটি বিদ্যমান ইনস্টলেশন আগের মতোই এই ডেটা সংরক্ষণ করবে। অপারেটর-ট্রিগার করা DELETE /api/v1/batches/delete-completed রুট উভয় ক্ষেত্রেই অপরিবর্তিত থাকবে — এটি একটি পৃথক, নিঃশর্ত পাবলিক API চুক্তি।",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "সেশন স্টিকিনেস নিষ্ক্রিয় করুন",
     "sessionStickinessEnabled": "স্টিকিনেস চালু",
     "sessionStickinessDisabled": "স্টিকিনেস বন্ধ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding প্রিসেট",
     "kimiPresetDescription": "প্রধান মডেল হিসেবে Kimi K3 (Moonshot API), কনফিগার করা থাকলে আপনার Kimi Code কানেকশনগুলোতে (kimi-coding, kimi-web) অটোমেটিক ফলব্যাক সহ।",
     "kimiPresetCta": "প্রিসেট যোগ করুন",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "এটি এই টেমপ্লেটের সাথে মিলে যায় এমন বর্তমান সংযুক্ত প্রদানকারী/মডেলগুলিকে একটি সম্পাদনযোগ্য কম্বোতে স্ন্যাপশট নেবে।",
     "duplicateAutoComboFailedPrefix": "অটোকম্বো ডুপ্লিকেশন ব্যর্থ:",
     "duplicateAutoComboUnknownError": "অজানা ত্রুটি",
-    "duplicateAutoComboTitle": "{name} থেকে একটি স্ট্যাটিক কম্বো তৈরি করুন",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} থেকে একটি স্ট্যাটিক কম্বো তৈরি করুন"
   },
   "costs": {
     "title": "খরচ",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "নির্বাচিত {count}টি মুছুন",
     "batchActivateSelected": "নির্বাচিত {count}টি সক্ষম করুন",
     "testPassed": "✓ ঠিক আছে",
+    "sweepVerdict": "শেষ স্ক্যান: {cause} ({code}) {age}",
+    "sweepNoData": "চালুর পর থেকে এখনও স্ক্যান হয়নি",
+    "sweepLabel": {
+      "unproven": "লক্ষ্য প্রত্যাখ্যান করেছে",
+      "unclassified": "পরীক্ষা অমীমাংসিত",
+      "ok": "পরিবেশিত",
+      "fail": "সংযোগ ব্যর্থ",
+      "hang": "হ্যান্ডশেক আটকে আছে",
+      "inconclusive": "অমীমাংসিত"
+    },
     "close": "বন্ধ করুন",
     "managePool": "পুল পরিচালনা করুন",
     "poolTitle": "প্রক্সি পুল এবং রোটেশন",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "{connections, plural, one {#টি সংযোগ} other {#টি সংযোগ}} দ্বারা {exits, plural, one {#টি এক্সিট} other {#টি এক্সিট}} ব্যবহৃত · একটি এক্সিটে সর্বোচ্চ {max}টি · গত {hours} ঘণ্টা",
     "poolEgressObservationEmpty": "গত {hours} ঘণ্টায় কোনো ট্রাফিক দেখা যায়নি",
     "poolEgressObservationHint": "নির্ধারিত সময়সীমায় প্রক্সি লগ থেকে গণনা করা হয়েছে: এই পুলের সদস্যদের জন্য পর্যবেক্ষণ করা স্বতন্ত্র ইগ্রেস IP এবং সেগুলো ব্যবহার করা OmniRoute সংযোগ। \"একটি এক্সিটে\" বলতে নির্ধারিত সময়সীমার মধ্যে বোঝায়, একই সময়ে নয়। প্রতি-IP 429 লকআউট শুধু একই প্রোভাইডার পরিবারের সংযোগগুলোকে বিরতি দেয়।",
+    "poolEgressFailuresByExit": "{exit} এর মাধ্যমে ব্যর্থতা: {count}",
+    "poolEgressFailuresUnattributed": "নির্ধারিত এক্সিট ছাড়া ব্যর্থতা: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} দিয়ে নির্গত হয়েছে · গত {hours} ঘণ্টা",
     "poolMemberEgressEmpty": "{host}:{port}: গত {hours} ঘণ্টায় কোনো ট্রাফিক দেখা যায়নি",
     "poolMemberEgressHint": "সময়সীমার মধ্যে এই পুল সদস্যের মাধ্যমে সর্বশেষ পর্যবেক্ষিত নির্গমন IP, যা প্রক্সি লগ থেকে পড়া হয়েছে। সময়সীমার মধ্যে কোনো ট্রাফিক না থাকা সদস্যের জন্য ‘কোনো ট্রাফিক নেই’ লাইনটি দেখানো হয়।",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "শেষ পুনরারম্ভের পর থেকে",
     "poolSignalSetAside": "সরিয়ে রাখুন",
     "poolSignalPosition": "অবস্থান ক্রম",
-    "poolHealthRankingOff": "স্বাস্থ্য র‍্যাঙ্কিং বন্ধ"
+    "poolHealthRankingOff": "স্বাস্থ্য র‍্যাঙ্কিং বন্ধ",
+    "transportRate": "{rate}% ট্রান্সপোর্ট",
+    "previousSuccessRate": "পূর্বে {rate}% সাফল্য",
+    "upstreamRefusals": "{count} আপস্ট্রিম প্রত্যাখ্যান",
+    "connectionTestsCount": "{count} সংযোগ পরীক্ষা",
+    "notMeasured": "পরিমাপ করা হয়নি"
   },
   "playground": {
     "title": "মডেল প্লেগ্রাউন্ড",
@@ -11485,6 +11502,10 @@
       "requestedModel": "অনুরোধ করা মডেল",
       "requestProtocol": "রেক প্রোটোকল",
       "cacheSource": "ক্যাশ সোর্স",
+      "contentProvenance": "উত্তর",
+      "contentEmpty": "খালি উত্তর",
+      "usageAbsent": "টোকেন সংখ্যা জানানো হয়নি",
+      "usageEstimated": "টোকেন সংখ্যা আনুমানিক",
       "modelPinning": "মডেল পিনিং",
       "activeModelPinning": "সক্রিয় — সেশন পিনিংয়ের মাধ্যমে মডেল নির্বাচিত",
       "rotated": "ঘুরানো: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "সংযোগ আইডি: {id}",
       "detailedPayloadInfo": "নতুন অনুরোধের জন্য চার-পর্যায়ের ক্লায়েন্ট/প্রদানকারী পে-লোড ভিউ পেতে হলে প্রথমে বিস্তারিত লগিং সক্ষম করুন।",
       "copyAll": "সব কপি করুন",
-      "copiedAll": "সব কপি করা হয়েছে"
+      "copiedAll": "সব কপি করা হয়েছে",
+      "resilienceStoredError": "সংরক্ষিত ত্রুটি থেকে পরিবেশিত",
+      "resilienceParked": "পাঠানোর আগে {ms} অপেক্ষমাণ রাখা হয়েছে",
+      "resilienceRotations": "{count}টি অ্যাকাউন্ট রোটেশন",
+      "resilienceRetried": "খালি টার্ন পুনরায় চেষ্টা করা হয়েছে",
+      "resilienceContinued": "স্ট্রিমের মাঝখান থেকে পুনরায় শুরু হয়েছে",
+      "resilienceRecovered": "রেজিলিয়েন্স পদক্ষেপের মাধ্যমে পুনরুদ্ধার হয়েছে"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "এখনও কোনো প্রক্সি লগ নেই। প্রক্সি কনফিগার করুন এবং এখানে সেগুলো দেখতে API কল করুন।",
     "noMatchingLogs": "বর্তমান ফিল্টারের সঙ্গে কোনো লগ মেলে না।",
     "tlsFingerprint": "Chrome 124 TLS ফিঙ্গারপ্রিন্ট",
-    "colPublicIp": "পাবলিক আইপি"
+    "colPublicIp": "পাবলিক আইপি",
+    "colUpstream": "আপস্ট্রিম",
+    "colEgress": "এগ্রেস আইপি",
+    "colCorrelation": "সংশ্লেষণ",
+    "colServedBy": "দ্বারা পরিবেশন করা হয়েছে",
+    "filterTraffic": "ট্রাফিক",
+    "filterTests": "পরীক্ষা",
+    "filterSource": "সূত্র"
   },
   "endpointOptions": {
     "speech": "স্পিচ",
@@ -12806,7 +12840,12 @@
     "providerProxy": "প্রক্সি",
     "providerProxyConfigureHint": "প্রক্সি কনফিগার করুন",
     "providerProxyTitleConfigured": "প্রক্সি কনফিগার করা হয়েছে: {host}",
-    "proxySetAside": "প্রক্সি সরিয়ে রাখা হয়েছে"
+    "proxySetAside": "প্রক্সি সরিয়ে রাখা হয়েছে",
+    "inheritConnectionOption": "নিজস্ব প্রক্সি নেই (সংযোগ থেকে উত্তরাধিকার)",
+    "inheritedProxy": "সংযোগ থেকে উত্তরাধিকার: {host}",
+    "inheritedPool": "সংযোগ পুল থেকে উত্তরাধিকার ({count})",
+    "poolEmptyBlocked": "পুল খালি — অনুরোধ ব্যর্থ হয় (সরাসরি নয়)",
+    "directEgress": "সরাসরি (প্রক্সি ছাড়া)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "সরাসরি",
     "targetUrl": "লক্ষ্য URL",
     "error": "ত্রুটি",
-    "configuration": "প্রক্সি কনফিগারেশন"
+    "configuration": "প্রক্সি কনফিগারেশন",
+    "upstreamStatus": "আপস্ট্রিম স্থিতি",
+    "noResponse": "কোনো প্রতিক্রিয়া নেই",
+    "egressIp": "এগ্রেস আইপি",
+    "servedBy": "দ্বারা পরিবেশন করা হয়েছে",
+    "correlationId": "সংশ্লেষণ আইডি"
   },
   "requestTimeline": {
     "title": "অনুরোধের সময়রেখা",

@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Lüüsi no-think/&lt;provider&gt;/&lt;model&gt; aliaste pealüliti. Sisse lülitatud (vaikimisi): /v1/models avaldab iga sobiliku mõtlemisvõimelise Claude'i mudeli jaoks mõtlemiseta variandi ning päringus saadetud no-think/ ID lahendatakse tagasi tegelikuks mudeliks, mille arutluskäik on maha surutud. Välja lülitatud: variante ei avaldata ja no-think/ ID-d käsitletakse nagu mis tahes muud tundmatut mudeli-ID-d. Kui see on sisse lülitatud, kehtib endiselt mudelipõhine ModelSpec.noThinkingAlias lubamis- või keelamisvalik.",
   "featureFlagChatVirtualLanesEnabledDescription": "Lubage pakkujale edastamiseks rentnikupõhised kohanduvad virtuaalsed vastuvõturajad (#9654): ühe rentniku koormushoog ei põhjusta enam teisele tõrget 503. Keskkonnamuutuja OMNIROUTE_CHAT_VIRTUAL_LANES alistab selle juhtpaneeli sätte; muudatused jõustuvad serveri taaskäivitamisel.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Juhtpaneeli teenusepakkujate lehed: kuva märk „Tasuta” ainult nende tunnuste puhul, mida teenusepakkuja arvestab — loobu kuvatava nime heuristikast, mitte-tõeväärtuslikest tasuta kasutust tähistavatest väljadest ja järelliidetest :free registreeritud teenusepakkujate puhul, kellel puudub dokumenteeritud tasuta pakett. Väljalülitamisel kasutatakse varasemat märgi kuvamise reeglit.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Puhverserverite kogumid ja opencode'i kontopõhine roteerimine väldivad äsja nurjunud puhverserveri (TCP-proovist keelduti või selle kaudu saadi vastus 429) uuesti kasutamist protsessipõhise ajavahemiku jooksul, mis iga korduva tõrke korral kahekordistub kuni ülempiirini. Puhverserveri olekut ei salvestata; kui kõik kandidaadid kõrvale jäetakse, valik ei muutu. Vaikimisi väljas: valikujärjekord järgib täpselt tavalist roteerimist.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Puhverserverite kogumid ja opencode'i kontopõhine roteerimine väldivad äsja nurjunud puhverserveri (TCP-proovist keelduti või selle kaudu saadi vastus 429) uuesti kasutamist protsessipõhise ajavahemiku jooksul, mis iga korduva tõrke korral kahekordistub kuni ülempiirini. Puhverserveri olekut ei salvestata; kui kõik kandidaadid kõrvale jäetakse, valik ei muutu. Vaikimisi sees; `false` taastab tavalise valiku.",
   "featureFlagProxyPoolEgressObservationDescription": "Kuva juhtpaneelil puhverserverite kogumi all, mitu vaadeldud väljuvat IP-aadressi teenindas selle liikmeid viimase 24 tunni jooksul, mitu ühendust neid kasutas ja kui palju ühendusi täheldati enim ühe IP-aadressi taga. Kirjutuskaitstud, arvutatakse puhverserveri logist ja seda ei kasutata kunagi marsruutimiseks. Vaikimisi väljas: kogumi redaktor ei muutu ja vaatlusmarsruut tagastab null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Luba puhverserveri seisundi kontrollimisel sihtkoha poolt tagasi lükatud proovil (401/403/429: puhverserver vahendas päringu, sihtkoht keeldus sellest väljuvast IP-aadressist) lähtestada puhverserveri järjestikuste tõrgete jada nagu teenindatud proovi korral. Vaikimisi väljas: tagasilükkamine jääb neutraalseks ja säilitab jada. 5xx jääb mõlemal juhul ebaselgeks ning tagasilükkamine ei eemalda, keela ega taasaktiveeri kunagi puhverserverit.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Luba automaatsel puhastusel kustutada lõplikus olekus (lõpetatud/ebaõnnestunud/tühistatud/aegunud) Batch API tööd, mis on vanemad kui OMNIROUTE_BATCH_RETENTION_DAYS, koos nende reapõhiste kontrollpunktidega, ning kustutada oma expires_at tähtaja ületanud üleslaaditud failide BLOB-sisu. Vaikimisi väljas: kõik olemasolevad paigaldused säilitavad neid andmeid täpselt nagu varem, kuni operaator selle funktsiooni sisse lülitab. Operaatori käivitatavat marsruuti DELETE /api/v1/batches/delete-completed see valik ei mõjuta — tegemist on eraldiseisva ja tingimusteta avaliku API lepinguga.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Keela seansi püsivus",
     "sessionStickinessEnabled": "Püsivus sees",
     "sessionStickinessDisabled": "Püsivus väljas",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding eelseadistus",
     "kimiPresetDescription": "Kimi K3 põhimudelina (Moonshot API) koos automaatse ümberlülitumisega teie Kimi Code ühendustele (kimi-coding, kimi-web), kui need on seadistatud.",
     "kimiPresetCta": "Lisa eelseadistus",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "See salvestab hetkel ühendatud ja sellele mallile vastavad teenusepakkujad/mudelid redigeeritavasse kombinatsiooni.",
     "duplicateAutoComboFailedPrefix": "Automaatse kombinatsiooni dubleerimine ebaõnnestus:",
     "duplicateAutoComboUnknownError": "Tundmatu viga",
-    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon"
   },
   "costs": {
     "title": "Kulud",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Kustuta {count} valitut",
     "batchActivateSelected": "Aktiveeri {count} valitut",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Viimane kontroll: {cause} ({code}) {age}",
+    "sweepNoData": "Käivitamisest saadik kontrolli pole",
+    "sweepLabel": {
+      "unproven": "sihtmärk keeldus",
+      "unclassified": "kontroll ebaselge",
+      "ok": "teenindatud",
+      "fail": "ühendus ebaõnnestus",
+      "hang": "käepigistus seiskus",
+      "inconclusive": "ebaselge"
+    },
     "close": "Sulge",
     "managePool": "Halda kogumit",
     "poolTitle": "Puhverserverikogum ja roteerimine",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "{exits, plural, one {# väljumine} other {# väljumist}}, mida kasutas {connections, plural, one {# ühendus} other {# ühendust}} · kuni {max} ühel väljumisel · viimase {hours} h jooksul",
     "poolEgressObservationEmpty": "Viimase {hours} h jooksul ei täheldatud liiklust",
     "poolEgressObservationHint": "Arvutatud puhverserveri logist antud ajavahemiku kohta: selle kogumi liikmete puhul täheldatud erinevad väljaminevad IP-aadressid ja neid kasutanud OmniRoute’i ühendused. „Ühel väljumisel“ tähendab kogu ajavahemiku jooksul, mitte samal ajal. IP-põhine 429-lukustus peatab ainult sama teenusepakkuja rühma kuuluvad ühendused.",
+    "poolEgressFailuresByExit": "Tõrked väljundi {exit} kaudu: {count}",
+    "poolEgressFailuresUnattributed": "Tõrked ilma omistatud väljundita: {count}",
     "poolMemberEgress": "{host}:{port} liiklus väljus aadressi {egressIp} kaudu · viimased {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: viimase {hours} h jooksul liiklust ei tuvastatud",
     "poolMemberEgressHint": "Viimane selle puuli liikme kaudu ajavahemiku jooksul tuvastatud väljuv IP-aadress, mis loeti puhverserveri logist. Kui liikmel ei olnud ajavahemiku jooksul liiklust, kuvatakse liikluseta rida.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "Viimasest taaskäivitusest",
     "poolSignalSetAside": "Pane kõrvale",
     "poolSignalPosition": "Positsioonijärjekord",
-    "poolHealthRankingOff": "Tervise järjestus väljas"
+    "poolHealthRankingOff": "Tervise järjestus väljas",
+    "transportRate": "{rate} % transporti",
+    "previousSuccessRate": "Varem {rate} % edukust",
+    "upstreamRefusals": "{count} upstream-keeldumist",
+    "connectionTestsCount": "{count} ühenduse testi",
+    "notMeasured": "Mõõtmata"
   },
   "playground": {
     "title": "Mudelite testkeskkond",
@@ -11485,6 +11502,10 @@
       "requestedModel": "Taotletud mudel",
       "requestProtocol": "Päringu protokoll",
       "cacheSource": "Vahemälu allikas",
+      "contentProvenance": "Vastus",
+      "contentEmpty": "Tühi vastus",
+      "usageAbsent": "Tokenite arvu ei teatatud",
+      "usageEstimated": "Tokenite arv on hinnanguline",
       "modelPinning": "Mudeli sidumine",
       "activeModelPinning": "Aktiivne — mudel valiti seansi sidumise kaudu",
       "rotated": "Vahetatud: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "Korrelatsiooni-ID: {id}",
       "detailedPayloadInfo": "Uute päringute neljaetapilise kliendi ja teenusepakkuja andmekehavaate kasutamiseks lubage esmalt üksikasjalik logimine.",
       "copyAll": "Kopeeri kõik",
-      "copiedAll": "Kõik kopeeritud"
+      "copiedAll": "Kõik kopeeritud",
+      "resilienceStoredError": "Serveeritud salvestatud veast",
+      "resilienceParked": "Ootel {ms} enne saatmist",
+      "resilienceRotations": "{count} konto vahetust",
+      "resilienceRetried": "Tühja käiku korrati",
+      "resilienceContinued": "Jätkati voo keskelt",
+      "resilienceRecovered": "Taastatud vastupidavustoiminguga"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "Puhverserveri logisid pole veel. Seadista puhverserverid ja tee API-päringuid, et neid siin näha.",
     "noMatchingLogs": "Ükski logi ei vasta praegustele filtritele.",
     "tlsFingerprint": "Chrome 124 TLS-sõrmejälg",
-    "colPublicIp": "Avalik IP"
+    "colPublicIp": "Avalik IP",
+    "colUpstream": "Ülesvool",
+    "colEgress": "Väljaminev IP",
+    "colCorrelation": "Korreleerimine",
+    "colServedBy": "Teenindab",
+    "filterTraffic": "Liiklus",
+    "filterTests": "Testid",
+    "filterSource": "Allikas"
   },
   "endpointOptions": {
     "speech": "Kõne",
@@ -12806,7 +12840,12 @@
     "providerProxy": "Puhverserver",
     "providerProxyConfigureHint": "Seadista puhverserver",
     "providerProxyTitleConfigured": "Puhverserver on seadistatud: {host}",
-    "proxySetAside": "Puhverserver kõrvale pandud"
+    "proxySetAside": "Puhverserver kõrvale pandud",
+    "inheritConnectionOption": "Isiklikku puhverserverit pole (pärib ühenduse)",
+    "inheritedProxy": "Pärib ühenduse: {host}",
+    "inheritedPool": "Pärib ühenduste kogumi ({count})",
+    "poolEmptyBlocked": "Kogum tühi — päringud ebaõnnestuvad (mitte otse)",
+    "directEgress": "Otse (puhverserverita)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "Otse (natiivne)",
     "targetUrl": "Siht-URL",
     "error": "Viga",
-    "configuration": "Proksi konfiguratsioon"
+    "configuration": "Proksi konfiguratsioon",
+    "upstreamStatus": "Ülesvoolu olek",
+    "noResponse": "Ei vastata",
+    "egressIp": "Väljaminev IP",
+    "servedBy": "Teenindab",
+    "correlationId": "Korreleerimise ID"
   },
   "requestTimeline": {
     "title": "Päringu ajajoon",

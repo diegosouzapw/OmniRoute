@@ -109,13 +109,13 @@ describe("account-rotation sticky head (flag-gated)", () => {
     assert.equal(picked2.fingerprint, "", "only non-set-aside left is served");
   });
 
-  it("R4 (flag-off terminal): order is byte-identical to the blind head", () => {
-    // Store history present, but the flag is off: plain rotation, no drain, no sticky.
+  it("opt-out: order is byte-identical to the blind head", () => {
+    // Store history present, but the flag is opted out: plain rotation, no drain, no sticky.
     const accounts = fleet();
     const key0 = proxyEgressKey(accounts[0].proxy);
     assert.ok(key0);
     assert.ok(noteProxyRefusal(key0, "ip_quota_429") !== null);
-    delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+    process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
     const state = { nextAccountIdx: 0 };
     const first = pickAccount(accounts, state);
     const second = pickAccount(accounts, state);

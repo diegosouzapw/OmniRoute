@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "המתג הראשי לכינויי השער no-think/&lt;provider&gt;/&lt;model&gt;. מופעל (ברירת מחדל): /v1/models מציג וריאציה ללא חשיבה עבור כל מודל Claude מתאים שתומך בחשיבה, ומזהה no-think/ שנשלח בבקשה מפוענח בחזרה למודל האמיתי תוך דיכוי ההנמקה. מושבת: לא מוצגות וריאציות, ומזהה no-think/ מטופל כמו כל מזהה מודל לא מוכר אחר. הגדרת ההצטרפות/החרגה ModelSpec.noThinkingAlias לכל מודל עדיין חלה כאשר אפשרות זו מופעלת.",
   "featureFlagChatVirtualLanesEnabledDescription": "הפעל נתיבי קבלה וירטואליים אדפטיביים לכל דייר (tenant) עבור שליחת ספקים (#9654): פרץ עומס של דייר אחד כבר לא מחזיר 503 לדייר אחר. משתנה הסביבה OMNIROUTE_CHAT_VIRTUAL_LANES גובר על הגדרה זו בלוח הבקרה; השינויים נכנסים לתוקף לאחר הפעלת השרת מחדש.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "דפי הספקים בלוח הבקרה: הצגת תג החינם רק על סמך סימנים שהספק מכיר בהם — ללא היוריסטיקת שם התצוגה, שדות חינמיים שאינם בוליאניים וסיומות :free אצל ספקים רשומים שאין להם שכבה חינמית מתועדת. במצב כבוי, כלל התג ההיסטורי נשמר.",
-  "featureFlagProxySkipRecentlyFailedDescription": "מאגרי פרוקסי והתחלופה לפי חשבון של opencode מפסיקים להשתמש מחדש בפרוקסי שזה עתה נכשל (בדיקת TCP נדחתה, או שהתקבלה דרכו תגובת 429) למשך פרק זמן נפרד לכל תהליך, שמוכפל בכל הישנות עד לתקרה. לא נכתב סטטוס לפרוקסי; כאשר כל המועמדים מושהים, הבחירה נשארת ללא שינוי. מושבת כברירת מחדל: סדר הבחירה זהה בדיוק לתחלופה הרגילה.",
+  "featureFlagProxySkipRecentlyFailedDescription": "מאגרי פרוקסי והתחלופה לפי חשבון של opencode מפסיקים להשתמש מחדש בפרוקסי שזה עתה נכשל (בדיקת TCP נדחתה, או שהתקבלה דרכו תגובת 429) למשך פרק זמן נפרד לכל תהליך, שמוכפל בכל הישנות עד לתקרה. לא נכתב סטטוס לפרוקסי; כאשר כל המועמדים מושהים, הבחירה נשארת ללא שינוי. מופעל כברירת מחדל; `false` מחזיר את הבחירה הרגילה.",
   "featureFlagProxyPoolEgressObservationDescription": "הצגת מספר כתובות ה-IP ליציאה שנצפו בקרב חברי מאגר הפרוקסי במהלך 24 השעות האחרונות, מספר החיבורים שהשתמשו בהן ומספר החיבורים המרבי שנצפה מאחורי כתובת IP אחת, מתחת למאגר בלוח הבקרה. לקריאה בלבד, מחושב מיומן הפרוקסי ולעולם אינו משמש לניתוב. מושבת כברירת מחדל: עורך המאגר נשאר ללא שינוי ונתיב התצפית מחזיר null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "בסריקת תקינות הפרוקסי, יש לאפשר לבדיקה שהיעד דחה (401/403/429: הפרוקסי העביר את הבקשה, והיעד דחה את כתובת ה-IP הזו ליציאה) לאפס את רצף הכשלים העוקבים של הפרוקסי, כמו בדיקה שנענתה. מושבת כברירת מחדל: דחייה נשארת ניטרלית ושומרת על הרצף. תגובת 5xx נשארת בלתי מכרעת בכל מקרה, ודחייה לעולם אינה מסירה, משביתה או מפעילה מחדש פרוקסי.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "לאפשר לסריקת הניקוי האוטומטית למחוק משימות Batch API במצב סופי (שהושלמו/נכשלו/בוטלו/פג תוקפן) שגילן עולה על OMNIROUTE_BATCH_RETENTION_DAYS, יחד עם נקודות הביקורת שלהן לכל שורה, ולנקות את תוכן ה-BLOB של קבצים שהועלו לאחר שעבר מועד ה-expires_at שלהם. האפשרות מושבתת כברירת מחדל: כל התקנה קיימת ממשיכה לשמור את הנתונים האלה בדיוק כמו קודם, עד שמפעיל המערכת בוחר להפעיל אותה. הנתיב DELETE /api/v1/batches/delete-completed, שמופעל על ידי מפעיל המערכת, אינו מושפע בכל מקרה — זהו חוזה API ציבורי נפרד ובלתי מותנה.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "השבת דביקות הפעלה (session stickiness)",
     "sessionStickinessEnabled": "דביקות פעילה",
     "sessionStickinessDisabled": "דביקות כבויה",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "הגדרה מראש של Kimi Coding",
     "kimiPresetDescription": "Kimi K3 כמודל הראשי (Moonshot API), עם מעבר אוטומטי לגיבוי לחיבורי Kimi Code שלך (kimi-coding, kimi-web) כאשר הם מוגדרים.",
     "kimiPresetCta": "הוסף הגדרה מראש",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "פעולה זו תצלם את הספקים/מודלים המחוברים כעת התואמים לתבנית הזו לקומבו ניתן לעריכה.",
     "duplicateAutoComboFailedPrefix": "כשל בהעתיק קומבו אוטומטי:",
     "duplicateAutoComboUnknownError": "שגיאה לא ידועה",
-    "duplicateAutoComboTitle": "צור קומבו סטטי מ־{name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "צור קומבו סטטי מ־{name}"
   },
   "costs": {
     "title": "עלויות",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "מחק {count} שנבחרו",
     "batchActivateSelected": "הפעל {count} שנבחרו",
     "testPassed": "✓ תקין",
+    "sweepVerdict": "סריקה אחרונה: {cause} ({code}) {age}",
+    "sweepNoData": "אין סריקה עדיין מאז ההפעלה",
+    "sweepLabel": {
+      "unproven": "היעד סירב",
+      "unclassified": "בדיקה לא חד-משמעית",
+      "ok": "טופל",
+      "fail": "החיבור נכשל",
+      "hang": "לחיצת היד נתקעה",
+      "inconclusive": "לא חד-משמעי"
+    },
     "close": "סגור",
     "managePool": "ניהול מאגר",
     "poolTitle": "מאגר פרוקסי ורוטציה",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "נעשה שימוש ב-{exits, plural, one {# יציאה} other {# יציאות}} על ידי {connections, plural, one {# חיבור} other {# חיבורים}} · עד {max} ביציאה אחת · ב-{hours} השעות האחרונות",
     "poolEgressObservationEmpty": "לא נצפתה תעבורה ב-{hours} השעות האחרונות",
     "poolEgressObservationHint": "הנתונים נספרו מיומן הפרוקסי לאורך חלון הזמן: כתובות IP ייחודיות לתעבורה יוצאת שנצפו עבור החברים במאגר זה, וחיבורי OmniRoute שהשתמשו בהן. \"ביציאה אחת\" מתייחס לכל חלון הזמן, ולא לשימוש בו-זמני. חסימת 429 לכל כתובת IP משהה רק חיבורים מאותה משפחת ספקים.",
+    "poolEgressFailuresByExit": "כשלים דרך {exit}: {count}",
+    "poolEgressFailuresUnattributed": "כשלים ללא יציאה משויכת: {count}",
     "poolMemberEgress": "{host}:{port} יצא דרך {egressIp} · ב־{hours} השעות האחרונות",
     "poolMemberEgressEmpty": "{host}:{port}: לא נצפתה תעבורה ב־{hours} השעות האחרונות",
     "poolMemberEgressHint": "כתובת ה-IP האחרונה ליציאה שנצפתה דרך חבר מאגר זה במהלך חלון הזמן, כפי שנקראה מיומן ה-proxy. עבור חבר שלא הייתה בו תעבורה במהלך חלון הזמן, מוצגת שורת 'אין תעבורה'.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "מאז ההפעלה מחדש האחרונה",
     "poolSignalSetAside": "שים בצד",
     "poolSignalPosition": "סדר מיקומים",
-    "poolHealthRankingOff": "דירוג בריאות כבוי"
+    "poolHealthRankingOff": "דירוג בריאות כבוי",
+    "transportRate": "{rate}% תעבורה",
+    "previousSuccessRate": "בעבר {rate}% הצלחה",
+    "upstreamRefusals": "{count} דחיות upstream",
+    "connectionTestsCount": "{count} בדיקות חיבור",
+    "notMeasured": "לא נמדד"
   },
   "playground": {
     "title": "Title",
@@ -11485,6 +11502,10 @@
       "requestedModel": "מודל שביקשת",
       "requestProtocol": "פרוטוקול Req",
       "cacheSource": "מקור מטמון",
+      "contentProvenance": "תגובה",
+      "contentEmpty": "תגובה ריקה",
+      "usageAbsent": "מספר הטוקנים לא דווח",
+      "usageEstimated": "מספר הטוקנים מוערך",
       "modelPinning": "הצמדת מודל",
       "activeModelPinning": "פעיל — מודל שנבחר באמצעות נעילת סשן",
       "rotated": "סובב: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "מזהה קורלציה: {id}",
       "detailedPayloadInfo": "אפשר לוגים מפורטים קודם אם אתה רוצה את תצוגת העומס של הלקוח/ספק בארבעה שלבים עבור בקשות חדשות.",
       "copyAll": "העתק הכול",
-      "copiedAll": "הכול הועתק"
+      "copiedAll": "הכול הועתק",
+      "resilienceStoredError": "הוגש משגיאה שמורה",
+      "resilienceParked": "הושהה {ms} לפני השליחה",
+      "resilienceRotations": "{count} החלפות חשבון",
+      "resilienceRetried": "תור ריק נוסה שוב",
+      "resilienceContinued": "חודש באמצע הזרם",
+      "resilienceRecovered": "שוחזר באמצעות פעולת חוסן"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "עדיין אין יומני Proxy. הגדירו שרתי Proxy ובצעו קריאות API כדי לראות אותם כאן.",
     "noMatchingLogs": "אין יומנים התואמים למסננים הנוכחיים.",
     "tlsFingerprint": "טביעת אצבע של TLS ב-Chrome 124",
-    "colPublicIp": "כתובת IP ציבורית"
+    "colPublicIp": "כתובת IP ציבורית",
+    "colUpstream": "מעלה",
+    "colEgress": "כתובת IP יוצאת",
+    "colCorrelation": "קורלציה",
+    "colServedBy": "מוגש על ידי",
+    "filterTraffic": "תנועה",
+    "filterTests": "בדיקות",
+    "filterSource": "מקור"
   },
   "endpointOptions": {
     "speech": "דיבור",
@@ -12806,7 +12840,12 @@
     "providerProxy": "פרוקסי",
     "providerProxyConfigureHint": "הגדר פרוקסי",
     "providerProxyTitleConfigured": "פרוקסי מוגדר: {host}",
-    "proxySetAside": "ה-proxy הושם בצד"
+    "proxySetAside": "ה-proxy הושם בצד",
+    "inheritConnectionOption": "אין proxy משלו (יורש את החיבור)",
+    "inheritedProxy": "יורש את החיבור: {host}",
+    "inheritedPool": "יורש את מאגר החיבורים ({count})",
+    "poolEmptyBlocked": "המאגר ריק — בקשות נכשלות (לא ישיר)",
+    "directEgress": "ישיר (ללא proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "ישיר",
     "targetUrl": "כתובת URL יעד",
     "error": "שגיאה",
-    "configuration": "הגדרת פרוקסי"
+    "configuration": "הגדרת פרוקסי",
+    "upstreamStatus": "סטטוס מעלה",
+    "noResponse": "אין תגובה",
+    "egressIp": "כתובת IP יוצאת",
+    "servedBy": "מוגש על ידי",
+    "correlationId": "מזהה קורלציה"
   },
   "requestTimeline": {
     "title": "ציר זמן הבקשה",

@@ -60,7 +60,10 @@ export interface RefusalCauseSignals {
  * PURE: classify the cause of a refused relay. 451 is a proven refusal by
  * status alone; 403 needs an explicit proof; 401/429 claim no cause.
  */
-export function classifyRefusalCause(status: number, signals: RefusalCauseSignals = {}): ProbeCause {
+export function classifyRefusalCause(
+  status: number,
+  signals: RefusalCauseSignals = {}
+): ProbeCause {
   if (status === 451) return "target_refused";
   if (status === 403) return signals.geoProven === true ? "target_refused" : "unproven";
   return "unclassified";
@@ -101,6 +104,63 @@ export function classifyProbeStatus(status: number): ProxyProbeOutcome {
   if (TARGET_BLOCK_STATUSES.has(status)) return "blocked";
   // A 5xx means the proxy DID relay — the target is at fault, not the proxy.
   return status < 500 ? "ok" : "inconclusive";
+}
+
+/**
+ * One collected probe result for cross-target evidence. `target` is the
+ * URL actually probed (generic or provider-resolved); `null` when the proxy
+ * config was invalid and nothing was probed. `status` is the HTTP status when
+ * the target answered, `null` on connection-level errors.
+ */
+export interface CrossProbeResult {
+  outcome: ProxyProbeOutcome;
+  status: number | null;
+  target: string | null;
+}
+
+/**
+ * PURE: build the answered-target evidence map for one sweep generation.
+ * A target counts as answered when at least one probe received any HTTP status
+ * (`status !== null` — ok, blocked/refused, or 5xx). Targets with no HTTP
+ * anywhere are absent from the map (no proof). Callers replace the prior-cycle
+ * map wholesale with the result — never merge — so a silent generation drops
+ * stale proof (no ghost evidence).
+ */
+export function buildTargetEvidenceMap(results: CrossProbeResult[]): Map<string, boolean> {
+  const answered = new Map<string, boolean>();
+  for (const result of results) {
+    if (result.target !== null && result.status !== null && !answered.has(result.target)) {
+      answered.set(result.target, true);
+    }
+  }
+  return answered;
+}
+
+/**
+ * PURE: lift the abstention only where proof exists. An `inconclusive`
+ * probe with no status (connection error or our own timeout) becomes `fail`
+ * when the same target URL answered with any HTTP status in this sweep or in
+ * the immediately previous generation (`priorAnswered`). Everything else is
+ * returned unchanged: `hang` (already conclusive), native `fail` (including
+ * invalid configs at `target: null`), and any result with a received HTTP
+ * status — the fate of received statuses never changes here.
+ */
+export function applyCrossProbeEvidence(
+  results: CrossProbeResult[],
+  priorAnswered: ReadonlyMap<string, boolean>
+): CrossProbeResult[] {
+  const answered = buildTargetEvidenceMap(results);
+  return results.map((result) => {
+    if (
+      result.outcome === "inconclusive" &&
+      result.status === null &&
+      result.target !== null &&
+      (answered.get(result.target) === true || priorAnswered.get(result.target) === true)
+    ) {
+      return { ...result, outcome: "fail" as const };
+    }
+    return result;
+  });
 }
 
 export interface ProxyHealthDecisionInput {

@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "کلید اصلی برای نامهای مستعار درگاه no-think/&lt;provider&gt;/&lt;model&gt;. روشن (پیشفرض): /v1/models برای هر مدل واجد شرایط Claude که قابلیت تفکر دارد، یک گونه بدون تفکر معرفی میکند و شناسه no-think/ ارسالشده در یک درخواست، با غیرفعالسازی استدلال به مدل واقعی نگاشت میشود. خاموش: هیچ گونهای معرفی نمیشود و شناسه no-think/ مانند هر شناسه مدل ناشناخته دیگری در نظر گرفته میشود. تا زمانی که این گزینه روشن است، انتخاب فعالسازی/غیرفعالسازی مختص هر مدل در ModelSpec.noThinkingAlias همچنان اعمال میشود.",
   "featureFlagChatVirtualLanesEnabledDescription": "خط‌های پذیرش مجازی تطبیقی به‌ازای هر مستاجر (tenant) را برای ارسال به ارائه‌دهندگان فعال کنید (#9654): افزایش ناگهانی بار یک مستاجر دیگر خطای 503 را برای مستاجر دیگر ایجاد نمی‌کند. متغیر محیطی OMNIROUTE_CHAT_VIRTUAL_LANES بر این تنظیم داشبورد اولویت دارد؛ تغییرات پس از راه‌اندازی مجدد سرور اعمال می‌شوند.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "صفحههای ارائهدهندگان در داشبورد: نشان «رایگان» را فقط برای سیگنالهایی نمایش دهید که ارائهدهنده آنها را معتبر میداند — روش اکتشافی نام نمایشی، فیلدهای رایگانِ غیربولین و پسوندهای :free برای ارائهدهندگان ثبتشدهای که سطح رایگان مستندی ندارند، کنار گذاشته میشوند. در حالت خاموش، قاعده تاریخی نشان حفظ میشود.",
-  "featureFlagProxySkipRecentlyFailedDescription": "مخزنهای پراکسی و چرخش بهازای هر حساب در opencode، پراکسیای را که بهتازگی ناموفق بوده است (کاوش TCP را رد کرده یا از طریق آن پاسخ 429 دریافت شده است)، برای مدتی مختص هر فرایند دوباره به کار نمیگیرند؛ این مدت با هر تکرار دو برابر میشود تا به سقف تعیینشده برسد. هیچ وضعیتی برای پراکسی ثبت نمیشود؛ اگر همه گزینهها کنار گذاشته شوند، انتخاب بدون تغییر میماند. بهطور پیشفرض غیرفعال است: ترتیب انتخاب دقیقاً همان چرخش ساده است.",
+  "featureFlagProxySkipRecentlyFailedDescription": "مخزنهای پراکسی و چرخش بهازای هر حساب در opencode، پراکسیای را که بهتازگی ناموفق بوده است (کاوش TCP را رد کرده یا از طریق آن پاسخ 429 دریافت شده است)، برای مدتی مختص هر فرایند دوباره به کار نمیگیرند؛ این مدت با هر تکرار دو برابر میشود تا به سقف تعیینشده برسد. هیچ وضعیتی برای پراکسی ثبت نمیشود؛ اگر همه گزینهها کنار گذاشته شوند، انتخاب بدون تغییر میماند. به‌طور پیش‌فرض فعال است؛ `false` انتخاب ساده را بازمی‌گرداند.",
   "featureFlagProxyPoolEgressObservationDescription": "در داشبورد، زیر هر مخزن پراکسی نشان دهید که طی ۲۴ ساعت گذشته چه تعداد IP خروجی مشاهدهشده به اعضای آن سرویس دادهاند، چه تعداد اتصال از آنها استفاده کردهاند و بیشترین تعداد اتصال مشاهدهشده پشت یک IP چقدر بوده است. این اطلاعات فقط خواندنی است، از گزارش پراکسی محاسبه میشود و هرگز برای مسیریابی استفاده نمیشود. بهطور پیشفرض غیرفعال است: ویرایشگر مخزن بدون تغییر میماند و مسیر مشاهده مقدار null را برمیگرداند.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "در پیمایش سلامت پراکسی، اجازه دهید کاوشی که هدف آن را رد کرده است (401/403/429: پراکسی درخواست را عبور داده، اما مقصد این IP خروجی را رد کرده است)، مانند یک کاوش پاسخدادهشده، شمارنده شکستهای متوالی پراکسی را بازنشانی کند. بهطور پیشفرض غیرفعال است: رد شدن همچنان خنثی باقی میماند و شمارنده را حفظ میکند. پاسخ 5xx در هر دو حالت نامشخص باقی میماند و رد شدن هرگز باعث حذف، غیرفعالسازی یا فعالسازی مجدد پراکسی نمیشود.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "به فرایند پاکسازی خودکار اجازه دهید کارهای نهاییشده Batch API (تکمیلشده/ناموفق/لغوشده/منقضیشده) را که بیش از OMNIROUTE_BATCH_RETENTION_DAYS از عمرشان گذشته است، بههمراه نقاط بررسی هر خط آنها حذف کند و محتوای BLOB فایلهای بارگذاریشدهای را که از expires_at خود گذشتهاند پاک کند. بهطور پیشفرض خاموش است: تا زمانی که اپراتور آن را فعال نکند، هر نصب موجود این دادهها را دقیقاً مانند قبل نگه میدارد. مسیر DELETE /api/v1/batches/delete-completed که توسط اپراتور فعال میشود، در هر دو حالت بدون تغییر باقی میماند — این مسیر یک قرارداد API عمومی، مستقل و بدون شرط است.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "غیرفعال‌سازی چسبندگی نشست",
     "sessionStickinessEnabled": "چسبندگی روشن",
     "sessionStickinessDisabled": "چسبندگی خاموش",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "پیش‌تنظیم Kimi Coding",
     "kimiPresetDescription": "مدل Kimi K3 به عنوان مدل اصلی (Moonshot API)، با انتقال خودکار به اتصالات Kimi Code شما (kimi-coding، kimi-web) در صورت پیکربندی.",
     "kimiPresetCta": "افزودن پیش‌تنظیم",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "این ارائه‌دهندگان/مدل‌های متصل فعلی که با این قالب مطابقت دارند را در یک ترکیب قابل ویرایش ذخیره می‌کند.",
     "duplicateAutoComboFailedPrefix": "تکرار ترکیب خودکار ناموفق بود:",
     "duplicateAutoComboUnknownError": "خطای ناشناخته",
-    "duplicateAutoComboTitle": "ایجاد یک ترکیب ثابت از {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "ایجاد یک ترکیب ثابت از {name}"
   },
   "costs": {
     "title": "هزینهها",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "حذف {count} مورد انتخاب شده",
     "batchActivateSelected": "فعال‌سازی {count} مورد انتخاب شده",
     "testPassed": "✓ تایید",
+    "sweepVerdict": "آخرین پایش: {cause} ({code}) {age}",
+    "sweepNoData": "از زمان راه‌اندازی هنوز پایشی انجام نشده",
+    "sweepLabel": {
+      "unproven": "هدف رد کرد",
+      "unclassified": "بررسی بی‌نتیجه",
+      "ok": "پاسخ داده شد",
+      "fail": "اتصال ناموفق بود",
+      "hang": "دست‌تکانی متوقف شد",
+      "inconclusive": "بی‌نتیجه"
+    },
     "close": "بستن",
     "managePool": "مدیریت استخر",
     "poolTitle": "استخر و چرخش پروکسی",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "{exits, plural, one {# خروجی} other {# خروجی}} استفادهشده توسط {connections, plural, one {# اتصال} other {# اتصال}} · حداکثر {max} روی یک خروجی · در {hours} ساعت گذشته",
     "poolEgressObservationEmpty": "در {hours} ساعت گذشته هیچ ترافیکی مشاهده نشد",
     "poolEgressObservationHint": "محاسبهشده از گزارش پراکسی در بازهٔ زمانی: آدرسهای IP خروجی متمایز مشاهدهشده برای اعضای این مخزن و اتصالهای OmniRoute که از آنها استفاده کردهاند. «روی یک خروجی» به معنای کل بازهٔ زمانی است، نه بهطور همزمان. قفل موقت 429 برای هر IP فقط اتصالهای همان خانوادهٔ ارائهدهنده را متوقف میکند.",
+    "poolEgressFailuresByExit": "خطاها از طریق {exit}: {count}",
+    "poolEgressFailuresUnattributed": "خطاهای بدون خروجی مشخص: {count}",
     "poolMemberEgress": "{host}:{port} از طریق {egressIp} خارج شد · {hours} ساعت گذشته",
     "poolMemberEgressEmpty": "{host}:{port}: در {hours} ساعت گذشته هیچ ترافیکی مشاهده نشد",
     "poolMemberEgressHint": "آخرین IP خروجی مشاهدهشده از طریق این عضو استخر در بازه زمانی، که از گزارش پراکسی خوانده شده است. برای عضوی که در این بازه هیچ ترافیکی نداشته باشد، خط «بدون ترافیک» نمایش داده میشود.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "از آخرین راه‌اندازی مجدد",
     "poolSignalSetAside": "کنار گذاشتن",
     "poolSignalPosition": "ترتیب موقعیت",
-    "poolHealthRankingOff": "رتبه‌بندی سلامت خاموش"
+    "poolHealthRankingOff": "رتبه‌بندی سلامت خاموش",
+    "transportRate": "{rate}٪ انتقال",
+    "previousSuccessRate": "قبلاً {rate}٪ موفقیت",
+    "upstreamRefusals": "{count} رد بالادستی",
+    "connectionTestsCount": "{count} آزمون اتصال",
+    "notMeasured": "اندازه‌گیری نشده"
   },
   "playground": {
     "title": "محیط آزمایش مدل",
@@ -11485,6 +11502,10 @@
       "requestedModel": "مدل درخواست شده",
       "requestProtocol": "پروتکل Req",
       "cacheSource": "کش منبع",
+      "contentProvenance": "پاسخ",
+      "contentEmpty": "پاسخ خالی",
+      "usageAbsent": "تعداد توکن گزارش نشده است",
+      "usageEstimated": "تعداد توکن تخمینی است",
       "modelPinning": "پین کردن مدل",
       "activeModelPinning": "فعال — مدل انتخاب شده از طریق پین کردن جلسه",
       "rotated": "چرخش: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "شناسه همبستگی: {id}",
       "detailedPayloadInfo": "ابتدا لاگ‌برداری دقیق را فعال کنید اگر می‌خواهید نمای بارگذاری چهار مرحله‌ای مشتری/تأمین‌کننده برای درخواست‌های جدید را مشاهده کنید.",
       "copyAll": "کپی همه",
-      "copiedAll": "همه کپی شدند"
+      "copiedAll": "همه کپی شدند",
+      "resilienceStoredError": "از خطای ذخیره‌شده ارائه شد",
+      "resilienceParked": "{ms} پیش از ارسال متوقف شد",
+      "resilienceRotations": "{count} چرخش حساب",
+      "resilienceRetried": "نوبت خالی دوباره امتحان شد",
+      "resilienceContinued": "از میانه جریان ادامه یافت",
+      "resilienceRecovered": "با یک اقدام تاب‌آوری بازیابی شد"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "هنوز هیچ گزارش پروکسیای وجود ندارد. پروکسیها را پیکربندی کنید و فراخوانیهای API را انجام دهید تا گزارشها را اینجا ببینید.",
     "noMatchingLogs": "هیچ گزارشی با فیلترهای فعلی مطابقت ندارد.",
     "tlsFingerprint": "اثر انگشت TLS مربوط به Chrome 124",
-    "colPublicIp": "IP عمومی"
+    "colPublicIp": "IP عمومی",
+    "colUpstream": "بالا دستی",
+    "colEgress": "IP خروجی",
+    "colCorrelation": "همبستگی",
+    "colServedBy": "توسط ارائه شده",
+    "filterTraffic": "ترافیک",
+    "filterTests": "آزمایش‌ها",
+    "filterSource": "منبع"
   },
   "endpointOptions": {
     "speech": "گفتار",
@@ -12806,7 +12840,12 @@
     "providerProxy": "پراکسی",
     "providerProxyConfigureHint": "تنظیم پروکسی",
     "providerProxyTitleConfigured": "پروکسی پیکربندی شده: {host}",
-    "proxySetAside": "پروکسی کنار گذاشته شد"
+    "proxySetAside": "پروکسی کنار گذاشته شد",
+    "inheritConnectionOption": "بدون پروکسی اختصاصی (اتصال را به ارث می‌برد)",
+    "inheritedProxy": "اتصال را به ارث می‌برد: {host}",
+    "inheritedPool": "استخر اتصال را به ارث می‌برد ({count})",
+    "poolEmptyBlocked": "استخر خالی است — درخواست‌ها ناموفق می‌شوند (نه مستقیم)",
+    "directEgress": "مستقیم (بدون پروکسی)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "مستقیم",
     "targetUrl": "آدرس هدف",
     "error": "خطا",
-    "configuration": "پیکربندی پروکسی"
+    "configuration": "پیکربندی پروکسی",
+    "upstreamStatus": "وضعیت بالا دستی",
+    "noResponse": "هیچ پاسخی",
+    "egressIp": "IP خروجی",
+    "servedBy": "توسط ارائه شده",
+    "correlationId": "شناسه همبستگی"
   },
   "requestTimeline": {
     "title": "زمان‌بندی درخواست",

@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; şlüz ləqəbləri üçün əsas keçid. Aktiv (standart): /v1/models düşünmə qabiliyyətinə malik hər uyğun Claude modeli üçün düşünməsiz variantı göstərir və sorğuda göndərilən no-think/ identifikatoru əsaslandırma söndürülməklə yenidən real modelə uyğunlaşdırılır. Deaktiv: heç bir variant göstərilmir və no-think/ identifikatoru hər hansı digər naməlum model identifikatoru kimi qəbul edilir. Bu aktiv olduqda hər model üzrə ModelSpec.noThinkingAlias seçim imkanı yenə də qüvvədə qalır.",
   "featureFlagChatVirtualLanesEnabledDescription": "Təchizatçı göndərişi üçün hər bir icarəçi (tenant) üzrə adaptiv virtual qəbul zolaqlarını aktivləşdirin (#9654): bir icarəçinin ani yükü artıq digərinə 503 qaytarmır. OMNIROUTE_CHAT_VIRTUAL_LANES mühit dəyişəni bu idarəetmə paneli ayarından üstündür; dəyişikliklər server yenidən işə salındıqda qüvvəyə minir.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "İdarə panelindəki provayder səhifələri: Pulsuz nişanını yalnız provayderin dəstəklədiyi siqnallar əsasında göstərin — sənədləşdirilmiş pulsuz səviyyəsi olmayan qeydiyyatdan keçmiş provayderlər üçün göstərilən ad evristikasından, Boolean tipli olmayan pulsuz sahələrdən və :free şəkilçilərindən artıq istifadə edilmir. Deaktiv olduqda əvvəlki nişan qaydası saxlanılır.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Proksi hovuzları və opencode-un hər hesab üzrə rotasiyası yenicə uğursuz olmuş proksini (TCP yoxlaması rədd edilib və ya onun vasitəsilə 429 cavabı alınıb) hər təkrarda ikiqat artan, lakin maksimum hədlə məhdudlaşan, hər proses üçün müəyyən edilmiş müddət ərzində yenidən təqdim etmir. Heç bir proksi statusu yazılmır; bütün namizədlər kənara qoyulduqda seçim dəyişməz qalır. Defolt olaraq deaktivdir: seçim sırası adi rotasiya ilə tam eynidir.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proksi hovuzları və opencode-un hər hesab üzrə rotasiyası yenicə uğursuz olmuş proksini (TCP yoxlaması rədd edilib və ya onun vasitəsilə 429 cavabı alınıb) hər təkrarda ikiqat artan, lakin maksimum hədlə məhdudlaşan, hər proses üçün müəyyən edilmiş müddət ərzində yenidən təqdim etmir. Heç bir proksi statusu yazılmır; bütün namizədlər kənara qoyulduqda seçim dəyişməz qalır. Defolt olaraq aktivdir; `false` adi seçimi bərpa edir.",
   "featureFlagProxyPoolEgressObservationDescription": "İdarə panelində proksi hovuzunun altında son 24 saat ərzində onun üzvlərinə xidmət göstərən neçə çıxış IP-sinin müşahidə edildiyini, neçə bağlantının onlardan istifadə etdiyini və bir IP-nin arxasında müşahidə edilən ən yüksək sayı göstərin. Yalnız oxuma üçündür, proksi jurnalından hesablanır və marşrutlaşdırma üçün heç vaxt istifadə edilmir. Defolt olaraq deaktivdir: hovuz redaktoru dəyişməz qalır və müşahidə marşrutu null cavabı verir.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proksinin sağlamlıq yoxlamasında hədəfin rədd etdiyi yoxlamanın (401/403/429: proksi sorğunu ötürüb, təyinat nöqtəsi bu çıxış IP-sini rədd edib) uğurla ötürülmüş yoxlama kimi proksinin ardıcıl uğursuzluq sayğacını sıfırlamasına icazə verin. Defolt olaraq deaktivdir: rədd cavabı neytral qalır və ardıcıl uğursuzluq sayğacını dəyişmir. 5xx hər iki halda qeyri-müəyyən qalır və rədd cavabı heç vaxt proksini silmir, deaktiv etmir və ya yenidən aktivləşdirmir.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Avtomatik təmizləmə prosesinə OMNIROUTE_BATCH_RETENTION_DAYS müddətindən daha köhnə olan son vəziyyətdəki (tamamlanmış/uğursuz/ləğv edilmiş/müddəti bitmiş) Batch API tapşırıqlarını onların hər sətir üzrə nəzarət nöqtələri ilə birlikdə silməyə və öz expires_at vaxtı keçmiş yüklənmiş faylların BLOB məzmununu təmizləməyə icazə verin. Defolt olaraq deaktivdir: operator bunu aktiv edənədək bütün mövcud quraşdırmalar bu məlumatları əvvəlki kimi saxlayır. Operator tərəfindən işə salınan DELETE /api/v1/batches/delete-completed marşrutu istənilən halda bundan təsirlənmir — bu, ayrıca və qeyd-şərtsiz ictimai API müqaviləsidir.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Sessiya yapışqanlığını söndürün",
     "sessionStickinessEnabled": "Yapışqanlıq aktivdir",
     "sessionStickinessDisabled": "Yapışqanlıq qapalıdır",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding hazır ayarı",
     "kimiPresetDescription": "Əsas model olaraq Kimi K3 (Moonshot API), konfiqurasiya edildikdə Kimi Code bağlantılarınıza (kimi-coding, kimi-web) avtomatik keçid ilə.",
     "kimiPresetCta": "Hazır ayarı əlavə et",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Bu, bu şablona uyğun olan hazırkı qoşulmuş provayderləri/modeləri redaktə oluna bilən kombo kimi saxlayacaq.",
     "duplicateAutoComboFailedPrefix": "Avtokombo kopyalanması uğursuz oldu:",
     "duplicateAutoComboUnknownError": "Naməlum xəta",
-    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat"
   },
   "costs": {
     "title": "Xərclər",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Seçilmiş {count} elementi sil",
     "batchActivateSelected": "Seçilmiş {count} elementi aktivləşdir",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Son yoxlama: {cause} ({code}) {age}",
+    "sweepNoData": "Başlanğıcdan bəri yoxlama yoxdur",
+    "sweepLabel": {
+      "unproven": "hədəf rədd etdi",
+      "unclassified": "yoxlama nəticəsiz",
+      "ok": "xidmət göstərildi",
+      "fail": "bağlantı uğursuz oldu",
+      "hang": "əl sıxışma dayandı",
+      "inconclusive": "nəticəsiz"
+    },
     "close": "Bağla",
     "managePool": "Hovuzu idarə et",
     "poolTitle": "Proksi hovuzu və rotasiyası",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "{exits, plural, one {# çıxış} other {# çıxış}} {connections, plural, one {# bağlantı} other {# bağlantı}} tərəfindən istifadə edilib · bir çıxışda maksimum {max} · son {hours} saat",
     "poolEgressObservationEmpty": "Son {hours} saat ərzində trafik müşahidə edilməyib",
     "poolEgressObservationHint": "Bu zaman intervalı üzrə proksi jurnalından hesablanıb: bu hovuzun üzvləri üçün müşahidə edilən fərqli çıxış IP-ləri və onlardan istifadə edən OmniRoute bağlantıları. \"Bir çıxışda\" eyni anda deyil, zaman intervalı ərzində deməkdir. Hər IP üzrə 429 bloklanması yalnız eyni provayder ailəsinə aid bağlantıları müvəqqəti dayandırır.",
+    "poolEgressFailuresByExit": "{exit} üzərindən uğursuzluqlar: {count}",
+    "poolEgressFailuresUnattributed": "Çıxışı müəyyən edilməyən uğursuzluqlar: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} vasitəsilə çıxıb · son {hours} saat",
     "poolMemberEgressEmpty": "{host}:{port}: son {hours} saat ərzində trafik müşahidə edilməyib",
     "poolMemberEgressHint": "Bu hovuz üzvü vasitəsilə göstərilən zaman intervalında müşahidə edilmiş və proksi jurnalından oxunmuş son çıxış IP-si. Bu intervalda trafiki olmayan üzv üçün trafikin olmaması sətri göstərilir.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "Sonuncu yenidən başlatmadan bəri",
     "poolSignalSetAside": "Kənara qoy",
     "poolSignalPosition": "Mövqe sırası",
-    "poolHealthRankingOff": "Sağlamlıq reytinqi kapalı"
+    "poolHealthRankingOff": "Sağlamlıq reytinqi kapalı",
+    "transportRate": "{rate}% nəqliyyat",
+    "previousSuccessRate": "Əvvəlcə {rate}% uğur",
+    "upstreamRefusals": "{count} upstream rəddi",
+    "connectionTestsCount": "{count} bağlantı testi",
+    "notMeasured": "Ölçülməyib"
   },
   "playground": {
     "title": "Model sınaq meydanı",
@@ -11485,6 +11502,10 @@
       "requestedModel": "Tələb Olunan Model",
       "requestProtocol": "Req Protokolu",
       "cacheSource": "Keş Mənbəyi",
+      "contentProvenance": "Cavab",
+      "contentEmpty": "Boş cavab",
+      "usageAbsent": "Token sayı bildirilməyib",
+      "usageEstimated": "Token sayı təxmini",
       "modelPinning": "Modelin sabitlənməsi",
       "activeModelPinning": "Aktiv — sessiya sabitlənməsi vasitəsilə seçilmiş model",
       "rotated": "Dönmüşdür: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "Korrelyasiya ID: {id}",
       "detailedPayloadInfo": "Əvvəlcə ətraflı qeydiyyatı aktiv edin, əgər yeni tələblər üçün dörd mərhələli müştəri/təchizatçı yük görünüşünü istəyirsinizsə.",
       "copyAll": "Hamısını kopyala",
-      "copiedAll": "Hamısı kopyalandı"
+      "copiedAll": "Hamısı kopyalandı",
+      "resilienceStoredError": "Saxlanmış xətadan xidmət edildi",
+      "resilienceParked": "Göndərmədən əvvəl {ms} gözlədildi",
+      "resilienceRotations": "{count} hesab rotasiyası",
+      "resilienceRetried": "Boş növbə təkrarlandı",
+      "resilienceContinued": "Axının ortasında davam etdirildi",
+      "resilienceRecovered": "Dayanıqlıq tədbiri ilə bərpa edildi"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "Hələ proksi jurnalı yoxdur. Onları burada görmək üçün proksiləri konfiqurasiya edin və API çağırışları edin.",
     "noMatchingLogs": "Cari filtrlərə uyğun jurnal yoxdur.",
     "tlsFingerprint": "Chrome 124 TLS barmaq izi",
-    "colPublicIp": "İctimai IP"
+    "colPublicIp": "İctimai IP",
+    "colUpstream": "Yuxarı axın",
+    "colEgress": "Çıxış IP",
+    "colCorrelation": "Korrelyasiya",
+    "colServedBy": "Təmin edən",
+    "filterTraffic": "Trafik",
+    "filterTests": "Testlər",
+    "filterSource": "Mənbə"
   },
   "endpointOptions": {
     "speech": "Nitq",
@@ -12806,7 +12840,12 @@
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Proksi konfiqurasiya et",
     "providerProxyTitleConfigured": "Proxy konfiqurasiya edilib: {host}",
-    "proxySetAside": "Proksi kənara qoyuldu"
+    "proxySetAside": "Proksi kənara qoyuldu",
+    "inheritConnectionOption": "Şəxsi proksi yoxdur (bağlantını miras alır)",
+    "inheritedProxy": "Bağlantını miras alır: {host}",
+    "inheritedPool": "Bağlantı hovuzunu miras alır ({count})",
+    "poolEmptyBlocked": "Hovuz boşdur — sorğular uğursuz olur (birbaşa deyil)",
+    "directEgress": "Birbaşa (proksisiz)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "Birbaşa",
     "targetUrl": "Hədəf URL",
     "error": "Xəta",
-    "configuration": "Proksi Konfiqurasiyası"
+    "configuration": "Proksi Konfiqurasiyası",
+    "upstreamStatus": "Yuxarı axın statusu",
+    "noResponse": "Cavab yoxdur",
+    "egressIp": "Çıxış IP",
+    "servedBy": "Təmin edən",
+    "correlationId": "Korrelyasiya ID"
   },
   "requestTimeline": {
     "title": "Sorğu Zaman Çizgisi",

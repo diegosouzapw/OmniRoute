@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Babban maɓalli na aliases na gateway na no-think/&lt;provider&gt;/&lt;model&gt;. Kunne (tsoho): /v1/models yana bayyana nau'in da ba ya yin tunani ga kowane samfurin Claude mai ikon tunani da ya cancanta, kuma ID na no-think/ da aka aika cikin buƙata yana komawa ga ainihin samfurin tare da hana yin nazari. Kashe: ba a bayyana kowane nau'i, kuma ana ɗaukar ID na no-think/ kamar kowane ID na samfurin da ba a sani ba. Zaɓin shiga/fita na ModelSpec.noThinkingAlias na kowane samfurin yana ci gaba da aiki yayin da wannan yake kunne.",
   "featureFlagChatVirtualLanesEnabledDescription": "Kunna layukan karɓa na kama-da-wane masu daidaitawa ga kowane tenant domin aika buƙatu zuwa provider (#9654): yawaitar buƙatun tenant ɗaya ba za ta sake jawo wa wani kuskuren 503 ba. Env var na OMNIROUTE_CHAT_VIRTUAL_LANES yana da fifiko kan wannan sauyin dashboard; sauye-sauye za su fara aiki bayan sake kunna server.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Shafukan masu samarwa na Dashboard: nuna alamar Kyauta kawai bisa alamomin da mai samarwar ya tabbatar — wannan yana watsi da dabarar hasashen sunan nuni, filayen kyauta marasa ƙimar boolean, da kari na :free a kan masu samarwa da aka yi wa rajista waɗanda ba su da matakin kyauta da aka rubuta. Idan an Kashe, ana ci gaba da amfani da tsohuwar ƙa’idar alamar.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Rukunin proxy da juyawar opencode ta kowane asusu suna daina sake amfani da proxy da ya gaza kwanan nan (ya ƙi gwajin TCP, ko aka karɓi 429 ta cikinsa) na wani lokaci na kowane tsari wanda ke ninkuwa a duk lokacin da gazawar ta sake faruwa, har zuwa iyaka. Ba a rubuta matsayin proxy; idan aka ware dukkan waɗanda za a iya zaɓa, zaɓin ba ya canzawa. A kashe yake ta tsohuwa: tsarin zaɓi daidai yake da juyawa na yau da kullum.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Rukunin proxy da juyawar opencode ta kowane asusu suna daina sake amfani da proxy da ya gaza kwanan nan (ya ƙi gwajin TCP, ko aka karɓi 429 ta cikinsa) na wani lokaci na kowane tsari wanda ke ninkuwa a duk lokacin da gazawar ta sake faruwa, har zuwa iyaka. Ba a rubuta matsayin proxy; idan aka ware dukkan waɗanda za a iya zaɓa, zaɓin ba ya canzawa. A kunne yake ta tsohuwa; `false` yana dawo da zaɓi na yau da kullum.",
   "featureFlagProxyPoolEgressObservationDescription": "A ƙarƙashin rukunin proxy a dashboard, nuna adadin IPs na fita da aka lura sun yi wa membobinsa hidima a cikin awanni 24 da suka gabata, adadin haɗin da suka yi amfani da su, da mafi yawan adadin da aka gani a bayan IP guda. Na karantawa kawai ne, ana lissafa shi daga kundin proxy, kuma ba a taɓa amfani da shi wajen routing. A kashe yake ta tsohuwa: editan rukuni ba ya canzawa kuma hanyar lura tana amsa null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "A yayin binciken lafiyar proxy, bari gwajin da manufa ta ƙi (401/403/429: proxy ya isar, amma wurin da ake nufi ya ƙi wannan IP na fita) ya sake saita jerin gazawar proxy masu jere, kamar gwajin da aka yi wa hidima. A kashe yake ta tsohuwa: ƙin amincewa yana kasancewa tsaka-tsaki kuma yana riƙe da jerin gazawar. 5xx yana kasancewa mara tabbas a kowane hali, kuma ƙin amincewa ba ya taɓa cirewa, kashewa ko sake kunna proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Bari aikin sharewa ta atomatik ya goge ayyukan Batch API da suka ƙare (an kammala/an gaza/an soke/lokaci ya ƙare) waɗanda suka girmi OMNIROUTE_BATCH_RETENTION_DAYS, tare da wuraren ci-gaban kowane layinsu, sannan ya share abun cikin BLOB na fayilolin da aka ɗora waɗanda lokacinsu na expires_at ya wuce. A kashe yake ta tsohuwa: duk shigarwar da ake da ita za ta ci gaba da riƙe wannan bayanin daidai kamar da har sai mai gudanarwa ya kunna shi. Hanyar DELETE /api/v1/batches/delete-completed da mai gudanarwa ke jawowa ba ta canzawa a kowane hali — wata yarjejeniyar API ta jama'a ce daban wadda ba ta da sharaɗi.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Kashe mannewar zama",
     "sessionStickinessEnabled": "Mannewar zama tana kunne",
     "sessionStickinessDisabled": "Mannewar zama tana kashe",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Saitin Kimi Coding",
     "kimiPresetDescription": "Kimi K3 a matsayin babban samfurin (Moonshot API), tare da komawa ta atomatik zuwa haɗin Kimi Code ɗinka (kimi-coding, kimi-web) idan an saita su.",
     "kimiPresetCta": "Ƙara saitin",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Wannan zai adana kwafin masu samarwa/samfura da aka haɗa a yanzu waɗanda suka dace da wannan samfuri na tsari a matsayin haɗin da za a iya gyarawa.",
     "duplicateAutoComboFailedPrefix": "An kasa yin kwafin haɗin atomatik:",
     "duplicateAutoComboUnknownError": "Kuskuren da ba a sani ba",
-    "duplicateAutoComboTitle": "Ƙirƙiri tsayayyen haɗi daga {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ƙirƙiri tsayayyen haɗi daga {name}"
   },
   "costs": {
     "title": "Kuɗaɗen kashewa",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Goge zaɓaɓɓu {count}",
     "batchActivateSelected": "Kunna zaɓaɓɓu {count}",
     "testPassed": "✓ Lafiya",
+    "sweepVerdict": "Bincike na ƙarshe: {cause} ({code}) {age}",
+    "sweepNoData": "Babu bincike tukuna tun farawa",
+    "sweepLabel": {
+      "unproven": "manufa ta ƙi",
+      "unclassified": "bincike bai kammala ba",
+      "ok": "an yi hidima",
+      "fail": "haɗin ya gaza",
+      "hang": "musafaha ya tsaya",
+      "inconclusive": "bai kammala ba"
+    },
     "close": "Rufe",
     "managePool": "Sarrafa Pool",
     "poolTitle": "Proxy Pool da Juyawa",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "An yi amfani da {exits, plural, one {hanyar fita #} other {hanyoyin fita #}} ta hanyar {connections, plural, one {haɗi #} other {haɗe-haɗe #}} · har zuwa {max} a kan hanyar fita guda · sa'o'i {hours} da suka gabata",
     "poolEgressObservationEmpty": "Ba a ga zirga-zirga ba cikin sa'o'i {hours} da suka gabata",
     "poolEgressObservationHint": "An ƙidaya daga rajistar proxy a tsawon wannan lokacin: adiresoshin IP na fita daban-daban da aka gani ga mambobin wannan rukuni, da kuma haɗe-haɗen OmniRoute da suka yi amfani da su. \"A kan hanyar fita guda\" yana nufin a tsawon wannan lokacin, ba a lokaci guda ba. Kullewar 429 ta kowane IP tana dakatar da haɗe-haɗen iyalin mai samarwa iri ɗaya ne kawai.",
+    "poolEgressFailuresByExit": "Gazawa ta hanyar {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Gazawa ba tare da hanyar fita da aka danganta ba: {count}",
     "poolMemberEgress": "{host}:{port} ya fita ta {egressIp} · awanni {hours} da suka gabata",
     "poolMemberEgressEmpty": "{host}:{port}: ba a ga zirga-zirga ba a cikin awanni {hours} da suka gabata",
     "poolMemberEgressHint": "Adireshin IP na fita na ƙarshe da aka gani ta wannan mamban pool a cikin lokacin dubawa, wanda aka karanta daga rajistar proxy. Mamban da ba shi da zirga-zirga a cikin wannan lokacin zai nuna layin babu-zirga-zirga.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "Tun sake farawa na ƙarshe",
     "poolSignalSetAside": "Ajiye a gefe",
     "poolSignalPosition": "Tsarin matsayi",
-    "poolHealthRankingOff": "Matsayin lafiya a kashe"
+    "poolHealthRankingOff": "Matsayin lafiya a kashe",
+    "transportRate": "{rate}% sufuri",
+    "previousSuccessRate": "A baya {rate}% nasara",
+    "upstreamRefusals": "{count} kin amincewa daga sama",
+    "connectionTestsCount": "{count} gwaje-gwajen haɗi",
+    "notMeasured": "Ba a auna ba"
   },
   "playground": {
     "title": "Filin Gwajin Model",
@@ -11485,6 +11502,10 @@
       "requestedModel": "Samfurin da Aka Buƙata",
       "requestProtocol": "Ka’idar Buƙata",
       "cacheSource": "Tushen Ma’ajiya",
+      "contentProvenance": "Amsa",
+      "contentEmpty": "Amsa mara komai",
+      "usageAbsent": "Ba a bayar da adadin token ba",
+      "usageEstimated": "An kiyasta adadin token",
       "modelPinning": "Kafewar Samfuri",
       "activeModelPinning": "Yana aiki — an zaɓi samfurin ta hanyar kafewar zaman",
       "rotated": "An sauya: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "ID na Alaƙa: {id}",
       "detailedPayloadInfo": "Da farko, kunna yin cikakken log idan kana son ganin payload na matakai huɗu na abokin ciniki/mai bayarwa don sabbin buƙatu.",
       "copyAll": "Kwafi duka",
-      "copiedAll": "An kwafi duka"
+      "copiedAll": "An kwafi duka",
+      "resilienceStoredError": "An bayar daga kuskuren da aka adana",
+      "resilienceParked": "An ajiye {ms} kafin aikawa",
+      "resilienceRotations": "Juyawar asusu {count}",
+      "resilienceRetried": "An sake gwada zagaye mara komai",
+      "resilienceContinued": "An ci gaba a tsakiyar rafi",
+      "resilienceRecovered": "An dawo da shi ta matakin juriya"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "Babu rajistan ayyukan proxy tukuna. Saita proxies sannan ka yi kiran API don ganin su a nan.",
     "noMatchingLogs": "Babu rajistan ayyuka da suka dace da matatun yanzu.",
     "tlsFingerprint": "Sawun yatsan TLS na Chrome 124",
-    "colPublicIp": "IP na jama'a"
+    "colPublicIp": "IP na jama'a",
+    "colUpstream": "Tushen",
+    "colEgress": "IP na fita",
+    "colCorrelation": "Haɗin kai",
+    "colServedBy": "An bayar da",
+    "filterTraffic": "Tafiya",
+    "filterTests": "Gwaje-gwaje",
+    "filterSource": "Tushen"
   },
   "endpointOptions": {
     "speech": "Magana",
@@ -12806,7 +12840,12 @@
     "providerProxy": "Wakili",
     "providerProxyConfigureHint": "Saita proxy",
     "providerProxyTitleConfigured": "An saita proxy: {host}",
-    "proxySetAside": "Proxy an ajiye a gefe"
+    "proxySetAside": "Proxy an ajiye a gefe",
+    "inheritConnectionOption": "Babu proxy na kansa (yana gadon haɗi)",
+    "inheritedProxy": "Yana gadon haɗi: {host}",
+    "inheritedPool": "Yana gadon tafkin haɗi ({count})",
+    "poolEmptyBlocked": "Tafkin babu kowa — buƙatun suna faduwa (ba kai tsaye ba)",
+    "directEgress": "Kai tsaye (babu proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "Kai tsaye (na asali)",
     "targetUrl": "URL ɗin da ake nufi",
     "error": "Kuskure",
-    "configuration": "Saitunan Proksi"
+    "configuration": "Saitunan Proksi",
+    "upstreamStatus": "Matsayin tushen",
+    "noResponse": "Babu amsa",
+    "egressIp": "IP na fita",
+    "servedBy": "An bayar da",
+    "correlationId": "ID na haɗin kai"
   },
   "requestTimeline": {
     "title": "Jadawalin Lokacin Buƙata",

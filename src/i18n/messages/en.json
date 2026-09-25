@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Master switch for the no-think/&lt;provider&gt;/&lt;model&gt; gateway aliases. On (default): /v1/models advertises a no-thinking variant for every eligible thinking-capable Claude model, and a no-think/ id sent on a request resolves back to the real model with reasoning suppressed. Off: no variants are advertised and a no-think/ id is treated like any other unknown model id. The per-model ModelSpec.noThinkingAlias opt-in/opt-out still applies while this is on.",
   "featureFlagChatVirtualLanesEnabledDescription": "Enable per-tenant adaptive virtual admission lanes for provider dispatch (#9654): one tenant's burst no longer 503s another. The OMNIROUTE_CHAT_VIRTUAL_LANES env var wins over this dashboard override; changes take effect at server restart.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Dashboard provider pages: show the Free badge only on signals the provider honors — drops the display-name heuristic, non-boolean free fields and :free suffixes on registered providers without a documented free tier. Off keeps the historical badge rule.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. Off by default: selection order is exactly the plain rotation.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. On by default; `false` restores plain selection.",
   "featureFlagProxyPoolEgressObservationDescription": "Show, under a proxy pool in the dashboard, how many observed egress IPs served its members over the last 24 h, how many connections used them and the most seen behind one IP. Read-only, computed from the proxy log, never used for routing. Off by default: the pool editor is unchanged and the observation route answers null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "In the proxy health sweep, let a probe the target refused (401/403/429: the proxy relayed, the destination refused this egress IP) reset the consecutive-failure streak of the proxy, like a served probe. Off by default: a refusal stays neutral and keeps the streak. A 5xx stays inconclusive either way, and a refusal never removes, disables or re-activates a proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Let the automatic cleanup sweep delete terminal (completed/failed/cancelled/expired) Batch API jobs older than OMNIROUTE_BATCH_RETENTION_DAYS, along with their per-line checkpoints, and clear the BLOB content of uploaded files past their own expires_at. Off by default: every existing install keeps this data exactly as before until an operator opts in. The operator-triggered DELETE /api/v1/batches/delete-completed route is unaffected either way -- it is a separate, unconditional public API contract.",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Delete {count} selected",
     "batchActivateSelected": "Enable {count} selected",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Last sweep: {cause} ({code}) {age}",
+    "sweepNoData": "No sweep yet since startup",
+    "sweepLabel": {
+      "unproven": "target refused",
+      "unclassified": "check inconclusive",
+      "ok": "served",
+      "fail": "connection failed",
+      "hang": "handshake stalled",
+      "inconclusive": "inconclusive"
+    },
     "close": "Close",
     "managePool": "Manage Pool",
     "poolTitle": "Proxy Pool & Rotation",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "{exits, plural, one {# exit} other {# exits}} used by {connections, plural, one {# connection} other {# connections}} · up to {max} on one exit · last {hours} h",
     "poolEgressObservationEmpty": "No traffic observed in the last {hours} h",
     "poolEgressObservationHint": "Counted from the proxy log over the window: distinct egress IPs observed for the members of this pool, and the OmniRoute connections that used them. \"On one exit\" means over the window, not at the same time. The per-IP 429 lockout only pauses connections of the same provider family.",
+    "poolEgressFailuresByExit": "Failures via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Failures with no attributed exit: {count}",
     "poolMemberEgress": "{host}:{port} left through {egressIp} · last {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: no traffic observed in the last {hours} h",
     "poolMemberEgressHint": "Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "Since the last restart",
     "poolSignalSetAside": "Set aside",
     "poolSignalPosition": "Position order",
-    "poolHealthRankingOff": "Health ranking off"
+    "poolHealthRankingOff": "Health ranking off",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Previously {rate}% success",
+    "upstreamRefusals": "{count} upstream refusals",
+    "connectionTestsCount": "{count} connection tests",
+    "notMeasured": "Not measured"
   },
   "playground": {
     "title": "Model Playground",
@@ -11485,6 +11502,10 @@
       "requestedModel": "Requested Model",
       "requestProtocol": "Req Protocol",
       "cacheSource": "Cache Source",
+      "contentProvenance": "Reply",
+      "contentEmpty": "Empty reply",
+      "usageAbsent": "Token count not reported",
+      "usageEstimated": "Token count estimated",
       "modelPinning": "Model Pinning",
       "activeModelPinning": "Active — model selected via session pinning",
       "rotated": "Rotated: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "Correlation ID: {id}",
       "detailedPayloadInfo": "Enable detailed logging first if you want the four-stage client/provider payload view for new requests.",
       "copyAll": "Copy all",
-      "copiedAll": "Copied all"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "No proxy logs yet. Configure proxies and make API calls to see them here.",
     "noMatchingLogs": "No logs match the current filters.",
     "tlsFingerprint": "Chrome 124 TLS Fingerprint",
-    "colPublicIp": "Public IP"
+    "colPublicIp": "Public IP",
+    "colUpstream": "Upstream",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Correlation",
+    "colServedBy": "Served by",
+    "filterTraffic": "Traffic",
+    "filterTests": "Tests",
+    "filterSource": "Source"
   },
   "endpointOptions": {
     "speech": "Speech",
@@ -12806,7 +12840,12 @@
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configure proxy",
     "providerProxyTitleConfigured": "Proxy configured: {host}",
-    "proxySetAside": "Proxy set aside"
+    "proxySetAside": "Proxy set aside",
+    "inheritConnectionOption": "No own proxy (inherits connection)",
+    "inheritedProxy": "Inherits connection: {host}",
+    "inheritedPool": "Inherits connection pool ({count})",
+    "poolEmptyBlocked": "Pool empty — requests fail (not direct)",
+    "directEgress": "Direct (no proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "Direct (native)",
     "targetUrl": "Target URL",
     "error": "Error",
-    "configuration": "Proxy Configuration"
+    "configuration": "Proxy Configuration",
+    "upstreamStatus": "Upstream status",
+    "noResponse": "No response",
+    "egressIp": "Egress IP",
+    "servedBy": "Served by",
+    "correlationId": "Correlation ID"
   },
   "requestTimeline": {
     "title": "Request Timeline",

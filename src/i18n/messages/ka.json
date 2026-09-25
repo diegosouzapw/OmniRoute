@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; კარიბჭის ფსევდონიმების მთავარი გადამრთველი. ჩართულია (ნაგულისხმევი): /v1/models აქვეყნებს აზროვნების გარეშე ვარიანტს ყველა შესაბამისი, აზროვნების უნარის მქონე Claude მოდელისთვის, ხოლო მოთხოვნაში გაგზავნილი no-think/ ID კვლავ რეალურ მოდელზე გადადის, მსჯელობის ჩახშობით. გამორთულია: ვარიანტები არ ქვეყნდება და no-think/ ID განიხილება, როგორც ნებისმიერი სხვა უცნობი მოდელის ID. სანამ ეს ჩართულია, თითოეული მოდელისთვის ModelSpec.noThinkingAlias-ის ჩართვის/გამორთვის პარამეტრი კვლავ მოქმედებს.",
   "featureFlagChatVirtualLanesEnabledDescription": "ჩართეთ თითოეული ტენანტისთვის ადაპტიური ვირტუალური დაშვების არხები პროვაიდერთან გადაგზავნისთვის (#9654): ერთი ტენანტის მოთხოვნების უეცარი მატება სხვას აღარ დაუბრუნებს 503 შეცდომას. OMNIROUTE_CHAT_VIRTUAL_LANES გარემოს ცვლადს უპირატესობა აქვს მართვის პანელის ამ პარამეტრთან შედარებით; ცვლილებები ძალაში შევა სერვერის გადატვირთვის შემდეგ.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "პროვაიდერის გვერდები მართვის პანელში: „უფასო“ ნიშანი გამოჩნდეს მხოლოდ იმ სიგნალების საფუძველზე, რომლებსაც პროვაიდერი ითვალისწინებს — აღარ გამოიყენება საჩვენებელი სახელის ევრისტიკა, არაბულური free ველები და :free სუფიქსები რეგისტრირებული პროვაიდერებისთვის, რომლებსაც დოკუმენტირებული უფასო დონე არ აქვთ. გამორთვის შემთხვევაში შენარჩუნდება ნიშნის ჩვენების ისტორიული წესი.",
-  "featureFlagProxySkipRecentlyFailedDescription": "პროქსი-პულები და opencode-ის თითოეულ ანგარიშზე როტაცია აღარ იყენებს ახლახან ჩავარდნილ პროქსის (უარყოფილი TCP შემოწმება ან მისი მეშვეობით მიღებული 429) თითოეული პროცესისთვის განსაზღვრული პერიოდით, რომელიც ყოველი განმეორებისას ორმაგდება მაქსიმალურ ზღვრამდე. პროქსის სტატუსი არ იწერება; ყველა კანდიდატის გვერდზე გადადების შემთხვევაში არჩევანი უცვლელი რჩება. ნაგულისხმევად გამორთულია: არჩევის თანმიმდევრობა ზუსტად ჩვეულებრივი როტაციის იდენტურია.",
+  "featureFlagProxySkipRecentlyFailedDescription": "პროქსი-პულები და opencode-ის თითოეულ ანგარიშზე როტაცია აღარ იყენებს ახლახან ჩავარდნილ პროქსის (უარყოფილი TCP შემოწმება ან მისი მეშვეობით მიღებული 429) თითოეული პროცესისთვის განსაზღვრული პერიოდით, რომელიც ყოველი განმეორებისას ორმაგდება მაქსიმალურ ზღვრამდე. პროქსის სტატუსი არ იწერება; ყველა კანდიდატის გვერდზე გადადების შემთხვევაში არჩევანი უცვლელი რჩება. ნაგულისხმევად ჩართულია; `false` აღადგენს ჩვეულებრივ არჩევას.",
   "featureFlagProxyPoolEgressObservationDescription": "დეშბორდზე, პროქსი-პულის ქვეშ, აჩვენეთ ბოლო 24 საათში რამდენი დაფიქსირებული გამავალი IP ემსახურებოდა მის წევრებს, რამდენმა კავშირმა გამოიყენა ისინი და ყველაზე მეტი რამდენი კავშირი დაფიქსირდა ერთი IP-ის უკან. მხოლოდ წაკითხვისთვისაა, გამოითვლება პროქსის ჟურნალიდან და არასოდეს გამოიყენება მარშრუტიზაციისთვის. ნაგულისხმევად გამორთულია: პულის რედაქტორი უცვლელია, ხოლო დაკვირვების მარშრუტი აბრუნებს null-ს.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "პროქსის მდგომარეობის შემოწმებისას, სამიზნის მიერ უარყოფილმა მოთხოვნამ (401/403/429: პროქსიმ გადააგზავნა მოთხოვნა, ხოლო დანიშნულების მხარემ უარყო ეს გამავალი IP) გაანულოს პროქსის ზედიზედ წარუმატებლობათა სერია, როგორც წარმატებით შესრულებული შემოწმებისას. ნაგულისხმევად გამორთულია: უარყოფა ნეიტრალური რჩება და სერიას ინარჩუნებს. 5xx ნებისმიერ შემთხვევაში გაურკვეველ შედეგად რჩება, ხოლო უარყოფა არასოდეს შლის, თიშავს ან ხელახლა ააქტიურებს პროქსის.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "ავტომატურ გასუფთავებას მიეცით უფლება, წაშალოს OMNIROUTE_BATCH_RETENTION_DAYS-ზე ძველი, საბოლოო მდგომარეობაში მყოფი (დასრულებული/წარუმატებელი/გაუქმებული/ვადაგასული) Batch API დავალებები მათ თითოეულ სტრიქონთან დაკავშირებულ საკონტროლო წერტილებთან ერთად და გაასუფთაოს ატვირთული ფაილების BLOB-შიგთავსი მათი expires_at ვადის გასვლის შემდეგ. ნაგულისხმევად გამორთულია: ყველა არსებულ ინსტალაციაში ეს მონაცემები ზუსტად ისე დარჩება, როგორც აქამდე, სანამ ოპერატორი ფუნქციას არ ჩართავს. ოპერატორის მიერ გამოძახებულ DELETE /api/v1/batches/delete-completed მარშრუტზე ეს პარამეტრი გავლენას არ ახდენს — ის ცალკე, უპირობო საჯარო API-კონტრაქტია.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "სესიის მიბმის გამორთვა",
     "sessionStickinessEnabled": "მიბმა ჩართულია",
     "sessionStickinessDisabled": "მიბმა გამორთულია",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-ის წინასწარი პარამეტრი",
     "kimiPresetDescription": "Kimi K3, როგორც ძირითადი მოდელი (Moonshot API), ავტომატური გადართვით თქვენს Kimi Code კავშირებზე (kimi-coding, kimi-web), როდესაც ისინი კონფიგურირებულია.",
     "kimiPresetCta": "წინასწარი პარამეტრის დამატება",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ამჟამად დაკავშირებული პროვაიდერებისა და მოდელების, რომლებიც ამ შაბლონს შეესაბამება, მიმდინარე მდგომარეობა დაფიქსირდება რედაქტირებად კომბოდ.",
     "duplicateAutoComboFailedPrefix": "ავტოკომბოს დუბლირება ვერ მოხერხდა:",
     "duplicateAutoComboUnknownError": "უცნობი შეცდომა",
-    "duplicateAutoComboTitle": "სტატიკური კომბოს შექმნა {name}-დან",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "სტატიკური კომბოს შექმნა {name}-დან"
   },
   "costs": {
     "title": "ხარჯები",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "არჩეული {count}-ის წაშლა",
     "batchActivateSelected": "არჩეული {count}-ის ჩართვა",
     "testPassed": "✓ OK",
+    "sweepVerdict": "ბოლო სკანირება: {cause} ({code}) {age}",
+    "sweepNoData": "გაშვების შემდეგ სკანირება არ ყოფილა",
+    "sweepLabel": {
+      "unproven": "სამიზნემ უარყო",
+      "unclassified": "შემოწმება დაუდასტურებელი",
+      "ok": "მომსახურებულია",
+      "fail": "კავშირი ვერ შედგა",
+      "hang": "ხელის ჩამორთმევა გაიჭედა",
+      "inconclusive": "დაუდასტურებელი"
+    },
     "close": "დახურვა",
     "managePool": "პულის მართვა",
     "poolTitle": "პროქსი-პული და როტაცია",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "გამოყენებულია {exits, plural, one {# გასასვლელი} other {# გასასვლელი}} {connections, plural, one {# კავშირის} other {# კავშირის}} მიერ · ერთ გასასვლელზე მაქსიმუმ {max} · ბოლო {hours} სთ",
     "poolEgressObservationEmpty": "ბოლო {hours} სთ-ის განმავლობაში ტრაფიკი არ დაფიქსირებულა",
     "poolEgressObservationHint": "დათვლილია პროქსის ჟურნალიდან მოცემული დროის შუალედში: ამ პულის წევრებისთვის დაფიქსირებული უნიკალური გამავალი IP-ები და OmniRoute-ის კავშირები, რომლებმაც ისინი გამოიყენეს. „ერთ გასასვლელზე“ გულისხმობს მთელ დროის შუალედს და არა ერთსა და იმავე დროს. თითოეულ IP-ზე 429 დაბლოკვა აჩერებს მხოლოდ იმავე პროვაიდერის ოჯახის კავშირებს.",
+    "poolEgressFailuresByExit": "წარუმატებლობები {exit}-ის გავლით: {count}",
+    "poolEgressFailuresUnattributed": "წარუმატებლობები მიკუთვნებული გასასვლელის გარეშე: {count}",
     "poolMemberEgress": "{host}:{port}-დან გასვლა {egressIp}-ის გავლით · ბოლო {hours} სთ",
     "poolMemberEgressEmpty": "{host}:{port}: ბოლო {hours} სთ-ში ტრაფიკი არ დაფიქსირებულა",
     "poolMemberEgressHint": "ამ პულის წევრის გავლით დროის მოცემულ შუალედში დაფიქსირებული ბოლო გამავალი IP, წაკითხული პროქსის ჟურნალიდან. წევრისთვის, რომელსაც ამ შუალედში ტრაფიკი არ ჰქონია, ნაჩვენებია სტრიქონი ტრაფიკის არარსებობის შესახებ.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "ბოლო გადატვირთვის შემდეგ",
     "poolSignalSetAside": "გვერდზე გადადება",
     "poolSignalPosition": "პოზიციის თანმიმდევრობა",
-    "poolHealthRankingOff": "ჯანმრთელობის რეიტინგი გამორთულია"
+    "poolHealthRankingOff": "ჯანმრთელობის რეიტინგი გამორთულია",
+    "transportRate": "{rate}% ტრანსპორტი",
+    "previousSuccessRate": "ადრე {rate}% წარმატება",
+    "upstreamRefusals": "{count} upstream უარყოფა",
+    "connectionTestsCount": "{count} კავშირის ტესტი",
+    "notMeasured": "არ არის გაზომილი"
   },
   "playground": {
     "title": "მოდელების სატესტო გარემო",
@@ -11485,6 +11502,10 @@
       "requestedModel": "მოთხოვნილი მოდელი",
       "requestProtocol": "მოთხოვნის პროტოკოლი",
       "cacheSource": "ქეშის წყარო",
+      "contentProvenance": "პასუხი",
+      "contentEmpty": "ცარიელი პასუხი",
+      "usageAbsent": "ტოკენების რაოდენობა არ არის მოწოდებული",
+      "usageEstimated": "ტოკენების რაოდენობა შეფასებულია",
       "modelPinning": "მოდელის მიბმა",
       "activeModelPinning": "აქტიური — მოდელი არჩეულია სესიის მიბმის მეშვეობით",
       "rotated": "როტირებულია: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "კორელაციის ID: {id}",
       "detailedPayloadInfo": "ახალი მოთხოვნებისთვის კლიენტის/პროვაიდერის მონაცემების ოთხეტაპიანი ხედის გამოსაყენებლად, ჯერ დეტალური ჟურნალის წარმოება ჩართეთ.",
       "copyAll": "ყველაფრის კოპირება",
-      "copiedAll": "ყველაფერი დაკოპირებულია"
+      "copiedAll": "ყველაფერი დაკოპირებულია",
+      "resilienceStoredError": "მოწოდებულია შენახული შეცდომიდან",
+      "resilienceParked": "გაჩერებულია {ms} გაგზავნამდე",
+      "resilienceRotations": "ანგარიშის {count} როტაცია",
+      "resilienceRetried": "ცარიელი სვლა ხელახლა ცადა",
+      "resilienceContinued": "განახლდა ნაკადის შუაში",
+      "resilienceRecovered": "აღდგენილია მდგრადობის მოქმედებით"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "პროქსის ჟურნალები ჯერ არ არის. დააკონფიგურირეთ პროქსები და შეასრულეთ API-ის გამოძახებები, რათა ისინი აქ გამოჩნდეს.",
     "noMatchingLogs": "არცერთი ჟურნალი არ შეესაბამება მიმდინარე ფილტრებს.",
     "tlsFingerprint": "Chrome 124-ის TLS-ანაბეჭდი",
-    "colPublicIp": "საჯარო IP"
+    "colPublicIp": "საჯარო IP",
+    "colUpstream": "ზედა ნაკადი",
+    "colEgress": "გამავალი IP",
+    "colCorrelation": "კორელაცია",
+    "colServedBy": "მომსახურებულია",
+    "filterTraffic": "ტრაფიკი",
+    "filterTests": "ტესტები",
+    "filterSource": "წყარო"
   },
   "endpointOptions": {
     "speech": "მეტყველება",
@@ -12806,7 +12840,12 @@
     "providerProxy": "პროქსი",
     "providerProxyConfigureHint": "პროქსის კონფიგურაცია",
     "providerProxyTitleConfigured": "პროქსი კონფიგურირებულია: {host}",
-    "proxySetAside": "პროქსი გვერდზე გადადებულია"
+    "proxySetAside": "პროქსი გვერდზე გადადებულია",
+    "inheritConnectionOption": "საკუთარი პროქსი არ არის (კავშირს მემკვიდრეობს)",
+    "inheritedProxy": "მემკვიდრეობს კავშირს: {host}",
+    "inheritedPool": "მემკვიდრეობს კავშირების პულს ({count})",
+    "poolEmptyBlocked": "პული ცარიელია — მოთხოვნები ვარდება (არა პირდაპირ)",
+    "directEgress": "პირდაპირ (პროქსის გარეშე)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "პირდაპირი (ნატიური)",
     "targetUrl": "სამიზნე URL",
     "error": "შეცდომა",
-    "configuration": "პროქსის კონფიგურაცია"
+    "configuration": "პროქსის კონფიგურაცია",
+    "upstreamStatus": "ზედა ნაკადის სტატუსი",
+    "noResponse": "პასუხი არ არის",
+    "egressIp": "გამავალი IP",
+    "servedBy": "მომსახურებულია",
+    "correlationId": "კორელაციის ID"
   },
   "requestTimeline": {
     "title": "მოთხოვნის დროითი დიაგრამა",

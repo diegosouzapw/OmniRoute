@@ -14,6 +14,7 @@ import {
   isProxyAvoided,
   proxyEgressKey,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
+import { maybeEmitPoolExhausted } from "@/lib/proxyEvents/proxyTransitionBridge";
 import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
 import { getCachedProxyHealth } from "@/lib/proxyHealth";
 import type { JsonRecord, ProxyScope, ProxyRotationStrategy } from "./types";
@@ -253,6 +254,15 @@ function pickFromCandidates<T>(
   rotationScopeId: string,
   candidates: T[]
 ): T {
+  // Pool-exhausted check first: a single-member pool set aside is exhausted
+  // too, and this runs before the length-1 early return below. Flag-gated
+  // inside (zero cost when off), rebound window shared with the bridge.
+  maybeEmitPoolExhausted(
+    normalizedScope,
+    candidates,
+    (row) => proxyEgressKey(row),
+    (key) => isProxyAvoided(key)
+  );
   if (candidates.length === 1) return candidates[0];
 
   const state = getOrCreateRotationRow(db, normalizedScope, rotationScopeId);
@@ -266,7 +276,7 @@ function pickFromCandidates<T>(
     }
   }
 
-  // Order by crossed short-memory health signals (opt-in, PROXY_SKIP_RECENTLY_FAILED):
+  // Order by crossed short-memory health signals (PROXY_SKIP_RECENTLY_FAILED, default on):
   // stops re-serving at the head a proxy that just failed, without removing anyone.
   // Sticky past its window and every other strategy rank normally; a held sticky
   // member returns above, untouched. The eligible-skip below still applies on the

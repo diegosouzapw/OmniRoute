@@ -6,11 +6,22 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+// getUsageForProvider reaches the monthly usage aggregation (getDbInstance), so
+// DATA_DIR must point at a throwaway dir BEFORE any module that opens the DB is
+// imported, and the handle must be released in test.after — otherwise a
+// standalone run writes under ~/.omniroute and never exits (open DB handle).
+const TMP_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-xiaomi-probe-"));
+process.env.DATA_DIR = TMP_DATA_DIR;
 
 const { getUsageForProvider } = await import("../../open-sse/services/usage.ts");
 const { USAGE_SUPPORTED_PROVIDERS } =
   await import("../../open-sse/services/usage/supportedProviders.ts");
 const { isSupportedUsageConnection } = await import("../../src/lib/usage/providerLimits.ts");
+const core = await import("../../src/lib/db/core.ts");
 
 test("xiaomi-mimo-token-plan is declared supported by the dashboard gate", () => {
   assert.ok(
@@ -42,4 +53,9 @@ test("getUsageForProvider({provider: 'xiaomi-mimo-token-plan'}) returns a self-t
     result.quotas?.monthly,
     `expected a monthly quota, got message: ${result.message ?? "(none)"}`
   );
+});
+
+test.after(() => {
+  core.resetDbInstance();
+  fs.rmSync(TMP_DATA_DIR, { recursive: true, force: true });
 });

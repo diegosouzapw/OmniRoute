@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Pääkytkin no-think/&lt;provider&gt;/&lt;model&gt;-yhdyskäytäväaliaksille. Käytössä (oletus): /v1/models ilmoittaa päättelyttömän muunnelman jokaisesta ehdot täyttävästä päättelykykyisestä Claude-mallista, ja pyynnössä lähetetty no-think/-tunnus ohjautuu takaisin todelliseen malliin siten, että päättely on estetty. Ei käytössä: muunnelmia ei ilmoiteta, ja no-think/-tunnusta käsitellään kuten mitä tahansa muuta tuntematonta mallitunnusta. Mallikohtainen ModelSpec.noThinkingAlias-käyttöönotto tai -käytöstäpoisto on edelleen voimassa, kun tämä asetus on käytössä.",
   "featureFlagChatVirtualLanesEnabledDescription": "Ota käyttöön mukautuvat virtuaaliset sisäänottokaistat vuokraajaa (tenant) kohti palveluntarjoajien välitystä varten (#9654): yhden vuokraajan kuormapiikki ei enää aiheuta 503-virhettä toiselle. Ympäristömuuttuja OMNIROUTE_CHAT_VIRTUAL_LANES ohittaa tämän hallintapaneelin asetuksen; muutokset tulevat voimaan palvelimen uudelleenkäynnistyksessä.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Palveluntarjoajien koontinäyttösivut: näytä Free-merkki vain niiden signaalien perusteella, joita palveluntarjoaja noudattaa — tämä poistaa näyttönimeen perustuvan heuristiikan, muut kuin totuusarvoiset free-kentät sekä :free-päätteet rekisteröidyiltä palveluntarjoajilta, joilla ei ole dokumentoitua ilmaistasoa. Pois käytöstä aiempi merkkisääntö säilyy.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Välityspalvelinpoolit ja opencoden tilikohtainen kierto estävät juuri epäonnistuneen välityspalvelimen (hylätty TCP-tarkistus tai sen kautta saatu 429-vastaus) tarjoamisen uudelleen prosessikohtaisen ajanjakson ajan. Ajanjakso kaksinkertaistuu jokaisen toistuvan epäonnistumisen myötä enimmäisrajaan asti. Välityspalvelimen tilaa ei kirjata; jos kaikki ehdokkaat on siirretty sivuun, valinta pysyy ennallaan. Oletusarvoisesti poissa käytöstä: valintajärjestys vastaa täsmälleen tavallista kiertoa.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Välityspalvelinpoolit ja opencoden tilikohtainen kierto estävät juuri epäonnistuneen välityspalvelimen (hylätty TCP-tarkistus tai sen kautta saatu 429-vastaus) tarjoamisen uudelleen prosessikohtaisen ajanjakson ajan. Ajanjakso kaksinkertaistuu jokaisen toistuvan epäonnistumisen myötä enimmäisrajaan asti. Välityspalvelimen tilaa ei kirjata; jos kaikki ehdokkaat on siirretty sivuun, valinta pysyy ennallaan. Oletusarvoisesti käytössä; `false` palauttaa tavallisen valinnan.",
   "featureFlagProxyPoolEgressObservationDescription": "Näytä hallintapaneelissa välityspalvelinpoolin kohdalla, kuinka monta havaittua lähtevän liikenteen IP-osoitetta sen jäsenet käyttivät viimeisten 24 tunnin aikana, kuinka monta yhteyttä käytti niitä ja kuinka monta yhteyttä enimmillään havaittiin yhden IP-osoitteen takana. Vain luku -tieto, joka lasketaan välityspalvelinlokista ja jota ei koskaan käytetä reititykseen. Oletusarvoisesti poissa käytöstä: poolieditori säilyy ennallaan ja havaintoreitti palauttaa arvon null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Salli välityspalvelinten kuntotarkistuksessa sellaisen tarkistuksen, jonka kohde hylkäsi (401/403/429: välityspalvelin välitti pyynnön, mutta kohde hylkäsi tämän lähtevän liikenteen IP-osoitteen), nollata välityspalvelimen peräkkäisten epäonnistumisten sarja onnistuneesti palvellun tarkistuksen tavoin. Oletusarvoisesti poissa käytöstä: hylkäys pysyy neutraalina eikä katkaise sarjaa. 5xx-vastaus pysyy kummassakin tapauksessa tuloksettomana, eikä hylkäys koskaan poista välityspalvelinta, poista sitä käytöstä tai aktivoi sitä uudelleen.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Anna automaattisen puhdistuksen poistaa OMNIROUTE_BATCH_RETENTION_DAYS-arvoa vanhemmat päättyneet (valmistuneet/epäonnistuneet/peruutetut/vanhentuneet) Batch API -työt sekä niiden rivikohtaiset tarkistuspisteet ja tyhjentää niiden ladattujen tiedostojen BLOB-sisältö, joiden oma expires_at-ajankohta on ohitettu. Oletusarvoisesti poissa käytöstä: jokainen nykyinen asennus säilyttää nämä tiedot täsmälleen kuten ennenkin, kunnes ylläpitäjä ottaa toiminnon käyttöön. Ylläpitäjän käynnistämään DELETE /api/v1/batches/delete-completed -reittiin tällä ei ole vaikutusta — se on erillinen, ehdoton julkinen API-sopimus.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Poista istuntotarttuvuus käytöstä",
     "sessionStickinessEnabled": "Tarttuvuus päällä",
     "sessionStickinessDisabled": "Tarttuvuus pois päältä",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding -esiasetus",
     "kimiPresetDescription": "Kimi K3 ensisijaisena mallina (Moonshot API), automaattisella varayhteydellä Kimi Code -yhteyksiisi (kimi-coding, kimi-web), kun ne on määritetty.",
     "kimiPresetCta": "Lisää esiasetus",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Tämä tallentaa tämän mallin mukaiset tällä hetkellä yhdistetyt tarjoajat/mallit muokattavaan yhdistelmään.",
     "duplicateAutoComboFailedPrefix": "Automaattisen yhdistelmän kaksoiskappaleen luonti epäonnistui:",
     "duplicateAutoComboUnknownError": "Tuntematon virhe",
-    "duplicateAutoComboTitle": "Luo staattinen yhdistelmä kohteesta {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Luo staattinen yhdistelmä kohteesta {name}"
   },
   "costs": {
     "title": "Kustannukset",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Poista {count} valittua",
     "batchActivateSelected": "Ota käyttöön {count} valittua",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Viimeisin tarkistus: {cause} ({code}) {age}",
+    "sweepNoData": "Ei tarkistuksia käynnistyksen jälkeen",
+    "sweepLabel": {
+      "unproven": "kohde kieltäytyi",
+      "unclassified": "tarkistus epäselvä",
+      "ok": "palveltu",
+      "fail": "yhteys epäonnistui",
+      "hang": "kättely jumiutui",
+      "inconclusive": "epäselvä"
+    },
     "close": "Sulje",
     "managePool": "Hallitse poolia",
     "poolTitle": "Proxy-pooli ja kierto",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "{exits, plural, one {# ulosmeno-IP} other {# ulosmeno-IP-osoitetta}} käytössä {connections, plural, one {# yhteydellä} other {# yhteydellä}} · enintään {max} yhdellä ulosmeno-IP:llä · viimeiset {hours} h",
     "poolEgressObservationEmpty": "Liikennettä ei havaittu viimeisten {hours} tunnin aikana",
     "poolEgressObservationHint": "Laskettu välityspalvelimen lokista tarkastelujakson ajalta: tämän poolin jäsenillä havaitut yksilölliset ulosmeno-IP-osoitteet sekä niitä käyttäneet OmniRoute-yhteydet. ”Yhdellä ulosmeno-IP:llä” tarkoittaa koko tarkastelujaksoa, ei samanaikaista käyttöä. IP-kohtainen 429-lukitus keskeyttää vain saman palveluntarjoajaperheen yhteydet.",
+    "poolEgressFailuresByExit": "Virheet kautta {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Virheet ilman kohdistettua ulostuloa: {count}",
     "poolMemberEgress": "{host}:{port} poistui osoitteen {egressIp} kautta · viimeiset {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: liikennettä ei havaittu viimeisten {hours} tunnin aikana",
     "poolMemberEgressHint": "Viimeisin tämän poolin jäsenen kautta havaittu ulostulo-IP valitulla aikavälillä välityspalvelimen lokin perusteella. Jos jäsenellä ei ole ollut liikennettä aikavälillä, näytetään Ei liikennettä -rivi.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "Viimeisimmän uudelleenkäynnistyksen jälkeen",
     "poolSignalSetAside": "Laita syrjään",
     "poolSignalPosition": "Sijaintijärjestys",
-    "poolHealthRankingOff": "Terveysjärjestys pois päältä"
+    "poolHealthRankingOff": "Terveysjärjestys pois päältä",
+    "transportRate": "{rate} % siirtoa",
+    "previousSuccessRate": "Aiemmin {rate} % onnistumisia",
+    "upstreamRefusals": "{count} upstream-hylkäystä",
+    "connectionTestsCount": "{count} yhteystestiä",
+    "notMeasured": "Ei mitattu"
   },
   "playground": {
     "title": "Title",
@@ -11485,6 +11502,10 @@
       "requestedModel": "Pyydetty Malli",
       "requestProtocol": "Req-protokolla",
       "cacheSource": "Välimuisti Lähde",
+      "contentProvenance": "Vastaus",
+      "contentEmpty": "Tyhjä vastaus",
+      "usageAbsent": "Tokenien määrää ei raportoitu",
+      "usageEstimated": "Tokenien määrä on arvio",
       "modelPinning": "Mallin Kiinnitys",
       "activeModelPinning": "Aktiivinen — malli valittu istunnon kiinnittämisen kautta",
       "rotated": "Käännetty: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "Korrelaatio-ID: {id}",
       "detailedPayloadInfo": "Ota ensin käyttöön yksityiskohtainen lokitus, jos haluat nelivaiheisen asiakas/toimittaja kuormitusnäkymän uusille pyyntöille.",
       "copyAll": "Kopioi kaikki",
-      "copiedAll": "Kaikki kopioitu"
+      "copiedAll": "Kaikki kopioitu",
+      "resilienceStoredError": "Palveltu tallennetusta virheestä",
+      "resilienceParked": "Pysäköity {ms} ennen lähetystä",
+      "resilienceRotations": "{count} tilin kierrätystä",
+      "resilienceRetried": "Tyhjä vuoro yritettiin uudelleen",
+      "resilienceContinued": "Jatkettiin kesken virran",
+      "resilienceRecovered": "Palautettu kestävyystoiminnolla"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "Välityspalvelinlokeja ei vielä ole. Määritä välityspalvelimet ja tee API-kutsuja, niin lokit näkyvät täällä.",
     "noMatchingLogs": "Yksikään loki ei vastaa nykyisiä suodattimia.",
     "tlsFingerprint": "Chrome 124 TLS-sormenjälki",
-    "colPublicIp": "Julkinen IP"
+    "colPublicIp": "Julkinen IP",
+    "colUpstream": "Ylävirta",
+    "colEgress": "Lähtö-IP",
+    "colCorrelation": "Korrelaatio",
+    "colServedBy": "Palvelija",
+    "filterTraffic": "Liikenne",
+    "filterTests": "Testit",
+    "filterSource": "Lähde"
   },
   "endpointOptions": {
     "speech": "Puhe",
@@ -12806,7 +12840,12 @@
     "providerProxy": "Välimuisti",
     "providerProxyConfigureHint": "Määritä välityspalvelin",
     "providerProxyTitleConfigured": "Proxy on määritetty: {host}",
-    "proxySetAside": "Välityspalvelin syrjässä"
+    "proxySetAside": "Välityspalvelin syrjässä",
+    "inheritConnectionOption": "Ei omaa välityspalvelinta (perii yhteyden)",
+    "inheritedProxy": "Perii yhteyden: {host}",
+    "inheritedPool": "Perii yhteyspoolin ({count})",
+    "poolEmptyBlocked": "Pooli tyhjä — pyynnöt epäonnistuvat (ei suoraan)",
+    "directEgress": "Suora (ei välityspalvelinta)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "Suora",
     "targetUrl": "Kohde-URL",
     "error": "Virhe",
-    "configuration": "Välityspalvelimen asetukset"
+    "configuration": "Välityspalvelimen asetukset",
+    "upstreamStatus": "Ylävirran tila",
+    "noResponse": "Ei vastausta",
+    "egressIp": "Lähtö-IP",
+    "servedBy": "Palvelija",
+    "correlationId": "Korrelaatio-ID"
   },
   "requestTimeline": {
     "title": "Pyyntö Aikajana",

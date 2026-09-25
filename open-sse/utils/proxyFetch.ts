@@ -17,6 +17,8 @@ import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
 import { stampOwnListenerSelfHop } from "./selfHop.ts";
 import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
+import { recordFinalTransportOutcome, recordProxiedSuccess } from "./proxyTransportOutcome.ts";
+import { sanitizeTransportError } from "./proxyTransportError.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
@@ -366,30 +368,6 @@ function isWreqProxySupported(proxyUrl: string): boolean {
   } catch {
     return false;
   }
-}
-
-function sanitizeTransportError(
-  error: unknown,
-  message: string,
-  fallbackCode: string
-): Error & { code: string; errorCode?: string; statusCode?: number } {
-  const source = error && typeof error === "object" ? (error as Record<string, unknown>) : {};
-  const sanitized = new Error(message) as Error & {
-    code: string;
-    errorCode?: string;
-    statusCode?: number;
-  };
-  sanitized.code =
-    typeof source.code === "string" && /^[A-Z0-9_:-]{1,64}$/.test(source.code)
-      ? source.code
-      : fallbackCode;
-  if (typeof source.errorCode === "string" && /^[a-zA-Z0-9_:-]{1,64}$/.test(source.errorCode)) {
-    sanitized.errorCode = source.errorCode;
-  }
-  if (typeof source.statusCode === "number" && Number.isFinite(source.statusCode)) {
-    sanitized.statusCode = source.statusCode;
-  }
-  return sanitized;
 }
 
 /** Injectable dependencies for testability (Approach B DI). */
@@ -1194,11 +1172,13 @@ async function patchedFetchUnrecorded(
   let lastProxyError: unknown = null;
   for (let attempt = 0; attempt < maxProxyAttempts; attempt++) {
     try {
-      return await _undiciProxy(input, {
+      const response = await _undiciProxy(input, {
         ...options,
         dispatcher:
           attempt === 0 ? createProxyDispatcher(proxyUrl) : getProxyRetryDispatcher(proxyUrl),
       });
+      recordProxiedSuccess(proxyUrl, targetUrl); // completed response, any status
+      return response;
     } catch (error) {
       if (isCallerAbort(error, getEffectiveSignal(input, options))) throw error;
       const msg = error instanceof Error ? error.message : String(error);
@@ -1230,8 +1210,15 @@ async function patchedFetchUnrecorded(
         originalMsg ? `Proxy request failed: ${originalMsg}` : "Proxy request failed",
         "PROXY_REQUEST_FAILED"
       );
+      // Read the code off the thrown sanitized error (tag survives the
+      // sanitize as errorCode passthrough; untagged reads undefined).
+      if (sanitized.errorCode === "proxy_unreachable")
+        recordFinalTransportOutcome(proxyUrl, targetUrl);
+      if (sanitized.causeCode) {
+        sanitized.message += ` (cause ${sanitized.causeCode})`;
+      }
       console.error(
-        `[ProxyFetch] Proxy request failed (${source}, fail-closed; code=${sanitized.code})`
+        `[ProxyFetch] Proxy request failed (${source}, fail-closed; code=${sanitized.code}${sanitized.causeCode ? `; cause=${sanitized.causeCode}` : ""})`
       );
       throw sanitized;
     }

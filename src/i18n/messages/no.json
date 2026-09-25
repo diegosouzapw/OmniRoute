@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Hovedbryter for gatewayaliasene no-think/&lt;provider&gt;/&lt;model&gt;. På (standard): /v1/models viser en variant uten tenking for alle kvalifiserte Claude-modeller som støtter tenking, og en no-think/-ID som sendes i en forespørsel, kobles til den faktiske modellen med resonnering deaktivert. Av: Ingen varianter vises, og en no-think/-ID behandles som enhver annen ukjent modell-ID. Valget om å aktivere eller deaktivere ModelSpec.noThinkingAlias per modell gjelder fortsatt mens dette er slått på.",
   "featureFlagChatVirtualLanesEnabledDescription": "Aktiver adaptive virtuelle tilgangsfelt per tenant for leverandørdistribusjon (#9654): et utbrudd fra én tenant gir ikke lenger en annen 503. Miljøvariabelen OMNIROUTE_CHAT_VIRTUAL_LANES overstyrer denne innstillingen i dashbordet; endringer trer i kraft ved omstart av serveren.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Leverandørsider i kontrollpanelet: Vis Gratis-merket bare basert på signaler som leverandøren respekterer — bruker ikke lenger heuristikken for visningsnavn, ikke-boolske gratisfelt eller :free-suffikser for registrerte leverandører uten et dokumentert gratisnivå. Når dette er slått av, brukes den tidligere merkeregelen.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Proxygrupper og rotasjonen per konto for opencode slutter midlertidig å bruke en proxy som nettopp sviktet (avvist TCP-sonde eller en 429 mottatt gjennom den), i en prosesspesifikk periode som dobles for hver gjentakelse, opptil en øvre grense. Ingen proxystatus lagres. Hvis alle kandidater settes til side, forblir valget uendret. Av som standard: Valgrekkefølgen er nøyaktig den vanlige rotasjonen.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proxygrupper og rotasjonen per konto for opencode slutter midlertidig å bruke en proxy som nettopp sviktet (avvist TCP-sonde eller en 429 mottatt gjennom den), i en prosesspesifikk periode som dobles for hver gjentakelse, opptil en øvre grense. Ingen proxystatus lagres. Hvis alle kandidater settes til side, forblir valget uendret. På som standard; `false` gjenoppretter vanlig valg.",
   "featureFlagProxyPoolEgressObservationDescription": "Vis under en proxygruppe i kontrollpanelet hvor mange observerte utgående IP-adresser som betjente medlemmene i løpet av de siste 24 timene, hvor mange tilkoblinger som brukte dem, og det høyeste antallet som ble observert bak én IP-adresse. Skrivebeskyttet, beregnet fra proxyloggen og aldri brukt til ruting. Av som standard: Redigeringen av proxygruppen er uendret, og observasjonsruten returnerer null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "La en sonde som målet avviste (401/403/429: proxyen videresendte forespørselen, men destinasjonen avviste denne utgående IP-adressen), nullstille proxyens rekke av påfølgende feil under helsesjekken av proxyer, på samme måte som en besvart sonde. Av som standard: En avvisning forblir nøytral og beholder rekken. En 5xx forblir ikke-konkluderende i begge tilfeller, og en avvisning fjerner, deaktiverer eller reaktiverer aldri en proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "La den automatiske oppryddingen slette avsluttede (fullførte/mislykkede/avbrutte/utløpte) Batch API-jobber som er eldre enn OMNIROUTE_BATCH_RETENTION_DAYS, sammen med kontrollpunktene deres per linje, og tømme BLOB-innholdet i opplastede filer etter deres respektive expires_at. Av som standard: Alle eksisterende installasjoner beholder disse dataene nøyaktig som før frem til en operatør aktiverer funksjonen. Den operatørutløste ruten DELETE /api/v1/batches/delete-completed påvirkes uansett ikke – den er en separat, ubetinget offentlig API-kontrakt.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Deaktiver øktlåsing",
     "sessionStickinessEnabled": "Øktlåsing på",
     "sessionStickinessDisabled": "Øktlåsing av",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-forhåndsinnstilling",
     "kimiPresetDescription": "Kimi K3 som primærmodell (Moonshot API), med automatisk tilbakefall til dine Kimi Code-tilkoblinger (kimi-coding, kimi-web) når konfigurert.",
     "kimiPresetCta": "Legg til forhåndsinnstilling",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dette vil ta et øyeblikksbilde av de nåvørende tilkoblede leverandørene/modellene som matcher denne malen i en redigerbar kombinasjon.",
     "duplicateAutoComboFailedPrefix": "Duplisering av auto-kombinasjon mislyktes:",
     "duplicateAutoComboUnknownError": "Ukjent feil",
-    "duplicateAutoComboTitle": "Opprett en statisk kombinasjon fra {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Opprett en statisk kombinasjon fra {name}"
   },
   "costs": {
     "title": "Kostnader",
@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Slett {count} valgte",
     "batchActivateSelected": "Aktiver {count} valgte",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Siste skanning: {cause} ({code}) {age}",
+    "sweepNoData": "Ingen skanning ennå siden oppstart",
+    "sweepLabel": {
+      "unproven": "målet avviste",
+      "unclassified": "sjekk uten konklusjon",
+      "ok": "betjent",
+      "fail": "tilkobling mislyktes",
+      "hang": "håndtrykk stoppet opp",
+      "inconclusive": "uten konklusjon"
+    },
     "close": "Lukk",
     "managePool": "Administrer pool",
     "poolTitle": "Proxy-pool og rotasjon",
@@ -11038,6 +11048,8 @@
     "poolEgressObservation": "{exits, plural, one {# utgående IP-adresse} other {# utgående IP-adresser}} brukt av {connections, plural, one {# tilkobling} other {# tilkoblinger}} · opptil {max} på én utgående IP-adresse · de siste {hours} t",
     "poolEgressObservationEmpty": "Ingen trafikk registrert de siste {hours} t",
     "poolEgressObservationHint": "Beregnet fra proxyloggen i løpet av perioden: unike utgående IP-adresser observert for medlemmene i denne gruppen, og OmniRoute-tilkoblingene som brukte dem. «På én utgang» betyr i løpet av perioden, ikke samtidig. 429-sperren per IP setter bare tilkoblinger fra samme leverandørfamilie på pause.",
+    "poolEgressFailuresByExit": "Feil via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Feil uten tilordnet utgang: {count}",
     "poolMemberEgress": "{host}:{port} gikk ut via {egressIp} · siste {hours} t",
     "poolMemberEgressEmpty": "{host}:{port}: ingen trafikk observert de siste {hours} t",
     "poolMemberEgressHint": "Siste utgående IP-adresse observert via dette poolmedlemmet i perioden, hentet fra proxyloggen. Et medlem uten trafikk i perioden viser linjen for ingen trafikk.",
@@ -11058,7 +11070,12 @@
     "poolSinceRestart": "Siden siste omstart",
     "poolSignalSetAside": "Sett til side",
     "poolSignalPosition": "Posisjonsrekkefølge",
-    "poolHealthRankingOff": "Helserangering av"
+    "poolHealthRankingOff": "Helserangering av",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Tidligere {rate} % suksess",
+    "upstreamRefusals": "{count} upstream-avvisninger",
+    "connectionTestsCount": "{count} tilkoblingstester",
+    "notMeasured": "Ikke målt"
   },
   "playground": {
     "title": "Title",
@@ -11485,6 +11502,10 @@
       "requestedModel": "Forespurt Modell",
       "requestProtocol": "Req Protokoll",
       "cacheSource": "Cache Kilde",
+      "contentProvenance": "Svar",
+      "contentEmpty": "Tomt svar",
+      "usageAbsent": "Antall tokens ikke rapportert",
+      "usageEstimated": "Antall tokens anslått",
       "modelPinning": "Modellpining",
       "activeModelPinning": "Aktiv — modell valgt via sesjonsfeste",
       "rotated": "Rotert: {initial} -> {final}",
@@ -11509,7 +11530,13 @@
       "correlationIdValue": "Korrelerings-ID: {id}",
       "detailedPayloadInfo": "Aktiver detaljert logging først hvis du vil ha den fire-trinns klient/leverandør nyttelastvisningen for nye forespørseler.",
       "copyAll": "Kopier alt",
-      "copiedAll": "Alt kopiert"
+      "copiedAll": "Alt kopiert",
+      "resilienceStoredError": "Levert fra lagret feil",
+      "resilienceParked": "Parkert {ms} før sending",
+      "resilienceRotations": "{count} kontorotasjoner",
+      "resilienceRetried": "Tom tur forsøkt på nytt",
+      "resilienceContinued": "Gjenopptatt midt i strømmen",
+      "resilienceRecovered": "Gjenopprettet av en robusthetshandling"
     }
   },
   "proxyLogger": {
@@ -11548,7 +11575,14 @@
     "noProxyLogs": "Ingen proxylogger ennå. Konfigurer proxyer og utfør API-kall for å se dem her.",
     "noMatchingLogs": "Ingen logger samsvarer med gjeldende filtre.",
     "tlsFingerprint": "Chrome 124 TLS-fingeravtrykk",
-    "colPublicIp": "Offentlig IP"
+    "colPublicIp": "Offentlig IP",
+    "colUpstream": "Oppstrøm",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korrelering",
+    "colServedBy": "Tjenestet av",
+    "filterTraffic": "Trafikk",
+    "filterTests": "Tester",
+    "filterSource": "Kilde"
   },
   "endpointOptions": {
     "speech": "Tale",
@@ -12806,7 +12840,12 @@
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurer proxy",
     "providerProxyTitleConfigured": "Proxy konfigurert: {host}",
-    "proxySetAside": "Proxy satt til side"
+    "proxySetAside": "Proxy satt til side",
+    "inheritConnectionOption": "Ingen egen proxy (arver tilkobling)",
+    "inheritedProxy": "Arver tilkobling: {host}",
+    "inheritedPool": "Arver tilkoblingspool ({count})",
+    "poolEmptyBlocked": "Pool tom — forespørsler mislykkes (ikke direkte)",
+    "directEgress": "Direkte (ingen proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14135,7 +14174,12 @@
     "directNative": "Direkte",
     "targetUrl": "Mål-URL",
     "error": "Feil",
-    "configuration": "Proxykonfigurasjon"
+    "configuration": "Proxykonfigurasjon",
+    "upstreamStatus": "Oppstrømstatus",
+    "noResponse": "Ingen respons",
+    "egressIp": "Egress IP",
+    "servedBy": "Tjenestet av",
+    "correlationId": "Korrelerings-ID"
   },
   "requestTimeline": {
     "title": "Forespørselstidslinje",
