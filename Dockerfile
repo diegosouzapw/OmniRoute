@@ -111,22 +111,30 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,targe
   && node -e "require('better-sqlite3')(':memory:').close()" \
   && node -e "const wreq=require('wreq-js'); if(typeof wreq.createTransport!=='function') process.exit(1)"
 
-# Build with Turbopack (stable in Next 16, the repo default). The v3.8.27-era
-# TurbopackInternalError panic ("entered unreachable code: there must be a path to a
-# root" in ImportTracer::get_traces) no longer reproduces on Next 16.2.9 — validated
-# 2026-07-05 with clean amd64 (12min14s, image smoke-tested: /api/monitoring/health
-# 200) and arm64 (qemu, exit 0, zero panic strings) builds. Turbopack cut the bare
-# build from 17min to 9min on the same 32-core box. Webpack stays available as the
-# escape hatch: `--build-arg`/-e OMNIROUTE_USE_TURBOPACK=0.
-# See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
+# Bundler for the image build. The DOCKERFILE default is webpack
+# (OMNIROUTE_USE_TURBOPACK=0), deliberately different from the repo's code
+# default for local dev and non-Docker builds (Turbopack, =1 — read by
+# scripts/dev/run-next.mjs and scripts/build/build-next-isolated.mjs). A bare
+# `docker build .` with no build args is what one-click hosts (Railway and
+# similar) and ad-hoc self-hosters run, usually on memory-capped builders, and
+# Turbopack is the bundler that gets OOM-killed silently there (see the ARG+ENV
+# note below). The official images are unaffected: docker-publish.yml already
+# pins OMNIROUTE_USE_TURBOPACK=0 explicitly. On a big builder, opt back into
+# Turbopack with `--build-arg OMNIROUTE_USE_TURBOPACK=1`: the v3.8.27-era
+# TurbopackInternalError panic ("entered unreachable code: there must be a path
+# to a root" in ImportTracer::get_traces) no longer reproduces on Next 16.2.9 —
+# validated 2026-07-05 with clean amd64 (12min14s, image smoke-tested:
+# /api/monitoring/health 200) and arm64 (qemu, exit 0, zero panic strings)
+# builds, and Turbopack cut the bare build from 17min to 9min on the same
+# 32-core box. See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
 #
 # Declared as ARG+ENV, not a bare ENV: a bare ENV shadows any same-named ARG for
 # the rest of the stage, so `--build-arg OMNIROUTE_USE_TURBOPACK=0` was silently
-# ignored and the escape hatch above only ever worked via `-e` at runtime, never
-# at build time. Turbopack compiles in native Rust memory that lives outside the
+# ignored and the webpack escape hatch only ever worked via `-e` at runtime,
+# never at build time. Turbopack compiles in native Rust memory that lives outside the
 # V8 heap, so OMNIROUTE_BUILD_MEMORY_MB cannot bound it and a memory-constrained
 # build host gets SIGKILLed by the cgroup OOM killer with no error message.
-ARG OMNIROUTE_USE_TURBOPACK=1
+ARG OMNIROUTE_USE_TURBOPACK=0
 ENV OMNIROUTE_USE_TURBOPACK="${OMNIROUTE_USE_TURBOPACK}"
 
 # Next.js basePath is fixed at build time; pass OMNIROUTE_BASE_PATH here when the
@@ -354,7 +362,7 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
 #      build, not the floating `@latest`.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm install -g --no-audit --no-fund \
-    @openai/codex@0.155.0 \
+    @openai/codex@0.156.1 \
     @anthropic-ai/claude-code@2.1.260 \
     droid@0.212.0 \
     openclaw@2026.9.1

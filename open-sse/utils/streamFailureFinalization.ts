@@ -32,6 +32,13 @@ export type PipelineStreamErrorHandler = (event: {
 
 export type ClientDisconnectEvent = { reason: string; duration: number };
 
+function classifyPipelineStreamCode(text: string): string {
+  const lower = text.toLowerCase();
+  if (lower.includes("stream content stall")) return "stream_content_stall";
+  if (lower.includes("terminated")) return "stream_terminated";
+  return "stream_pipeline_error";
+}
+
 /**
  * #9653: a client that closes its connection right after reading a fully-completed
  * SSE stream can race the stream's own completion bookkeeping — the bytes already
@@ -197,6 +204,7 @@ export function createStreamFailureFinalizers({
   };
 
   let pipelineStreamFailureFinalized = false;
+
   const onPipelineStreamError: PipelineStreamErrorHandler = ({ message, statusCode }) => {
     if (pipelineStreamFailureFinalized) return true;
     pipelineStreamFailureFinalized = true;
@@ -210,9 +218,7 @@ export function createStreamFailureFinalizers({
         : HTTP_STATUS.BAD_GATEWAY;
     const code = clientClosed
       ? "client_disconnected"
-      : normalizedMessage.toLowerCase().includes("terminated")
-        ? "stream_terminated"
-        : "stream_pipeline_error";
+      : classifyPipelineStreamCode(normalizedMessage);
     const type = clientClosed ? "client_disconnected" : "stream_error";
 
     handleStreamFailure({

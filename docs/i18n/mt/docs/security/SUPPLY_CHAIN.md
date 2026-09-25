@@ -4,56 +4,69 @@
 
 ---
 
-OmniRoute jippubblika artefatti npm + Docker. Dawn il-kontrolli jipprovdu provenjenza,
-inventarju (SBOM) u skennjar tas-CVE, kollha OSS, integrati fil-flussi tax-xogħol tar-rilaxx.
-Pożizzjoni **l-ewwel konsulenza** — bħalissa jirrapportaw, u jiġu promossi għal imblukkar wara
-l-ewwel rilaxx aħdar.
+OmniRoute tippubblika artifacts npm + Docker. Dawn il-gates jipprovdu provenjenza, inventarju (SBOM) u skannjar tal-CVE, kollha OSS, integrati fil-workflows tar-rilaxx. Pożizzjoni **Advisory-first** — jirrappurtaw issa, jippromwovu għal imblukkar wara l-ewwel rilaxx aħdar.
 
-| Kontroll                    | Għodda                                         | Fejn                          | Jimblokka?                         | Output                                            |
-| --------------------------- | ---------------------------------------------- | ----------------------------- | ---------------------------------- | ------------------------------------------------- |
-| Provenjenza SLSA (npm)      | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | biss jekk il-pubblikazzjoni tfalli | badge npmjs / `npm audit signatures`              |
-| SBOM npm                    | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | biss jekk il-ġenerazzjoni tfalli   | Assi tar-rilaxx + artefatt                        |
-| SBOM tal-immaġni            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | konsultattiv                       | Artefatt CycloneDX                                |
-| CVE ta’ Trivy (SARIF)       | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | konsultattiv                       | SARIF (HIGH+CRITICAL) → tab tas-Sigurtà           |
-| Kontroll CRITICAL ta’ Trivy | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **jimblokka**                      | `exit-code: '1'` għal CRITICAL li jista’ jissewwa |
-| vulnCount ta’ osv           | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **jimblokka**                      | jissikka `metrics.vulnCount` (direction:down)     |
-| OpenSSF Scorecard           | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | konsultattiv                       | SARIF → Sigurtà + badge                           |
+| Gate                  | Għodda                                         | Fejn                          | Jimblokka?                         | Output                                               |
+| :-------------------- | :--------------------------------------------- | :---------------------------- | :--------------------------------- | :--------------------------------------------------- |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | biss jekk il-pubblikazzjoni tfalli | badge npmjs / `npm audit signatures`                 |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | biss jekk il-ġenerazzjoni tfalli   | Asset tar-Rilaxx + artifact                          |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | konsultattiv                       | CycloneDX artifact                                   |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | konsultattiv                       | SARIF (HIGH+CRITICAL) → tab tas-Sigurtà              |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **jimblokka**                      | `exit-code: '1'` fuq CRITICAL li jista' jiġi rranġat |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **jimblokka**                      | ratchets `metrics.vulnCount` (direzzjoni:isfel)      |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | konsultattiv                       | SARIF → Sigurtà + badge                              |
 
-Il-mekkaniżmu progressiv tas-CVE tal-immaġni juża **żewġ passi** f’`docker-publish.yml`: il-pass SARIF
-(`HIGH,CRITICAL`, `exit-code: 0`) iżomm HIGH+CRITICAL viżibbli fit-tab tas-Sigurtà
-mingħajr ma jimblokka; il-pass tal-_kontroll CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) ifalli r-rilaxx għal CVE CRITICAL **meta tkun disponibbli soluzzjoni**. `ignore-unfixed`
-jipprevjeni l-imblukkar tar-rilaxx minħabba CVE tal-immaġni bażi mingħajr garża upstream.
+Ir-ratchet tal-CVE tal-immaġni juża **żewġ passi** f'`docker-publish.yml`: il-pass SARIF (`HIGH,CRITICAL`, `exit-code: 0`) iżomm HIGH+CRITICAL viżibbli fit-tab tas-Sigurtà mingħajr ma jimblokka; il-pass _CRITICAL gate_ (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) ifalli r-rilaxx fuq CVE KRITIKU **b'soluzzjoni disponibbli**. `ignore-unfixed` jipprevjeni l-imblukkar tar-rilaxx għal CVE ta' immaġni bażi mingħajr patch upstream.
 
-## ⚠️ Varjanza tas-CVE (kontrolli osv/Trivy li jimblukkaw)
+## ⚠️ Varjanza tal-CVE (gates ta' imblukkar osv/Trivy)
 
-osv u Trivy iqabblu d-dipendenzi ma’ databases tas-CVE li **jikbru kontinwament**. PR
-li **ma jibdel l-ebda dipendenza** jista’ f’daqqa waħda jsir aħmar minħabba li jkun ġie
-żvelat CVE ġdid f’dipendenza eżistenti (osv: `vulnCount` imkejjel > linja bażi; Trivy: CRITICAL
-ġdid li jista’ jissewwa fl-immaġni). **Din hija mġiba operazzjonali MISTENNIJA ta’ kontroll
-CVE li jimblokka, mhux rigressjoni tal-prodott.**
+osv u Trivy iqabblu d-deps kontra databases tal-CVE li **jikbru kontinwament**. PR li **ma jmiss l-ebda dipendenza** jista' f'daqqa waħda jsir aħmar minħabba li CVE ġdid ġie żvelat f'dep eżistenti (osv: `vulnCount` imkejjel > baseline; Trivy: CRITICAL ġdid li jista' jiġi rranġat fl-immaġni). **Dan huwa mġiba operattiva MISTENNIJA ta' gate tal-CVE li jimblokka, mhux rigressjoni tal-prodott.**
 
-Meta osv jew Trivy isiru ħomor minħabba CVE li jkun għadu kif ġie żvelat, ir-rimedju huwa:
+Meta osv jew Trivy jsiru ħomor minħabba CVE żvelat ġdid, ir-rimedju huwa:
 
-1. **Aġġorna d-dipendenza affettwata** (preferut) — aġġorna għall-verżjoni bl-impjastru permezz tal-`overrides`
-   ta’ `package.json` (dipendenzi tranżittivi) jew ibni mill-ġdid l-immaġni fuq bażi bl-impjastru.
-2. **Jekk ma hemm l-ebda soluzzjoni upstream:**
-   - **osv:** iddefinixxi mill-ġdid il-linja bażi ta’ `metrics.vulnCount` f’`config/quality/quality-baseline.json`
-     (`npm run quality:ratchet -- --update` ma jkoprix kontrolli ddedikati — editja l-valur
-     manwalment, `direction:down`) b’nota ta’ ġustifikazzjoni + kwistjoni ta’ traċċar.
-   - **Trivy:** żid entrata f’`.trivyignore` (CVE-ID wieħed għal kull linja) b’kumment
-     ta’ ġustifikazzjoni + kwistjoni ta’ traċċar. `ignore-unfixed: true` diġà jkopri
-     awtomatikament is-CVEs mingħajr garżi.
+1.  **Aġġorna d-dep affettwat** (preferut) — aġġorna għall-verżjoni patched permezz ta' `package.json` `overrides` (deps tranżittivi) jew ibni mill-ġdid l-immaġni fuq bażi patched.
+2.  **Jekk ma hemm l-ebda soluzzjoni upstream:**
+    - **osv:** erġa' ssettja l-baseline `metrics.vulnCount` f'`config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` ma jkoprix gates dedikati — edita l-valur manwalment, `direction:down`) b'nota ta' ġustifikazzjoni + issue ta' traċċar.
+    - **Trivy:** żid entrata f'`.trivyignore` (CVE-ID kull linja) b'kumment ta' ġustifikazzjoni + issue ta' traċċar. `ignore-unfixed: true` diġà jkopri CVEs mingħajr patches awtomatikament.
 
-Iż-żewġ kontrolli **JAQBŻU b’mod sigur** (exit 0) meta l-għodda tkun nieqsa jew il-kejl
-ifalli (osv-scanner mhux f’PATH, osv.dev/network mhux aċċessibbli, JSON invalidu) —
-falliment tal-**kejl** qatt ma jimblokka; timblokka biss rigressjoni **mkejla**.
+Iż-żewġ gates **jaqbżu b'mod grazzjuż** (exit 0) meta l-għodda tkun assenti jew il-kejl ifalli (osv-scanner mhux fil-PATH, osv.dev/network ma jistax jintlaħaq, JSON invalidu) — falliment ta' **kejl** qatt ma jimblokka, biss rigressjoni **mkejla** timblokka.
 
-## Xogħol pendenti: Scorecard konsultattiv → li jimblokka
+## Riskji Aċċettati Magħrufa
 
-Wara l-ewwel rilaxx aħdar bir-rappurtar ta’ Scorecard:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: mekkaniżmu progressiv tal-punteġġ (jiffriża l-punteġġ imkejjel; ma jistax jonqos).
+`extract-zip@2.0.1` iġorr żewġ pariri ta' symlink-traversal ta' gravità għolja mhux irranġati.
+Skont il-fergħa "l-ebda soluzzjoni upstream" tar-rimedju tal-CVE Variance hawn fuq, dan huwa
+**riskju aċċettat**, mhux żieda:
 
-Jikkumplimenta l-kontrolli tal-Fażi 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-jawditja l-flussi tax-xogħol infushom; Scorecard ikejjel il-pożizzjoni ġenerali tar-repożitorju.
+- **Katina:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Ikkonfermat permezz ta' `package-lock.json` — eżattament pakkett wieħed fis-siġra kollha tad-dipendenza
+  (`@openai/codex-security`) jiddikjara `extract-zip`, u eżattament pakkett wieħed
+  (`promptfoo`) jiddikjara `@openai/codex-security`.
+- **L-ebda rilaxx fiss ma jeżisti mkien fil-katina.** `extract-zip@2.0.1` (ippubblikat fl-2020) huwa l-aħħar rilaxx tal-pakkett — mhuwiex miżmum. `@openai/codex-security`'s
+  npm-latest kurrenti (`0.1.29`) għadu jiġbed `extract-zip@2.0.1`.
+- **Ma jistax jintlaħaq mill-produzzjoni.** `promptfoo` huwa devDependency-only (qatt ma elenkat
+  taħt `dependencies`), u l-ebda fajl taħt `src/`, `open-sse/`, jew `bin/` ma jimporta l-
+  pakkett npm `extract-zip` — il-helper `extractZip()` ta' OmniRoute stess
+  (`src/lib/versionManager/binaryManager.ts:93`) juża `unzip`/`tar` nattiv
+  u mhuwiex relatat. `@openai/codex-security` jinkludi wkoll il-gwardja tiegħu stess ta' symlink-traversal
+  fuq il-callback onEntry ta' extract-zip.
+- **Taliasx** `extract-zip` permezz ta' `package.json` `overrides` — l-unika sostituzzjoni vijabbli
+  hija Electron-org-internal u API-inkompatibbli mal-kontrolli onEntry/defaultDirMode/defaultFileMode ta'
+  `@openai/codex-security`;
+  li tissuperaha tkisser is-silenzju l-kontrolli tas-sigurtà ta' dak il-pakkett.
+- **Bażi:** il-`vulnCount` imkejjel ta' osv (3) diġà huwa ferm taħt il-bażi ffriżata
+  `config/quality/quality-baseline.json` (27) — l-ebda bidla ta' ratchet mhi meħtieġa.
+- **Gwardja ta' rigressjoni:** `tests/unit/extract-zip-14482-exposure.test.ts` jasserixxi l-
+  katina u l-invarjant ta' l-ebda importazzjoni ta' produzzjoni hawn fuq; ifalli CI jekk xi wieħed
+  qatt jinkiser (eż. PR futur jagħmel `extract-zip` jintlaħaq mill-produzzjoni).
+- **Traċċar:** issue #14482.
+
+## Backlog: Parir ta' Scorecard → imblukkar
+
+Wara l-ewwel rilaxx aħdar b'rappurtar ta' Scorecard:
+
+- Scorecard: score ratchet (iffriża l-punteġġ imkejjel; ma jistax jonqos).
+
+Jikkomplementa l-bibien tal-Fażi 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
+jivverifika l-workflows infushom; Scorecard ikejjel il-pożizzjoni tar-repożitorju b'mod aggregat.

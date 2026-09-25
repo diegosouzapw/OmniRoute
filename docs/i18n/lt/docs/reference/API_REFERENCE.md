@@ -86,15 +86,15 @@ Content-Type: application/json
 
 > **Podėlio pataikymo sąnaudų semantika:** semantinio podėlio `HIT` (`X-OmniRoute-Cache-Hit: true`) atveju išorinis iškvietimas neatliekamas, todėl `X-OmniRoute-Response-Cost` yra `0.0000000000` (pataikymo aptarnavimo **prieauginės** sąnaudos). Pradinės arba galėjusios susidaryti sąnaudos atskirai pateikiamos `X-OmniRoute-Cost-Saved`. Atsiskaitymo sistemų naudotojai turėtų sumuoti `X-OmniRoute-Response-Cost` (pataikymai nieko nekainuoja); podėlio analizė gali agreguoti `X-OmniRoute-Cost-Saved`.
 
-## Išskirtinės valdomų seansų nuomos
+## Išskirtinės valdomos sesijos nuomos
 
-Išskirtinė valdomų seansų nuoma yra pasirenkama, nuo kliento nepriklausoma maršruto parinkimo sutartis: vienas aktyvus savininkas
-valdo vieną tinkamą „OmniRoute“ ryšį. Ji nenuomoja modelio, nereikalauja „OAuth“, neidentifikuoja
+Išskirtinė valdomos sesijos nuoma yra pasirenkama, nuo kliento nepriklausoma maršrutizavimo sutartis: vienas aktyvus savininkas
+turi vieną tinkamą OmniRoute ryšį. Ji nenuomoja modelio, nereikalauja OAuth, neidentifikuoja
 konkretaus kliento ir nereikalauja konkretaus teikėjo.
 
-Autentifikavimui naudojamas API raktas turi turėti sritį `lease:exclusive` ir aiškiai nurodytą netuščią
-`allowedConnections` sąrašą. Duomenų bazės keitimo riba užtikrina, kad abu laukai būtų pateikti kartu
-kuriant raktą ir atliekant dalinius atnaujinimus.
+Autentifikavimo API raktas turi turėti `lease:exclusive` sritį ir aiškų, ne tuščią
+`allowedConnections` sąrašą. Duomenų bazės mutacijos riba užtikrina abiejų laukų kartu
+raktų kūrimo ir dalinių atnaujinimų metu.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Sėkminguose įgijimo, atnaujinimo ir atlaisvinimo atsakymuose pateikiamos laiko žymos, `state` ir tiksli teigiama
-`generation`, tačiau niekada nepateikiamas pasirinktas ryšys ar prisijungimo duomenys. Atnaujinant ir atlaisvinant
-generacija pateikiama JSON turinyje:
+Sėkmingi įsigijimo, atnaujinimo ir atleidimo atsakymai atskleidžia laiko žymas, `state` ir tikslų teigiamą
+`generation`, bet niekada pasirinkto ryšio ar kredencialų. Atnaujinimas ir atleidimas pateikia
+generaciją JSON kūne:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ generacija pateikiama JSON turinyje:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Aktyvios nuomos savininkas gali aiškiai paprašyti privatumą išsaugančių dabartinio susiejimo rodymo metaduomenų:
+Aktyvus nuomos savininkas gali aiškiai paprašyti privatumą saugančių rodymo metaduomenų savo dabartiniam susiejimui:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +137,38 @@ Aktyvios nuomos savininkas gali aiškiai paprašyti privatumą išsaugančių da
 }
 ```
 
-Šis pasirenkamas būsenos veiksmas vienoje duomenų bazės operacijoje apsaugomas neskaidriu savininko identifikatoriumi, autentifikuotu valdomu API raktu ir tikslia
-aktyvia generacija. `displayName` yra tik apkarpytas sukonfigūruoto
-ryšio pavadinimas; kai saugaus sukonfigūruoto pavadinimo nėra, jo reikšmė yra `null`. „OmniRoute“ niekada jo nepakeičia
-el. pašto adresu ar sugeneruota paskyros tapatybe. Teikėjo reikšmė yra nejautri rodymo žyma ir niekada nėra
-sugeneruotas suderinamo teikėjo identifikatorius. Prisijungimo duomenys, prieigos raktai, slapukai, neapdoroti ryšio ar API
-rakto identifikatoriai, savininko maišos, apsaugos paslaptys ir vidiniai maršruto parinkimo duomenys neįtraukiami.
+Šis pasirenkamas būsenos veiksmas yra apsaugotas nepermatomo savininko, autentifikuoto valdomo API rakto ir tikslios
+aktyvios generacijos vienoje duomenų bazės transakcijoje. `displayName` yra tik apkarpytas sukonfigūruoto
+ryšio pavadinimas; jis yra `null`, kai nėra saugaus sukonfigūruoto pavadinimo. OmniRoute niekada nepakeičia
+el. pašto ar sugeneruoto paskyros tapatybės. Teikėjo vertė yra nejautrus rodymo žymuo ir niekada
+nėra sugeneruotas suderinamo teikėjo identifikatorius. Kredencialai, žetonai, slapukai, neapdoroti ryšio ar API
+raktų ID, savininko maišos, apsaugos paslaptys ir vidiniai maršrutizavimo duomenys yra neįtraukiami.
 
-Užklausos su netinkamu raktu, netinkamu savininku, pasenusia generacija, taip pat nerastos, pasibaigusios, atlaisvintos ar panaikintos nuomos
-grąžina tą pačią `409 LEASE_FENCE_STALE` klaidą be ryšio metaduomenų. Klientas, gavęs laukimo dėl pajėgumo atsakymą, neturi aktyvaus susiejimo, kurį galėtų patikrinti. Kai maršruto parinkimas pakeičia aktyvios nuomos ryšį,
-ta pati generacija lieka galioti, o būsenos veiksmas atomiškai grąžina naują susiejimą, niekada ne senąjį.
-Esami klientai lieka nepakeisti, nes įgijimo, atnaujinimo, atlaisvinimo ir laukimo atsakymų
-ankstesnė struktūra išlieka.
+Neteisingo rakto, neteisingo savininko, pasenusios generacijos, trūkstamų, pasibaigusių, atleistų ir
+negaliojančių paieškų metu visada grąžinama ta pati `409 LEASE_FENCE_STALE` klaida be ryšio metaduomenų. Klientas,
+gavęs laukimo dėl pajėgumo atsakymą, neturi aktyvaus susiejimo, kurį galėtų patikrinti. Kai maršrutizavimas
+perkelia aktyvią nuomą, ta pati generacija išlieka galiojanti, o būsena atomiškai grąžina naują susiejimą,
+niekada senąjį. Esami klientai lieka nepakitę, nes įsigijimo, atnaujinimo, atleidimo ir laukimo atsakymai
+išlaiko savo ankstesnes formas.
 
-Ši serverio sutartis nekeičia standartinės „OpenAI Codex“ `/status` funkcijos. Šiuo metu standartinė „Codex“ pateikia savo
-modelio teikėją ir integruotą autentifikavimo bei paskyros būseną, tačiau neatvaizduoja pasirinktinių
-teikėjo paskyros metaduomenų; būsima kliento integracija turės iškviesti šį veiksmą ir nuspręsti, kaip
+Ši serverio sutartis nekeičia standartinio OpenAI Codex `/status`. Standartinis Codex šiuo metu praneša
+savo modelio teikėją ir įmontuotą autentifikavimo/paskyros būseną, bet nerodo savavališkų pasirinktinių
+teikėjo paskyros metaduomenų; vėlesnė kliento integracija turi iškviesti šį veiksmą ir nuspręsti, kaip
 rodyti `connection.displayName`.
 
-Tada kiekvienoje valdomoje išvedimo užklausoje pateikiamos abi valdymo antraštės:
+Kiekvienas valdomas išvedimo užklausas tada pateikia abi valdymo antraštes:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Tikslaus savininko, generacijos, aktyvaus ryšio ir autentifikuoto API rakto atitiktis patikrinama prieš pat
-kiekvieną palaikomą bandymą kreiptis į aukštesnio lygio paslaugą. Pakartotinai panaudojus savininką ir generaciją su kitu raktu, užklausa nepavyksta net
-kai tas raktas leidžia naudoti tą patį ryšį. Neapdoroti savininko identifikatoriai nėra saugomi, registruojami žurnaluose, išlaikomi
-užklausos momentinėje kopijoje ar persiunčiami aukštesnio lygio paslaugai.
+Tikslus savininkas, generacija, aktyvus ryšys ir autentifikuotas API raktas yra apsaugoti
+iš karto prieš kiekvieną palaikomą aukštesnio lygio bandymą. Pakartotinis savininko ir generacijos
+naudojimas su kitu raktu nepavyksta, net jei tas raktas leidžia tą patį ryšį. Neapdoroti savininkai
+nėra išsaugomi, registruojami, saugomi užklausos momentinėje nuotraukoje ar persiunčiami aukštyn.
 
-Laikinas užimtumas grąžina HTTP `429` su `Retry-After` ir:
+Laikinas ginčas grąžina HTTP `429` su `Retry-After` ir:
 
 ```json
 {
@@ -178,36 +179,38 @@ Laikinas užimtumas grąžina HTTP `429` su `Retry-After` ir:
 }
 ```
 
-Šis atsakymas reiškia tik tai, kad įprastas tinkamų ryšių rinkinys nebuvo tuščias, o kiekvienas laisvas kandidatas buvo
-užimtas kitos aktyvios nuomos. Nepalaikomi modeliai ar teikėjai, strategijos neatitiktis, laukimo laikotarpis, kvota,
-būklė ir kitos įprastos tinkamumo klaidos išlaiko esamus „OmniRoute“ atsakymus.
+Šis atsakymas reiškia tik tai, kad įprastas tinkamų elementų rinkinys nebuvo tuščias ir kiekvienas laisvas kandidatas
+buvo užimtas užsienio aktyvios nuomos. Nepalaikomi modeliai/teikėjai, politikos neatitikimas, atvėsinimas, kvota,
+sveikata ir kiti įprasti tinkamumo gedimai išlaiko savo esamus OmniRoute atsakymus.
 
 ### `x-omniroute-compression`
 
-Suspaudimo plano pakeitimas konkrečiai užklausai. Turi aukščiausią prioritetą — yra viršesnis už maršruto parinkimo derinio
-pakeitimą, aktyvų profilį, automatinį paleidiklį ir skydelio numatytąją nuostatą. Reikšmės:
+Kiekvienos užklausos suspaudimo plano perrašymas. Didžiausias prioritetas – perrašo maršrutizavimo-kombinacijos
+perrašymą, aktyvų profilį, automatinį paleidimą ir skydelio numatytąjį. Reikšmės:
 
-| Reikšmė       | Poveikis                                                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Šiai užklausai suspaudimas netaikomas.                                                                                          |
-| `default`     | Iš skydelio gautas numatytasis profilis (aktyvus profilis ignoruojamas).                                                        |
-| `engine:<id>` | Vienas modulis, kai jis įjungtas, pvz., `engine:rtk`.                                                                           |
-| `<combo>`     | Pavadintas derinys, pirmiausia sutapatinamas pagal pavadinimą (neatsižvelgiant į raidžių registrą), tada pagal identifikatorių. |
+| Reikšmė       | Poveikis                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `off`         | Nėra suspaudimo šiai užklausai.                                                                                    |
+| `default`     | Skydelio numatytasis profilis (ignoruoja aktyvų profilį). Nuostolingi varikliai išjungiami.                        |
+| `safe`        | Tik dublikatų šalinimas ir tarpų sulankstymas.                                                                     |
+| `allow-lossy` | Išlaikyti operatoriaus planą šiai užklausai, įskaitant santraukas ir stiliaus perrašymus.                          |
+| `engine:<id>` | Vienas variklis, kai įjungtas, pvz., `engine:rtk`. Kiekvienos užklausos pasirinkimas tam varikliui.                |
+| `<combo>`     | Pavadinta kombinacija, pirmiausia atitinkanti pagal pavadinimą (nepaisant didžiųjų/mažųjų raidžių), tada pagal ID. |
 
 Pastabos:
 
-- Nežinomos reikšmės ignoruojamos (užklausa niekada neatmetama); parinkimas tęsiamas pagal įprastą operatorių pirmumo tvarką.
-- Jei keli deriniai turi tą patį pavadinimą, deterministiniam sutapatinimui perduokite derinio **id**.
-- Derinio, kurio pavadinimas yra `off` arba `default`, negalima pasirinkti pagal pavadinimą (šie raktažodžiai interpretuojami pirmiausia); tokį derinį nurodykite pagal jo identifikatorių.
-- Pagrindinis suspaudimo jungiklis yra absoliutus apribojimas: kai suspaudimas išjungtas visuotinai, ši antraštė negali jo įjungti.
+- Nežinomos reikšmės ignoruojamos (užklausa niekada neatmetama); sprendimas pereina prie įprasto operatoriaus prioriteto.
+- Jei kelios kombinacijos turi tą patį pavadinimą, perduokite kombinacijos **ID**, kad būtų nustatytas deterministinis atitikimas.
+- Kombinacija, kurios pavadinimas yra `off` arba `default`, negali būti pasirinkta pagal pavadinimą (šie raktiniai žodžiai interpretuojami pirmiausia); tokią kombinaciją nurodykite pagal jos ID.
+- Pagrindinis suspaudimo jungiklis yra griežtas vartai: kai suspaudimas išjungtas globaliai, ši antraštė negali jo įjungti.
 
-Pritaikytas planas pakartojamas atsakymo antraštėje:
+Pritaikytas planas atkartojamas atsakymo antraštėje:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-kur `<source>` yra viena iš šių reikšmių: `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` arba `off`.
+kur `<source>` yra vienas iš `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` arba `off`.
 
 ---
 
@@ -448,88 +451,72 @@ Naudokite šį galinį tašką, kai pagalbinis procesas vykdomas atskirai ir neg
 
 ## Suderinamumo galiniai taškai
 
-| Metodas | Kelias                                    | Formatas                                                  |
-| ------- | ----------------------------------------- | --------------------------------------------------------- |
-| POST    | `/v1/chat/completions`                    | OpenAI                                                    |
-| POST    | `/v1/messages`                            | Anthropic                                                 |
-| POST    | `/v1/responses`                           | OpenAI Responses                                          |
-| POST    | `/v1/embeddings`                          | OpenAI                                                    |
-| POST    | `/v1/images/generations`                  | OpenAI Images                                             |
-| POST    | `/v1/images/edits`                        | OpenAI Images (redagavimas / atkūrimas)                   |
-| POST    | `/v1/videos/generations`                  | OpenAI stiliaus vaizdo įrašų generavimas                  |
-| POST    | `/v1/music/generations`                   | OpenAI stiliaus muzikos generavimas                       |
-| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                                        |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (grąžina garso turinį)                         |
-| POST    | `/v1/rerank`                              | Cohere/Voyage stiliaus perrikiavimas                      |
-| POST    | `/v1/classify`                            | Jina klasifikavimas (`api.jina.ai`)                       |
-| POST    | `/v1/segment`                             | Jina segmentavimo priemonė (`segment.jina.ai`)            |
-| POST    | `/v1/moderations`                         | OpenAI Moderations                                        |
-| GET     | `/v1/models`                              | OpenAI                                                    |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                                                 |
-| GET     | `/v1beta/models`                          | Gemini                                                    |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                                    |
-| POST    | `/v1/api/chat`                            | Ollama                                                    |
-| GET     | `/api/v1/vscode/{token}/`                 | OpenAI katalogo alternatyvusis adresas                    |
-| GET     | `/api/v1/vscode/{token}/models`           | OpenAI modelių alternatyvusis adresas                     |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI alternatyvusis adresas su prieigos raktu           |
-| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Responses alternatyvusis adresas su prieigos raktu |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama alternatyvusis adresas su prieigos raktu           |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama žymų alternatyvusis adresas su prieigos raktu      |
+| Metodas | Kelias                                    | Formatas                                      |
+| ------- | ----------------------------------------- | --------------------------------------------- |
+| POST    | `/v1/chat/completions`                    | OpenAI                                        |
+| POST    | `/v1/messages`                            | Anthropic                                     |
+| POST    | `/v1/responses`                           | OpenAI Atsakymai                              |
+| POST    | `/v1/embeddings`                          | OpenAI                                        |
+| POST    | `/v1/images/generations`                  | OpenAI Paveikslėliai                          |
+| POST    | `/v1/images/edits`                        | OpenAI Paveikslėliai (redagavimas/užpildymas) |
+| POST    | `/v1/videos/generations`                  | OpenAI stiliaus vaizdo įrašų generavimas      |
+| POST    | `/v1/music/generations`                   | OpenAI stiliaus muzikos generavimas           |
+| POST    | `/v1/audio/transcriptions`                | OpenAI Garso įrašai (STT)                     |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (grąžina garso įrašo turinį)       |
+| POST    | `/v1/rerank`                              | Cohere/Voyage stiliaus perrūšiavimas          |
+| POST    | `/v1/classify`                            | Jina klasifikavimas (`api.jina.ai`)           |
+| POST    | `/v1/segment`                             | Jina segmentavimo įrankis (`segment.jina.ai`) |
+| POST    | `/v1/moderations`                         | OpenAI Moderavimas                            |
+| GET     | `/v1/models`                              | OpenAI                                        |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                                     |
+| GET     | `/v1beta/models`                          | Gemini                                        |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                        |
+| POST    | `/v1/api/chat`                            | Ollama                                        |
+| GET     | `/api/v1/vscode/{token}/`                 | OpenAI katalogo pseudonimas                   |
+| GET     | `/api/v1/vscode/{token}/models`           | OpenAI modelių pseudonimas                    |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenizuotas pseudonimas               |
+| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Atsakymų tokenizuotas pseudonimas      |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenizuotas pseudonimas               |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama žymų tokenizuotas pseudonimas          |
 
-Visi POST maršrutai naudoja tą pačią struktūrą: `Bearer your-api-key` ir Zod patikrintas JSON turinys (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ir kt.; žr. `src/shared/validation/schemas.ts`). Nepavykus schemos patikrai grąžinamas 4xx.
+Visi POST maršrutai atitinka tą pačią formą: `Bearer your-api-key` + Zod patvirtintas JSON turinys (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ir t.t., žr. `src/shared/validation/schemas.ts`). 4xx grąžinamas, jei schema nepavyksta.
 
-Klientams, kurie negali pridėti `Authorization: Bearer ...`, OmniRoute taip pat leidžia pateikti API raktus URL, naudojant užklausos eilutės suderinamumą (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) arba toliau aprašytus specialiuosius `/api/v1/vscode/{token}/...` galinius taškus.
+Klientams, kurie negali pridėti `Authorization: Bearer ...`, OmniRoute taip pat priima API raktus URL per užklausos eilutės suderinamumą (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) arba per tam skirtus `/api/v1/vscode/{token}/...` galinius taškus, aprašytus žemiau.
 
 ```bash
-# Perrikiavimas (debesijos registro teikėjas arba su OpenAI suderinamas teikėjo mazgas kaip „<prefix>/<model>“)
+# Perrūšiavimas (debesies registro teikėjas arba su OpenAI suderinamas teikėjo mazgas kaip "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina klasifikavimas (Foundation API prisijungimo duomenys)
+# Jina klasifikavimas (Foundation API kredencialai)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmentavimo priemonė
+# Jina segmentavimo įrankis
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina paieška (s.jina.ai; teikėjo alternatyvieji pavadinimai: jina-search, jina-ai, jina)
+# Jina paieška (s.jina.ai; teikėjo pseudonimai: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderavimas
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — grąžina audio/mpeg (arba prašomo formato) turinį
+# TTS – grąžina audio/mpeg (arba prašomo formato) turinį
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Vaizdo redagavimas (multipart)
+# Paveikslėlio redagavimas (daugiašalis)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Vaizdo įrašų / muzikos generavimas (modelio ID su teikėjo priešdėliu)
+# Vaizdo įrašų / muzikos generavimas (teikėjo priešdėliu pažymėtas modelio ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Perrikiavimo teikėjo mazgai:** `POST /v1/rerank` taip pat nukreipia užklausas į su OpenAI suderinamus teikėjo mazgus
-> (oMLX, vLLM, Infinity, TEI už šliuzo, …), nurodomus kaip `<node-prefix>/<model>`. Grįžtamojo ryšio
-> mazgai (`localhost`, `127.0.0.1`, `172.16.0.0/12`) visada yra tinkami. Mazgai bet kuriame kitame
-> pagrindiniame kompiuteryje — LAN įrenginyje arba Tailscale lygiaverčiame mazge — tinkami tik tada, kai operatorius įjungia
-> `RERANK_REMOTE_PROVIDER_NODES` funkcijos žymą **ir** mazgo bazinis URL atitinka teikėjo
-> išeinančių URL politiką (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> užklausos niekada nenukreipiamos į debesijos metaduomenų pagrindinius kompiuterius. Atminties variklio perrikiavimo veiksmas iškviečia šį maršrutą per
-> grįžtamojo ryšio sąsają, todėl ta pati taisyklė taikoma `rerankProviderModel` Atminties nuostatose.
+> **Perrūšiavimo teikėjo mazgai:** `POST /v1/rerank` taip pat nukreipia į su OpenAI suderinamus teikėjo mazgus (oMLX, vLLM, Infinity, TEI už šliuzo, …), adresuojamus kaip `<node-prefix>/<model>`. Grįžtamojo ryšio mazgai (`localhost`, `127.0.0.1`, `172.16.0.0/12`) visada yra tinkami. Mazgai bet kuriame kitame serveryje – LAN dėžutėje ar Tailscale lygiaverčiame įrenginyje – yra tinkami tik tada, kai operatorius įjungia `RERANK_REMOTE_PROVIDER_NODES` funkcijos žymę **ir** mazgo bazinis URL atitinka teikėjo išeinančiojo URL politiką (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); debesies metaduomenų serveriai niekada nenukreipiami. Atminties variklio perrūšiavimo žingsnis iškviečia šį maršrutą per grįžtamąjį ryšį, todėl ta pati taisyklė taikoma `rerankProviderModel` atminties nustatymuose.
 >
-> **Vietinių serverių struktūros:** mazgas iškviečiamas adresu `<base>/v1/rerank`, o gavus 404 — adresu `<base>/rerank`
-> (Infinity, TEI). Aukštyn siunčiamame turinyje pateikiami ir Cohere/OpenAI rašybos variantai (`documents`,
-> `return_documents`), ir TEI variantai (`texts`, `return_text`), o atsakymas iš aukštyn esančio serverio
-> normalizuojamas į Cohere apvalkalą: TEI grynasis `[{index, score, text}]`, `{results: [{index, score}]}`
-> iš supaprastintų šliuzų ir Voyage stiliaus `{data: [...]}` klientui grąžinami kaip
-> `{results: [{index, relevance_score, document?}]}`, surikiuoti pagal įvertį ir apriboti iki `top_n`.
+> **Vietinio serverio formos:** mazgas iškviečiamas adresu `<base>/v1/rerank` ir, esant 404 klaidai, adresu `<base>/rerank` (Infinity, TEI). Aukštesniojo lygio užklausa apima tiek Cohere/OpenAI rašybą (`documents`, `return_documents`), tiek TEI rašybą (`texts`, `return_text`), o aukštesniojo lygio atsakymas normalizuojamas į Cohere formatą: TEI paprastas `[{index, score, text}]`, `{results: [{index, score}]}` iš plonų šliuzų ir Voyage stiliaus `{data: [...]}` visi grįžta klientui kaip `{results: [{index, relevance_score, document?}]}`, surūšiuoti pagal balą ir apriboti iki `top_n`.
 
-> **Teikėjo mazgų aptikimas:** su OpenAI suderinamo teikėjo mazgo modeliai rodomi `GET /v1/models`
-> po mazgo priešdėliu. Eilutės, kuriose nėra galinio taško metaduomenų (tai įprasta vietiniams `/v1/models` sąrašams),
-> paveldi mazgo `apiType`, todėl `embeddings` mazgo modelių tipas yra `type: "embedding"`, o
-> `rerank` mazgo modelių — `type: "rerank"`, užuot numatytai naudojus pokalbių tipą; sinchronizuotoje arba rankiniu būdu pridėtoje eilutėje aiškiai nurodytas
-> `supportedEndpoints` vis tiek turi pirmenybę.
+> **Teikėjo mazgo aptikimas:** modeliai su OpenAI suderinamame teikėjo mazge rodomi `GET /v1/models` po mazgo priešdėliu. Eilutės, kuriose nėra galinio taško metaduomenų (įprasta vietiniams `/v1/models` sąrašams), paveldi mazgo `apiType`, todėl įterpimų mazgo modeliai yra `type: "embedding"`, o perrūšiavimo mazgo modeliai yra `type: "rerank"`, užuot numatytųjų pokalbių; aiškiai nurodytas `supportedEndpoints` sinchronizuotoje arba rankiniu būdu pridėtoje eilutėje vis tiek turi pirmenybę.
 
-### Specialieji teikėjų maršrutai
+### Skirti teikėjo maršrutai
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -537,7 +524,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Teikėjo prefiksas automatiškai pridedamas, jei jo nėra. Neatitinkantys modeliai grąžina `400`.
+Tiekėjas automatiškai pridedamas, jei trūksta. Nesuderinami modeliai grąžina `400`.
 
 ---
 

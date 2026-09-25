@@ -111,6 +111,7 @@ export function mapGrokBuildBrowserTokens(tokens: Record<string, unknown>): {
     providerSpecificData: {
       scope: typeof tokens.scope === "string" ? tokens.scope : GROK_BUILD_OAUTH_CONFIG.scope,
       tokenType: typeof tokens.token_type === "string" ? tokens.token_type : "Bearer",
+      autoSync: true,
     },
   };
 }

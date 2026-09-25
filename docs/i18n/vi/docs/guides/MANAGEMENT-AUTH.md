@@ -4,56 +4,53 @@
 
 ---
 
-OmniRoute có **bốn nhóm thông tin xác thực** có thể cấp quyền truy cập các route quản lý.
-Chúng không thể được sử dụng thay thế cho nhau. Các khóa API suy luận (`sk-…`) **không** quản lý
-máy chủ trừ khi chúng được cấp rõ ràng scope `manage` hoặc `admin`.
+OmniRoute có **bốn nhóm thông tin xác thực** có thể ủy quyền các tuyến quản lý.
+Chúng không thể hoán đổi cho nhau. Khóa API suy luận (`sk-…`) **không** quản lý
+máy chủ trừ khi chúng được cấp rõ ràng phạm vi `manage` hoặc `admin`.
 
-Phần triển khai chuẩn: `src/lib/api/requireManagementAuth.ts`.
+Triển khai chuẩn: `src/lib/api/requireManagementAuth.ts`.
 
-| Thông tin xác thực       | Dạng thông thường                     | Được tạo ở đâu                                        | Mục đích sử dụng                      | Khả năng quản lý                                                                                           |
-| ------------------------ | ------------------------------------- | ----------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Phiên JWT của Dashboard  | cookie `auth_token`                   | Đăng nhập Dashboard                                   | Giao diện người dùng trên trình duyệt | Toàn quyền quản lý qua dashboard, tuân theo các quy tắc về CSRF, tính cục bộ và các route luôn được bảo vệ |
-| Token machine-id của CLI | nội bộ / cục bộ                       | Khởi tạo CLI (`omniroute` trên cùng máy)              | CLI cục bộ                            | Chỉ quản lý cục bộ                                                                                         |
-| Access Token có scope    | `oma_live_…`                          | **Settings → Access Tokens** hoặc `omniroute connect` | CLI từ xa và API quản lý              | Phải đáp ứng scope `read`, `write` hoặc `admin` mà route yêu cầu                                           |
-| Khóa API suy luận        | `sk-…` (và các tiền tố khóa API khác) | **API Manager / API Keys**                            | Suy luận `/v1/*`                      | **Không có** trừ khi metadata của khóa bao gồm `manage` hoặc `admin`                                       |
+| Thông tin xác thực               | Dạng điển hình                        | Được tạo ở đâu                                               | Mục đích sử dụng                 | Khả năng quản lý                                                                            |
+| :------------------------------- | :------------------------------------ | :----------------------------------------------------------- | :------------------------------- | :------------------------------------------------------------------------------------------ |
+| Phiên JWT Dashboard              | cookie `auth_token`                   | Đăng nhập Dashboard                                          | Giao diện người dùng trình duyệt | Quản lý dashboard đầy đủ, tuân theo CSRF, tính cục bộ và các quy tắc tuyến luôn được bảo vệ |
+| Mã thông báo machine-id CLI      | nội bộ / cục bộ                       | Khởi động CLI (`omniroute` trên cùng một máy)                | CLI cục bộ                       | Chỉ quản lý cục bộ                                                                          |
+| Mã thông báo truy cập có phạm vi | `oma_live_…`                          | **Cài đặt → Mã thông báo truy cập** hoặc `omniroute connect` | CLI từ xa và API quản lý         | Phải đáp ứng phạm vi `read`, `write` hoặc `admin` được yêu cầu của tuyến                    |
+| Khóa API suy luận                | `sk-…` (và các tiền tố khóa API khác) | **Trình quản lý API / Khóa API**                             | Suy luận `/v1/*`                 | **Không có** trừ khi siêu dữ liệu khóa bao gồm `manage` hoặc `admin`                        |
 
-Thông tin xác thực `oma_` là thông tin xác thực dành cho quản lý/CLI. Chúng **không phải** là khóa API suy luận.
+Thông tin xác thực `oma_` là thông tin xác thực quản lý/CLI. Chúng **không phải** là khóa API suy luận.
 
-Nếu xác thực bằng thông tin đăng nhập/khóa API bị tắt trên máy chủ, một số route quản lý có thể
-chấp nhận các lệnh gọi không được xác thực. Các route chỉ dành cho cục bộ và luôn được bảo vệ vẫn áp dụng
-các quy tắc riêng. Do đó, việc cung cấp một trong các thông tin xác thực này không phải lúc nào cũng
-bắt buộc, và việc sở hữu một thông tin xác thực cũng không phải lúc nào cũng đủ nếu không có
-scope bắt buộc và không đáp ứng tính cục bộ của route.
+Nếu tính năng đăng nhập/xác thực bằng khóa API bị tắt đối với máy chủ, một số tuyến quản lý có thể
+chấp nhận các cuộc gọi không được xác thực. Các tuyến chỉ cục bộ và luôn được bảo vệ vẫn áp dụng
+các quy tắc riêng của chúng. Do đó, việc xuất trình một trong các thông tin xác thực này không phải lúc nào cũng
+bắt buộc, và việc sở hữu một thông tin xác thực không phải lúc nào cũng đủ nếu không có phạm vi và tính cục bộ của tuyến đường được yêu cầu.
 
-Liên quan: [Chế độ từ xa](./REMOTE-MODE.md) (cách `oma_live_…` được cấp cho CLI từ xa).
+Liên quan: [Chế độ từ xa](./REMOTE-MODE.md) (cách `oma_live_…` được tạo cho CLI từ xa).
 
 ---
 
-## Ma trận scope
+## Ma trận phạm vi
 
-Hai hệ thống scope này **khác nhau**. Không được trộn lẫn chúng.
+Phạm vi quản lý khóa API và phạm vi mã thông báo truy cập là các thuật ngữ khác nhau. Phạm vi công cụ MCP là một thuật ngữ thứ ba, được kiểm tra bằng `scopeMatches` thay vì một trong hai hàm trong các bảng dưới đây. So sánh: [Ba không gian tên phạm vi](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Scope của Access Token (`oma_live_…`)
+### Phạm vi mã thông báo truy cập (`oma_live_…`)
 
-| Scope   | Các thao tác thông thường                                                                          |
-| ------- | -------------------------------------------------------------------------------------------------- |
-| `read`  | Các yêu cầu GET liệt kê/trạng thái mà token được phép xem                                          |
-| `write` | Các thay đổi (tạo/cập nhật/xóa) dưới cấp admin                                                     |
-| `admin` | Toàn quyền CLI từ xa / token kết nối (quá trình khởi tạo bằng mật khẩu mặc định sử dụng scope này) |
+| Phạm vi | Các thao tác điển hình                                                     |
+| ------- | -------------------------------------------------------------------------- |
+| `read`  | Các yêu cầu GET để liệt kê/xem trạng thái mà mã thông báo được phép xem    |
+| `write` | Các thao tác thay đổi (tạo/cập nhật/xóa) dưới quyền admin                  |
+| `admin` | CLI từ xa đầy đủ / mã thông báo kết nối (mặc định khởi tạo mật khẩu ở đây) |
 
-Token có `read` không thể gọi route yêu cầu `write`. Dạng thông báo khi chạy:
-`Scope của access token '<have>' không đủ; yêu cầu '<need>'.`
+Mã thông báo có quyền `read` không thể gọi một tuyến `write`. Dạng thông báo lỗi khi chạy: `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Scope quản lý của khóa API
+### Phạm vi quản lý khóa API
 
-| Scope      | Ý nghĩa                                                                         |
-| ---------- | ------------------------------------------------------------------------------- |
-| (không có) | Chỉ suy luận. Các route quản lý trả về 403.                                     |
-| `manage`   | API quản lý (cùng cổng kiểm tra như nhánh khóa API của `requireManagementAuth`) |
-| `admin`    | Cũng đáp ứng `hasManageScope` (được xem là có khả năng quản lý)                 |
+| Phạm vi    | Ý nghĩa                                                            |
+| ---------- | ------------------------------------------------------------------ |
+| (không có) | Chỉ suy luận. Các tuyến quản lý trả về lỗi 403.                    |
+| `manage`   | API quản lý (cùng cổng với nhánh khóa API `requireManagementAuth`) |
+| `admin`    | Cũng thỏa mãn `hasManageScope` (được coi là có khả năng quản lý)   |
 
-Bật `manage` cho khóa trong giao diện API Keys / API Manager. Không sử dụng lại
-khóa của ứng dụng trò chuyện cho tác vụ tự động hóa trừ khi bạn chủ động cấp scope đó.
+Bật `manage` cho khóa trong giao diện người dùng API Keys / API Manager. Không sử dụng lại khóa máy khách trò chuyện cho mục đích tự động hóa trừ khi bạn đã cố ý cấp phạm vi đó.
 
 ---
 
@@ -127,26 +124,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Các lỗi runtime hiện tại (không hiển thị lại thông tin bí mật)
+## Lỗi thời gian chạy hiện tại (không hiển thị bí mật)
 
-| Tình huống                                            | Mã trạng thái thường gặp | Thông báo (đã loại bỏ thông tin nhạy cảm)                                                |
-| ----------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
-| Không có thông tin xác thực                           | 401                      | `Yêu cầu xác thực`                                                                       |
-| `oma_live_…` không hợp lệ/đã hết hạn                  | 401                      | `Access token không hợp lệ hoặc đã hết hạn`                                              |
-| API key hợp lệ nhưng không có `manage`/`admin`        | 403                      | `API key không có phạm vi 'manage'. Hãy bật phạm vi này trong bảng điều khiển API Keys.` |
-| API key thông thường không hợp lệ trên route quản trị | 403                      | `Token quản trị không hợp lệ`                                                            |
-| Phạm vi Access Token quá thấp                         | 403                      | `Phạm vi access token '<have>' không đủ; yêu cầu '<need>'.`                              |
+| Tình huống                                            | Trạng thái điển hình | Thông báo (đã làm sạch)                                              |
+| :---------------------------------------------------- | :------------------- | :------------------------------------------------------------------- |
+| Không có thông tin xác thực                           | 401                  | `Authentication required`                                            |
+| `oma_live_…` không hợp lệ/hết hạn                     | 401                  | `Invalid or expired access token`                                    |
+| Khóa API hợp lệ nhưng không có `manage`/`admin`       | 403                  | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Khóa API thông thường không hợp lệ trên tuyến quản lý | 403                  | `Invalid management token`                                           |
+| Phạm vi Access Token quá thấp                         | 403                  | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Token quản trị không hợp lệ" có nghĩa là bearer **không** được chấp nhận làm thông tin xác thực quản trị. Thông báo này **không** cho biết bạn cần tạo loại thông tin xác thực nào. Hãy sử dụng bảng ở trên: khóa suy luận cần phạm vi `manage`; CLI từ xa cần `oma_live_…`; bảng điều khiển sử dụng cookie phiên.
+"Invalid management token" có nghĩa là bearer **không** được chấp nhận làm thông tin xác thực quản lý. Nó **không** cho bạn biết nên tạo loại nào. Sử dụng bảng trên: khóa suy luận cần phạm vi `manage`; CLI từ xa cần `oma_live_…`; bảng điều khiển sử dụng cookie phiên.
 
 ---
 
-## Lựa chọn theo nguyên tắc đặc quyền tối thiểu được khuyến nghị
+## Lựa chọn quyền hạn tối thiểu được khuyến nghị
 
-| Bên gọi                                             | Sử dụng                                                |
-| --------------------------------------------------- | ------------------------------------------------------ |
-| Trình duyệt                                         | Phiên bảng điều khiển                                  |
-| CLI trên máy chủ                                    | Machine token                                          |
-| CLI trên máy tính cá nhân kết nối đến máy chủ từ xa | `oma_live_…` từ `omniroute connect`                    |
-| CI / tập lệnh (chỉ dành cho quản trị)               | `oma_live_…` với phạm vi nhỏ nhất đáp ứng được yêu cầu |
-| CI phải gọi cả `/v1` và `/api`                      | API key có `manage` **hoặc** hai thông tin xác thực    |
+| Người gọi                                              | Mục đích sử dụng                                      |
+| :----------------------------------------------------- | :---------------------------------------------------- |
+| Trình duyệt                                            | Phiên làm việc trên bảng điều khiển                   |
+| CLI trên máy chủ                                       | Mã thông báo máy                                      |
+| CLI trên máy tính xách tay giao tiếp với máy chủ từ xa | `oma_live_…` từ `omniroute connect`                   |
+| CI / tập lệnh (chỉ quản lý)                            | `oma_live_…` với phạm vi nhỏ nhất có thể hoạt động    |
+| CI phải gọi cả `/v1` và `/api`                         | Khóa API với `manage` **hoặc** hai thông tin xác thực |

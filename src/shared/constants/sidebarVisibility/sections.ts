@@ -41,6 +41,15 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "dns",
   },
   {
+    id: "model-catalog",
+    href: "/dashboard/models",
+    i18nKey: "modelCatalog",
+    labelFallback: "Model catalog",
+    subtitleKey: "modelCatalogSubtitle",
+    subtitleFallback: "Browse models across providers",
+    icon: "view_list",
+  },
+  {
     id: "embedded-services",
     href: "/dashboard/providers/services",
     i18nKey: "embeddedServices",
@@ -851,7 +860,6 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     titleKey: "devtoolsSection",
     titleFallback: "Dev Tools",
     children: DEVTOOLS_ITEMS,
-    visibility: "debug",
   },
   {
     id: "agentic-features",

@@ -197,7 +197,7 @@ async function describeWeightedExclusion(
       return exclude("free_tier_drained");
     }
   }
-  if (isModelAvailable && !(await isModelAvailable(target.modelStr, target))) {
+  if (isModelAvailable && (await isModelAvailable(target.modelStr, target)) !== true) {
     return exclude("unavailable");
   }
   return null;

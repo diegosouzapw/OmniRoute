@@ -43,11 +43,9 @@ Agentes ACP (fluxo inverso de inicialização):
 
 ---
 
-## Configuração automática com `setup-*`
+## Autoconfigurar com `setup-*`
 
-Você não precisa escrever manualmente a configuração de cada ferramenta. O OmniRoute fornece um comando `setup-*`
-para cada CLI compatível, que lê o catálogo de modelos **ativo** de uma instância
-do OmniRoute em execução (local ou remota) e grava a configuração da própria ferramenta em sua máquina:
+Você não precisa escrever a configuração de cada ferramenta manualmente. O OmniRoute inclui um comando `setup-*` por CLI suportado que lê o catálogo de modelos **ao vivo** de um OmniRoute em execução (local ou remoto) e escreve a própria configuração da ferramenta em sua máquina:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,49 +55,15 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Cada comando aceita `--remote <url> --api-key <key>` (para configurar uma ferramenta local em uma
-instância remota do OmniRoute), `--dry-run` (para visualizar sem gravar) e `--port`. As ferramentas
-sem descoberta automática de modelos (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) aceitam
-`--model <id>` (e `--yes` para execuções não interativas). `setup-5dive` é a única
-receita que não grava em `$HOME`: ela configura uma frota de agentes 5dive
-gravando um perfil de autenticação pertencente ao root no host da frota; por isso, executa novamente por meio de `sudo`
-e não possui um modo remoto próprio. Para iniciar uma CLI com as
-variáveis de ambiente corretas injetadas e sem gravar nenhuma configuração, use o inicializador genérico
-`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — os destinos e aliases vêm de `bin/cli/cli-manifest.mjs`); os inicializadores legados
-específicos de cada ferramenta, `omniroute launch` (Claude Code) e `omniroute launch-codex`
-(Codex), continuam disponíveis. A Gemini CLI só pode ser iniciada: ela é um destino de `omniroute run`,
-mas não possui uma receita `setup-*`/`configure`.
+Cada um aceita `--remote <url> --api-key <key>` (configura uma ferramenta local contra um OmniRoute remoto), `--dry-run` (pré-visualização sem escrita) e `--port`. Ferramentas sem autodescoberta de modelo (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) aceitam `--model <id>` (e `--yes` para execuções não interativas). `setup-5dive` é a única receita que não escreve em `$HOME`: ele configura uma frota de agentes 5dive escrevendo um perfil de autenticação de propriedade do root no host da frota, então ele re-executa via `sudo` e não tem seu próprio modo remoto. Para iniciar um CLI com o ambiente correto injetado e nenhuma configuração escrita, use o lançador genérico `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — os alvos e aliases vêm de `bin/cli/cli-manifest.mjs`); os lançadores legados por ferramenta `omniroute launch` (Claude Code) e `omniroute launch-codex` (Codex) permanecem disponíveis. O CLI Gemini é apenas para lançamento: é um alvo de `omniroute run` mas não tem uma receita `setup-*`/`configure`.
 
-> **Referência completa:** a tabela principal — o que cada comando grava, todas as flags,
-> uso local versus remoto e quais ferramentas exigem o sufixo `/v1` — está em
-> **[Integrações de CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Referência completa:** a tabela mestra — o que cada comando escreve, cada flag, local vs remoto, e quais ferramentas precisam de um sufixo `/v1` — está em **[Integrações CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Como executar esses comandos dentro de um contêiner
+### Executando-os dentro de um contêiner
 
-Um comando `setup-*` executado dentro do contêiner do OmniRoute grava no
-diretório inicial do próprio contêiner, que nenhuma CLI do host lê e que desaparece com o
-contêiner. O OmniRoute detecta essa situação e encerra com o código `2`, exibindo instruções em vez de
-gravar. Há duas alternativas compatíveis: instalar a CLI no host e usar
-`omniroute connect` para conectar-se ao contêiner, ou montar os diretórios de configuração via bind mount e definir
-`CLI_CONFIG_HOME` (o perfil `host` do compose). Todos os comandos `setup-*`, além de
-`omniroute configure` e `omniroute config set`, aceitam
-`--allow-container-write` quando a intenção é realmente configurar as próprias CLIs do
-contêiner; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` faz o mesmo no
-servidor. Consulte
-[Guia do Docker → Configuração de ferramentas de CLI do host](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Um comando `setup-*` executado dentro do contêiner OmniRoute escreve no diretório home do próprio contêiner, que nenhum CLI do host lê e que desaparece com o contêiner. O OmniRoute detecta isso e sai com `2` e instruções, em vez de escrever. Duas formas suportadas de prosseguir — instale o CLI no host e `omniroute connect` ao contêiner, ou monte os diretórios de configuração (bind-mount) e defina `CLI_CONFIG_HOME` (o perfil `host` do compose). Todo comando `setup-*`, além de `omniroute configure` e `omniroute config set`, aceita `--allow-container-write` quando configurar os próprios CLIs do contêiner é o que você realmente pretendia; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` faz o mesmo para o servidor. Veja [Guia Docker → Configurando ferramentas CLI do host](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-O **endpoint de aplicação** do dashboard (`POST /api/cli-tools/apply`) aplica a
-mesma proteção: em um contêiner, uma gravação cujo destino não esteja montado via bind mount a partir do
-host responde com **`422`**, incluindo `containerEphemeralTarget: true`, o texto seguro do erro
-e — para as ferramentas com uma receita de host (claude, codex, opencode, cline,
-kilo, continue) — um `hostSetupCommand` (por exemplo, `omniroute setup-opencode`) para executar
-no host; nada é gravado. `dryRun: true` continua funcionando no modo de
-contêiner e retorna o conteúdo gerado + o caminho de destino sem alterar o disco, permitindo
-visualizar pelo dashboard e aplicar no host. Esse comportamento é
-intencional e protegido contra regressões por
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nunca "corrija" um 422
-removendo a proteção.
+O **endpoint de aplicação** do painel (`POST /api/cli-tools/apply`) impõe a mesma proteção: em um contêiner, uma escrita cujo alvo não está montado (bind-mounted) a partir do host responde **`422`** com `containerEphemeralTarget: true`, o texto de erro seguro e — para as ferramentas com uma receita de host (claude, codex, opencode, cline, kilo, continue) — um `hostSetupCommand` (ex: `omniroute setup-opencode`) para ser executado no host; nada é escrito. `dryRun: true` continua funcionando no modo contêiner e retorna uma pré-visualização redigida + caminho de destino sem tocar no disco. O conteúdo da pré-visualização não é uma configuração contendo credenciais para copiar ou importar. Aplique com a ferramenta original/URL base/chave API/entradas de modelo no host, ou use o comando de configuração indicado no lado do host. Veja [segurança da configuração CLI](../security/CLI-CONFIGURATION.md) para o cabeçalho da pré-visualização e o contrato da requisição. Este comportamento é intencional e protegido contra regressão por `tests/unit/api/cli-tools/apply-container-guard.test.ts` — nunca "corrija" um 422 removendo a proteção.
 
 ---
 
@@ -142,9 +106,9 @@ uma superfície sem as demais faz a suíte falhar, em vez de permitir uma diverg
 
 ---
 
-## 1. Catálogo de códigos CLI (26 ferramentas)
+## 1. Catálogo de Código CLI (26 ferramentas)
 
-Todas as ferramentas que aparecem em `/dashboard/cli-code`. Aquelas com `baseUrlSupport: none` são integradas por meio de MITM ou de um guia manual, em vez de uma URL base personalizada:
+Todas as ferramentas que aparecem em `/dashboard/cli-code`. Aquelas com `baseUrlSupport: none` são conectadas via MITM ou um guia manual em vez de uma URL base personalizada:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -173,9 +137,9 @@ Todas as ferramentas que aparecem em `/dashboard/cli-code`. Aquelas com `baseUrl
 | antigravity  | Antigravity             | Google              | none           | mitm           | false        |
 | hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | CLI personalizada       | —                   | full           | custom-builder | false        |
+| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-As ferramentas com `baseUrlSupport: "partial"` exibem um selo "⚠ URL base parcial" no cartão do dashboard.
+Ferramentas com `baseUrlSupport: "partial"` exibem um selo "⚠ Base URL parcial" no cartão do painel.
 ---
 
 ## 2. Catálogo de agentes CLI (10 ferramentas)

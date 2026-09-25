@@ -280,6 +280,17 @@ Most "free tokens per month" figures in this space are sums of per-model labels.
 
 ---
 
+## OpenCode Free: client-contract restriction (#14313)
+
+The keyless `opencode` provider (public `https://opencode.ai/zen/v1`) refuses any request
+that does not match the OpenCode client contract with **403 `FreeTierError`** and the
+sentence _"OpenCode's free tier can only be used from within OpenCode"_. This is a
+request-scoped refusal (same verdict on every account for the same request shape), not a
+model ban or connection cooldown — OmniRoute classifies it as `project_route_error`, skips
+model lockout / cooldown, and (on the synthetic `noauth` path) pauses auto-combo re-selection
+for a short TTL. Ship requests that carry a non-empty tool list, `stream: true`, and the
+OpenCode session/UA headers (`opencodeFreeTierContract.ts`) or expect the 403.
+
 ## What changed since the shipped catalog (`freeNote`)
 
 > The v3.8.0-era `freeNote` strings are stale. Corrections found by this research (these drive the catalog update in `_tasks/features-v3.8.12`):

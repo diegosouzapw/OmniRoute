@@ -1,10 +1,11 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
-}));
+// The shared translator has stable identity like real next-intl. Returning a
+// fresh function on every render restarts the hook's load effect indefinitely.
+
+const mountedCleanups = new Set<() => void>();
 
 const { useProviderModels } =
   await import("@/app/(dashboard)/dashboard/providers/hooks/useProviderModels");
@@ -35,27 +36,48 @@ async function renderProviderModels(providerId = "custom-provider") {
     return null;
   }
 
-  act(() => {
+  await act(async () => {
     root.render(<TestHook />);
   });
-  await Promise.resolve();
-
-  return {
-    unmount: () => {
-      act(() => root.unmount());
-      container.remove();
-    },
+  const unmount = () => {
+    if (!mountedCleanups.delete(unmount)) return;
+    act(() => root.unmount());
+    container.remove();
   };
+  mountedCleanups.add(unmount);
+  return { unmount };
 }
 
 async function flushQueuedSync() {
-  await new Promise<void>((resolve) => setTimeout(resolve, 10));
-  await Promise.resolve();
+  await act(async () => {
+    await vi.runAllTimersAsync();
+  });
 }
 
 describe("useProviderModels upstream auto-fetch", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"], loopLimit: 30 });
+    vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  });
   afterEach(() => {
+    for (const cleanup of [...mountedCleanups]) cleanup();
+    vi.clearAllTimers();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it("loads a populated catalog once without restarting on state updates", async () => {
+    const fetchMock = vi.fn(async (input: string) => {
+      if (input === "/api/v1/providers/custom-provider/models") {
+        return createResponse({ data: [{ id: "fixture-model" }] });
+      }
+      throw new Error(`Unexpected request: ${input}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const mounted = await renderProviderModels();
+    await flushQueuedSync();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    mounted.unmount();
   });
 
   it("does not synchronize upstream models when autoFetchModels is omitted", async () => {
@@ -75,15 +97,7 @@ describe("useProviderModels upstream auto-fetch", () => {
     const mounted = await renderProviderModels();
     await flushQueuedSync();
 
-    // Desmontar ANTES de asserir. O hook agenda a auto-sync num setTimeout e o
-    // callback so checa o flag `cancelled` na entrada; enquanto o componente
-    // estiver montado esse flag e false. Se o timer escapar da janela do teste,
-    // ele dispara depois do afterEach ja ter feito unstubAllGlobals() e cai no
-    // fetch REAL com uma URL relativa — `new URL` estoura e derruba o arquivo.
-    // Isso nao acontece com a maquina ociosa, so sob os 20 workers da suite
-    // cheia, e foi assim que este teste virou vermelho intermitente no CI.
-    // Desmontar primeiro faz `cancelled` virar true e o callback sair cedo; as
-    // chamadas ja registradas no fetchMock continuam disponiveis para o assert.
+    // Drain controlled timers and unmount before releasing the fetch stub.
     mounted.unmount();
 
     expect(fetchMock).not.toHaveBeenCalledWith(

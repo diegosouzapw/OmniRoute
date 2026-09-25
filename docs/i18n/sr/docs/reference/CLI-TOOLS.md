@@ -43,11 +43,11 @@ ACP Agents (обрнути ток покретања):
 
 ---
 
-## Аутоматска конфигурација уз `setup-*`
+## Automatsko konfigurisanje sa `setup-*`
 
-Не морате ручно писати конфигурацију за сваки алат. OmniRoute испоручује команду `setup-*`
-за сваки подржани CLI која чита **живи** каталог модела из покренутог
-OmniRoute-а (локалног или удаљеног) и записује сопствену конфигурацију алата на вашем рачунару:
+Ne morate ručno pisati konfiguraciju svakog alata. OmniRoute isporučuje `setup-*`
+komandu po podržanom CLI-ju koja čita **živi** katalog modela sa pokrenutog
+OmniRoute-a (lokalnog ili udaljenog) i piše sopstvenu konfiguraciju alata na vašoj mašini:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,49 +57,51 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Свака команда прихвата `--remote <url> --api-key <key>` (конфигурисање локалног алата над
-удаљеним OmniRoute-ом), `--dry-run` (преглед без записивања) и `--port`. Алати
-без аутоматског откривања модела (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) прихватају
-`--model <id>` (и `--yes` за неинтерактивна извршавања). `setup-5dive` је рецепт који
-не пише испод `$HOME`: он конфигурише флоту агената 5dive
-записивањем профила аутентикације у власништву root корисника на хост флоте, тако да
-се поново извршава преко `sudo` и нема свој удаљени режим. Да бисте покренули CLI са
-одговарајућим убризганим окружењем и без записивања конфигурације уопште, користите генерички
-покретач `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — циљеви и алијаси долазе из `bin/cli/cli-manifest.mjs`); застарели
-покретачи по алату `omniroute launch` (Claude Code) и `omniroute launch-codex`
-(Codex) остају доступни. Gemini CLI је само за покретање: то је `omniroute run`
-циљ, али нема рецепт `setup-*`/`configure`.
+Svaka prihvata `--remote <url> --api-key <key>` (konfiguriše lokalni alat u odnosu na
+udaljeni OmniRoute), `--dry-run` (pregled bez pisanja) i `--port`. Alati
+bez automatskog otkrivanja modela (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) prihvataju
+`--model <id>` (i `--yes` za neinteraktivna pokretanja). `setup-5dive` je jedini
+recept koji ne piše pod `$HOME`: on konfiguriše 5dive agent flotu
+pisanjem auth profila u vlasništvu root-a na hostu flote, tako da se ponovo izvršava preko `sudo`
+i nema sopstveni udaljeni režim. Da biste pokrenuli CLI sa
+pravilno ubrizganim okruženjem i bez ikakve napisane konfiguracije, koristite generički
+`omniroute run <target>` pokretač (claude, codex, aider, goose, opencode, qwen,
+gemini — ciljevi i alijasi dolaze iz `bin/cli/cli-manifest.mjs`); stari
+pokretači po alatu `omniroute launch` (Claude Code) i `omniroute launch-codex`
+(Codex) ostaju dostupni. Gemini CLI je samo za pokretanje: to je `omniroute run`
+cilj, ali nema `setup-*`/`configure` recept.
 
-> **Потпуна референца:** главна табела — шта свака команда пише, свака опција,
-> локално у односу на удаљено, и који алати желе суфикс `/v1` — налази се у
+> **Potpuna referenca:** glavna tabela — šta svaka komanda piše, svaka zastavica,
+> lokalno vs udaljeno, i koji alati žele `/v1` sufiks — nalazi se u
 > **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
 
-### Извршавање ових команди унутар контејнера
+### Pokretanje ovoga unutar kontejnera
 
-Команда `setup-*` извршена унутар OmniRoute контејнера пише у
-сопствени home директоријум контејнера, који никакав CLI на хосту не чита и који нестаје са
-контејнером. OmniRoute то детектује и излази са кодом `2` уз инструкције, уместо да
-пише. Постоје два подржана начина да наставите — инсталирајте CLI на хосту и
-користите `omniroute connect` до контејнера, или бинд-монтирајте директоријуме конфигурације и подесите
-`CLI_CONFIG_HOME` (compose профил `host`). Свака команда `setup-*`, као и
-`omniroute configure` и `omniroute config set`, прихвата
-`--allow-container-write` када је конфигурисање сопствених CLI алата контејнера заиста
-оно што сте желели; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` радi исто за
-сервер. Погледајте
-[Docker водич → Конфигурисање CLI алата на хосту](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+`setup-*` komanda izvršena unutar OmniRoute kontejnera piše u
+sopstveni dom kontejnera, koji nijedan host CLI ne čita i koji nestaje sa
+kontejnerom. OmniRoute to detektuje i izlazi sa `2` sa uputstvima umesto
+pisanja. Dva podržana načina napred — instalirajte CLI na hostu i
+`omniroute connect` na kontejner, ili bind-mount-ujte config direktorijume i postavite
+`CLI_CONFIG_HOME` (compose `host` profil). Svaka `setup-*` komanda, plus
+`omniroute configure` i `omniroute config set`, prihvata
+`--allow-container-write` kada je konfigurisanje sopstvenih CLI-ja kontejnera ono što ste
+zapravo mislili; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` radi isto za
+server. Pogledajte
+[Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**Endpoint за примену** на контролној табли (`POST /api/cli-tools/apply`) спроводи
-исту заштиту: у контејнеру, писање чија мета није бинд-монтирана са
-хоста враћа **`422`** са `containerEphemeralTarget: true`, безбедну поруку о грешци
-и — за алате са рецептом за хост (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` (нпр. `omniroute setup-opencode`) за покретање
-на хосту уместо тога; ништа се не записује. `dryRun: true` наставља да функционише у режиму
-контејнера и враћа генерисани садржај + путању мете без додиривања диска, тако да
-можете претходно прегледати са контролне табле и применити на хосту. Ово понашање је
-намерно и заштићено регресионим тестом
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — никада не „поправљајте" 422
-уклањањем заштите.
+Kontrolna tabla **apply endpoint** (`POST /api/cli-tools/apply`) primenjuje
+istu zaštitu: u kontejneru, pisanje čiji cilj nije bind-mount-ovan sa
+hosta odgovara **`422`** sa `containerEphemeralTarget: true`, sigurnim tekstom greške i — za alate sa host receptom (claude, codex, opencode, cline,
+kilo, continue) — `hostSetupCommand` (npr. `omniroute setup-opencode`) za pokretanje
+na hostu umesto toga; ništa se ne piše. `dryRun: true` nastavlja da radi u kontejnerskom
+režimu i vraća redigovani pregled + ciljnu putanju bez dodirivanja diska. Sadržaj pregleda
+nije konfiguracija koja sadrži akreditive za kopiranje ili uvoz. Primenite sa
+originalnim alatom/osnovnim URL-om/API ključem/modelom ulaza na hostu, ili koristite naznačenu
+komandu za podešavanje na strani hosta. Pogledajte [CLI configuration security](../security/CLI-CONFIGURATION.md)
+za zaglavlje pregleda i ugovor o zahtevu. Ovo ponašanje je
+namerno i zaštićeno od regresije pomoću
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nikada ne "popravljajte" 422
+uklanjanjem zaštite.
 
 ---
 

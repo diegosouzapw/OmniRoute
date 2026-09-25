@@ -12,6 +12,7 @@ import AllocationTable from "./AllocationTable";
 import BurnRateChart from "./BurnRateChart";
 import StackedAllocationBar from "./StackedAllocationBar";
 import AccountQuotaRow from "./AccountQuotaRow";
+import PoolSchedulesCard from "./PoolSchedulesCard";
 import UsageLogCard from "./UsageLogCard";
 
 export interface PoolCardProps {
@@ -34,9 +35,7 @@ export interface PoolCardProps {
 function computeStatus(usage: PoolUsageSnapshot | null): "green" | "amber" | "red" {
   const dims = usage?.dimensions ?? [];
   if (dims.length === 0) return "green";
-  const utilizations = dims.map((d) =>
-    d.limit > 0 ? (d.consumedTotal / d.limit) * 100 : 0
-  );
+  const utilizations = dims.map((d) => (d.limit > 0 ? (d.consumedTotal / d.limit) * 100 : 0));
   const avg = utilizations.reduce((s, u) => s + u, 0) / utilizations.length;
   if (avg > 80) return "red";
   if (avg > 50) return "amber";
@@ -66,7 +65,9 @@ export default function PoolCard({
   const { icon: statusIcon, cls: statusCls } = STATUS_ICONS[status];
 
   const displayName = emailsVisible ? pool.name : maskEmailLikeValue(pool.name);
-  const displayConnectionLabel = emailsVisible ? connectionLabel : maskEmailLikeValue(connectionLabel);
+  const displayConnectionLabel = emailsVisible
+    ? connectionLabel
+    : maskEmailLikeValue(connectionLabel);
 
   // Check for plan dimensions from usage
   const hasDimensions = !!usage?.dimensions?.length;
@@ -108,7 +109,8 @@ export default function PoolCard({
               </span>
             </div>
             <div className="text-[11px] text-text-muted">
-              {t("allocationsCount", { count: pool.allocations.length })} · ID: {pool.id.slice(0, 12)}
+              {t("allocationsCount", { count: pool.allocations.length })} · ID:{" "}
+              {pool.id.slice(0, 12)}
             </div>
           </div>
         </div>
@@ -155,30 +157,18 @@ export default function PoolCard({
       )}
 
       {/* Stacked allocation bar — per-key slices */}
-      <StackedAllocationBar
-        allocations={pool.allocations}
-        usage={usage}
-        keyLabels={keyLabels}
-      />
+      <StackedAllocationBar allocations={pool.allocations} usage={usage} keyLabels={keyLabels} />
 
       {/* Allocation table */}
       <div className="mb-3">
         <h4 className="text-[10px] uppercase tracking-wide font-bold text-text-muted mb-1.5">
           Allocations
         </h4>
-        <AllocationTable
-          allocations={pool.allocations}
-          usage={usage}
-          keyLabels={keyLabels}
-        />
+        <AllocationTable allocations={pool.allocations} usage={usage} keyLabels={keyLabels} />
       </div>
 
       {/* Account quota row — read-only upstream quota per connection */}
-      <AccountQuotaRow
-        provider={provider}
-        providers={providers}
-        connectionIds={connectionIds}
-      />
+      <AccountQuotaRow provider={provider} providers={providers} connectionIds={connectionIds} />
 
       {/* Burn rate chart */}
       {usage && (
@@ -186,6 +176,9 @@ export default function PoolCard({
           <BurnRateChart usage={usage} />
         </div>
       )}
+
+      {/* Time-aware quota windows — collapsible, collapsed by default */}
+      <PoolSchedulesCard poolId={pool.id} />
 
       {/* Usage log — collapsible, collapsed by default */}
       <UsageLogCard poolId={pool.id} keyLabels={keyLabels} />

@@ -1,0 +1,1 @@
+- fix(cache): fold tools/tool_choice/response_format into the semantic-cache Layer-1 hash and cap caller-supplied TTL, closing a cross-request cache poisoning path (#14484)
