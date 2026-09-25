@@ -1,6 +1,7 @@
 import type { CompressionConfig, CompressionPipelineStep } from "./types.ts";
-import { deriveDefaultPlan, type DerivedPlan } from "./deriveDefaultPlan.ts";
+import type { DerivedPlan } from "./deriveDefaultPlan.ts";
 import { downgradeUnrequestedLossy } from "./lossyRequestPolicy.ts";
+import { deriveDefaultPlanFromConfig } from "./planResolution.ts";
 
 /** Named-combo map: combo id -> its stacked pipeline (operator-defined profiles). */
 export type NamedCombos = Record<string, CompressionPipelineStep[]>;
@@ -18,14 +19,20 @@ export type NamedCombos = Record<string, CompressionPipelineStep[]>;
  *   2. activeComboId resolves in combos     -> that profile's stacked pipeline (an explicit
  *      operator choice, which resolveBasePlan gives precedence over the plain engines-derived
  *      default)
- *   3. otherwise                            -> deriveDefaultPlan(engines, enabled)
+ *   3. otherwise                            -> deriveDefaultPlanFromConfig(config, null, combos)
+ *      (the SAME default derivation resolveBasePlan uses — enginesExplicit panel config
+ *      via resolveCompressionPlan, otherwise the legacy defaultMode — so the preview
+ *      cannot disagree with a live request about the plain default either)
  *
- * The result then goes through the same lossy policy a header-less request gets (#14529):
- * lossy steps are replaced by session-dedup + lite unless the request opts in, so the preview
- * shows what an ordinary request actually runs instead of the configured-but-downgraded plan.
+ * The result then passes through downgradeUnrequestedLossy — resolveBasePlan ends with
+ * applyLossyRequestPolicy(plan, header) and an at-rest preview has no request header,
+ * so a header-less live call downgrades lossy steps to the safe dedup+whitespace
+ * pipeline. Without this the Settings preview claims an active rtk/caveman profile is
+ * what runs, while every header-less request actually runs the safe pipeline (the
+ * preview-vs-runtime mismatch #12063 was about).
  */
 export function deriveEffectivePreviewPlan(
-  config: Pick<CompressionConfig, "engines" | "enabled" | "activeComboId">,
+  config: CompressionConfig,
   combos: NamedCombos = {}
 ): DerivedPlan {
   if (!config.enabled) return { mode: "off", stackedPipeline: [] };
@@ -37,5 +44,5 @@ export function deriveEffectivePreviewPlan(
     });
   }
 
-  return downgradeUnrequestedLossy(deriveDefaultPlan(config.engines, config.enabled));
+  return downgradeUnrequestedLossy(deriveDefaultPlanFromConfig(config, /* comboId */ null, combos));
 }

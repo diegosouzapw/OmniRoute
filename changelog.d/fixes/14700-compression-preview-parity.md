@@ -1,0 +1,1 @@
+- **fix(compression):** The settings preview now runs the same downgrade and default-plan path a real request runs, so an active profile is not described as a pipeline the request will not use ([#14700](https://github.com/diegosouzapw/OmniRoute/pull/14700)) — thanks @gonisulaimann
