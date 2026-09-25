@@ -9,6 +9,7 @@
  */
 import { isAccountUnavailable, isModelLocked } from "../accountFallback.ts";
 import { isOpencodeFreeTierSkipped } from "../opencodeFreeTierSkip.ts";
+import { recordAutoExclusion } from "./autoEvaluationTrace";
 
 export const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 
@@ -74,7 +75,8 @@ function isConnectionEligibleForModel(
 export function filterResilienceBlockedCandidates<T extends ResilienceFilterCandidate>(
   pool: T[],
   connectionsById: Map<string, ConnectionResilienceView>,
-  skip = false
+  skip = false,
+  traceInvocationId?: string
 ): T[] {
   if (skip || !Array.isArray(pool) || pool.length === 0) return pool;
 
@@ -88,6 +90,13 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
         isOpencodeFreeTierSkipped(candidate.provider)
       ) {
         changed = true;
+        recordAutoExclusion(
+          traceInvocationId,
+          candidate,
+          "resilience",
+          "auto_resilience_filter",
+          "model-lockout"
+        );
         return [];
       }
       return [candidate];
@@ -104,6 +113,13 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
       );
       if (allowedConnectionIds.length === 0) {
         changed = true;
+        recordAutoExclusion(
+          traceInvocationId,
+          candidate,
+          "resilience",
+          "auto_resilience_filter",
+          "all-connections-blocked"
+        );
         return [];
       }
       if (allowedConnectionIds.length === candidate.allowedConnectionIds.length) {
@@ -123,6 +139,13 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
         )
       ) {
         changed = true;
+        recordAutoExclusion(
+          traceInvocationId,
+          candidate,
+          "resilience",
+          "auto_resilience_filter",
+          "connection-blocked"
+        );
         return [];
       }
     }

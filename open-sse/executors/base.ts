@@ -11,6 +11,8 @@ import {
   mergeCcHeaders,
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
+  maybeAppendSkillsBeta,
+  syncSkillsBeta,
 } from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { createCopilotIdentityFallback } from "./copilotIdentityFallback.ts";
@@ -23,10 +25,6 @@ import {
   recordLearnedThinkingCap,
   parseThinkingBudgetMax,
 } from "../services/learnedThinkingCaps.ts";
-import {
-  recordLearnedReasoningEffort,
-  parseReasoningEffortEnum,
-} from "../services/learnedReasoningEffortCaps.ts";
 import {
   getParamFilterConfig,
   addParamToBlocklist,
@@ -135,6 +133,7 @@ import { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
 export { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
 import { mergeAbortSignals } from "./base/mergeAbortSignals.ts";
 export { mergeAbortSignals } from "./base/mergeAbortSignals.ts";
+import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -515,6 +514,8 @@ export class BaseExecutor {
 
     headers["Accept"] = stream ? "text/event-stream" : "application/json";
 
+    maybeAppendSkillsBeta(headers, this.provider, body, this.usesClaudeCodeProtocol(credentials));
+
     normalizeAnthropicHeaderVariants(headers);
 
     return headers;
@@ -885,6 +886,9 @@ export class BaseExecutor {
         clampNestedThinkingBudget(transformedBody, thinkingBudgetClampedMax);
       }
 
+      // Re-synchronize skills beta with the finalized transformed body (#14200):
+      syncSkillsBeta(headers, this.provider, transformedBody, usesClaudeCodeProtocol);
+
       // Timeout only covers response start; stream stalls are handled downstream.
       // #11526: streaming requests cap the headers-wait phase to a client-realistic
       // ceiling (see fetchStartTimeoutPolicy.ts) — non-streaming keeps the flat default.
@@ -1228,7 +1232,9 @@ export class BaseExecutor {
                 // Gate the client-negotiated context-1m beta on the RESOLVED target:
                 // combo/fallback can route a request negotiated for a [1m] sibling onto a
                 // model that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
-                model
+                model,
+                // Gate skills-2025-10-02 on presence of code_execution tool in transformed body (#14200):
+                tb
               ),
               "anthropic-dangerous-direct-browser-access": "true",
               "x-app": "cli",
@@ -1533,41 +1539,26 @@ export class BaseExecutor {
           transformedBody &&
           typeof transformedBody === "object"
         ) {
-          const errText = await response
-            .clone()
-            .text()
-            .catch(() => "");
-          const acceptedValues = parseReasoningEffortEnum(errText);
-          if (acceptedValues) {
-            reasoningEffortClamped = true;
-            const learned = recordLearnedReasoningEffort(this.provider, model, acceptedValues);
-            if (learned && learned.size > 0) {
-              const beforeRetry = JSON.stringify(transformedBody);
-              transformedBody = sanitizeReasoningEffortForProvider(
-                transformedBody,
-                this.provider,
-                model,
-                log
-              );
-              const afterRetry = JSON.stringify(transformedBody);
-              if (beforeRetry === afterRetry) {
-                log?.info?.(
-                  "REASONING_SANITIZE",
-                  `Upstream ${response.status} rejected reasoning_effort on ${url} — learned ${[...learned].join(",")} but clamp was no-op for ${this.provider}/${model}, not retrying`
-                );
-              } else {
-                let retryBody = JSON.stringify(transformedBody);
-                if (usesClaudeCodeProtocol || this.provider === "claude") {
-                  retryBody = await signRequestBody(retryBody);
-                }
-                log?.info?.(
-                  "REASONING_SANITIZE",
-                  `Upstream ${response.status} rejected reasoning_effort on ${url} — clamped to ${[...learned].join(",")} and retrying (learned for ${this.provider}/${model})`
-                );
-                response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
+          const recovery = await applyReasoningEffortRecovery({
+            response,
+            url,
+            provider: this.provider,
+            model,
+            body: transformedBody,
+            fetchOptions,
+            fetchFn: fetchWithStartTimeout,
+            serializeBody: async (b) => {
+              let retryBody = JSON.stringify(b);
+              if (usesClaudeCodeProtocol || this.provider === "claude") {
+                retryBody = await signRequestBody(retryBody);
               }
-            }
-          }
+              return retryBody;
+            },
+            log,
+          });
+          if (recovery.attempted) reasoningEffortClamped = true;
+          response = recovery.response;
+          transformedBody = recovery.body;
         }
 
         // Generic reactive 400 field-downgrade; each field is stripped at most once.

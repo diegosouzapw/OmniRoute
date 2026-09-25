@@ -516,19 +516,21 @@ export class GeminiWebExecutor extends BaseExecutor {
     const modelId = model || DEFAULT_MODEL_ID;
 
     let browser: any = null;
+    let context: import("playwright").BrowserContext | null = null;
     let abortBrowser: (() => void) | null = null;
     try {
       if (signal?.aborted) {
         throw signal.reason instanceof Error ? signal.reason : new Error("Request aborted");
       }
       const { chromium } = await import("playwright");
-      browser = await chromium.launch({ headless: true });
+      const { acquireGeminiBrowser } = await import("./gemini-web/browserLease.ts");
+      browser = await acquireGeminiBrowser((options) => chromium.launch(options));
       abortBrowser = () => {
-        void browser?.close().catch(() => {});
+        void context?.close().catch(() => {});
       };
       signal?.addEventListener("abort", abortBrowser, { once: true });
 
-      const context = await browser.newContext({ userAgent: GEMINI_USER_AGENT });
+      context = await browser.newContext({ userAgent: GEMINI_USER_AGENT });
 
       // Parse cookies — strips attributes like Path, Domain, Expires
       const cookiePairs = parseCookies(cookie);
@@ -797,13 +799,16 @@ export class GeminiWebExecutor extends BaseExecutor {
       };
     } finally {
       if (abortBrowser) signal?.removeEventListener("abort", abortBrowser);
-      // Always close browser to prevent resource leaks
+      // #13382: close this request's context. The Chromium process stays
+      // warm until it has been idle.
+      try {
+        await context?.close();
+      } catch {
+        /* ignore close errors */
+      }
       if (browser) {
-        try {
-          await browser.close();
-        } catch {
-          /* ignore close errors */
-        }
+        const { releaseGeminiBrowser } = await import("./gemini-web/browserLease.ts");
+        await releaseGeminiBrowser(browser);
       }
     }
   }

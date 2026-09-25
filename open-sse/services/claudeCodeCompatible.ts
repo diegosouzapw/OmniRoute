@@ -141,25 +141,14 @@ export function joinClaudeCodeCompatibleUrl(baseUrl: string, path: string): stri
   return joinNormalizedBaseUrlAndPath(stripClaudeCodeCompatibleEndpointSuffix(baseUrl), path);
 }
 
-export function appendAnthropicBetaHeader(
-  headers: Record<string, string>,
-  betaHeader: string
-): void {
-  const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
-  if (!existingKey) {
-    headers["anthropic-beta"] = betaHeader;
-    return;
-  }
-
-  const existingValues = String(headers[existingKey] || "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-
-  if (!existingValues.includes(betaHeader)) {
-    headers[existingKey] = [...existingValues, betaHeader].join(",");
-  }
-}
+export {
+  appendAnthropicBetaHeader,
+  removeAnthropicBetaHeader,
+  hasCodeExecutionTool,
+  maybeAppendSkillsBeta,
+  syncSkillsBeta,
+  SKILLS_BETA_HEADER,
+} from "../config/anthropicHeaders.ts";
 
 // Re-exported from the shared context1m module so existing importers of this
 // helper (base.ts) keep working; the eligibility list now has one source of truth.

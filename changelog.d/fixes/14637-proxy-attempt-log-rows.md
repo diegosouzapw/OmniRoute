@@ -1,0 +1,1 @@
+- **fix(sse):** the proxy journal keeps one row per request actually sent, so refused outlets stop looking like first-try successes — count requests with `COUNT(DISTINCT correlation_id)` ([#14637](https://github.com/diegosouzapw/OmniRoute/pull/14637)) — thanks @maxmad64bis

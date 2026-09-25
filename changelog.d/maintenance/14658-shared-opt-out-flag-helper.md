@@ -1,0 +1,1 @@
+- **refactor(flags):** reuse the shared opt-out flag helper for the agent goal policy and the legacy outbound guard escape hatch, with identical behavior (active unless explicitly set to a falsy value) ([#14658](https://github.com/diegosouzapw/OmniRoute/pull/14658))
