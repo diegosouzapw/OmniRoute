@@ -14,7 +14,7 @@ const originalSpawn = childProcess.spawn;
 const originalExecFileSync = childProcess.execFileSync;
 const originalEnv = { ...process.env };
 
-const tempDirs = new Set();
+const tempDirs = new Set<string>();
 
 async function importFresh(label) {
   return import(`${pathToFileURL(modulePath).href}?case=${label}-${Date.now()}-${Math.random()}`);
@@ -90,6 +90,16 @@ test("CLI config helpers enforce safe config homes and expose per-tool config pa
   const expectedOpencodeRoot = process.env.XDG_CONFIG_HOME;
   assert.deepEqual(cliRuntime.getCliConfigPaths("opencode"), {
     config: path.join(expectedOpencodeRoot, "opencode", "opencode.json"),
+  });
+});
+
+test("Devin config resolver does not prepend the home directory twice", async () => {
+  if (process.platform === "win32") return;
+  delete process.env.CLI_CONFIG_HOME;
+  const cliRuntime = await importFresh("devin-config-path");
+
+  assert.deepEqual(cliRuntime.getCliConfigPaths("devin"), {
+    config: path.join(os.homedir(), ".config", "devin", "config.json"),
   });
 });
 

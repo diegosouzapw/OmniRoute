@@ -19,6 +19,7 @@ import { join } from "node:path";
 import { spawn, execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { resolveActiveContext } from "../contexts.mjs";
+import { buildSafeCliLaunchEnv } from "../launch-env.mjs";
 import { quoteShellArgs } from "../utils/winShellArgs.mjs";
 import {
   listManifestTargets,
@@ -131,6 +132,7 @@ async function buildClaudePlan(rawOpts, args = []) {
   const env = buildClaudeEnv(process.env, baseUrl, authToken, {
     configDir,
     model: merged.model || undefined,
+    inheritEnv: merged.inheritEnv,
   });
   const quotedArgs = quoteClaudeArgs(args, process.platform);
 
@@ -162,7 +164,9 @@ async function buildCodexPlan(rawOpts, args = []) {
   const providerArgs = buildCodexProviderArgs(baseUrl, merged.model || undefined);
   const profileArgs = merged.profile ? ["--profile", merged.profile] : [];
 
-  const env = buildCodexEnv(process.env, authToken);
+  const env = buildCodexEnv(process.env, authToken, {
+    inheritEnv: merged.inheritEnv,
+  });
   const fullArgs = [...providerArgs, ...profileArgs, ...args];
   const quotedArgs = quoteCodexArgs(fullArgs, process.platform);
 
@@ -208,8 +212,8 @@ function resolveGenericSpawn(command) {
   return { command: `${command}.cmd`, shell: true };
 }
 
-function genericEnv(baseEnv, kind, baseUrl, authToken, model) {
-  const env = { ...baseEnv };
+function genericEnv(baseEnv, kind, baseUrl, authToken, model, options = {}) {
+  const env = buildSafeCliLaunchEnv(baseEnv, { inheritEnv: Boolean(options.inheritEnv) });
   for (const key of Object.keys(env)) {
     if (kind === "aider" && /^(OPENAI_API_KEY|OPENAI_API_BASE|OPENAI_BASE_URL)$/.test(key)) {
       delete env[key];
@@ -236,7 +240,7 @@ function genericEnv(baseEnv, kind, baseUrl, authToken, model) {
 
   const token = (authToken && String(authToken).trim()) || NO_AUTH_SENTINEL;
   if (kind === "aider") {
-    env.OPENAI_API_BASE = baseUrl;
+    env.OPENAI_API_BASE = ensureV1BaseUrl(baseUrl);
     env.OPENAI_API_KEY = token;
   } else if (kind === "goose") {
     env.GOOSE_PROVIDER = "openai";
@@ -323,7 +327,7 @@ async function buildGenericPlan(target, rawOpts, args = []) {
   }
   const modelArgs = modelArgsForTarget(target, model);
   const fullArgs = [...modelArgs, ...args];
-  const env = genericEnv(process.env, target, baseUrl, authToken, model);
+  const env = genericEnv(process.env, target, baseUrl, authToken, model, rawOpts);
 
   return {
     target,
@@ -375,7 +379,7 @@ async function runGenericTarget(target, rawOpts, args) {
   }
   const modelArgs = modelArgsForTarget(target, model);
   const commandSpec = resolveGenericSpawn(target);
-  const childEnv = genericEnv(process.env, target, baseUrl, authToken, model);
+  const childEnv = genericEnv(process.env, target, baseUrl, authToken, model, rawOpts);
   let overlayHome;
   if (target === "qwen") {
     overlayHome = mkdtempSync(join(os.tmpdir(), "omniroute-qwen-run-"));
@@ -416,10 +420,13 @@ async function runGenericTarget(target, rawOpts, args) {
 
   return await new Promise((resolve) => {
     let settled = false;
+    let requestedSignalCode;
+    let escalationTimer;
     const signalExitCode = { SIGINT: 130, SIGTERM: 143, SIGHUP: 129 };
     const finish = (code) => {
       if (settled) return;
       settled = true;
+      if (escalationTimer) clearTimeout(escalationTimer);
       for (const signal of Object.keys(signalExitCode)) {
         process.removeListener(signal, signalHandlers[signal]);
       }
@@ -429,12 +436,26 @@ async function runGenericTarget(target, rawOpts, args) {
     const signalHandlers = {};
     for (const signal of Object.keys(signalExitCode)) {
       signalHandlers[signal] = () => {
+        if (requestedSignalCode !== undefined) return;
+        requestedSignalCode = signalExitCode[signal];
         try {
           child.kill(signal);
         } catch {
-          // The child may have already exited between the signal and cleanup.
+          // The child may have already exited; its close event will settle.
         }
-        finish(signalExitCode[signal]);
+        const configuredTimeout = Number(
+          rawOpts.signalTimeoutMs ?? process.env.OMNIROUTE_CHILD_SIGNAL_TIMEOUT_MS
+        );
+        const timeoutMs =
+          Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : 5000;
+        escalationTimer = setTimeout(() => {
+          try {
+            child.kill("SIGKILL");
+          } catch {
+            // A close event may have raced with the escalation timeout.
+          }
+        }, timeoutMs);
+        escalationTimer.unref?.();
       };
       process.once(signal, signalHandlers[signal]);
     }
@@ -447,8 +468,8 @@ async function runGenericTarget(target, rawOpts, args) {
         finish(1);
       }
     });
-    child.on("exit", (code, signal) => {
-      finish(code ?? signalExitCode[signal] ?? 0);
+    child.on("close", (code, signal) => {
+      finish(requestedSignalCode ?? code ?? signalExitCode[signal] ?? 0);
     });
   });
 }
@@ -473,12 +494,41 @@ export async function buildRunPlan(target, rawOpts = {}, args = []) {
   return buildGenericPlan(canonical, rawOpts, args);
 }
 
+const SENSITIVE_ARGUMENT_RE =
+  /^--(?:api[-_]?key|token|access[-_]?token|credential|password|passphrase|secret)(?:=|$)/i;
+
+function redactSensitiveArgs(args = []) {
+  const redacted = [];
+  let redactNext = false;
+  for (const raw of args) {
+    const value = String(raw);
+    if (redactNext) {
+      redacted.push("[redacted]");
+      redactNext = false;
+      continue;
+    }
+    const normalized = value.replace(/\^/g, "").replace(/^"|"$/g, "");
+    if (!SENSITIVE_ARGUMENT_RE.test(normalized)) {
+      redacted.push(value);
+      continue;
+    }
+    const equals = normalized.indexOf("=");
+    if (equals >= 0) {
+      redacted.push(`${normalized.slice(0, equals + 1)}[redacted]`);
+    } else {
+      redacted.push(value);
+      redactNext = true;
+    }
+  }
+  return redacted;
+}
+
 function writeDryRunOutput(plan, opts = {}) {
   const output = {
     target: plan.target,
     baseUrl: plan.baseUrl,
     command: plan.command,
-    args: plan.args,
+    args: redactSensitiveArgs(plan.args),
     auth: {
       source: plan.authSource,
       present: plan.authSource !== "none",
@@ -593,6 +643,10 @@ export function registerRun(program) {
     .option("--token <token>", "Authentication token for the launched target (same as --api-key)")
     .option("--api-key <key>", "Authentication token for the launched target")
     .option("--api-key-env <name>", "Read the launch token from an environment variable")
+    .option(
+      "--inherit-env",
+      "Explicitly pass the full parent environment to the third-party CLI (may expose credentials)"
+    )
     .option("--dry-run", "Show planned command and env keys without executing")
     .option("--json", "Return dry-run output in machine-readable format")
     .allowUnknownOption(true)

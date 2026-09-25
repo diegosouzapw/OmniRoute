@@ -12,6 +12,11 @@
 
 import { execFileSync } from "child_process";
 import path from "path";
+import {
+  CLI_INTEGRATION_MANIFEST,
+  listCliIntegrationIds,
+  type CliAgentBackendSpec,
+} from "@/shared/constants/cliIntegrationManifest";
 
 export interface CliAgentInfo {
   /** Agent identifier (e.g., "codex", "claude", "goose") */
@@ -32,6 +37,8 @@ export interface CliAgentInfo {
   spawnArgs: string[];
   /** Protocol used for communication */
   protocol: "stdio" | "http";
+  /** Native ACP or a legacy newline/stdout adapter. */
+  backendMode?: CliAgentBackendSpec["mode"];
   /** Whether this is a user-defined custom agent */
   isCustom?: boolean;
 }
@@ -45,148 +52,31 @@ export interface CustomAgentDef {
   providerAlias: string;
   spawnArgs: string[];
   protocol: "stdio" | "http";
+  backendMode?: CliAgentBackendSpec["mode"];
 }
 
 /**
  * Registry of known CLI agents that support ACP or similar protocols.
  */
-const AGENT_DEFINITIONS: Omit<CliAgentInfo, "version" | "installed">[] = [
-  {
-    id: "codex",
-    name: "OpenAI Codex CLI",
-    binary: "codex",
-    versionCommand: "codex --version",
-    providerAlias: "codex",
-    spawnArgs: ["--quiet"],
-    protocol: "stdio",
-  },
-  {
-    id: "claude",
-    name: "Claude Code CLI",
-    binary: "claude",
-    versionCommand: "claude --version",
-    providerAlias: "claude",
-    spawnArgs: ["--print", "--output-format", "json"],
-    protocol: "stdio",
-  },
-  {
-    id: "gemini",
-    name: "Google Gemini CLI",
-    binary: "gemini",
-    versionCommand: "gemini --version",
-    providerAlias: "gemini",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
-    id: "goose",
-    name: "Goose CLI",
-    binary: "goose",
-    versionCommand: "goose --version",
-    providerAlias: "goose",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
-    id: "openclaw",
-    name: "OpenClaw",
-    binary: "openclaw",
-    versionCommand: "openclaw --version",
-    providerAlias: "openclaw",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
-    id: "aider",
-    name: "Aider",
-    binary: "aider",
-    versionCommand: "aider --version",
-    providerAlias: "aider",
-    spawnArgs: ["--no-auto-commits"],
-    protocol: "stdio",
-  },
-  {
-    id: "zcode",
-    name: "ZCode (GLM Coding Plan)",
-    binary: "zcode",
-    versionCommand: "zcode --version",
-    providerAlias: "zcode",
-    spawnArgs: ["app-server"],
-    protocol: "stdio",
-  },
-  {
-    id: "opencode",
-    name: "OpenCode",
-    binary: "opencode",
-    versionCommand: "opencode --version",
-    providerAlias: "opencode",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
-    id: "cline",
-    name: "Cline",
-    binary: "cline",
-    versionCommand: "cline --version",
-    providerAlias: "cline",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
-    id: "qwen",
-    name: "Qwen Code",
-    binary: "qwen",
-    versionCommand: "qwen --version",
-    providerAlias: "qwen-code",
-    spawnArgs: ["--acp"],
-    protocol: "stdio",
-  },
-  {
-    id: "forge",
-    name: "ForgeCode",
-    binary: "forge",
-    versionCommand: "forge --version",
-    providerAlias: "forge",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
-    id: "amazon-q",
-    name: "Amazon Q Developer",
-    binary: "q",
-    versionCommand: "q --version",
-    providerAlias: "amazon-q",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
-    id: "interpreter",
-    name: "Open Interpreter",
-    binary: "interpreter",
-    versionCommand: "interpreter --version",
-    providerAlias: "interpreter",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
-    id: "cursor-cli",
-    name: "Cursor CLI",
-    binary: "cursor",
-    versionCommand: "cursor --version",
-    providerAlias: "cursor",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
-    id: "warp",
-    name: "Warp AI",
-    binary: "warp",
-    versionCommand: "warp --version",
-    providerAlias: "warp",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-];
+export const BUILT_IN_AGENT_IDS = Object.freeze(listCliIntegrationIds("agentBackend"));
+
+const AGENT_DEFINITIONS: Omit<CliAgentInfo, "version" | "installed">[] = BUILT_IN_AGENT_IDS.map(
+  (id) => {
+    const entry = CLI_INTEGRATION_MANIFEST[id];
+    const backend = entry.agentBackend;
+    if (!backend) throw new Error(`CLI '${id}' has no agent backend contract`);
+    return {
+      id,
+      name: entry.displayName,
+      binary: backend.binary,
+      versionCommand: [backend.binary, ...backend.versionArgs].join(" "),
+      providerAlias: backend.providerAlias,
+      spawnArgs: [...backend.spawnArgs],
+      protocol: "stdio",
+      backendMode: backend.mode,
+    };
+  }
+);
 
 // ---------------------------------------------------------------------------
 // Detection cache (60 seconds)
@@ -221,6 +111,20 @@ export function setCustomAgents(agents: CustomAgentDef[]): void {
  */
 export function getCustomAgentDefs(): CustomAgentDef[] {
   return _customAgentDefs;
+}
+
+/** Resolve a registered launch contract without probing executables on PATH. */
+export function getRegisteredAgentById(
+  id: string
+): Omit<CliAgentInfo, "version" | "installed"> | undefined {
+  const normalized = String(id || "")
+    .trim()
+    .toLowerCase();
+  const builtIn = AGENT_DEFINITIONS.find((agent) => agent.id === normalized);
+  if (builtIn) return builtIn;
+
+  const custom = _customAgentDefs.find((agent) => agent.id === normalized);
+  return custom ? { ...custom, backendMode: custom.backendMode || "stdio-adapter" } : undefined;
 }
 
 function tokenizeVersionCommand(command: string): string[] | null {
@@ -417,13 +321,7 @@ export function getAgentById(id: string): CliAgentInfo | undefined {
  * consumers.
  */
 export function hasRegisteredAgent(id: string): boolean {
-  const normalized = String(id || "")
-    .trim()
-    .toLowerCase();
-  return (
-    AGENT_DEFINITIONS.some((agent) => agent.id === normalized) ||
-    _customAgentDefs.some((agent) => agent.id === normalized)
-  );
+  return Boolean(getRegisteredAgentById(id));
 }
 
 /**

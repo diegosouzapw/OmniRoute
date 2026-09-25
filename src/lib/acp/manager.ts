@@ -1,249 +1,226 @@
-/**
- * ACP (Agent Client Protocol) — Process Spawner & Manager
- *
- * Spawns CLI agents as child processes and manages their lifecycle.
- * Communication happens via stdin/stdout (JSON-RPC style) or piped HTTP.
- *
- * This module provides a "CLI-as-backend" transport: instead of intercepting
- * HTTP API calls, OmniRoute spawns the CLI directly and feeds prompts through
- * its native interface.
- */
+/** Registered CLI launch contracts, native ACP and legacy stdio lifecycle. */
+import { spawn, type ChildProcess } from "node:child_process";
+import { EventEmitter } from "node:events";
+import { resolve } from "node:path";
+import { getRegisteredAgentById } from "./registry";
+import { appendCapped } from "./buffers";
+import { withDeadline } from "./deadline";
+import { buildAcpChildEnv, parseSpawnOptions, type AcpSpawnOptions } from "./launchConfig";
+import { NativeAcpClient } from "./nativeClient";
 
-import { spawn, ChildProcess } from "child_process";
-import { EventEmitter } from "events";
-import { hasRegisteredAgent } from "./registry";
+export type { AcpSpawnOptions } from "./launchConfig";
 
 export interface AcpSession {
-  /** Unique session ID */
   id: string;
-  /** Agent ID (e.g., "codex", "claude") */
   agentId: string;
-  /** Child process handle */
   process: ChildProcess;
-  /** Whether the process is alive */
   alive: boolean;
-  /** Accumulated stdout buffer */
   stdoutBuffer: string;
-  /** Accumulated stderr buffer */
   stderrBuffer: string;
-  /** Created timestamp */
   createdAt: Date;
+  backendMode: "acp" | "stdio-adapter";
+  nativeReady?: Promise<void>;
+  nativeRuntime?: NativeAcpClient;
+  activePrompt?: boolean;
+  stopping?: boolean;
 }
 
-/**
- * Upper bound for each per-session output buffer.
- *
- * Both buffers grow on every chunk a CLI agent writes and are only reset when
- * the next prompt starts, so a chatty or looping agent can grow them without
- * limit while the session stays alive. 1 MiB is far above a realistic agent
- * response while keeping a stuck session's footprint bounded.
- */
-const MAX_BUFFER_CHARS = 1_048_576;
-
-const TRUNCATION_NOTICE = "\n[...output truncated...]\n";
-
-/**
- * Append to a buffer, keeping the most recent output when the cap is exceeded.
- *
- * The tail is what callers care about: `sendPrompt` resolves with the stdout
- * collected since the prompt was written, and stderr is read for diagnostics
- * after a failure. Dropping from the front keeps both useful.
- */
-function appendCapped(buffer: string, chunk: string): string {
-  const combined = buffer + chunk;
-  if (combined.length <= MAX_BUFFER_CHARS) return combined;
-
-  const keep = MAX_BUFFER_CHARS - TRUNCATION_NOTICE.length;
-  if (keep <= 0) return combined.slice(-MAX_BUFFER_CHARS);
-  return TRUNCATION_NOTICE + combined.slice(-keep);
-}
-
-/**
- * ACP Session Manager
- *
- * Manages the lifecycle of CLI agent processes.
- * Each session represents one running CLI agent instance.
- */
 export class AcpManager extends EventEmitter {
-  private sessions: Map<string, AcpSession> = new Map();
+  private sessions = new Map<string, AcpSession>();
 
-  /**
-   * Spawn a new CLI agent process.
-   */
-  spawn(
-    agentId: string,
-    binary: string,
-    args: string[] = [],
-    env: Record<string, string> = {}
-  ): AcpSession {
-    const normalizedAgentId = String(agentId || "")
-      .trim()
-      .toLowerCase();
-    if (!hasRegisteredAgent(normalizedAgentId)) {
-      throw new Error(`Unknown agent: ${agentId}`);
-    }
-
-    // Keep session ids and telemetry stable when a caller uses a registry
-    // alias/custom spelling. The registry remains the source of truth for
-    // which ACP-capable IDs may be spawned.
-    agentId = normalizedAgentId;
-
-    const sessionId = `acp-${agentId}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-
-    const child = spawn(binary, args, {
+  spawn(agentId: string, options: AcpSpawnOptions = {}): AcpSession {
+    options = parseSpawnOptions(options);
+    const definition = getRegisteredAgentById(agentId);
+    if (!definition) throw new Error(`Unknown agent: ${agentId}`);
+    if (definition.protocol !== "stdio")
+      throw new Error("Agent does not declare a stdio launch contract");
+    const cwd = resolve(options.cwd || process.cwd());
+    const child = spawn(definition.binary, [...definition.spawnArgs], {
       stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env, ...env },
+      cwd,
+      env: buildAcpChildEnv(options.env),
       shell: false,
     });
-
     const session: AcpSession = {
-      id: sessionId,
-      agentId,
+      id: `acp-${definition.id}-${crypto.randomUUID()}`,
+      agentId: definition.id,
       process: child,
       alive: true,
       stdoutBuffer: "",
       stderrBuffer: "",
       createdAt: new Date(),
+      backendMode: definition.backendMode || "stdio-adapter",
     };
-
-    child.stdout?.on("data", (chunk: Buffer) => {
-      session.stdoutBuffer = appendCapped(session.stdoutBuffer, chunk.toString());
-      this.emit("stdout", { sessionId, data: chunk.toString() });
-    });
-
-    child.stderr?.on("data", (chunk: Buffer) => {
-      session.stderrBuffer = appendCapped(session.stderrBuffer, chunk.toString());
-      this.emit("stderr", { sessionId, data: chunk.toString() });
-    });
-
-    child.on("exit", (code, signal) => {
-      session.alive = false;
-      // Only kill() used to remove entries, so any agent that exited on its own
-      // stayed in the map forever. getActiveSessions() filters on `alive`, which
-      // hid the growth from callers.
-      this.sessions.delete(sessionId);
-      this.emit("exit", { sessionId, code, signal });
-    });
-
-    child.on("error", (err) => {
-      session.alive = false;
-      this.emit("error", { sessionId, error: err });
-    });
-
-    this.sessions.set(sessionId, session);
+    this.sessions.set(session.id, session);
+    this.observeProcess(session);
+    if (session.backendMode === "acp") this.initializeNative(session, cwd);
+    else
+      child.stdout?.on("data", (chunk: Buffer) =>
+        this.collectOutput(session, "stdout", chunk.toString())
+      );
     return session;
   }
 
-  /**
-   * Send input to a running session's stdin.
-   */
+  private collectOutput(session: AcpSession, stream: "stdout" | "stderr", data: string): void {
+    const key = stream === "stdout" ? "stdoutBuffer" : "stderrBuffer";
+    session[key] = appendCapped(session[key], data);
+    this.emit(stream, { sessionId: session.id, data });
+  }
+
+  private reportError(session: AcpSession): void {
+    const event = { sessionId: session.id, error: new Error("ACP agent transport failed") };
+    this.emit("sessionError", event);
+    // EventEmitter's special error event must never crash a server without a subscriber.
+    if (this.listenerCount("error") > 0) this.emit("error", event);
+  }
+
+  private observeProcess(session: AcpSession): void {
+    const child = session.process;
+    child.stderr?.on("data", (chunk: Buffer) =>
+      this.collectOutput(session, "stderr", chunk.toString())
+    );
+    child.on("exit", (code, signal) => {
+      session.alive = false;
+      session.nativeRuntime?.close();
+      this.sessions.delete(session.id);
+      this.emit("exit", { sessionId: session.id, code, signal });
+    });
+    child.on("error", () => {
+      session.alive = false;
+      this.kill(session.id);
+      this.reportError(session);
+    });
+    child.stdin?.on("error", () => {
+      this.reportError(session);
+      this.kill(session.id);
+    });
+  }
+
+  private initializeNative(session: AcpSession, cwd: string): void {
+    const runtime = new NativeAcpClient(session.process, (text) =>
+      this.collectOutput(session, "stdout", text)
+    );
+    session.nativeRuntime = runtime;
+    session.nativeReady = withDeadline(runtime.initialize(cwd), 10_000, () =>
+      this.kill(session.id)
+    );
+    void session.nativeReady.catch(() => {
+      if (!session.stopping) this.reportError(session);
+      this.kill(session.id);
+    });
+    void runtime.connection.closed.then(() => this.kill(session.id));
+  }
+
   sendInput(sessionId: string, input: string): boolean {
     const session = this.sessions.get(sessionId);
-    if (!session?.alive || !session.process.stdin?.writable) return false;
-
+    if (
+      !session?.alive ||
+      session.stopping ||
+      session.backendMode === "acp" ||
+      !session.process.stdin?.writable
+    )
+      return false;
     session.process.stdin.write(input);
     return true;
   }
 
-  /**
-   * Send a prompt to a CLI agent and collect the response.
-   * This is a higher-level method that handles the send/receive cycle.
-   */
-  async sendPrompt(sessionId: string, prompt: string, timeoutMs: number = 120000): Promise<string> {
+  async sendPrompt(sessionId: string, prompt: string, timeoutMs = 120_000): Promise<string> {
     const session = this.sessions.get(sessionId);
-    if (!session?.alive) throw new Error(`Session ${sessionId} is not alive`);
-
-    // Clear buffers before sending. stderr is reset too: it was previously only
-    // ever appended to, so diagnostics for one prompt carried stale output from
-    // every earlier prompt in the session.
+    if (!session?.alive || session.stopping) throw new Error(`Session ${sessionId} is not alive`);
+    if (session.activePrompt) throw new Error("ACP session already has an active prompt");
+    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0)
+      throw new TypeError("ACP timeout must be positive");
+    session.activePrompt = true;
     session.stdoutBuffer = "";
     session.stderrBuffer = "";
+    try {
+      if (session.backendMode === "acp") return await this.promptNative(session, prompt, timeoutMs);
+      return await this.promptLegacy(session, prompt, timeoutMs);
+    } finally {
+      session.activePrompt = false;
+    }
+  }
 
-    // Send prompt
-    this.sendInput(sessionId, prompt + "\n");
+  private async promptNative(
+    session: AcpSession,
+    prompt: string,
+    timeoutMs: number
+  ): Promise<string> {
+    const operation = (async () => {
+      await session.nativeReady;
+      if (session.stopping) throw new Error("ACP session was terminated");
+      await session.nativeRuntime!.prompt(prompt);
+      return session.stdoutBuffer;
+    })();
+    return withDeadline(operation, timeoutMs, () => {
+      session.stopping = true;
+      // Give the cancellation notification a bounded opportunity to flush before SIGTERM.
+      void session.nativeRuntime?.cancel().catch(() => {});
+      const timer = setTimeout(() => this.kill(session.id), 100);
+      timer.unref();
+    });
+  }
 
-    // Wait for response (collect until process goes idle or timeout)
-    return new Promise((resolve, reject) => {
+  private promptLegacy(session: AcpSession, prompt: string, timeoutMs: number): Promise<string> {
+    return new Promise((resolvePrompt, reject) => {
       let idleTimer: ReturnType<typeof setTimeout> | undefined;
-
-      // Every outcome -- idle, exit, or timeout -- has to release the same
-      // resources. `acpManager` is a module-level singleton, so a branch that
-      // skips this leaks a listener per call for the lifetime of the process.
       const settle = (finish: () => void) => {
         clearTimeout(timer);
         clearTimeout(idleTimer);
         this.removeListener("stdout", onData);
         this.removeListener("exit", onExit);
+        this.removeListener("sessionError", onError);
         finish();
       };
-
-      const timer = setTimeout(() => {
-        settle(() => reject(new Error(`ACP timeout after ${timeoutMs}ms`)));
-      }, timeoutMs);
-
-      const onData = ({ sessionId: sid }: { sessionId: string }) => {
-        if (sid !== sessionId) return;
-        // Reset idle timer on new data
+      const timer = setTimeout(
+        () => settle(() => reject(new Error(`ACP timeout after ${timeoutMs}ms`))),
+        timeoutMs
+      );
+      const onData = ({ sessionId }: { sessionId: string }) => {
+        if (sessionId !== session.id) return;
         clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => {
-          settle(() => resolve(session.stdoutBuffer));
-        }, 2000); // 2s idle = response complete
+        idleTimer = setTimeout(() => settle(() => resolvePrompt(session.stdoutBuffer)), 2000);
       };
-
-      const onExit = ({ sessionId: sid }: { sessionId: string }) => {
-        if (sid !== sessionId) return;
-        settle(() => resolve(session.stdoutBuffer));
+      const onExit = ({ sessionId }: { sessionId: string }) => {
+        if (sessionId === session.id) settle(() => resolvePrompt(session.stdoutBuffer));
       };
-
+      const onError = ({ sessionId }: { sessionId: string }) => {
+        if (sessionId === session.id) settle(() => reject(new Error("ACP agent transport failed")));
+      };
       this.on("stdout", onData);
       this.on("exit", onExit);
+      this.on("sessionError", onError);
+      if (!this.sendInput(session.id, prompt + "\n"))
+        settle(() => reject(new Error("ACP stdin is unavailable")));
     });
   }
 
-  /**
-   * Kill a session and clean up.
-   */
   kill(sessionId: string): boolean {
     const session = this.sessions.get(sessionId);
     if (!session) return false;
-
+    session.stopping = true;
+    this.sessions.delete(sessionId);
+    session.nativeRuntime?.close();
     if (session.alive) {
       session.process.kill("SIGTERM");
-      // Force kill after 5s
-      setTimeout(() => {
-        if (session.alive) {
-          session.process.kill("SIGKILL");
-        }
+      const timer = setTimeout(() => {
+        if (session.alive) session.process.kill("SIGKILL");
       }, 5000);
+      timer.unref();
+      session.process.once("exit", () => clearTimeout(timer));
     }
-
-    this.sessions.delete(sessionId);
     return true;
   }
 
-  /**
-   * Get all active sessions.
-   */
   getActiveSessions(): AcpSession[] {
-    return Array.from(this.sessions.values()).filter((s) => s.alive);
+    return [...this.sessions.values()].filter((session) => session.alive && !session.stopping);
   }
-
-  /**
-   * Get a specific session.
-   */
   getSession(sessionId: string): AcpSession | undefined {
     return this.sessions.get(sessionId);
   }
-
-  /**
-   * Kill all sessions.
-   */
   killAll(): void {
-    for (const [id] of this.sessions) {
-      this.kill(id);
-    }
+    for (const id of this.sessions.keys()) this.kill(id);
   }
 }
 
-// Singleton manager instance
 export const acpManager = new AcpManager();

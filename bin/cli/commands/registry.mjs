@@ -74,6 +74,7 @@ import { registerSetupCrush } from "./setup-crush.mjs";
 import { registerSetupGoose } from "./setup-goose.mjs";
 import { registerSetupAider } from "./setup-aider.mjs";
 import { registerSetupQwen } from "./setup-qwen.mjs";
+import { registerSetupGemini } from "./setup-gemini.mjs";
 import { registerConnect } from "./connect.mjs";
 import { registerContexts } from "./contexts.mjs";
 import { registerTokens } from "./tokens.mjs";
@@ -161,6 +162,7 @@ export function registerCommands(program) {
   registerSetupGoose(program);
   registerSetupAider(program);
   registerSetupQwen(program);
+  registerSetupGemini(program);
   registerConnect(program);
   registerContexts(program);
   registerTokens(program);

@@ -1,0 +1,717 @@
+{
+  "version": 2,
+  "runtime": {
+    "platforms": ["linux", "darwin", "win32"],
+    "primaryConfigPaths": {
+      "aider": [".aider.conf.yml"],
+      "amp": [],
+      "claude": [".claude/settings.json"],
+      "cline": [".cline/data/globalState.json"],
+      "codewhale": [".codewhale/config.toml"],
+      "codex": [".codex/config.toml"],
+      "continue": [".continue/config.yaml"],
+      "crush": [".config/crush/crush.json"],
+      "cursor": [".cursor/cli-config.json"],
+      "deepseek-tui": [".config/deepseek-tui/config.toml"],
+      "devin": [".config/devin/config.json", "devin/config.json"],
+      "droid": [".factory/settings.json"],
+      "forge": [".forge/config.toml"],
+      "gemini": [".gemini/settings.json"],
+      "goose": [".config/goose/config.yaml"],
+      "grok-build": [".grok/config.toml"],
+      "hermes": [".config/hermes/config.json"],
+      "hermes-agent": ["config.yaml"],
+      "jcode": [".jcode/config.toml"],
+      "kilo": [".local/share/kilo/auth.json"],
+      "letta": [".letta/lc-local-backend/providers/auth.json"],
+      "omp": [".omp/agent/models.yml"],
+      "openclaw": [".openclaw/openclaw.json"],
+      "opencode": [".config/opencode/opencode.json", ".config/opencode/opencode.jsonc"],
+      "pi": [".pi/config.json"],
+      "prime-agent": [".prime-agent/config.json"],
+      "qoder": [".qoder/settings.json"],
+      "qwen": [".qwen/settings.json"],
+      "smelt": [".smelt/config.json"],
+      "windsurf": [],
+      "zcode": [".zcode"],
+      "5dive": ["auth-profiles"]
+    }
+  },
+  "tools": {
+    "agent-deck": {
+      "displayName": "Agent Deck",
+      "aliases": [],
+      "binaries": ["agent-deck"],
+      "surfaces": {
+        "catalog": true,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "aider": {
+      "displayName": "Aider",
+      "aliases": [],
+      "binaries": ["aider"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": true,
+        "configure": true,
+        "generate": false
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-aider.mjs",
+        "exportName": "runSetupAiderCommand"
+      },
+      "runModel": {
+        "flag": "--model",
+        "prefix": "openai/",
+        "required": false
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "aider",
+        "versionArgs": ["--version"],
+        "spawnArgs": ["--no-auto-commits"],
+        "providerAlias": "aider"
+      }
+    },
+    "amazon-q": {
+      "displayName": "Amazon Q Developer",
+      "aliases": [],
+      "binaries": ["q"],
+      "surfaces": {
+        "catalog": false,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "q",
+        "versionArgs": ["--version"],
+        "spawnArgs": [],
+        "providerAlias": "amazon-q"
+      }
+    },
+    "amp": {
+      "displayName": "Amp",
+      "aliases": [],
+      "binaries": ["amp"],
+      "surfaces": {
+        "catalog": false,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "antigravity": {
+      "displayName": "Antigravity",
+      "aliases": [],
+      "binaries": [],
+      "surfaces": {
+        "catalog": true,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "claude": {
+      "displayName": "Claude Code",
+      "aliases": ["claude-code", "cc", "anthropic"],
+      "binaries": ["claude"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": true,
+        "configure": true,
+        "generate": true
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-claude.mjs",
+        "exportName": "runSetupClaudeCommand"
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "claude",
+        "versionArgs": ["--version"],
+        "spawnArgs": ["--print", "--output-format", "json"],
+        "providerAlias": "claude"
+      }
+    },
+    "cline": {
+      "displayName": "Cline",
+      "aliases": [],
+      "binaries": ["cline"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": true,
+        "generate": true
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-cline.mjs",
+        "exportName": "runSetupClineCommand"
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "cline",
+        "versionArgs": ["--version"],
+        "spawnArgs": [],
+        "providerAlias": "cline"
+      }
+    },
+    "codewhale": {
+      "displayName": "CodeWhale",
+      "aliases": [],
+      "binaries": ["codewhale"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "codex": {
+      "displayName": "OpenAI Codex CLI",
+      "aliases": ["codex-cli", "openai-codex", "openai", "codex-app-server"],
+      "binaries": ["codex"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": true,
+        "configure": true,
+        "generate": true
+      },
+      "configureRecipe": {
+        "mode": "codex-profile"
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "codex",
+        "versionArgs": ["--version"],
+        "spawnArgs": ["--quiet"],
+        "providerAlias": "codex"
+      }
+    },
+    "continue": {
+      "displayName": "Continue",
+      "aliases": ["cn"],
+      "binaries": ["cn"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": true,
+        "generate": true
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-continue.mjs",
+        "exportName": "runSetupContinueCommand"
+      }
+    },
+    "copilot": {
+      "displayName": "GitHub Copilot",
+      "aliases": [],
+      "binaries": [],
+      "surfaces": {
+        "catalog": true,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "crush": {
+      "displayName": "Crush",
+      "aliases": [],
+      "binaries": ["crush"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "cursor": {
+      "displayName": "Cursor",
+      "aliases": [],
+      "binaries": ["agent", "cursor"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "cursor-cli": {
+      "displayName": "Cursor Agent CLI",
+      "aliases": [],
+      "binaries": ["cursor"],
+      "surfaces": {
+        "catalog": true,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "cursor",
+        "versionArgs": ["--version"],
+        "spawnArgs": [],
+        "providerAlias": "cursor"
+      }
+    },
+    "custom": {
+      "displayName": "Custom CLI",
+      "aliases": [],
+      "binaries": [],
+      "surfaces": {
+        "catalog": true,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "deepseek-tui": {
+      "displayName": "DeepSeek TUI",
+      "aliases": [],
+      "binaries": ["deepseek-tui"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "devin": {
+      "displayName": "Devin CLI",
+      "aliases": [],
+      "binaries": ["devin"],
+      "surfaces": {
+        "catalog": false,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "droid": {
+      "displayName": "Factory Droid",
+      "aliases": [],
+      "binaries": ["droid"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "forge": {
+      "displayName": "ForgeCode",
+      "aliases": [],
+      "binaries": ["forge"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "forge",
+        "versionArgs": ["--version"],
+        "spawnArgs": [],
+        "providerAlias": "forge"
+      }
+    },
+    "gemini": {
+      "displayName": "Google Gemini CLI",
+      "aliases": ["gemini-cli"],
+      "binaries": ["gemini"],
+      "surfaces": {
+        "catalog": false,
+        "detect": true,
+        "run": true,
+        "configure": true,
+        "generate": false
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-gemini.mjs",
+        "exportName": "runSetupGeminiCommand"
+      },
+      "runModel": {
+        "flag": "--model",
+        "prefix": "",
+        "required": false
+      },
+      "agentBackend": {
+        "mode": "acp",
+        "binary": "gemini",
+        "versionArgs": ["--version"],
+        "spawnArgs": ["--acp"],
+        "providerAlias": "gemini"
+      }
+    },
+    "goose": {
+      "displayName": "Goose",
+      "aliases": ["goose-cli"],
+      "binaries": ["goose"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": true,
+        "configure": true,
+        "generate": false
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-goose.mjs",
+        "exportName": "runSetupGooseCommand"
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "goose",
+        "versionArgs": ["--version"],
+        "spawnArgs": [],
+        "providerAlias": "goose"
+      }
+    },
+    "grok-build": {
+      "displayName": "Grok Build",
+      "aliases": [],
+      "binaries": ["grok"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "hermes": {
+      "displayName": "Hermes",
+      "aliases": [],
+      "binaries": ["hermes"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": true
+      }
+    },
+    "hermes-agent": {
+      "displayName": "Hermes Agent",
+      "aliases": [],
+      "binaries": ["hermes"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": true
+      }
+    },
+    "interpreter": {
+      "displayName": "Open Interpreter",
+      "aliases": [],
+      "binaries": ["interpreter"],
+      "surfaces": {
+        "catalog": true,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "interpreter",
+        "versionArgs": ["--version"],
+        "spawnArgs": [],
+        "providerAlias": "interpreter"
+      }
+    },
+    "jcode": {
+      "displayName": "jcode",
+      "aliases": [],
+      "binaries": ["jcode"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "kilo": {
+      "displayName": "Kilo Code",
+      "aliases": ["kilocode", "kilo-code", "kilo_cli"],
+      "binaries": ["kilocode"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": true,
+        "generate": true
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-kilo.mjs",
+        "exportName": "runSetupKiloCommand"
+      }
+    },
+    "kiro": {
+      "displayName": "Kiro AI",
+      "aliases": [],
+      "binaries": [],
+      "surfaces": {
+        "catalog": true,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "letta": {
+      "displayName": "Letta CLI",
+      "aliases": [],
+      "binaries": ["letta"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "omp": {
+      "displayName": "Oh My Pi",
+      "aliases": [],
+      "binaries": ["omp"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "openclaw": {
+      "displayName": "Open Claw",
+      "aliases": [],
+      "binaries": ["openclaw"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "openclaw",
+        "versionArgs": ["--version"],
+        "spawnArgs": [],
+        "providerAlias": "openclaw"
+      }
+    },
+    "opencode": {
+      "displayName": "OpenCode",
+      "aliases": ["open-code"],
+      "binaries": ["opencode"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": true,
+        "configure": true,
+        "generate": true
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-opencode.mjs",
+        "exportName": "runSetupOpencodeCommand"
+      },
+      "runModel": {
+        "flag": "--model",
+        "prefix": "omniroute/",
+        "required": false
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "opencode",
+        "versionArgs": ["--version"],
+        "spawnArgs": [],
+        "providerAlias": "opencode"
+      }
+    },
+    "pi": {
+      "displayName": "Pi",
+      "aliases": [],
+      "binaries": ["pi"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "prime-agent": {
+      "displayName": "Prime Agent",
+      "aliases": [],
+      "binaries": ["prime-agent"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "qoder": {
+      "displayName": "Qoder CLI",
+      "aliases": ["qodercli"],
+      "binaries": ["qodercli"],
+      "surfaces": {
+        "catalog": false,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "qwen": {
+      "displayName": "Qwen Code",
+      "aliases": ["qwen-code"],
+      "binaries": ["qwen"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": true,
+        "configure": true,
+        "generate": false
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-qwen.mjs",
+        "exportName": "runSetupQwenCommand"
+      },
+      "runModel": {
+        "flag": "--model",
+        "prefix": "",
+        "required": true
+      },
+      "agentBackend": {
+        "mode": "acp",
+        "binary": "qwen",
+        "versionArgs": ["--version"],
+        "spawnArgs": ["--acp"],
+        "providerAlias": "qwen-code"
+      }
+    },
+    "roo": {
+      "displayName": "Roo Code",
+      "aliases": [],
+      "binaries": [],
+      "surfaces": {
+        "catalog": true,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "smelt": {
+      "displayName": "Smelt",
+      "aliases": [],
+      "binaries": ["smelt"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "warp": {
+      "displayName": "Warp AI",
+      "aliases": [],
+      "binaries": ["warp"],
+      "surfaces": {
+        "catalog": true,
+        "detect": false,
+        "run": false,
+        "configure": false,
+        "generate": false
+      },
+      "agentBackend": {
+        "mode": "stdio-adapter",
+        "binary": "warp",
+        "versionArgs": ["--version"],
+        "spawnArgs": [],
+        "providerAlias": "warp"
+      }
+    },
+    "windsurf": {
+      "displayName": "Windsurf",
+      "aliases": [],
+      "binaries": [],
+      "surfaces": {
+        "catalog": false,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "zcode": {
+      "displayName": "ZCode (GLM Coding Plan)",
+      "aliases": [],
+      "binaries": ["zcode"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": false,
+        "generate": false
+      }
+    },
+    "5dive": {
+      "displayName": "5dive (agent fleet)",
+      "aliases": ["fivedive", "5dive-cli"],
+      "binaries": ["5dive"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": false,
+        "configure": true,
+        "generate": false
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-5dive.mjs",
+        "exportName": "runSetup5diveCommand"
+      }
+    }
+  }
+}

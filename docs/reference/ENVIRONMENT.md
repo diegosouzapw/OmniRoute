@@ -520,6 +520,9 @@ detection above).
 | `OMNIROUTE_LANG`               | _(system)_ | `bin/cli/i18n.mjs`                      | Force CLI output language. BCP-47 locale (e.g. `en`, `pt-BR`). Overrides system locale env vars (LC_ALL, LC_MESSAGES).             |
 | `OMNIROUTE_SHOW_LOG`           | _(unset)_  | `bin/cli/runtime/processSupervisor.mjs` | Set to `1` to forward server stdout/stderr to the terminal in supervised mode. Equivalent to `--log` flag on `omniroute serve`.    |
 | `OMNIROUTE_CLI_TOKEN`          | _(unset)_  | `bin/cli/api.mjs`                       | Machine-auth token injected as `x-omniroute-cli-token` header. Auto-generated in task 8.12.                                        |
+| `GEMINI_CLI_HOME` | _(unset)_ | `bin/cli/commands/setup-gemini.mjs` | Persistent Gemini home root; one-shot run uses a temporary isolated home. |
+| `OMNIROUTE_CHILD_SIGNAL_TIMEOUT_MS` | `5000` | `bin/cli/commands/run.mjs` | Grace period in milliseconds before force-killing a signalled CLI child. |
+| `OMNIROUTE_CLI_SKIP_DEFAULT_DATA_ENV` | _(unset)_ | `bin/omniroute.mjs` | Set to 1 with an explicit DATA_DIR to skip the default user's data-directory environment file. |
 | `OMNIROUTE_HTTP_TIMEOUT_MS`    | `30000`    | `bin/cli/api.mjs`                       | Per-attempt HTTP timeout (ms) for CLI → server requests.                                                                           |
 | `OMNIROUTE_READY_TIMEOUT_MS`  | `60000`    | `bin/cli/utils/pid.mjs`                 | Maximum time (ms) the CLI waits for the server health endpoint before printing a timeout warning. Useful for slow cold starts (e.g. Windows). Also settable via `--ready-timeout`. |
 | `OMNIROUTE_VERBOSE`            | `0`        | `bin/cli/api.mjs`                       | Set to `1` to print retry/backoff diagnostics to stderr during CLI commands.                                                       |

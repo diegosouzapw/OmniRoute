@@ -15,9 +15,20 @@ import {
   CLI_TOOL_IDS,
   CLI_TOOL_ALIASES,
   normalizeCliToolId,
+  getCliToolCommandCandidates,
   getCliConfigPaths,
+  getCliPrimaryConfigPath,
 } from "../../../src/shared/services/cliRuntime";
-import { getCliTool } from "../../../src/shared/constants/cliTools";
+import { getCliTool, listCliTools } from "../../../src/shared/constants/cliTools";
+import {
+  CLI_INTEGRATION_MANIFEST,
+  CLI_INTEGRATION_PLATFORMS,
+  getCliDeclaredPrimaryConfigPaths,
+  getCliProviderAlias,
+  listCliIntegrationIds,
+} from "../../../src/shared/constants/cliIntegrationManifest";
+import { BUILT_IN_AGENT_IDS } from "../../../src/lib/acp/registry";
+import { CONFIG_GENERATOR_IDS } from "../../../src/lib/cli-helper/config-generator";
 
 /**
  * Drift guard for the executable manifest (`bin/cli/cli-manifest.mjs`).
@@ -30,14 +41,87 @@ import { getCliTool } from "../../../src/shared/constants/cliTools";
 
 const manifestIds = Object.keys(CLI_TARGET_MANIFEST);
 
-test("every manifest target is a canonical id in the runtime catalog", () => {
+test("neutral manifest is the exact union of every CLI integration surface", () => {
+  const observed = new Set([
+    ...CLI_TOOL_IDS,
+    ...listCliTools().map((tool) => tool.id),
+    ...BUILT_IN_AGENT_IDS,
+  ]);
+  assert.deepEqual([...observed].sort(), Object.keys(CLI_INTEGRATION_MANIFEST).sort());
+  assert.deepEqual(manifestIds.sort(), Object.keys(CLI_INTEGRATION_MANIFEST).sort());
+});
+
+test("each consumer derives its exact capability set from the neutral manifest", () => {
+  assert.deepEqual([...CLI_TOOL_IDS].sort(), listCliIntegrationIds("detect").sort());
+  assert.deepEqual(
+    listCliTools()
+      .map((tool) => tool.id)
+      .sort(),
+    listCliIntegrationIds("catalog").sort()
+  );
+  assert.deepEqual([...CONFIG_GENERATOR_IDS].sort(), listCliIntegrationIds("generate").sort());
+  assert.deepEqual([...BUILT_IN_AGENT_IDS].sort(), listCliIntegrationIds("agentBackend").sort());
+});
+
+test("aliases, binary candidates and ACP badges cannot drift from the neutral manifest", () => {
+  const expectedAliases: Record<string, string> = {};
+  for (const [id, entry] of Object.entries(CLI_INTEGRATION_MANIFEST)) {
+    for (const alias of entry.aliases) expectedAliases[alias] = id;
+    if (entry.surfaces.detect) {
+      assert.deepEqual(getCliToolCommandCandidates(id), entry.binaries, `${id} binaries`);
+    }
+    const catalogEntry = getCliTool(id);
+    if (catalogEntry) {
+      assert.equal(
+        catalogEntry.acpSpawnable,
+        Boolean(entry.agentBackend),
+        `${id} ACP badge must match the executable backend registry`
+      );
+    }
+  }
+  assert.deepEqual(CLI_TOOL_ALIASES, expectedAliases);
+});
+
+test("platforms, provider aliases, and primary config paths are manifest-owned contracts", () => {
+  assert.deepEqual(CLI_INTEGRATION_PLATFORMS, ["linux", "darwin", "win32"]);
+
   for (const [id, entry] of Object.entries(CLI_TARGET_MANIFEST)) {
+    assert.deepEqual(entry.platforms, CLI_INTEGRATION_PLATFORMS, `${id} platforms`);
+    assert.equal(entry.providerAlias, getCliProviderAlias(id), `${id} provider alias`);
+
+    if (!CLI_INTEGRATION_MANIFEST[id].surfaces.detect) continue;
+    const declared = getCliDeclaredPrimaryConfigPaths(id);
+    assert.deepEqual(entry.primaryConfigPaths, declared, `${id} config contract`);
+    const actual = getCliPrimaryConfigPath(id);
+    if (declared.length === 0) {
+      assert.equal(actual, null, `${id} must not invent a primary config path`);
+      continue;
+    }
+    assert.ok(actual, `${id} must resolve a primary config path`);
+    const normalizedActual = String(actual).replaceAll("\\", "/");
+    assert.ok(
+      declared.some((suffix) => normalizedActual.endsWith(suffix.replaceAll("\\", "/"))),
+      `${id} primary config path '${normalizedActual}' is outside its manifest contract`
+    );
+  }
+});
+
+test("ZCode's framed app-server is not advertised as an ACP or line-stdio backend", () => {
+  assert.equal(CLI_INTEGRATION_MANIFEST.zcode.agentBackend, undefined);
+  assert.equal(getCliTool("zcode")?.acpSpawnable, false);
+});
+
+test("every manifest target is canonical and each claimed surface is physically backed", () => {
+  for (const [id] of Object.entries(CLI_TARGET_MANIFEST)) {
     assert.equal(normalizeCliToolId(id), id, `${id} must be canonical (not an alias)`);
-    assert.ok(CLI_TOOL_IDS.includes(id), `${id} must exist in cliRuntime CLI_TOOLS`);
-    assert.ok(getCliConfigPaths(id), `${id} must resolve config paths in the runtime`);
+    const contract = CLI_INTEGRATION_MANIFEST[id];
+    if (contract.surfaces.detect) {
+      assert.ok(CLI_TOOL_IDS.includes(id), `${id} must exist in cliRuntime CLI_TOOLS`);
+      assert.ok(getCliConfigPaths(id), `${id} must resolve config paths in the runtime`);
+    }
     // Configure targets surface in the dashboard picker flows, so they must be
     // cataloged for the UI. Run-only targets (e.g. gemini) may stay CLI-only.
-    if (entry.configure) {
+    if (contract.surfaces.catalog) {
       assert.ok(getCliTool(id), `${id} must exist in the UI catalog (cliTools.ts)`);
     }
   }

@@ -8,6 +8,7 @@
     "omniroute-reset-password": "bin/reset-password.mjs"
   },
   "files": [
+    "config/cli-tools-manifest.json",
     "bin/",
     "dist/",
     "@omniroute/",
@@ -298,6 +299,7 @@
     "i18n:check-keys:cli": "node scripts/i18n/check-key-completeness.mjs --catalog=cli"
   },
   "dependencies": {
+    "@agentclientprotocol/sdk": "1.4.0",
     "@aws-sdk/client-bedrock-runtime": "^3.1120.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",

@@ -1,0 +1,1 @@
+- Share CLI capabilities, aliases, setup recipes and model flags across Node and server consumers, including 5dive; add persistent Gemini setup, private config writes, restricted child environments, signal-aware cleanup and registered native ACP lifecycle. ([#14387](https://github.com/diegosouzapw/OmniRoute/pull/14387))
