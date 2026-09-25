@@ -3449,7 +3449,9 @@
       "setRetryDelayMs": "Kašnjenje između pokušaja ponovnog slanja na nivou seta, dajući vremena za rješavanje prolaznih problema.",
       "targetTimeoutMs": "Opcionalni timeout po meti. Prazno nasljeđuje trenutni timeout zahtjeva; veće vrijednosti su ograničene tim timeout-om.",
       "comboTimeoutMs": "Opcionalni ukupni vremenski budžet za cijeli combo kroz sve failover mete. Prazno zadržava 10-minutno zaustavljanje; pozitivna vrijednost ga zamjenjuje. Postavite ovo duže od Target timeout-a kako bi failover i dalje imao vremena.",
-      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova."
+      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova.",
+      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
+      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
     },
     "templatesTitle": "Brzi šabloni",
     "templatesDescription": "Primijenite početni profil, zatim prilagodite modele i konfiguraciju.",
@@ -3803,7 +3805,16 @@
     "duplicateAutoComboSnapshotMsg": "Ovo će napraviti snapshot povezanih providera/modela koji odgovaraju ovom šablonu u uredivi combo.",
     "duplicateAutoComboFailedPrefix": "Neuspjelo dupliranje auto-comba:",
     "duplicateAutoComboUnknownError": "Nepoznata greška",
-    "duplicateAutoComboTitle": "Kreiraj statični combo iz {name}"
+    "duplicateAutoComboTitle": "Kreiraj statični combo iz {name}",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
   },
   "costs": {
     "title": "Troškovi",
@@ -6509,7 +6520,17 @@
     "savedModelEndpointSettings": "Spremljene postavke krajnje tačke modela",
     "searchByModelAria": "Pretraži po modelu",
     "selectSupportedEndpoint": "Odaberite barem jednu podržanu krajnju tačku",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Postavke",
@@ -14137,7 +14158,12 @@
     "hour": "sat",
     "day": "dan",
     "unknownModel": "nepoznato",
-    "pending": "na čekanju"
+    "pending": "na čekanju",
+    "allApiKeys": "All API keys",
+    "mcp": "MCP",
+    "mcpTool": "MCP tool",
+    "scope": "Scope",
+    "apiKey": "API key"
   },
   "metadata": {
     "compressionTitle": "Kompresija",

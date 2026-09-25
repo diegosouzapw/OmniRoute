@@ -241,9 +241,14 @@ export async function GET(request: Request) {
     // are dropped at the SQL layer (before LIMIT), not client-side after slicing.
     if (searchParams.get("excludeTests") === "1") filter.excludeTests = true;
 
+    // This endpoint is polled every 2-10s by the logs dashboard. A full
+    // `getProviderConnections()` read wraps every row in a lazy-decrypt proxy
+    // over all columns; the rows are only used for connectionId → display
+    // name mapping, so request just those columns (projected reads skip the
+    // raw-row cache by design — see providers.ts getProviderConnections).
     const [logs, connections, providerNodes] = await Promise.all([
       getCallLogs(filter),
-      getProviderConnections(),
+      getProviderConnections({}, undefined, undefined, ["id", "name", "display_name", "email"]),
       getProviderNodes(),
     ]);
     const providerDisplayNames = new Map<string, string>(

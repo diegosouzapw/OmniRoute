@@ -20,6 +20,12 @@ import { normalizeCodexLimitPolicy, providerText, ERROR_TYPE_LABELS } from "../p
 import { getCodexPlanLabel } from "../codexPlanLabel";
 import type { CodexAccountPoolProjection } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import CodexAccountDetails from "./CodexAccountDetails";
+import ConnectionQuotaPanel from "./ConnectionQuotaPanel";
+import type { ProviderQuotaCacheEntry } from "../hooks/useProviderQuota";
+import {
+  isProviderQuotaVisible,
+  supportsProviderQuota,
+} from "@/shared/utils/providerQuotaVisibility";
 import ProviderQuotaVisibilityToggle from "./ProviderQuotaVisibilityToggle";
 
 // ---------------------------------------------------------------------------
@@ -52,6 +58,10 @@ export interface ConnectionRowConnection {
   perKeyProxyEnabled?: boolean;
   quotaVisible?: boolean;
   codexAccountPool?: CodexAccountPoolProjection;
+  /** Latest cached usage/limits snapshot for this account (see useProviderQuota). */
+  quotaCache?: ProviderQuotaCacheEntry | null;
+  quotaRefreshing?: boolean;
+  onRefreshQuota?: () => void;
 }
 
 export interface ConnectionRowProps {
@@ -394,6 +404,9 @@ export default function ConnectionRow({
   onTogglePerKeyProxyEnabled,
   proxyEnabled,
   onToggleProxyEnabled,
+  quotaCache,
+  quotaRefreshing,
+  onRefreshQuota,
 }: ConnectionRowProps) {
   const t = useTranslations("providers");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
@@ -416,8 +429,7 @@ export default function ConnectionRow({
   // #11497: cookie rows with a decodable JWT credential carry a persisted
   // cookieExpiresAt — feed it into the same countdown badge OAuth rows use.
   const cookieExpiresAt = readCookieExpiresAt(connection.providerSpecificData);
-  const effectiveExpiresAt =
-    connection.tokenExpiresAt || connection.expiresAt || cookieExpiresAt;
+  const effectiveExpiresAt = connection.tokenExpiresAt || connection.expiresAt || cookieExpiresAt;
   const hasExpirySource = isOAuth || Boolean(cookieExpiresAt);
   const getTokenMinsLeft = () => {
     if (!hasExpirySource || !effectiveExpiresAt) return null;
@@ -519,6 +531,22 @@ export default function ConnectionRow({
     ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
     : false;
   const codexPlanLabel = getCodexPlanLabel(!!isCodex, connection.providerSpecificData);
+  // Per-account quota strip — gated per connection (not per page) so family
+  // aliases and openai-compatible-* nodes with their own quotaEndpoint qualify.
+  const quotaPanelSupported =
+    supportsProviderQuota(String(connection.provider || ""), connection) &&
+    isProviderQuotaVisible(connection);
+  // Subscription/plan label from the usage cache (claude tier, antigravity
+  // tier, grok subscription, …). Codex keeps its dedicated badge above. The
+  // badge is quota-derived, so it disappears together with the quota strip
+  // when the connection opts out or the provider has no usage API.
+  const planLabel =
+    quotaPanelSupported &&
+    !codexPlanLabel &&
+    typeof quotaCache?.plan === "string" &&
+    quotaCache.plan.trim()
+      ? quotaCache.plan.trim()
+      : null;
   // #dario: this control is now a full mode selector (native/CLIProxyAPI/
   // Dario/fallback), not a binary toggle — cliproxyapiEnabled/
   // onToggleCliproxyapiMode are kept on the props interface for any other
@@ -569,6 +597,11 @@ export default function ConnectionRow({
             {codexPlanLabel && (
               <Badge variant="primary" size="sm" className="capitalize">
                 {codexPlanLabel}
+              </Badge>
+            )}
+            {planLabel && (
+              <Badge variant="primary" size="sm" className="capitalize" title={t("quotaPlanBadge")}>
+                {planLabel}
               </Badge>
             )}
             {/* T12: Token expiry status indicator (state-driven, no Date.now in render) */}
@@ -974,6 +1007,15 @@ export default function ConnectionRow({
       </div>
       {isCodex && connection.codexAccountPool ? (
         <CodexAccountDetails pool={connection.codexAccountPool} />
+      ) : null}
+      {quotaPanelSupported ? (
+        <ConnectionQuotaPanel
+          providerId={String(connection.provider || "")}
+          connection={connection}
+          cache={quotaCache}
+          refreshing={quotaRefreshing}
+          onRefresh={onRefreshQuota}
+        />
       ) : null}
     </div>
   );

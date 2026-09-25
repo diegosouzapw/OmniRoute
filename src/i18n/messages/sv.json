@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Inställningar för sparad modellslutpunkt",
     "searchByModelAria": "Sök efter modell",
     "selectSupportedEndpoint": "Välj minst en stödd slutpunkt",
-    "antigravityClientProfileHarness": "Testverktyg / CLI"
+    "antigravityClientProfileHarness": "Testverktyg / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Inställningar",

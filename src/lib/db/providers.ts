@@ -969,7 +969,11 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
   ).run(_buildUpdateConnectionRowParams(id, data, now));
 }
 
-export async function updateProviderConnection(id: string, data: JsonRecord) {
+export async function updateProviderConnection(
+  id: string,
+  data: JsonRecord,
+  opts?: { skipModelCatalog?: boolean }
+) {
   const db = getDbInstance() as unknown as DbLike;
   const existing = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
   if (!existing) return null;
@@ -1028,7 +1032,9 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   })();
   backupDbFile("pre-write");
-  invalidateDbCache("connections"); // Bust connections read cache
+  // #13389: callers that only rotated credentials/health state (OAuth token
+  // refresh) pass skipModelCatalog so the /v1/models response cache survives.
+  invalidateDbCache("connections", undefined, opts); // Bust connections read cache
   bumpProxyConfigGeneration();
 
   if (data.priority !== undefined) {

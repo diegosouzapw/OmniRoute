@@ -4,6 +4,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale, getTranslations } from "next-intl/server";
 import { RTL_LOCALES } from "@/i18n/config";
 import { normalizeComplianceEventTypes } from "@/i18n/request";
+import { pickMessages } from "@/i18n/pickMessages";
+import routeNamespaces from "@/i18n/routeNamespaces.generated.json";
 import { getRootLayoutSettings } from "@/lib/db/rootLayoutSettings";
 import type { Viewport } from "next";
 import { PwaRegister } from "@/shared/components/PwaRegister";
@@ -50,7 +52,16 @@ export async function generateMetadata() {
 export default async function RootLayout({ children }) {
   const locale = await getLocale();
   const t = await getTranslations("sidebar");
-  const messages = normalizeComplianceEventTypes((await getMessages()) as Record<string, unknown>);
+  // Serialize ONLY the public-surface namespaces into the flight payload.
+  // The full merged catalog is ~664 KB across 132 namespaces and used to be
+  // embedded in every rendered page (757-865 KB HTML even for /login and
+  // 404). Dashboard sections re-scope it with their own providers via
+  // SectionI18nProvider — see scripts/i18n/generate-route-namespaces.mjs.
+  // IMPORTANT: never remove the explicit `messages` prop — next-intl then
+  // falls back to embedding the whole catalog again.
+  const messages = normalizeComplianceEventTypes(
+    pickMessages((await getMessages()) as Record<string, unknown>, routeNamespaces.root)
+  );
   const isRtl = RTL_LOCALES.includes(locale as (typeof RTL_LOCALES)[number]);
 
   return (

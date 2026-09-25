@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Model endpointi sozlamalari saqlandi",
     "searchByModelAria": "Model boʻyicha qidirish",
     "selectSupportedEndpoint": "Kamida bitta qoʻllab-quvvatlanadigan endpointni tanlang",
-    "antigravityClientProfileHarness": "Sinov vositasi / CLI"
+    "antigravityClientProfileHarness": "Sinov vositasi / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Sozlamalar",

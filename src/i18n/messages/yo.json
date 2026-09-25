@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Àwọn ààtò endpoint awoṣe tí a fipamọ́",
     "searchByModelAria": "Ṣàwárí nípa awoṣe",
     "selectSupportedEndpoint": "Yan ó kéré tán endpoint kan tí ó ní àtìlẹ́yìn",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Àwọn Ààtò",

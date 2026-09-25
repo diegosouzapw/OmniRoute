@@ -93,6 +93,7 @@
     "dev": "node --max-old-space-size=8192 scripts/dev/run-next.mjs dev",
     "prebuild:docs": "node scripts/docs/gen-openapi-module.mjs",
     "gen:provider-reference": "bun scripts/docs/gen-provider-reference.ts",
+    "gen:i18n-routes": "node scripts/i18n/generate-route-namespaces.mjs",
     "bench:compression": "bun scripts/compression/benchmark.ts",
     "bench:heap-body": "node --expose-gc --import tsx/esm scripts/perf/request-body-heap.ts",
     "bench:routing-events": "node --import tsx/esm scripts/perf/routing-events-bench.ts",
@@ -479,7 +480,16 @@
     "@parcel/watcher": true,
     "keytar": true,
     "protobufjs": true,
-    "unrs-resolver": true
+    "unrs-resolver": true,
+    "@playwright/browser-chromium@1.61.1": true,
+    "bun@1.4.2": true,
+    "libxmljs2@0.37.0": true,
+    "opencode-ai@1.18.30": true,
+    "better-sqlite3@13.0.3": true,
+    "@huggingface/transformers@4.2.0": true,
+    "keytar@7.9.0": true,
+    "sharp@0.35.4": true,
+    "onnxruntime-node@1.24.3": true
   },
   "overrides": {
     "browserslist": "^4.28.8",

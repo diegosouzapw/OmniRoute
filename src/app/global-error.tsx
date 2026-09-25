@@ -3,7 +3,6 @@
 import { NextIntlClientProvider, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { DEFAULT_LOCALE, LOCALES, LOCALE_COOKIE } from "@/i18n/config";
-import enMessages from "@/i18n/messages/en.json";
 
 /**
  * Global Error Page — FASE-04 Error Handling
@@ -11,7 +10,31 @@ import enMessages from "@/i18n/messages/en.json";
  * Root-level error boundary for unrecoverable errors.
  * This is the last resort — catches errors that the per-page
  * error.js boundaries don't handle.
+ *
+ * NOTE: this module must never statically import a full locale catalog
+ * (`@/i18n/messages/en.json` is ~770 KB). Next.js includes the root
+ * global-error chunk in the initial HTML of EVERY page, so a static import
+ * ships the whole English catalog on every route. Only the handful of
+ * `publicSystem.globalError` strings are needed up front — they live below
+ * as `FALLBACK_EN_GLOBAL_ERROR` and are kept in sync with en.json by
+ * `tests/unit/global-error-messages.test.ts`. Non-default locales load via
+ * the dynamic import in the effect below (async chunk, fetched only when a
+ * global error actually renders).
  */
+
+const FALLBACK_EN_GLOBAL_ERROR = {
+  title: "Something went wrong",
+  description: "An unexpected error occurred. This has been logged and our team will investigate.",
+  detailsAriaLabel: "Error details",
+  retryAriaLabel: "Retry loading the page",
+  tryAgain: "Try Again",
+  statusAriaLabel: "Open system status",
+  systemStatus: "System Status",
+} as const;
+
+const FALLBACK_EN_MESSAGES = {
+  publicSystem: { globalError: { ...FALLBACK_EN_GLOBAL_ERROR } },
+};
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -45,7 +68,7 @@ function buildGlobalErrorMessages(localeMessages: Record<string, unknown>) {
   return {
     publicSystem: {
       globalError: {
-        ...enMessages.publicSystem.globalError,
+        ...FALLBACK_EN_GLOBAL_ERROR,
         ...translated,
       },
     },
@@ -94,9 +117,7 @@ function GlobalErrorContent({ error, reset }: GlobalErrorProps) {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   const [locale, setLocale] = useState<string>(DEFAULT_LOCALE);
-  const [messages, setMessages] = useState<Record<string, unknown>>(() =>
-    buildGlobalErrorMessages(enMessages)
-  );
+  const [messages, setMessages] = useState<Record<string, unknown>>(FALLBACK_EN_MESSAGES);
 
   useEffect(() => {
     void (async () => {
@@ -108,7 +129,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
         const mod = await import(`../i18n/messages/${nextLocale}.json`);
         setMessages(buildGlobalErrorMessages(mod.default as Record<string, unknown>));
       } catch {
-        setMessages(buildGlobalErrorMessages(enMessages));
+        setMessages(FALLBACK_EN_MESSAGES);
       }
     })();
   }, []);

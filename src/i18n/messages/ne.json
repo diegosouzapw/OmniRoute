@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "मोडेल अन्त्यबिन्दु सेटिङहरू सुरक्षित गरियो",
     "searchByModelAria": "मोडेलद्वारा खोज्नुहोस्",
     "selectSupportedEndpoint": "कम्तीमा एउटा समर्थित अन्त्यबिन्दु चयन गर्नुहोस्",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "सेटिङहरू",
