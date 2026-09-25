@@ -5,6 +5,7 @@ import os from "node:os";
 import crypto from "node:crypto";
 
 import type { CommandSample } from "./discover.ts";
+import { severityWordPattern } from "./severityVocabulary.ts";
 
 export type RtkRawOutputRetention = "never" | "failures" | "always";
 
@@ -67,9 +68,7 @@ export function redactRtkRawOutput(value: string): { text: string; redacted: boo
 }
 
 export function isLikelyFailureOutput(value: string): boolean {
-  return /\b(error|failed|failure|exception|traceback|panic|fatal|critical|TS\d{4}|FAIL)\b/i.test(
-    value
-  );
+  return severityWordPattern().test(value);
 }
 
 /**
