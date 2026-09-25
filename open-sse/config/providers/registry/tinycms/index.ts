@@ -18,7 +18,12 @@ export const tinycmsProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "uuid",
   models: [
-    { id: "claude-fable-5", name: "Claude Fable 5" },
+    {
+      id: "claude-fable-5",
+      name: "Claude Fable 5",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+    },
     { id: "claude-opus-5", name: "Claude Opus 5" },
     { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
     { id: "gpt-5.6-sol", name: "GPT 5.6 Sol" },

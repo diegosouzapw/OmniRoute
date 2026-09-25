@@ -1,0 +1,1 @@
+- **feat(sse):** Context7 rate-limit quota and usage in Provider Limits — reads the `ratelimit-*` headers of a keyed `GET /api/v1/search` probe (60 s cache, fail-open) so combo/round-robin rotation can skip exhausted `context7` keys ([#14454](https://github.com/diegosouzapw/OmniRoute/pull/14454)) — thanks @HouMinXi

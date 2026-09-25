@@ -43,8 +43,10 @@ const {
 // 893fef9c added OPENCODE_PARK_AND_RESUME (74 -> 75); FLUSH_EMPTY_RETRY_ENABLED
 // (flush empty-turn retry, default off) bumps it to 76. ROTATION_ATTRIBUTION
 // (rotation skipped/served masked ids + proxy-log request correlation, all
-// read-only diagnostics) is this PR's flag, taking the registry to 77.
-const EXPECTED_FEATURE_FLAG_COUNT = 77;
+// read-only diagnostics) takes it to 77. STREAM_READINESS_STALL_RETRY
+// (one bounded retry when a stream stalls before usable output, default off)
+// takes the registry to 78.
+const EXPECTED_FEATURE_FLAG_COUNT = 78;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry

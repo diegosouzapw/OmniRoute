@@ -445,6 +445,37 @@ export function isTokenLimitBreachErrorBody(errorBody: unknown): boolean {
   return (error as Record<string, unknown>).code === "TOKEN_LIMIT_EXCEEDED";
 }
 
+/**
+ * A local per-API-key POLICY breach: this OmniRoute instance refused the
+ * candidate before dispatch because of the key's own limits, not because an
+ * upstream said no. Today that is the token-limit 429 above and the metered
+ * dollar-budget 429 ("BUDGET_EXCEEDED", see handleSingleModelChat in
+ * src/sse/handlers/chat.ts).
+ *
+ * Both share one consequence: the shared account/provider is healthy and must
+ * not be cooled, deprioritised or retried as if an upstream had rate-limited
+ * it. They differ in what comes next, and the combo loop gets that right
+ * without another flag — a token limit is key-scoped, so every remaining
+ * candidate breaches it too and the loop runs out of targets; a budget breach
+ * is scoped to candidates that draw on the allowance, so the loop advances and
+ * a flat-rate candidate still serves the request.
+ */
+export function isLocalKeyPolicyBreachErrorBody(errorBody: unknown): boolean {
+  return isTokenLimitBreachErrorBody(errorBody) || isBudgetBreachErrorBody(errorBody);
+}
+
+/**
+ * The metered dollar budget refused this candidate before dispatch — see the
+ * eligibility gate in handleSingleModelChat. Only candidates that DRAW on the
+ * allowance can raise it, so it is never a verdict on the combo as a whole.
+ */
+export function isBudgetBreachErrorBody(errorBody: unknown): boolean {
+  if (!errorBody || typeof errorBody !== "object") return false;
+  const error = (errorBody as Record<string, unknown>).error;
+  if (!error || typeof error !== "object") return false;
+  return (error as Record<string, unknown>).code === "BUDGET_EXCEEDED";
+}
+
 /** Local limiter capacity is not an upstream/provider failure and must not cascade. */
 export function isLocalQueueCapacityErrorBody(errorBody: unknown): boolean {
   if (!errorBody || typeof errorBody !== "object") return false;
