@@ -39,7 +39,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const { warmModelCatalogCache } = await import("../../src/instrumentation-node.ts");
+const { warmModelCatalogCache, isBackgroundServicesDisabled } =
+  await import("../../src/instrumentation-node.ts");
 const { getUnifiedModelsResponse } = await import("../../src/app/api/v1/models/catalog.ts");
 
 async function resetStorage() {
@@ -163,5 +164,38 @@ test("warmModelCatalogCache never rejects, even when the OpenRouter fetch fails"
     assert.ok(fetchCallCount > 0, "precondition: the fetch was actually attempted and failed");
   } finally {
     restoreRealFetch();
+  }
+});
+
+test("isBackgroundServicesDisabled correctly parses environment flag values", () => {
+  const originalEnv = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
+  try {
+    for (const truthyVal of ["1", "true", "TRUE", "yes", "YES", "on", "ON", " true ", " 1 "]) {
+      process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES = truthyVal;
+      assert.equal(
+        isBackgroundServicesDisabled(),
+        true,
+        `Expected "${truthyVal}" to be parsed as background services disabled`
+      );
+    }
+
+    for (const falsyVal of ["0", "false", "no", "off", "random", "", undefined]) {
+      if (falsyVal === undefined) {
+        delete process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
+      } else {
+        process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES = falsyVal;
+      }
+      assert.equal(
+        isBackgroundServicesDisabled(),
+        false,
+        `Expected "${falsyVal}" to NOT disable background services`
+      );
+    }
+  } finally {
+    if (originalEnv !== undefined) {
+      process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES = originalEnv;
+    } else {
+      delete process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
+    }
   }
 });

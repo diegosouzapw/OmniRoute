@@ -217,7 +217,7 @@ FROM base AS runner-base
 LABEL org.opencontainers.image.title="omniroute" \
   org.opencontainers.image.description="Unified AI proxy — route any LLM through one endpoint" \
   org.opencontainers.image.url="https://omniroute.online" \
-  org.opencontainers.image.source="https://github.com/diegosouzapw/OmniRoute" \
+  org.opencontainers.image.source="https://github.com/${GITHUB_REPOSITORY:-diegosouzapw/OmniRoute}" \
   org.opencontainers.image.licenses="MIT"
 
 ENV NODE_ENV=production
