@@ -131,6 +131,38 @@ test("cleanJSONSchemaForAntigravity handles nested schema", () => {
   assert.ok(typeof result === "object");
 });
 
+test("cleanJSONSchemaForAntigravity deduplicates required array entries (#14083)", () => {
+  const schema = {
+    type: "object",
+    properties: {
+      query: { type: "string" },
+    },
+    required: ["query", "query", "query"],
+  };
+  const result = gemini.cleanJSONSchemaForAntigravity(schema) as Record<string, unknown>;
+  assert.deepEqual(result.required, ["query"]);
+});
+
+test("cleanJSONSchemaForAntigravity normalizes protobuf types (dict, bool, int, float, list) (#14083)", () => {
+  const schema = {
+    type: "object",
+    properties: {
+      a: { type: "dict", properties: { key: { type: "string" } } },
+      b: { type: "bool" },
+      c: { type: "int32" },
+      d: { type: "float" },
+      e: { type: "list", items: { type: "string" } },
+    },
+  };
+  const result = gemini.cleanJSONSchemaForAntigravity(schema) as Record<string, unknown>;
+  const props = result.properties as Record<string, Record<string, unknown>>;
+  assert.equal(props.a.type, "object");
+  assert.equal(props.b.type, "boolean");
+  assert.equal(props.c.type, "integer");
+  assert.equal(props.d.type, "number");
+  assert.equal(props.e.type, "array");
+});
+
 test("convertOpenAIContentToParts maps OpenAI Chat Completions file (PDF) to inlineData", () => {
   const content = [
     { type: "text", text: "read this" },
