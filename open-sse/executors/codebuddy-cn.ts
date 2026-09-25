@@ -1,9 +1,15 @@
 import { DefaultExecutor } from "./default.ts";
 import type { ExecuteInput, ExecutorExecuteResult, ProviderCredentials } from "./base.ts";
+import { requiresReasoningReplay } from "../services/reasoningCache.ts";
 
 const SENSITIVE_CONTENT_REJECTION =
   "抱歉，系统检测到您当前输入的信息存在敏感内容，我无法响应您的请求，请检查后重新输入";
 const LARGE_TOOL_METADATA_BYTES = 64 * 1024;
+// Mirrors reasoningCache.ts's MAX_ENTRY_BYTES cap — keep the inlined block from
+// unboundedly growing the outbound token count for very large reasoning traces.
+const MAX_INLINED_REASONING_CHARS = 10000;
+const THOUGHT_OPEN = "<thought>";
+const THOUGHT_CLOSE = "</thought>";
 
 function responseFromResult(result: ExecutorExecuteResult): Response {
   return result instanceof Response ? result : result.response;
@@ -78,6 +84,84 @@ async function isSensitiveContentRejection(response: Response): Promise<boolean>
   return responseText.includes(SENSITIVE_CONTENT_REJECTION);
 }
 
+function extractReasoningText(message: Record<string, unknown>): string | null {
+  const raw = message.reasoning_content ?? message.reasoning;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function alreadyInlined(text: string): boolean {
+  return text.trimStart().startsWith(THOUGHT_OPEN);
+}
+
+function buildThoughtBlock(reasoning: string): string {
+  const capped =
+    reasoning.length > MAX_INLINED_REASONING_CHARS
+      ? reasoning.slice(0, MAX_INLINED_REASONING_CHARS)
+      : reasoning;
+  return `${THOUGHT_OPEN}\n${capped}\n${THOUGHT_CLOSE}\n\n`;
+}
+
+/**
+ * injectAssistantReasoning — issue #13632.
+ *
+ * CodeBuddy CN's `/v2/chat/completions` gateway is reported to silently drop
+ * unrecognized JSON fields on replayed assistant messages, including
+ * `reasoning_content`. Unlike DeepSeek/Kimi's own endpoints (which 400 when
+ * `reasoning_content` is missing — see `reasoningCache.ts`, issue #1628),
+ * CodeBuddy CN degrades silently, so the existing field-replay cache does not
+ * help here. This inlines the reasoning text as a visible `<thought>` block
+ * at the front of the assistant message's `content` so it survives even if
+ * the `reasoning_content` field itself gets stripped upstream. The field is
+ * left in place too — harmless if dropped, redundant-but-safe if not.
+ *
+ * Only fires for models that actually require reasoning replay
+ * (`requiresReasoningReplay()` — DeepSeek-V4/Kimi-K2 thinking families that
+ * CodeBuddy CN re-exports), so non-thinking models in the catalog are
+ * untouched. Idempotent: skips messages whose content already starts with a
+ * `<thought>` block.
+ */
+function injectAssistantReasoning(model: string, messages: unknown): unknown {
+  if (!Array.isArray(messages)) return messages;
+  if (!requiresReasoningReplay({ provider: "codebuddy-cn", model })) return messages;
+
+  let mutated = false;
+  const next = messages.map((raw) => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+    const message = raw as Record<string, unknown>;
+    if (message.role !== "assistant") return message;
+
+    const reasoning = extractReasoningText(message);
+    if (!reasoning) return message;
+
+    if (typeof message.content === "string") {
+      if (alreadyInlined(message.content)) return message;
+      mutated = true;
+      return { ...message, content: buildThoughtBlock(reasoning) + message.content };
+    }
+
+    if (Array.isArray(message.content)) {
+      const blocks = message.content as Array<Record<string, unknown>>;
+      const firstTextIndex = blocks.findIndex(
+        (block) => block && typeof block === "object" && block.type === "text"
+      );
+      if (firstTextIndex === -1) return message;
+      const firstText = blocks[firstTextIndex];
+      const text = typeof firstText.text === "string" ? firstText.text : "";
+      if (alreadyInlined(text)) return message;
+      mutated = true;
+      const nextBlocks = blocks.slice();
+      nextBlocks[firstTextIndex] = { ...firstText, text: buildThoughtBlock(reasoning) + text };
+      return { ...message, content: nextBlocks };
+    }
+
+    return message;
+  });
+
+  return mutated ? next : messages;
+}
+
 /**
  * CodeBuddyCnExecutor — talks to https://copilot.tencent.com/v2/chat/completions
  *
@@ -149,8 +233,10 @@ export class CodeBuddyCnExecutor extends DefaultExecutor {
     // --- Agent system prompt replacement ---
     // Tencent's content filter flags CLI agent system prompts as sensitive content.
     // Detect and replace them with a neutral prompt.
-    const NEUTRAL_PROMPT = "You are a helpful AI assistant that helps with software engineering tasks.";
-    const AGENT_PATTERN = /you are claude code|claude.?code.+official.+cli|anthropic.+official.+cli|anxthxropic.+official.+cli|you are (?:cursor|windsurf|cline|aider|continue|copilot|cody)|you are an? (?:ai )?(?:coding |code )?agent|cc_entrypoint\s*=\s*(?:cli|vscode|jetbrains|gui)|claude.?code.+issues|give feedback.+claude.?code|you are .{0,30}(?:powerful )?ai agent|orchestration capabilities|OhMyOpenCode|<agent-identity>|<Role>|<Behavior_Instructions>/i;
+    const NEUTRAL_PROMPT =
+      "You are a helpful AI assistant that helps with software engineering tasks.";
+    const AGENT_PATTERN =
+      /you are claude code|claude.?code.+official.+cli|anthropic.+official.+cli|anxthxropic.+official.+cli|you are (?:cursor|windsurf|cline|aider|continue|copilot|cody)|you are an? (?:ai )?(?:coding |code )?agent|cc_entrypoint\s*=\s*(?:cli|vscode|jetbrains|gui)|claude.?code.+issues|give feedback.+claude.?code|you are .{0,30}(?:powerful )?ai agent|orchestration capabilities|OhMyOpenCode|<agent-identity>|<Role>|<Behavior_Instructions>/i;
     const flatten = (content: unknown): string =>
       typeof content === "string"
         ? content
@@ -191,7 +277,13 @@ export class CodeBuddyCnExecutor extends DefaultExecutor {
         if (new TextEncoder().encode(s).byteLength >= 65536) {
           out.tools = (out.tools as Array<Record<string, unknown>>).map((tool) => {
             if (!tool || typeof tool !== "object" || Array.isArray(tool)) return tool;
-            if (tool.type !== "function" || !tool.function || typeof tool.function !== "object" || Array.isArray(tool.function)) return tool;
+            if (
+              tool.type !== "function" ||
+              !tool.function ||
+              typeof tool.function !== "object" ||
+              Array.isArray(tool.function)
+            )
+              return tool;
             if (!Object.prototype.hasOwnProperty.call(tool.function, "description")) return tool;
             const cf = { ...(tool.function as Record<string, unknown>) };
             delete cf.description;
@@ -200,6 +292,9 @@ export class CodeBuddyCnExecutor extends DefaultExecutor {
         }
       } catch {}
     }
+
+    // --- Inline reasoning_content as a <thought> block (#13632) ---
+    out.messages = injectAssistantReasoning(model, out.messages);
 
     return out;
   }

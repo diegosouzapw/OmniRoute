@@ -1,0 +1,1 @@
+- fix(providers): inline reasoning_content as a <thought> block for codebuddy-cn thinking models across turns (#13632)
