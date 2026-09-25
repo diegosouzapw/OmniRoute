@@ -500,6 +500,8 @@
       "tests/unit/opencode-free-tier-refusal-no-model-lockout.test.ts",
       "tests/unit/prompt194-astra-vision-compat.test.ts",
       "tests/unit/quota-signal-errortext-threading.test.ts",
+      "tests/unit/quota-reset-timing.test.ts",
+      "tests/unit/combo-skipped-reset-timing.test.ts",
       "tests/unit/rate-limit-learned-cap-13594.test.ts",
       "tests/unit/native-codex-auto-resume.test.ts",
       "tests/unit/translator-openai-to-gemini-turn-pairing-13848.test.ts",
@@ -518,7 +520,9 @@
       "tests/unit/codex-reasoning-replay-rejection.test.ts",
       "tests/unit/opencode-free-tier-combo-scoped-failure-14313.test.ts",
       "tests/unit/client-abort-propagates-upstream.test.ts",
-      "tests/unit/data-dir-private-perms.test.ts"
+      "tests/unit/data-dir-private-perms.test.ts",
+      "tests/unit/translation-failure-skips-account-cooldown-14815.test.ts",
+      "tests/unit/sudo-password-never-reaches-command-stdin.test.ts"
     ],
     "nodeArgs": [
       "--import",

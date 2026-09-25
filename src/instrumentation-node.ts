@@ -346,6 +346,9 @@ export async function registerNodejs(): Promise<void> {
   await import("@omniroute/open-sse/utils/proxyFetch.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
 
+  // Subscribe the proxy set-aside webhook bridge (side-effect import only).
+  await import("@/lib/proxyEvents/proxyTransitionBridge");
+
   // Register quota fetchers early so combo routing can use real quota-aware
   // scoring for generic providers in the App Router production runtime.
   await registerQuotaFetchers();
