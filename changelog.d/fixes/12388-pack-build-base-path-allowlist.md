@@ -1,0 +1,1 @@
+- fix(pack): add `BUILD_OMNIROUTE_BASE_PATH` to `APP_STAGING_ALLOWED_EXACT_PATHS` so the prepublish staging prune no longer deletes the base-path sentinel before the tarball is packaged, which previously crashed the Docker container at boot (same failure class as the `BUILD_SHA` / #7065 incident) (#12388)
