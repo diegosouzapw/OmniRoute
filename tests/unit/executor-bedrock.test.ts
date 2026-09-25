@@ -482,3 +482,78 @@ test("Bedrock ConverseStream handles tool calls with no input delta at all", asy
   const args = streamedToolArguments(events);
   assert.equal(args.get(0), "");
 });
+
+test("Bedrock ConverseStream isolates object toolUse.input across a parallel batch", async () => {
+  const { status, events } = await executeFakeBedrockStream([
+    {
+      contentBlockStart: {
+        contentBlockIndex: 2,
+        start: { toolUse: { toolUseId: "toolu_weather", name: "get_weather" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 2,
+        delta: { toolUse: { input: { city: "paris" } } },
+      },
+    },
+    {
+      contentBlockStart: {
+        contentBlockIndex: 5,
+        start: { toolUse: { toolUseId: "toolu_clock", name: "get_time" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 5,
+        delta: { toolUse: { input: { tz: "UTC" } } },
+      },
+    },
+    {
+      contentBlockStart: {
+        contentBlockIndex: 7,
+        start: { toolUse: { toolUseId: "toolu_empty", name: "noop" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 7,
+        delta: { toolUse: { input: "" } },
+      },
+    },
+    {
+      contentBlockStart: {
+        contentBlockIndex: 9,
+        start: { toolUse: { toolUseId: "toolu_nodelta", name: "ping" } },
+      },
+    },
+    { messageStop: { stopReason: "tool_use" } },
+  ]);
+
+  assert.equal(status, 200);
+  const args = streamedToolArguments(events);
+  assert.equal(args.size, 4);
+  assert.deepEqual(JSON.parse(args.get(0)), { city: "paris" });
+  assert.deepEqual(JSON.parse(args.get(1)), { tz: "UTC" });
+  assert.equal(args.get(2), "");
+  assert.equal(args.get(3), "");
+  assert.equal(
+    events.some((event) =>
+      event.choices?.[0]?.delta?.tool_calls?.some(
+        (call) =>
+          call.index === 0 && call.id === "toolu_weather" && call.function?.name === "get_weather"
+      )
+    ),
+    true
+  );
+  assert.equal(
+    events.some((event) =>
+      event.choices?.[0]?.delta?.tool_calls?.some(
+        (call) =>
+          call.index === 1 && call.id === "toolu_clock" && call.function?.name === "get_time"
+      )
+    ),
+    true
+  );
+  assert.equal(events.at(-1).choices[0].finish_reason, "tool_calls");
+});
