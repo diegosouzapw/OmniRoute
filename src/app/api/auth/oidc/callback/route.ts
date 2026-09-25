@@ -74,8 +74,8 @@ export async function GET(request: Request) {
   const settings = await getCachedSettings();
 
   const enabled = settings.oidcEnabled === true;
-  const issuer =
-    typeof settings.oidcIssuer === "string" ? settings.oidcIssuer.trim().replace(/\/$/, "") : "";
+  const rawIssuer = typeof settings.oidcIssuer === "string" ? settings.oidcIssuer.trim() : "";
+  const issuerBase = rawIssuer.replace(/\/+$/, "");
   const clientId = typeof settings.oidcClientId === "string" ? settings.oidcClientId.trim() : "";
   const clientSecret =
     typeof settings.oidcClientSecret === "string" ? settings.oidcClientSecret.trim() : "";
@@ -84,7 +84,7 @@ export async function GET(request: Request) {
       ? settings.oidcRedirectPath
       : "/api/auth/oidc/callback";
 
-  if (!enabled || !issuer || !clientId || !clientSecret) {
+  if (!enabled || !rawIssuer || !clientId || !clientSecret) {
     return NextResponse.redirect(new URL("/login?oidc_error=not_configured", originEarly));
   }
 
@@ -100,18 +100,26 @@ export async function GET(request: Request) {
   const redirectUri = `${origin}${redirectPath}`;
 
   // Discover endpoints
-  let tokenEndpoint = `${issuer}/token`;
-  let jwksUri = `${issuer}/jwks`;
+  let tokenEndpoint = `${issuerBase}/token`;
+  let jwksUri = `${issuerBase}/jwks`;
+  let discoveredIssuer: string | undefined;
   try {
-    const wellKnownResp = await fetch(`${issuer}/.well-known/openid-configuration`, {
+    const wellKnownResp = await fetch(`${issuerBase}/.well-known/openid-configuration`, {
       signal: AbortSignal.timeout(5000),
     });
     if (wellKnownResp.ok) {
       const data: unknown = await wellKnownResp.json();
       if (data && typeof data === "object") {
         const rec = data as Record<string, unknown>;
-        if (typeof rec.token_endpoint === "string") tokenEndpoint = rec.token_endpoint;
-        if (typeof rec.jwks_uri === "string") jwksUri = rec.jwks_uri;
+        if (typeof rec.token_endpoint === "string" && rec.token_endpoint.length > 0) {
+          tokenEndpoint = rec.token_endpoint;
+        }
+        if (typeof rec.jwks_uri === "string" && rec.jwks_uri.length > 0) {
+          jwksUri = rec.jwks_uri;
+        }
+        if (typeof rec.issuer === "string" && rec.issuer.trim().length > 0) {
+          discoveredIssuer = rec.issuer.trim();
+        }
       }
     }
   } catch {
@@ -162,9 +170,22 @@ export async function GET(request: Request) {
 
   // Validate ID token
   try {
+    const expectedIssuers = Array.from(
+      new Set(
+        [
+          rawIssuer,
+          issuerBase,
+          `${issuerBase}/`,
+          discoveredIssuer,
+          discoveredIssuer ? discoveredIssuer.replace(/\/+$/, "") : undefined,
+          discoveredIssuer ? `${discoveredIssuer.replace(/\/+$/, "")}/` : undefined,
+        ].filter((s): s is string => typeof s === "string" && s.length > 0)
+      )
+    );
+
     const JWKS = getJwksClient(jwksUri);
     const { payload } = await jwtVerify(idToken, JWKS, {
-      issuer,
+      issuer: expectedIssuers.length === 1 ? expectedIssuers[0] : expectedIssuers,
       audience: clientId,
     });
 

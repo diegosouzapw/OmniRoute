@@ -11,8 +11,8 @@ export async function GET(request: Request) {
   const settings = await getCachedSettings();
 
   const enabled = settings.oidcEnabled === true;
-  const issuer =
-    typeof settings.oidcIssuer === "string" ? settings.oidcIssuer.trim().replace(/\/$/, "") : "";
+  const rawIssuer = typeof settings.oidcIssuer === "string" ? settings.oidcIssuer.trim() : "";
+  const issuerBase = rawIssuer.replace(/\/+$/, "");
   const clientId = typeof settings.oidcClientId === "string" ? settings.oidcClientId.trim() : "";
   const clientSecret =
     typeof settings.oidcClientSecret === "string" ? settings.oidcClientSecret.trim() : "";
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       ? settings.oidcRedirectPath
       : "/api/auth/oidc/callback";
 
-  if (!enabled || !issuer || !clientId || !clientSecret) {
+  if (!enabled || !rawIssuer || !clientId || !clientSecret) {
     return NextResponse.json(
       { error: "OIDC is not configured. Use password login or configure OIDC in settings." },
       { status: 400 }
@@ -44,9 +44,9 @@ export async function GET(request: Request) {
   const redirectUri = `${origin}${redirectPath}`;
 
   // Discover authorization_endpoint
-  let authEndpoint = `${issuer}/authorize`;
+  let authEndpoint = `${issuerBase}/authorize`;
   try {
-    const wellKnownResp = await fetch(`${issuer}/.well-known/openid-configuration`, {
+    const wellKnownResp = await fetch(`${issuerBase}/.well-known/openid-configuration`, {
       signal: AbortSignal.timeout(5000),
     });
     if (wellKnownResp.ok) {

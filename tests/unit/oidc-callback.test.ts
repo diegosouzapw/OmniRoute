@@ -507,3 +507,130 @@ test("OIDC callback error redirect respects proxy headers (#10224)", async () =>
   // With the fix, it correctly uses originEarly
   assert.equal(loc, "https://auth.pubg-sell.ir/login?oidc_error=missing_code");
 });
+
+test("OIDC callback handles issuer with trailing slash in settings and token (#14119)", async () => {
+  const issuerWithSlash = "https://authentik.company/application/o/omniroute/";
+  await localDb.updateSettings({
+    requireLogin: true,
+    password: "",
+    oidcEnabled: true,
+    oidcIssuer: issuerWithSlash,
+    oidcClientId: "client-oidc-authentik",
+    oidcClientSecret: "secret-oidc-authentik",
+    oidcRedirectPath: "/api/auth/oidc/callback",
+    oidcAllowedSubjects: [],
+  });
+
+  const { idToken, jwks } = await createSignedIdToken({
+    iss: issuerWithSlash,
+    aud: "client-oidc-authentik",
+    sub: "authentik-user-1",
+    email: "user@authentik.test",
+  });
+
+  const testState = "state-authentik-trailing-slash";
+  capturedCookies["oidc_state"] = { value: testState };
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = typeof input === "string" ? input : (input as URL).toString();
+    if (url.includes("/.well-known/openid-configuration")) {
+      return new Response(
+        JSON.stringify({
+          issuer: issuerWithSlash,
+          token_endpoint: "https://authentik.company/application/o/omniroute/token",
+          jwks_uri: "https://authentik.company/application/o/omniroute/jwks",
+        }),
+        { status: 200 }
+      );
+    }
+    if (url.includes("/token")) {
+      return new Response(JSON.stringify({ id_token: idToken }), { status: 200 });
+    }
+    if (url.includes("/jwks")) {
+      return new Response(JSON.stringify(jwks), { status: 200 });
+    }
+    return new Response("not mocked", { status: 404 });
+  }) as unknown as typeof fetch;
+
+  try {
+    const reqUrl = `http://localhost/api/auth/oidc/callback?code=auth-code-authentik&state=${testState}`;
+    const response = await callbackRoute.GET(
+      new Request(reqUrl, { headers: { "x-forwarded-proto": "http" } })
+    );
+
+    assert.equal(response.status, 307);
+    const location = response.headers.get("location");
+    assert.ok(location && location.endsWith("/dashboard"));
+
+    const authCookie = capturedCookies["auth_token"];
+    assert.ok(authCookie, "auth_token cookie must be set");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("OIDC callback handles issuer mismatch on trailing slash between settings and token (#14119)", async () => {
+  // Configured without trailing slash in settings
+  const issuerNoSlash = "https://authentik.company/application/o/omniroute";
+  const issuerWithSlash = "https://authentik.company/application/o/omniroute/";
+
+  await localDb.updateSettings({
+    requireLogin: true,
+    password: "",
+    oidcEnabled: true,
+    oidcIssuer: issuerNoSlash,
+    oidcClientId: "client-oidc-authentik-mismatch",
+    oidcClientSecret: "secret-oidc-authentik-mismatch",
+    oidcRedirectPath: "/api/auth/oidc/callback",
+    oidcAllowedSubjects: [],
+  });
+
+  // Token signed with trailing slash (common with Authentik discovery)
+  const { idToken, jwks } = await createSignedIdToken({
+    iss: issuerWithSlash,
+    aud: "client-oidc-authentik-mismatch",
+    sub: "authentik-user-2",
+  });
+
+  const testState = "state-authentik-mismatch";
+  capturedCookies["oidc_state"] = { value: testState };
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = typeof input === "string" ? input : (input as URL).toString();
+    if (url.includes("/.well-known/openid-configuration")) {
+      return new Response(
+        JSON.stringify({
+          issuer: issuerWithSlash,
+          token_endpoint: "https://authentik.company/application/o/omniroute/token",
+          jwks_uri: "https://authentik.company/application/o/omniroute/jwks",
+        }),
+        { status: 200 }
+      );
+    }
+    if (url.includes("/token")) {
+      return new Response(JSON.stringify({ id_token: idToken }), { status: 200 });
+    }
+    if (url.includes("/jwks")) {
+      return new Response(JSON.stringify(jwks), { status: 200 });
+    }
+    return new Response("not mocked", { status: 404 });
+  }) as unknown as typeof fetch;
+
+  try {
+    const reqUrl = `http://localhost/api/auth/oidc/callback?code=auth-code-mismatch&state=${testState}`;
+    const response = await callbackRoute.GET(
+      new Request(reqUrl, { headers: { "x-forwarded-proto": "http" } })
+    );
+
+    assert.equal(response.status, 307);
+    const location = response.headers.get("location");
+    assert.ok(location && location.endsWith("/dashboard"));
+
+    const authCookie = capturedCookies["auth_token"];
+    assert.ok(authCookie, "auth_token cookie must be set");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
