@@ -1,0 +1,1 @@
+- **fix(sse):** a 5xx whose message merely mentions a quota (for example Cursor's empty-turn error) no longer parks the connection until the cached quota reset, which could be a billing-cycle end weeks away; it takes the normal capped cooldown, while real quota errors (4xx) keep parking until the reset ([#14816](https://github.com/diegosouzapw/OmniRoute/pull/14816))
