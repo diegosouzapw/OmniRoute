@@ -1,0 +1,1 @@
+- **feat(api):** per-key `anthropicRateLimitHeaders` policy to forward or strip upstream Anthropic account-identity and quota headers on both streaming and non-streaming responses, preserving legacy forwarding by default
