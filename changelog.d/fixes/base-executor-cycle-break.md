@@ -1,0 +1,1 @@
+- fix(executors): break circular dependency between `BaseExecutor` and usage/DB layers by inlining body parse in `base.ts`
