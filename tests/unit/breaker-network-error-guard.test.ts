@@ -161,6 +161,41 @@ test("same-provider network errors in one window dedup to a single failure", () 
   }
 });
 
+test("clearProviderFailure resets same-provider network dedup", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+  try {
+    const provider = "test-net-reset-provider";
+    const profile = {
+      ...PROVIDER_PROFILES.apikey,
+      failureThreshold: 1,
+      circuitBreakerThreshold: 1,
+      resetTimeoutMs: 60_000,
+      circuitBreakerReset: 60_000,
+    };
+
+    clearProviderFailure(provider);
+    recordProviderFailure(provider, undefined, undefined, profile, { isNetworkError: true });
+    assert.equal(
+      isProviderInCooldown(provider),
+      true,
+      "single network blip should trip with threshold=1"
+    );
+
+    clearProviderFailure(provider);
+    recordProviderFailure(provider, undefined, undefined, profile, { isNetworkError: true });
+
+    assert.equal(
+      isProviderInCooldown(provider),
+      true,
+      "resetting the breaker must clear the network dedup so a fresh blip is counted again"
+    );
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
 test("persistent dead proxy across windows still opens the breaker", () => {
   // A genuinely dead proxy keeps failing across requests (past the dedup window), so it
   // must still accumulate to the breaker threshold — the dedup must not shield real pain.

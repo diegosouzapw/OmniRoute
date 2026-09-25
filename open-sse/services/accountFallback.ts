@@ -1297,10 +1297,9 @@ export function recordProviderSuccess(
   // recordProviderCooldown which increments it on each failure.
   resetCooldownFailureCount(provider, connectionId ?? undefined);
 
-  // Clear failure-dedup window so the next genuine failure is not suppressed.
-  if (connectionId) {
-    lastConnectionFailure.delete(`${provider}:${connectionId}`);
-  }
+  // Clear failure-dedup windows so the next genuine failure is not suppressed.
+  lastNetworkErrorByProvider.delete(provider);
+  if (connectionId) lastConnectionFailure.delete(`${provider}:${connectionId}`);
 
   // Transition breaker on success, matching execute()'s behavior:
   // HALF_OPEN -> CLOSED (probe success), CLOSED/DEGRADED -> decay failureCount.
@@ -1311,6 +1310,10 @@ export function recordProviderSuccess(
  * Reset the shared provider breaker.
  */
 export function clearProviderFailure(provider: string | null | undefined): void {
+  // Also clear the network-error dedup so a fresh blip after a reset is counted (#13887).
+  if (provider) lastNetworkErrorByProvider.delete(provider);
+  for (const key of lastConnectionFailure.keys())
+    if (provider && key.startsWith(`${provider}:`)) lastConnectionFailure.delete(key);
   const breaker = getProviderBreaker(provider);
   breaker?.reset();
 }
