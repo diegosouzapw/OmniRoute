@@ -1,0 +1,1 @@
+- **fix(sse):** guard `ChatAdmissionController`'s idle-queue TTL sweep so it never evicts a session key that still has a parked waiter, and keep `#queueTimestamps` in lockstep with the normal drain path instead of depending on the sweep alone ([#13649](https://github.com/diegosouzapw/OmniRoute/pull/13649)) — thanks @khnker
