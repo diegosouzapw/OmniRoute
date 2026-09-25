@@ -142,3 +142,223 @@ export function recordAgentSessionUsage(db: SqliteAdapter, usage: AgentSessionUs
   });
   return id;
 }
+
+export interface AgentSessionRecord {
+  id: string;
+  apiKeyId: string | null;
+  apiKeyName: string | null;
+  client: string | null;
+  clientSessionId: string | null;
+  projectName: string | null;
+  projectRepo: string | null;
+  projectPath: string | null;
+  projectSource: string | null;
+  gitBranch: string | null;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  requestCount: number;
+  errorCount: number;
+  tokens: {
+    input: number;
+    output: number;
+    cacheRead: number;
+    cacheCreation: number;
+    reasoning: number;
+    total: number;
+  };
+  costUsd: number;
+  unpricedCount: number;
+  lastProvider: string | null;
+  lastModel: string | null;
+  lastConnectionId?: string | null;
+}
+
+export interface ListAgentSessionsFilter {
+  apiKeyId?: string | null;
+  projectName?: string | null;
+  client?: string | null;
+  from?: string | null;
+  to?: string | null;
+  sort?: "lastSeen" | "firstSeen" | "requests" | "tokens" | "cost";
+  order?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+}
+
+export interface AgentSessionRecentUsage {
+  id: number;
+  timestamp: string;
+  provider: string | null;
+  model: string | null;
+  tokens: {
+    input: number;
+    output: number;
+    cacheRead: number;
+    cacheCreation: number;
+    reasoning: number;
+  };
+  latencyMs: number;
+  ttftMs: number;
+  status: string | null;
+  success: boolean;
+  connectionId?: string | null;
+}
+
+function rowToAgentSessionRecord(row: Record<string, unknown>): AgentSessionRecord {
+  const input = Number(row.tokens_input ?? 0);
+  const output = Number(row.tokens_output ?? 0);
+  const cacheRead = Number(row.tokens_cache_read ?? 0);
+  const cacheCreation = Number(row.tokens_cache_creation ?? 0);
+  const reasoning = Number(row.tokens_reasoning ?? 0);
+  return {
+    id: String(row.id),
+    apiKeyId: typeof row.api_key_id === "string" ? row.api_key_id : null,
+    apiKeyName: typeof row.api_key_name === "string" ? row.api_key_name : null,
+    client: typeof row.client === "string" ? row.client : null,
+    clientSessionId: typeof row.client_session_id === "string" ? row.client_session_id : null,
+    projectName: typeof row.project_name === "string" ? row.project_name : null,
+    projectRepo: typeof row.project_repo === "string" ? row.project_repo : null,
+    projectPath: typeof row.project_path === "string" ? row.project_path : null,
+    projectSource: typeof row.project_source === "string" ? row.project_source : null,
+    gitBranch: typeof row.git_branch === "string" ? row.git_branch : null,
+    firstSeenAt: String(row.first_seen_at),
+    lastSeenAt: String(row.last_seen_at),
+    requestCount: Number(row.request_count ?? 0),
+    errorCount: Number(row.error_count ?? 0),
+    tokens: {
+      input,
+      output,
+      cacheRead,
+      cacheCreation,
+      reasoning,
+      total: input + output + cacheRead + cacheCreation,
+    },
+    costUsd: Number(row.cost_usd ?? 0),
+    unpricedCount: Number(row.unpriced_count ?? 0),
+    lastProvider: typeof row.last_provider === "string" ? row.last_provider : null,
+    lastModel: typeof row.last_model === "string" ? row.last_model : null,
+    lastConnectionId: typeof row.last_connection_id === "string" ? row.last_connection_id : null,
+  };
+}
+
+const SORT_COLUMNS: Record<string, string> = {
+  lastSeen: "last_seen_at",
+  firstSeen: "first_seen_at",
+  requests: "request_count",
+  tokens: "(tokens_input + tokens_output + tokens_cache_read + tokens_cache_creation)",
+  cost: "cost_usd",
+};
+
+export function listAgentSessions(
+  db: SqliteAdapter,
+  filter: ListAgentSessionsFilter = {}
+): { sessions: AgentSessionRecord[]; total: number } {
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (filter.apiKeyId !== undefined) {
+    if (filter.apiKeyId === null) {
+      conditions.push("api_key_id IS NULL");
+    } else {
+      conditions.push("api_key_id = ?");
+      params.push(filter.apiKeyId);
+    }
+  }
+
+  if (filter.projectName) {
+    conditions.push("project_name = ?");
+    params.push(filter.projectName);
+  }
+
+  if (filter.client) {
+    conditions.push("client = ?");
+    params.push(filter.client);
+  }
+
+  if (filter.from) {
+    conditions.push("last_seen_at >= ?");
+    params.push(filter.from);
+  }
+
+  if (filter.to) {
+    conditions.push("last_seen_at <= ?");
+    params.push(filter.to);
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const sortCol = SORT_COLUMNS[filter.sort || "lastSeen"] || "last_seen_at";
+  const sortOrder = filter.order?.toLowerCase() === "asc" ? "ASC" : "DESC";
+
+  const limit = Math.max(1, Math.min(Number(filter.limit) || 20, 100));
+  const offset = Math.max(0, Number(filter.offset) || 0);
+
+  const countRow = db
+    .prepare(`SELECT COUNT(*) as count FROM agent_sessions ${whereClause}`)
+    .get(...params) as { count: number } | undefined;
+  const total = Number(countRow?.count ?? 0);
+
+  const rows = db
+    .prepare(
+      `SELECT * FROM agent_sessions
+       ${whereClause}
+       ORDER BY ${sortCol} ${sortOrder}, id DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(...params, limit, offset) as Record<string, unknown>[];
+
+  return {
+    sessions: rows.map(rowToAgentSessionRecord),
+    total,
+  };
+}
+
+export function getAgentSessionById(
+  db: SqliteAdapter,
+  id: string,
+  apiKeyId?: string
+): AgentSessionRecord | null {
+  const query = apiKeyId
+    ? "SELECT * FROM agent_sessions WHERE id = ? AND api_key_id = ?"
+    : "SELECT * FROM agent_sessions WHERE id = ?";
+  const params = apiKeyId ? [id, apiKeyId] : [id];
+  const row = db.prepare(query).get(...params) as Record<string, unknown> | undefined;
+  return row ? rowToAgentSessionRecord(row) : null;
+}
+
+export function getAgentSessionRecentUsage(
+  db: SqliteAdapter,
+  sessionId: string,
+  limit = 50
+): AgentSessionRecentUsage[] {
+  const boundedLimit = Math.max(1, Math.min(limit, 100));
+  const rows = db
+    .prepare(
+      `SELECT id, timestamp, provider, model, tokens_input, tokens_output,
+              tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+              latency_ms, ttft_ms, status, success, connection_id
+       FROM usage_history
+       WHERE agent_session_id = ?
+       ORDER BY timestamp DESC, id DESC
+       LIMIT ?`
+    )
+    .all(sessionId, boundedLimit) as Record<string, unknown>[];
+
+  return rows.map((row) => ({
+    id: Number(row.id),
+    timestamp: String(row.timestamp),
+    provider: typeof row.provider === "string" ? row.provider : null,
+    model: typeof row.model === "string" ? row.model : null,
+    tokens: {
+      input: Number(row.tokens_input ?? 0),
+      output: Number(row.tokens_output ?? 0),
+      cacheRead: Number(row.tokens_cache_read ?? 0),
+      cacheCreation: Number(row.tokens_cache_creation ?? 0),
+      reasoning: Number(row.tokens_reasoning ?? 0),
+    },
+    latencyMs: Number(row.latency_ms ?? 0),
+    ttftMs: Number(row.ttft_ms ?? 0),
+    status: typeof row.status === "string" ? row.status : null,
+    success: row.success === 1 || row.success === true,
+    connectionId: typeof row.connection_id === "string" ? row.connection_id : null,
+  }));
+}
