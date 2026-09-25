@@ -166,6 +166,16 @@ function dropReDoSProne(patterns: string[]): string[] {
   return patterns.filter((p) => !isReDoSProne(p));
 }
 
+// Engine hard-cap vocabulary plus critical. The keep stage drops non-matches
+// before priorityPatterns run, so an active includePatterns list needs it too.
+// An empty include list must stay empty: appending would turn the keep stage on.
+const FILTER_SEVERITY_PATTERN = "fatal|severe|panic|critical|oomkilled";
+
+function withFilterSeverity(patterns: string[]): string[] {
+  if (patterns.includes(FILTER_SEVERITY_PATTERN)) return patterns;
+  return [...patterns, FILTER_SEVERITY_PATTERN];
+}
+
 export function validateRtkFilter(value: unknown): RtkFilterDefinition {
   const parsed = rtkFilterSchema.parse(value);
   if (!isCanonicalFilter(parsed)) {
@@ -184,7 +194,11 @@ export function validateRtkFilter(value: unknown): RtkFilterDefinition {
     };
   }
 
-  const preservePatterns = [...parsed.preserve.errorPatterns, ...parsed.preserve.summaryPatterns];
+  const includePatterns = parsed.rules.includePatterns;
+  const preservePatterns = withFilterSeverity([
+    ...parsed.preserve.errorPatterns,
+    ...parsed.preserve.summaryPatterns,
+  ]);
   return {
     id: parsed.id,
     name: parsed.label,
@@ -195,7 +209,9 @@ export function validateRtkFilter(value: unknown): RtkFilterDefinition {
     category: parsed.category,
     priority: parsed.priority,
     stripPatterns: dropReDoSProne(parsed.rules.dropPatterns),
-    keepPatterns: dropReDoSProne(parsed.rules.includePatterns),
+    keepPatterns: dropReDoSProne(
+      includePatterns.length > 0 ? withFilterSeverity(includePatterns) : includePatterns
+    ),
     priorityPatterns: dropReDoSProne(preservePatterns),
     collapsePatterns: dropReDoSProne(parsed.rules.collapsePatterns),
     stripAnsi: parsed.rules.stripAnsi,

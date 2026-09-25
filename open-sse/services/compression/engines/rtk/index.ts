@@ -337,7 +337,7 @@ export function processRtkText(
   }
 
   const defaultPriorityPatterns: RegExp[] = [
-    /error|failed|exception|traceback|fatal|severe|panic|oomkilled|TS\d{4}|FAIL|✖/i,
+    /error|failed|exception|traceback|fatal|severe|panic|critical|oomkilled|TS\d{4}|FAIL|✖/i,
   ];
   const filterPriorityPatterns: RegExp[] = matchedFilterPatterns.flatMap((pattern) => {
     try {

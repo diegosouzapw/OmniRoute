@@ -18,7 +18,7 @@ import { processRtkText } from "../../../open-sse/services/compression/engines/r
 // propagates filter.priorityPatterns into that smartTruncate call.
 
 // Hardcoded default pattern in processRtkText:
-//   /error|failed|exception|traceback|fatal|severe|panic|oomkilled|TS\d{4}|FAIL|✖/i
+//   /error|failed|exception|traceback|fatal|severe|panic|critical|oomkilled|TS\d{4}|FAIL|✖/i
 //
 // "linking" does NOT match the hardcoded pattern → good test for summaryPatterns.
 // "***" alone (without "Error"/"failed") does NOT match → good test for
@@ -63,7 +63,7 @@ describe("RTK truncate – filter preserve patterns propagate to smartTruncate",
       (_, i) => `ld -rpath module${i}.o -o module${i}`
     ).join("\n");
     // "***" matches make's errorPatterns but NOT the default hardcoded pattern
-    // (/error|failed|exception|traceback|fatal|severe|panic|oomkilled|TS\d{4}|FAIL|✖/i)
+    // (/error|failed|exception|traceback|fatal|severe|panic|critical|oomkilled|TS\d{4}|FAIL|✖/i)
     // — no "error"/"failed".
     const errorLine = "make: *** [Makefile:10: all] compilation-sentinel-37f4";
     const moreFiller = Array.from({ length: 50 }, (_, i) => `ranlib libfoo${i}.a`).join("\n");
