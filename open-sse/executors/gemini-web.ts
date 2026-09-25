@@ -170,15 +170,60 @@ export function buildGeminiPrompt(messages: Array<{ role: string; content: unkno
  * matching that dual-placement design intent.
  */
 export function buildGeminiToolPrompt(
-  effectiveMessages: Array<{ role: string; content: unknown }>
+  effectiveMessages: Array<{
+    role: string;
+    content: unknown;
+    tool_calls?: unknown;
+    tool_call_id?: unknown;
+  }>
 ): string {
   const toolPrompt = effectiveMessages
     .filter((m) => m.role === "system" && typeof m.content === "string")
     .map((m) => m.content as string)
     .join("\n\n");
-  const lastUserMsg = [...effectiveMessages].reverse().find((m) => m.role === "user");
+  const lastUserIdx = effectiveMessages.map((m) => m.role).lastIndexOf("user");
+  const lastUserMsg = lastUserIdx >= 0 ? effectiveMessages[lastUserIdx] : undefined;
   const userText = typeof lastUserMsg?.content === "string" ? lastUserMsg.content : "";
-  return toolPrompt ? `${toolPrompt}\n\n${userText}` : userText;
+
+  // Everything except the current ask has to be rendered: an assistant turn that
+  // called a tool and the `role: "tool"` result for it are the only evidence
+  // Gemini Web gets that the tool already ran. Dropping them (this function used
+  // to keep only system + last user) made the model re-issue the same call with a
+  // fresh id, looping until the client's tool limit stopped it (#14368).
+  //
+  // The boundary must be the current ask itself, not "everything before it": a
+  // tool round usually arrives as `system, user, assistant(tool_calls), tool`
+  // with NO message after the result, so slicing at `lastUserIdx` threw away the
+  // very turns the fix was for (#14374 review).
+  const prior: string[] = [];
+  for (const [index, m] of effectiveMessages.entries()) {
+    if (index === lastUserIdx) continue; // rendered below as the current ask
+    if (typeof m.content === "string" && m.content.trim()) {
+      if (m.role === "user") prior.push(`User: ${m.content}`);
+      else if (m.role === "assistant") prior.push(`Assistant: ${m.content}`);
+      else if (m.role === "tool") {
+        const id = typeof m.tool_call_id === "string" ? m.tool_call_id : "";
+        prior.push(id ? `Tool result [${id}]: ${m.content}` : `Tool result: ${m.content}`);
+      }
+    }
+    const calls = Array.isArray(m.tool_calls) ? m.tool_calls : [];
+    for (const entry of calls) {
+      const call = entry as { id?: unknown; function?: { name?: unknown; arguments?: unknown } };
+      const name = typeof call.function?.name === "string" ? call.function.name : "tool";
+      const args = typeof call.function?.arguments === "string" ? call.function.arguments : "{}";
+      const id = typeof call.id === "string" ? ` [${call.id}]` : "";
+      prior.push(`Assistant requested tool${id}: ${name}(${args})`);
+    }
+  }
+
+  // Single-turn: byte-for-byte the shape #7286 pinned.
+  if (prior.length === 0) return toolPrompt ? `${toolPrompt}\n\n${userText}` : userText;
+
+  const parts: string[] = [];
+  if (toolPrompt) parts.push(toolPrompt);
+  parts.push(`Previous conversation:\n${prior.join("\n\n")}`);
+  parts.push(`Current user message:\n${userText}`);
+  return parts.join("\n\n");
 }
 
 /**
