@@ -1,7 +1,11 @@
+import { isPrivateHost } from "@/shared/network/privateHost";
+
 type DirectFetchOptions = RequestInit & { dispatcher?: unknown };
 type DirectFetch = (input: RequestInfo | URL, options: DirectFetchOptions) => Promise<Response>;
 
 const DEFAULT_DIRECT_HEADERS_TIMEOUT_MS = 30_000;
+/** Local/self-hosted backends (Ollama, LM Studio, host.docker.internal) often need >30s TTFB. */
+const DEFAULT_LOCAL_DIRECT_HEADERS_TIMEOUT_MS = 300_000;
 const DIRECT_RESPONSE_START_TIMEOUT_CODE = "DIRECT_RESPONSE_START_TIMEOUT";
 
 // #13703 — the fresh-socket RETRY (2nd direct attempt) reused the pooled
@@ -30,6 +34,47 @@ function hasHighReasoningEffort(body?: string | null): boolean {
   return HIGH_REASONING_EFFORT_PATTERN.test(body);
 }
 
+function isLocalDirectTarget(targetUrl?: string | null): boolean {
+  if (!targetUrl) return false;
+  try {
+    return isPrivateHost(new URL(targetUrl).hostname);
+  } catch {
+    return false;
+  }
+}
+
+function resolveLocalDirectHeadersFloorMs(
+  env: Record<string, string | undefined> = process.env
+): number {
+  const raw = env.OMNIROUTE_LOCAL_DIRECT_HEADERS_TIMEOUT_MS;
+  if (raw == null || raw.trim() === "") return DEFAULT_LOCAL_DIRECT_HEADERS_TIMEOUT_MS;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
+}
+
+function resolveFlatDirectHeadersFloorMs(
+  env: Record<string, string | undefined>,
+  body?: string | null,
+  targetUrl?: string | null
+): number {
+  const raw = env.OMNIROUTE_DIRECT_HEADERS_TIMEOUT_MS;
+  let base =
+    raw == null || raw.trim() === ""
+      ? DEFAULT_DIRECT_HEADERS_TIMEOUT_MS
+      : Number.isFinite(Number(raw)) && Number(raw) > 0
+        ? Math.floor(Number(raw))
+        : 0;
+  // Operator override is a FLOOR: reasoning/local awareness only raises the budget,
+  // never lowers it. An override above the ceiling (e.g. 240s) is preserved.
+  if (hasHighReasoningEffort(body)) {
+    base = Math.max(base, REASONING_READINESS_CEILING_MS);
+  }
+  if (isLocalDirectTarget(targetUrl)) {
+    base = Math.max(base, resolveLocalDirectHeadersFloorMs(env));
+  }
+  return base;
+}
+
 // #13703: `attempt` 0 is the pooled dispatcher (flat floor, #10214's
 // zombie-socket rationale); attempt 1+ is the fresh-socket retry, which has
 // no zombie to detect and so defers to resolveDirectRetryTimeoutMs instead.
@@ -37,20 +82,10 @@ export function resolveDirectHeadersTimeoutMs(
   env: Record<string, string | undefined> = process.env,
   body?: string | null,
   attempt = 0,
-  hasCallerDeadline = false
+  hasCallerDeadline = false,
+  targetUrl?: string | null
 ): number {
-  const raw = env.OMNIROUTE_DIRECT_HEADERS_TIMEOUT_MS;
-  const base =
-    raw == null || raw.trim() === ""
-      ? DEFAULT_DIRECT_HEADERS_TIMEOUT_MS
-      : Number.isFinite(Number(raw)) && Number(raw) > 0
-        ? Math.floor(Number(raw))
-        : 0;
-  // Operator override is a FLOOR: reasoning awareness only raises the budget,
-  // never lowers it. An override above the ceiling (e.g. 240s) is preserved.
-  const flatFloorMs = hasHighReasoningEffort(body)
-    ? Math.max(base, REASONING_READINESS_CEILING_MS)
-    : base;
+  const flatFloorMs = resolveFlatDirectHeadersFloorMs(env, body, targetUrl);
   if (attempt === 0) return flatFloorMs;
   return resolveDirectRetryTimeoutMs(flatFloorMs, hasCallerDeadline, env);
 }

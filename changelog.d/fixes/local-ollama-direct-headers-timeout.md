@@ -1,0 +1,1 @@
+- **fix(network):** raise the direct response-start timeout floor to 300s for local/self-hosted upstream targets (Ollama via `host.docker.internal`, LAN IPs) so VS Code Copilot and other agent clients no longer 504 at the 30s default; add `docker-compose.ollama-local.yml` and `docs/guides/LOCAL_OLLAMA_DOCKER.md`

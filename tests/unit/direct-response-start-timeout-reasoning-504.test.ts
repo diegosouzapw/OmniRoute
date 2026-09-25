@@ -87,3 +87,39 @@ test("non-reasoning body keeps the env override (no reasoning bump applied)", ()
   );
   assert.equal(got, 90_000);
 });
+
+test("local direct target (host.docker.internal Ollama) raises TTFB floor to 300s by default", () => {
+  const got = resolveDirectHeadersTimeoutMs(
+    { OMNIROUTE_DIRECT_HEADERS_TIMEOUT_MS: undefined },
+    NON_REASONING_BODY,
+    0,
+    false,
+    "http://host.docker.internal:11434/v1/chat/completions"
+  );
+  assert.equal(got, 300_000, "local Ollama via Docker host gateway needs >30s for cold-start TTFB");
+});
+
+test("local direct target honors OMNIROUTE_LOCAL_DIRECT_HEADERS_TIMEOUT_MS override", () => {
+  const got = resolveDirectHeadersTimeoutMs(
+    {
+      OMNIROUTE_DIRECT_HEADERS_TIMEOUT_MS: undefined,
+      OMNIROUTE_LOCAL_DIRECT_HEADERS_TIMEOUT_MS: "420000",
+    },
+    NON_REASONING_BODY,
+    0,
+    false,
+    "http://192.168.70.20:11434/v1/chat/completions"
+  );
+  assert.equal(got, 420_000);
+});
+
+test("remote direct target keeps the flat 30s default (zombie-socket detection preserved)", () => {
+  const got = resolveDirectHeadersTimeoutMs(
+    { OMNIROUTE_DIRECT_HEADERS_TIMEOUT_MS: undefined },
+    NON_REASONING_BODY,
+    0,
+    false,
+    "https://api.openai.com/v1/chat/completions"
+  );
+  assert.equal(got, 30_000);
+});
