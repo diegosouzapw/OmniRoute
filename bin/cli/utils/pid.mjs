@@ -89,11 +89,19 @@ export async function findListeningPids(port, deps = {}) {
       .split("\n")
       .map((entry) => parseInt(entry, 10))
       .filter((entry) => Number.isFinite(entry) && entry > 0);
-  } catch {
-    // Tool missing (ENOENT) or unusable: "no listener" cannot be distinguished
-    // from "cannot look" here, so report null and let the caller decide. The
-    // serve preflight bind-probes the port in that case (#14518) — a false
-    // "busy" would block a legitimate start, the worse failure of the two.
+  } catch (err) {
+    // POSIX lsof exits 1 with empty output when there are simply no matches.
+    // That is the normal "port is free" result, not a discovery failure.
+    if (
+      platform !== "win32" &&
+      err?.code === 1 &&
+      !String(err?.stdout ?? "").trim()
+    ) {
+      return [];
+    }
+    // Tool missing (ENOENT) or genuinely unusable: "no listener" cannot be
+    // distinguished from "cannot look" here, so report null and let the serve
+    // preflight bind-probe the port instead (#14518).
     return null;
   }
 }

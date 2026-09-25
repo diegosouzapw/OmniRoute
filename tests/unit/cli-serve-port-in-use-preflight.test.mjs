@@ -73,6 +73,20 @@ test("findListeningPids reports the PID holding the port (posix lsof)", async ()
   assert.deepEqual(pids, [4242, 4243]);
 });
 
+test("findListeningPids treats an empty lsof result as a free port", async () => {
+  const noMatch = Object.assign(new Error("lsof exited with no matches"), {
+    code: 1,
+    stdout: "",
+  });
+  const pids = await findListeningPids(20128, {
+    platform: "darwin",
+    execFileAsync: async () => {
+      throw noMatch;
+    },
+  });
+  assert.deepEqual(pids, [], "lsof exit 1 with empty output means nothing is listening");
+});
+
 test("findListeningPids returns null when discovery is unavailable (#14518)", async () => {
   const pids = await findListeningPids(20128, {
     platform: "win32",
@@ -142,6 +156,18 @@ test("reportPortInUse degrades gracefully when the owner pid is unknown", async 
   assert.match(out, /Port 20128 is already in use/, "must still name the port");
   assert.match(out, /unknown|unidentified/, "must say the owner could not be identified");
   assert.match(out, /omniroute stop/, "must keep the resolution path");
+});
+
+test("serve preflight treats a free port as no listeners when pid discovery returns null", async () => {
+  const { resolveServeBusyPids } = await import("../../bin/cli/commands/serve.mjs");
+  const busyPids = await resolveServeBusyPids(20128, {
+    findListeningPids: async () => null,
+    probePortFree: async () => true,
+  });
+  // #14800: null discovery + a free bind probe used to leave busyPids null, and
+  // the next `.length` threw on any host without lsof/netstat. Free means [].
+  assert.equal(busyPids.length, 0);
+  assert.deepEqual(busyPids, []);
 });
 
 test("serve preflight rejects a busy port even without any discovery tool (end-to-end for #14518)", async () => {
