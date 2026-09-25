@@ -14,6 +14,7 @@ import {
   isProxyAvoided,
   proxyEgressKey,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
+import { maybeEmitPoolExhausted } from "@/lib/proxyEvents/proxyTransitionBridge";
 import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
 import { getCachedProxyHealth } from "@/lib/proxyHealth";
 import type { JsonRecord, ProxyScope, ProxyRotationStrategy } from "./types";
@@ -153,9 +154,14 @@ function eligibleMemberIndexes(candidates: unknown[]): number[] | null {
 // True once the sticky window elapsed (or never started): the held member is due
 // for rotation. Shared by the pre-rank bypass (held member served untouched) and
 // the sticky branch below (advance on expiry) — same `state`, no extra DB read.
-function isStickyExpired(state: { stickyWindowMinutes: number; rotatedAt: string | null }): boolean {
+function isStickyExpired(state: {
+  stickyWindowMinutes: number;
+  rotatedAt: string | null;
+}): boolean {
   const lastRotated = state.rotatedAt ? Date.parse(state.rotatedAt) : NaN;
-  return !Number.isFinite(lastRotated) || Date.now() - lastRotated >= state.stickyWindowMinutes * 60_000;
+  return (
+    !Number.isFinite(lastRotated) || Date.now() - lastRotated >= state.stickyWindowMinutes * 60_000
+  );
 }
 
 // First eligible index at or after `start`, going round the pool.
@@ -248,6 +254,15 @@ function pickFromCandidates<T>(
   rotationScopeId: string,
   candidates: T[]
 ): T {
+  // Pool-exhausted check first: a single-member pool set aside is exhausted
+  // too, and this runs before the length-1 early return below. Flag-gated
+  // inside (zero cost when off), rebound window shared with the bridge.
+  maybeEmitPoolExhausted(
+    normalizedScope,
+    candidates,
+    (row) => proxyEgressKey(row),
+    (key) => isProxyAvoided(key)
+  );
   if (candidates.length === 1) return candidates[0];
 
   const state = getOrCreateRotationRow(db, normalizedScope, rotationScopeId);

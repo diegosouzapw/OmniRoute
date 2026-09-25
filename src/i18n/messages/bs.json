@@ -3449,7 +3449,9 @@
       "setRetryDelayMs": "Kašnjenje između pokušaja ponovnog slanja na nivou seta, dajući vremena za rješavanje prolaznih problema.",
       "targetTimeoutMs": "Opcionalni timeout po meti. Prazno nasljeđuje trenutni timeout zahtjeva; veće vrijednosti su ograničene tim timeout-om.",
       "comboTimeoutMs": "Opcionalni ukupni vremenski budžet za cijeli combo kroz sve failover mete. Prazno zadržava 10-minutno zaustavljanje; pozitivna vrijednost ga zamjenjuje. Postavite ovo duže od Target timeout-a kako bi failover i dalje imao vremena.",
-      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova."
+      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova.",
+      "connectionAwareExpansion": "Kada je uključeno, ova kombinacija proširuje svaki korak na nivou provajdera u ciljeve po računu prije rotacije. Nasljedstvo koristi globalni podrazumijevani (isključeno). Isključeno zadržava rotaciju na nivou provajdera.",
+      "stickyLimit": "Veličina serije sa rotacijom: uzastopni uspješni zahtjevi poslani jednom cilju prije rotacije na sljedeći. Prazno nasljeđuje globalnu postavku Sticky Limit; 1 onemogućava grupisanje (čista rotacija jednog zahtjeva)."
     },
     "templatesTitle": "Brzi šabloni",
     "templatesDescription": "Primijenite početni profil, zatim prilagodite modele i konfiguraciju.",
@@ -3788,6 +3790,15 @@
     "disableSessionStickiness": "Onemogući session stickiness",
     "sessionStickinessEnabled": "Stickiness uključeno",
     "sessionStickinessDisabled": "Stickiness isključeno",
+    "stickyLimitEffective": "Efektivno {value} ({source})",
+    "stickyLimitSourceCombo": "kombinacija",
+    "stickyLimitSourceComboDefaults": "podrazumijevane kombinacije",
+    "stickyLimitSourceGlobal": "globalni podrazumijevani",
+    "connectionAwareExpansion": "Proširenje svjesno veze",
+    "triStateInherit": "naslijedi",
+    "connectionAwareExpansionOn": "Uključeno",
+    "connectionAwareExpansionOff": "Isključeno",
+    "promptCacheAffinityHint": "Usmjeravanje lokalnosti predmemorije zahtjeva ima prioritet nad rotacijom po principu round-robin/težinskoj rotaciji među fiksiranim računima. Isključite to u Postavkama, Podrazumijevane kombinacije, ako vam je potrebna stroga rotacija.",
     "kimiPresetTitle": "Kimi Coding unaprijed postavljena konfiguracija",
     "kimiPresetDescription": "Kimi K3 kao primarni model (Moonshot API), sa automatskim povratkom na vaše Kimi Code veze (kimi-coding, kimi-web) kada su konfigurisane.",
     "kimiPresetCta": "Dodaj preset",
@@ -11036,7 +11047,12 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Neuspješno dodavanje proxy-ja u pool",
     "poolSelectProxy": "Odaberite proxy…",
-    "poolSaveFailed": "Neuspješno spremanje dodjele pool-a"
+    "poolSaveFailed": "Neuspješno spremanje dodjele pool-a",
+    "transportRate": "{rate} % transporta",
+    "previousSuccessRate": "Ranije {rate} % uspjeha",
+    "upstreamRefusals": "{count} upstream odbijanja",
+    "connectionTestsCount": "{count} testova konekcije",
+    "notMeasured": "Nije mjereno"
   },
   "playground": {
     "title": "Testno okruženje za modele",
@@ -11526,7 +11542,14 @@
     "noProxyLogs": "Još nema proxy logova. Konfigurišite proxye i uputite API pozive kako biste ih vidjeli ovdje.",
     "noMatchingLogs": "Nijedan log ne odgovara trenutnim filterima.",
     "tlsFingerprint": "TLS otisak Chromea 124",
-    "colPublicIp": "Javna IP adresa"
+    "colPublicIp": "Javna IP adresa",
+    "colUpstream": "Upravljački",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korelacija",
+    "colServedBy": "Posluženo od",
+    "filterTraffic": "Saobraćaj",
+    "filterTests": "Testovi",
+    "filterSource": "Izvor"
   },
   "endpointOptions": {
     "speech": "Govor",
@@ -12001,6 +12024,10 @@
     "stopDns": "Zaustavi DNS",
     "toggling": "Prebacivanje…",
     "viewTraffic": "Pogledaj saobraćaj",
+    "resetAgent": "Vrati zadano",
+    "resetAgentConfirm": "Vratiti zadano?",
+    "resetting": "Vraćanje…",
+    "resetDone": "Zadani DNS je vraćen za {agent}. Potpuno zatvorite aplikaciju (ne samo minimizirajte) i ponovo je otvorite da bi promjena stupila na snagu.",
     "emptyNoProvidersTitle": "Još uvijek nema konfigurisanih provajdera",
     "emptyNoProvidersBody": "Da biste koristili AgentBridge, prvo povežite barem jednog provajdera. On će biti odredište gdje se rutiraju zahtjevi iz IDE-a.",
     "emptyGoToProviders": "Idi na Provajdere",
@@ -12779,7 +12806,12 @@
     "createDahlTokenFailed": "Neuspjelo kreiranje Dahl tokena",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurišite proxy",
-    "providerProxyTitleConfigured": "Proxy konfigurisan: {host}"
+    "providerProxyTitleConfigured": "Proxy konfigurisan: {host}",
+    "inheritConnectionOption": "Bez vlastitog proxyja (nasljeđuje konekciju)",
+    "inheritedProxy": "Nasljeđuje konekciju: {host}",
+    "inheritedPool": "Nasljeđuje bazen konekcija ({count})",
+    "poolEmptyBlocked": "Bazen prazan — zahtjevi ne uspijevaju (ne direktno)",
+    "directEgress": "Direktno (bez proxyja)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14108,7 +14140,12 @@
     "directNative": "Direktno (native)",
     "targetUrl": "Ciljni URL",
     "error": "Greška",
-    "configuration": "Konfiguracija proxy-ja"
+    "configuration": "Konfiguracija proxy-ja",
+    "upstreamStatus": "Status upravljačkog",
+    "noResponse": "Nema odgovora",
+    "egressIp": "Egress IP",
+    "servedBy": "Posluženo od",
+    "correlationId": "ID korelacije"
   },
   "requestTimeline": {
     "title": "Vremenska linija zahtjeva",

@@ -107,6 +107,109 @@ export function egressKeyOf(proxy: { host: string; port: number } | null): strin
 }
 
 // ---------------------------------------------------------------------------
+// Applied egress key: pool-served accounts without their own proxy share the
+// `direct` sentinel above, although the request actually leaves through the
+// ambient pool proxy. The reader below resolves the key really applied to one
+// attempt; the default (no reader) keeps the historical behavior byte-identical.
+// ---------------------------------------------------------------------------
+
+/** Minimal account shape the applied-key seam needs (proxy + optional print). */
+export interface AppliedEgressAccount {
+  proxy: { host: string; port: number } | null;
+  fingerprint?: string;
+}
+
+/** Returns the normalized egress key applied to this account, or null. */
+export type AppliedEgressReader = (account: AppliedEgressAccount) => string | null;
+
+/**
+ * Key really applied to one attempt: dedicated proxies take the fast path
+ * (the reader is never called), proxyless accounts consult the reader and
+ * fall back to the shared sentinel (fail-open: absent/error/empty/throw).
+ */
+export function resolveAppliedEgressKey(
+  account: AppliedEgressAccount,
+  readApplied?: AppliedEgressReader | null
+): string {
+  if (account.proxy !== null) return egressKeyOf(account.proxy);
+  try {
+    const applied = readApplied?.(account);
+    if (applied && applied !== DIRECT_EGRESS_SENTINEL) return applied;
+  } catch {
+    /* best-effort: never break the request path */
+  }
+  return DIRECT_EGRESS_SENTINEL;
+}
+
+// ---------------------------------------------------------------------------
+// Attempt-scoped applied-key tracker: pool-served accounts without their own
+// proxy share one ambient context, so the per-fingerprint history below is the
+// only structure telling member A from member B apart.
+// ---------------------------------------------------------------------------
+
+/** Resolver shape of `resolveProxyForRequest` (injected — no import cycle). */
+export type AppliedProxyResolver = (targetUrl: string) => unknown;
+
+/** Attempt-scoped reader + member key + per-iteration memo control. */
+export interface AppliedEgressTracker {
+  readAppliedKey: AppliedEgressReader;
+  keyOfMember: (account: AppliedEgressAccount) => string | null;
+  resetAttempt: () => void;
+  rememberServed: (account: AppliedEgressAccount) => void;
+  noteRefused: (account: AppliedEgressAccount, skipRecentlyFailed: boolean) => number | null;
+}
+
+/**
+ * Track the egress key really applied to each attempt of one request. The
+ * ambient memo resets at the top of every iteration; served keys persist per
+ * fingerprint. Non-sentinel keys only — the sentinel means "no pool context".
+ */
+export function createAppliedEgressTracker(
+  dispatchUrl: string,
+  resolveProxy: AppliedProxyResolver
+): AppliedEgressTracker {
+  const byFingerprint = new Map<string, string>();
+  let attemptAmbientKey: string | null | undefined;
+  const resolveAmbientKey = (): string | null => {
+    let resolved: unknown;
+    try {
+      resolved = resolveProxy(dispatchUrl);
+    } catch {
+      return null;
+    }
+    if (!resolved || typeof resolved !== "object") return null;
+    const { source, proxyUrl } = resolved as { source?: unknown; proxyUrl?: unknown };
+    if (source !== "context" || typeof proxyUrl !== "string") return null;
+    return proxyEgressKey(proxyUrl);
+  };
+  const readAppliedKey: AppliedEgressReader = (a) => {
+    if (a.proxy !== null) return null;
+    if (typeof a.fingerprint === "string") {
+      const known = byFingerprint.get(a.fingerprint);
+      if (known) return known;
+    }
+    if (attemptAmbientKey === undefined) attemptAmbientKey = resolveAmbientKey();
+    return attemptAmbientKey;
+  };
+  const noteRefused = (a: AppliedEgressAccount, skipRecentlyFailed: boolean) =>
+    noteRefusedMember(a.proxy, skipRecentlyFailed, readAppliedKey, a.fingerprint);
+  return {
+    readAppliedKey,
+    keyOfMember: (a) => (a.proxy !== null ? proxyEgressKey(a.proxy) : readAppliedKey(a)),
+    resetAttempt: () => {
+      attemptAmbientKey = undefined;
+    },
+    rememberServed: (a) => {
+      if (a.proxy === null && typeof a.fingerprint === "string") {
+        const key = readAppliedKey(a);
+        if (key && key !== DIRECT_EGRESS_SENTINEL) byFingerprint.set(a.fingerprint, key);
+      }
+    },
+    noteRefused,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Per-egress semaphore
 // ---------------------------------------------------------------------------
 
@@ -333,12 +436,18 @@ export function initEgressPacingForRequest(env: NodeJS.ProcessEnv = process.env)
 export function acquirePacingSlot(
   pacing: EgressPacing,
   proxy: { host: string; port: number } | null,
-  signal: AbortSignal | null | undefined
+  signal: AbortSignal | null | undefined,
+  readApplied?: AppliedEgressReader | null,
+  fingerprint?: string
 ): Promise<(() => void) | null> {
   if (!pacing.config.enabled) return Promise.resolve(null);
-  return acquireEgressSlot(egressKeyOf(proxy), pacing.config, {
-    signal: signal ?? null,
-  });
+  return acquireEgressSlot(
+    resolveAppliedEgressKey({ proxy, fingerprint }, readApplied),
+    pacing.config,
+    {
+      signal: signal ?? null,
+    }
+  );
 }
 
 /**
@@ -348,15 +457,22 @@ export function acquirePacingSlot(
  * a dead account. Returns the release and the account to use.
  */
 export async function startPacedDispatch<
-  A extends { proxy: { host: string; port: number } | null },
+  A extends { proxy: { host: string; port: number } | null; fingerprint?: string },
 >(
   pacing: EgressPacing,
   account: A,
   isCandidate: (a: A) => boolean,
   repick: () => A,
-  signal: AbortSignal | null | undefined
+  signal: AbortSignal | null | undefined,
+  readApplied?: AppliedEgressReader | null
 ): Promise<{ release: (() => void) | null; account: A }> {
-  const release = await acquirePacingSlot(pacing, account.proxy, signal);
+  const release = await acquirePacingSlot(
+    pacing,
+    account.proxy,
+    signal,
+    readApplied,
+    account.fingerprint
+  );
   if (release !== null && !isCandidate(account)) {
     release();
     return { release: null, account: repick() };
@@ -370,10 +486,17 @@ export async function startPacedDispatch<
  */
 export function noteRefusedMember(
   proxy: { host: string; port: number } | null,
-  skipRecentlyFailed: boolean
+  skipRecentlyFailed: boolean,
+  readApplied?: AppliedEgressReader | null,
+  fingerprint?: string
 ): number | null {
   if (!skipRecentlyFailed) return null;
-  return noteProxyRefusal(proxyEgressKey(proxy), "ip_quota_429");
+  const key =
+    proxy !== null
+      ? proxyEgressKey(proxy)
+      : resolveAppliedEgressKey({ proxy, fingerprint }, readApplied);
+  if (key === null || key === DIRECT_EGRESS_SENTINEL) return null;
+  return noteProxyRefusal(key, "ip_quota_429");
 }
 
 /**

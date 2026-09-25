@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Tắt tính năng liên kết phiên",
     "sessionStickinessEnabled": "Bật liên kết phiên",
     "sessionStickinessDisabled": "Tắt liên kết phiên",
+    "stickyLimitEffective": "Hiệu lực {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "mặc định combo",
+    "stickyLimitSourceGlobal": "mặc định toàn cục",
+    "connectionAwareExpansion": "Mở rộng theo tài khoản",
+    "triStateInherit": "kế thừa",
+    "connectionAwareExpansionOn": "Bật",
+    "connectionAwareExpansionOff": "Tắt",
+    "promptCacheAffinityHint": "Định tuyến theo cache prompt được ưu tiên hơn round-robin/weighted giữa các tài khoản đã ghim. Tắt trong Settings → Combo defaults nếu cần xoay vòng nghiêm ngặt.",
     "kimiPresetTitle": "Cấu hình sẵn Kimi Coding",
     "kimiPresetDescription": "Kimi K3 làm model chính (Moonshot API), với khả năng tự động chuyển sang các kết nối Kimi Code dự phòng của bạn (kimi-coding, kimi-web) khi được cấu hình.",
     "kimiPresetCta": "Thêm cấu hình sẵn",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Điều này sẽ chụp lại các nhà cung cấp/mô hình đang kết nối hiện tại phù hợp với mẫu này vào một tổ hợp có thể chỉnh sửa.",
     "duplicateAutoComboFailedPrefix": "Không thể sao chép tổ hợp tự động:",
     "duplicateAutoComboUnknownError": "Lỗi không xác định",
-    "duplicateAutoComboTitle": "Tạo tổ hợp tĩnh từ {name}",
-    "stickyLimitEffective": "Hiệu lực {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "mặc định combo",
-    "stickyLimitSourceGlobal": "mặc định toàn cục",
-    "connectionAwareExpansion": "Mở rộng theo tài khoản",
-    "triStateInherit": "kế thừa",
-    "connectionAwareExpansionOn": "Bật",
-    "connectionAwareExpansionOff": "Tắt",
-    "promptCacheAffinityHint": "Định tuyến theo cache prompt được ưu tiên hơn round-robin/weighted giữa các tài khoản đã ghim. Tắt trong Settings → Combo defaults nếu cần xoay vòng nghiêm ngặt."
+    "duplicateAutoComboTitle": "Tạo tổ hợp tĩnh từ {name}"
   },
   "costs": {
     "title": "Chi phí",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "Thêm",
     "poolAddFailed": "Không thể thêm proxy vào nhóm",
     "poolSelectProxy": "Chọn một proxy…",
-    "poolSaveFailed": "Không thể lưu mục gán nhóm proxy"
+    "poolSaveFailed": "Không thể lưu mục gán nhóm proxy",
+    "transportRate": "{rate}% vận chuyển",
+    "previousSuccessRate": "Trước đây {rate}% thành công",
+    "upstreamRefusals": "{count} từ chối từ máy chủ",
+    "connectionTestsCount": "{count} kiểm tra kết nối",
+    "notMeasured": "Chưa đo"
   },
   "playground": {
     "title": "Khu thử nghiệm mô hình",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "Chưa có nhật ký proxy. Cấu hình proxy và thực hiện các cuộc gọi API để xem chúng ở đây.",
     "noMatchingLogs": "Không có nhật ký nào khớp với bộ lọc hiện tại.",
     "tlsFingerprint": "Dấu vân tay TLS Chrome 124",
-    "colPublicIp": "IP công cộng"
+    "colPublicIp": "IP công cộng",
+    "colUpstream": "Nguồn",
+    "colEgress": "IP ra",
+    "colCorrelation": "Tương quan",
+    "colServedBy": "Được phục vụ bởi",
+    "filterTraffic": "Lưu lượng",
+    "filterTests": "Bài kiểm tra",
+    "filterSource": "Nguồn"
   },
   "endpointOptions": {
     "speech": "Giọng nói",
@@ -12012,6 +12024,10 @@
     "stopDns": "Dừng DNS",
     "toggling": "Đang chuyển đổi…",
     "viewTraffic": "Xem lưu lượng",
+    "resetAgent": "Khôi phục mặc định",
+    "resetAgentConfirm": "Khôi phục mặc định?",
+    "resetting": "Đang khôi phục…",
+    "resetDone": "Đã khôi phục DNS mặc định cho {agent}. Hãy đóng hẳn ứng dụng (không chỉ thu nhỏ) rồi mở lại để thay đổi có hiệu lực.",
     "emptyNoProvidersTitle": "Chưa có nhà cung cấp nào được cấu hình",
     "emptyNoProvidersBody": "Để sử dụng AgentBridge, trước tiên hãy kết nối ít nhất một nhà cung cấp. Đây sẽ là đích để định tuyến các yêu cầu từ IDE đến.",
     "emptyGoToProviders": "Đi tới Nhà cung cấp",
@@ -12790,7 +12806,12 @@
     "createDahlTokenFailed": "Không thể tạo token Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Cấu hình proxy",
-    "providerProxyTitleConfigured": "Đã cấu hình proxy: {host}"
+    "providerProxyTitleConfigured": "Đã cấu hình proxy: {host}",
+    "inheritConnectionOption": "Không proxy riêng (kế thừa kết nối)",
+    "inheritedProxy": "Kế thừa kết nối: {host}",
+    "inheritedPool": "Kế thừa nhóm proxy của kết nối ({count})",
+    "poolEmptyBlocked": "Nhóm proxy trống — yêu cầu thất bại (không phải trực tiếp)",
+    "directEgress": "Kết nối trực tiếp (không dùng proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14140,12 @@
     "directNative": "Trực tiếp (native)",
     "targetUrl": "URL đích",
     "error": "Lỗi",
-    "configuration": "Cấu hình Proxy"
+    "configuration": "Cấu hình Proxy",
+    "upstreamStatus": "Trạng thái nguồn",
+    "noResponse": "Không có phản hồi",
+    "egressIp": "IP ra",
+    "servedBy": "Được phục vụ bởi",
+    "correlationId": "ID tương quan"
   },
   "requestTimeline": {
     "title": "Dòng thời gian yêu cầu",

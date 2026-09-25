@@ -11047,7 +11047,12 @@
     "poolAddMember": "Add",
     "poolAddFailed": "Failed to add the proxy to the pool",
     "poolSelectProxy": "Select a proxy…",
-    "poolSaveFailed": "Failed to save pool assignment"
+    "poolSaveFailed": "Failed to save pool assignment",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Previously {rate}% success",
+    "upstreamRefusals": "{count} upstream refusals",
+    "connectionTestsCount": "{count} connection tests",
+    "notMeasured": "Not measured"
   },
   "playground": {
     "title": "Model Playground",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "No proxy logs yet. Configure proxies and make API calls to see them here.",
     "noMatchingLogs": "No logs match the current filters.",
     "tlsFingerprint": "Chrome 124 TLS Fingerprint",
-    "colPublicIp": "Public IP"
+    "colPublicIp": "Public IP",
+    "colUpstream": "Upstream",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Correlation",
+    "colServedBy": "Served by",
+    "filterTraffic": "Traffic",
+    "filterTests": "Tests",
+    "filterSource": "Source"
   },
   "endpointOptions": {
     "speech": "Speech",
@@ -12012,6 +12024,10 @@
     "stopDns": "Stop DNS",
     "toggling": "Toggling…",
     "viewTraffic": "View traffic",
+    "resetAgent": "Restore default",
+    "resetAgentConfirm": "Restore default?",
+    "resetting": "Restoring…",
+    "resetDone": "Default DNS restored for {agent}. Fully quit the app (not just minimize) and reopen it for the change to take effect.",
     "emptyNoProvidersTitle": "No providers configured yet",
     "emptyNoProvidersBody": "To use AgentBridge, first connect at least one provider. It will be the destination where IDE requests are routed.",
     "emptyGoToProviders": "Go to Providers",
@@ -12790,7 +12806,12 @@
     "createDahlTokenFailed": "Failed to create Dahl token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configure proxy",
-    "providerProxyTitleConfigured": "Proxy configured: {host}"
+    "providerProxyTitleConfigured": "Proxy configured: {host}",
+    "inheritConnectionOption": "No own proxy (inherits connection)",
+    "inheritedProxy": "Inherits connection: {host}",
+    "inheritedPool": "Inherits connection pool ({count})",
+    "poolEmptyBlocked": "Pool empty — requests fail (not direct)",
+    "directEgress": "Direct (no proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14140,12 @@
     "directNative": "Direct (native)",
     "targetUrl": "Target URL",
     "error": "Error",
-    "configuration": "Proxy Configuration"
+    "configuration": "Proxy Configuration",
+    "upstreamStatus": "Upstream status",
+    "noResponse": "No response",
+    "egressIp": "Egress IP",
+    "servedBy": "Served by",
+    "correlationId": "Correlation ID"
   },
   "requestTimeline": {
     "title": "Request Timeline",
