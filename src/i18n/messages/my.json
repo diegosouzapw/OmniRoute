@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "အခမဲ့အစု ($0)",
-    "templateFreeStackDesc": "အခမဲ့ ဝန်ဆောင်မှုပေးသူအားလုံးဖြစ်သော Kiro (Claude), Qoder (မော်ဒယ် 5 ခု), Qwen (မော်ဒယ် 4 ခု) တို့အကြား အလှည့်ကျ ဖြန့်ဝေသည်။ ကုန်ကျစရိတ် သုညဖြစ်ပြီး ကုဒ်ရေးသားမှု ဘယ်တော့မှ မရပ်ပါ။",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "ဉာဏ်ရည်မြင့် အလိုအလျောက်စနစ်",
     "autoDesc": "အချက်များစွာဖြင့် အမှတ်ပေးသည့် ကိုယ်တိုင်ပြန်လည်ကောင်းမွန်နိုင်သော စမတ်လမ်းကြောင်းသတ်မှတ်မှုအစု",
     "lkgp": "LKGP မုဒ်",

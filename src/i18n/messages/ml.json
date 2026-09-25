@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "സൗജന്യ സ്റ്റാക്ക് ($0)",
-    "templateFreeStackDesc": "എല്ലാ സൗജന്യ പ്രൊവൈഡർമാരിലൂടെയും റൗണ്ട്-റോബിൻ ചെയ്യുക: Kiro (Claude), Qoder (5 മോഡലുകൾ), Qwen (4 മോഡലുകൾ). ചെലവ് പൂജ്യം, കോഡിംഗ് ഒരിക്കലും നിലയ്ക്കില്ല.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "ഇന്റലിജന്റ് ഓട്ടോ",
     "autoDesc": "ബഹുഘടക സ്കോറിംഗോടുകൂടിയ സ്വയം വീണ്ടെടുക്കുന്ന സ്മാർട്ട് റൂട്ടിംഗ് പൂൾ",
     "lkgp": "LKGP മോഡ്",

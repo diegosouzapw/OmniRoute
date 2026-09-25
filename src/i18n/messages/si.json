@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "නොමිලේ සංචිතය ($0)",
-    "templateFreeStackDesc": "සියලු නොමිලේ සැපයුම්කරුවන් හරහා අනුක්රමිකව මාරු වන්න: Kiro (Claude), Qoder (මාදිලි 5), Qwen (මාදිලි 4). කිසිදු වියදමක් නැත, කේතනය කිසිදා නවතින්නේ නැත.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "බුද්ධිමත් ස්වයංක්රීය ක්රමය",
     "autoDesc": "බහු-සාධක ලකුණුකරණය සහිත ස්වයං-ප්රතිසාධන ස්මාර්ට් මාර්ගගත කිරීමේ සංචිතය",
     "lkgp": "LKGP මාදිලිය",

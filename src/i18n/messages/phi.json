@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "Libreng Stack ($0)",
-    "templateFreeStackDesc": "Round-robin sa lahat ng libreng provider: Kiro (Claude), Qoder (5 modelo), Qwen (4 na modelo). Walang gastos at tuloy-tuloy ang pag-code.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "Auto Combo",
     "autoDesc": "Self-healing smart routing pool (Performance optimized)",
     "lkgp": "Mode ng LKGP",

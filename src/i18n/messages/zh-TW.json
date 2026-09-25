@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "免費棧（$0）",
-    "templateFreeStackDesc": "在所有免費提供者之間進行輪詢：Kiro（Claude）、Qoder（5 個模型）、Qwen（4 個模型）。零成本，編碼不中斷。",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "自動組合",
     "autoDesc": "自愈型智慧路由池（效能最佳化）",
     "lkgp": "LKGP 模式",

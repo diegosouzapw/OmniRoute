@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "Ingyenes csomag ($0)",
-    "templateFreeStackDesc": "Ciklikus elosztás az összes ingyenes szolgáltató között: Kiro (Claude), Qoder (5 modell), Qwen (4 modell). Nulla költség, megszakítás nélküli kódolás.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "Auto Combo",
     "autoDesc": "Self-healing smart routing pool (Performance optimized)",
     "lkgp": "LKGP mód",

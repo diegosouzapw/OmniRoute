@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "Бесплатный стек ($0)",
-    "templateFreeStackDesc": "Round robin по всем бесплатным провайдерам: Kiro (Claude), Qoder (5 моделей), Qwen (4 модели). Ноль стоимости, кодинг без остановки.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "Авто",
     "autoDesc": "Автоматическая стратегия - система сама выбирает подходящее поведение.",
     "lkgp": "LKGP",

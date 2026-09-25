@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "বিনামূল্যের স্ট্যাক ($0)",
-    "templateFreeStackDesc": "সব বিনামূল্যের প্রদানকারীর মধ্যে রাউন্ড-রবিন: Kiro (Claude), Qoder (5 মডেল), Qwen (4 মডেল)। কোনো খরচ নেই, কোডিং কখনো থামে না।",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "বুদ্ধিমান স্বয়ংক্রিয় ব্যবস্থা",
     "autoDesc": "বহু-উপাদানভিত্তিক স্কোরিংসহ স্বয়ংক্রিয়ভাবে পুনরুদ্ধারক্ষম স্মার্ট রাউটিং পুল",
     "lkgp": "LKGP মোড",

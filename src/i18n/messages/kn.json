@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "ಉಚಿತ ಸ್ಟ್ಯಾಕ್ ($0)",
-    "templateFreeStackDesc": "ಎಲ್ಲಾ ಉಚಿತ ಪೂರೈಕೆದಾರರ ನಡುವೆ ರೌಂಡ್-ರಾಬಿನ್: Kiro (Claude), Qoder (5 ಮಾಡೆಲ್ಗಳು), Qwen (4 ಮಾಡೆಲ್ಗಳು). ಶೂನ್ಯ ವೆಚ್ಚ, ಕೋಡಿಂಗ್ ಎಂದಿಗೂ ನಿಲ್ಲುವುದಿಲ್ಲ.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "ಬುದ್ಧಿವಂತ ಸ್ವಯಂಚಾಲಿತ ಮೋಡ್",
     "autoDesc": "ಬಹು-ಅಂಶ ಸ್ಕೋರಿಂಗ್ ಹೊಂದಿರುವ ಸ್ವಯಂ-ಚೇತರಿಕೆಯ ಸ್ಮಾರ್ಟ್ ರೂಟಿಂಗ್ ಪೂಲ್",
     "lkgp": "LKGP ಮೋಡ್",

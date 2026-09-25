@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "இலவச ஸ்டாக் ($0)",
-    "templateFreeStackDesc": "அனைத்து இலவச வழங்குநர்களிலும் ரவுண்ட்-ராபின் முறையில் வழிமாற்றம்: Kiro (Claude), Qoder (5 மாடல்கள்), Qwen (4 மாடல்கள்). செலவே இல்லை, குறியீடு எழுதுவது ஒருபோதும் நிற்காது.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "நுண்ணறிவுத் தானியக்கம்",
     "autoDesc": "பல-காரணி மதிப்பீட்டுடன் தானாகச் சீரமைந்துகொள்ளும் ஸ்மார்ட் வழிமாற்றக் குழு",
     "lkgp": "LKGP பயன்முறை",

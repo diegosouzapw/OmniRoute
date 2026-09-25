@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "Nemokamas paketas ($0)",
-    "templateFreeStackDesc": "Ciklinis maršrutizavimas tarp visų nemokamų teikėjų: Kiro (Claude), Qoder (5 modeliai), Qwen (4 modeliai). Jokių išlaidų, kodavimas niekada nesustoja.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "Išmanusis automatinis režimas",
     "autoDesc": "Savaime atsikuriantis išmaniojo maršrutizavimo telkinys su kelių veiksnių vertinimu",
     "lkgp": "LKGP režimas",

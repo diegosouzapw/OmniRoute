@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "Tarin Kyauta ($0)",
-    "templateFreeStackDesc": "Rarrabawar bi-da-bi tsakanin dukkan masu samarwa na kyauta: Kiro (Claude), Qoder (samfura 5), Qwen (samfura 4). Babu kuɗi, kuma ba ya taɓa daina rubuta lamba.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "Zaɓi na Atomatik Mai Kaifin Basira",
     "autoDesc": "Tarin zaɓin hanya mai kaifin basira da ke gyara kansa ta hanyar kimantawa bisa abubuwa da dama",
     "lkgp": "Yanayin LKGP",

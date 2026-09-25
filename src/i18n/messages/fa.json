@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "پشته رایگان ($0)",
-    "templateFreeStackDesc": "توزیع نوبتی میان همه ارائهدهندگان رایگان: Kiro (Claude)، Qoder (5 مدل)، Qwen (4 مدل). بدون هزینه و با کدنویسی بیوقفه.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "خودکار هوشمند",
     "autoDesc": "مجموعه مسیریابی هوشمند خودترمیمشونده با امتیازدهی چندعاملی",
     "lkgp": "حالت LKGP",

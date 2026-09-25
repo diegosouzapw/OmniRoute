@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "Brezplačni nabor ($0)",
-    "templateFreeStackDesc": "Krožno usmerjanje med vsemi brezplačnimi ponudniki: Kiro (Claude), Qoder (5 modelov), Qwen (4 modeli). Brez stroškov, kodiranje se nikoli ne ustavi.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "Inteligentno samodejno usmerjanje",
     "autoDesc": "Samozdravljiv pametni nabor za usmerjanje z večfaktorskim točkovanjem",
     "lkgp": "Način LKGP",

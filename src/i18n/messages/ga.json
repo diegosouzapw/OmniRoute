@@ -3667,7 +3667,7 @@
       }
     },
     "templateFreeStack": "Stac Saor in Aisce ($0)",
-    "templateFreeStackDesc": "Sealaíocht chothrom idir na soláthraithe saor in aisce go léir: Kiro (Claude), Qoder (5 shamhail), Qwen (4 shamhail). Costas nialasach agus ní stopann sé den chódú choíche.",
+    "templateFreeStackDesc": "Round-robin across free providers: Antigravity (Gemini), Kiro (Claude), Qoder (3 models), NVIDIA and Groq. Zero cost, never stops coding.",
     "auto": "Uathoibríoch Cliste",
     "autoDesc": "Linn ródaithe chliste fhéinleasaitheach le scóráil ilfhachtóirí",
     "lkgp": "Mód LKGP",
