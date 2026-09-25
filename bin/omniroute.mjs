@@ -14,7 +14,7 @@
  * All other commands are routed through Commander (bin/cli/program.mjs).
  */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 let updateNotifier = null;
@@ -30,6 +30,11 @@ import { shouldProvisionStorageKey } from "./cli/utils/storageKeyProvision.mjs";
 import { isVersionFastPath } from "./cli/utils/versionFastPath.mjs";
 import { parseEnvValue } from "./cli/utils/parseEnvValue.mjs";
 import { describeVolatileEnvWarning } from "./cli/utils/volatileEnvPath.mjs";
+import {
+  ensurePrivateDataDir,
+  tightenDataDirSecrets,
+  writePrivateFile,
+} from "./cli/privateDataDir.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -119,7 +124,7 @@ function migrateElectronServerEnv(dataDir) {
     const envPath = join(dataDir, ".env");
     const serverEnvPath = join(dataDir, "server.env");
     if (existsSync(envPath) || !existsSync(serverEnvPath)) return;
-    writeFileSync(envPath, readFileSync(serverEnvPath, "utf-8"), "utf-8");
+    writePrivateFile(envPath, readFileSync(serverEnvPath, "utf-8"));
     console.log(`  \x1b[2m♻ Migrated Electron secrets from ${serverEnvPath} to ${envPath}\x1b[0m`);
   } catch {
     // Ignore errors migrating server.env — fall back to normal env loading below.
@@ -229,9 +234,14 @@ loadEnvFile();
 // mutate the data dir.
 if (shouldProvisionStorageKey(process.argv)) {
   const { randomBytes } = await import("node:crypto");
-  const { existsSync, mkdirSync, readFileSync, writeFileSync } = await import("node:fs");
+  const { existsSync, readFileSync } = await import("node:fs");
   const { join } = await import("node:path");
   const { homedir } = await import("node:os");
+
+  // GHSA-2pg2-xm9r-8544: installs created before the fix have a world-readable .env and a
+  // world-traversable data dir. Repair them on every run that touches encrypted storage
+  // (best-effort; group bits are kept). Informational commands never reach this block.
+  tightenDataDirSecrets(process.env.DATA_DIR || join(homedir(), ".omniroute"));
 
   if (!process.env.STORAGE_ENCRYPTION_KEY) {
     // Persist the key into DATA_DIR when set — that's the directory mounted as a volume in
@@ -256,9 +266,8 @@ if (shouldProvisionStorageKey(process.argv)) {
       );
     } else {
       // First run (no database yet) — generate and persist a fresh key.
-      if (!existsSync(dataDir)) {
-        mkdirSync(dataDir, { recursive: true });
-      }
+      // GHSA-2pg2-xm9r-8544: owner-only — .env holds the key to every stored credential.
+      ensurePrivateDataDir(dataDir);
 
       const key = randomBytes(32).toString("hex");
 
@@ -272,7 +281,7 @@ if (shouldProvisionStorageKey(process.argv)) {
       if (!content.includes("STORAGE_ENCRYPTION_KEY=")) {
         const separator = content.trim() ? "\n" : "";
         const newContent = content.trimEnd() + separator + `STORAGE_ENCRYPTION_KEY=${key}`;
-        writeFileSync(envPath, newContent + "\n", "utf-8");
+        writePrivateFile(envPath, newContent + "\n");
         console.log(`  \x1b[2m✨ Generated STORAGE_ENCRYPTION_KEY in ${envPath}\x1b[0m`);
       }
 

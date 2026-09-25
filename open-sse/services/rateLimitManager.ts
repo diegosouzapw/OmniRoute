@@ -8,6 +8,7 @@
  * Can be toggled per provider connection via dashboard.
  */
 
+import { AsyncResource } from "node:async_hooks";
 import Bottleneck from "bottleneck";
 import { applyBottleneckDoExpirePatch, applyBottleneckHeartbeatPatch } from "./bottleneckPatch.ts";
 import { parseRetryAfterFromBody } from "./accountFallback.ts";
@@ -795,7 +796,12 @@ export async function withRateLimit(
     }
     return (fn as unknown as (s?: AbortSignal) => Promise<unknown>)(signal ?? undefined);
   };
-  const scheduled = limiter.schedule(scheduleOpts, wrappedFn as unknown as () => Promise<unknown>);
+  // A queued job must run in the async context of the caller that scheduled
+  // it. Bottleneck dispatches from the job that frees the slot, so without
+  // binding a queued request would borrow the output/logging/attribution of
+  // another request.
+  const boundFn = AsyncResource.bind(wrappedFn);
+  const scheduled = limiter.schedule(scheduleOpts, boundFn as unknown as () => Promise<unknown>);
   scheduled.catch(() => {});
   // Note: if timeoutPromise wins while the job is still QUEUED (blocked by
   // maxConcurrent), Bottleneck cannot cancel it — wrappedFn rejects only on

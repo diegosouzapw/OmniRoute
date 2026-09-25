@@ -1,0 +1,1 @@
+- **feat(sse):** Codex catalog lists GPT-6 Sol (efforts `-low` through `-ultra`) and GPT-6 Luna (`-low` through `-max`) with Codex pricing; explicit `max` effort is no longer clamped to `xhigh`, and catalog effort tiers for every GPT-6 Codex model follow the live levels ([#14677](https://github.com/diegosouzapw/OmniRoute/pull/14677))

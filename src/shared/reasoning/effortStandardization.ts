@@ -41,18 +41,19 @@ export function extendCodexGpt56EffortValues(
   }
 
   const match = normalizedModel.match(
-    /^gpt-5\.6-(sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
+    /^gpt-(?:5\.6-(sol|terra|luna)|6-(astra|sol|luna))(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
   );
   if (!match) return values;
 
   if (isKiroProvider) {
+    if (!match[1]) return values;
     return values.includes("max") ? values : [...values, "max"];
   }
 
   if (normalizedProvider !== "codex" && normalizedProvider !== "cx") return values;
 
   const nativeValues = ["low", "medium", "high", "xhigh", "max"];
-  return match[1] === "luna" ? nativeValues : [...nativeValues, "ultra"];
+  return (match[1] || match[2]) === "luna" ? nativeValues : [...nativeValues, "ultra"];
 }
 
 /**

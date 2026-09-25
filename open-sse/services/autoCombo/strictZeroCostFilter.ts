@@ -54,6 +54,7 @@ import {
   grantsFreeAccess,
   type FreeModelBudget,
 } from "@omniroute/open-sse/config/freeModelCatalog.ts";
+import { recordAutoExclusion } from "./autoEvaluationTrace";
 import { SYNTHETIC_NOAUTH_CONNECTION_ID } from "./resilienceCandidateFilter";
 
 export type FreeAccessStatus = "SAFE" | "EXHAUSTED" | "UNKNOWN";
@@ -282,7 +283,8 @@ export function classifyStrictZeroCostCandidate(
  */
 export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate>(
   pool: T[],
-  options: StrictZeroCostOptions
+  options: StrictZeroCostOptions,
+  traceInvocationId?: string
 ): T[] {
   if (!options.enabled) return pool;
 
@@ -298,6 +300,19 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
     );
     if (safeConnectionIds.length === 0) {
       changed = true;
+      recordAutoExclusion(
+        traceInvocationId,
+        candidate,
+        "strict_zero_cost",
+        "auto_strict_zero_cost",
+        () =>
+          classifyStrictZeroCostCandidate(
+            candidate,
+            budgetEntry,
+            options.resolveFreeAccessState,
+            options
+          ).outcome
+      );
       continue;
     }
 
@@ -334,9 +349,11 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
 export function countStrictExclusions<T extends StrictZeroCostCandidate>(
   pool: T[],
   options: StrictZeroCostOptions
-): { excluded: number; noHardStop: number } {
+): { excluded: number; noHardStop: number; exhausted: number; stateUnknown: number } {
   let excluded = 0;
   let noHardStop = 0;
+  let exhausted = 0;
+  let stateUnknown = 0;
   for (const candidate of pool) {
     const budgetEntry = findBudgetEntry(candidate, options.catalog);
     const verdict = classifyStrictZeroCostCandidate(
@@ -348,8 +365,23 @@ export function countStrictExclusions<T extends StrictZeroCostCandidate>(
     if (verdict.outcome === "safe") continue;
     excluded++;
     if (verdict.outcome === "no-hard-stop") noHardStop++;
+    if (verdict.outcome === "exhausted") exhausted++;
+    if (verdict.outcome === "state-unknown") stateUnknown++;
   }
-  return { excluded, noHardStop };
+  return { excluded, noHardStop, exhausted, stateUnknown };
+}
+
+/**
+ * Pool-log detail for a STRICT drop: splits the excluded count into its causes so an
+ * operator can tell a proven-exhausted quota from a missing/unknown quota reading.
+ */
+export function describeStrictExclusions(
+  counts: Pick<
+    ReturnType<typeof countStrictExclusions>,
+    "noHardStop" | "exhausted" | "stateUnknown"
+  >
+): string {
+  return ` (no-hard-stop ${counts.noHardStop}, exhausted ${counts.exhausted}, state-unknown ${counts.stateUnknown})`;
 }
 
 /**

@@ -45,38 +45,25 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Hermes Agent / Goose /
 
 ## پیکربندی خودکار با `setup-*`
 
-شما نیازی به نوشتن پیکربندی هر ابزار به صورت دستی ندارید. OmniRoute یک دستور `setup-*`
-برای هر CLI پشتیبانی شده ارائه می‌دهد که کاتالوگ مدل **زنده** را از یک OmniRoute در حال اجرا (محلی یا از راه دور) می‌خواند و پیکربندی خود ابزار را بر روی ماشین شما می‌نویسد:
+لازم نیست پیکربندی هر ابزار را به صورت دستی بنویسید. OmniRoute برای هر CLI پشتیبانی شده یک دستور `setup-*` ارائه میدهد که کاتالوگ مدل **زنده** را از یک OmniRoute در حال اجرا (محلی یا از راه دور) میخواند و پیکربندی خود ابزار را روی دستگاه شما مینویسد:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-هر کدام `--remote <url> --api-key <key>` را می‌پذیرند (پیکربندی یک ابزار محلی در برابر یک OmniRoute از راه دور)، `--dry-run` (پیش‌نمایش بدون نوشتن) و `--port`. ابزارهایی که کشف خودکار مدل ندارند (Cline، Kilo، Roo، Goose، Aider، Qwen) `--model <id>` را می‌پذیرند (و `--yes` برای اجراهای غیرتعامل‌پذیر). برای راه‌اندازی یک CLI با محیط صحیح و بدون نوشتن هیچ پیکربندی، از راه‌انداز عمومی
-`omniroute run <target>` استفاده کنید (claude، codex، aider، goose، opencode، qwen،
-gemini — اهداف و نام‌های مستعار از `bin/cli/cli-manifest.mjs` می‌آیند)؛ راه‌اندازهای قدیمی به ازای هر ابزار `omniroute launch` (Claude Code) و `omniroute launch-codex`
-(Codex) همچنان در دسترس هستند. CLI جیمنای فقط برای راه‌اندازی است: این یک هدف `omniroute run`
-است اما هیچ دستور `setup-*`/`configure` ندارد.
+هر کدام `--remote <url> --api-key <key>` (پیکربندی یک ابزار محلی در برابر یک OmniRoute از راه دور)، `--dry-run` (پیشنمایش بدون نوشتن) و `--port` را میپذیرد. ابزارهایی که قابلیت کشف خودکار مدل را ندارند (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) از `--model <id>` (و `--yes` برای اجرای غیرتعاملی) استفاده میکنند. `setup-5dive` تنها دستورالعملی است که در `$HOME` نمینویسد: این دستور با نوشتن یک پروفایل احراز هویت متعلق به روت روی هاست فلیت، یک فلیت عامل 5dive را پیکربندی میکند، بنابراین از طریق `sudo` مجدداً اجرا میشود و حالت از راه دور خاص خود را ندارد. برای راهاندازی یک CLI با تزریق محیط صحیح و بدون نوشتن هیچ پیکربندی، از راهانداز عمومی `omniroute run <target>` استفاده کنید (claude, codex, aider, goose, opencode, qwen, gemini — اهداف و نامهای مستعار از `bin/cli/cli-manifest.mjs` میآیند)؛ راهاندازهای قدیمیتر برای هر ابزار `omniroute launch` (Claude Code) و `omniroute launch-codex` (Codex) همچنان در دسترس هستند. Gemini CLI فقط برای راهاندازی است: این یک هدف `omniroute run` است اما دستورالعمل `setup-*`/`configure` ندارد.
 
-> **مرجع کامل:** جدول اصلی — آنچه هر دستور می‌نویسد، هر پرچم،
-> محلی در مقابل از راه دور، و اینکه کدام ابزارها به یک پسوند `/v1` نیاز دارند — در
-> **[یکپارچه‌سازی‌های CLI](../guides/CLI-INTEGRATIONS.md)** موجود است.
+> **مرجع کامل:** جدول اصلی — آنچه هر دستور مینویسد، هر پرچم، محلی در مقابل از راه دور، و کدام ابزارها به پسوند `/v1` نیاز دارند — در **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** قرار دارد.
 
-### اجرای این‌ها در داخل یک کانتینر
+### اجرای این موارد در داخل یک کانتینر
 
-یک دستور `setup-*` که در داخل کانتینر OmniRoute اجرا می‌شود، در خانه خود کانتینر می‌نویسد، که هیچ CLI میزبان آن را نمی‌خواند و با کانتینر ناپدید می‌شود. OmniRoute این را تشخیص می‌دهد و با دستورالعمل‌ها `2` خارج می‌شود به جای نوشتن. دو راه پشتیبانی شده برای پیشرفت — نصب CLI بر روی میزبان و
-`omniroute connect` به کانتینر، یا بایند-مونت کردن دایرکتوری‌های پیکربندی و تنظیم
-`CLI_CONFIG_HOME` (پروفایل میزبان کامپوز). هر دستور `setup-*`، به علاوه
-`omniroute configure` و `omniroute config set`، `--allow-container-write` را می‌پذیرند زمانی که پیکربندی CLIهای خود کانتینر واقعاً منظور شما بوده است؛ `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` همین کار را برای
-سرور انجام می‌دهد. به
-[راهنمای Docker → پیکربندی ابزارهای CLI میزبان](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) مراجعه کنید.
+یک دستور `setup-*` که در داخل کانتینر OmniRoute اجرا میشود، در دایرکتوری خانگی خود کانتینر مینویسد، که هیچ CLI هاست آن را نمیخواند و با حذف کانتینر ناپدید میشود. OmniRoute این را تشخیص میدهد و به جای نوشتن، با کد `2` و دستورالعملها خارج میشود. دو راه حل پشتیبانی شده وجود دارد — CLI را روی هاست نصب کنید و با `omniroute connect` به کانتینر متصل شوید، یا دایرکتوریهای پیکربندی را bind-mount کرده و `CLI_CONFIG_HOME` را تنظیم کنید (پروفایل `host` کامپوز). هر دستور `setup-*`، به علاوه `omniroute configure` و `omniroute config set`، پرچم `--allow-container-write` را میپذیرد، زمانی که منظور شما واقعاً پیکربندی CLIهای خود کانتینر است؛ `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` همین کار را برای سرور انجام میدهد. به [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) مراجعه کنید.
 
-نقطه پایانی **اعمال داشبورد** (`POST /api/cli-tools/apply`) همان محافظ را اعمال می‌کند: در یک کانتینر، نوشتن که هدف آن از میزبان بایند-مونت نشده است، **`422`** را با `containerEphemeralTarget: true`، متن خطای ایمن و — برای ابزارهایی که دستور میزبان دارند (claude، codex، opencode، cline،
-kilo، continue) — یک `hostSetupCommand` (به عنوان مثال `omniroute setup-opencode`) برای اجرا بر روی میزبان به جای آن؛ هیچ چیزی نوشته نمی‌شود. `dryRun: true` در حالت کانتینر همچنان کار می‌کند و محتوای تولید شده + مسیر هدف را بدون لمس دیسک برمی‌گرداند، بنابراین می‌توانید از داشبورد پیش‌نمایش کنید و بر روی میزبان اعمال کنید. این رفتار عمدی است و توسط
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` محافظت می‌شود — هرگز "اصلاح" نکنید یک 422 را با حذف محافظ.
+نقطه پایانی **apply** داشبورد (`POST /api/cli-tools/apply`) همان محافظ را اعمال میکند: در یک کانتینر، یک عملیات نوشتن که هدف آن از هاست bind-mount نشده باشد، با کد **`422`** و `containerEphemeralTarget: true`، متن خطای ایمن و — برای ابزارهایی با دستورالعمل هاست (claude, codex, opencode, cline, kilo, continue) — یک `hostSetupCommand` (مثلاً `omniroute setup-opencode`) برای اجرا روی هاست به جای آن پاسخ میدهد؛ چیزی نوشته نمیشود. `dryRun: true` در حالت کانتینر به کار خود ادامه میدهد و یک پیشنمایش ویرایششده + مسیر هدف را بدون دست زدن به دیسک برمیگرداند. محتوای پیشنمایش یک پیکربندی حاوی اعتبارنامه برای کپی یا وارد کردن نیست. با ابزار اصلی/URL پایه/کلید API/ورودیهای مدل روی هاست اعمال کنید، یا از دستور راهاندازی سمت هاست که نشان داده شده است استفاده کنید. برای هدر پیشنمایش و قرارداد درخواست، به [CLI configuration security](../security/CLI-CONFIGURATION.md) مراجعه کنید. این رفتار عمدی است و توسط `tests/unit/api/cli-tools/apply-container-guard.test.ts` در برابر رگرسیون محافظت میشود — هرگز یک خطای 422 را با حذف محافظ "رفع" نکنید.
 
 ---
 

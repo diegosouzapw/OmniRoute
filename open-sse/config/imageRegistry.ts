@@ -545,6 +545,10 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
       { id: "black-forest-labs/flux.2-max", name: "FLUX.2 Max (via OpenRouter)" },
       { id: "black-forest-labs/flux.2-pro", name: "FLUX.2 Pro (via OpenRouter)" },
       { id: "black-forest-labs/flux.2-flex", name: "FLUX.2 Flex (via OpenRouter)" },
+      { id: "openai/gpt-image-2.5-sunburst", name: "GPT Image 2.5 Sunburst (via OpenRouter)" },
+      { id: "openai/gpt-image-2.5-flare", name: "GPT Image 2.5 Flare (via OpenRouter)" },
+      { id: "microsoft/mai-image-2.6", name: "MAI Image 2.6 (via OpenRouter)" },
+      { id: "microsoft/mai-image-2.6-flash", name: "MAI Image 2.6 Flash (via OpenRouter)" },
     ],
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
@@ -924,6 +928,25 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     // Persona web derives imageWidth/imageHeight from an aspect ratio; uc-direct
     // passes any OpenAI-style size through. These are the aspect buckets.
     supportedSizes: ["1024x1024", "1024x576", "576x1024", "1024x768", "768x1024"],
+  },
+
+  // Cloudflare Workers AI image generation (FLUX.1 Schnell). Reuses the same
+  // Account ID + API Token connection as the existing `cloudflare-ai` chat
+  // provider (apikey/enterprise-cloud.ts, open-sse/executors/cloudflare-ai.ts).
+  // Not OpenAI-compatible (dynamic per-account URL, base64-in-JSON response),
+  // so it gets its own `cloudflare-ai-image` format/handler
+  // (handleCloudflareAiImageGeneration) rather than the generic OpenAI path.
+  "cloudflare-ai": {
+    id: "cloudflare-ai",
+    alias: "cf",
+    // Documentation only — the real URL is built per-account in the handler:
+    // https://api.cloudflare.com/client/v4/accounts/<accountId>/ai/run/<model>
+    baseUrl: "https://api.cloudflare.com/client/v4/accounts",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "cloudflare-ai-image",
+    models: [{ id: "@cf/black-forest-labs/flux-1-schnell", name: "FLUX.1 Schnell (Workers AI)" }],
+    supportedSizes: ["1024x1024", "768x768", "512x512"],
   },
 };
 

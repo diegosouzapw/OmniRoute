@@ -14,6 +14,8 @@ import { registerFreeModelQuotaFetcher } from "./freeModelQuotaFetcher.ts";
 import { registerGrokCliQuotaFetcher } from "./grokCliQuotaFetcher.ts";
 import { registerXaiOauthQuotaFetcher } from "./xaiOauthQuotaFetcher.ts";
 import { registerFirecrawlQuotaFetcher } from "./firecrawlQuotaFetcher.ts";
+import { registerContext7QuotaFetcher } from "./context7QuotaFetcher.ts";
+import { registerTavilyQuotaFetcher } from "./tavilyQuotaFetcher.ts";
 import { registerLlmgatewayQuotaFetcher } from "./llmgatewayQuotaFetcher.ts";
 import { registerLyceumQuotaFetcher } from "./lyceumQuotaFetcher.ts";
 
@@ -24,6 +26,8 @@ export function registerQuotaTrackersBatch(): void {
   registerGrokCliQuotaFetcher();
   registerXaiOauthQuotaFetcher();
   registerFirecrawlQuotaFetcher();
+  registerContext7QuotaFetcher();
+  registerTavilyQuotaFetcher();
   registerLlmgatewayQuotaFetcher();
   registerLyceumQuotaFetcher();
 }

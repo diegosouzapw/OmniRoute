@@ -6,6 +6,24 @@ type StreamReadinessLogger = {
   warn?: (tag: string, message: string) => void;
 };
 
+/**
+ * Internal parked-stream marker header. Set by the parked-stream emitter on
+ * its synthetic response so this guard can honor the parked state; stripped
+ * from every client-facing rebuild below, so it never leaks downstream.
+ * The value is always the generic `transient` qualifier.
+ */
+export const PARKED_STREAM_HEADER = "x-omniroute-parked-stream";
+export const PARKED_STREAM_VALUE = "transient";
+
+/** True when the response carries the parked-stream marker (fail-closed: false). */
+export function isParkedResponse(response: Response): boolean {
+  try {
+    return response.headers.get(PARKED_STREAM_HEADER) === PARKED_STREAM_VALUE;
+  } catch {
+    return false;
+  }
+}
+
 export type StreamReadinessResult =
   | { ok: true; response: Response }
   | {
@@ -380,6 +398,18 @@ function appendStreamReadinessSignal(state: StreamReadinessSignalState, chunk: s
   return false;
 }
 
+/** True when a decoded chunk holds only SSE comment lines (heartbeats). */
+function isCommentOnlyChunk(chunk: string): boolean {
+  let seenLine = false;
+  for (const line of chunk.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    seenLine = true;
+    if (!trimmed.startsWith(":")) return false;
+  }
+  return seenLine;
+}
+
 function finishStreamReadinessSignal(state: StreamReadinessSignalState): boolean {
   if (state.pendingLine && processStreamReadinessLine(state, state.pendingLine)) return true;
   state.pendingLine = "";
@@ -417,7 +447,7 @@ function createErrorResponse(
   );
 }
 
-function prependBufferedChunks(
+export function prependBufferedChunks(
   chunks: Uint8Array[],
   reader: ReadableStreamDefaultReader<Uint8Array>
 ): ReadableStream<Uint8Array> {
@@ -539,13 +569,28 @@ export async function ensureStreamReadiness(
       : startedAt + effectiveTimeoutMs;
   let deadline = startedAt + effectiveTimeoutMs;
   let handedOffReader = false;
+  // Parked streams honor the parked state: the stall deadline is suspended
+  // (frozen) on heartbeat comment frames instead of merely extended, so a
+  // long park does not trip the stall timeout. The absolute ceiling
+  // (maxDeadline) is never raised here — it stays the ultimate bound.
+  const parked = isParkedResponse(response);
+  if (parked) {
+    options.log?.debug?.(
+      "STREAM",
+      `transient parked stream: stall deadline suspended during park (${options.provider || "provider"}/${options.model || "unknown"})`
+    );
+  }
 
-  const buildReadyResponse = () =>
-    new Response(prependBufferedChunks(chunks, reader), {
+  const buildReadyResponse = () => {
+    const headers = new Headers(response.headers);
+    // The parked marker is internal: honor it, never forward it.
+    headers.delete(PARKED_STREAM_HEADER);
+    return new Response(prependBufferedChunks(chunks, reader), {
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers,
+      headers,
     });
+  };
 
   const timeoutReason = () =>
     `Stream produced no non-ping SSE event within ${deadline - startedAt}ms (max=${maxDeadline - startedAt}ms)`;
@@ -576,6 +621,8 @@ export async function ensureStreamReadiness(
       }
 
       let readResult: ReadableStreamReadResult<Uint8Array>;
+      const deadlineBeforeRead = deadline;
+      const readStart = Date.now();
       try {
         readResult = await readWithTimeout(reader, remainingMs);
       } catch {
@@ -646,8 +693,16 @@ export async function ensureStreamReadiness(
       // keepalive-only phases) are not aborted.  The hard ceiling (maxDeadline)
       // prevents unbounded waits and preserves the operator's fast-fail intent
       // for truly dead connections.
+      // Parked streams: heartbeat comment frames suspend (freeze) the stall
+      // deadline instead of extending it — the stall clock does not run
+      // during the park. Data frames use the normal liveness path.
+      // The absolute ceiling (maxDeadline) is never raised here.
       const now = Date.now();
-      if (deadline < maxDeadline) {
+      if (parked && isCommentOnlyChunk(decodedChunk)) {
+        // Suspend: push the deadline forward by exactly the time spent
+        // waiting, so the stall clock does not run during the park.
+        deadline = Math.min(deadlineBeforeRead + (now - readStart), maxDeadline);
+      } else if (deadline < maxDeadline) {
         deadline = Math.min(now + effectiveTimeoutMs, maxDeadline);
         if (now - startedAt > effectiveTimeoutMs) {
           options.log?.debug?.(

@@ -1,0 +1,1 @@
+- **fix(proxies):** the 429 set-aside curve is now tunable via `PROXY_QUOTA_429_BASE_MS` (default `120000`) and `PROXY_QUOTA_429_MAX_MS` (default `3600000`), read once at startup and bounded to `1000..3600000` with a warning fallback — unset keeps the current doubling curve unchanged ([#14655](https://github.com/diegosouzapw/OmniRoute/pull/14655)) — thanks @maxmad64bis

@@ -322,67 +322,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # export OMNIROUTE_API_KEY ជ�
 
 ---
 
-## ការគ្រប់គ្រងបរិបទ (ប្ដូររវាងម៉ាស៊ីនមេ)
+## ការគ្រប់គ្រងបរិបទ (ប្តូររវាងម៉ាស៊ីនមេ)
 
-**បរិបទ** គឺជាម៉ាស៊ីនមេដែលបានរក្សាទុក (baseUrl + ព័ត៌មានសម្គាល់អត្តសញ្ញាណ + វិសាលភាព)។ `omniroute connect`
-បង្កើតបរិបទមួយ និងធ្វើឱ្យវាសកម្ម។ ចាប់ពីពេលនោះតទៅ រាល់ពាក្យបញ្ជាទាំងអស់នឹងដំណើរការទៅកាន់បរិបទនោះ។ គ្រប់គ្រង និង
-ប្ដូររវាងបរិបទទាំងនោះដោយប្រើ `omniroute contexts`៖
+**បរិបទ (context)** គឺជាម៉ាស៊ីនមេដែលបានរក្សាទុក (baseUrl + credential + scope)។ `omniroute connect` បង្កើតបរិបទមួយហើយធ្វើឱ្យវាសកម្ម; ចាប់ពីពេលនោះមក រាល់ពាក្យបញ្ជាទាំងអស់នឹងកំណត់គោលដៅទៅវា។ គ្រប់គ្រង និងប្តូររវាងពួកវាដោយប្រើ `omniroute contexts`៖
 
 ```bash
-omniroute contexts list            # បរិបទទាំងអស់; បរិបទសកម្មត្រូវបានសម្គាល់ដោយ ●
-omniroute contexts current         # ម៉ាស៊ីនមេសកម្ម ស្ថានភាពផ្ទៀងផ្ទាត់ និងវិសាលភាព
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
 ```
 
 ```text
-  | ឈ្មោះ   | URL មូលដ្ឋាន             | ការផ្ទៀងផ្ទាត់ | វិសាលភាព | សេចក្ដីពិពណ៌នា
-● | vps     | http://100.67.86.91:20128 | token          | admin      | OmniRoute ពីចម្ងាយ (…)
-  | default | http://localhost:20128    | ✗              |            |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**ប្ដូរម៉ាស៊ីនមេ** — រាល់ពាក្យបញ្ជាបន្ទាប់នឹងប្រើបរិបទសកម្ម៖
+**ប្តូរម៉ាស៊ីនមេ** — រាល់ពាក្យបញ្ជាបន្តបន្ទាប់ទាំងអស់នឹងអនុវត្តតាមបរិបទដែលសកម្ម៖
 
 ```bash
-omniroute contexts use vps         # → ឥឡូវនេះ ពាក្យបញ្ជាទាំងអស់ទៅកាន់ VPS ពីចម្ងាយ
-omniroute tokens list              #   (ដំណើរការជាមួយ VPS)
+omniroute contexts use vps         # → all commands now hit the remote VPS
+omniroute tokens list              #   (runs against the VPS)
 
-omniroute contexts use default     # → ត្រឡប់ទៅ localhost
-omniroute tokens list              #   (ដំណើរការជាមួយម៉ាស៊ីនមេមូលដ្ឋាន)
+omniroute contexts use default     # → back to localhost
+omniroute tokens list              #   (runs against the local server)
 ```
 
-**បន្ថែមបរិបទដោយដៃ** (ជំនួសឱ្យ `connect`) ពិនិត្យមើល ឬប្ដូរឈ្មោះ៖
+**បន្ថែមបរិបទដោយដៃ** (ជំនួសឱ្យ `connect`) ពិនិត្យមើល ឬប្តូរឈ្មោះ៖
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "ម៉ាស៊ីន staging"
-omniroute contexts show staging    # ព័ត៌មានលម្អិតពេញលេញសម្រាប់បរិបទមួយ
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # full details for one context
 omniroute contexts rename staging stg
 ```
 
-**លុបបរិបទ** — ប្រព័ន្ធនឹងស្នើសុំការបញ្ជាក់; ប្រើ `--yes` ដើម្បីរំលងវា
-(តម្រូវសម្រាប់ស្គ្រីប / shell ដែលមិនអន្តរកម្ម ដែលបើមិនដូច្នោះទេនឹងបដិសេធដោយសុវត្ថិភាព)៖
+**លុបបរិបទ** — នឹងសួររកការបញ្ជាក់; ប្រើ `--yes` ដើម្បីរំលងវា (តម្រូវសម្រាប់ស្គ្រីប / shells ដែលមិនអន្តរកម្ម ដែលបើមិនដូច្នេះទេនឹងបដិសេធដោយសុវត្ថិភាព)៖
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) មិនអាចលុបបានទេ។ ការលុបបរិបទសកម្មនឹងត្រឡប់ទៅប្រើ
-> `default`។ គន្លឹះ៖ ការលុបបរិបទគ្រាន់តែលុបព័ត៌មានសម្គាល់អត្តសញ្ញាណដែលបានរក្សាទុកជា **មូលដ្ឋាន** ប៉ុណ្ណោះ —
-> សូមដកហូត token នៅលើម៉ាស៊ីនមេដោយប្រើ `omniroute tokens revoke <id>` ដើម្បី
-> បញ្ឈប់សិទ្ធិចូលប្រើប្រាស់ជាក់ស្ដែង។
+> `default` (localhost) មិនអាចលុបបានទេ។ ការលុបបរិបទដែលសកម្មនឹងត្រឡប់ទៅ `default` វិញ។ គន្លឹះ៖ ការលុបបរិបទគ្រាន់តែលុប credentials ដែលបានរក្សាទុក **ក្នុងមូលដ្ឋាន** ប៉ុណ្ណោះ — ដកហូត token នៅលើម៉ាស៊ីនមេដោយប្រើ `omniroute tokens revoke <id>` ដើម្បីបិទការចូលប្រើប្រាស់ពិតប្រាកដ។
 
-**នាំចេញ / នាំចូល** បរិបទ (ឧ. ដើម្បីផ្ទេរពួកវារវាងម៉ាស៊ីន)។ បរិបទថ្មីរក្សាទុក
-តែសេចក្ដីយោងទៅកាន់ keychain ប៉ុណ្ណោះ; ព័ត៌មានសម្គាល់អត្តសញ្ញាណមិនត្រូវបានចម្លងចូលក្នុងឯកសារនាំចេញទេ នៅពេលដែល
-មាន OS keychain អាចប្រើបាន៖
+**នាំចេញ / នាំចូលបរិបទ** (ឧទាហរណ៍ ដើម្បីផ្លាស់ទីពួកវាទៅរវាងម៉ាស៊ីន)។ ការនាំចេញនឹងលុប credentials ចេញតាមលំនាំដើម រួមទាំង credentials ដែលបានរក្សាទុកដោយ file fallback។ ប្រើ `--include-secrets` ដោយផ្ទាល់នៅពេលដែលត្រូវការការបម្រុងទុកដែលមាន credentials ដែលអាចចល័តបាន៖
 
 ```bash
-omniroute contexts export --out contexts.json     # លំនាំដើម៖ stdout
-omniroute contexts import contexts.json            # សរសេរជាន់; ប្រើ --merge ដើម្បីរក្សាទុកអ្វីដែលមានស្រាប់
-omniroute contexts migrate --yes                  # ផ្ទេរ token អត្ថបទធម្មតាចាស់ៗទៅ keychain
+omniroute contexts export --out contexts.json     # redacted; default destination: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
 
-នៅលើប្រព័ន្ធ headless ដែលមិនមាន OS keychain អាចប្រើបាន CLI នឹងប្ដូរទៅប្រើ
-`config.json` ជាមួយ mode `0600` ហើយបង្ហាញការព្រមានតែម្ដង។ ចាត់ទុកឯកសារនាំចេញពី
-វិធីបម្រុងនេះ (និងការកំណត់រចនាសម្ព័ន្ធចាស់ណាមួយមុនពេលផ្ទេរ) ជាទិន្នន័យសម្ងាត់។
+`--include-secrets` ដោះស្រាយឯកសារយោង keychain មុនពេលនាំចេញ ហើយនឹងបរាជ័យប្រសិនបើ credentials ដែលបានយោងណាមួយមិនអាចអានបាន។ `--no-secrets` តែងតែមានអាទិភាព។ ឯកសារនាំចេញត្រូវបានសរសេរដោយស្វ័យប្រវត្តិជាមួយនឹង mode `0600`។ ចាត់ទុកការនាំចេញដែលមានសម្ងាត់ដោយផ្ទាល់ថាជាសម្ភារៈសម្ងាត់។ នៅលើប្រព័ន្ធ headless ដែលគ្មាន OS keychain ដែលអាចប្រើបាន CLI នឹងត្រឡប់ទៅ `config.json` វិញជាមួយនឹង mode `0600` ហើយបោះពុម្ពការព្រមានតែមួយដង; ការនាំចេញតាមលំនាំដើមនៅតែត្រូវបានកែសម្រួលក្នុងរបៀបនេះ។
 
 ---
 

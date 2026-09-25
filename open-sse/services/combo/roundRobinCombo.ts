@@ -92,10 +92,11 @@ import {
   resolveDelayMs,
   comboModelNotFoundResponse,
   isStreamReadinessFailureErrorBody,
-  isTokenLimitBreachErrorBody,
+  isLocalKeyPolicyBreachErrorBody,
   isLocalQueueCapacityErrorBody,
   toRecordedTarget,
   getExhaustedTargetSkipReason,
+  resolvePersistedConnectionCooldownSkipReason,
 } from "./comboPredicates.ts";
 import { applyComboTargetExhaustion } from "./targetExhaustion.ts";
 import { isRetryAfterEligibleStatus } from "./unavailableRetryGate.ts";
@@ -491,8 +492,29 @@ export async function handleRoundRobinCombo({
       const rrEvents = createRRDashboardEvents(combo.name, modelIndex, provider, modelStr);
       const profile = await getRuntimeProviderProfile(provider);
       const semaphoreKey = `combo:${combo.name}:${target.executionKey}`;
-      const allowRateLimitedConnection =
+      let allowRateLimitedConnection =
         Boolean(provider && provider !== "unknown") && transientRateLimitedProviders.has(provider);
+      if (allowRateLimitedConnection && target.connectionId) {
+        const persistedSkip = await resolvePersistedConnectionCooldownSkipReason(
+          target,
+          (id) => getCachedProviderConnectionById(id),
+          allowRateLimitedConnection
+        );
+        if (persistedSkip) {
+          log.info("COMBO-RR", persistedSkip);
+          clearStaleLKGP(
+            combo.name,
+            target.executionKey,
+            combo.id,
+            log,
+            "COMBO-RR",
+            undefined,
+            target
+          );
+          if (offset > 0) fallbackCount++;
+          continue;
+        }
+      }
       const targetForAttempt = allowRateLimitedConnection
         ? { ...target, allowRateLimitedConnection: true, fallbackAttempts: offset }
         : { ...target, fallbackAttempts: offset };
@@ -908,7 +930,7 @@ export async function handleRoundRobinCombo({
 
           // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
           const isTokenLimitBreach =
-            result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+            result.status === 429 && isLocalKeyPolicyBreachErrorBody(errorBody);
           const isLocalQueueCapacity = isLocalQueueCapacityErrorBody(errorBody);
 
           if (isLocalQueueCapacity) {

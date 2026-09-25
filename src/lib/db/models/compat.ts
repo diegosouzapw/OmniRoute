@@ -6,6 +6,7 @@ import {
   type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
+import { isHiddenForModality } from "@/shared/utils/modelVisibility";
 import { getKeyValue } from "./shared";
 import { finishModelCatalogWriteWithBackup } from "./modelCatalogWriteSignals";
 
@@ -133,15 +134,14 @@ export type ModelCompatOverride = {
  * Resolve whether an override hides its model for a given modality.
  * Precedence: an explicit `hiddenModalities[modality]` entry always wins;
  * otherwise fall back to the legacy all-modalities `isHidden` flag.
+ * Delegates to the shared rule (`src/shared/utils/modelVisibility.ts`) so the dashboard
+ * UI and the server agree — the duplicated copy is what let the dashboard drift (#12172).
  */
 export function isOverrideHiddenForModality(
   override: Pick<ModelCompatOverride, "isHidden" | "hiddenModalities"> | null | undefined,
   modality: string
 ): boolean {
-  if (!override) return false;
-  const scoped = override.hiddenModalities?.[modality];
-  if (scoped !== undefined) return Boolean(scoped);
-  return Boolean(override.isHidden);
+  return isHiddenForModality(override, modality);
 }
 
 export function readCompatList(providerId: string): ModelCompatOverride[] {

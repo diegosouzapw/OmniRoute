@@ -43,58 +43,27 @@ ACP Ügynökök (fordított indítási áramlás):
 
 ---
 
-## Automatikus konfigurálás `setup-*`-pal
+## Automatikus konfigurálás `setup-*` segítségével
 
-Nem kell kézzel megírnia minden eszköz konfigurációját. Az OmniRoute egy `setup-*`
-parancsot biztosít minden támogatott CLI-hez, amely beolvassa az **élő** modell katalógust egy futó
-OmniRoute-ból (helyi vagy távoli) és megírja az eszköz saját konfigurációját az Ön gépén:
+Nem kell minden eszköz konfigurációját kézzel megírnia. Az OmniRoute minden támogatott CLI-hez biztosít egy `setup-*` parancsot, amely beolvassa a **valós idejű** modellkatalógust egy futó OmniRoute-ból (helyi vagy távoli), és megírja az eszköz saját konfigurációját a gépén:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Mindegyik elfogadja a `--remote <url> --api-key <key>` (helyi eszköz konfigurálása egy
-távoli OmniRoute-hoz), `--dry-run` (előnézet írás nélkül), és `--port`. Azok az eszközök,
-amelyek nem rendelkeznek modell automatikus felfedezéssel (Cline, Kilo, Roo, Goose, Aider, Qwen)
-`--model <id>`-t (és `--yes`-t interaktív futtatásokhoz) igényelnek. A CLI indításához a
-megfelelő környezeti változókkal és anélkül, hogy bármilyen konfigurációt írnánk, használja a
-generikus `omniroute run <target>` indítót (claude, codex, aider, goose, opencode, qwen,
-gemini — a célok és álnév a `bin/cli/cli-manifest.mjs`-ből származnak); a régi
-eszközspecifikus indítók `omniroute launch` (Claude Code) és `omniroute launch-codex`
-(Codex) továbbra is elérhetők. A Gemini CLI csak indításra használható: ez egy `omniroute run`
-cél, de nincs `setup-*`/`configure` receptje.
+Mindegyik elfogadja a `--remote <url> --api-key <key>` (helyi eszköz konfigurálása távoli OmniRoute ellenében), `--dry-run` (előnézet írás nélkül) és `--port` paramétereket. Azok az eszközök, amelyek nem rendelkeznek modell automatikus felderítéssel (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive), a `--model <id>` (és `--yes` a nem interaktív futtatásokhoz) paramétert veszik fel. A `setup-5dive` az egyetlen recept, amely nem ír a `$HOME` alá: egy 5dive ügynökflottát konfigurál azáltal, hogy egy root tulajdonú hitelesítési profilt ír a flotta gazdagépére, így `sudo`-n keresztül újra végrehajtódik, és nincs saját távoli módja. Ahhoz, hogy egy CLI-t a megfelelő környezeti változókkal injektálva és egyáltalán nem írt konfigurációval indítson el, használja az általános `omniroute run <target>` indítót (claude, codex, aider, goose, opencode, qwen, gemini – a célok és aliasok a `bin/cli/cli-manifest.mjs` fájlból származnak); a régi, eszközönkénti indítók, az `omniroute launch` (Claude Code) és az `omniroute launch-codex` (Codex) továbbra is elérhetők. A Gemini CLI csak indítható: ez egy `omniroute run` cél, de nincs `setup-*`/`configure` receptje.
 
-> **Teljes hivatkozás:** a mester táblázat — mit ír minden parancs, minden zászló,
-> helyi vs távoli, és mely eszközök igényelnek `/v1` utótagot — található a
-> **[CLI Integrációk](../guides/CLI-INTEGRATIONS.md)** oldalon.
+> **Teljes referencia:** a fő táblázat – hogy mit ír minden parancs, minden flag, helyi vs távoli, és mely eszközök igénylik a `/v1` utótagot – a **[CLI Integrációk](../guides/CLI-INTEGRATIONS.md)** részben található.
 
-### Ezek futtatása egy konténerben
+### Ezek futtatása konténeren belül
 
-A `setup-*` parancs, amelyet az OmniRoute konténerében hajtanak végre, a
-konténer saját otthonába ír, amelyet egyetlen gazda CLI sem olvas, és amely a
-konténerrel együtt eltűnik. Az OmniRoute ezt észleli, és `2`-t ad vissza utasításokkal a
-helyett, hogy írná. Két támogatott lehetőség — telepítse a CLI-t a gazdán, és
-`omniroute connect`-el csatlakozzon a konténerhez, vagy kössön be a konfigurációs könyvtárakat és állítsa be
-`CLI_CONFIG_HOME`-t (a compose `host` profil). Minden `setup-*` parancs, plusz
-`omniroute configure` és `omniroute config set`, elfogadja a
-`--allow-container-write`-t, amikor a konténer saját CLI-jeinek konfigurálása az, amit
-valójában jelentett; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ugyanezt teszi a
-szerver számára. Lásd
-[Docker Útmutató → Gazda CLI eszközök konfigurálása](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Az OmniRoute konténeren belül végrehajtott `setup-*` parancs a konténer saját home könyvtárába ír, amelyet egyetlen gazdagép CLI sem olvas, és amely a konténerrel együtt eltűnik. Az OmniRoute ezt észleli, és írás helyett `2`-es kóddal, utasításokkal lép ki. Két támogatott megoldás – telepítse a CLI-t a gazdagépre, és `omniroute connect` a konténerhez, vagy bind-mountolja a konfigurációs könyvtárakat, és állítsa be a `CLI_CONFIG_HOME` változót (a compose `host` profilja). Minden `setup-*` parancs, plusz az `omniroute configure` és az `omniroute config set`, elfogadja az `--allow-container-write` paramétert, ha a konténer saját CLI-jeinek konfigurálása volt a célja; az `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ugyanezt teszi a szerver esetében. Lásd a [Docker útmutató → Gazdagép CLI eszközök konfigurálása](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) részt.
 
-Az irányítópult **alkalmazási végpontja** (`POST /api/cli-tools/apply`) érvényesíti a
-ugyanazt a védelmet: egy konténerben, ha a cél nem kötetbe van szerelve a
-gazdától, akkor **`422`** válasz érkezik `containerEphemeralTarget: true`-val, a biztonságos hiba
-szöveggel és — a gazda recepttel rendelkező eszközök esetén (claude, codex, opencode, cline,
-kilo, continue) — egy `hostSetupCommand`-dal (pl. `omniroute setup-opencode`), amelyet a
-gazdán kell futtatni; semmi sem íródik. A `dryRun: true` továbbra is működik konténer
-módban, és visszaadja a generált tartalmat + cél útvonalat anélkül, hogy a lemezt érintené, így
-előnézetet készíthet az irányítópulton, és alkalmazhatja a gazdán. Ez a viselkedés
-szándékos, és regresszióvédett a
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` által — soha ne "javítson" egy 422-t a védelem eltávolításával.
+A műszerfal **alkalmazási végpontja** (`POST /api/cli-tools/apply`) ugyanazt a védelmet érvényesíti: egy konténerben, ha egy írás célja nincs bind-mountolva a gazdagépről, akkor **`422`**-es választ ad `containerEphemeralTarget: true` üzenettel, a biztonságos hibaüzenettel és – a gazdagép recepttel rendelkező eszközök (claude, codex, opencode, cline, kilo, continue) esetében – egy `hostSetupCommand` (pl. `omniroute setup-opencode`) paranccsal, amelyet a gazdagépen kell futtatni helyette; semmi sem íródik. A `dryRun: true` továbbra is működik konténer módban, és egy szerkesztett előnézetet + célútvonalat ad vissza a lemez érintése nélkül. Az előnézeti tartalom nem hitelesítő adatokat tartalmazó konfiguráció, amelyet másolni vagy importálni lehetne. Alkalmazza az eredeti eszközzel/alap URL-lel/API kulccsal/modell bemenetekkel a gazdagépen, vagy használja a jelzett gazdagép oldali beállítási parancsot. Lásd a [CLI konfiguráció biztonsága](../security/CLI-CONFIGURATION.md) részt az előnézeti fejléc és a kérés szerződésének részleteiért. Ez a viselkedés szándékos, és a `tests/unit/api/cli-tools/apply-container-guard.test.ts` teszt védi a regressziótól – soha ne "javítson" egy 422-es hibát a védelem eltávolításával.
 
 ---
 

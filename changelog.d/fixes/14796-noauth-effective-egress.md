@@ -1,0 +1,1 @@
+- **fix(dashboard):** proxyless account cards show the connection's effective egress instead of a misleading direct label ([#14796](https://github.com/diegosouzapw/OmniRoute/pull/14796)) — thanks @maxmad64bis

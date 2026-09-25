@@ -427,6 +427,25 @@ export interface ApiKeyPolicyResult {
   rejection: Response | null;
 }
 
+export interface EnforceApiKeyPolicyOptions {
+  /**
+   * Where the metered dollar budget is enforced for this request.
+   *
+   * `"enforce"` (the default) rejects here, the moment the key's allowance is
+   * spent. That is correct for every endpoint that dispatches to a single,
+   * already-determined provider.
+   *
+   * `"defer-to-candidate"` is for callers that route across several provider
+   * candidates. The budget is scoped by apiKeyId and knows nothing about which
+   * provider will serve the request, so rejecting here also rejects flat-rate
+   * subscription capacity that the allowance does not pay for. A caller passing
+   * this MUST re-apply the budget per resolved candidate — see
+   * `lib/usage/meteredBudgetPolicy` — or it drops metered-spend enforcement
+   * entirely. Every other check on this path is unaffected.
+   */
+  meteredBudget?: "enforce" | "defer-to-candidate";
+}
+
 /**
  * Enforce API key policies for a request.
  *
@@ -436,6 +455,9 @@ export interface ApiKeyPolicyResult {
  *
  * @param request - The incoming HTTP request
  * @param modelStr - The model ID from the request body
+ * @param options - See {@link EnforceApiKeyPolicyOptions}; omitted means every
+ *   check is enforced here, which is the behaviour every caller had before the
+ *   option existed.
  * @returns ApiKeyPolicyResult with apiKey, metadata, and optional rejection response
  *
  * @example
@@ -658,14 +680,43 @@ async function validateComboAccess(
   }
 }
 
+/** "Resets in Xh Ym."-style suffix for a known future epoch-ms reset instant. */
+function formatResetDurationSuffix(untilMs: unknown, nowMs = Date.now()): string {
+  if (typeof untilMs !== "number" || !Number.isFinite(untilMs) || untilMs <= nowMs) return "";
+  const totalMinutes = Math.max(1, Math.ceil((untilMs - nowMs) / 60_000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `Resets in ${hours}h ${minutes}m.` : `Resets in ${minutes}m.`;
+}
+
+/**
+ * The metered dollar budget check, skipped when the caller defers it to the
+ * resolved candidate (see {@link EnforceApiKeyPolicyOptions.meteredBudget}).
+ */
+function validateBudgetUnlessDeferred(
+  context: PolicyContext,
+  options: EnforceApiKeyPolicyOptions | undefined
+): Response | null {
+  if (options?.meteredBudget === "defer-to-candidate") return null;
+  return validateBudget(context);
+}
+
 function validateBudget(context: PolicyContext): Response | null {
   const { apiKeyInfo } = context;
   if (!apiKeyInfo.id) return null;
   try {
     const budgetOk = checkBudget(apiKeyInfo.id);
-    return budgetOk.allowed
-      ? null
-      : errorResponse(HTTP_STATUS.RATE_LIMITED, budgetOk.reason || "Budget limit exceeded");
+    if (budgetOk.allowed) return null;
+    const resetSuffix = formatResetDurationSuffix(budgetOk.budgetResetAt);
+    const reason = budgetOk.reason || "Budget limit exceeded";
+    return errorResponse(
+      HTTP_STATUS.RATE_LIMITED,
+      resetSuffix ? `${reason} ${resetSuffix}` : reason,
+      {
+        code: "budget_exceeded",
+        retryAfter: budgetOk.budgetResetAt,
+      }
+    );
   } catch (error) {
     log.error("API_POLICY", "Budget check failed. Request blocked.", { error });
     return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Budget policy unavailable");
@@ -680,9 +731,11 @@ function validateTokenLimit(context: PolicyContext): Response | null {
     if (!breach) return null;
     const scopeLabel =
       breach.scopeType === "global" ? "account" : `${breach.scopeType} "${breach.scopeValue}"`;
+    const resetSuffix = formatResetDurationSuffix(breach.nextResetAt) || "Please try again later.";
     return errorResponse(
       HTTP_STATUS.RATE_LIMITED,
-      `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. Please try again later.`
+      `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. ${resetSuffix}`,
+      { code: "token_limit_exceeded", retryAfter: breach.nextResetAt }
     );
   } catch (error) {
     log.error("API_POLICY", "Token limit check failed. Request blocked.", { error });
@@ -725,9 +778,11 @@ async function validateRateLimitAndThrottle(context: PolicyContext): Promise<Res
     const result = await checkRateLimit(apiKeyInfo.id, rules);
     if (!result.allowed) {
       const window = result.failedWindow ? ` (${result.failedWindow}s window)` : "";
+      const resetSuffix = formatResetDurationSuffix(result.resetAt) || "Please try again later.";
       return errorResponse(
         HTTP_STATUS.RATE_LIMITED,
-        `Request limit exceeded${window}. Please try again later.`
+        `Request limit exceeded${window}. ${resetSuffix}`,
+        { code: "rate_limit_exceeded", retryAfter: result.resetAt }
       );
     }
   }
@@ -758,7 +813,8 @@ function extractUngatedClientApiKey(request: Request): string | null {
 
 export async function enforceApiKeyPolicy(
   request: Request,
-  modelStr: string | null
+  modelStr: string | null,
+  options?: EnforceApiKeyPolicyOptions
 ): Promise<ApiKeyPolicyResult> {
   // A real bearer key wins; then a bare x-api-key/x-goog-api-key that auth
   // accepted but extractApiKey() gates out; otherwise an authenticated dashboard
@@ -806,7 +862,7 @@ export async function enforceApiKeyPolicy(
   const modelRejection = await validateModelAccess(context);
   if (modelRejection) return { apiKey, apiKeyInfo, rejection: modelRejection };
 
-  const budgetRejection = validateBudget(context);
+  const budgetRejection = validateBudgetUnlessDeferred(context, options);
   if (budgetRejection) return { apiKey, apiKeyInfo, rejection: budgetRejection };
   const keyQuotaRejection = validateKeyQuota(context);
   if (keyQuotaRejection) return { apiKey, apiKeyInfo, rejection: keyQuotaRejection };

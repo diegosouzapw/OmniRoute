@@ -102,9 +102,13 @@ export interface RequestLoggerV2Handle {
   getSortedLogs: () => any[];
 }
 
-const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: string }>(
+type RequestLoggerV2InitialProps = {
+  initialSelectedId?: string;
+  initialCorrelationId?: string;
+};
+const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2InitialProps>(
   (props, ref) => {
-    const { initialSelectedId } = props as any;
+    const { initialSelectedId, initialCorrelationId } = props;
     const t = useTranslations("requestLogger");
     const tCache = useTranslations("cache");
     const { emailsVisible } = useEmailPrivacyStore();
@@ -152,7 +156,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const [selectedApiKey, setSelectedApiKey] = useState("");
     const [sortBy, setSortBy] = useState("newest");
     const [selectedLog, setSelectedLog] = useState(null);
-    const [correlationIdFilter, setCorrelationIdFilter] = useState("");
+    const [correlationIdFilter, setCorrelationIdFilter] = useState(
+      () => initialCorrelationId ?? ""
+    );
     const [hoveredCid, setHoveredCid] = useState<string | null>(null);
     const [groupedView, setGroupedView] = useState(false);
     const [detailLoading, setDetailLoading] = useState(false);
