@@ -1,0 +1,1 @@
+- **fix(responses):** Codex CLI with the web_search fallback no longer fails with "stream closed before response.completed": a Responses-shaped fallback result is streamed as Responses SSE, and the client's own rejection of the internal search call is dropped from the next turn ([#14837](https://github.com/diegosouzapw/OmniRoute/pull/14837))

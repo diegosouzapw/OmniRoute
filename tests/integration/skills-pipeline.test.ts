@@ -1057,9 +1057,16 @@ test("web_search fallback executes stream:true responses requests non-streaming 
       },
     })
   );
-  const json = (await response.json()) as {
-    output: Array<Record<string, unknown>>;
-  };
+  // The client asked for a stream (#13033): the executed response comes back as
+  // Responses SSE, and its items are carried by the terminal response.completed.
+  assert.match(response.headers.get("content-type") ?? "", /text\/event-stream/);
+  const completed = (await response.text())
+    .split("\n\n")
+    .map((block) => block.trim())
+    .filter((block) => block.startsWith("event: response.completed"))
+    .map((block) => JSON.parse(block.split("\n")[1].slice("data: ".length)));
+  assert.equal(completed.length, 1, "exactly one response.completed");
+  const json = completed[0].response as { output: Array<Record<string, unknown>> };
   const webSearchCall = json.output.find((item) => item.type === "web_search_call");
   const functionCall = json.output.find((item) => item.type === "function_call");
   const functionCallOutput = json.output.find((item) => item.type === "function_call_output");

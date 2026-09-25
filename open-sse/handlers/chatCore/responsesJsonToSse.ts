@@ -2,11 +2,13 @@
  * #13033: when chatCore forces stream:false so a server-side web_search
  * fallback can run, the client that asked for Responses SSE still needs
  * `event: response.completed`. Reuse synthesizeOpenAiSseFromJson +
- * createResponsesApiTransformStream.
+ * createResponsesApiTransformStream. A body that is already a Responses object
+ * (Responses clients get one from the translator) is replayed directly.
  */
 import { createResponsesApiTransformStream } from "../../transformer/responsesTransformer.ts";
 import { synthesizeOpenAiSseFromJson } from "../../utils/jsonToSse.ts";
 import { buildNonStreamingJsonResponse } from "./nonStreamingJsonResponse.ts";
+import { isResponsesObject, synthesizeResponsesSseFromObject } from "./responsesObjectToSse.ts";
 
 function copyForwardHeaders(headers: Record<string, string> | undefined): Record<string, string> {
   const out: Record<string, string> = {};
@@ -23,6 +25,17 @@ export function wrapChatCompletionJsonAsResponsesSse(
   completion: Record<string, unknown>,
   headers?: Record<string, string>
 ): Response {
+  if (isResponsesObject(completion)) {
+    return new Response(synthesizeResponsesSseFromObject(completion), {
+      status: 200,
+      headers: {
+        ...copyForwardHeaders(headers),
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  }
   const rawSse = synthesizeOpenAiSseFromJson(JSON.stringify(completion));
   if (!rawSse) {
     return new Response(JSON.stringify(completion), {
