@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import Card from "./Card";
 import Button from "./Button";
@@ -194,29 +194,38 @@ export default function NoAuthAccountCard({
       setSetAsideProxyIds((prev) =>
         prev[proxyId] !== undefined ? prev : { ...prev, [proxyId]: null }
       );
+    } finally {
+      setAsideInflight.current.delete(proxyId);
     }
   }, []);
 
-  const allAccountIds = connections.flatMap((c) => c.providerSpecificData?.[dataKey] || []);
+  const allAccountIds = useMemo(
+    () => connections.flatMap((c) => c.providerSpecificData?.[dataKey] || []),
+    [connections, dataKey]
+  );
 
   const conn = connections[0];
-  const accountProxies = getAccountProxies(conn);
+  const accountProxies = useMemo(() => getAccountProxies(conn), [conn]);
 
-  // One read per unknown bound proxy id; the in-flight set above dedupes repeats.
-  // Reads run on a microtask (not synchronously in the effect body) so no
-  // setState fires during the effect pass itself.
-  useEffect(() => {
+  // One read per unknown bound proxy id. The effect key is the joined id list
+  // (stable string), not the rebuilt arrays, and the in-flight set is released
+  // in `finally` above so a remount re-reads instead of going blind.
+  const boundProxyIdsKey = useMemo(() => {
     const ids = new Set<string>();
     for (const id of allAccountIds) {
       const boundProxyId = getEntryForFingerprint(accountProxies, id)?.proxyId ?? null;
       if (boundProxyId) ids.add(boundProxyId);
     }
-    if (ids.size === 0) return;
+    return [...ids].sort().join(",");
+  }, [allAccountIds, accountProxies]);
+  useEffect(() => {
+    if (boundProxyIdsKey.length === 0) return;
+    const ids = boundProxyIdsKey.split(",");
     const timer = window.setTimeout(() => {
       for (const proxyId of ids) void checkSetAside(proxyId);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [allAccountIds, accountProxies, checkSetAside]);
+  }, [boundProxyIdsKey, checkSetAside]);
 
   const handleAddAccount = async () => {
     setAdding(true);

@@ -72,6 +72,31 @@ function findVisibleMember(
   return visibility?.members.find((m) => m.id === proxyId);
 }
 
+// Join key shared by the member-egress body (host + port fields) and the
+// visibility payload (display "scheme://host:port"). Lets the egress lines
+// carry the rank note inline so each member prints once.
+function visibilityJoinKey(member: PoolVisibilityMember): string | null {
+  if (!member.display) return null;
+  const match = /:\/\/(\[[^\]]+\]|[^:/]+):(\d+)$/.exec(member.display);
+  return match ? `${match[1]}:${match[2]}` : null;
+}
+
+function rankNoteByJoinKey(
+  t: (key: string, params?: Record<string, string | number>) => string,
+  visibility: PoolVisibilityPayload | null,
+  host: string,
+  port: number
+): string {
+  const key = `${host}:${port}`;
+  const bracketed = host.includes(":") && !host.startsWith("[") ? `[${host}]:${port}` : key;
+  const visible = visibility?.members.find((m) => {
+    const joinKey = visibilityJoinKey(m);
+    return joinKey === key || joinKey === bracketed;
+  });
+  if (!visible) return "";
+  return ` #${visible.rank} · ${t("poolPreferenceOrder")}${formatSetAsideNote(t, visible)}`;
+}
+
 // Refusal kinds come from REFUSAL_POLICIES in open-sse/utils/proxyRefusalMemory.ts.
 const SET_ASIDE_KIND_KEYS: Record<string, string> = {
   proxy_unreachable: "poolSetAsideKindProxyUnreachable",
@@ -189,16 +214,7 @@ export function PoolMemberEgressLines({ query }: { query: string }) {
                 port: member.port,
                 hours: body.windowHours,
               })}
-        </p>
-      ))}
-      {visibility?.members.map((member) => (
-        <p
-          key={`vis-${member.id ?? member.display ?? member.rank}`}
-          className="text-xs text-text-muted"
-          title={t("poolSinceRestart")}
-        >
-          {member.display ?? t("poolUnknownAddress")}
-          {rankNote(member.id)}
+          {rankNoteByJoinKey(t, visibility, member.host, member.port)}
         </p>
       ))}
     </div>
