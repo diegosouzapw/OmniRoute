@@ -1,0 +1,1 @@
+- **fix(call-logs):** auto-generated call log ids now embed the process pid, so two OmniRoute processes sharing one SQLite `DATA_DIR` (dev checkout + globally-installed CLI) no longer collide on `Date.now()-counter` and fail the INSERT with "UNIQUE constraint failed: call_logs.id" (#13099)
