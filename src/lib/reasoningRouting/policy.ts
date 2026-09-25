@@ -12,6 +12,10 @@ import {
   splitClaudeEffortSuffix,
   getProviderModels,
 } from "@omniroute/open-sse/config/providerModels.ts";
+import {
+  codexModelFamilySupportsExtendedEffort,
+  isCodexExtendedEffortBaseModel,
+} from "@/shared/reasoning/codexExtendedEffort";
 
 type JsonRecord = Record<string, unknown>;
 const EFFORTS = new Set<ReasoningEffort>([
@@ -79,8 +83,9 @@ function splitGenericEffortSuffix(model: string): {
 }
 
 function supportsCodexSuffix(candidate: string, normalizedBase: string): boolean {
-  if (candidate === "max") return /^gpt-5\.6-(?:sol|terra|luna)$/.test(normalizedBase);
-  if (candidate === "ultra") return /^gpt-5\.6-(?:sol|terra)$/.test(normalizedBase);
+  if (candidate === "max" || candidate === "ultra") {
+    return isCodexExtendedEffortBaseModel(normalizedBase, candidate);
+  }
   return true;
 }
 
@@ -278,7 +283,8 @@ function capabilityFor(
     //   2. For unregistered providers/models, a declared (synced or
     //      operator-overridden) vocabulary listing the tier is authoritative —
     //      the sanitizer forwards verbatim there (#8057 trust-the-upstream).
-    //   3. The gpt-5.6 regex remains the fallback for undeclared models.
+    //   3. The Codex max/ultra alias sets (`codex/reasoningSuffix.ts`) remain
+    //      the fallback for undeclared models.
     // This keeps custom OpenAI-compatible providers whose models accept `max`
     // natively (e.g. Merge Gateway `zai/glm-5.3-flash`, accepting
     // `low|high|max`) usable with forced-max rules instead of 400ing.
@@ -308,16 +314,11 @@ function capabilityFor(
     }
     // An operator-declared vocabulary that excludes the tier is terminal —
     // the same lookup the override resolves from must not be overruled by the
-    // legacy regex below.
+    // alias-set fallback below.
     if (capabilities.reasoningEffortsOverride && Array.isArray(declaredEfforts)) {
       return "unsupported" as const;
     }
-    const normalized = model.toLowerCase().replace(/^(?:codex|cx)\//, "");
-    const supported =
-      targetEffort === "ultra"
-        ? /^gpt-5\.6-(?:sol|terra)(?:-|$)/.test(normalized)
-        : /^gpt-5\.6-(?:sol|terra|luna)(?:-|$)/.test(normalized);
-    if (supported) return "supported" as const;
+    if (codexModelFamilySupportsExtendedEffort(model, targetEffort)) return "supported" as const;
     if (capabilities.supportsThinking === null) return "unknown" as const;
     return "unsupported" as const;
   }
