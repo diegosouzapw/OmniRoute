@@ -228,14 +228,31 @@ function stopTextBlock(state, results) {
 // usage-only chunks that carry `choices: []` (#11817).
 function trackUsageFromChunk(chunk, state) {
   if (!chunk.usage || typeof chunk.usage !== "object") return;
+  // Accept both OpenAI chat-completions naming (prompt_tokens /
+  // completion_tokens) and Responses naming (input_tokens / output_tokens):
+  // several OpenAI-compatible upstreams report the latter, and the rest of
+  // the pipeline (stream.ts usage aggregation, usageTracking.ts,
+  // openai-responses.ts) already reads both.
   const promptTokens =
-    typeof chunk.usage.prompt_tokens === "number" ? chunk.usage.prompt_tokens : 0;
+    typeof chunk.usage.prompt_tokens === "number"
+      ? chunk.usage.prompt_tokens
+      : typeof chunk.usage.input_tokens === "number"
+        ? chunk.usage.input_tokens
+        : 0;
   const outputTokens =
-    typeof chunk.usage.completion_tokens === "number" ? chunk.usage.completion_tokens : 0;
+    typeof chunk.usage.completion_tokens === "number"
+      ? chunk.usage.completion_tokens
+      : typeof chunk.usage.output_tokens === "number"
+        ? chunk.usage.output_tokens
+        : 0;
 
-  // Extract cache tokens from prompt_tokens_details
-  const cachedTokens = chunk.usage.prompt_tokens_details?.cached_tokens;
-  const cacheCreationTokens = chunk.usage.prompt_tokens_details?.cache_creation_tokens;
+  // Extract cache tokens from prompt/input token details (either naming)
+  const cachedTokens =
+    chunk.usage.prompt_tokens_details?.cached_tokens ??
+    chunk.usage.input_tokens_details?.cached_tokens;
+  const cacheCreationTokens =
+    chunk.usage.prompt_tokens_details?.cache_creation_tokens ??
+    chunk.usage.input_tokens_details?.cache_creation_tokens;
   const cacheReadTokens = typeof cachedTokens === "number" ? cachedTokens : 0;
   const cacheCreateTokens = typeof cacheCreationTokens === "number" ? cacheCreationTokens : 0;
 
