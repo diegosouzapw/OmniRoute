@@ -790,9 +790,11 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       }
     }
 
+    // Optional column (migration 191) — only fixed identifiers are spliced in.
+    const resilienceCol = hasResilienceColumn ? ", resilience_actions" : "";
+    const resilienceParam = hasResilienceColumn ? ", @resilienceActions" : "";
     const insertStmt = db.prepare(
-      hasResilienceColumn
-        ? `
+      `
       INSERT INTO call_logs (
         id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, tokens_in, tokens_out,
@@ -805,7 +807,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
         correlation_id, model_pinned, session_tag, response_id, error_type,
-        video_content_removed, resilience_actions
+        video_content_removed${resilienceCol}
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -819,37 +821,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
         @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
-        @videoContentRemoved, @resilienceActions
-      )
-    `
-        : `
-      INSERT INTO call_logs (
-        id, timestamp, method, path, status, model, requested_model, provider,
-        account, connection_id, duration, tokens_in, tokens_out,
-        tokens_cache_read, tokens_cache_creation, tokens_reasoning, tokens_compressed,
-        reasoning_source, reasoning_chars,
-        reasoning_duration_ms, reasoning_effort_requested, reasoning_effort_upstream,
-        reasoning_encrypted,
-        cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
-        combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
-        artifact_relpath, artifact_size_bytes, artifact_sha256,
-        has_request_body, has_response_body, has_pipeline_details, request_summary,
-        correlation_id, model_pinned, session_tag, response_id, error_type,
-        video_content_removed
-      )
-      VALUES (
-        @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
-        @account, @connectionId, @duration, @tokensIn, @tokensOut,
-        @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @tokensCompressed,
-        @reasoningSource, @reasoningChars,
-        @reasoningDurationMs, @reasoningEffortRequested, @reasoningEffortUpstream,
-        @reasoningEncrypted,
-        @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
-        @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
-        @artifactRelPath, @artifactSizeBytes, @artifactSha256,
-        @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
-        @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
-        @videoContentRemoved
+        @videoContentRemoved${resilienceParam}
       )
     `
     );
