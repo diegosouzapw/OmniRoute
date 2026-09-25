@@ -390,8 +390,8 @@ export default function CompressionSettingsTab() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
-                  min={0}
-                  max={1440}
+                  min={1}
+                  max={60}
                   value={config.cacheMinutes}
                   onChange={(e) => save({ cacheMinutes: parseInt(e.target.value) || 5 })}
                   className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
