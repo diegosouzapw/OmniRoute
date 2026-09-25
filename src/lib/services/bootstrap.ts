@@ -13,6 +13,7 @@ import { resolveSpawnArgs as muxSpawnArgs, MUX_DEFAULT_PORT } from "./installers
 import { resolveSpawnArgs as bifrostSpawnArgs, BIFROST_DEFAULT_PORT } from "./installers/bifrost";
 import { resolveSpawnArgs as darioSpawnArgs, DARIO_DEFAULT_PORT } from "./installers/dario";
 import { resolveSpawnArgs as openwaSpawnArgs, OPENWA_DEFAULT_PORT } from "./installers/openwa";
+import { resolveSpawnArgs as singboxSpawnArgs, SINGBOX_DEFAULT_PORT } from "./installers/singbox";
 import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
 import type { ServiceStatus } from "./types";
@@ -36,6 +37,7 @@ const MUX_PORT = parseInt(process.env.MUX_SERVICE_PORT ?? String(MUX_DEFAULT_POR
 const BIFROST_PORT = parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
 const DARIO_PORT = parseInt(process.env.DARIO_PORT ?? String(DARIO_DEFAULT_PORT), 10);
 const OPENWA_PORT = parseInt(process.env.OPENWA_SERVICE_PORT ?? String(OPENWA_DEFAULT_PORT), 10);
+const SINGBOX_PORT = parseInt(process.env.SINGBOX_PORT ?? String(SINGBOX_DEFAULT_PORT), 10);
 
 type ServiceEntry = {
   tool: string;
@@ -131,6 +133,15 @@ const SERVICES: ServiceEntry[] = [
     logsBufferBytes: 5_242_880,
     needsApiKey: true,
   },
+  {
+    tool: "singbox",
+    port: SINGBOX_PORT,
+    healthPath: "/",
+    healthIntervalMs: 5_000,
+    stopTimeoutMs: 15_000,
+    logsBufferBytes: 5_242_880,
+    needsApiKey: false,
+  },
 ];
 
 function buildSpawnArgsFactory(
@@ -151,6 +162,9 @@ function buildSpawnArgsFactory(
   }
   if (cfg.tool === "openwa") {
     return () => openwaSpawnArgs(apiKey, cfg.port);
+  }
+  if (cfg.tool === "singbox") {
+    return () => singboxSpawnArgs(cfg.port);
   }
   return () => cliproxySpawnArgs(cfg.port, apiKey);
 }

@@ -248,6 +248,60 @@ describe("cliproxy — full lifecycle (opt-in, RUN_SERVICES_INT=1)", () => {
 });
 
 // ---------------------------------------------------------------------------
+// sing-box lifecycle
+// ---------------------------------------------------------------------------
+
+describe("singbox — full lifecycle (opt-in, RUN_SERVICES_INT=1)", () => {
+  it("STEP 1: install singbox (pinned version)", async (t) => {
+    if (maybeSkip(t)) return;
+    const { status, body } = await apiPost("/api/services/singbox/install", {
+      version: "1.14.1",
+    });
+    assert.ok(
+      status === 200,
+      `Expected 200 from install, got ${status}: ${JSON.stringify(body).slice(0, 300)}`
+    );
+    const b = body as Record<string, unknown>;
+    assert.ok(b.ok === true, "install response must have ok:true");
+    assert.equal(b.installedVersion, "1.14.1");
+  });
+
+  it("STEP 2: start singbox", async (t) => {
+    if (maybeSkip(t)) return;
+    const { status, body } = await apiPost("/api/services/singbox/start");
+    assert.ok(
+      status === 200,
+      `Expected 200 from start, got ${status}: ${JSON.stringify(body).slice(0, 300)}`
+    );
+  });
+
+  it("STEP 3: wait for the real sing-box binary process to be running (≤30s)", async (t) => {
+    if (maybeSkip(t)) return;
+    // sing-box's inbounds are TPROXY/mixed sockets, not a plain HTTP health
+    // endpoint, so — unlike cliproxy/bifrost above — this only asserts the
+    // supervised process reaches "running" with a real pid, proving the
+    // downloaded binary actually starts (the old mock script exited
+    // immediately and never reached this state).
+    const finalStatus = await waitForState("/api/services/singbox/status", "running", 30_000);
+    const b = finalStatus as Record<string, unknown>;
+    assert.equal(b.state, "running");
+    assert.ok(typeof b.pid === "number", "pid must be a number when running");
+  });
+
+  it("STEP 4: stop singbox", async (t) => {
+    if (maybeSkip(t)) return;
+    const { status } = await apiPost("/api/services/singbox/stop");
+    assert.equal(status, 200);
+  });
+
+  it("STEP 5: status returns stopped after stop", async (t) => {
+    if (maybeSkip(t)) return;
+    const final = await waitForState("/api/services/singbox/status", "stopped", 15_000);
+    assert.equal((final as Record<string, unknown>).state, "stopped");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // bifrost lifecycle
 // ---------------------------------------------------------------------------
 

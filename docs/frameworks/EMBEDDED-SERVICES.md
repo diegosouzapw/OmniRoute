@@ -1,13 +1,13 @@
 ---
 title: "Embedded Services"
-description: "Reference for 9Router, CLIProxyAPI, Mux, Bifrost, and open-wa"
+description: "Reference for 9Router, CLIProxyAPI, Mux, Bifrost, open-wa, and sing-box"
 ---
 
 # Embedded Services
 
 > **Version:** v3.8.44
 > **Last updated:** 2026-09-09
-> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
+> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost, open-wa, sing-box).
 
 Embedded services are locally-installed process sidecar tools that OmniRoute installs, supervises, and
 exposes as first-class routing targets. Unlike external providers (which are reached over the internet
@@ -32,7 +32,7 @@ via API keys), embedded services run on the same machine as OmniRoute and commun
 
 ### Why embedded services?
 
-Six services are embedded:
+Seven services are embedded:
 
 | Service         | npm package                        | Default port | Purpose                                                                                                                                                                                |
 | --------------- | ---------------------------------- | :----------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -42,8 +42,9 @@ Six services are embedded:
 | **Bifrost**     | `@maximhq/bifrost`                 |     8080     | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                                                                                             |
 | **Dario**       | `@askalf/dario`                    |     3456     | Claude-subscription proxy — alternative/failover to CLIProxyAPI for Claude-Code-shaped traffic; the injected key becomes `DARIO_ADMIN_TOKEN` gating its `/admin/*` OAuth control plane |
 | **open-wa**     | `@open-wa/wa-automate`             |     8323     | WhatsApp Web automation (headless Chromium via Puppeteer). Lifecycle-managed only — not a routing target.                                                                              |
+| **sing-box**    | GitHub release binary (`singbox`)  |    20140     | TPROXY sidecar backing `applyTproxy()`'s transparent-proxy interception (`src/mitm/tproxy/setup.ts`). Installer downloads the pinned, checksum-verified release. Lifecycle-managed only — not a routing target (no LLM proxying) |
 
-All six follow the same supervisory model:
+All seven follow the same supervisory model:
 
 - OmniRoute installs them under `DATA_DIR/services/{name}/` (isolated from OmniRoute's own `package.json`)
 - OmniRoute spawns and monitors them as child processes
@@ -540,7 +541,38 @@ in this integration yet.
 
 ---
 
-### 4.7 Reverse proxy (9Router dashboard embed)
+### 4.7 sing-box endpoints (8 routes)
+
+sing-box has the same endpoint shape as Mux — no `rotate-key` route, no API key
+injection (`needsApiKey: false` in `bootstrap.ts`). It is lifecycle-managed only:
+never a routing/LLM provider. `install()` downloads the official GitHub release
+binary (`SagerNet/sing-box`) for the pinned version (`SINGBOX_PINNED_VERSION` in
+`src/lib/services/installers/singbox.ts`) and verifies its SHA256 against a
+checksum baked into the same file before ever writing it to disk — any other
+requested version is rejected.
+
+| Method | Path                                         | Description                                               |
+| ------ | -------------------------------------------- | --------------------------------------------------------- |
+| `POST` | `/api/services/singbox/install`              | Download + verify the pinned sing-box release             |
+| `POST` | `/api/services/singbox/start`                | Start sing-box (`sing-box run -c config.json`)            |
+| `POST` | `/api/services/singbox/stop`                 | Stop sing-box                                             |
+| `POST` | `/api/services/singbox/restart`              | Restart sing-box                                          |
+| `POST` | `/api/services/singbox/update`               | Re-verify/reinstall the pinned release                    |
+| `GET`  | `/api/services/singbox/status`               | Live + DB status                                          |
+| `POST` | `/api/services/singbox/auto-start`           | Toggle auto-start                                         |
+| `POST` | `/api/services/singbox/auto-restart-adopted` | Toggle auto-restart for an adopted (pre-existing) process |
+| `GET`  | `/api/services/singbox/logs`                 | SSE log tail (via shared `[name]/logs` dynamic route)     |
+
+**TPROXY wiring:** `ensureSingboxTproxy()` (`src/mitm/tproxy/setup.ts`) writes
+`config.json` and starts the supervisor before `applyTproxy()` installs the
+TPROXY firewall rules. If the supervisor is missing or fails to reach `running`,
+it now logs at error level (rather than silently swallowing the failure) so an
+operator can tell the TPROXY rules were applied without a working listener
+behind them.
+
+---
+
+### 4.8 Reverse proxy (9Router dashboard embed)
 
 The dashboard embeds the 9Router web UI inside an iframe via an internal reverse
 proxy at:
