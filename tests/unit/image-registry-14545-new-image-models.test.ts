@@ -43,29 +43,19 @@ test("#14545: openrouter/microsoft/mai-image-2.6-flash resolves as an image mode
   );
 });
 
-test("#14545: gemini/gemini-3-pro-image resolves as an image model (no IMAGE_PROVIDERS.gemini entry existed)", () => {
-  const entry = getImageModelEntry("gemini/gemini-3-pro-image");
-  assert.notEqual(
-    entry,
-    null,
-    "expected a gemini-prefixed image model to resolve; IMAGE_PROVIDERS had no 'gemini' key at all"
-  );
-});
-
-test("#14545: gemini/gemini-3.1-flash-image resolves as an image model", () => {
-  const entry = getImageModelEntry("gemini/gemini-3.1-flash-image");
-  assert.notEqual(
-    entry,
-    null,
-    "expected the gemini flash image model to resolve under the new gemini provider entry"
-  );
+// The owner kept only the four OpenRouter models from #14545: the reporter could not
+// validate the Gemini OpenAI-compat images endpoint live, so no IMAGE_PROVIDERS.gemini
+// entry is declared until it is. Unregistered gemini image ids still reach the
+// synthetic-provider fallback in open-sse/handlers/imageGeneration.ts on direct calls.
+test("#14545: IMAGE_PROVIDERS declares no unvalidated gemini image entry", () => {
+  assert.equal(getImageModelEntry("gemini/gemini-3-pro-image"), null);
+  assert.equal(getImageModelEntry("gemini/gemini-3.1-flash-image"), null);
 });
 
 test("#14545 regression guard: existing IMAGE_PROVIDERS members still resolve", () => {
   assert.notEqual(getImageModelEntry("codex/gpt-5.6-luna"), null);
   assert.notEqual(getImageModelEntry("openrouter/black-forest-labs/flux.2-max"), null);
-  // Existing antigravity/gemini alias must keep resolving to antigravity, not collide
-  // with the new gemini provider entry.
+  // Existing antigravity/gemini alias must keep resolving to antigravity.
   const antigravityAlias = getImageModelEntry("gemini-3.1-flash-image-preview");
   assert.equal(antigravityAlias?.provider, "antigravity");
 });

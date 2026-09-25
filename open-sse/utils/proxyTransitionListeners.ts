@@ -7,7 +7,7 @@
  * in this file so the store stays pure and cycle-free.
  */
 
-export type ProxyTransitionKind = "ip_quota_429" | "proxy_unreachable";
+export type ProxyTransitionKind = "ip_quota_429" | "proxy_unreachable" | "transport";
 
 export interface ProxyTransition {
   key: string;

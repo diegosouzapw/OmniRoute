@@ -1,0 +1,1 @@
+- **fix(proxies):** set aside egress after repeated transport failures with cross-egress success ([#14802](https://github.com/diegosouzapw/OmniRoute/pull/14802)) — thanks @maxmad64bis
