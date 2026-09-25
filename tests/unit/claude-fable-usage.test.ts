@@ -87,7 +87,7 @@ test("missing or invalid Fable telemetry never becomes a zero or unlimited quota
     [scopedLimit(101)],
     [{ ...scopedLimit(), kind: "weekly_all" }],
     [{ ...scopedLimit(), scope: null }],
-    [{ ...scopedLimit(), scope: { model: { display_name: "Something else" } } }],
+    [{ ...scopedLimit(), scope: { model: { display_name: "  " } } }],
   ]) {
     mockUsage(limits);
     const rows = parseQuotaData("claude", await getClaudeUsage("fable-test-token"));
