@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "პარტნიორის ბმული",
     "dismissAriaLabel": "დახურვა"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "გამორთეთ აზროვნების დონის ვარიანტების (მაგ. -low, -medium, -high) გენერირება /v1/models კატალოგში."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "გამორთეთ აზროვნების დონის ვარიანტების (მაგ. -low, -medium, -high) გენერირება /v1/models კატალოგში.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "ჩაიწერეთ საუბრის გამარტივებული ეტაპები (მომხმარებლის მოთხოვნა, ასისტენტის პასუხი, გამოძახებული ხელსაწყოები) კოდირების აგენტის სესიებისთვის და გახადეთ ისინი ხელმისაწვდომი სესიის მფლობელისთვის GET /v1/me/sessions/{id}/messages-ის მეშვეობით. ნაგულისხმევად გამორთულია: ეტაპები არ იწერება, თუ ეს ალამი არ არის ჩართული. არასდროს იწერება noLog API გასაღებებისთვის."
 }

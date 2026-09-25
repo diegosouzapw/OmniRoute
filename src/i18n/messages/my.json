@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "မိတ်ဖက်လင့်ခ်",
     "dismissAriaLabel": "ပိတ်ရန်"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models catalog တွင် thinking level မူကွဲများ (ဥပမာ -low, -medium, -high) ဖန်တီးခြင်းကို ပိတ်ပါ။"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models catalog တွင် thinking level မူကွဲများ (ဥပမာ -low, -medium, -high) ဖန်တီးခြင်းကို ပိတ်ပါ။",
+  "featureFlagAgentSessionMessagesEnabledDescription": "coding-agent session များအတွက် ရိုးရှင်းသော စကားပြောဆိုမှုအလှည့်များ (user prompt၊ assistant response၊ ခေါ်ယူထားသော tools များ) ကို မှတ်တမ်းတင်ပြီး GET /v1/me/sessions/{id}/messages မှတစ်ဆင့် session ပိုင်ရှင်ထံ ရယူကြည့်ရှုခွင့်ပေးသည်။ ပုံသေအားဖြင့် ပိတ်ထားသည်- ဤ flag ကို မဖွင့်ထားပါက အလှည့်များကို မှတ်တမ်းတင်မည် မဟုတ်ပါ။ noLog API keys များအတွက် မည်သည့်အခါမျှ မှတ်တမ်းတင်မည် မဟုတ်ပါ။"
 }

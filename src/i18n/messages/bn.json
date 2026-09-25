@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "অংশীদার লিঙ্ক",
     "dismissAriaLabel": "বন্ধ করুন"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models ক্যাটালগে চিন্তার স্তরের ভ্যারিয়েন্ট (যেমন -low, -medium, -high) তৈরি করা বন্ধ করুন।"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models ক্যাটালগে চিন্তার স্তরের ভ্যারিয়েন্ট (যেমন -low, -medium, -high) তৈরি করা বন্ধ করুন।",
+  "featureFlagAgentSessionMessagesEnabledDescription": "কোডিং-এজেন্ট সেশনের জন্য কথোপকথনের সরলীকৃত টার্নগুলো (ব্যবহারকারীর প্রম্পট, অ্যাসিস্ট্যান্টের প্রতিক্রিয়া, কল করা টুল) ক্যাপচার করুন এবং GET /v1/me/sessions/{id}/messages-এর মাধ্যমে সেশনের মালিকের কাছে তা উপলব্ধ করুন। ডিফল্টভাবে বন্ধ: এই ফ্ল্যাগটি সক্রিয় না থাকলে টার্নগুলো ক্যাপচার করা হয় না। noLog API কী-গুলোর জন্য কখনই ক্যাপচার করা হয় না।"
 }

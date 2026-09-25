@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "İş ortağı bağlantısı",
     "dismissAriaLabel": "Kapat"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models kataloğunda düşünme düzeyi varyantlarının (ör. -low, -medium, -high) oluşturulmasını devre dışı bırakın."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models kataloğunda düşünme düzeyi varyantlarının (ör. -low, -medium, -high) oluşturulmasını devre dışı bırakın.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Kodlama aracısı oturumları için basitleştirilmiş konuşma turlarını (kullanıcı istemi, asistan yanıtı, çağrılan araçlar) yakalayın ve bunları GET /v1/me/sessions/{id}/messages üzerinden oturum sahibine sunun. Varsayılan olarak kapalıdır: Bu bayrak etkinleştirilmediği sürece turlar yakalanmaz. noLog API anahtarları için hiçbir zaman yakalanmaz."
 }

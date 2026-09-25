@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Kiungo cha mshirika",
     "dismissAriaLabel": "Funga"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Zima uundaji wa vibadala vya kiwango cha kufikiri (k.m. -low, -medium, -high) katika katalogi ya /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Zima uundaji wa vibadala vya kiwango cha kufikiri (k.m. -low, -medium, -high) katika katalogi ya /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Nasa awamu zilizorahisishwa za mazungumzo (kidokezo cha mtumiaji, jibu la msaidizi, zana zilizoitwa) kwa ajili ya vipindi vya coding-agent na uzifanye zipatikane kupitia GET /v1/me/sessions/{id}/messages kwa mmiliki wa kipindi. Imezimwa kwa chaguomsingi: awamu hazinaswi isipokuwa alama hii iwashwe. Hazinaswi kamwe kwa funguo za API za noLog."
 }

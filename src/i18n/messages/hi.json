@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "पार्टनर लिंक",
     "dismissAriaLabel": "बंद करें"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models कैटलॉग में थिंकिंग लेवल वेरिएंट (जैसे -low, -medium, -high) के निर्माण को अक्षम करें।"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models कैटलॉग में थिंकिंग लेवल वेरिएंट (जैसे -low, -medium, -high) के निर्माण को अक्षम करें।",
+  "featureFlagAgentSessionMessagesEnabledDescription": "कोडिंग-एजेंट सत्रों के लिए सरलीकृत वार्तालाप टर्न (उपयोगकर्ता प्रॉम्प्ट, सहायक प्रतिक्रिया, कॉल किए गए टूल्स) कैप्चर करें और उन्हें GET /v1/me/sessions/{id}/messages के माध्यम से सत्र स्वामी के लिए उपलब्ध कराएं। डिफ़ॉल्ट रूप से बंद: जब तक यह फ़्लैग सक्षम नहीं किया जाता, तब तक टर्न कैप्चर नहीं किए जाते हैं। noLog API keys के लिए कभी भी कैप्चर नहीं किए जाते हैं।"
 }

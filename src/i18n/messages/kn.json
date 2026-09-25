@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "ಪಾಲುದಾರರ ಲಿಂಕ್",
     "dismissAriaLabel": "ವಜಾಗೊಳಿಸಿ"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models ಕ್ಯಾಟಲಾಗ್ನಲ್ಲಿ ಚಿಂತನಾ ಮಟ್ಟದ ರೂಪಾಂತರಗಳ (ಉದಾ. -low, -medium, -high) ರಚನೆಯನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models ಕ್ಯಾಟಲಾಗ್ನಲ್ಲಿ ಚಿಂತನಾ ಮಟ್ಟದ ರೂಪಾಂತರಗಳ (ಉದಾ. -low, -medium, -high) ರಚನೆಯನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "ಕೋಡಿಂಗ್-ಏಜೆಂಟ್ ಸೆಷನ್‌ಗಳಿಗಾಗಿ ಸರಳೀಕೃತ ಸಂಭಾಷಣೆಯ ಹಂತಗಳನ್ನು (ಬಳಕೆದಾರರ ಪ್ರಾಂಪ್ಟ್, ಸಹಾಯಕನ ಪ್ರತಿಕ್ರಿಯೆ, ಕರೆ ಮಾಡಲಾದ ಪರಿಕರಗಳು) ಸೆರೆಹಿಡಿಯಿರಿ ಮತ್ತು ಅವುಗಳನ್ನು GET /v1/me/sessions/{id}/messages ಮೂಲಕ ಸೆಷನ್ ಮಾಲೀಕರಿಗೆ ಲಭ್ಯವಾಗುವಂತೆ ಮಾಡಿ. ಡೀಫಾಲ್ಟ್ ಆಗಿ ಆಫ್ ಆಗಿರುತ್ತದೆ: ಈ ಫ್ಲ್ಯಾಗ್ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸದ ಹೊರತು ಹಂತಗಳನ್ನು ಸೆರೆಹಿಡಿಯಲಾಗುವುದಿಲ್ಲ. noLog API ಕೀಗಳಿಗಾಗಿ ಎಂದಿಗೂ ಸೆರೆಹಿಡಿಯಲಾಗುವುದಿಲ್ಲ."
 }

@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "پیوند شریک",
     "dismissAriaLabel": "بستن"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "تولید گونههای سطح تفکر (برای مثال -low، -medium و -high) را در کاتالوگ /v1/models غیرفعال کنید."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "تولید گونههای سطح تفکر (برای مثال -low، -medium و -high) را در کاتالوگ /v1/models غیرفعال کنید.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "ثبت نوبت‌های ساده‌شده مکالمه (پرامپت کاربر، پاسخ دستیار، ابزارهای فراخوانی‌شده) برای نشست‌های ایجنت کدنویسی و ارائه آن‌ها از طریق GET /v1/me/sessions/{id}/messages به مالک نشست. به‌طور پیش‌فرض غیرفعال است: نوبت‌ها ثبت نمی‌شوند مگر اینکه این پرچم فعال باشد. هرگز برای کلیدهای API دارای noLog ثبت نمی‌شود."
 }

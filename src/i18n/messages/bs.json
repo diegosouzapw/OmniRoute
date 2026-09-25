@@ -14176,7 +14176,12 @@
     "hour": "sat",
     "day": "dan",
     "unknownModel": "nepoznato",
-    "pending": "na čekanju"
+    "pending": "na čekanju",
+    "allApiKeys": "Svi API ključevi",
+    "mcp": "MCP",
+    "mcpTool": "MCP alat",
+    "scope": "Opseg",
+    "apiKey": "API ključ"
   },
   "metadata": {
     "compressionTitle": "Kompresija",
@@ -14379,5 +14384,6 @@
     "partnerLinkNote": "Partnerski link",
     "dismissAriaLabel": "Zatvori"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Onemogućite generisanje varijanti nivoa razmišljanja (npr. -low, -medium, -high) u /v1/models katalogu."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Onemogućite generisanje varijanti nivoa razmišljanja (npr. -low, -medium, -high) u /v1/models katalogu.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Zabilježi pojednostavljene korake razgovora (korisnički upit, odgovor asistenta, pozvani alati) za sesije agenta za kodiranje i izloži ih vlasniku sesije putem GET /v1/me/sessions/{id}/messages. Podrazumijevano isključeno: koraci se ne bilježe osim ako ova zastavica nije omogućena. Nikada se ne bilježe za noLog API ključeve."
 }

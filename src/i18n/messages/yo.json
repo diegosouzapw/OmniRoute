@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Ìjápọ̀ aláṣiṣẹ́pọ̀",
     "dismissAriaLabel": "Pa á tì"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Pa ṣíṣẹ̀dá àwọn ẹ̀yà ìpele ìrònú (fún àpẹẹrẹ -low, -medium, -high) nínú àkójọ /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Pa ṣíṣẹ̀dá àwọn ẹ̀yà ìpele ìrònú (fún àpẹẹrẹ -low, -medium, -high) nínú àkójọ /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Ṣe àkọsílẹ̀ àwọn ìgbésẹ̀ ìfọ̀rọ̀wérọ̀ tí a mú rọrùn (ìtọ́ni olùlò, èsì olùrànlọ́wọ́, àwọn irinṣẹ́ tí a pè) fún àwọn àkókò iṣẹ́ coding-agent kí o sì fi wọ́n hàn nípasẹ̀ GET /v1/me/sessions/{id}/messages fún ẹni tó ni àkókò iṣẹ́ náà. Ó wà ní pípa ní àtìbẹ̀rẹ̀: a kì í ṣe àkọsílẹ̀ àwọn ìgbésẹ̀ àyàfi tí a bá mú flag yìí ṣiṣẹ́. A kì í ṣe àkọsílẹ̀ rẹ̀ láé fún àwọn kọ́kọ́rọ́ API noLog."
 }

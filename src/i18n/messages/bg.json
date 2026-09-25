@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Партньорска връзка",
     "dismissAriaLabel": "Затваряне"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Деактивирайте генерирането на варианти за ниво на разсъждение (напр. -low, -medium, -high) в каталога /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Деактивирайте генерирането на варианти за ниво на разсъждение (напр. -low, -medium, -high) в каталога /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Записване на опростени реплики от разговора (потребителска подкана, отговор на асистента, извикани инструменти) за сесии на coding-agent и предоставянето им чрез GET /v1/me/sessions/{id}/messages на собственика на сесията. Изключено по подразбиране: репликите не се записват, освен ако този флаг не е активиран. Никога не се записват за noLog API ключове."
 }

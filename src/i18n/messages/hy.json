@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Գործընկերային հղում",
     "dismissAriaLabel": "Փակել"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Անջատել մտածողության մակարդակի տարբերակների (օր.՝ -low, -medium, -high) ստեղծումը /v1/models կատալոգում։"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Անջատել մտածողության մակարդակի տարբերակների (օր.՝ -low, -medium, -high) ստեղծումը /v1/models կատալոգում։",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Գրանցել զրույցի պարզեցված քայլերը (օգտատիրոջ հարցում, օգնականի պատասխան, կանչված գործիքներ) կոդավորման գործակալի սեսիաների համար և տրամադրել դրանք սեսիայի սեփականատիրոջը GET /v1/me/sessions/{id}/messages-ի միջոցով: Լռելյայն անջատված է. քայլերը չեն գրանցվում, եթե այս դրոշակը միացված չէ: Երբեք չի գրանցվում noLog API բանալիների համար:"
 }

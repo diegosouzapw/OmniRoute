@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Hamkor havolasi",
     "dismissAriaLabel": "Yopish"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models katalogida fikrlash darajasi variantlarini (masalan, -low, -medium, -high) yaratishni o‘chirib qo‘ying."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models katalogida fikrlash darajasi variantlarini (masalan, -low, -medium, -high) yaratishni o‘chirib qo‘ying.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Kodlash agenti seanslari uchun soddalashtirilgan suhbat navbatlarini (foydalanuvchi soʻrovi, assistent javobi, chaqirilgan vositalar) yozib olish va ularni seans egasiga GET /v1/me/sessions/{id}/messages orqali taqdim etish. Standart holatda oʻchiq: ushbu parametr yoqilmaguncha navbatlar yozib olinmaydi. noLog API kalitlari uchun hech qachon yozib olinmaydi."
 }

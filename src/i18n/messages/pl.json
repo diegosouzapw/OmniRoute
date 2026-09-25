@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Link partnerski",
     "dismissAriaLabel": "Zamknij"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Wyłącz generowanie wariantów poziomu rozumowania (np. -low, -medium, -high) w katalogu /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Wyłącz generowanie wariantów poziomu rozumowania (np. -low, -medium, -high) w katalogu /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Rejestruj uproszczone tury konwersacji (prompt użytkownika, odpowiedź asystenta, wywołane narzędzia) dla sesji agenta kodującego i udostępniaj je właścicielowi sesji przez GET /v1/me/sessions/{id}/messages. Domyślnie wyłączone: tury nie są rejestrowane, dopóki ta flaga nie zostanie włączona. Nigdy nierejestrowane w przypadku kluczy API noLog."
 }

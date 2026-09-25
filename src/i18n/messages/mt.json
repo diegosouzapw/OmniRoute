@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Link tas-sieħeb",
     "dismissAriaLabel": "Agħlaq"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Itfi l-ġenerazzjoni ta’ varjanti tal-livell ta’ ħsieb (eż. -low, -medium, -high) fil-katalgu /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Itfi l-ġenerazzjoni ta’ varjanti tal-livell ta’ ħsieb (eż. -low, -medium, -high) fil-katalgu /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Ikkattura dawriet ta' konversazzjoni simplifikati (prompt tal-utent, tweġiba tal-assistent, għodod imsejħa) għal sessjonijiet ta' coding-agent u esponihom permezz ta' GET /v1/me/sessions/{id}/messages lis-sid tas-sessjoni. Mitfi awtomatikament: id-dawriet ma jiġux ikkatturati sakemm din il-flag ma tkunx attivata. Qatt ma jiġu kkatturati għal noLog API keys."
 }

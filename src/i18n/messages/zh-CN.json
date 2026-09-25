@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "合作伙伴链接",
     "dismissAriaLabel": "关闭"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "禁用在 /v1/models 目录中生成思考级别变体（例如 -low、-medium、-high）。"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "禁用在 /v1/models 目录中生成思考级别变体（例如 -low、-medium、-high）。",
+  "featureFlagAgentSessionMessagesEnabledDescription": "捕获 coding-agent 会话的简化对话轮次（用户提示词、助手响应、调用的工具），并通过 GET /v1/me/sessions/{id}/messages 提供给会话所有者。默认关闭：除非启用此标志，否则不会捕获轮次。对于 noLog API 密钥，绝不捕获。"
 }

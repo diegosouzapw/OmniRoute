@@ -39,6 +39,7 @@ import {
   hasAgentIdentity,
   type AgentContext,
 } from "@omniroute/open-sse/handlers/chatCore/agentContext.ts";
+import { saveAgentSessionMessage } from "../db/agentSessionMessages";
 import {
   recordAgentSessionUsage,
   type AgentSessionTokens,
@@ -759,6 +760,12 @@ export interface UsageEntry {
   cpaAuthIndex?: string | null;
   /** Coding-agent session and project of the request; attributes the row to an agent session. */
   agentContext?: AgentContext | null;
+  sessionTurn?: {
+    userText?: string | null;
+    assistantText?: string | null;
+    toolNames?: string[] | null;
+    truncated?: boolean;
+  } | null;
 }
 
 /** Session counters for this request, priced now so reports keep the price at request time. */
@@ -873,6 +880,25 @@ export async function saveRequestUsage(entry: UsageEntry) {
       const agentSessionId = agentSessionUsage
         ? recordAgentSessionUsage(db, agentSessionUsage)
         : null;
+
+      if (agentSessionId && entry.sessionTurn) {
+        try {
+          saveAgentSessionMessage(db, {
+            sessionId: agentSessionId,
+            apiKeyId: entry.apiKeyId,
+            timestamp,
+            provider: entry.provider ? resolveProviderId(entry.provider) : null,
+            model: entry.model || null,
+            success: entry.success !== false,
+            userText: entry.sessionTurn.userText,
+            assistantText: entry.sessionTurn.assistantText,
+            toolNames: entry.sessionTurn.toolNames,
+            truncated: entry.sessionTurn.truncated,
+          });
+        } catch (turnErr) {
+          console.error("Failed to save agent session message:", turnErr);
+        }
+      }
 
       db.prepare(
         `

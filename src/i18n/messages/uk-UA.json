@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Партнерське посилання",
     "dismissAriaLabel": "Закрити"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Вимкнути створення варіантів рівня міркування (наприклад, -low, -medium, -high) у каталозі /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Вимкнути створення варіантів рівня міркування (наприклад, -low, -medium, -high) у каталозі /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Фіксувати спрощені репліки діалогу (запит користувача, відповідь асистента, викликані інструменти) для сесій кодинг-агентів і надавати до них доступ через GET /v1/me/sessions/{id}/messages власнику сесії. За замовчуванням вимкнено: репліки не фіксуються, якщо цей прапорець не ввімкнено. Ніколи не фіксуються для API-ключів noLog."
 }

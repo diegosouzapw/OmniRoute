@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "പങ്കാളി ലിങ്ക്",
     "dismissAriaLabel": "അടയ്ക്കുക"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models കാറ്റലോഗിൽ ചിന്താതല വേരിയന്റുകൾ (ഉദാ. -low, -medium, -high) സൃഷ്ടിക്കുന്നത് പ്രവർത്തനരഹിതമാക്കുക."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models കാറ്റലോഗിൽ ചിന്താതല വേരിയന്റുകൾ (ഉദാ. -low, -medium, -high) സൃഷ്ടിക്കുന്നത് പ്രവർത്തനരഹിതമാക്കുക.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "കോഡിംഗ്-ഏജന്റ് സെഷനുകൾക്കായി ലളിതമാക്കിയ സംഭാഷണ ഘട്ടങ്ങൾ (യൂസർ പ്രോംപ്റ്റ്, അസിസ്റ്റന്റ് പ്രതികരണം, കോൾ ചെയ്ത ടൂളുകൾ) ക്യാപ്‌ചർ ചെയ്യുകയും സെഷൻ ഉടമയ്ക്ക് GET /v1/me/sessions/{id}/messages വഴി അവ ലഭ്യമാക്കുകയും ചെയ്യുക. സ്ഥിരസ്ഥിതിയായി ഓഫാണ്: ഈ ഫ്ലാഗ് പ്രവർത്തനക്ഷമമാക്കിയില്ലെങ്കിൽ ടേണുകൾ ക്യാപ്‌ചർ ചെയ്യില്ല. noLog API കീകൾക്കായി ഒരിക്കലും ക്യാപ്‌ചർ ചെയ്യില്ല."
 }

@@ -8,6 +8,7 @@ import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
 import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
 
 import { getDbInstance } from "./core";
+import { deleteAgentSessionMessagesBefore } from "./agentSessionMessages";
 import { getUserDatabaseSettings } from "./databaseSettings";
 import {
   describeReclaim,
@@ -99,6 +100,28 @@ export async function cleanupCallLogs(): Promise<CleanupResult> {
 /**
  * Clean up old usage_history based on retention settings.
  */
+
+/**
+ * Clean up old agent_session_messages based on retention settings.
+ */
+export async function cleanupAgentSessionMessages(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+  const retentionDays = retention.usageHistory;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+  try {
+    result.deleted = deleteAgentSessionMessagesBefore(db, cutoffISO);
+  } catch (err) {
+    result.errors++;
+    console.error("[Cleanup] Error cleaning agent_session_messages:", err);
+  }
+  return result;
+}
+
 export async function cleanupUsageHistory(): Promise<CleanupResult> {
   const db = getDbInstance();
   const retention = getRetentionSettings();
@@ -686,6 +709,7 @@ export async function runAutoCleanup(): Promise<{
     quotaSnapshots: await cleanupQuotaSnapshots(),
     callLogs: await cleanupCallLogs(),
     usageHistory: await cleanupUsageHistory(),
+    agentSessionMessages: await cleanupAgentSessionMessages(),
     compressionAnalytics: await cleanupCompressionAnalytics(),
     compressionEngineBreakdown: await cleanupCompressionEngineBreakdown(),
     mcpAudit: await cleanupMcpAudit(),
@@ -854,6 +878,12 @@ const RESET_TARGETS: Array<
   DeleteByPeriodTarget & { resultKey: keyof ResetUsageHistoryResult; allOnly?: boolean }
 > = [
   { table: "usage_history", column: "timestamp", cutoff: "iso", resultKey: "deletedUsageHistory" },
+  {
+    table: "agent_session_messages",
+    column: "timestamp",
+    cutoff: "iso",
+    resultKey: "deletedAgentSessionMessages",
+  },
   {
     table: "daily_usage_summary",
     column: "date",

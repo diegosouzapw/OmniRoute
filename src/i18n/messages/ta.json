@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "கூட்டாளர் இணைப்பு",
     "dismissAriaLabel": "மூடு"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models பட்டியலில் thinking level variants (எ.கா. -low, -medium, -high) உருவாக்கப்படுவதை முடக்கவும்."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models பட்டியலில் thinking level variants (எ.கா. -low, -medium, -high) உருவாக்கப்படுவதை முடக்கவும்.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "coding-agent அமர்வுகளுக்கான எளிமைப்படுத்தப்பட்ட உரையாடல் சுற்றுகளைப் (பயனர் prompt, உதவியாளர் பதில், அழைக்கப்பட்ட கருவிகள்) பதிவுசெய்து, அமர்வு உரிமையாளருக்கு GET /v1/me/sessions/{id}/messages வழியாக அவற்றை வெளிப்படுத்துங்கள். இயல்பாகவே முடக்கப்பட்டுள்ளது: இந்த flag இயக்கப்படாவிட்டால் சுற்றுகள் பதிவு செய்யப்படாது. noLog API விசைகளுக்கு ஒருபோதும் பதிவு செய்யப்படாது."
 }

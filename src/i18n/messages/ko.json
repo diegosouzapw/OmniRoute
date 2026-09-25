@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "파트너 링크",
     "dismissAriaLabel": "닫기"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models 카탈로그에서 사고 수준 변형(예: -low, -medium, -high)이 생성되지 않도록 설정합니다."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models 카탈로그에서 사고 수준 변형(예: -low, -medium, -high)이 생성되지 않도록 설정합니다.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "코딩 에이전트 세션의 간소화된 대화 턴(사용자 프롬프트, 어시스턴트 응답, 호출된 도구)을 캡처하여 세션 소유자에게 GET /v1/me/sessions/{id}/messages를 통해 제공합니다. 기본적으로 꺼져 있으며, 이 플래그를 활성화하지 않으면 턴이 캡처되지 않습니다. noLog API 키의 경우 절대 캡처되지 않습니다."
 }

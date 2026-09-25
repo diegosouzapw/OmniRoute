@@ -236,3 +236,5 @@ export function hasAgentIdentity(
 ): context is AgentContext {
   return Boolean(context?.clientSessionId || context?.projectName);
 }
+
+export { resolveSessionTurn } from "./agentSessionTurn.ts";

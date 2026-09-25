@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "رابط الشريك",
     "dismissAriaLabel": "إغلاق"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "تعطيل إنشاء متغيرات مستوى التفكير (مثل -low و-medium و-high) في كتالوج /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "تعطيل إنشاء متغيرات مستوى التفكير (مثل -low و-medium و-high) في كتالوج /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "تسجيل جولات المحادثة المبسطة (مطالبة المستخدم، رد المساعد، الأدوات المستدعاة) لجلسات وكيل البرمجة وإتاحتها عبر GET /v1/me/sessions/{id}/messages لمالك الجلسة. معطّل افتراضيًا: لا يتم تسجيل الجولات ما لم يتم تفعيل هذا الخيار. لا يتم تسجيلها أبدًا لمفاتيح API التي تستخدم noLog."
 }

@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "ลิงก์พาร์ทเนอร์",
     "dismissAriaLabel": "ปิด"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "ปิดใช้งานการสร้างโมเดลรูปแบบย่อยตามระดับการคิด (เช่น -low, -medium, -high) ในแค็ตตาล็อก /v1/models"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "ปิดใช้งานการสร้างโมเดลรูปแบบย่อยตามระดับการคิด (เช่น -low, -medium, -high) ในแค็ตตาล็อก /v1/models",
+  "featureFlagAgentSessionMessagesEnabledDescription": "บันทึกรอบการสนทนาแบบย่อ (พรอมต์ของผู้ใช้, การตอบกลับของผู้ช่วย, เครื่องมือที่ถูกเรียกใช้) สำหรับเซสชัน coding-agent และเปิดให้เจ้าของเซสชันเข้าถึงผ่าน GET /v1/me/sessions/{id}/messages ปิดใช้งานตามค่าเริ่มต้น: จะไม่บันทึกรอบการสนทนาเว้นแต่จะเปิดใช้งานแฟล็กนี้ จะไม่มีการบันทึกสำหรับ API key แบบ noLog"
 }

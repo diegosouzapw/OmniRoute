@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "合作夥伴連結",
     "dismissAriaLabel": "關閉"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "停用在 /v1/models 目錄中產生思考層級變體（例如 -low、-medium、-high）。"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "停用在 /v1/models 目錄中產生思考層級變體（例如 -low、-medium、-high）。",
+  "featureFlagAgentSessionMessagesEnabledDescription": "擷取 coding-agent 工作階段的簡化對話輪次（使用者提示、助理回覆、呼叫的工具），並透過 GET /v1/me/sessions/{id}/messages 提供給工作階段擁有者。預設為關閉：除非啟用此旗標，否則不會擷取輪次。對於 noLog API 金鑰一律不進行擷取。"
 }

@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Partnerlink",
     "dismissAriaLabel": "Luk"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Deaktivér genereringen af varianter af tænkeniveau (f.eks. -low, -medium, -high) i /v1/models-kataloget."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Deaktivér genereringen af varianter af tænkeniveau (f.eks. -low, -medium, -high) i /v1/models-kataloget.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Registrer forenklede samtalerunder (brugerprompt, assistentsvar, kaldte værktøjer) for coding-agent-sessioner og eksponer dem via GET /v1/me/sessions/{id}/messages for sessionsejeren. Deaktiveret som standard: runder registreres ikke, medmindre dette flag er aktiveret. Registreres aldrig for noLog-API-nøgler."
 }

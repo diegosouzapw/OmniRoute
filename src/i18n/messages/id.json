@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Tautan mitra",
     "dismissAriaLabel": "Tutup"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Nonaktifkan pembuatan varian tingkat pemikiran (misalnya -low, -medium, -high) dalam katalog /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Nonaktifkan pembuatan varian tingkat pemikiran (misalnya -low, -medium, -high) dalam katalog /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Rekam giliran percakapan yang disederhanakan (prompt pengguna, respons asisten, alat yang dipanggil) untuk sesi coding-agent dan sediakan melalui GET /v1/me/sessions/{id}/messages kepada pemilik sesi. Nonaktif secara default: giliran percakapan tidak direkam kecuali flag ini diaktifkan. Tidak pernah direkam untuk kunci API noLog."
 }

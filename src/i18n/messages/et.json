@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Partnerlink",
     "dismissAriaLabel": "Sulge"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Keela mõtlemistaseme variantide (nt -low, -medium, -high) loomine /v1/models kataloogis."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Keela mõtlemistaseme variantide (nt -low, -medium, -high) loomine /v1/models kataloogis.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Jäädvusta koodiagendi seansside lihtsustatud vestlusvoorud (kasutaja viip, assistendi vastus, kutsutud tööriistad) ja tee need seansi omanikule kättesaadavaks GET /v1/me/sessions/{id}/messages kaudu. Vaikimisi välja lülitatud: voore ei jäädvustata, kui see lipp pole lubatud. noLog API-võtmete puhul ei jäädvustata kunagi."
 }

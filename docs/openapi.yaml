@@ -12919,6 +12919,58 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/me/sessions:
+    get:
+      tags:
+        - V1 Me
+      summary: "GET me › sessions"
+      description: List agent sessions opened by the calling API key.
+      responses:
+        "200":
+          description: OK
+  /api/v1/me/sessions/{id}:
+    get:
+      tags:
+        - V1 Me
+      summary: "GET me › sessions › <id>"
+      description: Get details and recent requests of a session owned by the calling API key.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Session not found
+  /api/v1/me/sessions/{id}/messages:
+    get:
+      tags:
+        - V1 Me
+      summary: "GET me › sessions › <id> › messages"
+      description: Simplified conversation turns for a session owned by the calling API key.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          schema:
+            type: integer
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Session not found
   /api/v1/models/{model}:
     get:
       tags:

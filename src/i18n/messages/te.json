@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "భాగస్వామి లింక్",
     "dismissAriaLabel": "మూసివేయి"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models కేటలాగ్లో ఆలోచనా స్థాయి వేరియంట్ల (ఉదా. -low, -medium, -high) సృష్టిని నిలిపివేయండి."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models కేటలాగ్లో ఆలోచనా స్థాయి వేరియంట్ల (ఉదా. -low, -medium, -high) సృష్టిని నిలిపివేయండి.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "కోడింగ్-ఏజెంట్ సెషన్‌ల కోసం సరళీకృత సంభాషణ టర్న్‌లను (యూజర్ ప్రాంప్ట్, అసిస్టెంట్ రెస్పాన్స్, కాల్ చేయబడిన టూల్స్) క్యాప్చర్ చేయండి మరియు GET /v1/me/sessions/{id}/messages ద్వారా సెషన్ ఓనర్‌కు వాటిని అందుబాటులో ఉంచండి. డిఫాల్ట్‌గా ఆఫ్ చేయబడింది: ఈ ఫ్లాగ్ ప్రారంభించబడితే తప్ప టర్న్‌లు క్యాప్చర్ చేయబడవు. noLog API కీల కోసం ఎప్పుడూ క్యాప్చర్ చేయబడదు."
 }

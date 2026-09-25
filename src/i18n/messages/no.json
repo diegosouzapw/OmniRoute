@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Partnerlenke",
     "dismissAriaLabel": "Lukk"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Deaktiver generering av varianter for resonneringsnivå (f.eks. -low, -medium, -high) i /v1/models-katalogen."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Deaktiver generering av varianter for resonneringsnivå (f.eks. -low, -medium, -high) i /v1/models-katalogen.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Registrer forenklede samtalevendinger (brukerprompt, assistentrespons, kalte verktøy) for kodeagent-økter og eksponer dem via GET /v1/me/sessions/{id}/messages for økteieren. Deaktivert som standard: vendinger registreres ikke med mindre dette flagget er aktivert. Registreres aldri for noLog-API-nøkler."
 }

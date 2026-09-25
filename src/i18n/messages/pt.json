@@ -14384,5 +14384,6 @@
     "partnerLinkNote": "Link de parceiro",
     "dismissAriaLabel": "Dispensar"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Desative a geração de variantes de nível de pensamento (por exemplo, -low, -medium, -high) no catálogo /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Desative a geração de variantes de nível de pensamento (por exemplo, -low, -medium, -high) no catálogo /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Captura turnos de conversação simplificados (prompt do utilizador, resposta do assistente, ferramentas chamadas) para sessões de agentes de programação e disponibiliza-os através de GET /v1/me/sessions/{id}/messages ao proprietário da sessão. Desativado por predefinição: os turnos não são capturados a menos que esta flag esteja ativada. Nunca são capturados para chaves de API noLog."
 }
