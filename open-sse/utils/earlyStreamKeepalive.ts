@@ -94,6 +94,29 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
   })}\n\n`
 );
 
+const MAX_RETRY_AFTER_SECONDS = 3600;
+
+/**
+ * Seconds a client should wait before retrying, from the handler's error response:
+ * `Retry-After` (delta-seconds or HTTP-date) first, then OmniRoute's
+ * `x-omniroute-retry-after-seconds`. Clamped to 0..3600; null when neither is usable.
+ */
+function readRetryAfterSeconds(headers: Headers): number | null {
+  for (const name of ["retry-after", "x-omniroute-retry-after-seconds"]) {
+    const raw = headers.get(name)?.trim();
+    if (!raw) continue;
+    let seconds: number | null = null;
+    if (/^\d{1,10}$/.test(raw)) {
+      seconds = Number(raw);
+    } else {
+      const at = Date.parse(raw);
+      if (Number.isFinite(at)) seconds = Math.ceil((at - Date.now()) / 1000);
+    }
+    if (seconds !== null) return Math.min(Math.max(seconds, 0), MAX_RETRY_AFTER_SECONDS);
+  }
+  return null;
+}
+
 /**
  * Reshapes an already-sanitized upstream error body into the Responses API
  * convention (`{"type":"error",...}`) for the dynamic real-upstream-body branch
@@ -103,7 +126,10 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
  * must still produce a non-empty `message` so the client never sees an opaque
  * frame (never crash the stream on a malformed body).
  */
-function buildResponsesErrorDataLine(text: string): string {
+function buildResponsesErrorDataLine(
+  text: string,
+  meta: { status: number; retryAfterSeconds: number | null }
+): string {
   const trimmed = text.trim();
   let parsed: Record<string, unknown> | null = null;
   if (trimmed) {
@@ -125,6 +151,15 @@ function buildResponsesErrorDataLine(text: string): string {
     "Upstream stream failed before completion.";
   const code = (typeof errorObj?.code === "string" && errorObj.code) || null;
   const param = (typeof errorObj?.param === "string" && errorObj.param) || null;
+  // The HTTP status and retry hint are already lost once the stream committed to 200;
+  // carry them in-band so clients can still tell permanent from transient failures.
+  // `error_type` (not `type`): top-level `type` is the Responses event discriminator.
+  const errorType = typeof errorObj?.type === "string" && errorObj.type ? errorObj.type : null;
+  const statusFields = {
+    status_code: meta.status,
+    ...(errorType ? { error_type: errorType } : {}),
+    ...(meta.retryAfterSeconds !== null ? { retry_after_seconds: meta.retryAfterSeconds } : {}),
+  };
   const extras =
     parsed && typeof parsed.diagnostics === "object" && parsed.diagnostics !== null
       ? { diagnostics: parsed.diagnostics }
@@ -136,6 +171,7 @@ function buildResponsesErrorDataLine(text: string): string {
     param,
     // #14330: was hardcoded to 0 — see OPENAI_RESPONSES_ERROR_FRAME above.
     sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+    ...statusFields,
     ...extras,
   });
 }
@@ -190,7 +226,155 @@ export type EarlyStreamKeepaliveOptions = {
    * produced. Omit to leave today's behavior unchanged (no recording).
    */
   correlationId?: string;
+  /**
+   * Abort controller owned by the route via `withDeadlineSignal` (see below).
+   * The wrapper aborts it when the slow-path deadline expires, so the handler —
+   * which observes the combined signal through the wrapped request — tears down
+   * exactly as on a client disconnect (concurrency slots released). Omit to run
+   * without a deadline abort (tests may pass a bare controller; routes always
+   * pass the one returned by the helper).
+   */
+  deadlineController?: AbortController | null;
+  /**
+   * Absolute last-resort bound for the slow path, in ms. Internal default
+   * (SLOW_PATH_DEADLINE_MS); non-positive disables. Never an exposed setting.
+   */
+  slowPathDeadlineMs?: number;
+  /**
+   * Minimal logger for the single expiration line. Silent when omitted
+   * (no console output from this module, ever).
+   */
+  log?: { warn: (tag: string, message: string) => void } | null;
 };
+
+/**
+ * Last-resort slow-path deadline: 1 980 000 ms (33 min), derived from the
+ * largest legitimate sequential waits inside the handler, plus margin:
+ * rate-limit queue 300 s + park-and-resume 120 s + cooldown budgets 300 s +
+ * first-byte readiness ceiling 600 s = 1 320 s, + 660 s margin (~50%).
+ * Anything pending past this point is a stuck handler, not legitimate work.
+ * Internal constant, never an exposed setting — routes share this default.
+ */
+export const SLOW_PATH_DEADLINE_MS = 1_980_000;
+
+const deadlineControllers = new WeakMap<object, AbortController>();
+// Lookup fallback across downstream rebuilds: `clone()` and admission
+// `rebuildRequest` create NEW signal objects (verified: not identical, but
+// following), so a signal-keyed map misses inside postHandler. The rebuilds DO
+// preserve headers (`new Headers(request.headers)`), so the helper stamps an
+// internal token header and registers the controller under that token too.
+const DEADLINE_TOKEN_HEADER = "x-deadline-token";
+const deadlineControllersByToken = new Map<string, WeakRef<AbortController>>();
+const deadlineTokenByController = new WeakMap<AbortController, string>();
+let deadlineTokenSeq = 0;
+// The token map is keyed by strings, so its entries would otherwise outlive the
+// request forever (one per streamed request → unbounded growth). Three layers keep
+// it bounded: an explicit release when the keepalive wrapper finishes (settle,
+// abort, cancel or expiry), a FinalizationRegistry backstop for requests that never
+// reach the wrapper (non-streaming paths), and a hard size cap as a last resort.
+const MAX_DEADLINE_TOKENS = 10_000;
+const deadlineTokenFinalizer =
+  typeof FinalizationRegistry === "function"
+    ? new FinalizationRegistry<string>((token) => {
+        const ref = deadlineControllersByToken.get(token);
+        if (!ref || !ref.deref()) deadlineControllersByToken.delete(token);
+      })
+    : null;
+
+/**
+ * Drops the rebuild-fallback token entry for a deadline controller. Idempotent;
+ * safe to call with null. The controller itself stays usable (abort still works).
+ */
+export function releaseDeadlineController(controller: AbortController | null | undefined): void {
+  if (!controller) return;
+  const token = deadlineTokenByController.get(controller);
+  if (!token) return;
+  deadlineTokenByController.delete(controller);
+  const ref = deadlineControllersByToken.get(token);
+  if (ref && ref.deref() === controller) deadlineControllersByToken.delete(token);
+  try {
+    deadlineTokenFinalizer?.unregister(controller);
+  } catch {
+    /* never throw from cleanup */
+  }
+}
+
+/** Test-only: live size of the token fallback map. */
+export function __getDeadlineTokenRegistrySizeForTests(): number {
+  return deadlineControllersByToken.size;
+}
+
+/**
+ * Route-side half of the slow-path deadline contract. Creates the internal
+ * deadline controller and returns it alongside a request whose signal follows
+ * both the client signal and the deadline (`AbortSignal.any`), so the handler
+ * observes a deadline abort exactly like a client disconnect.
+ *
+ * The wrapped request MUST be the one the route hands downstream (admission,
+ * body parse, `handleChat`): the handler snapshots `request.signal` after
+ * admission, so wrapping after that point would not propagate. Rebuilt via
+ * `new Request(request, { signal, headers })`, which preserves method, url and
+ * body byte-for-byte.
+ *
+ * Controller recovery downstream (`getDeadlineController`) is two-layered:
+ * the combined signal object (fast path — same object when nothing rebuilds),
+ * plus an internal header token (rebuild path — `clone()` and admission
+ * `rebuildRequest` mint new signal objects but copy headers). The token header
+ * is scrubbed from the client-log envelope and executor client headers (same
+ * treatment as the existing `x-omniroute-lease-*` control headers), so it never
+ * reaches any upstream.
+ */
+export function withDeadlineSignal(request: Request): {
+  wrappedReq: Request;
+  deadlineController: AbortController;
+} {
+  const deadlineController = new AbortController();
+  const combined = request.signal
+    ? AbortSignal.any([request.signal, deadlineController.signal])
+    : deadlineController.signal;
+  const headers = new Headers(request.headers);
+  // Internal routing token only (never logged, never forwarded upstream — the
+  // handler builds upstream headers from an allowlist). Survives clone() and
+  // admission rebuilds, which both copy headers but mint new signal objects.
+  const token = `dl-${Date.now().toString(36)}-${(deadlineTokenSeq += 1)}`;
+  headers.set(DEADLINE_TOKEN_HEADER, token);
+  const wrappedReq = new Request(request, { signal: combined, headers });
+  deadlineControllers.set(combined, deadlineController);
+  deadlineControllersByToken.set(token, new WeakRef(deadlineController));
+  deadlineTokenByController.set(deadlineController, token);
+  deadlineTokenFinalizer?.register(deadlineController, token, deadlineController);
+  while (deadlineControllersByToken.size > MAX_DEADLINE_TOKENS) {
+    const oldest = deadlineControllersByToken.keys().next().value;
+    if (oldest === undefined) break;
+    deadlineControllersByToken.delete(oldest);
+  }
+  return { wrappedReq, deadlineController };
+}
+
+/**
+ * Returns the deadline controller for a wrapped request, or null when the
+ * request did not come from `withDeadlineSignal`. Survives downstream rebuilds
+ * (`clone()`, admission `rebuildRequest`): those mint new signal objects (so the
+ * signal-keyed map misses) but preserve headers, where the internal token
+ * re-links to the same controller.
+ */
+export function getDeadlineController(request: {
+  signal?: AbortSignal | null;
+  headers?: Headers;
+}): AbortController | null {
+  const signal = request?.signal ?? null;
+  if (signal) {
+    const direct = deadlineControllers.get(signal);
+    if (direct) return direct;
+  }
+  try {
+    const token = request?.headers?.get(DEADLINE_TOKEN_HEADER);
+    if (token) return deadlineControllersByToken.get(token)?.deref() ?? null;
+  } catch {
+    /* header access must never throw */
+  }
+  return null;
+}
 
 /**
  * Tagged with a string rather than an `ok: true | false` boolean: this workspace compiles
@@ -248,6 +432,13 @@ export async function withEarlyStreamKeepalive(
         }
       })();
   const correlationId = options.correlationId;
+  const deadlineController = options.deadlineController ?? null;
+  // Absolute last-resort bound, started at wrapper call time (not at slow-path
+  // commit): covers fast-path stalls too, and stays exact when the deadline is
+  // shorter than the threshold. Non-positive disables (explicit opt-out).
+  const slowPathDeadlineMs = options.slowPathDeadlineMs ?? SLOW_PATH_DEADLINE_MS;
+  const deadlineEnabled = Number.isFinite(slowPathDeadlineMs) && slowPathDeadlineMs > 0;
+  const warn = options.log?.warn ?? null;
   const frameDecoder = correlationId ? new TextDecoder() : null;
   // Records every direct-to-client write EXCEPT the forwarded real response
   // body — that one is already captured by the handler's own reqLogger, so
@@ -265,6 +456,21 @@ export async function withEarlyStreamKeepalive(
   );
 
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
+  if (deadlineEnabled) {
+    deadlineTimer = setTimeout(() => {
+      try {
+        deadlineController?.abort();
+      } catch {
+        /* abort must never throw */
+      }
+    }, slowPathDeadlineMs);
+    // NOTE: no unref on the deadline timer — it is the last-resort guarantee.
+    // An unref'd timer lets a bare-node event loop drain (and a test runner go
+    // idle) before firing, which would silently disable the deadline whenever
+    // the process has no other pending work. The keepalive interval above stays
+    // unref'd (throughput optimization); the deadline stays ref'd (correctness).
+  }
   const raced = await Promise.race([
     settled.then((result) => ({ kind: "settled" as const, result })),
     new Promise<{ kind: "timeout" }>((resolve) => {
@@ -275,6 +481,8 @@ export async function withEarlyStreamKeepalive(
 
   if (raced.kind === "settled") {
     // Fast path — return verbatim, or rethrow so the route's normal error handling runs.
+    if (deadlineTimer) clearTimeout(deadlineTimer);
+    releaseDeadlineController(deadlineController);
     const result = raced.result;
     if (result.status === "fulfilled") return result.response;
     throw result.error;
@@ -286,6 +494,13 @@ export async function withEarlyStreamKeepalive(
   let stopKeepalive = () => {};
   let upstreamReader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   let aborted = false;
+  const stopDeadline = () => {
+    if (deadlineTimer) {
+      clearTimeout(deadlineTimer);
+      deadlineTimer = undefined;
+    }
+    releaseDeadlineController(deadlineController);
+  };
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -330,6 +545,7 @@ export async function withEarlyStreamKeepalive(
       const onAbort = () => {
         if (aborted) return;
         aborted = true;
+        stopDeadline();
         stopKeepalive();
         upstreamReader?.cancel().catch(() => {});
         try {
@@ -338,6 +554,51 @@ export async function withEarlyStreamKeepalive(
           /* already closed */
         }
       };
+      const onExpired = () => {
+        // Absolute last resort: the handler never resolved within the deadline.
+        // Abort the route-owned controller (the handler observes it exactly like
+        // a client disconnect and releases its concurrency slots), emit the
+        // route's error frame in-band, log one correlated line, and close.
+        // Never the raw error — same generic frame as a handler failure.
+        if (aborted) return;
+        aborted = true;
+        stopDeadline();
+        stopKeepalive();
+        try {
+          deadlineController?.abort();
+        } catch {
+          /* abort must never throw */
+        }
+        try {
+          controller.enqueue(errorFrame);
+          recordClientBytes(errorFrame);
+        } catch {
+          /* consumer gone */
+        }
+        try {
+          warn?.(
+            "EARLY_KEEPALIVE",
+            `slow-path deadline expired after ${slowPathDeadlineMs}ms` +
+              (correlationId ? ` correlationId=${correlationId}` : "")
+          );
+        } catch {
+          /* logging must never break the stream */
+        }
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
+      };
+      let deadlineListenerAttached = false;
+      if (deadlineEnabled && deadlineController) {
+        if (deadlineController.signal.aborted) {
+          onExpired();
+        } else {
+          deadlineController.signal.addEventListener("abort", onExpired, { once: true });
+          deadlineListenerAttached = true;
+        }
+      }
       signal?.addEventListener("abort", onAbort, { once: true });
       // addEventListener does not replay an abort that happened before registration.
       // Checking after registration closes that gap without missing a concurrent abort.
@@ -345,6 +606,7 @@ export async function withEarlyStreamKeepalive(
 
       try {
         const result = await settled;
+        stopDeadline();
         stopKeepalive();
         if (aborted) {
           // The synthetic keepalive response can be cancelled before the handler resolves.
@@ -396,7 +658,10 @@ export async function withEarlyStreamKeepalive(
             const text = response.body ? await response.text().catch(() => "") : "";
             const dataLine =
               errorFrameFormat === "responses"
-                ? buildResponsesErrorDataLine(text)
+                ? buildResponsesErrorDataLine(text, {
+                    status: response.status,
+                    retryAfterSeconds: readRetryAfterSeconds(response.headers),
+                  })
                 : text.trim() ||
                   JSON.stringify({ error: { message: "stream_error", type: "stream_error" } });
             const framed =
@@ -419,8 +684,12 @@ export async function withEarlyStreamKeepalive(
           }
         }
       } finally {
+        stopDeadline();
         stopKeepalive();
         signal?.removeEventListener("abort", onAbort);
+        if (deadlineListenerAttached && deadlineController) {
+          deadlineController.signal.removeEventListener("abort", onExpired);
+        }
         try {
           controller.close();
         } catch {
@@ -431,6 +700,7 @@ export async function withEarlyStreamKeepalive(
     cancel() {
       // Consumer (Next.js → client) went away — stop keepalives and release the upstream.
       aborted = true;
+      stopDeadline();
       stopKeepalive();
       upstreamReader?.cancel().catch(() => {});
     },

@@ -1,0 +1,1 @@
+- **feat(opencode):** bound the Responses headers wait with an opt-in rotation budget ([#14558](https://github.com/diegosouzapw/OmniRoute/pull/14558)) — thanks @maxmad64bis

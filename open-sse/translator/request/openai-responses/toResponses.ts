@@ -405,6 +405,30 @@ export function openaiToOpenAIResponsesRequest(
   if (root.conversation_id !== undefined) {
     result.conversation_id = root.conversation_id;
   }
+
+  // GitHub Copilot /responses (and OpenAI) reject a body that has neither a
+  // non-empty `input` nor previous_response_id / prompt / conversation:
+  //   400 One of "input" or "previous_response_id" or 'prompt' or 'conversation'
+  //       must be provided.
+  // System-only turns, empty messages, and orphan-filtered tool results can all
+  // leave input:[] here. Inject a placeholder user item unless a continuity
+  // field already satisfies the validator (mirrors the reverse direction in
+  // openai-responses.ts — 9router#419).
+  if (Array.isArray(result.input) && result.input.length === 0) {
+    const hasContinuity =
+      (typeof result.previous_response_id === "string" && result.previous_response_id.length > 0) ||
+      (typeof result.conversation_id === "string" && result.conversation_id.length > 0) ||
+      (typeof result.prompt === "string" && result.prompt.length > 0);
+    if (!hasContinuity) {
+      result.input = [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "..." }],
+        },
+      ];
+    }
+  }
   if (root.service_tier !== undefined) result.service_tier = root.service_tier;
   if (root.temperature !== undefined) result.temperature = root.temperature;
   // Translate max_tokens / max_completion_tokens → max_output_tokens for Responses API.

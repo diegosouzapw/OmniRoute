@@ -16,10 +16,19 @@ import {
   isLocalExecutionError,
   isModelCapacityOverloadError,
 } from "@/shared/utils/circuitBreaker";
-import { CONTEXT_OVERFLOW_PATTERNS, cooldownUntilMs } from "../accountFallback.ts";
+import {
+  CONTEXT_OVERFLOW_PATTERNS,
+  PARAM_VALIDATION_PATTERNS,
+  RATE_LIMIT_TEXT_PATTERNS,
+  AUTH_CREDENTIAL_ERROR_PATTERNS,
+  isProviderModelUnsupported400,
+  cooldownUntilMs,
+} from "../accountFallback.ts";
+import { isRequestScoped400 } from "../accountFallback/requestScoped400.ts";
 import { isResourceNotFoundResponse } from "../errorClassifier.ts";
 import { isOpencodeFreeTierRefusal } from "../../executors/opencodeGeoBlock.ts";
 import { getTrustedLocalRateLimitResponse } from "../rateLimitManager/errors.ts";
+import { TRANSLATION_FAILURE_CODE } from "../../handlers/chatCore/translationFailure.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 import type { ComboErrorEntry } from "./comboErrorAggregation.ts";
 
@@ -347,11 +356,38 @@ export function shouldSkipConnDisable(
     errorCode?: string | null;
     errorType?: string | null;
     error?: unknown;
+    rawMessage?: string | null;
   },
   is401: boolean,
   hasExtraKeys: boolean,
   provider: string
 ): boolean {
+  let errorText = "";
+  if (typeof result.rawMessage === "string") {
+    errorText = result.rawMessage;
+  } else if (typeof result.error === "string") {
+    errorText = result.error;
+  } else if (result.error instanceof Error) {
+    errorText = result.error.message;
+  } else if (result.error && typeof result.error === "object") {
+    const errObj = result.error as Record<string, unknown>;
+    if (typeof errObj.message === "string") {
+      errorText = errObj.message;
+    } else if (typeof errObj.error === "string") {
+      errorText = errObj.error;
+    }
+  }
+  const isReqScoped400 =
+    isRequestScoped400(result.status, errorText) ||
+    isProviderModelUnsupported400(result.status, errorText) ||
+    isParamValidation400(errorText) ||
+    (result.status === 400 &&
+      !RATE_LIMIT_TEXT_PATTERNS.some((p) => p.test(errorText)) &&
+      !AUTH_CREDENTIAL_ERROR_PATTERNS.some((p) => p.test(errorText)) &&
+      (isInputBoundRequestFailure({ code: result.errorCode, type: result.errorType }) ||
+        result.errorCode === "context_length_exceeded" ||
+        result.errorType === "context_length_exceeded"));
+
   return (
     result.status === 499 ||
     result.errorCode === "client_disconnected" ||
@@ -363,9 +399,12 @@ export function shouldSkipConnDisable(
     (result.response ? getTrustedLocalRateLimitResponse(result.response) !== null : false) ||
     result.errorCode === "plugin_block" ||
     result.errorType === "plugin_block" ||
+    // #14815: translation fails locally on the client's body — no account is at fault.
+    result.errorCode === TRANSLATION_FAILURE_CODE ||
     (is401 && hasExtraKeys) ||
     isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) ||
-    isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider)
+    isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider) ||
+    isReqScoped400
   );
 }
 
@@ -443,6 +482,37 @@ export function isTokenLimitBreachErrorBody(errorBody: unknown): boolean {
   const error = (errorBody as Record<string, unknown>).error;
   if (!error || typeof error !== "object") return false;
   return (error as Record<string, unknown>).code === "TOKEN_LIMIT_EXCEEDED";
+}
+
+/**
+ * A local per-API-key POLICY breach: this OmniRoute instance refused the
+ * candidate before dispatch because of the key's own limits, not because an
+ * upstream said no. Today that is the token-limit 429 above and the metered
+ * dollar-budget 429 ("BUDGET_EXCEEDED", see handleSingleModelChat in
+ * src/sse/handlers/chat.ts).
+ *
+ * Both share one consequence: the shared account/provider is healthy and must
+ * not be cooled, deprioritised or retried as if an upstream had rate-limited
+ * it. They differ in what comes next, and the combo loop gets that right
+ * without another flag — a token limit is key-scoped, so every remaining
+ * candidate breaches it too and the loop runs out of targets; a budget breach
+ * is scoped to candidates that draw on the allowance, so the loop advances and
+ * a flat-rate candidate still serves the request.
+ */
+export function isLocalKeyPolicyBreachErrorBody(errorBody: unknown): boolean {
+  return isTokenLimitBreachErrorBody(errorBody) || isBudgetBreachErrorBody(errorBody);
+}
+
+/**
+ * The metered dollar budget refused this candidate before dispatch — see the
+ * eligibility gate in handleSingleModelChat. Only candidates that DRAW on the
+ * allowance can raise it, so it is never a verdict on the combo as a whole.
+ */
+export function isBudgetBreachErrorBody(errorBody: unknown): boolean {
+  if (!errorBody || typeof errorBody !== "object") return false;
+  const error = (errorBody as Record<string, unknown>).error;
+  if (!error || typeof error !== "object") return false;
+  return (error as Record<string, unknown>).code === "BUDGET_EXCEEDED";
 }
 
 /** Local limiter capacity is not an upstream/provider failure and must not cascade. */
@@ -567,11 +637,11 @@ export function getPersistedConnectionCooldownSkipReason(
   connection: Record<string, unknown> | null | undefined,
   allowRateLimitedConnection = false
 ): string | null {
-  if (allowRateLimitedConnection) return null;
   if (!target.connectionId || !connection) return null;
   if (hasFutureRateLimitUntil(connection.rateLimitedUntil)) {
     return `Skipping ${target.modelStr} — connection ${target.connectionId} has persisted cooldown until ${String(connection.rateLimitedUntil)}`;
   }
+  if (allowRateLimitedConnection) return null;
   const status = normalizeConnectionStatus(connection.testStatus);
   if (QUOTA_BLOCKING_CONNECTION_STATUSES.has(status)) {
     return `Skipping ${target.modelStr} — connection ${target.connectionId} status=${status}`;
@@ -622,7 +692,6 @@ export async function resolvePersistedConnectionCooldownSkipReason(
   fetchConnection: (id: string) => Promise<Record<string, unknown> | null | undefined>,
   allowRateLimitedConnection = false
 ): Promise<string | null> {
-  if (allowRateLimitedConnection) return null;
   if (!target.connectionId) return null;
   let connection: Record<string, unknown> | null | undefined;
   try {
@@ -653,6 +722,7 @@ export function isParamValidation400(errorText: string | null | undefined): bool
   return (
     /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(text) ||
     /\bparameter is illegal\b/i.test(text) ||
-    /\bis illegal.*range\b/i.test(text)
+    /\bis illegal.*range\b/i.test(text) ||
+    PARAM_VALIDATION_PATTERNS.some((p) => p.test(text))
   );
 }

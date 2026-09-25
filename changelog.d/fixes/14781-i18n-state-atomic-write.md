@@ -1,0 +1,1 @@
+- **fix(i18n):** the docs translation pipeline now writes `.i18n-state.json` atomically and refuses to start from an unreadable state, so parallel or interrupted runs no longer wipe it down to their own entries (#14781).

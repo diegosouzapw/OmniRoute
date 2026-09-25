@@ -26,6 +26,8 @@ import {
   flattenGrokBuildNamespaceTools,
   restoreGrokBuildNamespaceToolCalls,
 } from "./grokCliNamespaceTools.ts";
+import { stripForeignGrokBuildReasoning } from "./grokCliReasoningReplay.ts";
+import { normalizeGrokBuildToolSchemas } from "./grokCliToolSchema.ts";
 
 const GROK_BUILD_MAX_TOOLS = 200;
 const GROK_BUILD_REASONING_EFFORT_SET = new Set(GROK_BUILD_SUPPORTED_REASONING_EFFORTS);
@@ -157,7 +159,7 @@ function normalizeGrokBuildReasoning(
   }
   if (model === "grok-composer-2.5-fast") {
     delete reasoning.effort;
-  } else if ((model === "grok-4.5" || model === "grok-4.6") && !hasExplicitEffort) {
+  } else if (!hasExplicitEffort) {
     reasoning.effort = GROK_BUILD_DEFAULT_REASONING_EFFORT;
   }
   return Object.keys(reasoning).length > 0 ? reasoning : null;
@@ -354,6 +356,10 @@ export class GrokCliExecutor extends BaseExecutor {
 
     // OpenAI-compatible clients may carry fields the Grok Responses endpoint rejects.
     stripUnsupportedGrokBuildParams(transformed);
+    // Grok Build cannot decrypt reasoning another provider encrypted (e.g. a codex combo turn).
+    if (Array.isArray(transformed.input)) {
+      transformed.input = stripForeignGrokBuildReasoning(transformed.input);
+    }
 
     const reasoning = normalizeGrokBuildReasoning(transformed.reasoning, model);
     if (reasoning) {
@@ -369,6 +375,11 @@ export class GrokCliExecutor extends BaseExecutor {
     // xAI's cli-chat-proxy rejects requests containing more than 200 tools.
     if (Array.isArray(transformed.tools) && transformed.tools.length > GROK_BUILD_MAX_TOOLS) {
       transformed.tools = transformed.tools.slice(0, GROK_BUILD_MAX_TOOLS);
+    }
+    // Grok Build refuses a root anyOf/oneOf with a `$ref` or non-object branch
+    // (`invalid_client_tool_schema`), e.g. Codex desktop's `automation_update`.
+    if (Array.isArray(transformed.tools)) {
+      transformed.tools = normalizeGrokBuildToolSchemas(transformed.tools);
     }
 
     // Repair tool-result payloads that would fail Grok's strict JSON body parser (#7611)

@@ -32,11 +32,20 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("scopeCheck — session auth always passes", () => {
-  assert.strictEqual(scopeCheck(true, "key-1", "key-1"), true);
-  assert.strictEqual(scopeCheck(true, "key-1", "different-key"), true);
+test("scopeCheck — a PURE session (no apiKeyId override) always passes", () => {
+  assert.strictEqual(scopeCheck(true, "key-1", null), true);
   assert.strictEqual(scopeCheck(true, null, null), true);
   assert.strictEqual(scopeCheck(true, undefined, null), true);
+});
+
+// #14481 item 4/LEDGER-19: a session that ALSO carries an apiKeyId override
+// used to bypass ownership entirely (isSessionAuth short-circuited before the
+// override was checked) — a request carrying both a dashboard session cookie
+// and a foreign key was authorized against ANY tenant's record. Fixed: the
+// override is checked first, so session+key is scoped to that key's own rows.
+test("scopeCheck — session+key is scoped to that KEY's own records, not every tenant", () => {
+  assert.strictEqual(scopeCheck(true, "key-1", "key-1"), true);
+  assert.strictEqual(scopeCheck(true, "key-1", "different-key"), false);
 });
 
 test("scopeCheck — a null-owner record is denied to every non-session caller (GHSA-2jm2-mpx8-6523)", () => {

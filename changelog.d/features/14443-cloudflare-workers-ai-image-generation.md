@@ -1,0 +1,1 @@
+- **feat(providers):** add Cloudflare Workers AI image generation (FLUX.1 Schnell, free tier) — reuses the existing `cloudflare-ai` chat provider's Account ID + API Token connection with no new credential type ([#14443](https://github.com/diegosouzapw/OmniRoute/pull/14443)).

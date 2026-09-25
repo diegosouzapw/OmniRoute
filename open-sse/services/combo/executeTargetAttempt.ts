@@ -22,6 +22,7 @@ import {
   errorResponse,
   errorResponseWithComboDiagnostics,
   logRetryHintUnreadable,
+  parseRetryAfterHeader,
   readProseRetryAfter,
 } from "../../utils/error.ts";
 import { recordComboFailure, clearComboFailureTracking } from "./failureTracker.ts";
@@ -63,7 +64,7 @@ import {
   isComboRequestScopedFailure as isScopedFailure,
   isStreamReadinessFailureErrorBody,
   isStreamEarlyEofErrorBody,
-  isTokenLimitBreachErrorBody,
+  isLocalKeyPolicyBreachErrorBody,
   isLocalQueueCapacityErrorBody,
   toRecordedTarget,
   resolveDelayMs,
@@ -714,23 +715,20 @@ export async function executeTargetAttempt(opts: {
             (typeof parsedError === "string" ? parsedError : null) ||
             errorBody?.message ||
             errorText;
-          // Live incident (log id 1784457764961-73 follow-up): the pre-dispatch
-          // "all credentials cooling down" rejection (buildModelCooldownBody /
-          // handleNoCredentials in src/sse/handlers/chatHelpers.ts) nests its
-          // retry hint as error.retry_after (ISO string) / error.reset_seconds
-          // (seconds), not the top-level `retryAfter` every other 429 shape
-          // uses. Without this fallback, lastStatus gets recorded (fixed above)
-          // but earliestRetryAfter stays null, so the final check falls through
-          // to the generic "all combo models unavailable" error instead of ever
-          // reaching the cooldown-wait decision — same class of bug, different
-          // response shape.
-          const nestedRetryAfter =
-            typeof parsedError === "object" ? (parsedError?.retry_after ?? null) : null;
-          const nestedResetSeconds =
-            typeof parsedError === "object" ? (parsedError?.reset_seconds ?? null) : null;
+          // Nested retry hints (live incident 1784457764961-73): reset_at (ISO,
+          // buildErrorBody) is unambiguous and preferred; retry_after is ISO from
+          // buildModelCooldownBody but integer SECONDS from buildErrorBody — coerce
+          // a number to an instant before it can out-race an ISO sibling in the
+          // earliest-retryAfter comparison below. reset_seconds is the last resort.
+          const nestedError = typeof parsedError === "object" ? parsedError : null;
+          const nestedRetryAfterRaw = nestedError?.retry_after ?? null;
+          const nestedResetSeconds = nestedError?.reset_seconds ?? null;
           retryAfter =
             errorBody?.retryAfter ||
-            nestedRetryAfter ||
+            nestedError?.reset_at ||
+            (typeof nestedRetryAfterRaw === "number" && nestedRetryAfterRaw > 0
+              ? new Date(Date.now() + nestedRetryAfterRaw * 1000).toISOString()
+              : nestedRetryAfterRaw) ||
             (typeof nestedResetSeconds === "number" && nestedResetSeconds > 0
               ? new Date(Date.now() + nestedResetSeconds * 1000).toISOString()
               : null);
@@ -742,6 +740,7 @@ export async function executeTargetAttempt(opts: {
       logRetryHintUnreadable(deps.log, "COMBO", modelStr, result.status, "clone failed");
     }
     retryAfter ||= readProseRetryAfter(bodyText); // #13672 opt-in prose retry hints
+    retryAfter ||= parseRetryAfterHeader(result.headers); // header-only shapes (quota-reset-timing)
 
     // Track earliest retryAfter
     if (
@@ -768,8 +767,8 @@ export async function executeTargetAttempt(opts: {
     const isStreamEarlyEof =
       (result.status === 502 || result.status === 504) && isStreamEarlyEofErrorBody(errorBody);
 
-    // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
-    const isTokenLimitBreach = result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+    // FIX 5: a local per-API-key policy 429 (token limit, budget) must not cool shared accounts.
+    const isTokenLimitBreach = result.status === 429 && isLocalKeyPolicyBreachErrorBody(errorBody);
     const isLocalQueueCapacity = isLocalQueueCapacityErrorBody(errorBody);
 
     // Fix #1681: Status 499 means client disconnected — stop combo loop immediately.

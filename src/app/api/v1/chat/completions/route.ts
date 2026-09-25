@@ -16,6 +16,7 @@ import {
   OPENAI_CHAT_ERROR_FRAME,
   OPENAI_KEEPALIVE_FRAME,
   OPENAI_STARTUP_FRAME,
+  withDeadlineSignal,
   withEarlyStreamKeepalive,
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
@@ -119,6 +120,13 @@ export async function POST(request) {
   // Reserve heavyweight capacity atomically and ingest the body with a hard byte bound
   // BEFORE JSON parsing. Missing or dishonest Content-Length values cannot bypass
   // the actual-byte limit. Capacity exhaustion is retryable rather than process-fatal.
+  // The deadline wrap comes first so every downstream consumer (admission, body
+  // parse, handleChat, lease release) observes the combined signal: a deadline
+  // abort then tears the handler down exactly like a client disconnect.
+  const { wrappedReq: deadlineReq, deadlineController: routeDeadlineController } =
+    withDeadlineSignal(request);
+  request = deadlineReq;
+  const routeDeadlineSignal = request.signal;
   const sessionId = resolveSessionId(request);
   const admissionResult = await admitChatRequest(request, {
     sessionId,
@@ -294,15 +302,17 @@ export async function POST(request) {
       const handlerResponse = releaseChatAdmissionAfterHandler(
         handleChat(request, null, parsedBody, reqId),
         admission.lease,
-        { signal: request.signal }
+        { signal: routeDeadlineSignal }
       );
       const streamedResponse = await withEarlyStreamKeepalive(handlerResponse, {
-        signal: request.signal,
+        signal: routeDeadlineSignal,
         thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
         keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
         startupFrame: OPENAI_STARTUP_FRAME,
         errorFrame: OPENAI_CHAT_ERROR_FRAME,
+        correlationId: reqId,
         extraHeaders: { "X-Correlation-Id": reqId },
+        deadlineController: routeDeadlineController,
       });
       return withCompressionHeaderEcho(streamedResponse, compressionRequestHeader);
     }

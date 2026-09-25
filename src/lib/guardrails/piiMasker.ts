@@ -17,8 +17,8 @@ function isRequestPiiMaskingEnabled() {
   return isFeatureFlagEnabled("PII_REDACTION_ENABLED");
 }
 
-function sanitizeStringValue(text: string) {
-  const result = processPII(text, isRequestPiiMaskingEnabled());
+function sanitizeStringValue(text: string, redact: boolean) {
+  const result = processPII(text, redact);
   return {
     detections: result.detections,
     modified: result.text !== text,
@@ -28,10 +28,11 @@ function sanitizeStringValue(text: string) {
 
 function applyToContentValue(
   value: unknown,
-  detections: PiiDetection[]
+  detections: PiiDetection[],
+  redact: boolean
 ): { modified: boolean; value: unknown } {
   if (typeof value === "string") {
-    const result = sanitizeStringValue(value);
+    const result = sanitizeStringValue(value, redact);
     detections.push(...result.detections);
     return {
       modified: result.modified,
@@ -43,7 +44,7 @@ function applyToContentValue(
     let modified = false;
     const nextValue = value.map((entry) => {
       if (typeof entry === "string") {
-        const result = sanitizeStringValue(entry);
+        const result = sanitizeStringValue(entry, redact);
         detections.push(...result.detections);
         modified ||= result.modified;
         return result.text;
@@ -52,7 +53,7 @@ function applyToContentValue(
       if (entry && typeof entry === "object") {
         const record = { ...(entry as JsonRecord) };
         if (typeof record.text === "string") {
-          const result = sanitizeStringValue(record.text);
+          const result = sanitizeStringValue(record.text, redact);
           detections.push(...result.detections);
           modified ||= result.modified;
           record.text = result.text;
@@ -63,10 +64,10 @@ function applyToContentValue(
         // past it: the outer text block was redacted while the tool output next
         // to it reached the provider intact. This is the same call
         // sanitizeMessageLikeList already makes one level up, so the two agree
-        // on how deep masking goes. The payload is a JSON round-trip, so it is
-        // acyclic and the recursion is bounded by its nesting.
+        // on how deep masking goes. The payload was parsed from the request
+        // body, so it is acyclic and the recursion is bounded by its nesting.
         if ("content" in record) {
-          const result = applyToContentValue(record.content, detections);
+          const result = applyToContentValue(record.content, detections, redact);
           modified ||= result.modified;
           record.content = result.value;
         }
@@ -86,7 +87,13 @@ function cloneAndMaskRequestPayload(payload: unknown) {
     return { detections: [] as PiiDetection[], modified: false, payload };
   }
 
-  const clonedPayload: JsonRecord = JSON.parse(JSON.stringify(payload));
+  // The flag is resolved once per payload rather than once per string leaf: a
+  // large agentic body carries thousands of leaves, and every resolution walked
+  // the DB override chain. The top level is copied shallowly and every branch
+  // below rebuilds the containers it touches, so the caller's body is never
+  // mutated without paying for a JSON round trip of the whole request up front.
+  const redact = isRequestPiiMaskingEnabled();
+  const clonedPayload: JsonRecord = { ...(payload as JsonRecord) };
   const detections: PiiDetection[] = [];
   let modified = false;
 
@@ -95,7 +102,7 @@ function cloneAndMaskRequestPayload(payload: unknown) {
     return list.map((entry) => {
       // Responses API can pass plain strings in input[]
       if (typeof entry === "string") {
-        const result = sanitizeStringValue(entry);
+        const result = sanitizeStringValue(entry, redact);
         detections.push(...result.detections);
         modified ||= result.modified;
         return result.text;
@@ -103,12 +110,12 @@ function cloneAndMaskRequestPayload(payload: unknown) {
       if (!entry || typeof entry !== "object") return entry;
       const record = { ...(entry as JsonRecord) };
       if ("content" in record) {
-        const result = applyToContentValue(record.content, detections);
+        const result = applyToContentValue(record.content, detections, redact);
         modified ||= result.modified;
         record.content = result.value;
       }
       if (typeof record.text === "string") {
-        const result = sanitizeStringValue(record.text);
+        const result = sanitizeStringValue(record.text, redact);
         detections.push(...result.detections);
         modified ||= result.modified;
         record.text = result.text;
@@ -118,7 +125,7 @@ function cloneAndMaskRequestPayload(payload: unknown) {
   };
 
   if (typeof clonedPayload.system === "string") {
-    const result = sanitizeStringValue(clonedPayload.system);
+    const result = sanitizeStringValue(clonedPayload.system, redact);
     detections.push(...result.detections);
     modified ||= result.modified;
     clonedPayload.system = result.text;
@@ -133,14 +140,14 @@ function cloneAndMaskRequestPayload(payload: unknown) {
   if (Array.isArray(clonedPayload.input)) {
     clonedPayload.input = sanitizeMessageLikeList(clonedPayload.input);
   } else if (typeof clonedPayload.input === "string") {
-    const result = sanitizeStringValue(clonedPayload.input);
+    const result = sanitizeStringValue(clonedPayload.input, redact);
     detections.push(...result.detections);
     modified ||= result.modified;
     clonedPayload.input = result.text;
   }
 
   if (typeof clonedPayload.prompt === "string") {
-    const result = sanitizeStringValue(clonedPayload.prompt);
+    const result = sanitizeStringValue(clonedPayload.prompt, redact);
     detections.push(...result.detections);
     modified ||= result.modified;
     clonedPayload.prompt = result.text;

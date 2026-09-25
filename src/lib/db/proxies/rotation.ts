@@ -16,6 +16,7 @@ import {
   proxyEgressKey,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
 import { isEgressBucketedLockScope } from "@omniroute/open-sse/config/providerErrorRules.ts";
+import { maybeEmitPoolExhausted } from "@/lib/proxyEvents/proxyTransitionBridge";
 import {
   isProxySkipRecentlyFailedEnabled,
   isProxyPoolSharedEgressOrderEnabled,
@@ -539,6 +540,15 @@ function pickFromCandidates<T>(
   candidates: T[],
   provider?: string | null
 ): T {
+  // Pool-exhausted check first: a single-member pool set aside is exhausted
+  // too, and this runs before the length-1 early return below. Flag-gated
+  // inside (zero cost when off), rebound window shared with the bridge.
+  maybeEmitPoolExhausted(
+    normalizedScope,
+    candidates,
+    (row) => proxyEgressKey(row),
+    (key) => isProxyAvoided(key)
+  );
   if (candidates.length === 1) return candidates[0];
 
   const state = getOrCreateRotationRow(db, normalizedScope, rotationScopeId);
