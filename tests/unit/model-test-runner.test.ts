@@ -325,6 +325,17 @@ test("resolveModelTestTimeoutMs gives zai-web checks up to 60 seconds", () => {
   assert.equal(resolveModelTestTimeoutMs("zai-web", "zai-web/glm-5.3-flash", 90_000), 90_000);
 });
 
+test("runSingleModelTest skips web-session providers before sending a chat probe", async () => {
+  const result = await runSingleModelTest({
+    providerId: "deepseek-web",
+    modelId: "deepseek-v4-pro-think",
+  });
+
+  assert.equal(result.status, "error");
+  assert.equal(result.httpStatus, 422);
+  assert.match(result.error ?? "", /Skipped:.*web-session/i);
+});
+
 // ---------------------------------------------------------------------------
 // classifyTestErrorQuota — #9511 quota classification for Test All auto-hide.
 // Distinguishes three outcomes:
