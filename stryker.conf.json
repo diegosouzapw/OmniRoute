@@ -244,6 +244,7 @@
       "tests/unit/combo-system-prompt-templates-5501.test.ts",
       "tests/unit/combo-target-defensive-modelstr.test.ts",
       "tests/unit/combo-vision-aware-routing.test.ts",
+      "tests/unit/combo-vision-prefixed-step-custom-override.test.ts",
       "tests/unit/combo-weighted-all-targets-cooling-down.test.ts",
       "tests/unit/combo/auto-quota-cutoff.test.ts",
       "tests/unit/combo/auto-status-penalty-4540.test.ts",
