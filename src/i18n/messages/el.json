@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Το μυστικό αποθηκεύτηκε",
       "controlSecretNotSet": "Δεν υπάρχει αποθηκευμένο μυστικό",
       "selectorMinGap": "Ελάχιστος χρόνος μεταξύ εναλλαγών (δευτερόλεπτα)",
-      "selectorHelp": "Προσθέστε « selector=<name> » σε μια γραμμή local-core για να τη συνδέσετε με ομάδα selector.",
+      "selectorHelp": "Προσθέστε « selector='<name>' » σε μια γραμμή local-core για να τη συνδέσετε με ομάδα selector.",
       "lastSwitch": "Τελευταία εναλλαγή",
       "lastSwitchNever": "Δεν έχει καταγραφεί εναλλαγή",
       "lastSwitchMember": "Μέλος που εξυπηρετεί",

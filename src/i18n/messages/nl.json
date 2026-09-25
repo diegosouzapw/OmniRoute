@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Geheim opgeslagen",
       "controlSecretNotSet": "Geen geheim opgeslagen",
       "selectorMinGap": "Minimale tijd tussen wisselingen (seconden)",
-      "selectorHelp": "Voeg « selector=<name> » toe aan een local-core-regel om deze aan een selectorgroep te koppelen.",
+      "selectorHelp": "Voeg « selector='<name>' » toe aan een local-core-regel om deze aan een selectorgroep te koppelen.",
       "lastSwitch": "Laatste wisseling",
       "lastSwitchNever": "Nog geen wisseling vastgelegd",
       "lastSwitchMember": "Bedienend lid",

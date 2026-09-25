@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Secret enregistré",
       "controlSecretNotSet": "Aucun secret enregistré",
       "selectorMinGap": "Temps minimal entre les bascules (secondes)",
-      "selectorHelp": "Ajoutez « selector=<name> » à une ligne local-core pour la lier à un groupe selector.",
+      "selectorHelp": "Ajoutez « selector='<name>' » à une ligne local-core pour la lier à un groupe selector.",
       "lastSwitch": "Dernière bascule",
       "lastSwitchNever": "Aucune bascule enregistrée",
       "lastSwitchMember": "Membre desservi",

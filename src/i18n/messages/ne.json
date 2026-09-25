@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "सिक्रेट सुरक्षित भयो",
       "controlSecretNotSet": "कुनै सिक्रेट सुरक्षित छैन",
       "selectorMinGap": "परिवर्तनबीच न्यूनतम समय (सेकेन्ड)",
-      "selectorHelp": "local-core लाइनमा « selector=<name> » थपेर selector समूहमा बाँध्नुहोस्।",
+      "selectorHelp": "local-core लाइनमा « selector='<name>' » थपेर selector समूहमा बाँध्नुहोस्।",
       "lastSwitch": "अन्तिम परिवर्तन",
       "lastSwitchNever": "अहिलेसम्म कुनै परिवर्तन दर्ता छैन",
       "lastSwitchMember": "सेवा दिइरहेको सदस्य",

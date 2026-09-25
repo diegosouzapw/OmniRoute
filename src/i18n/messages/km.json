@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "បានរក្សាទុក secret",
       "controlSecretNotSet": "មិនមាន secret ដែលបានរក្សាទុក",
       "selectorMinGap": "ពេលវេលាអប្បបរមារវាងការប្តូរ (វិនាទី)",
-      "selectorHelp": "បន្ថែម « selector=<name> » ទៅបន្ទាត់ local-core ដើម្បីចងទៅក្រុម selector។",
+      "selectorHelp": "បន្ថែម « selector='<name>' » ទៅបន្ទាត់ local-core ដើម្បីចងទៅក្រុម selector។",
       "lastSwitch": "ការប្តូរចុងក្រោយ",
       "lastSwitchNever": "មិនទាន់មានការប្តូរដែលបានកត់ត្រា",
       "lastSwitchMember": "សមាជិកកំពុងបម្រើ",

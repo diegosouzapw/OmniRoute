@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Secreto guardado",
       "controlSecretNotSet": "Ningún secreto guardado",
       "selectorMinGap": "Tiempo mínimo entre cambios (segundos)",
-      "selectorHelp": "Añada « selector=<name> » a una línea local-core para vincularla a un grupo selector.",
+      "selectorHelp": "Añada « selector='<name>' » a una línea local-core para vincularla a un grupo selector.",
       "lastSwitch": "Último cambio",
       "lastSwitchNever": "Aún no hay cambios registrados",
       "lastSwitchMember": "Miembro en servicio",

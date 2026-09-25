@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "સીક્રેટ સાચવાયું",
       "controlSecretNotSet": "કોઈ સીક્રેટ સાચવેલ નથી",
       "selectorMinGap": "ફેરફારો વચ્ચે લઘુત્તમ સમય (સેકન્ડ)",
-      "selectorHelp": "local-core લીટીમાં « selector=<name> » ઉમેરી selector જૂથ સાથે બાંધો.",
+      "selectorHelp": "local-core લીટીમાં « selector='<name>' » ઉમેરી selector જૂથ સાથે બાંધો.",
       "lastSwitch": "છેલ્લો ફેરફાર",
       "lastSwitchNever": "હજુ કોઈ ફેરફાર નોંધાયો નથી",
       "lastSwitchMember": "સેવા આપતો સભ્ય",

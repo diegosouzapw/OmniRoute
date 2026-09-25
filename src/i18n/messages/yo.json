@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Àṣírí ti fipamọ́",
       "controlSecretNotSet": "Kò sí àṣírí tí a fipamọ́",
       "selectorMinGap": "Àkókò kékeré jùlọ láàrín ìyípadà (ìṣẹ́jú-àáyá)",
-      "selectorHelp": "Ṣàfikún « selector=<name> » sí ìlà local-core láti dè é mọ́ ẹgbẹ́ selector.",
+      "selectorHelp": "Ṣàfikún « selector='<name>' » sí ìlà local-core láti dè é mọ́ ẹgbẹ́ selector.",
       "lastSwitch": "Ìyípadà ìkẹyìn",
       "lastSwitchNever": "A kò tíì ṣe àkọsílẹ̀ ìyípadà kankan",
       "lastSwitchMember": "Ọmọ ẹgbẹ́ tó ń sin",

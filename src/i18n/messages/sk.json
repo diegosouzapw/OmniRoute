@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Kľúč uložený",
       "controlSecretNotSet": "Žiadny uložený kľúč",
       "selectorMinGap": "Minimálny čas medzi prepnutími (sekundy)",
-      "selectorHelp": "Pridajte „ selector=<name> “ do riadka local-core na naviazanie na skupinu selector.",
+      "selectorHelp": "Pridajte „ selector='<name>' “ do riadka local-core na naviazanie na skupinu selector.",
       "lastSwitch": "Posledné prepnutie",
       "lastSwitchNever": "Zatiaľ žiadne zaznamenané prepnutie",
       "lastSwitchMember": "Obsluhujúci člen",

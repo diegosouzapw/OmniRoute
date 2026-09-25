@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Hemmelighet lagret",
       "controlSecretNotSet": "Ingen lagret hemmelighet",
       "selectorMinGap": "Minstetid mellom bytter (sekunder)",
-      "selectorHelp": "Legg til « selector=<name> » på en local-core-linje for å binde den til en selectorgruppe.",
+      "selectorHelp": "Legg til « selector='<name>' » på en local-core-linje for å binde den til en selectorgruppe.",
       "lastSwitch": "Siste bytte",
       "lastSwitchNever": "Ingen bytter registrert ennå",
       "lastSwitchMember": "Betjenende medlem",

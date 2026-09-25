@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Na-save ang secret",
       "controlSecretNotSet": "Walang na-save na secret",
       "selectorMinGap": "Pinakamaliit na oras sa pagitan ng mga paglipat (segundo)",
-      "selectorHelp": "Idagdag ang « selector=<name> » sa isang local-core line para i-bind ito sa selector group.",
+      "selectorHelp": "Idagdag ang « selector='<name>' » sa isang local-core line para i-bind ito sa selector group.",
       "lastSwitch": "Huling paglipat",
       "lastSwitchNever": "Wala pang naitalang paglipat",
       "lastSwitchMember": "Miyembrong naglilingkod",

@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Titok mentve",
       "controlSecretNotSet": "Nincs mentett titok",
       "selectorMinGap": "Váltások közötti legrövidebb idő (másodperc)",
-      "selectorHelp": "Fűzze a „ selector=<name> “ toldalékot egy local-core sorhoz, hogy selector csoporthoz kösse.",
+      "selectorHelp": "Fűzze a „ selector='<name>' “ toldalékot egy local-core sorhoz, hogy selector csoporthoz kösse.",
       "lastSwitch": "Utolsó váltás",
       "lastSwitchNever": "Még nincs rögzített váltás",
       "lastSwitchMember": "Kiszolgáló tag",

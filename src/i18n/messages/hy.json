@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Գաղտնիքը պահպանված է",
       "controlSecretNotSet": "Պահպանված գաղտնիք չկա",
       "selectorMinGap": "Անջատումների միջև նվազագույն ժամանակ (վայրկյան)",
-      "selectorHelp": "Ավելացրեք « selector=<name> » local-core տողին՝ selector խմբին կապելու համար։",
+      "selectorHelp": "Ավելացրեք « selector='<name>' » local-core տողին՝ selector խմբին կապելու համար։",
       "lastSwitch": "Վերջին անջատում",
       "lastSwitchNever": "Անջատում դեռ գրանցված չէ",
       "lastSwitchMember": "Սպասարկող անդամ",

@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Тајна сачувана",
       "controlSecretNotSet": "Нема сачуване тајне",
       "selectorMinGap": "Најмање време између пребацивања (секунде)",
-      "selectorHelp": "Додајте « selector=<name> » у ред local-core да га вежете за групу selector.",
+      "selectorHelp": "Додајте « selector='<name>' » у ред local-core да га вежете за групу selector.",
       "lastSwitch": "Последње пребацивање",
       "lastSwitchNever": "Још нема евидентираног пребацивања",
       "lastSwitchMember": "Члан који опслужује",

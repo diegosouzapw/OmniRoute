@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Hemmelighed gemt",
       "controlSecretNotSet": "Ingen gemt hemmelighed",
       "selectorMinGap": "Mindstetid mellem skift (sekunder)",
-      "selectorHelp": "Føj « selector=<name> » til en local-core-linje for at binde den til en selectorgruppe.",
+      "selectorHelp": "Føj « selector='<name>' » til en local-core-linje for at binde den til en selectorgruppe.",
       "lastSwitch": "Sidste skift",
       "lastSwitchNever": "Ingen skift registreret endnu",
       "lastSwitchMember": "Betjenende medlem",

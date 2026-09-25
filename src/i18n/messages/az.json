@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Sirr yadda saxlanıldı",
       "controlSecretNotSet": "Yadda saxlanılan sirr yoxdur",
       "selectorMinGap": "Keçidlər arası minimum vaxt (saniyə)",
-      "selectorHelp": "local-core sətrinə « selector=<name> » əlavə edərək selector qrupuna bağlayın.",
+      "selectorHelp": "local-core sətrinə « selector='<name>' » əlavə edərək selector qrupuna bağlayın.",
       "lastSwitch": "Son keçid",
       "lastSwitchNever": "Hələ qeydə alınmış keçid yoxdur",
       "lastSwitchMember": "Xidmət edən üzv",

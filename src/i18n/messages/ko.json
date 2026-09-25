@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "시크릿 저장됨",
       "controlSecretNotSet": "저장된 시크릿 없음",
       "selectorMinGap": "전환 최소 간격(초)",
-      "selectorHelp": "local-core 줄에 「 selector=<name>」을 추가하여 셀렉터 그룹에 바인딩합니다.",
+      "selectorHelp": "local-core 줄에 「 selector='<name>'」을 추가하여 셀렉터 그룹에 바인딩합니다.",
       "lastSwitch": "마지막 전환",
       "lastSwitchNever": "기록된 전환이 아직 없음",
       "lastSwitchMember": "서비스 중인 멤버",

@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "საიდუმლო შენახულია",
       "controlSecretNotSet": "შენახული საიდუმლო არ არის",
       "selectorMinGap": "გადართვებს შორის მინიმალური დრო (წამები)",
-      "selectorHelp": "დაამატეთ « selector=<name> » local-core ხაზს selector ჯგუფთან დასაკავშირებლად.",
+      "selectorHelp": "დაამატეთ « selector='<name>' » local-core ხაზს selector ჯგუფთან დასაკავშირებლად.",
       "lastSwitch": "ბოლო გადართვა",
       "lastSwitchNever": "გადართვა ჯერ არ დაფიქსირებულა",
       "lastSwitchMember": "მომსახურე წევრი",

@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Echekwala nzuzo",
       "controlSecretNotSet": "Enweghị nzuzo echekwara",
       "selectorMinGap": "Oge kacha nta n'etiti mgbanwe (sekọnd)",
-      "selectorHelp": "Tinye « selector=<name> » n'ahịrị local-core iji kee ya na otu selector.",
+      "selectorHelp": "Tinye « selector='<name>' » n'ahịrị local-core iji kee ya na otu selector.",
       "lastSwitch": "Mgbanwe ikpeazụ",
       "lastSwitchNever": "Enwebeghị mgbanwe ọ bụla",
       "lastSwitchMember": "Onye otu na-eje ozi",

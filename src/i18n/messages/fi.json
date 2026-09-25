@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Salaisuus tallennettu",
       "controlSecretNotSet": "Ei tallennettua salaisuutta",
       "selectorMinGap": "Vaihtojen vähimmäisväli (sekuntia)",
-      "selectorHelp": "Lisää « selector=<name> » local-core-riville sitoaksesi sen selector-ryhmään.",
+      "selectorHelp": "Lisää « selector='<name>' » local-core-riville sitoaksesi sen selector-ryhmään.",
       "lastSwitch": "Viimeisin vaihto",
       "lastSwitchNever": "Vaihtoja ei ole vielä kirjattu",
       "lastSwitchMember": "Palveleva jäsen",

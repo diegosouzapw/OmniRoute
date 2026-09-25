@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Secret tersimpan",
       "controlSecretNotSet": "Belum ada secret tersimpan",
       "selectorMinGap": "Waktu minimum antar peralihan (detik)",
-      "selectorHelp": "Tambahkan « selector=<name> » ke baris local-core untuk mengikatnya ke grup selector.",
+      "selectorHelp": "Tambahkan « selector='<name>' » ke baris local-core untuk mengikatnya ke grup selector.",
       "lastSwitch": "Peralihan terakhir",
       "lastSwitchNever": "Belum ada peralihan tercatat",
       "lastSwitchMember": "Anggota yang melayani",

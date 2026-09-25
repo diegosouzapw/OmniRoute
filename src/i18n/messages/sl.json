@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Skrivnost shranjena",
       "controlSecretNotSet": "Ni shranjene skrivnosti",
       "selectorMinGap": "Najmanjši čas med preklopi (sekunde)",
-      "selectorHelp": "Dodajte « selector=<name> » v vrstico local-core, da jo vežete na skupino selector.",
+      "selectorHelp": "Dodajte « selector='<name>' » v vrstico local-core, da jo vežete na skupino selector.",
       "lastSwitch": "Zadnji preklop",
       "lastSwitchNever": "Še ni zabeleženega preklopa",
       "lastSwitchMember": "Član, ki streže",

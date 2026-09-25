@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "সিক্রেট সংরক্ষিত",
       "controlSecretNotSet": "কোনো সিক্রেট সংরক্ষিত নেই",
       "selectorMinGap": "সুইচের মধ্যে ন্যূনতম সময় (সেকেন্ড)",
-      "selectorHelp": "কোনো local-core লাইনে « selector=<name> » যোগ করে selector গ্রুপে বাঁধুন।",
+      "selectorHelp": "কোনো local-core লাইনে « selector='<name>' » যোগ করে selector গ্রুপে বাঁধুন।",
       "lastSwitch": "সর্বশেষ সুইচ",
       "lastSwitchNever": "এখনও কোনো সুইচ রেকর্ড হয়নি",
       "lastSwitchMember": "সেবারত সদস্য",

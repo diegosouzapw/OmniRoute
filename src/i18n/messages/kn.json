@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "ರಹಸ್ಯ ಉಳಿಸಲಾಗಿದೆ",
       "controlSecretNotSet": "ಉಳಿಸಿದ ರಹಸ್ಯವಿಲ್ಲ",
       "selectorMinGap": "ಬದಲಾವಣೆಗಳ ನಡುವಿನ ಕನಿಷ್ಠ ಸಮಯ (ಸೆಕೆಂಡುಗಳು)",
-      "selectorHelp": "local-core ಸಾಲಿಗೆ « selector=<name> » ಸೇರಿಸಿ selector ಗುಂಪಿಗೆ ಕಟ್ಟಿ.",
+      "selectorHelp": "local-core ಸಾಲಿಗೆ « selector='<name>' » ಸೇರಿಸಿ selector ಗುಂಪಿಗೆ ಕಟ್ಟಿ.",
       "lastSwitch": "ಕೊನೆಯ ಬದಲಾವಣೆ",
       "lastSwitchNever": "ಇನ್ನೂ ಯಾವುದೇ ಬದಲಾವಣೆ ದಾಖಲಾಗಿಲ್ಲ",
       "lastSwitchMember": "ಸೇವೆ ಸಲ್ಲಿಸುತ್ತಿರುವ ಸದಸ್ಯ",

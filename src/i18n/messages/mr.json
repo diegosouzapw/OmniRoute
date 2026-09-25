@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "सीक्रेट जतन केले",
       "controlSecretNotSet": "जतन केलेले सीक्रेट नाही",
       "selectorMinGap": "बदलांमधील किमान वेळ (सेकंद)",
-      "selectorHelp": "local-core ओळीत « selector=<name> » जोडून selector गटाशी बांधा.",
+      "selectorHelp": "local-core ओळीत « selector='<name>' » जोडून selector गटाशी बांधा.",
       "lastSwitch": "शेवटचा बदल",
       "lastSwitchNever": "अद्याप कोणताही बदल नोंदलेला नाही",
       "lastSwitchMember": "सेवा देणारा सदस्य",

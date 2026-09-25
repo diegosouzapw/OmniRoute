@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "シークレットを保存しました",
       "controlSecretNotSet": "シークレットが保存されていません",
       "selectorMinGap": "切り替えの最小間隔 (秒)",
-      "selectorHelp": "local-core行に「 selector=<name>」を追加してセレクターグループに結び付けます。",
+      "selectorHelp": "local-core行に「 selector='<name>'」を追加してセレクターグループに結び付けます。",
       "lastSwitch": "前回の切り替え",
       "lastSwitchNever": "切り替えはまだ記録されていません",
       "lastSwitchMember": "提供中のメンバー",

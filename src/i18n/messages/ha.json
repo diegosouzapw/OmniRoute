@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "An adana sirri",
       "controlSecretNotSet": "Babu sirrin da aka adana",
       "selectorMinGap": "Mafi ƙarancin lokaci tsakanin sauyawa (dakikoki)",
-      "selectorHelp": "Ƙara « selector=<name> » a layin local-core don ɗaure shi da ƙungiyar selector.",
+      "selectorHelp": "Ƙara « selector='<name>' » a layin local-core don ɗaure shi da ƙungiyar selector.",
       "lastSwitch": "Sauyawa ta ƙarshe",
       "lastSwitchNever": "Ba a rubuta sauyawa ba tukuna",
       "lastSwitchMember": "Memban da ke hidima",

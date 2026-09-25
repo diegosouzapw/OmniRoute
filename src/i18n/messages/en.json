@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Secret saved",
       "controlSecretNotSet": "No secret saved",
       "selectorMinGap": "Minimum time between switches (seconds)",
-      "selectorHelp": "Append \" selector=<name>\" to a local-core line to bind it to a selector group.",
+      "selectorHelp": "Append \" selector='<name>'\" to a local-core line to bind it to a selector group.",
       "lastSwitch": "Last switch",
       "lastSwitchNever": "No switch recorded yet",
       "lastSwitchMember": "Serving member",

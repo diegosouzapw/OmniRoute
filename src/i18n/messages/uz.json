@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Sirr saqlandi",
       "controlSecretNotSet": "Saqlangan sirr yo'q",
       "selectorMinGap": "O'tishlar orasidagi eng kam vaqt (soniya)",
-      "selectorHelp": "local-core qatoriga « selector=<name> » qo'shib selector guruhiga bog'lang.",
+      "selectorHelp": "local-core qatoriga « selector='<name>' » qo'shib selector guruhiga bog'lang.",
       "lastSwitch": "So'nggi o'tish",
       "lastSwitchNever": "Hali qayd etilgan o'tish yo'q",
       "lastSwitchMember": "Xizmat ko'rsatuvchi a'zo",

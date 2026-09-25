@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Paslaptis išsaugota",
       "controlSecretNotSet": "Nėra išsaugotos paslapties",
       "selectorMinGap": "Mažiausias laikas tarp perjungimų (sekundės)",
-      "selectorHelp": "Pridėkite „ selector=<name> “ prie local-core eilutės, kad susietumėte ją su selector grupe.",
+      "selectorHelp": "Pridėkite „ selector='<name>' “ prie local-core eilutės, kad susietumėte ją su selector grupe.",
       "lastSwitch": "Paskutinis perjungimas",
       "lastSwitchNever": "Dar nėra įrašytų perjungimų",
       "lastSwitchMember": "Aptarnaujantis narys",

@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "راز ذخیره شد",
       "controlSecretNotSet": "رازی ذخیره نشده است",
       "selectorMinGap": "کمترین زمان میان جابه‌جایی‌ها (ثانیه)",
-      "selectorHelp": "« selector=<name> » را به یک سطر local-core بیفزایید تا به گروه selector پیوند شود.",
+      "selectorHelp": "« selector='<name>' » را به یک سطر local-core بیفزایید تا به گروه selector پیوند شود.",
       "lastSwitch": "آخرین جابه‌جایی",
       "lastSwitchNever": "هنوز جابه‌جایی ثبت نشده است",
       "lastSwitchMember": "عضو خدمت‌دهنده",

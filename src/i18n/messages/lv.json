@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Noslēpums saglabāts",
       "controlSecretNotSet": "Nav saglabāta noslēpuma",
       "selectorMinGap": "Mazākais laiks starp pārslēgšanām (sekundes)",
-      "selectorHelp": "Pievienojiet „ selector=<name> “ local-core rindai, lai to saistītu ar selector grupu.",
+      "selectorHelp": "Pievienojiet „ selector='<name>' “ local-core rindai, lai to saistītu ar selector grupu.",
       "lastSwitch": "Pēdējā pārslēgšana",
       "lastSwitchNever": "Vēl nav reģistrētas pārslēgšanas",
       "lastSwitchMember": "Apkalpojošais dalībnieks",

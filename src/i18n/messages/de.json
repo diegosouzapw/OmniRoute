@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Secret gespeichert",
       "controlSecretNotSet": "Kein Secret gespeichert",
       "selectorMinGap": "Mindestzeit zwischen Umschaltungen (Sekunden)",
-      "selectorHelp": "Hängen Sie „ selector=<name>“ an eine Local-Core-Zeile an, um sie an eine Selector-Gruppe zu binden.",
+      "selectorHelp": "Hängen Sie „ selector='<name>'“ an eine Local-Core-Zeile an, um sie an eine Selector-Gruppe zu binden.",
       "lastSwitch": "Letzte Umschaltung",
       "lastSwitchNever": "Noch keine Umschaltung verzeichnet",
       "lastSwitchMember": "Bedienendes Mitglied",

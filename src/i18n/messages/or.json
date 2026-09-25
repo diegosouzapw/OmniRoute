@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "ଗୁପ୍ତ ସଂରକ୍ଷିତ",
       "controlSecretNotSet": "କୌଣସି ଗୁପ୍ତ ସଂରକ୍ଷିତ ନାହିଁ",
       "selectorMinGap": "ସୁଇଚ୍ ମଧ୍ୟରେ ସର୍ବନିମ୍ନ ସମୟ (ସେକେଣ୍ଡ)",
-      "selectorHelp": "local-core ଧାଡ଼ିରେ « selector=<name> » ଯୋଡି selector ଗୋଷ୍ଠୀ ସହ ବାନ୍ଧନ୍ତୁ।",
+      "selectorHelp": "local-core ଧାଡ଼ିରେ « selector='<name>' » ଯୋଡି selector ଗୋଷ୍ଠୀ ସହ ବାନ୍ଧନ୍ତୁ।",
       "lastSwitch": "ଶେଷ ସୁଇଚ୍",
       "lastSwitchNever": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ସୁଇଚ୍ ଲିପିବଦ୍ଧ ନାହିଁ",
       "lastSwitchMember": "ସେବାକାରୀ ସଦସ୍ୟ",

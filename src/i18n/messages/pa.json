@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "ਸੀਕਰੇਟ ਸੰਭਾਲਿਆ ਗਿਆ",
       "controlSecretNotSet": "ਕੋਈ ਸੀਕਰੇਟ ਸੰਭਾਲਿਆ ਨਹੀਂ",
       "selectorMinGap": "ਬਦਲਾਅ ਵਿਚਕਾਰ ਘੱਟੋ-ਘੱਟ ਸਮਾਂ (ਸਕਿੰਟ)",
-      "selectorHelp": "ਕਿਸੇ local-core ਲਾਈਨ ਵਿੱਚ « selector=<name> » ਜੋੜ ਕੇ selector ਗਰੁੱਪ ਨਾਲ ਬੰਨ੍ਹੋ।",
+      "selectorHelp": "ਕਿਸੇ local-core ਲਾਈਨ ਵਿੱਚ « selector='<name>' » ਜੋੜ ਕੇ selector ਗਰੁੱਪ ਨਾਲ ਬੰਨ੍ਹੋ।",
       "lastSwitch": "ਆਖਰੀ ਬਦਲਾਅ",
       "lastSwitchNever": "ਅਜੇ ਕੋਈ ਬਦਲਾਅ ਦਰਜ ਨਹੀਂ",
       "lastSwitchMember": "ਸੇਵਾ ਕਰ ਰਿਹਾ ਮੈਂਬਰ",

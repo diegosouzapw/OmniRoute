@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "सीक्रेट सहेजा गया",
       "controlSecretNotSet": "कोई सीक्रेट सहेजा नहीं गया",
       "selectorMinGap": "स्विच के बीच न्यूनतम समय (सेकंड)",
-      "selectorHelp": "किसी local-core पंक्ति में « selector=<name> » जोड़कर उसे selector समूह से बाँधें।",
+      "selectorHelp": "किसी local-core पंक्ति में « selector='<name>' » जोड़कर उसे selector समूह से बाँधें।",
       "lastSwitch": "अंतिम स्विच",
       "lastSwitchNever": "अभी तक कोई स्विच दर्ज नहीं",
       "lastSwitchMember": "सेवारत सदस्य",

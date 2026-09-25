@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Secret salvat",
       "controlSecretNotSet": "Niciun secret salvat",
       "selectorMinGap": "Timpul minim între comutări (secunde)",
-      "selectorHelp": "Adăugați « selector=<name> » la o linie local-core pentru a o lega de un grup selector.",
+      "selectorHelp": "Adăugați « selector='<name>' » la o linie local-core pentru a o lega de un grup selector.",
       "lastSwitch": "Ultima comutare",
       "lastSwitchNever": "Nicio comutare înregistrată",
       "lastSwitchMember": "Membrul care deservește",

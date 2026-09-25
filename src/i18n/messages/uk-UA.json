@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Секрет збережено",
       "controlSecretNotSet": "Секрет не збережено",
       "selectorMinGap": "Мінімальний час між перемиканнями (секунди)",
-      "selectorHelp": "Додайте « selector=<name> » до рядка local-core, щоб прив'язати його до групи selector.",
+      "selectorHelp": "Додайте « selector='<name>' » до рядка local-core, щоб прив'язати його до групи selector.",
       "lastSwitch": "Останнє перемикання",
       "lastSwitchNever": "Перемикань поки не записано",
       "lastSwitchMember": "Учасник, що обслуговує",

@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "ரகசியம் சேமிக்கப்பட்டது",
       "controlSecretNotSet": "சேமித்த ரகசியம் இல்லை",
       "selectorMinGap": "மாற்றங்களுக்கு இடையே குறைந்தபட்ச நேரம் (வினாடிகள்)",
-      "selectorHelp": "local-core வரியில் « selector=<name> » சேர்த்து selector குழுவுடன் பிணைக்கவும்.",
+      "selectorHelp": "local-core வரியில் « selector='<name>' » சேர்த்து selector குழுவுடன் பிணைக்கவும்.",
       "lastSwitch": "கடைசி மாற்றம்",
       "lastSwitchNever": "இன்னும் மாற்றம் பதிவாகவில்லை",
       "lastSwitchMember": "சேவை செய்யும் உறுப்பினர்",

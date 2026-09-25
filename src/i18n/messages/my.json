@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "လျှို့ဝှက်ချက်သိမ်းဆည်းပြီးပါပြီ",
       "controlSecretNotSet": "သိမ်းထားသောလျှို့ဝှက်ချက်မရှိပါ",
       "selectorMinGap": "အပြောင်းအလဲကြားအနိမ့်ဆုံးအချိန် (စက္ကန့်)",
-      "selectorHelp": "local-core လိုင်းတွင် « selector=<name> » ထည့်ပြီး selector အုပ်စုနှင့်ချိတ်ပါ။",
+      "selectorHelp": "local-core လိုင်းတွင် « selector='<name>' » ထည့်ပြီး selector အုပ်စုနှင့်ချိတ်ပါ။",
       "lastSwitch": "နောက်ဆုံးအပြောင်းအလဲ",
       "lastSwitchNever": "မှတ်တမ်းတင်ထားသောအပြောင်းအလဲမရှိသေးပါ",
       "lastSwitchMember": "ဝန်ဆောင်မှုပေးနေသောအဖွဲ့ဝင်",

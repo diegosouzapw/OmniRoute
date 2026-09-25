@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "บันทึกซีเคร็ตแล้ว",
       "controlSecretNotSet": "ยังไม่มีซีเคร็ตที่บันทึกไว้",
       "selectorMinGap": "เวลาขั้นต่ำระหว่างการสลับ (วินาที)",
-      "selectorHelp": "ต่อท้ายบรรทัด local-core ด้วย « selector=<name> » เพื่อผูกกับกลุ่ม selector",
+      "selectorHelp": "ต่อท้ายบรรทัด local-core ด้วย « selector='<name>' » เพื่อผูกกับกลุ่ม selector",
       "lastSwitch": "การสลับครั้งล่าสุด",
       "lastSwitchNever": "ยังไม่มีการสลับที่บันทึกไว้",
       "lastSwitchMember": "สมาชิกที่ให้บริการ",

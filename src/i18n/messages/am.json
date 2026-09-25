@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "ሚስጥር ተቀምጧል",
       "controlSecretNotSet": "ምንም የተቀመጠ ሚስጥር የለም",
       "selectorMinGap": "በመቀያየር መካከል ዝቅተኛ ጊዜ (ሰከንዶች)",
-      "selectorHelp": "ከselector ቡድን ጋር ለማሰር local-core መስመር ላይ « selector=<name> » ይጨምሩ።",
+      "selectorHelp": "ከselector ቡድን ጋር ለማሰር local-core መስመር ላይ « selector='<name>' » ይጨምሩ።",
       "lastSwitch": "የመጨረሻ መቀያየር",
       "lastSwitchNever": "ገና ምንም መቀያየር አልተመዘገበም",
       "lastSwitchMember": "የሚያገለግል አባል",

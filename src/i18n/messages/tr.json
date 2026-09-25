@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Parola kaydedildi",
       "controlSecretNotSet": "Kayıtlı parola yok",
       "selectorMinGap": "Geçişler arası en az süre (saniye)",
-      "selectorHelp": "Bir local-core satırına « selector=<name> » ekleyerek onu bir selector grubuna bağlayın.",
+      "selectorHelp": "Bir local-core satırına « selector='<name>' » ekleyerek onu bir selector grubuna bağlayın.",
       "lastSwitch": "Son geçiş",
       "lastSwitchNever": "Henüz kayıtlı geçiş yok",
       "lastSwitchMember": "Hizmet veren üye",

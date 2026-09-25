@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Zapisano sekret",
       "controlSecretNotSet": "Brak zapisanego sekretu",
       "selectorMinGap": "Minimalny czas między przełączeniami (sekundy)",
-      "selectorHelp": "Dopisz „ selector=<name> ” do wiersza local-core, aby powiązać go z grupą selector.",
+      "selectorHelp": "Dopisz „ selector='<name>' ” do wiersza local-core, aby powiązać go z grupą selector.",
       "lastSwitch": "Ostatnie przełączenie",
       "lastSwitchNever": "Brak zarejestrowanych przełączeń",
       "lastSwitchMember": "Obsługujący element",

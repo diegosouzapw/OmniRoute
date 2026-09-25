@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Segredo guardado",
       "controlSecretNotSet": "Nenhum segredo guardado",
       "selectorMinGap": "Tempo mínimo entre trocas (segundos)",
-      "selectorHelp": "Acrescente « selector=<name> » a uma linha local-core para a ligar a um grupo selector.",
+      "selectorHelp": "Acrescente « selector='<name>' » a uma linha local-core para a ligar a um grupo selector.",
       "lastSwitch": "Última troca",
       "lastSwitchNever": "Nenhuma troca registada",
       "lastSwitchMember": "Membro em serviço",

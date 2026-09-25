@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Đã lưu secret",
       "controlSecretNotSet": "Chưa lưu secret",
       "selectorMinGap": "Thời gian tối thiểu giữa các lần chuyển (giây)",
-      "selectorHelp": "Thêm \" selector=<name>\" vào một dòng local-core để gán nó vào một nhóm selector.",
+      "selectorHelp": "Thêm \" selector='<name>'\" vào một dòng local-core để gán nó vào một nhóm selector.",
       "lastSwitch": "Lần chuyển gần nhất",
       "lastSwitchNever": "Chưa ghi nhận lần chuyển nào",
       "lastSwitchMember": "Thành viên đang phục vụ",

@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "سیکرٹ محفوظ ہو گیا",
       "controlSecretNotSet": "کوئی سیکرٹ محفوظ نہیں",
       "selectorMinGap": "تبدیلیوں کے درمیان کم از کم وقت (سیکنڈ)",
-      "selectorHelp": "کسی local-core لائن میں « selector=<name> » شامل کر کے selector گروپ سے باندھیں۔",
+      "selectorHelp": "کسی local-core لائن میں « selector='<name>' » شامل کر کے selector گروپ سے باندھیں۔",
       "lastSwitch": "آخری تبدیلی",
       "lastSwitchNever": "ابھی تک کوئی تبدیلی درج نہیں",
       "lastSwitchMember": "خدمت انجام دینے والا رکن",

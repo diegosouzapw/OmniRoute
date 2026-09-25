@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Rahsia tersimpan",
       "controlSecretNotSet": "Tiada rahsia tersimpan",
       "selectorMinGap": "Masa minimum antara pertukaran (saat)",
-      "selectorHelp": "Tambahkan « selector=<name> » pada baris local-core untuk mengikatnya kepada kumpulan selector.",
+      "selectorHelp": "Tambahkan « selector='<name>' » pada baris local-core untuk mengikatnya kepada kumpulan selector.",
       "lastSwitch": "Pertukaran terakhir",
       "lastSwitchNever": "Belum ada pertukaran direkodkan",
       "lastSwitchMember": "Ahli yang berkhidmat",

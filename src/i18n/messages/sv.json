@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Hemlighet sparad",
       "controlSecretNotSet": "Ingen sparad hemlighet",
       "selectorMinGap": "Minsta tid mellan byten (sekunder)",
-      "selectorHelp": "Lägg till « selector=<name> » på en local-core-rad för att binda den till en selectorgrupp.",
+      "selectorHelp": "Lägg till « selector='<name>' » på en local-core-rad för att binda den till en selectorgrupp.",
       "lastSwitch": "Senaste byte",
       "lastSwitchNever": "Inga byten registrerade ännu",
       "lastSwitchMember": "Betjänande medlem",

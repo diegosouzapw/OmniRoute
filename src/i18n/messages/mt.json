@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Sigriet salvat",
       "controlSecretNotSet": "L-ebda sigriet salvat",
       "selectorMinGap": "Ħin minimu bejn il-bidliet (sekondi)",
-      "selectorHelp": "Żid « selector=<name> » ma' linja local-core biex torbotha ma' grupp selector.",
+      "selectorHelp": "Żid « selector='<name>' » ma' linja local-core biex torbotha ma' grupp selector.",
       "lastSwitch": "L-aħħar bidla",
       "lastSwitchNever": "L-ebda bidla rreġistrata s'issa",
       "lastSwitchMember": "Membru li qed iservi",

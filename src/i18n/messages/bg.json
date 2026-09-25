@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Тайната е запазена",
       "controlSecretNotSet": "Няма запазена тайна",
       "selectorMinGap": "Минимално време между превключвания (секунди)",
-      "selectorHelp": "Добавете « selector=<name> » към ред local-core, за да го обвържете с група selector.",
+      "selectorHelp": "Добавете « selector='<name>' » към ред local-core, за да го обвържете с група selector.",
       "lastSwitch": "Последно превключване",
       "lastSwitchNever": "Все още няма записано превключване",
       "lastSwitchMember": "Обслужващ член",

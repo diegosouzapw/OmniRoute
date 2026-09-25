@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "රහස සුරකින ලදී",
       "controlSecretNotSet": "සුරකින ලද රහසක් නැත",
       "selectorMinGap": "මාරු අතර අවම කාලය (තත්පර)",
-      "selectorHelp": "local-core පේළියකට « selector=<name> » එක් කර selector කණ්ඩායමට බඳින්න.",
+      "selectorHelp": "local-core පේළියකට « selector='<name>' » එක් කර selector කණ්ඩායමට බඳින්න.",
       "lastSwitch": "අවසන් මාරුව",
       "lastSwitchNever": "තවම මාරුවක් සටහන් වී නැත",
       "lastSwitchMember": "සේවය කරන සාමාජිකයා",

@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "密钥已保存",
       "controlSecretNotSet": "尚未保存密钥",
       "selectorMinGap": "切换最小间隔（秒）",
-      "selectorHelp": "在 local-core 行后附加「 selector=<name>」以将其绑定到 selector 分组。",
+      "selectorHelp": "在 local-core 行后附加「 selector='<name>'」以将其绑定到 selector 分组。",
       "lastSwitch": "上次切换",
       "lastSwitchNever": "尚未记录切换",
       "lastSwitchMember": "服务中的成员",

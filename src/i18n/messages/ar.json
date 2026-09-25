@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "تم حفظ السر",
       "controlSecretNotSet": "لا يوجد سر محفوظ",
       "selectorMinGap": "الحد الأدنى للوقت بين التبديلات (بالثواني)",
-      "selectorHelp": "أضف « selector=<name> » إلى سطر local-core لربطه بمجموعة selector.",
+      "selectorHelp": "أضف « selector='<name>' » إلى سطر local-core لربطه بمجموعة selector.",
       "lastSwitch": "آخر تبديل",
       "lastSwitchNever": "لم يُسجَّل أي تبديل بعد",
       "lastSwitchMember": "العضو الذي يخدم",

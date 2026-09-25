@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "הסוד נשמר",
       "controlSecretNotSet": "אין סוד שמור",
       "selectorMinGap": "הזמן המזערי בין מעברים (שניות)",
-      "selectorHelp": "הוסיפו « selector=<name> » לשורת local-core כדי לקשור אותה לקבוצת selector.",
+      "selectorHelp": "הוסיפו « selector='<name>' » לשורת local-core כדי לקשור אותה לקבוצת selector.",
       "lastSwitch": "המעבר האחרון",
       "lastSwitchNever": "טרם נרשם מעבר",
       "lastSwitchMember": "החבר המשרת",

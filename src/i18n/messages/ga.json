@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Rún sábháilte",
       "controlSecretNotSet": "Níl aon rún sábháilte",
       "selectorMinGap": "An t-am is lú idir athruithe (soicindí)",
-      "selectorHelp": "Cuir « selector=<name> » le líne local-core chun é a cheangal le grúpa selector.",
+      "selectorHelp": "Cuir « selector='<name>' » le líne local-core chun é a cheangal le grúpa selector.",
       "lastSwitch": "An t-athrú deireanach",
       "lastSwitchNever": "Níl aon athrú taifeadta fós",
       "lastSwitchMember": "Ball ag freastal",

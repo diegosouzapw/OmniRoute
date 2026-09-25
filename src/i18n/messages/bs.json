@@ -6937,7 +6937,7 @@
       "controlSecretSaved": "Tajna spremljena",
       "controlSecretNotSet": "Nema spremljene tajne",
       "selectorMinGap": "Najmanje vrijeme između prebacivanja (sekunde)",
-      "selectorHelp": "Dodajte « selector=<name> » u red local-core da ga vežete za grupu selector.",
+      "selectorHelp": "Dodajte « selector='<name>' » u red local-core da ga vežete za grupu selector.",
       "lastSwitch": "Zadnje prebacivanje",
       "lastSwitchNever": "Još nema evidentiranog prebacivanja",
       "lastSwitchMember": "Član koji opslužuje",

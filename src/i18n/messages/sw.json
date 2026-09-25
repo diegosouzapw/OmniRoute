@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Siri imehifadhiwa",
       "controlSecretNotSet": "Hakuna siri iliyohifadhiwa",
       "selectorMinGap": "Muda wa chini kati ya mabadiliko (sekunde)",
-      "selectorHelp": "Ongeza « selector=<name> » kwenye mstari wa local-core ili kuufunga na kikundi cha selector.",
+      "selectorHelp": "Ongeza « selector='<name>' » kwenye mstari wa local-core ili kuufunga na kikundi cha selector.",
       "lastSwitch": "Mabadiliko ya mwisho",
       "lastSwitchNever": "Hakuna mabadiliko yaliyorekodiwa bado",
       "lastSwitchMember": "Mwanachama anayehudumu",

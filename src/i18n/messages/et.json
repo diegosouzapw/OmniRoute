@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "Saladus salvestatud",
       "controlSecretNotSet": "Salvestatud saladust pole",
       "selectorMinGap": "Vahetuste vaheline vähim aeg (sekundites)",
-      "selectorHelp": "Lisage local-core reale « selector=<name> », et siduda see selector-rühmaga.",
+      "selectorHelp": "Lisage local-core reale « selector='<name>' », et siduda see selector-rühmaga.",
       "lastSwitch": "Viimane vahetus",
       "lastSwitchNever": "Ühtegi vahetust pole veel salvestatud",
       "lastSwitchMember": "Teenindav liige",

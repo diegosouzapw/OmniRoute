@@ -6948,7 +6948,7 @@
       "controlSecretSaved": "రహస్యం సేవ్ చేయబడింది",
       "controlSecretNotSet": "సేవ్ చేసిన రహస్యం లేదు",
       "selectorMinGap": "మార్పుల మధ్య కనీస సమయం (సెకన్లు)",
-      "selectorHelp": "local-core పంక్తికి « selector=<name> » జోడించి selector సమూహానికి కట్టండి.",
+      "selectorHelp": "local-core పంక్తికి « selector='<name>' » జోడించి selector సమూహానికి కట్టండి.",
       "lastSwitch": "చివరి మార్పు",
       "lastSwitchNever": "ఇంకా మార్పు నమోదు కాలేదు",
       "lastSwitchMember": "సేవలందిస్తున్న సభ్యుడు",
