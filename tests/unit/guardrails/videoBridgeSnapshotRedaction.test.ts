@@ -3,7 +3,7 @@
 // client-request snapshot (clientRawRequest.body) before it is persisted by
 // reqLogger.logClientRawRequest (open-sse/handlers/chatCore.ts). See
 // src/lib/guardrails/videoBridgeSnapshotRedaction.ts for the full design rationale
-// (deliberately dependency-light; field-presence match rather than a shape allowlist).
+// (deliberately dependency-light; only video carrier parts are eligible).
 import assert from "node:assert/strict";
 import test from "node:test";
 

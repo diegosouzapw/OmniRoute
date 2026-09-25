@@ -21,11 +21,11 @@
  *
  * The field walk mirrors `extractVideoParts` (videoBridgeHelpers.ts): for each content part,
  * the candidate objects are the part itself, its `video_url` sub-object, and its `source`
- * sub-object (the same three checked there) — but this walk is deliberately WIDER: any of
- * those objects carrying a `transcript`/`audioTranscript` key gets redacted regardless of
- * the part's `type`/shape. Those two field names are video-cue-only in this codebase's
- * request contract, so matching on field presence rather than a shape allowlist is strictly
- * safer (fails closed on an unusual or future video shape instead of silently skipping it).
+ * sub-object (the same three checked there). Only video carrier parts are eligible: generic
+ * text/audio metadata may also use fields named `transcript` or `audioTranscript`, and must
+ * not be rewritten. Explicit video types remain eligible even with a malformed/empty ref,
+ * so an observed request cannot retain their cue text merely because extraction rejected
+ * that particular part. A video MIME on `source` covers the implicit video-source shape.
  * Redaction is a structured field substitution, not a scan over rendered text, so it cannot
  * be bypassed by adversarial cue content (see the discarded regex approach recorded in the
  * #12150 design doc, `_tasks/superpowers/specs/2026-09-01-video-transcript-retention-design.md`).
@@ -47,6 +47,24 @@ function isPlainRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function isVideoCarrierPart(part: UnknownRecord): boolean {
+  const type = part.type;
+  if (
+    type === "input_video" ||
+    type === "video_url" ||
+    type === "video_source" ||
+    type === "video"
+  ) {
+    return true;
+  }
+  const source = part.source;
+  return (
+    isPlainRecord(source) &&
+    typeof source.media_type === "string" &&
+    source.media_type.toLowerCase().startsWith("video/")
+  );
+}
+
 /**
  * Overwrites transcript field VALUES in place on `part` and its `video_url`/`source`
  * sub-objects. Only ever called on a part that already lives inside the function's own
@@ -54,7 +72,7 @@ function isPlainRecord(value: unknown): value is UnknownRecord {
  * downstream shape/observability (e.g. "this part had a transcript") is preserved.
  */
 function redactTranscriptFieldsOnPart(part: unknown): void {
-  if (!isPlainRecord(part)) return;
+  if (!isPlainRecord(part) || !isVideoCarrierPart(part)) return;
   const candidates: UnknownRecord[] = [part];
   for (const key of NESTED_SUBOBJECT_KEYS) {
     const nested = part[key];
