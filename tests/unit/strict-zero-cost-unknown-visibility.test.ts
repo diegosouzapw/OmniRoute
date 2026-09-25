@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   classifyStrictZeroCostCandidate,
   countStrictExclusions,
+  describeStrictExclusions,
   filterStrictZeroCostCandidates,
   type FreeAccessState,
   type StrictZeroCostCandidate,
@@ -66,4 +67,11 @@ test("a missing reading is state-unknown while a fresh EXHAUSTED reading is exha
 
 test("exposing the reason changes nothing about the exclusion decision", () => {
   assert.deepEqual(filterStrictZeroCostCandidates(POOL, { ...OPTS, enabled: true }), []);
+});
+
+test("the pool-log detail surfaces the exhausted and state-unknown split", () => {
+  assert.equal(
+    describeStrictExclusions(countStrictExclusions(POOL, OPTS)),
+    " (no-hard-stop 0, exhausted 1, state-unknown 1)"
+  );
 });

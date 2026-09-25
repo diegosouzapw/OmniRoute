@@ -372,6 +372,19 @@ export function countStrictExclusions<T extends StrictZeroCostCandidate>(
 }
 
 /**
+ * Pool-log detail for a STRICT drop: splits the excluded count into its causes so an
+ * operator can tell a proven-exhausted quota from a missing/unknown quota reading.
+ */
+export function describeStrictExclusions(
+  counts: Pick<
+    ReturnType<typeof countStrictExclusions>,
+    "noHardStop" | "exhausted" | "stateUnknown"
+  >
+): string {
+  return ` (no-hard-stop ${counts.noHardStop}, exhausted ${counts.exhausted}, state-unknown ${counts.stateUnknown})`;
+}
+
+/**
  * Separate, optional ToS guard — kept independent from economic safety on
  * purpose (Marco's requirement): a model can be economically SAFE and still
  * excluded here for ToS reasons, or left in when this guard is off even if
