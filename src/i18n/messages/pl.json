@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Ustawienia punktu końcowego zapisanego modelu",
     "searchByModelAria": "Szukaj według modelu",
     "selectSupportedEndpoint": "Wybierz przynajmniej jeden obsługiwany punkt końcowy",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Nie ma jeszcze danych o użyciu",
+    "quotaRefresh": "Odśwież użycie",
+    "quotaCredits": "{count} kredytów",
+    "quotaUnlimited": "bez limitu",
+    "quotaResetIn": "resetuje się za {time}",
+    "quotaMoreWindows": "jeszcze {count} okien użycia",
+    "quotaWindowMonthly": "Miesięcznie",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Szczegóły użycia",
+    "quotaPlanBadge": "Plan subskrypcji (na podstawie danych o użyciu)"
   },
   "settings": {
     "title": "Ustawienia",

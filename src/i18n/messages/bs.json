@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Spremljene postavke krajnje tačke modela",
     "searchByModelAria": "Pretraži po modelu",
     "selectSupportedEndpoint": "Odaberite barem jednu podržanu krajnju tačku",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Još nema podataka o korištenju",
+    "quotaRefresh": "Osvježi korištenje",
+    "quotaCredits": "{count} kredita",
+    "quotaUnlimited": "neograničeno",
+    "quotaResetIn": "resetuje se za {time}",
+    "quotaMoreWindows": "još {count} prozora korištenja",
+    "quotaWindowMonthly": "Mjesečno",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Detalji korištenja",
+    "quotaPlanBadge": "Plan pretplate (iz podataka o korištenju)"
   },
   "settings": {
     "title": "Postavke",
@@ -14170,7 +14180,12 @@
     "hour": "sat",
     "day": "dan",
     "unknownModel": "nepoznato",
-    "pending": "na čekanju"
+    "pending": "na čekanju",
+    "allApiKeys": "Svi API ključevi",
+    "apiKey": "API ključ",
+    "mcp": "MCP",
+    "mcpTool": "MCP alat",
+    "scope": "Opseg"
   },
   "metadata": {
     "compressionTitle": "Kompresija",

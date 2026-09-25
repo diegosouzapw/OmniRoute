@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "የተቀመጡ የሞዴል መጨረሻ ነጥብ ቅንብሮች",
     "searchByModelAria": "በሞዴል ይፈልጉ",
     "selectSupportedEndpoint": "ቢያንስ አንድ የሚደገፍ መጨረሻ ነጥብ ይምረጡ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "እስካሁን የአጠቃቀም መረጃ የለም",
+    "quotaRefresh": "አጠቃቀም አድስ",
+    "quotaCredits": "{count} ክሬዲቶች",
+    "quotaUnlimited": "ያልተወሰነ",
+    "quotaResetIn": "በ{time} ይታደሳል",
+    "quotaMoreWindows": "{count} ተጨማሪ የአጠቃቀም መስኮቶች",
+    "quotaWindowMonthly": "ወርሃዊ",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "የአጠቃቀም ዝርዝሮች",
+    "quotaPlanBadge": "የምዝገባ ዕቅድ (ከአጠቃቀም መረጃ)"
   },
   "settings": {
     "title": "ቅንብሮች",

@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Settings issejvjati tal-endpoint tal-mudell",
     "searchByModelAria": "Fittex skont il-mudell",
     "selectSupportedEndpoint": "Agħżel mill-inqas endpoint wieħed appoġġjat",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Għad m'hemm l-ebda data ta' użu",
+    "quotaRefresh": "Aġġorna l-użu",
+    "quotaCredits": "{count} krediti",
+    "quotaUnlimited": "bla limitu",
+    "quotaResetIn": "jirrisettja fi {time}",
+    "quotaMoreWindows": "{count} twieqi ta' użu oħra",
+    "quotaWindowMonthly": "Kull xahar",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Dettalji ta' użu",
+    "quotaPlanBadge": "Pjan ta' abbonament (mid-data ta' użu)"
   },
   "settings": {
     "title": "Issettjar",

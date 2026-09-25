@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Instellingen voor opgeslagen model-eindpunt",
     "searchByModelAria": "Zoeken op model",
     "selectSupportedEndpoint": "Selecteer ten minste één ondersteunde eindpunt",
-    "antigravityClientProfileHarness": "Testomgeving / CLI"
+    "antigravityClientProfileHarness": "Testomgeving / CLI",
+    "quotaNoData": "Nog geen gebruiksgegevens",
+    "quotaRefresh": "Gebruik vernieuwen",
+    "quotaCredits": "{count} tegoeden",
+    "quotaUnlimited": "onbeperkt",
+    "quotaResetIn": "zet over {time} terug",
+    "quotaMoreWindows": "{count} meer gebruiksvensters",
+    "quotaWindowMonthly": "Maandelijks",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Gebruiksgegevens",
+    "quotaPlanBadge": "Abonnementsplan (op basis van gebruiksgegevens)"
   },
   "settings": {
     "title": "Instellingen",

@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Tallennetun mallin päätepisteen asetukset",
     "searchByModelAria": "Hae mallin mukaan",
     "selectSupportedEndpoint": "Valitse vähintään yksi tuettu päätepiste",
-    "antigravityClientProfileHarness": "Testauskehys / CLI"
+    "antigravityClientProfileHarness": "Testauskehys / CLI",
+    "quotaNoData": "Ei vielä käyttötietoja",
+    "quotaRefresh": "Päivitä käyttö",
+    "quotaCredits": "{count} krediittiä",
+    "quotaUnlimited": "rajoittamaton",
+    "quotaResetIn": "nollautuu {time} kuluttua",
+    "quotaMoreWindows": "{count} käyttöikkunaa lisää",
+    "quotaWindowMonthly": "Kuukausittain",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Käyttötiedot",
+    "quotaPlanBadge": "Tilaustaso (käyttötiedoista)"
   },
   "settings": {
     "title": "Asetukset",

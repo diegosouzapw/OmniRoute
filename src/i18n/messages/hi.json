@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "सहेजे गए मॉडल एंडपॉइंट सेटिंग्स",
     "searchByModelAria": "मॉडल द्वारा खोजें",
     "selectSupportedEndpoint": "कम से कम एक समर्थित एंडपॉइंट चुनें",
-    "antigravityClientProfileHarness": "हार्नेस / CLI"
+    "antigravityClientProfileHarness": "हार्नेस / CLI",
+    "quotaNoData": "अभी तक उपयोग का कोई डेटा नहीं",
+    "quotaRefresh": "उपयोग रिफ्रेश करें",
+    "quotaCredits": "{count} क्रेडिट",
+    "quotaUnlimited": "असीमित",
+    "quotaResetIn": "{time} में रीसेट होगा",
+    "quotaMoreWindows": "{count} और उपयोग विंडो",
+    "quotaWindowMonthly": "मासिक",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "उपयोग विवरण",
+    "quotaPlanBadge": "सब्सक्रिप्शन प्लान (उपयोग डेटा से)"
   },
   "settings": {
     "title": "सेटिंग्स",

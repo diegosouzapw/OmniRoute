@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Saxlanmış model son nöqtəsi parametrləri",
     "searchByModelAria": "Model üzrə axtarış edin",
     "selectSupportedEndpoint": "Ən azı bir dəstəklənən son nöqtəni seçin",
-    "antigravityClientProfileHarness": "Test sistemi / CLI"
+    "antigravityClientProfileHarness": "Test sistemi / CLI",
+    "quotaNoData": "Hələ istifadə məlumatı yoxdur",
+    "quotaRefresh": "İstifadəni yenilə",
+    "quotaCredits": "{count} kredit",
+    "quotaUnlimited": "limitsiz",
+    "quotaResetIn": "{time} sonra sıfırlanır",
+    "quotaMoreWindows": "{count} əlavə istifadə pəncərəsi",
+    "quotaWindowMonthly": "Aylıq",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "İstifadə təfərrüatları",
+    "quotaPlanBadge": "Abunəlik planı (istifadə məlumatından)"
   },
   "settings": {
     "title": "Parametrlər",

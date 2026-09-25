@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Đã lưu cài đặt endpoint mô hình",
     "searchByModelAria": "Tìm kiếm theo mô hình",
     "selectSupportedEndpoint": "Chọn ít nhất một endpoint được hỗ trợ",
-    "antigravityClientProfileHarness": "Bộ điều khiển / CLI"
+    "antigravityClientProfileHarness": "Bộ điều khiển / CLI",
+    "quotaNoData": "Chưa có dữ liệu sử dụng",
+    "quotaRefresh": "Làm mới mức sử dụng",
+    "quotaCredits": "{count} tín dụng",
+    "quotaUnlimited": "không giới hạn",
+    "quotaResetIn": "đặt lại sau {time}",
+    "quotaMoreWindows": "{count} cửa sổ sử dụng nữa",
+    "quotaWindowMonthly": "Hàng tháng",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Chi tiết sử dụng",
+    "quotaPlanBadge": "Gói đăng ký (từ dữ liệu sử dụng)"
   },
   "settings": {
     "title": "Cài đặt",

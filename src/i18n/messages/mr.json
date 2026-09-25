@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "सुरक्षित केलेल्या मॉडेल एंडपॉइंट सेटिंग्ज",
     "searchByModelAria": "मॉडेलद्वारे शोधा",
     "selectSupportedEndpoint": "किमान एक समर्थित एंडपॉइंट निवडा",
-    "antigravityClientProfileHarness": "हार्नेस / CLI"
+    "antigravityClientProfileHarness": "हार्नेस / CLI",
+    "quotaNoData": "अजून वापराचा डेटा नाही",
+    "quotaRefresh": "वापर रिफ्रेश करा",
+    "quotaCredits": "{count} क्रेडिट",
+    "quotaUnlimited": "अमर्यादित",
+    "quotaResetIn": "{time} मध्ये रीसेट होईल",
+    "quotaMoreWindows": "अजून {count} वापर विंडो",
+    "quotaWindowMonthly": "मासिक",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "वापर तपशील",
+    "quotaPlanBadge": "सदस्यता प्लॅन (वापर डेटावरून)"
   },
   "settings": {
     "title": "सेटिंग्ज",

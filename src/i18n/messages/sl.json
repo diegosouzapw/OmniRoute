@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Nastavitve končne točke modela so shranjene",
     "searchByModelAria": "Iskanje po modelu",
     "selectSupportedEndpoint": "Izberite vsaj eno podprto končno točko",
-    "antigravityClientProfileHarness": "Ogrodje / CLI"
+    "antigravityClientProfileHarness": "Ogrodje / CLI",
+    "quotaNoData": "Za zdaj ni podatkov o uporabi",
+    "quotaRefresh": "Osveži uporabo",
+    "quotaCredits": "{count} kreditov",
+    "quotaUnlimited": "neomejeno",
+    "quotaResetIn": "ponastavi se čez {time}",
+    "quotaMoreWindows": "še {count} oken uporabe",
+    "quotaWindowMonthly": "Mesečno",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Podrobnosti uporabe",
+    "quotaPlanBadge": "Naročniški paket (iz podatkov o uporabi)"
   },
   "settings": {
     "title": "Nastavitve",

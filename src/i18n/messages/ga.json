@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Sábháladh socruithe críochphointe an mhúnla",
     "searchByModelAria": "Cuardaigh de réir mhúnla",
     "selectSupportedEndpoint": "Roghnaigh críochphointe amháin ar a laghad a dtacaítear leis",
-    "antigravityClientProfileHarness": "Úim / CLI"
+    "antigravityClientProfileHarness": "Úim / CLI",
+    "quotaNoData": "Níl aon sonraí úsáide fós",
+    "quotaRefresh": "Nuashonraigh úsáid",
+    "quotaCredits": "{count} creidiúintí",
+    "quotaUnlimited": "gan teorainn",
+    "quotaResetIn": "athshocraíonn i gceann {time}",
+    "quotaMoreWindows": "{count} fhuinneog úsáide eile",
+    "quotaWindowMonthly": "Míosúil",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Mionsonraí úsáide",
+    "quotaPlanBadge": "Plean síntiúis (ó shonraí úsáide)"
   },
   "settings": {
     "title": "Socruithe",

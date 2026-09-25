@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "సేవ్ చేసిన మోడల్ ఎండ్‌పాయింట్ సెట్టింగ్స్",
     "searchByModelAria": "మోడల్ ద్వారా శోధించండి",
     "selectSupportedEndpoint": "కమిషన్ చేయబడిన కనెక్ట్ చేయబడిన ఎండ్‌పాయింట్‌లలో కనీసం ఒకటి ఎంచుకోండి",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "ఇంకా వినియోగ డేటా లేదు",
+    "quotaRefresh": "వినియోగాన్ని రిఫ్రెష్ చేయండి",
+    "quotaCredits": "{count} క్రెడిట్లు",
+    "quotaUnlimited": "అపరిమిత",
+    "quotaResetIn": "{time} లో రీసెట్ అవుతుంది",
+    "quotaMoreWindows": "మరో {count} వినియోగ విండోలు",
+    "quotaWindowMonthly": "నెలవారీ",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "వినియోగ వివరాలు",
+    "quotaPlanBadge": "సభ్యతా ప్లాన్ (వినియోగ డేటా నుండి)"
   },
   "settings": {
     "title": "సెట్టింగ్లు",

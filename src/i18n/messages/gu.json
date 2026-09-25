@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "સાચવેલ મોડેલ અંતિમ બિંદુની સેટિંગ્સ",
     "searchByModelAria": "મોડલ દ્વારા શોધો",
     "selectSupportedEndpoint": "કમથી કમ એક સમર્થિત અંતિમ બિંદુ પસંદ કરો",
-    "antigravityClientProfileHarness": "હાર્નેસ / CLI"
+    "antigravityClientProfileHarness": "હાર્નેસ / CLI",
+    "quotaNoData": "હજુ સુધી વપરાશનો ડેટા નથી",
+    "quotaRefresh": "વપરાશ રિફ્રેશ કરો",
+    "quotaCredits": "{count} ક્રેડિટ",
+    "quotaUnlimited": "અમર્યાદિત",
+    "quotaResetIn": "{time} માં રીસેટ થશે",
+    "quotaMoreWindows": "વધુ {count} વપરાશ વિન્ડો",
+    "quotaWindowMonthly": "માસિક",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "વપરાશની વિગતો",
+    "quotaPlanBadge": "સબસ્ક્રિપ્શન પ્લાન (વપરાશના ડેટામાંથી)"
   },
   "settings": {
     "title": "સેટિંગ્સ",

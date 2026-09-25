@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Kaydedilmiş model uç noktası ayarları",
     "searchByModelAria": "Model ile ara",
     "selectSupportedEndpoint": "En az bir desteklenen uç noktayı seçin",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Henüz kullanım verisi yok",
+    "quotaRefresh": "Kullanımı yenile",
+    "quotaCredits": "{count} kredi",
+    "quotaUnlimited": "sınırsız",
+    "quotaResetIn": "{time} içinde sıfırlanır",
+    "quotaMoreWindows": "{count} kullanım penceresi daha",
+    "quotaWindowMonthly": "Aylık",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Kullanım ayrıntıları",
+    "quotaPlanBadge": "Abonelik planı (kullanım verilerinden)"
   },
   "settings": {
     "title": "Ayarlar",

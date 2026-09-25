@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Modelio galinio taško nustatymai išsaugoti",
     "searchByModelAria": "Ieškoti pagal modelį",
     "selectSupportedEndpoint": "Pasirinkite bent vieną palaikomą galinį tašką",
-    "antigravityClientProfileHarness": "Testavimo aplinka / CLI"
+    "antigravityClientProfileHarness": "Testavimo aplinka / CLI",
+    "quotaNoData": "Dar nėra naudojimo duomenų",
+    "quotaRefresh": "Atnaujinti naudojimą",
+    "quotaCredits": "{count} kreditų",
+    "quotaUnlimited": "neribota",
+    "quotaResetIn": "atstatoma po {time}",
+    "quotaMoreWindows": "dar {count} naudojimo langai",
+    "quotaWindowMonthly": "Kas mėnesį",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Naudojimo išsami informacija",
+    "quotaPlanBadge": "Prenumeratos planas (pagal naudojimo duomenis)"
   },
   "settings": {
     "title": "Nustatymai",

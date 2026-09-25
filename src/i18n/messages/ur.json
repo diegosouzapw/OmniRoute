@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "محفوظ شدہ ماڈل اینڈپوائنٹ کی ترتیبات",
     "searchByModelAria": "ماڈل کے ذریعے تلاش کریں",
     "selectSupportedEndpoint": "کم از کم ایک سپورٹ کردہ اینڈپوائنٹ منتخب کریں",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "ابھی تک استعمال کا کوئی ڈیٹا نہیں",
+    "quotaRefresh": "استعمال ریفریش کریں",
+    "quotaCredits": "{count} کریڈٹ",
+    "quotaUnlimited": "غیر محدود",
+    "quotaResetIn": "{time} میں ری سیٹ ہوگا",
+    "quotaMoreWindows": "مزید {count} استعمال ونڈو",
+    "quotaWindowMonthly": "ماہانہ",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "استعمال کی تفصیلات",
+    "quotaPlanBadge": "سبسکرپشن پلان (استعمال کے ڈیٹا سے)"
   },
   "settings": {
     "title": "ترتیبات",

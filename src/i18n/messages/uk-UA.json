@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Налаштування кінцевої точки збереженої моделі",
     "searchByModelAria": "Пошук за моделлю",
     "selectSupportedEndpoint": "Виберіть принаймні одну підтримувану точку доступу",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Даних про використання ще немає",
+    "quotaRefresh": "Оновити використання",
+    "quotaCredits": "{count} кредитів",
+    "quotaUnlimited": "без обмежень",
+    "quotaResetIn": "скидання через {time}",
+    "quotaMoreWindows": "ще {count} вікон використання",
+    "quotaWindowMonthly": "Помісячно",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Подробиці використання",
+    "quotaPlanBadge": "План підписки (з даних використання)"
   },
   "settings": {
     "title": "Налаштування",

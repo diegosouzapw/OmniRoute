@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Подешавања ендпоинта модела су сачувана",
     "searchByModelAria": "Претрага по моделу",
     "selectSupportedEndpoint": "Изаберите бар једну подржану крајњу тачку",
-    "antigravityClientProfileHarness": "Окружење / CLI"
+    "antigravityClientProfileHarness": "Окружење / CLI",
+    "quotaNoData": "Још нема података о коришћењу",
+    "quotaRefresh": "Освежи коришћење",
+    "quotaCredits": "{count} кредита",
+    "quotaUnlimited": "неограничено",
+    "quotaResetIn": "ресетује се за {time}",
+    "quotaMoreWindows": "још {count} прозора коришћења",
+    "quotaWindowMonthly": "Месечно",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Детаљи коришћења",
+    "quotaPlanBadge": "План претплате (из података о коришћењу)"
   },
   "settings": {
     "title": "Подешавања",

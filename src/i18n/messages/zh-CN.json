@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "已保存的模型端点设置",
     "searchByModelAria": "按型号搜索",
     "selectSupportedEndpoint": "请选择至少一个支持的端点",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "暂无用量数据",
+    "quotaRefresh": "刷新用量",
+    "quotaCredits": "{count} 额度",
+    "quotaUnlimited": "无限制",
+    "quotaResetIn": "{time} 后重置",
+    "quotaMoreWindows": "还有 {count} 个用量窗口",
+    "quotaWindowMonthly": "每月",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "用量详情",
+    "quotaPlanBadge": "订阅套餐（来自用量数据）"
   },
   "settings": {
     "title": "设置",

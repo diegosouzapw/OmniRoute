@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Configurações do endpoint do modelo salvo",
     "searchByModelAria": "Pesquisar por modelo",
     "selectSupportedEndpoint": "Selecione pelo menos um endpoint suportado",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Ainda não há dados de uso",
+    "quotaRefresh": "Atualizar uso",
+    "quotaCredits": "{count} créditos",
+    "quotaUnlimited": "ilimitado",
+    "quotaResetIn": "reinicia em {time}",
+    "quotaMoreWindows": "mais {count} janelas de uso",
+    "quotaWindowMonthly": "Mensal",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Detalhes de uso",
+    "quotaPlanBadge": "Plano de assinatura (dos dados de uso)"
   },
   "settings": {
     "title": "Configurações",

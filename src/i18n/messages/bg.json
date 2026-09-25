@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Настройки на крайна точка на запазен модел",
     "searchByModelAria": "Търсене по модел",
     "selectSupportedEndpoint": "Изберете поне една поддържана крайна точка",
-    "antigravityClientProfileHarness": "Тестова среда / CLI"
+    "antigravityClientProfileHarness": "Тестова среда / CLI",
+    "quotaNoData": "Още няма данни за използване",
+    "quotaRefresh": "Обновяване на използването",
+    "quotaCredits": "{count} кредита",
+    "quotaUnlimited": "неограничен",
+    "quotaResetIn": "нулива се след {time}",
+    "quotaMoreWindows": "още {count} прозореца за използване",
+    "quotaWindowMonthly": "Месечно",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Подробности за използването",
+    "quotaPlanBadge": "Абонаментен план (от данни за използване)"
   },
   "settings": {
     "title": "Настройки",

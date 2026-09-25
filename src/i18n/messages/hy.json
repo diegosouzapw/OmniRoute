@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Մոդելի վերջնակետի կարգավորումները պահպանվել են",
     "searchByModelAria": "Որոնել ըստ մոդելի",
     "selectSupportedEndpoint": "Ընտրեք առնվազն մեկ աջակցվող վերջնակետ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Դեռ օգտագործման տվյալներ չկան",
+    "quotaRefresh": "Թարմացնել օգտագործումը",
+    "quotaCredits": "{count} կրեդիտ",
+    "quotaUnlimited": "անսահմանափակ",
+    "quotaResetIn": "կվերակայվի {time} հետո",
+    "quotaMoreWindows": "ևս {count} օգտագործման պատուհան",
+    "quotaWindowMonthly": "Ամսական",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Օգտագործման մանրամասներ",
+    "quotaPlanBadge": "Բաժանորդագրության պլան (օգտագործման տվյալներից)"
   },
   "settings": {
     "title": "Կարգավորումներ",

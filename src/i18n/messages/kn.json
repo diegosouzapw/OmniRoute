@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "ಮಾದರಿ ಎಂಡ್ಪಾಯಿಂಟ್ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
     "searchByModelAria": "ಮಾದರಿಯ ಮೂಲಕ ಹುಡುಕಿ",
     "selectSupportedEndpoint": "ಬೆಂಬಲಿತ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳಲ್ಲಿ ಕನಿಷ್ಠ ಒಂದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
-    "antigravityClientProfileHarness": "ಹಾರ್ನೆಸ್ / CLI"
+    "antigravityClientProfileHarness": "ಹಾರ್ನೆಸ್ / CLI",
+    "quotaNoData": "ಇನ್ನೂ ಬಳಕೆಯ ದತ್ತಾಂಶವಿಲ್ಲ",
+    "quotaRefresh": "ಬಳಕೆಯನ್ನು ರಿಫ್ರೆಶ್ ಮಾಡಿ",
+    "quotaCredits": "{count} ಕ್ರೆಡಿಟ್",
+    "quotaUnlimited": "ಅಮಿತ",
+    "quotaResetIn": "{time} ನಲ್ಲಿ ರೀಸೆಟ್ ಆಗುತ್ತದೆ",
+    "quotaMoreWindows": "ಇನ್ನೂ {count} ಬಳಕೆ ವಿಂಡೋಗಳು",
+    "quotaWindowMonthly": "ಮಾಸಿಕ",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "ಬಳಕೆ ವಿವರಗಳು",
+    "quotaPlanBadge": "ಚಂದಾದಾರಿಕೆ ಯೋಜನೆ (ಬಳಕೆ ದತ್ತಾಂಶದಿಂದ)"
   },
   "settings": {
     "title": "ಸೆಟ್ಟಿಂಗ್ಗಳು",

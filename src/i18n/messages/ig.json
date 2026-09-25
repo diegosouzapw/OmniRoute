@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Echekwara ntọala ebe njedebe model",
     "searchByModelAria": "Jiri model chọọ",
     "selectSupportedEndpoint": "Họrọ opekata mpe otu ebe njedebe akwadoro",
-    "antigravityClientProfileHarness": "Ngwa Nnwale / CLI"
+    "antigravityClientProfileHarness": "Ngwa Nnwale / CLI",
+    "quotaNoData": "Enweghọ data ojiji ugbu a",
+    "quotaRefresh": "Mee ojiji ọhụrụ",
+    "quotaCredits": "{count} kredit",
+    "quotaUnlimited": "na-enweghị oke",
+    "quotaResetIn": "na-emegharị mgbe {time} gachara",
+    "quotaMoreWindows": "{count} windows ojiji ọzọ",
+    "quotaWindowMonthly": "Kwa ọnwa",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Nkọwa ojiji",
+    "quotaPlanBadge": "Atụmatụ ụgwọ (site na data ojiji)"
   },
   "settings": {
     "title": "Ntọala",

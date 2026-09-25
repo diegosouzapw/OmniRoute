@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "ਮਾਡਲ ਐਂਡਪੌਇੰਟ ਸੈਟਿੰਗਾਂ ਸੰਭਾਲੀਆਂ ਗਈਆਂ",
     "searchByModelAria": "ਮਾਡਲ ਦੁਆਰਾ ਖੋਜੋ",
     "selectSupportedEndpoint": "ਘੱਟੋ-ਘੱਟ ਇੱਕ ਸਮਰਥਿਤ ਐਂਡਪੌਇੰਟ ਚੁਣੋ",
-    "antigravityClientProfileHarness": "ਹਾਰਨੈੱਸ / CLI"
+    "antigravityClientProfileHarness": "ਹਾਰਨੈੱਸ / CLI",
+    "quotaNoData": "ਹਾਲੇ ਤੱਕ ਵਰਤੋਂ ਦਾ ਕੋਈ ਡਾਟਾ ਨਹੀਂ",
+    "quotaRefresh": "ਵਰਤੋਂ ਰਿਫਰੈਸ਼ ਕਰੋ",
+    "quotaCredits": "{count} ਕ੍ਰੈਡਿਟ",
+    "quotaUnlimited": "ਬੇਅੰਤ",
+    "quotaResetIn": "{time} ਵਿੱਚ ਰੀਸੈਟ ਹੋਵੇਗਾ",
+    "quotaMoreWindows": "ਹੋਰ {count} ਵਰਤੋਂ ਵਿੰਡੋ",
+    "quotaWindowMonthly": "ਮਾਸਿਕ",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "ਵਰਤੋਂ ਵੇਰਵਾ",
+    "quotaPlanBadge": "ਮੈਂਬਰਸ਼ਿਪ ਪਲਾਨ (ਵਰਤੋਂ ਡੇਟਾ ਤੋਂ)"
   },
   "settings": {
     "title": "ਸੈਟਿੰਗਾਂ",

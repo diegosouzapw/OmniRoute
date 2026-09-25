@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Naka-save na mga setting ng endpoint ng modelo",
     "searchByModelAria": "Maghanap ayon sa modelo",
     "selectSupportedEndpoint": "Pumili ng hindi bababa sa isang sinusuportahang endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Wala pang data ng paggamit",
+    "quotaRefresh": "I-refresh ang paggamit",
+    "quotaCredits": "{count} kredito",
+    "quotaUnlimited": "walang limitasyon",
+    "quotaResetIn": "nire-reset sa {time}",
+    "quotaMoreWindows": "{count} pang iba pang window ng paggamit",
+    "quotaWindowMonthly": "Buwanan",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Mga detalye ng paggamit",
+    "quotaPlanBadge": "Plan ng subscription (mula sa data ng paggamit)"
   },
   "settings": {
     "title": "Mga setting",

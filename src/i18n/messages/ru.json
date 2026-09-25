@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Настройки конечной точки сохраненной модели",
     "searchByModelAria": "Поиск по модели",
     "selectSupportedEndpoint": "Выберите хотя бы одну поддерживаемую конечную точку",
-    "antigravityClientProfileHarness": "Среда / CLI"
+    "antigravityClientProfileHarness": "Среда / CLI",
+    "quotaNoData": "Данных об использовании пока нет",
+    "quotaRefresh": "Обновить использование",
+    "quotaCredits": "{count} кредитов",
+    "quotaUnlimited": "без ограничений",
+    "quotaResetIn": "сброс через {time}",
+    "quotaMoreWindows": "ещё {count} окон использования",
+    "quotaWindowMonthly": "Ежемесячно",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Подробности использования",
+    "quotaPlanBadge": "Тарифный план (по данным использования)"
   },
   "settings": {
     "title": "Настройки",

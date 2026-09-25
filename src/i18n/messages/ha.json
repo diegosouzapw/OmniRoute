@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "An adana saitunan endpoint na samfur",
     "searchByModelAria": "Bincika ta model",
     "selectSupportedEndpoint": "Zaɓi aƙalla endpoint ɗaya da ake goyon baya",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Babu bayanan amfani tukuna",
+    "quotaRefresh": "Sabunta amfani",
+    "quotaCredits": "{count} kiredit",
+    "quotaUnlimited": "ba tare da iyaka ba",
+    "quotaResetIn": "za a sake saita bayan {time}",
+    "quotaMoreWindows": "wasu {count} tagogin amfani",
+    "quotaWindowMonthly": "Na wata",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Cikakken bayanin amfani",
+    "quotaPlanBadge": "Shirin biyan kuɗi (daga bayanan amfani)"
   },
   "settings": {
     "title": "Saituna",

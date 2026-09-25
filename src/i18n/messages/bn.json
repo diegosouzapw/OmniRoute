@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "সংরক্ষিত মডেল এন্ডপয়েন্ট সেটিংস",
     "searchByModelAria": "মডেল দ্বারা অনুসন্ধান করুন",
     "selectSupportedEndpoint": "কমপক্ষে একটি সমর্থিত এন্ডপয়েন্ট নির্বাচন করুন",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "এখনও ব্যবহারের তথ্য নেই",
+    "quotaRefresh": "ব্যবহার রিফ্রেশ করুন",
+    "quotaCredits": "{count} ক্রেডিট",
+    "quotaUnlimited": "সীমাহীন",
+    "quotaResetIn": "{time} এ রিসেট হবে",
+    "quotaMoreWindows": "আরও {count} টি ব্যবহার উইন্ডো",
+    "quotaWindowMonthly": "মাসিক",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "ব্যবহারের বিবরণ",
+    "quotaPlanBadge": "সাবস্ক্রিপশন প্ল্যান (ব্যবহারের ডেটা থেকে)"
   },
   "settings": {
     "title": "সেটিংস",

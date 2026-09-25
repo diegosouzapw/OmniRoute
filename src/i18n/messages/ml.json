@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "സംരക്ഷിച്ച മോഡൽ എൻഡ്പോയിന്റ് ക്രമീകരണങ്ങൾ",
     "searchByModelAria": "മോഡൽ അനുസരിച്ച് തിരയുക",
     "selectSupportedEndpoint": "പിന്തുണയ്ക്കുന്ന ഒരു എൻഡ്പോയിന്റെങ്കിലും തിരഞ്ഞെടുക്കുക",
-    "antigravityClientProfileHarness": "ഹാർനെസ് / CLI"
+    "antigravityClientProfileHarness": "ഹാർനെസ് / CLI",
+    "quotaNoData": "ഇതുവരെ ഉപയോഗ വിവരങ്ങളില്ല",
+    "quotaRefresh": "ഉപയോഗം പുതുക്കുക",
+    "quotaCredits": "{count} ക്രെഡിറ്റുകൾ",
+    "quotaUnlimited": "പരിധിയില്ലാത്ത",
+    "quotaResetIn": "{time}-ൽ പുനഃസജ്ജമാകും",
+    "quotaMoreWindows": "കൂടുതൽ {count} ഉപയോഗ വിൻഡോകൾ",
+    "quotaWindowMonthly": "പ്രതിമാസ",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "ഉപയോഗ വിവരങ്ങൾ",
+    "quotaPlanBadge": "സബ്സ്ക്രിപ്ഷൻ പ്ലാൻ (ഉപയോഗ ഡാറ്റയിൽ നിന്ന്)"
   },
   "settings": {
     "title": "ക്രമീകരണങ്ങൾ",

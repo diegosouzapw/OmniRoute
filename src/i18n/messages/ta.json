@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "சேமிக்கப்பட்ட மாதிரி முடிவுறுப்பு அமைப்புகள்",
     "searchByModelAria": "மாதிரியில் தேடு",
     "selectSupportedEndpoint": "குறைந்தது ஒரு ஆதரிக்கப்படும் முடிவுகளைத் தேர்ந்தெடுக்கவும்",
-    "antigravityClientProfileHarness": "ஹார்னஸ் / CLI"
+    "antigravityClientProfileHarness": "ஹார்னஸ் / CLI",
+    "quotaNoData": "இன்னும் பயன்பாட்டுத் தரவு இல்லை",
+    "quotaRefresh": "பயன்பாட்டைப் புதுப்பி",
+    "quotaCredits": "{count} கிரெடிட்கள்",
+    "quotaUnlimited": "வரம்பற்ற",
+    "quotaResetIn": "{time} இல் மீட்டமைக்கப்படும்",
+    "quotaMoreWindows": "மேலும் {count} பயன்பாட்டு சாளரங்கள்",
+    "quotaWindowMonthly": "மாதாந்திர",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "பயன்பாட்டு விவரங்கள்",
+    "quotaPlanBadge": "சந்தாத் திட்டம் (பயன்பாட்டுத் தரவிலிருந்து)"
   },
   "settings": {
     "title": "அமைப்புகள்",

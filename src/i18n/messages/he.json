@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "הגדרות נקודת הקצה של המודל השמור",
     "searchByModelAria": "חפש לפי דגם",
     "selectSupportedEndpoint": "בחר לפחות נקודת קצה אחת נתמכת",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "אין עדיין נתוני שימוש",
+    "quotaRefresh": "רענן שימוש",
+    "quotaCredits": "{count} קרדיטים",
+    "quotaUnlimited": "ללא הגבלה",
+    "quotaResetIn": "מתאפס בעוד {time}",
+    "quotaMoreWindows": "{count} חלונות שימוש נוספים",
+    "quotaWindowMonthly": "חודשי",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "פרטי שימוש",
+    "quotaPlanBadge": "תוכנית מינוי (מנתוני שימוש)"
   },
   "settings": {
     "title": "הגדרות",

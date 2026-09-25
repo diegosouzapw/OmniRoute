@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "ମଡେଲ୍ ଏଣ୍ଡପଏଣ୍ଟ ସେଟିଂସ୍ ସଞ୍ଚୟ ହୋଇଛି",
     "searchByModelAria": "ମଡେଲ୍ ଅନୁସାରେ ସନ୍ଧାନ କରନ୍ତୁ",
     "selectSupportedEndpoint": "ଅତି କମରେ ଗୋଟିଏ ସମର୍ଥିତ ଏଣ୍ଡପଏଣ୍ଟ ବାଛନ୍ତୁ",
-    "antigravityClientProfileHarness": "ହାର୍ନେସ୍ / CLI"
+    "antigravityClientProfileHarness": "ହାର୍ନେସ୍ / CLI",
+    "quotaNoData": "ଏପର୍ଯ୍ୟନ୍ତ ବ୍ୟବହାର ତଥ୍ୟ ନାହିଁ",
+    "quotaRefresh": "ବ୍ୟବହାର ରିଫ୍ରେସ୍ କରନ୍ତୁ",
+    "quotaCredits": "{count} କ୍ରେଡିଟ୍",
+    "quotaUnlimited": "ଅସୀମିତ",
+    "quotaResetIn": "{time} ମଧ୍ୟରେ ରିସେଟ୍ ହେବ",
+    "quotaMoreWindows": "ଅଧିକ {count} ବ୍ୟବହାର ୱିଣ୍ଡୋ",
+    "quotaWindowMonthly": "ମାସିକ",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "ବ୍ୟବହାର ବିବରଣୀ",
+    "quotaPlanBadge": "ସଦସ୍ୟତା ଯୋଜନା (ବ୍ୟବହାର ତଥ୍ୟରୁ)"
   },
   "settings": {
     "title": "ସେଟିଂସ୍",

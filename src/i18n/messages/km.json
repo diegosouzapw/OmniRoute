@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "បានរក្សាទុកការកំណត់ចំណុចចុងរបស់ម៉ូដែល",
     "searchByModelAria": "ស្វែងរកតាមម៉ូដែល",
     "selectSupportedEndpoint": "ជ្រើសរើសចំណុចចុងដែលគាំទ្រយ៉ាងហោចណាស់មួយ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "មិនមានទិន្នន័យការប្រើប្រាស់នៅឡើយទេ",
+    "quotaRefresh": "ធ្វើបច្ចុប្បន្នភាពការប្រើប្រាស់",
+    "quotaCredits": "{count} ក្រេឌីត",
+    "quotaUnlimited": "គ្មានដែនកំណត់",
+    "quotaResetIn": "កំណត់ឡើងវិញក្នុងរយៈពេល {time}",
+    "quotaMoreWindows": "{count} បង្អួចការប្រើប្រាស់ទៀត",
+    "quotaWindowMonthly": "ប្រចាំខែ",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "ព័ត៌មានលម្អិតការប្រើប្រាស់",
+    "quotaPlanBadge": "ផែនការជាវជាប់ (ពីទិន្នន័យការប្រើប្រាស់)"
   },
   "settings": {
     "title": "ការកំណត់",

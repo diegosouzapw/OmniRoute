@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "إعدادات نقطة نهاية النموذج المحفوظ",
     "searchByModelAria": "البحث حسب الطراز",
     "selectSupportedEndpoint": "اختر نقطة نهاية مدعومة واحدة على الأقل",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "لا توجد بيانات استخدام بعد",
+    "quotaRefresh": "تحديث الاستخدام",
+    "quotaCredits": "{count} رصيد",
+    "quotaUnlimited": "غير محدود",
+    "quotaResetIn": "يعيد التعيين خلال {time}",
+    "quotaMoreWindows": "{count} نوافذ استخدام إضافية",
+    "quotaWindowMonthly": "شهري",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "تفاصيل الاستخدام",
+    "quotaPlanBadge": "خطة الاشتراك (من بيانات الاستخدام)"
   },
   "settings": {
     "title": "الإعدادات",

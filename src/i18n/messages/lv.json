@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Modeļa galapunkta iestatījumi saglabāti",
     "searchByModelAria": "Meklēt pēc modeļa",
     "selectSupportedEndpoint": "Izvēlieties vismaz vienu atbalstītu galapunktu",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Vēl nav lietojuma datu",
+    "quotaRefresh": "Atjaunināt lietojumu",
+    "quotaCredits": "{count} kredīti",
+    "quotaUnlimited": "neierobežots",
+    "quotaResetIn": "atiestata pēc {time}",
+    "quotaMoreWindows": "vēl {count} lietojuma logi",
+    "quotaWindowMonthly": "Mēneša",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Lietojuma detaļas",
+    "quotaPlanBadge": "Abonēšanas plāns (no lietojuma datiem)"
   },
   "settings": {
     "title": "Iestatījumi",

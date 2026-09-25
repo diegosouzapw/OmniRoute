@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "සුරැකි ආකෘති අන්ත ලක්ෂ්ය සැකසුම්",
     "searchByModelAria": "ආකෘතිය අනුව සොයන්න",
     "selectSupportedEndpoint": "අවම වශයෙන් සහාය දක්වන එක් අන්ත ලක්ෂ්යයක්වත් තෝරන්න",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "තවම භාවිත දත්ත නොමැත",
+    "quotaRefresh": "භාවිතය නැවුම් කරන්න",
+    "quotaCredits": "{count} ක්‍රෙඩිට්",
+    "quotaUnlimited": "අසීමිත",
+    "quotaResetIn": "{time} න් පසු යළි සකසයි",
+    "quotaMoreWindows": "තව භාවිත කවුළු {count} ක්",
+    "quotaWindowMonthly": "මාසික",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "භාවිත විස්තර",
+    "quotaPlanBadge": "දායක සැලැස්ම (භාවිත දත්තවලින්)"
   },
   "settings": {
     "title": "සැකසුම්",

@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "保存されたモデルエンドポイント設定",
     "searchByModelAria": "モデルで検索",
     "selectSupportedEndpoint": "サポートされているエンドポイントを少なくとも1つ選択してください",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "使用状況データはまだありません",
+    "quotaRefresh": "使用状況を更新",
+    "quotaCredits": "{count} クレジット",
+    "quotaUnlimited": "無制限",
+    "quotaResetIn": "{time} 後にリセット",
+    "quotaMoreWindows": "他 {count} 件の使用ウィンドウ",
+    "quotaWindowMonthly": "毎月",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "使用状況の詳細",
+    "quotaPlanBadge": "サブスクリプションプラン（使用状況データから）"
   },
   "settings": {
     "title": "設定",

@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Setările punctului final al modelului salvat",
     "searchByModelAria": "Caută după model",
     "selectSupportedEndpoint": "Selectați cel puțin un punct final acceptat",
-    "antigravityClientProfileHarness": "Cadru / CLI"
+    "antigravityClientProfileHarness": "Cadru / CLI",
+    "quotaNoData": "Nu există încă date de utilizare",
+    "quotaRefresh": "Reîmprospătează utilizarea",
+    "quotaCredits": "{count} credite",
+    "quotaUnlimited": "nelimitat",
+    "quotaResetIn": "se resetează în {time}",
+    "quotaMoreWindows": "încă {count} ferestre de utilizare",
+    "quotaWindowMonthly": "Lunar",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Detalii de utilizare",
+    "quotaPlanBadge": "Plan de abonament (din datele de utilizare)"
   },
   "settings": {
     "title": "Setări",

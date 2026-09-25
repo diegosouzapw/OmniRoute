@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Model endpointi sozlamalari saqlandi",
     "searchByModelAria": "Model boʻyicha qidirish",
     "selectSupportedEndpoint": "Kamida bitta qoʻllab-quvvatlanadigan endpointni tanlang",
-    "antigravityClientProfileHarness": "Sinov vositasi / CLI"
+    "antigravityClientProfileHarness": "Sinov vositasi / CLI",
+    "quotaNoData": "Hali foydalanish ma'lumotlari yo'q",
+    "quotaRefresh": "Foydalanishni yangilash",
+    "quotaCredits": "{count} kredit",
+    "quotaUnlimited": "cheksiz",
+    "quotaResetIn": "{time} ichida qayta o'rnatiladi",
+    "quotaMoreWindows": "yana {count} ta foydalanish oynasi",
+    "quotaWindowMonthly": "Oylik",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Foydalanish tafsilotlari",
+    "quotaPlanBadge": "Obuna rejasi (foydalanish ma'lumotlaridan)"
   },
   "settings": {
     "title": "Sozlamalar",

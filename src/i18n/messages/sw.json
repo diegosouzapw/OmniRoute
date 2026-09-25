@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Mipangilio ya mwisho wa mfano uliohifadhiwa",
     "searchByModelAria": "Tafuta kwa mfano",
     "selectSupportedEndpoint": "Chagua angalau kiunganishi kimoja kinachoungwa mkono",
-    "antigravityClientProfileHarness": "Kiunzi / CLI"
+    "antigravityClientProfileHarness": "Kiunzi / CLI",
+    "quotaNoData": "Hakuna data ya matumizi bado",
+    "quotaRefresh": "Onyesha upya matumizi",
+    "quotaCredits": "{count} kredi",
+    "quotaUnlimited": "bila kikomo",
+    "quotaResetIn": "huweka upya baada ya {time}",
+    "quotaMoreWindows": "madirisha {count} zaidi ya matumizi",
+    "quotaWindowMonthly": "Kila mwezi",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Maelezo ya matumizi",
+    "quotaPlanBadge": "Mpango wa usajili (kutoka kwa data ya matumizi)"
   },
   "settings": {
     "title": "Mipangilio",

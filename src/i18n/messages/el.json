@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Οι ρυθμίσεις τελικού σημείου μοντέλου αποθηκεύτηκαν",
     "searchByModelAria": "Αναζήτηση με βάση το μοντέλο",
     "selectSupportedEndpoint": "Επιλέξτε τουλάχιστον ένα υποστηριζόμενο endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Δεν υπάρχουν ακόμη δεδομένα χρήσης",
+    "quotaRefresh": "Ανανέωση χρήσης",
+    "quotaCredits": "{count} πιστώσεις",
+    "quotaUnlimited": "απεριόριστο",
+    "quotaResetIn": "επαναφέρεται σε {time}",
+    "quotaMoreWindows": "{count} ακόμη παράθυρα χρήσης",
+    "quotaWindowMonthly": "Μηνιαία",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Λεπτομέρειες χρήσης",
+    "quotaPlanBadge": "Σχέδιο συνδρομής (από δεδομένα χρήσης)"
   },
   "settings": {
     "title": "Ρυθμίσεις",

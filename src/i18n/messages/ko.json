@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "저장된 모델 엔드포인트 설정",
     "searchByModelAria": "모델로 검색",
     "selectSupportedEndpoint": "지원되는 엔드포인트를 최소한 하나 선택하세요.",
-    "antigravityClientProfileHarness": "하네스 / CLI"
+    "antigravityClientProfileHarness": "하네스 / CLI",
+    "quotaNoData": "아직 사용량 데이터가 없습니다",
+    "quotaRefresh": "사용량 새로 고침",
+    "quotaCredits": "{count} 크레딧",
+    "quotaUnlimited": "무제한",
+    "quotaResetIn": "{time} 후 초기화",
+    "quotaMoreWindows": "{count}개의 추가 사용량 창",
+    "quotaWindowMonthly": "매월",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "사용량 세부 정보",
+    "quotaPlanBadge": "구독 플랜(사용량 데이터 기준)"
   },
   "settings": {
     "title": "설정",

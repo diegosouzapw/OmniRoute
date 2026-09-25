@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Indstillinger for gemt model endpoint",
     "searchByModelAria": "Søg efter model",
     "selectSupportedEndpoint": "Vælg mindst én understøttet endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Ingen forbrugsdata endnu",
+    "quotaRefresh": "Opdater forbrug",
+    "quotaCredits": "{count} kreditter",
+    "quotaUnlimited": "ubegrænset",
+    "quotaResetIn": "nulstilles om {time}",
+    "quotaMoreWindows": "{count} flere forbrugsvinduer",
+    "quotaWindowMonthly": "Månedligt",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Forbrugsdetaljer",
+    "quotaPlanBadge": "Abonnementsplan (fra forbrugsdata)"
   },
   "settings": {
     "title": "Indstillinger",

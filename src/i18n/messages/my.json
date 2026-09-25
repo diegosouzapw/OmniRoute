@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "မော်ဒယ် endpoint ဆက်တင်များကို သိမ်းဆည်းပြီးပါပြီ",
     "searchByModelAria": "မော်ဒယ်ဖြင့် ရှာဖွေရန်",
     "selectSupportedEndpoint": "ပံ့ပိုးထားသော endpoint အနည်းဆုံးတစ်ခုကို ရွေးချယ်ပါ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "အသုံးပြုမှုဒေတာ မရှိသေးပါ",
+    "quotaRefresh": "အသုံးပြုမှု ပြန်လည်ရယူမည်",
+    "quotaCredits": "{count} ခရက်ဒစ်",
+    "quotaUnlimited": "ကန့်သတ်ချက်မရှိ",
+    "quotaResetIn": "{time} အတွင်း ပြန်လည်သတ်မှတ်မည်",
+    "quotaMoreWindows": "အသုံးပြုမှုဝင်ဒိုး နောက်ထပ် {count} ခု",
+    "quotaWindowMonthly": "လစဉ်",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "အသုံးပြုမှု အသေးစိတ်",
+    "quotaPlanBadge": "စာရင်းသွင်းမှုအစီအစဉ် (အသုံးပြုမှုဒေတာမှ)"
   },
   "settings": {
     "title": "ဆက်တင်များ",

@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "تنظیمات نقطه پایانی مدل ذخیره شده",
     "searchByModelAria": "جستجو بر اساس مدل",
     "selectSupportedEndpoint": "حداقل یک نقطه پایانی پشتیبانی شده را انتخاب کنید",
-    "antigravityClientProfileHarness": "هارنس / CLI"
+    "antigravityClientProfileHarness": "هارنس / CLI",
+    "quotaNoData": "هنوز داده‌ای از مصرف ثبت نشده است",
+    "quotaRefresh": "به‌روزرسانی مصرف",
+    "quotaCredits": "{count} اعتبار",
+    "quotaUnlimited": "نامحدود",
+    "quotaResetIn": "بازنشانی در {time}",
+    "quotaMoreWindows": "{count} پنجره مصرف دیگر",
+    "quotaWindowMonthly": "ماهانه",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "جزئیات مصرف",
+    "quotaPlanBadge": "پلن اشتراک (بر اساس داده‌های مصرف)"
   },
   "settings": {
     "title": "تنظیمات",

@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Spremljene postavke krajnje točke modela",
     "searchByModelAria": "Pretraži po modelu",
     "selectSupportedEndpoint": "Odaberite barem jednu podržanu krajnju točku",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Još nema podataka o korištenju",
+    "quotaRefresh": "Osvježi korištenje",
+    "quotaCredits": "{count} kredita",
+    "quotaUnlimited": "neograničeno",
+    "quotaResetIn": "resetira se za {time}",
+    "quotaMoreWindows": "još {count} prozora korištenja",
+    "quotaWindowMonthly": "Mjesečno",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Detalji korištenja",
+    "quotaPlanBadge": "Plan pretplate (iz podataka o korištenju)"
   },
   "settings": {
     "title": "Postavke",

@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Mentett modell végpont beállításai",
     "searchByModelAria": "Keresés modell szerint",
     "selectSupportedEndpoint": "Válasszon ki legalább egy támogatott végpontot",
-    "antigravityClientProfileHarness": "Tesztkeretrendszer / CLI"
+    "antigravityClientProfileHarness": "Tesztkeretrendszer / CLI",
+    "quotaNoData": "Még nincsenek használati adatok",
+    "quotaRefresh": "Használat frissítése",
+    "quotaCredits": "{count} kredit",
+    "quotaUnlimited": "korlátlan",
+    "quotaResetIn": "{time} múlva visszaáll",
+    "quotaMoreWindows": "{count} további használati ablak",
+    "quotaWindowMonthly": "Havi",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Használat részletei",
+    "quotaPlanBadge": "Előfizetési csomag (a használati adatokból)"
   },
   "settings": {
     "title": "Beállítások elemre",

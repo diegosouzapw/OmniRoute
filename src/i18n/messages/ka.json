@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "მოდელის საბოლოო წერტილის პარამეტრები შენახულია",
     "searchByModelAria": "მოდელის მიხედვით ძიება",
     "selectSupportedEndpoint": "აირჩიეთ სულ მცირე ერთი მხარდაჭერილი საბოლოო წერტილი",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "გამოყენების მონაცემები ჯერ არ არის",
+    "quotaRefresh": "გამოყენების განახლება",
+    "quotaCredits": "{count} კრედიტი",
+    "quotaUnlimited": "შეუზღუდავი",
+    "quotaResetIn": "გადატვირთვა {time}-ში",
+    "quotaMoreWindows": "კიდევ {count} გამოყენების ფანჯარა",
+    "quotaWindowMonthly": "ყოველთვიური",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "გამოყენების დეტალები",
+    "quotaPlanBadge": "გამოწერის გეგმა (გამოყენების მონაცემებიდან)"
   },
   "settings": {
     "title": "პარამეტრები",

@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Tetapan titik akhir model yang disimpan",
     "searchByModelAria": "Cari mengikut model",
     "selectSupportedEndpoint": "Pilih sekurang-kurangnya satu titik akhir yang disokong",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Belum ada data penggunaan",
+    "quotaRefresh": "Segar semula penggunaan",
+    "quotaCredits": "{count} kredit",
+    "quotaUnlimited": "tanpa had",
+    "quotaResetIn": "set semula dalam {time}",
+    "quotaMoreWindows": "{count} tetingkap penggunaan lagi",
+    "quotaWindowMonthly": "Bulanan",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Butiran penggunaan",
+    "quotaPlanBadge": "Pelan langganan (daripada data penggunaan)"
   },
   "settings": {
     "title": "tetapan",

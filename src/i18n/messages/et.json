@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Mudeli lõpp-punkti seaded salvestatud",
     "searchByModelAria": "Otsi mudeli järgi",
     "selectSupportedEndpoint": "Valige vähemalt üks toetatud lõpp-punkt",
-    "antigravityClientProfileHarness": "Rakendusraamistik / CLI"
+    "antigravityClientProfileHarness": "Rakendusraamistik / CLI",
+    "quotaNoData": "Kasutusandmeid veel ei ole",
+    "quotaRefresh": "Värskenda kasutust",
+    "quotaCredits": "{count} krediiti",
+    "quotaUnlimited": "piiramatu",
+    "quotaResetIn": "lähtestub pärast {time}",
+    "quotaMoreWindows": "{count} kasutusakent veel",
+    "quotaWindowMonthly": "Igakuine",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Kasutusdetailid",
+    "quotaPlanBadge": "Tellimuse plaan (kasutusandmetest)"
   },
   "settings": {
     "title": "Seaded",

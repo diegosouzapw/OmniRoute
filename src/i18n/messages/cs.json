@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Nastavení koncového bodu uloženého modelu",
     "searchByModelAria": "Hledat podle modelu",
     "selectSupportedEndpoint": "Vyberte alespoň jeden podporovaný koncový bod",
-    "antigravityClientProfileHarness": "Testovací rozhraní / CLI"
+    "antigravityClientProfileHarness": "Testovací rozhraní / CLI",
+    "quotaNoData": "Zatím nejsou žádná data o využití",
+    "quotaRefresh": "Obnovit využití",
+    "quotaCredits": "{count} kreditů",
+    "quotaUnlimited": "neomezeno",
+    "quotaResetIn": "resetuje se za {time}",
+    "quotaMoreWindows": "{count} dalších oken využití",
+    "quotaWindowMonthly": "Měsíčně",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Podrobnosti o využití",
+    "quotaPlanBadge": "Plán předplatného (z údajů o využití)"
   },
   "settings": {
     "title": "Nastavení",

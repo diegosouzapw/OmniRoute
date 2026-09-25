@@ -6520,7 +6520,17 @@
     "savedModelEndpointSettings": "Pengaturan endpoint model yang disimpan",
     "searchByModelAria": "Cari berdasarkan model",
     "selectSupportedEndpoint": "Pilih setidaknya satu endpoint yang didukung",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "Belum ada data penggunaan",
+    "quotaRefresh": "Segarkan penggunaan",
+    "quotaCredits": "{count} kredit",
+    "quotaUnlimited": "tanpa batas",
+    "quotaResetIn": "reset dalam {time}",
+    "quotaMoreWindows": "{count} jendela penggunaan lainnya",
+    "quotaWindowMonthly": "Bulanan",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Detail penggunaan",
+    "quotaPlanBadge": "Paket langganan (dari data penggunaan)"
   },
   "settings": {
     "title": "Pengaturan",
