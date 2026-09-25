@@ -1,6 +1,6 @@
 # README (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [or](../or/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇧🇦 [bs](../bs/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [or](../or/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
@@ -11,9 +11,9 @@
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Η δωρεάν πύλη AI
+# 🚀 OmniRoute — Η Δωρεάν Πύλη AI
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Μην σταματάτε ποτέ να προγραμματίζετε. Κάθε εργαλείο AI → 359 πάροχοι — 150+ δωρεάν — μέσω ενός endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity σε ΔΩΡΕΑΝ Claude / GPT / Gemini με αυτόματη εναλλακτική δρομολόγηση. Η συνδυαστική συμπίεση RTK + Caveman εξοικονομεί 15–95% των token (~89% κατά μέσο όρο) — χωρίς να φτάνετε ποτέ στα όρια. 359 πάροχοι AI · 150+ δωρεάν πακέτα · ~1,62 δισ. δωρεάν token/μήνα · 19 στρατηγικές δρομολόγησης · $0 για να ξεκινήσετε."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Μην σταματάς ποτέ να κωδικοποιείς. Κάθε εργαλείο AI → 358 πάροχοι — 150+ δωρεάν — μέσω ενός τελικού σημείου. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity σε ΔΩΡΕΑΝ Claude / GPT / Gemini με αυτόματη εφεδρεία. Η συμπίεση RTK + Caveman εξοικονομεί 15–95% tokens (~89% κατά μέσο όρο) — ποτέ μην φτάσετε στα όρια. 358 πάροχοι AI · 150+ δωρεάν βαθμίδες · ~1.62 δισ. δωρεάν tokens/μήνα · 19 στρατηγικές δρομολόγησης · $0 για να ξεκινήσετε."/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 Λειτουργεί από τη στιγμή που το εγκαθιστάτε — χωρίς κλειδιά, χωρίς ρυθμίσεις
+## 🆓 Λειτουργεί αμέσως μόλις το εγκαταστήσετε — χωρίς κλειδιά, χωρίς ρύθμιση
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Λειτουργεί από τη στιγμή που το εγκαθιστάτε — χωρίς ρυθμίσεις. Τρία βήματα: 1. Εγκατάσταση — npm i -g omniroute, ο διακομιστής εκκινείται στο localhost:20128. 2. Κατευθύνετε το εργαλείο σας στο http://localhost:20128/v1 — οποιοδήποτε εργαλείο συμβατό με το OpenAI (Claude Code, Cursor, Cline). 3. Απαντά — καλέστε το μοντέλο auto για άμεση απάντηση, χωρίς κλειδί API, χωρίς εγγραφή και χωρίς διαμόρφωση. Ο πάροχος χωρίς κλειδί OpenCode Free είναι ήδη συνδεδεμένος στον συνδυασμό auto, ώστε μια νέα εγκατάσταση να ανταποκρίνεται αμέσως."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Λειτουργεί αμέσως μόλις το εγκαταστήσετε — μηδενική ρύθμιση. Τρία βήματα: 1. Εγκατάσταση — npm i -g omniroute, ο διακομιστής εκκινεί στο localhost:20128. 2. Στρέψτε το εργαλείο σας στο http://localhost:20128/v1 — οποιοδήποτε εργαλείο συμβατό με το OpenAI (Claude Code, Cursor, Cline). 3. Απαντά — καλέστε το μοντέλο auto για άμεση απάντηση, χωρίς κλειδί API, χωρίς εγγραφή, χωρίς ρύθμιση. Ο πάροχος χωρίς κλειδί OpenCode Free είναι προ-συνδεδεμένος στην αυτόματη σύνθεση, οπότε μια νέα εγκατάσταση ανταποκρίνεται αμέσως."/>
 
 ```bash
-# Νέα εγκατάσταση, χωρίς διαπιστευτήρια — το `auto` λειτουργεί ήδη:
+# Νέα εγκατάσταση, μηδενικά διαπιστευτήρια — το `auto` ήδη λειτουργεί:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Προτιμάτε ένα συγκεκριμένο δωρεάν backend; Καλέστε απευθείας το `oc/…` (OpenCode Free). Στη συνέχεια, περάστε στο `auto` και αφήστε το OmniRoute να επιλέξει.</sub>
+<sub>Προτιμάτε ένα συγκεκριμένο δωρεάν backend; Καλέστε το `oc/…` (OpenCode Free) απευθείας. Στη συνέχεια, αναβαθμίστε σε `auto` και αφήστε το OmniRoute να επιλέξει.</sub>
 
-<sub>📦 Έτοιμα για αντιγραφή και επικόλληση σενάρια γρήγορης εκκίνησης για **Python, Node.js, PHP και cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Σενάρια γρήγορης εκκίνησης με αντιγραφή-επικόλληση για **Python, Node.js, PHP, και cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Η Υπόσχεση — Ένα endpoint και 359 πάροχοι. Η αυτόματη εναλλακτική δρομολόγηση συνεχίζει να λειτουργεί όσο υπάρχει διαθέσιμος άλλος υγιής προορισμός. Έξι πυλώνες: ανθεκτική εναλλακτική δρομολόγηση μεταξύ 359 παρόχων · έως και 95% εξοικονόμηση token σε κατάλληλους φόρτους εργασίας · εκκίνηση με $0 χάρη σε περισσότερα από 150 δωρεάν επίπεδα και 54 επαναλαμβανόμενους/χωρίς κλειδί δωρεάν για πάντα παρόχους · 36 ενσωματώσεις CLI/agent μέσω μίας διαμόρφωσης · συμβατότητα με OpenAI, Claude, Gemini και Responses API στο /v1 · έλεγχοι παραγωγής, όπως circuit breakers, απόκρυψη TLS, MCP με 110 εργαλεία, A2A, μνήμη, προστατευτικά όρια, αξιολογήσεις και περισσότερες από 39.000 δηλώσεις στατικών δοκιμών σε περισσότερα από 5.100 παρακολουθούμενα αρχεία δοκιμών."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Η Υπόσχεση — Ένα τελικό σημείο και 358 πάροχοι. Η αυτόματη εφεδρεία διατηρεί τη δρομολόγηση όσο υπάρχει διαθέσιμος ένας άλλος υγιής στόχος. Έξι πυλώνες: ανθεκτική εφεδρεία σε 358 παρόχους · έως και 95% εξοικονόμηση tokens σε επιλέξιμους φόρτους εργασίας · 0$ για να ξεκινήσετε με 150+ δωρεάν βαθμίδες και 54 επαναλαμβανόμενους/χωρίς κλειδί παρόχους για πάντα δωρεάν · 36 ενσωματώσεις CLI/πρακτόρων μέσω μιας ρύθμισης · Συμβατότητα API OpenAI, Claude, Gemini και Responses στο /v1 · έλεγχοι παραγωγής συμπεριλαμβανομένων διακοπτών κυκλώματος, TLS stealth, εργαλείων MCP 110, A2A, μνήμης, guardrails, evals και 39.000+ στατικών δηλώσεων δοκιμών σε 5.100+ αρχεία δοκιμών που παρακολουθούνται."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Γιατί OmniRoute — σταματήστε να διαχειρίζεστε 10 διαφορετικούς πίνακες ελέγχου, ανενεργά κλειδιά API και απρόσμενους λογαριασμούς. Δέκα καθημερινά προβλήματα και οι λύσεις τους: αχρησιμοποίητο όριο που λήγει → μεγιστοποίηση της αξιοποίησης των συνδρομών· όρια ρυθμού εν μέσω προγραμματισμού → αυτόματη εναλλακτική δρομολόγηση 4 επιπέδων (Συνδρομή → API → Οικονομικό → Δωρεάν)· έξοδοι εργαλείων που καταναλώνουν token → συμπίεση RTK + Caveman (15–95%)· ακριβά API → δρομολόγηση βελτιστοποιημένη ως προς το κόστος· ξεχωριστή ρύθμιση για κάθε εργαλείο → ένα endpoint, ένας πίνακας ελέγχου· αποκλεισμός της τεχνητής νοημοσύνης → proxy 3 επιπέδων + απόκρυψη TLS· ανενεργά κλειδιά → ανθεκτικότητα 3 επιπέδων (circuit breakers, χρόνος αναμονής κλειδιών, αποκλεισμός μοντέλων)· κοινή χρήση μίας συνδρομής από την ομάδα → δεξαμενές κλειδιών με ποσοστώσεις δίκαιης κατανομής· προτροπές που περνούν μέσα από το cloud κάποιου τρίτου → τοπική λειτουργία κατά προτεραιότητα με κλειδιά κρυπτογραφημένα μέσω AES-256-GCM· έλλειψη ορατότητας δαπανών → αναλυτικά στοιχεία σε πραγματικό χρόνο (χρήση, όριο, εξοικονόμηση, καθυστέρηση p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Γιατί OmniRoute — σταματήστε να χειρίζεστε 10 πίνακες ελέγχου, νεκρά κλειδιά API και απρόβλεπτους λογαριασμούς. Δέκα καθημερινοί πόνοι έναντι λύσεων: ποσόστωση που λήγει αχρησιμοποίητη → μεγιστοποίηση συνδρομών; όρια ρυθμού εν μέσω κωδικοποίησης → αυτόματη εφεδρεία 4 επιπέδων (Συνδρομή → API → Φθηνό → Δωρεάν); έξοδοι εργαλείων που καταναλώνουν tokens → συμπίεση RTK + Caveman (15–95%); ακριβά APIs → δρομολόγηση βελτιστοποιημένη ως προς το κόστος; κάθε εργαλείο η δική του ρύθμιση → ένα τελικό σημείο, ένας πίνακας ελέγχου; AI μπλοκαρισμένο → proxy 3 επιπέδων + TLS stealth; νεκρά κλειδιά → ανθεκτικότητα 3 επιπέδων (διακόπτες κυκλώματος, ψύξη κλειδιού, κλείδωμα μοντέλου); ομάδα που μοιράζεται μία συνδρομή → ομάδες κλειδιών με ποσοστώσεις δίκαιης κατανομής; προτροπές μέσω του cloud κάποιου → τοπική προτεραιότητα με κρυπτογραφημένα κλειδιά AES-256-GCM; καμία ορατότητα δαπανών → ζωντανά αναλυτικά στοιχεία (χρήση, ποσόστωση, εξοικονόμηση, p95 latency)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Ροή αιτημάτων του OmniRoute: το IDE ή το CLI σας (Claude Code, Cursor, Cline…) καλεί ένα τοπικό endpoint (http://localhost:20128/v1)· ο Έξυπνος Δρομολογητής OmniRoute (συμπίεση RTK + Caveman, 19 στρατηγικές δρομολόγησης, circuit breakers, απόκρυψη TLS, MCP, A2A, προστατευτικά όρια) μπορεί να χρησιμοποιήσει εναλλακτική δρομολόγηση μεταξύ 4 επιπέδων παρόχων, όσο παραμένει διαθέσιμος ένας κατάλληλος και υγιής προορισμός — Επίπεδο 1 Συνδρομή, Επίπεδο 2 Κλειδί API, Επίπεδο 3 Οικονομικό και Επίπεδο 4 Δωρεάν."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Ροή αιτημάτων OmniRoute: το IDE ή το CLI σας (Claude Code, Cursor, Cline…) καλεί ένα τοπικό τελικό σημείο (http://localhost:20128/v1); ο Έξυπνος Δρομολογητής OmniRoute (συμπίεση RTK + Caveman, 19 στρατηγικές δρομολόγησης, διακόπτες κυκλώματος, TLS stealth, MCP, A2A, guardrails) μπορεί να κάνει εφεδρεία σε 4 επίπεδα παρόχων όσο παραμένει ένας επιλέξιμος υγιής στόχος — Επίπεδο 1 Συνδρομή, Επίπεδο 2 Κλειδί API, Επίπεδο 3 Φθηνό και Επίπεδο 4 Δωρεάν."/>
 
 </div>
 
@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Υποστηρίζεται από τους Φίλους μας στο Open Source
+## 🤝 Με την υποστήριξη των Φίλων μας στον Ανοιχτό Κώδικα
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Νοημοσύνη αιχμής ανοιχτού κώδικα · 2.8T παράμετροι · περιβάλλον 1M token"/>
   </a>
 </p>
 
-> **Θέλετε να συμμετάσχετε ως Φίλος Open Source;** Αυτές είναι οι εταιρείες που στηρίζουν το open source και βοηθούν το OmniRoute να συνεχίζει — και δηλώνουμε δημόσια πού πηγαίνει κάθε token που μας δίνουν. Επικοινωνήστε: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Θέλετε να γίνετε Φίλος του Ανοιχτού Κώδικα;** Αυτές είναι οι εταιρείες που στηρίζουν τον ανοιχτό κώδικα και βοηθούν το OmniRoute να συνεχίσει να εξελίσσεται — και εμείς δηλώνουμε δημόσια πού αξιοποιείται κάθε token που μας παρέχουν. Επικοινωνήστε μαζί μας: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Ιδρυτικός Φίλος του Ανοιχτού Κώδικα"/>
     </td>
     <td>
-      Ευχαριστούμε τον <b>Kimi (Moonshot AI)</b>, τον ιδρυτικό μας Φίλο Open Source, για την υποστήριξη αυτού του έργου! Το Kimi είναι το εργαστήριο τεχνητής νοημοσύνης πίσω από τις οικογένειες μοντέλων ανοιχτών βαρών K2 και K3 — το <b>Kimi K3</b> προσφέρει παράθυρο περιβάλλοντος 1M token, εγγενή όραση και κωδικοποίηση επιπέδου frontier σε κλάσμα του κόστους των κλειστών μοντέλων, και λειτουργεί αμέσως με το Claude Code, το Codex και κάθε εργαλείο κωδικοποίησης που εξυπηρετεί το OmniRoute.
+      Ευχαριστούμε την <b>Kimi (Moonshot AI)</b>, τον ιδρυτικό μας Φίλο του Ανοιχτού Κώδικα, για την υποστήριξη αυτού του έργου! Η Kimi είναι το εργαστήριο τεχνητής νοημοσύνης πίσω από τις οικογένειες μοντέλων ανοιχτών βαρών K2 και K3 — το <b>Kimi K3</b> προσφέρει παράθυρο περιβάλλοντος 1M token, εγγενή δυνατότητα όρασης και προγραμματισμό επιπέδου αιχμής με ένα κλάσμα του κόστους των κλειστών μοντέλων, ενώ λειτουργεί άμεσα με τα Claude Code, Codex και κάθε εργαλείο προγραμματισμού που εξυπηρετεί το OmniRoute.
       <br/><br/>
-      <b>Τι τροφοδοτεί η υποστήριξη του Kimi:</b> Τα API credits του Kimi τροφοδοτούν τον pipeline κυκλοφορίας με επικύρωση AI του OmniRoute — το στάδιο <i>επικύρωσης συγχώνευσης από το Kimi K3</i> που αξιολογεί κάθε pull request πριν αυτό κυκλοφορήσει — καθώς και την καθημερινή ανάπτυξη λειτουργιών. Η πρωτοβάθμια υποστήριξη Kimi είναι διαθέσιμη και στις δύο γραμμές: το άμεσο <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) και το <a href="https://www.kimi.com/code?aff=omniroute">πλάνο κωδικοποίησης Kimi Code</a> (OAuth και API key). Το OmniRoute είναι επίσης το πρώτο βραζιλιάνικο έργο ανοιχτού κώδικα στο πρόγραμμα υποστήριξης του Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Αποκτήστε ένα Kimi API key με 15% επιπλέον credits →</b></a>
+      <b>Τι καθιστά δυνατή η υποστήριξη της Kimi:</b> Οι πιστώσεις API της Kimi τροφοδοτούν τη ροή εκδόσεων του OmniRoute με επικύρωση μέσω AI — το στάδιο <i>επικύρωσης συγχωνεύσεων με την υποστήριξη του Kimi K3</i>, το οποίο εξετάζει κάθε αίτημα ενσωμάτωσης πριν κυκλοφορήσει — καθώς και την καθημερινή ανάπτυξη λειτουργιών. Η πλήρης υποστήριξη της Kimi παρέχεται και μέσω των δύο διαδρομών: του άμεσου <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) και του <a href="https://www.kimi.ai/code?aff=omniroute">προγράμματος προγραμματισμού Kimi Code</a> (OAuth και κλειδί API). Το OmniRoute είναι επίσης το πρώτο βραζιλιάνικο έργο ανοιχτού κώδικα στο πρόγραμμα υποστήριξης της Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Αποκτήστε ένα κλειδί Kimi API με 15% επιπλέον πιστώσεις →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Φίλος του Ανοιχτού Κώδικα"/>
     </td>
     <td>
-      Ευχαριστούμε το <b>Cheaper Inference</b>, Φίλο Open Source του OmniRoute, για την υποστήριξη αυτού του έργου! Το Cheaper Inference είναι ένα gateway ταξινομημένο βάσει κόστους που μεταπωλεί 42 frontier μοντέλα — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok και MiniMax — πίσω από ένα endpoint συμβατό με OpenAI, δρομολογώντας κάθε αίτημα στον φθηνότερο επιλέξιμο πάροχο χωρίς ποτέ να χρεώνει πάνω από την τιμή καταλόγου του κατασκευαστή μοντέλου.
+      Ευχαριστούμε την <b>Cheaper Inference</b>, έναν Φίλο του Ανοιχτού Κώδικα του OmniRoute, για την υποστήριξη αυτού του έργου! Η Cheaper Inference είναι μια πύλη με κατάταξη βάσει κόστους, η οποία μεταπωλεί 42 μοντέλα αιχμής — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok και MiniMax — μέσω ενός ενιαίου τελικού σημείου συμβατού με το OpenAI, δρομολογώντας κάθε αίτημα στον φθηνότερο κατάλληλο πάροχο χωρίς ποτέ να χρεώνει περισσότερο από την τιμή καταλόγου του δημιουργού του μοντέλου.
       <br/><br/>
-      <b>Πρωτοβάθμια υποστήριξη στο OmniRoute:</b> Chat Completions, το εγγενές endpoint <code>/v1/responses</code>, vision, tool calling και 3 μοντέλα εικόνας (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, προσβάσιμα ως <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Αποκτήστε ένα API key →</b></a>
+      <b>Πλήρης υποστήριξη στο OmniRoute:</b> Chat Completions, το εγγενές τελικό σημείο <code>/v1/responses</code>, όραση, κλήση εργαλείων και 3 μοντέλα εικόνας (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, προσβάσιμα ως <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Αποκτήστε ένα κλειδί API →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Οι σύνδεσμοι με ετικέτα <code>aff=omniroute</code> είναι σύνδεσμοι συνεργατών. Χρηματοδοτούν το έργο χωρίς επιπλέον κόστος για εσάς.</sub>
+<sub>Οι σύνδεσμοι με την επισήμανση <code>aff=omniroute</code> είναι σύνδεσμοι συνεργατών. Χρηματοδοτούν το έργο χωρίς κανένα επιπλέον κόστος για εσάς.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Προσφορές Συνεργατών</b> — δωρεάν κουπόνια εγγραφής από παρόχους που δεν μας χορηγούν (κάντε κλικ για ανάπτυξη)</sub></summary>
+<summary><sub><b>🎟️ Προσφορές συνεργατών</b> — δωρεάν κουπόνια εγγραφής από παρόχους που δεν μας χορηγούν (κάντε κλικ για ανάπτυξη)</sub></summary>
 
-<sub><i>Αυτή η ενότητα αφορά μόνο κωδικούς παραπομπής/κουπόνια. Οι χορηγούμενες συνεργασίες βρίσκονται στην ενότητα <b>🤝 Υποστηρίζεται από τους Φίλους μας στο Open Source</b> παραπάνω. Το OmniRoute δεν έχει χορηγία ή συνεργασία με τους παρόχους που αναφέρονται εδώ — αυτά είναι δημόσια κουπόνια που μπορεί να χρησιμοποιήσει ο καθένας.</i></sub>
+<sub><i>Αυτή η ενότητα αφορά αποκλειστικά κωδικούς παραπομπής/κουπονιών. Οι χορηγούμενες συνεργασίες βρίσκονται στην παραπάνω ενότητα <b>🤝 Με την υποστήριξη των Φίλων μας στον Ανοιχτό Κώδικα</b>. Το OmniRoute δεν έχει σχέση χορηγίας ή συνεργασίας με τους παρόχους που αναφέρονται εδώ — πρόκειται για δημόσια κουπόνια που μπορεί να χρησιμοποιήσει οποιοσδήποτε.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — εγγραφή συνεργάτη · <b>$100 δωρεάν credits</b> κατά την εγγραφή (δωρεάν διακομιστής, αναμένετε υψηλότερη καθυστέρηση — κατάλληλο για δοκιμές, όχι για παραγωγή). Πρωτοβάθμια υποστήριξη στο OmniRoute από την <b>v3.8.50</b>: Chat Completions, η μορφή wire συμβατή με Anthropic και η διαδρομή συμβατή με OpenAI. Τα διαθέσιμα μοντέλα περιλαμβάνουν <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> και άλλα. <b><a href="https://agentrouter.org/register?aff=70LM">Πάρτε τα $100 σας →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — εγγραφή μέσω συνεργαζόμενου συνδέσμου · <b>$100 δωρεάν πιστώσεις</b> κατά την εγγραφή (δωρεάν διακομιστής, αναμένεται υψηλότερη καθυστέρηση — κατάλληλο κυρίως για δοκιμές, όχι για παραγωγή). Πλήρης υποστήριξη στο OmniRoute από την έκδοση <b>v3.8.50</b>: Chat Completions, μορφή επικοινωνίας συμβατή με το Anthropic και διαδρομή συμβατή με το OpenAI. Στα διαθέσιμα μοντέλα περιλαμβάνονται τα <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> και άλλα. <b><a href="https://agentrouter.org/register?aff=70LM">Αποκτήστε τα $100 σας →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Σύνδεσμος συνεργάτη — το OmniRoute δεν έχει χορηγία ή συνεργασία με αυτόν τον πάροχο.</i></sub>
+      <sub>⚠️ <i>Σύνδεσμος συνεργάτη — το OmniRoute δεν έχει σχέση χορηγίας ή συνεργασίας με αυτόν τον πάροχο.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Γνωρίζετε άλλον πάροχο με γενναιόδωρο δωρεάν κουπόνι εγγραφής που ωφελεί τους χρήστες του OmniRoute; Ανοίξτε ένα issue και θα το προσθέσουμε εδώ.</sub>
+<sub>Γνωρίζετε κάποιον άλλο πάροχο με ένα γενναιόδωρο δωρεάν κουπόνι εγγραφής που θα ωφελούσε τους χρήστες του OmniRoute; Ανοίξτε ένα issue και θα το προσθέσουμε εδώ.</sub>
 
 </details>
 
@@ -488,13 +488,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🏆 Τι Κάνει το OmniRoute να Ξεχωρίζει
+## 🏆 Τι κάνει το OmniRoute να ξεχωρίζει
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Τι κάνει το OmniRoute να ξεχωρίζει — μια χρονολογημένη σύγκριση δυνατοτήτων με τα 9router, OpenRouter, CLIProxyAPI και LiteLLM σε 13 δυνατότητες. OmniRoute: 359 πάροχοι, 150+ ενσωματωμένα δωρεάν επίπεδα, 19 στρατηγικές δρομολόγησης, συμπίεση token με 12 μηχανές, ενσωματωμένος διακομιστής MCP με 110 εργαλεία, πρωτόκολλο πρακτόρων A2A, μόνιμη μνήμη, προστατευτικοί μηχανισμοί, πράκτορες cloud, απόκρυψη δακτυλικού αποτυπώματος TLS, Desktop/Termux/PWA και 42 τοπικές προσαρμογές διεπαφής χρήστη i18n. Το OmniRoute διατίθεται με άδεια MIT και μπορεί να φιλοξενηθεί σε δική σας υποδομή. Οι δυνατότητες και οι αριθμοί των ανταγωνιστών ενδέχεται να αλλάξουν· ανατρέξτε στη συνδεδεμένη μεθοδολογία."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Τι κάνει το OmniRoute να ξεχωρίζει — ένα στιγμιότυπο χαρακτηριστικών (ενδέχεται να είναι παλιό) έναντι των 9router, OpenRouter, CLIProxyAPI και LiteLLM σε 13 δυνατότητες. OmniRoute: 358 πάροχοι, 150+ ενσωματωμένες δωρεάν βαθμίδες, 19 στρατηγικές δρομολόγησης, συμπίεση token 12 μηχανών, ενσωματωμένος διακομιστής MCP με 110 εργαλεία, πρωτόκολλο πράκτορα A2A, επίμονη μνήμη, μηχανισμοί προστασίας, πράκτορες cloud, απόκρυψη δακτυλικού αποτυπώματος TLS, Desktop/Termux/PWA και 42 τοπικές ρυθμίσεις διεπαφής χρήστη i18n. Το OmniRoute διαθέτει άδεια MIT και είναι αυτο-φιλοξενήσιμο. Οι δυνατότητες και οι μετρήσεις των ανταγωνιστών ενδέχεται να αλλάξουν· δείτε τη συνδεδεμένη μεθοδολογία."/>
 
-<sub>📊 Πλήρης μεθοδολογία &amp; λεπτομέρειες ανά δυνατότητα σε σύγκριση με τα 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Πλήρης μεθοδολογία &amp; λεπτομέρειες ανά χαρακτηριστικό έναντι 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -731,7 +731,7 @@ omniroute configure codex          # επίσης: claude opencode qwen aider go
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Δεν απαιτείται κλειδί</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ μοντέλα<br/>10K νευρώνες/ημέρα</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM δωρεάν</sub></td>
-    <td align="center" width="150"><img src="./public/openference.svg" width="42" alt="Openference"/><br/><b>Openference</b><br/><sub>Qwen3.8 27B, Llama 3.2<br/>Δωρεάν πακέτο</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>1M tokens/ημέρα</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free μοντέλα<br/>+$10 → υψηλότερο RPM</sub></td>
   </tr>
 </table>
@@ -1271,23 +1271,23 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
 
 <table>
   <tr><th align="left">Επίπεδο</th><th align="left">Τεχνολογία</th></tr>
-  <tr><td nowrap><b>Περιβάλλον εκτέλεσης</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Γλώσσα</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> σε όλο το <code>src/</code> και το <code>open-sse/</code> (μηδενική χρήση <code>any</code> στον πυρήνα από την έκδοση v2.0)</td></tr>
-  <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Βάση δεδομένων</b></td><td>better-sqlite3 (SQLite, καταγραφή WAL) + LowDB (παλαιού τύπου JSON) — 122 λειτουργικές μονάδες τομέα, 178 μετεγκαταστάσεις</td></tr>
-  <tr><td nowrap><b>Μνήμη</b></td><td>Αναζήτηση πλήρους κειμένου SQLite FTS5 + διανυσματικές ενσωματώσεις κβαντισμένες σε int8, τυποποιημένη εξασθένηση</td></tr>
-  <tr><td nowrap><b>Σχήματα</b></td><td>Zod 4 — επικύρωση εισόδου/εξόδου εργαλείων MCP + συμβάσεις API</td></tr>
+  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Γλώσσα</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> σε <code>src/</code> και <code>open-sse/</code> (μηδέν <code>any</code> στον πυρήνα από την έκδοση 2.0)</td></tr>
+  <tr><td nowrap><b>Πλαίσιο</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Βάση Δεδομένων</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 modules τομέα, 183 μεταβάσεις</td></tr>
+  <tr><td nowrap><b>Μνήμη</b></td><td>SQLite FTS5 πλήρες κείμενο + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>Σχήματα</b></td><td>Zod 4 — Επικύρωση εισόδου/εξόδου εργαλείου MCP + συμβόλαια API</td></tr>
   <tr><td nowrap><b>Πρωτόκολλα</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Ροή δεδομένων</b></td><td>Server-Sent Events (SSE) + γέφυρα WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Συμπίεση</b></td><td>Διοχέτευση 12 μηχανών — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Έλεγχος ταυτότητας &amp; ασφάλεια</b></td><td>OAuth 2.0 (PKCE) + JWT + κλειδιά API + έλεγχος ταυτότητας MCP βάσει πεδίου εφαρμογής · AES-256-GCM για αποθηκευμένα δεδομένα · DOMPurify</td></tr>
-  <tr><td nowrap><b>Απόκρυψη</b></td><td>wreq-js — πλαστοπροσωπία αποτυπώματος JA3 / JA4 TLS, διακομιστής μεσολάβησης 3 επιπέδων</td></tr>
-  <tr><td nowrap><b>Ανθεκτικότητα</b></td><td>Αυτόματος διακόπτης κυκλώματος, εκθετική υπαναχώρηση, αποτροπή ταυτόχρονης μαζικής επανάληψης, αυτοΐαση auto-combo</td></tr>
-  <tr><td nowrap><b>Καταγραφή</b></td><td>pino — δομημένα αρχεία καταγραφής JSON με περιβάλλον αιτήματος</td></tr>
-  <tr><td nowrap><b>Δοκιμές</b></td><td>Πρόγραμμα εκτέλεσης δοκιμών Node.js + Vitest — <b>39.000+ στατικές δηλώσεις δοκιμών</b> σε 5.100+ παρακολουθούμενα αρχεία δοκιμών (μονάδας, ενσωμάτωσης, E2E, ασφάλειας, οικοσυστήματος)</td></tr>
-  <tr><td nowrap><b>Πλατφόρμες</b></td><td>Επιτραπέζιοι υπολογιστές (Electron) · Android (Termux) · PWA (οποιοδήποτε πρόγραμμα περιήγησης)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — αυτόματη δημοσίευση στο npm + Docker Hub κατά την κυκλοφορία έκδοσης</td></tr>
-  <tr><td nowrap><b>Σύνδεσμοι</b></td><td><a href="https://omniroute.online">Ιστότοπος</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Συμπίεση</b></td><td>Διαδικασία 12 μηχανών — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Έλεγχος ταυτότητας &amp; ασφάλεια</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM εν ηρεμία · DOMPurify</td></tr>
+  <tr><td nowrap><b>Απόκρυψη</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-επιπέδων proxy</td></tr>
+  <tr><td nowrap><b>Ανθεκτικότητα</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
+  <tr><td nowrap><b>Καταγραφή</b></td><td>pino — δομημένα αρχεία καταγραφής JSON με πλαίσιο αιτήματος</td></tr>
+  <tr><td nowrap><b>Δοκιμές</b></td><td>Node.js test runner + Vitest — <b>39.000+ δηλώσεις στατικών δοκιμών</b> σε 5.100+ αρχεία δοκιμών (μονάδας, ολοκλήρωσης, E2E, ασφάλειας, οικοσυστήματος)</td></tr>
+  <tr><td nowrap><b>Πλατφόρμες</b></td><td>Επιτραπέζιος υπολογιστής (Electron) · Android (Termux) · PWA (οποιοδήποτε πρόγραμμα περιήγησης)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — αυτόματη δημοσίευση npm + Docker Hub κατά την κυκλοφορία</td></tr>
+  <tr><td nowrap><b>Σύνδεσμοι</b></td><td><a href="https://omniroute.online">Ιστοσελίδα</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

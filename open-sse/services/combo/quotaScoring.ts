@@ -366,6 +366,88 @@ export function scoreResetAwareQuota(
   return { score };
 }
 
+const EXPIRY_FIRST_DEFAULTS = {
+  tieBandPercent: 5,
+  minHours: 0.25,
+  exhaustedFloorPercent: 1,
+};
+
+export function resolveExpiryFirstConfig(config: Record<string, unknown> | null | undefined) {
+  const minHours = finiteNumberOrNull(config?.expiryFirstMinHours);
+  return {
+    tieBand:
+      getPercentConfig(config?.expiryFirstTieBandPercent, EXPIRY_FIRST_DEFAULTS.tieBandPercent) /
+      100,
+    minHours: minHours !== null && minHours > 0 ? minHours : EXPIRY_FIRST_DEFAULTS.minHours,
+    exhaustedFloor:
+      getPercentConfig(
+        config?.expiryFirstExhaustedFloorPercent,
+        EXPIRY_FIRST_DEFAULTS.exhaustedFloorPercent
+      ) / 100,
+  };
+}
+
+/**
+ * Scores an account for `expiry-first`: how much quota it must spend PER HOUR to
+ * avoid losing it at the next reset. Higher score = more urgent to spend here.
+ *
+ *   score = usable / hoursUntilNearestReset
+ *
+ * `usable` is the tightest window's remaining fraction, because nested windows
+ * (a 5h session inside a weekly cap) all decrement together and an account can
+ * never spend more than its most constrained window allows. The deadline is the
+ * NEAREST reset for the same reason: that is when the first tranche is lost.
+ *
+ * Deliberately different from `scoreResetAwareQuota`, which ranks mostly on
+ * leftover and adds `resetUrgency * (1 - remaining)` — a RECOVERY signal that
+ * favours a nearly empty account about to refresh. That answers "who will be
+ * useful soon"; this answers "whose quota is about to be thrown away", and for
+ * two accounts holding equal quota it is the one resetting sooner. Its urgency
+ * term also saturates to zero outside the nominal window length, so it cannot
+ * separate a reset 69h away from one 145h away at all.
+ *
+ * Returns 0 for an exhausted account so it is never preferred, and falls back to
+ * plain leftover when no window reports a reset time.
+ */
+export function scoreExpiryFirstQuota(
+  quota: unknown,
+  config: ReturnType<typeof resolveExpiryFirstConfig>,
+  nowMs: number = Date.now()
+): { score: number } {
+  if (!quota || !isRecord(quota)) return { score: 0 };
+  if (quota.limitReached === true) return { score: 0 };
+
+  const windows: QuotaWindowSnapshot[] = [];
+  for (const windowName of RESET_WINDOW_NAMES) {
+    const window = resolveQuotaWindowByName(quota, windowName);
+    if (window) windows.push(window);
+  }
+  if (windows.length === 0) {
+    for (const { window } of getQuotaWindowEntries(quota)) windows.push(window);
+  }
+  if (windows.length === 0) return { score: 0 };
+
+  let usable = 1;
+  let msUntilReset = Number.POSITIVE_INFINITY;
+  for (const window of windows) {
+    usable = Math.min(usable, clamp01(1 - (window.percentUsed ?? 0.5)));
+    const resetMs = parseResetTimeMs(window.resetAt);
+    if (Number.isFinite(resetMs)) msUntilReset = Math.min(msUntilReset, resetMs - nowMs);
+  }
+
+  if (usable <= config.exhaustedFloor) return { score: 0 };
+  // No reset telemetry at all: the deadline half is unknowable, so rank on
+  // leftover rather than inventing a deadline. Still ordered below any account
+  // that does report one and is under pressure.
+  if (!Number.isFinite(msUntilReset)) return { score: usable };
+
+  // A non-positive delta means the snapshot predates the reset it describes.
+  // Clamping to minHours treats it as maximally urgent, which is the safe side:
+  // a freshly reset window is full, and re-reading it costs nothing.
+  const hours = Math.max(config.minHours, msUntilReset / (60 * 60 * 1000));
+  return { score: usable / hours };
+}
+
 export function getResetAwareRemainingPercent(quota: unknown): number {
   if (!quota || !isRecord(quota)) return 100;
   if (quota.limitReached === true) return 0;
@@ -446,4 +528,36 @@ export function calculateResetWindowAffinity(quota: unknown, config: ResetWindow
   const msUntilReset = resetMs - Date.now();
   if (msUntilReset <= 0) return 1;
   return clamp01(1 - msUntilReset / getResetWindowHorizonMs(config.windows));
+}
+
+/** Auto scoring combines reset urgency without letting a short session hide weekly expiry. */
+export function calculateAutoResetWindowAffinity(
+  quota: unknown,
+  config?: ResetWindowConfig,
+  now: number = Date.now()
+): number {
+  if (!isRecord(quota)) return 0.5;
+  if (quota.limitReached === true) return 0;
+  const windows = config?.windows ?? ["weekly", "session"];
+  let total = 0;
+  let weightSum = 0;
+  for (const name of windows) {
+    const window = resolveQuotaWindowByName(quota, name);
+    const resetMs = parseResetTimeMs(window?.resetAt);
+    if (!Number.isFinite(resetMs)) continue;
+    const weight = name === "session" ? 0.35 : 0.65;
+    const horizon = getResetWindowHorizonMs([name]);
+    total += weight * clamp01(1 - Math.max(0, resetMs - now) / horizon);
+    weightSum += weight;
+  }
+  if (weightSum > 0) return total / weightSum;
+  // Preserve generic/model-keyed provider windows and unknown-quota neutrality.
+  const resetMs = getResetWindowTimestampMs(quota, windows);
+  return Number.isFinite(resetMs)
+    ? clamp01(1 - Math.max(0, resetMs - now) / getResetWindowHorizonMs(windows))
+    : 0.5;
+}
+
+export function resolveAutoResetWindowConfig(config: Record<string, unknown> | null | undefined) {
+  return resolveResetWindowConfig({ resetWindowIncludeSession: true, ...config });
 }

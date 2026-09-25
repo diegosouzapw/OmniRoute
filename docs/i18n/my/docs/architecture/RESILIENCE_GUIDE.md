@@ -1,6 +1,6 @@
 # Resilience Guide (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -67,94 +67,152 @@ exponential `minRetryCooldownMs → maxRetryCooldownMs` backoff ကို ဆက
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`။
 Regression ကာကွယ်မှု- `tests/unit/provider-cooldown-window-gate.test.ts`။
 
-## 2. ချိတ်ဆက်မှု ခေတ္တရပ်နားချိန်
+## 2. ချိတ်ဆက်မှု Cooldown
 
 **သက်ရောက်မှုနယ်ပယ်:** provider ချိတ်ဆက်မှု/account/key တစ်ခုတည်း။
 
-**ရည်ရွယ်ချက်:** provider တစ်ခုတည်းအတွက် အခြားချိတ်ဆက်မှုများက ဆက်လက်ဝန်ဆောင်မှုပေးနေစဉ် ပြဿနာရှိသော key တစ်ခုကို ကျော်သွားရန်။
+**ရည်ရွယ်ချက်:** provider တစ်ခုတည်းအတွက် အခြားချိတ်ဆက်မှုများက ဆက်လက်ဝန်ဆောင်မှုပေးနေစဉ် အဆင်မပြေသည့် key တစ်ခုကို ကျော်သွားရန်။
 
 **အကောင်အထည်ဖော်မှု:**
 
-- မရရှိနိုင်ဟု သတ်မှတ်ခြင်း: `src/sse/services/auth.ts::markAccountUnavailable()`
-- ရွေးချယ်မှု: ဖိုင်တစ်ခုတည်းရှိ `getProviderCredentials*`
-- ခေတ္တရပ်နားချိန် တွက်ချက်မှု: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- အသုံးမပြုနိုင်ဟု သတ်မှတ်ခြင်း: `src/sse/services/auth.ts::markAccountUnavailable()`
+- ရွေးချယ်မှု: တူညီသည့်ဖိုင်ရှိ `getProviderCredentials*`
+- Cooldown တွက်ချက်မှု: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - ဆက်တင်များ: `src/lib/resilience/settings.ts`
 
-**ချိတ်ဆက်မှုတစ်ခုစီအလိုက် field များ:**
+**ချိတ်ဆက်မှုတစ်ခုချင်းစီအလိုက် field များ:**
 
-- `rateLimitedUntil` — ခေတ္တရပ်နားချိန် ကုန်ဆုံးမည့်အချိန်အထိ timestamp
+- `rateLimitedUntil` — cooldown ကုန်ဆုံးမည့်အချိန်အထိ timestamp
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — exponential backoff counter
+- `backoffLevel` — exponential backoff ကောင်တာ
 
-**မူလသတ်မှတ် ခေတ္တရပ်နားချိန်များ:**
+**မူလ cooldown များ:**
 
 - OAuth အခြေခံ: 5s
 - API-key အခြေခံ: 3s
-- API-key 429: upstream `Retry-After`/reset header များ/ခွဲခြမ်းဖတ်ရှုနိုင်သော reset စာသားကို ဦးစားပေးသည်
+- API-key 429: upstream `Retry-After`/reset header များ/parse လုပ်နိုင်သည့် reset စာသားကို ဦးစားပေးသည်
 - Backoff: `baseCooldownMs * 2 ** failureIndex`
 
-**တစ်ပြိုင်နက်တည်း အလုံးအရင်းဖြင့် တောင်းဆိုမှုကို တားဆီးသည့် အကာအကွယ်:** တစ်ပြိုင်နက်ဖြစ်ပေါ်သော ချို့ယွင်းမှုများကြောင့် ခေတ္တရပ်နားချိန်ကို အလွန်အကျွံတိုးချဲ့ခြင်း သို့မဟုတ် `backoffLevel` ကို နှစ်ကြိမ်တိုးခြင်းမှ ကာကွယ်ပေးသည်။
+**Anti-thundering-herd ကာကွယ်မှု:** တစ်ပြိုင်နက်ဖြစ်ပေါ်သည့် ချို့ယွင်းမှုများကြောင့် cooldown ကို လိုအပ်သည်ထက် ပိုရှည်စေခြင်း သို့မဟုတ် `backoffLevel` ကို နှစ်ကြိမ်တိုးခြင်းမှ ကာကွယ်သည်။
 
-**အပြီးသတ်အခြေအနေများ (ခေတ္တရပ်နားချိန်များ မဟုတ်ပါ):**
+**အဆုံးသတ်အခြေအနေများ (cooldown မဟုတ်ပါ):**
 
-- `banned` — ပိတ်ပင်ထားသော keyword / account-ban ရှာဖွေစစ်ဆေးမှု (ကြည့်ရန် [BAN_DETECTION](../security/BAN_DETECTION.md)) နှင့် ဆက်တိုက် upstream per-request ငြင်းပယ်မှု သုံးကြိမ် (`request_rejected`၊ ဥပမာ Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`) ကြောင့် သတ်မှတ်သည်။ တစ်ကြိမ်သာ ငြင်းပယ်မှုသည် ချိတ်ဆက်မှုကို ခေတ္တရပ်နားစေခြင်းသာ ဖြစ်သည်
-- `expired` (အကန့်အသတ်ရှိသော ပြန်လည်ကြိုးစားမှုများပြီးနောက် အပြီးသတ်အခြေအနေသို့ ပြောင်းသည် — exponential backoff ဖြင့် `EXPIRED_RETRY_MAX = 3` — ထို့ကြောင့် ယာယီ OAuth error များသည် account ကို အမြဲတမ်းပိတ်ထားခြင်းမပြုမီ အလိုအလျောက် ပြန်လည်ကောင်းမွန်နိုင်သည်)
+- `banned` — banned-keyword / account-ban စစ်ဆေးတွေ့ရှိမှုကြောင့် သတ်မှတ်သည် ([BAN_DETECTION](../security/BAN_DETECTION.md) ကိုကြည့်ပါ)။ ထို့အပြင် request တစ်ခုချင်းအလိုက် upstream ငြင်းပယ်မှု သုံးကြိမ်ဆက်တိုက် (`request_rejected`၊ ဥပမာ Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`) ဖြစ်ပေါ်လျှင်လည်း သတ်မှတ်သည်။ တစ်ကြိမ်တည်း ငြင်းပယ်မှုသည် ချိတ်ဆက်မှုကို cooldown ချထားရုံသာဖြစ်သည်
+- `expired` (ကန့်သတ်ထားသည့် retry အရေအတွက်ပြီးနောက် အဆုံးသတ်အခြေအနေသို့ ကူးပြောင်းသည် — exponential backoff ဖြင့် `EXPIRED_RETRY_MAX = 3` — ထို့ကြောင့် ယာယီ OAuth အမှားများသည် account ကို အပြီးအပိုင် ပိတ်မထားမီ အလိုအလျောက် ပြန်လည်ကောင်းမွန်နိုင်သည်)
 - `credits_exhausted`
 
-credentials များ ပြောင်းလဲသည်အထိ သို့မဟုတ် operator တစ်ဦးက ၎င်းတို့ကို reset လုပ်သည်အထိ ဤအခြေအနေများ ဆက်လက်တည်ရှိသည်။ အပြီးသတ်အခြေအနေများကို ယာယီ ခေတ္တရပ်နားမှုအခြေအနေဖြင့် မရေးထပ်ပါနှင့်။
+Credential များ ပြောင်းလဲသည့်အချိန် သို့မဟုတ် operator က reset လုပ်သည့်အချိန်အထိ ဤအခြေအနေများသည် ဆက်လက်တည်ရှိသည်။ အဆုံးသတ်အခြေအနေများကို ယာယီ cooldown အခြေအနေဖြင့် ထပ်မရေးပါနှင့်။
 
-**လိုအပ်မှ ပြန်လည်ရယူခြင်း:** `rateLimitedUntil` ကျော်လွန်သွားသည့်အခါ ချိတ်ဆက်မှုသည် ထပ်မံရွေးချယ်အသုံးပြုနိုင်လာသည်။ အောင်မြင်စွာ အသုံးပြုပြီးသည့်အခါ `clearAccountError()` က error field အားလုံးကို ရှင်းလင်းသည်။
+**Lazy recovery:** `rateLimitedUntil` ကျော်လွန်သွားသောအခါ ချိတ်ဆက်မှုကို ပြန်လည်ရွေးချယ်အသုံးပြုနိုင်သည်။ အောင်မြင်စွာအသုံးပြုပြီးနောက် `clearAccountError()` က error field အားလုံးကို ရှင်းလင်းသည်။
 
-### Session affinity (#7274)
+### Claude OAuth အသုံးပြုမှုကန့်သတ်ချက်: ဦးစားပေးမှုနိမ့်သည့် lane + session-limit reset
 
-**သက်ရောက်မှုနယ်ပယ်:** **မည်သည့်** provider အတွက်မဆို ချိတ်ဆက်မှုတစ်ခုနှင့် pin လုပ်ထားသော client session တစ်ခု (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` header)။
-
-**ရည်ရွယ်ချက်:** request များတစ်လျှောက် multi-turn agent (Claude Code, aider, custom agent များ) ကို account တစ်ခုတည်းတွင် ထိန်းထားခြင်းဖြင့် account များအကြား context ဆုံးရှုံးမှုနှင့် per-account session state ရှိသော provider များတွင် ထပ်တလဲလဲ cold-start 429 ဖြစ်ပေါ်မှုတို့ကို လျှော့ချရန်။
+**သက်ရောက်မှုနယ်ပယ်:** Claude subscription (OAuth) ချိတ်ဆက်မှုတစ်ခု။ Feature နှစ်ခုစလုံးသည် **ချိတ်ဆက်မှုတစ်ခုချင်းစီအလိုက် opt-in
+လုပ်ရသည်** (Edit connection → Claude section → `providerSpecificData` ထဲရှိ `lowPriorityMode` / `autoLimitReset`၊
+နှစ်ခုစလုံး မူလအတိုင်း ပိတ်ထားသည်)။ ထို့ပြင် Claude Code ၏ `/low-priority` နှင့်
+`/limit-reset` command များကို ထင်ဟပ်ထားသည် (wire contract ကို Claude Code 2.1.263 မှ ရယူထားသည်)။
 
 **အကောင်အထည်ဖော်မှု:**
 
-- TTL ဆုံးဖြတ်မှု: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Pin ရွေးချယ်မှု/ဖန်တီးမှု: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Header ထုတ်ယူမှု (ယေဘုယျဖြစ်ပြီး မည်သည့် provider မဆို): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- အမြဲတမ်းသိမ်းဆည်းထားသော pin table: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- ဆက်တင်: `sessionAffinityTtlMs` (ms ဖြင့် global TTL၊ `0` သည် ပိတ်သည်) — `src/lib/db/settings.ts`။ ယခင် configure လုပ်ထားသည့် Codex TTL ကို မူလတန်ဖိုးအသစ်အဖြစ် ဆက်လက်သယ်ဆောင်သည့် migration `124_generic_session_affinity_ttl.sql` ဖြင့် Codex အတွက်သာဖြစ်သော `codexSessionAffinityTtlMs` မှ အမည်ပြောင်းထားသည်။
+- State machine + response အမျိုးအစားခွဲခြားမှု: `open-sse/services/claudeLowPriority.ts`
+- Reset status/claim client: `open-sse/services/claudeLimitReset.ts`
+- Executor hook (header ထည့်သွင်းခြင်း + account တူဖြင့် retry လုပ်ခြင်း): `open-sse/executors/base.ts::execute()`
+- Opt-in ဆက်လက်သိမ်းဆည်းမှု: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-#7274 မတိုင်မီ `resolveSessionAffinityTtlMs()` သည် `codex` မှလွဲ၍ provider အားလုံးအတွက် `0` သို့ ချက်ချင်းရပ်တန့်ပြန်ပို့ခဲ့သောကြောင့် pinning mechanism နှင့် header ထုတ်ယူမှုတို့က provider အပေါ် မမှီခိုဘဲ ရှိနှင့်ပြီးဖြစ်သော်လည်း TTL ဆက်တင် (နှင့် session header များ) သည် အခြားမည်သည့်နေရာတွင်မျှ သက်ရောက်မှုမရှိခဲ့ပါ။ ပြင်ဆင်မှုက အဆိုပါ early-return ကို ဖယ်ရှားခဲ့သည်။ ယခုအခါ TTL ကို globally `0` အထက် သတ်မှတ်ပြီးသည်နှင့် provider အားလုံးတွင် တစ်ပြေးညီ သက်ရောက်သည်။
+**အစပျိုးမှု:** 5-hour usage wall — header များတွင်
+`anthropic-ratelimit-unified-status: rejected` ပါဝင်သည့် `429` ဖြစ်ပြီး account သည် အရည်အချင်းပြည့်မီပါက
+`anthropic-ratelimit-unified-slow-offer: treatment` လည်း ပါဝင်သည်။ ပထမဆုံး wall
+429 မတိုင်မီ မည်သည့်အရာမျှ ပေးပို့ခြင်းမရှိပါ။ unified header များမပါသည့် ရုတ်တရက်ဆက်တိုက်ဖြစ်ပေါ်သော 429 သည် ပုံမှန် cooldown လမ်းကြောင်းအတိုင်း သွားသည်။
 
-session-affinity header သုံးခုကို upstream သို့ မည်သည့်အခါမျှ forward မလုပ်ပါ — executor များသည် client header များကို တိုက်ရိုက်ဖြတ်သန်းပေးမည့်အစား ၎င်းတို့၏ကိုယ်ပိုင် upstream header များကို အစမှ ပြန်လည်တည်ဆောက်သောကြောင့် ၎င်းသည် internal correlation id အဖြစ်သာ ရှိနေသည်။
+**ဦးစားပေးမှုနိမ့်သည့် lane** (`lowPriorityMode`):
 
-### သီးသန့် managed session ချိတ်ဆက်မှု lease များ
+- Wall 429 ဖြစ်ပေါ်သည့်အခါ executor သည် offer ကို လက်ခံပြီး `anthropic-usage-limit: slow` ဖြင့် **တူညီသည့်**
+  account ကို ချက်ချင်း retry လုပ်သည်။ ကြေညာထားသည့်
+  `anthropic-ratelimit-unified-reset` (+60s အပိုအချိန်) အထိ lane သည် ဆက်လက် active ဖြစ်နေပြီး ထိုအချိန်အပိုင်းအခြားအတွင်း request တိုင်းတွင်
+  header ပါဝင်သည်။ ကြားဖြတ်ဖမ်းယူထားသည့် 429 သည် `handleChatCore` ထံ လုံးဝမရောက်သောကြောင့် ချိတ်ဆက်မှုကို
+  cooldown ချမည်မဟုတ်သကဲ့သို့ အခြားတစ်ခုသို့လည်း လှည့်ပြောင်းမည်မဟုတ်ပါ။
+- နောက်ပိုင်း response များရှိ `anthropic-ratelimit-unified-slow-status`: `active` / `not_needed` သည်
+  lane ကို ဆက်လက်ထားရှိသည်။ `slot_busy` (429) သို့မဟုတ် `529` ဖြစ်ပါက server ၏
+  `anthropic-ratelimit-unified-slow-retry-after` (မူလ 20s၊ 5–600s အတွင်းကန့်သတ်၊ ±30% jitter) အတိုင်း
+  စောင့်ပြီး retry လုပ်သည်။ ၎င်းကို `anthropic-ratelimit-unified-slow-max-wait` (မူလ 20 min၊
+  1 min–6 h အတွင်းကန့်သတ်) ဖြင့် ကန့်သတ်ထားသည် — ထိုအချိန်ကျော်လွန်ပါက lane သည် အဆုံးသတ်ပြီး 10-minute cool-off က
+  ပြန်လည်လက်ခံခြင်းကို ပိတ်ထားသည်။ စောင့်ဆိုင်းချိန်ကို request ကိုယ်တိုင်၏ upstream-start timeout
+  (`resolveFetchStartTimeout`၊ မူလ 10 min) တွင် ကျန်ရှိသည့်အချိန်မှ 5 s margin နုတ်ထားသည့်ပမာဏဖြင့်လည်း ထပ်မံကန့်သတ်ထားသည်။ ထိုကန့်သတ်ချက်မရှိပါက
+  မူလ 20-minute max-wait သည် request ထက် ပိုကြာသွားမည်ဖြစ်ပြီး စောင့်ဆိုင်းနေစဉ် sleep ကို
+  ပယ်ဖျက်လိုက်သဖြင့် သင့်လျော်စွာ အဆုံးသတ်သည့် `max_wait` + cool-off အစား `TimeoutError` ပေါ်လာမည်ဖြစ်သည်။
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`၊ 5h-window rollover သို့မဟုတ်
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (paid overage က wall ကို ယခု ကာမိသောကြောင့် မည်သည့် status တွင်မဆို
+  `extra_usage` အဖြစ် အဆုံးသတ်စေသည်) သည် lane ကို အဆုံးသတ်စေသည်။ ထို့နောက်
+  response သည် ပုံမှန် cooldown လမ်းကြောင်းသို့ ဆက်လက်သွားသည်။ `budget_exhausted` ကို
+  ကြေညာထားသည့် budget reset (≤ 8 days) အထိ မှတ်သားထားသည်။
+- Wall စစ်ဆေးမှုသည် executor ကိုယ်တိုင်၏ 400 ကြောင့်ဖြစ်ပေါ်သော attempt အတွင်း retry များ (context
+  editing၊ thinking/effort clamps၊ param auto-learn) ပြီးနောက် လုပ်ဆောင်သည်။ ထို့ကြောင့် ထို retry များထဲမှ
+  တစ်ခုတွင်သာ ပေါ်လာသည့် wall 429 ကို cooldown လမ်းကြောင်းသို့ မရောက်မီ ကြားဖြတ်ဖမ်းယူနိုင်ဆဲဖြစ်သည်။
+- State ကို ချိတ်ဆက်မှုတစ်ခုချင်းစီအလိုက် memory ထဲတွင်ထားသည် (restart လုပ်ပါက ပြန်လည်လက်ခံရန် wall 429 တစ်ကြိမ် ထပ်မံလိုအပ်သည်)။
 
-**သက်ရောက်မှုနယ်ပယ်:** လက်ရှိအသုံးပြုနေသော managed HTTP client/session တစ်ခုက အရည်အချင်းပြည့်မီသော OmniRoute ချိတ်ဆက်မှုတစ်ခုကို ပိုင်ဆိုင်သည်။
+**Session-limit reset** (`autoLimitReset`၊ နှစ်ခုစလုံး ဖွင့်ထားပါက lane မတိုင်မီ စမ်းသပ်သည်):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  block; `arm: "reset"` နှင့် `available: true` ဖြစ်သောအခါ
+  `{ "program": "juniper_tide" }` ဖြင့် `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits`
+  လုပ်သည် (`providerSpecificData.organizationUUID` မှ organization UUID ကို ရယူပြီး bootstrap fallback ကို အသုံးပြုသည်)။
+- `result: reset|not_limited` → request ကို full speed ဖြင့် retry လုပ်သည် (slow header မပါ)။
+  `already_used` / `not_offered` သည် `next_available_at` (မူလ တစ်ပတ်) ကို မှတ်သားထားသည်။ မည်သည့်
+  ချို့ယွင်းမှုမဆို 15 minutes backoff လုပ်သည်။ Reset ကို တစ်ပတ်လျှင် တစ်ကြိမ်သာ ပြုလုပ်နိုင်ပြီး weekly limit ထဲတွင် ပါဝင်ရေတွက်ဆဲဖြစ်သည်။
+
+Regression ကာကွယ်မှုများ: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`။
+
+### Session affinity (#7274)
+
+**သက်ရောက်မှုနယ်ပယ်:** **မည်သည့်** provider အတွက်မဆို client session တစ်ခု (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` header) ကို ချိတ်ဆက်မှုတစ်ခုနှင့် တည်ငြိမ်စွာ ချိတ်ဆက်ထားခြင်း။
+
+**ရည်ရွယ်ချက်:** request များတစ်လျှောက် multi-turn agent (Claude Code, aider, custom agent များ) ကို account တစ်ခုတည်းတွင် ဆက်လက်ထားရှိခြင်းဖြင့် account မတူခြင်းကြောင့် context ဆုံးရှုံးမှုနှင့် account တစ်ခုချင်းစီအလိုက် session state ထားရှိသော provider များတွင် ထပ်ခါတလဲလဲ ဖြစ်ပေါ်သည့် cold-start 429 များကို လျှော့ချရန်။
+
+**အကောင်အထည်ဖော်မှု:**
+
+- TTL ဖြေရှင်းသတ်မှတ်ခြင်း: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Pin ရွေးချယ်ခြင်း/ဖန်တီးခြင်း: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Header ထုတ်ယူခြင်း (ယေဘုယျဖြစ်ပြီး မည်သည့် provider မဆို): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- သိမ်းဆည်းထားသော pin table: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Setting: `sessionAffinityTtlMs` (ms ဖြင့် သတ်မှတ်သော global TTL ဖြစ်ပြီး `0` သည် ပိတ်ထားခြင်းကို ဆိုလိုသည်) — `src/lib/db/settings.ts`။ ယခင် Codex အတွက်သာဖြစ်သော `codexSessionAffinityTtlMs` မှ migration `124_generic_session_affinity_ttl.sql` ဖြင့် အမည်ပြောင်းထားပြီး ယခင်က configure လုပ်ထားသည့် Codex TTL ရှိပါက ၎င်းကို default အသစ်အဖြစ် ဆက်လက်အသုံးပြုသည်။
+
+#7274 မတိုင်မီ `resolveSessionAffinityTtlMs()` သည် `codex` မှလွဲ၍ provider အားလုံးအတွက် `0` ကို ချက်ချင်းပြန်ပေးခဲ့သဖြင့် pinning mechanism နှင့် header extraction တို့သည် provider အပေါ် မမူတည်ဘဲ အလုပ်လုပ်နိုင်ပြီးသားဖြစ်သော်လည်း TTL setting (နှင့် session header များ) သည် အခြားနေရာများတွင် မည်သည့်သက်ရောက်မှုမျှ မရှိခဲ့ပါ။ ပြင်ဆင်မှုတွင် ထို early-return ကို ဖယ်ရှားခဲ့သည်။ ယခုအခါ TTL ကို global အနေဖြင့် `0` ထက်ပိုသောတန်ဖိုး သတ်မှတ်ပြီးသည်နှင့် provider အားလုံးအတွက် တစ်သမတ်တည်း သက်ရောက်သည်။
+
+Session-affinity header သုံးခုကို upstream သို့ မည်သည့်အခါမျှ forward မလုပ်ပါ — executor များသည် client header များကို တိုက်ရိုက်လွှဲပြောင်းခြင်းမပြုဘဲ ၎င်းတို့၏ upstream header များကို အစမှ ပြန်လည်တည်ဆောက်သောကြောင့် ၎င်းသည် internal correlation id အဖြစ်သာ ရှိနေသည်။
+
+### သီးသန့် managed session connection lease များ
+
+**သက်ရောက်မှုနယ်ပယ်:** လက်ရှိ active ဖြစ်နေသော managed HTTP client/session တစ်ခုသည် သတ်မှတ်ချက်နှင့်ကိုက်ညီသော OmniRoute connection တစ်ခုကို ပိုင်ဆိုင်သည်။
 
 **ရည်ရွယ်ချက်:** request များတစ်လျှောက် တင်းကျပ်သော routing
-အတားအဆီး လိုအပ်သည့် client များအတွက် ကြာရှည်တည်တံ့သော သီးသန့်ချိတ်ဆက်မှုပိုင်ဆိုင်ခွင့်ကို ပေးရန်။ ၎င်းသည် soft continuity preference ဖြစ်သည့် session affinity နှင့် ကွာခြားသည်-
-သီးသန့် lease တစ်ခုသည် lifecycle state ကို SQLite တွင် အမြဲတမ်းသိမ်းဆည်းထားပြီး global active-owner နှင့်
-active-connection တစ်ခုတည်းသာရှိမှုကို အတည်ပြုစေကာ provider dispatch မတိုင်မီ stale generation ကို ငြင်းပယ်သည်။
+ကန့်သတ်ချက်လိုအပ်သည့် client များအတွက် ကြာရှည်တည်တံ့သော သီးသန့် connection ပိုင်ဆိုင်မှုကို ပေးရန်။ ၎င်းသည် soft continuity preference ဖြစ်သော session affinity နှင့် ကွဲပြားသည်။
+သီးသန့် lease တစ်ခုသည် lifecycle state ကို SQLite တွင် တည်တံ့အောင် သိမ်းဆည်းထားပြီး global active-owner နှင့်
+active-connection တစ်ခုတည်းသာရှိရမည့် သတ်မှတ်ချက်ကို အတည်ပြုအသုံးချကာ provider dispatch မပြုမီ stale generation ကို ငြင်းပယ်သည်။
 
-ဤလုပ်ဆောင်ချက်ကို API key တစ်ခုစီအလိုက် ရွေးချယ်ဖွင့်ရသည်။ managed key တစ်ခုတွင် `lease:exclusive` scope နှင့်
-အလွတ်မဟုတ်သော `allowedConnections` စာရင်းကို တိတိကျကျ သတ်မှတ်ထားရမည်။ မည်သည့် HTTP client မဆို lifecycle endpoint ကို အသုံးပြုနိုင်သည်။
-client name၊ user-agent၊ provider၊ OAuth method သို့မဟုတ် model မလိုအပ်ပါ။ lease သည် model ကိုမဟုတ်ဘဲ ချိတ်ဆက်မှုတစ်ခုကို ပိုင်ဆိုင်သောကြောင့် ချိတ်ဆက်မှုသည် ပုံမှန်အတိုင်း
-အရည်အချင်းပြည့်မီနေသရွေ့ model ပြောင်းလဲမှုသည် ချိတ်ဆက်ထားမှုကို ဆက်လက်ထိန်းသိမ်းထားသည်။ ပုံမှန် model၊ quota၊ health၊ cooldown နှင့် allowlist စည်းမျဉ်းများသည် ဆက်လက်အာဏာသက်ရောက်ပြီး
-တူညီသော generation ကို အခြားလွတ်နေသည့် အရည်အချင်းပြည့်မီသော ချိတ်ဆက်မှုသို့ ပြောင်းနိုင်သည်။
+ဤ feature ကို API key တစ်ခုချင်းစီအလိုက် opt-in ပြုလုပ်ရသည်။ Managed key တစ်ခုတွင် `lease:exclusive` scope နှင့်
+အလွတ်မဟုတ်သော `allowedConnections` list ကို တိတိကျကျ သတ်မှတ်ထားရမည်။ မည်သည့် HTTP client မဆို lifecycle endpoint ကို အသုံးပြုနိုင်ပြီး
+client အမည်၊ user-agent၊ provider၊ OAuth method သို့မဟုတ် model တစ်ခုမျှ မလိုအပ်ပါ။ Lease သည် model တစ်ခုကို မဟုတ်ဘဲ connection တစ်ခုကို ပိုင်ဆိုင်သောကြောင့် connection သည် ပုံမှန်အတိုင်း
+သတ်မှတ်ချက်နှင့် ကိုက်ညီနေသရွေ့ model ပြောင်းလဲခြင်းက binding ကို ဆက်လက်ထိန်းသိမ်းထားသည်။ ပုံမှန် model၊ quota၊ health၊ cooldown နှင့် allowlist စည်းမျဉ်းများသည် အဓိကအဆုံးအဖြတ်အဖြစ် ဆက်လက်တည်ရှိပြီး
+တူညီသော generation ကို အခြားအခမဲ့ဖြစ်ကာ သတ်မှတ်ချက်နှင့်ကိုက်ညီသည့် connection တစ်ခုသို့ ပြောင်းလဲနိုင်သည်။
 
-lifecycle သည် JSON action များဖြစ်သော `acquire`၊ `renew` နှင့် `release` တို့ပါဝင်သည့် `POST /api/v1/session-leases` ဖြစ်သည်။
-managed inference request များသည် မထင်ရှားသော `X-OmniRoute-Lease-Owner` တန်ဖိုးနှင့် အတိအကျဖြစ်သော
-`X-OmniRoute-Lease-Generation` ကို ပေးပို့သည်။ owner သည် `vlo_` နောက်တွင် base64url character 43 လုံးကို ထည့်သုံးသည်။
-၎င်း၏ SHA-256 hash ကိုသာ သိမ်းဆည်းသည်။ နောက်ဆုံး dispatch fence တစ်ခုစီသည် authenticated API key ID နှင့်
-active connection ID ကိုလည်း ချိတ်ဆက်ထားသည်။ Lease control header များကို log များ၊ သိမ်းဆည်းထားသော request snapshot များနှင့်
+Lifecycle သည် JSON action များဖြစ်သော `acquire`၊ `renew` နှင့် `release` ပါဝင်သည့် `POST /api/v1/session-leases` ဖြစ်သည်။
+Managed inference request များသည် opaque `X-OmniRoute-Lease-Owner` တန်ဖိုးနှင့် အတိအကျဖြစ်သော
+`X-OmniRoute-Lease-Generation` ကို ပေးပို့ရသည်။ Owner သည် `vlo_` နောက်တွင် base64url စာလုံး 43 လုံးပါဝင်သည့် ပုံစံကို အသုံးပြုပြီး
+၎င်း၏ SHA-256 hash ကိုသာ သိမ်းဆည်းထားသည်။ နောက်ဆုံး dispatch fence တစ်ခုစီသည် authenticated API key ID နှင့်
+active connection ID တို့ကိုလည်း ချိတ်ဆက်သတ်မှတ်ထားသည်။ Lease control header များကို log များ၊ သိမ်းဆည်းထားသော request snapshot များနှင့်
 upstream executor header များမှ ဖယ်ရှားထားသည်။
 
-သာမန် routing တွင် အရည်အချင်းပြည့်မီသော managed candidate များရှိသော်လည်း လွတ်နေသည့် candidate အားလုံးကို
-အခြားသူပိုင် active lease များက အသုံးပြုထားလျှင် OmniRoute သည် HTTP `429`၊ lease-capacity-unavailable code၊
-စွမ်းရည်လွတ်လာရန် စောင့်ဆိုင်းနေသော state နှင့် သက်ဆိုင်ရာ အစောဆုံးသက်တမ်းကုန်ဆုံးချိန်မှ ဆင်းသက်လာသည့် အကန့်အသတ်ရှိသော `Retry-After` ကို ပြန်ပေးသည်။
-သာမန်အရည်အချင်းပြည့်မီမှု ဗလာဖြစ်ခြင်းသည် lease contention မဟုတ်ဘဲ လက်ရှိ routing error အဓိပ္ပာယ်သတ်မှတ်ချက်များကို ဆက်လက်ထားရှိသည်။
+ပုံမှန် routing တွင် သတ်မှတ်ချက်နှင့်ကိုက်ညီသော managed candidate များရှိသော်လည်း လွတ်နေသည့် candidate အားလုံးကို
+အခြား active lease များက ပိုင်ဆိုင်ထားပါက OmniRoute သည် HTTP `429`၊ lease-capacity-unavailable code၊
+waiting-for-capacity state နှင့် သက်ဆိုင်ရာ အစောဆုံး သက်တမ်းကုန်ဆုံးချိန်မှ တွက်ချက်ထားသော အကန့်အသတ်ရှိသည့် `Retry-After` ကို ပြန်ပေးသည်။
+ပုံမှန် eligibility အလွတ်ဖြစ်နေခြင်းသည် lease contention မဟုတ်သဖြင့် ၎င်း၏ လက်ရှိ routing error semantics ကို ဆက်လက်ထိန်းသိမ်းထားသည်။
 
-ဆက်စပ် mechanism များသည် သီးခြားစီ ဆက်လက်ရှိနေသည်-
+ဆက်စပ် mechanism များသည် သီးခြားစီ ဆက်လက်တည်ရှိသည်:
 
 - OAuth session occupancy သည် OAuth account များအတွက် process-local soft distribution ဖြစ်သည်။
-- Account semaphore များသည် request-concurrency permit များကို ပေးပြီး request တစ်ခုပြီးဆုံးသည့်အခါ အဆုံးသတ်သည်။
+- Account semaphore များသည် request-concurrency permit များကို ခွင့်ပြုပေးပြီး request ပြီးဆုံးချိန်တွင် အဆုံးသတ်သည်။
 - သီးသန့် managed session lease များသည် generation fence ပါဝင်သော ကြာရှည်တည်တံ့သည့် lifecycle ပိုင်ဆိုင်မှုဖြစ်သည်။
 
 ---
@@ -254,42 +312,57 @@ Combo strategy တိုင်းအတွက် (ဖွင့်ထားသည
 
 ---
 
-## 5. Request Queue ဝင်ခွင့် ထိန်းချုပ်ခြင်း (v3.8.49 · issue #6593)
+## 5. တောင်းဆိုမှုတန်းစီစာရင်း ဝင်ခွင့်ထိန်းချုပ်မှု (v3.8.49 · issue #6593)
 
-**သက်ရောက်မှုနယ်ပယ်**: အထက်ပါ ယန္တရားသုံးခု၏ အောက်တစ်လွှာတွင်ရှိသော local provider+connection တစ်ခုချင်းစီအလိုက် rate-limit queue (`open-sse/services/rateLimitManager.ts`,
-Bottleneck ကို အခြေခံအသုံးပြုထားသည်)။
+**သက်ရောက်မှုနယ်ပယ်**: အထက်ပါ ယန္တရားသုံးခု၏ အောက်တစ်ဆင့်တွင်ရှိသော local per-provider+connection rate-limit queue (`open-sse/services/rateLimitManager.ts`,
+Bottleneck ဖြင့် ပံ့ပိုးထားသည်)။
 
-**`maxWaitMs` သည် execution expiration အတွက် အစဉ်အလာအရ သိမ်းဆည်းထားသော အမည်ဖြစ်သည်။**
-`resilienceSettings.requestQueue.maxWaitMs` ကို job
-`expiration` အဖြစ် Bottleneck သို့ ပေးပို့ပြီး ယင်း၏ timer သည် dispatch လုပ်ပြီးမှသာ စတင်သည်။ ထို့ကြောင့် ၎င်းသည် local queue ထဲတွင် ကုန်ဆုံးသည့်အချိန်ကို မကန့်သတ်ဘဲ
-limiter က စီမံသော execution ကိုသာ ကန့်သတ်သည်။ Expiration ကို ယုံကြည်ရသော local `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) အဖြစ် ဖော်ပြသည်။
-ယခင် queue-timeout code အမည်ကို ယုံကြည်ရသော internal backward compatibility အတွက်သာ လက်ခံသည်။ ပုံသေတန်ဖိုးမှာ 15000ms ဖြစ်ပြီး
-`RATE_LIMIT_MAX_WAIT_MS` (env) သို့မဟုတ် dashboard (**Settings → Resilience**၊
-UI အမြင့်ဆုံးကန့်သတ်ချက် 1–30000ms) မှတစ်ဆင့် ပြောင်းလဲသတ်မှတ်နိုင်သည်။ Queue ထဲတွင် နေထိုင်ချိန်အတွက် အချိန်သတ်မှတ်ချက်မရှိပါ။ Queue ထဲတွင် စောင့်ဆိုင်းနေသော caller များကို ကန့်သတ်ရန် အောက်ပါ
-`maxQueueDepth` ကို အသုံးပြုပါ။
+**`maxWaitMs` သည် တန်းစီစာရင်းတွင် စောင့်ဆိုင်းချိန်ကို ကန့်သတ်ပြီး၊ `executionMaxWaitMs` သည် လုပ်ဆောင်ချိန်ကို ကန့်သတ်သည်။**
+၎င်းတို့နှစ်ခုကို ရည်ရွယ်ချက်ရှိရှိ သီးခြားထားပြီး၊ တစ်ခု၏တန်ဖိုးကို အခြားတစ်ခုသို့ ပေးပို့အသုံးပြုခြင်း မရှိပါ။
+
+`resilienceSettings.requestQueue.maxWaitMs` သည် **တန်းစီစာရင်းစောင့်ဆိုင်းချိန် ခွင့်ပြုပမာဏ** ဖြစ်သည်။ ၎င်းတွင် provider slot တစ်ခုကို စောင့်ဆိုင်းရသည့်အချိန်နှင့် ထို့နောက် QUEUED အခြေအနေဖြင့် တန်းစီစောင့်ဆိုင်းရသည့်အချိန် ပါဝင်ပြီး၊ job သည် QUEUED အခြေအနေမှ ထွက်ကာ စတင်လုပ်ဆောင်သည့်အချိန်တွင် ၎င်း၏ timer ကို ချက်ချင်းရှင်းလင်းသည်
+(`rateLimitManager.ts`, `wrappedFn`)။ ဤကန့်သတ်ချက်ကို ကျော်လွန်သည့် တောင်းဆိုမှုသည် upstream သို့ လုံးဝမရောက်ရှိပါ။
+ပုံသေတန်ဖိုးမှာ 30000ms ဖြစ်ပြီး `src/lib/resilience/settings.ts` ရှိ
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` မှ ပေးထားကာ
+`tests/unit/ratelimit-admission-control-6593.test.ts` ဖြင့် တိတိကျကျ စမ်းသပ်အတည်ပြုထားသည်။ ထို့ကြောင့် ၎င်းကို ပြောင်းလဲပါက ဤစာပိုဒ်သည် သတိမပြုမိဘဲ ခေတ်နောက်ကျကျန်ရစ်မည့်အစား ထို test မအောင်မြင်တော့မည်ဖြစ်သည်။
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` သည် job `expiration` အဖြစ် Bottleneck က လက်ခံရရှိသည့်တန်ဖိုးဖြစ်ပြီး၊ ၎င်း၏ timer သည် dispatch ပြုလုပ်ပြီးမှသာ စတင်သည်။ ၎င်းသည် ကိုယ်ပိုင် upstream timeout မရှိသော executor များအတွက် နောက်ဆုံးကာကွယ်မှုတစ်ခုဖြစ်ပြီး၊ executor ၏ ကိုယ်ပိုင် fetch-start timeout က ပိုကြာပါက ထိုတန်ဖိုးအထိ မြှင့်တင်ပေးသည်။ ထို့ကြောင့် ပုံမှန်လည်ပတ်နေသော in-flight response ကို ကြားဖြတ်ရပ်တန့်စေမည် မဟုတ်ပါ။ ပုံသေတန်ဖိုးမှာ 600000ms (10 min) ဖြစ်သည်။
+
+တန်းစီစာရင်း ခွင့်ပြုချိန်ကို `expiration` ထဲသို့ ပေးပို့အသုံးပြုခြင်းကြောင့် ယခင်က non-incremental
+gateway များသည် လုပ်ဆောင်နေဆဲအချိန်တွင် ရပ်တန့်သွားခဲ့သည် — ၎င်းတို့သည် ပထမဆုံး byte များ မပို့မီ မိနစ်အတော်ကြာ လုပ်ဆောင်ရခြင်းမှာ မှန်ကန်သောအပြုအမူဖြစ်သည် — ထို့ကြောင့် expiration ကို `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) အဖြစ် ဖော်ပြပြီး၊ တန်းစီစာရင်း ခွင့်ပြုချိန်ကျော်လွန်မှုအတွက် queue-timeout code ကို အသုံးပြုသည်။ `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) သို့မဟုတ် dashboard
+(**Settings → Resilience**) မှတစ်ဆင့် တစ်ခုခုကို override လုပ်နိုင်သည်။ နှစ်ခုလုံးကို normalise လုပ်သည့်အခါ 1ms–24h အတွင်း ကန့်သတ်ထားသည်။
+
+**နှစ်ခုလုံးအတွက် ဦးစားပေးအစီအစဉ်:** env var သည် _ပုံသေတန်ဖိုး_ ကိုသာ ပေးသည်။ `resilienceSettings.requestQueue` တွင် သိမ်းဆည်းထားသောတန်ဖိုး (dashboard / API patch မှ သတ်မှတ်ပြီး `key_value` တွင် သိမ်းထားသည့်တန်ဖိုး) သည် ၎င်းထက် ဦးစားပေးခံရပြီး၊ per-connection
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` သည် ထိုတန်ဖိုးထက် ထပ်မံဦးစားပေးခံရသည်။ ထို့ကြောင့် သိမ်းဆည်းထားသောတန်ဖိုး ရှိပြီးသား deployment တစ်ခုတွင် env var ကို သတ်မှတ်ခြင်းသည် မည်သည့်အရာကိုမျှ မပြောင်းလဲစေပါ — ထိုအစား သိမ်းဆည်းထားသော setting ကို ရှင်းလင်းပါ သို့မဟုတ် ပြင်ဆင်ပါ။
+
+တန်းစီစာရင်းအတွင်း ရှိနေနိုင်သည့်ကြာချိန်ကို `maxWaitMs` က ကန့်သတ်ပြီး၊ တစ်ကြိမ်တည်း တန်းစီစောင့်ဆိုင်းနိုင်သည့် caller အရေအတွက်ကို အောက်ပါ `maxQueueDepth` က ကန့်သတ်သည်။
 
 **`maxQueueDepth` — ရွေးချယ်ဖွင့်နိုင်သော ဝင်ခွင့်ကန့်သတ်ချက် (အသစ်)။** `resilienceSettings.requestQueue.maxQueueDepth`
-သည် provider+connection တစ်ခုအတွက် တစ်ချိန်တည်းတွင် queue ထဲ၌ ထိုင်စောင့်နိုင်သော (dispatch မလုပ်ရသေးသော) request အရေအတွက်ကို ကန့်သတ်သည်။
-Queue ထဲတွင် `maxQueueDepth`
-request အရေအတွက် ရှိပြီးသားဖြစ်ပါက request အသစ်ကို `limiter.schedule()` သို့ မရောက်မီ **ကြိုတင်၍** type သတ်မှတ်ထားသော
-`code: "RATE_LIMIT_QUEUE_FULL"` error ဖြင့် ချက်ချင်းပယ်ချသည်
-— ထို့ကြောင့် ပယ်ချခြင်းသည် ကုန်ကျစရိတ်နည်းပြီး ထို request အတွက် downstream
-prompt-compression / translation လုပ်ငန်းများ မပြုလုပ်မီ ဖြစ်ပေါ်သည်။ ပုံသေ `0` =
-ပိတ်ထားခြင်းဖြစ်ပြီး ရှိပြီးသား ကန့်သတ်ချက်မဲ့ queue အပြုအမူကို ဆက်လက်ထိန်းသိမ်းထားသည်။ သတ်မှတ်နိုင်သော အပိုင်းအခြားမှာ 0–100000 ဖြစ်သည်။
+သည် provider+connection တစ်ခုအတွက် တစ်ကြိမ်တည်းတွင် တန်းစီထားနိုင်သည့် (dispatch မလုပ်ရသေးသော) တောင်းဆိုမှုအရေအတွက်ကို ကန့်သတ်သည်။ တန်းစီစာရင်းတွင် `maxQueueDepth`
+အရေအတွက်အထိ ရှိနှင့်ပြီးဖြစ်ပါက တောင်းဆိုမှုအသစ်ကို typed
+`code: "RATE_LIMIT_QUEUE_FULL"` error ဖြင့် `limiter.schedule()` သို့ လုံးဝမရောက်မီ **ချက်ချင်းပယ်ချ** သည်
+— ထို့ကြောင့် ပယ်ချခြင်း၏ ကုန်ကျစရိတ်နည်းပြီး၊ ထိုတောင်းဆိုမှုအတွက် downstream
+prompt-compression / translation လုပ်ငန်းများ မပြုလုပ်မီ ဖြစ်ပေါ်သည်။ ပုံသေတန်ဖိုး `0` =
+ပိတ်ထားခြင်းဖြစ်ပြီး၊ လက်ရှိ ကန့်သတ်မထားသော တန်းစီစာရင်းအပြုအမူကို ဆက်လက်ထိန်းသိမ်းထားသည်။ ခွင့်ပြုတန်ဖိုးအပိုင်းအခြားမှာ 0–100000 ဖြစ်သည်။
 `RATE_LIMIT_MAX_QUEUE_DEPTH` (env) သို့မဟုတ်
-`resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API patch) မှတစ်ဆင့် ပြောင်းလဲသတ်မှတ်နိုင်သည်။
+`resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API patch) မှတစ်ဆင့် override လုပ်နိုင်သည်။
 
-ဝင်ခွင့်စစ်ဆေးမှုကိုယ်တိုင်သည် pure function တစ်ခု
-(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) ဖြစ်သောကြောင့်
-Bottleneck limiter အစစ်မရှိဘဲ unit test ပြုလုပ်နိုင်သည်။
+ဝင်ခွင့်စစ်ဆေးမှုကိုယ်တိုင်သည် pure function တစ်ခုဖြစ်သည်
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`)။ ထို့ကြောင့် အမှန်တကယ် Bottleneck limiter မရှိဘဲ unit test ပြုလုပ်နိုင်သည်။
 
-> #6593 ကို စတင်ဖွင့်လှစ်ခဲ့သော RFC တွင် `bypassCompressionOnRateLimit`
+> #6593 ကို စတင်ခဲ့သည့် RFC တွင် `bypassCompressionOnRateLimit`
 > flag တစ်ခုကိုလည်း အဆိုပြုထားသည်။ ဤ repo ၏ `open-sse/services/compression/` pipeline သည်
-> outbound LLM request ပေါ်ရှိ prompt/context compression (`chatCore.ts`၊
-> `resolveCompressionSettings`/`selectCompressionStrategy` block ဝန်းကျင်) ဖြစ်ပြီး
-> ဖန်တီးထားသော 429 body များအပေါ် HTTP response compression မဟုတ်ပါ — ထို့ကြောင့် literal bypass flag နှင့် ကိုက်ညီသော
-> code path မရှိပါ။ ထို prompt-compression အဆင့်သည်လည်း လက်ရှိ request pipeline တွင်
-> `withRateLimit()` **မတိုင်မီ** လုပ်ဆောင်သောကြောင့် queue-full ပယ်ချမှုတွင် ၎င်းကို ကျော်သွားနိုင်ရန် အစီအစဉ်ပြန်ပြောင်းခြင်းသည် ဤ issue ၏ သက်ရောက်မှုနယ်ပယ်ထက် သီးခြားဖြစ်ပြီး ပိုမိုကြီးမားသော ပြောင်းလဲမှုတစ်ခုဖြစ်သည်။ ထို့ကြောင့် ဤနေရာတွင် ရည်ရွယ်ချက်ရှိရှိ **အကောင်အထည်မဖော်ခဲ့ပါ**။ CPU ချွေတာမှုအကျိုးကျေးဇူးသည် အစီအစဉ်ပြန်ပြောင်းခြင်း၏ အန္တရာယ်နှင့် ထိုက်တန်ပါက နောက်ဆက်တွဲအဖြစ် ဆက်လက်လုပ်ဆောင်ရန် ချန်ထားသည်။
+> HTTP response compression ဖြင့် ဖန်တီးထားသော 429 body များအတွက် မဟုတ်ဘဲ၊ outbound LLM request (`chatCore.ts`,
+> `resolveCompressionSettings`/`selectCompressionStrategy` block ဝန်းကျင်) ရှိ
+> prompt/context compression အတွက် ဖြစ်သည် — တိကျသော bypass flag တစ်ခုနှင့် ကိုက်ညီသည့်
+> code path မရှိပါ။ အဆိုပါ prompt-compression အဆင့်သည် လက်ရှိ request pipeline တွင်
+> `withRateLimit()` မတိုင်မီလည်း လုပ်ဆောင်နေသည်။ ထို့ကြောင့် queue-full ပယ်ချမှုတစ်ခု ဖြစ်သည့်အခါ
+> ၎င်းကို ကျော်ရန် အစီအစဉ်ပြန်ချခြင်းသည် ဤ issue ၏ သက်ရောက်မှုနယ်ပယ်ထက် သီးခြားဖြစ်ပြီး ပိုမိုကြီးမားသော
+> ပြောင်းလဲမှုတစ်ခုဖြစ်သည်။ ဤနေရာတွင် ၎င်းကို ရည်ရွယ်ချက်ရှိရှိ **အကောင်အထည်မဖော်ခဲ့ဘဲ**
+> CPU သုံးစွဲမှုလျှော့ချခြင်းမှ ရရှိမည့်အကျိုးကျေးဇူးသည် အစီအစဉ်ပြန်ချခြင်း၏ အန္တရာယ်နှင့် ထိုက်တန်ပါက
+> နောက်ဆက်တွဲလုပ်ဆောင်ရန် ချန်ထားသည်။
 
 ---
 

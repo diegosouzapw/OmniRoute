@@ -1,1 +1,0 @@
-- **fix(proxies):** a subscription refresh, a bulk re-import or an API update that omits the status no longer turns a disabled proxy back on, and a refresh no longer rewrites a manual proxy that shares a subscription node's address ([#13577](https://github.com/diegosouzapw/OmniRoute/pull/13577)) — thanks @maxmad64bis

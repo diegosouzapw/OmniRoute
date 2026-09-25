@@ -22,6 +22,7 @@ export function maybeLogToolCallSpecViolation(input: {
   connectionId: string | null;
   httpStatus: number;
   requestId: string;
+  redactViolationDetail?: boolean;
 }): void {
   const violation = findToolCallSpecViolation(input.responseBody);
   if (!violation) return;
@@ -40,7 +41,7 @@ export function maybeLogToolCallSpecViolation(input: {
       model: input.model,
       connectionId: input.connectionId,
       httpStatus: input.httpStatus,
-      violation,
+      violation: input.redactViolationDetail ? "duplicate tool_calls entry" : violation,
     },
   });
 }

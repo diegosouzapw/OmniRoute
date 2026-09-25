@@ -32,8 +32,18 @@ export const agentrouterProvider: RegistryEntry = {
   // own baseUrl + x-api-key auth. A static fingerprint here would drift and
   // trip AgentRouter's WAF ("unauthorized client detected").
   models: [
-    { id: "claude-opus-4-8", name: "Claude Opus 4.8" },
-    { id: "claude-opus-5", name: "Claude Opus 5" },
+    {
+      id: "claude-opus-4-8",
+      name: "Claude Opus 4.8",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+    },
+    {
+      id: "claude-opus-5",
+      name: "Claude Opus 5",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+    },
     { id: "gpt-5.6-sol", name: "GPT-5.6 Sol" },
   ],
   passthroughModels: true,

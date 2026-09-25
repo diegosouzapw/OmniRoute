@@ -1,1 +1,0 @@
-- fix(combo): stop the chars/4 context estimate from demoting an operator-verified `model_context_override` behind an unconfirmed catalog "emergency" fallback in combo priority ordering (#13870)

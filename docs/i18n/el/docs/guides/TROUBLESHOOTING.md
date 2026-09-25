@@ -1,12 +1,12 @@
 # Troubleshooting (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇧🇦 [bs](../../../bs/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 ---
 
-> **Για χρήστες**: Αναζητάτε γρήγορες λύσεις; Ανατρέξτε στη [Γρήγορη αναφορά](#quick-reference) παρακάτω.
+> **Για χρήστες**: Αναζητάτε γρήγορες λύσεις; Δείτε τη [Γρήγορη αναφορά](#quick-reference) παρακάτω.
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇧🇦 [bs](../../../bs/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 Συνήθη προβλήματα και λύσεις για το OmniRoute.
 
@@ -14,19 +14,20 @@
 
 ## Γρήγορη αναφορά
 
-**Νέος στο OmniRoute;** Ξεκινήστε εδώ — αυτά επιλύουν το 90% των προβλημάτων:
+**Νέοι στο OmniRoute;** Ξεκινήστε εδώ — αυτά λύνουν το 90% των προβλημάτων:
 
-| Βλέπω αυτό                      | Τι σημαίνει                                          | Τι να κάνετε                                                                                                       |
-| ------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| "Δεν είναι δυνατή η σύνδεση"    | Το OmniRoute δεν εκτελείται                          | Εκτελέστε `omniroute` ή `docker restart omniroute`                                                                 |
-| "Μη έγκυρο κλειδί API"          | Το κλειδί σας είναι λανθασμένο ή έχει λήξει          | Αντιγράψτε ξανά το κλειδί από τον ιστότοπο του παρόχου                                                             |
-| "Υπέρβαση ορίου αιτημάτων"      | Στέλνετε πάρα πολλά αιτήματα                         | Περιμένετε 1 λεπτό ή χρησιμοποιήστε `model: "auto"` για αυτόματη εναλλακτική δρομολόγηση                           |
-| "Υπέρβαση ποσόστωσης"           | Έχετε εξαντλήσει τη δωρεάν/επί πληρωμή ποσόστωσή σας | Συνδέστε περισσότερους παρόχους ή χρησιμοποιήστε δωρεάν παρόχους (Kiro, Pollinations)                              |
-| "Αργές αποκρίσεις"              | Ο πάροχος είναι απασχολημένος ή βρίσκεται μακριά     | Χρησιμοποιήστε `model: "auto/fast"` ή συνδέστε έναν ταχύτερο πάροχο (Groq, Cerebras)                               |
-| "Χρησιμοποιήθηκε λάθος πάροχος" | Το `auto` επέλεξε διαφορετικό πάροχο                 | Αυτό είναι φυσιολογικό! Το `auto` επιλέγει τον καλύτερο. Επιβάλετε συγκεκριμένο πάροχο με `model: "openai/gpt-4o"` |
-| "502 Bad Gateway"               | Ο πάροχος δεν λειτουργεί                             | Περιμένετε και δοκιμάστε ξανά ή χρησιμοποιήστε `model: "auto"` για εναλλαγή παρόχων                                |
-| "401 Unauthorized"              | Τα διαπιστευτήριά σας είναι λανθασμένα               | Ελέγξτε το κλειδί API σας ή πραγματοποιήστε ξανά έλεγχο ταυτότητας μέσω OAuth                                      |
-| "429 Too Many Requests"         | Έχει εφαρμοστεί περιορισμός ρυθμού                   | Περιμένετε 1 λεπτό ή συνδέστε περισσότερους παρόχους                                                               |
+| Βλέπω αυτό                       | Τι σημαίνει                                          | Τι να κάνετε                                                                                                       |
+| -------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| "Δεν είναι δυνατή η σύνδεση"     | Το OmniRoute δεν εκτελείται                          | Εκτελέστε `omniroute` ή `docker restart omniroute`                                                                 |
+| "Μη έγκυρο κλειδί API"           | Το κλειδί σας είναι λανθασμένο ή έχει λήξει          | Αντιγράψτε ξανά το κλειδί από τον ιστότοπο του παρόχου                                                             |
+| "Υπέρβαση ορίου ρυθμού"          | Στέλνετε υπερβολικά πολλά αιτήματα                   | Περιμένετε 1 λεπτό ή χρησιμοποιήστε `model: "auto"` για αυτόματη εναλλακτική δρομολόγηση                           |
+| "Υπέρβαση ποσόστωσης"            | Έχετε εξαντλήσει τη δωρεάν/επί πληρωμή ποσόστωσή σας | Συνδέστε περισσότερους παρόχους ή χρησιμοποιήστε δωρεάν παρόχους (Kiro, Pollinations)                              |
+| "Αργές αποκρίσεις"               | Ο πάροχος είναι απασχολημένος ή βρίσκεται μακριά     | Χρησιμοποιήστε `model: "auto/fast"` ή συνδέστε έναν ταχύτερο πάροχο (Groq, Cerebras)                               |
+| "Χρησιμοποιήθηκε λάθος πάροχος"  | Το `auto` επέλεξε διαφορετικό πάροχο                 | Αυτό είναι φυσιολογικό! Το `auto` επιλέγει τον καλύτερο. Επιβάλετε συγκεκριμένο πάροχο με `model: "openai/gpt-4o"` |
+| "502 Bad Gateway"                | Ο πάροχος είναι εκτός λειτουργίας                    | Περιμένετε και δοκιμάστε ξανά ή χρησιμοποιήστε `model: "auto"` για να αλλάξετε πάροχο                              |
+| "401 Unauthorized"               | Τα διαπιστευτήριά σας είναι λανθασμένα               | Ελέγξτε το κλειδί API ή πραγματοποιήστε ξανά έλεγχο ταυτότητας μέσω OAuth                                          |
+| "Το omniroute δεν αναγνωρίζεται" | Από το Windows PATH λείπουν τα καθολικά node modules | Προσθέστε το καθολικό πρόθεμα του npm στο Windows PATH. Βρείτε το με `npm config get prefix`.                      |
+| "429 Too Many Requests"          | Έχει επιβληθεί περιορισμός ρυθμού                    | Περιμένετε 1 λεπτό ή συνδέστε περισσότερους παρόχους                                                               |
 
 **Εξακολουθείτε να αντιμετωπίζετε πρόβλημα;** Δείτε την [αναλυτική αντιμετώπιση προβλημάτων](#detailed-troubleshooting) παρακάτω ή ρωτήστε στο [Discord](https://discord.gg/U47eFqAXCn).
 
@@ -38,37 +39,37 @@
 
 ### Περιορισμός ρυθμού σε δωρεάν παρόχους (429 / 400 / 401)
 
-**Σύμπτωμα**: Όταν χρησιμοποιείτε `model: "auto"` με δωρεάν παρόχους ή παρόχους χωρίς έλεγχο ταυτότητας (opencode, auggie κ.λπ.), λαμβάνετε κατά διαστήματα `HTTP 429`, `400` ή `401` αντί για απαντήσεις. Τα αιτήματα ολοκληρώνονται επιτυχώς όταν επαναλαμβάνετε την ίδια προτροπή λίγες στιγμές αργότερα, αλλά οι αυτοματισμοί (εργασίες cron, πράκτορες, δέσμες ενεργειών) διακόπτονται με την πρώτη αποτυχία.
+**Σύμπτωμα**: Όταν χρησιμοποιείτε `model: "auto"` με δωρεάν παρόχους ή παρόχους χωρίς έλεγχο ταυτότητας (opencode, auggie κ.λπ.), λαμβάνετε κατά διαστήματα `HTTP 429`, `400` ή `401` αντί για απαντήσεις. Τα αιτήματα ολοκληρώνονται με επιτυχία όταν επαναλαμβάνετε την ίδια προτροπή λίγες στιγμές αργότερα, αλλά οι αυτοματισμοί (εργασίες cron, πράκτορες, σενάρια) διακόπτονται με την πρώτη αποτυχία.
 
 **Βασική αιτία**: Τρεις ανεξάρτητοι τρόποι αστοχίας συσσωρεύονται:
 
-1. **Περιορισμός ρυθμού παρόχου (`429`)**: Οι δωρεάν βαθμίδες μπορούν να επιβάλλουν ποσόστωση ανά χρονικό παράθυρο. Μια ριπή παράλληλων κλήσεων την εξαντλεί, οπότε το επόμενο αίτημα απορρίπτεται μέχρι να γίνει επαναφορά του παραθύρου.
-2. **Προβληματικό μοντέλο στη διαφανή διέλευση (`400`/`401`)**: Οι ομάδες `auto/*` μπορούν να περιλαμβάνουν μοντέλα διαφανούς διέλευσης από το `opencode`, τα οποία είναι καταχωρισμένα στον κατάλογο αλλά δεν διαθέτουν ενεργά διαπιστευτήρια (π.χ. `oc/north-mini-code-free` → `401`). Ο αυτόματος δρομολογητής δοκιμάζει ένα, αποτυγχάνει και το σφάλμα διαδίδεται πριν ενεργοποιηθεί η εναλλακτική δρομολόγηση.
-3. **Ενίσχυση λόγω ταυτοχρονισμού (`429` υπό φόρτο)**: Όταν πολλαπλές συνεδρίες πρακτόρων/cron προσπελαύνουν ταυτόχρονα το `auto`, ο συνολικός ρυθμός αιτημάτων υπερβαίνει ό,τι μπορούν να ανεχθούν οι δωρεάν πάροχοι, με αποτέλεσμα νόμιμες κλήσεις να επισημαίνονται ως καταχρηστικές.
+1. **Περιορισμός ρυθμού παρόχου (`429`)**: Τα δωρεάν επίπεδα μπορούν να επιβάλλουν ποσόστωση ανά χρονικό παράθυρο. Μια ριπή παράλληλων κλήσεων την εξαντλεί, με αποτέλεσμα το επόμενο αίτημα να απορρίπτεται μέχρι να γίνει επαναφορά του παραθύρου.
+2. **Μη λειτουργικό μοντέλο σε λειτουργία passthrough (`400`/`401`)**: Οι ομάδες `auto/*` μπορούν να περιλαμβάνουν μοντέλα passthrough από το `opencode`, τα οποία είναι καταχωρισμένα στον κατάλογο αλλά δεν διαθέτουν ενεργά διαπιστευτήρια (π.χ. `oc/north-mini-code-free` → `401`). Ο αυτόματος δρομολογητής δοκιμάζει ένα, αποτυγχάνει και το σφάλμα διαδίδεται πριν ενεργοποιηθεί η εναλλακτική δρομολόγηση.
+3. **Ενίσχυση λόγω ταυτόχρονης εκτέλεσης (`429` υπό φορτίο)**: Όταν πολλαπλές συνεδρίες πρακτόρων/cron χρησιμοποιούν ταυτόχρονα το `auto`, ο συνολικός ρυθμός αιτημάτων υπερβαίνει αυτόν που ανέχονται οι δωρεάν πάροχοι, με αποτέλεσμα νόμιμες κλήσεις να επισημαίνονται ως καταχρηστικές.
 
-**Επαληθευμένη διόρθωση (αναφέρθηκε από την κοινότητα, 2026-08-10)**: ρυθμίστε τρεις μεταβλητές περιβάλλοντος, ώστε η εναλλαγή, ο ταυτοχρονισμός και η εναλλακτική δρομολόγηση να απορροφούν τις διακυμάνσεις της δωρεάν βαθμίδας αντί να αποτυγχάνουν εξαιτίας τους:
+**Επαληθευμένη λύση (αναφέρθηκε από την κοινότητα, 2026-08-10)**: ρυθμίστε τρεις μεταβλητές περιβάλλοντος, ώστε η εναλλαγή, η ταυτόχρονη εκτέλεση και η εναλλακτική δρομολόγηση να απορροφούν τις διακυμάνσεις του δωρεάν επιπέδου αντί να αποτυγχάνουν εξαιτίας τους:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # μετάβαση σε άλλο μοντέλο/πάροχο σε 400/401 (παραλείπει προβληματικά μοντέλα διαφανούς διέλευσης)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # ρητό ανώτατο όριο αποδοχής βαρέων αιτημάτων (από προεπιλογή δεν έχει οριστεί: χωρίς όριο πλήθους αιτημάτων, δείτε τη σημείωση παρακάτω)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # μεγαλύτερη οριοθετημένη αναμονή για χωρητικότητα βαρέων αιτημάτων αντί για άμεσο επαναλήψιμο σφάλμα 503
+export OMNIROUTE_ROTATE_ON_400=true           # μετάβαση σε άλλο μοντέλο/πάροχο σε περίπτωση 400/401 (παραλείπει τα μη λειτουργικά μοντέλα passthrough)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # ρητό ανώτατο όριο αποδοχής βαριών αιτημάτων (χωρίς προεπιλεγμένη τιμή: κανένα όριο πλήθους αιτημάτων, δείτε τη σημείωση παρακάτω)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # μεγαλύτερη οριοθετημένη αναμονή για χωρητικότητα βαριών αιτημάτων αντί για άμεσο, επαναλήψιμο σφάλμα 503
 ```
 
-Ορίστε αυτές τις μεταβλητές στο περιβάλλον της διεργασίας OmniRoute (στον δαίμονα, π.χ. μέσω του LaunchAgent plist ή του `systemctl edit`) και κατόπιν επανεκκινήστε το OmniRoute. Η σημαία εναλλαγής είναι ο μοχλός με τη μεγαλύτερη επίδραση: μετατρέπει μια οριστική αποτυχία σε διαφανή επανάληψη του αιτήματος προς έναν υγιή πάροχο της ομάδας.
+Ορίστε αυτές τις μεταβλητές στο περιβάλλον της διεργασίας OmniRoute (του δαίμονα, π.χ. μέσω του LaunchAgent plist ή του `systemctl edit`) και, στη συνέχεια, επανεκκινήστε το OmniRoute. Η σημαία εναλλαγής είναι ο σημαντικότερος μεμονωμένος μοχλός: μετατρέπει μια οριστική αποτυχία σε διαφανή επανάληψη του αιτήματος προς έναν υγιή πάροχο της ομάδας.
 
-**Σημείωση**: Το `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` περιορίζει τον αριθμό των βαρέων αιτημάτων —αιτημάτων μεγάλου περιβάλλοντος— που εκτελούνται ταυτόχρονα· το όριο αποτελεί πύλη αποδοχής και όχι περιοριστή ρυθμού παρόχου. **Ενημέρωση #503-fanout:** αυτή η μεταβλητή δεν ορίζεται πλέον από προεπιλογή (πλέον εφαρμόζεται μόνο όταν ρυθμίζεται ρητά, όπως παραπάνω) — αντί γι’ αυτό, η αποδοχή βαρέων αιτημάτων ελέγχεται από έναν αυτόματα υπολογιζόμενο προϋπολογισμό byte (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), ο οποίος προσαρμόζεται βάσει του πραγματικού ορίου μνήμης του κεντρικού συστήματος. Επομένως, μια νέα ανάπτυξη θα πρέπει να παρουσιάζει πολύ λιγότερες απορρίψεις `503 chat_admission_busy` χωρίς να χρειάζεται να οριστεί καθόλου αυτή η μεταβλητή· η ρητή ρύθμισή της εδώ εξακολουθεί να λειτουργεί ακριβώς όπως τεκμηριώνεται. Οι ρητές παρακάμψεις του προϋπολογισμού byte περιορίζονται σε 8 MiB–2 GiB. Ένα `413 body_exceeds_budget` δεν είναι παροδικό: αυξήστε αυτόν τον προϋπολογισμό byte, μειώστε το `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ή αυξήστε το όριο μνήμης της διεργασίας. Μια απόρριψη `inflight_bytes_budget` οφείλεται σε προσωρινό ανταγωνισμό πόρων και παραμένει επαναλήψιμη. Ο περιορισμός ρυθμού ανά πάροχο (`open-sse/services/rateLimitManager.ts`) διέπεται ξεχωριστά από τα `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` και `RATE_LIMIT_AUTO_ENABLE` — δείτε το `.env.example`.
+**Σημείωση**: Το `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` περιορίζει τον αριθμό των βαριών — μεγάλου περιβάλλοντος — αιτημάτων που εκτελούνται ταυτόχρονα· το όριο αποτελεί πύλη αποδοχής και όχι περιοριστή ρυθμού παρόχου. **Ενημέρωση #503-fanout:** αυτή η μεταβλητή δεν ορίζεται πλέον από προεπιλογή (πλέον εφαρμόζεται μόνο όταν ρυθμίζεται ρητά, όπως παραπάνω) — αντί γι’ αυτό, η αποδοχή βαριών αιτημάτων ελέγχεται από έναν αυτόματα υπολογιζόμενο προϋπολογισμό byte (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), ο οποίος προσαρμόζεται βάσει του πραγματικού ορίου μνήμης του κεντρικού συστήματος. Επομένως, μια νέα ανάπτυξη θα πρέπει να εμφανίζει πολύ λιγότερες απορρίψεις `503 chat_admission_busy` χωρίς να χρειάζεται να οριστεί καθόλου αυτή η μεταβλητή· η ρητή ρύθμισή της εδώ εξακολουθεί να λειτουργεί ακριβώς όπως τεκμηριώνεται. Οι ρητές παρακάμψεις του προϋπολογισμού byte περιορίζονται στο εύρος 8 MiB–2 GiB. Ένα `413 body_exceeds_budget` δεν είναι παροδικό: αυξήστε αυτόν τον προϋπολογισμό byte, μειώστε το `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ή αυξήστε το όριο μνήμης της διεργασίας. Η απόρριψη `inflight_bytes_budget` οφείλεται σε προσωρινό ανταγωνισμό πόρων και το αίτημα μπορεί να επαναληφθεί. Ο περιορισμός ρυθμού ανά πάροχο (`open-sse/services/rateLimitManager.ts`) ελέγχεται ξεχωριστά από τα `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` και `RATE_LIMIT_AUTO_ENABLE` — δείτε το `.env.example`.
 
-**Πώς να επαληθεύσετε ότι λειτούργησε**: εκτελέστε τον πράκτορα/cron σας δύο φορές σε γρήγορη διαδοχή και επιβεβαιώστε ότι και οι δύο εκτελέσεις ολοκληρώνονται επιτυχώς. Πριν από τη διόρθωση, η δεύτερη εκτέλεση συνήθως εμφανίζει `429`/`401`. Μετά τη διόρθωση, οι αποτυχίες (εάν υπάρχουν) επαναλαμβάνονται διαφανώς και η κλήση ολοκληρώνεται. Μπορείτε επίσης να εκτελέσετε `curl /monitoring/health` και να παρακολουθήσετε το πεδίο `rateLimitedUntil` στις συνδέσεις παρόχων, καθώς και το `circuitBreakers.providerBreakers[].state` για τους επηρεαζόμενους παρόχους — η κατάσταση είναι μία από τις `CLOSED`, `DEGRADED`, `OPEN` ή `HALF_OPEN` (δείτε το `src/shared/utils/circuitBreaker.ts`), ενώ ένας πάροχος που συνεχίζει να αποτυγχάνει θα μεταβεί από `CLOSED → DEGRADED → OPEN` προτού το παράθυρο επαναφοράς επιτρέψει τη διέλευση μιας δοκιμής (`HALF_OPEN`).
+**Πώς να επαληθεύσετε ότι λειτούργησε**: εκτελέστε τον agent/cron δύο φορές σε γρήγορη διαδοχή και επιβεβαιώστε ότι και οι δύο εκτελέσεις ολοκληρώνονται με επιτυχία. Πριν από τη διόρθωση, η δεύτερη εκτέλεση συνήθως εμφανίζει σφάλμα `429`/`401`. Μετά τη διόρθωση, οι αποτυχίες (εάν υπάρχουν) επαναλαμβάνονται αυτόματα και η κλήση ολοκληρώνεται. Μπορείτε επίσης να εκτελέσετε `curl /monitoring/health` και να παρακολουθήσετε το πεδίο `rateLimitedUntil` στις συνδέσεις των παρόχων και το `circuitBreakers.providerBreakers[].state` για τους επηρεαζόμενους παρόχους — η κατάσταση είναι μία από τις `CLOSED`, `DEGRADED`, `OPEN` ή `HALF_OPEN` (δείτε το `src/shared/utils/circuitBreaker.ts`), ενώ ένας πάροχος που εξακολουθεί να αποτυγχάνει θα μεταβεί από `CLOSED → DEGRADED → OPEN` προτού το παράθυρο επαναφοράς επιτρέψει να περάσει μια δοκιμαστική κλήση (`HALF_OPEN`).
 
-**Αν εξακολουθείτε να βλέπετε 429**: ο ενεργός λογαριασμός για αυτόν τον πάροχο έχει πράγματι εξαντλήσει το _quota_ του (όχι απλώς το όριο ρυθμού). Προσθέστε έναν δεύτερο λογαριασμό για τον ίδιο πάροχο στον πίνακα ελέγχου του OmniRoute → Providers → Accounts ή συμπεριλάβετε έναν άλλο δωρεάν πάροχο (π.χ. `routeway`, `auggie`). Η εναλλαγή βοηθά μόνο σε παροδικά σφάλματα ορίου ρυθμού/400/401· η πλήρης εξάντληση του quota απαιτεί δεύτερο διαπιστευτήριο ή διαφορετικό πάροχο.
+**Εάν εξακολουθείτε να βλέπετε 429**: ο ενεργός λογαριασμός για τον συγκεκριμένο πάροχο έχει πράγματι εξαντλήσει το _quota_ του (δεν πρόκειται απλώς για όριο ρυθμού αιτημάτων). Προσθέστε έναν δεύτερο λογαριασμό για τον ίδιο πάροχο στο dashboard του OmniRoute → Providers → Accounts ή συμπεριλάβετε έναν ακόμη δωρεάν πάροχο (π.χ. `routeway`, `auggie`). Η εναλλαγή βοηθά μόνο σε παροδικά σφάλματα ορίου ρυθμού/400/401· η πλήρης εξάντληση του quota απαιτεί ένα δεύτερο διαπιστευτήριο ή διαφορετικό πάροχο.
 
-**Αν βλέπετε 403 σε μοντέλα όρασης (`auto/vision`, `bazaarlink/*`)**: ο συνδεδεμένος λογαριασμός δεν διαθέτει πρόγραμμα επί πληρωμή που να περιλαμβάνει δυνατότητες όρασης ή το API key δεν έχει επαρκή δικαιώματα. Επαληθεύστε στον πίνακα ελέγχου του παρόχου ότι το εύρος δικαιωμάτων του κλειδιού περιλαμβάνει όραση/πολυτροπικότητα ή συνδέστε έναν λογαριασμό επί πληρωμή και διατηρήστε τον ως στόχο για τα μοντέλα όρασης.
+**Εάν βλέπετε 403 σε μοντέλα όρασης (`auto/vision`, `bazaarlink/*`)**: ο συνδεδεμένος λογαριασμός δεν διαθέτει συνδρομητικό πρόγραμμα επί πληρωμή που να περιλαμβάνει όραση ή το API key δεν έχει επαρκή δικαιώματα. Επαληθεύστε στο dashboard του παρόχου ότι το scope του key περιλαμβάνει όραση/πολυτροπικότητα ή συνδέστε έναν λογαριασμό επί πληρωμή και διατηρήστε τον ως στόχο για την όραση.
 
 ---
 
 ## Προειδοποιήσεις npm install (ERESOLVE / peer / deprecated)
 
-Όταν εκτελείτε `npm install -g omniroute`, ενδέχεται να δείτε πολλές προειδοποιήσεις, όπως `npm warn ERESOLVE`, ειδοποιήσεις για εξαρτήσεις peer και μηνύματα `deprecated`. **Αυτές είναι αναμενόμενες και ακίνδυνες.** Η εγκατάστασή σας ολοκληρώθηκε επιτυχώς εάν δείτε `added <N> packages` στην έξοδο.
+Όταν εκτελείτε `npm install -g omniroute`, ενδέχεται να δείτε πληθώρα προειδοποιήσεων όπως `npm warn ERESOLVE`, ειδοποιήσεις για εξαρτήσεις peer και μηνύματα `deprecated`. **Αυτά είναι αναμενόμενα και ακίνδυνα.** Η εγκατάστασή σας ολοκληρώθηκε με επιτυχία εάν δείτε `added <N> packages` στην έξοδο.
 
 Για να αποκρύψετε τις προειδοποιήσεις επίλυσης εξαρτήσεων peer, χρησιμοποιήστε την υποστηριζόμενη μορφή εγκατάστασης του OmniRoute:
 
@@ -76,113 +77,136 @@ export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # μεγαλύτερη οριοθ�
 npm install -g omniroute --legacy-peer-deps
 ```
 
-Η επιλογή `--legacy-peer-deps` αποκρύπτει μόνο τις ειδοποιήσεις `ERESOLVE` και τις ειδοποιήσεις για εξαρτήσεις peer. Οι ειδοποιήσεις κατάργησης παραμένουν ορατές, επειδή προέρχονται από μεταβατικές εξαρτήσεις τρίτων· δεν υποδεικνύουν ότι η εγκατάσταση απέτυχε.
+Το `--legacy-peer-deps` αποκρύπτει μόνο τις ειδοποιήσεις `ERESOLVE` και εξαρτήσεων peer. Οι ειδοποιήσεις κατάργησης παραμένουν ορατές επειδή προέρχονται από μεταβατικά πακέτα τρίτων· δεν υποδεικνύουν ότι η εγκατάσταση απέτυχε.
 
 Οι προειδοποιήσεις προέρχονται από παρωχημένα εύρη εξαρτήσεων peer σε πακέτα τρίτων που δεν ελέγχει το OmniRoute:
 
 1. **Το `marked-terminal` απαιτεί `marked >=1 <16`, αλλά βρέθηκε `marked@18`** — στην πράξη λειτουργεί κανονικά· απλώς το εύρος peer του upstream πακέτου είναι παρωχημένο.
 2. **`deprecated prebuild-install@7.1.3`** — ένα μεταβατικό βοηθητικό εργαλείο λήψης εγγενών δυαδικών αρχείων. Δεν
-   χρησιμοποιείται για την εγκατάσταση του καρφιτσωμένου binding μεταφοράς `wreq-js` και δεν υποδεικνύει ότι η ρύθμιση
-   της μεταφοράς του παρόχου web-cookie απέτυχε.
+   χρησιμοποιείται για την εγκατάσταση του δεσμευμένου binding μεταφοράς `wreq-js` και δεν υποδεικνύει ότι απέτυχε
+   η ρύθμιση της μεταφοράς του παρόχου web-cookie.
 
 **Δεν απαιτείται καμία ενέργεια** — οι προειδοποιήσεις δεν μπορούν να αποσιωπηθούν πλήρως χωρίς τη δημιουργία fork των upstream πακέτων.
 
 ---
 
-## Γρήγορες επιδιορθώσεις
+## Gemini Web και Playwright Chromium
 
-| Πρόβλημα                                                   | Λύση                                                                                                                                                                                                                        |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Η πρώτη σύνδεση δεν λειτουργεί                             | Ορίστε το `INITIAL_PASSWORD` στο `.env` (δεν υπάρχει προεπιλεγμένη τιμή ενσωματωμένη στον κώδικα)                                                                                                                           |
-| Ο πίνακας ελέγχου ανοίγει σε λάθος θύρα                    | Ορίστε `PORT=20128` και `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                                                       |
-| Δεν εγγράφονται αρχεία καταγραφής στον δίσκο               | Ορίστε `APP_LOG_TO_FILE=true` και επαληθεύστε ότι είναι ενεργοποιημένη η καταγραφή των κλήσεων                                                                                                                              |
-| EACCES: άρνηση πρόσβασης                                   | Ορίστε `DATA_DIR=/path/to/writable/dir` για να παρακάμψετε το `~/.omniroute`                                                                                                                                                |
-| Η στρατηγική δρομολόγησης δεν αποθηκεύεται                 | Ενημερώστε στην πιο πρόσφατη έκδοση v3.x (η διόρθωση του σχήματος Zod για τη διατήρηση των ρυθμίσεων διατέθηκε σε προηγούμενες εκδόσεις)                                                                                    |
-| Κατάρρευση κατά τη σύνδεση / κενή σελίδα                   | Ελέγξτε την έκδοση του Node.js — δείτε την ενότητα [Συμβατότητα με το Node.js](#nodejs-compatibility) παρακάτω                                                                                                              |
-| `dlopen` / `slice is not valid mach-o file` (macOS)        | Εκτελέστε `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — δείτε την ενότητα [Αναδόμηση εγγενούς module στο macOS](#macos-native-module-rebuild) παρακάτω                                     |
-| «fetch failed» του proxy                                   | Βεβαιωθείτε ότι η ρύθμιση του proxy έχει οριστεί στο σωστό επίπεδο — δείτε την ενότητα [Προβλήματα proxy](#proxy-issues) παρακάτω                                                                                           |
-| Docker `curl: (56) Recv failure: Connection reset by peer` | Η αντιστοίχιση θύρας του Docker ενδέχεται να καταλήγει στο IPv6. Χρησιμοποιήστε `-p 127.0.0.1:20128:20128` για να επιβάλετε το IPv4 ή εκτελέστε δοκιμή με `curl -4`. Δείτε την ενότητα [Docker IPv6](#docker-ipv6) παρακάτω |
-| Το antivirus θέτει το `README.md` σε καραντίνα             | Ψευδώς θετικό — δείτε την ενότητα [Ψευδώς θετικά αποτελέσματα antivirus](#antivirus-false-positives) παρακάτω                                                                                                               |
-| Το Kaspersky επισημαίνει την εφαρμογή Desktop ως Trojan    | Ψευδώς θετικό λόγω συμπεριφοράς στο μη υπογεγραμμένο πρόγραμμα εγκατάστασης — δείτε την ενότητα [Ψευδώς θετικά αποτελέσματα antivirus](#antivirus-false-positives) παρακάτω                                                 |
+Εάν ένα αίτημα Gemini Web επιστρέψει `503` με μήνυμα ότι το Playwright Chromium
+δεν είναι εγκατεστημένο, το πακέτο npm υπάρχει, αλλά λείπει το δυαδικό αρχείο του προγράμματος περιήγησης.
+Το Playwright διατηρεί σκόπιμα τις λήψεις προγραμμάτων περιήγησης ξεχωριστά από την εγκατάσταση
+του πακέτου npm, επομένως αυτή η απόκριση είναι αναμενόμενη μέχρι να εγκατασταθεί το πρόγραμμα περιήγησης.
+
+Για καθολική εγκατάσταση npm, εγκαταστήστε το Chromium από τον κατάλογο του πακέτου
+OmniRoute, ώστε η προσωρινή μνήμη του προγράμματος περιήγησης να ανήκει στην ίδια εγκατάσταση Playwright:
+
+```bash
+cd "$(npm root -g)/omniroute"
+npx playwright install chromium
+```
+
+Επανεκκινήστε το OmniRoute μετά την εγκατάσταση και, στη συνέχεια, δοκιμάστε ξανά το αίτημα Gemini Web. Εάν
+εκτελείτε το OmniRoute από εικόνα Docker, χρησιμοποιήστε την εικόνα `-web` (ή τον στόχο build `runner-web`),
+η οποία περιλαμβάνει το Chromium και τις εξαρτήσεις του· η βασική εικόνα δεν τα
+περιλαμβάνει.
 
 ---
 
-## Ψευδώς Θετικά Αποτελέσματα Antivirus
+## Γρήγορες διορθώσεις
+
+| Πρόβλημα                                                   | Λύση                                                                                                                                                                                                         |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Η πρώτη σύνδεση δεν λειτουργεί                             | Ορίστε το `INITIAL_PASSWORD` στο `.env` (δεν υπάρχει προεπιλεγμένη τιμή ενσωματωμένη στον κώδικα)                                                                                                            |
+| Ο πίνακας ελέγχου ανοίγει σε λάθος θύρα                    | Ορίστε `PORT=20128` και `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                                        |
+| Δεν εγγράφονται αρχεία καταγραφής στον δίσκο               | Ορίστε `APP_LOG_TO_FILE=true` και επαληθεύστε ότι είναι ενεργοποιημένη η καταγραφή αρχείων κλήσεων                                                                                                           |
+| EACCES: άρνηση πρόσβασης                                   | Ορίστε `DATA_DIR=/path/to/writable/dir` για να παρακάμψετε το `~/.omniroute`                                                                                                                                 |
+| Η στρατηγική δρομολόγησης δεν αποθηκεύεται                 | Ενημερώστε στην πιο πρόσφατη έκδοση v3.x (η διόρθωση του σχήματος Zod για τη διατήρηση των ρυθμίσεων κυκλοφόρησε σε προηγούμενες εκδόσεις)                                                                   |
+| Κατάρρευση σύνδεσης / κενή σελίδα                          | Ελέγξτε την έκδοση του Node.js — δείτε την ενότητα [Συμβατότητα Node.js](#nodejs-compatibility) παρακάτω                                                                                                     |
+| `dlopen` / `slice is not valid mach-o file` (macOS)        | Εκτελέστε `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — δείτε την ενότητα [αναδόμηση εγγενούς module στο macOS](#macos-native-module-rebuild) παρακάτω                      |
+| "fetch failed" του proxy                                   | Βεβαιωθείτε ότι η ρύθμιση του proxy έχει οριστεί στο σωστό επίπεδο — δείτε την ενότητα [Προβλήματα proxy](#proxy-issues) παρακάτω                                                                            |
+| Docker `curl: (56) Recv failure: Connection reset by peer` | Η αντιστοίχιση θύρας Docker ενδέχεται να καταλήγει στο IPv6. Χρησιμοποιήστε `-p 127.0.0.1:20128:20128` για επιβολή του IPv4 ή δοκιμάστε με `curl -4`. Δείτε την ενότητα [Docker IPv6](#docker-ipv6) παρακάτω |
+| Το antivirus θέτει το `README.md` σε καραντίνα             | Ψευδώς θετικό — δείτε την ενότητα [Ψευδώς θετικές ανιχνεύσεις antivirus](#antivirus-false-positives) παρακάτω                                                                                                |
+| Το Kaspersky επισημαίνει την εφαρμογή Desktop ως Trojan    | Συμπεριφορική ψευδώς θετική ανίχνευση στο μη υπογεγραμμένο πρόγραμμα εγκατάστασης — δείτε την ενότητα [Ψευδώς θετικές ανιχνεύσεις antivirus](#antivirus-false-positives) παρακάτω                            |
+
+---
+
+## Ψευδώς θετικές ανιχνεύσεις antivirus
 
 <a name="antivirus-false-positives"></a>
 
 ### Τα Avast/AVG θέτουν σε καραντίνα το `README.md` με την ένδειξη `MD:HttpRequest-inf[Susp]`
 
-**Πρόκειται για ψευδώς θετικό αποτέλεσμα. Τίποτα δεν έχει μολυνθεί και δεν απαιτείται καμία ενέργεια.**
+**Πρόκειται για ψευδώς θετική ανίχνευση. Τίποτα δεν έχει μολυνθεί και δεν απαιτείται καμία ενέργεια.**
 
 Τα Avast και AVG εκτελούν έναν ευρετικό έλεγχο που επισημαίνει αρχεία απλού κειμένου/Markdown τα οποία περιέχουν πολλούς
-συνδέσμους που μοιάζουν με αιτήματα HTTP. Το `README.md` του OmniRoute περιλαμβάνεται στο πακέτο npm (αναφέρεται
-στο `package.json` → `files`), επομένως, σε μια καθολική εγκατάσταση, καταλήγει στο `node_modules/omniroute/README.md` — και περιέχει
-περίπου 15 παραδείγματα `http://localhost:20128/...` (τα τελικά σημεία HTTP/SSE του MCP, τη διεύθυνση URL `.well-known` του A2A και αποσπάσματα `curl`). Αυτή η πυκνότητα συνδέσμων είναι
-αρκετή για να ενεργοποιήσει τον ευρετικό έλεγχο.
+συνδέσμους που μοιάζουν με αιτήματα HTTP. Το `README.md` του OmniRoute περιλαμβάνεται στο πακέτο npm (είναι
+καταχωρισμένο στο `package.json` → `files`), επομένως τοποθετείται στο `node_modules/omniroute/README.md` κατά
+την καθολική εγκατάσταση — και περιέχει περίπου 15 παραδείγματα `http://localhost:20128/...` (τα τελικά σημεία
+HTTP/SSE του MCP, τη διεύθυνση URL `.well-known` του A2A και αποσπάσματα `curl`). Αυτή η πυκνότητα συνδέσμων
+αρκεί για να ενεργοποιήσει τον ευρετικό έλεγχο.
 
 Αν αυτό άρχισε να συμβαίνει μόλις πρόσφατα: το είδος του αρχείου δεν άλλαξε. Το README επεκτάθηκε με
-τον πίνακα τελικών σημείων του (προστέθηκαν τα MCP HTTP + SSE + A2A) και περισσότερα παραδείγματα `curl`, με αποτέλεσμα
+έναν πίνακα τελικών σημείων (προστέθηκαν MCP HTTP + SSE + A2A) και περισσότερα παραδείγματα `curl`, με αποτέλεσμα
 να ξεπεράσει το όριο.
 
-Το αρχείο είναι αδρανής τεκμηρίωση χωρίς καθόλου εκτελέσιμο περιεχόμενο. Μπορείτε να το επαναφέρετε με ασφάλεια
+Το αρχείο είναι ανενεργή τεκμηρίωση χωρίς καθόλου εκτελέσιμο περιεχόμενο. Μπορείτε να το επαναφέρετε με ασφάλεια
 από την καραντίνα.
 
 **Τι να κάνετε:**
 
 1. **Σταματήστε τις ειδοποιήσεις** — εξαιρέστε τον κατάλογο εγκατάστασης από το antivirus σας
-   (Avast: Ρυθμίσεις → Εξαιρέσεις), προσθέτοντας τη διαδρομή του καθολικού σας `node_modules` ή/και τον
+   (Avast: Ρυθμίσεις → Εξαιρέσεις), προσθέτοντας τη διαδρομή του καθολικού `node_modules` ή/και τον
    κατάλογο δεδομένων του OmniRoute (`~/.omniroute/`).
-2. **Αναφέρετε το ψευδώς θετικό αποτέλεσμα** — <https://www.avast.com/false-positive-file-form.php>,
-   επισυνάπτοντας το `README.md` που τέθηκε σε καραντίνα. Αυτή είναι η διόρθωση που βοηθά όλους, καθώς πρόκειται για
-   υπερβολική αντίδραση του ευρετικού ελέγχου του προμηθευτή σε ένα αρχείο κειμένου.
+2. **Αναφέρετε την ψευδώς θετική ανίχνευση** — <https://www.avast.com/false-positive-file-form.php>,
+   επισυνάπτοντας το `README.md` που τέθηκε σε καραντίνα. Αυτή είναι η διόρθωση που βοηθά τους πάντες, καθώς
+   πρόκειται για υπερβολική αντίδραση του ευρετικού ελέγχου του προμηθευτή σε ένα αρχείο κειμένου.
 
-**Γιατί δεν το «διορθώνουμε» από την πλευρά μας:** όλα τα παραδείγματα χρησιμοποιούν `http://localhost` και
-το localhost δεν μπορεί να χρησιμοποιήσει `https` χωρίς την επιβάρυνση των αυτοϋπογεγραμμένων πιστοποιητικών. Η αλλοίωση της τεκμηρίωσης για
-την παράκαμψη του ευρετικού ελέγχου ενός προμηθευτή θα έβλαπτε κάθε αναγνώστη, μόνο και μόνο για να ικανοποιηθεί ένα σφάλμα του σαρωτή.
+**Γιατί δεν το «διορθώνουμε» από την πλευρά μας:** όλα τα παραδείγματα χρησιμοποιούν `http://localhost`, και
+το localhost δεν μπορεί να χρησιμοποιήσει `https` χωρίς την πρόσθετη ταλαιπωρία των αυτοϋπογεγραμμένων πιστοποιητικών. Η παραποίηση της τεκμηρίωσης ώστε
+να παρακαμφθεί ο ευρετικός έλεγχος ενός προμηθευτή θα δυσκόλευε κάθε αναγνώστη, μόνο και μόνο για να αντιμετωπιστεί ένα σφάλμα του σαρωτή.
 
-### Το Kaspersky επισημαίνει την εφαρμογή για υπολογιστές ως `PDM:Trojan.Win32.Generic`
+### Το Kaspersky επισημαίνει την εφαρμογή Desktop ως `PDM:Trojan.Win32.Generic`
 
-**Πρόκειται για ψευδώς θετικό αποτέλεσμα από έναν ευρετικό έλεγχο συμπεριφοράς. Τίποτα δεν έχει μολυνθεί.** Το πρόθεμα
-`PDM:` του Kaspersky σημαίνει ότι η ετυμηγορία προέρχεται από τη Μονάδα Προληπτικής Άμυνας (System Watcher),
-η οποία αξιολογεί τι _κάνει_ το πρόγραμμα εγκατάστασης αντί να το αντιπαραβάλλει με γνωστό κακόβουλο λογισμικό. Όταν
+**Πρόκειται για ψευδώς θετική ανίχνευση από έναν ευρετικό έλεγχο συμπεριφοράς. Τίποτα δεν έχει μολυνθεί.** Το πρόθεμα
+`PDM:` του Kaspersky σημαίνει ότι η ετυμηγορία προέρχεται από το Proactive Defense Module (System Watcher),
+το οποίο αξιολογεί τι _κάνει_ το πρόγραμμα εγκατάστασης αντί να το αντιστοιχίζει με γνωστό κακόβουλο λογισμικό. Όταν
 ενεργοποιείται, το Kaspersky «αναιρεί» ολόκληρη την εγκατάσταση — διαγράφοντας αρχεία που είχε ήδη
-εγγράψει — με αποτέλεσμα η εφαρμογή να καταλήγει κατεστραμμένη ή να λείπει.
+γράψει — και έτσι η εφαρμογή καταλήγει κατεστραμμένη ή απούσα.
 
-Τα αρχεία που επισημαίνει είναι τυπικά τμήματα δηλωμένων εξαρτήσεων ανοιχτού κώδικα που περιλαμβάνονται στην
+Τα αρχεία που επισημαίνει αποτελούν τυπικά μέρη δηλωμένων εξαρτήσεων ανοικτού κώδικα που περιλαμβάνονται με την
 εφαρμογή για υπολογιστές, για παράδειγμα:
 
 - `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` και
   `workerProcessEntry.js` — [Playwright](https://playwright.dev), η βιβλιοθήκη αυτοματοποίησης προγράμματος περιήγησης
   που χρησιμοποιείται για τη σύνδεση σε παρόχους μέσα από την εφαρμογή και για συνομιλία μέσω προγράμματος περιήγησης.
 - `resources/app/.build/next/node_modules/@wreq-js/binding-win32-<arch>-msvc-<hash>/wreq-js.win32-<arch>-msvc.node`
-  — η καρφιτσωμένη εγγενής σύνδεση `wreq-js` που χρησιμοποιείται για HTTP με αποτύπωμα προγράμματος περιήγησης σε παρόχους
-  που βασίζονται σε cookie ιστού (το `<arch>` είναι `x64` ή `arm64`).
+  — η καρφιτσωμένη εγγενής δέσμευση `wreq-js` που χρησιμοποιείται για HTTP με αποτύπωμα προγράμματος περιήγησης σε παρόχους
+  που βασίζονται σε cookie ιστού (`<arch>` είναι `x64` ή `arm64`).
 
-**Γιατί ενεργοποιείται:** το πρόγραμμα εγκατάστασης των Windows **δεν είναι ακόμη υπογεγραμμένο με υπογραφή κώδικα**, επομένως ένα ανυπόγραφο πρόγραμμα εγκατάστασης NSIS
-έχει μηδενική φήμη και οι ευρετικοί έλεγχοι συμπεριφοράς λειτουργούν με τη μέγιστη επιθετικότητα. Σε συνδυασμό
-με ένα ενσωματωμένο εγγενές DLL και εκατοντάδες αρχεία `.js` που εγγράφονται κάτω από το
+**Γιατί ενεργοποιείται:** το πρόγραμμα εγκατάστασης των Windows **δεν έχει ακόμη υπογραφή κώδικα**, επομένως ένα ανυπόγραφο πρόγραμμα εγκατάστασης NSIS
+δεν έχει καθόλου φήμη και οι ευρετικοί έλεγχοι συμπεριφοράς λειτουργούν με τη μέγιστη επιθετικότητα. Σε συνδυασμό
+με μια ενσωματωμένη εγγενή βιβλιοθήκη DLL και εκατοντάδες αρχεία `.js` που εγγράφονται στον κατάλογο
 `%LOCALAPPDATA%\Programs\OmniRoute` (συμπεριλαμβανομένων καταλόγων πακέτων με επίθημα κατακερματισμού από την
-αυτόνομη έκδοση του Next.js), αυτό αρκεί για να ενεργοποιηθεί ο ευρετικός έλεγχος. Η υπογραφή κώδικα έχει προγραμματιστεί·
-μέχρι να υλοποιηθεί, το πρόβλημα μπορεί να επαναλαμβάνεται στις νέες εκδόσεις.
+αυτόνομη έκδοση του Next.js), αυτό αρκεί για να ενεργοποιήσει τον ευρετικό έλεγχο. Η υπογραφή κώδικα έχει προγραμματιστεί·
+μέχρι να υλοποιηθεί, αυτό μπορεί να επαναλαμβάνεται σε νέες εκδόσεις.
 
 **Τι να κάνετε:**
 
-1. **Επαληθεύστε πρώτα τη λήψη σας** (αποκλείει το ενδεχόμενο αλλοιωμένου αρχείου). Κάθε έκδοση δημοσιεύει το
-   `latest.yml`, του οποίου το πεδίο `sha512` (base64) καλύπτει το πρόγραμμα εγκατάστασης
+1. **Επαληθεύστε πρώτα το αρχείο λήψης** (ώστε να αποκλείσετε το ενδεχόμενο παραποιημένου αρχείου). Κάθε έκδοση δημοσιεύει
+   το `latest.yml`, του οποίου το πεδίο `sha512` (base64) καλύπτει το πρόγραμμα εγκατάστασης
    `OmniRoute.Setup.<version>.exe`. Στο PowerShell, από τον φάκελο που περιέχει το πρόγραμμα εγκατάστασης:
    ```powershell
    $b = [System.Security.Cryptography.SHA512]::Create().ComputeHash(
      [System.IO.File]::ReadAllBytes("$PWD\OmniRoute.Setup.<version>.exe"))
    [Convert]::ToBase64String($b)
    ```
-   Η έξοδος πρέπει να ταιριάζει με το `latest.yml` → `sha512`. Αν δεν ταιριάζει, διαγράψτε το αρχείο και
-   πραγματοποιήστε ξανά λήψη μόνο από τη [σελίδα εκδόσεων του GitHub](https://github.com/diegosouzapw/OmniRoute/releases).
+   Η έξοδος πρέπει να αντιστοιχεί στο `latest.yml` → `sha512`. Αν δεν αντιστοιχεί, διαγράψτε το αρχείο και
+   πραγματοποιήστε νέα λήψη μόνο από τη [σελίδα εκδόσεων του GitHub](https://github.com/diegosouzapw/OmniRoute/releases).
 2. **Επαναφορά + εξαίρεση** — επαναφέρετε από την καραντίνα τα στοιχεία που αφαιρέθηκαν κατά την αναίρεση και προσθέστε μια εξαίρεση
-   για το `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Ρυθμίσεις → Απειλές και Εξαιρέσεις)
-   και, στη συνέχεια, εγκαταστήστε ξανά την εφαρμογή.
-3. **Αναφέρετε το ψευδώς θετικό αποτέλεσμα** — <https://opentip.kaspersky.com/>. Οι αναφορές ψευδώς θετικών αποτελεσμάτων
-   που υποβάλλονται από χρήστες επιταχύνουν ουσιαστικά την προσθήκη στη λίστα επιτρεπόμενων.
+   για το `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Ρυθμίσεις → Απειλές και εξαιρέσεις),
+   και στη συνέχεια εκτελέστε ξανά την εγκατάσταση.
+3. **Αναφέρετε την ψευδώς θετική ανίχνευση** — <https://opentip.kaspersky.com/>. Οι αναφορές ψευδώς θετικών
+   ανιχνεύσεων από χρήστες επιταχύνουν πράγματι την προσθήκη στη λίστα επιτρεπόμενων.
 
 ---
 
@@ -192,49 +216,49 @@ npm install -g omniroute --legacy-peer-deps
 
 ### Η σελίδα σύνδεσης καταρρέει ή εμφανίζει το σφάλμα "Module self-registration"
 
-**Αιτία:** Εκτελείτε μια έκδοση του Node.js που βρίσκεται εκτός του εγκεκριμένου ελάχιστου ασφαλούς περιβάλλοντος εκτέλεσης του OmniRoute. Η συνηθέστερη περίπτωση είναι η εκτέλεση μιας παλαιότερης δευτερεύουσας έκδοσης ενημέρωσης κώδικα του Node 22 ή 24, η οποία βρίσκεται κάτω από το ελάχιστο επίπεδο ασφαλείας με τις απαιτούμενες διορθώσεις του OmniRoute.
+**Αιτία:** Εκτελείτε μια έκδοση του Node.js που βρίσκεται εκτός του εγκεκριμένου ελάχιστου ασφαλούς περιβάλλοντος εκτέλεσης του OmniRoute. Η συνηθέστερη περίπτωση είναι η χρήση μιας παλαιότερης διορθωτικής έκδοσης του Node 22 ή 24, η οποία βρίσκεται κάτω από το ελάχιστο επίπεδο ενημερώσεων ασφαλείας που απαιτεί το OmniRoute.
 
 **Συμπτώματα:**
 
 - Η σελίδα σύνδεσης εμφανίζει κενή οθόνη ή σφάλμα διακομιστή
 - Η κονσόλα εμφανίζει `Error: Module did not self-register` ή παρόμοια σφάλματα εγγενών συνδέσεων
-- Η σελίδα σύνδεσης εμφανίζει ένα **πορτοκαλί προειδοποιητικό πλαίσιο** με την έκδοση του Node που χρησιμοποιείτε, εάν το περιβάλλον εκτέλεσης βρίσκεται εκτός της υποστηριζόμενης πολιτικής ασφαλείας
+- Η σελίδα σύνδεσης εμφανίζει ένα **πορτοκαλί προειδοποιητικό banner** με την έκδοση του Node που χρησιμοποιείτε, εάν το περιβάλλον εκτέλεσης δεν συμμορφώνεται με την υποστηριζόμενη πολιτική ασφαλείας
 
-**Διόρθωση:**
+**Λύση:**
 
-1. Εγκαταστήστε μια υποστηριζόμενη έκδοση LTS του Node.js (συνιστάται: Node.js 24.x):
+1. Εγκαταστήστε μια υποστηριζόμενη έκδοση Node.js LTS (συνιστάται: Node.js 24.x):
    ```bash
    nvm install 24
    nvm use 24
    ```
-2. Επαληθεύστε την έκδοσή σας: η εντολή `node --version` θα πρέπει να εμφανίζει `v24.0.0` ή νεότερη έκδοση στη γραμμή LTS 24.x
+2. Επαληθεύστε την έκδοσή σας: το `node --version` θα πρέπει να εμφανίζει `v24.0.0` ή νεότερη έκδοση στη γραμμή εκδόσεων 24.x LTS
 3. Επανεγκαταστήστε το OmniRoute: `npm install -g omniroute`
-4. Επανεκκινήστε: `omniroute`
+4. Κάντε επανεκκίνηση: `omniroute`
 
 > **Υποστηριζόμενες ασφαλείς εκδόσεις:** `>=22.22.2 <23` ή `>=24.0.0 <27`. Το Node.js 24.x LTS (Krypton) και το Node.js 26 υποστηρίζονται πλήρως.
 
-### npm v11+: το `better-sqlite3` δεν έχει εγκατασταθεί (Cannot find module)
+### npm v11+: Το `better-sqlite3` δεν έχει εγκατασταθεί (Cannot find module)
 
 <a name="npm-v11-better-sqlite3-not-installed-cannot-find-module"></a>
 
-**Αιτία:** Το npm v11 (που παρέχεται με το Node.js 24+) αποκλείει από προεπιλογή τα σενάρια εγκατάστασης για προαιρετικές
-εξαρτήσεις. Επειδή το `better-sqlite3` αναφέρεται στο `optionalDependencies`
+**Αιτία:** Το npm v11 (που περιλαμβάνεται στο Node.js 24+) αποκλείει από προεπιλογή τα script εγκατάστασης για προαιρετικές
+εξαρτήσεις. Επειδή το `better-sqlite3` παρατίθεται στο `optionalDependencies`
 και απαιτεί εγγενή μεταγλώττιση (`node-gyp rebuild`), το npm το παραλείπει χωρίς προειδοποίηση.
 
 **Συμπτώματα:**
 
 - Ο διακομιστής καταρρέει κατά την εκκίνηση με το μήνυμα `Cannot find module 'better-sqlite3'`
-- Η εντολή `ls node_modules/better-sqlite3` εμφανίζει "No such file or directory"
-- Η εντολή `npm ls better-sqlite3` εμφανίζει `(empty)`
+- Το `ls node_modules/better-sqlite3` εμφανίζει "No such file or directory"
+- Το `npm ls better-sqlite3` εμφανίζει `(empty)`
 
-**Διόρθωση:**
+**Λύση:**
 
-1. Εγκρίνετε τα σενάρια εγκατάστασης και πραγματοποιήστε επανεγκατάσταση:
+1. Εγκρίνετε τα script εγκατάστασης και επανεγκαταστήστε:
    ```bash
    npm approve-scripts better-sqlite3
    npm install
    ```
-2. Εναλλακτικά, εγκαταστήστε χειροκίνητα το προκατασκευασμένο πακέτο:
+2. Εναλλακτικά, εγκαταστήστε χειροκίνητα το προμεταγλωττισμένο πακέτο:
    ```bash
    npm pack better-sqlite3@13.0.1
    tar -xzf better-sqlite3-*.tgz -C node_modules
@@ -247,19 +271,19 @@ npm install -g omniroute --legacy-peer-deps
 
 <a name="macos-native-module-rebuild"></a>
 
-**Αιτία:** Μετά από μια καθολική εγκατάσταση μέσω `npm install -g omniroute`, το εγγενές δυαδικό αρχείο του `better-sqlite3` μέσα στο πακέτο ενδέχεται να έχει μεταγλωττιστεί για διαφορετική αρχιτεκτονική ή ABI του Node.js από αυτό που εκτελείται τοπικά. Αυτό είναι συνηθισμένο στο macOS (τόσο σε Apple Silicon όσο και σε Intel), όταν το προκατασκευασμένο δυαδικό αρχείο δεν αντιστοιχεί στο περιβάλλον σας.
+**Αιτία:** Μετά από μια καθολική εγκατάσταση με `npm install -g omniroute`, το εγγενές δυαδικό αρχείο του `better-sqlite3` μέσα στο πακέτο ενδέχεται να έχει μεταγλωττιστεί για διαφορετική αρχιτεκτονική ή διαφορετικό ABI του Node.js από αυτό που εκτελείται τοπικά. Αυτό είναι συνηθισμένο στο macOS (τόσο σε Apple Silicon όσο και σε Intel), όταν το προμεταγλωττισμένο δυαδικό αρχείο δεν ταιριάζει με το περιβάλλον σας.
 
 **Συμπτώματα:**
 
 - Ο διακομιστής αποτυγχάνει αμέσως κατά την εκκίνηση με σφάλμα `dlopen`
-- Το σφάλμα περιέχει το μήνυμα `slice is not valid mach-o file`
+- Το σφάλμα περιέχει `slice is not valid mach-o file`
 - Πλήρες παράδειγμα:
 
 ```
 dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
-**Διόρθωση — επαναμεταγλώττιση για το τοπικό σας περιβάλλον (δεν απαιτείται υποβάθμιση του Node.js):**
+**Λύση — επαναμεταγλώττιση για το τοπικό σας περιβάλλον (δεν απαιτείται υποβάθμιση του Node.js):**
 
 ```bash
 cd $(npm root -g)/omniroute/app
@@ -267,62 +291,62 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Σημείωση:** Αυτή η ενέργεια επαναμεταγλωττίζει την εγγενή σύνδεση με βάση την τοπική έκδοση του Node.js και την αρχιτεκτονική της CPU σας, επιλύοντας την ασυμφωνία του δυαδικού αρχείου. Το επίσημα υποστηριζόμενο εύρος περιβάλλοντος εκτέλεσης είναι **`>=22.22.2 <23` ή `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` στο `src/shared/utils/nodeRuntimeSupport.ts`, σε συμφωνία με το πεδίο `engines` του `package.json`). Το Node.js 24.x LTS (Krypton) και το Node.js 26 υποστηρίζονται πλήρως με το `better-sqlite3` v12.x.
+> **Σημείωση:** Αυτό επαναμεταγλωττίζει την εγγενή σύνδεση για την τοπική έκδοση του Node.js και την αρχιτεκτονική της CPU σας, επιλύοντας την ασυμβατότητα του δυαδικού αρχείου. Το επίσημα υποστηριζόμενο εύρος περιβάλλοντος εκτέλεσης είναι **`>=22.22.2 <23` ή `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` στο `src/shared/utils/nodeRuntimeSupport.ts`, σε συμφωνία με το πεδίο `engines` του `package.json`). Το Node.js 24.x LTS (Krypton) και το Node.js 26 υποστηρίζονται πλήρως με το `better-sqlite3` v12.x.
 
 ---
 
-## Προβλήματα διακομιστή μεσολάβησης
+## Ζητήματα διακομιστή μεσολάβησης
 
 <a name="proxy-issues"></a>
 
 ### Η επικύρωση παρόχου εμφανίζει "fetch failed"
 
-**Αιτία:** Το τελικό σημείο επικύρωσης κλειδιού API (`POST /api/providers/validate`) προηγουμένως παρέκαμπτε τη διαμόρφωση του διακομιστή μεσολάβησης, προκαλώντας αποτυχίες σε περιβάλλοντα που απαιτούν δρομολόγηση μέσω διακομιστή μεσολάβησης.
+**Αιτία:** Το endpoint επικύρωσης κλειδιού API (`POST /api/providers/validate`) παρέκαμπτε προηγουμένως τη διαμόρφωση του διακομιστή μεσολάβησης, προκαλώντας αποτυχίες σε περιβάλλοντα που απαιτούν δρομολόγηση μέσω διακομιστή μεσολάβησης.
 
-**Διόρθωση (v3.5.5+):** Αυτό έχει πλέον διορθωθεί. Η επικύρωση παρόχου δρομολογείται μέσω του `runWithProxyContext`, τηρώντας αυτόματα τις ρυθμίσεις διακομιστή μεσολάβησης σε επίπεδο παρόχου και τις καθολικές ρυθμίσεις.
+**Διόρθωση (v3.5.5+):** Αυτό έχει πλέον διορθωθεί. Η επικύρωση παρόχου δρομολογείται μέσω του `runWithProxyContext`, τηρώντας αυτόματα τις ρυθμίσεις διακομιστή μεσολάβησης σε επίπεδο παρόχου και καθολικά.
 
-### Ο έλεγχος εύρυθμης λειτουργίας του token αποτυγχάνει με "fetch failed"
+### Ο έλεγχος κατάστασης του token αποτυγχάνει με "fetch failed"
 
-**Αιτία:** Η ανανέωση token OAuth στο παρασκήνιο δεν προσδιόριζε τη διαμόρφωση διακομιστή μεσολάβησης ανά σύνδεση.
+**Αιτία:** Η ανανέωση token OAuth στο παρασκήνιο δεν επέλυε τη διαμόρφωση του διακομιστή μεσολάβησης ανά σύνδεση.
 
-**Διόρθωση (v3.5.5+):** Ο χρονοπρογραμματιστής ελέγχου εύρυθμης λειτουργίας των token προσδιορίζει πλέον τη διαμόρφωση διακομιστή μεσολάβησης ανά σύνδεση πριν επιχειρήσει ανανέωση. Ενημερώστε στην έκδοση v3.5.5+.
+**Διόρθωση (v3.5.5+):** Ο χρονοπρογραμματιστής ελέγχου κατάστασης token επιλύει πλέον τη διαμόρφωση του διακομιστή μεσολάβησης ανά σύνδεση πριν επιχειρήσει ανανέωση. Ενημερώστε σε v3.5.5+.
 
 ### Ο διακομιστής μεσολάβησης SOCKS5 επιστρέφει "invalid onRequestStart method"
 
 **Αιτία:** Στο Node.js 22, ο dispatcher του undici@8 δεν είναι συμβατός με την ενσωματωμένη υλοποίηση `fetch()` του Node.
 
-**Διόρθωση (v3.5.5+):** Το OmniRoute χρησιμοποιεί πλέον τη συνάρτηση `fetch()` του ίδιου του undici όταν είναι ενεργός ένας dispatcher διακομιστή μεσολάβησης, διασφαλίζοντας συνεπή συμπεριφορά. Ενημερώστε στην έκδοση v3.5.5+.
+**Διόρθωση (v3.5.5+):** Το OmniRoute χρησιμοποιεί πλέον τη συνάρτηση `fetch()` του ίδιου του undici όταν είναι ενεργός ένας dispatcher διακομιστή μεσολάβησης, διασφαλίζοντας συνεπή συμπεριφορά. Ενημερώστε σε v3.5.5+.
 
-### Διακομιστής μεσολάβησης MITM σε WSL: οι εφαρμογές επιφάνειας εργασίας στον κεντρικό υπολογιστή Windows δεν αναχαιτίζονται
+### Διακομιστής μεσολάβησης MITM στο WSL: οι εφαρμογές υπολογιστή στον κεντρικό υπολογιστή Windows δεν αναχαιτίζονται
 
-**Αιτία:** Ο διακομιστής μεσολάβησης MITM και το πιστοποιητικό CA του εγκαθίστανται στο περιβάλλον όπου εκτελείται το OmniRoute. Στο WSL, αυτό το περιβάλλον είναι το φιλοξενούμενο Linux, ενώ οι εφαρμογές επιφάνειας εργασίας AI (Kiro, Trae, Copilot, Zed, …) εκτελούνται στον κεντρικό υπολογιστή Windows. Οι εφαρμογές του κεντρικού υπολογιστή δεν θεωρούν αξιόπιστο τον χώρο αποθήκευσης πιστοποιητικών του φιλοξενούμενου συστήματος και δεν δρομολογούνται μέσω του διακομιστή μεσολάβησης συστήματος του φιλοξενούμενου, επομένως η αναχαίτιση εφαρμογών επιφάνειας εργασίας δεν ενεργοποιείται εκεί.
+**Αιτία:** Ο διακομιστής μεσολάβησης MITM και το πιστοποιητικό CA του εγκαθίστανται στο περιβάλλον όπου εκτελείται το OmniRoute. Στο WSL, αυτό το περιβάλλον είναι το φιλοξενούμενο Linux, ενώ οι εφαρμογές AI για υπολογιστές (Kiro, Trae, Copilot, Zed, …) εκτελούνται στον κεντρικό υπολογιστή Windows. Οι εφαρμογές του κεντρικού υπολογιστή δεν εμπιστεύονται το χώρο αποθήκευσης πιστοποιητικών του φιλοξενούμενου συστήματος και δεν δρομολογούνται μέσω του διακομιστή μεσολάβησης συστήματος του φιλοξενούμενου, επομένως η αναχαίτιση εφαρμογών υπολογιστή δεν ενεργοποιείται εκεί.
 
-**Σύσταση:** Εκτελέστε το OmniRoute εγγενώς στο ίδιο λειτουργικό σύστημα με τις εφαρμογές επιφάνειας εργασίας που θέλετε να αναχαιτίσετε (Windows για εφαρμογές Windows· αντίστοιχα για macOS/Linux). Η διατήρηση του OmniRoute εντός του WSL ενώ στοχεύετε εφαρμογές του κεντρικού υπολογιστή απαιτεί να ορίσετε χειροκίνητα ως αξιόπιστο το δημιουργημένο πιστοποιητικό CA στον κεντρικό υπολογιστή Windows και να κατευθύνετε τις ρυθμίσεις δικτύου/διακομιστή μεσολάβησης κάθε εφαρμογής του κεντρικού υπολογιστή προς το τελικό σημείο διακομιστή μεσολάβησης του WSL — μια μη υποστηριζόμενη και ευάλωτη σε αστοχίες διαμόρφωση.
+**Σύσταση:** Εκτελέστε το OmniRoute εγγενώς στο ίδιο λειτουργικό σύστημα με τις εφαρμογές υπολογιστή που θέλετε να αναχαιτίσετε (Windows για εφαρμογές Windows· ομοίως για macOS/Linux). Η διατήρηση του OmniRoute μέσα στο WSL με στόχο εφαρμογές του κεντρικού υπολογιστή απαιτεί να θεωρήσετε αξιόπιστο χειροκίνητα το δημιουργημένο πιστοποιητικό CA στον κεντρικό υπολογιστή Windows και να κατευθύνετε τις ρυθμίσεις δικτύου/διακομιστή μεσολάβησης κάθε εφαρμογής του κεντρικού υπολογιστή προς το endpoint του διακομιστή μεσολάβησης WSL — μια μη υποστηριζόμενη και εύθραυστη διαμόρφωση.
 
 ---
 
-## Προβλήματα παρόχων
+## Ζητήματα παρόχων
 
 ### "Language model did not provide messages"
 
-**Αιτία:** Το όριο χρήσης του παρόχου έχει εξαντληθεί.
+**Αιτία:** Το όριο χρήσης του παρόχου εξαντλήθηκε.
 
 **Διόρθωση:**
 
 1. Ελέγξτε τον δείκτη ορίου χρήσης στον πίνακα ελέγχου
-2. Χρησιμοποιήστε έναν συνδυασμό με εναλλακτικές βαθμίδες
-3. Μεταβείτε σε φθηνότερη/δωρεάν βαθμίδα
+2. Χρησιμοποιήστε έναν συνδυασμό με εφεδρικά επίπεδα
+3. Μεταβείτε σε φθηνότερο/δωρεάν επίπεδο
 
-### Περιορισμός ρυθμού αιτημάτων
+### Περιορισμός ρυθμού
 
-**Αιτία:** Το όριο χρήσης της συνδρομής έχει εξαντληθεί.
+**Αιτία:** Το όριο χρήσης της συνδρομής εξαντλήθηκε.
 
 **Διόρθωση:**
 
-- Προσθέστε εναλλακτική διαδρομή: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
+- Προσθέστε εφεδρική επιλογή: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
 - Χρησιμοποιήστε GLM/MiniMax ως οικονομική εφεδρική επιλογή
 
-### Το token OAuth έχει λήξει
+### Το token OAuth έληξε
 
 Το OmniRoute ανανεώνει αυτόματα τα token. Εάν τα προβλήματα επιμένουν:
 
@@ -332,7 +356,7 @@ omniroute
 ### Πολλαπλοί λογαριασμοί Kiro: ο δεύτερος λογαριασμός ακυρώνει τον πρώτο
 
 **Αιτία:** Το backend του Kiro επιβάλλει μία μόνο ενεργή συνεδρία ανά εγγραφή πελάτη OIDC.
-Όταν δύο λογαριασμοί χρησιμοποιούν από κοινού τον ίδιο εγγεγραμμένο πελάτη (συνδέσεις που εισήχθησαν πριν από την v3.8.0),
+Όταν δύο λογαριασμοί μοιράζονται τον ίδιο εγγεγραμμένο πελάτη (συνδέσεις που εισήχθησαν πριν από την v3.8.0),
 η ανανέωση του token ενός λογαριασμού ακυρώνει το token ανανέωσης του άλλου.
 
 **Διόρθωση (v3.8.0+):** Εισαγάγετε ξανά τις επηρεαζόμενες συνδέσεις.
@@ -341,70 +365,70 @@ omniroute
 αποκλειστικό πελάτη OIDC. Επομένως, η σύνδεση είναι πλήρως απομονωμένη και η ανανέωση ενός
 λογαριασμού δεν επηρεάζει κανέναν άλλο λογαριασμό.
 
-Οι συνδέσεις που εισήχθησαν _πριν_ από την v3.8.0 δεν διαθέτουν εγγραφή πελάτη
-ανά σύνδεση. Αυτές οι συνδέσεις συνεχίζουν να χρησιμοποιούν το κοινό τελικό σημείο ανανέωσης μέσω κοινωνικής σύνδεσης.
-Για να αποκτήσετε απομόνωση, διαγράψτε την παλιά σύνδεση από τον Πίνακα ελέγχου → Πάροχοι και προσθέστε την ξανά
+Οι συνδέσεις που εισήχθησαν _πριν_ από την v3.8.0 δεν διαθέτουν εγγραφή πελάτη ανά σύνδεση.
+Αυτές οι συνδέσεις συνεχίζουν να χρησιμοποιούν το κοινό endpoint ανανέωσης ελέγχου ταυτότητας μέσω κοινωνικού δικτύου.
+Για να αποκτήσετε απομόνωση, διαγράψτε την παλιά σύνδεση από το στοιχείο Πίνακας ελέγχου → Πάροχοι και προσθέστε την ξανά
 μέσω οποιασδήποτε από τις τρεις ροές εισαγωγής.
 
-Για πλήρεις λεπτομέρειες και αναλυτικές οδηγίες βήμα προς βήμα σχετικά με την παράλληλη προσθήκη δύο λογαριασμών Kiro,
+Για πλήρεις λεπτομέρειες και οδηγίες βήμα προς βήμα σχετικά με την προσθήκη δύο λογαριασμών Kiro παράλληλα,
 ανατρέξτε στο [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ---
 
 ## Προβλήματα Cloud
 
-### Σφάλματα Συγχρονισμού Cloud
+### Σφάλματα συγχρονισμού Cloud
 
 1. Επαληθεύστε ότι το `BASE_URL` παραπέμπει στο instance που εκτελείται (π.χ. `http://localhost:20128`)
-2. Επαληθεύστε ότι το `CLOUD_URL` παραπέμπει στο cloud endpoint σας (π.χ. `https://omniroute.dev`)
+2. Επαληθεύστε ότι το `CLOUD_URL` παραπέμπει στο endpoint του cloud σας (π.χ. `https://omniroute.dev`)
 3. Διατηρήστε τις τιμές `NEXT_PUBLIC_*` ευθυγραμμισμένες με τις τιμές στην πλευρά του διακομιστή
 
-### Το Cloud `stream=false` Επιστρέφει 500
+### Το Cloud με `stream=false` επιστρέφει 500
 
-**Σύμπτωμα:** `Unexpected token 'd'...` στο cloud endpoint για κλήσεις χωρίς streaming.
+**Σύμπτωμα:** `Unexpected token 'd'...` στο endpoint του cloud για κλήσεις χωρίς ροή.
 
-**Αιτία:** Το upstream επιστρέφει ωφέλιμο φορτίο SSE, ενώ ο client αναμένει JSON.
+**Αιτία:** Η ανάντη υπηρεσία επιστρέφει ωφέλιμο φορτίο SSE, ενώ ο client αναμένει JSON.
 
-**Παράκαμψη:** Χρησιμοποιήστε `stream=true` για απευθείας κλήσεις στο cloud. Το τοπικό runtime περιλαμβάνει εναλλακτική μετατροπή SSE→JSON.
+**Παράκαμψη:** Χρησιμοποιήστε `stream=true` για απευθείας κλήσεις στο cloud. Το τοπικό runtime περιλαμβάνει εφεδρικό μηχανισμό μετατροπής SSE→JSON.
 
-### Το Cloud Εμφανίζεται Συνδεδεμένο αλλά Αναφέρει "Μη έγκυρο κλειδί API"
+### Το Cloud εμφανίζεται συνδεδεμένο, αλλά αναφέρει "Μη έγκυρο κλειδί API"
 
 1. Δημιουργήστε ένα νέο κλειδί από το τοπικό dashboard (`/api/keys`)
-2. Εκτελέστε συγχρονισμό με το cloud: Ενεργοποίηση Cloud → Συγχρονισμός Τώρα
-3. Τα παλιά/μη συγχρονισμένα κλειδιά μπορεί να εξακολουθούν να επιστρέφουν `401` στο cloud
+2. Εκτελέστε συγχρονισμό με το cloud: Ενεργοποίηση Cloud → Συγχρονισμός τώρα
+3. Παλιά/μη συγχρονισμένα κλειδιά μπορούν να συνεχίσουν να επιστρέφουν `401` στο cloud
 
 ---
 
 ## Προβλήματα Docker
 
-### IPv6 / Επαναφορά Σύνδεσης στο Docker
+### IPv6 / Επαναφορά σύνδεσης στο Docker
 
 <a name="docker-ipv6"></a>
 
-**Συμπτώματα:** Η εντολή `curl http://localhost:20128/v1/models` επιστρέφει `curl: (56) Recv failure: Connection reset by peer`. Το dashboard και τα endpoints χωρίς έλεγχο ταυτότητας λειτουργούν, αλλά τα endpoints με έλεγχο ταυτότητας αποτυγχάνουν — μοιάζει με πρόβλημα ελέγχου ταυτότητας, αλλά δεν είναι.
+**Συμπτώματα:** Η εντολή `curl http://localhost:20128/v1/models` επιστρέφει `curl: (56) Recv failure: Connection reset by peer`. Το dashboard και τα endpoints χωρίς έλεγχο ταυτότητας λειτουργούν, αλλά τα endpoints με έλεγχο ταυτότητας αποτυγχάνουν — φαίνεται σαν πρόβλημα ελέγχου ταυτότητας, αλλά δεν είναι.
 
-**Αιτία:** Η εντολή `docker run -p 20128:20128` δημοσιεύει τόσο στο `0.0.0.0` (IPv4) όσο και στο `::` (IPv6), αλλά η διεργασία μέσα στο container ακούει μόνο σε IPv4. Σε hosts όπου το `localhost` επιλύεται πρώτα σε `::1`, η σύνδεση καταλήγει στη δημοσιευμένη θύρα IPv6 χωρίς να υπάρχει listener πίσω από αυτήν → επαναφορά σύνδεσης.
+**Αιτία:** Η εντολή `docker run -p 20128:20128` δημοσιεύει τόσο στη διεύθυνση `0.0.0.0` (IPv4) όσο και στη `::` (IPv6), αλλά η διεργασία μέσα στο container ακούει μόνο σε IPv4. Σε hosts όπου το `localhost` επιλύεται πρώτα σε `::1`, η σύνδεση καταλήγει στη δημοσιευμένη θύρα IPv6 χωρίς να υπάρχει κάποια υπηρεσία ακρόασης πίσω από αυτήν → επαναφορά σύνδεσης.
 
 **Διόρθωση:**
 
-1. **Γρήγορη διάγνωση:** Εκτελέστε `curl -4 http://localhost:20128/v1/models`. Αν λειτουργεί με `-4` αλλά αποτυγχάνει χωρίς αυτό, υπάρχει ασυμφωνία δέσμευσης IPv6.
-2. **Μόνιμη διόρθωση:** Κάντε ρητή δέσμευση σε IPv4 χρησιμοποιώντας `-p 127.0.0.1:20128:20128` στην εντολή `docker run`:
+1. **Γρήγορη διάγνωση:** Εκτελέστε `curl -4 http://localhost:20128/v1/models`. Αν λειτουργεί με `-4` αλλά αποτυγχάνει χωρίς αυτό, υπάρχει ασυμφωνία σύνδεσης IPv6.
+2. **Μόνιμη διόρθωση:** Συνδεθείτε ρητά στο IPv4 χρησιμοποιώντας `-p 127.0.0.1:20128:20128` στην εντολή `docker run`:
    ```bash
    docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
      -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
    ```
-   Αυτό επιβάλλει τη δέσμευση IPv4 και επίσης αποτρέπει την έκθεση του proxy σε όλες τις διεπαφές του host.
+   Αυτό επιβάλλει τη σύνδεση μέσω IPv4 και αποφεύγει επίσης την έκθεση του proxy σε όλες τις διεπαφές του host.
 
 ---
 
-### Το Εργαλείο CLI Εμφανίζεται ως Μη Εγκατεστημένο
+### Το εργαλείο CLI εμφανίζεται ως μη εγκατεστημένο
 
 1. Ελέγξτε τα πεδία του runtime: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. Για φορητή λειτουργία: χρησιμοποιήστε το image target `runner-cli` (ενσωματωμένα CLI)
-3. Για λειτουργία προσάρτησης από τον host: ορίστε το `CLI_EXTRA_PATHS` και προσαρτήστε τον κατάλογο bin του host ως μόνο για ανάγνωση
-4. Αν `installed=true` και `runnable=false`: το εκτελέσιμο αρχείο βρέθηκε, αλλά απέτυχε στον έλεγχο υγείας
+2. Για φορητή λειτουργία: χρησιμοποιήστε τον στόχο image `runner-cli` (με ενσωματωμένα CLIs)
+3. Για λειτουργία προσάρτησης του host: ορίστε το `CLI_EXTRA_PATHS` και προσαρτήστε τον κατάλογο εκτελέσιμων αρχείων του host ως μόνο για ανάγνωση
+4. Αν `installed=true` και `runnable=false`: το εκτελέσιμο αρχείο βρέθηκε, αλλά απέτυχε στον έλεγχο εύρυθμης λειτουργίας
 
-### Γρήγορη Επικύρωση Runtime
+### Γρήγορη επικύρωση του runtime
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -414,9 +438,9 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ---
 
-## Προβλήματα Κόστους
+## Προβλήματα κόστους
 
-### Υψηλό Κόστος
+### Υψηλό κόστος
 
 1. Ελέγξτε τα στατιστικά χρήσης στο Dashboard → Χρήση
 2. Αλλάξτε το κύριο μοντέλο σε GLM/MiniMax
@@ -425,95 +449,95 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ---
 
-## Εντοπισμός Σφαλμάτων
+## Εντοπισμός σφαλμάτων
 
-### Ενεργοποίηση Αρχείων Καταγραφής
+### Ενεργοποίηση αρχείων καταγραφής
 
 Ορίστε `APP_LOG_TO_FILE=true` στο αρχείο `.env`. Τα αρχεία καταγραφής της εφαρμογής εγγράφονται στον κατάλογο `logs/`.
-Τα τεχνουργήματα αιτημάτων αποθηκεύονται στον κατάλογο `${DATA_DIR}/call_logs/` όταν η διοχέτευση καταγραφής κλήσεων είναι
+Τα τεχνουργήματα αιτημάτων αποθηκεύονται στον κατάλογο `${DATA_DIR}/call_logs/` όταν η διοχέτευση αρχείων καταγραφής κλήσεων είναι
 ενεργοποιημένη στις ρυθμίσεις.
 Όταν είναι ενεργοποιημένη η καταγραφή της διοχέτευσης, ορίστε `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` για να παραλείψετε
-τα ωφέλιμα φορτία των τμημάτων ροής ή προσαρμόστε το `CALL_LOG_PIPELINE_MAX_SIZE_KB` για να αλλάξετε το όριο μεγέθους των τεχνουργημάτων σε KB.
+τα ωφέλιμα φορτία των τμημάτων ροής ή προσαρμόστε το `CALL_LOG_PIPELINE_MAX_SIZE_KB` για να αλλάξετε το όριο των τεχνουργημάτων σε KB.
 
-### Έλεγχος Υγείας Παρόχου
+### Έλεγχος εύρυθμης λειτουργίας παρόχου
 
 ```bash
-# Dashboard υγείας
+# Dashboard εύρυθμης λειτουργίας
 http://localhost:20128/dashboard/health
 
-# Έλεγχος υγείας API
+# Έλεγχος εύρυθμης λειτουργίας API
 curl http://localhost:20128/api/monitoring/health
 ```
 
-### Αποθήκευση Runtime
+### Αποθήκευση runtime
 
 - Κύρια κατάσταση: `${DATA_DIR}/storage.sqlite` (πάροχοι, συνδυασμοί, ψευδώνυμα, κλειδιά, ρυθμίσεις)
 - Χρήση: Πίνακες SQLite στο `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + προαιρετικά `${DATA_DIR}/call_logs/`
 - Αρχεία καταγραφής εφαρμογής: `<repo>/logs/...` (όταν `APP_LOG_TO_FILE=true`)
-- Τεχνουργήματα καταγραφής κλήσεων: `${DATA_DIR}/call_logs/YYYY-MM-DD/...` όταν η διοχέτευση καταγραφής κλήσεων είναι ενεργοποιημένη
+- Τεχνουργήματα αρχείων καταγραφής κλήσεων: `${DATA_DIR}/call_logs/YYYY-MM-DD/...` όταν η διοχέτευση αρχείων καταγραφής κλήσεων είναι ενεργοποιημένη
 
-Η ενέργεια **Εκκαθάριση ιστορικού** της σελίδας Καταγραφές Αιτημάτων διαγράφει τα `call_logs`, τα παλαιού τύπου
+Η ενέργεια **Εκκαθάριση ιστορικού** της σελίδας Αρχεία καταγραφής αιτημάτων διαγράφει τα `call_logs`, τα παλαιού τύπου
 `request_detail_logs` και τον τοπικό κατάλογο τεχνουργημάτων `${DATA_DIR}/call_logs/`.
 
 ---
 
-## Προβλήματα διακόπτη κυκλώματος
+## Ζητήματα Circuit Breaker
 
-### Ο πάροχος έχει κολλήσει στην κατάσταση OPEN
+### Πάροχος κολλημένος σε κατάσταση OPEN
 
-Όταν ο διακόπτης κυκλώματος ενός παρόχου βρίσκεται σε κατάσταση OPEN, τα αιτήματα αποκλείονται μέχρι να λήξει η περίοδος αναμονής.
+Όταν το circuit breaker ενός παρόχου βρίσκεται σε κατάσταση OPEN, τα αιτήματα αποκλείονται μέχρι να λήξει ο χρόνος αναμονής.
 
 **Διόρθωση:**
 
 1. Μεταβείτε στο **Πίνακας ελέγχου → Ρυθμίσεις → Ανθεκτικότητα**
-2. Ελέγξτε την κάρτα του διακόπτη κυκλώματος για τον επηρεαζόμενο πάροχο
-3. Κάντε κλικ στην επιλογή **Επαναφορά όλων** για να διαγράψετε όλους τους διακόπτες ή περιμένετε να λήξει η περίοδος αναμονής
+2. Ελέγξτε την κάρτα του circuit breaker για τον επηρεαζόμενο πάροχο
+3. Κάντε κλικ στην επιλογή **Επαναφορά όλων** για να επαναφέρετε όλα τα circuit breakers ή περιμένετε να λήξει ο χρόνος αναμονής
 4. Βεβαιωθείτε ότι ο πάροχος είναι πράγματι διαθέσιμος πριν από την επαναφορά
 
-### Ο πάροχος ενεργοποιεί συνεχώς τον διακόπτη κυκλώματος
+### Ο πάροχος συνεχίζει να ενεργοποιεί το circuit breaker
 
 Εάν ένας πάροχος εισέρχεται επανειλημμένα σε κατάσταση OPEN:
 
-1. Ελέγξτε το **Πίνακας ελέγχου → Εύρυθμη λειτουργία → Εύρυθμη λειτουργία παρόχων** για να εντοπίσετε το μοτίβο αποτυχιών
+1. Ελέγξτε το **Πίνακας ελέγχου → Υγεία → Υγεία παρόχων** για να εντοπίσετε το μοτίβο αποτυχιών
 2. Μεταβείτε στο **Ρυθμίσεις → Ανθεκτικότητα → Προφίλ παρόχων** και αυξήστε το όριο αποτυχιών
 3. Ελέγξτε εάν ο πάροχος έχει αλλάξει τα όρια του API ή απαιτεί εκ νέου έλεγχο ταυτότητας
-4. Ελέγξτε την τηλεμετρία καθυστέρησης — η υψηλή καθυστέρηση ενδέχεται να προκαλεί αποτυχίες λόγω λήξης χρονικού ορίου
+4. Εξετάστε την τηλεμετρία καθυστέρησης — η υψηλή καθυστέρηση ενδέχεται να προκαλεί αποτυχίες λόγω λήξης χρονικού ορίου
 
 ---
 
-## Προβλήματα μεταγραφής ήχου
+## Ζητήματα μεταγραφής ήχου
 
 ### Σφάλμα "Μη υποστηριζόμενο μοντέλο"
 
-- Χρησιμοποιήστε ένα αναγνωριστικό μοντέλου του οποίου το πρώτο τμήμα αντιστοιχεί σε πάροχο για τον οποίο διαθέτετε διαπιστευτήρια (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Το απλό `deepgram/nova-3` απαιτεί εγγενές κλειδί Deepgram.
+- Χρησιμοποιήστε ένα αναγνωριστικό μοντέλου του οποίου το πρώτο τμήμα είναι ένας πάροχος για τον οποίο διαθέτετε διαπιστευτήρια (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Το σκέτο `deepgram/nova-3` απαιτεί εγγενές κλειδί Deepgram.
 - Βεβαιωθείτε ότι ο πάροχος είναι συνδεδεμένος στο **Πίνακας ελέγχου → Πάροχοι**
 
-### Η μεταγραφή είναι κενή ή αποτυγχάνει
+### Η μεταγραφή επιστρέφει κενό αποτέλεσμα ή αποτυγχάνει
 
 - Ελέγξτε τις υποστηριζόμενες μορφές ήχου: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
 - Βεβαιωθείτε ότι το μέγεθος του αρχείου βρίσκεται εντός των ορίων του παρόχου (συνήθως < 25MB)
-- Ελέγξτε την εγκυρότητα του κλειδιού API του παρόχου στην κάρτα του παρόχου
+- Ελέγξτε την εγκυρότητα του κλειδιού API του παρόχου στην κάρτα του
 
 ---
 
-## Εντοπισμός σφαλμάτων μεταφραστή
+## Αποσφαλμάτωση μεταφραστή
 
-Χρησιμοποιήστε το **Πίνακας ελέγχου → Μεταφραστής** για τον εντοπισμό σφαλμάτων σε ζητήματα μετάφρασης μορφών:
+Χρησιμοποιήστε το **Πίνακας ελέγχου → Μεταφραστής** για την αποσφαλμάτωση ζητημάτων μετάφρασης μορφών:
 
-| Λειτουργία                | Πότε να τη χρησιμοποιήσετε                                                                                               |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Περιβάλλον δοκιμών**    | Συγκρίνετε τις μορφές εισόδου/εξόδου δίπλα-δίπλα — επικολλήστε ένα αποτυχημένο αίτημα για να δείτε πώς μεταφράζεται      |
-| **Δοκιμαστής συνομιλίας** | Στείλτε ζωντανά μηνύματα και επιθεωρήστε το πλήρες ωφέλιμο φορτίο αιτήματος/απόκρισης, συμπεριλαμβανομένων των κεφαλίδων |
-| **Πλαίσιο δοκιμών**       | Εκτελέστε μαζικές δοκιμές σε συνδυασμούς μορφών, για να εντοπίσετε ποιες μεταφράσεις δεν λειτουργούν                     |
-| **Ζωντανή παρακολούθηση** | Παρακολουθήστε τη ροή αιτημάτων σε πραγματικό χρόνο, για να εντοπίσετε διαλείποντα ζητήματα μετάφρασης                   |
+| Λειτουργία                | Πότε να χρησιμοποιείται                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Περιβάλλον δοκιμών**    | Συγκρίνετε τις μορφές εισόδου/εξόδου δίπλα-δίπλα — επικολλήστε ένα αίτημα που αποτυγχάνει για να δείτε πώς μεταφράζεται |
+| **Δοκιμαστής συνομιλίας** | Στείλτε ζωντανά μηνύματα και εξετάστε ολόκληρο το ωφέλιμο φορτίο αιτήματος/απόκρισης, συμπεριλαμβανομένων των κεφαλίδων |
+| **Πλαίσιο δοκιμών**       | Εκτελέστε μαζικές δοκιμές σε συνδυασμούς μορφών για να εντοπίσετε ποιες μεταφράσεις δεν λειτουργούν                     |
+| **Ζωντανή παρακολούθηση** | Παρακολουθήστε τη ροή αιτημάτων σε πραγματικό χρόνο για να εντοπίσετε διαλείποντα ζητήματα μετάφρασης                   |
 
 ### Συνήθη ζητήματα μορφών
 
-- **Οι ετικέτες συλλογισμού δεν εμφανίζονται** — Ελέγξτε εάν ο πάροχος προορισμού υποστηρίζει συλλογισμό και τη ρύθμιση του προϋπολογισμού συλλογισμού
-- **Οι κλήσεις εργαλείων χάνονται** — Ορισμένες μεταφράσεις μορφών ενδέχεται να αφαιρούν μη υποστηριζόμενα πεδία· επαληθεύστε το στη λειτουργία Περιβάλλον δοκιμών
-- **Η προτροπή συστήματος λείπει** — Τα Claude και Gemini χειρίζονται διαφορετικά τις προτροπές συστήματος· ελέγξτε το αποτέλεσμα της μετάφρασης
-- **Το SDK επιστρέφει ανεπεξέργαστη συμβολοσειρά αντί για αντικείμενο** — Επιλύθηκε στην v1.x· το εργαλείο εξυγίανσης αποκρίσεων αφαιρεί μη τυπικά πεδία (`x_groq`, `usage_breakdown`, κ.λπ.) που προκαλούν αποτυχίες επικύρωσης Pydantic στο OpenAI SDK. Εάν εξακολουθείτε να το βλέπετε στην v3.x+, υποβάλετε ένα ζήτημα.
-- **Το GLM/ERNIE απορρίπτει τον ρόλο `system`** — Επιλύθηκε στην v1.x· το εργαλείο κανονικοποίησης ρόλων συγχωνεύει αυτόματα τα μηνύματα συστήματος με τα μηνύματα χρήστη για μη συμβατά μοντέλα. Εάν εξακολουθείτε να το βλέπετε στην v3.x+, υποβάλετε ένα ζήτημα.
+- **Δεν εμφανίζονται οι ετικέτες συλλογισμού** — Ελέγξτε εάν ο πάροχος-στόχος υποστηρίζει συλλογισμό και τη ρύθμιση του προϋπολογισμού συλλογισμού
+- **Οι κλήσεις εργαλείων παραλείπονται** — Ορισμένες μεταφράσεις μορφών ενδέχεται να αφαιρούν μη υποστηριζόμενα πεδία· επαληθεύστε το στη λειτουργία Περιβάλλον δοκιμών
+- **Λείπει η προτροπή συστήματος** — Τα Claude και Gemini χειρίζονται τις προτροπές συστήματος διαφορετικά· ελέγξτε το αποτέλεσμα της μετάφρασης
+- **Το SDK επιστρέφει ακατέργαστη συμβολοσειρά αντί για αντικείμενο** — Επιλύθηκε στην v1.x· ο μηχανισμός εξυγίανσης αποκρίσεων αφαιρεί μη τυπικά πεδία (`x_groq`, `usage_breakdown`, κ.λπ.) που προκαλούν αποτυχίες επικύρωσης Pydantic στο OpenAI SDK. Εάν εξακολουθείτε να το βλέπετε στην v3.x+, υποβάλετε ένα ζήτημα.
+- **Το GLM/ERNIE απορρίπτει τον ρόλο `system`** — Επιλύθηκε στην v1.x· ο μηχανισμός κανονικοποίησης ρόλων συγχωνεύει αυτόματα τα μηνύματα συστήματος στα μηνύματα χρήστη για μη συμβατά μοντέλα. Εάν εξακολουθείτε να το βλέπετε στην v3.x+, υποβάλετε ένα ζήτημα.
 - **Ο ρόλος `developer` δεν αναγνωρίζεται** — Επιλύθηκε στην v1.x· μετατρέπεται αυτόματα σε `system` για παρόχους εκτός OpenAI. Εάν εξακολουθείτε να το βλέπετε στην v3.x+, υποβάλετε ένα ζήτημα.
 - **Το `json_schema` δεν λειτουργεί με το Gemini** — Επιλύθηκε στην v1.x· το `response_format` μετατρέπεται πλέον στα `responseMimeType` + `responseSchema` του Gemini. Εάν εξακολουθείτε να το βλέπετε στην v3.x+, υποβάλετε ένα ζήτημα.
 
@@ -524,34 +548,34 @@ curl http://localhost:20128/api/monitoring/health
 ### Δεν ενεργοποιείται ο αυτόματος περιορισμός ρυθμού
 
 - Ο αυτόματος περιορισμός ρυθμού εφαρμόζεται μόνο σε παρόχους με κλειδί API (όχι OAuth/συνδρομή)
-- Επαληθεύστε ότι στην περιοχή **Ρυθμίσεις → Ανθεκτικότητα → Προφίλ παρόχων** είναι ενεργοποιημένος ο αυτόματος περιορισμός ρυθμού
+- Επαληθεύστε ότι στην ενότητα **Ρυθμίσεις → Ανθεκτικότητα → Προφίλ παρόχων** είναι ενεργοποιημένος ο αυτόματος περιορισμός ρυθμού
 - Ελέγξτε αν ο πάροχος επιστρέφει κωδικούς κατάστασης `429` ή κεφαλίδες `Retry-After`
 
-### Ρύθμιση της εκθετικής καθυστέρησης επανάληψης
+### Ρύθμιση της εκθετικής οπισθοχώρησης
 
 Τα προφίλ παρόχων υποστηρίζουν τις ακόλουθες ρυθμίσεις:
 
 - **Βασική καθυστέρηση** — Αρχικός χρόνος αναμονής μετά την πρώτη αποτυχία (προεπιλογή: 1s)
 - **Μέγιστη καθυστέρηση** — Ανώτατο όριο χρόνου αναμονής (προεπιλογή: 30s)
-- **Πολλαπλασιαστής** — Πόσο αυξάνεται η καθυστέρηση ανά διαδοχική αποτυχία (προεπιλογή: 2x)
+- **Πολλαπλασιαστής** — Βαθμός αύξησης της καθυστέρησης ανά διαδοχική αποτυχία (προεπιλογή: 2x)
 
-### Αποτροπή φαινομένου thundering herd
+### Αποτροπή του φαινομένου «thundering herd»
 
-Όταν πολλά ταυτόχρονα αιτήματα φτάνουν σε έναν πάροχο με περιορισμό ρυθμού, το OmniRoute χρησιμοποιεί mutex + αυτόματο περιορισμό ρυθμού για να σειριοποιεί τα αιτήματα και να αποτρέπει αλυσιδωτές αποτυχίες. Αυτό γίνεται αυτόματα για παρόχους με κλειδί API.
+Όταν πολλά ταυτόχρονα αιτήματα φτάνουν σε έναν πάροχο με περιορισμένο ρυθμό, το OmniRoute χρησιμοποιεί mutex + αυτόματο περιορισμό ρυθμού για τη σειριοποίηση των αιτημάτων και την αποτροπή αλυσιδωτών αποτυχιών. Αυτό γίνεται αυτόματα για παρόχους με κλειδί API.
 
 ### Τα αιτήματα συνομιλίας αποτυγχάνουν με 503 / chat_admission_busy
 
 **Συμπτώματα:**
 
-- Το endpoint ολοκληρώσεων συνομιλίας επιστρέφει μια επαναλήψιμη απόκριση `503`, της οποίας ο κωδικός σφάλματος είναι
+- Το τελικό σημείο ολοκληρώσεων συνομιλίας επιστρέφει μια επαναλήψιμη απόκριση `503`, της οποίας ο κωδικός σφάλματος είναι
   `chat_admission_busy`.
 - Η απόκριση περιλαμβάνει `Retry-After`. Από το #12135, η τιμή προκύπτει από την παρατηρούμενη
-  πληρότητα — τη μεγαλύτερη τιμή μεταξύ του χρονικού παραθύρου `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` κατά το οποίο το αίτημα έχει ήδη
-  αναμείνει και του χρόνου για τον οποίο διατηρούνται οι τρέχουσες δεσμεύσεις βαρέων αιτημάτων — στρογγυλοποιημένη προς τα επάνω σε ακέραια
-  δευτερόλεπτα και με ανώτατο όριο τα 60. Όταν η πύλη είναι αδρανής, διατηρεί τα ιστορικά κατώτατα όρια: 2 δευτερόλεπτα στη
-  διαδρομή βάσει byte, 1 δευτερόλεπτο στη διαδρομή βάσει δομής (η οποία περιλαμβάνει επίσης
+  πληρότητα — επιλέγεται η μεγαλύτερη τιμή μεταξύ του χρονικού παραθύρου `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` κατά το οποίο το αίτημα έχει ήδη
+  περιμένει και του χρόνου για τον οποίο διατηρούνται οι τρέχουσες μισθώσεις βαρέων αιτημάτων — στρογγυλοποιημένη προς τα πάνω σε ακέραια
+  δευτερόλεπτα και με ανώτατο όριο τα 60. Όταν η πύλη είναι αδρανής, διατηρούνται τα ιστορικά κατώτατα όρια: 2 δευτερόλεπτα για τη
+  διαδρομή βάσει byte, 1 δευτερόλεπτο για τη διαδρομή βάσει δομής (η οποία περιλαμβάνει επίσης
   `reason: "structure_limit"`).
-- Αυτό μπορεί να συμβεί ενώ μια άλλη βαριά συνομιλία ή μια μακροχρόνια απόκριση ροής βρίσκεται ακόμη
+- Αυτό μπορεί να συμβεί ενώ μια άλλη βαριά συνομιλία ή μια μακράς διάρκειας απόκριση ροής βρίσκεται ακόμη
   σε εξέλιξη.
 
 Το σώμα της απόκρισης βάσει byte είναι:
@@ -570,30 +594,29 @@ curl http://localhost:20128/api/monitoring/health
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 και `reason: "structure_limit"`.
 Με τα προεπιλεγμένα όρια, ένα αίτημα θεωρείται δομικά βαρύ όταν έχει τουλάχιστον `200` μηνύματα,
-τουλάχιστον `64` εργαλεία ή τουλάχιστον `32,000` εκτιμώμενα token, ή όταν η φραγμένη εκτίμηση δομής
-εξαντλεί τα όριά της των `10,000` κόμβων που εξετάστηκαν ή βάθους `12`.
+τουλάχιστον `64` εργαλεία ή τουλάχιστον `32,000` εκτιμώμενα token, ή όταν η οριοθετημένη εκτίμηση δομής
+εξαντλεί τα όριά της των `10,000` κόμβων που έχουν εξεταστεί ή βάθους `12`.
 
-**Αιτία:** Πρόκειται για σκόπιμη απόρριψη φορτίου εντός του OmniRoute και όχι για αποτυχία παρόχου upstream.
-Κάθε διεργασία χρησιμοποιεί έναν τοπικό στη διεργασία μηχανισμό προστασίας, ώστε να δεσμεύει περιορισμένη χωρητικότητα για βαριά αιτήματα πριν διατηρήσει
-και αναλύσει ένα μεγάλο σώμα αιτήματος. Η δέσμευση ενός βαρέος αιτήματος παραμένει ενεργή καθ’ όλη τη διάρκεια ζωής μιας απόκρισης
-SSE.
+**Αιτία:** Πρόκειται για σκόπιμη απόρριψη φορτίου εντός του OmniRoute και όχι για αποτυχία ανάντη παρόχου.
+Κάθε διεργασία χρησιμοποιεί έναν τοπικό στη διεργασία μηχανισμό προστασίας για τη δέσμευση περιορισμένης χωρητικότητας βαρέων αιτημάτων πριν από τη διατήρηση
+και την ανάλυση ενός μεγάλου σώματος αιτήματος. Μια μίσθωση βαρέος αιτήματος παραμένει δεσμευμένη καθ’ όλη τη διάρκεια ζωής μιας απόκρισης SSE.
 
-**#503-fanout:** πριν από αυτήν τη διόρθωση, ο μηχανισμός προστασίας περιόριζε την ταυτόχρονη εκτέλεση σε σταθερό ΠΛΗΘΟΣ αιτημάτων
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, προεπιλογή `1`) ανεξάρτητα από τη μνήμη του κεντρικού υπολογιστή, οπότε η παράλληλη διακλάδωση
-των agent προγραμματισμού (πολλαπλοί subagent/CLI, με σώματα συνήθως > 256 KB) κατέρρεε σε πραγματική
-ταυτόχρονη εκτέλεση περίπου 1 και επέστρεφε 503 υπό απολύτως φυσιολογικό φορτίο. Ο μηχανισμός προστασίας πλέον αυτορυθμίζεται: ελέγχεται
-από έναν αυτόματα υπολογιζόμενο προϋπολογισμό εισερχόμενων BYTE (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), ο οποίος διαμορφώνεται βάσει του
+**Διασπορά #503:** πριν από αυτήν τη διόρθωση, ο μηχανισμός προστασίας περιόριζε την ταυτόχρονη εκτέλεση σε έναν σταθερό ΑΡΙΘΜΟ αιτημάτων
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, προεπιλογή `1`) ανεξάρτητα από τη μνήμη του κεντρικού συστήματος, επομένως η διασπορά
+των agent προγραμματισμού (πολλαπλά subagent/CLI, σώματα συνήθως > 256 KB) κατέρρεε σε ουσιαστική
+ταυτόχρονη εκτέλεση ~1 και επέστρεφε 503 υπό απολύτως φυσιολογικό φορτίο. Ο μηχανισμός προστασίας πλέον αυτορυθμίζεται: ελέγχεται
+από έναν αυτόματα υπολογιζόμενο προϋπολογισμό BYTE εισαγωγής (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), ο οποίος διαστασιολογείται βάσει του
 πραγματικού ορίου μνήμης της διεργασίας, και συμβουλεύεται επίσης ένα ζωντανό σήμα πίεσης πόρων — επομένως
-απορρίπτει φορτίο μόνο όταν ο κεντρικός υπολογιστής βρίσκεται πραγματικά υπό πίεση μνήμης και όχι απλώς επειδή έφτασαν ταυτόχρονα περισσότερα από ένα
-βαριά αιτήματα. Το παλιό όριο πλήθους (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) εξακολουθεί να
-τηρείται, αλλά μόνο εάν το ορίσετε ρητά.
+απορρίπτει φορτίο μόνο όταν το κεντρικό σύστημα βρίσκεται πραγματικά υπό πίεση μνήμης και όχι απλώς επειδή έφτασαν ταυτόχρονα περισσότερα από ένα
+βαριά αιτήματα. Το παλιό όριο πλήθους (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) εξακολουθεί να τηρείται, αλλά
+μόνο αν το ορίσετε ρητά.
 
-Όταν η χωρητικότητα είναι κατειλημμένη, ένα βαρύ αίτημα περιμένει πρώτα έως και
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (προεπιλογή `2000`, το `0` απενεργοποιεί την αναμονή) για να ελευθερωθεί μια θέση
-πριν απαντήσει με το επαναλήψιμο `503`. Η φραγμένη αναμονή υπάρχει ώστε οι πελάτες τύπου agent
-(OpenCode, Claude Code, Cursor) που διακλαδώνουν ταυτόχρονα βαριά υποαιτήματα να σειριοποιούν την αιχμή
-αντί να εξαντλούν ολόκληρο τον προϋπολογισμό επαναλήψεών τους σε άμεσες απορρίψεις και να τερματίζονται εν μέσω εργασίας.
-Η τρέχουσα πληρότητα των δεσμεύσεων βαρέων αιτημάτων, ο προσδιορισμένος προϋπολογισμός byte και η ενεργή σοβαρότητα της πίεσης
+Όταν η χωρητικότητα είναι απασχολημένη, ένα βαρύ αίτημα περιμένει αρχικά έως
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (προεπιλογή `2000`, το `0` απενεργοποιεί την αναμονή) για να ελευθερωθεί μια θέση,
+πριν επιστρέψει την επαναλήψιμη απόκριση `503`. Η οριοθετημένη αναμονή υπάρχει ώστε οι πελάτες τύπου agent
+(OpenCode, Claude Code, Cursor), οι οποίοι διασπείρουν ταυτόχρονα βαριά δευτερεύοντα αιτήματα, να σειριοποιούν την αιχμή
+αντί να εξαντλούν ολόκληρο τον προϋπολογισμό επαναλήψεών τους σε άμεσες απορρίψεις και να αποτυγχάνουν στη μέση μιας εργασίας.
+Η τρέχουσα πληρότητα των μισθώσεων βαρέων αιτημάτων, ο προσδιορισμένος προϋπολογισμός byte και η σοβαρότητα της πίεσης σε πραγματικό χρόνο
 εμφανίζονται στο `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — ελέγξτε τα πριν αλλάξετε οποιαδήποτε μεταβλητή περιβάλλοντος.
 Η ρύθμιση Ρυθμίσεις → Ανθεκτικότητα → Ουρά αιτημάτων → Ταυτόχρονα αιτήματα δεν το ελέγχει αυτό· η συγκεκριμένη ρύθμιση
@@ -601,14 +624,14 @@ SSE.
 
 **Διόρθωση:**
 
-1. Δοκιμάστε πρώτα ξανά. Οι πελάτες θα πρέπει να τηρούν το `Retry-After` και να χρησιμοποιούν καθυστέρηση επανάληψης αντί να
+1. Δοκιμάστε πρώτα ξανά. Οι πελάτες πρέπει να τηρούν το `Retry-After` και να χρησιμοποιούν οπισθοχώρηση αντί να
    επαναλαμβάνουν αμέσως το αίτημα.
-2. Ελέγξτε το `/api/monitoring/health` → `chatAdmission` πριν ρυθμίσετε οτιδήποτε. Το `countCapEnabled:
-false` και ένα επαρκές `maxInflightBytes` σημαίνουν ότι ο αυτόματα υπολογιζόμενος προϋπολογισμός λειτουργεί ήδη
-   σωστά· μια τιμή `pressureSeverity` ίση με `high`/`critical` σημαίνει ότι ο κεντρικός υπολογιστής έχει πράγματι λίγη διαθέσιμη μνήμη —
-   αυτό δεν μπορεί να διορθωθεί με μια μεταβλητή περιβάλλοντος ελέγχου εισαγωγής, αλλά απαιτεί περισσότερη RAM ή μικρότερο φόρτο εργασίας.
-3. Μόνο εάν το `/api/monitoring/health` δείχνει ότι ο αυτόματα υπολογιζόμενος προϋπολογισμός είναι πραγματικά πολύ μικρός για
-   τον κεντρικό υπολογιστή σας (σπάνιο — ήδη προσαρμόζεται από περιβάλλοντα container έως bare-metal), παρακάμψτε τον απευθείας με
+2. Ελέγξτε το `/api/monitoring/health` → `chatAdmission` πριν ρυθμίσετε οτιδήποτε. Οι τιμές `countCapEnabled:
+false` και ένα γενναιόδωρο `maxInflightBytes` σημαίνουν ότι ο αυτόματα υπολογιζόμενος προϋπολογισμός εκτελεί ήδη σωστά τη
+   λειτουργία του· μια τιμή `pressureSeverity` ίση με `high`/`critical` σημαίνει ότι το κεντρικό σύστημα διαθέτει πραγματικά λίγη μνήμη —
+   αυτό δεν διορθώνεται με μια μεταβλητή περιβάλλοντος ελέγχου εισαγωγής· απαιτείται περισσότερη RAM ή μικρότερος φόρτος εργασίας.
+3. Μόνο αν το `/api/monitoring/health` δείχνει ότι ο αυτόματα υπολογιζόμενος προϋπολογισμός είναι πραγματικά πολύ μικρός για
+   το κεντρικό σας σύστημα (σπάνιο — ήδη προσαρμόζεται από περιβάλλοντα container έως bare-metal), παρακάμψτε τον απευθείας με
    `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` αντί να επιστρέψετε στο παλαιό όριο πλήθους αιτημάτων.
 
 Ανατρέξτε στην [αναφορά μεταβλητών περιβάλλοντος](../reference/ENVIRONMENT.md#4-security--authentication)
@@ -622,26 +645,26 @@ false` και ένα επαρκές `maxInflightBytes` σημαίνουν ότι
 
 Στην πράξη, αυτά τα περιστατικά συνήθως προέρχονται από τη μεταγενέστερη διοχέτευση RAG και όχι από την ίδια την πύλη.
 
-Αν θέλετε ένα κοινό λεξιλόγιο για την περιγραφή αυτών των αποτυχιών, μπορείτε να χρησιμοποιήσετε το WFGY ProblemMap, έναν εξωτερικό πόρο κειμένου με άδεια MIT, ο οποίος ορίζει δεκαέξι επαναλαμβανόμενα μοτίβα αποτυχίας RAG / LLM. Σε γενικές γραμμές, καλύπτει:
+Αν θέλετε ένα κοινό λεξιλόγιο για την περιγραφή αυτών των αποτυχιών, μπορείτε να χρησιμοποιήσετε το WFGY ProblemMap, έναν εξωτερικό πόρο κειμένου με άδεια MIT που ορίζει δεκαέξι επαναλαμβανόμενα μοτίβα αποτυχίας RAG / LLM. Σε γενικές γραμμές, καλύπτει:
 
-- απόκλιση ανάκτησης και κατεστραμμένα όρια συμφραζομένων
-- κενά ή παρωχημένα ευρετήρια και διανυσματικές αποθήκες
+- απόκλιση ανάκτησης και κατεστραμμένα όρια συγκειμένου
+- κενά ή παρωχημένα ευρετήρια και αποθετήρια διανυσμάτων
 - ασυμφωνία μεταξύ ενσωματώσεων και σημασιολογίας
-- προβλήματα σύνθεσης προτροπών και παραθύρου συμφραζομένων
-- κατάρρευση λογικής και απαντήσεις με υπερβολική βεβαιότητα
+- προβλήματα σύνθεσης προτροπών και παραθύρου συγκειμένου
+- κατάρρευση λογικής και απαντήσεις με υπερβολική αυτοπεποίθηση
 - αποτυχίες μεγάλων αλυσίδων και συντονισμού πρακτόρων
-- απόκλιση μνήμης και ρόλων μεταξύ πολλών πρακτόρων
+- απόκλιση μνήμης και ρόλων σε συστήματα πολλαπλών πρακτόρων
 - προβλήματα σειράς ανάπτυξης και αρχικοποίησης
 
 Η ιδέα είναι απλή:
 
-1. Όταν διερευνάτε μια προβληματική απάντηση, καταγράψτε:
+1. Όταν διερευνάτε μια εσφαλμένη απάντηση, καταγράψτε:
    - την εργασία και το αίτημα του χρήστη
    - τη διαδρομή ή τον συνδυασμό παρόχων στο OmniRoute
-   - οποιαδήποτε συμφραζόμενα RAG χρησιμοποιήθηκαν μεταγενέστερα (ανακτημένα έγγραφα, κλήσεις εργαλείων κ.λπ.)
+   - οποιοδήποτε συγκείμενο RAG χρησιμοποιήθηκε μεταγενέστερα (ανακτημένα έγγραφα, κλήσεις εργαλείων κ.λπ.)
 2. Αντιστοιχίστε το περιστατικό σε έναν ή δύο αριθμούς του WFGY ProblemMap (`No.1` … `No.16`).
-3. Αποθηκεύστε τον αριθμό στον δικό σας πίνακα ελέγχου, οδηγό λειτουργίας ή σύστημα παρακολούθησης περιστατικών, δίπλα στα αρχεία καταγραφής του OmniRoute.
-4. Χρησιμοποιήστε την αντίστοιχη σελίδα του WFGY για να αποφασίσετε αν χρειάζεται να αλλάξετε τη στοίβα RAG, το σύστημα ανάκτησης ή τη στρατηγική δρομολόγησής σας.
+3. Αποθηκεύστε τον αριθμό στον δικό σας πίνακα ελέγχου, εγχειρίδιο λειτουργίας ή σύστημα παρακολούθησης περιστατικών, δίπλα στα αρχεία καταγραφής του OmniRoute.
+4. Χρησιμοποιήστε την αντίστοιχη σελίδα του WFGY για να αποφασίσετε αν χρειάζεται να αλλάξετε τη στοίβα RAG, το σύστημα ανάκτησης ή τη στρατηγική δρομολόγησης.
 
 Το πλήρες κείμενο και συγκεκριμένες συνταγές βρίσκονται εδώ (άδεια MIT, μόνο κείμενο):
 
@@ -653,18 +676,18 @@ false` και ένα επαρκές `maxInflightBytes` σημαίνουν ότι
 
 ## Γνωστά προβλήματα της v3.8.0
 
-Προβλήματα που αφορούν ειδικά την έκδοση v3.8.0 και οι τρέχουσες λύσεις παράκαμψής τους. Αν μια διόρθωση συμπεριληφθεί σε μεταγενέστερη έκδοση ενημέρωσης κώδικα, η καταχώριση θα ενημερωθεί ή θα αφαιρεθεί.
+Προβλήματα που αφορούν ειδικά την έκδοση v3.8.0 και οι τρέχουσες λύσεις παράκαμψής τους. Αν μια διόρθωση συμπεριληφθεί σε μεταγενέστερη ενημερωτική έκδοση, η καταχώριση θα ενημερωθεί ή θα αφαιρεθεί.
 
 ### Αποτυχίες ελέγχου ταυτότητας του Devin CLI
 
 **Συμπτώματα:**
 
-- «Το Devin CLI δεν βρέθηκε» ή «ο έλεγχος ταυτότητας απέτυχε» κατά την κλήση εργαλείων που υποστηρίζονται από το Devin
+- "Το Devin CLI δεν βρέθηκε" ή "ο έλεγχος ταυτότητας απέτυχε" κατά την κλήση εργαλείων που υποστηρίζονται από το Devin
 - Ο έλεγχος χρόνου εκτέλεσης του CLI αναφέρει `installed=false`
 
 **Αιτίες:**
 
-- Το `CLI_DEVIN_BIN` παραπέμπει σε διαδρομή που δεν υπάρχει
+- Το `CLI_DEVIN_BIN` παραπέμπει σε μια διαδρομή που δεν υπάρχει
 - Το Devin CLI δεν είναι εγκατεστημένο στον κεντρικό υπολογιστή
 
 **Διόρθωση:**
@@ -673,16 +696,16 @@ false` και ένα επαρκές `maxInflightBytes` σημαίνουν ότι
 2. Ορίστε `CLI_DEVIN_BIN=/usr/local/bin/devin` (ή την πραγματική διαδρομή) στο `.env`
 3. Επανεκκινήστε το OmniRoute και εκτελέστε ξανά τη δοκιμή από το **Πίνακας ελέγχου → Εργαλεία CLI**
 
-### Αποκλεισμός μοντέλου που έχει κολλήσει (χειροκίνητη επαναφορά)
+### Κολλημένη περίοδος αναμονής μοντέλου (μη αυτόματη επαναφορά)
 
 **Συμπτώματα:**
 
-- Ένα μοντέλο παραμένει καταχωρισμένο ως προσωρινά αποκλεισμένο ακόμα και μετά την παρέλευση του χρόνου λήξης
-- Τα αιτήματα εξακολουθούν να παρακάμπτουν το μοντέλο στη συνδυαστική δρομολόγηση, παρόλο που η χρονική σήμανση ανήκει στο παρελθόν
+- Ένα μοντέλο παραμένει καταχωρισμένο σε περίοδο αναμονής ακόμη και μετά την παρέλευση του χρόνου λήξης
+- Τα αιτήματα εξακολουθούν να παραλείπουν το μοντέλο στη συνδυαστική δρομολόγηση, παρόλο που η χρονική σήμανση βρίσκεται στο παρελθόν
 
-**Χειροκίνητη επαναφορά:**
+**Μη αυτόματη επαναφορά:**
 
-- **Πίνακας ελέγχου:** **Ρυθμίσεις → Προσωρινοί αποκλεισμοί μοντέλων** → κάντε κλικ στην επιλογή **Επανενεργοποίηση** στην επηρεαζόμενη κάρτα
+- **Πίνακας ελέγχου:** **Ρυθμίσεις → Περίοδοι αναμονής μοντέλων** → κάντε κλικ στην επιλογή **Επανενεργοποίηση** στην επηρεαζόμενη κάρτα
 - **API:** `DELETE /api/resilience/model-cooldowns` με κεφαλίδες ελέγχου ταυτότητας διαχείρισης
 
 ### Η σύνδεση με τον πάροχο Command Code αποτυγχάνει με 403
@@ -690,42 +713,42 @@ false` και ένα επαρκές `maxInflightBytes` σημαίνουν ότι
 **Συμπτώματα:**
 
 - Σφάλμα 403 κατά τη δοκιμή της σύνδεσης με τον πάροχο Command Code
-- Η κάρτα του παρόχου εμφανίζει την ένδειξη «μη εξουσιοδοτημένο» μετά από νέα προσθήκη
+- Η κάρτα του παρόχου εμφανίζει την ένδειξη "χωρίς εξουσιοδότηση" μετά από νέα προσθήκη
 
-**Αιτία:** Η ροή OAuth δεν ολοκληρώθηκε (δεν ελήφθη η επανάκληση ή το διακριτικό δεν αποθηκεύτηκε).
+**Αιτία:** Η ροή OAuth δεν ολοκληρώθηκε (η επανάκληση δεν λήφθηκε ή το διακριτικό δεν αποθηκεύτηκε).
 
 **Διόρθωση:**
 
 - Εκτελέστε `omniroute providers` από το CLI για να ενεργοποιήσετε ξανά τη ροή OAuth ή
-- Εκτελέστε ξανά τη διαδικασία OAuth από το **Πίνακας ελέγχου → Πάροχοι → Command Code → Επανασύνδεση**
+- Εκτελέστε ξανά το OAuth από το **Πίνακας ελέγχου → Πάροχοι → Command Code → Επανασύνδεση**
 
-### Το ModelScope επιστρέφει επιθετικούς προσωρινούς αποκλεισμούς 429
+### Το ModelScope επιστρέφει επιθετικές περιόδους αναμονής 429
 
 **Συμπτώματα:**
 
-- Πολύ σύντομοι ή άμεσοι προσωρινοί αποκλεισμοί στο ModelScope μετά από μια μικρή αιχμή αιτημάτων
-- Η συνδυαστική δρομολόγηση παρακάμπτει το ModelScope νωρίτερα από το αναμενόμενο
+- Πολύ σύντομες ή άμεσες περίοδοι αναμονής στο ModelScope μετά από μια μικρή ριπή αιτημάτων
+- Η συνδυαστική δρομολόγηση παραλείπει το ModelScope νωρίτερα από το αναμενόμενο
 
-**Αιτία:** Το ModelScope εκπέμπει κεφαλίδες `Retry-After` ειδικές για τον πάροχο. Η v3.8.0 περιλαμβάνει εξειδικευμένο χειρισμό αυτών των κεφαλίδων, επομένως οι παλαιότερες εκδόσεις τις ερμηνεύουν λανθασμένα ως γενικές υποδείξεις ορίων ρυθμού.
+**Αιτία:** Το ModelScope εκπέμπει κεφαλίδες `Retry-After` ειδικές για τον πάροχο. Η v3.8.0 περιλαμβάνει ειδικό χειρισμό για αυτές τις κεφαλίδες, επομένως οι παλαιότερες εκδόσεις τις ερμηνεύουν εσφαλμένα ως γενικές υποδείξεις ορίων ρυθμού.
 
 **Διόρθωση:**
 
-- Βεβαιωθείτε ότι χρησιμοποιείτε τη v3.8.0 ή νεότερη έκδοση
-- Επαληθεύστε ότι η επιλογή `useUpstream429BreakerHints` είναι ενεργοποιημένη στην ενότητα **Ρυθμίσεις → Ανθεκτικότητα**
+- Βεβαιωθείτε ότι χρησιμοποιείτε την v3.8.0 ή μεταγενέστερη
+- Επαληθεύστε ότι η εναλλαγή `useUpstream429BreakerHints` είναι ενεργοποιημένη στην περιοχή **Ρυθμίσεις → Ανθεκτικότητα**
 
-### Το OMNIROUTE_WS_BRIDGE_SECRET λείπει από το περιβάλλον παραγωγής
+### Απουσία του OMNIROUTE_WS_BRIDGE_SECRET στην παραγωγή
 
 **Συμπτώματα:**
 
 - Σφάλμα 401 σε κάθε αίτημα γέφυρας WebSocket του Codex/Responses κατά την εκτέλεση σε απομακρυσμένο κεντρικό υπολογιστή παραγωγής
 - Η χειραψία της γέφυρας WebSocket κλείνει αμέσως μετά τη σύνδεση
 
-**Αιτία:** Η μεταβλητή περιβάλλοντος `OMNIROUTE_WS_BRIDGE_SECRET` λείπει από το περιβάλλον παραγωγής.
+**Αιτία:** Η μεταβλητή περιβάλλοντος `OMNIROUTE_WS_BRIDGE_SECRET` απουσιάζει από το περιβάλλον παραγωγής.
 
 **Διόρθωση:**
 
 1. Δημιουργήστε ένα τυχαίο μυστικό: `openssl rand -hex 32`
-2. Ορίστε `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` στο περιβάλλον του διακομιστή παραγωγής (και σε κάθε πελάτη που επικοινωνεί με τη γέφυρα)
+2. Ορίστε `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` στο περιβάλλον του διακομιστή παραγωγής (και σε οποιοδήποτε πρόγραμμα-πελάτη επικοινωνεί με τη γέφυρα)
 3. Επανεκκινήστε το OmniRoute
 
 ### Responses API: η λειτουργία παρασκηνίου υποβαθμίζεται σε σύγχρονη
@@ -735,38 +758,38 @@ false` και ένα επαρκές `maxInflightBytes` σημαίνουν ότι
 - Καταγράφεται η προειδοποίηση: `background mode degraded to synchronous`
 - Ένα αίτημα `background: true` επιστρέφει μια κανονική σύγχρονη απόκριση αντί για έναν χειριστή εργασίας παρασκηνίου
 
-**Αιτία:** Η v3.8.0 υποβαθμίζει σκόπιμα το `background: true` στο Responses API σε σύγχρονη εκτέλεση, ενώ ταυτόχρονα εκπέμπει μια προειδοποίηση. Η πλήρης ασύγχρονη εκτέλεση στο παρασκήνιο αποτελεί μελλοντική δυνατότητα.
+**Αιτία:** Η v3.8.0 υποβαθμίζει σκόπιμα το `background: true` στο Responses API σε σύγχρονη εκτέλεση, εκπέμποντας παράλληλα μια προειδοποίηση. Η πλήρης ασύγχρονη εκτέλεση παρασκηνίου αποτελεί μελλοντική λειτουργία.
 
 **Διόρθωση:**
 
-- Προσαρμόστε τον πελάτη ώστε να πραγματοποιεί την κλήση χωρίς `background` ή
+- Προσαρμόστε το πρόγραμμα-πελάτη ώστε να πραγματοποιεί την κλήση χωρίς `background` ή
 - Περιμένετε μια μεταγενέστερη έκδοση που θα περιλαμβάνει πλήρη ασύγχρονη λειτουργία παρασκηνίου (παρακολουθήστε το αρχείο αλλαγών)
 
 ---
 
-## Αργή Εκκίνηση / Λήξη Χρόνου Ετοιμότητας
+## Αργή εκκίνηση / Λήξη χρονικού ορίου ετοιμότητας
 
-Εάν το CLI εμφανίζει `⚠ Server did not respond within 60s`, αλλά ο διακομιστής
+Αν το CLI εμφανίζει `⚠ Ο διακομιστής δεν αποκρίθηκε εντός 60s`, αλλά ο διακομιστής
 λειτουργεί κανονικά, το χρονικό περιθώριο του ελέγχου ετοιμότητας είναι πολύ μικρό για το περιβάλλον σας.
 
-Αυτό συμβαίνει συνήθως στα Windows (antivirus, εργαλεία παρακολούθησης συστήματος αρχείων) ή σε containers
-με μεγάλο φόρτο εργασιών κατά την εκκίνηση.
+Αυτό συμβαίνει συνήθως στα Windows (antivirus, παρατηρητές συστήματος αρχείων) ή σε containers
+με μεγάλο φόρτο εργασίας κατά την εκκίνηση.
 
-**Λύση — αυξήστε το χρονικό περιθώριο:**
+**Διόρθωση — αυξήστε το χρονικό περιθώριο:**
 
 ```bash
-# Μέσω μεταβλητής περιβάλλοντος (διατηρείται μεταξύ των εκκινήσεων):
+# Μέσω μεταβλητής περιβάλλοντος (διατηρείται μεταξύ εκκινήσεων):
 export OMNIROUTE_READY_TIMEOUT_MS=180000   # 3 λεπτά
 omniroute serve
 
-# Μέσω σημαίας CLI (για μία μόνο φορά):
+# Μέσω σημαίας CLI (μόνο για μία εκτέλεση):
 omniroute serve --ready-timeout 180000
 ```
 
 Η προεπιλογή είναι 60 000 ms (60 s). Η προειδοποίηση είναι μόνο ενημερωτική· ο διακομιστής
 συνεχίζει να εκκινείται στο παρασκήνιο και θα είναι προσβάσιμος μόλις ολοκληρωθεί η εκκίνηση.
 
-Δείτε το [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md) για πλήρεις
+Ανατρέξτε στο [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md) για πλήρεις
 λεπτομέρειες σχετικά με το `OMNIROUTE_READY_TIMEOUT_MS`.
 
 ---
@@ -774,7 +797,7 @@ omniroute serve --ready-timeout 180000
 ## Εξακολουθείτε να έχετε πρόβλημα;
 
 - **Ζητήματα GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Αρχιτεκτονική**: Δείτε το [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) για λεπτομέρειες σχετικά με την εσωτερική λειτουργία
-- **Αναφορά API**: Δείτε το [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md) για όλα τα τελικά σημεία
-- **Πίνακας ελέγχου εύρυθμης λειτουργίας**: Ελέγξτε το **Πίνακας ελέγχου → Εύρυθμη λειτουργία** για την κατάσταση του συστήματος σε πραγματικό χρόνο
-- **Μεταφραστής**: Χρησιμοποιήστε το **Πίνακας ελέγχου → Μεταφραστής** για τον εντοπισμό προβλημάτων μορφοποίησης
+- **Αρχιτεκτονική**: Ανατρέξτε στο [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) για εσωτερικές λεπτομέρειες
+- **Αναφορά API**: Ανατρέξτε στο [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md) για όλα τα endpoints
+- **Πίνακας ελέγχου εύρυθμης λειτουργίας**: Ελέγξτε το **Dashboard → Health** για την κατάσταση του συστήματος σε πραγματικό χρόνο
+- **Μεταφραστής**: Χρησιμοποιήστε το **Dashboard → Translator** για τον εντοπισμό προβλημάτων μορφοποίησης

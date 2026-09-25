@@ -52,3 +52,37 @@ test("#4425 waitUntilPortFree no-ops on an invalid port", async () => {
   assert.equal(await waitUntilPortFree(undefined), true);
   assert.equal(await waitUntilPortFree(0), true);
 });
+
+// #4425 follow-up: the port guard above was a no-op on macOS/BSD. Node sets SO_REUSEADDR
+// on every listener it creates, and there a specific-address bind coexists with an
+// existing wildcard bind (Linux keeps rejecting the overlap in LISTEN state). So a server
+// listening on 0.0.0.0 — which is what `omniroute serve` binds by default — was reported
+// as "free" by the loopback-only probe: the supervisor skipped the wait, the respawned
+// child hit EADDRINUSE anyway, and the crash/restart loop continued.
+test("#4425 wildcard-bound port is not reported free (SO_REUSEADDR overlap)", async () => {
+  const server = net.createServer();
+  await new Promise<void>((resolve) => server.listen(0, "0.0.0.0", () => resolve()));
+  const port = (server.address() as net.AddressInfo).port;
+
+  assert.equal(await isPortFree(port), false, "a port bound on 0.0.0.0 is not free");
+  assert.equal(
+    await waitUntilPortFree(port, 300, 50),
+    false,
+    "the wait must not resolve while the wildcard port stays bound"
+  );
+
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+  assert.equal(await isPortFree(port), true, "released wildcard port is free");
+});
+
+test("#4425 loopback-bound port is still detected", async () => {
+  const server = net.createServer();
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", () => resolve()));
+  const port = (server.address() as net.AddressInfo).port;
+
+  assert.equal(await isPortFree(port), false);
+  assert.equal(await waitUntilPortFree(port, 300, 50), false);
+
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+  assert.equal(await isPortFree(port), true);
+});

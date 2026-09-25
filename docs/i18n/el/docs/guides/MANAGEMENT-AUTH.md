@@ -1,59 +1,62 @@
 # Management Authentication (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
 Το OmniRoute διαθέτει **τέσσερις οικογένειες διαπιστευτηρίων** που μπορούν να εξουσιοδοτήσουν διαδρομές διαχείρισης.
-Δεν είναι εναλλάξιμες. Τα κλειδιά API συμπερασματολογίας (`sk-…`) **δεν** διαχειρίζονται τον
-διακομιστή, εκτός εάν τους έχει εκχωρηθεί ρητά το scope `manage` ή `admin`.
+Δεν είναι εναλλάξιμες. Τα κλειδιά Inference API (`sk-…`) **δεν** διαχειρίζονται τον
+διακομιστή, εκτός εάν τους έχει εκχωρηθεί ρητά το πεδίο εφαρμογής `manage` ή `admin`.
 
 Κανονική υλοποίηση: `src/lib/api/requireManagementAuth.ts`.
 
-| Διαπιστευτήριο                  | Τυπική μορφή                             | Πού δημιουργείται                                   | Προβλεπόμενη χρήση                      | Δυνατότητα διαχείρισης                                                                                                       |
-| ------------------------------- | ---------------------------------------- | --------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Συνεδρία JWT του πίνακα ελέγχου | cookie `auth_token`                      | Σύνδεση στον πίνακα ελέγχου                         | Διεπαφή χρήστη στο πρόγραμμα περιήγησης | Πλήρης διαχείριση μέσω του πίνακα ελέγχου, με την επιφύλαξη των κανόνων CSRF, τοπικότητας και πάντα προστατευμένων διαδρομών |
-| Token machine-id του CLI        | εσωτερικό / τοπικό                       | Αρχικοποίηση CLI (`omniroute` στο ίδιο μηχάνημα)    | Τοπικό CLI                              | Μόνο τοπική διαχείριση                                                                                                       |
-| Access Token με scope           | `oma_live_…`                             | **Ρυθμίσεις → Access Tokens** ή `omniroute connect` | Απομακρυσμένο CLI και API διαχείρισης   | Πρέπει να ικανοποιεί το απαιτούμενο scope `read`, `write` ή `admin` της διαδρομής                                            |
-| Κλειδί API συμπερασματολογίας   | `sk-…` (και άλλα προθέματα κλειδιών API) | **Διαχείριση API / Κλειδιά API**                    | Συμπερασματολογία `/v1/*`               | **Καμία** εκτός εάν τα μεταδεδομένα του κλειδιού περιλαμβάνουν `manage` ή `admin`                                            |
+| Διαπιστευτήριο                          | Τυπική μορφή                             | Πού δημιουργείται                                          | Προοριζόμενη χρήση                        | Δυνατότητα διαχείρισης                                                                                  |
+| --------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Συνεδρία JWT του Dashboard              | cookie `auth_token`                      | Σύνδεση στο Dashboard                                      | Περιβάλλον χρήστη προγράμματος περιήγησης | Πλήρης διαχείριση μέσω Dashboard, υπό τους κανόνες CSRF, τοπικότητας και πάντα προστατευμένων διαδρομών |
+| Διακριτικό machine-id του CLI           | εσωτερικό / τοπικό                       | Αρχικοποίηση CLI (`omniroute` στο ίδιο μηχάνημα)           | Τοπικό CLI                                | Μόνο τοπική διαχείριση                                                                                  |
+| Διακριτικό πρόσβασης με πεδία εφαρμογής | `oma_live_…`                             | **Ρυθμίσεις → Διακριτικά πρόσβασης** ή `omniroute connect` | Απομακρυσμένο CLI και API διαχείρισης     | Πρέπει να ικανοποιεί το απαιτούμενο πεδίο εφαρμογής `read`, `write` ή `admin` της διαδρομής             |
+| Κλειδί Inference API                    | `sk-…` (και άλλα προθέματα κλειδιών API) | **Διαχείριση API / Κλειδιά API**                           | Συμπερασματολογία `/v1/*`                 | **Καμία**, εκτός εάν τα μεταδεδομένα του κλειδιού περιλαμβάνουν `manage` ή `admin`                      |
 
-Τα διαπιστευτήρια `oma_` είναι διαπιστευτήρια διαχείρισης/CLI. **Δεν** είναι κλειδιά API συμπερασματολογίας.
+Τα διαπιστευτήρια `oma_` είναι διαπιστευτήρια διαχείρισης/CLI. **Δεν** είναι κλειδιά Inference API.
 
-Εάν ο έλεγχος ταυτότητας μέσω σύνδεσης/κλειδιού API είναι απενεργοποιημένος για τον διακομιστή, ορισμένες διαδρομές διαχείρισης ενδέχεται
-να αποδέχονται κλήσεις χωρίς έλεγχο ταυτότητας. Οι διαδρομές που είναι μόνο τοπικές και οι πάντα προστατευμένες διαδρομές εξακολουθούν να εφαρμόζουν
-τους δικούς τους κανόνες. Επομένως, η παροχή ενός από αυτά τα διαπιστευτήρια δεν είναι καθολικά
+Εάν ο έλεγχος ταυτότητας μέσω σύνδεσης/κλειδιού API είναι απενεργοποιημένος για τον διακομιστή, ορισμένες διαδρομές διαχείρισης ενδέχεται να
+δέχονται κλήσεις χωρίς έλεγχο ταυτότητας. Οι διαδρομές που είναι μόνο τοπικές και οι πάντα προστατευμένες διαδρομές εξακολουθούν να εφαρμόζουν
+τους δικούς τους κανόνες. Επομένως, η παρουσίαση ενός από αυτά τα διαπιστευτήρια δεν είναι καθολικά
 υποχρεωτική και η κατοχή του δεν είναι καθολικά επαρκής χωρίς το απαιτούμενο
-scope και την τοπικότητα της διαδρομής.
+πεδίο εφαρμογής και την τοπικότητα της διαδρομής.
 
-Σχετικό θέμα: [Απομακρυσμένη λειτουργία](./REMOTE-MODE.md) (πώς δημιουργείται το `oma_live_…` για ένα απομακρυσμένο CLI).
+Σχετικό: [Απομακρυσμένη λειτουργία](./REMOTE-MODE.md) (πώς εκδίδεται το `oma_live_…` για ένα απομακρυσμένο CLI).
 
 ---
 
-## Πίνακες scope
+## Πίνακες αντιστοίχισης scope
 
-Αυτά τα δύο λεξιλόγια scope είναι **διαφορετικά**. Μην τα συγχέετε.
+Τα scope διαχείρισης κλειδιών API και τα scope διακριτικών πρόσβασης χρησιμοποιούν διαφορετικά λεξιλόγια.
+Τα scope εργαλείων MCP αποτελούν ένα τρίτο λεξιλόγιο και ελέγχονται με το `scopeMatches` αντί για
+οποιαδήποτε από τις συναρτήσεις στους παρακάτω πίνακες. Παράθεση δίπλα-δίπλα:
+[Τρεις χώροι ονομάτων scope](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Scope των Access Token (`oma_live_…`)
+### Scope διακριτικών πρόσβασης (`oma_live_…`)
 
-| Scope   | Τυπικές λειτουργίες                                                                                                |
-| ------- | ------------------------------------------------------------------------------------------------------------------ |
-| `read`  | Αιτήματα GET λίστας/κατάστασης που επιτρέπεται να βλέπει το token                                                  |
-| `write` | Μεταβολές (δημιουργία/ενημέρωση/διαγραφή) χαμηλότερου επιπέδου από το admin                                        |
-| `admin` | Πλήρες απομακρυσμένο CLI / token σύνδεσης (η αρχικοποίηση μέσω κωδικού πρόσβασης χρησιμοποιεί αυτό από προεπιλογή) |
+| Scope   | Τυπικές λειτουργίες                                                                                                     |
+| ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `read`  | Αιτήματα GET λίστας/κατάστασης που επιτρέπεται να βλέπει το διακριτικό                                                  |
+| `write` | Μεταβολές (δημιουργία/ενημέρωση/διαγραφή) κάτω από το επίπεδο διαχειριστή                                               |
+| `admin` | Πλήρες απομακρυσμένο CLI / διακριτικό σύνδεσης (η αρχικοποίηση μέσω κωδικού πρόσβασης χρησιμοποιεί αυτό από προεπιλογή) |
 
-Ένα token με `read` δεν μπορεί να καλέσει μια διαδρομή `write`. Μορφή μηνύματος κατά την εκτέλεση:
-`Access token scope '<have>' is insufficient; '<need>' required.`
+Ένα διακριτικό με `read` δεν μπορεί να καλέσει μια διαδρομή `write`. Μορφή μηνύματος κατά τον χρόνο εκτέλεσης:
+`Το scope διακριτικού πρόσβασης '<have>' δεν επαρκεί· απαιτείται '<need>'.`
 
 ### Scope διαχείρισης κλειδιών API
 
-| Scope    | Σημασία                                                                           |
-| -------- | --------------------------------------------------------------------------------- |
-| (κανένα) | Μόνο συμπερασματολογία. Οι διαδρομές διαχείρισης επιστρέφουν 403.                 |
-| `manage` | API διαχείρισης (ίδια πύλη με τον κλάδο κλειδιού API του `requireManagementAuth`) |
-| `admin`  | Ικανοποιεί επίσης το `hasManageScope` (αντιμετωπίζεται ως ικανό για διαχείριση)   |
+| Scope    | Σημασία                                                                                         |
+| -------- | ----------------------------------------------------------------------------------------------- |
+| (κανένα) | Μόνο εξαγωγή συμπερασμάτων. Οι διαδρομές διαχείρισης επιστρέφουν 403.                           |
+| `manage` | API διαχείρισης (ίδιος έλεγχος πρόσβασης με τον κλάδο κλειδιού API του `requireManagementAuth`) |
+| `admin`  | Ικανοποιεί επίσης το `hasManageScope` (αντιμετωπίζεται ως ικανό για διαχείριση)                 |
 
-Ενεργοποιήστε το `manage` στο κλειδί από τη διεπαφή Κλειδιά API / Διαχείριση API. Μην επαναχρησιμοποιείτε ένα
-κλειδί προγράμματος-πελάτη συνομιλίας για αυτοματοποίηση, εκτός εάν έχετε εκχωρήσει σκόπιμα αυτό το scope.
+Ενεργοποιήστε το `manage` για το κλειδί στο περιβάλλον εργασίας API Keys / API Manager. Μην επαναχρησιμοποιείτε ένα
+κλειδί προγράμματος-πελάτη συνομιλίας για αυτοματοποίηση, εκτός εάν του έχετε εκχωρήσει σκόπιμα αυτό το scope.
 
 ---
 
@@ -127,26 +130,30 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Τρέχοντα σφάλματα κατά την εκτέλεση (μην εμφανίζετε μυστικά)
+## Τρέχοντα σφάλματα χρόνου εκτέλεσης (μην εμφανίζετε ξανά μυστικά)
 
-| Περίπτωση                                         | Τυπικός κωδικός κατάστασης | Μήνυμα (αποκρύπτονται ευαίσθητα δεδομένα)                            |
-| ------------------------------------------------- | -------------------------- | -------------------------------------------------------------------- |
-| Χωρίς διαπιστευτήριο                              | 401                        | `Authentication required`                                            |
-| Μη έγκυρο/ληγμένο `oma_live_…`                    | 401                        | `Invalid or expired access token`                                    |
-| Έγκυρο API key χωρίς `manage`/`admin`             | 403                        | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Μη έγκυρο συνήθες API key σε διαδρομή διαχείρισης | 403                        | `Invalid management token`                                           |
-| Ανεπαρκές scope του Access Token                  | 403                        | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Περίπτωση                                          | Τυπική κατάσταση | Μήνυμα (αποκρύπτονται ευαίσθητα δεδομένα)                                                                |
+| -------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
+| Δεν υπάρχουν διαπιστευτήρια                        | 401              | `Απαιτείται έλεγχος ταυτότητας`                                                                          |
+| Μη έγκυρο/ληγμένο `oma_live_…`                     | 401              | `Μη έγκυρο ή ληγμένο διακριτικό πρόσβασης`                                                               |
+| Έγκυρο κλειδί API χωρίς `manage`/`admin`           | 403              | `Το κλειδί API δεν διαθέτει το πεδίο εφαρμογής 'manage'. Ενεργοποιήστε το στον πίνακα ελέγχου API Keys.` |
+| Μη έγκυρο κοινό κλειδί API σε διαδρομή διαχείρισης | 403              | `Μη έγκυρο διακριτικό διαχείρισης`                                                                       |
+| Πολύ περιορισμένο πεδίο εφαρμογής του Access Token | 403              | `Το πεδίο εφαρμογής του διακριτικού πρόσβασης '<have>' δεν επαρκεί· απαιτείται το '<need>'.`             |
 
-Το «Invalid management token» σημαίνει ότι το διακριτικό bearer **δεν** έγινε αποδεκτό ως διαπιστευτήριο διαχείρισης. **Δεν** υποδεικνύει ποιο είδος διαπιστευτηρίου πρέπει να δημιουργήσετε. Χρησιμοποιήστε τον παραπάνω πίνακα: τα κλειδιά inference χρειάζονται scope `manage`, το απομακρυσμένο CLI χρειάζεται `oma_live_…`, ενώ ο πίνακας ελέγχου χρησιμοποιεί το cookie συνεδρίας.
+Το "Μη έγκυρο διακριτικό διαχείρισης" σημαίνει ότι το διακριτικό bearer **δεν**
+έγινε αποδεκτό ως διαπιστευτήριο διαχείρισης. **Δεν** υποδεικνύει ποια οικογένεια
+πρέπει να δημιουργήσετε. Χρησιμοποιήστε τον παραπάνω πίνακα: τα κλειδιά inference
+χρειάζονται πεδίο εφαρμογής `manage`, το απομακρυσμένο CLI χρειάζεται `oma_live_…`
+και ο πίνακας ελέγχου χρησιμοποιεί το cookie συνεδρίας.
 
 ---
 
-## Συνιστώμενη επιλογή ελάχιστων προνομίων
+## Προτεινόμενη επιλογή ελάχιστων προνομίων
 
-| Καλών                                                                | Χρήση                                          |
-| -------------------------------------------------------------------- | ---------------------------------------------- |
-| Πρόγραμμα περιήγησης                                                 | Συνεδρία πίνακα ελέγχου                        |
-| CLI στον κεντρικό υπολογιστή του διακομιστή                          | Machine token                                  |
-| CLI σε φορητό υπολογιστή που επικοινωνεί με απομακρυσμένο διακομιστή | `oma_live_…` από το `omniroute connect`        |
-| CI / scripts (μόνο για διαχείριση)                                   | `oma_live_…` με το μικρότερο scope που επαρκεί |
-| CI που πρέπει να καλεί τόσο το `/v1` όσο και το `/api`               | API key με `manage` **ή** δύο διαπιστευτήρια   |
+| Καλών                                                                | Χρήση                                           |
+| -------------------------------------------------------------------- | ----------------------------------------------- |
+| Πρόγραμμα περιήγησης                                                 | Συνεδρία του Dashboard                          |
+| CLI στον κεντρικό υπολογιστή του διακομιστή                          | Διακριτικό μηχανήματος                          |
+| CLI σε φορητό υπολογιστή που επικοινωνεί με απομακρυσμένο διακομιστή | `oma_live_…` από το `omniroute connect`         |
+| CI / σενάρια (μόνο για διαχείριση)                                   | `oma_live_…` με το μικρότερο εύρος που επαρκεί  |
+| CI που πρέπει να καλεί τόσο το `/v1` όσο και το `/api`               | Κλειδί API με `manage` **ή** δύο διαπιστευτήρια |

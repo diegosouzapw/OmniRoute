@@ -1,6 +1,6 @@
 # Guardrails (ଓଡ଼ିଆ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/GUARDRAILS.md) · 🇪🇹 [am](../../../am/docs/security/GUARDRAILS.md) · 🇸🇦 [ar](../../../ar/docs/security/GUARDRAILS.md) · 🇦🇿 [az](../../../az/docs/security/GUARDRAILS.md) · 🇧🇬 [bg](../../../bg/docs/security/GUARDRAILS.md) · 🇧🇩 [bn](../../../bn/docs/security/GUARDRAILS.md) · 🇨🇿 [cs](../../../cs/docs/security/GUARDRAILS.md) · 🇩🇰 [da](../../../da/docs/security/GUARDRAILS.md) · 🇩🇪 [de](../../../de/docs/security/GUARDRAILS.md) · 🇬🇷 [el](../../../el/docs/security/GUARDRAILS.md) · 🇪🇸 [es](../../../es/docs/security/GUARDRAILS.md) · 🇪🇪 [et](../../../et/docs/security/GUARDRAILS.md) · 🇮🇷 [fa](../../../fa/docs/security/GUARDRAILS.md) · 🇫🇮 [fi](../../../fi/docs/security/GUARDRAILS.md) · 🇫🇷 [fr](../../../fr/docs/security/GUARDRAILS.md) · 🇮🇪 [ga](../../../ga/docs/security/GUARDRAILS.md) · 🇮🇳 [gu](../../../gu/docs/security/GUARDRAILS.md) · 🇳🇬 [ha](../../../ha/docs/security/GUARDRAILS.md) · 🇮🇱 [he](../../../he/docs/security/GUARDRAILS.md) · 🇮🇳 [hi](../../../hi/docs/security/GUARDRAILS.md) · 🇭🇷 [hr](../../../hr/docs/security/GUARDRAILS.md) · 🇭🇺 [hu](../../../hu/docs/security/GUARDRAILS.md) · 🇦🇲 [hy](../../../hy/docs/security/GUARDRAILS.md) · 🇮🇩 [id](../../../id/docs/security/GUARDRAILS.md) · 🇳🇬 [ig](../../../ig/docs/security/GUARDRAILS.md) · 🇮🇹 [it](../../../it/docs/security/GUARDRAILS.md) · 🇯🇵 [ja](../../../ja/docs/security/GUARDRAILS.md) · 🇬🇪 [ka](../../../ka/docs/security/GUARDRAILS.md) · 🇰🇭 [km](../../../km/docs/security/GUARDRAILS.md) · 🇮🇳 [kn](../../../kn/docs/security/GUARDRAILS.md) · 🇰🇷 [ko](../../../ko/docs/security/GUARDRAILS.md) · 🇱🇹 [lt](../../../lt/docs/security/GUARDRAILS.md) · 🇱🇻 [lv](../../../lv/docs/security/GUARDRAILS.md) · 🇮🇳 [ml](../../../ml/docs/security/GUARDRAILS.md) · 🇮🇳 [mr](../../../mr/docs/security/GUARDRAILS.md) · 🇲🇾 [ms](../../../ms/docs/security/GUARDRAILS.md) · 🇲🇹 [mt](../../../mt/docs/security/GUARDRAILS.md) · 🇲🇲 [my](../../../my/docs/security/GUARDRAILS.md) · 🇳🇵 [ne](../../../ne/docs/security/GUARDRAILS.md) · 🇳🇱 [nl](../../../nl/docs/security/GUARDRAILS.md) · 🇳🇴 [no](../../../no/docs/security/GUARDRAILS.md) · 🇮🇳 [pa](../../../pa/docs/security/GUARDRAILS.md) · 🇵🇭 [phi](../../../phi/docs/security/GUARDRAILS.md) · 🇵🇱 [pl](../../../pl/docs/security/GUARDRAILS.md) · 🇵🇹 [pt](../../../pt/docs/security/GUARDRAILS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/GUARDRAILS.md) · 🇷🇴 [ro](../../../ro/docs/security/GUARDRAILS.md) · 🇷🇺 [ru](../../../ru/docs/security/GUARDRAILS.md) · 🇱🇰 [si](../../../si/docs/security/GUARDRAILS.md) · 🇸🇰 [sk](../../../sk/docs/security/GUARDRAILS.md) · 🇸🇮 [sl](../../../sl/docs/security/GUARDRAILS.md) · 🇷🇸 [sr](../../../sr/docs/security/GUARDRAILS.md) · 🇸🇪 [sv](../../../sv/docs/security/GUARDRAILS.md) · 🇰🇪 [sw](../../../sw/docs/security/GUARDRAILS.md) · 🇮🇳 [ta](../../../ta/docs/security/GUARDRAILS.md) · 🇮🇳 [te](../../../te/docs/security/GUARDRAILS.md) · 🇹🇭 [th](../../../th/docs/security/GUARDRAILS.md) · 🇹🇷 [tr](../../../tr/docs/security/GUARDRAILS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/GUARDRAILS.md) · 🇵🇰 [ur](../../../ur/docs/security/GUARDRAILS.md) · 🇺🇿 [uz](../../../uz/docs/security/GUARDRAILS.md) · 🇻🇳 [vi](../../../vi/docs/security/GUARDRAILS.md) · 🇳🇬 [yo](../../../yo/docs/security/GUARDRAILS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/GUARDRAILS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/GUARDRAILS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/GUARDRAILS.md) · 🇪🇹 [am](../../../am/docs/security/GUARDRAILS.md) · 🇸🇦 [ar](../../../ar/docs/security/GUARDRAILS.md) · 🇦🇿 [az](../../../az/docs/security/GUARDRAILS.md) · 🇧🇬 [bg](../../../bg/docs/security/GUARDRAILS.md) · 🇧🇩 [bn](../../../bn/docs/security/GUARDRAILS.md) · 🇧🇦 [bs](../../../bs/docs/security/GUARDRAILS.md) · 🇨🇿 [cs](../../../cs/docs/security/GUARDRAILS.md) · 🇩🇰 [da](../../../da/docs/security/GUARDRAILS.md) · 🇩🇪 [de](../../../de/docs/security/GUARDRAILS.md) · 🇬🇷 [el](../../../el/docs/security/GUARDRAILS.md) · 🇪🇸 [es](../../../es/docs/security/GUARDRAILS.md) · 🇪🇪 [et](../../../et/docs/security/GUARDRAILS.md) · 🇮🇷 [fa](../../../fa/docs/security/GUARDRAILS.md) · 🇫🇮 [fi](../../../fi/docs/security/GUARDRAILS.md) · 🇫🇷 [fr](../../../fr/docs/security/GUARDRAILS.md) · 🇮🇪 [ga](../../../ga/docs/security/GUARDRAILS.md) · 🇮🇳 [gu](../../../gu/docs/security/GUARDRAILS.md) · 🇳🇬 [ha](../../../ha/docs/security/GUARDRAILS.md) · 🇮🇱 [he](../../../he/docs/security/GUARDRAILS.md) · 🇮🇳 [hi](../../../hi/docs/security/GUARDRAILS.md) · 🇭🇷 [hr](../../../hr/docs/security/GUARDRAILS.md) · 🇭🇺 [hu](../../../hu/docs/security/GUARDRAILS.md) · 🇦🇲 [hy](../../../hy/docs/security/GUARDRAILS.md) · 🇮🇩 [id](../../../id/docs/security/GUARDRAILS.md) · 🇳🇬 [ig](../../../ig/docs/security/GUARDRAILS.md) · 🇮🇹 [it](../../../it/docs/security/GUARDRAILS.md) · 🇯🇵 [ja](../../../ja/docs/security/GUARDRAILS.md) · 🇬🇪 [ka](../../../ka/docs/security/GUARDRAILS.md) · 🇰🇭 [km](../../../km/docs/security/GUARDRAILS.md) · 🇮🇳 [kn](../../../kn/docs/security/GUARDRAILS.md) · 🇰🇷 [ko](../../../ko/docs/security/GUARDRAILS.md) · 🇱🇹 [lt](../../../lt/docs/security/GUARDRAILS.md) · 🇱🇻 [lv](../../../lv/docs/security/GUARDRAILS.md) · 🇮🇳 [ml](../../../ml/docs/security/GUARDRAILS.md) · 🇮🇳 [mr](../../../mr/docs/security/GUARDRAILS.md) · 🇲🇾 [ms](../../../ms/docs/security/GUARDRAILS.md) · 🇲🇹 [mt](../../../mt/docs/security/GUARDRAILS.md) · 🇲🇲 [my](../../../my/docs/security/GUARDRAILS.md) · 🇳🇵 [ne](../../../ne/docs/security/GUARDRAILS.md) · 🇳🇱 [nl](../../../nl/docs/security/GUARDRAILS.md) · 🇳🇴 [no](../../../no/docs/security/GUARDRAILS.md) · 🇮🇳 [pa](../../../pa/docs/security/GUARDRAILS.md) · 🇵🇭 [phi](../../../phi/docs/security/GUARDRAILS.md) · 🇵🇱 [pl](../../../pl/docs/security/GUARDRAILS.md) · 🇵🇹 [pt](../../../pt/docs/security/GUARDRAILS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/GUARDRAILS.md) · 🇷🇴 [ro](../../../ro/docs/security/GUARDRAILS.md) · 🇷🇺 [ru](../../../ru/docs/security/GUARDRAILS.md) · 🇱🇰 [si](../../../si/docs/security/GUARDRAILS.md) · 🇸🇰 [sk](../../../sk/docs/security/GUARDRAILS.md) · 🇸🇮 [sl](../../../sl/docs/security/GUARDRAILS.md) · 🇷🇸 [sr](../../../sr/docs/security/GUARDRAILS.md) · 🇸🇪 [sv](../../../sv/docs/security/GUARDRAILS.md) · 🇰🇪 [sw](../../../sw/docs/security/GUARDRAILS.md) · 🇮🇳 [ta](../../../ta/docs/security/GUARDRAILS.md) · 🇮🇳 [te](../../../te/docs/security/GUARDRAILS.md) · 🇹🇭 [th](../../../th/docs/security/GUARDRAILS.md) · 🇹🇷 [tr](../../../tr/docs/security/GUARDRAILS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/GUARDRAILS.md) · 🇵🇰 [ur](../../../ur/docs/security/GUARDRAILS.md) · 🇺🇿 [uz](../../../uz/docs/security/GUARDRAILS.md) · 🇻🇳 [vi](../../../vi/docs/security/GUARDRAILS.md) · 🇳🇬 [yo](../../../yo/docs/security/GUARDRAILS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/GUARDRAILS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/GUARDRAILS.md)
 
 ---
 
@@ -17,688 +17,446 @@ Guardrailଗୁଡ଼ିକ OmniRoute ଏବଂ ଅପ୍ଷ୍ଟ୍ରିମ�
 ତ୍ରୁଟିଟିକୁ ରେକର୍ଡ କରେ ଏବଂ ଅନୁରୋଧକୁ ବିଫଳ କରିବା ପରିବର୍ତ୍ତେ ପରବର୍ତ୍ତୀ guardrail ସହିତ ଜାରି ରଖେ।
 ବ୍ଲକ୍ କରିବା ଏକ ସ୍ପଷ୍ଟ ନିଷ୍ପତ୍ତି (`block: true`), କେବେବି ଦୁର୍ଘଟଣାବଶତଃ ନୁହେଁ।
 
-## ବିଲ୍ଟ-ଇନ୍ Guardrailଗୁଡ଼ିକ
+## ବିଲ୍ଟ-ଇନ୍ ଗାର୍ଡରେଲ୍ସ
 
-ଇମ୍ପୋର୍ଟ ସମୟରେ registry ପ୍ରାଥମିକତା କ୍ରମରେ ଛଅଟି guardrail ସ୍ୱୟଂଚାଳିତ ଭାବେ ଲୋଡ୍ କରେ
+ରେଜିଷ୍ଟ୍ରି ଆମଦାନୀ ଉପରେ ପ୍ରାଥମିକତା କ୍ରମରେ ଛଅଟି ଗାର୍ଡରେଲ୍ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଲୋଡ୍ କରେ
 (`registry.ts` → `registerDefaultGuardrails()` ଦେଖନ୍ତୁ):
 
-| ପ୍ରାଥମିକତା | ନାମ                 | ପର୍ଯ୍ୟାୟ(ଗୁଡ଼ିକ) | ଫାଇଲ୍                 |
-| ---------- | ------------------- | ---------------- | --------------------- |
-| `5`        | `vision-bridge`     | `preCall`        | `visionBridge.ts`     |
-| `6`        | `audio-bridge`      | `preCall`        | `audioBridge.ts`      |
-| `7`        | `video-bridge`      | `preCall`        | `videoBridge.ts`      |
-| `10`       | `pii-masker`        | `pre` + `post`   | `piiMasker.ts`        |
-| `20`       | `prompt-injection`  | `preCall`        | `promptInjection.ts`  |
-| `95`       | `credential-masker` | `pre` + `post`   | `credentialMasker.ts` |
+| ପ୍ରାଥମିକତା | ନାମ                 | ପର୍ଯ୍ୟାୟ(ଗୁଡିକ) | ଫାଇଲ୍                 |
+| ---------- | ------------------- | --------------- | --------------------- |
+| `5`        | `vision-bridge`     | `preCall`       | `visionBridge.ts`     |
+| `6`        | `audio-bridge`      | `preCall`       | `audioBridge.ts`      |
+| `7`        | `video-bridge`      | `preCall`       | `videoBridge.ts`      |
+| `10`       | `pii-masker`        | `pre` + `post`  | `piiMasker.ts`        |
+| `20`       | `prompt-injection`  | `preCall`       | `promptInjection.ts`  |
+| `95`       | `credential-masker` | `pre` + `post`  | `credentialMasker.ts` |
 
-ନିମ୍ନ ପ୍ରାଥମିକତା ସଂଖ୍ୟାଗୁଡ଼ିକ **ପ୍ରଥମେ** ଚାଲେ।
+କମ୍ ପ୍ରାଥମିକତା ସଂଖ୍ୟାଗୁଡ଼ିକ **ପ୍ରଥମେ** ଚାଲୁ ହୁଏ।
 
-### Vision Bridge (`visionBridge.ts`) — Modality Bridge PR-1
+### ଭିଜନ୍ ବ୍ରିଜ୍ (`visionBridge.ts`) — ମୋଡାଲିଟି ବ୍ରିଜ୍ PR-1
 
-**ଭିଜନ୍ ସମର୍ଥିତ ନଥିବା ମଡେଲ୍ଗୁଡ଼ିକ** ପ୍ରତି ଲକ୍ଷ୍ୟିତ ଛବି-ଯୁକ୍ତ ଅନୁରୋଧଗୁଡ଼ିକୁ ଅବରୋଧ କରେ ଏବଂ
-ସମ୍ପୂର୍ଣ୍ଣ ଅନୁରୋଧକୁ ଏକ ଭିଜନ୍-ସକ୍ଷମ ମଡେଲ୍କୁ ପୁନଃରୁଟ୍ କରେ, କିମ୍ବା
-ଅପ୍ଷ୍ଟ୍ରିମ୍ କଲ୍ ପୂର୍ବରୁ ଛବି ଅଂଶଗୁଡ଼ିକୁ ଏକ କନଫିଗର୍ଯୋଗ୍ୟ ଭିଜନ୍ ମଡେଲ୍ ଦ୍ୱାରା ଉତ୍ପାଦିତ ପାଠ୍ୟ ବର୍ଣ୍ଣନା ସହିତ
-ବଦଳାଇଦିଏ। ଏହା କେବଳ-ପାଠ୍ୟ ପ୍ରଦାନକାରୀଙ୍କୁ ସ୍ୱଚ୍ଛ ଭାବରେ
-ମଲ୍ଟିମୋଡାଲ୍ ପେଲୋଡ୍ଗୁଡ଼ିକ ପରିଚାଳନା କରିବାକୁ ଦିଏ।
+**ନନ୍-ଭିଜନ୍ ମଡେଲ୍** ଉଦ୍ଦେଶ୍ୟରେ ଥିବା ଇମେଜ୍-ବିଅରିଂ ଅନୁରୋଧଗୁଡ଼ିକୁ ଅଟକାଇଥାଏ ଏବଂ
+ସମଗ୍ର ଅନୁରୋଧକୁ ଏକ ଭିଜନ୍-ସକ୍ଷମ ମଡେଲ୍କୁ ପୁନଃରୁଟ୍ କରେ କିମ୍ବା ଉପରମୁହାଁ କଲ୍ ପୂର୍ବରୁ
+ଏକ କନଫିଗର୍ ଯୋଗ୍ୟ ଭିଜନ୍ ମଡେଲ୍ ଦ୍ୱାରା ଉତ୍ପାଦିତ ଟେକ୍ସଟ୍ ବର୍ଣ୍ଣନା ସହିତ ଇମେଜ୍ ଅଂଶଗୁଡ଼ିକୁ
+ବଦଳାଇଥାଏ। ଏହା ଟେକ୍ସଟ୍-ଓନଲି ପ୍ରଦାନକାରୀମାନଙ୍କୁ ମଲ୍ଟିମୋଡାଲ୍ ପେଲୋଡ୍ଗୁଡ଼ିକୁ
+ସ୍ୱଚ୍ଛ ଭାବରେ ପରିଚାଳନା କରିବାକୁ ଦେଇଥାଏ।
 
 ପ୍ରବାହ:
 
-1. ଯଦି ଲକ୍ଷ୍ୟ ମଡେଲ୍ ପୂର୍ବରୁ ଭିଜନ୍ ସମର୍ଥନ କରେ, ତେବେ ଛାଡ଼ିଦିଅନ୍ତୁ (ଯଦି ଏହା
-   ବାଧ୍ୟତାମୂଳକ-ବ୍ରିଜ୍ ତାଲିକା `isVisionBridgeForcedModel`ରେ ନଥାଏ)।
-2. `extractImageParts(messages)`
-   (`visionBridgeHelpers.ts`) ମାଧ୍ୟମରେ ଛବି ଅଂଶଗୁଡ଼ିକୁ ନିଷ୍କାସନ କରନ୍ତୁ, ଯାହା `open-sse/utils/mediaParts.ts`ରେ ଥିବା **ଏକୀକୃତ ମିଡିଆ
-   ଡିଟେକ୍ଟର୍** `detectMediaParts()`କୁ ପ୍ରତ୍ୟାୟୋଜନ କରେ — ଏହା
-   କମ୍ବୋ ସୁସଙ୍ଗତତା ଫିଲ୍ଟର୍ ସହିତ ଅଂଶୀଦାର ହୋଇଥିବା ସତ୍ୟର ଏକମାତ୍ର ଉତ୍ସ।
-   ନିଷ୍କାସନକୁ `replaceImageParts` ପୁଣି ସ୍ପ୍ଲାଇସ୍ କରିପାରୁଥିବା
-   ଶୀର୍ଷ-ସ୍ତରୀୟ ଅଂଶଗୁଡ଼ିକର ଆକୃତି ପର୍ଯ୍ୟନ୍ତ allowlist କରାଯାଇଛି (extract↔replace ଚୁକ୍ତି): OpenAI
-   `image_url`, Anthropic base64 `source.type:"base64"`, Anthropic URL
-   `source.type:"url"`, ଏବଂ Responses API `input_image`। ନେଷ୍ଟେଡ୍ ମେଳ ଏବଂ
-   କେବଳ-ସୂଚକ ଆକୃତିଗୁଡ଼ିକ କମ୍ବୋ-ଫିଲ୍ଟର୍ ସାମଗ୍ରୀ ଏବଂ କେବେବି ନିଷ୍କାସିତ ହୁଏ ନାହିଁ।
-   କିଛି ନ ମିଳିଲେ ଛାଡ଼ିଦିଅନ୍ତୁ।
-3. `resolveVisionBridgeRuntimeSettings()`
-   (`src/shared/constants/modalityBridgeDefaults.ts`) ମାଧ୍ୟମରେ ରନ୍ଟାଇମ୍ କନଫିଗ୍ ସମାଧାନ କରନ୍ତୁ: ନୂତନ `modalityBridge*`
-   ସେଟିଂସ୍ କୀଗୁଡ଼ିକ ଅଗ୍ରାଧିକାର ପାଆନ୍ତି; ପୁରୁଣା `visionBridge*` କୀଗୁଡ଼ିକ ଏକ **ଏକ-ଚକ୍ର
-   fallback** (rollback ୱିଣ୍ଡୋ) ଭାବେ ରହିଥାଏ। ବ୍ରିଜ୍ ଅକ୍ଷମ ଥିଲେ କୌଣସି ମିଡିଆ ଟ୍ରାଭର୍ସାଲ୍ ପୂର୍ବରୁ ଛାଡ଼ିଦିଅନ୍ତୁ।
-4. ମୋଡ୍ ସିଲେକ୍ଟର୍ (`modalityBridgeVisionMode`, ନିମ୍ନ ସାରଣୀ ଦେଖନ୍ତୁ)
-   ପୁନଃରୁଟ୍ ବନାମ ବର୍ଣ୍ଣନା ନିର୍ଦ୍ଧାରଣ କରେ। ପୁନଃରୁଟ୍ କେବଳ `model`
-   ବଦଳାଯାଇଥିବା `modifiedPayload`, ସହିତ meta `{ rerouted, fromModel, toModel, imagesKept }` ଫେରାଏ।
-5. ବର୍ଣ୍ଣନା ପଥ: ଛବି ସଂଖ୍ୟାକୁ `maxImages`ରେ ସୀମିତ କରେ, କାର୍ଯ୍ୟ-ସଚେତନ prompt ଗଠନ କରେ,
-   describe cache ଯାଞ୍ଚ କରେ, ଭିଜନ୍ ମଡେଲ୍କୁ **ସମାନ୍ତରାଳ ଭାବେ**
-   (`Promise.allSettled`) କଲ୍ କରେ, ଏବଂ ସେଗୁଡ଼ିକର ସ୍ଥାନରେ `[Image N]: <description>` ପାଠ୍ୟ ଅଂଶ
-   ଇଞ୍ଜେକ୍ଟ କରେ। ବିଫଳ describe `null` ଦିଏ ଏବଂ ମୂଳ ଛବି ଅଂଶଟି
-   **ସଂରକ୍ଷିତ** ରହେ (#4012) — କିନ୍ତୁ କମ୍ବୋ describe ପଥରେ ପ୍ରତ୍ୟେକ
-   describe ବିଫଳ ହେଲେ, ଏକ ନିଶ୍ଚିତ ଅଣ-ଭିଜନ୍ ଅପ୍ଷ୍ଟ୍ରିମ୍କୁ ତାହା ପରିବର୍ତ୍ତେ
-   `(unavailable — no vision-capable provider connected)` stub ଦିଆଯାଏ (#8430)।
-6. `modifiedPayload` + meta (`imagesProcessed`, `descriptions`,
-   `processingTimeMs`, `visionModel`) ଫେରାନ୍ତୁ।
+1. ଯଦି ଟାର୍ଗେଟ୍ ମଡେଲ୍ ପୂର୍ବରୁ ଭିଜନ୍ ସମର୍ଥନ କରେ (ଯଦି ଏହା ଫୋର୍ସଡ୍-ବ୍ରିଜ୍ ତାଲିକା
+   `isVisionBridgeForcedModel` ରେ ଦେଖାଯାଏ ନାହିଁ) ତେବେ ଛାଡ଼ିଦିଅ।
+2. `extractImageParts(messages)` (`visionBridgeHelpers.ts`) ମାଧ୍ୟମରେ ଇମେଜ୍
+   ଅଂଶଗୁଡ଼ିକୁ ବାହାର କରନ୍ତୁ, ଯାହା **ୟୁନିଫାଏଡ୍ ମିଡିଆ ଡିଟେକ୍ଟର**
+   `detectMediaParts()` କୁ `open-sse/utils/mediaParts.ts` ରେ ଡେଲିଗେଟ୍ କରେ —
+   କମ୍ବୋ କମ୍ପାଟିବିଲିଟି ଫିଲ୍ଟର୍ ସହିତ ଅଂଶୀଦାର ହୋଇଥିବା ସତ୍ୟର ଏକମାତ୍ର ଉତ୍ସ।
+   ଏକ୍ସଟ୍ରାକ୍ସନ୍ ଟପ୍-ଲେଭଲ୍ ଅଂଶଗୁଡ଼ିକୁ ଆଲୋଲିଷ୍ଟ୍ କରାଯାଇଛି ଯାହାକୁ
+   `replaceImageParts` ପୁନଃ ସ୍ପ୍ଲାଇସ୍ କରିପାରିବ (ଏକ୍ସଟ୍ରାକ୍ଟ↔ରିପ୍ଲେସ୍ ଚୁକ୍ତି):
+   OpenAI `image_url`, Anthropic base64 `source.type:"base64"`, Anthropic URL
+   `source.type:"url"`, ଏବଂ Responses API `input_image`। ନେଷ୍ଟେଡ୍ ହିଟ୍ ଏବଂ
+   ସୂଚକ-ଓନଲି ଆକୃତିଗୁଡ଼ିକ କମ୍ବୋ-ଫିଲ୍ଟର୍ ସାମଗ୍ରୀ ଏବଂ କେବେହେଲେ ବାହାର କରାଯାଏ ନାହିଁ।
+   ଯଦି କିଛି ମିଳେ ନାହିଁ ତେବେ ଛାଡ଼ିଦିଅ।
+3. `resolveVisionBridgeRuntimeSettings()` (`src/shared/constants/modalityBridgeDefaults.ts`)
+   ମାଧ୍ୟମରେ ରନଟାଇମ୍ କନଫିଗ୍ ସମାଧାନ କରନ୍ତୁ: ନୂତନ `modalityBridge*` ସେଟିଂସ୍ କି
+   ଜିତେ; ପୁରୁଣା `visionBridge*` କିଗୁଡ଼ିକ ଏକ **ଏକ-ଚକ୍ର ଫଲବ୍ୟାକ୍** (ରୋଲବ୍ୟାକ୍
+   ୱିଣ୍ଡୋ) ଭାବରେ ରହିଥାଏ। ଯେତେବେଳେ ବ୍ରିଜ୍ ଅକ୍ଷମ ହୋଇଥାଏ ସେତେବେଳେ କୌଣସି ମିଡିଆ
+   ଟ୍ରାଭର୍ସାଲ୍ ପୂର୍ବରୁ ଛାଡ଼ିଦିଅ।
+4. ମୋଡ୍ ସିଲେକ୍ଟର୍ (`modalityBridgeVisionMode`, ନିମ୍ନରେ ଥିବା ଟେବୁଲ୍ ଦେଖନ୍ତୁ)
+   ପୁନଃରୁଟ୍ ବନାମ ବର୍ଣ୍ଣନା ନିର୍ଣ୍ଣୟ କରେ। ପୁନଃରୁଟ୍ କେବଳ `model` ସ୍ୱାପ୍ ହୋଇଥିବା
+   `modifiedPayload` ଫେରାଇଥାଏ, ପ୍ଲସ୍ ମେଟା `{ rerouted, fromModel, toModel, imagesKept }`।
+5. ବର୍ଣ୍ଣନା ପଥ: `maxImages` ରେ ଇମେଜ୍ କ୍ୟାପ୍ କରନ୍ତୁ, ଟାସ୍କ-ଆୱେର୍ ପ୍ରମ୍ପ୍ଟ୍
+   କମ୍ପୋଜ୍ କରନ୍ତୁ, ବର୍ଣ୍ଣନା କ୍ୟାଚ୍ ପରାମର୍ଶ କରନ୍ତୁ, ଭିଜନ୍ ମଡେଲ୍କୁ **ସମାନ୍ତରାଳ
+   ଭାବରେ** କଲ୍ କରନ୍ତୁ (`Promise.allSettled`), ଏବଂ `[Image N]: <description>`
+   ଟେକ୍ସଟ୍ ଅଂଶଗୁଡ଼ିକୁ ସେମାନଙ୍କ ସ୍ଥାନରେ ଇଞ୍ଜେକ୍ଟ କରନ୍ତୁ। ଏକ ବିଫଳ ବର୍ଣ୍ଣନା `null`
+   ଫେରାଇଥାଏ ଏବଂ ମୂଳ ଇମେଜ୍ ଅଂଶ **ସଂରକ୍ଷିତ** ହୋଇଥାଏ (#4012) — କମ୍ବୋ ବର୍ଣ୍ଣନା
+   ପଥରେ ଯେତେବେଳେ ପ୍ରତ୍ୟେକ ବର୍ଣ୍ଣନା ବିଫଳ ହୋଇଥାଏ, ସେତେବେଳେ ଏକ ନିଶ୍ଚିତ ନନ୍-ଭିଜନ୍
+   ଉପରମୁହାଁକୁ ଏକ `(unavailable — no vision-capable provider connected)` ଷ୍ଟବ୍
+   ମିଳିଥାଏ (#8430)।
+6. `modifiedPayload` + ମେଟା (`imagesProcessed`, `descriptions`,
+   `processingTimeMs`, `visionModel`) ଫେରାଇଥାଏ।
 
 #### ମୋଡ୍ ସିଲେକ୍ଟର୍ (`modalityBridgeVisionMode`)
 
-| ମୋଡ୍       | ଡିଫଲ୍ଟ | ଆଚରଣ                                                                                                                                                                                                                                                                                        |
-| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auto`     | ✔      | ପୁରୁଣା heuristic, ଅପରିବର୍ତ୍ତିତ (#6640/#7204): ମୂଳ ମଡେଲ୍ରେ ପୂର୍ବରୁ ବ୍ୟବହାରଯୋଗ୍ୟ credential ନଥିଲେ non-combo/`auto/` ମଡେଲ୍ଗୁଡ଼ିକ ସର୍ବୋତ୍ତମ ଭିଜନ୍ ମଡେଲ୍କୁ ପୁନଃରୁଟ୍ ହୁଅନ୍ତି (ଥିଲେ ବର୍ଣ୍ଣନା କରନ୍ତି); combo ଟାର୍ଗେଟ୍ଗୁଡ଼ିକ ସର୍ବଦା ବର୍ଣ୍ଣନା କରନ୍ତି।                                                 |
-| `describe` |        | ସର୍ବଦା ବର୍ଣ୍ଣନା କରନ୍ତୁ — ପୁନଃରୁଟ୍ ବ୍ଲକ୍ଟି ସମ୍ପୂର୍ଣ୍ଣ ଭାବେ ଛାଡ଼ିଦିଆଯାଏ; ବ୍ୟବହାରକାରୀଙ୍କ ଚୟନିତ ମଡେଲ୍ ସର୍ବଦା ଉତ୍ତର ଦିଏ।                                                                                                                                                                         |
-| `reroute`  |        | ପୁନଃରୁଟ୍ ବାଧ୍ୟ କରନ୍ତୁ: credential-ଥିବା-ମଡେଲ୍ ରଖିବାର guard ବାଇପାସ୍ ହୁଏ। ପୁନଃରୁଟ୍-**ଟାର୍ଗେଟ୍** credential guard ତଥାପି ପ୍ରୟୋଗ ହୁଏ — କୌଣସି ବ୍ୟବହାରଯୋଗ୍ୟ ଭିଜନ୍ ଟାର୍ଗେଟ୍ ନଥିଲେ, ଅନୁରୋଧଟି describeକୁ ଫଲ୍-ଥ୍ରୁ କରେ, ଯାହାଦ୍ୱାରା କଞ୍ଚା ଛବିଗୁଡ଼ିକ କେବେବି କେବଳ-ପାଠ୍ୟ ବ୍ୟାକେଣ୍ଡ୍କୁ ପହଞ୍ଚେ ନାହିଁ (#8430)। |
+| ମୋଡ୍       | ଡିଫଲ୍ଟ | ବ୍ୟବହାର                                                                                                                                                                                                                                                                                                           |
+| ---------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto`     | ✔      | ପୁରୁଣା ହ୍ୟୁରିଷ୍ଟିକ୍, ଅସ୍ପୃଶ୍ୟ (#6640/#7204): ନନ୍-କମ୍ବୋ/`auto/` ମଡେଲ୍ଗୁଡ଼ିକ ସର୍ବୋତ୍ତମ ଭିଜନ୍ ମଡେଲ୍କୁ ପୁନଃରୁଟ୍ କରନ୍ତି ଯଦି ନୂଆ ମଡେଲ୍ରେ ପୂର୍ବରୁ ବ୍ୟବହାର ଯୋଗ୍ୟ ପ୍ରମାଣପତ୍ର ନଥାଏ (ତା’ପରେ ବର୍ଣ୍ଣନା କରନ୍ତୁ); କମ୍ବୋ ଟାର୍ଗେଟ୍ଗୁଡ଼ିକ ସର୍ବଦା ବର୍ଣ୍ଣନା କରନ୍ତି।                                                                   |
+| `describe` |        | ସର୍ବଦା ବର୍ଣ୍ଣନା କରନ୍ତୁ — ପୁନଃରୁଟ୍ ବ୍ଲକ୍ ସମ୍ପୂର୍ଣ୍ଣ ରୂପେ ଛାଡ଼ି ଦିଆଯାଏ; ଉପଭୋକ୍ତାଙ୍କ ଦ୍ୱାରା ଚୟନ କରାଯାଇଥିବା ମଡେଲ୍ ସର୍ବଦା ଉତ୍ତର ଦିଏ।                                                                                                                                                                                   |
+| `reroute`  |        | ପୁନଃରୁଟ୍ ବାଧ୍ୟ କରନ୍ତୁ: କ୍ରେଡେନ୍ସିଆଲ୍-ଯୁକ୍ତ ମଡେଲ୍ ଗାର୍ଡକୁ ବାଇପାସ୍ କରାଯାଏ। ପୁନଃରୁଟ୍-**ଟାର୍ଗେଟ୍** କ୍ରେଡେନ୍ସିଆଲ୍ ଗାର୍ଡ ଏବେ ମଧ୍ୟ ପ୍ରଯୁଜ୍ୟ — ଯେତେବେଳେ କୌଣସି ବ୍ୟବହାର ଯୋଗ୍ୟ ଭିଜନ୍ ଟାର୍ଗେଟ୍ ନଥାଏ, ଅନୁରୋଧ ବର୍ଣ୍ଣନା କରିବାକୁ ଫଲ୍ ଥ୍ରୁ କରେ ଯାହାଫଳରେ କଞ୍ଚା ଛବିଗୁଡ଼ିକ କେବେହେଲେ ଏକ ଟେକ୍ସଟ୍-ଓନଲି ବ୍ୟାକେଣ୍ଡରେ ପହଞ୍ଚେ ନାହିଁ (#8430)। |
 
-ବାଧ୍ୟତାମୂଳକ ମୋଡ୍ଗୁଡ଼ିକ auto heuristic ଚାଲିବାର **ପୂର୍ବରୁ** short-circuit କରେ;
-`auto` ଆଚରଣ PR-1 ପୂର୍ବବର୍ତ୍ତୀ guardrail ସହିତ byte-identical ଅଟେ।
+ଫୋର୍ସଡ୍ ମୋଡ୍ଗୁଡ଼ିକ ଅଟୋ ହ୍ୟୁରିଷ୍ଟିକ୍ ଚାଲିବା **ପୂର୍ବରୁ** ସର୍ଟ-ସର୍କିଟ୍ କରନ୍ତି;
+`auto` ବ୍ୟବହାର PR-1 ପୂର୍ବ ଗାର୍ଡରେଲ୍ ସହିତ ବାଇଟ୍-ଆଇଡେଣ୍ଟିକାଲ୍ ଅଟେ।
 
-#### କାର୍ଯ୍ୟ-ସଚେତନ describe prompt (`modalityBridgeVisionTaskAware`)
+#### ଟାସ୍କ-ଆୱେର୍ ବର୍ଣ୍ଣନା ପ୍ରମ୍ପ୍ଟ୍ (`modalityBridgeVisionTaskAware`)
 
-ଡିଫଲ୍ଟ **true**। `composeVisionPrompt()` (`visionBridgeHelpers.ts`) ମୂଳ
-describe promptରେ **ଶେଷ ବ୍ୟବହାରକାରୀ ସନ୍ଦେଶ**ର ପାଠ୍ୟ (500 ଅକ୍ଷର ପର୍ଯ୍ୟନ୍ତ ସଂକ୍ଷିପ୍ତ) ଯୋଡ଼େ,
-ଯାହା ବ୍ୟବହାରକାରୀ ପ୍ରକୃତରେ କ’ଣ ପଚାରିଥିଲେ ସେହି ଦିଗରେ ବର୍ଣ୍ଣନାକୁ ନିର୍ଦ୍ଦେଶିତ କରେ
-(codex-vision-proxy pattern) ଏବଂ ଭିଜନ୍ ମଡେଲ୍କୁ ଦୃଶ୍ୟମାନ ପାଠ୍ୟ ଟ୍ରାନ୍ସକ୍ରାଇବ୍ କରିବାକୁ କହେ।
-ଫ୍ଲାଗ୍ ବନ୍ଦ ଥିଲେ — କିମ୍ବା କୌଣସି ବ୍ୟବହାରକାରୀ ପାଠ୍ୟ ନଥିଲେ — ମୂଳ promptଟି ଅପରିବର୍ତ୍ତିତ ଭାବେ ବ୍ୟବହୃତ ହୁଏ।
+ଡିଫଲ୍ଟ **true**। `composeVisionPrompt()` (`visionBridgeHelpers.ts`)
+**ଶେଷ ଉପଭୋକ୍ତା ବାର୍ତ୍ତା** (500 ଅକ୍ଷରକୁ ଟ୍ରଙ୍କେଟ୍ ହୋଇଛି) ର ଟେକ୍ସଟ୍କୁ ମୂଳ
+ବର୍ଣ୍ଣନା ପ୍ରମ୍ପ୍ଟ୍ରେ ଯୋଡିଥାଏ, ବର୍ଣ୍ଣନାକୁ ଉପଭୋକ୍ତା ପ୍ରକୃତରେ ଯାହା ପଚାରିଛନ୍ତି
+ତାହା ଆଡକୁ ନିର୍ଦ୍ଦେଶିତ କରିଥାଏ (codex-vision-proxy ପ୍ୟାଟର୍ନ) ଏବଂ ଭିଜନ୍ ମଡେଲ୍କୁ
+ଦୃଶ୍ୟମାନ ଟେକ୍ସଟ୍ ଟ୍ରାନ୍ସକ୍ରାଇବ୍ କରିବାକୁ କହିଥାଏ। ଫ୍ଲାଗ୍ ବନ୍ଦ ଥିଲେ — କିମ୍ବା
+କୌଣସି ଉପଭୋକ୍ତା ଟେକ୍ସଟ୍ ନଥିଲେ — ମୂଳ ପ୍ରମ୍ପ୍ଟ୍ ଅପରିବର୍ତ୍ତିତ ଭାବରେ ବ୍ୟବହୃତ ହୁଏ।
 
-describe ସେଲ୍ଫ-ଲୁପ୍ର ନିଜସ୍ୱ OpenAI-ସୁସଙ୍ଗତ ଅନୁରୋଧ (`callVisionModelSingle()`
-in `visionBridgeHelpers.ts`) ସର୍ବଦା `image_url.detail: "high"` ଅନୁରୋଧ କରେ —
-ନିଃସର୍ତ୍ତ ଭାବରେ, ପ୍ରତ୍ୟେକ କଲର୍/ପ୍ରଦାତା ପାଇଁ, କୌଣସି କ୍ଲାଏଣ୍ଟ ସଙ୍କେତ ଦ୍ୱାରା ନିୟନ୍ତ୍ରିତ ନୁହେଁ।
-ଏହି ପ୍ରମ୍ପ୍ଟ ଯେଉଁ ପାଠ୍ୟ-ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ କାର୍ଯ୍ୟ ଚାହୁଁଛି, ଠିକ୍ ସେହି କାର୍ଯ୍ୟ ପାଇଁ
-କମ୍-ବିବରଣୀ ସ୍ୟାମ୍ପଲିଂ OCR ସଠିକତାକୁ ହ୍ରାସ କରେ, ତେଣୁ ମୂଳ ଆଗମନକାରୀ ଅନୁରୋଧ
-କେଉଁ ବିବରଣୀ ସ୍ତର ବ୍ୟବହାର କରିଥିଲା ତାହା ନିର୍ବିଶେଷରେ describe କଲ୍ ନିଜେ ସର୍ବଦା
-ଉଚ୍ଚ ବିବରଣୀ ଚାହେଁ। ଏହା କେବଳ ଆଭ୍ୟନ୍ତରୀଣ describe ଅନୁରୋଧ ବଡିକୁ ପ୍ରଭାବିତ କରେ;
-ପ୍ରାଥମିକ ଅନୁରୋଧରେ OmniRoute କିପରି କଲର୍ର ନିଜସ୍ୱ `image_url.detail` ଫରୱାର୍ଡ କରେ,
-ତାହା ଏହା ପରିବର୍ତ୍ତନ କରେନାହିଁ — ସେହି ଡିଫଲ୍ଟ ପୃଥକ ଭାବରେ ପ୍ରୟୋଗ ହୁଏ ଏବଂ କେବଳ
-ଚିହ୍ନଟ ହୋଇଥିବା OpenCode କ୍ଲାଏଣ୍ଟ ପାଇଁ `defaultImageDetail()`
-(`open-sse/handlers/chatCore/upstreamBody.ts`)ରେ ପ୍ରୟୋଗ ହୁଏ। describe ସେଲ୍ଫ-ଲୁପ୍ର
-Anthropic ୱାୟାର୍-ଫର୍ମାଟ୍ ଶାଖାରେ କୌଣସି `detail` ଫିଲ୍ଡ ନାହିଁ ଏବଂ ଉଭୟ ଡିଫଲ୍ଟ
-ଦ୍ୱାରା ଏହା ପ୍ରଭାବିତ ହୁଏନାହିଁ।
+ସେଲ୍ଫ-ଲୁପ୍ର ନିଜସ୍ୱ OpenAI-ସୁସଙ୍ଗତ ଅନୁରୋଧ (`callVisionModelSingle()`
+`visionBridgeHelpers.ts` ରେ) ସର୍ବଦା `image_url.detail: "high"` ଅନୁରୋଧ କରେ —
+ସର୍ତ୍ତହୀନ ଭାବରେ, ପ୍ରତ୍ୟେକ କଲର୍/ପ୍ରଦାନକାରୀଙ୍କ ପାଇଁ, କୌଣସି କ୍ଲାଏଣ୍ଟ ସିଗ୍ନାଲ୍ ଉପରେ ନିର୍ଭର କରେ ନାହିଁ।
+ନିମ୍ନ-ବିସ୍ତୃତ ନମୁନାକରଣ OCR ସଠିକତାକୁ ହ୍ରାସ କରେ, ଠିକ୍ ଏହି ପ୍ରମ୍ପ୍ଟ ଦ୍ୱାରା ଅନୁରୋଧ କରାଯାଇଥିବା ଟେକ୍ସଟ୍-ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ କାର୍ଯ୍ୟ ପାଇଁ, ତେଣୁ ବର୍ଣ୍ଣନା କଲ୍ ନିଜେ ସର୍ବଦା ଉଚ୍ଚ ବିସ୍ତୃତତା ପାଇଁ ଅନୁରୋଧ କରେ, ମୂଳ ଇନବାଉଣ୍ଡ ଅନୁରୋଧରେ କେଉଁ ବିସ୍ତୃତ ସ୍ତର ବ୍ୟବହୃତ ହୋଇଥିଲା ତାହା ନିର୍ବିଶେଷରେ। ଏହା
+କେବଳ ଆଭ୍ୟନ୍ତରୀଣ ବର୍ଣ୍ଣନା ଅନୁରୋଧ ବଡିକୁ ପ୍ରଭାବିତ କରେ; ଏହା
+OmniRoute କିପରି ପ୍ରାଥମିକ ଅନୁରୋଧରେ କଲର୍ର ନିଜସ୍ୱ `image_url.detail` ଫରୱାର୍ଡ କରେ ତାହା ପରିବର୍ତ୍ତନ କରେ ନାହିଁ —
+ସେହି ଡିଫଲ୍ଟ ଅଲଗା ଭାବରେ ପ୍ରୟୋଗ କରାଯାଏ, ଏବଂ କେବଳ ଚିହ୍ନଟ ହୋଇଥିବା OpenCode କ୍ଲାଏଣ୍ଟମାନଙ୍କ ପାଇଁ,
+`defaultImageDetail()` (`open-sse/handlers/chatCore/upstreamBody.ts`) ରେ।
+ବର୍ଣ୍ଣନା ସେଲ୍ଫ-ଲୁପ୍ର Anthropic ୱାୟର୍-ଫର୍ମାଟ୍ ଶାଖାରେ କୌଣସି `detail` ଫିଲ୍ଡ ନାହିଁ ଏବଂ ଏହା କୌଣସି ଡିଫଲ୍ଟ ଦ୍ୱାରା ପ୍ରଭାବିତ ହୁଏ ନାହିଁ।
 
-#### Describe ଆଉଟପୁଟ୍ ସୀମା (`modalityBridgeVisionMaxChars`)
+#### ବର୍ଣ୍ଣନା ଆଉଟପୁଟ୍ କ୍ୟାପ୍ (`modalityBridgeVisionMaxChars`)
 
-| କୀ                             | ଡିଫଲ୍ଟ | ପରିସର                |
+| କି                             | ଡିଫଲ୍ଟ | ପରିସର                |
 | ------------------------------ | ------ | -------------------- |
 | `modalityBridgeVisionMaxChars` | `0`    | `0` କିମ୍ବା 100–50000 |
 
-`0` (ଡିଫଲ୍ଟ)ର ଅର୍ଥ **କୌଣସି ସୀମା ନାହିଁ** — `callVisionModel()` ଦ୍ୱାରା
-ଫେରାଯାଇଥିବା ବର୍ଣ୍ଣନାକୁ ଅପରିବର୍ତ୍ତିତ ଭାବରେ ପଠାଯାଏ, ଯାହା ବର୍ତ୍ତମାନର ଆଚରଣକୁ
-ସଂରକ୍ଷିତ ରଖେ। 100–50000 ପରିସରର ଯେକୌଣସି ମୂଲ୍ୟ ବର୍ଣ୍ଣନାକୁ `[Image N]: <description>`
-ଭାବରେ ପୁଣି ଯୋଡ଼ାଯିବା ପୂର୍ବରୁ `…` ସଫିକ୍ସ ସହିତ ଛୋଟ କରେ
-(`src/lib/guardrails/visionBridge.ts`ରେ `VisionBridgeGuardrail.preCall()`)।
-ଯେଉଁ ବିବରଣୀ-ସମୃଦ୍ଧ OCR କାର୍ଯ୍ୟରେ ଡାଉନ୍ଷ୍ଟ୍ରିମ୍ ମଡେଲ୍କୁ ସମ୍ପୂର୍ଣ୍ଣ
-ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ ଆବଶ୍ୟକ, ସେଠାରେ ଏହାକୁ ବଢ଼ାନ୍ତୁ; ଅଧିକ ଆଉଟପୁଟ୍ ଦେଉଥିବା
-ଭିଜନ୍ ମଡେଲ୍ଗୁଡ଼ିକରେ ଟୋକେନ୍ ବ୍ୟବହାର ସୀମିତ ରଖିବାକୁ ଏହାକୁ କମାନ୍ତୁ।
-ଡ୍ୟାସ୍ବୋର୍ଡ ଫିଲ୍ଡଟି Vision ଟ୍ୟାବ୍ର Advanced ପ୍ୟାନେଲ୍ରେ ରହିଛି
-(`ModalityBridgeVisionTab.tsx`ରେ `modality-bridge-max-chars`) ଏବଂ ସ୍ପଷ୍ଟ `0`କୁ
-ଅପରିବର୍ତ୍ତିତ ରଖି 1ରୁ 99 ମଧ୍ୟରେ ଥିବା ଯେକୌଣସି ମୂଲ୍ୟକୁ ସର୍ବନିମ୍ନ 100 ପର୍ଯ୍ୟନ୍ତ
-ବଢ଼ାଏ — `0` କେବଳ "ସେଟ୍ ହୋଇନଥିବା" ଡିଫଲ୍ଟ ନୁହେଁ, ବରଂ ନିଜ ଅଧିକାରରେ
-ଏକ ବୈଧ Zod ମୂଲ୍ୟ
-(`z.union([z.literal(0), z.number().int().min(100).max(50000)])`)।
+`0` (ଡିଫଲ୍ଟ) ର ଅର୍ଥ ହେଉଛି **କୌଣସି କ୍ୟାପ୍ ନାହିଁ** — `callVisionModel()` ଦ୍ୱାରା ଫେରସ୍ତ କରାଯାଇଥିବା ବର୍ଣ୍ଣନା ଅପରିବର୍ତ୍ତିତ ଭାବରେ ପାସ୍ କରାଯାଏ,
+ବିଦ୍ୟମାନ ବ୍ୟବହାରକୁ ସଂରକ୍ଷିତ ରଖେ। 100–50000 ପରିସରରେ ଥିବା ଯେକୌଣସି ମୂଲ୍ୟ
+ବର୍ଣ୍ଣନାକୁ `…` ସଫିକ୍ସ ସହିତ ଟ୍ରଙ୍କେଟ୍ କରେ, ଏହାକୁ `[Image N]: <description>`
+(`VisionBridgeGuardrail.preCall()` `src/lib/guardrails/visionBridge.ts` ରେ) ଭାବରେ ପୁନଃ ସଂଯୋଗ କରିବା ପୂର୍ବରୁ।
+ବିସ୍ତୃତ-ଭାରୀ OCR କାର୍ଯ୍ୟଗୁଡ଼ିକ ପାଇଁ ଏହାକୁ ବଢ଼ାନ୍ତୁ ଯେଉଁଠାରେ ଡାଉନଷ୍ଟ୍ରିମ୍ ମଡେଲକୁ
+ସମ୍ପୂର୍ଣ୍ଣ ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ ଆବଶ୍ୟକ; ଚାଟି ଭିଜନ୍ ମଡେଲଗୁଡ଼ିକରେ ଟୋକେନ୍ ବ୍ୟବହାରକୁ ସୀମିତ କରିବା ପାଇଁ ଏହାକୁ କମାନ୍ତୁ।
+ଡ୍ୟାସବୋର୍ଡ ଫିଲ୍ଡ ଭିଜନ୍ ଟ୍ୟାବ୍ର ଆଡଭାନ୍ସଡ୍ ପ୍ୟାନେଲରେ ରହିଛି
+(`modality-bridge-max-chars` `ModalityBridgeVisionTab.tsx` ରେ) ଏବଂ
+1 ରୁ 99 ମଧ୍ୟରେ ଥିବା ଯେକୌଣସି ମୂଲ୍ୟକୁ 100 ଫ୍ଲୋର୍ ପର୍ଯ୍ୟନ୍ତ କ୍ଲାମ୍ପ୍ କରେ, ଯେତେବେଳେ ଏକ ସ୍ପଷ୍ଟ `0` କୁ
+ଅସ୍ପୃଶ୍ୟ ଛାଡିଦିଏ — `0` ନିଜସ୍ୱ ଅଧିକାରରେ ଏକ ବୈଧ Zod ମୂଲ୍ୟ
+(`z.union([z.literal(0), z.number().int().min(100).max(50000)])`), କେବଳ "ଅନସେଟ୍" ଡିଫଲ୍ଟ ନୁହେଁ।
 
-#### Describe କ୍ୟାଶ୍ (`modalityBridge/bridgeCache.ts`)
+#### ବର୍ଣ୍ଣନା କ୍ୟାଚ୍ (`modalityBridge/bridgeCache.ts`)
 
-describe ଆଉଟପୁଟ୍ଗୁଡ଼ିକ ପାଇଁ ଇନ୍-ମେମୋରି LRU + TTL କ୍ୟାଶ୍, ଯାହା ସମଗ୍ର
-ପ୍ରକ୍ରିୟାରେ ସେୟାର୍ ହୁଏ।
-କୀ = `sha256(imageRef + composedPrompt + configuredBridgeModel)`, ଲେଙ୍ଗ୍ଥ୍-ପ୍ରିଫିକ୍ସ
-ଫ୍ରେମିଂ ସହିତ (କୌଣସି ଫିଲ୍ଡ-ସୀମା ସଂଘର୍ଷ ନାହିଁ)। ମଡେଲ୍ ଉପାଦାନଟି ହେଉଛି
-**ବିନ୍ୟାସିତ** ବ୍ରିଜ୍ ମଡେଲ୍, ପ୍ରକୃତରେ ଉତ୍ତର ଦେଇଥିବା ମଡେଲ୍ ନୁହେଁ —
-`callVisionModel` ଆଭ୍ୟନ୍ତରୀଣ ଭାବେ ଫଲ୍ବ୍ୟାକ୍ କରିପାରେ, ଏବଂ ପ୍ରତ୍ୟେକ ପ୍ରୟାସ
-ଆଧାରରେ କୀ ନିର୍ଦ୍ଧାରଣ କଲେ କ୍ୟାଶ୍ ଖଣ୍ଡିତ ହୋଇଯିବ। ବିଫଳ describeଗୁଡ଼ିକୁ
-କେବେବି କ୍ୟାଶ୍ କରାଯାଏନାହିଁ। ସେଟିଂସମୂହ:
+ବର୍ଣ୍ଣନା ଆଉଟପୁଟ୍ଗୁଡ଼ିକ ପାଇଁ ଇନ୍-ମେମୋରୀ LRU + TTL କ୍ୟାଚ୍, ପ୍ରକ୍ରିୟା-ବ୍ୟାପକ ଭାବରେ ଅଂଶୀଦାର।
+କି = `sha256(imageRef + composedPrompt + configuredBridgeModel)` ଲମ୍ବ-ପ୍ରିଫିକ୍ସ ଫ୍ରେମିଂ ସହିତ (କୌଣସି ଫିଲ୍ଡ-ସୀମା ଧକ୍କା ନାହିଁ)। ମଡେଲ୍ ଉପାଦାନ ହେଉଛି
+**କନଫିଗର୍ଡ** ବ୍ରିଜ୍ ମଡେଲ୍, ମଡେଲ୍ ନୁହେଁ ଯାହା ପ୍ରକୃତରେ ଉତ୍ତର ଦେଇଛି —
+`callVisionModel` ଆଭ୍ୟନ୍ତରୀଣ ଭାବରେ ଫଲ୍ ବ୍ୟାକ୍ କରିପାରେ, ଏବଂ ପ୍ରତ୍ୟେକ ପ୍ରୟାସ ପାଇଁ କିଇଂ
+କ୍ୟାଚ୍ କୁ ଖଣ୍ଡିତ କରିବ। ବିଫଳ ବର୍ଣ୍ଣନାଗୁଡ଼ିକ କେବେହେଲେ କ୍ୟାଚ୍ ହୁଅନ୍ତି ନାହିଁ। ସେଟିଂସମୂହ:
 
-| କୀ                              | ଡିଫଲ୍ଟ | ପରିସର   |
+| କି                              | ଡିଫଲ୍ଟ | ପରିସର   |
 | ------------------------------- | ------ | ------- |
 | `modalityBridgeCacheEnabled`    | `true` | —       |
 | `modalityBridgeCacheTtlMinutes` | `60`   | 1–1440  |
 | `modalityBridgeCacheMaxEntries` | `200`  | 10–5000 |
 
-#### ରିମୋଟ୍ ଇମେଜ୍ ସାମାନ୍ୟୀକରଣ (ସେଲ୍ଫ-ଲୁପ୍ describe/base64 ଫେଚ୍)
+#### ରିମୋଟ୍ ଇମେଜ୍ ନର୍ମାଲାଇଜେସନ୍ (ସେଲ୍ଫ-ଲୁପ୍ ବର୍ଣ୍ଣନା/base64 ଫେଚ୍)
 
-ବ୍ରିଜ୍ ନିଜେ ଏକ **ରିମୋଟ୍** ଇମେଜ୍ ଫେଚ୍ କରିବାବେଳେ — Anthropic describe
+ଯେତେବେଳେ ବ୍ରିଜ୍ ନିଜେ ଏକ **ରିମୋଟ୍** ଇମେଜ୍ ଫେଚ୍ କରେ — Anthropic ବର୍ଣ୍ଣନା
 ସେଲ୍ଫ-କଲ୍ ଏବଂ claude-wire-format base64 ରୂପାନ୍ତରଣ
-(`ensureBase64ImagesForClaudeWire`), ଉଭୟ `visionBridgeHelpers.ts`ର
-`fetchRemoteImageAsDataUri()` ମାଧ୍ୟମରେ — ଫଳାଫଳ ଡାଟା URIକୁ ଭିଜନ୍-ମଡେଲ୍
-ଅନୁରୋଧରେ ଏମ୍ବେଡ୍ କରାଯିବା ପୂର୍ବରୁ `normalizeDataUri()`
-(`open-sse/utils/imageNormalize.ts`) ମାଧ୍ୟମରେ ପଠାଯାଏ। ଅତ୍ୟଧିକ ବଡ଼
-ଇମେଜ୍ଗୁଡ଼ିକୁ **2048px ଲମ୍ବା ଧାର** ପର୍ଯ୍ୟନ୍ତ ଡାଉନ୍ସ୍କେଲ୍ କରାଯାଏ
-(OpenAI/Anthropic ପୂର୍ବରୁ ସର୍ଭର୍-ସାଇଡ୍ରେ ପ୍ରୟୋଗ କରୁଥିବା ରିସାଇଜ୍ ସୀମା ସହ
-ମେଳ ଖାଉଛି), ଯାହା ଭିଜନ୍ ମଡେଲ୍ କଣ ଦେଖେ ତାହା ପରିବର୍ତ୍ତନ ନକରି ଅପଲୋଡ୍
-ବାଇଟ୍/ବିଳମ୍ବ କମାଏ। ରିସାଇଜିଂ ପାଇଁ ଡାଇନାମିକ୍ ଇମ୍ପୋର୍ଟ ମାଧ୍ୟମରେ ଲୋଡ୍
-ହୋଇଥିବା `sharp` ବ୍ୟବହୃତ ହୁଏ: ଯେଉଁ ପ୍ଲାଟଫର୍ମରେ ଏହାର ନେଟିଭ୍ ବାଇନେରୀ
-ଲୋଡ୍ ହେବାରେ ବିଫଳ ହୁଏ, ସେଠାରେ `normalizeDataUri()` **କେବେବି ଥ୍ରୋ କରେନାହିଁ** —
-ଏହା ମୂଳ ବାଇଟ୍ଗୁଡ଼ିକର ପାସ୍ଥ୍ରୁକୁ ଫଲ୍ବ୍ୟାକ୍ କରେ, ତେଣୁ
-describe/base64-ରୂପାନ୍ତରଣ ପଥ ସର୍ବଦା କାମ କରିଚାଲେ। ଅଣ-ଇମେଜ୍ ବାଇଟ୍ଗୁଡ଼ିକ
-(ଏପରି ଏକ ଫେଚ୍ ଯାହା ଡିକୋଡ୍ କରାଯାଇପାରୁଥିବା ଇମେଜ୍ ଫେରାଇନଥିଲା) ମଧ୍ୟ
-ଅପରିବର୍ତ୍ତିତ ଭାବରେ ପଠାଯାଏ। ଏହି ସାମାନ୍ୟୀକରଣ ବ୍ରିଜ୍ ନିଜ ସେଲ୍ଫ-କଲ୍ ପାଇଁ
-ଫେଚ୍ କରୁଥିବା ଇମେଜ୍ଗୁଡ଼ିକ ମଧ୍ୟରେ ସୀମିତ — ଏହା କଲର୍ର କଞ୍ଚା ପାସ୍ଥ୍ରୁ
-ପେଲୋଡ୍ରେ କେବେବି ପ୍ରୟୋଗ ହୁଏନାହିଁ, ଯାହା କେବଳ ଅପ୍ଟ୍-ଇନ୍ ମ୍ୟୁଟେସନ୍
-ନୀତି (Hard Rule #20) ସହିତ ସୁସଙ୍ଗତ।
+(`ensureBase64ImagesForClaudeWire`), ଉଭୟ `fetchRemoteImageAsDataUri()`
+`visionBridgeHelpers.ts` ରେ — ଫଳସ୍ୱରୂପ ଡାଟା URI
+`normalizeDataUri()` (`open-sse/utils/imageNormalize.ts`) ମାଧ୍ୟମରେ ପାସ୍ କରାଯାଏ
+ଭିଜନ୍-ମଡେଲ୍ ଅନୁରୋଧରେ ଏମ୍ବେଡ୍ ହେବା ପୂର୍ବରୁ। ଅତ୍ୟଧିକ ବଡ଼ ଇମେଜ୍ଗୁଡ଼ିକ ଏକ **2048px ଲମ୍ବା ଧାର** କୁ ଡାଉନସ୍କେଲ୍ କରାଯାଏ
+(OpenAI/Anthropic ସର୍ଭର-ସାଇଡ୍ ରେ ପ୍ରୟୋଗ କରୁଥିବା ରିସାଇଜ୍ କ୍ୟାପ୍ ସହିତ ମେଳ ଖାଉଛି), ଯାହା
+ଭିଜନ୍ ମଡେଲ୍ ଯାହା ଦେଖେ ତାହା ପରିବର୍ତ୍ତନ ନକରି ଅପଲୋଡ୍ ବାଇଟ୍/ଲେଟେନ୍ସି କାଟେ। ରିସାଇଜିଂ
+`sharp` ବ୍ୟବହାର କରେ, ଡାଇନାମିକ୍ ଇମ୍ପୋର୍ଟ ମାଧ୍ୟମରେ ଲୋଡ୍ ହୁଏ: ଏକ ପ୍ଲାଟଫର୍ମରେ ଯେଉଁଠାରେ ଏହାର ନେଟିଭ୍
+ବାଇନାରୀ ଲୋଡ୍ ହେବାରେ ବିଫଳ ହୁଏ, `normalizeDataUri()` **କେବେହେଲେ ଥ୍ରୋ କରେ ନାହିଁ** — ଏହା
+ମୂଳ ବାଇଟ୍ଗୁଡ଼ିକର ଏକ ପାସଥ୍ରୁକୁ ଫଲ୍ ବ୍ୟାକ୍ କରେ, ତେଣୁ ବର୍ଣ୍ଣନା/base64-ରୂପାନ୍ତରଣ
+ପଥ ସର୍ବଦା କାର୍ଯ୍ୟ କରୁଥାଏ। ଅଣ-ଇମେଜ୍ ବାଇଟ୍ଗୁଡ଼ିକ (ଏକ ଫେଚ୍ ଯାହା ଏକ ଡିକୋଡେବଲ୍ ଇମେଜ୍ ଫେରାଇଲା ନାହିଁ)
+ମଧ୍ୟ ଅସ୍ପୃଶ୍ୟ ଭାବରେ ପାସ୍ କରାଯାଏ। ଏହି ନର୍ମାଲାଇଜେସନ୍ ବ୍ରିଜ୍ ନିଜର ସେଲ୍ଫ-କଲ୍ ପାଇଁ ଫେଚ୍ କରୁଥିବା ଇମେଜ୍ଗୁଡ଼ିକ ପାଇଁ ସ୍କୋପ୍ କରାଯାଇଛି — ଏହା
+କଲର୍ର ମୂଳ ପାସଥ୍ରୁ ପେଲୋଡ୍ ଉପରେ କେବେହେଲେ ପ୍ରୟୋଗ କରାଯାଏ ନାହିଁ, ଅପ୍ଟ-ଇନ୍-ଓନଲି ମ୍ୟୁଟେସନ୍ ନୀତି
+(ହାର୍ଡ ରୁଲ୍ #20) ସହିତ ସୁସଙ୍ଗତ।
 
-#### ସେଟିଂସ୍ ସ୍କିମା + ମାଇଗ୍ରେସନ୍
+#### ସେଟିଂସ ସ୍କିମା + ମାଇଗ୍ରେସନ୍
 
-ନୂତନ `modalityBridge*` କୀଗୁଡ଼ିକୁ `updateSettingsSchema`
-(`src/shared/validation/settingsSchemas.ts`)ରେ Zod ଦ୍ୱାରା ବୈଧୀକରଣ କରାଯାଏ:
-`modalityBridgeVisionEnabled`, `modalityBridgeVisionMode`, `modalityBridgeVisionModel`,
-`modalityBridgeVisionTaskAware`, `modalityBridgeVisionPrompt`,
-`modalityBridgeVisionTimeout`, `modalityBridgeVisionMaxImages`,
-`modalityBridgeVisionMaxChars`, `modalityBridgeCache*` ତ୍ରୟୀ, ଏବଂ Audio Bridge
-ଦ୍ୱାରା ବ୍ୟବହୃତ `modalityBridgeAudio*` ଗୋଷ୍ଠୀ। ମାଇଗ୍ରେସନ୍
-`141_modality_bridge_settings.sql` ବର୍ତ୍ତମାନର ଲେଗେସି `visionBridge*` ମୂଲ୍ୟଗୁଡ଼ିକୁ
-ମେଳ ଖାଉଥିବା ନୂତନ କୀଗୁଡ଼ିକୁ କପି କରେ (ଇଡେମ୍ପୋଟେଣ୍ଟ, ଅପରେଟର୍ଙ୍କ ଦ୍ୱାରା
-ସେଟ୍ କରାଯାଇଥିବା `modalityBridge*` ମୂଲ୍ୟକୁ କେବେବି ଓଭର୍ରାଇଟ୍ କରେନାହିଁ);
-ଗୋଟିଏ ରିଲିଜ୍ ଚକ୍ର ପାଇଁ ଲେଗେସି କୀଗୁଡ଼ିକ ରିଡ୍ ଫଲ୍ବ୍ୟାକ୍ ଭାବରେ ଗ୍ରହଣୀୟ
-ହୋଇ ରହିବ।
+ନୂତନ `modalityBridge*` କିଗୁଡ଼ିକ `updateSettingsSchema`
+(`src/shared/validation/settingsSchemas.ts`) ରେ Zod-ଭାଲିଡେଟ୍ ହୋଇଛି: `modalityBridgeVisionEnabled`,
+`modalityBridgeVisionMode`, `modalityBridgeVisionModel`, `modalityBridgeVisionTaskAware`,
+`modalityBridgeVisionPrompt`, `modalityBridgeVisionTimeout`, `modalityBridgeVisionMaxImages`,
+`modalityBridgeVisionMaxChars`, `modalityBridgeCache*` ତ୍ରୟ, ଏବଂ ଅଡିଓ ବ୍ରିଜ୍ ଦ୍ୱାରା ବ୍ୟବହୃତ
+`modalityBridgeAudio*` ଗ୍ରୁପ୍। ମାଇଗ୍ରେସନ୍
+`141_modality_bridge_settings.sql` ବିଦ୍ୟମାନ ଲେଗାସି
+`visionBridge*` ମୂଲ୍ୟଗୁଡ଼ିକୁ ମେଳ ଖାଉଥିବା ନୂତନ କିଗୁଡ଼ିକରେ କପି କରେ (ଇଡେମ୍ପୋଟେଣ୍ଟ,
+କେବେହେଲେ ଏକ ଅପରେଟର-ସେଟ୍ `modalityBridge*` ମୂଲ୍ୟକୁ ଓଭରରାଇଟ୍ କରେ ନାହିଁ); ଲେଗାସି କିଗୁଡ଼ିକ
+ଗୋଟିଏ ରିଲିଜ୍ ଚକ୍ର ପାଇଁ ଏକ ରିଡ୍ ଫଲ୍ ବ୍ୟାକ୍ ଭାବରେ ଗ୍ରହଣୀୟ ରହେ।
 
-#### ସ୍ୱଚ୍ଛତା ହେଡର୍ + ପରିସଂଖ୍ୟାନ
+#### ସ୍ୱଚ୍ଛତା ହେଡର୍ + ଷ୍ଟାଟସ୍
 
-Describe-ରୂପାନ୍ତରିତ ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକରେ
+ବର୍ଣ୍ଣନା-ଟ୍ରାନ୍ସଫର୍ମଡ୍ ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକ
 `x-omniroute-modality-bridge: image->text;model=<visionModel>;parts=<n>`
-ରହେ (`modalityBridge/bridgeStats.ts`ରେ `buildModalityBridgeHeader()` ଦ୍ୱାରା
-ନିର୍ମିତ, `src/sse/handlers/chatHelpers.ts`ରେ `withModalityBridgeHeader()` ଦ୍ୱାରା
-ଷ୍ଟାମ୍ପ କରାଯାଇଥାଏ)। ପୁନଃରୁଟ୍ କରାଯାଇଥିବା ଅନୁରୋଧଗୁଡ଼ିକ କୌଣସି ହେଡର୍
-ପାଆନ୍ତି ନାହିଁ — ପେଲୋଡ୍ ଅପରିବର୍ତ୍ତିତ ଥିଲା ଏବଂ ମଡେଲ୍ ପରିବର୍ତ୍ତନ
-ପ୍ରତିକ୍ରିୟା ବଡିର `model` ଫିଲ୍ଡରେ ପୂର୍ବରୁ ଦୃଶ୍ୟମାନ।
+( `modalityBridge/bridgeStats.ts` ରେ `buildModalityBridgeHeader()` ଦ୍ୱାରା ନିର୍ମିତ,
+`src/sse/handlers/chatHelpers.ts` ରେ `withModalityBridgeHeader()` ଦ୍ୱାରା ଷ୍ଟାମ୍ପ୍ ହୋଇଛି) ବହନ କରେ।
+ପୁନଃରୁଟ୍ ହୋଇଥିବା ଅନୁରୋଧଗୁଡ଼ିକ **କୌଣସି** ହେଡର୍ ପାଆନ୍ତି ନାହିଁ — ପେଲୋଡ୍ ଅସ୍ପୃଶ୍ୟ ଥିଲା ଏବଂ ମଡେଲ୍
+ସ୍ୱାପ୍ ପ୍ରତିକ୍ରିୟା ବଡିର `model` ଫିଲ୍ଡରେ ପୂର୍ବରୁ ଦୃଶ୍ୟମାନ।
 
-`GET /api/modality-bridge/stats` (ପରିଚାଳନା ପ୍ରାମାଣିକରଣ, `GET /api/settings` ସହିତ
-ସମାନ ସ୍ତର) `vision`, `audio`, ଏବଂ `video` ପାଇଁ ଇନ୍-ମେମୋରି ପ୍ରତି-ମୋଡାଲିଟି
-କାଉଣ୍ଟର୍ଗୁଡ଼ିକ
+`GET /api/modality-bridge/stats` (ମ୍ୟାନେଜମେଣ୍ଟ ଅଥ୍, `GET /api/settings` ସହିତ ସମାନ ଟାୟର୍)
+ଇନ୍-ମେମୋରୀ ପ୍ରତି-ମୋଡାଲିଟି କାଉଣ୍ଟର୍ଗୁଡ଼ିକୁ ଫେରସ୍ତ କରେ
 `{ attempts, successes, bridged, cacheHits, failures, totalLatencyMs,
-latencySamples, averageLatencyMs, lastUsedAt }` ଫେରାଏ। `averageLatencyMs`
-ଏହାର ହର ଭାବରେ ସମସ୍ତ ପ୍ରୟାସ ନୁହେଁ, `latencySamples` ବ୍ୟବହାର କରେ;
-ସମୟ ମାପନ ବିନା ଏକ ଅପରେସନ୍ କୃତ୍ରିମ ଭାବରେ ଶୂନ୍ୟ-ମିଲିସେକେଣ୍ଡ ନମୁନା
-ତିଆରି କରେନାହିଁ। ସଫଳ ରୂପାନ୍ତରଣ ପାଇଁ `bridged` ପଛୁଆ-ସୁସଙ୍ଗତ ଉପନାମ
-ଭାବରେ ରହିଥାଏ; ବିଫଳ ପ୍ରୟାସଗୁଡ଼ିକ ଏହାକୁ ବୃଦ୍ଧି କରେନାହିଁ।
-ଡିଜାଇନ୍ ଅନୁଯାୟୀ ପ୍ରକ୍ରିୟା ପୁନଃଆରମ୍ଭ ହେଲେ କାଉଣ୍ଟର୍ଗୁଡ଼ିକ ରିସେଟ୍ ହୁଏ
+latencySamples, averageLatencyMs, lastUsedAt }` `vision`, `audio`, ଏବଂ
+`video` ପାଇଁ। `averageLatencyMs` ଏହାର ଡିନୋମିନେଟର ଭାବରେ `latencySamples` ବ୍ୟବହାର କରେ,
+ସମସ୍ତ ପ୍ରୟାସ ନୁହେଁ; ଟାଇମିଂ ବିନା ଏକ ଅପରେସନ୍ ଶୂନ୍ୟ-ମିଲିସେକେଣ୍ଡ ନମୁନା ତିଆରି କରେ ନାହିଁ।
+`bridged` ସଫଳ ରୂପାନ୍ତରଣ ପାଇଁ ପଛୁଆ-ସୁସଙ୍ଗତ ଉପନାମ ଭାବରେ ରହେ; ବିଫଳ ପ୍ରୟାସଗୁଡ଼ିକ ଏହାକୁ ବଢ଼ାନ୍ତି ନାହିଁ।
+କାଉଣ୍ଟର୍ଗୁଡ଼ିକ ଡିଜାଇନ୍ ଅନୁଯାୟୀ ପ୍ରକ୍ରିୟା ପୁନଃ ଆରମ୍ଭରେ ରିସେଟ୍ ହୁଅନ୍ତି
 (ଟେଲିମେଟ୍ରି, ଆକାଉଣ୍ଟିଂ ନୁହେଁ)।
 
-#### ଡ୍ୟାସ୍ବୋର୍ଡ ବିନ୍ୟାସ
+#### ଡ୍ୟାସବୋର୍ଡ କନଫିଗରେସନ୍
 
-ନିର୍ଦ୍ଦିଷ୍ଟ ଡ୍ୟାସ୍ବୋର୍ଡ ପୃଷ୍ଠାଟି ହେଉଛି
-`/dashboard/settings/modality-bridge`। ଏହାର URL ମାଧ୍ୟମରେ ଆକ୍ସେସ୍ଯୋଗ୍ୟ `Vision`, `Audio`,
-ଏବଂ `Video` ଟ୍ୟାବ୍ଗୁଡ଼ିକ `tab` ମୂଲ୍ୟ ପରିବର୍ତ୍ତନ କରିବା ସମୟରେ କ୍ୱେରୀ ପାରାମିଟରଗୁଡ଼ିକୁ ସଂରକ୍ଷିତ ରଖନ୍ତି।
-Vision ଟ୍ୟାବ୍ରେ ସକ୍ଷମକରଣ, ମୋଡ୍, ମଡେଲ୍ ଚୟନ (ସ୍ୱୟଂଚାଳିତ
-ଡିଫଲ୍ଟ ସହିତ), କାର୍ଯ୍ୟ-ସଚେତନ ପ୍ରମ୍ପ୍ଟିଂ, ଉନ୍ନତ ଟାଇମ୍ଆଉଟ୍/ଛବି/ବର୍ଣ୍ଣନା-ଦୈର୍ଘ୍ୟ/କ୍ୟାଶ୍
-ସୀମା, ରନ୍ଟାଇମ୍
-କାଉଣ୍ଟର ଏବଂ ଏକ ସୁରକ୍ଷିତ ନମୁନା ଅନୁରୋଧ ଉପଲବ୍ଧ। Audio ଟ୍ୟାବ୍ଟି ମଧ୍ୟ ସକ୍ରିୟ: ଏଥିରେ
-ସକ୍ଷମକରଣ, Auto ସହିତ କେବଳ-STT ମଡେଲ୍ ଚୟନକାରୀ, ଟାଇମ୍ଆଉଟ୍/ସର୍ବାଧିକ-କ୍ଲିପ୍ ସୀମା, ଅଡିଓ
-କାଉଣ୍ଟର ଏବଂ ଏକ `input_audio` ନମୁନା ପରୀକ୍ଷା ଉପଲବ୍ଧ। Video ଟ୍ୟାବ୍ଟି କାର୍ଯ୍ୟକ୍ଷମ: ଏହା
-FFmpeg/ffprobe ରନ୍ଟାଇମ୍ ସ୍ଥିତି ଦର୍ଶାଏ — ଚାରୋଟି ସ୍ପଷ୍ଟ UI ସ୍ଥିତି ମଧ୍ୟରୁ ଗୋଟିଏ (ପ୍ରୋବ୍
-ଚାଲୁଥିବାବେଳେ କିମ୍ବା ସମ୍ପୂର୍ଣ୍ଣ ହୋଇପାରିନଥିଲେ `unknown`, ଏକ ନନ୍-ଲୁପ୍ବ୍ୟାକ୍
-ଡ୍ୟାସ୍ବୋର୍ଡ ହୋଷ୍ଟରେ କ୍ଲାଏଣ୍ଟ ପକ୍ଷରୁ ପ୍ରୋବ୍ ଏଡ଼ାଇ ଦିଆଯାଇଥିଲେ `restricted`,
-ପ୍ରୋବ୍ ପରେ ଅନୁପଲବ୍ଧତା ନିଶ୍ଚିତ ହେଲେ `unavailable`, କିମ୍ବା FFmpeg/ffprobe ସଂସ୍କରଣ ସହିତ
-`available`) — ସକ୍ଷମକରଣ/ମଡେଲ୍/ଫ୍ରେମ୍/ଭିଡିଓ/ଟାଇମ୍ଆଉଟ୍ ସୀମାଗୁଡ଼ିକୁ ସ୍ଥାୟୀ ଭାବେ ସଂରକ୍ଷଣ କରେ,
-ମଡେଲ୍ ଚୟନକାରୀକୁ ଭିଜନ୍-ସକ୍ଷମ ମଡେଲ୍ଗୁଡ଼ିକ ପର୍ଯ୍ୟନ୍ତ ଫିଲ୍ଟର୍ କରେ,
-ଏବଂ ଭିଡିଓ କାଉଣ୍ଟର ଉପଲବ୍ଧ କରାଏ।
+ଉତ୍ସର୍ଗୀକୃତ ଡ୍ୟାସବୋର୍ଡ ପୃଷ୍ଠା ହେଉଛି
+`/dashboard/settings/modality-bridge`। ଏହାର URL-addressable `Vision`, `Audio`,
+ଏବଂ `Video` ଟ୍ୟାବଗୁଡ଼ିକ `tab` ମୂଲ୍ୟ ବଦଳାଇବା ସମୟରେ query parameters ସଂରକ୍ଷଣ କରେ।
+Vision ଟ୍ୟାବ୍ enablement, mode, model selection (automatic default ସହିତ), task-aware prompting, advanced timeout/image/description-length/cache
+limits, runtime
+counters, ଏବଂ ଏକ guarded sample request ପ୍ରକାଶ କରେ। Audio ଟ୍ୟାବ୍ ମଧ୍ୟ ଲାଇଭ୍ ଅଛି: ଏହା enablement, Auto ସହିତ ଏକ STT-only model picker, timeout/max-clip limits, audio
+counters, ଏବଂ ଏକ `input_audio` sample test ପ୍ରକାଶ କରେ। Video ଟ୍ୟାବ୍ କାର୍ଯ୍ୟକ୍ଷମ ଅଟେ: ଏହା FFmpeg/ffprobe runtime state ରିପୋର୍ଟ କରେ — ଚାରୋଟି ସ୍ପଷ୍ଟ UI states ମଧ୍ୟରୁ ଗୋଟିଏ (`unknown` ଯେତେବେଳେ probe ଚାଲୁଥାଏ କିମ୍ବା ସମ୍ପୂର୍ଣ୍ଣ ହୋଇପାରିନଥାଏ, `restricted` ଏକ non-loopback
+ଡ୍ୟାସବୋର୍ଡ ହୋଷ୍ଟରେ ଯେଉଁଠାରେ probe client-side ରେ ଛଡାଯାଏ, `unavailable` ଥରେ probed ହୋଇ ନଥିବା ନିଶ୍ଚିତ ହେଲେ, କିମ୍ବା `available` FFmpeg/ffprobe versions ସହିତ) — enable/model/frame/video/timeout limits କୁ ସ୍ଥାୟୀ କରେ, model picker କୁ vision-capable
+models ରେ ଫିଲ୍ଟର କରେ, ଏବଂ video counters ପ୍ରକାଶ କରେ।
 
-AI ସେଟିଂସ୍ ଅଧୀନରେ ଥିବା ପୂର୍ବତନ Vision Bridge କାର୍ଡଟି ଏବେ ନୂଆ
-ପୃଷ୍ଠା ପାଇଁ ଏକ ସୁସଙ୍ଗତତା ଲିଙ୍କ୍; ଏହା ଆଉ ଫର୍ମ୍ର ଦ୍ୱିତୀୟ କପିକୁ ଧାରଣ କରେନାହିଁ। Media Providers ମଧ୍ୟ
-ବର୍ତ୍ତମାନର Speech-to-Text ପ୍ଲେଗ୍ରାଉଣ୍ଡକୁ ଅପସାରଣ ନକରି Image-to-Text ଏବଂ Speech-to-Text କାର୍ଯ୍ୟପ୍ରବାହଗୁଡ଼ିକୁ
-ସମ୍ପୃକ୍ତ Modality
-Bridge ଟ୍ୟାବ୍ଗୁଡ଼ିକ ସହିତ ଲିଙ୍କ୍ କରେ।
+AI ସେଟିଂସରେ ଥିବା ପୂର୍ବତନ Vision Bridge କାର୍ଡ ନୂତନ ପୃଷ୍ଠାକୁ ଏକ ସୁସଙ୍ଗତ ଲିଙ୍କ ଅଟେ; ଏହା ଆଉ ଫର୍ମର ଦ୍ୱିତୀୟ କପି ଧାରଣ କରେ ନାହିଁ। ମିଡିଆ ପ୍ରୋଭାଇଡରମାନେ ମଧ୍ୟ Image-to-Text ଏବଂ Speech-to-Text ୱାର୍କଫ୍ଲୋଗୁଡ଼ିକୁ ସମ୍ପୃକ୍ତ Modality
+Bridge ଟ୍ୟାବଗୁଡ଼ିକ ସହିତ ସଂଯୋଗ କରନ୍ତି, ବିଦ୍ୟମାନ Speech-to-Text playground କୁ ନହଟାଇ।
 
-**ସେଲ୍ଫ୍-ଲୁପ୍ ଆଡ୍ମିଶନ୍ ବାଇପାସ୍:** describe କଲ୍ଟି OmniRouteର
-ନିଜସ୍ୱ `/v1` ସେଲ୍ଫ୍-ଲୁପ୍ (ଅଣ-ମାନକ ପ୍ରଦାନକାରୀ ମଡେଲ୍) ମାଧ୍ୟମରେ ରୁଟ୍ ହେଲେ, ଉପ-ଅନୁରୋଧଟି
-`x-omniroute-admission-bypass: internal` ପଠାଏ ଏବଂ ସମାଧାନ କରାଯାଇଥିବା
-ସେଲ୍ଫ୍-ଲୁପ୍ ପ୍ରମାଣପତ୍ର ସହିତ ପ୍ରାମାଣୀକୃତ ହୁଏ — ଲୋକାଲ୍ ମୋଡ୍ରେ ସ୍ଥାନୀୟ `sk_omniroute` ସେଣ୍ଟିନେଲ୍, କିମ୍ବା
-ଅପରେଟର୍ଙ୍କ ଦ୍ୱାରା ବିନ୍ୟାସିତ `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env କୀ (#1350), ଯାହାଦ୍ୱାରା
-`REQUIRE_API_KEY=true` ଡିପ୍ଲୟମେଣ୍ଟଗୁଡ଼ିକ ମଧ୍ୟ describe କଲ୍ ଚଳାଇପାରିବେ। କେବଳ ସେହି ନିର୍ଦ୍ଦିଷ୍ଟ
-ପ୍ରମାଣପତ୍ରଗୁଡ଼ିକ ପାଇଁ ବାଇପାସ୍କୁ ସମ୍ମାନ ଦିଆଯାଏ, ତେଣୁ ବାହ୍ୟ କ୍ଲାଏଣ୍ଟମାନେ
-ଆଡ୍ମିଶନ୍ ଏଡ଼ାଇବା ପାଇଁ ଏହି ହେଡର୍ ବ୍ୟବହାର କରିପାରିବେ ନାହିଁ।
+**Self-loop admission bypass:** ଯେତେବେଳେ describe call OmniRoute ର ନିଜସ୍ୱ `/v1` self-loop (non-standard provider model) ମାଧ୍ୟମରେ ରୁଟ୍ ହୁଏ, ସବ୍-ରିକ୍ୱେଷ୍ଟ `x-omniroute-admission-bypass: internal` ପଠାଏ ଏବଂ ସମାଧାନ ହୋଇଥିବା self-loop credential ସହିତ ପ୍ରମାଣିତ ହୁଏ — local mode ରେ ଥିବା ସ୍ଥାନୀୟ `sk_omniroute` sentinel, କିମ୍ବା operator-configured `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env key (#1350) ଯାହାଫଳରେ `REQUIRE_API_KEY=true` deployments ଏବେ ମଧ୍ୟ describe call ଚଳାଇପାରିବେ। ଏହି ବାଇପାସ୍ କେବଳ ସେହି ନିର୍ଦ୍ଦିଷ୍ଟ credentials ପାଇଁ ସମ୍ମାନିତ ହୁଏ, ତେଣୁ ବାହ୍ୟ clients admission ଛାଡ଼ିବା ପାଇଁ header ବ୍ୟବହାର କରିପାରିବେ ନାହିଁ।
 
-ପୁରୁଣା ଡିଫଲ୍ଟଗୁଡ଼ିକ `src/shared/constants/visionBridgeDefaults.ts`ରେ ରହିଛି;
-ନୂଆ ମୋଡ୍/କାର୍ଯ୍ୟ-ସଚେତନ/କ୍ୟାଶ୍ ଡିଫଲ୍ଟ ଏବଂ ସେଟିଂସ୍ ରିଜଲ୍ଭର୍
-`src/shared/constants/modalityBridgeDefaults.ts`ରେ ରହିଛି। ଗାର୍ଡରେଲ୍ ଏକ
-`deps` କନ୍ଷ୍ଟ୍ରକ୍ଟର୍ ବିକଳ୍ପ ଉପଲବ୍ଧ କରାଏ, ଯାହାଦ୍ୱାରା ପରୀକ୍ଷାଗୁଡ଼ିକ ନକଲି `getSettings` ଏବଂ
-`callVisionModel` ଇମ୍ପ୍ଲିମେଣ୍ଟେସନ୍ ଇଞ୍ଜେକ୍ଟ କରିପାରିବେ।
+Legacy defaults `src/shared/constants/visionBridgeDefaults.ts` ରେ ରହିଛି; ନୂତନ mode/task-aware/cache defaults ଏବଂ settings resolver `src/shared/constants/modalityBridgeDefaults.ts` ରେ ରହିଛି। guardrail ଏକ `deps` constructor option ପ୍ରକାଶ କରେ ଯାହାଫଳରେ tests ନକଲି `getSettings` ଏବଂ `callVisionModel` implementation ଗୁଡ଼ିକୁ ଇଞ୍ଜେକ୍ଟ କରିପାରିବେ।
 
 ### Audio Bridge (`audioBridge.ts`) — Modality Bridge PR-3
 
-ଅଡିଓ ଇନ୍ପୁଟ୍ ଗ୍ରହଣ କରୁଥିବା ବୋଲି ଜଣାନଥିବା ଏକ ଲକ୍ଷ୍ୟରେ ପହଞ୍ଚିବା ପୂର୍ବରୁ
-ଅଡିଓ-ସମ୍ବଳିତ ଚାଟ୍ ଅନୁରୋଧଗୁଡ଼ିକୁ ଇଣ୍ଟରସେପ୍ଟ କରେ। ଏହା କେବେବି ଚାଟ୍ ଅନୁରୋଧକୁ ପୁନଃରୁଟ୍ କରେନାହିଁ:
-ବର୍ତ୍ତମାନର OpenAI-ସୁସଙ୍ଗତ ମଲ୍ଟିପାର୍ଟ ଏଣ୍ଡପଏଣ୍ଟ ମାଧ୍ୟମରେ ଅଡିଓ ଅଂଶଗୁଡ଼ିକୁ ଟ୍ରାନ୍ସକ୍ରାଇବ୍ କରାଯାଏ ଏବଂ
-ଚୟନିତ ଚାଟ୍ ମଡେଲ୍ ପାଠ୍ୟ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ସହିତ ଜାରି ରହେ।
+ଅଡିଓ ଇନପୁଟ୍ ଗ୍ରହଣ କରିବାକୁ ଜଣା ନଥିବା ଟାର୍ଗେଟରେ ପହଞ୍ଚିବା ପୂର୍ବରୁ ଏହା ଅଡିଓ-ବହନ କରୁଥିବା ଚାଟ୍ ଅନୁରୋଧଗୁଡ଼ିକୁ ଅଟକାଇଥାଏ। ଏହା କେବେବି ଚାଟ୍ ଅନୁରୋଧକୁ reroute କରେ ନାହିଁ: ଅଡିଓ ଅଂଶଗୁଡ଼ିକ ବିଦ୍ୟମାନ OpenAI-compatible multipart endpoint ମାଧ୍ୟମରେ transcribed ହୁଏ ଏବଂ ଚୟନ କରାଯାଇଥିବା ଚାଟ୍ ମଡେଲ୍ text transcripts ସହିତ ଜାରି ରହେ।
 
-ପ୍ରବାହ:
+Flow:
 
-1. `getResolvedModelCapabilities()` ମାଧ୍ୟମରେ `supportsAudio` ସମାଧାନ କରନ୍ତୁ। ସ୍ପଷ୍ଟ
-   ପ୍ରଦାନକାରୀ-ରେଜିଷ୍ଟ୍ରି ମେଟାଡାଟାକୁ ପ୍ରାଥମିକତା ମିଳେ, ତାହାପରେ ସ୍ଥିର ମଡେଲ୍ ମେଟାଡାଟା, ଏବଂ ତାହାପରେ ସିଙ୍କ୍ ହୋଇଥିବା
-   `modalities_input`। `audio` ବିନା ଏକ ଘୋଷିତ ଇନ୍ପୁଟ୍ ତାଲିକା `false`; କୌଣସି
-   ସାମର୍ଥ୍ୟ ପ୍ରମାଣ ନଥିଲେ ଏହା `null` ରହେ। `false` ଏବଂ `null` ଉଭୟ
-   ସଂରକ୍ଷଣଶୀଳ ବ୍ରିଜ୍କୁ ସକ୍ରିୟ କରନ୍ତି, ଯେତେବେଳେ `true` ଏହାକୁ ବାଇପାସ୍ କରେ।
-2. `modalityBridgeAudio*` ସେଟିଂସ୍ ସମାଧାନ କରନ୍ତୁ ଏବଂ ଅଂଶୀଦାର `detectMediaParts()`
-   ଡିଟେକ୍ଟର୍ ମାଧ୍ୟମରେ ପ୍ରତ୍ୟେକ ସନ୍ଦେଶରୁ ସ୍ପ୍ଲାଇସ୍-ଯୋଗ୍ୟ ଶୀର୍ଷ-ସ୍ତରୀୟ ଅଡିଓ ଅଂଶଗୁଡ଼ିକୁ ନିଷ୍କାସନ କରନ୍ତୁ।
-   ସମର୍ଥିତ ୱାୟାର୍ ଆକୃତିଗୁଡ଼ିକ ହେଉଛି OpenAI `input_audio`, `audio_url`, ଏବଂ
-   `source.media_type: "audio/*"`। ରାଉଟିଂ ପାଇଁ ନେଷ୍ଟେଡ୍ ଅଡିଓ ଚିହ୍ନଟ ହୁଏ, କିନ୍ତୁ
-   ସ୍ପ୍ଲାଇସ୍ ପଥ ଦ୍ୱାରା ଅପସାରିତ ହୁଏନାହିଁ। କାର୍ଯ୍ୟ `modalityBridgeAudioMaxClips` ଦ୍ୱାରା ସୀମିତ;
-   ପରବର୍ତ୍ତୀ ଅଂଶଗୁଡ଼ିକ ଅପରିବର୍ତ୍ତିତ ରହେ।
-3. ବିନ୍ୟାସିତ `provider/model`କୁ ସମ୍ମାନ ଦିଅନ୍ତୁ, କିମ୍ବା `selectAudioBridgeModel()`କୁ
-   ସ୍ଥିର କ୍ୟାଟାଲଗ୍ କ୍ରମରେ `AUDIO_TRANSCRIPTION_PROVIDERS` ମଧ୍ୟରେ ଯାଇ ଏକ ବ୍ୟବହାରଯୋଗ୍ୟ
-   ସକ୍ରିୟ ପ୍ରଦାନକାରୀ ପ୍ରମାଣପତ୍ର ଥିବା ପ୍ରଥମ ମଡେଲ୍ ଚୟନ କରିବାକୁ ଦିଅନ୍ତୁ।
-4. `callAudioTranscription()` base64/data-URI ଅଡିଓକୁ ଏକ ମଲ୍ଟିପାର୍ଟ
-   `file`ରେ ରୂପାନ୍ତର କରେ, କିମ୍ବା DNS ପିନିଂ ଏବଂ 25 MB ସୀମା ସହିତ ପବ୍ଲିକ୍-ଓନ୍ଲି ଆଉଟ୍ବାଉଣ୍ଡ
-   ଗାର୍ଡ ମାଧ୍ୟମରେ ଏକ ରିମୋଟ୍ `audio_url` ଡାଉନ୍ଲୋଡ୍ କରେ। ତାହାପରେ ଏହା `resolveSelfLoopBearer()` ସହିତ
-   ପ୍ରାମାଣୀକୃତ ହୋଇ ଫାଇଲ୍ ଏବଂ ଚୟନିତ ମଡେଲ୍କୁ ସ୍ଥାନୀୟ `/v1/audio/transcriptions`
-   ସେଲ୍ଫ୍-ଲୁପ୍କୁ POST କରେ। ବର୍ତ୍ତମାନର ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ ରୁଟ୍ ସାଧାରଣ
-   ପ୍ରମାଣପତ୍ର ଲୁକ୍ଅପ୍, କୁଲ୍ଡାଉନ୍/ରେଟ୍-ଲିମିଟ୍ ପରିଚାଳନା ଏବଂ ପ୍ରଦାନକାରୀ ଡିସ୍ପାଚ୍ ସମ୍ପାଦନ କରେ।
-5. ସଫଳ କଲ୍ଗୁଡ଼ିକ ନିଜ ଅଂଶଗୁଡ଼ିକୁ `[Audio N]: <transcript>` ସହିତ ପ୍ରତିସ୍ଥାପନ କରନ୍ତି। କଲ୍ଗୁଡ଼ିକ
-   `Promise.allSettled` ସହିତ ଚାଲେ: ଗୋଟିଏ ବ୍ୟକ୍ତିଗତ ବିଫଳତା ସେହି ମୂଳ
-   ଅଡିଓ ଅଂଶକୁ ସଂରକ୍ଷିତ ରଖେ (#4012 ଚୁକ୍ତି)। ଯଦି ପ୍ରତ୍ୟେକ କଲ୍ ବିଫଳ ହୁଏ ଏବଂ ଲକ୍ଷ୍ୟଟି
-   `supportsAudio === false` ବୋଲି ପ୍ରମାଣିତ, ତେବେ ଅଂଶଗୁଡ଼ିକ
-   `[Audio N]: (unavailable — no STT provider connected)` ହୋଇଯାଏ (#8430 ଚୁକ୍ତି)। ଏକ
-   ଅଜଣା ଲକ୍ଷ୍ୟ (`null`) ପାଇଁ, ସମସ୍ତ-ବିଫଳ ଫଳାଫଳ ଅପରିବର୍ତ୍ତିତ ରହେ। କୌଣସି ବ୍ୟବହାରଯୋଗ୍ୟ STT
-   ପ୍ରମାଣପତ୍ର ନଥିବା ଏକ ପ୍ରମାଣିତ କେବଳ-ପାଠ୍ୟ ଲକ୍ଷ୍ୟ ନେଟ୍ୱର୍କ କଲ୍ ଜାରି ନକରି ସେହି ସମାନ ସ୍ପଷ୍ଟ
-   ଷ୍ଟବ୍ ପାଏ।
+1.  `getResolvedModelCapabilities()` ମାଧ୍ୟମରେ `supportsAudio` ସମାଧାନ କରନ୍ତୁ। ସ୍ପଷ୍ଟ provider-registry metadata ଜିତେ, ତାପରେ static model metadata, ତାପରେ synced `modalities_input`। `audio` ବିନା ଏକ ଘୋଷିତ ଇନପୁଟ୍ ତାଲିକା `false` ଅଟେ; କୌଣସି capability evidence `null` ରହେ। `false` ଏବଂ `null` ଉଭୟ conservative bridge କୁ ସକ୍ରିୟ କରନ୍ତି, ଯେତେବେଳେ `true` ଏହାକୁ ବାଇପାସ୍ କରେ।
+2.  `modalityBridgeAudio*` ସେଟିଂସଗୁଡ଼ିକୁ ସମାଧାନ କରନ୍ତୁ ଏବଂ shared `detectMediaParts()` detector ମାଧ୍ୟମରେ ପ୍ରତ୍ୟେକ ମେସେଜରୁ spliceable top-level audio parts ବାହାର କରନ୍ତୁ। ସମର୍ଥିତ wire shapes ହେଉଛି OpenAI `input_audio`, `audio_url`, ଏବଂ `source.media_type: "audio/*"`। Nested audio routing ପାଇଁ detect ହୁଏ କିନ୍ତୁ splice path ଦ୍ୱାରା ହଟାଯାଏ ନାହିଁ। କାର୍ଯ୍ୟ `modalityBridgeAudioMaxClips` ଦ୍ୱାରା ସୀମିତ; ପରବର୍ତ୍ତୀ ଅଂଶଗୁଡ଼ିକ ଅସ୍ପୃଶ୍ୟ ରହେ।
+3.  ଏକ configured `provider/model` କୁ ସମ୍ମାନ କରନ୍ତୁ, କିମ୍ବା `selectAudioBridgeModel()` କୁ stable catalog order ରେ `AUDIO_TRANSCRIPTION_PROVIDERS` ରେ ଚାଲିବାକୁ ଦିଅନ୍ତୁ ଏବଂ ଏକ ବ୍ୟବହାର ଯୋଗ୍ୟ active provider credential ସହିତ ପ୍ରଥମ ମଡେଲ୍ ଚୟନ କରନ୍ତୁ।
+4.  `callAudioTranscription()` base64/data-URI audio କୁ ଏକ multipart `file` ରେ ରୂପାନ୍ତରିତ କରେ, କିମ୍ବା public-only outbound guard ମାଧ୍ୟମରେ DNS pinning ଏବଂ 25 MB bound ସହିତ ଏକ remote `audio_url` ଡାଉନଲୋଡ୍ କରେ। ଏହା ପରେ `resolveSelfLoopBearer()` ସହିତ ପ୍ରମାଣିତ ହୋଇ local `/v1/audio/transcriptions` self-loop କୁ file ଏବଂ ଚୟନ କରାଯାଇଥିବା model POST କରେ। ବିଦ୍ୟମାନ transcription route ସାଧାରଣ credential lookup, cooldown/rate-limit handling, ଏବଂ provider dispatch କାର୍ଯ୍ୟକାରୀ କରେ।
+5.  ସଫଳ call ଗୁଡ଼ିକ ସେମାନଙ୍କର parts କୁ `[Audio N]: <transcript>` ସହିତ ବଦଳାନ୍ତି। Call ଗୁଡ଼ିକ `Promise.allSettled` ସହିତ ଚାଲନ୍ତି: ଏକ ବ୍ୟକ୍ତିଗତ ବିଫଳତା ସେହି ମୂଳ ଅଡିଓ part କୁ ସଂରକ୍ଷଣ କରେ (#4012 contract)। ଯଦି ପ୍ରତ୍ୟେକ call ବିଫଳ ହୁଏ ଏବଂ ଟାର୍ଗେଟ୍ `supportsAudio === false` ପ୍ରମାଣିତ ହୁଏ, ତେବେ parts `[Audio N]: (unavailable — no STT provider connected)` ହୁଏ (#8430 contract)। ଏକ unknown target (`null`) ପାଇଁ, ଏକ ସର୍ବ-ବିଫଳତା ଫଳାଫଳ ଅସ୍ପୃଶ୍ୟ ରହେ। କୌଣସି ବ୍ୟବହାର ଯୋଗ୍ୟ STT credential ବିନା ଏକ ପ୍ରମାଣିତ text-only target ନେଟୱର୍କ call ଜାରି ନକରି ସମାନ ସ୍ପଷ୍ଟ stub ଗ୍ରହଣ କରେ।
 
-ସଫଳ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟଗୁଡ଼ିକ ପ୍ରୋସେସ୍-ବ୍ୟାପୀ Modality Bridge LRU/TTL କ୍ୟାଶ୍ ବ୍ୟବହାର କରନ୍ତି।
-କୀଟି ଅଡିଓ ରେଫରେନ୍ସ, ସ୍ଥିର `audio-transcription` ଅପରେସନ୍
-ଲେବଲ୍ ଏବଂ ଚୟନିତ STT ମଡେଲ୍କୁ ସଂଯୋଜନ କରେ; ବିଫଳତାଗୁଡ଼ିକ କେବେବି କ୍ୟାଶ୍ ହୁଏନାହିଁ। ଅଡିଓ ପ୍ରୟାସଗୁଡ଼ିକ
-ଅଂଶୀଦାର `bridged`, `cacheHits`, `failures`, ଏବଂ `lastUsedAt` କାଉଣ୍ଟରଗୁଡ଼ିକୁ ଅପଡେଟ୍ କରେ।
-ରୂପାନ୍ତରିତ ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକ
-`x-omniroute-modality-bridge: audio->text;model=<sttModel>;parts=<n>` ବହନ କରେ; ଅପରିବର୍ତ୍ତିତ
-ଅନୁରୋଧଗୁଡ଼ିକ କୌଣସି Audio Bridge ସେଗ୍ମେଣ୍ଟ ପାଆନ୍ତି ନାହିଁ।
+ସଫଳ transcripts ପ୍ରକ୍ରିୟା-ବ୍ୟାପୀ Modality Bridge LRU/TTL cache ବ୍ୟବହାର କରନ୍ତି। key ଅଡିଓ ରେଫରେନ୍ସ, stable `audio-transcription` operation label, ଏବଂ ଚୟନ କରାଯାଇଥିବା STT model କୁ ମିଶାଇଥାଏ; ବିଫଳତା କେବେବି cached ହୁଏ ନାହିଁ। ଅଡିଓ ପ୍ରୟାସଗୁଡ଼ିକ shared `bridged`, `cacheHits`, `failures`, ଏବଂ `lastUsedAt` counters କୁ ଅପଡେଟ୍ କରନ୍ତି। ରୂପାନ୍ତରିତ ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକ
+`x-omniroute-modality-bridge: audio->text;model=<sttModel>;parts=<n>` ବହନ କରନ୍ତି; ଅସ୍ପୃଶ୍ୟ ଅନୁରୋଧଗୁଡ଼ିକ Audio Bridge segment ଗ୍ରହଣ କରନ୍ତି ନାହିଁ।
 
-ରନ୍ଟାଇମ୍ ସେଟିଂସ୍ DB-ସମର୍ଥିତ ଏବଂ Zod-ବୈଧୀକୃତ:
+ରନଟାଇମ୍ ସେଟିଂସଗୁଡ଼ିକ DB-backed ଏବଂ Zod-validated ଅଟେ:
 
-| କୀ                            | ଡିଫଲ୍ଟ  | ପରିସର              |
-| ----------------------------- | ------- | ------------------ |
-| `modalityBridgeAudioEnabled`  | `true`  | —                  |
-| `modalityBridgeAudioModel`    | `""`    | Auto କିମ୍ବା STT ID |
-| `modalityBridgeAudioTimeout`  | `60000` | 1000–300000        |
-| `modalityBridgeAudioMaxClips` | `3`     | 1–10               |
+| Key                           | Default | Range          |
+| ----------------------------- | ------- | -------------- |
+| `modalityBridgeAudioEnabled`  | `true`  | —              |
+| `modalityBridgeAudioModel`    | `""`    | Auto or STT ID |
+| `modalityBridgeAudioTimeout`  | `60000` | 1000–300000    |
+| `modalityBridgeAudioMaxClips` | `3`     | 1–10           |
 
-ଅଂଶୀଦାର କ୍ୟାଶ୍ଟି `modalityBridgeCacheEnabled`,
-`modalityBridgeCacheTtlMinutes`, ଏବଂ `modalityBridgeCacheMaxEntries` ଦ୍ୱାରା ନିୟନ୍ତ୍ରିତ ହୋଇ ରହେ।
+shared cache `modalityBridgeCacheEnabled`, `modalityBridgeCacheTtlMinutes`, ଏବଂ `modalityBridgeCacheMaxEntries` ଦ୍ୱାରା ନିୟନ୍ତ୍ରିତ ରହେ।
 
 ### Video Bridge (`videoBridge.ts`, `videoBridgePipeline.ts`)
 
-ଜଣାଶୁଣା ନେଟିଭ୍ ଭିଡିଓ ସମର୍ଥନ ନଥିବା କୌଣସି ଲକ୍ଷ୍ୟକୁ କଲ୍ କରାଯିବା ପୂର୍ବରୁ Chat Completions `messages` ଏବଂ Responses
-API `input` ମଧ୍ୟରେ ଥିବା ଶୀର୍ଷ-ସ୍ତରୀୟ ଭିଡିଓ ଅଂଶଗୁଡ଼ିକୁ ଏହା ଇଣ୍ଟରସେପ୍ଟ କରେ।
+Chat Completions `messages` ଏବଂ Responses API `input` ରେ ଥିବା ଟପ୍-ଲେଭଲ୍ ଭିଡିଓ ଅଂଶଗୁଡ଼ିକୁ ଏକ ଟାର୍ଗେଟ୍ ଡାକିବା ପୂର୍ବରୁ ଇଣ୍ଟରସେପ୍ଟ କରେ ଯାହାର ଜଣାଶୁଣା ନେଟିଭ୍ ଭିଡିଓ ସପୋର୍ଟ ନାହିଁ।
 ସମର୍ଥିତ ଆକୃତିଗୁଡ଼ିକ ହେଉଛି `input_video`, `video_url`, `video_source`, HTTPS URL,
-ଏବଂ `data:video/*;base64,...` ଡାଟା URI। ଟେକ୍ସଟ୍ରେ ଥିବା ସାଧାରଣ ଫାଇଲ୍ନାମଗୁଡ଼ିକୁ
-ଭିଡିଓ ଭାବେ ବିବେଚନା କରାଯାଏ ନାହିଁ।
+ଏବଂ `data:video/*;base64,...` ଡାଟା URI। ଟେକ୍ସଟରେ ଥିବା ସାଧାରଣ ଫାଇଲନାମଗୁଡ଼ିକୁ ଭିଡିଓ ଭାବରେ ବିବେଚନା କରାଯାଏ ନାହିଁ।
 
 `VideoBridgeGuardrail.preCall` (`videoBridge.ts`) ଅନୁରୋଧ ଟ୍ରାଭର୍ସାଲ୍,
-କ୍ଷମତା/ନୀତି ଯାଞ୍ଚ, ପ୍ରତି-ଅନୁରୋଧ ସମାହାର ଏବଂ ପ୍ରତିକ୍ରିୟା ପେଲୋଡ୍ ପରିଚାଳନା କରେ।
-ପ୍ରତି-ଭିଡିଓ କାର୍ଯ୍ୟ — ଅଧିଗ୍ରହଣ, ସମ୍ପୂର୍ଣ୍ଣ-ଫଳାଫଳ କ୍ୟାଶ୍, ଫ୍ରେମ୍
-କ୍ରମର ବର୍ଣ୍ଣନା (ଯାହା କଲର୍-ଘୋଷିତ ଯେକୌଣସି ଅଡିଓ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟକୁ ଏକତ୍ର କରେ), ଏବଂ ପ୍ରତି-ପ୍ରୟାସ
-ମେଟ୍ରିକ୍ସ/ବାତିଲ୍/କ୍ଲିନଅପ୍ — `videoBridgePipeline.ts` ମଧ୍ୟରେ ଥିବା `processVideoPart` ପଛରେ ଲୁକ୍କାୟିତ,
-ଯାହାକୁ `preCall`-ର ଲୁପ୍ ଭିତରେ ପ୍ରତ୍ୟେକ ଭିଡିଓ ଅଂଶ ପାଇଁ ଥରେ କଲ୍ କରାଯାଏ।
-ସେହି ମଡ୍ୟୁଲ୍ ସ୍ପଷ୍ଟ ପୋର୍ଟ ସୀମାଗୁଡ଼ିକ `VideoMediaBrokerPort`
-(ବାଇଟ୍ ଅଧିଗ୍ରହଣ ଏବଂ ନମୁନାଗ୍ରହଣ କରାଯାଇଥିବା ଫ୍ରେମ୍ ବାହାର କରିବା), `VideoAudioTranscriptionPort`
-(କଲର୍-ଘୋଷିତ ଅଡିଓ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟକୁ ନମୁନାଗ୍ରହଣ କରାଯାଇଥିବା କ୍ୟାପ୍ସନ୍ଗୁଡ଼ିକ ସହ ଏକତ୍ର କରିବା), ଏବଂ
-`VideoDrilldownPort` (ଫ୍ରେମ୍ ଡ୍ରିଲ୍-ଡାଉନ୍ ସ୍ଥାୟୀକରଣ ସୀମା; ଏପର୍ଯ୍ୟନ୍ତ
-`processVideoPart` ସହ ୱାୟାର୍ କରାଯାଇନାହିଁ — ବର୍ତ୍ତମାନ କେବଳ ପୃଥକ `/api/modality-bridge/video/drilldown`
-ରୁଟ୍ ଡ୍ରିଲ୍-ଡାଉନ୍ ଏଣ୍ଟ୍ରି ଲେଖେ) ମଧ୍ୟ ପରିଭାଷିତ କରେ।
+କ୍ଷମତା/ନୀତି ଯାଞ୍ଚ, ପ୍ରତି-ଅନୁରୋଧ ଏକତ୍ରୀକରଣ, ଏବଂ ପ୍ରତିକ୍ରିୟା ପେଲୋଡ୍ ର ମାଲିକ ଅଟେ।
+ପ୍ରତି-ଭିଡିଓ କାର୍ଯ୍ୟ — ଅଧିଗ୍ରହଣ, ସମଗ୍ର-ଫଳାଫଳ କ୍ୟାଚ୍, ଏକ ଫ୍ରେମ୍ ସିକ୍ୱେନ୍ସ ବର୍ଣ୍ଣନା
+(ଯାହା କୌଣସି କଲର୍-ଘୋଷିତ ଅଡିଓ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟକୁ ଫ୍ୟୁଜ୍ କରେ), ଏବଂ ପ୍ରତି-ପ୍ରୟାସ ମେଟ୍ରିକ୍ସ/ଆବର୍ଟ/କ୍ଲିନଅପ୍ —
+`preCall` ର ଲୁପ୍ ଭିତରେ ପ୍ରତି ଭିଡିଓ ଅଂଶ ପାଇଁ ଥରେ ଡକାଯାଇଥିବା `videoBridgePipeline.ts` ରେ
+`processVideoPart` ପଛରେ ଲୁଚି ରହିଛି।
+ସେହି ମଡ୍ୟୁଲ୍ ସ୍ପଷ୍ଟ ପୋର୍ଟ ସୀମା `VideoMediaBrokerPort`
+(ବାଇଟ୍ ଅଧିଗ୍ରହଣ କରିବା ଏବଂ ନମୁନାଯୁକ୍ତ ଫ୍ରେମ୍ ବାହାର କରିବା), `VideoAudioTranscriptionPort`
+(ନମୁନାଯୁକ୍ତ କ୍ୟାପସନ୍ ସହିତ ଏକ କଲର୍-ଘୋଷିତ ଅଡିଓ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟକୁ ଫ୍ୟୁଜ୍ କରିବା), ଏବଂ
+`VideoDrilldownPort` (ଫ୍ରେମ୍ ଡ୍ରିଲ୍-ଡାଉନ୍ ପର୍ସିଷ୍ଟେନ୍ସ ସୀମା;
+ଏପର୍ଯ୍ୟନ୍ତ `processVideoPart` ରେ ୱାୟର୍ ହୋଇନାହିଁ — କେବଳ ପୃଥକ `/api/modality-bridge/video/drilldown`
+ରୁଟ୍ ଆଜି ଡ୍ରିଲ୍-ଡାଉନ୍ ଏଣ୍ଟ୍ରି ଲେଖେ) ମଧ୍ୟ ନିର୍ଦ୍ଧାରଣ କରେ।
 
-ସାର୍ବଜନୀନ `/v1` ଅନୁରୋଧ ପଥ କେବେବି କୌଣସି ସବ୍ପ୍ରୋସେସ୍ ଇମ୍ପୋର୍ଟ କିମ୍ବା ଆହ୍ୱାନ କରେ ନାହିଁ। ରିମୋଟ୍
-ଭିଡିଓଗୁଡ଼ିକୁ 50 MiB ସୀମା ଅଧୀନରେ ଡାଉନଲୋଡ୍ କରାଯାଏ; ଇନ୍ଲାଇନ୍ base64 ଭିଡିଓଗୁଡ଼ିକ ପାଇଁ
-ପ୍ରତି-ଭିଡିଓ ଡିକୋଡ୍ କ୍ୟାପ୍ ସାବଧାନତାମୂଳକ ଭାବେ 36 MiB ରଖାଯାଇଛି, ଯାହାଦ୍ୱାରା ମଡେଲ୍/ମେସେଜ୍/ଫ୍ରେମିଂ ଏନ୍ଭେଲପ୍
-ସାର୍ବଜନୀନ JSON ଅନୁରୋଧ ଗ୍ରହଣ ସୀମା 50 MiB ମଧ୍ୟରେ ରହିପାରିବ। ଆବଣ୍ଟନ ପୂର୍ବରୁ
-ଇନ୍ଲାଇନ୍ ଦୈର୍ଘ୍ୟ ଏବଂ ଡିକୋଡ୍ ଆକାରର ଆକଳନ ଯାଞ୍ଚ କରାଯାଏ। ପ୍ରାରମ୍ଭିକ ରିମୋଟ୍ URL ଏବଂ ପ୍ରତ୍ୟେକ ରିଡାଇରେକ୍ଟରେ HTTPS
-ଆବଶ୍ୟକ, ଯେଉଁଥିରେ DNS ପିନିଂ ସହିତ ବିଦ୍ୟମାନ
-କେବଳ-ସାର୍ବଜନୀନ ଆଉଟ୍ବାଉଣ୍ଡ ଗାର୍ଡ ବ୍ୟବହୃତ ହୁଏ। ତା’ପରେ ବାଇଟ୍ଗୁଡ଼ିକ ସଠିକ୍ ଆଭ୍ୟନ୍ତରୀଣ
-`POST /api/modality-bridge/video/extract` ବ୍ରୋକର୍ ସୀମା ଅତିକ୍ରମ କରେ। ସେହି ରୁଟ୍ ଉଭୟ
-`LOCAL_ONLY` ଏବଂ `SPAWN_CAPABLE`, କେବଳ ପ୍ରତି-ପ୍ରୋସେସ୍ ପ୍ରମାଣୀକୃତ,
-ବିଶ୍ୱସ୍ତ-ଲୁପ୍ବ୍ୟାକ୍ ଅନୁରୋଧ ଗ୍ରହଣ କରେ, ଏବଂ କେବେବି କୌଣସି URL, ଫାଇଲ୍ସିଷ୍ଟମ୍ ପଥ, ଏକ୍ସିକ୍ୟୁଟେବଲ୍,
-କିମ୍ବା ଆର୍ଗୁମେଣ୍ଟ ତାଲିକା ଗ୍ରହଣ କରେ ନାହିଁ। API ବଡି-ଆକାର ପାଇପଲାଇନ୍ ଏବଂ ହ୍ୟାଣ୍ଡଲର୍ର କ୍ରମବର୍ଦ୍ଧିଷ୍ଣୁ ବଡି
-ରିଡର୍ ସ୍ୱାଧୀନ ଭାବରେ 50 MiB ବ୍ରୋକର୍ ଇନ୍ପୁଟ୍ କ୍ୟାପ୍ ବାଧ୍ୟତାମୂଳକ କରନ୍ତି। ଏହାର ସୀମିତ କ୍ୟୁ
-ଏକ ସମୟରେ ଗୋଟିଏ ନିଷ୍କାସନ ଚଳାଏ, ଚାରୋଟି ବିଚାରାଧୀନ କାର୍ଯ୍ୟକୁ ଅନୁମତି ଦିଏ, ଏବଂ ବିଚାରାଧୀନ ଇନ୍ପୁଟ୍କୁ
-100 MiB ରେ ସୀମିତ କରେ।
+ସାର୍ବଜନୀନ `/v1` ଅନୁରୋଧ ପଥ କେବେବି ଏକ ସବ୍ପ୍ରୋସେସ୍ ଆମଦାନୀ କରେ ନାହିଁ କିମ୍ବା ଆହ୍ୱାନ କରେ ନାହିଁ।
+ରିମୋଟ୍ ଭିଡିଓଗୁଡ଼ିକ 50 MiB ସୀମା ଅଧୀନରେ ଡାଉନଲୋଡ୍ ହୁଏ; ଇନଲାଇନ୍ base64 ଭିଡିଓଗୁଡ଼ିକର
+ଏକ ରକ୍ଷଣଶୀଳ 36 MiB ଡିକୋଡ୍ ହୋଇଥିବା ପ୍ରତି-ଭିଡିଓ କ୍ୟାପ୍ ଅଛି ଯାହା ଦ୍ୱାରା ମଡେଲ୍/ମେସେଜ୍/ଫ୍ରେମିଂ ଏନଭଲପ୍
+50 MiB ର ସାର୍ବଜନୀନ JSON ଅନୁରୋଧ ପ୍ରବେଶ ସୀମା ମଧ୍ୟରେ ରହିପାରିବ।
+ଆବଣ୍ଟନ ପୂର୍ବରୁ ଇନଲାଇନ୍ ଲମ୍ବ ଏବଂ ଡିକୋଡ୍ ହୋଇଥିବା-ଆକାରର ଆକଳନ ଯାଞ୍ଚ କରାଯାଏ।
+ପ୍ରାରମ୍ଭିକ ରିମୋଟ୍ URL ଏବଂ ପ୍ରତ୍ୟେକ ରିଡାଇରେକ୍ଟରେ HTTPS ଆବଶ୍ୟକ,
+DNS ପିନିଂ ସହିତ ବିଦ୍ୟମାନ ସାର୍ବଜନୀନ-କେବଳ ଆଉଟବାଉଣ୍ଡ ଗାର୍ଡ ବ୍ୟବହାର କରି।
+ବାଇଟ୍ ଗୁଡ଼ିକ ତା’ପରେ ସଠିକ୍ ଆଭ୍ୟନ୍ତରୀଣ `POST /api/modality-bridge/video/extract`
+ବ୍ରୋକର ସୀମା ଅତିକ୍ରମ କରନ୍ତି।
+ସେହି ରୁଟ୍ ଉଭୟ `LOCAL_ONLY` ଏବଂ `SPAWN_CAPABLE`,
+କେବଳ ଏକ ପ୍ରତି-ପ୍ରକ୍ରିୟା ପ୍ରମାଣିତ, ବିଶ୍ୱସ୍ତ-ଲୁପବ୍ୟାକ୍ ଅନୁରୋଧ ଗ୍ରହଣ କରେ,
+ଏବଂ କେବେବି ଏକ URL, ଫାଇଲସିଷ୍ଟମ୍ ପଥ, ଏକ୍ସକ୍ୟୁଟେବଲ୍, କିମ୍ବା ଯୁକ୍ତି ତାଲିକା ଗ୍ରହଣ କରେ ନାହିଁ।
+API ବଡି-ସାଇଜ୍ ପାଇପଲାଇନ୍ ଏବଂ ହ୍ୟାଣ୍ଡଲରର ଇନକ୍ରିମେଣ୍ଟାଲ୍ ବଡି ରିଡର୍
+ସ୍ୱାଧୀନ ଭାବରେ 50 MiB ବ୍ରୋକର ଇନପୁଟ୍ କ୍ୟାପ୍ ଲାଗୁ କରନ୍ତି।
+ଏହାର ସୀମିତ କ୍ୟୁ ଏକ ସମୟରେ ଗୋଟିଏ ଏକ୍ସଟ୍ରାକ୍ସନ୍ ଚଳାଏ,
+ଚାରୋଟି ପେଣ୍ଡିଂ ଜବ୍ ଅନୁମତି ଦିଏ, ଏବଂ ପେଣ୍ଡିଂ ଇନପୁଟ୍ କୁ 100 MiB ରେ ସୀମିତ କରେ।
 
-ବ୍ରୋକର୍ ଭିତରେ, `ffprobe` ଗୋଟିଏ ଗୋପନୀୟ ସ୍ଥାନୀୟ ଫାଇଲ୍ ପଢ଼େ; ସ୍ଥିର ଫର୍ମାଟ୍
-ଅନୁମତି-ତାଲିକାରୁ ପ୍ଲେଲିଷ୍ଟ ଏବଂ ମାନିଫେଷ୍ଟ ଫର୍ମାଟ୍ ବାଦ ଦିଆଯାଇଛି। ଅନୁମୋଦିତ MOV-ପରିବାର
-କଣ୍ଟେନର୍ଗୁଡ଼ିକ ପାଇଁ, ବାହ୍ୟ MOV ଡାଟା ରେଫରେନ୍ସ ଡିଫଲ୍ଟ ଭାବେ ଅକ୍ଷମ ରହେ, ଏବଂ
-ସ୍ଥିର କମାଣ୍ଡ ସେଗୁଡ଼ିକୁ ସକ୍ଷମ କରେ ନାହିଁ। `ffprobe` ଏବଂ `ffmpeg` ଉଭୟ
-କେବଳ-`file` ପ୍ରୋଟୋକଲ୍ ଅନୁମତି-ତାଲିକା, ଗୋଟିଏ ଥ୍ରେଡ୍, ସ୍ଥିର ଆର୍ଗୁମେଣ୍ଟ ଆରେ, କୌଣସି ସେଲ୍ ନୁହେଁ,
-ଏବଂ `PATH` ରୁ ସମାଧାନ କରାଯାଇଥିବା ଏକ୍ସିକ୍ୟୁଟେବଲ୍ ବ୍ୟବହାର କରନ୍ତି। ସଂଲଗ୍ନ-ଚିତ୍ର କଭର୍ ଷ୍ଟ୍ରିମ୍ଗୁଡ଼ିକ
-ପ୍ଲେଯୋଗ୍ୟ ପ୍ରାର୍ଥୀ ନୁହେଁ। ସମସ୍ତ ପ୍ଲେଯୋଗ୍ୟ ଷ୍ଟ୍ରିମ୍କୁ ସୀମାଗୁଡ଼ିକ ପୂରଣ କରିବାକୁ ପଡ଼େ, ଏବଂ
-ନିର୍ଣ୍ଣୟାତ୍ମକ ସର୍ବନିମ୍ନ-ଇଣ୍ଡେକ୍ସ ଫଲ୍ବ୍ୟାକ୍ ପୂର୍ବରୁ ଏକ ସ୍ପଷ୍ଟ ଡିଫଲ୍ଟ ଷ୍ଟ୍ରିମ୍କୁ ପ୍ରାଥମ୍ୟ ଦିଆଯାଏ।
-ଭିଡିଓଗୁଡ଼ିକ 600 ସେକେଣ୍ଡ, ପ୍ରତି ଡାଇମେନ୍ସନ୍ରେ 8,192 ପିକ୍ସେଲ୍, ଏବଂ
-33,554,432 ଉତ୍ସ ପିକ୍ସେଲ୍ରେ ସୀମିତ। FFmpeg 1–16ଟି ମଧ୍ୟବିନ୍ଦୁ JPEG ଫ୍ରେମ୍ର ନମୁନା ନିଏ, ଛୋଟ ଇନ୍ପୁଟ୍ଗୁଡ଼ିକୁ ଅପ୍ସ୍କେଲ୍ ନକରି
-ଦୀର୍ଘ ପାର୍ଶ୍ୱକୁ ସର୍ବାଧିକ 1,024 ପିକ୍ସେଲ୍ ପର୍ଯ୍ୟନ୍ତ ଡାଉନ୍ସ୍କେଲ୍ କରେ, ଏବଂ
-କେବେବି କୌଣସି URL ଗ୍ରହଣ କରେ ନାହିଁ। ନମୁନାଗ୍ରହଣ ଡିଫଲ୍ଟ ଭାବେ `uniform`। ବୈକଳ୍ପିକ
-`scene_aware` ଏବଂ ପରୀକ୍ଷାମୂଳକ `segment_aware` ନୀତିଗୁଡ଼ିକ ପୂର୍ବରୁ ସତ୍ୟାପିତ
-ସ୍ଥାନୀୟ ଷ୍ଟ୍ରିମ୍ ଉପରେ ଗୋଟିଏ ଅତିରିକ୍ତ ସ୍ଥିର FFmpeg ପାସ୍ କରେ, ସୀମିତ
-`showinfo` ଦୃଶ୍ୟ ଟାଇମ୍ଷ୍ଟାମ୍ପ ଚୟନ କରେ, ଏବଂ ଡିଟେକ୍ଟର୍ ବିଫଳତା, ଟାଇମ୍ଆଉଟ୍, ବିକୃତ ଆଉଟ୍ପୁଟ୍, କିମ୍ବା ଖାଲି
-ପ୍ରାର୍ଥୀ ସେଟ୍ରେ ନିର୍ଣ୍ଣୟାତ୍ମକ ଭାବରେ ସେହି ସମାନ uniform ମଧ୍ୟବିନ୍ଦୁଗୁଡ଼ିକୁ ଫେରିଯାଏ। Segment-aware ମୋଡ୍
-ସତ୍ୟାପିତ ଦୃଶ୍ୟ ଅନ୍ତରାଳଗୁଡ଼ିକର ଅନୁପାତରେ ମଧ୍ୟବିନ୍ଦୁ ନମୁନା ଆବଣ୍ଟନ କରେ; segment-aware ପ୍ରମାଣ ଏବଂ ଫଲ୍ବ୍ୟାକ୍ ଆଚରଣ
-ନିମ୍ନରେ ବିସ୍ତୃତ ଭାବେ ଦିଆଯାଇଛି। କଠୋର 16-ଫ୍ରେମ୍ କ୍ୟାପ୍
-ପ୍ରତ୍ୟେକ ନୀତିରେ ଚୟନ ପରେ ପ୍ରୟୋଗ କରାଯାଏ। ଯେତେବେଳେ ଏକ scene-aware ଅନୁରୋଧରେ କେବଳ
-ଗୋଟିଏ-ଫ୍ରେମ୍ ବଜେଟ୍ ଥାଏ, ଏହା ସକ୍ରିୟ ପୂର୍ଣ୍ଣ-ଭିଡିଓ କିମ୍ବା ଫୋକସ୍
-ୱିଣ୍ଡୋର uniform ମଧ୍ୟବିନ୍ଦୁ ବ୍ୟବହାର କରେ ଏବଂ `policyEffective: uniform` ରିପୋର୍ଟ କରେ: ଗୋଟିଏ ଚୟନିତ ଦୃଶ୍ୟ ଫ୍ରେମ୍
-ଉଭୟ ସମୟଗତ ପ୍ରାନ୍ତକୁ ସଂରକ୍ଷଣ କରିପାରିବ ନାହିଁ। ଜଣେ କଲର୍ ବୈକଳ୍ପିକ ଭାବରେ ଏକ
-ସସୀମ ଫୋକସ୍ ୱିଣ୍ଡୋ (`start`/`end` ସେକେଣ୍ଡ) ପ୍ରଦାନ କରିପାରନ୍ତି; ସୀମାଗୁଡ଼ିକୁ ମିଡିଆ
-ଅବଧି ଅନୁଯାୟୀ କ୍ଲାମ୍ପ କରାଯାଏ, ଓଲଟା କିମ୍ବା ଅସସୀମ ୱିଣ୍ଡୋଗୁଡ଼ିକୁ ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଏ, ଏବଂ ସମସ୍ତ ନମୁନାଗ୍ରହଣ
-ନୀତି କେବଳ ସ୍ୱାଭାବିକୀକୃତ ଅନ୍ତରାଳ ମଧ୍ୟରେ କାର୍ଯ୍ୟକାରୀ ହୁଏ। ଫଳସ୍ୱରୂପ
-ୱିଣ୍ଡୋକୁ ନମୁନାଗ୍ରହଣ ମେଟାଡାଟା ଏବଂ ଅବିଶ୍ୱସ୍ତ ବର୍ଣ୍ଣନା
-ପ୍ରିଫିକ୍ସରେ ସାମିଲ କରାଯାଏ, ଯାହାଦ୍ୱାରା ଡାଉନ୍ଷ୍ଟ୍ରିମ୍ ମଡେଲ୍ଗୁଡ଼ିକ ଏକ ଫୋକସ୍ କରାଯାଇଥିବା ଅଂଶକୁ ପୂର୍ଣ୍ଣ
-ଟାଇମ୍ଲାଇନ୍ରୁ ପୃଥକ୍ କରିପାରିବେ।
+ବ୍ରୋକର ଭିତରେ, `ffprobe` ଏକ ପ୍ରାଇଭେଟ୍ ଲୋକାଲ୍ ଫାଇଲ୍ ପଢ଼େ;
+ନିର୍ଦ୍ଧାରିତ ଫର୍ମାଟ୍ ଆଲୋଲିଷ୍ଟ୍ ପ୍ଲେଲିଷ୍ଟ୍ ଏବଂ ମାନିଫେଷ୍ଟ୍ ଫର୍ମାଟ୍ ଗୁଡ଼ିକୁ ବାଦ୍ ଦିଏ।
+ଅନୁମତିପ୍ରାପ୍ତ MOV-ଫ୍ୟାମିଲି କଣ୍ଟେନରଗୁଡ଼ିକ ପାଇଁ,
+ବାହ୍ୟ MOV ଡାଟା ରେଫରେନ୍ସଗୁଡ଼ିକ ଡିଫଲ୍ଟ ଭାବରେ ଅକ୍ଷମ ରହିଥାଏ,
+ଏବଂ ନିର୍ଦ୍ଧାରିତ କମାଣ୍ଡ୍ ସେଗୁଡ଼ିକୁ ଅପ୍ଟ ଇନ୍ କରେ ନାହିଁ।
+ଉଭୟ `ffprobe` ଏବଂ `ffmpeg` `file`-କେବଳ ପ୍ରୋଟୋକଲ୍ ହ୍ୱାଇଟଲିଷ୍ଟ୍,
+ଗୋଟିଏ ଥ୍ରେଡ୍, ନିର୍ଦ୍ଧାରିତ ଯୁକ୍ତି ଆରେ, କୌଣସି ସେଲ୍ ନାହିଁ,
+ଏବଂ `PATH` ରୁ ସମାଧାନ ହୋଇଥିବା ଏକ୍ସକ୍ୟୁଟେବଲ୍ ବ୍ୟବହାର କରନ୍ତି।
+ସଂଲଗ୍ନ-ଚିତ୍ର କଭର ଷ୍ଟ୍ରିମ୍ ଗୁଡ଼ିକ ପ୍ଲେଏବଲ୍ ପ୍ରାର୍ଥୀ ନୁହଁନ୍ତି।
+ସମସ୍ତ ପ୍ଲେଏବଲ୍ ଷ୍ଟ୍ରିମ୍ ଗୁଡ଼ିକୁ ସୀମା ପୂରଣ କରିବାକୁ ପଡ଼ିବ,
+ଏବଂ ଏକ ସ୍ପଷ୍ଟ ଡିଫଲ୍ଟ ଷ୍ଟ୍ରିମ୍ ନିର୍ଦ୍ଧାରିତ ସର୍ବନିମ୍ନ-ସୂଚକାଙ୍କ ଫଲବ୍ୟାକ୍ ପୂର୍ବରୁ ପସନ୍ଦ କରାଯାଏ।
+ଭିଡିଓଗୁଡ଼ିକ 600 ସେକେଣ୍ଡ, ପ୍ରତି ଡାଇମେନ୍ସନରେ 8,192 ପିକ୍ସେଲ,
+ଏବଂ 33,554,432 ସୋର୍ସ ପିକ୍ସେଲରେ ସୀମିତ।
+FFmpeg 1–16 ମଧ୍ୟବର୍ତ୍ତୀ JPEG ଫ୍ରେମ୍ ନମୁନା କରେ,
+ଛୋଟ ଇନପୁଟ୍ ଗୁଡ଼ିକୁ ଅପସ୍କେଲ୍ ନକରି ଲମ୍ବା ଧାରକୁ ସର୍ବାଧିକ 1,024 ପିକ୍ସେଲକୁ ସ୍କେଲ୍ କରେ,
+ଏବଂ କେବେବି ଏକ URL ଗ୍ରହଣ କରେ ନାହିଁ।
+ନମୁନାକରଣ ଡିଫଲ୍ଟ ଭାବରେ `uniform` ଅଟେ।
+ବୈକଳ୍ପିକ `scene_aware` ଏବଂ ପରୀକ୍ଷାମୂଳକ `segment_aware` ନୀତିଗୁଡ଼ିକ
+ପୂର୍ବରୁ ବୈଧ ହୋଇଥିବା ଲୋକାଲ୍ ଷ୍ଟ୍ରିମ୍ ଉପରେ ଗୋଟିଏ ଅତିରିକ୍ତ ନିର୍ଦ୍ଧାରିତ FFmpeg ପାସ୍ କରନ୍ତି,
+ସୀମିତ `showinfo` ସିନ୍ ଟାଇମ୍ଷ୍ଟାମ୍ ଚୟନ କରନ୍ତି,
+ଏବଂ ଡିଟେକ୍ଟର ବିଫଳତା, ଟାଇମ୍ଆଉଟ୍, ମାଲଫର୍ମଡ୍ ଆଉଟପୁଟ୍,
+କିମ୍ବା ଏକ ଖାଲି ପ୍ରାର୍ଥୀ ସେଟ୍ ଉପରେ ସମାନ ୟୁନିଫର୍ମ ମଧ୍ୟବର୍ତ୍ତୀ ବିନ୍ଦୁଗୁଡ଼ିକୁ ନିର୍ଦ୍ଧାରିତ ଭାବରେ ଫଲବ୍ୟାକ୍ କରନ୍ତି।
+ସେଗମେଣ୍ଟ-ଆୱେର୍ ମୋଡ୍ ବୈଧ ହୋଇଥିବା ସିନ୍ ଅନ୍ତରାଳଗୁଡ଼ିକର ଅନୁପାତରେ ମଧ୍ୟବର୍ତ୍ତୀ ନମୁନା ଆବଣ୍ଟନ କରେ;
+ସେଗମେଣ୍ଟ-ଆୱେର୍ ପ୍ରମାଣ ଏବଂ ଫଲବ୍ୟାକ୍ ଆଚରଣ ନିମ୍ନରେ ବିସ୍ତୃତ ଭାବରେ ବର୍ଣ୍ଣନା କରାଯାଇଛି।
+ପ୍ରତ୍ୟେକ ନୀତିରେ ଚୟନ ପରେ କଠିନ 16-ଫ୍ରେମ୍ କ୍ୟାପ୍ ପ୍ରୟୋଗ କରାଯାଏ।
+ଯେତେବେଳେ ଏକ ସିନ୍-ଆୱେର୍ ଅନୁରୋଧରେ କେବଳ ଗୋଟିଏ-ଫ୍ରେମ୍ ବଜେଟ୍ ଥାଏ,
+ଏହା ସକ୍ରିୟ ପୂର୍ଣ୍ଣ-ଭିଡିଓ କିମ୍ବା ଫୋକସ୍ ୱିଣ୍ଡୋର ୟୁନିଫର୍ମ ମଧ୍ୟବର୍ତ୍ତୀ ବିନ୍ଦୁ ବ୍ୟବହାର କରେ
+ଏବଂ `policyEffective: uniform` ରିପୋର୍ଟ କରେ:
+ଏକକ ଚୟନିତ ସିନ୍ ଫ୍ରେମ୍ ଉଭୟ ସାମୟିକ ଶେଷକୁ ସଂରକ୍ଷଣ କରିପାରିବ ନାହିଁ।
+ଏକ କଲର୍ ବୈକଳ୍ପିକ ଭାବରେ ଏକ ସୀମିତ ଫୋକସ୍ ୱିଣ୍ଡୋ (`start`/`end` ସେକେଣ୍ଡ) ପ୍ରଦାନ କରିପାରେ;
+ସୀମାଗୁଡ଼ିକ ମିଡିଆ ଅବଧିରେ କ୍ଲାମ୍ପ୍ ହୋଇଥାଏ,
+ବିପରୀତ କିମ୍ବା ଅସୀମିତ ୱିଣ୍ଡୋଗୁଡ଼ିକ ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଏ,
+ଏବଂ ସମସ୍ତ ନମୁନାକରଣ ନୀତି କେବଳ ସ୍ୱାଭାବିକ ଅନ୍ତରାଳ ଭିତରେ କରାଯାଏ।
+ଫଳସ୍ୱରୂପ ୱିଣ୍ଡୋ ନମୁନାକରଣ ମେଟାଡାଟାରେ ଏବଂ ଅବିଶ୍ୱାସନୀୟ ବର୍ଣ୍ଣନା ପ୍ରିଫିକ୍ସରେ ଅନ୍ତର୍ଭୁକ୍ତ କରାଯାଏ
+ଯାହା ଦ୍ୱାରା ଡାଉନଷ୍ଟ୍ରିମ୍ ମଡେଲ୍ ଗୁଡ଼ିକ ସମ୍ପୂର୍ଣ୍ଣ ଟାଇମ୍ଲାଇନ୍ ରୁ ଏକ ଫୋକସ୍ ହୋଇଥିବା ଅଂଶକୁ ପୃଥକ କରିପାରିବେ।
 
-ସେମାଣ୍ଟିକ୍ କ୍ୟାପ୍ସନ୍ ଫୋକସ୍ ଏକ ପୃଥକ, ସ୍ପଷ୍ଟ ସେଟିଂ। ଡିଫଲ୍ଟ `full`
-ବିଶ୍ଳେଷଣ ମୋଡ୍ ବିଦ୍ୟମାନ ଫ୍ରେମ୍ ପ୍ରମ୍ପ୍ଟକୁ ସଂରକ୍ଷଣ କରେ ଏବଂ କେବେବି ଅନୁରୋଧ ଟେକ୍ସଟ୍କୁ କ୍ୟାପ୍ସନ୍ ମଡେଲ୍କୁ ଅଗ୍ରସର କରେ ନାହିଁ।
-`focused` ମୋଡ୍ରେ, ବ୍ରିଜ୍ ସେହି Chat କିମ୍ବା Responses
-କଣ୍ଟେନର୍ରୁ କେବଳ ସର୍ବଶେଷ ଅଣ-ଖାଲି ବ୍ୟବହାରକାରୀ-ଲିଖିତ `text`/`input_text` ପଢ଼େ, ଏହାକୁ NFC ରେ ସ୍ୱାଭାବିକୀକୃତ କରେ,
-ନିୟନ୍ତ୍ରଣ ବର୍ଣ୍ଣ ଏବଂ ହ୍ୱାଇଟ୍ସ୍ପେସ୍କୁ ସଂକୁଚିତ କରେ,
-ଏବଂ ଏହାକୁ 500 Unicode କୋଡ୍ ପଏଣ୍ଟରେ ସୀମିତ କରେ। ଖାଲି ଫଳାଫଳ ହେଲେ ଏହା ସଠିକ୍ `full` ପ୍ରମ୍ପ୍ଟକୁ ଫେରିଯାଏ। ବ୍ୟବହାରଯୋଗ୍ୟ ସୂଚନାକୁ ଏକ ଉତ୍ସର୍ଗୀକୃତ
-ଅବିଶ୍ୱସ୍ତ-ବ୍ୟବହାରକାରୀ-ପ୍ରସଙ୍ଗ ବ୍ଲକ୍ରେ JSON ଭାବେ ସିରିଆଲାଇଜ୍ କରାଯାଏ ଏବଂ ଏହା କେବଳ ପର୍ଯ୍ୟବେକ୍ଷଣଯୋଗ୍ୟ ବିବରଣୀକୁ
-ପ୍ରାଥମ୍ୟ ଦେଇପାରେ; ମିଡିଆରେ ଦୃଶ୍ୟମାନ କିମ୍ବା ଶ୍ରବଣଯୋଗ୍ୟ ନିର୍ଦ୍ଦେଶଗୁଡ଼ିକୁ ଅନୁସରଣ ନକରିବା ପାଇଁ ଥିବା
-ପୃଥକ ସତର୍କତାକୁ ଏହା ଅଗ୍ରାହ୍ୟ କରିପାରିବ ନାହିଁ। ପାଠ୍ୟ ଫୋକସ୍ କେବେବି `start`/`end` ଅନୁମାନ କରେ ନାହିଁ କିମ୍ବା
-ସମୟଗତ ସ୍ୟାମ୍ପଲର୍କୁ ପରିବର୍ତ୍ତନ କରେ ନାହିଁ।
+ସିମାଣ୍ଟିକ୍ କ୍ୟାପସନ୍ ଫୋକସ୍ ଏକ ପୃଥକ, ସ୍ପଷ୍ଟ ସେଟିଂ ଅଟେ।
+ଡିଫଲ୍ଟ `full` ବିଶ୍ଳେଷଣ ମୋଡ୍ ବିଦ୍ୟମାନ ଫ୍ରେମ୍ ପ୍ରମ୍ପ୍ଟକୁ ସଂରକ୍ଷଣ କରେ
+ଏବଂ କେବେବି ଅନୁରୋଧ ଟେକ୍ସଟ୍ କୁ କ୍ୟାପସନ୍ ମଡେଲ୍ କୁ ଫରୱାର୍ଡ କରେ ନାହିଁ।
+`focused` ମୋଡ୍ ରେ, ବ୍ରିଜ୍ କେବଳ ସମାନ Chat କିମ୍ବା Responses କଣ୍ଟେନରରୁ
+ସର୍ବଶେଷ ଅଣ-ଖାଲି ଉପଭୋକ୍ତା-ଲେଖାଯାଇଥିବା `text`/`input_text` ପଢ଼େ,
+ଏହାକୁ NFC ରେ ସ୍ୱାଭାବିକ କରେ, ନିୟନ୍ତ୍ରଣ ଅକ୍ଷର ଏବଂ ଧଳା ସ୍ଥାନକୁ ସଙ୍କୁଚିତ କରେ,
+ଏବଂ ଏହାକୁ 500 ୟୁନିକୋଡ୍ କୋଡ୍ ପଏଣ୍ଟରେ ସୀମିତ କରେ।
+ଏକ ଖାଲି ଫଳାଫଳ ସଠିକ୍ `full` ପ୍ରମ୍ପ୍ଟକୁ ଫଲବ୍ୟାକ୍ କରେ।
+ଏକ ବ୍ୟବହାର ଯୋଗ୍ୟ ସୂଚନା ଏକ ଉତ୍ସର୍ଗୀକୃତ ଅବିଶ୍ୱାସନୀୟ-ଉପଭୋକ୍ତା-ପ୍ରସଙ୍ଗ ବ୍ଲକରେ JSON ଭାବରେ ସିରିଏଲାଇଜ୍ ହୋଇଥାଏ
+ଏବଂ କେବଳ ଦୃଶ୍ୟମାନ ବିବରଣୀକୁ ପ୍ରାଥମିକତା ଦେଇପାରେ;
+ଏହା ମିଡିଆରେ ଦୃଶ୍ୟମାନ କିମ୍ବା ଶ୍ରାବ୍ୟ ନିର୍ଦ୍ଦେଶାବଳୀ ଅନୁସରଣ କରିବା ବିରୁଦ୍ଧରେ
+ପୃଥକ ଚେତାବନୀକୁ ଅତିକ୍ରମ କରିପାରିବ ନାହିଁ।
+ଟେକ୍ସଚୁଆଲ୍ ଫୋକସ୍ କେବେବି `start`/`end` ଅନୁମାନ କରେ ନାହିଁ କିମ୍ବା ସାମୟିକ ସାମ୍ପଲର୍ ପରିବର୍ତ୍ତନ କରେ ନାହିଁ।
 
-#### FU-07 ଗଠନାତ୍ମକ ସେଗ୍ମେଣ୍ଟ ପ୍ରମାଣ
+#### FU-07 ଗଠନମୂଳକ ସେଗମେଣ୍ଟ ପ୍ରମାଣ
 
-`segment_aware` ପୂର୍ବରୁ ସତ୍ୟାପିତ
-ସ୍ଥାନୀୟ ଭିଡିଓ ଷ୍ଟ୍ରିମ୍ ଉପରେ ଗୋଟିଏ ସୀମିତ ପୂର୍ବ-ବିଶ୍ଳେଷଣ ପାସ୍ ବ୍ୟବହାର କରେ। ସ୍ଥିର ଫିଲ୍ଟର୍ ଶୃଙ୍ଖଳ ପ୍ରଥମେ ସର୍ବାଧିକ 320 ପିକ୍ସେଲ୍
-ପ୍ରସ୍ଥ ପର୍ଯ୍ୟନ୍ତ ସ୍କେଲ୍ କରେ, ଦୃଶ୍ୟ ପରିବର୍ତ୍ତନ ଏବଂ ସ୍ଥିରୀକୃତ ଅନ୍ତରାଳ ଚିହ୍ନଟ କରେ, ତା’ପରେ ଧୁସରତା, ହାରାହାରି ଲୁମା,
-ଏବଂ ସ୍ଥାନିକ/ସମୟଗତ ସୂଚନା ପାଇଁ ପ୍ରତି ସେକେଣ୍ଡରେ 1 ଫ୍ରେମ୍ ନମୁନା ନିଏ। ଏହି ପାସ୍
-600 ଗଠନାତ୍ମକ ନମୁନା, ଗୋଟିଏ FFmpeg/ଫିଲ୍ଟର୍ ଥ୍ରେଡ୍, ସେହି ସମାନ
-କେବଳ-`file` ପ୍ରୋଟୋକଲ୍ ଏବଂ କଣ୍ଟେନର୍ ଅନୁମତି-ତାଲିକା, 1 MiB ପ୍ରୋସେସ୍-ଆଉଟ୍ପୁଟ୍ ସୀମା,
-ଏବଂ ବ୍ରୋକର୍ର ସହଭାଗୀ ବାତିଲ୍/ସମୟସୀମା ଭିତରେ ସର୍ବାଧିକ 30 ସେକେଣ୍ଡ ପର୍ଯ୍ୟନ୍ତ ସୀମିତ। ଏହା କେବେବି
-ଅନୁରୋଧରୁ କୌଣସି କମାଣ୍ଡ, ଫିଲ୍ଟର୍, ପଥ, କିମ୍ବା URL ଗ୍ରହଣ କରେ ନାହିଁ।
+`segment_aware` ପୂର୍ବରୁ ବୈଧ ହୋଇଥିବା ଲୋକାଲ୍ ଭିଡିଓ ଷ୍ଟ୍ରିମ୍ ଉପରେ ଗୋଟିଏ ସୀମିତ ପ୍ରି-ଆନାଲିସିସ୍ ପାସ୍ ବ୍ୟବହାର କରେ।
+ନିର୍ଦ୍ଧାରିତ ଫିଲ୍ଟର ଚେନ୍ ପ୍ରଥମେ ସର୍ବାଧିକ 320 ପିକ୍ସେଲ୍ ଚଉଡ଼ାକୁ ସ୍କେଲ୍ କରେ,
+ସିନ୍ ପରିବର୍ତ୍ତନ ଏବଂ ଫ୍ରୋଜେନ୍ ଅନ୍ତରାଳଗୁଡ଼ିକୁ ଚିହ୍ନଟ କରେ,
+ତା’ପରେ ବ୍ଲର୍, ହାରାହାରି ଲୁମା, ଏବଂ ସ୍ପେସିଆଲ୍/ଟେମ୍ପୋରାଲ୍ ସୂଚନା ପାଇଁ ପ୍ରତି ସେକେଣ୍ଡରେ 1 ଫ୍ରେମ୍ ନମୁନା କରେ।
+ଏହି ପାସ୍ 600 ଗଠନମୂଳକ ନମୁନା, ଗୋଟିଏ FFmpeg/ଫିଲ୍ଟର ଥ୍ରେଡ୍,
+ସମାନ `file`-କେବଳ ପ୍ରୋଟୋକଲ୍ ଏବଂ କଣ୍ଟେନର ଆଲୋଲିଷ୍ଟ୍,
+1 MiB ପ୍ରକ୍ରିୟା-ଆଉଟପୁଟ୍ ସୀମା,
+ଏବଂ ବ୍ରୋକରର ସେୟାର୍ଡ ଆବର୍ଟ/ଡେଡଲାଇନ୍ ଭିତରେ ସର୍ବାଧିକ 30 ସେକେଣ୍ଡରେ ସୀମିତ।
+ଏହା କେବେବି ଅନୁରୋଧରୁ ଏକ କମାଣ୍ଡ୍, ଫିଲ୍ଟର, ପଥ, କିମ୍ବା URL ଗ୍ରହଣ କରେ ନାହିଁ।
 
-ସଂରଚନାତ୍ମକ ମୂଲ୍ୟଗୁଡ଼ିକ ନିର୍ଣ୍ଣୟାତ୍ମକ ସ୍ୟାମ୍ପଲିଂ ପ୍ରମାଣ, ଅର୍ଥଗତ ଭିଡିଓ
-ବୁଝାମଣା ନୁହେଁ। ସେଗୁଡ଼ିକ ବିଷୟବସ୍ତୁ, କାର୍ଯ୍ୟ, କ୍ୟାପ୍ସନ୍, କଥୋପକଥନ କିମ୍ବା ବ୍ୟବହାରକାରୀଙ୍କ
-ଉଦ୍ଦେଶ୍ୟ ଅନୁମାନ କରନ୍ତି ନାହିଁ। ଦୃଶ୍ୟ ଏବଂ ସ୍ଥିରୀକରଣ ସୀମାଗୁଡ଼ିକ ସେଗମେଣ୍ଟ ଗଠନ କରେ; ସ୍ଥିରୀକରଣ କଭରେଜ୍, ବ୍ଲର୍,
-ଏକ୍ସପୋଜର୍, ସ୍ଥାନିକ ବିବରଣୀ ଏବଂ ସାମୟିକ ପରିବର୍ତ୍ତନ କେବଳ ବିଦ୍ୟମାନ
-1–16 ଫ୍ରେମ୍ ବଜେଟ୍ କିପରି ବଣ୍ଟନ ହେବ ତାହାକୁ ପ୍ରଭାବିତ କରେ। ସମ୍ପୂର୍ଣ୍ଣ ସ୍ଥିର ଥିବା ଏକ ସେଗମେଣ୍ଟକୁ ଗୋଟିଏ ଫ୍ରେମ୍ରେ ସୀମିତ ରଖାଯାଏ,
-ଯେତେବେଳେ ସ୍ଥିର ନଥିବା ସେଗମେଣ୍ଟଗୁଡ଼ିକ ଅବଶିଷ୍ଟ ବଜେଟ୍ ପାଇଁ ପ୍ରତିଦ୍ୱନ୍ଦ୍ୱିତା କରନ୍ତି। ଯେତେବେଳେ ସୀମାଗୁଡ଼ିକର ସଂଖ୍ୟା
-ଫ୍ରେମ୍ଗୁଡ଼ିକଠାରୁ ଅଧିକ ହୁଏ, ସମାନ ଟାଇମଲାଇନ୍ କଭରେଜ୍ ବଜାୟ ରଖାଯାଏ, ଯାହାଦ୍ୱାରା ଆରମ୍ଭର ଦ୍ରୁତ କଟ୍ଗୁଡ଼ିକ
-ଦୀର୍ଘ ଶେଷ ସେଗମେଣ୍ଟକୁ ଲୁଚାଇ ପାରିବେ ନାହିଁ। ସ୍ଥିରୀକରଣ ସୀମାର 1-ସେକେଣ୍ଡ
-ବିଶ୍ଳେଷଣ ରିଜୋଲ୍ୟୁସନ୍ ମଧ୍ୟରେ ଥିବା ଦୃଶ୍ୟ ସୀମାଗୁଡ଼ିକୁ ଏକତ୍ର କରାଯାଏ।
+ସଂରଚନାଗତ ମୂଲ୍ୟଗୁଡ଼ିକ ନିର୍ଣ୍ଣାୟକ ନମୁନା ପ୍ରମାଣ, ଅର୍ଥପୂର୍ଣ୍ଣ ଭିଡିଓ ବୁଝାମଣା ନୁହେଁ। ସେମାନେ ବିଷୟବସ୍ତୁ, କାର୍ଯ୍ୟ, କ୍ୟାପସନ୍, ବକ୍ତବ୍ୟ, କିମ୍ବା ଉପଭୋକ୍ତାଙ୍କ ଉଦ୍ଦେଶ୍ୟକୁ ଅନୁମାନ କରନ୍ତି ନାହିଁ। ଦୃଶ୍ୟ ଏବଂ ଫ୍ରିଜ୍ ସୀମାଗୁଡ଼ିକ ସେଗମେଣ୍ଟ ଗଠନ କରେ; ଫ୍ରିଜ୍ କଭରେଜ୍, ବ୍ଲର୍, ଏକ୍ସପୋଜର୍, ସ୍ଥାନିକ ବିବରଣୀ, ଏବଂ ସାମୟିକ ପରିବର୍ତ୍ତନ କେବଳ ଉପଲବ୍ଧ 1–16 ଫ୍ରେମ୍ ବଜେଟ୍ କିପରି ବଣ୍ଟନ କରାଯାଏ ତାହା ପ୍ରଭାବିତ କରେ। ଏକ ସମ୍ପୂର୍ଣ୍ଣ ଫ୍ରିଜ୍ ହୋଇଥିବା ସେଗମେଣ୍ଟ ଗୋଟିଏ ଫ୍ରେମରେ ସୀମିତ ଥାଏ, ଯେତେବେଳେ ଅଣ-ଫ୍ରିଜ୍ ସେଗମେଣ୍ଟଗୁଡ଼ିକ ବାକି ବଜେଟ୍ ପାଇଁ ପ୍ରତିଦ୍ୱନ୍ଦ୍ୱିତା କରନ୍ତି। ଯେତେବେଳେ ସୀମାଗୁଡ଼ିକ ଫ୍ରେମ୍ ଠାରୁ ଅଧିକ ହୁଏ, ସମାନ ଟାଇମଲାଇନ୍ କଭରେଜ୍ ବଜାୟ ରଖାଯାଏ ଯାହାଫଳରେ ଶୀଘ୍ର ପ୍ରାରମ୍ଭିକ କଟ୍ ଏକ ଲମ୍ବା ଅନୁଗାମୀ ସେଗମେଣ୍ଟକୁ ଲୁଚାଇ ପାରିବ ନାହିଁ। ଫ୍ରିଜ୍ ସୀମାର 1-ସେକେଣ୍ଡ ବିଶ୍ଳେଷଣ ରିଜୋଲ୍ୟୁସନ୍ ମଧ୍ୟରେ ଥିବା ଦୃଶ୍ୟ ସୀମାଗୁଡ଼ିକ ଏକତ୍ରିତ ହୁଅନ୍ତି।
 
-ଅନୁପସ୍ଥିତ ଫିଲ୍ଟର୍, ବିକୃତ/ଖାଲି ପ୍ରମାଣ, ଡିଟେକ୍ଟର୍ ତ୍ରୁଟି କିମ୍ବା ସୀମିତ
-ପୂର୍ବ-ବିଶ୍ଳେଷଣ ସମୟସୀମା ଅତିକ୍ରମ ହେଲେ, ଠିକ୍ ସମାନ ମଧ୍ୟବିନ୍ଦୁ ନୀତିକୁ ଖୋଲାଭାବେ ଫେରିଯାଏ। କଲର୍ର
-ବାତିଲ୍ କିମ୍ବା ବ୍ରୋକର୍ର ସମୟସୀମା ଅତିକ୍ରମ ଏପରି ଭାବେ ଖୋଲାଭାବେ ଫେରେ ନାହିଁ: ଏହା ଚାଲୁଥିବା
-ସବ୍ପ୍ରୋସେସ୍କୁ ସମାପ୍ତ କରେ, ପରବର୍ତ୍ତୀ ଫ୍ରେମ୍ ନିଷ୍କାସନକୁ ପ୍ରତିରୋଧ କରେ, ଏବଂ ବ୍ୟକ୍ତିଗତ ଅସ୍ଥାୟୀ ଟ୍ରିକୁ
-`finally` ମଧ୍ୟରେ ଅପସାରଣ କରାଯାଏ।
+ଅନୁପସ୍ଥିତ ଫିଲ୍ଟର, ତ୍ରୁଟିପୂର୍ଣ୍ଣ/ଶୂନ୍ୟ ପ୍ରମାଣ, ଏକ ଡିଟେକ୍ଟର ତ୍ରୁଟି, କିମ୍ବା ସୀମିତ ପ୍ରି-ଆନାଲିସିସ୍ ଟାଇମଆଉଟ୍ ସଠିକ୍ ସମାନ ମଧ୍ୟବିନ୍ଦୁ ନୀତିରେ ଖୋଲା ବିଫଳ ହୁଏ। ଏକ କଲର୍ ଆବର୍ଟ କିମ୍ବା ବ୍ରୋକର୍ ଡେଡଲାଇନ୍ ଖୋଲା ବିଫଳ ହୁଏ ନାହିଁ: ଏହା ଚାଲୁଥିବା ସବ୍ପ୍ରୋସେସ୍କୁ ସମାପ୍ତ କରେ, ପରବର୍ତ୍ତୀ ଫ୍ରେମ୍ ନିଷ୍କାସନକୁ ରୋକେ, ଏବଂ `finally` ରେ ଘରୋଇ ଅସ୍ଥାୟୀ ଟ୍ରି ଅପସାରଣ କରାଯାଏ।
 
-`scripts/perf/video-bridge-fu07-eval.ts` ପୋଷ୍ଟ-ଡିଡ୍ୟୁପ୍ କ୍ୟାପ୍ସନ୍-କଲ୍ ସଞ୍ଚୟ, ଘନ-ଗତି ବଜେଟ୍ ବଣ୍ଟନ,
-ବ୍ଲର୍/ଏକ୍ସପୋଜର୍/SI-TI ପ୍ରମାଣ, ଦୀର୍ଘ ଶେଷଭାଗ ସହିତ ଦ୍ରୁତ କଟ୍, ଏବଂ କ୍ରମଶଃ-ଫେଡ୍
-ଫଲ୍ସ ପଜିଟିଭ୍ ପାଇଁ ନିର୍ଣ୍ଣୟାତ୍ମକ ବାସ୍ତବ FFmpeg ଫିକ୍ସଚର୍ ଉତ୍ପାଦନ କରେ। ଏହା ପୂର୍ବ-ବିଶ୍ଳେଷଣର ବାସ୍ତବ ସମୟ ଏବଂ, ଯେଉଁଠାରେ `/usr/bin/time`
-ଉପଲବ୍ଧ ଥାଏ, ଚାଇଲ୍ଡ CPU ଓ ସର୍ବାଧିକ RSS ରେକର୍ଡ କରେ। ଏହାର ଗୁଣବତ୍ତା ଯାଞ୍ଚଗୁଡ଼ିକ କେବଳ ସଂରଚନାତ୍ମକ ଓରାକଲ୍।
-ବାସ୍ତବ କ୍ୟାପ୍ସନ୍-ମଡେଲ୍ର ଗୁଣବତ୍ତା `HOLD` ହୋଇ ରହେ, କାରଣ ଏହି ହାର୍ନେସ୍ରେ କୌଣସି
-ଅନୁମୋଦିତ ଏଣ୍ଡପଏଣ୍ଟ କିମ୍ବା ସ୍ଥିର ଜଜ୍ ନାହିଁ। ଆର୍ଥିକ ସଞ୍ଚୟ ମଧ୍ୟ `HOLD`
-ହୋଇ ରହେ, ଯଦି `--caption-cost-per-call-usd` ପ୍ରତି କଲ୍ ପାଇଁ ଏକ ସ୍ପଷ୍ଟ ଧନାତ୍ମକ
-ଆକଳନ ପ୍ରଦାନ ନ କରେ; ସ୍କ୍ରିପ୍ଟ ଏହି ଦୁଇଟି ଫଳାଫଳ ମଧ୍ୟରୁ କୌଣସିଟି କେବେ ମନଗଢ଼ା ଭାବେ ସୃଷ୍ଟି କରେ ନାହିଁ।
+`scripts/perf/video-bridge-fu07-eval.ts` ପୋଷ୍ଟ-ଡିଡୁପ୍ କ୍ୟାପସନ୍-କଲ୍ ସଞ୍ଚୟ, ଡେନ୍ସ-ମୋସନ୍ ବଜେଟ୍ ବଣ୍ଟନ, ବ୍ଲର୍/ଏକ୍ସପୋଜର୍/SI-TI ପ୍ରମାଣ, ଲମ୍ବା ଟେଲ୍ ସହିତ ରାପିଡ୍ କଟ୍, ଏବଂ ଗ୍ରାଜୁଆଲ୍-ଫେଡ୍ ଫଲ୍ସ ପଜିଟିଭ୍ ପାଇଁ ନିର୍ଣ୍ଣାୟକ ପ୍ରକୃତ FFmpeg ଫିକ୍ସଚର୍ ଉତ୍ପନ୍ନ କରେ। ଏହା ପ୍ରି-ଆନାଲିସିସ୍ ୱାଲ୍ ଟାଇମ୍ ରେକର୍ଡ କରେ ଏବଂ, ଯେଉଁଠାରେ `/usr/bin/time` ଉପଲବ୍ଧ, ଚାଇଲ୍ଡ CPU ଏବଂ ପିକ୍ RSS ରେକର୍ଡ କରେ। ଏହାର ଗୁଣବତ୍ତା ଯାଞ୍ଚଗୁଡ଼ିକ କେବଳ ସଂରଚନାଗତ ଓରାକଲ୍ ଅଟେ। ପ୍ରକୃତ କ୍ୟାପସନ୍-ମଡେଲ୍ ଗୁଣବତ୍ତା `HOLD` ରେ ରହିଥାଏ କାରଣ ଏହି ହାର୍ନେସ୍ରେ କୌଣସି ଅଧିକୃତ ଏଣ୍ଡପଏଣ୍ଟ କିମ୍ବା ଫ୍ରୋଜେନ୍ ଜଜ୍ ନାହିଁ। ମୁଦ୍ରା ସଞ୍ଚୟ ମଧ୍ୟ `HOLD` ରେ ରହିଥାଏ ଯେପର୍ଯ୍ୟନ୍ତ `--caption-cost-per-call-usd` ଏକ ସ୍ପଷ୍ଟ ସକାରାତ୍ମକ ପ୍ରତି-କଲ୍ ଆକଳନ ଯୋଗାଏ ନାହିଁ; ସ୍କ୍ରିପ୍ଟ କେବେ ବି କୌଣସି ଫଳାଫଳ ତିଆରି କରେ ନାହିଁ।
 
-ପ୍ରତ୍ୟେକ ଫ୍ରେମ୍ 4 MiB, ସମସ୍ତ କଞ୍ଚା ଫ୍ରେମ୍ ମିଶି 23 MiB ଏବଂ
-ସିରିଆଲାଇଜ୍ ହୋଇଥିବା ବ୍ରୋକର୍ ପ୍ରତିକ୍ରିୟା 32 MiB ପର୍ଯ୍ୟନ୍ତ ସୀମିତ। ଏକ ବ୍ୟକ୍ତିଗତ ଅସ୍ଥାୟୀ ଡିରେକ୍ଟୋରିକୁ
-`finally` ମଧ୍ୟରେ ଅପସାରଣ କରାଯାଏ। OmniRoute ସହିତ FFmpeg ବଣ୍ଡଲ୍ ହୁଏ ନାହିଁ ଏବଂ ଏହା ଏକ କଷ୍ଟମ୍
-ଏକ୍ସିକ୍ୟୁଟେବଲ୍ ପଥ ଗ୍ରହଣ କରେ ନାହିଁ। କ୍ୟାପ୍ସନିଂ ପୂର୍ବରୁ, ବ୍ରିଜ୍ ଏକ ସଂରକ୍ଷଣଶୀଳ ଭିଜୁଆଲ୍
-ଡିଡ୍ୟୁପ୍ଲିକେସନ୍ ପାସ୍ ପ୍ରୟୋଗ କରେ: ପ୍ରତ୍ୟେକ JPEGକୁ ଏକ 16×16 ଗ୍ରେସ୍କେଲ୍ ବଫର୍କୁ ହ୍ରାସ କରାଯାଏ ଏବଂ
-କେବଳ ଶେଷ ରଖାଯାଇଥିବା ଫ୍ରେମ୍ ସହିତ ତୁଳନା କରାଯାଏ। ଏକ ଫ୍ରେମ୍ରୁ ଅଧିକ ଅନୁରୋଧିତ କ୍ୟାପ୍ସନ୍ ବଜେଟ୍
-ପାଇଁ, ନିଷ୍କାସନ ସେହି ବଜେଟ୍ର ଦୁଇଗୁଣା ପର୍ଯ୍ୟନ୍ତ ଏବଂ କେବେ ମଧ୍ୟ 16 ଫ୍ରେମ୍ରୁ ଅଧିକ ନୁହେଁ ଏପରି ଏକ
-ସୀମିତ ପ୍ରାର୍ଥୀ ପୁଲ୍ ଯୋଗାଏ। ଅନୁରୋଧିତ ସୀମା କେବଳ ଡିଡ୍ୟୁପ୍ଲିକେସନ୍ ପରେ ପ୍ରୟୋଗ ହୁଏ,
-ଏବଂ ବଜେଟ୍ ଅତି କମରେ ଦୁଇ ଥିଲେ ଅନ୍ତିମ ଥିନିଂ ସମୟରେ ପ୍ରଥମ ଓ ଶେଷ
-ଚୟନିତ ପ୍ରାର୍ଥୀଙ୍କୁ ସଂରକ୍ଷିତ ରଖାଯାଏ। ସଂସ୍କରଣଯୁକ୍ତ
-`grayscale-16x16-mean-cells-v2` ନୀତି ମଧ୍ୟମ ଲୁମା ଡେଲ୍ଟା ଏବଂ
-ଯେଉଁ ଥମ୍ବନେଲ୍ ସେଲ୍ଗୁଡ଼ିକର ସ୍ୱାଭାବିକୀକୃତ ଡେଲ୍ଟା ଅତି କମରେ 0.05, ସେଗୁଡ଼ିକର ଅନୁପାତ ମଧ୍ୟରୁ ବଡ଼ ମୂଲ୍ୟକୁ ବ୍ୟବହାର କରେ।
-ଡୁପ୍ଲିକେଟ୍ ଥ୍ରେଶୋଲ୍ଡ ହେଉଛି ସ୍ଥିରାଙ୍କ 0.04, ଯାହାକୁ ରନ୍ଟାଇମ୍ ସେଟିଂ ଭାବେ
-ପ୍ରକାଶ କରିବା ପରିବର୍ତ୍ତେ ପୂର୍ବାନୁମାନଯୋଗ୍ୟତା ପାଇଁ ବାଛାଯାଇଛି। ଏହି ଦ୍ୱିତୀୟ
-ଉଚ୍ଚ-କନ୍ଟ୍ରାଷ୍ଟ ସିଗ୍ନାଲ୍ ସାନ ଗତି ଏବଂ ଦୃଶ୍ୟମାନ-ଟେକ୍ସଟ୍ ପରିବର୍ତ୍ତନଗୁଡ଼ିକୁ ସଂରକ୍ଷିତ ରଖେ, ଯାହାକୁ
-କେବଳ-ମଧ୍ୟମ ତୁଳନା ଲୁଚାଇ ପାରେ। କମ୍ପାରେଟର୍ କିମ୍ବା ଡିକୋଡର୍ ତ୍ରୁଟି ହେଲେ ଖୋଲାଭାବେ ଅଗ୍ରସର ହୋଇ
-କଭରେଜ୍ ବଜାୟ ରଖାଯାଏ। ଆଉଟପୁଟ୍ ମେଟାଡାଟା ନିଷ୍କାସିତ ପ୍ରାର୍ଥୀ, ସଫଳତାର ସହିତ ବ୍ୟବହୃତ
-ଫ୍ରେମ୍ ଏବଂ ବାଦ ଦିଆଯାଇଥିବା ଭିଜୁଆଲ୍ ଡୁପ୍ଲିକେଟ୍ଗୁଡ଼ିକୁ ପୃଥକ କରେ।
+ପ୍ରତ୍ୟେକ ଫ୍ରେମ୍ 4 MiB ରେ ସୀମିତ, ସମସ୍ତ କଞ୍ଚା ଫ୍ରେମ୍ ମିଶି 23 MiB, ଏବଂ ସିରିଆଲାଇଜ୍ ହୋଇଥିବା ବ୍ରୋକର୍ ପ୍ରତିକ୍ରିୟା 32 MiB ରେ ସୀମିତ। ଏକ ଘରୋଇ ଅସ୍ଥାୟୀ ଡିରେକ୍ଟୋରୀ `finally` ରେ ଅପସାରଣ କରାଯାଏ। OmniRoute FFmpeg ବଣ୍ଡଲ୍ କରେ ନାହିଁ ଏବଂ ଏକ କଷ୍ଟମ୍ ଏକ୍ସକ୍ୟୁଟେବଲ୍ ପଥ ଗ୍ରହଣ କରେ ନାହିଁ। କ୍ୟାପସନ୍ କରିବା ପୂର୍ବରୁ, ବ୍ରିଜ୍ ଏକ ରକ୍ଷଣଶୀଳ ଭିଜୁଆଲ୍ ଡିଡୁପ୍ଲିକେସନ୍ ପାସ୍ ପ୍ରୟୋଗ କରେ: ପ୍ରତ୍ୟେକ JPEG କୁ ଏକ 16×16 ଗ୍ରେସ୍କେଲ୍ ବଫର୍ରେ ହ୍ରାସ କରାଯାଏ ଏବଂ କେବଳ ଶେଷ ରଖାଯାଇଥିବା ଫ୍ରେମ୍ ସହିତ ତୁଳନା କରାଯାଏ। ଏକ ଫ୍ରେମ୍ ଠାରୁ ଅଧିକ ଅନୁରୋଧିତ କ୍ୟାପସନ୍ ବଜେଟ୍ ପାଇଁ, ନିଷ୍କାସନ ସେହି ବଜେଟ୍ର ଦୁଇଗୁଣ ପର୍ଯ୍ୟନ୍ତ ଏକ ସୀମିତ ପ୍ରାର୍ଥୀ ପୁଲ୍ ଯୋଗାଏ ଏବଂ କେବେ ବି 16 ଫ୍ରେମ୍ ଠାରୁ ଅଧିକ ନୁହେଁ। ଅନୁରୋଧିତ କ୍ୟାପ୍ କେବଳ ଡିଡୁପ୍ଲିକେସନ୍ ପରେ ପ୍ରୟୋଗ କରାଯାଏ, ପ୍ରଥମ ଏବଂ ଶେଷ ଚୟନିତ ପ୍ରାର୍ଥୀମାନେ ଅନ୍ତିମ ଥାଇନିଂ ସମୟରେ ସଂରକ୍ଷିତ ରୁହନ୍ତି ଯେତେବେଳେ ବଜେଟ୍ ଅତି କମରେ ଦୁଇଟି ଥାଏ। ଭର୍ସନ୍ ହୋଇଥିବା `grayscale-16x16-mean-cells-v2` ନୀତି ମଧ୍ୟମ ଲୁମା ଡେଲ୍ଟା ଏବଂ ଥମ୍ବନେଲ୍ ସେଲ୍ଗୁଡ଼ିକର ଅନୁପାତ ମଧ୍ୟରୁ ବଡ଼ଟିକୁ ବ୍ୟବହାର କରେ ଯାହାର ସାଧାରଣ ଡେଲ୍ଟା ଅତି କମରେ 0.05 ଅଟେ। ଡୁପ୍ଲିକେଟ୍ ଥ୍ରେସୋଲ୍ଡ ହେଉଛି ସ୍ଥିର 0.04, ଯାହା ରନ୍ଟାଇମ୍ ସେଟିଂ ଭାବରେ ପ୍ରକାଶିତ ହେବା ପରିବର୍ତ୍ତେ ପୂର୍ବାନୁମାନ ପାଇଁ ଚୟନ କରାଯାଇଛି। ଏହି ଦ୍ୱିତୀୟ ଉଚ୍ଚ-କଣ୍ଟ୍ରାଷ୍ଟ ସିଗ୍ନାଲ୍ ଛୋଟ ଗତି ଏବଂ ଦୃଶ୍ୟମାନ-ପାଠ୍ୟ ପରିବର୍ତ୍ତନଗୁଡ଼ିକୁ ସଂରକ୍ଷିତ କରେ ଯାହା ଏକ କେବଳ-ମଧ୍ୟମ ତୁଳନା ଲୁଚାଇ ପାରେ। କମ୍ପାରେଟର୍ କିମ୍ବା ଡିକୋଡର୍ ତ୍ରୁଟି ଖୋଲା ବିଫଳ ହୁଏ ଏବଂ କଭରେଜ୍ ରଖେ। ଆଉଟପୁଟ୍ ମେଟାଡାଟା ନିଷ୍କାସିତ ପ୍ରାର୍ଥୀ, ସଫଳତାର ସହ ବ୍ୟବହୃତ ଫ୍ରେମ୍, ଏବଂ ଡ୍ରପ୍ ହୋଇଥିବା ଭିଜୁଆଲ୍ ଡୁପ୍ଲିକେଟ୍ଗୁଡ଼ିକୁ ଅଲଗା କରେ।
 
-ସ୍ପଷ୍ଟ ଭାବେ ଚିହ୍ନିତ ଏକ ଭିଡିଓ ଅଂଶ ଟାଇମ୍ଷ୍ଟାମ୍ପଯୁକ୍ତ କଣ୍ଟାକ୍ଟ ସିଟ୍ ଅନୁରୋଧ କରିପାରେ। ବ୍ରିଜ୍
-ସର୍ବାଧିକ 4-କଲମ୍, 16-ଫ୍ରେମ୍ JPEG ଗ୍ରିଡ୍ ତିଆରି କରେ। ପ୍ରତ୍ୟେକ 512-ପିକ୍ସେଲ୍ ସେଲ୍ ତାହାର
-ଉତ୍ସ ଟାଇମ୍ଷ୍ଟାମ୍ପକୁ ଏକ ଉଚ୍ଚ-କନ୍ଟ୍ରାଷ୍ଟ ତଳ ବ୍ୟାଣ୍ଡରେ ସ୍ଥାୟୀ ଭାବେ ଅଙ୍କିତ କରେ, ଯେତେବେଳେ ସେହି ଟାଇମ୍ଷ୍ଟାମ୍ପଗୁଡ଼ିକ
-ପରବର୍ତ୍ତୀ ଆସୋସିଏସନ୍ ଏବଂ ଅଡିଟ୍ ପାଇଁ ପାଠ୍ୟ ମେଟାଡାଟାରେ ମଧ୍ୟ ରହିଥାଏ। ସମ୍ପୂର୍ଣ୍ଣ
-JPEG 32 MiBରେ ସୀମିତ ରହେ। ଯଦି `sharp` ଗ୍ରିଡ୍କୁ ଡିକୋଡ୍ କିମ୍ବା କମ୍ପୋଜ୍ କରିପାରେ ନାହିଁ, ତେବେ
-ବ୍ରିଜ୍ ବ୍ୟକ୍ତିଗତ JPEG ଫ୍ରେମ୍ଗୁଡ଼ିକୁ ଫେରିଯାଏ; କ୍ଲାଏଣ୍ଟ ବାତିଲ୍ ତଥାପି
-ସିଟ୍ ଅପରେସନ୍ ମାଧ୍ୟମରେ ପ୍ରସାରିତ ହୁଏ।
+ଏକ ସ୍ପଷ୍ଟ ଭାବରେ ଚିହ୍ନିତ ଭିଡିଓ ଅଂଶ ଏକ ଟାଇମ୍ଷ୍ଟାମ୍ପ୍ ହୋଇଥିବା କଣ୍ଟାକ୍ଟ ସିଟ୍ ଅନୁରୋଧ କରିପାରେ। ବ୍ରିଜ୍ ସର୍ବାଧିକ ଏକ 4-କଲମ୍, 16-ଫ୍ରେମ୍ JPEG ଗ୍ରିଡ୍ ନିର୍ମାଣ କରେ। ପ୍ରତ୍ୟେକ 512-ପିକ୍ସେଲ୍ ସେଲ୍ ଏହାର ଉତ୍ସ ଟାଇମ୍ଷ୍ଟାମ୍ପ୍କୁ ଏକ ଉଚ୍ଚ-କଣ୍ଟ୍ରାଷ୍ଟ ତଳ ବ୍ୟାଣ୍ଡରେ ବର୍ଣ୍ଣ କରେ, ଯେତେବେଳେ ସମାନ ଟାଇମ୍ଷ୍ଟାମ୍ପ୍ଗୁଡ଼ିକ ଡାଉନ୍ଷ୍ଟ୍ରିମ୍ ଆସୋସିଏସନ୍ ଏବଂ ଅଡିଟ୍ ପାଇଁ ଟେକ୍ସଚୁଆଲ୍ ମେଟାଡାଟାରେ ରହିଥାଏ। ସମ୍ପୂର୍ଣ୍ଣ JPEG 32 MiB ରେ ସୀମିତ ରହିଥାଏ। ଯଦି `sharp` ଗ୍ରିଡ୍କୁ ଡିକୋଡ୍ କିମ୍ବା କମ୍ପୋଜ୍ କରିପାରିବ ନାହିଁ, ତେବେ ବ୍ରିଜ୍ ବ୍ୟକ୍ତିଗତ JPEG ଫ୍ରେମ୍ଗୁଡ଼ିକୁ ଫେରିଯାଏ; ଏକ କ୍ଲାଏଣ୍ଟ ଆବର୍ଟ ସିଟ୍ ଅପରେସନ୍ ମାଧ୍ୟମରେ ମଧ୍ୟ ପ୍ରସାରିତ ହୁଏ।
 
-ପ୍ରୋମୋସନ୍ ପ୍ରମାଣକୁ ଜାଣିଶୁଣି ସିନ୍ଥେଟିକ୍ କମ୍ପୋଜିସନ୍
-ମାଇକ୍ରୋବେଞ୍ଚମାର୍କଠାରୁ ପୃଥକ ରଖାଯାଇଛି। `scripts/perf/video-bridge-contact-sheet-eval.ts`
-ବାସ୍ତବ OpenAI-ସୁସଙ୍ଗତ ଭିଜନ୍ ମଡେଲ୍ଗୁଡ଼ିକ ପାଇଁ ଏକ ସ୍କିମା-ସଂସ୍କରଣଯୁକ୍ତ A/B ହାର୍ନେସ୍ ନିର୍ଦ୍ଧାରଣ କରେ। ଏହା
-ପ୍ରଦାନକାରୀଙ୍କ ଦ୍ୱାରା ରିପୋର୍ଟ କରାଯାଇଥିବା ଟୋକେନ୍, ଏଣ୍ଡ-ଟୁ-ଏଣ୍ଡ ବାସ୍ତବ ବିଳମ୍ବତା (ସିଟ୍ କମ୍ପୋଜିସନ୍ ସମେତ),
-ମଡେଲ୍-କଲ୍ ସଂଖ୍ୟା ଏବଂ ମ୍ୟାନିଫେଷ୍ଟ-ନିର୍ଦ୍ଧାରିତ ତଥ୍ୟ ଧାରଣକୁ ମାପେ। କଞ୍ଚା ମଡେଲ୍ ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକୁ
-ରିପୋର୍ଟରେ ଲେଖାଯାଏ ନାହିଁ; କେବଳ SHA-256 ଡାଇଜେଷ୍ଟ ଏବଂ ମେଳ ଖାଉଥିବା ତଥ୍ୟ IDଗୁଡ଼ିକୁ ରଖାଯାଏ।
-`--execute-real` ପାସ୍ କରାଯାଇ ଏବଂ
-`--model`, `OMNIROUTE_BASE_URL`, ଓ `OMNIROUTE_API_KEY` କନଫିଗର୍ ହୋଇନଥିଲେ, ହାର୍ନେସ୍ କୌଣସି ନେଟୱର୍କ କିମ୍ବା ଶୁଳ୍କଯୁକ୍ତ ମଡେଲ୍ କଲ୍ କରେ ନାହିଁ। ସେହି
-ସ୍ପଷ୍ଟ ବାସ୍ତବ ରନ୍ ବିନା, ଏହାର ମେସିନ୍-ପଠନୀୟ ନିଷ୍ପତ୍ତି `HOLD` ହୋଇ ରହେ; କେବଳ ସିନ୍ଥେଟିକ୍
-ପେଲୋଡ୍/କଲ୍-ସଂଖ୍ୟା ମାପ ପ୍ରୋମୋସନ୍ ପ୍ରମାଣ ନୁହେଁ।
+ପ୍ରମୋସନ୍ ପ୍ରମାଣ ସିନ୍ଥେଟିକ୍ କମ୍ପୋଜିସନ୍ ମାଇକ୍ରୋବେଞ୍ଚମାର୍କ ଠାରୁ ଜାଣିଶୁଣି ଅଲଗା। `scripts/perf/video-bridge-contact-sheet-eval.ts` ପ୍ରକୃତ OpenAI-ସୁସଙ୍ଗତ ଭିଜନ୍ ମଡେଲ୍ ପାଇଁ ଏକ ସ୍କିମା-ଭର୍ସନ୍ ହୋଇଥିବା A/B ହାର୍ନେସ୍ ନିର୍ଦ୍ଧାରଣ କରେ। ଏହା ପ୍ରଦାତା-ରିପୋର୍ଟ ହୋଇଥିବା ଟୋକେନ୍, ଏଣ୍ଡ-ଟୁ-ଏଣ୍ଡ ୱାଲ୍ ଲେଟେନ୍ସି (ସିଟ୍ କମ୍ପୋଜିସନ୍ ସହିତ), ମଡେଲ୍-କଲ୍ ଗଣନା, ଏବଂ ମାନିଫେଷ୍ଟ-ନିର୍ଦ୍ଧାରିତ ତଥ୍ୟ ଧାରଣକୁ ମାପେ। କଞ୍ଚା ମଡେଲ୍ ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକ ରିପୋର୍ଟରେ ଲେଖାଯାଏ ନାହିଁ; କେବଳ SHA-256 ଡାଇଜେଷ୍ଟ ଏବଂ ମେଳ ଖାଉଥିବା ତଥ୍ୟ ID ଗୁଡ଼ିକ ରଖାଯାଏ। ହାର୍ନେସ୍ କୌଣସି ନେଟୱର୍କ କିମ୍ବା ପେଡ୍ ମଡେଲ୍ କଲ୍ କରେ ନାହିଁ ଯେପର୍ଯ୍ୟନ୍ତ `--execute-real` ପାସ୍ କରାଯାଇ ନାହିଁ ଏବଂ `--model`, `OMNIROUTE_BASE_URL`, ଏବଂ `OMNIROUTE_API_KEY` କନଫିଗର୍ ହୋଇ ନାହିଁ। ସେହି ସ୍ପଷ୍ଟ ପ୍ରକୃତ ରନ୍ ବିନା, ଏହାର ମେସିନ୍-ପଠନୀୟ ରାୟ `HOLD` ରେ ରହିଥାଏ; କେବଳ ସିନ୍ଥେଟିକ୍ ପେଲୋଡ୍/କଲ୍-କାଉଣ୍ଟ ମାପଗୁଡ଼ିକ ପ୍ରମୋସନ୍ ପ୍ରମାଣ ନୁହେଁ।
 
-କଲର୍ମାନେ ପୂର୍ବରୁ ସମରେଖିତ ପାଠ୍ୟ ରଖିଥିଲେ, ଏକ ସମର୍ଥିତ ଭିଡିଓ
-ଅଂଶରେ ଇଚ୍ଛାଧୀନ `transcript.cues` ଆରେ ସଂଲଗ୍ନ କରିପାରିବେ। ପ୍ରତ୍ୟେକ କ୍ୟୁରେ `text`, ପ୍ରୋବ୍ କରାଯାଇଥିବା ଅବଧି ମଧ୍ୟରେ ଏକ
-ସସୀମ `start`/`end` ଅନ୍ତରାଳ ଏବଂ ଅନୁମୋଦିତ ତାଲିକାଭୁକ୍ତ
-`source` (`client`, `embedded`, କିମ୍ବା `audio-bridge`) ରହିବା ଆବଶ୍ୟକ; `confidence`ର ଡିଫଲ୍ଟ
-`1` ଏବଂ ଏହା `0` ଓ `1` ମଧ୍ୟରେ ରହିବା ଆବଶ୍ୟକ। ଅବିକଳ ଡୁପ୍ଲିକେଟ୍ କ୍ୟୁଗୁଡ଼ିକୁ ଏକତ୍ର କରାଯାଏ।
-OmniRoute ଏହି ମେଟାଡାଟାରୁ କେବେ ମଧ୍ୟ ଟ୍ରାନ୍ସକ୍ରିପସନ୍ ଆରମ୍ଭ କରେ ନାହିଁ: ବୈଧୀକୃତ କ୍ୟୁଗୁଡ଼ିକୁ
-ଉତ୍ସ, ବିଶ୍ୱାସ ସ୍ତର ଏବଂ ଅନ୍ତରାଳ ସହିତ ବର୍ଣ୍ଣିତ ଫଳାଫଳକୁ କପି କରାଯାଏ ଏବଂ
-ଫ୍ରେମ୍ କ୍ୟାପ୍ସନ୍ଗୁଡ଼ିକ ସହିତ ଅବିଶ୍ୱସ୍ତ ପର୍ଯ୍ୟବେକ୍ଷଣ ଭାବେ ରେଣ୍ଡର୍ କରାଯାଏ। ଅବୈଧ,
-ପରିସର-ବାହାର କିମ୍ବା ଉତ୍ପତ୍ତି-ସୂଚନାହୀନ ପାଠ୍ୟକୁ କ୍ୟାପ୍ସନ୍ ଷ୍ଟ୍ରିମ୍ରେ ମିଶାଇବା ପରିବର୍ତ୍ତେ ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଏ।
-`source` ଫିଲ୍ଡ ବର୍ତ୍ତମାନ କଲର୍-ଘୋଷିତ, ସର୍ଭର୍-ଯାଞ୍ଚକୃତ ନୁହେଁ:
-OmniRoute ମୂଲ୍ୟଟି ଅନୁମୋଦିତ ତିନୋଟି ଷ୍ଟ୍ରିଙ୍ଗ୍ ମଧ୍ୟରୁ ଗୋଟିଏ ହେବାକୁ ବାଧ୍ୟତାମୂଳକ କରେ,
-କିନ୍ତୁ ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି `embedded` କିମ୍ବା `audio-bridge` ଲେବଲ୍ ପ୍ରକୃତରେ ସର୍ଭର୍-ମାଲିକାନାଧୀନ
-ନିଷ୍କାସନରୁ ଆସିଛି ବୋଲି କ୍ରିପ୍ଟୋଗ୍ରାଫିକ୍ ଭାବେ ନିଶ୍ଚିତ କରେ ନାହିଁ। ସେହି ଯାଞ୍ଚ
-ଉପଲବ୍ଧ ହେବା ପର୍ଯ୍ୟନ୍ତ `source`କୁ ଏକ ଅବିଶ୍ୱସ୍ତ ସଙ୍କେତ ଭାବେ ବିବେଚନା କରନ୍ତୁ; ଏହା ଉପରେ ଅନୁମୋଦନ-ସମ୍ବନ୍ଧୀୟ ନିଷ୍ପତ୍ତି
-ଆଧାରିତ କରନ୍ତୁ ନାହିଁ।
+କଲର୍ମାନେ ଏକ ସମର୍ଥିତ ଭିଡିଓ ଅଂଶରେ ଏକ ଇଚ୍ଛାଧୀନ `transcript.cues` ଆରେ ଯୋଡିପାରନ୍ତି ଯେତେବେଳେ ସେମାନଙ୍କ ପାଖରେ ପୂର୍ବରୁ ଆଲାଇନ୍ ହୋଇଥିବା ଟେକ୍ସଟ୍ ଥାଏ। ପ୍ରତ୍ୟେକ କ୍ୟୁରେ `text`, ପ୍ରୋବ୍ ହୋଇଥିବା ଅବଧି ମଧ୍ୟରେ ଏକ ସୀମିତ `start`/`end` ଅନ୍ତରାଳ, ଏବଂ ଏକ ହ୍ୱାଇଟଲିଷ୍ଟେଡ୍ `source` (`client`, `embedded`, କିମ୍ବା `audio-bridge`) ରହିବା ଆବଶ୍ୟକ; `confidence` ଡିଫଲ୍ଟ ଭାବରେ `1` ଥାଏ ଏବଂ `0` ଏବଂ `1` ମଧ୍ୟରେ ରହିବା ଆବଶ୍ୟକ। ସଠିକ୍ ଡୁପ୍ଲିକେଟ୍ କ୍ୟୁଗୁଡ଼ିକ କୋଲାପ୍ସ ହୁଅନ୍ତି। OmniRoute ଏହି ମେଟାଡାଟାରୁ କେବେ ବି ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ ଆରମ୍ଭ କରେ ନାହିଁ: ଭାଲିଡେଟ୍ ହୋଇଥିବା କ୍ୟୁଗୁଡ଼ିକ ଉତ୍ସ, କନଫିଡେନ୍ସ, ଏବଂ ଅନ୍ତରାଳ ସହିତ ବର୍ଣ୍ଣିତ ଫଳାଫଳରେ କପି କରାଯାଏ, ଏବଂ ଫ୍ରେମ୍ କ୍ୟାପସନ୍ ସହିତ ଅବିଶ୍ୱାସନୀୟ ପର୍ଯ୍ୟବେକ୍ଷଣ ଭାବରେ ରେଣ୍ଡର୍ କରାଯାଏ। ଅବୈଧ, ସୀମା ବାହାରେ, କିମ୍ବା ପ୍ରମାଣ-ମୁକ୍ତ ଟେକ୍ସଟ୍ କ୍ୟାପସନ୍ ଷ୍ଟ୍ରିମରେ ମିଶାଇବା ପରିବର୍ତ୍ତେ ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଏ। `source` ଫିଲ୍ଡ ବର୍ତ୍ତମାନ କଲର୍-ଘୋଷିତ, ସର୍ଭର-ଯାଞ୍ଚ ହୋଇ ନାହିଁ: OmniRoute ମୂଲ୍ୟ ତିନୋଟି ଅନୁମତିପ୍ରାପ୍ତ ଷ୍ଟ୍ରିଙ୍ଗ୍ ମଧ୍ୟରୁ ଗୋଟିଏ ବୋଲି ନିଶ୍ଚିତ କରେ, କିନ୍ତୁ ଏପର୍ଯ୍ୟନ୍ତ କ୍ରିପ୍ଟୋଗ୍ରାଫିକ୍ ଭାବରେ ନିଶ୍ଚିତ କରେ ନାହିଁ ଯେ ଏକ `embedded` କିମ୍ବା `audio-bridge` ଲେବଲ୍ ପ୍ରକୃତରେ ଏକ ସର୍ଭର-ମାଲିକାନା ନିଷ୍କାସନରୁ ଆସିଛି। ସେହି ଯାଞ୍ଚ ଆସିବା ପର୍ଯ୍ୟନ୍ତ `source` କୁ ଏକ ଅବିଶ୍ୱାସନୀୟ ସୂଚନା ଭାବରେ ଗ୍ରହଣ କରନ୍ତୁ; ଏହା ଉପରେ ପ୍ରାଧିକରଣ ନିଷ୍ପତ୍ତି ନିର୍ମାଣ କରନ୍ତୁ ନାହିଁ।
 
-ଏକ ଉନ୍ନତ କଲର୍ ସେହି ଭିଡିଓ ପାଇଁ ପୂର୍ବରୁ ଅଧିକୃତ `audioTranscript` ଟ୍ରାକ୍
-ପ୍ରଦାନ କରିପାରେ। ଫ୍ୟୁଜନ୍ ସିମ୍ ଗୋଟିଏ ଡେଡ୍ଲାଇନ୍ ଏବଂ ଆବର୍ଟ ସିଗ୍ନାଲ୍ ଅଧୀନରେ
-ଭିଜୁଆଲ୍ ଓ ଅଡିଓ ପର୍ଯ୍ୟବେକ୍ଷଣଗୁଡ଼ିକୁ ଚଲାଏ, ସେଗୁଡ଼ିକୁ ଏକ ସାଧାରଣ ଟାଇମ୍ଲାଇନ୍ରେ
-କ୍ରମବଦ୍ଧ କରେ, ଅବିକଳ ନକଲଗୁଡ଼ିକୁ ଏକତ୍ର କରେ, ଏବଂ କେବଳ ଗୋଟିଏ ପକ୍ଷ ସଫଳ ହେଲେ
-ଆଂଶିକ ଫଳାଫଳ ରିପୋର୍ଟ କରେ। ଏକ ଅବୈଧ `audioTranscript` ସେହି ଆଂଶିକ ଫଳାଫଳକୁ
-ଅବନମିତ ହୁଏ — ଭିଜୁଆଲ୍ ବର୍ଣ୍ଣନା ରଖାଯାଏ ଏବଂ ଅଡିଓ ଶାଖା ଏକ ପରିଶୋଧିତ
-ବିଫଳତା କୋଡ୍ ରେକର୍ଡ କରେ — ସମଗ୍ର ଭିଡିଓକୁ ବିଫଳ କରିବା ପରିବର୍ତ୍ତେ। ପ୍ରତି-ଶାଖା
-ଉପଲବ୍ଧତା, ଆଂଶିକ ଫ୍ଲାଗ୍ ଏବଂ ପରିଶୋଧିତ ବିଫଳତା କୋଡ୍ଗୁଡ଼ିକୁ ବର୍ଣ୍ଣିତ ଫଳାଫଳରେ,
-ଗାର୍ଡରେଲ୍ ମେଟାଡାଟାରେ (`audioFusionRuns`/`audioFusionPartials`/
-`audioFusionFailureCodes`), ଫଳାଫଳ-କ୍ୟାଶ୍ ମେଟାଡାଟାରେ ଏବଂ ବ୍ରିଜ୍
-ଫ୍ୟୁଜନ୍ କାଉଣ୍ଟର୍ଗୁଡ଼ିକରେ ସଂରକ୍ଷଣ କରାଯାଏ। ଡିଫଲ୍ଟ Video Bridge ପଥ
-ସ୍ପିଚ୍-ଟୁ-ଟେକ୍ସ୍ଟକୁ ଆହ୍ୱାନ କରେ ନାହିଁ କିମ୍ବା ଦ୍ୱିତୀୟ ମିଡିଆ କପି ଡାଉନଲୋଡ୍
-କରେ ନାହିଁ; ସେହି ସ୍ପଷ୍ଟ ଟ୍ରାକ୍ ବିନା ଏହା କେବଳ-ଭିଡିଓ ଭାବେ ରହେ।
+ଜଣେ ଉନ୍ନତ କଲର୍ ସମାନ ଭିଡିଓ ପାଇଁ ପୂର୍ବରୁ ଅନୁମତିପ୍ରାପ୍ତ `audioTranscript` ଟ୍ରାକ୍ ପ୍ରଦାନ କରିପାରନ୍ତି | ଫ୍ୟୁଜନ୍ ସିମ୍ ଗୋଟିଏ ଡେଡଲାଇନ୍ ଏବଂ ଆବର୍ଟ ସିଗନାଲ୍ ଅଧୀନରେ ଭିଜୁଆଲ୍ ଏବଂ ଅଡିଓ ଅବଜର୍ଭେସନ୍ ଚଳାଏ, ସେଗୁଡ଼ିକୁ ଏକ ସାଧାରଣ ଟାଇମ୍ଲାଇନ୍ରେ ଅର୍ଡର କରେ, ସଠିକ୍ ଡୁପ୍ଲିକେଟ୍ଗୁଡ଼ିକୁ ଭାଙ୍ଗେ, ଏବଂ ଯେତେବେଳେ କେବଳ ଗୋଟିଏ ପାର୍ଶ୍ୱ ସଫଳ ହୁଏ ସେତେବେଳେ ଏକ ଆଂଶିକ ଫଳାଫଳ ରିପୋର୍ଟ କରେ | ଏକ ଅବୈଧ `audioTranscript` ସେହି ଆଂଶିକ ଫଳାଫଳକୁ ଖରାପ କରିଦିଏ — ଭିଜୁଆଲ୍ ବର୍ଣ୍ଣନା ରଖାଯାଏ ଏବଂ ଅଡିଓ ଶାଖା ଏକ ସାନିଟାଇଜ୍ଡ ବିଫଳତା କୋଡ୍ ରେକର୍ଡ କରେ — ସମଗ୍ର ଭିଡିଓକୁ ବିଫଳ କରିବା ପରିବର୍ତ୍ତେ | ପ୍ରତି-ଶାଖା ଉପଲବ୍ଧତା, ଆଂଶିକ ଫ୍ଲାଗ୍, ଏବଂ ସାନିଟାଇଜ୍ଡ ବିଫଳତା କୋଡ୍ଗୁଡ଼ିକ ବର୍ଣ୍ଣ୍ିତ ଫଳାଫଳରେ, ଗାର୍ଡରେଲ୍ ମେଟାଡାଟାରେ (`audioFusionRuns`/`audioFusionPartials`/`audioFusionFailureCodes`), ଫଳାଫଳ-କ୍ୟାଚ୍ ମେଟାଡାଟାରେ, ଏବଂ ବ୍ରିଜ୍ ଫ୍ୟୁଜନ୍ କାଉଣ୍ଟରରେ ସଂରକ୍ଷିତ ହୁଏ | ଡିଫଲ୍ଟ ଭିଡିଓ ବ୍ରିଜ୍ ପଥ ସ୍ପିଚ୍-ଟୁ-ଟେକ୍ସଟ୍ ଆହ୍ୱାନ କରେ ନାହିଁ କିମ୍ବା ଦ୍ୱିତୀୟ ମିଡିଆ କପି ଡାଉନଲୋଡ୍ କରେ ନାହିଁ; ସେହି ସ୍ପଷ୍ଟ ଟ୍ରାକ୍ ବିନା, ଏହା କେବଳ ଭିଡିଓ-ମାତ୍ର ରହିଥାଏ |
 
-**ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ସଂରକ୍ଷଣ (#12150 P1)।** Video Bridge (ଯାହା ନିଜେ ଅପ୍ଟ-ଇନ୍)
-ଯେତେବେଳେ ଏକ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ କ୍ୟୁ ରେଣ୍ଡର୍ କରେ, ଏହା ସ୍ୱୟଂଚାଳିତ ଭାବେ ପ୍ରଯୁଜ୍ୟ
-ହୁଏ — ଏଥିପାଇଁ କୌଣସି ପୃଥକ ସଂରକ୍ଷଣ ଫ୍ଲାଗ୍ ନାହିଁ। ଯେତେବେଳେ ଏକ ଅନୁରୋଧ
-କୌଣସି ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ କ୍ୟୁ (କଲର୍-ଘୋଷିତ `transcript` କିମ୍ବା ଫ୍ୟୁଜ୍ କରାଯାଇଥିବା
-`audioTranscript`) ରେଣ୍ଡର୍ କରେ, ଗାର୍ଡରେଲ୍ ଏହାକୁ `videoBridgeObserved` ଭାବେ
-ଚିହ୍ନିତ କରେ ଏବଂ ଭିଡିଓ ବର୍ଣ୍ଣନାର ଏକ ସମ୍ପାଦିତ ଛାୟା ପ୍ରସ୍ତୁତ କରେ — ଏକ
-ଅବିକଳ ରେଣ୍ଡରିଂ ଯେଉଁଥିରେ ପ୍ରତ୍ୟେକ କ୍ୟୁର ମୁକ୍ତ-ପାଠ୍ୟ ବଡିକୁ
-`[redacted-video-transcript]` ଦ୍ୱାରା ବଦଳାଯାଏ, ଯାହା ଷ୍ଟ୍ରିଙ୍ଗ୍ ସଂଯୋଜିତ ହେବା
-ପୂର୍ବରୁ ସଂରଚିତ କ୍ୟୁ ଫିଲ୍ଡକୁ ପ୍ରତିସ୍ଥାପନ କରି ନିର୍ମାଣ କରାଯାଏ (ସମତଳ ପାଠ୍ୟକୁ
-ପାର୍ସ କରି କେବେ ନୁହେଁ, ତେଣୁ କୌଣସି କ୍ୟୁ ବିଷୟବସ୍ତୁ — ପ୍ରତିକୂଳ କିମ୍ବା ସାଧାରଣ,
-`[inaudible]`/`[music]` ପରି `]` ଧାରଣ କରୁଥିବା ବଡି ସମେତ — ରହିପାରିବ ନାହିଁ)।
-ସ୍ଥାୟୀ ଭାବେ ରଖାଯାଇଥିବା କଲ୍-ଲଗ୍ ଅନୁରୋଧ ବଡି, ବିଷୟବସ୍ତୁ ସମାନତା ଦ୍ୱାରା
-ମେଳ କରି, ପ୍ରତ୍ୟେକ ଭିଡିଓ-ବ୍ୟୁତ୍ପନ୍ନ ପାଠ୍ୟ ଅଂଶକୁ ସେହି ସମ୍ପାଦିତ ଛାୟା ସହିତ
-ଅଦଳବଦଳ କରେ; ସମାପ୍ତ ପ୍ରି-କଲ୍ ଗାର୍ଡରେଲ୍ ପେଲୋଡ୍ରୁ `fullText` ଆଙ୍କର୍କୁ
-ପୁଣି ପଢ଼ାଯାଏ, ତେଣୁ ପରବର୍ତ୍ତୀ ଚେନ୍ ଗାର୍ଡରେଲ୍ଗୁଡ଼ିକ (PII ଏବଂ
-କ୍ରେଡେନ୍ସିଆଲ୍ ମାସ୍କର୍, ପ୍ରାଥମିକତା 10/95) ବର୍ଣ୍ଣନା ପାଠ୍ୟକୁ ସେହି ସ୍ଥାନରେ
-ପୁନର୍ଲେଖନ କରିବା ପରେ ଏବଂ ସିଷ୍ଟମ୍-ପ୍ରମ୍ପ୍ଟ/ହ୍ୟାଣ୍ଡଅଫ୍/ମେମୋରି ଇଞ୍ଜେକ୍ସନ୍
-ମେସେଜ୍ ଆରେକୁ ପୁନଃଆକାର ଦେବା ପରେ ମଧ୍ୟ ମେଳ ସଫଳ ହୁଏ। ମଡେଲ୍କୁ ଅପ୍ଷ୍ଟ୍ରିମ୍
-ପଠାଯାଉଥିବା ବଡି ଅପରିବର୍ତ୍ତିତ ରହେ। ଏକ ପର୍ଯ୍ୟବେକ୍ଷିତ ଅନୁରୋଧ କୌଣସି ସ୍ଥାୟୀ
-Memoryକୁ ମଧ୍ୟ ପୂରଣ କରେ ନାହିଁ (ଅନୁରୋଧ- ଏବଂ ପ୍ରତିକ୍ରିୟା-ବ୍ୟୁତ୍ପନ୍ନ ଉଭୟ
-ନିଷ୍କାଷଣକୁ ଏଡ଼ାଇ ଦିଆଯାଏ), ତେଣୁ ମଡେଲ୍ର ନିଜ ପ୍ରତିକ୍ରିୟା ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ
-ପାଠ୍ୟକୁ Memoryରେ ପ୍ରତିଧ୍ୱନିତ କରିପାରିବ ନାହିଁ।
+**ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ଧାରଣ (#12150 P1)।** ଏହା ସ୍ୱୟଂଚାଳିତ ଭାବରେ ପ୍ରଯୁଜ୍ୟ ହୁଏ ଯେତେବେଳେ ଭିଡିଓ ବ୍ରିଜ୍ (ନିଜେ ଅପ୍ଟ-ଇନ୍) ଏକ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ କ୍ୟୁ ରେଣ୍ଡର କରେ — କୌଣସି ପୃଥକ ଧାରଣ ଫ୍ଲାଗ୍ ନାହିଁ | ଯେତେବେଳେ ଏକ ଅନୁରୋଧ କୌଣସି ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ କ୍ୟୁ (ଏକ କଲର୍-ଘୋଷିତ `transcript` କିମ୍ବା ଏକ ଫ୍ୟୁଜ୍ଡ `audioTranscript`) ରେଣ୍ଡର କରେ, ଗାର୍ଡରେଲ୍ ଏହାକୁ `videoBridgeObserved` ଭାବରେ ଚିହ୍ନିତ କରେ ଏବଂ ଭିଡିଓ ବର୍ଣ୍ଣନାର ଏକ ରେଡାକ୍ଟେଡ୍ ଛାୟା ଉତ୍ପାଦନ କରେ — ଏକ ସମାନ ରେଣ୍ଡରିଂ ଯେଉଁଥିରେ ପ୍ରତ୍ୟେକ କ୍ୟୁର ଫ୍ରି-ଟେକ୍ସଟ୍ ବଡି `[redacted-video-transcript]` ଦ୍ୱାରା ବଦଳାଯାଏ, ଷ୍ଟ୍ରିଙ୍ଗ୍ ଏକତ୍ରିତ ହେବା ପୂର୍ବରୁ ଷ୍ଟ୍ରକଚର୍ଡ କ୍ୟୁ ଫିଲ୍ଡକୁ ବଦଳାଇ ନିର୍ମିତ (ସମତଳ ଟେକ୍ସଟ୍ ପାର୍ସ କରି କେବେ ନୁହେଁ, ତେଣୁ କୌଣସି କ୍ୟୁ ବିଷୟବସ୍ତୁ — ପ୍ରତିକୂଳ କିମ୍ବା ସାଧାରଣ, `]` ଧାରଣ କରୁଥିବା ବଡି ସହିତ ଯେପରିକି `[inaudible]`/`[music]` — ବଞ୍ଚିପାରିବ ନାହିଁ) | ସ୍ଥାୟୀ କଲ୍-ଲଗ୍ ଅନୁରୋଧ ବଡି ପ୍ରତ୍ୟେକ ଭିଡିଓ-ଉତ୍ପନ୍ନ ଟେକ୍ସଟ୍ ଅଂଶକୁ ସେହି ରେଡାକ୍ଟେଡ୍ ଛାୟା ପାଇଁ ବଦଳାଏ, ବିଷୟବସ୍ତୁ ସମାନତା ଦ୍ୱାରା ମିଳିତ; `fullText` ଆଙ୍କର୍ ସମାପ୍ତ ପ୍ରି-କଲ୍ ଗାର୍ଡରେଲ୍ ପେଲୋଡ୍ ରୁ ପୁନଃ ପଢାଯାଏ, ତେଣୁ ପରବର୍ତ୍ତୀ ଚେନ୍ ଗାର୍ଡରେଲ୍ (PII ଏବଂ କ୍ରେଡେନ୍ସିଆଲ୍ ମାସ୍କର୍, ପ୍ରାଥମିକତା 10/95) ସ୍ଥାନରେ ବର୍ଣ୍ଣନା ଟେକ୍ସଟ୍ ପୁନଃ ଲେଖିବା ପରେ ଏବଂ ସିଷ୍ଟମ୍-ପ୍ରମ୍ପ୍ଟ/ହାଣ୍ଡଅଫ୍/ମେମୋରୀ ଇଞ୍ଜେକ୍ସନ୍ ମେସେଜ୍ ଆରେକୁ ପୁନଃ ଆକୃତି ଦେବା ପରେ ମଧ୍ୟ ମ୍ୟାଚ୍ ସଫଳ ହୁଏ | ମଡେଲକୁ ଅପଷ୍ଟ୍ରିମ୍ ପଠାଯାଇଥିବା ବଡି ଅପରିବର୍ତ୍ତିତ ରହିଥାଏ | ଏକ ଅବଜର୍ଭଡ୍ ଅନୁରୋଧ ମଧ୍ୟ କୌଣସି ସ୍ଥାୟୀ ମେମୋରୀ ପପୁଲେଟ୍ କରେ ନାହିଁ (ଅନୁରୋଧ- ଏବଂ ପ୍ରତିକ୍ରିୟା-ଉତ୍ପନ୍ନ ଏକ୍ସଟ୍ରାକ୍ସନ୍ ଉଭୟ ଛାଡି ଦିଆଯାଏ), ତେଣୁ ମଡେଲର ନିଜସ୍ୱ ଉତ୍ତର ମେମୋରୀରେ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ଟେକ୍ସଟ୍ ପ୍ରତିଧ୍ୱନିତ କରିପାରିବ ନାହିଁ |
 
-ଏକ ଫଲୋ-ଅପ୍ ପାଇଁ ଟ୍ରାକ୍ କରାଯାଉଥିବା ସଂରକ୍ଷଣ ପୃଷ୍ଠଗୁଡ଼ିକ ଏବେ ମଧ୍ୟ ଖୋଲା
-ଅଛି (**P2**, #12430): ବିସ୍ତୃତ-ଲଗ୍ ଆର୍ଟିଫ୍ୟାକ୍ଟରେ ଥିବା କଞ୍ଚା ପ୍ରି-ଗାର୍ଡରେଲ୍
-କ୍ଲାଏଣ୍ଟ-ଅନୁରୋଧ ସ୍ନାପ୍ସଟ୍; `previous_response_id` ଅବ୍ୟାହତତା ଫେଲ୍-କ୍ଲୋଜ୍ଡ;
-ଏକ ସଂଶ୍ଳେଷିତ ଷ୍ଟ୍ରିଙ୍ଗ୍ ପ୍ରମ୍ପ୍ଟ ଭିତରେ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟକୁ ଏମ୍ବେଡ୍ କରୁଥିବା
-ବ୍ୟୁତ୍ପନ୍ନ-ପ୍ରମ୍ପ୍ଟ ଆଭ୍ୟନ୍ତରୀଣ ଡିସ୍ପାଚ୍ଗୁଡ଼ିକ (ପାଇପ୍ଲାଇନ୍ ପର୍ଯ୍ୟାୟ,
-କଣ୍ଟେକ୍ସ୍ଟ-ହ୍ୟାଣ୍ଡଅଫ୍); ଏବଂ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟକୁ ଉଦ୍ଧୃତ କରୁଥିବା ଏକ ମଡେଲ୍
-ପ୍ରତିକ୍ରିୟାର ପ୍ରତିକ୍ରିୟା ବଡି / ସିମାଣ୍ଟିକ୍-କ୍ୟାଶ୍ କପି। ଏଗୁଡ଼ିକ P1ର
-ସ୍ଥାୟୀ-ଅନୁରୋଧ-ବଡି + Memory ପରିସର ବାହାରେ ଥିବା କଞ୍ଚା/ପ୍ରତିକ୍ରିୟା-ଶ୍ରେଣୀ
-କିମ୍ବା ଅପ୍ଟ-ଇନ୍ ପୃଷ୍ଠ।
+ଅତିରିକ୍ତ ଧାରଣ କପି ସମାନ ଅବଜର୍ଭଡ୍-ଅନୁରୋଧ ସିଗନାଲ୍ ବ୍ୟବହାର କରନ୍ତି | କଞ୍ଚା ପ୍ରି-ଗାର୍ଡରେଲ୍ କ୍ଲାଏଣ୍ଟ-ଅନୁରୋଧ ସ୍ନାପସଟ୍, ଇନ୍-ମେମୋରୀ ପେଣ୍ଡିଂ ଅନୁରୋଧ, ଏବଂ ପ୍ରାରମ୍ଭିକ ପ୍ରତ୍ୟାଖ୍ୟାତ-ଅନୁରୋଧ ଲଗ୍ ଭିଡିଓ ଅଂଶରେ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ଫିଲ୍ଡଗୁଡ଼ିକୁ ସଂରଚନାତ୍ମକ ଭାବରେ ବଦଳାଏ; ପାଇପଲାଇନ୍ ପର୍ଯ୍ୟାୟ ଏବଂ ପ୍ରସଙ୍ଗ ହାଣ୍ଡଅଫ୍ ଦ୍ୱାରା ସିନ୍ଥେସାଇଜ୍ ହୋଇଥିବା ଷ୍ଟ୍ରିଙ୍ଗ୍ ପ୍ରମ୍ପ୍ଟଗୁଡ଼ିକ ସ୍ଥାୟୀ-ଅନୁରୋଧ-ବଡି ସିଙ୍କରେ ରେଡାକ୍ଟେଡ୍ ହୁଅନ୍ତି | ସ୍ଥାୟୀ `video_content_removed` ମାର୍କର୍ `previous_response_id` କଣ୍ଟିନୁଏସନ୍ କୁ ଉଦ୍ଦେଶ୍ୟମୂଳକ ଭାବରେ ଛାଡି ଦିଆଯାଇଥିବା ଟେକ୍ସଟ୍ ପୁନଃ ନିର୍ମାଣ କରିବା ପରିବର୍ତ୍ତେ ବନ୍ଦ କରିବାରେ ବିଫଳ କରେ | ଯଦି ଏକ ଅବଜର୍ଭଡ୍ ଅନୁରୋଧ ଲଗ୍ କରିବା ପୂର୍ବରୁ ଏହାର ପ୍ରତି-ଅଂଶ ରେଡାକ୍ସନ୍ ଛାୟା ହରାଇଥାଏ, କିମ୍ବା ପରବର୍ତ୍ତୀ ଅନୁରୋଧ ମ୍ୟୁଟେସନ୍ ପରେ ଅନେକ ଭିଡିଓ ଛାୟା ମଧ୍ୟରୁ ଗୋଟିଏ ମ୍ୟାଚ୍ କରିବାରେ ବିଫଳ ହୁଏ, ତେବେ ଧାରଣ କରାଯାଇଥିବା ଅନୁରୋଧ ବଡି ଆଂଶିକ ରେଡାକ୍ଟେଡ୍ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ଧାରଣ କରିବା ପରିବର୍ତ୍ତେ ସମ୍ପୂର୍ଣ୍ଣ ରୂପେ ଛାଡି ଦିଆଯାଏ |
 
-ଆଭ୍ୟନ୍ତରୀଣ `/api/modality-bridge/video/drilldown` ଜୀବନଚକ୍ର ଏକ ପୃଥକ,
-ଲୁପ୍ବ୍ୟାକ୍/ଟୋକନ୍-ପ୍ରମାଣୀକୃତ କ୍ୟାଶ୍ ସବ୍ଷ୍ଟ୍ରେଟ୍। ପ୍ରତ୍ୟେକ ଅପରେସନ୍ ପାଇଁ ଏକ
-କ୍ୟାନୋନିକାଲ୍ ଅସ୍ପଷ୍ଟ ପ୍ରିନ୍ସିପାଲ୍ ID ମଧ୍ୟ ଆବଶ୍ୟକ। ଏକ ପ୍ରଡକ୍ସନ୍ କଲର୍କୁ
-ସକ୍ଷମ କରାଯିବା ପୂର୍ବରୁ, ଏହା ନିଶ୍ଚିତ ଭାବେ ପ୍ରମାଣୀକୃତ ଟେନାଣ୍ଟରୁ ସେହି ID
-ବ୍ୟୁତ୍ପନ୍ନ କରିବ ଏବଂ କ୍ଲାଏଣ୍ଟ-ଚୟନିତ ମୂଲ୍ୟକୁ କେବେ ମଧ୍ୟ ଫରୱାର୍ଡ କରିବ ନାହିଁ।
-କ୍ୟାଶ୍ କୀଗୁଡ଼ିକ ସେହି ପ୍ରିନ୍ସିପାଲ୍କୁ କ୍ୟାନୋନିକାଲ୍ ସେସନ୍ ଏବଂ ଭିଡିଓ-ରେଫରେନ୍ସ
-IDଗୁଡ଼ିକ ସହିତ ବାନ୍ଧେ, କେବଳ ସେମାନଙ୍କର SHA-256-ବ୍ୟୁତ୍ପନ୍ନ କୀଗୁଡ଼ିକୁ ସଂରକ୍ଷଣ
-କରେ, ଏବଂ ପଠନ ଓ ବିଲୋପ ଉଭୟକୁ ସେହି ଏକା ପ୍ରିନ୍ସିପାଲ୍ରେ ସୀମିତ କରେ।
-କ୍ୟାଶ୍ ପ୍ରତି ଏଣ୍ଟ୍ରିରେ ସର୍ବାଧିକ 16ଟି ବ୍ୟୁତ୍ପନ୍ନ JPEG ଫ୍ରେମ୍ ସଂରକ୍ଷଣ କରେ,
-ଦଶ ମିନିଟ୍ ପରେ ସେଗୁଡ଼ିକର ମିଆଦ ସମାପ୍ତ କରେ, ଏବଂ ସୀମାବଦ୍ଧ `start`/`end`
-ପଠନ କିମ୍ବା ସ୍ପଷ୍ଟ ସେସନ୍ ବିଲୋପକୁ ସମର୍ଥନ କରେ।
+ଏକ ଅବଜର୍ଭଡ୍ ଅନୁରୋଧ ପାଇଁ, ଏକ ମଡେଲ୍ ପ୍ରତିକ୍ରିୟା ଏକ ଷ୍ଟ୍ରକଚର୍ଡ କ୍ୟୁ ସୀମା ବିନା ଟ୍ରାନ୍ସକ୍ରିପ୍ଟର କୌଣସି ଅଂଶକୁ ଉଦ୍ଧୃତ କରିପାରେ | ଏହାର ସ୍ଥାୟୀ କଲ୍-ଲଗ୍ `responseBody` ତେଣୁ ଏକ ଲୋପ ମାର୍କର୍ ଦ୍ୱାରା ବଦଳାଯାଏ; ବିସ୍ତୃତ ପାଇପଲାଇନ୍ ଆର୍ଟିଫ୍ୟାକ୍ଟ (ଯେଉଁଥିରେ ଅପଷ୍ଟ୍ରିମ୍/କ୍ଲାଏଣ୍ଟ ବଡି ଏବଂ ଷ୍ଟ୍ରିମ୍ ଚଙ୍କ୍ ଅନ୍ତର୍ଭୁକ୍ତ ହୋଇପାରେ) ଧାରଣ କରାଯାଏ ନାହିଁ | ସେମାଣ୍ଟିକ୍, ଆଇଡେମ୍ପୋଟେନ୍ସି, ଏବଂ ରିଜନିଂ-ରିପ୍ଲେ କ୍ୟାଚ୍ ସେହି ଅନୁରୋଧ ପାଇଁ ରିଡ୍ ଏବଂ ରାଇଟ୍ ବାଇପାସ୍ କରନ୍ତି | ପ୍ରଦାନକାରୀ ଅନୁରୋଧ ଏବଂ କ୍ଲାଏଣ୍ଟ-ଦୃଶ୍ୟମାନ ପ୍ରତିକ୍ରିୟା ଅପରିବର୍ତ୍ତିତ ରହିଥାଏ | ଯେତେବେଳେ ବିସ୍ତୃତ ଆର୍ଟିଫ୍ୟାକ୍ଟ ଛାଡି ଦିଆଯାଏ ସେତେବେଳେ ଅସ୍ଥାୟୀ ବଫରରୁ ପ୍ରାରମ୍ଭିକ କିପାଲାଇଭ୍ ବାଇଟ୍ ଡ୍ରେନ୍ ହୁଏ | କିରୋର ମାଲଫର୍ମଡ୍ ଇଭେଣ୍ଟଷ୍ଟ୍ରିମ୍ ଚେତାବନୀ କେବଳ ପେଲୋଡ୍ ବାଇଟ୍ ଗଣନା ରିପୋର୍ଟ କରେ, ଏହାର ବିଷୟବସ୍ତୁ କିମ୍ବା JSON ପାର୍ସରର କଞ୍ଚା ତ୍ରୁଟି କେବେ ନୁହେଁ |
+ଏହା ଦାବି କରେ ନାହିଁ ଯେ ପ୍ରତ୍ୟେକ ଅସମ୍ବନ୍ଧିତ ପ୍ରଦାନକାରୀ/ପ୍ଲଗଇନ୍ ଡାଇଗ୍ନୋଷ୍ଟିକ୍ ଅଡିଟ୍ ହୋଇଛି; ବ୍ୟାପକ ଧାରଣ-ସିଙ୍କ୍ ସ୍ୱିପ୍ #11658 ରେ ଟ୍ରାକ୍ କରାଯାଇଛି |
 
-ପ୍ରତ୍ୟେକ ପ୍ରିନ୍ସିପାଲ୍ 16ଟି ଏଣ୍ଟ୍ରି ଏବଂ 64 MiB କ୍ୟାନୋନିକାଲ୍ JPEG ଡାଟା ପର୍ଯ୍ୟନ୍ତ
-ସୀମିତ। ସେହି ସୀମାଗୁଡ଼ିକ ଗ୍ଲୋବାଲ୍ 64-ଏଣ୍ଟ୍ରି/256 MiB ସର୍ବୋଚ୍ଚ ସୀମାଠାରୁ ସ୍ୱାଧୀନ:
-ଗ୍ଲୋବାଲ୍ LRU ଉଚ୍ଛେଦକୁ ବିଚାର କରାଯିବା ପୂର୍ବରୁ ପ୍ରିନ୍ସିପାଲ୍ କୋଟା ଚାପ କେବଳ
-ସେହି ପ୍ରିନ୍ସିପାଲ୍ର ସବୁଠାରୁ କମ୍ ସମ୍ପ୍ରତି ବ୍ୟବହୃତ ଏଣ୍ଟ୍ରିଗୁଡ଼ିକୁ ଉଚ୍ଛେଦ କରେ।
-କ୍ୟାଶ୍ କାର୍ଯ୍ୟକଳାପ ସମୟରେ ମିଆଦ ସମାପ୍ତ ଏଣ୍ଟ୍ରିଗୁଡ଼ିକୁ ପ୍ରିନ୍ସିପାଲ୍ ଏବଂ
-ଗ୍ଲୋବାଲ୍ ଉଭୟ ହିସାବରୁ ହଟାଯାଏ, ଯେତେବେଳେ ବାତିଲକରଣ ଏବଂ ବୈଧତା ଯାଞ୍ଚ
-ବିଫଳତା କୌଣସି ଆଂଶିକ ପ୍ରତିସ୍ଥାପନକୁ କମିଟ୍ କରେ ନାହିଁ।
+ଆଭ୍ୟନ୍ତରୀଣ `/api/modality-bridge/video/drilldown` ଲାଇଫସାଇକେଲ୍ ଏକ ପୃଥକ, ଲୁପବ୍ୟାକ୍/ଟୋକେନ୍-ପ୍ରମାଣିତ କ୍ୟାଚ୍ ସବଷ୍ଟ୍ରେଟ୍ | ପ୍ରତ୍ୟେକ ଅପରେସନ୍ ପାଇଁ ଏକ କାନୋନିକାଲ୍ ଅପାରଦର୍ଶୀ ପ୍ରିନ୍ସିପାଲ୍ ID ମଧ୍ୟ ଆବଶ୍ୟକ | ଏକ ଉତ୍ପାଦନ କଲର୍ ସକ୍ଷମ ହେବା ପୂର୍ବରୁ, ଏହା ପ୍ରମାଣିତ ଟେନାଣ୍ଟରୁ ସେହି ID ଉତ୍ପନ୍ନ କରିବା ଆବଶ୍ୟକ ଏବଂ କେବେହେଲେ କ୍ଲାଏଣ୍ଟ-ଚୟନିତ ମୂଲ୍ୟକୁ ଫରୱାର୍ଡ କରିବା ଉଚିତ୍ ନୁହେଁ | କ୍ୟାଚ୍ କିଗୁଡ଼ିକ ସେହି ପ୍ରିନ୍ସିପାଲ୍ କୁ କାନୋନିକାଲ୍ ସେସନ୍ ଏବଂ ଭିଡିଓ-ରେଫରେନ୍ସ ID ସହିତ ବାନ୍ଧେ, କେବଳ ସେମାନଙ୍କର SHA-256-ଉତ୍ପନ୍ନ କିଗୁଡ଼ିକୁ ଷ୍ଟୋର୍ କରେ, ଏବଂ ଉଭୟ ରିଡ୍ ଏବଂ ଡିଲିସନ୍ କୁ ସମାନ ପ୍ରିନ୍ସିପାଲ୍ ପାଇଁ ସ୍କୋପ୍ କରେ | କ୍ୟାଚ୍ ପ୍ରତି ଏଣ୍ଟ୍ରିରେ ସର୍ବାଧିକ 16 ଉତ୍ପନ୍ନ JPEG ଫ୍ରେମ୍ ଷ୍ଟୋର୍ କରେ, ଦଶ ମିନିଟ୍ ପରେ ସେଗୁଡ଼ିକୁ ଏକ୍ସପାୟର୍ କରେ, ଏବଂ ସୀମିତ `start`/`end` ରିଡ୍ କିମ୍ବା ସ୍ପଷ୍ଟ ସେସନ୍ ଡିଲିସନ୍ କୁ ସମର୍ଥନ କରେ |
 
-କ୍ୟାଶ୍ ଅଣ-କ୍ୟାନୋନିକାଲ୍ Base64, ଅତ୍ୟଧିକ ପ୍ୟାଡିଂ, ଅଣ-JPEG ମିଡିଆ, ବିକୃତ କିମ୍ବା
-ଅସମ୍ପୂର୍ଣ୍ଣ JPEG, ଏବଂ ସୀମାବଦ୍ଧ ପୂର୍ଣ୍ଣ-ଚିତ୍ର `sharp` ଡିକୋଡ୍ ସମୟରେ ସତର୍କତା
-ସୃଷ୍ଟି କରୁଥିବା JPEGଗୁଡ଼ିକୁ ପ୍ରତ୍ୟାଖ୍ୟାନ କରେ। ଏହା ପ୍ରତ୍ୟେକ ଗ୍ରହଣୀୟ ଚିତ୍ରକୁ
-କ୍ୟାନୋନିକାଲ୍ JPEG ଭାବେ ପୁନଃ-ଏନ୍କୋଡ୍ କରେ, କଲର୍ ଫିଲ୍ଡଗୁଡ଼ିକୁ ବିଶ୍ୱାସ କରିବା
-ପରିବର୍ତ୍ତେ ଡିକୋଡ୍ କରାଯାଇଥିବା ବାଇଟ୍ଗୁଡ଼ିକରୁ ପ୍ରସ୍ଥ ଏବଂ ଉଚ୍ଚତା ବ୍ୟୁତ୍ପନ୍ନ
-କରେ, ଏବଂ କୌଣସି ପଛରେ ଥିବା ପଲିଗ୍ଲଟ୍ ବାଇଟ୍କୁ ରଖିବା ପରିବର୍ତ୍ତେ ବର୍ଜନ କରେ।
-କେବଳ ସୀମାବଦ୍ଧ କ୍ୟାନୋନିକାଲ୍ ସଂକୁଚିତ ବଫର୍କୁ ଉଭୟ କୋଟାରେ ଗଣନା କରାଯାଏ।
-JSON ୱାୟାର୍ ସୀମାରେ 32 MiB ଡିକୋଡ୍-ଇନ୍ପୁଟ୍ ସର୍ବୋଚ୍ଚ ସୀମା ପାଇଁ Base64
-ଓଭର୍ହେଡ୍ ଅନ୍ତର୍ଭୁକ୍ତ। ପ୍ରତ୍ୟେକ
-ସଂରକ୍ଷିତ ବ୍ୟୁତ୍ପାଦନ ଏହାର ବୈଧତା-ଯାଞ୍ଚିତ JPEG ଫର୍ମାଟ୍/ରିଜୋଲ୍ୟୁସନ୍, ସ୍ୟାମ୍ପଲିଂ
-ନୀତି, ବ୍ୟୁତ୍ପାଦନ ସଂସ୍କରଣ, ସୃଷ୍ଟି ସମୟ, ସର୍ଭର୍-ଗଣିତ ବିଷୟବସ୍ତୁ ହ୍ୟାଶ୍, ଏବଂ
-ହ୍ୟାଶ୍ କରାଯାଇଥିବା ପ୍ୟାରେଣ୍ଟ ରେଫରେନ୍ସ ସହିତ ବିଶ୍ୱସ୍ତ କଲର୍ର
-ପ୍ୟାରେଣ୍ଟ-ବିଷୟବସ୍ତୁ ହ୍ୟାଶ୍କୁ ରେକର୍ଡ କରେ। ପରମାଣବିକ କ୍ୟାଶ୍ କମିଟ୍ ପୂର୍ବରୁ
-ଅସିଙ୍କ୍ରୋନସ୍ ଡିକୋଡ୍/ହ୍ୟାଶ୍ ପର୍ଯ୍ୟାୟଗୁଡ଼ିକ ମଧ୍ୟରେ ବାତିଲକରଣ ଯାଞ୍ଚ କରାଯାଏ।
+ପ୍ରତ୍ୟେକ ପ୍ରିନ୍ସିପାଲ୍ 16 ଏଣ୍ଟ୍ରି ଏବଂ 64 MiB କାନୋନିକାଲ୍ JPEG ଡାଟା ପାଇଁ ସୀମିତ | ସେହି ସୀମାଗୁଡ଼ିକ ଗ୍ଲୋବାଲ୍ 64-ଏଣ୍ଟ୍ରି/256 MiB ସିଲିଂରୁ ସ୍ୱାଧୀନ: ପ୍ରିନ୍ସିପାଲ୍ କୋଟା ପ୍ରେସର କେବଳ ସେହି ପ୍ରିନ୍ସିପାଲ୍ ର ସର୍ବନିମ୍ନ-ସମ୍ପ୍ରତି-ବ୍ୟବହୃତ ଏଣ୍ଟ୍ରିଗୁଡ଼ିକୁ ଗ୍ଲୋବାଲ୍ LRU ଇଭିକ୍ସନ୍ ବିଚାର କରିବା ପୂର୍ବରୁ ବାହାର କରିଦିଏ | ଏକ୍ସପାୟର୍ ହୋଇଥିବା ଏଣ୍ଟ୍ରିଗୁଡ଼ିକ କ୍ୟାଚ୍ କାର୍ଯ୍ୟକଳାପରେ ଉଭୟ ପ୍ରିନ୍ସିପାଲ୍ ଏବଂ ଗ୍ଲୋବାଲ୍ ଆକାଉଣ୍ଟିଂରୁ ସ୍ୱିପ୍ ହୁଅନ୍ତି, ଯେତେବେଳେ କି ବାତିଲ୍ ଏବଂ ବୈଧତା ବିଫଳତା ଏକ ଆଂଶିକ ପ୍ରତିସ୍ଥାପନ ପ୍ରତିବଦ୍ଧ କରେ ନାହିଁ |
 
-ଏହି ଟ୍ରାଞ୍ଚ୍ ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ପ୍ରଡକ୍ସନ୍ ପ୍ରଡ୍ୟୁସର୍କୁ ରୁଟ୍ ସହିତ ସଂଯୋଗ କରେ
-ନାହିଁ ଏବଂ ମଲ୍ଟି-ରିଜୋଲ୍ୟୁସନ୍ ଭାରିଆଣ୍ଟ ଚୟନ ପ୍ରଦାନ କରେ ନାହିଁ। ତେଣୁ ସ୍ୱଚ୍ଛ
-Video Bridge ଅନୁରୋଧ ପଥରେ କୌଣସି ଅତିରିକ୍ତ କାର୍ଯ୍ୟ ହୁଏ ନାହିଁ, ଯେତେବେଳେ
-ଟେନାଣ୍ଟ-ବାଉଣ୍ଡ ପ୍ରିନ୍ସିପାଲ୍ ବ୍ୟୁତ୍ପାଦନ ଏବଂ ସମ୍ପୂର୍ଣ୍ଣ FU-08 ମଲ୍ଟି-ରିଜୋଲ୍ୟୁସନ୍
-ଜୀବନଚକ୍ରକୁ ସମ୍ପୂର୍ଣ୍ଣ ଆଚରଣ ଭାବେ ଡକ୍ୟୁମେଣ୍ଟ କରିବା ପରିବର୍ତ୍ତେ ସ୍ପଷ୍ଟ
-ଫଲୋ-ଅପ୍ କାର୍ଯ୍ୟ ଭାବେ ରଖାଯାଇଛି।
+କ୍ୟାଚ୍ ଅଣ-କାନୋନିକାଲ୍ Base64, ଅତିରିକ୍ତ ପ୍ୟାଡିଂ, ଅଣ-JPEG ମିଡିଆ, ମାଲଫର୍ମଡ୍ କିମ୍ବା ଟ୍ରଙ୍କେଟେଡ୍ JPEG, ଏବଂ JPEG ଗୁଡ଼ିକୁ ପ୍ରତ୍ୟାଖ୍ୟାନ କରେ ଯାହା ଏକ ସୀମିତ ଫୁଲ୍-ଇମେଜ୍ `sharp` ଡିକୋଡ୍ ସମୟରେ ଏକ ଚେତାବନୀ ଉତ୍ପାଦନ କରେ | ଏହା ପ୍ରତ୍ୟେକ ଗ୍ରହଣ କରାଯାଇଥିବା ଇମେଜ୍ କୁ ଏକ କାନୋନିକାଲ୍ JPEG ଭାବରେ ପୁନଃ-ଏନକୋଡ୍ କରେ, କଲର୍ ଫିଲ୍ଡଗୁଡ଼ିକୁ ବିଶ୍ୱାସ କରିବା ପରିବର୍ତ୍ତେ ଡିକୋଡ୍ ହୋଇଥିବା ବାଇଟ୍ ରୁ ପ୍ରସ୍ଥ ଏବଂ ଉଚ୍ଚତା ଉତ୍ପନ୍ନ କରେ, ଏବଂ ସେଗୁଡ଼ିକୁ ଧାରଣ କରିବା ପରିବର୍ତ୍ତେ କୌଣସି ଟ୍ରେଲିଂ ପଲିଗ୍ଲଟ୍ ବାଇଟ୍ ଛାଡି ଦିଏ | କେବଳ ସୀମିତ କାନୋନିକାଲ୍ କମ୍ପ୍ରେସଡ୍ ବଫର୍ ଉଭୟ କୋଟା ପାଇଁ ଚାର୍ଜ କରାଯାଏ | JSON ୱାୟର୍ ସୀମା 32 MiB ଡିକୋଡ୍ ହୋଇଥିବା-ଇନପୁଟ୍ ସିଲିଂ ପାଇଁ Base64 ଓଭରହେଡ୍ ଅନ୍ତର୍ଭୁକ୍ତ କରେ | ପ୍ରତ୍ୟେକ ଷ୍ଟୋର୍ ହୋଇଥିବା ଡେରିଭେସନ୍ ଏହାର ବୈଧ JPEG ଫର୍ମାଟ୍/ରିଜୋଲ୍ୟୁସନ୍, ସାମ୍ପଲିଂ ପଲିସି, ଡେରିଭେସନ୍ ଭର୍ସନ୍, ସୃଷ୍ଟି ସମୟ, ସର୍ଭର-କମ୍ପ୍ୟୁଟେଡ୍ ବିଷୟବସ୍ତୁ ହ୍ୟାସ୍, ଏବଂ ହ୍ୟାସ୍ ହୋଇଥିବା ପ୍ୟାରେଣ୍ଟ୍ ରେଫରେନ୍ସ ସହିତ ବିଶ୍ୱସ୍ତ କଲର୍ ର ପ୍ୟାରେଣ୍ଟ୍-ବିଷୟବସ୍ତୁ ହ୍ୟାସ୍ ରେକର୍ଡ କରେ | ଆଟୋମିକ୍ କ୍ୟାଚ୍ କମିଟ୍ ପୂର୍ବରୁ ଅସିଙ୍କ୍ରୋନସ୍ ଡିକୋଡ୍/ହ୍ୟାସ୍ ପର୍ଯ୍ୟାୟ ମଧ୍ୟରେ ବାତିଲ୍ ଯାଞ୍ଚ କରାଯାଏ |
 
-ଫ୍ରେମ୍ଗୁଡ଼ିକୁ ବିନ୍ୟାସିତ Video ମଡେଲ୍ ଦ୍ୱାରା କ୍ରମାନୁସାରେ କ୍ୟାପ୍ସନ୍ ଦିଆଯାଏ। ଏକ ଖାଲି
-Video ଓଭରରାଇଡ୍ Vision ସେଟିଂକୁ ଉତ୍ତରାଧିକାର କରେ; ଯଦି ଉଭୟ ଖାଲି ଥାଏ, ତେବେ Vision
-ଅଟୋ-ରାଉଟର୍ ପ୍ରଭାବୀ vision-ସକ୍ଷମ ମଡେଲ୍କୁ ବାଛେ। ସଫଳ କ୍ୟାପ୍ସନ୍ଗୁଡ଼ିକ
-ମୂଳ ଅଂଶକୁ ଏକ ସ୍ଥିର `[Video description:` ପ୍ରିଫିକ୍ସ ସହିତ ବଦଳାଏ, ଯାହା
-ଟେକ୍ସଟ୍ଟିକୁ ଏକ ଅବିଶ୍ୱସନୀୟ ମିଡିଆ-ଉତ୍ପନ୍ନ ପର୍ଯ୍ୟବେକ୍ଷଣ ଭାବେ ମଧ୍ୟ ଚିହ୍ନିତ କରେ ଏବଂ ଡାଉନ୍ଷ୍ଟ୍ରିମ୍
-ମଡେଲ୍ଗୁଡ଼ିକୁ ମିଡିଆରେ ମିଳିଥିବା ନିର୍ଦ୍ଦେଶ ପାଳନ ନ କରିବାକୁ କୁହେ। ଫ୍ରେମ୍-କ୍ୟାପ୍ସନ୍ କ୍ୟାଶ୍ କୀଗୁଡ଼ିକରେ
-JPEG ବାଇଟ୍, ପ୍ରମ୍ପ୍ଟ, ଟାଇମ୍ଷ୍ଟାମ୍ପ ଏବଂ ପ୍ରଭାବୀ ମଡେଲ୍ ସାମିଲ ଥାଏ; କେବଳ ସଫଳ
-କ୍ୟାପ୍ସନ୍ଗୁଡ଼ିକୁ କ୍ୟାଶ୍ କରାଯାଏ। କ୍ୟାଶ୍ ଏଣ୍ଟ୍ରିଗୁଡ଼ିକ ଫଲ୍ବ୍ୟାକ୍ ମଡେଲ୍ ସମେତ,
-ପ୍ରକୃତ ସଫଳ ଉତ୍ପାଦକ ମଡେଲ୍କୁ ରଖିଥାଏ; ଭିନ୍ନ ଫ୍ରେମ୍ଗୁଡ଼ିକ ଭିନ୍ନ ମଡେଲ୍ ଦ୍ୱାରା
-ଉତ୍ପାଦିତ ହୋଇଥିଲେ ବ୍ରିଜ୍ `mixed` ରିପୋର୍ଟ କରେ। କ୍ୟାଶ୍ ହିଟ୍ ଏହାକୁ ଅନୁରୋଧ କରାଯାଇଥିବା
-ରାଉଟିଂ ପ୍ଲାନ୍ ଭାବେ ପୁନଃଲେବଲ୍ କରିବା ପରିବର୍ତ୍ତେ ସେହି ଉତ୍ପାଦକ ପରିଚୟକୁ ପୁନଃବ୍ୟବହାର କରେ।
-ସମ୍ପୂର୍ଣ୍ଣ-ଭିଡିଓ ଫଳାଫଳ କ୍ୟାଶ୍ର କୀ ଆଉଟ୍ପୁଟ୍ ପରିବର୍ତ୍ତନ କରୁଥିବା ପ୍ରତ୍ୟେକ ଇନ୍ପୁଟ୍ ଉପରେ ଆଧାରିତ — ପ୍ରମ୍ପ୍ଟ, ପ୍ରଭାବୀ
-ମଡେଲ୍, ସାମ୍ପଲିଂ ନୀତି, ଫ୍ରେମ୍ ସଂଖ୍ୟା, ସେମାଣ୍ଟିକ୍ ବିଶ୍ଳେଷଣ ମୋଡ୍, ସାମାନ୍ୟୀକୃତ
-ଫୋକସ୍ ହିଣ୍ଟ୍ର SHA-256 ଫିଙ୍ଗରପ୍ରିଣ୍ଟ, ଫୋକସ୍ ୱିଣ୍ଡୋ, `transcript`,
-`audioTranscript`, ଏବଂ କଣ୍ଟାକ୍ଟ-ଶିଟ୍ ଫ୍ଲାଗ୍ — ତେଣୁ ଏହି
-ମାତ୍ରାଗୁଡ଼ିକ ମଧ୍ୟରୁ ଯେକୌଣସିଟି ବଦଳିଲେ ତାହା କ୍ୟାଶ୍ ମିସ୍ ହୁଏ, କେବେବି ପୁରୁଣା ତଥ୍ୟର ପୁନଃବ୍ୟବହାର ନୁହେଁ। ଭିଜୁଆଲ୍ ଡିଡ୍ୟୁପ୍ ନୀତି
-ଭର୍ସନ୍, ଥ୍ରେଶୋଲ୍ଡ ଏବଂ ସୀମିତ ପ୍ରାର୍ଥୀ-ଫ୍ରେମ୍ ସଂଖ୍ୟାକୁ ମଧ୍ୟ
-ଫଳାଫଳ-କ୍ୟାଶ୍ କୀ ଏବଂ ମେଟାଡାଟାରେ ସ୍ପଷ୍ଟ ଭାବେ ରଖାଯାଏ; ତେଣୁ ନୀତି ପରିବର୍ତ୍ତନ ଏକ ପୁରୁଣା
-ସମ୍ପୂର୍ଣ୍ଣ-ଭିଡିଓ ବର୍ଣ୍ଣନାକୁ ପୁନଃବ୍ୟବହାର କରିପାରିବ ନାହିଁ। ଫଳାଫଳ-କ୍ୟାଶ୍ v4 ମେଟାଡାଟା ମୋଡ୍ ଏବଂ
-ଫିଙ୍ଗରପ୍ରିଣ୍ଟକୁ ରଖେ, କିନ୍ତୁ କେବେବି କଞ୍ଚା ବ୍ୟବହାରକାରୀ ଟାସ୍କକୁ ରଖେ ନାହିଁ। ଗାର୍ଡରେଲ୍ ମେଟାଡାଟା ଉଭୟ
-ଅନୁରୋଧିତ ଏବଂ ପ୍ରଭାବୀ ବିଶ୍ଳେଷଣ ମୋଡ୍ ରିପୋର୍ଟ କରେ; ବ୍ୟବହାରଯୋଗ୍ୟ ବ୍ୟବହାରକାରୀ ଟେକ୍ସଟ୍ ବିନା ଅନୁରୋଧ କରାଯାଇଥିବା `focused` ମୋଡ୍କୁ
-ପ୍ରଭାବୀ ଭାବେ `full` ଭାବରେ ରିପୋର୍ଟ କରାଯାଏ।
+ଏହି ଟ୍ରାଞ୍ଚ୍ ଏପର୍ଯ୍ୟନ୍ତ ଏକ ଉତ୍ପାଦନ ପ୍ରଡ୍ୟୁସରକୁ ରୁଟ୍ ସହିତ ସଂଯୋଗ କରେ ନାହିଁ ଏବଂ ମଲ୍ଟି-ରିଜୋଲ୍ୟୁସନ୍ ଭାରିଆଣ୍ଟ୍ ଚୟନ ପ୍ରଦାନ କରେ ନାହିଁ। ତେଣୁ, ସ୍ୱଚ୍ଛ ଭିଡିଓ ବ୍ରିଜ୍ ଅନୁରୋଧ ପଥରେ କୌଣସି ଅତିରିକ୍ତ କାର୍ଯ୍ୟ ହୁଏ ନାହିଁ, ଯେତେବେଳେ କି ଟେନାଣ୍ଟ-ବାଉଣ୍ଡ୍ ପ୍ରିନ୍ସିପାଲ୍ ଡେରିଭେସନ୍ ଏବଂ ସମ୍ପୂର୍ଣ୍ଣ FU-08 ମଲ୍ଟି-ରିଜୋଲ୍ୟୁସନ୍ ଲାଇଫ୍ସାଇକଲ୍ ସମ୍ପୂର୍ଣ୍ଣ ଆଚରଣ ଭାବରେ ଡକ୍ୟୁମେଣ୍ଟ୍ ହେବା ପରିବର୍ତ୍ତେ ସ୍ପଷ୍ଟ ଫଲୋ-ଅପ୍ କାର୍ଯ୍ୟ ଭାବରେ ରହିଥାଏ।
 
-ଗାର୍ଡରେଲ୍ ପ୍ରତ୍ୟେକ ସମର୍ଥିତ ଭିଡିଓ ଅଂଶକୁ ଏକ୍ସଟ୍ରାକ୍ଟ କରେ, କିନ୍ତୁ
-`modalityBridgeVideoMaxVideos` ଠାରୁ ଅଧିକର ବର୍ଣ୍ଣନା କରେ ନାହିଁ। ଯେଉଁ ଟାର୍ଗେଟ୍ରେ
-`supportsVideo === false` ବୋଲି ପ୍ରମାଣିତ, ସେଠାରେ ବିଫଳ ଏବଂ ସୀମା-ଅତିକ୍ରମକାରୀ ଭିଡିଓଗୁଡ଼ିକ ସ୍ପଷ୍ଟ ସୁରକ୍ଷିତ
-ଟେକ୍ସଟ୍ ମାର୍କର୍ରେ ପରିଣତ ହୁଏ, ଯାହାଦ୍ୱାରା କୌଣସି କଞ୍ଚା ଭିଡିଓ ଅବଶିଷ୍ଟ ରହେ ନାହିଁ। କ୍ଷମତା ଅଜଣା ଥିଲେ, ସେହି ଅଂଶଗୁଡ଼ିକ
-ଅପରିବର୍ତ୍ତିତ ରହେ। `supportsVideo === true` ଥିବା ଟାର୍ଗେଟ୍ଗୁଡ଼ିକ ବ୍ରିଜ୍କୁ ବାଇପାସ୍ କରେ।
-କ୍ଲାଏଣ୍ଟ ଅନୁରୋଧର ଆବର୍ଟ ସିଗ୍ନାଲ୍ ଡାଉନ୍ଲୋଡ୍, ବ୍ରୋକର୍ କ୍ୟୁ,
-ସବ୍ପ୍ରୋସେସ୍ ଏବଂ କ୍ୟାପ୍ସନ୍ କଲ୍ଗୁଡ଼ିକ ମଧ୍ୟରେ ପ୍ରସାରିତ ହୁଏ; ଆବର୍ଟଗୁଡ଼ିକ ଭିଡିଓଗୁଡ଼ିକ ମଧ୍ୟରେ ପ୍ରକ୍ରିୟାକୁ ବନ୍ଦ କରେ ଏବଂ କେବେବି କଞ୍ଚା
-ମିଡିଆ ପ୍ରତି ଫେଲ୍-ଓପେନ୍ କରେ ନାହିଁ।
+ଫ୍ରେମ୍ଗୁଡ଼ିକ ବିନ୍ୟାସିତ ଭିଡିଓ ମଡେଲ୍ ସହିତ କ୍ରମାନ୍ୱୟରେ କ୍ୟାପ୍ସନ୍ ହୋଇଥାଏ। ଏକ ଖାଲି ଭିଡିଓ ଓଭରରାଇଡ୍ ଭିଜନ୍ ସେଟିଂକୁ ଉତ୍ତରାଧିକାରୀ ଭାବରେ ଗ୍ରହଣ କରେ; ଯଦି ଉଭୟ ଖାଲି ଥାଏ, ତେବେ ଭିଜନ୍ ଅଟୋ-ରାଉଟର୍ ପ୍ରଭାବଶାଳୀ ଭିଜନ୍-ସକ୍ଷମ ମଡେଲ୍ ଚୟନ କରେ। ସଫଳ କ୍ୟାପ୍ସନ୍ଗୁଡ଼ିକ ମୂଳ ଅଂଶକୁ ଏକ ସ୍ଥିର `[Video description:` ପ୍ରିଫିକ୍ସ ସହିତ ବଦଳାଇଥାଏ ଯାହାକି ଟେକ୍ସଟକୁ ଏକ ଅବିଶ୍ୱାସନୀୟ ମିଡିଆ-ଡେରିଭ୍ଡ ଅବଜରଭେସନ୍ ଭାବରେ ଚିହ୍ନିତ କରେ ଏବଂ ଡାଉନ୍ଷ୍ଟ୍ରିମ୍ ମଡେଲ୍ଗୁଡ଼ିକୁ ମିଡିଆରେ ମିଳୁଥିବା ନିର୍ଦ୍ଦେଶାବଳୀ ଅନୁସରଣ ନକରିବାକୁ କହିଥାଏ। ଫ୍ରେମ୍-କ୍ୟାପ୍ସନ୍ କ୍ୟାଚ୍ କି'ଗୁଡ଼ିକରେ JPEG ବାଇଟ୍, ପ୍ରମ୍ପ୍ଟ, ଟାଇମ୍ଷ୍ଟାମ୍ପ୍, ଏବଂ ପ୍ରଭାବଶାଳୀ ମଡେଲ୍ ଅନ୍ତର୍ଭୁକ୍ତ; କେବଳ ସଫଳ କ୍ୟାପ୍ସନ୍ଗୁଡ଼ିକ କ୍ୟାଚ୍ ହୋଇଥାଏ। କ୍ୟାଚ୍ ଏଣ୍ଟ୍ରିଗୁଡ଼ିକ ପ୍ରକୃତ ସଫଳ ପ୍ରଡ୍ୟୁସର ମଡେଲ୍କୁ ବଜାୟ ରଖିଥାଏ, ଯେଉଁଥିରେ ଏକ ଫଲ୍ବ୍ୟାକ୍ ମଡେଲ୍ ଅନ୍ତର୍ଭୁକ୍ତ; ଯେତେବେଳେ ବିଭିନ୍ନ ଫ୍ରେମ୍ ବିଭିନ୍ନ ମଡେଲ୍ ଦ୍ୱାରା ଉତ୍ପାଦିତ ହୋଇଥାଏ, ସେତେବେଳେ ବ୍ରିଜ୍ `mixed` ରିପୋର୍ଟ କରେ। ଏକ କ୍ୟାଚ୍ ହିଟ୍ ଅନୁରୋଧିତ ରାଉଟିଂ ଯୋଜନା ଭାବରେ ପୁନଃ-ଲେବଲ୍ କରିବା ପରିବର୍ତ୍ତେ ସେହି ପ୍ରଡ୍ୟୁସର ପରିଚୟକୁ ପୁନଃ ବ୍ୟବହାର କରେ। ସମ୍ପୂର୍ଣ୍ଣ-ଭିଡିଓ ଫଳାଫଳ କ୍ୟାଚ୍ ପ୍ରତ୍ୟେକ ଇନପୁଟ୍ ଉପରେ କି' ହୋଇଥାଏ ଯାହା ଆଉଟପୁଟ୍ ପରିବର୍ତ୍ତନ କରେ — ପ୍ରମ୍ପ୍ଟ, ପ୍ରଭାବଶାଳୀ ମଡେଲ୍, ସାମ୍ପଲିଂ ନୀତି, ଫ୍ରେମ୍ ସଂଖ୍ୟା, ସେମାଣ୍ଟିକ୍ ବିଶ୍ଳେଷଣ ମୋଡ୍, ସାଧାରଣକୃତ ଫୋକସ୍ ହିଣ୍ଟର SHA-256 ଫିଙ୍ଗରପ୍ରିଣ୍ଟ, ଫୋକସ୍ ୱିଣ୍ଡୋ, `transcript`, `audioTranscript`, ଏବଂ କଣ୍ଟାକ୍ଟ-ସିଟ୍ ଫ୍ଲାଗ୍ — ତେଣୁ ସେହି ମାପଗୁଡ଼ିକ ମଧ୍ୟରୁ କୌଣସିଟିକୁ ପରିବର୍ତ୍ତନ କରିବା ଏକ କ୍ୟାଚ୍ ମିସ୍, କେବେହେଲେ ଏକ ବାସି ପୁନଃ ବ୍ୟବହାର ନୁହେଁ। ଭିଜୁଆଲ୍ ଡିଡ୍ୟୁପ୍ ନୀତି ସଂସ୍କରଣ, ଥ୍ରେସହୋଲ୍ଡ, ଏବଂ ବାଉଣ୍ଡେଡ୍ କାଣ୍ଡିଡେଟ୍-ଫ୍ରେମ୍ ସଂଖ୍ୟା ମଧ୍ୟ ଫଳାଫଳ-କ୍ୟାଚ୍ କି' ଏବଂ ମେଟାଡାଟାରେ ସ୍ପଷ୍ଟ; ତେଣୁ ଏକ ନୀତି ପରିବର୍ତ୍ତନ ଏକ ବାସି ସମ୍ପୂର୍ଣ୍ଣ-ଭିଡିଓ ବର୍ଣ୍ଣନାକୁ ପୁନଃ ବ୍ୟବହାର କରିପାରିବ ନାହିଁ। ଫଳାଫଳ-କ୍ୟାଚ୍ v4 ମେଟାଡାଟା ମୋଡ୍ ଏବଂ ଫିଙ୍ଗରପ୍ରିଣ୍ଟକୁ ରଖେ, କେବେହେଲେ କଞ୍ଚା ଉପଭୋକ୍ତା କାର୍ଯ୍ୟକୁ ନୁହେଁ। ଗାର୍ଡରେଲ୍ ମେଟାଡାଟା ଅନୁରୋଧିତ ଏବଂ ପ୍ରଭାବଶାଳୀ ବିଶ୍ଳେଷଣ ମୋଡ୍ ଉଭୟକୁ ରିପୋର୍ଟ କରେ; ବ୍ୟବହାର ଯୋଗ୍ୟ ଉପଭୋକ୍ତା ଟେକ୍ସଟ୍ ବିନା ଏକ ଅନୁରୋଧିତ `focused` ମୋଡ୍ ପ୍ରଭାବଶାଳୀ ଭାବରେ `full` ଭାବରେ ରିପୋର୍ଟ କରାଯାଏ।
 
-ରନ୍ଟାଇମ୍ ସେଟିଂଗୁଡ଼ିକ DB-ସମର୍ଥିତ ଏବଂ Zod-ବୈଧୀକୃତ:
+ଗାର୍ଡରେଲ୍ ପ୍ରତ୍ୟେକ ସମର୍ଥିତ ଭିଡିଓ ଅଂଶକୁ ବାହାର କରେ କିନ୍ତୁ `modalityBridgeVideoMaxVideos` ରୁ ଅଧିକ ବର୍ଣ୍ଣନା କରେ ନାହିଁ। `supportsVideo === false` ପ୍ରମାଣିତ ହୋଇଥିବା ଏକ ଟାର୍ଗେଟ୍ ପାଇଁ, ବିଫଳ ଏବଂ ଅତି-ସୀମା ଭିଡିଓଗୁଡ଼ିକ ସ୍ପଷ୍ଟ ସୁରକ୍ଷିତ ଟେକ୍ସଟ୍ ମାର୍କର୍ ହୋଇଯାଏ ଯାହାଫଳରେ କୌଣସି କଞ୍ଚା ଭିଡିଓ ବଞ୍ଚେ ନାହିଁ। ଯେତେବେଳେ କ୍ଷମତା ଅଜ୍ଞାତ ଥାଏ, ସେହି ଅଂଶଗୁଡ଼ିକ ଅସ୍ପୃଶ୍ୟ ରହିଥାଏ। `supportsVideo === true` ଥିବା ଟାର୍ଗେଟ୍ଗୁଡ଼ିକ ବ୍ରିଜ୍କୁ ବାଇପାସ୍ କରନ୍ତି। କ୍ଲାଏଣ୍ଟ ଅନୁରୋଧ ଆବର୍ଟ ସିଗ୍ନାଲ୍ ଡାଉନଲୋଡ୍, ବ୍ରୋକର୍ କ୍ୟୁ, ସବ୍ପ୍ରୋସେସ୍, ଏବଂ କ୍ୟାପ୍ସନ୍ କଲ୍ ମାଧ୍ୟମରେ ପ୍ରସାରିତ ହୁଏ; ଆବର୍ଟଗୁଡ଼ିକ ଭିଡିଓ ମଧ୍ୟରେ ବନ୍ଦ ହୁଏ ଏବଂ କେବେହେଲେ କଞ୍ଚା ମିଡିଆକୁ ଖୋଲା ବିଫଳ ହୁଏ ନାହିଁ।
 
-| କୀ                                  | ଡିଫଲ୍ଟ      | ପରିସର / ଆଚରଣ                                                                                               |
-| ----------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------- |
-| `modalityBridgeVideoEnabled`        | `false`     | ଇଚ୍ଛାଧୀନ ରନ୍ଟାଇମ୍, ଅପ୍ଟ-ଇନ୍                                                                                |
-| `modalityBridgeVideoAnalysisMode`   | `"full"`    | `full` ସାଧାରଣ କ୍ୟାପ୍ସନ୍କୁ ସଂରକ୍ଷଣ କରେ; `focused` ସୀମିତ, ଅବିଶ୍ୱସନୀୟ ସର୍ବଶେଷ-ବ୍ୟବହାରକାରୀ ପ୍ରସଙ୍ଗ ବ୍ୟବହାର କରେ |
-| `modalityBridgeVideoModel`          | `""`        | Vision Bridge ମଡେଲ୍କୁ ଉତ୍ତରାଧିକାର କରେ                                                                      |
-| `modalityBridgeVideoFrameCount`     | `8`         | 1–16                                                                                                       |
-| `modalityBridgeVideoSamplingPolicy` | `"uniform"` | `uniform`, `scene_aware`, କିମ୍ବା ଆନୁପାତିକ `segment_aware`; ଡିଟେକ୍ଟର୍ ବିଫଳତାରେ `uniform`କୁ ଫଲ୍ବ୍ୟାକ୍ କରେ    |
-| `modalityBridgeVideoMaxVideos`      | `1`         | 1–4                                                                                                        |
-| `modalityBridgeVideoTimeout`        | `120000`    | 1000–120000 ms                                                                                             |
+ରନ୍ଟାଇମ୍ ସେଟିଂଗୁଡ଼ିକ DB-ବ୍ୟାକ୍ଡ ଏବଂ Zod-ଭାଲିଡେଟେଡ୍:
 
-120 ସେକେଣ୍ଡରୁ ଅଧିକ ପୁରୁଣା ସଂରକ୍ଷିତ Video ଟାଇମ୍ଆଉଟ୍ ମୂଲ୍ୟଗୁଡ଼ିକୁ
-ବ୍ରୋକର୍ ଡେଡ୍ଲାଇନ୍ରେ ସୀମିତ କରାଯାଏ; ସେହି ସୀମାଠାରୁ ଅଧିକ ନୂଆ ସେଟିଂ ରାଇଟ୍ଗୁଡ଼ିକ ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଏ।
-`GET /api/modality-bridge/video/runtime` ପାଇଁ ପ୍ରମାଣୀକରଣ କିମ୍ବା ରନ୍ଟାଇମ୍ ପ୍ରୋବିଂ ପୂର୍ବରୁ ବିଶ୍ୱସନୀୟ ଷ୍ଟାମ୍ପ୍ଯୁକ୍ତ ଲୁପ୍ବ୍ୟାକ୍
-ଲୋକାଲିଟି ଆବଶ୍ୟକ, ତାପରେ ପରିଚାଳନା
-ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ। ଏହା କେବଳ `available`, ସାନିଟାଇଜ୍ କରାଯାଇଥିବା FFmpeg/ffprobe ଭର୍ସନ୍ ଏବଂ ରନ୍ଟାଇମ୍ ଅନୁପଲବ୍ଧ
-ଥିଲେ ଏକ ନିର୍ଦ୍ଧାରିତ କାରଣ ଫେରାଏ। ଆଭ୍ୟନ୍ତରୀଣ ଏକ୍ସଟ୍ରାକ୍ସନ୍ ଏଣ୍ଡପଏଣ୍ଟ ଏକ
-ସାର୍ବଜନୀନ ଅପଲୋଡ୍ API ନୁହେଁ: କ୍ୟୁ ସାଚୁରେସନ୍ରେ `Retry-After` ସହିତ `503` ଫେରେ, କଲର୍
-ଡିସ୍କନେକ୍ଟରେ `499` ଫେରେ, ଏବଂ ନିର୍ଦ୍ଧାରିତ ବ୍ରୋକର୍ ଡେଡ୍ଲାଇନ୍ରେ `504` ଫେରେ। ରୂପାନ୍ତରିତ ରେସ୍ପନ୍ସଗୁଡ଼ିକ Vision କିମ୍ବା Audio ସେଗ୍ମେଣ୍ଟଗୁଡ଼ିକୁ ଅପସାରଣ ନକରି
-କେନ୍ଦ୍ରୀୟ `x-omniroute-modality-bridge` ହେଡର୍ରେ
-`video->text;model=<visionModel>;parts=<videos>` ଯୋଡ଼େ।
+| Key                                 | Default     | Range / behavior                                                                                                   |
+| ----------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
+| `modalityBridgeVideoEnabled`        | `false`     | Optional runtime, opt-in                                                                                           |
+| `modalityBridgeVideoAnalysisMode`   | `"full"`    | `full` ସାଧାରଣ କ୍ୟାପ୍ସନ୍ଗୁଡ଼ିକୁ ସଂରକ୍ଷିତ କରେ; `focused` ବାଉଣ୍ଡେଡ୍, ଅବିଶ୍ୱାସନୀୟ ସର୍ବଶେଷ-ଉପଭୋକ୍ତା ପ୍ରସଙ୍ଗ ବ୍ୟବହାର କରେ |
+| `modalityBridgeVideoModel`          | `""`        | ଭିଜନ୍ ବ୍ରିଜ୍ ମଡେଲ୍କୁ ଉତ୍ତରାଧିକାରୀ ଭାବରେ ଗ୍ରହଣ କରନ୍ତୁ                                                               |
+| `modalityBridgeVideoFrameCount`     | `8`         | 1–16                                                                                                               |
+| `modalityBridgeVideoSamplingPolicy` | `"uniform"` | `uniform`, `scene_aware`, କିମ୍ବା ଆନୁପାତିକ `segment_aware`; ଡିଟେକ୍ଟର ବିଫଳତା `uniform` କୁ ଫଲ୍ବ୍ୟାକ୍ କରେ              |
+| `modalityBridgeVideoMaxVideos`      | `1`         | 1–4                                                                                                                |
+| `modalityBridgeVideoTimeout`        | `120000`    | 1000–120000 ms                                                                                                     |
+
+120 ସେକେଣ୍ଡରୁ ଅଧିକ ଲେଗାସି ପର୍ସିଷ୍ଟେଡ୍ ଭିଡିଓ ଟାଇମ୍ଆଉଟ୍ ମୂଲ୍ୟଗୁଡ଼ିକ ବ୍ରୋକର୍ ଡେଡ୍ଲାଇନ୍ରେ କ୍ଲାମ୍ପ୍ ହୋଇଥାଏ; ସେହି ସୀମାଠାରୁ ଅଧିକ ନୂତନ ସେଟିଂସ୍ ରାଇଟ୍ଗୁଡ଼ିକ ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଏ। `GET /api/modality-bridge/video/runtime` ପ୍ରମାଣୀକରଣ କିମ୍ବା ରନ୍ଟାଇମ୍ ପ୍ରୋବିଂ ପୂର୍ବରୁ ବିଶ୍ୱସ୍ତ ଷ୍ଟାମ୍ପ୍ଡ୍ ଲୁପ୍ବ୍ୟାକ୍ ଲୋକାଲିଟି ଆବଶ୍ୟକ କରେ, ତା’ପରେ ମ୍ୟାନେଜମେଣ୍ଟ୍ ଅଥ୍ ଆବଶ୍ୟକ କରେ। ଏହା କେବଳ `available`, ସାନିଟାଇଜ୍ଡ୍ FFmpeg/ffprobe ସଂସ୍କରଣ, ଏବଂ ରନ୍ଟାଇମ୍ ଅନୁପଲବ୍ଧ ଥିବାବେଳେ ଏକ ସ୍ଥିର କାରଣ ଫେରାଇଥାଏ। ଆଭ୍ୟନ୍ତରୀଣ ଏକ୍ସଟ୍ରାକ୍ସନ୍ ଏଣ୍ଡ୍ପଏଣ୍ଟ୍ ଏକ ସାର୍ବଜନୀନ ଅପଲୋଡ୍ API ନୁହେଁ: କ୍ୟୁ ସାଚୁରେସନ୍ `503` ପ୍ଲସ୍ `Retry-After` ଫେରାଇଥାଏ, ଏକ କଲର୍ ଡିସକନେକ୍ଟ `499` ଫେରାଇଥାଏ, ଏବଂ ସ୍ଥିର ବ୍ରୋକର୍ ଡେଡ୍ଲାଇନ୍ `504` ଫେରାଇଥାଏ। ରୂପାନ୍ତରିତ ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକ ଭିଜନ୍ କିମ୍ବା ଅଡିଓ ସେଗମେଣ୍ଟ୍ଗୁଡ଼ିକୁ ନହଟାଇ କେନ୍ଦ୍ରୀୟ `x-omniroute-modality-bridge` ହେଡରରେ `video->text;model=<visionModel>;parts=<videos>` ଯୋଡିଥାଏ।
 
 ### PII ମାସ୍କର୍ (`piiMasker.ts`)
 
 **ଉଭୟ** ପର୍ଯ୍ୟାୟରେ ଚାଲେ।
 
-- **`preCall`** ପେଲୋଡ୍କୁ କ୍ଲୋନ୍ କରେ, `system`, `messages`, `input`, ଏବଂ
-  `prompt` (ସାଧାରଣ ଷ୍ଟ୍ରିଙ୍ଗ୍ ଆଇଟମ୍ଗୁଡ଼ିକ ସମେତ) ମଧ୍ୟରେ ଟ୍ରାଭର୍ସ କରେ, ଏବଂ ଷ୍ଟ୍ରିଙ୍ଗ୍ `content`/`text` ଫିଲ୍ଡଗୁଡ଼ିକରେ
-  (`@/shared/utils/inputSanitizer`ରୁ) `processPII()` ପ୍ରୟୋଗ କରେ। ଯେତେବେଳେ
-  `PII_REDACTION_ENABLED=true`, ଚିହ୍ନଟ ହୋଇଥିବା PIIକୁ ଆଉଟ୍ବାଉଣ୍ଡ
-  ପେଲୋଡ୍ରେ ରିଡାକ୍ଟ କରାଯାଏ। ଏହା `INPUT_SANITIZER_MODE` ଠାରୁ ସ୍ୱାଧୀନ (ଯାହା କେବଳ
-  ପ୍ରମ୍ପ୍ଟ-ଇଞ୍ଜେକ୍ସନ୍ ନୀତିକୁ ନିୟନ୍ତ୍ରଣ କରେ)। ରିଡାକ୍ସନ୍ ବନ୍ଦ ଥିଲେ, କଲ୍ଟି କଣ୍ଟେଣ୍ଟ ପୁନଃଲେଖନ ନକରି
-  ଚିହ୍ନଟ ସଂଖ୍ୟାଗୁଡ଼ିକୁ ରେକର୍ଡ କରେ।
-- **`postCall`** ରେସ୍ପନ୍ସକୁ ଡିପ୍-କ୍ଲୋନ୍ କରେ, `sanitizePIIResponse()` ସହିତ
-  Responses-API-ଆକୃତିର ମାସ୍କର୍ (`maskResponsesOutput` — ଯାହା
-  `output_text` ଏବଂ `output[].content[].text`କୁ ଆବୃତ କରେ) ଚଲାଏ। କୌଣସି ରିଡାକ୍ସନ୍ ଘଟିଲେ,
-  ପରିବର୍ତ୍ତିତ ରେସ୍ପନ୍ସଟି ମୂଳ ରେସ୍ପନ୍ସକୁ ବଦଳାଏ।
+- **`preCall`** ପେଲୋଡ୍କୁ କ୍ଲୋନ୍ କରେ, `system`, `messages`, `input`, ଏବଂ `prompt` (ସାଧା ଷ୍ଟ୍ରିଙ୍ଗ୍ ଆଇଟମ୍ ସହିତ) ଚାଲେ, ଏବଂ ଷ୍ଟ୍ରିଙ୍ଗ୍ `content`/`text` ଫିଲ୍ଡରେ `processPII()` ( `@/shared/utils/inputSanitizer` ରୁ) ପ୍ରୟୋଗ କରେ। ଯେତେବେଳେ `PII_REDACTION_ENABLED=true` ଥାଏ, ଚିହ୍ନିତ PII ଆଉଟ୍ବାଉଣ୍ଡ୍ ପେଲୋଡ୍ରେ ରେଡାକ୍ଟ୍ ହୋଇଥାଏ। ଏହା `INPUT_SANITIZER_MODE` (ଯାହା କେବଳ ପ୍ରମ୍ପ୍ଟ-ଇଞ୍ଜେକ୍ସନ୍ ନୀତିକୁ ନିୟନ୍ତ୍ରଣ କରେ) ଠାରୁ ସ୍ୱାଧୀନ। ଯେତେବେଳେ ରେଡାକ୍ସନ୍ ବନ୍ଦ ଥାଏ, କଲ୍ ବିଷୟବସ୍ତୁକୁ ପୁନଃ ଲେଖିବା ବିନା ଚିହ୍ନଟ ଗଣନା ରେକର୍ଡ କରେ।
+- **`postCall`** ପ୍ରତିକ୍ରିୟାକୁ ଡିପ୍-କ୍ଲୋନ୍ କରେ, `sanitizePIIResponse()` ପ୍ଲସ୍ ରେସପନ୍ସେସ୍-API-ସେପ୍ ମାସ୍କର୍ (`maskResponsesOutput` — `output_text` ଏବଂ `output[].content[].text` କୁ କଭର୍ କରେ) ଚାଲେ। ଯଦି କୌଣସି ରେଡାକ୍ସନ୍ ହୁଏ, ସଂଶୋଧିତ ପ୍ରତିକ୍ରିୟା ମୂଳକୁ ବଦଳାଇଥାଏ।
 
-ଗାର୍ଡରେଲ୍ କେବେବି ବ୍ଲକ୍ କରେ ନାହିଁ; ଏହା କେବଳ ଟିପ୍ପଣୀ ଯୋଡ଼େ (`meta.detections`,
-`meta.redacted`) କିମ୍ବା ପୁନଃଲେଖନ କରେ।
+ଗାର୍ଡରେଲ୍ କେବେହେଲେ ବ୍ଲକ୍ କରେ ନାହିଁ; ଏହା କେବଳ ଟିପ୍ପଣୀ କରେ (`meta.detections`, `meta.redacted`) କିମ୍ବା ପୁନଃ ଲେଖେ।
 
 ### ପ୍ରମ୍ପ୍ଟ ଇଞ୍ଜେକ୍ସନ୍ (`promptInjection.ts`)
 
-ବ୍ୟବହାରକାରୀ-ପ୍ରଦତ୍ତ କଣ୍ଟେଣ୍ଟରେ ପ୍ରତିକୂଳ ଗଠନଗୁଡ଼ିକୁ ଚିହ୍ନଟ କରେ ଏବଂ
-ବିନ୍ୟାସିତ ନୀତିକୁ ପ୍ରବର୍ତ୍ତନ କରେ। ଆଚରଣ ପରିବେଶ ଭେରିଏବଲ୍ ଏବଂ କନ୍ଷ୍ଟ୍ରକ୍ଟର୍
-ବିକଳ୍ପଗୁଡ଼ିକ ଦ୍ୱାରା ନିୟନ୍ତ୍ରିତ:
+ଉପଭୋକ୍ତା-ପ୍ରଦତ୍ତ ବିଷୟବସ୍ତୁରେ ପ୍ରତିକୂଳ ସଂରଚନା ଚିହ୍ନଟ କରେ ଏବଂ ବିନ୍ୟାସିତ ନୀତିକୁ ଲାଗୁ କରେ। ଆଚରଣ ପରିବେଶ ଭେରିଏବଲ୍ ଏବଂ କନଷ୍ଟ୍ରକ୍ଟର ବିକଳ୍ପ ଦ୍ୱାରା ପରିଚାଳିତ:
 
-| ସେଟିଂ      | ପରିବେଶ ଭେରିଏବଲ୍                                                                                       | ଡିଫଲ୍ଟ | ପ୍ରଭାବ                                                                                                                                                                                                                |
-| ---------- | ----------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ସକ୍ଷମ      | `INPUT_SANITIZER_ENABLED`                                                                             | `true` | `false` ଥିଲେ, ଗାର୍ଡରେଲ୍ ଶର୍ଟ-ସର୍କିଟ୍ ହୁଏ।                                                                                                                                                                             |
-| ମୋଡ୍       | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE`                                                       | `warn` | ଇଞ୍ଜେକ୍ସନ୍ ନୀତି: `block`, `warn`, କିମ୍ବା `log`। (`redact` ପଛୁଆ-ସୁସଙ୍ଗତତା ପାଇଁ ଗ୍ରହଣ କରାଯାଏ, କିନ୍ତୁ ଏହା ଇଞ୍ଜେକ୍ସନ୍ ପାଠ୍ୟକୁ **ଅପସାରଣ କରେ ନାହିଁ**; ଅନୁରୋଧର PII ପୁନର୍ଲିଖନ `PII_REDACTION_ENABLED` ଦ୍ୱାରା ନିୟନ୍ତ୍ରିତ ହୁଏ।) |
-| ବ୍ଲକ୍ ସୀମା | `blockThreshold` ବିକଳ୍ପ / `INPUT_SANITIZER_BLOCK_THRESHOLD` (ଉପନାମ `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high` | ବ୍ଲକ୍ କରିବାକୁ ଆବଶ୍ୟକ ସର୍ବନିମ୍ନ ଗମ୍ଭୀରତା। ଡିଫଲ୍ଟ ଭାବେ Medium କେବଳ ପର୍ଯ୍ୟବେକ୍ଷଣ ପାଇଁ।                                                                                                                                   |
+| ସେଟିଂ           | Env var                                                                                               | ଡିଫଲ୍ଟ | ପ୍ରଭାବ                                                                                                                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ସକ୍ଷମ           | `INPUT_SANITIZER_ENABLED`                                                                             | `true` | ଯେତେବେଳେ `false`, ଗାର୍ଡରେଲ୍ ସର୍ଟ-ସର୍କିଟ୍ ହୁଏ।                                                                                                                                                           |
+| ମୋଡ୍            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE`                                                       | `warn` | ଇଞ୍ଜେକ୍ସନ୍ ନୀତି: `block`, `warn`, କିମ୍ବା `log`। (`redact` ବ୍ୟାକ୍-କମ୍ପାଟ୍ ପାଇଁ ଗ୍ରହଣୀୟ କିନ୍ତୁ ଇଞ୍ଜେକ୍ସନ୍ ଟେକ୍ସଟ୍ ଷ୍ଟ୍ରିପ୍ କରେ ନାହିଁ; PII ପୁନଃଲେଖା ଅନୁରୋଧ `PII_REDACTION_ENABLED` ଦ୍ୱାରା ନିୟନ୍ତ୍ରିତ ହୁଏ।) |
+| ବ୍ଲକ୍ ଥ୍ରେସୋଲ୍ଡ | `blockThreshold` ବିକଳ୍ପ / `INPUT_SANITIZER_BLOCK_THRESHOLD` (ଉପନାମ `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high` | ବ୍ଲକ୍ କରିବା ପାଇଁ ଆବଶ୍ୟକ ସର୍ବନିମ୍ନ ଗମ୍ଭୀରତା। ମଧ୍ୟମ ଡିଫଲ୍ଟରେ କେବଳ ପର୍ଯ୍ୟବେକ୍ଷଣ-ଆଧାରିତ।                                                                                                                    |
 
-**ମୋଡ୍ର ପ୍ରାଥମ୍ୟ କ୍ରମ** (`getMode`): କଲର୍ର `options.mode` →
-`INJECTION_GUARD_MODE` **DB ଫିଚର୍-ଫ୍ଲାଗ୍ ଓଭରରାଇଡ୍** (Dashboard → Settings →
-Feature Flags) → `INJECTION_GUARD_MODE` ପରିବେଶ ଭେରିଏବଲ୍ → `INPUT_SANITIZER_MODE` ପରିବେଶ ଭେରିଏବଲ୍ →
-`warn`। ତେଣୁ ଡ୍ୟାସବୋର୍ଡ ଓଭରରାଇଡ୍ ପରିବେଶ ଭେରିଏବଲ୍ଗୁଡ଼ିକଠାରୁ ପ୍ରାଥମ୍ୟ ପାଏ, ଯାହାଦ୍ୱାରା Feature
-Flags UI ଚାଲୁଥିବା ଗାର୍ଡକୁ ଲାଇଭ୍ ନିୟନ୍ତ୍ରଣ କରେ (ପୁନଃଚାଳନ ଆବଶ୍ୟକ ନୁହେଁ)। DB ରିଡ୍ ବିଫଳତା-ସୁରକ୍ଷିତ:
-ଏଥିରେ ତ୍ରୁଟି ହେଲେ, ଗାର୍ଡ ପରିବେଶ-ଆଧାରିତ ଆଚରଣକୁ ଫେରିଯାଏ, ଏବଂ କୌଣସି
-ଓଭରରାଇଡ୍ ସେଟ୍ ନଥିଲେ ଆଚରଣ କେବଳ ପରିବେଶ-ଆଧାରିତ ସମାଧାନ ସହ ସମାନ ରହେ।
+**ମୋଡ୍ ପ୍ରାଧାନ୍ୟ** (`getMode`): କଲର୍ `options.mode` →
+`INJECTION_GUARD_MODE` **DB ଫିଚର୍-ଫ୍ଲାଗ୍ ଓଭରରାଇଡ୍** (ଡ୍ୟାସବୋର୍ଡ → ସେଟିଂସମୂହ →
+ଫିଚର୍ ଫ୍ଲାଗ୍) → `INJECTION_GUARD_MODE` env → `INPUT_SANITIZER_MODE` env →
+`warn`। ତେଣୁ ଏକ ଡ୍ୟାସବୋର୍ଡ ଓଭରରାଇଡ୍ env ଭେରିଏବଲ୍ ଉପରେ ବିଜୟ ଲାଭ କରେ, ତେଣୁ ଫିଚର୍
+ଫ୍ଲାଗ୍ UI ଚାଲୁଥିବା ଗାର୍ଡକୁ ଲାଇଭ୍ ନିୟନ୍ତ୍ରଣ କରେ (ପୁନଃ ଆରମ୍ଭ ନାହିଁ)। DB ପଠନ
+ଫେଲ୍-ସେଫ୍ ଅଟେ: ଯଦି ଏହା ତ୍ରୁଟି କରେ, ଗାର୍ଡ env-ଆଧାରିତ ଆଚରଣକୁ ଫେରିଯାଏ, ଏବଂ ଯେତେବେଳେ
+କୌଣସି ଓଭରରାଇଡ୍ ସେଟ୍ ହୋଇନଥାଏ, ଆଚରଣ କେବଳ env-ଆଧାରିତ ସମାଧାନ ସହିତ ସମାନ ହୁଏ।
 
-ଚିହ୍ନଟ ଉତ୍ସଗୁଡ଼ିକ:
+ଡିଟେକ୍ସନ୍ ଉତ୍ସ:
 
-1. `@/shared/utils/inputSanitizer` ରୁ `sanitizeRequest()` (ପାଇପଲାଇନ୍ର
-   ଅନ୍ୟ ସ୍ଥାନରେ ବ୍ୟବହୃତ ସହଭାଗୀ ଡିଟେକ୍ଟର୍ ସେଟ୍)।
+1. `@/shared/utils/inputSanitizer` ରୁ `sanitizeRequest()` (ପାଇପଲାଇନରେ ଅନ୍ୟତ୍ର
+   ବ୍ୟବହୃତ ସେୟାର୍ଡ ଡିଟେକ୍ଟର ସେଟ୍)।
 2. ବିଲ୍ଟ-ଇନ୍ `DEFAULT_GUARD_PATTERNS` (ବର୍ତ୍ତମାନ `system_override_inline` ଏବଂ
-   `markdown_system_block`, ଉଭୟର ଗମ୍ଭୀରତା `high`)।
-3. କନ୍ଷ୍ଟ୍ରକ୍ଟର୍ ବିକଳ୍ପ ମାଧ୍ୟମରେ ପଠାଯାଇଥିବା ଐଚ୍ଛିକ `customPatterns` (ଷ୍ଟ୍ରିଙ୍ଗ୍, ରେଗେକ୍ସ,
-   କିମ୍ବା `{ name, pattern, severity }` ରେକର୍ଡଗୁଡ଼ିକ)।
+   `markdown_system_block`, ଉଭୟ `high` ଗମ୍ଭୀରତା)।
+3. କନଷ୍ଟ୍ରକ୍ଟର ବିକଳ୍ପ ମାଧ୍ୟମରେ ପାସ୍ ହୋଇଥିବା ଐଚ୍ଛିକ `customPatterns` (ଷ୍ଟ୍ରିଙ୍ଗ୍,
+   ରେଗେକ୍ସ, କିମ୍ବା `{ name, pattern, severity }` ରେକର୍ଡ)।
 
-ଯେତେବେଳେ `mode === "block"` **ଏବଂ** ଅତି କମରେ ଗୋଟିଏ ଚିହ୍ନଟ ଗମ୍ଭୀରତା
-ସୀମାକୁ ପୂରଣ କରେ, `preCall` `{ block: true, message: "Request rejected:
-suspicious content detected" }` ଫେରାଏ। `warn`/`log` ମୋଡ୍ରେ ଗାର୍ଡରେଲ୍ ଲଗ୍ କରେ, କିନ୍ତୁ
-କଲ୍କୁ ଅନୁମତି ଦିଏ। ରେଜିଷ୍ଟ୍ରି ମାଧ୍ୟମରେ ନଯାଇ ପ୍ରମ୍ପ୍ଟ ମୂଲ୍ୟାୟନ କରିବାକୁ ଆବଶ୍ୟକ କରୁଥିବା
-କଲର୍ମାନଙ୍କ ପାଇଁ ସହଭାଗୀ ସହାୟକ `evaluatePromptInjection()` ମଧ୍ୟ ଏକ୍ସପୋର୍ଟ କରାଯାଏ।
+ଯେତେବେଳେ `mode === "block"` **ଏବଂ** ଅତି କମରେ ଗୋଟିଏ ଡିଟେକ୍ସନ୍ ଗମ୍ଭୀରତା
+ଥ୍ରେସୋଲ୍ଡକୁ ପୂରଣ କରେ, `preCall` `{ block: true, message: "Request rejected:
+suspicious content detected" }` ଫେରାଇଥାଏ। `warn`/`log` ମୋଡରେ ଗାର୍ଡରେଲ୍ ଲଗ୍
+କରେ କିନ୍ତୁ କଲ୍କୁ ଅନୁମତି ଦିଏ। ସେୟାର୍ଡ ହେଲ୍ପର୍ `evaluatePromptInjection()`
+ରେଜିଷ୍ଟ୍ରି ମାଧ୍ୟମରେ ନଯାଇ ପ୍ରମ୍ପ୍ଟଗୁଡ଼ିକୁ ମୂଲ୍ୟାଙ୍କନ କରିବାକୁ ଆବଶ୍ୟକ କରୁଥିବା
+କଲର୍ମାନଙ୍କ ପାଇଁ ମଧ୍ୟ ଏକ୍ସପୋର୍ଟ କରାଯାଏ।
 
-**ସ୍କାନ୍ ସୀମା (v3.8.20):** ଡିଟେକ୍ଟର୍ ଯୋଡ଼ାଯାଇଥିବା ପ୍ରମ୍ପ୍ଟ ପାଠ୍ୟର କେବଳ **ପ୍ରଥମ 16 KB** ଯାଞ୍ଚ କରେ —
-`src/shared/utils/inputSanitizer.ts` ରେ `MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 ବାଇଟ୍)।
-ପ୍ୟାଟର୍ନ ଲୁପ୍ ଚଲାଇବା ପୂର୍ବରୁ `detectInjection()` ଏବଂ
-`evaluatePromptInjection()` ଉଭୟ `slice(0, MAX_INJECTION_SCAN_BYTES)` ବ୍ୟବହାର କରନ୍ତି।
-ଇଞ୍ଜେକ୍ସନ୍ ନିର୍ଦ୍ଦେଶଗୁଡ଼ିକ ଇନ୍ପୁଟ୍ର ଉପର ଭାଗ ନିକଟରେ ରହେ, ତେଣୁ ଏହା ଚିହ୍ନଟକୁ ଦୁର୍ବଳ ନକରି
-ଶତାଧିକ-KB ପେଲୋଡ୍ରେ ରେଗେକ୍ସ CPU/GC ବ୍ୟବହାରକୁ ସୀମିତ କରେ (ଦେଖନ୍ତୁ
-#3932, #4041)।
+**ସ୍କାନ୍ ବାଉଣ୍ଡ (v3.8.20):** ଡିଟେକ୍ଟର କେବଳ ଯୋଡ଼ାଯାଇଥିବା ପ୍ରମ୍ପ୍ଟ ଟେକ୍ସଟର
+**ପ୍ରଥମ 16 KB** କୁ ଯାଞ୍ଚ କରେ — `src/shared/utils/inputSanitizer.ts` ରେ
+`MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 ବାଇଟ୍)। ଉଭୟ `detectInjection()`
+ଏବଂ `evaluatePromptInjection()` ପାଟର୍ନ ଲୁପ୍ ଚଳାଇବା ପୂର୍ବରୁ
+`slice(0, MAX_INJECTION_SCAN_BYTES)` କରନ୍ତି। ଇଞ୍ଜେକ୍ସନ୍ ନିର୍ଦ୍ଦେଶାବଳୀ ଏକ
+ଇନପୁଟର ଉପର ଭାଗରେ ରହିଥାଏ, ତେଣୁ ଏହା ଡିଟେକ୍ସନ୍ ଦୁର୍ବଳ ନକରି ମଲ୍ଟି-ହଣ୍ଡ୍ରେଡ୍-KB
+ପେଲୋଡ୍ ଉପରେ ରେଗେକ୍ସ CPU/GC କୁ ସୀମିତ କରେ (cf. #3932, #4041)।
 
 ### କ୍ରେଡେନ୍ସିଆଲ୍ ମାସ୍କର୍ (`credentialMasker.ts`)
 
-ଡିଫଲ୍ଟ ଶୃଙ୍ଖଳାର ଶେଷରେ (ପ୍ରାଥମ୍ୟ `95`) **ଉଭୟ** ପର୍ଯ୍ୟାୟରେ ଚାଲେ। ଆଉଟ୍ବାଉଣ୍ଡ ପେଲୋଡ୍ରୁ
-(ବାର୍ତ୍ତା ବିଷୟବସ୍ତୁ, ଟୁଲ୍-କଲ୍ ଆର୍ଗୁମେଣ୍ଟ, ଟୁଲ୍ ଫଳାଫଳ) **ଏବଂ** ପ୍ରଦାତାଙ୍କ ପ୍ରତିକ୍ରିୟାରୁ
-ସୁପରିଚିତ API-କି / ସିକ୍ରେଟ୍-ଟୋକନ୍ ପ୍ୟାଟର୍ନଗୁଡ଼ିକୁ ରିଡାକ୍ଟ କରେ, ଯାହାଦ୍ୱାରା ପ୍ରମ୍ପ୍ଟରେ ପେଷ୍ଟ କରାଯାଇଥିବା
-କ୍ରେଡେନ୍ସିଆଲ୍ (କିମ୍ବା ଟୁଲ୍ ଫଳାଫଳ ଦ୍ୱାରା ପୁନଃ ପ୍ରତିଧ୍ୱନିତ) ଅପ୍ଷ୍ଟ୍ରିମ୍ ପ୍ରଦାତା କିମ୍ବା କ୍ଲାଏଣ୍ଟଙ୍କ ନିକଟକୁ
-ଲିକ୍ ହୁଏ ନାହିଁ।
+ଉଭୟ ପର୍ଯ୍ୟାୟରେ ଚାଲେ, ଡିଫଲ୍ଟ ଚେନ୍ରେ ଶେଷରେ (ପ୍ରାଥମିକତା `95`)। ଆଉଟବାଉଣ୍ଡ
+ପେଲୋଡ୍ (ମେସେଜ୍ ବିଷୟବସ୍ତୁ, ଟୁଲ୍-କଲ୍ ଆର୍ଗୁମେଣ୍ଟ, ଟୁଲ୍ ଫଳାଫଳ) **ଏବଂ** ପ୍ରଦାତା
+ପ୍ରତିକ୍ରିୟାରୁ ଜଣାଶୁଣା API-କି / ସିକ୍ରେଟ୍-ଟୋକେନ୍ ପାଟର୍ନଗୁଡ଼ିକୁ ରେଡାକ୍ଟ କରେ,
+ତେଣୁ ଏକ ପ୍ରମ୍ପ୍ଟରେ ପେଷ୍ଟ୍ ହୋଇଥିବା (କିମ୍ବା ଏକ ଟୁଲ୍ ଫଳାଫଳ ଦ୍ୱାରା ଫେରାଇ ଦିଆଯାଇଥିବା)
+ଏକ କ୍ରେଡେନ୍ସିଆଲ୍ ଅପଷ୍ଟ୍ରିମ୍ ପ୍ରଦାତା କିମ୍ବା କ୍ଲାଏଣ୍ଟକୁ ଲିକ୍ ହୁଏ ନାହିଁ।
 
-- **କେବଳ ଅପ୍ଟ-ଇନ୍**, PII ରିଡାକ୍ସନ୍ର ସମାନ ପରମ୍ପରା (Hard Rule #20-ସଂଲଗ୍ନ):
+- **କେବଳ ଅପ୍ଟ-ଇନ୍**, PII ରେଡାକ୍ସନ୍ ସହିତ ସମାନ ସମ୍ମିଳନୀ (ହାର୍ଡ ରୁଲ୍ #20-ସଂଲଗ୍ନ):
   `settings.credentialRedactionEnabled === true` **କିମ୍ବା**
-  `CREDENTIAL_REDACTION_ENABLED=true` ନହେଲେ ଅକ୍ଷମ ରହେ। ଏହା ବନ୍ଦ ଥିଲେ, ଗାର୍ଡରେଲ୍ କୌଣସି କାର୍ଯ୍ୟ କରେ ନାହିଁ —
-  ଏହା କେବେ ବ୍ଲକ୍ କରେ ନାହିଁ କିମ୍ବା ପୁନର୍ଲିଖନ କରେ ନାହିଁ।
-- `redactCredentials()` ସମ୍ପୂର୍ଣ୍ଣ ପେଲୋଡ୍/ପ୍ରତିକ୍ରିୟା ଟ୍ରିକୁ ଅତିକ୍ରମ କରେ (`walkValue()`,
-  ପ୍ରୋଟୋଟାଇପ୍-ପଲ୍ୟୁସନ୍ରୁ ସୁରକ୍ଷିତ, `WeakSet` ମାଧ୍ୟମରେ ସାଇକେଲ୍-ସୁରକ୍ଷିତ) ଏବଂ ମେଳଗୁଡ଼ିକୁ
-  `[REDACTED:<type>]` ପ୍ଲେସ୍ହୋଲ୍ଡର୍ରେ ବଦଳାଏ, କେବଳ ପ୍ରକୃତରେ ପରିବର୍ତ୍ତିତ ଶାଖାଗୁଡ଼ିକୁ
-  କ୍ଲୋନ୍ କରେ।
-- `CREDENTIAL_PATTERNS` LLM ପ୍ରଦାତା କିଗୁଡ଼ିକ (OpenAI, OpenAI-proj,
-  Anthropic, Google, Hugging Face, Replicate), VCS/SaaS ଟୋକନ୍ଗୁଡ଼ିକ (GitHub, Slack,
-  Linear, Notion, npm, Postman, Discord), ପେମେଣ୍ଟ କିଗୁଡ଼ିକ (Stripe, Square), କ୍ଲାଉଡ୍
-  କିଗୁଡ଼ିକ (AWS ଆକ୍ସେସ୍ କି, Twilio, SendGrid, Mailgun), ପ୍ରାଇଭେଟ୍ କି / JWT,
-  କ୍ରେଡେନ୍ସିଆଲ୍-ଧାରଣକାରୀ କନେକ୍ସନ୍ ଷ୍ଟ୍ରିଙ୍ଗ୍ଗୁଡ଼ିକ (`mongodb://user:pass@...`, ଇତ୍ୟାଦି), ଏବଂ
-  ଏକ ସାଧାରଣ `Authorization`/`x-api-key`/`api-key`/`apikey` ହେଡର୍-ମୂଲ୍ୟ
-  ପ୍ୟାଟର୍ନକୁ ଅନ୍ତର୍ଭୁକ୍ତ କରେ। ହେଡର୍-ଆକୃତିର କିଗୁଡ଼ିକ (`authorization`, `x-api-key`, `api-key`,
-  `apikey`) ସାଧାରଣ ଟେକ୍ସ୍ଟ ରେଗେକ୍ସ ମାଧ୍ୟମରେ ନୁହେଁ, ବରଂ ସଂରଚନାତ୍ମକ ଭାବେ ରିଡାକ୍ଟ କରାଯାଏ (କେବଳ ମୂଲ୍ୟ,
-  `Bearer `/`Basic ` ପରି ସ୍କିମ୍ ପ୍ରିଫିକ୍ସ ସଂରକ୍ଷିତ ରହେ)।
-- ଗାର୍ଡରେଲ୍ କେବେ ବ୍ଲକ୍ କରେ ନାହିଁ; ଏହା କେବଳ ପୁନର୍ଲିଖନ (`modifiedPayload` /
-  `modifiedResponse`) ଏବଂ ଟୀକାକରଣ (`meta.credentialsRedacted`, `meta.count`) କରେ।
+  `CREDENTIAL_REDACTION_ENABLED=true` ନହେବା ପର୍ଯ୍ୟନ୍ତ ଅକ୍ଷମ। ଏହା ବନ୍ଦ ଥିଲେ,
+  ଗାର୍ଡରେଲ୍ ଏକ ନୋ-ଅପ୍ ଅଟେ — ଏହା କେବେବି ବ୍ଲକ୍ କରେ ନାହିଁ ଏବଂ କେବେବି ପୁନଃଲେଖା
+  କରେ ନାହିଁ।
+- `redactCredentials()` ସମ୍ପୂର୍ଣ୍ଣ ପେଲୋଡ୍/ପ୍ରତିକ୍ରିୟା ଟ୍ରି (`walkValue()`,
+  ପ୍ରୋଟୋଟାଇପ୍-ପଲ୍ୟୁସନ୍-ସୁରକ୍ଷିତ, `WeakSet` ମାଧ୍ୟମରେ ସାଇକଲ୍-ସୁରକ୍ଷିତ) ଚାଲେ
+  ଏବଂ ମ୍ୟାଚ୍ଗୁଡ଼ିକୁ ଏକ `[REDACTED:<type>]` ପ୍ଲେସହୋଲ୍ଡର୍ ସହିତ ବଦଳାଏ, କେବଳ
+  ବାସ୍ତବରେ ପରିବର୍ତ୍ତିତ ଶାଖାଗୁଡ଼ିକୁ କ୍ଲୋନ୍ କରେ।
+- `CREDENTIAL_PATTERNS` LLM ପ୍ରଦାତା କି (OpenAI, OpenAI-proj, Anthropic, Google,
+  Hugging Face, Replicate), VCS/SaaS ଟୋକେନ୍ (GitHub, Slack, Linear, Notion,
+  npm, Postman, Discord), ପେମେଣ୍ଟ କି (Stripe, Square), କ୍ଲାଉଡ୍ କି (AWS ଆକ୍ସେସ୍
+  କି, Twilio, SendGrid, Mailgun), ପ୍ରାଇଭେଟ୍ କି / JWTs, କ୍ରେଡେନ୍ସିଆଲ୍-ବହନକାରୀ
+  କନେକ୍ସନ୍ ଷ୍ଟ୍ରିଙ୍ଗ୍ (`mongodb://user:pass@...`, ଇତ୍ୟାଦି), ଏବଂ ଏକ ଜେନେରିକ୍
+  `Authorization`/`x-api-key`/`api-key`/`apikey` ହେଡର୍-ଭାଲ୍ୟୁ ପାଟର୍ନକୁ
+  ଆବୃତ୍ତ କରେ। ହେଡର୍-ଆକୃତିର କି (`authorization`, `x-api-key`, `api-key`,
+  `apikey`) ସଂରଚନାତ୍ମକ ଭାବରେ ରେଡାକ୍ଟ କରାଯାଏ (କେବଳ ମୂଲ୍ୟ, `Bearer `/`Basic `
+  ପରି ସ୍କିମ୍ ପ୍ରିଫିକ୍ସ ସଂରକ୍ଷିତ) ଜେନେରିକ୍ ଟେକ୍ସଟ୍ ରେଗେକ୍ସ ମାଧ୍ୟମରେ ନୁହେଁ।
+- ଗାର୍ଡରେଲ୍ କେବେବି ବ୍ଲକ୍ କରେ ନାହିଁ; ଏହା କେବଳ ପୁନଃଲେଖା କରେ (`modifiedPayload` /
+  `modifiedResponse`) ଏବଂ ଟିପ୍ପଣୀ କରେ (`meta.credentialsRedacted`, `meta.count`)।
 
 ରିଗ୍ରେସନ୍ ଗାର୍ଡ: `tests/unit/credential-masker-guardrail.test.ts`।
 

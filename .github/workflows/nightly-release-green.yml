@@ -216,8 +216,14 @@ jobs:
             echo "Closed issue #$EXISTING"
           fi
 
+      # Best-effort: the verdict above is already recorded (issue open/closed,
+      # step summary). The artifact upload has raced job teardown on the shared
+      # runner three runs in a row (403 "job is completed" after the job was
+      # done), turning a finished verdict into a red run — a false base-red
+      # that every PR gate reads. Never let the upload outvote the verdict.
       - name: Upload report artifact
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: release-green-report
@@ -333,8 +339,10 @@ jobs:
             echo "Closed issue #$EXISTING"
           fi
 
+      # Same best-effort contract as the release-green report upload above.
       - name: Upload report artifact
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: main-green-report

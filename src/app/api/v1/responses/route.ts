@@ -108,7 +108,7 @@ async function postHandler(request: any) {
   const admission = admissionResult;
   request = admission.request;
   const finishAdmission = (response: Response) =>
-    releaseChatAdmissionWhenDone(response, admission.lease);
+    releaseChatAdmissionWhenDone(response, admission.lease, { signal: request.signal });
 
   try {
     let parsedBody;
@@ -187,7 +187,8 @@ async function postHandler(request: any) {
       const correlationId = generateRequestId();
       const handlerResponse = releaseChatAdmissionAfterHandler(
         handleChat(resolved, null, resolvedBody, correlationId),
-        admission.lease
+        admission.lease,
+        { signal: request.signal }
       );
       return await withEarlyStreamKeepalive(handlerResponse, {
         signal: request.signal,

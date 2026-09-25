@@ -241,8 +241,11 @@ describe("OpencodeExecutor", () => {
       // announces the event stream and the JSON body is rebuilt from it.
       const result = await zenExecutor.execute(createInput("gpt-5.6-luna", false));
 
+      // #14384 routed gpt-5.6-* on Zen through /v1/responses, so #12633's rule applies:
+      // that endpoint authenticates with x-api-key, not Bearer. The point of THIS test is
+      // the absent Accept header — the auth header is asserted only so the bag is exact.
       assert.deepEqual(result.headers, {
-        Authorization: "Bearer test-key",
+        "x-api-key": "test-key",
         "Content-Type": "application/json",
       });
       assert.deepEqual(fetchCalls[0].options.headers, result.headers);

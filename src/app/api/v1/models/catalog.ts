@@ -15,6 +15,7 @@ import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegis
 import {
   getAllImageModels,
   isRegisteredImageModel,
+  parseImageModel,
 } from "@omniroute/open-sse/config/imageRegistry";
 import { aiHordeImageCatalog } from "@omniroute/open-sse/services/aihordeImageCatalog";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
@@ -760,7 +761,9 @@ async function buildUnifiedModelsResponseCore(
         ? combo.context_length
         : undefined;
 
-      const baseMetadata = explicitContextLength ? { context_length: explicitContextLength } : {};
+      const baseMetadata = explicitContextLength
+        ? { context_length: explicitContextLength, max_input_tokens: explicitContextLength }
+        : {};
       if (targets.length === 0) return baseMetadata;
 
       const targetMetadata = targets.map((target) => getComboTargetCatalogMetadata(target));
@@ -772,9 +775,13 @@ async function buildUnifiedModelsResponseCore(
       const contextLength =
         explicitContextLength ??
         minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
-      const maxInputTokens = minKnownNumber(
+      const targetMinMaxInput = minKnownNumber(
         knownMetadata.map((metadata) => metadata.maxInputTokens)
       );
+      const maxInputTokens =
+        explicitContextLength === undefined
+          ? targetMinMaxInput
+          : Math.min(explicitContextLength, targetMinMaxInput ?? explicitContextLength);
       const maxOutputTokens = minKnownNumber(
         knownMetadata.map((metadata) => metadata.maxOutputTokens)
       );
@@ -1540,7 +1547,11 @@ async function buildUnifiedModelsResponseCore(
     }
     for (const imgModel of getAllImageModels()) {
       if (!isProviderActive(imgModel.provider)) continue;
-      const rawModelId = getSpecialtyModelRelativeId(imgModel.id, imgModel.provider);
+      const parsedImageModel = parseImageModel(imgModel.id);
+      const rawModelId =
+        parsedImageModel.provider === imgModel.provider && parsedImageModel.model
+          ? parsedImageModel.model
+          : getSpecialtyModelRelativeId(imgModel.id, imgModel.provider);
       if (!providerSupportsModel(imgModel.provider, rawModelId)) continue;
       if (isModelHiddenBulk(imgModel.provider, rawModelId, null, "images")) continue;
       models.push({

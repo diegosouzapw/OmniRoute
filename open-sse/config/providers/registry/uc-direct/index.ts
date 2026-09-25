@@ -34,7 +34,13 @@ export const ucDirectProvider: RegistryEntry = {
   defaultContextLength: 128000,
   models: [
     // Anthropic
-    { id: "claude-opus-5", name: "Claude Opus 5", toolCalling: true },
+    {
+      id: "claude-opus-5",
+      name: "Claude Opus 5",
+      toolCalling: true,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+    },
     { id: "claude-opus-5-fast", name: "Claude Opus 5 Fast", toolCalling: true },
     { id: "claude-fable-5", name: "Claude Fable 5", toolCalling: true },
     { id: "claude-opus-4.8", name: "Claude Opus 4.8", toolCalling: true },

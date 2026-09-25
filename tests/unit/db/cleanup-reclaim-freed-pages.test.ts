@@ -115,7 +115,7 @@ test("INCREMENTAL: freed pages are reclaimed in batches, pausing between them", 
     pauses.every((ms) => Number.isFinite(ms) && ms >= 0),
     "pause receives the last batch's duration"
   );
-  // The pass ends with a TRUNCATE checkpoint, so the truncation reached the main file.
+  // The pass ends with a PASSIVE checkpoint, so reclaimed pages can reach the main file without a live TRUNCATE.
   assert.ok(
     pragmaNumber("page_count") < pageCountBefore,
     `page_count should shrink (${pageCountBefore} -> ${pragmaNumber("page_count")})`

@@ -231,12 +231,12 @@ test("key with empty allowedQuotas is subject to normal model restriction checks
 
   const body = await readBody(blocked.rejection);
   assert.match(body.error.message, /not allowed for this API key/);
-  // The code for this case comes from errorConfig (403 → "insufficient_quota")
+  // The code for this case comes from errorConfig (403 → "permission_denied")
   // rather than QUOTA_ONLY — confirming paths are separate
-  assert.notEqual(
+  assert.equal(
     body.error.code,
-    "QUOTA_ONLY",
-    "normal key rejection must NOT use QUOTA_ONLY code"
+    "permission_denied",
+    "normal key rejection must use the neutral 403 code, not a quota code"
   );
 });
 

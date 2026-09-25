@@ -83,7 +83,7 @@ async function executeModelUnit(args: {
 }): Promise<Response> {
   if (args.isModelAvailable) {
     const available = await args.isModelAvailable(args.unit.modelStr, args.unit);
-    if (!available) return errorResponse(503, `Model ${args.unit.modelStr} is unavailable`);
+    if (available !== true) return errorResponse(503, `Model ${args.unit.modelStr} is unavailable`);
   }
   return args.handleSingleModel(args.body, args.unit.modelStr, {
     ...args.unit,
@@ -317,7 +317,8 @@ export async function executeRuntimeUnitCombo(args: {
           unitClone,
           clientRequestedStream,
           args.log,
-          args.config.responseValidation as ResponseValidationConfig | undefined
+          args.config.responseValidation as ResponseValidationConfig | undefined,
+          args.signal
         );
         releaseQualityClone(unitClone, response, quality);
         if (quality.valid) {

@@ -1,1 +1,0 @@
-- **fix(cursor):** `kv_after_text` no longer settles away a trailing `exec_mcp` tool call in the same buffer, preventing Composer from dropping in-flight MCP tool invocations during KV checkpoint settling ([#13627](https://github.com/diegosouzapw/OmniRoute/pull/13627))

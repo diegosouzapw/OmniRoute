@@ -10,6 +10,7 @@ import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
+import { isHiddenForModality } from "@/shared/utils/modelVisibility";
 import {
   getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
   getCodexRequestDefaults as _getCodexRequestDefaults,
@@ -85,6 +86,8 @@ export type CompatModelRow = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
   isHidden?: boolean;
+  /** #12172: per-modality visibility overrides (`{ chat: true }`) — see `isHiddenForModality`. */
+  hiddenModalities?: Record<string, boolean>;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
   /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
@@ -262,7 +265,7 @@ export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "azure-openai": "https://example-resource.openai.azure.com",
   "azure-ai": "https://example-resource.services.ai.azure.com/openai/v1",
   "bailian-coding-plan": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
-  "xiaomi-mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
+  "xiaomi-mimo": "https://api.xiaomimimo.com/v1",
   siliconflow: "https://api.siliconflow.com/v1",
   "searxng-search": "http://localhost:8888/search",
   firecrawl: "https://api.firecrawl.dev",
@@ -514,16 +517,26 @@ export function buildCompatMap(rows: CompatModelRow[]): CompatModelMap {
   return m;
 }
 
+/** The endpoint/modality this dashboard hides models from — see `readActiveHiddenFlag`. */
+const DASHBOARD_MODEL_MODALITY = "chat";
+
 export function getDisplayModelAlias(modelId: string, alias?: string | null): string | null {
   const trimmed = typeof alias === "string" ? alias.trim() : "";
   if (!trimmed || trimmed === modelId) return null;
   return trimmed;
 }
 
+/**
+ * #12172: this page manages Chat models only, and its hide/unhide PATCH sends
+ * `modality: "chat"` — so the stored flag lives in `hiddenModalities.chat`, not in the
+ * legacy all-modalities `isHidden`. Reading only the legacy flag made the eye toggle,
+ * "Hide all" and the Hidden filter silently report every model as visible.
+ */
 function readActiveHiddenFlag(row: CompatModelRow | undefined): boolean | undefined {
   if (!row) return undefined;
-  if (Object.prototype.hasOwnProperty.call(row, "isHidden")) {
-    return Boolean(row.isHidden);
+  const hasScopedFlag = row.hiddenModalities?.[DASHBOARD_MODEL_MODALITY] !== undefined;
+  if (hasScopedFlag || Object.prototype.hasOwnProperty.call(row, "isHidden")) {
+    return isHiddenForModality(row, DASHBOARD_MODEL_MODALITY);
   }
   return undefined;
 }
@@ -1027,4 +1040,23 @@ export function getHeaderIconProviderId(
     return "anthropic-m";
   }
   return providerInfoId;
+}
+
+/**
+ * #4125: parse the free-text "Context Window Override" field. Blank → no override
+ * (`value: null`, not an error). A non-empty value must be a positive whole number of
+ * tokens; anything else is rejected.
+ *
+ * Lives here rather than in one section because #14337 gives synced/imported rows the
+ * same control: two copies of this rule would be two places for "blank clears" and
+ * "zero is invalid" to drift apart.
+ */
+export function parseContextWindowOverrideInput(raw: string): {
+  value: number | null;
+  invalid: boolean;
+} {
+  const trimmed = raw.trim();
+  if (!trimmed) return { value: null, invalid: false };
+  if (!/^\d+$/.test(trimmed) || Number(trimmed) <= 0) return { value: null, invalid: true };
+  return { value: Number(trimmed), invalid: false };
 }

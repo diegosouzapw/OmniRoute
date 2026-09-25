@@ -10,6 +10,8 @@
 
 import { buildErrorBody } from "../../utils/error.ts";
 
+export { readCpaAuthIndex } from "./cpaTraceAuthIndex.ts";
+
 export function projectFailureUsageErrorCode(opts: {
   statusCode: number;
   message: string;
@@ -65,6 +67,7 @@ export function buildFailureUsageRecord(opts: {
   errorCode: string | null | undefined;
   latencyMs: number;
   endpoint?: string | null | undefined;
+  cpaAuthIndex?: string | null | undefined;
   aggregate?: FailureUsageAggregate | null;
 }) {
   return {
@@ -89,5 +92,6 @@ export function buildFailureUsageRecord(opts: {
     serviceTier: opts.effectiveServiceTier,
     comboStrategy: opts.isCombo ? opts.comboStrategy || undefined : undefined,
     endpoint: opts.endpoint || undefined,
+    cpaAuthIndex: opts.cpaAuthIndex || undefined,
   };
 }

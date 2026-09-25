@@ -1,0 +1,1 @@
+- **fix(api):** `GET /v1/auto-combo/{channel}/candidates` refuses a presented API key that failed validation instead of treating it as anonymous. Folding a revoked/expired/banned key to `apiKeyId: null` is fail-closed for owner-scoped records, but here `null` means "apply no per-key exclusions", so an invalid key was handed the instance-wide candidate pool (#14333, #14340).

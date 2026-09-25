@@ -34,6 +34,7 @@ import { isCloudflareFingerprintRejection } from "../errorClassifier.ts";
 // Exclusive in practice to agentrouter's "额度不足" rule: no opencode-family
 // rule matches 403 today, so only agentrouter reaches this predicate via 403.
 import { isAgentrouterConnectionQuotaScope } from "@/sse/services/auth";
+import { isVertexConnectionWidePermissionDenied } from "@/sse/services/vertexErrorClassifier";
 import { isSharedWalletCredits402 } from "../accountFallback/sharedWalletCredits.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 
@@ -218,6 +219,17 @@ export function applyComboTargetExhaustion(
       result.status === 403 &&
       isAlibabaModelStudioProvider(provider) &&
       isAlibabaFreeQuotaExhaustedError(opts.errorText)
+    ) {
+      return false;
+    }
+    // #14136: For per-model-quota providers (gemini, vertex, codex, antigravity, passthrough models),
+    // a 403 is model-scoped (tier restriction or model access denial), not an invalid credential.
+    // Sibling combo legs on the same connection remain eligible, unless verified as a connection-wide
+    // denial (e.g. Vertex SERVICE_DISABLED or non-models IAM denial).
+    if (
+      result.status === 403 &&
+      hasPerModelQuota(provider, opts.rawModel) &&
+      !(provider === "vertex" && isVertexConnectionWidePermissionDenied(opts.errorText))
     ) {
       return false;
     }

@@ -1,6 +1,6 @@
 # Resilience Guide (Polski)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -71,7 +71,7 @@ Test zabezpieczający przed regresją: `tests/unit/provider-cooldown-window-gate
 
 **Zakres:** pojedyncze połączenie/konto/klucz dostawcy.
 
-**Cel:** pomijanie jednego wadliwego klucza, podczas gdy inne połączenia tego samego dostawcy nadal obsługują żądania.
+**Cel:** pominięcie jednego wadliwego klucza, podczas gdy inne połączenia tego samego dostawcy nadal obsługują żądania.
 
 **Implementacja:**
 
@@ -82,65 +82,125 @@ Test zabezpieczający przed regresją: `tests/unit/provider-cooldown-window-gate
 
 **Pola dla każdego połączenia:**
 
-- `rateLimitedUntil` — znacznik czasu, do którego trwa okres karencji
+- `rateLimitedUntil` — znacznik czasu wygaśnięcia okresu karencji
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — licznik wykładniczego wycofywania
 
 **Domyślne okresy karencji:**
 
-- Podstawa dla OAuth: 5s
-- Podstawa dla klucza API: 3s
-- Kod 429 dla klucza API: preferuje pochodzące z usługi nadrzędnej nagłówki `Retry-After`/resetowania lub możliwy do przeanalizowania tekst dotyczący resetowania
+- Bazowy dla OAuth: 5 s
+- Bazowy dla klucza API: 3 s
+- 429 dla klucza API: preferuje pochodzące z usługi nadrzędnej nagłówki `Retry-After`/resetowania lub możliwy do przeanalizowania tekst resetowania
 - Wycofywanie: `baseCooldownMs * 2 ** failureIndex`
 
-**Zabezpieczenie przed efektem lawinowym:** zapobiega nadmiernemu wydłużaniu okresu karencji lub podwójnemu zwiększaniu `backoffLevel` przez współbieżne błędy.
+**Ochrona przed lawiną równoczesnych żądań:** zapobiega nadmiernemu wydłużaniu okresu karencji lub podwójnemu zwiększaniu `backoffLevel` przez równoczesne błędy.
 
 **Stany końcowe (NIE okresy karencji):**
 
-- `banned` — ustawiany po wykryciu słowa kluczowego wskazującego na blokadę lub zablokowania konta (zobacz [BAN_DETECTION](../security/BAN_DETECTION.md)), a także po trzech kolejnych odmowach usługi nadrzędnej dotyczących poszczególnych żądań (`request_rejected`, np. Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); pojedyncza odmowa jedynie nakłada na połączenie okres karencji
-- `expired` (przechodzi do stanu końcowego po ograniczonej liczbie ponownych prób — `EXPIRED_RETRY_MAX = 3` z wykładniczym wycofywaniem — dzięki czemu przejściowe błędy OAuth mogą ustąpić samoistnie, zanim konto zostanie trwale dezaktywowane)
+- `banned` — ustawiany po wykryciu słowa kluczowego oznaczającego blokadę lub blokady konta (zobacz [BAN_DETECTION](../security/BAN_DETECTION.md)), a także po trzech kolejnych odmowach usługi nadrzędnej dotyczących pojedynczego żądania (`request_rejected`, np. Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); pojedyncza odmowa jedynie wprowadza połączenie w okres karencji
+- `expired` (przechodzi do stanu końcowego po ograniczonej liczbie ponowień — `EXPIRED_RETRY_MAX = 3` z wykładniczym wycofywaniem — dzięki czemu przejściowe błędy OAuth mogą ustąpić samoczynnie, zanim konto zostanie trwale dezaktywowane)
 - `credits_exhausted`
 
-Stany te utrzymują się do czasu zmiany poświadczeń lub zresetowania ich przez operatora. Nie zastępuj stanów końcowych przejściowym stanem okresu karencji.
+Stany te utrzymują się do czasu zmiany danych uwierzytelniających lub zresetowania ich przez operatora. Nie zastępuj stanów końcowych przejściowym stanem okresu karencji.
 
-**Leniwe odzyskiwanie:** gdy czas `rateLimitedUntil` minie, połączenie ponownie kwalifikuje się do użycia. Po pomyślnym użyciu `clearAccountError()` usuwa wszystkie pola błędów.
+**Leniwe odzyskiwanie:** gdy `rateLimitedUntil` upłynie, połączenie ponownie kwalifikuje się do użycia. Po pomyślnym użyciu `clearAccountError()` usuwa wszystkie pola błędów.
+
+### Bariera użycia Claude OAuth: ścieżka o niższym priorytecie + reset limitu sesji
+
+**Zakres:** jedno połączenie subskrypcji Claude (OAuth). Obie funkcje są **opcjonalnie włączane dla każdego
+połączenia** (Edytuj połączenie → sekcja Claude → `lowPriorityMode` / `autoLimitReset` w
+`providerSpecificData`, obie domyślnie wyłączone) i odzwierciedlają polecenia `/low-priority` oraz
+`/limit-reset` z Claude Code (kontrakt komunikacyjny przechwycony z Claude Code 2.1.263).
+
+**Implementacja:**
+
+- Maszyna stanów + klasyfikacja odpowiedzi: `open-sse/services/claudeLowPriority.ts`
+- Klient statusu/żądania resetowania: `open-sse/services/claudeLimitReset.ts`
+- Punkt zaczepienia executora (wstrzykiwanie nagłówka + ponowienie na tym samym koncie): `open-sse/executors/base.ts::execute()`
+- Utrwalanie ustawienia opcjonalnego: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Wyzwalacz:** 5-godzinna bariera użycia — odpowiedź `429`, której nagłówki zawierają
+`anthropic-ratelimit-unified-status: rejected` oraz, gdy konto się kwalifikuje,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Nic nie jest wysyłane przed pierwszą odpowiedzią
+429 dotyczącą bariery; seria odpowiedzi 429 bez ujednoliconych nagłówków przechodzi standardową ścieżką okresu karencji.
+
+**Ścieżka o niższym priorytecie** (`lowPriorityMode`):
+
+- Po otrzymaniu odpowiedzi 429 dotyczącej bariery executor przyjmuje ofertę i natychmiast ponawia żądanie na **tym samym**
+  koncie z `anthropic-usage-limit: slow`; ścieżka pozostaje aktywna do ogłoszonego czasu
+  `anthropic-ratelimit-unified-reset` (+60 s okresu buforowego), a każde żądanie w tym przedziale zawiera
+  ten nagłówek. Przechwycona odpowiedź 429 nigdy nie dociera do `handleChatCore`, więc połączenie
+  **nie** przechodzi w okres karencji ani nie jest zastępowane innym.
+- `anthropic-ratelimit-unified-slow-status` w późniejszych odpowiedziach: `active` / `not_needed`
+  utrzymują ścieżkę; `slot_busy` (429) lub `529` powodują oczekiwanie przez wskazany przez serwer czas
+  `anthropic-ratelimit-unified-slow-retry-after` (domyślnie 20 s, ograniczony do 5–600 s, z losowym odchyleniem ±30%)
+  i ponowienie, z limitem `anthropic-ratelimit-unified-slow-max-wait` (domyślnie 20 min, ograniczenie
+  od 1 min do 6 godz.) — po jego przekroczeniu ścieżka się kończy, a 10-minutowy okres wyciszenia blokuje ponowne przyjęcie. Czas
+  oczekiwania jest dodatkowo ograniczony przez pozostały czas własnego limitu rozpoczęcia żądania nadrzędnego
+  (`resolveFetchStartTimeout`, domyślnie 10 min) pomniejszony o margines 5 s: bez tego ograniczenia
+  domyślny maksymalny czas oczekiwania wynoszący 20 minut przekroczyłby czas życia żądania, a uśpienie zostałoby przerwane
+  w trakcie oczekiwania, ujawniając `TimeoutError` zamiast łagodnego zakończenia `max_wait` + wyciszenia.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, rozpoczęcie nowego 5-godzinnego okna lub
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (co kończy ścieżkę jako
+  `extra_usage` przy dowolnym statusie, ponieważ płatne użycie ponad limit pokrywa teraz barierę) kończą ścieżkę;
+  odpowiedź przechodzi następnie do standardowej ścieżki okresu karencji. `budget_exhausted` jest zapamiętywany do
+  ogłoszonego resetu budżetu (≤ 8 dni).
+- Sprawdzanie bariery następuje po wewnętrznych ponowieniach executora w ramach próby, wywołanych odpowiedzią 400 (edycja
+  kontekstu, ograniczenia myślenia/wysiłku, automatyczne uczenie parametrów), więc odpowiedź 429 dotycząca bariery, która pojawi się dopiero podczas
+  jednego z tych ponowień, nadal zostanie przechwycona zamiast trafić do ścieżki okresu karencji.
+- Stan jest przechowywany w pamięci osobno dla każdego połączenia (restart skutkuje jedną dodatkową odpowiedzią 429 dotyczącą bariery, zanim oferta zostanie ponownie przyjęta).
+
+**Reset limitu sesji** (`autoLimitReset`, wykonywany przed ścieżką, gdy obie funkcje są włączone):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → blok `juniper_tide`;
+  gdy `arm: "reset"` i `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` z
+  `{ "program": "juniper_tide" }` (UUID organizacji z
+  `providerSpecificData.organizationUUID`, z rezerwową wartością z inicjalizacji).
+- `result: reset|not_limited` → żądanie jest ponawiane z pełną szybkością (bez nagłówka trybu wolnego).
+  `already_used` / `not_offered` zapamiętują `next_available_at` (domyślnie jeden tydzień); każda
+  awaria powoduje 15-minutowe wycofanie. Reset jest dostępny raz w tygodniu i nadal wlicza się do
+  limitu tygodniowego.
+
+Zabezpieczenia przed regresją: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Koligacja sesji (#7274)
 
-**Zakres:** jedna sesja klienta (nagłówek `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) przypięta do jednego połączenia dla **dowolnego** dostawcy.
+**Zakres:** jedna sesja klienta (nagłówek `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) przypisana do jednego połączenia dla **dowolnego** dostawcy.
 
-**Cel:** utrzymanie agenta wieloturowego (Claude Code, aider, agenci niestandardowi) na tym samym koncie między żądaniami, co ogranicza utratę kontekstu przy zmianie konta i powtarzające się błędy 429 podczas zimnego startu u dostawców utrzymujących stan sesji osobno dla każdego konta.
+**Cel:** utrzymanie wieloturowego agenta (Claude Code, aider, agenci niestandardowi) na tym samym koncie między żądaniami, co ogranicza utratę kontekstu przy przełączaniu kont oraz powtarzające się błędy 429 przy zimnym starcie u dostawców przechowujących stan sesji na poziomie konta.
 
 **Implementacja:**
 
 - Ustalanie TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Wybór/tworzenie przypięcia: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Wybór/tworzenie przypisania: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
 - Wyodrębnianie nagłówka (ogólne, dla dowolnego dostawcy): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Utrwalona tabela przypięć: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Ustawienie: `sessionAffinityTtlMs` (globalny TTL w ms, `0` wyłącza) — `src/lib/db/settings.ts`. Nazwa została zmieniona z właściwego tylko dla Codex ustawienia `codexSessionAffinityTtlMs` przez migrację `124_generic_session_affinity_ttl.sql`, która przenosi każdy wcześniej skonfigurowany TTL Codex jako nową wartość domyślną.
+- Utrwalona tabela przypisań: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Ustawienie: `sessionAffinityTtlMs` (globalny TTL w ms, `0` wyłącza) — `src/lib/db/settings.ts`. Nazwa została zmieniona z właściwego tylko dla Codex ustawienia `codexSessionAffinityTtlMs` przez migrację `124_generic_session_affinity_ttl.sql`, która przenosi każdą wcześniej skonfigurowaną wartość TTL dla Codex jako nową wartość domyślną.
 
-Przed #7274 funkcja `resolveSessionAffinityTtlMs()` natychmiast zwracała `0` dla każdego dostawcy poza `codex`, dlatego ustawienie TTL (oraz nagłówki sesji) nie miały wpływu na pozostałych dostawców, mimo że mechanizm przypinania i wyodrębnianie nagłówków były już niezależne od dostawcy. Poprawka usunęła ten wcześniejszy zwrot; po globalnym ustawieniu wartości powyżej `0` TTL jest teraz stosowany jednolicie do każdego dostawcy.
+Przed #7274 funkcja `resolveSessionAffinityTtlMs()` natychmiast zwracała `0` dla każdego dostawcy poza `codex`, więc ustawienie TTL (oraz nagłówki sesji) nie miało wpływu nigdzie indziej, mimo że mechanizm przypisywania i wyodrębnianie nagłówków były już niezależne od dostawcy. Poprawka usunęła ten wcześniejszy zwrot; TTL jest teraz stosowany jednolicie do każdego dostawcy, gdy jego globalna wartość zostanie ustawiona powyżej `0`.
 
-Trzy nagłówki koligacji sesji nigdy nie są przekazywane do usługi nadrzędnej — moduły wykonawcze budują własne nagłówki nadrzędne od podstaw, zamiast przekazywać nagłówki klienta, dlatego identyfikator ten pozostaje wyłącznie wewnętrznym identyfikatorem korelacji.
+Trzy nagłówki koligacji sesji nigdy nie są przekazywane dalej — wykonawcy tworzą własne nagłówki dla dostawcy od podstaw, zamiast przekazywać nagłówki klienta, więc pozostają one wyłącznie wewnętrznymi identyfikatorami korelacji.
 
-### Wyłączne dzierżawy połączeń dla sesji zarządzanych
+### Wyłączne dzierżawy połączeń dla zarządzanych sesji
 
-**Zakres:** jeden aktywny zarządzany klient/sesja HTTP jest właścicielem jednego kwalifikującego się połączenia OmniRoute.
+**Zakres:** jeden aktywny zarządzany klient HTTP/sesja jest właścicielem jednego kwalifikującego się połączenia OmniRoute.
 
-**Cel:** zapewnienie trwałego, wyłącznego prawa własności do połączenia klientom, którzy wymagają ścisłej granicy routingu między żądaniami. Różni się to od koligacji sesji, która jest miękką preferencją ciągłości: wyłączna dzierżawa utrwala stan cyklu życia w SQLite, wymusza globalną unikatowość aktywnego właściciela i aktywnego połączenia oraz odrzuca nieaktualną generację przed przekazaniem żądania do dostawcy.
+**Cel:** zapewnienie trwałego, wyłącznego prawa własności do połączenia klientom, którzy potrzebują ścisłej granicy routingu między żądaniami. Różni się to od koligacji sesji, która jest miękką preferencją ciągłości: wyłączna dzierżawa utrwala stan cyklu życia w SQLite, wymusza globalną unikalność aktywnego właściciela i aktywnego połączenia oraz odrzuca nieaktualną generację przed przekazaniem żądania do dostawcy.
 
-Funkcja jest opcjonalnie włączana dla poszczególnych kluczy API. Zarządzany klucz musi mieć zakres `lease:exclusive` oraz jawną, niepustą listę `allowedConnections`. Każdy klient HTTP może używać punktu końcowego cyklu życia; nazwa klienta, agent użytkownika, dostawca, metoda OAuth ani model nie są wymagane. Dzierżawa jest powiązana z połączeniem, a nie z modelem, dlatego zmiana modelu zachowuje powiązanie, dopóki połączenie nadal spełnia standardowe kryteria kwalifikacji. Standardowe reguły dotyczące modelu, limitów, kondycji, okresu karencji i listy dozwolonych elementów pozostają nadrzędne i mogą przenieść tę samą generację do innego wolnego, kwalifikującego się połączenia.
+Funkcja jest opcjonalna dla poszczególnych kluczy API. Zarządzany klucz musi mieć zakres `lease:exclusive` oraz jawną, niepustą listę `allowedConnections`. Każdy klient HTTP może używać punktu końcowego cyklu życia; nazwa klienta, user-agent, dostawca, metoda OAuth ani model nie są wymagane. Dzierżawa jest przypisana do połączenia, a nie do modelu, dlatego zmiana modelu zachowuje powiązanie, dopóki połączenie nadal spełnia zwykłe kryteria kwalifikacji. Standardowe reguły dotyczące modelu, limitu, stanu, okresu oczekiwania i listy dozwolonych połączeń pozostają nadrzędne i mogą przenieść tę samą generację do innego wolnego, kwalifikującego się połączenia.
 
-Cykl życia jest obsługiwany przez `POST /api/v1/session-leases` z akcjami JSON `acquire`, `renew` i `release`. Zarządzane żądania inferencji przekazują nieprzezroczystą wartość `X-OmniRoute-Lease-Owner` oraz dokładną wartość `X-OmniRoute-Lease-Generation`. Identyfikator właściciela składa się z prefiksu `vlo_`, po którym następują 43 znaki base64url; przechowywany jest wyłącznie jego skrót SHA-256. Każda końcowa kontrola przed przekazaniem żądania wiąże również identyfikator uwierzytelnionego klucza API oraz identyfikator aktywnego połączenia. Nagłówki sterujące dzierżawą są usuwane z dzienników, zachowanych migawek żądań oraz nagłówków modułów wykonawczych przekazywanych do usługi nadrzędnej.
+Cykl życia jest obsługiwany przez `POST /api/v1/session-leases` z akcjami JSON `acquire`, `renew` i `release`. Zarządzane żądania inferencji przekazują nieprzezroczystą wartość `X-OmniRoute-Lease-Owner` oraz dokładną wartość `X-OmniRoute-Lease-Generation`. Identyfikator właściciela składa się z prefiksu `vlo_`, po którym następują 43 znaki base64url; przechowywany jest wyłącznie jego skrót SHA-256. Każda ostateczna kontrola przed przekazaniem żądania wiąże również identyfikator uwierzytelnionego klucza API oraz identyfikator aktywnego połączenia. Nagłówki sterujące dzierżawą są usuwane z dzienników, zachowanych migawek żądań oraz nagłówków przekazywanych przez wykonawców.
 
-Jeśli standardowy routing ma kwalifikujących się zarządzanych kandydatów, ale każdy wolny kandydat jest zajęty przez obcą aktywną dzierżawę, OmniRoute zwraca kod HTTP `429`, kod niedostępności pojemności dzierżaw, stan oczekiwania na dostępność oraz ograniczony nagłówek `Retry-After` wyznaczony na podstawie najwcześniejszego odpowiedniego czasu wygaśnięcia. Standardowy brak kwalifikujących się połączeń nie stanowi konfliktu dzierżaw i zachowuje dotychczasową semantykę błędów routingu.
+Jeśli standardowy routing ma kwalifikujących się zarządzanych kandydatów, ale każdy wolny kandydat jest zajęty przez obcą aktywną dzierżawę, OmniRoute zwraca HTTP `429`, kod niedostępności pojemności dzierżaw, stan oczekiwania na pojemność oraz ograniczoną wartość `Retry-After` wyliczoną na podstawie najwcześniejszego odpowiedniego terminu wygaśnięcia. Zwykły brak kwalifikujących się kandydatów nie stanowi konfliktu dzierżaw i zachowuje dotychczasową semantykę błędów routingu.
 
 Powiązane mechanizmy pozostają odrębne:
 
-- Zajętość sesji OAuth jest lokalnym dla procesu mechanizmem miękkiego rozdzielania kont OAuth.
-- Semafory kont przyznają pozwolenia dotyczące współbieżności żądań i kończą się wraz z zakończeniem żądania.
-- Wyłączne dzierżawy połączeń dla sesji zarządzanych zapewniają trwałe prawo własności w ramach cyklu życia z kontrolą generacji.
+- Zajętość sesji OAuth jest lokalnym dla procesu mechanizmem miękkiej dystrybucji kont OAuth.
+- Semafory kont przyznają uprawnienia do współbieżnego wykonywania żądań i kończą się wraz z zakończeniem żądania.
+- Wyłączne dzierżawy połączeń dla zarządzanych sesji zapewniają trwałe prawo własności w ramach cyklu życia wraz z kontrolą generacji.
 
 ---
 
@@ -271,48 +331,86 @@ dla danego modelu. Zachowanie jest ograniczone przez `comboCooldownWait` (`enabl
 
 ---
 
-## 5. Kontrola dopuszczania do kolejki żądań (v3.8.49 · zgłoszenie #6593)
+## 5. Kontrola przyjmowania żądań do kolejki (v3.8.49 · zgłoszenie #6593)
 
-**Zakres**: lokalna kolejka limitowania szybkości dla dostawcy+połączenia (`open-sse/services/rateLimitManager.ts`,
-obsługiwana przez Bottleneck), znajdująca się o jedną warstwę niżej niż trzy opisane powyżej mechanizmy.
+**Zakres**: lokalna kolejka limitowania szybkości dla każdej pary dostawca+połączenie (`open-sse/services/rateLimitManager.ts`,
+oparta na Bottleneck), znajdująca się o jedną warstwę niżej niż trzy powyższe mechanizmy.
 
-**`maxWaitMs` to zachowana ze względów zgodności nazwa dla wygaśnięcia wykonywania.**
-`resilienceSettings.requestQueue.maxWaitMs` jest przekazywane do Bottleneck jako wartość
-`expiration` zadania, której licznik czasu uruchamia się dopiero po wysłaniu. Ogranicza więc
-czas wykonywania zarządzanego przez limiter, a nie czas spędzony w lokalnej kolejce. Wygaśnięcie
-jest zgłaszane jako zaufany lokalny `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-poprzednia nazwa kodu przekroczenia limitu czasu kolejki jest akceptowana wyłącznie na potrzeby
-wewnętrznej zgodności wstecznej. Wartość domyślna to 15000ms; można ją nadpisać za pomocą
-`RATE_LIMIT_MAX_WAIT_MS` (zmienna środowiskowa) lub panelu (**Ustawienia → Odporność**,
-maksymalna wartość w interfejsie: 1–30000ms). Czas przebywania w kolejce nie ma limitu;
-użyj opisanego poniżej `maxQueueDepth`, aby ograniczyć liczbę oczekujących wywołań.
+**`maxWaitMs` ogranicza czas oczekiwania w kolejce; `executionMaxWaitMs` ogranicza czas wykonywania.**
+Te dwa limity są celowo rozdzielone i żaden nie wpływa na drugi.
 
-**`maxQueueDepth` — opcjonalny limit dopuszczania (nowość).** `resilienceSettings.requestQueue.maxQueueDepth`
-ogranicza liczbę żądań, które mogą jednocześnie oczekiwać w kolejce (nie zostały jeszcze wysłane) dla jednej
-pary dostawca+połączenie. Gdy kolejka zawiera już `maxQueueDepth`
-żądań, nowe żądanie jest natychmiast odrzucane za pomocą typowanego błędu
-`code: "RATE_LIMIT_QUEUE_FULL"` **zanim** trafi do `limiter.schedule()`
-— dzięki temu odrzucenie jest tanie i następuje przed jakimikolwiek dalszymi operacjami
-kompresji / tłumaczenia promptu dla tego żądania. Wartość domyślna `0` =
-wyłączone, co zachowuje dotychczasowe zachowanie nieograniczonej kolejki; dozwolony zakres to 0–100000.
-Wartość można nadpisać za pomocą `RATE_LIMIT_MAX_QUEUE_DEPTH` (zmienna środowiskowa) lub
-`resilienceSettings.requestQueue.maxQueueDepth` (panel/poprawka API).
+`resilienceSettings.requestQueue.maxWaitMs` to **budżet oczekiwania w kolejce**:
+obejmuje oczekiwanie na przydzielenie miejsca u dostawcy, a następnie pozostawanie
+w stanie QUEUED; jego licznik czasu jest zerowany w chwili, gdy zadanie opuszcza
+stan QUEUED i rozpoczyna wykonywanie (`rateLimitManager.ts`, `wrappedFn`). Żądanie,
+które przekroczy ten limit, nigdy nie trafia do usługi nadrzędnej. Wartość domyślna
+to 30000ms, dostarczana przez `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` w
+`src/lib/resilience/settings.ts` i utrwalona przez
+`tests/unit/ratelimit-admission-control-6593.test.ts`, dzięki czemu jej zmiana
+spowoduje niepowodzenie tego testu, zamiast pozwolić, by ten akapit po cichu stał
+się nieaktualny.
 
-Samo sprawdzenie dopuszczenia jest czystą funkcją
-(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), dzięki czemu
-można je testować jednostkowo bez rzeczywistego limitera Bottleneck.
+`resilienceSettings.requestQueue.executionMaxWaitMs` to wartość, którą Bottleneck
+otrzymuje jako `expiration` zadania; jej licznik czasu jest uruchamiany dopiero po
+przekazaniu zadania do wykonania. Stanowi zabezpieczenie dla modułów wykonawczych,
+które nie mają własnego limitu czasu usługi nadrzędnej, i jest zwiększana do
+własnego limitu czasu rozpoczęcia pobierania modułu wykonawczego, jeśli ten jest
+dłuższy, dzięki czemu nie może przerwać prawidłowej odpowiedzi będącej w toku.
+Wartość domyślna to 600000ms (10 min).
 
-> Dokument RFC, który zapoczątkował zgłoszenie #6593, proponował również flagę `bypassCompressionOnRateLimit`.
-> Potok `open-sse/services/compression/` w tym repozytorium służy do
-> kompresji promptu/kontekstu wychodzącego żądania LLM (`chatCore.ts`,
-> w okolicy bloku `resolveCompressionSettings`/`selectCompressionStrategy`),
-> a nie do kompresji odpowiedzi HTTP dla wygenerowanych treści błędów 429 — nie istnieje
-> odpowiadająca temu ścieżka kodu dla dosłownej flagi pomijania. Ten etap kompresji promptu
-> jest też obecnie wykonywany _przed_ `withRateLimit()` w potoku żądania, dlatego
-> zmiana kolejności w celu pominięcia go przy odrzuceniu z powodu pełnej kolejki stanowi osobną, większą
-> zmianę, wykraczającą poza zakres tego zgłoszenia; celowo **nie** została ona tutaj zaimplementowana
-> i pozostawiono ją jako potencjalne dalsze zadanie, jeśli oszczędność CPU okaże się warta
-> ryzyka związanego ze zmianą kolejności.
+Przekazywanie budżetu kolejki do `expiration` powodowało wcześniej przerywanie
+działania bram nieprzyrostowych w trakcie wykonywania — zgodnie z założeniem mogą
+one działać przez kilka minut przed wysłaniem pierwszych bajtów — dlatego
+wygaśnięcie jest zgłaszane jako `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), podczas gdy budżet kolejki używa kodu
+przekroczenia czasu oczekiwania w kolejce. Każdą z tych wartości można nadpisać
+za pomocą `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (zmienne środowiskowe) lub w panelu
+(**Ustawienia → Odporność**). Podczas normalizacji obie są ograniczane do zakresu
+1ms–24h.
+
+**Pierwszeństwo dla obu ustawień:** zmienna środowiskowa dostarcza jedynie
+wartość _domyślną_. Wartość utrwalona w `resilienceSettings.requestQueue`
+(panel / poprawka API, przechowywana w `key_value`) ma przed nią pierwszeństwo,
+a wartość `rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` określona dla
+danego połączenia ma pierwszeństwo przed obiema. Ustawienie zmiennej środowiskowej
+we wdrożeniu, które ma już utrwaloną wartość, nie zmieni więc niczego — należy
+zamiast tego wyczyścić lub zaktualizować utrwalone ustawienie.
+
+Czas przebywania w kolejce jest ograniczony przez `maxWaitMs`; opisane poniżej
+`maxQueueDepth` ogranicza liczbę wywołujących, którzy mogą jednocześnie oczekiwać
+w kolejce.
+
+**`maxQueueDepth` — opcjonalny limit przyjmowania (nowość).** `resilienceSettings.requestQueue.maxQueueDepth`
+ogranicza liczbę żądań, które mogą jednocześnie oczekiwać w kolejce (nie zostały
+jeszcze przekazane do wykonania) dla jednej pary dostawca+połączenie. Gdy kolejka
+zawiera już `maxQueueDepth` żądań, nowe żądanie jest natychmiast odrzucane
+typowanym błędem `code: "RATE_LIMIT_QUEUE_FULL"` **zanim** kiedykolwiek trafi do
+`limiter.schedule()` — dzięki temu odrzucenie jest tanie i następuje przed
+jakimikolwiek dalszymi operacjami kompresji / tłumaczenia promptu dla tego
+żądania. Wartość domyślna `0` oznacza wyłączenie limitu, co zachowuje
+dotychczasowe zachowanie nieograniczonej kolejki; zakres wynosi 0–100000.
+Ustawienie można nadpisać za pomocą `RATE_LIMIT_MAX_QUEUE_DEPTH` (zmienna
+środowiskowa) lub `resilienceSettings.requestQueue.maxQueueDepth` (panel/poprawka
+API).
+
+Sama kontrola przyjmowania jest funkcją czystą
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), dzięki
+czemu można ją testować jednostkowo bez rzeczywistego limitera Bottleneck.
+
+> Dokument RFC, od którego rozpoczęło się zgłoszenie #6593, proponował również
+> flagę `bypassCompressionOnRateLimit`. Potok
+> `open-sse/services/compression/` w tym repozytorium odpowiada za kompresję
+> promptu/kontekstu w wychodzącym żądaniu LLM (`chatCore.ts`, w okolicy bloku
+> `resolveCompressionSettings`/`selectCompressionStrategy`), a nie za kompresję
+> odpowiedzi HTTP w generowanych treściach 429 — nie istnieje odpowiadająca temu
+> ścieżka kodu dla dosłownej flagi pomijania. Ten etap kompresji promptu jest
+> również obecnie wykonywany _przed_ `withRateLimit()` w potoku obsługi żądania,
+> więc zmiana kolejności w celu pominięcia go po odrzuceniu z powodu pełnej
+> kolejki jest odrębną, większą zmianą, wykraczającą poza zakres tego zgłoszenia;
+> celowo **nie** została tutaj zaimplementowana i pozostawiono ją jako przyszłe
+> zadanie, jeśli oszczędność zasobów CPU będzie warta ryzyka związanego ze zmianą
+> kolejności.
 
 ---
 
