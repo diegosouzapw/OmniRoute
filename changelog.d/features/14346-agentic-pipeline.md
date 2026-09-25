@@ -1,0 +1,1 @@
+- **feat(routing):** add opt-in planner/executor orchestration for two-model pipeline combos, with protocol-aware tool-loop detection, dynamic final ownership, native parallel tool calls, and bounded sequential rounds ([#14346](https://github.com/diegosouzapw/OmniRoute/issues/14346)).
