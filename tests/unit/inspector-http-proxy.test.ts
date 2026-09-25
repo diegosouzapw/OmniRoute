@@ -36,7 +36,8 @@ async function withTcpServer(): Promise<{ port: number; close: () => Promise<voi
 function sendThroughProxy(
   proxyPort: number,
   upstreamPort: number,
-  method = "GET"
+  method = "GET",
+  payload?: Buffer
 ): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
     const req = http.request(
@@ -56,7 +57,7 @@ function sendThroughProxy(
       }
     );
     req.once("error", reject);
-    req.end();
+    req.end(payload);
   });
 }
 
@@ -97,6 +98,24 @@ test("HTTP direct passes through and records buffer entry", async () => {
     assert.equal(entry.method, "GET");
     assert.equal(entry.status, 200);
     assert.match(entry.responseBody ?? "", /hello/);
+  } finally {
+    await proxy.stop();
+    await upstream.close();
+  }
+});
+
+test("HTTP direct preserves binary POST bytes through the fetch body", async () => {
+  const payload = Buffer.from([0, 1, 127, 128, 254, 255]);
+  const upstream = await withUpstream((req, res) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+    req.on("end", () => res.end(Buffer.concat(chunks).toString("base64")));
+  });
+  const proxy = await startHttpProxyServer(0);
+  try {
+    const result = await sendThroughProxy(proxy.port, upstream.port, "POST", payload);
+    assert.equal(result.status, 200);
+    assert.equal(result.body, payload.toString("base64"));
   } finally {
     await proxy.stop();
     await upstream.close();

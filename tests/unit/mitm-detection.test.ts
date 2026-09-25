@@ -3,22 +3,21 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { detectAgent, DETECTORS } from "../../src/mitm/detection/index.ts";
 import type { AgentId } from "../../src/mitm/types.ts";
+import { MitmTargetSchema } from "../../src/mitm/types.ts";
 
 test("DETECTORS — provides an entry for every AgentId", () => {
-  const ids: AgentId[] = [
-    "antigravity",
-    "kiro",
-    "copilot",
-    "codex",
-    "cursor",
-    "zed",
-    "claude-code",
-    "open-code",
-    "trae",
-  ];
+  const ids = MitmTargetSchema.shape.id.options;
   for (const id of ids) {
     assert.equal(typeof DETECTORS[id], "function", `missing detector for ${id}`);
   }
+});
+
+test("GHE Copilot detects the same local extension as public Copilot", (t) => {
+  t.mock.method(fs, "existsSync", () => true);
+  t.mock.method(fs, "readdirSync", () => ["github.copilot-1.0.0"]);
+  const enterprise = detectAgent("ghe-copilot");
+  assert.equal(enterprise.installed, true);
+  assert.deepEqual(enterprise, detectAgent("copilot"));
 });
 
 test("detectAgent — trae always reports not installed (investigating)", () => {

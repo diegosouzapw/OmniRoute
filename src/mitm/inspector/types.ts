@@ -7,7 +7,9 @@ export type DetectedKind = "llm" | "app" | "unknown";
 export interface InterceptedRequest {
   id: string; // uuid
   source: CaptureSource;
-  agent?: import("../types").AgentId; // only when source === "agent-bridge"
+  // Capture metadata, not a routing AgentId: server.cjs also emits "unknown".
+  // Keep the interface aligned with the string-valued ingest schema below.
+  agent?: string;
   timestamp: string; // ISO 8601
   method: string;
   host: string;
