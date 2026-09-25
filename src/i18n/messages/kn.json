@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "ಆಯ್ಕೆಮಾಡಿದ {count} ಅನ್ನು ಅಳಿಸಿ",
     "batchActivateSelected": "ಆಯ್ಕೆಮಾಡಿದ {count} ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
     "testPassed": "✓ ಸರಿ",
+    "sweepVerdict": "ಕೊನೆಯ ಸ್ಕ್ಯಾನ್: {cause} ({code}) {age}",
+    "sweepNoData": "ಪ್ರಾರಂಭದಿಂದ ಇನ್ನೂ ಸ್ಕ್ಯಾನ್ ಇಲ್ಲ",
+    "sweepLabel": {
+      "unproven": "ಗುರಿ ನಿರಾಕರಿಸಿದೆ",
+      "unclassified": "ಪರಿಶೀಲನೆ ಅನಿರ್ದಿಷ್ಟ",
+      "ok": "ಸೇವೆ ಸಲ್ಲಿಸಲಾಗಿದೆ",
+      "fail": "ಸಂಪರ್ಕ ವಿಫಲ",
+      "hang": "ಹ್ಯಾಂಡ್‌ಶೇಕ್ ಸ್ಥಗಿತ",
+      "inconclusive": "ಅನಿರ್ದಿಷ್ಟ"
+    },
     "close": "ಮುಚ್ಚಿ",
     "managePool": "ಪೂಲ್ ನಿರ್ವಹಿಸಿ",
     "poolTitle": "ಪ್ರಾಕ್ಸಿ ಪೂಲ್ ಮತ್ತು ರೊಟೇಶನ್",

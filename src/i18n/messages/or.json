@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "ଚୟନିତ {count}ଟି ବିଲୋପ କରନ୍ତୁ",
     "batchActivateSelected": "ଚୟନିତ {count}ଟି ସକ୍ଷମ କରନ୍ତୁ",
     "testPassed": "✓ ଠିକ୍ ଅଛି",
+    "sweepVerdict": "ଶେଷ ସ୍କାନ୍: {cause} ({code}) {age}",
+    "sweepNoData": "ଆରମ୍ଭରୁ ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ସ୍କାନ୍ ନାହିଁ",
+    "sweepLabel": {
+      "unproven": "ଲକ୍ଷ୍ୟ ପ୍ରତ୍ୟାଖ୍ୟାନ କଲା",
+      "unclassified": "ଯାଞ୍ଚ ଅନିର୍ଣ୍ଣିତ",
+      "ok": "ସେବା ଦିଆଗଲା",
+      "fail": "ସଂଯୋଗ ବିଫଳ",
+      "hang": "ହ୍ୟାଣ୍ଡଶେକ୍ ଅଟକିଗଲା",
+      "inconclusive": "ଅନିର୍ଣ୍ଣିତ"
+    },
     "close": "ବନ୍ଦ କରନ୍ତୁ",
     "managePool": "ପୁଲ୍ ପରିଚାଳନା କରନ୍ତୁ",
     "poolTitle": "ପ୍ରକ୍ସି ପୁଲ୍ ଏବଂ ରୋଟେସନ୍",

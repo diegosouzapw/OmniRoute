@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Видалити {count} вибраних",
     "batchActivateSelected": "Увімкнути {count} вибраних",
     "testPassed": "✓ Успішно",
+    "sweepVerdict": "Останнє сканування: {cause} ({code}) {age}",
+    "sweepNoData": "Сканувань із запуску ще не було",
+    "sweepLabel": {
+      "unproven": "ціль відхилено",
+      "unclassified": "перевірка без висновку",
+      "ok": "обслуговано",
+      "fail": "з'єднання не вдалося",
+      "hang": "рукостискання зависло",
+      "inconclusive": "без висновку"
+    },
     "close": "Закрити",
     "managePool": "Керувати пулом",
     "poolTitle": "Пул проксі та ротація",

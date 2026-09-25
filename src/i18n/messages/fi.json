@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Poista {count} valittua",
     "batchActivateSelected": "Ota käyttöön {count} valittua",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Viimeisin tarkistus: {cause} ({code}) {age}",
+    "sweepNoData": "Ei tarkistuksia käynnistyksen jälkeen",
+    "sweepLabel": {
+      "unproven": "kohde kieltäytyi",
+      "unclassified": "tarkistus epäselvä",
+      "ok": "palveltu",
+      "fail": "yhteys epäonnistui",
+      "hang": "kättely jumiutui",
+      "inconclusive": "epäselvä"
+    },
     "close": "Sulje",
     "managePool": "Hallitse poolia",
     "poolTitle": "Proxy-pooli ja kierto",

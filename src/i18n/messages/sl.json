@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Izbriši izbrane ({count})",
     "batchActivateSelected": "Omogoči izbrane ({count})",
     "testPassed": "✓ V redu",
+    "sweepVerdict": "Zadnje pregledovanje: {cause} ({code}) {age}",
+    "sweepNoData": "Od zagona še ni pregledovanja",
+    "sweepLabel": {
+      "unproven": "cilj zavrnjen",
+      "unclassified": "preverjanje nezaključno",
+      "ok": "postreženo",
+      "fail": "povezava ni uspela",
+      "hang": "rokovanje zastalo",
+      "inconclusive": "nezaključno"
+    },
     "close": "Zapri",
     "managePool": "Upravljaj skupino",
     "poolTitle": "Skupina posredniških strežnikov in rotacija",

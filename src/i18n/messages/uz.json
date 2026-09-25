@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Tanlangan {count} tasini o‘chirish",
     "batchActivateSelected": "Tanlangan {count} tasini yoqish",
     "testPassed": "✓ OK",
+    "sweepVerdict": "So'nggi tekshiruv: {cause} ({code}) {age}",
+    "sweepNoData": "Ishga tushgandan beri tekshiruv yo'q",
+    "sweepLabel": {
+      "unproven": "nishon rad etdi",
+      "unclassified": "tekshiruv xulosasiz",
+      "ok": "xizmat ko'rsatildi",
+      "fail": "ulanish muvaffaqiyatsiz",
+      "hang": "qo'l berish to'xtab qoldi",
+      "inconclusive": "xulosasiz"
+    },
     "close": "Yopish",
     "managePool": "Proksi havzasini boshqarish",
     "poolTitle": "Proksi havzasi va rotatsiya",

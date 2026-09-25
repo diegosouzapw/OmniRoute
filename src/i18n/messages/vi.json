@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Xóa {count} mục đã chọn",
     "batchActivateSelected": "Kích hoạt {count} mục đã chọn",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Lần quét cuối: {cause} ({code}) {age}",
+    "sweepNoData": "Chưa có lần quét nào kể từ khi khởi động",
+    "sweepLabel": {
+      "unproven": "máy chủ từ chối",
+      "unclassified": "kiểm tra không kết luận",
+      "ok": "đã phục vụ",
+      "fail": "kết nối thất bại",
+      "hang": "bắt tay bị treo",
+      "inconclusive": "không kết luận"
+    },
     "close": "Đóng",
     "managePool": "Quản lý nhóm proxy",
     "poolTitle": "Nhóm proxy và xoay vòng",

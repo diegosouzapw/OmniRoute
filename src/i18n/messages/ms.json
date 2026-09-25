@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Padam {count} yang dipilih",
     "batchActivateSelected": "Dayakan {count} yang dipilih",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Imbasan terakhir: {cause} ({code}) {age}",
+    "sweepNoData": "Tiada imbasan lagi sejak mula",
+    "sweepLabel": {
+      "unproven": "sasaran menolak",
+      "unclassified": "semakan tidak meyakinkan",
+      "ok": "dilayan",
+      "fail": "sambungan gagal",
+      "hang": "handshake tersekat",
+      "inconclusive": "tidak meyakinkan"
+    },
     "close": "Tutup",
     "managePool": "Urus Kolam",
     "poolTitle": "Kolam & Putaran Proksi",

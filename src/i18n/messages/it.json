@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Elimina {count} selezionati",
     "batchActivateSelected": "Abilita {count} selezionati",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Ultima scansione: {cause} ({code}) {age}",
+    "sweepNoData": "Nessuna scansione dall'avvio",
+    "sweepLabel": {
+      "unproven": "destinazione rifiutata",
+      "unclassified": "controllo inconcludente",
+      "ok": "servito",
+      "fail": "connessione non riuscita",
+      "hang": "handshake bloccato",
+      "inconclusive": "inconcludente"
+    },
     "close": "Chiudi",
     "managePool": "Gestisci pool",
     "poolTitle": "Pool di proxy e rotazione",

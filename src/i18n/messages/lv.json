@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Dzēst atlasītos ({count})",
     "batchActivateSelected": "Iespējot atlasītos ({count})",
     "testPassed": "✓ Labi",
+    "sweepVerdict": "Pēdējā skenēšana: {cause} ({code}) {age}",
+    "sweepNoData": "Kopš palaišanas vēl nav skenēšanas",
+    "sweepLabel": {
+      "unproven": "mērķis noraidīja",
+      "unclassified": "pārbaude nepārliecinoša",
+      "ok": "apkalpots",
+      "fail": "savienojums neizdevās",
+      "hang": "rokasspiediens iestrēga",
+      "inconclusive": "nepārliecinoša"
+    },
     "close": "Aizvērt",
     "managePool": "Pārvaldīt kopu",
     "poolTitle": "Starpniekserveru kopa un rotācija",

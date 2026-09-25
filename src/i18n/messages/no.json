@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Slett {count} valgte",
     "batchActivateSelected": "Aktiver {count} valgte",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Siste skanning: {cause} ({code}) {age}",
+    "sweepNoData": "Ingen skanning ennå siden oppstart",
+    "sweepLabel": {
+      "unproven": "målet avviste",
+      "unclassified": "sjekk uten konklusjon",
+      "ok": "betjent",
+      "fail": "tilkobling mislyktes",
+      "hang": "håndtrykk stoppet opp",
+      "inconclusive": "uten konklusjon"
+    },
     "close": "Lukk",
     "managePool": "Administrer pool",
     "poolTitle": "Proxy-pool og rotasjon",

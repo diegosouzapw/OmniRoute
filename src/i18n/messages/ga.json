@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Scrios {count} roghnaithe",
     "batchActivateSelected": "Cumasaigh {count} roghnaithe",
     "testPassed": "✓ Ceart go leor",
+    "sweepVerdict": "Scan deireanach: {cause} ({code}) {age}",
+    "sweepNoData": "Gan scan fós ó thúsail",
+    "sweepLabel": {
+      "unproven": "dhiúltaigh an sprioc",
+      "unclassified": "seiceáil neamhchinntitheach",
+      "ok": "freastalaíodh",
+      "fail": "theip ar an nasc",
+      "hang": "croith láimhe i bhfostú",
+      "inconclusive": "neamhchinntitheach"
+    },
     "close": "Dún",
     "managePool": "Bainistigh an Linn",
     "poolTitle": "Linn Seachfhreastalaithe agus Rothlú",

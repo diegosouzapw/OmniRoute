@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Ջնջել ընտրված {count} պրոքսիները",
     "batchActivateSelected": "Միացնել ընտրված {count} պրոքսիները",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Վերջին սկանավորում՝ {cause} ({code}) {age}",
+    "sweepNoData": "Մեկնարկից ի վեր սկանավորում չկա",
+    "sweepLabel": {
+      "unproven": "թիրախը մերժեց",
+      "unclassified": "ստուգումն անորոշ է",
+      "ok": "սպասարկված է",
+      "fail": "կապը ձախողվեց",
+      "hang": "ձեռքսեղմումը կանգ առավ",
+      "inconclusive": "անորոշ"
+    },
     "close": "Փակել",
     "managePool": "Կառավարել պուլը",
     "poolTitle": "Պրոքսիների պուլ և ռոտացիա",

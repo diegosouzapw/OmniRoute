@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "निवडलेले {count} हटवा",
     "batchActivateSelected": "निवडलेले {count} सक्षम करा",
     "testPassed": "✓ ठीक आहे",
+    "sweepVerdict": "शेवटचे स्कॅन: {cause} ({code}) {age}",
+    "sweepNoData": "सुरू झाल्यापासून अद्याप स्कॅन नाही",
+    "sweepLabel": {
+      "unproven": "लक्ष्याने नकार दिला",
+      "unclassified": "तपासणी अनिर्णित",
+      "ok": "सेवा दिली",
+      "fail": "कनेक्शन अयशस्वी",
+      "hang": "हँडशेक रखडले",
+      "inconclusive": "अनिर्णित"
+    },
     "close": "बंद करा",
     "managePool": "पूल व्यवस्थापित करा",
     "poolTitle": "प्रॉक्सी पूल आणि रोटेशन",

@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "{count} ausgewählte löschen",
     "batchActivateSelected": "{count} ausgewählte aktivieren",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Letzter Durchlauf: {cause} ({code}) {age}",
+    "sweepNoData": "Noch kein Durchlauf seit Start",
+    "sweepLabel": {
+      "unproven": "Ziel abgelehnt",
+      "unclassified": "Prüfung ohne Ergebnis",
+      "ok": "bedient",
+      "fail": "Verbindung fehlgeschlagen",
+      "hang": "Handshake hängt",
+      "inconclusive": "ohne Ergebnis"
+    },
     "close": "Schließen",
     "managePool": "Pool verwalten",
     "poolTitle": "Proxy-Pool & Rotation",

@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Excluir {count} selecionado(s)",
     "batchActivateSelected": "Habilitar {count} selecionado(s)",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Última varredura: {cause} ({code}) {age}",
+    "sweepNoData": "Nenhuma varredura desde a inicialização",
+    "sweepLabel": {
+      "unproven": "destino recusado",
+      "unclassified": "verificação inconclusiva",
+      "ok": "atendido",
+      "fail": "conexão falhou",
+      "hang": "handshake travado",
+      "inconclusive": "inconclusivo"
+    },
     "close": "Fechar",
     "managePool": "Gerenciar pool",
     "poolTitle": "Pool e rotação de proxies",

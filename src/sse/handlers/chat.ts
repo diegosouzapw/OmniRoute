@@ -1991,6 +1991,7 @@ async function handleSingleModelChat(
         proxy: unknown;
         upstreamStatus?: number;
         rotationAccount?: string | null;
+        reselectPoolMember?: () => Promise<unknown>;
       } = { proxy: null };
       const proxyStartTime = Date.now();
       // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)

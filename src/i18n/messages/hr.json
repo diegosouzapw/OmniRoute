@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Izbriši odabrane stavke ({count})",
     "batchActivateSelected": "Omogući odabrane stavke ({count})",
     "testPassed": "✓ U redu",
+    "sweepVerdict": "Zadnje skeniranje: {cause} ({code}) {age}",
+    "sweepNoData": "Nema skeniranja od pokretanja",
+    "sweepLabel": {
+      "unproven": "meta odbila",
+      "unclassified": "provjera bez zaključka",
+      "ok": "posluženo",
+      "fail": "veza nije uspjela",
+      "hang": "rukovanje zastalo",
+      "inconclusive": "bez zaključka"
+    },
     "close": "Zatvori",
     "managePool": "Upravljaj skupom",
     "poolTitle": "Skup proxyja i rotacija",

@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "מחק {count} שנבחרו",
     "batchActivateSelected": "הפעל {count} שנבחרו",
     "testPassed": "✓ תקין",
+    "sweepVerdict": "סריקה אחרונה: {cause} ({code}) {age}",
+    "sweepNoData": "אין סריקה עדיין מאז ההפעלה",
+    "sweepLabel": {
+      "unproven": "היעד סירב",
+      "unclassified": "בדיקה לא חד-משמעית",
+      "ok": "טופל",
+      "fail": "החיבור נכשל",
+      "hang": "לחיצת היד נתקעה",
+      "inconclusive": "לא חד-משמעי"
+    },
     "close": "סגור",
     "managePool": "ניהול מאגר",
     "poolTitle": "מאגר פרוקסי ורוטציה",

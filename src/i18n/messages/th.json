@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "ลบ {count} รายการที่เลือก",
     "batchActivateSelected": "เปิดใช้งาน {count} รายการที่เลือก",
     "testPassed": "✓ ตกลง",
+    "sweepVerdict": "สแกนล่าสุด: {cause} ({code}) {age}",
+    "sweepNoData": "ยังไม่มีการสแกนตั้งแต่เริ่มระบบ",
+    "sweepLabel": {
+      "unproven": "เป้าหมายปฏิเสธ",
+      "unclassified": "ตรวจสอบไม่สรุปผล",
+      "ok": "ให้บริการแล้ว",
+      "fail": "เชื่อมต่อล้มเหลว",
+      "hang": "แฮนด์เชกค้าง",
+      "inconclusive": "ไม่สรุปผล"
+    },
     "close": "ปิด",
     "managePool": "จัดการพูล",
     "poolTitle": "พูลพร็อกซีและการหมุนเวียน",

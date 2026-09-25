@@ -98,6 +98,18 @@ export function proxyKeyOf(proxy: { host: string; port: number } | null): string
 }
 
 /**
+ * Key of a pool re-selection candidate the executor compares against the
+ * ambient member: the resolver hands back an untyped proxy config, so this
+ * narrows unknown to the key shape instead of casting at each call site.
+ */
+export function poolReselectKeyOf(candidate: unknown): string | null {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return null;
+  const record = candidate as { host?: unknown; port?: unknown };
+  if (typeof record.host !== "string" || typeof record.port !== "number") return null;
+  return proxyKeyOf({ host: record.host, port: record.port });
+}
+
+/**
  * Whether this provider and response are an OpenCode free-tier refusal.
  *
  * Scoped to the opencode family the same way `classifyProviderError` scopes it, so a

@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Ta bort {count} markerade",
     "batchActivateSelected": "Aktivera {count} markerade",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Senaste skanning: {cause} ({code}) {age}",
+    "sweepNoData": "Ingen skanning sedan start",
+    "sweepLabel": {
+      "unproven": "målet avvisade",
+      "unclassified": "kontroll utan slutsats",
+      "ok": "betjänad",
+      "fail": "anslutning misslyckades",
+      "hang": "handskakning fastnade",
+      "inconclusive": "utan slutsats"
+    },
     "close": "Stäng",
     "managePool": "Hantera pool",
     "poolTitle": "Proxypool och rotation",

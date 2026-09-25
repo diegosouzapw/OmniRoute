@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Hapus {count} yang dipilih",
     "batchActivateSelected": "Aktifkan {count} yang dipilih",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Pemindaian terakhir: {cause} ({code}) {age}",
+    "sweepNoData": "Belum ada pemindaian sejak mulai",
+    "sweepLabel": {
+      "unproven": "target menolak",
+      "unclassified": "pemeriksaan tak meyakinkan",
+      "ok": "terlayani",
+      "fail": "koneksi gagal",
+      "hang": "handshake macet",
+      "inconclusive": "tak meyakinkan"
+    },
     "close": "Tutup",
     "managePool": "Kelola Pool",
     "poolTitle": "Pool & Rotasi Proksi",

@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Hichapụ {count} ahọpụtara",
     "batchActivateSelected": "Kwado {count} ahọpụtara",
     "testPassed": "✓ Ọ DỊ MMA",
+    "sweepVerdict": "Nyocha ikpeazụ: {cause} ({code}) {age}",
+    "sweepNoData": "Enweghị nyocha kemgbe mmalite",
+    "sweepLabel": {
+      "unproven": "ebumnuche jụrụ",
+      "unclassified": "nlele enweghị nkwubi",
+      "ok": "e nyere ọrụ",
+      "fail": "njikọ dara",
+      "hang": "mkparịta aka kwụsịrị",
+      "inconclusive": "enweghị nkwubi"
+    },
     "close": "Mechie",
     "managePool": "Jikwaa Pool",
     "poolTitle": "Pool Proksi na Ntugharị",

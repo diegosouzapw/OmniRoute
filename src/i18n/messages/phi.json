@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "I-delete ang {count} na napili",
     "batchActivateSelected": "I-enable ang {count} na napili",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Huling scan: {cause} ({code}) {age}",
+    "sweepNoData": "Wala pang scan mula startup",
+    "sweepLabel": {
+      "unproven": "tinanggihan ng target",
+      "unclassified": "hindi tiyak ang check",
+      "ok": "napaglingkuran",
+      "fail": "bigo ang koneksyon",
+      "hang": "natigil ang handshake",
+      "inconclusive": "hindi tiyak"
+    },
     "close": "Isara",
     "managePool": "Pamahalaan ang Pool",
     "poolTitle": "Proxy Pool at Rotation",

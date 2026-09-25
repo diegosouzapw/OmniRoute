@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Удалить {count} выбранных",
     "batchActivateSelected": "Включить {count} выбранных",
     "testPassed": "✓ ОК",
+    "sweepVerdict": "Последнее сканирование: {cause} ({code}) {age}",
+    "sweepNoData": "Сканирований с запуска не было",
+    "sweepLabel": {
+      "unproven": "цель отклонена",
+      "unclassified": "проверка без вывода",
+      "ok": "обслужено",
+      "fail": "соединение не удалось",
+      "hang": "рукопожатие зависло",
+      "inconclusive": "без вывода"
+    },
     "close": "Закрыть",
     "managePool": "Управление пулом",
     "poolTitle": "Пул прокси и ротация",

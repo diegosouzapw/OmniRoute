@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "নির্বাচিত {count}টি মুছুন",
     "batchActivateSelected": "নির্বাচিত {count}টি সক্ষম করুন",
     "testPassed": "✓ ঠিক আছে",
+    "sweepVerdict": "শেষ স্ক্যান: {cause} ({code}) {age}",
+    "sweepNoData": "চালুর পর থেকে এখনও স্ক্যান হয়নি",
+    "sweepLabel": {
+      "unproven": "লক্ষ্য প্রত্যাখ্যান করেছে",
+      "unclassified": "পরীক্ষা অমীমাংসিত",
+      "ok": "পরিবেশিত",
+      "fail": "সংযোগ ব্যর্থ",
+      "hang": "হ্যান্ডশেক আটকে আছে",
+      "inconclusive": "অমীমাংসিত"
+    },
     "close": "বন্ধ করুন",
     "managePool": "পুল পরিচালনা করুন",
     "poolTitle": "প্রক্সি পুল এবং রোটেশন",

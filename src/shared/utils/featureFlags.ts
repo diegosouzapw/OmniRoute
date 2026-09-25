@@ -399,6 +399,26 @@ export function isStreamReadinessStallRetryEnabled(): boolean {
   }
 }
 
+/**
+ * OpenCode 429 pool re-selection. Opt-in: when off, every 429 rotates to the
+ * next account exactly as before. When on, a 429 from an egress-bucketed
+ * provider on a proxy-less account under an ambient pool context asks the
+ * pool for another member for the next attempt instead of retrying the same
+ * egress address. Fail closed: an unreadable flag store keeps the pre-flag
+ * behavior (disabled).
+ */
+export function isOpencodePoolReselectEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("OPENCODE_POOL_RESELECT");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve OPENCODE_POOL_RESELECT, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
 export function isServerOwnedToolLoopEnabled(
   reader: (key: string) => boolean = isFeatureFlagEnabled
 ): boolean {

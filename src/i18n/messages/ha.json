@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Goge zaɓaɓɓu {count}",
     "batchActivateSelected": "Kunna zaɓaɓɓu {count}",
     "testPassed": "✓ Lafiya",
+    "sweepVerdict": "Bincike na ƙarshe: {cause} ({code}) {age}",
+    "sweepNoData": "Babu bincike tukuna tun farawa",
+    "sweepLabel": {
+      "unproven": "manufa ta ƙi",
+      "unclassified": "bincike bai kammala ba",
+      "ok": "an yi hidima",
+      "fail": "haɗin ya gaza",
+      "hang": "musafaha ya tsaya",
+      "inconclusive": "bai kammala ba"
+    },
     "close": "Rufe",
     "managePool": "Sarrafa Pool",
     "poolTitle": "Proxy Pool da Juyawa",

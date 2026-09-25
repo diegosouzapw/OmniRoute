@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "删除已选的 {count} 个",
     "batchActivateSelected": "启用已选的 {count} 个",
     "testPassed": "✓ 成功",
+    "sweepVerdict": "上次扫描：{cause} ({code}) {age}",
+    "sweepNoData": "启动以来暂无扫描",
+    "sweepLabel": {
+      "unproven": "目标已拒绝",
+      "unclassified": "检查无定论",
+      "ok": "已服务",
+      "fail": "连接失败",
+      "hang": "握手停滞",
+      "inconclusive": "无定论"
+    },
     "close": "关闭",
     "managePool": "管理池",
     "poolTitle": "代理池与轮换",

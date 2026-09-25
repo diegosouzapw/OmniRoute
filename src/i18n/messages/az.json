@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Seçilmiş {count} elementi sil",
     "batchActivateSelected": "Seçilmiş {count} elementi aktivləşdir",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Son yoxlama: {cause} ({code}) {age}",
+    "sweepNoData": "Başlanğıcdan bəri yoxlama yoxdur",
+    "sweepLabel": {
+      "unproven": "hədəf rədd etdi",
+      "unclassified": "yoxlama nəticəsiz",
+      "ok": "xidmət göstərildi",
+      "fail": "bağlantı uğursuz oldu",
+      "hang": "əl sıxışma dayandı",
+      "inconclusive": "nəticəsiz"
+    },
     "close": "Bağla",
     "managePool": "Hovuzu idarə et",
     "poolTitle": "Proksi hovuzu və rotasiyası",

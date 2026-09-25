@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Seçilen {count} ögeyi sil",
     "batchActivateSelected": "Seçilen {count} ögeyi etkinleştir",
     "testPassed": "✓ Tamam",
+    "sweepVerdict": "Son tarama: {cause} ({code}) {age}",
+    "sweepNoData": "Başlangıçtan beri tarama yok",
+    "sweepLabel": {
+      "unproven": "hedef reddetti",
+      "unclassified": "kontrol sonuçsuz",
+      "ok": "hizmet verildi",
+      "fail": "bağlantı başarısız",
+      "hang": "el sıkışma takıldı",
+      "inconclusive": "sonuçsuz"
+    },
     "close": "Kapat",
     "managePool": "Havuzu Yönet",
     "poolTitle": "Proxy Havuzu ve Rotasyonu",

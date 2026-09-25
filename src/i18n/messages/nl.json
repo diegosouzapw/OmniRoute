@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "{count} geselecteerde verwijderen",
     "batchActivateSelected": "{count} geselecteerde inschakelen",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Laatste scan: {cause} ({code}) {age}",
+    "sweepNoData": "Nog geen scan sinds opstart",
+    "sweepLabel": {
+      "unproven": "doel geweigerd",
+      "unclassified": "controle zonder uitsluitsel",
+      "ok": "bediend",
+      "fail": "verbinding mislukt",
+      "hang": "handshake vastgelopen",
+      "inconclusive": "zonder uitsluitsel"
+    },
     "close": "Sluiten",
     "managePool": "Pool beheren",
     "poolTitle": "Proxypool & rotatie",

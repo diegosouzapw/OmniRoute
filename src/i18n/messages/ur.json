@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "منتخب کردہ {count} کو حذف کریں",
     "batchActivateSelected": "منتخب کردہ {count} کو فعال کریں",
     "testPassed": "✓ ٹھیک ہے",
+    "sweepVerdict": "آخری اسکین: {cause} ({code}) {age}",
+    "sweepNoData": "اسٹارٹ اپ کے بعد ابھی تک کوئی اسکین نہیں",
+    "sweepLabel": {
+      "unproven": "ہدف نے مسترد کیا",
+      "unclassified": "جانچ غیر حتمی",
+      "ok": "خدمت فراہم کی گئی",
+      "fail": "کنکشن ناکام",
+      "hang": "ہینڈ شیک رک گیا",
+      "inconclusive": "غیر حتمی"
+    },
     "close": "بند کریں",
     "managePool": "پول کا انتظام کریں",
     "poolTitle": "پروکسی پول اور گردش",

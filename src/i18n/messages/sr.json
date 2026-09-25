@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Обриши {count} изабрано",
     "batchActivateSelected": "Омогући {count} изабрано",
     "testPassed": "✓ У реду",
+    "sweepVerdict": "Poslednje skeniranje: {cause} ({code}) {age}",
+    "sweepNoData": "Nema skeniranja od pokretanja",
+    "sweepLabel": {
+      "unproven": "meta odbila",
+      "unclassified": "provera bez zaključka",
+      "ok": "posluženo",
+      "fail": "veza nije uspela",
+      "hang": "rukovanje zastalo",
+      "inconclusive": "bez zaključka"
+    },
     "close": "Затвори",
     "managePool": "Управљај групом",
     "poolTitle": "Група проксија и ротација",

@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "ရွေးချယ်ထားသည့် {count} ခုကို ဖျက်ရန်",
     "batchActivateSelected": "ရွေးချယ်ထားသည့် {count} ခုကို ဖွင့်ရန်",
     "testPassed": "✓ အဆင်ပြေသည်",
+    "sweepVerdict": "နောက်ဆုံးစကင်: {cause} ({code}) {age}",
+    "sweepNoData": "စတင်ပြီးကတည်းက စကင်မရှိသေးပါ",
+    "sweepLabel": {
+      "unproven": "ပစ်မှတ်က ငြင်းပယ်သည်",
+      "unclassified": "စစ်ဆေးမှု အဖြေမထွက်",
+      "ok": "ဝန်ဆောင်မှုပေးပြီးပါပြီ",
+      "fail": "ချိတ်ဆက်မှု မအောင်မြင်ပါ",
+      "hang": "handshake ရပ်တန့်နေသည်",
+      "inconclusive": "အဖြေမထွက်"
+    },
     "close": "ပိတ်ရန်",
     "managePool": "ပူးလ်ကို စီမံရန်",
     "poolTitle": "ပရောက်စီပူးလ်နှင့် အလှည့်ကျအသုံးပြုမှု",

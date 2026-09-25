@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "حذف {count} المحددة",
     "batchActivateSelected": "تفعيل {count} المحددة",
     "testPassed": "✓ موافق",
+    "sweepVerdict": "آخر فحص: {cause} ({code}) {age}",
+    "sweepNoData": "لا يوجد فحص بعد منذ بدء التشغيل",
+    "sweepLabel": {
+      "unproven": "الهدف رفض",
+      "unclassified": "الفحص غير حاسم",
+      "ok": "تمت الخدمة",
+      "fail": "فشل الاتصال",
+      "hang": "المصافحة متوقفة",
+      "inconclusive": "غير حاسم"
+    },
     "close": "إغلاق",
     "managePool": "إدارة المجمع",
     "poolTitle": "مجمع خوادم الوكيل والتدوير",

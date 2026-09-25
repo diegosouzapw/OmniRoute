@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "선택한 {count}개 삭제",
     "batchActivateSelected": "선택한 {count}개 활성화",
     "testPassed": "✓ 확인",
+    "sweepVerdict": "마지막 스캔: {cause} ({code}) {age}",
+    "sweepNoData": "시작 이후 스캔 없음",
+    "sweepLabel": {
+      "unproven": "대상이 거부함",
+      "unclassified": "검사 불확실",
+      "ok": "응답됨",
+      "fail": "연결 실패",
+      "hang": "핸드셰이크 정체",
+      "inconclusive": "불확실"
+    },
     "close": "닫기",
     "managePool": "풀 관리",
     "poolTitle": "프록시 풀 및 로테이션",

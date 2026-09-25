@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Изтриване на {count} избрани",
     "batchActivateSelected": "Активиране на {count} избрани",
     "testPassed": "✓ ОК",
+    "sweepVerdict": "Последно сканиране: {cause} ({code}) {age}",
+    "sweepNoData": "Няма сканиране от стартирането",
+    "sweepLabel": {
+      "unproven": "целта отказа",
+      "unclassified": "проверката е неубедителна",
+      "ok": "обслужено",
+      "fail": "връзката неуспешна",
+      "hang": "ръкостискането блокира",
+      "inconclusive": "неубедително"
+    },
     "close": "Затваряне",
     "managePool": "Управление на пула",
     "poolTitle": "Пул от проксита и ротация",

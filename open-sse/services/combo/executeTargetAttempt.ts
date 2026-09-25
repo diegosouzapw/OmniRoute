@@ -26,8 +26,6 @@ import {
   readProseRetryAfter,
 } from "../../utils/error.ts";
 import { recordComboFailure, clearComboFailureTracking } from "./failureTracker.ts";
-import { buildRecoveryHint } from "./pinRecovery.ts";
-import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
 import { recordComboRequest, getComboMetrics } from "../comboMetrics.ts";
 import {
   expandComboSystemPromptIfPresent,
@@ -58,6 +56,7 @@ import { parseModel } from "../model.ts";
 import type { ProviderProfile } from "../accountFallback.ts";
 import {
   MAX_FALLBACK_WAIT_MS,
+  classifyQualityFailure,
   clampGlobalAttempts,
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
@@ -70,6 +69,7 @@ import {
   resolveDelayMs,
   resolvePersistedConnectionCooldownSkipReason,
   isModelScoped400,
+  requestScopedReplayKey,
 } from "./comboPredicates.ts";
 import { applyComboTargetExhaustion } from "./targetExhaustion.ts";
 import { advanceNativeCodexTurnGeneration, pinNativeCodexTurn } from "./nativeCodexTurnPin.ts";
@@ -88,19 +88,19 @@ import { markAccountExhaustedFromCredits } from "../../../src/domain/quotaCache.
 import { classifyComboOutcome, redactConnectionLabel } from "./comboErrorAggregation.ts";
 import { readConnectionForCooldownGate } from "./executeTargetGates.ts";
 import {
+  buildComboDiag,
   handlePreContentStreamRetry,
   qualityValidationFailure,
   remainderIsHomogeneous,
   shouldAbortOnInputBoundFailure,
   shouldSurfaceBodySpecific400,
+  stopProtectedPriorityTarget,
 } from "./executeTargetClassify.ts";
 import type { CompressionMode } from "../compression/types.ts";
 import type { AttemptLoopDeps, AttemptLoopState, ExecuteTargetResult } from "./attemptLoopTypes.ts";
-import type { ComboDiagnostics } from "../../utils/error.ts";
 import type { ComboErrorBody, ComboRetryAfter, ResolvedComboTarget } from "./types.ts";
 import type { ResponseValidationConfig } from "./responseValidation.ts";
 import { resolveComboDailyReset } from "./comboDailyResetClock.ts";
-import { protectedPriorityStopStatus } from "./protectedPriorityStopStatus.ts";
 import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 
 export async function executeTargetAttempt(opts: {
@@ -124,37 +124,23 @@ export async function executeTargetAttempt(opts: {
   const retryDelayMs = resolveDelayMs(deps.config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(deps.config.fallbackDelayMs, 0);
   const universalHandoffConfig = deps.universalHandoffConfig ?? DEFAULT_UNIVERSAL_HANDOFF_CONFIG;
-
-  const stopProtectedPriorityTarget = (message: string, cause?: ProtectedPriorityStopCause) => {
-    state.observeFailure(false, target.executionKey);
-    deps.clearStaleLKGP(
-      deps.combo.name,
-      target.executionKey,
-      deps.combo.id,
-      deps.log,
-      "COMBO",
-      undefined,
-      target
-    );
-    return protectedPriorityTarget
-      ? { ok: false as const, response: errorResponse(protectedPriorityStopStatus(cause), message) }
-      : null;
-  };
-
-  const buildComboDiag = (
-    terminalReason: string,
-    retryAfterSeconds?: number
-  ): ComboDiagnostics => ({
-    poolSize: state.orderedTargets.length,
-    attempted: state.recordedAttempts,
-    excluded: [
-      ...[...state.exhaustedProviders].map((p) => ({ provider: p, reason: "exhausted" })),
-      ...[...state.exhaustedConnections].map((c) => formatExhaustedConnectionKey(String(c))),
-    ],
-    attemptOrder: state.comboAttemptOrder,
-    terminalReason,
-    recovery: buildRecoveryHint(terminalReason, retryAfterSeconds),
-  });
+  const stopTarget = (message: string, cause?: ProtectedPriorityStopCause) =>
+    stopProtectedPriorityTarget({
+      protectedPriorityTarget,
+      message,
+      cause,
+      onStop: () => state.observeFailure(false, target.executionKey),
+      clearStale: () =>
+        deps.clearStaleLKGP(
+          deps.combo.name,
+          target.executionKey,
+          deps.combo.id,
+          deps.log,
+          "COMBO",
+          undefined,
+          target
+        ),
+    });
 
   // Retry loop for transient errors
   for (let retry = 0; retry <= deps.maxRetries; retry++) {
@@ -187,7 +173,7 @@ export async function executeTargetAttempt(opts: {
           reasoningExhausted
             ? "All combo candidates exhausted their token budget on reasoning without producing content. Increase max_tokens — reasoning models need a larger budget to emit content."
             : "Maximum combo retry limit reached",
-          buildComboDiag(failureReason)
+          buildComboDiag(state, deps.traceInvocationId, failureReason)
         ),
       };
     }
@@ -213,10 +199,7 @@ export async function executeTargetAttempt(opts: {
             decision: "skipped_before_dispatch",
             reason: "predictive_ttft",
           });
-          return stopProtectedPriorityTarget(
-            `Predictive latency check rejected ${modelStr}`,
-            "predictive_ttft"
-          );
+          return stopTarget(`Predictive latency check rejected ${modelStr}`, "predictive_ttft");
         }
       }
     }
@@ -426,27 +409,31 @@ export async function executeTargetAttempt(opts: {
         state.recordedAttempts++;
         // Fix #1707: Set terminal state so the fallback doesn't emit
         // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
+        const qualityFailure = classifyQualityFailure(quality);
         state.lastError = `Upstream response failed quality validation: ${quality.reason}`;
-        state.lastStatus = 502;
+        state.lastStatus = qualityFailure.status;
         // #10314: record quality failures as a FIRST-CLASS per-target outcome
         // so a quality reason is never silently dropped from the aggregated
         // terminal message when a later sibling overwrites lastError.
         state.comboErrors.push({
           model: modelStr,
-          status: 502,
+          status: qualityFailure.status,
           error: quality.reason || "upstream response failed quality validation",
-          kind: "quality",
+          kind: qualityFailure.kind,
         });
         if (i > 0) state.fallbackCount++;
-        if (provider && rawModel) {
+        state.requestScopedFailureSeen ||= qualityFailure.requestScoped;
+        if (qualityFailure.requestScoped)
+          state.requestScopedRejectedModelKeys?.add(requestScopedReplayKey(modelStr));
+        if (provider && rawModel && !qualityFailure.requestScoped) {
           const mlSettings = resolveModelLockoutSettings(deps.settings);
-          if (mlSettings.enabled && mlSettings.errorCodes.includes(502)) {
+          if (mlSettings.enabled && mlSettings.errorCodes.includes(qualityFailure.status)) {
             recordModelLockoutFailure(
               provider,
               target.connectionId || "",
               rawModel,
               "quality_failure",
-              502,
+              qualityFailure.status,
               mlSettings.baseCooldownMs,
               profile,
               {
@@ -466,7 +453,7 @@ export async function executeTargetAttempt(opts: {
         });
         state.observeFailure(false, target.executionKey);
         if (handlePreContentStreamRetry(quality, retry, deps, modelStr)) continue;
-        return protectedPriorityTarget ? qualityValidationFailure() : null;
+        return protectedPriorityTarget ? qualityValidationFailure(quality) : null;
       }
 
       if (Boolean(deps.clientManagedResponsesContext) && effectiveConnectionId) {

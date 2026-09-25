@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Futa {count} zilizochaguliwa",
     "batchActivateSelected": "Wezesha {count} zilizochaguliwa",
     "testPassed": "✓ Sawa",
+    "sweepVerdict": "Uchunguzi wa mwisho: {cause} ({code}) {age}",
+    "sweepNoData": "Hakuna uchunguzi tangu kuanza",
+    "sweepLabel": {
+      "unproven": "lengo limekataa",
+      "unclassified": "ukaguzi hauna hitimisho",
+      "ok": "imetumikiwa",
+      "fail": "muunganisho umeshindwa",
+      "hang": "makubaliano yamekwama",
+      "inconclusive": "hauna hitimisho"
+    },
     "close": "Funga",
     "managePool": "Dhibiti Dimbwi",
     "poolTitle": "Dimbwi la Proksi & Mzunguko",

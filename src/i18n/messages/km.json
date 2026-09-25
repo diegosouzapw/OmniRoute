@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "លុបធាតុដែលបានជ្រើសរើស {count}",
     "batchActivateSelected": "បើកដំណើរការធាតុដែលបានជ្រើសរើស {count}",
     "testPassed": "✓ OK",
+    "sweepVerdict": "ការស្កេនចុងក្រោយ: {cause} ({code}) {age}",
+    "sweepNoData": "មិនទាន់មានការស្កេនតាំងពីចាប់ផ្តើម",
+    "sweepLabel": {
+      "unproven": "គោលដៅបានបដិសេធ",
+      "unclassified": "ការត្រួតពិនិត្យមិនច្បាស់",
+      "ok": "បានបម្រើ",
+      "fail": "ការតភ្ជាប់បរាជ័យ",
+      "hang": "ការចាប់ដៃជាប់គាំង",
+      "inconclusive": "មិនច្បាស់"
+    },
     "close": "បិទ",
     "managePool": "គ្រប់គ្រងក្រុម",
     "poolTitle": "ក្រុមប្រូកស៊ី និងការប្ដូរវេន",

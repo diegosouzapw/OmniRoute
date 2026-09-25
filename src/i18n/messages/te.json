@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "ఎంపిక చేసిన {count} వాటిని తొలగించండి",
     "batchActivateSelected": "ఎంపిక చేసిన {count} వాటిని ప్రారంభించండి",
     "testPassed": "✓ సరే",
+    "sweepVerdict": "చివరి స్కాన్: {cause} ({code}) {age}",
+    "sweepNoData": "ప్రారంభం నుండి ఇంకా స్కాన్ లేదు",
+    "sweepLabel": {
+      "unproven": "లక్ష్యం తిరస్కరించింది",
+      "unclassified": "తనిఖీ అనిశ్చితం",
+      "ok": "సేవ అందించబడింది",
+      "fail": "కనెక్షన్ విఫలమైంది",
+      "hang": "హ్యాండ్‌షేక్ నిలిచిపోయింది",
+      "inconclusive": "అనిశ్చితం"
+    },
     "close": "మూసివేయి",
     "managePool": "పూల్‌ను నిర్వహించండి",
     "poolTitle": "ప్రాక్సీ పూల్ & రొటేషన్",

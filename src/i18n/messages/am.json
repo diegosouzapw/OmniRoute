@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "የተመረጡትን {count} ሰርዝ",
     "batchActivateSelected": "የተመረጡትን {count} አንቃ",
     "testPassed": "✓ ትክክል",
+    "sweepVerdict": "የመጨረሻ ማጣሪያ፡ {cause} ({code}) {age}",
+    "sweepNoData": "ከመነሳት ጀምሮ ምንም ማጣሪያ የለም",
+    "sweepLabel": {
+      "unproven": "ዒላማው ውድቅ አደረገ",
+      "unclassified": "ፍተሻው ግልጽ አልሆነም",
+      "ok": "አገልግሏል",
+      "fail": "ግንኙነት አልተሳካም",
+      "hang": "ምስክር ልውውጥ ቆሟል",
+      "inconclusive": "ግልጽ ያልሆነ"
+    },
     "close": "ዝጋ",
     "managePool": "ፑሉን አስተዳድር",
     "poolTitle": "የፕሮክሲ ፑል እና ማዞሪያ",

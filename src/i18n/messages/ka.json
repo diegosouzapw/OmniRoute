@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "არჩეული {count}-ის წაშლა",
     "batchActivateSelected": "არჩეული {count}-ის ჩართვა",
     "testPassed": "✓ OK",
+    "sweepVerdict": "ბოლო სკანირება: {cause} ({code}) {age}",
+    "sweepNoData": "გაშვების შემდეგ სკანირება არ ყოფილა",
+    "sweepLabel": {
+      "unproven": "სამიზნემ უარყო",
+      "unclassified": "შემოწმება დაუდასტურებელი",
+      "ok": "მომსახურებულია",
+      "fail": "კავშირი ვერ შედგა",
+      "hang": "ხელის ჩამორთმევა გაიჭედა",
+      "inconclusive": "დაუდასტურებელი"
+    },
     "close": "დახურვა",
     "managePool": "პულის მართვა",
     "poolTitle": "პროქსი-პული და როტაცია",

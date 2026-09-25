@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "ਚੁਣੀਆਂ ਗਈਆਂ {count} ਪ੍ਰੌਕਸੀਆਂ ਮਿਟਾਓ",
     "batchActivateSelected": "ਚੁਣੀਆਂ ਗਈਆਂ {count} ਪ੍ਰੌਕਸੀਆਂ ਸਮਰੱਥ ਕਰੋ",
     "testPassed": "✓ ਠੀਕ ਹੈ",
+    "sweepVerdict": "ਆਖਰੀ ਸਕੈਨ: {cause} ({code}) {age}",
+    "sweepNoData": "ਸ਼ੁਰੂ ਤੋਂ ਹੁਣ ਤੱਕ ਕੋਈ ਸਕੈਨ ਨਹੀਂ",
+    "sweepLabel": {
+      "unproven": "ਟੀਚੇ ਨੇ ਇਨਕਾਰ ਕੀਤਾ",
+      "unclassified": "ਜਾਂਚ ਅਣਨਿਰਣਿਤ",
+      "ok": "ਸੇਵਾ ਦਿੱਤੀ",
+      "fail": "ਕਨੈਕਸ਼ਨ ਅਸਫਲ",
+      "hang": "ਹੈਂਡਸ਼ੇਕ ਅਟਕ ਗਿਆ",
+      "inconclusive": "ਅਣਨਿਰਣਿਤ"
+    },
     "close": "ਬੰਦ ਕਰੋ",
     "managePool": "ਪੂਲ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
     "poolTitle": "ਪ੍ਰੌਕਸੀ ਪੂਲ ਅਤੇ ਰੋਟੇਸ਼ਨ",

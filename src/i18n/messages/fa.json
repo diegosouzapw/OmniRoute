@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "حذف {count} مورد انتخاب شده",
     "batchActivateSelected": "فعال‌سازی {count} مورد انتخاب شده",
     "testPassed": "✓ تایید",
+    "sweepVerdict": "آخرین پایش: {cause} ({code}) {age}",
+    "sweepNoData": "از زمان راه‌اندازی هنوز پایشی انجام نشده",
+    "sweepLabel": {
+      "unproven": "هدف رد کرد",
+      "unclassified": "بررسی بی‌نتیجه",
+      "ok": "پاسخ داده شد",
+      "fail": "اتصال ناموفق بود",
+      "hang": "دست‌تکانی متوقف شد",
+      "inconclusive": "بی‌نتیجه"
+    },
     "close": "بستن",
     "managePool": "مدیریت استخر",
     "poolTitle": "استخر و چرخش پروکسی",

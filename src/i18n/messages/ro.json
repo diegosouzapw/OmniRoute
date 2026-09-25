@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Șterge {count} selectate",
     "batchActivateSelected": "Activează {count} selectate",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Ultima scanare: {cause} ({code}) {age}",
+    "sweepNoData": "Nicio scanare de la pornire",
+    "sweepLabel": {
+      "unproven": "țintă refuzată",
+      "unclassified": "verificare neconcludentă",
+      "ok": "deservit",
+      "fail": "conexiune eșuată",
+      "hang": "handshake blocat",
+      "inconclusive": "neconcludent"
+    },
     "close": "Închide",
     "managePool": "Gestionează pool-ul",
     "poolTitle": "Pool de proxy-uri și rotație",

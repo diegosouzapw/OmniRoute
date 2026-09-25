@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "{count} kijelölt törlése",
     "batchActivateSelected": "{count} kijelölt engedélyezése",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Utolsó ellenőrzés: {cause} ({code}) {age}",
+    "sweepNoData": "Indítás óta még nincs ellenőrzés",
+    "sweepLabel": {
+      "unproven": "cél elutasítva",
+      "unclassified": "ellenőrzés nem meggyőző",
+      "ok": "kiszolgálva",
+      "fail": "kapcsolat sikertelen",
+      "hang": "kézfogás megakadt",
+      "inconclusive": "nem meggyőző"
+    },
     "close": "Bezárás",
     "managePool": "Készlet kezelése",
     "poolTitle": "Proxykészlet és rotáció",

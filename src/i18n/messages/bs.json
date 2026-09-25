@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Obriši {count} odabranih",
     "batchActivateSelected": "Omogući {count} odabranih",
     "testPassed": "✓ U redu",
+    "sweepVerdict": "Zadnje skeniranje: {cause} ({code}) {age}",
+    "sweepNoData": "Nema skeniranja od pokretanja",
+    "sweepLabel": {
+      "unproven": "meta odbila",
+      "unclassified": "provjera neuvjerljiva",
+      "ok": "posluženo",
+      "fail": "veza nije uspjela",
+      "hang": "rukovanje zastalo",
+      "inconclusive": "neuvjerljivo"
+    },
     "close": "Zatvori",
     "managePool": "Upravljanje pool-om",
     "poolTitle": "Proxy Pool i Rotacija",

@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Usuń wybrane ({count})",
     "batchActivateSelected": "Włącz wybrane ({count})",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Ostatnie skanowanie: {cause} ({code}) {age}",
+    "sweepNoData": "Brak skanowania od uruchomienia",
+    "sweepLabel": {
+      "unproven": "cel odrzucony",
+      "unclassified": "kontrola nierozstrzygająca",
+      "ok": "obsłużono",
+      "fail": "połączenie nieudane",
+      "hang": "uzgadnianie zawieszone",
+      "inconclusive": "nierozstrzygające"
+    },
     "close": "Zamknij",
     "managePool": "Zarządzaj pulą",
     "poolTitle": "Pula proxy i rotacja",

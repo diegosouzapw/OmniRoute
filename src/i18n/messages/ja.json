@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "選択した {count} 件を削除",
     "batchActivateSelected": "選択した {count} 件を有効化",
     "testPassed": "✓ OK",
+    "sweepVerdict": "最終スキャン: {cause} ({code}) {age}",
+    "sweepNoData": "起動以降スキャンなし",
+    "sweepLabel": {
+      "unproven": "ターゲットが拒否",
+      "unclassified": "チェック不確定",
+      "ok": "応答済み",
+      "fail": "接続失敗",
+      "hang": "ハンドシェイク停滞",
+      "inconclusive": "不確定"
+    },
     "close": "閉じる",
     "managePool": "プールを管理",
     "poolTitle": "プロキシプールとローテーション",

@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Pa àwọn {count} tí a yàn rẹ́",
     "batchActivateSelected": "Mú àwọn {count} tí a yàn ṣiṣẹ́",
     "testPassed": "✓ Ó DÁRA",
+    "sweepVerdict": "Ọlọjẹ ikẹhin: {cause} ({code}) {age}",
+    "sweepNoData": "Ko si ọlọjẹ sibẹsibe lati ibẹrẹ",
+    "sweepLabel": {
+      "unproven": "àfojúsùn kọ",
+      "unclassified": "àyẹ̀wò aláìparí",
+      "ok": "a ṣe ìránṣẹ́",
+      "fail": "asopọ̀ kuna",
+      "hang": "ìbọwọ́ dẹkun",
+      "inconclusive": "aláìparí"
+    },
     "close": "Pa á",
     "managePool": "Ṣàkóso Àkójọpọ̀",
     "poolTitle": "Àkójọpọ̀ Prọ́ṣì àti Yíyípadà",

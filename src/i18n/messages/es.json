@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Eliminar {count} seleccionados",
     "batchActivateSelected": "Habilitar {count} seleccionados",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Último análisis: {cause} ({code}) {age}",
+    "sweepNoData": "Sin análisis desde el inicio",
+    "sweepLabel": {
+      "unproven": "objetivo rechazado",
+      "unclassified": "comprobación no concluyente",
+      "ok": "atendido",
+      "fail": "conexión fallida",
+      "hang": "apretón de manos bloqueado",
+      "inconclusive": "no concluyente"
+    },
     "close": "Cerrar",
     "managePool": "Gestionar grupo",
     "poolTitle": "Grupo de proxies y rotación",

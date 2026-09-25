@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "තෝරාගත් {count}ක් මකන්න",
     "batchActivateSelected": "තෝරාගත් {count}ක් සබල කරන්න",
     "testPassed": "✓ හරි",
+    "sweepVerdict": "අවසාන ස්කෑන්: {cause} ({code}) {age}",
+    "sweepNoData": "ආරම්භයේ සිට තවම ස්කෑන් නැත",
+    "sweepLabel": {
+      "unproven": "ඉලක්කය ප්‍රතික්ෂේප කළා",
+      "unclassified": "පරීක්ෂාව අවිනිශ්චිතයි",
+      "ok": "සේවය ලැබුණා",
+      "fail": "සම්බන්ධතාව අසාර්ථකයි",
+      "hang": "හෑන්ඩ්ෂේක් ඇණහිටියා",
+      "inconclusive": "අවිනිශ්චිතයි"
+    },
     "close": "වසා දමන්න",
     "managePool": "සංචිතය කළමනාකරණය කරන්න",
     "poolTitle": "ප්රොක්සි සංචිතය සහ මාරුව",

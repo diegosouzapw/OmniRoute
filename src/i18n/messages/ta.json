@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "தேர்ந்தெடுக்கப்பட்ட {count}-ஐ நீக்கு",
     "batchActivateSelected": "தேர்ந்தெடுக்கப்பட்ட {count}-ஐ இயக்கு",
     "testPassed": "✓ சரி",
+    "sweepVerdict": "கடைசி ஸ்கேன்: {cause} ({code}) {age}",
+    "sweepNoData": "தொடக்கத்திலிருந்து இன்னும் ஸ்கேன் இல்லை",
+    "sweepLabel": {
+      "unproven": "இலக்கு மறுத்தது",
+      "unclassified": "சோதனை முடிவில்லை",
+      "ok": "சேவை வழங்கப்பட்டது",
+      "fail": "இணைப்பு தோல்வி",
+      "hang": "ஹேண்ட்ஷேக் நின்றுவிட்டது",
+      "inconclusive": "முடிவில்லை"
+    },
     "close": "மூடு",
     "managePool": "தொகுப்பை நிர்வகி",
     "poolTitle": "Proxy தொகுப்பு & சுழற்சி",

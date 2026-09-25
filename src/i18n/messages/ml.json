@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "തിരഞ്ഞെടുത്ത {count} എണ്ണം ഇല്ലാതാക്കുക",
     "batchActivateSelected": "തിരഞ്ഞെടുത്ത {count} എണ്ണം പ്രവർത്തനക്ഷമമാക്കുക",
     "testPassed": "✓ ശരി",
+    "sweepVerdict": "അവസാന സ്കാൻ: {cause} ({code}) {age}",
+    "sweepNoData": "ആരംഭത്തിന് ശേഷം ഇതുവരെ സ്കാൻ ഇല്ല",
+    "sweepLabel": {
+      "unproven": "ലക്ഷ്യം നിരസിച്ചു",
+      "unclassified": "പരിശോധന അനിശ്ചിതം",
+      "ok": "സേവനം നൽകി",
+      "fail": "കണക്ഷൻ പരാജയപ്പെട്ടു",
+      "hang": "ഹാൻഡ്‌ഷേക്ക് നിലച്ചു",
+      "inconclusive": "അനിശ്ചിതം"
+    },
     "close": "അടയ്ക്കുക",
     "managePool": "പൂൾ നിയന്ത്രിക്കുക",
     "poolTitle": "പ്രോക്സി പൂളും റൊട്ടേഷനും",

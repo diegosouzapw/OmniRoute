@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Ištrinti pasirinktus ({count})",
     "batchActivateSelected": "Įjungti pasirinktus ({count})",
     "testPassed": "✓ Gerai",
+    "sweepVerdict": "Paskutinis nuskaitymas: {cause} ({code}) {age}",
+    "sweepNoData": "Nuo paleidimo nuskaitymo nebuvo",
+    "sweepLabel": {
+      "unproven": "taikinys atsisakė",
+      "unclassified": "patikra neįtikinama",
+      "ok": "aptarnauta",
+      "fail": "ryšys nepavyko",
+      "hang": "sutarties sudarymas strigo",
+      "inconclusive": "neįtikinama"
+    },
     "close": "Uždaryti",
     "managePool": "Valdyti telkinį",
     "poolTitle": "Tarpinių serverių telkinys ir rotacija",

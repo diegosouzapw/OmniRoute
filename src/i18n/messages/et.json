@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Kustuta {count} valitut",
     "batchActivateSelected": "Aktiveeri {count} valitut",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Viimane kontroll: {cause} ({code}) {age}",
+    "sweepNoData": "Käivitamisest saadik kontrolli pole",
+    "sweepLabel": {
+      "unproven": "sihtmärk keeldus",
+      "unclassified": "kontroll ebaselge",
+      "ok": "teenindatud",
+      "fail": "ühendus ebaõnnestus",
+      "hang": "käepigistus seiskus",
+      "inconclusive": "ebaselge"
+    },
     "close": "Sulge",
     "managePool": "Halda kogumit",
     "poolTitle": "Puhverserverikogum ja roteerimine",

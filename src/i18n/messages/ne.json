@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "चयनित {count} मेटाउनुहोस्",
     "batchActivateSelected": "चयनित {count} सक्षम गर्नुहोस्",
     "testPassed": "✓ ठीक छ",
+    "sweepVerdict": "अन्तिम स्क्यान: {cause} ({code}) {age}",
+    "sweepNoData": "सुरु भएदेखि अहिलेसम्म स्क्यान छैन",
+    "sweepLabel": {
+      "unproven": "लक्ष्यले अस्वीकार गर्‍यो",
+      "unclassified": "जाँच अनिर्णीत",
+      "ok": "सेवा दिइयो",
+      "fail": "जडान असफल",
+      "hang": "ह्यान्डशेक अड्कियो",
+      "inconclusive": "अनिर्णीत"
+    },
     "close": "बन्द गर्नुहोस्",
     "managePool": "पुल व्यवस्थापन गर्नुहोस्",
     "poolTitle": "प्रोक्सी पुल र रोटेसन",

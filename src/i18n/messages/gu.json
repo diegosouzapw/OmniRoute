@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "પસંદ કરેલ {count} ને કાઢી નાખો",
     "batchActivateSelected": "પસંદ કરેલ {count} ને સક્ષમ કરો",
     "testPassed": "✓ બરાબર",
+    "sweepVerdict": "છેલ્લું સ્કેન: {cause} ({code}) {age}",
+    "sweepNoData": "સ્ટાર્ટઅપથી હજુ સ્કેન થયું નથી",
+    "sweepLabel": {
+      "unproven": "લક્ષ્યે નકાર્યું",
+      "unclassified": "તપાસ અનિર્ણિત",
+      "ok": "સેવા આપી",
+      "fail": "કનેક્શન નિષ્ફળ",
+      "hang": "હેન્ડશેક અટક્યું",
+      "inconclusive": "અનિર્ણિત"
+    },
     "close": "બંધ કરો",
     "managePool": "પૂલનું સંચાલન કરો",
     "poolTitle": "પ્રોક્સી પૂલ અને રોટેશન",

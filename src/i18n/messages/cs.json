@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Smazat {count} vybraných",
     "batchActivateSelected": "Povolit {count} vybraných",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Poslední kontrola: {cause} ({code}) {age}",
+    "sweepNoData": "Od spuštění zatím žádná kontrola",
+    "sweepLabel": {
+      "unproven": "cíl odmítnut",
+      "unclassified": "kontrola neprůkazná",
+      "ok": "obslouženo",
+      "fail": "připojení selhalo",
+      "hang": "handshake se zasekl",
+      "inconclusive": "neprůkazné"
+    },
     "close": "Zavřít",
     "managePool": "Spravovat pool",
     "poolTitle": "Proxy pool a rotace",

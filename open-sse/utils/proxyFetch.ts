@@ -201,6 +201,13 @@ export type AppliedProxySink = {
   addedWaitMs?: number | null;
   /** Added-wait cause: throttle, park, or throttle+park. */
   addedWaitCause?: string | null;
+  /**
+   * Pool-member resolver published by the chat layer when the resolved egress
+   * came from a connection pool that may offer another member on a per-address
+   * refusal. Absent otherwise. Resolves to a proxy config, or null when the
+   * pool has nothing else to offer — the executor keeps its behavior then.
+   */
+  reselectPoolMember?: () => Promise<unknown>;
 };
 const APPLIED_PROXY_CONTEXT_KEY = Symbol.for("omniroute.proxyFetch.applied-context");
 type AppliedProxyStore = typeof globalThis & {
@@ -220,6 +227,16 @@ function getAppliedProxyContext(): AsyncLocalStorage<AppliedProxySink> {
  */
 export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
   return getAppliedProxyContext().run(sink, fn);
+}
+
+/**
+ * Read the current applied-proxy capture sink, if the request runs inside one
+ * (see runWithAppliedProxyCapture). Read-only: never creates a sink. Lets an
+ * executor read a resolver the chat layer published on the sink before
+ * dispatch without importing the database layer.
+ */
+export function currentAppliedProxySink(): AppliedProxySink | undefined {
+  return getAppliedProxyContext().getStore();
 }
 
 /**

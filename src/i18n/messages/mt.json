@@ -11017,6 +11017,16 @@
     "batchDeleteSelected": "Ħassar {count} magħżula",
     "batchActivateSelected": "Attiva {count} magħżula",
     "testPassed": "✓ Tajjeb",
+    "sweepVerdict": "L-aħħar skan: {cause} ({code}) {age}",
+    "sweepNoData": "L-ebda skan mit-tnedija",
+    "sweepLabel": {
+      "unproven": "il-mira rrifjutat",
+      "unclassified": "kontroll inkonklużiv",
+      "ok": "moqdi",
+      "fail": "konnessjoni falliet",
+      "hang": "handshake waqaf",
+      "inconclusive": "inkonklużiv"
+    },
     "close": "Agħlaq",
     "managePool": "Immaniġġja l-Pool",
     "poolTitle": "Pool tal-Proxy u Rotazzjoni",
