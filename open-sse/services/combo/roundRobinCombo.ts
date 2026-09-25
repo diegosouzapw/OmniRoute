@@ -100,6 +100,7 @@ import {
   resolvePersistedConnectionCooldownSkipReason,
 } from "./comboPredicates.ts";
 import { handlePreContentStreamRetry } from "./executeTargetClassify.ts";
+import { getCachedProviderConnectionById } from "../../../src/lib/db/readCache.ts";
 import { applyComboTargetExhaustion } from "./targetExhaustion.ts";
 import { isRetryAfterEligibleStatus } from "./unavailableRetryGate.ts";
 import { isRecord } from "./comboData.ts";
