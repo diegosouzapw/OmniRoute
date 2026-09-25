@@ -1,0 +1,1 @@
+- **fix(sse):** mid-stream recovery lines carry the requesting call id and stitched outcomes surface at info ([#14793](https://github.com/diegosouzapw/OmniRoute/pull/14793)) — thanks @maxmad64bis

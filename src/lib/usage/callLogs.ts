@@ -139,11 +139,19 @@ type DeleteResult = {
   deletedArtifacts: number;
 };
 
-let logIdCounter = 0;
+const CALL_LOG_ID_RETRY_LIMIT = 3;
 
 function generateLogId() {
-  logIdCounter++;
-  return `${Date.now()}-${logIdCounter}`;
+  return globalThis.crypto.randomUUID();
+}
+
+function isCallLogIdCollision(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = String((error as { code?: unknown }).code ?? "");
+  const msg = String((error as { message?: unknown }).message ?? "");
+  if (/SQLITE_CONSTRAINT_PRIMARYKEY/i.test(code)) return true;
+  if (/SQLITE_CONSTRAINT_UNIQUE/i.test(code) && /call_logs\.id/i.test(msg)) return true;
+  return /UNIQUE constraint failed: call_logs\.id/i.test(msg);
 }
 
 async function resolveAccountName(connectionId: string | null | undefined) {
@@ -782,7 +790,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       }
     }
 
-    db.prepare(
+    const insertStmt = db.prepare(
       hasResilienceColumn
         ? `
       INSERT INTO call_logs (
@@ -844,7 +852,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @videoContentRemoved
       )
     `
-    ).run({
+    );
+    const insertParams = {
       ...logEntry,
       errorSummary: toStoredErrorSummary(protectedError),
       detailState,
@@ -856,7 +865,18 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       resilienceActions,
       hasPipelineDetails: protectedPipelinePayloads ? 1 : 0,
       requestSummary,
-    });
+    };
+    // #14451: a 6-char dashboard traceId (or any reused explicit id) can collide.
+    // Keep the already-written artifact path; only the SQLite primary key is regenerated.
+    for (let attempt = 0; ; attempt++) {
+      try {
+        insertStmt.run(insertParams);
+        break;
+      } catch (error) {
+        if (!isCallLogIdCollision(error) || attempt >= CALL_LOG_ID_RETRY_LIMIT) throw error;
+        insertParams.id = generateLogId();
+      }
+    }
     // sink note: the sink is the unique consumer — reset only after a successful
     // INSERT, so a failed write (or a second persistence of the same
     // attempt) keeps the summary instead of silently writing NULL.
