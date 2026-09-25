@@ -1,0 +1,1 @@
+- fix(compression): make purify_history drop-count notice byte-stable to preserve prefix cache (#14600)
