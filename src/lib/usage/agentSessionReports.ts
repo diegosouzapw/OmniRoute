@@ -88,7 +88,7 @@ class TotalsAccumulator {
   add(slice: PricedSlice): void {
     this.requests += slice.requests;
     this.errors += slice.errors;
-    if (!slice.priced) this.unpricedRequests += slice.requests;
+    if (!slice.priced) this.unpricedRequests += slice.requestsWithTokens;
     this.costUsd += slice.costUsd;
     for (const field of Object.keys(this.tokens) as Array<keyof typeof this.tokens>) {
       this.tokens[field] += slice.tokens[field];

@@ -113,6 +113,37 @@ test("read-time report cost matches the write-time session cost for the same req
   assert.ok(Math.abs(report.totals.costUsd - sessionCost) < 1e-9);
 });
 
+// Seen on production 2026-09-25: the report showed 160 unpriced requests where the sessions
+// held 159, because a failed zero-token request on an unpriced model was counted.
+test("unpriced requests follow the session rule and skip requests without tokens", async () => {
+  const context = agentContext("dave-1", "labs");
+  const unpricedModel = {
+    apiKeyId: "key-dave",
+    apiKeyName: "Dave",
+    agentContext: context,
+    provider: "deepseek",
+    model: "model-without-pricing",
+    connectionId: "conn-deepseek-2",
+  };
+  await recordUsage({ ...unpricedModel, timestamp: "2026-09-24T08:00:00.000Z" });
+  await recordUsage({
+    ...unpricedModel,
+    success: false,
+    tokens: { input: 0, output: 0 },
+    timestamp: "2026-09-24T08:01:00.000Z",
+  });
+
+  const report = await buildAgentSessionReport({ apiKeyId: "key-dave" });
+  const { unpriced } = core
+    .getDbInstance()
+    .prepare("SELECT SUM(unpriced_count) AS unpriced FROM agent_sessions WHERE api_key_id = ?")
+    .get("key-dave") as { unpriced: number };
+
+  assert.equal(report.totals.requests, 2);
+  assert.equal(unpriced, 1);
+  assert.equal(report.totals.unpricedRequests, unpriced);
+});
+
 test("a session that switched providers is split across both providers and accounts", async () => {
   const { breakdowns } = await buildAgentSessionReport({ apiKeyId: "key-alice" });
 

@@ -33,6 +33,8 @@ export interface AgentSessionUsageSlice {
   day: string;
   lastSeenAt: string;
   requests: number;
+  /** Requests that consumed tokens; only these can be unpriced (same rule as agent_sessions). */
+  requestsWithTokens: number;
   errors: number;
   tokens: AgentSessionTokens;
 }
@@ -75,6 +77,10 @@ export function listAgentSessionUsageSlices(
               substr(uh.timestamp, 1, 10) AS day,
               MAX(uh.timestamp) AS last_seen_at,
               COUNT(*) AS requests,
+              SUM(CASE WHEN COALESCE(uh.tokens_input, 0) + COALESCE(uh.tokens_output, 0)
+                            + COALESCE(uh.tokens_cache_read, 0)
+                            + COALESCE(uh.tokens_cache_creation, 0) > 0
+                       THEN 1 ELSE 0 END) AS requests_with_tokens,
               SUM(CASE WHEN uh.success = 0 THEN 1 ELSE 0 END) AS errors,
               COALESCE(SUM(uh.tokens_input), 0) AS tokens_input,
               COALESCE(SUM(uh.tokens_output), 0) AS tokens_output,
@@ -103,6 +109,7 @@ export function listAgentSessionUsageSlices(
     day: String(row.day),
     lastSeenAt: String(row.last_seen_at),
     requests: Number(row.requests ?? 0),
+    requestsWithTokens: Number(row.requests_with_tokens ?? 0),
     errors: Number(row.errors ?? 0),
     tokens: {
       input: Number(row.tokens_input ?? 0),
