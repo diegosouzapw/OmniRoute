@@ -43,6 +43,7 @@ import {
 } from "./subscriptionLadder";
 import {
   classifyStrictZeroCostCandidate,
+  describeStrictExclusions,
   filterStrictZeroCostCandidatesWithDiagnosis,
   filterTosAvoidCandidates,
   findBudgetEntry,
@@ -799,13 +800,15 @@ export async function prepareVirtualAutoComboInputs(
       strictOptions,
       traceInvocationId
     );
-    warnPoolDrop(
-      log,
-      "STRICT",
-      strict.diagnosis?.excluded,
-      pool.length,
-      ` (no-hard-stop ${strict.diagnosis?.noHardStop})`
-    );
+    if (strict.diagnosis) {
+      warnPoolDrop(
+        log,
+        "STRICT",
+        strict.diagnosis.excluded,
+        pool.length,
+        describeStrictExclusions(strict.diagnosis)
+      );
+    }
     pool = strict.pool;
 
     // Annotate here rather than in the handler: this is where the thresholds and

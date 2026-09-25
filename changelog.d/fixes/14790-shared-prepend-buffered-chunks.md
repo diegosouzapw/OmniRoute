@@ -1,0 +1,1 @@
+- **fix(sse):** share hardened replay cancel with JSON-to-SSE path ([#14790](https://github.com/diegosouzapw/OmniRoute/pull/14790)) — thanks @maxmad64bis

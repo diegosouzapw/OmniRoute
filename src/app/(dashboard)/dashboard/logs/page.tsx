@@ -31,8 +31,11 @@ function LogsPageContent() {
   // Read ONCE: #6830 fixed the detail modal reopening on first close by freezing this
   // value, and the #8354 page rewrite regressed it by reading the live searchParams on
   // every render — the prop flips mid-session and re-fires the child's deep-link effect
-  // exactly when the modal closes.
+  // exactly when the modal closes. Same freeze applies to ?correlationId=: a same-page
+  // navigation to a new correlation link needs a full remount (key change) to take
+  // effect — mirrored from initialId on purpose.
   const [initialId] = useState(() => searchParams.get("id"));
+  const [initialCorrelationId] = useState(() => searchParams.get("correlationId"));
 
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -218,7 +221,12 @@ function LogsPageContent() {
       )}
 
       <div className="min-h-0">
-        <RequestLoggerV2 key={requestLogKey} ref={requestLoggerRef} initialSelectedId={initialId} />
+        <RequestLoggerV2
+          key={requestLogKey}
+          ref={requestLoggerRef}
+          initialSelectedId={initialId}
+          initialCorrelationId={initialCorrelationId}
+        />
       </div>
 
       <ConfirmModal

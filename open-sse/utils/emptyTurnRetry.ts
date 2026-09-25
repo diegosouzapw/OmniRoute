@@ -284,11 +284,9 @@ export async function readBoundedResponseOutcome(
       return { kind: "idle", text: concatChunks(chunks, total) ?? "" };
     }
     if (over) {
-      try {
-        await reader.cancel();
-      } catch {
-        // best-effort
-      }
+      // A clone branch cancel only settles once the original is read or cancelled: never await
+      // it — the original is piped to the client below.
+      void reader.cancel().catch(() => undefined);
       return { kind: "skipped" };
     }
     const text = concatChunks(chunks, total);

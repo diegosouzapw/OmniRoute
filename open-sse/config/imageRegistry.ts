@@ -406,25 +406,6 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024"],
   },
 
-  // #14545 — reuses the "gemini" apikey provider id (already registered for chat,
-  // src/shared/constants/providers/apikey/frontier-labs.ts) and the same
-  // generativelanguage.googleapis.com OpenAI-compatible images endpoint that
-  // open-sse/handlers/imageGeneration.ts's synthetic-provider fallback already
-  // calls successfully for unregistered providers — direct calls worked, but the
-  // static registry had no entry, so the combo/catalog path silently dropped them.
-  gemini: {
-    id: "gemini",
-    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/images/generations",
-    authType: "apikey",
-    authHeader: "bearer",
-    format: "openai",
-    models: [
-      { id: "gemini-3-pro-image", name: "Gemini 3 Pro Image" },
-      { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
-    ],
-    supportedSizes: ["1024x1024"],
-  },
-
   //Curruntly no models serving
   nebius: {
     id: "nebius",
