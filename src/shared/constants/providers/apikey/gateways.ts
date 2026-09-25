@@ -321,6 +321,25 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create an EURouter API key, then use https://api.eurouter.ai/v1 as the OpenAI-compatible base URL. Models are served by third-party upstreams listed per model in the EURouter catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
   },
+  unifically: {
+    id: "unifically",
+    serviceKinds: ["llm"],
+    alias: "unifically",
+    name: "Unifically",
+    icon: "hub",
+    color: "#10B981",
+    textIcon: "UNI",
+    passthroughModels: true,
+    website: "https://unifically.com",
+    // New accounts get a small one-time starting balance, not a recurring free
+    // tier, so no Free badge.
+    hasFree: false,
+    // Only the chat models are wired here. The image, video and audio models in
+    // the same catalog run through an async task API (POST /v1/tasks), which
+    // the default executor does not speak.
+    apiHint:
+      "Create a Unifically API key at https://unifically.com/api-keys, then use https://api.unifically.com/v1 as the OpenAI-compatible base URL. Pay per use, no subscription. Chat models only through this entry; the media models in the same catalog use a separate async task API.",
+  },
   "mnn-ai": {
     id: "mnn-ai",
     serviceKinds: ["llm"],
