@@ -1,0 +1,1 @@
+- **fix(sse):** transport errors keep the underlying cause code next to the sanitized message ([#14775](https://github.com/diegosouzapw/OmniRoute/pull/14775)) — thanks @maxmad64bis

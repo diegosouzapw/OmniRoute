@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ဆက်ရှင်တည်မြဲမှုကို ပိတ်ရန်",
     "sessionStickinessEnabled": "တည်မြဲမှု ဖွင့်ထားသည်",
     "sessionStickinessDisabled": "တည်မြဲမှု ပိတ်ထားသည်",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ကြိုတင်သတ်မှတ်ချက်",
     "kimiPresetDescription": "Kimi K3 ကို ပင်မမော်ဒယ် (Moonshot API) အဖြစ် အသုံးပြုပြီး၊ စီစဉ်သတ်မှတ်ထားပါက သင်၏ Kimi Code ချိတ်ဆက်မှုများ (kimi-coding, kimi-web) သို့ အလိုအလျောက် ပြောင်းလဲအသုံးပြုမည်။",
     "kimiPresetCta": "ကြိုတင်သတ်မှတ်ချက် ထည့်ရန်",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ဤလုပ်ဆောင်ချက်သည် လက်ရှိချိတ်ဆက်ထားပြီး ဤတမ်းပလိတ်နှင့် ကိုက်ညီသော ဝန်ဆောင်မှုပေးသူများ/မော်ဒယ်များကို တည်းဖြတ်နိုင်သည့် ပေါင်းစပ်မှုတစ်ခုအဖြစ် လက်ရှိအခြေအနေအတိုင်း မှတ်တမ်းတင်မည်။",
     "duplicateAutoComboFailedPrefix": "အလိုအလျောက်ပေါင်းစပ်မှုကို မိတ္တူပွား၍မရပါ:",
     "duplicateAutoComboUnknownError": "မသိသော အမှား",
-    "duplicateAutoComboTitle": "{name} မှ တည်ငြိမ်သော ပေါင်းစပ်မှုတစ်ခု ဖန်တီးရန်",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} မှ တည်ငြိမ်သော ပေါင်းစပ်မှုတစ်ခု ဖန်တီးရန်"
   },
   "costs": {
     "title": "ကုန်ကျစရိတ်များ",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "ထည့်ရန်",
     "poolAddFailed": "ပရောက်စီကို ပူးလ်ထဲသို့ ထည့်၍ မရပါ",
     "poolSelectProxy": "ပရောက်စီတစ်ခု ရွေးချယ်ပါ…",
-    "poolSaveFailed": "ပူးလ်သတ်မှတ်မှုကို သိမ်းဆည်း၍ မရပါ"
+    "poolSaveFailed": "ပူးလ်သတ်မှတ်မှုကို သိမ်းဆည်း၍ မရပါ",
+    "transportRate": "{rate}% သယ်ယူပို့ဆောင်မှု",
+    "previousSuccessRate": "အစက {rate}% အောင်မြင်မှု",
+    "upstreamRefusals": "{count} upstream ငြင်းပယ်မှုများ",
+    "connectionTestsCount": "{count} ချိတ်ဆက်မှု စမ်းသပ်မှုများ",
+    "notMeasured": "မတိုင်းတာရသေးပါ"
   },
   "playground": {
     "title": "မော်ဒယ် စမ်းသပ်ခန်း",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "ပရောက်စီမှတ်တမ်းများ မရှိသေးပါ။ ပရောက်စီများကို စီစဉ်သတ်မှတ်ပြီး API ခေါ်ဆိုမှုများ ပြုလုပ်ပါက ဤနေရာတွင် မြင်ရပါမည်။",
     "noMatchingLogs": "လက်ရှိစစ်ထုတ်မှုများနှင့် ကိုက်ညီသော မှတ်တမ်းမရှိပါ။",
     "tlsFingerprint": "Chrome 124 TLS လက်ဗွေ",
-    "colPublicIp": "အများသုံး IP"
+    "colPublicIp": "အများသုံး IP",
+    "colUpstream": "အထက်စီး",
+    "colEgress": "Egress IP",
+    "colCorrelation": "ဆက်စပ်မှု",
+    "colServedBy": "ဆောင်ရွက်သူ",
+    "filterTraffic": "သွားလာမှု",
+    "filterTests": "စမ်းသပ်မှုများ",
+    "filterSource": "အရင်းအမြစ်"
   },
   "endpointOptions": {
     "speech": "စကားပြောအသံ",
@@ -14123,7 +14135,12 @@
     "directNative": "တိုက်ရိုက် (မူရင်း)",
     "targetUrl": "ပစ်မှတ် URL",
     "error": "အမှား",
-    "configuration": "Proxy ဖွဲ့စည်းမှု"
+    "configuration": "Proxy ဖွဲ့စည်းမှု",
+    "upstreamStatus": "အထက်စီးအခြေအနေ",
+    "noResponse": "တုံ့ပြန်မှုမရှိပါ",
+    "egressIp": "Egress IP",
+    "servedBy": "ဆောင်ရွက်သူ",
+    "correlationId": "ဆက်စပ်မှု ID"
   },
   "requestTimeline": {
     "title": "တောင်းဆိုမှု အချိန်ဇယား",

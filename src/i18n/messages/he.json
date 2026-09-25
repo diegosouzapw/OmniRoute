@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "השבת דביקות הפעלה (session stickiness)",
     "sessionStickinessEnabled": "דביקות פעילה",
     "sessionStickinessDisabled": "דביקות כבויה",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "הגדרה מראש של Kimi Coding",
     "kimiPresetDescription": "Kimi K3 כמודל הראשי (Moonshot API), עם מעבר אוטומטי לגיבוי לחיבורי Kimi Code שלך (kimi-coding, kimi-web) כאשר הם מוגדרים.",
     "kimiPresetCta": "הוסף הגדרה מראש",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "פעולה זו תצלם את הספקים/מודלים המחוברים כעת התואמים לתבנית הזו לקומבו ניתן לעריכה.",
     "duplicateAutoComboFailedPrefix": "כשל בהעתיק קומבו אוטומטי:",
     "duplicateAutoComboUnknownError": "שגיאה לא ידועה",
-    "duplicateAutoComboTitle": "צור קומבו סטטי מ־{name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "צור קומבו סטטי מ־{name}"
   },
   "costs": {
     "title": "עלויות",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "הוסף",
     "poolAddFailed": "הוספת הפרוקסי למאגר נכשלה",
     "poolSelectProxy": "בחר פרוקסי…",
-    "poolSaveFailed": "שמירת הקצאת המאגר נכשלה"
+    "poolSaveFailed": "שמירת הקצאת המאגר נכשלה",
+    "transportRate": "{rate}% תעבורה",
+    "previousSuccessRate": "בעבר {rate}% הצלחה",
+    "upstreamRefusals": "{count} דחיות upstream",
+    "connectionTestsCount": "{count} בדיקות חיבור",
+    "notMeasured": "לא נמדד"
   },
   "playground": {
     "title": "Title",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "עדיין אין יומני Proxy. הגדירו שרתי Proxy ובצעו קריאות API כדי לראות אותם כאן.",
     "noMatchingLogs": "אין יומנים התואמים למסננים הנוכחיים.",
     "tlsFingerprint": "טביעת אצבע של TLS ב-Chrome 124",
-    "colPublicIp": "כתובת IP ציבורית"
+    "colPublicIp": "כתובת IP ציבורית",
+    "colUpstream": "מעלה",
+    "colEgress": "כתובת IP יוצאת",
+    "colCorrelation": "קורלציה",
+    "colServedBy": "מוגש על ידי",
+    "filterTraffic": "תנועה",
+    "filterTests": "בדיקות",
+    "filterSource": "מקור"
   },
   "endpointOptions": {
     "speech": "דיבור",
@@ -14123,7 +14135,12 @@
     "directNative": "ישיר",
     "targetUrl": "כתובת URL יעד",
     "error": "שגיאה",
-    "configuration": "הגדרת פרוקסי"
+    "configuration": "הגדרת פרוקסי",
+    "upstreamStatus": "סטטוס מעלה",
+    "noResponse": "אין תגובה",
+    "egressIp": "כתובת IP יוצאת",
+    "servedBy": "מוגש על ידי",
+    "correlationId": "מזהה קורלציה"
   },
   "requestTimeline": {
     "title": "ציר זמן הבקשה",

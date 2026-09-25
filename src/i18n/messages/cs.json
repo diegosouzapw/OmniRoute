@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Zakázat stálost relace",
     "sessionStickinessEnabled": "Stálost relace zapnuta",
     "sessionStickinessDisabled": "Stálost relace vypnuta",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Předvolba Kimi Coding",
     "kimiPresetDescription": "Kimi K3 jako primární model (Moonshot API) s automatickým záložním řešením na vaše připojení Kimi Code (kimi-coding, kimi-web), pokud jsou nakonfigurována.",
     "kimiPresetCta": "Přidat předvolbu",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Tím se zachytí aktuálně připojení poskytovatelé/modely, které odpovídají této šabloně, do upravitelné kombinace.",
     "duplicateAutoComboFailedPrefix": "Duplikace automatické kombinace selhala:",
     "duplicateAutoComboUnknownError": "Neznámá chyba",
-    "duplicateAutoComboTitle": "Vytvořte statickou kombinaci z {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Vytvořte statickou kombinaci z {name}"
   },
   "costs": {
     "title": "Náklady",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "Přidat",
     "poolAddFailed": "Nepodařilo se přidat proxy do poolu",
     "poolSelectProxy": "Vybrat proxy…",
-    "poolSaveFailed": "Nepodařilo se uložit přiřazení poolu"
+    "poolSaveFailed": "Nepodařilo se uložit přiřazení poolu",
+    "transportRate": "{rate} % přenosu",
+    "previousSuccessRate": "Dříve {rate} % úspěšnost",
+    "upstreamRefusals": "{count} odmítnutí upstream",
+    "connectionTestsCount": "{count} testů připojení",
+    "notMeasured": "Neměřeno"
   },
   "playground": {
     "title": "Title",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "Zatím nejsou k dispozici žádné protokoly proxy. Nakonfigurujte proxy a proveďte volání API, aby se zde zobrazily.",
     "noMatchingLogs": "Aktuálním filtrům neodpovídají žádné protokoly.",
     "tlsFingerprint": "Otisk TLS pro Chrome 124",
-    "colPublicIp": "Veřejná IP"
+    "colPublicIp": "Veřejná IP",
+    "colUpstream": "Nahoře",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korelace",
+    "colServedBy": "Poskytováno",
+    "filterTraffic": "Provoz",
+    "filterTests": "Testy",
+    "filterSource": "Zdroj"
   },
   "endpointOptions": {
     "speech": "Řeč",
@@ -14123,7 +14135,12 @@
     "directNative": "Přímý",
     "targetUrl": "Cílová URL",
     "error": "Chyba",
-    "configuration": "Konfigurace proxy"
+    "configuration": "Konfigurace proxy",
+    "upstreamStatus": "Stav nahoře",
+    "noResponse": "Žádná odpověď",
+    "egressIp": "Egress IP",
+    "servedBy": "Poskytováno",
+    "correlationId": "ID korelace"
   },
   "requestTimeline": {
     "title": "Časová osa žádosti",

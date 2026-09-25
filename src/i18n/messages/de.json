@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Session-Stickiness deaktivieren",
     "sessionStickinessEnabled": "Stickiness ein",
     "sessionStickinessDisabled": "Stickiness aus",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-Preset",
     "kimiPresetDescription": "Kimi K3 als primäres Modell (Moonshot API), mit automatischem Fallback auf Ihre Kimi Code-Verbindungen (kimi-coding, kimi-web), sofern konfiguriert.",
     "kimiPresetCta": "Preset hinzufügen",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dadurch werden die aktuell verbundenen Anbieter/Modelle, die dieser Vorlage entsprechen, in einer bearbeitbaren Kombination gespeichert.",
     "duplicateAutoComboFailedPrefix": "Automatische Kombination konnte nicht dupliziert werden:",
     "duplicateAutoComboUnknownError": "Unbekannter Fehler",
-    "duplicateAutoComboTitle": "Erstelle eine statische Kombination aus {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Erstelle eine statische Kombination aus {name}"
   },
   "costs": {
     "title": "Kosten",
@@ -11047,7 +11047,12 @@
     "poolAddMember": "Hinzufügen",
     "poolAddFailed": "Fehler beim Hinzufügen des Proxys zum Pool",
     "poolSelectProxy": "Proxy auswählen…",
-    "poolSaveFailed": "Fehler beim Speichern der Pool-Zuweisung"
+    "poolSaveFailed": "Fehler beim Speichern der Pool-Zuweisung",
+    "transportRate": "{rate} % Transport",
+    "previousSuccessRate": "Zuvor {rate} % Erfolg",
+    "upstreamRefusals": "{count} Upstream-Ablehnungen",
+    "connectionTestsCount": "{count} Verbindungstests",
+    "notMeasured": "Nicht gemessen"
   },
   "playground": {
     "title": "Title",
@@ -11537,7 +11542,14 @@
     "noProxyLogs": "Noch keine Proxy-Protokolle. Konfigurieren Sie Proxys und führen Sie API-Aufrufe durch, um sie hier anzuzeigen.",
     "noMatchingLogs": "Keine Protokolle entsprechen den aktuellen Filtern.",
     "tlsFingerprint": "Chrome 124 TLS-Fingerabdruck",
-    "colPublicIp": "Öffentliche IP"
+    "colPublicIp": "Öffentliche IP",
+    "colUpstream": "Upstream",
+    "colEgress": "Egress-IP",
+    "colCorrelation": "Korrelation",
+    "colServedBy": "Bedient durch",
+    "filterTraffic": "Verkehr",
+    "filterTests": "Tests",
+    "filterSource": "Quelle"
   },
   "endpointOptions": {
     "speech": "Sprachausgabe",
@@ -14123,7 +14135,12 @@
     "directNative": "Direkt",
     "targetUrl": "Ziel-URL",
     "error": "Fehler",
-    "configuration": "Proxy-Konfiguration"
+    "configuration": "Proxy-Konfiguration",
+    "upstreamStatus": "Upstream-Status",
+    "noResponse": "Keine Antwort",
+    "egressIp": "Egress-IP",
+    "servedBy": "Bedient durch",
+    "correlationId": "Korrelation-ID"
   },
   "requestTimeline": {
     "title": "Anforderungszeitraum",

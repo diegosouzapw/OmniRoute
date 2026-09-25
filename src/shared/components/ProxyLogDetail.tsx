@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import {
   TYPE_COLORS,
@@ -8,7 +8,12 @@ import {
   PROVIDER_COLORS,
   getProxyStatusStyle as getStatusStyle,
 } from "@/shared/constants/colors";
-import { formatDuration as formatLatency } from "@/shared/utils/formatting";
+import {
+  formatDuration as formatLatency,
+  maskAccount,
+  maskSegment,
+} from "@/shared/utils/formatting";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 
 /**
  * Proxy log detail modal — shows full proxy event metadata, error info, and config.
@@ -25,17 +30,35 @@ function formatProxyLabel(proxy, directLabel) {
   return proxy.name ? `${proxy.name} (${endpoint})` : endpoint;
 }
 
-export default function ProxyLogDetail({ log, onClose }) {
-  const t = useTranslations("proxyLog");
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+function ObservedField({ label, children }) {
+  return (
+    <div>
+      <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{label}</div>
+      <div className="text-sm font-medium font-mono">{children}</div>
+    </div>
+  );
+}
 
-  const statusStyle = getStatusStyle(log.status);
+function ObservedLinkField({ label, href, title, short }) {
+  return (
+    <div>
+      <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{label}</div>
+      {href ? (
+        <a
+          href={href}
+          title={title}
+          className="text-sm font-medium font-mono text-primary hover:underline break-all"
+        >
+          {short}…
+        </a>
+      ) : (
+        <div className="text-sm text-text-muted">—</div>
+      )}
+    </div>
+  );
+}
+
+function StatusBadges({ log, t }) {
   const typeColor = TYPE_COLORS[log.proxy?.type] || {
     bg: "#6B7280",
     text: "#fff",
@@ -47,17 +70,148 @@ export default function ProxyLogDetail({ log, onClose }) {
     text: "#fff",
     label: (log.provider || "-").toUpperCase(),
   };
+  return (
+    <>
+      <div>
+        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("type")}</div>
+        <span
+          className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
+          style={{ backgroundColor: typeColor.bg, color: typeColor.text }}
+        >
+          {typeColor.label}
+        </span>
+      </div>
+      <div>
+        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+          {t("level")}
+        </div>
+        <span
+          className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
+          style={{ backgroundColor: levelColor.bg, color: levelColor.text }}
+        >
+          {levelColor.label}
+        </span>
+      </div>
+      <div>
+        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+          {t("provider")}
+        </div>
+        {log.provider ? (
+          <span
+            className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
+            style={{ backgroundColor: providerColor.bg, color: providerColor.text }}
+          >
+            {providerColor.label}
+          </span>
+        ) : (
+          <div className="text-sm text-text-muted">—</div>
+        )}
+      </div>
+      <TlsBadge log={log} t={t} />
+    </>
+  );
+}
 
-  const formatDate = (iso) => {
-    try {
-      const d = new Date(iso);
-      return (
-        d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false })
-      );
-    } catch {
-      return iso;
-    }
-  };
+function TlsBadge({ log, t }) {
+  return (
+    <div>
+      <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+        {t("tlsFingerprint")}
+      </div>
+      {log.tlsFingerprint ? (
+        <span
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold uppercase"
+          style={{ backgroundColor: "rgba(6, 182, 212, 0.15)", color: "#22d3ee" }}
+        >
+          <span style={{ fontSize: "12px" }}>🔒</span> Chrome 124
+        </span>
+      ) : (
+        <div className="text-sm text-text-muted">{t("directNative")}</div>
+      )}
+    </div>
+  );
+}
+
+function ObservedMetadataGrid({ log, t, emailsVisible }) {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-bg-subtle rounded-xl border border-border">
+      <div>
+        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("time")}</div>
+        <div className="text-sm font-medium">{formatDateValue(log.timestamp)}</div>
+      </div>
+      <div>
+        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+          {t("latency")}
+        </div>
+        <div className="text-sm font-medium">{formatLatency(log.latencyMs)}</div>
+      </div>
+      <div>
+        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+          {t("clientIp")}
+        </div>
+        <div className="text-sm font-medium font-mono text-emerald-400">{log.clientIp || "—"}</div>
+      </div>
+      <div>
+        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+          {t("proxy")}
+        </div>
+        <div className="text-sm font-medium font-mono text-primary">
+          {formatProxyLabel(log.proxy, t("direct"))}
+        </div>
+      </div>
+      <StatusBadges log={log} t={t} />
+      <ObservedField label={t("upstreamStatus")}>
+        {typeof log.upstreamStatus === "number" ? String(log.upstreamStatus) : t("noResponse")}
+      </ObservedField>
+      <ObservedField label={t("egressIp")}>
+        <span className="text-emerald-400">{maskSegment(log.egressIp) || "—"}</span>
+      </ObservedField>
+      <ObservedLinkField
+        label={t("correlationId")}
+        href={
+          log.correlationId
+            ? `/dashboard/logs?correlationId=${encodeURIComponent(log.correlationId)}`
+            : null
+        }
+        title={log.correlationId}
+        short={log.correlationId?.slice(0, 12)}
+      />
+      <ObservedField label={t("servedBy")}>
+        {maskAccount(log.rotationAccount ?? log.account, emailsVisible) || "—"}
+      </ObservedField>
+      <div className="col-span-2">
+        <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+          {t("targetUrl")}
+        </div>
+        <div className="text-sm font-medium font-mono text-text-muted break-all">
+          {log.targetUrl || "—"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatDateValue(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false });
+  } catch {
+    return iso;
+  }
+}
+
+export default function ProxyLogDetail({ log, onClose }) {
+  const t = useTranslations("proxyLog");
+  const { emailsVisible } = useEmailPrivacyStore();
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  const statusStyle = getStatusStyle(log.status);
 
   return (
     <div
@@ -94,96 +248,7 @@ export default function ProxyLogDetail({ log, onClose }) {
 
         <div className="p-6 flex flex-col gap-6">
           {/* Metadata Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-bg-subtle rounded-xl border border-border">
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                {t("time")}
-              </div>
-              <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                {t("latency")}
-              </div>
-              <div className="text-sm font-medium">{formatLatency(log.latencyMs)}</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                {t("clientIp")}
-              </div>
-              <div className="text-sm font-medium font-mono text-emerald-400">
-                {log.clientIp || "—"}
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                {t("proxy")}
-              </div>
-              <div className="text-sm font-medium font-mono text-primary">
-                {formatProxyLabel(log.proxy, t("direct"))}
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                {t("type")}
-              </div>
-              <span
-                className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
-                style={{ backgroundColor: typeColor.bg, color: typeColor.text }}
-              >
-                {typeColor.label}
-              </span>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                {t("level")}
-              </div>
-              <span
-                className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
-                style={{ backgroundColor: levelColor.bg, color: levelColor.text }}
-              >
-                {levelColor.label}
-              </span>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                {t("provider")}
-              </div>
-              {log.provider ? (
-                <span
-                  className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
-                  style={{ backgroundColor: providerColor.bg, color: providerColor.text }}
-                >
-                  {providerColor.label}
-                </span>
-              ) : (
-                <div className="text-sm text-text-muted">—</div>
-              )}
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                {t("tlsFingerprint")}
-              </div>
-              {log.tlsFingerprint ? (
-                <span
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold uppercase"
-                  style={{ backgroundColor: "rgba(6, 182, 212, 0.15)", color: "#22d3ee" }}
-                >
-                  <span style={{ fontSize: "12px" }}>🔒</span> Chrome 124
-                </span>
-              ) : (
-                <div className="text-sm text-text-muted">{t("directNative")}</div>
-              )}
-            </div>
-            <div className="col-span-2">
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                {t("targetUrl")}
-              </div>
-              <div className="text-sm font-medium font-mono text-text-muted break-all">
-                {log.targetUrl || "—"}
-              </div>
-            </div>
-          </div>
+          <ObservedMetadataGrid log={log} t={t} emailsVisible={emailsVisible} />
 
           {/* Error */}
           {log.error && (
