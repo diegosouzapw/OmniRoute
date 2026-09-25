@@ -32,8 +32,8 @@ const {
 const MOCK_COPILOT_MODELS_RESPONSE = {
   data: [
     {
-      id: "gpt-5.4",
-      name: "GPT-5.4",
+      id: "gpt-6-astra",
+      name: "GPT-6 Astra",
       model_picker_enabled: true,
       policy: { state: "enabled" },
       capabilities: { type: "chat", limits: { max_context_window_tokens: 128000 } },
@@ -53,8 +53,8 @@ const MOCK_COPILOT_MODELS_RESPONSE = {
       capabilities: { type: "chat" },
     },
     {
-      id: "claude-sonnet-4.5",
-      name: "Claude Sonnet 4.5",
+      id: "claude-sonnet-5",
+      name: "Claude Sonnet 5",
       model_picker_enabled: true,
       capabilities: { type: "chat" },
     },
@@ -87,10 +87,10 @@ test("#3120 parseGitHubCopilotModels keeps every entitled CHAT model (capability
   const ids = models.map((m) => m.id);
   // grok-4.6 is kept even though it is in no hardcoded allowlist — it's an
   // entitled chat model in the live response.
-  assert.deepEqual(ids, ["gpt-5.4", "claude-sonnet-4.5", "grok-4.6"]);
-  const gpt = models.find((m) => m.id === "gpt-5.4");
-  assert.ok(gpt, "gpt-5.4 entry present");
-  assert.equal(gpt.name, "GPT-5.4");
+  assert.deepEqual(ids, ["gpt-6-astra", "claude-sonnet-5", "grok-4.6"]);
+  const gpt = models.find((m) => m.id === "gpt-6-astra");
+  assert.ok(gpt, "gpt-6-astra entry present");
+  assert.equal(gpt.name, "GPT-6 Astra");
   assert.equal(gpt.owned_by, "github");
   assert.ok(!ids.includes("text-embedding-3-small"), "embeddings models are skipped");
   assert.ok(!ids.includes("gpt-41-copilot"), "completion utility models are skipped");
@@ -135,14 +135,14 @@ test("#3120 fetchGitHubCopilotModels does a live fetch and returns parsed models
   assert.ok(capturedHeaders["copilot-integration-id"], "must send Copilot integration header");
   assert.equal(result.source, "api");
   const ids = result.models.map((m) => m.id);
-  assert.deepEqual(ids, ["gpt-5.4", "claude-sonnet-4.5", "grok-4.6"]);
+  assert.deepEqual(ids, ["gpt-6-astra", "claude-sonnet-5", "grok-4.6"]);
   assert.ok(!ids.includes("gemini-3.1-pro-preview"));
 });
 
 test("#3120/#3121 fetch falls back to static catalog when the live fetch fails", async () => {
   const fakeFetch = (async () => new Response("nope", { status: 503 })) as unknown as typeof fetch;
   const fallback = [
-    { id: "gpt-5.4", name: "GPT-5.4" },
+    { id: "gpt-6-astra", name: "GPT-6 Astra" },
     { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro" },
     { id: "gpt-3.5-turbo", name: "GPT 3.5 Turbo" },
   ];
@@ -156,7 +156,7 @@ test("#3120/#3121 fetch falls back to static catalog when the live fetch fails",
   assert.equal(result.source, "fallback");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    ["gpt-5.4", "gemini-3.1-pro-preview"],
+    ["gpt-6-astra"],
     "offline/failed discovery must preserve only the curated static catalog"
   );
 });
@@ -168,17 +168,14 @@ test("static fallback catalog is the alias of the allowlist and covers the appro
   // The fallback must include the newly-entitled families so an offline import
   // (which can only draw from this static list) still surfaces them.
   for (const id of [
-    "claude-fable-5",
+    "claude-fable-5.1",
     "claude-opus-5",
     "claude-opus-4.8-fast",
-    "claude-opus-4.6",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gpt-5.4-nano",
+    "claude-opus-4.8",
+    "gemini-3.8-flash",
+    "gpt-6-astra",
     "grok-4.6",
-    "grok-4.5",
     "mai-code-1.1-flash",
-    "mai-code-1-flash-picker",
   ]) {
     assert.ok(set.has(id), `static fallback must include ${id}`);
   }
@@ -215,13 +212,13 @@ test("fetch falls back when no token is provided (unauthed refresh stays safe)",
   const result = await fetchGitHubCopilotModels({
     token: "",
     fetchImpl: fakeFetch,
-    fallbackModels: [{ id: "gpt-5.4", name: "GPT-5.4" }],
+    fallbackModels: [{ id: "gpt-6-astra", name: "GPT-6 Astra" }],
   });
 
   assert.equal(called, false, "must not fetch without a token");
   assert.equal(result.source, "fallback");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    ["gpt-5.4"]
+    ["gpt-6-astra"]
   );
 });
