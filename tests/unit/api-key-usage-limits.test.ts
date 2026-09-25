@@ -288,6 +288,171 @@ test("getApiKeyUsageLimitStatus cuts weekly USD spend at observed provider quota
   assert.equal(status.weeklySpentUsd, 2);
 });
 
+const WEEKLY_WINDOW_ENV_KEYS = [
+  "OMNIROUTE_API_KEY_WEEKLY_WINDOW",
+  "OMNIROUTE_API_KEY_WEEKLY_WINDOW_TIMEZONE",
+  "TZ",
+] as const;
+
+async function withWeeklyWindowEnv<T>(
+  values: Partial<Record<(typeof WEEKLY_WINDOW_ENV_KEYS)[number], string>>,
+  run: () => Promise<T>
+): Promise<T> {
+  const saved = Object.fromEntries(WEEKLY_WINDOW_ENV_KEYS.map((key) => [key, process.env[key]]));
+  for (const key of WEEKLY_WINDOW_ENV_KEYS) {
+    if (values[key] === undefined) delete process.env[key];
+    else process.env[key] = values[key];
+  }
+  try {
+    return await run();
+  } finally {
+    for (const key of WEEKLY_WINDOW_ENV_KEYS) {
+      if (saved[key] === undefined) delete process.env[key];
+      else process.env[key] = saved[key];
+    }
+  }
+}
+
+// A shared multi-account pool: two upstream accounts whose weekly resets are
+// days apart. In provider mode the key's window follows the earliest one.
+function sharedPoolDeps(now: number) {
+  const connections = [
+    { id: "pool-a", provider: "codex", isActive: true },
+    { id: "pool-b", provider: "codex", isActive: true },
+  ];
+  const caches: Record<string, { quotas: Record<string, { resetAt: string }> }> = {
+    "pool-a": { quotas: { weekly: { resetAt: "2026-09-23T06:47:00.000Z" } } },
+    "pool-b": { quotas: { weekly: { resetAt: "2026-09-28T02:20:00.000Z" } } },
+  };
+  return {
+    now: () => now,
+    getProviderConnectionById: async (id: string) => connections.find((c) => c.id === id) ?? null,
+    getProviderConnections: async () => connections,
+    getProviderLimitsCache: (id: string) => (caches[id] ?? null) as never,
+    getAllProviderLimitsCache: () => caches as never,
+  };
+}
+
+async function seedSharedPoolKey(name: string) {
+  await localDb.updatePricing({
+    codex: { "gpt-test": { input: 1, cached: 1, output: 1, reasoning: 1, cache_creation: 1 } },
+  });
+  const created = await apiKeysDb.createApiKey(name, `machine-${name}`);
+  await apiKeysDb.updateApiKeyPermissions(created.id, {
+    usageLimitEnabled: true,
+    weeklyUsageLimitUsd: 100,
+  });
+  // Sunday 2026-09-20 15:00Z = Sunday 23:00 in Asia/Shanghai (previous local week).
+  // Monday 2026-09-21 02:00Z = Monday 10:00 in Asia/Shanghai (current local week).
+  for (const [input, timestamp] of [
+    [40_000_000, "2026-09-16T08:00:00.000Z"],
+    [7_000_000, "2026-09-20T15:00:00.000Z"],
+    [3_000_000, "2026-09-21T02:00:00.000Z"],
+  ] as const) {
+    await usageHistory.saveRequestUsage({
+      provider: "codex",
+      model: "gpt-test",
+      apiKeyId: created.id,
+      apiKeyName: name,
+      tokens: { input, output: 0 },
+      success: true,
+      timestamp,
+    });
+  }
+  const metadata = await apiKeysDb.getApiKeyMetadata(created.key);
+  assert.ok(metadata);
+  return metadata;
+}
+
+// Wednesday 2026-09-23 05:55Z = Wednesday 13:55 in Asia/Shanghai.
+const POOL_NOW = Date.parse("2026-09-23T05:55:00.000Z");
+
+test("weekly window defaults to the earliest provider reset when the env is unset", async () => {
+  const metadata = await seedSharedPoolKey("pool-default");
+  const status = await withWeeklyWindowEnv({}, () =>
+    usageLimits.getApiKeyUsageLimitStatus(metadata, sharedPoolDeps(POOL_NOW))
+  );
+
+  assert.equal(status.weeklyResetAtIso, "2026-09-23T06:47:00.000Z");
+  assert.equal(status.weeklyWindowStartIso, "2026-09-16T06:47:00.000Z");
+  assert.equal(status.weeklySpentUsd, 50);
+});
+
+test("calendar weekly window starts Monday 00:00 in the configured timezone", async () => {
+  const metadata = await seedSharedPoolKey("pool-calendar");
+  const status = await withWeeklyWindowEnv(
+    {
+      OMNIROUTE_API_KEY_WEEKLY_WINDOW: "calendar",
+      OMNIROUTE_API_KEY_WEEKLY_WINDOW_TIMEZONE: "Asia/Shanghai",
+    },
+    () => usageLimits.getApiKeyUsageLimitStatus(metadata, sharedPoolDeps(POOL_NOW))
+  );
+
+  assert.equal(status.weeklyWindowStartIso, "2026-09-20T16:00:00.000Z");
+  assert.equal(status.weeklyResetAtIso, "2026-09-27T16:00:00.000Z");
+  assert.equal(status.weeklySpentUsd, 3);
+  assert.equal(status.weeklyExceeded, false);
+});
+
+test("calendar weekly window does not move when the pool's accounts reset", async () => {
+  const metadata = await seedSharedPoolKey("pool-stable");
+  const env = {
+    OMNIROUTE_API_KEY_WEEKLY_WINDOW: "calendar",
+    OMNIROUTE_API_KEY_WEEKLY_WINDOW_TIMEZONE: "Asia/Shanghai",
+  };
+  const before = await withWeeklyWindowEnv(env, () =>
+    usageLimits.getApiKeyUsageLimitStatus(metadata, sharedPoolDeps(POOL_NOW))
+  );
+  // One hour later pool-a has reset; provider mode would jump to pool-b's window.
+  const afterDeps = sharedPoolDeps(POOL_NOW + 60 * 60 * 1000);
+  const after = await withWeeklyWindowEnv(env, () =>
+    usageLimits.getApiKeyUsageLimitStatus(metadata, afterDeps)
+  );
+
+  assert.equal(after.weeklyWindowStartIso, before.weeklyWindowStartIso);
+  assert.equal(after.weeklyResetAtIso, before.weeklyResetAtIso);
+  assert.equal(after.weeklySpentUsd, before.weeklySpentUsd);
+
+  // Contrast: provider mode, same key, same hour.
+  const providerBefore = await withWeeklyWindowEnv({}, () =>
+    usageLimits.getApiKeyUsageLimitStatus(metadata, sharedPoolDeps(POOL_NOW))
+  );
+  const providerAfter = await withWeeklyWindowEnv({}, () =>
+    usageLimits.getApiKeyUsageLimitStatus(metadata, afterDeps)
+  );
+  assert.equal(providerBefore.weeklySpentUsd, 50);
+  assert.equal(providerAfter.weeklyWindowStartIso, "2026-09-21T02:20:00.000Z");
+  assert.equal(providerAfter.weeklySpentUsd, 0);
+});
+
+test("calendar weekly window uses the process timezone when no timezone is configured", async () => {
+  const metadata = await seedSharedPoolKey("pool-process-tz");
+  const status = await withWeeklyWindowEnv(
+    { OMNIROUTE_API_KEY_WEEKLY_WINDOW: "calendar", TZ: "UTC" },
+    () => usageLimits.getApiKeyUsageLimitStatus(metadata, sharedPoolDeps(POOL_NOW))
+  );
+
+  assert.equal(status.weeklyWindowStartIso, "2026-09-21T00:00:00.000Z");
+  assert.equal(status.weeklyResetAtIso, "2026-09-28T00:00:00.000Z");
+  assert.equal(status.weeklySpentUsd, 3);
+});
+
+test("invalid weekly window values fall back instead of failing requests", () => {
+  assert.deepEqual(
+    usageLimits.getApiKeyWeeklyWindowSetting({
+      OMNIROUTE_API_KEY_WEEKLY_WINDOW: "fortnight",
+      OMNIROUTE_API_KEY_WEEKLY_WINDOW_TIMEZONE: "Asia/Shanghai",
+    }),
+    { mode: "provider", timeZone: "Asia/Shanghai" }
+  );
+  const fallback = usageLimits.getApiKeyWeeklyWindowSetting({
+    OMNIROUTE_API_KEY_WEEKLY_WINDOW: " Calendar ",
+    OMNIROUTE_API_KEY_WEEKLY_WINDOW_TIMEZONE: "Not/AZone",
+  });
+  assert.equal(fallback.mode, "calendar");
+  assert.equal(fallback.timeZone, Intl.DateTimeFormat().resolvedOptions().timeZone);
+});
+
 test("buildApiKeyUsageLimitText returns API-key quota spend percentage and reset lines", async () => {
   const text = usageLimits.buildApiKeyUsageLimitText(
     {
