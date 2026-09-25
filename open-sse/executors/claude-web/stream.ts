@@ -15,6 +15,7 @@ export interface ClaudeWebStreamOptions {
 type StreamPhase = "awaiting_message" | "in_message" | "stopped" | "failed";
 type BlockKind = "thinking" | "text" | "tool_use" | "other";
 const MAX_CLAUDE_WEB_SSE_PENDING_CHARS = 1024 * 1024;
+const CLAUDE_WEB_TOOL_IDLE_GRACE_MS = 50;
 type SemanticEvent =
   | { kind: "content"; text: string }
   | { kind: "reasoning"; text: string }
@@ -58,6 +59,8 @@ const METADATA_EVENT_FIELDS: Record<string, readonly string[]> = {
 interface StreamControl {
   reader: ReadableStreamDefaultReader<Uint8Array> | null;
   cancelled: boolean;
+  lastActivityAt: number;
+  openBlockCount: number;
 }
 
 class ClaudeWebProtocolError extends Error {
@@ -114,6 +117,7 @@ async function* decodeSseData(
         reachedEof = true;
         break;
       }
+      control.lastActivityAt = Date.now();
       buffer += decoder.decode(value, { stream: true });
 
       let newlineIndex = buffer.indexOf("\n");
@@ -409,6 +413,7 @@ async function* parseClaudeWebEvents(
     }
 
     const semanticEvent = dispatchProtocolEvent(eventType, event, state);
+    control.openBlockCount = state.openBlocks.size;
     if (!semanticEvent) continue;
     yield semanticEvent;
     if (semanticEvent.kind === "finish") return;
@@ -489,6 +494,17 @@ function notifyFailure(options: ClaudeWebStreamOptions): void {
   }
 }
 
+function logProtocolFailure(options: ClaudeWebStreamOptions, error: unknown): void {
+  const reason =
+    error instanceof ClaudeWebProtocolError
+      ? error.message
+      : "Unexpected error while processing the upstream stream";
+  options.log?.error?.(
+    "CLAUDE-WEB-STREAM",
+    `Claude Web stream protocol validation failed: ${reason}`
+  );
+}
+
 function notifyComplete(
   options: ClaudeWebStreamOptions,
   result: { assistantText: string; stopReason: string }
@@ -511,7 +527,12 @@ async function createBufferedResponse(
   let stopReason = "end_turn";
   const toolCalls: Array<{ id: string; name: string; input: string }> = [];
   const metadataEvents: Array<{ type: string; data: Record<string, unknown> }> = [];
-  const control: StreamControl = { reader: null, cancelled: false };
+  const control: StreamControl = {
+    reader: null,
+    cancelled: false,
+    lastActivityAt: Date.now(),
+    openBlockCount: 0,
+  };
 
   try {
     for await (const event of parseClaudeWebEvents(source, control)) {
@@ -565,8 +586,8 @@ async function createBufferedResponse(
         headers: responseHeaders("application/json", options.responseMetadata),
       }
     );
-  } catch {
-    options.log?.error?.("CLAUDE-WEB-STREAM", "Claude Web stream protocol validation failed");
+  } catch (error) {
+    logProtocolFailure(options, error);
     notifyFailure(options);
     return new Response(JSON.stringify(protocolErrorBody()), {
       status: 502,
@@ -583,6 +604,7 @@ interface StreamingState {
   iterator: AsyncIterator<SemanticEvent, void, void>;
   pendingChunks: Uint8Array[];
   assistantText: string;
+  toolCallSeen: boolean;
   outcome: "pending" | "completed" | "failed";
   terminal: boolean;
   closed: boolean;
@@ -647,6 +669,7 @@ async function queueSemanticEvent(
     return;
   }
   if (event.kind === "tool_call") {
+    state.toolCallSeen = true;
     state.pendingChunks.push(
       encodeStreamEvent(
         state,
@@ -697,8 +720,50 @@ async function queueSemanticEvent(
   state.terminal = true;
 }
 
-function queueStreamFailure(state: StreamingState, options: ClaudeWebStreamOptions): void {
-  options.log?.error?.("CLAUDE-WEB-STREAM", "Claude Web stream protocol validation failed");
+async function nextStreamingEvent(
+  state: StreamingState
+): Promise<IteratorResult<SemanticEvent, void>> {
+  if (!state.toolCallSeen) return state.iterator.next();
+
+  const idle = Symbol("claude-web-tool-idle");
+  const nextEvent = state.iterator.next();
+  while (true) {
+    const idleFor = Date.now() - state.control.lastActivityAt;
+    const waitMs =
+      state.control.openBlockCount > 0
+        ? CLAUDE_WEB_TOOL_IDLE_GRACE_MS
+        : Math.max(1, CLAUDE_WEB_TOOL_IDLE_GRACE_MS - idleFor);
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const result = await Promise.race([
+      nextEvent,
+      new Promise<typeof idle>((resolve) => {
+        timeout = setTimeout(() => resolve(idle), waitMs);
+      }),
+    ]).finally(() => clearTimeout(timeout));
+
+    if (result !== idle) return result;
+    if (
+      state.control.openBlockCount === 0 &&
+      Date.now() - state.control.lastActivityAt >= CLAUDE_WEB_TOOL_IDLE_GRACE_MS
+    ) {
+      break;
+    }
+  }
+
+  // Claude.ai can hold a caller tool-use message open indefinitely. Give already
+  // queued sibling tool blocks a chance to arrive, then end only the streaming
+  // response so buffered parsing keeps its original complete-message semantics.
+  if (state.control.reader) await state.control.reader.cancel().catch(() => {});
+  await state.iterator.return?.();
+  return { done: false, value: { kind: "finish", stopReason: "tool_use" } };
+}
+
+function queueStreamFailure(
+  state: StreamingState,
+  options: ClaudeWebStreamOptions,
+  error: unknown
+): void {
+  logProtocolFailure(options, error);
   failStreamOnce(state, options);
   state.pendingChunks.push(encodeStreamEvent(state, protocolErrorBody()));
   state.pendingChunks.push(state.encoder.encode("data: [DONE]\n\n"));
@@ -718,7 +783,7 @@ async function pullStreamingChunk(
 
   try {
     while (!state.terminal) {
-      const next = await state.iterator.next();
+      const next = await nextStreamingEvent(state);
       if (state.control.cancelled) return;
       if (next.done === true) {
         throw new ClaudeWebProtocolError("Claude Web stream ended without a terminal event");
@@ -729,9 +794,9 @@ async function pullStreamingChunk(
         return;
       }
     }
-  } catch {
+  } catch (error) {
     if (state.control.cancelled) return;
-    queueStreamFailure(state, options);
+    queueStreamFailure(state, options, error);
     flushStreamChunk(state, controller);
   }
 }
@@ -758,7 +823,12 @@ function createStreamingResponse(
   source: ReadableStream<Uint8Array>,
   options: ClaudeWebStreamOptions
 ): Response {
-  const control: StreamControl = { reader: null, cancelled: false };
+  const control: StreamControl = {
+    reader: null,
+    cancelled: false,
+    lastActivityAt: Date.now(),
+    openBlockCount: 0,
+  };
   const state: StreamingState = {
     encoder: new TextEncoder(),
     id: `chatcmpl-${randomUUID()}`,
@@ -767,6 +837,7 @@ function createStreamingResponse(
     iterator: parseClaudeWebEvents(source, control)[Symbol.asyncIterator](),
     pendingChunks: [],
     assistantText: "",
+    toolCallSeen: false,
     outcome: "pending",
     terminal: false,
     closed: false,

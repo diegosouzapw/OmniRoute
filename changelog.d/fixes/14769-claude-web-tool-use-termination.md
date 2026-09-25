@@ -1,0 +1,1 @@
+- **fix(claude-web):** completed caller tool-use blocks now terminate idle Claude Web streams with `finish_reason: "tool_calls"` and `[DONE]` instead of waiting indefinitely for `message_stop` ([#14769](https://github.com/diegosouzapw/OmniRoute/pull/14769))
