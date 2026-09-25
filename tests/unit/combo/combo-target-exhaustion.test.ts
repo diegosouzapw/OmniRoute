@@ -2,14 +2,22 @@
 // Characterization of applyComboTargetExhaustion — the de-duplicated #1731/#1731v2 upstream-error
 // → exhaustion-set classification shared by both combo dispatchers. Locks the SET mutations
 // (which drive same-request target skipping) and the providerExhausted return.
-import { test } from "node:test";
+import { beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
 import {
   applyComboTargetExhaustion,
   type ComboExhaustionSets,
 } from "../../../open-sse/services/combo/targetExhaustion.ts";
+import {
+  __clearForTests as clearQuotaCache,
+  setQuotaCache,
+} from "../../../src/domain/quotaCache.ts";
 
 const log = { info() {}, warn() {}, error() {}, debug() {} };
+
+beforeEach(() => {
+  clearQuotaCache();
+});
 
 function sets(): ComboExhaustionSets {
   return {
@@ -44,7 +52,7 @@ const baseOpts = {
 
 test("marks provider exhausted when the fallback result signals quota exhaustion", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 429 },
     fallbackResult: { creditsExhausted: true },
@@ -57,7 +65,7 @@ test("marks provider exhausted when the fallback result signals quota exhaustion
 
 test("round-robin's allAccountsRateLimited term also marks the provider exhausted", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 503 },
     fallbackResult: {},
@@ -70,7 +78,7 @@ test("round-robin's allAccountsRateLimited term also marks the provider exhauste
 
 test("a transient 429 (not exhausted) marks the provider rate-limited, not exhausted", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 429 },
     fallbackResult: {},
@@ -83,7 +91,7 @@ test("a transient 429 (not exhausted) marks the provider rate-limited, not exhau
 
 test("connection-level 5xx with a connectionId poisons exhaustedConnections (#1731v2)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 502, headers: null },
     fallbackResult: {},
@@ -96,7 +104,7 @@ test("connection-level 5xx with a connectionId poisons exhaustedConnections (#17
 
 test("request-scoped failed-response 502 does not exhaust the connection", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 502, headers: null },
     fallbackResult: {},
@@ -140,7 +148,7 @@ test("an unknown provider is never marked (guard)", () => {
 
 test("structuredError.code takes precedence over raw errorText for exhaustion classification", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     errorText: "Resource has been exhausted (e.g. check quota).",
     result: { status: 429 },
@@ -157,7 +165,7 @@ test("structuredError.code takes precedence over raw errorText for exhaustion cl
 
 test("structuredError.code with non-matching value falls back to classifyErrorText behavior", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     errorText: "Rate limit reached",
     result: { status: 429 },
@@ -174,7 +182,7 @@ test("structuredError.code with non-matching value falls back to classifyErrorTe
 
 test("a 200/benign status with no exhaustion mutates nothing and returns false", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 200 },
     fallbackResult: {},
@@ -189,21 +197,217 @@ test("a 200/benign status with no exhaustion mutates nothing and returns false",
 
 test("does NOT mark provider exhausted for per-model-quota providers (different model)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target({ provider: "gemini" }), {
-    ...baseOpts,
-    result: { status: 429 },
-    fallbackResult: { reason: "quota_exhausted" },
-    errorText: "quota exceeded for model gpt-4",
-    sets: s,
-  });
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
+    target({ provider: "gemini" }),
+    {
+      ...baseOpts,
+      result: { status: 429 },
+      fallbackResult: { reason: "quota_exhausted" },
+      errorText: "quota exceeded for model gpt-4",
+      sets: s,
+    }
+  );
   assert.equal(exhausted, false);
   assert.equal(s.exhaustedProviders.has("gemini"), false);
   assert.ok(s.transientRateLimitedProviders.has("gemini"));
 });
 
+test("native Claude scoped quota evidence leaves sibling combo targets eligible", () => {
+  const s = sets();
+  const resetAt = new Date(Date.now() + 120_000).toISOString();
+  setQuotaCache(
+    "claude-selected",
+    "claude",
+    {},
+    {
+      "weekly Fable (7d)": {
+        remainingPercentage: 0,
+        resetAt,
+        claudeQuota: {
+          kind: "weekly_scoped",
+          active: true,
+          severity: "critical",
+          scopeKey: "model:fable",
+          modelId: "claude-fable-5-1",
+          modelDisplayName: "Fable",
+        },
+      },
+    }
+  );
+
+  const failure = applyComboTargetExhaustion(
+    target({
+      provider: "claude",
+      connectionId: "claude-requested",
+      modelStr: "claude/claude-fable-5-1",
+    }),
+    {
+      ...baseOpts,
+      result: {
+        status: 429,
+        headers: new Headers({ "X-OmniRoute-Selected-Connection-Id": "claude-selected" }),
+      },
+      fallbackResult: { reason: "quota_exhausted", cooldownMs: 60_000 },
+      errorText: "This request would exceed your account's rate limit. Please try again later.",
+      rawModel: "claude-fable-5-1",
+      sets: s,
+    }
+  );
+
+  assert.equal(failure.providerExhausted, false);
+  assert.equal(failure.target.connectionId, "claude-selected");
+  assert.equal(failure.isModelScopedClaudeQuota, true);
+  assert.equal(failure.isConnectionScopedClaudeQuota, false);
+  assert.equal(failure.lockoutHintVerified, true);
+  assert.ok((failure.modelScopedClaudeCooldownMs ?? 0) > 0);
+  assert.equal(failure.effectiveTargetCooldownMs, failure.modelScopedClaudeCooldownMs);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.equal(s.exhaustedConnections.size, 0);
+  assert.equal(s.transientRateLimitedProviders.size, 0);
+});
+
+test("native Claude cc alias uses canonical scoped quota evidence without changing combo keys", () => {
+  const s = sets();
+  setQuotaCache(
+    "claude-conn-1",
+    "claude",
+    {},
+    {
+      "weekly Fable (7d)": {
+        remainingPercentage: 0,
+        resetAt: new Date(Date.now() + 120_000).toISOString(),
+        claudeQuota: {
+          kind: "weekly_scoped",
+          active: true,
+          severity: "critical",
+          scopeKey: "model:fable",
+          modelId: "claude-fable-5-1",
+          modelDisplayName: "Fable",
+        },
+      },
+    }
+  );
+
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
+    target({
+      provider: "cc",
+      connectionId: "claude-conn-1",
+      modelStr: "cc/claude-fable-5-1",
+    }),
+    {
+      ...baseOpts,
+      result: { status: 429 },
+      fallbackResult: { reason: "quota_exhausted" },
+      errorText: "This request would exceed your account's rate limit. Please try again later.",
+      rawModel: "claude-fable-5-1",
+      sets: s,
+    }
+  );
+
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.equal(s.exhaustedConnections.size, 0);
+  assert.equal(s.transientRateLimitedProviders.size, 0);
+});
+
+test("native Claude minute throttles keep existing combo transient handling", () => {
+  const s = sets();
+  setQuotaCache(
+    "claude-conn-1",
+    "claude",
+    {},
+    {
+      "weekly Fable (7d)": {
+        remainingPercentage: 0,
+        resetAt: new Date(Date.now() + 120_000).toISOString(),
+        claudeQuota: {
+          kind: "weekly_scoped",
+          active: true,
+          severity: "critical",
+          scopeKey: "model:fable",
+          modelId: "claude-fable-5-1",
+          modelDisplayName: "Fable",
+        },
+      },
+    }
+  );
+
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
+    target({ provider: "claude", connectionId: "claude-conn-1" }),
+    {
+      ...baseOpts,
+      result: { status: 429 },
+      fallbackResult: { reason: "rate_limited" },
+      errorText: "RPM usage limit exceeded",
+      rawModel: "claude-fable-5-1",
+      sets: s,
+    }
+  );
+
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.equal(s.exhaustedConnections.size, 0);
+  assert.ok(s.transientRateLimitedProviders.has("claude"));
+});
+
+test("native Claude cc alias minute throttles stay transient under the original combo key", () => {
+  const s = sets();
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
+    target({ provider: "cc", connectionId: "claude-conn-1", modelStr: "cc/claude-fable-5-1" }),
+    {
+      ...baseOpts,
+      result: { status: 429 },
+      fallbackResult: { reason: "rate_limited" },
+      errorText: "RPM usage limit exceeded",
+      rawModel: "claude-fable-5-1",
+      sets: s,
+    }
+  );
+
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.equal(s.exhaustedConnections.size, 0);
+  assert.deepEqual([...s.transientRateLimitedProviders], ["cc"]);
+});
+
+test("native Claude global quota evidence exhausts only the selected combo connection", () => {
+  const s = sets();
+  setQuotaCache("claude-conn-1", "claude", {
+    "weekly (7d)": {
+      remainingPercentage: 0,
+      resetAt: new Date(Date.now() + 120_000).toISOString(),
+      claudeQuota: {
+        kind: "weekly_all",
+        active: true,
+        severity: "critical",
+        scopeKey: null,
+        modelId: null,
+        modelDisplayName: null,
+      },
+    },
+  });
+
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
+    target({ provider: "claude", connectionId: "claude-conn-1" }),
+    {
+      ...baseOpts,
+      result: { status: 429 },
+      fallbackResult: { reason: "quota_exhausted" },
+      errorText: "This request would exceed your account's rate limit. Please try again later.",
+      rawModel: "claude-fable-5-1",
+      sets: s,
+    }
+  );
+
+  assert.equal(exhausted, true);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.ok(s.exhaustedConnections.has("claude:claude-conn-1"));
+  assert.equal(s.transientRateLimitedProviders.size, 0);
+});
+
 test("does NOT mark provider exhausted for empty provider strings", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target({ provider: "" }), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target({ provider: "" }), {
     ...baseOpts,
     result: { status: 503 },
     fallbackResult: { error: { code: "quota_exhausted" } },
@@ -216,7 +420,7 @@ test("does NOT mark provider exhausted for empty provider strings", () => {
 
 test("does NOT mark transientRateLimited on 429 when isTokenLimitBreach is true", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 429 },
     fallbackResult: {},
@@ -231,7 +435,7 @@ test("does NOT mark transientRateLimited on 429 when isTokenLimitBreach is true"
 
 test("does NOT mark anything for circuit-open (X-OmniRoute-Provider-Breaker header)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 503, headers: new Map([["x-omniroute-provider-breaker", "open"]]) },
     fallbackResult: {},
@@ -246,7 +450,7 @@ test("does NOT mark anything for circuit-open (X-OmniRoute-Provider-Breaker head
 
 test("does NOT mark exhaustion for non-connection-level status codes (400)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 400 },
     fallbackResult: {},
@@ -261,7 +465,7 @@ test("does NOT mark exhaustion for non-connection-level status codes (400)", () 
 
 test("does NOT mark connection exhausted for per-model-quota provider on 500 (gemini model-level error)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     target({ provider: "gemini", connectionId: "gemini-conn-1" }),
     {
       ...baseOpts,
@@ -282,7 +486,7 @@ test("does NOT mark connection exhausted for per-model-quota provider on 500 (ge
 // the connection, allowing sibling models on the same provider to be tried.
 test("gemini 500 INTERNAL (sanitized real response) does NOT exhaust connection — sibling retry", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     target({ provider: "gemini", connectionId: "gemini-key-abc" }),
     {
       ...baseOpts,
@@ -308,7 +512,7 @@ test("gemini 500 INTERNAL (sanitized real response) does NOT exhaust connection 
 // A 503 (Service Unavailable) means the upstream is down — retrying sibling models wastes calls.
 test("gemini 503 DOES exhaust connection (upstream down, not model-level)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     target({ provider: "gemini", connectionId: "gemini-key-abc" }),
     {
       ...baseOpts,
@@ -330,7 +534,7 @@ test("gemini 503 DOES exhaust connection (upstream down, not model-level)", () =
 
 test("gemini 502 DOES exhaust connection (bad gateway)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     target({ provider: "gemini", connectionId: "gemini-key-abc" }),
     {
       ...baseOpts,
@@ -403,7 +607,7 @@ test("generic upstream 504 without combo_target_timeout still exhausts the conne
 
 test("OmniRoute combo_target_timeout 504 does NOT exhaust connection or provider", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 504, headers: null },
     fallbackResult: {},
@@ -431,7 +635,7 @@ test("OmniRoute combo_target_timeout 504 does NOT exhaust connection or provider
 // connectionId is available.
 test("401 auth failure marks only that connection exhausted, not the whole provider (#8137)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 401 },
     fallbackResult: {},
@@ -453,7 +657,7 @@ test("401 auth failure marks only that connection exhausted, not the whole provi
 
 test("403 forbidden marks only that connection exhausted, not the whole provider (#8137)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     result: { status: 403 },
     fallbackResult: {},
@@ -467,13 +671,16 @@ test("403 forbidden marks only that connection exhausted, not the whole provider
 
 test("401 without a connectionId falls back to whole-provider exhaustion (#8133)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target({ connectionId: null }), {
-    ...baseOpts,
-    result: { status: 401 },
-    fallbackResult: {},
-    errorText: "Missing API key.",
-    sets: s,
-  });
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
+    target({ connectionId: null }),
+    {
+      ...baseOpts,
+      result: { status: 401 },
+      fallbackResult: {},
+      errorText: "Missing API key.",
+      sets: s,
+    }
+  );
   assert.equal(exhausted, true);
   assert.ok(
     s.exhaustedProviders.has("test-dedup-provider"),
@@ -484,13 +691,16 @@ test("401 without a connectionId falls back to whole-provider exhaustion (#8133)
 
 test("401 on unknown provider does NOT mark anything (guard)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target({ provider: "unknown" }), {
-    ...baseOpts,
-    result: { status: 401 },
-    fallbackResult: {},
-    errorText: "Missing API key.",
-    sets: s,
-  });
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
+    target({ provider: "unknown" }),
+    {
+      ...baseOpts,
+      result: { status: 401 },
+      fallbackResult: {},
+      errorText: "Missing API key.",
+      sets: s,
+    }
+  );
   assert.equal(exhausted, false, "unknown provider must not be marked exhausted");
   assert.equal(s.exhaustedProviders.size, 0);
   assert.equal(s.exhaustedConnections.size, 0);
@@ -498,7 +708,7 @@ test("401 on unknown provider does NOT mark anything (guard)", () => {
 
 test("401 on per-model-quota provider marks only the failing connection (auth is connection-scoped, not model-specific)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     target({ provider: "gemini", connectionId: "gemini-conn-1" }),
     {
       ...baseOpts,
@@ -524,7 +734,7 @@ test("Cloudflare 1010 (403 fingerprint rejection) does NOT mark auth-level exhau
   // calls, flips the pool to ALL_ACCOUNTS_INACTIVE. It must fall through to the
   // transient path (no exhaustion marking) so remaining targets still get tried.
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     errorText:
       '[openai/deepseek-v4-flash-free] [403]: {"type":"https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1010/","title":"Error 1010: Access denied","status":403,"detail":"The site owner has blocked access based on your browser\'s signature.","instance":"a283cb68eb52bda8","error_code":1010,"error_name":"browser_signature_banned"}',
@@ -547,7 +757,7 @@ test("Cloudflare 1010 (403 fingerprint rejection) does NOT mark auth-level exhau
 
 test("plain 403 still marks auth-level exhaustion (1010 detection is specific)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     errorText: "you do not have permission to access this model",
     result: { status: 403 },
@@ -562,7 +772,7 @@ test("Cloudflare 1010 arriving via structuredError (not raw errorText) still avo
   // The 1010 signal may surface in structuredError.message (nested JSON) while errorText
   // stays generic. The auth-level guard must inspect both, or the #1010 failure recurs.
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     errorText: "[403] forbidden",
     structuredError: { code: "browser_signature_banned" },
@@ -579,7 +789,7 @@ test("Cloudflare 1010 in structuredError.code survives a generic structuredError
   // NOT mask a 1010/browser_signature_banned signal carried in .code. The guard must check
   // every candidate string, not short-circuit on the first truthy one.
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     errorText: "You do not have permission",
     structuredError: { message: "Forbidden", code: "browser_signature_banned" },
@@ -598,7 +808,7 @@ test("Cloudflare 1010 via structuredError.type still avoids auth exhaustion", ()
   // combo.ts coerces upstream numeric codes via String() before building structuredError, so
   // the string form is the runtime contract this path must honor.
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     errorText: "Forbidden",
     structuredError: { message: "generic", type: "1010" },
@@ -621,7 +831,7 @@ test("structuredError code/type fingerprint match is case-insensitive like the t
     { code: "Fingerprint_Rejection" },
   ] as const) {
     const s = sets();
-    const exhausted = applyComboTargetExhaustion(target(), {
+    const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
       ...baseOpts,
       errorText: "Forbidden",
       structuredError,
@@ -639,7 +849,7 @@ test("Cloudflare 1010 inside a non-normalized structuredError.code still avoids 
   // the code field verbatim, so the exact token allowlist misses it and the shared text
   // matcher never saw code/type. Feed every candidate string to the text matcher.
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     errorText: "Forbidden",
     structuredError: { message: "generic", code: "error_code: 1010" },
@@ -697,7 +907,7 @@ test("grok-cli 402 marks only the empty connection, not the whole provider", () 
     modelStr: "grok-cli/grok-4.6",
   });
 
-  const exhausted = applyComboTargetExhaustion(empty, {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(empty, {
     ...baseOpts,
     result: { status: 402 },
     fallbackResult: { creditsExhausted: true, reason: "quota_exhausted" },
@@ -725,7 +935,7 @@ for (const provider of ["grok-web", "xai-oauth"] as const) {
       connectionId: "empty",
       modelStr: `${provider}/m`,
     });
-    const exhausted = applyComboTargetExhaustion(empty, {
+    const { providerExhausted: exhausted } = applyComboTargetExhaustion(empty, {
       ...baseOpts,
       result: { status: 402 },
       fallbackResult: {},
@@ -745,7 +955,7 @@ test("401 carrying a real fingerprint signal still marks auth-level (exemption i
   // mark auth-level exhaustion on the 401 — only a 403 earns the fingerprint exemption.
   // Otherwise a 401 echoing an upstream 1010 would leave a bad credential retryable.
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(target(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target(), {
     ...baseOpts,
     errorText: "error_code: 1010, token expired",
     result: { status: 401 },
@@ -758,7 +968,7 @@ test("401 carrying a real fingerprint signal still marks auth-level (exemption i
 
 test("403 on per-model-quota provider does NOT mark connection or provider exhausted (#14136)", () => {
   const s = sets();
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     target({ provider: "gemini", connectionId: "gemini-conn-1" }),
     {
       ...baseOpts,
@@ -794,7 +1004,7 @@ test("403 on vertex with model-scoped permission denial does NOT exhaust connect
       ],
     },
   });
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     target({ provider: "vertex", connectionId: "vertex-conn-1" }),
     {
       ...baseOpts,
@@ -822,7 +1032,7 @@ test("403 on vertex with connection-wide permission denial DOES exhaust connecti
       ],
     },
   });
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     target({ provider: "vertex", connectionId: "vertex-conn-1" }),
     {
       ...baseOpts,

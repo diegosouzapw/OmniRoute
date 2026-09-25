@@ -9,21 +9,10 @@
  * getClaudePlanLabel (__testing). Behavior-preserving move.
  */
 
-import { z } from "zod";
-import { safePercentage } from "@/shared/utils/formatting";
 import { getClaudeCodeVersion, fetchClaudeBootstrap } from "../../executors/claudeIdentity.ts";
 import { isClaudeOauthUsageCoolingDown, markClaudeOauthUsage429 } from "../claudeUsageCooldown.ts";
 import { toRecord } from "./scalars.ts";
-import { type UsageQuota, parseResetTime } from "./quota.ts";
-
-type JsonRecord = Record<string, unknown>;
-
-const FABLE_WEEKLY_LIMIT_SCHEMA = z.object({
-  kind: z.literal("weekly_scoped"),
-  percent: z.number().min(0).max(100),
-  resets_at: z.string().nullable().optional(),
-  scope: z.object({ model: z.object({ display_name: z.literal("Fable") }) }),
-});
+import { normalizeClaudeUsageQuotas } from "./claudeQuota.ts";
 
 // Claude API config
 const CLAUDE_CONFIG = {
@@ -90,59 +79,7 @@ export async function getClaudeUsage(accessToken?: string) {
 
     if (oauthResponse.ok) {
       const data = toRecord(await oauthResponse.json());
-      const quotas: Record<string, UsageQuota> = {};
-
-      // utilization = percentage USED (e.g., 90 means 90% used, 10% remaining)
-      // Confirmed via user report #299: Claude.ai shows 87% used = OmniRoute must show 13% remaining.
-      const hasUtilization = (window: JsonRecord) =>
-        window && typeof window === "object" && safePercentage(window.utilization) !== undefined;
-
-      const createQuotaObject = (window: JsonRecord) => {
-        const used = safePercentage(window.utilization) as number; // utilization = % used
-        const remaining = Math.max(0, 100 - used);
-        return {
-          used,
-          total: 100,
-          remaining,
-          resetAt: parseResetTime(window.resets_at),
-          remainingPercentage: remaining,
-          unlimited: false,
-        };
-      };
-
-      const fiveHour = toRecord(data.five_hour);
-      if (hasUtilization(fiveHour)) {
-        quotas["session (5h)"] = createQuotaObject(fiveHour);
-      }
-
-      const sevenDay = toRecord(data.seven_day);
-      if (hasUtilization(sevenDay)) {
-        quotas["weekly (7d)"] = createQuotaObject(sevenDay);
-      }
-
-      // Map Anthropic's internal codenames (e.g., omelette → Designer) for display.
-      const MODEL_DISPLAY_NAMES: Record<string, string> = {
-        omelette: "designer",
-      };
-      for (const [key, value] of Object.entries(data)) {
-        const valueRecord = toRecord(value);
-        if (key.startsWith("seven_day_") && key !== "seven_day" && hasUtilization(valueRecord)) {
-          const codename = key.replace("seven_day_", "");
-          const modelName = MODEL_DISPLAY_NAMES[codename] || codename;
-          quotas[`weekly ${modelName} (7d)`] = createQuotaObject(valueRecord);
-        }
-      }
-
-      // Display-only model limits must not enter account-wide routing quotas.
-      const modelQuotas: Record<string, UsageQuota> = {};
-      for (const limit of Array.isArray(data.limits) ? data.limits : []) {
-        const parsed = FABLE_WEEKLY_LIMIT_SCHEMA.safeParse(limit);
-        if (!parsed.success) continue;
-        modelQuotas["weekly fable (7d)"] = createQuotaObject({
-          utilization: parsed.data.percent,
-          resets_at: parsed.data.resets_at,
-        });
-      }
+      const { quotas, modelQuotas } = normalizeClaudeUsageQuotas(data);
 
       const bootstrap = await bootstrapPromise;
       const plan =

@@ -529,7 +529,7 @@ test("usage service covers Claude OAuth success, legacy fallback and permissions
   assert.equal(oauthUsage.plan, "Claude Max");
   assert.equal(oauthUsage.quotas["session (5h)"].remaining, 10);
   assert.equal(oauthUsage.quotas["weekly (7d)"].remaining, 80);
-  assert.equal(oauthUsage.quotas["weekly sonnet (7d)"].remaining, 65);
+  assert.equal(oauthUsage.modelQuotas["weekly sonnet (7d)"].remaining, 65);
   assert.deepEqual(oauthUsage.extraUsage, { queued: true });
 
   globalThis.fetch = async (url) => {

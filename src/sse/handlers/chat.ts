@@ -19,7 +19,6 @@ import {
 } from "../services/auth";
 import {
   getRuntimeProviderProfile,
-  shouldMarkAccountExhaustedFrom429,
   clearModelLock,
   lockModel,
   recordModelLockoutFailure,
@@ -142,7 +141,8 @@ import { isFeatureFlagEnabled, isRotationAttributionEnabled } from "@/shared/uti
 import * as agyLease from "../services/antigravityLeaseLifecycle";
 import { shouldIsolateProbeFailures } from "@/shared/utils/probeOrigin";
 import { getCircuitBreaker, isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
-import { markAccountExhaustedFrom429, markQuotaHealthy } from "../../domain/quotaCache";
+import { maybeMarkChatAccountExhaustedFrom429 } from "../services/chatQuotaExhaustion";
+import { markQuotaHealthy } from "../../domain/quotaCache";
 import { resolveForcedConnectionForCredentialPool } from "../services/sessionAffinityPin.ts";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
@@ -2424,26 +2424,16 @@ async function handleSingleModelChat(
         dailyQuotaExhausted = true;
       }
 
-      // 7. Mark account as quota-exhausted only for explicit long-window quota signals.
-      // A plain 429/high-traffic response should trigger fallback/cooldown, not poison
-      // quotaCache as exhausted for 5 minutes while usage quota may still be available.
       if (!dailyQuotaExhausted) {
-        const passthroughModels = credentials.providerSpecificData?.passthroughModels;
-        if (
-          result.status === 429 &&
-          shouldMarkAccountExhaustedFrom429(
-            provider,
-            model,
-            passthroughModels,
-            failureKind,
-            errorStr
-          ) &&
-          // T-PROBE: a probe must not poison the 5min quotaCache for real
-          // traffic (#9817).
-          !(await shouldIsolateProbeFailures())
-        ) {
-          markAccountExhaustedFrom429(credentials.connectionId, provider);
-        }
+        await maybeMarkChatAccountExhaustedFrom429({
+          connectionId: credentials.connectionId,
+          provider,
+          status: result.status,
+          errorText: errorStr,
+          model,
+          passthroughModels: credentials.providerSpecificData?.passthroughModels,
+          failureKind,
+        });
       }
 
       // #9708: retry a retryable pre-output transport failure once on the same

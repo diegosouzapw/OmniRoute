@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it, vi } from "vitest";
 import { parseQuotaData } from "@/app/(dashboard)/dashboard/usage/components/ProviderLimits/quotaParsing";
 import QuotaCardExpanded from "@/app/(dashboard)/dashboard/usage/components/ProviderLimits/parts/QuotaCardExpanded";
+import { normalizeClaudeUsageQuotas } from "../../open-sse/services/usage/claudeQuota";
 
 vi.mock("next-intl", () => ({
   useLocale: () => "en-US",
@@ -42,4 +43,53 @@ it("renders an exhausted Fable meter beside the independent shared windows", () 
   expect(root.querySelector('[title="weekly fable (7d)"]')?.textContent).toContain("0% left");
   expect(root.querySelector('[title="session (5h)"]')?.textContent).toContain("88% left");
   expect(root.querySelector('[title="weekly (7d)"]')?.textContent).toContain("66% left");
+});
+
+it("renders stable surface labels and row identities when limits reorder", () => {
+  const active = {
+    kind: "weekly_scoped",
+    percent: 100,
+    isActive: true,
+    severity: "critical",
+    resetsAt: "2099-09-10T16:00:00Z",
+    scope: { model: null, surface: { display_name: "Surface A" } },
+  };
+  const inactive = {
+    ...active,
+    percent: 20,
+    isActive: false,
+    severity: "normal",
+    scope: { model: null, surface: { display_name: "Surface B" } },
+  };
+  const titles: string[] = [];
+  for (const limits of [
+    [active, inactive],
+    [inactive, active],
+  ]) {
+    const quotas = parseQuotaData("claude", normalizeClaudeUsageQuotas({ limits }));
+    const root = document.createElement("div");
+    root.innerHTML = renderToStaticMarkup(
+      <QuotaCardExpanded
+        quotas={quotas}
+        providerId="claude"
+        loading={false}
+        error={null}
+        hasStaleData={false}
+        onRefresh={() => {}}
+        onOpenCutoff={() => {}}
+        onOpenCost={() => {}}
+        canEditCutoff={false}
+        hasCutoffOverrides={false}
+      />
+    );
+    const activeRow = [...root.querySelectorAll("[title]")].find((row) =>
+      row.textContent?.includes("Surface A")
+    );
+    expect(activeRow).toBeDefined();
+    expect(activeRow?.textContent).toContain("0% left");
+    expect(root.textContent).toContain("Surface B");
+    titles.push(activeRow?.getAttribute("title") ?? "");
+  }
+  expect(titles[0]).not.toBe("");
+  expect(titles[0]).toBe(titles[1]);
 });

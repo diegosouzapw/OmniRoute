@@ -1,0 +1,1 @@
+- **fix(sse):** Use fresh Anthropic scoped-limit evidence to isolate an exhausted native Claude model while keeping global or unproven quota failures connection-wide ([#13888](https://github.com/diegosouzapw/OmniRoute/pull/13888)) - thanks @riez

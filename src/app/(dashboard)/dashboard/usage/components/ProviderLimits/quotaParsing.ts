@@ -275,9 +275,15 @@ function parseClaude(data: any) {
   if (data?.message)
     return [{ name: "error", used: 0, total: 0, resetAt: null, message: data.message }];
 
-  const quotas = quotaEntries({ quotas: { ...data.quotas, ...data.modelQuotas } }).map(
-    ([name, quota]) => normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
-  );
+  const visibleQuotas = (
+    quotas: Record<string, { fractionReported?: boolean } | null> | null | undefined
+  ) =>
+    Object.fromEntries(
+      Object.entries(quotas ?? {}).filter(([, quota]) => quota?.fractionReported !== false)
+    );
+  const quotas = quotaEntries({
+    quotas: { ...visibleQuotas(data.quotas), ...visibleQuotas(data.modelQuotas) },
+  }).map(([name, quota]) => normalizeQuotaEntry(name, quota, { isPercentageOnly: true }));
 
   if (data?.extraUsage?.is_enabled) {
     quotas.push(buildClaudeExtraUsageQuota(data.extraUsage));

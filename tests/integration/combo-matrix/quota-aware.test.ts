@@ -23,9 +23,8 @@ const { BaseExecutor, combosDb, handleChat, buildRequest, seedConnection, resetS
 // Import quota / headroom seam hooks — must occur after the harness initialises
 // the DB so the module-level singletons inside quotaStrategies.ts are already live.
 const { registerQuotaFetcher } = await import("../../../open-sse/services/quotaPreflight.ts");
-const { __setHeadroomSaturationFetcherForTests } = await import(
-  "../../../open-sse/services/combo/quotaStrategies.ts"
-);
+const { __setHeadroomSaturationFetcherForTests } =
+  await import("../../../open-sse/services/combo/quotaStrategies.ts");
 
 function body(model: string) {
   return { model, stream: false, messages: [{ role: "user", content: "quota-aware route" }] };

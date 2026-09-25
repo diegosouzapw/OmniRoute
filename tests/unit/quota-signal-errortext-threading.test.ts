@@ -124,9 +124,9 @@ test("shouldMarkAccountExhaustedFrom429 lets a transient failureKind win over a 
  * production half of the patch could be reverted, or lost in a refactor, with the whole
  * suite green.
  *
- * `handleSingleModelChat` is not exported from `src/sse/handlers/chat.ts`, so the call
- * cannot be driven or spied without changing the production surface. A source-level
- * assertion is the precedent for that situation in this suite — see
+ * `handleSingleModelChat` is not exported from `src/sse/handlers/chat.ts`, so the calls
+ * cannot be driven or spied without changing the production surface. Source-level
+ * assertions are the precedent for that situation in this suite — see
  * `tests/unit/api-key-provider-quota-bypass-scope.test.ts`. Parse the argument list
  * rather than regex-matching the formatted text, so Prettier reflowing the call cannot
  * turn this guard into a false failure (or, worse, a false pass).
@@ -177,24 +177,42 @@ function callSiteArgs(source: string, fn: string): string[][] {
   return calls;
 }
 
-test("chat.ts forwards the upstream body as the 5th argument to shouldMarkAccountExhaustedFrom429", () => {
-  const source = fs.readFileSync(path.join(repoRoot, "src/sse/handlers/chat.ts"), "utf8");
-  const calls = callSiteArgs(source, "shouldMarkAccountExhaustedFrom429").filter(
+test("chat quota exhaustion forwards the upstream body through its extracted helper", () => {
+  const chatSource = fs.readFileSync(path.join(repoRoot, "src/sse/handlers/chat.ts"), "utf8");
+  const chatCalls = callSiteArgs(chatSource, "maybeMarkChatAccountExhaustedFrom429").filter(
     // Drop the `import { … }` specifier, which parses as a zero-argument "call".
     (args) => args.length > 0
   );
-
   assert.equal(
-    calls.length,
+    chatCalls.length,
     1,
-    "expected exactly one shouldMarkAccountExhaustedFrom429 call site in chat.ts; " +
-      "a new one must forward errorText too"
+    "expected exactly one maybeMarkChatAccountExhaustedFrom429 call site in chat.ts"
   );
-  assert.deepEqual(calls[0], ["provider", "model", "passthroughModels", "failureKind", "errorStr"]);
+  assert.match(chatCalls[0][0] ?? "", /errorText:\s*errorStr/);
+
+  const helperSource = fs.readFileSync(
+    path.join(repoRoot, "src/sse/services/chatQuotaExhaustion.ts"),
+    "utf8"
+  );
+  const helperCalls = callSiteArgs(helperSource, "shouldMarkAccountExhaustedFrom429").filter(
+    (args) => args.length > 0
+  );
+  assert.deepEqual(helperCalls, [
+    [
+      "input.provider",
+      "input.model",
+      "input.passthroughModels",
+      "input.failureKind",
+      "input.errorText",
+    ],
+  ]);
 
   // Pin what `errorStr` is, so the guard cannot pass on a same-named local that no longer
   // holds the upstream body (chat.ts:2282).
-  assert.match(source, /const errorStr = String\(result\.rawMessage \?\? result\.error \?\? ""\);/);
+  assert.match(
+    chatSource,
+    /const errorStr = String\(result\.rawMessage \?\? result\.error \?\? ""\);/
+  );
 });
 
 test.after(() => {

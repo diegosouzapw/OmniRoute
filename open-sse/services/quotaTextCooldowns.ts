@@ -41,9 +41,9 @@ export function isSubscriptionQuotaText(lower: string, provider?: string | null)
     lower.includes("plan's set usage limit") ||
     lower.includes("plan limit exceeded") ||
     lower.includes("usage limit exceeded") ||
-    // Native Claude OAuth uses this otherwise-generic 429 wording for an
-    // exhausted subscription window. Keep it provider-scoped: other upstreams
-    // can use the same phrase for a short RPM throttle.
+    // Native Claude uses this wording for a long-window quota 429. Fresh quota
+    // evidence decides model versus connection scope; other providers may use
+    // the same phrase for a short RPM throttle.
     (provider === "claude" && lower.includes("this request would exceed your account's rate limit"))
   );
 }
