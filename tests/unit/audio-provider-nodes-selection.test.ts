@@ -107,16 +107,23 @@ test("loopback nodes keep authType none so local engines need no key", () => {
   assert.equal(provider.authType, "none");
 });
 
-test("isLocalAudioNodeHost matches loopback and the Docker private range only", () => {
-  assert.equal(isLocalAudioNodeHost("http://localhost:1234"), true);
-  assert.equal(isLocalAudioNodeHost("http://127.0.0.1:1234"), true);
-  assert.equal(isLocalAudioNodeHost("http://172.17.0.2:1234"), true);
-  assert.equal(isLocalAudioNodeHost("http://172.15.0.2:1234"), false);
-  assert.equal(isLocalAudioNodeHost("http://172.32.0.2:1234"), false);
-  assert.equal(isLocalAudioNodeHost("https://stt.example.com"), false);
-  // ::1 stays excluded, matching the previous SSRF hardening.
-  assert.equal(isLocalAudioNodeHost("http://[::1]:1234"), false);
-  assert.equal(isLocalAudioNodeHost("not-a-url"), false);
+test("isLocalAudioNodeHost matches loopback and the Docker private range when no hosts are listed", () => {
+  const savedHosts = process.env.OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS;
+  delete process.env.OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS;
+  try {
+    assert.equal(isLocalAudioNodeHost("http://localhost:1234"), true);
+    assert.equal(isLocalAudioNodeHost("http://127.0.0.1:1234"), true);
+    assert.equal(isLocalAudioNodeHost("http://172.17.0.2:1234"), true);
+    assert.equal(isLocalAudioNodeHost("http://172.15.0.2:1234"), false);
+    assert.equal(isLocalAudioNodeHost("http://172.32.0.2:1234"), false);
+    assert.equal(isLocalAudioNodeHost("https://stt.example.com"), false);
+    // ::1 stays excluded, matching the previous SSRF hardening.
+    assert.equal(isLocalAudioNodeHost("http://[::1]:1234"), false);
+    assert.equal(isLocalAudioNodeHost("not-a-url"), false);
+  } finally {
+    if (savedHosts === undefined) delete process.env.OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS;
+    else process.env.OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS = savedHosts;
+  }
 });
 
 test("a node is addressable by prefix AND by its row id", () => {
