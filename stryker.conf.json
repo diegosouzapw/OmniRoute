@@ -518,7 +518,8 @@
       "tests/unit/codex-reasoning-replay-rejection.test.ts",
       "tests/unit/opencode-free-tier-combo-scoped-failure-14313.test.ts",
       "tests/unit/client-abort-propagates-upstream.test.ts",
-      "tests/unit/data-dir-private-perms.test.ts"
+      "tests/unit/data-dir-private-perms.test.ts",
+      "tests/unit/translation-failure-skips-account-cooldown-14815.test.ts"
     ],
     "nodeArgs": [
       "--import",
