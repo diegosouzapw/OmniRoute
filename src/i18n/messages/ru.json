@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Действительные записи не найдены. Проверьте формат и повторите попытку.",
     "bulkImportSuccess": "Импорт завершен: {created} создан, {updated} обновлен, {failed} не выполнен.",
     "bulkImportErrorLine": "Строка {line}: {reason}",
-    "bulkImportMaxExceeded": "Максимум 100 прокси на один импорт",
+    "bulkImportMaxExceeded": "Максимум {max} прокси на один импорт",
     "bulkImportPreview": "Предварительный просмотр",
     "clearAssignment": "(четкое задание)",
     "bulkProxyAssignment": "Массовое назначение прокси",

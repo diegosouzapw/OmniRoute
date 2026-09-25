@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "未找到有效條目。請檢查格式後重試。",
     "bulkImportSuccess": "匯入完成：已建立 {created} 個，已更新 {updated} 個，失敗 {failed} 個",
     "bulkImportErrorLine": "第 {line} 行：{reason}",
-    "bulkImportMaxExceeded": "每次最多匯入 100 個代理",
+    "bulkImportMaxExceeded": "每次最多匯入 {max} 個代理",
     "bulkImportPreview": "預覽",
     "clearAssignment": "（明確分配）",
     "bulkProxyAssignment": "批次代理分配",

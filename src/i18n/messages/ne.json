@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "कुनै मान्य प्रविष्टि फेला परेन। ढाँचा जाँच गरेर फेरि प्रयास गर्नुहोस्।",
     "bulkImportSuccess": "इम्पोर्ट पूरा भयो: {created} सिर्जना गरियो, {updated} अद्यावधिक गरियो, {failed} असफल भयो",
     "bulkImportErrorLine": "लाइन {line}: {reason}",
-    "bulkImportMaxExceeded": "प्रति इम्पोर्ट अधिकतम 100 प्रोक्सीहरू",
+    "bulkImportMaxExceeded": "प्रति इम्पोर्ट अधिकतम {max} प्रोक्सीहरू",
     "bulkImportPreview": "पूर्वावलोकन",
     "clearAssignment": "(असाइनमेन्ट हटाउनुहोस्)",
     "bulkProxyAssignment": "बल्क प्रोक्सी असाइनमेन्ट",

@@ -22,6 +22,7 @@ import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/
 import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import { type JsonRecord, toRecord } from "./settings/shared";
 import { resolveNoAuthSharedProviderProxy } from "./settings/noAuthProxyFallback";
+import { PROXY_BULK_IMPORT_LIMIT_DEFAULT } from "@/shared/constants/proxyBulkImport";
 
 type ProxyValue = JsonRecord | string | null;
 type ProxyResolutionResult = {
@@ -170,6 +171,9 @@ export async function getSettings() {
     // ProviderLimits/utils.tsx) — this is a personal view preference, not an
     // admin model-catalog edit. Ported from upstream decolua/9router#2371.
     quotaVisibility: {},
+    // #13917: operator-configurable ceiling for POST /api/settings/proxies/bulk-import.
+    // Resolved through resolveProxyBulkImportLimit at both enforcement points.
+    proxyBulkImportLimit: PROXY_BULK_IMPORT_LIMIT_DEFAULT,
     requestRetry: 3,
     maxRetryIntervalSec: 30,
     antigravitySignatureCacheMode: "enabled",

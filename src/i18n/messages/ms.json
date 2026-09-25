@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Tiada entri yang sah ditemui. Semak format dan cuba lagi.",
     "bulkImportSuccess": "Import selesai: {created} dibuat, {updated} dikemas kini, {failed} gagal",
     "bulkImportErrorLine": "Baris {line}: {reason}",
-    "bulkImportMaxExceeded": "Maksimum 100 proksi setiap import",
+    "bulkImportMaxExceeded": "Maksimum {max} proksi setiap import",
     "bulkImportPreview": "Pratonton",
     "clearAssignment": "(tugasan yang jelas)",
     "bulkProxyAssignment": "Tugasan Proksi Pukal",

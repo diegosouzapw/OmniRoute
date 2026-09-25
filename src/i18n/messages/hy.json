@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Վավեր գրառումներ չեն գտնվել։ Ստուգեք ձևաչափը և կրկին փորձեք։",
     "bulkImportSuccess": "Ներմուծումն ավարտված է․ ստեղծվել է՝ {created}, թարմացվել է՝ {updated}, ձախողվել է՝ {failed}",
     "bulkImportErrorLine": "Տող {line}․ {reason}",
-    "bulkImportMaxExceeded": "Մեկ ներմուծման համար առավելագույնը՝ 100 պրոքսի",
+    "bulkImportMaxExceeded": "Մեկ ներմուծման համար առավելագույնը՝ {max} պրոքսի",
     "bulkImportPreview": "Նախադիտում",
     "clearAssignment": "(մաքրել վերագրումը)",
     "bulkProxyAssignment": "Պրոքսիների զանգվածային վերագրում",

@@ -1,4 +1,9 @@
+import { useEffect, useState } from "react";
 import { z } from "zod";
+import {
+  PROXY_BULK_IMPORT_LIMIT_DEFAULT,
+  resolveProxyBulkImportLimit,
+} from "@/shared/constants/proxyBulkImport";
 import type { HealthInfo, UsageInfo } from "./proxyRegistryConstants";
 
 type SetState<T> = (value: T | ((previous: T) => T)) => void;
@@ -75,4 +80,35 @@ export async function loadProxyUsage(
   } catch {
     // Ignore usage-loading errors in the UI.
   }
+}
+
+/**
+ * #13917: the bulk-import ceiling is an operator setting, so the pre-flight check
+ * in the UI has to read the same number the API enforces rather than hardcode 100.
+ *
+ * Lives here rather than in ProxyRegistryManager for the reason the file-size
+ * baseline records for #13581: that component is frozen, so anything that can sit
+ * outside it should. Only the call site is irreducible.
+ *
+ * A failed or slow settings read leaves the default in place, which is exactly the
+ * previous behaviour — and the server still enforces the real limit either way, so
+ * this value is a courtesy to the operator, never the boundary.
+ */
+export function useProxyBulkImportLimit(): number {
+  const [limit, setLimit] = useState(PROXY_BULK_IMPORT_LIMIT_DEFAULT);
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((cfg) => {
+        if (cfg && !cancelled) setLimit(resolveProxyBulkImportLimit(cfg.proxyBulkImportLimit));
+      })
+      .catch(() => {
+        /* keep the default; the server still enforces the real limit */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return limit;
 }

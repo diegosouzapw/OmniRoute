@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "အကျုံးဝင်သော အချက်အလက်များ မတွေ့ပါ။ ဖော်မတ်ကို စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။",
     "bulkImportSuccess": "တင်သွင်းမှု ပြီးပါပြီ− {created} ခု ဖန်တီးခဲ့သည်၊ {updated} ခု အပ်ဒိတ်လုပ်ခဲ့သည်၊ {failed} ခု မအောင်မြင်ပါ",
     "bulkImportErrorLine": "စာကြောင်း {line}− {reason}",
-    "bulkImportMaxExceeded": "တစ်ကြိမ်တင်သွင်းလျှင် ပရောက်စီ 100 ခုအထိသာ",
+    "bulkImportMaxExceeded": "တစ်ကြိမ်တင်သွင်းလျှင် ပရောက်စီ {max} ခုအထိသာ",
     "bulkImportPreview": "အစမ်းကြည့်ရန်",
     "clearAssignment": "(သတ်မှတ်မှုကို ရှင်းလင်းရန်)",
     "bulkProxyAssignment": "ပရောက်စီများကို အစုလိုက် သတ်မှတ်ခြင်း",

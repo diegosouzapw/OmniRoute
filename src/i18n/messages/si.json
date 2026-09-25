@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "වලංගු ඇතුළත් කිරීම් හමු නොවීය. ආකෘතිය පරීක්ෂා කර නැවත උත්සාහ කරන්න.",
     "bulkImportSuccess": "ආයාතය සම්පූර්ණයි: {created}ක් සාදන ලදී, {updated}ක් යාවත්කාලීන කරන ලදී, {failed}ක් අසමත් විය",
     "bulkImportErrorLine": "පේළිය {line}: {reason}",
-    "bulkImportMaxExceeded": "එක් ආයාතයකට උපරිම ප්රොක්සි 100ක්",
+    "bulkImportMaxExceeded": "එක් ආයාතයකට උපරිම ප්රොක්සි {max}ක්",
     "bulkImportPreview": "පෙරදසුන",
     "clearAssignment": "(පැවරීම ඉවත් කරන්න)",
     "bulkProxyAssignment": "ප්රොක්සි තොග පැවරීම",

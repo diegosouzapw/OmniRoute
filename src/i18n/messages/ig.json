@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Ahụghị ndenye ọ bụla ziri ezi. Lelee usoro ahụ ma nwaa ọzọ.",
     "bulkImportSuccess": "Mbubata agwụla: e kere {created}, emelitere {updated}, {failed} dara",
     "bulkImportErrorLine": "Ahịrị {line}: {reason}",
-    "bulkImportMaxExceeded": "Oke kachasị bụ proksi 100 n'otu mbubata",
+    "bulkImportMaxExceeded": "Oke kachasị bụ proksi {max} n'otu mbubata",
     "bulkImportPreview": "Nlele mbụ",
     "clearAssignment": "(wepụ nkesa)",
     "bulkProxyAssignment": "Nkesa Proksi n'Otù",

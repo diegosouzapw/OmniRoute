@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "រកមិនឃើញធាតុត្រឹមត្រូវទេ។ សូមពិនិត្យទម្រង់ ហើយព្យាយាមម្ដងទៀត។",
     "bulkImportSuccess": "ការនាំចូលបានបញ្ចប់៖ បានបង្កើត {created}, បានធ្វើបច្ចុប្បន្នភាព {updated}, បានបរាជ័យ {failed}",
     "bulkImportErrorLine": "បន្ទាត់ {line}៖ {reason}",
-    "bulkImportMaxExceeded": "អាចនាំចូលប្រូកស៊ីបានអតិបរមា 100 ក្នុងមួយលើក",
+    "bulkImportMaxExceeded": "អាចនាំចូលប្រូកស៊ីបានអតិបរមា {max} ក្នុងមួយលើក",
     "bulkImportPreview": "មើលជាមុន",
     "clearAssignment": "(លុបការកំណត់)",
     "bulkProxyAssignment": "កំណត់ប្រូកស៊ីជាច្រើនក្នុងពេលតែមួយ",

@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Inga giltiga poster hittades. Kontrollera formatet och försök igen.",
     "bulkImportSuccess": "Importen slutförd: {created} skapad, {updated} uppdaterad, {failed} misslyckades",
     "bulkImportErrorLine": "Rad {line}: {reason}",
-    "bulkImportMaxExceeded": "Max 100 fullmakter per import",
+    "bulkImportMaxExceeded": "Max {max} fullmakter per import",
     "bulkImportPreview": "Förhandsgranska",
     "clearAssignment": "(tydlig uppgift)",
     "bulkProxyAssignment": "Bulk proxytilldelning",

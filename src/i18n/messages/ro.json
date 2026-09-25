@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Nu s-au găsit intrări valide. Verificați formatul și încercați din nou.",
     "bulkImportSuccess": "Import finalizat: {created} creat, {updated} actualizat, {failed} eșuat",
     "bulkImportErrorLine": "Linia {line}: {reason}",
-    "bulkImportMaxExceeded": "Maximum 100 de proxy per import",
+    "bulkImportMaxExceeded": "Maximum {max} de proxy per import",
     "bulkImportPreview": "Previzualizare",
     "clearAssignment": "(sarcina clară)",
     "bulkProxyAssignment": "Atribuire proxy în bloc",

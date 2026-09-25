@@ -15,6 +15,7 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 import { PROXY_REGISTRY_STATUS_VALUES } from "@/shared/constants/proxyRegistryStatus";
+import { PROXY_BULK_IMPORT_LIMIT_DEFAULT } from "@/shared/constants/proxyBulkImport";
 
 export const proxyConfigSchema = z
   .object({
@@ -168,14 +169,30 @@ export const updateProxyRegistrySchema = partialWithoutDefaults(proxyRegistryFie
   })
   .strict();
 
-export const bulkImportProxiesSchema = z
-  .object({
-    items: z
-      .array(proxyRegistryFieldsSchema)
-      .min(1, "At least one proxy is required")
-      .max(100, "Maximum 100 proxies per import"),
-  })
-  .strict();
+/**
+ * Bulk-import schema for a specific limit (#13917).
+ *
+ * A factory rather than a constant because the limit is an operator setting and
+ * Zod bakes `.max()` in at construction. The caller resolves the configured
+ * value and builds the schema per request, so the server can never validate
+ * against a different number than the dashboard showed.
+ */
+export function makeBulkImportProxiesSchema(limit: number) {
+  return z
+    .object({
+      items: z
+        .array(proxyRegistryFieldsSchema)
+        .min(1, "At least one proxy is required")
+        .max(limit, `Maximum ${limit} proxies per import`),
+    })
+    .strict();
+}
+
+/**
+ * Default-limit schema, kept so existing importers and tests that do not care
+ * about the setting keep working unchanged.
+ */
+export const bulkImportProxiesSchema = makeBulkImportProxiesSchema(PROXY_BULK_IMPORT_LIMIT_DEFAULT);
 
 export const proxyAssignmentSchema = z
   .object({

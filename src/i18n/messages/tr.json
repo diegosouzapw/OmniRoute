@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Geçerli giriş bulunamadı. Formatı kontrol edip tekrar deneyin.",
     "bulkImportSuccess": "İçe aktarma tamamlandı: {created} oluşturuldu, {updated} güncellendi, {failed} başarısız oldu",
     "bulkImportErrorLine": "Satır {line}: {reason}",
-    "bulkImportMaxExceeded": "İçe aktarma başına maksimum 100 proxy",
+    "bulkImportMaxExceeded": "İçe aktarma başına maksimum {max} proxy",
     "bulkImportPreview": "Önizleme",
     "clearAssignment": "(açık atama)",
     "bulkProxyAssignment": "Toplu Vekalet Ataması",

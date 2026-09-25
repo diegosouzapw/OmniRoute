@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Kelvollisia merkintöjä ei löytynyt. Tarkista muoto ja yritä uudelleen.",
     "bulkImportSuccess": "Tuonti valmis: {created} luotu, {updated} päivitetty, {failed} epäonnistui",
     "bulkImportErrorLine": "Rivi {line}: {reason}",
-    "bulkImportMaxExceeded": "Enintään 100 välityspalvelinta tuontia kohden",
+    "bulkImportMaxExceeded": "Enintään {max} välityspalvelinta tuontia kohden",
     "bulkImportPreview": "Esikatselu",
     "clearAssignment": "(selkeä tehtävä)",
     "bulkProxyAssignment": "Joukkovälityspalvelimen määritys",

@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Няма намерени валидни записи. Проверете формата и опитайте отново.",
     "bulkImportSuccess": "Импортирането завърши: {created} създаден, {updated} актуализиран, {failed} неуспешен",
     "bulkImportErrorLine": "Ред {line}: {reason}",
-    "bulkImportMaxExceeded": "Максимум 100 проксита на импортиране",
+    "bulkImportMaxExceeded": "Максимум {max} проксита на импортиране",
     "bulkImportPreview": "Преглед",
     "clearAssignment": "(чисто задание)",
     "bulkProxyAssignment": "Групово присвояване на прокси",

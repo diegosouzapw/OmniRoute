@@ -30,6 +30,7 @@ import {
   loadProxyHealth,
   loadProxyUsage,
   repairRelayResponseSchema,
+  useProxyBulkImportLimit,
 } from "./proxyRegistryData";
 
 export default function ProxyRegistryManager({
@@ -84,6 +85,7 @@ export default function ProxyRegistryManager({
   const [bulkImportSkipped, setBulkImportSkipped] = useState(0);
   const [bulkImportParsedOnce, setBulkImportParsedOnce] = useState(false);
   const [bulkImporting, setBulkImporting] = useState(false);
+  const bulkImportLimit = useProxyBulkImportLimit(); // #13917
   const [bulkImportResult, setBulkImportResult] = useState<{
     created: number;
     updated: number;
@@ -563,8 +565,8 @@ export default function ProxyRegistryManager({
 
   const handleBulkImportExecute = async () => {
     if (bulkImportParsed.length === 0) return;
-    if (bulkImportParsed.length > 100) {
-      setError(t("bulkImportMaxExceeded"));
+    if (bulkImportParsed.length > bulkImportLimit) {
+      setError(t("bulkImportMaxExceeded", { max: bulkImportLimit }));
       return;
     }
 

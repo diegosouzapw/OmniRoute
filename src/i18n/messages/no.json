@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Ingen gyldige oppføringer funnet. Sjekk formatet og prøv igjen.",
     "bulkImportSuccess": "Import fullført: {created} opprettet, {updated} oppdatert, {failed} mislyktes",
     "bulkImportErrorLine": "Linje {line}: {reason}",
-    "bulkImportMaxExceeded": "Maksimalt 100 fullmakter per import",
+    "bulkImportMaxExceeded": "Maksimalt {max} fullmakter per import",
     "bulkImportPreview": "Forhåndsvisning",
     "clearAssignment": "(klar oppdrag)",
     "bulkProxyAssignment": "Bulk proxy-tildeling",

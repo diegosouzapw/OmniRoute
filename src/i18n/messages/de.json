@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Keine gültigen Einträge gefunden. Überprüfen Sie das Format und versuchen Sie es erneut.",
     "bulkImportSuccess": "Import abgeschlossen: {created} erstellt, {updated} aktualisiert, {failed} fehlgeschlagen",
     "bulkImportErrorLine": "Zeile {line}: {reason}",
-    "bulkImportMaxExceeded": "Maximal 100 Proxys pro Import",
+    "bulkImportMaxExceeded": "Maximal {max} Proxys pro Import",
     "bulkImportPreview": "Vorschau",
     "clearAssignment": "(klare Zuordnung)",
     "bulkProxyAssignment": "Massen-Proxy-Zuweisung",

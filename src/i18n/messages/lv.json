@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Nav atrasti derīgi ieraksti. Pārbaudiet formātu un mēģiniet vēlreiz.",
     "bulkImportSuccess": "Importēšana pabeigta: izveidoti — {created}, atjaunināti — {updated}, neizdevās — {failed}",
     "bulkImportErrorLine": "{line}. rinda: {reason}",
-    "bulkImportMaxExceeded": "Vienā reizē var importēt ne vairāk kā 100 starpniekserveru",
+    "bulkImportMaxExceeded": "Maksimums {max} starpniekserveri vienā importā",
     "bulkImportPreview": "Priekšskatījums",
     "clearAssignment": "(notīrīt piešķīrumu)",
     "bulkProxyAssignment": "Masveida starpniekserveru piešķiršana",

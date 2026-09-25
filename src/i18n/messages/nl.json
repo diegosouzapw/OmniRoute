@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Geen geldige vermeldingen gevonden. Controleer het formaat en probeer het opnieuw.",
     "bulkImportSuccess": "Import voltooid: {created} gemaakt, {updated} bijgewerkt, {failed} mislukt",
     "bulkImportErrorLine": "Regel {line}: {reason}",
-    "bulkImportMaxExceeded": "Maximaal 100 proxy's per import",
+    "bulkImportMaxExceeded": "Maximaal {max} proxy's per import",
     "bulkImportPreview": "Voorbeeld",
     "clearAssignment": "(duidelijke opdracht)",
     "bulkProxyAssignment": "Bulkproxytoewijzing",

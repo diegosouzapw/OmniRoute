@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "A kò rí àkọsílẹ̀ tó péye. Ṣàyẹ̀wò ọ̀nà ìṣètò náà kí o sì gbìyànjú lẹ́ẹ̀kan sí i.",
     "bulkImportSuccess": "Ìṣàgbéwọlé ti parí: a ṣẹ̀dá {created}, a ṣe ìmúdójúìwọ̀n {updated}, {failed} kùnà",
     "bulkImportErrorLine": "Ìlà {line}: {reason}",
-    "bulkImportMaxExceeded": "Proxy 100 ni ó pọ̀ jù fún ìṣàgbéwọlé kọ̀ọ̀kan",
+    "bulkImportMaxExceeded": "Prọ́ṣì {max} ni ó pọ̀ jù fún ìṣàgbéwọlé kọ̀ọ̀kan",
     "bulkImportPreview": "Àwòtẹ́lẹ̀",
     "clearAssignment": "(yọ ìyàn kúrò)",
     "bulkProxyAssignment": "Ìyàn Prọ́ṣì Ní Ọ̀pọ̀lọpọ̀",

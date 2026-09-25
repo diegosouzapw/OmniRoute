@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Nem található érvényes bejegyzés. Ellenőrizze a formátumot, és próbálja újra.",
     "bulkImportSuccess": "Az importálás befejeződött: {created} létrehozva, {updated} frissítve, {failed} sikertelen",
     "bulkImportErrorLine": "{line}. sor: {reason}",
-    "bulkImportMaxExceeded": "Legfeljebb 100 proxy importálásonként",
+    "bulkImportMaxExceeded": "Legfeljebb {max} proxy importálásonként",
     "bulkImportPreview": "Előnézet",
     "clearAssignment": "(tiszta feladat)",
     "bulkProxyAssignment": "Tömeges proxy-hozzárendelés",

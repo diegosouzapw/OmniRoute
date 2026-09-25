@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "કોઈ માન્ય એન્ટ્રીઓ મળી નથી. ફોર્મેટ તપાસો અને ફરી પ્રયાસ કરો.",
     "bulkImportSuccess": "આયાત પૂર્ણ: {created} બનાવ્યું, {updated} અપડેટ થયું, {failed} નિષ્ફળ થયું",
     "bulkImportErrorLine": "રેખા {line}: {reason}",
-    "bulkImportMaxExceeded": "આયાત દીઠ મહત્તમ 100 પ્રોક્સી",
+    "bulkImportMaxExceeded": "આયાત દીઠ મહત્તમ {max} પ્રોક્સી",
     "bulkImportPreview": "પૂર્વાવલોકન",
     "clearAssignment": "(સ્પષ્ટ સોંપણી)",
     "bulkProxyAssignment": "બલ્ક પ્રોક્સી અસાઇનમેન્ટ",

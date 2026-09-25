@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Không tìm thấy mục hợp lệ nào. Hãy kiểm tra định dạng và thử lại.",
     "bulkImportSuccess": "Nhập hoàn tất: {created} đã tạo, {updated} đã cập nhật, {failed} thất bại",
     "bulkImportErrorLine": "Dòng {line}: {reason}",
-    "bulkImportMaxExceeded": "Tối đa 100 proxy cho mỗi lần nhập",
+    "bulkImportMaxExceeded": "Tối đa {max} proxy cho mỗi lần nhập",
     "bulkImportPreview": "Xem trước",
     "clearAssignment": "(xóa gán)",
     "bulkProxyAssignment": "Gán proxy hàng loạt",

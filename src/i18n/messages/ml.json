@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "സാധുവായ എൻട്രികളൊന്നും കണ്ടെത്തിയില്ല. ഫോർമാറ്റ് പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.",
     "bulkImportSuccess": "ഇംപോർട്ട് പൂർത്തിയായി: {created} സൃഷ്ടിച്ചു, {updated} അപ്ഡേറ്റ് ചെയ്തു, {failed} പരാജയപ്പെട്ടു",
     "bulkImportErrorLine": "വരി {line}: {reason}",
-    "bulkImportMaxExceeded": "ഓരോ ഇംപോർട്ടിലും പരമാവധി 100 പ്രോക്സികൾ",
+    "bulkImportMaxExceeded": "ഓരോ ഇംപോർട്ടിലും പരമാവധി {max} പ്രോക്സികൾ",
     "bulkImportPreview": "പ്രിവ്യൂ",
     "clearAssignment": "(അസൈൻമെന്റ് മായ്ക്കുക)",
     "bulkProxyAssignment": "ബൾക്ക് പ്രോക്സി അസൈൻമെന്റ്",

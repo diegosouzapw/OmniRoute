@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Ma nstabet l-ebda entrata valida. Iċċekkja l-format u erġa’ pprova.",
     "bulkImportSuccess": "L-importazzjoni tlestiet: {created} inħolqu, {updated} ġew aġġornati, {failed} fallew",
     "bulkImportErrorLine": "Linja {line}: {reason}",
-    "bulkImportMaxExceeded": "Massimu ta’ 100 proxy għal kull importazzjoni",
+    "bulkImportMaxExceeded": "Massimu ta’ {max} proxy għal kull importazzjoni",
     "bulkImportPreview": "Previżjoni",
     "clearAssignment": "(neħħi l-assenjazzjoni)",
     "bulkProxyAssignment": "Assenjazzjoni tal-Proxy bil-Massa",

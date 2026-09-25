@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Nessuna voce valida trovata. Controlla il formato e riprova.",
     "bulkImportSuccess": "Importazione completata: {created} creato, {updated} aggiornato, {failed} non riuscito",
     "bulkImportErrorLine": "Linea {line}: {reason}",
-    "bulkImportMaxExceeded": "Massimo 100 proxy per importazione",
+    "bulkImportMaxExceeded": "Massimo {max} proxy per importazione",
     "bulkImportPreview": "Anteprima",
     "clearAssignment": "(incarico chiaro)",
     "bulkProxyAssignment": "Assegnazione di proxy in blocco",

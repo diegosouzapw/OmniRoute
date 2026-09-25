@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Ni veljavnih vnosov. Preverite obliko in poskusite znova.",
     "bulkImportSuccess": "Uvoz končan: ustvarjenih {created}, posodobljenih {updated}, neuspešnih {failed}",
     "bulkImportErrorLine": "Vrstica {line}: {reason}",
-    "bulkImportMaxExceeded": "Največ 100 posredniških strežnikov na uvoz",
+    "bulkImportMaxExceeded": "Največ {max} posredniških strežnikov na uvoz",
     "bulkImportPreview": "Predogled",
     "clearAssignment": "(počisti dodelitev)",
     "bulkProxyAssignment": "Množično dodeljevanje posredniških strežnikov",

@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Yaroqli yozuvlar topilmadi. Formatni tekshirib, qayta urinib ko‘ring.",
     "bulkImportSuccess": "Import yakunlandi: {created} ta yaratildi, {updated} ta yangilandi, {failed} ta bajarilmadi",
     "bulkImportErrorLine": "{line}-qator: {reason}",
-    "bulkImportMaxExceeded": "Har bir import uchun ko‘pi bilan 100 ta proksi",
+    "bulkImportMaxExceeded": "Har bir import uchun ko‘pi bilan {max} ta proksi",
     "bulkImportPreview": "Oldindan ko‘rish",
     "clearAssignment": "(tayinlovni tozalash)",
     "bulkProxyAssignment": "Proksilarni ommaviy tayinlash",

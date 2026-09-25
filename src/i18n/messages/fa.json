@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "هیچ ورودی معتبری یافت نشد قالب را بررسی کنید و دوباره امتحان کنید.",
     "bulkImportSuccess": "وارد کردن کامل شد: {created} ایجاد شد، {updated} به‌روزرسانی شد، {failed} انجام نشد",
     "bulkImportErrorLine": "خط {line}: {reason}",
-    "bulkImportMaxExceeded": "حداکثر 100 پراکسی در هر واردات",
+    "bulkImportMaxExceeded": "حداکثر {max} پراکسی در هر واردات",
     "bulkImportPreview": "پیش نمایش",
     "clearAssignment": "(تکلیف روشن)",
     "bulkProxyAssignment": "تخصیص انبوه پروکسی",

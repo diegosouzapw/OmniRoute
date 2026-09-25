@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Tinkamų įrašų nerasta. Patikrinkite formatą ir bandykite dar kartą.",
     "bulkImportSuccess": "Importavimas baigtas: sukurta – {created}, atnaujinta – {updated}, nepavyko – {failed}",
     "bulkImportErrorLine": "Eilutė {line}: {reason}",
-    "bulkImportMaxExceeded": "Vienu kartu galima importuoti ne daugiau kaip 100 tarpinių serverių",
+    "bulkImportMaxExceeded": "Vienu kartu galima importuoti ne daugiau kaip {max} tarpinių serverių",
     "bulkImportPreview": "Peržiūra",
     "clearAssignment": "(išvalyti priskyrimą)",
     "bulkProxyAssignment": "Masinis tarpinių serverių priskyrimas",

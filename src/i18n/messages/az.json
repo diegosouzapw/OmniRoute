@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Etibarlı qeyd tapılmadı. Formatı yoxlayıb yenidən cəhd edin.",
     "bulkImportSuccess": "İdxal tamamlandı: {created} yaradıldı, {updated} yeniləndi, {failed} uğursuz oldu",
     "bulkImportErrorLine": "Sətir {line}: {reason}",
-    "bulkImportMaxExceeded": "Hər idxal üçün maksimum 100 proksi",
+    "bulkImportMaxExceeded": "Hər idxal üçün maksimum {max} proksi",
     "bulkImportPreview": "Önizləmə",
     "clearAssignment": "(aydın tapşırıq)",
     "bulkProxyAssignment": "Toplu Proksi Təyinatı",

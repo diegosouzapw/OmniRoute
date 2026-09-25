@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "לא נמצאו ערכים חוקיים. בדוק את הפורמט ונסה שוב.",
     "bulkImportSuccess": "הייבוא הושלם: {created} נוצר, {updated} עודכן, {failed} נכשל",
     "bulkImportErrorLine": "שורה {line}: {reason}",
-    "bulkImportMaxExceeded": "מקסימום 100 פרוקסי לכל ייבוא",
+    "bulkImportMaxExceeded": "מקסימום {max} פרוקסי לכל ייבוא",
     "bulkImportPreview": "תצוגה מקדימה",
     "clearAssignment": "(הקצאה ברורה)",
     "bulkProxyAssignment": "הקצאת פרוקסי בכמות גדולה",

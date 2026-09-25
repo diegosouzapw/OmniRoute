@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "No se encontraron entradas válidas. Comprueba el formato y vuelve a intentarlo.",
     "bulkImportSuccess": "Importación completa: {created} creado, {updated} actualizado, {failed} fallido",
     "bulkImportErrorLine": "Línea {line}: {reason}",
-    "bulkImportMaxExceeded": "Máximo 100 proxies por importación",
+    "bulkImportMaxExceeded": "Máximo {max} proxies por importación",
     "bulkImportPreview": "Vista previa",
     "clearAssignment": "(asignación clara)",
     "bulkProxyAssignment": "Asignación de proxy masiva",

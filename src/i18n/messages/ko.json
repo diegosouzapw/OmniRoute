@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "유효한 항목을 찾을 수 없습니다. 형식을 확인하고 다시 시도하세요.",
     "bulkImportSuccess": "가져오기 완료: {created} 생성됨, {updated} 업데이트됨, {failed} 실패",
     "bulkImportErrorLine": "{line} 라인: {reason}",
-    "bulkImportMaxExceeded": "가져오기당 최대 100개의 프록시",
+    "bulkImportMaxExceeded": "가져오기당 최대 {max}개의 프록시",
     "bulkImportPreview": "미리보기",
     "clearAssignment": "(할당 지우기)",
     "bulkProxyAssignment": "대량 프록시 할당",

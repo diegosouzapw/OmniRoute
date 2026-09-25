@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "কোনো বৈধ এন্ট্রি পাওয়া যায়নি. বিন্যাস পরীক্ষা করুন এবং আবার চেষ্টা করুন.",
     "bulkImportSuccess": "আমদানি সম্পূর্ণ হয়েছে: {created} তৈরি হয়েছে, {updated} আপডেট হয়েছে, {failed} ব্যর্থ হয়েছে",
     "bulkImportErrorLine": "লাইন {line}: {reason}",
-    "bulkImportMaxExceeded": "প্রতি আমদানি সর্বোচ্চ 100টি প্রক্সি",
+    "bulkImportMaxExceeded": "প্রতি আমদানি সর্বোচ্চ {max}টি প্রক্সি",
     "bulkImportPreview": "পূর্বরূপ",
     "clearAssignment": "(স্পষ্ট অ্যাসাইনমেন্ট)",
     "bulkProxyAssignment": "বাল্ক প্রক্সি অ্যাসাইনমেন্ট",

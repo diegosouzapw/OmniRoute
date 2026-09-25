@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Walang nakitang wastong mga entry. Suriin ang format at subukang muli.",
     "bulkImportSuccess": "Kumpleto na ang pag-import: {created} ginawa, {updated} na-update, {failed} ay nabigo",
     "bulkImportErrorLine": "Linya {line}: {reason}",
-    "bulkImportMaxExceeded": "Maximum na 100 proxy bawat pag-import",
+    "bulkImportMaxExceeded": "Maximum na {max} proxy bawat pag-import",
     "bulkImportPreview": "Silipin",
     "clearAssignment": "(malinaw na takdang-aralin)",
     "bulkProxyAssignment": "Maramihang Pagtatalaga ng Proxy",

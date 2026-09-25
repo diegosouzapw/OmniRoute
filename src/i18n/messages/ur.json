@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "کوئی درست اندراجات نہیں ملے۔ فارمیٹ چیک کریں اور دوبارہ کوشش کریں۔",
     "bulkImportSuccess": "درآمد مکمل: {created} بنایا گیا، {updated} اپ ڈیٹ، {failed} ناکام",
     "bulkImportErrorLine": "لائن {line}: {reason}",
-    "bulkImportMaxExceeded": "زیادہ سے زیادہ 100 پراکسی فی درآمد",
+    "bulkImportMaxExceeded": "زیادہ سے زیادہ {max} پراکسی فی درآمد",
     "bulkImportPreview": "پیش نظارہ",
     "clearAssignment": "(واضح تفویض)",
     "bulkProxyAssignment": "بلک پراکسی اسائنمنٹ",

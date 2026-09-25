@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "ไม่พบรายการที่ถูกต้อง ตรวจสอบรูปแบบแล้วลองอีกครั้ง",
     "bulkImportSuccess": "การนำเข้าเสร็จสมบูรณ์: สร้าง {created} แล้ว, อัปเดต {updated}, {failed} ล้มเหลว",
     "bulkImportErrorLine": "บรรทัด {line}: {reason}",
-    "bulkImportMaxExceeded": "พร็อกซีสูงสุด 100 รายการต่อการนำเข้า",
+    "bulkImportMaxExceeded": "พร็อกซีสูงสุด {max} รายการต่อการนำเข้า",
     "bulkImportPreview": "ดูตัวอย่าง",
     "clearAssignment": "(มอบหมายที่ชัดเจน)",
     "bulkProxyAssignment": "การกำหนดพร็อกซีจำนวนมาก",

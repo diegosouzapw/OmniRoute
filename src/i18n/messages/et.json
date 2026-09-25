@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Ühtegi sobivat kirjet ei leitud. Kontrolli vormingut ja proovi uuesti.",
     "bulkImportSuccess": "Importimine lõpetatud: {created} loodud, {updated} värskendatud, {failed} nurjus",
     "bulkImportErrorLine": "Rida {line}: {reason}",
-    "bulkImportMaxExceeded": "Ühe impordiga saab importida kuni 100 puhverserverit",
+    "bulkImportMaxExceeded": "Ühe impordiga saab importida kuni {max} puhverserverit",
     "bulkImportPreview": "Eelvaade",
     "clearAssignment": "(eemalda määrang)",
     "bulkProxyAssignment": "Puhverserverite hulgimääramine",

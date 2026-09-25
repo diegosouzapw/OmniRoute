@@ -1,5 +1,7 @@
 import { upsertProxy } from "@/lib/db/proxies";
-import { bulkImportProxiesSchema } from "@/shared/validation/schemas";
+import { makeBulkImportProxiesSchema } from "@/shared/validation/schemas";
+import { getSettings } from "@/lib/db/settings";
+import { resolveProxyBulkImportLimit } from "@/shared/constants/proxyBulkImport";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
@@ -20,7 +22,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const validation = validateBody(bulkImportProxiesSchema, rawBody);
+    // Resolve the operator-configured ceiling per request so a settings change
+    // takes effect without a restart, and so this and the dashboard's pre-flight
+    // check can never disagree about the number (#13917).
+    const settings = await getSettings();
+    const limit = resolveProxyBulkImportLimit(
+      (settings as Record<string, unknown>).proxyBulkImportLimit
+    );
+    const validation = validateBody(makeBulkImportProxiesSchema(limit), rawBody);
     if (isValidationFailure(validation)) {
       return createErrorResponse({
         status: 400,

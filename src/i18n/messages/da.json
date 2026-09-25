@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Ingen gyldige poster fundet. Tjek formatet og prøv igen.",
     "bulkImportSuccess": "Import færdig: {created} oprettet, {updated} opdateret, {failed} mislykkedes",
     "bulkImportErrorLine": "Linje {line}: {reason}",
-    "bulkImportMaxExceeded": "Maksimalt 100 fuldmagter pr. import",
+    "bulkImportMaxExceeded": "Maksimalt {max} fuldmagter pr. import",
     "bulkImportPreview": "Forhåndsvisning",
     "clearAssignment": "(klar opgave)",
     "bulkProxyAssignment": "Bulk proxy tildeling",

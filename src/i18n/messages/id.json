@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Tidak ada entri yang valid ditemukan. Periksa formatnya dan coba lagi.",
     "bulkImportSuccess": "Impor selesai: {created} dibuat, {updated} diperbarui, {failed} gagal",
     "bulkImportErrorLine": "Baris {line}: {reason}",
-    "bulkImportMaxExceeded": "Maksimum 100 proxy per impor",
+    "bulkImportMaxExceeded": "Maksimum {max} proxy per impor",
     "bulkImportPreview": "Pratinjau",
     "clearAssignment": "(tugas yang jelas)",
     "bulkProxyAssignment": "Penugasan Proksi Massal",

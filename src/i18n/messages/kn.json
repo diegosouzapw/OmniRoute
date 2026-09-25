@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "ಯಾವುದೇ ಮಾನ್ಯ ನಮೂದುಗಳು ಕಂಡುಬಂದಿಲ್ಲ. ಸ್ವರೂಪವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
     "bulkImportSuccess": "ಆಮದು ಪೂರ್ಣಗೊಂಡಿದೆ: {created} ರಚಿಸಲಾಗಿದೆ, {updated} ನವೀಕರಿಸಲಾಗಿದೆ, {failed} ವಿಫಲವಾಗಿದೆ",
     "bulkImportErrorLine": "ಸಾಲು {line}: {reason}",
-    "bulkImportMaxExceeded": "ಪ್ರತಿ ಆಮದಿಗೆ ಗರಿಷ್ಠ 100 ಪ್ರಾಕ್ಸಿಗಳು",
+    "bulkImportMaxExceeded": "ಪ್ರತಿ ಆಮದಿಗೆ ಗರಿಷ್ಠ {max} ಪ್ರಾಕ್ಸಿಗಳು",
     "bulkImportPreview": "ಪೂರ್ವವೀಕ್ಷಣೆ",
     "clearAssignment": "(ನಿಯೋಜನೆಯನ್ನು ತೆರವುಗೊಳಿಸಿ)",
     "bulkProxyAssignment": "ಸಾಮೂಹಿಕ ಪ್ರಾಕ್ಸಿ ನಿಯೋಜನೆ",

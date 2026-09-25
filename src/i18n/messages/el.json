@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Δεν βρέθηκαν έγκυρες εγγραφές. Ελέγξτε τη μορφή και δοκιμάστε ξανά.",
     "bulkImportSuccess": "Η εισαγωγή ολοκληρώθηκε: δημιουργήθηκαν {created}, ενημερώθηκαν {updated}, απέτυχαν {failed}",
     "bulkImportErrorLine": "Γραμμή {line}: {reason}",
-    "bulkImportMaxExceeded": "Μέγιστο όριο 100 διακομιστές μεσολάβησης ανά εισαγωγή",
+    "bulkImportMaxExceeded": "Μέγιστο {max} proxy ανά εισαγωγή",
     "bulkImportPreview": "Προεπισκόπηση",
     "clearAssignment": "(εκκαθάριση ανάθεσης)",
     "bulkProxyAssignment": "Μαζική ανάθεση διακομιστών μεσολάβησης",

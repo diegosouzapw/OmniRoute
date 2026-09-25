@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Hakuna maingizo halali yaliyopatikana. Angalia umbizo na ujaribu tena.",
     "bulkImportSuccess": "Uingizaji umekamilika: {created} imeundwa, {updated} imesasishwa, {failed} imeshindwa",
     "bulkImportErrorLine": "Mstari wa {line}: {reason}",
-    "bulkImportMaxExceeded": "Upeo wa proksi 100 kwa kila uagizaji",
+    "bulkImportMaxExceeded": "Upeo wa proksi {max} kwa kila uagizaji",
     "bulkImportPreview": "Hakiki",
     "clearAssignment": "(kazi wazi)",
     "bulkProxyAssignment": "Mgawo wa Wakala Wingi",

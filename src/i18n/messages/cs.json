@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Nebyly nalezeny žádné platné záznamy. Zkontrolujte formát a zkuste to znovu.",
     "bulkImportSuccess": "Import dokončen: {created} vytvořeno, {updated} aktualizováno, {failed} se nezdařilo",
     "bulkImportErrorLine": "Řádek {line}: {reason}",
-    "bulkImportMaxExceeded": "Maximálně 100 proxy na import",
+    "bulkImportMaxExceeded": "Maximálně {max} proxy na import",
     "bulkImportPreview": "Náhled",
     "clearAssignment": "(jasné zadání)",
     "bulkProxyAssignment": "Hromadné přiřazení proxy",

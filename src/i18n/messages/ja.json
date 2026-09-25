@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "有効なエントリが見つかりません。形式を確認して再試行してください。",
     "bulkImportSuccess": "インポート完了: {created} 作成、{updated} 更新、{failed} 失敗",
     "bulkImportErrorLine": "{line} 行目: {reason}",
-    "bulkImportMaxExceeded": "インポートごとに最大 100 個のプロキシ",
+    "bulkImportMaxExceeded": "インポートごとに最大 {max} 個のプロキシ",
     "bulkImportPreview": "プレビュー",
     "clearAssignment": "(明確な課題)",
     "bulkProxyAssignment": "一括プロキシ割り当て",

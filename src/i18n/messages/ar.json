@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "لم يتم العثور على إدخالات صالحة. تحقق من التنسيق وحاول مرة أخرى.",
     "bulkImportSuccess": "اكتمل الاستيراد: تم إنشاء {created}، وتحديث {updated}، وفشل {failed}",
     "bulkImportErrorLine": "السطر {line}: {reason}",
-    "bulkImportMaxExceeded": "الحد الأقصى 100 وكيل لكل عملية استيراد",
+    "bulkImportMaxExceeded": "الحد الأقصى {max} وكيل لكل عملية استيراد",
     "bulkImportPreview": "معاينة",
     "clearAssignment": "(مسح التعيين)",
     "bulkProxyAssignment": "تعيين بروكسي بالجملة",

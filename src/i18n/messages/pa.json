@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "ਕੋਈ ਵੈਧ ਐਂਟਰੀ ਨਹੀਂ ਮਿਲੀ। ਫਾਰਮੈਟ ਦੀ ਜਾਂਚ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
     "bulkImportSuccess": "ਇੰਪੋਰਟ ਪੂਰਾ ਹੋਇਆ: {created} ਬਣਾਈਆਂ ਗਈਆਂ, {updated} ਅੱਪਡੇਟ ਕੀਤੀਆਂ ਗਈਆਂ, {failed} ਅਸਫਲ ਰਹੀਆਂ",
     "bulkImportErrorLine": "ਲਾਈਨ {line}: {reason}",
-    "bulkImportMaxExceeded": "ਹਰ ਇੰਪੋਰਟ ਲਈ ਵੱਧ ਤੋਂ ਵੱਧ 100 ਪ੍ਰੌਕਸੀਆਂ",
+    "bulkImportMaxExceeded": "ਹਰ ਇੰਪੋਰਟ ਲਈ ਵੱਧ ਤੋਂ ਵੱਧ {max} ਪ੍ਰੌਕਸੀਆਂ",
     "bulkImportPreview": "ਝਲਕ",
     "clearAssignment": "(ਅਸਾਈਨਮੈਂਟ ਹਟਾਓ)",
     "bulkProxyAssignment": "ਇਕੱਠੀ ਪ੍ਰੌਕਸੀ ਅਸਾਈਨਮੈਂਟ",

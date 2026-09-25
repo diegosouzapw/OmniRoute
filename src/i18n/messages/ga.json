@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "Níor aimsíodh aon iontráil bailí. Seiceáil an fhormáid agus déan iarracht eile.",
     "bulkImportSuccess": "Iompórtáil críochnaithe: cruthaíodh {created}, nuashonraíodh {updated}, theip ar {failed}",
     "bulkImportErrorLine": "Líne {line}: {reason}",
-    "bulkImportMaxExceeded": "Uasmhéid de 100 seachfhreastalaí in aghaidh na hiompórtála",
+    "bulkImportMaxExceeded": "Uasmhéid {max} seachfhreastalai in aon iompórtáil amháin",
     "bulkImportPreview": "Réamhamharc",
     "clearAssignment": "(glan an sannadh)",
     "bulkProxyAssignment": "Sannadh Seachfhreastalaithe ar an Mórchóir",

@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "చెల్లుబాటు అయ్యే నమోదులు ఏవీ కనుగొనబడలేదు. ఆకృతిని తనిఖీ చేసి, మళ్లీ ప్రయత్నించండి.",
     "bulkImportSuccess": "దిగుమతి పూర్తయింది: {created} సృష్టించబడింది, {updated} నవీకరించబడింది, {failed} విఫలమైంది",
     "bulkImportErrorLine": "లైన్ {line}: {reason}",
-    "bulkImportMaxExceeded": "దిగుమతికి గరిష్టంగా 100 ప్రాక్సీలు",
+    "bulkImportMaxExceeded": "దిగుమతికి గరిష్టంగా {max} ప్రాక్సీలు",
     "bulkImportPreview": "ప్రివ్యూ",
     "clearAssignment": "(స్పష్టమైన కేటాయింపు)",
     "bulkProxyAssignment": "బల్క్ ప్రాక్సీ అసైన్‌మెంట్",

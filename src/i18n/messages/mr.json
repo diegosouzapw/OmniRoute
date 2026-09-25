@@ -11007,7 +11007,7 @@
     "bulkImportNoValidEntries": "कोणत्याही वैध नोंदी आढळल्या नाहीत. स्वरूप तपासा आणि पुन्हा प्रयत्न करा.",
     "bulkImportSuccess": "आयात पूर्ण: {created} तयार केले, {updated} अद्यतनित केले, {failed} अयशस्वी",
     "bulkImportErrorLine": "ओळ {line}: {reason}",
-    "bulkImportMaxExceeded": "प्रति आयात कमाल 100 प्रॉक्सी",
+    "bulkImportMaxExceeded": "प्रति आयात कमाल {max} प्रॉक्सी",
     "bulkImportPreview": "पूर्वावलोकन",
     "clearAssignment": "(स्पष्ट असाइनमेंट)",
     "bulkProxyAssignment": "मोठ्या प्रमाणात प्रॉक्सी असाइनमेंट",
