@@ -19,6 +19,8 @@ import { createCopilotIdentityFallback } from "./copilotIdentityFallback.ts";
 import {
   findOffendingField,
   detectUnsupportedParam,
+  isUnsupportedThinkingError,
+  REASONING_REQUEST_FIELDS,
   stripGroqUnsupportedFields,
 } from "../config/providerFieldStrips.ts";
 import {
@@ -1590,6 +1592,11 @@ export class BaseExecutor {
             .text()
             .catch(() => "");
           const offending = findOffendingField(errText);
+          const thinkingFields = REASONING_REQUEST_FIELDS.filter(
+            (field) =>
+              !strippedFields.has(field) &&
+              (transformedBody as Record<string, unknown>)[field] !== undefined
+          );
           if (
             offending &&
             !strippedFields.has(offending) &&
@@ -1604,6 +1611,23 @@ export class BaseExecutor {
             log?.debug?.(
               "FIELD_400",
               `Upstream 400 rejected ${offending} on ${url} — retrying without it`
+            );
+            response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
+          } else if (isUnsupportedThinkingError(errText) && thinkingFields.length > 0) {
+            // Ollama names the MODEL, not the field, as thinking-unsupported (e.g.
+            // Qwen3-Coder). When no reasoning field is present (e.g. Gemini's nested
+            // generationConfig.thinkingConfig), this falls through to auto-learn below.
+            for (const field of thinkingFields) {
+              strippedFields.add(field);
+              delete (transformedBody as Record<string, unknown>)[field];
+            }
+            let retryBody = JSON.stringify(transformedBody);
+            if (usesClaudeCodeProtocol || this.provider === "claude") {
+              retryBody = await signRequestBody(retryBody);
+            }
+            log?.info?.(
+              "THINKING_UNSUPPORTED",
+              `Upstream 400: ${model} has no thinking mode on ${url} — retrying without ${thinkingFields.join(", ")}`
             );
             response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
           } else {

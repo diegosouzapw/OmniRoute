@@ -53,6 +53,33 @@ export function detectUnsupportedParam(bodyText: string): string | null {
   return match?.[1] ?? null;
 }
 
+/**
+ * Reasoning fields a request can carry into an OpenAI-compatible upstream. Ordered
+ * most to least common so the retry drops the real one first when several are set.
+ */
+export const REASONING_REQUEST_FIELDS: readonly string[] = [
+  "reasoning_effort",
+  "reasoning",
+  "thinking",
+  "think",
+];
+
+/**
+ * Some upstreams reject thinking by naming the MODEL, not the offending field, so
+ * neither `findOffendingField` nor `detectUnsupportedParam` can see anything to strip.
+ * Ollama does this for non-thinking models such as Qwen3-Coder (an Instruct-only
+ * build): `"Qwen3-Coder:latest" does not support thinking`. Matches:
+ *   - `"<model>" does not support thinking`
+ *   - `model X does not support reasoning`
+ */
+export const UNSUPPORTED_THINKING_RE = /does\s+not\s+support\s+(?:thinking|reasoning)\b/i;
+
+/** True when a 400 body says the model has no thinking mode at all. */
+export function isUnsupportedThinkingError(bodyText: string): boolean {
+  if (typeof bodyText !== "string" || !bodyText) return false;
+  return UNSUPPORTED_THINKING_RE.test(bodyText);
+}
+
 /** Immutably drop request fields Groq rejects with a 400. */
 export function stripGroqUnsupportedFields<T extends Record<string, unknown>>(body: T): T {
   if (!body || typeof body !== "object") return body;
