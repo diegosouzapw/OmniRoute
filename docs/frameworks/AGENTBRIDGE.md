@@ -293,6 +293,15 @@ The dashboard exposes a **Maintenance & Diagnostics** card (`AgentBridgeMaintena
 | **Export config** | `GET /api/tools/agent-bridge/config`   | Downloads the portable config JSON (see §3.7).                                                                                                                                   |
 | **Import config** | `POST /api/tools/agent-bridge/config`  | Uploads a previously-exported config JSON (see §3.7).                                                                                                                            |
 
+Each agent card also has its own **Restore default** button (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — a one-click, per-agent undo that un-spoofs only that
+agent's hosts, clears its saved model mappings, and resets its `dns_enabled`/`setup_completed`
+state, so the IDE talks to the real upstream again once fully restarted. It does **not** touch the
+shared MITM server or root CA (other agents may still depend on them) — those stay reachable
+through the Server Card and the **Remove CA** action above. On Windows it also best-effort runs
+`ipconfig /flushdns`, since the Windows DNS Client caches hosts-file entries and won't drop a
+just-removed spoof otherwise.
+
 **Diagnostics checks** (`summarizeDiagnostics()` in `src/mitm/inspector/diagnostics.ts`). The route runs the effectful probe for each and feeds the booleans into the pure summarizer; a single `healthy` verdict plus a per-failure hint is returned:
 
 | Check name         | What it verifies                                            | Hint on failure                                                                                                                        |
@@ -511,6 +520,7 @@ Base path: `/api/tools/agent-bridge/`
 | POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Enable/disable DNS for agent (`{enabled: boolean}`)                                                                        |
 | GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Model mappings for agent                                                                                                   |
 | PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Replace model mappings                                                                                                     |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Restore default: un-spoof this agent's DNS, clear its mappings, reset its state (see §3.6)                                |
 | POST                | `/api/tools/agent-bridge/server`               | Start/stop/restart server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                          |
 | GET                 | `/api/tools/agent-bridge/cert`                 | Cert status (`exists`, `trusted`, `path`)                                                                                  |
 | POST                | `/api/tools/agent-bridge/cert`                 | Trust (install) the MITM root CA                                                                                           |
