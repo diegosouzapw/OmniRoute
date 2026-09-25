@@ -310,8 +310,8 @@ export async function POST(request) {
         keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
         startupFrame: OPENAI_STARTUP_FRAME,
         errorFrame: OPENAI_CHAT_ERROR_FRAME,
-        extraHeaders: { "X-Correlation-Id": reqId },
         correlationId: reqId,
+        extraHeaders: { "X-Correlation-Id": reqId },
         deadlineController: routeDeadlineController,
       });
       return withCompressionHeaderEcho(streamedResponse, compressionRequestHeader);
