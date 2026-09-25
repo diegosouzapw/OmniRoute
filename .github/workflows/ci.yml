@@ -673,16 +673,15 @@ jobs:
     # var unset/false) also falls back to ubuntu-latest.
     runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-build"]') || 'ubuntu-latest' }}
     needs: changes
-    # The .113 pool runs ONE next-build with room to spare and two at the edge: the
-    # box has 31 GB and a single next-build peaks at 14–16 GB RSS. On 2026-08-28
-    # 13:50Z the kernel OOM-killed main's build while a PR build ran beside it
-    # (five Build jobs had been queued by a burst of PRs). Two lanes: main keeps
-    # its own so a release is never queued behind PR traffic; PR builds serialize
-    # among themselves. docker-publish.yml's amd64 leg joins `heavy-build-main`
-    # so a :next image build waits beside this artefact instead of becoming the
-    # third heavy (#11976). GitHub keeps one running + one pending per group.
+    # Capacity is owned by the ONE omni-build runner slot (#12048), also used by
+    # Docker amd64. Do not add another worker with that label on the same host
+    # without reviewing its memory budget (a next-build peaks at 14–16 GB RSS).
+    # A shared PR concurrency group is not a queue: GitHub's default one-pending
+    # limit replaces unrelated waiting PRs even with cancel-in-progress: false.
+    # Isolate candidate refs; the runner slot still serializes self-hosted builds.
+    # Keep main's group unchanged because docker-publish shares heavy-build-main.
     concurrency:
-      group: heavy-build-${{ github.ref == 'refs/heads/main' && 'main' || 'pr' }}
+      group: heavy-build-${{ github.ref == 'refs/heads/main' && 'main' || github.ref }}
       cancel-in-progress: false
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     steps:
@@ -1514,90 +1513,92 @@ jobs:
             esac
           }
 
-          echo "# 🚀 CI Dashboard" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "# 🚀 CI Dashboard"
+            echo ""
 
-          # (gap 12) A cancelled job never reported a verdict, and in a long table that reads the
-          # same as a green one. `cancel-in-progress` plus incremental fixing cancels jobs on every
-          # push, and this cycle the Vitest job was cancelled in rounds 1, 2 and 3 — it only ran to
-          # completion in round 4, where it revealed a suite that had been broken the whole cycle
-          # plus two production bugs. A gate that never finishes is indistinguishable from one that
-          # passes, so name them at the TOP instead of leaving them to be spotted mid-table.
-          CANCELLED_JOBS=$(printf '%s' "$NEEDS_JSON" \
-            | jq -r 'to_entries | map(select(.value.result == "cancelled")) | .[].key' 2>/dev/null \
-            | sort | paste -sd", " -) || CANCELLED_JOBS=""
-          if [ -n "$CANCELLED_JOBS" ]; then
-            {
-              echo "> ### ⚫ Cancelled — no verdict was reported"
-              echo ">"
-              echo "> \`$CANCELLED_JOBS\`"
-              echo ">"
-              echo "> These did not fail; they never finished, so nothing was checked. Treat this"
-              echo "> run as INCOMPLETE for those gates. If the cancellation came from"
-              echo "> \`cancel-in-progress\` on a newer push, the newer run covers it — otherwise"
-              echo "> re-run them before reading this dashboard as green."
+            # (gap 12) A cancelled job never reported a verdict, and in a long table that reads the
+            # same as a green one. `cancel-in-progress` plus incremental fixing cancels jobs on every
+            # push, and this cycle the Vitest job was cancelled in rounds 1, 2 and 3 — it only ran to
+            # completion in round 4, where it revealed a suite that had been broken the whole cycle
+            # plus two production bugs. A gate that never finishes is indistinguishable from one that
+            # passes, so name them at the TOP instead of leaving them to be spotted mid-table.
+            CANCELLED_JOBS=$(printf '%s' "$NEEDS_JSON" \
+              | jq -r 'to_entries | map(select(.value.result == "cancelled")) | .[].key' 2>/dev/null \
+              | sort | paste -sd", " -) || CANCELLED_JOBS=""
+            if [ -n "$CANCELLED_JOBS" ]; then
+              {
+                echo "> ### ⚫ Cancelled — no verdict was reported"
+                echo ">"
+                echo "> \`$CANCELLED_JOBS\`"
+                echo ">"
+                echo "> These did not fail; they never finished, so nothing was checked. Treat this"
+                echo "> run as INCOMPLETE for those gates. If the cancellation came from"
+                echo "> \`cancel-in-progress\` on a newer push, the newer run covers it — otherwise"
+                echo "> re-run them before reading this dashboard as green."
+                echo ""
+              }
+            fi
+
+            echo "## 🧱 Core Checks"
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| Change Classification | $(status '${{ needs.changes.result }}') |"
+            echo "| Lint | $(status '${{ needs.lint.result }}') |"
+            echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |"
+            echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |"
+            echo "| i18n Glossary (zh-CN, ko) | $(status '${{ needs.i18n-glossary-zhcn.result }}') |"
+            echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |"
+            echo "| SonarQube (opt-in; disabled without SONARQUBE_ENABLED=true) | $(status '${{ needs.sonarqube.result }}') |"
+
+            echo ""
+            echo "## 🏗️ Build"
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| Build Matrix | $(status '${{ needs.build.result }}') |"
+            echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |"
+            echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |"
+
+            echo ""
+            echo "## 🧪 Tests"
+            echo "| Suite | Status |"
+            echo "|-------|--------|"
+            echo "| Unit | $(status '${{ needs.test-unit.result }}') |"
+            echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |"
+            echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |"
+            echo "| E2E | $(status '${{ needs.test-e2e.result }}') |"
+            echo "| Integration | $(status '${{ needs.test-integration.result }}') |"
+            echo "| Security Tests | $(status '${{ needs.test-security.result }}') |"
+            echo "| Ecosystem E2E | $(status '${{ needs.test-ecosystem.result }}') |"
+            echo "| Protocol Clients E2E (advisory, #10049) | $(status '${{ needs.test-protocols-e2e.result }}') |"
+
+            echo ""
+            echo "## 🌍 Translations"
+
+            total=0
+            langs=0
+
+            if [ -d results ]; then
+              for file in results/*.txt; do
+                [ -f "$file" ] || continue
+                val=$(sed -r 's/\x1B\[[0-9;]*[mK]//g' "$file" | grep "Untranslated:" | awk '{print $2}')
+                val=${val:-0}
+                total=$((total + val))
+                langs=$((langs + 1))
+              done
+            fi
+
+            echo ""
+            echo "| Metric | Value |"
+            echo "|--------|------|"
+            echo "| Languages checked | $langs |"
+            echo "| Total untranslated | $total |"
+
+            if [ "$total" -gt 0 ]; then
               echo ""
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-          echo "## 🧱 Core Checks" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Change Classification | $(status '${{ needs.changes.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Lint | $(status '${{ needs.lint.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| i18n Glossary (zh-CN, ko) | $(status '${{ needs.i18n-glossary-zhcn.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| SonarQube (opt-in; disabled without SONARQUBE_ENABLED=true) | $(status '${{ needs.sonarqube.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🏗️ Build" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Suite | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Unit | $(status '${{ needs.test-unit.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Integration | $(status '${{ needs.test-integration.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Security Tests | $(status '${{ needs.test-security.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Ecosystem E2E | $(status '${{ needs.test-ecosystem.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Protocol Clients E2E (advisory, #10049) | $(status '${{ needs.test-protocols-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🌍 Translations" >> "$GITHUB_STEP_SUMMARY"
-
-          total=0
-          langs=0
-
-          if [ -d results ]; then
-            for file in results/*.txt; do
-              [ -f "$file" ] || continue
-              val=$(sed -r 's/\x1B\[[0-9;]*[mK]//g' "$file" | grep "Untranslated:" | awk '{print $2}')
-              val=${val:-0}
-              total=$((total + val))
-              langs=$((langs + 1))
-            done
-          fi
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Metric | Value |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|--------|------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Languages checked | $langs |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Total untranslated | $total |" >> "$GITHUB_STEP_SUMMARY"
-
-          if [ "$total" -gt 0 ]; then
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "⚠️ **Translations need attention**" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "✅ **All translations complete**" >> "$GITHUB_STEP_SUMMARY"
-          fi
+              echo "⚠️ **Translations need attention**"
+            else
+              echo ""
+              echo "✅ **All translations complete**"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
