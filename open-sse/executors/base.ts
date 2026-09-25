@@ -11,6 +11,8 @@ import {
   mergeCcHeaders,
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
+  maybeAppendSkillsBeta,
+  syncSkillsBeta,
 } from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { createCopilotIdentityFallback } from "./copilotIdentityFallback.ts";
@@ -515,6 +517,8 @@ export class BaseExecutor {
 
     headers["Accept"] = stream ? "text/event-stream" : "application/json";
 
+    maybeAppendSkillsBeta(headers, this.provider, body, this.usesClaudeCodeProtocol(credentials));
+
     normalizeAnthropicHeaderVariants(headers);
 
     return headers;
@@ -885,6 +889,9 @@ export class BaseExecutor {
         clampNestedThinkingBudget(transformedBody, thinkingBudgetClampedMax);
       }
 
+      // Re-synchronize skills beta with the finalized transformed body (#14200):
+      syncSkillsBeta(headers, this.provider, transformedBody, usesClaudeCodeProtocol);
+
       // Timeout only covers response start; stream stalls are handled downstream.
       // #11526: streaming requests cap the headers-wait phase to a client-realistic
       // ceiling (see fetchStartTimeoutPolicy.ts) — non-streaming keeps the flat default.
@@ -1228,7 +1235,9 @@ export class BaseExecutor {
                 // Gate the client-negotiated context-1m beta on the RESOLVED target:
                 // combo/fallback can route a request negotiated for a [1m] sibling onto a
                 // model that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
-                model
+                model,
+                // Gate skills-2025-10-02 on presence of code_execution tool in transformed body (#14200):
+                tb
               ),
               "anthropic-dangerous-direct-browser-access": "true",
               "x-app": "cli",

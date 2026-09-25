@@ -4,52 +4,51 @@
 
 ---
 
-OmniRoute mempunyai **empat keluarga kelayakan** yang boleh memberikan kebenaran kepada laluan pengurusan.
-Kelayakan ini tidak boleh digunakan secara saling bertukar ganti. Kunci API inferens (`sk-…`) **tidak** boleh mengurus
-pelayan melainkan kunci tersebut diberikan skop `manage` atau `admin` secara jelas.
+OmniRoute mempunyai **empat keluarga kelayakan** yang boleh membenarkan laluan pengurusan.
+Ia tidak boleh ditukar ganti. Kunci API Inferens (`sk-…`) **tidak** mengurus pelayan melainkan ia diberikan skop `manage` atau `admin` secara eksplisit.
 
 Pelaksanaan kanonik: `src/lib/api/requireManagementAuth.ts`.
 
-| Kelayakan             | Bentuk lazim                       | Dicipta di mana                                    | Kegunaan yang dimaksudkan   | Keupayaan pengurusan                                                                                        |
-| --------------------- | ---------------------------------- | -------------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Sesi JWT papan pemuka | Kuki `auth_token`                  | Log masuk papan pemuka                             | UI pelayar                  | Pengurusan papan pemuka penuh, tertakluk pada peraturan CSRF, kelokalan dan laluan yang sentiasa dilindungi |
-| Token ID mesin CLI    | dalaman / setempat                 | Pemulaaan CLI (`omniroute` pada mesin yang sama)   | CLI setempat                | Pengurusan setempat sahaja                                                                                  |
-| Token Akses Berskop   | `oma_live_…`                       | **Tetapan → Token Akses** atau `omniroute connect` | CLI jauh dan API pengurusan | Mesti memenuhi skop `read`, `write` atau `admin` yang diperlukan oleh laluan                                |
-| Kunci API inferens    | `sk-…` (dan awalan kunci API lain) | **Pengurus API / Kunci API**                       | Inferens `/v1/*`            | **Tiada** melainkan metadata kunci merangkumi `manage` atau `admin`                                         |
+| Kelayakan             | Bentuk lazim                       | Dicipta di mana                                    | Kegunaan yang dimaksudkan   | Keupayaan pengurusan                                                                                          |
+| :-------------------- | :--------------------------------- | :------------------------------------------------- | :-------------------------- | :------------------------------------------------------------------------------------------------------------ |
+| Sesi JWT Papan Pemuka | `auth_token` kuki                  | Log masuk papan pemuka                             | UI Pelayar                  | Pengurusan papan pemuka penuh, tertakluk kepada peraturan CSRF, lokaliti, dan laluan yang sentiasa dilindungi |
+| Token ID mesin CLI    | dalaman / tempatan                 | Bootstrap CLI (`omniroute` pada mesin yang sama)   | CLI Tempatan                | Pengurusan tempatan sahaja                                                                                    |
+| Token Akses Berskop   | `oma_live_…`                       | **Tetapan → Token Akses** atau `omniroute connect` | CLI Jauh dan API pengurusan | Mesti memenuhi skop `read`, `write`, atau `admin` yang diperlukan oleh laluan                                 |
+| Kunci API Inferens    | `sk-…` (dan awalan kunci API lain) | **Pengurus API / Kunci API**                       | inferens `/v1/*`            | **Tiada** melainkan metadata kunci termasuk `manage` atau `admin`                                             |
 
-Kelayakan `oma_` ialah kelayakan pengurusan/CLI. Kelayakan tersebut **bukan** kunci API inferens.
+Kelayakan `oma_` adalah kelayakan pengurusan/CLI. Ia **bukan** kunci API inferens.
 
-Jika pengesahan log masuk/kunci API dinyahdayakan untuk pelayan, sesetengah laluan pengurusan mungkin
-menerima panggilan tanpa pengesahan. Laluan setempat sahaja dan laluan yang sentiasa dilindungi masih menggunakan
-peraturannya sendiri. Oleh itu, memberikan salah satu kelayakan ini tidak diwajibkan secara universal,
-dan memilikinya tidak semestinya mencukupi tanpa skop dan kelokalan laluan yang diperlukan.
+Jika pengesahan log masuk/kunci API dilumpuhkan untuk pelayan, beberapa laluan pengurusan mungkin menerima panggilan tanpa pengesahan. Laluan tempatan sahaja dan yang sentiasa dilindungi masih menggunakan peraturan mereka sendiri. Oleh itu, mengemukakan salah satu kelayakan ini tidak wajib secara universal, dan memilikinya tidak mencukupi secara universal tanpa skop dan lokaliti laluan yang diperlukan.
 
-Berkaitan: [Mod Jauh](./REMOTE-MODE.md) (cara `oma_live_…` dijana untuk CLI jauh).
+Berkaitan: [Mod Jauh](./REMOTE-MODE.md) (bagaimana `oma_live_…` dicetak untuk CLI jauh).
 
 ---
 
 ## Matriks skop
 
-Kedua-dua perbendaharaan kata skop ini **berbeza**. Jangan campurkannya.
+Skop pengurusan kunci API dan skop token akses adalah perbendaharaan kata yang berbeza.
+Skop alat MCP adalah perbendaharaan kata ketiga, diperiksa dengan `scopeMatches` dan bukannya
+mana-mana fungsi dalam jadual di bawah. Bersebelahan:
+[Tiga ruang nama skop](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
 ### Skop Token Akses (`oma_live_…`)
 
-| Skop    | Operasi lazim                                                                                     |
-| ------- | ------------------------------------------------------------------------------------------------- |
-| `read`  | Permintaan GET senarai/status yang dibenarkan untuk dilihat oleh token                            |
-| `write` | Mutasi (cipta/kemas kini/padam) di bawah tahap pentadbir                                          |
-| `admin` | Token CLI jauh / sambungan penuh (pemulaaan dengan kata laluan menggunakan skop ini secara lalai) |
+| Skop    | Operasi biasa                                                        |
+| ------- | -------------------------------------------------------------------- |
+| `read`  | Senarai/status GET yang dibenarkan untuk dilihat oleh token          |
+| `write` | Mutasi (cipta/kemas kini/padam) di bawah pentadbir                   |
+| `admin` | CLI jauh penuh / token sambung (lalai bootstrap kata laluan di sini) |
 
 Token dengan `read` tidak boleh memanggil laluan `write`. Bentuk mesej masa jalan:
-`Access token scope '<have>' is insufficient; '<need>' required.`
+`Skop token akses '<have>' tidak mencukupi; '<need>' diperlukan.`
 
 ### Skop pengurusan kunci API
 
-| Skop     | Maksud                                                                            |
-| -------- | --------------------------------------------------------------------------------- |
-| (tiada)  | Inferens sahaja. Laluan pengurusan mengembalikan 403.                             |
-| `manage` | API pengurusan (pagar yang sama seperti cabang kunci API `requireManagementAuth`) |
-| `admin`  | Turut memenuhi `hasManageScope` (dianggap berkeupayaan mengurus)                  |
+| Skop     | Maksud                                                                               |
+| -------- | ------------------------------------------------------------------------------------ |
+| (tiada)  | Inferens sahaja. Laluan pengurusan mengembalikan 403.                                |
+| `manage` | API Pengurusan (gerbang yang sama dengan cawangan kunci API `requireManagementAuth`) |
+| `admin`  | Juga memenuhi `hasManageScope` (dianggap berkemampuan pengurusan)                    |
 
 Dayakan `manage` pada kunci dalam UI Kunci API / Pengurus API. Jangan gunakan semula
 kunci klien sembang untuk automasi melainkan anda sengaja memberikan skop tersebut.
@@ -128,29 +127,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Ralat masa jalan semasa (jangan paparkan rahsia)
+## Ralat masa jalan semasa (jangan gema rahsia)
 
-| Situasi                                               | Status lazim | Mesej (disanitasi)                                                   |
-| ----------------------------------------------------- | ------------ | -------------------------------------------------------------------- |
-| Tiada kelayakan                                       | 401          | `Authentication required`                                            |
-| `oma_live_…` tidak sah/tamat tempoh                   | 401          | `Invalid or expired access token`                                    |
-| Kunci API sah tanpa `manage`/`admin`                  | 403          | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Kunci API biasa yang tidak sah pada laluan pengurusan | 403          | `Invalid management token`                                           |
-| Skop Token Akses terlalu rendah                       | 403          | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Situasi                                          | Status biasa | Mesej (disanitasi)                                                   |
+| :----------------------------------------------- | :----------- | :------------------------------------------------------------------- |
+| Tiada kelayakan                                  | 401          | `Authentication required`                                            |
+| `oma_live_…` tidak sah/tamat tempoh              | 401          | `Invalid or expired access token`                                    |
+| Kunci API sah tanpa `manage`/`admin`             | 403          | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Kunci API biasa tidak sah pada laluan pengurusan | 403          | `Invalid management token`                                           |
+| Skop Token Akses terlalu rendah                  | 403          | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token" bermaksud token pembawa **tidak** diterima sebagai kelayakan
-pengurusan. Mesej ini **tidak** memberitahu anda keluarga kelayakan yang perlu dijana. Gunakan jadual di atas:
-kunci inferens memerlukan skop `manage`; CLI jauh memerlukan `oma_live_…`; papan pemuka
-menggunakan kuki sesi.
+"Invalid management token" bermaksud pembawa **tidak** diterima sebagai kelayakan pengurusan. Ia **tidak** memberitahu anda keluarga mana yang perlu dicetak. Gunakan jadual di atas: kunci inferens memerlukan skop `manage`; CLI jauh memerlukan `oma_live_…`; papan pemuka menggunakan kuki sesi.
 
 ---
 
-## Pilihan keistimewaan paling minimum yang disyorkan
+## Pilihan keistimewaan paling rendah yang disyorkan
 
-| Pemanggil                                                     | Gunakan                                          |
-| ------------------------------------------------------------- | ------------------------------------------------ |
+| Pemanggil                                                     | Penggunaan                                       |
+| :------------------------------------------------------------ | :----------------------------------------------- |
 | Pelayar                                                       | Sesi papan pemuka                                |
 | CLI pada hos pelayan                                          | Token mesin                                      |
 | CLI pada komputer riba yang berkomunikasi dengan pelayan jauh | `oma_live_…` daripada `omniroute connect`        |
 | CI / skrip (pengurusan sahaja)                                | `oma_live_…` dengan skop terkecil yang berfungsi |
-| CI yang perlu memanggil kedua-dua `/v1` dan `/api`            | Kunci API dengan `manage` **atau** dua kelayakan |
+| CI yang mesti memanggil kedua-dua `/v1` dan `/api`            | Kunci API dengan `manage` **atau** dua kelayakan |

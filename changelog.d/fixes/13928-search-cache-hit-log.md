@@ -1,0 +1,1 @@
+- fix(api): log cache-hit search requests so cacheHitRate reflects real hits (#13928)

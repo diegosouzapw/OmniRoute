@@ -1,0 +1,1 @@
+- **fix(providers):** Xiaomi MiMo Token Plan connections can select the China, Singapore, or Amsterdam cluster that issued the key, instead of always calling Singapore ([#14476](https://github.com/diegosouzapw/OmniRoute/issues/14476))

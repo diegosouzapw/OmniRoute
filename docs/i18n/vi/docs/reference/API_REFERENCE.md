@@ -88,13 +88,9 @@ Content-Type: application/json
 
 ## Thuê phiên được quản lý độc quyền
 
-Thuê phiên được quản lý độc quyền là một hợp đồng định tuyến tùy chọn, không phụ thuộc vào ứng dụng khách: một chủ sở hữu đang hoạt động
-nắm giữ một kết nối OmniRoute đủ điều kiện. Cơ chế này không thuê mô hình, không yêu cầu OAuth, không xác định một
-ứng dụng khách cụ thể và cũng không yêu cầu một nhà cung cấp cụ thể.
+Thuê phiên được quản lý độc quyền là một hợp đồng định tuyến tùy chọn, trung lập với máy khách: một chủ sở hữu đang hoạt động giữ một kết nối OmniRoute đủ điều kiện. Nó không thuê một mô hình, yêu cầu OAuth, xác định một máy khách cụ thể hoặc yêu cầu một nhà cung cấp cụ thể.
 
-Khóa API dùng để xác thực phải có phạm vi `lease:exclusive` và danh sách
-`allowedConnections` rõ ràng, không rỗng. Ranh giới đột biến cơ sở dữ liệu thực thi đồng thời cả hai trường khi
-tạo khóa và cập nhật một phần.
+Khóa API xác thực phải có phạm vi `lease:exclusive` và một danh sách `allowedConnections` rõ ràng không trống. Ranh giới thay đổi cơ sở dữ liệu thực thi cả hai trường cùng nhau khi tạo khóa và cập nhật một phần.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Các phản hồi lấy, gia hạn và giải phóng thành công cung cấp dấu thời gian, `state` và
-`generation` dương chính xác, nhưng không bao giờ cung cấp kết nối đã chọn hoặc thông tin xác thực. Thao tác gia hạn và giải phóng cung cấp
-thế hệ trong nội dung JSON:
+Các phản hồi acquire, renew và release thành công hiển thị dấu thời gian, `state` và `generation` dương chính xác, nhưng không bao giờ hiển thị kết nối hoặc thông tin xác thực đã chọn. Renew và release cung cấp generation trong phần thân JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ thế hệ trong nội dung JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Chủ sở hữu phiên thuê đang hoạt động có thể yêu cầu rõ ràng siêu dữ liệu hiển thị an toàn về quyền riêng tư cho liên kết hiện tại của mình:
+Chủ sở hữu thuê đang hoạt động có thể yêu cầu rõ ràng siêu dữ liệu hiển thị an toàn về quyền riêng tư cho ràng buộc hiện tại của mình:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Chủ sở hữu phiên thuê đang hoạt động có thể yêu cầu rõ ràn
 }
 ```
 
-Thao tác trạng thái tùy chọn này được bảo vệ bằng chủ sở hữu bất định, khóa API được quản lý đã xác thực và
-thế hệ đang hoạt động chính xác trong một giao dịch cơ sở dữ liệu duy nhất. `displayName` chỉ là tên
-kết nối đã cấu hình sau khi loại bỏ khoảng trắng thừa; giá trị này là `null` khi không tồn tại tên đã cấu hình an toàn. OmniRoute không bao giờ thay thế bằng
-email hoặc danh tính tài khoản được tạo. Giá trị nhà cung cấp là một nhãn hiển thị không nhạy cảm và không bao giờ
-là mã định danh nhà cung cấp tương thích được tạo. Thông tin xác thực, token, cookie, mã định danh thô của kết nối hoặc khóa
-API, hàm băm chủ sở hữu, bí mật phân rào và dữ liệu định tuyến nội bộ đều bị loại trừ.
+Hành động trạng thái tùy chọn này được bảo vệ bởi chủ sở hữu mờ, khóa API được quản lý đã xác thực và thế hệ hoạt động chính xác trong một giao dịch cơ sở dữ liệu. `displayName` chỉ là tên kết nối đã định cấu hình đã cắt bớt; nó là `null` khi không có tên đã định cấu hình an toàn. OmniRoute không bao giờ thay thế email hoặc danh tính tài khoản được tạo. Giá trị nhà cung cấp là một nhãn hiển thị không nhạy cảm và không bao giờ là một định danh nhà cung cấp tương thích được tạo. Thông tin xác thực, mã thông báo, cookie, id kết nối hoặc khóa API thô, băm chủ sở hữu, bí mật bảo vệ và dữ liệu định tuyến nội bộ đều bị loại trừ.
 
-Các trường hợp sai khóa, sai chủ sở hữu, thế hệ lỗi thời, không tồn tại, hết hạn, đã giải phóng và đã bị vô hiệu hóa đều
-trả về cùng lỗi `409 LEASE_FENCE_STALE` mà không có siêu dữ liệu kết nối. Ứng dụng khách nhận được phản hồi chờ dung lượng không có liên kết đang hoạt động để kiểm tra. Khi quá trình định tuyến chuyển đổi một phiên thuê đang hoạt động,
-cùng một thế hệ vẫn hợp lệ và trạng thái sẽ trả về liên kết mới theo cách nguyên tử, không bao giờ trả về liên kết cũ.
-Các ứng dụng khách hiện có không thay đổi vì phản hồi lấy, gia hạn, giải phóng và chờ vẫn giữ nguyên
-cấu trúc trước đây.
+Tra cứu sai khóa, sai chủ sở hữu, thế hệ cũ, thiếu, hết hạn, đã phát hành và không hợp lệ đều trả về cùng một lỗi `409 LEASE_FENCE_STALE` mà không có siêu dữ liệu kết nối. Một máy khách đã nhận được phản hồi chờ dung lượng không có ràng buộc hoạt động để kiểm tra. Khi định tuyến chuyển đổi một thuê bao đang hoạt động, cùng một thế hệ vẫn hợp lệ và trạng thái tự động trả về ràng buộc mới, không bao giờ là ràng buộc cũ. Các máy khách hiện có vẫn không thay đổi vì các phản hồi acquire, renew, release và chờ đợi vẫn giữ nguyên hình dạng trước đó của chúng.
 
-Hợp đồng máy chủ này không thay đổi `/status` tiêu chuẩn của OpenAI Codex. Codex tiêu chuẩn hiện báo cáo
-nhà cung cấp mô hình và trạng thái xác thực/tài khoản tích hợp sẵn, nhưng không hiển thị siêu dữ liệu tài khoản tùy chỉnh
-tùy ý của nhà cung cấp; một tích hợp ứng dụng khách sau này phải gọi thao tác này và quyết định cách
-hiển thị `connection.displayName`.
+Hợp đồng máy chủ này không thay đổi `/status` của OpenAI Codex. Codex hiện tại báo cáo nhà cung cấp mô hình và trạng thái xác thực/tài khoản tích hợp nhưng không hiển thị siêu dữ liệu tài khoản nhà cung cấp tùy chỉnh tùy ý; một tích hợp máy khách sau này phải gọi hành động này và quyết định cách hiển thị `connection.displayName`.
 
-Sau đó, mỗi yêu cầu suy luận được quản lý sẽ cung cấp cả hai tiêu đề điều khiển:
+Mỗi yêu cầu suy luận được quản lý sau đó cung cấp cả hai tiêu đề điều khiển:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Chủ sở hữu chính xác, thế hệ, kết nối đang hoạt động và khóa API đã xác thực được phân rào ngay
-trước mỗi lần thử ngược dòng được hỗ trợ. Việc phát lại chủ sở hữu và thế hệ với một khóa khác sẽ thất bại ngay cả
-khi khóa đó cho phép cùng một kết nối. Chủ sở hữu thô không được lưu trữ lâu dài, ghi nhật ký, giữ lại trong
-ảnh chụp nhanh yêu cầu hoặc chuyển tiếp lên thượng nguồn.
+Chủ sở hữu chính xác, thế hệ, kết nối đang hoạt động và khóa API đã xác thực được bảo vệ ngay trước mỗi lần thử thượng nguồn được hỗ trợ. Phát lại chủ sở hữu và thế hệ bằng một khóa khác sẽ thất bại ngay cả khi khóa đó cho phép cùng một kết nối. Chủ sở hữu thô không được duy trì, ghi nhật ký, giữ lại trong ảnh chụp nhanh yêu cầu hoặc chuyển tiếp lên thượng nguồn.
 
-Tranh chấp tạm thời trả về HTTP `429` cùng với `Retry-After` và:
+Tranh chấp tạm thời trả về HTTP `429` với `Retry-After` và:
 
 ```json
 {
@@ -178,30 +157,29 @@ Tranh chấp tạm thời trả về HTTP `429` cùng với `Retry-After` và:
 }
 ```
 
-Phản hồi này chỉ có nghĩa là tập hợp đủ điều kiện thông thường không rỗng và mọi ứng viên đang rảnh đều
-đang được một phiên thuê đang hoạt động của chủ sở hữu khác nắm giữ. Các mô hình/nhà cung cấp không được hỗ trợ, chính sách không khớp, thời gian chờ,
-hạn ngạch, tình trạng hoạt động và các lỗi đủ điều kiện thông thường khác vẫn giữ nguyên phản hồi OmniRoute hiện có.
+Phản hồi này chỉ có nghĩa là tập hợp đủ điều kiện thông thường không trống và mọi ứng cử viên miễn phí đều được giữ bởi một thuê bao đang hoạt động bên ngoài. Các mô hình/nhà cung cấp không được hỗ trợ, không khớp chính sách, thời gian chờ, hạn ngạch, tình trạng và các lỗi đủ điều kiện thông thường khác vẫn giữ nguyên phản hồi OmniRoute hiện có của chúng.
 
 ### `x-omniroute-compression`
 
-Ghi đè kế hoạch nén theo từng yêu cầu. Có mức ưu tiên cao nhất — cao hơn cấu hình ghi đè tổ hợp định tuyến,
-hồ sơ đang hoạt động, kích hoạt tự động và Mặc định của bảng điều khiển. Các giá trị:
+Ghi đè kế hoạch nén cho mỗi yêu cầu. Ưu tiên cao nhất — ghi đè ghi đè kết hợp định tuyến, hồ sơ hoạt động, tự động kích hoạt và Bảng điều khiển Mặc định. Giá trị:
 
-| Giá trị       | Hiệu ứng                                                                                       |
-| ------------- | ---------------------------------------------------------------------------------------------- |
-| `off`         | Không nén yêu cầu này.                                                                         |
-| `default`     | Hồ sơ Mặc định lấy từ bảng điều khiển (bỏ qua hồ sơ đang hoạt động).                           |
-| `engine:<id>` | Một engine duy nhất khi được bật, ví dụ: `engine:rtk`.                                         |
-| `<combo>`     | Một tổ hợp có tên, trước tiên được khớp theo tên (không phân biệt hoa thường), sau đó theo id. |
+| Giá trị       | Hiệu ứng                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| `off`         | Không nén cho yêu cầu này.                                                                             |
+| `default`     | Hồ sơ Mặc định được lấy từ bảng điều khiển (bỏ qua hồ sơ hoạt động). Các công cụ mất mát bị tắt.       |
+| `safe`        | Chỉ loại bỏ trùng lặp và gấp khoảng trắng.                                                             |
+| `allow-lossy` | Giữ kế hoạch của nhà điều hành cho yêu cầu này, bao gồm tóm tắt và viết lại kiểu.                      |
+| `engine:<id>` | Một công cụ duy nhất khi được bật, ví dụ: `engine:rtk`. Tùy chọn cho công cụ đó cho mỗi yêu cầu.       |
+| `<combo>`     | Một combo được đặt tên, được khớp theo tên (không phân biệt chữ hoa chữ thường) trước, sau đó theo id. |
 
-Lưu ý:
+Ghi chú:
 
-- Các giá trị không xác định sẽ bị bỏ qua (yêu cầu không bao giờ bị từ chối); quá trình phân giải sẽ chuyển sang thứ tự ưu tiên toán tử thông thường.
-- Nếu nhiều tổ hợp có cùng tên, hãy truyền **id** của tổ hợp để khớp theo cách xác định.
-- Không thể chọn theo tên một tổ hợp có tên là `off` hoặc `default` (các từ khóa đó được diễn giải trước); hãy tham chiếu tổ hợp đó bằng id.
-- Công tắc nén chính là một cổng chặn bắt buộc: khi tính năng nén bị tắt trên toàn hệ thống, tiêu đề này không thể bật tính năng đó.
+- Các giá trị không xác định bị bỏ qua (yêu cầu không bao giờ bị từ chối); độ phân giải rơi vào thứ tự ưu tiên thông thường của nhà điều hành.
+- Nếu nhiều combo chia sẻ một tên, hãy chuyển **id** combo để khớp xác định.
+- Một combo có tên là `off` hoặc `default` không thể được chọn theo tên (các từ khóa đó được diễn giải trước); tham chiếu combo đó bằng id của nó.
+- Công tắc nén chính là một cổng cứng: khi nén bị tắt trên toàn cầu, tiêu đề này không thể bật nó.
 
-Kế hoạch đã áp dụng được phản hồi lại trong tiêu đề phản hồi:
+Kế hoạch đã áp dụng được lặp lại trong tiêu đề phản hồi:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
@@ -425,90 +403,90 @@ Sử dụng endpoint này khi một sidecar chạy ngoài tiến trình và khô
 
 ---
 
-## Các endpoint tương thích
+## Điểm cuối tương thích
 
-| Phương thức | Đường dẫn                                 | Định dạng                              |
-| ----------- | ----------------------------------------- | -------------------------------------- |
-| POST        | `/v1/chat/completions`                    | OpenAI                                 |
-| POST        | `/v1/messages`                            | Anthropic                              |
-| POST        | `/v1/responses`                           | OpenAI Responses                       |
-| POST        | `/v1/embeddings`                          | OpenAI                                 |
-| POST        | `/v1/images/generations`                  | OpenAI Images                          |
-| POST        | `/v1/images/edits`                        | OpenAI Images (chỉnh sửa/inpaint)      |
-| POST        | `/v1/videos/generations`                  | Tạo video theo kiểu OpenAI             |
-| POST        | `/v1/music/generations`                   | Tạo nhạc theo kiểu OpenAI              |
-| POST        | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
-| POST        | `/v1/audio/speech`                        | OpenAI TTS (trả về phần thân âm thanh) |
-| POST        | `/v1/rerank`                              | Xếp hạng lại theo kiểu Cohere/Voyage   |
-| POST        | `/v1/classify`                            | Phân loại Jina (`api.jina.ai`)         |
-| POST        | `/v1/segment`                             | Bộ phân đoạn Jina (`segment.jina.ai`)  |
-| POST        | `/v1/moderations`                         | OpenAI Moderations                     |
-| GET         | `/v1/models`                              | OpenAI                                 |
-| POST        | `/v1/messages/count_tokens`               | Anthropic                              |
-| GET         | `/v1beta/models`                          | Gemini                                 |
-| POST        | `/v1beta/models/{...path}`                | Gemini generateContent                 |
-| POST        | `/v1/api/chat`                            | Ollama                                 |
-| GET         | `/api/v1/vscode/{token}/`                 | Bí danh danh mục OpenAI                |
-| GET         | `/api/v1/vscode/{token}/models`           | Bí danh mô hình OpenAI                 |
-| POST        | `/api/v1/vscode/{token}/chat/completions` | Bí danh OpenAI có token                |
-| POST        | `/api/v1/vscode/{token}/responses`        | Bí danh OpenAI Responses có token      |
-| POST        | `/api/v1/vscode/{token}/api/chat`         | Bí danh Ollama có token                |
-| GET         | `/api/v1/vscode/{token}/api/tags`         | Bí danh thẻ Ollama có token            |
+| Phương thức | Đường dẫn                                 | Định dạng                                |
+| ----------- | ----------------------------------------- | ---------------------------------------- |
+| POST        | `/v1/chat/completions`                    | OpenAI                                   |
+| POST        | `/v1/messages`                            | Anthropic                                |
+| POST        | `/v1/responses`                           | OpenAI Responses                         |
+| POST        | `/v1/embeddings`                          | OpenAI                                   |
+| POST        | `/v1/images/generations`                  | OpenAI Images                            |
+| POST        | `/v1/images/edits`                        | OpenAI Images (chỉnh sửa/inpaint)        |
+| POST        | `/v1/videos/generations`                  | Tạo video kiểu OpenAI                    |
+| POST        | `/v1/music/generations`                   | Tạo nhạc kiểu OpenAI                     |
+| POST        | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
+| POST        | `/v1/audio/speech`                        | OpenAI TTS (trả về nội dung âm thanh)    |
+| POST        | `/v1/rerank`                              | Sắp xếp lại kiểu Cohere/Voyage           |
+| POST        | `/v1/classify`                            | Phân loại Jina (`api.jina.ai`)           |
+| POST        | `/v1/segment`                             | Bộ phân đoạn Jina (`segment.jina.ai`)    |
+| POST        | `/v1/moderations`                         | Kiểm duyệt OpenAI                        |
+| GET         | `/v1/models`                              | OpenAI                                   |
+| POST        | `/v1/messages/count_tokens`               | Anthropic                                |
+| GET         | `/v1beta/models`                          | Gemini                                   |
+| POST        | `/v1beta/models/{...path}`                | Gemini generateContent                   |
+| POST        | `/v1/api/chat`                            | Ollama                                   |
+| GET         | `/api/v1/vscode/{token}/`                 | Bí danh danh mục OpenAI                  |
+| GET         | `/api/v1/vscode/{token}/models`           | Bí danh mô hình OpenAI                   |
+| POST        | `/api/v1/vscode/{token}/chat/completions` | Bí danh được mã hóa của OpenAI           |
+| POST        | `/api/v1/vscode/{token}/responses`        | Bí danh được mã hóa của OpenAI Responses |
+| POST        | `/api/v1/vscode/{token}/api/chat`         | Bí danh được mã hóa của Ollama           |
+| GET         | `/api/v1/vscode/{token}/api/tags`         | Bí danh được mã hóa của thẻ Ollama       |
 
-Tất cả các route POST đều có cùng cấu trúc: `Bearer your-api-key` + phần thân JSON được Zod xác thực (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, v.v.; xem `src/shared/validation/schemas.ts`). Mã 4xx được trả về khi xác thực schema thất bại.
+Tất cả các tuyến POST đều có cùng định dạng: `Bearer your-api-key` + JSON body được xác thực bằng Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, v.v., xem `src/shared/validation/schemas.ts`). Mã 4xx được trả về khi xác thực schema thất bại.
 
-Đối với các client không thể đính kèm `Authorization: Bearer ...`, OmniRoute cũng chấp nhận khóa API trong URL thông qua khả năng tương thích chuỗi truy vấn (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) hoặc các endpoint chuyên dụng `/api/v1/vscode/{token}/...` được mô tả bên dưới.
+Đối với các client không thể đính kèm `Authorization: Bearer ...`, OmniRoute cũng chấp nhận khóa API trong URL thông qua khả năng tương thích với chuỗi truy vấn (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) hoặc các điểm cuối `/api/v1/vscode/{token}/...` chuyên dụng được ghi lại bên dưới.
 
 ```bash
-# Xếp hạng lại (nhà cung cấp trong cloud registry hoặc một node nhà cung cấp tương thích với OpenAI dưới dạng "<prefix>/<model>")
+# Sắp xếp lại (nhà cung cấp registry đám mây, hoặc một node nhà cung cấp tương thích OpenAI dưới dạng "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Phân loại Jina (thông tin xác thực Foundation API)
+# Phân loại Jina (thông tin xác thực API nền tảng)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Bộ phân đoạn Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Tìm kiếm Jina (s.jina.ai; các bí danh nhà cung cấp: jina-search, jina-ai, jina)
+# Tìm kiếm Jina (s.jina.ai; bí danh nhà cung cấp: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Kiểm duyệt
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — trả về phần thân audio/mpeg (hoặc định dạng được yêu cầu)
+# TTS — trả về nội dung audio/mpeg (hoặc định dạng được yêu cầu)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
 # Chỉnh sửa hình ảnh (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Tạo video / nhạc (ID mô hình có tiền tố nhà cung cấp)
+# Tạo video / nhạc (id mô hình có tiền tố nhà cung cấp)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Các node nhà cung cấp xếp hạng lại:** `POST /v1/rerank` cũng định tuyến đến các node nhà cung cấp tương thích với OpenAI
-> (oMLX, vLLM, Infinity, TEI phía sau một gateway, …) được định địa chỉ dưới dạng `<node-prefix>/<model>`. Các node loopback
+> **Các node nhà cung cấp sắp xếp lại:** `POST /v1/rerank` cũng định tuyến đến các node nhà cung cấp tương thích với OpenAI
+> (oMLX, vLLM, Infinity, TEI phía sau một gateway, …) được định địa chỉ là `<node-prefix>/<model>`. Các node loopback
 > (`localhost`, `127.0.0.1`, `172.16.0.0/12`) luôn đủ điều kiện. Các node trên bất kỳ
-> host nào khác — một máy trong LAN hoặc peer Tailscale — chỉ đủ điều kiện khi người vận hành bật
-> cờ tính năng `RERANK_REMOTE_PROVIDER_NODES` **và** URL cơ sở của node vượt qua chính sách URL gửi đi của nhà cung cấp
+> máy chủ nào khác — một hộp LAN hoặc peer Tailscale — chỉ đủ điều kiện khi nhà điều hành bật
+> cờ tính năng `RERANK_REMOTE_PROVIDER_NODES` **và** URL cơ sở của node vượt qua chính sách URL đi của nhà cung cấp
 > (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> các host metadata cloud không bao giờ được định tuyến đến. Bước xếp hạng lại của công cụ bộ nhớ gọi route này qua
-> loopback, vì vậy cùng một quy tắc chi phối `rerankProviderModel` trong phần cài đặt Memory.
+> các máy chủ siêu dữ liệu đám mây không bao giờ được định tuyến đến. Bước sắp xếp lại của công cụ bộ nhớ gọi tuyến này qua
+> loopback, vì vậy cùng một quy tắc chi phối `rerankProviderModel` trong cài đặt Bộ nhớ.
 >
-> **Cấu trúc máy chủ cục bộ:** node được gọi tại `<base>/v1/rerank` và, khi nhận 404, tại `<base>/rerank`
-> (Infinity, TEI). Phần thân upstream mang cả cách đặt tên của Cohere/OpenAI (`documents`,
-> `return_documents`) và cách đặt tên của TEI (`texts`, `return_text`), đồng thời phản hồi upstream được
-> chuẩn hóa thành envelope Cohere: mảng thuần `[{index, score, text}]` của TEI, `{results: [{index, score}]}`
-> từ các gateway mỏng và `{data: [...]}` theo kiểu Voyage đều được trả về cho client dưới dạng
-> `{results: [{index, relevance_score, document?}]}`, được sắp xếp theo điểm và giới hạn ở `top_n`.
+> **Các định dạng máy chủ cục bộ:** node được gọi tại `<base>/v1/rerank` và, khi 404, tại `<base>/rerank`
+> (Infinity, TEI). Nội dung upstream mang cả cách viết của Cohere/OpenAI (`documents`,
+> `return_documents`) và cách viết của TEI (`texts`, `return_text`), và phản hồi upstream được
+> chuẩn hóa thành envelope của Cohere: `[{index, score, text}]` trần của TEI, `{results: [{index, score}]}`
+> từ các gateway mỏng, và `{data: [...]}` kiểu Voyage đều được trả về client dưới dạng
+> `{results: [{index, relevance_score, document?}]}`, được sắp xếp theo điểm số và giới hạn ở `top_n`.
 
-> **Khám phá node nhà cung cấp:** các mô hình trên một node nhà cung cấp tương thích với OpenAI xuất hiện trong `GET /v1/models`
-> dưới tiền tố của node. Các hàng không chứa metadata endpoint (thường gặp trong danh sách `/v1/models` cục bộ)
-> kế thừa `apiType` của node, do đó mô hình của một node `embeddings` có `type: "embedding"` và mô hình của một
-> node `rerank` có `type: "rerank"` thay vì mặc định là chat; `supportedEndpoints` được chỉ định rõ ràng
-> trên một hàng đã đồng bộ hoặc được thêm thủ công vẫn được ưu tiên.
+> **Phát hiện node nhà cung cấp:** các mô hình trên một node nhà cung cấp tương thích với OpenAI xuất hiện trong `GET /v1/models`
+> dưới tiền tố node. Các hàng không mang siêu dữ liệu điểm cuối (điển hình cho danh sách `/v1/models` cục bộ)
+> kế thừa `apiType` của node, vì vậy các mô hình của node `embeddings` là `type: "embedding"` và các
+> mô hình của node `rerank` là `type: "rerank"` thay vì mặc định là chat; một `supportedEndpoints` rõ ràng
+> trên một hàng được đồng bộ hóa hoặc thêm thủ công vẫn được ưu tiên.
 
-### Các route nhà cung cấp chuyên dụng
+### Các tuyến nhà cung cấp chuyên dụng
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -516,7 +494,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Tiền tố nhà cung cấp sẽ tự động được thêm nếu thiếu. Các mô hình không khớp sẽ trả về `400`.
+Tiền tố nhà cung cấp sẽ tự động được thêm vào nếu bị thiếu. Các mô hình không khớp sẽ trả về `400`.
 
 ---
 

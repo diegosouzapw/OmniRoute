@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — मोफत AI गेटवे
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — कोडिंग कधीही थांबवू नका. प्रत्येक AI साधन → 359 प्रदाते — 150+ मोफत — एका एंडपॉइंटद्वारे. Claude Code, Codex, Cursor, Cline, Copilot आणि Antigravity यांना स्वयंचलित फॉलबॅकसह मोफत Claude / GPT / Gemini शी जोडा. RTK + Caveman स्टॅक्ड कॉम्प्रेशनमुळे 15–95% टोकनची बचत होते (सरासरी ~89%) — मर्यादा कधीही गाठू नका. 359 AI प्रदाते · 150+ मोफत श्रेणी · दरमहा ~1.62B मोफत टोकन · 19 रूटिंग धोरणे · सुरुवात करण्यासाठी $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — कोडिंग कधीही थांबू नका. प्रत्येक AI साधन → 358 प्रदाते — 150+ मोफत — एकाच एंडपॉइंटद्वारे. Claude Code, Codex, Cursor, Cline, Copilot आणि Antigravity मोफत Claude / GPT / Gemini मध्ये ऑटो-फॉल बॅकसह. RTK + Caveman स्टॅक्ड कॉम्प्रेशन 15–95% टोकन्स वाचवते (~89% सरासरी) — कधीही मर्यादा गाठू नका. 358 AI प्रदाते · 150+ मोफत टायर्स · ~1.62B मोफत टोकन्स/महिना · 19 राउटिंग स्ट्रॅटेजीज · सुरू करण्यासाठी $0."/>
 
 </div>
 
@@ -214,32 +214,32 @@
 
 <div align="center">
 
-## 🆓 इंस्टॉल करताच लगेच कार्यरत — कोणत्याही कीज नाहीत, कोणतेही कॉन्फिग नाही
+## 🆓 स्थापित करताच लगेच काम करते — कोणत्याही कीजशिवाय, कोणत्याही कॉन्फिगशिवाय
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="इंस्टॉल करताच लगेच कार्यरत — शून्य कॉन्फिग. तीन पायऱ्या: 1. इंस्टॉल करा — npm i -g omniroute, सर्व्हर localhost:20128 वर सुरू होतो. 2. तुमचे साधन http://localhost:20128/v1 कडे निर्देशित करा — कोणतेही OpenAI-सुसंगत साधन (Claude Code, Cursor, Cline). 3. ते उत्तर देते — कोणत्याही API की, नोंदणी किंवा कॉन्फिगरेशनशिवाय त्वरित उत्तरासाठी auto मॉडेल कॉल करा. कीविरहित प्रदाता OpenCode Free हा auto कॉम्बोमध्ये आधीपासून जोडलेला आहे, त्यामुळे नवीन इंस्टॉलेशन कोणत्याही अतिरिक्त सेटअपशिवाय प्रतिसाद देते."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="स्थापित करताच लगेच काम करते — शून्य कॉन्फिग. तीन पायऱ्या: 1. स्थापित करा — npm i -g omniroute, सर्व्हर localhost:20128 वर बूट होतो. 2. तुमचे टूल http://localhost:20128/v1 कडे निर्देशित करा — कोणतेही OpenAI-सुसंगत टूल (Claude Code, Cursor, Cline). 3. ते उत्तर देते — त्वरित उत्तरासाठी auto मॉडेलला कॉल करा, कोणत्याही API कीशिवाय, साइनअपशिवाय, कोणत्याही कॉन्फिगरेशनशिवाय. कीलेस प्रदाता OpenCode Free हे auto कॉम्बोमध्ये आधीच जोडलेले आहे, त्यामुळे नवीन इन्स्टॉल बॉक्समधूनच प्रतिसाद देते."/>
 
 ```bash
-# नवीन इंस्टॉलेशन, शून्य क्रेडेन्शियल्स — `auto` आधीपासूनच कार्यरत आहे:
+# नवीन इन्स्टॉल, शून्य क्रेडेन्शियल्स — `auto` आधीच कार्य करते:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>विशिष्ट मोफत बॅकएंड पसंत आहे? थेट `oc/…` (OpenCode Free) कॉल करा. त्यानंतर `auto` वर जा आणि OmniRoute ला निवड करू द्या.</sub>
+<sub>विशिष्ट मोफत बॅकएंडला प्राधान्य देता? `oc/…` (OpenCode Free) ला थेट कॉल करा. नंतर `auto` वर अपग्रेड करा आणि OmniRoute ला निवडू द्या.</sub>
 
-<sub>📦 **Python, Node.js, PHP आणि cURL** साठी कॉपी-पेस्ट क्विकस्टार्ट स्क्रिप्ट्स → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 **Python, Node.js, PHP, आणि cURL** साठी कॉपी-पेस्ट क्विकस्टार्ट स्क्रिप्ट्स → [`examples/quickstart/`]</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 आश्वासन
+# 💥 वचन
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="आश्वासन — एक एंडपॉइंट आणि 359 प्रदाते. दुसरे सक्षम लक्ष्य उपलब्ध असेपर्यंत स्वयंचलित फॉलबॅक राउटिंग सुरू ठेवते. सहा आधारस्तंभ: 359 प्रदात्यांमध्ये लवचिक फॉलबॅक · पात्र वर्कलोड्सवर 95% पर्यंत टोकन बचत · 150+ मोफत टियर्स आणि 54 आवर्ती/कीविरहित कायमस्वरूपी मोफत प्रदात्यांसह $0 पासून सुरुवात · एका कॉन्फिगद्वारे 36 CLI/एजंट एकत्रीकरणे · /v1 वर OpenAI, Claude, Gemini आणि Responses API सुसंगतता · सर्किट ब्रेकर्स, TLS स्टेल्थ, MCP ची 110 साधने, A2A, मेमरी, गार्डरेल्स, इव्हॅल्स आणि ट्रॅक केलेल्या 5,100+ चाचणी फाइल्समधील 39,000+ स्थिर चाचणी घोषणांसह प्रॉडक्शन नियंत्रणे."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="वचन — एक एंडपॉइंट आणि 358 प्रदाते. दुसरे निरोगी लक्ष्य उपलब्ध असताना स्वयंचलित फॉलबॅक राउटिंग चालू ठेवते. सहा आधारस्तंभ: 358 प्रदात्यांमध्ये लवचिक फॉलबॅक · पात्र वर्कलोडवर 95% पर्यंत टोकन बचत · 150+ मोफत टियर्स आणि 54 आवर्ती/कीलेस कायमस्वरूपी मोफत प्रदात्यांसह $0 पासून सुरुवात करा · एका कॉन्फिगद्वारे 36 CLI/एजंट इंटिग्रेशन्स · /v1 वर OpenAI, Claude, Gemini आणि Responses API सुसंगतता · उत्पादन नियंत्रणे ज्यात सर्किट ब्रेकर्स, TLS स्टील्थ, MCP 110 टूल्स, A2A, मेमरी, गार्डरेल्स, इव्हॅल्स आणि 5,100+ ट्रॅक केलेल्या चाचणी फाइल्समध्ये 39,000+ स्टॅटिक चाचणी घोषणांचा समावेश आहे."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRoute का — 10 डॅशबोर्ड्स, निष्क्रिय API कीज आणि अनपेक्षित बिले सांभाळणे थांबवा. दैनंदिन दहा समस्या आणि त्यांवरील उपाय: न वापरता कोटा कालबाह्य होणे → सदस्यत्वांचा पुरेपूर वापर करा; कोडिंगदरम्यान रेट लिमिट्स → 4-टियर ऑटो-फॉलबॅक (Subscription → API → Cheap → Free); साधनांच्या आउटपुटमुळे टोकन्सचा अपव्यय → RTK + Caveman कॉम्प्रेशन (15–95%); महागडे APIs → खर्चासाठी ऑप्टिमाइझ केलेले राउटिंग; प्रत्येक साधनासाठी स्वतंत्र सेटअप → एक एंडपॉइंट, एक डॅशबोर्ड; AI अवरोधित → 3-स्तरीय प्रॉक्सी + TLS स्टेल्थ; निष्क्रिय कीज → 3-स्तरीय लवचिकता (सर्किट ब्रेकर्स, की कूलडाउन, मॉडेल लॉकआउट); एक सदस्यत्व सामायिक करणारी टीम → न्याय्य-वाटप कोट्यासह की पूल्स; प्रॉम्प्ट्स इतर कोणाच्या क्लाउडमधून जाणे → AES-256-GCM एन्क्रिप्टेड कीजसह लोकल-फर्स्ट; खर्चाची दृश्यमानता नाही → लाइव्ह अॅनालिटिक्स (वापर, कोटा, बचत, p95 विलंब)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRoute का — 10 डॅशबोर्ड्स, निष्क्रिय API कीज आणि अनपेक्षित बिलांची कसरत थांबवा. दहा दैनंदिन समस्या विरुद्ध उपाय: वापरले नसताना कोटा कालबाह्य होणे → सबस्क्रिप्शनचा जास्तीत जास्त वापर करा; कोडिंग करताना रेट लिमिट्स → 4-स्तरीय ऑटो-फॉल बॅक (सबस्क्रिप्शन → API → स्वस्त → मोफत); टूल आउटपुट टोकन वापरणे → RTK + केव्हमन कॉम्प्रेशन (15–95%); महागडे APIs → खर्च-अनुकूलित राउटिंग; प्रत्येक टूलची स्वतःची सेटअप → एक एंडपॉइंट, एक डॅशबोर्ड; AI ब्लॉक झाले → 3-स्तरीय प्रॉक्सी + TLS स्टील्थ; निष्क्रिय कीज → 3-स्तरीय लवचिकता (सर्किट ब्रेकर्स, की कूलडाउन, मॉडेल लॉकआउट); टीम एक सबस्क्रिप्शन शेअर करत आहे → योग्य-हिस्सा कोटासह की पूल्स; इतरांच्या क्लाउडद्वारे प्रॉम्प्ट्स → AES-256-GCM एन्क्रिप्टेड कीजसह लोकल-फर्स्ट; खर्चाची दृश्यमानता नाही → थेट विश्लेषण (वापर, कोटा, बचत, p95 लेटन्सी)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute विनंती प्रवाह: तुमचे IDE किंवा CLI (Claude Code, Cursor, Cline…) एका स्थानिक एंडपॉइंटला (http://localhost:20128/v1) कॉल करते; OmniRoute Smart Router (RTK + Caveman कॉम्प्रेशन, 19 राउटिंग धोरणे, सर्किट ब्रेकर्स, TLS स्टेल्थ, MCP, A2A, गार्डरेल्स) पात्र आणि सक्षम लक्ष्य उपलब्ध असेपर्यंत 4 प्रदाता टियर्समध्ये फॉलबॅक करू शकतो — टियर 1 Subscription, टियर 2 API Key, टियर 3 Cheap आणि टियर 4 Free."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute विनंती प्रवाह: तुमचा IDE किंवा CLI (Claude Code, Cursor, Cline…) एका स्थानिक एंडपॉइंटला (http://localhost:20128/v1) कॉल करतो; OmniRoute स्मार्ट राउटर (RTK + केव्हमन कॉम्प्रेशन, 19 राउटिंग स्ट्रॅटेजीज, सर्किट ब्रेकर्स, TLS स्टील्थ, MCP, A2A, गार्डरेल्स) 4 प्रदाता टियर्समध्ये फॉलबॅक करू शकतो, जोपर्यंत एक पात्र निरोगी लक्ष्य शिल्लक राहते — टियर 1 सबस्क्रिप्शन, टियर 2 API की, टियर 3 स्वस्त आणि टियर 4 मोफत."/>
 
 </div>
 
@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 आमच्या मुक्त-स्रोत मित्रांकडून समर्थित
+## 🤝 आमच्या मुक्त स्रोत मित्रांनी समर्थित
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — मुक्त सीमारेषेवरील बुद्धिमत्ता · 2.8T पॅरामीटर्स · 1M-टोकन संदर्भ"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **मुक्त-स्रोत मित्र म्हणून सहभागी होऊ इच्छिता?** या अशा कंपन्या आहेत ज्या मुक्त स्रोताला पाठबळ देतात आणि OmniRoute ची वाटचाल सुरू ठेवण्यास मदत करतात — आणि त्यांनी आम्हाला दिलेला प्रत्येक टोकन कुठे वापरला जातो, हे आम्ही सार्वजनिकपणे सांगतो. संपर्क साधा: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **मुक्त स्रोत मित्र म्हणून सामील होऊ इच्छिता?** या अशा कंपन्या आहेत ज्या मुक्त स्रोताला पाठिंबा देतात आणि OmniRoute ला कार्यरत ठेवण्यास मदत करतात — आणि आम्ही त्यांना दिलेला प्रत्येक टोकन कुठे जातो हे सार्वजनिकपणे सांगतो. संपर्क साधा: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="संस्थापक मुक्त-स्रोत मित्र"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      आमचे संस्थापक मुक्त-स्रोत मित्र <b>Kimi (Moonshot AI)</b> यांनी या प्रकल्पाला पाठबळ दिल्याबद्दल त्यांचे आभार! Kimi ही मुक्त-वेट K2 आणि K3 मॉडेल कुटुंबांमागील AI प्रयोगशाळा आहे — <b>Kimi K3</b> 1M-टोकन संदर्भ विंडो, नेटिव्ह व्हिजन आणि बंद मॉडेलच्या किमतीच्या केवळ एका अंशात सीमारेषा-स्तरीय कोडिंग प्रदान करते; तसेच Claude Code, Codex आणि OmniRoute द्वारे सेवा दिल्या जाणाऱ्या प्रत्येक कोडिंग साधनासह कोणत्याही अतिरिक्त संरचनेशिवाय कार्य करते.
+      आमचे संस्थापक मुक्त स्रोत मित्र, <b>Kimi (Moonshot AI)</b>, या प्रकल्पाला पाठिंबा दिल्याबद्दल धन्यवाद! Kimi ही मुक्त-वजन K2 आणि K3 मॉडेल कुटुंबांच्या मागे असलेली AI लॅब आहे — <b>Kimi K3</b> 1M-टोकन संदर्भ विंडो, मूळ दृष्टी आणि बंद-मॉडेल किमतीच्या काही अंशात सीमा-स्तरीय कोडिंग प्रदान करते आणि Claude Code, Codex आणि OmniRoute सेवा देणाऱ्या प्रत्येक कोडिंग टूलसह बॉक्सच्या बाहेर कार्य करते.
       <br/><br/>
-      <b>Kimi चे समर्थन कशाला बळ देते:</b> Kimi चे API क्रेडिट्स OmniRoute च्या AI-सत्यापित प्रकाशन पाइपलाइनला बळ देतात — प्रत्येक pull request प्रकाशित होण्यापूर्वी त्याचे पुनरावलोकन करणारा <i>Kimi K3 द्वारे समर्थित merge validation</i> टप्पा — तसेच दैनंदिन वैशिष्ट्य-विकासालाही. प्रथम-श्रेणीचे Kimi समर्थन दोन्ही मार्गांवर उपलब्ध आहे: थेट <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) आणि <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code कोडिंग योजना</a> (OAuth आणि API की). Kimi च्या समर्थन कार्यक्रमातील OmniRoute हा ब्राझीलचा पहिला मुक्त-स्रोत प्रकल्पही आहे. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% अतिरिक्त क्रेडिट्ससह Kimi API की मिळवा →</b></a>
+      <b>Kimi चा पाठिंबा काय शक्ती देतो:</b> Kimi चे API क्रेडिट्स OmniRoute च्या AI-प्रमाणित प्रकाशन पाइपलाइनला शक्ती देतात — <i>Kimi K3 द्वारे समर्थित विलीनीकरण प्रमाणीकरण</i> टप्पा जो प्रत्येक पुल विनंतीचे शिप करण्यापूर्वी पुनरावलोकन करतो — तसेच दैनंदिन वैशिष्ट्य विकास. प्रथम-श्रेणी Kimi समर्थन दोन्ही रेल्वेवर पाठवले जाते: थेट <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) आणि <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code कोडिंग योजना</a> (OAuth आणि API की). OmniRoute हा Kimi च्या समर्थन कार्यक्रमातील पहिला ब्राझिलियन मुक्त-स्रोत प्रकल्प देखील आहे. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% अतिरिक्त क्रेडिट्ससह Kimi API की मिळवा →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="मुक्त-स्रोत मित्र"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
     </td>
     <td>
-      OmniRoute चे मुक्त-स्रोत मित्र <b>Cheaper Inference</b> यांनी या प्रकल्पाला पाठबळ दिल्याबद्दल त्यांचे आभार! Cheaper Inference हे किमतीनुसार क्रमबद्ध केलेले गेटवे आहे, जे Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok आणि MiniMax यांसह 42 सीमारेषा मॉडेल्सची एका OpenAI-सुसंगत एंडपॉइंटमागे पुनर्विक्री करते आणि मॉडेल निर्मात्याच्या सूची किमतीपेक्षा कधीही अधिक शुल्क न आकारता प्रत्येक विनंती सर्वांत स्वस्त पात्र प्रदात्याकडे रूट करते.
+      या प्रकल्पाला पाठिंबा दिल्याबद्दल OmniRoute मुक्त स्रोत मित्र, <b>Cheaper Inference</b> चे आभार! Cheaper Inference हे एक खर्च-रँक केलेले गेटवे आहे जे 42 सीमा मॉडेल पुन्हा विकते — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok आणि MiniMax — एका OpenAI-सुसंगत एंडपॉइंटच्या मागे, प्रत्येक विनंतीला सर्वात स्वस्त पात्र प्रदात्याकडे पाठवते आणि मॉडेल निर्मात्याच्या सूची किमतीपेक्षा जास्त शुल्क आकारत नाही.
       <br/><br/>
-      <b>OmniRoute मधील प्रथम-श्रेणी समर्थन:</b> Chat Completions, नेटिव्ह <code>/v1/responses</code> एंडपॉइंट, व्हिजन, टूल कॉलिंग आणि 3 प्रतिमा मॉडेल्स (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, ज्यांना <code>cheaperinference/&lt;model&gt;</code> या स्वरूपात वापरता येते). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API की मिळवा →</b></a>
+      <b>OmniRoute मध्ये प्रथम-श्रेणी समर्थन:</b> चॅट पूर्णता, मूळ <code>/v1/responses</code> एंडपॉइंट, दृष्टी, टूल कॉलिंग आणि 3 प्रतिमा मॉडेल (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, <code>cheaperinference/&lt;model&gt;</code> म्हणून पोहोचण्यायोग्य). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>API की मिळवा →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> टॅग असलेले दुवे भागीदार दुवे आहेत. तुमच्याकडून कोणताही अतिरिक्त खर्च न घेता ते प्रकल्पाला निधी पुरवतात.</sub>
+<sub><code>aff=omniroute</code> टॅग केलेल्या लिंक्स भागीदार लिंक्स आहेत. त्या तुम्हाला कोणताही अतिरिक्त खर्च न करता प्रकल्पाला निधी देतात.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ संलग्न प्रचार</b> — आम्ही प्रायोजित करत नसलेल्या प्रदात्यांकडून मोफत नोंदणी कूपन्स (विस्तृत करण्यासाठी क्लिक करा)</sub></summary>
+<summary><sub><b>🎟️ संलग्न प्रोमो</b> — आम्ही प्रायोजित करत नसलेल्या प्रदात्यांकडून मोफत साइनअप कूपन (विस्तारण्यासाठी क्लिक करा)</sub></summary>
 
-<sub><i>हा विभाग केवळ रेफरल/कूपन कोडसाठी आहे. प्रायोजित भागीदारी वरील <b>🤝 आमच्या मुक्त-स्रोत मित्रांकडून समर्थित</b> विभागात आहेत. येथे सूचीबद्ध केलेल्या प्रदात्यांसोबत OmniRoute चे कोणतेही प्रायोजकत्व किंवा भागीदारी नाही — ही सार्वजनिक कूपन्स आहेत जी कोणीही वापरू शकते.</i></sub>
+<sub><i>हा विभाग केवळ रेफरल/कूपन कोडसाठी आहे. प्रायोजित भागीदारी वरील <b>🤝 आमच्या मुक्त स्रोत मित्रांनी समर्थित</b> मध्ये आहेत. OmniRoute चा येथे सूचीबद्ध केलेल्या प्रदात्यांशी कोणताही प्रायोजकत्व किंवा भागीदारी नाही — ही सार्वजनिक कूपन आहेत जी कोणीही वापरू शकतो.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — संलग्न नोंदणी · नोंदणी केल्यावर <b>$100 चे मोफत क्रेडिट्स</b> (मोफत सर्व्हर, त्यामुळे अधिक विलंब अपेक्षित — उत्पादनासाठी नव्हे, तर चाचणीसाठी सर्वोत्तम). <b>v3.8.50</b> पासून OmniRoute मध्ये प्रथम-श्रेणी समर्थन: Chat Completions, Anthropic-सुसंगत वायर स्वरूप आणि OpenAI-सुसंगत पाथ. उपलब्ध मॉडेल्समध्ये <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> आणि इतर मॉडेल्सचा समावेश आहे. <b><a href="https://agentrouter.org/register?aff=70LM">तुमचे $100 मिळवा →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — संलग्न साइनअप · साइनअपवर <b>$100 मोफत क्रेडिट्स</b> (मोफत सर्व्हर, जास्त विलंब अपेक्षित — चाचणीसाठी सर्वोत्तम, उत्पादनासाठी नाही). OmniRoute मध्ये <b>v3.8.50</b> पासून प्रथम-श्रेणी समर्थन: चॅट पूर्णता, Anthropic-सुसंगत वायर स्वरूप आणि OpenAI-सुसंगत मार्ग. उपलब्ध मॉडेल्समध्ये <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> आणि बरेच काही समाविष्ट आहे. <b><a href="https://agentrouter.org/register?aff=70LM">तुमचे $100 मिळवा →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>संलग्न दुवा — या प्रदात्यासोबत OmniRoute चे कोणतेही प्रायोजकत्व किंवा भागीदारी नाही.</i></sub>
+      <sub>⚠️ <i>संलग्न लिंक — OmniRoute चा या प्रदात्याशी कोणताही प्रायोजकत्व किंवा भागीदारी नाही.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>OmniRoute वापरकर्त्यांना लाभ देणारे उदार मोफत नोंदणी कूपन असलेला दुसरा प्रदाता माहीत आहे का? एक issue उघडा आणि आम्ही तो येथे जोडू.</sub>
+<sub>OmniRoute वापरकर्त्यांना फायदा देणारे उदार मोफत साइनअप कूपन असलेला दुसरा प्रदाता माहित आहे का? एक समस्या उघडा आणि आम्ही ते येथे जोडू.</sub>
 
 </details>
 
@@ -488,13 +488,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🏆 OmniRoute चे वेगळेपण
+## 🏆 OmniRoute ला काय वेगळे करते
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute चे वेगळेपण — 13 क्षमतांमध्ये 9router, OpenRouter, CLIProxyAPI आणि LiteLLM यांच्या तुलनेतील विशिष्ट तारखेपर्यंतच्या वैशिष्ट्यांचा आढावा. OmniRoute: 359 प्रदाते, अंगभूत 150+ मोफत स्तर, 19 राउटिंग धोरणे, 12-इंजिन टोकन संपीडन, 110 साधनांसह अंगभूत MCP सर्व्हर, A2A एजंट प्रोटोकॉल, कायमस्वरूपी मेमरी, संरक्षक मर्यादा, क्लाउड एजंट्स, TLS फिंगरप्रिंट गोपनीयता, Desktop/Termux/PWA आणि 42 i18n UI लोकेल्स. OmniRoute ला MIT परवाना आहे आणि ते स्व-होस्ट करता येते. स्पर्धकांच्या क्षमता आणि संख्या बदलू शकतात; लिंक केलेली कार्यपद्धती पहा."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute ला काय वेगळे करते — 13 क्षमतांमध्ये 9router, OpenRouter, CLIProxyAPI आणि LiteLLM च्या तुलनेत एक जुना वैशिष्ट्य स्नॅपशॉट. OmniRoute: 358 प्रदाते, 150+ विनामूल्य स्तर अंगभूत, 19 राउटिंग रणनीती, 12-इंजिन टोकन कॉम्प्रेशन, 110 साधनांसह अंगभूत MCP सर्व्हर, A2A एजंट प्रोटोकॉल, सततची मेमरी, गार्डरेल्स, क्लाउड एजंट्स, TLS फिंगरप्रिंट स्टील्थ, डेस्कटॉप/टर्मक्स/PWA आणि 42 i18n UI लोकेशन्स. OmniRoute MIT-परवानाकृत आहे आणि स्व-होस्ट करण्यायोग्य आहे. स्पर्धकांच्या क्षमता आणि संख्या बदलू शकतात; जोडलेली कार्यपद्धती पहा."/>
 
-<sub>📊 संपूर्ण कार्यपद्धती आणि 9router, OpenRouter, CLIProxyAPI व LiteLLM यांच्या तुलनेतील प्रत्येक वैशिष्ट्याचा तपशील → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 9router, OpenRouter, CLIProxyAPI आणि LiteLLM च्या तुलनेत संपूर्ण कार्यपद्धती आणि प्रति-वैशिष्ट्य तपशील → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1256,29 +1256,29 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 देखील �
 <br/>
 <div align="center">
 
-## 🛠️ तंत्रज्ञान संच
+## 🛠️ तंत्रज्ञान स्टॅक
 
 </div>
 
 <table>
   <tr><th align="left">स्तर</th><th align="left">तंत्रज्ञान</th></tr>
   <tr><td nowrap><b>रनटाइम</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>भाषा</b></td><td>TypeScript 6.0 — <code>src/</code> आणि <code>open-sse/</code> मध्ये सर्वत्र <b>100% TypeScript</b> (v2.0 पासून कोअरमध्ये एकही <code>any</code> नाही)</td></tr>
+  <tr><td nowrap><b>भाषा</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> <code>src/</code> आणि <code>open-sse/</code> मध्ये (v2.0 पासून कोअरमध्ये शून्य <code>any</code>)</td></tr>
   <tr><td nowrap><b>फ्रेमवर्क</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिंग) + LowDB (JSON लेगसी) — 122 डोमेन मॉड्यूल्स, 178 मायग्रेशन्स</td></tr>
-  <tr><td nowrap><b>मेमरी</b></td><td>SQLite FTS5 पूर्ण-मजकूर + int8-क्वांटाइझ्ड व्हेक्टर एम्बेडिंग्ज, टाइप्ड डिके</td></tr>
+  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिंग) + LowDB (JSON लेगसी) — 122 डोमेन मॉड्यूल्स, 183 मायग्रेशन्स</td></tr>
+  <tr><td nowrap><b>मेमरी</b></td><td>SQLite FTS5 फुल-टेक्स्ट + int8-क्वांटाइज्ड वेक्टर एम्बेडिंग्ज, टाइप केलेला क्षय</td></tr>
   <tr><td nowrap><b>स्कीमा</b></td><td>Zod 4 — MCP टूल I/O प्रमाणीकरण + API करार</td></tr>
-  <tr><td nowrap><b>प्रोटोकॉल्स</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>प्रोटोकॉल</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>स्ट्रीमिंग</b></td><td>Server-Sent Events (SSE) + WebSocket ब्रिज (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>कॉम्प्रेशन</b></td><td>12-इंजिन पाइपलाइन — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>प्रमाणीकरण आणि सुरक्षा</b></td><td>OAuth 2.0 (PKCE) + JWT + API कीज + MCP व्याप्तीबद्ध प्रमाणीकरण · संचयित अवस्थेत AES-256-GCM · DOMPurify</td></tr>
+  <tr><td nowrap><b>प्रमाणीकरण आणि सुरक्षा</b></td><td>OAuth 2.0 (PKCE) + JWT + API कीज + MCP स्कोप केलेले प्रमाणीकरण · AES-256-GCM विश्रांतीमध्ये · DOMPurify</td></tr>
   <tr><td nowrap><b>स्टेल्थ</b></td><td>wreq-js — JA3 / JA4 TLS फिंगरप्रिंट प्रतिरूपण, 3-स्तरीय प्रॉक्सी</td></tr>
-  <tr><td nowrap><b>स्थितिस्थापकता</b></td><td>सर्किट ब्रेकर, एक्स्पोनेन्शियल बॅकऑफ, अँटी-थंडरिंग-हर्ड, ऑटो-कॉम्बो स्व-उपचार</td></tr>
+  <tr><td nowrap><b>लवचिकता</b></td><td>सर्किट ब्रेकर, एक्सपोनेंशियल बॅकऑफ, अँटी-थंडरिंग-हर्ड, ऑटो-कॉम्बो सेल्फ-हीलिंग</td></tr>
   <tr><td nowrap><b>लॉगिंग</b></td><td>pino — विनंती संदर्भासह संरचित JSON लॉग्स</td></tr>
-  <tr><td nowrap><b>चाचणी</b></td><td>Node.js टेस्ट रनर + Vitest — 5,100+ ट्रॅक केलेल्या चाचणी फाइल्समध्ये <b>39,000+ स्थिर चाचणी घोषणापत्रे</b> (युनिट, इंटिग्रेशन, E2E, सुरक्षा, इकोसिस्टम)</td></tr>
-  <tr><td nowrap><b>प्लॅटफॉर्म्स</b></td><td>डेस्कटॉप (Electron) · Android (Termux) · PWA (कोणताही ब्राउझर)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — रिलीजवेळी स्वयंचलित npm प्रकाशन + Docker Hub</td></tr>
-  <tr><td nowrap><b>दुवे</b></td><td><a href="https://omniroute.online">वेबसाइट</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>चाचणी</b></td><td>Node.js टेस्ट रनर + Vitest — <b>39,000+ स्टॅटिक टेस्ट डिक्लेरेशन्स</b> 5,100+ ट्रॅक केलेल्या टेस्ट फाइल्समध्ये (युनिट, इंटिग्रेशन, E2E, सुरक्षा, इकोसिस्टम)</td></tr>
+  <tr><td nowrap><b>प्लॅटफॉर्म</b></td><td>डेस्कटॉप (Electron) · अँड्रॉइड (Termux) · PWA (कोणताही ब्राउझर)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — रिलीझवर ऑटो npm पब्लिश + Docker Hub</td></tr>
+  <tr><td nowrap><b>लिंक्स</b></td><td><a href="https://omniroute.online">वेबसाइट</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">

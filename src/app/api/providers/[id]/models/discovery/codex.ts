@@ -148,11 +148,17 @@ function recordSupportsVision(record: JsonRecord): boolean {
   return Array.isArray(record.input_modalities) && record.input_modalities.some(isImageModality);
 }
 
+function reasoningEffortValue(entry: unknown): string | null {
+  if (typeof entry === "string") return toNonEmptyString(entry);
+  const effort = asRecord(entry).effort;
+  return typeof effort === "string" ? toNonEmptyString(effort) : null;
+}
+
 function supportedThinkingEfforts(record: JsonRecord): string[] | undefined {
   if (!Array.isArray(record.supported_reasoning_levels)) return undefined;
-  const efforts = record.supported_reasoning_levels.filter(
-    (effort): effort is string => typeof effort === "string" && effort.trim().length > 0
-  );
+  const efforts = record.supported_reasoning_levels
+    .map(reasoningEffortValue)
+    .filter((effort): effort is string => effort !== null);
   return efforts.length > 0 ? efforts : undefined;
 }
 

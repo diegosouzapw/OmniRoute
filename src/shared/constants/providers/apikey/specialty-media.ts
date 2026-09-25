@@ -106,17 +106,6 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
     hasFree: true,
     freeNote: "One-time ~€5 API credit for new accounts; pay-per-use afterward.",
   },
-  suno: {
-    id: "suno",
-    serviceKinds: [],
-    alias: "suno",
-    name: "Suno",
-    icon: "music_note",
-    color: "#F59E0B",
-    textIcon: "SU",
-    website: "https://suno.ai",
-    authHint: "Paste session cookie from suno.ai (Clerk auth)",
-  },
   udio: {
     id: "udio",
     serviceKinds: [],

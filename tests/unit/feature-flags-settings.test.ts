@@ -43,10 +43,11 @@ const {
 // 893fef9c added OPENCODE_PARK_AND_RESUME (74 -> 75); FLUSH_EMPTY_RETRY_ENABLED
 // (flush empty-turn retry, default off) bumps it to 76. ROTATION_ATTRIBUTION
 // (rotation skipped/served masked ids + proxy-log request correlation, all
-// read-only diagnostics) is this PR's flag, taking the registry to 77.
-// UNPRICED_USAGE_BUDGET_POLICY (per-key USD limit handling of unpriced usage,
-// default fail_closed = #12341 behavior) takes it to 78.
-const EXPECTED_FEATURE_FLAG_COUNT = 78;
+// read-only diagnostics) takes it to 77. STREAM_READINESS_STALL_RETRY
+// (one bounded retry when a stream stalls before usable output, default off)
+// takes it to 78. UNPRICED_USAGE_BUDGET_POLICY (per-key USD limit handling
+// of unpriced usage, default fail_closed = #12341 behavior) takes it to 79.
+const EXPECTED_FEATURE_FLAG_COUNT = 79;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
@@ -54,6 +55,16 @@ const EXPECTED_FEATURE_FLAG_COUNT = 78;
 describe("featureFlagDefinitions", () => {
   it(`has exactly ${EXPECTED_FEATURE_FLAG_COUNT} flag definitions`, () => {
     assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, EXPECTED_FEATURE_FLAG_COUNT);
+  });
+
+  it("keeps the documented catalog total in sync with the registry", () => {
+    const catalog = fs.readFileSync(
+      new URL("../../docs/reference/FEATURE_FLAGS.md", import.meta.url),
+      "utf8"
+    );
+    const count = catalog.match(/^(\d+) flags across \d+ categories\./m);
+    assert.ok(count, "Feature Flags catalog must declare its total");
+    assert.equal(Number(count[1]), FEATURE_FLAG_DEFINITIONS.length);
   });
 
   it("has unique keys for all flags", () => {

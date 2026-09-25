@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Semantica dei costi per i cache hit:** in caso di HIT della cache semantica (`X-OmniRoute-Cache-Hit: true`) non viene effettuata alcuna chiamata upstream, pertanto `X-OmniRoute-Response-Cost` è pari a `0.0000000000` (il costo **incrementale** per servire il risultato dalla cache). Il costo originale/potenziale viene indicato separatamente in `X-OmniRoute-Cost-Saved`. I sistemi di fatturazione devono sommare `X-OmniRoute-Response-Cost` (i cache hit non hanno alcun costo); i sistemi di analisi della cache possono aggregare `X-OmniRoute-Cost-Saved`.
 
-## Lease esclusive di sessioni gestite
+## Lease di Sessione Gestite Esclusive
 
-Il leasing esclusivo di sessioni gestite è un contratto di routing opzionale e indipendente dal client: un unico proprietario attivo
-detiene una connessione OmniRoute idonea. Non concede in leasing un modello, non richiede OAuth, non identifica un
-client specifico e non richiede un provider specifico.
+Il leasing di sessione gestita esclusiva è un contratto di routing opt-in, neutrale rispetto al client: un proprietario attivo detiene una connessione OmniRoute idonea. Non affitta un modello, non richiede OAuth, non identifica un client particolare e non richiede un provider particolare.
 
-La chiave API usata per l'autenticazione deve avere l'ambito `lease:exclusive` e un elenco
-`allowedConnections` esplicito e non vuoto. Il limite delle mutazioni del database impone la presenza congiunta di entrambi i campi durante la
-creazione della chiave e gli aggiornamenti parziali.
+La chiave API di autenticazione deve avere lo scope `lease:exclusive` e un elenco esplicito non vuoto `allowedConnections`. Il limite di mutazione del database impone entrambi i campi insieme alla creazione della chiave e agli aggiornamenti parziali.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Le risposte riuscite di acquisizione, rinnovo e rilascio espongono i timestamp, `state` e l'esatto valore positivo di
-`generation`, ma mai la connessione selezionata o le credenziali. Il rinnovo e il rilascio specificano la
-generazione nel corpo JSON:
+Le risposte di acquisizione, rinnovo e rilascio riuscite espongono timestamp, `state` e l'esatta `generation` positiva, ma mai la connessione o le credenziali selezionate. Rinnovo e rilascio forniscono la generazione nel corpo JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generazione nel corpo JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Il proprietario di un lease attivo può richiedere esplicitamente metadati di visualizzazione rispettosi della privacy per l'associazione corrente:
+Un proprietario di lease attivo può richiedere esplicitamente metadati di visualizzazione sicuri per la privacy per il suo binding corrente:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,23 +131,11 @@ Il proprietario di un lease attivo può richiedere esplicitamente metadati di vi
 }
 ```
 
-Questa azione di stato opzionale è protetta, in un'unica transazione del database, dal proprietario opaco, dalla chiave API gestita autenticata e dall'esatta
-generazione attiva. `displayName` è esclusivamente il nome configurato della connessione, senza spazi iniziali o finali;
-è `null` quando non esiste un nome configurato sicuro. OmniRoute non lo sostituisce mai con
-un indirizzo e-mail o con un'identità account generata. Il valore del provider è un'etichetta di visualizzazione non sensibile e non è mai
-un identificatore generato di provider compatibile. Sono esclusi credenziali, token, cookie, ID non elaborati della connessione o della chiave
-API, hash del proprietario, segreti di fencing e dati di routing interni.
+Questa azione di stato opt-in è protetta dal proprietario opaco, dalla chiave API gestita autenticata e dall'esatta generazione attiva in una singola transazione di database. `displayName` è solo il nome della connessione configurata e troncata; è `null` quando non esiste un nome configurato sicuro. OmniRoute non sostituisce mai un'e-mail o un'identità di account generata. Il valore del provider è un'etichetta di visualizzazione non sensibile e mai un identificatore di provider compatibile generato. Credenziali, token, cookie, ID di connessione o chiave API grezzi, hash del proprietario, segreti di protezione e dati di routing interni sono esclusi.
 
-Le ricerche con chiave errata, proprietario errato, generazione obsoleta oppure relative a lease mancanti, scaduti, rilasciati o invalidati
-restituiscono tutte lo stesso errore `409 LEASE_FENCE_STALE`, senza metadati della connessione. Un client che ha ricevuto la risposta di attesa della capacità non dispone di alcuna associazione attiva da esaminare. Quando il routing modifica la connessione di un lease attivo,
-la stessa generazione rimane valida e lo stato restituisce atomicamente la nuova associazione, mai quella precedente.
-I client esistenti non subiscono modifiche, perché le risposte di acquisizione, rinnovo, rilascio e attesa mantengono
-i formati precedenti.
+Ricerche con chiave errata, proprietario errato, generazione obsoleta, mancanti, scadute, rilasciate e invalidate restituiscono tutte lo stesso errore `409 LEASE_FENCE_STALE` senza metadati di connessione. Un client che ha ricevuto la risposta di attesa capacità non ha un binding attivo da ispezionare. Quando il routing transita un lease attivo, la stessa generazione rimane valida e lo stato restituisce atomicamente il nuovo binding, mai quello vecchio. I client esistenti rimangono invariati perché le risposte di acquisizione, rinnovo, rilascio e attesa mantengono le loro forme precedenti.
 
-Questo contratto del server non modifica `/status` di OpenAI Codex standard. Attualmente, Codex standard segnala il proprio
-provider del modello e lo stato integrato di autenticazione/account, ma non visualizza metadati account arbitrari di
-provider personalizzati; una futura integrazione client dovrà chiamare questa azione e decidere come
-visualizzare `connection.displayName`.
+Questo contratto server non modifica lo stato di OpenAI Codex `/status`. Codex attualmente riporta il suo provider di modelli e lo stato di autenticazione/account integrato, ma non rende metadati arbitrari di account provider personalizzati; una successiva integrazione client deve chiamare questa azione e decidere come visualizzare `connection.displayName`.
 
 Ogni richiesta di inferenza gestita fornisce quindi entrambe le intestazioni di controllo:
 
@@ -162,10 +144,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Il proprietario esatto, la generazione, la connessione attiva e la chiave API autenticata vengono sottoposti a fencing immediatamente
-prima di ogni tentativo upstream supportato. La riproduzione del proprietario e della generazione con un'altra chiave non riesce anche
-quando tale chiave consente la stessa connessione. I proprietari non elaborati non vengono resi persistenti, registrati nei log, conservati
-nello snapshot della richiesta o inoltrati upstream.
+Il proprietario esatto, la generazione, la connessione attiva e la chiave API autenticata sono protetti immediatamente prima di ogni tentativo upstream supportato. Ripetere proprietario e generazione con un'altra chiave fallisce anche quando quella chiave consente la stessa connessione. I proprietari grezzi non vengono persistiti, registrati, mantenuti nello snapshot della richiesta o inoltrati upstream.
 
 La contesa temporanea restituisce HTTP `429` con `Retry-After` e:
 
@@ -178,30 +157,29 @@ La contesa temporanea restituisce HTTP `429` con `Retry-After` e:
 }
 ```
 
-Questa risposta indica soltanto che l'insieme ordinario di connessioni idonee non era vuoto e che ogni candidato libero era
-detenuto da un lease attivo di un altro proprietario. Modelli/provider non supportati, mancata corrispondenza con i criteri, cooldown, quota,
-integrità e altri normali errori di idoneità mantengono le risposte OmniRoute esistenti.
+Questa risposta significa solo che l'insieme idoneo ordinario non era vuoto e ogni candidato libero era detenuto da un lease attivo esterno. Modelli/provider non supportati, mancata corrispondenza delle policy, cooldown, quota, stato di salute e altri fallimenti di idoneità ordinari mantengono le loro risposte OmniRoute esistenti.
 
 ### `x-omniroute-compression`
 
-Override del piano di compressione per la singola richiesta. Ha la precedenza più alta: prevale sull'override della combinazione di routing,
-sul profilo attivo, sull'attivazione automatica e sul valore Default del pannello. Valori:
+Override per richiesta del piano di compressione. Massima precedenza — batte l'override della combo di routing, il profilo attivo, l'attivazione automatica e il Default del pannello. Valori:
 
-| Valore        | Effetto                                                                                                               |
-| ------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Nessuna compressione per questa richiesta.                                                                            |
-| `default`     | Il profilo Default derivato dal pannello (ignora il profilo attivo).                                                  |
-| `engine:<id>` | Un singolo motore, se abilitato, ad es. `engine:rtk`.                                                                 |
-| `<combo>`     | Una combinazione denominata, confrontata prima per nome (senza distinzione tra maiuscole e minuscole), quindi per ID. |
+| Valore        | Effetto                                                                                               |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| `off`         | Nessuna compressione per questa richiesta.                                                            |
+| `default`     | Il profilo Default derivato dal pannello (ignora il profilo attivo). I motori lossy sono disattivati. |
+| `safe`        | Solo deduplicazione e ripiegamento degli spazi bianchi.                                               |
+| `allow-lossy` | Mantiene il piano dell'operatore per questa richiesta, inclusi riepiloghi e riscritture di stile.     |
+| `engine:<id>` | Un singolo motore quando abilitato, ad es. `engine:rtk`. Opt-in per richiesta per quel motore.        |
+| `<combo>`     | Una combo nominata, abbinata prima per nome (case-insensitive), poi per ID.                           |
 
 Note:
 
-- I valori sconosciuti vengono ignorati (la richiesta non viene mai rifiutata); la risoluzione prosegue secondo il normale ordine di precedenza degli operatori.
-- Se più combinazioni condividono lo stesso nome, specificare l'**id** della combinazione per ottenere una corrispondenza deterministica.
-- Una combinazione il cui nome è `off` o `default` non può essere selezionata per nome (queste parole chiave vengono interpretate per prime); fare riferimento a tale combinazione tramite il relativo ID.
-- L'interruttore principale della compressione è un vincolo assoluto: quando la compressione è disabilitata globalmente, questa intestazione non può abilitarla.
+- I valori sconosciuti vengono ignorati (la richiesta non viene mai rifiutata); la risoluzione ricade sulla normale precedenza dell'operatore.
+- Se più combo condividono un nome, passare l'**ID** della combo per una corrispondenza deterministica.
+- Una combo il cui nome è `off` o `default` non può essere selezionata per nome (tali parole chiave vengono interpretate per prime); fare riferimento a tale combo tramite il suo ID.
+- L'interruttore principale della compressione è un blocco rigido: quando la compressione è disabilitata globalmente, questa intestazione non può abilitarla.
 
-Il piano applicato viene restituito nell'intestazione della risposta:
+Il piano applicato viene riportato nell'intestazione della risposta:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
@@ -421,90 +399,74 @@ Utilizzare questo endpoint quando un sidecar viene eseguito fuori processo e non
 
 ---
 
-## Endpoint di compatibilità
+## Endpoint di Compatibilità
 
-| Metodo | Percorso                                  | Formato                                 |
-| ------ | ----------------------------------------- | --------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                  |
-| POST   | `/v1/messages`                            | Anthropic                               |
-| POST   | `/v1/responses`                           | OpenAI Responses                        |
-| POST   | `/v1/embeddings`                          | OpenAI                                  |
-| POST   | `/v1/images/generations`                  | OpenAI Images                           |
-| POST   | `/v1/images/edits`                        | OpenAI Images (modifica/inpainting)     |
-| POST   | `/v1/videos/generations`                  | Generazione video in stile OpenAI       |
-| POST   | `/v1/music/generations`                   | Generazione musicale in stile OpenAI    |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                      |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (restituisce il corpo audio) |
-| POST   | `/v1/rerank`                              | Rerank in stile Cohere/Voyage           |
-| POST   | `/v1/classify`                            | Classificazione Jina (`api.jina.ai`)    |
-| POST   | `/v1/segment`                             | Segmentatore Jina (`segment.jina.ai`)   |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                      |
-| GET    | `/v1/models`                              | OpenAI                                  |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                               |
-| GET    | `/v1beta/models`                          | Gemini                                  |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                  |
-| POST   | `/v1/api/chat`                            | Ollama                                  |
-| GET    | `/api/v1/vscode/{token}/`                 | Alias del catalogo OpenAI               |
-| GET    | `/api/v1/vscode/{token}/models`           | Alias dei modelli OpenAI                |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias OpenAI con token                  |
-| POST   | `/api/v1/vscode/{token}/responses`        | Alias OpenAI Responses con token        |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias Ollama con token                  |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias dei tag Ollama con token          |
+| Metodo | Percorso                                  | Formato                               |
+| ------ | ----------------------------------------- | ------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                |
+| POST   | `/v1/messages`                            | Anthropic                             |
+| POST   | `/v1/responses`                           | Risposte OpenAI                       |
+| POST   | `/v1/embeddings`                          | OpenAI                                |
+| POST   | `/v1/images/generations`                  | Immagini OpenAI                       |
+| POST   | `/v1/images/edits`                        | Immagini OpenAI (modifica/inpaint)    |
+| POST   | `/v1/videos/generations`                  | Generazione video in stile OpenAI     |
+| POST   | `/v1/music/generations`                   | Generazione musica in stile OpenAI    |
+| POST   | `/v1/audio/transcriptions`                | Audio OpenAI (STT)                    |
+| POST   | `/v1/audio/speech`                        | TTS OpenAI (restituisce corpo audio)  |
+| POST   | `/v1/rerank`                              | Rerank in stile Cohere/Voyage         |
+| POST   | `/v1/classify`                            | Classificazione Jina (`api.jina.ai`)  |
+| POST   | `/v1/segment`                             | Segmentatore Jina (`segment.jina.ai`) |
+| POST   | `/v1/moderations`                         | Moderazioni OpenAI                    |
+| GET    | `/v1/models`                              | OpenAI                                |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                             |
+| GET    | `/v1beta/models`                          | Gemini                                |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                |
+| POST   | `/v1/api/chat`                            | Ollama                                |
+| GET    | `/api/v1/vscode/{token}/`                 | Alias catalogo OpenAI                 |
+| GET    | `/api/v1/vscode/{token}/models`           | Alias modelli OpenAI                  |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias tokenizzato OpenAI              |
+| POST   | `/api/v1/vscode/{token}/responses`        | Alias tokenizzato risposte OpenAI     |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias tokenizzato Ollama              |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias tokenizzato tag Ollama          |
 
-Tutte le route POST seguono la stessa struttura: `Bearer your-api-key` + corpo JSON convalidato da Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ecc.; vedere `src/shared/validation/schemas.ts`). In caso di errore dello schema viene restituito un codice 4xx.
+Tutte le route POST seguono la stessa struttura: `Bearer your-api-key` + corpo JSON validato da Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ecc., vedi `src/shared/validation/schemas.ts`). Viene restituito un 4xx in caso di errore di schema.
 
-Per i client che non possono aggiungere `Authorization: Bearer ...`, OmniRoute accetta anche le chiavi API nell'URL, tramite la compatibilità con i parametri della stringa di query (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) oppure tramite gli endpoint dedicati `/api/v1/vscode/{token}/...` documentati di seguito.
+Per i client che non possono allegare `Authorization: Bearer ...`, OmniRoute accetta anche chiavi API nell'URL tramite compatibilità con la stringa di query (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) o tramite gli endpoint dedicati `/api/v1/vscode/{token}/...` documentati di seguito.
 
 ```bash
-# Rerank (provider del registro cloud oppure nodo provider compatibile con OpenAI come "<prefix>/<model>")
+# Rerank (provider di registro cloud, o un nodo provider compatibile con OpenAI come "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Classificazione Jina (credenziali Foundation API)
+# Classificazione Jina (credenziali API Foundation)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Segmentatore Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Ricerca Jina (s.jina.ai; alias del provider: jina-search, jina-ai, jina)
+# Ricerca Jina (s.jina.ai; alias provider: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderazioni
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — restituisce un corpo audio/mpeg (o nel formato richiesto)
+# TTS — restituisce corpo audio/mpeg (o formato richiesto)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Modifica di immagini (multipart)
+# Modifica immagine (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Generazione video/musicale (ID modello con prefisso del provider)
+# Generazione video / musica (ID modello con prefisso provider)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Nodi provider di rerank:** `POST /v1/rerank` instrada le richieste anche verso nodi provider compatibili con OpenAI
-> (oMLX, vLLM, Infinity, TEI dietro un gateway, …) identificati come `<node-prefix>/<model>`. I nodi di loopback
-> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) sono sempre idonei. I nodi su qualsiasi altro
-> host — un dispositivo nella LAN o un peer Tailscale — sono idonei solo quando l'operatore abilita il
-> feature flag `RERANK_REMOTE_PROVIDER_NODES` **e** l'URL di base del nodo supera i criteri degli URL in uscita del provider
-> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> gli host dei metadati cloud non vengono mai utilizzati per l'instradamento. Il passaggio di rerank del motore di memoria richiama questa route
-> tramite loopback, quindi la stessa regola disciplina `rerankProviderModel` nelle impostazioni della memoria.
+> **Nodi provider Rerank:** `POST /v1/rerank` instrada anche a nodi provider compatibili con OpenAI (oMLX, vLLM, Infinity, TEI dietro un gateway, …) indirizzati come `<node-prefix>/<model>`. I nodi loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) sono sempre idonei. I nodi su qualsiasi altro host — una macchina LAN o un peer Tailscale — sono idonei solo quando l'operatore abilita il flag di funzionalità `RERANK_REMOTE_PROVIDER_NODES` **e** l'URL di base del nodo supera la politica URL in uscita del provider (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); gli host di metadati cloud non vengono mai instradati. Il passaggio di rerank del motore di memoria chiama questa route tramite loopback, quindi la stessa regola governa `rerankProviderModel` nelle impostazioni della Memoria.
 >
-> **Strutture dei server locali:** il nodo viene chiamato tramite `<base>/v1/rerank` e, in caso di 404, tramite `<base>/rerank`
-> (Infinity, TEI). Il corpo inviato all'upstream include sia la nomenclatura Cohere/OpenAI (`documents`,
-> `return_documents`) sia quella TEI (`texts`, `return_text`), mentre la risposta upstream viene
-> normalizzata secondo l'involucro Cohere: l'array semplice di TEI `[{index, score, text}]`, la struttura `{results: [{index, score}]}`
-> proveniente da gateway leggeri e la struttura in stile Voyage `{data: [...]}` vengono tutte restituite al client come
-> `{results: [{index, relevance_score, document?}]}`, ordinate per punteggio e limitate a `top_n`.
+> **Forme del server locale:** il nodo viene chiamato a `<base>/v1/rerank` e, in caso di 404, a `<base>/rerank` (Infinity, TEI). Il corpo upstream contiene sia la dicitura Cohere/OpenAI (`documents`, `return_documents`) sia la dicitura TEI (`texts`, `return_text`), e la risposta upstream è normalizzata all'envelope Cohere: `[{index, score, text}]` nudo di TEI, `{results: [{index, score}]}` da gateway sottili, e `{data: [...]}` in stile Voyage tornano tutti al client come `{results: [{index, relevance_score, document?}]}`, ordinati per punteggio e limitati a `top_n`.
 
-> **Rilevamento dei nodi provider:** i modelli presenti su un nodo provider compatibile con OpenAI vengono visualizzati in `GET /v1/models`
-> sotto il prefisso del nodo. Le righe prive di metadati dell'endpoint (tipico degli elenchi locali `/v1/models`)
-> ereditano l'`apiType` del nodo, pertanto i modelli di un nodo `embeddings` sono `type: "embedding"` e quelli di un
-> nodo `rerank` sono `type: "rerank"`, anziché essere impostati per impostazione predefinita come chat; un valore
-> `supportedEndpoints` esplicito in una riga sincronizzata o aggiunta manualmente mantiene comunque la precedenza.
+> **Rilevamento nodi provider:** i modelli su un nodo provider compatibile con OpenAI appaiono in `GET /v1/models` sotto il prefisso del nodo. Le righe che non contengono metadati di endpoint (tipico per gli elenchi `/v1/models` locali) ereditano l'`apiType` del nodo, quindi i modelli di un nodo `embeddings` sono `type: "embedding"` e i modelli di un nodo `rerank` sono `type: "rerank"` invece di defaultare a chat; un `supportedEndpoints` esplicito su una riga sincronizzata o aggiunta manualmente ha comunque la precedenza.
 
-### Route dedicate dei provider
+### Route Provider Dedicate
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -512,7 +474,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Il prefisso del provider viene aggiunto automaticamente se manca. I modelli non corrispondenti restituiscono `400`.
+Il prefisso del provider viene aggiunto automaticamente se mancante. I modelli non corrispondenti restituiscono `400`.
 
 ---
 

@@ -289,10 +289,73 @@ Les transports SSE et HTTP diffusable sont tous deux bloqués jusqu’à ce que 
 
 ---
 
-## Authentification et portées
+## Authentification et Portées
 
-Les outils MCP sont authentifiés à l’aide de portées de clé API. L’application des portées est centralisée dans
-`open-sse/mcp-server/scopeEnforcement.ts`. Chaque outil nécessite des portées spécifiques :
+L'outil MCP lit les chaînes de portée de l'appelant. Cette vérification est l'un des trois espaces de noms indépendants. Un succès d'un vérificateur n'est pas un succès des autres. Les règles sont [Trois espaces de noms de portée](#trois-espaces-de-noms-de-portee). Le catalogue d'outils est [Portées de l'outil MCP](#portees-de-loutil-mcp).
+
+### Trois espaces de noms de portée
+
+`manage` sur une clé API, `read:compression` sur un outil MCP, et `read` sur un jeton d'accès `oma_live_…` sont trois autorisations différentes. Les appelants qui envoient un jeton d'accès `read` à une route de gestion mutante reçoivent HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` Ce rang est `scopeSatisfies`. Il ne consulte pas la table MCP, et le comparateur MCP ne le consulte pas.
+
+| Espace de noms         | Identifiant                                                   | Vérificateur      | Une autorisation permet                                             |
+| :--------------------- | :------------------------------------------------------------ | :---------------- | :------------------------------------------------------------------ |
+| Gestion des clés API   | `api_keys.scopes`                                             | `hasManageScope`  | REST de gestion pour cette clé Bearer                               |
+| Clé API additive       | même tableau, une chaîne exacte                               | l'aide ci-dessous | Seulement cette capacité                                            |
+| Portées de l'outil MCP | même tableau, sinon MCP `_meta`, sinon `OMNIROUTE_MCP_SCOPES` | `scopeMatches`    | Cet outil, une fois que l'application est activée                   |
+| Jeton d'accès          | `oma_live_…`                                                  | `scopeSatisfies`  | La route de gestion dont la méthode et le chemin requièrent ce rang |
+
+La création de chaque identifiant est couverte dans [Authentification de la gestion](../guides/MANAGEMENT-AUTH.md).
+
+#### Portées des clés API
+
+Un tableau `api_keys.scopes` alimente deux tâches. Elles utilisent des fonctions différentes.
+
+**REST de gestion.** `manage` et `admin` sont les membres de `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`). `hasManageScope` est ce qui autorise les routes de gestion pour cette clé. `admin` est capable de gestion sur ces routes. Le mot `admin` ici n'est pas le rang du jeton d'accès et il ne s'étend pas aux portées de l'outil MCP.
+
+**Chaînes additives.** Chacune est un test d'appartenance exact, et chacune reste en dehors de `MANAGEMENT_API_KEY_SCOPES`.
+
+| Portée                         | Une autorisation permet                                                                                                                                                         |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mcp:connect`                  | La découpe `/api/mcp/` LOCAL_ONLY non-loopback uniquement (`hasMcpConnectOrManageScope`). Une clé avec `manage` ou `admin` passe toujours cette découpe.                        |
+| `self:usage`                   | `GET /api/v1/me/status` pour cette clé (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` ajoute cette portée lors de la création (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Les quotas de compte en amont dans cette charge utile de statut (`src/lib/usage/apiKeySelfService.ts`). La route de statut requiert toujours `self:usage`.                      |
+| `policy:bypass-provider-quota` | Les appels d'inférence de cette clé ignorent la politique de quota du fournisseur (`hasProviderQuotaBypassScope` dans `src/sse/handlers/chat.ts`).                              |
+
+#### Correspondance
+
+Le catalogue est la table sous [Portées de l'outil MCP](#portees-de-loutil-mcp). Ne traitez pas `MCP_SCOPE_LIST` dans `src/shared/constants/mcpScopes.ts` comme ce catalogue : c'est le sous-ensemble typé original. Les outils ultérieurs déclarent d'autres portées à côté (`read:notion`, `read:skills`, `read:local-corpus`, et le reste de la table).
+
+`evaluateToolScopes` dans `open-sse/mcp-server/scopeEnforcement.ts` autorise un appel lorsque chaque portée requise correspond à une portée accordée :
+
+- `*` correspond à chaque portée requise.
+- Une portée accordée qui se termine par `*` correspond à une portée requise qui commence par le préfixe avant l'étoile. `read:*` correspond à `read:compression`.
+- Toute autre portée accordée ne correspond qu'à la chaîne requise identique.
+
+Une clé dont les portées sont `["manage"]` échoue à `scopeMatches` pour `read:compression`. Le même appel échoue pour `admin`, `mcp:connect`, `read` et `write` lorsque ce sont les seules chaînes accordées. Il n'y a pas de hiérarchie entre les portées de l'outil MCP au-delà de l'étoile finale `*`.
+
+L'application est désactivée sauf si `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (par défaut `false`). Tant qu'elle est désactivée, `evaluateToolScopes` autorise l'appel et ignore le catalogue. Tant qu'elle est activée, HTTP utilise les `api_keys.scopes` de la clé Bearer comme `authInfo` (voir [Liaison de portée HTTP par clé](#per-key-http-scope-binding-7895)). Lorsque aucune portée de clé n'est résolue, l'ensemble accordé passe à MCP `_meta`, puis à `OMNIROUTE_MCP_SCOPES`.
+
+#### Portées des jetons d'accès
+
+Les jetons `oma_live_…` (`src/lib/accessTokens/scopes.ts`) portent `read`, `write` ou `admin`. `scopeSatisfies` est un rang : `admin` couvre `write` et `read`, et `write` couvre `read`. Les portées inconnues ne couvrent rien.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) compare ce rang avec `inferRequiredScope` (`src/server/authz/accessScopes.ts`) :
+
+- `GET`, `HEAD` et `OPTIONS` requièrent `read`.
+- Toute autre méthode requiert `write`.
+- Les chemins dans `ADMIN_SCOPE_PREFIXES` requièrent `admin` pour chaque méthode. `/api/mcp` est sur cette liste, donc un jeton d'accès `write` ne peut toujours pas appeler la surface HTTP du MCP.
+- Les chemins dans `ADMIN_MUTATION_PREFIXES` requièrent `admin` uniquement pour les mutations.
+
+`PATCH /api/keys/{id}` est une mutation et ne figure pas dans ces listes d'administration, donc un jeton `read` reçoit un 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Un jeton d'accès `write` ou `admin` satisfait cette route. Un JWT de tableau de bord, le jeton machine-id de la CLI loopback, et une clé API avec `manage` ou `admin` prennent d'autres chemins et ne sont pas restreints par ce rang.
+
+Un jeton d'accès qui passe `scopeSatisfies` pour `/api/mcp` a franchi la porte de gestion uniquement. Les appels d'outils exécutent toujours `scopeMatches` par rapport aux portées des clés API. Le rang du jeton d'accès n'est pas une entrée pour `scopeMatches`.
+
+### Portées des outils MCP
+
+L'application des portées est centralisée dans `open-sse/mcp-server/scopeEnforcement.ts`.
+Chaque outil nécessite des portées spécifiques :
 
 | Portée                | Outils                                                                                                                                                                              |
 | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -327,18 +390,18 @@ Les outils MCP sont authentifiés à l’aide de portées de clé API. L’appli
 | `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                  |
 | `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                     |
 | `read:obsidian`       | 13 outils de lecture — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | 9 outils d’écriture — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
+| `write:obsidian`      | 9 outils d'écriture — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                   |
 
-Les portées avec caractères génériques sont prises en charge : `read:*` accorde toutes les portées de lecture, `*` accorde un accès complet.
+Les portées génériques sont prises en charge : `read:*` accorde toutes les portées de lecture, `*` accorde un accès complet.
 
-### `mcp:connect` — capacité de route restreinte (#7895)
+### `mcp:connect` — capacité de routage restreinte (#7895)
 
-L’accès au transport HTTP/SSE MCP (`/api/mcp/*`) depuis une adresse autre que l’interface de bouclage nécessite l’exception LOCAL_ONLY de `/api/mcp/` (voir `docs/security/ROUTE_GUARD_TIERS.md`). Historiquement, cette exception n’acceptait qu’une clé d’API dotée de la portée complète `manage`/`admin` — une autorisation trop large pour un appelant qui doit uniquement communiquer avec MCP. `src/shared/constants/managementScopes.ts` exporte désormais `MCP_CONNECT_SCOPE = "mcp:connect"` : une portée additive et restreinte (suivant le même précédent que `SELF_USAGE_SCOPE`) qui autorise UNIQUEMENT le contournement pour `/api/mcp/` dans `src/server/authz/policies/management.ts` — elle n’accorde aucun autre accès aux routes de gestion et est délibérément exclue de `MANAGEMENT_API_KEY_SCOPES`. Une clé possédant `manage`/`admin` continue de bénéficier de l’exception sans changement ; `mcp:connect` constitue une alternative à privilèges réduits pour les appelants distants utilisant uniquement MCP, vérifiée via `hasMcpConnectOrManageScope()`.
+L'accès au transport HTTP/SSE MCP (`/api/mcp/*`) depuis un hôte non-loopback nécessite l'exception `LOCAL_ONLY` pour `/api/mcp/` (voir `docs/security/ROUTE_GUARD_TIERS.md`). Historiquement, cette exception n'acceptait qu'une clé API avec une portée `manage`/`admin` complète — trop large pour un appelant qui n'a besoin que de communiquer avec le MCP. `src/shared/constants/managementScopes.ts` exporte désormais `MCP_CONNECT_SCOPE = "mcp:connect"` : une portée additive et restreinte (même précédent que `SELF_USAGE_SCOPE`) qui autorise UNIQUEMENT le contournement de `/api/mcp/` dans `src/server/authz/policies/management.ts` — elle n'accorde aucun autre accès aux routes de gestion et est délibérément maintenue HORS de `MANAGEMENT_API_KEY_SCOPES`. Une clé détenant `manage`/`admin` passe toujours l'exception sans changement ; `mcp:connect` est une alternative à privilège inférieur pour les appelants distants uniquement MCP, vérifiée via `hasMcpConnectOrManageScope()`.
 
-### Liaison des portées HTTP par clé (#7895)
+### Liaison de portée HTTP par clé (#7895)
 
-Sur HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` résout désormais les véritables `api_keys.scopes` de l’appelant via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) et les transmet à `transport.handleRequest(req, { authInfo })` du SDK MCP, afin que `extra.authInfo.scopes`, reçu par chaque appel d’outil, reflète les portées propres à la clé Bearer. La fonction `resolveCallerScopeContext()` de `scopeEnforcement.ts` donnait déjà la priorité à `authInfo` par rapport à `_meta` et à la solution de repli reposant sur la variable d’environnement `OMNIROUTE_MCP_SCOPES` — cette modification ne fait qu’alimenter cette première source, de priorité maximale, qui ne l’était auparavant pas via HTTP. Lorsqu’aucune clé d’API n’est résolue (absence d’en-tête, clé non valide), `authInfo` reste `undefined` et la résolution poursuit sans changement avec la chaîne de repli `meta`/variable d’environnement existante. Cela ne modifie PAS la valeur par défaut de `OMNIROUTE_MCP_ENFORCE_SCOPES` — l’application des portées doit toujours être explicitement activée ; cette modification donne uniquement la priorité au chemin propre à chaque clé une fois cette application activée. stdio ne dispose d’aucune identité propre à l’appelant (voir `mcpCallerIdentity.ts`) et n’est pas affecté — il continue d’utiliser la chaîne de repli `_meta`/variable d’environnement.
+Via HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` résout désormais les `api_keys.scopes` réelles de l'appelant via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) et les transmet à `transport.handleRequest(req, { authInfo })` du SDK MCP, de sorte que `extra.authInfo.scopes` atteignant chaque appel d'outil reflète les propres portées de la clé Bearer. La fonction `resolveCallerScopeContext()` de `scopeEnforcement.ts` priorisait déjà `authInfo` par rapport aux options de repli `_meta` et `OMNIROUTE_MCP_SCOPES` de l'environnement — ceci ne fait que peupler cette première source, la plus prioritaire, qui n'était auparavant pas alimentée via HTTP. Lorsqu'aucune clé API n'est résolue (pas d'en-tête, clé invalide), `authInfo` reste `undefined` et la résolution se poursuit sur la chaîne `meta`/env existante sans changement. Cela NE modifie PAS la valeur par défaut de `OMNIROUTE_MCP_ENFORCE_SCOPES` — l'application doit toujours être explicitement activée ; ce changement ne fait que donner la priorité au chemin par clé une fois qu'elle l'est. stdio n'a pas d'identité par appelant (voir `mcpCallerIdentity.ts`) et n'est pas affecté — il reste sur la chaîne de repli `_meta`/env.
 
 ---
 

@@ -4,62 +4,68 @@
 
 ---
 
-OmniRoute julkaisee npm- ja Docker-artifakteja. Nämä portit tarjoavat alkuperätiedot,
-inventaarion (SBOM) ja CVE-skannauksen. Kaikki käyttävät avoimen lähdekoodin työkaluja
-ja on liitetty julkaisutyönkulkuihin. Käytössä on **ensin varoittava** toimintamalli —
-portit raportoivat nyt, ja ne muutetaan estäviksi ensimmäisen onnistuneen julkaisun
-jälkeen.
+OmniRoute julkaisee npm- ja Docker-artefakteja. Nämä portit tarjoavat alkuperän (provenance), inventaarion (SBOM) ja CVE-skannauksen, kaikki OSS-pohjaisia ja integroituina julkaisuprosesseihin. **Neuvova ensin** -lähestymistapa – ne raportoivat nyt, ja siirtyvät estävään tilaan ensimmäisen onnistuneen julkaisun jälkeen.
 
-| Portti                 | Työkalu                                        | Sijainti                            | Estääkö?                      | Tulos                                                              |
-| ---------------------- | ---------------------------------------------- | ----------------------------------- | ----------------------------- | ------------------------------------------------------------------ |
-| SLSA-alkuperä (npm)    | `npm --provenance` (OIDC)                      | `npm-publish.yml`                   | vain jos julkaisu epäonnistuu | npmjs-merkki / `npm audit signatures`                              |
-| npm-SBOM               | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`                   | vain jos luonti epäonnistuu   | Julkaisuresurssi + artifakti                                       |
-| Levykuvan SBOM         | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (yhdistäminen) | varoittava                    | CycloneDX-artifakti                                                |
-| Trivy CVE (SARIF)      | `aquasecurity/trivy-action`                    | `docker-publish.yml` (yhdistäminen) | varoittava                    | SARIF (HIGH+CRITICAL) → Security-välilehti                         |
-| Trivy CRITICAL -portti | `aquasecurity/trivy-action`                    | `docker-publish.yml` (yhdistäminen) | **estävä**                    | `exit-code: '1'` korjattavissa olevasta CRITICAL-haavoittuvuudesta |
-| osv vulnCount          | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`)       | **estävä**                    | kiristää `metrics.vulnCount`-arvoa (direction:down)                |
-| OpenSSF Scorecard      | `ossf/scorecard-action`                        | `scorecard.yml` (cron)              | varoittava                    | SARIF → Security + merkki                                          |
+| Portti                | Työkalu                                        | Missä                         | Estääkö?                        | Tuloste                                           |
+| :-------------------- | :--------------------------------------------- | :---------------------------- | :------------------------------ | :------------------------------------------------ |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | vain jos julkaisu epäonnistuu   | badge npmjs / `npm audit signatures`              |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | vain jos generointi epäonnistuu | Release asset + artifact                          |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | neuvova                         | CycloneDX artifact                                |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | neuvova                         | SARIF (HIGH+CRITICAL) → Security tab              |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **estää**                       | `exit-code: '1'` on fixable CRITICAL              |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **estää**                       | kiristää `metrics.vulnCount`-arvoa (suunta: alas) |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | neuvova                         | SARIF → Security + badge                          |
 
-Levykuvan CVE-kiristys käyttää **kahta vaihetta** tiedostossa `docker-publish.yml`:
-SARIF-vaihe (`HIGH,CRITICAL`, `exit-code: 0`) pitää HIGH- ja CRITICAL-haavoittuvuudet
-näkyvissä Security-välilehdellä estämättä julkaisua. _CRITICAL-porttivaihe_
-(`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) keskeyttää julkaisun,
-jos löytyy CRITICAL-tason CVE, **johon on saatavilla korjaus**. `ignore-unfixed`
-estää julkaisun keskeyttämisen sellaisen peruslevykuvan CVE:n vuoksi, johon ei ole
-saatavilla korjausta upstream-projektista.
+Kuvan CVE-kiristys käyttää **kahta vaihetta** tiedostossa `docker-publish.yml`: SARIF-vaihe (`HIGH,CRITICAL`, `exit-code: 0`) pitää HIGH+CRITICAL-löydökset näkyvissä Turvallisuus-välilehdellä estämättä julkaisua; _CRITICAL-portin_ vaihe (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) epäonnistuttaa julkaisun, jos kriittinen CVE **korjauksella on saatavilla**. `ignore-unfixed` estää julkaisun estämisen peruskuvan CVE:n vuoksi, jos ylävirran korjausta ei ole.
 
-## ⚠️ CVE-vaihtelu (estävät osv-/Trivy-portit)
+## ⚠️ CVE-vaihtelu (osv/Trivy-porttien estäminen)
 
-osv ja Trivy vertaavat riippuvuuksia CVE-tietokantoihin, jotka **kasvavat jatkuvasti**.
-PR, joka **ei muuta riippuvuuksia**, voi muuttua yhtäkkiä punaiseksi, koska olemassa
-olevasta riippuvuudesta on julkaistu uusi CVE (osv: mitattu `vulnCount` > perustaso;
-Trivy: levykuvassa on uusi korjattavissa oleva CRITICAL-haavoittuvuus). **Tämä on
-estävän CVE-portin ODOTETTUA operatiivista toimintaa, ei tuotteen regressio.**
+osv ja Trivy vertaavat riippuvuuksia CVE-tietokantoihin, jotka **kasvavat jatkuvasti**. Pull request, joka **ei kosketa riippuvuuksia**, voi yhtäkkiä muuttua punaiseksi, koska uusi CVE paljastui olemassa olevassa riippuvuudessa (osv: mitattu `vulnCount` > perustaso; Trivy: uusi korjattavissa oleva CRITICAL kuvassa). **Tämä on ESTÄVÄN CVE-portin ODOTETTUA toiminnallista käyttäytymistä, ei tuotteen regressio.**
 
-Kun osv tai Trivy muuttuu punaiseksi uuden CVE-julkistuksen vuoksi, korjaustapa on:
+Kun osv tai Trivy muuttuvat punaisiksi äskettäin paljastuneen CVE:n vuoksi, korjauskeinot ovat:
 
-1. **Päivitä kyseinen riippuvuus** (ensisijainen vaihtoehto) — päivitä korjattuun versioon
-   käyttämällä `package.json`-tiedoston `overrides`-määrityksiä (transitiiviset
-   riippuvuudet) tai rakenna levykuva uudelleen korjatun peruslevykuvan pohjalta.
-2. **Jos upstream-korjausta ei ole saatavilla:**
-   - **osv:** määritä `metrics.vulnCount`-perustaso uudelleen tiedostossa
-     `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` ei kata
-     erillisiä portteja — muokkaa arvoa käsin, `direction:down`) ja lisää perusteluhuomautus
-     sekä seuranta-issue.
-   - **Trivy:** lisää merkintä tiedostoon `.trivyignore` (yksi CVE-ID riviä kohden)
-     sekä perustelukommentti ja seuranta-issue. `ignore-unfixed: true` kattaa jo
-     automaattisesti CVE:t, joihin ei ole saatavilla korjauksia.
+1.  **Päivitä vaikutuksen alainen riippuvuus** (ensisijainen) — päivitä korjattuun versioon `package.json`-tiedoston `overrides`-kohdan kautta (transitiiviset riippuvuudet) tai rakenna kuva uudelleen korjatun perustan päälle.
+2.  **Jos ylävirran korjausta ei ole:**
+    - **osv:** aseta `metrics.vulnCount`-arvo uudelleen perustasolle tiedostossa `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` ei kata omia portteja – muokkaa arvoa käsin, `direction:down`) perusteluineen ja seurantatehtävineen.
+    - **Trivy:** lisää merkintä tiedostoon `.trivyignore` (CVE-ID per rivi) perusteluineen ja seurantatehtävineen. `ignore-unfixed: true` kattaa jo automaattisesti CVE:t ilman korjauksia.
 
-Molemmat portit **OHITTAVAT tarkistuksen hallitusti** (exit 0), kun työkalu puuttuu
-tai mittaus epäonnistuu (`osv-scanner` ei ole PATH-muuttujassa, osv.dev tai verkko
-ei ole saavutettavissa, virheellinen JSON) — **mittauksen** epäonnistuminen ei koskaan
-estä julkaisua, vaan vain **mitattu** regressio estää sen.
+Molemmat portit **ohittavat siististi** (exit 0), jos työkalu puuttuu tai mittaus epäonnistuu (osv-scanner ei ole PATHissa, osv.dev/verkko tavoittamaton, virheellinen JSON) — **mittauksen** epäonnistuminen ei koskaan estä, vain **mitattu** regressio estää.
 
-## Työjono: Scorecard varoittavasta estäväksi
+## Tunnetut hyväksytyt riskit
 
-Ensimmäisen onnistuneen ja Scorecard-raportin sisältävän julkaisun jälkeen:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: pisteiden kiristys (jäädyttää mitatun pistemäärän; se ei voi laskea).
+`extract-zip@2.0.1` sisältää kaksi paikkaamatonta korkean vakavuusasteen symlink-traversal-haavoittuvuutta.
+Yllä mainitun CVE Variance -korjauksen "ei ylävirran korjausta" -haaran mukaisesti tämä on
+**hyväksytty riski**, ei päivitys:
+
+- **Ketju:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Vahvistettu `package-lock.json`-tiedoston kautta — täsmälleen yksi paketti koko riippuvuuspuussa
+  (`@openai/codex-security`) ilmoittaa `extract-zip`-paketista, ja täsmälleen yksi paketti
+  (`promptfoo`) ilmoittaa `@openai/codex-security`-paketista.
+- **Korjattua julkaisua ei ole olemassa missään ketjun osassa.** `extract-zip@2.0.1` (julkaistu 2020) on paketin viimeinen julkaisu — sitä ei ylläpidetä. `@openai/codex-security`:n
+  nykyinen npm-latest (`0.1.29`) vetää edelleen `extract-zip@2.0.1`-paketin.
+- **Saavuttamaton tuotannosta.** `promptfoo` on vain kehitysriippuvuus (ei koskaan lueteltu
+  `dependencies`-kohdassa), eikä mikään tiedosto `src/`, `open-sse/` tai `bin/` -kansioissa tuo
+  `extract-zip` npm-pakettia — OmniRouten oma `extractZip()`-apufunktio
+  (`src/lib/versionManager/binaryManager.ts:93`) kutsuu natiiveja `unzip`/`tar`-komentoja
+  ja on asiaan liittymätön. `@openai/codex-security` sisältää myös oman symlink-traversal-suojauksensa `extract-zip`:n onEntry-takaisinkutsun lisäksi.
+- **Älä** aliasoi `extract-zip`-pakettia `package.json`-tiedoston `overrides`-kohdan kautta — ainoa käyttökelpoinen
+  suora korvaaja on Electron-organisaation sisäinen ja API-yhteensopimaton
+  `@openai/codex-security`:n omien onEntry/defaultDirMode/defaultFileMode-tarkistusten kanssa;
+  sen ohittaminen rikkoisi hiljaisesti kyseisen paketin tietoturvatarkistukset.
+- **Perustaso:** mitattu osv `vulnCount` (3) on jo selvästi alle jäädytetyn
+  `config/quality/quality-baseline.json`-perustason (27) — räikkämuutosta ei tarvita.
+- **Regressiosuoja:** `tests/unit/extract-zip-14482-exposure.test.ts` vahvistaa
+  yllä mainitun ketjun ja tuotantoon tuonnin kiellon; se epäonnistuu CI:ssä, jos jompikumpi
+  rikkoutuu (esim. tuleva PR tekee `extract-zip`-paketista saavutettavan tuotannosta).
+- **Seuranta:** asia #14482.
+
+## Jatkokehitys: Scorecard-neuvonta → estävä
+
+Ensimmäisen vihreän julkaisun jälkeen Scorecard-raportoinnin kanssa:
+
+- Scorecard: pistemäärän räikkä (jäädyttää mitatun pistemäärän; ei voi laskea).
 
 Täydentää vaiheen 7 portteja (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-auditoi itse työnkulut, kun taas Scorecard mittaa repositorion kokonaistilaa.
+tarkastaa itse työnkulut; Scorecard mittaa repositorion yleistä tilaa.

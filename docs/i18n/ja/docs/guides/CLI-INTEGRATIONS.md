@@ -4,11 +4,11 @@
 
 ---
 
-OmniRoute には、コーディング CLI（Codex、Claude Code、OpenCode、Cline、…）が OmniRoute をバックエンドとして使用するよう構成する `setup-*` コマンド群が用意されています。これにより、ツールは **1 つの**エンドポイントと通信し、OmniRoute が自動フォールバックを使用して適切なプロバイダーへルーティングします。各コマンドは、稼働中の OmniRoute（ローカルまたはリモート）から**現在の**モデルカタログを読み取り、**あなたの**マシン上にあるツール独自の設定ファイルへ書き込みます。ツールが対応している場合、API キーは環境変数によって参照されます。ツール固有の環境ファイルを永続化するコマンドについては、以下に記載しています。
+OmniRouteは、コーディングCLI（Codex、Claude Code、OpenCode、Clineなど）をOmniRouteをバックエンドとして使用するように設定する`setup-*`コマンド群を提供しています。これにより、ツールは**1つ**のエンドポイントと通信し、OmniRouteが自動フォールバック付きで適切なプロバイダーにルーティングします。各コマンドは、実行中のOmniRoute（ローカルまたはリモート）から**ライブ**モデルカタログを読み取り、**あなたの**マシンにツールの設定ファイルを書き込みます。APIキーは、ツールがサポートする場所では環境変数によって参照されます。ツールローカルの環境ファイルを永続化するコマンドは以下に記載されています。
 
-汎用ランチャーの `omniroute run <target>` も用意されています。これは設定を一切書き込まず、適切な環境変数を注入して `claude`、`codex`、`aider`、`goose`、`opencode`、`qwen`、または `gemini` を起動します。ターゲットとそのエイリアスは、正規マニフェスト `bin/cli/cli-manifest.mjs`（`claude-code|cc|anthropic`、`codex-cli|openai-codex|openai`、`goose-cli`、`open-code`、`qwen-code`、`gemini-cli`）から取得され、`omniroute completion` も同じマニフェスト由来のターゲット語を提供します。従来のツール別ランチャーである `omniroute launch`（Claude Code）と `omniroute launch-codex`（Codex）も引き続き利用できます。
+また、汎用ランチャー `omniroute run <target>` もあり、これは設定を一切書き込まずに、適切な環境を注入して `claude`、`codex`、`aider`、`goose`、`opencode`、`qwen`、または `gemini` を起動します。ターゲットとそのエイリアスは、正規のマニフェスト `bin/cli/cli-manifest.mjs`（`claude-code|cc|anthropic`、`codex-cli|openai-codex|openai`、`goose-cli`、`open-code`、`qwen-code`、`gemini-cli`）から取得され、`omniroute completion` は同じマニフェスト由来のターゲットワードを提供します。レガシーなツールごとのランチャー — `omniroute launch` (Claude Code) および `omniroute launch-codex` (Codex) — も引き続き利用可能です。
 
-プロバイダーのオンボーディングも、同じローカル／リモートコンテキストから実行できます。以下の API ファーストなコマンドでは、管理用の認証情報とプロバイダーの認証情報が分離され、構造化された出力に認証情報が表示されることはありません。
+プロバイダーのオンボーディングは、同じローカル/リモートコンテキストから利用できます。以下のAPIファーストコマンドは、管理認証をプロバイダーの認証情報とは別に保ち、構造化された出力に認証情報を表示することはありません。
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,15 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-スクリプトでは `--credential-stdin` または `--credential-env` の使用を推奨します。`--credential` は、管理されたローカル環境での使用向けに引き続き提供されています。`providers remove` を非対話型ターミナルで実行するには `--yes` が必要です。また、5 つのコマンドはすべて、アクティブなコンテキスト、またはグローバルな `--base-url`／`--api-key` オプションに従います。
+スクリプトでは、`--credential-stdin` または `--credential-env` を推奨します。`--credential` は、制御されたローカル使用のために保持されています。非対話型ターミナルでは `providers remove` に `--yes` が必要であり、これら5つのコマンドはすべてアクティブなコンテキストまたはグローバルな `--base-url`/`--api-key` オプションを尊重します。
 
-最も機能豊富な 2 つの統合について、初回に手動で行う基本セットアップの詳細は、ツール別の解説を参照してください。
+プロバイダーセレクターは、曖昧なIDプレフィックス、名前、またはプロバイダー名を拒否します。複数の接続が一致する場合は、完全な接続IDを使用してください。作成および編集コマンドは保存された接続を読み戻し、削除はそれがもはや読み取り不可能であることを検証します。インポートは、既存のプロバイダー/名前のペアをスキップします。インポートされたエントリは、CLIに提供された管理エンドポイント、コンテキスト、または管理認証情報を上書きすることはできません。
+
+最も豊富な2つの統合の一度限りの手動による基本設定については、ツールごとの詳細な解説を参照してください。
 
 - [Claude Code の設定](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI の設定](./CODEX-CLI-CONFIGURATION.md)
-- [リモートモード](./REMOTE-MODE.md) — ノートパソコンからリモートの OmniRoute（VPS／Tailnet）を操作
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot 拡張機能。エディター内からこれらの
-  `setup-*` コマンドを実行することもできます
+- [リモートモード](./REMOTE-MODE.md) — ラップトップからリモートのOmniRoute（VPS / Tailnet）を操作する
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot拡張機能。エディター内からこれらの `setup-*` コマンドを実行することもできます
 
 ---
 

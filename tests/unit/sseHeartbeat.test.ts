@@ -91,6 +91,10 @@ test("comment opt-out suppresses only COMMENT heartbeats, not data-event heartbe
     assert.match(anthropic, /event: ping\ndata: \{"type":"ping"\}/);
 
     const responses = await collectHeartbeatOutput(HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS);
-    assert.match(responses, /data: \{"type":"response\.in_progress"\}/);
+    // #14330: the frame now carries a required `sequence_number` and `response` object.
+    assert.match(
+      responses,
+      /data: \{"type":"response\.in_progress","sequence_number":1,"response":/
+    );
   });
 });

@@ -11,13 +11,11 @@
 <br/>
 <br/>
 
-# 🚀 OmniRoute — An Geata AI Saor in Aisce
+# 🚀 OmniRoute — An Geata Saor in Aisce AI
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Ná stop de bheith ag códú choíche. Gach uirlis AI → 359 soláthraí — 150+ saor in aisce — trí chríochphointe amháin. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity isteach i Claude / GPT / Gemini SAOR IN AISCE le cúltaca uathoibríoch. Sábhálann comhbhrú carntha RTK + Caveman 15–95% de chomharthaí (~89% ar an meán) — ná buail teorainneacha choíche. 359 soláthraí AI · 150+ sraith saor in aisce · ~1.62B comhartha saor in aisce/mí · 19 straitéis ródaithe · $0 le tosú."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Ná stad den chódú choíche. Gach uirlis AI → 358 soláthraí — 150+ saor in aisce — trí phointe deiridh amháin. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity isteach i Claude / GPT / Gemini SAOR IN AISCE le cúltaca uathoibríoch. Sábhálann comhbhrú cruachta RTK + Caveman 15–95% comharthaí (~89% ar an meán) — ná sroich teorainneacha choíche. 358 soláthraí AI · 150+ sraith saor in aisce · ~1.62B comharthaí saor in aisce/mí · 19 straitéis ródaithe · $0 le tosú."/>
 
 </div>
-
-<div align="center">
 
 ## 💰 ~1.62B Comhartha Saor in Aisce / Mí
 
@@ -214,22 +212,22 @@
 
 <div align="center">
 
-## 🆓 Oibríonn sé ón nóiméad a shuiteálann tú é — gan eochracha, gan chumraíocht
+## 🆓 Oibríonn sé an soicind a shuiteálann tú é — gan eochracha, gan cumraíocht
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oibríonn sé ón nóiméad a shuiteálann tú é — gan aon chumraíocht. Trí chéim: 1. Suiteáil — npm i -g omniroute, tosaíonn an freastalaí ar localhost:20128. 2. Dírigh d’uirlis ar http://localhost:20128/v1 — aon uirlis atá comhoiriúnach le OpenAI (Claude Code, Cursor, Cline). 3. Freagraíonn sé — glaoigh ar an tsamhail auto chun freagra láithreach a fháil, gan eochair API, gan chlárú, gan chumraíocht. Tá an soláthraí gan eochair OpenCode Free réamhshreangaithe sa teaglaim auto, mar sin freagraíonn suiteáil úr láithreach."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oibríonn sé an soicind a shuiteálann tú é — gan cumraíocht. Trí chéim: 1. Suiteáil — npm i -g omniroute, tosaíonn an freastalaí ar localhost:20128. 2. Dírithe do uirlis ar http://localhost:20128/v1 — aon uirlis atá comhoiriúnach le OpenAI (Claude Code, Cursor, Cline). 3. Freagraíonn sé — glaoigh ar an tsamhail auto le haghaidh freagra láithreach, gan eochair API, gan chlárú, gan chumraíocht. Tá an soláthraí gan eochair OpenCode Free réamhshreangaithe isteach sa teaglaim auto, mar sin freagraíonn suiteáil úr láithreach."/>
 
 ```bash
-# Suiteáil úr, gan aon dintiúir — oibríonn `auto` cheana féin:
+# Suiteáil úr, gan dintiúir — oibríonn `auto` cheana féin:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Arbh fhearr leat inneall sonrach saor in aisce? Glaoigh ar `oc/…` (OpenCode Free) go díreach. Ansin téigh ar aghaidh go `auto` agus lig do OmniRoute roghnú.</sub>
+<sub>An fearr leat cúlra saor in aisce ar leith? Glaoigh ar `oc/…` (OpenCode Free) go díreach. Ansin aistrigh go `auto` agus lig do OmniRoute roghnú.</sub>
 
-<sub>📦 Scripteanna mearthosaithe le cóipeáil agus greamú do **Python, Node.js, PHP, agus cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Scripteanna mear-thosaithe le cóipeáil agus a ghreamú do **Python, Node.js, PHP, agus cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +237,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="An Gealltanas — críochphointe amháin agus 359 soláthraí. Coinníonn cúltaca uathoibríoch an ródú ar siúl fad is atá sprioc shláintiúil eile ar fáil. Sé cholún: cúltaca athléimneach thar 359 soláthraí · suas le 95% de choigilteas comharthaí ar ualaí oibre incháilithe · $0 chun tosú le breis agus 150 sraith saor in aisce agus 54 soláthraí saor go deo, athfhillteach nó gan eochair · 36 comhtháthú CLI/gníomhaire trí chumraíocht amháin · comhoiriúnacht le OpenAI, Claude, Gemini agus Responses API ag /v1 · rialuithe táirgeachta lena n-áirítear scoradáin chiorcaid, duaithníocht TLS, 110 uirlis MCP, A2A, cuimhne, ráillí cosanta, meastóireachtaí agus breis agus 39,000 dearbhú tástála statach thar bhreis agus 5,100 comhad tástála a rianaítear."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="An Gealltanas — Pointe deiridh amháin agus 358 soláthraí. Coinníonn cúltaca uathoibríoch an ródú ag obair fad is atá sprioc shláintiúil eile ar fáil. Sé cholún: cúltaca athléimneach thar 358 soláthraí · suas le 95% coigilteas comharthaí ar ualaí oibre incháilithe · $0 le tosú le 150+ sraith saor in aisce agus 54 soláthraí saor in aisce go deo atá athfhillteach/gan eochair · 36 comhtháthú CLI/gníomhaire trí chumraíocht amháin · Comhoiriúnacht API OpenAI, Claude, Gemini agus Freagraí ag /v1 · rialuithe táirgeachta lena n-áirítear scoradáin chiorcaid, TLS stealth, uirlisí MCP 110, A2A, cuimhne, ráillí cosanta, meastóireachtaí agus 39,000+ dearbhú tástála statach thar 5,100+ comhad tástála rianaithe."/>
 
 <br/>
 <br/>
@@ -250,11 +248,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Cén Fáth OmniRoute — ná bí ag déileáil a thuilleadh le 10 ndeais, eochracha API neamhbhailí agus billí gan choinne. Deich bhfadhb laethúla agus a réitigh: cuóta ag dul in éag gan úsáid → bain an leas is fearr as síntiúis; teorainneacha ráta i lár códaithe → cúltaca uathoibríoch 4 shraith (Síntiús → API → Saor → Saor in Aisce); aschuir uirlisí ag ídiú comharthaí → comhbhrú RTK + Caveman (15–95%); APIanna costasacha → ródú cost-optamaithe; cumraíocht ar leith do gach uirlis → críochphointe amháin, deais amháin; AI blocáilte → seachfhreastalaí 3 leibhéal + duaithníocht TLS; eochracha neamhbhailí → athléimneacht 3 chiseal (scoradáin chiorcaid, tréimhse shuaimhnithe eochrach, frithdhúnadh samhla); foireann ag roinnt síntiúis amháin → linnte eochracha le cuótaí cothromroinnte; leideanna ag dul trí néal duine éigin eile → cur chuige áitiúil ar dtús le heochracha criptithe AES-256-GCM; gan aon infheictheacht ar chaiteachas → anailísíocht bheo (úsáid, cuóta, coigilteas, aga folaigh p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Cén Fáth OmniRoute — stop a bheith ag streachailt le 10 deais, eochracha API marbha agus billí gan choinne. Deich bpian laethúil i gcoinne réitigh: cuóta ag dul in éag gan úsáid → síntiúis a uasmhéadú; teorainneacha ráta le linn códaithe → cúltaca uathoibríoch 4-leibhéal (Síntiús → API → Saor → In Aisce); aschuir uirlisí ag dó comharthaí → RTK + comhbhrú Caveman (15–95%); APIanna daora → ródú optamaithe ó thaobh costais; gach uirlis a socrú féin → pointe deiridh amháin, deais amháin; AI blocáilte → seachfhreastalaí 3-leibhéal + TLS stealth; eochracha marbha → athléimneacht 3-chiseal (scoradáin chiorcaid, fuarú eochrach, glasáil samhail); foireann ag roinnt síntiús amháin → linnte eochracha le cuótaí cothroma; leideanna trí scamall duine éigin → áitiúil ar dtús le heochracha criptithe AES-256-GCM; gan infheictheacht caiteachais → anailísíocht bheo (úsáid, cuóta, coigilteas, moill p95)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Sreabhadh iarratais OmniRoute: glaonn d’IDE nó CLI (Claude Code, Cursor, Cline…) ar chríochphointe áitiúil amháin (http://localhost:20128/v1); is féidir le Ródaire Cliste OmniRoute (comhbhrú RTK + Caveman, 19 straitéis ródaithe, scoradáin chiorcaid, duaithníocht TLS, MCP, A2A, ráillí cosanta) cúltaca a dhéanamh thar 4 shraith soláthraithe fad is atá sprioc shláintiúil incháilithe ar fáil — Sraith 1 Síntiús, Sraith 2 Eochair API, Sraith 3 Saor agus Sraith 4 Saor in Aisce."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Sreabhadh iarratais OmniRoute: glaonn do IDE nó CLI (Claude Code, Cursor, Cline…) ar phointe deiridh áitiúil amháin (http://localhost:20128/v1); is féidir leis an Ródaire Cliste OmniRoute (RTK + comhbhrú Caveman, 19 straitéis ródaithe, scoradáin chiorcaid, TLS stealth, MCP, A2A, ráillí cosanta) cúltaca a dhéanamh thar 4 shraith soláthraí fad is atá sprioc shláintiúil incháilithe fós ann — Sraith 1 Síntiús, Sraith 2 Eochair API, Sraith 3 Saor agus Sraith 4 In Aisce."/>
 
 </div>
 
@@ -262,17 +260,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Tacaíochtaí ó chairde an Fhoinse Oscailte
+## 🤝 Tacaíonn ár gCairde Foinse Oscailte linn
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Intleacht Réabhlóideach Oscailte · 2.8T paraiméadar · Comhthéacs de 1M comhartha"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Faisnéis Teorann Oscailte · 2.8T paraiméadair · Comhthéacs 1M-comhartha"/>
   </a>
 </p>
 
-> **Ar mhaith leat bheith linn mar Charde an Fhoinse Oscailte?** Is iad na cuideachtaí seo a thacaíonn le foinse oscailte agus a chuidíonn le OmniRoute teacht ar aghaidh — agus deimhnímid go poibli cá dteastaíonn gach comhartha a thugann siad dúinn. Déan teagmháil: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Ar mhaith leat a bheith páirteach mar Chara Foinse Oscailte?** Is iad seo na cuideachtaí a thacaíonn le foinse oscailte agus a chabhraíonn le OmniRoute a choinneáil ag gluaiseacht — agus deirimid go poiblí cá dtéann gach comhartha a thugann siad dúinn. Déan teagmháil: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,38 +282,38 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Carde Bunaitheach na Foinse Oscailte"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Cara Bunaithe Foinse Oscailte"/>
     </td>
     <td>
-      Buíochas le <b>Kimi (Moonshot AI)</b>, ár gCara Bunaitheach Foinse Oscailte, as an tionscadal seo a thacaíú! Is é Kimi an tsaotharlann intleachta artificial atá taobh thiar de na teaghlaigh samhlacha K2 agus K3 le meáchan oscailte — cuireann <b>Kimi K3</b> ar fáil comhthéacs de 1M comhartha, radharc dúchasach agus códú ar an leibhéal teorann ar bhlas an tsraithphraghsanna de mhodhanna dúnta, agus oibríonn sé as an mbosca le Claude Code, Codex agus gach uirlis códaithe a sheirbheálann OmniRoute.
+      Buíochas le <b>Kimi (Moonshot AI)</b>, ár gCara Bunaithe Foinse Oscailte, as tacú leis an tionscadal seo! Is é Kimi an tsaotharlann AI taobh thiar de theaghlaigh mhúnla K2 agus K3 le meáchan oscailte — seachadann <b>Kimi K3</b> fuinneog comhthéacs 1M-comhartha, fís dhúchasach agus códú ar leibhéal teorann ar chodán de phraghsanna múnlaí dúnta, agus oibríonn sé as an mbosca le Claude Code, Codex agus gach uirlis códaithe a fhreastalaíonn OmniRoute.
       <br/><br/>
-      <b>Ag cur cumhachta le tacaíochta Kimi:</b> Cumhachtaíonn creidmheasanna API Kimi feadhphíobáin nuashonrú a fhíoraítear le AI de OmniRoute — an chéim <i> Validation comhtháthaithe ag Kimi K3</i> a thaiscíonn gach iarratas tarraing roimh é a sheoladh — mar aon le forbairt gnéithe laethúil. Tacaíocht Kimi den chéad scoth seoltar ar an dá rille: an <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">API Kimi</a> díreach (<code>kimi-k3</code>) agus an <a href="https://www.kimi.com/code?aff=omniroute">plean códaithe Kimi Code</a> (OAuth agus eochair API). Is é OmniRoute an chéad tionscadal foinse oscailte Brasaíle chomh maith i gclár tacaíochta Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Faigh eochair API Kimi le 15% creidmheas breise →</b></a>
+      <b>Cad a chumhachtaíonn tacaíocht Kimi:</b> Cumhachtaíonn creidmheasanna API Kimi píblíne scaoilte AI-bhailíochtaithe OmniRoute — an chéim <i>bailíochtaithe cumaisc faoi thiomáint ag Kimi K3</i> a athbhreithníonn gach iarratas tarraingthe sula seoltar é — móide forbairt gnéithe laethúla. Seoltar tacaíocht Kimi den chéad scoth ar an dá iarnród: an <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> díreach (<code>kimi-k3</code>) agus an <a href="https://www.kimi.ai/code?aff=omniroute">plean códaithe Kimi Code</a> (OAuth agus eochair API). Is é OmniRoute an chéad tionscadal foinse oscailte Brasaíleach i gclár tacaíochta Kimi freisin. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Faigh eochair API Kimi le 15% creidmheasanna breise →</b></a>
     </td>
   </tr>
   <tr>
     <td align="center" width="150">
       <a href="https://cheaperinference.com/?utm_source=omniroute">
-        <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
+        <img src="./public/providers/cli-generic.svg" width="64" alt="Inneall Inneall Níos Saoire"/>
       </a>
-      <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Cara na Foinse Oscailte"/>
+      <br/><b>Inneall Inneall Níos Saoire</b><br/><sub>cheaperinference.com</sub><br/><br/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Cara Foinse Oscailte"/>
     </td>
     <td>
-      Buíochas le <b>Cheaper Inference</b>, Cara Foinse Oscailte de OmniRoute, as an tionscadal seo a thacaíú! Is geata ráitíoch é Cheaper Inference a dhíolaíonn 42 samhail teorann — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok agus MiniMax — taobh thiar de chríochphointe amháin atá comhoiriúnach le OpenAI, ag ródáil gach iarratais chuig an soláthraí inchuírite is saoire gan riamh a ghearradh os cionn an phraghs liosta Déantóra an tsamhail.
+      Buíochas le <b>Cheaper Inference</b>, Cara Foinse Oscailte OmniRoute, as tacú leis an tionscadal seo! Is geata rangaithe ó thaobh costais é Cheaper Inference a athdhíolann 42 múnla teorann — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok agus MiniMax — taobh thiar de phointe deiridh amháin atá comhoiriúnach le OpenAI, ag ródú gach iarratais chuig an soláthraí incháilithe is saoire gan táille a ghearradh riamh os cionn praghas liosta an déantóra múnla.
       <br/><br/>
-      <b>Tacaíocht den chéad scoth i OmniRoute:</b> Comhlánaíochtaí Comhrá, an chríochphointe dúchasach <code>/v1/responses</code>, radharc, glao gairme agus 3 mhodh íomhá (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, inrochtana mar <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Faigh eochair API →</b></a>
+      <b>Tacaíocht den chéad scoth in OmniRoute:</b> Comhlánuithe Comhrá, an pointe deiridh dúchasach <code>/v1/responses</code>, fís, glaoch uirlisí agus 3 mhúnla íomhá (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, inrochtana mar <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Faigh eochair API →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Ceangailte le <code>aff=omniroute</code> iad na naisc. Maoiníonn siad an tionscadal gan aon chostas breise ort.</sub>
+<sub>Is naisc chomhpháirtíochta iad naisc a bhfuil clib <code>aff=omniroute</code> orthu. Maoiníonn siad an tionscadal gan aon chostas breise ort.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Práchomhshóraigh Chairde</b> — cóipeanna saor in aisce ó sholáthraithe nach dtacaímid leo (cliceáil le leathnú)</sub></summary>
+<summary><sub><b>🎟️ Cur Chun Cinn Cleamhnaithe</b> — cúpóin clárúcháin saor in aisce ó sholáthraithe nach ndéanaimid urraíocht orthu (cliceáil chun leathnú)</sub></summary>
 
-<sub><i>Tá an rannán seo do chóipeanna tagartha/práchomhshóraigh amháin. Tá comhpháirtíochtaí urraíochta sa rannán <b>🤝 Tacaíochtaí ó chairde an Fhoinse Oscailte</b> thuas. Níl aon urraíocht nó comhpháirtíocht ag OmniRoute leis na soláthraithe liostaithe anseo — is cóipeanna poiblí iad seo is féidir le duine ar bith a úsáid.</i></sub>
+<sub><i>Tá an chuid seo le haghaidh cóid atreoraithe/cúpóin amháin. Tá comhpháirtíochtaí urraithe le fáil in <b>🤝 Tacaíonn ár gCairde Foinse Oscailte linn</b> thuas. Níl aon urraíocht ná comhpháirtíocht ag OmniRoute leis na soláthraithe atá liostaithe anseo — is cúpóin phoiblí iad seo is féidir le duine ar bith a úsáid.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +324,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — clárú comhfhreagrach · <b>$100 creidmheas saor in aisce</b> ar chlárú (freastalaí saor in aisce, bí ag súil le moill níos airde — is fearr le haghaidh tástála, ná táirgeadh). Tacaíocht den chéad scoth i OmniRoute ó <b>v3.8.50</b>: Comhlánaíochtaí Comhrá, an formáid sreanga comhoiriúnach le Anthropic agus an cosán comhoiriúnach le OpenAI. I measc na samhlacha atá ar fáil tá <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> agus tuilleadh. <b><a href="https://agentrouter.org/register?aff=70LM">Faigh do $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — clárú cleamhnaithe · <b>$100 creidmheasanna saor in aisce</b> ar chlárú (freastalaí saor in aisce, bí ag súil le moill níos airde — is fearr le haghaidh tástála, ní le haghaidh táirgeachta). Tacaíocht den chéad scoth in OmniRoute ó <b>v3.8.50</b>: Comhlánuithe Comhrá, an fhormáid sreinge atá comhoiriúnach le Anthropic agus an cosán atá comhoiriúnach le OpenAI. I measc na múnlaí atá ar fáil tá <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> agus níos mó. <b><a href="https://agentrouter.org/register?aff=70LM">Faigh do $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Nasc comhfhreagrach — níl aon urraíocht nó comhpháirtíocht ag OmniRoute leis an soláthraí seo.</i></sub>
+      <sub>⚠️ <i>Nasc cleamhnaithe — Níl aon urraíocht ná comhpháirtíocht ag OmniRoute leis an soláthraí seo.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>An bhfuil a fhios agat faoin soláthraí eile le cóip práchomhshóraigh saor in aisce flaithiúil ar fhabhrúsoirí úsáideoirí OmniRoute? Oscail ábhar agus cuirfimid é anseo.</sub>
+<sub>An bhfuil aithne agat ar sholáthraí eile le cúpón clárúcháin saor in aisce flaithiúil a théann chun tairbhe d'úsáideoirí OmniRoute? Oscail saincheist agus cuirfimid leis anseo é.</sub>
 
 </details>
 
@@ -492,9 +490,9 @@ Na **19** straitéis go léir — measc & meaitseáil in aghaidh chéim combo:
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Cad a dhéanann OmniRoute uathúil — léargas dátaithe ar ghnéithe i gcomparáid le 9router, OpenRouter, CLIProxyAPI agus LiteLLM thar 13 chumas. OmniRoute: 359 soláthraí, breis agus 150 sraith saor in aisce ionsuite, 19 straitéis ródaithe, comhbhrú comharthaí le 12 inneall, freastalaí MCP ionsuite le 110 uirlis, prótacal gníomhairí A2A, cuimhne mharthanach, ráillí cosanta, gníomhairí néil, duaithníocht méarloirg TLS, Desktop/Termux/PWA agus 42 logchaighdeán comhéadain i18n. Tá OmniRoute ceadúnaithe faoi MIT agus is féidir é a fhéinstóráil. D’fhéadfadh cumais agus líon na ngnéithe sna táirgí iomaíocha athrú; féach ar an modheolaíocht nasctha."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Cad a dhéanann OmniRoute uathúil — léargas gnéithe atá as dáta i gcomparáid le 9router, OpenRouter, CLIProxyAPI agus LiteLLM thar 13 cumas. OmniRoute: 358 soláthraí, níos mó ná 150 sraith saor in aisce ionsuite, 19 straitéis ródaithe, comhbhrú comharthaí 12-inneall, freastalaí MCP ionsuite le 110 uirlis, prótacal gníomhaire A2A, cuimhne leanúnach, ráillí cosanta, gníomhairí néil, folaíocht mhéarloirg TLS, Deasc/Termux/PWA agus 42 logánú comhéadain úsáideora i18n. Tá OmniRoute ceadúnaithe faoi MIT agus is féidir é a óstáil go féin. D'fhéadfadh cumais agus líon na n-iomaitheoirí athrú; féach an mhodheolaíocht nasctha."/>
 
-<sub>📊 An mhodheolaíocht iomlán &amp; sonraí faoi gach gné i gcomparáid le 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Modheolaíocht iomlán &amp; sonraí in aghaidh gné i gcomparáid le 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -1227,28 +1225,28 @@ Métrics canónacha ar 2026-08-24: **1,029 físeán uathúil** · **11,132,922 a
 <br/>
 <div align="center">
 
-## 🛠️ Cruach Teicneolaíochta
+## 🛠️ Stac Teicneolaíochta
 
 </div>
 
 <table>
-  <tr><th align="left">Sraith</th><th align="left">Teicneolaíocht</th></tr>
-  <tr><td nowrap><b>Timpeallacht rite</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Teanga</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> ar fud <code>src/</code> agus <code>open-sse/</code> (gan aon <code>any</code> sa chroílár ó v2.0)</td></tr>
-  <tr><td nowrap><b>Creat</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Bunachar sonraí</b></td><td>better-sqlite3 (SQLite, iriseoireacht WAL) + LowDB (oidhreacht JSON) — 122 modúl fearainn, 178 aistriú</td></tr>
-  <tr><td nowrap><b>Cuimhne</b></td><td>Lántéacs SQLite FTS5 + leabuithe veicteora cainníochtaithe go int8, meath clóscríofa</td></tr>
-  <tr><td nowrap><b>Scéimeanna</b></td><td>Zod 4 — bailíochtú I/O uirlisí MCP + conarthaí API</td></tr>
+  <tr><th align="left">Ciseal</th><th align="left">Teicneolaíocht</th></tr>
+  <tr><td nowrap><b>Am Rith</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Teanga</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> trasna <code>src/</code> agus <code>open-sse/</code> (níl aon <code>any</code> sa chroí ó v2.0)</td></tr>
+  <tr><td nowrap><b>Creatlach</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Bunachar Sonraí</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 modúl fearainn, 183 imirce</td></tr>
+  <tr><td nowrap><b>Cuimhne</b></td><td>SQLite FTS5 lán-téacs + leabú veicteoirí cainníochtaithe int8, meath cineálta</td></tr>
+  <tr><td nowrap><b>Scéimí</b></td><td>Zod 4 — Bailíochtú I/O uirlis MCP + conarthaí API</td></tr>
   <tr><td nowrap><b>Prótacail</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Sruthú</b></td><td>Server-Sent Events (SSE) + droichead WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Comhbhrú</b></td><td>Píblíne 12 inneall — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Fíordheimhniú &amp; slándáil</b></td><td>OAuth 2.0 (PKCE) + JWT + Eochracha API + fíordheimhniú MCP de réir raoin · AES-256-GCM ar fos · DOMPurify</td></tr>
-  <tr><td nowrap><b>Ceilt</b></td><td>wreq-js — aithris méarloirg TLS JA3 / JA4, seachfhreastalaí 3 leibhéal</td></tr>
-  <tr><td nowrap><b>Athléimneacht</b></td><td>Scoradán ciorcaid, cúlú easpónantúil, cosaint ar thréad toirní, féinleigheas teaglama uathoibríoch</td></tr>
-  <tr><td nowrap><b>Logáil</b></td><td>pino — logaí struchtúrtha JSON le comhthéacs iarratais</td></tr>
-  <tr><td nowrap><b>Tástáil</b></td><td>Reathaí tástála Node.js + Vitest — <b>39,000+ dearbhú tástála statach</b> thar 5,100+ comhad tástála rianaithe (aonadach, comhtháthaithe, E2E, slándála, éiceachórais)</td></tr>
-  <tr><td nowrap><b>Ardáin</b></td><td>Deasc (Electron) · Android (Termux) · PWA (brabhsálaí ar bith)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — foilsiú uathoibríoch chuig npm + Docker Hub tráth eisiúna</td></tr>
+  <tr><td nowrap><b>Sruthú</b></td><td>Imeachtaí Seolta ag Freastalaí (SSE) + Droichead WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Comhbhrú</b></td><td>Píblíne 12-inneall — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Fíordheimhniú &amp; Slándáil</b></td><td>OAuth 2.0 (PKCE) + JWT + Eochracha API + fíordheimhniú scóip MCP · AES-256-GCM ar fos · DOMPurify</td></tr>
+  <tr><td nowrap><b>Folaíocht</b></td><td>wreq-js — bréagriocht mhéarloirg TLS JA3 / JA4, seachfhreastalaí 3-leibhéal</td></tr>
+  <tr><td nowrap><b>Athléimneacht</b></td><td>Briseadh ciorcaid, cúlú easpónantúil, frith-tréad-toirní, féin-leighis uath-chomhcheangailte</td></tr>
+  <tr><td nowrap><b>Logáil</b></td><td>pino — loganna JSON struchtúrtha le comhthéacs iarratais</td></tr>
+  <tr><td nowrap><b>Tástáil</b></td><td>Node.js test runner + Vitest — <b>39,000+ dearbhú tástála statach</b> trasna 5,100+ comhad tástála rianaithe (aonad, comhtháthú, E2E, slándáil, éiceachóras)</td></tr>
+  <tr><td nowrap><b>Ardáin</b></td><td>Deasc (Electron) · Android (Termux) · PWA (aon bhrabhsálaí)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — foilsiú uathoibríoch npm + Docker Hub ar scaoileadh</td></tr>
   <tr><td nowrap><b>Naisc</b></td><td><a href="https://omniroute.online">Suíomh Gréasáin</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

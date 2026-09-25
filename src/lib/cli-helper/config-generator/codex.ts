@@ -3,6 +3,8 @@ import os from "node:os";
 import fs from "node:fs";
 import { parse, stringify } from "smol-toml";
 
+import { readPrivateConfigFile } from "../privateConfigFile";
+
 /**
  * Codex CLI config generator — TOML.
  *
@@ -55,7 +57,7 @@ export async function generateCodexConfig(options: {
 
   let existing: Record<string, unknown> = {};
   if (fs.existsSync(configPath)) {
-    const raw = fs.readFileSync(configPath, "utf-8");
+    const raw = readPrivateConfigFile(configPath);
     try {
       existing = parse(raw) as Record<string, unknown>;
     } catch {
