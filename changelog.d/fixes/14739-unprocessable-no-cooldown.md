@@ -1,0 +1,1 @@
+- **fix(resilience):** A `422` request error no longer cools down the provider connection: it goes through the same classifier as `400`, so one rejected request body cannot push every other client off a single-account provider ([#14739](https://github.com/diegosouzapw/OmniRoute/pull/14739))

@@ -2231,8 +2231,11 @@ export function checkFallbackError(
     };
   }
 
-  // 400 — context overflow / malformed request / model access denied
-  if (status === HTTP_STATUS.BAD_REQUEST) {
+  // 400 — context overflow / malformed request / model access denied.
+  // 422 is the same class: the provider parsed the body and rejected its shape (e.g. Grok
+  // Build "unknown variant `custom`"), so every account fails alike and a cooldown
+  // would only lock the account out for other clients.
+  if (status === HTTP_STATUS.BAD_REQUEST || status === HTTP_STATUS.UNPROCESSABLE_ENTITY) {
     const modelUnavailable = getOpencodeModelUnavailableMatch(provider, status, headers, errorStr);
     if (modelUnavailable) return ruleScopedResult(modelUnavailable);
     // Check structured error codes first (more reliable, no false positives)
