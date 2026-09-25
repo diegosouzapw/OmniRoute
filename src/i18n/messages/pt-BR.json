@@ -1202,6 +1202,8 @@
     "batchGroup": "Lote",
     "homeSubtitle": "Visão geral do painel",
     "providersSubtitle": "Gerenciar provedores de IA",
+    "modelCatalog": "Catálogo de modelos",
+    "modelCatalogSubtitle": "Navegar pelos modelos de todos os provedores",
     "quotaTrackerSubtitle": "Acompanhar limites de uso",
     "providerQuotaSubtitle": "Acompanhar limites de uso por provedor",
     "runtimeSubtitle": "Resiliência e sessões em tempo real",

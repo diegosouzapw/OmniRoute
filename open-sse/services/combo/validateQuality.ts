@@ -296,6 +296,26 @@ function describeStreamingUpstreamError(parsed: unknown): string | null {
   return null;
 }
 
+/** Base quality reason for a pre-content in-stream upstream failure (#13630). */
+export const STREAMING_UPSTREAM_ERROR_REASON = "streaming upstream error";
+
+/**
+ * Build the quality reason for a pre-content streaming upstream error. #14314
+ * appends the upstream detail for the call log; callers that branch on the
+ * failure class must use `isStreamingUpstreamErrorReason`, never an exact match.
+ */
+function streamingUpstreamErrorReason(detail: string | null): string {
+  return detail ? `${STREAMING_UPSTREAM_ERROR_REASON}: ${detail}` : STREAMING_UPSTREAM_ERROR_REASON;
+}
+
+/** True for the bare or detailed pre-content streaming upstream error reason. */
+export function isStreamingUpstreamErrorReason(reason: string | null | undefined): boolean {
+  return (
+    reason === STREAMING_UPSTREAM_ERROR_REASON ||
+    (typeof reason === "string" && reason.startsWith(`${STREAMING_UPSTREAM_ERROR_REASON}: `))
+  );
+}
+
 type StreamingPeekOutcome = "content" | "error" | null;
 
 /**
@@ -575,9 +595,7 @@ export async function validateResponseQuality(
             );
             return {
               valid: false,
-              reason: upstreamErrorDetail
-                ? `streaming upstream error: ${upstreamErrorDetail}`
-                : "streaming upstream error",
+              reason: streamingUpstreamErrorReason(upstreamErrorDetail),
             };
           }
 
@@ -678,9 +696,7 @@ export async function validateResponseQuality(
           );
           return {
             valid: false,
-            reason: upstreamErrorDetail
-              ? `streaming upstream error: ${upstreamErrorDetail}`
-              : "streaming upstream error",
+            reason: streamingUpstreamErrorReason(upstreamErrorDetail),
           };
         }
 

@@ -40,32 +40,20 @@ import {
 } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import { selectAntigravityQuotaWindowNames } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
+import {
+  EXHAUSTED_MAX_PARK_MS,
+  getQuotaCacheState as getState,
+  type QuotaCacheEntry,
+  type QuotaInfo,
+  unmarkQuotaHealthy,
+  isQuotaHealthy,
+} from "./quotaCacheState";
+
+// #14359 — re-exported so existing callers (chat.ts, tests) keep importing from here. Only
+// markQuotaHealthy has outside callers; the rest are internal and stay unexported (dead-code gate).
+export { markQuotaHealthy } from "./quotaCacheState";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-
-interface QuotaInfo {
-  remainingPercentage: number;
-  resetAt: string | null;
-  // #10095 — upstream explicitly told us it did NOT report this window's
-  // fraction (e.g. a fresh Antigravity account or a newly-launched
-  // -tiered model id Google hasn't wired quota telemetry for yet).
-  // `undefined`/`true` means the value is a real, upstream-reported
-  // percentage; `false` means "unknown", so callers must not treat the
-  // defaulted-to-0 `remainingPercentage` as genuine exhaustion.
-  fractionReported?: boolean;
-  displayName?: string;
-  windowSeconds?: number | null;
-}
-
-interface QuotaCacheEntry {
-  connectionId: string;
-  provider: string;
-  quotas: Record<string, QuotaInfo>;
-  fetchedAt: number;
-  exhausted: boolean;
-  nextResetAt: string | null;
-  windowDurationMs?: number | null; // T08: optional rolling window duration
-}
 
 interface QuotaWindowStatus {
   remainingPercentage: number;
@@ -90,46 +78,11 @@ const EXHAUSTED_REFRESH_MS = 5 * 60 * 1000; // 5 minutes: recheck exhausted acco
 const REFRESH_INTERVAL_MS = 60 * 1000; // Background tick every 1 minute
 export const DEFAULT_QUOTA_THRESHOLD_PERCENT = 99;
 
-// #14359 — a park is trusted at most EXHAUSTED_MAX_PARK_MS past its observation; a far weekly-window reset must not block for days.
-export const EXHAUSTED_MAX_PARK_MS = 30 * 60 * 1000;
-
 // ─── State ──────────────────────────────────────────────────────────────────
 //
-// #8065 — Next.js `output: "standalone"` builds can load this module from
-// independent webpack chunks (e.g. the instrumentation-hook-started
-// `providerLimitsSyncScheduler` write path vs an API-route/SSE-handler read
-// path such as `auth.ts::evaluateQuotaLimitPolicy()`) — each gets its OWN
-// top-level module state, so a bare module-scope `Map` silently splits the
-// cache in two. Anchor all mutable state on `globalThis` so every chunk
-// shares one instance. Mirrors the identical fix already applied for
-// `src/lib/pricingSync.ts` (commit de9d748dac, #6325) and the same pattern in
-// `src/lib/credentialHealth/cache.ts`.
-
-interface QuotaCacheState {
-  cache: Map<string, QuotaCacheEntry>;
-  refreshingSet: Set<string>;
-  // #14359 — connectionId → epoch ms the healthy override stands the predicates down; shared state per #8065.
-  healthyUntil: Map<string, number>;
-  refreshTimer: ReturnType<typeof setInterval> | null;
-  tickRunning: boolean;
-}
-
-declare global {
-  var __omnirouteQuotaCacheState: QuotaCacheState | undefined;
-}
-
-function getState(): QuotaCacheState {
-  if (!globalThis.__omnirouteQuotaCacheState) {
-    globalThis.__omnirouteQuotaCacheState = {
-      cache: new Map(),
-      refreshingSet: new Set(),
-      healthyUntil: new Map(),
-      refreshTimer: null,
-      tickRunning: false,
-    };
-  }
-  return globalThis.__omnirouteQuotaCacheState;
-}
+// Shared `globalThis` state (#8065) and the #14359 healthy override live in the
+// dependency-free leaf `./quotaCacheState` so `open-sse/services/quotaPreflight.ts`
+// can read the override without importing this module (see the import note there).
 
 const MAX_CONCURRENT_REFRESHES = 5;
 
@@ -156,22 +109,6 @@ function preserveParkDeadline(
     if (priorMs !== null && priorMs > Date.now()) return prior.nextResetAt;
   }
   return capParkWindow(resetAt, Date.now());
-}
-
-// #14359 — arm the healthy override for one park window (chat success hook).
-export function markQuotaHealthy(connectionId: string): void {
-  getState().healthyUntil.set(connectionId, Date.now() + EXHAUSTED_MAX_PARK_MS);
-}
-
-// #14359 — clear the healthy override (a genuine 429 re-parks immediately).
-export function unmarkQuotaHealthy(connectionId: string): void {
-  getState().healthyUntil.delete(connectionId);
-}
-
-// #14359 — true while the healthy override for this connection is armed.
-export function isQuotaHealthy(connectionId: string): boolean {
-  const until = getState().healthyUntil.get(connectionId);
-  return until !== undefined && until > Date.now();
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

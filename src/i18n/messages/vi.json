@@ -1202,6 +1202,8 @@
     "batchGroup": "Xử lý theo lô",
     "homeSubtitle": "Tổng quan bảng điều khiển",
     "providersSubtitle": "Quản lý nhà cung cấp AI",
+    "modelCatalog": "Danh mục mô hình",
+    "modelCatalogSubtitle": "Duyệt mô hình trên các nhà cung cấp",
     "quotaTrackerSubtitle": "Theo dõi giới hạn mức sử dụng",
     "providerQuotaSubtitle": "Theo dõi giới hạn mức sử dụng của nhà cung cấp",
     "runtimeSubtitle": "Khả năng phục hồi thời gian thực & phiên làm việc",

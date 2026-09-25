@@ -1,0 +1,1 @@
+- **test(sse):** realign four `flush-empty-retry` bounded-read cases with #14691, which stops a turn that already carries content at its first useful chunk (`early-pass`) instead of draining it; the "intact body" cases now use a content-free turn, and the content cases assert `early-pass` with the same `pass` verdict

@@ -220,6 +220,24 @@ export function normalizeExecutorResult(result: unknown): {
   };
 }
 
+/**
+ * True when a settled executor result still carries a response body that is
+ * going to stream on the combined signal (a bare Response or the executor's
+ * `{ response }` wrapper). Only such a result needs the client-abort link to
+ * outlive the start-timeout race (#14342); anything else must release it (#12406).
+ */
+function settledResultHasLiveBody(result: unknown): boolean {
+  let response: unknown = null;
+  if (isResponseLike(result)) {
+    response = result;
+  } else if (result && typeof result === "object" && "response" in result) {
+    response = (result as { response?: unknown }).response;
+  }
+  if (!isResponseLike(response)) return false;
+  const { body, bodyUsed } = response as { body?: unknown; bodyUsed?: unknown };
+  return body != null && bodyUsed !== true;
+}
+
 export async function executeWithUpstreamStartTimeout<T>({
   executor,
   provider,
@@ -284,25 +302,29 @@ export async function executeWithUpstreamStartTimeout<T>({
   abortPromise.catch(() => {});
   timeoutPromise.catch(() => {});
 
-  let settled = false;
+  let keepClientAbortLink = false;
   try {
     const result = await Promise.race([
       execute(combinedController.signal),
       timeoutPromise,
       abortPromise,
     ]);
-    settled = true;
+    keepClientAbortLink = settledResultHasLiveBody(result);
     return result;
   } finally {
     if (timeoutId) clearTimeout(timeoutId);
     // The timeout only bounds time-to-headers, but the client-abort link must
     // outlive it: once execute() resolves, the response body is still streaming
     // on combinedController.signal, and a later client disconnect has to reach
-    // the upstream fetch or the provider keeps generating for nobody. Drop the
-    // link only when the attempt failed (the signal is not wired to a live body).
+    // the upstream fetch or the provider keeps generating for nobody (#14342).
+    // Keep the link ONLY when the settled result carries such a live body; drop it
+    // when the attempt failed or resolved without a streaming body, so nothing
+    // stays registered on the client signal for a finished race (#12406).
     // The listener is `once` and the client signal is per-request, so keeping it
-    // is bounded.
-    if (abortListener && !settled) signal.removeEventListener("abort", abortListener);
+    // for a live body is bounded.
+    if (abortListener && !keepClientAbortLink) {
+      signal.removeEventListener("abort", abortListener);
+    }
     // Never removed before this fix: one listener leaked onto the client signal
     // per call (chatCore.ts invokes this once per executor attempt, plus retries).
     if (abortPromiseListener) signal.removeEventListener("abort", abortPromiseListener);

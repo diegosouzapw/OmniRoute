@@ -1,0 +1,1 @@
+- **fix(i18n):** use the zh-TW glossary canonical `提供者` (not `供應商`) in the `combos.advancedHelp.connectionAwareExpansion` string added by the combo round-robin legibility change ([#14014](https://github.com/diegosouzapw/OmniRoute/pull/14014)), restoring the zh-TW glossary-consistency gate — thanks @HouMinXi

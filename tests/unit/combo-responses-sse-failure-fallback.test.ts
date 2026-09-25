@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { handleComboChat, validateResponseQuality } from "../../open-sse/services/combo.ts";
+import { isStreamingUpstreamErrorReason } from "../../open-sse/services/combo/validateQuality.ts";
+import { handlePreContentStreamRetry } from "../../open-sse/services/combo/executeTargetClassify.ts";
 import {
   clearNativeCodexTurnPinsForTests,
   pinNativeCodexTurn,
@@ -48,7 +50,8 @@ test("streaming quality rejects a pre-content response.failed event", async () =
   );
 
   assert.equal(result.valid, false);
-  assert.equal(result.reason, "streaming upstream error");
+  // #14314 carries the upstream detail into the reason (call-log visibility).
+  assert.equal(result.reason, "streaming upstream error: peak capacity");
 });
 
 test("streaming quality rejects a pre-content top-level error envelope", async () => {
@@ -64,7 +67,29 @@ test("streaming quality rejects a pre-content top-level error envelope", async (
   const result = await validateResponseQuality(sseResponse(body), true, silentLog());
 
   assert.equal(result.valid, false);
-  assert.equal(result.reason, "streaming upstream error");
+  assert.equal(result.reason, "streaming upstream error: server_error: temporarily unavailable");
+});
+
+test("pre-content stream retry classifier accepts the bare and the detailed reason", () => {
+  const deps = { maxRetries: 1, signal: null, log: { info() {} } };
+  assert.equal(isStreamingUpstreamErrorReason("streaming upstream error"), true);
+  assert.equal(isStreamingUpstreamErrorReason("streaming upstream error: peak capacity"), true);
+  assert.equal(isStreamingUpstreamErrorReason("streaming upstream errors"), false);
+  assert.equal(isStreamingUpstreamErrorReason("streaming empty content block"), false);
+  assert.equal(isStreamingUpstreamErrorReason(null), false);
+  assert.equal(
+    handlePreContentStreamRetry(
+      { reason: "streaming upstream error: peak capacity" },
+      0,
+      deps,
+      "m"
+    ),
+    true
+  );
+  assert.equal(
+    handlePreContentStreamRetry({ reason: "streaming empty content block" }, 0, deps, "m"),
+    false
+  );
 });
 
 test("combo advances to the next target after a pre-content Responses SSE failure", async () => {

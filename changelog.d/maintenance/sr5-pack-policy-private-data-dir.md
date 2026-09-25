@@ -1,0 +1,1 @@
+- **test(pack):** the pack-artifact policy test now expects `bin/cli/privateDataDir.mjs`, which #14712 (GHSA-2pg2-xm9r-8544) made a required tarball path without updating the test's missing-paths list

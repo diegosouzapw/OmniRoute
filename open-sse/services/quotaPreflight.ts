@@ -21,7 +21,10 @@
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
-import { isQuotaHealthy } from "@/domain/quotaCache";
+// #14359 — import the leaf, NOT "@/domain/quotaCache": quotaCache → usage.ts → usage/openrouter.ts →
+// openrouterQuotaFetcher.ts → this file, so importing quotaCache here closes an ESM init cycle
+// that deadlocks the esbuild MCP bundle (tests/unit/build/mcp-bundle-startup.test.ts).
+import { isQuotaHealthy } from "@/domain/quotaCacheState";
 import { fetchNewApiAggregatorQuota } from "./newApiAggregatorQuotaFetcher.ts";
 import {
   isAntigravityQuotaProvider,

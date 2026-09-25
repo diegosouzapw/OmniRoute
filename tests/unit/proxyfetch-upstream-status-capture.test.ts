@@ -19,6 +19,11 @@ test.before(async () => {
     const params = new URL(req.url ?? "/", "http://local").searchParams;
     setTimeout(
       () => {
+        // `drop` fails the call on the wire (no response) once the delay has passed.
+        if (params.has("drop")) {
+          req.socket.destroy();
+          return;
+        }
         res.writeHead(Number(params.get("code") ?? 200), { "content-type": "application/json" });
         res.end("{}");
       },
@@ -69,9 +74,15 @@ test("a fetch still running when the dispatch returns does not change the status
   await inRequest(sink, async () => {
     await dispatch(async () => {
       const res = await fetch(`${baseUrl}/v1?code=429`);
+      // Both background calls must still be in flight when the dispatch settles. A refused
+      // port fails in about a millisecond now that loopback skips the bound-and-replay
+      // path (#14311), so the failing call is a delayed connection drop instead.
       background = Promise.all([
         fetch(`${baseUrl}/finish?code=200&delay=50`).then((r) => r.text()),
-        fetch("http://127.0.0.1:1/finish").catch(() => null),
+        fetch(`${baseUrl}/finish?drop=1&delay=50`).then(
+          () => assert.fail("the dropped call must fail"),
+          () => null
+        ),
       ]);
       return res;
     });

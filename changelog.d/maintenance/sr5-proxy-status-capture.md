@@ -1,0 +1,1 @@
+- test(sse): keep the "background fetch after the dispatch" proxy-status guard (#13580) deterministic now that loopback requests skip the bound-and-replay path (#14311) — its failing background call is a delayed connection drop instead of a refused port that now fails within the dispatch

@@ -1202,6 +1202,8 @@
     "batchGroup": "Batch",
     "homeSubtitle": "Dashboard overview",
     "providersSubtitle": "Manage AI providers",
+    "modelCatalog": "Model catalog",
+    "modelCatalogSubtitle": "Browse models across providers",
     "quotaTrackerSubtitle": "Track usage limits",
     "providerQuotaSubtitle": "Track provider usage limits",
     "runtimeSubtitle": "Realtime resilience & sessions",

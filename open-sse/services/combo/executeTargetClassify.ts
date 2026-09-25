@@ -7,6 +7,7 @@
 import { isInputBoundRequestFailure } from "./comboPredicates.ts";
 import { comboTargetDecision } from "./statusDecisionTable.ts";
 import { errorResponse } from "../../utils/error.ts";
+import { isStreamingUpstreamErrorReason } from "./validateQuality.ts";
 
 export function remainderIsHomogeneous(
   orderedTargets: { modelStr: string }[],
@@ -32,7 +33,7 @@ export function handlePreContentStreamRetry(
   modelStr: string
 ): boolean {
   if (
-    quality.reason !== "streaming upstream error" ||
+    !isStreamingUpstreamErrorReason(quality.reason) ||
     retry >= deps.maxRetries ||
     deps.signal?.aborted
   ) {

@@ -518,7 +518,12 @@
       "tests/unit/codex-reasoning-replay-rejection.test.ts",
       "tests/unit/opencode-free-tier-combo-scoped-failure-14313.test.ts",
       "tests/unit/client-abort-propagates-upstream.test.ts",
-      "tests/unit/data-dir-private-perms.test.ts"
+      "tests/unit/data-dir-private-perms.test.ts",
+      "tests/unit/flagship-0day-discovery.test.ts",
+      "tests/unit/combo-responses-sse-failure-fallback.test.ts",
+      "tests/unit/metered-budget-must-not-disable-flat-rate.test.ts",
+      "tests/unit/expiry-first-account-rotation.test.ts",
+      "tests/unit/claude-passthrough-empty-response.test.ts"
     ],
     "nodeArgs": [
       "--import",

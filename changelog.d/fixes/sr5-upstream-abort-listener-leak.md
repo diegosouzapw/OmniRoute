@@ -1,0 +1,1 @@
+- **fix(sse):** the upstream start-timeout wrapper now keeps its client-abort link only when the settled result still has a streaming response body, so the post-headers abort propagation from #14342 is preserved while attempts that resolve without a live body no longer leave an abort listener on the client signal (restores the #12406 no-leak guarantee)

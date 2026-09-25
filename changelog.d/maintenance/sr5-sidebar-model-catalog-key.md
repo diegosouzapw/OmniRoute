@@ -1,0 +1,1 @@
+- **fix(i18n):** add the English `sidebar.modelCatalog` / `sidebar.modelCatalogSubtitle` keys for the Model catalog item #14684 added to the sidebar (it only had inline fallbacks), so the sidebar i18n contract test passes again

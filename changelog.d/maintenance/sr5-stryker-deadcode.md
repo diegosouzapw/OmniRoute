@@ -1,0 +1,1 @@
+- **chore(quality):** register the five covering tests the 2026-09-24 wave (and this fix set) left out of `stryker.conf.json` `tap.testFiles`, and keep only `markQuotaHealthy` re-exported from `quotaCache.ts` so the quota-state extraction adds no dead exports
