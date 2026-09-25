@@ -368,3 +368,192 @@ test("BedrockExecutor converts ConverseStream output to OpenAI SSE chunks", asyn
   assert.match(text, /"finish_reason":"stop"/);
   assert.match(text, /data: \[DONE\]/);
 });
+
+function parseBedrockOpenAIStream(text) {
+  const events = [];
+  for (const line of String(text).split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    const payload = trimmed.slice(5).trim();
+    if (!payload || payload === "[DONE]") continue;
+    events.push(JSON.parse(payload));
+  }
+  return events;
+}
+
+function streamedToolArguments(events) {
+  const byIndex = new Map();
+  for (const event of events) {
+    const calls = event.choices?.[0]?.delta?.tool_calls;
+    if (!Array.isArray(calls)) continue;
+    for (const call of calls) {
+      const index = call.index ?? 0;
+      const fragment = call.function?.arguments;
+      byIndex.set(
+        index,
+        (byIndex.get(index) || "") + (typeof fragment === "string" ? fragment : "")
+      );
+    }
+  }
+  return byIndex;
+}
+
+async function executeFakeBedrockStream(streamEvents) {
+  const executor = new BedrockExecutor(() => ({
+    send: async () => ({
+      stream: (async function* () {
+        for (const event of streamEvents) yield event;
+      })(),
+    }),
+  }));
+  const result = await executor.execute({
+    model: "anthropic.claude-sonnet-4-6",
+    body: { messages: [{ role: "user", content: "weather?" }], stream: true },
+    stream: true,
+    credentials: credentials(),
+  });
+  const text = await result.response.text();
+  return { status: result.response.status, text, events: parseBedrockOpenAIStream(text) };
+}
+
+test("Bedrock ConverseStream forwards object toolUse.input deltas as JSON arguments", async () => {
+  const { status, events } = await executeFakeBedrockStream([
+    {
+      contentBlockStart: {
+        contentBlockIndex: 0,
+        start: { toolUse: { toolUseId: "toolu_obj", name: "get_weather" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 0,
+        delta: { toolUse: { input: { city: "paris" } } },
+      },
+    },
+    { messageStop: { stopReason: "tool_use" } },
+  ]);
+
+  assert.equal(status, 200);
+  const args = streamedToolArguments(events);
+  assert.deepEqual(JSON.parse(args.get(0)), { city: "paris" });
+  assert.equal(
+    events.some((event) =>
+      event.choices?.[0]?.delta?.tool_calls?.some(
+        (call) => call.id === "toolu_obj" && call.function?.name === "get_weather"
+      )
+    ),
+    true
+  );
+  assert.equal(events.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
+test("Bedrock ConverseStream keeps empty-string toolUse.input as empty arguments", async () => {
+  const { events } = await executeFakeBedrockStream([
+    {
+      contentBlockStart: {
+        contentBlockIndex: 0,
+        start: { toolUse: { toolUseId: "toolu_empty", name: "get_time" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 0,
+        delta: { toolUse: { input: "" } },
+      },
+    },
+    { messageStop: { stopReason: "tool_use" } },
+  ]);
+
+  const args = streamedToolArguments(events);
+  assert.equal(args.get(0), "");
+});
+
+test("Bedrock ConverseStream handles tool calls with no input delta at all", async () => {
+  const { events } = await executeFakeBedrockStream([
+    {
+      contentBlockStart: {
+        contentBlockIndex: 0,
+        start: { toolUse: { toolUseId: "toolu_nodelta", name: "get_time" } },
+      },
+    },
+    { messageStop: { stopReason: "tool_use" } },
+  ]);
+
+  const args = streamedToolArguments(events);
+  assert.equal(args.get(0), "");
+});
+
+test("Bedrock ConverseStream isolates object toolUse.input across a parallel batch", async () => {
+  const { status, events } = await executeFakeBedrockStream([
+    {
+      contentBlockStart: {
+        contentBlockIndex: 2,
+        start: { toolUse: { toolUseId: "toolu_weather", name: "get_weather" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 2,
+        delta: { toolUse: { input: { city: "paris" } } },
+      },
+    },
+    {
+      contentBlockStart: {
+        contentBlockIndex: 5,
+        start: { toolUse: { toolUseId: "toolu_clock", name: "get_time" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 5,
+        delta: { toolUse: { input: { tz: "UTC" } } },
+      },
+    },
+    {
+      contentBlockStart: {
+        contentBlockIndex: 7,
+        start: { toolUse: { toolUseId: "toolu_empty", name: "noop" } },
+      },
+    },
+    {
+      contentBlockDelta: {
+        contentBlockIndex: 7,
+        delta: { toolUse: { input: "" } },
+      },
+    },
+    {
+      contentBlockStart: {
+        contentBlockIndex: 9,
+        start: { toolUse: { toolUseId: "toolu_nodelta", name: "ping" } },
+      },
+    },
+    { messageStop: { stopReason: "tool_use" } },
+  ]);
+
+  assert.equal(status, 200);
+  const args = streamedToolArguments(events);
+  assert.equal(args.size, 4);
+  assert.deepEqual(JSON.parse(args.get(0)), { city: "paris" });
+  assert.deepEqual(JSON.parse(args.get(1)), { tz: "UTC" });
+  assert.equal(args.get(2), "");
+  assert.equal(args.get(3), "");
+  assert.equal(
+    events.some((event) =>
+      event.choices?.[0]?.delta?.tool_calls?.some(
+        (call) =>
+          call.index === 0 && call.id === "toolu_weather" && call.function?.name === "get_weather"
+      )
+    ),
+    true
+  );
+  assert.equal(
+    events.some((event) =>
+      event.choices?.[0]?.delta?.tool_calls?.some(
+        (call) =>
+          call.index === 1 && call.id === "toolu_clock" && call.function?.name === "get_time"
+      )
+    ),
+    true
+  );
+  assert.equal(events.at(-1).choices[0].finish_reason, "tool_calls");
+});
