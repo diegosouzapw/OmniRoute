@@ -1,0 +1,1 @@
+- **fix(combo):** bare combo targets without an explicit provider ID retain the provider inferred from their model; explicit provider IDs remain authoritative.
