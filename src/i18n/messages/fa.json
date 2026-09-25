@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "غیرفعال‌سازی چسبندگی نشست",
     "sessionStickinessEnabled": "چسبندگی روشن",
     "sessionStickinessDisabled": "چسبندگی خاموش",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "پیش‌تنظیم Kimi Coding",
     "kimiPresetDescription": "مدل Kimi K3 به عنوان مدل اصلی (Moonshot API)، با انتقال خودکار به اتصالات Kimi Code شما (kimi-coding، kimi-web) در صورت پیکربندی.",
     "kimiPresetCta": "افزودن پیش‌تنظیم",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "این ارائه‌دهندگان/مدل‌های متصل فعلی که با این قالب مطابقت دارند را در یک ترکیب قابل ویرایش ذخیره می‌کند.",
     "duplicateAutoComboFailedPrefix": "تکرار ترکیب خودکار ناموفق بود:",
     "duplicateAutoComboUnknownError": "خطای ناشناخته",
-    "duplicateAutoComboTitle": "ایجاد یک ترکیب ثابت از {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "ایجاد یک ترکیب ثابت از {name}"
   },
   "costs": {
     "title": "هزینهها",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# خروجی} other {# خروجی}} استفادهشده توسط {connections, plural, one {# اتصال} other {# اتصال}} · حداکثر {max} روی یک خروجی · در {hours} ساعت گذشته",
     "poolEgressObservationEmpty": "در {hours} ساعت گذشته هیچ ترافیکی مشاهده نشد",
     "poolEgressObservationHint": "محاسبهشده از گزارش پراکسی در بازهٔ زمانی: آدرسهای IP خروجی متمایز مشاهدهشده برای اعضای این مخزن و اتصالهای OmniRoute که از آنها استفاده کردهاند. «روی یک خروجی» به معنای کل بازهٔ زمانی است، نه بهطور همزمان. قفل موقت 429 برای هر IP فقط اتصالهای همان خانوادهٔ ارائهدهنده را متوقف میکند.",
+    "poolEgressFailuresByExit": "خطاها از طریق {exit}: {count}",
+    "poolEgressFailuresUnattributed": "خطاهای بدون خروجی مشخص: {count}",
     "poolMemberEgress": "{host}:{port} از طریق {egressIp} خارج شد · {hours} ساعت گذشته",
     "poolMemberEgressEmpty": "{host}:{port}: در {hours} ساعت گذشته هیچ ترافیکی مشاهده نشد",
     "poolMemberEgressHint": "آخرین IP خروجی مشاهدهشده از طریق این عضو استخر در بازه زمانی، که از گزارش پراکسی خوانده شده است. برای عضوی که در این بازه هیچ ترافیکی نداشته باشد، خط «بدون ترافیک» نمایش داده میشود.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "افزودن",
     "poolAddFailed": "افزودن پروکسی به استخر ناموفق بود",
     "poolSelectProxy": "انتخاب یک پروکسی…",
-    "poolSaveFailed": "ذخیره تخصیص استخر ناموفق بود"
+    "poolSaveFailed": "ذخیره تخصیص استخر ناموفق بود",
+    "transportRate": "{rate}٪ انتقال",
+    "previousSuccessRate": "قبلاً {rate}٪ موفقیت",
+    "upstreamRefusals": "{count} رد بالادستی",
+    "connectionTestsCount": "{count} آزمون اتصال",
+    "notMeasured": "اندازه‌گیری نشده"
   },
   "playground": {
     "title": "محیط آزمایش مدل",
@@ -11474,6 +11481,10 @@
       "requestedModel": "مدل درخواست شده",
       "requestProtocol": "پروتکل Req",
       "cacheSource": "کش منبع",
+      "contentProvenance": "پاسخ",
+      "contentEmpty": "پاسخ خالی",
+      "usageAbsent": "تعداد توکن گزارش نشده است",
+      "usageEstimated": "تعداد توکن تخمینی است",
       "modelPinning": "پین کردن مدل",
       "activeModelPinning": "فعال — مدل انتخاب شده از طریق پین کردن جلسه",
       "rotated": "چرخش: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "هنوز هیچ گزارش پروکسیای وجود ندارد. پروکسیها را پیکربندی کنید و فراخوانیهای API را انجام دهید تا گزارشها را اینجا ببینید.",
     "noMatchingLogs": "هیچ گزارشی با فیلترهای فعلی مطابقت ندارد.",
     "tlsFingerprint": "اثر انگشت TLS مربوط به Chrome 124",
-    "colPublicIp": "IP عمومی"
+    "colPublicIp": "IP عمومی",
+    "colUpstream": "بالا دستی",
+    "colEgress": "IP خروجی",
+    "colCorrelation": "همبستگی",
+    "colServedBy": "توسط ارائه شده",
+    "filterTraffic": "ترافیک",
+    "filterTests": "آزمایش‌ها",
+    "filterSource": "منبع"
   },
   "endpointOptions": {
     "speech": "گفتار",
@@ -12012,6 +12030,10 @@
     "stopDns": "توقف DNS",
     "toggling": "در حال تغییر وضعیت…",
     "viewTraffic": "مشاهده ترافیک",
+    "resetAgent": "بازگردانی پیش‌فرض",
+    "resetAgentConfirm": "پیش‌فرض بازگردانده شود؟",
+    "resetting": "در حال بازگردانی…",
+    "resetDone": "DNS پیش‌فرض برای {agent} بازگردانده شد. برای اعمال تغییر، برنامه را کاملاً ببندید (نه فقط کوچک کنید) و دوباره باز کنید.",
     "emptyNoProvidersTitle": "هنوز هیچ ارائه‌دهنده‌ای پیکربندی نشده است",
     "emptyNoProvidersBody": "برای استفاده از AgentBridge، ابتدا حداقل یک ارائه‌دهنده را متصل کنید. این ارائه‌دهنده مقصدی خواهد بود که درخواست‌های IDE به آن هدایت می‌شوند.",
     "emptyGoToProviders": "رفتن به ارائه‌دهندگان",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "ایجاد توکن دال ناموفق بود",
     "providerProxy": "پراکسی",
     "providerProxyConfigureHint": "تنظیم پروکسی",
-    "providerProxyTitleConfigured": "پروکسی پیکربندی شده: {host}"
+    "providerProxyTitleConfigured": "پروکسی پیکربندی شده: {host}",
+    "inheritConnectionOption": "بدون پروکسی اختصاصی (اتصال را به ارث می‌برد)",
+    "inheritedProxy": "اتصال را به ارث می‌برد: {host}",
+    "inheritedPool": "استخر اتصال را به ارث می‌برد ({count})",
+    "poolEmptyBlocked": "استخر خالی است — درخواست‌ها ناموفق می‌شوند (نه مستقیم)",
+    "directEgress": "مستقیم (بدون پروکسی)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "مستقیم",
     "targetUrl": "آدرس هدف",
     "error": "خطا",
-    "configuration": "پیکربندی پروکسی"
+    "configuration": "پیکربندی پروکسی",
+    "upstreamStatus": "وضعیت بالا دستی",
+    "noResponse": "هیچ پاسخی",
+    "egressIp": "IP خروجی",
+    "servedBy": "توسط ارائه شده",
+    "correlationId": "شناسه همبستگی"
   },
   "requestTimeline": {
     "title": "زمان‌بندی درخواست",

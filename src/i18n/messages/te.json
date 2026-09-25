@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "సెషన్ స్టిక్కీనెస్‌ను నిలిపివేయండి",
     "sessionStickinessEnabled": "స్టిక్కీనెస్ ఆన్",
     "sessionStickinessDisabled": "స్టిక్కీనెస్ ఆఫ్",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ప్రీసెట్",
     "kimiPresetDescription": "ప్రాథమిక మోడల్‌గా Kimi K3 (Moonshot API), కాన్ఫిగర్ చేసినప్పుడు మీ Kimi Code కనెక్షన్‌లకు (kimi-coding, kimi-web) ఆటోమేటిక్ ఫాల్‌బ్యాక్‌తో.",
     "kimiPresetCta": "ప్రీసెట్‌ను జోడించు",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ఈ టెంప్లేట్‌తో సరిపోయే ప్రస్తుత కనెక్ట్ చేసిన ప్రొవైడర్లు/మోడల్‌లను ఎడిటబుల్ కంబోలో స్నాప్‌షాట్ తీసుకుంటుంది.",
     "duplicateAutoComboFailedPrefix": "ఆటోకంబో డూప్లికేట్ చేయడంలో విఫలమైంది:",
     "duplicateAutoComboUnknownError": "తెలియని దోషం",
-    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి"
   },
   "costs": {
     "title": "ఖర్చులు",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# కనెక్షన్} other {# కనెక్షన్లు}} ఉపయోగించిన {exits, plural, one {# ఎగ్జిట్} other {# ఎగ్జిట్లు}} · ఒక ఎగ్జిట్లో గరిష్ఠంగా {max} · గత {hours} గం.",
     "poolEgressObservationEmpty": "గత {hours} గంటల్లో ట్రాఫిక్ ఏదీ గమనించబడలేదు",
     "poolEgressObservationHint": "ఈ విండో వ్యవధిలో ప్రాక్సీ లాగ్ నుంచి లెక్కించినవి: ఈ పూల్ సభ్యుల కోసం గమనించిన విభిన్న ఎగ్రెస్ IPలు మరియు వాటిని ఉపయోగించిన OmniRoute కనెక్షన్లు. \"ఒకే ఎగ్జిట్లో\" అంటే ఒకే సమయంలో అని కాకుండా, విండో వ్యవధిలో అని అర్థం. ఒక్కో IPకి వర్తించే 429 లాకౌట్ అదే ప్రొవైడర్ ఫ్యామిలీకి చెందిన కనెక్షన్లను మాత్రమే తాత్కాలికంగా నిలిపివేస్తుంది.",
+    "poolEgressFailuresByExit": "{exit} ద్వారా వైఫల్యాలు: {count}",
+    "poolEgressFailuresUnattributed": "కేటాయించిన నిష్క్రమణ లేని వైఫల్యాలు: {count}",
     "poolMemberEgress": "{host}:{port} నుంచి {egressIp} ద్వారా వెళ్లింది · గత {hours} గం.",
     "poolMemberEgressEmpty": "{host}:{port}: గత {hours} గం.లో ట్రాఫిక్ ఏదీ గమనించబడలేదు",
     "poolMemberEgressHint": "ఈ సమయ విండోలో ఈ పూల్ సభ్యుడి ద్వారా చివరిగా గమనించిన ఎగ్రెస్ IP, ప్రాక్సీ లాగ్ నుండి చదవబడింది. విండోలో ట్రాఫిక్ లేని సభ్యుడికి ట్రాఫిక్-లేదు అనే పంక్తి చూపబడుతుంది.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "జోడించు",
     "poolAddFailed": "పూల్‌కు ప్రాక్సీని జోడించడం విఫలమైంది",
     "poolSelectProxy": "ప్రాక్సీని ఎంచుకోండి…",
-    "poolSaveFailed": "పూల్ అసైన్‌మెంట్‌ను సేవ్ చేయడం విఫలమైంది"
+    "poolSaveFailed": "పూల్ అసైన్‌మెంట్‌ను సేవ్ చేయడం విఫలమైంది",
+    "transportRate": "{rate}% రవాణా",
+    "previousSuccessRate": "గతంలో {rate}% విజയം",
+    "upstreamRefusals": "{count} అప్‌స్ట్రీమ్ నిరాకరణలు",
+    "connectionTestsCount": "{count} కనెక్షన్ పరీక్షలు",
+    "notMeasured": "కొలవబడలేదు"
   },
   "playground": {
     "title": "మోడల్ ప్లేగ్రౌండ్",
@@ -11474,6 +11481,10 @@
       "requestedModel": "అభ్యర్థించిన మోడల్",
       "requestProtocol": "రిక్వెస్ట్ ప్రోటోకాల్",
       "cacheSource": "క్యాష్ మూలం",
+      "contentProvenance": "సమాధానం",
+      "contentEmpty": "ఖాళీ సమాధానం",
+      "usageAbsent": "టోకెన్ సంఖ్య నివేదించబడలేదు",
+      "usageEstimated": "టోకెన్ సంఖ్య అంచనా",
       "modelPinning": "మోడల్ పిన్నింగ్",
       "activeModelPinning": "సక్రియ — సెషన్ పిన్నింగ్ ద్వారా ఎంపిక చేసిన మోడల్",
       "rotated": "మలుపు: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "ఇంకా ప్రాక్సీ లాగ్లు లేవు. వాటిని ఇక్కడ చూడటానికి ప్రాక్సీలను కాన్ఫిగర్ చేసి API కాల్లు చేయండి.",
     "noMatchingLogs": "ప్రస్తుత ఫిల్టర్లకు సరిపోలే లాగ్లు లేవు.",
     "tlsFingerprint": "Chrome 124 TLS ఫింగర్ప్రింట్",
-    "colPublicIp": "పబ్లిక్ IP"
+    "colPublicIp": "పబ్లిక్ IP",
+    "colUpstream": "అప్‌స్ట్రీమ్",
+    "colEgress": "ఇగ్రెస్ IP",
+    "colCorrelation": "సంబంధం",
+    "colServedBy": "సేవ అందించినది",
+    "filterTraffic": "ట్రాఫిక్",
+    "filterTests": "పరీక్షలు",
+    "filterSource": "మూలం"
   },
   "endpointOptions": {
     "speech": "స్పీచ్",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS నిలిపివేయండి",
     "toggling": "టాగుల్ అవుతోంది…",
     "viewTraffic": "ట్రాఫిక్‌ను వీక్షించండి",
+    "resetAgent": "డిఫాల్ట్‌ను పునరుద్ధరించు",
+    "resetAgentConfirm": "డిఫాల్ట్‌ను పునరుద్ధరించాలా?",
+    "resetting": "పునరుద్ధరిస్తోంది…",
+    "resetDone": "{agent} కోసం డిఫాల్ట్ DNS పునరుద్ధరించబడింది. మార్పు అమలులోకి రావడానికి యాప్‌ను పూర్తిగా మూసివేసి (కేవలం మినిమైజ్ చేయడం కాదు) మళ్లీ తెరవండి.",
     "emptyNoProvidersTitle": "ఇంకా ఏ ప్రొవైడర్లు కాన్ఫిగర్ చేయబడలేదు",
     "emptyNoProvidersBody": "AgentBridgeని ఉపయోగించడానికి, మొదట కనీసం ఒక ప్రొవైడర్‌ను కనెక్ట్ చేయండి. IDE అభ్యర్థనలు రూట్ చేయబడే గమ్యస్థానం ఇదే అవుతుంది.",
     "emptyGoToProviders": "ప్రొవైడర్లకు వెళ్లండి",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl టోకెన్ సృష్టించడంలో విఫలమైంది",
     "providerProxy": "ప్రాక్సీ",
     "providerProxyConfigureHint": "ప్రాక్సీని కాన్ఫిగర్ చేయండి",
-    "providerProxyTitleConfigured": "ప్రాక్సీ కాన్ఫిగర్ చేయబడింది: {host}"
+    "providerProxyTitleConfigured": "ప్రాక్సీ కాన్ఫిగర్ చేయబడింది: {host}",
+    "inheritConnectionOption": "స్వంత ప్రాక్సీ లేదు (కనెక్షన్‌ను వారసత్వంగా)",
+    "inheritedProxy": "కనెక్షన్ వారసత్వం: {host}",
+    "inheritedPool": "కనెక్షన్ పూల్ వారసత్వం ({count})",
+    "poolEmptyBlocked": "పూల్ ఖాళీ — అభ్యర్థనలు విఫలమవుతాయి (ప్రత్యక్షం కాదు)",
+    "directEgress": "ప్రత్యక్షం (ప్రాక్సీ లేకుండా)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "ప్రత్యక్ష (నేటివ్)",
     "targetUrl": "లక్ష్య URL",
     "error": "లోపం",
-    "configuration": "ప్రాక్సీ కాన్ఫిగరేషన్"
+    "configuration": "ప్రాక్సీ కాన్ఫిగరేషన్",
+    "upstreamStatus": "అప్‌స్ట్రీమ్ స్థితి",
+    "noResponse": "స్పందన లేదు",
+    "egressIp": "ఇగ్రెస్ IP",
+    "servedBy": "సేవ అందించినది",
+    "correlationId": "సంబంధ ID"
   },
   "requestTimeline": {
     "title": "అభ్యర్థన సమయరేఖ",

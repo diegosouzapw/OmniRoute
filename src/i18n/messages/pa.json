@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ਸੈਸ਼ਨ ਸਟਿਕੀਨੈੱਸ ਅਸਮਰੱਥ ਕਰੋ",
     "sessionStickinessEnabled": "ਸਟਿਕੀਨੈੱਸ ਚਾਲੂ",
     "sessionStickinessDisabled": "ਸਟਿਕੀਨੈੱਸ ਬੰਦ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ਪ੍ਰੀਸੈੱਟ",
     "kimiPresetDescription": "Kimi K3 ਨੂੰ ਮੁੱਖ ਮਾਡਲ (Moonshot API) ਵਜੋਂ ਵਰਤਦਾ ਹੈ ਅਤੇ ਕੌਂਫਿਗਰ ਕੀਤੇ ਹੋਣ 'ਤੇ ਤੁਹਾਡੇ Kimi Code ਕਨੈਕਸ਼ਨਾਂ (kimi-coding, kimi-web) 'ਤੇ ਆਪਣੇ-ਆਪ ਫਾਲਬੈਕ ਕਰਦਾ ਹੈ।",
     "kimiPresetCta": "ਪ੍ਰੀਸੈੱਟ ਸ਼ਾਮਲ ਕਰੋ",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ਇਹ ਇਸ ਟੈਂਪਲੇਟ ਨਾਲ ਮੇਲ ਖਾਂਦੇ ਮੌਜੂਦਾ ਕਨੈਕਟ ਕੀਤੇ ਪ੍ਰਦਾਤਾਵਾਂ/ਮਾਡਲਾਂ ਦਾ ਸਨੈਪਸ਼ਾਟ ਲੈ ਕੇ ਇੱਕ ਸੰਪਾਦਨਯੋਗ ਕੌਂਬੋ ਬਣਾਏਗਾ।",
     "duplicateAutoComboFailedPrefix": "ਆਟੋ-ਕੌਂਬੋ ਦੀ ਨਕਲ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ:",
     "duplicateAutoComboUnknownError": "ਅਣਜਾਣ ਗਲਤੀ",
-    "duplicateAutoComboTitle": "{name} ਤੋਂ ਇੱਕ ਸਥਿਰ ਕੌਂਬੋ ਬਣਾਓ",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} ਤੋਂ ਇੱਕ ਸਥਿਰ ਕੌਂਬੋ ਬਣਾਓ"
   },
   "costs": {
     "title": "ਲਾਗਤਾਂ",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# ਕਨੈਕਸ਼ਨ} other {# ਕਨੈਕਸ਼ਨਾਂ}} ਵੱਲੋਂ ਵਰਤੇ ਗਏ {exits, plural, one {# ਨਿਕਾਸ} other {# ਨਿਕਾਸ}} · ਇੱਕ ਨਿਕਾਸ 'ਤੇ ਵੱਧ ਤੋਂ ਵੱਧ {max} · ਪਿਛਲੇ {hours} ਘੰਟੇ",
     "poolEgressObservationEmpty": "ਪਿਛਲੇ {hours} ਘੰਟਿਆਂ ਵਿੱਚ ਕੋਈ ਟ੍ਰੈਫ਼ਿਕ ਨਹੀਂ ਦੇਖਿਆ ਗਿਆ",
     "poolEgressObservationHint": "ਇਸ ਸਮਾਂ-ਵਿੰਡੋ ਦੌਰਾਨ ਪ੍ਰੌਕਸੀ ਲੌਗ ਤੋਂ ਗਿਣਤੀ ਕੀਤੀ ਗਈ ਹੈ: ਇਸ ਪੂਲ ਦੇ ਮੈਂਬਰਾਂ ਲਈ ਦੇਖੇ ਗਏ ਵੱਖ-ਵੱਖ ਈਗ੍ਰੈੱਸ IP ਅਤੇ ਉਹਨਾਂ ਨੂੰ ਵਰਤਣ ਵਾਲੇ OmniRoute ਕਨੈਕਸ਼ਨ। \"ਇੱਕ ਨਿਕਾਸ 'ਤੇ\" ਦਾ ਮਤਲਬ ਇਸ ਸਮਾਂ-ਵਿੰਡੋ ਦੌਰਾਨ ਹੈ, ਇੱਕੋ ਸਮੇਂ ਨਹੀਂ। ਪ੍ਰਤੀ-IP 429 ਲੌਕਆਉਟ ਸਿਰਫ਼ ਉਸੇ ਪ੍ਰਦਾਤਾ ਪਰਿਵਾਰ ਦੇ ਕਨੈਕਸ਼ਨਾਂ ਨੂੰ ਰੋਕਦਾ ਹੈ।",
+    "poolEgressFailuresByExit": "{exit} ਰਾਹੀਂ ਅਸਫਲਤਾਵਾਂ: {count}",
+    "poolEgressFailuresUnattributed": "ਨਿਰਧਾਰਤ ਐਗਜ਼ਿਟ ਤੋਂ ਬਿਨਾਂ ਅਸਫਲਤਾਵਾਂ: {count}",
     "poolMemberEgress": "{host}:{port} ਤੋਂ {egressIp} ਰਾਹੀਂ ਟ੍ਰੈਫ਼ਿਕ ਬਾਹਰ ਗਿਆ · ਪਿਛਲੇ {hours} ਘੰਟੇ",
     "poolMemberEgressEmpty": "{host}:{port}: ਪਿਛਲੇ {hours} ਘੰਟਿਆਂ ਵਿੱਚ ਕੋਈ ਟ੍ਰੈਫ਼ਿਕ ਨਹੀਂ ਦੇਖਿਆ ਗਿਆ",
     "poolMemberEgressHint": "ਇਸ ਸਮਾਂ-ਅੰਤਰਾਲ ਦੌਰਾਨ ਇਸ ਪੂਲ ਮੈਂਬਰ ਰਾਹੀਂ ਦੇਖਿਆ ਗਿਆ ਆਖਰੀ ਐਗਰੈੱਸ IP, ਜੋ ਪ੍ਰੌਕਸੀ ਲੌਗ ਤੋਂ ਪੜ੍ਹਿਆ ਗਿਆ ਹੈ। ਜਿਸ ਮੈਂਬਰ ਲਈ ਇਸ ਸਮਾਂ-ਅੰਤਰਾਲ ਵਿੱਚ ਕੋਈ ਟ੍ਰੈਫ਼ਿਕ ਨਹੀਂ ਹੈ, ਉਸ ਲਈ ਟ੍ਰੈਫ਼ਿਕ ਨਾ ਹੋਣ ਵਾਲੀ ਲਾਈਨ ਦਿਖਾਈ ਜਾਂਦੀ ਹੈ।",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "ਜੋੜੋ",
     "poolAddFailed": "ਪੂਲ ਵਿੱਚ ਪ੍ਰੌਕਸੀ ਜੋੜਨ ਵਿੱਚ ਅਸਫਲ",
     "poolSelectProxy": "ਇੱਕ ਪ੍ਰੌਕਸੀ ਚੁਣੋ…",
-    "poolSaveFailed": "ਪੂਲ ਅਸਾਈਨਮੈਂਟ ਸੰਭਾਲਣ ਵਿੱਚ ਅਸਫਲ"
+    "poolSaveFailed": "ਪੂਲ ਅਸਾਈਨਮੈਂਟ ਸੰਭਾਲਣ ਵਿੱਚ ਅਸਫਲ",
+    "transportRate": "{rate}% ਟਰਾਂਸਪੋਰਟ",
+    "previousSuccessRate": "ਪਹਿਲਾਂ {rate}% ਸਫਲਤਾ",
+    "upstreamRefusals": "{count} ਅੱਪਸਟ੍ਰੀਮ ਅਸਵੀਕਾਰ",
+    "connectionTestsCount": "{count} ਕਨੈਕਸ਼ਨ ਜਾਂਚਾਂ",
+    "notMeasured": "ਮਾਪਿਆ ਨਹੀਂ ਗਿਆ"
   },
   "playground": {
     "title": "ਮਾਡਲ ਪਲੇਗ੍ਰਾਊਂਡ",
@@ -11474,6 +11481,10 @@
       "requestedModel": "ਬੇਨਤੀ ਕੀਤਾ ਗਿਆ ਮਾਡਲ",
       "requestProtocol": "ਬੇਨਤੀ ਪ੍ਰੋਟੋਕੋਲ",
       "cacheSource": "ਕੈਸ਼ ਸਰੋਤ",
+      "contentProvenance": "ਜਵਾਬ",
+      "contentEmpty": "ਖਾਲੀ ਜਵਾਬ",
+      "usageAbsent": "ਟੋਕਨ ਗਿਣਤੀ ਦੀ ਰਿਪੋਰਟ ਨਹੀਂ ਕੀਤੀ ਗਈ",
+      "usageEstimated": "ਟੋਕਨ ਗਿਣਤੀ ਅਨੁਮਾਨਿਤ",
       "modelPinning": "ਮਾਡਲ ਪਿੰਨਿੰਗ",
       "activeModelPinning": "ਸਰਗਰਮ — ਸੈਸ਼ਨ ਪਿੰਨਿੰਗ ਰਾਹੀਂ ਮਾਡਲ ਚੁਣਿਆ ਗਿਆ",
       "rotated": "ਰੋਟੇਟ ਕੀਤਾ ਗਿਆ: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "ਹਾਲੇ ਕੋਈ ਪ੍ਰਾਕਸੀ ਲੌਗ ਨਹੀਂ ਹਨ। ਪ੍ਰਾਕਸੀਆਂ ਕੌਂਫਿਗਰ ਕਰੋ ਅਤੇ ਉਨ੍ਹਾਂ ਨੂੰ ਇੱਥੇ ਦੇਖਣ ਲਈ API ਕਾਲਾਂ ਕਰੋ।",
     "noMatchingLogs": "ਕੋਈ ਲੌਗ ਮੌਜੂਦਾ ਫਿਲਟਰਾਂ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦਾ।",
     "tlsFingerprint": "Chrome 124 TLS ਫਿੰਗਰਪ੍ਰਿੰਟ",
-    "colPublicIp": "ਜਨਤਕ IP"
+    "colPublicIp": "ਜਨਤਕ IP",
+    "colUpstream": "ਉਪਰਲੀ ਧਾਰਾ",
+    "colEgress": "ਇਗਰੈਸ IP",
+    "colCorrelation": "ਸੰਬੰਧਿਤਤਾ",
+    "colServedBy": "ਦੁਆਰਾ ਸੇਵਾ ਕੀਤੀ ਗਈ",
+    "filterTraffic": "ਟ੍ਰੈਫਿਕ",
+    "filterTests": "ਟੈਸਟ",
+    "filterSource": "ਸਰੋਤ"
   },
   "endpointOptions": {
     "speech": "ਵਾਣੀ",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS ਰੋਕੋ",
     "toggling": "ਟੌਗਲ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ…",
     "viewTraffic": "ਟ੍ਰੈਫ਼ਿਕ ਵੇਖੋ",
+    "resetAgent": "ਡਿਫ਼ੌਲਟ ਮੁੜ ਬਹਾਲ ਕਰੋ",
+    "resetAgentConfirm": "ਡਿਫ਼ੌਲਟ ਮੁੜ ਬਹਾਲ ਕਰਨਾ ਹੈ?",
+    "resetting": "ਮੁੜ ਬਹਾਲ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ…",
+    "resetDone": "{agent} ਲਈ ਡਿਫ਼ੌਲਟ DNS ਮੁੜ ਬਹਾਲ ਕੀਤਾ ਗਿਆ। ਬਦਲਾਅ ਲਾਗੂ ਕਰਨ ਲਈ ਐਪ ਨੂੰ ਪੂਰੀ ਤਰ੍ਹਾਂ ਬੰਦ ਕਰੋ (ਸਿਰਫ਼ ਮਿਨੀਮਾਈਜ਼ ਨਹੀਂ) ਅਤੇ ਦੁਬਾਰਾ ਖੋਲ੍ਹੋ।",
     "emptyNoProvidersTitle": "ਹਾਲੇ ਤੱਕ ਕੋਈ ਪ੍ਰਦਾਤਾ ਸੰਰਚਿਤ ਨਹੀਂ ਹੈ",
     "emptyNoProvidersBody": "AgentBridge ਦੀ ਵਰਤੋਂ ਕਰਨ ਲਈ, ਪਹਿਲਾਂ ਘੱਟੋ-ਘੱਟ ਇੱਕ ਪ੍ਰਦਾਤਾ ਕਨੈਕਟ ਕਰੋ। ਇਹ ਉਹ ਮੰਜ਼ਿਲ ਹੋਵੇਗੀ ਜਿੱਥੇ IDE ਬੇਨਤੀਆਂ ਰੂਟ ਕੀਤੀਆਂ ਜਾਣਗੀਆਂ।",
     "emptyGoToProviders": "ਪ੍ਰਦਾਤਾਵਾਂ 'ਤੇ ਜਾਓ",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl ਟੋਕਨ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ",
     "providerProxy": "ਪ੍ਰੌਕਸੀ",
     "providerProxyConfigureHint": "ਪ੍ਰੌਕਸੀ ਸੰਰਚਿਤ ਕਰੋ",
-    "providerProxyTitleConfigured": "ਪ੍ਰੌਕਸੀ ਸੰਰਚਿਤ ਹੈ: {host}"
+    "providerProxyTitleConfigured": "ਪ੍ਰੌਕਸੀ ਸੰਰਚਿਤ ਹੈ: {host}",
+    "inheritConnectionOption": "ਕੋਈ ਨਿੱਜੀ ਪ੍ਰੌਕਸੀ ਨਹੀਂ (ਕਨੈਕਸ਼ਨ ਵਿਰਾਸਤ)",
+    "inheritedProxy": "ਕਨੈਕਸ਼ਨ ਵਿਰਾਸਤ: {host}",
+    "inheritedPool": "ਕਨੈਕਸ਼ਨ ਪੂਲ ਵਿਰਾਸਤ ({count})",
+    "poolEmptyBlocked": "ਪੂਲ ਖਾਲੀ — ਬੇਨਤੀਆਂ ਅਸਫਲ (ਸਿੱਧਾ ਨਹੀਂ)",
+    "directEgress": "ਸਿੱਧਾ (ਬਿਨਾਂ ਪ੍ਰੌਕਸੀ)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "ਸਿੱਧਾ (ਨੇਟਿਵ)",
     "targetUrl": "ਟਾਰਗੇਟ URL",
     "error": "ਗਲਤੀ",
-    "configuration": "ਪ੍ਰਾਕਸੀ ਸੰਰਚਨਾ"
+    "configuration": "ਪ੍ਰਾਕਸੀ ਸੰਰਚਨਾ",
+    "upstreamStatus": "ਉਪਰਲੀ ਧਾਰਾ ਦੀ ਸਥਿਤੀ",
+    "noResponse": "ਕੋਈ ਜਵਾਬ ਨਹੀਂ",
+    "egressIp": "ਇਗਰੈਸ IP",
+    "servedBy": "ਦੁਆਰਾ ਸੇਵਾ ਕੀਤੀ ਗਈ",
+    "correlationId": "ਸੰਬੰਧਿਤਤਾ ID"
   },
   "requestTimeline": {
     "title": "ਬੇਨਤੀ ਸਮਾਂ-ਰੇਖਾ",

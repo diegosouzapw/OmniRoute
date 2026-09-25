@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Отключить привязку сессий",
     "sessionStickinessEnabled": "Привязка включена",
     "sessionStickinessDisabled": "Привязка выключена",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Пресет Kimi Coding",
     "kimiPresetDescription": "Kimi K3 в качестве основной модели (Moonshot API) с автоматическим переключением на ваши подключения Kimi Code (kimi-coding, kimi-web) при их настройке.",
     "kimiPresetCta": "Добавить пресет",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Это создаст снимок текущих подключенных провайдеров/моделей, соответствующих этому шаблону, в редактируемом комбо.",
     "duplicateAutoComboFailedPrefix": "Не удалось дублировать автоматическое комбо:",
     "duplicateAutoComboUnknownError": "Неизвестная ошибка",
-    "duplicateAutoComboTitle": "Создать статическое комбо из {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Создать статическое комбо из {name}"
   },
   "costs": {
     "title": "Затраты",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Использованных выходов: {exits, plural, one {#} few {#} many {#} other {#}} · использовавших их подключений: {connections, plural, one {#} few {#} many {#} other {#}} · до {max} на одном выходе · за последние {hours} ч",
     "poolEgressObservationEmpty": "За последние {hours} ч трафик не наблюдался",
     "poolEgressObservationHint": "Рассчитано по журналу прокси за выбранный период: уникальные исходящие IP-адреса, обнаруженные у прокси из этого пула, и подключения OmniRoute, которые их использовали. «На одном выходе» означает за весь период, а не одновременно. Блокировка 429 для отдельного IP-адреса приостанавливает только подключения того же семейства провайдеров.",
+    "poolEgressFailuresByExit": "Сбои через {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Сбои без определённого выхода: {count}",
     "poolMemberEgress": "{host}:{port} выходил через {egressIp} · за последние {hours} ч",
     "poolMemberEgressEmpty": "{host}:{port}: за последние {hours} ч трафик не наблюдался",
     "poolMemberEgressHint": "Последний исходящий IP-адрес, наблюдавшийся у этого участника пула за указанный период согласно журналу прокси-сервера. Для участника, у которого за этот период не было трафика, отображается строка об отсутствии трафика.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Добавить",
     "poolAddFailed": "Не удалось добавить прокси в пул",
     "poolSelectProxy": "Выберите прокси…",
-    "poolSaveFailed": "Не удалось сохранить назначение пула"
+    "poolSaveFailed": "Не удалось сохранить назначение пула",
+    "transportRate": "{rate}% транспорта",
+    "previousSuccessRate": "Ранее {rate}% успеха",
+    "upstreamRefusals": "{count} отказов апстрима",
+    "connectionTestsCount": "{count} проверок соединения",
+    "notMeasured": "Не измерено"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Запрашиваемая Модель",
       "requestProtocol": "Протокол Req",
       "cacheSource": "Кэш Источника",
+      "contentProvenance": "Ответ",
+      "contentEmpty": "Пустой ответ",
+      "usageAbsent": "Число токенов не передано",
+      "usageEstimated": "Число токенов оценено",
       "modelPinning": "Закрепление Модели",
       "activeModelPinning": "Активный — модель, выбранная через закрепление сессии",
       "rotated": "Повернуто: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Журналов прокси пока нет. Настройте прокси и выполните вызовы API, чтобы увидеть их здесь.",
     "noMatchingLogs": "Нет журналов, соответствующих текущим фильтрам.",
     "tlsFingerprint": "TLS-отпечаток Chrome 124",
-    "colPublicIp": "Публичный IP"
+    "colPublicIp": "Публичный IP",
+    "colUpstream": "Верхний поток",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Корреляция",
+    "colServedBy": "Обслуживается",
+    "filterTraffic": "Трафик",
+    "filterTests": "Тесты",
+    "filterSource": "Источник"
   },
   "endpointOptions": {
     "speech": "Речь",
@@ -12012,6 +12030,10 @@
     "stopDns": "Остановить DNS",
     "toggling": "Переключение…",
     "viewTraffic": "Просмотр трафика",
+    "resetAgent": "Восстановить по умолчанию",
+    "resetAgentConfirm": "Восстановить по умолчанию?",
+    "resetting": "Восстановление…",
+    "resetDone": "DNS по умолчанию для {agent} восстановлен. Чтобы изменение вступило в силу, полностью закройте приложение (не просто сверните) и откройте его снова.",
     "emptyNoProvidersTitle": "Поставщики еще не настроены",
     "emptyNoProvidersBody": "Чтобы использовать AgentBridge, сначала подключите хотя бы одного провайдера. Это будет место назначения, куда направляются запросы IDE.",
     "emptyGoToProviders": "Перейти к Провайдерам",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Не удалось создать токен Dahl",
     "providerProxy": "Прокси",
     "providerProxyConfigureHint": "Настроить прокси",
-    "providerProxyTitleConfigured": "Прокси настроен: {host}"
+    "providerProxyTitleConfigured": "Прокси настроен: {host}",
+    "inheritConnectionOption": "Без собственного прокси (наследует соединение)",
+    "inheritedProxy": "Наследует соединение: {host}",
+    "inheritedPool": "Наследует пул соединений ({count})",
+    "poolEmptyBlocked": "Пул пуст — запросы завершаются ошибкой (не напрямую)",
+    "directEgress": "Напрямую (без прокси)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Прямой",
     "targetUrl": "Целевой URL",
     "error": "Ошибка",
-    "configuration": "Настройка прокси"
+    "configuration": "Настройка прокси",
+    "upstreamStatus": "Статус верхнего потока",
+    "noResponse": "Нет ответа",
+    "egressIp": "Egress IP",
+    "servedBy": "Обслуживается",
+    "correlationId": "ID корреляции"
   },
   "requestTimeline": {
     "title": "Временная шкала запроса",

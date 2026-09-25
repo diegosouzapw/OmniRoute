@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Onemogoči vezanost seje",
     "sessionStickinessEnabled": "Vezanost vklopljena",
     "sessionStickinessDisabled": "Vezanost izklopljena",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Prednastavitev Kimi Coding",
     "kimiPresetDescription": "Kimi K3 kot primarni model (Moonshot API) s samodejnim preklopom na vaše povezave Kimi Code (kimi-coding, kimi-web), ko so konfigurirane.",
     "kimiPresetCta": "Dodaj prednastavitev",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "S tem boste trenutno povezane ponudnike/modele, ki se ujemajo s to predlogo, zajeli v kombinacijo, ki jo je mogoče urejati.",
     "duplicateAutoComboFailedPrefix": "Podvajanje samodejne kombinacije ni uspelo:",
     "duplicateAutoComboUnknownError": "Neznana napaka",
-    "duplicateAutoComboTitle": "Ustvari statično kombinacijo iz {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ustvari statično kombinacijo iz {name}"
   },
   "costs": {
     "title": "Stroški",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# povezava} two {# povezavi} few {# povezave} other {# povezav}} prek {exits, plural, one {# izhoda} two {# izhodov} few {# izhodov} other {# izhodov}} · do {max} na enem izhodu · zadnjih {hours} h",
     "poolEgressObservationEmpty": "V zadnjih {hours} h ni bil zaznan noben promet",
     "poolEgressObservationHint": "Izračunano iz dnevnika posredniškega strežnika v tem časovnem obdobju: različni zaznani izhodni naslovi IP za člane te skupine in povezave OmniRoute, ki so jih uporabljale. »Na enem izhodu« pomeni v tem časovnem obdobju, ne nujno sočasno. Blokada 429 za posamezen naslov IP začasno ustavi samo povezave iste družine ponudnikov.",
+    "poolEgressFailuresByExit": "Napake prek {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Napake brez pripisanega izhoda: {count}",
     "poolMemberEgress": "{host}:{port} je izstopal prek {egressIp} · zadnjih {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: v zadnjih {hours} h ni bilo zaznanega prometa",
     "poolMemberEgressHint": "Zadnji izhodni naslov IP, zaznan prek tega člana skupine v tem časovnem obdobju, kot je zabeležen v dnevniku posredniškega strežnika. Za člana brez prometa v tem obdobju se prikaže vrstica o odsotnosti prometa.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Posredniškega strežnika ni bilo mogoče dodati v skupino",
     "poolSelectProxy": "Izberite posredniški strežnik…",
-    "poolSaveFailed": "Dodelitve skupini ni bilo mogoče shraniti"
+    "poolSaveFailed": "Dodelitve skupini ni bilo mogoče shraniti",
+    "transportRate": "{rate} % prenosa",
+    "previousSuccessRate": "Prej {rate} % uspešnosti",
+    "upstreamRefusals": "{count} zavrnitev upstream",
+    "connectionTestsCount": "{count} preskusov povezave",
+    "notMeasured": "Ni izmerjeno"
   },
   "playground": {
     "title": "Preizkusno okolje za modele",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Zahtevani model",
       "requestProtocol": "Protokol zahteve",
       "cacheSource": "Vir predpomnilnika",
+      "contentProvenance": "Odgovor",
+      "contentEmpty": "Prazen odgovor",
+      "usageAbsent": "Število žetonov ni bilo sporočeno",
+      "usageEstimated": "Število žetonov je ocenjeno",
       "modelPinning": "Pripenjanje modela",
       "activeModelPinning": "Aktivno — model je izbran prek pripenjanja seje",
       "rotated": "Zamenjano: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Dnevnikov posredniškega strežnika še ni. Konfigurirajte posredniške strežnike in izvedite klice API-ja, da se prikažejo tukaj.",
     "noMatchingLogs": "Noben dnevnik se ne ujema s trenutnimi filtri.",
     "tlsFingerprint": "Prstni odtis TLS brskalnika Chrome 124",
-    "colPublicIp": "Javni naslov IP"
+    "colPublicIp": "Javni naslov IP",
+    "colUpstream": "Nihalo",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korelacija",
+    "colServedBy": "Servira",
+    "filterTraffic": "Promet",
+    "filterTests": "Testi",
+    "filterSource": "Vir"
   },
   "endpointOptions": {
     "speech": "Govor",
@@ -12012,6 +12030,10 @@
     "stopDns": "Ustavi DNS",
     "toggling": "Preklapljanje…",
     "viewTraffic": "Prikaži promet",
+    "resetAgent": "Obnovi privzeto",
+    "resetAgentConfirm": "Želite obnoviti privzeto?",
+    "resetting": "Obnavljanje…",
+    "resetDone": "Privzeti DNS za {agent} je obnovljen. Da bo sprememba začela veljati, aplikacijo popolnoma zaprite (ne le pomanjšajte) in jo znova odprite.",
     "emptyNoProvidersTitle": "Ponudniki še niso konfigurirani",
     "emptyNoProvidersBody": "Če želite uporabljati AgentBridge, najprej povežite vsaj enega ponudnika. Ta bo cilj, kamor bodo usmerjene zahteve IDE-ja.",
     "emptyGoToProviders": "Pojdi na ponudnike",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Žetona Dahl ni bilo mogoče ustvariti",
     "providerProxy": "Posredniški strežnik",
     "providerProxyConfigureHint": "Nastavi posredniški strežnik",
-    "providerProxyTitleConfigured": "Posredniški strežnik je nastavljen: {host}"
+    "providerProxyTitleConfigured": "Posredniški strežnik je nastavljen: {host}",
+    "inheritConnectionOption": "Brez lastnega proxyja (podeduje povezavo)",
+    "inheritedProxy": "Podeduje povezavo: {host}",
+    "inheritedPool": "Podeduje bazen povezav ({count})",
+    "poolEmptyBlocked": "Bazen prazen — zahteve ne uspejo (ne neposredno)",
+    "directEgress": "Neposredno (brez proxyja)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Neposredno (izvorno)",
     "targetUrl": "Ciljni URL",
     "error": "Napaka",
-    "configuration": "Konfiguracija posredniškega strežnika"
+    "configuration": "Konfiguracija posredniškega strežnika",
+    "upstreamStatus": "Status nihala",
+    "noResponse": "Brez odgovora",
+    "egressIp": "Egress IP",
+    "servedBy": "Servira",
+    "correlationId": "ID korelacije"
   },
   "requestTimeline": {
     "title": "Časovnica zahteve",

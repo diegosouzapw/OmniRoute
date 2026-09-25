@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "השבת דביקות הפעלה (session stickiness)",
     "sessionStickinessEnabled": "דביקות פעילה",
     "sessionStickinessDisabled": "דביקות כבויה",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "הגדרה מראש של Kimi Coding",
     "kimiPresetDescription": "Kimi K3 כמודל הראשי (Moonshot API), עם מעבר אוטומטי לגיבוי לחיבורי Kimi Code שלך (kimi-coding, kimi-web) כאשר הם מוגדרים.",
     "kimiPresetCta": "הוסף הגדרה מראש",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "פעולה זו תצלם את הספקים/מודלים המחוברים כעת התואמים לתבנית הזו לקומבו ניתן לעריכה.",
     "duplicateAutoComboFailedPrefix": "כשל בהעתיק קומבו אוטומטי:",
     "duplicateAutoComboUnknownError": "שגיאה לא ידועה",
-    "duplicateAutoComboTitle": "צור קומבו סטטי מ־{name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "צור קומבו סטטי מ־{name}"
   },
   "costs": {
     "title": "עלויות",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "נעשה שימוש ב-{exits, plural, one {# יציאה} other {# יציאות}} על ידי {connections, plural, one {# חיבור} other {# חיבורים}} · עד {max} ביציאה אחת · ב-{hours} השעות האחרונות",
     "poolEgressObservationEmpty": "לא נצפתה תעבורה ב-{hours} השעות האחרונות",
     "poolEgressObservationHint": "הנתונים נספרו מיומן הפרוקסי לאורך חלון הזמן: כתובות IP ייחודיות לתעבורה יוצאת שנצפו עבור החברים במאגר זה, וחיבורי OmniRoute שהשתמשו בהן. \"ביציאה אחת\" מתייחס לכל חלון הזמן, ולא לשימוש בו-זמני. חסימת 429 לכל כתובת IP משהה רק חיבורים מאותה משפחת ספקים.",
+    "poolEgressFailuresByExit": "כשלים דרך {exit}: {count}",
+    "poolEgressFailuresUnattributed": "כשלים ללא יציאה משויכת: {count}",
     "poolMemberEgress": "{host}:{port} יצא דרך {egressIp} · ב־{hours} השעות האחרונות",
     "poolMemberEgressEmpty": "{host}:{port}: לא נצפתה תעבורה ב־{hours} השעות האחרונות",
     "poolMemberEgressHint": "כתובת ה-IP האחרונה ליציאה שנצפתה דרך חבר מאגר זה במהלך חלון הזמן, כפי שנקראה מיומן ה-proxy. עבור חבר שלא הייתה בו תעבורה במהלך חלון הזמן, מוצגת שורת 'אין תעבורה'.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "הוסף",
     "poolAddFailed": "הוספת הפרוקסי למאגר נכשלה",
     "poolSelectProxy": "בחר פרוקסי…",
-    "poolSaveFailed": "שמירת הקצאת המאגר נכשלה"
+    "poolSaveFailed": "שמירת הקצאת המאגר נכשלה",
+    "transportRate": "{rate}% תעבורה",
+    "previousSuccessRate": "בעבר {rate}% הצלחה",
+    "upstreamRefusals": "{count} דחיות upstream",
+    "connectionTestsCount": "{count} בדיקות חיבור",
+    "notMeasured": "לא נמדד"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "מודל שביקשת",
       "requestProtocol": "פרוטוקול Req",
       "cacheSource": "מקור מטמון",
+      "contentProvenance": "תגובה",
+      "contentEmpty": "תגובה ריקה",
+      "usageAbsent": "מספר הטוקנים לא דווח",
+      "usageEstimated": "מספר הטוקנים מוערך",
       "modelPinning": "הצמדת מודל",
       "activeModelPinning": "פעיל — מודל שנבחר באמצעות נעילת סשן",
       "rotated": "סובב: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "עדיין אין יומני Proxy. הגדירו שרתי Proxy ובצעו קריאות API כדי לראות אותם כאן.",
     "noMatchingLogs": "אין יומנים התואמים למסננים הנוכחיים.",
     "tlsFingerprint": "טביעת אצבע של TLS ב-Chrome 124",
-    "colPublicIp": "כתובת IP ציבורית"
+    "colPublicIp": "כתובת IP ציבורית",
+    "colUpstream": "מעלה",
+    "colEgress": "כתובת IP יוצאת",
+    "colCorrelation": "קורלציה",
+    "colServedBy": "מוגש על ידי",
+    "filterTraffic": "תנועה",
+    "filterTests": "בדיקות",
+    "filterSource": "מקור"
   },
   "endpointOptions": {
     "speech": "דיבור",
@@ -12012,6 +12030,10 @@
     "stopDns": "עצור DNS",
     "toggling": "משנה מצב…",
     "viewTraffic": "הצג תעבורה",
+    "resetAgent": "שחזור ברירת מחדל",
+    "resetAgentConfirm": "לשחזר ברירת מחדל?",
+    "resetting": "משחזר…",
+    "resetDone": "ה-DNS שהוגדר כברירת מחדל שוחזר עבור {agent}. סגרו את האפליקציה לגמרי (לא רק מזעור) ופתחו אותה מחדש כדי שהשינוי ייכנס לתוקף.",
     "emptyNoProvidersTitle": "עדיין לא הוגדרו ספקים",
     "emptyNoProvidersBody": "כדי להשתמש ב-AgentBridge, חבר תחילה ספק אחד לפחות. זה יהיה היעד שאליו ינותבו בקשות ה-IDE.",
     "emptyGoToProviders": "עבור אל ספקים",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "נכשל ביצירת טוקן דל",
     "providerProxy": "פרוקסי",
     "providerProxyConfigureHint": "הגדר פרוקסי",
-    "providerProxyTitleConfigured": "פרוקסי מוגדר: {host}"
+    "providerProxyTitleConfigured": "פרוקסי מוגדר: {host}",
+    "inheritConnectionOption": "אין proxy משלו (יורש את החיבור)",
+    "inheritedProxy": "יורש את החיבור: {host}",
+    "inheritedPool": "יורש את מאגר החיבורים ({count})",
+    "poolEmptyBlocked": "המאגר ריק — בקשות נכשלות (לא ישיר)",
+    "directEgress": "ישיר (ללא proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "ישיר",
     "targetUrl": "כתובת URL יעד",
     "error": "שגיאה",
-    "configuration": "הגדרת פרוקסי"
+    "configuration": "הגדרת פרוקסי",
+    "upstreamStatus": "סטטוס מעלה",
+    "noResponse": "אין תגובה",
+    "egressIp": "כתובת IP יוצאת",
+    "servedBy": "מוגש על ידי",
+    "correlationId": "מזהה קורלציה"
   },
   "requestTimeline": {
     "title": "ציר זמן הבקשה",

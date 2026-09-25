@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "سیشن اسٹیکینس کو غیر فعال کریں",
     "sessionStickinessEnabled": "اسٹیکینس آن",
     "sessionStickinessDisabled": "اسٹیکینس آف",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding پری سیٹ",
     "kimiPresetDescription": "بنیادی ماڈل کے طور پر Kimi K3 (Moonshot API)، کنفیگر ہونے پر آپ کے Kimi Code کنکشنز (kimi-coding، kimi-web) پر خودکار فال بیک کے ساتھ۔",
     "kimiPresetCta": "پری سیٹ شامل کریں",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "یہ اس ٹیمپلیٹ سے ملنے والے موجودہ منسلک فراہم کنندگان/ماڈلز کو ایڈیٹ ایبل کمبو میں اسنیپ شاট لے گا۔",
     "duplicateAutoComboFailedPrefix": "آٹو کمبو ڈپلیکیٹ کرنے میں ناکام:",
     "duplicateAutoComboUnknownError": "نامعلوم خرابی",
-    "duplicateAutoComboTitle": "{name} سے ایک جامد کمبو بنائیں",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} سے ایک جامد کمبو بنائیں"
   },
   "costs": {
     "title": "اخراجات",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# کنکشن} other {# کنکشنز}} کے زیرِ استعمال {exits, plural, one {# اخراج} other {# اخراج}} · ایک اخراج پر زیادہ سے زیادہ {max} · گزشتہ {hours} گھنٹے",
     "poolEgressObservationEmpty": "گزشتہ {hours} گھنٹوں میں کوئی ٹریفک نہیں دیکھی گئی",
     "poolEgressObservationHint": "اس دورانیے کے لیے پراکسی لاگ سے شمار کیا گیا: اس پول کے اراکین کے لیے دیکھے گئے منفرد اخراجی IPs، اور انہیں استعمال کرنے والے OmniRoute کنکشنز۔ \"ایک اخراج پر\" سے مراد پورا دورانیہ ہے، ایک ہی وقت نہیں۔ فی IP 429 لاک آؤٹ صرف فراہم کنندگان کے اسی گروپ کے کنکشنز کو عارضی طور پر روکتا ہے۔",
+    "poolEgressFailuresByExit": "{exit} کے ذریعے ناکامیاں: {count}",
+    "poolEgressFailuresUnattributed": "بغیر متعین ایگزٹ کے ناکامیاں: {count}",
     "poolMemberEgress": "{host}:{port} سے {egressIp} کے ذریعے اخراج ہوا · گزشتہ {hours} گھنٹے",
     "poolMemberEgressEmpty": "{host}:{port}: گزشتہ {hours} گھنٹوں میں کوئی ٹریفک مشاہدہ نہیں ہوا",
     "poolMemberEgressHint": "اس دورانیے میں اس پول رکن کے ذریعے مشاہدہ کیا گیا آخری ایگریس IP، جو پراکسی لاگ سے پڑھا گیا۔ دورانیے میں کوئی ٹریفک نہ رکھنے والے رکن کے لیے بغیر ٹریفک والی سطر دکھائی جاتی ہے۔",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "شامل کریں",
     "poolAddFailed": "پول میں پروکسی شامل کرنے میں ناکامی",
     "poolSelectProxy": "ایک پروکسی منتخب کریں…",
-    "poolSaveFailed": "پول اسائنمنٹ کو محفوظ کرنے میں ناکامی"
+    "poolSaveFailed": "پول اسائنمنٹ کو محفوظ کرنے میں ناکامی",
+    "transportRate": "{rate}% ٹرانسپورٹ",
+    "previousSuccessRate": "پہلے {rate}% کامیابی",
+    "upstreamRefusals": "{count} اپ اسٹریم مسترد",
+    "connectionTestsCount": "{count} کنکشن ٹیسٹ",
+    "notMeasured": "پیمائش نہیں ہوئی"
   },
   "playground": {
     "title": "ماڈل پلے گراؤنڈ",
@@ -11474,6 +11481,10 @@
       "requestedModel": "درخواست کردہ ماڈل",
       "requestProtocol": "درخواست پروٹوکول",
       "cacheSource": "کیچ ماخذ",
+      "contentProvenance": "جواب",
+      "contentEmpty": "خالی جواب",
+      "usageAbsent": "ٹوکن کی تعداد رپورٹ نہیں کی گئی",
+      "usageEstimated": "ٹوکن کی تعداد تخمینی ہے",
       "modelPinning": "ماڈل پننگ",
       "activeModelPinning": "فعال — سیشن پننگ کے ذریعے ماڈل منتخب کیا گیا",
       "rotated": "موڑا گیا: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "ابھی تک کوئی پراکسی لاگ موجود نہیں۔ انہیں یہاں دیکھنے کے لیے پراکسیز کو کنفیگر کریں اور API کالز کریں۔",
     "noMatchingLogs": "موجودہ فلٹرز سے کوئی لاگ مماثل نہیں ہے۔",
     "tlsFingerprint": "Chrome 124 TLS فنگر پرنٹ",
-    "colPublicIp": "پبلک IP"
+    "colPublicIp": "پبلک IP",
+    "colUpstream": "اوپر کی طرف",
+    "colEgress": "ایگریس آئی پی",
+    "colCorrelation": "تعلق",
+    "colServedBy": "کی طرف سے فراہم کردہ",
+    "filterTraffic": "ٹریفک",
+    "filterTests": "ٹیسٹ",
+    "filterSource": "ماخذ"
   },
   "endpointOptions": {
     "speech": "تقریر",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS روکیں",
     "toggling": "تبدیل کیا جا رہا ہے…",
     "viewTraffic": "ٹریفک دیکھیں",
+    "resetAgent": "ڈیفالٹ بحال کریں",
+    "resetAgentConfirm": "ڈیفالٹ بحال کریں؟",
+    "resetting": "بحال کیا جا رہا ہے…",
+    "resetDone": "{agent} کے لیے ڈیفالٹ DNS بحال کر دیا گیا۔ تبدیلی نافذ ہونے کے لیے ایپ کو مکمل طور پر بند کریں (صرف چھوٹا نہ کریں) اور دوبارہ کھولیں۔",
     "emptyNoProvidersTitle": "ابھی تک کوئی فراہم کنندگان کنفیگر نہیں کیے گئے",
     "emptyNoProvidersBody": "AgentBridge استعمال کرنے کے لیے، پہلے کم از کم ایک فراہم کنندہ کو منسلک کریں۔ یہ وہ منزل ہوگی جہاں IDE کی درخواستیں روٹ کی جائیں گی۔",
     "emptyGoToProviders": "فراہم کنندگان پر جائیں",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl ٹوکن بنانے میں ناکامی",
     "providerProxy": "پراکسی",
     "providerProxyConfigureHint": "پراکسی ترتیب دیں",
-    "providerProxyTitleConfigured": "پراکسی ترتیب دی گئی: {host}"
+    "providerProxyTitleConfigured": "پراکسی ترتیب دی گئی: {host}",
+    "inheritConnectionOption": "کوئی ذاتی پراکسی نہیں (کنکشن وراثت میں)",
+    "inheritedProxy": "کنکشن وراثت میں: {host}",
+    "inheritedPool": "کنکشن پول وراثت میں ({count})",
+    "poolEmptyBlocked": "پول خالی — درخواستیں ناکام ہوتی ہیں (براہ راست نہیں)",
+    "directEgress": "براہ راست (بغیر پراکسی)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "براہ راست",
     "targetUrl": "ٹارگٹ یو آر ایل",
     "error": "غلطی",
-    "configuration": "پراکسی کی تشکیل"
+    "configuration": "پراکسی کی تشکیل",
+    "upstreamStatus": "اوپر کی طرف کی حیثیت",
+    "noResponse": "کوئی جواب نہیں",
+    "egressIp": "ایگریس آئی پی",
+    "servedBy": "کی طرف سے فراہم کردہ",
+    "correlationId": "تعلق ID"
   },
   "requestTimeline": {
     "title": "درخواست کا وقت بندی",

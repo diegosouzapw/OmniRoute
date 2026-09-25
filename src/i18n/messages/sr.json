@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Онемогући везивање сесије",
     "sessionStickinessEnabled": "Везивање сесије је укључено",
     "sessionStickinessDisabled": "Везивање сесије је искључено",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Унапред подешена конфигурација за Kimi Coding",
     "kimiPresetDescription": "Kimi K3 као примарни модел (Moonshot API), са аутоматским пребацивањем на ваше Kimi Code везе (kimi-coding, kimi-web) када су подешене.",
     "kimiPresetCta": "Додај унапред подешену конфигурацију",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Овим ће тренутно повезани провајдери/модели који одговарају овом шаблону бити снимљени у комбинацију која се може уређивати.",
     "duplicateAutoComboFailedPrefix": "Neuspešno dupliranje auto-kombinacije:",
     "duplicateAutoComboUnknownError": "Nepoznata greška",
-    "duplicateAutoComboTitle": "Kreiraj statičku kombinaciju iz {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Kreiraj statičku kombinaciju iz {name}"
   },
   "costs": {
     "title": "Troškovi",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# излаз} other {# излаза}} користи {connections, plural, one {# веза} other {# веза}} · до {max} на једном излазу · последњих {hours} ч",
     "poolEgressObservationEmpty": "Није забележен саобраћај у последњих {hours} ч",
     "poolEgressObservationHint": "Израчунато на основу евиденције проксија током периода: различите одлазне IP адресе забележене за чланове ове групе и OmniRoute везе које су их користиле. „На једном излазу“ односи се на цео период, а не на исти тренутак. Закључавање по IP адреси услед грешке 429 паузира само везе исте породице провајдера.",
+    "poolEgressFailuresByExit": "Неуспеси преко {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Неуспеси без приписаног излаза: {count}",
     "poolMemberEgress": "{host}:{port} је излазио преко {egressIp} · последњих {hours} ч",
     "poolMemberEgressEmpty": "{host}:{port}: није забележен саобраћај у последњих {hours} ч",
     "poolMemberEgressHint": "Последња излазна IP адреса забележена преко овог члана скупа током датог периода, прочитана из евиденције проксија. За члана без саобраћаја у том периоду приказује се порука да нема саобраћаја.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Додај",
     "poolAddFailed": "Додавање проксија у групу није успело",
     "poolSelectProxy": "Изаберите прокси…",
-    "poolSaveFailed": "Чување припадности групи није успело"
+    "poolSaveFailed": "Чување припадности групи није успело",
+    "transportRate": "{rate} % преноса",
+    "previousSuccessRate": "Раније {rate} % успеха",
+    "upstreamRefusals": "{count} upstream одбијања",
+    "connectionTestsCount": "{count} тестова везе",
+    "notMeasured": "Није мерено"
   },
   "playground": {
     "title": "Окружење за тестирање модела",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Захтевани модел",
       "requestProtocol": "Протокол захтева",
       "cacheSource": "Извор кеша",
+      "contentProvenance": "Одговор",
+      "contentEmpty": "Празан одговор",
+      "usageAbsent": "Број токена није пријављен",
+      "usageEstimated": "Број токена је процењен",
       "modelPinning": "Фиксирање модела",
       "activeModelPinning": "Активно — модел је изабран фиксирањем у оквиру сесије",
       "rotated": "Ротирано: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Још нема евиденција проксија. Конфигуришите прокси сервере и упутите API позиве да бисте их видели овде.",
     "noMatchingLogs": "Ниједна евиденција не одговара тренутним филтерима.",
     "tlsFingerprint": "Chrome 124 TLS отисак",
-    "colPublicIp": "Јавна IP адреса"
+    "colPublicIp": "Јавна IP адреса",
+    "colUpstream": "Uzvodno",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korelacija",
+    "colServedBy": "Poslužuje",
+    "filterTraffic": "Saobraćaj",
+    "filterTests": "Testovi",
+    "filterSource": "Izvor"
   },
   "endpointOptions": {
     "speech": "Говор",
@@ -12012,6 +12030,10 @@
     "stopDns": "Заустави DNS",
     "toggling": "Пребацивање…",
     "viewTraffic": "Прикажи саобраћај",
+    "resetAgent": "Врати подразумевано",
+    "resetAgentConfirm": "Вратити подразумевано?",
+    "resetting": "Враћање…",
+    "resetDone": "Подразумевани DNS је враћен за {agent}. Потпуно затворите апликацију (не само минимизујте) и поново је отворите да би промена ступила на снагу.",
     "emptyNoProvidersTitle": "Нема још конфигурисаних провајдера",
     "emptyNoProvidersBody": "Да бисте користили AgentBridge, прво повежите бар једног провајдера. То ће бити одредиште на које се усмеравају захтеви IDE-а.",
     "emptyGoToProviders": "Иди на Провајдере",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Креирање Dahl токена није успело",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Podesi proksi",
-    "providerProxyTitleConfigured": "Proksi podešen: {host}"
+    "providerProxyTitleConfigured": "Proksi podešen: {host}",
+    "inheritConnectionOption": "Без сопственог проксија (наслеђује везу)",
+    "inheritedProxy": "Наслеђује везу: {host}",
+    "inheritedPool": "Наслеђује базен веза ({count})",
+    "poolEmptyBlocked": "Базен празан — захтеви не успевају (не директно)",
+    "directEgress": "Директно (без проксија)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Direktno (izvorno)",
     "targetUrl": "Ciljni URL",
     "error": "Greška",
-    "configuration": "Konfiguracija proksija"
+    "configuration": "Konfiguracija proksija",
+    "upstreamStatus": "Uzvodni status",
+    "noResponse": "Nema odgovora",
+    "egressIp": "Egress IP",
+    "servedBy": "Poslužuje",
+    "correlationId": "ID korelacije"
   },
   "requestTimeline": {
     "title": "Vremenska linija zahteva",

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Деактивиране на устойчивостта на сесията",
     "sessionStickinessEnabled": "Устойчивостта е включена",
     "sessionStickinessDisabled": "Устойчивостта е изключена",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Предварителна настройка за Kimi Coding",
     "kimiPresetDescription": "Kimi K3 като основен модел (Moonshot API), с автоматично превключване към вашите Kimi Code връзки (kimi-coding, kimi-web), когато са конфигурирани.",
     "kimiPresetCta": "Добавяне на предварителна настройка",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Това ще направи моментна снимка на текущо свързаните доставчици/модели, които съвпадат с този шаблон, в редактируемо комбо.",
     "duplicateAutoComboFailedPrefix": "Неуспешно копиране на автоматично комбо:",
     "duplicateAutoComboUnknownError": "Неизвестна грешка",
-    "duplicateAutoComboTitle": "Създайте статично комбо от {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Създайте статично комбо от {name}"
   },
   "costs": {
     "title": "Разходи",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Използвани са {exits, plural, one {# изход} other {# изхода}} от {connections, plural, one {# връзка} other {# връзки}} · до {max} на един изход · последните {hours} ч",
     "poolEgressObservationEmpty": "Не е наблюдаван трафик през последните {hours} ч",
     "poolEgressObservationHint": "Изчислено от журнала на проксито за периода: уникалните изходящи IP адреси, наблюдавани за членовете на този пул, и връзките на OmniRoute, които са ги използвали. „На един изход“ означава за целия период, а не едновременно. Блокирането при 429 за отделен IP адрес поставя на пауза само връзките от същото семейство доставчици.",
+    "poolEgressFailuresByExit": "Неуспехи през {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Неуспехи без приписан изход: {count}",
     "poolMemberEgress": "{host}:{port} изход през {egressIp} · последните {hours} ч",
     "poolMemberEgressEmpty": "{host}:{port}: няма отчетен трафик през последните {hours} ч",
     "poolMemberEgressHint": "Последният изходящ IP адрес, наблюдаван през този член на пула в рамките на периода, прочетен от регистрационния файл на проксито. За член без трафик през периода се показва редът за липса на трафик.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Добавяне",
     "poolAddFailed": "Неуспешно добавяне на проксито към пула",
     "poolSelectProxy": "Избор на прокси…",
-    "poolSaveFailed": "Неуспешно запазване на присвояването на пула"
+    "poolSaveFailed": "Неуспешно запазване на присвояването на пула",
+    "transportRate": "{rate}% транспорт",
+    "previousSuccessRate": "Преди {rate}% успех",
+    "upstreamRefusals": "{count} отказа от upstream",
+    "connectionTestsCount": "{count} теста на връзката",
+    "notMeasured": "Не е измерено"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Заявеният Модел",
       "requestProtocol": "Протокол на заявката",
       "cacheSource": "Кеш Източник",
+      "contentProvenance": "Отговор",
+      "contentEmpty": "Празен отговор",
+      "usageAbsent": "Броят токени не е докладван",
+      "usageEstimated": "Броят токени е приблизителен",
       "modelPinning": "Закрепване на модела",
       "activeModelPinning": "Активен — модел, избран чрез фиксиране на сесията",
       "rotated": "Преместено: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Все още няма прокси журнали. Конфигурирайте проксита и изпратете API заявки, за да ги видите тук.",
     "noMatchingLogs": "Няма журнали, съответстващи на текущите филтри.",
     "tlsFingerprint": "TLS отпечатък на Chrome 124",
-    "colPublicIp": "Публичен IP"
+    "colPublicIp": "Публичен IP",
+    "colUpstream": "Входящ",
+    "colEgress": "Изходящ IP",
+    "colCorrelation": "Корелация",
+    "colServedBy": "Обслужвано от",
+    "filterTraffic": "Трафик",
+    "filterTests": "Тестове",
+    "filterSource": "Източник"
   },
   "endpointOptions": {
     "speech": "Реч",
@@ -12012,6 +12030,10 @@
     "stopDns": "Спиране на DNS",
     "toggling": "Превключване…",
     "viewTraffic": "Преглед на трафика",
+    "resetAgent": "Възстановяване по подразбиране",
+    "resetAgentConfirm": "Да се възстанови ли по подразбиране?",
+    "resetting": "Възстановяване…",
+    "resetDone": "DNS по подразбиране е възстановен за {agent}. Затворете приложението напълно (не само го минимизирайте) и го отворете отново, за да влезе промяната в сила.",
     "emptyNoProvidersTitle": "Все още няма конфигурирани доставчици",
     "emptyNoProvidersBody": "За да използвате AgentBridge, първо свържете поне един доставчик. Той ще бъде дестинацията, към която се пренасочват заявките от IDE.",
     "emptyGoToProviders": "Отидете на Доставчици",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Неуспешно създаване на токен Dahl",
     "providerProxy": "Прокси",
     "providerProxyConfigureHint": "Конфигурирайте прокси",
-    "providerProxyTitleConfigured": "Конфигуриран прокси: {host}"
+    "providerProxyTitleConfigured": "Конфигуриран прокси: {host}",
+    "inheritConnectionOption": "Без собствено прокси (наследява връзката)",
+    "inheritedProxy": "Наследява връзката: {host}",
+    "inheritedPool": "Наследява пула от връзки ({count})",
+    "poolEmptyBlocked": "Пулът е празен — заявките се провалят (не директно)",
+    "directEgress": "Директно (без прокси)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Директен",
     "targetUrl": "Целеви URL",
     "error": "Грешка",
-    "configuration": "Конфигурация на прокси"
+    "configuration": "Конфигурация на прокси",
+    "upstreamStatus": "Статус на входящия",
+    "noResponse": "Няма отговор",
+    "egressIp": "Изходящ IP",
+    "servedBy": "Обслужвано от",
+    "correlationId": "Идентификатор на корелацията"
   },
   "requestTimeline": {
     "title": "Хронология на заявките",

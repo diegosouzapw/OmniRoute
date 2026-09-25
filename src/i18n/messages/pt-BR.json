@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Desabilitar fixação de sessão",
     "sessionStickinessEnabled": "Fixação ativada",
     "sessionStickinessDisabled": "Fixação desativada",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preset Kimi Coding",
     "kimiPresetDescription": "Kimi K3 como modelo primário (Moonshot API), com fallback automático para suas conexões Kimi Code (kimi-coding, kimi-web) quando configuradas.",
     "kimiPresetCta": "Adicionar preset",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Isso irá capturar os provedores/modelos atualmente conectados que correspondem a este modelo em uma combinação editável.",
     "duplicateAutoComboFailedPrefix": "Falha ao duplicar a combinação automática:",
     "duplicateAutoComboUnknownError": "Erro desconhecido",
-    "duplicateAutoComboTitle": "Criar uma combinação estática de {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Criar uma combinação estática de {name}"
   },
   "costs": {
     "title": "Custos",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Uso de {exits, plural, one {# saída} other {# saídas}} por {connections, plural, one {# conexão} other {# conexões}} · até {max} em uma única saída · últimas {hours} h",
     "poolEgressObservationEmpty": "Nenhum tráfego observado nas últimas {hours} h",
     "poolEgressObservationHint": "Contabilizado com base no log do proxy durante o período: IPs de saída distintos observados para os membros deste pool e as conexões do OmniRoute que os utilizaram. \"Em uma saída\" significa ao longo do período, não ao mesmo tempo. O bloqueio por IP após um erro 429 pausa apenas as conexões da mesma família de provedores.",
+    "poolEgressFailuresByExit": "Falhas via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Falhas sem saída atribuída: {count}",
     "poolMemberEgress": "{host}:{port} saiu por {egressIp} · últimas {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: nenhum tráfego observado nas últimas {hours} h",
     "poolMemberEgressHint": "Último IP de saída observado por meio deste membro do pool durante o período, lido do log do proxy. Um membro sem tráfego no período exibe a linha de ausência de tráfego.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Adicionar",
     "poolAddFailed": "Falha ao adicionar o proxy ao pool",
     "poolSelectProxy": "Selecionar um proxy…",
-    "poolSaveFailed": "Falha ao salvar a atribuição do pool"
+    "poolSaveFailed": "Falha ao salvar a atribuição do pool",
+    "transportRate": "{rate} % transporte",
+    "previousSuccessRate": "Anteriormente {rate} % de êxito",
+    "upstreamRefusals": "{count} recusas upstream",
+    "connectionTestsCount": "{count} testes de conexão",
+    "notMeasured": "Não medido"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Modelo Solicitado",
       "requestProtocol": "Protocolo Req",
       "cacheSource": "Fonte de Cache",
+      "contentProvenance": "Resposta",
+      "contentEmpty": "Resposta vazia",
+      "usageAbsent": "Contagem de tokens não informada",
+      "usageEstimated": "Contagem de tokens estimada",
       "modelPinning": "Fixação de Modelo",
       "activeModelPinning": "Ativo — modelo selecionado via fixação de sessão",
       "rotated": "Rotacionado: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Ainda não há logs de proxy. Configure proxies e faça chamadas de API para vê-los aqui.",
     "noMatchingLogs": "Nenhum log corresponde aos filtros atuais.",
     "tlsFingerprint": "Impressão digital TLS do Chrome 124",
-    "colPublicIp": "IP público"
+    "colPublicIp": "IP público",
+    "colUpstream": "Ascendente",
+    "colEgress": "IP de Egressão",
+    "colCorrelation": "Correlação",
+    "colServedBy": "Atendido por",
+    "filterTraffic": "Tráfego",
+    "filterTests": "Testes",
+    "filterSource": "Fonte"
   },
   "endpointOptions": {
     "speech": "Fala",
@@ -12012,6 +12030,10 @@
     "stopDns": "Desativar DNS",
     "toggling": "Alternando…",
     "viewTraffic": "Ver tráfego",
+    "resetAgent": "Restaurar padrão",
+    "resetAgentConfirm": "Restaurar padrão?",
+    "resetting": "Restaurando…",
+    "resetDone": "DNS padrão restaurado para {agent}. Feche o app completamente (não apenas minimize) e abra de novo para a alteração ter efeito.",
     "emptyNoProvidersTitle": "Nenhum provedor configurado ainda",
     "emptyNoProvidersBody": "Para usar o AgentBridge, primeiro conecte pelo menos um provedor. Ele será o destino para onde os requests dos IDEs serão roteados.",
     "emptyGoToProviders": "Ir para Provedores",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Falha ao criar o token Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configurar proxy",
-    "providerProxyTitleConfigured": "Proxy configurado: {host}"
+    "providerProxyTitleConfigured": "Proxy configurado: {host}",
+    "inheritConnectionOption": "Sem proxy próprio (herda a conexão)",
+    "inheritedProxy": "Herda a conexão: {host}",
+    "inheritedPool": "Herda o pool de conexões ({count})",
+    "poolEmptyBlocked": "Pool vazio — as solicitações falham (não direto)",
+    "directEgress": "Direto (sem proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Direto",
     "targetUrl": "URL de Destino",
     "error": "Erro",
-    "configuration": "Configuração de Proxy"
+    "configuration": "Configuração de Proxy",
+    "upstreamStatus": "Status ascendente",
+    "noResponse": "Sem resposta",
+    "egressIp": "IP de Egressão",
+    "servedBy": "Atendido por",
+    "correlationId": "ID de Correlação"
   },
   "requestTimeline": {
     "title": "Linha do Tempo do Pedido",

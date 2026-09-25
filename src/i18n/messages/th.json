@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ปิดใช้งานการยึดติดเซสชัน",
     "sessionStickinessEnabled": "เปิดการยึดติดเซสชัน",
     "sessionStickinessDisabled": "ปิดการยึดติดเซสชัน",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "ค่าที่ตั้งไว้ล่วงหน้า Kimi Coding",
     "kimiPresetDescription": "Kimi K3 เป็นโมเดลหลัก (Moonshot API) พร้อมการสลับสายอัตโนมัติไปยังการเชื่อมต่อ Kimi Code ของคุณ (kimi-coding, kimi-web) เมื่อกำหนดค่าไว้",
     "kimiPresetCta": "เพิ่มค่าที่ตั้งไว้ล่วงหน้า",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "สิ่งนี้จะจับภาพผู้ให้บริการ/โมเดลที่เชื่อมต่ออยู่ในปัจจุบันซึ่งตรงกับเทมเพลตนี้ลงในคอมโบที่แก้ไขได้",
     "duplicateAutoComboFailedPrefix": "ล้มเหลวในการทำสำเนาคอมโบอัตโนมัติ:",
     "duplicateAutoComboUnknownError": "ข้อผิดพลาดที่ไม่ทราบสาเหตุ",
-    "duplicateAutoComboTitle": "สร้างคอมโบคงที่จาก {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "สร้างคอมโบคงที่จาก {name}"
   },
   "costs": {
     "title": "ค่าใช้จ่าย",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "ทางออก {exits, plural, one {# ทางออก} other {# ทางออก}} ถูกใช้โดยการเชื่อมต่อ {connections, plural, one {# รายการ} other {# รายการ}} · สูงสุด {max} รายการในทางออกเดียว · ในช่วง {hours} ชม. ที่ผ่านมา",
     "poolEgressObservationEmpty": "ไม่พบทราฟฟิกในช่วง {hours} ชม. ที่ผ่านมา",
     "poolEgressObservationHint": "นับจากบันทึกพร็อกซีในช่วงเวลาที่กำหนด: IP ขาออกที่ไม่ซ้ำกันซึ่งตรวจพบสำหรับสมาชิกของพูลนี้ และการเชื่อมต่อ OmniRoute ที่ใช้ IP เหล่านั้น \"ในทางออกเดียว\" หมายถึงตลอดช่วงเวลาที่กำหนด ไม่ใช่ในเวลาเดียวกัน การล็อกเอาต์ 429 ต่อ IP จะหยุดชั่วคราวเฉพาะการเชื่อมต่อของตระกูลผู้ให้บริการเดียวกันเท่านั้น",
+    "poolEgressFailuresByExit": "ความล้มเหลวผ่าน {exit}: {count}",
+    "poolEgressFailuresUnattributed": "ความล้มเหลวที่ไม่ระบุทางออก: {count}",
     "poolMemberEgress": "{host}:{port} ออกผ่าน {egressIp} · {hours} ชม. ล่าสุด",
     "poolMemberEgressEmpty": "{host}:{port}: ไม่พบทราฟฟิกในช่วง {hours} ชม. ล่าสุด",
     "poolMemberEgressHint": "IP ขาออกล่าสุดที่ตรวจพบผ่านสมาชิกพูลนี้ภายในช่วงเวลาดังกล่าว โดยอ่านจากบันทึกพร็อกซี สมาชิกที่ไม่มีทราฟฟิกในช่วงเวลานี้จะแสดงบรรทัดว่าไม่มีทราฟฟิก",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "เพิ่ม",
     "poolAddFailed": "เพิ่มพร็อกซีลงในพูลไม่สำเร็จ",
     "poolSelectProxy": "เลือกพร็อกซี…",
-    "poolSaveFailed": "บันทึกการกำหนดพูลไม่สำเร็จ"
+    "poolSaveFailed": "บันทึกการกำหนดพูลไม่สำเร็จ",
+    "transportRate": "{rate}% การขนส่ง",
+    "previousSuccessRate": "ก่อนหน้านี้ {rate}% สำเร็จ",
+    "upstreamRefusals": "{count} การปฏิเสธต้นน้ำ",
+    "connectionTestsCount": "{count} การทดสอบการเชื่อมต่อ",
+    "notMeasured": "ยังไม่ได้วัด"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "โมเดลที่ร้องขอ",
       "requestProtocol": "โปรโตคอล Req",
       "cacheSource": "แหล่งข้อมูลแคช",
+      "contentProvenance": "คำตอบ",
+      "contentEmpty": "คำตอบว่างเปล่า",
+      "usageAbsent": "ไม่ได้รายงานจำนวนโทเค็น",
+      "usageEstimated": "จำนวนโทเค็นเป็นค่าประมาณ",
       "modelPinning": "การตรึงโมเดล",
       "activeModelPinning": "ใช้งาน — โมเดลที่เลือกผ่านการตรึงเซสชัน",
       "rotated": "หมุน: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "ยังไม่มีบันทึกพร็อกซี โปรดกำหนดค่าพร็อกซีและเรียกใช้ API เพื่อดูบันทึกที่นี่",
     "noMatchingLogs": "ไม่มีบันทึกที่ตรงกับตัวกรองปัจจุบัน",
     "tlsFingerprint": "ลายนิ้วมือ TLS ของ Chrome 124",
-    "colPublicIp": "IP สาธารณะ"
+    "colPublicIp": "IP สาธารณะ",
+    "colUpstream": "ต้นน้ำ",
+    "colEgress": "IP ออก",
+    "colCorrelation": "การเชื่อมโยง",
+    "colServedBy": "ให้บริการโดย",
+    "filterTraffic": "การจราจร",
+    "filterTests": "การทดสอบ",
+    "filterSource": "แหล่งที่มา"
   },
   "endpointOptions": {
     "speech": "เสียงพูด",
@@ -12012,6 +12030,10 @@
     "stopDns": "หยุด DNS",
     "toggling": "กำลังสลับ…",
     "viewTraffic": "ดูทราฟฟิก",
+    "resetAgent": "คืนค่าเริ่มต้น",
+    "resetAgentConfirm": "คืนค่าเริ่มต้นหรือไม่?",
+    "resetting": "กำลังคืนค่า…",
+    "resetDone": "คืนค่า DNS เริ่มต้นสำหรับ {agent} แล้ว ปิดแอปให้สนิท (ไม่ใช่แค่ย่อหน้าต่าง) แล้วเปิดใหม่เพื่อให้การเปลี่ยนแปลงมีผล",
     "emptyNoProvidersTitle": "ยังไม่ได้กำหนดค่าผู้ให้บริการ",
     "emptyNoProvidersBody": "หากต้องการใช้ AgentBridge ให้เชื่อมต่อผู้ให้บริการอย่างน้อยหนึ่งรายก่อน ซึ่งจะเป็นปลายทางที่คำขอของ IDE จะถูกกำหนดเส้นทางไป",
     "emptyGoToProviders": "ไปที่ผู้ให้บริการ",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "ไม่สามารถสร้างโทเค็น Dahl ได้",
     "providerProxy": "พร็อกซี",
     "providerProxyConfigureHint": "กำหนดค่าพร็อกซี",
-    "providerProxyTitleConfigured": "กำหนดพร็อกซีแล้ว: {host}"
+    "providerProxyTitleConfigured": "กำหนดพร็อกซีแล้ว: {host}",
+    "inheritConnectionOption": "ไม่มีพร็อกซีของตัวเอง (สืบทอดการเชื่อมต่อ)",
+    "inheritedProxy": "สืบทอดการเชื่อมต่อ: {host}",
+    "inheritedPool": "สืบทอดพูลการเชื่อมต่อ ({count})",
+    "poolEmptyBlocked": "พูลว่าง — คำขอจะล้มเหลว (ไม่โดยตรง)",
+    "directEgress": "โดยตรง (ไม่มีพร็อกซี)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "ตรง (พื้นเมือง)",
     "targetUrl": "URL เป้าหมาย",
     "error": "ข้อผิดพลาด",
-    "configuration": "การตั้งค่า Proxy"
+    "configuration": "การตั้งค่า Proxy",
+    "upstreamStatus": "สถานะต้นน้ำ",
+    "noResponse": "ไม่มีการตอบสนอง",
+    "egressIp": "IP ออก",
+    "servedBy": "ให้บริการโดย",
+    "correlationId": "รหัสการเชื่อมโยง"
   },
   "requestTimeline": {
     "title": "ไทม์ไลน์คำขอ",

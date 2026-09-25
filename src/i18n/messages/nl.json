@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Sessievastheid uitschakelen",
     "sessionStickinessEnabled": "Sessievastheid aan",
     "sessionStickinessDisabled": "Sessievastheid uit",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-preset",
     "kimiPresetDescription": "Kimi K3 als het primaire model (Moonshot API), met automatische terugval naar uw Kimi Code-verbindingen (kimi-coding, kimi-web) indien geconfigureerd.",
     "kimiPresetCta": "Preset toevoegen",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dit maakt een momentopname van de momenteel verbonden providers/modellen die overeenkomen met dit sjabloon in een bewerkbare combinatie.",
     "duplicateAutoComboFailedPrefix": "Automatische combinatie dupliceren mislukt:",
     "duplicateAutoComboUnknownError": "Onbekende fout",
-    "duplicateAutoComboTitle": "Maak een statische combinatie van {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Maak een statische combinatie van {name}"
   },
   "costs": {
     "title": "Kosten",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# uitgang} other {# uitgangen}} gebruikt door {connections, plural, one {# verbinding} other {# verbindingen}} · maximaal {max} op één uitgang · laatste {hours} u",
     "poolEgressObservationEmpty": "Geen verkeer waargenomen in de afgelopen {hours} u",
     "poolEgressObservationHint": "Geteld op basis van het proxylogboek binnen dit tijdsvenster: afzonderlijke uitgaande IP-adressen die zijn waargenomen voor de leden van deze pool, en de OmniRoute-verbindingen die deze hebben gebruikt. ‘Op één uitgang’ heeft betrekking op het tijdsvenster, niet op hetzelfde moment. De 429-blokkering per IP pauzeert alleen verbindingen van dezelfde providerfamilie.",
+    "poolEgressFailuresByExit": "Fouten via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Fouten zonder toegewezen uitgang: {count}",
     "poolMemberEgress": "{host}:{port} verliet via {egressIp} · afgelopen {hours} u",
     "poolMemberEgressEmpty": "{host}:{port}: geen verkeer waargenomen in de afgelopen {hours} u",
     "poolMemberEgressHint": "Het laatste uitgaande IP-adres dat binnen dit tijdsvenster via dit poollid is waargenomen, afgelezen uit het proxylogboek. Voor een lid zonder verkeer binnen het tijdsvenster wordt de regel voor geen verkeer weergegeven.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Toevoegen",
     "poolAddFailed": "Kan de proxy niet aan de pool toevoegen",
     "poolSelectProxy": "Selecteer een proxy…",
-    "poolSaveFailed": "Kan pooltoewijzing niet opslaan"
+    "poolSaveFailed": "Kan pooltoewijzing niet opslaan",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Eerder {rate} % succes",
+    "upstreamRefusals": "{count} upstream-weigeringen",
+    "connectionTestsCount": "{count} verbindingstests",
+    "notMeasured": "Niet gemeten"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Aangevraagd Model",
       "requestProtocol": "Verzoekprotocol",
       "cacheSource": "Cachebron",
+      "contentProvenance": "Antwoord",
+      "contentEmpty": "Leeg antwoord",
+      "usageAbsent": "Aantal tokens niet gerapporteerd",
+      "usageEstimated": "Aantal tokens geschat",
       "modelPinning": "Model vastzetten",
       "activeModelPinning": "Actief — model geselecteerd via sessiepinnen",
       "rotated": "Geroteerd: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Nog geen proxylogboeken. Configureer proxy's en voer API-aanroepen uit om ze hier te zien.",
     "noMatchingLogs": "Geen logboeken komen overeen met de huidige filters.",
     "tlsFingerprint": "TLS-vingerafdruk van Chrome 124",
-    "colPublicIp": "Openbaar IP-adres"
+    "colPublicIp": "Openbaar IP-adres",
+    "colUpstream": "Stroomopwaarts",
+    "colEgress": "Uittrede IP",
+    "colCorrelation": "Correlatie",
+    "colServedBy": "Gediend door",
+    "filterTraffic": "Verkeer",
+    "filterTests": "Tests",
+    "filterSource": "Bron"
   },
   "endpointOptions": {
     "speech": "Spraak",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS stoppen",
     "toggling": "Schakelen…",
     "viewTraffic": "Verkeer bekijken",
+    "resetAgent": "Standaard herstellen",
+    "resetAgentConfirm": "Standaard herstellen?",
+    "resetting": "Herstellen…",
+    "resetDone": "Standaard-DNS hersteld voor {agent}. Sluit de app volledig af (niet alleen minimaliseren) en open hem opnieuw om de wijziging door te voeren.",
     "emptyNoProvidersTitle": "Nog geen providers geconfigureerd",
     "emptyNoProvidersBody": "Verbind eerst ten minste één provider om AgentBridge te gebruiken. Dit is de bestemming waarnaar IDE-verzoeken worden gerouteerd.",
     "emptyGoToProviders": "Ga naar Providers",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Mislukt om Dahl-token te maken",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configureer proxy",
-    "providerProxyTitleConfigured": "Proxy geconfigureerd: {host}"
+    "providerProxyTitleConfigured": "Proxy geconfigureerd: {host}",
+    "inheritConnectionOption": "Geen eigen proxy (erft verbinding)",
+    "inheritedProxy": "Erft verbinding: {host}",
+    "inheritedPool": "Erft verbindingspool ({count})",
+    "poolEmptyBlocked": "Pool leeg — verzoeken mislukken (niet direct)",
+    "directEgress": "Direct (geen proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Direct",
     "targetUrl": "Doel-URL",
     "error": "Fout",
-    "configuration": "Proxyconfiguratie"
+    "configuration": "Proxyconfiguratie",
+    "upstreamStatus": "Stroomopwaartse status",
+    "noResponse": "Geen reactie",
+    "egressIp": "Uittrede IP",
+    "servedBy": "Gediend door",
+    "correlationId": "Correlatie-ID"
   },
   "requestTimeline": {
     "title": "Verzoek Tijdlijn",

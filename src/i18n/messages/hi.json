@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "सेशन स्टिकिनेस अक्षम करें",
     "sessionStickinessEnabled": "स्टिकिनेस चालू",
     "sessionStickinessDisabled": "स्टिकिनेस बंद",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding प्रीसेट",
     "kimiPresetDescription": "मुख्य मॉडल के रूप में Kimi K3 (Moonshot API), कॉन्फ़िगर होने पर आपके Kimi Code कनेक्शन (kimi-coding, kimi-web) पर स्वचालित फ़ॉलबैक के साथ।",
     "kimiPresetCta": "प्रीसेट जोड़ें",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "यह इस टेम्पलेट से मेल खाने वाले वर्तमान जुड़े प्रदाताओं/मॉडल को संपादन योग्य कॉम्बो में स्नैपशॉट लेगा।",
     "duplicateAutoComboFailedPrefix": "ऑटोकॉम्बो डुप्लिकेट करने में विफल:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटि",
-    "duplicateAutoComboTitle": "{name} से एक स्थैतिक कॉम्बो बनाएं",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} से एक स्थैतिक कॉम्बो बनाएं"
   },
   "costs": {
     "title": "लागत",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# कनेक्शन} other {# कनेक्शन}} द्वारा उपयोग किए गए {exits, plural, one {# एग्ज़िट} other {# एग्ज़िट}} · एक एग्ज़िट पर अधिकतम {max} · पिछले {hours} घंटे",
     "poolEgressObservationEmpty": "पिछले {hours} घंटों में कोई ट्रैफ़िक नहीं देखा गया",
     "poolEgressObservationHint": "इस समयावधि के दौरान प्रॉक्सी लॉग से गणना की गई: इस पूल के सदस्यों के लिए देखे गए अलग-अलग इग्रेस IP और उनका उपयोग करने वाले OmniRoute कनेक्शन। \"एक एग्ज़िट पर\" का अर्थ इस समयावधि के दौरान है, एक ही समय पर नहीं। प्रति-IP 429 लॉकआउट केवल समान प्रोवाइडर फ़ैमिली के कनेक्शन को रोकता है।",
+    "poolEgressFailuresByExit": "{exit} के माध्यम से विफलताएँ: {count}",
+    "poolEgressFailuresUnattributed": "बिना निर्धारित एग्ज़िट वाली विफलताएँ: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} के माध्यम से बाहर गया · पिछले {hours} घंटे",
     "poolMemberEgressEmpty": "{host}:{port}: पिछले {hours} घंटों में कोई ट्रैफ़िक नहीं देखा गया",
     "poolMemberEgressHint": "निर्धारित अवधि के दौरान इस पूल सदस्य के माध्यम से देखा गया अंतिम इग्रेस IP, जिसे प्रॉक्सी लॉग से पढ़ा गया है। इस अवधि में कोई ट्रैफ़िक न होने पर सदस्य के लिए ‘कोई ट्रैफ़िक नहीं’ वाली पंक्ति दिखाई जाती है।",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "जोड़ें",
     "poolAddFailed": "पूल में प्रॉक्सी जोड़ने में विफल",
     "poolSelectProxy": "एक प्रॉक्सी चुनें…",
-    "poolSaveFailed": "पूल असाइनमेंट सहेजने में विफल"
+    "poolSaveFailed": "पूल असाइनमेंट सहेजने में विफल",
+    "transportRate": "{rate}% ट्रांसपोर्ट",
+    "previousSuccessRate": "पहले {rate}% सफलता",
+    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृतियाँ",
+    "connectionTestsCount": "{count} कनेक्शन परीक्षण",
+    "notMeasured": "मापा नहीं गया"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "अनुरोधित मॉडल",
       "requestProtocol": "अनुरोध प्रोटोकॉल",
       "cacheSource": "कैश स्रोत",
+      "contentProvenance": "उत्तर",
+      "contentEmpty": "खाली उत्तर",
+      "usageAbsent": "टोकन संख्या रिपोर्ट नहीं की गई",
+      "usageEstimated": "टोकन संख्या अनुमानित",
       "modelPinning": "मॉडल पिनिंग",
       "activeModelPinning": "सक्रिय — सत्र पिनिंग के माध्यम से मॉडल चुना गया",
       "rotated": "घुमाया गया: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "प्रॉक्सी कॉन्फ़िगर करें और यहाँ लॉग देखने के लिए API कॉल करें।",
     "noMatchingLogs": "कोई भी लॉग मौजूदा फ़िल्टर से मेल नहीं खाता।",
     "tlsFingerprint": "Chrome 124 TLS फ़िंगरप्रिंट",
-    "colPublicIp": "सार्वजनिक IP"
+    "colPublicIp": "सार्वजनिक IP",
+    "colUpstream": "उपधारा",
+    "colEgress": "निकासी आईपी",
+    "colCorrelation": "संबंध",
+    "colServedBy": "द्वारा सेवा की गई",
+    "filterTraffic": "ट्रैफ़िक",
+    "filterTests": "परीक्षण",
+    "filterSource": "स्रोत"
   },
   "endpointOptions": {
     "speech": "वाक्",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS रोकें",
     "toggling": "टॉगल किया जा रहा है…",
     "viewTraffic": "ट्रैफ़िक देखें",
+    "resetAgent": "डिफ़ॉल्ट पुनर्स्थापित करें",
+    "resetAgentConfirm": "डिफ़ॉल्ट पुनर्स्थापित करें?",
+    "resetting": "पुनर्स्थापित किया जा रहा है…",
+    "resetDone": "{agent} के लिए डिफ़ॉल्ट DNS पुनर्स्थापित किया गया। बदलाव लागू होने के लिए ऐप को पूरी तरह बंद करें (सिर्फ़ मिनिमाइज़ न करें) और फिर से खोलें।",
     "emptyNoProvidersTitle": "अभी तक कोई प्रदाता कॉन्फ़िगर नहीं किया गया है",
     "emptyNoProvidersBody": "AgentBridge का उपयोग करने के लिए, पहले कम से कम एक प्रदाता कनेक्ट करें। यह वह गंतव्य होगा जहां IDE अनुरोधों को रूट किया जाता है।",
     "emptyGoToProviders": "प्रदाताओं पर जाएं",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl टोकन बनाने में विफल",
     "providerProxy": "प्रॉक्सी",
     "providerProxyConfigureHint": "प्रॉक्सी कॉन्फ़िगर करें",
-    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फ़िगर की गई: {host}"
+    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फ़िगर की गई: {host}",
+    "inheritConnectionOption": "कोई निजी प्रॉक्सी नहीं (कनेक्शन से विरासत)",
+    "inheritedProxy": "कनेक्शन से विरासत: {host}",
+    "inheritedPool": "कनेक्शन पूल से विरासत ({count})",
+    "poolEmptyBlocked": "पूल खाली — अनुरोध विफल होते हैं (प्रत्यक्ष नहीं)",
+    "directEgress": "प्रत्यक्ष (बिना प्रॉक्सी)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "प्रत्यक्ष (स्थानीय)",
     "targetUrl": "लक्ष्य URL",
     "error": "त्रुटि",
-    "configuration": "प्रॉक्सी कॉन्फ़िगरेशन"
+    "configuration": "प्रॉक्सी कॉन्फ़िगरेशन",
+    "upstreamStatus": "उपधारा स्थिति",
+    "noResponse": "कोई प्रतिक्रिया नहीं",
+    "egressIp": "निकासी आईपी",
+    "servedBy": "द्वारा सेवा की गई",
+    "correlationId": "संबंध आईडी"
   },
   "requestTimeline": {
     "title": "अनुरोध समयरेखा",

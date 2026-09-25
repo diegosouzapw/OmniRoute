@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "停用連線黏性",
     "sessionStickinessEnabled": "黏性已啟用",
     "sessionStickinessDisabled": "黏性關閉",
+    "stickyLimitEffective": "生效 {value}（{source}）",
+    "stickyLimitSourceCombo": "本組合",
+    "stickyLimitSourceComboDefaults": "組合預設",
+    "stickyLimitSourceGlobal": "全域預設",
+    "connectionAwareExpansion": "依帳號展開",
+    "triStateInherit": "繼承",
+    "connectionAwareExpansionOn": "開",
+    "connectionAwareExpansionOff": "關",
+    "promptCacheAffinityHint": "提示快取親和會優先於輪詢/加權在已釘帳號之間的輪轉。若需要嚴格輪轉，請到設定 → 組合預設關閉該選項。",
     "kimiPresetTitle": "Kimi Coding 預設組合",
     "kimiPresetDescription": "以 Kimi K3 作為主要模型（Moonshot API），設定完成後會自動備援至您的 Kimi Code 連線（kimi-coding、kimi-web）。",
     "kimiPresetCta": "新增預設組合",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "這將把與此模板匹配的目前連線提供者/模型快照到可編輯的組合中。",
     "duplicateAutoComboFailedPrefix": "複製自動組合失敗：",
     "duplicateAutoComboUnknownError": "未知錯誤",
-    "duplicateAutoComboTitle": "從{name}建立靜態組合",
-    "stickyLimitEffective": "生效 {value}（{source}）",
-    "stickyLimitSourceCombo": "本組合",
-    "stickyLimitSourceComboDefaults": "組合預設",
-    "stickyLimitSourceGlobal": "全域預設",
-    "connectionAwareExpansion": "依帳號展開",
-    "triStateInherit": "繼承",
-    "connectionAwareExpansionOn": "開",
-    "connectionAwareExpansionOff": "關",
-    "promptCacheAffinityHint": "提示快取親和會優先於輪詢/加權在已釘帳號之間的輪轉。若需要嚴格輪轉，請到設定 → 組合預設關閉該選項。"
+    "duplicateAutoComboTitle": "從{name}建立靜態組合"
   },
   "costs": {
     "title": "成本",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# 個出口} other {# 個出口}}由 {connections, plural, one {# 個連線} other {# 個連線}}使用 · 單一出口最多 {max} 個 · 過去 {hours} 小時",
     "poolEgressObservationEmpty": "過去 {hours} 小時內未觀察到流量",
     "poolEgressObservationHint": "根據代理伺服器記錄在此時間範圍內計算：觀察到此集區成員使用的不同出口 IP，以及使用這些 IP 的 OmniRoute 連線。「單一出口」是指整個時間範圍內，而非同一時間。每個 IP 的 429 鎖定只會暫停同一提供者系列的連線。",
+    "poolEgressFailuresByExit": "經由 {exit} 的失敗：{count}",
+    "poolEgressFailuresUnattributed": "未歸屬出口的失敗：{count}",
     "poolMemberEgress": "{host}:{port} 經由 {egressIp} 對外連線 · 過去 {hours} 小時",
     "poolMemberEgressEmpty": "{host}:{port}：過去 {hours} 小時內未觀察到流量",
     "poolMemberEgressHint": "在此時間範圍內，透過此集區成員觀察到的最新出口 IP（讀取自 Proxy 日誌）。若成員在此時間範圍內沒有流量，則會顯示無流量訊息。",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "新增",
     "poolAddFailed": "將代理新增至池失敗",
     "poolSelectProxy": "選取代理…",
-    "poolSaveFailed": "儲存池指派失敗"
+    "poolSaveFailed": "儲存池指派失敗",
+    "transportRate": "{rate}%傳輸",
+    "previousSuccessRate": "此前{rate}%成功",
+    "upstreamRefusals": "{count}次上游拒絕",
+    "connectionTestsCount": "{count}次連線測試",
+    "notMeasured": "未測量"
   },
   "playground": {
     "title": "模型演練場",
@@ -11474,6 +11481,10 @@
       "requestedModel": "請求的模型",
       "requestProtocol": "需求協議",
       "cacheSource": "快取來源",
+      "contentProvenance": "回覆",
+      "contentEmpty": "空回覆",
+      "usageAbsent": "未回報 token 數量",
+      "usageEstimated": "token 數量為估算值",
       "modelPinning": "模型固定",
       "activeModelPinning": "活動 — 通過會話固定選擇的模型",
       "rotated": "旋轉: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "尚無代理日誌。設定代理併發起 API 呼叫後會顯示在這裡。",
     "noMatchingLogs": "沒有日誌匹配當前篩選條件。",
     "tlsFingerprint": "Chrome 124 TLS 指紋",
-    "colPublicIp": "公共IP"
+    "colPublicIp": "公共IP",
+    "colUpstream": "上游",
+    "colEgress": "出口 IP",
+    "colCorrelation": "關聯",
+    "colServedBy": "由...提供",
+    "filterTraffic": "流量",
+    "filterTests": "測試",
+    "filterSource": "來源"
   },
   "endpointOptions": {
     "speech": "語音",
@@ -12012,6 +12030,10 @@
     "stopDns": "停止 DNS",
     "toggling": "切換中…",
     "viewTraffic": "檢視流量",
+    "resetAgent": "還原預設值",
+    "resetAgentConfirm": "還原預設值？",
+    "resetting": "正在還原…",
+    "resetDone": "已為 {agent} 還原預設 DNS。請完全結束應用程式（不只是最小化）後重新開啟，變更才會生效。",
     "emptyNoProvidersTitle": "尚未設定提供程式",
     "emptyNoProvidersBody": "要使用 AgentBridge，首先連線至少一個提供者。它將是 IDE 請求路由的目標。",
     "emptyGoToProviders": "前往提供者",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "無法創建 Dahl 令牌",
     "providerProxy": "代理伺服器",
     "providerProxyConfigureHint": "配置代理",
-    "providerProxyTitleConfigured": "代理已配置：{host}"
+    "providerProxyTitleConfigured": "代理已配置：{host}",
+    "inheritConnectionOption": "無自有代理(繼承連線)",
+    "inheritedProxy": "繼承連線:{host}",
+    "inheritedPool": "繼承連線集區({count})",
+    "poolEmptyBlocked": "集區為空——請求將失敗(非直連)",
+    "directEgress": "直連(無代理)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "直接",
     "targetUrl": "目標 URL",
     "error": "錯誤",
-    "configuration": "代理設定"
+    "configuration": "代理設定",
+    "upstreamStatus": "上游狀態",
+    "noResponse": "無回應",
+    "egressIp": "出口 IP",
+    "servedBy": "由...提供",
+    "correlationId": "關聯 ID"
   },
   "requestTimeline": {
     "title": "請求時間線",

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Deaktiver øktlåsing",
     "sessionStickinessEnabled": "Øktlåsing på",
     "sessionStickinessDisabled": "Øktlåsing av",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-forhåndsinnstilling",
     "kimiPresetDescription": "Kimi K3 som primærmodell (Moonshot API), med automatisk tilbakefall til dine Kimi Code-tilkoblinger (kimi-coding, kimi-web) når konfigurert.",
     "kimiPresetCta": "Legg til forhåndsinnstilling",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dette vil ta et øyeblikksbilde av de nåvørende tilkoblede leverandørene/modellene som matcher denne malen i en redigerbar kombinasjon.",
     "duplicateAutoComboFailedPrefix": "Duplisering av auto-kombinasjon mislyktes:",
     "duplicateAutoComboUnknownError": "Ukjent feil",
-    "duplicateAutoComboTitle": "Opprett en statisk kombinasjon fra {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Opprett en statisk kombinasjon fra {name}"
   },
   "costs": {
     "title": "Kostnader",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# utgående IP-adresse} other {# utgående IP-adresser}} brukt av {connections, plural, one {# tilkobling} other {# tilkoblinger}} · opptil {max} på én utgående IP-adresse · de siste {hours} t",
     "poolEgressObservationEmpty": "Ingen trafikk registrert de siste {hours} t",
     "poolEgressObservationHint": "Beregnet fra proxyloggen i løpet av perioden: unike utgående IP-adresser observert for medlemmene i denne gruppen, og OmniRoute-tilkoblingene som brukte dem. «På én utgang» betyr i løpet av perioden, ikke samtidig. 429-sperren per IP setter bare tilkoblinger fra samme leverandørfamilie på pause.",
+    "poolEgressFailuresByExit": "Feil via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Feil uten tilordnet utgang: {count}",
     "poolMemberEgress": "{host}:{port} gikk ut via {egressIp} · siste {hours} t",
     "poolMemberEgressEmpty": "{host}:{port}: ingen trafikk observert de siste {hours} t",
     "poolMemberEgressHint": "Siste utgående IP-adresse observert via dette poolmedlemmet i perioden, hentet fra proxyloggen. Et medlem uten trafikk i perioden viser linjen for ingen trafikk.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Legg til",
     "poolAddFailed": "Kunne ikke legge proxyen til i poolen",
     "poolSelectProxy": "Velg en proxy…",
-    "poolSaveFailed": "Kunne ikke lagre pool-tildeling"
+    "poolSaveFailed": "Kunne ikke lagre pool-tildeling",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Tidligere {rate} % suksess",
+    "upstreamRefusals": "{count} upstream-avvisninger",
+    "connectionTestsCount": "{count} tilkoblingstester",
+    "notMeasured": "Ikke målt"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Forespurt Modell",
       "requestProtocol": "Req Protokoll",
       "cacheSource": "Cache Kilde",
+      "contentProvenance": "Svar",
+      "contentEmpty": "Tomt svar",
+      "usageAbsent": "Antall tokens ikke rapportert",
+      "usageEstimated": "Antall tokens anslått",
       "modelPinning": "Modellpining",
       "activeModelPinning": "Aktiv — modell valgt via sesjonsfeste",
       "rotated": "Rotert: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Ingen proxylogger ennå. Konfigurer proxyer og utfør API-kall for å se dem her.",
     "noMatchingLogs": "Ingen logger samsvarer med gjeldende filtre.",
     "tlsFingerprint": "Chrome 124 TLS-fingeravtrykk",
-    "colPublicIp": "Offentlig IP"
+    "colPublicIp": "Offentlig IP",
+    "colUpstream": "Oppstrøm",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korrelering",
+    "colServedBy": "Tjenestet av",
+    "filterTraffic": "Trafikk",
+    "filterTests": "Tester",
+    "filterSource": "Kilde"
   },
   "endpointOptions": {
     "speech": "Tale",
@@ -12012,6 +12030,10 @@
     "stopDns": "Stopp DNS",
     "toggling": "Veksler…",
     "viewTraffic": "Vis trafikk",
+    "resetAgent": "Gjenopprett standard",
+    "resetAgentConfirm": "Gjenopprette standard?",
+    "resetting": "Gjenoppretter…",
+    "resetDone": "Standard-DNS er gjenopprettet for {agent}. Avslutt appen helt (ikke bare minimer den) og åpne den igjen for at endringen skal tre i kraft.",
     "emptyNoProvidersTitle": "Ingen leverandører konfigurert ennå",
     "emptyNoProvidersBody": "For å bruke AgentBridge må du først koble til minst én leverandør. Den vil være destinasjonen som IDE-forespørsler rutes til.",
     "emptyGoToProviders": "Gå til leverandører",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Kunne ikke opprette Dahl-token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurer proxy",
-    "providerProxyTitleConfigured": "Proxy konfigurert: {host}"
+    "providerProxyTitleConfigured": "Proxy konfigurert: {host}",
+    "inheritConnectionOption": "Ingen egen proxy (arver tilkobling)",
+    "inheritedProxy": "Arver tilkobling: {host}",
+    "inheritedPool": "Arver tilkoblingspool ({count})",
+    "poolEmptyBlocked": "Pool tom — forespørsler mislykkes (ikke direkte)",
+    "directEgress": "Direkte (ingen proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Direkte",
     "targetUrl": "Mål-URL",
     "error": "Feil",
-    "configuration": "Proxykonfigurasjon"
+    "configuration": "Proxykonfigurasjon",
+    "upstreamStatus": "Oppstrømstatus",
+    "noResponse": "Ingen respons",
+    "egressIp": "Egress IP",
+    "servedBy": "Tjenestet av",
+    "correlationId": "Korrelerings-ID"
   },
   "requestTimeline": {
     "title": "Forespørselstidslinje",

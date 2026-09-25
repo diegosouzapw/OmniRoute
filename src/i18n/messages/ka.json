@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "სესიის მიბმის გამორთვა",
     "sessionStickinessEnabled": "მიბმა ჩართულია",
     "sessionStickinessDisabled": "მიბმა გამორთულია",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-ის წინასწარი პარამეტრი",
     "kimiPresetDescription": "Kimi K3, როგორც ძირითადი მოდელი (Moonshot API), ავტომატური გადართვით თქვენს Kimi Code კავშირებზე (kimi-coding, kimi-web), როდესაც ისინი კონფიგურირებულია.",
     "kimiPresetCta": "წინასწარი პარამეტრის დამატება",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ამჟამად დაკავშირებული პროვაიდერებისა და მოდელების, რომლებიც ამ შაბლონს შეესაბამება, მიმდინარე მდგომარეობა დაფიქსირდება რედაქტირებად კომბოდ.",
     "duplicateAutoComboFailedPrefix": "ავტოკომბოს დუბლირება ვერ მოხერხდა:",
     "duplicateAutoComboUnknownError": "უცნობი შეცდომა",
-    "duplicateAutoComboTitle": "სტატიკური კომბოს შექმნა {name}-დან",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "სტატიკური კომბოს შექმნა {name}-დან"
   },
   "costs": {
     "title": "ხარჯები",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "გამოყენებულია {exits, plural, one {# გასასვლელი} other {# გასასვლელი}} {connections, plural, one {# კავშირის} other {# კავშირის}} მიერ · ერთ გასასვლელზე მაქსიმუმ {max} · ბოლო {hours} სთ",
     "poolEgressObservationEmpty": "ბოლო {hours} სთ-ის განმავლობაში ტრაფიკი არ დაფიქსირებულა",
     "poolEgressObservationHint": "დათვლილია პროქსის ჟურნალიდან მოცემული დროის შუალედში: ამ პულის წევრებისთვის დაფიქსირებული უნიკალური გამავალი IP-ები და OmniRoute-ის კავშირები, რომლებმაც ისინი გამოიყენეს. „ერთ გასასვლელზე“ გულისხმობს მთელ დროის შუალედს და არა ერთსა და იმავე დროს. თითოეულ IP-ზე 429 დაბლოკვა აჩერებს მხოლოდ იმავე პროვაიდერის ოჯახის კავშირებს.",
+    "poolEgressFailuresByExit": "წარუმატებლობები {exit}-ის გავლით: {count}",
+    "poolEgressFailuresUnattributed": "წარუმატებლობები მიკუთვნებული გასასვლელის გარეშე: {count}",
     "poolMemberEgress": "{host}:{port}-დან გასვლა {egressIp}-ის გავლით · ბოლო {hours} სთ",
     "poolMemberEgressEmpty": "{host}:{port}: ბოლო {hours} სთ-ში ტრაფიკი არ დაფიქსირებულა",
     "poolMemberEgressHint": "ამ პულის წევრის გავლით დროის მოცემულ შუალედში დაფიქსირებული ბოლო გამავალი IP, წაკითხული პროქსის ჟურნალიდან. წევრისთვის, რომელსაც ამ შუალედში ტრაფიკი არ ჰქონია, ნაჩვენებია სტრიქონი ტრაფიკის არარსებობის შესახებ.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "დამატება",
     "poolAddFailed": "პროქსის პულში დამატება ვერ მოხერხდა",
     "poolSelectProxy": "აირჩიეთ პროქსი…",
-    "poolSaveFailed": "პულზე მინიჭების შენახვა ვერ მოხერხდა"
+    "poolSaveFailed": "პულზე მინიჭების შენახვა ვერ მოხერხდა",
+    "transportRate": "{rate}% ტრანსპორტი",
+    "previousSuccessRate": "ადრე {rate}% წარმატება",
+    "upstreamRefusals": "{count} upstream უარყოფა",
+    "connectionTestsCount": "{count} კავშირის ტესტი",
+    "notMeasured": "არ არის გაზომილი"
   },
   "playground": {
     "title": "მოდელების სატესტო გარემო",
@@ -11474,6 +11481,10 @@
       "requestedModel": "მოთხოვნილი მოდელი",
       "requestProtocol": "მოთხოვნის პროტოკოლი",
       "cacheSource": "ქეშის წყარო",
+      "contentProvenance": "პასუხი",
+      "contentEmpty": "ცარიელი პასუხი",
+      "usageAbsent": "ტოკენების რაოდენობა არ არის მოწოდებული",
+      "usageEstimated": "ტოკენების რაოდენობა შეფასებულია",
       "modelPinning": "მოდელის მიბმა",
       "activeModelPinning": "აქტიური — მოდელი არჩეულია სესიის მიბმის მეშვეობით",
       "rotated": "როტირებულია: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "პროქსის ჟურნალები ჯერ არ არის. დააკონფიგურირეთ პროქსები და შეასრულეთ API-ის გამოძახებები, რათა ისინი აქ გამოჩნდეს.",
     "noMatchingLogs": "არცერთი ჟურნალი არ შეესაბამება მიმდინარე ფილტრებს.",
     "tlsFingerprint": "Chrome 124-ის TLS-ანაბეჭდი",
-    "colPublicIp": "საჯარო IP"
+    "colPublicIp": "საჯარო IP",
+    "colUpstream": "ზედა ნაკადი",
+    "colEgress": "გამავალი IP",
+    "colCorrelation": "კორელაცია",
+    "colServedBy": "მომსახურებულია",
+    "filterTraffic": "ტრაფიკი",
+    "filterTests": "ტესტები",
+    "filterSource": "წყარო"
   },
   "endpointOptions": {
     "speech": "მეტყველება",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS-ის გაჩერება",
     "toggling": "მიმდინარეობს გადართვა…",
     "viewTraffic": "ტრაფიკის ნახვა",
+    "resetAgent": "ნაგულისხმევის აღდგენა",
+    "resetAgentConfirm": "აღვადგინოთ ნაგულისხმევი?",
+    "resetting": "მიმდინარეობს აღდგენა…",
+    "resetDone": "{agent}-ისთვის ნაგულისხმევი DNS აღდგა. ცვლილების ძალაში შესასვლელად სრულად დახურეთ აპი (არა მხოლოდ ჩაკეცეთ) და ხელახლა გახსენით.",
     "emptyNoProvidersTitle": "პროვაიდერები ჯერ არ არის კონფიგურირებული",
     "emptyNoProvidersBody": "AgentBridge-ის გამოსაყენებლად, ჯერ მინიმუმ ერთი პროვაიდერი დააკავშირეთ. ის იქნება დანიშნულების ადგილი, სადაც IDE-ის მოთხოვნები გადაიგზავნება.",
     "emptyGoToProviders": "პროვაიდერებზე გადასვლა",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl ტოკენის შექმნა ვერ მოხერხდა",
     "providerProxy": "პროქსი",
     "providerProxyConfigureHint": "პროქსის კონფიგურაცია",
-    "providerProxyTitleConfigured": "პროქსი კონფიგურირებულია: {host}"
+    "providerProxyTitleConfigured": "პროქსი კონფიგურირებულია: {host}",
+    "inheritConnectionOption": "საკუთარი პროქსი არ არის (კავშირს მემკვიდრეობს)",
+    "inheritedProxy": "მემკვიდრეობს კავშირს: {host}",
+    "inheritedPool": "მემკვიდრეობს კავშირების პულს ({count})",
+    "poolEmptyBlocked": "პული ცარიელია — მოთხოვნები ვარდება (არა პირდაპირ)",
+    "directEgress": "პირდაპირ (პროქსის გარეშე)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "პირდაპირი (ნატიური)",
     "targetUrl": "სამიზნე URL",
     "error": "შეცდომა",
-    "configuration": "პროქსის კონფიგურაცია"
+    "configuration": "პროქსის კონფიგურაცია",
+    "upstreamStatus": "ზედა ნაკადის სტატუსი",
+    "noResponse": "პასუხი არ არის",
+    "egressIp": "გამავალი IP",
+    "servedBy": "მომსახურებულია",
+    "correlationId": "კორელაციის ID"
   },
   "requestTimeline": {
     "title": "მოთხოვნის დროითი დიაგრამა",

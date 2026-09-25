@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "സെഷൻ സ്റ്റിക്കിനസ് പ്രവർത്തനരഹിതമാക്കുക",
     "sessionStickinessEnabled": "സ്റ്റിക്കിനസ് ഓൺ",
     "sessionStickinessDisabled": "സ്റ്റിക്കിനസ് ഓഫ്",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding പ്രീസെറ്റ്",
     "kimiPresetDescription": "Kimi K3-യെ പ്രാഥമിക മോഡലായി (Moonshot API) ഉപയോഗിക്കുന്നു; കോൺഫിഗർ ചെയ്തിട്ടുണ്ടെങ്കിൽ, നിങ്ങളുടെ Kimi Code കണക്ഷനുകളിലേക്ക് (kimi-coding, kimi-web) സ്വയമേവ ഫാൾബാക്ക് ചെയ്യുന്നു.",
     "kimiPresetCta": "പ്രീസെറ്റ് ചേർക്കുക",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ഈ ടെംപ്ലേറ്റുമായി പൊരുത്തപ്പെടുന്ന, നിലവിൽ കണക്റ്റ് ചെയ്തിരിക്കുന്ന പ്രൊവൈഡർമാരുടെയും മോഡലുകളുടെയും ഒരു സ്നാപ്പ്ഷോട്ട് എഡിറ്റ് ചെയ്യാവുന്ന കോംബോയാക്കി മാറ്റും.",
     "duplicateAutoComboFailedPrefix": "ഓട്ടോ-കോംബോ പകർത്തുന്നതിൽ പരാജയപ്പെട്ടു:",
     "duplicateAutoComboUnknownError": "അജ്ഞാത പിശക്",
-    "duplicateAutoComboTitle": "{name}-ൽ നിന്ന് ഒരു സ്റ്റാറ്റിക് കോംബോ സൃഷ്ടിക്കുക",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}-ൽ നിന്ന് ഒരു സ്റ്റാറ്റിക് കോംബോ സൃഷ്ടിക്കുക"
   },
   "costs": {
     "title": "ചെലവുകൾ",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# കണക്ഷൻ} other {# കണക്ഷനുകൾ}} ഉപയോഗിച്ച {exits, plural, one {# എക്സിറ്റ്} other {# എക്സിറ്റുകൾ}} · ഒരു എക്സിറ്റിൽ പരമാവധി {max} · കഴിഞ്ഞ {hours} മണിക്കൂർ",
     "poolEgressObservationEmpty": "കഴിഞ്ഞ {hours} മണിക്കൂറിൽ ട്രാഫിക്കൊന്നും നിരീക്ഷിച്ചിട്ടില്ല",
     "poolEgressObservationHint": "നിശ്ചിത സമയപരിധിയിലെ പ്രോക്സി ലോഗിൽ നിന്ന് കണക്കാക്കിയത്: ഈ പൂളിലെ അംഗങ്ങൾക്കായി നിരീക്ഷിച്ച വ്യത്യസ്ത എഗ്രസ് IP-കളും അവ ഉപയോഗിച്ച OmniRoute കണക്ഷനുകളും. \"ഒരു എക്സിറ്റിൽ\" എന്നത് ഒരേ സമയത്തെയല്ല, നിശ്ചിത സമയപരിധിയെയാണ് സൂചിപ്പിക്കുന്നത്. ഓരോ IP-യ്ക്കുമുള്ള 429 ലോക്കൗട്ട് ഒരേ പ്രൊവൈഡർ ഫാമിലിയിലെ കണക്ഷനുകൾ മാത്രമേ താൽക്കാലികമായി നിർത്തൂ.",
+    "poolEgressFailuresByExit": "{exit} വഴിയുള്ള പരാജയങ്ങൾ: {count}",
+    "poolEgressFailuresUnattributed": "നിർണ്ണയിച്ച എക്സിറ്റ് ഇല്ലാത്ത പരാജയങ്ങൾ: {count}",
     "poolMemberEgress": "{host}:{port} വഴി {egressIp} ഉപയോഗിച്ച് പുറത്തുകടന്നു · കഴിഞ്ഞ {hours} മണിക്കൂർ",
     "poolMemberEgressEmpty": "{host}:{port}: കഴിഞ്ഞ {hours} മണിക്കൂറിൽ ട്രാഫിക്കൊന്നും കണ്ടെത്തിയില്ല",
     "poolMemberEgressHint": "ഈ കാലയളവിൽ ഈ പൂൾ അംഗത്തിലൂടെ നിരീക്ഷിച്ച അവസാന എഗ്രെസ് IP, പ്രോക്സി ലോഗിൽ നിന്ന് വായിച്ചത്. ഈ കാലയളവിൽ ട്രാഫിക്കില്ലാത്ത അംഗത്തിന് ട്രാഫിക്കില്ലെന്ന വരി കാണിക്കും.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "ചേർക്കുക",
     "poolAddFailed": "പൂളിലേക്ക് പ്രോക്സി ചേർക്കുന്നതിൽ പരാജയപ്പെട്ടു",
     "poolSelectProxy": "ഒരു പ്രോക്സി തിരഞ്ഞെടുക്കുക…",
-    "poolSaveFailed": "പൂൾ അസൈൻമെന്റ് സംരക്ഷിക്കുന്നതിൽ പരാജയപ്പെട്ടു"
+    "poolSaveFailed": "പൂൾ അസൈൻമെന്റ് സംരക്ഷിക്കുന്നതിൽ പരാജയപ്പെട്ടു",
+    "transportRate": "{rate}% ഗതാഗതം",
+    "previousSuccessRate": "മുമ്പ് {rate}% വിജയം",
+    "upstreamRefusals": "{count} അപ്സ്ട്രീം നിരസിക്കലുകൾ",
+    "connectionTestsCount": "{count} കണക്ഷൻ പരിശോധനകൾ",
+    "notMeasured": "അളന്നിട്ടില്ല"
   },
   "playground": {
     "title": "മോഡൽ പ്ലേഗ്രൗണ്ട്",
@@ -11474,6 +11481,10 @@
       "requestedModel": "അഭ്യർത്ഥിച്ച മോഡൽ",
       "requestProtocol": "അഭ്യർത്ഥന പ്രോട്ടോക്കോൾ",
       "cacheSource": "കാഷ് ഉറവിടം",
+      "contentProvenance": "മറുപടി",
+      "contentEmpty": "ശൂന്യമായ മറുപടി",
+      "usageAbsent": "ടോക്കൺ എണ്ണം റിപ്പോർട്ട് ചെയ്തിട്ടില്ല",
+      "usageEstimated": "ടോക്കൺ എണ്ണം ഏകദേശം",
       "modelPinning": "മോഡൽ പിന്നിംഗ്",
       "activeModelPinning": "സജീവം — സെഷൻ പിന്നിംഗ് വഴി മോഡൽ തിരഞ്ഞെടുത്തു",
       "rotated": "റൊട്ടേറ്റ് ചെയ്തത്: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "ഇതുവരെ പ്രോക്സി ലോഗുകളൊന്നുമില്ല. അവ ഇവിടെ കാണാൻ പ്രോക്സികൾ കോൺഫിഗർ ചെയ്ത് API കോളുകൾ നടത്തുക.",
     "noMatchingLogs": "നിലവിലെ ഫിൽട്ടറുകളുമായി പൊരുത്തപ്പെടുന്ന ലോഗുകളൊന്നുമില്ല.",
     "tlsFingerprint": "Chrome 124 TLS ഫിംഗർപ്രിന്റ്",
-    "colPublicIp": "പൊതു IP"
+    "colPublicIp": "പൊതു IP",
+    "colUpstream": "അപ്പ്സ്ട്രീം",
+    "colEgress": "ഇഗ്രസ് ഐപി",
+    "colCorrelation": "സംബന്ധീകരണം",
+    "colServedBy": "സർവുഡ് ബൈ",
+    "filterTraffic": "ട്രാഫിക്",
+    "filterTests": "ടെസ്റ്റുകൾ",
+    "filterSource": "ഉറവിടം"
   },
   "endpointOptions": {
     "speech": "സംസാരം",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS നിർത്തുക",
     "toggling": "മാറ്റുന്നു…",
     "viewTraffic": "ട്രാഫിക് കാണുക",
+    "resetAgent": "ഡിഫോൾട്ട് പുനഃസ്ഥാപിക്കുക",
+    "resetAgentConfirm": "ഡിഫോൾട്ട് പുനഃസ്ഥാപിക്കണോ?",
+    "resetting": "പുനഃസ്ഥാപിക്കുന്നു…",
+    "resetDone": "{agent}-നുള്ള ഡിഫോൾട്ട് DNS പുനഃസ്ഥാപിച്ചു. മാറ്റം പ്രാബല്യത്തിൽ വരാൻ ആപ്പ് പൂർണ്ണമായി അടയ്ക്കുക (മിനിമൈസ് ചെയ്താൽ പോരാ), തുടർന്ന് വീണ്ടും തുറക്കുക.",
     "emptyNoProvidersTitle": "ഇതുവരെ പ്രൊവൈഡറുകളൊന്നും കോൺഫിഗർ ചെയ്തിട്ടില്ല",
     "emptyNoProvidersBody": "AgentBridge ഉപയോഗിക്കാൻ ആദ്യം കുറഞ്ഞത് ഒരു പ്രൊവൈഡറെങ്കിലും കണക്റ്റ് ചെയ്യുക. IDE അഭ്യർത്ഥനകൾ റൂട്ട് ചെയ്യപ്പെടുന്ന ലക്ഷ്യസ്ഥാനമായിരിക്കും അത്.",
     "emptyGoToProviders": "പ്രൊവൈഡറുകളിലേക്ക് പോകുക",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl ടോക്കൺ സൃഷ്ടിക്കുന്നതിൽ പരാജയപ്പെട്ടു",
     "providerProxy": "പ്രോക്സി",
     "providerProxyConfigureHint": "പ്രോക്സി കോൺഫിഗർ ചെയ്യുക",
-    "providerProxyTitleConfigured": "പ്രോക്സി കോൺഫിഗർ ചെയ്തു: {host}"
+    "providerProxyTitleConfigured": "പ്രോക്സി കോൺഫിഗർ ചെയ്തു: {host}",
+    "inheritConnectionOption": "സ്വന്തം പ്രോക്സി ഇല്ല (കണക്ഷൻ പാരമ്പര്യമായി)",
+    "inheritedProxy": "കണക്ഷൻ പാരമ്പര്യമായി: {host}",
+    "inheritedPool": "കണക്ഷൻ പൂൾ പാരമ്പര്യമായി ({count})",
+    "poolEmptyBlocked": "പൂൾ ശൂന്യം — അഭ്യർത്ഥനകൾ പരാജയപ്പെടുന്നു (നேരിട്ടല്ല)",
+    "directEgress": "നേരിട്ട് (പ്രോക്സി ഇല്ലാതെ)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "നേരിട്ട് (നേറ്റീവ്)",
     "targetUrl": "ലക്ഷ്യ URL",
     "error": "പിശക്",
-    "configuration": "പ്രോക്സി കോൺഫിഗറേഷൻ"
+    "configuration": "പ്രോക്സി കോൺഫിഗറേഷൻ",
+    "upstreamStatus": "അപ്പ്സ്ട്രീം നില",
+    "noResponse": "പ്രതികരണം ഇല്ല",
+    "egressIp": "ഇഗ്രസ് ഐപി",
+    "servedBy": "സർവുഡ് ബൈ",
+    "correlationId": "സംബന്ധീകരണ ഐഡി"
   },
   "requestTimeline": {
     "title": "അഭ്യർത്ഥനയുടെ സമയരേഖ",

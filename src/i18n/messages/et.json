@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Keela seansi püsivus",
     "sessionStickinessEnabled": "Püsivus sees",
     "sessionStickinessDisabled": "Püsivus väljas",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding eelseadistus",
     "kimiPresetDescription": "Kimi K3 põhimudelina (Moonshot API) koos automaatse ümberlülitumisega teie Kimi Code ühendustele (kimi-coding, kimi-web), kui need on seadistatud.",
     "kimiPresetCta": "Lisa eelseadistus",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "See salvestab hetkel ühendatud ja sellele mallile vastavad teenusepakkujad/mudelid redigeeritavasse kombinatsiooni.",
     "duplicateAutoComboFailedPrefix": "Automaatse kombinatsiooni dubleerimine ebaõnnestus:",
     "duplicateAutoComboUnknownError": "Tundmatu viga",
-    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Loo automaatsest kombinatsioonist {name} staatiline kombinatsioon"
   },
   "costs": {
     "title": "Kulud",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# väljumine} other {# väljumist}}, mida kasutas {connections, plural, one {# ühendus} other {# ühendust}} · kuni {max} ühel väljumisel · viimase {hours} h jooksul",
     "poolEgressObservationEmpty": "Viimase {hours} h jooksul ei täheldatud liiklust",
     "poolEgressObservationHint": "Arvutatud puhverserveri logist antud ajavahemiku kohta: selle kogumi liikmete puhul täheldatud erinevad väljaminevad IP-aadressid ja neid kasutanud OmniRoute’i ühendused. „Ühel väljumisel“ tähendab kogu ajavahemiku jooksul, mitte samal ajal. IP-põhine 429-lukustus peatab ainult sama teenusepakkuja rühma kuuluvad ühendused.",
+    "poolEgressFailuresByExit": "Tõrked väljundi {exit} kaudu: {count}",
+    "poolEgressFailuresUnattributed": "Tõrked ilma omistatud väljundita: {count}",
     "poolMemberEgress": "{host}:{port} liiklus väljus aadressi {egressIp} kaudu · viimased {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: viimase {hours} h jooksul liiklust ei tuvastatud",
     "poolMemberEgressHint": "Viimane selle puuli liikme kaudu ajavahemiku jooksul tuvastatud väljuv IP-aadress, mis loeti puhverserveri logist. Kui liikmel ei olnud ajavahemiku jooksul liiklust, kuvatakse liikluseta rida.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Lisa",
     "poolAddFailed": "Puhverserveri lisamine kogumisse ebaõnnestus",
     "poolSelectProxy": "Vali puhverserver…",
-    "poolSaveFailed": "Kogumi määrangu salvestamine ebaõnnestus"
+    "poolSaveFailed": "Kogumi määrangu salvestamine ebaõnnestus",
+    "transportRate": "{rate} % transporti",
+    "previousSuccessRate": "Varem {rate} % edukust",
+    "upstreamRefusals": "{count} upstream-keeldumist",
+    "connectionTestsCount": "{count} ühenduse testi",
+    "notMeasured": "Mõõtmata"
   },
   "playground": {
     "title": "Mudelite testkeskkond",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Taotletud mudel",
       "requestProtocol": "Päringu protokoll",
       "cacheSource": "Vahemälu allikas",
+      "contentProvenance": "Vastus",
+      "contentEmpty": "Tühi vastus",
+      "usageAbsent": "Tokenite arvu ei teatatud",
+      "usageEstimated": "Tokenite arv on hinnanguline",
       "modelPinning": "Mudeli sidumine",
       "activeModelPinning": "Aktiivne — mudel valiti seansi sidumise kaudu",
       "rotated": "Vahetatud: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Puhverserveri logisid pole veel. Seadista puhverserverid ja tee API-päringuid, et neid siin näha.",
     "noMatchingLogs": "Ükski logi ei vasta praegustele filtritele.",
     "tlsFingerprint": "Chrome 124 TLS-sõrmejälg",
-    "colPublicIp": "Avalik IP"
+    "colPublicIp": "Avalik IP",
+    "colUpstream": "Ülesvool",
+    "colEgress": "Väljaminev IP",
+    "colCorrelation": "Korreleerimine",
+    "colServedBy": "Teenindab",
+    "filterTraffic": "Liiklus",
+    "filterTests": "Testid",
+    "filterSource": "Allikas"
   },
   "endpointOptions": {
     "speech": "Kõne",
@@ -12012,6 +12030,10 @@
     "stopDns": "Peata DNS",
     "toggling": "Lülitan…",
     "viewTraffic": "Vaata liiklust",
+    "resetAgent": "Taasta vaikeväärtus",
+    "resetAgentConfirm": "Taastada vaikeväärtus?",
+    "resetting": "Taastamine…",
+    "resetDone": "{agent} vaike-DNS on taastatud. Muudatuse jõustumiseks sulgege rakendus täielikult (ärge seda ainult minimeerige) ja avage see uuesti.",
     "emptyNoProvidersTitle": "Ühtegi teenusepakkujat pole veel seadistatud",
     "emptyNoProvidersBody": "AgentBridge’i kasutamiseks ühenda esmalt vähemalt üks teenusepakkuja. Sellest saab sihtkoht, kuhu IDE päringud suunatakse.",
     "emptyGoToProviders": "Ava teenusepakkujad",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl-tokeni loomine ebaõnnestus",
     "providerProxy": "Puhverserver",
     "providerProxyConfigureHint": "Seadista puhverserver",
-    "providerProxyTitleConfigured": "Puhverserver on seadistatud: {host}"
+    "providerProxyTitleConfigured": "Puhverserver on seadistatud: {host}",
+    "inheritConnectionOption": "Isiklikku puhverserverit pole (pärib ühenduse)",
+    "inheritedProxy": "Pärib ühenduse: {host}",
+    "inheritedPool": "Pärib ühenduste kogumi ({count})",
+    "poolEmptyBlocked": "Kogum tühi — päringud ebaõnnestuvad (mitte otse)",
+    "directEgress": "Otse (puhverserverita)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Otse (natiivne)",
     "targetUrl": "Siht-URL",
     "error": "Viga",
-    "configuration": "Proksi konfiguratsioon"
+    "configuration": "Proksi konfiguratsioon",
+    "upstreamStatus": "Ülesvoolu olek",
+    "noResponse": "Ei vastata",
+    "egressIp": "Väljaminev IP",
+    "servedBy": "Teenindab",
+    "correlationId": "Korreleerimise ID"
   },
   "requestTimeline": {
     "title": "Päringu ajajoon",

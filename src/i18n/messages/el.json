@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Απενεργοποίηση προσκόλλησης συνεδρίας",
     "sessionStickinessEnabled": "Προσκόλληση ενεργή",
     "sessionStickinessDisabled": "Προσκόλληση ανενεργή",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Προεπιλογή Kimi Coding",
     "kimiPresetDescription": "Το Kimi K3 ως κύριο μοντέλο (Moonshot API), με αυτόματη μετάβαση στις συνδέσεις Kimi Code (kimi-coding, kimi-web) ως εφεδρική επιλογή, όταν έχουν διαμορφωθεί.",
     "kimiPresetCta": "Προσθήκη προεπιλογής",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Αυτό θα αποτυπώσει τους παρόχους/τα μοντέλα που είναι συνδεδεμένα αυτή τη στιγμή και ταιριάζουν σε αυτό το πρότυπο, δημιουργώντας έναν επεξεργάσιμο συνδυασμό.",
     "duplicateAutoComboFailedPrefix": "Αποτυχία αντιγραφής αυτόματου συνδυασμού:",
     "duplicateAutoComboUnknownError": "Άγνωστο σφάλμα",
-    "duplicateAutoComboTitle": "Δημιουργία στατικού συνδυασμού από {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Δημιουργία στατικού συνδυασμού από {name}"
   },
   "costs": {
     "title": "Κόστη",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Χρήση {exits, plural, one {# εξόδου} other {# εξόδων}} από {connections, plural, one {# σύνδεση} other {# συνδέσεις}} · έως {max} σε μία έξοδο · τελευταίες {hours} ώρες",
     "poolEgressObservationEmpty": "Δεν παρατηρήθηκε κίνηση τις τελευταίες {hours} ώρες",
     "poolEgressObservationHint": "Υπολογίζεται από το αρχείο καταγραφής του διακομιστή μεσολάβησης για το συγκεκριμένο χρονικό διάστημα: οι διακριτές διευθύνσεις IP εξόδου που παρατηρήθηκαν για τα μέλη αυτής της ομάδας και οι συνδέσεις OmniRoute που τις χρησιμοποίησαν. Η ένδειξη «Σε μία έξοδο» αφορά ολόκληρο το χρονικό διάστημα και όχι την ίδια χρονική στιγμή. Ο αποκλεισμός 429 ανά IP θέτει σε παύση μόνο τις συνδέσεις της ίδιας οικογένειας παρόχων.",
+    "poolEgressFailuresByExit": "Αποτυχίες μέσω {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Αποτυχίες χωρίς αποδοθείσα έξοδο: {count}",
     "poolMemberEgress": "{host}:{port} εξερχόταν μέσω της {egressIp} · τελευταίες {hours} ώρες",
     "poolMemberEgressEmpty": "{host}:{port}: δεν παρατηρήθηκε κίνηση τις τελευταίες {hours} ώρες",
     "poolMemberEgressHint": "Η τελευταία IP εξόδου που παρατηρήθηκε μέσω αυτού του μέλους του pool κατά τη διάρκεια του χρονικού παραθύρου, όπως καταγράφηκε στο αρχείο καταγραφής του proxy. Για ένα μέλος χωρίς κίνηση στο χρονικό παράθυρο εμφανίζεται η γραμμή «χωρίς κίνηση».",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Προσθήκη",
     "poolAddFailed": "Αποτυχία προσθήκης του διακομιστή μεσολάβησης στην ομάδα",
     "poolSelectProxy": "Επιλογή διαμεσολαβητή…",
-    "poolSaveFailed": "Αποτυχία αποθήκευσης της αντιστοίχισης ομάδας"
+    "poolSaveFailed": "Αποτυχία αποθήκευσης της αντιστοίχισης ομάδας",
+    "transportRate": "{rate} % μεταφορά",
+    "previousSuccessRate": "Προηγουμένως {rate} % επιτυχία",
+    "upstreamRefusals": "{count} απορρίψεις upstream",
+    "connectionTestsCount": "{count} δοκιμές σύνδεσης",
+    "notMeasured": "Δεν μετρήθηκε"
   },
   "playground": {
     "title": "Περιβάλλον δοκιμών μοντέλων",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Μοντέλο που ζητήθηκε",
       "requestProtocol": "Πρωτόκολλο αιτήματος",
       "cacheSource": "Πηγή κρυφής μνήμης",
+      "contentProvenance": "Απάντηση",
+      "contentEmpty": "Κενή απάντηση",
+      "usageAbsent": "Το πλήθος tokens δεν αναφέρθηκε",
+      "usageEstimated": "Το πλήθος tokens εκτιμήθηκε",
       "modelPinning": "Δέσμευση μοντέλου",
       "activeModelPinning": "Ενεργό — το μοντέλο επιλέχθηκε μέσω δέσμευσης συνεδρίας",
       "rotated": "Εναλλαγή: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Δεν υπάρχουν ακόμη αρχεία καταγραφής. Ρυθμίστε διακομιστές μεσολάβησης και πραγματοποιήστε κλήσεις API για να τα δείτε εδώ.",
     "noMatchingLogs": "Κανένα αρχείο καταγραφής δεν ταιριάζει με τα τρέχοντα φίλτρα.",
     "tlsFingerprint": "Αποτύπωμα TLS του Chrome 124",
-    "colPublicIp": "Δημόσια IP"
+    "colPublicIp": "Δημόσια IP",
+    "colUpstream": "Ανάντη",
+    "colEgress": "Διεύθυνση IP εξόδου",
+    "colCorrelation": "Συσχέτιση",
+    "colServedBy": "Παρέχεται από",
+    "filterTraffic": "Κίνηση",
+    "filterTests": "Δοκιμές",
+    "filterSource": "Πηγή"
   },
   "endpointOptions": {
     "speech": "Ομιλία",
@@ -12012,6 +12030,10 @@
     "stopDns": "Διακοπή DNS",
     "toggling": "Γίνεται εναλλαγή…",
     "viewTraffic": "Προβολή κίνησης",
+    "resetAgent": "Επαναφορά προεπιλογής",
+    "resetAgentConfirm": "Επαναφορά προεπιλογής;",
+    "resetting": "Επαναφορά…",
+    "resetDone": "Το προεπιλεγμένο DNS επαναφέρθηκε για {agent}. Κλείστε εντελώς την εφαρμογή (όχι απλώς ελαχιστοποίηση) και ανοίξτε την ξανά για να εφαρμοστεί η αλλαγή.",
     "emptyNoProvidersTitle": "Δεν έχουν ρυθμιστεί ακόμα πάροχοι",
     "emptyNoProvidersBody": "Για να χρησιμοποιήσετε το AgentBridge, συνδέστε πρώτα τουλάχιστον έναν πάροχο. Αυτός θα είναι ο προορισμός όπου δρομολογούνται τα αιτήματα του IDE.",
     "emptyGoToProviders": "Μετάβαση στους Παρόχους",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Αποτυχία δημιουργίας διακριτικού Dahl",
     "providerProxy": "Διακομιστής μεσολάβησης",
     "providerProxyConfigureHint": "Ρύθμιση διακομιστή μεσολάβησης",
-    "providerProxyTitleConfigured": "Ρυθμίστηκε διακομιστής μεσολάβησης: {host}"
+    "providerProxyTitleConfigured": "Ρυθμίστηκε διακομιστής μεσολάβησης: {host}",
+    "inheritConnectionOption": "Χωρίς δικό του proxy (κληρονομεί τη σύνδεση)",
+    "inheritedProxy": "Κληρονομεί τη σύνδεση: {host}",
+    "inheritedPool": "Κληρονομεί το pool συνδέσεων ({count})",
+    "poolEmptyBlocked": "Το pool άδειο — τα αιτήματα αποτυγχάνουν (όχι απευθείας)",
+    "directEgress": "Απευθείας (χωρίς proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Άμεσο (εγγενές)",
     "targetUrl": "URL προορισμού",
     "error": "Σφάλμα",
-    "configuration": "Διαμόρφωση διαμεσολαβητή"
+    "configuration": "Διαμόρφωση διαμεσολαβητή",
+    "upstreamStatus": "Κατάσταση ανάντη",
+    "noResponse": "Καμία απάντηση",
+    "egressIp": "Διεύθυνση IP εξόδου",
+    "servedBy": "Παρέχεται από",
+    "correlationId": "Αναγνωριστικό συσχέτισης"
   },
   "requestTimeline": {
     "title": "Χρονολόγιο αιτημάτων",

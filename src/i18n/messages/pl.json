@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Wyłącz session stickiness",
     "sessionStickinessEnabled": "Stickiness włączone",
     "sessionStickinessDisabled": "Stickiness wyłączone",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preset Kimi Coding",
     "kimiPresetDescription": "Kimi K3 jako główny model (Moonshot API), z automatycznym przełączaniem awaryjnym na połączenia Kimi Code (kimi-coding, kimi-web), jeśli są skonfigurowane.",
     "kimiPresetCta": "Dodaj preset",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Spowoduje to przechwycenie aktualnie połączonych dostawców/modeli pasujących do tego szablonu w edytowalnej kombinacji.",
     "duplicateAutoComboFailedPrefix": "Nie udało się skopiować automatycznej kombinacji:",
     "duplicateAutoComboUnknownError": "Nieznany błąd",
-    "duplicateAutoComboTitle": "Utwórz statyczną kombinację z {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Utwórz statyczną kombinację z {name}"
   },
   "costs": {
     "title": "Koszty",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Liczba wyjść: {exits, plural, one {# wyjście} few {# wyjścia} many {# wyjść} other {# wyjścia}} · liczba korzystających połączeń: {connections, plural, one {# połączenie} few {# połączenia} many {# połączeń} other {# połączenia}} · maksymalnie {max} na jednym wyjściu · ostatnie {hours} godz.",
     "poolEgressObservationEmpty": "Nie zaobserwowano ruchu w ciągu ostatnich {hours} godz.",
     "poolEgressObservationHint": "Dane zliczone z dziennika serwera proxy w tym przedziale czasu: unikalne adresy IP wyjścia zaobserwowane dla członków tej puli oraz połączenia OmniRoute, które z nich korzystały. „Na jednym wyjściu” oznacza wartość w całym przedziale czasu, a nie jednocześnie. Blokada 429 dla danego adresu IP wstrzymuje tylko połączenia z tej samej rodziny dostawcy.",
+    "poolEgressFailuresByExit": "Błędy przez {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Błędy bez przypisanego wyjścia: {count}",
     "poolMemberEgress": "{host}:{port} wychodził przez {egressIp} · ostatnie {hours} godz.",
     "poolMemberEgressEmpty": "{host}:{port}: nie zaobserwowano ruchu w ciągu ostatnich {hours} godz.",
     "poolMemberEgressHint": "Ostatni wychodzący adres IP zaobserwowany dla tego elementu puli w danym okresie, odczytany z dziennika serwera proxy. Dla elementu, który nie obsługiwał ruchu w tym okresie, wyświetlany jest komunikat o braku ruchu.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Nie udało się dodać proxy do puli",
     "poolSelectProxy": "Wybierz proxy…",
-    "poolSaveFailed": "Nie udało się zapisać przypisania puli"
+    "poolSaveFailed": "Nie udało się zapisać przypisania puli",
+    "transportRate": "{rate}% transportu",
+    "previousSuccessRate": "Wcześniej {rate}% skuteczności",
+    "upstreamRefusals": "{count} odmów upstream",
+    "connectionTestsCount": "{count} testów połączenia",
+    "notMeasured": "Nie zmierzono"
   },
   "playground": {
     "title": "Środowisko testowe modeli",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Żądany model",
       "requestProtocol": "Protokół Req",
       "cacheSource": "Źródło pamięci podręcznej",
+      "contentProvenance": "Odpowiedź",
+      "contentEmpty": "Pusta odpowiedź",
+      "usageAbsent": "Liczba tokenów nie została zgłoszona",
+      "usageEstimated": "Liczba tokenów szacowana",
       "modelPinning": "Przypinanie Modelu",
       "activeModelPinning": "Aktywny — model wybrany za pomocą przypinania sesji",
       "rotated": "Obrócone: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Brak logów proxy. Skonfiguruj proxy i wykonaj połączenia API, aby zobaczyć je tutaj.",
     "noMatchingLogs": "Brak logów pasujących do obecnych filtrów.",
     "tlsFingerprint": "Odcisk palca TLS Chrome 124",
-    "colPublicIp": "Publiczne IP"
+    "colPublicIp": "Publiczne IP",
+    "colUpstream": "Źródło",
+    "colEgress": "Adres IP wyjściowy",
+    "colCorrelation": "Korelacja",
+    "colServedBy": "Obsługiwane przez",
+    "filterTraffic": "Ruch",
+    "filterTests": "Testy",
+    "filterSource": "Źródło"
   },
   "endpointOptions": {
     "speech": "Mowa",
@@ -12012,6 +12030,10 @@
     "stopDns": "Zatrzymaj DNS",
     "toggling": "Przełączanie…",
     "viewTraffic": "Pokaż ruch",
+    "resetAgent": "Przywróć domyślne",
+    "resetAgentConfirm": "Przywrócić domyślne?",
+    "resetting": "Przywracanie…",
+    "resetDone": "Przywrócono domyślny DNS dla {agent}. Aby zmiana zaczęła obowiązywać, całkowicie zamknij aplikację (nie tylko ją zminimalizuj) i otwórz ją ponownie.",
     "emptyNoProvidersTitle": "Brak skonfigurowanych providers",
     "emptyNoProvidersBody": "Aby używać AgentBridge, najpierw połącz co najmniej jeden provider. Będzie to cel, do którego będą kierowane żądania z IDE.",
     "emptyGoToProviders": "Przejdź do Providers",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Nie udało się utworzyć tokena Dahl",
     "providerProxy": "Serwer proxy",
     "providerProxyConfigureHint": "Skonfiguruj proxy",
-    "providerProxyTitleConfigured": "Proxy skonfigurowany: {host}"
+    "providerProxyTitleConfigured": "Proxy skonfigurowany: {host}",
+    "inheritConnectionOption": "Brak własnego proxy (dziedziczy połączenie)",
+    "inheritedProxy": "Dziedziczy połączenie: {host}",
+    "inheritedPool": "Dziedziczy pulę połączeń ({count})",
+    "poolEmptyBlocked": "Pula pusta — żądania nie powiodą się (nie bezpośrednio)",
+    "directEgress": "Bezpośrednio (bez proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Bezpośredni",
     "targetUrl": "Adres URL docelowy",
     "error": "Błąd",
-    "configuration": "Konfiguracja Proxya"
+    "configuration": "Konfiguracja Proxya",
+    "upstreamStatus": "Status źródła",
+    "noResponse": "Brak odpowiedzi",
+    "egressIp": "Adres IP wyjściowy",
+    "servedBy": "Obsługiwane przez",
+    "correlationId": "ID korelacji"
   },
   "requestTimeline": {
     "title": "Oś Czasu Żądania",

@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# exit} other {# exits}} used by {connections, plural, one {# connection} other {# connections}} · up to {max} on one exit · last {hours} h",
     "poolEgressObservationEmpty": "No traffic observed in the last {hours} h",
     "poolEgressObservationHint": "Counted from the proxy log over the window: distinct egress IPs observed for the members of this pool, and the OmniRoute connections that used them. \"On one exit\" means over the window, not at the same time. The per-IP 429 lockout only pauses connections of the same provider family.",
+    "poolEgressFailuresByExit": "Failures via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Failures with no attributed exit: {count}",
     "poolMemberEgress": "{host}:{port} left through {egressIp} · last {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: no traffic observed in the last {hours} h",
     "poolMemberEgressHint": "Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Add",
     "poolAddFailed": "Failed to add the proxy to the pool",
     "poolSelectProxy": "Select a proxy…",
-    "poolSaveFailed": "Failed to save pool assignment"
+    "poolSaveFailed": "Failed to save pool assignment",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Previously {rate}% success",
+    "upstreamRefusals": "{count} upstream refusals",
+    "connectionTestsCount": "{count} connection tests",
+    "notMeasured": "Not measured"
   },
   "playground": {
     "title": "Model Playground",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Requested Model",
       "requestProtocol": "Req Protocol",
       "cacheSource": "Cache Source",
+      "contentProvenance": "Reply",
+      "contentEmpty": "Empty reply",
+      "usageAbsent": "Token count not reported",
+      "usageEstimated": "Token count estimated",
       "modelPinning": "Model Pinning",
       "activeModelPinning": "Active — model selected via session pinning",
       "rotated": "Rotated: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "No proxy logs yet. Configure proxies and make API calls to see them here.",
     "noMatchingLogs": "No logs match the current filters.",
     "tlsFingerprint": "Chrome 124 TLS Fingerprint",
-    "colPublicIp": "Public IP"
+    "colPublicIp": "Public IP",
+    "colUpstream": "Upstream",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Correlation",
+    "colServedBy": "Served by",
+    "filterTraffic": "Traffic",
+    "filterTests": "Tests",
+    "filterSource": "Source"
   },
   "endpointOptions": {
     "speech": "Speech",
@@ -12012,6 +12030,10 @@
     "stopDns": "Stop DNS",
     "toggling": "Toggling…",
     "viewTraffic": "View traffic",
+    "resetAgent": "Restore default",
+    "resetAgentConfirm": "Restore default?",
+    "resetting": "Restoring…",
+    "resetDone": "Default DNS restored for {agent}. Fully quit the app (not just minimize) and reopen it for the change to take effect.",
     "emptyNoProvidersTitle": "No providers configured yet",
     "emptyNoProvidersBody": "To use AgentBridge, first connect at least one provider. It will be the destination where IDE requests are routed.",
     "emptyGoToProviders": "Go to Providers",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Failed to create Dahl token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configure proxy",
-    "providerProxyTitleConfigured": "Proxy configured: {host}"
+    "providerProxyTitleConfigured": "Proxy configured: {host}",
+    "inheritConnectionOption": "No own proxy (inherits connection)",
+    "inheritedProxy": "Inherits connection: {host}",
+    "inheritedPool": "Inherits connection pool ({count})",
+    "poolEmptyBlocked": "Pool empty — requests fail (not direct)",
+    "directEgress": "Direct (no proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Direct (native)",
     "targetUrl": "Target URL",
     "error": "Error",
-    "configuration": "Proxy Configuration"
+    "configuration": "Proxy Configuration",
+    "upstreamStatus": "Upstream status",
+    "noResponse": "No response",
+    "egressIp": "Egress IP",
+    "servedBy": "Served by",
+    "correlationId": "Correlation ID"
   },
   "requestTimeline": {
     "title": "Request Timeline",

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "I-disable ang session stickiness",
     "sessionStickinessEnabled": "Naka-on ang stickiness",
     "sessionStickinessDisabled": "Naka-off ang stickiness",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preset ng Kimi Coding",
     "kimiPresetDescription": "Kimi K3 bilang pangunahing modelo (Moonshot API), na may awtomatikong fallback sa iyong mga koneksyon sa Kimi Code (kimi-coding, kimi-web) kapag naka-configure.",
     "kimiPresetCta": "Magdagdag ng preset",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Ito ay kukuha ng snapshot ng kasalukuyang nakakonektang mga provider/model na tugma sa template na ito sa isang editable na combo.",
     "duplicateAutoComboFailedPrefix": "Nabigo ang pag-duplicate ng auto-combo:",
     "duplicateAutoComboUnknownError": "Hindi alam na error",
-    "duplicateAutoComboTitle": "Gumawa ng static combo mula sa {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Gumawa ng static combo mula sa {name}"
   },
   "costs": {
     "title": "Mga gastos",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# exit} other {# exit}} na ginagamit ng {connections, plural, one {# koneksyon} other {# koneksyon}} · hanggang {max} sa isang exit · nakaraang {hours} oras",
     "poolEgressObservationEmpty": "Walang naobserbahang trapiko sa nakaraang {hours} oras",
     "poolEgressObservationHint": "Binilang mula sa proxy log sa loob ng saklaw ng oras: mga natatanging egress IP na naobserbahan para sa mga miyembro ng pool na ito, at ang mga koneksyon sa OmniRoute na gumamit sa mga ito. Ang \"Sa isang exit\" ay nangangahulugang sa buong saklaw ng oras, hindi sa parehong sandali. Pansamantalang ihihinto lamang ng per-IP 429 lockout ang mga koneksyon mula sa parehong pamilya ng provider.",
+    "poolEgressFailuresByExit": "Mga pagkabigo sa pamamagitan ng {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Mga pagkabigong walang natukoy na exit: {count}",
     "poolMemberEgress": "Dumaan ang {host}:{port} sa {egressIp} · nakaraang {hours} oras",
     "poolMemberEgressEmpty": "{host}:{port}: walang naobserbahang trapiko sa nakaraang {hours} oras",
     "poolMemberEgressHint": "Huling egress IP na naobserbahang ginamit ng miyembrong ito ng pool sa loob ng saklaw ng panahon, batay sa proxy log. Ipinapakita para sa miyembrong walang trapiko sa loob ng saklaw ng panahon ang linyang nagsasaad na walang trapiko.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Idagdag",
     "poolAddFailed": "Hindi naidagdag ang proxy sa pool",
     "poolSelectProxy": "Pumili ng proxy…",
-    "poolSaveFailed": "Hindi na-save ang pool assignment"
+    "poolSaveFailed": "Hindi na-save ang pool assignment",
+    "transportRate": "{rate}% transport",
+    "previousSuccessRate": "Dati {rate}% tagumpay",
+    "upstreamRefusals": "{count} pagtanggi ng upstream",
+    "connectionTestsCount": "{count} pagsubok ng koneksyon",
+    "notMeasured": "Hindi nasukat"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Hiniling na Modelo",
       "requestProtocol": "Protokol ng Request",
       "cacheSource": "Cache Pinagmulan",
+      "contentProvenance": "Tugon",
+      "contentEmpty": "Walang laman na tugon",
+      "usageAbsent": "Hindi naiulat ang bilang ng token",
+      "usageEstimated": "Tinantya ang bilang ng token",
       "modelPinning": "Pagpapa-pin ng Modelo",
       "activeModelPinning": "Aktibo — modelo na napili sa pamamagitan ng session pinning",
       "rotated": "Naka-ikot: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Wala pang mga proxy log. I-configure ang mga proxy at magsagawa ng mga API call upang makita ang mga ito rito.",
     "noMatchingLogs": "Walang log na tumutugma sa kasalukuyang mga filter.",
     "tlsFingerprint": "TLS Fingerprint ng Chrome 124",
-    "colPublicIp": "Pampublikong IP"
+    "colPublicIp": "Pampublikong IP",
+    "colUpstream": "Upstream",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Pagsasama",
+    "colServedBy": "Ipinagkaloob ng",
+    "filterTraffic": "Trapiko",
+    "filterTests": "Mga Pagsubok",
+    "filterSource": "Pinagmulan"
   },
   "endpointOptions": {
     "speech": "Pagsasalita",
@@ -12012,6 +12030,10 @@
     "stopDns": "Ihinto ang DNS",
     "toggling": "Tino-toggle…",
     "viewTraffic": "Tingnan ang trapiko",
+    "resetAgent": "Ibalik sa default",
+    "resetAgentConfirm": "Ibalik sa default?",
+    "resetting": "Ibinabalik…",
+    "resetDone": "Naibalik na ang default na DNS para sa {agent}. Isara nang tuluyan ang app (hindi lang i-minimize) at buksan itong muli para magkabisa ang pagbabago.",
     "emptyNoProvidersTitle": "Wala pang na-configure na mga provider",
     "emptyNoProvidersBody": "Upang magamit ang AgentBridge, ikonekta muna ang kahit isang provider. Ito ang magiging destinasyon kung saan iraruta ang mga kahilingan ng IDE.",
     "emptyGoToProviders": "Pumunta sa mga Provider",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Nabigong lumikha ng Dahl token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "I-configure ang proxy",
-    "providerProxyTitleConfigured": "Naka-configure ang Proxy: {host}"
+    "providerProxyTitleConfigured": "Naka-configure ang Proxy: {host}",
+    "inheritConnectionOption": "Walang sariling proxy (nagmamana ng koneksyon)",
+    "inheritedProxy": "Nagmamana ng koneksyon: {host}",
+    "inheritedPool": "Nagmamana ng pool ng koneksyon ({count})",
+    "poolEmptyBlocked": "Walang laman ang pool — nabibigo ang mga request (hindi direkta)",
+    "directEgress": "Direkta (walang proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Direkta",
     "targetUrl": "Target na URL",
     "error": "Error",
-    "configuration": "Konfigurasyon ng Proxy"
+    "configuration": "Konfigurasyon ng Proxy",
+    "upstreamStatus": "Katayuan ng Upstream",
+    "noResponse": "Walang tugon",
+    "egressIp": "Egress IP",
+    "servedBy": "Ipinagkaloob ng",
+    "correlationId": "ID ng Pagsasama"
   },
   "requestTimeline": {
     "title": "Kronolohiya ng Kahilingan",

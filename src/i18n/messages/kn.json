@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ಸೆಷನ್ ಸ್ಥಿರತೆಯನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
     "sessionStickinessEnabled": "ಸ್ಥಿರತೆ ಆನ್",
     "sessionStickinessDisabled": "ಸ್ಥಿರತೆ ಆಫ್",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ಪೂರ್ವನಿಗದಿ",
     "kimiPresetDescription": "Kimi K3 ಅನ್ನು ಪ್ರಾಥಮಿಕ ಮಾಡೆಲ್ ಆಗಿ (Moonshot API) ಬಳಸಲಾಗುತ್ತದೆ; ಕಾನ್ಫಿಗರ್ ಮಾಡಿದಾಗ ನಿಮ್ಮ Kimi Code ಸಂಪರ್ಕಗಳಿಗೆ (kimi-coding, kimi-web) ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಫಾಲ್ಬ್ಯಾಕ್ ಆಗುತ್ತದೆ.",
     "kimiPresetCta": "ಪೂರ್ವನಿಗದಿಯನ್ನು ಸೇರಿಸಿ",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ಈ ಟೆಂಪ್ಲೇಟ್ಗೆ ಹೊಂದಿಕೆಯಾಗುವ ಪ್ರಸ್ತುತ ಸಂಪರ್ಕಿತ ಪೂರೈಕೆದಾರರು/ಮಾಡೆಲ್ಗಳ ಸ್ನ್ಯಾಪ್ಶಾಟ್ ತೆಗೆದು, ಅದನ್ನು ಸಂಪಾದಿಸಬಹುದಾದ ಕಾಂಬೊ ಆಗಿ ರಚಿಸಲಾಗುತ್ತದೆ.",
     "duplicateAutoComboFailedPrefix": "ಸ್ವಯಂ-ಕಾಂಬೊವನ್ನು ನಕಲಿಸಲು ವಿಫಲವಾಗಿದೆ:",
     "duplicateAutoComboUnknownError": "ಅಜ್ಞಾತ ದೋಷ",
-    "duplicateAutoComboTitle": "{name} ನಿಂದ ಸ್ಥಿರ ಕಾಂಬೊವನ್ನು ರಚಿಸಿ",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} ನಿಂದ ಸ್ಥಿರ ಕಾಂಬೊವನ್ನು ರಚಿಸಿ"
   },
   "costs": {
     "title": "ವೆಚ್ಚಗಳು",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# ನಿರ್ಗಮನ} other {# ನಿರ್ಗಮನಗಳು}} ಅನ್ನು {connections, plural, one {# ಸಂಪರ್ಕ} other {# ಸಂಪರ್ಕಗಳು}} ಬಳಸಿವೆ · ಒಂದು ನಿರ್ಗಮನದಲ್ಲಿ ಗರಿಷ್ಠ {max} · ಕಳೆದ {hours} ಗಂ.",
     "poolEgressObservationEmpty": "ಕಳೆದ {hours} ಗಂ. ಅವಧಿಯಲ್ಲಿ ಯಾವುದೇ ಟ್ರಾಫಿಕ್ ಕಂಡುಬಂದಿಲ್ಲ",
     "poolEgressObservationHint": "ಈ ಸಮಯಾವಧಿಯ ಪ್ರಾಕ್ಸಿ ಲಾಗ್ನಿಂದ ಲೆಕ್ಕಿಸಲಾಗಿದೆ: ಈ ಪೂಲ್ನ ಸದಸ್ಯರಿಗಾಗಿ ಗಮನಿಸಲಾದ ವಿಭಿನ್ನ ಎಗ್ರೆಸ್ IPಗಳು ಮತ್ತು ಅವುಗಳನ್ನು ಬಳಸಿದ OmniRoute ಸಂಪರ್ಕಗಳು. \"ಒಂದು ನಿರ್ಗಮನದಲ್ಲಿ\" ಎಂದರೆ ಈ ಸಮಯಾವಧಿಯುದ್ದಕ್ಕೂ ಎಂದರ್ಥ, ಒಂದೇ ಸಮಯದಲ್ಲಿ ಎಂದಲ್ಲ. ಪ್ರತಿ-IP 429 ಲಾಕ್ಔಟ್ ಅದೇ ಪೂರೈಕೆದಾರ ಕುಟುಂಬದ ಸಂಪರ್ಕಗಳನ್ನು ಮಾತ್ರ ತಾತ್ಕಾಲಿಕವಾಗಿ ನಿಲ್ಲಿಸುತ್ತದೆ.",
+    "poolEgressFailuresByExit": "{exit} ಮೂಲಕ ವೈಫಲ್ಯಗಳು: {count}",
+    "poolEgressFailuresUnattributed": "ನಿಗದಿತ ನಿರ್ಗಮನವಿಲ್ಲದ ವೈಫಲ್ಯಗಳು: {count}",
     "poolMemberEgress": "{host}:{port} ಮೂಲಕ {egressIp} ನಿರ್ಗಮಿಸಿದೆ · ಕಳೆದ {hours} ಗಂ.",
     "poolMemberEgressEmpty": "{host}:{port}: ಕಳೆದ {hours} ಗಂ.ಗಳಲ್ಲಿ ಯಾವುದೇ ಟ್ರಾಫಿಕ್ ಕಂಡುಬಂದಿಲ್ಲ",
     "poolMemberEgressHint": "ಈ ಅವಧಿಯಲ್ಲಿ ಈ ಪೂಲ್ ಸದಸ್ಯನ ಮೂಲಕ ಕೊನೆಯದಾಗಿ ಕಂಡುಬಂದ ನಿರ್ಗಮನ IP; ಇದನ್ನು ಪ್ರಾಕ್ಸಿ ಲಾಗ್ನಿಂದ ಓದಲಾಗಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ಟ್ರಾಫಿಕ್ ಇಲ್ಲದ ಸದಸ್ಯನಿಗೆ ಟ್ರಾಫಿಕ್-ಇಲ್ಲ ಸಾಲು ತೋರಿಸಲಾಗುತ್ತದೆ.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "ಸೇರಿಸಿ",
     "poolAddFailed": "ಪೂಲ್ಗೆ ಪ್ರಾಕ್ಸಿಯನ್ನು ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ",
     "poolSelectProxy": "ಪ್ರಾಕ್ಸಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ…",
-    "poolSaveFailed": "ಪೂಲ್ ನಿಯೋಜನೆಯನ್ನು ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ"
+    "poolSaveFailed": "ಪೂಲ್ ನಿಯೋಜನೆಯನ್ನು ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
+    "transportRate": "{rate}% ಸಾರಿಗೆ",
+    "previousSuccessRate": "ಹಿಂದೆ {rate}% ಯಶಸ್ಸು",
+    "upstreamRefusals": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ನಿರಾಕರಣೆಗಳು",
+    "connectionTestsCount": "{count} ಸಂಪರ್ಕ ಪರೀಕ್ಷೆಗಳು",
+    "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ"
   },
   "playground": {
     "title": "ಮಾದರಿ ಪ್ರಯೋಗಾಂಗಣ",
@@ -11474,6 +11481,10 @@
       "requestedModel": "ವಿನಂತಿಸಿದ ಮಾದರಿ",
       "requestProtocol": "ವಿನಂತಿ ಪ್ರೋಟೋಕಾಲ್",
       "cacheSource": "ಕ್ಯಾಶ್ ಮೂಲ",
+      "contentProvenance": "ಉತ್ತರ",
+      "contentEmpty": "ಖಾಲಿ ಉತ್ತರ",
+      "usageAbsent": "ಟೋಕನ್ ಸಂಖ್ಯೆ ವರದಿಯಾಗಿಲ್ಲ",
+      "usageEstimated": "ಟೋಕನ್ ಸಂಖ್ಯೆ ಅಂದಾಜು",
       "modelPinning": "ಮಾದರಿ ಪಿನ್ನಿಂಗ್",
       "activeModelPinning": "ಸಕ್ರಿಯ — ಸೆಷನ್ ಪಿನ್ನಿಂಗ್ ಮೂಲಕ ಮಾದರಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ",
       "rotated": "ಬದಲಾಯಿಸಲಾಗಿದೆ: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "ಇನ್ನೂ ಯಾವುದೇ ಪ್ರಾಕ್ಸಿ ಲಾಗ್ಗಳಿಲ್ಲ. ಅವುಗಳನ್ನು ಇಲ್ಲಿ ನೋಡಲು ಪ್ರಾಕ್ಸಿಗಳನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡಿ ಮತ್ತು API ಕರೆಗಳನ್ನು ಮಾಡಿ.",
     "noMatchingLogs": "ಪ್ರಸ್ತುತ ಫಿಲ್ಟರ್ಗಳಿಗೆ ಯಾವುದೇ ಲಾಗ್ಗಳು ಹೊಂದಿಕೆಯಾಗುವುದಿಲ್ಲ.",
     "tlsFingerprint": "Chrome 124 TLS ಫಿಂಗರ್ಪ್ರಿಂಟ್",
-    "colPublicIp": "ಸಾರ್ವಜನಿಕ IP"
+    "colPublicIp": "ಸಾರ್ವಜನಿಕ IP",
+    "colUpstream": "ಅಪಸ್ಟ್ರೀಮ್",
+    "colEgress": "ಊರ್ಜಿತ ಐಪಿ",
+    "colCorrelation": "ಸಂಬಂಧಿತ",
+    "colServedBy": "ಸೇವಿತ بواسطة",
+    "filterTraffic": "ಟ್ರಾಫಿಕ್",
+    "filterTests": "ಪರೀಕ್ಷೆಗಳು",
+    "filterSource": "ಮೂಲ"
   },
   "endpointOptions": {
     "speech": "ಧ್ವನಿ",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS ಅನ್ನು ನಿಲ್ಲಿಸಿ",
     "toggling": "ಸ್ಥಿತಿಯನ್ನು ಬದಲಾಯಿಸಲಾಗುತ್ತಿದೆ…",
     "viewTraffic": "ಟ್ರಾಫಿಕ್ ವೀಕ್ಷಿಸಿ",
+    "resetAgent": "ಡೀಫಾಲ್ಟ್ ಮರುಸ್ಥಾಪಿಸಿ",
+    "resetAgentConfirm": "ಡೀಫಾಲ್ಟ್ ಮರುಸ್ಥಾಪಿಸಬೇಕೆ?",
+    "resetting": "ಮರುಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ…",
+    "resetDone": "{agent} ಗಾಗಿ ಡೀಫಾಲ್ಟ್ DNS ಮರುಸ್ಥಾಪಿಸಲಾಗಿದೆ. ಬದಲಾವಣೆ ಜಾರಿಗೆ ಬರಲು ಆ್ಯಪ್ ಅನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಮುಚ್ಚಿ (ಕೇವಲ ಮಿನಿಮೈಸ್ ಮಾಡಬೇಡಿ) ಮತ್ತು ಮತ್ತೆ ತೆರೆಯಿರಿ.",
     "emptyNoProvidersTitle": "ಇನ್ನೂ ಯಾವುದೇ ಪೂರೈಕೆದಾರರನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡಿಲ್ಲ",
     "emptyNoProvidersBody": "AgentBridge ಬಳಸಲು, ಮೊದಲು ಕನಿಷ್ಠ ಒಬ್ಬ ಪೂರೈಕೆದಾರರನ್ನು ಸಂಪರ್ಕಿಸಿ. IDE ವಿನಂತಿಗಳನ್ನು ರೂಟ್ ಮಾಡುವ ಗಮ್ಯಸ್ಥಾನ ಅದಾಗಿರುತ್ತದೆ.",
     "emptyGoToProviders": "ಪೂರೈಕೆದಾರರ ಪುಟಕ್ಕೆ ಹೋಗಿ",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl ಟೋಕನ್ ರಚಿಸಲು ವಿಫಲವಾಗಿದೆ",
     "providerProxy": "ಪ್ರಾಕ್ಸಿ",
     "providerProxyConfigureHint": "ಪ್ರಾಕ್ಸಿಯನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡಿ",
-    "providerProxyTitleConfigured": "ಪ್ರಾಕ್ಸಿ ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾಗಿದೆ: {host}"
+    "providerProxyTitleConfigured": "ಪ್ರಾಕ್ಸಿ ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾಗಿದೆ: {host}",
+    "inheritConnectionOption": "ಸ್ವಂತ ಪ್ರಾಕ್ಸಿ ಇಲ್ಲ (ಸಂಪರ್ಕವನ್ನು ಆನುವಂಶಿಕವಾಗಿ)",
+    "inheritedProxy": "ಸಂಪರ್ಕವನ್ನು ಆನುವಂಶಿಕವಾಗಿ: {host}",
+    "inheritedPool": "ಸಂಪರ್ಕ ಪೂಲ್ ಅನ್ನು ಆನುವಂಶಿಕವಾಗಿ ({count})",
+    "poolEmptyBlocked": "ಪೂಲ್ ಖಾಲಿ — ವಿನಂತಿಗಳು ವಿಫಲವಾಗುತ್ತವೆ (ನೇರವಲ್ಲ)",
+    "directEgress": "ನೇರ (ಪ್ರಾಕ್ಸಿ ಇಲ್ಲದೆ)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "ನೇರ (ಸ್ಥಳೀಯ)",
     "targetUrl": "ಗುರಿ URL",
     "error": "ದೋಷ",
-    "configuration": "ಪ್ರಾಕ್ಸಿ ಸಂರಚನೆ"
+    "configuration": "ಪ್ರಾಕ್ಸಿ ಸಂರಚನೆ",
+    "upstreamStatus": "ಅಪಸ್ಟ್ರೀಮ್ ಸ್ಥಿತಿ",
+    "noResponse": "ಯಾವುದೇ ಪ್ರತಿಸ್ಪಂದನೆ ಇಲ್ಲ",
+    "egressIp": "ಊರ್ಜಿತ ಐಪಿ",
+    "servedBy": "ಸೇವಿತ بواسطة",
+    "correlationId": "ಸಂಬಂಧಿತ ಐಡಿ"
   },
   "requestTimeline": {
     "title": "ವಿನಂತಿಯ ಕಾಲರೇಖೆ",

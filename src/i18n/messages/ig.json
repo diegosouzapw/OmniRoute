@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Gbanyụọ njikọgide nnọkọ",
     "sessionStickinessEnabled": "Njikọgide agbanwuru",
     "sessionStickinessDisabled": "Njikọgide agbanyụrụ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Nhazi Kimi Coding",
     "kimiPresetDescription": "Kimi K3 dị ka model bụ isi (Moonshot API), yana ịlaghachi na njikọ Kimi Code gị (kimi-coding, kimi-web) na-akpaghị aka mgbe ahaziri ha.",
     "kimiPresetCta": "Tinye nhazi",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Nke a ga-echekwa ọnọdụ ndị na-eweta ọrụ/model ejikọrọ ugbu a dabara na ndebiri a n'ime ngwakọta a pụrụ idezi.",
     "duplicateAutoComboFailedPrefix": "Ime oyiri nke ngwakọta akpaka dara:",
     "duplicateAutoComboUnknownError": "Njehie amaghị ama",
-    "duplicateAutoComboTitle": "Mepụta ngwakọta anaghị agbanwe agbanwe site na {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Mepụta ngwakọta anaghị agbanwe agbanwe site na {name}"
   },
   "costs": {
     "title": "Ọnụ ahịa",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# ụzọ ọpụpụ} other {# ụzọ ọpụpụ}} nke {connections, plural, one {# njikọ} other {# njikọ}} jiri · ruo {max} n'otu ụzọ ọpụpụ · n'ime awa {hours} gara aga",
     "poolEgressObservationEmpty": "Ahụghị ngagharị data ọ bụla n'ime awa {hours} gara aga",
     "poolEgressObservationHint": "A gụrụ ya site na ndekọ proxy n'ime oge ahụ: IP ọpụpụ dị iche iche a hụrụ maka ndị otu pool a, yana njikọ OmniRoute ndị jiri ha. \"N'otu ụzọ ọpụpụ\" pụtara n'ime oge ahụ, ọ bụghị n'otu oge. Mkpọchi 429 nke IP ọ bụla na-akwụsịtụ naanị njikọ ndị sitere n'otu ezinụlọ provider.",
+    "poolEgressFailuresByExit": "Ọdịda site na {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Ọdịda na-enweghị ụzọ ọpụpụ ekenyere: {count}",
     "poolMemberEgress": "{host}:{port} si na {egressIp} pụọ · awa {hours} gara aga",
     "poolMemberEgressEmpty": "{host}:{port}: ahụghị okporo ụzọ n’ime awa {hours} gara aga",
     "poolMemberEgressHint": "Adreesị IP egress ikpeazụ a hụrụ site n’aka onye otu pool a n’ime oge ahụ, nke e si na ndekọ proxy gụọ. Onye otu na-enweghị okporo ụzọ n’ime oge ahụ ga-egosi ahịrị enweghị-okporo-ụzọ.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Tinye",
     "poolAddFailed": "Enweghị ike ịtinye proksi ahụ na pool",
     "poolSelectProxy": "Họrọ proxy…",
-    "poolSaveFailed": "Enweghị ike ichekwa nkesa pool"
+    "poolSaveFailed": "Enweghị ike ichekwa nkesa pool",
+    "transportRate": "{rate}% mbugharị",
+    "previousSuccessRate": "Na mbụ {rate}% ịga nke ọma",
+    "upstreamRefusals": "{count} ọjụjụ upstream",
+    "connectionTestsCount": "{count} nnwale njikọ",
+    "notMeasured": "A tụghị"
   },
   "playground": {
     "title": "Ebe Nnwale Model",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Ụdị A Rịọrọ",
       "requestProtocol": "Protokol Arịrịọ",
       "cacheSource": "Ebe Cache Si",
+      "contentProvenance": "Nzaghachi",
+      "contentEmpty": "Nzaghachi efu",
+      "usageAbsent": "Akọpụtaghị ọnụ ọgụgụ token",
+      "usageEstimated": "E mere atụmatụ ọnụ ọgụgụ token",
       "modelPinning": "Ntụdo Ụdị",
       "activeModelPinning": "Na-arụ ọrụ — ahọpụtara ụdị site na ntụdo nnọkọ",
       "rotated": "Agbanweela: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Enweghị ndekọ proxy ugbu a. Hazie proxy ma kpọọ API ka ị hụ ha ebe a.",
     "noMatchingLogs": "Ọ nweghị ndekọ dabara na nzacha ndị dị ugbu a.",
     "tlsFingerprint": "Akara mkpịsịaka TLS nke Chrome 124",
-    "colPublicIp": "IP ọha"
+    "colPublicIp": "IP ọha",
+    "colUpstream": "N'elu",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Njikọ",
+    "colServedBy": "Nyeere site na",
+    "filterTraffic": "Ọnụ ọgụgụ",
+    "filterTests": "Nnwale",
+    "filterSource": "Isi iyi"
   },
   "endpointOptions": {
     "speech": "Okwu",
@@ -12012,6 +12030,10 @@
     "stopDns": "Kwụsị DNS",
     "toggling": "Na-agbanye ma ọ bụ na-agbanyụ…",
     "viewTraffic": "Lelee traffic",
+    "resetAgent": "Weghachi ndabara",
+    "resetAgentConfirm": "Weghachi ndabara?",
+    "resetting": "Na-eweghachi…",
+    "resetDone": "Eweghachiri DNS ndabara maka {agent}. Mechie ngwa ahụ kpamkpam (ọ bụghị naanị ibelata ya) wee meghee ya ọzọ ka mgbanwe ahụ rụọ ọrụ.",
     "emptyNoProvidersTitle": "Enwebeghị ndị na-eweta ọrụ ahaziri",
     "emptyNoProvidersBody": "Iji jiri AgentBridge, buru ụzọ jikọọ opekata mpe otu onye na-eweta ọrụ. Ọ ga-abụ ebe a ga-eziga arịrịọ IDE.",
     "emptyGoToProviders": "Gaa na Ndị na-eweta ọrụ",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Ịmepụta token Dahl dara",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Hazie proxy",
-    "providerProxyTitleConfigured": "Ahaziela proxy: {host}"
+    "providerProxyTitleConfigured": "Ahaziela proxy: {host}",
+    "inheritConnectionOption": "Enweghị proxy nkeonwe (na-eketa njikọ)",
+    "inheritedProxy": "Na-eketa njikọ: {host}",
+    "inheritedPool": "Na-eketa ọdọ njikọ ({count})",
+    "poolEmptyBlocked": "Ọdọ tọgbọrọ — arịrịọ na-ada (ọ bụghị ozugbo)",
+    "directEgress": "Ozugbo (enweghị proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Kpọmkwem (nke e wuru n'ime ya)",
     "targetUrl": "URL ebumnuche",
     "error": "Njehie",
-    "configuration": "Nhazi proksi"
+    "configuration": "Nhazi proksi",
+    "upstreamStatus": "N'elu ọnọdụ",
+    "noResponse": "Enweghị nzaghachi",
+    "egressIp": "Egress IP",
+    "servedBy": "Nyeere site na",
+    "correlationId": "Njikọ ID"
   },
   "requestTimeline": {
     "title": "Usoro oge arịrịọ",

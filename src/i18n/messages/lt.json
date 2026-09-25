@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Išjungti sesijos susiejimą",
     "sessionStickinessEnabled": "Sesijos susiejimas įjungtas",
     "sessionStickinessDisabled": "Sesijos susiejimas išjungtas",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding išankstinė parinktis",
     "kimiPresetDescription": "Kimi K3 kaip pagrindinis modelis (Moonshot API), automatiškai pereinant prie atsarginių jūsų Kimi Code jungčių (kimi-coding, kimi-web), kai jos sukonfigūruotos.",
     "kimiPresetCta": "Pridėti išankstinę parinktį",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Taip šiuo metu prijungtų, šį šabloną atitinkančių teikėjų ir modelių momentinė kopija bus įrašyta į redaguojamą kombo.",
     "duplicateAutoComboFailedPrefix": "Nepavyko dubliuoti automatinio kombo:",
     "duplicateAutoComboUnknownError": "Nežinoma klaida",
-    "duplicateAutoComboTitle": "Sukurti statinį kombo iš {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Sukurti statinį kombo iš {name}"
   },
   "costs": {
     "title": "Išlaidos",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Užfiksuotų išėjimo IP adresų: {exits, plural, one {#} few {#} other {#}} · juos naudojusių ryšių: {connections, plural, one {#} few {#} other {#}} · daugiausia {max} vienam išėjimo IP adresui · per pastarąsias {hours} val.",
     "poolEgressObservationEmpty": "Per pastarąsias {hours} val. srauto nepastebėta",
     "poolEgressObservationHint": "Apskaičiuota pagal tarpinio serverio žurnalą per nurodytą laikotarpį: atskiri šio telkinio nariams užfiksuoti išėjimo IP adresai ir juos naudoję OmniRoute ryšiai. „Viename išėjimo IP“ reiškia per visą laikotarpį, o ne tuo pačiu metu. Atskiro IP adreso blokavimas gavus 429 atsakymą pristabdo tik tos pačios teikėjų grupės ryšius.",
+    "poolEgressFailuresByExit": "Nesėkmės per {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Nesėkmės be priskirto išėjimo: {count}",
     "poolMemberEgress": "{host}:{port} srautas išėjo per {egressIp} · per paskutines {hours} val.",
     "poolMemberEgressEmpty": "{host}:{port}: per paskutines {hours} val. srauto nepastebėta",
     "poolMemberEgressHint": "Paskutinis per šį telkinio narį nurodytu laikotarpiu pastebėtas išorinis IP adresas, nuskaitytas iš įgaliotojo serverio žurnalo. Jei per šį laikotarpį narys neperdavė jokio srauto, rodoma eilutė apie srauto nebuvimą.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Pridėti",
     "poolAddFailed": "Nepavyko pridėti tarpinio serverio prie telkinio",
     "poolSelectProxy": "Pasirinkite tarpinį serverį…",
-    "poolSaveFailed": "Nepavyko išsaugoti priskyrimo telkiniui"
+    "poolSaveFailed": "Nepavyko išsaugoti priskyrimo telkiniui",
+    "transportRate": "{rate} % transporto",
+    "previousSuccessRate": "Anksčiau {rate} % sėkmės",
+    "upstreamRefusals": "{count} aukštesnio lygio atmetimų",
+    "connectionTestsCount": "{count} ryšio testus",
+    "notMeasured": "Neišmatuota"
   },
   "playground": {
     "title": "Modelių bandymų aplinka",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Prašomas modelis",
       "requestProtocol": "Užklausos protokolas",
       "cacheSource": "Talpyklos šaltinis",
+      "contentProvenance": "Atsakymas",
+      "contentEmpty": "Tuščias atsakymas",
+      "usageAbsent": "Žetonų skaičius nepateiktas",
+      "usageEstimated": "Žetonų skaičius įvertintas",
       "modelPinning": "Modelio prisegimas",
       "activeModelPinning": "Aktyvus — modelis pasirinktas naudojant seanso prisegimą",
       "rotated": "Pakeista: {initial} → {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Tarpinio serverio žurnalų dar nėra. Sukonfigūruokite tarpinius serverius ir atlikite API iškvietimus, kad juos čia pamatytumėte.",
     "noMatchingLogs": "Nė vienas žurnalo įrašas neatitinka dabartinių filtrų.",
     "tlsFingerprint": "Chrome 124 TLS atspaudas",
-    "colPublicIp": "Viešasis IP"
+    "colPublicIp": "Viešasis IP",
+    "colUpstream": "Aukštupio",
+    "colEgress": "Išėjimo IP",
+    "colCorrelation": "Korelacija",
+    "colServedBy": "Teikia",
+    "filterTraffic": "Srautas",
+    "filterTests": "Testai",
+    "filterSource": "Šaltinis"
   },
   "endpointOptions": {
     "speech": "Kalba",
@@ -12012,6 +12030,10 @@
     "stopDns": "Sustabdyti DNS",
     "toggling": "Perjungiama…",
     "viewTraffic": "Peržiūrėti srautą",
+    "resetAgent": "Atkurti numatytąjį",
+    "resetAgentConfirm": "Atkurti numatytąjį?",
+    "resetting": "Atkuriama…",
+    "resetDone": "Atkurtas numatytasis {agent} DNS. Kad pakeitimas įsigaliotų, visiškai uždarykite programą (ne tik sumažinkite) ir atidarykite ją iš naujo.",
     "emptyNoProvidersTitle": "Dar nesukonfigūruotas nė vienas teikėjas",
     "emptyNoProvidersBody": "Norėdami naudoti AgentBridge, pirmiausia prijunkite bent vieną teikėją. Jis bus paskirties vieta, į kurią nukreipiamos IDE užklausos.",
     "emptyGoToProviders": "Eiti į teikėjus",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Nepavyko sukurti Dahl prieigos rakto",
     "providerProxy": "Tarpinis serveris",
     "providerProxyConfigureHint": "Konfigūruoti tarpinį serverį",
-    "providerProxyTitleConfigured": "Tarpinis serveris sukonfigūruotas: {host}"
+    "providerProxyTitleConfigured": "Tarpinis serveris sukonfigūruotas: {host}",
+    "inheritConnectionOption": "Be savo tarpinio serverio (paveldi ryšį)",
+    "inheritedProxy": "Paveldi ryšį: {host}",
+    "inheritedPool": "Paveldi ryšių telkinį ({count})",
+    "poolEmptyBlocked": "Telkinys tuščias — užklausos nepavyksta (ne tiesiogiai)",
+    "directEgress": "Tiesiogiai (be tarpinio serverio)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Tiesioginis (vietinis)",
     "targetUrl": "Paskirties URL",
     "error": "Klaida",
-    "configuration": "Tarpinio serverio konfigūracija"
+    "configuration": "Tarpinio serverio konfigūracija",
+    "upstreamStatus": "Aukštupio būsena",
+    "noResponse": "Nėra atsakymo",
+    "egressIp": "Išėjimo IP",
+    "servedBy": "Teikia",
+    "correlationId": "Korelacijos ID"
   },
   "requestTimeline": {
     "title": "Užklausos laiko juosta",

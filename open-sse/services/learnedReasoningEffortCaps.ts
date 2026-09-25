@@ -197,7 +197,7 @@ export function parseReasoningEffortEnum(errText: unknown): string[] | null {
   const match = LIST_INTRO.exec(errText);
   if (!match) return null;
   const tokens = match[1]
-    .split(/,|\b(?:and|or)\b|&/i)
+    .split(/,|\||\b(?:and|or)\b|&/i)
     .map((t) =>
       t
         .replace(/`/g, "")

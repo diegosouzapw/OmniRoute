@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Zakázat stálost relace",
     "sessionStickinessEnabled": "Stálost relace zapnuta",
     "sessionStickinessDisabled": "Stálost relace vypnuta",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Předvolba Kimi Coding",
     "kimiPresetDescription": "Kimi K3 jako primární model (Moonshot API) s automatickým záložním řešením na vaše připojení Kimi Code (kimi-coding, kimi-web), pokud jsou nakonfigurována.",
     "kimiPresetCta": "Přidat předvolbu",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Tím se zachytí aktuálně připojení poskytovatelé/modely, které odpovídají této šabloně, do upravitelné kombinace.",
     "duplicateAutoComboFailedPrefix": "Duplikace automatické kombinace selhala:",
     "duplicateAutoComboUnknownError": "Neznámá chyba",
-    "duplicateAutoComboTitle": "Vytvořte statickou kombinaci z {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Vytvořte statickou kombinaci z {name}"
   },
   "costs": {
     "title": "Náklady",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Použito {exits, plural, one {# výstup} other {# výstupů}} prostřednictvím {connections, plural, one {# připojení} other {# připojení}} · až {max} na jednom výstupu · za posledních {hours} h",
     "poolEgressObservationEmpty": "Za posledních {hours} h nebyl zaznamenán žádný provoz",
     "poolEgressObservationHint": "Počítáno z protokolu proxy za dané období: jedinečné odchozí IP adresy zaznamenané u členů tohoto fondu a připojení OmniRoute, která je použila. „Na jednom výstupu“ znamená za celé období, nikoli současně. Blokace 429 pro jednotlivé IP adresy pozastaví pouze připojení stejné rodiny poskytovatelů.",
+    "poolEgressFailuresByExit": "Selhání přes {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Selhání bez přiřazeného výstupu: {count}",
     "poolMemberEgress": "{host}:{port} odchozí přes {egressIp} · posledních {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: za posledních {hours} h nebyl zaznamenán žádný provoz",
     "poolMemberEgressHint": "Poslední odchozí IP adresa zaznamenaná přes tohoto člena fondu během daného období, načtená z protokolu proxy. U člena bez provozu v tomto období se zobrazí řádek informující o nulovém provozu.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Přidat",
     "poolAddFailed": "Nepodařilo se přidat proxy do poolu",
     "poolSelectProxy": "Vybrat proxy…",
-    "poolSaveFailed": "Nepodařilo se uložit přiřazení poolu"
+    "poolSaveFailed": "Nepodařilo se uložit přiřazení poolu",
+    "transportRate": "{rate} % přenosu",
+    "previousSuccessRate": "Dříve {rate} % úspěšnost",
+    "upstreamRefusals": "{count} odmítnutí upstream",
+    "connectionTestsCount": "{count} testů připojení",
+    "notMeasured": "Neměřeno"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Požadovaný model",
       "requestProtocol": "Protokol požadavku",
       "cacheSource": "Cache Zdroj",
+      "contentProvenance": "Odpověď",
+      "contentEmpty": "Prázdná odpověď",
+      "usageAbsent": "Počet tokenů nebyl nahlášen",
+      "usageEstimated": "Počet tokenů je odhadnutý",
       "modelPinning": "Zamykání Modelu",
       "activeModelPinning": "Aktivní — model vybraný pomocí připnutí relace",
       "rotated": "Otočeno: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Zatím nejsou k dispozici žádné protokoly proxy. Nakonfigurujte proxy a proveďte volání API, aby se zde zobrazily.",
     "noMatchingLogs": "Aktuálním filtrům neodpovídají žádné protokoly.",
     "tlsFingerprint": "Otisk TLS pro Chrome 124",
-    "colPublicIp": "Veřejná IP"
+    "colPublicIp": "Veřejná IP",
+    "colUpstream": "Nahoře",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korelace",
+    "colServedBy": "Poskytováno",
+    "filterTraffic": "Provoz",
+    "filterTests": "Testy",
+    "filterSource": "Zdroj"
   },
   "endpointOptions": {
     "speech": "Řeč",
@@ -12012,6 +12030,10 @@
     "stopDns": "Zastavit DNS",
     "toggling": "Přepínání…",
     "viewTraffic": "Zobrazit provoz",
+    "resetAgent": "Obnovit výchozí",
+    "resetAgentConfirm": "Obnovit výchozí?",
+    "resetting": "Obnovování…",
+    "resetDone": "Výchozí DNS pro {agent} bylo obnoveno. Aby se změna projevila, aplikaci úplně ukončete (nejen minimalizujte) a znovu ji otevřete.",
     "emptyNoProvidersTitle": "Zatím nejsou nakonfigurováni žádní poskytovatelé",
     "emptyNoProvidersBody": "Chcete-li použít AgentBridge, nejprve připojte alespoň jednoho poskytovatele. Bude to cíl, kam budou směrovány požadavky z IDE.",
     "emptyGoToProviders": "Přejít na Poskytovatele",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Nepodařilo se vytvořit token Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Nastavit proxy",
-    "providerProxyTitleConfigured": "Proxy nakonfigurován: {host}"
+    "providerProxyTitleConfigured": "Proxy nakonfigurován: {host}",
+    "inheritConnectionOption": "Bez vlastní proxy (dědí připojení)",
+    "inheritedProxy": "Dědí připojení: {host}",
+    "inheritedPool": "Dědí fond připojení ({count})",
+    "poolEmptyBlocked": "Fond prázdný — požadavky selžou (ne přímo)",
+    "directEgress": "Přímo (bez proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Přímý",
     "targetUrl": "Cílová URL",
     "error": "Chyba",
-    "configuration": "Konfigurace proxy"
+    "configuration": "Konfigurace proxy",
+    "upstreamStatus": "Stav nahoře",
+    "noResponse": "Žádná odpověď",
+    "egressIp": "Egress IP",
+    "servedBy": "Poskytováno",
+    "correlationId": "ID korelace"
   },
   "requestTimeline": {
     "title": "Časová osa žádosti",

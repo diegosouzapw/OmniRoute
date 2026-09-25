@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Вимкнути закріплення сесій",
     "sessionStickinessEnabled": "Закріплення увімкнено",
     "sessionStickinessDisabled": "Закріплення вимкнено",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Пресет Kimi Coding",
     "kimiPresetDescription": "Kimi K3 як основна модель (Moonshot API) з автоматичним переходом на ваші підключення Kimi Code (kimi-coding, kimi-web) після налаштування.",
     "kimiPresetCta": "Додати пресет",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Це зробить знімок поточно підключених постачальників/моделей, які відповідають цьому шаблону, у редаговане комбо.",
     "duplicateAutoComboFailedPrefix": "Не вдалося дублювати автоматичне комбо:",
     "duplicateAutoComboUnknownError": "Невідома помилка",
-    "duplicateAutoComboTitle": "Створити статичне комбо з {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Створити статичне комбо з {name}"
   },
   "costs": {
     "title": "Витрати",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Використано {exits, plural, one {# вихід} few {# виходи} many {# виходів} other {# виходу}} для {connections, plural, one {# з’єднання} few {# з’єднань} many {# з’єднань} other {# з’єднання}} · до {max} на одному виході · за останні {hours} год",
     "poolEgressObservationEmpty": "За останні {hours} год трафіку не виявлено",
     "poolEgressObservationHint": "Підраховано за журналом проксі протягом цього періоду: унікальні вихідні IP-адреси, виявлені для учасників цього пулу, і з’єднання OmniRoute, які їх використовували. «На одному виході» означає протягом цього періоду, а не одночасно. Блокування 429 для окремої IP-адреси призупиняє лише з’єднання тієї самої родини постачальників.",
+    "poolEgressFailuresByExit": "Збої через {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Збої без визначеного виходу: {count}",
     "poolMemberEgress": "{host}:{port} виходив через {egressIp} · останні {hours} год",
     "poolMemberEgressEmpty": "{host}:{port}: за останні {hours} год трафіку не виявлено",
     "poolMemberEgressHint": "Остання вихідна IP-адреса, зафіксована для цього учасника пулу протягом заданого періоду на основі журналу проксі. Для учасника, який не мав трафіку протягом цього періоду, відображається рядок про відсутність трафіку.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Додати",
     "poolAddFailed": "Не вдалося додати проксі до пулу",
     "poolSelectProxy": "Виберіть проксі…",
-    "poolSaveFailed": "Не вдалося зберегти призначення пулу"
+    "poolSaveFailed": "Не вдалося зберегти призначення пулу",
+    "transportRate": "{rate}% транспорту",
+    "previousSuccessRate": "Раніше {rate}% успіху",
+    "upstreamRefusals": "{count} відмов апастріму",
+    "connectionTestsCount": "{count} перевірок зʼєднання",
+    "notMeasured": "Не виміряно"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Запитана Модель",
       "requestProtocol": "Протокол запиту",
       "cacheSource": "Кеш Джерело",
+      "contentProvenance": "Відповідь",
+      "contentEmpty": "Порожня відповідь",
+      "usageAbsent": "Кількість токенів не повідомлено",
+      "usageEstimated": "Кількість токенів оцінено",
       "modelPinning": "Прикріплення Моделі",
       "activeModelPinning": "Активний — модель, вибрана через закріплення сесії",
       "rotated": "Повернуто: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Журналів проксі ще немає. Налаштуйте проксі та виконайте виклики API, щоб побачити їх тут.",
     "noMatchingLogs": "Немає журналів, що відповідають поточним фільтрам.",
     "tlsFingerprint": "Відбиток TLS Chrome 124",
-    "colPublicIp": "Публічна IP-адреса"
+    "colPublicIp": "Публічна IP-адреса",
+    "colUpstream": "Верхній потік",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Кореляція",
+    "colServedBy": "Обслуговується",
+    "filterTraffic": "Трафік",
+    "filterTests": "Тести",
+    "filterSource": "Джерело"
   },
   "endpointOptions": {
     "speech": "Мовлення",
@@ -12012,6 +12030,10 @@
     "stopDns": "Зупинити DNS",
     "toggling": "Перемикання…",
     "viewTraffic": "Переглянути трафік",
+    "resetAgent": "Відновити за замовчуванням",
+    "resetAgentConfirm": "Відновити за замовчуванням?",
+    "resetting": "Відновлення…",
+    "resetDone": "DNS за замовчуванням для {agent} відновлено. Щоб зміна набула чинності, повністю закрийте застосунок (не лише згорніть) і відкрийте його знову.",
     "emptyNoProvidersTitle": "Провайдери ще не налаштовані",
     "emptyNoProvidersBody": "Щоб використовувати AgentBridge, спочатку підключіть принаймні одного провайдера. Він буде місцем призначення, куди перенаправлятимуться запити IDE.",
     "emptyGoToProviders": "Перейти до провайдерів",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Не вдалося створити токен Dahl",
     "providerProxy": "Проксі",
     "providerProxyConfigureHint": "Налаштувати проксі",
-    "providerProxyTitleConfigured": "Проксі налаштовано: {host}"
+    "providerProxyTitleConfigured": "Проксі налаштовано: {host}",
+    "inheritConnectionOption": "Без власного проксі (успадковує зʼєднання)",
+    "inheritedProxy": "Успадковує зʼєднання: {host}",
+    "inheritedPool": "Успадковує пул зʼєднань ({count})",
+    "poolEmptyBlocked": "Пул порожній — запити не вдаються (не напряму)",
+    "directEgress": "Напряму (без проксі)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Прямий (рідний)",
     "targetUrl": "Цільовий URL",
     "error": "Помилка",
-    "configuration": "Конфігурація проксі"
+    "configuration": "Конфігурація проксі",
+    "upstreamStatus": "Статус верхнього потоку",
+    "noResponse": "Немає відповіді",
+    "egressIp": "Egress IP",
+    "servedBy": "Обслуговується",
+    "correlationId": "ID кореляції"
   },
   "requestTimeline": {
     "title": "Таймлайн Запиту",

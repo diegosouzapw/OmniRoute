@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Díchumasaigh greamaitheacht seisiúin",
     "sessionStickinessEnabled": "Greamaitheacht ar siúl",
     "sessionStickinessDisabled": "Greamaitheacht as",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Réamhshocrú Kimi Coding",
     "kimiPresetDescription": "Kimi K3 mar phríomh-mhúnla (Moonshot API), le cúltaca uathoibríoch chuig do naisc Kimi Code (kimi-coding, kimi-web) nuair a bhíonn siad cumraithe.",
     "kimiPresetCta": "Cuir réamhshocrú leis",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Déanfaidh sé seo cóip de na soláthraithe/samhlacha atá nasctha faoi láthair agus a mheaitseálann an teimpléad seo, agus cuirfidh sé i gcomhcheangal ineagarthóireachta iad.",
     "duplicateAutoComboFailedPrefix": "Theip ar chóip den chomhcheangal uathoibríoch a chruthú:",
     "duplicateAutoComboUnknownError": "Earráid anaithnid",
-    "duplicateAutoComboTitle": "Cruthaigh comhcheangal statach ó {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Cruthaigh comhcheangal statach ó {name}"
   },
   "costs": {
     "title": "Costais",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "D’úsáid {connections, plural, one {# nasc} other {# nasc}} {exits, plural, one {# bhealach amach} other {# bealach amach}} · suas le {max} ar bhealach amach amháin · le {hours} uair an chloig anuas",
     "poolEgressObservationEmpty": "Níor breathnaíodh aon trácht le {hours} uair an chloig anuas",
     "poolEgressObservationHint": "Áiríodh ó loga an tseachfhreastalaí thar an tréimhse iad: na seoltaí IP amach ar leith a breathnaíodh do bhaill na linne seo, agus naisc OmniRoute a d’úsáid iad. Is éard atá i gceist le \"Ar bhealach amach amháin\" ná thar an tréimhse, seachas ag an am céanna. Ní chuireann an frithdhúnadh 429 de réir IP ar sos ach naisc a bhaineann leis an teaghlach soláthraí céanna.",
+    "poolEgressFailuresByExit": "Teipeanna trí {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Teipeanna gan slí amach sannta: {count}",
     "poolMemberEgress": "Chuaigh {host}:{port} amach trí {egressIp} · le {hours} u anuas",
     "poolMemberEgressEmpty": "{host}:{port}: níor breathnaíodh aon trácht le {hours} u anuas",
     "poolMemberEgressHint": "An seoladh IP imeachta is déanaí a breathnaíodh tríd an mball seo den chomhthiomsú le linn na tréimhse, arna léamh ón loga seachfhreastalaí. Taispeántar an líne gan trácht do bhall nach raibh aon trácht aige le linn na tréimhse.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Cuir",
     "poolAddFailed": "Theip ar an seachfhreastalaí a chur leis an linn",
     "poolSelectProxy": "Roghnaigh seachfhreastalaí…",
-    "poolSaveFailed": "Theip ar shannadh na linne a shábháil"
+    "poolSaveFailed": "Theip ar shannadh na linne a shábháil",
+    "transportRate": "{rate}% iompair",
+    "previousSuccessRate": "Roimhe seo {rate}% rath",
+    "upstreamRefusals": "{count} diúltú in aghaidh srutha",
+    "connectionTestsCount": "{count} tástáil nasctha",
+    "notMeasured": "Gan tomhas"
   },
   "playground": {
     "title": "Clós Súgartha Múnlaí",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Samhail iarrtha",
       "requestProtocol": "Prótacal iarratais",
       "cacheSource": "Foinse Taisce",
+      "contentProvenance": "Freagra",
+      "contentEmpty": "Freagra folamh",
+      "usageAbsent": "Níor tuairiscíodh líon na dtocán",
+      "usageEstimated": "Líon na dtocán measta",
       "modelPinning": "Pionnáil Mhúnla",
       "activeModelPinning": "Gníomhach — múnla roghnaithe trí phionnáil seisiúin",
       "rotated": "Rothlaithe: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Níl aon logaí seachfhreastalaí ann fós. Cumraigh seachfhreastalaithe agus déan glaonna API chun iad a fheiceáil anseo.",
     "noMatchingLogs": "Ní mheaitseálann aon loga leis na scagairí reatha.",
     "tlsFingerprint": "Méarlorg TLS Chrome 124",
-    "colPublicIp": "IP Poiblí"
+    "colPublicIp": "IP Poiblí",
+    "colUpstream": "Uachtarach",
+    "colEgress": "IP Egress",
+    "colCorrelation": "Comhoiriúnacht",
+    "colServedBy": "Freastalaithe ag",
+    "filterTraffic": "Trácht",
+    "filterTests": "Tástálacha",
+    "filterSource": "Tús"
   },
   "endpointOptions": {
     "speech": "Urlabhra",
@@ -12012,6 +12030,10 @@
     "stopDns": "Stad DNS",
     "toggling": "Á scoránú…",
     "viewTraffic": "Féach ar an trácht",
+    "resetAgent": "Athchóirigh an réamhshocrú",
+    "resetAgentConfirm": "An réamhshocrú a athchóiriú?",
+    "resetting": "Á athchóiriú…",
+    "resetDone": "Athchóiríodh an DNS réamhshocraithe do {agent}. Scoir den aip go hiomlán (ní leor í a íoslaghdú) agus oscail arís í chun go dtiocfaidh an t-athrú i bhfeidhm.",
     "emptyNoProvidersTitle": "Níl aon soláthraithe cumraithe fós",
     "emptyNoProvidersBody": "Chun AgentBridge a úsáid, ceangail soláthraí amháin ar a laghad ar dtús. Is é sin an ceann scríbe a ndéanfar iarratais IDE a ródú chuige.",
     "emptyGoToProviders": "Téigh chuig Soláthraithe",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Theip ar chomhartha Dahl a chruthú",
     "providerProxy": "Seachfhreastalaí",
     "providerProxyConfigureHint": "Cumraigh seachfhreastalaí",
-    "providerProxyTitleConfigured": "Seachfhreastalaí cumraithe: {host}"
+    "providerProxyTitleConfigured": "Seachfhreastalaí cumraithe: {host}",
+    "inheritConnectionOption": "Gan seachfhreastalaí féin (oidhríonn nasc)",
+    "inheritedProxy": "Oidhreacht nasc: {host}",
+    "inheritedPool": "Oidhreacht linn nasc ({count})",
+    "poolEmptyBlocked": "Linn folamh — teipeann ar iarratais (ní díreach)",
+    "directEgress": "Díreach (gan seachfhreastalaí)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Díreach (dúchasach)",
     "targetUrl": "Sprioc-URL",
     "error": "Earráid",
-    "configuration": "Cumraíocht Seachfhreastalaí"
+    "configuration": "Cumraíocht Seachfhreastalaí",
+    "upstreamStatus": "Stádas uachtarach",
+    "noResponse": "Níl freagra",
+    "egressIp": "IP Egress",
+    "servedBy": "Freastalaithe ag",
+    "correlationId": "ID Comhoiriúnachta"
   },
   "requestTimeline": {
     "title": "Amlíne Iarratais",

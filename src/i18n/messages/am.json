@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "የክፍለ ጊዜ ተጣባቂነትን አሰናክል",
     "sessionStickinessEnabled": "ተጣባቂነት በርቷል",
     "sessionStickinessDisabled": "ተጣባቂነት ጠፍቷል",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "የKimi Coding ቅድመ-ቅንብር",
     "kimiPresetDescription": "Kimi K3 እንደ ዋና ሞዴል (Moonshot API)፣ ሲዋቀሩ ደግሞ ወደ Kimi Code ግንኙነቶችዎ (kimi-coding, kimi-web) በራስ-ሰር የሚቀየር ምትኬ ያለው።",
     "kimiPresetCta": "ቅድመ-ቅንብር አክል",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ይህ ከዚህ አብነት ጋር የሚዛመዱትን በአሁኑ ጊዜ የተገናኙ አቅራቢዎች/ሞዴሎች ቅጽበታዊ ቅጂ ወደሚስተካከል ጥምረት ይቀይራል።",
     "duplicateAutoComboFailedPrefix": "ራስ-ሰር ጥምረቱን ማባዛት አልተሳካም፦",
     "duplicateAutoComboUnknownError": "ያልታወቀ ስህተት",
-    "duplicateAutoComboTitle": "ከ{name} የማይለወጥ ጥምረት ፍጠር",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "ከ{name} የማይለወጥ ጥምረት ፍጠር"
   },
   "costs": {
     "title": "ወጪዎች",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# ግንኙነት} other {# ግንኙነቶች}} {exits, plural, one {# መውጫን} other {# መውጫዎችን}} ተጠቅመዋል · በአንድ መውጫ ላይ እስከ {max} · የመጨረሻዎቹ {hours} ሰዓታት",
     "poolEgressObservationEmpty": "ባለፉት {hours} ሰዓታት ውስጥ ምንም ትራፊክ አልታየም",
     "poolEgressObservationHint": "በተወሰነው የጊዜ ክልል ውስጥ ከፕሮክሲ ምዝግብ የተቆጠሩት፦ ለዚህ ፑል አባላት የታዩ የተለያዩ የወጪ IPዎች እና እነሱን የተጠቀሙ OmniRoute ግንኙነቶች። \"በአንድ መውጫ ላይ\" ማለት በተወሰነው የጊዜ ክልል ውስጥ ማለት ነው፤ በተመሳሳይ ጊዜ ማለት አይደለም። የእያንዳንዱ IP የ429 እገዳ የሚያቆመው የተመሳሳይ የአቅራቢ ቤተሰብ ግንኙነቶችን ብቻ ነው።",
+    "poolEgressFailuresByExit": "በ{exit} በኩል የተከሰቱ ውድቀቶች፦ {count}",
+    "poolEgressFailuresUnattributed": "መውጫ ያልተመደበላቸው ውድቀቶች፦ {count}",
     "poolMemberEgress": "{host}:{port} በ{egressIp} በኩል ወጥቷል · ያለፉት {hours} ሰዓታት",
     "poolMemberEgressEmpty": "{host}:{port}፦ ባለፉት {hours} ሰዓታት ምንም ትራፊክ አልታየም",
     "poolMemberEgressHint": "በዚህ የፑል አባል በኩል በጊዜ መስኮቱ ውስጥ የታየው የመጨረሻው የመውጫ IP፣ ከፕሮክሲ ምዝግብ ማስታወሻው የተነበበ። በጊዜ መስኮቱ ውስጥ ምንም ትራፊክ የሌለው አባል ትራፊክ-የለም መስመሩን ያሳያል።",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "ጨምር",
     "poolAddFailed": "ፕሮክሲውን ወደ ፑሉ ማከል አልተሳካም",
     "poolSelectProxy": "ፕሮክሲ ይምረጡ…",
-    "poolSaveFailed": "የፑል ምደባውን ማስቀመጥ አልተሳካም"
+    "poolSaveFailed": "የፑል ምደባውን ማስቀመጥ አልተሳካም",
+    "transportRate": "{rate}% ትራንስፖርት",
+    "previousSuccessRate": "ከዚህ በፊት {rate}% ስኬት",
+    "upstreamRefusals": "{count} upstream ውድቅዎች",
+    "connectionTestsCount": "{count} የግንኙነት ሙከራዎች",
+    "notMeasured": "አልተለካም"
   },
   "playground": {
     "title": "የሞዴል መሞከሪያ",
@@ -11474,6 +11481,10 @@
       "requestedModel": "የተጠየቀው ሞዴል",
       "requestProtocol": "የጥያቄ ፕሮቶኮል",
       "cacheSource": "የመሸጎጫ ምንጭ",
+      "contentProvenance": "ምላሽ",
+      "contentEmpty": "ባዶ ምላሽ",
+      "usageAbsent": "የቶከን ብዛት አልተዘገበም",
+      "usageEstimated": "የቶከን ብዛት ተገምቷል",
       "modelPinning": "ሞዴልን መቆለፍ",
       "activeModelPinning": "ንቁ — ሞዴሉ በክፍለ ጊዜ መቆለፍ ተመርጧል",
       "rotated": "ተዘዋውሯል፦ {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "እስካሁን ምንም የፕሮክሲ ምዝግብ ማስታወሻዎች የሉም። ፕሮክሲዎችን ያዋቅሩ እና እዚህ ለማየት የAPI ጥሪዎችን ያድርጉ።",
     "noMatchingLogs": "ከአሁኑ ማጣሪያዎች ጋር የሚዛመዱ ምዝግብ ማስታወሻዎች የሉም።",
     "tlsFingerprint": "Chrome 124 TLS አሻራ",
-    "colPublicIp": "ይፋዊ IP"
+    "colPublicIp": "ይፋዊ IP",
+    "colUpstream": "ከላይ ያለው",
+    "colEgress": "ወጣት አይፒ",
+    "colCorrelation": "የተያያዘ",
+    "colServedBy": "የተሰጠ በ",
+    "filterTraffic": "ትራፊክ",
+    "filterTests": "ፈተናዎች",
+    "filterSource": "ምንጭ"
   },
   "endpointOptions": {
     "speech": "ንግግር",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNSን አቁም",
     "toggling": "በመቀያየር ላይ…",
     "viewTraffic": "ትራፊክን ይመልከቱ",
+    "resetAgent": "ነባሪውን መልስ",
+    "resetAgentConfirm": "ነባሪውን ይመልሱ?",
+    "resetting": "በመመለስ ላይ…",
+    "resetDone": "ለ{agent} ነባሪው DNS ተመልሷል። ለውጡ ተግባራዊ እንዲሆን መተግበሪያውን ሙሉ በሙሉ ይዝጉ (መቀነስ ብቻ አይበቃም) እና እንደገና ይክፈቱት።",
     "emptyNoProvidersTitle": "እስካሁን ምንም አቅራቢ አልተዋቀረም",
     "emptyNoProvidersBody": "AgentBridgeን ለመጠቀም፣ መጀመሪያ ቢያንስ አንድ አቅራቢ ያገናኙ። የIDE ጥያቄዎች የሚመሩበት መዳረሻ ይሆናል።",
     "emptyGoToProviders": "ወደ አቅራቢዎች ይሂዱ",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "የDahl ቶከን መፍጠር አልተሳካም",
     "providerProxy": "ፕሮክሲ",
     "providerProxyConfigureHint": "ፕሮክሲ አዋቅር",
-    "providerProxyTitleConfigured": "ፕሮክሲ ተዋቅሯል፦ {host}"
+    "providerProxyTitleConfigured": "ፕሮክሲ ተዋቅሯል፦ {host}",
+    "inheritConnectionOption": "የራሱ ፕሮክሲ የለም (ግንኙነት ይወርሳል)",
+    "inheritedProxy": "ግንኙነት ይወርሳል: {host}",
+    "inheritedPool": "የግንኙነት ፑል ይወርሳል ({count})",
+    "poolEmptyBlocked": "ፑል ባዶ — ጥያቄዎች ይሳናሉ (ቀጥተኛ አይደለም)",
+    "directEgress": "ቀጥተኛ (ፕሮክሲ የሌለው)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "ቀጥታ (ቤተኛ)",
     "targetUrl": "ዒላማ URL",
     "error": "ስህተት",
-    "configuration": "የፕሮክሲ ውቅር"
+    "configuration": "የፕሮክሲ ውቅር",
+    "upstreamStatus": "ከላይ የሚገኝ ሁኔታ",
+    "noResponse": "አንድ እንደማይመልስ",
+    "egressIp": "ወጣት አይፒ",
+    "servedBy": "የተሰጠ በ",
+    "correlationId": "የተያያዘ መለያ"
   },
   "requestTimeline": {
     "title": "የጥያቄ ጊዜ መስመር",

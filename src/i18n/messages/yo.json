@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Mú ìdúróṣinṣin sáà kúrò",
     "sessionStickinessEnabled": "Ìdúróṣinṣin ti ṣiṣẹ́",
     "sessionStickinessDisabled": "Ìdúróṣinṣin ti dáwọ́ dúró",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Ètò àsàyàn-tẹ́lẹ̀ Kimi Coding",
     "kimiPresetDescription": "Kimi K3 gẹ́gẹ́ bí awoṣe àkọ́kọ́ (Moonshot API), pẹ̀lú ìpadà sẹ́yìn aládàáṣe sí àwọn àsopọ̀ Kimi Code rẹ (kimi-coding, kimi-web) nígbà tí a bá ti ṣètò wọn.",
     "kimiPresetCta": "Ṣàfikún ètò àsàyàn-tẹ́lẹ̀",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Èyí yóò ṣe ẹ̀dà àwọn olùpèsè/àwọn awoṣe tó sopọ̀ lọ́wọ́lọ́wọ́ tí ó bá àdàkọ yìí mu, yóò sì fi wọ́n sínú àkójọpọ̀ tí a lè ṣàtúnṣe.",
     "duplicateAutoComboFailedPrefix": "Kò ṣeé ṣe láti ṣe ẹ̀dà àkójọpọ̀ aládàáṣiṣẹ́:",
     "duplicateAutoComboUnknownError": "Àṣìṣe àìmọ̀",
-    "duplicateAutoComboTitle": "Ṣẹ̀dá àkójọpọ̀ àìyípadà láti inú {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ṣẹ̀dá àkójọpọ̀ àìyípadà láti inú {name}"
   },
   "costs": {
     "title": "Àwọn ìnáwó",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# àbájáde} other {# àwọn àbájáde}} ni {connections, plural, one {# àsopọ̀} other {# àwọn àsopọ̀}} lò · tó {max} lórí àbájáde kan · láàárín wákàtí {hours} tó kọjá",
     "poolEgressObservationEmpty": "A kò rí ìrìnàjò dátà kankan láàárín wákàtí {hours} tó kọjá",
     "poolEgressObservationHint": "A kà á láti inú àkọsílẹ̀ prọ́ṣì láàárín àkókò náà: àwọn IP àbájáde ọ̀tọ̀ọ̀tọ̀ tí a rí fún àwọn ọmọ ẹgbẹ́ àkójọpọ̀ yìí, àti àwọn àsopọ̀ OmniRoute tí ó lò wọ́n. \"Lórí àbájáde kan\" túmọ̀ sí láàárín àkókò náà, kì í ṣe ní àkókò kan náà. Ìdènà 429 fún IP kọ̀ọ̀kan máa ń dá àwọn àsopọ̀ ti ìdílé olùpèsè kan náà dúró fún ìgbà díẹ̀ nìkan.",
+    "poolEgressFailuresByExit": "Àwọn ìkùnà nípasẹ̀ {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Àwọn ìkùnà láìsí ọ̀nà àbájáde tí a yàn: {count}",
     "poolMemberEgress": "{host}:{port} jáde nípasẹ̀ {egressIp} · ní wákàtí {hours} tó kọjá",
     "poolMemberEgressEmpty": "{host}:{port}: kò sí ìṣàn data tí a ṣàkíyèsí ní wákàtí {hours} tó kọjá",
     "poolMemberEgressHint": "Àdírẹ́sì IP àbájáde tó kẹ́yìn tí a ṣàkíyèsí nípasẹ̀ ọmọ ẹgbẹ́ pool yìí láàárín àkókò náà, tí a kà láti inú àkọsílẹ̀ proxy. Ọmọ ẹgbẹ́ tí kò ní ìṣàn data láàárín àkókò náà yóò fi ìlà àìsí-ìṣàn data hàn.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Ṣàfikún",
     "poolAddFailed": "Kùnà láti ṣàfikún prọ́ṣì náà sí àkójọpọ̀ náà",
     "poolSelectProxy": "Yan prọ́ṣì kan…",
-    "poolSaveFailed": "Kùnà láti fi ìpín àkójọpọ̀ pamọ́"
+    "poolSaveFailed": "Kùnà láti fi ìpín àkójọpọ̀ pamọ́",
+    "transportRate": "{rate}% gbigbe",
+    "previousSuccessRate": "Ni iṣaaju {rate}% aṣeyọri",
+    "upstreamRefusals": "{count} kikọ upstream",
+    "connectionTestsCount": "{count} idanwo asopọ",
+    "notMeasured": "A ko wọn"
   },
   "playground": {
     "title": "Pápá Ìdánwò Àwòṣe",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Mọ́dẹ́lì Tí A Béèrè",
       "requestProtocol": "Ìlànà Ìbéèrè",
       "cacheSource": "Orísun Cache",
+      "contentProvenance": "Ìdáhùn",
+      "contentEmpty": "Ìdáhùn òfo",
+      "usageAbsent": "A kò jábọ̀ iye token",
+      "usageEstimated": "Iye token jẹ́ àfojúsùn",
       "modelPinning": "Ìdìmọ́ Mọ́dẹ́lì",
       "activeModelPinning": "Ń ṣiṣẹ́ — a yan mọ́dẹ́lì nípasẹ̀ ìdìmọ́ session",
       "rotated": "A yí padà: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Kò sí àkọsílẹ̀ aṣojú síbẹ̀. Ṣètò àwọn aṣojú kí o sì ṣe àwọn ìpè API láti rí wọn níbí.",
     "noMatchingLogs": "Kò sí àkọsílẹ̀ tó bá àwọn asẹ́ lọ́wọ́lọ́wọ́ mu.",
     "tlsFingerprint": "Àmì ìka ọwọ́ TLS Chrome 124",
-    "colPublicIp": "IP Gbogbogbò"
+    "colPublicIp": "IP Gbogbogbò",
+    "colUpstream": "Ibi isalẹ",
+    "colEgress": "IP Egress",
+    "colCorrelation": "Iṣọkan",
+    "colServedBy": "Ti a ṣe nipasẹ",
+    "filterTraffic": "Iṣan omi",
+    "filterTests": "Awọn idanwo",
+    "filterSource": "Orisun"
   },
   "endpointOptions": {
     "speech": "Ọ̀rọ̀",
@@ -12012,6 +12030,10 @@
     "stopDns": "Dá DNS dúró",
     "toggling": "Ń yí i padà…",
     "viewTraffic": "Wo ìṣàn trafikì",
+    "resetAgent": "Dá àtilẹ̀wá padà",
+    "resetAgentConfirm": "Ṣé kí a dá àtilẹ̀wá padà?",
+    "resetting": "Ń dá padà…",
+    "resetDone": "A ti dá DNS àtilẹ̀wá padà fún {agent}. Pa ohun èlò náà dé pátápátá (kì í ṣe láti dín in kù nìkan) kí o sì tún un ṣí kí àyípadà náà lè ṣiṣẹ́.",
     "emptyNoProvidersTitle": "Kò tíì sí olupèsè kankan tí a ṣètò",
     "emptyNoProvidersBody": "Láti lo AgentBridge, kọ́kọ́ so pọ̀ mọ́ ó kéré tán olupèsè kan. Òun ni yóò jẹ́ ibi tí a ó máa darí àwọn ìbéèrè IDE sí.",
     "emptyGoToProviders": "Lọ sí Àwọn Olùpèsè",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Ṣíṣẹ̀dá àmì Dahl kùnà",
     "providerProxy": "Aṣojú",
     "providerProxyConfigureHint": "Ṣètò proxy",
-    "providerProxyTitleConfigured": "A ti ṣètò proxy: {host}"
+    "providerProxyTitleConfigured": "A ti ṣètò proxy: {host}",
+    "inheritConnectionOption": "Ko si proxy tirẹ (jogun asopọ)",
+    "inheritedProxy": "Jogun asopọ: {host}",
+    "inheritedPool": "Jogun adagun asopọ ({count})",
+    "poolEmptyBlocked": "Adagun ṣofo — awọn ibeere kuna (kii ṣe taara)",
+    "directEgress": "Taara (laisi proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Taara (ìbílẹ̀)",
     "targetUrl": "URL àfojúsùn",
     "error": "Àṣìṣe",
-    "configuration": "Àtòjọ ètò próósì"
+    "configuration": "Àtòjọ ètò próósì",
+    "upstreamStatus": "Ipo isalẹ",
+    "noResponse": "Ko si idahun",
+    "egressIp": "IP Egress",
+    "servedBy": "Ti a ṣe nipasẹ",
+    "correlationId": "ID Iṣọkan"
   },
   "requestTimeline": {
     "title": "Ìlà àkókò ìbéèrè",

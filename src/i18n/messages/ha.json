@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Kashe mannewar zama",
     "sessionStickinessEnabled": "Mannewar zama tana kunne",
     "sessionStickinessDisabled": "Mannewar zama tana kashe",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Saitin Kimi Coding",
     "kimiPresetDescription": "Kimi K3 a matsayin babban samfurin (Moonshot API), tare da komawa ta atomatik zuwa haɗin Kimi Code ɗinka (kimi-coding, kimi-web) idan an saita su.",
     "kimiPresetCta": "Ƙara saitin",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Wannan zai adana kwafin masu samarwa/samfura da aka haɗa a yanzu waɗanda suka dace da wannan samfuri na tsari a matsayin haɗin da za a iya gyarawa.",
     "duplicateAutoComboFailedPrefix": "An kasa yin kwafin haɗin atomatik:",
     "duplicateAutoComboUnknownError": "Kuskuren da ba a sani ba",
-    "duplicateAutoComboTitle": "Ƙirƙiri tsayayyen haɗi daga {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ƙirƙiri tsayayyen haɗi daga {name}"
   },
   "costs": {
     "title": "Kuɗaɗen kashewa",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "An yi amfani da {exits, plural, one {hanyar fita #} other {hanyoyin fita #}} ta hanyar {connections, plural, one {haɗi #} other {haɗe-haɗe #}} · har zuwa {max} a kan hanyar fita guda · sa'o'i {hours} da suka gabata",
     "poolEgressObservationEmpty": "Ba a ga zirga-zirga ba cikin sa'o'i {hours} da suka gabata",
     "poolEgressObservationHint": "An ƙidaya daga rajistar proxy a tsawon wannan lokacin: adiresoshin IP na fita daban-daban da aka gani ga mambobin wannan rukuni, da kuma haɗe-haɗen OmniRoute da suka yi amfani da su. \"A kan hanyar fita guda\" yana nufin a tsawon wannan lokacin, ba a lokaci guda ba. Kullewar 429 ta kowane IP tana dakatar da haɗe-haɗen iyalin mai samarwa iri ɗaya ne kawai.",
+    "poolEgressFailuresByExit": "Gazawa ta hanyar {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Gazawa ba tare da hanyar fita da aka danganta ba: {count}",
     "poolMemberEgress": "{host}:{port} ya fita ta {egressIp} · awanni {hours} da suka gabata",
     "poolMemberEgressEmpty": "{host}:{port}: ba a ga zirga-zirga ba a cikin awanni {hours} da suka gabata",
     "poolMemberEgressHint": "Adireshin IP na fita na ƙarshe da aka gani ta wannan mamban pool a cikin lokacin dubawa, wanda aka karanta daga rajistar proxy. Mamban da ba shi da zirga-zirga a cikin wannan lokacin zai nuna layin babu-zirga-zirga.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Ƙara",
     "poolAddFailed": "An kasa ƙara proxy ɗin zuwa pool",
     "poolSelectProxy": "Zaɓi proxy…",
-    "poolSaveFailed": "An kasa adana rabon pool"
+    "poolSaveFailed": "An kasa adana rabon pool",
+    "transportRate": "{rate}% sufuri",
+    "previousSuccessRate": "A baya {rate}% nasara",
+    "upstreamRefusals": "{count} kin amincewa daga sama",
+    "connectionTestsCount": "{count} gwaje-gwajen haɗi",
+    "notMeasured": "Ba a auna ba"
   },
   "playground": {
     "title": "Filin Gwajin Model",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Samfurin da Aka Buƙata",
       "requestProtocol": "Ka’idar Buƙata",
       "cacheSource": "Tushen Ma’ajiya",
+      "contentProvenance": "Amsa",
+      "contentEmpty": "Amsa mara komai",
+      "usageAbsent": "Ba a bayar da adadin token ba",
+      "usageEstimated": "An kiyasta adadin token",
       "modelPinning": "Kafewar Samfuri",
       "activeModelPinning": "Yana aiki — an zaɓi samfurin ta hanyar kafewar zaman",
       "rotated": "An sauya: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Babu rajistan ayyukan proxy tukuna. Saita proxies sannan ka yi kiran API don ganin su a nan.",
     "noMatchingLogs": "Babu rajistan ayyuka da suka dace da matatun yanzu.",
     "tlsFingerprint": "Sawun yatsan TLS na Chrome 124",
-    "colPublicIp": "IP na jama'a"
+    "colPublicIp": "IP na jama'a",
+    "colUpstream": "Tushen",
+    "colEgress": "IP na fita",
+    "colCorrelation": "Haɗin kai",
+    "colServedBy": "An bayar da",
+    "filterTraffic": "Tafiya",
+    "filterTests": "Gwaje-gwaje",
+    "filterSource": "Tushen"
   },
   "endpointOptions": {
     "speech": "Magana",
@@ -12012,6 +12030,10 @@
     "stopDns": "Dakatar da DNS",
     "toggling": "Ana sauyawa…",
     "viewTraffic": "Duba zirga-zirga",
+    "resetAgent": "Mayar da tsoho",
+    "resetAgentConfirm": "A mayar da tsoho?",
+    "resetting": "Ana mayarwa…",
+    "resetDone": "An mayar da tsohon DNS na {agent}. Rufe manhajar gaba ɗaya (ba kawai rage ta ba) sannan ka sake buɗe ta domin canjin ya fara aiki.",
     "emptyNoProvidersTitle": "Ba a saita wani mai bayarwa ba tukuna",
     "emptyNoProvidersBody": "Don amfani da AgentBridge, da farko haɗa aƙalla mai bayarwa ɗaya. Shi ne zai zama wurin da ake tura buƙatun IDE.",
     "emptyGoToProviders": "Je zuwa Masu bayarwa",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "An kasa ƙirƙirar Dahl token",
     "providerProxy": "Wakili",
     "providerProxyConfigureHint": "Saita proxy",
-    "providerProxyTitleConfigured": "An saita proxy: {host}"
+    "providerProxyTitleConfigured": "An saita proxy: {host}",
+    "inheritConnectionOption": "Babu proxy na kansa (yana gadon haɗi)",
+    "inheritedProxy": "Yana gadon haɗi: {host}",
+    "inheritedPool": "Yana gadon tafkin haɗi ({count})",
+    "poolEmptyBlocked": "Tafkin babu kowa — buƙatun suna faduwa (ba kai tsaye ba)",
+    "directEgress": "Kai tsaye (babu proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Kai tsaye (na asali)",
     "targetUrl": "URL ɗin da ake nufi",
     "error": "Kuskure",
-    "configuration": "Saitunan Proksi"
+    "configuration": "Saitunan Proksi",
+    "upstreamStatus": "Matsayin tushen",
+    "noResponse": "Babu amsa",
+    "egressIp": "IP na fita",
+    "servedBy": "An bayar da",
+    "correlationId": "ID na haɗin kai"
   },
   "requestTimeline": {
     "title": "Jadawalin Lokacin Buƙata",

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "セッションスティッキネスを無効化",
     "sessionStickinessEnabled": "スティッキネス オン",
     "sessionStickinessDisabled": "スティッキネス オフ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding プリセット",
     "kimiPresetDescription": "Kimi K3 をプライマリモデル（Moonshot API）とし、設定時は Kimi Code 接続（kimi-coding、kimi-web）へ自動的にフォールバックします。",
     "kimiPresetCta": "プリセットを追加",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "このテンプレートに一致する現在接続されているプロバイダー/モデルを編集可能なコンボとしてスナップショットします。",
     "duplicateAutoComboFailedPrefix": "オートコンボの複製に失敗しました：",
     "duplicateAutoComboUnknownError": "不明なエラー",
-    "duplicateAutoComboTitle": "{name}から静的コンボを作成",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}から静的コンボを作成"
   },
   "costs": {
     "title": "コスト",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# 個の出口} other {# 個の出口}}を{connections, plural, one {# 件の接続} other {# 件の接続}}が使用 · 1つの出口で最大{max}件 · 過去{hours}時間",
     "poolEgressObservationEmpty": "過去{hours}時間にトラフィックは観測されませんでした",
     "poolEgressObservationHint": "指定期間のプロキシログに基づく集計です。このプールのメンバーで観測された異なる出口IPと、それらを使用したOmniRoute接続を示します。「1つの出口で」は指定期間全体を意味し、同時に使用された数ではありません。IPごとの429ロックアウトでは、同じプロバイダーファミリーの接続のみが一時停止されます。",
+    "poolEgressFailuresByExit": "{exit} 経由の失敗: {count}",
+    "poolEgressFailuresUnattributed": "出口を特定できない失敗: {count}",
     "poolMemberEgress": "{host}:{port} は {egressIp} 経由で送信 · 過去 {hours} 時間",
     "poolMemberEgressEmpty": "{host}:{port}: 過去 {hours} 時間にトラフィックは観測されませんでした",
     "poolMemberEgressHint": "期間内にこのプールメンバーを通じて観測された最新のエグレス IP（プロキシログから取得）。期間内にトラフィックがないメンバーには、トラフィックなしの行が表示されます。",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "追加",
     "poolAddFailed": "プールへのプロキシの追加に失敗しました",
     "poolSelectProxy": "プロキシを選択…",
-    "poolSaveFailed": "プールの割り当ての保存に失敗しました"
+    "poolSaveFailed": "プールの割り当ての保存に失敗しました",
+    "transportRate": "{rate}％トランスポート",
+    "previousSuccessRate": "以前は{rate}％成功",
+    "upstreamRefusals": "{count}件のアップストリーム拒否",
+    "connectionTestsCount": "{count}件の接続テスト",
+    "notMeasured": "未測定"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "要求されたモデル",
       "requestProtocol": "要求プロトコル",
       "cacheSource": "キャッシュソース",
+      "contentProvenance": "応答",
+      "contentEmpty": "空の応答",
+      "usageAbsent": "トークン数が報告されていません",
+      "usageEstimated": "トークン数は推定値です",
       "modelPinning": "モデルピン留め",
       "activeModelPinning": "アクティブ — セッションピンニングを介して選択されたモデル",
       "rotated": "回転: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "プロキシログはまだありません。プロキシを設定してAPIを呼び出すと、ここに表示されます。",
     "noMatchingLogs": "現在のフィルターに一致するログはありません。",
     "tlsFingerprint": "Chrome 124 TLSフィンガープリント",
-    "colPublicIp": "パブリックIP"
+    "colPublicIp": "パブリックIP",
+    "colUpstream": "アップストリーム",
+    "colEgress": "イーグレスIP",
+    "colCorrelation": "相関",
+    "colServedBy": "提供元",
+    "filterTraffic": "トラフィック",
+    "filterTests": "テスト",
+    "filterSource": "ソース"
   },
   "endpointOptions": {
     "speech": "音声",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNSを停止",
     "toggling": "切り替え中…",
     "viewTraffic": "トラフィックを表示",
+    "resetAgent": "デフォルトに戻す",
+    "resetAgentConfirm": "デフォルトに戻しますか？",
+    "resetting": "復元中…",
+    "resetDone": "{agent} のデフォルト DNS を復元しました。変更を反映するには、アプリを完全に終了し（最小化ではなく）、もう一度開いてください。",
     "emptyNoProvidersTitle": "プロバイダーがまだ設定されていません",
     "emptyNoProvidersBody": "AgentBridgeを使用するには、まず少なくとも1つのプロバイダーを接続してください。これがIDEリクエストのルーティング先になります。",
     "emptyGoToProviders": "プロバイダーへ移動",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahlトークンの作成に失敗しました",
     "providerProxy": "プロキシ",
     "providerProxyConfigureHint": "プロキシを設定する",
-    "providerProxyTitleConfigured": "プロキシが設定されました: {host}"
+    "providerProxyTitleConfigured": "プロキシが設定されました: {host}",
+    "inheritConnectionOption": "独自プロキシなし(接続を継承)",
+    "inheritedProxy": "接続を継承:{host}",
+    "inheritedPool": "接続プールを継承({count})",
+    "poolEmptyBlocked": "プールが空—リクエストは失敗します(直接ではありません)",
+    "directEgress": "直接(プロキシなし)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "ダイレクト",
     "targetUrl": "ターゲットURL",
     "error": "エラー",
-    "configuration": "プロキシ設定"
+    "configuration": "プロキシ設定",
+    "upstreamStatus": "アップストリームステータス",
+    "noResponse": "応答なし",
+    "egressIp": "イーグレスIP",
+    "servedBy": "提供元",
+    "correlationId": "相関ID"
   },
   "requestTimeline": {
     "title": "リクエストタイムライン",

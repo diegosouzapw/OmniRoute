@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "सेसन स्टिकिनेस असक्षम गर्नुहोस्",
     "sessionStickinessEnabled": "स्टिकिनेस सक्रिय",
     "sessionStickinessDisabled": "स्टिकिनेस निष्क्रिय",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding प्रिसेट",
     "kimiPresetDescription": "Kimi K3 लाई प्राथमिक मोडेलका रूपमा (Moonshot API) प्रयोग गर्छ, र कन्फिगर गरिएको अवस्थामा तपाईंका Kimi Code जडानहरू (kimi-coding, kimi-web) मा स्वचालित रूपमा फलब्याक गर्छ।",
     "kimiPresetCta": "प्रिसेट थप्नुहोस्",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "यसले यो टेम्प्लेटसँग मेल खाने हाल जडान भएका प्रदायक/मोडेलहरूको स्न्यापसट लिएर सम्पादनयोग्य कम्बो बनाउनेछ।",
     "duplicateAutoComboFailedPrefix": "स्वचालित कम्बो डुप्लिकेट गर्न असफल भयो:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटि",
-    "duplicateAutoComboTitle": "{name} बाट स्थिर कम्बो सिर्जना गर्नुहोस्",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} बाट स्थिर कम्बो सिर्जना गर्नुहोस्"
   },
   "costs": {
     "title": "लागत",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# जडान} other {# जडानहरू}} द्वारा प्रयोग गरिएका {exits, plural, one {# निकास} other {# निकासहरू}} · एउटै निकासमा बढीमा {max} · पछिल्लो {hours} घण्टा",
     "poolEgressObservationEmpty": "पछिल्लो {hours} घण्टामा कुनै ट्राफिक देखिएन",
     "poolEgressObservationHint": "यो समयावधिको प्रोक्सी लगबाट गणना गरिएको हो: यस पूलका सदस्यहरूका लागि देखिएका फरक बहिर्गमन IP हरू र तिनलाई प्रयोग गर्ने OmniRoute जडानहरू। \"एउटै निकासमा\" भन्नाले एकै समयमा नभई उक्त समयावधिभर भन्ने बुझिन्छ। प्रति-IP 429 लकआउटले एउटै प्रदायक परिवारका जडानहरूलाई मात्र अस्थायी रूपमा रोक्छ।",
+    "poolEgressFailuresByExit": "{exit} मार्फत असफलताहरू: {count}",
+    "poolEgressFailuresUnattributed": "तोकिएको निकास नभएका असफलताहरू: {count}",
     "poolMemberEgress": "{host}:{port} बाट {egressIp} हुँदै बाहिरियो · पछिल्लो {hours} घण्टा",
     "poolMemberEgressEmpty": "{host}:{port}: पछिल्लो {hours} घण्टामा कुनै ट्राफिक देखिएन",
     "poolMemberEgressHint": "यस पूल सदस्यमार्फत तोकिएको समयावधिमा देखिएको अन्तिम निर्गमन IP, जुन प्रोक्सी लगबाट पढिएको हो। उक्त समयावधिमा कुनै ट्राफिक नभएको सदस्यले ट्राफिक-नभएको पङ्क्ति देखाउँछ।",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "थप्नुहोस्",
     "poolAddFailed": "पुलमा प्रोक्सी थप्न असफल भयो",
     "poolSelectProxy": "प्रोक्सी चयन गर्नुहोस्…",
-    "poolSaveFailed": "पुल असाइनमेन्ट सुरक्षित गर्न असफल भयो"
+    "poolSaveFailed": "पुल असाइनमेन्ट सुरक्षित गर्न असफल भयो",
+    "transportRate": "{rate}% ढुवानी",
+    "previousSuccessRate": "पहिले {rate}% सफलता",
+    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृति",
+    "connectionTestsCount": "{count} जडान परीक्षण",
+    "notMeasured": "मापन गरिएको छैन"
   },
   "playground": {
     "title": "मोडेल प्लेग्राउन्ड",
@@ -11474,6 +11481,10 @@
       "requestedModel": "अनुरोध गरिएको मोडेल",
       "requestProtocol": "अनुरोध प्रोटोकल",
       "cacheSource": "क्यास स्रोत",
+      "contentProvenance": "जवाफ",
+      "contentEmpty": "खाली जवाफ",
+      "usageAbsent": "टोकन संख्या रिपोर्ट गरिएको छैन",
+      "usageEstimated": "टोकन संख्या अनुमानित",
       "modelPinning": "मोडेल पिनिङ",
       "activeModelPinning": "सक्रिय — सत्र पिनिङमार्फत मोडेल चयन गरिएको",
       "rotated": "रोटेट गरिएको: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "अझै कुनै प्रोक्सी लग छैन। तिनलाई यहाँ हेर्न प्रोक्सीहरू कन्फिगर गरी API कलहरू गर्नुहोस्।",
     "noMatchingLogs": "हालका फिल्टरहरूसँग कुनै लग मेल खाँदैन।",
     "tlsFingerprint": "Chrome 124 TLS फिङ्गरप्रिन्ट",
-    "colPublicIp": "सार्वजनिक IP"
+    "colPublicIp": "सार्वजनिक IP",
+    "colUpstream": "उपधारा",
+    "colEgress": "निष्कासन आईपी",
+    "colCorrelation": "सहसंबंध",
+    "colServedBy": "द्वारा सेवा गरियो",
+    "filterTraffic": "यातायात",
+    "filterTests": "परीक्षणहरू",
+    "filterSource": "स्रोत"
   },
   "endpointOptions": {
     "speech": "वाणी",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS रोक्नुहोस्",
     "toggling": "टगल गरिँदै छ…",
     "viewTraffic": "ट्राफिक हेर्नुहोस्",
+    "resetAgent": "पूर्वनिर्धारित पुनर्स्थापना गर्नुहोस्",
+    "resetAgentConfirm": "पूर्वनिर्धारित पुनर्स्थापना गर्ने?",
+    "resetting": "पुनर्स्थापना गर्दै…",
+    "resetDone": "{agent} का लागि पूर्वनिर्धारित DNS पुनर्स्थापना गरियो। परिवर्तन लागू हुन एप पूर्ण रूपमा बन्द गर्नुहोस् (केवल सानो नगर्नुहोस्) र फेरि खोल्नुहोस्।",
     "emptyNoProvidersTitle": "अहिलेसम्म कुनै प्रदायक कन्फिगर गरिएको छैन",
     "emptyNoProvidersBody": "AgentBridge प्रयोग गर्न, पहिले कम्तीमा एउटा प्रदायक जडान गर्नुहोस्। IDE अनुरोधहरू रुट गरिने गन्तव्य त्यही हुनेछ।",
     "emptyGoToProviders": "प्रदायकहरूमा जानुहोस्",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl टोकन सिर्जना गर्न असफल भयो",
     "providerProxy": "प्रोक्सी",
     "providerProxyConfigureHint": "प्रोक्सी कन्फिगर गर्नुहोस्",
-    "providerProxyTitleConfigured": "प्रोक्सी कन्फिगर गरियो: {host}"
+    "providerProxyTitleConfigured": "प्रोक्सी कन्फिगर गरियो: {host}",
+    "inheritConnectionOption": "आफ्नै प्रोक्सी छैन (जडान उत्तराधिकार)",
+    "inheritedProxy": "जडान उत्तराधिकार: {host}",
+    "inheritedPool": "जडान पुल उत्तराधिकार ({count})",
+    "poolEmptyBlocked": "पुल खाली — अनुरोधहरू असफल हुन्छन् (प्रत्यक्ष होइन)",
+    "directEgress": "प्रत्यक्ष (प्रोक्सी बिना)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "प्रत्यक्ष (नेटिभ)",
     "targetUrl": "लक्षित URL",
     "error": "त्रुटि",
-    "configuration": "प्रोक्सी कन्फिगरेसन"
+    "configuration": "प्रोक्सी कन्फिगरेसन",
+    "upstreamStatus": "उपधारा स्थिति",
+    "noResponse": "कोई प्रतिक्रिया छैन",
+    "egressIp": "निष्कासन आईपी",
+    "servedBy": "द्वारा सेवा गरिएको",
+    "correlationId": "संबंधित ID"
   },
   "requestTimeline": {
     "title": "अनुरोध समयरेखा",

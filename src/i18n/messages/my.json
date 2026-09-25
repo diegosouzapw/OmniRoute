@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ဆက်ရှင်တည်မြဲမှုကို ပိတ်ရန်",
     "sessionStickinessEnabled": "တည်မြဲမှု ဖွင့်ထားသည်",
     "sessionStickinessDisabled": "တည်မြဲမှု ပိတ်ထားသည်",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ကြိုတင်သတ်မှတ်ချက်",
     "kimiPresetDescription": "Kimi K3 ကို ပင်မမော်ဒယ် (Moonshot API) အဖြစ် အသုံးပြုပြီး၊ စီစဉ်သတ်မှတ်ထားပါက သင်၏ Kimi Code ချိတ်ဆက်မှုများ (kimi-coding, kimi-web) သို့ အလိုအလျောက် ပြောင်းလဲအသုံးပြုမည်။",
     "kimiPresetCta": "ကြိုတင်သတ်မှတ်ချက် ထည့်ရန်",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ဤလုပ်ဆောင်ချက်သည် လက်ရှိချိတ်ဆက်ထားပြီး ဤတမ်းပလိတ်နှင့် ကိုက်ညီသော ဝန်ဆောင်မှုပေးသူများ/မော်ဒယ်များကို တည်းဖြတ်နိုင်သည့် ပေါင်းစပ်မှုတစ်ခုအဖြစ် လက်ရှိအခြေအနေအတိုင်း မှတ်တမ်းတင်မည်။",
     "duplicateAutoComboFailedPrefix": "အလိုအလျောက်ပေါင်းစပ်မှုကို မိတ္တူပွား၍မရပါ:",
     "duplicateAutoComboUnknownError": "မသိသော အမှား",
-    "duplicateAutoComboTitle": "{name} မှ တည်ငြိမ်သော ပေါင်းစပ်မှုတစ်ခု ဖန်တီးရန်",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} မှ တည်ငြိမ်သော ပေါင်းစပ်မှုတစ်ခု ဖန်တီးရန်"
   },
   "costs": {
     "title": "ကုန်ကျစရိတ်များ",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {ထွက်ပေါက် # ခု} other {ထွက်ပေါက် # ခု}}ကို {connections, plural, one {ချိတ်ဆက်မှု # ခု} other {ချိတ်ဆက်မှု # ခု}}က အသုံးပြုထားသည် · ထွက်ပေါက်တစ်ခုတွင် အများဆုံး {max} ခု · ပြီးခဲ့သည့် {hours} နာရီ",
     "poolEgressObservationEmpty": "ပြီးခဲ့သည့် {hours} နာရီအတွင်း ကွန်ရက်အသွားအလာ မတွေ့ရှိရပါ",
     "poolEgressObservationHint": "သတ်မှတ်အချိန်ကာလအတွင်း proxy မှတ်တမ်းမှ ရေတွက်ထားသည်- ဤ pool ၏ အဖွဲ့ဝင်များအတွက် တွေ့ရှိခဲ့သော မတူညီသည့် အထွက် IP များနှင့် ၎င်းတို့ကို အသုံးပြုခဲ့သော OmniRoute ချိတ်ဆက်မှုများ။ \"ထွက်ပေါက်တစ်ခုတွင်\" ဆိုသည်မှာ တစ်ချိန်တည်းတွင်ဟု မဆိုလိုဘဲ သတ်မှတ်အချိန်ကာလတစ်ခုလုံးအတွင်းဟု ဆိုလိုသည်။ IP တစ်ခုချင်းစီအလိုက် 429 ပိတ်ဆို့မှုသည် တူညီသော provider family ၏ ချိတ်ဆက်မှုများကိုသာ ယာယီရပ်နားစေသည်။",
+    "poolEgressFailuresByExit": "{exit} မှတစ်ဆင့် မအောင်မြင်မှုများ- {count}",
+    "poolEgressFailuresUnattributed": "သတ်မှတ်ထားသော ထွက်ပေါက်မရှိသည့် မအောင်မြင်မှုများ- {count}",
     "poolMemberEgress": "{host}:{port} မှ အသွားအလာသည် {egressIp} မှတစ်ဆင့် ထွက်ခဲ့သည် · နောက်ဆုံး {hours} နာရီအတွင်း",
     "poolMemberEgressEmpty": "{host}:{port} — နောက်ဆုံး {hours} နာရီအတွင်း အသွားအလာ မတွေ့ရှိပါ",
     "poolMemberEgressHint": "သတ်မှတ်ကာလအတွင်း ဤ pool အဖွဲ့ဝင်မှတစ်ဆင့် နောက်ဆုံးတွေ့ရှိခဲ့သော အထွက် IP ဖြစ်ပြီး ပရောက်စီမှတ်တမ်းမှ ဖတ်ယူထားသည်။ သတ်မှတ်ကာလအတွင်း အသွားအလာမရှိသော အဖွဲ့ဝင်အတွက် အသွားအလာမရှိကြောင်း စာကြောင်းကို ပြသသည်။",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "ထည့်ရန်",
     "poolAddFailed": "ပရောက်စီကို ပူးလ်ထဲသို့ ထည့်၍ မရပါ",
     "poolSelectProxy": "ပရောက်စီတစ်ခု ရွေးချယ်ပါ…",
-    "poolSaveFailed": "ပူးလ်သတ်မှတ်မှုကို သိမ်းဆည်း၍ မရပါ"
+    "poolSaveFailed": "ပူးလ်သတ်မှတ်မှုကို သိမ်းဆည်း၍ မရပါ",
+    "transportRate": "{rate}% သယ်ယူပို့ဆောင်မှု",
+    "previousSuccessRate": "အစက {rate}% အောင်မြင်မှု",
+    "upstreamRefusals": "{count} upstream ငြင်းပယ်မှုများ",
+    "connectionTestsCount": "{count} ချိတ်ဆက်မှု စမ်းသပ်မှုများ",
+    "notMeasured": "မတိုင်းတာရသေးပါ"
   },
   "playground": {
     "title": "မော်ဒယ် စမ်းသပ်ခန်း",
@@ -11474,6 +11481,10 @@
       "requestedModel": "တောင်းဆိုထားသော မော်ဒယ်",
       "requestProtocol": "တောင်းဆိုမှု ပရိုတိုကော",
       "cacheSource": "Cache ရင်းမြစ်",
+      "contentProvenance": "အဖြေ",
+      "contentEmpty": "အဖြေ ဗလာ",
+      "usageAbsent": "token အရေအတွက် မတင်ပြထားပါ",
+      "usageEstimated": "token အရေအတွက် ခန့်မှန်းထားသည်",
       "modelPinning": "မော်ဒယ် ပုံသေသတ်မှတ်မှု",
       "activeModelPinning": "အသုံးပြုနေသည် — session pinning ဖြင့် မော်ဒယ်ကို ရွေးချယ်ထားသည်",
       "rotated": "ပြောင်းလဲရွေးချယ်ခဲ့သည်: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "ပရောက်စီမှတ်တမ်းများ မရှိသေးပါ။ ပရောက်စီများကို စီစဉ်သတ်မှတ်ပြီး API ခေါ်ဆိုမှုများ ပြုလုပ်ပါက ဤနေရာတွင် မြင်ရပါမည်။",
     "noMatchingLogs": "လက်ရှိစစ်ထုတ်မှုများနှင့် ကိုက်ညီသော မှတ်တမ်းမရှိပါ။",
     "tlsFingerprint": "Chrome 124 TLS လက်ဗွေ",
-    "colPublicIp": "အများသုံး IP"
+    "colPublicIp": "အများသုံး IP",
+    "colUpstream": "အထက်စီး",
+    "colEgress": "Egress IP",
+    "colCorrelation": "ဆက်စပ်မှု",
+    "colServedBy": "ဆောင်ရွက်သူ",
+    "filterTraffic": "သွားလာမှု",
+    "filterTests": "စမ်းသပ်မှုများ",
+    "filterSource": "အရင်းအမြစ်"
   },
   "endpointOptions": {
     "speech": "စကားပြောအသံ",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS ရပ်တန့်ရန်",
     "toggling": "အခြေအနေပြောင်းနေသည်…",
     "viewTraffic": "အသွားအလာကို ကြည့်ရန်",
+    "resetAgent": "မူလအတိုင်း ပြန်ထားရန်",
+    "resetAgentConfirm": "မူလအတိုင်း ပြန်ထားမလား?",
+    "resetting": "ပြန်ထားနေသည်…",
+    "resetDone": "{agent} အတွက် မူလ DNS ကို ပြန်ထားပြီးပါပြီ။ ပြောင်းလဲမှု အသက်ဝင်စေရန် အက်ပ်ကို လုံးဝပိတ်ပြီး (ချုံ့ထားရုံသာ မဟုတ်ဘဲ) ပြန်ဖွင့်ပါ။",
     "emptyNoProvidersTitle": "Provider များ မပြင်ဆင်ရသေးပါ",
     "emptyNoProvidersBody": "AgentBridge ကို အသုံးပြုရန် အနည်းဆုံး provider တစ်ခုကို ဦးစွာ ချိတ်ဆက်ပါ။ ၎င်းသည် IDE တောင်းဆိုမှုများကို လမ်းကြောင်းပေးပို့မည့် ဦးတည်ရာ ဖြစ်လာပါမည်။",
     "emptyGoToProviders": "Provider များသို့ သွားရန်",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl token ကို ဖန်တီး၍ မရပါ",
     "providerProxy": "ပရောက်စီ",
     "providerProxyConfigureHint": "ပရောက်စီကို စီစဉ်သတ်မှတ်ရန်",
-    "providerProxyTitleConfigured": "ပရောက်စီကို စီစဉ်သတ်မှတ်ပြီးပါပြီ: {host}"
+    "providerProxyTitleConfigured": "ပရောက်စီကို စီစဉ်သတ်မှတ်ပြီးပါပြီ: {host}",
+    "inheritConnectionOption": "ကိုယ်ပိုင် proxy မရှိ (ချိတ်ဆက်မှုကို အမွေခံသည်)",
+    "inheritedProxy": "ချိတ်ဆက်မှုကို အမွေခံသည်: {host}",
+    "inheritedPool": "ချိတ်ဆက်မှု pool ကို အမွေခံသည် ({count})",
+    "poolEmptyBlocked": "Pool လွတ်နေသည် — တောင်းဆိုမှုများ ကျရှုံးမည် (တိုက်ရိုက်မဟုတ်)",
+    "directEgress": "တိုက်ရိုက် (proxy မပါ)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "တိုက်ရိုက် (မူရင်း)",
     "targetUrl": "ပစ်မှတ် URL",
     "error": "အမှား",
-    "configuration": "Proxy ဖွဲ့စည်းမှု"
+    "configuration": "Proxy ဖွဲ့စည်းမှု",
+    "upstreamStatus": "အထက်စီးအခြေအနေ",
+    "noResponse": "တုံ့ပြန်မှုမရှိပါ",
+    "egressIp": "Egress IP",
+    "servedBy": "ဆောင်ရွက်သူ",
+    "correlationId": "ဆက်စပ်မှု ID"
   },
   "requestTimeline": {
     "title": "တောင်းဆိုမှု အချိန်ဇယား",

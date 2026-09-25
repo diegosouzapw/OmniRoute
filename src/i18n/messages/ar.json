@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "تعطيل ثبات الجلسة",
     "sessionStickinessEnabled": "تم تشغيل الثبات",
     "sessionStickinessDisabled": "تم إيقاف الثبات",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "إعداد Kimi Coding المسبق",
     "kimiPresetDescription": "نموذج Kimi K3 كنموذج أساسي (Moonshot API)، مع تراجع تلقائي إلى اتصالات Kimi Code الخاصة بك (kimi-coding، kimi-web) عند تكوينها.",
     "kimiPresetCta": "إضافة الإعداد المسبق",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "سيؤدي هذا إلى التقاط المزودين/النماذج المتصلة حاليًا التي تطابق هذا القالب في مجموعة قابلة للتحرير.",
     "duplicateAutoComboFailedPrefix": "فشل تكرار المجموعة التلقائية:",
     "duplicateAutoComboUnknownError": "خطأ غير معروف",
-    "duplicateAutoComboTitle": "إنشاء مجموعة ثابتة من {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "إنشاء مجموعة ثابتة من {name}"
   },
   "costs": {
     "title": "التكاليف",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "تم استخدام {exits, plural, one {# منفذ خروج} other {# منافذ خروج}} بواسطة {connections, plural, one {# اتصال} other {# اتصالات}} · حتى {max} على منفذ خروج واحد · آخر {hours} ساعة",
     "poolEgressObservationEmpty": "لم تُرصد أي حركة مرور خلال آخر {hours} ساعة",
     "poolEgressObservationHint": "يُحتسب من سجل الوكيل خلال النافذة الزمنية: عناوين IP الصادرة المميزة التي رُصدت لأعضاء هذه المجموعة، واتصالات OmniRoute التي استخدمتها. تعني «على منفذ خروج واحد» خلال النافذة الزمنية، وليس في الوقت نفسه. يؤدي حظر 429 الخاص بكل عنوان IP إلى إيقاف اتصالات عائلة المزوّد نفسها مؤقتًا فقط.",
+    "poolEgressFailuresByExit": "الإخفاقات عبر {exit}: {count}",
+    "poolEgressFailuresUnattributed": "إخفاقات دون مخرج منسوب: {count}",
     "poolMemberEgress": "خرج {host}:{port} عبر {egressIp} · آخر {hours} ساعة",
     "poolMemberEgressEmpty": "{host}:{port}: لم تُرصد أي حركة مرور خلال آخر {hours} ساعة",
     "poolMemberEgressHint": "آخر عنوان IP للخروج تم رصده عبر عضو مجموعة الوكلاء هذا خلال الفترة الزمنية، كما ورد في سجل الوكيل. يظهر للعضو الذي لم يشهد أي حركة مرور خلال الفترة سطر عدم وجود حركة مرور.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "إضافة",
     "poolAddFailed": "فشل إضافة الوكيل إلى التجمع",
     "poolSelectProxy": "اختر وكيلاً…",
-    "poolSaveFailed": "فشل حفظ تعيين التجمع"
+    "poolSaveFailed": "فشل حفظ تعيين التجمع",
+    "transportRate": "{rate}% نقل",
+    "previousSuccessRate": "سابقًا {rate}% نجاح",
+    "upstreamRefusals": "{count} رفضًا من الخادم الأعلى",
+    "connectionTestsCount": "{count} اختبارات اتصال",
+    "notMeasured": "غير مقاس"
   },
   "playground": {
     "title": "العنوان",
@@ -11474,6 +11481,10 @@
       "requestedModel": "النموذج المطلوب",
       "requestProtocol": "بروتوكول المتطلبات",
       "cacheSource": "مصدر التخزين المؤقت",
+      "contentProvenance": "الرد",
+      "contentEmpty": "رد فارغ",
+      "usageAbsent": "لم يتم الإبلاغ عن عدد الرموز",
+      "usageEstimated": "عدد الرموز مُقدَّر",
       "modelPinning": "تثبيت النموذج",
       "activeModelPinning": "نشط — نموذج تم اختياره عبر تثبيت الجلسة",
       "rotated": "تم التدوير: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "لا توجد سجلات بروكسي حتى الآن. كوّن البروكسيات وأجرِ استدعاءات API لعرضها هنا.",
     "noMatchingLogs": "لا توجد سجلات تتطابق مع عوامل التصفية الحالية.",
     "tlsFingerprint": "بصمة TLS لـ Chrome 124",
-    "colPublicIp": "عنوان IP العام"
+    "colPublicIp": "عنوان IP العام",
+    "colUpstream": "التيار العلوي",
+    "colEgress": "عنوان IP الصادر",
+    "colCorrelation": "التوافق",
+    "colServedBy": "مقدم بواسطة",
+    "filterTraffic": "حركة المرور",
+    "filterTests": "اختبارات",
+    "filterSource": "المصدر"
   },
   "endpointOptions": {
     "speech": "تحويل النص إلى كلام",
@@ -12012,6 +12030,10 @@
     "stopDns": "إيقاف DNS",
     "toggling": "جارٍ التبديل…",
     "viewTraffic": "عرض حركة المرور",
+    "resetAgent": "استعادة الافتراضي",
+    "resetAgentConfirm": "استعادة الافتراضي؟",
+    "resetting": "جارٍ الاستعادة…",
+    "resetDone": "تمت استعادة DNS الافتراضي لـ {agent}. أغلق التطبيق تمامًا (وليس تصغيره فقط) ثم أعد فتحه لكي يسري التغيير.",
     "emptyNoProvidersTitle": "لم يتم تكوين أي مزودين بعد",
     "emptyNoProvidersBody": "لاستخدام AgentBridge، قم أولاً بربط مزود واحد على الأقل. سيكون هو الوجهة التي يتم توجيه طلبات IDE إليها.",
     "emptyGoToProviders": "الانتقال إلى المزودين",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "فشل في إنشاء رمز دال",
     "providerProxy": "وكيل",
     "providerProxyConfigureHint": "تكوين الوكيل",
-    "providerProxyTitleConfigured": "تم تكوين الوكيل: {host}"
+    "providerProxyTitleConfigured": "تم تكوين الوكيل: {host}",
+    "inheritConnectionOption": "لا وكيل خاص (يرث الاتصال)",
+    "inheritedProxy": "يرث الاتصال: {host}",
+    "inheritedPool": "يرث تجمع الاتصالات ({count})",
+    "poolEmptyBlocked": "التجمع فارغ — تفشل الطلبات (ليس مباشرًا)",
+    "directEgress": "مباشر (بدون وكيل)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "مباشر",
     "targetUrl": "عنوان URL المستهدف",
     "error": "خطأ",
-    "configuration": "تكوين الوكيل"
+    "configuration": "تكوين الوكيل",
+    "upstreamStatus": "حالة التيار العلوي",
+    "noResponse": "لا توجد استجابة",
+    "egressIp": "عنوان IP الصادر",
+    "servedBy": "مقدم بواسطة",
+    "correlationId": "معرف التوافق"
   },
   "requestTimeline": {
     "title": "جدول زمني للطلب",

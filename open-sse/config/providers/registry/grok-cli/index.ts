@@ -22,11 +22,21 @@ export const grok_cliProvider: RegistryEntry = {
   passthroughModels: true,
   models: [
     {
+      id: "grok-4.7",
+      name: "Grok 4.7",
+      contextLength: 500000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh"],
+      toolCalling: true,
+      targetFormat: "openai-responses",
+      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+    },
+    {
       id: "grok-4.6",
       name: "Grok 4.6",
       contextLength: 500000,
       supportsReasoning: true,
-      supportedThinkingEfforts: ["low", "medium", "high"],
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh"],
       toolCalling: true,
       targetFormat: "openai-responses",
       unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Désactiver la persistance de session",
     "sessionStickinessEnabled": "Persistance activée",
     "sessionStickinessDisabled": "Persistance désactivée",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Préréglage Kimi Coding",
     "kimiPresetDescription": "Kimi K3 comme modèle principal (Moonshot API), avec repli automatique vers vos connexions Kimi Code (kimi-coding, kimi-web) lorsqu'elles sont configurées.",
     "kimiPresetCta": "Ajouter le préréglage",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Cela capturera les fournisseurs/modèles actuellement connectés qui correspondent à ce modèle dans une combinaison modifiable.",
     "duplicateAutoComboFailedPrefix": "Échec de la duplication de la combinaison automatique :",
     "duplicateAutoComboUnknownError": "Erreur inconnue",
-    "duplicateAutoComboTitle": "Créer une combinaison statique à partir de {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Créer une combinaison statique à partir de {name}"
   },
   "costs": {
     "title": "Coûts",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# sortie} other {# sorties}} ayant servi à {connections, plural, one {# connexion} other {# connexions}} · jusqu’à {max} sur une même sortie · dernières {hours} h",
     "poolEgressObservationEmpty": "Aucun trafic observé au cours des dernières {hours} h",
     "poolEgressObservationHint": "Calculé à partir du journal du proxy sur la période : adresses IP de sortie distinctes observées pour les membres de ce pool et connexions OmniRoute qui les ont utilisées. « Sur une même sortie » signifie sur l’ensemble de la période, et non simultanément. Le blocage 429 par adresse IP ne suspend que les connexions d’une même famille de fournisseurs.",
+    "poolEgressFailuresByExit": "Échecs via {exit} : {count}",
+    "poolEgressFailuresUnattributed": "Échecs sans sortie attribuée : {count}",
     "poolMemberEgress": "{host}:{port} est sorti via {egressIp} · dernières {hours} h",
     "poolMemberEgressEmpty": "{host}:{port} : aucun trafic observé au cours des dernières {hours} h",
     "poolMemberEgressHint": "Dernière adresse IP de sortie observée via ce membre du pool sur la période, d’après le journal du proxy. Un membre sans trafic sur la période affiche la ligne indiquant l’absence de trafic.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Ajouter",
     "poolAddFailed": "Échec de l'ajout du proxy au pool",
     "poolSelectProxy": "Sélectionner un proxy…",
-    "poolSaveFailed": "Échec de l'enregistrement de l'attribution du pool"
+    "poolSaveFailed": "Échec de l'enregistrement de l'attribution du pool",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Précédemment {rate} % de réussite",
+    "upstreamRefusals": "{count} refus en amont",
+    "connectionTestsCount": "{count} tests de connexion",
+    "notMeasured": "Non mesuré"
   },
   "playground": {
     "title": "Title",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Modèle demandé",
       "requestProtocol": "Protocole de requête",
       "cacheSource": "Source du cache",
+      "contentProvenance": "Réponse",
+      "contentEmpty": "Réponse vide",
+      "usageAbsent": "Nombre de tokens non transmis",
+      "usageEstimated": "Nombre de tokens estimé",
       "modelPinning": "Épinglage du modèle",
       "activeModelPinning": "Actif — modèle sélectionné via l’épinglage de session",
       "rotated": "Rotation : {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Aucun journal de proxy pour le moment. Configurez des proxys et effectuez des appels API pour les afficher ici.",
     "noMatchingLogs": "Aucun journal ne correspond aux filtres actuels.",
     "tlsFingerprint": "Empreinte TLS de Chrome 124",
-    "colPublicIp": "IP publique"
+    "colPublicIp": "IP publique",
+    "colUpstream": "Amont",
+    "colEgress": "IP de sortie",
+    "colCorrelation": "Corrélation",
+    "colServedBy": "Servi par",
+    "filterTraffic": "Trafic",
+    "filterTests": "Tests",
+    "filterSource": "Source"
   },
   "endpointOptions": {
     "speech": "Parole",
@@ -12012,6 +12030,10 @@
     "stopDns": "Arrêter le DNS",
     "toggling": "Bascule en cours…",
     "viewTraffic": "Voir le trafic",
+    "resetAgent": "Restaurer les paramètres par défaut",
+    "resetAgentConfirm": "Restaurer les paramètres par défaut ?",
+    "resetting": "Restauration…",
+    "resetDone": "DNS par défaut restauré pour {agent}. Quittez complètement l’application (ne la réduisez pas seulement) puis rouvrez-la pour que la modification prenne effet.",
     "emptyNoProvidersTitle": "Aucun fournisseur configuré pour le moment",
     "emptyNoProvidersBody": "Pour utiliser AgentBridge, connectez d'abord au moins un fournisseur. Ce sera la destination vers laquelle les requêtes de l'IDE seront acheminées.",
     "emptyGoToProviders": "Aller aux fournisseurs",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Échec de create Dahl token",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configurer proxy",
-    "providerProxyTitleConfigured": "Proxy configuré : {host}"
+    "providerProxyTitleConfigured": "Proxy configuré : {host}",
+    "inheritConnectionOption": "Aucun proxy propre (hérite de la connexion)",
+    "inheritedProxy": "Hérite de la connexion : {host}",
+    "inheritedPool": "Hérite du pool de connexions ({count})",
+    "poolEmptyBlocked": "Pool vide — les requêtes échouent (pas direct)",
+    "directEgress": "Direct (sans proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Direct (natif)",
     "targetUrl": "URL cible",
     "error": "Erreur",
-    "configuration": "Configuration du proxy"
+    "configuration": "Configuration du proxy",
+    "upstreamStatus": "État amont",
+    "noResponse": "Aucune réponse",
+    "egressIp": "IP de sortie",
+    "servedBy": "Servi par",
+    "correlationId": "ID de corrélation"
   },
   "requestTimeline": {
     "title": "Chronologie des requêtes",

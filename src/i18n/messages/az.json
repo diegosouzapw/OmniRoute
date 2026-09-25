@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Sessiya yapışqanlığını söndürün",
     "sessionStickinessEnabled": "Yapışqanlıq aktivdir",
     "sessionStickinessDisabled": "Yapışqanlıq qapalıdır",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding hazır ayarı",
     "kimiPresetDescription": "Əsas model olaraq Kimi K3 (Moonshot API), konfiqurasiya edildikdə Kimi Code bağlantılarınıza (kimi-coding, kimi-web) avtomatik keçid ilə.",
     "kimiPresetCta": "Hazır ayarı əlavə et",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Bu, bu şablona uyğun olan hazırkı qoşulmuş provayderləri/modeləri redaktə oluna bilən kombo kimi saxlayacaq.",
     "duplicateAutoComboFailedPrefix": "Avtokombo kopyalanması uğursuz oldu:",
     "duplicateAutoComboUnknownError": "Naməlum xəta",
-    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}-dan statik kombo yarat"
   },
   "costs": {
     "title": "Xərclər",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# çıxış} other {# çıxış}} {connections, plural, one {# bağlantı} other {# bağlantı}} tərəfindən istifadə edilib · bir çıxışda maksimum {max} · son {hours} saat",
     "poolEgressObservationEmpty": "Son {hours} saat ərzində trafik müşahidə edilməyib",
     "poolEgressObservationHint": "Bu zaman intervalı üzrə proksi jurnalından hesablanıb: bu hovuzun üzvləri üçün müşahidə edilən fərqli çıxış IP-ləri və onlardan istifadə edən OmniRoute bağlantıları. \"Bir çıxışda\" eyni anda deyil, zaman intervalı ərzində deməkdir. Hər IP üzrə 429 bloklanması yalnız eyni provayder ailəsinə aid bağlantıları müvəqqəti dayandırır.",
+    "poolEgressFailuresByExit": "{exit} üzərindən uğursuzluqlar: {count}",
+    "poolEgressFailuresUnattributed": "Çıxışı müəyyən edilməyən uğursuzluqlar: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} vasitəsilə çıxıb · son {hours} saat",
     "poolMemberEgressEmpty": "{host}:{port}: son {hours} saat ərzində trafik müşahidə edilməyib",
     "poolMemberEgressHint": "Bu hovuz üzvü vasitəsilə göstərilən zaman intervalında müşahidə edilmiş və proksi jurnalından oxunmuş son çıxış IP-si. Bu intervalda trafiki olmayan üzv üçün trafikin olmaması sətri göstərilir.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Əlavə et",
     "poolAddFailed": "Proksini hovuza əlavə etmək mümkün olmadı",
     "poolSelectProxy": "Proksi seçin…",
-    "poolSaveFailed": "Hovuz təyinatını yadda saxlamaq mümkün olmadı"
+    "poolSaveFailed": "Hovuz təyinatını yadda saxlamaq mümkün olmadı",
+    "transportRate": "{rate}% nəqliyyat",
+    "previousSuccessRate": "Əvvəlcə {rate}% uğur",
+    "upstreamRefusals": "{count} upstream rəddi",
+    "connectionTestsCount": "{count} bağlantı testi",
+    "notMeasured": "Ölçülməyib"
   },
   "playground": {
     "title": "Model sınaq meydanı",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Tələb Olunan Model",
       "requestProtocol": "Req Protokolu",
       "cacheSource": "Keş Mənbəyi",
+      "contentProvenance": "Cavab",
+      "contentEmpty": "Boş cavab",
+      "usageAbsent": "Token sayı bildirilməyib",
+      "usageEstimated": "Token sayı təxmini",
       "modelPinning": "Modelin sabitlənməsi",
       "activeModelPinning": "Aktiv — sessiya sabitlənməsi vasitəsilə seçilmiş model",
       "rotated": "Dönmüşdür: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Hələ proksi jurnalı yoxdur. Onları burada görmək üçün proksiləri konfiqurasiya edin və API çağırışları edin.",
     "noMatchingLogs": "Cari filtrlərə uyğun jurnal yoxdur.",
     "tlsFingerprint": "Chrome 124 TLS barmaq izi",
-    "colPublicIp": "İctimai IP"
+    "colPublicIp": "İctimai IP",
+    "colUpstream": "Yuxarı axın",
+    "colEgress": "Çıxış IP",
+    "colCorrelation": "Korrelyasiya",
+    "colServedBy": "Təmin edən",
+    "filterTraffic": "Trafik",
+    "filterTests": "Testlər",
+    "filterSource": "Mənbə"
   },
   "endpointOptions": {
     "speech": "Nitq",
@@ -12012,6 +12030,10 @@
     "stopDns": "DNS-i dayandır",
     "toggling": "Dəyişdirilir…",
     "viewTraffic": "Trafikə baxın",
+    "resetAgent": "Defoltu bərpa et",
+    "resetAgentConfirm": "Defolt bərpa edilsin?",
+    "resetting": "Bərpa edilir…",
+    "resetDone": "{agent} üçün defolt DNS bərpa edildi. Dəyişikliyin qüvvəyə minməsi üçün tətbiqi tam bağlayın (sadəcə kiçiltməyin) və yenidən açın.",
     "emptyNoProvidersTitle": "Hələ heç bir provayder konfiqurasiya edilməyib",
     "emptyNoProvidersBody": "AgentBridge-dən istifadə etmək üçün əvvəlcə ən azı bir provayder qoşun. Bu, IDE sorğularının yönləndiriləcəyi hədəf olacaq.",
     "emptyGoToProviders": "Provayderlərə keçin",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Dahl token yaratmaq mümkün olmadı",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Proksi konfiqurasiya et",
-    "providerProxyTitleConfigured": "Proxy konfiqurasiya edilib: {host}"
+    "providerProxyTitleConfigured": "Proxy konfiqurasiya edilib: {host}",
+    "inheritConnectionOption": "Şəxsi proksi yoxdur (bağlantını miras alır)",
+    "inheritedProxy": "Bağlantını miras alır: {host}",
+    "inheritedPool": "Bağlantı hovuzunu miras alır ({count})",
+    "poolEmptyBlocked": "Hovuz boşdur — sorğular uğursuz olur (birbaşa deyil)",
+    "directEgress": "Birbaşa (proksisiz)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Birbaşa",
     "targetUrl": "Hədəf URL",
     "error": "Xəta",
-    "configuration": "Proksi Konfiqurasiyası"
+    "configuration": "Proksi Konfiqurasiyası",
+    "upstreamStatus": "Yuxarı axın statusu",
+    "noResponse": "Cavab yoxdur",
+    "egressIp": "Çıxış IP",
+    "servedBy": "Təmin edən",
+    "correlationId": "Korrelyasiya ID"
   },
   "requestTimeline": {
     "title": "Sorğu Zaman Çizgisi",

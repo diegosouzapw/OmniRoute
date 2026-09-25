@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Atspējot sesijas piesaisti",
     "sessionStickinessEnabled": "Piesaiste ieslēgta",
     "sessionStickinessDisabled": "Piesaiste izslēgta",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding sagatave",
     "kimiPresetDescription": "Kimi K3 kā primārais modelis (Moonshot API) ar automātisku pārslēgšanos uz jūsu Kimi Code savienojumiem (kimi-coding, kimi-web), ja tie ir konfigurēti.",
     "kimiPresetCta": "Pievienot sagatavi",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Tādējādi pašlaik pievienotie nodrošinātāji/modeļi, kas atbilst šai veidnei, tiks saglabāti rediģējamā kombinācijā.",
     "duplicateAutoComboFailedPrefix": "Neizdevās dublēt automātisko kombināciju:",
     "duplicateAutoComboUnknownError": "Nezināma kļūda",
-    "duplicateAutoComboTitle": "Izveidot statisku kombināciju no {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Izveidot statisku kombināciju no {name}"
   },
   "costs": {
     "title": "Izmaksas",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# izeja izmantota} other {# izejas izmantotas}} {connections, plural, one {# savienojumā} other {# savienojumos}} · līdz {max} vienā izejā · pēdējo {hours} h laikā",
     "poolEgressObservationEmpty": "Pēdējo {hours} h laikā datplūsma nav novērota",
     "poolEgressObservationHint": "Aprēķināts no starpniekservera žurnāla attiecīgajā laika posmā: atšķirīgās izejošās IP adreses, kas novērotas šīs kopas dalībniekiem, un OmniRoute savienojumi, kuri tās izmantoja. “Vienā izejā” nozīmē visā laika posmā, nevis vienlaikus. Katras IP adreses 429 bloķēšana aptur tikai tās pašas pakalpojumu sniedzēju saimes savienojumus.",
+    "poolEgressFailuresByExit": "Kļūmes caur {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Kļūmes bez piesaistītas izejas: {count}",
     "poolMemberEgress": "{host}:{port} izgāja caur {egressIp} · pēdējās {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: pēdējās {hours} h nav novērota datplūsma",
     "poolMemberEgressHint": "Pēdējā izejošā IP adrese, kas šajā laika periodā novērota caur šo pūla dalībnieku un nolasīta no starpniekservera žurnāla. Dalībniekam, kuram šajā periodā nav bijusi datplūsma, tiek rādīta rinda par datplūsmas neesamību.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Pievienot",
     "poolAddFailed": "Neizdevās pievienot starpniekserveri kopai",
     "poolSelectProxy": "Izvēlieties starpniekserveri…",
-    "poolSaveFailed": "Neizdevās saglabāt kopas piešķīrumu"
+    "poolSaveFailed": "Neizdevās saglabāt kopas piešķīrumu",
+    "transportRate": "{rate} % transporta",
+    "previousSuccessRate": "Iepriekš {rate} % sekmju",
+    "upstreamRefusals": "{count} augšupējos noraidījumus",
+    "connectionTestsCount": "{count} savienojuma testus",
+    "notMeasured": "Nav izmērīts"
   },
   "playground": {
     "title": "Modeļu testēšanas vide",
@@ -11474,6 +11481,10 @@
       "requestedModel": "Pieprasītais modelis",
       "requestProtocol": "Pieprasījuma protokols",
       "cacheSource": "Kešatmiņas avots",
+      "contentProvenance": "Atbilde",
+      "contentEmpty": "Tukša atbilde",
+      "usageAbsent": "Marķieru skaits nav ziņots",
+      "usageEstimated": "Marķieru skaits ir aplēsts",
       "modelPinning": "Modeļa piespraušana",
       "activeModelPinning": "Aktīvs — modelis atlasīts, izmantojot sesijas piespraušanu",
       "rotated": "Rotēts: {initial} -> {final}",
@@ -11537,7 +11548,14 @@
     "noProxyLogs": "Vēl nav starpniekservera žurnālu. Konfigurējiet starpniekserverus un veiciet API izsaukumus, lai tos redzētu šeit.",
     "noMatchingLogs": "Nav žurnālu, kas atbilst pašreizējiem filtriem.",
     "tlsFingerprint": "Chrome 124 TLS pirkstu nospiedums",
-    "colPublicIp": "Publiskā IP adrese"
+    "colPublicIp": "Publiskā IP adrese",
+    "colUpstream": "Augšupe",
+    "colEgress": "Izvades IP",
+    "colCorrelation": "Korelācija",
+    "colServedBy": "Piegādā",
+    "filterTraffic": "Satiksme",
+    "filterTests": "Testi",
+    "filterSource": "Avots"
   },
   "endpointOptions": {
     "speech": "Runa",
@@ -12012,6 +12030,10 @@
     "stopDns": "Apturēt DNS",
     "toggling": "Notiek pārslēgšana…",
     "viewTraffic": "Apskatīt trafiku",
+    "resetAgent": "Atjaunot noklusējumu",
+    "resetAgentConfirm": "Atjaunot noklusējumu?",
+    "resetting": "Atjauno…",
+    "resetDone": "Noklusējuma DNS atjaunots aģentam {agent}. Lai izmaiņas stātos spēkā, pilnībā aizveriet lietotni (ne tikai minimizējiet) un atveriet to vēlreiz.",
     "emptyNoProvidersTitle": "Pašlaik nav konfigurēti pakalpojumu sniedzēji",
     "emptyNoProvidersBody": "Lai izmantotu AgentBridge, vispirms pieslēdziet vismaz vienu pakalpojumu sniedzēju. Tas būs galamērķis, uz kuru tiks novirzīti IDE pieprasījumi.",
     "emptyGoToProviders": "Doties uz pakalpojumu sniedzējiem",
@@ -12790,7 +12812,12 @@
     "createDahlTokenFailed": "Neizdevās izveidot Dahl marķieri",
     "providerProxy": "Starpniekserveris",
     "providerProxyConfigureHint": "Konfigurēt starpniekserveri",
-    "providerProxyTitleConfigured": "Starpniekserveris konfigurēts: {host}"
+    "providerProxyTitleConfigured": "Starpniekserveris konfigurēts: {host}",
+    "inheritConnectionOption": "Bez sava starpniekservera (manto savienojumu)",
+    "inheritedProxy": "Manto savienojumu: {host}",
+    "inheritedPool": "Manto savienojumu pūlu ({count})",
+    "poolEmptyBlocked": "Pūls tukšs — pieprasījumi neizdodas (ne tieši)",
+    "directEgress": "Tiešs (bez starpniekservera)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14146,12 @@
     "directNative": "Tiešs (iebūvēts)",
     "targetUrl": "Mērķa URL",
     "error": "Kļūda",
-    "configuration": "Starpniekservera konfigurācija"
+    "configuration": "Starpniekservera konfigurācija",
+    "upstreamStatus": "Augšupe status",
+    "noResponse": "Nav atbildes",
+    "egressIp": "Izvades IP",
+    "servedBy": "Piegādā",
+    "correlationId": "Korelācijas ID"
   },
   "requestTimeline": {
     "title": "Pieprasījuma laika skala",
