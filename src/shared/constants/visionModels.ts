@@ -39,6 +39,17 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   // isVisionModelId() below so this shared heuristic stays safe for routing,
   // `/v1/models`, combo projection and lite compression alike.
   "mimo-v2.5",
+  // #14587: the v2.6 generation flips the `*-pro` rule — models.dev lists
+  // `mimo-v2.6-pro` / `mimo-v2.6-flash` with image input, while `mimo-v2.5-pro`
+  // and `mimo-v2-pro` stay text-only. Keep the fragments scoped to the
+  // documented pro/flash family so unrelated future v2.6 ids (a hypothetical
+  // `mimo-v2.6-distill-qwen-9b` or `mimo-v2.6-tts`) do not inherit the vision
+  // verdict; they can be added here if Xiaomi ever documents image input for
+  // them. Matches the provider-qualified ids from the report
+  // (`opencode-go/mimo-v2.6-pro`, `command-code/xiaomi/mimo-v2.6-pro`) and
+  // cannot over-match the older generations, whose ids never contain `v2.6`.
+  "mimo-v2.6-pro",
+  "mimo-v2.6-flash",
   // #13847: Step 3.7 Flash is exposed through provider-qualified `:free` routes
   // as well as direct registry entries. The capability must survive that suffix.
   "step-3.7-flash",
