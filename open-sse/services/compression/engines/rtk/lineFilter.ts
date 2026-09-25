@@ -1,6 +1,14 @@
 import type { RtkFilterDefinition } from "./filterSchema.ts";
 import { smartTruncate } from "./smartTruncate.ts";
 import { deduplicateRepeatedLines } from "./deduplicator.ts";
+import { severityPattern } from "./severityVocabulary.ts";
+
+/**
+ * The shared severity vocabulary, compiled once (see severityVocabulary.ts for why it is
+ * shared rather than duplicated per layer). Used to let diagnostic lines bypass the keep
+ * stage below.
+ */
+const SEVERITY_PATTERN = severityPattern();
 
 export interface LineFilterResult {
   text: string;
@@ -157,7 +165,17 @@ export function applyLineFilter(text: string, filter: RtkFilterDefinition): Line
   }
 
   if (keepPatterns.length > 0) {
-    const kept = lines.filter((line) => keepPatterns.some((pattern) => pattern.test(line)));
+    // Severity lines bypass the keep stage. The stage TRUNCATES (not reorders): a filter whose
+    // `includePatterns` do not mention a diagnostic word delete that line here, before
+    // `priorityPatterns` below is ever consulted — so a `FATAL … rollback required` line died in
+    // a filter that only listed ERROR/WARN. The shared vocabulary (severityVocabulary.ts) is
+    // consulted alongside the filter's own patterns, never instead of them.
+    //
+    // A filter with an EMPTY includePatterns keeps skipping this stage entirely (the guard
+    // above), so no non-severity line starts being dropped where it previously survived.
+    const kept = lines.filter(
+      (line) => keepPatterns.some((pattern) => pattern.test(line)) || SEVERITY_PATTERN.test(line)
+    );
     if (kept.length > 0) {
       lines = kept;
       appliedRules.push(`${filter.id}:keep`);

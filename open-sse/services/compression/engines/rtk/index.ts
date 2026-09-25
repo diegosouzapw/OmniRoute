@@ -15,6 +15,7 @@ import {
   type RtkRawOutputPointer,
 } from "./rawOutput.ts";
 import { applyRenderer } from "./renderers/index.ts";
+import { severityPattern } from "./severityVocabulary.ts";
 import { isTextBlock } from "../../messageContent.ts";
 import { adaptBodyForCompression } from "../../bodyAdapter.ts";
 import { isAnthropicToolResultBlock } from "../../toolResultCompressor.ts";
@@ -336,7 +337,11 @@ export function processRtkText(
     }
   }
 
-  const defaultPriorityPatterns: RegExp[] = [/error|failed|exception|traceback|TS\d{4}|FAIL|✖/i];
+  // One shared severity vocabulary (./severityVocabulary.ts). It used to be an inline regex
+  // here, a separate array in filterSchema.ts and a THIRD list in rawOutput.ts — three
+  // spellings of the same idea, so whether a diagnostic line survived depended on which
+  // layer happened to run. Everything below now derives from that single file.
+  const defaultPriorityPatterns: RegExp[] = [severityPattern()];
   const filterPriorityPatterns: RegExp[] = matchedFilterPatterns.flatMap((pattern) => {
     try {
       return [new RegExp(pattern, "i")];

@@ -56,10 +56,50 @@ export function smartTruncate(
       result = marker.slice(0, maxChars);
       return { text: result, truncated: true, droppedLines };
     }
-    const headChars = Math.ceil(budget * 0.55);
-    const tailChars = Math.max(0, budget - headChars);
+    // Enforcing the char budget with a blind slice would cut the very priority lines this
+    // function just selected: they come from the middle of the list, outside both slices, so
+    // on long-line output the char limit (not the line limit) binds and the diagnostics
+    // disappear. Reserve budget for them first instead.
+    //
+    // Patterns are ranked by selectivity (fewest matching lines first) and a pattern matching
+    // more than half the remaining lines is ignored: e.g. shell-grep's summaryPatterns
+    // `^[^:\n]+(?::\d+)?:` matches every grep line, so treating it as "priority" would fill
+    // the budget with the first lines and still cut the markers further down.
+    const lines = result.split(/\r?\n/);
+    const ranked: Array<{ pattern: RegExp; hits: number }> = [];
+    for (const pattern of priorityPatterns) {
+      let hits = 0;
+      for (const line of lines) if (pattern.test(line)) hits += 1;
+      if (hits > 0 && hits * 2 <= lines.length) ranked.push({ pattern, hits });
+    }
+    ranked.sort((a, b) => a.hits - b.hits);
+
+    const forcedCap = Math.floor(budget / 2);
+    const seen = new Set<string>();
+    const forced: string[] = [];
+    let forcedLength = 0;
+    for (const entry of ranked) {
+      for (const line of lines) {
+        if (seen.has(line)) continue;
+        if (!entry.pattern.test(line)) continue;
+        const cost = line.length + 1;
+        if (cost > forcedCap - forcedLength) continue;
+        seen.add(line);
+        forced.push(line);
+        forcedLength += cost;
+      }
+    }
+
+    const rest = Math.max(0, budget - forcedLength);
+    const headChars = Math.ceil(rest * 0.55);
+    const tailChars = Math.max(0, rest - headChars);
+    const headText = rest > 0 ? result.slice(0, headChars) : "";
     const tailText = tailChars > 0 ? result.slice(-tailChars) : "";
-    result = `${result.slice(0, headChars)}${marker}${tailText}`;
+    // Drop forced lines already present in a slice so nothing is duplicated.
+    const forcedText = forced
+      .filter((line) => !headText.includes(line) && !tailText.includes(line))
+      .join("\n");
+    result = `${headText}${marker}${forcedText ? `${forcedText}\n` : ""}${tailText}`;
     if (result.length > maxChars) result = result.slice(0, maxChars);
   }
 
