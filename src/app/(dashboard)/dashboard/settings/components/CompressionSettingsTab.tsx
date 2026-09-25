@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Button } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import CompressionTokenSaverCard, {
@@ -215,12 +215,22 @@ export default function CompressionSettingsTab() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
   const [ruleMetadata, setRuleMetadata] = useState<RuleMetadata[]>([]);
+  // A save sends only the fields it changes, so it never writes back a stale copy of settings
+  // another page or tab changed after this one loaded. Saves go out one at a time and the form
+  // shows the last saved config plus the saves still queued, so a failed save rolls back only
+  // its own fields. A PUT that never settles holds up the saves queued behind it.
+  const savedRef = useRef(config);
+  const queuedRef = useRef<Partial<CompressionConfig>[]>([]);
+  const saveQueueRef = useRef(Promise.resolve());
 
   useEffect(() => {
     fetch("/api/settings/compression")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data) setConfig(data);
+        if (data) {
+          savedRef.current = data;
+          setConfig(data);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -232,28 +242,36 @@ export default function CompressionSettingsTab() {
       .catch(() => {});
   }, []);
 
-  const save = async (updates: Partial<CompressionConfig>) => {
-    const newConfig = { ...config, ...updates };
-    setConfig(newConfig);
+  const save = (updates: Partial<CompressionConfig>) => {
+    const showQueued = () =>
+      setConfig(
+        queuedRef.current.reduce<CompressionConfig>(
+          (shown, queued) => ({ ...shown, ...queued }),
+          savedRef.current
+        )
+      );
+    queuedRef.current.push(updates);
+    showQueued();
     setSaving(true);
     setStatus("");
-    try {
-      const res = await fetch("/api/settings/compression", {
+    saveQueueRef.current = saveQueueRef.current.then(async () => {
+      const ok = await fetch("/api/settings/compression", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newConfig),
-      });
-      if (res.ok) {
-        setStatus("saved");
-        setTimeout(() => setStatus(""), 2000);
-      } else {
-        setStatus("error");
-      }
-    } catch {
-      setStatus("error");
-    } finally {
-      setSaving(false);
-    }
+        body: JSON.stringify(updates),
+      }).then(
+        (res) => res.ok,
+        () => false
+      );
+      queuedRef.current.shift();
+      if (ok) savedRef.current = { ...savedRef.current, ...updates };
+      showQueued();
+      setSaving(queuedRef.current.length > 0);
+      // A failure stays on screen until the next edit, so a queued success or an earlier
+      // save's timeout cannot hide a field that just rolled back.
+      setStatus((shown) => (ok ? (shown === "error" ? shown : "saved") : "error"));
+      if (ok) setTimeout(() => setStatus((shown) => (shown === "saved" ? "" : shown)), 2000);
+    });
   };
 
   const toggleCavemanRole = (role: "user" | "assistant" | "system") => {
