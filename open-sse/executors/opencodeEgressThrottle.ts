@@ -547,9 +547,14 @@ export function _setSuspectRandForTest(rand: (() => number) | null): void {
  * One real call after a 429 when no account is a candidate. The rotation guard
  * skips a non-candidate without calling it, so members excluded only by state
  * left by earlier requests (proxy set aside, account cooling down) were never
- * tried and the request served the 429. `take` hands out, once per request, an
- * account whose proxy this request has not refused yet; `allows` lets that one
- * account through the guard.
+ * tried and the request served the 429. `take` returns, once per request, an
+ * account whose proxy this request has not refused yet, or null; the caller
+ * lets that returned account through the guard.
+ *
+ * Proxy-less accounts are never handed out: a 429 on one records no key, so
+ * the request cannot tell whether the shared direct egress already refused it,
+ * and calling it could replay that 429. A rejected pick leaves the rotation
+ * cursor where it was.
  */
 export function lastResort429<A extends RotatableAccount>(
   accounts: A[],
@@ -557,23 +562,22 @@ export function lastResort429<A extends RotatableAccount>(
   ...refusedHere: Set<string>[]
 ) {
   let spent = false;
-  let granted: A | null = null;
   const isOpen = (account: A): boolean => {
     const key = proxyKeyOf(account.proxy);
     return key !== null && !refusedHere.some((keys) => keys.has(key));
   };
   return {
-    take(lastStatus: number | null, account: A, isCandidate: (a: A) => boolean): A {
-      granted = null;
-      if (spent || lastStatus !== 429 || isCandidate(account)) return account;
+    take(lastStatus: number | null, account: A, isCandidate: (a: A) => boolean): A | null {
+      if (spent || lastStatus !== 429 || isCandidate(account)) return null;
+      const saved = { ...cursor };
       const spare = pickAccount(accounts, cursor, isOpen);
-      if (!isOpen(spare)) return account;
+      if (!isOpen(spare)) {
+        cursor.nextAccountIdx = saved.nextAccountIdx;
+        cursor.lastHealthyFingerprint = saved.lastHealthyFingerprint;
+        return null;
+      }
       spent = true;
-      granted = spare;
       return spare;
-    },
-    allows(account: A, isCandidate: (a: A) => boolean): boolean {
-      return account === granted || isCandidate(account);
     },
   };
 }

@@ -670,14 +670,14 @@ export class OpencodeExecutor extends BaseExecutor {
             this.snapshotEntries(accounts, nowMs)
           );
         }
-        // Last resort: a single direct attempt (distinct egress that may
-        // succeed) once no proxied account is a candidate — never before.
+        // Last resort: one direct attempt (distinct egress) once no proxied account is a candidate.
         if (!isProxiedCandidate(account) && !directTried && geoTriedProxyKeys.size > 0) {
           const direct = accounts.find((a) => a.proxy === null && a.cooldownUntil <= Date.now());
           if (direct) account = direct;
         }
         const lastStatus = lastResult !== null ? lastResult.response.status : null;
-        account = spare.take(lastStatus, account, isProxiedCandidate);
+        const lastResort = spare.take(lastStatus, account, isProxiedCandidate);
+        account = lastResort ?? account;
         const lastWasGeo = lastStatus === 403 || lastStatus === 451;
         const lastWasTransient = lastStatus !== null && lastStatus >= 500 && lastStatus < 600;
         const isMonoRetryOwed = accounts.length === 1 && lastWasTransient;
@@ -685,7 +685,7 @@ export class OpencodeExecutor extends BaseExecutor {
           !isMonoRetryOwed &&
           lastResult !== null &&
           geoTriedProxyKeys.size + rateLimitedProxyKeys.size > 0 &&
-          !spare.allows(account, isProxiedCandidate) &&
+          !(account === lastResort || isProxiedCandidate(account)) &&
           !(account.proxy === null && !directTried)
         ) {
           // Geo/transient exhaustion → surface as-is, no success mark.
