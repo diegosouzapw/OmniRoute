@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# uscita} other {# uscite}} utilizzate da {connections, plural, one {# connessione} other {# connessioni}} · fino a {max} su una singola uscita · ultime {hours} h",
     "poolEgressObservationEmpty": "Nessun traffico osservato nelle ultime {hours} h",
     "poolEgressObservationHint": "Calcolato dal registro del proxy nella finestra temporale: gli IP di uscita distinti osservati per i membri di questo pool e le connessioni OmniRoute che li hanno utilizzati. \"Su un'unica uscita\" si riferisce all'intera finestra temporale, non allo stesso momento. Il blocco 429 per IP sospende solo le connessioni della stessa famiglia di provider.",
+    "poolEgressFailuresByExit": "Errori tramite {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Errori senza uscita attribuita: {count}",
     "poolMemberEgress": "{host}:{port} è uscito tramite {egressIp} · ultime {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: nessun traffico osservato nelle ultime {hours} h",
     "poolMemberEgressHint": "Ultimo IP di uscita osservato tramite questo membro del pool nell'intervallo, rilevato dal log del proxy. Per un membro senza traffico nell'intervallo viene mostrata la riga relativa all'assenza di traffico.",

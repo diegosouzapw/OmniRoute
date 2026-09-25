@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# ħruġ użat} other {# ħruġ użati}} minn {connections, plural, one {# konnessjoni} other {# konnessjonijiet}} · sa {max} fuq ħruġ wieħed · fl-aħħar {hours} h",
     "poolEgressObservationEmpty": "Ma ġie osservat l-ebda traffiku fl-aħħar {hours} h",
     "poolEgressObservationHint": "Magħduda mir-reġistru tal-proxy tul il-perjodu: l-indirizzi IP distinti tal-ħruġ osservati għall-membri ta’ dan il-pool, u l-konnessjonijiet OmniRoute li użawhom. \"Fuq ħruġ wieħed\" tfisser tul il-perjodu, mhux fl-istess ħin. L-imblukkar 429 għal kull indirizz IP iwaqqaf temporanjament biss il-konnessjonijiet tal-istess familja ta’ fornituri.",
+    "poolEgressFailuresByExit": "Fallimenti permezz ta' {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Fallimenti mingħajr ħruġ attribwit: {count}",
     "poolMemberEgress": "{host}:{port} ħareġ permezz ta’ {egressIp} · l-aħħar {hours} sigħat",
     "poolMemberEgressEmpty": "{host}:{port}: ma ġie osservat ebda traffiku fl-aħħar {hours} sigħat",
     "poolMemberEgressHint": "L-aħħar indirizz IP tal-ħruġ osservat permezz ta’ dan il-membru tal-pool matul il-perjodu, moqri mir-reġistru tal-proxy. Membru mingħajr traffiku matul il-perjodu juri l-linja ta’ ebda traffiku.",

@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# izeja izmantota} other {# izejas izmantotas}} {connections, plural, one {# savienojumā} other {# savienojumos}} · līdz {max} vienā izejā · pēdējo {hours} h laikā",
     "poolEgressObservationEmpty": "Pēdējo {hours} h laikā datplūsma nav novērota",
     "poolEgressObservationHint": "Aprēķināts no starpniekservera žurnāla attiecīgajā laika posmā: atšķirīgās izejošās IP adreses, kas novērotas šīs kopas dalībniekiem, un OmniRoute savienojumi, kuri tās izmantoja. “Vienā izejā” nozīmē visā laika posmā, nevis vienlaikus. Katras IP adreses 429 bloķēšana aptur tikai tās pašas pakalpojumu sniedzēju saimes savienojumus.",
+    "poolEgressFailuresByExit": "Kļūmes caur {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Kļūmes bez piesaistītas izejas: {count}",
     "poolMemberEgress": "{host}:{port} izgāja caur {egressIp} · pēdējās {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: pēdējās {hours} h nav novērota datplūsma",
     "poolMemberEgressHint": "Pēdējā izejošā IP adrese, kas šajā laika periodā novērota caur šo pūla dalībnieku un nolasīta no starpniekservera žurnāla. Dalībniekam, kuram šajā periodā nav bijusi datplūsma, tiek rādīta rinda par datplūsmas neesamību.",

@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# väljumine} other {# väljumist}}, mida kasutas {connections, plural, one {# ühendus} other {# ühendust}} · kuni {max} ühel väljumisel · viimase {hours} h jooksul",
     "poolEgressObservationEmpty": "Viimase {hours} h jooksul ei täheldatud liiklust",
     "poolEgressObservationHint": "Arvutatud puhverserveri logist antud ajavahemiku kohta: selle kogumi liikmete puhul täheldatud erinevad väljaminevad IP-aadressid ja neid kasutanud OmniRoute’i ühendused. „Ühel väljumisel“ tähendab kogu ajavahemiku jooksul, mitte samal ajal. IP-põhine 429-lukustus peatab ainult sama teenusepakkuja rühma kuuluvad ühendused.",
+    "poolEgressFailuresByExit": "Tõrked väljundi {exit} kaudu: {count}",
+    "poolEgressFailuresUnattributed": "Tõrked ilma omistatud väljundita: {count}",
     "poolMemberEgress": "{host}:{port} liiklus väljus aadressi {egressIp} kaudu · viimased {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: viimase {hours} h jooksul liiklust ei tuvastatud",
     "poolMemberEgressHint": "Viimane selle puuli liikme kaudu ajavahemiku jooksul tuvastatud väljuv IP-aadress, mis loeti puhverserveri logist. Kui liikmel ei olnud ajavahemiku jooksul liiklust, kuvatakse liikluseta rida.",

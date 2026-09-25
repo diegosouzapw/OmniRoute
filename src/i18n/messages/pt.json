@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# saída usada} other {# saídas usadas}} por {connections, plural, one {# ligação} other {# ligações}} · até {max} numa saída · últimas {hours} h",
     "poolEgressObservationEmpty": "Não foi observado tráfego nas últimas {hours} h",
     "poolEgressObservationHint": "Contabilizado a partir do registo do proxy durante o período: IPs de saída distintos observados para os membros deste grupo e as ligações OmniRoute que os utilizaram. «Numa só saída» refere-se ao período, não ao mesmo tempo. O bloqueio 429 por IP apenas coloca em pausa as ligações da mesma família de fornecedores.",
+    "poolEgressFailuresByExit": "Falhas através de {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Falhas sem saída atribuída: {count}",
     "poolMemberEgress": "{host}:{port} saiu através de {egressIp} · últimas {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: nenhum tráfego observado nas últimas {hours} h",
     "poolMemberEgressHint": "Último IP de saída observado através deste membro do pool durante o período, lido a partir do registo do proxy. Um membro sem tráfego durante o período apresenta a linha de ausência de tráfego.",

@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Užfiksuotų išėjimo IP adresų: {exits, plural, one {#} few {#} other {#}} · juos naudojusių ryšių: {connections, plural, one {#} few {#} other {#}} · daugiausia {max} vienam išėjimo IP adresui · per pastarąsias {hours} val.",
     "poolEgressObservationEmpty": "Per pastarąsias {hours} val. srauto nepastebėta",
     "poolEgressObservationHint": "Apskaičiuota pagal tarpinio serverio žurnalą per nurodytą laikotarpį: atskiri šio telkinio nariams užfiksuoti išėjimo IP adresai ir juos naudoję OmniRoute ryšiai. „Viename išėjimo IP“ reiškia per visą laikotarpį, o ne tuo pačiu metu. Atskiro IP adreso blokavimas gavus 429 atsakymą pristabdo tik tos pačios teikėjų grupės ryšius.",
+    "poolEgressFailuresByExit": "Nesėkmės per {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Nesėkmės be priskirto išėjimo: {count}",
     "poolMemberEgress": "{host}:{port} srautas išėjo per {egressIp} · per paskutines {hours} val.",
     "poolMemberEgressEmpty": "{host}:{port}: per paskutines {hours} val. srauto nepastebėta",
     "poolMemberEgressHint": "Paskutinis per šį telkinio narį nurodytu laikotarpiu pastebėtas išorinis IP adresas, nuskaitytas iš įgaliotojo serverio žurnalo. Jei per šį laikotarpį narys neperdavė jokio srauto, rodoma eilutė apie srauto nebuvimą.",

@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# ieșire utilizată} other {# ieșiri utilizate}} de {connections, plural, one {# conexiune} other {# conexiuni}} · până la {max} pe o singură ieșire · ultimele {hours} h",
     "poolEgressObservationEmpty": "Nu s-a observat trafic în ultimele {hours} h",
     "poolEgressObservationHint": "Calculat din jurnalul proxy pentru intervalul de timp: adresele IP de ieșire distincte observate pentru membrii acestui grup și conexiunile OmniRoute care le-au utilizat. „Pe o singură ieșire” se referă la întregul interval, nu la același moment. Blocarea 429 per IP întrerupe temporar doar conexiunile din aceeași familie de furnizori.",
+    "poolEgressFailuresByExit": "Eșecuri prin {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Eșecuri fără ieșire atribuită: {count}",
     "poolMemberEgress": "{host}:{port} a ieșit prin {egressIp} · ultimele {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: nu s-a observat trafic în ultimele {hours} h",
     "poolMemberEgressHint": "Ultimul IP de ieșire observat prin acest membru al poolului în intervalul selectat, preluat din jurnalul proxy. Pentru un membru fără trafic în acest interval se afișează mesajul privind absența traficului.",

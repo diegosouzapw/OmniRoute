@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {njia # ya kutoka} other {njia # za kutoka}} zilitumiwa na {connections, plural, one {muunganisho #} other {miunganisho #}} · hadi {max} kwenye njia moja ya kutoka · saa {hours} zilizopita",
     "poolEgressObservationEmpty": "Hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
     "poolEgressObservationHint": "Imehesabiwa kutoka kwenye kumbukumbu ya proksi katika kipindi hiki: IP tofauti za kutoka zilizoonekana kwa wanachama wa kundi hili, na miunganisho ya OmniRoute iliyozitumia. \"Kwenye njia moja ya kutoka\" humaanisha katika kipindi hicho, si kwa wakati mmoja. Uzuiaji wa 429 kwa kila IP husitisha tu miunganisho ya familia moja ya watoa huduma.",
+    "poolEgressFailuresByExit": "Hitilafu kupitia {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Hitilafu bila njia ya kutoka iliyohusishwa: {count}",
     "poolMemberEgress": "{host}:{port} ilitoka kupitia {egressIp} · saa {hours} zilizopita",
     "poolMemberEgressEmpty": "{host}:{port}: hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
     "poolMemberEgressHint": "IP ya mwisho ya kutoka iliyoonekana kupitia mshiriki huyu wa kundi katika kipindi hiki, ikisomwa kutoka kwenye logi ya proksi. Mshiriki asiye na trafiki katika kipindi hicho huonyesha mstari wa kutokuwepo kwa trafiki.",

@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# kilépési pontot} other {# kilépési pontot}} használt {connections, plural, one {# kapcsolat} other {# kapcsolat}} · egy kilépési ponton legfeljebb {max} · az elmúlt {hours} órában",
     "poolEgressObservationEmpty": "Nem észlelhető forgalom az elmúlt {hours} órában",
     "poolEgressObservationHint": "A proxynapló alapján, az időablakban számítva: a készlet tagjainál megfigyelt különböző kimenő IP-címek, valamint az ezeket használó OmniRoute-kapcsolatok. Az „egy kilépési ponton” az időablak egészére vonatkozik, nem egyidejű használatra. Az IP-címenkénti 429-es zárolás csak az azonos szolgáltatócsalád kapcsolatait szünetelteti.",
+    "poolEgressFailuresByExit": "Hibák a(z) {exit} kilépési ponton keresztül: {count}",
+    "poolEgressFailuresUnattributed": "Hibák hozzárendelt kilépési pont nélkül: {count}",
     "poolMemberEgress": "{host}:{port} kimenő forgalma a(z) {egressIp} címen keresztül haladt · elmúlt {hours} óra",
     "poolMemberEgressEmpty": "{host}:{port}: az elmúlt {hours} órában nem volt észlelhető forgalom",
     "poolMemberEgressHint": "Az időablakban a készlet ezen tagján keresztül legutóbb észlelt kimenő IP-cím, a proxy naplójából kiolvasva. Ha egy tagnál nem volt forgalom az időablakban, a forgalom hiányát jelző sor jelenik meg.",

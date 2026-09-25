@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Liczba wyjść: {exits, plural, one {# wyjście} few {# wyjścia} many {# wyjść} other {# wyjścia}} · liczba korzystających połączeń: {connections, plural, one {# połączenie} few {# połączenia} many {# połączeń} other {# połączenia}} · maksymalnie {max} na jednym wyjściu · ostatnie {hours} godz.",
     "poolEgressObservationEmpty": "Nie zaobserwowano ruchu w ciągu ostatnich {hours} godz.",
     "poolEgressObservationHint": "Dane zliczone z dziennika serwera proxy w tym przedziale czasu: unikalne adresy IP wyjścia zaobserwowane dla członków tej puli oraz połączenia OmniRoute, które z nich korzystały. „Na jednym wyjściu” oznacza wartość w całym przedziale czasu, a nie jednocześnie. Blokada 429 dla danego adresu IP wstrzymuje tylko połączenia z tej samej rodziny dostawcy.",
+    "poolEgressFailuresByExit": "Błędy przez {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Błędy bez przypisanego wyjścia: {count}",
     "poolMemberEgress": "{host}:{port} wychodził przez {egressIp} · ostatnie {hours} godz.",
     "poolMemberEgressEmpty": "{host}:{port}: nie zaobserwowano ruchu w ciągu ostatnich {hours} godz.",
     "poolMemberEgressHint": "Ostatni wychodzący adres IP zaobserwowany dla tego elementu puli w danym okresie, odczytany z dziennika serwera proxy. Dla elementu, który nie obsługiwał ruchu w tym okresie, wyświetlany jest komunikat o braku ruchu.",

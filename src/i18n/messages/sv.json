@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# utgång} other {# utgångar}} används av {connections, plural, one {# anslutning} other {# anslutningar}} · upp till {max} på en utgång · senaste {hours} h",
     "poolEgressObservationEmpty": "Ingen trafik observerades under de senaste {hours} h",
     "poolEgressObservationHint": "Räknat från proxyloggen under tidsfönstret: unika utgående IP-adresser som observerats för medlemmarna i denna pool samt de OmniRoute-anslutningar som använde dem. ”På en utgång” avser hela tidsfönstret, inte samma tidpunkt. 429-spärren per IP pausar endast anslutningar inom samma leverantörsfamilj.",
+    "poolEgressFailuresByExit": "Fel via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Fel utan tillskriven utgång: {count}",
     "poolMemberEgress": "{host}:{port} gick ut via {egressIp} · senaste {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: ingen trafik observerad under de senaste {hours} h",
     "poolMemberEgressHint": "Senaste utgående IP-adress som observerats via den här poolmedlemmen under tidsintervallet, hämtad från proxyloggen. En medlem utan trafik under tidsintervallet visar raden för ingen trafik.",

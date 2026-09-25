@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# کنکشن} other {# کنکشنز}} کے زیرِ استعمال {exits, plural, one {# اخراج} other {# اخراج}} · ایک اخراج پر زیادہ سے زیادہ {max} · گزشتہ {hours} گھنٹے",
     "poolEgressObservationEmpty": "گزشتہ {hours} گھنٹوں میں کوئی ٹریفک نہیں دیکھی گئی",
     "poolEgressObservationHint": "اس دورانیے کے لیے پراکسی لاگ سے شمار کیا گیا: اس پول کے اراکین کے لیے دیکھے گئے منفرد اخراجی IPs، اور انہیں استعمال کرنے والے OmniRoute کنکشنز۔ \"ایک اخراج پر\" سے مراد پورا دورانیہ ہے، ایک ہی وقت نہیں۔ فی IP 429 لاک آؤٹ صرف فراہم کنندگان کے اسی گروپ کے کنکشنز کو عارضی طور پر روکتا ہے۔",
+    "poolEgressFailuresByExit": "{exit} کے ذریعے ناکامیاں: {count}",
+    "poolEgressFailuresUnattributed": "بغیر متعین ایگزٹ کے ناکامیاں: {count}",
     "poolMemberEgress": "{host}:{port} سے {egressIp} کے ذریعے اخراج ہوا · گزشتہ {hours} گھنٹے",
     "poolMemberEgressEmpty": "{host}:{port}: گزشتہ {hours} گھنٹوں میں کوئی ٹریفک مشاہدہ نہیں ہوا",
     "poolMemberEgressHint": "اس دورانیے میں اس پول رکن کے ذریعے مشاہدہ کیا گیا آخری ایگریس IP، جو پراکسی لاگ سے پڑھا گیا۔ دورانیے میں کوئی ٹریفک نہ رکھنے والے رکن کے لیے بغیر ٹریفک والی سطر دکھائی جاتی ہے۔",

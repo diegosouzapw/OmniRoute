@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# Ausgang} other {# Ausgänge}} verwendet von {connections, plural, one {# Verbindung} other {# Verbindungen}} · bis zu {max} an einem Ausgang · letzte {hours} Std.",
     "poolEgressObservationEmpty": "In den letzten {hours} Std. wurde kein Datenverkehr beobachtet",
     "poolEgressObservationHint": "Ermittelt aus dem Proxy-Protokoll innerhalb des Zeitfensters: unterschiedliche ausgehende IP-Adressen, die für die Mitglieder dieses Pools beobachtet wurden, sowie die OmniRoute-Verbindungen, die sie verwendet haben. „An einem Ausgang“ bezieht sich auf das Zeitfenster, nicht auf eine gleichzeitige Nutzung. Die 429-Sperre pro IP pausiert nur Verbindungen derselben Anbieterfamilie.",
+    "poolEgressFailuresByExit": "Fehler über {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Fehler ohne zugeordneten Ausgang: {count}",
     "poolMemberEgress": "{host}:{port} ging über {egressIp} aus · letzte {hours} Std.",
     "poolMemberEgressEmpty": "{host}:{port}: in den letzten {hours} Std. kein Datenverkehr beobachtet",
     "poolMemberEgressHint": "Die letzte über dieses Pool-Mitglied im Zeitraum beobachtete Egress-IP, aus dem Proxy-Protokoll ausgelesen. Für ein Mitglied ohne Datenverkehr im Zeitraum wird die Zeile „Kein Datenverkehr“ angezeigt.",

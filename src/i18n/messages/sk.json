@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "Výstupy: {exits, plural, one {# výstup} few {# výstupy} other {# výstupov}} · pripojenia: {connections, plural, one {# pripojenie} few {# pripojenia} other {# pripojení}} · najviac {max} na jednom výstupe · za posledných {hours} h",
     "poolEgressObservationEmpty": "Za posledných {hours} h nebola zaznamenaná žiadna prevádzka",
     "poolEgressObservationHint": "Počítané z denníka proxy za sledované obdobie: jedinečné výstupné IP adresy zaznamenané pre členov tohto fondu a pripojenia OmniRoute, ktoré ich použili. „Na jednom výstupe“ znamená počas sledovaného obdobia, nie súčasne. Blokovanie 429 pre jednotlivé IP adresy pozastaví iba pripojenia rovnakej rodiny poskytovateľov.",
+    "poolEgressFailuresByExit": "Zlyhania cez {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Zlyhania bez priradeného výstupu: {count}",
     "poolMemberEgress": "{host}:{port} odchádzal cez {egressIp} · za posledných {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: za posledných {hours} h nebola zaznamenaná žiadna prevádzka",
     "poolMemberEgressHint": "Posledná výstupná IP adresa zaznamenaná cez tohto člena fondu v danom časovom intervale, načítaná z denníka proxy servera. Pri členovi bez prevádzky v tomto intervale sa zobrazí riadok informujúci o neprítomnosti prevádzky.",

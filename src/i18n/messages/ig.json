@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# ụzọ ọpụpụ} other {# ụzọ ọpụpụ}} nke {connections, plural, one {# njikọ} other {# njikọ}} jiri · ruo {max} n'otu ụzọ ọpụpụ · n'ime awa {hours} gara aga",
     "poolEgressObservationEmpty": "Ahụghị ngagharị data ọ bụla n'ime awa {hours} gara aga",
     "poolEgressObservationHint": "A gụrụ ya site na ndekọ proxy n'ime oge ahụ: IP ọpụpụ dị iche iche a hụrụ maka ndị otu pool a, yana njikọ OmniRoute ndị jiri ha. \"N'otu ụzọ ọpụpụ\" pụtara n'ime oge ahụ, ọ bụghị n'otu oge. Mkpọchi 429 nke IP ọ bụla na-akwụsịtụ naanị njikọ ndị sitere n'otu ezinụlọ provider.",
+    "poolEgressFailuresByExit": "Ọdịda site na {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Ọdịda na-enweghị ụzọ ọpụpụ ekenyere: {count}",
     "poolMemberEgress": "{host}:{port} si na {egressIp} pụọ · awa {hours} gara aga",
     "poolMemberEgressEmpty": "{host}:{port}: ahụghị okporo ụzọ n’ime awa {hours} gara aga",
     "poolMemberEgressHint": "Adreesị IP egress ikpeazụ a hụrụ site n’aka onye otu pool a n’ime oge ahụ, nke e si na ndekọ proxy gụọ. Onye otu na-enweghị okporo ụzọ n’ime oge ahụ ga-egosi ahịrị enweghị-okporo-ụzọ.",

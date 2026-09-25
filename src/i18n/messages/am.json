@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# ግንኙነት} other {# ግንኙነቶች}} {exits, plural, one {# መውጫን} other {# መውጫዎችን}} ተጠቅመዋል · በአንድ መውጫ ላይ እስከ {max} · የመጨረሻዎቹ {hours} ሰዓታት",
     "poolEgressObservationEmpty": "ባለፉት {hours} ሰዓታት ውስጥ ምንም ትራፊክ አልታየም",
     "poolEgressObservationHint": "በተወሰነው የጊዜ ክልል ውስጥ ከፕሮክሲ ምዝግብ የተቆጠሩት፦ ለዚህ ፑል አባላት የታዩ የተለያዩ የወጪ IPዎች እና እነሱን የተጠቀሙ OmniRoute ግንኙነቶች። \"በአንድ መውጫ ላይ\" ማለት በተወሰነው የጊዜ ክልል ውስጥ ማለት ነው፤ በተመሳሳይ ጊዜ ማለት አይደለም። የእያንዳንዱ IP የ429 እገዳ የሚያቆመው የተመሳሳይ የአቅራቢ ቤተሰብ ግንኙነቶችን ብቻ ነው።",
+    "poolEgressFailuresByExit": "በ{exit} በኩል የተከሰቱ ውድቀቶች፦ {count}",
+    "poolEgressFailuresUnattributed": "መውጫ ያልተመደበላቸው ውድቀቶች፦ {count}",
     "poolMemberEgress": "{host}:{port} በ{egressIp} በኩል ወጥቷል · ያለፉት {hours} ሰዓታት",
     "poolMemberEgressEmpty": "{host}:{port}፦ ባለፉት {hours} ሰዓታት ምንም ትራፊክ አልታየም",
     "poolMemberEgressHint": "በዚህ የፑል አባል በኩል በጊዜ መስኮቱ ውስጥ የታየው የመጨረሻው የመውጫ IP፣ ከፕሮክሲ ምዝግብ ማስታወሻው የተነበበ። በጊዜ መስኮቱ ውስጥ ምንም ትራፊክ የሌለው አባል ትራፊክ-የለም መስመሩን ያሳያል።",

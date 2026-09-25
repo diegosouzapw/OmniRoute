@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# 个出口} other {# 个出口}}，由 {connections, plural, one {# 个连接} other {# 个连接}}使用 · 单个出口最多 {max} 个连接 · 过去 {hours} 小时",
     "poolEgressObservationEmpty": "过去 {hours} 小时内未观察到流量",
     "poolEgressObservationHint": "根据此时间窗口内的代理日志统计：观察到此池成员使用的不同出口 IP，以及使用这些 IP 的 OmniRoute 连接。“单个出口”是指整个时间窗口内，而不是同一时刻。每个 IP 的 429 锁定仅会暂停同一提供者系列的连接。",
+    "poolEgressFailuresByExit": "经由 {exit} 的失败：{count}",
+    "poolEgressFailuresUnattributed": "未归属出口的失败：{count}",
     "poolMemberEgress": "{host}:{port} 通过 {egressIp} 离开 · 过去 {hours} 小时",
     "poolMemberEgressEmpty": "{host}:{port}：过去 {hours} 小时内未观察到流量",
     "poolMemberEgressHint": "在此时间窗口内通过该池成员观察到的最近出口 IP，读取自代理日志。时间窗口内无流量的成员将显示无流量提示。",

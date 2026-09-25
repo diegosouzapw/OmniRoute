@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# 個出口} other {# 個出口}}由 {connections, plural, one {# 個連線} other {# 個連線}}使用 · 單一出口最多 {max} 個 · 過去 {hours} 小時",
     "poolEgressObservationEmpty": "過去 {hours} 小時內未觀察到流量",
     "poolEgressObservationHint": "根據代理伺服器記錄在此時間範圍內計算：觀察到此集區成員使用的不同出口 IP，以及使用這些 IP 的 OmniRoute 連線。「單一出口」是指整個時間範圍內，而非同一時間。每個 IP 的 429 鎖定只會暫停同一提供者系列的連線。",
+    "poolEgressFailuresByExit": "經由 {exit} 的失敗：{count}",
+    "poolEgressFailuresUnattributed": "未歸屬出口的失敗：{count}",
     "poolMemberEgress": "{host}:{port} 經由 {egressIp} 對外連線 · 過去 {hours} 小時",
     "poolMemberEgressEmpty": "{host}:{port}：過去 {hours} 小時內未觀察到流量",
     "poolMemberEgressHint": "在此時間範圍內，透過此集區成員觀察到的最新出口 IP（讀取自 Proxy 日誌）。若成員在此時間範圍內沒有流量，則會顯示無流量訊息。",

@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# izlaz} few {# izlaza} other {# izlaza}} za {connections, plural, one {# vezu} few {# veze} other {# veza}} · do {max} na jednom izlazu · posljednjih {hours} h",
     "poolEgressObservationEmpty": "U posljednjih {hours} h nije zabilježen promet",
     "poolEgressObservationHint": "Izračunato iz zapisnika proxyja tijekom razdoblja: različite izlazne IP adrese zabilježene za članove ovog skupa i OmniRoute veze koje su ih koristile. „Na jednom izlazu” odnosi se na cijelo razdoblje, a ne na isti trenutak. Blokada 429 po IP adresi pauzira samo veze iz iste obitelji pružatelja.",
+    "poolEgressFailuresByExit": "Neuspjesi preko {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Neuspjesi bez pripisanog izlaza: {count}",
     "poolMemberEgress": "{host}:{port} izlazio je putem {egressIp} · posljednjih {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: u posljednjih {hours} h nije zabilježen promet",
     "poolMemberEgressHint": "Posljednja izlazna IP adresa zabilježena putem ovog člana skupa tijekom tog razdoblja, očitana iz zapisnika proxyja. Za člana bez prometa u tom razdoblju prikazuje se redak o nepostojanju prometa.",

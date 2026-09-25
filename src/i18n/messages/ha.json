@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "An yi amfani da {exits, plural, one {hanyar fita #} other {hanyoyin fita #}} ta hanyar {connections, plural, one {haɗi #} other {haɗe-haɗe #}} · har zuwa {max} a kan hanyar fita guda · sa'o'i {hours} da suka gabata",
     "poolEgressObservationEmpty": "Ba a ga zirga-zirga ba cikin sa'o'i {hours} da suka gabata",
     "poolEgressObservationHint": "An ƙidaya daga rajistar proxy a tsawon wannan lokacin: adiresoshin IP na fita daban-daban da aka gani ga mambobin wannan rukuni, da kuma haɗe-haɗen OmniRoute da suka yi amfani da su. \"A kan hanyar fita guda\" yana nufin a tsawon wannan lokacin, ba a lokaci guda ba. Kullewar 429 ta kowane IP tana dakatar da haɗe-haɗen iyalin mai samarwa iri ɗaya ne kawai.",
+    "poolEgressFailuresByExit": "Gazawa ta hanyar {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Gazawa ba tare da hanyar fita da aka danganta ba: {count}",
     "poolMemberEgress": "{host}:{port} ya fita ta {egressIp} · awanni {hours} da suka gabata",
     "poolMemberEgressEmpty": "{host}:{port}: ba a ga zirga-zirga ba a cikin awanni {hours} da suka gabata",
     "poolMemberEgressHint": "Adireshin IP na fita na ƙarshe da aka gani ta wannan mamban pool a cikin lokacin dubawa, wanda aka karanta daga rajistar proxy. Mamban da ba shi da zirga-zirga a cikin wannan lokacin zai nuna layin babu-zirga-zirga.",

@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# خروجی} other {# خروجی}} استفادهشده توسط {connections, plural, one {# اتصال} other {# اتصال}} · حداکثر {max} روی یک خروجی · در {hours} ساعت گذشته",
     "poolEgressObservationEmpty": "در {hours} ساعت گذشته هیچ ترافیکی مشاهده نشد",
     "poolEgressObservationHint": "محاسبهشده از گزارش پراکسی در بازهٔ زمانی: آدرسهای IP خروجی متمایز مشاهدهشده برای اعضای این مخزن و اتصالهای OmniRoute که از آنها استفاده کردهاند. «روی یک خروجی» به معنای کل بازهٔ زمانی است، نه بهطور همزمان. قفل موقت 429 برای هر IP فقط اتصالهای همان خانوادهٔ ارائهدهنده را متوقف میکند.",
+    "poolEgressFailuresByExit": "خطاها از طریق {exit}: {count}",
+    "poolEgressFailuresUnattributed": "خطاهای بدون خروجی مشخص: {count}",
     "poolMemberEgress": "{host}:{port} از طریق {egressIp} خارج شد · {hours} ساعت گذشته",
     "poolMemberEgressEmpty": "{host}:{port}: در {hours} ساعت گذشته هیچ ترافیکی مشاهده نشد",
     "poolMemberEgressHint": "آخرین IP خروجی مشاهدهشده از طریق این عضو استخر در بازه زمانی، که از گزارش پراکسی خوانده شده است. برای عضوی که در این بازه هیچ ترافیکی نداشته باشد، خط «بدون ترافیک» نمایش داده میشود.",

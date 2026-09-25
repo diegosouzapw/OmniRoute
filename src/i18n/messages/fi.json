@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# ulosmeno-IP} other {# ulosmeno-IP-osoitetta}} käytössä {connections, plural, one {# yhteydellä} other {# yhteydellä}} · enintään {max} yhdellä ulosmeno-IP:llä · viimeiset {hours} h",
     "poolEgressObservationEmpty": "Liikennettä ei havaittu viimeisten {hours} tunnin aikana",
     "poolEgressObservationHint": "Laskettu välityspalvelimen lokista tarkastelujakson ajalta: tämän poolin jäsenillä havaitut yksilölliset ulosmeno-IP-osoitteet sekä niitä käyttäneet OmniRoute-yhteydet. ”Yhdellä ulosmeno-IP:llä” tarkoittaa koko tarkastelujaksoa, ei samanaikaista käyttöä. IP-kohtainen 429-lukitus keskeyttää vain saman palveluntarjoajaperheen yhteydet.",
+    "poolEgressFailuresByExit": "Virheet kautta {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Virheet ilman kohdistettua ulostuloa: {count}",
     "poolMemberEgress": "{host}:{port} poistui osoitteen {egressIp} kautta · viimeiset {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: liikennettä ei havaittu viimeisten {hours} tunnin aikana",
     "poolMemberEgressHint": "Viimeisin tämän poolin jäsenen kautta havaittu ulostulo-IP valitulla aikavälillä välityspalvelimen lokin perusteella. Jos jäsenellä ei ole ollut liikennettä aikavälillä, näytetään Ei liikennettä -rivi.",

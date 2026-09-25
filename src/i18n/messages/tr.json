@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# bağlantı} other {# bağlantı}} tarafından kullanılan {exits, plural, one {# çıkış} other {# çıkış}} · tek bir çıkışta en fazla {max} · son {hours} sa.",
     "poolEgressObservationEmpty": "Son {hours} sa. içinde trafik gözlemlenmedi",
     "poolEgressObservationHint": "Pencere boyunca proxy günlüğünden hesaplanır: Bu havuzun üyeleri için gözlemlenen farklı çıkış IP'leri ve bunları kullanan OmniRoute bağlantıları. \"Tek bir çıkışta\", aynı anda değil, pencere boyunca anlamına gelir. IP başına 429 kilitlemesi yalnızca aynı sağlayıcı ailesinin bağlantılarını duraklatır.",
+    "poolEgressFailuresByExit": "{exit} üzerinden hatalar: {count}",
+    "poolEgressFailuresUnattributed": "Atanmış çıkışı olmayan hatalar: {count}",
     "poolMemberEgress": "{host}:{port}, {egressIp} üzerinden çıktı · son {hours} sa",
     "poolMemberEgressEmpty": "{host}:{port}: son {hours} sa içinde trafik gözlemlenmedi",
     "poolMemberEgressHint": "Bu havuz üyesi üzerinden ilgili zaman aralığında gözlemlenen ve proxy günlüğünden okunan son çıkış IP'si. Zaman aralığında trafik olmayan bir üye, trafik yok satırını gösterir.",

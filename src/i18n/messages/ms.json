@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# laluan keluar} other {# laluan keluar}} digunakan oleh {connections, plural, one {# sambungan} other {# sambungan}} · sehingga {max} pada satu laluan keluar · {hours} j terakhir",
     "poolEgressObservationEmpty": "Tiada trafik dikesan dalam tempoh {hours} j terakhir",
     "poolEgressObservationHint": "Dikira daripada log proksi sepanjang tempoh tersebut: IP egress berbeza yang dikesan untuk ahli kumpulan ini dan sambungan OmniRoute yang menggunakannya. \"Pada satu laluan keluar\" bermaksud sepanjang tempoh tersebut, bukan pada masa yang sama. Sekatan 429 bagi setiap IP hanya menjeda sambungan daripada keluarga penyedia yang sama.",
+    "poolEgressFailuresByExit": "Kegagalan melalui {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Kegagalan tanpa laluan keluar yang dikaitkan: {count}",
     "poolMemberEgress": "{host}:{port} keluar melalui {egressIp} · {hours} j terakhir",
     "poolMemberEgressEmpty": "{host}:{port}: tiada trafik dikesan dalam {hours} j terakhir",
     "poolMemberEgressHint": "IP egress terakhir yang dikesan melalui ahli kumpulan ini dalam tempoh tersebut, dibaca daripada log proksi. Ahli tanpa trafik dalam tempoh tersebut memaparkan baris tiada trafik.",

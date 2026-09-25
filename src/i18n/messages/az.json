@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# çıxış} other {# çıxış}} {connections, plural, one {# bağlantı} other {# bağlantı}} tərəfindən istifadə edilib · bir çıxışda maksimum {max} · son {hours} saat",
     "poolEgressObservationEmpty": "Son {hours} saat ərzində trafik müşahidə edilməyib",
     "poolEgressObservationHint": "Bu zaman intervalı üzrə proksi jurnalından hesablanıb: bu hovuzun üzvləri üçün müşahidə edilən fərqli çıxış IP-ləri və onlardan istifadə edən OmniRoute bağlantıları. \"Bir çıxışda\" eyni anda deyil, zaman intervalı ərzində deməkdir. Hər IP üzrə 429 bloklanması yalnız eyni provayder ailəsinə aid bağlantıları müvəqqəti dayandırır.",
+    "poolEgressFailuresByExit": "{exit} üzərindən uğursuzluqlar: {count}",
+    "poolEgressFailuresUnattributed": "Çıxışı müəyyən edilməyən uğursuzluqlar: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} vasitəsilə çıxıb · son {hours} saat",
     "poolMemberEgressEmpty": "{host}:{port}: son {hours} saat ərzində trafik müşahidə edilməyib",
     "poolMemberEgressHint": "Bu hovuz üzvü vasitəsilə göstərilən zaman intervalında müşahidə edilmiş və proksi jurnalından oxunmuş son çıxış IP-si. Bu intervalda trafiki olmayan üzv üçün trafikin olmaması sətri göstərilir.",

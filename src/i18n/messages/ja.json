@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# 個の出口} other {# 個の出口}}を{connections, plural, one {# 件の接続} other {# 件の接続}}が使用 · 1つの出口で最大{max}件 · 過去{hours}時間",
     "poolEgressObservationEmpty": "過去{hours}時間にトラフィックは観測されませんでした",
     "poolEgressObservationHint": "指定期間のプロキシログに基づく集計です。このプールのメンバーで観測された異なる出口IPと、それらを使用したOmniRoute接続を示します。「1つの出口で」は指定期間全体を意味し、同時に使用された数ではありません。IPごとの429ロックアウトでは、同じプロバイダーファミリーの接続のみが一時停止されます。",
+    "poolEgressFailuresByExit": "{exit} 経由の失敗: {count}",
+    "poolEgressFailuresUnattributed": "出口を特定できない失敗: {count}",
     "poolMemberEgress": "{host}:{port} は {egressIp} 経由で送信 · 過去 {hours} 時間",
     "poolMemberEgressEmpty": "{host}:{port}: 過去 {hours} 時間にトラフィックは観測されませんでした",
     "poolMemberEgressHint": "期間内にこのプールメンバーを通じて観測された最新のエグレス IP（プロキシログから取得）。期間内にトラフィックがないメンバーには、トラフィックなしの行が表示されます。",

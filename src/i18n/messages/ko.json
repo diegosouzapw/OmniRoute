@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {출구 #개} other {출구 #개}}를 {connections, plural, one {연결 #개} other {연결 #개}}에서 사용 · 출구 한 곳에서 최대 {max}개 · 최근 {hours}시간",
     "poolEgressObservationEmpty": "최근 {hours}시간 동안 트래픽이 관찰되지 않았습니다",
     "poolEgressObservationHint": "해당 기간의 프록시 로그를 기준으로 집계됩니다. 이 풀의 구성원에 대해 관찰된 고유 송신 IP와 이를 사용한 OmniRoute 연결을 나타냅니다. \"출구 한 곳에서\"는 동일한 시점이 아니라 해당 기간 전체를 의미합니다. IP별 429 잠금은 동일한 제공업체 계열의 연결만 일시 중지합니다.",
+    "poolEgressFailuresByExit": "{exit}을(를) 통한 실패: {count}",
+    "poolEgressFailuresUnattributed": "출구가 지정되지 않은 실패: {count}",
     "poolMemberEgress": "{host}:{port}에서 {egressIp}을(를) 통해 나감 · 최근 {hours}시간",
     "poolMemberEgressEmpty": "{host}:{port}: 최근 {hours}시간 동안 트래픽이 관찰되지 않음",
     "poolMemberEgressHint": "해당 기간 동안 이 풀 멤버를 통해 관찰된 마지막 송신 IP이며, 프록시 로그에서 읽어옵니다. 해당 기간에 트래픽이 없는 멤버에는 트래픽 없음 문구가 표시됩니다.",

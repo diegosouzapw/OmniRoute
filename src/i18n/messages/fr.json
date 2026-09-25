@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# sortie} other {# sorties}} ayant servi à {connections, plural, one {# connexion} other {# connexions}} · jusqu’à {max} sur une même sortie · dernières {hours} h",
     "poolEgressObservationEmpty": "Aucun trafic observé au cours des dernières {hours} h",
     "poolEgressObservationHint": "Calculé à partir du journal du proxy sur la période : adresses IP de sortie distinctes observées pour les membres de ce pool et connexions OmniRoute qui les ont utilisées. « Sur une même sortie » signifie sur l’ensemble de la période, et non simultanément. Le blocage 429 par adresse IP ne suspend que les connexions d’une même famille de fournisseurs.",
+    "poolEgressFailuresByExit": "Échecs via {exit} : {count}",
+    "poolEgressFailuresUnattributed": "Échecs sans sortie attribuée : {count}",
     "poolMemberEgress": "{host}:{port} est sorti via {egressIp} · dernières {hours} h",
     "poolMemberEgressEmpty": "{host}:{port} : aucun trafic observé au cours des dernières {hours} h",
     "poolMemberEgressHint": "Dernière adresse IP de sortie observée via ce membre du pool sur la période, d’après le journal du proxy. Un membre sans trafic sur la période affiche la ligne indiquant l’absence de trafic.",

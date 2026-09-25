@@ -71,8 +71,8 @@ function isObservation(value: unknown): value is Observation {
  * members over the window, how many connections the busiest one carried, and — when
  * the route reports it — the failed requests attributable to each exit plus the
  * unattributed remainder. Renders nothing when the observation is off, failed, or
- * the request itself errored. Failure lines reuse the observation sentence keys so
- * no new locale key is needed.
+ * the request itself errored. Failure lines have their own sentences: the traffic
+ * sentence ("N exits used by N connections") would misstate a failure count.
  */
 export function PoolEgressObservation({ query }: { query: string }) {
   const t = useTranslations("proxyRegistry");
@@ -115,21 +115,14 @@ export function PoolEgressObservation({ query }: { query: string }) {
       ? null
       : failures.byExit.map((entry) => (
           <span key={entry.exit} className="block">
-            {t("poolEgressObservation", {
-              exits: 1,
-              connections: entry.failures,
-              max: entry.failures,
-              hours: observation.windowHours,
-            })}{" "}
-            ({entry.exit}
-            {entry.byFamily.map((item) => ` · ${item.family}: ${item.count}`).join("")})
+            {t("poolEgressFailuresByExit", { exit: entry.exit, count: entry.failures })}
+            {entry.byFamily.map((item) => ` · ${item.family}: ${item.count}`).join("")}
           </span>
         ));
   const unattributedLine =
     failures !== undefined && failures.unattributed > 0 ? (
       <span className="block">
-        {t("poolEgressObservationEmpty", { hours: observation.windowHours })} (
-        {failures.unattributed})
+        {t("poolEgressFailuresUnattributed", { count: failures.unattributed })}
       </span>
     ) : null;
 

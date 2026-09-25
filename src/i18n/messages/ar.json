@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "تم استخدام {exits, plural, one {# منفذ خروج} other {# منافذ خروج}} بواسطة {connections, plural, one {# اتصال} other {# اتصالات}} · حتى {max} على منفذ خروج واحد · آخر {hours} ساعة",
     "poolEgressObservationEmpty": "لم تُرصد أي حركة مرور خلال آخر {hours} ساعة",
     "poolEgressObservationHint": "يُحتسب من سجل الوكيل خلال النافذة الزمنية: عناوين IP الصادرة المميزة التي رُصدت لأعضاء هذه المجموعة، واتصالات OmniRoute التي استخدمتها. تعني «على منفذ خروج واحد» خلال النافذة الزمنية، وليس في الوقت نفسه. يؤدي حظر 429 الخاص بكل عنوان IP إلى إيقاف اتصالات عائلة المزوّد نفسها مؤقتًا فقط.",
+    "poolEgressFailuresByExit": "الإخفاقات عبر {exit}: {count}",
+    "poolEgressFailuresUnattributed": "إخفاقات دون مخرج منسوب: {count}",
     "poolMemberEgress": "خرج {host}:{port} عبر {egressIp} · آخر {hours} ساعة",
     "poolMemberEgressEmpty": "{host}:{port}: لم تُرصد أي حركة مرور خلال آخر {hours} ساعة",
     "poolMemberEgressHint": "آخر عنوان IP للخروج تم رصده عبر عضو مجموعة الوكلاء هذا خلال الفترة الزمنية، كما ورد في سجل الوكيل. يظهر للعضو الذي لم يشهد أي حركة مرور خلال الفترة سطر عدم وجود حركة مرور.",

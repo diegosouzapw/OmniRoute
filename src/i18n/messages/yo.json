@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {# àbájáde} other {# àwọn àbájáde}} ni {connections, plural, one {# àsopọ̀} other {# àwọn àsopọ̀}} lò · tó {max} lórí àbájáde kan · láàárín wákàtí {hours} tó kọjá",
     "poolEgressObservationEmpty": "A kò rí ìrìnàjò dátà kankan láàárín wákàtí {hours} tó kọjá",
     "poolEgressObservationHint": "A kà á láti inú àkọsílẹ̀ prọ́ṣì láàárín àkókò náà: àwọn IP àbájáde ọ̀tọ̀ọ̀tọ̀ tí a rí fún àwọn ọmọ ẹgbẹ́ àkójọpọ̀ yìí, àti àwọn àsopọ̀ OmniRoute tí ó lò wọ́n. \"Lórí àbájáde kan\" túmọ̀ sí láàárín àkókò náà, kì í ṣe ní àkókò kan náà. Ìdènà 429 fún IP kọ̀ọ̀kan máa ń dá àwọn àsopọ̀ ti ìdílé olùpèsè kan náà dúró fún ìgbà díẹ̀ nìkan.",
+    "poolEgressFailuresByExit": "Àwọn ìkùnà nípasẹ̀ {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Àwọn ìkùnà láìsí ọ̀nà àbájáde tí a yàn: {count}",
     "poolMemberEgress": "{host}:{port} jáde nípasẹ̀ {egressIp} · ní wákàtí {hours} tó kọjá",
     "poolMemberEgressEmpty": "{host}:{port}: kò sí ìṣàn data tí a ṣàkíyèsí ní wákàtí {hours} tó kọjá",
     "poolMemberEgressHint": "Àdírẹ́sì IP àbájáde tó kẹ́yìn tí a ṣàkíyèsí nípasẹ̀ ọmọ ẹgbẹ́ pool yìí láàárín àkókò náà, tí a kà láti inú àkọsílẹ̀ proxy. Ọmọ ẹgbẹ́ tí kò ní ìṣàn data láàárín àkókò náà yóò fi ìlà àìsí-ìṣàn data hàn.",

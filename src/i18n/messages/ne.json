@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{connections, plural, one {# जडान} other {# जडानहरू}} द्वारा प्रयोग गरिएका {exits, plural, one {# निकास} other {# निकासहरू}} · एउटै निकासमा बढीमा {max} · पछिल्लो {hours} घण्टा",
     "poolEgressObservationEmpty": "पछिल्लो {hours} घण्टामा कुनै ट्राफिक देखिएन",
     "poolEgressObservationHint": "यो समयावधिको प्रोक्सी लगबाट गणना गरिएको हो: यस पूलका सदस्यहरूका लागि देखिएका फरक बहिर्गमन IP हरू र तिनलाई प्रयोग गर्ने OmniRoute जडानहरू। \"एउटै निकासमा\" भन्नाले एकै समयमा नभई उक्त समयावधिभर भन्ने बुझिन्छ। प्रति-IP 429 लकआउटले एउटै प्रदायक परिवारका जडानहरूलाई मात्र अस्थायी रूपमा रोक्छ।",
+    "poolEgressFailuresByExit": "{exit} मार्फत असफलताहरू: {count}",
+    "poolEgressFailuresUnattributed": "तोकिएको निकास नभएका असफलताहरू: {count}",
     "poolMemberEgress": "{host}:{port} बाट {egressIp} हुँदै बाहिरियो · पछिल्लो {hours} घण्टा",
     "poolMemberEgressEmpty": "{host}:{port}: पछिल्लो {hours} घण्टामा कुनै ट्राफिक देखिएन",
     "poolMemberEgressHint": "यस पूल सदस्यमार्फत तोकिएको समयावधिमा देखिएको अन्तिम निर्गमन IP, जुन प्रोक्सी लगबाट पढिएको हो। उक्त समयावधिमा कुनै ट्राफिक नभएको सदस्यले ट्राफिक-नभएको पङ्क्ति देखाउँछ।",
