@@ -103,6 +103,13 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /\bTPD rate limit\b/i,
   /insufficient balance/i,
 
+  // CLIProxyAPI / upstream proxy model cooldowns (Issue #6342 / #11725 follow-up).
+  // Body: {"error":{"code":"model_cooldown","message":"All credentials for model claude-opus-5 are cooling down"}}
+  // Or: "auth unavailable: N of N candidate(s) for model ... are in cooldown"
+  /all credentials for model .* are cooling down/i,
+  /model_cooldown/i,
+  /auth unavailable: .* in cooldown/i,
+
   // xAI Grok Build free-tier per-model rolling 24h cap. Live body:
   // "You've used all the included free usage for model grok-4.6 for now.
   //  Usage resets over a rolling 24-hour window — tokens (actual/limit): N/M."
@@ -456,6 +463,8 @@ export function classify429FromError(err: unknown): FailureKind | undefined {
   if (body === undefined) {
     if (typeof e.body !== "undefined") {
       body = e.body;
+    } else if (typeof e.error !== "undefined") {
+      body = e.error;
     } else if (typeof e.message === "string") {
       body = e.message;
     }
