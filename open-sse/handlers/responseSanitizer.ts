@@ -95,12 +95,18 @@ function stripZeroWidthToolArgumentJson(value: unknown): string {
 
 function stripZeroWidthFunctionArguments(functionCall: unknown): unknown {
   const fn = toRecord(functionCall);
-  if (!fn || typeof fn.arguments !== "string") return functionCall;
-  const stripped = stripZeroWidthText(fn.arguments);
-  // Fast path: return the original reference when there is nothing to strip, so
-  // hot streaming paths avoid a per-chunk shallow clone of every tool call.
-  if (stripped === fn.arguments) return functionCall;
-  return { ...fn, arguments: stripped };
+  if (!fn) return functionCall;
+  if (typeof fn.arguments === "string") {
+    const stripped = stripZeroWidthText(fn.arguments);
+    // Fast path: return the original reference when there is nothing to strip, so
+    // hot streaming paths avoid a per-chunk shallow clone of every tool call.
+    if (stripped === fn.arguments) return functionCall;
+    return { ...fn, arguments: stripped };
+  }
+  if (fn.arguments === null || typeof fn.arguments !== "object") return functionCall;
+  const serialized = JSON.stringify(fn.arguments);
+  if (typeof serialized !== "string") return functionCall;
+  return { ...fn, arguments: stripZeroWidthText(serialized) };
 }
 
 function stripZeroWidthToolCallArguments(toolCall: unknown): unknown {
