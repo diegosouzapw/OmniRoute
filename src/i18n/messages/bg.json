@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Деактивиране на устойчивостта на сесията",
     "sessionStickinessEnabled": "Устойчивостта е включена",
     "sessionStickinessDisabled": "Устойчивостта е изключена",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Предварителна настройка за Kimi Coding",
     "kimiPresetDescription": "Kimi K3 като основен модел (Moonshot API), с автоматично превключване към вашите Kimi Code връзки (kimi-coding, kimi-web), когато са конфигурирани.",
     "kimiPresetCta": "Добавяне на предварителна настройка",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Това ще направи моментна снимка на текущо свързаните доставчици/модели, които съвпадат с този шаблон, в редактируемо комбо.",
     "duplicateAutoComboFailedPrefix": "Неуспешно копиране на автоматично комбо:",
     "duplicateAutoComboUnknownError": "Неизвестна грешка",
-    "duplicateAutoComboTitle": "Създайте статично комбо от {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Създайте статично комбо от {name}"
   },
   "costs": {
     "title": "Разходи",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "Идентификатор на корелация: {id}",
       "detailedPayloadInfo": "Първо активирайте подробното регистриране, ако искате изгледа на четирите етапа на клиент/доставчик за нови заявки.",
       "copyAll": "Копиране на всичко",
-      "copiedAll": "Всичко е копирано"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

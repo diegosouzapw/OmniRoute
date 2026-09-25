@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Oturum yapışkanlığını devre dışı bırak",
     "sessionStickinessEnabled": "Yapışkanlık açık",
     "sessionStickinessDisabled": "Yapışkanlık kapalı",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding hazır ayarı",
     "kimiPresetDescription": "Yapılandırıldığında Kimi Code bağlantılarınıza (kimi-coding, kimi-web) otomatik geri dönüş ile birincil model olarak Kimi K3 (Moonshot API).",
     "kimiPresetCta": "Hazır ayar ekle",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Bu, bu şablona uygun olarak şu anda bağlı olan sağlayıcıları/modelleri düzenlenebilir bir kombinasyonda yakalayacaktır.",
     "duplicateAutoComboFailedPrefix": "Otomatik kombinasyon kopyalanamadı:",
     "duplicateAutoComboUnknownError": "Bilinmeyen hata",
-    "duplicateAutoComboTitle": "{name}-den statik bir kombinasyon oluştur",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}-den statik bir kombinasyon oluştur"
   },
   "costs": {
     "title": "Maliyetler",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "Korelasyon Kimliği: {id}",
       "detailedPayloadInfo": "Yeni istekler için dört aşamalı istemci/sağlayıcı yük görünümünü istiyorsanız önce ayrıntılı günlüğü etkinleştirin.",
       "copyAll": "Tümünü kopyala",
-      "copiedAll": "Tümü kopyalandı"
+      "copiedAll": "Tümünü kopyala",
+      "resilienceStoredError": "Kayıtlı hatadan sunuldu",
+      "resilienceParked": "Göndermeden önce {ms} bekletildi",
+      "resilienceRotations": "{count} hesap rotasyonu",
+      "resilienceRetried": "Boş tur yeniden denendi",
+      "resilienceContinued": "Akış ortasında devam edildi",
+      "resilienceRecovered": "Dayanıklılık eylemiyle kurtarıldı"
     }
   },
   "proxyLogger": {

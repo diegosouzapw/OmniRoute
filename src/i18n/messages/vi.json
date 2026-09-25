@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Tắt tính năng liên kết phiên",
     "sessionStickinessEnabled": "Bật liên kết phiên",
     "sessionStickinessDisabled": "Tắt liên kết phiên",
+    "stickyLimitEffective": "Hiệu lực {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "mặc định combo",
+    "stickyLimitSourceGlobal": "mặc định toàn cục",
+    "connectionAwareExpansion": "Mở rộng theo tài khoản",
+    "triStateInherit": "kế thừa",
+    "connectionAwareExpansionOn": "Bật",
+    "connectionAwareExpansionOff": "Tắt",
+    "promptCacheAffinityHint": "Định tuyến theo cache prompt được ưu tiên hơn round-robin/weighted giữa các tài khoản đã ghim. Tắt trong Settings → Combo defaults nếu cần xoay vòng nghiêm ngặt.",
     "kimiPresetTitle": "Cấu hình sẵn Kimi Coding",
     "kimiPresetDescription": "Kimi K3 làm model chính (Moonshot API), với khả năng tự động chuyển sang các kết nối Kimi Code dự phòng của bạn (kimi-coding, kimi-web) khi được cấu hình.",
     "kimiPresetCta": "Thêm cấu hình sẵn",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Điều này sẽ chụp lại các nhà cung cấp/mô hình đang kết nối hiện tại phù hợp với mẫu này vào một tổ hợp có thể chỉnh sửa.",
     "duplicateAutoComboFailedPrefix": "Không thể sao chép tổ hợp tự động:",
     "duplicateAutoComboUnknownError": "Lỗi không xác định",
-    "duplicateAutoComboTitle": "Tạo tổ hợp tĩnh từ {name}",
-    "stickyLimitEffective": "Hiệu lực {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "mặc định combo",
-    "stickyLimitSourceGlobal": "mặc định toàn cục",
-    "connectionAwareExpansion": "Mở rộng theo tài khoản",
-    "triStateInherit": "kế thừa",
-    "connectionAwareExpansionOn": "Bật",
-    "connectionAwareExpansionOff": "Tắt",
-    "promptCacheAffinityHint": "Định tuyến theo cache prompt được ưu tiên hơn round-robin/weighted giữa các tài khoản đã ghim. Tắt trong Settings → Combo defaults nếu cần xoay vòng nghiêm ngặt."
+    "duplicateAutoComboTitle": "Tạo tổ hợp tĩnh từ {name}"
   },
   "costs": {
     "title": "Chi phí",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "ID tương quan: {id}",
       "detailedPayloadInfo": "Hãy bật ghi nhật ký chi tiết trước nếu bạn muốn xem giao diện payload client/nhà cung cấp gồm 4 giai đoạn cho các yêu cầu mới.",
       "copyAll": "Sao chép tất cả",
-      "copiedAll": "Đã sao chép tất cả"
+      "copiedAll": "Đã sao chép tất cả",
+      "resilienceStoredError": "Phục vụ từ lỗi đã lưu",
+      "resilienceParked": "Đã chờ {ms} trước khi gửi",
+      "resilienceRotations": "{count} lần chuyển tài khoản",
+      "resilienceRetried": "Đã thử lại lượt trống",
+      "resilienceContinued": "Đã tiếp tục giữa luồng",
+      "resilienceRecovered": "Đã khôi phục bằng hành động phục hồi"
     }
   },
   "proxyLogger": {

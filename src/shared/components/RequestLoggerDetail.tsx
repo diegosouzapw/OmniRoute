@@ -23,6 +23,7 @@ import {
   buildPipelinePayloadSections,
   isBodySizeLimitOmission,
 } from "@/shared/components/RequestLoggerDetail.sections";
+import { getResilienceBadges } from "@/shared/components/requestLoggerResilience";
 
 // ─── Copy-all composition ────────────────────────────────────────────────────
 // Compose every visible payload section + stream chunk into a single block so
@@ -545,6 +546,11 @@ export default function RequestLoggerDetail({
     cacheSource === "semantic"
       ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
       : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
+  // resilience badges (flag alone decides, whatever the status).
+  const resilienceBadges = getResilienceBadges(
+    log.resilienceActions || detail?.resilienceActions || null,
+    (key, values) => t(key as never, values as never)
+  );
   const accountLabel = maskAccount(detail?.account || log.account, emailsVisible);
   const codexAccountRotation = getCodexAccountRotation(detail);
   return (
@@ -838,6 +844,11 @@ export default function RequestLoggerDetail({
                 >
                   {cacheSourceLabel}
                 </span>
+                {resilienceBadges.map((badge) => (
+                  <span key={badge.key} title={badge.title}>
+                    {badge.label}
+                  </span>
+                ))}
               </div>
               {(detail?.modelPinned || log.modelPinned) && (
                 <div>

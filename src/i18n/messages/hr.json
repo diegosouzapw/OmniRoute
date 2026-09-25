@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Onemogući ljepljivost sesije",
     "sessionStickinessEnabled": "Ljepljivost uključena",
     "sessionStickinessDisabled": "Ljepljivost isključena",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Unaprijed postavljena konfiguracija za Kimi Coding",
     "kimiPresetDescription": "Kimi K3 kao primarni model (Moonshot API), s automatskim prebacivanjem na vaše Kimi Code veze (kimi-coding, kimi-web) kada su konfigurirane.",
     "kimiPresetCta": "Dodaj unaprijed postavljenu konfiguraciju",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Time će se izraditi snimka trenutačno povezanih davatelja/modela koji odgovaraju ovom predlošku i pretvoriti u uređivu kombinaciju.",
     "duplicateAutoComboFailedPrefix": "Dupliciranje automatske kombinacije nije uspjelo:",
     "duplicateAutoComboUnknownError": "Nepoznata pogreška",
-    "duplicateAutoComboTitle": "Stvori statičnu kombinaciju iz {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Stvori statičnu kombinaciju iz {name}"
   },
   "costs": {
     "title": "Troškovi",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "ID korelacije: {id}",
       "detailedPayloadInfo": "Najprije omogućite detaljno zapisivanje ako želite prikaz korisnog tereta klijenta/pružatelja u četiri faze za nove zahtjeve.",
       "copyAll": "Kopiraj sve",
-      "copiedAll": "Sve kopirano"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

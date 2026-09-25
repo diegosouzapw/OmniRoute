@@ -17,6 +17,12 @@ import {
   noteRotationAccount,
 } from "../utils/proxyFetch.ts";
 import {
+  createServedAccountTracker,
+  noteParkWait,
+  noteReplayed,
+  noteStoredFallback,
+} from "./opencodeResilienceNotes.ts";
+import {
   clientSuppliedOpencodeSession,
   forwardOpencodeClientHeaders,
   resolveOpencodeCliDefaults,
@@ -642,6 +648,8 @@ export class OpencodeExecutor extends BaseExecutor {
       let burstStreak = 0,
         parked = false;
       const requestPacing = egressPacing.initEgressPacingForRequest(); // Off by default.
+      // served-account changes (effective-change counting) live in the leaf tracker.
+      const noteServedAccount = createServedAccountTracker();
 
       for (let attempt = 0; attempt < accounts.length + emptyRejectionBudget; attempt++) {
         const isProxiedCandidate = (a: ScopedAccount): boolean => {
@@ -737,6 +745,9 @@ export class OpencodeExecutor extends BaseExecutor {
         if (attributionOn && (accounts.length > 1 || account.fingerprint !== "")) {
           noteRotationAccount(masked);
         }
+        // effective-change counting on the masked id (the raw
+        // fingerprint never reaches the log, just the counter).
+        noteServedAccount(masked);
 
         // Pin egress to this account's proxy for the whole BaseExecutor dispatch
         // (incl. its intra-URL 429 retries). skipUpstreamRetry lets THIS loop own
@@ -890,6 +901,8 @@ export class OpencodeExecutor extends BaseExecutor {
                   "OPENCODE",
                   `${cid}burstStreak=${burstStreak} freshD2=${marker.fresh} park`
                 );
+                // local monotone park measure (Date.now diff, integer ms).
+                const parkStartMs = Date.now();
                 const p = await runParkAndReplay(
                   {
                     execute: (i: ExecuteInput) =>
@@ -904,10 +917,12 @@ export class OpencodeExecutor extends BaseExecutor {
                   log,
                   cid
                 );
+                noteParkWait(Date.now() - parkStartMs);
                 if (p && p !== result) {
                   if (attributionOn && skippedCooldown.size > 0) {
                     this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
                   }
+                  noteReplayed();
                   return this.normalizeMuseSparkResponse(input, p);
                 }
                 if (p) {
@@ -915,6 +930,7 @@ export class OpencodeExecutor extends BaseExecutor {
                   if (attributionOn && skippedCooldown.size > 0) {
                     this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
                   }
+                  noteStoredFallback();
                   return this.normalizeMuseSparkResponse(input, result);
                 }
               }

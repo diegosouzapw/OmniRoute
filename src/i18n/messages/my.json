@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ဆက်ရှင်တည်မြဲမှုကို ပိတ်ရန်",
     "sessionStickinessEnabled": "တည်မြဲမှု ဖွင့်ထားသည်",
     "sessionStickinessDisabled": "တည်မြဲမှု ပိတ်ထားသည်",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ကြိုတင်သတ်မှတ်ချက်",
     "kimiPresetDescription": "Kimi K3 ကို ပင်မမော်ဒယ် (Moonshot API) အဖြစ် အသုံးပြုပြီး၊ စီစဉ်သတ်မှတ်ထားပါက သင်၏ Kimi Code ချိတ်ဆက်မှုများ (kimi-coding, kimi-web) သို့ အလိုအလျောက် ပြောင်းလဲအသုံးပြုမည်။",
     "kimiPresetCta": "ကြိုတင်သတ်မှတ်ချက် ထည့်ရန်",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ဤလုပ်ဆောင်ချက်သည် လက်ရှိချိတ်ဆက်ထားပြီး ဤတမ်းပလိတ်နှင့် ကိုက်ညီသော ဝန်ဆောင်မှုပေးသူများ/မော်ဒယ်များကို တည်းဖြတ်နိုင်သည့် ပေါင်းစပ်မှုတစ်ခုအဖြစ် လက်ရှိအခြေအနေအတိုင်း မှတ်တမ်းတင်မည်။",
     "duplicateAutoComboFailedPrefix": "အလိုအလျောက်ပေါင်းစပ်မှုကို မိတ္တူပွား၍မရပါ:",
     "duplicateAutoComboUnknownError": "မသိသော အမှား",
-    "duplicateAutoComboTitle": "{name} မှ တည်ငြိမ်သော ပေါင်းစပ်မှုတစ်ခု ဖန်တီးရန်",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} မှ တည်ငြိမ်သော ပေါင်းစပ်မှုတစ်ခု ဖန်တီးရန်"
   },
   "costs": {
     "title": "ကုန်ကျစရိတ်များ",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "ဆက်စပ်မှု ID: {id}",
       "detailedPayloadInfo": "တောင်းဆိုမှုအသစ်များအတွက် အဆင့်လေးဆင့်ပါ Client/Provider payload မြင်ကွင်းကို ကြည့်လိုပါက အသေးစိတ်မှတ်တမ်းတင်ခြင်းကို ဦးစွာ ဖွင့်ပါ။",
       "copyAll": "အားလုံးကို ကူးယူရန်",
-      "copiedAll": "အားလုံးကို ကူးယူပြီးပါပြီ"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

@@ -51,7 +51,11 @@ export const KNOWN_DUPLICATE_VERSIONS = new Set([
 // stale-enforcement exige que cada reserva seja removida quando os arquivos
 // correspondentes aterrissarem na release.
 // ---------------------------------------------------------------------------
-export const KNOWN_GAPS = new Set(["026", "055", "121"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12); 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
+// 190 is held by open PR #14795 (190_call_logs_content_provenance, same
+// release/v3.8.51 base); #14810 carries 191, a legitimate gap closed by
+// merge order (operator decision 2026-09-25; the runner applies by number,
+// so 189→191 is safe). See src/lib/db/migrationRunner.ts.
+export const KNOWN_GAPS = new Set(["026", "055", "121", "190"]);
 
 function pad3(n) {
   return String(n).padStart(3, "0");

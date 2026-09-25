@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "سیشن اسٹیکینس کو غیر فعال کریں",
     "sessionStickinessEnabled": "اسٹیکینس آن",
     "sessionStickinessDisabled": "اسٹیکینس آف",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding پری سیٹ",
     "kimiPresetDescription": "بنیادی ماڈل کے طور پر Kimi K3 (Moonshot API)، کنفیگر ہونے پر آپ کے Kimi Code کنکشنز (kimi-coding، kimi-web) پر خودکار فال بیک کے ساتھ۔",
     "kimiPresetCta": "پری سیٹ شامل کریں",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "یہ اس ٹیمپلیٹ سے ملنے والے موجودہ منسلک فراہم کنندگان/ماڈلز کو ایڈیٹ ایبل کمبو میں اسنیپ شاট لے گا۔",
     "duplicateAutoComboFailedPrefix": "آٹو کمبو ڈپلیکیٹ کرنے میں ناکام:",
     "duplicateAutoComboUnknownError": "نامعلوم خرابی",
-    "duplicateAutoComboTitle": "{name} سے ایک جامد کمبو بنائیں",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} سے ایک جامد کمبو بنائیں"
   },
   "costs": {
     "title": "اخراجات",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "کوریلیشن ID: {id}",
       "detailedPayloadInfo": "پہلے تفصیلی لاگنگ فعال کریں اگر آپ نئے درخواستوں کے لیے چار مرحلوں کے کلائنٹ/فراہم کنندہ پے لوڈ ویو چاہتے ہیں۔",
       "copyAll": "سب کچھ کاپی کریں",
-      "copiedAll": "سب کچھ کاپی ہو گیا"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

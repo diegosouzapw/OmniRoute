@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Iddiżattiva l-persistenza tas-sessjoni",
     "sessionStickinessEnabled": "Persistenza mixgħula",
     "sessionStickinessDisabled": "Persistenza mitfija",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Konfigurazzjoni ssettjata minn qabel ta’ Kimi Coding",
     "kimiPresetDescription": "Kimi K3 bħala l-mudell primarju (Moonshot API), bi qlib awtomatiku għall-konnessjonijiet tiegħek ta’ Kimi Code (kimi-coding, kimi-web) meta jkunu kkonfigurati.",
     "kimiPresetCta": "Żid konfigurazzjoni ssettjata minn qabel",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dan se joħloq snapshot tal-fornituri/mudelli konnessi bħalissa li jaqblu ma’ din is-sagoma, f’kombinazzjoni li tista’ tiġi editjata.",
     "duplicateAutoComboFailedPrefix": "Ma rnexxilniex nidduplikaw il-kombinazzjoni awtomatika:",
     "duplicateAutoComboUnknownError": "Żball mhux magħruf",
-    "duplicateAutoComboTitle": "Oħloq kombinazzjoni statika minn {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Oħloq kombinazzjoni statika minn {name}"
   },
   "costs": {
     "title": "Spejjeż",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "ID tal-Korrelazzjoni: {id}",
       "detailedPayloadInfo": "L-ewwel attiva r-reġistrazzjoni dettaljata jekk trid id-dehra tal-payload tal-klijent/fornitur f'erba' stadji għal talbiet ġodda.",
       "copyAll": "Ikkopja kollox",
-      "copiedAll": "Kollox ġie kkupjat"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

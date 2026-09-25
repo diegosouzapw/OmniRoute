@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Sessievastheid uitschakelen",
     "sessionStickinessEnabled": "Sessievastheid aan",
     "sessionStickinessDisabled": "Sessievastheid uit",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-preset",
     "kimiPresetDescription": "Kimi K3 als het primaire model (Moonshot API), met automatische terugval naar uw Kimi Code-verbindingen (kimi-coding, kimi-web) indien geconfigureerd.",
     "kimiPresetCta": "Preset toevoegen",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dit maakt een momentopname van de momenteel verbonden providers/modellen die overeenkomen met dit sjabloon in een bewerkbare combinatie.",
     "duplicateAutoComboFailedPrefix": "Automatische combinatie dupliceren mislukt:",
     "duplicateAutoComboUnknownError": "Onbekende fout",
-    "duplicateAutoComboTitle": "Maak een statische combinatie van {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Maak een statische combinatie van {name}"
   },
   "costs": {
     "title": "Kosten",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "Correlatie-ID: {id}",
       "detailedPayloadInfo": "Schakel eerst gedetailleerde logging in als je de vier-fasen client/provider payloadweergave voor nieuwe verzoeken wilt.",
       "copyAll": "Alles kopiëren",
-      "copiedAll": "Alles gekopieerd"
+      "copiedAll": "Alles kopiëren",
+      "resilienceStoredError": "Bediend vanuit opgeslagen fout",
+      "resilienceParked": "{ms} geparkeerd vóór verzending",
+      "resilienceRotations": "{count} accountrotaties",
+      "resilienceRetried": "Lege beurt opnieuw geprobeerd",
+      "resilienceContinued": "Midden in stream hervat",
+      "resilienceRecovered": "Hersteld door een veerkrachtactie"
     }
   },
   "proxyLogger": {

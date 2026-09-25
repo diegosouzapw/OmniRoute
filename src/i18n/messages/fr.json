@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Désactiver la persistance de session",
     "sessionStickinessEnabled": "Persistance activée",
     "sessionStickinessDisabled": "Persistance désactivée",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Préréglage Kimi Coding",
     "kimiPresetDescription": "Kimi K3 comme modèle principal (Moonshot API), avec repli automatique vers vos connexions Kimi Code (kimi-coding, kimi-web) lorsqu'elles sont configurées.",
     "kimiPresetCta": "Ajouter le préréglage",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Cela capturera les fournisseurs/modèles actuellement connectés qui correspondent à ce modèle dans une combinaison modifiable.",
     "duplicateAutoComboFailedPrefix": "Échec de la duplication de la combinaison automatique :",
     "duplicateAutoComboUnknownError": "Erreur inconnue",
-    "duplicateAutoComboTitle": "Créer une combinaison statique à partir de {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Créer une combinaison statique à partir de {name}"
   },
   "costs": {
     "title": "Coûts",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "ID de corrélation : {id}",
       "detailedPayloadInfo": "Activez d’abord la journalisation détaillée si vous voulez voir l’affichage en 4 étapes des payloads client/fournisseur pour les nouvelles requêtes.",
       "copyAll": "Tout copier",
-      "copiedAll": "Tout a été copié"
+      "copiedAll": "Tout copier",
+      "resilienceStoredError": "Servi depuis l’erreur stockée",
+      "resilienceParked": "En attente {ms} avant envoi",
+      "resilienceRotations": "{count} rotations de compte",
+      "resilienceRetried": "Tour vide réessayé",
+      "resilienceContinued": "Repris en cours de flux",
+      "resilienceRecovered": "Récupéré par une action de résilience"
     }
   },
   "proxyLogger": {

@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "세션 고정 비활성화",
     "sessionStickinessEnabled": "세션 고정 켬",
     "sessionStickinessDisabled": "세션 고정 끔",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding 프리셋",
     "kimiPresetDescription": "Kimi K3를 기본 모델(Moonshot API)로 사용하며, 설정 시 Kimi Code 연결(kimi-coding, kimi-web)로 자동 폴백됩니다.",
     "kimiPresetCta": "프리셋 추가",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "이 템플릿과 일치하는 현재 연결된 제공자/모델을 편집 가능한 콤보로 스냅샷합니다.",
     "duplicateAutoComboFailedPrefix": "자동 콤보 복제 실패:",
     "duplicateAutoComboUnknownError": "알 수 없는 오류",
-    "duplicateAutoComboTitle": "{name}에서 정적 콤보 만들기",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}에서 정적 콤보 만들기"
   },
   "costs": {
     "title": "비용",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "상관 ID: {id}",
       "detailedPayloadInfo": "새 요청에 대한 4단계 클라이언트/제공자 페이로드 보기를 원하시면 먼저 자세한 로깅을 활성화하세요.",
       "copyAll": "모두 복사",
-      "copiedAll": "모두 복사됨"
+      "copiedAll": "모두 복사",
+      "resilienceStoredError": "저장된 오류에서 응답",
+      "resilienceParked": "전송 전 {ms} 대기",
+      "resilienceRotations": "계정 전환 {count}회",
+      "resilienceRetried": "빈 턴 재시도",
+      "resilienceContinued": "스트림 중간에 재개",
+      "resilienceRecovered": "복원력 조치로 복구"
     }
   },
   "proxyLogger": {

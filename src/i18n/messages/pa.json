@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ਸੈਸ਼ਨ ਸਟਿਕੀਨੈੱਸ ਅਸਮਰੱਥ ਕਰੋ",
     "sessionStickinessEnabled": "ਸਟਿਕੀਨੈੱਸ ਚਾਲੂ",
     "sessionStickinessDisabled": "ਸਟਿਕੀਨੈੱਸ ਬੰਦ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ਪ੍ਰੀਸੈੱਟ",
     "kimiPresetDescription": "Kimi K3 ਨੂੰ ਮੁੱਖ ਮਾਡਲ (Moonshot API) ਵਜੋਂ ਵਰਤਦਾ ਹੈ ਅਤੇ ਕੌਂਫਿਗਰ ਕੀਤੇ ਹੋਣ 'ਤੇ ਤੁਹਾਡੇ Kimi Code ਕਨੈਕਸ਼ਨਾਂ (kimi-coding, kimi-web) 'ਤੇ ਆਪਣੇ-ਆਪ ਫਾਲਬੈਕ ਕਰਦਾ ਹੈ।",
     "kimiPresetCta": "ਪ੍ਰੀਸੈੱਟ ਸ਼ਾਮਲ ਕਰੋ",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ਇਹ ਇਸ ਟੈਂਪਲੇਟ ਨਾਲ ਮੇਲ ਖਾਂਦੇ ਮੌਜੂਦਾ ਕਨੈਕਟ ਕੀਤੇ ਪ੍ਰਦਾਤਾਵਾਂ/ਮਾਡਲਾਂ ਦਾ ਸਨੈਪਸ਼ਾਟ ਲੈ ਕੇ ਇੱਕ ਸੰਪਾਦਨਯੋਗ ਕੌਂਬੋ ਬਣਾਏਗਾ।",
     "duplicateAutoComboFailedPrefix": "ਆਟੋ-ਕੌਂਬੋ ਦੀ ਨਕਲ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ:",
     "duplicateAutoComboUnknownError": "ਅਣਜਾਣ ਗਲਤੀ",
-    "duplicateAutoComboTitle": "{name} ਤੋਂ ਇੱਕ ਸਥਿਰ ਕੌਂਬੋ ਬਣਾਓ",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} ਤੋਂ ਇੱਕ ਸਥਿਰ ਕੌਂਬੋ ਬਣਾਓ"
   },
   "costs": {
     "title": "ਲਾਗਤਾਂ",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "ਕੋਰੀਲੇਸ਼ਨ ID: {id}",
       "detailedPayloadInfo": "ਜੇ ਤੁਸੀਂ ਨਵੀਆਂ ਬੇਨਤੀਆਂ ਲਈ ਚਾਰ-ਪੜਾਅ ਵਾਲਾ ਕਲਾਇੰਟ/ਪ੍ਰਦਾਤਾ ਪੇਲੋਡ ਦ੍ਰਿਸ਼ ਚਾਹੁੰਦੇ ਹੋ, ਤਾਂ ਪਹਿਲਾਂ ਵਿਸਤ੍ਰਿਤ ਲੌਗਿੰਗ ਚਾਲੂ ਕਰੋ।",
       "copyAll": "ਸਭ ਕਾਪੀ ਕਰੋ",
-      "copiedAll": "ਸਭ ਕੁਝ ਕਾਪੀ ਹੋ ਗਿਆ"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

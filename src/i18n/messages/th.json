@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ปิดใช้งานการยึดติดเซสชัน",
     "sessionStickinessEnabled": "เปิดการยึดติดเซสชัน",
     "sessionStickinessDisabled": "ปิดการยึดติดเซสชัน",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "ค่าที่ตั้งไว้ล่วงหน้า Kimi Coding",
     "kimiPresetDescription": "Kimi K3 เป็นโมเดลหลัก (Moonshot API) พร้อมการสลับสายอัตโนมัติไปยังการเชื่อมต่อ Kimi Code ของคุณ (kimi-coding, kimi-web) เมื่อกำหนดค่าไว้",
     "kimiPresetCta": "เพิ่มค่าที่ตั้งไว้ล่วงหน้า",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "สิ่งนี้จะจับภาพผู้ให้บริการ/โมเดลที่เชื่อมต่ออยู่ในปัจจุบันซึ่งตรงกับเทมเพลตนี้ลงในคอมโบที่แก้ไขได้",
     "duplicateAutoComboFailedPrefix": "ล้มเหลวในการทำสำเนาคอมโบอัตโนมัติ:",
     "duplicateAutoComboUnknownError": "ข้อผิดพลาดที่ไม่ทราบสาเหตุ",
-    "duplicateAutoComboTitle": "สร้างคอมโบคงที่จาก {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "สร้างคอมโบคงที่จาก {name}"
   },
   "costs": {
     "title": "ค่าใช้จ่าย",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "รหัสความสัมพันธ์: {id}",
       "detailedPayloadInfo": "โปรดเปิดใช้งานการบันทึกข้อมูลอย่างละเอียดก่อนหากคุณต้องการดูข้อมูลการส่งข้อมูลของไคลเอนต์/ผู้ให้บริการแบบสี่ขั้นตอนสำหรับคำขอใหม่",
       "copyAll": "คัดลอกทั้งหมด",
-      "copiedAll": "คัดลอกทั้งหมดแล้ว"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

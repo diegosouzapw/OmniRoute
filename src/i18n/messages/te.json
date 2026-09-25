@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "సెషన్ స్టిక్కీనెస్‌ను నిలిపివేయండి",
     "sessionStickinessEnabled": "స్టిక్కీనెస్ ఆన్",
     "sessionStickinessDisabled": "స్టిక్కీనెస్ ఆఫ్",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ప్రీసెట్",
     "kimiPresetDescription": "ప్రాథమిక మోడల్‌గా Kimi K3 (Moonshot API), కాన్ఫిగర్ చేసినప్పుడు మీ Kimi Code కనెక్షన్‌లకు (kimi-coding, kimi-web) ఆటోమేటిక్ ఫాల్‌బ్యాక్‌తో.",
     "kimiPresetCta": "ప్రీసెట్‌ను జోడించు",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ఈ టెంప్లేట్‌తో సరిపోయే ప్రస్తుత కనెక్ట్ చేసిన ప్రొవైడర్లు/మోడల్‌లను ఎడిటబుల్ కంబోలో స్నాప్‌షాట్ తీసుకుంటుంది.",
     "duplicateAutoComboFailedPrefix": "ఆటోకంబో డూప్లికేట్ చేయడంలో విఫలమైంది:",
     "duplicateAutoComboUnknownError": "తెలియని దోషం",
-    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి"
   },
   "costs": {
     "title": "ఖర్చులు",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "సంబంధిత ID: {id}",
       "detailedPayloadInfo": "కొత్త అభ్యర్థనల కోసం నాలుగు దశల క్లయింట్/ప్రొవైడర్ పేమెంట్ వీక్షణను కావాలంటే, మొదట వివరణాత్మక లాగింగ్‌ను ప్రారంభించండి.",
       "copyAll": "అన్నింటినీ కాపీ చేయండి",
-      "copiedAll": "అన్నీ కాపీ అయ్యాయి"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

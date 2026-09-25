@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Desactivar la persistencia de sesión",
     "sessionStickinessEnabled": "Persistencia activada",
     "sessionStickinessDisabled": "Persistencia desactivada",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preajuste de Kimi Coding",
     "kimiPresetDescription": "Kimi K3 como modelo principal (API de Moonshot), con cambio automático a tus conexiones de Kimi Code (kimi-coding, kimi-web) cuando estén configuradas.",
     "kimiPresetCta": "Añadir preajuste",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Esto capturará los proveedores/modelos conectados actualmente que coincidan con esta plantilla en una combinación editable.",
     "duplicateAutoComboFailedPrefix": "Error al duplicar la combinación automática:",
     "duplicateAutoComboUnknownError": "Error desconocido",
-    "duplicateAutoComboTitle": "Crear una combinación estática de {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Crear una combinación estática de {name}"
   },
   "costs": {
     "title": "Costos",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "ID de correlación: {id}",
       "detailedPayloadInfo": "Habilita primero el registro detallado si deseas la vista de carga útil de cliente/proveedor de cuatro etapas para nuevas solicitudes.",
       "copyAll": "Copiar todo",
-      "copiedAll": "Todo copiado"
+      "copiedAll": "Copiar todo",
+      "resilienceStoredError": "Servido desde error almacenado",
+      "resilienceParked": "Aparcado {ms} antes del envío",
+      "resilienceRotations": "{count} rotaciones de cuenta",
+      "resilienceRetried": "Turno vacío reintentado",
+      "resilienceContinued": "Reanudado a mitad del flujo",
+      "resilienceRecovered": "Recuperado por una acción de resiliencia"
     }
   },
   "proxyLogger": {

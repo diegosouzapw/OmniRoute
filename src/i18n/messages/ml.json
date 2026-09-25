@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "സെഷൻ സ്റ്റിക്കിനസ് പ്രവർത്തനരഹിതമാക്കുക",
     "sessionStickinessEnabled": "സ്റ്റിക്കിനസ് ഓൺ",
     "sessionStickinessDisabled": "സ്റ്റിക്കിനസ് ഓഫ്",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding പ്രീസെറ്റ്",
     "kimiPresetDescription": "Kimi K3-യെ പ്രാഥമിക മോഡലായി (Moonshot API) ഉപയോഗിക്കുന്നു; കോൺഫിഗർ ചെയ്തിട്ടുണ്ടെങ്കിൽ, നിങ്ങളുടെ Kimi Code കണക്ഷനുകളിലേക്ക് (kimi-coding, kimi-web) സ്വയമേവ ഫാൾബാക്ക് ചെയ്യുന്നു.",
     "kimiPresetCta": "പ്രീസെറ്റ് ചേർക്കുക",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ഈ ടെംപ്ലേറ്റുമായി പൊരുത്തപ്പെടുന്ന, നിലവിൽ കണക്റ്റ് ചെയ്തിരിക്കുന്ന പ്രൊവൈഡർമാരുടെയും മോഡലുകളുടെയും ഒരു സ്നാപ്പ്ഷോട്ട് എഡിറ്റ് ചെയ്യാവുന്ന കോംബോയാക്കി മാറ്റും.",
     "duplicateAutoComboFailedPrefix": "ഓട്ടോ-കോംബോ പകർത്തുന്നതിൽ പരാജയപ്പെട്ടു:",
     "duplicateAutoComboUnknownError": "അജ്ഞാത പിശക്",
-    "duplicateAutoComboTitle": "{name}-ൽ നിന്ന് ഒരു സ്റ്റാറ്റിക് കോംബോ സൃഷ്ടിക്കുക",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}-ൽ നിന്ന് ഒരു സ്റ്റാറ്റിക് കോംബോ സൃഷ്ടിക്കുക"
   },
   "costs": {
     "title": "ചെലവുകൾ",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "കോറിലേഷൻ ID: {id}",
       "detailedPayloadInfo": "പുതിയ അഭ്യർത്ഥനകൾക്കായുള്ള നാല്-ഘട്ട ക്ലയന്റ്/പ്രൊവൈഡർ പേലോഡ് കാഴ്ച വേണമെങ്കിൽ ആദ്യം വിശദമായ ലോഗിംഗ് പ്രവർത്തനക്ഷമമാക്കുക.",
       "copyAll": "എല്ലാം പകർത്തുക",
-      "copiedAll": "എല്ലാം പകർത്തി"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

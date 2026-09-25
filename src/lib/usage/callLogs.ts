@@ -14,6 +14,7 @@ import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
 import { updateRequestTokensById } from "./usageHistory";
 import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
+import { serializeResilienceActions, resetResilienceActions } from "./resilienceActionsContext";
 import {
   seedPendingContinuationState,
   clearPendingContinuationState,
@@ -122,6 +123,7 @@ type CallLogSummaryRow = {
   correlation_id?: string | null;
   model_pinned?: number | null;
   session_tag?: string | null;
+  resilience_actions?: string | null;
 };
 
 const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
@@ -349,6 +351,28 @@ function hasTable(tableName: string): boolean {
   );
 }
 
+function hasCallLogsColumn(columnName: string): boolean {
+  // One PRAGMA per INSERT is wasteful; the cached answer is invalidated only
+  // when a write fails with "no such column" (concurrent migration race).
+  const cached = (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache;
+  if (cached?.has(columnName)) return cached.get(columnName) as boolean;
+  try {
+    const db = getDbInstance();
+    const rows = db.prepare("PRAGMA table_info(call_logs)").all() as Array<{ name?: string }>;
+    const found = rows.some((row) => row.name === columnName);
+    const map = cached ?? new Map<string, boolean>();
+    map.set(columnName, found);
+    (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache = map;
+    return found;
+  } catch {
+    return false;
+  }
+}
+
+export function invalidateCallLogsColumnCache(): void {
+  (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache = undefined;
+}
+
 function readLegacyLogFromDisk(entry: {
   timestamp: string | null;
   model: string | null;
@@ -412,6 +436,70 @@ export function resolveProviderDisplay(
   return null;
 }
 
+const RESILIENCE_ACTION_KEYS = new Set([
+  "rotations",
+  "park_ms",
+  "parked",
+  "replayed",
+  "stored_429",
+  "empty_retries",
+  "continued",
+  "buffered",
+  "resumed",
+  "dropped_notes",
+]);
+
+function isValidBufferedValue(value: unknown): value is "retry" | "pass" {
+  return value === "retry" || value === "pass";
+}
+
+function cleanNumericValue(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
+  return Math.floor(value);
+}
+
+function parseResiliencePayload(raw: unknown): Record<string, unknown> | null {
+  if (typeof raw !== "string" || raw.length === 0) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+  return parsed as Record<string, unknown>;
+}
+
+function cleanResilienceRecord(record: Record<string, unknown>): Record<string, unknown> | null {
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (!RESILIENCE_ACTION_KEYS.has(key)) continue;
+    if (key === "buffered") {
+      if (isValidBufferedValue(value)) cleaned[key] = value;
+      continue;
+    }
+    const numeric = cleanNumericValue(value);
+    if (numeric !== null) {
+      cleaned[key] = numeric;
+      continue;
+    }
+    if (typeof value === "boolean") {
+      cleaned[key] = value;
+    }
+  }
+  return Object.keys(cleaned).length > 0 ? cleaned : null;
+}
+
+/**
+ * Parse the compact resilience-actions JSON (fail-soft: corrupt or unknown
+ * input yields null, never throws into the read path).
+ */
+export function parseResilienceActions(raw: unknown): Record<string, unknown> | null {
+  const record = parseResiliencePayload(raw);
+  if (record === null) return null;
+  return cleanResilienceRecord(record);
+}
+
 function mapSummaryRow(row: CallLogSummaryRow) {
   const detailState = normalizeDetailState(row.detail_state);
   const provider = row.provider;
@@ -459,6 +547,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     correlationId: row.correlation_id || null,
     modelPinned: toNumber(row.model_pinned) === 1,
     sessionTag: row.session_tag || null,
+    resilienceActions: parseResilienceActions(row.resilience_actions ?? null),
   };
 }
 
@@ -541,6 +630,13 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         Boolean(entry.videoContentRemoved)
       );
     }
+
+    // resilience resilience summary for this attempt (implicit ALS store opened
+    // around the attempt; null outside a store or when nothing was noted).
+    // Read BEFORE any await: the ALS context is synchronous and later awaits
+    // (resolveAccountName, artifact write) may cross async boundaries.
+    const resilienceActions = serializeResilienceActions();
+    const hasResilienceColumn = hasCallLogsColumn("resilience_actions");
 
     const account = await resolveAccountName(entry.connectionId || null);
     const rawProvider: string = entry.provider || "-";
@@ -687,7 +783,38 @@ async function saveCallLogOperation(entry: any): Promise<void> {
     }
 
     db.prepare(
-      `
+      hasResilienceColumn
+        ? `
+      INSERT INTO call_logs (
+        id, timestamp, method, path, status, model, requested_model, provider,
+        account, connection_id, duration, tokens_in, tokens_out,
+        tokens_cache_read, tokens_cache_creation, tokens_reasoning, tokens_compressed,
+        reasoning_source, reasoning_chars,
+        reasoning_duration_ms, reasoning_effort_requested, reasoning_effort_upstream,
+        reasoning_encrypted,
+        cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
+        combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
+        artifact_relpath, artifact_size_bytes, artifact_sha256,
+        has_request_body, has_response_body, has_pipeline_details, request_summary,
+        correlation_id, model_pinned, session_tag, response_id, error_type,
+        video_content_removed, resilience_actions
+      )
+      VALUES (
+        @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
+        @account, @connectionId, @duration, @tokensIn, @tokensOut,
+        @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @tokensCompressed,
+        @reasoningSource, @reasoningChars,
+        @reasoningDurationMs, @reasoningEffortRequested, @reasoningEffortUpstream,
+        @reasoningEncrypted,
+        @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
+        @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
+        @artifactRelPath, @artifactSizeBytes, @artifactSha256,
+        @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
+        @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
+        @videoContentRemoved, @resilienceActions
+      )
+    `
+        : `
       INSERT INTO call_logs (
         id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, tokens_in, tokens_out,
@@ -726,9 +853,14 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       artifactSha256,
       hasRequestBody: protectedRequestBody !== null ? 1 : 0,
       hasResponseBody: protectedResponseBody !== null ? 1 : 0,
+      resilienceActions,
       hasPipelineDetails: protectedPipelinePayloads ? 1 : 0,
       requestSummary,
     });
+    // sink note: the sink is the unique consumer — reset only after a successful
+    // INSERT, so a failed write (or a second persistence of the same
+    // attempt) keeps the summary instead of silently writing NULL.
+    resetResilienceActions();
 
     if (detailState === "ready" && typeof logEntry.responseId === "string") {
       // The durable row is now authoritative; drop the bridge entry instead
@@ -738,6 +870,9 @@ async function saveCallLogOperation(entry: any): Promise<void> {
 
     scheduleCallLogRotation();
   } catch (error) {
+    if (String((error as Error)?.message ?? error).includes("no such column")) {
+      invalidateCallLogsColumnCache();
+    }
     console.error(
       "[callLogs] Failed to save call log:",
       sanitizeErrorMessage(error) || "Call log persistence failed"

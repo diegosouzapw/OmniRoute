@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "ಸೆಷನ್ ಸ್ಥಿರತೆಯನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
     "sessionStickinessEnabled": "ಸ್ಥಿರತೆ ಆನ್",
     "sessionStickinessDisabled": "ಸ್ಥಿರತೆ ಆಫ್",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ಪೂರ್ವನಿಗದಿ",
     "kimiPresetDescription": "Kimi K3 ಅನ್ನು ಪ್ರಾಥಮಿಕ ಮಾಡೆಲ್ ಆಗಿ (Moonshot API) ಬಳಸಲಾಗುತ್ತದೆ; ಕಾನ್ಫಿಗರ್ ಮಾಡಿದಾಗ ನಿಮ್ಮ Kimi Code ಸಂಪರ್ಕಗಳಿಗೆ (kimi-coding, kimi-web) ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಫಾಲ್ಬ್ಯಾಕ್ ಆಗುತ್ತದೆ.",
     "kimiPresetCta": "ಪೂರ್ವನಿಗದಿಯನ್ನು ಸೇರಿಸಿ",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "ಈ ಟೆಂಪ್ಲೇಟ್ಗೆ ಹೊಂದಿಕೆಯಾಗುವ ಪ್ರಸ್ತುತ ಸಂಪರ್ಕಿತ ಪೂರೈಕೆದಾರರು/ಮಾಡೆಲ್ಗಳ ಸ್ನ್ಯಾಪ್ಶಾಟ್ ತೆಗೆದು, ಅದನ್ನು ಸಂಪಾದಿಸಬಹುದಾದ ಕಾಂಬೊ ಆಗಿ ರಚಿಸಲಾಗುತ್ತದೆ.",
     "duplicateAutoComboFailedPrefix": "ಸ್ವಯಂ-ಕಾಂಬೊವನ್ನು ನಕಲಿಸಲು ವಿಫಲವಾಗಿದೆ:",
     "duplicateAutoComboUnknownError": "ಅಜ್ಞಾತ ದೋಷ",
-    "duplicateAutoComboTitle": "{name} ನಿಂದ ಸ್ಥಿರ ಕಾಂಬೊವನ್ನು ರಚಿಸಿ",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} ನಿಂದ ಸ್ಥಿರ ಕಾಂಬೊವನ್ನು ರಚಿಸಿ"
   },
   "costs": {
     "title": "ವೆಚ್ಚಗಳು",
@@ -11498,7 +11498,13 @@
       "correlationIdValue": "ಸಹಸಂಬಂಧ ID: {id}",
       "detailedPayloadInfo": "ಹೊಸ ವಿನಂತಿಗಳಿಗಾಗಿ ನಾಲ್ಕು-ಹಂತದ ಕ್ಲೈಂಟ್/ಪೂರೈಕೆದಾರ ಪೇಲೋಡ್ ವೀಕ್ಷಣೆ ಬೇಕಿದ್ದರೆ ಮೊದಲು ವಿವರವಾದ ಲಾಗಿಂಗ್ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ.",
       "copyAll": "ಎಲ್ಲವನ್ನೂ ನಕಲಿಸಿ",
-      "copiedAll": "ಎಲ್ಲವನ್ನೂ ನಕಲಿಸಲಾಗಿದೆ"
+      "copiedAll": "Copied all",
+      "resilienceStoredError": "Served from stored error",
+      "resilienceParked": "Parked {ms} before dispatch",
+      "resilienceRotations": "{count} account rotations",
+      "resilienceRetried": "Retried empty turn",
+      "resilienceContinued": "Resumed mid-stream",
+      "resilienceRecovered": "Recovered by a resilience action"
     }
   },
   "proxyLogger": {

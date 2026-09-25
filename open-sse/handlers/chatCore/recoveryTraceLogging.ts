@@ -9,6 +9,7 @@
  * never adds a warn line. Every line carries `attempt N/MAX` so it joins the attempt line.
  */
 import { STREAM_RECOVERY } from "../../config/constants.ts";
+import { noteContinuedSuffix } from "./continuationResilienceNotes.ts";
 import type {
   ContinuationOutcome,
   RecoverableStreamOptions,
@@ -46,14 +47,25 @@ export function isContinuationGiveUp(event: ContinuationOutcome): boolean {
 }
 
 export function buildContinuationLogHooks(
-  log: RecoveryLogger
+  log: RecoveryLogger,
+  resilience?: { onSuffix?: (event: ContinuationOutcome) => void }
 ): Pick<RecoverableStreamOptions, "onContinue" | "onContinueOutcome"> {
+  // Default resilience note: only a stitched suffix counts as a resume of
+  // the turn. Terminal/empty/overlap-reject/refused/no-stream outcomes
+  // record nothing. Kept here so the call site stays one line.
+  const onSuffix = resilience?.onSuffix ?? noteContinuedSuffix;
   return {
     onContinue: (attempt) => log?.warn?.(TAG, `mid-stream continuation attempt ${attempt}/${MAX}`),
     onContinueOutcome: (event) => {
       const line = formatContinuationOutcome(event);
       if (isContinuationGiveUp(event)) log?.warn?.(TAG, line);
       else log?.debug?.(TAG, line);
+      // best-effort resilience note; never throws into the stream path.
+      try {
+        if (event.outcome === "suffix") onSuffix(event);
+      } catch {
+        /* observability only */
+      }
     },
   };
 }
